@@ -1,0 +1,79 @@
+version: '3.6'
+services:
+  db:
+    container_name: db
+    hostname: db
+    image: postgres:latest
+    restart: always
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=bcd
+    expose:
+      - 5432
+    volumes:
+      - db:/var/lib/postgresql/data
+    ports:
+      - 127.0.0.1:5432:5432
+    logging: &my-logging
+      options:
+        max-size: 10m
+        max-file: "5"
+
+
+  mq:
+    container_name: mq
+    hostname: mq
+    image: rabbitmq:latest
+    restart: always
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    labels:
+      NAME: "rabbitmq"
+    logging: *my-logging
+
+  api:
+    container_name: api
+    restart: always
+    image: registry.github.com/aopoltorzhicky/bcdhub/api
+    build:
+      context: .
+      dockerfile: cmd/api/Dockerfile
+    environment:
+      - GIN_MODE=release
+    depends_on:
+      - db
+    ports:
+      - 127.0.0.1:14000:14000
+    logging: *my-logging  
+
+  indexer:
+    container_name: indexer
+    restart: always
+    image: registry.github.com/aopoltorzhicky/bcdhub/indexer
+    build:
+      context: .
+      dockerfile: cmd/indexer/Dockerfile
+    depends_on:
+      - db
+      - mq 
+    logging: *my-logging
+  
+  metrics:
+    container_name: metrics
+    restart: always
+    image: registry.github.com/aopoltorzhicky/bcdhub/metrics
+    build:
+      context: .
+      dockerfile: cmd/metrics/Dockerfile
+    depends_on:
+      - db
+      - mq
+      - indexer
+    logging: *my-logging
+
+volumes:
+  db:
+    driver: local
+        
