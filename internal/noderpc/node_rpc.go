@@ -2,8 +2,10 @@ package noderpc
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"time"
 )
@@ -15,6 +17,7 @@ type NodeRPC struct {
 
 	outOfSyncTimeout time.Duration
 	timeout          time.Duration
+	retryCount       int
 }
 
 // NewNodeRPC -
@@ -24,6 +27,7 @@ func NewNodeRPC(baseURL, network string) *NodeRPC {
 		network:          network,
 		outOfSyncTimeout: -3 * time.Minute,
 		timeout:          time.Second * 10,
+		retryCount:       3,
 	}
 }
 
@@ -32,15 +36,24 @@ func (rpc *NodeRPC) SetTimeout(timeout time.Duration) {
 	rpc.timeout = timeout
 }
 
-func (rpc *NodeRPC) get(uri string, ret interface{}) error {
+func (rpc *NodeRPC) get(uri string, ret interface{}) (err error) {
 	url := fmt.Sprintf("%s/%s/%s", rpc.baseURL, rpc.network, uri)
 	client := http.Client{
 		Timeout: rpc.timeout,
 	}
 
-	resp, err := client.Get(url)
-	if err != nil {
-		return err
+	var resp *http.Response
+	count := 0
+	for ; count < rpc.retryCount; count++ {
+		if resp, err = client.Get(url); err != nil {
+			log.Printf("Attempt #%d: %s", count+1, err.Error())
+			continue
+		}
+		break
+	}
+
+	if count == rpc.retryCount {
+		return errors.New("Max HTTP request retry exceeded")
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)

@@ -3,7 +3,7 @@ package tzkt
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"log"
 	"net/http"
 	"time"
 
@@ -19,6 +19,8 @@ const (
 type TzKT struct {
 	Host   string
 	client http.Client
+
+	retryCount int
 }
 
 // NewTzKT -
@@ -28,6 +30,8 @@ func NewTzKT(host string, timeout time.Duration) *TzKT {
 		client: http.Client{
 			Timeout: time.Duration(timeout) * time.Second,
 		},
+
+		retryCount: 3,
 	}
 }
 
@@ -36,26 +40,32 @@ func (t *TzKT) request(method, endpoint string, params map[string]string, respon
 
 	req, err := http.NewRequest(method, uri, nil)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "http.NewRequest")
 	}
 	q := req.URL.Query()
 	for key, value := range params {
 		q.Add(key, value)
 	}
 	req.URL.RawQuery = q.Encode()
-	resp, err := t.client.Do(req)
-	if err != nil {
-		return errors.Wrapf(err, "[%s]: %s", method, req.URL.String())
+
+	var resp *http.Response
+	count := 0
+	for ; count < t.retryCount; count++ {
+		if resp, err = t.client.Do(req); err != nil {
+			log.Printf("Attempt #%d: %s", count+1, err.Error())
+			continue
+		}
+		break
+	}
+
+	if count == t.retryCount {
+		return errors.New("Max HTTP request retry exceeded")
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return errors.Wrap(err, "ioutil.ReadAll")
-	}
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		return errors.Wrap(err, "json.Unmarshal")
+	dec := json.NewDecoder(resp.Body)
+	if err = dec.Decode(response); err != nil {
+		return errors.Wrap(err, "json.Decode")
 	}
 	return nil
 }

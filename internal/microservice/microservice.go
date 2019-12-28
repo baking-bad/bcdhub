@@ -6,12 +6,12 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/jinzhu/gorm"
-	"github.com/streadway/amqp"
 	"github.com/aopoltorzhicky/bcdhub/internal/db"
 	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
 	"github.com/aopoltorzhicky/bcdhub/internal/mq"
 	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
+	"github.com/jinzhu/gorm"
+	"github.com/streadway/amqp"
 )
 
 // Handler -
@@ -71,7 +71,7 @@ func (m *Microservice) Close() {
 
 // Start - run microservice
 func (m *Microservice) Start() {
-	m.setupCloseHandler()
+	signal.Notify(m.close, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
 	msgs, err := m.MQ.Consume(m.queue)
 	if err != nil {
@@ -92,8 +92,4 @@ func (m *Microservice) Start() {
 			}
 		}
 	}
-}
-
-func (m *Microservice) setupCloseHandler() {
-	signal.Notify(m.close, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 }

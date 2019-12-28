@@ -2,8 +2,10 @@ package tzstats
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"time"
 )
@@ -12,14 +14,16 @@ import (
 type TzStats struct {
 	baseURL string
 
-	timeout time.Duration
+	timeout    time.Duration
+	retryCount int
 }
 
 // NewTzStats -
 func NewTzStats(baseURL string) *TzStats {
 	return &TzStats{
-		baseURL: baseURL,
-		timeout: time.Second * 10,
+		baseURL:    baseURL,
+		timeout:    time.Second * 10,
+		retryCount: 3,
 	}
 }
 
@@ -58,9 +62,18 @@ func (api *TzStats) get(uri string, params map[string]string, ret interface{}) e
 
 	// log.Println(req.URL.String())
 	client := http.Client{Timeout: api.timeout}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
+	var resp *http.Response
+	count := 0
+	for ; count < api.retryCount; count++ {
+		if resp, err = client.Do(req); err != nil {
+			log.Printf("Attempt #%d: %s", count+1, err.Error())
+			continue
+		}
+		break
+	}
+
+	if count == api.retryCount {
+		return errors.New("Max HTTP request retry exceeded")
 	}
 	defer resp.Body.Close()
 
