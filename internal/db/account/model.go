@@ -3,7 +3,7 @@ package account
 // Account -
 type Account struct {
 	ID      int64  `gorm:"AUTO_INCREMENT;unique_index;column:id" json:"-"`
-	Address string `gorm:"address;primary_key" json:"address"`
+	Address string `gorm:"address;primary_key" json:"address,omitempty"`
 	Alias   string `gorm:"alias" json:"alias,omitempty"`
 	Network string `gorm:"network;primary_key" json:"-"`
 }

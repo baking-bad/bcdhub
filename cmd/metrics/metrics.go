@@ -8,8 +8,11 @@ import (
 	"log"
 	"os"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser"
+	"github.com/aopoltorzhicky/bcdhub/internal/db/account"
 	"github.com/aopoltorzhicky/bcdhub/internal/db/contract"
 	"github.com/aopoltorzhicky/bcdhub/internal/db/project"
+	"github.com/aopoltorzhicky/bcdhub/internal/db/relation"
 	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
 	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
 	"github.com/jinzhu/gorm"
@@ -40,94 +43,33 @@ func saveLabels() error {
 	return err
 }
 
-func getCodeHash(script map[string]interface{}) (string, error) {
-	code, ok := script["code"]
-	if !ok {
-		return "", fmt.Errorf("Invalid script: can`t find 'code' tag")
-	}
-	value, ok := code.([]interface{})
-	if !ok {
-		return "", fmt.Errorf("Invalid script: can`t convert 'code' tag to map")
-	}
-	if len(value) < 3 {
-		return "", fmt.Errorf("Invalid script: 'code' if %d length", len(value))
-	}
-	codeValue := value[2]
-	return getHash(codeValue, defaultLabels)
-}
-
-func getHashPrimitive(value map[string]interface{}, labels map[string]int) (hash string, err error) {
-	prim, primOK := value["prim"]
-	if !primOK {
-		return "", nil
-	}
-	sPrim := prim.(string)
-	args, argsOK := value["args"].([]interface{})
-
-	label, labelOK := labels[sPrim]
-	if !labelOK {
-		label = len(labels)
-		labels[sPrim] = label
-	}
-
-	if argsOK {
-		h, e := getHash(args, labels)
-		if e != nil {
-			return "", e
-		}
-		hash = fmt.Sprintf("%x%s", label, h)
-	} else {
-		hash = fmt.Sprintf("%x", label)
-	}
-	return
-}
-
-func getHash(value interface{}, labels map[string]int) (string, error) {
-	hash := ""
-	switch t := value.(type) {
-	case []interface{}:
-		for _, arg := range t {
-			h, err := getHash(arg, labels)
-			if err != nil {
-				return "", err
-			}
-			hash += h
-		}
-	case map[string]interface{}:
-		h, err := getHashPrimitive(t, labels)
-		if err != nil {
-			return "", err
-		}
-		hash = h
-	default:
-		return "", fmt.Errorf("Unknown value type: %T", t)
-	}
-	return hash, nil
-}
-
-func computeMetrics(rpc *noderpc.NodeRPC, db *gorm.DB, c contract.Contract) (upd contract.Contract, err error) {
-	// Detect language
-	upd.Language, err = detectLanguage(c.Script)
+func computeMetrics(db *gorm.DB, c contract.Contract) (upd contract.Contract, err error) {
+	script, err := contractparser.New(c.Script.RawMessage, defaultLabels)
 	if err != nil {
-		log.Println(err)
+		return
+	}
+	if err = script.Parse(); err != nil {
+		return
+	}
+	// Detect language
+	upd.Language = script.Language()
+	// Compute hash code
+	upd.HashCode = script.Code.HashCode
+	// Set project ID
+	proj, err := project.Search(db, upd.HashCode)
+	if err == nil {
+		upd.ProjectID = proj.ID
 	}
 
-	var scriptMap map[string]interface{}
-	if err = json.Unmarshal(c.Script.RawMessage, &scriptMap); err == nil {
-		// Compute hash code
-		upd.HashCode, err = getCodeHash(scriptMap)
-		if err != nil {
-			return
-		}
+	// Set kind
+	upd.Kind = script.Kind()
 
-		// Set project ID
-		proj, err := project.Search(db, upd.HashCode)
-		if err == nil {
-			upd.ProjectID = proj.ID
-		}
+	if err = saveTags(script.Tags, c); err != nil {
+		return
+	}
 
-		// Set kind
-		upd.Kind = detectKind(upd.HashCode)
+	if err = saveHardcodedAddresses(script.HardcodedAddresses, c); err != nil {
+		return
 	}
 
 	return
@@ -145,5 +87,46 @@ func computeEmptyMetrics(rpcs map[string]*noderpc.NodeRPC, db *gorm.DB) error {
 		}
 	}
 
+	return nil
+}
+
+func saveTags(scriptTags map[string]struct{}, c contract.Contract) (err error) {
+	query := ""
+	for tag := range scriptTags {
+		query += fmt.Sprintf(" ('%s', '%d'),", tag, c.ID)
+	}
+	if len(query) > 0 {
+		// Remove last comma
+		query = query[:len(query)-1]
+
+		if err := ms.DB.Exec(fmt.Sprintf("INSERT INTO tags (tag, contract_id) VALUES %s", query)).Error; err != nil {
+			return err
+		}
+	}
+	return
+}
+
+func saveHardcodedAddresses(addresses []string, c contract.Contract) error {
+	relationValues := ""
+	for _, a := range addresses {
+		var acc account.Account
+		if err := ms.DB.FirstOrCreate(&acc, account.Account{
+			Network: c.Network,
+			Address: a,
+		}).Error; err != nil {
+			log.Println(err)
+			continue
+		}
+		relationValues = fmt.Sprintf(" ('%d', '%d', '%s'),", c.AddressID, acc.ID, relation.Hardcoded)
+	}
+
+	if len(relationValues) > 0 {
+		// Remove last comma
+		relationValues = relationValues[:len(relationValues)-1]
+
+		if err := ms.DB.Exec(fmt.Sprintf("INSERT INTO relations (account_id, relation_id, type) VALUES %s", relationValues)).Error; err != nil {
+			return err
+		}
+	}
 	return nil
 }

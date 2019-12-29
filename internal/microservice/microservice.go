@@ -82,8 +82,6 @@ func (m *Microservice) Start() {
 	for {
 		select {
 		case <-m.close:
-			log.Println("Stopping...")
-			m.Close()
 			log.Print("Stopped")
 			return
 		case msg := <-msgs:

@@ -26,13 +26,16 @@ type Contract struct {
 	ProjectID  int64          `gorm:"project_id" json:"-"`
 
 	Tags       []tags.Tag `gorm:"foreignkey:ContractID" json:"-"`
-	StringTags []string   `sql:"-" json:"tags"`
+	StringTags []string   `sql:"-" json:"tags,omitempty"`
 
-	Relations []relation.Relation `gorm:"foreignkey:Address;association_foreignkey:Address" json:"relations"`
+	Relations []relation.Relation `gorm:"foreignkey:Address;association_foreignkey:Address" json:"relations,omitempty"`
 
-	Address  account.Account `gorm:"foreignkey:AddressID;association_foreignkey:ID" json:"address"`
-	Manager  account.Account `gorm:"foreignkey:ManagerID;association_foreignkey:ID" json:"manager"`
-	Delegate account.Account `gorm:"foreignkey:DelegateID;association_foreignkey:ID" json:"delegate"`
+	Account account.Account `gorm:"foreignkey:AddressID;association_foreignkey:ID" json:"-"`
+	Alias   string          `sql:"-" json:"alias,omitempty"`
+	Address string          `sql:"-" json:"address"`
+
+	Manager  *account.Account `gorm:"foreignkey:ManagerID;association_foreignkey:ID" json:"manager,omitempty"`
+	Delegate *account.Account `gorm:"foreignkey:DelegateID;association_foreignkey:ID" json:"delegate,omitempty"`
 }
 
 // TableName - set table name
@@ -42,6 +45,9 @@ func (c *Contract) TableName() string {
 
 // AfterFind -
 func (c *Contract) AfterFind() (err error) {
+	c.Address = c.Account.Address
+	c.Alias = c.Account.Alias
+
 	tags := make([]string, 0)
 	if len(c.Tags) > 0 {
 		for _, t := range c.Tags {

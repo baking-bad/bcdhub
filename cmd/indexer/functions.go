@@ -144,7 +144,7 @@ func syncIndexer(rpc *noderpc.NodeRPC, indexer index.Indexer, db *gorm.DB, messa
 				continue
 			}
 
-			log.Printf("[%s] Contract created", n.Address.Address)
+			log.Printf("[%s] Contract created", n.Address)
 			if s.Level < n.Level {
 				s.Level = n.Level
 				s.Timestamp = n.Timestamp

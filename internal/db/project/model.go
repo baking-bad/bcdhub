@@ -11,7 +11,7 @@ type Project struct {
 
 	Contracts []contract.Contract `gorm:"foreignkey:ProjectID" json:"contracts"`
 
-	Tags []string `sql:"-" json:"tags"`
+	Tags []string `sql:"-" json:"tags,omitempty"`
 }
 
 // TableName - set table name

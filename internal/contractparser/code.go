@@ -1,0 +1,279 @@
+package contractparser
+
+import (
+	"fmt"
+	"log"
+	"strings"
+)
+
+// Code -
+type Code struct {
+	Parameter []map[string]interface{}
+	Storage   []interface{}
+	Code      []interface{}
+
+	HashCode   string
+	hashLabels map[string]int
+
+	Tags     map[string]struct{}
+	Language string
+}
+
+// Entrypoint -
+type Entrypoint struct {
+	Name string
+	Args []string
+}
+
+func newCode(script map[string]interface{}, labels map[string]int) (Code, error) {
+	res := Code{
+		hashLabels: labels,
+		Language:   LangUnknown,
+		Tags:       make(map[string]struct{}),
+	}
+	code, ok := script["code"]
+	if !ok {
+		return res, fmt.Errorf("Can't find tag 'code'")
+	}
+	c, ok := code.([]interface{})
+	if !ok {
+		return res, fmt.Errorf("Invalid tag 'code' type")
+	}
+	if len(c) != 3 {
+		return res, fmt.Errorf("Invalid tag 'code' length")
+	}
+
+	for i := range c {
+		if err := res.parseCodeSection(c[i]); err != nil {
+			return res, err
+		}
+	}
+	return res, nil
+}
+
+func (c *Code) parseCodeSection(section interface{}) error {
+	s, ok := section.(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("Invalid section type")
+	}
+	prim, ok := s["prim"]
+	if !ok {
+		return fmt.Errorf("Can't find tag 'prim' in section")
+	}
+	sPrim := prim.(string)
+
+	args, ok := s["args"]
+	if !ok {
+		return fmt.Errorf("Can't find tag 'args' in section: %s", sPrim)
+	}
+	vargs, ok := args.([]interface{})
+	if !ok {
+		return fmt.Errorf("Invalid type tag 'args' in section: %s", sPrim)
+	}
+
+	switch sPrim {
+	case "code":
+		c.Code = vargs
+	case "storage":
+		c.Storage = vargs
+	case "parameter":
+		res := make([]map[string]interface{}, len(vargs))
+		for i := range vargs {
+			res[i], ok = vargs[i].(map[string]interface{})
+			if !ok {
+				return fmt.Errorf("Invalid type tag 'args' in section: %s", sPrim)
+			}
+		}
+		c.Parameter = res
+	}
+
+	return nil
+}
+
+func (c *Code) entrypoints() []Entrypoint {
+	e := make([]Entrypoint, 0)
+	for _, p := range c.Parameter {
+		e = append(e, findEntrypoint(p)...)
+	}
+	return e
+}
+
+func parseEntrypointArgs(args interface{}) []string {
+	if args == nil {
+		return nil
+	}
+	return argsToFlat(args)
+}
+
+func argsToFlat(args interface{}) []string {
+	res := make([]string, 0)
+	switch val := args.(type) {
+	case []interface{}:
+		for i := range val {
+			res = append(res, argsToFlat(val[i])...)
+		}
+	case map[string]interface{}:
+		if prim, ok := val["prim"]; ok {
+			sPrim := prim.(string)
+			if sPrim == "pair" || sPrim == "or" {
+				if a, ok := val["args"]; ok {
+					res = append(res, argsToFlat(a)...)
+				}
+			} else {
+				if a, ok := val["args"]; ok {
+					res = append(res, argsToFlat(a)...)
+				} else {
+					res = append(res, sPrim)
+				}
+			}
+
+		}
+	}
+	return res
+}
+
+func findEntrypoint(v map[string]interface{}) []Entrypoint {
+	annots, ok := v["annots"]
+	if ok {
+		ann := annots.([]interface{})
+		e := make([]Entrypoint, len(ann))
+		for i := range ann {
+			name := ann[i].(string)
+			name = strings.Trim(name, "%")
+
+			e[i] = Entrypoint{
+				Name: name,
+				Args: parseEntrypointArgs(v["args"]),
+			}
+		}
+		return e
+	}
+
+	vargs, ok := v["args"]
+	if !ok {
+		return nil
+	}
+	args := vargs.([]interface{})
+	es := make([]Entrypoint, 0)
+	for _, a := range args {
+		es = append(es, findEntrypoint(a.(map[string]interface{}))...)
+	}
+	return es
+}
+
+func (c *Code) print() {
+	log.Print("Entrypoints:")
+	entrypoints := c.entrypoints()
+	for _, e := range entrypoints {
+		log.Println(e.Name)
+	}
+}
+
+func (c *Code) parseCodePart() error {
+	for _, val := range c.Code {
+		if err := c.parsePrimitive(val); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *Code) parsePrimitive(val interface{}) error {
+	switch t := val.(type) {
+	case []interface{}:
+		for _, a := range t {
+			if err := c.parsePrimitive(a); err != nil {
+				return err
+			}
+		}
+	case map[string]interface{}:
+		vPrim, ok := t["prim"]
+		if !ok {
+			if err := c.handlePrimitive("", nil, t); err != nil {
+				return err
+			}
+			return nil
+		}
+		sPrim, ok := vPrim.(string)
+		if !ok {
+			return nil
+		}
+		vArgs, ok := t["args"]
+		if ok {
+			arr, ok := vArgs.([]interface{})
+			if !ok {
+				return nil
+			}
+
+			for i := range arr {
+				c.parsePrimitive(arr[i])
+			}
+			if err := c.handlePrimitive(sPrim, arr, t); err != nil {
+				return err
+			}
+		} else {
+			if err := c.handlePrimitive(sPrim, nil, t); err != nil {
+				return err
+			}
+		}
+
+	default:
+		return fmt.Errorf("Unknown value type: %T", t)
+	}
+	return nil
+}
+
+func (c *Code) handlePrimitive(prim string, args []interface{}, obj map[string]interface{}) (err error) {
+	h, err := c.hashPrimitive(prim, args)
+	if err != nil {
+		return
+	}
+	c.HashCode = c.HashCode + h
+
+	c.detectLanguage(obj)
+	c.findTags(obj)
+
+	return nil
+}
+
+func (c *Code) hashPrimitive(prim string, args []interface{}) (hash string, err error) {
+	if prim == "" {
+		return
+	}
+	label, labelOK := c.hashLabels[prim]
+	if !labelOK {
+		label = len(c.hashLabels)
+		c.hashLabels[prim] = label
+	}
+
+	hash = fmt.Sprintf("%x", label)
+
+	return hash, nil
+}
+
+func (c *Code) detectLanguage(obj map[string]interface{}) {
+	if c.Language != LangUnknown {
+		return
+	}
+	if detectLiquidity(obj, c.entrypoints()) {
+		c.Language = LangLiquidity
+		return
+	}
+	if detectPython(obj) {
+		c.Language = LangPython
+		return
+	}
+	if detectLIGO(obj) {
+		c.Language = LangLigo
+		return
+	}
+	c.Language = LangUnknown
+}
+
+func (c *Code) findTags(obj map[string]interface{}) {
+	tag := primTags(obj)
+	_, ok := c.Tags[tag]
+	if tag != "" && !ok {
+		c.Tags[tag] = struct{}{}
+	}
+}
