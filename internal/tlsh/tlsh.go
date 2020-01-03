@@ -51,7 +51,7 @@ func (t *Tlsh) String() string {
 	return hex.EncodeToString(t.Binary())
 }
 
-// Parsing the hash of the string type
+// ParseStringToTlsh - Parsing the hash of the string type
 func ParseStringToTlsh(hashString string) (*Tlsh, error) {
 	var code [codeSize]byte
 	hashByte, err := hex.DecodeString(hashString)
