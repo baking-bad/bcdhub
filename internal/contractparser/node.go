@@ -28,7 +28,7 @@ func newNode(obj map[string]interface{}) *Node {
 			n.Annotations = make([]string, 0)
 			annots := v.([]interface{})
 			for i := range annots {
-				n.Annotations = append(n.Annotations, annots[i].(string))
+				n.Annotations = append(n.Annotations, strings.Trim(annots[i].(string), "%@"))
 			}
 		case "string", "int", "mutez", "bytes":
 			n.Value = v
@@ -76,4 +76,9 @@ func (n *Node) GetMutez() float64 {
 // Is - check prim value
 func (n *Node) Is(prim string) bool {
 	return strings.ToUpper(prim) == n.Prim
+}
+
+// HasAnnots - check if node has annotations
+func (n *Node) HasAnnots() bool {
+	return len(n.Annotations) > 0
 }

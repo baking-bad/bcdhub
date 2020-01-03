@@ -23,6 +23,9 @@ func computeMetrics(rpc *noderpc.NodeRPC, c *models.Contract) error {
 	c.Language = script.Language()
 	c.Kind = script.Kind()
 	c.HashCode = script.Code.Hash
+	c.FailStrings = script.Code.FailStrings
+	c.Primitives = script.Code.Primitives
+	c.Annotations = script.Code.Annotations
 
 	c.Tags = make([]string, 0)
 	for tag := range script.Tags {

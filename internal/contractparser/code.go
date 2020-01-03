@@ -17,8 +17,11 @@ type Code struct {
 
 	fuzzyReader *HashReader
 
-	Tags     map[string]struct{}
-	Language string
+	Tags        map[string]struct{}
+	Language    string
+	FailStrings Set
+	Primitives  Set
+	Annotations Set
 }
 
 // Entrypoint -
@@ -32,6 +35,8 @@ func newCode(script map[string]interface{}) (Code, error) {
 		Language:    LangUnknown,
 		Tags:        make(map[string]struct{}),
 		fuzzyReader: NewHashReader(),
+		FailStrings: make(Set, 0),
+		Primitives:  make(Set, 0),
 	}
 	code, ok := script["code"]
 	if !ok {
@@ -193,9 +198,11 @@ func (c *Code) parsePrimitive(val interface{}) error {
 				return err
 			}
 		}
-		// if fail := parseFail(t); fail != nil {
-		// 	log.Println(fail)
-		// }
+		if fail := parseFail(t); fail != nil {
+			if fail.With != "" {
+				c.FailStrings.Append(fail.With)
+			}
+		}
 	case map[string]interface{}:
 		node := newNode(t)
 		for i := range node.Args {
@@ -211,7 +218,14 @@ func (c *Code) parsePrimitive(val interface{}) error {
 }
 
 func (c *Code) handlePrimitive(node *Node) (err error) {
-	c.fuzzyReader.WriteString(strings.ToUpper(node.Prim))
+	if node.Prim != "" {
+		c.Primitives.Append(node.Prim)
+		c.fuzzyReader.WriteString(node.Prim)
+	}
+
+	if node.HasAnnots() {
+		c.Annotations.Append(node.Annotations...)
+	}
 
 	c.detectLanguage(node)
 	c.findTags(node)

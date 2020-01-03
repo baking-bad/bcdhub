@@ -15,8 +15,11 @@ type Contract struct {
 	HashCode  string    `json:"hash_code,omitempty"`
 	Language  string    `json:"language,omitempty"`
 
-	Tags      []string `json:"tags,omitempty"`
-	Hardcoded []string `json:"hardcoded,omitempty"`
+	Tags        []string `json:"tags,omitempty"`
+	Hardcoded   []string `json:"hardcoded,omitempty"`
+	FailStrings []string `json:"fail_strings,omitempty"`
+	Primitives  []string `json:"primitives,omitempty"`
+	Annotations []string `json:"annotations,omitempty"`
 
 	Address  string `json:"address"`
 	Manager  string `json:"manager,omitempty"`
