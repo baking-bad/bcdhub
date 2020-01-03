@@ -4,11 +4,13 @@ import (
 	"log"
 	"time"
 
-	_ "github.com/jinzhu/gorm/dialects/postgres"
-	"github.com/aopoltorzhicky/bcdhub/internal/db"
+	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
-	"github.com/aopoltorzhicky/bcdhub/internal/mq"
+	"github.com/aopoltorzhicky/bcdhub/internal/models"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
+
+var states = map[string]models.State{}
 
 func main() {
 	var cfg config
@@ -17,30 +19,30 @@ func main() {
 	}
 	cfg.print()
 
-	db, err := db.Database(cfg.Db.URI, cfg.Db.Log)
+	es, err := elastic.New([]string{cfg.Search.URI})
 	if err != nil {
 		panic(err)
 	}
-	defer db.Close()
 
-	messageQueue, err := mq.New(cfg.Mq.URI, cfg.Mq.Queues)
-	if err != nil {
+	if err := es.CreateIndexIfNotExists(elastic.DocContracts); err != nil {
 		panic(err)
 	}
-	defer messageQueue.Close()
 
 	RPCs := createRPCs(cfg)
-	indexers := createIndexers(cfg)
+	indexers, err := createIndexers(es, cfg)
+	if err != nil {
+		panic(err)
+	}
 
 	// Initial syncronization
-	if err = sync(RPCs, indexers, db, messageQueue); err != nil {
+	if err = sync(RPCs, indexers, es); err != nil {
 		log.Println(err)
 	}
 
-	// Update state by ticker
+	// // Update state by ticker
 	ticker := time.NewTicker(time.Duration(cfg.UpdateTimer) * time.Second)
 	for range ticker.C {
-		if err = sync(RPCs, indexers, db, messageQueue); err != nil {
+		if err = sync(RPCs, indexers, es); err != nil {
 			log.Println(err)
 		}
 	}

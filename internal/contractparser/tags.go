@@ -2,20 +2,20 @@ package contractparser
 
 import "reflect"
 
-func primTags(obj map[string]interface{}) string {
-	if prim, ok := obj["prim"]; ok {
-		switch prim.(string) {
-		case "contract":
-			return ViewMethodTag
-		case "CREATE_CONTRACT":
-			return ContractFactoryTag
-		case "SET_DELEGATE":
-			return DelegatableTag
-		case "CHECK_SIGNATURE":
-			return CheckSigTag
-		case "CHAIN_ID", "chain_id":
-			return ChainAwareTag
-		}
+import "strings"
+
+func primTags(node *Node) string {
+	switch strings.ToUpper(node.Prim) {
+	case "CONTRACT":
+		return ViewMethodTag
+	case "CREATE_CONTRACT":
+		return ContractFactoryTag
+	case "SET_DELEGATE":
+		return DelegatableTag
+	case "CHECK_SIGNATURE":
+		return CheckSigTag
+	case "CHAIN_ID", "chain_id":
+		return ChainAwareTag
 	}
 	return ""
 }

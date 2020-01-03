@@ -35,45 +35,46 @@ func (s *Storage) parseItem(value interface{}) error {
 			}
 		}
 	case map[string]interface{}:
-		args, ok := t["args"]
-		if !ok {
-			args = []interface{}{}
-		}
-		for _, a := range args.([]interface{}) {
-			if err := s.parseItem(a); err != nil {
+		n := newNode(t)
+		for i := range n.Args {
+			if err := s.parseItem(n.Args[i]); err != nil {
 				return err
 			}
 		}
 
-		s.handlePrimitive(t)
+		s.handlePrimitive(n)
 	default:
 		return fmt.Errorf("Unknown value type: %T", t)
 	}
 	return nil
 }
 
-func (s *Storage) handlePrimitive(obj map[string]interface{}) (err error) {
-	if err = s.detectLanguage(obj); err != nil {
+func (s *Storage) handlePrimitive(node *Node) (err error) {
+	if err = s.detectLanguage(node); err != nil {
 		return
 	}
-	s.findTags(obj)
+	s.findTags(node)
 	return
 }
 
-func (s *Storage) detectLanguage(obj map[string]interface{}) error {
+func (s *Storage) detectLanguage(node *Node) error {
 	if s.Language != LangUnknown {
 		return nil
 	}
 
-	if detectPython(obj) {
+	if detectPython(node) {
 		s.Language = LangPython
 		return nil
+	}
+
+	if s.Language == "" {
+		s.Language = LangUnknown
 	}
 	return nil
 }
 
-func (s *Storage) findTags(obj map[string]interface{}) {
-	tag := primTags(obj)
+func (s *Storage) findTags(node *Node) {
+	tag := primTags(node)
 	_, ok := s.Tags[tag]
 	if tag != "" && !ok {
 		s.Tags[tag] = struct{}{}

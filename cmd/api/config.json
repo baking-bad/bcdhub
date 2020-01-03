@@ -1,7 +1,6 @@
 {
-    "db": {
-        "uri": "host=127.0.0.1 port=5432 user=root dbname=bcd password=root sslmode=disable",
-        "log": true
+    "search": {
+        "uri": "http://localhost:9200"
     },
     "address": "127.0.0.1:14000"
 }

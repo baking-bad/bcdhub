@@ -1,0 +1,91 @@
+{
+    "mappings": {
+        "properties": {
+            "address": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 36
+                    }
+                }
+            },
+            "balance": {
+                "type": "long"
+            },
+            "delegate": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 36
+                    }
+                }
+            },
+            "hardcoded": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 36
+                    }
+                }
+            },
+            "hash_code": {
+                "type": "text",
+                "analyzer": "simple"
+            },
+            "kind": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 16
+                    }
+                }
+            },
+            "language": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 16
+                    }
+                }
+            },
+            "level": {
+                "type": "long"
+            },
+            "manager": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 36
+                    }
+                }
+            },
+            "network": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 16
+                    }
+                }
+            },
+            "tags": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "timestamp": {
+                "type": "date"
+            }
+        }
+    }
+}

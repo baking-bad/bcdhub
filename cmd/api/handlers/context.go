@@ -1,15 +1,15 @@
 package handlers
 
-import "github.com/jinzhu/gorm"
+import "github.com/aopoltorzhicky/bcdhub/internal/elastic"
 
 // Context -
 type Context struct {
-	DB *gorm.DB
+	ES *elastic.Elastic
 }
 
 // NewContext -
-func NewContext(db *gorm.DB) *Context {
+func NewContext(e *elastic.Elastic) *Context {
 	return &Context{
-		DB: db,
+		ES: e,
 	}
 }

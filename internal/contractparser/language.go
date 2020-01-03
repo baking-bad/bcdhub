@@ -11,15 +11,13 @@ var langPriorities = map[string]int{
 	LangPython:    1,
 }
 
-func detectLiquidity(obj map[string]interface{}, entries []Entrypoint) bool {
-	if annots, ok := obj["annots"]; ok {
-		for _, a := range annots.([]interface{}) {
-			s := a.(string)
-			if strings.Contains(s, "_slash_") {
-				return true
-			}
+func detectLiquidity(node *Node, entries []Entrypoint) bool {
+	for _, a := range node.Annotations {
+		if strings.Contains(a, "_slash_") {
+			return true
 		}
 	}
+
 	for i := range entries {
 		if strings.Contains(entries[i].Name, "%_Liq_entry") {
 			return true
@@ -28,24 +26,15 @@ func detectLiquidity(obj map[string]interface{}, entries []Entrypoint) bool {
 	return false
 }
 
-func detectPython(obj map[string]interface{}) bool {
-	if s, ok := obj["string"]; ok {
-		str := s.(string)
-		if strings.Contains(str, "https://SmartPy.io") {
-			return true
-		}
-		if strings.Contains(str, "self.") {
-			return true
-		}
+func detectPython(node *Node) bool {
+	str := node.GetString()
+	if str == "" {
+		return false
 	}
-	return false
+
+	return strings.Contains(str, "https://SmartPy.io") || strings.Contains(str, "self.")
 }
 
-func detectLIGO(obj map[string]interface{}) bool {
-	if s, ok := obj["string"]; ok {
-		if s.(string) == "GET_FORCE" {
-			return true
-		}
-	}
-	return false
+func detectLIGO(node *Node) bool {
+	return node.GetString() == "GET_FORCE"
 }

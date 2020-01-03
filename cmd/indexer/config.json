@@ -1,7 +1,6 @@
 {
-    "db": {
-        "uri": "host=127.0.0.1 port=5432 user=root dbname=bcd password=root sslmode=disable",
-        "log": false
+    "search": {
+        "uri": "http://localhost:9200"
     },
     "nodes": [{
         "host": "https://rpc.tzkt.io",
@@ -17,21 +16,13 @@
         "mainnet": "https://api.tzkt.io/v1/",
         "zeronet": "",
         "babylonnet": "",
-        "carthagenet": "",
-        "timeout": 10
+        "carthagenet": ""
     },
     "tzstats": {
         "mainnet": "https://api.tzstats.com",
         "zeronet": "https://api.zeronet.tzstats.com",
         "babylonnet": "https://api.babylonnet.tzstats.com",
         "carthagenet": ""
-    },
-    "mq": {
-        "uri": "amqp://guest:guest@localhost:5672/",
-        "queues": [
-            "metrics",
-            "tags"
-        ]
     },
     "indexer": "tzstats",
     "update_timer": 60

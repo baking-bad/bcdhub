@@ -1,27 +1,33 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/aopoltorzhicky/bcdhub/internal/db/project"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
-type getProjectRequest struct {
-	ID int64 `uri:"id"`
-}
-
-// GetProject -
-func (ctx *Context) GetProject(c *gin.Context) {
-	var req getProjectRequest
+// GetProjectContracts -
+func (ctx *Context) GetProjectContracts(c *gin.Context) {
+	var req getContractRequest
 	if err := c.BindUri(&req); err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-
-	proj, err := project.Get(ctx.DB, req.ID)
+	by := map[string]interface{}{
+		"address": req.Address,
+		"network": req.Network,
+	}
+	hashCode, err := ctx.ES.GetContractField(by, "hash_code")
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	c.JSON(http.StatusOK, proj)
+
+	v, err := ctx.ES.FindProjectContracts(hashCode.(string), 17.8)
+	if err != nil {
+		_ = c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, v)
 }

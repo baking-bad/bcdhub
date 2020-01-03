@@ -14,13 +14,13 @@ type Script struct {
 }
 
 // New -
-func New(script []byte, labels map[string]int) (s Script, err error) {
+func New(script []byte) (s Script, err error) {
 	var m map[string]interface{}
 	if err = json.Unmarshal(script, &m); err != nil {
 		return
 	}
 
-	code, err := newCode(m, labels)
+	code, err := newCode(m)
 	if err != nil {
 		return
 	}
@@ -31,7 +31,7 @@ func New(script []byte, labels map[string]int) (s Script, err error) {
 		return
 	}
 	s.Storage = storage
-	s.HardcodedAddresses = findHardcodedAddresses(string(script))
+	s.HardcodedAddresses = FindHardcodedAddresses(string(script))
 
 	return
 }
@@ -69,16 +69,17 @@ func (s *Script) Language() string {
 
 // Kind - return script kind
 func (s *Script) Kind() string {
-	switch s.Code.HashCode {
-	case HashTestContract:
-		return KindTest
-	case HashDelegatorContract:
-		return KindDelegator
-	case HashVestedContract:
-		return KindVested
-	default:
-		return KindSmart
-	}
+	// switch s.Code.HashCode {
+	// case HashTestContract:
+	// 	return KindTest
+	// case HashDelegatorContract:
+	// 	return KindDelegator
+	// case HashVestedContract:
+	// 	return KindVested
+	// default:
+	// 	return KindSmart
+	// }
+	return KindSmart
 }
 
 func (s *Script) getTags() {

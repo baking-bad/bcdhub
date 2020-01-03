@@ -2,6 +2,7 @@ package contractparser
 
 import (
 	"fmt"
+	"github.com/aopoltorzhicky/bcdhub/internal/tlsh"
 	"log"
 	"strings"
 )
@@ -12,8 +13,9 @@ type Code struct {
 	Storage   []interface{}
 	Code      []interface{}
 
-	HashCode   string
-	hashLabels map[string]int
+	Hash string
+
+	fuzzyReader *HashReader
 
 	Tags     map[string]struct{}
 	Language string
@@ -25,11 +27,11 @@ type Entrypoint struct {
 	Args []string
 }
 
-func newCode(script map[string]interface{}, labels map[string]int) (Code, error) {
+func newCode(script map[string]interface{}) (Code, error) {
 	res := Code{
-		hashLabels: labels,
-		Language:   LangUnknown,
-		Tags:       make(map[string]struct{}),
+		Language:    LangUnknown,
+		Tags:        make(map[string]struct{}),
+		fuzzyReader: NewHashReader(),
 	}
 	code, ok := script["code"]
 	if !ok {
@@ -175,6 +177,11 @@ func (c *Code) parseCodePart() error {
 			return err
 		}
 	}
+	h, err := tlsh.HashReader(c.fuzzyReader)
+	if err != nil {
+		return err
+	}
+	c.Hash = h.String()
 	return nil
 }
 
@@ -186,92 +193,55 @@ func (c *Code) parsePrimitive(val interface{}) error {
 				return err
 			}
 		}
+		// if fail := parseFail(t); fail != nil {
+		// 	log.Println(fail)
+		// }
 	case map[string]interface{}:
-		vPrim, ok := t["prim"]
-		if !ok {
-			if err := c.handlePrimitive("", nil, t); err != nil {
-				return err
-			}
-			return nil
+		node := newNode(t)
+		for i := range node.Args {
+			c.parsePrimitive(node.Args[i])
 		}
-		sPrim, ok := vPrim.(string)
-		if !ok {
-			return nil
+		if err := c.handlePrimitive(node); err != nil {
+			return err
 		}
-		vArgs, ok := t["args"]
-		if ok {
-			arr, ok := vArgs.([]interface{})
-			if !ok {
-				return nil
-			}
-
-			for i := range arr {
-				c.parsePrimitive(arr[i])
-			}
-			if err := c.handlePrimitive(sPrim, arr, t); err != nil {
-				return err
-			}
-		} else {
-			if err := c.handlePrimitive(sPrim, nil, t); err != nil {
-				return err
-			}
-		}
-
 	default:
 		return fmt.Errorf("Unknown value type: %T", t)
 	}
 	return nil
 }
 
-func (c *Code) handlePrimitive(prim string, args []interface{}, obj map[string]interface{}) (err error) {
-	h, err := c.hashPrimitive(prim, args)
-	if err != nil {
-		return
-	}
-	c.HashCode = c.HashCode + h
+func (c *Code) handlePrimitive(node *Node) (err error) {
+	c.fuzzyReader.WriteString(strings.ToUpper(node.Prim))
 
-	c.detectLanguage(obj)
-	c.findTags(obj)
+	c.detectLanguage(node)
+	c.findTags(node)
 
 	return nil
 }
 
-func (c *Code) hashPrimitive(prim string, args []interface{}) (hash string, err error) {
-	if prim == "" {
-		return
-	}
-	label, labelOK := c.hashLabels[prim]
-	if !labelOK {
-		label = len(c.hashLabels)
-		c.hashLabels[prim] = label
-	}
-
-	hash = fmt.Sprintf("%x", label)
-
-	return hash, nil
-}
-
-func (c *Code) detectLanguage(obj map[string]interface{}) {
+func (c *Code) detectLanguage(node *Node) {
 	if c.Language != LangUnknown {
 		return
 	}
-	if detectLiquidity(obj, c.entrypoints()) {
+	if detectLiquidity(node, c.entrypoints()) {
 		c.Language = LangLiquidity
 		return
 	}
-	if detectPython(obj) {
+	if detectPython(node) {
 		c.Language = LangPython
 		return
 	}
-	if detectLIGO(obj) {
+	if detectLIGO(node) {
 		c.Language = LangLigo
 		return
 	}
-	c.Language = LangUnknown
+	if c.Language == "" {
+		c.Language = LangUnknown
+	}
 }
 
-func (c *Code) findTags(obj map[string]interface{}) {
-	tag := primTags(obj)
+func (c *Code) findTags(node *Node) {
+	tag := primTags(node)
 	_, ok := c.Tags[tag]
 	if tag != "" && !ok {
 		c.Tags[tag] = struct{}{}

@@ -2,8 +2,7 @@ package main
 
 type config struct {
 	Address string `json:"address"`
-	Db      struct {
+	Search  struct {
 		URI string `json:"uri"`
-		Log bool   `json:"log"`
-	} `json:"db"`
+	} `json:"search"`
 }

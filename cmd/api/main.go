@@ -3,11 +3,11 @@ package main
 import (
 	"fmt"
 
+	"github.com/aopoltorzhicky/bcdhub/cmd/api/handlers"
+	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
+	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
 	"github.com/gin-gonic/gin"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
-	"github.com/aopoltorzhicky/bcdhub/cmd/api/handlers"
-	"github.com/aopoltorzhicky/bcdhub/internal/db"
-	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
 )
 
 func main() {
@@ -16,38 +16,34 @@ func main() {
 		panic(err)
 	}
 
-	db, err := db.Database(cfg.Db.URI, cfg.Db.Log)
+	es, err := elastic.New([]string{cfg.Search.URI})
 	if err != nil {
 		panic(err)
 	}
-	defer db.Close()
 
-	ctx := handlers.NewContext(db)
+	ctx := handlers.NewContext(es)
 	r := gin.Default()
 	v1 := r.Group("v1")
 	{
 		v1.GET("search", ctx.Search)
-		projects := v1.Group("projects")
-		{
-			projects.GET(":id", ctx.GetProject)
-		}
-		contracts := v1.Group("contracts")
-		{
-
-			contract := contracts.Group(":id")
-			{
-				contract.GET("", ctx.GetContract)
-				contract.GET(":field", ctx.GetContractField)
-			}
-		}
 		contract := v1.Group("contract")
 		{
 			networkContract := contract.Group(":network")
 			{
 				address := networkContract.Group(":address")
 				{
-					address.GET("", ctx.GetContractByNetworkAndAddress)
-					address.GET(":field", ctx.GetContractByNetworkAndAddressField)
+					address.GET("", ctx.GetContract)
+					address.GET(":field", ctx.GetContractField)
+				}
+			}
+		}
+		project := v1.Group("project")
+		{
+			networkContract := project.Group(":network")
+			{
+				address := networkContract.Group(":address")
+				{
+					address.GET("", ctx.GetProjectContracts)
 				}
 			}
 		}
