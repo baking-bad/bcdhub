@@ -11,7 +11,6 @@ type Contract struct {
 	Level     int64     `json:"level"`
 	Timestamp time.Time `json:"timestamp"`
 	Balance   int64     `json:"balance"`
-	Kind      string    `json:"kind,omitempty"`
 	HashCode  string    `json:"hash_code,omitempty"`
 	Language  string    `json:"language,omitempty"`
 
@@ -24,4 +23,6 @@ type Contract struct {
 	Address  string `json:"address"`
 	Manager  string `json:"manager,omitempty"`
 	Delegate string `json:"delegate,omitempty"`
+
+	Entrypoints map[string][]string `json:"entrypoints,omitempty"`
 }

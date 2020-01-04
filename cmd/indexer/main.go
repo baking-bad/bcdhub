@@ -39,7 +39,7 @@ func main() {
 		log.Println(err)
 	}
 
-	// // Update state by ticker
+	// Update state by ticker
 	ticker := time.NewTicker(time.Duration(cfg.UpdateTimer) * time.Second)
 	for range ticker.C {
 		if err = sync(RPCs, indexers, es); err != nil {

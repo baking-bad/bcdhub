@@ -69,7 +69,7 @@ func createIndexers(es *elastic.Elastic, cfg config) (map[string]index.Indexer, 
 
 func createContract(c index.Contract, rpc *noderpc.NodeRPC, es *elastic.Elastic, network string) (n models.Contract, err error) {
 	n.Level = c.Level
-	n.Timestamp = c.Timestamp
+	n.Timestamp = c.Timestamp.UTC()
 	n.Balance = c.Balance
 	n.Address = c.Address
 	n.Manager = c.Manager

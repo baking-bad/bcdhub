@@ -1,5 +1,7 @@
 package contractparser
 
+import "strings"
+
 // Fail -
 type Fail struct {
 	With string
@@ -28,7 +30,7 @@ func parseFail(args []interface{}) *Fail {
 				s = nodeWith.Prim
 			}
 			return &Fail{
-				With: s,
+				With: strings.ToLower(s),
 			}
 		}
 	}

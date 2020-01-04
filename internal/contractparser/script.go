@@ -1,7 +1,7 @@
 package contractparser
 
 import (
-	"encoding/json"
+	"fmt"
 )
 
 // Script -
@@ -9,15 +9,19 @@ type Script struct {
 	Code    Code
 	Storage Storage
 
-	Tags               map[string]struct{}
+	Tags               Set
 	HardcodedAddresses []string
 }
 
 // New -
-func New(script []byte) (s Script, err error) {
-	var m map[string]interface{}
-	if err = json.Unmarshal(script, &m); err != nil {
-		return
+func New(contract map[string]interface{}) (s Script, err error) {
+	script, ok := contract["script"]
+	if !ok {
+		return s, fmt.Errorf("Can`t find tag 'script'")
+	}
+	m, ok := script.(map[string]interface{})
+	if !ok {
+		return s, fmt.Errorf("Invalid script type: %T", script)
 	}
 
 	code, err := newCode(m)
@@ -26,12 +30,21 @@ func New(script []byte) (s Script, err error) {
 	}
 	s.Code = code
 
-	storage, err := newStorage(m)
+	store, ok := m["storage"]
+	if !ok {
+		return s, fmt.Errorf("Can't find tag 'storage'")
+	}
+	s.Storage, err = newStorage(store)
 	if err != nil {
 		return
 	}
-	s.Storage = storage
-	s.HardcodedAddresses = FindHardcodedAddresses(string(script))
+
+	hardcoded, err := FindHardcodedAddresses(m)
+	if err != nil {
+		return
+	}
+	s.HardcodedAddresses = hardcoded
+	s.Tags = make(Set)
 
 	return
 }
@@ -41,17 +54,9 @@ func (s *Script) Print() {
 	s.Code.print()
 }
 
-// Entrypoints - returns script entrypoints
-func (s *Script) Entrypoints() []Entrypoint {
-	return s.Code.entrypoints()
-}
-
 // Parse -
 func (s *Script) Parse() error {
-	if err := s.Code.parseCodePart(); err != nil {
-		return err
-	}
-	if err := s.Storage.parse(); err != nil {
+	if err := s.Code.parse(); err != nil {
 		return err
 	}
 	s.getTags()
@@ -61,37 +66,13 @@ func (s *Script) Parse() error {
 
 // Language -
 func (s *Script) Language() string {
-	if langPriorities[s.Code.Language] > langPriorities[s.Storage.Language] {
-		return s.Code.Language
-	}
-	return s.Storage.Language
-}
-
-// Kind - return script kind
-func (s *Script) Kind() string {
-	// switch s.Code.HashCode {
-	// case HashTestContract:
-	// 	return KindTest
-	// case HashDelegatorContract:
-	// 	return KindDelegator
-	// case HashVestedContract:
-	// 	return KindVested
-	// default:
-	// 	return KindSmart
-	// }
-	return KindSmart
+	return s.Code.Language
 }
 
 func (s *Script) getTags() {
-	s.Tags = s.Code.Tags
-	for k := range s.Storage.Tags {
-		if _, ok := s.Tags[k]; !ok {
-			s.Tags[k] = struct{}{}
-		}
-	}
-	for _, k := range endpointsTags(s.Entrypoints()) {
-		if _, ok := s.Tags[k]; !ok {
-			s.Tags[k] = struct{}{}
-		}
+	s.Tags.Append(s.Code.Tags.Values()...)
+	s.Tags.Append(s.Storage.Tags.Values()...)
+	for _, tag := range endpointsTags(s.Code.Entrypoints) {
+		s.Tags.Append(tag)
 	}
 }

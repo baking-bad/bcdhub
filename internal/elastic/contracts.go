@@ -7,24 +7,35 @@ import (
 	"github.com/tidwall/gjson"
 )
 
+func parseStringArray(hit gjson.Result, tag string) []string {
+	res := make([]string, 0)
+	for _, t := range hit.Get(tag).Array() {
+		res = append(res, t.String())
+	}
+	return res
+}
+
 func parseContarctFromHit(hit gjson.Result, c *models.Contract) {
 	c.ID = hit.Get("_id").String()
 	c.Network = hit.Get("_source.network").String()
 	c.Level = hit.Get("_source.level").Int()
 	c.Timestamp = hit.Get("_source.timestamp").Time().UTC()
 	c.Balance = hit.Get("_source.balance").Int()
-	c.Kind = hit.Get("_source.kind").String()
 	c.HashCode = hit.Get("_source.hash_code").String()
 	c.Language = hit.Get("_source.language").String()
 
-	c.Tags = make([]string, 0)
-	for _, t := range hit.Get("_source.tags").Array() {
-		c.Tags = append(c.Tags, t.String())
-	}
+	c.Tags = parseStringArray(hit, "_source.tags")
+	c.Hardcoded = parseStringArray(hit, "_source.hardcoded")
+	c.Annotations = parseStringArray(hit, "_source.annotations")
+	c.Primitives = parseStringArray(hit, "_source.primitives")
+	c.FailStrings = parseStringArray(hit, "_source.fail_strings")
 
-	c.Hardcoded = make([]string, 0)
-	for _, t := range hit.Get("_source.hardcoded").Array() {
-		c.Hardcoded = append(c.Hardcoded, t.String())
+	c.Entrypoints = make(map[string][]string)
+	for k, v := range hit.Get("_source.entrypoints").Map() {
+		c.Entrypoints[k] = make([]string, 0)
+		for _, arg := range v.Array() {
+			c.Entrypoints[k] = append(c.Entrypoints[k], arg.String())
+		}
 	}
 
 	c.Address = hit.Get("_source.address").String()
@@ -133,7 +144,7 @@ func (e *Elastic) SearchByText(text string) ([]models.Contract, error) {
 			"query_string": map[string]interface{}{
 				"query": fmt.Sprintf("*%s*", text),
 				"fields": []string{
-					"address^10", "manager^8", "delegate^6", "tags^4", "hardcoded",
+					"address^10", "manager^8", "delegate^6", "tags^4", "hardcoded", "annotations", "fail_strings",
 				},
 			},
 		},

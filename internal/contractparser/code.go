@@ -2,41 +2,40 @@ package contractparser
 
 import (
 	"fmt"
+
 	"github.com/aopoltorzhicky/bcdhub/internal/tlsh"
-	"log"
-	"strings"
 )
 
 // Code -
 type Code struct {
 	Parameter []map[string]interface{}
-	Storage   []interface{}
+	Storage   Storage
 	Code      []interface{}
 
 	Hash string
 
 	fuzzyReader *HashReader
 
-	Tags        map[string]struct{}
+	Tags        Set
 	Language    string
 	FailStrings Set
 	Primitives  Set
 	Annotations Set
+	Entrypoints Entrypoints
 }
 
-// Entrypoint -
-type Entrypoint struct {
-	Name string
-	Args []string
-}
+// Entrypoints -
+type Entrypoints map[string][]string
 
 func newCode(script map[string]interface{}) (Code, error) {
 	res := Code{
 		Language:    LangUnknown,
-		Tags:        make(map[string]struct{}),
 		fuzzyReader: NewHashReader(),
-		FailStrings: make(Set, 0),
-		Primitives:  make(Set, 0),
+		FailStrings: make(Set),
+		Primitives:  make(Set),
+		Tags:        make(Set),
+		Annotations: make(Set),
+		Entrypoints: make(Entrypoints),
 	}
 	code, ok := script["code"]
 	if !ok {
@@ -51,45 +50,32 @@ func newCode(script map[string]interface{}) (Code, error) {
 	}
 
 	for i := range c {
-		if err := res.parseCodeSection(c[i]); err != nil {
+		n := newNode(c[i].(map[string]interface{}))
+		if err := res.parseStruct(n); err != nil {
 			return res, err
 		}
 	}
 	return res, nil
 }
 
-func (c *Code) parseCodeSection(section interface{}) error {
-	s, ok := section.(map[string]interface{})
-	if !ok {
-		return fmt.Errorf("Invalid section type")
-	}
-	prim, ok := s["prim"]
-	if !ok {
-		return fmt.Errorf("Can't find tag 'prim' in section")
-	}
-	sPrim := prim.(string)
-
-	args, ok := s["args"]
-	if !ok {
-		return fmt.Errorf("Can't find tag 'args' in section: %s", sPrim)
-	}
-	vargs, ok := args.([]interface{})
-	if !ok {
-		return fmt.Errorf("Invalid type tag 'args' in section: %s", sPrim)
-	}
-
-	switch sPrim {
-	case "code":
-		c.Code = vargs
-	case "storage":
-		c.Storage = vargs
-	case "parameter":
-		res := make([]map[string]interface{}, len(vargs))
-		for i := range vargs {
-			res[i], ok = vargs[i].(map[string]interface{})
+func (c *Code) parseStruct(node Node) error {
+	switch node.Prim {
+	case "CODE":
+		c.Code = node.Args
+	case "STORAGE":
+		store, err := newStorage(node.Args)
+		if err != nil {
+			return err
+		}
+		c.Storage = store
+	case "PARAMETER":
+		res := make([]map[string]interface{}, len(node.Args))
+		for i := range node.Args {
+			r, ok := node.Args[i].(map[string]interface{})
 			if !ok {
-				return fmt.Errorf("Invalid type tag 'args' in section: %s", sPrim)
+				return fmt.Errorf("Unknown parameter type: %T", node.Args[i])
 			}
+			res = append(res, r)
 		}
 		c.Parameter = res
 	}
@@ -97,86 +83,17 @@ func (c *Code) parseCodeSection(section interface{}) error {
 	return nil
 }
 
-func (c *Code) entrypoints() []Entrypoint {
-	e := make([]Entrypoint, 0)
-	for _, p := range c.Parameter {
-		e = append(e, findEntrypoint(p)...)
+func (c *Code) parse() error {
+	if err := c.parseCode(); err != nil {
+		return err
 	}
-	return e
+	if err := c.parseParameter(); err != nil {
+		return err
+	}
+	return nil
 }
 
-func parseEntrypointArgs(args interface{}) []string {
-	if args == nil {
-		return nil
-	}
-	return argsToFlat(args)
-}
-
-func argsToFlat(args interface{}) []string {
-	res := make([]string, 0)
-	switch val := args.(type) {
-	case []interface{}:
-		for i := range val {
-			res = append(res, argsToFlat(val[i])...)
-		}
-	case map[string]interface{}:
-		if prim, ok := val["prim"]; ok {
-			sPrim := prim.(string)
-			if sPrim == "pair" || sPrim == "or" {
-				if a, ok := val["args"]; ok {
-					res = append(res, argsToFlat(a)...)
-				}
-			} else {
-				if a, ok := val["args"]; ok {
-					res = append(res, argsToFlat(a)...)
-				} else {
-					res = append(res, sPrim)
-				}
-			}
-
-		}
-	}
-	return res
-}
-
-func findEntrypoint(v map[string]interface{}) []Entrypoint {
-	annots, ok := v["annots"]
-	if ok {
-		ann := annots.([]interface{})
-		e := make([]Entrypoint, len(ann))
-		for i := range ann {
-			name := ann[i].(string)
-			name = strings.Trim(name, "%")
-
-			e[i] = Entrypoint{
-				Name: name,
-				Args: parseEntrypointArgs(v["args"]),
-			}
-		}
-		return e
-	}
-
-	vargs, ok := v["args"]
-	if !ok {
-		return nil
-	}
-	args := vargs.([]interface{})
-	es := make([]Entrypoint, 0)
-	for _, a := range args {
-		es = append(es, findEntrypoint(a.(map[string]interface{}))...)
-	}
-	return es
-}
-
-func (c *Code) print() {
-	log.Print("Entrypoints:")
-	entrypoints := c.entrypoints()
-	for _, e := range entrypoints {
-		log.Println(e.Name)
-	}
-}
-
-func (c *Code) parseCodePart() error {
+func (c *Code) parseCode() error {
 	for _, val := range c.Code {
 		if err := c.parsePrimitive(val); err != nil {
 			return err
@@ -187,6 +104,13 @@ func (c *Code) parseCodePart() error {
 		return err
 	}
 	c.Hash = h.String()
+	return nil
+}
+
+func (c *Code) parseParameter() error {
+	for i := range c.Parameter {
+		c.findEntrypoint(c.Parameter[i])
+	}
 	return nil
 }
 
@@ -217,7 +141,7 @@ func (c *Code) parsePrimitive(val interface{}) error {
 	return nil
 }
 
-func (c *Code) handlePrimitive(node *Node) (err error) {
+func (c *Code) handlePrimitive(node Node) (err error) {
 	if node.Prim != "" {
 		c.Primitives.Append(node.Prim)
 		c.fuzzyReader.WriteString(node.Prim)
@@ -228,16 +152,16 @@ func (c *Code) handlePrimitive(node *Node) (err error) {
 	}
 
 	c.detectLanguage(node)
-	c.findTags(node)
+	c.Tags.Append(primTags(node))
 
 	return nil
 }
 
-func (c *Code) detectLanguage(node *Node) {
+func (c *Code) detectLanguage(node Node) {
 	if c.Language != LangUnknown {
 		return
 	}
-	if detectLiquidity(node, c.entrypoints()) {
+	if detectLiquidity(node, c.Entrypoints) {
 		c.Language = LangLiquidity
 		return
 	}
@@ -251,13 +175,5 @@ func (c *Code) detectLanguage(node *Node) {
 	}
 	if c.Language == "" {
 		c.Language = LangUnknown
-	}
-}
-
-func (c *Code) findTags(node *Node) {
-	tag := primTags(node)
-	_, ok := c.Tags[tag]
-	if tag != "" && !ok {
-		c.Tags[tag] = struct{}{}
 	}
 }

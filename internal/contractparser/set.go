@@ -1,37 +1,31 @@
 package contractparser
 
 // Set -
-type Set []string
+type Set map[string]struct{}
 
 // Append - append items to set
-func (ptr *Set) Append(str ...string) {
-	s := *ptr
+func (s Set) Append(str ...string) {
 	for j := range str {
 		if str[j] == "" {
 			continue
 		}
-		found := false
 
-		for i := range s {
-			if s[i] == str[j] {
-				found = true
-				break
-			}
-		}
-
-		if !found {
-			s = append(s, str[j])
+		if _, ok := s[str[j]]; !ok {
+			s[str[j]] = struct{}{}
 		}
 	}
-	*ptr = s
 }
 
 // Len - returns length of set
-func (ptr *Set) Len() int {
-	return len(*ptr)
+func (s Set) Len() int {
+	return len(s)
 }
 
-// Clear - clears set
-func (ptr *Set) Clear() {
-	*ptr = nil
+// Values - return keys
+func (s Set) Values() []string {
+	r := make([]string, 0)
+	for k := range s {
+		r = append(r, k)
+	}
+	return r
 }

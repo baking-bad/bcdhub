@@ -1,13 +1,9 @@
 package contractparser
 
-import "reflect"
-
 import "strings"
 
-func primTags(node *Node) string {
+func primTags(node Node) string {
 	switch strings.ToUpper(node.Prim) {
-	case "CONTRACT":
-		return ViewMethodTag
 	case "CREATE_CONTRACT":
 		return ContractFactoryTag
 	case "SET_DELEGATE":
@@ -20,21 +16,41 @@ func primTags(node *Node) string {
 	return ""
 }
 
-func endpointsTags(endpoints []Entrypoint) []string {
+var handlers = map[string]func(entrypoint Entrypoints) bool{
+	FA12Tag: findFA12,
+}
+
+func endpointsTags(endpoints Entrypoints) []string {
 	res := make([]string, 0)
-	if findFA12(endpoints) {
-		res = append(res, FA12Tag)
+	for tag, handler := range handlers {
+		if handler(endpoints) {
+			res = append(res, tag)
+		}
 	}
 	return res
 }
 
-func findFA12(endpoints []Entrypoint) bool {
-	for _, v := range fa12 {
+func compareStringArrays(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func findInterface(entrypoints Entrypoints, i Entrypoints) bool {
+	for k, v := range i {
 		found := false
-		for _, e := range endpoints {
-			if reflect.DeepEqual(e, v) {
-				found = true
-				break
+		for e, a := range entrypoints {
+			if e == k {
+				if compareStringArrays(a, v) {
+					found = true
+					break
+				}
 			}
 		}
 		if !found {
@@ -42,4 +58,8 @@ func findFA12(endpoints []Entrypoint) bool {
 		}
 	}
 	return true
+}
+
+func findFA12(entrypoints Entrypoints) bool {
+	return findInterface(entrypoints, fa12)
 }

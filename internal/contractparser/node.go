@@ -7,14 +7,15 @@ import (
 
 // Node -
 type Node struct {
-	Prim        string
-	Args        []interface{}
-	Annotations []string
-	Value       interface{}
-	Type        string
+	Prim        string        `json:"prim,omitempty"`
+	Args        []interface{} `json:"-"`
+	Annotations []string      `json:"annots,omitempty"`
+	Value       interface{}   `json:"value,omitempty"`
+	Type        string        `json:"type,omitempty"`
+	Child       []Node        `json:"child,omitempty"`
 }
 
-func newNode(obj map[string]interface{}) *Node {
+func newNode(obj map[string]interface{}) Node {
 	n := Node{}
 	for k, v := range obj {
 		switch k {
@@ -28,7 +29,7 @@ func newNode(obj map[string]interface{}) *Node {
 			n.Annotations = make([]string, 0)
 			annots := v.([]interface{})
 			for i := range annots {
-				n.Annotations = append(n.Annotations, strings.Trim(annots[i].(string), "%@"))
+				n.Annotations = append(n.Annotations, strings.ToLower(strings.Trim(annots[i].(string), "%@:")))
 			}
 		case "string", "int", "mutez", "bytes":
 			n.Value = v
@@ -38,7 +39,33 @@ func newNode(obj map[string]interface{}) *Node {
 		}
 
 	}
-	return &n
+
+	n.getChild()
+	return n
+}
+
+func (n *Node) getChild() {
+	for _, arg := range n.Args {
+		switch a := arg.(type) {
+		case []interface{}:
+			empty := newNode(map[string]interface{}{
+				"args": a,
+			})
+			n.Child = append(n.Child, empty)
+		case map[string]interface{}:
+			c := newNode(a)
+			switch c.Prim {
+			case "PAIR", "OR":
+				for i := range c.Child {
+					n.Child = append(n.Child, c.Child[i])
+				}
+			default:
+				n.Child = append(n.Child, c)
+			}
+		default:
+			log.Printf("getChild: Unknown type %T", a)
+		}
+	}
 }
 
 // GetString - return string value
@@ -81,4 +108,14 @@ func (n *Node) Is(prim string) bool {
 // HasAnnots - check if node has annotations
 func (n *Node) HasAnnots() bool {
 	return len(n.Annotations) > 0
+}
+
+// HasArgs - check if node has args
+func (n *Node) HasArgs() bool {
+	return len(n.Args) > 0
+}
+
+// Print -
+func (n *Node) Print() {
+	log.Printf("%s: %s [%s] (args: %d)", strings.Join(n.Annotations, ","), n.Prim, n.Type, len(n.Args))
 }

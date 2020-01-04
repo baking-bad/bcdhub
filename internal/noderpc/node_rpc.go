@@ -78,35 +78,7 @@ func (rpc *NodeRPC) GetHead() (Header, error) {
 }
 
 // GetContractScript -
-func (rpc *NodeRPC) GetContractScript(address string) (script map[string]interface{}, err error) {
-	err = rpc.get(fmt.Sprintf("chains/main/blocks/head/context/contracts/%s/script", address), &script)
+func (rpc *NodeRPC) GetContract(address string) (script map[string]interface{}, err error) {
+	err = rpc.get(fmt.Sprintf("chains/main/blocks/head/context/contracts/%s", address), &script)
 	return
-}
-
-// GetContractScriptBytes -
-func (rpc *NodeRPC) GetContractScriptBytes(address string) (script []byte, err error) {
-	url := fmt.Sprintf("%s/%s/chains/main/blocks/head/context/contracts/%s/script", rpc.baseURL, rpc.network, address)
-	client := http.Client{
-		Timeout: rpc.timeout,
-	}
-
-	var resp *http.Response
-	count := 0
-	for ; count < rpc.retryCount; count++ {
-		if resp, err = client.Get(url); err != nil {
-			log.Printf("Attempt #%d: %s", count+1, err.Error())
-			continue
-		}
-		break
-	}
-
-	if count == rpc.retryCount {
-		return nil, errors.New("Max HTTP request retry exceeded")
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	return body, nil
 }
