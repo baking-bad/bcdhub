@@ -13,25 +13,28 @@ type Node struct {
 	Value       interface{}   `json:"value,omitempty"`
 	Type        string        `json:"type,omitempty"`
 	Child       []Node        `json:"child,omitempty"`
+	Path        string
 }
 
 func newNode(obj map[string]interface{}) Node {
-	n := Node{}
+	n := Node{
+		Child: make([]Node, 0),
+	}
 	for k, v := range obj {
 		switch k {
-		case "args":
+		case keyArgs:
 			if vargs, ok := v.([]interface{}); ok {
 				n.Args = vargs
 			}
-		case "prim":
+		case keyPrim:
 			n.Prim = strings.ToUpper(v.(string))
-		case "annots":
+		case keyAnnots:
 			n.Annotations = make([]string, 0)
 			annots := v.([]interface{})
 			for i := range annots {
-				n.Annotations = append(n.Annotations, strings.ToLower(strings.Trim(annots[i].(string), "%@:")))
+				n.Annotations = append(n.Annotations, strings.ToLower(annots[i].(string)))
 			}
-		case "string", "int", "mutez", "bytes":
+		case keyMutez, keyBytes, keyInt, keyString, keyTime:
 			n.Value = v
 			n.Type = k
 		default:
@@ -40,11 +43,11 @@ func newNode(obj map[string]interface{}) Node {
 
 	}
 
-	n.getChild()
 	return n
 }
 
-func (n *Node) getChild() {
+// GetChild -
+func (n *Node) GetChild() {
 	for _, arg := range n.Args {
 		switch a := arg.(type) {
 		case []interface{}:
@@ -56,12 +59,20 @@ func (n *Node) getChild() {
 			c := newNode(a)
 			switch c.Prim {
 			case "PAIR", "OR":
+				c.GetChild()
 				for i := range c.Child {
 					n.Child = append(n.Child, c.Child[i])
 				}
+				continue
+			case "LAMBDA", "CONTRACT":
+				if len(c.Args) > 0 {
+					nn := newNode(c.Args[0].(map[string]interface{}))
+					c.Child = append(c.Child, nn)
+				}
 			default:
-				n.Child = append(n.Child, c)
 			}
+			n.Child = append(n.Child, c)
+
 		default:
 			log.Printf("getChild: Unknown type %T", a)
 		}

@@ -17,6 +17,7 @@ func newSchema(v interface{}) Schema {
 		}
 	case map[string]interface{}:
 		n := newNode(val)
+		n.GetChild()
 		if n.Is("pair") || n.Is("or") {
 			for i := range n.Child {
 				s = append(s, n.Child[i])

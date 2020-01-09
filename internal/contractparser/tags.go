@@ -16,11 +16,11 @@ func primTags(node Node) string {
 	return ""
 }
 
-var handlers = map[string]func(entrypoint Entrypoints) bool{
+var handlers = map[string]func(entrypoint []Entrypoint) bool{
 	FA12Tag: findFA12,
 }
 
-func endpointsTags(endpoints Entrypoints) []string {
+func endpointsTags(endpoints []Entrypoint) []string {
 	res := make([]string, 0)
 	for tag, handler := range handlers {
 		if handler(endpoints) {
@@ -42,12 +42,12 @@ func compareStringArrays(a, b []string) bool {
 	return true
 }
 
-func findInterface(entrypoints Entrypoints, i Entrypoints) bool {
-	for k, v := range i {
+func findInterface(entrypoints []Entrypoint, i []Entrypoint) bool {
+	for _, ie := range i {
 		found := false
-		for e, a := range entrypoints {
-			if e == k {
-				if compareStringArrays(a, v) {
+		for _, e := range entrypoints {
+			if e.Name == ie.Name && e.Type == ie.Type {
+				if compareStringArrays(e.Args, ie.Args) {
 					found = true
 					break
 				}
@@ -60,6 +60,6 @@ func findInterface(entrypoints Entrypoints, i Entrypoints) bool {
 	return true
 }
 
-func findFA12(entrypoints Entrypoints) bool {
+func findFA12(entrypoints []Entrypoint) bool {
 	return findInterface(entrypoints, fa12)
 }

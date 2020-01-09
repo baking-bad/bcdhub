@@ -19,3 +19,23 @@ const (
 	TestingTag         = "testing"
 	VestingTag         = "vesting"
 )
+
+const (
+	keyPrim   = "prim"
+	keyArgs   = "args"
+	keyAnnots = "annots"
+	keyString = "string"
+	keyMutez  = "mutez"
+	keyBytes  = "bytes"
+	keyInt    = "int"
+	keyTime   = "timestamp"
+)
+
+// Primitives
+const (
+	OR       = "OR"
+	PAIR     = "PAIR"
+	LAMBDA   = "LAMBDA"
+	CONTRACT = "CONTRACT"
+	OPTION   = "OPTION"
+)

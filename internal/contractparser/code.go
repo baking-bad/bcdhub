@@ -8,7 +8,7 @@ import (
 
 // Code -
 type Code struct {
-	Parameter []map[string]interface{}
+	Parameter Parameter
 	Storage   Storage
 	Code      []interface{}
 
@@ -21,11 +21,7 @@ type Code struct {
 	FailStrings Set
 	Primitives  Set
 	Annotations Set
-	Entrypoints Entrypoints
 }
-
-// Entrypoints -
-type Entrypoints map[string][]string
 
 func newCode(script map[string]interface{}) (Code, error) {
 	res := Code{
@@ -35,7 +31,6 @@ func newCode(script map[string]interface{}) (Code, error) {
 		Primitives:  make(Set),
 		Tags:        make(Set),
 		Annotations: make(Set),
-		Entrypoints: make(Entrypoints),
 	}
 	code, ok := script["code"]
 	if !ok {
@@ -75,9 +70,10 @@ func (c *Code) parseStruct(node Node) error {
 			if !ok {
 				return fmt.Errorf("Unknown parameter type: %T", node.Args[i])
 			}
-			res = append(res, r)
+			res[i] = r
 		}
-		c.Parameter = res
+
+		c.Parameter = newParameter(res)
 	}
 
 	return nil
@@ -87,7 +83,7 @@ func (c *Code) parse() error {
 	if err := c.parseCode(); err != nil {
 		return err
 	}
-	if err := c.parseParameter(); err != nil {
+	if err := c.Parameter.parse(); err != nil {
 		return err
 	}
 	return nil
@@ -104,13 +100,6 @@ func (c *Code) parseCode() error {
 		return err
 	}
 	c.Hash = h.String()
-	return nil
-}
-
-func (c *Code) parseParameter() error {
-	for i := range c.Parameter {
-		c.findEntrypoint(c.Parameter[i])
-	}
 	return nil
 }
 
@@ -161,7 +150,7 @@ func (c *Code) detectLanguage(node Node) {
 	if c.Language != LangUnknown {
 		return
 	}
-	if detectLiquidity(node, c.Entrypoints) {
+	if detectLiquidity(node, c.Parameter.Entrypoints()) {
 		c.Language = LangLiquidity
 		return
 	}

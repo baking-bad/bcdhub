@@ -21,11 +21,14 @@ func computeMetrics(rpc *noderpc.NodeRPC, c *models.Contract) error {
 	}
 
 	c.Language = script.Language()
-	c.HashCode = script.Code.Hash
+	c.Hash = []string{
+		script.Code.Hash,
+		script.Code.Parameter.Hash,
+	}
 	c.FailStrings = script.Code.FailStrings.Values()
 	c.Primitives = script.Code.Primitives.Values()
 	c.Annotations = script.Code.Annotations.Values()
-	c.Entrypoints = script.Code.Entrypoints
+	c.Entrypoints = script.Code.Parameter.Entrypoints()
 	c.Tags = script.Tags.Values()
 
 	c.Hardcoded = script.HardcodedAddresses

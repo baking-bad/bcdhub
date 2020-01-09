@@ -20,8 +20,8 @@
     },
     "tzstats": {
         "mainnet": "https://api.tzstats.com",
-        "zeronet": "https://api.zeronet.tzstats.com",
-        "babylonnet": "https://api.babylonnet.tzstats.com",
+        "zeronet": "",
+        "babylonnet": "",
         "carthagenet": ""
     },
     "indexer": "tzstats",

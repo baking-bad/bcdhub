@@ -11,15 +11,15 @@ var langPriorities = map[string]int{
 	LangPython:    1,
 }
 
-func detectLiquidity(node Node, entries Entrypoints) bool {
+func detectLiquidity(node Node, entries []string) bool {
 	for _, a := range node.Annotations {
 		if strings.Contains(a, "_slash_") {
 			return true
 		}
 	}
 
-	for name := range entries {
-		if strings.Contains(name, "%_Liq_entry") {
+	for _, e := range entries {
+		if strings.Contains(e, "_Liq_entry") {
 			return true
 		}
 	}

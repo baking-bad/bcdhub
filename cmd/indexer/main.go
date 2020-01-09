@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"time"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
@@ -29,6 +28,27 @@ func main() {
 	}
 
 	RPCs := createRPCs(cfg)
+
+	// contract, err := RPCs["mainnet"].GetContract("KT1REHQ183LzfoVoqiDR87mCrt7CLUH1MbcV")
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// script, err := contractparser.New(contract)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// if err := script.Parse(); err != nil {
+	// 	panic(err)
+	// }
+
+	// b, err := json.MarshalIndent(script.Code.Parameter.Metadata, "", " ")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// log.Println(string(b))
+	// log.Println(script.Code.Parameter.Hash)
+
 	indexers, err := createIndexers(es, cfg)
 	if err != nil {
 		panic(err)
@@ -39,11 +59,11 @@ func main() {
 		log.Println(err)
 	}
 
-	// Update state by ticker
-	ticker := time.NewTicker(time.Duration(cfg.UpdateTimer) * time.Second)
-	for range ticker.C {
-		if err = sync(RPCs, indexers, es); err != nil {
-			log.Println(err)
-		}
-	}
+	// // Update state by ticker
+	// ticker := time.NewTicker(time.Duration(cfg.UpdateTimer) * time.Second)
+	// for range ticker.C {
+	// 	if err = sync(RPCs, indexers, es); err != nil {
+	// 		log.Println(err)
+	// 	}
+	// }
 }

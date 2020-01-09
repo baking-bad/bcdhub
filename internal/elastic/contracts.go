@@ -21,7 +21,6 @@ func parseContarctFromHit(hit gjson.Result, c *models.Contract) {
 	c.Level = hit.Get("_source.level").Int()
 	c.Timestamp = hit.Get("_source.timestamp").Time().UTC()
 	c.Balance = hit.Get("_source.balance").Int()
-	c.HashCode = hit.Get("_source.hash_code").String()
 	c.Language = hit.Get("_source.language").String()
 
 	c.Tags = parseStringArray(hit, "_source.tags")
@@ -29,14 +28,21 @@ func parseContarctFromHit(hit gjson.Result, c *models.Contract) {
 	c.Annotations = parseStringArray(hit, "_source.annotations")
 	c.Primitives = parseStringArray(hit, "_source.primitives")
 	c.FailStrings = parseStringArray(hit, "_source.fail_strings")
+	c.Hash = parseStringArray(hit, "_source.hash")
+	c.Entrypoints = parseStringArray(hit, "_source.entrypoints")
 
-	c.Entrypoints = make(map[string][]string)
-	for k, v := range hit.Get("_source.entrypoints").Map() {
-		c.Entrypoints[k] = make([]string, 0)
-		for _, arg := range v.Array() {
-			c.Entrypoints[k] = append(c.Entrypoints[k], arg.String())
-		}
-	}
+	// c.Entrypoints = make([]contractparser.Entrypoint, 0)
+	// for _, e := range hit.Get("_source.entrypoints").Array() {
+	// 	ie := contractparser.Entrypoint{
+	// 		Name: e.Get("name").String(),
+	// 		Type: e.Get("type").String(),
+	// 		Args: make([]string, 0),
+	// 	}
+	// 	for _, arg := range e.Get("args").Array() {
+	// 		ie.Args = append(ie.Args, arg.String())
+	// 	}
+	// 	c.Entrypoints = append(c.Entrypoints, ie)
+	// }
 
 	c.Address = hit.Get("_source.address").String()
 	c.Manager = hit.Get("_source.manager").String()
