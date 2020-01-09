@@ -16,14 +16,13 @@ func computeMetrics(rpc *noderpc.NodeRPC, c *models.Contract) error {
 	if err != nil {
 		return err
 	}
-	if err := script.Parse(); err != nil {
-		return err
-	}
+	script.Parse()
 
 	c.Language = script.Language()
 	c.Hash = []string{
-		script.Code.Hash,
 		script.Code.Parameter.Hash,
+		script.Code.Hash,
+		script.Code.Storage.Hash,
 	}
 	c.FailStrings = script.Code.FailStrings.Values()
 	c.Primitives = script.Code.Primitives.Values()

@@ -55,37 +55,25 @@ func newCode(script map[string]interface{}) (Code, error) {
 
 func (c *Code) parseStruct(node Node) error {
 	switch node.Prim {
-	case "CODE":
+	case CODE:
 		c.Code = node.Args
-	case "STORAGE":
+		if err := c.parseCode(); err != nil {
+			return err
+		}
+	case STORAGE:
 		store, err := newStorage(node.Args)
 		if err != nil {
 			return err
 		}
 		c.Storage = store
-	case "PARAMETER":
-		res := make([]map[string]interface{}, len(node.Args))
-		for i := range node.Args {
-			r, ok := node.Args[i].(map[string]interface{})
-			if !ok {
-				return fmt.Errorf("Unknown parameter type: %T", node.Args[i])
-			}
-			res[i] = r
+	case PARAMETER:
+		parameter, err := newParameter(node.Args)
+		if err != nil {
+			return err
 		}
-
-		c.Parameter = newParameter(res)
+		c.Parameter = parameter
 	}
 
-	return nil
-}
-
-func (c *Code) parse() error {
-	if err := c.parseCode(); err != nil {
-		return err
-	}
-	if err := c.Parameter.parse(); err != nil {
-		return err
-	}
 	return nil
 }
 

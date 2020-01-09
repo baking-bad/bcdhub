@@ -15,7 +15,7 @@
     "tzkt": {
         "mainnet": "https://api.tzkt.io/v1/",
         "zeronet": "",
-        "babylonnet": "",
+        "babylonnet": "https://api.babylonnet.tzkt.io/v1/",
         "carthagenet": ""
     },
     "tzstats": {

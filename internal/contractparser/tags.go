@@ -1,56 +1,69 @@
 package contractparser
 
-import "strings"
+import (
+	"fmt"
+	"io/ioutil"
+	"strings"
+
+	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
+)
+
+var interfaces = map[string][]Entrypoint{}
 
 func primTags(node Node) string {
-	switch strings.ToUpper(node.Prim) {
-	case "CREATE_CONTRACT":
+	switch node.Prim {
+	case CREATECONTRACT:
 		return ContractFactoryTag
-	case "SET_DELEGATE":
+	case SETDELEGATE:
 		return DelegatableTag
-	case "CHECK_SIGNATURE":
+	case CHECKSIGNATURE:
 		return CheckSigTag
-	case "CHAIN_ID", "chain_id":
+	case CHAINID:
 		return ChainAwareTag
 	}
 	return ""
 }
 
-var handlers = map[string]func(entrypoint []Entrypoint) bool{
-	FA12Tag: findFA12,
+func loadInterfaces() error {
+	files, err := ioutil.ReadDir("./interfaces/")
+	if err != nil {
+		return err
+	}
+
+	for _, f := range files {
+		path := fmt.Sprintf("./interfaces/%s", f.Name())
+		var e []Entrypoint
+		if err := jsonload.StructFromFile(path, &e); err != nil {
+			return err
+		}
+		name := strings.Split(f.Name(), ".")[0]
+		interfaces[name] = e
+	}
+	return nil
 }
 
-func endpointsTags(endpoints []Entrypoint) []string {
+func endpointsTags(endpoints []Entrypoint) ([]string, error) {
+	if len(interfaces) == 0 {
+		if err := loadInterfaces(); err != nil {
+			return nil, err
+		}
+	}
 	res := make([]string, 0)
-	for tag, handler := range handlers {
-		if handler(endpoints) {
+	for tag, i := range interfaces {
+		if findInterface(endpoints, i) {
 			res = append(res, tag)
 		}
 	}
-	return res
-}
-
-func compareStringArrays(a, b []string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
+	return res, nil
 }
 
 func findInterface(entrypoints []Entrypoint, i []Entrypoint) bool {
 	for _, ie := range i {
 		found := false
 		for _, e := range entrypoints {
-			if e.Name == ie.Name && e.Type == ie.Type {
-				if compareStringArrays(e.Args, ie.Args) {
-					found = true
-					break
-				}
+			if compareEntrypoints(ie, e) {
+				found = true
+				break
 			}
 		}
 		if !found {
@@ -60,6 +73,51 @@ func findInterface(entrypoints []Entrypoint, i []Entrypoint) bool {
 	return true
 }
 
-func findFA12(entrypoints []Entrypoint) bool {
-	return findInterface(entrypoints, fa12)
+func deepEqual(a, b map[string]interface{}) bool {
+	for ak, av := range a {
+		bv, ok := b[ak]
+		if !ok {
+			return false
+		}
+
+		switch ak {
+		case keyArgs:
+			ava := av.([]interface{})
+			bva := bv.([]interface{})
+
+			if len(ava) != len(bva) {
+				return false
+			}
+
+			for j := range ava {
+				avam := ava[j].(map[string]interface{})
+				bvam := bva[j].(map[string]interface{})
+				if !deepEqual(avam, bvam) {
+					return false
+				}
+			}
+		case keyPrim:
+			if av != bv {
+				return false
+			}
+		default:
+			return false
+		}
+	}
+	return true
+}
+
+func compareEntrypoints(a, b Entrypoint) bool {
+	if a.Name != b.Name || a.Prim != b.Prim || len(a.Args) != len(b.Args) {
+		return false
+	}
+
+	for i := range a.Args {
+		ai := a.Args[i].(map[string]interface{})
+		bi := b.Args[i].(map[string]interface{})
+		if !deepEqual(ai, bi) {
+			return false
+		}
+	}
+	return true
 }

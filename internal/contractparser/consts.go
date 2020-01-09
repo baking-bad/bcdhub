@@ -33,9 +33,20 @@ const (
 
 // Primitives
 const (
-	OR       = "OR"
-	PAIR     = "PAIR"
-	LAMBDA   = "LAMBDA"
-	CONTRACT = "CONTRACT"
-	OPTION   = "OPTION"
+	OR             = "or"
+	PAIR           = "pair"
+	LAMBDA         = "lambda"
+	CONTRACT       = "contract"
+	OPTION         = "option"
+	ADDRESS        = "address"
+	NAT            = "nat"
+	STRING         = "string"
+	UNIT           = "unit"
+	PARAMETER      = "parameter"
+	STORAGE        = "storage"
+	CODE           = "code"
+	CREATECONTRACT = "create_contract"
+	SETDELEGATE    = "set_delegate"
+	CHECKSIGNATURE = "check_signature"
+	CHAINID        = "chain_id"
 )

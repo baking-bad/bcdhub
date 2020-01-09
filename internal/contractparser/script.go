@@ -50,13 +50,8 @@ func New(contract map[string]interface{}) (s Script, err error) {
 }
 
 // Parse -
-func (s *Script) Parse() error {
-	if err := s.Code.parse(); err != nil {
-		return err
-	}
+func (s *Script) Parse() {
 	s.getTags()
-
-	return nil
 }
 
 // Language -
@@ -67,4 +62,5 @@ func (s *Script) Language() string {
 func (s *Script) getTags() {
 	s.Tags.Append(s.Code.Tags.Values()...)
 	s.Tags.Append(s.Storage.Tags.Values()...)
+	s.Tags.Append(s.Code.Parameter.Tags.Values()...)
 }

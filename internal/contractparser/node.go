@@ -8,12 +8,12 @@ import (
 // Node -
 type Node struct {
 	Prim        string        `json:"prim,omitempty"`
-	Args        []interface{} `json:"-"`
+	Args        []interface{} `json:"args,omitempty"`
 	Annotations []string      `json:"annots,omitempty"`
 	Value       interface{}   `json:"value,omitempty"`
 	Type        string        `json:"type,omitempty"`
 	Child       []Node        `json:"child,omitempty"`
-	Path        string
+	Path        string        `json:"-"`
 }
 
 func newNode(obj map[string]interface{}) Node {
@@ -27,12 +27,12 @@ func newNode(obj map[string]interface{}) Node {
 				n.Args = vargs
 			}
 		case keyPrim:
-			n.Prim = strings.ToUpper(v.(string))
+			n.Prim = strings.ToLower(v.(string))
 		case keyAnnots:
 			n.Annotations = make([]string, 0)
 			annots := v.([]interface{})
 			for i := range annots {
-				n.Annotations = append(n.Annotations, strings.ToLower(annots[i].(string)))
+				n.Annotations = append(n.Annotations, annots[i].(string))
 			}
 		case keyMutez, keyBytes, keyInt, keyString, keyTime:
 			n.Value = v
@@ -58,13 +58,13 @@ func (n *Node) GetChild() {
 		case map[string]interface{}:
 			c := newNode(a)
 			switch c.Prim {
-			case "PAIR", "OR":
+			case PAIR, OR:
 				c.GetChild()
 				for i := range c.Child {
 					n.Child = append(n.Child, c.Child[i])
 				}
 				continue
-			case "LAMBDA", "CONTRACT":
+			case LAMBDA, CONTRACT:
 				if len(c.Args) > 0 {
 					nn := newNode(c.Args[0].(map[string]interface{}))
 					c.Child = append(c.Child, nn)
@@ -113,7 +113,7 @@ func (n *Node) GetMutez() float64 {
 
 // Is - check prim value
 func (n *Node) Is(prim string) bool {
-	return strings.ToUpper(prim) == n.Prim
+	return strings.ToLower(prim) == n.Prim
 }
 
 // HasAnnots - check if node has annotations
