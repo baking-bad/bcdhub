@@ -66,12 +66,9 @@ func (h tzStatsContract) Name() string {
 // GetContracts -
 func (t *TzStats) GetContracts(startLevel int64) ([]Contract, error) {
 	all := make([]Contract, 0)
-	first := true
-	empty := false
 	rowID := int64(0)
 
-	for first || !empty {
-		first = false
+	for {
 		var contracts []tzStatsContract
 		query := t.api.Model(tzStatsContract{}).Is("is_contract", "1").GreaterThan("first_seen", int(startLevel))
 		if rowID > 0 {
@@ -81,24 +78,63 @@ func (t *TzStats) GetContracts(startLevel int64) ([]Contract, error) {
 		if err := query.Query(&contracts); err != nil {
 			return nil, err
 		}
-		empty = len(contracts) == 0
-		if !empty {
-			resp := make([]Contract, len(contracts))
-			for idx, c := range contracts {
-				resp[idx] = Contract{
-					Level:     c.Level,
-					Timestamp: time.Unix(c.Timestamp/1000, 0),
-					Balance:   int64(c.Balance * 1000000),
-					Manager:   c.Manager,
-					Address:   c.Address,
-					Delegate:  c.Delegate,
-				}
-				if c.ID > rowID {
-					rowID = c.ID
-				}
+		if len(contracts) == 0 {
+			return all, nil
+		}
+		for _, c := range contracts {
+			all = append(all, Contract{
+				Level:     c.Level,
+				Timestamp: time.Unix(c.Timestamp/1000, 0),
+				Balance:   int64(c.Balance * 1000000),
+				Manager:   c.Manager,
+				Address:   c.Address,
+				Delegate:  c.Delegate,
+			})
+			if c.ID > rowID {
+				rowID = c.ID
 			}
-			all = append(all, resp...)
+		}
+
+	}
+}
+
+type tzStatsContractOperation struct {
+	ID    int64 `tzstats:"row_id"`
+	Level int64 `tzstats:"height"`
+}
+
+// Name -
+func (h tzStatsContractOperation) Name() string {
+	return tzstats.TableOperation
+}
+
+// GetContractOperationBlocks -
+func (t *TzStats) GetContractOperationBlocks(startBlock int) ([]int64, error) {
+	all := make([]int64, 0)
+	rowID := int64(0)
+
+	for {
+		var operations []tzStatsContractOperation
+		query := t.api.Model(tzStatsContractOperation{}).NotEquals("parameters", "").GreaterThan("height", startBlock)
+		if rowID > 0 {
+			query = query.Is("cursor", fmt.Sprintf("%d", rowID))
+		}
+
+		if err := query.Query(&operations); err != nil {
+			return nil, err
+		}
+
+		if len(operations) == 0 {
+			return all, nil
+		}
+
+		for _, op := range operations {
+			if len(all) == 0 || all[len(all)-1] != op.Level {
+				all = append(all, op.Level)
+			}
+			if rowID < op.ID {
+				rowID = op.ID
+			}
 		}
 	}
-	return all, nil
 }

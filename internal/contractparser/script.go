@@ -10,36 +10,27 @@ type Script struct {
 	Storage Storage
 
 	Tags               Set
-	HardcodedAddresses []string
+	HardcodedAddresses Set
 }
 
 // New -
-func New(contract map[string]interface{}) (s Script, err error) {
-	script, ok := contract["script"]
-	if !ok {
-		return s, fmt.Errorf("Can`t find tag 'script'")
-	}
-	m, ok := script.(map[string]interface{})
-	if !ok {
-		return s, fmt.Errorf("Invalid script type: %T", script)
-	}
-
-	code, err := newCode(m)
+func New(script map[string]interface{}) (s Script, err error) {
+	code, err := newCode(script)
 	if err != nil {
 		return
 	}
 	s.Code = code
 
-	store, ok := m["storage"]
+	store, ok := script["storage"]
 	if !ok {
 		return s, fmt.Errorf("Can't find tag 'storage'")
 	}
 	s.Storage, err = newStorage(store)
 	if err != nil {
-		return
+		return s, fmt.Errorf("newStorage: %v", err)
 	}
 
-	hardcoded, err := FindHardcodedAddresses(m)
+	hardcoded, err := FindHardcodedAddresses(script)
 	if err != nil {
 		return
 	}

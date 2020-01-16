@@ -9,10 +9,10 @@
         "host": "https://rpc.tzkt.io/zeronet",
         "network": "zeronet"
     },{
-        "host": "https://rpc.tzkt.io/babylonnet",
+        "host": "https://babylontest-ssl.tezos.org.ua",
         "network": "babylonnet"
     },{
-        "host": "https://rpc.tzkt.io/carthagenet",
+        "host": "https://carthatest-ssl.tezos.org.ua",
         "network": "carthagenet"
     }],
     "tzkt": {
@@ -23,9 +23,9 @@
     },
     "tzstats": {
         "mainnet": "https://api.tzstats.com",
-        "zeronet": "https://api.zeronet.tzstats.com",
-        "babylonnet": "https://api.babylonnet.tzstats.com",
-        "carthagenet": "https://api.carthagenet.tzstats.com"
+        "zeronet": "",
+        "babylonnet": "",
+        "carthagenet": ""
     },
     "indexer": "tzstats",
     "update_timer": 60

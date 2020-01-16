@@ -60,8 +60,6 @@ func (e *Elastic) query(index string, query map[string]interface{}, source ...st
 		return
 	}
 
-	// log.Printf("Body: %s", buf.String())
-
 	// Perform the search request.
 	var resp *esapi.Response
 	options := []func(*esapi.SearchRequest){
@@ -91,35 +89,6 @@ func (e *Elastic) TestConnection() (*gjson.Result, error) {
 	return e.getResponse(res)
 }
 
-// CreateIndexIfNotExists -
-func (e *Elastic) CreateIndexIfNotExists(index string) error {
-	_, err := e.MatchAll(index)
-	if err != nil {
-		if !strings.Contains(err.Error(), IndexNotFoundError) {
-			return err
-		}
-	} else {
-		return nil
-	}
-
-	jsonFile, err := os.Open(fmt.Sprintf("mappings/%s.json", index))
-	if err != nil {
-		log.Printf("Can't open %s.json file. Loading default config.", index)
-		return err
-	}
-	defer jsonFile.Close()
-
-	res, err := e.Indices.Create(index, e.Indices.Create.WithBody(jsonFile))
-	if err != nil {
-		return err
-	}
-	if res.IsError() {
-		return fmt.Errorf("%s", res)
-	}
-	return nil
-
-}
-
 // AddDocument -
 func (e *Elastic) AddDocument(v interface{}, index string) (string, error) {
 	b, err := json.Marshal(v)
@@ -130,6 +99,32 @@ func (e *Elastic) AddDocument(v interface{}, index string) (string, error) {
 		Index:   index,
 		Body:    bytes.NewReader(b),
 		Refresh: "true",
+	}
+
+	res, err := req.Do(context.Background(), e)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+
+	r, err := e.getResponse(res)
+	if err != nil {
+		return "", err
+	}
+	return r.Get("_id").String(), nil
+}
+
+// AddDocumentWithID -
+func (e *Elastic) AddDocumentWithID(v interface{}, index, docID string) (string, error) {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return "", err
+	}
+	req := esapi.IndexRequest{
+		Index:      index,
+		Body:       bytes.NewReader(b),
+		Refresh:    "true",
+		DocumentID: docID,
 	}
 
 	res, err := req.Do(context.Background(), e)
@@ -246,4 +241,33 @@ func (e *Elastic) BulkInsert(index string, buf *bytes.Buffer) error {
 
 	_, err = e.getResponse(res)
 	return err
+}
+
+// CreateIndexIfNotExists -
+func (e *Elastic) CreateIndexIfNotExists(index string) error {
+	_, err := e.MatchAll(index)
+	if err != nil {
+		if !strings.Contains(err.Error(), IndexNotFoundError) {
+			return err
+		}
+	} else {
+		return nil
+	}
+
+	jsonFile, err := os.Open(fmt.Sprintf("mappings/%s.json", index))
+	if err != nil {
+		log.Printf("Can't open %s.json file. Loading default config.", index)
+		return err
+	}
+	defer jsonFile.Close()
+
+	res, err := e.Indices.Create(index, e.Indices.Create.WithBody(jsonFile))
+	if err != nil {
+		return err
+	}
+	if res.IsError() {
+		return fmt.Errorf("%s", res)
+	}
+	return nil
+
 }

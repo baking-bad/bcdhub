@@ -7,12 +7,11 @@ import (
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
-const stateType = "contract"
+const stateType = "operation"
 
-var states = map[string]models.State{}
+var states = map[string]*models.State{}
 
 func main() {
 	var cfg config
@@ -26,10 +25,6 @@ func main() {
 		panic(err)
 	}
 
-	if err := es.CreateIndexIfNotExists(elastic.DocContracts); err != nil {
-		panic(err)
-	}
-
 	RPCs := createRPCs(cfg)
 	indexers, err := createIndexers(es, cfg)
 	if err != nil {
@@ -38,7 +33,7 @@ func main() {
 
 	// Initial syncronization
 	if err = sync(RPCs, indexers, es); err != nil {
-		log.Println(err)
+		panic(err)
 	}
 
 	// Update state by ticker
@@ -48,4 +43,15 @@ func main() {
 			log.Println(err)
 		}
 	}
+
+	// res, err := getOperations(RPCs["mainnet"], es, 665514, "mainnet", map[string]struct{}{"KT1NQfJvo9v8hXmEgqos8NP7sS8V4qaEfvRF": struct{}{}})
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// b, err := json.MarshalIndent(res, "", " ")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// log.Print(string(b))
 }

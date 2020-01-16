@@ -31,10 +31,6 @@
                     }
                 }
             },
-            "hash_code": {
-                "type": "text",
-                "analyzer": "simple"
-            },
             "kind": {
                 "type": "text",
                 "fields": {
@@ -85,6 +81,9 @@
             },
             "timestamp": {
                 "type": "date"
+            },
+            "project_id": {
+                "type": "text"
             }
         }
     }

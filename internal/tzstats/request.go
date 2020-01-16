@@ -60,7 +60,6 @@ func (api *TzStats) get(uri string, params map[string]string, ret interface{}) e
 	}
 	req.URL.RawQuery = q.Encode()
 
-	// log.Println(req.URL.String())
 	client := http.Client{Timeout: api.timeout}
 	var resp *http.Response
 	count := 0

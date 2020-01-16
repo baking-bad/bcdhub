@@ -1,13 +1,14 @@
 package noderpc
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/tidwall/gjson"
 )
 
 // NodeRPC -
@@ -15,19 +16,16 @@ type NodeRPC struct {
 	baseURL string
 	network string
 
-	outOfSyncTimeout time.Duration
-	timeout          time.Duration
-	retryCount       int
+	timeout    time.Duration
+	retryCount int
 }
 
 // NewNodeRPC -
-func NewNodeRPC(baseURL, network string) *NodeRPC {
+func NewNodeRPC(baseURL string) *NodeRPC {
 	return &NodeRPC{
-		baseURL:          baseURL,
-		network:          network,
-		outOfSyncTimeout: -3 * time.Minute,
-		timeout:          time.Second * 10,
-		retryCount:       3,
+		baseURL:    baseURL,
+		timeout:    time.Second * 10,
+		retryCount: 3,
 	}
 }
 
@@ -36,16 +34,20 @@ func (rpc *NodeRPC) SetTimeout(timeout time.Duration) {
 	rpc.timeout = timeout
 }
 
-func (rpc *NodeRPC) get(uri string, ret interface{}) (err error) {
-	url := fmt.Sprintf("%s/%s/%s", rpc.baseURL, rpc.network, uri)
+func (rpc *NodeRPC) get(uri string) (res *gjson.Result, err error) {
+	url := fmt.Sprintf("%s/%s", rpc.baseURL, uri)
 	client := http.Client{
 		Timeout: rpc.timeout,
+	}
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("get.NewRequest: %v", err)
 	}
 
 	var resp *http.Response
 	count := 0
 	for ; count < rpc.retryCount; count++ {
-		if resp, err = client.Get(url); err != nil {
+		if resp, err = client.Do(req); err != nil {
 			log.Printf("Attempt #%d: %s", count+1, err.Error())
 			continue
 		}
@@ -53,32 +55,73 @@ func (rpc *NodeRPC) get(uri string, ret interface{}) (err error) {
 	}
 
 	if count == rpc.retryCount {
-		return errors.New("Max HTTP request retry exceeded")
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
+		return nil, errors.New("Max HTTP request retry exceeded")
 	}
 
-	err = json.Unmarshal(body, &ret)
+	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("get.ReadAll: %v", err)
 	}
-	return nil
+
+	r := gjson.ParseBytes(b)
+
+	resp.Body.Close()
+	return &r, nil
 }
 
-// GetHead -
-func (rpc *NodeRPC) GetHead() (Header, error) {
-	var ret Header
-	if err := rpc.get("chains/main/blocks/head/header", &ret); err != nil {
-		return ret, err
+// GetLevel - get head level
+func (rpc *NodeRPC) GetLevel() (int64, error) {
+	head, err := rpc.get("chains/main/blocks/head/header")
+	if err != nil {
+		return 0, err
+	}
+	return head.Get("level").Int(), nil
+}
+
+// GetLevelTime - get level time
+func (rpc *NodeRPC) GetLevelTime(level int) (time.Time, error) {
+	head, err := rpc.get(fmt.Sprintf("chains/main/blocks/%d/header", level))
+	if err != nil {
+		return time.Now(), err
+	}
+	return head.Get("timestamp").Time().UTC(), nil
+}
+
+// GetScript -
+func (rpc *NodeRPC) GetScript(address string, level int64) (map[string]interface{}, error) {
+	res, err := rpc.GetScriptJSON(address, level)
+	if err != nil {
+		return nil, err
+	}
+
+	ret, ok := res.Value().(map[string]interface{})
+	if !ok {
+		return nil, errors.New("(rpc.GetScript) Invalid return type")
 	}
 	return ret, nil
 }
 
-// GetContractScript -
-func (rpc *NodeRPC) GetContract(address string) (script map[string]interface{}, err error) {
-	err = rpc.get(fmt.Sprintf("chains/main/blocks/head/context/contracts/%s", address), &script)
-	return
+// GetScriptJSON -
+func (rpc *NodeRPC) GetScriptJSON(address string, level int64) (gjson.Result, error) {
+	block := "head"
+	if level > 0 {
+		block = fmt.Sprintf("%d", level)
+	}
+
+	contract, err := rpc.get(fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s", block, address))
+	if err != nil {
+		return gjson.Result{}, err
+	}
+
+	return contract.Get("script"), nil
+}
+
+// GetOperations -
+func (rpc *NodeRPC) GetOperations(block int64) (res *gjson.Result, err error) {
+	data, err := rpc.get(fmt.Sprintf("chains/main/blocks/%d/operations/3", block))
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }

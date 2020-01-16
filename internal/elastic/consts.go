@@ -2,9 +2,17 @@ package elastic
 
 // Document names
 const (
-	DocContracts = "contracts"
-	DocStates    = "states"
-	DocLabels    = "labels"
+	DocContracts  = "contract"
+	DocStates     = "state"
+	DocProjects   = "project"
+	DocOperations = "operation"
+	DocBigMapDiff     = "bigmapdiff"
+	DocMetadata   = "metadata"
+)
+
+// Index names
+const (
+	IndexName = "bcd"
 )
 
 // Errors

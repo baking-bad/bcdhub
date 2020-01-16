@@ -8,13 +8,14 @@ import (
 
 // Code -
 type Code struct {
+	*parser
+
 	Parameter Parameter
 	Storage   Storage
 	Code      []interface{}
 
 	Hash string
-
-	fuzzyReader *HashReader
+	hash []byte
 
 	Tags        Set
 	Language    string
@@ -25,13 +26,17 @@ type Code struct {
 
 func newCode(script map[string]interface{}) (Code, error) {
 	res := Code{
+		parser:      &parser{},
 		Language:    LangUnknown,
-		fuzzyReader: NewHashReader(),
+		hash:        make([]byte, 0),
 		FailStrings: make(Set),
 		Primitives:  make(Set),
 		Tags:        make(Set),
 		Annotations: make(Set),
 	}
+	res.primHandler = res.handlePrimitive
+	res.arrayHandler = res.handleArray
+
 	code, ok := script["code"]
 	if !ok {
 		return res, fmt.Errorf("Can't find tag 'code'")
@@ -79,11 +84,15 @@ func (c *Code) parseStruct(node Node) error {
 
 func (c *Code) parseCode() error {
 	for _, val := range c.Code {
-		if err := c.parsePrimitive(val); err != nil {
+		if err := c.parse(val); err != nil {
 			return err
 		}
 	}
-	h, err := tlsh.HashReader(c.fuzzyReader)
+
+	if len(c.hash) == 0 {
+		c.hash = append(c.hash, 0)
+	}
+	h, err := tlsh.HashBytes(c.hash)
 	if err != nil {
 		return err
 	}
@@ -91,29 +100,11 @@ func (c *Code) parseCode() error {
 	return nil
 }
 
-func (c *Code) parsePrimitive(val interface{}) error {
-	switch t := val.(type) {
-	case []interface{}:
-		for _, a := range t {
-			if err := c.parsePrimitive(a); err != nil {
-				return err
-			}
+func (c *Code) handleArray(arr []interface{}) error {
+	if fail := parseFail(arr); fail != nil {
+		if fail.With != "" {
+			c.FailStrings.Append(fail.With)
 		}
-		if fail := parseFail(t); fail != nil {
-			if fail.With != "" {
-				c.FailStrings.Append(fail.With)
-			}
-		}
-	case map[string]interface{}:
-		node := newNode(t)
-		for i := range node.Args {
-			c.parsePrimitive(node.Args[i])
-		}
-		if err := c.handlePrimitive(node); err != nil {
-			return err
-		}
-	default:
-		return fmt.Errorf("Unknown value type: %T", t)
 	}
 	return nil
 }
@@ -121,7 +112,7 @@ func (c *Code) parsePrimitive(val interface{}) error {
 func (c *Code) handlePrimitive(node Node) (err error) {
 	if node.Prim != "" {
 		c.Primitives.Append(node.Prim)
-		c.fuzzyReader.WriteString(node.Prim)
+		c.hash = append(c.hash, []byte(node.Prim)...)
 	}
 
 	if node.HasAnnots() {

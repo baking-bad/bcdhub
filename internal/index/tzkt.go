@@ -101,3 +101,8 @@ func (t *TzKT) GetContracts(startLevel int64) ([]Contract, error) {
 
 	return resp, nil
 }
+
+// GetContractOperationBlocks -
+func (t *TzKT) GetContractOperationBlocks(startBlock int) ([]int64, error) {
+	return nil, nil
+}

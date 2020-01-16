@@ -6,24 +6,32 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type getProjectRequest struct {
+	Address string `uri:"address"`
+}
+
 // GetProjectContracts -
 func (ctx *Context) GetProjectContracts(c *gin.Context) {
-	var req getContractRequest
+	var req getProjectRequest
 	if err := c.BindUri(&req); err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 	by := map[string]interface{}{
 		"address": req.Address,
-		"network": req.Network,
 	}
-	hashCode, err := ctx.ES.GetContractField(by, "hash_code")
+	hashCode, err := ctx.ES.GetContractField(by, "hash")
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	v, err := ctx.ES.FindProjectContracts(hashCode.(string), 17.8)
+	h := make([]string, 0)
+	for _, item := range hashCode.([]interface{}) {
+		h = append(h, item.(string))
+	}
+
+	v, err := ctx.ES.FindProjectContracts(h, 5)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return

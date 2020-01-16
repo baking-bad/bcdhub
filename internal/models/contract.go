@@ -24,4 +24,6 @@ type Contract struct {
 	Address  string `json:"address"`
 	Manager  string `json:"manager,omitempty"`
 	Delegate string `json:"delegate,omitempty"`
+
+	ProjectID string `json:"project_id,omitempty"`
 }

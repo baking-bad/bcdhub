@@ -8,9 +8,7 @@ import (
 
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/index"
-	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
-	"github.com/google/uuid"
 )
 
 func createRPCs(cfg config) map[string]*noderpc.NodeRPC {
@@ -31,7 +29,7 @@ func createIndexer(es *elastic.Elastic, indexerType, network, url string) (index
 	if err != nil {
 		return nil, err
 	}
-	states[network] = s
+	states[network] = &s
 
 	log.Printf("Create %s %s indexer", indexerType, network)
 	log.Printf("Current state %d level", s.Level)
@@ -65,20 +63,6 @@ func createIndexers(es *elastic.Elastic, cfg config) (map[string]index.Indexer, 
 	return idx, nil
 }
 
-func createContract(c index.Contract, rpc *noderpc.NodeRPC, es *elastic.Elastic, network string) (n models.Contract, err error) {
-	n.Level = c.Level
-	n.Timestamp = c.Timestamp.UTC()
-	n.Balance = c.Balance
-	n.Address = c.Address
-	n.Manager = c.Manager
-	n.Delegate = c.Delegate
-	n.Network = network
-
-	n.ID = uuid.New().String()
-	err = computeMetrics(rpc, es, &n)
-	return
-}
-
 func syncIndexer(rpc *noderpc.NodeRPC, indexer index.Indexer, es *elastic.Elastic, network string) error {
 	log.Printf("-----------%s-----------", strings.ToUpper(network))
 	level, err := rpc.GetLevel()
@@ -93,41 +77,55 @@ func syncIndexer(rpc *noderpc.NodeRPC, indexer index.Indexer, es *elastic.Elasti
 		return fmt.Errorf("Unknown network: %s", network)
 	}
 	log.Printf("Current state: %d", s.Level)
+
 	if level > s.Level {
-		contracts, err := indexer.GetContracts(s.Level)
+		levels, err := indexer.GetContractOperationBlocks(int(s.Level))
 		if err != nil {
 			return err
 		}
-		log.Printf("New contracts: %d", len(contracts))
 
-		if len(contracts) > 0 {
-			for _, c := range contracts {
-				n, err := createContract(c, rpc, es, network)
+		if len(levels) > 0 {
+			addresses, err := es.GetAllContractAddresses(network)
+			if err != nil {
+				return err
+			}
+
+			log.Printf("Found %d contracts", len(addresses))
+			log.Printf("Found %d new levels", len(levels))
+
+			for _, l := range levels {
+				ops, err := getOperations(rpc, es, l, network, addresses)
 				if err != nil {
-					log.Println(err)
+					return err
+				}
+
+				if s.Level < l {
+					s.Level = l
+
+					t, err := rpc.GetLevelTime(int(l))
+					if err != nil {
+						return err
+					}
+					s.Timestamp = t
+				}
+				if _, err = es.UpdateDoc(elastic.DocStates, s.ID, *s); err != nil {
+					return err
+				}
+
+				log.Printf("[%d/%d] Found %d operations", l, level, len(ops))
+				if len(ops) == 0 {
 					continue
 				}
 
-				log.Printf("[%s] Contract found", n.Address)
-
-				if _, err := es.AddDocument(n, elastic.DocContracts); err != nil {
-					return err
-				}
-
-				if s.Level < n.Level {
-					s.Level = n.Level
-					s.Timestamp = n.Timestamp
-					s.Network = network
-					s.Type = stateType
-				}
-
-				if _, err = es.UpdateDoc(elastic.DocStates, s.ID, s); err != nil {
-					return err
+				for j := range ops {
+					if _, err := es.AddDocument(ops[j], elastic.DocOperations); err != nil {
+						return err
+					}
 				}
 			}
 		}
-		log.Printf("[%s] Synced", network)
 	}
+
 	return nil
 }
 

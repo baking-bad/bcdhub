@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"time"
+
+	"github.com/gin-contrib/cors"
 
 	"github.com/aopoltorzhicky/bcdhub/cmd/api/handlers"
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
@@ -23,6 +26,8 @@ func main() {
 
 	ctx := handlers.NewContext(es)
 	r := gin.Default()
+
+	r.Use(corsSettings())
 	v1 := r.Group("v1")
 	{
 		v1.GET("search", ctx.Search)
@@ -39,16 +44,24 @@ func main() {
 		}
 		project := v1.Group("project")
 		{
-			networkContract := project.Group(":network")
+			address := project.Group(":address")
 			{
-				address := networkContract.Group(":address")
-				{
-					address.GET("", ctx.GetProjectContracts)
-				}
+				address.GET("", ctx.GetProjectContracts)
 			}
 		}
 	}
 	if err := r.Run(cfg.Address); err != nil {
 		fmt.Println(err)
 	}
+}
+
+func corsSettings() gin.HandlerFunc {
+	return cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET"},
+		AllowHeaders:     []string{"Origin"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	})
 }

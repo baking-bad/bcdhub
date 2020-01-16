@@ -31,22 +31,11 @@ func parseContarctFromHit(hit gjson.Result, c *models.Contract) {
 	c.Hash = parseStringArray(hit, "_source.hash")
 	c.Entrypoints = parseStringArray(hit, "_source.entrypoints")
 
-	// c.Entrypoints = make([]contractparser.Entrypoint, 0)
-	// for _, e := range hit.Get("_source.entrypoints").Array() {
-	// 	ie := contractparser.Entrypoint{
-	// 		Name: e.Get("name").String(),
-	// 		Type: e.Get("type").String(),
-	// 		Args: make([]string, 0),
-	// 	}
-	// 	for _, arg := range e.Get("args").Array() {
-	// 		ie.Args = append(ie.Args, arg.String())
-	// 	}
-	// 	c.Entrypoints = append(c.Entrypoints, ie)
-	// }
-
 	c.Address = hit.Get("_source.address").String()
 	c.Manager = hit.Get("_source.manager").String()
 	c.Delegate = hit.Get("_source.delegate").String()
+
+	c.ProjectID = hit.Get("_source.project_id").String()
 }
 
 func getContractQuery(by map[string]interface{}) map[string]interface{} {
@@ -100,7 +89,7 @@ func (e *Elastic) getContracts(q map[string]interface{}) ([]models.Contract, err
 func (e *Elastic) GetContract(by map[string]interface{}) (models.Contract, error) {
 	query := getContractQuery(by)
 	query["_source"] = map[string]interface{}{
-		"excludes": []string{"hash_code"},
+		"excludes": []string{"hash"},
 	}
 	return e.getContract(query)
 }
@@ -119,20 +108,48 @@ func (e *Elastic) GetContractField(by map[string]interface{}, field string) (int
 }
 
 // FindProjectContracts -
-func (e *Elastic) FindProjectContracts(hashCode string, minScore float64) ([]models.Contract, error) {
+func (e *Elastic) FindProjectContracts(hash []string, minScore float64) ([]models.Contract, error) {
+	if len(hash) != 3 {
+		return nil, fmt.Errorf("Length of hash array must be 3")
+	}
 	query := map[string]interface{}{
-		"min_score": minScore,
-		"size":      100,
+		"size": 100,
 		"_source": map[string]interface{}{
-			"excludes": []string{"hash_code"},
+			"excludes": []string{"hash"},
 		},
 		"query": map[string]interface{}{
 			"bool": map[string]interface{}{
-				"must": map[string]interface{}{
-					"match": map[string]interface{}{
-						"hash_code": hashCode,
+				"should": []map[string]interface{}{
+					map[string]interface{}{
+						"match": map[string]interface{}{
+							"hash": map[string]interface{}{
+								"query":     hash[0],
+								"fuzziness": 1,
+							},
+						},
+					},
+					map[string]interface{}{
+						"match": map[string]interface{}{
+							"hash": map[string]interface{}{
+								"query":     hash[1],
+								"fuzziness": 1,
+							},
+						},
+					},
+					map[string]interface{}{
+						"match": map[string]interface{}{
+							"hash": map[string]interface{}{
+								"query":     hash[2],
+								"fuzziness": 1,
+							},
+						},
 					},
 				},
+			},
+		},
+		"sort": map[string]interface{}{
+			"timestamp": map[string]interface{}{
+				"order": "desc",
 			},
 		},
 	}
@@ -143,17 +160,37 @@ func (e *Elastic) FindProjectContracts(hashCode string, minScore float64) ([]mod
 func (e *Elastic) SearchByText(text string) ([]models.Contract, error) {
 	query := map[string]interface{}{
 		"_source": map[string]interface{}{
-			"excludes": []string{"hash_code"},
+			"excludes": []string{"hash"},
 		},
 		"size": 10,
 		"query": map[string]interface{}{
 			"query_string": map[string]interface{}{
 				"query": fmt.Sprintf("*%s*", text),
 				"fields": []string{
-					"address^10", "manager^8", "delegate^6", "tags^4", "hardcoded", "annotations", "fail_strings",
+					"address^10", "manager^8", "delegate^6", "tags^4", "hardcoded", "annotations", "fail_strings", "entrypoints",
 				},
 			},
 		},
 	}
 	return e.getContracts(query)
+}
+
+// GetAllContractAddresses -
+func (e *Elastic) GetAllContractAddresses(network string) (map[string]struct{}, error) {
+	query := getContractQuery(map[string]interface{}{
+		"network": network,
+	})
+	query["size"] = 10000
+	data, err := e.query(DocContracts, query, "address")
+	if err != nil {
+		return nil, err
+	}
+
+	arr := data.Get("hits.hits").Array()
+	contracts := make(map[string]struct{})
+	for i := range arr {
+		address := arr[i].Get("_source.address").String()
+		contracts[address] = struct{}{}
+	}
+	return contracts, nil
 }
