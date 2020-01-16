@@ -13,7 +13,7 @@ import (
 )
 
 func computeMetrics(rpc *noderpc.NodeRPC, es *elastic.Elastic, c *models.Contract) error {
-	contract, err := rpc.GetScript(c.Address, 0)
+	contract, err := rpc.GetScriptJSON(c.Address, 0)
 	if err != nil {
 		return err
 	}

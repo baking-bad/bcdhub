@@ -9,9 +9,8 @@ import (
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 )
 
-const stateType = "operation"
-
 var states = map[string]*models.State{}
+var statesContract = map[string]*models.State{}
 
 func main() {
 	var cfg config

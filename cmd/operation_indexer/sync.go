@@ -25,11 +25,17 @@ func createIndexer(es *elastic.Elastic, indexerType, network, url string) (index
 	if url == "" {
 		return nil, nil
 	}
-	s, err := es.CurrentState(network, stateType)
+	s, err := es.CurrentState(network, stateOperation)
 	if err != nil {
 		return nil, err
 	}
 	states[network] = &s
+
+	cs, err := es.CurrentState(network, stateContract)
+	if err != nil {
+		return nil, err
+	}
+	statesContract[network] = &cs
 
 	log.Printf("Create %s %s indexer", indexerType, network)
 	log.Printf("Current state %d level", s.Level)
@@ -65,11 +71,11 @@ func createIndexers(es *elastic.Elastic, cfg config) (map[string]index.Indexer, 
 
 func syncIndexer(rpc *noderpc.NodeRPC, indexer index.Indexer, es *elastic.Elastic, network string) error {
 	log.Printf("-----------%s-----------", strings.ToUpper(network))
-	level, err := rpc.GetLevel()
-	if err != nil {
-		return err
+	cs, ok := statesContract[network]
+	if !ok {
+		return fmt.Errorf("Unknown network: %s", network)
 	}
-	log.Printf("Current node state: %d", level)
+	log.Printf("Current contract indexer state: %d", cs.Level)
 
 	// Get current DB state
 	s, ok := states[network]
@@ -78,7 +84,7 @@ func syncIndexer(rpc *noderpc.NodeRPC, indexer index.Indexer, es *elastic.Elasti
 	}
 	log.Printf("Current state: %d", s.Level)
 
-	if level > s.Level {
+	if cs.Level > s.Level {
 		levels, err := indexer.GetContractOperationBlocks(int(s.Level))
 		if err != nil {
 			return err
@@ -112,7 +118,7 @@ func syncIndexer(rpc *noderpc.NodeRPC, indexer index.Indexer, es *elastic.Elasti
 					return err
 				}
 
-				log.Printf("[%d/%d] Found %d operations", l, level, len(ops))
+				log.Printf("[%d/%d] Found %d operations", l, cs.Level, len(ops))
 				if len(ops) == 0 {
 					continue
 				}

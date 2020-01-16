@@ -33,15 +33,13 @@ func getMetadatas(rpc *noderpc.NodeRPC, c models.Contract) (map[string]string, e
 }
 
 func createMetadata(rpc *noderpc.NodeRPC, level int64, address string) (string, error) {
-	data, err := rpc.GetScript(address, level)
+	data, err := rpc.GetScriptJSON(address, level)
 	if err != nil {
 		return "", err
 	}
-	code := data["code"].([]interface{})
-	for i := range code {
-		v := code[i].(map[string]interface{})
-		if v["prim"] == "storage" {
-			a, err := contractparser.ParseMetadata(v["args"])
+	for _, c := range data.Get("code").Array() {
+		if c.Get("prim").String() == "storage" {
+			a, err := contractparser.ParseMetadata(c.Get("args"))
 			if err != nil {
 				return "", nil
 			}

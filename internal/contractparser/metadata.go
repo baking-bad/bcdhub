@@ -2,17 +2,19 @@ package contractparser
 
 import "fmt"
 
+import "github.com/tidwall/gjson"
+
 // Metadata -
 type Metadata map[string]*NodeMetadata
 
 // NodeMetadata -
 type NodeMetadata struct {
-	TypeName  string                 `json:"type,omitempty"`
-	FieldName string                 `json:"field,omitempty"`
-	Prim      string                 `json:"prim,omitempty"`
-	Entry     string                 `json:"entry,omitempty"`
-	Parameter map[string]interface{} `json:"parameter,omitempty"`
-	Args      []string               `json:"args,omitempty"`
+	TypeName  string       `json:"type,omitempty"`
+	FieldName string       `json:"field,omitempty"`
+	Prim      string       `json:"prim,omitempty"`
+	Entry     string       `json:"entry,omitempty"`
+	Parameter gjson.Result `json:"parameter,omitempty"`
+	Args      []string     `json:"args,omitempty"`
 }
 
 type internalNode struct {
@@ -31,25 +33,25 @@ func getAnnotation(x []string, prefix byte) string {
 }
 
 // ParseMetadata -
-func ParseMetadata(v interface{}) (Metadata, error) {
+func ParseMetadata(v gjson.Result) (Metadata, error) {
 	m := make(Metadata)
 	parent := Node{
 		Prim: "root",
 		Path: "0",
 	}
 
-	switch val := v.(type) {
-	case []interface{}:
+	if v.IsArray() {
+		val := v.Array()
 		if len(val) > 0 {
-			parseNodeMetadata(val[0].(map[string]interface{}), parent, parent.Path, "", m)
+			parseNodeMetadata(val[0], parent, parent.Path, "", m)
 			return m, nil
 		}
 		return nil, fmt.Errorf("[ParseMetadata] Invalid data length: %d", len(val))
-	case map[string]interface{}:
-		parseNodeMetadata(val, parent, parent.Path, "", m)
+	} else if v.IsObject() {
+		parseNodeMetadata(v, parent, parent.Path, "", m)
 		return m, nil
-	default:
-		return nil, fmt.Errorf("Unknown value type: %T", val)
+	} else {
+		return nil, fmt.Errorf("Unknown value type: %T", v.Type)
 	}
 }
 
@@ -65,8 +67,9 @@ func getFlatNested(data internalNode) []internalNode {
 	return nodes
 }
 
-func parseNodeMetadata(v map[string]interface{}, parent Node, path, entry string, metadata Metadata) internalNode {
-	n := newNode(v)
+func parseNodeMetadata(v gjson.Result, parent Node, path, entry string, metadata Metadata) internalNode {
+	n := newNodeJSON(v)
+	arr := n.Args.Array()
 	n.Path = path
 
 	fieldName := getAnnotation(n.Annotations, '%')
@@ -83,24 +86,21 @@ func parseNodeMetadata(v map[string]interface{}, parent Node, path, entry string
 	}
 
 	if n.Is(LAMBDA) || n.Is(CONTRACT) {
-		if len(n.Args) > 0 {
-			arg := n.Args[0].(map[string]interface{})
+		if len(arr) > 0 {
 			m := metadata[path]
-			m.Parameter = arg
+			m.Parameter = arr[0]
 		}
 		return internalNode{
 			Node: &n,
 		}
 	} else if n.Is(OPTION) {
-		arg := n.Args[0].(map[string]interface{})
-		return parseNodeMetadata(arg, parent, path+"0", fieldName, metadata)
+		return parseNodeMetadata(arr[0], parent, path+"0", fieldName, metadata)
 	}
 
 	args := make([]internalNode, 0)
-	for i := range n.Args {
+	for i := range arr {
 		argPath := fmt.Sprintf("%s%d", path, i)
-		a := n.Args[i].(map[string]interface{})
-		args = append(args, parseNodeMetadata(a, n, argPath, entry, metadata))
+		args = append(args, parseNodeMetadata(arr[i], n, argPath, entry, metadata))
 	}
 
 	if n.Is(PAIR) || n.Is(OR) {

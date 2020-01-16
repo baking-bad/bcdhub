@@ -3,80 +3,53 @@ package contractparser
 import (
 	"log"
 	"strings"
+
+	"github.com/tidwall/gjson"
 )
 
 // Node -
 type Node struct {
-	Prim        string        `json:"prim,omitempty"`
-	Args        []interface{} `json:"args,omitempty"`
-	Annotations []string      `json:"annots,omitempty"`
-	Value       interface{}   `json:"value,omitempty"`
-	Type        string        `json:"type,omitempty"`
-	Child       []Node        `json:"child,omitempty"`
-	Path        string        `json:"-"`
+	Prim        string       `json:"prim,omitempty"`
+	Args        gjson.Result `json:"args,omitempty"`
+	Annotations []string     `json:"annots,omitempty"`
+	Value       interface{}  `json:"value,omitempty"`
+	Type        string       `json:"type,omitempty"`
+	Child       []Node       `json:"child,omitempty"`
+	Path        string       `json:"-"`
 }
 
-func newNode(obj map[string]interface{}) Node {
-	n := Node{
-		Child: make([]Node, 0),
+func newNodeJSON(data gjson.Result) Node {
+	if !data.IsObject() {
+		log.Panicf("Unknown node type: %v", data)
 	}
-	for k, v := range obj {
-		switch k {
-		case keyArgs:
-			if vargs, ok := v.([]interface{}); ok {
-				n.Args = vargs
-			}
-		case keyPrim:
-			n.Prim = strings.ToLower(v.(string))
-		case keyAnnots:
-			n.Annotations = make([]string, 0)
-			annots := v.([]interface{})
-			for i := range annots {
-				n.Annotations = append(n.Annotations, annots[i].(string))
-			}
-		case keyMutez, keyBytes, keyInt, keyString, keyTime:
-			n.Value = v
-			n.Type = k
-		default:
-			log.Printf("Unknown node key: %s", k)
-		}
+	n := Node{
+		Child:       make([]Node, 0),
+		Annotations: make([]string, 0),
+		Prim:        strings.ToUpper(data.Get(keyPrim).String()),
+		Args:        data.Get(keyArgs),
+	}
+	for _, a := range data.Get(keyAnnots).Array() {
+		n.Annotations = append(n.Annotations, a.String())
+	}
 
+	if data.Get(keyBytes).Exists() {
+		n.Value = data.Get(keyBytes).String()
+		n.Type = keyBytes
+	} else if data.Get(keyInt).Exists() {
+		n.Value = data.Get(keyInt).Int()
+		n.Type = keyInt
+	} else if data.Get(keyMutez).Exists() {
+		n.Value = data.Get(keyMutez).Int()
+		n.Type = keyMutez
+	} else if data.Get(keyString).Exists() {
+		n.Value = data.Get(keyString).String()
+		n.Type = keyString
+	} else if data.Get(keyTime).Exists() {
+		n.Value = data.Get(keyTime).String()
+		n.Type = keyTime
 	}
 
 	return n
-}
-
-// GetChild -
-func (n *Node) GetChild() {
-	for _, arg := range n.Args {
-		switch a := arg.(type) {
-		case []interface{}:
-			empty := newNode(map[string]interface{}{
-				"args": a,
-			})
-			n.Child = append(n.Child, empty)
-		case map[string]interface{}:
-			c := newNode(a)
-			switch c.Prim {
-			case PAIR, OR:
-				c.GetChild()
-				for i := range c.Child {
-					n.Child = append(n.Child, c.Child[i])
-				}
-				continue
-			case LAMBDA, CONTRACT:
-				if len(c.Args) > 0 {
-					nn := newNode(c.Args[0].(map[string]interface{}))
-					c.Child = append(c.Child, nn)
-				}
-			default:
-			}
-			n.Child = append(n.Child, c)
-
-		default:
-			log.Printf("getChild: Unknown type %T", a)
-		}
-	}
 }
 
 // GetString - return string value
@@ -123,10 +96,10 @@ func (n *Node) HasAnnots() bool {
 
 // HasArgs - check if node has args
 func (n *Node) HasArgs() bool {
-	return len(n.Args) > 0
+	return len(n.Args.Array()) > 0
 }
 
 // Print -
 func (n *Node) Print() {
-	log.Printf("%s: %s [%s] (args: %d)", strings.Join(n.Annotations, ","), n.Prim, n.Type, len(n.Args))
+	log.Printf("%s: %s [%s] (args: %d)", strings.Join(n.Annotations, ","), n.Prim, n.Type, len(n.Args.Array()))
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/tlsh"
+	"github.com/tidwall/gjson"
 )
 
 const (
@@ -29,7 +30,10 @@ type Parameter struct {
 	Tags Set
 }
 
-func newParameter(v []interface{}) (Parameter, error) {
+func newParameter(v gjson.Result) (Parameter, error) {
+	if !v.IsArray() {
+		return Parameter{}, fmt.Errorf("Parameter is not array")
+	}
 	p := Parameter{
 		parser: &parser{},
 		hash:   make([]byte, 0),
@@ -70,9 +74,8 @@ func newParameter(v []interface{}) (Parameter, error) {
 }
 
 func (p *Parameter) handlePrimitive(n Node) error {
-	if !n.Is("") {
-		p.hash = append(p.hash, []byte(n.Prim)...)
-	}
+	p.hash = append(p.hash, []byte(n.Prim)...)
+
 	if n.Is(CONTRACT) {
 		p.Tags.Append(ViewMethodTag)
 	}

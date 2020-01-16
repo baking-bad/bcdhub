@@ -1,19 +1,18 @@
 package contractparser
 
-import "regexp"
+import (
+	"regexp"
 
-import "encoding/json"
+	"github.com/tidwall/gjson"
+)
 
 // FindHardcodedAddresses -
-func FindHardcodedAddresses(script map[string]interface{}) (Set, error) {
-	b, err := json.Marshal(script)
-	if err != nil {
-		return nil, err
-	}
-	regexString := "(tz1|KT1)[0-9A-Za-z]{33}"
+func FindHardcodedAddresses(script gjson.Result) (Set, error) {
+	s := script.String()
+	regexString := "(tz|KT)[0-9A-Za-z]{34}"
 	re := regexp.MustCompile(regexString)
-	res := re.FindAllString(string(b), -1)
-	s := make(Set)
-	s.Append(res...)
-	return s, nil
+	res := re.FindAllString(s, -1)
+	resp := make(Set)
+	resp.Append(res...)
+	return resp, nil
 }

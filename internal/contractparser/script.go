@@ -2,6 +2,7 @@ package contractparser
 
 import (
 	"fmt"
+	"github.com/tidwall/gjson"
 )
 
 // Script -
@@ -14,18 +15,14 @@ type Script struct {
 }
 
 // New -
-func New(script map[string]interface{}) (s Script, err error) {
+func New(script gjson.Result) (s Script, err error) {
 	code, err := newCode(script)
 	if err != nil {
 		return
 	}
 	s.Code = code
 
-	store, ok := script["storage"]
-	if !ok {
-		return s, fmt.Errorf("Can't find tag 'storage'")
-	}
-	s.Storage, err = newStorage(store)
+	s.Storage, err = newStorage(script.Get("storage"))
 	if err != nil {
 		return s, fmt.Errorf("newStorage: %v", err)
 	}

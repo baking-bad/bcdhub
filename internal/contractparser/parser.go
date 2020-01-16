@@ -1,8 +1,12 @@
 package contractparser
 
-import "fmt"
+import (
+	"fmt"
 
-type onArray func(arr []interface{}) error
+	"github.com/tidwall/gjson"
+)
+
+type onArray func(arr []gjson.Result) error
 type onPrim func(n Node) error
 
 type parser struct {
@@ -17,31 +21,31 @@ func newParser(onArr onArray, onPrimitive onPrim) parser {
 	}
 }
 
-func (p *parser) parse(v interface{}) error {
-	switch t := v.(type) {
-	case []interface{}:
-		for _, a := range t {
+func (p *parser) parse(v gjson.Result) error {
+	if v.IsArray() {
+		arr := v.Array()
+		for _, a := range arr {
 			if err := p.parse(a); err != nil {
 				return err
 			}
 		}
 		if p.arrayHandler != nil {
-			if err := p.arrayHandler(t); err != nil {
+			if err := p.arrayHandler(arr); err != nil {
 				return err
 			}
 		}
-	case map[string]interface{}:
-		node := newNode(t)
-		for i := range node.Args {
-			p.parse(node.Args[i])
+	} else if v.IsObject() {
+		node := newNodeJSON(v)
+		for _, a := range node.Args.Array() {
+			p.parse(a)
 		}
-		if p.primHandler != nil {
+		if p.primHandler != nil && !node.Is("") {
 			if err := p.primHandler(node); err != nil {
 				return err
 			}
 		}
-	default:
-		return fmt.Errorf("Unknown value type: %T", t)
+	} else {
+		return fmt.Errorf("Unknown value type: %T", v.Type)
 	}
 	return nil
 }

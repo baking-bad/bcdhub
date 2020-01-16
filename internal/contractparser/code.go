@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/tlsh"
+	"github.com/tidwall/gjson"
 )
 
 // Code -
@@ -12,7 +13,7 @@ type Code struct {
 
 	Parameter Parameter
 	Storage   Storage
-	Code      []interface{}
+	Code      gjson.Result
 
 	Hash string
 	hash []byte
@@ -24,7 +25,7 @@ type Code struct {
 	Annotations Set
 }
 
-func newCode(script map[string]interface{}) (Code, error) {
+func newCode(script gjson.Result) (Code, error) {
 	res := Code{
 		parser:      &parser{},
 		Language:    LangUnknown,
@@ -37,20 +38,13 @@ func newCode(script map[string]interface{}) (Code, error) {
 	res.primHandler = res.handlePrimitive
 	res.arrayHandler = res.handleArray
 
-	code, ok := script["code"]
-	if !ok {
-		return res, fmt.Errorf("Can't find tag 'code'")
-	}
-	c, ok := code.([]interface{})
-	if !ok {
-		return res, fmt.Errorf("Invalid tag 'code' type")
-	}
-	if len(c) != 3 {
+	code := script.Get("code").Array()
+	if len(code) != 3 {
 		return res, fmt.Errorf("Invalid tag 'code' length")
 	}
 
-	for i := range c {
-		n := newNode(c[i].(map[string]interface{}))
+	for i := range code {
+		n := newNodeJSON(code[i])
 		if err := res.parseStruct(n); err != nil {
 			return res, err
 		}
@@ -62,7 +56,7 @@ func (c *Code) parseStruct(node Node) error {
 	switch node.Prim {
 	case CODE:
 		c.Code = node.Args
-		if err := c.parseCode(); err != nil {
+		if err := c.parseCode(node.Args); err != nil {
 			return err
 		}
 	case STORAGE:
@@ -82,8 +76,8 @@ func (c *Code) parseStruct(node Node) error {
 	return nil
 }
 
-func (c *Code) parseCode() error {
-	for _, val := range c.Code {
+func (c *Code) parseCode(args gjson.Result) error {
+	for _, val := range args.Array() {
 		if err := c.parse(val); err != nil {
 			return err
 		}
@@ -100,7 +94,7 @@ func (c *Code) parseCode() error {
 	return nil
 }
 
-func (c *Code) handleArray(arr []interface{}) error {
+func (c *Code) handleArray(arr []gjson.Result) error {
 	if fail := parseFail(arr); fail != nil {
 		if fail.With != "" {
 			c.FailStrings.Append(fail.With)
@@ -110,10 +104,8 @@ func (c *Code) handleArray(arr []interface{}) error {
 }
 
 func (c *Code) handlePrimitive(node Node) (err error) {
-	if node.Prim != "" {
-		c.Primitives.Append(node.Prim)
-		c.hash = append(c.hash, []byte(node.Prim)...)
-	}
+	c.Primitives.Append(node.Prim)
+	c.hash = append(c.hash, []byte(node.Prim)...)
 
 	if node.HasAnnots() {
 		c.Annotations.Append(node.Annotations...)

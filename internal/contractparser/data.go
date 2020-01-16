@@ -2,28 +2,31 @@ package contractparser
 
 import "strings"
 
+import "github.com/tidwall/gjson"
+
 // Fail -
 type Fail struct {
 	With string
 }
 
-func parseFail(args []interface{}) *Fail {
+func parseFail(args []gjson.Result) *Fail {
 	if len(args) != 2 {
 		return nil
 	}
 
-	if m, ok := args[1].(map[string]interface{}); ok {
-		nodeFail := newNode(m)
+	if args[1].IsObject() {
+		nodeFail := newNodeJSON(args[1])
 		if !nodeFail.Is("FAILWITH") {
 			return nil
 		}
 		s := ""
-		if w, ok := args[0].(map[string]interface{}); ok {
-			nodeWith := newNode(w)
+		if args[0].IsObject() {
+			nodeWith := newNodeJSON(args[0])
 			s = nodeWith.GetString()
 			if s == "" && nodeWith.Is("PUSH") {
-				if len(nodeWith.Args) == 2 {
-					nodeValue := newNode(nodeWith.Args[1].(map[string]interface{}))
+				arr := nodeWith.Args.Array()
+				if len(arr) == 2 {
+					nodeValue := newNodeJSON(arr[1])
 					s = nodeValue.GetString()
 				}
 			} else {
