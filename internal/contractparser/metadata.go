@@ -1,20 +1,22 @@
 package contractparser
 
-import "fmt"
+import (
+	"fmt"
 
-import "github.com/tidwall/gjson"
+	"github.com/tidwall/gjson"
+)
 
 // Metadata -
 type Metadata map[string]*NodeMetadata
 
 // NodeMetadata -
 type NodeMetadata struct {
-	TypeName  string       `json:"type,omitempty"`
-	FieldName string       `json:"field,omitempty"`
-	Prim      string       `json:"prim,omitempty"`
-	Entry     string       `json:"entry,omitempty"`
-	Parameter gjson.Result `json:"parameter,omitempty"`
-	Args      []string     `json:"args,omitempty"`
+	TypeName  string   `json:"type,omitempty"`
+	FieldName string   `json:"field,omitempty"`
+	Prim      string   `json:"prim,omitempty"`
+	Entry     string   `json:"entry,omitempty"`
+	Parameter string   `json:"parameter,omitempty"`
+	Args      []string `json:"args,omitempty"`
 }
 
 type internalNode struct {
@@ -88,7 +90,7 @@ func parseNodeMetadata(v gjson.Result, parent Node, path, entry string, metadata
 	if n.Is(LAMBDA) || n.Is(CONTRACT) {
 		if len(arr) > 0 {
 			m := metadata[path]
-			m.Parameter = arr[0]
+			m.Parameter = arr[0].String()
 		}
 		return internalNode{
 			Node: &n,
@@ -126,4 +128,12 @@ func parseNodeMetadata(v gjson.Result, parent Node, path, entry string, metadata
 		Node:         &n,
 		InternalArgs: args,
 	}
+}
+
+// GetMetadataNetwork -
+func GetMetadataNetwork(level int64) string {
+	if level >= LevelBabylon {
+		return "babylon"
+	}
+	return "alpha"
 }

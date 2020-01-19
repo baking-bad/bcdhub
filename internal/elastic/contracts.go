@@ -175,22 +175,9 @@ func (e *Elastic) SearchByText(text string) ([]models.Contract, error) {
 	return e.getContracts(query)
 }
 
-// GetAllContractAddresses -
-func (e *Elastic) GetAllContractAddresses(network string) (map[string]struct{}, error) {
-	query := getContractQuery(map[string]interface{}{
-		"network": network,
-	})
+// GetContracts -
+func (e *Elastic) GetContracts(q map[string]interface{}) ([]models.Contract, error) {
+	query := getContractQuery(q)
 	query["size"] = 10000
-	data, err := e.query(DocContracts, query, "address")
-	if err != nil {
-		return nil, err
-	}
-
-	arr := data.Get("hits.hits").Array()
-	contracts := make(map[string]struct{})
-	for i := range arr {
-		address := arr[i].Get("_source.address").String()
-		contracts[address] = struct{}{}
-	}
-	return contracts, nil
+	return e.getContracts(query)
 }

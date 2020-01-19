@@ -27,7 +27,7 @@ func createIndexer(es *elastic.Elastic, indexerType, network, url string) (index
 	if url == "" {
 		return nil, nil
 	}
-	s, err := es.CurrentState(network, stateType)
+	s, err := es.CurrentState(network, models.StateContract)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +118,7 @@ func syncIndexer(rpc *noderpc.NodeRPC, indexer index.Indexer, es *elastic.Elasti
 					s.Level = n.Level
 					s.Timestamp = n.Timestamp
 					s.Network = network
-					s.Type = stateType
+					s.Type = models.StateContract
 				}
 
 				if _, err = es.UpdateDoc(elastic.DocStates, s.ID, s); err != nil {

@@ -1,9 +1,11 @@
 package index
 
 import (
-	"github.com/aopoltorzhicky/bcdhub/internal/tzkt"
 	"strings"
 	"time"
+
+	"github.com/aopoltorzhicky/bcdhub/internal/models"
+	"github.com/aopoltorzhicky/bcdhub/internal/tzkt"
 )
 
 // TzKT -
@@ -103,6 +105,6 @@ func (t *TzKT) GetContracts(startLevel int64) ([]Contract, error) {
 }
 
 // GetContractOperationBlocks -
-func (t *TzKT) GetContractOperationBlocks(startBlock int) ([]int64, error) {
+func (t *TzKT) GetContractOperationBlocks(startBlock int, knownContracts []models.Contract) ([]int64, error) {
 	return nil, nil
 }

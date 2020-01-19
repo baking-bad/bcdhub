@@ -23,7 +23,7 @@ func NewTzStats(baseURL string) *TzStats {
 	return &TzStats{
 		baseURL:    baseURL,
 		timeout:    time.Second * 10,
-		retryCount: 3,
+		retryCount: 100,
 	}
 }
 

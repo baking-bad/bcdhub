@@ -18,6 +18,7 @@ const (
 	FA12Tag            = "fa12"
 	TestingTag         = "testing"
 	VestingTag         = "vesting"
+	SpendableTag       = "spendable"
 )
 
 const (
@@ -49,4 +50,34 @@ const (
 	SETDELEGATE    = "SET_DELEGATE"
 	CHECKSIGNATURE = "CHECK_SIGNATURE"
 	CHAINID        = "CHAIN_ID"
+	MAP            = "MAP"
+	BIGMAP         = "BIG_MAP"
+	SOME           = "SOME"
+	LEFT           = "LEFT"
+	RIGHT          = "RIGHT"
+	IF             = "IF"
+	SET            = "SET"
+	LIST           = "LIST"
+	KEY            = "KEY"
+	SIGNATURE      = "SIGNATURE"
+	OPERATION      = "OPERATION"
+	INT            = "INT"
+	BYTES          = "BYTES"
+	MUTEZ          = "MUTEZ"
+	BOOL           = "BOOL"
+	KEYHASH        = "KEY_HASH"
+	TIMESTAMP      = "TIMESTAMP"
+	PUSH           = "PUSH"
+)
+
+// Metadata network names
+const (
+	MetadataAlpha   = "alpha"
+	MetadataBabylon = "babylon"
+)
+
+// Babylon
+const (
+	LevelBabylon = 655360
+	HashBabylon  = "PsBabyM1eUXZseaJdmXFApDSBqj8YBfwELoxZHHW77EMcAbbwAS"
 )

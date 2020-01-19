@@ -25,7 +25,7 @@ func NewNodeRPC(baseURL string) *NodeRPC {
 	return &NodeRPC{
 		baseURL:    baseURL,
 		timeout:    time.Second * 10,
-		retryCount: 3,
+		retryCount: 100,
 	}
 }
 
@@ -114,6 +114,16 @@ func (rpc *NodeRPC) GetScriptJSON(address string, level int64) (gjson.Result, er
 	}
 
 	return contract.Get("script"), nil
+}
+
+// GetContractJSON -
+func (rpc *NodeRPC) GetContractJSON(address string, level int64) (*gjson.Result, error) {
+	block := "head"
+	if level > 0 {
+		block = fmt.Sprintf("%d", level)
+	}
+
+	return rpc.get(fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s", block, address))
 }
 
 // GetOperations -

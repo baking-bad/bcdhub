@@ -8,6 +8,7 @@ import (
 
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/index"
+	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
 )
 
@@ -25,17 +26,11 @@ func createIndexer(es *elastic.Elastic, indexerType, network, url string) (index
 	if url == "" {
 		return nil, nil
 	}
-	s, err := es.CurrentState(network, stateOperation)
+	s, err := es.CurrentState(network, models.StateOperation)
 	if err != nil {
 		return nil, err
 	}
 	states[network] = &s
-
-	cs, err := es.CurrentState(network, stateContract)
-	if err != nil {
-		return nil, err
-	}
-	statesContract[network] = &cs
 
 	log.Printf("Create %s %s indexer", indexerType, network)
 	log.Printf("Current state %d level", s.Level)
@@ -71,9 +66,9 @@ func createIndexers(es *elastic.Elastic, cfg config) (map[string]index.Indexer, 
 
 func syncIndexer(rpc *noderpc.NodeRPC, indexer index.Indexer, es *elastic.Elastic, network string) error {
 	log.Printf("-----------%s-----------", strings.ToUpper(network))
-	cs, ok := statesContract[network]
-	if !ok {
-		return fmt.Errorf("Unknown network: %s", network)
+	cs, err := es.CurrentState(network, models.StateContract)
+	if err != nil {
+		return err
 	}
 	log.Printf("Current contract indexer state: %d", cs.Level)
 
@@ -85,17 +80,19 @@ func syncIndexer(rpc *noderpc.NodeRPC, indexer index.Indexer, es *elastic.Elasti
 	log.Printf("Current state: %d", s.Level)
 
 	if cs.Level > s.Level {
-		levels, err := indexer.GetContractOperationBlocks(int(s.Level))
+		addresses, err := es.GetContracts(map[string]interface{}{
+			"network": network,
+		})
+		if err != nil {
+			return err
+		}
+
+		levels, err := indexer.GetContractOperationBlocks(int(s.Level), addresses)
 		if err != nil {
 			return err
 		}
 
 		if len(levels) > 0 {
-			addresses, err := es.GetAllContractAddresses(network)
-			if err != nil {
-				return err
-			}
-
 			log.Printf("Found %d contracts", len(addresses))
 			log.Printf("Found %d new levels", len(levels))
 

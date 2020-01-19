@@ -10,7 +10,6 @@ import (
 )
 
 var states = map[string]*models.State{}
-var statesContract = map[string]*models.State{}
 
 func main() {
 	var cfg config
@@ -42,15 +41,4 @@ func main() {
 			log.Println(err)
 		}
 	}
-
-	// res, err := getOperations(RPCs["mainnet"], es, 665514, "mainnet", map[string]struct{}{"KT1NQfJvo9v8hXmEgqos8NP7sS8V4qaEfvRF": struct{}{}})
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// b, err := json.MarshalIndent(res, "", " ")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// log.Print(string(b))
 }

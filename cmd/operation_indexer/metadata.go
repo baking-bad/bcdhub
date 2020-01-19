@@ -8,7 +8,7 @@ import (
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 )
 
-func getMetadata(es *elastic.Elastic, address string) (map[string]contractparser.Metadata, error) {
+func getMetadata(es *elastic.Elastic, address string, level int64) (contractparser.Metadata, error) {
 	if address == "" {
 		return nil, fmt.Errorf("[getMetadata] Empty address")
 	}
@@ -25,6 +25,6 @@ func getMetadata(es *elastic.Elastic, address string) (map[string]contractparser
 		}
 		res[k] = m
 	}
-
-	return res, nil
+	n := contractparser.GetMetadataNetwork(level)
+	return res[n], nil
 }

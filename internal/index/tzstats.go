@@ -2,8 +2,13 @@ package index
 
 import (
 	"fmt"
+	"log"
+	"sort"
 	"time"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser"
+	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
+	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/aopoltorzhicky/bcdhub/internal/tzstats"
 )
 
@@ -98,39 +103,150 @@ func (t *TzStats) GetContracts(startLevel int64) ([]Contract, error) {
 	}
 }
 
-type tzStatsContractOperation struct {
-	ID    int64 `tzstats:"row_id"`
-	Level int64 `tzstats:"height"`
+type contractOperation struct {
+	ID       int64  `tzstats:"row_id"`
+	Level    int64  `tzstats:"height"`
+	Sender   string `tzstats:"sender"`
+	Receiver string `tzstats:"receiver"`
 }
 
 // Name -
-func (h tzStatsContractOperation) Name() string {
+func (h contractOperation) Name() string {
 	return tzstats.TableOperation
 }
 
 // GetContractOperationBlocks -
-func (t *TzStats) GetContractOperationBlocks(startBlock int) ([]int64, error) {
-	all := make([]int64, 0)
+func (t *TzStats) GetContractOperationBlocks(startBlock int, knownContracts []models.Contract) ([]int64, error) {
+	all := make(map[int64]struct{})
+
+	addresses := make([]string, len(knownContracts))
+	for i := range knownContracts {
+		addresses[i] = knownContracts[i].Address
+	}
+
+	log.Println("Searching blocks with operations with params...")
+	if err := t.getContractOperaionsBlockWithParameters(startBlock, addresses, all); err != nil {
+		return nil, err
+	}
+
+	log.Println("Searching originations...")
+	if err := t.getContractOriginations(startBlock, addresses, all); err != nil {
+		return nil, err
+	}
+
+	log.Println("Searching spendable contract transactions...")
+	spendable := make([]string, 0)
+	for _, c := range knownContracts {
+		for i := range c.Tags {
+			if c.Tags[i] == contractparser.SpendableTag {
+				spendable = append(spendable, c.Address)
+				break
+			}
+		}
+	}
+	if err := t.getSpendableContractOperaions(startBlock, spendable, all); err != nil {
+		return nil, err
+	}
+
+	buf := make([]int, 0)
+	for k := range all {
+		buf = append(buf, int(k))
+	}
+
+	sort.Ints(buf)
+
+	resp := make([]int64, len(buf))
+	for i := range buf {
+		resp[i] = int64(buf[i])
+	}
+	log.Printf("Found %d blocks", len(resp))
+
+	return resp, nil
+}
+
+func (t *TzStats) getContractOperaionsBlockWithParameters(startBlock int, knownContracts []string, all map[int64]struct{}) error {
 	rowID := int64(0)
 
 	for {
-		var operations []tzStatsContractOperation
-		query := t.api.Model(tzStatsContractOperation{}).NotEquals("parameters", "").GreaterThan("height", startBlock)
+		var operations []contractOperation
+		query := t.api.Model(contractOperation{}).NotEquals("parameters", "").GreaterThan("height", startBlock).Limit(50000)
 		if rowID > 0 {
 			query = query.Is("cursor", fmt.Sprintf("%d", rowID))
 		}
 
 		if err := query.Query(&operations); err != nil {
-			return nil, err
+			return err
 		}
 
 		if len(operations) == 0 {
-			return all, nil
+			return nil
 		}
 
 		for _, op := range operations {
-			if len(all) == 0 || all[len(all)-1] != op.Level {
-				all = append(all, op.Level)
+			if _, ok := all[op.Level]; !ok {
+				if helpers.StringInArray(op.Sender, knownContracts) || helpers.StringInArray(op.Receiver, knownContracts) {
+					all[op.Level] = struct{}{}
+				}
+			}
+			if rowID < op.ID {
+				rowID = op.ID
+			}
+		}
+	}
+}
+
+func (t *TzStats) getContractOriginations(startBlock int, knownContracts []string, all map[int64]struct{}) error {
+	rowID := int64(0)
+
+	for {
+		var operations []contractOperation
+		query := t.api.Model(contractOperation{}).Is("type", "origination").GreaterThan("height", startBlock).Limit(50000)
+		if rowID > 0 {
+			query = query.Is("cursor", fmt.Sprintf("%d", rowID))
+		}
+
+		if err := query.Query(&operations); err != nil {
+			return err
+		}
+
+		if len(operations) == 0 {
+			return nil
+		}
+
+		for _, op := range operations {
+			if _, ok := all[op.Level]; !ok {
+				if helpers.StringInArray(op.Receiver, knownContracts) {
+					all[op.Level] = struct{}{}
+				}
+			}
+			if rowID < op.ID {
+				rowID = op.ID
+			}
+		}
+	}
+}
+
+func (t *TzStats) getSpendableContractOperaions(startBlock int, spendable []string, all map[int64]struct{}) error {
+	rowID := int64(0)
+
+	for {
+		var operations []contractOperation
+		query := t.api.Model(contractOperation{}).Is("type", "transaction").In("sender", spendable).GreaterThan("height", startBlock).Limit(50000)
+		if rowID > 0 {
+			query = query.Is("cursor", fmt.Sprintf("%d", rowID))
+		}
+
+		if err := query.Query(&operations); err != nil {
+			return err
+		}
+
+		if len(operations) == 0 {
+			return nil
+		}
+
+		for _, op := range operations {
+			if _, ok := all[op.Level]; !ok {
+				all[op.Level] = struct{}{}
 			}
 			if rowID < op.ID {
 				rowID = op.ID

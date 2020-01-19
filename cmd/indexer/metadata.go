@@ -3,15 +3,16 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser"
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
 )
 
-func getMetadatas(rpc *noderpc.NodeRPC, c models.Contract) (map[string]string, error) {
+func getMetadatas(rpc *noderpc.NodeRPC, c *models.Contract) (map[string]string, error) {
 	res := make(map[string]string)
-	a, err := createMetadata(rpc, 0, c.Address)
+	a, err := createMetadata(rpc, 0, c)
 	if err != nil {
 		return nil, err
 	}
@@ -20,7 +21,7 @@ func getMetadatas(rpc *noderpc.NodeRPC, c models.Contract) (map[string]string, e
 		res["babylon"] = a
 
 		if c.Level < levelBabylon {
-			a, err = createMetadata(rpc, levelBabylon-1, c.Address)
+			a, err = createMetadata(rpc, levelBabylon-1, c)
 			if err != nil {
 				return nil, err
 			}
@@ -32,29 +33,32 @@ func getMetadatas(rpc *noderpc.NodeRPC, c models.Contract) (map[string]string, e
 	return res, nil
 }
 
-func createMetadata(rpc *noderpc.NodeRPC, level int64, address string) (string, error) {
-	data, err := rpc.GetScriptJSON(address, level)
+func createMetadata(rpc *noderpc.NodeRPC, level int64, c *models.Contract) (string, error) {
+	contract, err := rpc.GetContractJSON(c.Address, level)
 	if err != nil {
 		return "", err
 	}
-	for _, c := range data.Get("code").Array() {
-		if c.Get("prim").String() == "storage" {
-			a, err := contractparser.ParseMetadata(c.Get("args"))
-			if err != nil {
-				return "", nil
-			}
 
-			b, err := json.Marshal(a)
-			if err != nil {
-				return "", err
-			}
-			return string(b), nil
-		}
+	if contract.Get("spendable").Bool() {
+		c.Tags = append(c.Tags, contractparser.SpendableTag)
 	}
-	return "", fmt.Errorf("[createMetadata] Invalid code structure")
+
+	args := contract.Get("script.code.#(prim==\"storage\").args")
+	if args.Exists() {
+		a, err := contractparser.ParseMetadata(args)
+		if err != nil {
+			return "", nil
+		}
+		b, err := json.Marshal(a)
+		if err != nil {
+			return "", err
+		}
+		return string(b), nil
+	}
+	return "", fmt.Errorf("[createMetadata] Unknown tag 'storage'")
 }
 
-func saveMetadatas(es *elastic.Elastic, rpc *noderpc.NodeRPC, c models.Contract) error {
+func saveMetadatas(es *elastic.Elastic, rpc *noderpc.NodeRPC, c *models.Contract) error {
 	data, err := getMetadatas(rpc, c)
 	if err != nil {
 		return err

@@ -10,8 +10,6 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
-const stateType = "contract"
-
 var states = map[string]models.State{}
 
 func main() {

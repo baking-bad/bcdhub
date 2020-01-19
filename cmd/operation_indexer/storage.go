@@ -42,11 +42,11 @@ func getTransactionRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, result
 	}
 
 	s := data.Get("storage")
-	m, err := getMetadata(es, address)
+	m, err := getMetadata(es, address, level)
 	if err != nil {
 		return nil, err
 	}
-	bm, err := getBigMapDiff(result, s, network, protocol, address, level, m["babylon"])
+	bm, err := getBigMapDiff(result, s, network, protocol, address, level, m)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func getTransactionRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, result
 
 func getOriginationRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, result *gjson.Result, network, protocol string, level int64) (*RichStorage, error) {
 	switch protocol {
-	case hashBabylon:
+	case contractparser.HashBabylon:
 		return getOriginationBabylonRichStorage(es, rpc, result, network, protocol, level)
 	default:
 		return &RichStorage{
@@ -76,11 +76,11 @@ func getOriginationBabylonRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC,
 
 	s := data.Get("storage")
 
-	m, err := getMetadata(es, address)
+	m, err := getMetadata(es, address, level)
 	if err != nil {
 		return nil, err
 	}
-	bm, err := getBigMapDiff(result, s, network, protocol, address, level, m["babylon"])
+	bm, err := getBigMapDiff(result, s, network, protocol, address, level, m)
 	if err != nil {
 		return nil, err
 	}
@@ -103,15 +103,14 @@ func getResult(op gjson.Result) *gjson.Result {
 }
 
 func getBigMapDiff(result *gjson.Result, storage gjson.Result, network, protocol, address string, level int64, m contractparser.Metadata) ([]models.BigMapDiff, error) {
-	ptrMap, err := getBinPathToPtrMap(m, storage)
-	if err != nil {
-		return nil, err
-	}
-
 	bmd := make([]models.BigMapDiff, 0)
 	for _, item := range result.Get("big_map_diff").Array() {
 		switch protocol {
-		case hashBabylon:
+		case contractparser.HashBabylon:
+			ptrMap, err := getBinPathToPtrMap(m, storage)
+			if err != nil {
+				return nil, err
+			}
 			if item.Get("action").String() == "update" {
 				ptr := item.Get("big_map").Int()
 				binPath, ok := ptrMap[ptr]
@@ -139,7 +138,7 @@ func getBigMapDiff(result *gjson.Result, storage gjson.Result, network, protocol
 				KeyHash: item.Get("key_hash").String(),
 				Value:   item.Get("value").String(),
 			})
-		}		
+		}
 	}
 	return bmd, nil
 }
@@ -147,7 +146,7 @@ func getBigMapDiff(result *gjson.Result, storage gjson.Result, network, protocol
 func getBinPathToPtrMap(m contractparser.Metadata, storage gjson.Result) (map[int64]string, error) {
 	key := make(map[int64]string)
 	for k, v := range m {
-		if v.Prim != "big_map" {
+		if v.Prim != contractparser.BIGMAP {
 			continue
 		}
 		ptr, err := getMapPtr(storage, k)

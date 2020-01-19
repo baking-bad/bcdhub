@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
+	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
 	"github.com/tidwall/gjson"
 )
@@ -63,7 +64,7 @@ type result struct {
 	BalanceUpdates []balanceUpdate `json:"balance_updates,omitempty"`
 }
 
-func getOperations(rpc *noderpc.NodeRPC, es *elastic.Elastic, block int64, network string, knownContracts map[string]struct{}) ([]operation, error) {
+func getOperations(rpc *noderpc.NodeRPC, es *elastic.Elastic, block int64, network string, contracts []models.Contract) ([]operation, error) {
 	data, err := rpc.GetOperations(block)
 	if err != nil {
 		return nil, err
@@ -72,7 +73,7 @@ func getOperations(rpc *noderpc.NodeRPC, es *elastic.Elastic, block int64, netwo
 
 	for _, opg := range data.Array() {
 		for idx, item := range opg.Get("contents").Array() {
-			if !needParse(item, idx, knownContracts) {
+			if !needParse(item, idx) {
 				continue
 			}
 
@@ -82,13 +83,13 @@ func getOperations(rpc *noderpc.NodeRPC, es *elastic.Elastic, block int64, netwo
 				continue
 			}
 			opgHash := opg.Get("hash").String()
-			if err := finishParseOperation(es, rpc, item, protocol, network, opgHash, block, res, knownContracts); err != nil {
+			if err := finishParseOperation(es, rpc, item, protocol, network, opgHash, block, contracts, res); err != nil {
 				return nil, err
 			}
 
 			operations = append(operations, *res)
 
-			internal := parseInternalOperations(es, rpc, item, protocol, network, opgHash, block, knownContracts)
+			internal := parseInternalOperations(es, rpc, item, protocol, network, opgHash, block, contracts)
 			operations = append(operations, internal...)
 
 		}
@@ -97,52 +98,37 @@ func getOperations(rpc *noderpc.NodeRPC, es *elastic.Elastic, block int64, netwo
 	return operations, nil
 }
 
-func finishParseOperation(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjson.Result, protocol, network, hash string, level int64, op *operation, knownContracts map[string]struct{}) error {
+func finishParseOperation(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjson.Result, protocol, network, hash string, level int64, contracts []models.Contract, op *operation) error {
 	op.Hash = hash
 	op.Level = level
 
-	if _, ok := knownContracts[op.Destination]; ok{
-	rs, err := getRichStorage(es, rpc, item, level, network, protocol)
-	if err != nil {
-		return err
-	}
-	if rs == nil {
-		return nil
-	}
-	op.DeffatedStorage = rs.DeffatedStorage
-
-	if len(rs.BigMapDiffs) > 0 {
-		op.BigMapKeyHashes = make([]string, len(rs.BigMapDiffs))
-		for i := range rs.BigMapDiffs {
-			op.BigMapKeyHashes[i] = rs.BigMapDiffs[i].KeyHash
-		}
-
-		if err := es.BulkSaveBigMapDiffs(rs.BigMapDiffs); err != nil {
+	if isContract(contracts, op.Destination) {
+		rs, err := getRichStorage(es, rpc, item, level, network, protocol)
+		if err != nil {
 			return err
 		}
-	}}
+		if rs == nil {
+			return nil
+		}
+		op.DeffatedStorage = rs.DeffatedStorage
 
+		if len(rs.BigMapDiffs) > 0 {
+			op.BigMapKeyHashes = make([]string, len(rs.BigMapDiffs))
+			for i := range rs.BigMapDiffs {
+				op.BigMapKeyHashes[i] = rs.BigMapDiffs[i].KeyHash
+			}
+
+			if err := es.BulkSaveBigMapDiffs(rs.BigMapDiffs); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
 
-func needParse(item gjson.Result, idx int, knownContracts map[string]struct{}) bool {
+func needParse(item gjson.Result, idx int) bool {
 	kind := item.Get("kind").String()
-	if kind == origination && item.Get("script").Exists() {
-		return true
-	}
-	source := item.Get("source")
-	if source.Exists() {
-		if _, ok := knownContracts[source.String()]; ok {
-			return true
-		}
-	}
-	destination := item.Get("destination")
-	if destination.Exists() {
-		if _, ok := knownContracts[destination.String()]; ok {
-			return true
-		}
-	}
-	return false
+	return (kind == origination && item.Get("script").Exists()) || kind == transaction
 }
 
 func parseContent(item gjson.Result, protocol string) *operation {
@@ -210,7 +196,7 @@ func parseResult(item gjson.Result, protocol string) (*result, []balanceUpdate) 
 	return createResult(item, path, protocol), parseBalanceUpdates(item, path)
 }
 
-func parseInternalOperations(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjson.Result, protocol, network, hash string, level int64, knownContracts map[string]struct{}) []operation {
+func parseInternalOperations(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjson.Result, protocol, network, hash string, level int64, contracts []models.Contract) []operation {
 	path := fmt.Sprintf("metadata.internal_operation_results")
 	if !item.Get(path).Exists() {
 		path = fmt.Sprintf("metadata.internal_operations")
@@ -222,7 +208,7 @@ func parseInternalOperations(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjs
 	res := make([]operation, 0)
 	for _, op := range item.Get(path).Array() {
 		val := parseContent(op, protocol)
-		if err := finishParseOperation(es, rpc, op, protocol, network, hash, level, val, knownContracts); err != nil {
+		if err := finishParseOperation(es, rpc, op, protocol, network, hash, level, contracts, val); err != nil {
 			log.Println(err)
 			continue
 		}
@@ -230,4 +216,13 @@ func parseInternalOperations(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjs
 		res = append(res, *val)
 	}
 	return res
+}
+
+func isContract(contracts []models.Contract, address string) bool {
+	for _, c := range contracts {
+		if c.Address == address {
+			return true
+		}
+	}
+	return false
 }

@@ -86,7 +86,7 @@ func (n *Node) GetMutez() float64 {
 
 // Is - check prim value
 func (n *Node) Is(prim string) bool {
-	return strings.ToLower(prim) == n.Prim
+	return strings.ToUpper(prim) == n.Prim
 }
 
 // HasAnnots - check if node has annotations
