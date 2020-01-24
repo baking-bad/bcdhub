@@ -33,13 +33,11 @@ func main() {
 		v1.GET("search", ctx.Search)
 		contract := v1.Group("contract")
 		{
-			networkContract := contract.Group(":network")
+			address := contract.Group(":address")
 			{
-				address := networkContract.Group(":address")
-				{
-					address.GET("", ctx.GetContract)
-					address.GET(":field", ctx.GetContractField)
-				}
+				address.GET("", ctx.GetContract)
+				address.GET("operations", ctx.GetContractOperations)
+				// address.GET(":field", ctx.GetContractField)
 			}
 		}
 		project := v1.Group("project")

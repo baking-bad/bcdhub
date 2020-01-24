@@ -29,3 +29,11 @@ func (s Set) Values() []string {
 	}
 	return r
 }
+
+func arrayUniqueLen(arr []string) int {
+	buf := make(map[string]struct{})
+	for i := range arr {
+		buf[arr[i]] = struct{}{}
+	}
+	return len(buf)
+}

@@ -10,9 +10,9 @@ import (
 	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
 )
 
-func getMetadatas(rpc *noderpc.NodeRPC, c *models.Contract) (map[string]string, error) {
+func getMetadata(rpc *noderpc.NodeRPC, c *models.Contract, tag string) (map[string]string, error) {
 	res := make(map[string]string)
-	a, err := createMetadata(rpc, 0, c)
+	a, err := createMetadata(rpc, 0, c, tag)
 	if err != nil {
 		return nil, err
 	}
@@ -21,7 +21,7 @@ func getMetadatas(rpc *noderpc.NodeRPC, c *models.Contract) (map[string]string, 
 		res["babylon"] = a
 
 		if c.Level < levelBabylon {
-			a, err = createMetadata(rpc, levelBabylon-1, c)
+			a, err = createMetadata(rpc, levelBabylon-1, c, tag)
 			if err != nil {
 				return nil, err
 			}
@@ -33,7 +33,7 @@ func getMetadatas(rpc *noderpc.NodeRPC, c *models.Contract) (map[string]string, 
 	return res, nil
 }
 
-func createMetadata(rpc *noderpc.NodeRPC, level int64, c *models.Contract) (string, error) {
+func createMetadata(rpc *noderpc.NodeRPC, level int64, c *models.Contract, tag string) (string, error) {
 	contract, err := rpc.GetContractJSON(c.Address, level)
 	if err != nil {
 		return "", err
@@ -43,7 +43,7 @@ func createMetadata(rpc *noderpc.NodeRPC, level int64, c *models.Contract) (stri
 		c.Tags = append(c.Tags, contractparser.SpendableTag)
 	}
 
-	args := contract.Get("script.code.#(prim==\"storage\").args")
+	args := contract.Get(fmt.Sprintf("script.code.#(prim==\"%s\").args", tag))
 	if args.Exists() {
 		a, err := contractparser.ParseMetadata(args)
 		if err != nil {
@@ -55,13 +55,21 @@ func createMetadata(rpc *noderpc.NodeRPC, level int64, c *models.Contract) (stri
 		}
 		return string(b), nil
 	}
-	return "", fmt.Errorf("[createMetadata] Unknown tag 'storage'")
+	return "", fmt.Errorf("[createMetadata] Unknown tag '%s'", tag)
 }
 
-func saveMetadatas(es *elastic.Elastic, rpc *noderpc.NodeRPC, c *models.Contract) error {
-	data, err := getMetadatas(rpc, c)
+func saveMetadata(es *elastic.Elastic, rpc *noderpc.NodeRPC, c *models.Contract) error {
+	storage, err := getMetadata(rpc, c, "storage")
 	if err != nil {
 		return err
+	}
+	parameter, err := getMetadata(rpc, c, "parameter")
+	if err != nil {
+		return err
+	}
+	data := map[string]interface{}{
+		"parameter": parameter,
+		"storage":   storage,
 	}
 	_, err = es.AddDocumentWithID(data, elastic.DocMetadata, c.Address)
 	return err

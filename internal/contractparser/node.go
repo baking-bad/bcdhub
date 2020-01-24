@@ -25,7 +25,7 @@ func newNodeJSON(data gjson.Result) Node {
 	n := Node{
 		Child:       make([]Node, 0),
 		Annotations: make([]string, 0),
-		Prim:        strings.ToUpper(data.Get(keyPrim).String()),
+		Prim:        strings.ToLower(data.Get(keyPrim).String()),
 		Args:        data.Get(keyArgs),
 	}
 	for _, a := range data.Get(keyAnnots).Array() {
@@ -86,7 +86,7 @@ func (n *Node) GetMutez() float64 {
 
 // Is - check prim value
 func (n *Node) Is(prim string) bool {
-	return strings.ToUpper(prim) == n.Prim
+	return strings.ToLower(prim) == n.Prim
 }
 
 // HasAnnots - check if node has annotations

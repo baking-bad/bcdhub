@@ -34,40 +34,42 @@ const (
 
 // Primitives
 const (
-	OR             = "OR"
-	PAIR           = "PAIR"
-	LAMBDA         = "LAMBDA"
-	CONTRACT       = "CONTRACT"
-	OPTION         = "OPTION"
-	ADDRESS        = "ADDReSS"
-	NAT            = "NAT"
-	STRING         = "STRING"
-	UNIT           = "UNIT"
-	PARAMETER      = "PARAMETER"
-	STORAGE        = "STORAGE"
-	CODE           = "CODE"
-	CREATECONTRACT = "CREATE_CONTRACT"
-	SETDELEGATE    = "SET_DELEGATE"
-	CHECKSIGNATURE = "CHECK_SIGNATURE"
-	CHAINID        = "CHAIN_ID"
-	MAP            = "MAP"
-	BIGMAP         = "BIG_MAP"
-	SOME           = "SOME"
-	LEFT           = "LEFT"
-	RIGHT          = "RIGHT"
-	IF             = "IF"
-	SET            = "SET"
-	LIST           = "LIST"
-	KEY            = "KEY"
-	SIGNATURE      = "SIGNATURE"
-	OPERATION      = "OPERATION"
-	INT            = "INT"
-	BYTES          = "BYTES"
-	MUTEZ          = "MUTEZ"
-	BOOL           = "BOOL"
-	KEYHASH        = "KEY_HASH"
-	TIMESTAMP      = "TIMESTAMP"
-	PUSH           = "PUSH"
+	OR             = "or"
+	PAIR           = "pair"
+	LAMBDA         = "lambda"
+	CONTRACT       = "contract"
+	OPTION         = "option"
+	ADDRESS        = "address"
+	NAT            = "nat"
+	STRING         = "string"
+	UNIT           = "unit"
+	PARAMETER      = "parameter"
+	STORAGE        = "storage"
+	CODE           = "code"
+	CREATECONTRACT = "create_contract"
+	SETDELEGATE    = "set_delegate"
+	CHECKSIGNATURE = "check_signature"
+	CHAINID        = "chain_id"
+	MAP            = "map"
+	BIGMAP         = "big_map"
+	SOME           = "some"
+	LEFT           = "left"
+	RIGHT          = "right"
+	IF             = "if"
+	SET            = "set"
+	LIST           = "list"
+	KEY            = "key"
+	SIGNATURE      = "signature"
+	OPERATION      = "operation"
+	INT            = "int"
+	BYTES          = "bytes"
+	MUTEZ          = "mutez"
+	BOOL           = "bool"
+	KEYHASH        = "key_hash"
+	TIMESTAMP      = "timestamp"
+	PUSH           = "push"
+	ELT            = "elt"
+	NONE           = "none"
 )
 
 // Metadata network names
@@ -80,4 +82,21 @@ const (
 const (
 	LevelBabylon = 655360
 	HashBabylon  = "PsBabyM1eUXZseaJdmXFApDSBqj8YBfwELoxZHHW77EMcAbbwAS"
+)
+
+// Types
+const (
+	TypeTuple      = "tuple"
+	TypeNamedTuple = "namedtuple"
+	TypeEnum       = "enum"
+	TypeNamedEnum  = "namedenum"
+	TypeUnion      = "union"
+	TypeNamedUnion = "namedunion"
+)
+
+// Data instructions
+const (
+	Pair = "Pair"
+	Some = "Some"
+	None = "None"
 )

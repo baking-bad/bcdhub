@@ -1,14 +1,18 @@
 package main
 
-import "log"
+import (
+	"log"
+
+	"github.com/fatih/color"
+)
 
 type config struct {
 	Search struct {
 		URI string `json:"uri"`
 	} `json:"search"`
-	TzKT    map[string]interface{} `json:"tzkt"`
-	TzStats map[string]interface{} `json:"tzstats"`
-	Indexer string                 `json:"indexer"`
+	TzKT    map[string]string `json:"tzkt"`
+	TzStats map[string]string `json:"tzstats"`
+	Indexer string            `json:"indexer"`
 	NodeRPC []struct {
 		Host    string `json:"host"`
 		Network string `json:"network"`
@@ -17,11 +21,14 @@ type config struct {
 }
 
 func (cfg config) print() {
+	green := color.New(color.FgGreen).SprintFunc()
+	blue := color.New(color.FgBlue).SprintFunc()
+
 	log.Print("-----------CONFIG-----------")
-	log.Printf("Indexer: %s", cfg.Indexer)
+	log.Printf("Indexer: %s", blue(cfg.Indexer))
 	for _, node := range cfg.NodeRPC {
-		log.Printf("Node: [%s] %s", node.Network, node.Host)
+		log.Printf("Node: [%s] %s", green(node.Network), node.Host)
 	}
-	log.Printf("Update every %d second", cfg.UpdateTimer)
-	log.Printf("Elastic URI: %s", cfg.Search.URI)
+	log.Printf("Update every %s second", blue(cfg.UpdateTimer))
+	log.Printf("Elastic URI: %s", blue(cfg.Search.URI))
 }

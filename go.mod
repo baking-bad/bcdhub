@@ -15,5 +15,6 @@ require (
 	github.com/mustafaturan/monoton v0.4.0 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271
-	github.com/tidwall/gjson v1.3.5
+	github.com/tidwall/gjson v1.4.0
+	github.com/tidwall/sjson v1.0.4
 )

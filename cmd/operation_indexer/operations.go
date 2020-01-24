@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
+	"github.com/aopoltorzhicky/bcdhub/internal/logger"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
+	"github.com/google/uuid"
 	"github.com/tidwall/gjson"
 )
 
@@ -17,59 +18,12 @@ const (
 	transaction = "transaction"
 )
 
-type operation struct {
-	Protocol string `json:"protocol"`
-	Hash     string `json:"hash"`
-	Internal bool   `json:"internal"`
-
-	Level         int64  `json:"level"`
-	Kind          string `json:"kind"`
-	Source        string `json:"source"`
-	Fee           int64  `json:"fee,omitempty"`
-	Counter       int64  `json:"counter,omitempty"`
-	GasLimit      int64  `json:"gas_limit,omitempty"`
-	StorageLimit  int64  `json:"storage_limit,omitempty"`
-	Amount        int64  `json:"amount,omitempty"`
-	Destination   string `json:"destination,omitempty"`
-	PublicKey     string `json:"public_key,omitempty"`
-	ManagerPubKey string `json:"manager_pubkey,omitempty"`
-	Balance       int64  `json:"balance,omitempty"`
-	Delegate      string `json:"delegate,omitempty"`
-	Parameters    string `json:"parameters,omitempty"`
-
-	BalanceUpdates []balanceUpdate `json:"balance_updates,omitempty"`
-	Result         *result         `json:"result,omitempty"`
-
-	DeffatedStorage string   `json:"deffated_storage,omitempty"`
-	BigMapKeyHashes []string `json:"big_map_key_hashes,omitempty"`
-}
-
-type balanceUpdate struct {
-	Kind     string `json:"kind"`
-	Contract string `json:"contract,omitempty"`
-	Change   int64  `json:"change"`
-	Category string `json:"category,omitempty"`
-	Delegate string `json:"delegate,omitempty"`
-	Cycle    int    `json:"cycle,omitempty"`
-}
-
-type result struct {
-	Status              string `json:"status"`
-	ConsumedGas         int64  `json:"consumed_gas,omitempty"`
-	StorageSize         int64  `json:"storage_size,omitempty"`
-	PaidStorageSizeDiff int64  `json:"paid_storage_size_diff,omitempty"`
-	Originated          string `json:"-"`
-	Errors              string `json:"errors,omitempty"`
-
-	BalanceUpdates []balanceUpdate `json:"balance_updates,omitempty"`
-}
-
-func getOperations(rpc *noderpc.NodeRPC, es *elastic.Elastic, block int64, network string, contracts []models.Contract) ([]operation, error) {
+func getOperations(rpc *noderpc.NodeRPC, es *elastic.Elastic, block int64, network string, contracts []models.Contract) ([]models.Operation, error) {
 	data, err := rpc.GetOperations(block)
 	if err != nil {
 		return nil, err
 	}
-	operations := make([]operation, 0)
+	operations := make([]models.Operation, 0)
 
 	for _, opg := range data.Array() {
 		for idx, item := range opg.Get("contents").Array() {
@@ -98,12 +52,12 @@ func getOperations(rpc *noderpc.NodeRPC, es *elastic.Elastic, block int64, netwo
 	return operations, nil
 }
 
-func finishParseOperation(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjson.Result, protocol, network, hash string, level int64, contracts []models.Contract, op *operation) error {
+func finishParseOperation(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjson.Result, protocol, network, hash string, level int64, contracts []models.Contract, op *models.Operation) error {
 	op.Hash = hash
 	op.Level = level
 
 	if isContract(contracts, op.Destination) {
-		rs, err := getRichStorage(es, rpc, item, level, network, protocol)
+		rs, err := getRichStorage(es, rpc, item, level, protocol, op.ID)
 		if err != nil {
 			return err
 		}
@@ -113,11 +67,6 @@ func finishParseOperation(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjson.
 		op.DeffatedStorage = rs.DeffatedStorage
 
 		if len(rs.BigMapDiffs) > 0 {
-			op.BigMapKeyHashes = make([]string, len(rs.BigMapDiffs))
-			for i := range rs.BigMapDiffs {
-				op.BigMapKeyHashes[i] = rs.BigMapDiffs[i].KeyHash
-			}
-
 			if err := es.BulkSaveBigMapDiffs(rs.BigMapDiffs); err != nil {
 				return err
 			}
@@ -131,8 +80,9 @@ func needParse(item gjson.Result, idx int) bool {
 	return (kind == origination && item.Get("script").Exists()) || kind == transaction
 }
 
-func parseContent(item gjson.Result, protocol string) *operation {
-	op := operation{
+func parseContent(item gjson.Result, protocol string) *models.Operation {
+	op := models.Operation{
+		ID:             uuid.New().String(),
 		Protocol:       protocol,
 		Kind:           item.Get("kind").String(),
 		Source:         item.Get("source").String(),
@@ -159,13 +109,13 @@ func parseContent(item gjson.Result, protocol string) *operation {
 	return &op
 }
 
-func parseBalanceUpdates(item gjson.Result, root string) []balanceUpdate {
+func parseBalanceUpdates(item gjson.Result, root string) []models.BalanceUpdate {
 	filter := fmt.Sprintf("%s.balance_updates.#(kind==\"contract\")#", root)
 
 	contracts := item.Get(filter).Array()
-	bu := make([]balanceUpdate, len(contracts))
+	bu := make([]models.BalanceUpdate, len(contracts))
 	for i := range contracts {
-		bu[i] = balanceUpdate{
+		bu[i] = models.BalanceUpdate{
 			Kind:     contracts[i].Get("kind").String(),
 			Contract: contracts[i].Get("contract").String(),
 			Change:   contracts[i].Get("change").Int(),
@@ -174,8 +124,8 @@ func parseBalanceUpdates(item gjson.Result, root string) []balanceUpdate {
 	return bu
 }
 
-func createResult(item gjson.Result, path, protocol string) *result {
-	return &result{
+func createResult(item gjson.Result, path, protocol string) *models.OperationResult {
+	return &models.OperationResult{
 		Status:              item.Get(path + ".status").String(),
 		ConsumedGas:         item.Get(path + ".consumed_gas").Int(),
 		StorageSize:         item.Get(path + ".storage_size").Int(),
@@ -185,7 +135,7 @@ func createResult(item gjson.Result, path, protocol string) *result {
 	}
 }
 
-func parseResult(item gjson.Result, protocol string) (*result, []balanceUpdate) {
+func parseResult(item gjson.Result, protocol string) (*models.OperationResult, []models.BalanceUpdate) {
 	path := fmt.Sprintf("metadata.operation_result")
 	if !item.Get(path).Exists() {
 		path = fmt.Sprintf("result")
@@ -196,7 +146,7 @@ func parseResult(item gjson.Result, protocol string) (*result, []balanceUpdate) 
 	return createResult(item, path, protocol), parseBalanceUpdates(item, path)
 }
 
-func parseInternalOperations(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjson.Result, protocol, network, hash string, level int64, contracts []models.Contract) []operation {
+func parseInternalOperations(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjson.Result, protocol, network, hash string, level int64, contracts []models.Contract) []models.Operation {
 	path := fmt.Sprintf("metadata.internal_operation_results")
 	if !item.Get(path).Exists() {
 		path = fmt.Sprintf("metadata.internal_operations")
@@ -205,11 +155,11 @@ func parseInternalOperations(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjs
 		}
 	}
 
-	res := make([]operation, 0)
+	res := make([]models.Operation, 0)
 	for _, op := range item.Get(path).Array() {
 		val := parseContent(op, protocol)
 		if err := finishParseOperation(es, rpc, op, protocol, network, hash, level, contracts, val); err != nil {
-			log.Println(err)
+			logger.Error(err)
 			continue
 		}
 		val.Internal = true

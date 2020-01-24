@@ -1,11 +1,11 @@
 package main
 
 import (
-	"log"
 	"time"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
+	"github.com/aopoltorzhicky/bcdhub/internal/logger"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 )
 
@@ -31,14 +31,14 @@ func main() {
 
 	// Initial syncronization
 	if err = sync(RPCs, indexers, es); err != nil {
-		panic(err)
+		logger.Error(err)
 	}
 
 	// Update state by ticker
 	ticker := time.NewTicker(time.Duration(cfg.UpdateTimer) * time.Second)
 	for range ticker.C {
 		if err = sync(RPCs, indexers, es); err != nil {
-			log.Println(err)
+			logger.Error(err)
 		}
 	}
 }

@@ -7,7 +7,6 @@ import (
 )
 
 type getContractRequest struct {
-	Network string `uri:"network"`
 	Address string `uri:"address"`
 }
 
@@ -21,7 +20,6 @@ func (ctx *Context) GetContract(c *gin.Context) {
 
 	by := map[string]interface{}{
 		"address": req.Address,
-		"network": req.Network,
 	}
 	cntr, err := ctx.ES.GetContract(by)
 	if err != nil {

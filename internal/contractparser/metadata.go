@@ -2,7 +2,9 @@ package contractparser
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 	"github.com/tidwall/gjson"
 )
 
@@ -11,12 +13,14 @@ type Metadata map[string]*NodeMetadata
 
 // NodeMetadata -
 type NodeMetadata struct {
-	TypeName  string   `json:"type,omitempty"`
-	FieldName string   `json:"field,omitempty"`
-	Prim      string   `json:"prim,omitempty"`
-	Entry     string   `json:"entry,omitempty"`
-	Parameter string   `json:"parameter,omitempty"`
-	Args      []string `json:"args,omitempty"`
+	TypeName      string   `json:"typename,omitempty"`
+	FieldName     string   `json:"fieldname,omitempty"`
+	InheritedName string   `json:"-"`
+	Prim          string   `json:"prim,omitempty"`
+	Parameter     string   `json:"parameter,omitempty"`
+	Args          []string `json:"args,omitempty"`
+	Type          string   `json:"type,omitempty"`
+	Name          string   `json:"name,omitempty"`
 }
 
 type internalNode struct {
@@ -69,7 +73,7 @@ func getFlatNested(data internalNode) []internalNode {
 	return nodes
 }
 
-func parseNodeMetadata(v gjson.Result, parent Node, path, entry string, metadata Metadata) internalNode {
+func parseNodeMetadata(v gjson.Result, parent Node, path, inheritedName string, metadata Metadata) internalNode {
 	n := newNodeJSON(v)
 	arr := n.Args.Array()
 	n.Path = path
@@ -79,11 +83,12 @@ func parseNodeMetadata(v gjson.Result, parent Node, path, entry string, metadata
 
 	if _, ok := metadata[path]; !ok {
 		metadata[path] = &NodeMetadata{
-			Prim:      n.Prim,
-			TypeName:  typeName,
-			FieldName: fieldName,
-			Entry:     entry,
-			Args:      make([]string, 0),
+			Prim:          n.Prim,
+			TypeName:      typeName,
+			FieldName:     fieldName,
+			InheritedName: inheritedName,
+			Type:          n.Prim,
+			Args:          make([]string, 0),
 		}
 	}
 
@@ -96,26 +101,57 @@ func parseNodeMetadata(v gjson.Result, parent Node, path, entry string, metadata
 			Node: &n,
 		}
 	} else if n.Is(OPTION) {
-		return parseNodeMetadata(arr[0], parent, path+"0", fieldName, metadata)
+		return parseNodeMetadata(arr[0], parent, path+"/o", fieldName, metadata)
 	}
 
 	args := make([]internalNode, 0)
-	for i := range arr {
-		argPath := fmt.Sprintf("%s%d", path, i)
-		args = append(args, parseNodeMetadata(arr[i], n, argPath, entry, metadata))
-	}
-
-	if n.Is(PAIR) || n.Is(OR) {
-		res := internalNode{
-			Node:         &n,
-			InternalArgs: args,
-			Nested:       true,
+	if n.Is(MAP) || n.Is(BIGMAP) {
+		if len(arr) == 2 {
+			// parse key type
+			args = append(args, parseNodeMetadata(arr[0], n, path+"/k", "", metadata))
+			// parse value type
+			args = append(args, parseNodeMetadata(arr[1], n, path+"/v", "", metadata))
+			return internalNode{
+				Node:         &n,
+				InternalArgs: args,
+			}
 		}
-		isStruct := n.Is(PAIR) && (typeName != "" || fieldName != "")
-		if isStruct || n.Prim != parent.Prim {
-			args = getFlatNested(res)
-		} else {
-			return res
+	} else if n.Is(LIST) {
+		if len(arr) == 1 {
+			args = append(args, parseNodeMetadata(arr[0], n, path+"/l", "", metadata))
+			return internalNode{
+				Node:         &n,
+				InternalArgs: args,
+			}
+		}
+	} else if n.Is(SET) {
+		if len(arr) == 1 {
+			args = append(args, parseNodeMetadata(arr[0], n, path+"/s", "", metadata))
+			return internalNode{
+				Node:         &n,
+				InternalArgs: args,
+			}
+		}
+	} else {
+		for i := range arr {
+			argPath := fmt.Sprintf("%s/%d", path, i)
+			args = append(args, parseNodeMetadata(arr[i], n, argPath, "", metadata))
+		}
+
+		if n.Is(PAIR) || n.Is(OR) {
+			res := internalNode{
+				Node:         &n,
+				InternalArgs: args,
+				Nested:       true,
+			}
+
+			isStruct := n.Is(PAIR) && (typeName != "" || fieldName != "" || inheritedName != "")
+			if isStruct || n.Prim != parent.Prim {
+				args = getFlatNested(res)
+			} else {
+				finishParseMetadata(metadata, path, res)
+				return res
+			}
 		}
 	}
 
@@ -124,9 +160,22 @@ func parseNodeMetadata(v gjson.Result, parent Node, path, entry string, metadata
 		m.Args = append(m.Args, a.Node.Path)
 	}
 
-	return internalNode{
+	in := internalNode{
 		Node:         &n,
 		InternalArgs: args,
+	}
+	finishParseMetadata(metadata, path, in)
+	return in
+}
+
+func finishParseMetadata(metadata Metadata, path string, node internalNode) {
+	if len(metadata[path].Args) > 0 {
+		typ, keys := getNodeType(node, metadata)
+		metadata[path].Type = typ
+		for i := range keys {
+			argPath := metadata[path].Args[i]
+			metadata[argPath].Name = keys[i]
+		}
 	}
 }
 
@@ -136,4 +185,88 @@ func GetMetadataNetwork(level int64) string {
 		return "babylon"
 	}
 	return "alpha"
+}
+
+func getKey(metadata *NodeMetadata) string {
+	if metadata.TypeName != "" {
+		return metadata.TypeName
+	} else if metadata.FieldName != "" {
+		return metadata.FieldName
+	} else if metadata.InheritedName != "" {
+		return metadata.InheritedName
+	} else if helpers.StringInArray(metadata.Prim, []string{
+		KEY, KEYHASH, SIGNATURE, TIMESTAMP, ADDRESS,
+	}) {
+		return metadata.Prim
+	}
+	return ""
+}
+
+func allArgsIsUnit(n internalNode, metadata Metadata) bool {
+	nm := metadata[n.Path]
+	for _, arg := range nm.Args {
+		if metadata[arg].Prim != UNIT {
+			return false
+		}
+	}
+	return true
+}
+
+func getEntry(metadata *NodeMetadata) string {
+	entry := ""
+	if metadata.InheritedName != "" {
+		entry = metadata.InheritedName
+	} else if metadata.FieldName != "" {
+		entry = metadata.FieldName
+	} else if metadata.TypeName != "" {
+		entry = metadata.TypeName
+	}
+	return strings.ReplaceAll(entry, "_Liq_entry_", "")
+}
+
+func getPairType(n internalNode, metadata Metadata) (string, []string) {
+	nm := metadata[n.Path]
+
+	keys := make([]string, 0)
+	for _, arg := range nm.Args {
+		m := metadata[arg]
+		keys = append(keys, getKey(m))
+	}
+	if arrayUniqueLen(keys) == len(nm.Args) {
+		return TypeNamedTuple, keys
+	}
+	return TypeTuple, nil
+}
+
+func getOrType(n internalNode, metadata Metadata) (string, []string) {
+	nm := metadata[n.Path]
+
+	entries := make([]string, 0)
+	for _, arg := range nm.Args {
+		m := metadata[arg]
+		entries = append(entries, getEntry(m))
+	}
+	named := arrayUniqueLen(entries) == len(nm.Args)
+
+	if allArgsIsUnit(n, metadata) {
+		if named {
+			return TypeNamedEnum, entries
+		}
+		return TypeEnum, nil
+	}
+
+	if named {
+		return TypeNamedUnion, entries
+	}
+	return TypeUnion, nil
+}
+
+func getNodeType(n internalNode, metadata Metadata) (string, []string) {
+	switch n.Prim {
+	case OR:
+		return getOrType(n, metadata)
+	case PAIR:
+		return getPairType(n, metadata)
+	}
+	return "", nil
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/index"
+	"github.com/aopoltorzhicky/bcdhub/internal/logger"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
 )
@@ -32,8 +33,8 @@ func createIndexer(es *elastic.Elastic, indexerType, network, url string) (index
 	}
 	states[network] = &s
 
-	log.Printf("Create %s %s indexer", indexerType, network)
-	log.Printf("Current state %d level", s.Level)
+	logger.Info("Create %s %s indexer", indexerType, network)
+	logger.Info("Current state %d level", s.Level)
 
 	switch indexerType {
 	case "tzkt":
@@ -44,8 +45,9 @@ func createIndexer(es *elastic.Elastic, indexerType, network, url string) (index
 		idx := index.NewTzStats(url)
 		return idx, nil
 	default:
-		panic(fmt.Sprintf("Unknown indexer type: %s", indexerType))
+		log.Panicf("Unknown indexer type: %s", indexerType)
 	}
+	return nil, nil
 }
 
 func createIndexers(es *elastic.Elastic, cfg config) (map[string]index.Indexer, error) {
@@ -65,19 +67,19 @@ func createIndexers(es *elastic.Elastic, cfg config) (map[string]index.Indexer, 
 }
 
 func syncIndexer(rpc *noderpc.NodeRPC, indexer index.Indexer, es *elastic.Elastic, network string) error {
-	log.Printf("-----------%s-----------", strings.ToUpper(network))
+	logger.Logf("-----------%s-----------", strings.ToUpper(network))
 	cs, err := es.CurrentState(network, models.StateContract)
 	if err != nil {
 		return err
 	}
-	log.Printf("Current contract indexer state: %d", cs.Level)
+	logger.Info("Current contract indexer state: %d", cs.Level)
 
 	// Get current DB state
 	s, ok := states[network]
 	if !ok {
 		return fmt.Errorf("Unknown network: %s", network)
 	}
-	log.Printf("Current state: %d", s.Level)
+	logger.Info("Current state: %d", s.Level)
 
 	if cs.Level > s.Level {
 		addresses, err := es.GetContracts(map[string]interface{}{
@@ -93,8 +95,8 @@ func syncIndexer(rpc *noderpc.NodeRPC, indexer index.Indexer, es *elastic.Elasti
 		}
 
 		if len(levels) > 0 {
-			log.Printf("Found %d contracts", len(addresses))
-			log.Printf("Found %d new levels", len(levels))
+			logger.Info("Found %d contracts", len(addresses))
+			logger.Info("Found %d new levels", len(levels))
 
 			for _, l := range levels {
 				ops, err := getOperations(rpc, es, l, network, addresses)
@@ -115,13 +117,13 @@ func syncIndexer(rpc *noderpc.NodeRPC, indexer index.Indexer, es *elastic.Elasti
 					return err
 				}
 
-				log.Printf("[%d/%d] Found %d operations", l, cs.Level, len(ops))
+				logger.Info("[%d/%d] Found %d operations", l, cs.Level, len(ops))
 				if len(ops) == 0 {
 					continue
 				}
 
 				for j := range ops {
-					if _, err := es.AddDocument(ops[j], elastic.DocOperations); err != nil {
+					if _, err := es.AddDocumentWithID(ops[j], elastic.DocOperations, ops[j].ID); err != nil {
 						return err
 					}
 				}
@@ -136,12 +138,12 @@ func sync(rpcs map[string]*noderpc.NodeRPC, indexers map[string]index.Indexer, e
 	for network, indexer := range indexers {
 		rpc, ok := rpcs[network]
 		if !ok {
-			log.Printf("Unknown RPC network: %s", network)
+			logger.Errorf("Unknown RPC network: %s", network)
 			continue
 		}
 
 		if err := syncIndexer(rpc, indexer, es, network); err != nil {
-			log.Println(err)
+			logger.Error(err)
 			continue
 		}
 	}

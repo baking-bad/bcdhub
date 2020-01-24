@@ -38,7 +38,7 @@ func computeMetrics(rpc *noderpc.NodeRPC, es *elastic.Elastic, c *models.Contrac
 
 	c.Hardcoded = script.HardcodedAddresses.Values()
 
-	if err := saveMetadatas(es, rpc, c); err != nil {
+	if err := saveMetadata(es, rpc, c); err != nil {
 		return err
 	}
 

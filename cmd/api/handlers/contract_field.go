@@ -20,7 +20,6 @@ func (ctx *Context) GetContractField(c *gin.Context) {
 	}
 	by := map[string]interface{}{
 		"address": req.Address,
-		"network": req.Network,
 	}
 	v, err := ctx.ES.GetContractField(by, req.FieldName)
 	if err != nil {

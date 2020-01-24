@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser"
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
@@ -16,7 +17,7 @@ type RichStorage struct {
 	BigMapDiffs     []models.BigMapDiff
 }
 
-func getRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, op gjson.Result, level int64, network, protocol string) (*RichStorage, error) {
+func getRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, op gjson.Result, level int64, protocol, operationID string) (*RichStorage, error) {
 	kind := op.Get("kind").String()
 
 	result := getResult(op)
@@ -27,26 +28,26 @@ func getRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, op gjson.Result, 
 	switch kind {
 	case transaction:
 		address := op.Get("destination").String()
-		return getTransactionRichStorage(es, rpc, result, network, protocol, address, level)
+		return getTransactionRichStorage(es, rpc, result, protocol, address, operationID, level)
 	case origination:
-		return getOriginationRichStorage(es, rpc, result, network, protocol, level)
+		return getOriginationRichStorage(es, rpc, result, protocol, operationID, level)
 	default:
 		return nil, nil
 	}
 }
 
-func getTransactionRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, result *gjson.Result, network, protocol, address string, level int64) (*RichStorage, error) {
+func getTransactionRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, result *gjson.Result, protocol, address, operationID string, level int64) (*RichStorage, error) {
 	data, err := rpc.GetScriptJSON(address, level)
 	if err != nil {
 		return nil, err
 	}
 
 	s := data.Get("storage")
-	m, err := getMetadata(es, address, level)
+	m, err := getMetadata(es, address, "storage", level)
 	if err != nil {
 		return nil, err
 	}
-	bm, err := getBigMapDiff(result, s, network, protocol, address, level, m)
+	bm, err := getBigMapDiff(result, s, protocol, operationID, m)
 	if err != nil {
 		return nil, err
 	}
@@ -56,10 +57,10 @@ func getTransactionRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, result
 	}, nil
 }
 
-func getOriginationRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, result *gjson.Result, network, protocol string, level int64) (*RichStorage, error) {
+func getOriginationRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, result *gjson.Result, protocol, operationID string, level int64) (*RichStorage, error) {
 	switch protocol {
 	case contractparser.HashBabylon:
-		return getOriginationBabylonRichStorage(es, rpc, result, network, protocol, level)
+		return getOriginationBabylonRichStorage(es, rpc, result, protocol, operationID, level)
 	default:
 		return &RichStorage{
 			DeffatedStorage: result.Get("storage").String(),
@@ -67,7 +68,7 @@ func getOriginationRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, result
 	}
 }
 
-func getOriginationBabylonRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, result *gjson.Result, network, protocol string, level int64) (*RichStorage, error) {
+func getOriginationBabylonRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, result *gjson.Result, protocol, operationID string, level int64) (*RichStorage, error) {
 	address := result.Get("originated_contracts.0").String()
 	data, err := rpc.GetScriptJSON(address, level)
 	if err != nil {
@@ -76,11 +77,11 @@ func getOriginationBabylonRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC,
 
 	s := data.Get("storage")
 
-	m, err := getMetadata(es, address, level)
+	m, err := getMetadata(es, address, "storage", level)
 	if err != nil {
 		return nil, err
 	}
-	bm, err := getBigMapDiff(result, s, network, protocol, address, level, m)
+	bm, err := getBigMapDiff(result, s, protocol, operationID, m)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +103,7 @@ func getResult(op gjson.Result) *gjson.Result {
 	return &result
 }
 
-func getBigMapDiff(result *gjson.Result, storage gjson.Result, network, protocol, address string, level int64, m contractparser.Metadata) ([]models.BigMapDiff, error) {
+func getBigMapDiff(result *gjson.Result, storage gjson.Result, protocol, operationID string, m contractparser.Metadata) ([]models.BigMapDiff, error) {
 	bmd := make([]models.BigMapDiff, 0)
 	for _, item := range result.Get("big_map_diff").Array() {
 		switch protocol {
@@ -118,25 +119,21 @@ func getBigMapDiff(result *gjson.Result, storage gjson.Result, network, protocol
 					return nil, fmt.Errorf("Invalid big map pointer value: %d", ptr)
 				}
 				bmd = append(bmd, models.BigMapDiff{
-					Network: network,
-					Address: address,
-					Level:   level,
-					Ptr:     ptr,
-					BinPath: binPath,
-					Key:     item.Get("key").Value(),
-					KeyHash: item.Get("key_hash").String(),
-					Value:   item.Get("value").String(),
+					Ptr:         ptr,
+					BinPath:     binPath,
+					Key:         item.Get("key").Value(),
+					KeyHash:     item.Get("key_hash").String(),
+					Value:       item.Get("value").String(),
+					OperationID: operationID,
 				})
 			}
 		default:
 			bmd = append(bmd, models.BigMapDiff{
-				Network: network,
-				Address: address,
-				Level:   level,
-				BinPath: "00",
-				Key:     item.Get("key").Value(),
-				KeyHash: item.Get("key_hash").String(),
-				Value:   item.Get("value").String(),
+				BinPath:     "00",
+				Key:         item.Get("key").Value(),
+				KeyHash:     item.Get("key_hash").String(),
+				Value:       item.Get("value").String(),
+				OperationID: operationID,
 			})
 		}
 	}
@@ -149,27 +146,42 @@ func getBinPathToPtrMap(m contractparser.Metadata, storage gjson.Result) (map[in
 		if v.Prim != contractparser.BIGMAP {
 			continue
 		}
-		ptr, err := getMapPtr(storage, k)
-		if err != nil {
+
+		if err := setMapPtr(storage, k, key); err != nil {
 			return nil, err
 		}
-		key[ptr] = k
 	}
 	return key, nil
 }
 
-func getMapPtr(storage gjson.Result, binPath string) (int64, error) {
-	path := ""
+func setMapPtr(storage gjson.Result, path string, m map[int64]string) error {
+	bufPath := ""
 
-	for _, s := range binPath[1:] {
-		path += fmt.Sprintf("args.%s.", string(s))
+	for _, s := range strings.Split(path, "/")[1:] {
+		switch s {
+		case "l", "s":
+			bufPath += "#."
+		case "k":
+			bufPath += "#.args.0"
+		case "v":
+			bufPath += "#.args.1"
+		case "o":
+			bufPath += "args.0"
+		default:
+			bufPath += fmt.Sprintf("args.%s.", string(s))
+		}
 	}
 
-	path += "int"
+	bufPath += "int"
 
-	ptr := storage.Get(path)
+	ptr := storage.Get(bufPath)
 	if !ptr.Exists() {
-		return 0, fmt.Errorf("Path %s is not pointer", binPath)
+		return fmt.Errorf("Path %s is not pointer: %s", path, bufPath)
 	}
-	return ptr.Int(), nil
+
+	for _, p := range ptr.Array() {
+		m[p.Int()] = path
+	}
+
+	return nil
 }
