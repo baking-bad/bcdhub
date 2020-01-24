@@ -52,7 +52,7 @@ func main() {
 	}
 
 	// code := scr.Get("code.#(prim==code)")
-	s, err := macros.FindMacros(scr.Get("code"))
+	s, err := macros.FindMacros(scr.Get("code.#(prim==\"code\").args"))
 	if err != nil {
 		panic(err)
 	}
