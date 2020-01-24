@@ -3,74 +3,44 @@ package contractparser
 import (
 	"fmt"
 	"strings"
+	"unicode"
 
 	"github.com/tidwall/gjson"
-
-	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 )
 
-const lineSize = 100
+type code struct {
+	searchNode  int
+	currentNode int
+}
 
-func isFramed(n gjson.Result) bool {
-	prim := n.Get("prim").String()
-	if helpers.StringInArray(prim, []string{
-		"Pair", "Left", "Right", "Some",
-		"pair", "or", "option", "map", "big_map", "list", "set", "contract", "lambda",
-	}) {
-		return true
-	} else if helpers.StringInArray(prim, []string{
-		"key", "unit", "signature", "operation",
-		"int", "nat", "string", "bytes", "mutez", "bool", "key_hash", "timestamp", "address",
-	}) {
-		return n.Get("annots").Exists()
+// LocateContractError - returns error position by number of error node
+// returned values are: row, startCol, endCol
+func LocateContractError(n gjson.Result, node int) (int, int, int) {
+	c := &code{
+		searchNode: node + 1,
 	}
-	return false
+
+	text := c.locateError(n, "", true, false)
+
+	return findError(text)
 }
 
-func isComplex(n gjson.Result) bool {
-	prim := n.Get("prim").String()
-	return prim == "LAMBDA" || prim[:2] == "IF"
-}
+func (c *code) locateError(node gjson.Result, indent string, isRoot, wrapped bool) string {
+	c.currentNode++
 
-func isInline(n gjson.Result) bool {
-	prim := n.Get("prim").String()
-	return prim == "PUSH"
-}
-
-func isScript(n gjson.Result) bool {
-	if !n.IsArray() {
-		return false
-	}
-	for _, item := range n.Array() {
-		prim := item.Get("prim").String()
-		if !helpers.StringInArray(prim, []string{
-			"parameter", "storage", "code",
-		}) {
-			return false
-		}
-	}
-	return true
-}
-
-// MichelineToMichelson -
-func MichelineToMichelson(n gjson.Result, inline bool) string {
-	return formatNode(n, "", inline, true, false)
-}
-
-func formatNode(node gjson.Result, indent string, inline, isRoot, wrapped bool) string {
 	if node.IsArray() {
-		return formatArray(node, indent, inline, isRoot)
+		return c.locateInArray(node, indent, isRoot)
 	}
 
 	if node.IsObject() {
-		return formatObject(node, indent, inline, isRoot, wrapped)
+		return c.locateInObject(node, indent, isRoot, wrapped)
 	}
 
 	fmt.Println("NODE:", node)
 	panic("shit happens")
 }
 
-func formatArray(node gjson.Result, indent string, inline, isRoot bool) string {
+func (c *code) locateInArray(node gjson.Result, indent string, isRoot bool) string {
 	seqIndent := indent
 	isScriptRoot := isRoot && isScript(node)
 	if !isScriptRoot {
@@ -80,7 +50,7 @@ func formatArray(node gjson.Result, indent string, inline, isRoot bool) string {
 	items := make([]string, len(node.Array()))
 
 	for i, n := range node.Array() {
-		items[i] = formatNode(n, seqIndent, inline, false, true)
+		items[i] = c.locateError(n, seqIndent, false, true)
 	}
 
 	if len(items) == 0 {
@@ -99,7 +69,7 @@ func formatArray(node gjson.Result, indent string, inline, isRoot bool) string {
 
 	var seq string
 
-	if inline || length < lineSize {
+	if length < lineSize {
 		seq = strings.Join(items, fmt.Sprintf("%v; ", space))
 	} else {
 		seq = strings.Join(items, fmt.Sprintf("%v;\n%v", space, seqIndent))
@@ -112,16 +82,24 @@ func formatArray(node gjson.Result, indent string, inline, isRoot bool) string {
 	return seq
 }
 
-func formatObject(node gjson.Result, indent string, inline, isRoot, wrapped bool) string {
+func (c *code) locateInObject(node gjson.Result, indent string, isRoot, wrapped bool) string {
 	if node.Get("prim").Exists() {
-		return formatPrimObject(node, indent, inline, isRoot, wrapped)
+		return c.locatePrimObject(node, indent, isRoot, wrapped)
 	}
 
-	return formatNonPrimObject(node)
+	return c.locateNonPrimObject(node)
 }
 
-func formatPrimObject(node gjson.Result, indent string, inline, isRoot, wrapped bool) string {
-	res := []string{node.Get("prim").String()}
+func (c *code) locatePrimObject(node gjson.Result, indent string, isRoot, wrapped bool) string {
+	var res []string
+
+	prim := node.Get("prim").String()
+
+	if c.searchNode == c.currentNode {
+		res = append(res, unicodeMark(prim))
+	} else {
+		res = append(res, prim)
+	}
 
 	if annots := node.Get("annots"); annots.Exists() {
 		for _, a := range annots.Array() {
@@ -140,7 +118,7 @@ func formatPrimObject(node gjson.Result, indent string, inline, isRoot, wrapped 
 		argIndent := indent + "  "
 		items := make([]string, len(args))
 		for i, a := range args {
-			items[i] = formatNode(a, argIndent, inline, false, false)
+			items[i] = c.locateError(a, argIndent, false, false)
 		}
 
 		length := len(indent) + len(expr) + len(items) + 1
@@ -149,7 +127,7 @@ func formatPrimObject(node gjson.Result, indent string, inline, isRoot, wrapped 
 			length += len(item)
 		}
 
-		if inline || length < lineSize {
+		if length < lineSize {
 			expr = fmt.Sprintf("%v %v", expr, strings.Join(items, " "))
 		} else {
 			res := []string{expr}
@@ -158,15 +136,15 @@ func formatPrimObject(node gjson.Result, indent string, inline, isRoot, wrapped 
 		}
 	} else if len(args) == 1 {
 		argIndent := indent + strings.Repeat(" ", len(expr)+1)
-		expr = fmt.Sprintf("%v %v", expr, formatNode(args[0], argIndent, inline, false, false))
+		expr = fmt.Sprintf("%v %v", expr, c.locateError(args[0], argIndent, false, false))
 	} else if len(args) > 1 {
 		argIndent := indent + "  "
 		altIndent := indent + strings.Repeat(" ", len(expr)+2)
 
 		for _, arg := range args {
-			item := formatNode(arg, argIndent, inline, false, false)
+			item := c.locateError(arg, argIndent, false, false)
 			length := len(indent) + len(expr) + len(item) + 1
-			if inline || isInline(node) || length < lineSize {
+			if isInline(node) || length < lineSize {
 				argIndent = altIndent
 				expr = fmt.Sprintf("%v %v", expr, item)
 			} else {
@@ -181,7 +159,7 @@ func formatPrimObject(node gjson.Result, indent string, inline, isRoot, wrapped 
 	return expr
 }
 
-func formatNonPrimObject(node gjson.Result) string {
+func (c *code) locateNonPrimObject(node gjson.Result) string {
 	if len(node.Map()) != 1 {
 		fmt.Println("NODE:", node)
 		panic("node keys count != 1")
@@ -199,4 +177,41 @@ func formatNonPrimObject(node gjson.Result) string {
 
 	fmt.Println("NODE:", node)
 	panic("invalid coreType")
+}
+
+func unicodeMark(s string) string {
+	if len(s) < 1 {
+		return ""
+	}
+
+	return string(rune(s[0])+128) + s[1:]
+}
+
+func findError(text string) (int, int, int) {
+	var found bool
+	var row, start, end int
+
+	rows := strings.Split(text, "\n")
+
+	for i, r := range rows {
+		for idx, c := range r {
+			if isUnicode(c) {
+				found = true
+				row = i
+				start = idx
+				continue
+			}
+
+			if found && string(c) == " " {
+				end = idx - 1
+				return row, start, end
+			}
+		}
+	}
+
+	return 0, 0, 0
+}
+
+func isUnicode(r rune) bool {
+	return r > unicode.MaxASCII
 }
