@@ -1,8 +1,6 @@
 package macros
 
 import (
-	"log"
-
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 )
@@ -41,7 +39,6 @@ func (m *cadrMacros) Find(data gjson.Result) bool {
 func (m *cadrMacros) Collapse(data gjson.Result) {
 	m.Prim = "C"
 	m.Annots = make([]string, 0)
-	log.Println(data)
 
 	for _, item := range data.Array() {
 		prim := item.Get("prim").String()

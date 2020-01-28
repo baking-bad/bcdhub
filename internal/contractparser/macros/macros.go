@@ -1,7 +1,6 @@
 package macros
 
 import (
-	"log"
 	"regexp"
 
 	"github.com/tidwall/gjson"
@@ -33,8 +32,6 @@ type macros interface {
 	Find(data gjson.Result) bool
 	Collapse(data gjson.Result)
 	Replace(json, path string) (string, error)
-
-	Print()
 }
 
 type defaultMacros struct {
@@ -50,10 +47,6 @@ func (m defaultMacros) Collapse(data gjson.Result) {}
 
 func (m defaultMacros) Replace(json, path string) (string, error) {
 	return json, nil
-}
-
-func (m defaultMacros) Print() {
-	log.Print(m.Name)
 }
 
 func getPrim(item gjson.Result) string {

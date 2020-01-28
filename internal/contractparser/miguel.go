@@ -9,15 +9,6 @@ import (
 
 // MichelineToMiguel -
 func MichelineToMiguel(data gjson.Result, metadata Metadata) (interface{}, error) {
-	// log.Println(data)
-	// log.Print("--------------------METADATA-----------------------")
-
-	// b, err := json.MarshalIndent(metadata, "", " ")
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// log.Print(string(b))
-
 	node, startPath, err := getStartPath(data, metadata)
 	if err != nil {
 		return nil, err

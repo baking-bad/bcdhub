@@ -5,10 +5,11 @@ import (
 	"strings"
 
 	"github.com/tidwall/gjson"
+	"github.com/tidwall/sjson"
 )
 
 // FindMacros -
-func FindMacros(script gjson.Result) (string, error) {
+func FindMacros(script gjson.Result) (gjson.Result, error) {
 	gjson.AddModifier("upper", func(json, arg string) string {
 		return strings.ToUpper(json)
 	})
@@ -16,12 +17,25 @@ func FindMacros(script gjson.Result) (string, error) {
 		return strings.ToLower(json)
 	})
 
-	result, err := walkForMacros(script, "", script.String())
+	codePath := ""
+	for i, item := range script.Get("code").Array() {
+		if item.Get("prim").String() == "code" {
+			codePath = fmt.Sprintf("code.%d.args", i)
+			break
+		}
+	}
+	code := script.Get(codePath)
+	result, err := walkForMacros(code, "", code.String())
 	if err != nil {
-		return "", err
+		return script, err
 	}
 
-	return result, nil
+	resultJSON := gjson.Parse(result)
+	res, err := sjson.Set(script.String(), codePath, resultJSON.Value())
+	if err != nil {
+		return script, err
+	}
+	return gjson.Parse(res), nil
 }
 
 func walkForMacros(script gjson.Result, jsonPath, textScript string) (result string, err error) {
@@ -65,7 +79,6 @@ func applyMacros(json, jsonPath string, allMacros []macros) (res string, err err
 	for _, macros := range allMacros {
 		data := gjson.Parse(res).Get(jsonPath)
 		if macros.Find(data) {
-			macros.Print()
 			macros.Collapse(data)
 			res, err = macros.Replace(res, jsonPath)
 			if err != nil {

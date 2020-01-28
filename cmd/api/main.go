@@ -9,6 +9,7 @@ import (
 	"github.com/aopoltorzhicky/bcdhub/cmd/api/handlers"
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
+	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
 	"github.com/gin-gonic/gin"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
@@ -24,7 +25,8 @@ func main() {
 		panic(err)
 	}
 
-	ctx := handlers.NewContext(es)
+	rpc := createRPC(cfg.RPCs)
+	ctx := handlers.NewContext(es, rpc)
 	r := gin.Default()
 
 	r.Use(corsSettings())
@@ -33,11 +35,14 @@ func main() {
 		v1.GET("search", ctx.Search)
 		contract := v1.Group("contract")
 		{
-			address := contract.Group(":address")
+			network := contract.Group(":network")
 			{
-				address.GET("", ctx.GetContract)
-				address.GET("operations", ctx.GetContractOperations)
-				// address.GET(":field", ctx.GetContractField)
+				address := network.Group(":address")
+				{
+					address.GET("", ctx.GetContract)
+					address.GET("code", ctx.GetContractCode)
+					address.GET("operations", ctx.GetContractOperations)
+				}
 			}
 		}
 		project := v1.Group("project")
@@ -62,4 +67,12 @@ func corsSettings() gin.HandlerFunc {
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	})
+}
+
+func createRPC(data map[string]string) map[string]*noderpc.NodeRPC {
+	res := make(map[string]*noderpc.NodeRPC)
+	for k, v := range data {
+		res[k] = noderpc.NewNodeRPC(v)
+	}
+	return res
 }
