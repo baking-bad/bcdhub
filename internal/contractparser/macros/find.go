@@ -2,96 +2,76 @@ package macros
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/tidwall/gjson"
-	"github.com/tidwall/sjson"
 )
 
 // FindMacros -
 func FindMacros(script gjson.Result) (string, error) {
-	r, result, err := walkForMacros(script, "", script.String())
+	gjson.AddModifier("upper", func(json, arg string) string {
+		return strings.ToUpper(json)
+	})
+	gjson.AddModifier("lower", func(json, arg string) string {
+		return strings.ToLower(json)
+	})
+
+	result, err := walkForMacros(script, "", script.String())
 	if err != nil {
 		return "", err
 	}
 
-	log.Println(r)
-
 	return result, nil
 }
 
-func walkForMacros(script gjson.Result, jsonPath, textScript string) (reg string, result string, err error) {
+func walkForMacros(script gjson.Result, jsonPath, textScript string) (result string, err error) {
 	result = textScript
 	if script.IsArray() {
-		reg += "("
-		items := make([]string, 0)
 		for i, item := range script.Array() {
-			var itemReg, itemResult string
+			var itemResult string
 			itemJSONPath := getIndexJSONPath(jsonPath, i)
-			itemReg, itemResult, err = walkForMacros(item, itemJSONPath, result)
+			itemResult, err = walkForMacros(item, itemJSONPath, result)
 			if err != nil {
 				return
 			}
 			result = itemResult
-			items = append(items, itemReg)
 		}
-		reg += strings.Join(items, ",")
-		reg += ")"
+		return applyMacros(result, jsonPath, arrayMacros)
 	} else if script.IsObject() {
-		prim := script.Get("prim")
-		if prim.Exists() {
-			reg += prim.String()
-		} else {
+		if !script.Get("prim").Exists() {
 			items := make([]string, 0)
 			for k := range script.Map() {
 				items = append(items, k)
 			}
-			reg += strings.Join(items, ",")
 		}
 
 		args := script.Get("args")
 		if args.Exists() {
-			var argsReg, argsResult string
+			var argsResult string
 			argsJSONPath := getArgsJSONPath(jsonPath)
-			argsReg, argsResult, err = walkForMacros(args, argsJSONPath, result)
+			argsResult, err = walkForMacros(args, argsJSONPath, result)
 			if err != nil {
 				return
 			}
 			result = argsResult
-			reg += argsReg
 		}
-	} else {
-		return reg, result, fmt.Errorf("Unknown script type: %v", script)
+		return applyMacros(result, jsonPath, objectMacros)
 	}
-
-	reg = strings.ToLower(reg)
-
-	if jsonPath == "" {
-		return
-	}
-
-	result, reg, err = replaceAllMacros(result, reg, jsonPath)
-	return
+	return result, fmt.Errorf("Unknown script type: %v", script)
 }
 
-func replaceAllMacros(result, reg, jsonPath string) (res, regular string, err error) {
-	res = result
-	regular = reg
+func applyMacros(json, jsonPath string, allMacros []macros) (res string, err error) {
+	res = json
 	for _, macros := range allMacros {
-		if !macros.Is(reg) {
-			continue
+		data := gjson.Parse(res).Get(jsonPath)
+		if macros.Find(data) {
+			macros.Print()
+			macros.Collapse(data)
+			res, err = macros.Replace(res, jsonPath)
+			if err != nil {
+				return
+			}
 		}
-		data := gjson.Parse(result).Get(jsonPath)
-		value := macros.Collapse(data)
-
-		res, err = sjson.Set(res, jsonPath, value)
-		if err != nil {
-			return
-		}
-		prim := strings.ToLower(value["prim"].(string))
-		log.Println(regular)
-		regular = replacePrim(regular, macros.GetRegular(), prim)
 	}
 	return
 }

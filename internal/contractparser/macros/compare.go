@@ -2,10 +2,10 @@ package macros
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 	"github.com/tidwall/gjson"
+	"github.com/tidwall/sjson"
 )
 
 // =======================
@@ -14,38 +14,74 @@ import (
 
 type compareMacros struct {
 	*defaultMacros
+
+	NewValues map[int]map[string]interface{}
 }
 
-func newCompareMacros() compareMacros {
-	return compareMacros{
-		&defaultMacros{
-			Reg:  `compare,(eq)|(neq)|(lt)|(gt)|(le)|(ge)`,
+func newCompareMacros() *compareMacros {
+	return &compareMacros{
+		defaultMacros: &defaultMacros{
 			Name: "CMP",
 		},
 	}
 }
 
-func (m compareMacros) Collapse(data gjson.Result) map[string]interface{} {
-	if data.IsArray() {
-		res := map[string]interface{}{
-			"prim": m.Name,
+func (m *compareMacros) Find(data gjson.Result) bool {
+	if !data.IsArray() {
+		return false
+	}
+	m.NewValues = make(map[int]map[string]interface{}, 0)
+
+	arr := data.Array()
+	for i, item := range arr {
+		if !item.IsObject() {
+			continue
 		}
-		for _, item := range data.Array() {
-			prim := strings.ToUpper(item.Get("prim").String())
-			if helpers.StringInArray(prim, []string{
-				"EQ", "NEQ", "LT", "GT", "LE", "GE",
+		prim := getPrim(item)
+		if prim == compare && len(arr) > i+1 {
+			eqPrim := getPrim(arr[i+1])
+			if helpers.StringInArray(eqPrim, []string{
+				eq, neq, lt, gt, le, ge,
 			}) {
-				res["prim"] = fmt.Sprintf("%s%s", res["prim"], prim)
-				annots := item.Get("annots")
-				if annots.Exists() {
-					res["annots"] = annots.Value()
-				}
-				break
+				m.NewValues[i] = nil
 			}
 		}
-		return res
 	}
-	return data.Value().(map[string]interface{})
+	return len(m.NewValues) > 0
+}
+
+func (m *compareMacros) Collapse(data gjson.Result) {
+	for current := range m.NewValues {
+		res := map[string]interface{}{}
+		key := fmt.Sprintf("%d", current+1)
+		eqItem := data.Get(key)
+		prim := getPrim(eqItem)
+		res["prim"] = fmt.Sprintf("%s%s", m.Name, prim)
+
+		annots := eqItem.Get("annots")
+		if annots.Exists() {
+			res["annots"] = annots.Value()
+		}
+
+		m.NewValues[current] = res
+	}
+}
+
+func (m *compareMacros) Replace(json, path string) (res string, err error) {
+	res = json
+	for current, value := range m.NewValues {
+		deleteKey := fmt.Sprintf("%s.%d", path, current+1)
+		res, err = sjson.Delete(json, deleteKey)
+		if err != nil {
+			return
+		}
+		updateKey := fmt.Sprintf("%s.%d", path, current)
+		res, err = sjson.Set(res, updateKey, value)
+		if err != nil {
+			return
+		}
+	}
+	return
 }
 
 // =======================
@@ -54,42 +90,100 @@ func (m compareMacros) Collapse(data gjson.Result) map[string]interface{} {
 
 type compareIfMacros struct {
 	*defaultMacros
+
+	NewValues map[int]map[string]interface{}
 }
 
-func newCompareIfMacros() compareIfMacros {
-	return compareIfMacros{
-		&defaultMacros{
-			Reg:  `compare,(eq)|(neq)|(lt)|(gt)|(le)|(ge),if\(`,
+func newCompareIfMacros() *compareIfMacros {
+	return &compareIfMacros{
+		defaultMacros: &defaultMacros{
+			Reg:  `compare,(eq|neq|lt|gt|le|ge),if\(`,
 			Name: "IFCMP",
 		},
 	}
 }
 
-func (m compareIfMacros) Collapse(data gjson.Result) map[string]interface{} {
-	if data.IsArray() {
-		res := map[string]interface{}{
-			"prim": m.Name,
+func (m *compareIfMacros) Find(data gjson.Result) bool {
+	if !data.IsArray() {
+		return false
+	}
+	m.NewValues = make(map[int]map[string]interface{}, 0)
+
+	current := -1
+	for i, item := range data.Array() {
+		if item.IsArray() {
+			continue
 		}
-		for _, item := range data.Array() {
-			prim := strings.ToUpper(item.Get("prim").String())
-			if helpers.StringInArray(prim, []string{
-				"EQ", "NEQ", "LT", "GT", "LE", "GE",
-			}) {
-				res["prim"] = fmt.Sprintf("%s%s", res["prim"], prim)
-				annots := item.Get("annots")
-				if annots.Exists() {
-					res["annots"] = annots.Value()
+		prim := getPrim(item)
+		if prim == compare {
+			current = i
+		} else if current > -1 {
+			if current+1 == i {
+				if !helpers.StringInArray(prim, []string{
+					eq, neq, lt, gt, le, ge,
+				}) {
+					current = -1
 				}
-			} else if prim == "IF" {
-				args := item.Get("args")
-				if args.Exists() {
-					res["args"] = args.Value()
+			}
+			if current+2 == i {
+				if prim == ifp {
+					m.NewValues[current] = nil
+				} else {
+					current = -1
+					break
 				}
 			}
 		}
-		return res
 	}
-	return data.Value().(map[string]interface{})
+	return len(m.NewValues) > 0
+}
+
+func (m *compareIfMacros) Collapse(data gjson.Result) {
+	for current := range m.NewValues {
+		res := map[string]interface{}{}
+
+		key := fmt.Sprintf("%d", current+1)
+		eqItem := data.Get(key)
+		prim := getPrim(eqItem)
+		res["prim"] = fmt.Sprintf("%s%s", m.Name, prim)
+
+		annots := eqItem.Get("annots")
+		if annots.Exists() {
+			res["annots"] = annots.Value()
+		}
+
+		key = fmt.Sprintf("%d", current+2)
+		ifItem := data.Get(key)
+		args := ifItem.Get("args").Array()
+		if len(args) == 2 {
+			res["args"] = ifItem.Get("args").Value()
+		}
+
+		m.NewValues[current] = res
+	}
+}
+
+func (m *compareIfMacros) Replace(json, path string) (res string, err error) {
+	res = json
+	for current, value := range m.NewValues {
+		deleteKey := fmt.Sprintf("%s.%d", path, current+2)
+		res, err = sjson.Delete(res, deleteKey)
+		if err != nil {
+			return
+		}
+		deleteKey = fmt.Sprintf("%s.%d", path, current+1)
+		res, err = sjson.Delete(res, deleteKey)
+		if err != nil {
+			return
+		}
+		updateKey := fmt.Sprintf("%s.%d", path, current)
+		res, err = sjson.Set(res, updateKey, value)
+		if err != nil {
+			return
+		}
+	}
+	m.NewValues = nil
+	return
 }
 
 // =======================
@@ -98,26 +192,82 @@ func (m compareIfMacros) Collapse(data gjson.Result) map[string]interface{} {
 
 type ifMacros struct {
 	*defaultMacros
+
+	NewValues map[int]map[string]interface{}
 }
 
-func newIfMacros() compareMacros {
-	return compareMacros{
-		&defaultMacros{Reg: `if,(eq)|(neq)|(lt)|(gt)|(le)|(ge)`},
+func newIfMacros() *ifMacros {
+	return &ifMacros{
+		defaultMacros: &defaultMacros{
+			Name: "IF",
+		},
 	}
 }
 
-func (m ifMacros) Collapse(data gjson.Result) map[string]interface{} {
-	if data.IsArray() {
-		item := map[string]interface{}{
-			"prim": "IF" + data.Get("1.prim").String(),
+func (m *ifMacros) Find(data gjson.Result) bool {
+	if !data.IsArray() {
+		return false
+	}
+	m.NewValues = make(map[int]map[string]interface{}, 0)
+	arr := data.Array()
+
+	for i, item := range arr {
+		if item.IsArray() {
+			continue
 		}
-		for k, v := range data.Get("2").Map() {
-			if k != "prim" {
-				item[k] = v.Value()
+		prim := getPrim(item)
+		if prim == ifp && i >= 1 {
+			eqPrim := getPrim(arr[i-1])
+			if helpers.StringInArray(eqPrim, []string{
+				eq, neq, lt, gt, le, ge,
+			}) {
+				m.NewValues[i] = nil
 			}
 		}
-		return item
-
 	}
-	return data.Value().(map[string]interface{})
+	return len(m.NewValues) > 0
+}
+
+func (m *ifMacros) Collapse(data gjson.Result) {
+	for current := range m.NewValues {
+		res := map[string]interface{}{}
+
+		key := fmt.Sprintf("%d", current-1)
+		eqItem := data.Get(key)
+		prim := getPrim(eqItem)
+		res["prim"] = fmt.Sprintf("%s%s", m.Name, prim)
+
+		annots := eqItem.Get("annots")
+		if annots.Exists() {
+			res["annots"] = annots.Value()
+		}
+
+		key = fmt.Sprintf("%d", current)
+		ifItem := data.Get(key)
+		args := ifItem.Get("args").Array()
+		if len(args) == 2 {
+			res["args"] = ifItem.Get("args").Value()
+		}
+
+		m.NewValues[current] = res
+	}
+}
+
+func (m *ifMacros) Replace(json, path string) (res string, err error) {
+	res = json
+	for current, value := range m.NewValues {
+		updateKey := fmt.Sprintf("%s.%d", path, current-1)
+		res, err = sjson.Set(res, updateKey, value)
+		if err != nil {
+			return
+		}
+		deleteKey := fmt.Sprintf("%s.%d", path, current)
+		res, err = sjson.Delete(res, deleteKey)
+		if err != nil {
+			return
+		}
+	}
+
+	m.NewValues = nil
+	return
 }

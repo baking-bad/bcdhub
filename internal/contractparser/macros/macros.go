@@ -1,22 +1,40 @@
 package macros
 
 import (
+	"log"
 	"regexp"
 
 	"github.com/tidwall/gjson"
 )
 
-var allMacros = []macros{
-	newCompareIfMacros(),
-	newCompareMacros(),
-	newFailMacros(),
+var objectMacros = []macros{
+	newAssertMacros(),
+	newAssertSomeMacros(),
 	newAssertNoneMacros(),
+	newDipNMacros(),
+}
+
+var arrayMacros = []macros{
+	newAssertCmpMacros(),
+	newAssertEqMacros(),
+	newFailMacros(),
+	newCompareIfMacros(),
+	newIfMacros(),
+	newCompareMacros(),
+	newDupNMacros(),
+	newPairMacros(),
+	newUnpairMacros(),
+	newUnpairNMacros(),
+	newCadrMacros(),
+	newSetCarMacros(),
 }
 
 type macros interface {
-	Is(where string) bool
-	Collapse(data gjson.Result) map[string]interface{}
-	GetRegular() string
+	Find(data gjson.Result) bool
+	Collapse(data gjson.Result)
+	Replace(json, path string) (string, error)
+
+	Print()
 }
 
 type defaultMacros struct {
@@ -24,20 +42,30 @@ type defaultMacros struct {
 	Name string
 }
 
-func (m defaultMacros) Is(where string) bool {
-	re := regexp.MustCompile(m.Reg)
-	return re.MatchString(where)
+func (m defaultMacros) Find(data gjson.Result) bool {
+	return false
 }
 
-func (m defaultMacros) GetRegular() string {
-	return m.Reg
+func (m defaultMacros) Collapse(data gjson.Result) {}
+
+func (m defaultMacros) Replace(json, path string) (string, error) {
+	return json, nil
 }
 
-func (m defaultMacros) Collapse(data gjson.Result) map[string]interface{} {
-	return data.Value().(map[string]interface{})
+func (m defaultMacros) Print() {
+	log.Print(m.Name)
 }
 
-func replacePrim(where, reg, target string) string {
-	re := regexp.MustCompile(reg)
-	return re.ReplaceAllString(where, target)
+func getPrim(item gjson.Result) string {
+	return item.Get("prim|@upper").String()
+}
+
+func isDip(s string) bool {
+	re := regexp.MustCompile("D(I)+P")
+	return re.MatchString(s)
+}
+
+func isPai(s string) bool {
+	re := regexp.MustCompile("^P[PAIR]*$")
+	return re.MatchString(s)
 }

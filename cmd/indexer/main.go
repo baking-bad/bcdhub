@@ -1,10 +1,11 @@
 package main
 
 import (
-	"log"
+	"time"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/macros"
+	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
+	"github.com/aopoltorzhicky/bcdhub/internal/logger"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
@@ -18,43 +19,31 @@ func main() {
 	}
 	cfg.print()
 
-	// es, err := elastic.New([]string{cfg.Search.URI})
-	// if err != nil {
-	// 	panic(err)
-	// }
+	es, err := elastic.New([]string{cfg.Search.URI})
+	if err != nil {
+		panic(err)
+	}
 
-	// if err := es.CreateIndexIfNotExists(elastic.DocContracts); err != nil {
-	// 	panic(err)
-	// }
+	if err := es.CreateIndexIfNotExists(elastic.DocContracts); err != nil {
+		panic(err)
+	}
 
 	RPCs := createRPCs(cfg)
-	// indexers, err := createIndexers(es, cfg)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Initial syncronization
-	// if err = sync(RPCs, indexers, es); err != nil {
-	// 	logger.Error(err)
-	// }
-
-	// // Update state by ticker
-	// ticker := time.NewTicker(time.Duration(cfg.UpdateTimer) * time.Second)
-	// for range ticker.C {
-	// 	if err = sync(RPCs, indexers, es); err != nil {
-	// 		logger.Error(err)
-	// 	}
-	// }
-
-	scr, err := RPCs["mainnet"].GetScriptJSON("KT1REHQ183LzfoVoqiDR87mCrt7CLUH1MbcV", 0)
+	indexers, err := createIndexers(es, cfg)
 	if err != nil {
 		panic(err)
 	}
 
-	// code := scr.Get("code.#(prim==code)")
-	s, err := macros.FindMacros(scr.Get("code.#(prim==\"code\").args"))
-	if err != nil {
-		panic(err)
+	// Initial syncronization
+	if err = sync(RPCs, indexers, es); err != nil {
+		logger.Error(err)
 	}
-	log.Println(s)
+
+	// Update state by ticker
+	ticker := time.NewTicker(time.Duration(cfg.UpdateTimer) * time.Second)
+	for range ticker.C {
+		if err = sync(RPCs, indexers, es); err != nil {
+			logger.Error(err)
+		}
+	}
 }
