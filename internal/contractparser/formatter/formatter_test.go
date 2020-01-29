@@ -1,4 +1,4 @@
-package contractparser
+package formatter
 
 import (
 	"fmt"
