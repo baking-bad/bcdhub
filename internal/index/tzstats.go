@@ -6,7 +6,6 @@ import (
 	"sort"
 	"time"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser"
 	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/aopoltorzhicky/bcdhub/internal/tzstats"
@@ -138,7 +137,7 @@ func (t *TzStats) GetContractOperationBlocks(startBlock int, knownContracts []mo
 	spendable := make([]string, 0)
 	for _, c := range knownContracts {
 		for i := range c.Tags {
-			if c.Tags[i] == contractparser.SpendableTag {
+			if c.Tags[i] == "spendable" {
 				spendable = append(spendable, c.Address)
 				break
 			}

@@ -1,4 +1,4 @@
-package contractparser
+package helpers
 
 // Set -
 type Set map[string]struct{}
@@ -30,7 +30,8 @@ func (s Set) Values() []string {
 	return r
 }
 
-func arrayUniqueLen(arr []string) int {
+// ArrayUniqueLen -
+func ArrayUniqueLen(arr []string) int {
 	buf := make(map[string]struct{})
 	for i := range arr {
 		buf[arr[i]] = struct{}{}

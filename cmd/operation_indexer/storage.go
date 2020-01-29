@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
@@ -59,7 +60,7 @@ func getTransactionRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, result
 
 func getOriginationRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, result *gjson.Result, protocol, operationID string, level int64) (*RichStorage, error) {
 	switch protocol {
-	case contractparser.HashBabylon:
+	case consts.HashBabylon:
 		return getOriginationBabylonRichStorage(es, rpc, result, protocol, operationID, level)
 	default:
 		return &RichStorage{
@@ -103,11 +104,11 @@ func getResult(op gjson.Result) *gjson.Result {
 	return &result
 }
 
-func getBigMapDiff(result *gjson.Result, storage gjson.Result, protocol, operationID string, m contractparser.Metadata) ([]models.BigMapDiff, error) {
+func getBigMapDiff(result *gjson.Result, storage gjson.Result, protocol, operationID string, m meta.Metadata) ([]models.BigMapDiff, error) {
 	bmd := make([]models.BigMapDiff, 0)
 	for _, item := range result.Get("big_map_diff").Array() {
 		switch protocol {
-		case contractparser.HashBabylon:
+		case consts.HashBabylon:
 			ptrMap, err := getBinPathToPtrMap(m, storage)
 			if err != nil {
 				return nil, err
@@ -140,10 +141,10 @@ func getBigMapDiff(result *gjson.Result, storage gjson.Result, protocol, operati
 	return bmd, nil
 }
 
-func getBinPathToPtrMap(m contractparser.Metadata, storage gjson.Result) (map[int64]string, error) {
+func getBinPathToPtrMap(m meta.Metadata, storage gjson.Result) (map[int64]string, error) {
 	key := make(map[int64]string)
 	for k, v := range m {
-		if v.Prim != contractparser.BIGMAP {
+		if v.Prim != consts.BIGMAP {
 			continue
 		}
 

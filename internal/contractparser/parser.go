@@ -3,11 +3,12 @@ package contractparser
 import (
 	"fmt"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/node"
 	"github.com/tidwall/gjson"
 )
 
 type onArray func(arr []gjson.Result) error
-type onPrim func(n Node) error
+type onPrim func(n node.Node) error
 
 type parser struct {
 	arrayHandler onArray
@@ -35,7 +36,7 @@ func (p *parser) parse(v gjson.Result) error {
 			}
 		}
 	} else if v.IsObject() {
-		node := newNodeJSON(v)
+		node := node.NewNodeJSON(v)
 		for _, a := range node.Args.Array() {
 			p.parse(a)
 		}

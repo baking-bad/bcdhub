@@ -1,4 +1,4 @@
-package contractparser
+package consts
 
 // Languages
 const (
@@ -21,15 +21,16 @@ const (
 	SpendableTag       = "spendable"
 )
 
+// Keys
 const (
-	keyPrim   = "prim"
-	keyArgs   = "args"
-	keyAnnots = "annots"
-	keyString = "string"
-	keyMutez  = "mutez"
-	keyBytes  = "bytes"
-	keyInt    = "int"
-	keyTime   = "timestamp"
+	KeyPrim   = "prim"
+	KeyArgs   = "args"
+	KeyAnnots = "annots"
+	KeyString = "string"
+	KeyMutez  = "mutez"
+	KeyBytes  = "bytes"
+	KeyInt    = "int"
+	KeyTime   = "timestamp"
 )
 
 // Primitives

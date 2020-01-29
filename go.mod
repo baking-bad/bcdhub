@@ -3,6 +3,7 @@ module github.com/aopoltorzhicky/bcdhub
 go 1.13
 
 require (
+	cloud.google.com/go v0.37.4
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20191218082911-5398a82b748f
 	github.com/fatih/color v1.9.0
 	github.com/gin-contrib/cors v1.3.0

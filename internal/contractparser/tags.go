@@ -5,21 +5,23 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/node"
 	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
 )
 
 var interfaces = map[string][]Entrypoint{}
 
-func primTags(node Node) string {
+func primTags(node node.Node) string {
 	switch node.Prim {
-	case CREATECONTRACT:
-		return ContractFactoryTag
-	case SETDELEGATE:
-		return DelegatableTag
-	case CHECKSIGNATURE:
-		return CheckSigTag
-	case CHAINID:
-		return ChainAwareTag
+	case consts.CREATECONTRACT:
+		return consts.ContractFactoryTag
+	case consts.SETDELEGATE:
+		return consts.DelegatableTag
+	case consts.CHECKSIGNATURE:
+		return consts.CheckSigTag
+	case consts.CHAINID:
+		return consts.ChainAwareTag
 	}
 	return ""
 }
@@ -81,7 +83,7 @@ func deepEqual(a, b map[string]interface{}) bool {
 		}
 
 		switch ak {
-		case keyArgs:
+		case consts.KeyArgs:
 			ava := av.([]interface{})
 			bva := bv.([]interface{})
 
@@ -96,7 +98,7 @@ func deepEqual(a, b map[string]interface{}) bool {
 					return false
 				}
 			}
-		case keyPrim:
+		case consts.KeyPrim:
 			if av != bv {
 				return false
 			}

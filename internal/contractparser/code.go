@@ -3,6 +3,9 @@ package contractparser
 import (
 	"fmt"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/node"
+	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 	"github.com/aopoltorzhicky/bcdhub/internal/tlsh"
 	"github.com/tidwall/gjson"
 )
@@ -18,22 +21,22 @@ type Code struct {
 	Hash string
 	hash []byte
 
-	Tags        Set
+	Tags        helpers.Set
 	Language    string
-	FailStrings Set
-	Primitives  Set
-	Annotations Set
+	FailStrings helpers.Set
+	Primitives  helpers.Set
+	Annotations helpers.Set
 }
 
 func newCode(script gjson.Result) (Code, error) {
 	res := Code{
 		parser:      &parser{},
-		Language:    LangUnknown,
+		Language:    consts.LangUnknown,
 		hash:        make([]byte, 0),
-		FailStrings: make(Set),
-		Primitives:  make(Set),
-		Tags:        make(Set),
-		Annotations: make(Set),
+		FailStrings: make(helpers.Set),
+		Primitives:  make(helpers.Set),
+		Tags:        make(helpers.Set),
+		Annotations: make(helpers.Set),
 	}
 	res.primHandler = res.handlePrimitive
 	res.arrayHandler = res.handleArray
@@ -44,7 +47,7 @@ func newCode(script gjson.Result) (Code, error) {
 	}
 
 	for i := range code {
-		n := newNodeJSON(code[i])
+		n := node.NewNodeJSON(code[i])
 		if err := res.parseStruct(n); err != nil {
 			return res, err
 		}
@@ -52,21 +55,21 @@ func newCode(script gjson.Result) (Code, error) {
 	return res, nil
 }
 
-func (c *Code) parseStruct(node Node) error {
-	switch node.Prim {
-	case CODE:
-		c.Code = node.Args
-		if err := c.parseCode(node.Args); err != nil {
+func (c *Code) parseStruct(n node.Node) error {
+	switch n.Prim {
+	case consts.CODE:
+		c.Code = n.Args
+		if err := c.parseCode(n.Args); err != nil {
 			return err
 		}
-	case STORAGE:
-		store, err := newStorage(node.Args)
+	case consts.STORAGE:
+		store, err := newStorage(n.Args)
 		if err != nil {
 			return err
 		}
 		c.Storage = store
-	case PARAMETER:
-		parameter, err := newParameter(node.Args)
+	case consts.PARAMETER:
+		parameter, err := newParameter(n.Args)
 		if err != nil {
 			return err
 		}
@@ -103,37 +106,37 @@ func (c *Code) handleArray(arr []gjson.Result) error {
 	return nil
 }
 
-func (c *Code) handlePrimitive(node Node) (err error) {
-	c.Primitives.Append(node.Prim)
-	c.hash = append(c.hash, []byte(node.Prim)...)
+func (c *Code) handlePrimitive(n node.Node) (err error) {
+	c.Primitives.Append(n.Prim)
+	c.hash = append(c.hash, []byte(n.Prim)...)
 
-	if node.HasAnnots() {
-		c.Annotations.Append(node.Annotations...)
+	if n.HasAnnots() {
+		c.Annotations.Append(n.Annotations...)
 	}
 
-	c.detectLanguage(node)
-	c.Tags.Append(primTags(node))
+	c.detectLanguage(n)
+	c.Tags.Append(primTags(n))
 
 	return nil
 }
 
-func (c *Code) detectLanguage(node Node) {
-	if c.Language != LangUnknown {
+func (c *Code) detectLanguage(n node.Node) {
+	if c.Language != consts.LangUnknown {
 		return
 	}
-	if detectLiquidity(node, c.Parameter.Entrypoints()) {
-		c.Language = LangLiquidity
+	if detectLiquidity(n, c.Parameter.Entrypoints()) {
+		c.Language = consts.LangLiquidity
 		return
 	}
-	if detectPython(node) {
-		c.Language = LangPython
+	if detectPython(n) {
+		c.Language = consts.LangPython
 		return
 	}
-	if detectLIGO(node) {
-		c.Language = LangLigo
+	if detectLIGO(n) {
+		c.Language = consts.LangLigo
 		return
 	}
 	if c.Language == "" {
-		c.Language = LangUnknown
+		c.Language = consts.LangUnknown
 	}
 }

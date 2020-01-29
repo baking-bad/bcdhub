@@ -3,6 +3,10 @@ package contractparser
 import (
 	"fmt"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/node"
+	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 	"github.com/aopoltorzhicky/bcdhub/internal/tlsh"
 	"github.com/tidwall/gjson"
 )
@@ -22,12 +26,12 @@ type Entrypoint struct {
 type Parameter struct {
 	*parser
 
-	Metadata Metadata
+	Metadata meta.Metadata
 
 	Hash string
 	hash []byte
 
-	Tags Set
+	Tags helpers.Set
 }
 
 func newParameter(v gjson.Result) (Parameter, error) {
@@ -37,14 +41,14 @@ func newParameter(v gjson.Result) (Parameter, error) {
 	p := Parameter{
 		parser: &parser{},
 		hash:   make([]byte, 0),
-		Tags:   make(Set),
+		Tags:   make(helpers.Set),
 	}
 	p.primHandler = p.handlePrimitive
 	if err := p.parse(v); err != nil {
 		return p, err
 	}
 
-	m, err := ParseMetadata(v)
+	m, err := meta.ParseMetadata(v)
 	if err != nil {
 		return p, err
 	}
@@ -73,11 +77,11 @@ func newParameter(v gjson.Result) (Parameter, error) {
 	return p, err
 }
 
-func (p *Parameter) handlePrimitive(n Node) error {
+func (p *Parameter) handlePrimitive(n node.Node) error {
 	p.hash = append(p.hash, []byte(n.Prim)...)
 
-	if n.Is(CONTRACT) {
-		p.Tags.Append(ViewMethodTag)
+	if n.Is(consts.CONTRACT) {
+		p.Tags.Append(consts.ViewMethodTag)
 	}
 	return nil
 }
@@ -88,7 +92,7 @@ func (p *Parameter) Entrypoints() []string {
 	if !ok {
 		return nil
 	}
-	if root.Prim != OR {
+	if root.Prim != consts.OR {
 		s := root.FieldName
 		if s == "" {
 			s = fmt.Sprintf(defaultEntrypoint, 0)
@@ -127,7 +131,7 @@ func (p *Parameter) buildEntrypoint(path string, idx int) (e Entrypoint, err err
 
 func (p *Parameter) getEntrypointArgs(path string) []interface{} {
 	root := p.Metadata[path]
-	if root.Prim == LAMBDA || root.Prim == CONTRACT {
+	if root.Prim == consts.LAMBDA || root.Prim == consts.CONTRACT {
 		return []interface{}{root.Parameter}
 	}
 
@@ -139,12 +143,12 @@ func (p *Parameter) getEntrypointArgs(path string) []interface{} {
 			continue
 		}
 
-		if m.Prim == PAIR || m.Prim == OR || m.Prim == OPTION {
+		if m.Prim == consts.PAIR || m.Prim == consts.OR || m.Prim == consts.OPTION {
 			args = append(args, map[string]interface{}{
 				"prim": m.Prim,
 				"args": p.getEntrypointArgs(subTree),
 			})
-		} else if m.Prim == LAMBDA || m.Prim == CONTRACT {
+		} else if m.Prim == consts.LAMBDA || m.Prim == consts.CONTRACT {
 			args = append(args, map[string]interface{}{
 				"prim": m.Prim,
 				"args": []interface{}{
@@ -166,7 +170,7 @@ func (p *Parameter) EntrypointStructs() ([]Entrypoint, error) {
 	if !ok {
 		return nil, fmt.Errorf("Unknown root metadata")
 	}
-	if root.Prim != OR {
+	if root.Prim != consts.OR {
 		e, err := p.buildEntrypoint("0", 0)
 		if err != nil {
 			return nil, err

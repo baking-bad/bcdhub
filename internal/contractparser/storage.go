@@ -1,6 +1,8 @@
 package contractparser
 
 import (
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/node"
+	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 	"github.com/aopoltorzhicky/bcdhub/internal/tlsh"
 	"github.com/tidwall/gjson"
 )
@@ -9,7 +11,7 @@ import (
 type Storage struct {
 	*parser
 
-	Tags Set
+	Tags helpers.Set
 	Hash string
 	hash []byte
 }
@@ -17,7 +19,7 @@ type Storage struct {
 func newStorage(storage gjson.Result) (Storage, error) {
 	res := Storage{
 		parser: &parser{},
-		Tags:   make(Set),
+		Tags:   make(helpers.Set),
 		hash:   make([]byte, 0),
 	}
 	res.primHandler = res.handlePrimitive
@@ -36,7 +38,7 @@ func newStorage(storage gjson.Result) (Storage, error) {
 	return res, err
 }
 
-func (s *Storage) handlePrimitive(n Node) error {
+func (s *Storage) handlePrimitive(n node.Node) error {
 	s.hash = append(s.hash, []byte(n.Prim)...)
 
 	return nil

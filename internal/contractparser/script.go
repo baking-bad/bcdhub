@@ -2,6 +2,8 @@ package contractparser
 
 import (
 	"fmt"
+
+	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 	"github.com/tidwall/gjson"
 )
 
@@ -10,8 +12,8 @@ type Script struct {
 	Code    Code
 	Storage Storage
 
-	Tags               Set
-	HardcodedAddresses Set
+	Tags               helpers.Set
+	HardcodedAddresses helpers.Set
 }
 
 // New -
@@ -32,7 +34,7 @@ func New(script gjson.Result) (s Script, err error) {
 		return
 	}
 	s.HardcodedAddresses = hardcoded
-	s.Tags = make(Set)
+	s.Tags = make(helpers.Set)
 
 	return
 }

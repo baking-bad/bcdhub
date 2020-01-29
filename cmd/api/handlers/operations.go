@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/miguel"
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
@@ -82,7 +84,8 @@ func prepareOperations(es *elastic.Elastic, ops []models.Operation, address stri
 			}
 
 			params := gjson.Parse(ops[i].Parameters)
-			op.Parameters, err = contractparser.MichelineToMiguel(params, metadata)
+
+			op.Parameters, err = miguel.MichelineToMiguel(params, metadata)
 			if err != nil {
 				return nil, err
 			}
@@ -104,7 +107,7 @@ func prepareOperations(es *elastic.Elastic, ops []models.Operation, address stri
 	return resp, nil
 }
 
-func insertBigMapDiffs(es *elastic.Elastic, storage string, metadata contractparser.Metadata, op *Operation) error {
+func insertBigMapDiffs(es *elastic.Elastic, storage string, metadata meta.Metadata, op *Operation) error {
 	bmd, err := es.GetBigMapDiffsByOperationID(op.ID)
 	if err != nil {
 		return err
@@ -113,7 +116,7 @@ func insertBigMapDiffs(es *elastic.Elastic, storage string, metadata contractpar
 	data := bmd.Get("hits.hits.#._source")
 
 	var richStorage gjson.Result
-	if op.Level < contractparser.LevelBabylon {
+	if op.Level < consts.LevelBabylon {
 		richStorage, err = getRichStorageAlpha(storage, data)
 		if err != nil {
 			return err
@@ -125,7 +128,7 @@ func insertBigMapDiffs(es *elastic.Elastic, storage string, metadata contractpar
 		}
 	}
 
-	op.Storage, err = contractparser.MichelineToMiguel(richStorage, metadata)
+	op.Storage, err = miguel.MichelineToMiguel(richStorage, metadata)
 	if err != nil {
 		return err
 	}
@@ -133,7 +136,7 @@ func insertBigMapDiffs(es *elastic.Elastic, storage string, metadata contractpar
 	return nil
 }
 func getRichStorageAlpha(storage string, bmd gjson.Result) (gjson.Result, error) {
-	p := contractparser.GetGJSONPath("0")
+	p := miguel.GetGJSONPath("0")
 
 	res := make([]interface{}, 0)
 	for _, b := range bmd.Array() {
@@ -175,7 +178,7 @@ func getRichStorageBabylon(storage string, bmd gjson.Result) (gjson.Result, erro
 
 		elt["args"] = args
 
-		p := contractparser.GetGJSONPath(b.Get("bin_path").String()[2:])
+		p := miguel.GetGJSONPath(b.Get("bin_path").String()[2:])
 		value, err := sjson.Set(storage, p, []interface{}{elt})
 		if err != nil {
 			return gjson.Result{}, err
@@ -186,7 +189,7 @@ func getRichStorageBabylon(storage string, bmd gjson.Result) (gjson.Result, erro
 	return data, nil
 }
 
-func getMetadata(es *elastic.Elastic, address, tag string, level int64) (contractparser.Metadata, error) {
+func getMetadata(es *elastic.Elastic, address, tag string, level int64) (meta.Metadata, error) {
 	if address == "" {
 		return nil, fmt.Errorf("[getMetadata] Empty address")
 	}
@@ -196,11 +199,11 @@ func getMetadata(es *elastic.Elastic, address, tag string, level int64) (contrac
 		return nil, err
 	}
 
-	network := contractparser.GetMetadataNetwork(level)
+	network := meta.GetMetadataNetwork(level)
 	path := fmt.Sprintf("_source.%s.%s", tag, network)
 	metadata := data.Get(path).String()
 
-	var res contractparser.Metadata
+	var res meta.Metadata
 	if err := json.Unmarshal([]byte(metadata), &res); err != nil {
 		return nil, err
 	}

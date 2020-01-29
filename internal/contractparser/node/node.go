@@ -1,9 +1,10 @@
-package contractparser
+package node
 
 import (
 	"log"
 	"strings"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/tidwall/gjson"
 )
 
@@ -18,35 +19,36 @@ type Node struct {
 	Path        string       `json:"-"`
 }
 
-func newNodeJSON(data gjson.Result) Node {
+// NewNodeJSON -
+func NewNodeJSON(data gjson.Result) Node {
 	if !data.IsObject() {
 		log.Panicf("Unknown node type: %v", data)
 	}
 	n := Node{
 		Child:       make([]Node, 0),
 		Annotations: make([]string, 0),
-		Prim:        strings.ToLower(data.Get(keyPrim).String()),
-		Args:        data.Get(keyArgs),
+		Prim:        strings.ToLower(data.Get(consts.KeyPrim).String()),
+		Args:        data.Get(consts.KeyArgs),
 	}
-	for _, a := range data.Get(keyAnnots).Array() {
+	for _, a := range data.Get(consts.KeyAnnots).Array() {
 		n.Annotations = append(n.Annotations, a.String())
 	}
 
-	if data.Get(keyBytes).Exists() {
-		n.Value = data.Get(keyBytes).String()
-		n.Type = keyBytes
-	} else if data.Get(keyInt).Exists() {
-		n.Value = data.Get(keyInt).Int()
-		n.Type = keyInt
-	} else if data.Get(keyMutez).Exists() {
-		n.Value = data.Get(keyMutez).Int()
-		n.Type = keyMutez
-	} else if data.Get(keyString).Exists() {
-		n.Value = data.Get(keyString).String()
-		n.Type = keyString
-	} else if data.Get(keyTime).Exists() {
-		n.Value = data.Get(keyTime).String()
-		n.Type = keyTime
+	if data.Get(consts.KeyBytes).Exists() {
+		n.Value = data.Get(consts.KeyBytes).String()
+		n.Type = consts.KeyBytes
+	} else if data.Get(consts.KeyInt).Exists() {
+		n.Value = data.Get(consts.KeyInt).Int()
+		n.Type = consts.KeyInt
+	} else if data.Get(consts.KeyMutez).Exists() {
+		n.Value = data.Get(consts.KeyMutez).Int()
+		n.Type = consts.KeyMutez
+	} else if data.Get(consts.KeyString).Exists() {
+		n.Value = data.Get(consts.KeyString).String()
+		n.Type = consts.KeyString
+	} else if data.Get(consts.KeyTime).Exists() {
+		n.Value = data.Get(consts.KeyTime).String()
+		n.Type = consts.KeyTime
 	}
 
 	return n
@@ -54,7 +56,7 @@ func newNodeJSON(data gjson.Result) Node {
 
 // GetString - return string value
 func (n *Node) GetString() string {
-	if n.Type != "string" {
+	if n.Type != consts.KeyString {
 		return ""
 	}
 	return n.Value.(string)
@@ -62,7 +64,7 @@ func (n *Node) GetString() string {
 
 // GetBytes - return bytes value
 func (n *Node) GetBytes() string {
-	if n.Type != "bytes" {
+	if n.Type != consts.KeyBytes {
 		return ""
 	}
 	return n.Value.(string)
@@ -70,7 +72,7 @@ func (n *Node) GetBytes() string {
 
 // GetInt - return int value
 func (n *Node) GetInt() int64 {
-	if n.Type != "int" {
+	if n.Type != consts.KeyInt {
 		return 0
 	}
 	return n.Value.(int64)
@@ -78,7 +80,7 @@ func (n *Node) GetInt() int64 {
 
 // GetMutez - return mutez value
 func (n *Node) GetMutez() float64 {
-	if n.Type != "mutez" {
+	if n.Type != consts.KeyMutez {
 		return .0
 	}
 	return n.Value.(float64)

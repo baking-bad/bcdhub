@@ -1,8 +1,11 @@
 package contractparser
 
-import "strings"
+import (
+	"strings"
 
-import "github.com/tidwall/gjson"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/node"
+	"github.com/tidwall/gjson"
+)
 
 // Fail -
 type Fail struct {
@@ -15,18 +18,18 @@ func parseFail(args []gjson.Result) *Fail {
 	}
 
 	if args[1].IsObject() {
-		nodeFail := newNodeJSON(args[1])
+		nodeFail := node.NewNodeJSON(args[1])
 		if !nodeFail.Is("FAILWITH") {
 			return nil
 		}
 		s := ""
 		if args[0].IsObject() {
-			nodeWith := newNodeJSON(args[0])
+			nodeWith := node.NewNodeJSON(args[0])
 			s = nodeWith.GetString()
 			if s == "" && nodeWith.Is("PUSH") {
 				arr := nodeWith.Args.Array()
 				if len(arr) == 2 {
-					nodeValue := newNodeJSON(arr[1])
+					nodeValue := node.NewNodeJSON(arr[1])
 					s = nodeValue.GetString()
 				}
 			} else {
