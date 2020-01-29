@@ -90,8 +90,6 @@ func buildPathFromArray(parts []string) (res string) {
 
 	for _, part := range parts {
 		switch part {
-		case "o":
-			res += "#(prim==\"Some\").args.0."
 		case "l", "s":
 			res += "args.#."
 		case "k":
@@ -127,6 +125,8 @@ func getGJSONPathUnion(path string, node gjson.Result) (res string) {
 				} else {
 					res += "#(prim==\"Right\").args.0."
 				}
+			case "o":
+				res += "args.0."
 			default:
 				idx = i + 1
 				break

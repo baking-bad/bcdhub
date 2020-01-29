@@ -87,7 +87,16 @@ func (e *Elastic) GetContractOperations(address string, offset, size int64) ([]m
 				"minimum_should_match": 1,
 			},
 		},
-		"sort": map[string]interface{}{"level": "desc"},
+		"sort": map[string]interface{}{
+			"_script": map[string]interface{}{
+				"type": "number",
+				"script": map[string]interface{}{
+					"lang":   "painless",
+					"source": "doc['level'].value * 10 + (doc['internal'].value ? 0 : 1)",
+				},
+				"order": "desc",
+			},
+		},
 		"from": offset,
 	}
 	if size == 0 {
