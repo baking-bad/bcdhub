@@ -71,6 +71,8 @@ func prepareOperations(es *elastic.Elastic, ops []models.Operation, address stri
 			ManagerPubKey: ops[i].ManagerPubKey,
 			Balance:       ops[i].Balance,
 			Delegate:      ops[i].Delegate,
+
+			Result: ops[i].Result,
 		}
 
 		if op.Kind != "transaction" {

@@ -26,4 +26,5 @@ type Contract struct {
 	Delegate string `json:"delegate,omitempty"`
 
 	ProjectID string `json:"project_id,omitempty"`
+	FoundBy   string `json:"found_by,omitempty"`
 }

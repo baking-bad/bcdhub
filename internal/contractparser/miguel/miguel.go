@@ -17,6 +17,7 @@ var decoders = map[string]decoder{
 	consts.MAP:            &mapDecoder{},
 	consts.BIGMAP:         &mapDecoder{},
 	consts.TypeNamedUnion: &namedUnionDecoder{},
+	consts.TypeUnion:      &namedUnionDecoder{},
 	consts.OR:             &orDecoder{},
 	consts.OPTION:         newOptionDecoder(),
 	"default":             newLiteralDecoder(),

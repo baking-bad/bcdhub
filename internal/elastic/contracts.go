@@ -3,6 +3,7 @@ package elastic
 import (
 	"fmt"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/tidwall/gjson"
 )
@@ -36,6 +37,41 @@ func parseContarctFromHit(hit gjson.Result, c *models.Contract) {
 	c.Delegate = hit.Get("_source.delegate").String()
 
 	c.ProjectID = hit.Get("_source.project_id").String()
+
+	c.FoundBy = getFoundBy(hit)
+}
+
+func getFoundBy(hit gjson.Result) string {
+	keys := make([]string, 0)
+	for k := range hit.Get("highlight").Map() {
+		keys = append(keys, k)
+	}
+
+	if helpers.StringInArray("address", keys) {
+		return "address"
+	}
+	if helpers.StringInArray("manager", keys) {
+		return "manager"
+	}
+	if helpers.StringInArray("delegate", keys) {
+		return "delegate"
+	}
+	if helpers.StringInArray("tags", keys) {
+		return "tags"
+	}
+	if helpers.StringInArray("hardcoded", keys) {
+		return "hardcoded addresses"
+	}
+	if helpers.StringInArray("annotations", keys) {
+		return "annotations"
+	}
+	if helpers.StringInArray("fail_strings", keys) {
+		return "fail strings"
+	}
+	if helpers.StringInArray("entrypoints", keys) {
+		return "entrypoints"
+	}
+	return ""
 }
 
 func getContractQuery(by map[string]interface{}) map[string]interface{} {
@@ -169,6 +205,18 @@ func (e *Elastic) SearchByText(text string) ([]models.Contract, error) {
 				"fields": []string{
 					"address^10", "manager^8", "delegate^6", "tags^4", "hardcoded", "annotations", "fail_strings", "entrypoints",
 				},
+			},
+		},
+		"highlight": map[string]interface{}{
+			"fields": map[string]interface{}{
+				"address":      map[string]interface{}{},
+				"manager":      map[string]interface{}{},
+				"delegate":     map[string]interface{}{},
+				"tags":         map[string]interface{}{},
+				"hardcoded":    map[string]interface{}{},
+				"annotations":  map[string]interface{}{},
+				"fail_strings": map[string]interface{}{},
+				"entrypoints":  map[string]interface{}{},
 			},
 		},
 	}
