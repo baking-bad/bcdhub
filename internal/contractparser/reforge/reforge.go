@@ -34,3 +34,16 @@ func Micheline(hex string) string {
 
 	return ""
 }
+
+// func decodeInt(hex string, offset int, signed bool) (string int) {
+// 	var buffer string
+// 	var i int
+
+// 	for (offset + i * 2) < len(hex) {
+// 		start := offset + i * 2
+// 		end := start + 2
+// 		part := hex[start:end]
+// 		buffer += part
+// 		i += 1
+// 	}
+// }
