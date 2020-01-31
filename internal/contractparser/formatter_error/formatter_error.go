@@ -1,10 +1,11 @@
-package contractparser
+package formattererror
 
 import (
 	"fmt"
 	"strings"
 	"unicode"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/formatter"
 	"github.com/tidwall/gjson"
 )
 
@@ -42,7 +43,7 @@ func (c *code) locateError(node gjson.Result, indent string, isRoot, wrapped boo
 
 func (c *code) locateInArray(node gjson.Result, indent string, isRoot bool) string {
 	seqIndent := indent
-	isScriptRoot := isRoot && isScript(node)
+	isScriptRoot := isRoot && formatter.IsScript(node)
 	if !isScriptRoot {
 		seqIndent = indent + "  "
 	}
@@ -69,7 +70,7 @@ func (c *code) locateInArray(node gjson.Result, indent string, isRoot bool) stri
 
 	var seq string
 
-	if length < lineSize {
+	if length < formatter.LineSize {
 		seq = strings.Join(items, fmt.Sprintf("%v; ", space))
 	} else {
 		seq = strings.Join(items, fmt.Sprintf("%v;\n%v", space, seqIndent))
@@ -114,7 +115,7 @@ func (c *code) locatePrimObject(node gjson.Result, indent string, isRoot, wrappe
 		args = rawArgs.Array()
 	}
 
-	if isComplex(node) {
+	if formatter.IsComplex(node) {
 		argIndent := indent + "  "
 		items := make([]string, len(args))
 		for i, a := range args {
@@ -127,7 +128,7 @@ func (c *code) locatePrimObject(node gjson.Result, indent string, isRoot, wrappe
 			length += len(item)
 		}
 
-		if length < lineSize {
+		if length < formatter.LineSize {
 			expr = fmt.Sprintf("%v %v", expr, strings.Join(items, " "))
 		} else {
 			res := []string{expr}
@@ -144,7 +145,7 @@ func (c *code) locatePrimObject(node gjson.Result, indent string, isRoot, wrappe
 		for _, arg := range args {
 			item := c.locateError(arg, argIndent, false, false)
 			length := len(indent) + len(expr) + len(item) + 1
-			if isInline(node) || length < lineSize {
+			if formatter.IsInline(node) || length < formatter.LineSize {
 				argIndent = altIndent
 				expr = fmt.Sprintf("%v %v", expr, item)
 			} else {
@@ -153,7 +154,7 @@ func (c *code) locatePrimObject(node gjson.Result, indent string, isRoot, wrappe
 		}
 	}
 
-	if isFramed(node) && !isRoot && !wrapped {
+	if formatter.IsFramed(node) && !isRoot && !wrapped {
 		return fmt.Sprintf("(%v)", expr)
 	}
 	return expr

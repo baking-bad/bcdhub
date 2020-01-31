@@ -1,4 +1,4 @@
-package contractparser
+package formattererror
 
 import (
 	"encoding/json"

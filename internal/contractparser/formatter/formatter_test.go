@@ -1,4 +1,4 @@
-package contractparser
+package formatter
 
 import (
 	"fmt"
@@ -29,6 +29,7 @@ func TestMichelineToMichelson(t *testing.T) {
 		"KT1E7xh6tvnVMWx7QCZnuWXwcpCJ9UmMWcyK",
 		"KT1EUTxJch3jR9VuQ5wV4HeWbs5BnUfQp3N3",
 		"KT1EwPxDNyx2y5NSEgKQNLzGSrwBab5Ay8yS",
+		"KT1ForWJDps7emzxxdSQpLD9ezdH6Vo7Grzw",
 		"KT1FU74GimCeEVRAEZGURb6TWU8jK1N6zFJy",
 		"KT1FfZcfsbxXgNKGHpnGWaokXXrvvW1wddGp",
 		"KT1FfhRBXiDLuurraaP2u6PkLaPhXSfAdPGY",
