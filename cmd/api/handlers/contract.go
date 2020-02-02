@@ -31,3 +31,14 @@ func (ctx *Context) GetContract(c *gin.Context) {
 
 	c.JSON(http.StatusOK, cntr)
 }
+
+// GetRandomContract -
+func (ctx *Context) GetRandomContract(c *gin.Context) {
+	cntr, err := ctx.ES.GetRandomContract()
+	if err != nil {
+		_ = c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, cntr)
+}

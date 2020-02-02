@@ -42,9 +42,12 @@ func main() {
 					address.GET("", ctx.GetContract)
 					address.GET("code", ctx.GetContractCode)
 					address.GET("operations", ctx.GetContractOperations)
+					address.GET("entrypoints", ctx.GetEntrypoints)
 				}
 			}
 		}
+
+		v1.GET("pick_random", ctx.GetRandomContract)
 		project := v1.Group("project")
 		{
 			address := project.Group(":address")

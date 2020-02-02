@@ -33,7 +33,6 @@ func computeMetrics(rpc *noderpc.NodeRPC, es *elastic.Elastic, c *models.Contrac
 	c.FailStrings = script.Code.FailStrings.Values()
 	c.Primitives = script.Code.Primitives.Values()
 	c.Annotations = script.Code.Annotations.Values()
-	c.Entrypoints = script.Code.Parameter.Entrypoints()
 	c.Tags = script.Tags.Values()
 
 	c.Hardcoded = script.HardcodedAddresses.Values()

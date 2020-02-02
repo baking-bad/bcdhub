@@ -34,6 +34,23 @@ func getMetadata(rpc *noderpc.NodeRPC, c *models.Contract, tag string) (map[stri
 	return res, nil
 }
 
+func getEntrypointsFromMetadata(m meta.Metadata, c *models.Contract) {
+	root := m["0"]
+	c.Entrypoints = make([]string, 0)
+	if len(root.Args) > 0 {
+		for i := range root.Args {
+			arg := m[root.Args[i]]
+			name := arg.Name
+			if name == "" {
+				name = fmt.Sprintf("__entry__%d", i)
+			}
+			c.Entrypoints = append(c.Entrypoints, name)
+		}
+	} else {
+		c.Entrypoints = append(c.Entrypoints, "__entry__0")
+	}
+}
+
 func createMetadata(rpc *noderpc.NodeRPC, level int64, c *models.Contract, tag string) (string, error) {
 	contract, err := rpc.GetContractJSON(c.Address, level)
 	if err != nil {
@@ -50,6 +67,10 @@ func createMetadata(rpc *noderpc.NodeRPC, level int64, c *models.Contract, tag s
 		if err != nil {
 			return "", nil
 		}
+		if tag == "parameter" {
+			getEntrypointsFromMetadata(a, c)
+		}
+
 		b, err := json.Marshal(a)
 		if err != nil {
 			return "", err

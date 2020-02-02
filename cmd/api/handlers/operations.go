@@ -34,7 +34,8 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 		return
 	}
 
-	ops, err := ctx.ES.GetContractOperations(req.Address, offsetReq.Offset, 0)
+	size := int64(10)
+	ops, err := ctx.ES.GetContractOperations(req.Address, offsetReq.Offset, size)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -50,8 +51,8 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 }
 
 func prepareOperations(es *elastic.Elastic, ops []models.Operation, address string) ([]Operation, error) {
-	resp := make([]Operation, 0)
-	for i := range ops {
+	resp := make([]Operation, len(ops))
+	for i := len(ops) - 1; i > -1; i-- {
 		op := Operation{
 			ID:       ops[i].ID,
 			Protocol: ops[i].Protocol,
@@ -103,8 +104,7 @@ func prepareOperations(es *elastic.Elastic, ops []models.Operation, address stri
 				return nil, err
 			}
 		}
-
-		resp = append(resp, op)
+		resp[i] = op
 	}
 	return resp, nil
 }

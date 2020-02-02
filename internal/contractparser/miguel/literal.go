@@ -19,12 +19,26 @@ func newLiteralDecoder() *literalDecoder {
 // Decode -
 func (l *literalDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata) (interface{}, error) {
 	switch nm.Type {
-	case consts.KEYHASH, consts.BYTES, consts.CONTRACT, consts.NAT, consts.MUTEZ, consts.ADDRESS, consts.STRING, consts.TIMESTAMP, consts.KEY, consts.INT, consts.SIGNATURE:
+	case consts.KEYHASH, consts.BYTES, consts.CONTRACT, consts.MUTEZ, consts.NAT, consts.ADDRESS, consts.STRING, consts.KEY, consts.INT, consts.SIGNATURE:
 		data, err := l.simple.Decode(node, path, nm, metadata)
 		if err != nil {
 			return nil, err
 		}
-		return data, nil
+		return map[string]interface{}{
+			"value": data,
+			"type":  nm.Type,
+		}, nil
+	case consts.TIMESTAMP:
+		var value interface{}
+		if node.Get(consts.INT).Exists() {
+			value = node.Get(consts.INT).Int()
+		} else if node.Get(consts.INT).Exists() {
+			value = node.Get(consts.STRING).String()
+		}
+		return map[string]interface{}{
+			"value": value,
+			"type":  nm.Type,
+		}, nil
 	case consts.BOOL:
 		return node.Get("prim").Bool(), nil
 	}

@@ -9,8 +9,10 @@ require (
 	github.com/gin-contrib/cors v1.3.0
 	github.com/gin-gonic/gin v1.5.0
 	github.com/google/uuid v1.1.1
+	github.com/imdario/mergo v0.3.8
 	github.com/jinzhu/gorm v1.9.11
 	github.com/pkg/errors v0.8.1
+	github.com/r3labs/diff v0.0.0-20191120142937-b4ed99a31f5a
 	github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271
 	github.com/tidwall/gjson v1.4.0
 	github.com/tidwall/sjson v1.0.4

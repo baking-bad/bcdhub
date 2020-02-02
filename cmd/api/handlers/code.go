@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/formatter"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/macros"
 	"github.com/gin-gonic/gin"
 )
@@ -35,6 +35,7 @@ func (ctx *Context) GetContractCode(c *gin.Context) {
 		return
 	}
 
-	res := contractparser.MichelineToMichelson(collapsed.Get("code"), false)
+	code := collapsed.Get("code")
+	res := formatter.MichelineToMichelson(code, false)
 	c.JSON(http.StatusOK, res)
 }
