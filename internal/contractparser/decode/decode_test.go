@@ -1,8 +1,10 @@
-package reforge
+package decode
 
-import "testing"
+import (
+	"testing"
+)
 
-func TestMicheline(t *testing.T) {
+func TestHexToMicheline(t *testing.T) {
 	type testCase struct {
 		name   string
 		input  string
@@ -39,6 +41,11 @@ func TestMicheline(t *testing.T) {
 			name:   "Negative large int",
 			input:  "00c0f9b9d4c723",
 			result: `{ "int": "-610913435200" }`,
+		},
+		testCase{
+			name:   "Negative large int from contract",
+			input:  "00f7bda18081d73103c6da76151a15e6ab4b0bca788006481c2062b0df028ed8ac",
+			result: `{ "int": "-109246922633079" }`,
 		},
 		testCase{
 			name:   "String",
@@ -86,12 +93,17 @@ func TestMicheline(t *testing.T) {
 			result: `{ "prim": "NIL", "args": [ { "prim": "operation" }, { "prim": "operation" } ] }`,
 		},
 		testCase{
+			name:   "Single primitive with two arguments and annotation",
+			input:  "083d036d036d0000000440636261",
+			result: `{ "prim": "NIL", "args": [ { "prim": "operation" }, { "prim": "operation" } ], "annots": [ "@cba" ] }`,
+		},
+		testCase{
 			name:   "Single primitive with more than two arguments and no annotations",
 			input:  "093d00000006036d036d036d00000000",
 			result: `{ "prim": "NIL", "args": [ { "prim": "operation" }, { "prim": "operation" }, { "prim": "operation" } ] }`,
 		},
 		testCase{
-			name:   "Single primitive with more than two arguments and no annotationsSingle primitive with more than two arguments and multiple annotations",
+			name:   "Single primitive with more than two arguments and multiple annotations",
 			input:  "093d00000006036d036d036d00000011407265642040677265656e2040626c7565",
 			result: `{ "prim": "NIL", "args": [ { "prim": "operation" }, { "prim": "operation" }, { "prim": "operation" } ], "annots": [ "@red", "@green", "@blue" ] }`,
 		},
@@ -99,9 +111,13 @@ func TestMicheline(t *testing.T) {
 
 	for _, tc := range validTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			res := Micheline(tc.input)
+			res, _, err := HexToMicheline(tc.input)
+			if err != nil {
+				t.Errorf("HexToMicheline %v error. Input: %v", tc.name, tc.input)
+			}
+
 			if res != tc.result {
-				t.Errorf("Input: %v. Got: %v, exepected: %v.", tc.input, res, tc.result)
+				t.Errorf("Input: %v. Got: %v, expected: %v.", tc.input, res, tc.result)
 			}
 		})
 	}
