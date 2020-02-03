@@ -69,7 +69,7 @@ func parseOperationResult(data gjson.Result) *models.OperationResult {
 }
 
 // GetContractOperations -
-func (e *Elastic) GetContractOperations(address string, offset, size int64) ([]models.Operation, error) {
+func (e *Elastic) GetContractOperations(network, address string, offset, size int64) ([]models.Operation, error) {
 	query := map[string]interface{}{
 		"query": map[string]interface{}{
 			"bool": map[string]interface{}{
@@ -82,6 +82,11 @@ func (e *Elastic) GetContractOperations(address string, offset, size int64) ([]m
 						"match": map[string]interface{}{
 							"destination": address,
 						},
+					},
+				},
+				"must": map[string]interface{}{
+					"term": map[string]interface{}{
+						"network": network,
 					},
 				},
 				"minimum_should_match": 1,
@@ -115,4 +120,58 @@ func (e *Elastic) GetContractOperations(address string, offset, size int64) ([]m
 	}
 
 	return ops, nil
+}
+
+// GetLastStorage -
+func (e *Elastic) GetLastStorage(network, address string) (gjson.Result, error) {
+	query := map[string]interface{}{
+		"query": map[string]interface{}{
+			"bool": map[string]interface{}{
+				"should": []map[string]interface{}{
+					map[string]interface{}{
+						"match": map[string]interface{}{
+							"source": address,
+						},
+					}, map[string]interface{}{
+						"match": map[string]interface{}{
+							"destination": address,
+						},
+					},
+				},
+				"must": map[string]interface{}{
+					"term": map[string]interface{}{
+						"network": network,
+					},
+				},
+				"must_not": map[string]interface{}{
+					"term": map[string]interface{}{
+						"deffated_storage": "",
+					},
+				},
+				"minimum_should_match": 1,
+			},
+		},
+		"sort": map[string]interface{}{
+			"_script": map[string]interface{}{
+				"type": "number",
+				"script": map[string]interface{}{
+					"lang":   "painless",
+					"source": "doc['level'].value * 10 + (doc['internal'].value ? 0 : 1)",
+				},
+				"order": "desc",
+			},
+		},
+		"size": 1,
+	}
+
+	res, err := e.query(DocOperations, query)
+	if err != nil {
+		return gjson.Result{}, err
+	}
+
+	if res.Get("hits.total.value").Int() < 1 {
+		return gjson.Result{}, nil
+	}
+	val := res.Get("hits.hits.0._source").Get("deffated_storage").String()
+	return gjson.Parse(val), nil
 }

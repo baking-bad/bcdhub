@@ -17,7 +17,7 @@ func newLiteralDecoder() *literalDecoder {
 }
 
 // Decode -
-func (l *literalDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata) (interface{}, error) {
+func (l *literalDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata) (map[string]interface{}, error) {
 	switch nm.Type {
 	case consts.KEYHASH, consts.BYTES, consts.CONTRACT, consts.MUTEZ, consts.NAT, consts.ADDRESS, consts.STRING, consts.KEY, consts.INT, consts.SIGNATURE:
 		data, err := l.simple.Decode(node, path, nm, metadata)
@@ -40,7 +40,10 @@ func (l *literalDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMet
 			"type":  nm.Type,
 		}, nil
 	case consts.BOOL:
-		return node.Get("prim").Bool(), nil
+		return map[string]interface{}{
+			"value": node.Get("prim").Bool(),
+			"type":  nm.Type,
+		}, nil
 	}
 	return nil, nil
 }

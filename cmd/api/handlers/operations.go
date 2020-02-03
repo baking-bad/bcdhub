@@ -35,7 +35,7 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 	}
 
 	size := int64(10)
-	ops, err := ctx.ES.GetContractOperations(req.Address, offsetReq.Offset, size)
+	ops, err := ctx.ES.GetContractOperations(req.Network, req.Address, offsetReq.Offset, size)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -52,7 +52,7 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 
 func prepareOperations(es *elastic.Elastic, ops []models.Operation, address string) ([]Operation, error) {
 	resp := make([]Operation, len(ops))
-	for i := len(ops) - 1; i > -1; i-- {
+	for i := 0; i < len(ops); i++ {
 		op := Operation{
 			ID:       ops[i].ID,
 			Protocol: ops[i].Protocol,
@@ -76,31 +76,33 @@ func prepareOperations(es *elastic.Elastic, ops []models.Operation, address stri
 			Result: ops[i].Result,
 		}
 
+		if ops[i].DeffatedStorage != "" {
+			metadata, err := getMetadata(es, address, "storage", op.Level)
+			if err != nil {
+				return nil, err
+			}
+
+			if err := insertBigMapDiffs(es, ops[i].DeffatedStorage, metadata, &op); err != nil {
+				return nil, err
+			}
+		}
+
 		if op.Kind != "transaction" {
-			resp = append(resp, op)
+			resp[i] = op
 			continue
 		}
 		if ops[i].Parameters != "" {
 			metadata, err := getMetadata(es, address, "parameter", op.Level)
 			if err != nil {
-				panic(err)
+				if err != nil {
+					return nil, err
+				}
 			}
 
 			params := gjson.Parse(ops[i].Parameters)
 
 			op.Parameters, err = miguel.MichelineToMiguel(params, metadata)
 			if err != nil {
-				return nil, err
-			}
-		}
-
-		if ops[i].DeffatedStorage != "" {
-			metadata, err := getMetadata(es, address, "storage", op.Level)
-			if err != nil {
-				panic(err)
-			}
-
-			if err := insertBigMapDiffs(es, ops[i].DeffatedStorage, metadata, &op); err != nil {
 				return nil, err
 			}
 		}
@@ -138,6 +140,10 @@ func insertBigMapDiffs(es *elastic.Elastic, storage string, metadata meta.Metada
 	return nil
 }
 func getRichStorageAlpha(storage string, bmd gjson.Result) (gjson.Result, error) {
+	if bmd.IsArray() && len(bmd.Array()) == 0 {
+		return gjson.Parse(storage), nil
+	}
+
 	p := miguel.GetGJSONPath("0")
 
 	res := make([]interface{}, 0)
@@ -164,8 +170,11 @@ func getRichStorageAlpha(storage string, bmd gjson.Result) (gjson.Result, error)
 	return gjson.Parse(value), nil
 }
 func getRichStorageBabylon(storage string, bmd gjson.Result) (gjson.Result, error) {
-	data := gjson.Parse(storage)
+	if bmd.IsArray() && len(bmd.Array()) == 0 {
+		return gjson.Parse(storage), nil
+	}
 
+	data := gjson.Parse(storage)
 	for _, b := range bmd.Array() {
 		elt := map[string]interface{}{
 			"prim": "Elt",

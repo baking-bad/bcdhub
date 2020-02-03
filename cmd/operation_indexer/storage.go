@@ -20,24 +20,18 @@ type RichStorage struct {
 
 func getRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, op gjson.Result, level int64, protocol, operationID string) (*RichStorage, error) {
 	kind := op.Get("kind").String()
-
-	result := getResult(op)
-	if result == nil {
-		return nil, fmt.Errorf("[getDeffatedStorageNew] Can not find 'result'")
-	}
-
 	switch kind {
 	case transaction:
-		address := op.Get("destination").String()
-		return getTransactionRichStorage(es, rpc, result, protocol, address, operationID, level)
+		return getTransactionRichStorage(es, rpc, op, protocol, operationID, level)
 	case origination:
-		return getOriginationRichStorage(es, rpc, result, protocol, operationID, level)
+		return getOriginationRichStorage(es, rpc, op, protocol, operationID, level)
 	default:
 		return nil, nil
 	}
 }
 
-func getTransactionRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, result *gjson.Result, protocol, address, operationID string, level int64) (*RichStorage, error) {
+func getTransactionRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, op gjson.Result, protocol, operationID string, level int64) (*RichStorage, error) {
+	address := op.Get("destination").String()
 	data, err := rpc.GetScriptJSON(address, level)
 	if err != nil {
 		return nil, err
@@ -48,6 +42,12 @@ func getTransactionRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, result
 	if err != nil {
 		return nil, err
 	}
+
+	result := getResult(op)
+	if result == nil {
+		return nil, fmt.Errorf("[getDeffatedStorageNew] Can not find 'result'")
+	}
+
 	bm, err := getBigMapDiff(result, s, protocol, operationID, m)
 	if err != nil {
 		return nil, err
@@ -58,25 +58,25 @@ func getTransactionRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, result
 	}, nil
 }
 
-func getOriginationRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, result *gjson.Result, protocol, operationID string, level int64) (*RichStorage, error) {
+func getOriginationRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, op gjson.Result, protocol, operationID string, level int64) (*RichStorage, error) {
 	switch protocol {
 	case consts.HashBabylon:
-		return getOriginationBabylonRichStorage(es, rpc, result, protocol, operationID, level)
+		return getOriginationBabylonRichStorage(es, rpc, op, protocol, operationID, level)
 	default:
 		return &RichStorage{
-			DeffatedStorage: result.Get("storage").String(),
+			DeffatedStorage: op.Get("script.storage").String(),
 		}, nil
 	}
 }
 
-func getOriginationBabylonRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, result *gjson.Result, protocol, operationID string, level int64) (*RichStorage, error) {
-	address := result.Get("originated_contracts.0").String()
-	data, err := rpc.GetScriptJSON(address, level)
-	if err != nil {
-		return nil, err
+func getOriginationBabylonRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, op gjson.Result, protocol, operationID string, level int64) (*RichStorage, error) {
+	result := getResult(op)
+	if result == nil {
+		return nil, fmt.Errorf("[getDeffatedStorageNew] Can not find 'result'")
 	}
 
-	s := data.Get("storage")
+	address := result.Get("originated_contracts.0").String()
+	s := op.Get("script.storage")
 
 	m, err := getMetadata(es, address, "storage", level)
 	if err != nil {

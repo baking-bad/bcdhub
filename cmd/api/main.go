@@ -43,6 +43,7 @@ func main() {
 					address.GET("code", ctx.GetContractCode)
 					address.GET("operations", ctx.GetContractOperations)
 					address.GET("entrypoints", ctx.GetEntrypoints)
+					address.GET("storage", ctx.GetContractStorage)
 				}
 			}
 		}

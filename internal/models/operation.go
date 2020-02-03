@@ -1,27 +1,31 @@
 package models
 
+import "time"
+
 // Operation -
 type Operation struct {
 	ID string `json:"-"`
 
+	Network  string `json:"network"`
 	Protocol string `json:"protocol"`
 	Hash     string `json:"hash"`
 	Internal bool   `json:"internal"`
 
-	Level         int64  `json:"level"`
-	Kind          string `json:"kind"`
-	Source        string `json:"source"`
-	Fee           int64  `json:"fee,omitempty"`
-	Counter       int64  `json:"counter,omitempty"`
-	GasLimit      int64  `json:"gas_limit,omitempty"`
-	StorageLimit  int64  `json:"storage_limit,omitempty"`
-	Amount        int64  `json:"amount,omitempty"`
-	Destination   string `json:"destination,omitempty"`
-	PublicKey     string `json:"public_key,omitempty"`
-	ManagerPubKey string `json:"manager_pubkey,omitempty"`
-	Balance       int64  `json:"balance,omitempty"`
-	Delegate      string `json:"delegate,omitempty"`
-	Parameters    string `json:"parameters,omitempty"`
+	Timestamp     time.Time `json:"timestamp"`
+	Level         int64     `json:"level"`
+	Kind          string    `json:"kind"`
+	Source        string    `json:"source"`
+	Fee           int64     `json:"fee,omitempty"`
+	Counter       int64     `json:"counter,omitempty"`
+	GasLimit      int64     `json:"gas_limit,omitempty"`
+	StorageLimit  int64     `json:"storage_limit,omitempty"`
+	Amount        int64     `json:"amount,omitempty"`
+	Destination   string    `json:"destination,omitempty"`
+	PublicKey     string    `json:"public_key,omitempty"`
+	ManagerPubKey string    `json:"manager_pubkey,omitempty"`
+	Balance       int64     `json:"balance,omitempty"`
+	Delegate      string    `json:"delegate,omitempty"`
+	Parameters    string    `json:"parameters,omitempty"`
 
 	BalanceUpdates []BalanceUpdate  `json:"balance_updates,omitempty"`
 	Result         *OperationResult `json:"result,omitempty"`

@@ -35,7 +35,7 @@ func detectPython(n node.Node) bool {
 		return false
 	}
 
-	return strings.Contains(str, "https://SmartPy.io") || strings.Contains(str, "self.")
+	return strings.Contains(str, "SmartPy") || strings.Contains(str, "self.") || strings.Contains(str, "sp.")
 }
 
 func detectLIGO(n node.Node) bool {

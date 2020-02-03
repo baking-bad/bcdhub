@@ -41,6 +41,9 @@ func (l *mapDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadat
 			case int, int64:
 				s := fmt.Sprintf("%d", kv)
 				res[s] = value
+			case map[string]interface{}:
+				s := fmt.Sprintf("%v", kv["value"])
+				res[s] = value
 			}
 		}
 	}

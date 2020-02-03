@@ -55,6 +55,7 @@ func getOperations(rpc *noderpc.NodeRPC, es *elastic.Elastic, block int64, netwo
 func finishParseOperation(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjson.Result, protocol, network, hash string, level int64, contracts []models.Contract, op *models.Operation) error {
 	op.Hash = hash
 	op.Level = level
+	op.Network = network
 
 	if isContract(contracts, op.Destination) {
 		rs, err := getRichStorage(es, rpc, item, level, protocol, op.ID)

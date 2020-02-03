@@ -7,6 +7,7 @@ import (
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
+	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
 )
@@ -57,10 +58,11 @@ func createMetadata(rpc *noderpc.NodeRPC, level int64, c *models.Contract, tag s
 		return "", err
 	}
 
-	if contract.Get("spendable").Bool() {
-		c.Tags = append(c.Tags, consts.SpendableTag)
+	if !helpers.StringInArray(consts.SpendableTag, c.Tags) {
+		if contract.Get(consts.SpendableTag).Bool() {
+			c.Tags = append(c.Tags, consts.SpendableTag)
+		}
 	}
-
 	args := contract.Get(fmt.Sprintf("script.code.#(prim==\"%s\").args", tag))
 	if args.Exists() {
 		a, err := meta.ParseMetadata(args)

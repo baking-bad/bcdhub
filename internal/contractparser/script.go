@@ -29,7 +29,7 @@ func New(script gjson.Result) (s Script, err error) {
 		return s, fmt.Errorf("newStorage: %v", err)
 	}
 
-	hardcoded, err := FindHardcodedAddresses(script)
+	hardcoded, err := FindHardcodedAddresses(script.Get("code"))
 	if err != nil {
 		return
 	}

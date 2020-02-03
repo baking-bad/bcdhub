@@ -16,26 +16,35 @@ type Entrypoint struct {
 
 // GetEntrypoints -
 func GetEntrypoints(metadata meta.Metadata) ([]Entrypoint, error) {
-	// b, err := json.MarshalIndent(metadata, "", " ")
-	// if err != nil {
-	// 	return nil, nil
-	// }
-	// log.Println(string(b))
-
 	root := metadata["0"]
 
-	ep := make([]Entrypoint, len(root.Args))
-	for i, arg := range root.Args {
-		nm := metadata[arg]
+	ep := make([]Entrypoint, 0)
+	if len(root.Args) > 0 {
+		for _, arg := range root.Args {
+			nm := metadata[arg]
 
-		params, err := parseEntrypointArg(metadata, nm, arg)
+			params, err := parseEntrypointArg(metadata, nm, arg)
+			if err != nil {
+				return nil, err
+			}
+			ep = append(ep, Entrypoint{
+				Name:       nm.Name,
+				Parameters: params,
+			})
+		}
+	} else {
+		name := root.Name
+		if name == "" {
+			name = "__entry__0"
+		}
+		params, err := parseEntrypointArg(metadata, root, "0")
 		if err != nil {
 			return nil, err
 		}
-		ep[i] = Entrypoint{
-			Name:       nm.Name,
+		ep = append(ep, Entrypoint{
+			Name:       name,
 			Parameters: params,
-		}
+		})
 	}
 	return ep, nil
 }

@@ -112,9 +112,10 @@ func syncIndexer(rpc *noderpc.NodeRPC, indexer index.Indexer, es *elastic.Elasti
 						return err
 					}
 					s.Timestamp = t
-				}
-				if _, err = es.UpdateDoc(elastic.DocStates, s.ID, *s); err != nil {
-					return err
+
+					if _, err = es.UpdateDoc(elastic.DocStates, s.ID, *s); err != nil {
+						return err
+					}
 				}
 
 				logger.Info("[%d/%d] Found %d operations", l, cs.Level, len(ops))
@@ -123,6 +124,7 @@ func syncIndexer(rpc *noderpc.NodeRPC, indexer index.Indexer, es *elastic.Elasti
 				}
 
 				for j := range ops {
+					ops[j].Timestamp = s.Timestamp
 					if _, err := es.AddDocumentWithID(ops[j], elastic.DocOperations, ops[j].ID); err != nil {
 						return err
 					}
