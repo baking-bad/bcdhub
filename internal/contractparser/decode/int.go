@@ -34,14 +34,19 @@ func decodeInt(hex string, offset int, signed bool) (string, int, error) {
 		if err != nil {
 			return ret, 0, err
 		}
+	} else {
+		ret, err = decodeHex(buffer)
+		if err != nil {
+			return ret, 0, err
+		}
 	}
 
 	return ret, i * 2, err
 }
 
-func decode(source []byte) (*big.Int, error) {
+func decode(source []byte) (string, error) {
 	if len(source) == 0 {
-		return nil, fmt.Errorf("expected non-empty byte array")
+		return "", fmt.Errorf("expected non-empty byte array")
 	}
 
 	// Split input into 8-bit bitstrings
@@ -73,15 +78,16 @@ func decode(source []byte) (*big.Int, error) {
 	ret := new(big.Int)
 	_, success := ret.SetString(bitString, 2)
 	if !success {
-		return nil, fmt.Errorf("failed to parse bit string %s to big.Int", bitString)
+		return "", fmt.Errorf("failed to parse bit string %s to big.Int", bitString)
 	}
-	return ret, nil
+
+	return fmt.Sprintf("%v", ret), nil
 }
 
-func decodeHex(source string) (*big.Int, error) {
+func decodeHex(source string) (string, error) {
 	bytes, err := hex.DecodeString(source)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	return decode(bytes)
