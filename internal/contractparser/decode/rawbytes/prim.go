@@ -1,4 +1,4 @@
-package decode
+package rawbytes
 
 import "strconv"
 

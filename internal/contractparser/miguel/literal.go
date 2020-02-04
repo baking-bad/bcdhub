@@ -2,6 +2,7 @@ package miguel
 
 import (
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/decode"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
 	"github.com/tidwall/gjson"
 )
@@ -19,8 +20,41 @@ func newLiteralDecoder() *literalDecoder {
 // Decode -
 func (l *literalDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata) (interface{}, error) {
 	switch nm.Type {
-	case consts.KEYHASH, consts.BYTES, consts.CONTRACT, consts.MUTEZ, consts.NAT, consts.ADDRESS, consts.STRING, consts.KEY, consts.INT, consts.SIGNATURE:
+	case consts.CONTRACT, consts.MUTEZ, consts.NAT, consts.STRING, consts.INT, consts.SIGNATURE:
 		data, err := l.simple.Decode(node, path, nm, metadata)
+		if err != nil {
+			return nil, err
+		}
+		return map[string]interface{}{
+			"value": data,
+			"type":  nm.Type,
+		}, nil
+	case consts.BYTES:
+		data := decode.Bytes(node.Get(consts.BYTES).String())
+		return map[string]interface{}{
+			"value": data,
+			"type":  nm.Type,
+		}, nil
+	case consts.ADDRESS:
+		data, err := decode.Address(node.Get(consts.STRING).String())
+		if err != nil {
+			return nil, err
+		}
+		return map[string]interface{}{
+			"value": data,
+			"type":  nm.Type,
+		}, nil
+	case consts.KEYHASH:
+		data, err := decode.KeyHash(node.Get(consts.KEYHASH).String())
+		if err != nil {
+			return nil, err
+		}
+		return map[string]interface{}{
+			"value": data,
+			"type":  nm.Type,
+		}, nil
+	case consts.KEY:
+		data, err := decode.PublicKey(node.Get(consts.KEY).String())
 		if err != nil {
 			return nil, err
 		}
