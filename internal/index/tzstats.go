@@ -6,8 +6,6 @@ import (
 	"sort"
 	"time"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
-	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/aopoltorzhicky/bcdhub/internal/tzstats"
 )
 
@@ -115,34 +113,20 @@ func (h contractOperation) Name() string {
 }
 
 // GetContractOperationBlocks -
-func (t *TzStats) GetContractOperationBlocks(startBlock int, knownContracts []models.Contract) ([]int64, error) {
+func (t *TzStats) GetContractOperationBlocks(startBlock int, knownContracts map[string]struct{}, spendable map[string]struct{}) ([]int64, error) {
 	all := make(map[int64]struct{})
 
-	addresses := make([]string, len(knownContracts))
-	for i := range knownContracts {
-		addresses[i] = knownContracts[i].Address
-	}
-
 	log.Println("Searching blocks with operations with params...")
-	if err := t.getContractOperaionsBlockWithParameters(startBlock, addresses, all); err != nil {
+	if err := t.getContractOperaionsBlockWithParameters(startBlock, knownContracts, all); err != nil {
 		return nil, err
 	}
 
 	log.Println("Searching originations...")
-	if err := t.getContractOriginations(startBlock, addresses, all); err != nil {
+	if err := t.getContractOriginations(startBlock, knownContracts, all); err != nil {
 		return nil, err
 	}
 
 	log.Println("Searching spendable contract transactions...")
-	spendable := make([]string, 0)
-	for _, c := range knownContracts {
-		for i := range c.Tags {
-			if c.Tags[i] == "spendable" {
-				spendable = append(spendable, c.Address)
-				break
-			}
-		}
-	}
 	if err := t.getSpendableContractOperaions(startBlock, spendable, all); err != nil {
 		return nil, err
 	}
@@ -163,7 +147,7 @@ func (t *TzStats) GetContractOperationBlocks(startBlock int, knownContracts []mo
 	return resp, nil
 }
 
-func (t *TzStats) getContractOperaionsBlockWithParameters(startBlock int, knownContracts []string, all map[int64]struct{}) error {
+func (t *TzStats) getContractOperaionsBlockWithParameters(startBlock int, knownContracts map[string]struct{}, all map[int64]struct{}) error {
 	rowID := int64(0)
 
 	for {
@@ -183,7 +167,9 @@ func (t *TzStats) getContractOperaionsBlockWithParameters(startBlock int, knownC
 
 		for _, op := range operations {
 			if _, ok := all[op.Level]; !ok {
-				if helpers.StringInArray(op.Sender, knownContracts) || helpers.StringInArray(op.Receiver, knownContracts) {
+				_, sOK := knownContracts[op.Sender]
+				_, rOK := knownContracts[op.Receiver]
+				if sOK || rOK {
 					all[op.Level] = struct{}{}
 				}
 			}
@@ -194,7 +180,7 @@ func (t *TzStats) getContractOperaionsBlockWithParameters(startBlock int, knownC
 	}
 }
 
-func (t *TzStats) getContractOriginations(startBlock int, knownContracts []string, all map[int64]struct{}) error {
+func (t *TzStats) getContractOriginations(startBlock int, knownContracts map[string]struct{}, all map[int64]struct{}) error {
 	rowID := int64(0)
 
 	for {
@@ -214,7 +200,7 @@ func (t *TzStats) getContractOriginations(startBlock int, knownContracts []strin
 
 		for _, op := range operations {
 			if _, ok := all[op.Level]; !ok {
-				if helpers.StringInArray(op.Receiver, knownContracts) {
+				if _, rOK := knownContracts[op.Receiver]; rOK {
 					all[op.Level] = struct{}{}
 				}
 			}
@@ -225,12 +211,16 @@ func (t *TzStats) getContractOriginations(startBlock int, knownContracts []strin
 	}
 }
 
-func (t *TzStats) getSpendableContractOperaions(startBlock int, spendable []string, all map[int64]struct{}) error {
+func (t *TzStats) getSpendableContractOperaions(startBlock int, spendable map[string]struct{}, all map[int64]struct{}) error {
 	rowID := int64(0)
 
 	for {
 		var operations []contractOperation
-		query := t.api.Model(contractOperation{}).Is("type", "transaction").In("sender", spendable).GreaterThan("height", startBlock).Limit(50000)
+		keys := make([]string, 0)
+		for k := range spendable {
+			keys = append(keys, k)
+		}
+		query := t.api.Model(contractOperation{}).Is("type", "transaction").In("sender", keys).GreaterThan("height", startBlock).Limit(50000)
 		if rowID > 0 {
 			query = query.Is("cursor", fmt.Sprintf("%d", rowID))
 		}

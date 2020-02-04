@@ -11,7 +11,7 @@ var langPriorities = map[string]int{
 	consts.LangUnknown:   0,
 	consts.LangLigo:      1,
 	consts.LangLiquidity: 1,
-	consts.LangPython:    1,
+	consts.LangSmartPy:   1,
 }
 
 func detectLiquidity(n node.Node, entries []string) bool {

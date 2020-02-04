@@ -60,6 +60,8 @@ func (e *Elastic) query(index string, query map[string]interface{}, source ...st
 		return
 	}
 
+	// log.Print(buf.String())
+
 	// Perform the search request.
 	var resp *esapi.Response
 	options := []func(*esapi.SearchRequest){

@@ -2,7 +2,7 @@ package consts
 
 // Languages
 const (
-	LangPython    = "python"
+	LangSmartPy   = "smartpy"
 	LangLiquidity = "liquidity"
 	LangLigo      = "ligo"
 	LangUnknown   = "michelson"

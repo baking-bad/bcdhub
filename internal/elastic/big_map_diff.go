@@ -32,7 +32,7 @@ func (e *Elastic) BulkSaveBigMapDiffs(diffs []models.BigMapDiff) error {
 }
 
 // GetBigMapDiffsByOperationID -
-func (e *Elastic) GetBigMapDiffsByOperationID(operationID string) (*gjson.Result, error) {
+func (e *Elastic) GetBigMapDiffsByOperationID(operationID string) (gjson.Result, error) {
 	query := map[string]interface{}{
 		"query": map[string]interface{}{
 			"bool": map[string]interface{}{
@@ -43,18 +43,62 @@ func (e *Elastic) GetBigMapDiffsByOperationID(operationID string) (*gjson.Result
 				},
 			},
 		},
+		"size": 1000,
 	}
 
-	return e.query(DocBigMapDiff, query)
+	res, err := e.query(DocBigMapDiff, query)
+	if err != nil {
+		return *res, err
+	}
+	return res.Get("hits.hits.#._source"), nil
 }
 
 func parseBigMapDiff(data gjson.Result) models.BigMapDiff {
 	return models.BigMapDiff{
-		BinPath:     data.Get("_source.bin_path").String(),
-		Ptr:         data.Get("_source.ptr").Int(),
-		Key:         data.Get("_source.key").Value(),
-		Value:       data.Get("_source.value").String(),
-		KeyHash:     data.Get("_source.key_hash").String(),
-		OperationID: data.Get("_source.operation_id").String(),
+		BinPath:     data.Get("bin_path").String(),
+		Ptr:         data.Get("ptr").Int(),
+		Level:       data.Get("level").Int(),
+		Key:         data.Get("key").Value(),
+		Value:       data.Get("value").String(),
+		KeyHash:     data.Get("key_hash").String(),
+		OperationID: data.Get("operation_id").String(),
 	}
+}
+
+// GetBigMapDiffsByKeyHash -
+func (e *Elastic) GetBigMapDiffsByKeyHash(keys []string, level int64) (gjson.Result, error) {
+	must := make([]map[string]interface{}, len(keys))
+	for i := range keys {
+		must[i] = map[string]interface{}{
+			"match": map[string]interface{}{
+				"key_hash": keys[i],
+			},
+		}
+	}
+	query := map[string]interface{}{
+		"query": map[string]interface{}{
+			"bool": map[string]interface{}{
+				"must": must,
+				"filter": map[string]interface{}{
+					"range": map[string]interface{}{
+						"level": map[string]interface{}{
+							"lt": level,
+						},
+					},
+				},
+			},
+		},
+		"sort": map[string]interface{}{
+			"level": map[string]interface{}{
+				"order": "desc",
+			},
+		},
+		"size": 1000,
+	}
+
+	res, err := e.query(DocBigMapDiff, query)
+	if err != nil {
+		return *res, err
+	}
+	return res.Get("hits.hits.#._source"), nil
 }

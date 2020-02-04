@@ -129,7 +129,7 @@ func (c *Code) detectLanguage(n node.Node) {
 		return
 	}
 	if detectPython(n) {
-		c.Language = consts.LangPython
+		c.Language = consts.LangSmartPy
 		return
 	}
 	if detectLIGO(n) {

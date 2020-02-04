@@ -6,7 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
+	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 	"github.com/aopoltorzhicky/bcdhub/internal/index"
 	"github.com/aopoltorzhicky/bcdhub/internal/logger"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
@@ -66,6 +68,57 @@ func createIndexers(es *elastic.Elastic, cfg config) (map[string]index.Indexer, 
 	return idx, nil
 }
 
+func getContracts(es *elastic.Elastic, network string) (map[string]struct{}, map[string]struct{}, error) {
+	addresses, err := es.GetContracts(map[string]interface{}{
+		"network": network,
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+	res := make(map[string]struct{})
+	spendable := make(map[string]struct{})
+	for _, a := range addresses {
+		res[a.Address] = struct{}{}
+		if helpers.StringInArray(consts.SpendableTag, a.Tags) {
+			spendable[a.Address] = struct{}{}
+		}
+	}
+
+	return res, spendable, nil
+}
+
+func updateState(rpc *noderpc.NodeRPC, es *elastic.Elastic, currentLevel int64, s *models.State) error {
+	if s.Level >= currentLevel {
+		return nil
+	}
+	s.Level = currentLevel
+
+	t, err := rpc.GetLevelTime(int(currentLevel))
+	if err != nil {
+		return err
+	}
+	s.Timestamp = t
+
+	if _, err = es.UpdateDoc(elastic.DocStates, s.ID, *s); err != nil {
+		return err
+	}
+	return nil
+}
+
+func saveOperations(es *elastic.Elastic, ops []models.Operation, s *models.State) error {
+	if len(ops) == 0 {
+		return nil
+	}
+
+	for j := range ops {
+		ops[j].Timestamp = s.Timestamp
+		if _, err := es.AddDocumentWithID(ops[j], elastic.DocOperations, ops[j].ID); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func syncIndexer(rpc *noderpc.NodeRPC, indexer index.Indexer, es *elastic.Elastic, network string) error {
 	logger.Logf("-----------%s-----------", strings.ToUpper(network))
 	cs, err := es.CurrentState(network, models.StateContract)
@@ -82,53 +135,36 @@ func syncIndexer(rpc *noderpc.NodeRPC, indexer index.Indexer, es *elastic.Elasti
 	logger.Info("Current state: %d", s.Level)
 
 	if cs.Level > s.Level {
-		addresses, err := es.GetContracts(map[string]interface{}{
-			"network": network,
-		})
+		addresses, spendable, err := getContracts(es, network)
 		if err != nil {
 			return err
 		}
 
-		levels, err := indexer.GetContractOperationBlocks(int(s.Level), addresses)
+		levels, err := indexer.GetContractOperationBlocks(int(s.Level), addresses, spendable)
 		if err != nil {
 			return err
 		}
 
-		if len(levels) > 0 {
-			logger.Info("Found %d contracts", len(addresses))
-			logger.Info("Found %d new levels", len(levels))
+		if len(levels) == 0 {
+			return nil
+		}
 
-			for _, l := range levels {
-				ops, err := getOperations(rpc, es, l, network, addresses)
-				if err != nil {
-					return err
-				}
+		logger.Info("Found %d contracts", len(addresses))
+		logger.Info("Found %d new levels", len(levels))
 
-				if s.Level < l {
-					s.Level = l
+		for _, l := range levels {
+			ops, err := getOperations(rpc, es, l, network, addresses)
+			if err != nil {
+				return err
+			}
 
-					t, err := rpc.GetLevelTime(int(l))
-					if err != nil {
-						return err
-					}
-					s.Timestamp = t
+			logger.Info("[%d/%d] Found %d operations", l, cs.Level, len(ops))
+			if err := saveOperations(es, ops, s); err != nil {
+				return err
+			}
 
-					if _, err = es.UpdateDoc(elastic.DocStates, s.ID, *s); err != nil {
-						return err
-					}
-				}
-
-				logger.Info("[%d/%d] Found %d operations", l, cs.Level, len(ops))
-				if len(ops) == 0 {
-					continue
-				}
-
-				for j := range ops {
-					ops[j].Timestamp = s.Timestamp
-					if _, err := es.AddDocumentWithID(ops[j], elastic.DocOperations, ops[j].ID); err != nil {
-						return err
-					}
-				}
+			if err := updateState(rpc, es, l, s); err != nil {
+				return err
 			}
 		}
 	}

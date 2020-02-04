@@ -58,8 +58,8 @@ func createMetadata(rpc *noderpc.NodeRPC, level int64, c *models.Contract, tag s
 		return "", err
 	}
 
-	if !helpers.StringInArray(consts.SpendableTag, c.Tags) {
-		if contract.Get(consts.SpendableTag).Bool() {
+	if contract.Get("spendable").Bool() {
+		if !helpers.StringInArray(consts.SpendableTag, c.Tags) {
 			c.Tags = append(c.Tags, consts.SpendableTag)
 		}
 	}

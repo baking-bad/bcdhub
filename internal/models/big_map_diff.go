@@ -8,4 +8,5 @@ type BigMapDiff struct {
 	KeyHash     string      `json:"key_hash"`
 	Value       string      `json:"value"`
 	OperationID string      `json:"operation_id"`
+	Level       int64       `json:"level"`
 }

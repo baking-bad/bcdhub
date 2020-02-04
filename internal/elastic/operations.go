@@ -1,6 +1,8 @@
 package elastic
 
 import (
+	"errors"
+
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/tidwall/gjson"
 )
@@ -12,6 +14,7 @@ func parseOperation(resp gjson.Result) models.Operation {
 		Protocol: resp.Get("_source.protocol").String(),
 		Hash:     resp.Get("_source.hash").String(),
 		Internal: resp.Get("_source.internal").Bool(),
+		Network:  resp.Get("_source.network").String(),
 
 		Level:         resp.Get("_source.level").Int(),
 		Kind:          resp.Get("_source.kind").String(),
@@ -174,4 +177,63 @@ func (e *Elastic) GetLastStorage(network, address string) (gjson.Result, error) 
 	}
 	val := res.Get("hits.hits.0._source").Get("deffated_storage").String()
 	return gjson.Parse(val), nil
+}
+
+// GetPreviousOperation -
+func (e *Elastic) GetPreviousOperation(address, network string, level int64) (models.Operation, error) {
+	query := map[string]interface{}{
+		"query": map[string]interface{}{
+			"bool": map[string]interface{}{
+				"should": []map[string]interface{}{
+					map[string]interface{}{
+						"match": map[string]interface{}{
+							"source": address,
+						},
+					}, map[string]interface{}{
+						"match": map[string]interface{}{
+							"destination": address,
+						},
+					},
+				},
+				"must": []map[string]interface{}{
+					map[string]interface{}{
+						"term": map[string]interface{}{
+							"network": network,
+						}},
+					map[string]interface{}{
+						"range": map[string]interface{}{
+							"level": map[string]interface{}{
+								"lt": level,
+							},
+						}},
+				},
+				"must_not": map[string]interface{}{
+					"term": map[string]interface{}{
+						"deffated_storage": "",
+					},
+				},
+				"minimum_should_match": 1,
+			},
+		},
+		"sort": map[string]interface{}{
+			"_script": map[string]interface{}{
+				"type": "number",
+				"script": map[string]interface{}{
+					"lang":   "painless",
+					"source": "doc['level'].value * 10 + (doc['internal'].value ? 0 : 1)",
+				},
+				"order": "desc",
+			},
+		},
+		"size": 1,
+	}
+	res, err := e.query(DocOperations, query)
+	if err != nil {
+		return models.Operation{}, err
+	}
+
+	if res.Get("hits.total.value").Int() < 1 {
+		return models.Operation{}, errors.New("Operation not found")
+	}
+	return parseOperation(res.Get("hits.hits.0")), nil
 }

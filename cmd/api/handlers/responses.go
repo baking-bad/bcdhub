@@ -8,6 +8,7 @@ type Operation struct {
 	Protocol string `json:"protocol"`
 	Hash     string `json:"hash"`
 	Internal bool   `json:"internal"`
+	Network  string `json:"network"`
 
 	Level         int64  `json:"level"`
 	Kind          string `json:"kind"`
@@ -26,6 +27,6 @@ type Operation struct {
 	BalanceUpdates []models.BalanceUpdate  `json:"balance_updates,omitempty"`
 	Result         *models.OperationResult `json:"result,omitempty"`
 
-	Storage    interface{} `json:"storage,omitempty"`
-	Parameters interface{} `json:"parameters,omitempty"`
+	Parameters  interface{} `json:"parameters,omitempty"`
+	StorageDiff interface{} `json:"storage_diff,omitempty"`
 }

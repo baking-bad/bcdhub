@@ -48,7 +48,7 @@ func getTransactionRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, op gjs
 		return nil, fmt.Errorf("[getDeffatedStorageNew] Can not find 'result'")
 	}
 
-	bm, err := getBigMapDiff(result, s, protocol, operationID, m)
+	bm, err := getBigMapDiff(result, s, protocol, operationID, level, m)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func getOriginationBabylonRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC,
 	if err != nil {
 		return nil, err
 	}
-	bm, err := getBigMapDiff(result, s, protocol, operationID, m)
+	bm, err := getBigMapDiff(result, s, protocol, operationID, level, m)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func getResult(op gjson.Result) *gjson.Result {
 	return &result
 }
 
-func getBigMapDiff(result *gjson.Result, storage gjson.Result, protocol, operationID string, m meta.Metadata) ([]models.BigMapDiff, error) {
+func getBigMapDiff(result *gjson.Result, storage gjson.Result, protocol, operationID string, level int64, m meta.Metadata) ([]models.BigMapDiff, error) {
 	bmd := make([]models.BigMapDiff, 0)
 	for _, item := range result.Get("big_map_diff").Array() {
 		switch protocol {
@@ -126,15 +126,17 @@ func getBigMapDiff(result *gjson.Result, storage gjson.Result, protocol, operati
 					KeyHash:     item.Get("key_hash").String(),
 					Value:       item.Get("value").String(),
 					OperationID: operationID,
+					Level:       level,
 				})
 			}
 		default:
 			bmd = append(bmd, models.BigMapDiff{
-				BinPath:     "00",
+				BinPath:     "0/0",
 				Key:         item.Get("key").Value(),
 				KeyHash:     item.Get("key_hash").String(),
 				Value:       item.Get("value").String(),
 				OperationID: operationID,
+				Level:       level,
 			})
 		}
 	}

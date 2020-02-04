@@ -18,7 +18,7 @@ const (
 	transaction = "transaction"
 )
 
-func getOperations(rpc *noderpc.NodeRPC, es *elastic.Elastic, block int64, network string, contracts []models.Contract) ([]models.Operation, error) {
+func getOperations(rpc *noderpc.NodeRPC, es *elastic.Elastic, block int64, network string, contracts map[string]struct{}) ([]models.Operation, error) {
 	data, err := rpc.GetOperations(block)
 	if err != nil {
 		return nil, err
@@ -52,7 +52,7 @@ func getOperations(rpc *noderpc.NodeRPC, es *elastic.Elastic, block int64, netwo
 	return operations, nil
 }
 
-func finishParseOperation(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjson.Result, protocol, network, hash string, level int64, contracts []models.Contract, op *models.Operation) error {
+func finishParseOperation(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjson.Result, protocol, network, hash string, level int64, contracts map[string]struct{}, op *models.Operation) error {
 	op.Hash = hash
 	op.Level = level
 	op.Network = network
@@ -147,7 +147,7 @@ func parseResult(item gjson.Result, protocol string) (*models.OperationResult, [
 	return createResult(item, path, protocol), parseBalanceUpdates(item, path)
 }
 
-func parseInternalOperations(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjson.Result, protocol, network, hash string, level int64, contracts []models.Contract) []models.Operation {
+func parseInternalOperations(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjson.Result, protocol, network, hash string, level int64, contracts map[string]struct{}) []models.Operation {
 	path := fmt.Sprintf("metadata.internal_operation_results")
 	if !item.Get(path).Exists() {
 		path = fmt.Sprintf("metadata.internal_operations")
@@ -169,11 +169,7 @@ func parseInternalOperations(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjs
 	return res
 }
 
-func isContract(contracts []models.Contract, address string) bool {
-	for _, c := range contracts {
-		if c.Address == address {
-			return true
-		}
-	}
-	return false
+func isContract(contracts map[string]struct{}, address string) bool {
+	_, ok := contracts[address]
+	return ok
 }

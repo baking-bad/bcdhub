@@ -4,20 +4,28 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"reflect"
+	"strconv"
+	"strings"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
+	"github.com/aopoltorzhicky/bcdhub/cmd/api/handlers/enrichment"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/miguel"
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
+	"github.com/r3labs/diff"
 	"github.com/tidwall/gjson"
-	"github.com/tidwall/sjson"
 )
 
 type offsetRequest struct {
 	Offset int64 `form:"offset"`
 	Limit  int64 `form:"limit"`
+}
+
+var enrichments = []enrichment.Enrichment{
+	enrichment.Babylon{},
+	enrichment.Alpha{},
 }
 
 // GetContractOperations -
@@ -57,6 +65,7 @@ func prepareOperations(es *elastic.Elastic, ops []models.Operation, address stri
 			ID:       ops[i].ID,
 			Protocol: ops[i].Protocol,
 			Hash:     ops[i].Hash,
+			Network:  ops[i].Network,
 			Internal: ops[i].Internal,
 
 			Level:         ops[i].Level,
@@ -77,12 +86,7 @@ func prepareOperations(es *elastic.Elastic, ops []models.Operation, address stri
 		}
 
 		if ops[i].DeffatedStorage != "" {
-			metadata, err := getMetadata(es, address, "storage", op.Level)
-			if err != nil {
-				return nil, err
-			}
-
-			if err := insertBigMapDiffs(es, ops[i].DeffatedStorage, metadata, &op); err != nil {
+			if err := setStorageDiff(es, address, ops[i].DeffatedStorage, &op); err != nil {
 				return nil, err
 			}
 		}
@@ -94,9 +98,7 @@ func prepareOperations(es *elastic.Elastic, ops []models.Operation, address stri
 		if ops[i].Parameters != "" {
 			metadata, err := getMetadata(es, address, "parameter", op.Level)
 			if err != nil {
-				if err != nil {
-					return nil, err
-				}
+				return nil, err
 			}
 
 			params := gjson.Parse(ops[i].Parameters)
@@ -111,93 +113,109 @@ func prepareOperations(es *elastic.Elastic, ops []models.Operation, address stri
 	return resp, nil
 }
 
-func insertBigMapDiffs(es *elastic.Elastic, storage string, metadata meta.Metadata, op *Operation) error {
+func setStorageDiff(es *elastic.Elastic, address string, storage string, op *Operation) error {
+	metadata, err := getMetadata(es, address, "storage", op.Level)
+	if err != nil {
+		return err
+	}
 	bmd, err := es.GetBigMapDiffsByOperationID(op.ID)
 	if err != nil {
 		return err
 	}
-
-	data := bmd.Get("hits.hits.#._source")
-
-	var richStorage gjson.Result
-	if op.Level < consts.LevelBabylon {
-		richStorage, err = getRichStorageAlpha(storage, data)
-		if err != nil {
-			return err
-		}
-	} else {
-		richStorage, err = getRichStorageBabylon(storage, data)
-		if err != nil {
-			return err
-		}
+	store, err := enrichStorage(storage, bmd, op.Level)
+	if err != nil {
+		return err
 	}
-
-	op.Storage, err = miguel.MichelineToMiguel(richStorage, metadata)
+	currentStorage, err := miguel.MichelineToMiguel(store, metadata)
 	if err != nil {
 		return err
 	}
 
+	prev, err := es.GetPreviousOperation(address, op.Network, op.Level)
+	if err != nil {
+		if !strings.Contains(err.Error(), "Operation not found") {
+			return err
+		}
+
+		store := gjson.Parse(storage)
+		op.StorageDiff, err = miguel.MichelineToMiguel(store, metadata)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	prevBmd, err := getPrevBmd(es, bmd, op.Level)
+	if err != nil {
+		return err
+	}
+	prevStore, err := enrichStorage(prev.DeffatedStorage, prevBmd, op.Level)
+	if err != nil {
+		return err
+	}
+	prevStorage, err := miguel.MichelineToMiguel(prevStore, metadata)
+	if err != nil {
+		return err
+	}
+
+	changelog, err := diff.Diff(prevStorage, currentStorage)
+	if err != nil {
+		return err
+	}
+	if err := applyChanges(changelog, currentStorage); err != nil {
+		return err
+	}
+
+	op.StorageDiff = currentStorage
 	return nil
 }
-func getRichStorageAlpha(storage string, bmd gjson.Result) (gjson.Result, error) {
-	if bmd.IsArray() && len(bmd.Array()) == 0 {
-		return gjson.Parse(storage), nil
-	}
 
-	p := miguel.GetGJSONPath("0")
-
-	res := make([]interface{}, 0)
-	for _, b := range bmd.Array() {
-		elt := map[string]interface{}{
-			"prim": "Elt",
+func enrichStorage(storage string, bmd gjson.Result, level int64) (gjson.Result, error) {
+	for _, e := range enrichments {
+		if e.Level() < level {
+			return e.Do(storage, bmd)
 		}
-		args := make([]interface{}, 2)
-		val := gjson.Parse(b.Get("value").String())
-		args[0] = b.Get("key").Value()
-
-		if b.Get("value").String() != "" {
-			args = append(args, val.Value())
-		}
-
-		elt["args"] = args
-		res = append(res, elt)
 	}
-
-	value, err := sjson.Set(storage, p, res)
-	if err != nil {
-		return gjson.Result{}, err
-	}
-	return gjson.Parse(value), nil
+	return gjson.Result{}, nil
 }
-func getRichStorageBabylon(storage string, bmd gjson.Result) (gjson.Result, error) {
-	if bmd.IsArray() && len(bmd.Array()) == 0 {
-		return gjson.Parse(storage), nil
-	}
 
-	data := gjson.Parse(storage)
+func getPrevBmd(es *elastic.Elastic, bmd gjson.Result, level int64) (gjson.Result, error) {
+	keys := make([]string, 0)
 	for _, b := range bmd.Array() {
-		elt := map[string]interface{}{
-			"prim": "Elt",
-		}
-		args := make([]interface{}, 1)
-		val := gjson.Parse(b.Get("value").String())
-		args[0] = b.Get("key").Value()
-
-		if b.Get("value").String() != "" {
-			args = append(args, val.Value())
-		}
-
-		elt["args"] = args
-
-		p := miguel.GetGJSONPath(b.Get("bin_path").String()[2:])
-		value, err := sjson.Set(storage, p, []interface{}{elt})
-		if err != nil {
-			return gjson.Result{}, err
-		}
-		data = gjson.Parse(value)
+		keys = append(keys, b.Get("key_hash").String())
 	}
 
-	return data, nil
+	return es.GetBigMapDiffsByKeyHash(keys, level)
+}
+
+func applyChanges(changelog diff.Changelog, v interface{}) error {
+	for _, c := range changelog {
+		if err := applyChange(c.Path, c.From, c.Type, v); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func applyChange(path []string, from interface{}, typ string, v interface{}) error {
+	val := reflect.ValueOf(v)
+	if len(path) == 1 {
+		val.SetMapIndex(reflect.ValueOf("from"), reflect.ValueOf(from))
+		val.SetMapIndex(reflect.ValueOf("kind"), reflect.ValueOf(typ))
+		return nil
+	}
+	var field reflect.Value
+	if val.Kind() == reflect.Map {
+		field = val.MapIndex(reflect.ValueOf(path[0]))
+	} else if val.Kind() == reflect.Slice {
+		idx, err := strconv.Atoi(path[0])
+		if err != nil {
+			return err
+		}
+		field = val.Index(idx)
+	}
+	return applyChange(path[1:], from, typ, field.Interface())
+
 }
 
 func getMetadata(es *elastic.Elastic, address, tag string, level int64) (meta.Metadata, error) {
