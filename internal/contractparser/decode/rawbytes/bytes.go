@@ -15,7 +15,7 @@ func HexToMicheline(hex string) (string, int, error) {
 
 	switch fieldType {
 	case "00":
-		val, length, err := decodeInt(hex[offset:], 0, true)
+		val, length, err := decodeInt(hex[offset:])
 		if err != nil {
 			return code, offset, err
 		}
@@ -81,12 +81,12 @@ func HexToMicheline(hex string) (string, int, error) {
 		}
 		offset += length
 
-		annots, anLength, err := decodeAnnotations(hex[offset:])
+		annots, length, err := decodeAnnotations(hex[offset:])
 		if err != nil {
 			return code, offset, err
 		}
 		code += fmt.Sprintf(`{ "prim": "%v", "args": [ %v ], "annots": [ %v ] }`, prim, args, annots)
-		offset += anLength
+		offset += length
 	case "07":
 		prim, err := decodePrim(hex, offset)
 		if err != nil {
@@ -135,13 +135,13 @@ func HexToMicheline(hex string) (string, int, error) {
 		args = append(args, arg2)
 		offset += length
 
-		annots, anLength, err := decodeAnnotations(hex[offset:])
+		annots, length, err := decodeAnnotations(hex[offset:])
 		if err != nil {
 			return code, offset, err
 		}
 
 		code += fmt.Sprintf(`{ "prim": "%v", "args": [ %v ], "annots": [ %v ] }`, prim, strings.Join(args, ", "), annots)
-		offset += anLength
+		offset += length
 	case "09":
 		prim, err := decodePrim(hex, offset)
 		if err != nil {
@@ -156,13 +156,13 @@ func HexToMicheline(hex string) (string, int, error) {
 		offset += length - 4
 
 		if hex[offset:offset+8] != "00000000" {
-			annots, anLength, err := decodeAnnotations(hex[offset:])
+			annots, length, err := decodeAnnotations(hex[offset:])
 			if err != nil {
 				return code, offset, err
 			}
 
 			code += fmt.Sprintf(`{ "prim": "%v", "args": %v, "annots": [ %v ] }`, prim, args, annots)
-			offset += anLength
+			offset += length
 		} else {
 			code += fmt.Sprintf(`{ "prim": "%v", "args": %v }`, prim, args)
 			offset += 8
