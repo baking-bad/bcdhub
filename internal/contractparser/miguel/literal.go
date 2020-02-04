@@ -36,32 +36,51 @@ func (l *literalDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMet
 			"type":  nm.Type,
 		}, nil
 	case consts.ADDRESS:
-		data, err := decode.Address(node.Get(consts.STRING).String())
-		if err != nil {
-			return nil, err
+		if node.Get(consts.BYTES).Exists() {
+			data, err := decode.Address(node.Get(consts.BYTES).String())
+			if err != nil {
+				return nil, err
+			}
+			return map[string]interface{}{
+				"value": data,
+				"type":  nm.Type,
+			}, nil
 		}
 		return map[string]interface{}{
-			"value": data,
+			"value": node.Get(consts.STRING).String(),
 			"type":  nm.Type,
 		}, nil
 	case consts.KEYHASH:
-		data, err := decode.KeyHash(node.Get(consts.KEYHASH).String())
-		if err != nil {
-			return nil, err
+		if node.Get(consts.BYTES).Exists() {
+			data, err := decode.KeyHash(node.Get(consts.BYTES).String())
+			if err != nil {
+				return nil, err
+			}
+			return map[string]interface{}{
+				"value": data,
+				"type":  nm.Type,
+			}, nil
 		}
 		return map[string]interface{}{
-			"value": data,
+			"value": node.Get(consts.STRING).String(),
 			"type":  nm.Type,
 		}, nil
 	case consts.KEY:
-		data, err := decode.PublicKey(node.Get(consts.KEY).String())
-		if err != nil {
-			return nil, err
+		if node.Get(consts.BYTES).Exists() {
+			data, err := decode.PublicKey(node.Get(consts.BYTES).String())
+			if err != nil {
+				return nil, err
+			}
+			return map[string]interface{}{
+				"value": data,
+				"type":  nm.Type,
+			}, nil
 		}
 		return map[string]interface{}{
-			"value": data,
+			"value": node.Get(consts.STRING).String(),
 			"type":  nm.Type,
 		}, nil
+
 	case consts.TIMESTAMP:
 		var value interface{}
 		if node.Get(consts.INT).Exists() {
