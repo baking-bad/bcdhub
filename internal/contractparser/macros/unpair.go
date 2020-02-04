@@ -41,12 +41,7 @@ func (m *unpairMacros) Find(data gjson.Result) bool {
 		return false
 	}
 
-	cdrPrim := data.Get("2.args.0.0.prim").String()
-	if cdrPrim != cdr {
-		return false
-	}
-
-	return true
+	return data.Get("2.args.0.0.prim").String() == cdr
 }
 
 func (m *unpairMacros) Collapse(data gjson.Result) {

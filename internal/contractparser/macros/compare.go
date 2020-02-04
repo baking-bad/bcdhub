@@ -103,7 +103,7 @@ type compareIfMacros struct {
 func newCompareIfMacros() *compareIfMacros {
 	return &compareIfMacros{
 		defaultMacros: &defaultMacros{
-			Name: "IFCMP",
+			Name: ifcmp,
 		},
 	}
 }

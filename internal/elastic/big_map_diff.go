@@ -53,18 +53,6 @@ func (e *Elastic) GetBigMapDiffsByOperationID(operationID string) (gjson.Result,
 	return res.Get("hits.hits.#._source"), nil
 }
 
-func parseBigMapDiff(data gjson.Result) models.BigMapDiff {
-	return models.BigMapDiff{
-		BinPath:     data.Get("bin_path").String(),
-		Ptr:         data.Get("ptr").Int(),
-		Level:       data.Get("level").Int(),
-		Key:         data.Get("key").Value(),
-		Value:       data.Get("value").String(),
-		KeyHash:     data.Get("key_hash").String(),
-		OperationID: data.Get("operation_id").String(),
-	}
-}
-
 // GetBigMapDiffsByKeyHash -
 func (e *Elastic) GetBigMapDiffsByKeyHash(keys []string, level int64) (gjson.Result, error) {
 	must := make([]map[string]interface{}, len(keys))

@@ -3,16 +3,8 @@ package contractparser
 import (
 	"strings"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/node"
 )
-
-var langPriorities = map[string]int{
-	consts.LangUnknown:   0,
-	consts.LangLigo:      1,
-	consts.LangLiquidity: 1,
-	consts.LangSmartPy:   1,
-}
 
 func detectLiquidity(n node.Node, entries []string) bool {
 	for _, a := range n.Annotations {

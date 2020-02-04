@@ -13,8 +13,6 @@ import (
 
 const (
 	origination = "origination"
-	reveal      = "origination"
-	delegation  = "delegation"
 	transaction = "transaction"
 )
 

@@ -52,13 +52,6 @@ func walkForMacros(script gjson.Result, jsonPath, textScript string) (result str
 		}
 		return applyMacros(result, jsonPath, arrayMacros)
 	} else if script.IsObject() {
-		if !script.Get("prim").Exists() {
-			items := make([]string, 0)
-			for k := range script.Map() {
-				items = append(items, k)
-			}
-		}
-
 		args := script.Get("args")
 		if args.Exists() {
 			var argsResult string

@@ -130,10 +130,10 @@ func getGJSONPathUnion(path string, node gjson.Result) (res string) {
 				res += "args.0."
 			default:
 				idx = i + 1
-				break
+				goto Break
 			}
 		}
-
+	Break:
 		res += buildPathFromArray(parts[idx:])
 	}
 	res = strings.TrimSuffix(res, ".")

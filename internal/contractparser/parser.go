@@ -15,13 +15,6 @@ type parser struct {
 	primHandler  onPrim
 }
 
-func newParser(onArr onArray, onPrimitive onPrim) parser {
-	return parser{
-		arrayHandler: onArr,
-		primHandler:  onPrimitive,
-	}
-}
-
 func (p *parser) parse(v gjson.Result) error {
 	if v.IsArray() {
 		arr := v.Array()
@@ -38,7 +31,9 @@ func (p *parser) parse(v gjson.Result) error {
 	} else if v.IsObject() {
 		node := node.NewNodeJSON(v)
 		for _, a := range node.Args.Array() {
-			p.parse(a)
+			if err := p.parse(a); err != nil {
+				return err
+			}
 		}
 		if p.primHandler != nil && !node.Is("") {
 			if err := p.primHandler(node); err != nil {

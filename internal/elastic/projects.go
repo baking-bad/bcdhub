@@ -11,7 +11,6 @@ func parseProjectFormHit(hit gjson.Result, proj *models.Project) {
 	proj.ID = hit.Get("_id").String()
 	proj.Alias = hit.Get("_source.alias").String()
 	proj.Contracts = parseStringArray(hit, "_source.contracts")
-	return
 }
 
 // GetProject -

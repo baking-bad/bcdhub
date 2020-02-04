@@ -14,7 +14,6 @@ import (
 // NodeRPC -
 type NodeRPC struct {
 	baseURL string
-	network string
 
 	timeout    time.Duration
 	retryCount int
