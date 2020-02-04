@@ -10,7 +10,7 @@ func HexToMicheline(hex string) (string, int, error) {
 	var code string
 	var offset int
 
-	fieldType := hex[offset : offset+2]
+	fieldType := hex[:2]
 	offset += 2
 
 	switch fieldType {
