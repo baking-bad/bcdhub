@@ -39,6 +39,7 @@ func (a Alpha) Do(storage string, bmd gjson.Result) (gjson.Result, error) {
 	if err != nil {
 		return gjson.Result{}, err
 	}
+
 	return gjson.Parse(value), nil
 }
 

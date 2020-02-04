@@ -133,10 +133,6 @@ func (e *Elastic) GetLastStorage(network, address string) (gjson.Result, error) 
 				"should": []map[string]interface{}{
 					map[string]interface{}{
 						"match": map[string]interface{}{
-							"source": address,
-						},
-					}, map[string]interface{}{
-						"match": map[string]interface{}{
 							"destination": address,
 						},
 					},

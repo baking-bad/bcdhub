@@ -156,7 +156,7 @@ func (e *Elastic) FindProjectContracts(hash []string, minScore float64) ([]model
 		},
 		"query": map[string]interface{}{
 			"bool": map[string]interface{}{
-				"should": []map[string]interface{}{
+				"must": []map[string]interface{}{
 					map[string]interface{}{
 						"match": map[string]interface{}{
 							"hash": map[string]interface{}{
@@ -179,6 +179,46 @@ func (e *Elastic) FindProjectContracts(hash []string, minScore float64) ([]model
 								"query":     hash[2],
 								"fuzziness": 1,
 							},
+						},
+					},
+				},
+			},
+		},
+		"sort": map[string]interface{}{
+			"timestamp": map[string]interface{}{
+				"order": "desc",
+			},
+		},
+	}
+	return e.getContracts(query)
+}
+
+// FindSameContracts -
+func (e *Elastic) FindSameContracts(hash []string, minScore float64) ([]models.Contract, error) {
+	if len(hash) != 3 {
+		return nil, fmt.Errorf("Length of hash array must be 3")
+	}
+	query := map[string]interface{}{
+		"size": 1000,
+		"_source": map[string]interface{}{
+			"excludes": []string{"hash"},
+		},
+		"query": map[string]interface{}{
+			"bool": map[string]interface{}{
+				"must": []map[string]interface{}{
+					map[string]interface{}{
+						"match_phrase": map[string]interface{}{
+							"hash": hash[0],
+						},
+					},
+					map[string]interface{}{
+						"match_phrase": map[string]interface{}{
+							"hash": hash[1],
+						},
+					},
+					map[string]interface{}{
+						"match_phrase": map[string]interface{}{
+							"hash": hash[2],
 						},
 					},
 				},

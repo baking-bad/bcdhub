@@ -22,7 +22,7 @@ func (l *simpleDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMeta
 		case consts.INT:
 			return v.Int(), nil
 		default:
-			return nil, fmt.Errorf("Unknown simple type: %s", k)
+			return nil, fmt.Errorf("Unknown simple type: %s %v", k, node)
 		}
 	}
 	return nil, nil

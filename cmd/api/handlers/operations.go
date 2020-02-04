@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -157,6 +158,8 @@ func setStorageDiff(es *elastic.Elastic, address string, storage string, op *Ope
 	if err != nil {
 		return err
 	}
+
+	log.Println(currentStorage)
 
 	changelog, err := diff.Diff(prevStorage, currentStorage)
 	if err != nil {

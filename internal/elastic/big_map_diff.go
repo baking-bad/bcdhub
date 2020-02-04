@@ -35,12 +35,8 @@ func (e *Elastic) BulkSaveBigMapDiffs(diffs []models.BigMapDiff) error {
 func (e *Elastic) GetBigMapDiffsByOperationID(operationID string) (gjson.Result, error) {
 	query := map[string]interface{}{
 		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
-				"must": map[string]interface{}{
-					"match": map[string]interface{}{
-						"operation_id": operationID,
-					},
-				},
+			"match_phrase": map[string]interface{}{
+				"operation_id": operationID,
 			},
 		},
 		"size": 1000,
@@ -58,7 +54,7 @@ func (e *Elastic) GetBigMapDiffsByKeyHash(keys []string, level int64) (gjson.Res
 	must := make([]map[string]interface{}, len(keys))
 	for i := range keys {
 		must[i] = map[string]interface{}{
-			"match": map[string]interface{}{
+			"match_phrase": map[string]interface{}{
 				"key_hash": keys[i],
 			},
 		}
