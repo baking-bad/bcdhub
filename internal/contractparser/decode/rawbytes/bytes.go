@@ -36,14 +36,14 @@ func HexToMicheline(hex string) (string, int, error) {
 		code += val
 		offset += length
 	case "03":
-		prim, err := decodePrim(hex, offset)
+		prim, err := decodePrim(hex[offset : offset+2])
 		if err != nil {
 			return code, offset, err
 		}
 		code += fmt.Sprintf(`{ "prim": "%v" }`, prim)
 		offset += 2
 	case "04":
-		prim, err := decodePrim(hex, offset)
+		prim, err := decodePrim(hex[offset : offset+2])
 		if err != nil {
 			return code, offset, err
 		}
@@ -56,7 +56,7 @@ func HexToMicheline(hex string) (string, int, error) {
 		code += fmt.Sprintf(`{ "prim": "%v", "annots": [ %v ] }`, prim, annots)
 		offset += length
 	case "05":
-		prim, err := decodePrim(hex, offset)
+		prim, err := decodePrim(hex[offset : offset+2])
 		if err != nil {
 			return code, offset, err
 		}
@@ -69,7 +69,7 @@ func HexToMicheline(hex string) (string, int, error) {
 		code += fmt.Sprintf(`{ "prim": "%v", "args": [ %v ] }`, prim, args)
 		offset += length
 	case "06":
-		prim, err := decodePrim(hex, offset)
+		prim, err := decodePrim(hex[offset : offset+2])
 		if err != nil {
 			return code, offset, err
 		}
@@ -88,7 +88,7 @@ func HexToMicheline(hex string) (string, int, error) {
 		code += fmt.Sprintf(`{ "prim": "%v", "args": [ %v ], "annots": [ %v ] }`, prim, args, annots)
 		offset += length
 	case "07":
-		prim, err := decodePrim(hex, offset)
+		prim, err := decodePrim(hex[offset : offset+2])
 		if err != nil {
 			return code, offset, err
 		}
@@ -113,7 +113,7 @@ func HexToMicheline(hex string) (string, int, error) {
 		code += fmt.Sprintf(`{ "prim": "%v", "args": [ %v ] }`, prim, strings.Join(args, ", "))
 		offset += offset
 	case "08":
-		prim, err := decodePrim(hex, offset)
+		prim, err := decodePrim(hex[offset : offset+2])
 		if err != nil {
 			return code, offset, err
 		}
@@ -143,7 +143,7 @@ func HexToMicheline(hex string) (string, int, error) {
 		code += fmt.Sprintf(`{ "prim": "%v", "args": [ %v ], "annots": [ %v ] }`, prim, strings.Join(args, ", "), annots)
 		offset += length
 	case "09":
-		prim, err := decodePrim(hex, offset)
+		prim, err := decodePrim(hex[offset : offset+2])
 		if err != nil {
 			return code, offset, err
 		}
