@@ -1,4 +1,4 @@
-package decode
+package rawbytes
 
 import (
 	"bytes"
@@ -8,13 +8,13 @@ import (
 	"strconv"
 )
 
-func decodeInt(hex string, offset int, signed bool) (string, int, error) {
+func decodeInt(hex string) (string, int, error) {
 	var ret, buffer string
 	var i int
 	var err error
 
-	for (offset + i*2) < len(hex) {
-		start := offset + i*2
+	for 2*i < len(hex) {
+		start := 2 * i
 		end := start + 2
 		part := hex[start:end]
 		buffer += part
@@ -29,16 +29,9 @@ func decodeInt(hex string, offset int, signed bool) (string, int, error) {
 		}
 	}
 
-	if signed {
-		ret, err = decodeSignedHex(buffer)
-		if err != nil {
-			return ret, 0, err
-		}
-	} else {
-		ret, err = decodeHex(buffer)
-		if err != nil {
-			return ret, 0, err
-		}
+	ret, err = decodeSignedHex(buffer)
+	if err != nil {
+		return ret, 0, err
 	}
 
 	return ret, i * 2, err

@@ -1,4 +1,4 @@
-package decode
+package rawbytes
 
 import "strconv"
 
@@ -119,8 +119,8 @@ var primKeywords = []string{
 	"tez",
 }
 
-func decodePrim(h string, offset int) (string, error) {
-	v, err := strconv.ParseInt(h[offset:offset+2], 16, 64)
+func decodePrim(h string) (string, error) {
+	v, err := strconv.ParseInt(h, 16, 64)
 	if err != nil {
 		return "", err
 	}
