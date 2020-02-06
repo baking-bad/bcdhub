@@ -19,18 +19,18 @@ func getMetadata(rpc *noderpc.NodeRPC, c *models.Contract, tag string) (map[stri
 		return nil, err
 	}
 
-	if c.Network == "mainnet" {
-		res["babylon"] = a
+	if c.Network == consts.Mainnet {
+		res[consts.MetadataBabylon] = a
 
 		if c.Level < levelBabylon {
 			a, err = createMetadata(rpc, levelBabylon-1, c, tag)
 			if err != nil {
 				return nil, err
 			}
-			res["alpha"] = a
+			res[consts.MetadataAlpha] = a
 		}
 	} else {
-		res["alpha"] = a
+		res[consts.MetadataBabylon] = a
 	}
 	return res, nil
 }

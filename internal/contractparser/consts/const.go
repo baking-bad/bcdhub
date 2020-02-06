@@ -101,3 +101,17 @@ const (
 	Some = "Some"
 	None = "None"
 )
+
+// Networks
+const (
+	Mainnet  = "mainnet"
+	Babylon  = "babylonnet"
+	Carthage = "cartagenet"
+	Zeronet  = "zeronet"
+)
+
+//Kind
+const (
+	Transaction = "transaction"
+	Origination = "origination"
+)

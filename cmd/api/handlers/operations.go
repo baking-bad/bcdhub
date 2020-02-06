@@ -3,15 +3,15 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"reflect"
 	"strconv"
 	"strings"
 
-	"github.com/aopoltorzhicky/bcdhub/cmd/api/handlers/enrichment"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/miguel"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/storage"
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
@@ -22,11 +22,6 @@ import (
 type offsetRequest struct {
 	Offset int64 `form:"offset"`
 	Limit  int64 `form:"limit"`
-}
-
-var enrichments = []enrichment.Enrichment{
-	enrichment.Babylon{},
-	enrichment.Alpha{},
 }
 
 // GetContractOperations -
@@ -50,7 +45,7 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 		return
 	}
 
-	resp, err := prepareOperations(ctx.ES, ops, req.Address)
+	resp, err := prepareOperations(ctx.ES, ops, req.Address, req.Network)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -59,7 +54,7 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func prepareOperations(es *elastic.Elastic, ops []models.Operation, address string) ([]Operation, error) {
+func prepareOperations(es *elastic.Elastic, ops []models.Operation, address, network string) ([]Operation, error) {
 	resp := make([]Operation, len(ops))
 	for i := 0; i < len(ops); i++ {
 		op := Operation{
@@ -87,7 +82,7 @@ func prepareOperations(es *elastic.Elastic, ops []models.Operation, address stri
 		}
 
 		if ops[i].DeffatedStorage != "" {
-			if err := setStorageDiff(es, address, ops[i].DeffatedStorage, &op); err != nil {
+			if err := setStorageDiff(es, address, network, ops[i].DeffatedStorage, &op); err != nil {
 				return nil, err
 			}
 		}
@@ -97,7 +92,7 @@ func prepareOperations(es *elastic.Elastic, ops []models.Operation, address stri
 			continue
 		}
 		if ops[i].Parameters != "" {
-			metadata, err := getMetadata(es, address, "parameter", op.Level)
+			metadata, err := getMetadata(es, address, network, "parameter", op.Level)
 			if err != nil {
 				return nil, err
 			}
@@ -114,8 +109,8 @@ func prepareOperations(es *elastic.Elastic, ops []models.Operation, address stri
 	return resp, nil
 }
 
-func setStorageDiff(es *elastic.Elastic, address string, storage string, op *Operation) error {
-	metadata, err := getMetadata(es, address, "storage", op.Level)
+func setStorageDiff(es *elastic.Elastic, address, network string, storage string, op *Operation) error {
+	metadata, err := getMetadata(es, address, network, "storage", op.Level)
 	if err != nil {
 		return err
 	}
@@ -159,8 +154,6 @@ func setStorageDiff(es *elastic.Elastic, address string, storage string, op *Ope
 		return err
 	}
 
-	log.Println(currentStorage)
-
 	changelog, err := diff.Diff(prevStorage, currentStorage)
 	if err != nil {
 		return err
@@ -173,13 +166,14 @@ func setStorageDiff(es *elastic.Elastic, address string, storage string, op *Ope
 	return nil
 }
 
-func enrichStorage(storage string, bmd gjson.Result, level int64) (gjson.Result, error) {
-	for _, e := range enrichments {
-		if e.Level() < level {
-			return e.Do(storage, bmd)
-		}
+func enrichStorage(s string, bmd gjson.Result, level int64) (gjson.Result, error) {
+	var parser storage.Parser
+	if level >= consts.LevelBabylon {
+		parser = storage.NewBabylon(nil, nil)
+	} else {
+		parser = storage.NewAlpha(nil)
 	}
-	return gjson.Result{}, nil
+	return parser.Enrich(s, bmd)
 }
 
 func getPrevBmd(es *elastic.Elastic, bmd gjson.Result, level int64) (gjson.Result, error) {
@@ -203,6 +197,13 @@ func applyChanges(changelog diff.Changelog, v interface{}) error {
 func applyChange(path []string, from interface{}, typ string, v interface{}) error {
 	val := reflect.ValueOf(v)
 	if len(path) == 1 {
+		idx, err := strconv.Atoi(path[0])
+		if err == nil {
+			val = val.Index(idx).Elem()
+		}
+		if val.Kind() != reflect.Map {
+			return fmt.Errorf("Unsupported change type: %v %v", val, val.Kind())
+		}
 		val.SetMapIndex(reflect.ValueOf("from"), reflect.ValueOf(from))
 		val.SetMapIndex(reflect.ValueOf("kind"), reflect.ValueOf(typ))
 		return nil
@@ -218,10 +219,9 @@ func applyChange(path []string, from interface{}, typ string, v interface{}) err
 		field = val.Index(idx)
 	}
 	return applyChange(path[1:], from, typ, field.Interface())
-
 }
 
-func getMetadata(es *elastic.Elastic, address, tag string, level int64) (meta.Metadata, error) {
+func getMetadata(es *elastic.Elastic, address, network, tag string, level int64) (meta.Metadata, error) {
 	if address == "" {
 		return nil, fmt.Errorf("[getMetadata] Empty address")
 	}
@@ -231,8 +231,8 @@ func getMetadata(es *elastic.Elastic, address, tag string, level int64) (meta.Me
 		return nil, err
 	}
 
-	network := meta.GetMetadataNetwork(level)
-	path := fmt.Sprintf("_source.%s.%s", tag, network)
+	n := meta.GetMetadataNetwork(network, level)
+	path := fmt.Sprintf("_source.%s.%s", tag, n)
 	metadata := data.Get(path).String()
 
 	var res meta.Metadata

@@ -86,3 +86,44 @@ func (e *Elastic) GetBigMapDiffsByKeyHash(keys []string, level int64) (gjson.Res
 	}
 	return res.Get("hits.hits.#._source"), nil
 }
+
+// GetBigMapDiffsForAddress -
+func (e *Elastic) GetBigMapDiffsForAddress(address string) (gjson.Result, error) {
+	query := map[string]interface{}{
+		"size": 0,
+		"query": map[string]interface{}{
+			"bool": map[string]interface{}{
+				"must": map[string]interface{}{
+					"match_phrase": map[string]interface{}{
+						"address": address,
+					},
+				},
+			},
+		},
+		"aggs": map[string]interface{}{
+			"group_by_hash": map[string]interface{}{
+				"terms": map[string]interface{}{
+					"field": "key_hash.keyword",
+					"size":  10000,
+				},
+				"aggs": map[string]interface{}{
+					"group_docs": map[string]interface{}{
+						"top_hits": map[string]interface{}{
+							"size": 1,
+							"sort": map[string]interface{}{
+								"level": map[string]interface{}{
+									"order": "desc",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	res, err := e.query(DocBigMapDiff, query)
+	if err != nil {
+		return *res, err
+	}
+	return res.Get("aggregations.group_by_hash.buckets.#.group_docs.hits.hits.0._source"), nil
+}

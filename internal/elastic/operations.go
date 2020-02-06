@@ -130,16 +130,16 @@ func (e *Elastic) GetLastStorage(network, address string) (gjson.Result, error) 
 	query := map[string]interface{}{
 		"query": map[string]interface{}{
 			"bool": map[string]interface{}{
-				"should": []map[string]interface{}{
+				"must": []map[string]interface{}{
 					map[string]interface{}{
-						"match": map[string]interface{}{
-							"destination": address,
+						"term": map[string]interface{}{
+							"network": network,
 						},
 					},
-				},
-				"must": map[string]interface{}{
-					"term": map[string]interface{}{
-						"network": network,
+					map[string]interface{}{
+						"match_phrase": map[string]interface{}{
+							"destination": address,
+						},
 					},
 				},
 				"must_not": map[string]interface{}{
@@ -147,7 +147,6 @@ func (e *Elastic) GetLastStorage(network, address string) (gjson.Result, error) 
 						"deffated_storage": "",
 					},
 				},
-				"minimum_should_match": 1,
 			},
 		},
 		"sort": map[string]interface{}{
@@ -171,8 +170,7 @@ func (e *Elastic) GetLastStorage(network, address string) (gjson.Result, error) 
 	if res.Get("hits.total.value").Int() < 1 {
 		return gjson.Result{}, nil
 	}
-	val := res.Get("hits.hits.0._source").Get("deffated_storage").String()
-	return gjson.Parse(val), nil
+	return res.Get("hits.hits.0"), nil
 }
 
 // GetPreviousOperation -

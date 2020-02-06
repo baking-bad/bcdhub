@@ -15,7 +15,7 @@ func (ctx *Context) GetEntrypoints(c *gin.Context) {
 		return
 	}
 
-	metadata, err := getMetadata(ctx.ES, req.Address, "parameter", 0)
+	metadata, err := getMetadata(ctx.ES, req.Address, req.Network, "parameter", 0)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return

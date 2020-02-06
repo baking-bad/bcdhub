@@ -95,6 +95,8 @@ func buildPathFromArray(parts []string) (res string) {
 			res += "args.#."
 		case "k":
 			res += "#.args.0."
+		case "o":
+			res += "args.0."
 		default:
 			res += fmt.Sprintf("args.%s.", part)
 		}

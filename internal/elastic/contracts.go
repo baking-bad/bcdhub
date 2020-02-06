@@ -193,8 +193,8 @@ func (e *Elastic) FindProjectContracts(hash []string, minScore float64) ([]model
 	return e.getContracts(query)
 }
 
-// FindSameContracts -
-func (e *Elastic) FindSameContracts(hash []string, minScore float64) ([]models.Contract, error) {
+// FindSimilarContracts -
+func (e *Elastic) FindSimilarContracts(hash []string, minScore float64) ([]models.Contract, error) {
 	if len(hash) != 3 {
 		return nil, fmt.Errorf("Length of hash array must be 3")
 	}
@@ -206,6 +206,32 @@ func (e *Elastic) FindSameContracts(hash []string, minScore float64) ([]models.C
 		"query": map[string]interface{}{
 			"bool": map[string]interface{}{
 				"must": []map[string]interface{}{
+					map[string]interface{}{
+						"match": map[string]interface{}{
+							"hash": map[string]interface{}{
+								"query":     hash[0],
+								"fuzziness": 1,
+							},
+						},
+					},
+					map[string]interface{}{
+						"match": map[string]interface{}{
+							"hash": map[string]interface{}{
+								"query":     hash[1],
+								"fuzziness": 1,
+							},
+						},
+					},
+					map[string]interface{}{
+						"match": map[string]interface{}{
+							"hash": map[string]interface{}{
+								"query":     hash[2],
+								"fuzziness": 1,
+							},
+						},
+					},
+				},
+				"must_not": []map[string]interface{}{
 					map[string]interface{}{
 						"match_phrase": map[string]interface{}{
 							"hash": hash[0],
@@ -233,35 +259,60 @@ func (e *Elastic) FindSameContracts(hash []string, minScore float64) ([]models.C
 	return e.getContracts(query)
 }
 
-// SearchByText -
-func (e *Elastic) SearchByText(text string) ([]models.Contract, error) {
+// FindSameContracts -
+func (e *Elastic) FindSameContracts(address string, hash []string, minScore float64) ([]models.Contract, error) {
+	if len(hash) != 3 {
+		return nil, fmt.Errorf("Length of hash array must be 3")
+	}
 	query := map[string]interface{}{
+		"size": 1000,
 		"_source": map[string]interface{}{
 			"excludes": []string{"hash"},
 		},
-		"size": 10,
 		"query": map[string]interface{}{
-			"query_string": map[string]interface{}{
-				"query": fmt.Sprintf("*%s*", text),
-				"fields": []string{
-					"address^10", "manager^8", "delegate^6", "tags^4", "hardcoded", "annotations", "fail_strings", "entrypoints",
+			"bool": map[string]interface{}{
+				"must": []map[string]interface{}{
+					map[string]interface{}{
+						"match_phrase": map[string]interface{}{
+							"hash": hash[0],
+						},
+					},
+					map[string]interface{}{
+						"match_phrase": map[string]interface{}{
+							"hash": hash[1],
+						},
+					},
+					map[string]interface{}{
+						"match_phrase": map[string]interface{}{
+							"hash": hash[2],
+						},
+					},
+				},
+				"must_not": map[string]interface{}{
+					"match_phrase": map[string]interface{}{
+						"address": address,
+					},
 				},
 			},
 		},
-		"highlight": map[string]interface{}{
-			"fields": map[string]interface{}{
-				"address":      map[string]interface{}{},
-				"manager":      map[string]interface{}{},
-				"delegate":     map[string]interface{}{},
-				"tags":         map[string]interface{}{},
-				"hardcoded":    map[string]interface{}{},
-				"annotations":  map[string]interface{}{},
-				"fail_strings": map[string]interface{}{},
-				"entrypoints":  map[string]interface{}{},
+		"sort": map[string]interface{}{
+			"timestamp": map[string]interface{}{
+				"order": "desc",
 			},
 		},
 	}
 	return e.getContracts(query)
+}
+
+func parseContarcts(res *gjson.Result) []models.Contract {
+	contracts := make([]models.Contract, 0)
+	arr := res.Get("hits.hits").Array()
+	for i := range arr {
+		var c models.Contract
+		parseContarctFromHit(arr[i], &c)
+		contracts = append(contracts, c)
+	}
+	return contracts
 }
 
 // GetContracts -

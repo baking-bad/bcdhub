@@ -3,17 +3,13 @@ package main
 import (
 	"fmt"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/logger"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
 	"github.com/google/uuid"
 	"github.com/tidwall/gjson"
-)
-
-const (
-	origination = "origination"
-	transaction = "transaction"
 )
 
 func getOperations(rpc *noderpc.NodeRPC, es *elastic.Elastic, block int64, network string, contracts map[string]struct{}) ([]models.Operation, error) {
@@ -60,7 +56,7 @@ func finishParseOperation(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjson.
 		if err != nil {
 			return err
 		}
-		if rs == nil {
+		if rs.Empty {
 			return nil
 		}
 		op.DeffatedStorage = rs.DeffatedStorage
@@ -76,7 +72,7 @@ func finishParseOperation(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjson.
 
 func needParse(item gjson.Result, idx int) bool {
 	kind := item.Get("kind").String()
-	return (kind == origination && item.Get("script").Exists()) || kind == transaction
+	return (kind == consts.Origination && item.Get("script").Exists()) || kind == consts.Transaction
 }
 
 func parseContent(item gjson.Result, protocol string) *models.Operation {
@@ -101,7 +97,7 @@ func parseContent(item gjson.Result, protocol string) *models.Operation {
 	res, bu := parseResult(item, protocol)
 	op.Result = res
 	op.BalanceUpdates = append(op.BalanceUpdates, bu...)
-	if op.Kind == origination {
+	if op.Kind == consts.Origination {
 		op.Destination = res.Originated
 	}
 

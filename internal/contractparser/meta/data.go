@@ -1,11 +1,13 @@
 package meta
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/node"
+	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 	"github.com/tidwall/gjson"
 )
@@ -190,11 +192,14 @@ func finishParseMetadata(metadata Metadata, path string, node internalNode) {
 }
 
 // GetMetadataNetwork -
-func GetMetadataNetwork(level int64) string {
-	if level >= consts.LevelBabylon {
-		return "babylon"
+func GetMetadataNetwork(network string, level int64) string {
+	if network != consts.Mainnet {
+		return consts.MetadataBabylon
 	}
-	return "alpha"
+	if level >= consts.LevelBabylon || level == 0 {
+		return consts.MetadataBabylon
+	}
+	return consts.MetadataAlpha
 }
 
 func getKey(metadata *NodeMetadata) string {
@@ -279,4 +284,25 @@ func getNodeType(n internalNode, metadata Metadata) (string, []string) {
 		return getPairType(n, metadata)
 	}
 	return "", nil
+}
+
+// GetMetadata -
+func GetMetadata(es *elastic.Elastic, address, network, tag string, level int64) (Metadata, error) {
+	if address == "" {
+		return nil, fmt.Errorf("[getMetadata] Empty address")
+	}
+
+	data, err := es.GetByID(elastic.DocMetadata, address)
+	if err != nil {
+		return nil, err
+	}
+	n := GetMetadataNetwork(network, level)
+	path := fmt.Sprintf("_source.%s.%s", tag, n)
+	metadata := data.Get(path).String()
+
+	var res Metadata
+	if err := json.Unmarshal([]byte(metadata), &res); err != nil {
+		return nil, err
+	}
+	return res, nil
 }

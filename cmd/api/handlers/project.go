@@ -31,11 +31,19 @@ func (ctx *Context) GetProjectContracts(c *gin.Context) {
 		h = append(h, item.(string))
 	}
 
-	v, err := ctx.ES.FindProjectContracts(h, 5)
+	res := map[string]interface{}{}
+	v, err := ctx.ES.FindSameContracts(req.Address, h, 5)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
+	res["same"] = v
 
-	c.JSON(http.StatusOK, v)
+	s, err := ctx.ES.FindSimilarContracts(h, 5)
+	if err != nil {
+		_ = c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	res["similar"] = s
+	c.JSON(http.StatusOK, res)
 }

@@ -20,14 +20,26 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-
-	metadata, err := getMetadata(ctx.ES, req.Address, "storage", 0)
+	bmd, err := ctx.ES.GetBigMapDiffsForAddress(req.Address)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	resp, err := miguel.MichelineToMiguel(storage, metadata)
+	level := storage.Get("_source.level").Int()
+	s, err := enrichStorage(storage.Get("_source.deffated_storage").String(), bmd, level)
+	if err != nil {
+		_ = c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	metadata, err := getMetadata(ctx.ES, req.Address, req.Network, "storage", level)
+	if err != nil {
+		_ = c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	resp, err := miguel.MichelineToMiguel(s, metadata)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
