@@ -1,13 +1,16 @@
 {
-    "search": {
-        "uri": "http://localhost:9200"
-    },
-    "address": ":14000",
-    "rpc": {
-        "mainnet": "https://rpc.tzkt.io/mainnet",
-        "zeronet": "https://rpc.tzkt.io/zeronet",
-        "babylonnet": "https://rpc.tzkt.io/babylonnet",
-        "carthagenet": "https://rpc.tzkt.io/carthagenet"
-    },
-    "dir": "/home/artem/.bcd"
+  "search": {
+    "uri": "http://localhost:9200"
+  },
+  "address": ":14000",
+  "rpc": {
+    "mainnet": "https://rpc.tzkt.io/mainnet",
+    "zeronet": "https://rpc.tzkt.io/zeronet",
+    "babylonnet": "https://rpc.tzkt.io/babylonnet",
+    "carthagenet": "https://rpc.tzkt.io/carthagenet"
+  },
+  "dir": "/home/artem/.bcd",
+  "db": {
+    "uri": "host=127.0.0.1 port=5432 user=root dbname=bcd password=root sslmode=disable"
+  }
 }

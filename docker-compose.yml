@@ -16,6 +16,25 @@ services:
       options:
         max-size: 10m
         max-file: "5"
+  
+  db:
+    container_name: db
+    image: postgres:latest
+    restart: always
+    environment: 
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=bcd
+    expose: 
+      - 5432
+    volumes:
+      - db:/var/lib/postgresql/data
+    ports:
+      - 127.0.0.1:5432:5432
+      logging: &my-logging
+      options:
+        max-size: 10m
+        max-file: "5"
 
   api:
     container_name: api
@@ -57,3 +76,5 @@ services:
 
 volumes:
   esdata:
+  db:
+    driver: local

@@ -6,11 +6,13 @@ import (
 	"github.com/gin-contrib/cors"
 
 	"github.com/aopoltorzhicky/bcdhub/cmd/api/handlers"
+	"github.com/aopoltorzhicky/bcdhub/internal/database"
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
 	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
 	"github.com/gin-gonic/gin"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/github"
 )
 
 func main() {
@@ -24,8 +26,21 @@ func main() {
 		panic(err)
 	}
 
+	db, err := database.New(cfg.DB.URI)
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
 	rpc := createRPC(cfg.RPCs)
-	ctx := handlers.NewContext(es, rpc, cfg.Dir)
+
+	oauth, err := createOauth()
+	if err != nil {
+		panic(err)
+	}
+
+	ctx := handlers.NewContext(es, rpc, cfg.Dir, db, oauth)
+
 	r := gin.Default()
 
 	r.Use(cors.Default())
@@ -59,6 +74,12 @@ func main() {
 				address.GET("", ctx.GetProjectContracts)
 			}
 		}
+
+		oauth := v1.Group("oauth")
+		{
+			oauth.GET("login", ctx.GetOauthLogin)
+			oauth.GET("callback", ctx.GetOauthCallback)
+		}
 	}
 	if err := r.Run(cfg.Address); err != nil {
 		fmt.Println(err)
@@ -77,4 +98,36 @@ func createRPC(data map[string]string) map[string]*noderpc.NodeRPC {
 		res[k] = noderpc.NewNodeRPC(v)
 	}
 	return res
+}
+
+func createOauth() (*oauth2.Config, error) {
+	// TO-DO: uncomment in prod
+	// var githubClientID, githubClientSecret string
+
+	// if id := os.Getenv("OAUTH_CLIENT_ID"); id == "" {
+	// 	return nil, fmt.Errorf("emtpty OAUTH_CLIENT_ID env variable")
+	// } else {
+	// 	githubClientID = id
+	// }
+
+	// if secret := os.Getenv("OAUTH_CLIENT_SECRET"); secret == "" {
+	// 	return nil, fmt.Errorf("emtpty OAUTH_CLIENT_SECRET env variable")
+	// } else {
+	// 	githubClientSecret = secret
+	// }
+
+	// TO-DO: delete in prod
+	githubClientID = "d35966939d838f410dd9"
+	githubClientSecret = "287ae6a529f479afadd19e4e2386b33f5889f58c"
+
+	// TO-DO: move redirect URL to config
+	githubOauthConfig = &oauth2.Config{
+		RedirectURL:  "http://localhost:14000/v1/oauth/callback",
+		ClientID:     githubClientID,
+		ClientSecret: githubClientSecret,
+		Scopes:       []string{},
+		Endpoint:     github.Endpoint,
+	}
+
+	return githubOauthConfig, nil
 }

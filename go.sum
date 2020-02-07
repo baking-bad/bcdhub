@@ -34,6 +34,8 @@ github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21/go.mod h1
 github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFPTqq+I=
 github.com/elastic/go-elasticsearch/v8 v8.0.0-20191218082911-5398a82b748f h1:RTqkOdziUTUaY2+a3p4GR+SSKOwZbxLYSqD+hg4KdCY=
 github.com/elastic/go-elasticsearch/v8 v8.0.0-20191218082911-5398a82b748f/go.mod h1:xe9a/L2aeOgFKKgrO3ibQTnMdpAeL0GC+5/HpGScSa4=
+github.com/elastic/go-elasticsearch/v8 v8.0.0-20200206112740-68f21cd8d916 h1:gNzcQrjjQhJkmLpv2XENLsS+kNtxYvgbKTqmD45dz2c=
+github.com/elastic/go-elasticsearch/v8 v8.0.0-20200206112740-68f21cd8d916/go.mod h1:xe9a/L2aeOgFKKgrO3ibQTnMdpAeL0GC+5/HpGScSa4=
 github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 h1:Yzb9+7DPaBjB8zlTR87/ElzFsnQfuHnVUVqpZZIcV5Y=
 github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5/go.mod h1:a2zkGnVExMxdzMo3M0Hi/3sEU+cWnZpSni0O6/Yb/P0=
 github.com/fatih/color v1.9.0 h1:8xPHl4/q1VyqGIPif1F+1V3Y3lSmrq01EabUW3CoW5s=
