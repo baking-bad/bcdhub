@@ -51,7 +51,10 @@ func TestLocateContractError(t *testing.T) {
 
 			parsedData := gjson.ParseBytes(data)
 
-			row, start, end := LocateContractError(parsedData, res.Location)
+			row, start, end, err := LocateContractError(parsedData, res.Location)
+			if err != nil {
+				t.Errorf("err in LocateContractError: %v", err)
+			}
 
 			if row != res.Row {
 				t.Errorf("wrong row. got %v, expected %v", row, res.Row)

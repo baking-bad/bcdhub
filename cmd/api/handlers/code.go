@@ -36,6 +36,10 @@ func (ctx *Context) GetContractCode(c *gin.Context) {
 	}
 
 	code := collapsed.Get("code")
-	res := formatter.MichelineToMichelson(code, false)
+	res, err := formatter.MichelineToMichelson(code, false)
+	if err != nil {
+		_ = c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
 	c.JSON(http.StatusOK, res)
 }
