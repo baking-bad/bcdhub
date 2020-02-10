@@ -20,11 +20,11 @@ func ToMicheline(input string) (string, error) {
 }
 
 func hexToMicheline(hex string) (string, int, error) {
-	var code string
+	var code strings.Builder
 	var offset int
 
 	if len(hex) < 2 {
-		return code, offset, fmt.Errorf("hexToMicheline error. input less than 2. input: %v", hex)
+		return "", offset, fmt.Errorf("hexToMicheline error. input less than 2. input: %v", hex)
 	}
 
 	fieldType := hex[:2]
@@ -34,80 +34,80 @@ func hexToMicheline(hex string) (string, int, error) {
 	case "00":
 		val, length, err := decodeInt(hex[offset:])
 		if err != nil {
-			return code, offset, err
+			return "", offset, err
 		}
-		code += fmt.Sprintf(`{ "int": "%v" }`, val)
+		fmt.Fprintf(&code, `{ "int": "%v" }`, val)
 		offset += length
 	case "01":
 		val, length, err := decodeString(hex[offset:])
 		if err != nil {
-			return code, offset, err
+			return "", offset, err
 		}
-		code += fmt.Sprintf(`{ "string": "%v" }`, val)
+		fmt.Fprintf(&code, `{ "string": "%v" }`, val)
 		offset += length
 	case "02":
 		val, length, err := decodeArray(hex[offset:], 0)
 		if err != nil {
-			return code, offset, err
+			return "", offset, err
 		}
-		code += val
+		code.WriteString(val)
 		offset += length
 	case "03":
 		prim, err := decodePrim(hex[offset : offset+2])
 		if err != nil {
-			return code, offset, err
+			return "", offset, err
 		}
-		code += fmt.Sprintf(`{ "prim": "%v" }`, prim)
+		fmt.Fprintf(&code, `{ "prim": "%v" }`, prim)
 		offset += 2
 	case "04":
 		prim, err := decodePrim(hex[offset : offset+2])
 		if err != nil {
-			return code, offset, err
+			return "", offset, err
 		}
 		offset += 2
 
 		annots, length, err := decodeAnnotations(hex[offset:])
 		if err != nil {
-			return code, offset, err
+			return "", offset, err
 		}
-		code += fmt.Sprintf(`{ "prim": "%v", "annots": [ %v ] }`, prim, annots)
+		fmt.Fprintf(&code, `{ "prim": "%v", "annots": [ %v ] }`, prim, annots)
 		offset += length
 	case "05":
 		prim, err := decodePrim(hex[offset : offset+2])
 		if err != nil {
-			return code, offset, err
+			return "", offset, err
 		}
 		offset += 2
 
 		args, length, err := hexToMicheline(hex[offset:])
 		if err != nil {
-			return code, offset, err
+			return "", offset, err
 		}
-		code += fmt.Sprintf(`{ "prim": "%v", "args": [ %v ] }`, prim, args)
+		fmt.Fprintf(&code, `{ "prim": "%v", "args": [ %v ] }`, prim, args)
 		offset += length
 	case "06":
 		prim, err := decodePrim(hex[offset : offset+2])
 		if err != nil {
-			return code, offset, err
+			return "", offset, err
 		}
 		offset += 2
 
 		args, length, err := hexToMicheline(hex[offset:])
 		if err != nil {
-			return code, offset, err
+			return "", offset, err
 		}
 		offset += length
 
 		annots, length, err := decodeAnnotations(hex[offset:])
 		if err != nil {
-			return code, offset, err
+			return "", offset, err
 		}
-		code += fmt.Sprintf(`{ "prim": "%v", "args": [ %v ], "annots": [ %v ] }`, prim, args, annots)
+		fmt.Fprintf(&code, `{ "prim": "%v", "args": [ %v ], "annots": [ %v ] }`, prim, args, annots)
 		offset += length
 	case "07":
 		prim, err := decodePrim(hex[offset : offset+2])
 		if err != nil {
-			return code, offset, err
+			return "", offset, err
 		}
 		offset += 2
 
@@ -115,23 +115,23 @@ func hexToMicheline(hex string) (string, int, error) {
 
 		arg1, length, err := hexToMicheline(hex[offset:])
 		if err != nil {
-			return code, offset, err
+			return "", offset, err
 		}
 		args = append(args, arg1)
 		offset += length
 
 		arg2, length, err := hexToMicheline(hex[offset:])
 		if err != nil {
-			return code, offset, err
+			return "", offset, err
 		}
 		args = append(args, arg2)
 		offset += length
 
-		code += fmt.Sprintf(`{ "prim": "%v", "args": [ %v ] }`, prim, strings.Join(args, ", "))
+		fmt.Fprintf(&code, `{ "prim": "%v", "args": [ %v ] }`, prim, strings.Join(args, ", "))
 	case "08":
 		prim, err := decodePrim(hex[offset : offset+2])
 		if err != nil {
-			return code, offset, err
+			return "", offset, err
 		}
 		offset += 2
 
@@ -139,66 +139,66 @@ func hexToMicheline(hex string) (string, int, error) {
 
 		arg1, length, err := hexToMicheline(hex[offset:])
 		if err != nil {
-			return code, offset, err
+			return "", offset, err
 		}
 		args = append(args, arg1)
 		offset += length
 
 		arg2, length, err := hexToMicheline(hex[offset:])
 		if err != nil {
-			return code, offset, err
+			return "", offset, err
 		}
 		args = append(args, arg2)
 		offset += length
 
 		annots, length, err := decodeAnnotations(hex[offset:])
 		if err != nil {
-			return code, offset, err
+			return "", offset, err
 		}
 
-		code += fmt.Sprintf(`{ "prim": "%v", "args": [ %v ], "annots": [ %v ] }`, prim, strings.Join(args, ", "), annots)
+		fmt.Fprintf(&code, `{ "prim": "%v", "args": [ %v ], "annots": [ %v ] }`, prim, strings.Join(args, ", "), annots)
 		offset += length
 	case "09":
 		prim, err := decodePrim(hex[offset : offset+2])
 		if err != nil {
-			return code, offset, err
+			return "", offset, err
 		}
 		offset += 2
 
 		args, length, err := decodeArray(hex, offset)
 		if err != nil {
-			return code, offset, err
+			return "", offset, err
 		}
 		offset += length - 4
 
 		if len(hex) < offset+8 {
-			return code, offset, fmt.Errorf("hexToMicheline err. Input too short: %v", hex)
+			return "", offset, fmt.Errorf("hexToMicheline err. Input too short: %v", hex)
 		}
 
 		if hex[offset:offset+8] != "00000000" {
 			annots, length, err := decodeAnnotations(hex[offset:])
 			if err != nil {
-				return code, offset, err
+				return "", offset, err
 			}
 
-			code += fmt.Sprintf(`{ "prim": "%v", "args": %v, "annots": [ %v ] }`, prim, args, annots)
+			fmt.Fprintf(&code, `{ "prim": "%v", "args": %v, "annots": [ %v ] }`, prim, args, annots)
 			offset += length
 		} else {
-			code += fmt.Sprintf(`{ "prim": "%v", "args": %v }`, prim, args)
+			fmt.Fprintf(&code, `{ "prim": "%v", "args": %v }`, prim, args)
 			offset += 8
 		}
 	case "0a":
 		if len(hex) < offset+8 {
-			return code, offset, fmt.Errorf("hexToMicheline err. Input too short: %v", hex)
+			return "", offset, fmt.Errorf("hexToMicheline err. Input too short: %v", hex)
 		}
 
 		val := hex[offset+8:]
 		length := len(hex[offset+8:]) + 8
-		code += fmt.Sprintf(`{ "bytes": "%v" }`, val)
+		fmt.Fprintf(&code, `{ "bytes": "%v" }`, val)
 		offset += length
 	default:
-		return code, offset, fmt.Errorf("Unknown prefix %v", hex[:2])
+		return "", offset, fmt.Errorf("Unknown prefix %v", hex[:2])
 	}
 
-	return code, offset, nil
+	return code.String(), offset, nil
 }
