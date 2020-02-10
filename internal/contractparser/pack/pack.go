@@ -81,11 +81,11 @@ func packObjectPrim(node gjson.Result) ([]byte, error) {
 	if argsLen > 0 {
 		var args bytes.Buffer
 		for _, item := range node.Get("args").Array() {
-			ar, err := Micheline(item)
+			arg, err := Micheline(item)
 			if err != nil {
 				return nil, err
 			}
-			args.Write(ar)
+			args.Write(arg)
 		}
 
 		if argsLen < 3 {
@@ -107,7 +107,7 @@ func packObjectPrim(node gjson.Result) ([]byte, error) {
 
 		result.Write(packArrayWithLength(temp.Bytes()))
 	} else {
-		result.Write([]byte{0, 0, 0, 0})
+		result.Write([]byte{0x00, 0x00, 0x00, 0x00})
 	}
 
 	return result.Bytes(), nil
