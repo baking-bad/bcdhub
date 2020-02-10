@@ -95,6 +95,8 @@ func buildPathFromArray(parts []string) (res string) {
 			res += "args.#."
 		case "k":
 			res += "#.args.0."
+		case "v":
+			res += "#.args.1."
 		case "o":
 			res += "args.0."
 		default:

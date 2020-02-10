@@ -114,16 +114,15 @@ func (c *Code) handlePrimitive(n node.Node) (err error) {
 		c.Annotations.Append(n.Annotations...)
 	}
 
-	c.detectLanguage(n)
+	if n.Is("") && n.Type == consts.KeyString && c.Language == consts.LangUnknown {
+		c.detectLanguage(n)
+	}
 	c.Tags.Append(primTags(n))
 
 	return nil
 }
 
 func (c *Code) detectLanguage(n node.Node) {
-	if c.Language != consts.LangUnknown {
-		return
-	}
 	if detectLiquidity(n, c.Parameter.Entrypoints()) {
 		c.Language = consts.LangLiquidity
 		return
@@ -135,8 +134,5 @@ func (c *Code) detectLanguage(n node.Node) {
 	if detectLIGO(n) {
 		c.Language = consts.LangLigo
 		return
-	}
-	if c.Language == "" {
-		c.Language = consts.LangUnknown
 	}
 }

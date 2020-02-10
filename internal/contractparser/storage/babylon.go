@@ -29,14 +29,14 @@ func NewBabylon(es *elastic.Elastic, rpc *noderpc.NodeRPC) Babylon {
 }
 
 // ParseTransaction -
-func (b Babylon) ParseTransaction(content gjson.Result, level int64, operationID string) (RichStorage, error) {
+func (b Babylon) ParseTransaction(content gjson.Result, protocol string, level int64, operationID string) (RichStorage, error) {
 	address := content.Get("destination").String()
 	data, err := b.rpc.GetScriptJSON(address, level)
 	if err != nil {
 		return RichStorage{Empty: true}, err
 	}
 
-	m, err := meta.GetMetadata(b.es, address, consts.Babylon, "storage", level)
+	m, err := meta.GetMetadata(b.es, address, consts.Babylon, "storage", protocol)
 	if err != nil {
 		return RichStorage{Empty: true}, err
 	}
@@ -62,16 +62,16 @@ func (b Babylon) ParseTransaction(content gjson.Result, level int64, operationID
 }
 
 // ParseOrigination -
-func (b Babylon) ParseOrigination(content gjson.Result, level int64, operationID string) (RichStorage, error) {
+func (b Babylon) ParseOrigination(content gjson.Result, protocol string, level int64, operationID string) (RichStorage, error) {
 	result, err := getResult(content)
 	if err != nil {
 		return RichStorage{Empty: true}, err
 	}
 
 	address := result.Get("originated_contracts.0").String()
-	s := content.Get("script.storage")
+	// s := content.Get("script.storage")
 
-	m, err := meta.GetMetadata(b.es, address, consts.Babylon, "storage", level)
+	m, err := meta.GetMetadata(b.es, address, consts.Babylon, "storage", protocol)
 	if err != nil {
 		return RichStorage{Empty: true}, err
 	}
@@ -92,19 +92,9 @@ func (b Babylon) ParseOrigination(content gjson.Result, level int64, operationID
 		return RichStorage{Empty: true}, err
 	}
 
-	defStorage := s.String()
-	for _, p := range ptrToBin {
-		trimmed := strings.TrimPrefix(p, "0/")
-		gPath := miguel.GetGJSONPath(trimmed)
-		defStorage, err = sjson.Set(s.String(), gPath, []interface{}{})
-		if err != nil {
-			return RichStorage{Empty: true}, err
-		}
-	}
-
 	return RichStorage{
 		BigMapDiffs:     bm,
-		DeffatedStorage: defStorage,
+		DeffatedStorage: st.String(),
 	}, nil
 }
 
@@ -116,26 +106,31 @@ func (b Babylon) Enrich(storage string, bmd gjson.Result) (gjson.Result, error) 
 
 	data := gjson.Parse(storage)
 	m := map[string][]interface{}{}
-	for _, b := range bmd.Array() {
+	for _, bm := range bmd.Array() {
 		elt := map[string]interface{}{
 			"prim": "Elt",
 		}
 		args := make([]interface{}, 1)
-		val := gjson.Parse(b.Get("value").String())
-		args[0] = b.Get("key").Value()
+		val := gjson.Parse(bm.Get("value").String())
+		args[0] = bm.Get("key").Value()
 
-		if b.Get("value").String() != "" {
+		if bm.Get("value").String() != "" {
 			args = append(args, val.Value())
 		}
 
 		elt["args"] = args
 
-		binPath := strings.TrimPrefix(b.Get("bin_path").String(), "0/")
+		binPath := strings.TrimPrefix(bm.Get("bin_path").String(), "0/")
 		p := miguel.GetGJSONPath(binPath)
-		if _, ok := m[p]; !ok {
-			m[p] = make([]interface{}, 0)
+
+		res, err := b.findPtrJSONPath(bmd.Get("ptr").Int(), p, data)
+		if err != nil {
+			return data, err
 		}
-		m[p] = append(m[p], elt)
+		if _, ok := m[p]; !ok {
+			m[res] = make([]interface{}, 0)
+		}
+		m[res] = append(m[res], elt)
 	}
 
 	for p, arr := range m {
@@ -175,6 +170,13 @@ func (b Babylon) getBigMapDiff(result gjson.Result, ptrMap map[int64]string, ope
 
 func (b Babylon) binPathToPtrMap(m meta.Metadata, storage gjson.Result) (map[int64]string, error) {
 	key := make(map[int64]string)
+	keyInt := storage.Get("int")
+
+	if keyInt.Exists() {
+		key[keyInt.Int()] = "0"
+		return key, nil
+	}
+
 	for k, v := range m {
 		if v.Prim != consts.BIGMAP {
 			continue
@@ -188,33 +190,79 @@ func (b Babylon) binPathToPtrMap(m meta.Metadata, storage gjson.Result) (map[int
 }
 
 func (b Babylon) setMapPtr(storage gjson.Result, path string, m map[int64]string) error {
-	bufPath := ""
+	var buf strings.Builder
 
 	trimmed := strings.TrimPrefix(path, "0/")
 	for _, s := range strings.Split(trimmed, "/") {
 		switch s {
 		case "l", "s":
-			bufPath += "#."
+			buf.WriteString("#.")
 		case "k":
-			bufPath += "#.args.0"
+			buf.WriteString("#.args.0.")
 		case "v":
-			bufPath += "#.args.1"
+			buf.WriteString("#.args.1.")
 		case "o":
-			bufPath += "args.0"
+			buf.WriteString("args.0.")
 		default:
-			bufPath += fmt.Sprintf("args.%s.", string(s))
+			buf.WriteString("args.")
+			buf.WriteString(s)
+			buf.WriteString(".")
 		}
 	}
-	bufPath += "int"
+	buf.WriteString("int")
 
-	ptr := storage.Get(bufPath)
+	ptr := storage.Get(buf.String())
 	if !ptr.Exists() {
-		return fmt.Errorf("Path %s is not pointer: %s", path, bufPath)
+		return fmt.Errorf("Path %s is not pointer: %s", path, buf.String())
 	}
 
 	for _, p := range ptr.Array() {
+		if _, ok := m[p.Int()]; ok {
+			return fmt.Errorf("Pointer already exists: %d", p.Int())
+		}
 		m[p.Int()] = path
 	}
 
 	return nil
+}
+
+func (b Babylon) findPtrJSONPath(ptr int64, path string, data gjson.Result) (string, error) {
+	val := data
+	parts := strings.Split(path, ".")
+
+	var newPath strings.Builder
+	for i := range parts {
+		buf := val.Get(parts[i])
+
+		if i == len(parts)-1 {
+			if buf.Get("int").Exists() && buf.Get("int").Int() == ptr {
+				return newPath.String(), nil
+			}
+		}
+
+		if parts[i] == "#" {
+			for j := 0; j < int(buf.Int()); j++ {
+				var bufPath strings.Builder
+				fmt.Fprintf(&bufPath, "%d", j)
+				if i < len(parts)-1 {
+					fmt.Fprintf(&bufPath, ".%s", strings.Join(parts[i+1:], "."))
+				}
+				p, err := b.findPtrJSONPath(ptr, bufPath.String(), val)
+				if err != nil {
+					return "", err
+				}
+				if p != "" {
+					fmt.Fprintf(&newPath, ".%s", p)
+					return newPath.String(), nil
+				}
+			}
+		} else {
+			if newPath.Len() != 0 {
+				newPath.WriteString(".")
+			}
+			newPath.WriteString(parts[i])
+			val = buf
+		}
+	}
+	return newPath.String(), nil
 }

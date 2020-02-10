@@ -11,10 +11,11 @@ func parseOperation(resp gjson.Result) models.Operation {
 	op := models.Operation{
 		ID: resp.Get("_id").String(),
 
-		Protocol: resp.Get("_source.protocol").String(),
-		Hash:     resp.Get("_source.hash").String(),
-		Internal: resp.Get("_source.internal").Bool(),
-		Network:  resp.Get("_source.network").String(),
+		Protocol:  resp.Get("_source.protocol").String(),
+		Hash:      resp.Get("_source.hash").String(),
+		Internal:  resp.Get("_source.internal").Bool(),
+		Network:   resp.Get("_source.network").String(),
+		Timestamp: resp.Get("_source.timestamp").Time().UTC(),
 
 		Level:         resp.Get("_source.level").Int(),
 		Kind:          resp.Get("_source.kind").String(),
@@ -178,20 +179,14 @@ func (e *Elastic) GetPreviousOperation(address, network string, level int64) (mo
 	query := map[string]interface{}{
 		"query": map[string]interface{}{
 			"bool": map[string]interface{}{
-				"should": []map[string]interface{}{
+				"must": []map[string]interface{}{
 					map[string]interface{}{
-						"match": map[string]interface{}{
-							"source": address,
-						},
-					}, map[string]interface{}{
-						"match": map[string]interface{}{
+						"match_phrase": map[string]interface{}{
 							"destination": address,
 						},
 					},
-				},
-				"must": []map[string]interface{}{
 					map[string]interface{}{
-						"term": map[string]interface{}{
+						"match_phrase": map[string]interface{}{
 							"network": network,
 						}},
 					map[string]interface{}{
@@ -206,7 +201,6 @@ func (e *Elastic) GetPreviousOperation(address, network string, level int64) (mo
 						"deffated_storage": "",
 					},
 				},
-				"minimum_should_match": 1,
 			},
 		},
 		"sort": map[string]interface{}{

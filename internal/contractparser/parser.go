@@ -35,7 +35,7 @@ func (p *parser) parse(v gjson.Result) error {
 				return err
 			}
 		}
-		if p.primHandler != nil && !node.Is("") {
+		if p.primHandler != nil {
 			if err := p.primHandler(node); err != nil {
 				return err
 			}

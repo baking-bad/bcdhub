@@ -23,9 +23,9 @@
     },
     "tzstats": {
         "mainnet": "https://api.tzstats.com",
-        "zeronet": "",
-        "babylonnet": "",
-        "carthagenet": ""
+        "zeronet": "https://api.zeronet.tzstats.com",
+        "babylonnet": "https://api.babylonnet.tzstats.com",
+        "carthagenet": "https://api.carthagenet.tzstats.com"
     },
     "indexer": "tzstats",
     "update_timer": 60

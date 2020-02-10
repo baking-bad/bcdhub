@@ -140,7 +140,7 @@ func syncIndexer(rpc *noderpc.NodeRPC, indexer index.Indexer, es *elastic.Elasti
 			return err
 		}
 
-		levels, err := indexer.GetContractOperationBlocks(int(s.Level), addresses, spendable)
+		levels, err := indexer.GetContractOperationBlocks(int(s.Level), int(cs.Level), addresses, spendable)
 		if err != nil {
 			return err
 		}
@@ -155,6 +155,7 @@ func syncIndexer(rpc *noderpc.NodeRPC, indexer index.Indexer, es *elastic.Elasti
 		for _, l := range levels {
 			ops, err := getOperations(rpc, es, l, network, addresses)
 			if err != nil {
+				log.Printf("Error level: %d", l)
 				return err
 			}
 

@@ -106,7 +106,7 @@ func syncIndexer(rpc *noderpc.NodeRPC, indexer index.Indexer, es *elastic.Elasti
 			for _, c := range contracts {
 				n, err := createContract(c, rpc, es, network)
 				if err != nil {
-					logger.Error(err)
+					logger.Errorf("[%d] %s  [%s]", c.Level, err.Error(), c.Address)
 					continue
 				}
 

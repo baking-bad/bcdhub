@@ -210,7 +210,7 @@ func (e *Elastic) FindSimilarContracts(hash []string, minScore float64) ([]model
 						"match": map[string]interface{}{
 							"hash": map[string]interface{}{
 								"query":     hash[0],
-								"fuzziness": 1,
+								"fuzziness": 2,
 							},
 						},
 					},
@@ -218,7 +218,7 @@ func (e *Elastic) FindSimilarContracts(hash []string, minScore float64) ([]model
 						"match": map[string]interface{}{
 							"hash": map[string]interface{}{
 								"query":     hash[1],
-								"fuzziness": 1,
+								"fuzziness": 2,
 							},
 						},
 					},
@@ -226,7 +226,7 @@ func (e *Elastic) FindSimilarContracts(hash []string, minScore float64) ([]model
 						"match": map[string]interface{}{
 							"hash": map[string]interface{}{
 								"query":     hash[2],
-								"fuzziness": 1,
+								"fuzziness": 2,
 							},
 						},
 					},

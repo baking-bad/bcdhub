@@ -47,7 +47,7 @@ func NewNodeJSON(data gjson.Result) Node {
 		n.Value = data.Get(consts.KeyString).String()
 		n.Type = consts.KeyString
 	} else if data.Get(consts.KeyTime).Exists() {
-		n.Value = data.Get(consts.KeyTime).String()
+		n.Value = data.Get(consts.KeyTime).Time()
 		n.Type = consts.KeyTime
 	}
 
@@ -55,7 +55,7 @@ func NewNodeJSON(data gjson.Result) Node {
 }
 
 // GetString - return string value
-func (n *Node) GetString() string {
+func (n Node) GetString() string {
 	if n.Type != consts.KeyString {
 		return ""
 	}
@@ -63,7 +63,7 @@ func (n *Node) GetString() string {
 }
 
 // GetBytes - return bytes value
-func (n *Node) GetBytes() string {
+func (n Node) GetBytes() string {
 	if n.Type != consts.KeyBytes {
 		return ""
 	}
@@ -71,7 +71,7 @@ func (n *Node) GetBytes() string {
 }
 
 // GetInt - return int value
-func (n *Node) GetInt() int64 {
+func (n Node) GetInt() int64 {
 	if n.Type != consts.KeyInt {
 		return 0
 	}
@@ -79,7 +79,7 @@ func (n *Node) GetInt() int64 {
 }
 
 // GetMutez - return mutez value
-func (n *Node) GetMutez() float64 {
+func (n Node) GetMutez() float64 {
 	if n.Type != consts.KeyMutez {
 		return .0
 	}
@@ -87,21 +87,21 @@ func (n *Node) GetMutez() float64 {
 }
 
 // Is - check prim value
-func (n *Node) Is(prim string) bool {
+func (n Node) Is(prim string) bool {
 	return strings.ToLower(prim) == n.Prim
 }
 
 // HasAnnots - check if node has annotations
-func (n *Node) HasAnnots() bool {
+func (n Node) HasAnnots() bool {
 	return len(n.Annotations) > 0
 }
 
 // HasArgs - check if node has args
-func (n *Node) HasArgs() bool {
+func (n Node) HasArgs() bool {
 	return len(n.Args.Array()) > 0
 }
 
 // Print -
-func (n *Node) Print() {
+func (n Node) Print() {
 	log.Printf("%s: %s [%s] (args: %d)", strings.Join(n.Annotations, ","), n.Prim, n.Type, len(n.Args.Array()))
 }

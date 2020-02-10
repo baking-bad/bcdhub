@@ -1,14 +1,19 @@
 package handlers
 
-import "github.com/aopoltorzhicky/bcdhub/internal/models"
+import (
+	"time"
+
+	"github.com/aopoltorzhicky/bcdhub/internal/models"
+)
 
 // Operation -
 type Operation struct {
-	ID       string `json:"-"`
-	Protocol string `json:"protocol"`
-	Hash     string `json:"hash"`
-	Internal bool   `json:"internal"`
-	Network  string `json:"network"`
+	ID        string    `json:"-"`
+	Protocol  string    `json:"protocol"`
+	Hash      string    `json:"hash"`
+	Internal  bool      `json:"internal"`
+	Network   string    `json:"network"`
+	Timesatmp time.Time `json:"timestamp"`
 
 	Level         int64  `json:"level"`
 	Kind          string `json:"kind"`

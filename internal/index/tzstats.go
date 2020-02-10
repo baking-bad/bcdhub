@@ -113,21 +113,21 @@ func (h contractOperation) Name() string {
 }
 
 // GetContractOperationBlocks -
-func (t *TzStats) GetContractOperationBlocks(startBlock int, knownContracts map[string]struct{}, spendable map[string]struct{}) ([]int64, error) {
+func (t *TzStats) GetContractOperationBlocks(startBlock, endBlock int, knownContracts map[string]struct{}, spendable map[string]struct{}) ([]int64, error) {
 	all := make(map[int64]struct{})
 
 	log.Println("Searching blocks with operations with params...")
-	if err := t.getContractOperaionsBlockWithParameters(startBlock, knownContracts, all); err != nil {
+	if err := t.getContractOperaionsBlockWithParameters(startBlock, endBlock, knownContracts, all); err != nil {
 		return nil, err
 	}
 
 	log.Println("Searching originations...")
-	if err := t.getContractOriginations(startBlock, knownContracts, all); err != nil {
+	if err := t.getContractOriginations(startBlock, endBlock, knownContracts, all); err != nil {
 		return nil, err
 	}
 
 	log.Println("Searching spendable contract transactions...")
-	if err := t.getSpendableContractOperaions(startBlock, spendable, all); err != nil {
+	if err := t.getSpendableContractOperaions(startBlock, endBlock, spendable, all); err != nil {
 		return nil, err
 	}
 
@@ -147,12 +147,12 @@ func (t *TzStats) GetContractOperationBlocks(startBlock int, knownContracts map[
 	return resp, nil
 }
 
-func (t *TzStats) getContractOperaionsBlockWithParameters(startBlock int, knownContracts map[string]struct{}, all map[int64]struct{}) error {
+func (t *TzStats) getContractOperaionsBlockWithParameters(startBlock, endBlock int, knownContracts map[string]struct{}, all map[int64]struct{}) error {
 	rowID := int64(0)
 
 	for {
 		var operations []contractOperation
-		query := t.api.Model(contractOperation{}).NotEquals("parameters", "").GreaterThan("height", startBlock).Limit(50000)
+		query := t.api.Model(contractOperation{}).NotEquals("parameters", "").GreaterThan("height", startBlock).LessThanOrEqual("height", endBlock).Limit(50000)
 		if rowID > 0 {
 			query = query.Is("cursor", fmt.Sprintf("%d", rowID))
 		}
@@ -180,12 +180,12 @@ func (t *TzStats) getContractOperaionsBlockWithParameters(startBlock int, knownC
 	}
 }
 
-func (t *TzStats) getContractOriginations(startBlock int, knownContracts map[string]struct{}, all map[int64]struct{}) error {
+func (t *TzStats) getContractOriginations(startBlock, endBlock int, knownContracts map[string]struct{}, all map[int64]struct{}) error {
 	rowID := int64(0)
 
 	for {
 		var operations []contractOperation
-		query := t.api.Model(contractOperation{}).Is("type", "origination").GreaterThan("height", startBlock).Limit(50000)
+		query := t.api.Model(contractOperation{}).Is("type", "origination").GreaterThan("height", startBlock).LessThanOrEqual("height", endBlock).Limit(50000)
 		if rowID > 0 {
 			query = query.Is("cursor", fmt.Sprintf("%d", rowID))
 		}
@@ -211,7 +211,10 @@ func (t *TzStats) getContractOriginations(startBlock int, knownContracts map[str
 	}
 }
 
-func (t *TzStats) getSpendableContractOperaions(startBlock int, spendable map[string]struct{}, all map[int64]struct{}) error {
+func (t *TzStats) getSpendableContractOperaions(startBlock, endBlock int, spendable map[string]struct{}, all map[int64]struct{}) error {
+	if len(spendable) == 0 {
+		return nil
+	}
 	rowID := int64(0)
 
 	for {
@@ -220,7 +223,7 @@ func (t *TzStats) getSpendableContractOperaions(startBlock int, spendable map[st
 		for k := range spendable {
 			keys = append(keys, k)
 		}
-		query := t.api.Model(contractOperation{}).Is("type", "transaction").In("sender", keys).GreaterThan("height", startBlock).Limit(50000)
+		query := t.api.Model(contractOperation{}).Is("type", "transaction").In("sender", keys).GreaterThan("height", startBlock).LessThanOrEqual("height", endBlock).Limit(50000)
 		if rowID > 0 {
 			query = query.Is("cursor", fmt.Sprintf("%d", rowID))
 		}

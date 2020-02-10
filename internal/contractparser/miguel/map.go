@@ -26,7 +26,6 @@ func (l *mapDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadat
 		if key != nil {
 			gjsonPath := fmt.Sprintf("%d.args.1", i)
 			valNode := node.Get(gjsonPath)
-
 			var value interface{}
 			if valNode.Exists() {
 				value, err = michelineNodeToMiguel(valNode, path+"/v", metadata)

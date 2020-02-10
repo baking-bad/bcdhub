@@ -10,7 +10,7 @@ var (
 )
 
 var allFields = []string{
-	"address^10", "manager^8", "delegate^6", "tags^4", "hardcoded", "annotations", "fail_strings", "entrypoints",
+	"address^10", "manager^8", "delegate^6", "tags^4", "hardcoded", "annotations", "fail_strings", "entrypoints", "language",
 }
 
 var mapFields = map[string]string{
@@ -22,6 +22,7 @@ var mapFields = map[string]string{
 	"annots":    "annotations",
 	"fail":      "fail_strings",
 	"entry":     "entrypoints",
+	"language":  "language",
 }
 
 var mapHighlights = map[string]interface{}{
@@ -33,6 +34,7 @@ var mapHighlights = map[string]interface{}{
 	"annotations":  map[string]interface{}{},
 	"fail_strings": map[string]interface{}{},
 	"entrypoints":  map[string]interface{}{},
+	"language":     map[string]interface{}{},
 }
 
 var supportedNetworks = map[string]struct{}{

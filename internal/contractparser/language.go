@@ -23,13 +23,10 @@ func detectLiquidity(n node.Node, entries []string) bool {
 
 func detectPython(n node.Node) bool {
 	str := n.GetString()
-	if str == "" {
-		return false
-	}
-
-	return strings.Contains(str, "SmartPy") || strings.Contains(str, "self.") || strings.Contains(str, "sp.")
+	return str != "" && (strings.Contains(str, "SmartPy") || strings.Contains(str, "self.") || strings.Contains(str, "sp."))
 }
 
 func detectLIGO(n node.Node) bool {
-	return n.GetString() == "GET_FORCE"
+	str := n.GetString()
+	return str == "GET_FORCE" || str == "get_force"
 }

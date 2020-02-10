@@ -14,6 +14,7 @@ import (
 
 func getMetadata(rpc *noderpc.NodeRPC, c *models.Contract, tag string) (map[string]string, error) {
 	res := make(map[string]string)
+
 	a, err := createMetadata(rpc, 0, c, tag)
 	if err != nil {
 		return nil, err
@@ -22,8 +23,8 @@ func getMetadata(rpc *noderpc.NodeRPC, c *models.Contract, tag string) (map[stri
 	if c.Network == consts.Mainnet {
 		res[consts.MetadataBabylon] = a
 
-		if c.Level < levelBabylon {
-			a, err = createMetadata(rpc, levelBabylon-1, c, tag)
+		if c.Level < consts.LevelBabylon {
+			a, err = createMetadata(rpc, consts.LevelBabylon-1, c, tag)
 			if err != nil {
 				return nil, err
 			}
@@ -31,6 +32,7 @@ func getMetadata(rpc *noderpc.NodeRPC, c *models.Contract, tag string) (map[stri
 		}
 	} else {
 		res[consts.MetadataBabylon] = a
+		res[consts.MetadataAlpha] = a
 	}
 	return res, nil
 }
@@ -69,7 +71,7 @@ func createMetadata(rpc *noderpc.NodeRPC, level int64, c *models.Contract, tag s
 		if err != nil {
 			return "", nil
 		}
-		if tag == "parameter" {
+		if tag == consts.PARAMETER {
 			getEntrypointsFromMetadata(a, c)
 		}
 
@@ -83,17 +85,17 @@ func createMetadata(rpc *noderpc.NodeRPC, level int64, c *models.Contract, tag s
 }
 
 func saveMetadata(es *elastic.Elastic, rpc *noderpc.NodeRPC, c *models.Contract) error {
-	storage, err := getMetadata(rpc, c, "storage")
+	storage, err := getMetadata(rpc, c, consts.STORAGE)
 	if err != nil {
 		return err
 	}
-	parameter, err := getMetadata(rpc, c, "parameter")
+	parameter, err := getMetadata(rpc, c, consts.PARAMETER)
 	if err != nil {
 		return err
 	}
 	data := map[string]interface{}{
-		"parameter": parameter,
-		"storage":   storage,
+		consts.PARAMETER: parameter,
+		consts.STORAGE:   storage,
 	}
 	_, err = es.AddDocumentWithID(data, elastic.DocMetadata, c.Address)
 	return err

@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/miguel"
 	"github.com/gin-gonic/gin"
 )
@@ -26,14 +27,14 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 		return
 	}
 
-	level := storage.Get("_source.level").Int()
-	s, err := enrichStorage(storage.Get("_source.deffated_storage").String(), bmd, level)
+	protocol := storage.Get("_source.protocol").String()
+	s, err := enrichStorage(storage.Get("_source.deffated_storage").String(), bmd, protocol)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	metadata, err := getMetadata(ctx.ES, req.Address, req.Network, "storage", level)
+	metadata, err := meta.GetMetadata(ctx.ES, req.Address, req.Network, "storage", protocol)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return

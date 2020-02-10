@@ -23,10 +23,10 @@ func NewAlpha(es *elastic.Elastic) Alpha {
 }
 
 // ParseTransaction -
-func (a Alpha) ParseTransaction(content gjson.Result, level int64, operationID string) (RichStorage, error) {
+func (a Alpha) ParseTransaction(content gjson.Result, protocol string, level int64, operationID string) (RichStorage, error) {
 	address := content.Get("destination").String()
 
-	m, err := meta.GetMetadata(a.es, address, consts.Mainnet, "storage", level)
+	m, err := meta.GetMetadata(a.es, address, consts.Mainnet, "storage", protocol)
 	if err != nil {
 		return RichStorage{Empty: true}, err
 	}
@@ -47,9 +47,40 @@ func (a Alpha) ParseTransaction(content gjson.Result, level int64, operationID s
 }
 
 // ParseOrigination -
-func (a Alpha) ParseOrigination(content gjson.Result, level int64, operationID string) (RichStorage, error) {
+func (a Alpha) ParseOrigination(content gjson.Result, protocol string, level int64, operationID string) (RichStorage, error) {
+	result, err := getResult(content)
+	if err != nil {
+		return RichStorage{Empty: true}, err
+	}
+	address := result.Get("originated_contracts.0").String()
+
+	storage := content.Get("script.storage")
+	bigMapData := storage.Get("args.0")
+
+	bmd := make([]models.BigMapDiff, 0)
+	for _, item := range bigMapData.Array() {
+		keyHash := ""
+		bmd = append(bmd, models.BigMapDiff{
+			BinPath:     "0/0",
+			Key:         item.Get("key").Value(),
+			KeyHash:     keyHash,
+			Value:       item.Get("value").String(),
+			OperationID: operationID,
+			Level:       level,
+			Address:     address,
+		})
+	}
+
+	res := storage.String()
+	if len(bmd) > 0 {
+		res, err = sjson.Set(res, "args.0", []interface{}{})
+		if err != nil {
+			return RichStorage{Empty: true}, err
+		}
+	}
 	return RichStorage{
-		DeffatedStorage: content.Get("script.storage").String(),
+		BigMapDiffs:     bmd,
+		DeffatedStorage: res,
 	}, nil
 }
 

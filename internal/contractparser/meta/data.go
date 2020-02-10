@@ -192,11 +192,10 @@ func finishParseMetadata(metadata Metadata, path string, node internalNode) {
 }
 
 // GetMetadataNetwork -
-func GetMetadataNetwork(network string, level int64) string {
-	if network != consts.Mainnet {
-		return consts.MetadataBabylon
-	}
-	if level >= consts.LevelBabylon || level == 0 {
+func GetMetadataNetwork(network string, protocol string) string {
+	if helpers.StringInArray(protocol, []string{
+		consts.HashBabylon, consts.HashCarthage,
+	}) {
 		return consts.MetadataBabylon
 	}
 	return consts.MetadataAlpha
@@ -287,7 +286,7 @@ func getNodeType(n internalNode, metadata Metadata) (string, []string) {
 }
 
 // GetMetadata -
-func GetMetadata(es *elastic.Elastic, address, network, tag string, level int64) (Metadata, error) {
+func GetMetadata(es *elastic.Elastic, address, network, tag, protocol string) (Metadata, error) {
 	if address == "" {
 		return nil, fmt.Errorf("[getMetadata] Empty address")
 	}
@@ -296,7 +295,7 @@ func GetMetadata(es *elastic.Elastic, address, network, tag string, level int64)
 	if err != nil {
 		return nil, err
 	}
-	n := GetMetadataNetwork(network, level)
+	n := GetMetadataNetwork(network, protocol)
 	path := fmt.Sprintf("_source.%s.%s", tag, n)
 	metadata := data.Get(path).String()
 

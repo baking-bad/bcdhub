@@ -104,6 +104,6 @@ func (t *TzKT) GetContracts(startLevel int64) ([]Contract, error) {
 }
 
 // GetContractOperationBlocks -
-func (t *TzKT) GetContractOperationBlocks(startBlock int, knownContracts map[string]struct{}, spendable map[string]struct{}) ([]int64, error) {
+func (t *TzKT) GetContractOperationBlocks(startBlock, endBlock int, knownContracts map[string]struct{}, spendable map[string]struct{}) ([]int64, error) {
 	return nil, nil
 }

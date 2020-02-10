@@ -3,6 +3,8 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/miguel"
 	"github.com/gin-gonic/gin"
 )
@@ -15,7 +17,7 @@ func (ctx *Context) GetEntrypoints(c *gin.Context) {
 		return
 	}
 
-	metadata, err := getMetadata(ctx.ES, req.Address, req.Network, "parameter", 0)
+	metadata, err := meta.GetMetadata(ctx.ES, req.Address, req.Network, "parameter", consts.HashBabylon)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
