@@ -5,14 +5,28 @@ import (
 	"strings"
 )
 
-// HexToMicheline -
-func HexToMicheline(hex string) (string, int, error) {
+// ToMicheline -
+func ToMicheline(input string) (string, error) {
+	str, offset, err := hexToMicheline(input)
+	if err != nil {
+		return "", err
+	}
+
+	if offset != len(input) {
+		return "", fmt.Errorf("invalid offset %v, expected %v", offset, len(input))
+	}
+
+	return str, err
+}
+
+func hexToMicheline(hex string) (string, int, error) {
 	var code string
 	var offset int
 
 	if len(hex) < 2 {
-		return hex, 0, nil
+		return code, offset, fmt.Errorf("hexToMicheline error. input less than 2. input: %v", hex)
 	}
+
 	fieldType := hex[:2]
 	offset += 2
 
@@ -32,7 +46,7 @@ func HexToMicheline(hex string) (string, int, error) {
 		code += fmt.Sprintf(`{ "string": "%v" }`, val)
 		offset += length
 	case "02":
-		val, length, err := decodeArray(hex, offset)
+		val, length, err := decodeArray(hex[offset:], 0)
 		if err != nil {
 			return code, offset, err
 		}
@@ -65,7 +79,7 @@ func HexToMicheline(hex string) (string, int, error) {
 		}
 		offset += 2
 
-		args, length, err := HexToMicheline(hex[offset:])
+		args, length, err := hexToMicheline(hex[offset:])
 		if err != nil {
 			return code, offset, err
 		}
@@ -78,7 +92,7 @@ func HexToMicheline(hex string) (string, int, error) {
 		}
 		offset += 2
 
-		args, length, err := HexToMicheline(hex[offset:])
+		args, length, err := hexToMicheline(hex[offset:])
 		if err != nil {
 			return code, offset, err
 		}
@@ -99,14 +113,14 @@ func HexToMicheline(hex string) (string, int, error) {
 
 		args := make([]string, 0, 2)
 
-		arg1, length, err := HexToMicheline(hex[offset:])
+		arg1, length, err := hexToMicheline(hex[offset:])
 		if err != nil {
 			return code, offset, err
 		}
 		args = append(args, arg1)
 		offset += length
 
-		arg2, length, err := HexToMicheline(hex[offset:])
+		arg2, length, err := hexToMicheline(hex[offset:])
 		if err != nil {
 			return code, offset, err
 		}
@@ -114,7 +128,6 @@ func HexToMicheline(hex string) (string, int, error) {
 		offset += length
 
 		code += fmt.Sprintf(`{ "prim": "%v", "args": [ %v ] }`, prim, strings.Join(args, ", "))
-		offset += offset
 	case "08":
 		prim, err := decodePrim(hex[offset : offset+2])
 		if err != nil {
@@ -124,14 +137,14 @@ func HexToMicheline(hex string) (string, int, error) {
 
 		args := make([]string, 0, 2)
 
-		arg1, length, err := HexToMicheline(hex[offset:])
+		arg1, length, err := hexToMicheline(hex[offset:])
 		if err != nil {
 			return code, offset, err
 		}
 		args = append(args, arg1)
 		offset += length
 
-		arg2, length, err := HexToMicheline(hex[offset:])
+		arg2, length, err := hexToMicheline(hex[offset:])
 		if err != nil {
 			return code, offset, err
 		}
@@ -158,6 +171,10 @@ func HexToMicheline(hex string) (string, int, error) {
 		}
 		offset += length - 4
 
+		if len(hex) < offset+8 {
+			return code, offset, fmt.Errorf("hexToMicheline err. Input too short: %v", hex)
+		}
+
 		if hex[offset:offset+8] != "00000000" {
 			annots, length, err := decodeAnnotations(hex[offset:])
 			if err != nil {
@@ -171,8 +188,12 @@ func HexToMicheline(hex string) (string, int, error) {
 			offset += 8
 		}
 	case "0a":
+		if len(hex) < offset+8 {
+			return code, offset, fmt.Errorf("hexToMicheline err. Input too short: %v", hex)
+		}
+
 		val := hex[offset+8:]
-		length := len(hex[offset+8:])*2 + 8
+		length := len(hex[offset+8:]) + 8
 		code += fmt.Sprintf(`{ "bytes": "%v" }`, val)
 		offset += length
 	default:

@@ -112,7 +112,10 @@ func TestMichelineToMichelson(t *testing.T) {
 			}
 
 			parsedData := gjson.ParseBytes(data)
-			result := MichelineToMichelson(parsedData, true)
+			result, err := MichelineToMichelson(parsedData, true)
+			if err != nil {
+				t.Error("MichelineToMichelson error:", err)
+			}
 
 			tzFile := fmt.Sprintf("./formatter_tests/%v/code_%v.tz", tt, tt[:6])
 			expected, err := ioutil.ReadFile(tzFile)

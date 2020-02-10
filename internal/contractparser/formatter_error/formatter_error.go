@@ -15,18 +15,23 @@ type code struct {
 }
 
 // LocateContractError - returns error position by number of error node
-// returned values are: row, startCol, endCol
-func LocateContractError(n gjson.Result, node int) (int, int, int) {
+// returned values are: row, startCol, endCol, error
+func LocateContractError(n gjson.Result, node int) (int, int, int, error) {
 	c := &code{
 		searchNode: node + 1,
 	}
 
-	text := c.locateError(n, "", true, false)
+	text, err := c.locateError(n, "", true, false)
+	if err != nil {
+		return 0, 0, 0, err
+	}
 
-	return findError(text)
+	row, startCol, endCol := findError(text)
+
+	return row, startCol, endCol, nil
 }
 
-func (c *code) locateError(node gjson.Result, indent string, isRoot, wrapped bool) string {
+func (c *code) locateError(node gjson.Result, indent string, isRoot, wrapped bool) (string, error) {
 	c.currentNode++
 
 	if node.IsArray() {
@@ -37,11 +42,10 @@ func (c *code) locateError(node gjson.Result, indent string, isRoot, wrapped boo
 		return c.locateInObject(node, indent, isRoot, wrapped)
 	}
 
-	fmt.Println("NODE:", node)
-	panic("shit happens")
+	return "", fmt.Errorf("node is not array or object: %v", node)
 }
 
-func (c *code) locateInArray(node gjson.Result, indent string, isRoot bool) string {
+func (c *code) locateInArray(node gjson.Result, indent string, isRoot bool) (string, error) {
 	seqIndent := indent
 	isScriptRoot := isRoot && formatter.IsScript(node)
 	if !isScriptRoot {
@@ -51,11 +55,15 @@ func (c *code) locateInArray(node gjson.Result, indent string, isRoot bool) stri
 	items := make([]string, len(node.Array()))
 
 	for i, n := range node.Array() {
-		items[i] = c.locateError(n, seqIndent, false, true)
+		res, err := c.locateError(n, seqIndent, false, true)
+		if err != nil {
+			return "", err
+		}
+		items[i] = res
 	}
 
 	if len(items) == 0 {
-		return "{}"
+		return "{}", nil
 	}
 
 	length := len(indent) + 4
@@ -77,13 +85,13 @@ func (c *code) locateInArray(node gjson.Result, indent string, isRoot bool) stri
 	}
 
 	if !isScriptRoot {
-		return fmt.Sprintf("{ %v }", seq)
+		return fmt.Sprintf("{ %v }", seq), nil
 	}
 
-	return seq
+	return seq, nil
 }
 
-func (c *code) locateInObject(node gjson.Result, indent string, isRoot, wrapped bool) string {
+func (c *code) locateInObject(node gjson.Result, indent string, isRoot, wrapped bool) (string, error) {
 	if node.Get("prim").Exists() {
 		return c.locatePrimObject(node, indent, isRoot, wrapped)
 	}
@@ -91,7 +99,7 @@ func (c *code) locateInObject(node gjson.Result, indent string, isRoot, wrapped 
 	return c.locateNonPrimObject(node)
 }
 
-func (c *code) locatePrimObject(node gjson.Result, indent string, isRoot, wrapped bool) string {
+func (c *code) locatePrimObject(node gjson.Result, indent string, isRoot, wrapped bool) (string, error) {
 	var res []string
 
 	prim := node.Get("prim").String()
@@ -119,7 +127,11 @@ func (c *code) locatePrimObject(node gjson.Result, indent string, isRoot, wrappe
 		argIndent := indent + "  "
 		items := make([]string, len(args))
 		for i, a := range args {
-			items[i] = c.locateError(a, argIndent, false, false)
+			res, err := c.locateError(a, argIndent, false, false)
+			if err != nil {
+				return "", err
+			}
+			items[i] = res
 		}
 
 		length := len(indent) + len(expr) + len(items) + 1
@@ -137,13 +149,20 @@ func (c *code) locatePrimObject(node gjson.Result, indent string, isRoot, wrappe
 		}
 	} else if len(args) == 1 {
 		argIndent := indent + strings.Repeat(" ", len(expr)+1)
-		expr = fmt.Sprintf("%v %v", expr, c.locateError(args[0], argIndent, false, false))
+		res, err := c.locateError(args[0], argIndent, false, false)
+		if err != nil {
+			return "", err
+		}
+		expr = fmt.Sprintf("%v %v", expr, res)
 	} else if len(args) > 1 {
 		argIndent := indent + "  "
 		altIndent := indent + strings.Repeat(" ", len(expr)+2)
 
 		for _, arg := range args {
-			item := c.locateError(arg, argIndent, false, false)
+			item, err := c.locateError(arg, argIndent, false, false)
+			if err != nil {
+				return "", err
+			}
 			length := len(indent) + len(expr) + len(item) + 1
 			if formatter.IsInline(node) || length < formatter.LineSize {
 				argIndent = altIndent
@@ -155,29 +174,27 @@ func (c *code) locatePrimObject(node gjson.Result, indent string, isRoot, wrappe
 	}
 
 	if formatter.IsFramed(node) && !isRoot && !wrapped {
-		return fmt.Sprintf("(%v)", expr)
+		return fmt.Sprintf("(%v)", expr), nil
 	}
-	return expr
+	return expr, nil
 }
 
-func (c *code) locateNonPrimObject(node gjson.Result) string {
+func (c *code) locateNonPrimObject(node gjson.Result) (string, error) {
 	if len(node.Map()) != 1 {
-		fmt.Println("NODE:", node)
-		panic("node keys count != 1")
+		return "", fmt.Errorf("node keys count != 1 %v", node)
 	}
 
 	for coreType, value := range node.Map() {
 		if coreType == "int" {
-			return value.String()
+			return value.String(), nil
 		} else if coreType == "bytes" {
-			return fmt.Sprintf("0x%v", value.String())
+			return fmt.Sprintf("0x%v", value.String()), nil
 		} else if coreType == "string" {
-			return value.Raw
+			return value.Raw, nil
 		}
 	}
 
-	fmt.Println("NODE:", node)
-	panic("invalid coreType")
+	return "", fmt.Errorf("invalid coreType %v", node)
 }
 
 func unicodeMark(s string) string {

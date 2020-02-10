@@ -1,6 +1,9 @@
 package rawbytes
 
-import "strconv"
+import (
+	"fmt"
+	"strconv"
+)
 
 var primKeywords = []string{
 	"parameter",
@@ -123,6 +126,10 @@ func decodePrim(h string) (string, error) {
 	v, err := strconv.ParseInt(h, 16, 64)
 	if err != nil {
 		return "", err
+	}
+
+	if int(v) > len(primKeywords) {
+		return "", fmt.Errorf("invalid prim keyword %v", h)
 	}
 
 	return primKeywords[v], nil

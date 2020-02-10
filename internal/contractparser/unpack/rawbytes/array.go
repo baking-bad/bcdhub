@@ -10,6 +10,10 @@ import (
 func decodeArray(hex string, offset int) (string, int, error) {
 	var code string
 
+	if len(hex) < offset+8 {
+		return code, offset, fmt.Errorf("decodeArray err. input too short: %v", hex)
+	}
+
 	length, err := strconv.ParseInt(hex[offset:offset+8], 16, 64)
 	if err != nil {
 		log.Fatal(err)
@@ -20,7 +24,7 @@ func decodeArray(hex string, offset int) (string, int, error) {
 	var consumed int
 
 	for consumed < int(length) {
-		c, o, err := HexToMicheline(hex[offset:])
+		c, o, err := hexToMicheline(hex[offset:])
 		if err != nil {
 			return code, offset, err
 		}

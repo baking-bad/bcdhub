@@ -2,8 +2,8 @@ package miguel
 
 import (
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/decode"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/unpack"
 	"github.com/tidwall/gjson"
 )
 
@@ -30,14 +30,14 @@ func (l *literalDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMet
 			"type":  nm.Type,
 		}, nil
 	case consts.BYTES:
-		data := decode.Bytes(node.Get(consts.BYTES).String())
+		data := unpack.Bytes(node.Get(consts.BYTES).String())
 		return map[string]interface{}{
 			"value": data,
 			"type":  nm.Type,
 		}, nil
 	case consts.ADDRESS:
 		if node.Get(consts.BYTES).Exists() {
-			data, err := decode.Address(node.Get(consts.BYTES).String())
+			data, err := unpack.Address(node.Get(consts.BYTES).String())
 			if err != nil {
 				return nil, err
 			}
@@ -52,7 +52,7 @@ func (l *literalDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMet
 		}, nil
 	case consts.KEYHASH:
 		if node.Get(consts.BYTES).Exists() {
-			data, err := decode.KeyHash(node.Get(consts.BYTES).String())
+			data, err := unpack.KeyHash(node.Get(consts.BYTES).String())
 			if err != nil {
 				return nil, err
 			}
@@ -67,7 +67,7 @@ func (l *literalDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMet
 		}, nil
 	case consts.KEY:
 		if node.Get(consts.BYTES).Exists() {
-			data, err := decode.PublicKey(node.Get(consts.BYTES).String())
+			data, err := unpack.PublicKey(node.Get(consts.BYTES).String())
 			if err != nil {
 				return nil, err
 			}

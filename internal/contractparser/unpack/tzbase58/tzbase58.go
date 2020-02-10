@@ -1,4 +1,4 @@
-package rawbase58
+package tzbase58
 
 import (
 	"crypto/sha256"
