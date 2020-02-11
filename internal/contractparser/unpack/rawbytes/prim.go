@@ -1,8 +1,10 @@
 package rawbytes
 
 import (
+	"encoding/binary"
 	"fmt"
-	"strconv"
+	"io"
+	"strings"
 )
 
 var primKeywords = []string{
@@ -122,15 +124,76 @@ var primKeywords = []string{
 	"tez",
 }
 
-func decodePrim(h string) (string, error) {
-	v, err := strconv.ParseInt(h, 16, 64)
+type primDecoder struct{}
+
+// Decode -
+func (d primDecoder) Decode(dec io.Reader, code *strings.Builder) (int, error) {
+	b := make([]byte, 4)
+	if n, err := dec.Read(b); err != nil {
+		return n, err
+	}
+	key := int(binary.LittleEndian.Uint32(b))
+	if key > len(primKeywords) {
+		return 4, fmt.Errorf("invalid prim keyword %s", b)
+	}
+	fmt.Fprintf(code, `{ "prim": "%s" }`, primKeywords[key])
+	return 4, nil
+}
+
+type primAnnotsDecoder struct{}
+
+// Decode -
+func (d primAnnotsDecoder) Decode(dec io.Reader, code *strings.Builder) (int, error) {
+	b := make([]byte, 1)
+	if n, err := dec.Read(b); err != nil {
+		return n, err
+	}
+	key := int(b[0])
+	if key > len(primKeywords) {
+		return 1, fmt.Errorf("invalid prim keyword %s", b)
+	}
+	fmt.Fprintf(code, `{ "prim": "%s", "annots": [ "`, primKeywords[key])
+
+	sb := make([]byte, 4)
+	if n, err := dec.Read(sb); err != nil {
+		return n, err
+	}
+
+	length := int(binary.BigEndian.Uint32(sb))
+	data := make([]byte, length)
+	if _, err := dec.Read(data); err != nil && err != io.EOF {
+		return 1 + 4 + length, err
+	}
+
+	var ret []string
+	for _, v := range strings.Split(string(data), " ") {
+		ret = append(ret, v)
+	}
+
+	annots := strings.Join(ret, "\",\"")
+	fmt.Fprintf(code, "%s\" ] }", annots)
+	return length + 4 + 1, nil
+}
+
+type primArgsDecoder struct{}
+
+// Decode -
+func (d primArgsDecoder) Decode(dec io.Reader, code *strings.Builder) (int, error) {
+	b := make([]byte, 1)
+	if n, err := dec.Read(b); err != nil {
+		return n, err
+	}
+	key := int(b[0])
+	if key > len(primKeywords) {
+		return 1, fmt.Errorf("invalid prim keyword %s", b)
+	}
+	fmt.Fprintf(code, `{ "prim": "%s", "args": [ `, primKeywords[key])
+
+	n, err := hexToMicheline(dec, code)
 	if err != nil {
-		return "", err
+		return n + 1, err
 	}
 
-	if int(v) > len(primKeywords) {
-		return "", fmt.Errorf("invalid prim keyword %v", h)
-	}
-
-	return primKeywords[v], nil
+	fmt.Fprintf(code, ` ] }`)
+	return n + 1, nil
 }

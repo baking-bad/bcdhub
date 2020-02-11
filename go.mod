@@ -14,4 +14,5 @@ require (
 	github.com/r3labs/diff v0.0.0-20191120142937-b4ed99a31f5a
 	github.com/tidwall/gjson v1.4.0
 	github.com/tidwall/sjson v1.0.4
+	golang.org/x/crypto v0.0.0-20200115085410-6d4e4cb37c7d
 )

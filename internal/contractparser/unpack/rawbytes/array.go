@@ -1,43 +1,36 @@
 package rawbytes
 
 import (
-	"fmt"
-	"log"
-	"strconv"
+	"encoding/binary"
+	"io"
 	"strings"
 )
 
-func decodeArray(hex string, offset int) (string, int, error) {
-	var code string
+type arrayDecoder struct{}
 
-	if len(hex) < offset+8 {
-		return code, offset, fmt.Errorf("decodeArray err. input too short: %v", hex)
+// Decode -
+func (d arrayDecoder) Decode(dec io.Reader, code *strings.Builder) (int, error) {
+	code.WriteString("[ ")
+	b := make([]byte, 4)
+	if n, err := dec.Read(b); err != nil {
+		return n, err
 	}
 
-	length, err := strconv.ParseInt(hex[offset:offset+8], 16, 64)
-	if err != nil {
-		log.Fatal(err)
-	}
-	offset += 8
-
-	var buffer []string
-	var consumed int
-
-	for consumed < int(length) {
-		c, o, err := hexToMicheline(hex[offset:])
-		if err != nil {
-			return code, offset, err
+	length := int(binary.BigEndian.Uint32(b))
+	if length != 0 {
+		var count int
+		for count < length {
+			n, err := hexToMicheline(dec, code)
+			if err != nil {
+				return length + 4, err
+			}
+			count += n + 1
+			if count < length {
+				code.WriteString(", ")
+			}
 		}
-		buffer = append(buffer, c)
-		consumed += o / 2
-		offset += o
 	}
 
-	if length == 0 {
-		code += `[]`
-	} else {
-		code += fmt.Sprintf(`[ %v ]`, strings.Join(buffer, ", "))
-	}
-
-	return code, offset, nil
+	code.WriteString(" ]")
+	return length + 4, nil
 }
