@@ -219,7 +219,7 @@ func TestToMichelineErrors(t *testing.T) {
 		{
 			name:  "offset error",
 			input: "00f7bda18081d73103c6da76151a15e6ab4b0bca788006481c2062b0df028ed8ac",
-			err:   "invalid offset 16, expected 66",
+			err:   "input is not empty",
 		},
 		{
 			name:  "prim keyword error",
@@ -233,6 +233,7 @@ func TestToMichelineErrors(t *testing.T) {
 			_, err := ToMicheline(tc.input)
 			if err == nil {
 				t.Errorf("Empty error. Input: %v.", tc.input)
+				return
 			}
 			if err.Error() != tc.err {
 				t.Errorf("Input: %v. Got: %v, expected: %v.", tc.input, err, tc.err)

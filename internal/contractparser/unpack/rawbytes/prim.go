@@ -2,7 +2,8 @@ package rawbytes
 
 import (
 	"fmt"
-	"strconv"
+	"io"
+	"strings"
 )
 
 var primKeywords = []string{
@@ -122,15 +123,79 @@ var primKeywords = []string{
 	"tez",
 }
 
-func decodePrim(h string) (string, error) {
-	v, err := strconv.ParseInt(h, 16, 64)
+type primDecoder struct {
+	ArgsCount int
+	HasAnnots bool
+}
+
+func newPrimDecoder(argsCount int, hasAnnots bool) primDecoder {
+	return primDecoder{
+		ArgsCount: argsCount,
+		HasAnnots: hasAnnots,
+	}
+}
+
+// Decode -
+func (d primDecoder) Decode(dec io.Reader, code *strings.Builder) (length int, err error) {
+	prim, err := decodePrim(dec)
 	if err != nil {
-		return "", err
+		return 1, err
+	}
+	fmt.Fprintf(code, `{ "prim": "%s"`, prim)
+	length++
+
+	if d.ArgsCount > 0 {
+		fmt.Fprintf(code, `, "args": [ `)
+		n, err := decodeArgs(dec, code, d.ArgsCount)
+		if err != nil {
+			return n + 1, err
+		}
+		fmt.Fprintf(code, ` ]`)
+		length += n
 	}
 
-	if int(v) > len(primKeywords) {
-		return "", fmt.Errorf("invalid prim keyword %v", h)
+	if d.HasAnnots {
+		fmt.Fprintf(code, `, "annots": [ "`)
+
+		annots, n, err := decodeAnnots(dec)
+		if err != nil {
+			return length + 1, err
+		}
+		fmt.Fprintf(code, "%s\" ]", annots)
+		length += n
+	}
+	fmt.Fprintf(code, ` }`)
+	return length, nil
+}
+
+type primGeneral struct{}
+
+// Decode -
+func (d primGeneral) Decode(dec io.Reader, code *strings.Builder) (length int, err error) {
+	prim, err := decodePrim(dec)
+	if err != nil {
+		return 1, err
+	}
+	fmt.Fprintf(code, `{ "prim": "%s", "args": `, prim)
+	length++
+
+	ad := arrayDecoder{}
+	n, err := ad.Decode(dec, code)
+	if err != nil {
+		return n + 1, err
+	}
+	length += n
+
+	annots, n, err := decodeAnnots(dec)
+	if err != nil {
+		return length + 1, err
 	}
 
-	return primKeywords[v], nil
+	length += n
+	if n != 4 {
+		fmt.Fprintf(code, `, "annots": [ "%s" ]`, annots)
+	}
+
+	fmt.Fprintf(code, ` }`)
+	return length, nil
 }

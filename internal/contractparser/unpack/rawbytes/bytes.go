@@ -6,10 +6,10 @@ import (
 	"strings"
 )
 
-type stringDecoder struct{}
+type bytesDecoder struct{}
 
 // Decode -
-func (d stringDecoder) Decode(dec io.Reader, code *strings.Builder) (int, error) {
+func (d bytesDecoder) Decode(dec io.Reader, code *strings.Builder) (int, error) {
 	length, err := decodeLength(dec)
 	if err != nil {
 		return 4, err
@@ -18,6 +18,6 @@ func (d stringDecoder) Decode(dec io.Reader, code *strings.Builder) (int, error)
 	if _, err := dec.Read(data); err != nil && err != io.EOF {
 		return 4 + length, err
 	}
-	fmt.Fprintf(code, `{ "string": "%s" }`, data)
+	fmt.Fprintf(code, `{ "bytes": "%x" }`, data)
 	return 4 + length, nil
 }
