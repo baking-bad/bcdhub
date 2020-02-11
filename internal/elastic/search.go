@@ -40,7 +40,7 @@ func getNetworksFilter(networks []string) ([]map[string]interface{}, error) {
 }
 
 func setDateFilter(must []map[string]interface{}, dateFrom, dateTo uint) []map[string]interface{} {
-	if dateFrom <= 0 && dateTo <= 0 {
+	if dateFrom == 0 && dateTo == 0 {
 		return must
 	}
 	ts := map[string]interface{}{}

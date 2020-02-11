@@ -7,7 +7,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-type onArray func(arr []gjson.Result) error
+type onArray func(arr gjson.Result) error
 type onPrim func(n node.Node) error
 
 type parser struct {
@@ -24,7 +24,7 @@ func (p *parser) parse(v gjson.Result) error {
 			}
 		}
 		if p.arrayHandler != nil {
-			if err := p.arrayHandler(arr); err != nil {
+			if err := p.arrayHandler(v); err != nil {
 				return err
 			}
 		}

@@ -97,7 +97,7 @@ func (c *Code) parseCode(args gjson.Result) error {
 	return nil
 }
 
-func (c *Code) handleArray(arr []gjson.Result) error {
+func (c *Code) handleArray(arr gjson.Result) error {
 	if fail := parseFail(arr); fail != nil {
 		if fail.With != "" {
 			c.FailStrings.Append(fail.With)

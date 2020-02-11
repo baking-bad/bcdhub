@@ -53,7 +53,7 @@ func getStartPath(data gjson.Result, metadata meta.Metadata) (gjson.Result, stri
 	if entrypoint.Exists() && value.Exists() {
 		root := metadata["0"]
 		if root.Prim != consts.OR && root.Type != consts.TypeNamedUnion {
-			return data, "", fmt.Errorf("Invalid root metadata: [prim] %s | [type] %s", root.Prim, root.Type)
+			return value, "0", nil
 		}
 		for path, md := range metadata {
 			if md.FieldName == entrypoint.String() {
