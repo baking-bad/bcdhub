@@ -2,10 +2,13 @@ package unpack
 
 import (
 	"encoding/hex"
+	"log"
 	"unicode/utf8"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/formatter"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/unpack/rawbytes"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/unpack/tzbase58"
+	"github.com/tidwall/gjson"
 )
 
 // PublicKey -
@@ -32,7 +35,12 @@ func Bytes(input string) string {
 	if len(input) > 1 && input[:2] == "05" {
 		str, err := rawbytes.ToMicheline(input[2:])
 		if err == nil {
-			return str
+			data := gjson.Parse(str)
+			res, err := formatter.MichelineToMichelson(data)
+			log.Println(err)
+			if err == nil {
+				return res
+			}
 		}
 	}
 

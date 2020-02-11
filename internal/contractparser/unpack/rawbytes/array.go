@@ -1,18 +1,24 @@
 package rawbytes
 
 import (
-	"io"
+	"fmt"
 	"strings"
 )
 
 type arrayDecoder struct{}
 
 // Decode -
-func (d arrayDecoder) Decode(dec io.Reader, code *strings.Builder) (int, error) {
+func (d arrayDecoder) Decode(dec *decoder, code *strings.Builder) (int, error) {
 	code.WriteString("[")
 	length, err := decodeLength(dec)
 	if err != nil {
 		return 4, err
+	}
+	if dec.Len() < length {
+		return 4, &invalidDataError{
+			typ:     "string",
+			message: fmt.Sprintf("Not enough data in reader: %d < %d", dec.Len(), length),
+		}
 	}
 	if length != 0 {
 		code.WriteString(" ")

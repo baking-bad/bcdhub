@@ -2,7 +2,6 @@ package rawbytes
 
 import (
 	"fmt"
-	"io"
 	"strings"
 )
 
@@ -136,7 +135,7 @@ func newPrimDecoder(argsCount int, hasAnnots bool) primDecoder {
 }
 
 // Decode -
-func (d primDecoder) Decode(dec io.Reader, code *strings.Builder) (length int, err error) {
+func (d primDecoder) Decode(dec *decoder, code *strings.Builder) (length int, err error) {
 	prim, err := decodePrim(dec)
 	if err != nil {
 		return 1, err
@@ -171,7 +170,7 @@ func (d primDecoder) Decode(dec io.Reader, code *strings.Builder) (length int, e
 type primGeneral struct{}
 
 // Decode -
-func (d primGeneral) Decode(dec io.Reader, code *strings.Builder) (length int, err error) {
+func (d primGeneral) Decode(dec *decoder, code *strings.Builder) (length int, err error) {
 	prim, err := decodePrim(dec)
 	if err != nil {
 		return 1, err

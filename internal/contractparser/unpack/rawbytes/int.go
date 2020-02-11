@@ -3,15 +3,15 @@ package rawbytes
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"math/big"
 	"strings"
 )
 
 type intDecoder struct{}
 
+// 00 00 06a868bd80219eb1f6a25108d1bdaa98ae27b2d9
 // Decode -
-func (d intDecoder) Decode(dec io.Reader, code *strings.Builder) (int, error) {
+func (d intDecoder) Decode(dec *decoder, code *strings.Builder) (int, error) {
 	var buffer bytes.Buffer
 
 	for {
