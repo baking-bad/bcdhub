@@ -21,12 +21,7 @@ func decodeAnnots(dec *decoder) (string, int, error) {
 			return "", n, err
 		}
 
-		var ret []string
-		for _, v := range strings.Split(string(data), " ") {
-			ret = append(ret, v)
-		}
-
-		annots = strings.Join(ret, `", "`)
+		annots = strings.Join(strings.Split(string(data), " "), `", "`)
 	}
 	return annots, length + 4, nil
 }
