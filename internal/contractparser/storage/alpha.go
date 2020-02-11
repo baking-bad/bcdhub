@@ -4,6 +4,7 @@ import (
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/miguel"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/storage/hash"
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/tidwall/gjson"
@@ -59,7 +60,10 @@ func (a Alpha) ParseOrigination(content gjson.Result, protocol string, level int
 
 	bmd := make([]models.BigMapDiff, 0)
 	for _, item := range bigMapData.Array() {
-		keyHash := ""
+		keyHash, err := hash.Key(item.Get("key"))
+		if err != nil {
+			return RichStorage{Empty: true}, err
+		}
 		bmd = append(bmd, models.BigMapDiff{
 			BinPath:     "0/0",
 			Key:         item.Get("key").Value(),
