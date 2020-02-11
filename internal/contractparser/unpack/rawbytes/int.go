@@ -3,7 +3,6 @@ package rawbytes
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"math/big"
 	"strings"
 )
@@ -11,7 +10,7 @@ import (
 type intDecoder struct{}
 
 // Decode -
-func (d intDecoder) Decode(dec io.Reader, code *strings.Builder) (int, error) {
+func (d intDecoder) Decode(dec *decoder, code *strings.Builder) (int, error) {
 	var buffer bytes.Buffer
 
 	for {

@@ -1,7 +1,6 @@
 package rawbytes
 
 import (
-	"encoding/hex"
 	"fmt"
 	"io"
 	"strings"
@@ -23,7 +22,7 @@ var forgers = map[byte]forger{
 
 // ToMicheline -
 func ToMicheline(input string) (string, error) {
-	dec := hex.NewDecoder(strings.NewReader(input))
+	dec := newDecoder(strings.NewReader(input))
 	var code strings.Builder
 	if _, err := hexToMicheline(dec, &code); err != nil {
 		return "", err
@@ -39,7 +38,7 @@ func ToMicheline(input string) (string, error) {
 	return code.String(), nil
 }
 
-func hexToMicheline(dec io.Reader, code *strings.Builder) (int, error) {
+func hexToMicheline(dec *decoder, code *strings.Builder) (int, error) {
 	ft := make([]byte, 1)
 	if n, err := dec.Read(ft); err != nil {
 		return n, err

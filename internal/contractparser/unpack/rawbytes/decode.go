@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func decodeAnnots(dec io.Reader) (string, int, error) {
+func decodeAnnots(dec *decoder) (string, int, error) {
 	sb := make([]byte, 4)
 	if n, err := dec.Read(sb); err != nil {
 		return "", n, err
@@ -21,17 +21,12 @@ func decodeAnnots(dec io.Reader) (string, int, error) {
 			return "", n, err
 		}
 
-		var ret []string
-		for _, v := range strings.Split(string(data), " ") {
-			ret = append(ret, v)
-		}
-
-		annots = strings.Join(ret, `", "`)
+		annots = strings.Join(strings.Split(string(data), " "), `", "`)
 	}
 	return annots, length + 4, nil
 }
 
-func decodeLength(dec io.Reader) (int, error) {
+func decodeLength(dec *decoder) (int, error) {
 	b := make([]byte, 4)
 	if n, err := dec.Read(b); err != nil {
 		return n, err
@@ -41,19 +36,22 @@ func decodeLength(dec io.Reader) (int, error) {
 	return length, nil
 }
 
-func decodePrim(dec io.Reader) (string, error) {
+func decodePrim(dec *decoder) (string, error) {
 	b := make([]byte, 1)
 	if _, err := dec.Read(b); err != nil {
 		return "", err
 	}
 	key := int(b[0])
 	if key > len(primKeywords) {
-		return "", fmt.Errorf("invalid prim keyword %x", b)
+		return "", &invalidDataError{
+			message: fmt.Sprintf("invalid prim keyword %x", b),
+			typ:     "prim",
+		}
 	}
 	return primKeywords[key], nil
 }
 
-func decodeArgs(dec io.Reader, code *strings.Builder, count int) (length int, err error) {
+func decodeArgs(dec *decoder, code *strings.Builder, count int) (length int, err error) {
 	for i := 0; i < count; i++ {
 		n, err := hexToMicheline(dec, code)
 		if err != nil {

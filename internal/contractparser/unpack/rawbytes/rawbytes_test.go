@@ -224,7 +224,7 @@ func TestToMichelineErrors(t *testing.T) {
 		{
 			name:  "prim keyword error",
 			input: "03fe636820fd6e933da2de8a131df78c56ba64d1574749db4a20c3eb03a126b3",
-			err:   "invalid prim keyword fe",
+			err:   "Invalid data: [prim] invalid prim keyword fe",
 		},
 	}
 

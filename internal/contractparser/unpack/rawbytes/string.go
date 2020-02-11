@@ -9,10 +9,17 @@ import (
 type stringDecoder struct{}
 
 // Decode -
-func (d stringDecoder) Decode(dec io.Reader, code *strings.Builder) (int, error) {
+func (d stringDecoder) Decode(dec *decoder, code *strings.Builder) (int, error) {
 	length, err := decodeLength(dec)
 	if err != nil {
 		return 4, err
+	}
+
+	if dec.Len() < length {
+		return 4, &invalidDataError{
+			typ:     "string",
+			message: fmt.Sprintf("Not enough data in reader: %d < %d", dec.Len(), length),
+		}
 	}
 	data := make([]byte, length)
 	if _, err := dec.Read(data); err != nil && err != io.EOF {
