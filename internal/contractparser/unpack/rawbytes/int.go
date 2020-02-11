@@ -2,42 +2,40 @@ package rawbytes
 
 import (
 	"bytes"
-	"encoding/hex"
 	"fmt"
+	"io"
 	"math/big"
-	"strconv"
+	"strings"
 )
 
-func decodeInt(hex string) (string, int, error) {
-	var ret, buffer string
-	var i int
-	var err error
+type intDecoder struct{}
 
-	for 2*i < len(hex) {
-		start := 2 * i
-		end := start + 2
-		part := hex[start:end]
-		buffer += part
-		i++
+// Decode -
+func (d intDecoder) Decode(dec io.Reader, code *strings.Builder) (int, error) {
+	var buffer bytes.Buffer
 
-		val, err := strconv.ParseInt(part, 16, 32)
-		if err != nil {
-			return ret, 0, err
+	for {
+		buf := make([]byte, 1)
+		if _, err := dec.Read(buf); err != nil {
+			break
 		}
-		if val < 127 {
+		buffer.Write(buf)
+		if buf[0] < 127 {
 			break
 		}
 	}
 
-	ret, err = decodeSignedHex(buffer)
+	ret, err := d.DecodeSigned(buffer.Bytes())
 	if err != nil {
-		return ret, 0, err
+		return buffer.Len(), err
 	}
 
-	return ret, i * 2, err
+	fmt.Fprintf(code, `{ "int": "%s" }`, ret)
+	return buffer.Len(), nil
 }
 
-func decodeSigned(source []byte) (string, error) {
+// DecodeSigned -
+func (d intDecoder) DecodeSigned(source []byte) (string, error) {
 	if len(source) == 0 {
 		return "", fmt.Errorf("expected non-empty byte array")
 	}
@@ -85,15 +83,4 @@ func decodeSigned(source []byte) (string, error) {
 	}
 
 	return fmt.Sprintf("%v", ret), nil
-}
-
-// decodeSignedHex decodes a zarith encoded signed integer from the entire input hex string.
-// Assumes the input contains no extra trailing bytes.
-func decodeSignedHex(source string) (string, error) {
-	bytes, err := hex.DecodeString(source)
-	if err != nil {
-		return "", err
-	}
-
-	return decodeSigned(bytes)
 }
