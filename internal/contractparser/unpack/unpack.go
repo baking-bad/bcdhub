@@ -2,7 +2,6 @@ package unpack
 
 import (
 	"encoding/hex"
-	"log"
 	"unicode/utf8"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/formatter"
@@ -36,8 +35,8 @@ func Bytes(input string) string {
 		str, err := rawbytes.ToMicheline(input[2:])
 		if err == nil {
 			data := gjson.Parse(str)
-			res, err := formatter.MichelineToMichelson(data)
-			log.Println(err)
+			res, err := formatter.MichelineToMichelson(data, false)
+
 			if err == nil {
 				return res
 			}
