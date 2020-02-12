@@ -30,8 +30,8 @@ func parseContarctFromHit(hit gjson.Result, c *models.Contract) {
 	c.Annotations = parseStringArray(hit, "_source.annotations")
 	c.Primitives = parseStringArray(hit, "_source.primitives")
 	c.FailStrings = parseStringArray(hit, "_source.fail_strings")
-	c.Hash = parseStringArray(hit, "_source.hash")
 	c.Entrypoints = parseStringArray(hit, "_source.entrypoints")
+	c.Fingerprint = getFingerprint(hit.Get("_source.fingerprint"))
 
 	c.Address = hit.Get("_source.address").String()
 	c.Manager = hit.Get("_source.manager").String()
@@ -40,6 +40,18 @@ func parseContarctFromHit(hit gjson.Result, c *models.Contract) {
 	c.ProjectID = hit.Get("_source.project_id").String()
 
 	c.FoundBy = getFoundBy(hit)
+}
+
+func getFingerprint(hit gjson.Result) *models.Fingerprint {
+	if !hit.Exists() {
+		return nil
+	}
+
+	return &models.Fingerprint{
+		Code:      hit.Get("code").String(),
+		Parameter: hit.Get("parameter").String(),
+		Storage:   hit.Get("storage").String(),
+	}
 }
 
 func getFoundBy(hit gjson.Result) string {
@@ -131,6 +143,30 @@ func (e *Elastic) GetContract(by map[string]interface{}) (models.Contract, error
 	return e.getContract(query)
 }
 
+// GetContractsByLevel -
+func (e *Elastic) GetContractsByLevel(level int64, sort string) ([]models.Contract, error) {
+	query := map[string]interface{}{
+		"query": map[string]interface{}{
+			"bool": map[string]interface{}{
+				"must": map[string]interface{}{
+					"range": map[string]interface{}{
+						"level": map[string]interface{}{
+							"gt": level,
+						},
+					},
+				},
+			},
+		},
+		"size": 10000,
+		"sort": map[string]interface{}{
+			"timestamp": map[string]interface{}{
+				"order": sort,
+			},
+		},
+	}
+	return e.getContracts(query)
+}
+
 // GetContractField -
 func (e *Elastic) GetContractField(by map[string]interface{}, field string) (interface{}, error) {
 	query := getContractQuery(by)
@@ -142,166 +178,6 @@ func (e *Elastic) GetContractField(by map[string]interface{}, field string) (int
 		return nil, fmt.Errorf("Unknown contract: %v", by)
 	}
 	return res.Get("hits.hits.0._source").Get(field).Value(), nil
-}
-
-// FindProjectContracts -
-func (e *Elastic) FindProjectContracts(hash []string, minScore float64) ([]models.Contract, error) {
-	if len(hash) != 3 {
-		return nil, fmt.Errorf("Length of hash array must be 3")
-	}
-	query := map[string]interface{}{
-		"size": 1000,
-		"_source": map[string]interface{}{
-			"excludes": []string{"hash"},
-		},
-		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
-				"must": []map[string]interface{}{
-					map[string]interface{}{
-						"match": map[string]interface{}{
-							"hash": map[string]interface{}{
-								"query":     hash[0],
-								"fuzziness": 1,
-							},
-						},
-					},
-					map[string]interface{}{
-						"match": map[string]interface{}{
-							"hash": map[string]interface{}{
-								"query":     hash[1],
-								"fuzziness": 1,
-							},
-						},
-					},
-					map[string]interface{}{
-						"match": map[string]interface{}{
-							"hash": map[string]interface{}{
-								"query":     hash[2],
-								"fuzziness": 1,
-							},
-						},
-					},
-				},
-			},
-		},
-		"sort": map[string]interface{}{
-			"timestamp": map[string]interface{}{
-				"order": "desc",
-			},
-		},
-	}
-	return e.getContracts(query)
-}
-
-// FindSimilarContracts -
-func (e *Elastic) FindSimilarContracts(hash []string, minScore float64) ([]models.Contract, error) {
-	if len(hash) != 3 {
-		return nil, fmt.Errorf("Length of hash array must be 3")
-	}
-	query := map[string]interface{}{
-		"size": 1000,
-		"_source": map[string]interface{}{
-			"excludes": []string{"hash"},
-		},
-		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
-				"must": []map[string]interface{}{
-					map[string]interface{}{
-						"match": map[string]interface{}{
-							"hash": map[string]interface{}{
-								"query":     hash[0],
-								"fuzziness": 2,
-							},
-						},
-					},
-					map[string]interface{}{
-						"match": map[string]interface{}{
-							"hash": map[string]interface{}{
-								"query":     hash[1],
-								"fuzziness": 2,
-							},
-						},
-					},
-					map[string]interface{}{
-						"match": map[string]interface{}{
-							"hash": map[string]interface{}{
-								"query":     hash[2],
-								"fuzziness": 2,
-							},
-						},
-					},
-				},
-				"must_not": []map[string]interface{}{
-					map[string]interface{}{
-						"match_phrase": map[string]interface{}{
-							"hash": hash[0],
-						},
-					},
-					map[string]interface{}{
-						"match_phrase": map[string]interface{}{
-							"hash": hash[1],
-						},
-					},
-					map[string]interface{}{
-						"match_phrase": map[string]interface{}{
-							"hash": hash[2],
-						},
-					},
-				},
-			},
-		},
-		"sort": map[string]interface{}{
-			"timestamp": map[string]interface{}{
-				"order": "desc",
-			},
-		},
-	}
-	return e.getContracts(query)
-}
-
-// FindSameContracts -
-func (e *Elastic) FindSameContracts(address string, hash []string, minScore float64) ([]models.Contract, error) {
-	if len(hash) != 3 {
-		return nil, fmt.Errorf("Length of hash array must be 3")
-	}
-	query := map[string]interface{}{
-		"size": 1000,
-		"_source": map[string]interface{}{
-			"excludes": []string{"hash"},
-		},
-		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
-				"must": []map[string]interface{}{
-					map[string]interface{}{
-						"match_phrase": map[string]interface{}{
-							"hash": hash[0],
-						},
-					},
-					map[string]interface{}{
-						"match_phrase": map[string]interface{}{
-							"hash": hash[1],
-						},
-					},
-					map[string]interface{}{
-						"match_phrase": map[string]interface{}{
-							"hash": hash[2],
-						},
-					},
-				},
-				"must_not": map[string]interface{}{
-					"match_phrase": map[string]interface{}{
-						"address": address,
-					},
-				},
-			},
-		},
-		"sort": map[string]interface{}{
-			"timestamp": map[string]interface{}{
-				"order": "desc",
-			},
-		},
-	}
-	return e.getContracts(query)
 }
 
 func parseContarcts(res *gjson.Result) []models.Contract {

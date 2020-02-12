@@ -7,7 +7,6 @@ import (
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/node"
 	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
-	"github.com/aopoltorzhicky/bcdhub/internal/tlsh"
 	"github.com/tidwall/gjson"
 )
 
@@ -28,9 +27,6 @@ type Parameter struct {
 
 	Metadata meta.Metadata
 
-	Hash string
-	hash []byte
-
 	Tags helpers.Set
 }
 
@@ -40,7 +36,6 @@ func newParameter(v gjson.Result) (Parameter, error) {
 	}
 	p := Parameter{
 		parser: &parser{},
-		hash:   make([]byte, 0),
 		Tags:   make(helpers.Set),
 	}
 	p.primHandler = p.handlePrimitive
@@ -53,15 +48,6 @@ func newParameter(v gjson.Result) (Parameter, error) {
 		return p, err
 	}
 	p.Metadata = m
-
-	if len(p.hash) == 0 {
-		p.hash = append(p.hash, 0)
-	}
-	h, err := tlsh.HashBytes(p.hash)
-	if err != nil {
-		return p, err
-	}
-	p.Hash = h.String()
 
 	e, err := p.EntrypointStructs()
 	if err != nil {
@@ -78,8 +64,6 @@ func newParameter(v gjson.Result) (Parameter, error) {
 }
 
 func (p *Parameter) handlePrimitive(n node.Node) error {
-	p.hash = append(p.hash, []byte(n.Prim)...)
-
 	if n.Is(consts.CONTRACT) {
 		p.Tags.Append(consts.ViewMethodTag)
 	}

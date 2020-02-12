@@ -6,7 +6,6 @@ import (
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/node"
 	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
-	"github.com/aopoltorzhicky/bcdhub/internal/tlsh"
 	"github.com/tidwall/gjson"
 )
 
@@ -17,9 +16,6 @@ type Code struct {
 	Parameter Parameter
 	Storage   Storage
 	Code      gjson.Result
-
-	Hash string
-	hash []byte
 
 	Tags        helpers.Set
 	Language    string
@@ -32,7 +28,6 @@ func newCode(script gjson.Result) (Code, error) {
 	res := Code{
 		parser:      &parser{},
 		Language:    consts.LangUnknown,
-		hash:        make([]byte, 0),
 		FailStrings: make(helpers.Set),
 		Primitives:  make(helpers.Set),
 		Tags:        make(helpers.Set),
@@ -86,14 +81,6 @@ func (c *Code) parseCode(args gjson.Result) error {
 		}
 	}
 
-	if len(c.hash) == 0 {
-		c.hash = append(c.hash, 0)
-	}
-	h, err := tlsh.HashBytes(c.hash)
-	if err != nil {
-		return err
-	}
-	c.Hash = h.String()
 	return nil
 }
 
@@ -108,7 +95,6 @@ func (c *Code) handleArray(arr gjson.Result) error {
 
 func (c *Code) handlePrimitive(n node.Node) (err error) {
 	c.Primitives.Append(n.Prim)
-	c.hash = append(c.hash, []byte(n.Prim)...)
 
 	if n.HasAnnots() {
 		c.Annotations.Append(n.Annotations...)

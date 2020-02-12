@@ -21,9 +21,9 @@ var arrayMacros = []macros{
 	newIfMacros(),
 	newCompareMacros(),
 	newDupNMacros(),
-	newPairMacros(),
-	newUnpairMacros(),
-	newUnpairNMacros(),
+	// newPairMacros(),
+	// newUnpairMacros(),
+	// newUnpairNMacros(),
 	newCadrMacros(),
 	newSetCarMacros(),
 }

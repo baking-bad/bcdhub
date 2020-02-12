@@ -232,7 +232,7 @@ func (m *ifMacros) Find(data gjson.Result) bool {
 
 func (m *ifMacros) Collapse(data gjson.Result) {
 	for i, current := range m.Indices {
-		key := fmt.Sprintf("%d", current-1)
+		key := fmt.Sprintf("%d", current)
 		eqItem := data.Get(key)
 		prim := getPrim(eqItem)
 		m.NewValues[i]["prim"] = fmt.Sprintf("%s%s", m.Name, prim)
@@ -242,7 +242,7 @@ func (m *ifMacros) Collapse(data gjson.Result) {
 			m.NewValues[i]["annots"] = annots.Value()
 		}
 
-		key = fmt.Sprintf("%d", current)
+		key = fmt.Sprintf("%d", current-1)
 		ifItem := data.Get(key)
 		args := ifItem.Get("args").Array()
 		if len(args) == 2 {
@@ -253,19 +253,18 @@ func (m *ifMacros) Collapse(data gjson.Result) {
 
 func (m *ifMacros) Replace(json, path string) (res string, err error) {
 	res = json
-	count := 0
+
 	for i, current := range m.Indices {
-		updateKey := fmt.Sprintf("%s.%d", path, current-count)
+		updateKey := fmt.Sprintf("%s.%d", path, current-i)
 		res, err = sjson.Set(res, updateKey, m.NewValues[i])
 		if err != nil {
 			return
 		}
-		deleteKey := fmt.Sprintf("%s.%d", path, current+1-count)
+		deleteKey := fmt.Sprintf("%s.%d", path, current+1-i)
 		res, err = sjson.Delete(res, deleteKey)
 		if err != nil {
 			return
 		}
-		count++
 	}
 
 	m.NewValues = nil

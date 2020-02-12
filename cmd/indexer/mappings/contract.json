@@ -83,7 +83,26 @@
                 "type": "date"
             },
             "project_id": {
-                "type": "text"
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 36
+                    }
+                }
+            },
+            "fingerprint": {
+                "properties": {
+                    "code": {
+                        "type": "text"
+                    },
+                    "parameter": {
+                        "type": "text"
+                    },
+                    "storage": {
+                        "type": "text"
+                    }
+                }
             }
         }
     }
