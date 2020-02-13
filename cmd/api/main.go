@@ -49,6 +49,7 @@ func main() {
 		}
 
 		v1.GET("pick_random", ctx.GetRandomContract)
+		v1.GET("diff", ctx.GetDiff)
 		project := v1.Group("project")
 		{
 			address := project.Group(":address")

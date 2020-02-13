@@ -22,6 +22,9 @@ func (m *FailStrings) Compute(a, b models.Contract) float64 {
 	if len(a.FailStrings) == 0 && len(b.FailStrings) == 0 {
 		return m.Weight
 	}
+	if len(a.FailStrings) == 0 || len(b.FailStrings) == 0 {
+		return 0
+	}
 
 	for i := range a.FailStrings {
 		found := false
@@ -38,5 +41,5 @@ func (m *FailStrings) Compute(a, b models.Contract) float64 {
 		}
 	}
 
-	return sum * m.Weight / float64(len(a.FailStrings)+len(b.FailStrings))
+	return round(sum*m.Weight/float64(len(a.FailStrings)+len(b.FailStrings)), 6)
 }

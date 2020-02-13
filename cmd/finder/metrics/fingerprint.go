@@ -1,13 +1,14 @@
 package metrics
 
 import (
+	"encoding/hex"
 	"math"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 )
 
 const (
-	levensteinThreashold = 5
+	levensteinThreashold = 100
 )
 
 // Fingerprint -
@@ -33,28 +34,27 @@ func (m *Fingerprint) Compute(a, b models.Contract) float64 {
 		return 0.0
 	}
 
-	var x, y string
+	var x, y []byte
 	if m.Section == "parameter" {
-		x = a.Fingerprint.Parameter
-		y = b.Fingerprint.Parameter
+		x, _ = hex.DecodeString(a.Fingerprint.Parameter)
+		y, _ = hex.DecodeString(b.Fingerprint.Parameter)
 	} else if m.Section == "storage" {
-		x = a.Fingerprint.Storage
-		y = b.Fingerprint.Storage
+		x, _ = hex.DecodeString(a.Fingerprint.Storage)
+		y, _ = hex.DecodeString(b.Fingerprint.Storage)
 	} else if m.Section == "code" {
-		x = a.Fingerprint.Code
-		y = b.Fingerprint.Code
+		x, _ = hex.DecodeString(a.Fingerprint.Code)
+		y, _ = hex.DecodeString(b.Fingerprint.Code)
 	} else {
 		return 0.0
 	}
 
-	dist := float64(distance(x, y, levensteinThreashold))
-	if dist > levensteinThreashold {
-		return 0
-	}
-	return (float64(levensteinThreashold-dist) / levensteinThreashold) * m.Weight
+	dist := float64(distance(x, y))
+	maxLen := math.Max(float64(len(x)), float64(len(y)))
+	val := 1. - math.Pow(dist/maxLen, 1.25)
+	return round(val*m.Weight, 6)
 }
 
-func distance(a, b string, threashold uint16) int {
+func distance(a, b []byte) int {
 	if len(a) == 0 {
 		return len(b)
 	}
@@ -63,8 +63,17 @@ func distance(a, b string, threashold uint16) int {
 		return len(a)
 	}
 
-	if a == b {
-		return 0
+	if len(a) == len(b) {
+		eq := true
+		for i := 0; i < len(a); i++ {
+			if a[i] != b[i] {
+				eq = false
+				break
+			}
+		}
+		if eq {
+			return 0
+		}
 	}
 
 	// swap to save some memory O(min(a,b)) instead of O(a)
@@ -88,7 +97,10 @@ func distance(a, b string, threashold uint16) int {
 	for i := 1; i <= lenB; i++ {
 		prev := uint16(i)
 		var current uint16
+
+		// log.Printf("b[%d] = %s", i-1, string(b[i-1]))
 		for j := 1; j <= lenA; j++ {
+			// log.Printf("a[%d] = %s", j-1, string(a[j-1]))
 			if b[i-1] == a[j-1] {
 				current = x[j-1] // match
 			} else {
@@ -96,9 +108,6 @@ func distance(a, b string, threashold uint16) int {
 			}
 			x[j-1] = prev
 			prev = current
-			if prev > threashold {
-				return int(prev)
-			}
 		}
 		x[lenA] = prev
 	}
@@ -151,5 +160,5 @@ func (m *FingerprintLength) Compute(a, b models.Contract) float64 {
 	lx := float64(len(x))
 	ly := float64(len(y))
 	sum := float64(math.Min(lx, ly) / math.Max(lx, ly))
-	return sum * m.Weight
+	return round(sum*m.Weight, 6)
 }

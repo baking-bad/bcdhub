@@ -22,10 +22,9 @@ func createRPCs(cfg config) map[string]*noderpc.NodeRPC {
 }
 
 func updateState(es *elastic.Elastic, last models.Contract) error {
-	if currentState.Level >= last.Level {
+	if currentState.Timestamp.After(last.Timestamp) {
 		return nil
 	}
-	currentState.Level = last.Level
 	currentState.Timestamp = last.Timestamp
 
 	if _, err := es.UpdateDoc(elastic.DocStates, currentState.ID, currentState); err != nil {
@@ -35,7 +34,7 @@ func updateState(es *elastic.Elastic, last models.Contract) error {
 }
 
 func getContractProjectID(es *elastic.Elastic, c models.Contract, buckets []models.Contract) (string, error) {
-	for i := range buckets {
+	for i := len(buckets) - 1; i > -1; i-- {
 		ok, err := compare(c, buckets[i])
 		if err != nil {
 			return "", err
@@ -60,16 +59,23 @@ func getContractProjectID(es *elastic.Elastic, c models.Contract, buckets []mode
 }
 
 func sync(rpcs map[string]*noderpc.NodeRPC, es *elastic.Elastic) error {
-	contracts, err := es.GetContractsByLevel(currentState.Level, "asc")
+	logger.Info("Current state: %s", currentState.Timestamp.String())
+
+	contracts, err := es.GetContractsByTime(currentState.Timestamp, "asc")
 	if err != nil {
 		return err
 	}
 
 	logger.Info("Found %d contracts", len(contracts))
 
-	buckets, err := es.GetLastProjectContracts()
-	if err != nil {
-		return err
+	var buckets []models.Contract
+	if !currentState.Timestamp.IsZero() {
+		buckets, err = es.GetLastProjectContracts()
+		if err != nil {
+			return err
+		}
+	} else {
+		buckets = make([]models.Contract, 0)
 	}
 
 	for _, c := range contracts {
@@ -97,5 +103,6 @@ func sync(rpcs map[string]*noderpc.NodeRPC, es *elastic.Elastic) error {
 		}
 	}
 
+	logger.Success("Synced")
 	return nil
 }

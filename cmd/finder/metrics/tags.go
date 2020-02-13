@@ -22,6 +22,9 @@ func (m *Tags) Compute(a, b models.Contract) float64 {
 	if len(a.Tags) == 0 && len(b.Tags) == 0 {
 		return m.Weight
 	}
+	if len(a.Tags) == 0 || len(b.Tags) == 0 {
+		return 0
+	}
 
 	for i := range a.Tags {
 		found := false
@@ -38,5 +41,5 @@ func (m *Tags) Compute(a, b models.Contract) float64 {
 		}
 	}
 
-	return sum * m.Weight / float64(len(a.Tags)+len(b.Tags))
+	return round(sum*m.Weight/float64(len(a.Tags)+len(b.Tags)), 6)
 }

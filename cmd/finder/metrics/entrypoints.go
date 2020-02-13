@@ -22,6 +22,9 @@ func (m *Entrypoints) Compute(a, b models.Contract) float64 {
 	if len(a.Entrypoints) == 0 && len(b.Entrypoints) == 0 {
 		return m.Weight
 	}
+	if len(a.Entrypoints) == 0 || len(b.Entrypoints) == 0 {
+		return 0
+	}
 
 	for i := range a.Entrypoints {
 		found := false
@@ -38,5 +41,5 @@ func (m *Entrypoints) Compute(a, b models.Contract) float64 {
 		}
 	}
 
-	return sum * m.Weight / float64(len(a.Entrypoints)+len(b.Entrypoints))
+	return round(sum*m.Weight/float64(len(a.Entrypoints)+len(b.Entrypoints)), 6)
 }

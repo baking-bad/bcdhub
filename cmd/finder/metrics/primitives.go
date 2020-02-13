@@ -22,6 +22,9 @@ func (m *Primitives) Compute(a, b models.Contract) float64 {
 	if len(a.Primitives) == 0 && len(b.Primitives) == 0 {
 		return m.Weight
 	}
+	if len(a.Primitives) == 0 || len(b.Primitives) == 0 {
+		return 0
+	}
 
 	for i := range a.Primitives {
 		found := false
@@ -38,5 +41,5 @@ func (m *Primitives) Compute(a, b models.Contract) float64 {
 		}
 	}
 
-	return sum * m.Weight / float64(len(a.Primitives)+len(b.Primitives))
+	return round(sum*m.Weight/float64(len(a.Primitives)+len(b.Primitives)), 6)
 }

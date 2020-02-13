@@ -47,19 +47,4 @@ func main() {
 			logger.Error(err)
 		}
 	}
-
-	// c := models.Contract{
-	// 	Address: "KT1RocHqS1y7GxTn6LscgEdbZdwoimRkWSMC",
-	// }
-	// fgpt, err := computeFingerprint(RPCs["babylonnet"], c)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// b, err := json.MarshalIndent(fgpt, "", " ")
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// log.Print(string(b))
 }

@@ -69,3 +69,114 @@ func (e *Elastic) GetLastProjectContracts() ([]models.Contract, error) {
 	}
 	return contracts, nil
 }
+
+// GetSameContracts -
+func (e *Elastic) GetSameContracts(c models.Contract) ([]models.Contract, error) {
+	if c.Fingerprint == nil {
+		return nil, fmt.Errorf("Invalid contract data")
+	}
+
+	query := map[string]interface{}{
+		"size": 10000,
+		"query": map[string]interface{}{
+			"bool": map[string]interface{}{
+				"must": []map[string]interface{}{
+					map[string]interface{}{
+						"match_phrase": map[string]interface{}{
+							"fingerprint.parameter": c.Fingerprint.Parameter,
+						},
+					},
+					map[string]interface{}{
+						"match_phrase": map[string]interface{}{
+							"fingerprint.storage": c.Fingerprint.Storage,
+						},
+					},
+					map[string]interface{}{
+						"match_phrase": map[string]interface{}{
+							"fingerprint.code": c.Fingerprint.Code,
+						},
+					},
+				},
+			},
+		},
+		"sort": map[string]interface{}{
+			"timestamp": map[string]interface{}{
+				"order": "desc",
+			},
+		},
+	}
+
+	resp, err := e.query(DocContracts, query)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.Get("hits.total.value").Int() < 1 {
+		return nil, fmt.Errorf("Unknown contract: %v", c.Address)
+	}
+
+	arr := resp.Get("hits.hits")
+	if !arr.Exists() {
+		return nil, fmt.Errorf("Empty response: %v", resp)
+	}
+
+	contracts := make([]models.Contract, 0)
+	for _, item := range arr.Array() {
+		var c models.Contract
+		parseContarctFromHit(item, &c)
+		contracts = append(contracts, c)
+	}
+	return contracts, nil
+}
+
+// GetSimilarContracts -
+func (e *Elastic) GetSimilarContracts(c models.Contract) ([]models.Contract, error) {
+	if c.ProjectID == "" || c.Fingerprint == nil {
+		return nil, fmt.Errorf("Invalid contract data")
+	}
+
+	query := map[string]interface{}{
+		"size": 10000,
+		"query": map[string]interface{}{
+			"bool": map[string]interface{}{
+				"must": map[string]interface{}{
+					"match_phrase": map[string]interface{}{
+						"project_id": c.ProjectID,
+					},
+				},
+				"must_not": map[string]interface{}{
+					"match_phrase": map[string]interface{}{
+						"fingerprint.parameter": c.Fingerprint.Parameter,
+					},
+				},
+			},
+		},
+		"sort": map[string]interface{}{
+			"timestamp": map[string]interface{}{
+				"order": "desc",
+			},
+		},
+	}
+
+	resp, err := e.query(DocContracts, query)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.Get("hits.total.value").Int() < 1 {
+		return nil, nil
+	}
+
+	arr := resp.Get("hits.hits")
+	if !arr.Exists() {
+		return nil, fmt.Errorf("Empty response: %v", resp)
+	}
+
+	contracts := make([]models.Contract, 0)
+	for _, item := range arr.Array() {
+		var c models.Contract
+		parseContarctFromHit(item, &c)
+		contracts = append(contracts, c)
+	}
+	return contracts, nil
+}

@@ -143,15 +143,15 @@ func (e *Elastic) GetContract(by map[string]interface{}) (models.Contract, error
 	return e.getContract(query)
 }
 
-// GetContractsByLevel -
-func (e *Elastic) GetContractsByLevel(level int64, sort string) ([]models.Contract, error) {
+// GetContractsByTime -
+func (e *Elastic) GetContractsByTime(ts time.Time, sort string) ([]models.Contract, error) {
 	query := map[string]interface{}{
 		"query": map[string]interface{}{
 			"bool": map[string]interface{}{
 				"must": map[string]interface{}{
 					"range": map[string]interface{}{
-						"level": map[string]interface{}{
-							"gt": level,
+						"timestamp": map[string]interface{}{
+							"gt": ts,
 						},
 					},
 				},

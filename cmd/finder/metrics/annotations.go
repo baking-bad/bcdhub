@@ -22,6 +22,9 @@ func (m *Annotations) Compute(a, b models.Contract) float64 {
 	if len(a.Annotations) == 0 && len(b.Annotations) == 0 {
 		return m.Weight
 	}
+	if len(a.Annotations) == 0 || len(b.Annotations) == 0 {
+		return 0
+	}
 
 	for i := range a.Annotations {
 		found := false
@@ -38,5 +41,5 @@ func (m *Annotations) Compute(a, b models.Contract) float64 {
 		}
 	}
 
-	return sum * m.Weight / float64(len(a.Annotations)+len(b.Annotations))
+	return round(sum*m.Weight/float64(len(a.Annotations)+len(b.Annotations)), 6)
 }

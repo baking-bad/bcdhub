@@ -23,12 +23,14 @@ func (e *Elastic) CurrentState(network, typ string) (s models.State, err error) 
 		"query": map[string]interface{}{
 			"bool": map[string]interface{}{
 				"must": []map[string]interface{}{
-					map[string]interface{}{"term": map[string]interface{}{
-						"network": network,
-					}},
-					map[string]interface{}{"term": map[string]interface{}{
-						"type": typ,
-					}},
+					map[string]interface{}{
+						"match_phrase": map[string]interface{}{
+							"network": network,
+						}},
+					map[string]interface{}{
+						"match_phrase": map[string]interface{}{
+							"type": typ,
+						}},
 				},
 			},
 		},
@@ -40,6 +42,7 @@ func (e *Elastic) CurrentState(network, typ string) (s models.State, err error) 
 		}
 		return
 	}
+
 	if r.Get("hits.total.value").Int() == 0 {
 		return e.createState(network, typ)
 	}
@@ -48,5 +51,6 @@ func (e *Elastic) CurrentState(network, typ string) (s models.State, err error) 
 	s.Network = network
 	s.Type = hit.Get("_source.type").String()
 	s.Level = hit.Get("_source.level").Int()
+	s.Timestamp = hit.Get("_source.timestamp").Time()
 	return
 }
