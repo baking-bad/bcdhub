@@ -3,35 +3,40 @@ package main
 import (
 	"fmt"
 
-	"github.com/aopoltorzhicky/bcdhub/cmd/finder/metrics"
+	"github.com/aopoltorzhicky/bcdhub/internal/classification/functions"
+	"github.com/aopoltorzhicky/bcdhub/internal/classification/metrics"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 )
 
 var model = []metrics.Metric{
-	metrics.NewManager(0.15),
-	metrics.NewTags(0.1),
-	metrics.NewFailStrings(0.1),
-	metrics.NewAnnotations(0.1),
-	metrics.NewLanguage(0.05),
-	// metrics.NewPrimitives(0.05),
-	metrics.NewEntrypoints(0.05),
-	metrics.NewFingerprintLength(0.05, "parameter"),
-	metrics.NewFingerprintLength(0.05, "storage"),
-	metrics.NewFingerprintLength(0.05, "code"),
-	metrics.NewFingerprint(0.1, "parameter"),
-	metrics.NewFingerprint(0.1, "storage"),
-	metrics.NewFingerprint(0.1, "code"),
+	metrics.NewBool("Manager"),
+	metrics.NewArray("Tags"),
+	metrics.NewArray("FailStrings"),
+	metrics.NewArray("Annotations"),
+	metrics.NewBool("Language"),
+	metrics.NewArray("Entrypoints"),
+	metrics.NewFingerprintLength("parameter"),
+	metrics.NewFingerprintLength("storage"),
+	metrics.NewFingerprintLength("code"),
+	metrics.NewFingerprint("parameter"),
+	metrics.NewFingerprint("storage"),
+	metrics.NewFingerprint("code"),
 }
 
 func compare(a, b models.Contract) (bool, error) {
 	sum := 0.0
+	features := make([]float64, len(model))
+
 	for i := range model {
-		sum += model[i].Compute(a, b)
+		f := model[i].Compute(a, b)
+		features[i] = f.Value
 		if sum > 1 {
 			return false, fmt.Errorf("Invalid metric weights. Check sum of weight is not equal 1")
 		}
 	}
 
-	// log.Printf("%s -> %s [%.3f]", a.Address, b.Address, sum)
-	return 0.85 <= sum, nil
+	clf := functions.NewLinearSVC()
+	res := clf.Predict(features)
+	// log.Printf("%s -> %s [%d]", a.Address, b.Address, res)
+	return res == 1, nil
 }

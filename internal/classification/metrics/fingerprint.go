@@ -2,6 +2,7 @@ package metrics
 
 import (
 	"encoding/hex"
+	"fmt"
 	"math"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
@@ -13,25 +14,24 @@ const (
 
 // Fingerprint -
 type Fingerprint struct {
-	*DefaultMetric
-
 	Section string
 }
 
 // NewFingerprint -
-func NewFingerprint(weight float64, section string) *Fingerprint {
+func NewFingerprint(section string) *Fingerprint {
 	return &Fingerprint{
-		DefaultMetric: &DefaultMetric{
-			Weight: weight,
-		},
 		Section: section,
 	}
 }
 
 // Compute -
-func (m *Fingerprint) Compute(a, b models.Contract) float64 {
+func (m *Fingerprint) Compute(a, b models.Contract) Feature {
+	f := Feature{
+		Name: fmt.Sprintf("fingerprint_%s", m.Section),
+	}
+
 	if a.Fingerprint == nil || b.Fingerprint == nil {
-		return 0.0
+		return f
 	}
 
 	var x, y []byte
@@ -45,13 +45,14 @@ func (m *Fingerprint) Compute(a, b models.Contract) float64 {
 		x, _ = hex.DecodeString(a.Fingerprint.Code)
 		y, _ = hex.DecodeString(b.Fingerprint.Code)
 	} else {
-		return 0.0
+		return f
 	}
 
 	dist := float64(distance(x, y))
 	maxLen := math.Max(float64(len(x)), float64(len(y)))
 	val := 1. - math.Pow(dist/maxLen, 1.25)
-	return round(val*m.Weight, 6)
+	f.Value = round(val, 6)
+	return f
 }
 
 func distance(a, b []byte) int {
@@ -123,25 +124,23 @@ func min(a, b uint16) uint16 {
 
 // FingerprintLength -
 type FingerprintLength struct {
-	*DefaultMetric
-
 	Section string
 }
 
 // NewFingerprintLength -
-func NewFingerprintLength(weight float64, section string) *FingerprintLength {
+func NewFingerprintLength(section string) *FingerprintLength {
 	return &FingerprintLength{
-		DefaultMetric: &DefaultMetric{
-			Weight: weight,
-		},
 		Section: section,
 	}
 }
 
 // Compute -
-func (m *FingerprintLength) Compute(a, b models.Contract) float64 {
+func (m *FingerprintLength) Compute(a, b models.Contract) Feature {
+	f := Feature{
+		Name: fmt.Sprintf("fingerprint_length_%s", m.Section),
+	}
 	if a.Fingerprint == nil || b.Fingerprint == nil {
-		return 0.0
+		return f
 	}
 	var x, y string
 	if m.Section == "parameter" {
@@ -154,11 +153,12 @@ func (m *FingerprintLength) Compute(a, b models.Contract) float64 {
 		x = a.Fingerprint.Code
 		y = b.Fingerprint.Code
 	} else {
-		return 0.0
+		return f
 	}
 
 	lx := float64(len(x))
 	ly := float64(len(y))
 	sum := float64(math.Min(lx, ly) / math.Max(lx, ly))
-	return round(sum*m.Weight, 6)
+	f.Value = round(sum, 6)
+	return f
 }

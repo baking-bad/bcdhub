@@ -76,37 +76,17 @@ func (e *Elastic) GetSameContracts(c models.Contract) ([]models.Contract, error)
 		return nil, fmt.Errorf("Invalid contract data")
 	}
 
-	query := map[string]interface{}{
-		"size": 10000,
-		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
-				"must": []map[string]interface{}{
-					map[string]interface{}{
-						"match_phrase": map[string]interface{}{
-							"fingerprint.parameter": c.Fingerprint.Parameter,
-						},
-					},
-					map[string]interface{}{
-						"match_phrase": map[string]interface{}{
-							"fingerprint.storage": c.Fingerprint.Storage,
-						},
-					},
-					map[string]interface{}{
-						"match_phrase": map[string]interface{}{
-							"fingerprint.code": c.Fingerprint.Code,
-						},
-					},
-				},
-			},
-		},
-		"sort": map[string]interface{}{
-			"timestamp": map[string]interface{}{
-				"order": "desc",
-			},
-		},
-	}
+	q := newQuery().Query(
+		boolQ(
+			must(
+				matchPhrase("fingerprint.parameter", c.Fingerprint.Parameter),
+				matchPhrase("fingerprint.storage", c.Fingerprint.Storage),
+				matchPhrase("fingerprint.code", c.Fingerprint.Code),
+			),
+		),
+	).Sort("timestamp", "desc").All()
 
-	resp, err := e.query(DocContracts, query)
+	resp, err := e.query(DocContracts, q)
 	if err != nil {
 		return nil, err
 	}
@@ -130,13 +110,13 @@ func (e *Elastic) GetSameContracts(c models.Contract) ([]models.Contract, error)
 }
 
 // GetSimilarContracts -
-func (e *Elastic) GetSimilarContracts(c models.Contract) ([]models.Contract, error) {
+func (e *Elastic) GetSimilarContracts(c models.Contract) ([]map[string]interface{}, error) {
 	if c.ProjectID == "" || c.Fingerprint == nil {
 		return nil, fmt.Errorf("Invalid contract data")
 	}
 
 	query := map[string]interface{}{
-		"size": 10000,
+		"size": 0,
 		"query": map[string]interface{}{
 			"bool": map[string]interface{}{
 				"must": map[string]interface{}{
@@ -144,16 +124,51 @@ func (e *Elastic) GetSimilarContracts(c models.Contract) ([]models.Contract, err
 						"project_id": c.ProjectID,
 					},
 				},
-				"must_not": map[string]interface{}{
-					"match_phrase": map[string]interface{}{
-						"fingerprint.parameter": c.Fingerprint.Parameter,
+				"must_not": []map[string]interface{}{
+					map[string]interface{}{
+						"match_phrase": map[string]interface{}{
+							"fingerprint.parameter": c.Fingerprint.Parameter,
+						},
+					},
+					map[string]interface{}{
+						"match_phrase": map[string]interface{}{
+							"fingerprint.storage": c.Fingerprint.Parameter,
+						},
+					},
+					map[string]interface{}{
+						"match_phrase": map[string]interface{}{
+							"fingerprint.code": c.Fingerprint.Parameter,
+						},
 					},
 				},
 			},
 		},
-		"sort": map[string]interface{}{
-			"timestamp": map[string]interface{}{
-				"order": "desc",
+		"aggs": map[string]interface{}{
+			"projects": map[string]interface{}{
+				"terms": map[string]interface{}{
+					"script": "doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value",
+					"size":   10000,
+					"order": map[string]interface{}{
+						"bucketsSort": "desc",
+					},
+				},
+				"aggs": map[string]interface{}{
+					"last": map[string]interface{}{
+						"top_hits": map[string]interface{}{
+							"size": 1,
+							"sort": map[string]interface{}{
+								"timestamp": map[string]interface{}{
+									"order": "desc",
+								},
+							},
+						},
+					},
+					"bucketsSort": map[string]interface{}{
+						"max": map[string]interface{}{
+							"field": "timestamp",
+						},
+					},
+				},
 			},
 		},
 	}
@@ -163,20 +178,19 @@ func (e *Elastic) GetSimilarContracts(c models.Contract) ([]models.Contract, err
 		return nil, err
 	}
 
-	if resp.Get("hits.total.value").Int() < 1 {
+	buckets := resp.Get("aggregations.projects.buckets")
+	if !buckets.Exists() {
 		return nil, nil
 	}
 
-	arr := resp.Get("hits.hits")
-	if !arr.Exists() {
-		return nil, fmt.Errorf("Empty response: %v", resp)
-	}
-
-	contracts := make([]models.Contract, 0)
-	for _, item := range arr.Array() {
+	res := make([]map[string]interface{}, 0)
+	for _, item := range buckets.Array() {
 		var c models.Contract
-		parseContarctFromHit(item, &c)
-		contracts = append(contracts, c)
+		parseContarctFromHit(item.Get("last.hits.hits.0"), &c)
+		res = append(res, qItem{
+			"count": item.Get("doc_count").Int(),
+			"last": c,
+		})
 	}
-	return contracts, nil
+	return res, nil
 }

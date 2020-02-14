@@ -77,7 +77,6 @@ func sync(rpcs map[string]*noderpc.NodeRPC, es *elastic.Elastic) error {
 	} else {
 		buckets = make([]models.Contract, 0)
 	}
-
 	for _, c := range contracts {
 		fgpt, err := computeFingerprint(rpcs[c.Network], c)
 		if err != nil {

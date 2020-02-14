@@ -4,10 +4,11 @@ import "github.com/aopoltorzhicky/bcdhub/internal/models"
 
 // Metric -
 type Metric interface {
-	Compute(a, b models.Contract) float64
+	Compute(a, b models.Contract) Feature
 }
 
-// DefaultMetric -
-type DefaultMetric struct {
-	Weight float64
+// Feature -
+type Feature struct {
+	Value float64
+	Name  string
 }

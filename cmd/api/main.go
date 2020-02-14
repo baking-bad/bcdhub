@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/gin-contrib/cors"
 
@@ -29,7 +28,7 @@ func main() {
 	ctx := handlers.NewContext(es, rpc)
 	r := gin.Default()
 
-	r.Use(corsSettings())
+	r.Use(cors.Default())
 	v1 := r.Group("v1")
 	{
 		v1.GET("search", ctx.Search)
@@ -50,6 +49,8 @@ func main() {
 
 		v1.GET("pick_random", ctx.GetRandomContract)
 		v1.GET("diff", ctx.GetDiff)
+		v1.POST("vote", ctx.Vote)
+
 		project := v1.Group("project")
 		{
 			address := project.Group(":address")
@@ -64,14 +65,9 @@ func main() {
 }
 
 func corsSettings() gin.HandlerFunc {
-	return cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{"GET"},
-		AllowHeaders:     []string{"Origin"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
-	})
+	cfg := cors.DefaultConfig()
+	cfg.AllowOrigins = []string{"*"}
+	return cors.New(cfg)
 }
 
 func createRPC(data map[string]string) map[string]*noderpc.NodeRPC {

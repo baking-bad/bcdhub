@@ -94,13 +94,16 @@
             "fingerprint": {
                 "properties": {
                     "code": {
-                        "type": "text"
+                        "type": "text",
+                        "fielddata": true
                     },
                     "parameter": {
-                        "type": "text"
+                        "type": "text",
+                        "fielddata": true
                     },
                     "storage": {
-                        "type": "text"
+                        "type": "text",
+                        "fielddata": true
                     }
                 }
             }
