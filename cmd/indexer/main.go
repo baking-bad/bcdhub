@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strings"
 	"time"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
@@ -8,9 +9,11 @@ import (
 	"github.com/aopoltorzhicky/bcdhub/internal/logger"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/tidwall/gjson"
 )
 
 var states = map[string]*models.State{}
+var filesDirectory = ""
 
 func main() {
 	var cfg config
@@ -18,6 +21,8 @@ func main() {
 		panic(err)
 	}
 	cfg.print()
+
+	filesDirectory = cfg.FilesDirectory
 
 	es, err := elastic.New([]string{cfg.Search.URI})
 	if err != nil {
@@ -33,6 +38,13 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	gjson.AddModifier("upper", func(json, arg string) string {
+		return strings.ToUpper(json)
+	})
+	gjson.AddModifier("lower", func(json, arg string) string {
+		return strings.ToLower(json)
+	})
 
 	// Initial syncronization
 	if err = sync(RPCs, indexers, es); err != nil {

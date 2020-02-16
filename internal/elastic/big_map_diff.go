@@ -33,14 +33,10 @@ func (e *Elastic) BulkSaveBigMapDiffs(diffs []models.BigMapDiff) error {
 
 // GetBigMapDiffsByOperationID -
 func (e *Elastic) GetBigMapDiffsByOperationID(operationID string) (gjson.Result, error) {
-	query := map[string]interface{}{
-		"query": map[string]interface{}{
-			"match_phrase": map[string]interface{}{
-				"operation_id": operationID,
-			},
-		},
-		"size": 1000,
-	}
+	query := newQuery().
+		Query(
+			matchPhrase("operation_id", operationID),
+		).All()
 
 	res, err := e.query(DocBigMapDiff, query)
 	if err != nil {
@@ -51,34 +47,22 @@ func (e *Elastic) GetBigMapDiffsByOperationID(operationID string) (gjson.Result,
 
 // GetBigMapDiffsByKeyHash -
 func (e *Elastic) GetBigMapDiffsByKeyHash(keys []string, level int64) (gjson.Result, error) {
-	must := make([]map[string]interface{}, len(keys))
+	mustData := make([]qItem, len(keys))
 	for i := range keys {
-		must[i] = map[string]interface{}{
-			"match_phrase": map[string]interface{}{
-				"key_hash": keys[i],
-			},
-		}
+		mustData[i] = matchPhrase("key_hash", keys[i])
 	}
-	query := map[string]interface{}{
-		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
-				"must": must,
-				"filter": map[string]interface{}{
-					"range": map[string]interface{}{
-						"level": map[string]interface{}{
-							"lt": level,
-						},
-					},
-				},
-			},
-		},
-		"sort": map[string]interface{}{
-			"level": map[string]interface{}{
-				"order": "desc",
-			},
-		},
-		"size": 1000,
-	}
+
+	query := newQuery().
+		Query(
+			boolQ(
+				must(mustData...),
+				filter(
+					rangeQ("level", qItem{"lt": level}),
+				),
+			),
+		).
+		Sort("level", "desc").
+		All()
 
 	res, err := e.query(DocBigMapDiff, query)
 	if err != nil {
@@ -89,38 +73,24 @@ func (e *Elastic) GetBigMapDiffsByKeyHash(keys []string, level int64) (gjson.Res
 
 // GetBigMapDiffsForAddress -
 func (e *Elastic) GetBigMapDiffsForAddress(address string) (gjson.Result, error) {
-	query := map[string]interface{}{
-		"size": 0,
-		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
-				"must": map[string]interface{}{
-					"match_phrase": map[string]interface{}{
-						"address": address,
-					},
-				},
+	query := newQuery().Query(
+		boolQ(
+			must(
+				matchPhrase("address", address),
+			),
+		),
+	).Add(aggs(
+		"group_by_hash", qItem{
+			"terms": qItem{
+				"field": "key_hash.keyword",
+				"size":  maxQuerySize,
+			},
+			"aggs": qItem{
+				"group_docs": topHits(1, "level", "desc"),
 			},
 		},
-		"aggs": map[string]interface{}{
-			"group_by_hash": map[string]interface{}{
-				"terms": map[string]interface{}{
-					"field": "key_hash.keyword",
-					"size":  10000,
-				},
-				"aggs": map[string]interface{}{
-					"group_docs": map[string]interface{}{
-						"top_hits": map[string]interface{}{
-							"size": 1,
-							"sort": map[string]interface{}{
-								"level": map[string]interface{}{
-									"order": "desc",
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
+	)).Zero()
+
 	res, err := e.query(DocBigMapDiff, query)
 	if err != nil {
 		return *res, err

@@ -3,6 +3,7 @@ package elastic
 import (
 	"strings"
 
+	"github.com/tidwall/gjson"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 )
 
@@ -17,7 +18,7 @@ func (e *Elastic) createState(network, typ string) (s models.State, err error) {
 	return
 }
 
-func parseState(hit gjson.Result, s *models.State) {
+func parseState(hit gjson.Result, network string, s *models.State) {
 	s.ID = hit.Get("_id").String()
 	s.Network = network
 	s.Type = hit.Get("_source.type").String()
@@ -48,6 +49,6 @@ func (e *Elastic) CurrentState(network, typ string) (s models.State, err error) 
 		return e.createState(network, typ)
 	}
 	hit := r.Get("hits.hits.0")
-	parseState(hit, &s)
+	parseState(hit, network, &s)
 	return
 }

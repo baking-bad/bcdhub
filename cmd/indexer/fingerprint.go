@@ -10,45 +10,39 @@ import (
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/macros"
 	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
-	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
 	"github.com/tidwall/gjson"
 )
 
-func computeFingerprint(rpc *noderpc.NodeRPC, contract models.Contract) (models.Fingerprint, error) {
-	script, err := rpc.GetScriptJSON(contract.Address, 0)
-	if err != nil {
-		return models.Fingerprint{}, err
-	}
-
+func computeFingerprint(script gjson.Result, contract *models.Contract) error {
 	colapsed, err := macros.FindMacros(script)
 	if err != nil {
-		return models.Fingerprint{}, err
+		return err
 	}
 
 	fgpt := models.Fingerprint{}
-
 	code := colapsed.Get(`code.#(prim="code")`)
 	codeFgpt, err := fingerprint(code, true)
 	if err != nil {
-		return fgpt, err
+		return err
 	}
 	fgpt.Code = codeFgpt
 
 	params := colapsed.Get(`code.#(prim="parameter")`)
 	paramFgpt, err := fingerprint(params, false)
 	if err != nil {
-		return fgpt, err
+		return err
 	}
 	fgpt.Parameter = paramFgpt
 
 	storage := colapsed.Get(`code.#(prim="storage")`)
 	storageFgpt, err := fingerprint(storage, false)
 	if err != nil {
-		return fgpt, err
+		return err
 	}
 	fgpt.Storage = storageFgpt
 
-	return fgpt, nil
+	contract.Fingerprint = &fgpt
+	return nil
 }
 
 func fingerprint(script gjson.Result, isCode bool) (string, error) {

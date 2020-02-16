@@ -1,14 +1,16 @@
 package handlers
 
 import (
-	"errors"
+	"fmt"
+	"io/ioutil"
 	"net/http"
+	"os"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/formatter"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/macros"
-	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
 	"github.com/gin-gonic/gin"
 	"github.com/pmezard/go-difflib/difflib"
+	"github.com/tidwall/gjson"
 )
 
 // GetContractCode -
@@ -19,7 +21,7 @@ func (ctx *Context) GetContractCode(c *gin.Context) {
 		return
 	}
 
-	code, err := getContractCode(req.Network, req.Address, ctx.RPCs)
+	code, err := getContractCode(ctx.Dir, req.Network, req.Address)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -42,13 +44,13 @@ func (ctx *Context) GetDiff(c *gin.Context) {
 		return
 	}
 
-	srcCode, err := getContractCode(req.SourceNetwork, req.SourceAddress, ctx.RPCs)
+	srcCode, err := getContractCode(ctx.Dir, req.SourceNetwork, req.SourceAddress)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	destCode, err := getContractCode(req.DestinationNetwork, req.DestinationAddress, ctx.RPCs)
+	destCode, err := getContractCode(ctx.Dir, req.DestinationNetwork, req.DestinationAddress)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -70,17 +72,24 @@ func (ctx *Context) GetDiff(c *gin.Context) {
 	c.JSON(http.StatusOK, text)
 }
 
-func getContractCode(network, address string, rpcs map[string]*noderpc.NodeRPC) (string, error) {
-	rpc, ok := rpcs[network]
-	if !ok {
-		return "", errors.New("Unknown network")
+func getContractCode(dir, network, address string) (string, error) {
+	filePath := fmt.Sprintf("%s/contracts/%s/%s.json", dir, network, address)
+	if _, err := os.Stat(filePath); err != nil {
+		return "", err
 	}
 
-	contractJSON, err := rpc.GetScriptJSON(address, 0)
+	f, err := os.Open(filePath)
 	if err != nil {
 		return "", err
 	}
 
+	data, err := ioutil.ReadAll(f)
+	if err != nil {
+		return "", err
+	}
+	f.Close()
+
+	contractJSON := gjson.ParseBytes(data).Get("script")
 	collapsed, err := macros.FindMacros(contractJSON)
 	if err != nil {
 		return "", err

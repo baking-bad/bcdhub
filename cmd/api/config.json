@@ -8,5 +8,6 @@
         "zeronet": "https://rpc.tzkt.io/zeronet",
         "babylonnet": "https://rpc.tzkt.io/babylonnet",
         "carthagenet": "https://rpc.tzkt.io/carthagenet"
-    }
+    },
+    "dir": "/home/artem/.bcd"
 }

@@ -27,6 +27,7 @@ type Contract struct {
 
 	ProjectID string `json:"project_id,omitempty"`
 	FoundBy   string `json:"found_by,omitempty"`
+	Group     *Group `json:"group,omitempty"`
 }
 
 // Fingerprint -
@@ -34,4 +35,10 @@ type Fingerprint struct {
 	Code      string `json:"code"`
 	Storage   string `json:"storage"`
 	Parameter string `json:"parameter"`
+}
+
+// Group -
+type Group struct {
+	Count int64    `json:"count"`
+	Top   []string `json:"top"`
 }

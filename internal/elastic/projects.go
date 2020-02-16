@@ -27,29 +27,17 @@ func (e *Elastic) GetProject(id string) (p models.Project, err error) {
 
 // GetLastProjectContracts -
 func (e *Elastic) GetLastProjectContracts() ([]models.Contract, error) {
-	query := map[string]interface{}{
-		"size": 0,
-		"aggs": map[string]interface{}{
-			"projects": map[string]interface{}{
-				"terms": map[string]interface{}{
-					"field": "project_id.keyword",
-					"size":  10000,
-				},
-				"aggs": map[string]interface{}{
-					"last": map[string]interface{}{
-						"top_hits": map[string]interface{}{
-							"size": 1,
-							"sort": map[string]interface{}{
-								"timestamp": map[string]interface{}{
-									"order": "desc",
-								},
-							},
-						},
-					},
-				},
+	query := newQuery().Add(
+		aggs("projects", qItem{
+			"terms": qItem{
+				"field": "project_id.keyword",
+				"size":  maxQuerySize,
 			},
-		},
-	}
+			"aggs": qItem{
+				"last": topHits(1, "timestamp", "desc"),
+			},
+		}),
+	).Zero()
 
 	resp, err := e.query(DocContracts, query)
 	if err != nil {
@@ -64,7 +52,7 @@ func (e *Elastic) GetLastProjectContracts() ([]models.Contract, error) {
 	contracts := make([]models.Contract, 0)
 	for _, item := range arr.Array() {
 		var c models.Contract
-		parseContarctFromHit(item, &c)
+		parseContractFromHit(item, &c)
 		contracts = append(contracts, c)
 	}
 	return contracts, nil
@@ -103,7 +91,7 @@ func (e *Elastic) GetSameContracts(c models.Contract) ([]models.Contract, error)
 	contracts := make([]models.Contract, 0)
 	for _, item := range arr.Array() {
 		var c models.Contract
-		parseContarctFromHit(item, &c)
+		parseContractFromHit(item, &c)
 		contracts = append(contracts, c)
 	}
 	return contracts, nil
@@ -112,66 +100,47 @@ func (e *Elastic) GetSameContracts(c models.Contract) ([]models.Contract, error)
 // GetSimilarContracts -
 func (e *Elastic) GetSimilarContracts(c models.Contract) ([]map[string]interface{}, error) {
 	if c.ProjectID == "" || c.Fingerprint == nil {
-		return nil, fmt.Errorf("Invalid contract data")
+		return nil, nil
 	}
+	fgpt := fmt.Sprintf("%s|%s|%s", c.Fingerprint.Parameter, c.Fingerprint.Storage, c.Fingerprint.Code)
 
-	query := map[string]interface{}{
-		"size": 0,
-		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
-				"must": map[string]interface{}{
-					"match_phrase": map[string]interface{}{
-						"project_id": c.ProjectID,
-					},
-				},
-				"must_not": []map[string]interface{}{
-					map[string]interface{}{
-						"match_phrase": map[string]interface{}{
-							"fingerprint.parameter": c.Fingerprint.Parameter,
-						},
-					},
-					map[string]interface{}{
-						"match_phrase": map[string]interface{}{
-							"fingerprint.storage": c.Fingerprint.Parameter,
-						},
-					},
-					map[string]interface{}{
-						"match_phrase": map[string]interface{}{
-							"fingerprint.code": c.Fingerprint.Parameter,
-						},
-					},
-				},
-			},
-		},
-		"aggs": map[string]interface{}{
-			"projects": map[string]interface{}{
-				"terms": map[string]interface{}{
-					"script": "doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value",
-					"size":   10000,
-					"order": map[string]interface{}{
-						"bucketsSort": "desc",
-					},
-				},
-				"aggs": map[string]interface{}{
-					"last": map[string]interface{}{
-						"top_hits": map[string]interface{}{
-							"size": 1,
-							"sort": map[string]interface{}{
-								"timestamp": map[string]interface{}{
-									"order": "desc",
-								},
+	query := newQuery().Query(
+		boolQ(
+			must(
+				matchPhrase("project_id", c.ProjectID),
+			),
+			notMust(
+				qItem{
+					"script": qItem{
+						"script": qItem{
+							"source": "doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value != params.fgpt",
+							"lang":   "painless",
+							"params": qItem{
+								"fgpt": fgpt,
 							},
 						},
 					},
-					"bucketsSort": map[string]interface{}{
-						"max": map[string]interface{}{
-							"field": "timestamp",
-						},
+				},
+			),
+		),
+	).Add(
+		aggs(
+			"projects",
+			qItem{
+				"terms": qItem{
+					"script": "doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value",
+					"size":   10000,
+					"order": qItem{
+						"bucketsSort": "desc",
 					},
 				},
+				"aggs": qItem{
+					"last":        topHits(1, "timestamp", "desc"),
+					"bucketsSort": max("timestamp"),
+				},
 			},
-		},
-	}
+		),
+	).Zero()
 
 	resp, err := e.query(DocContracts, query)
 	if err != nil {
@@ -186,10 +155,10 @@ func (e *Elastic) GetSimilarContracts(c models.Contract) ([]map[string]interface
 	res := make([]map[string]interface{}, 0)
 	for _, item := range buckets.Array() {
 		var c models.Contract
-		parseContarctFromHit(item.Get("last.hits.hits.0"), &c)
+		parseContractFromHit(item.Get("last.hits.hits.0"), &c)
 		res = append(res, qItem{
 			"count": item.Get("doc_count").Int(),
-			"last": c,
+			"last":  c,
 		})
 	}
 	return res, nil

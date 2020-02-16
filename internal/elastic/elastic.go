@@ -202,7 +202,8 @@ func (e *Elastic) Match(index string, match map[string]interface{}) (r *gjson.Re
 
 // MatchAll - returns all data
 func (e *Elastic) MatchAll(index string) (r *gjson.Result, err error) {
-	return e.query(index, queryAll)
+	query := newQuery().Query(matchAll()).All()
+	return e.query(index, query)
 }
 
 // UpdateDoc - updates document by ID

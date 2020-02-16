@@ -14,6 +14,7 @@ type searchRequest struct {
 	Offset   uint   `form:"o,omitempty"`
 	DateFrom uint   `form:"s,omitempty"`
 	DateTo   uint   `form:"e,omitempty"`
+	Grouping uint   `form:"g,omitempty"`
 }
 
 // Search -
@@ -32,7 +33,7 @@ func (ctx *Context) Search(c *gin.Context) {
 	if req.Networks != "" {
 		networks = strings.Split(req.Networks, ",")
 	}
-	contracts, err := ctx.ES.SearchByText(req.Text, int64(req.Offset), fields, networks, req.DateFrom, req.DateTo)
+	contracts, err := ctx.ES.SearchByText(req.Text, int64(req.Offset), fields, networks, req.DateFrom, req.DateTo, req.Grouping != 0)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return

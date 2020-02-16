@@ -17,7 +17,7 @@ func parseStringArray(hit gjson.Result, tag string) []string {
 	return res
 }
 
-func parseContarctFromHit(hit gjson.Result, c *models.Contract) {
+func parseContractFromHit(hit gjson.Result, c *models.Contract) {
 	c.ID = hit.Get("_id").String()
 	c.Network = hit.Get("_source.network").String()
 	c.Level = hit.Get("_source.level").Int()
@@ -87,22 +87,16 @@ func getFoundBy(hit gjson.Result) string {
 	return ""
 }
 
-func getContractQuery(by map[string]interface{}) map[string]interface{} {
-	match := []map[string]interface{}{}
+func getContractQuery(by map[string]interface{}) base {
+	matches := make([]qItem, 0)
 	for k, v := range by {
-		match = append(match, map[string]interface{}{
-			"match": map[string]interface{}{
-				k: v,
-			},
-		})
+		matches = append(matches, match(k, v))
 	}
-	return map[string]interface{}{
-		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
-				"must": match,
-			},
-		},
-	}
+	return newQuery().Query(
+		boolQ(
+			must(matches...),
+		),
+	)
 }
 
 func (e *Elastic) getContract(q map[string]interface{}) (c models.Contract, err error) {
@@ -114,7 +108,7 @@ func (e *Elastic) getContract(q map[string]interface{}) (c models.Contract, err 
 		return c, fmt.Errorf("Unknown contract: %v", q)
 	}
 	hit := res.Get("hits.hits.0")
-	parseContarctFromHit(hit, &c)
+	parseContractFromHit(hit, &c)
 	return
 }
 
@@ -128,7 +122,7 @@ func (e *Elastic) getContracts(q map[string]interface{}) ([]models.Contract, err
 	arr := res.Get("hits.hits").Array()
 	for i := range arr {
 		var c models.Contract
-		parseContarctFromHit(arr[i], &c)
+		parseContractFromHit(arr[i], &c)
 		contracts = append(contracts, c)
 	}
 	return contracts, nil
@@ -136,40 +130,28 @@ func (e *Elastic) getContracts(q map[string]interface{}) ([]models.Contract, err
 
 // GetContract -
 func (e *Elastic) GetContract(by map[string]interface{}) (models.Contract, error) {
-	query := getContractQuery(by)
-	query["_source"] = map[string]interface{}{
-		"excludes": []string{"hash"},
-	}
+	query := getContractQuery(by).One()
 	return e.getContract(query)
 }
 
 // GetContractsByTime -
 func (e *Elastic) GetContractsByTime(ts time.Time, sort string) ([]models.Contract, error) {
-	query := map[string]interface{}{
-		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
-				"must": map[string]interface{}{
-					"range": map[string]interface{}{
-						"timestamp": map[string]interface{}{
-							"gt": ts,
-						},
-					},
-				},
-			},
-		},
-		"size": 10000,
-		"sort": map[string]interface{}{
-			"timestamp": map[string]interface{}{
-				"order": sort,
-			},
-		},
-	}
+	query := newQuery().
+		Query(
+			boolQ(
+				must(
+					rangeQ("timestamp", qItem{"gt": ts}),
+				),
+			),
+		).
+		Sort("timestamp", sort).All()
+
 	return e.getContracts(query)
 }
 
 // GetContractField -
 func (e *Elastic) GetContractField(by map[string]interface{}, field string) (interface{}, error) {
-	query := getContractQuery(by)
+	query := getContractQuery(by).One()
 	res, err := e.query(DocContracts, query, field)
 	if err != nil {
 		return nil, err
@@ -180,39 +162,35 @@ func (e *Elastic) GetContractField(by map[string]interface{}, field string) (int
 	return res.Get("hits.hits.0._source").Get(field).Value(), nil
 }
 
-func parseContarcts(res *gjson.Result) []models.Contract {
+func parseContracts(res *gjson.Result) []models.Contract {
 	contracts := make([]models.Contract, 0)
 	arr := res.Get("hits.hits").Array()
 	for i := range arr {
 		var c models.Contract
-		parseContarctFromHit(arr[i], &c)
+		parseContractFromHit(arr[i], &c)
 		contracts = append(contracts, c)
 	}
 	return contracts
 }
 
 // GetContracts -
-func (e *Elastic) GetContracts(q map[string]interface{}) ([]models.Contract, error) {
-	query := getContractQuery(q)
-	query["size"] = 10000
+func (e *Elastic) GetContracts(by map[string]interface{}) ([]models.Contract, error) {
+	query := getContractQuery(by).All()
 	return e.getContracts(query)
 }
 
 // GetRandomContract -
 func (e *Elastic) GetRandomContract() (models.Contract, error) {
-	query := map[string]interface{}{
-		"size": 1,
-		"query": map[string]interface{}{
-			"function_score": map[string]interface{}{
-				"functions": []map[string]interface{}{
-					map[string]interface{}{
-						"random_score": map[string]interface{}{
-							"seed": time.Now().UnixNano(),
-						},
+	query := newQuery().Query(qItem{
+		"function_score": qItem{
+			"functions": []qItem{
+				qItem{
+					"random_score": qItem{
+						"seed": time.Now().UnixNano(),
 					},
 				},
 			},
 		},
-	}
+	}).One()
 	return e.getContract(query)
 }

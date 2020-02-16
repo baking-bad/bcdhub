@@ -33,14 +33,14 @@ func (rpc *NodeRPC) SetTimeout(timeout time.Duration) {
 	rpc.timeout = timeout
 }
 
-func (rpc *NodeRPC) get(uri string) (res *gjson.Result, err error) {
+func (rpc *NodeRPC) get(uri string) (res gjson.Result, err error) {
 	url := fmt.Sprintf("%s/%s", rpc.baseURL, uri)
 	client := http.Client{
 		Timeout: rpc.timeout,
 	}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, fmt.Errorf("get.NewRequest: %v", err)
+		return res, fmt.Errorf("get.NewRequest: %v", err)
 	}
 
 	var resp *http.Response
@@ -54,18 +54,18 @@ func (rpc *NodeRPC) get(uri string) (res *gjson.Result, err error) {
 	}
 
 	if count == rpc.retryCount {
-		return nil, errors.New("Max HTTP request retry exceeded")
+		return res, errors.New("Max HTTP request retry exceeded")
 	}
 
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("get.ReadAll: %v", err)
+		return res, fmt.Errorf("get.ReadAll: %v", err)
 	}
 
-	r := gjson.ParseBytes(b)
+	res = gjson.ParseBytes(b)
 
 	resp.Body.Close()
-	return &r, nil
+	return
 }
 
 // GetLevel - get head level
@@ -116,7 +116,7 @@ func (rpc *NodeRPC) GetScriptJSON(address string, level int64) (gjson.Result, er
 }
 
 // GetContractJSON -
-func (rpc *NodeRPC) GetContractJSON(address string, level int64) (*gjson.Result, error) {
+func (rpc *NodeRPC) GetContractJSON(address string, level int64) (gjson.Result, error) {
 	block := "head"
 	if level > 0 {
 		block = fmt.Sprintf("%d", level)
@@ -126,11 +126,6 @@ func (rpc *NodeRPC) GetContractJSON(address string, level int64) (*gjson.Result,
 }
 
 // GetOperations -
-func (rpc *NodeRPC) GetOperations(block int64) (res *gjson.Result, err error) {
-	data, err := rpc.get(fmt.Sprintf("chains/main/blocks/%d/operations/3", block))
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
+func (rpc *NodeRPC) GetOperations(block int64) (res gjson.Result, err error) {
+	return rpc.get(fmt.Sprintf("chains/main/blocks/%d/operations/3", block))
 }

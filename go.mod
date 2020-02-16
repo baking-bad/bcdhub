@@ -9,6 +9,7 @@ require (
 	github.com/fatih/color v1.9.0
 	github.com/gin-contrib/cors v1.3.0
 	github.com/gin-gonic/gin v1.5.0
+	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/jinzhu/gorm v1.9.11
 	github.com/pkg/errors v0.8.1

@@ -33,17 +33,15 @@ func main() {
 	}
 	currentState = s
 
-	RPCs := createRPCs(cfg)
-
 	// Initial syncronization
-	if err = sync(RPCs, es); err != nil {
+	if err = sync(es); err != nil {
 		logger.Error(err)
 	}
 
 	// Update state by ticker
 	ticker := time.NewTicker(time.Duration(cfg.UpdateTimer) * time.Second)
 	for range ticker.C {
-		if err = sync(RPCs, es); err != nil {
+		if err = sync(es); err != nil {
 			logger.Error(err)
 		}
 	}

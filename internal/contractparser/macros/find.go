@@ -2,7 +2,6 @@ package macros
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
@@ -10,12 +9,27 @@ import (
 
 // FindMacros -
 func FindMacros(script gjson.Result) (gjson.Result, error) {
-	gjson.AddModifier("upper", func(json, arg string) string {
-		return strings.ToUpper(json)
-	})
-	gjson.AddModifier("lower", func(json, arg string) string {
-		return strings.ToLower(json)
-	})
+	var objectMacros = []macros{
+		newAssertMacros(),
+		newAssertSomeMacros(),
+		newAssertNoneMacros(),
+		newDipNMacros(),
+	}
+
+	var arrayMacros = []macros{
+		newAssertCmpMacros(),
+		newAssertEqMacros(),
+		newFailMacros(),
+		newCompareIfMacros(),
+		newIfMacros(),
+		newCompareMacros(),
+		newDupNMacros(),
+		// newPairMacros(),
+		// newUnpairMacros(),
+		// newUnpairNMacros(),
+		newCadrMacros(),
+		newSetCarMacros(),
+	}
 
 	codePath := ""
 	for i, item := range script.Get("code").Array() {
@@ -25,7 +39,7 @@ func FindMacros(script gjson.Result) (gjson.Result, error) {
 		}
 	}
 	code := script.Get(codePath)
-	result, err := walkForMacros(code, "", code.String())
+	result, err := walkForMacros(code, "", code.String(), objectMacros, arrayMacros)
 	if err != nil {
 		return script, err
 	}
@@ -38,13 +52,13 @@ func FindMacros(script gjson.Result) (gjson.Result, error) {
 	return gjson.Parse(res), nil
 }
 
-func walkForMacros(script gjson.Result, jsonPath, textScript string) (result string, err error) {
+func walkForMacros(script gjson.Result, jsonPath, textScript string, objectMacros []macros, arrayMacros []macros) (result string, err error) {
 	result = textScript
 	if script.IsArray() {
 		for i, item := range script.Array() {
 			var itemResult string
 			itemJSONPath := getIndexJSONPath(jsonPath, i)
-			itemResult, err = walkForMacros(item, itemJSONPath, result)
+			itemResult, err = walkForMacros(item, itemJSONPath, result, objectMacros, arrayMacros)
 			if err != nil {
 				return
 			}
@@ -56,7 +70,7 @@ func walkForMacros(script gjson.Result, jsonPath, textScript string) (result str
 		if args.Exists() {
 			var argsResult string
 			argsJSONPath := getArgsJSONPath(jsonPath)
-			argsResult, err = walkForMacros(args, argsJSONPath, result)
+			argsResult, err = walkForMacros(args, argsJSONPath, result, objectMacros, arrayMacros)
 			if err != nil {
 				return
 			}
@@ -68,6 +82,7 @@ func walkForMacros(script gjson.Result, jsonPath, textScript string) (result str
 }
 
 func applyMacros(json, jsonPath string, allMacros []macros) (res string, err error) {
+
 	res = json
 	for _, macros := range allMacros {
 		data := gjson.Parse(res).Get(jsonPath)

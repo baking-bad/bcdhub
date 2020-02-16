@@ -150,9 +150,10 @@ var codes = map[string]string{
 	"DIG":              "97",
 	"CHAIN_ID":         "98",
 	"DUG":              "99",
-	"chain_id":         "9A",
-	"APPLY":            "9B",
-	"EMPTY_BIG_MAP":    "9C",
+	"chain_id":         "9a",
+	"APPLY":            "9b",
+	"EMPTY_BIG_MAP":    "9c",
+	"ASSERT_EQ":        "9d",
 }
 
 var regCodes = map[string]string{

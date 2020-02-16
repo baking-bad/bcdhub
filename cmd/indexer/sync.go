@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
@@ -34,8 +33,8 @@ func createIndexer(es *elastic.Elastic, indexerType, network, url string) (index
 	}
 	states[network] = &s
 
-	logger.Info("Create %s %s indexer", indexerType, network)
-	logger.Info("Current state %d level", s.Level)
+	logger.Info("[%s] Create %s indexer", network, indexerType)
+	logger.Info("[%s] Current state %d level", network, s.Level)
 
 	switch indexerType {
 	case "tzkt":
@@ -81,39 +80,42 @@ func createContract(c index.Contract, rpc *noderpc.NodeRPC, es *elastic.Elastic,
 	return
 }
 
-func syncIndexer(rpc *noderpc.NodeRPC, indexer index.Indexer, es *elastic.Elastic, network string) error {
-	logger.Logf("-----------%s-----------", strings.ToUpper(network))
+func syncIndexer(rpc *noderpc.NodeRPC, indexer index.Indexer, es *elastic.Elastic, network string, errChan chan error, done chan struct{}) {
 	level, err := rpc.GetLevel()
 	if err != nil {
-		return err
+		errChan <- err
+		return
 	}
-	logger.Info("Current node state: %d", level)
+	logger.Info("[%s] Current node state: %d", network, level)
 
 	// Get current DB state
 	s, ok := states[network]
 	if !ok {
-		return fmt.Errorf("Unknown network: %s", network)
+		errChan <- fmt.Errorf("Unknown network: %s", network)
+		return
 	}
-	logger.Info("Current state: %d", s.Level)
+	logger.Info("[%s] Current state: %d", network, s.Level)
 	if level > s.Level {
 		contracts, err := indexer.GetContracts(s.Level)
 		if err != nil {
-			return err
+			errChan <- err
+			return
 		}
-		logger.Info("New contracts: %d", len(contracts))
+		logger.Info("[%s] New contracts: %d", network, len(contracts))
 
 		if len(contracts) > 0 {
 			for _, c := range contracts {
 				n, err := createContract(c, rpc, es, network)
 				if err != nil {
-					logger.Errorf("[%d] %s  [%s]", c.Level, err.Error(), c.Address)
-					continue
+					errChan <- fmt.Errorf("[%s %d] %s  [%s]", network, c.Level, err.Error(), c.Address)
+					return
 				}
 
-				logger.Info("[%s] Contract found", n.Address)
+				logger.Info("%s -> %s", network, n.Address)
 
 				if _, err := es.AddDocument(n, elastic.DocContracts); err != nil {
-					return err
+					errChan <- err
+					return
 				}
 
 				if s.Level < n.Level {
@@ -124,16 +126,19 @@ func syncIndexer(rpc *noderpc.NodeRPC, indexer index.Indexer, es *elastic.Elasti
 				}
 
 				if _, err = es.UpdateDoc(elastic.DocStates, s.ID, s); err != nil {
-					return err
+					errChan <- err
+					return
 				}
 			}
 		}
 		logger.Success("[%s] Synced", network)
 	}
-	return nil
+	done <- struct{}{}
 }
 
 func sync(rpcs map[string]*noderpc.NodeRPC, indexers map[string]index.Indexer, es *elastic.Elastic) error {
+	errChan := make(chan error)
+	done := make(chan struct{})
 	for network, indexer := range indexers {
 		rpc, ok := rpcs[network]
 		if !ok {
@@ -141,10 +146,23 @@ func sync(rpcs map[string]*noderpc.NodeRPC, indexers map[string]index.Indexer, e
 			continue
 		}
 
-		if err := syncIndexer(rpc, indexer, es, network); err != nil {
+		go syncIndexer(rpc, indexer, es, network, errChan, done)
+	}
+
+	var count int
+	for {
+		select {
+		case err := <-errChan:
 			logger.Error(err)
-			continue
+			count++
+		case <-done:
+			count++
+		}
+
+		if count == len(rpcs) {
+			close(errChan)
+			close(done)
+			return nil
 		}
 	}
-	return nil
 }

@@ -2,24 +2,12 @@ package main
 
 import (
 	"strings"
-	"time"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/logger"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
-	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
 	"github.com/google/uuid"
 )
-
-func createRPCs(cfg config) map[string]*noderpc.NodeRPC {
-	rpc := make(map[string]*noderpc.NodeRPC)
-	for i := range cfg.NodeRPC {
-		nodeCfg := cfg.NodeRPC[i]
-		rpc[nodeCfg.Network] = noderpc.NewNodeRPC(nodeCfg.Host)
-		rpc[nodeCfg.Network].SetTimeout(time.Second * 30)
-	}
-	return rpc
-}
 
 func updateState(es *elastic.Elastic, last models.Contract) error {
 	if currentState.Timestamp.After(last.Timestamp) {
@@ -58,7 +46,7 @@ func getContractProjectID(es *elastic.Elastic, c models.Contract, buckets []mode
 	return projID, nil
 }
 
-func sync(rpcs map[string]*noderpc.NodeRPC, es *elastic.Elastic) error {
+func sync(es *elastic.Elastic) error {
 	logger.Info("Current state: %s", currentState.Timestamp.String())
 
 	contracts, err := es.GetContractsByTime(currentState.Timestamp, "asc")
@@ -78,12 +66,6 @@ func sync(rpcs map[string]*noderpc.NodeRPC, es *elastic.Elastic) error {
 		buckets = make([]models.Contract, 0)
 	}
 	for _, c := range contracts {
-		fgpt, err := computeFingerprint(rpcs[c.Network], c)
-		if err != nil {
-			return err
-		}
-		c.Fingerprint = &fgpt
-
 		projID, err := getContractProjectID(es, c, buckets)
 		if err != nil {
 			return err

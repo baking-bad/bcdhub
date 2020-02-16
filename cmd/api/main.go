@@ -25,7 +25,7 @@ func main() {
 	}
 
 	rpc := createRPC(cfg.RPCs)
-	ctx := handlers.NewContext(es, rpc)
+	ctx := handlers.NewContext(es, rpc, cfg.Dir)
 	r := gin.Default()
 
 	r.Use(cors.Default())
