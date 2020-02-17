@@ -8,6 +8,10 @@ import (
 	"github.com/tidwall/gjson"
 )
 
+const (
+	defaultSize = 10
+)
+
 func getFields(fields []string) ([]string, map[string]interface{}, error) {
 	if len(fields) == 0 {
 		return allFields, mapHighlights, nil
@@ -56,7 +60,7 @@ func setDateFilter(mustItems []qItem, dateFrom, dateTo uint) []qItem {
 
 // SearchByText -
 func (e *Elastic) SearchByText(text string, offset int64, fields, networks []string, dateFrom, dateTo uint, grouping bool) (SearchResult, error) {
-	query := newQuery().From(offset)
+	query := newQuery()
 
 	mustItems := make([]qItem, 0)
 	if text != "" {
@@ -66,7 +70,7 @@ func (e *Elastic) SearchByText(text string, offset int64, fields, networks []str
 		}
 		mustItems = append(mustItems, queryString(text, internalFields))
 
-		query = query.Highlights(highlights)
+		query.Highlights(highlights)
 	}
 	mustItems = setDateFilter(mustItems, dateFrom, dateTo)
 
@@ -90,13 +94,14 @@ func (e *Elastic) SearchByText(text string, offset int64, fields, networks []str
 		th.Get("top_hits").Append("highlight", qItem{
 			"fields": mapHighlights,
 		})
-		query = query.Add(
+
+		query.Add(
 			aggs(
 				"projects",
 				qItem{
 					"terms": qItem{
 						"script": "doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value",
-						"size":   10000,
+						"size":   defaultSize + offset,
 						"order": qItem{
 							"bucketsSort": "desc",
 						},
@@ -109,10 +114,10 @@ func (e *Elastic) SearchByText(text string, offset int64, fields, networks []str
 			),
 		).Zero()
 	} else {
-		query = query.Size(10)
+		query.From(offset).Size(defaultSize)
 	}
 
-	query = query.Query(b)
+	query.Query(b)
 
 	resp, err := e.query(DocContracts, query)
 	if err != nil {
@@ -126,31 +131,41 @@ func (e *Elastic) SearchByText(text string, offset int64, fields, networks []str
 		}, nil
 	}
 	return SearchResult{
-		Contracts: parseGroupContracts(resp),
+		Contracts: parseGroupContracts(resp, defaultSize, offset),
 		Time:      resp.Get("took").Int(),
 		Count:     resp.Get("hits.total.value").Int(),
 	}, nil
 }
 
-func parseGroupContracts(data *gjson.Result) []models.Contract {
+func parseGroupContracts(data *gjson.Result, size, offset int64) []models.Contract {
 	buckets := data.Get("aggregations.projects.buckets")
 	if !buckets.Exists() {
 		return nil
 	}
-	contracts := make([]models.Contract, 0)
+
 	arr := buckets.Array()
+	lArr := int64(len(arr))
+	contracts := make([]models.Contract, 0)
+	if offset > lArr {
+		return contracts
+	}
+	arr = arr[offset:]
 	for i := range arr {
 		var c models.Contract
 		for j, item := range arr[i].Get("last.hits.hits").Array() {
 			if j == 0 {
 				parseContractFromHit(item, &c)
-			} else if j == 1 {
-				c.Group = &models.Group{
-					Count: arr[i].Get("doc_count").Int(),
-					Top:   []string{item.Get("_source.address").String()},
-				}
 			} else {
-				c.Group.Top = append(c.Group.Top, item.Get("_source.address").String())
+				if j == 1 {
+					c.Group = &models.Group{
+						Count: arr[i].Get("doc_count").Int(),
+						Top:   make([]models.TopContract, 0),
+					}
+				}
+				c.Group.Top = append(c.Group.Top, models.TopContract{
+					Address: item.Get("_source.address").String(),
+					Network: item.Get("_source.network").String(),
+				})
 			}
 		}
 		contracts = append(contracts, c)

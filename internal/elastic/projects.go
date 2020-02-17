@@ -99,7 +99,7 @@ func (e *Elastic) GetSameContracts(c models.Contract) ([]models.Contract, error)
 
 // GetSimilarContracts -
 func (e *Elastic) GetSimilarContracts(c models.Contract) ([]map[string]interface{}, error) {
-	if c.ProjectID == "" || c.Fingerprint == nil {
+	if c.Fingerprint == nil {
 		return nil, nil
 	}
 	fgpt := fmt.Sprintf("%s|%s|%s", c.Fingerprint.Parameter, c.Fingerprint.Storage, c.Fingerprint.Code)
@@ -113,8 +113,7 @@ func (e *Elastic) GetSimilarContracts(c models.Contract) ([]map[string]interface
 				qItem{
 					"script": qItem{
 						"script": qItem{
-							"source": "doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value != params.fgpt",
-							"lang":   "painless",
+							"source": "doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value == params.fgpt",
 							"params": qItem{
 								"fgpt": fgpt,
 							},

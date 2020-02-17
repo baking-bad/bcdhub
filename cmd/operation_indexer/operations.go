@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
@@ -51,7 +52,7 @@ func finishParseOperation(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjson.
 	op.Level = level
 	op.Network = network
 
-	if isContract(contracts, op.Destination) {
+	if isContract(contracts, op.Destination) && isApplied(op) {
 		rs, err := getRichStorage(es, rpc, item, level, protocol, op.ID)
 		if err != nil {
 			return err
@@ -70,6 +71,10 @@ func finishParseOperation(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjson.
 	return nil
 }
 
+func isApplied(op *models.Operation) bool {
+	return op.Result != nil && op.Result.Status == "applied"
+}
+
 func needParse(item gjson.Result, idx int) bool {
 	kind := item.Get("kind").String()
 	return (kind == consts.Origination && item.Get("script").Exists()) || kind == consts.Transaction
@@ -77,7 +82,7 @@ func needParse(item gjson.Result, idx int) bool {
 
 func parseContent(item gjson.Result, protocol string) *models.Operation {
 	op := models.Operation{
-		ID:             uuid.New().String(),
+		ID:             strings.ReplaceAll(uuid.New().String(), "-", ""),
 		Protocol:       protocol,
 		Kind:           item.Get("kind").String(),
 		Source:         item.Get("source").String(),

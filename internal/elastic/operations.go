@@ -78,18 +78,18 @@ func (e *Elastic) GetContractOperations(network, address string, offset, size in
 		size = 10
 	}
 
+	b := boolQ(
+		should(
+			matchPhrase("source", address),
+			matchPhrase("destination", address),
+		),
+		must(
+			matchPhrase("network", network),
+		),
+	)
+	b.Get("bool").Append("minimum_should_match", 1)
 	query := newQuery().
-		Query(
-			boolQ(
-				should(
-					matchPhrase("source", address),
-					matchPhrase("destination", address),
-				),
-				must(
-					term("network", network),
-				),
-			).Append("minimum_should_match", 1),
-		).
+		Query(b).
 		Size(size).
 		From(offset).
 		Add(qItem{

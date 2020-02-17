@@ -39,6 +39,12 @@ type Fingerprint struct {
 
 // Group -
 type Group struct {
-	Count int64    `json:"count"`
-	Top   []string `json:"top"`
+	Count int64         `json:"count"`
+	Top   []TopContract `json:"top"`
+}
+
+// TopContract -
+type TopContract struct {
+	Network string `json:"network"`
+	Address string `json:"address"`
 }

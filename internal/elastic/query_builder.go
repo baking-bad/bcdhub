@@ -18,7 +18,7 @@ func boolQ(items ...qItem) qItem {
 	q := qItem{}
 	for i := range items {
 		for k, v := range items[i] {
-			if helpers.StringInArray(k, []string{"must", "should", "filter", "not_must", "minimum_should_match"}) {
+			if helpers.StringInArray(k, []string{"must", "should", "filter", "must_not", "minimum_should_match"}) {
 				q[k] = v
 			}
 		}

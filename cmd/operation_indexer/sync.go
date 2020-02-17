@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
@@ -13,6 +12,7 @@ import (
 	"github.com/aopoltorzhicky/bcdhub/internal/logger"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
+	"github.com/pkg/errors"
 )
 
 func createRPCs(cfg config) map[string]*noderpc.NodeRPC {
@@ -119,61 +119,70 @@ func saveOperations(es *elastic.Elastic, ops []models.Operation, s *models.State
 	return nil
 }
 
-func syncIndexer(rpc *noderpc.NodeRPC, indexer index.Indexer, es *elastic.Elastic, network string) error {
-	logger.Logf("-----------%s-----------", strings.ToUpper(network))
+func syncIndexer(rpc *noderpc.NodeRPC, indexer index.Indexer, es *elastic.Elastic, network string, errChan chan error, done chan struct{}) {
 	cs, err := es.CurrentState(network, models.StateContract)
 	if err != nil {
-		return err
+		errChan <- errors.Wrapf(err, "[%s]", network)
+		return
 	}
-	logger.Info("Current contract indexer state: %d", cs.Level)
+	logger.Info("[%s] Current contract indexer state: %d", network, cs.Level)
 
 	// Get current DB state
 	s, ok := states[network]
 	if !ok {
-		return fmt.Errorf("Unknown network: %s", network)
+		errChan <- fmt.Errorf("Unknown network: %s", network)
+		return
 	}
-	logger.Info("Current state: %d", s.Level)
+	logger.Info("[%s] Current state: %d", network, s.Level)
 
 	if cs.Level > s.Level {
 		addresses, spendable, err := getContracts(es, network)
 		if err != nil {
-			return err
+			errChan <- errors.Wrapf(err, "[%s]", network)
+			return
 		}
 
 		levels, err := indexer.GetContractOperationBlocks(int(s.Level), int(cs.Level), addresses, spendable)
 		if err != nil {
-			return err
+			errChan <- errors.Wrapf(err, "[%s]", network)
+			return
 		}
 
 		if len(levels) == 0 {
-			return nil
+			done <- struct{}{}
 		}
 
-		logger.Info("Found %d contracts", len(addresses))
-		logger.Info("Found %d new levels", len(levels))
+		logger.Info("[%s] Found %d contracts", network, len(addresses))
+		logger.Info("[%s] Found %d new levels", network, len(levels))
 
 		for _, l := range levels {
 			ops, err := getOperations(rpc, es, l, network, addresses)
 			if err != nil {
-				log.Printf("Error level: %d", l)
-				return err
+				errChan <- errors.Wrapf(err, "[%s %d]", network, l)
+				return
 			}
 
-			logger.Info("[%d/%d] Found %d operations", l, cs.Level, len(ops))
+			logger.Info("[%s] %d/%d Found %d operations", network, l, cs.Level, len(ops))
 			if err := saveOperations(es, ops, s); err != nil {
-				return err
+				errChan <- errors.Wrapf(err, "[%s %d]", network, l)
+				return
 			}
 
 			if err := updateState(rpc, es, l, s); err != nil {
-				return err
+				errChan <- errors.Wrapf(err, "[%s %d]", network, l)
+				return
 			}
 		}
 	}
 
-	return nil
+	logger.Success("[%s] Synced", network)
+	done <- struct{}{}
 }
 
 func sync(rpcs map[string]*noderpc.NodeRPC, indexers map[string]index.Indexer, es *elastic.Elastic) error {
+	errChan := make(chan error)
+	done := make(chan struct{})
+
 	for network, indexer := range indexers {
 		rpc, ok := rpcs[network]
 		if !ok {
@@ -181,10 +190,26 @@ func sync(rpcs map[string]*noderpc.NodeRPC, indexers map[string]index.Indexer, e
 			continue
 		}
 
-		if err := syncIndexer(rpc, indexer, es, network); err != nil {
-			logger.Error(err)
-			continue
-		}
+		go syncIndexer(rpc, indexer, es, network, errChan, done)
 	}
+
+	var count int
+	for {
+		select {
+		case err := <-errChan:
+			logger.Error(err)
+			count++
+		case <-done:
+			count++
+		}
+
+		if count == len(rpcs) {
+			close(errChan)
+			close(done)
+			return nil
+		}
+
+	}
+
 	return nil
 }

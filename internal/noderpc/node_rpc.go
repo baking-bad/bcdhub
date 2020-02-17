@@ -86,20 +86,6 @@ func (rpc *NodeRPC) GetLevelTime(level int) (time.Time, error) {
 	return head.Get("timestamp").Time().UTC(), nil
 }
 
-// GetScript -
-func (rpc *NodeRPC) GetScript(address string, level int64) (map[string]interface{}, error) {
-	res, err := rpc.GetScriptJSON(address, level)
-	if err != nil {
-		return nil, err
-	}
-
-	ret, ok := res.Value().(map[string]interface{})
-	if !ok {
-		return nil, errors.New("(rpc.GetScript) Invalid return type")
-	}
-	return ret, nil
-}
-
 // GetScriptJSON -
 func (rpc *NodeRPC) GetScriptJSON(address string, level int64) (gjson.Result, error) {
 	block := "head"

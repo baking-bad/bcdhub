@@ -12,7 +12,7 @@ func getRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, op gjson.Result, 
 	kind := op.Get("kind").String()
 
 	switch protocol {
-	case consts.HashBabylon, consts.HashCarthage:
+	case consts.HashBabylon, consts.HashCarthage, consts.HashZeroBabylon:
 		parser := storage.NewBabylon(es, rpc)
 		switch kind {
 		case consts.Transaction:
