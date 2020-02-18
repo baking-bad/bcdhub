@@ -1,0 +1,23 @@
+{
+    "search": {
+        "uri": "http://localhost:9200"
+    },
+    "update_timer": 60,
+    "mq": {
+        "uri": "amqp://guest:guest@localhost:5672/",
+        "queues": ["operations", "contracts"]
+    },
+    "nodes": [{
+        "host": "https://rpc.tzkt.io/mainnet",
+        "network": "mainnet"
+    },{
+        "host": "https://rpc.tzkt.io/zeronet",
+        "network": "zeronet"
+    },{
+        "host": "https://babylontest-ssl.tezos.org.ua",
+        "network": "babylonnet"
+    },{
+        "host": "https://carthatest-ssl.tezos.org.ua",
+        "network": "carthagenet"
+    }]
+}

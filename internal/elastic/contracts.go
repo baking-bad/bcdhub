@@ -39,6 +39,13 @@ func parseContractFromHit(hit gjson.Result, c *models.Contract) {
 
 	c.ProjectID = hit.Get("_source.project_id").String()
 
+	c.LastAction = models.BCDTime{
+		Time: hit.Get("_source.last_action").Time().UTC(),
+	}
+
+	c.TxCount = hit.Get("_source.tx_count").Int()
+	c.SumTxAmount = hit.Get("_source.sum_tx_amount").Int()
+
 	c.FoundBy = getFoundBy(hit)
 }
 
@@ -90,7 +97,7 @@ func getFoundBy(hit gjson.Result) string {
 func getContractQuery(by map[string]interface{}) base {
 	matches := make([]qItem, 0)
 	for k, v := range by {
-		matches = append(matches, match(k, v))
+		matches = append(matches, matchPhrase(k, v))
 	}
 	return newQuery().Query(
 		boolQ(
@@ -132,6 +139,19 @@ func (e *Elastic) getContracts(q map[string]interface{}) ([]models.Contract, err
 func (e *Elastic) GetContract(by map[string]interface{}) (models.Contract, error) {
 	query := getContractQuery(by).One()
 	return e.getContract(query)
+}
+
+// GetContractByID -
+func (e *Elastic) GetContractByID(id string) (c models.Contract, err error) {
+	resp, err := e.GetByID(DocContracts, id)
+	if err != nil {
+		return
+	}
+	if !resp.Get("found").Bool() {
+		return c, fmt.Errorf("Unknown contract with ID %s", id)
+	}
+	parseContractFromHit(*resp, &c)
+	return
 }
 
 // GetContractsByTime -
@@ -193,4 +213,36 @@ func (e *Elastic) GetRandomContract() (models.Contract, error) {
 		},
 	}).One()
 	return e.getContract(query)
+}
+
+// GetContractStats -
+func (e *Elastic) GetContractStats(address, network string) (stats ContractStats, err error) {
+	b := boolQ(
+		must(
+			matchPhrase("network", network),
+		),
+		should(
+			matchPhrase("source", address),
+			matchPhrase("destination", address),
+		),
+	)
+	b.Get("bool").Append("minimum_should_match", 1)
+	query := newQuery().Query(b).Add(
+		qItem{
+			"aggs": qItem{
+				"last_action":   max("timestamp"),
+				"tx_count":      count("level"),
+				"sum_tx_amount": sum("amount"),
+			},
+		},
+	).Zero()
+	res, err := e.query(DocOperations, query)
+	if err != nil {
+		return
+	}
+
+	stats.LastAction = res.Get("aggregations.last_action.value_as_string").Time().UTC()
+	stats.TxCount = res.Get("aggregations.tx_count.value").Int()
+	stats.SumTxAmount = res.Get("aggregations.sum_tx_amount.value").Int()
+	return
 }

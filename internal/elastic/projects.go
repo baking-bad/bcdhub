@@ -162,3 +162,87 @@ func (e *Elastic) GetSimilarContracts(c models.Contract) ([]map[string]interface
 	}
 	return res, nil
 }
+
+// GetProjectsStats -
+func (e *Elastic) GetProjectsStats() (*gjson.Result, error) {
+	query := newQuery().Add(
+		aggs("by_project", qItem{
+			"terms": qItem{
+				"field": "project_id.keyword",
+				"size":  maxQuerySize,
+			},
+			"aggs": qItem{
+				"by_same": qItem{
+					"terms": qItem{
+						"script": "doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value",
+						"size":   maxQuerySize,
+					},
+					"aggs": qItem{
+						"last_action_date":  max("last_action"),
+						"last_deploy_date":  max("timestamp"),
+						"first_deploy_date": max("timestamp"),
+					},
+				},
+			},
+			"count": qItem{
+				"cardinality": qItem{
+					"script": "doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value",
+				},
+			},
+			"last_action_date":  maxBucket("by_same>last_action_date"),
+			"last_deploy_date":  maxBucket("by_same>last_deploy_date"),
+			"first_deploy_date": minBucket("by_same>first_deploy_date"),
+			"language": qItem{
+				"terms": qItem{
+					"field": "language.keyword",
+					"size":  1,
+				},
+			},
+			"tx_count": sum("tx_count"),
+		}),
+	).Zero()
+	return e.query(DocContracts, query)
+}
+
+// GetProjectStats -
+func (e *Elastic) GetProjectStats(projectID string) (*gjson.Result, error) {
+	query := newQuery().Query(
+		boolQ(
+			must(
+				matchPhrase("project_id", projectID),
+			),
+		),
+	).Add(
+		qItem{
+			"aggs": qItem{
+				"by_same": qItem{
+					"terms": qItem{
+						"script": "doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value",
+						"size":   maxQuerySize,
+					},
+					"aggs": qItem{
+						"last_action_date":  max("last_action"),
+						"last_deploy_date":  max("timestamp"),
+						"first_deploy_date": max("timestamp"),
+					},
+				},
+				"count": qItem{
+					"cardinality": qItem{
+						"script": "doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value",
+					},
+				},
+				"last_action_date":  maxBucket("by_same>last_action_date"),
+				"last_deploy_date":  maxBucket("by_same>last_deploy_date"),
+				"first_deploy_date": minBucket("by_same>first_deploy_date"),
+				"language": qItem{
+					"terms": qItem{
+						"field": "language.keyword",
+						"size":  1,
+					},
+				},
+				"tx_count": sum("tx_count"),
+			},
+		},
+	).Zero()
+	return e.query(DocContracts, query)
+}

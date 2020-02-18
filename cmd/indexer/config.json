@@ -9,10 +9,10 @@
         "host": "https://rpc.tzkt.io/zeronet",
         "network": "zeronet"
     },{
-        "host": "https://rpc.tzkt.io/babylonnet",
+        "host": "https://babylontest-ssl.tezos.org.ua",
         "network": "babylonnet"
     },{
-        "host": "https://rpc.tzkt.io/carthagenet",
+        "host": "https://carthatest-ssl.tezos.org.ua",
         "network": "carthagenet"
     }],
     "tzkt": {
@@ -29,5 +29,9 @@
     },
     "indexer": "tzstats",
     "update_timer": 60,
-    "files_directory": "/home/artem/.bcd"
+    "files_directory": "/home/artem/.bcd",
+    "mq": {
+        "uri": "amqp://guest:guest@localhost:5672/",
+        "queues": ["contracts"]
+    }
 }

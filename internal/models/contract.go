@@ -25,9 +25,12 @@ type Contract struct {
 	Manager  string `json:"manager,omitempty"`
 	Delegate string `json:"delegate,omitempty"`
 
-	ProjectID string `json:"project_id,omitempty"`
-	FoundBy   string `json:"found_by,omitempty"`
-	Group     *Group `json:"group,omitempty"`
+	ProjectID   string  `json:"project_id,omitempty"`
+	FoundBy     string  `json:"found_by,omitempty"`
+	Group       *Group  `json:"group,omitempty"`
+	LastAction  BCDTime `json:"last_action,omitempty"`
+	TxCount     int64   `json:"tx_count,omitempty"`
+	SumTxAmount int64   `json:"sum_tx_amount,omitempty"`
 }
 
 // Fingerprint -
@@ -47,4 +50,17 @@ type Group struct {
 type TopContract struct {
 	Network string `json:"network"`
 	Address string `json:"address"`
+}
+
+// BCDTime -
+type BCDTime struct {
+	time.Time
+}
+
+// MarshalJSON -
+func (t BCDTime) MarshalJSON() ([]byte, error) {
+	if t.IsZero() {
+		return []byte("null"), nil
+	}
+	return t.Time.MarshalJSON()
 }

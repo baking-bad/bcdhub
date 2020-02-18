@@ -4,18 +4,18 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
-	"github.com/tidwall/gjson"
 )
 
-func getMetadata(rpc *noderpc.NodeRPC, c *models.Contract, tag string, script gjson.Result) (map[string]string, error) {
+func getMetadata(rpc *noderpc.NodeRPC, c *models.Contract, tag, filesDirectory string) (map[string]string, error) {
 	res := make(map[string]string)
 
-	a, err := createMetadata(rpc, 0, c, tag, &script)
+	a, err := createMetadata(rpc, 0, c, tag, filesDirectory)
 	if err != nil {
 		return nil, err
 	}
@@ -24,7 +24,7 @@ func getMetadata(rpc *noderpc.NodeRPC, c *models.Contract, tag string, script gj
 		res[consts.MetadataBabylon] = a
 
 		if c.Level < consts.LevelBabylon {
-			a, err = createMetadata(rpc, consts.LevelBabylon-1, c, tag, nil)
+			a, err = createMetadata(rpc, consts.LevelBabylon-1, c, tag, filesDirectory)
 			if err != nil {
 				return nil, err
 			}
@@ -54,14 +54,12 @@ func getEntrypointsFromMetadata(m meta.Metadata, c *models.Contract) {
 	}
 }
 
-func createMetadata(rpc *noderpc.NodeRPC, level int64, c *models.Contract, tag string, script *gjson.Result) (string, error) {
-	if script == nil {
-		s, err := rpc.GetScriptJSON(c.Address, level)
-		if err != nil {
-			return "", err
-		}
-		script = &s
+func createMetadata(rpc *noderpc.NodeRPC, level int64, c *models.Contract, tag, filesDirectory string) (string, error) {
+	s, err := contractparser.GetContract(rpc, c.Address, c.Network, level, filesDirectory)
+	if err != nil {
+		return "", err
 	}
+	script := s.Get("script")
 
 	args := script.Get(fmt.Sprintf("code.#(prim==\"%s\").args", tag))
 	if args.Exists() {
@@ -82,12 +80,12 @@ func createMetadata(rpc *noderpc.NodeRPC, level int64, c *models.Contract, tag s
 	return "", fmt.Errorf("[createMetadata] Unknown tag '%s'", tag)
 }
 
-func saveMetadata(es *elastic.Elastic, rpc *noderpc.NodeRPC, c *models.Contract, script gjson.Result) error {
-	storage, err := getMetadata(rpc, c, consts.STORAGE, script)
+func saveMetadata(es *elastic.Elastic, rpc *noderpc.NodeRPC, c *models.Contract, filesDirectory string) error {
+	storage, err := getMetadata(rpc, c, consts.STORAGE, filesDirectory)
 	if err != nil {
 		return err
 	}
-	parameter, err := getMetadata(rpc, c, consts.PARAMETER, script)
+	parameter, err := getMetadata(rpc, c, consts.PARAMETER, filesDirectory)
 	if err != nil {
 		return err
 	}

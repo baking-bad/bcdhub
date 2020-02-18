@@ -2,6 +2,7 @@ package elastic
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/tidwall/gjson"
@@ -70,6 +71,19 @@ func parseOperationResult(data gjson.Result) *models.OperationResult {
 
 		BalanceUpdates: bu,
 	}
+}
+
+// GetOperationByID -
+func (e *Elastic) GetOperationByID(id string) (op models.Operation, err error) {
+	resp, err := e.GetByID(DocOperations, id)
+	if err != nil {
+		return
+	}
+	if !resp.Get("found").Bool() {
+		return op, fmt.Errorf("Unknown contract with ID %s", id)
+	}
+	op = parseOperation(*resp)
+	return
 }
 
 // GetContractOperations -

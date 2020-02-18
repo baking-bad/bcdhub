@@ -142,6 +142,38 @@ func max(field string) qItem {
 	}
 }
 
+func sum(field string) qItem {
+	return qItem{
+		"sum": qItem{
+			"field": field,
+		},
+	}
+}
+
+func count(field string) qItem {
+	return qItem{
+		"value_count": qItem{
+			"field": field,
+		},
+	}
+}
+
+func maxBucket(bucketsPath string) qItem {
+	return qItem{
+		"max_bucket": qItem{
+			"buckets_path": bucketsPath,
+		},
+	}
+}
+
+func minBucket(bucketsPath string) qItem {
+	return qItem{
+		"min_bucket": qItem{
+			"buckets_path": bucketsPath,
+		},
+	}
+}
+
 func queryString(text string, fields []string) qItem {
 	queryS := qItem{
 		"query": fmt.Sprintf("*%s*", text),

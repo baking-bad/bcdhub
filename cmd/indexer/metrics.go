@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 
@@ -14,8 +13,8 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-func computeMetrics(rpc *noderpc.NodeRPC, es *elastic.Elastic, c *models.Contract) error {
-	contract, err := getContractCode(rpc, c.Address, c.Network)
+func computeMetrics(rpc *noderpc.NodeRPC, es *elastic.Elastic, c *models.Contract, filesDirectory string) error {
+	contract, err := contractparser.GetContract(rpc, c.Address, c.Network, 0, filesDirectory)
 	if err != nil {
 		return err
 	}
@@ -43,15 +42,35 @@ func computeMetrics(rpc *noderpc.NodeRPC, es *elastic.Elastic, c *models.Contrac
 		return err
 	}
 
-	if err := saveToFile(contract, c); err != nil {
+	if err := saveToFile(contract, c, 0, filesDirectory); err != nil {
 		return err
 	}
 
-	return saveMetadata(es, rpc, c, s)
+	// Save contract code before babylon in mainnet
+	if c.Level < consts.LevelBabylon && c.Network == consts.Mainnet {
+		alphaContract, err := contractparser.GetContract(rpc, c.Address, c.Network, c.Level, filesDirectory)
+		if err != nil {
+			return err
+		}
+		if err := saveToFile(alphaContract, c, c.Level, filesDirectory); err != nil {
+			return err
+		}
+	}
+
+	return saveMetadata(es, rpc, c, filesDirectory)
 }
 
-func saveToFile(script gjson.Result, c *models.Contract) error {
-	filePath := fmt.Sprintf("%s/contracts/%s/%s.json", filesDirectory, c.Network, c.Address)
+func saveToFile(script gjson.Result, c *models.Contract, level int64, filesDirectory string) error {
+	var postfix string
+	if c.Network == consts.Mainnet {
+		if level < consts.LevelBabylon && level != 0 {
+			postfix = "_alpha"
+		} else {
+			postfix = "_babylon"
+		}
+	}
+
+	filePath := fmt.Sprintf("%s/contracts/%s/%s%s.json", filesDirectory, c.Network, c.Address, postfix)
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		d := path.Dir(filePath)
 		if _, err := os.Stat(d); os.IsNotExist(err) {
@@ -71,23 +90,4 @@ func saveToFile(script gjson.Result, c *models.Contract) error {
 		}
 	}
 	return nil
-}
-
-func getContractCode(rpc *noderpc.NodeRPC, address, network string) (gjson.Result, error) {
-	filePath := fmt.Sprintf("%s/contracts/%s/%s.json", filesDirectory, network, address)
-	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		return rpc.GetContractJSON(address, 0)
-	}
-
-	f, err := os.Open(filePath)
-	if err != nil {
-		return gjson.Result{}, err
-	}
-	defer f.Close()
-
-	data, err := ioutil.ReadAll(f)
-	if err != nil {
-		return gjson.Result{}, err
-	}
-	return gjson.ParseBytes(data), nil
 }

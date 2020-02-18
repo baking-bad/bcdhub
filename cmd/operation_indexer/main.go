@@ -3,13 +3,9 @@ package main
 import (
 	"time"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
 	"github.com/aopoltorzhicky/bcdhub/internal/logger"
-	"github.com/aopoltorzhicky/bcdhub/internal/models"
 )
-
-var states = map[string]*models.State{}
 
 func main() {
 	var cfg config
@@ -18,26 +14,20 @@ func main() {
 	}
 	cfg.print()
 
-	es, err := elastic.New([]string{cfg.Search.URI})
-	if err != nil {
-		panic(err)
-	}
-
-	RPCs := createRPCs(cfg)
-	indexers, err := createIndexers(es, cfg)
+	ctx, err := newContext(cfg)
 	if err != nil {
 		panic(err)
 	}
 
 	// Initial syncronization
-	if err = sync(RPCs, indexers, es); err != nil {
+	if err = process(ctx); err != nil {
 		logger.Error(err)
 	}
 
 	// Update state by ticker
 	ticker := time.NewTicker(time.Duration(cfg.UpdateTimer) * time.Second)
 	for range ticker.C {
-		if err = sync(RPCs, indexers, es); err != nil {
+		if err = process(ctx); err != nil {
 			logger.Error(err)
 		}
 	}

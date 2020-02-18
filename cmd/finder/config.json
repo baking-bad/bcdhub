@@ -1,6 +1,0 @@
-{
-    "search": {
-        "uri": "http://localhost:9200"
-    },
-    "update_timer": 60
-}

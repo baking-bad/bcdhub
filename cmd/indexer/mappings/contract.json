@@ -82,6 +82,15 @@
             "timestamp": {
                 "type": "date"
             },
+            "last_action": {
+                "type": "date"
+            },
+            "tx_count": {
+                "type": "long"
+            },
+            "sum_tx_amount": {
+                "type": "long"
+            },
             "project_id": {
                 "type": "text",
                 "fields": {

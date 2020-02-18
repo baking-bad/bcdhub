@@ -1,72 +1,16 @@
 package main
 
 import (
-	"fmt"
-	"log"
-	"time"
+	"sync"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
-	"github.com/aopoltorzhicky/bcdhub/internal/index"
 	"github.com/aopoltorzhicky/bcdhub/internal/logger"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
+	"github.com/aopoltorzhicky/bcdhub/internal/mq"
 	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
-	"github.com/pkg/errors"
 )
-
-func createRPCs(cfg config) map[string]*noderpc.NodeRPC {
-	rpc := make(map[string]*noderpc.NodeRPC)
-	for i := range cfg.NodeRPC {
-		nodeCfg := cfg.NodeRPC[i]
-		rpc[nodeCfg.Network] = noderpc.NewNodeRPC(nodeCfg.Host)
-		rpc[nodeCfg.Network].SetTimeout(time.Second * 30)
-	}
-	return rpc
-}
-
-func createIndexer(es *elastic.Elastic, indexerType, network, url string) (index.Indexer, error) {
-	if url == "" {
-		return nil, nil
-	}
-	s, err := es.CurrentState(network, models.StateOperation)
-	if err != nil {
-		return nil, err
-	}
-	states[network] = &s
-
-	logger.Info("Create %s %s indexer", indexerType, network)
-	logger.Info("Current state %d level", s.Level)
-
-	switch indexerType {
-	case "tzkt":
-		idx := index.NewTzKT(url, 30*time.Second)
-		return idx, nil
-
-	case "tzstats":
-		idx := index.NewTzStats(url)
-		return idx, nil
-	default:
-		log.Panicf("Unknown indexer type: %s", indexerType)
-	}
-	return nil, nil
-}
-
-func createIndexers(es *elastic.Elastic, cfg config) (map[string]index.Indexer, error) {
-	idx := make(map[string]index.Indexer)
-	indexerCfg := cfg.TzKT
-	if cfg.Indexer == "tzstats" {
-		indexerCfg = cfg.TzStats
-	}
-	for network, url := range indexerCfg {
-		index, err := createIndexer(es, cfg.Indexer, network, url.(string))
-		if err != nil {
-			return nil, err
-		}
-		idx[network] = index
-	}
-	return idx, nil
-}
 
 func getContracts(es *elastic.Elastic, network string) (map[string]struct{}, map[string]struct{}, error) {
 	addresses, err := es.GetContracts(map[string]interface{}{
@@ -105,111 +49,105 @@ func updateState(rpc *noderpc.NodeRPC, es *elastic.Elastic, currentLevel int64, 
 	return nil
 }
 
-func saveOperations(es *elastic.Elastic, ops []models.Operation, s *models.State) error {
+func saveOperations(ctx *Context, ops []models.Operation, s *models.State) error {
 	if len(ops) == 0 {
 		return nil
 	}
 
 	for j := range ops {
 		ops[j].Timestamp = s.Timestamp
-		if _, err := es.AddDocumentWithID(ops[j], elastic.DocOperations, ops[j].ID); err != nil {
+		if _, err := ctx.ES.AddDocumentWithID(ops[j], elastic.DocOperations, ops[j].ID); err != nil {
+			return err
+		}
+
+		if err := ctx.MQ.Send(mq.ChannelNew, mq.QueueOperations, ops[j].ID); err != nil {
+			logger.Error(err)
 			return err
 		}
 	}
 	return nil
 }
 
-func syncIndexer(rpc *noderpc.NodeRPC, indexer index.Indexer, es *elastic.Elastic, network string, errChan chan error, done chan struct{}) {
-	cs, err := es.CurrentState(network, models.StateContract)
+func syncNetwork(ctx *Context, network string, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	rpc, err := ctx.GetRPC(network)
 	if err != nil {
-		errChan <- errors.Wrapf(err, "[%s]", network)
+		logger.Errorf("[%s] %s", network, err.Error())
+		return
+	}
+
+	indexer, err := ctx.GetIndexer(network)
+	if err != nil {
+		logger.Errorf("[%s] %s", network, err.Error())
+		return
+	}
+
+	cs, err := ctx.ES.CurrentState(network, models.StateContract)
+	if err != nil {
+		logger.Errorf("[%s] %s", network, err.Error())
 		return
 	}
 	logger.Info("[%s] Current contract indexer state: %d", network, cs.Level)
 
 	// Get current DB state
-	s, ok := states[network]
+	s, ok := ctx.States[network]
 	if !ok {
-		errChan <- fmt.Errorf("Unknown network: %s", network)
+		logger.Errorf("Unknown network: %s", network)
 		return
 	}
 	logger.Info("[%s] Current state: %d", network, s.Level)
 
 	if cs.Level > s.Level {
-		addresses, spendable, err := getContracts(es, network)
+		addresses, spendable, err := getContracts(ctx.ES, network)
 		if err != nil {
-			errChan <- errors.Wrapf(err, "[%s]", network)
+			logger.Errorf("[%s] %s", network, err.Error())
 			return
 		}
 
 		levels, err := indexer.GetContractOperationBlocks(int(s.Level), int(cs.Level), addresses, spendable)
 		if err != nil {
-			errChan <- errors.Wrapf(err, "[%s]", network)
+			logger.Errorf("[%s] %s", network, err.Error())
 			return
 		}
 
 		if len(levels) == 0 {
-			done <- struct{}{}
+			return
 		}
 
 		logger.Info("[%s] Found %d contracts", network, len(addresses))
 		logger.Info("[%s] Found %d new levels", network, len(levels))
 
 		for _, l := range levels {
-			ops, err := getOperations(rpc, es, l, network, addresses)
+			ops, err := getOperations(rpc, ctx.ES, l, network, addresses)
 			if err != nil {
-				errChan <- errors.Wrapf(err, "[%s %d]", network, l)
+				logger.Errorf("[%s %d] %s", network, l, err.Error())
 				return
 			}
 
 			logger.Info("[%s] %d/%d Found %d operations", network, l, cs.Level, len(ops))
-			if err := saveOperations(es, ops, s); err != nil {
-				errChan <- errors.Wrapf(err, "[%s %d]", network, l)
+			if err := saveOperations(ctx, ops, s); err != nil {
+				logger.Errorf("[%s %d] %s", network, l, err.Error())
 				return
 			}
 
-			if err := updateState(rpc, es, l, s); err != nil {
-				errChan <- errors.Wrapf(err, "[%s %d]", network, l)
+			if err := updateState(rpc, ctx.ES, l, s); err != nil {
+				logger.Errorf("[%s %d] %s", network, l, err.Error())
 				return
 			}
 		}
 	}
 
 	logger.Success("[%s] Synced", network)
-	done <- struct{}{}
 }
 
-func sync(rpcs map[string]*noderpc.NodeRPC, indexers map[string]index.Indexer, es *elastic.Elastic) error {
-	errChan := make(chan error)
-	done := make(chan struct{})
-
-	for network, indexer := range indexers {
-		rpc, ok := rpcs[network]
-		if !ok {
-			logger.Errorf("Unknown RPC network: %s", network)
-			continue
-		}
-
-		go syncIndexer(rpc, indexer, es, network, errChan, done)
+func process(ctx *Context) error {
+	var wg sync.WaitGroup
+	for network := range ctx.Indexers {
+		wg.Add(1)
+		go syncNetwork(ctx, network, &wg)
 	}
-
-	var count int
-	for {
-		select {
-		case err := <-errChan:
-			logger.Error(err)
-			count++
-		case <-done:
-			count++
-		}
-
-		if count == len(rpcs) {
-			close(errChan)
-			close(done)
-			return nil
-		}
-
-	}
+	wg.Wait()
 
 	return nil
 }

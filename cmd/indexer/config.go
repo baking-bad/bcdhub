@@ -19,6 +19,10 @@ type config struct {
 	} `json:"nodes"`
 	UpdateTimer    int64  `json:"update_timer"`
 	FilesDirectory string `json:"files_directory"`
+	Mq             struct {
+		URI    string   `json:"uri"`
+		Queues []string `json:"queues"`
+	} `json:"mq"`
 }
 
 func (cfg config) print() {
