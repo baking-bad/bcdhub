@@ -6,18 +6,31 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
+// DB -
+type DB interface {
+	GetUserByLogin(string) *User
+	CreateUser(User) error
+	Close()
+}
+
+type db struct {
+	ORM *gorm.DB
+}
+
 // New - creates db connection
-func New(connectionString string) (*gorm.DB, error) {
-	db, err := gorm.Open("postgres", connectionString)
+func New(connectionString string) (DB, error) {
+	gorm, err := gorm.Open("postgres", connectionString)
 	if err != nil {
 		return nil, err
 	}
 
-	db.LogMode(true)
+	gorm.LogMode(true)
 
-	db.AutoMigrate(&User{}, &Ownership{})
+	gorm.AutoMigrate(&User{}, &Ownership{})
 
-	db = db.Set("gorm:auto_preload", true)
+	gorm = gorm.Set("gorm:auto_preload", true)
 
-	return db, nil
+	return &db{
+		ORM: gorm,
+	}, nil
 }

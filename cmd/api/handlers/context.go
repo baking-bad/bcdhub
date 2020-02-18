@@ -1,9 +1,10 @@
 package handlers
 
 import (
+	"github.com/aopoltorzhicky/bcdhub/cmd/api/oauth"
+	"github.com/aopoltorzhicky/bcdhub/internal/database"
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
-	"github.com/jinzhu/gorm"
 )
 
 // Context -

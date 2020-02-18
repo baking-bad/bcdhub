@@ -1,7 +1,7 @@
 version: "3.6"
 services:
   elastic:
-    container_name: elastic
+    container_name: bcd-elastic
     image: docker.elastic.co/elasticsearch/elasticsearch:7.5.1
     volumes:
       - esdata:/usr/share/elasticsearch/data
@@ -18,7 +18,7 @@ services:
         max-file: "5"
   
   db:
-    container_name: db
+    container_name: bcd-db
     image: postgres:latest
     restart: always
     environment: 
@@ -31,13 +31,10 @@ services:
       - db:/var/lib/postgresql/data
     ports:
       - 127.0.0.1:5432:5432
-      logging: &my-logging
-      options:
-        max-size: 10m
-        max-file: "5"
+    logging: *my-logging
 
   api:
-    container_name: api
+    container_name: bcd-api
     restart: always
     image: registry.github.com/aopoltorzhicky/bcdhub/api
     build:
@@ -52,7 +49,7 @@ services:
     logging: *my-logging
 
   indexer:
-    container_name: indexer
+    container_name: bcd-indexer
     restart: always
     image: registry.github.com/aopoltorzhicky/bcdhub/indexer
     build:
