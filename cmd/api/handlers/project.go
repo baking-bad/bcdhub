@@ -42,3 +42,14 @@ func (ctx *Context) GetProjectContracts(c *gin.Context) {
 	res["similar"] = s
 	c.JSON(http.StatusOK, res)
 }
+
+// GetProjects -
+func (ctx *Context) GetProjects(c *gin.Context) {
+	projects, err := ctx.ES.GetProjectsStats()
+	if err != nil {
+		_ = c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, projects)
+}

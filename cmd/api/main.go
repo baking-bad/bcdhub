@@ -49,6 +49,7 @@ func main() {
 
 		v1.GET("pick_random", ctx.GetRandomContract)
 		v1.GET("diff", ctx.GetDiff)
+		v1.GET("projects", ctx.GetProjects)
 		v1.POST("vote", ctx.Vote)
 
 		project := v1.Group("project")

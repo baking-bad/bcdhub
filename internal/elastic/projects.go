@@ -164,7 +164,7 @@ func (e *Elastic) GetSimilarContracts(c models.Contract) ([]map[string]interface
 }
 
 // GetProjectsStats -
-func (e *Elastic) GetProjectsStats() (*gjson.Result, error) {
+func (e *Elastic) GetProjectsStats() (stats []ProjectStats, err error) {
 	query := newQuery().Add(
 		aggs("by_project", qItem{
 			"terms": qItem{
@@ -183,29 +183,40 @@ func (e *Elastic) GetProjectsStats() (*gjson.Result, error) {
 						"first_deploy_date": max("timestamp"),
 					},
 				},
-			},
-			"count": qItem{
-				"cardinality": qItem{
-					"script": "doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value",
+				"count": qItem{
+					"cardinality": qItem{
+						"script": "doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value",
+					},
 				},
-			},
-			"last_action_date":  maxBucket("by_same>last_action_date"),
-			"last_deploy_date":  maxBucket("by_same>last_deploy_date"),
-			"first_deploy_date": minBucket("by_same>first_deploy_date"),
-			"language": qItem{
-				"terms": qItem{
-					"field": "language.keyword",
-					"size":  1,
+				"last_action_date":  maxBucket("by_same>last_action_date"),
+				"last_deploy_date":  maxBucket("by_same>last_deploy_date"),
+				"first_deploy_date": minBucket("by_same>first_deploy_date"),
+				"language": qItem{
+					"terms": qItem{
+						"field": "language.keyword",
+						"size":  1,
+					},
 				},
+				"tx_count": sum("tx_count"),
 			},
-			"tx_count": sum("tx_count"),
 		}),
 	).Zero()
-	return e.query(DocContracts, query)
+	resp, err := e.query(DocContracts, query)
+	if err != nil {
+		return
+	}
+	count := resp.Get("aggregations.by_project.buckets.#").Int()
+	stats = make([]ProjectStats, count)
+	for i, item := range resp.Get("aggregations.by_project.buckets").Array() {
+		var p ProjectStats
+		p.parse(item)
+		stats[i] = p
+	}
+	return
 }
 
 // GetProjectStats -
-func (e *Elastic) GetProjectStats(projectID string) (*gjson.Result, error) {
+func (e *Elastic) GetProjectStats(projectID string) (p ProjectStats, err error) {
 	query := newQuery().Query(
 		boolQ(
 			must(
@@ -244,5 +255,10 @@ func (e *Elastic) GetProjectStats(projectID string) (*gjson.Result, error) {
 			},
 		},
 	).Zero()
-	return e.query(DocContracts, query)
+	resp, err := e.query(DocContracts, query)
+	if err != nil {
+		return
+	}
+	p.parse(resp.Get("aggregations"))
+	return
 }

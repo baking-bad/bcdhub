@@ -240,9 +240,6 @@ func (e *Elastic) GetContractStats(address, network string) (stats ContractStats
 	if err != nil {
 		return
 	}
-
-	stats.LastAction = res.Get("aggregations.last_action.value_as_string").Time().UTC()
-	stats.TxCount = res.Get("aggregations.tx_count.value").Int()
-	stats.SumTxAmount = res.Get("aggregations.sum_tx_amount.value").Int()
+	stats.parse(res.Get("aggregations"))
 	return
 }
