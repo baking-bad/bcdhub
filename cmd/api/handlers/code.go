@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/formatter"
@@ -42,26 +43,7 @@ func (ctx *Context) GetDiff(c *gin.Context) {
 		return
 	}
 
-	srcCode, err := ctx.getContractCode(req.SourceNetwork, req.SourceAddress)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-
-	destCode, err := ctx.getContractCode(req.DestinationNetwork, req.DestinationAddress)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-
-	diff := difflib.UnifiedDiff{
-		A:        difflib.SplitLines(srcCode),
-		B:        difflib.SplitLines(destCode),
-		FromFile: req.SourceAddress,
-		ToFile:   req.DestinationAddress,
-		Context:  10,
-	}
-	text, err := difflib.GetUnifiedDiffString(diff)
+	text, err := ctx.getDiff(req.SourceAddress, req.SourceNetwork, req.DestinationAddress, req.DestinationNetwork)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -88,4 +70,43 @@ func (ctx *Context) getContractCode(network, address string) (string, error) {
 
 	code := collapsed.Get("code")
 	return formatter.MichelineToMichelson(code, false)
+}
+
+func (ctx *Context) getDiff(srcAddress, srcNetwork, destAddress, destNetwork string) (CodeDiff, error) {
+	srcCode, err := ctx.getContractCode(srcNetwork, srcAddress)
+	if err != nil {
+		return CodeDiff{}, err
+	}
+
+	destCode, err := ctx.getContractCode(destNetwork, destAddress)
+	if err != nil {
+		return CodeDiff{}, err
+	}
+
+	diff := difflib.UnifiedDiff{
+		A:        difflib.SplitLines(srcCode),
+		B:        difflib.SplitLines(destCode),
+		FromFile: srcAddress,
+		ToFile:   destAddress,
+		Context:  10,
+	}
+	text, err := difflib.GetUnifiedDiffString(diff)
+	if err != nil {
+		return CodeDiff{}, err
+	}
+
+	buf := text
+	buf = strings.ReplaceAll(buf, "+++", "+")
+	buf = strings.ReplaceAll(buf, "++", "+")
+	buf = strings.ReplaceAll(buf, "---", "-")
+	buf = strings.ReplaceAll(buf, "--", "-")
+
+	added := int64(strings.Count(buf, "+"))
+	removed := int64(strings.Count(buf, "-"))
+
+	return CodeDiff{
+		Full:    text,
+		Added:   added,
+		Removed: removed,
+	}, nil
 }
