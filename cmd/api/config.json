@@ -2,11 +2,12 @@
     "search": {
         "uri": "http://localhost:9200"
     },
-    "address": "127.0.0.1:14000",
+    "address": ":14000",
     "rpc": {
         "mainnet": "https://rpc.tzkt.io/mainnet",
         "zeronet": "https://rpc.tzkt.io/zeronet",
         "babylonnet": "https://rpc.tzkt.io/babylonnet",
         "carthagenet": "https://rpc.tzkt.io/carthagenet"
-    }
+    },
+    "dir": "/home/artem/.bcd"
 }

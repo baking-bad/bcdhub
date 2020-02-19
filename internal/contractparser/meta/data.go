@@ -68,7 +68,7 @@ func ParseMetadata(v gjson.Result) (Metadata, error) {
 // GetName -
 func GetName(nm *NodeMetadata) string {
 	if nm.Name == "" {
-		return "__entry__"
+		return "__entry__" // TODO: set index
 	}
 	return nm.Name
 }

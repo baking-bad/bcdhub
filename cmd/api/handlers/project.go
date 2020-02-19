@@ -20,30 +20,36 @@ func (ctx *Context) GetProjectContracts(c *gin.Context) {
 	by := map[string]interface{}{
 		"address": req.Address,
 	}
-	hashCode, err := ctx.ES.GetContractField(by, "hash")
+	contract, err := ctx.ES.GetContract(by)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	h := make([]string, 0)
-	for _, item := range hashCode.([]interface{}) {
-		h = append(h, item.(string))
-	}
-
 	res := map[string]interface{}{}
-	v, err := ctx.ES.FindSameContracts(req.Address, h, 5)
+	v, err := ctx.ES.GetSameContracts(contract)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 	res["same"] = v
 
-	s, err := ctx.ES.FindSimilarContracts(h, 5)
+	s, err := ctx.ES.GetSimilarContracts(contract)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 	res["similar"] = s
 	c.JSON(http.StatusOK, res)
+}
+
+// GetProjects -
+func (ctx *Context) GetProjects(c *gin.Context) {
+	projects, err := ctx.ES.GetProjectsStats()
+	if err != nil {
+		_ = c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, projects)
 }

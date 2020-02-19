@@ -1,16 +1,15 @@
 package main
 
 import (
+	"strings"
 	"time"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
 	"github.com/aopoltorzhicky/bcdhub/internal/logger"
-	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/tidwall/gjson"
 )
-
-var states = map[string]*models.State{}
 
 func main() {
 	var cfg config
@@ -19,30 +18,32 @@ func main() {
 	}
 	cfg.print()
 
-	es, err := elastic.New([]string{cfg.Search.URI})
+	ctx, err := newContext(cfg)
 	if err != nil {
 		panic(err)
 	}
+	defer ctx.Close()
 
-	if err := es.CreateIndexIfNotExists(elastic.DocContracts); err != nil {
+	if err := ctx.ES.CreateIndexIfNotExists(elastic.DocContracts); err != nil {
 		panic(err)
 	}
 
-	RPCs := createRPCs(cfg)
-	indexers, err := createIndexers(es, cfg)
-	if err != nil {
-		panic(err)
-	}
+	gjson.AddModifier("upper", func(json, arg string) string {
+		return strings.ToUpper(json)
+	})
+	gjson.AddModifier("lower", func(json, arg string) string {
+		return strings.ToLower(json)
+	})
 
 	// Initial syncronization
-	if err = sync(RPCs, indexers, es); err != nil {
+	if err = process(ctx); err != nil {
 		logger.Error(err)
 	}
 
 	// Update state by ticker
 	ticker := time.NewTicker(time.Duration(cfg.UpdateTimer) * time.Second)
 	for range ticker.C {
-		if err = sync(RPCs, indexers, es); err != nil {
+		if err = process(ctx); err != nil {
 			logger.Error(err)
 		}
 	}

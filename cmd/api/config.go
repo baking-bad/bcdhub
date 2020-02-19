@@ -6,4 +6,5 @@ type config struct {
 		URI string `json:"uri"`
 	} `json:"search"`
 	RPCs map[string]string `json:"rpc"`
+	Dir  string            `json:"dir"`
 }

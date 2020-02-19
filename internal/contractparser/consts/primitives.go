@@ -38,6 +38,8 @@ const (
 	PUSH           = "push"
 	ELT            = "elt"
 	NONE           = "none"
+	CAST           = "cast"
+	RENAME         = "rename"
 )
 
 // Data instructions

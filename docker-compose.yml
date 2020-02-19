@@ -43,5 +43,17 @@ services:
       - elastic
     logging: *my-logging
 
+  mq:
+    container_name: mq
+    hostname: mq
+    image: rabbitmq:latest
+    restart: always
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    labels:
+      NAME: "rabbitmq"
+    logging: *my-logging
+
 volumes:
   esdata:

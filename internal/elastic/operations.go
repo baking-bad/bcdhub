@@ -2,6 +2,7 @@ package elastic
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/tidwall/gjson"
@@ -72,46 +73,51 @@ func parseOperationResult(data gjson.Result) *models.OperationResult {
 	}
 }
 
+// GetOperationByID -
+func (e *Elastic) GetOperationByID(id string) (op models.Operation, err error) {
+	resp, err := e.GetByID(DocOperations, id)
+	if err != nil {
+		return
+	}
+	if !resp.Get("found").Bool() {
+		return op, fmt.Errorf("Unknown contract with ID %s", id)
+	}
+	op = parseOperation(*resp)
+	return
+}
+
 // GetContractOperations -
 func (e *Elastic) GetContractOperations(network, address string, offset, size int64) ([]models.Operation, error) {
-	query := map[string]interface{}{
-		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
-				"should": []map[string]interface{}{
-					map[string]interface{}{
-						"match": map[string]interface{}{
-							"source": address,
-						},
-					}, map[string]interface{}{
-						"match": map[string]interface{}{
-							"destination": address,
-						},
-					},
-				},
-				"must": map[string]interface{}{
-					"term": map[string]interface{}{
-						"network": network,
-					},
-				},
-				"minimum_should_match": 1,
-			},
-		},
-		"sort": map[string]interface{}{
-			"_script": map[string]interface{}{
-				"type": "number",
-				"script": map[string]interface{}{
-					"lang":   "painless",
-					"source": "doc['level'].value * 10 + (doc['internal'].value ? 0 : 1)",
-				},
-				"order": "desc",
-			},
-		},
-		"from": offset,
-	}
 	if size == 0 {
 		size = 10
 	}
-	query["size"] = size
+
+	b := boolQ(
+		should(
+			matchPhrase("source", address),
+			matchPhrase("destination", address),
+		),
+		must(
+			matchPhrase("network", network),
+		),
+	)
+	b.Get("bool").Append("minimum_should_match", 1)
+	query := newQuery().
+		Query(b).
+		Size(size).
+		From(offset).
+		Add(qItem{
+			"sort": qItem{
+				"_script": qItem{
+					"type": "number",
+					"script": qItem{
+						"lang":   "painless",
+						"source": "doc['level'].value * 10 + (doc['internal'].value ? 0 : 1)",
+					},
+					"order": "desc",
+				},
+			},
+		})
 
 	res, err := e.query(DocOperations, query)
 	if err != nil {
@@ -128,40 +134,31 @@ func (e *Elastic) GetContractOperations(network, address string, offset, size in
 
 // GetLastStorage -
 func (e *Elastic) GetLastStorage(network, address string) (gjson.Result, error) {
-	query := map[string]interface{}{
-		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
-				"must": []map[string]interface{}{
-					map[string]interface{}{
-						"term": map[string]interface{}{
-							"network": network,
-						},
+	query := newQuery().
+		Query(
+			boolQ(
+				must(
+					matchPhrase("network", network),
+					matchPhrase("destination", address),
+				),
+				notMust(
+					term("deffated_storage", ""),
+				),
+			),
+		).
+		Add(qItem{
+			"sort": qItem{
+				"_script": qItem{
+					"type": "number",
+					"script": qItem{
+						"lang":   "painless",
+						"source": "doc['level'].value * 10 + (doc['internal'].value ? 0 : 1)",
 					},
-					map[string]interface{}{
-						"match_phrase": map[string]interface{}{
-							"destination": address,
-						},
-					},
-				},
-				"must_not": map[string]interface{}{
-					"term": map[string]interface{}{
-						"deffated_storage": "",
-					},
+					"order": "desc",
 				},
 			},
-		},
-		"sort": map[string]interface{}{
-			"_script": map[string]interface{}{
-				"type": "number",
-				"script": map[string]interface{}{
-					"lang":   "painless",
-					"source": "doc['level'].value * 10 + (doc['internal'].value ? 0 : 1)",
-				},
-				"order": "desc",
-			},
-		},
-		"size": 1,
-	}
+		}).
+		One()
 
 	res, err := e.query(DocOperations, query)
 	if err != nil {
@@ -176,45 +173,32 @@ func (e *Elastic) GetLastStorage(network, address string) (gjson.Result, error) 
 
 // GetPreviousOperation -
 func (e *Elastic) GetPreviousOperation(address, network string, level int64) (models.Operation, error) {
-	query := map[string]interface{}{
-		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
-				"must": []map[string]interface{}{
-					map[string]interface{}{
-						"match_phrase": map[string]interface{}{
-							"destination": address,
-						},
+	query := newQuery().
+		Query(
+			boolQ(
+				must(
+					matchPhrase("destination", address),
+					matchPhrase("network", network),
+					rangeQ("level", qItem{"lt": level}),
+				),
+				notMust(
+					term("deffated_storage", ""),
+				),
+			),
+		).
+		Add(qItem{
+			"sort": qItem{
+				"_script": qItem{
+					"type": "number",
+					"script": qItem{
+						"lang":   "painless",
+						"source": "doc['level'].value * 10 + (doc['internal'].value ? 0 : 1)",
 					},
-					map[string]interface{}{
-						"match_phrase": map[string]interface{}{
-							"network": network,
-						}},
-					map[string]interface{}{
-						"range": map[string]interface{}{
-							"level": map[string]interface{}{
-								"lt": level,
-							},
-						}},
-				},
-				"must_not": map[string]interface{}{
-					"term": map[string]interface{}{
-						"deffated_storage": "",
-					},
+					"order": "desc",
 				},
 			},
-		},
-		"sort": map[string]interface{}{
-			"_script": map[string]interface{}{
-				"type": "number",
-				"script": map[string]interface{}{
-					"lang":   "painless",
-					"source": "doc['level'].value * 10 + (doc['internal'].value ? 0 : 1)",
-				},
-				"order": "desc",
-			},
-		},
-		"size": 1,
-	}
+		}).One()
+
 	res, err := e.query(DocOperations, query)
 	if err != nil {
 		return models.Operation{}, err

@@ -28,5 +28,9 @@
         "carthagenet": "https://api.carthagenet.tzstats.com"
     },
     "indexer": "tzstats",
-    "update_timer": 60
+    "update_timer": 60,
+    "mq": {
+        "uri": "amqp://guest:guest@localhost:5672/",
+        "queues": ["operations"]
+    }
 }

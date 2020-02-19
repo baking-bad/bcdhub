@@ -82,8 +82,39 @@
             "timestamp": {
                 "type": "date"
             },
+            "last_action": {
+                "type": "date"
+            },
+            "tx_count": {
+                "type": "long"
+            },
+            "sum_tx_amount": {
+                "type": "long"
+            },
             "project_id": {
-                "type": "text"
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 36
+                    }
+                }
+            },
+            "fingerprint": {
+                "properties": {
+                    "code": {
+                        "type": "text",
+                        "fielddata": true
+                    },
+                    "parameter": {
+                        "type": "text",
+                        "fielddata": true
+                    },
+                    "storage": {
+                        "type": "text",
+                        "fielddata": true
+                    }
+                }
             }
         }
     }

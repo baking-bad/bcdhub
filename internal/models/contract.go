@@ -6,13 +6,13 @@ import (
 
 // Contract - entity for contract
 type Contract struct {
-	ID        string    `json:"-"`
-	Network   string    `json:"network"`
-	Level     int64     `json:"level"`
-	Timestamp time.Time `json:"timestamp"`
-	Balance   int64     `json:"balance"`
-	Hash      []string  `json:"hash,omitempty"`
-	Language  string    `json:"language,omitempty"`
+	ID          string       `json:"-"`
+	Network     string       `json:"network"`
+	Level       int64        `json:"level"`
+	Timestamp   time.Time    `json:"timestamp"`
+	Balance     int64        `json:"balance"`
+	Fingerprint *Fingerprint `json:"fingerprint,omitempty"`
+	Language    string       `json:"language,omitempty"`
 
 	Tags        []string `json:"tags,omitempty"`
 	Hardcoded   []string `json:"hardcoded,omitempty"`
@@ -25,6 +25,42 @@ type Contract struct {
 	Manager  string `json:"manager,omitempty"`
 	Delegate string `json:"delegate,omitempty"`
 
-	ProjectID string `json:"project_id,omitempty"`
-	FoundBy   string `json:"found_by,omitempty"`
+	ProjectID   string  `json:"project_id,omitempty"`
+	FoundBy     string  `json:"found_by,omitempty"`
+	Group       *Group  `json:"group,omitempty"`
+	LastAction  BCDTime `json:"last_action,omitempty"`
+	TxCount     int64   `json:"tx_count,omitempty"`
+	SumTxAmount int64   `json:"sum_tx_amount,omitempty"`
+}
+
+// Fingerprint -
+type Fingerprint struct {
+	Code      string `json:"code"`
+	Storage   string `json:"storage"`
+	Parameter string `json:"parameter"`
+}
+
+// Group -
+type Group struct {
+	Count int64         `json:"count"`
+	Top   []TopContract `json:"top"`
+}
+
+// TopContract -
+type TopContract struct {
+	Network string `json:"network"`
+	Address string `json:"address"`
+}
+
+// BCDTime -
+type BCDTime struct {
+	time.Time
+}
+
+// MarshalJSON -
+func (t BCDTime) MarshalJSON() ([]byte, error) {
+	if t.IsZero() {
+		return []byte("null"), nil
+	}
+	return t.Time.MarshalJSON()
 }

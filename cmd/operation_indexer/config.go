@@ -1,22 +1,26 @@
 package main
 
 import (
-	"log"
 	"github.com/fatih/color"
+	"log"
 )
 
 type config struct {
 	Search struct {
 		URI string `json:"uri"`
 	} `json:"search"`
-	TzKT    map[string]interface{} `json:"tzkt"`
-	TzStats map[string]interface{} `json:"tzstats"`
-	Indexer string                 `json:"indexer"`
+	TzKT    map[string]string `json:"tzkt"`
+	TzStats map[string]string `json:"tzstats"`
+	Indexer string            `json:"indexer"`
 	NodeRPC []struct {
 		Host    string `json:"host"`
 		Network string `json:"network"`
 	} `json:"nodes"`
 	UpdateTimer int64 `json:"update_timer"`
+	Mq          struct {
+		URI    string   `json:"uri"`
+		Queues []string `json:"queues"`
+	} `json:"mq"`
 }
 
 func (cfg config) print() {

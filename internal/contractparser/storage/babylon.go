@@ -31,10 +31,6 @@ func NewBabylon(es *elastic.Elastic, rpc *noderpc.NodeRPC) Babylon {
 // ParseTransaction -
 func (b Babylon) ParseTransaction(content gjson.Result, protocol string, level int64, operationID string) (RichStorage, error) {
 	address := content.Get("destination").String()
-	data, err := b.rpc.GetScriptJSON(address, level)
-	if err != nil {
-		return RichStorage{Empty: true}, err
-	}
 
 	m, err := meta.GetMetadata(b.es, address, consts.Babylon, "storage", protocol)
 	if err != nil {
@@ -45,15 +41,16 @@ func (b Babylon) ParseTransaction(content gjson.Result, protocol string, level i
 	if err != nil {
 		return RichStorage{Empty: true}, err
 	}
+	var bm []models.BigMapDiff
+	if result.Get("big_map_diff.#").Int() > 0 {
+		ptrMap, err := b.binPathToPtrMap(m, result.Get("storage"))
+		if err != nil {
+			return RichStorage{Empty: true}, err
+		}
 
-	ptrMap, err := b.binPathToPtrMap(m, data.Get("storage"))
-	if err != nil {
-		return RichStorage{Empty: true}, err
-	}
-
-	bm, err := b.getBigMapDiff(result, ptrMap, operationID, address, level, m)
-	if err != nil {
-		return RichStorage{Empty: true}, err
+		if bm, err = b.getBigMapDiff(result, ptrMap, operationID, address, level, m); err != nil {
+			return RichStorage{Empty: true}, err
+		}
 	}
 	return RichStorage{
 		BigMapDiffs:     bm,
@@ -69,8 +66,6 @@ func (b Babylon) ParseOrigination(content gjson.Result, protocol string, level i
 	}
 
 	address := result.Get("originated_contracts.0").String()
-	// s := content.Get("script.storage")
-
 	m, err := meta.GetMetadata(b.es, address, consts.Babylon, "storage", protocol)
 	if err != nil {
 		return RichStorage{Empty: true}, err
@@ -82,14 +77,17 @@ func (b Babylon) ParseOrigination(content gjson.Result, protocol string, level i
 	}
 
 	st := data.Get("storage")
-	ptrToBin, err := b.binPathToPtrMap(m, st)
-	if err != nil {
-		return RichStorage{Empty: true}, err
-	}
 
-	bm, err := b.getBigMapDiff(result, ptrToBin, operationID, address, level, m)
-	if err != nil {
-		return RichStorage{Empty: true}, err
+	var bm []models.BigMapDiff
+	if result.Get("big_map_diff.#").Int() > 0 {
+		ptrToBin, err := b.binPathToPtrMap(m, st)
+		if err != nil {
+			return RichStorage{Empty: true}, err
+		}
+
+		if bm, err = b.getBigMapDiff(result, ptrToBin, operationID, address, level, m); err != nil {
+			return RichStorage{Empty: true}, err
+		}
 	}
 
 	return RichStorage{

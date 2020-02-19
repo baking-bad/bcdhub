@@ -3,6 +3,7 @@ package contractparser
 import (
 	"regexp"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 	"github.com/tidwall/gjson"
 )
@@ -16,4 +17,13 @@ func FindHardcodedAddresses(script gjson.Result) (helpers.Set, error) {
 	resp := make(helpers.Set)
 	resp.Append(res...)
 	return resp, nil
+}
+
+// IsLiteral -
+func IsLiteral(prim string) bool {
+	return helpers.StringInArray(prim, []string{
+		consts.CONTRACT, consts.BYTES, consts.ADDRESS, consts.KEYHASH,
+		consts.KEY, consts.TIMESTAMP, consts.BOOL, consts.MUTEZ,
+		consts.NAT, consts.STRING, consts.INT, consts.SIGNATURE,
+	})
 }

@@ -6,28 +6,6 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-var objectMacros = []macros{
-	newAssertMacros(),
-	newAssertSomeMacros(),
-	newAssertNoneMacros(),
-	newDipNMacros(),
-}
-
-var arrayMacros = []macros{
-	newAssertCmpMacros(),
-	newAssertEqMacros(),
-	newFailMacros(),
-	newCompareIfMacros(),
-	newIfMacros(),
-	newCompareMacros(),
-	newDupNMacros(),
-	newPairMacros(),
-	newUnpairMacros(),
-	newUnpairNMacros(),
-	newCadrMacros(),
-	newSetCarMacros(),
-}
-
 type macros interface {
 	Find(data gjson.Result) bool
 	Collapse(data gjson.Result)

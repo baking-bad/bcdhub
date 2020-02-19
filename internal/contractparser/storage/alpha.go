@@ -54,25 +54,32 @@ func (a Alpha) ParseOrigination(content gjson.Result, protocol string, level int
 		return RichStorage{Empty: true}, err
 	}
 	address := result.Get("originated_contracts.0").String()
-
 	storage := content.Get("script.storage")
-	bigMapData := storage.Get("args.0")
 
-	bmd := make([]models.BigMapDiff, 0)
-	for _, item := range bigMapData.Array() {
-		keyHash, err := hash.Key(item.Get("key"))
-		if err != nil {
-			return RichStorage{Empty: true}, err
+	m, err := meta.GetMetadata(a.es, address, consts.MetadataAlpha, "storage", protocol)
+	if err != nil {
+		return RichStorage{Empty: true}, err
+	}
+	var bmd []models.BigMapDiff
+	if bmMeta, ok := m["0/0"]; ok && bmMeta.Type == consts.BIGMAP {
+		bigMapData := storage.Get("args.0")
+
+		bmd = make([]models.BigMapDiff, 0)
+		for _, item := range bigMapData.Array() {
+			keyHash, err := hash.Key(item.Get("args.0"))
+			if err != nil {
+				return RichStorage{Empty: true}, err
+			}
+			bmd = append(bmd, models.BigMapDiff{
+				BinPath:     "0/0",
+				Key:         item.Get("args.0").Value(),
+				KeyHash:     keyHash,
+				Value:       item.Get("args.1").String(),
+				OperationID: operationID,
+				Level:       level,
+				Address:     address,
+			})
 		}
-		bmd = append(bmd, models.BigMapDiff{
-			BinPath:     "0/0",
-			Key:         item.Get("key").Value(),
-			KeyHash:     keyHash,
-			Value:       item.Get("value").String(),
-			OperationID: operationID,
-			Level:       level,
-			Address:     address,
-		})
 	}
 
 	res := storage.String()

@@ -17,7 +17,12 @@ type config struct {
 		Host    string `json:"host"`
 		Network string `json:"network"`
 	} `json:"nodes"`
-	UpdateTimer int64 `json:"update_timer"`
+	UpdateTimer    int64  `json:"update_timer"`
+	FilesDirectory string `json:"files_directory"`
+	Mq             struct {
+		URI    string   `json:"uri"`
+		Queues []string `json:"queues"`
+	} `json:"mq"`
 }
 
 func (cfg config) print() {
@@ -31,4 +36,5 @@ func (cfg config) print() {
 	}
 	log.Printf("Update every %s second", blue(cfg.UpdateTimer))
 	log.Printf("Elastic URI: %s", blue(cfg.Search.URI))
+	log.Printf("Files directory: %s", blue(cfg.FilesDirectory))
 }

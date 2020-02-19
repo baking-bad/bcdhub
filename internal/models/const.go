@@ -4,4 +4,5 @@ package models
 const (
 	StateContract  = "contract"
 	StateOperation = "operation"
+	StateFinder    = "finder"
 )
