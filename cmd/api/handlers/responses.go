@@ -35,3 +35,10 @@ type Operation struct {
 	Parameters  interface{} `json:"parameters,omitempty"`
 	StorageDiff interface{} `json:"storage_diff,omitempty"`
 }
+
+// CodeDiff -
+type CodeDiff struct {
+	Full    string `json:"full,omitempty"`
+	Added   int64  `json:"added,omitempty"`
+	Removed int64  `json:"removed,omitempty"`
+}

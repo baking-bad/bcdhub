@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/gin-gonic/gin"
 )
 
@@ -39,8 +40,27 @@ func (ctx *Context) GetProjectContracts(c *gin.Context) {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	res["similar"] = s
+	similar, err := ctx.getSimilarDiffs(s)
+	if err != nil {
+		_ = c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	res["similar"] = similar
 	c.JSON(http.StatusOK, res)
+}
+
+func (ctx *Context) getSimilarDiffs(similar []elastic.SimilarContract) ([]elastic.SimilarContract, error) {
+	for i := 0; i < len(similar)-1; i++ {
+		src := &similar[i]
+		dest := similar[i+1]
+		d, err := ctx.getDiff(src.Address, src.Network, dest.Address, dest.Network)
+		if err != nil {
+			return nil, err
+		}
+		src.Added = d.Added
+		src.Removed = d.Removed
+	}
+	return similar, nil
 }
 
 // GetProjects -

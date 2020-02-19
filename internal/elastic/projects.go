@@ -98,7 +98,7 @@ func (e *Elastic) GetSameContracts(c models.Contract) ([]models.Contract, error)
 }
 
 // GetSimilarContracts -
-func (e *Elastic) GetSimilarContracts(c models.Contract) ([]map[string]interface{}, error) {
+func (e *Elastic) GetSimilarContracts(c models.Contract) ([]SimilarContract, error) {
 	if c.Fingerprint == nil {
 		return nil, nil
 	}
@@ -151,14 +151,15 @@ func (e *Elastic) GetSimilarContracts(c models.Contract) ([]map[string]interface
 		return nil, nil
 	}
 
-	res := make([]map[string]interface{}, 0)
-	for _, item := range buckets.Array() {
+	count := resp.Get("aggregations.projects.buckets.#").Int()
+	res := make([]SimilarContract, count)
+	for i, item := range buckets.Array() {
 		var c models.Contract
 		c.ParseElasticJSON(item.Get("last.hits.hits.0"))
-		res = append(res, qItem{
-			"count": item.Get("doc_count").Int(),
-			"last":  c,
-		})
+		res[i] = SimilarContract{
+			Contract: &c,
+			Count:    item.Get("doc_count").Int(),
+		}
 	}
 	return res, nil
 }

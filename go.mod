@@ -13,6 +13,7 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
 	github.com/jinzhu/gorm v1.9.11
+	github.com/pkg/diff v0.0.0-20190930165518-531926345625 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/r3labs/diff v0.0.0-20191120142937-b4ed99a31f5a

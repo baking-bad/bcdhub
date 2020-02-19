@@ -71,3 +71,12 @@ func (stats *ProjectStats) getName(id string) string {
 	name := nameGenerator.Generate()
 	return name
 }
+
+// SimilarContract -
+type SimilarContract struct {
+	*models.Contract
+	Count   int64  `json:"count"`
+	Diff    string `json:"diff,omitempty"`
+	Added   int64  `json:"added,omitempty"`
+	Removed int64  `json:"removed,omitempty"`
+}
