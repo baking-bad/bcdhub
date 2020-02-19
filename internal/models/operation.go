@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/tidwall/gjson"
+)
 
 // Operation -
 type Operation struct {
@@ -33,6 +37,47 @@ type Operation struct {
 	DeffatedStorage string `json:"deffated_storage,omitempty"`
 }
 
+// ParseElasticJSON -
+func (o *Operation) ParseElasticJSON(resp gjson.Result) {
+	o.ID = resp.Get("_id").String()
+
+	o.Protocol = resp.Get("_source.protocol").String()
+	o.Hash = resp.Get("_source.hash").String()
+	o.Internal = resp.Get("_source.internal").Bool()
+	o.Network = resp.Get("_source.network").String()
+	o.Timestamp = resp.Get("_source.timestamp").Time().UTC()
+
+	o.Level = resp.Get("_source.level").Int()
+	o.Kind = resp.Get("_source.kind").String()
+	o.Source = resp.Get("_source.source").String()
+	o.Fee = resp.Get("_source.fee").Int()
+	o.Counter = resp.Get("_source.counter").Int()
+	o.GasLimit = resp.Get("_source.gas_limit").Int()
+	o.StorageLimit = resp.Get("_source.storage_limit").Int()
+	o.Amount = resp.Get("_source.amount").Int()
+	o.Destination = resp.Get("_source.destination").String()
+	o.PublicKey = resp.Get("_source.public_key").String()
+	o.ManagerPubKey = resp.Get("_source.manager_pubkey").String()
+	o.Balance = resp.Get("_source.balance").Int()
+	o.Delegate = resp.Get("_source.delegate").String()
+	o.Parameters = resp.Get("_source.parameters").String()
+
+	var opResult OperationResult
+	opResult.ParseElasticJSON(resp.Get("_source.result"))
+	o.Result = &opResult
+
+	o.DeffatedStorage = resp.Get("_source.deffated_storage").String()
+
+	count := resp.Get("_source.balance_updates.#").Int()
+	bu := make([]BalanceUpdate, count)
+	for i, hit := range resp.Get("_source.balance_updates").Array() {
+		var b BalanceUpdate
+		b.ParseElasticJSON(hit)
+		bu[i] = b
+	}
+	o.BalanceUpdates = bu
+}
+
 // BalanceUpdate -
 type BalanceUpdate struct {
 	Kind     string `json:"kind"`
@@ -41,6 +86,16 @@ type BalanceUpdate struct {
 	Category string `json:"category,omitempty"`
 	Delegate string `json:"delegate,omitempty"`
 	Cycle    int    `json:"cycle,omitempty"`
+}
+
+// ParseElasticJSON -
+func (b *BalanceUpdate) ParseElasticJSON(data gjson.Result) {
+	b.Kind = data.Get("kind").String()
+	b.Contract = data.Get("contract").String()
+	b.Change = data.Get("change").Int()
+	b.Category = data.Get("category").String()
+	b.Delegate = data.Get("delegate").String()
+	b.Cycle = int(data.Get("cycle").Int())
 }
 
 // OperationResult -
@@ -53,4 +108,21 @@ type OperationResult struct {
 	Errors              string `json:"errors,omitempty"`
 
 	BalanceUpdates []BalanceUpdate `json:"balance_updates,omitempty"`
+}
+
+// ParseElasticJSON -
+func (o *OperationResult) ParseElasticJSON(data gjson.Result) {
+	count := data.Get("balance_updates.#").Int()
+	bu := make([]BalanceUpdate, count)
+	for i, hit := range data.Get("balance_updates").Array() {
+		var b BalanceUpdate
+		b.ParseElasticJSON(hit)
+		bu[i] = b
+	}
+	o.Status = data.Get("status").String()
+	o.ConsumedGas = data.Get("consumed_gas").Int()
+	o.StorageSize = data.Get("storage_size").Int()
+	o.PaidStorageSizeDiff = data.Get("paid_storage_size_diff").Int()
+	o.Errors = data.Get("errors").String()
+	o.BalanceUpdates = bu
 }

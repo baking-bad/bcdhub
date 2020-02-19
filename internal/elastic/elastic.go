@@ -40,21 +40,21 @@ func New(addresses []string) (*Elastic, error) {
 	return e, nil
 }
 
-func (e *Elastic) getResponse(resp *esapi.Response) (*gjson.Result, error) {
+func (e *Elastic) getResponse(resp *esapi.Response) (result gjson.Result, err error) {
 	if resp.IsError() {
-		return nil, fmt.Errorf(resp.String())
+		return result, fmt.Errorf(resp.String())
 	}
 
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	r := gjson.ParseBytes(b)
-	return &r, nil
+	result = gjson.ParseBytes(b)
+	return
 }
 
-func (e *Elastic) query(index string, query map[string]interface{}, source ...string) (r *gjson.Result, err error) {
+func (e *Elastic) query(index string, query map[string]interface{}, source ...string) (result gjson.Result, err error) {
 	var buf bytes.Buffer
 	if err = json.NewEncoder(&buf).Encode(query); err != nil {
 		return
@@ -78,17 +78,19 @@ func (e *Elastic) query(index string, query map[string]interface{}, source ...st
 	}
 	defer resp.Body.Close()
 
-	return e.getResponse(resp)
+	result, err = e.getResponse(resp)
+	return
 }
 
 // TestConnection -
-func (e *Elastic) TestConnection() (*gjson.Result, error) {
+func (e *Elastic) TestConnection() (result gjson.Result, err error) {
 	res, err := e.Info()
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	return e.getResponse(res)
+	result, err = e.getResponse(res)
+	return
 }
 
 // AddDocument -
@@ -176,7 +178,7 @@ func (e *Elastic) CreateIndex(index string) error {
 }
 
 // GetByID -
-func (e *Elastic) GetByID(index, id string) (r *gjson.Result, err error) {
+func (e *Elastic) GetByID(index, id string) (result gjson.Result, err error) {
 	req := esapi.GetRequest{
 		Index:      index,
 		DocumentID: id,
@@ -187,11 +189,12 @@ func (e *Elastic) GetByID(index, id string) (r *gjson.Result, err error) {
 	}
 	defer resp.Body.Close()
 
-	return e.getResponse(resp)
+	result, err = e.getResponse(resp)
+	return
 }
 
 // Match - returns data by match filter
-func (e *Elastic) Match(index string, match map[string]interface{}) (r *gjson.Result, err error) {
+func (e *Elastic) Match(index string, match map[string]interface{}) (gjson.Result, error) {
 	query := map[string]interface{}{
 		"query": map[string]interface{}{
 			"match": match,
@@ -201,13 +204,13 @@ func (e *Elastic) Match(index string, match map[string]interface{}) (r *gjson.Re
 }
 
 // MatchAll - returns all data
-func (e *Elastic) MatchAll(index string) (r *gjson.Result, err error) {
+func (e *Elastic) MatchAll(index string) (gjson.Result, error) {
 	query := newQuery().Query(matchAll()).All()
 	return e.query(index, query)
 }
 
 // UpdateDoc - updates document by ID
-func (e *Elastic) UpdateDoc(index, id string, v interface{}) (r *gjson.Result, err error) {
+func (e *Elastic) UpdateDoc(index, id string, v interface{}) (result gjson.Result, err error) {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return
@@ -225,7 +228,8 @@ func (e *Elastic) UpdateDoc(index, id string, v interface{}) (r *gjson.Result, e
 	}
 	defer res.Body.Close()
 
-	return e.getResponse(res)
+	result, err = e.getResponse(res)
+	return
 }
 
 // BulkInsert -

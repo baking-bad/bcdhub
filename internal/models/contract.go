@@ -2,6 +2,9 @@ package models
 
 import (
 	"time"
+
+	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
+	"github.com/tidwall/gjson"
 )
 
 // Contract - entity for contract
@@ -63,4 +66,90 @@ func (t BCDTime) MarshalJSON() ([]byte, error) {
 		return []byte("null"), nil
 	}
 	return t.Time.MarshalJSON()
+}
+
+// ParseElasticJSON -
+func (c *Contract) ParseElasticJSON(hit gjson.Result) {
+	c.ID = hit.Get("_id").String()
+	c.Network = hit.Get("_source.network").String()
+	c.Level = hit.Get("_source.level").Int()
+	c.Timestamp = hit.Get("_source.timestamp").Time().UTC()
+	c.Balance = hit.Get("_source.balance").Int()
+	c.Language = hit.Get("_source.language").String()
+
+	c.Tags = parseStringArray(hit, "_source.tags")
+	c.Hardcoded = parseStringArray(hit, "_source.hardcoded")
+	c.Annotations = parseStringArray(hit, "_source.annotations")
+	c.Primitives = parseStringArray(hit, "_source.primitives")
+	c.FailStrings = parseStringArray(hit, "_source.fail_strings")
+	c.Entrypoints = parseStringArray(hit, "_source.entrypoints")
+
+	f := hit.Get("_source.fingerprint")
+	if f.Exists() {
+		c.Fingerprint = &Fingerprint{}
+		c.Fingerprint.ParseElasticJSON(f)
+	}
+
+	c.Address = hit.Get("_source.address").String()
+	c.Manager = hit.Get("_source.manager").String()
+	c.Delegate = hit.Get("_source.delegate").String()
+
+	c.ProjectID = hit.Get("_source.project_id").String()
+
+	c.LastAction = BCDTime{
+		Time: hit.Get("_source.last_action").Time().UTC(),
+	}
+
+	c.TxCount = hit.Get("_source.tx_count").Int()
+	c.SumTxAmount = hit.Get("_source.sum_tx_amount").Int()
+
+	c.FoundBy = getFoundBy(hit)
+}
+
+// ParseElasticJSON -
+func (f *Fingerprint) ParseElasticJSON(hit gjson.Result) {
+	f.Code = hit.Get("code").String()
+	f.Parameter = hit.Get("parameter").String()
+	f.Storage = hit.Get("storage").String()
+}
+
+func getFoundBy(hit gjson.Result) string {
+	keys := make([]string, 0)
+	for k := range hit.Get("highlight").Map() {
+		keys = append(keys, k)
+	}
+
+	if helpers.StringInArray("address", keys) {
+		return "address"
+	}
+	if helpers.StringInArray("manager", keys) {
+		return "manager"
+	}
+	if helpers.StringInArray("delegate", keys) {
+		return "delegate"
+	}
+	if helpers.StringInArray("tags", keys) {
+		return "tags"
+	}
+	if helpers.StringInArray("hardcoded", keys) {
+		return "hardcoded addresses"
+	}
+	if helpers.StringInArray("annotations", keys) {
+		return "annotations"
+	}
+	if helpers.StringInArray("fail_strings", keys) {
+		return "fail strings"
+	}
+	if helpers.StringInArray("entrypoints", keys) {
+		return "entrypoints"
+	}
+	return ""
+}
+
+func parseStringArray(hit gjson.Result, tag string) []string {
+	res := make([]string, 0)
+	for _, t := range hit.Get(tag).Array() {
+		res = append(res, t.String())
+	}
+	return res
 }

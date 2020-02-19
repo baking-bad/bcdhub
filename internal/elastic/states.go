@@ -3,7 +3,6 @@ package elastic
 import (
 	"strings"
 
-	"github.com/tidwall/gjson"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 )
 
@@ -16,14 +15,6 @@ func (e *Elastic) createState(network, typ string) (s models.State, err error) {
 	}
 	s.ID = id
 	return
-}
-
-func parseState(hit gjson.Result, network string, s *models.State) {
-	s.ID = hit.Get("_id").String()
-	s.Network = network
-	s.Type = hit.Get("_source.type").String()
-	s.Level = hit.Get("_source.level").Int()
-	s.Timestamp = hit.Get("_source.timestamp").Time()
 }
 
 // CurrentState - returns current indexer state for network
@@ -49,6 +40,6 @@ func (e *Elastic) CurrentState(network, typ string) (s models.State, err error) 
 		return e.createState(network, typ)
 	}
 	hit := r.Get("hits.hits.0")
-	parseState(hit, network, &s)
+	s.ParseElasticJSON(hit)
 	return
 }

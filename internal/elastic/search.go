@@ -137,7 +137,7 @@ func (e *Elastic) SearchByText(text string, offset int64, fields, networks []str
 	}, nil
 }
 
-func parseGroupContracts(data *gjson.Result, size, offset int64) []models.Contract {
+func parseGroupContracts(data gjson.Result, size, offset int64) []models.Contract {
 	buckets := data.Get("aggregations.projects.buckets")
 	if !buckets.Exists() {
 		return nil
@@ -154,7 +154,7 @@ func parseGroupContracts(data *gjson.Result, size, offset int64) []models.Contra
 		var c models.Contract
 		for j, item := range arr[i].Get("last.hits.hits").Array() {
 			if j == 0 {
-				parseContractFromHit(item, &c)
+				c.ParseElasticJSON(item)
 			} else {
 				if j == 1 {
 					c.Group = &models.Group{

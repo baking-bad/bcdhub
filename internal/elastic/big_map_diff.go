@@ -40,7 +40,7 @@ func (e *Elastic) GetBigMapDiffsByOperationID(operationID string) (gjson.Result,
 
 	res, err := e.query(DocBigMapDiff, query)
 	if err != nil {
-		return *res, err
+		return res, err
 	}
 	return res.Get("hits.hits.#._source"), nil
 }
@@ -66,7 +66,7 @@ func (e *Elastic) GetBigMapDiffsByKeyHash(keys []string, level int64) (gjson.Res
 
 	res, err := e.query(DocBigMapDiff, query)
 	if err != nil {
-		return *res, err
+		return res, err
 	}
 	return res.Get("hits.hits.#._source"), nil
 }
@@ -93,7 +93,7 @@ func (e *Elastic) GetBigMapDiffsForAddress(address string) (gjson.Result, error)
 
 	res, err := e.query(DocBigMapDiff, query)
 	if err != nil {
-		return *res, err
+		return res, err
 	}
 	return res.Get("aggregations.group_by_hash.buckets.#.group_docs.hits.hits.0._source"), nil
 }

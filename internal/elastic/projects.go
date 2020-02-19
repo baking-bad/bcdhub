@@ -21,7 +21,7 @@ func (e *Elastic) GetProject(id string) (p models.Project, err error) {
 	if !res.Get("found").Bool() {
 		return p, fmt.Errorf("Unknown project: %s", id)
 	}
-	parseProjectFormHit(*res, &p)
+	parseProjectFormHit(res, &p)
 	return
 }
 
@@ -52,7 +52,7 @@ func (e *Elastic) GetLastProjectContracts() ([]models.Contract, error) {
 	contracts := make([]models.Contract, 0)
 	for _, item := range arr.Array() {
 		var c models.Contract
-		parseContractFromHit(item, &c)
+		c.ParseElasticJSON(item)
 		contracts = append(contracts, c)
 	}
 	return contracts, nil
@@ -91,7 +91,7 @@ func (e *Elastic) GetSameContracts(c models.Contract) ([]models.Contract, error)
 	contracts := make([]models.Contract, 0)
 	for _, item := range arr.Array() {
 		var c models.Contract
-		parseContractFromHit(item, &c)
+		c.ParseElasticJSON(item)
 		contracts = append(contracts, c)
 	}
 	return contracts, nil
@@ -154,7 +154,7 @@ func (e *Elastic) GetSimilarContracts(c models.Contract) ([]map[string]interface
 	res := make([]map[string]interface{}, 0)
 	for _, item := range buckets.Array() {
 		var c models.Contract
-		parseContractFromHit(item.Get("last.hits.hits.0"), &c)
+		c.ParseElasticJSON(item.Get("last.hits.hits.0"))
 		res = append(res, qItem{
 			"count": item.Get("doc_count").Int(),
 			"last":  c,
