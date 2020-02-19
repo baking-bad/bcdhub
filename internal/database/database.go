@@ -8,8 +8,11 @@ import (
 
 // DB -
 type DB interface {
-	GetUserByLogin(string) *User
-	CreateUser(User) error
+	GetOrCreateUser(*User) error
+	GetUser(uint) (*User, error)
+	ListSubscriptions(uint) ([]Subscription, error)
+	CreateSubscription(*Subscription) error
+	DeleteSubscription(*Subscription) error
 	Close()
 }
 
@@ -19,18 +22,22 @@ type db struct {
 
 // New - creates db connection
 func New(connectionString string) (DB, error) {
-	gorm, err := gorm.Open("postgres", connectionString)
+	gormDB, err := gorm.Open("postgres", connectionString)
 	if err != nil {
 		return nil, err
 	}
 
-	gorm.LogMode(true)
+	gormDB.LogMode(true)
 
-	gorm.AutoMigrate(&User{}, &Ownership{})
+	if !gormDB.HasTable(&Subscription{}) {
+		gormDB.Exec("CREATE TYPE entity_type AS ENUM ('unknown','project','contract');")
+	}
 
-	gorm = gorm.Set("gorm:auto_preload", true)
+	gormDB.AutoMigrate(&User{}, &Subscription{})
+
+	gormDB = gormDB.Set("gorm:auto_preload", true)
 
 	return &db{
-		ORM: gorm,
+		ORM: gormDB,
 	}, nil
 }

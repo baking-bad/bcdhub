@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -11,8 +12,9 @@ import (
 // Config -
 type Config struct {
 	Oauth2 *oauth2.Config
-	JWTKey string
+	JWTKey []byte
 	State  string
+	UserID uint
 }
 
 // New -
@@ -47,7 +49,7 @@ func New() (Config, error) {
 	// TO-DO: delete in prod
 	githubClientID := "d35966939d838f410dd9"
 	githubClientSecret := "287ae6a529f479afadd19e4e2386b33f5889f58c"
-	jwtKey := "my_secret_key"
+	jwtKey := []byte("my_secret_key")
 	oauthStateString := "pseudo-random"
 
 	return Config{
@@ -63,18 +65,17 @@ func New() (Config, error) {
 	}, nil
 }
 
-// jwtClaims -
 type jwtClaims struct {
-	Username string `json:"username"`
+	UserID uint `json:"userID"`
 	jwt.StandardClaims
 }
 
 // MakeJWT -
-func (c Config) MakeJWT(username string) (string, error) {
+func (c Config) MakeJWT(userID uint) (string, error) {
 	expirationTime := time.Now().Add(48 * time.Hour)
 
 	claims := &jwtClaims{
-		Username: username,
+		UserID: userID,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
@@ -83,4 +84,23 @@ func (c Config) MakeJWT(username string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	return token.SignedString([]byte(c.JWTKey))
+}
+
+// GetIDFromToken -
+func (c Config) GetIDFromToken(token string) (uint, error) {
+	claims := &jwtClaims{}
+
+	tkn, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(c.JWTKey), nil
+	})
+
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse token %v", token)
+	}
+
+	if !tkn.Valid {
+		return 0, fmt.Errorf("invalid token %v", token)
+	}
+
+	return claims.UserID, nil
 }

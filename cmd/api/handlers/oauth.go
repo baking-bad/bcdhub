@@ -56,24 +56,19 @@ func (ctx *Context) GetOauthCallback(c *gin.Context) {
 		return
 	}
 
-	user := ctx.DB.GetUserByLogin(*u.Login)
-
-	if user.Login == "" {
-		usr := database.User{
-			Token:     token.AccessToken,
-			Login:     *u.Login,
-			Name:      *u.Name,
-			AvatarURL: *u.AvatarURL,
-		}
-
-		err = ctx.DB.CreateUser(usr)
-		if err != nil {
-			c.AbortWithError(http.StatusBadRequest, err)
-			return
-		}
+	user := database.User{
+		Token:     token.AccessToken,
+		Login:     *u.Login,
+		Name:      *u.Name,
+		AvatarURL: *u.AvatarURL,
 	}
 
-	jwt, err := ctx.OAUTH.MakeJWT(*u.Login)
+	if err := ctx.DB.GetOrCreateUser(&user); err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	jwt, err := ctx.OAUTH.MakeJWT(user.ID)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return

@@ -80,6 +80,19 @@ func main() {
 			oauth.GET("callback", ctx.GetOauthCallback)
 			oauth.GET("welcome", ctx.GetOauthWelcome)
 		}
+
+		authorized := v1.Group("/")
+		authorized.Use(ctx.AuthJWTRequired())
+		{
+			authorized.GET("profile", ctx.GetUserProfile)
+
+			subscriptions := authorized.Group("subscriptions")
+			{
+				subscriptions.GET("", ctx.ListSubscriptions)
+				subscriptions.POST("", ctx.CreateSubscription)
+				subscriptions.DELETE("", ctx.DeleteSubscription)
+			}
+		}
 	}
 	if err := r.Run(cfg.Address); err != nil {
 		fmt.Println(err)
