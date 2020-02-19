@@ -1,9 +1,11 @@
 package elastic
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
+	"github.com/goombaio/namegenerator"
 	"github.com/tidwall/gjson"
 )
 
@@ -29,21 +31,43 @@ func (c *ContractStats) parse(data gjson.Result) {
 
 // ProjectStats -
 type ProjectStats struct {
-	TxCount       int64     `json:"tx_count"`
-	LastAction    time.Time `json:"last_action"`
-	LastDeploy    time.Time `json:"last_deploy"`
-	FirstDeploy   time.Time `json:"first_deploy"`
-	VersionsCount int64     `json:"versions_count"`
-	Language      string    `json:"language"`
-	Name          string    `json:"name"`
+	TxCount        int64         `json:"tx_count"`
+	LastAction     time.Time     `json:"last_action"`
+	LastDeploy     time.Time     `json:"last_deploy"`
+	FirstDeploy    time.Time     `json:"first_deploy"`
+	VersionsCount  int64         `json:"versions_count"`
+	ContractsCount int64         `json:"contracts_count"`
+	Language       string        `json:"language"`
+	Name           string        `json:"name"`
+	Last           LightContract `json:"last"`
+}
+
+// LightContract -
+type LightContract struct {
+	Address  string    `json:"address"`
+	Network  string    `json:"network"`
+	Deployed time.Time `json:"deploy_time"`
 }
 
 func (stats *ProjectStats) parse(data gjson.Result) {
 	stats.FirstDeploy = time.Unix(0, data.Get("first_deploy_date.value").Int()*1000000).UTC()
 	stats.LastAction = time.Unix(0, data.Get("last_action_date.value").Int()*1000000).UTC()
-	stats.LastDeploy = time.Unix(0, data.Get("last_deploy_date.value").Int()*1000000).UTC()
 	stats.TxCount = data.Get("tx_count.value").Int()
 	stats.VersionsCount = data.Get("count.value").Int()
+	stats.ContractsCount = data.Get("doc_count").Int()
 	stats.Language = data.Get("language.buckets.0.key").String()
-	stats.Name = data.Get("key").String()
+	stats.Name = stats.getName(data.Get("key").String())
+	stats.Last = LightContract{
+		Address:  data.Get("last.hits.hits.0._source.address").String(),
+		Network:  data.Get("last.hits.hits.0._source.network").String(),
+		Deployed: data.Get("last.hits.hits.0._source.timestamp").Time().UTC(),
+	}
+}
+
+func (stats *ProjectStats) getName(id string) string {
+	s := id[:8]
+	n, _ := strconv.ParseInt(s, 16, 64)
+	nameGenerator := namegenerator.NewNameGenerator(n)
+	name := nameGenerator.Generate()
+	return name
 }

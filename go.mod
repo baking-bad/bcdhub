@@ -11,6 +11,7 @@ require (
 	github.com/gin-gonic/gin v1.5.0
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/google/uuid v1.1.1
+	github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
 	github.com/jinzhu/gorm v1.9.11
 	github.com/pkg/errors v0.8.1
 	github.com/pmezard/go-difflib v1.0.0

@@ -165,6 +165,9 @@ func (e *Elastic) GetSimilarContracts(c models.Contract) ([]map[string]interface
 
 // GetProjectsStats -
 func (e *Elastic) GetProjectsStats() (stats []ProjectStats, err error) {
+	last := topHits(1, "timestamp", "desc")
+	last.Get("top_hits").Append("_source", includes([]string{"address", "network", "timestamp"}))
+
 	query := newQuery().Add(
 		aggs("by_project", qItem{
 			"terms": qItem{
@@ -179,8 +182,7 @@ func (e *Elastic) GetProjectsStats() (stats []ProjectStats, err error) {
 					},
 					"aggs": qItem{
 						"last_action_date":  max("last_action"),
-						"last_deploy_date":  max("timestamp"),
-						"first_deploy_date": max("timestamp"),
+						"first_deploy_date": min("timestamp"),
 					},
 				},
 				"count": qItem{
@@ -189,7 +191,6 @@ func (e *Elastic) GetProjectsStats() (stats []ProjectStats, err error) {
 					},
 				},
 				"last_action_date":  maxBucket("by_same>last_action_date"),
-				"last_deploy_date":  maxBucket("by_same>last_deploy_date"),
 				"first_deploy_date": minBucket("by_same>first_deploy_date"),
 				"language": qItem{
 					"terms": qItem{
@@ -198,6 +199,7 @@ func (e *Elastic) GetProjectsStats() (stats []ProjectStats, err error) {
 					},
 				},
 				"tx_count": sum("tx_count"),
+				"last":     last,
 			},
 		}),
 	).Zero()
@@ -217,6 +219,9 @@ func (e *Elastic) GetProjectsStats() (stats []ProjectStats, err error) {
 
 // GetProjectStats -
 func (e *Elastic) GetProjectStats(projectID string) (p ProjectStats, err error) {
+	last := topHits(1, "timestamp", "desc")
+	last.Get("top_hits").Append("_source", includes([]string{"address", "network", "timestamp"}))
+
 	query := newQuery().Query(
 		boolQ(
 			must(
@@ -233,8 +238,7 @@ func (e *Elastic) GetProjectStats(projectID string) (p ProjectStats, err error) 
 					},
 					"aggs": qItem{
 						"last_action_date":  max("last_action"),
-						"last_deploy_date":  max("timestamp"),
-						"first_deploy_date": max("timestamp"),
+						"first_deploy_date": min("timestamp"),
 					},
 				},
 				"count": qItem{
@@ -243,7 +247,6 @@ func (e *Elastic) GetProjectStats(projectID string) (p ProjectStats, err error) 
 					},
 				},
 				"last_action_date":  maxBucket("by_same>last_action_date"),
-				"last_deploy_date":  maxBucket("by_same>last_deploy_date"),
 				"first_deploy_date": minBucket("by_same>first_deploy_date"),
 				"language": qItem{
 					"terms": qItem{
@@ -252,6 +255,7 @@ func (e *Elastic) GetProjectStats(projectID string) (p ProjectStats, err error) 
 					},
 				},
 				"tx_count": sum("tx_count"),
+				"last":     last,
 			},
 		},
 	).Zero()

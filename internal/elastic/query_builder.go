@@ -142,6 +142,14 @@ func max(field string) qItem {
 	}
 }
 
+func min(field string) qItem {
+	return qItem{
+		"min": qItem{
+			"field": field,
+		},
+	}
+}
+
 func sum(field string) qItem {
 	return qItem{
 		"sum": qItem{
