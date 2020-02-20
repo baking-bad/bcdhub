@@ -5,15 +5,15 @@ go 1.13
 require (
 	github.com/btcsuite/btcutil v1.0.1
 	github.com/danieldk/golinear v1.0.0
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20191218082911-5398a82b748f
 	github.com/fatih/color v1.9.0
 	github.com/gin-contrib/cors v1.3.0
 	github.com/gin-gonic/gin v1.5.0
+	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/google/go-github v17.0.0+incompatible
 	github.com/jinzhu/gorm v1.9.11
 	github.com/pkg/diff v0.0.0-20190930165518-531926345625 // indirect
 	github.com/pkg/errors v0.8.1
