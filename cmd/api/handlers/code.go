@@ -3,14 +3,13 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/formatter"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/macros"
 	"github.com/gin-gonic/gin"
-	"github.com/pmezard/go-difflib/difflib"
+	"github.com/tidwall/gjson"
 )
 
 type getContractCodeRequest struct {
@@ -56,79 +55,59 @@ func (ctx *Context) GetDiff(c *gin.Context) {
 		return
 	}
 
-	text, err := ctx.getDiff(req.SourceAddress, req.SourceNetwork, req.DestinationAddress, req.DestinationNetwork, 0, 0)
+	d, err := ctx.getDiff(req.SourceAddress, req.SourceNetwork, req.DestinationAddress, req.DestinationNetwork, 0, 0)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, text)
+	c.JSON(http.StatusOK, d)
 }
 
 func (ctx *Context) getContractCode(network, address string, level int64) (string, error) {
-	rpc, ok := ctx.RPCs[network]
-	if !ok {
-		return "", fmt.Errorf("Unknown network %s", network)
-	}
-	contract, err := contractparser.GetContract(rpc, address, network, level, ctx.Dir)
+	contract, err := ctx.getContractCodeJSON(network, address, level)
 	if err != nil {
 		return "", err
 	}
 
-	contractJSON := contract.Get("script")
-	collapsed, err := macros.FindMacros(contractJSON)
-	if err != nil {
-		return "", err
-	}
-
-	code := collapsed.Get("code")
+	code := contract.Get("code")
 	return formatter.MichelineToMichelson(code, false)
 }
 
-func (ctx *Context) getDiff(srcAddress, srcNetwork, destAddress, destNetwork string, levelSrc, levelDest int64) (CodeDiff, error) {
-	srcCode, err := ctx.getContractCode(srcNetwork, srcAddress, levelSrc)
+func (ctx *Context) getContractCodeJSON(network, address string, level int64) (res gjson.Result, err error) {
+	rpc, ok := ctx.RPCs[network]
+	if !ok {
+		return res, fmt.Errorf("Unknown network %s", network)
+	}
+	contract, err := contractparser.GetContract(rpc, address, network, level, ctx.Dir)
 	if err != nil {
-		return CodeDiff{}, err
+		return
 	}
 
-	destCode, err := ctx.getContractCode(destNetwork, destAddress, levelDest)
+	contractJSON := contract.Get("script")
+	return macros.FindMacros(contractJSON)
+}
+
+func (ctx *Context) getDiff(srcAddress, srcNetwork, destAddress, destNetwork string, levelSrc, levelDest int64) (res formatter.DiffResult, err error) {
+	srcCode, err := ctx.getContractCodeJSON(srcNetwork, srcAddress, levelSrc)
 	if err != nil {
-		return CodeDiff{}, err
+		return
 	}
 
-	nameSrc := srcAddress
-	nameDest := destAddress
-	if nameSrc == nameDest {
-		nameSrc = fmt.Sprintf("%s before babylon", nameSrc)
-		nameDest = fmt.Sprintf("%s after babylon", nameDest)
-	}
-
-	diff := difflib.UnifiedDiff{
-		A:        difflib.SplitLines(srcCode),
-		B:        difflib.SplitLines(destCode),
-		FromFile: nameSrc,
-		ToFile:   nameDest,
-		Context:  5,
-	}
-	text, err := difflib.GetUnifiedDiffString(diff)
+	destCode, err := ctx.getContractCodeJSON(destNetwork, destAddress, levelDest)
 	if err != nil {
-		return CodeDiff{}, err
+		return
 	}
 
-	buf := text
-	buf = strings.ReplaceAll(buf, "+++", "+")
-	buf = strings.ReplaceAll(buf, "++", "+")
-	buf = strings.ReplaceAll(buf, "---", "-")
-	buf = strings.ReplaceAll(buf, "--", "-")
-
-	added := int64(strings.Count(buf, "+"))
-	removed := int64(strings.Count(buf, "-"))
-
-	return CodeDiff{
-		Full:    text,
-		Added:   added,
-		Removed: removed,
-	}, nil
+	a := srcCode.Get("code")
+	b := destCode.Get("code")
+	res, err = formatter.Diff(a, b)
+	if err != nil {
+		return
+	}
+	res.NameA = fmt.Sprintf("%s [%s]", srcAddress, srcNetwork)
+	res.NameB = fmt.Sprintf("%s [%s]", destAddress, destNetwork)
+	return
 }
 
 // GetMigrationDiff -

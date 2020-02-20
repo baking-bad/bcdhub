@@ -40,12 +40,12 @@ func (ctx *Context) GetProjectContracts(c *gin.Context) {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	similar, err := ctx.getSimilarDiffs(s)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-	res["similar"] = similar
+	// similar, err := ctx.getSimilarDiffs(s)
+	// if err != nil {
+	// 	_ = c.AbortWithError(http.StatusBadRequest, err)
+	// 	return
+	// }
+	res["similar"] = s
 	c.JSON(http.StatusOK, res)
 }
 

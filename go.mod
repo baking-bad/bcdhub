@@ -18,6 +18,7 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/r3labs/diff v0.0.0-20191120142937-b4ed99a31f5a
+	github.com/sergi/go-diff v1.0.0
 	github.com/streadway/amqp v0.0.0-20200108173154-1c71cc93ed71
 	github.com/tidwall/gjson v1.4.0
 	github.com/tidwall/sjson v1.0.4
