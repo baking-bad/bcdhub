@@ -35,7 +35,11 @@ func (e *Elastic) BulkSaveBigMapDiffs(diffs []models.BigMapDiff) error {
 func (e *Elastic) GetBigMapDiffsByOperationID(operationID string) (gjson.Result, error) {
 	query := newQuery().
 		Query(
-			matchPhrase("operation_id", operationID),
+			boolQ(
+				must(
+					matchPhrase("operation_id", operationID),
+				),
+			),
 		).All()
 
 	res, err := e.query(DocBigMapDiff, query)

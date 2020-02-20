@@ -131,9 +131,12 @@ func setStorageDiff(es *elastic.Elastic, address, network string, storage string
 	var prevStorage interface{}
 	prev, err := es.GetPreviousOperation(address, op.Network, op.Level)
 	if err == nil {
-		prevBmd, err := getPrevBmd(es, bmd, op.Level)
-		if err != nil {
-			return err
+		prevBmd := bmd
+		if len(bmd.Array()) > 0 {
+			prevBmd, err = getPrevBmd(es, bmd, op.Level)
+			if err != nil {
+				return err
+			}
 		}
 		prevStore, err := enrichStorage(prev.DeffatedStorage, prevBmd, op.Protocol)
 		if err != nil {
@@ -148,14 +151,18 @@ func setStorageDiff(es *elastic.Elastic, address, network string, storage string
 			return err
 		}
 
+		if currentStorage == nil {
+			return nil
+		}
 		switch reflect.ValueOf(currentStorage).Kind() {
 		case reflect.Map:
 			prevStorage = map[string]string{}
 		case reflect.Slice:
 			prevStorage = make([]interface{}, 0)
 		default:
-			return fmt.Errorf("Unsupported storage type^ %T %v", currentStorage, currentStorage)
+			return fmt.Errorf("Unsupported storage type: %T %v", currentStorage, currentStorage)
 		}
+
 	}
 
 	changelog, err := diff.Diff(prevStorage, currentStorage)
@@ -212,6 +219,9 @@ func applyChange(path []string, from interface{}, typ string, v interface{}) err
 			if val.Kind() != reflect.Map {
 				val = val.Index(idx).Elem()
 			}
+		}
+		if !val.IsValid() {
+			return nil
 		}
 		if val.Kind() != reflect.Map {
 			return fmt.Errorf("Unsupported change type: %v %v", val, val.Kind())

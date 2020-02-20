@@ -17,10 +17,8 @@ func (l *simpleDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMeta
 	}
 	for k, v := range node.Map() {
 		switch k {
-		case consts.STRING, consts.BYTES:
+		case consts.STRING, consts.BYTES, consts.INT:
 			return v.String(), nil
-		case consts.INT:
-			return v.Int(), nil
 		default:
 			return nil, fmt.Errorf("Unknown simple type: %s %v", k, node)
 		}

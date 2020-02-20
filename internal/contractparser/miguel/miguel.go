@@ -19,19 +19,13 @@ var decoders = map[string]decoder{
 	consts.TypeNamedUnion: &namedUnionDecoder{},
 	consts.TypeUnion:      &namedUnionDecoder{},
 	consts.OR:             &orDecoder{},
+	consts.LAMBDA:         &lambdaDecoder{},
 	consts.OPTION:         newOptionDecoder(),
 	"default":             newLiteralDecoder(),
 }
 
 // MichelineToMiguel -
 func MichelineToMiguel(data gjson.Result, metadata meta.Metadata) (interface{}, error) {
-	gjson.AddModifier("upper", func(json, arg string) string {
-		return strings.ToUpper(json)
-	})
-	gjson.AddModifier("lower", func(json, arg string) string {
-		return strings.ToLower(json)
-	})
-
 	node, startPath, err := getStartPath(data, metadata)
 	if err != nil {
 		return nil, err

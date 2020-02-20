@@ -79,21 +79,6 @@ func (e *Elastic) GetContractByID(id string) (c models.Contract, err error) {
 	return
 }
 
-// GetContractsByTime -
-func (e *Elastic) GetContractsByTime(ts time.Time, sort string) ([]models.Contract, error) {
-	query := newQuery().
-		Query(
-			boolQ(
-				must(
-					rangeQ("timestamp", qItem{"gt": ts}),
-				),
-			),
-		).
-		Sort("timestamp", sort).All()
-
-	return e.getContracts(query)
-}
-
 // GetContractField -
 func (e *Elastic) GetContractField(by map[string]interface{}, field string) (interface{}, error) {
 	query := getContractQuery(by).One()
