@@ -12,6 +12,8 @@ require (
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/google/go-github v17.0.0+incompatible
 	github.com/jinzhu/gorm v1.9.11
 	github.com/pkg/diff v0.0.0-20190930165518-531926345625 // indirect
 	github.com/pkg/errors v0.8.1
@@ -21,4 +23,5 @@ require (
 	github.com/tidwall/gjson v1.4.0
 	github.com/tidwall/sjson v1.0.4
 	golang.org/x/crypto v0.0.0-20200115085410-6d4e4cb37c7d
+	golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421
 )

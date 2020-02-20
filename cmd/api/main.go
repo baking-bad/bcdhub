@@ -6,11 +6,12 @@ import (
 	"github.com/gin-contrib/cors"
 
 	"github.com/aopoltorzhicky/bcdhub/cmd/api/handlers"
+	"github.com/aopoltorzhicky/bcdhub/cmd/api/oauth"
+	"github.com/aopoltorzhicky/bcdhub/internal/database"
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
 	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
 	"github.com/gin-gonic/gin"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 func main() {
@@ -24,8 +25,21 @@ func main() {
 		panic(err)
 	}
 
+	db, err := database.New(cfg.DB.URI)
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
 	rpc := createRPC(cfg.RPCs)
-	ctx := handlers.NewContext(es, rpc, cfg.Dir)
+
+	oauth, err := oauth.New()
+	if err != nil {
+		panic(err)
+	}
+
+	ctx := handlers.NewContext(es, rpc, cfg.Dir, db, oauth)
+
 	r := gin.Default()
 
 	r.Use(cors.Default())
@@ -57,6 +71,26 @@ func main() {
 			address := project.Group(":address")
 			{
 				address.GET("", ctx.GetProjectContracts)
+			}
+		}
+
+		oauth := v1.Group("oauth")
+		{
+			oauth.GET("login", ctx.GetOauthLogin)
+			oauth.GET("callback", ctx.GetOauthCallback)
+			oauth.GET("welcome", ctx.GetOauthWelcome)
+		}
+
+		authorized := v1.Group("/")
+		authorized.Use(ctx.AuthJWTRequired())
+		{
+			authorized.GET("profile", ctx.GetUserProfile)
+
+			subscriptions := authorized.Group("subscriptions")
+			{
+				subscriptions.GET("", ctx.ListSubscriptions)
+				subscriptions.POST("", ctx.CreateSubscription)
+				subscriptions.DELETE("", ctx.DeleteSubscription)
 			}
 		}
 	}
