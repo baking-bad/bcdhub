@@ -53,7 +53,7 @@ func (ctx *Context) getSimilarDiffs(similar []elastic.SimilarContract) ([]elasti
 	for i := 0; i < len(similar)-1; i++ {
 		src := &similar[i]
 		dest := similar[i+1]
-		d, err := ctx.getDiff(src.Address, src.Network, dest.Address, dest.Network)
+		d, err := ctx.getDiff(src.Address, src.Network, dest.Address, dest.Network, 0, 0)
 		if err != nil {
 			return nil, err
 		}

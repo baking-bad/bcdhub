@@ -18,8 +18,8 @@ type State struct {
 // ParseElasticJSON -
 func (s *State) ParseElasticJSON(hit gjson.Result) {
 	s.ID = hit.Get("_id").String()
-	s.Network = hit.Get("_source.type").String()
-	s.Type = hit.Get("_source.network").String()
+	s.Network = hit.Get("_source.network").String()
+	s.Type = hit.Get("_source.type").String()
 	s.Level = hit.Get("_source.level").Int()
 	s.Timestamp = hit.Get("_source.timestamp").Time()
 }

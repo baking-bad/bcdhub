@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/gin-contrib/cors"
+	"github.com/tidwall/gjson"
 
 	"github.com/aopoltorzhicky/bcdhub/cmd/api/handlers"
 	"github.com/aopoltorzhicky/bcdhub/cmd/api/oauth"
@@ -15,6 +17,13 @@ import (
 )
 
 func main() {
+	gjson.AddModifier("upper", func(json, arg string) string {
+		return strings.ToUpper(json)
+	})
+	gjson.AddModifier("lower", func(json, arg string) string {
+		return strings.ToLower(json)
+	})
+
 	var cfg config
 	if err := jsonload.StructFromFile("config.json", &cfg); err != nil {
 		panic(err)
@@ -57,6 +66,7 @@ func main() {
 					address.GET("operations", ctx.GetContractOperations)
 					address.GET("entrypoints", ctx.GetEntrypoints)
 					address.GET("storage", ctx.GetContractStorage)
+					address.GET("migration", ctx.GetMigrationDiff)
 				}
 			}
 		}

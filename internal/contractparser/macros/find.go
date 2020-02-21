@@ -82,7 +82,6 @@ func walkForMacros(script gjson.Result, jsonPath, textScript string, objectMacro
 }
 
 func applyMacros(json, jsonPath string, allMacros []macros) (res string, err error) {
-
 	res = json
 	for _, macros := range allMacros {
 		data := gjson.Parse(res).Get(jsonPath)
