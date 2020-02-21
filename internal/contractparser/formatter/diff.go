@@ -10,12 +10,12 @@ import (
 
 // DiffResult -
 type DiffResult struct {
-	DiffA   [][]Item `json:"diff_a"`
-	DiffB   [][]Item `json:"diff_b"`
-	NameA   string   `json:"name_a,omitempty"`
-	NameB   string   `json:"name_b,omitempty"`
-	Removed int64    `json:"removed"`
-	Added   int64    `json:"added"`
+	Left      [][]Item `json:"left"`
+	Right     [][]Item `json:"right"`
+	NameLeft  string   `json:"name_left,omitempty"`
+	NameRight string   `json:"name_right,omitempty"`
+	Removed   int64    `json:"removed"`
+	Added     int64    `json:"added"`
 }
 
 // Item -
@@ -155,8 +155,8 @@ func getLineSide(res [][]Item, i int) ([]Item, int) {
 
 func finish(resA, resB [][]Item) (DiffResult, error) {
 	res := DiffResult{
-		DiffA: make([][]Item, 0),
-		DiffB: make([][]Item, 0),
+		Left:  make([][]Item, 0),
+		Right: make([][]Item, 0),
 	}
 
 	for a, b := 0, 0; a < len(resA) && b < len(resB); {
@@ -167,18 +167,18 @@ func finish(resA, resB [][]Item) (DiffResult, error) {
 			if sideA != 0 {
 				return res, fmt.Errorf("Invalid side values [left] %d [right] %d", sideA, sideB)
 			}
-			res.DiffA = append(res.DiffA, lineA)
-			res.DiffB = append(res.DiffB, lineB)
+			res.Left = append(res.Left, lineA)
+			res.Right = append(res.Right, lineB)
 			a++
 			b++
 		} else if sideA == -1 {
-			res.DiffA = append(res.DiffA, lineA)
-			res.DiffB = append(res.DiffB, []Item{})
+			res.Left = append(res.Left, lineA)
+			res.Right = append(res.Right, []Item{})
 			res.Removed++
 			a++
 		} else if sideB == 1 {
-			res.DiffA = append(res.DiffA, []Item{})
-			res.DiffB = append(res.DiffB, lineB)
+			res.Left = append(res.Left, []Item{})
+			res.Right = append(res.Right, lineB)
 			res.Added++
 			b++
 		} else {

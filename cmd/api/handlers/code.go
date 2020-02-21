@@ -7,7 +7,6 @@ import (
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/formatter"
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/macros"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 )
@@ -84,8 +83,8 @@ func (ctx *Context) getContractCodeJSON(network, address string, level int64) (r
 		return
 	}
 
-	contractJSON := contract.Get("script")
-	return macros.FindMacros(contractJSON)
+	// return macros.FindMacros(contractJSON)
+	return contract.Get("script"), nil
 }
 
 func (ctx *Context) getDiff(srcAddress, srcNetwork, destAddress, destNetwork string, levelSrc, levelDest int64) (res formatter.DiffResult, err error) {
@@ -93,7 +92,6 @@ func (ctx *Context) getDiff(srcAddress, srcNetwork, destAddress, destNetwork str
 	if err != nil {
 		return
 	}
-
 	destCode, err := ctx.getContractCodeJSON(destNetwork, destAddress, levelDest)
 	if err != nil {
 		return
@@ -105,8 +103,8 @@ func (ctx *Context) getDiff(srcAddress, srcNetwork, destAddress, destNetwork str
 	if err != nil {
 		return
 	}
-	res.NameA = fmt.Sprintf("%s [%s]", srcAddress, srcNetwork)
-	res.NameB = fmt.Sprintf("%s [%s]", destAddress, destNetwork)
+	res.NameLeft = fmt.Sprintf("%s [%s]", srcAddress, srcNetwork)
+	res.NameRight = fmt.Sprintf("%s [%s]", destAddress, destNetwork)
 	return
 }
 
