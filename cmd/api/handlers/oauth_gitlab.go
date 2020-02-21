@@ -1,38 +1,24 @@
 package handlers
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/database"
 	"github.com/gin-gonic/gin"
-	"github.com/google/go-github/github"
+	"github.com/xanzy/go-gitlab"
 	"golang.org/x/oauth2"
 )
 
-// OauthRequest -
-type OauthRequest struct {
-	State string `form:"state"`
-	Code  string `form:"code"`
-}
-
-// GetOauthWelcome -
-func (ctx *Context) GetOauthWelcome(c *gin.Context) {
-	jwt := c.Query("jwt")
-
-	c.JSON(http.StatusOK, gin.H{"message": jwt})
-}
-
-// GetOauthLogin -
-func (ctx *Context) GetOauthLogin(c *gin.Context) {
-	url := ctx.OAUTH.Oauth2.AuthCodeURL(ctx.OAUTH.State)
+// GitlabOauthLogin -
+func (ctx *Context) GitlabOauthLogin(c *gin.Context) {
+	url := ctx.OAUTH.Gitlab.AuthCodeURL(ctx.OAUTH.State)
 
 	c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
-// GetOauthCallback -
-func (ctx *Context) GetOauthCallback(c *gin.Context) {
+// GitlabOauthCallback -
+func (ctx *Context) GitlabOauthCallback(c *gin.Context) {
 	var req OauthRequest
 	if err := c.ShouldBind(&req); err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
@@ -44,13 +30,13 @@ func (ctx *Context) GetOauthCallback(c *gin.Context) {
 		return
 	}
 
-	token, err := ctx.OAUTH.Oauth2.Exchange(oauth2.NoContext, req.Code)
+	token, err := ctx.OAUTH.Gitlab.Exchange(oauth2.NoContext, req.Code)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("code exchange failed: %s", err.Error()))
 		return
 	}
 
-	u, _, err := getGithubUser(token)
+	u, _, err := getGitlabUser(token.AccessToken)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("getGithubUser failed: %s", err.Error()))
 		return
@@ -58,9 +44,9 @@ func (ctx *Context) GetOauthCallback(c *gin.Context) {
 
 	user := database.User{
 		Token:     token.AccessToken,
-		Login:     *u.Login,
-		Name:      *u.Name,
-		AvatarURL: *u.AvatarURL,
+		Login:     u.Username,
+		Name:      u.Name,
+		AvatarURL: u.AvatarURL,
 	}
 
 	if err := ctx.DB.GetOrCreateUser(&user); err != nil {
@@ -78,10 +64,8 @@ func (ctx *Context) GetOauthCallback(c *gin.Context) {
 	c.Redirect(http.StatusTemporaryRedirect, location)
 }
 
-func getGithubUser(token *oauth2.Token) (*github.User, *github.Response, error) {
-	ts := oauth2.StaticTokenSource(token)
-	tc := oauth2.NewClient(context.Background(), ts)
-	client := github.NewClient(tc)
+func getGitlabUser(token string) (*gitlab.User, *gitlab.Response, error) {
+	client := gitlab.NewOAuthClient(nil, token)
 
-	return client.Users.Get(context.Background(), "")
+	return client.Users.CurrentUser()
 }
