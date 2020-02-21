@@ -32,6 +32,24 @@ func (d *db) DeleteSubscription(s *Subscription) error {
 	return d.ORM.Delete(s).Error
 }
 
+func (d *db) GetSubscriptionRating(entityID string) (SubRating, error) {
+	var s SubRating
+	if err := d.ORM.Model(&Subscription{}).Where("entity_id = ?", entityID).Count(&s.Count).Error; err != nil {
+		return s, err
+	}
+
+	if err := d.ORM.Raw(`
+		SELECT users.login, users.avatar_url
+		FROM subscriptions
+		INNER JOIN users ON subscriptions.user_id=users.id
+		WHERE entity_id = ?
+		LIMIT 5;`, entityID).Scan(&s.Users).Error; err != nil {
+		return s, err
+	}
+
+	return s, nil
+}
+
 func (d *db) Close() {
 	d.ORM.Close()
 }

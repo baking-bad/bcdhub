@@ -13,6 +13,7 @@ type DB interface {
 	ListSubscriptions(uint) ([]Subscription, error)
 	CreateSubscription(*Subscription) error
 	DeleteSubscription(*Subscription) error
+	GetSubscriptionRating(string) (SubRating, error)
 	Close()
 }
 

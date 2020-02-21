@@ -67,6 +67,7 @@ func main() {
 					address.GET("entrypoints", ctx.GetEntrypoints)
 					address.GET("storage", ctx.GetContractStorage)
 					address.GET("migration", ctx.GetMigrationDiff)
+					address.GET("rating", ctx.GetContractRating)
 				}
 			}
 		}
