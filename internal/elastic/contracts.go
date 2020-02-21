@@ -142,3 +142,14 @@ func (e *Elastic) GetContractStats(address, network string) (stats ContractStats
 	stats.parse(res.Get("aggregations"))
 	return
 }
+
+// GetContractID -
+func (e *Elastic) GetContractID(by map[string]interface{}) (string, error) {
+	query := getContractQuery(by).One()
+	cntr, err := e.getContract(query)
+	if err != nil {
+		return "", err
+	}
+
+	return cntr.ID, nil
+}

@@ -42,3 +42,12 @@ func (e *EntityType) Scan(value interface{}) error {
 func (e EntityType) Value() (driver.Value, error) {
 	return string(e), nil
 }
+
+// SubRating -
+type SubRating struct {
+	Count int `json:"count"`
+	Users []struct {
+		Login     string `json:"login"`
+		AvatarURL string `json:"avatarURL"`
+	} `json:"users"`
+}
