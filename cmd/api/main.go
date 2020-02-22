@@ -51,7 +51,7 @@ func main() {
 
 	r := gin.Default()
 
-	r.Use(cors.Default())
+	r.Use(corsSettings())
 	v1 := r.Group("v1")
 	{
 		v1.GET("search", ctx.Search)
@@ -108,7 +108,9 @@ func main() {
 
 func corsSettings() gin.HandlerFunc {
 	cfg := cors.DefaultConfig()
-	cfg.AllowOrigins = []string{"*"}
+	cfg.AllowOrigins = []string{"http://localhost:8080"}
+	cfg.AllowCredentials = true
+	cfg.AddAllowHeaders("X-Requested-With", "Authorization")
 	return cors.New(cfg)
 }
 

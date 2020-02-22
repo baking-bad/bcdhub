@@ -74,7 +74,7 @@ func (ctx *Context) GithubOauthCallback(c *gin.Context) {
 		return
 	}
 
-	location := fmt.Sprintf("http://localhost:14000/v1/oauth/welcome?jwt=%v", jwt)
+	location := fmt.Sprintf("http://localhost:8080/welcome?jwt=%v", jwt)
 	c.Redirect(http.StatusTemporaryRedirect, location)
 }
 
