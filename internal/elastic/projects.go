@@ -71,6 +71,9 @@ func (e *Elastic) GetSameContracts(c models.Contract) ([]models.Contract, error)
 				matchPhrase("fingerprint.storage", c.Fingerprint.Storage),
 				matchPhrase("fingerprint.code", c.Fingerprint.Code),
 			),
+			notMust(
+				matchPhrase("address", c.Address),
+			),
 		),
 	).Sort("timestamp", "desc").All()
 
@@ -109,18 +112,6 @@ func (e *Elastic) GetSimilarContracts(c models.Contract) ([]SimilarContract, err
 			must(
 				matchPhrase("project_id", c.ProjectID),
 			),
-			notMust(
-				qItem{
-					"script": qItem{
-						"script": qItem{
-							"source": "doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value == params.fgpt",
-							"params": qItem{
-								"fgpt": fgpt,
-							},
-						},
-					},
-				},
-			),
 		),
 	).Add(
 		aggs(
@@ -151,15 +142,18 @@ func (e *Elastic) GetSimilarContracts(c models.Contract) ([]SimilarContract, err
 		return nil, nil
 	}
 
-	count := resp.Get("aggregations.projects.buckets.#").Int()
-	res := make([]SimilarContract, count)
-	for i, item := range buckets.Array() {
-		var c models.Contract
-		c.ParseElasticJSON(item.Get("last.hits.hits.0"))
-		res[i] = SimilarContract{
-			Contract: &c,
-			Count:    item.Get("doc_count").Int(),
+	res := make([]SimilarContract, 0)
+	for _, item := range buckets.Array() {
+		var buf models.Contract
+		buf.ParseElasticJSON(item.Get("last.hits.hits.0"))
+		bufF := fmt.Sprintf("%s|%s|%s", buf.Fingerprint.Parameter, buf.Fingerprint.Storage, buf.Fingerprint.Code)
+		if fgpt == bufF {
+			continue
 		}
+		res = append(res, SimilarContract{
+			Contract: &buf,
+			Count:    item.Get("doc_count").Int(),
+		})
 	}
 	return res, nil
 }

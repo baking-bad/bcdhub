@@ -79,7 +79,8 @@ func prepareOperations(es *elastic.Elastic, ops []models.Operation, address, net
 			Balance:       ops[i].Balance,
 			Delegate:      ops[i].Delegate,
 
-			Result: ops[i].Result,
+			BalanceUpdates: ops[i].BalanceUpdates,
+			Result:         ops[i].Result,
 		}
 
 		if ops[i].DeffatedStorage != "" {
