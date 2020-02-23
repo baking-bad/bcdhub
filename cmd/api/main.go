@@ -56,6 +56,7 @@ func main() {
 	{
 		v1.GET("search", ctx.Search)
 		contract := v1.Group("contract")
+		contract.Use(ctx.IsAuthenticated())
 		{
 			network := contract.Group(":network")
 			{
@@ -81,7 +82,6 @@ func main() {
 
 		oauth := v1.Group("oauth")
 		{
-			oauth.GET("welcome", ctx.GetOauthWelcome)
 			oauth.GET("github/login", ctx.GithubOauthLogin)
 			oauth.GET("github/callback", ctx.GithubOauthCallback)
 			oauth.GET("gitlab/login", ctx.GitlabOauthLogin)
@@ -91,13 +91,15 @@ func main() {
 		authorized := v1.Group("/")
 		authorized.Use(ctx.AuthJWTRequired())
 		{
-			authorized.GET("profile", ctx.GetUserProfile)
-
-			subscriptions := authorized.Group("subscriptions")
+			profile := authorized.Group("profile")
 			{
-				subscriptions.GET("", ctx.ListSubscriptions)
-				subscriptions.POST("", ctx.CreateSubscription)
-				subscriptions.DELETE("", ctx.DeleteSubscription)
+				profile.GET("", ctx.GetUserProfile)
+				subscriptions := profile.Group("subscriptions")
+				{
+					subscriptions.GET("", ctx.ListSubscriptions)
+					subscriptions.POST("", ctx.CreateSubscription)
+					subscriptions.DELETE("", ctx.DeleteSubscription)
+				}
 			}
 		}
 	}

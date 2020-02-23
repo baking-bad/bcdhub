@@ -82,10 +82,6 @@ func (e *Elastic) GetSameContracts(c models.Contract) ([]models.Contract, error)
 		return nil, err
 	}
 
-	if resp.Get("hits.total.value").Int() < 1 {
-		return nil, fmt.Errorf("Unknown contract: %v", c.Address)
-	}
-
 	arr := resp.Get("hits.hits")
 	if !arr.Exists() {
 		return nil, fmt.Errorf("Empty response: %v", resp)

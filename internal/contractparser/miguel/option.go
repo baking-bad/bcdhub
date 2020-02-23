@@ -2,6 +2,7 @@ package miguel
 
 import (
 	"fmt"
+
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
 	"github.com/tidwall/gjson"

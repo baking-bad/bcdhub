@@ -213,22 +213,30 @@ func applyChanges(changelog diff.Changelog, v interface{}) error {
 }
 
 func applyChange(path []string, from interface{}, typ string, v interface{}) error {
+	if len(path) == 0 {
+		return nil
+	}
+
 	val := reflect.ValueOf(v)
 	if len(path) == 1 {
 		idx, err := strconv.Atoi(path[0])
 		if err == nil {
-			if val.Kind() != reflect.Map {
+			if val.Kind() == reflect.Slice {
 				val = val.Index(idx).Elem()
 			}
 		}
 		if !val.IsValid() {
 			return nil
 		}
-		if val.Kind() != reflect.Map {
+
+		switch val.Kind() {
+		case reflect.Map:
+			val.SetMapIndex(reflect.ValueOf("from"), reflect.ValueOf(from))
+			val.SetMapIndex(reflect.ValueOf("kind"), reflect.ValueOf(typ))
+		case reflect.Slice:
+		default:
 			return fmt.Errorf("Unsupported change type: %v %v", val, val.Kind())
 		}
-		val.SetMapIndex(reflect.ValueOf("from"), reflect.ValueOf(from))
-		val.SetMapIndex(reflect.ValueOf("kind"), reflect.ValueOf(typ))
 		return nil
 	}
 	var field reflect.Value

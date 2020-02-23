@@ -43,3 +43,22 @@ type CodeDiff struct {
 	Added   int64  `json:"added,omitempty"`
 	Removed int64  `json:"removed,omitempty"`
 }
+
+// Contract -
+type Contract struct {
+	*models.Contract
+
+	Profile *ProfileInfo `json:"profile,omitempty"`
+}
+
+// ProfileInfo -
+type ProfileInfo struct {
+	Subscribed bool `json:"subscribed"`
+}
+
+// Subscription -
+type Subscription struct {
+	*models.Contract
+
+	SubscribedAt time.Time `json:"subscribed_at"`
+}

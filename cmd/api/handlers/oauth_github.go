@@ -17,13 +17,6 @@ type OauthRequest struct {
 	Code  string `form:"code"`
 }
 
-// GetOauthWelcome -
-func (ctx *Context) GetOauthWelcome(c *gin.Context) {
-	jwt := c.Query("jwt")
-
-	c.JSON(http.StatusOK, gin.H{"message": jwt})
-}
-
 // GithubOauthLogin -
 func (ctx *Context) GithubOauthLogin(c *gin.Context) {
 	url := ctx.OAUTH.Github.AuthCodeURL(ctx.OAUTH.State)
