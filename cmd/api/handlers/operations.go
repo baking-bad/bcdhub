@@ -45,7 +45,7 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 		return
 	}
 
-	resp, err := prepareOperations(ctx.ES, ops, req.Address, req.Network)
+	resp, err := prepareOperations(ctx.ES, ops)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -54,57 +54,92 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func prepareOperations(es *elastic.Elastic, ops []models.Operation, address, network string) ([]Operation, error) {
+// OPGRequest -
+type OPGRequest struct {
+	Hash string `uri:"hash"`
+}
+
+// GetOperation -
+func (ctx *Context) GetOperation(c *gin.Context) {
+	var req OPGRequest
+	if err := c.BindUri(&req); err != nil {
+		_ = c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	op, err := ctx.ES.GetOperationByHash(req.Hash)
+	if err != nil {
+		_ = c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	resp, err := prepareOperations(ctx.ES, op)
+	if err != nil {
+		_ = c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
+func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operation, error) {
+	op := Operation{
+		ID:        operation.ID,
+		Protocol:  operation.Protocol,
+		Hash:      operation.Hash,
+		Network:   operation.Network,
+		Internal:  operation.Internal,
+		Timesatmp: operation.Timestamp,
+
+		Level:         operation.Level,
+		Kind:          operation.Kind,
+		Source:        operation.Source,
+		Fee:           operation.Fee,
+		Counter:       operation.Counter,
+		GasLimit:      operation.GasLimit,
+		StorageLimit:  operation.StorageLimit,
+		Amount:        operation.Amount,
+		Destination:   operation.Destination,
+		PublicKey:     operation.PublicKey,
+		ManagerPubKey: operation.ManagerPubKey,
+		Balance:       operation.Balance,
+		Delegate:      operation.Delegate,
+
+		BalanceUpdates: operation.BalanceUpdates,
+		Result:         operation.Result,
+	}
+
+	if operation.DeffatedStorage != "" && strings.HasPrefix(op.Destination, "KT") {
+		if err := setStorageDiff(es, op.Destination, op.Network, operation.DeffatedStorage, &op); err != nil {
+			return op, err
+		}
+	}
+
+	if op.Kind != consts.Transaction {
+		return op, nil
+	}
+	if operation.Parameters != "" && strings.HasPrefix(op.Destination, "KT") {
+		metadata, err := meta.GetMetadata(es, op.Destination, op.Network, "parameter", op.Protocol)
+		if err != nil {
+			return op, err
+		}
+
+		params := gjson.Parse(operation.Parameters)
+
+		op.Parameters, err = miguel.MichelineToMiguel(params, metadata)
+		if err != nil {
+			return op, err
+		}
+	}
+	return op, nil
+}
+
+func prepareOperations(es *elastic.Elastic, ops []models.Operation) ([]Operation, error) {
 	resp := make([]Operation, len(ops))
 	for i := 0; i < len(ops); i++ {
-		op := Operation{
-			ID:        ops[i].ID,
-			Protocol:  ops[i].Protocol,
-			Hash:      ops[i].Hash,
-			Network:   ops[i].Network,
-			Internal:  ops[i].Internal,
-			Timesatmp: ops[i].Timestamp,
-
-			Level:         ops[i].Level,
-			Kind:          ops[i].Kind,
-			Source:        ops[i].Source,
-			Fee:           ops[i].Fee,
-			Counter:       ops[i].Counter,
-			GasLimit:      ops[i].GasLimit,
-			StorageLimit:  ops[i].StorageLimit,
-			Amount:        ops[i].Amount,
-			Destination:   ops[i].Destination,
-			PublicKey:     ops[i].PublicKey,
-			ManagerPubKey: ops[i].ManagerPubKey,
-			Balance:       ops[i].Balance,
-			Delegate:      ops[i].Delegate,
-
-			BalanceUpdates: ops[i].BalanceUpdates,
-			Result:         ops[i].Result,
-		}
-
-		if ops[i].DeffatedStorage != "" {
-			if err := setStorageDiff(es, address, network, ops[i].DeffatedStorage, &op); err != nil {
-				return nil, err
-			}
-		}
-
-		if op.Kind != consts.Transaction {
-			resp[i] = op
-			continue
-		}
-		if ops[i].Parameters != "" {
-			metadata, err := meta.GetMetadata(es, address, network, "parameter", op.Protocol)
-			if err != nil {
-				return nil, err
-			}
-
-			params := gjson.Parse(ops[i].Parameters)
-
-			op.Parameters, err = miguel.MichelineToMiguel(params, metadata)
-			if err != nil {
-				return nil, err
-			}
+		op, err := prepareOperation(es, ops[i])
+		if err != nil {
+			return nil, err
 		}
 		resp[i] = op
 	}
