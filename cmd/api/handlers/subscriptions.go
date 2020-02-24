@@ -21,7 +21,13 @@ func (ctx *Context) ListSubscriptions(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, subscriptions)
+	res, err := ctx.prepareSubscription(subscriptions)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, res)
 }
 
 // CreateSubscription -
@@ -66,4 +72,20 @@ func (ctx *Context) DeleteSubscription(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+}
+
+func (ctx *Context) prepareSubscription(subs []database.Subscription) ([]Subscription, error) {
+	res := make([]Subscription, len(subs))
+	for i, s := range subs {
+		c, err := ctx.ES.GetContractByID(s.EntityID)
+		if err != nil {
+			return nil, err
+		}
+
+		res[i] = Subscription{
+			Contract:     &c,
+			SubscribedAt: s.CreatedAt,
+		}
+	}
+	return res, nil
 }

@@ -2,6 +2,7 @@ package elastic
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
@@ -79,6 +80,27 @@ func (e *Elastic) GetContractByID(id string) (c models.Contract, err error) {
 	return
 }
 
+// GetContractsByID -
+func (e *Elastic) GetContractsByID(ids []string) ([]models.Contract, error) {
+	resp, err := e.GetByIDs(DocContracts, ids)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.Get("hits.total.value").Int() < 1 {
+		return nil, fmt.Errorf("Unknown contracts with IDs %s", ids)
+	}
+
+	contracts := make([]models.Contract, 0)
+	arr := resp.Get("hits.hits").Array()
+	for i := range arr {
+		var c models.Contract
+		c.ParseElasticJSON(arr[i])
+		contracts = append(contracts, c)
+	}
+	return contracts, nil
+}
+
 // GetContractField -
 func (e *Elastic) GetContractField(by map[string]interface{}, field string) (interface{}, error) {
 	query := getContractQuery(by).One()
@@ -152,4 +174,41 @@ func (e *Elastic) GetContractID(by map[string]interface{}) (string, error) {
 	}
 
 	return cntr.ID, nil
+}
+
+// Recommendations -
+func (e *Elastic) Recommendations(tags []string, language string, blackList []string, size int64) ([]models.Contract, error) {
+	tagFilters := make([]qItem, len(tags))
+	for i := range tags {
+		tagFilters[i] = matchPhrase("tags", tags[i])
+	}
+
+	blackListFilters := make([]qItem, len(blackList))
+	for i := range blackList {
+		blackListFilters[i] = matchPhrase("address", blackList[i])
+	}
+
+	tagFilters = append(tagFilters, matchPhrase("language", language))
+	b := boolQ(
+		should(tagFilters...),
+		notMust(
+			blackListFilters...,
+		),
+	)
+	b.Get("bool").Append("minimum_should_match", math.Min(2, float64(len(tagFilters)+1)))
+
+	query := newQuery().Query(b).Size(size)
+	resp, err := e.query(DocContracts, query)
+	if err != nil {
+		return nil, err
+	}
+
+	contracts := make([]models.Contract, 0)
+	arr := resp.Get("hits.hits").Array()
+	for i := range arr {
+		var c models.Contract
+		c.ParseElasticJSON(arr[i])
+		contracts = append(contracts, c)
+	}
+	return contracts, nil
 }

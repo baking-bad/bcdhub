@@ -10,6 +10,7 @@ import (
 type DB interface {
 	GetOrCreateUser(*User) error
 	GetUser(uint) (*User, error)
+	GetSubscription(string, string) (Subscription, error)
 	ListSubscriptions(uint) ([]Subscription, error)
 	CreateSubscription(*Subscription) error
 	DeleteSubscription(*Subscription) error

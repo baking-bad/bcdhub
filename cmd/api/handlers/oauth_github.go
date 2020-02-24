@@ -17,13 +17,6 @@ type OauthRequest struct {
 	Code  string `form:"code"`
 }
 
-// GetOauthWelcome -
-func (ctx *Context) GetOauthWelcome(c *gin.Context) {
-	jwt := c.Query("jwt")
-
-	c.JSON(http.StatusOK, gin.H{"message": jwt})
-}
-
 // GithubOauthLogin -
 func (ctx *Context) GithubOauthLogin(c *gin.Context) {
 	url := ctx.OAUTH.Github.AuthCodeURL(ctx.OAUTH.State)
@@ -74,7 +67,7 @@ func (ctx *Context) GithubOauthCallback(c *gin.Context) {
 		return
 	}
 
-	location := fmt.Sprintf("http://localhost:14000/v1/oauth/welcome?jwt=%v", jwt)
+	location := fmt.Sprintf("http://localhost:8080/welcome?jwt=%v", jwt)
 	c.Redirect(http.StatusTemporaryRedirect, location)
 }
 

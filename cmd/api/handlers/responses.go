@@ -6,6 +6,12 @@ import (
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 )
 
+const (
+	eventSubscribe   = "subscribe"
+	eventUnsubscribe = "unsubscribe"
+	eventOperation   = "operation"
+)
+
 // Operation -
 type Operation struct {
 	ID        string    `json:"-"`
@@ -34,6 +40,7 @@ type Operation struct {
 
 	Parameters  interface{} `json:"parameters,omitempty"`
 	StorageDiff interface{} `json:"storage_diff,omitempty"`
+	Mempool     bool        `json:"mempool"`
 }
 
 // CodeDiff -
@@ -41,4 +48,29 @@ type CodeDiff struct {
 	Full    string `json:"full,omitempty"`
 	Added   int64  `json:"added,omitempty"`
 	Removed int64  `json:"removed,omitempty"`
+}
+
+// Contract -
+type Contract struct {
+	*models.Contract
+
+	Profile *ProfileInfo `json:"profile,omitempty"`
+}
+
+// ProfileInfo -
+type ProfileInfo struct {
+	Subscribed bool `json:"subscribed"`
+}
+
+// Subscription -
+type Subscription struct {
+	*models.Contract
+
+	SubscribedAt time.Time `json:"subscribed_at"`
+}
+
+// TimelineItem -
+type TimelineItem struct {
+	Event string    `json:"event"`
+	Date  time.Time `json:"date"`
 }

@@ -85,7 +85,7 @@ func (l *literalDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMet
 		var value interface{}
 		if node.Get(consts.INT).Exists() {
 			value = node.Get(consts.INT).Int()
-		} else if node.Get(consts.INT).Exists() {
+		} else if node.Get(consts.STRING).Exists() {
 			value = node.Get(consts.STRING).String()
 		}
 		return map[string]interface{}{

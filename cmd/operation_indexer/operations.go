@@ -126,12 +126,13 @@ func parseBalanceUpdates(item gjson.Result, root string) []models.BalanceUpdate 
 
 func createResult(item gjson.Result, path, protocol string) *models.OperationResult {
 	return &models.OperationResult{
-		Status:              item.Get(path + ".status").String(),
-		ConsumedGas:         item.Get(path + ".consumed_gas").Int(),
-		StorageSize:         item.Get(path + ".storage_size").Int(),
-		PaidStorageSizeDiff: item.Get(path + ".paid_storage_size_diff").Int(),
-		Originated:          item.Get(path + ".originated_contracts.0").String(),
-		Errors:              item.Get(path + ".errors").String(),
+		Status:                       item.Get(path + ".status").String(),
+		ConsumedGas:                  item.Get(path + ".consumed_gas").Int(),
+		StorageSize:                  item.Get(path + ".storage_size").Int(),
+		PaidStorageSizeDiff:          item.Get(path + ".paid_storage_size_diff").Int(),
+		Originated:                   item.Get(path + ".originated_contracts.0").String(),
+		AllocatedDestinationContract: item.Get(path + ".allocated_destination_contract").Bool(),
+		Errors:                       item.Get(path + ".errors").String(),
 	}
 }
 

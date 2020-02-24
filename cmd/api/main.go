@@ -51,11 +51,12 @@ func main() {
 
 	r := gin.Default()
 
-	r.Use(cors.Default())
+	r.Use(corsSettings())
 	v1 := r.Group("v1")
 	{
 		v1.GET("search", ctx.Search)
 		contract := v1.Group("contract")
+		contract.Use(ctx.IsAuthenticated())
 		{
 			network := contract.Group(":network")
 			{
@@ -68,26 +69,20 @@ func main() {
 					address.GET("storage", ctx.GetContractStorage)
 					address.GET("migration", ctx.GetMigrationDiff)
 					address.GET("rating", ctx.GetContractRating)
+					address.GET("mempool", ctx.GetMempool)
+					address.GET("project", ctx.GetProjectContracts)
 				}
 			}
 		}
 
 		v1.GET("pick_random", ctx.GetRandomContract)
 		v1.GET("diff", ctx.GetDiff)
+		v1.GET("opg/:hash", ctx.GetOperation)
 		v1.GET("projects", ctx.GetProjects)
 		v1.POST("vote", ctx.Vote)
 
-		project := v1.Group("project")
-		{
-			address := project.Group(":address")
-			{
-				address.GET("", ctx.GetProjectContracts)
-			}
-		}
-
 		oauth := v1.Group("oauth")
 		{
-			oauth.GET("welcome", ctx.GetOauthWelcome)
 			oauth.GET("github/login", ctx.GithubOauthLogin)
 			oauth.GET("github/callback", ctx.GithubOauthCallback)
 			oauth.GET("gitlab/login", ctx.GitlabOauthLogin)
@@ -97,13 +92,16 @@ func main() {
 		authorized := v1.Group("/")
 		authorized.Use(ctx.AuthJWTRequired())
 		{
-			authorized.GET("profile", ctx.GetUserProfile)
-
-			subscriptions := authorized.Group("subscriptions")
+			profile := authorized.Group("profile")
 			{
-				subscriptions.GET("", ctx.ListSubscriptions)
-				subscriptions.POST("", ctx.CreateSubscription)
-				subscriptions.DELETE("", ctx.DeleteSubscription)
+				profile.GET("", ctx.GetUserProfile)
+				subscriptions := profile.Group("subscriptions")
+				{
+					subscriptions.GET("", ctx.ListSubscriptions)
+					subscriptions.GET("recommended", ctx.Recommendations)
+					subscriptions.POST("", ctx.CreateSubscription)
+					subscriptions.DELETE("", ctx.DeleteSubscription)
+				}
 			}
 		}
 	}
@@ -114,7 +112,9 @@ func main() {
 
 func corsSettings() gin.HandlerFunc {
 	cfg := cors.DefaultConfig()
-	cfg.AllowOrigins = []string{"*"}
+	cfg.AllowOrigins = []string{"http://localhost:8080"}
+	cfg.AllowCredentials = true
+	cfg.AddAllowHeaders("X-Requested-With", "Authorization")
 	return cors.New(cfg)
 }
 

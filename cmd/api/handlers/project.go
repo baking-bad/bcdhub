@@ -7,19 +7,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type getProjectRequest struct {
-	Address string `uri:"address"`
-}
-
 // GetProjectContracts -
 func (ctx *Context) GetProjectContracts(c *gin.Context) {
-	var req getProjectRequest
+	var req getContractRequest
 	if err := c.BindUri(&req); err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 	by := map[string]interface{}{
 		"address": req.Address,
+		"network": req.Network,
 	}
 	contract, err := ctx.ES.GetContract(by)
 	if err != nil {
@@ -40,7 +37,7 @@ func (ctx *Context) GetProjectContracts(c *gin.Context) {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	similar, err := ctx.getSimilarDiffs(s)
+	similar, err := ctx.getSimilarDiffs(s, req.Address, req.Network)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -49,11 +46,10 @@ func (ctx *Context) GetProjectContracts(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (ctx *Context) getSimilarDiffs(similar []elastic.SimilarContract) ([]elastic.SimilarContract, error) {
+func (ctx *Context) getSimilarDiffs(similar []elastic.SimilarContract, address, network string) ([]elastic.SimilarContract, error) {
 	for i := 0; i < len(similar)-1; i++ {
 		src := &similar[i]
-		dest := similar[i+1]
-		d, err := ctx.getDiff(src.Address, src.Network, dest.Address, dest.Network, 0, 0)
+		d, err := ctx.getDiff(address, network, src.Address, src.Network, 0, 0)
 		if err != nil {
 			return nil, err
 		}

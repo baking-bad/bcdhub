@@ -17,7 +17,7 @@ func (d *db) GetUser(userID uint) (*User, error) {
 func (d *db) ListSubscriptions(userID uint) ([]Subscription, error) {
 	var subs []Subscription
 
-	if err := d.ORM.Where("user_id = ?", userID).Find(&subs).Error; err != nil {
+	if err := d.ORM.Where("user_id = ?", userID).Order("created_at DESC").Find(&subs).Error; err != nil {
 		return nil, err
 	}
 
@@ -29,7 +29,12 @@ func (d *db) CreateSubscription(s *Subscription) error {
 }
 
 func (d *db) DeleteSubscription(s *Subscription) error {
-	return d.ORM.Delete(s).Error
+	return d.ORM.Where("entity_id = ? AND user_id = ? and entity_type = ?", s.EntityID, s.UserID, s.EntityType).Delete(Subscription{}).Error
+}
+
+func (d *db) GetSubscription(sID, typ string) (s Subscription, err error) {
+	err = d.ORM.Where("entity_id = ? AND entity_type = ?", sID, typ).Find(&s).Error
+	return
 }
 
 func (d *db) GetSubscriptionRating(entityID string) (SubRating, error) {

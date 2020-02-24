@@ -26,15 +26,27 @@ var decoders = map[string]decoder{
 
 // MichelineToMiguel -
 func MichelineToMiguel(data gjson.Result, metadata meta.Metadata) (interface{}, error) {
-	node, startPath, err := getStartPath(data, metadata)
+	if !data.IsArray() && !data.IsObject() {
+		return nil, nil
+	}
+	node, startPath, entrypoint, err := getStartPath(data, metadata)
 	if err != nil {
 		return nil, err
 	}
 
-	return michelineNodeToMiguel(node, startPath, metadata)
+	res, err := michelineNodeToMiguel(node, startPath, metadata)
+	if err != nil {
+		return nil, err
+	}
+	if startPath != "0" && entrypoint != "" {
+		return map[string]interface{}{
+			entrypoint: res,
+		}, nil
+	}
+	return res, nil
 }
 
-func getStartPath(data gjson.Result, metadata meta.Metadata) (gjson.Result, string, error) {
+func getStartPath(data gjson.Result, metadata meta.Metadata) (gjson.Result, string, string, error) {
 	var entrypoint, value gjson.Result
 	if data.IsArray() {
 		entrypoint = data.Get("0.entrypoint")
@@ -46,17 +58,17 @@ func getStartPath(data gjson.Result, metadata meta.Metadata) (gjson.Result, stri
 
 	if entrypoint.Exists() && value.Exists() {
 		root := metadata["0"]
-		if root.Prim != consts.OR && root.Type != consts.TypeNamedUnion {
-			return value, "0", nil
+		if root.Prim != consts.OR && root.Type != consts.TypeNamedUnion && root.Type != consts.TypeNamedTuple {
+			return value, "0", "", nil
 		}
 		for path, md := range metadata {
 			if md.FieldName == entrypoint.String() {
-				return value, path, nil
+				return value, path, entrypoint.String(), nil
 			}
 		}
-		return value, "0", nil
+		return value, "0", entrypoint.String(), nil
 	}
-	return data, "0", nil
+	return data, "0", "", nil
 }
 
 func michelineNodeToMiguel(node gjson.Result, path string, metadata meta.Metadata) (interface{}, error) {

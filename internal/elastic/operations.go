@@ -15,10 +15,48 @@ func (e *Elastic) GetOperationByID(id string) (op models.Operation, err error) {
 		return
 	}
 	if !resp.Get("found").Bool() {
-		return op, fmt.Errorf("Unknown contract with ID %s", id)
+		return op, fmt.Errorf("Unknown operation with ID %s", id)
 	}
 	op.ParseElasticJSON(resp)
 	return
+}
+
+// GetOperationByHash -
+func (e *Elastic) GetOperationByHash(hash string) (ops []models.Operation, err error) {
+	query := newQuery().Query(
+		boolQ(
+			must(
+				matchPhrase("hash", hash),
+			),
+		),
+	).Add(qItem{
+		"sort": qItem{
+			"_script": qItem{
+				"type": "number",
+				"script": qItem{
+					"lang":   "painless",
+					"source": "doc['level'].value * 10 + (doc['internal'].value ? 0 : 1)",
+				},
+				"order": "desc",
+			},
+		},
+	}).All()
+	resp, err := e.query(DocOperations, query)
+	if err != nil {
+		return
+	}
+	if resp.Get("hits.total.value").Int() < 1 {
+		return nil, fmt.Errorf("Unknown operation with hash %s", hash)
+	}
+	count := resp.Get("hits.hits.#").Int()
+	ops = make([]models.Operation, count)
+	for i, item := range resp.Get("hits.hits").Array() {
+		var o models.Operation
+		o.ParseElasticJSON(item)
+		ops[i] = o
+	}
+
+	return ops, nil
 }
 
 // GetContractOperations -
