@@ -98,6 +98,7 @@ func main() {
 				subscriptions := profile.Group("subscriptions")
 				{
 					subscriptions.GET("", ctx.ListSubscriptions)
+					subscriptions.GET("recommended", ctx.Recommendations)
 					subscriptions.POST("", ctx.CreateSubscription)
 					subscriptions.DELETE("", ctx.DeleteSubscription)
 				}

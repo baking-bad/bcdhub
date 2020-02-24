@@ -2,8 +2,12 @@ package handlers
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/miguel"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/aopoltorzhicky/bcdhub/internal/tzkt"
 	"github.com/gin-gonic/gin"
@@ -65,6 +69,26 @@ func (ctx *Context) prepareMempoolOperations(res gjson.Result, address, network 
 				Errors: item.Get("errors").String(),
 			},
 		}
+
+		if op.Kind != consts.Transaction {
+			ret = append(ret, op)
+			continue
+		}
+		params := item.Get("parameters").String()
+		if params != "" && strings.HasPrefix(op.Destination, "KT") && op.Protocol != "" {
+			metadata, err := meta.GetMetadata(ctx.ES, op.Destination, op.Network, "parameter", op.Protocol)
+			if err != nil {
+				return nil, err
+			}
+
+			params := gjson.Parse(params)
+
+			op.Parameters, err = miguel.MichelineToMiguel(params, metadata)
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		ret = append(ret, op)
 	}
 

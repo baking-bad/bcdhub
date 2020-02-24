@@ -6,6 +6,12 @@ import (
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 )
 
+const (
+	eventSubscribe   = "subscribe"
+	eventUnsubscribe = "unsubscribe"
+	eventOperation   = "operation"
+)
+
 // Operation -
 type Operation struct {
 	ID        string    `json:"-"`
@@ -61,4 +67,10 @@ type Subscription struct {
 	*models.Contract
 
 	SubscribedAt time.Time `json:"subscribed_at"`
+}
+
+// TimelineItem -
+type TimelineItem struct {
+	Event string    `json:"event"`
+	Date  time.Time `json:"date"`
 }

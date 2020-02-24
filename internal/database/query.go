@@ -29,7 +29,7 @@ func (d *db) CreateSubscription(s *Subscription) error {
 }
 
 func (d *db) DeleteSubscription(s *Subscription) error {
-	return d.ORM.Unscoped().Where("entity_id = ? AND user_id = ? and entity_type = ?", s.EntityID, s.UserID, s.EntityType).Delete(Subscription{}).Error
+	return d.ORM.Where("entity_id = ? AND user_id = ? and entity_type = ?", s.EntityID, s.UserID, s.EntityType).Delete(Subscription{}).Error
 }
 
 func (d *db) GetSubscription(sID, typ string) (s Subscription, err error) {

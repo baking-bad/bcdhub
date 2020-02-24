@@ -193,6 +193,18 @@ func (e *Elastic) GetByID(index, id string) (result gjson.Result, err error) {
 	return
 }
 
+// GetByIDs -
+func (e *Elastic) GetByIDs(index string, ids []string) (result gjson.Result, err error) {
+	query := newQuery().Query(
+		qItem{
+			"ids": qItem{
+				"values": ids,
+			},
+		},
+	)
+	return e.query(index, query)
+}
+
 // Match - returns data by match filter
 func (e *Elastic) Match(index string, match map[string]interface{}) (gjson.Result, error) {
 	query := map[string]interface{}{
