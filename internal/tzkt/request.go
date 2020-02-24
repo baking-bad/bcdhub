@@ -12,7 +12,8 @@ import (
 
 // URLs
 const (
-	TzKTURLV1 = "https://api.tzkt.io/v1/"
+	TzKTURLV1    = "https://api.tzkt.io/v1/"
+	TzKTServices = "https://services.tzkt.io"
 )
 
 // TzKT -

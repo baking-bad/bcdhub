@@ -68,6 +68,8 @@ func main() {
 					address.GET("storage", ctx.GetContractStorage)
 					address.GET("migration", ctx.GetMigrationDiff)
 					address.GET("rating", ctx.GetContractRating)
+					address.GET("mempool", ctx.GetMempool)
+					address.GET("project", ctx.GetProjectContracts)
 				}
 			}
 		}
@@ -76,14 +78,6 @@ func main() {
 		v1.GET("diff", ctx.GetDiff)
 		v1.GET("projects", ctx.GetProjects)
 		v1.POST("vote", ctx.Vote)
-
-		project := v1.Group("project")
-		{
-			address := project.Group(":address")
-			{
-				address.GET("", ctx.GetProjectContracts)
-			}
-		}
 
 		oauth := v1.Group("oauth")
 		{

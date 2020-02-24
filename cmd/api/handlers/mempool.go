@@ -1,0 +1,76 @@
+package handlers
+
+import (
+	"net/http"
+	"time"
+
+	"github.com/aopoltorzhicky/bcdhub/internal/models"
+	"github.com/aopoltorzhicky/bcdhub/internal/tzkt"
+	"github.com/gin-gonic/gin"
+	"github.com/tidwall/gjson"
+)
+
+// GetMempool -
+func (ctx *Context) GetMempool(c *gin.Context) {
+	var req getContractRequest
+	if err := c.BindUri(&req); err != nil {
+		_ = c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	api := tzkt.NewServicesTzKT(tzkt.TzKTServices, req.Network, time.Second*time.Duration(10))
+	res, err := api.GetMempool(req.Address)
+	if err != nil {
+		_ = c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	ret, err := ctx.prepareMempoolOperations(res, req.Address, req.Network)
+	if err != nil {
+		_ = c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	c.JSON(http.StatusOK, ret)
+}
+
+func (ctx *Context) prepareMempoolOperations(res gjson.Result, address, network string) ([]Operation, error) {
+	ret := make([]Operation, 0)
+	if res.Get("#").Int() == 0 {
+		return ret, nil
+	}
+	for _, item := range res.Array() {
+		status := item.Get("status").String()
+		if status == "applied" {
+			continue
+		}
+
+		op := Operation{
+			Protocol:  item.Get("protocol").String(),
+			Hash:      item.Get("hash").String(),
+			Network:   network,
+			Timesatmp: time.Unix(item.Get("timestamp").Int(), 0).UTC(),
+
+			Kind:         item.Get("kind").String(),
+			Source:       item.Get("source").String(),
+			Fee:          item.Get("fee").Int(),
+			Counter:      item.Get("counter").Int(),
+			GasLimit:     item.Get("gas_limit").Int(),
+			StorageLimit: item.Get("storage_limit").Int(),
+			Amount:       item.Get("amount").Int(),
+			Destination:  item.Get("destination").String(),
+			Mempool:      true,
+
+			Result: &models.OperationResult{
+				Status: status,
+				Errors: item.Get("errors").String(),
+			},
+		}
+		ret = append(ret, op)
+	}
+
+	// reverse array
+	for i, j := 0, len(ret)-1; i < j; i, j = i+1, j-1 {
+		ret[i], ret[j] = ret[j], ret[i]
+	}
+	return ret, nil
+}
