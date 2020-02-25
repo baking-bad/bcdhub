@@ -30,7 +30,7 @@ func New(connectionString string) (DB, error) {
 		return nil, err
 	}
 
-	gormDB.LogMode(true)
+	gormDB.LogMode(false)
 
 	if !gormDB.HasTable(&Subscription{}) {
 		gormDB.Exec("CREATE TYPE entity_type AS ENUM ('unknown','project','contract');")

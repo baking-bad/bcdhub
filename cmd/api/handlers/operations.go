@@ -20,8 +20,7 @@ import (
 )
 
 type offsetRequest struct {
-	Offset int64 `form:"offset"`
-	Limit  int64 `form:"limit"`
+	LastID string `form:"last_id"`
 }
 
 // GetContractOperations -
@@ -38,20 +37,31 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 		return
 	}
 
-	size := int64(10)
-	ops, err := ctx.ES.GetContractOperations(req.Network, req.Address, offsetReq.Offset, size)
+	size := uint64(10)
+	var lastID uint64
+	if offsetReq.LastID != "" {
+		l, err := strconv.ParseUint(offsetReq.LastID, 10, 64)
+		if err != nil {
+			_ = c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+		lastID = l
+	}
+	ops, err := ctx.ES.GetContractOperations(req.Network, req.Address, lastID, size)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
-	resp, err := prepareOperations(ctx.ES, ops)
+	resp, err := prepareOperations(ctx.ES, ops.Operations)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-
-	c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, OperationResponse{
+		Operations: resp,
+		LastID:     fmt.Sprintf("%d", ops.LastID),
+	})
 }
 
 // OPGRequest -

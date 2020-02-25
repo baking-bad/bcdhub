@@ -3,6 +3,7 @@ package elastic
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/tidwall/gjson"
@@ -59,17 +60,48 @@ func (e *Elastic) GetOperationByHash(hash string) (ops []models.Operation, err e
 	return ops, nil
 }
 
-// GetContractOperations -
-func (e *Elastic) GetContractOperations(network, address string, offset, size int64) ([]models.Operation, error) {
+func (e *Elastic) getContractOPG(address, network string, lastID, size uint64) ([]string, error) {
 	if size == 0 {
 		size = 10
 	}
 
+	if lastID == 0 {
+		lastID = uint64(time.Now().UnixNano())
+	}
+
+	sqlString := fmt.Sprintf(`SELECT hash, level
+		FROM operation 
+		WHERE (source = '%s' OR destination = '%s') AND network = '%s' AND indexed_time < %d 
+		GROUP BY hash, level 
+		ORDER BY level DESC 
+		LIMIT %d`, address, address, network, lastID, size)
+
+	res, err := e.executeSQL(sqlString)
+	if err != nil {
+		return nil, err
+	}
+
+	hash := make([]string, 0)
+	for _, item := range res.Get("rows").Array() {
+		hash = append(hash, item.Get("0").String())
+	}
+
+	return hash, nil
+}
+
+// GetContractOperations -
+func (e *Elastic) GetContractOperations(network, address string, lastID, size uint64) (po PageableOperations, err error) {
+	opg, err := e.getContractOPG(address, network, lastID, size)
+	if err != nil {
+		return
+	}
+	s := make([]qItem, len(opg))
+	for i := range opg {
+		s[i] = matchPhrase("hash", opg[i])
+	}
+
 	b := boolQ(
-		should(
-			matchPhrase("source", address),
-			matchPhrase("destination", address),
-		),
+		should(s...),
 		must(
 			matchPhrase("network", network),
 		),
@@ -77,8 +109,9 @@ func (e *Elastic) GetContractOperations(network, address string, offset, size in
 	b.Get("bool").Append("minimum_should_match", 1)
 	query := newQuery().
 		Query(b).
-		Size(size).
-		From(offset).
+		Add(
+			aggs("last_id", min("indexed_time")),
+		).
 		Add(qItem{
 			"sort": qItem{
 				"_script": qItem{
@@ -90,11 +123,11 @@ func (e *Elastic) GetContractOperations(network, address string, offset, size in
 					"order": "desc",
 				},
 			},
-		})
+		}).All()
 
 	res, err := e.query(DocOperations, query)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	count := res.Get("hits.hits.#").Int()
@@ -105,7 +138,10 @@ func (e *Elastic) GetContractOperations(network, address string, offset, size in
 		ops[i] = o
 	}
 
-	return ops, nil
+	po.Operations = ops
+	po.LastID = res.Get("aggregations.last_id.value").Uint()
+
+	return
 }
 
 // GetLastStorage -

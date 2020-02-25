@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
@@ -51,6 +52,7 @@ func finishParseOperation(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjson.
 	op.Hash = hash
 	op.Level = level
 	op.Network = network
+	op.IndexedTime = time.Now().UnixNano()
 
 	if isContract(contracts, op.Destination) && isApplied(op) {
 		rs, err := getRichStorage(es, rpc, item, level, protocol, op.ID)
@@ -77,7 +79,7 @@ func isApplied(op *models.Operation) bool {
 
 func needParse(item gjson.Result, idx int) bool {
 	kind := item.Get("kind").String()
-	return (kind == consts.Origination && item.Get("script").Exists()) || kind == consts.Transaction
+	return ((kind == consts.Origination && item.Get("script").Exists()) || kind == consts.Transaction) && (strings.HasPrefix(item.Get("source").String(), "KT") || strings.HasPrefix(item.Get("destination").String(), "KT"))
 }
 
 func parseContent(item gjson.Result, protocol string) *models.Operation {
