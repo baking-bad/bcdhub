@@ -80,7 +80,11 @@ func main() {
 		v1.GET("diff", ctx.GetDiff)
 		v1.GET("opg/:hash", ctx.GetOperation)
 		v1.GET("projects", ctx.GetProjects)
+
+		// PRIVATE
+		// TODO - remove in prod
 		v1.POST("vote", ctx.Vote)
+		v1.POST("set_alias", ctx.SetAlias)
 
 		oauth := v1.Group("oauth")
 		{

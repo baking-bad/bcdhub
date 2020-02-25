@@ -54,6 +54,7 @@ type CodeDiff struct {
 type Contract struct {
 	*models.Contract
 
+	Alias   string       `json:"alias,omitempty"`
 	Profile *ProfileInfo `json:"profile,omitempty"`
 }
 
@@ -64,7 +65,7 @@ type ProfileInfo struct {
 
 // Subscription -
 type Subscription struct {
-	*models.Contract
+	*Contract
 
 	SubscribedAt time.Time `json:"subscribed_at"`
 }

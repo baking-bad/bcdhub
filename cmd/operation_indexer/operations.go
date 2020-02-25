@@ -52,7 +52,7 @@ func finishParseOperation(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjson.
 	op.Hash = hash
 	op.Level = level
 	op.Network = network
-	op.IndexedTime = time.Now().UnixNano()
+	op.IndexedTime = time.Now().UnixNano() / 1000
 
 	if isContract(contracts, op.Destination) && isApplied(op) {
 		rs, err := getRichStorage(es, rpc, item, level, protocol, op.ID)
@@ -79,7 +79,10 @@ func isApplied(op *models.Operation) bool {
 
 func needParse(item gjson.Result, idx int) bool {
 	kind := item.Get("kind").String()
-	return ((kind == consts.Origination && item.Get("script").Exists()) || kind == consts.Transaction) && (strings.HasPrefix(item.Get("source").String(), "KT") || strings.HasPrefix(item.Get("destination").String(), "KT"))
+	originationCondition := kind == consts.Origination && item.Get("script").Exists()
+	prefixCondition := strings.HasPrefix(item.Get("source").String(), "KT") || strings.HasPrefix(item.Get("destination").String(), "KT")
+	transactionCondition := kind == consts.Transaction && prefixCondition
+	return originationCondition || transactionCondition
 }
 
 func parseContent(item gjson.Result, protocol string) *models.Operation {

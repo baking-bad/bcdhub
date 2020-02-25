@@ -3,7 +3,6 @@ package elastic
 import (
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/tidwall/gjson"
@@ -65,16 +64,17 @@ func (e *Elastic) getContractOPG(address, network string, lastID, size uint64) (
 		size = 10
 	}
 
-	if lastID == 0 {
-		lastID = uint64(time.Now().UnixNano())
+	var lastIDFilter string
+	if lastID != 0 {
+		lastIDFilter = fmt.Sprintf(" AND indexed_time < %d", lastID)
 	}
 
 	sqlString := fmt.Sprintf(`SELECT hash, level
 		FROM operation 
-		WHERE (source = '%s' OR destination = '%s') AND network = '%s' AND indexed_time < %d 
+		WHERE (source = '%s' OR destination = '%s') AND network = '%s' %s 
 		GROUP BY hash, level 
 		ORDER BY level DESC 
-		LIMIT %d`, address, address, network, lastID, size)
+		LIMIT %d`, address, address, network, lastIDFilter, size)
 
 	res, err := e.executeSQL(sqlString)
 	if err != nil {

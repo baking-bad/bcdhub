@@ -81,9 +81,15 @@ func (ctx *Context) prepareSubscription(subs []database.Subscription) ([]Subscri
 		if err != nil {
 			return nil, err
 		}
+		contract := Contract{
+			Contract: &c,
+		}
+		if err := ctx.setAlias(&contract); err != nil {
+			return nil, err
+		}
 
 		res[i] = Subscription{
-			Contract:     &c,
+			Contract:     &contract,
 			SubscribedAt: s.CreatedAt,
 		}
 	}
