@@ -7,8 +7,9 @@ import (
 )
 
 type userProfile struct {
-	Login     string `json:"login"`
-	AvatarURL string `json:"avatarURL"`
+	Login         string         `json:"login"`
+	AvatarURL     string         `json:"avatarURL"`
+	Subscriptions []Subscription `json:"subscriptions"`
 }
 
 // GetUserProfile -
@@ -19,9 +20,22 @@ func (ctx *Context) GetUserProfile(c *gin.Context) {
 		return
 	}
 
+	subscriptions, err := ctx.DB.ListSubscriptionsWithLimit(ctx.OAUTH.UserID, 10)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	subs, err := ctx.prepareSubscription(subscriptions)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
 	profile := userProfile{
-		Login:     user.Login,
-		AvatarURL: user.AvatarURL,
+		Login:         user.Login,
+		AvatarURL:     user.AvatarURL,
+		Subscriptions: subs,
 	}
 
 	c.JSON(http.StatusOK, profile)

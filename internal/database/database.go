@@ -12,6 +12,7 @@ type DB interface {
 	GetUser(uint) (*User, error)
 	GetSubscription(string, string) (Subscription, error)
 	ListSubscriptions(uint) ([]Subscription, error)
+	ListSubscriptionsWithLimit(uint, int) ([]Subscription, error)
 	CreateSubscription(*Subscription) error
 	DeleteSubscription(*Subscription) error
 	GetSubscriptionRating(string) (SubRating, error)
@@ -37,7 +38,7 @@ func New(connectionString string) (DB, error) {
 
 	gormDB.AutoMigrate(&User{}, &Subscription{})
 
-	gormDB = gormDB.Set("gorm:auto_preload", true)
+	gormDB = gormDB.Set("gorm:auto_preload", false)
 
 	return &db{
 		ORM: gormDB,
