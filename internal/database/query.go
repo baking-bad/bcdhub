@@ -24,12 +24,22 @@ func (d *db) ListSubscriptions(userID uint) ([]Subscription, error) {
 	return subs, nil
 }
 
+func (d *db) ListSubscriptionsWithLimit(userID uint, limit int) ([]Subscription, error) {
+	var subs []Subscription
+
+	if err := d.ORM.Order("created_at desc").Limit(limit).Where("user_id = ?", userID).Find(&subs).Error; err != nil {
+		return nil, err
+	}
+
+	return subs, nil
+}
+
 func (d *db) CreateSubscription(s *Subscription) error {
 	return d.ORM.Create(s).Error
 }
 
 func (d *db) DeleteSubscription(s *Subscription) error {
-	return d.ORM.Where("entity_id = ? AND user_id = ? and entity_type = ?", s.EntityID, s.UserID, s.EntityType).Delete(Subscription{}).Error
+	return d.ORM.Unscoped().Where("entity_id = ? AND user_id = ? and entity_type = ?", s.EntityID, s.UserID, s.EntityType).Delete(Subscription{}).Error
 }
 
 func (d *db) GetSubscription(sID, typ string) (s Subscription, err error) {
