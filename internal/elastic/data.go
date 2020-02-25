@@ -84,5 +84,11 @@ type SimilarContract struct {
 // PageableOperations -
 type PageableOperations struct {
 	Operations []models.Operation `json:"operations"`
-	LastID     uint64             `json:"last_id"`
+	LastID     string             `json:"last_id"`
+}
+
+// SameContractsResponse -
+type SameContractsResponse struct {
+	Count     uint64            `json:"count"`
+	Contracts []models.Contract `json:"contracts"`
 }

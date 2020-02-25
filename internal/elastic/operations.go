@@ -139,7 +139,7 @@ func (e *Elastic) GetContractOperations(network, address string, lastID, size ui
 	}
 
 	po.Operations = ops
-	po.LastID = res.Get("aggregations.last_id.value").Uint()
+	po.LastID = res.Get("aggregations.last_id.value").String()
 
 	return
 }

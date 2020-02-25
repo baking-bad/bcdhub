@@ -70,7 +70,8 @@ func main() {
 					address.GET("migration", ctx.GetMigrationDiff)
 					address.GET("rating", ctx.GetContractRating)
 					address.GET("mempool", ctx.GetMempool)
-					address.GET("project", ctx.GetProjectContracts)
+					address.GET("same", ctx.GetSameContracts)
+					address.GET("similar", ctx.GetSimilarContracts)
 				}
 			}
 		}

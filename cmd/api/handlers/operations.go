@@ -60,7 +60,7 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, OperationResponse{
 		Operations: resp,
-		LastID:     fmt.Sprintf("%d", ops.LastID),
+		LastID:     ops.LastID,
 	})
 }
 

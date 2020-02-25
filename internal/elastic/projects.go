@@ -59,9 +59,13 @@ func (e *Elastic) GetLastProjectContracts() ([]models.Contract, error) {
 }
 
 // GetSameContracts -
-func (e *Elastic) GetSameContracts(c models.Contract) ([]models.Contract, error) {
+func (e *Elastic) GetSameContracts(c models.Contract, size, offset int64) (scp SameContractsResponse, err error) {
 	if c.Fingerprint == nil {
-		return nil, fmt.Errorf("Invalid contract data")
+		return scp, fmt.Errorf("Invalid contract data")
+	}
+
+	if size == 0 {
+		size = 10
 	}
 
 	q := newQuery().Query(
@@ -75,16 +79,16 @@ func (e *Elastic) GetSameContracts(c models.Contract) ([]models.Contract, error)
 				matchPhrase("address", c.Address),
 			),
 		),
-	).Sort("timestamp", "desc").All()
+	).Sort("timestamp", "desc").Size(size).From(offset)
 
 	resp, err := e.query(DocContracts, q)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	arr := resp.Get("hits.hits")
 	if !arr.Exists() {
-		return nil, fmt.Errorf("Empty response: %v", resp)
+		return scp, fmt.Errorf("Empty response: %v", resp)
 	}
 
 	contracts := make([]models.Contract, 0)
@@ -93,7 +97,9 @@ func (e *Elastic) GetSameContracts(c models.Contract) ([]models.Contract, error)
 		c.ParseElasticJSON(item)
 		contracts = append(contracts, c)
 	}
-	return contracts, nil
+	scp.Contracts = contracts
+	scp.Count = resp.Get("hits.total.value").Uint()
+	return
 }
 
 // GetSimilarContracts -
