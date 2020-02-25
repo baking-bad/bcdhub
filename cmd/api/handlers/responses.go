@@ -77,6 +77,6 @@ type TimelineItem struct {
 
 // OperationResponse -
 type OperationResponse struct {
-	Operations []Operation `json:"operations,omitempty"`
+	Operations []Operation `json:"operations"`
 	LastID     string      `json:"last_id"`
 }

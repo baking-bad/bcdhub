@@ -80,3 +80,9 @@ type SimilarContract struct {
 	Added   int64  `json:"added,omitempty"`
 	Removed int64  `json:"removed,omitempty"`
 }
+
+// PageableOperations -
+type PageableOperations struct {
+	Operations []models.Operation `json:"operations"`
+	LastID     uint64             `json:"last_id"`
+}

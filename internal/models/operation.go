@@ -10,6 +10,8 @@ import (
 type Operation struct {
 	ID string `json:"id"`
 
+	IndexedTime int64 `json:"indexed_time"`
+
 	Network  string `json:"network"`
 	Protocol string `json:"protocol"`
 	Hash     string `json:"hash"`
@@ -35,13 +37,12 @@ type Operation struct {
 	Result         *OperationResult `json:"result,omitempty"`
 
 	DeffatedStorage string `json:"deffated_storage,omitempty"`
-	ScrollID        string `json:"scroll_id"`
 }
 
 // ParseElasticJSON -
 func (o *Operation) ParseElasticJSON(resp gjson.Result) {
 	o.ID = resp.Get("_id").String()
-	o.ScrollID = resp.Get("_scroll_id").String()
+	o.IndexedTime = resp.Get("_source.indexed_time").Int()
 
 	o.Protocol = resp.Get("_source.protocol").String()
 	o.Hash = resp.Get("_source.hash").String()

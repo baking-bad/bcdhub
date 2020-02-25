@@ -85,34 +85,62 @@ func (e *Elastic) query(index string, query map[string]interface{}, source ...st
 	return
 }
 
-func (e *Elastic) queryScroll(index, scrollID string, size int64, query map[string]interface{}) (result gjson.Result, err error) {
+func (e *Elastic) executeSQL(sqlString string) (result gjson.Result, err error) {
+	query := qItem{
+		"query": sqlString,
+	}
+
 	var buf bytes.Buffer
 	if err = json.NewEncoder(&buf).Encode(query); err != nil {
 		return
 	}
 
-	log.Print(buf.String())
+	options := []func(*esapi.SQLQueryRequest){
+		e.SQL.Query.WithContext(context.Background()),
+	}
 
 	var resp *esapi.Response
-	if scrollID == "" {
-		options := []func(*esapi.SearchRequest){
-			e.Search.WithContext(context.Background()),
-			e.Search.WithIndex(index),
-			e.Search.WithBody(&buf),
-			e.Search.WithScroll(time.Minute),
-			e.Search.WithSize(int(size)),
-		}
+	if resp, err = e.SQL.Query(&buf, options...); err != nil {
+		return
+	}
+	defer resp.Body.Close()
 
-		if resp, err = e.Search(
-			options...,
-		); err != nil {
-			return
-		}
-	} else {
-		resp, err = e.Scroll(e.Scroll.WithScrollID(scrollID), e.Scroll.WithScroll(time.Minute))
-		if err != nil {
-			log.Fatalf("Error: %s", err)
-		}
+	result, err = e.getResponse(resp)
+	return
+}
+
+func (e *Elastic) createScroll(index string, size int64, query map[string]interface{}) (result gjson.Result, err error) {
+	var buf bytes.Buffer
+	if err = json.NewEncoder(&buf).Encode(query); err != nil {
+		return
+	}
+
+	// log.Print(buf.String())
+
+	var resp *esapi.Response
+	options := []func(*esapi.SearchRequest){
+		e.Search.WithContext(context.Background()),
+		e.Search.WithIndex(index),
+		e.Search.WithBody(&buf),
+		e.Search.WithScroll(time.Minute),
+		e.Search.WithSize(int(size)),
+	}
+
+	if resp, err = e.Search(
+		options...,
+	); err != nil {
+		return
+	}
+	defer resp.Body.Close()
+
+	result, err = e.getResponse(resp)
+	return
+}
+
+func (e *Elastic) queryScroll(scrollID string) (result gjson.Result, err error) {
+	resp, err := e.Scroll(e.Scroll.WithScrollID(scrollID), e.Scroll.WithScroll(time.Minute))
+	if err != nil {
+		log.Fatalf("Error: %s", err)
 	}
 	defer resp.Body.Close()
 

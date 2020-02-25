@@ -46,18 +46,31 @@ func (e *Elastic) getContract(q map[string]interface{}) (c models.Contract, err 
 }
 
 func (e *Elastic) getContracts(q map[string]interface{}) ([]models.Contract, error) {
-	res, err := e.query(DocContracts, q)
+	contracts := make([]models.Contract, 0)
+
+	result, err := e.createScroll(DocContracts, 1000, q)
 	if err != nil {
 		return nil, err
 	}
+	for {
+		scrollID := result.Get("_scroll_id").String()
+		hits := result.Get("hits.hits")
+		if hits.Get("#").Int() < 1 {
+			break
+		}
 
-	contracts := make([]models.Contract, 0)
-	arr := res.Get("hits.hits").Array()
-	for i := range arr {
-		var c models.Contract
-		c.ParseElasticJSON(arr[i])
-		contracts = append(contracts, c)
+		for _, item := range hits.Array() {
+			var c models.Contract
+			c.ParseElasticJSON(item)
+			contracts = append(contracts, c)
+		}
+
+		result, err = e.queryScroll(scrollID)
+		if err != nil {
+			return nil, err
+		}
 	}
+
 	return contracts, nil
 }
 
@@ -116,7 +129,7 @@ func (e *Elastic) GetContractField(by map[string]interface{}, field string) (int
 
 // GetContracts -
 func (e *Elastic) GetContracts(by map[string]interface{}) ([]models.Contract, error) {
-	query := getContractQuery(by).All()
+	query := getContractQuery(by)
 	return e.getContracts(query)
 }
 
