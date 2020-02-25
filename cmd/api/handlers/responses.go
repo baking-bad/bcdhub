@@ -74,3 +74,9 @@ type TimelineItem struct {
 	Event string    `json:"event"`
 	Date  time.Time `json:"date"`
 }
+
+// OperationResponse -
+type OperationResponse struct {
+	Operations []Operation `json:"operations,omitempty"`
+	LastID     string      `json:"last_id"`
+}
