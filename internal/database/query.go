@@ -57,7 +57,7 @@ func (d *db) GetSubscriptionRating(entityID string) (SubRating, error) {
 		SELECT users.login, users.avatar_url
 		FROM subscriptions
 		INNER JOIN users ON subscriptions.user_id=users.id
-		WHERE entity_id = ?
+		WHERE entity_id = ? AND subscriptions.deleted_at IS NULL
 		LIMIT 5;`, entityID).Scan(&s.Users).Error; err != nil {
 		return s, err
 	}

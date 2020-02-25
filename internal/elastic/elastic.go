@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
@@ -64,6 +65,7 @@ func (e *Elastic) query(index string, query map[string]interface{}, source ...st
 
 	// Perform the search request.
 	var resp *esapi.Response
+
 	options := []func(*esapi.SearchRequest){
 		e.Search.WithContext(context.Background()),
 		e.Search.WithIndex(index),
@@ -75,6 +77,42 @@ func (e *Elastic) query(index string, query map[string]interface{}, source ...st
 		options...,
 	); err != nil {
 		return
+	}
+
+	defer resp.Body.Close()
+
+	result, err = e.getResponse(resp)
+	return
+}
+
+func (e *Elastic) queryScroll(index, scrollID string, size int64, query map[string]interface{}) (result gjson.Result, err error) {
+	var buf bytes.Buffer
+	if err = json.NewEncoder(&buf).Encode(query); err != nil {
+		return
+	}
+
+	log.Print(buf.String())
+
+	var resp *esapi.Response
+	if scrollID == "" {
+		options := []func(*esapi.SearchRequest){
+			e.Search.WithContext(context.Background()),
+			e.Search.WithIndex(index),
+			e.Search.WithBody(&buf),
+			e.Search.WithScroll(time.Minute),
+			e.Search.WithSize(int(size)),
+		}
+
+		if resp, err = e.Search(
+			options...,
+		); err != nil {
+			return
+		}
+	} else {
+		resp, err = e.Scroll(e.Scroll.WithScrollID(scrollID), e.Scroll.WithScroll(time.Minute))
+		if err != nil {
+			log.Fatalf("Error: %s", err)
+		}
 	}
 	defer resp.Body.Close()
 

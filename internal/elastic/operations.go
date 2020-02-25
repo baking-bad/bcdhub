@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/tidwall/gjson"
 )
@@ -59,8 +60,7 @@ func (e *Elastic) GetOperationByHash(hash string) (ops []models.Operation, err e
 	return ops, nil
 }
 
-// GetContractOperations -
-func (e *Elastic) GetContractOperations(network, address string, offset, size int64) ([]models.Operation, error) {
+func (e *Elastic) getContractOPG(address, network, scrollID string, size int64) ([]string, error) {
 	if size == 0 {
 		size = 10
 	}
@@ -77,8 +77,58 @@ func (e *Elastic) GetContractOperations(network, address string, offset, size in
 	b.Get("bool").Append("minimum_should_match", 1)
 	query := newQuery().
 		Query(b).
-		Size(size).
-		From(offset).
+		Add(
+			aggs(
+				"opg", qItem{
+					"terms": qItem{
+						"field": "hash.keyword",
+						"size":  0,
+						"order": qItem{
+							"bucketsSort": "desc",
+						},
+					},
+					"aggs": qItem{
+						"bucketsSort": max("timestamp"),
+					},
+				},
+			),
+		).Size(100)
+
+	res, err := e.query(DocOperations, query)
+	if err != nil {
+		return nil, err
+	}
+
+	hash := make([]string, 0)
+	for _, item := range res.Get("hits.hits.#.hash").Array() {
+		if !helpers.StringInArray(item.String(), hash) {
+			hash = append(hash, item.String())
+		}
+	}
+
+	return hash, nil
+}
+
+// GetContractOperations -
+func (e *Elastic) GetContractOperations(network, address, scrollID string, size int64) ([]models.Operation, error) {
+	opg, err := e.getContractOPG(address, network, scrollID, size)
+	if err != nil {
+		return nil, err
+	}
+	s := make([]qItem, len(opg))
+	for i := range opg {
+		s[i] = matchPhrase("hash", opg[i])
+	}
+
+	b := boolQ(
+		should(s...),
+		must(
+			matchPhrase("network", network),
+		),
+	)
+	b.Get("bool").Append("minimum_should_match", 1)
+	query := newQuery().
+		Query(b).
 		Add(qItem{
 			"sort": qItem{
 				"_script": qItem{
@@ -90,7 +140,7 @@ func (e *Elastic) GetContractOperations(network, address string, offset, size in
 					"order": "desc",
 				},
 			},
-		})
+		}).All()
 
 	res, err := e.query(DocOperations, query)
 	if err != nil {

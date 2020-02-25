@@ -8,7 +8,7 @@ import (
 
 // Operation -
 type Operation struct {
-	ID string `json:"-"`
+	ID string `json:"id"`
 
 	Network  string `json:"network"`
 	Protocol string `json:"protocol"`
@@ -35,11 +35,13 @@ type Operation struct {
 	Result         *OperationResult `json:"result,omitempty"`
 
 	DeffatedStorage string `json:"deffated_storage,omitempty"`
+	ScrollID        string `json:"scroll_id"`
 }
 
 // ParseElasticJSON -
 func (o *Operation) ParseElasticJSON(resp gjson.Result) {
 	o.ID = resp.Get("_id").String()
+	o.ScrollID = resp.Get("_scroll_id").String()
 
 	o.Protocol = resp.Get("_source.protocol").String()
 	o.Hash = resp.Get("_source.hash").String()
