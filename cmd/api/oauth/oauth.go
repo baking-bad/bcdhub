@@ -4,19 +4,28 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
 	"golang.org/x/oauth2/gitlab"
 )
 
+// InitConfig -
+type InitConfig struct {
+	GithubCallbackURL string `json:"githubCallbackURL"`
+	GitlabCallbackURL string `json:"gitlabCallbackURL"`
+	JwtRedirectURL    string `json:"jwtRedirectURL"`
+}
+
 // Config -
 type Config struct {
-	Github *oauth2.Config
-	Gitlab *oauth2.Config
-	JWTKey []byte
-	State  string
-	UserID uint
+	Github         *oauth2.Config
+	Gitlab         *oauth2.Config
+	JWTKey         []byte
+	State          string
+	UserID         uint
+	JWTRedirectURL string
 }
 
 // New -
@@ -72,23 +81,29 @@ func New() (Config, error) {
 	jwtKey := []byte("my_secret_key")
 	oauthStateString := "pseudo-random"
 
+	var cfg InitConfig
+	if err := jsonload.StructFromFile("./oauth/oauth_config.json", &cfg); err != nil {
+		return Config{}, err
+	}
+
 	return Config{
 		Github: &oauth2.Config{
-			RedirectURL:  "http://localhost:14000/v1/oauth/github/callback",
+			RedirectURL:  cfg.GithubCallbackURL,
 			ClientID:     githubClientID,
 			ClientSecret: githubClientSecret,
 			Scopes:       []string{},
 			Endpoint:     github.Endpoint,
 		},
 		Gitlab: &oauth2.Config{
-			RedirectURL:  "http://localhost:14000/v1/oauth/gitlab/callback",
+			RedirectURL:  cfg.GitlabCallbackURL,
 			ClientID:     gitlabClientID,
 			ClientSecret: gitlabClientSecret,
 			Scopes:       []string{"read_user"},
 			Endpoint:     gitlab.Endpoint,
 		},
-		JWTKey: jwtKey,
-		State:  oauthStateString,
+		JWTKey:         jwtKey,
+		State:          oauthStateString,
+		JWTRedirectURL: cfg.JwtRedirectURL,
 	}, nil
 }
 

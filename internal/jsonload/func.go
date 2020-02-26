@@ -10,14 +10,14 @@ import (
 func StructFromFile(path string, response interface{}) error {
 	jsonFile, err := os.Open(path)
 	if err != nil {
-		log.Println("Can't open app_config.json file. Loading default config.")
+		log.Printf("Can't open %v file.\n", path)
 		return err
 	}
 	defer jsonFile.Close()
 
 	jsonParser := json.NewDecoder(jsonFile)
 	if err = jsonParser.Decode(&response); err != nil {
-		log.Println("Can't unmarshal data from app_config.json file. Loading default config.")
+		log.Printf("Can't unmarshal data from %v file.\n", path)
 		return err
 	}
 	return nil
