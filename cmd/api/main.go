@@ -83,10 +83,11 @@ func main() {
 
 		oauth := v1.Group("oauth")
 		{
-			oauth.GET("github/login", ctx.GithubOauthLogin)
-			oauth.GET("github/callback", ctx.GithubOauthCallback)
-			oauth.GET("gitlab/login", ctx.GitlabOauthLogin)
-			oauth.GET("gitlab/callback", ctx.GitlabOauthCallback)
+			provider := oauth.Group(":provider")
+			{
+				provider.GET("login", ctx.OauthLogin)
+				provider.GET("callback", ctx.OauthCallback)
+			}
 		}
 
 		authorized := v1.Group("/")
