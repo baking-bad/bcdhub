@@ -8,7 +8,7 @@ import (
 )
 
 type pageableRequest struct {
-	From int64 `json:"from"`
+	Offset int64 `form:"offset"`
 }
 
 // GetSameContracts -
@@ -35,7 +35,7 @@ func (ctx *Context) GetSameContracts(c *gin.Context) {
 		return
 	}
 
-	v, err := ctx.ES.GetSameContracts(contract, pageReq.From, 0)
+	v, err := ctx.ES.GetSameContracts(contract, 0, pageReq.Offset)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return

@@ -36,7 +36,7 @@ func New(connectionString string) (DB, error) {
 		gormDB.Exec("CREATE TYPE entity_type AS ENUM ('unknown','project','contract');")
 	}
 
-	gormDB.AutoMigrate(&User{}, &Subscription{})
+	gormDB.AutoMigrate(&User{}, &Subscription{}, &Alias{})
 
 	gormDB = gormDB.Set("gorm:auto_preload", false)
 

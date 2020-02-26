@@ -16,19 +16,19 @@ func (l *namedUnionDecoder) Decode(node gjson.Result, path string, nm *meta.Node
 		argPath := strings.TrimPrefix(arg, path+"/")
 		unionPath := getGJSONPathUnion(argPath, node)
 		argNode := node.Get(unionPath)
-		name := meta.GetName(metadata[arg])
 
 		if argNode.Exists() {
 			data, err := michelineNodeToMiguel(argNode, arg, metadata)
 			if err != nil {
 				return nil, err
 			}
+			name := metadata[arg].GetName()
 			res[name] = data
 			return res, nil
 		}
 	}
 
-	name := meta.GetName(metadata[path])
+	name := metadata[path].GetName()
 	res[name] = nil
 	return res, nil
 }

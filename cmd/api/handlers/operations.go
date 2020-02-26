@@ -119,7 +119,7 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 		Result:         operation.Result,
 	}
 
-	if operation.DeffatedStorage != "" && strings.HasPrefix(op.Destination, "KT") {
+	if operation.DeffatedStorage != "" && strings.HasPrefix(op.Destination, "KT") && op.Result.Status == "applied" {
 		if err := setStorageDiff(es, op.Destination, op.Network, operation.DeffatedStorage, &op); err != nil {
 			return op, err
 		}
@@ -128,6 +128,7 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 	if op.Kind != consts.Transaction {
 		return op, nil
 	}
+
 	if operation.Parameters != "" && strings.HasPrefix(op.Destination, "KT") {
 		metadata, err := meta.GetMetadata(es, op.Destination, op.Network, "parameter", op.Protocol)
 		if err != nil {
@@ -141,6 +142,7 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 			return op, err
 		}
 	}
+
 	return op, nil
 }
 
@@ -188,6 +190,7 @@ func setStorageDiff(es *elastic.Elastic, address, network string, storage string
 		if err != nil {
 			return err
 		}
+
 		prevStorage, err = miguel.MichelineToMiguel(prevStore, metadata)
 		if err != nil {
 			return err
@@ -215,8 +218,10 @@ func setStorageDiff(es *elastic.Elastic, address, network string, storage string
 	if err != nil {
 		return err
 	}
-	if err := applyChanges(changelog, currentStorage); err != nil {
-		return err
+	if len(changelog) != 0 {
+		if err := applyChanges(changelog, currentStorage); err != nil {
+			return err
+		}
 	}
 
 	op.StorageDiff = currentStorage
@@ -270,14 +275,50 @@ func applyChange(path []string, from interface{}, typ string, v interface{}) err
 				val = val.Index(idx).Elem()
 			}
 		}
+
 		if !val.IsValid() {
 			return nil
 		}
 
 		switch val.Kind() {
 		case reflect.Map:
-			val.SetMapIndex(reflect.ValueOf("from"), reflect.ValueOf(from))
-			val.SetMapIndex(reflect.ValueOf("kind"), reflect.ValueOf(typ))
+			res := map[string]interface{}{
+				"from": from,
+			}
+
+			key := reflect.ValueOf(path[0])
+			var value reflect.Value
+			for _, k := range val.MapKeys() {
+				if k.Interface() == path[0] {
+					value = val.MapIndex(key)
+					break
+				}
+			}
+
+			if !value.IsValid() {
+				res["kind"] = "create"
+				delete(res, "from")
+			} else if !value.IsNil() {
+				res["kind"] = typ
+				res["value"] = value.Interface()
+			} else {
+				res["kind"] = "delete"
+			}
+
+			fieldType := val.MapIndex(reflect.ValueOf("type"))
+			if fieldType.IsValid() {
+				val.SetMapIndex(reflect.ValueOf("kind"), reflect.ValueOf(res["kind"]))
+				if _, ok := res["value"]; ok {
+					val.SetMapIndex(reflect.ValueOf("value"), reflect.ValueOf(res["value"]))
+				}
+				if _, ok := res["from"]; ok {
+					val.SetMapIndex(reflect.ValueOf("from"), reflect.ValueOf(res["from"]))
+				}
+
+			} else {
+				val.SetMapIndex(key, reflect.ValueOf(res)) // is map
+			}
+
 		case reflect.Slice:
 		default:
 			return fmt.Errorf("Unsupported change type: %v %v", val, val.Kind())

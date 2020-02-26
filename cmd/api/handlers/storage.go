@@ -21,6 +21,7 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
+
 	bmd, err := ctx.ES.GetBigMapDiffsForAddress(req.Address)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
