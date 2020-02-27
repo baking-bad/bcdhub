@@ -244,3 +244,35 @@ func TestBytes(t *testing.T) {
 		})
 	}
 }
+
+func TestAddress(t *testing.T) {
+	validTestCases := []struct {
+		name   string
+		input  string
+		result string
+	}{
+		{
+			name:   "KT address",
+			input:  "011fb03e3ff9fedaf3a2200ffc64d27812da734bba00",
+			result: `KT1BUKeJTemAaVBfRz6cqxeUBQGQqMxfG19A`,
+		},
+		{
+			name:   "tz1 address",
+			input:  "00009e6ac2e529a49aedbcdd0ac9542d5c0f4ce76f77",
+			result: `tz1a5fMLLY5WCarCzH7RKTJHX9mJFN8eaaWG`,
+		},
+	}
+
+	for _, tc := range validTestCases {
+		t.Run(tc.name, func(t *testing.T) {
+			res, err := Address(tc.input)
+			if err != nil {
+				t.Errorf("error: %v", err)
+				return
+			}
+			if res != tc.result {
+				t.Errorf("\nInput: %v. \nGot: %v, \nexpected: %v.", tc.input, res, tc.result)
+			}
+		})
+	}
+}
