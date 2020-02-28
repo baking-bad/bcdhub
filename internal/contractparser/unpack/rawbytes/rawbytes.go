@@ -45,6 +45,7 @@ func hexToMicheline(dec *decoder, code *strings.Builder) (int, error) {
 	}
 
 	if f, ok := forgers[ft[0]]; ok {
+		// log.Printf("[hexToMicheline] forger: %T\n", f)
 		return f.Decode(dec, code)
 	}
 	return 1, fmt.Errorf("Unknown type: %x", ft[0])
