@@ -116,6 +116,7 @@ func syncNetwork(ctx *Context, network string, wg *sync.WaitGroup) {
 		s.Timestamp = time.Now().UTC()
 		if _, err = ctx.ES.UpdateDoc(elastic.DocStates, s.ID, s); err != nil {
 			logger.Errorf("[%s] %s", network, err.Error())
+			helpers.LocalCatchErrorSentry(localSentry, err)
 			return
 		}
 		logger.Success("[%s] Synced", network)
