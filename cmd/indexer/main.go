@@ -5,27 +5,35 @@ import (
 	"time"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
+	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
 	"github.com/aopoltorzhicky/bcdhub/internal/logger"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/tidwall/gjson"
 )
 
 func main() {
 	var cfg config
 	if err := jsonload.StructFromFile("config.json", &cfg); err != nil {
-		panic(err)
+		logger.Fatal(err)
 	}
 	cfg.print()
 
+	helpers.InitSentry(cfg.Sentry.Env, cfg.Sentry.DSN, cfg.Sentry.Debug)
+	helpers.SetTagSentry("project", cfg.Sentry.Project)
+	defer helpers.CatchPanicSentry()
+
 	ctx, err := newContext(cfg)
 	if err != nil {
-		panic(err)
+		logger.Error(err)
+		helpers.CatchErrorSentry(err)
+		return
 	}
 	defer ctx.Close()
 
 	if err := ctx.ES.CreateIndexIfNotExists(elastic.DocContracts); err != nil {
-		panic(err)
+		logger.Error(err)
+		helpers.CatchErrorSentry(err)
+		return
 	}
 
 	gjson.AddModifier("upper", func(json, arg string) string {
@@ -38,6 +46,7 @@ func main() {
 	// Initial syncronization
 	if err = process(ctx); err != nil {
 		logger.Error(err)
+		helpers.CatchErrorSentry(err)
 	}
 
 	// Update state by ticker
@@ -45,6 +54,7 @@ func main() {
 	for range ticker.C {
 		if err = process(ctx); err != nil {
 			logger.Error(err)
+			helpers.CatchErrorSentry(err)
 		}
 	}
 }

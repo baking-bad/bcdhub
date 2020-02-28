@@ -14,9 +14,10 @@ func (d arrayDecoder) Decode(dec *decoder, code *strings.Builder) (int, error) {
 	if err != nil {
 		return 4, err
 	}
+
 	if dec.Len() < length {
 		return 4, &invalidDataError{
-			typ:     "string",
+			typ:     "array",
 			message: fmt.Sprintf("Not enough data in reader: %d < %d", dec.Len(), length),
 		}
 	}

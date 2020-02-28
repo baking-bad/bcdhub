@@ -17,7 +17,7 @@ func (d bytesDecoder) Decode(dec *decoder, code *strings.Builder) (int, error) {
 	}
 	if dec.Len() < length {
 		return 4, &invalidDataError{
-			typ:     "string",
+			typ:     "bytes",
 			message: fmt.Sprintf("Not enough data in reader: %d < %d", dec.Len(), length),
 		}
 	}
@@ -26,6 +26,8 @@ func (d bytesDecoder) Decode(dec *decoder, code *strings.Builder) (int, error) {
 	if _, err := dec.Read(data); err != nil && err != io.EOF {
 		return 4 + length, err
 	}
+
+	// log.Printf("[bytes Decode] data: %x\n", data)
 
 	s := hex.EncodeToString(data)
 	intDec := newDecoder(strings.NewReader(s))

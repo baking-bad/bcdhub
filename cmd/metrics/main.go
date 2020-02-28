@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
 	"github.com/aopoltorzhicky/bcdhub/internal/logger"
 	"github.com/aopoltorzhicky/bcdhub/internal/mq"
@@ -37,6 +38,9 @@ func handler(data amqp.Delivery) error {
 }
 
 func listenChannel(messageQueue *mq.MQ, queue string, closeChan chan struct{}) {
+	localSentry := helpers.GetLocalSentry()
+	helpers.SetLocalTagSentry(localSentry, "queue", queue)
+
 	msgs, err := messageQueue.Consume(queue)
 	if err != nil {
 		panic(err)
@@ -51,6 +55,7 @@ func listenChannel(messageQueue *mq.MQ, queue string, closeChan chan struct{}) {
 		case msg := <-msgs:
 			if err := handler(msg); err != nil {
 				logger.Errorf("[listenChannel] %s", err.Error())
+				helpers.LocalCatchErrorSentry(localSentry, fmt.Errorf("[listenChannel] %s", err.Error()))
 			}
 		}
 	}
@@ -60,13 +65,19 @@ func main() {
 	var err error
 	var cfg config
 	if err = jsonload.StructFromFile("config.json", &cfg); err != nil {
-		panic(err)
+		logger.Fatal(err)
 	}
 	cfg.print()
 
+	helpers.InitSentry(cfg.Sentry.Env, cfg.Sentry.DSN, cfg.Sentry.Debug)
+	helpers.SetTagSentry("project", cfg.Sentry.Project)
+	defer helpers.CatchPanicSentry()
+
 	ctx, err = newContext(cfg)
 	if err != nil {
-		panic(err)
+		logger.Error(err)
+		helpers.CatchErrorSentry(err)
+		return
 	}
 	defer ctx.Close()
 

@@ -25,6 +25,7 @@ func (d stringDecoder) Decode(dec *decoder, code *strings.Builder) (int, error) 
 	if _, err := dec.Read(data); err != nil && err != io.EOF {
 		return 4 + length, err
 	}
+	// log.Printf("[string Decode] data: %x, value: %v\n", data, string(data))
 	fmt.Fprintf(code, `{ "string": "%s" }`, data)
 	return 4 + length, nil
 }

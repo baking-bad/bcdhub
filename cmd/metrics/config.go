@@ -19,6 +19,12 @@ type config struct {
 		Host    string `json:"host"`
 		Network string `json:"network"`
 	} `json:"nodes"`
+	Sentry struct {
+		Project string `json:"project"`
+		Env     string `json:"env"`
+		DSN     string `json:"dsn"`
+		Debug   bool   `json:"debug"`
+	} `json:"sentry"`
 }
 
 func (cfg config) print() {

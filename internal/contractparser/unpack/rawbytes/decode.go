@@ -33,6 +33,8 @@ func decodeLength(dec *decoder) (int, error) {
 	}
 
 	length := int(binary.BigEndian.Uint32(b))
+
+	// log.Printf("[decodeLength] %x | length: %v", b, length)
 	return length, nil
 }
 

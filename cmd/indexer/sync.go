@@ -1,10 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
+	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 	"github.com/aopoltorzhicky/bcdhub/internal/index"
 	"github.com/aopoltorzhicky/bcdhub/internal/logger"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
@@ -30,21 +32,27 @@ func createContract(c index.Contract, rpc *noderpc.NodeRPC, es *elastic.Elastic,
 func syncNetwork(ctx *Context, network string, wg *sync.WaitGroup) {
 	defer wg.Done()
 
+	localSentry := helpers.GetLocalSentry()
+	helpers.SetLocalTagSentry(localSentry, "network", network)
+
 	rpc, err := ctx.GetRPC(network)
 	if err != nil {
 		logger.Errorf("[%s] %s", network, err.Error())
+		helpers.LocalCatchErrorSentry(localSentry, err)
 		return
 	}
 
 	indexer, err := ctx.GetIndexer(network)
 	if err != nil {
 		logger.Errorf("[%s] %s", network, err.Error())
+		helpers.LocalCatchErrorSentry(localSentry, err)
 		return
 	}
 
 	level, err := rpc.GetLevel()
 	if err != nil {
 		logger.Errorf("[%s] %s", network, err.Error())
+		helpers.LocalCatchErrorSentry(localSentry, err)
 		return
 	}
 	logger.Info("[%s] Current node state: %d", network, level)
@@ -53,6 +61,7 @@ func syncNetwork(ctx *Context, network string, wg *sync.WaitGroup) {
 	s, ok := ctx.States[network]
 	if !ok {
 		logger.Errorf("Unknown network: %s", network)
+		helpers.LocalCatchErrorSentry(localSentry, fmt.Errorf("Unknown network: %s", network))
 		return
 	}
 	logger.Info("[%s] Current state: %d", network, s.Level)
@@ -60,6 +69,7 @@ func syncNetwork(ctx *Context, network string, wg *sync.WaitGroup) {
 		contracts, err := indexer.GetContracts(s.Level)
 		if err != nil {
 			logger.Errorf("[%s] %s", network, err.Error())
+			helpers.LocalCatchErrorSentry(localSentry, err)
 			return
 		}
 		logger.Info("[%s] New contracts: %d", network, len(contracts))
@@ -69,6 +79,7 @@ func syncNetwork(ctx *Context, network string, wg *sync.WaitGroup) {
 				n, err := createContract(c, rpc, ctx.ES, network, ctx.FilesDirectory)
 				if err != nil {
 					logger.Errorf("[%s %d] %s  [%s]", network, c.Level, err.Error(), c.Address)
+					helpers.LocalCatchErrorSentry(localSentry, fmt.Errorf("[%d] %s [%s]", c.Level, err.Error(), c.Address))
 					return
 				}
 
@@ -77,11 +88,13 @@ func syncNetwork(ctx *Context, network string, wg *sync.WaitGroup) {
 				cID, err := ctx.ES.AddDocument(n, elastic.DocContracts)
 				if err != nil {
 					logger.Errorf("[%s] %s", network, err.Error())
+					helpers.LocalCatchErrorSentry(localSentry, err)
 					return
 				}
 
 				if err := ctx.MQ.Send(mq.ChannelNew, mq.QueueContracts, cID); err != nil {
 					logger.Errorf("[%s] %s", network, err.Error())
+					helpers.LocalCatchErrorSentry(localSentry, err)
 					return
 				}
 
@@ -94,6 +107,7 @@ func syncNetwork(ctx *Context, network string, wg *sync.WaitGroup) {
 
 				if _, err = ctx.ES.UpdateDoc(elastic.DocStates, s.ID, s); err != nil {
 					logger.Errorf("[%s] %s", network, err.Error())
+					helpers.LocalCatchErrorSentry(localSentry, err)
 					return
 				}
 			}
@@ -102,6 +116,7 @@ func syncNetwork(ctx *Context, network string, wg *sync.WaitGroup) {
 		s.Timestamp = time.Now().UTC()
 		if _, err = ctx.ES.UpdateDoc(elastic.DocStates, s.ID, s); err != nil {
 			logger.Errorf("[%s] %s", network, err.Error())
+			helpers.LocalCatchErrorSentry(localSentry, err)
 			return
 		}
 		logger.Success("[%s] Synced", network)

@@ -341,7 +341,7 @@ func (e *Elastic) CreateIndexIfNotExists(index string) error {
 
 	jsonFile, err := os.Open(fmt.Sprintf("mappings/%s.json", index))
 	if err != nil {
-		log.Printf("Can't open %s.json file. Loading default config.", index)
+		log.Printf("Can't open %s.json file.", index)
 		return err
 	}
 	defer jsonFile.Close()

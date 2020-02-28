@@ -3,6 +3,7 @@ package logger
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/fatih/color"
 	"github.com/pkg/errors"
@@ -36,6 +37,13 @@ func Success(format string, v ...interface{}) {
 func Warning(format string, v ...interface{}) {
 	yellow := color.New(color.FgYellow).SprintFunc()
 	log.Printf("[%s] %s", yellow("Warning"), fmt.Sprintf(format, v...))
+}
+
+// Fatal -
+func Fatal(err error) {
+	red := color.New(color.FgRed).SprintFunc()
+	log.Printf("[%s] %s", red("FATAL"), err)
+	os.Exit(1)
 }
 
 // Log -

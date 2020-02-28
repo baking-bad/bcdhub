@@ -28,6 +28,7 @@ func (d intDecoder) Decode(dec *decoder, code *strings.Builder) (int, error) {
 	if err != nil {
 		return buffer.Len(), err
 	}
+	// log.Printf("[int Decode] data: %x, value: %v\n", buffer.Bytes(), ret)
 
 	fmt.Fprintf(code, `{ "int": "%s" }`, ret)
 	return buffer.Len(), nil

@@ -9,19 +9,19 @@ import (
 // User model
 type User struct {
 	gorm.Model
-	Login         string `gorm:"primary_key"`
+	Login         string `gorm:"primary_key;not null"`
 	Name          string
-	AvatarURL     string
-	Token         string
+	AvatarURL     string `gorm:"not null"`
+	Token         string `gorm:"not null"`
 	Subscriptions []Subscription
 }
 
 // Subscription model
 type Subscription struct {
 	gorm.Model
-	UserID     uint       `gorm:"primary_key"`
-	EntityID   string     `gorm:"primary_key"`
-	EntityType EntityType `gorm:"primary_key" sql:"type:entity_type"`
+	UserID     uint       `gorm:"primary_key;not null"`
+	EntityID   string     `gorm:"primary_key;not null"`
+	EntityType EntityType `gorm:"primary_key;not null;type:varchar(8)" sql:"type:entity_type"`
 }
 
 // EntityType -

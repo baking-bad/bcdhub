@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
@@ -71,21 +72,27 @@ func saveOperations(ctx *Context, ops []models.Operation, s *models.State) error
 func syncNetwork(ctx *Context, network string, wg *sync.WaitGroup) {
 	defer wg.Done()
 
+	localSentry := helpers.GetLocalSentry()
+	helpers.SetLocalTagSentry(localSentry, "network", network)
+
 	rpc, err := ctx.GetRPC(network)
 	if err != nil {
 		logger.Errorf("[%s] %s", network, err.Error())
+		helpers.LocalCatchErrorSentry(localSentry, err)
 		return
 	}
 
 	indexer, err := ctx.GetIndexer(network)
 	if err != nil {
 		logger.Errorf("[%s] %s", network, err.Error())
+		helpers.LocalCatchErrorSentry(localSentry, err)
 		return
 	}
 
 	cs, err := ctx.ES.CurrentState(network, models.StateContract)
 	if err != nil {
 		logger.Errorf("[%s] %s", network, err.Error())
+		helpers.LocalCatchErrorSentry(localSentry, err)
 		return
 	}
 	logger.Info("[%s] Current contract indexer state: %d", network, cs.Level)
@@ -94,6 +101,7 @@ func syncNetwork(ctx *Context, network string, wg *sync.WaitGroup) {
 	s, ok := ctx.States[network]
 	if !ok {
 		logger.Errorf("Unknown network: %s", network)
+		helpers.LocalCatchErrorSentry(localSentry, fmt.Errorf("Unknown network: %s", network))
 		return
 	}
 	logger.Info("[%s] Current state: %d", network, s.Level)
@@ -102,12 +110,14 @@ func syncNetwork(ctx *Context, network string, wg *sync.WaitGroup) {
 		addresses, spendable, err := getContracts(ctx.ES, network)
 		if err != nil {
 			logger.Errorf("[%s] %s", network, err.Error())
+			helpers.LocalCatchErrorSentry(localSentry, err)
 			return
 		}
 
 		levels, err := indexer.GetContractOperationBlocks(int(s.Level), int(cs.Level), addresses, spendable)
 		if err != nil {
 			logger.Errorf("[%s] %s", network, err.Error())
+			helpers.LocalCatchErrorSentry(localSentry, err)
 			return
 		}
 
@@ -122,17 +132,20 @@ func syncNetwork(ctx *Context, network string, wg *sync.WaitGroup) {
 			ops, err := getOperations(rpc, ctx.ES, l, network, addresses)
 			if err != nil {
 				logger.Errorf("[%s %d] %s", network, l, err.Error())
+				helpers.LocalCatchErrorSentry(localSentry, fmt.Errorf("[%d] %s", l, err.Error()))
 				return
 			}
 
 			logger.Info("[%s] %d/%d Found %d operations", network, l, cs.Level, len(ops))
 			if err := saveOperations(ctx, ops, s); err != nil {
 				logger.Errorf("[%s %d] %s", network, l, err.Error())
+				helpers.LocalCatchErrorSentry(localSentry, fmt.Errorf("[%d] %s", l, err.Error()))
 				return
 			}
 
 			if err := updateState(rpc, ctx.ES, l, s); err != nil {
 				logger.Errorf("[%s %d] %s", network, l, err.Error())
+				helpers.LocalCatchErrorSentry(localSentry, fmt.Errorf("[%d] %s", l, err.Error()))
 				return
 			}
 		}

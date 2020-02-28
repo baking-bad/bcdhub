@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/fatih/color"
 	"log"
+
+	"github.com/fatih/color"
 )
 
 type config struct {
@@ -21,6 +22,12 @@ type config struct {
 		URI    string   `json:"uri"`
 		Queues []string `json:"queues"`
 	} `json:"mq"`
+	Sentry struct {
+		Project string `json:"project"`
+		Env     string `json:"env"`
+		DSN     string `json:"dsn"`
+		Debug   bool   `json:"debug"`
+	} `json:"sentry"`
 }
 
 func (cfg config) print() {
