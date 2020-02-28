@@ -94,7 +94,7 @@ func (l *literalDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMet
 		}, nil
 	case consts.BOOL:
 		return map[string]interface{}{
-			"value": node.Get("prim").Bool(),
+			"value": node.Get("prim").String() != "False",
 			"type":  nm.Type,
 		}, nil
 	case consts.UNIT:

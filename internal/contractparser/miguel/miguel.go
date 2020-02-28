@@ -137,7 +137,9 @@ func getGJSONPathUnion(path string, node gjson.Result) (res string) {
 					res += "#(prim==\"Right\").args.0."
 				}
 			case "o":
-				res += "args.0."
+				if node.Get(res+"prim").String() != consts.None {
+					res += "args.0."
+				}
 			default:
 				idx = i + 1
 				goto Break

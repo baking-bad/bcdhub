@@ -3,7 +3,6 @@ package elastic
 import (
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/tidwall/gjson"
@@ -65,16 +64,17 @@ func (e *Elastic) getContractOPG(address, network string, lastID, size uint64) (
 		size = 10
 	}
 
-	if lastID == 0 {
-		lastID = uint64(time.Now().UnixNano())
+	var lastIDFilter string
+	if lastID != 0 {
+		lastIDFilter = fmt.Sprintf(" AND indexed_time < %d", lastID)
 	}
 
 	sqlString := fmt.Sprintf(`SELECT hash, level
 		FROM operation 
-		WHERE (source = '%s' OR destination = '%s') AND network = '%s' AND indexed_time < %d 
+		WHERE (source = '%s' OR destination = '%s') AND network = '%s' %s 
 		GROUP BY hash, level 
 		ORDER BY level DESC 
-		LIMIT %d`, address, address, network, lastID, size)
+		LIMIT %d`, address, address, network, lastIDFilter, size)
 
 	res, err := e.executeSQL(sqlString)
 	if err != nil {
@@ -139,7 +139,7 @@ func (e *Elastic) GetContractOperations(network, address string, lastID, size ui
 	}
 
 	po.Operations = ops
-	po.LastID = res.Get("aggregations.last_id.value").Uint()
+	po.LastID = res.Get("aggregations.last_id.value").String()
 
 	return
 }
@@ -152,6 +152,7 @@ func (e *Elastic) GetLastStorage(network, address string) (gjson.Result, error) 
 				must(
 					matchPhrase("network", network),
 					matchPhrase("destination", address),
+					term("result.status", "applied"),
 				),
 				notMust(
 					term("deffated_storage", ""),
@@ -192,6 +193,7 @@ func (e *Elastic) GetPreviousOperation(address, network string, level int64) (op
 					matchPhrase("destination", address),
 					matchPhrase("network", network),
 					rangeQ("level", qItem{"lt": level}),
+					term("result.status", "applied"),
 				),
 				notMust(
 					term("deffated_storage", ""),

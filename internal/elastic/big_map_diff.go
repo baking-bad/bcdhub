@@ -50,29 +50,41 @@ func (e *Elastic) GetBigMapDiffsByOperationID(operationID string) (gjson.Result,
 }
 
 // GetBigMapDiffsByKeyHash -
-func (e *Elastic) GetBigMapDiffsByKeyHash(keys []string, level int64) (gjson.Result, error) {
-	mustData := make([]qItem, len(keys))
+func (e *Elastic) GetBigMapDiffsByKeyHash(keys []string, level int64, address string) (gjson.Result, error) {
+	shouldData := make([]qItem, len(keys))
 	for i := range keys {
-		mustData[i] = matchPhrase("key_hash", keys[i])
+		shouldData[i] = matchPhrase("key_hash", keys[i])
 	}
 
-	query := newQuery().
-		Query(
-			boolQ(
-				must(mustData...),
-				filter(
-					rangeQ("level", qItem{"lt": level}),
-				),
-			),
-		).
-		Sort("level", "desc").
-		All()
+	b := boolQ(
+		should(shouldData...),
+		must(matchPhrase("address", address)),
+		filter(
+			rangeQ("level", qItem{"lt": level}),
+		),
+	)
+	b.Get("bool").Append("minimum_should_match", 1)
+
+	query := newQuery().Query(b).
+		Add(qItem{
+			"aggs": qItem{
+				"last": qItem{
+					"terms": qItem{
+						"field": "key_hash.keyword",
+					},
+					"aggs": qItem{
+						"bmd": topHits(1, "level", "desc"),
+					},
+				},
+			},
+		}).
+		Zero()
 
 	res, err := e.query(DocBigMapDiff, query)
 	if err != nil {
 		return res, err
 	}
-	return res.Get("hits.hits.#._source"), nil
+	return res.Get("aggregations.last.buckets.#.bmd.hits.hits.0._source"), nil
 }
 
 // GetBigMapDiffsForAddress -

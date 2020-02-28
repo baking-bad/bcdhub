@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/miguel"
@@ -60,7 +61,7 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, OperationResponse{
 		Operations: resp,
-		LastID:     fmt.Sprintf("%d", ops.LastID),
+		LastID:     ops.LastID,
 	})
 }
 
@@ -119,7 +120,7 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 		Result:         operation.Result,
 	}
 
-	if operation.DeffatedStorage != "" && strings.HasPrefix(op.Destination, "KT") {
+	if operation.DeffatedStorage != "" && strings.HasPrefix(op.Destination, "KT") && op.Result.Status == "applied" {
 		if err := setStorageDiff(es, op.Destination, op.Network, operation.DeffatedStorage, &op); err != nil {
 			return op, err
 		}
@@ -128,7 +129,8 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 	if op.Kind != consts.Transaction {
 		return op, nil
 	}
-	if operation.Parameters != "" && strings.HasPrefix(op.Destination, "KT") {
+
+	if operation.Parameters != "" && strings.HasPrefix(op.Destination, "KT") && !contractparser.IsParametersError(op.Result.Errors) {
 		metadata, err := meta.GetMetadata(es, op.Destination, op.Network, "parameter", op.Protocol)
 		if err != nil {
 			return op, err
@@ -141,6 +143,7 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 			return op, err
 		}
 	}
+
 	return op, nil
 }
 
@@ -177,9 +180,9 @@ func setStorageDiff(es *elastic.Elastic, address, network string, storage string
 	var prevStorage interface{}
 	prev, err := es.GetPreviousOperation(address, op.Network, op.Level)
 	if err == nil {
-		prevBmd := bmd
+		var prevBmd gjson.Result
 		if len(bmd.Array()) > 0 {
-			prevBmd, err = getPrevBmd(es, bmd, op.Level)
+			prevBmd, err = getPrevBmd(es, bmd, op.Level, op.Destination)
 			if err != nil {
 				return err
 			}
@@ -188,6 +191,7 @@ func setStorageDiff(es *elastic.Elastic, address, network string, storage string
 		if err != nil {
 			return err
 		}
+
 		prevStorage, err = miguel.MichelineToMiguel(prevStore, metadata)
 		if err != nil {
 			return err
@@ -215,8 +219,11 @@ func setStorageDiff(es *elastic.Elastic, address, network string, storage string
 	if err != nil {
 		return err
 	}
-	if err := applyChanges(changelog, currentStorage); err != nil {
-		return err
+
+	if len(changelog) != 0 {
+		if err := applyChanges(changelog, &currentStorage); err != nil {
+			return err
+		}
 	}
 
 	op.StorageDiff = currentStorage
@@ -239,22 +246,22 @@ func enrichStorage(s string, bmd gjson.Result, protocol string) (gjson.Result, e
 	return parser.Enrich(s, bmd)
 }
 
-func getPrevBmd(es *elastic.Elastic, bmd gjson.Result, level int64) (gjson.Result, error) {
+func getPrevBmd(es *elastic.Elastic, bmd gjson.Result, level int64, address string) (gjson.Result, error) {
 	keys := make([]string, 0)
 	for _, b := range bmd.Array() {
 		keys = append(keys, b.Get("key_hash").String())
 	}
 
-	return es.GetBigMapDiffsByKeyHash(keys, level)
+	return es.GetBigMapDiffsByKeyHash(keys, level, address)
 }
 
-func applyChanges(changelog diff.Changelog, v interface{}) error {
+func applyChanges(changelog diff.Changelog, v interface{}) (err error) {
 	for _, c := range changelog {
-		if err := applyChange(c.Path, c.From, c.Type, v); err != nil {
-			return err
+		if err = applyChange(c.Path, c.From, c.Type, v); err != nil {
+			return
 		}
 	}
-	return nil
+	return
 }
 
 func applyChange(path []string, from interface{}, typ string, v interface{}) error {
@@ -263,36 +270,115 @@ func applyChange(path []string, from interface{}, typ string, v interface{}) err
 	}
 
 	val := reflect.ValueOf(v)
-	if len(path) == 1 {
-		idx, err := strconv.Atoi(path[0])
-		if err == nil {
-			if val.Kind() == reflect.Slice {
-				val = val.Index(idx).Elem()
-			}
-		}
-		if !val.IsValid() {
-			return nil
-		}
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+	if val.Kind() == reflect.Interface {
+		val = val.Elem()
+	}
 
-		switch val.Kind() {
-		case reflect.Map:
-			val.SetMapIndex(reflect.ValueOf("from"), reflect.ValueOf(from))
-			val.SetMapIndex(reflect.ValueOf("kind"), reflect.ValueOf(typ))
-		case reflect.Slice:
-		default:
-			return fmt.Errorf("Unsupported change type: %v %v", val, val.Kind())
+	idx, err := strconv.Atoi(path[0])
+	if err == nil && val.Kind() == reflect.Slice {
+		return applyChangeOnArray(path, from, typ, idx, v)
+	}
+
+	return applyChangeOnMap(path, from, typ, v)
+}
+
+func applyChangeOnArray(path []string, from interface{}, typ string, idx int, v interface{}) error {
+	var elem, ptr, value reflect.Value
+	ptr = reflect.ValueOf(v)
+	if ptr.Kind() == reflect.Ptr {
+		elem = ptr.Elem()
+	}
+	if elem.Kind() == reflect.Interface {
+		value = elem.Elem()
+	}
+
+	var field reflect.Value
+	var newField interface{}
+
+	if value.Len() <= idx {
+		field = reflect.ValueOf(&from)
+		elem.Set(reflect.Append(value, reflect.ValueOf(from)))
+	} else {
+		field = value.Index(idx)
+	}
+	newField = field.Interface()
+
+	if len(path) == 1 {
+		if field.Kind() == reflect.Ptr {
+			field = field.Elem()
+		}
+		if field.Elem().Kind() == reflect.Map {
+			if !field.Elem().IsValid() {
+				field.Elem().SetMapIndex(reflect.ValueOf("kind"), reflect.ValueOf("create"))
+			} else if !field.IsNil() {
+				field.Elem().SetMapIndex(reflect.ValueOf("kind"), reflect.ValueOf(typ))
+			} else {
+				field.Elem().SetMapIndex(reflect.ValueOf("kind"), reflect.ValueOf("delete"))
+			}
+
+			if from != nil && typ != "delete" {
+				field.Elem().SetMapIndex(reflect.ValueOf("from"), reflect.ValueOf(from))
+			}
 		}
 		return nil
 	}
-	var field reflect.Value
-	if val.Kind() == reflect.Map {
-		field = val.MapIndex(reflect.ValueOf(path[0]))
-	} else if val.Kind() == reflect.Slice {
-		idx, err := strconv.Atoi(path[0])
-		if err != nil {
-			return err
-		}
-		field = val.Index(idx)
+	if err := applyChange(path[1:], from, typ, &newField); err != nil {
+		return err
 	}
-	return applyChange(path[1:], from, typ, field.Interface())
+	field.Set(reflect.ValueOf(newField))
+	return nil
+}
+
+func applyChangeOnMap(path []string, from interface{}, typ string, v interface{}) error {
+	var elem, ptr, value reflect.Value
+	ptr = reflect.ValueOf(v)
+	if ptr.Kind() == reflect.Ptr {
+		elem = ptr.Elem()
+	}
+	if elem.Kind() == reflect.Interface {
+		value = elem.Elem()
+	}
+
+	var field reflect.Value
+	for _, k := range value.MapKeys() {
+		if k.String() != path[0] {
+			continue
+		}
+		field = value.MapIndex(k)
+	}
+
+	if field.IsNil() {
+		value.SetMapIndex(reflect.ValueOf(path[0]), reflect.ValueOf(from))
+		value.SetMapIndex(reflect.ValueOf("kind"), reflect.ValueOf("delete"))
+		return nil
+	}
+
+	if len(path) == 1 {
+		if value.Kind() == reflect.Map {
+			if !value.IsValid() {
+				value.SetMapIndex(reflect.ValueOf("kind"), reflect.ValueOf("create"))
+			} else if !value.IsNil() {
+				value.SetMapIndex(reflect.ValueOf("kind"), reflect.ValueOf(typ))
+			} else {
+				value.SetMapIndex(reflect.ValueOf("kind"), reflect.ValueOf("delete"))
+			}
+
+			if from != nil && typ != "delete" {
+				value.SetMapIndex(reflect.ValueOf("from"), reflect.ValueOf(from))
+			}
+		}
+		return nil
+	}
+	if !field.IsValid() {
+		return fmt.Errorf("Invalid map field: %v", field)
+	}
+	newField := field.Interface()
+	if err := applyChange(path[1:], from, typ, &newField); err != nil {
+		return err
+	}
+	value.SetMapIndex(reflect.ValueOf(path[0]), reflect.ValueOf(newField))
+	return nil
 }

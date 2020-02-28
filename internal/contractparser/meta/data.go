@@ -27,6 +27,27 @@ type NodeMetadata struct {
 	Name          string   `json:"name,omitempty"`
 }
 
+// GetName -
+func (nm *NodeMetadata) GetName(idx int) string {
+	if nm.Name == "" {
+		if idx != -1 {
+			return fmt.Sprintf("__entry__%d", idx)
+		}
+		return "default"
+	}
+	return nm.Name
+}
+
+// GetFieldName -
+func (nm *NodeMetadata) GetFieldName() string {
+	if nm.Name != "" {
+		return nm.Name
+	} else if nm.Type != "" {
+		return nm.Type
+	}
+	return "__field__"
+}
+
 type internalNode struct {
 	*node.Node
 	InternalArgs []internalNode `json:"-,omitempty"`
@@ -63,14 +84,6 @@ func ParseMetadata(v gjson.Result) (Metadata, error) {
 	} else {
 		return nil, fmt.Errorf("Unknown value type: %T", v.Type)
 	}
-}
-
-// GetName -
-func GetName(nm *NodeMetadata) string {
-	if nm.Name == "" {
-		return "__entry__" // TODO: set index
-	}
-	return nm.Name
 }
 
 func getFlatNested(data internalNode) []internalNode {

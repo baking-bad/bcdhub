@@ -108,13 +108,10 @@ func (b Babylon) Enrich(storage string, bmd gjson.Result) (gjson.Result, error) 
 		elt := map[string]interface{}{
 			"prim": "Elt",
 		}
-		args := make([]interface{}, 1)
-		val := gjson.Parse(bm.Get("value").String())
+		args := make([]interface{}, 2)
 		args[0] = bm.Get("key").Value()
-
-		if bm.Get("value").String() != "" {
-			args = append(args, val.Value())
-		}
+		val := gjson.Parse(bm.Get("value").String())
+		args[1] = val.Value()
 
 		elt["args"] = args
 
@@ -130,7 +127,6 @@ func (b Babylon) Enrich(storage string, bmd gjson.Result) (gjson.Result, error) 
 		}
 		m[res] = append(m[res], elt)
 	}
-
 	for p, arr := range m {
 		value, err := sjson.Set(storage, p, arr)
 		if err != nil {

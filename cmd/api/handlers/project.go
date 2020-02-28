@@ -7,13 +7,24 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetProjectContracts -
-func (ctx *Context) GetProjectContracts(c *gin.Context) {
+type pageableRequest struct {
+	Offset int64 `form:"offset"`
+}
+
+// GetSameContracts -
+func (ctx *Context) GetSameContracts(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
+
+	var pageReq pageableRequest
+	if err := c.BindQuery(&pageReq); err != nil {
+		_ = c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
 	by := map[string]interface{}{
 		"address": req.Address,
 		"network": req.Network,
@@ -24,13 +35,31 @@ func (ctx *Context) GetProjectContracts(c *gin.Context) {
 		return
 	}
 
-	res := map[string]interface{}{}
-	v, err := ctx.ES.GetSameContracts(contract)
+	v, err := ctx.ES.GetSameContracts(contract, 0, pageReq.Offset)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	res["same"] = v
+	c.JSON(http.StatusOK, v)
+}
+
+// GetSimilarContracts -
+func (ctx *Context) GetSimilarContracts(c *gin.Context) {
+	var req getContractRequest
+	if err := c.BindUri(&req); err != nil {
+		_ = c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	by := map[string]interface{}{
+		"address": req.Address,
+		"network": req.Network,
+	}
+	contract, err := ctx.ES.GetContract(by)
+	if err != nil {
+		_ = c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
 
 	s, err := ctx.ES.GetSimilarContracts(contract)
 	if err != nil {
@@ -42,8 +71,7 @@ func (ctx *Context) GetProjectContracts(c *gin.Context) {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	res["similar"] = similar
-	c.JSON(http.StatusOK, res)
+	c.JSON(http.StatusOK, similar)
 }
 
 func (ctx *Context) getSimilarDiffs(similar []elastic.SimilarContract, address, network string) ([]elastic.SimilarContract, error) {

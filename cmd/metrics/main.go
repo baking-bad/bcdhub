@@ -23,7 +23,6 @@ func parseData(data amqp.Delivery) error {
 	default:
 		return fmt.Errorf("Unknown data routing key %s", data.RoutingKey)
 	}
-	return nil
 }
 
 func handler(data amqp.Delivery) error {

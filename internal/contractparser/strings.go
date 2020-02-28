@@ -2,6 +2,7 @@ package contractparser
 
 import (
 	"regexp"
+	"strings"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
@@ -26,4 +27,19 @@ func IsLiteral(prim string) bool {
 		consts.KEY, consts.TIMESTAMP, consts.BOOL, consts.MUTEZ,
 		consts.NAT, consts.STRING, consts.INT, consts.SIGNATURE,
 	})
+}
+
+// IsParametersError -
+func IsParametersError(errorString string) bool {
+	data := gjson.Parse(errorString)
+	if !data.IsArray() {
+		return false
+	}
+	for _, err := range data.Array() {
+		errID := err.Get("id").String()
+		if strings.Contains(errID, consts.BadParameterError) {
+			return true
+		}
+	}
+	return false
 }

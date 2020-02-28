@@ -36,7 +36,7 @@ type Operation struct {
 	BalanceUpdates []BalanceUpdate  `json:"balance_updates,omitempty"`
 	Result         *OperationResult `json:"result,omitempty"`
 
-	DeffatedStorage string `json:"deffated_storage,omitempty"`
+	DeffatedStorage string `json:"deffated_storage"`
 }
 
 // ParseElasticJSON -
