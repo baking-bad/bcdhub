@@ -1,37 +1,50 @@
 {
-    "search": {
-        "uri": "http://localhost:9200"
+  "search": {
+    "uri": "http://localhost:9200"
+  },
+  "nodes": [
+    {
+      "host": "https://rpc.tzkt.io/mainnet",
+      "network": "mainnet"
     },
-    "nodes": [{
-        "host": "https://rpc.tzkt.io/mainnet",
-        "network": "mainnet"
-    },{
-        "host": "https://rpc.tzkt.io/zeronet",
-        "network": "zeronet"
-    },{
-        "host": "https://babylontest-ssl.tezos.org.ua",
-        "network": "babylonnet"
-    },{
-        "host": "https://carthatest-ssl.tezos.org.ua",
-        "network": "carthagenet"
-    }],
-    "tzkt": {
-        "mainnet": "https://api.tzkt.io/v1/",
-        "zeronet": "",
-        "babylonnet": "https://api.babylonnet.tzkt.io/v1/",
-        "carthagenet": ""
+    {
+      "host": "https://rpc.tzkt.io/zeronet",
+      "network": "zeronet"
     },
-    "tzstats": {
-        "mainnet": "https://api.tzstats.com",
-        "zeronet": "https://api.zeronet.tzstats.com",
-        "babylonnet": "https://api.babylonnet.tzstats.com",
-        "carthagenet": "https://api.carthagenet.tzstats.com"
+    {
+      "host": "https://babylontest-ssl.tezos.org.ua",
+      "network": "babylonnet"
     },
-    "indexer": "tzstats",
-    "update_timer": 60,
-    "files_directory": "/home/artem/.bcd",
-    "mq": {
-        "uri": "amqp://guest:guest@localhost:5672/",
-        "queues": ["contracts"]
+    {
+      "host": "https://carthatest-ssl.tezos.org.ua",
+      "network": "carthagenet"
     }
+  ],
+  "tzkt": {
+    "mainnet": "https://api.tzkt.io/v1/",
+    "zeronet": "https://api.zeronet.tzkt.io/v1/",
+    "babylonnet": "https://api.babylonnet.tzkt.io/v1/",
+    "carthagenet": "https://api.carthage.tzkt.io/v1/"
+  },
+  "tzstats": {
+    "mainnet": "https://api.tzstats.com",
+    "zeronet": "https://api.zeronet.tzstats.com",
+    "babylonnet": "https://api.babylonnet.tzstats.com",
+    "carthagenet": "https://api.carthagenet.tzstats.com"
+  },
+  "indexer": "tzstats",
+  "update_timer": 60,
+  "files_directory": "/home/artem/.bcd",
+  "mq": {
+    "uri": "amqp://guest:guest@localhost:5672/",
+    "queues": [
+      "contracts"
+    ]
+  },
+  "sentry": {
+    "project": "indexer",
+    "env": "development",
+    "dsn": "https://eefa682518c84afdb0240bc9b94ed79c@sentry.io/3061530",
+    "debug": true
+  }
 }

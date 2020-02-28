@@ -12,5 +12,11 @@
   "dir": "/home/artem/.bcd",
   "db": {
     "uri": "host=127.0.0.1 port=5432 user=root dbname=bcd password=root sslmode=disable"
+  },
+  "sentry": {
+    "project": "api",
+    "env": "development",
+    "dsn": "https://eefa682518c84afdb0240bc9b94ed79c@sentry.io/3061530",
+    "debug": true
   }
 }

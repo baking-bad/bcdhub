@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/gin-contrib/cors"
@@ -11,7 +10,9 @@ import (
 	"github.com/aopoltorzhicky/bcdhub/cmd/api/oauth"
 	"github.com/aopoltorzhicky/bcdhub/internal/database"
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
+	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
+	"github.com/aopoltorzhicky/bcdhub/internal/logger"
 	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
 	"github.com/gin-gonic/gin"
 )
@@ -26,17 +27,25 @@ func main() {
 
 	var cfg config
 	if err := jsonload.StructFromFile("config.json", &cfg); err != nil {
-		panic(err)
+		logger.Fatal(err)
 	}
+
+	helpers.InitSentry(cfg.Sentry.Env, cfg.Sentry.DSN, cfg.Sentry.Debug)
+	helpers.SetTagSentry("project", cfg.Sentry.Project)
+	defer helpers.CatchPanicSentry()
 
 	es, err := elastic.New([]string{cfg.Search.URI})
 	if err != nil {
-		panic(err)
+		logger.Error(err)
+		helpers.CatchErrorSentry(err)
+		return
 	}
 
 	db, err := database.New(cfg.DB.URI)
 	if err != nil {
-		panic(err)
+		logger.Error(err)
+		helpers.CatchErrorSentry(err)
+		return
 	}
 	defer db.Close()
 
@@ -44,7 +53,9 @@ func main() {
 
 	oauth, err := oauth.New()
 	if err != nil {
-		panic(err)
+		logger.Error(err)
+		helpers.CatchErrorSentry(err)
+		return
 	}
 
 	ctx := handlers.NewContext(es, rpc, cfg.Dir, db, oauth)
@@ -52,6 +63,7 @@ func main() {
 	r := gin.Default()
 
 	r.Use(corsSettings())
+	r.Use(helpers.SentryMiddleware())
 	v1 := r.Group("v1")
 	{
 		v1.GET("search", ctx.Search)
@@ -112,7 +124,9 @@ func main() {
 		}
 	}
 	if err := r.Run(cfg.Address); err != nil {
-		fmt.Println(err)
+		logger.Error(err)
+		helpers.CatchErrorSentry(err)
+		return
 	}
 }
 

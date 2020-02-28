@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,6 +21,8 @@ func (ctx *Context) AuthJWTRequired() gin.HandlerFunc {
 		}
 
 		ctx.OAUTH.UserID = id
+
+		helpers.SetUserIDSentry(fmt.Sprintf("%v", id))
 
 		c.Next()
 	}
