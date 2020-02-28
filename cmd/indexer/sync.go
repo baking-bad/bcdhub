@@ -2,6 +2,7 @@ package main
 
 import (
 	"sync"
+	"time"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/index"
@@ -96,6 +97,12 @@ func syncNetwork(ctx *Context, network string, wg *sync.WaitGroup) {
 					return
 				}
 			}
+		}
+		s.Level = level
+		s.Timestamp = time.Now().UTC()
+		if _, err = ctx.ES.UpdateDoc(elastic.DocStates, s.ID, s); err != nil {
+			logger.Errorf("[%s] %s", network, err.Error())
+			return
 		}
 		logger.Success("[%s] Synced", network)
 	}

@@ -26,7 +26,7 @@ func (l *orDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata
 			if err != nil {
 				return nil, err
 			}
-			name := metadata[path].GetName()
+			name := metadata[path].GetFieldName()
 			res[name] = data
 			return res, nil
 		}

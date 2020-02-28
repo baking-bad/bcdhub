@@ -44,3 +44,8 @@ const (
 const (
 	LevelBabylon = 655360
 )
+
+// Error IDs
+const (
+	BadParameterError = "michelson_v1.bad_contract_parameter"
+)

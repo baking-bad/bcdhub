@@ -19,7 +19,7 @@ func GetEntrypoints(metadata meta.Metadata) ([]Entrypoint, error) {
 	root := metadata["0"]
 
 	ep := make([]Entrypoint, 0)
-	if len(root.Args) > 0 {
+	if len(root.Args) > 0 && root.Prim == consts.OR && (root.Type == consts.TypeUnion || root.Type == consts.TypeNamedTuple || root.Type == consts.TypeNamedUnion) {
 		for i, arg := range root.Args {
 			nm := metadata[arg]
 
@@ -28,7 +28,7 @@ func GetEntrypoints(metadata meta.Metadata) ([]Entrypoint, error) {
 				return nil, err
 			}
 			ep = append(ep, Entrypoint{
-				Name:       parseName(nm, i),
+				Name:       nm.GetName(i),
 				Parameters: params,
 			})
 		}
@@ -38,7 +38,7 @@ func GetEntrypoints(metadata meta.Metadata) ([]Entrypoint, error) {
 			return nil, err
 		}
 		ep = append(ep, Entrypoint{
-			Name:       parseName(root, 0),
+			Name:       root.GetName(-1),
 			Parameters: params,
 		})
 	}
@@ -127,11 +127,4 @@ func parseEntrypointOption(metadata meta.Metadata, nm *meta.NodeMetadata, path s
 	return []interface{}{
 		value,
 	}, nil
-}
-
-func parseName(nm *meta.NodeMetadata, idx int) string {
-	if nm.Name == "" {
-		return fmt.Sprintf("__entry__%d", idx)
-	}
-	return nm.Name
 }

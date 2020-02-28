@@ -28,11 +28,24 @@ type NodeMetadata struct {
 }
 
 // GetName -
-func (nm *NodeMetadata) GetName() string {
+func (nm *NodeMetadata) GetName(idx int) string {
 	if nm.Name == "" {
-		return "__entry__" // TODO: set index
+		if idx != -1 {
+			return fmt.Sprintf("__entry__%d", idx)
+		}
+		return "default"
 	}
 	return nm.Name
+}
+
+// GetFieldName -
+func (nm *NodeMetadata) GetFieldName() string {
+	if nm.Name != "" {
+		return nm.Name
+	} else if nm.Type != "" {
+		return nm.Type
+	}
+	return "__field__"
 }
 
 type internalNode struct {
