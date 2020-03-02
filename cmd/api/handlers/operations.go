@@ -350,7 +350,7 @@ func applyChangeOnMap(path []string, from interface{}, typ string, v interface{}
 		field = value.MapIndex(k)
 	}
 
-	if field.IsNil() {
+	if field.IsValid() && field.IsNil() {
 		value.SetMapIndex(reflect.ValueOf(path[0]), reflect.ValueOf(from))
 		value.SetMapIndex(reflect.ValueOf("kind"), reflect.ValueOf("delete"))
 		return nil

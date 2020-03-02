@@ -16,10 +16,14 @@ func decodeAnnots(dec *decoder) (string, int, error) {
 	var annots string
 	length := int(binary.BigEndian.Uint32(sb))
 	if length != 0 {
+		if dec.Len() < length {
+			return "", 4, fmt.Errorf("Invalid annots length got %d has %d", length, dec.Len())
+		}
 		data := make([]byte, length)
 		if n, err := dec.Read(data); err != nil && err != io.EOF {
 			return "", n, err
 		}
+		// log.Printf("[decodeAnnots] data: %x\n", data)
 
 		annots = strings.Join(strings.Split(string(data), " "), `", "`)
 	}

@@ -7,7 +7,7 @@ import (
 )
 
 // bufferSize is the number of hexadecimal characters to buffer in encoder and decoder.
-const bufferSize = 1024
+const bufferSize = 32768
 
 type decoder struct {
 	r   io.Reader
