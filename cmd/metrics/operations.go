@@ -21,6 +21,7 @@ func operationMetrics(op models.Operation, contract *models.Contract) error {
 		Time: stats.LastAction,
 	}
 	contract.SumTxAmount = stats.SumTxAmount
+	contract.MedianConsumedGas = stats.MedianConsumedGas
 
 	rpc, err := ctx.GetRPC(contract.Network)
 	if err != nil {

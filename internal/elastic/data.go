@@ -18,9 +18,10 @@ type SearchResult struct {
 
 // ContractStats -
 type ContractStats struct {
-	TxCount     int64
-	SumTxAmount int64
-	LastAction  time.Time
+	TxCount           int64
+	SumTxAmount       int64
+	MedianConsumedGas int64
+	LastAction        time.Time
 }
 
 func (c *ContractStats) parse(data gjson.Result) {
@@ -75,10 +76,11 @@ func (stats *ProjectStats) getName(id string) string {
 // SimilarContract -
 type SimilarContract struct {
 	*models.Contract
-	Count   int64  `json:"count"`
-	Diff    string `json:"diff,omitempty"`
-	Added   int64  `json:"added,omitempty"`
-	Removed int64  `json:"removed,omitempty"`
+	Count           int64   `json:"count"`
+	Diff            string  `json:"diff,omitempty"`
+	Added           int64   `json:"added,omitempty"`
+	Removed         int64   `json:"removed,omitempty"`
+	ConsumedGasDiff float64 `json:"consumed_gas_diff,omitempty"`
 }
 
 // PageableOperations -
