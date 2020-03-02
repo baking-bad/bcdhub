@@ -143,6 +143,7 @@ func (d primDecoder) Decode(dec *decoder, code *strings.Builder) (length int, er
 	fmt.Fprintf(code, `{ "prim": "%s"`, prim)
 	length++
 
+	// log.Printf("[primDecoder Decode] data: %d | args count: %d | has annots: %v", length, d.ArgsCount, d.HasAnnots)
 	if d.ArgsCount > 0 {
 		fmt.Fprintf(code, `, "args": [ `)
 		n, err := decodeArgs(dec, code, d.ArgsCount)
