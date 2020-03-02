@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
+	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -66,7 +67,7 @@ func (ctx *Context) GetSimilarContracts(c *gin.Context) {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	similar, err := ctx.getSimilarDiffs(s, req.Address, req.Network)
+	similar, err := ctx.getSimilarDiffs(s, contract)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
@@ -74,15 +75,16 @@ func (ctx *Context) GetSimilarContracts(c *gin.Context) {
 	c.JSON(http.StatusOK, similar)
 }
 
-func (ctx *Context) getSimilarDiffs(similar []elastic.SimilarContract, address, network string) ([]elastic.SimilarContract, error) {
-	for i := 0; i < len(similar)-1; i++ {
+func (ctx *Context) getSimilarDiffs(similar []elastic.SimilarContract, contract models.Contract) ([]elastic.SimilarContract, error) {
+	for i := 0; i < len(similar); i++ {
 		src := &similar[i]
-		d, err := ctx.getDiff(address, network, src.Address, src.Network, 0, 0)
+		d, err := ctx.getDiff(contract.Address, contract.Network, src.Address, src.Network, 0, 0)
 		if err != nil {
 			return nil, err
 		}
 		src.Added = d.Added
 		src.Removed = d.Removed
+		src.ConsumedGasDiff = float64((src.MedianConsumedGas - contract.MedianConsumedGas)) / float64(contract.MedianConsumedGas)
 	}
 	return similar, nil
 }

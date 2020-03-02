@@ -175,6 +175,12 @@ func (e *Elastic) GetContractStats(address, network string) (stats ContractStats
 		return
 	}
 	stats.parse(res.Get("aggregations"))
+
+	cg, err := e.computeMedianConsumedGas(address, network)
+	if err != nil {
+		return
+	}
+	stats.MedianConsumedGas = cg
 	return
 }
 
@@ -224,4 +230,30 @@ func (e *Elastic) Recommendations(tags []string, language string, blackList []st
 		contracts = append(contracts, c)
 	}
 	return contracts, nil
+}
+
+func (e *Elastic) computeMedianConsumedGas(address, network string) (int64, error) {
+	query := newQuery().Query(
+		boolQ(
+			must(
+				matchPhrase("destination", address),
+				matchPhrase("network", network),
+				matchPhrase("result.status", "applied"),
+			),
+		),
+	).Add(
+		aggs("consumed_gas", qItem{
+			"percentiles": qItem{
+				"field":    "result.consumed_gas",
+				"percents": []int{50},
+			},
+		}),
+	)
+	resp, err := e.query(DocOperations, query)
+	if err != nil {
+		return 0, err
+	}
+
+	values := resp.Get("aggregations.consumed_gas.values").Map()
+	return values["50.0"].Int(), nil
 }

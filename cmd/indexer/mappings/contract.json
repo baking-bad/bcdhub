@@ -91,6 +91,9 @@
             "sum_tx_amount": {
                 "type": "long"
             },
+            "median_consumed_gas": {
+                "type": "long"
+            },
             "project_id": {
                 "type": "text",
                 "fields": {

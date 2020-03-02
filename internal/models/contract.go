@@ -28,12 +28,13 @@ type Contract struct {
 	Manager  string `json:"manager,omitempty"`
 	Delegate string `json:"delegate,omitempty"`
 
-	ProjectID   string  `json:"project_id,omitempty"`
-	FoundBy     string  `json:"found_by,omitempty"`
-	Group       *Group  `json:"group,omitempty"`
-	LastAction  BCDTime `json:"last_action,omitempty"`
-	TxCount     int64   `json:"tx_count,omitempty"`
-	SumTxAmount int64   `json:"sum_tx_amount,omitempty"`
+	ProjectID         string  `json:"project_id,omitempty"`
+	FoundBy           string  `json:"found_by,omitempty"`
+	Group             *Group  `json:"group,omitempty"`
+	LastAction        BCDTime `json:"last_action,omitempty"`
+	TxCount           int64   `json:"tx_count,omitempty"`
+	SumTxAmount       int64   `json:"sum_tx_amount,omitempty"`
+	MedianConsumedGas int64   `json:"median_consumed_gas,omitempty"`
 }
 
 // Fingerprint -
@@ -102,6 +103,7 @@ func (c *Contract) ParseElasticJSON(hit gjson.Result) {
 
 	c.TxCount = hit.Get("_source.tx_count").Int()
 	c.SumTxAmount = hit.Get("_source.sum_tx_amount").Int()
+	c.MedianConsumedGas = hit.Get("_source.median_consumed_gas").Int()
 
 	c.FoundBy = getFoundBy(hit)
 }
