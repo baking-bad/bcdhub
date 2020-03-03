@@ -10,7 +10,7 @@ import (
 type mapDecoder struct{}
 
 // Decode -
-func (l *mapDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata) (interface{}, error) {
+func (l *mapDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata, isRoot bool) (interface{}, error) {
 	if node.Get("int").Exists() {
 		return map[string]interface{}{}, nil
 	}
@@ -19,7 +19,7 @@ func (l *mapDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadat
 	keyNode := node.Get(gjsonPath)
 
 	for i, k := range keyNode.Array() {
-		key, err := michelineNodeToMiguel(k, path+"/k", metadata)
+		key, err := michelineNodeToMiguel(k, path+"/k", metadata, false)
 		if err != nil {
 			return nil, err
 		}
@@ -28,7 +28,7 @@ func (l *mapDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadat
 			valNode := node.Get(gjsonPath)
 			var value interface{}
 			if valNode.Exists() {
-				value, err = michelineNodeToMiguel(valNode, path+"/v", metadata)
+				value, err = michelineNodeToMiguel(valNode, path+"/v", metadata, false)
 				if err != nil {
 					return nil, err
 				}

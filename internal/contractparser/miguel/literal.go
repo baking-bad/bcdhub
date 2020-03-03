@@ -18,10 +18,10 @@ func newLiteralDecoder() *literalDecoder {
 }
 
 // Decode -
-func (l *literalDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata) (interface{}, error) {
+func (l *literalDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata, isRoot bool) (interface{}, error) {
 	switch nm.Type {
 	case consts.CONTRACT, consts.MUTEZ, consts.NAT, consts.STRING, consts.INT, consts.SIGNATURE:
-		data, err := l.simple.Decode(node, path, nm, metadata)
+		data, err := l.simple.Decode(node, path, nm, metadata, false)
 		if err != nil {
 			return nil, err
 		}

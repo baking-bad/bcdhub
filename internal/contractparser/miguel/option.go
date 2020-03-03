@@ -19,14 +19,14 @@ func newOptionDecoder() *optionDecoder {
 }
 
 // Decode -
-func (d *optionDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata) (interface{}, error) {
+func (d *optionDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata, isRoot bool) (interface{}, error) {
 	prim := node.Get("prim|@lower").String()
 	switch prim {
 	case consts.NONE:
 		return nil, nil
 	case consts.SOME:
 		arg := node.Get("args.0")
-		return d.simple.Decode(arg, path+"/0", nm, metadata)
+		return d.simple.Decode(arg, path+"/0", nm, metadata, false)
 	default:
 		return nil, fmt.Errorf("optionDecoder.Decode: Unknown prim value %s", prim)
 	}

@@ -10,7 +10,7 @@ import (
 
 type simpleDecoder struct{}
 
-func (l *simpleDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata) (interface{}, error) {
+func (l *simpleDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata, isRoot bool) (interface{}, error) {
 	prim := node.Get("prim|@lower").String()
 	if prim == consts.NONE {
 		return nil, nil

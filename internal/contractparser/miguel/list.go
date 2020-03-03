@@ -9,7 +9,7 @@ import (
 type listDecoder struct{}
 
 // Decode -
-func (l *listDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata) (interface{}, error) {
+func (l *listDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata, isRoot bool) (interface{}, error) {
 	res := make([]interface{}, 0)
 	arr := node.Array()
 	if len(arr) > 0 {
@@ -18,7 +18,7 @@ func (l *listDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetada
 			subPath = "/s"
 		}
 		for _, arg := range arr {
-			data, err := michelineNodeToMiguel(arg, path+subPath, metadata)
+			data, err := michelineNodeToMiguel(arg, path+subPath, metadata, false)
 			if err != nil {
 				return nil, err
 			}

@@ -57,7 +57,7 @@ func (stats *ProjectStats) parse(data gjson.Result) {
 	stats.VersionsCount = data.Get("count.value").Int()
 	stats.ContractsCount = data.Get("doc_count").Int()
 	stats.Language = data.Get("language.buckets.0.key").String()
-	stats.Name = stats.getName(data.Get("key").String())
+	stats.Name = stats.getName(data)
 	stats.Last = LightContract{
 		Address:  data.Get("last.hits.hits.0._source.address").String(),
 		Network:  data.Get("last.hits.hits.0._source.network").String(),
@@ -65,8 +65,11 @@ func (stats *ProjectStats) parse(data gjson.Result) {
 	}
 }
 
-func (stats *ProjectStats) getName(id string) string {
-	s := id[:8]
+func (stats *ProjectStats) getName(data gjson.Result) string {
+	if data.Get("alias").String() != "" {
+		return data.Get("alias").String()
+	}
+	s := data.Get("key").String()[:8]
 	n, _ := strconv.ParseInt(s, 16, 64)
 	nameGenerator := namegenerator.NewNameGenerator(n)
 	name := nameGenerator.Generate()

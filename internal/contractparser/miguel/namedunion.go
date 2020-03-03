@@ -10,7 +10,7 @@ import (
 type namedUnionDecoder struct{}
 
 // Decode -
-func (l *namedUnionDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata) (interface{}, error) {
+func (l *namedUnionDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata, isRoot bool) (interface{}, error) {
 	res := make(map[string]interface{})
 	for i, arg := range nm.Args {
 		argPath := strings.TrimPrefix(arg, path+"/")
@@ -18,11 +18,16 @@ func (l *namedUnionDecoder) Decode(node gjson.Result, path string, nm *meta.Node
 		argNode := node.Get(unionPath)
 
 		if argNode.Exists() {
-			data, err := michelineNodeToMiguel(argNode, arg, metadata)
+			data, err := michelineNodeToMiguel(argNode, arg, metadata, false)
 			if err != nil {
 				return nil, err
 			}
-			name := metadata[arg].GetName(i)
+			var name string
+			if !isRoot {
+				name = metadata[arg].GetName(i)
+			} else {
+				name = metadata[arg].GetEntrypointName(i)
+			}
 			res[name] = data
 			return res, nil
 		}

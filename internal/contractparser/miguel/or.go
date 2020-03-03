@@ -10,11 +10,11 @@ import (
 type orDecoder struct{}
 
 // Decode -
-func (l *orDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata) (interface{}, error) {
+func (l *orDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata, isRoot bool) (interface{}, error) {
 	res := make(map[string]interface{})
 
 	root := metadata["0"]
-	for _, arg := range root.Args {
+	for i, arg := range root.Args {
 		if !strings.HasPrefix(arg, path) {
 			continue
 		}
@@ -22,11 +22,16 @@ func (l *orDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata
 		unionPath := getGJSONPathUnion(argPath, node)
 		argNode := node.Get(unionPath)
 		if argNode.Exists() {
-			data, err := michelineNodeToMiguel(argNode, arg, metadata)
+			data, err := michelineNodeToMiguel(argNode, arg, metadata, false)
 			if err != nil {
 				return nil, err
 			}
-			name := metadata[path].GetFieldName()
+			var name string
+			if !isRoot {
+				name = metadata[arg].GetName(i)
+			} else {
+				name = metadata[arg].GetEntrypointName(i)
+			}
 			res[name] = data
 			return res, nil
 		}
