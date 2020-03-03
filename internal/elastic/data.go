@@ -83,7 +83,7 @@ type SimilarContract struct {
 	Diff            string  `json:"diff,omitempty"`
 	Added           int64   `json:"added,omitempty"`
 	Removed         int64   `json:"removed,omitempty"`
-	ConsumedGasDiff float64 `json:"consumed_gas_diff,omitempty"`
+	ConsumedGasDiff float64 `json:"consumed_gas_diff"`
 }
 
 // PageableOperations -

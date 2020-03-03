@@ -20,7 +20,7 @@ var decoders = map[string]decoder{
 	consts.TypeUnion:      &namedUnionDecoder{},
 	consts.OR:             &orDecoder{},
 	consts.LAMBDA:         &lambdaDecoder{},
-	consts.OPTION:         newOptionDecoder(),
+	consts.OPTION:         &optionDecoder{},
 	"default":             newLiteralDecoder(),
 }
 
