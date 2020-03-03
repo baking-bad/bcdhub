@@ -94,6 +94,10 @@ func TestDecodeTz(t *testing.T) {
 			result:  "tz1MBqYpcoGU93c1bePp5A6dmwKYjmHXRopS",
 		},
 		{
+			address: "000006a868bd80219eb1f6a25108d1bdaa98ae27b2d9",
+			result:  "tz1LFEVYR7YRCxT6Nm3Zfjdnfj77xZqhbR5U",
+		},
+		{
 			address: "00003c8c2fe0f75ce212558df94c7a7306c2eeadd979",
 			result:  "tz1RABAzdLWVvxAFf1wpeUALAkp32mVhSGXX",
 		},

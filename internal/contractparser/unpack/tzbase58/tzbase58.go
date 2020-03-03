@@ -8,6 +8,12 @@ import (
 	"github.com/btcsuite/btcutil/base58"
 )
 
+// Length consts
+const (
+	KeyHashLength = 21
+	AddressLength = 22
+)
+
 // DecodePublicKey -
 func DecodePublicKey(input string) (string, error) {
 	prefixes := map[string][]byte{
@@ -58,6 +64,11 @@ func DecodeTz(input string) (string, error) {
 	}
 
 	return encodeBase58(input[4:], prefixes[input[:4]])
+}
+
+// HasKT1Affixes -
+func HasKT1Affixes(data []byte) bool {
+	return data[0] == 0x01 && data[len(data)-1] == 0x00
 }
 
 func encodeBase58(input string, prefix []byte) (string, error) {

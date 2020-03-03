@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/unpack/tzbase58"
 )
 
 type bytesDecoder struct{}
@@ -29,6 +31,20 @@ func (d bytesDecoder) Decode(dec *decoder, code *strings.Builder) (int, error) {
 
 	// log.Printf("[bytes Decode] data: %x\n", data)
 
+	if length == tzbase58.KeyHashLength {
+		if res, err := decodeKeyHash(data); err == nil {
+			fmt.Fprintf(code, `{ "string": "%s" }`, res)
+			return 4 + length, nil
+		}
+	}
+
+	if length == tzbase58.AddressLength {
+		if res, err := decodeAddress(data); err == nil {
+			fmt.Fprintf(code, `{ "string": "%s" }`, res)
+			return 4 + length, nil
+		}
+	}
+
 	s := hex.EncodeToString(data)
 	intDec := newDecoder(strings.NewReader(s))
 
@@ -43,4 +59,22 @@ func (d bytesDecoder) Decode(dec *decoder, code *strings.Builder) (int, error) {
 	}
 	fmt.Fprintf(code, `{ "bytes": "%s" }`, bufBuilder.String())
 	return 4 + length, nil
+}
+
+func decodeKeyHash(data []byte) (string, error) {
+	return tzbase58.DecodeKeyHash(hex.EncodeToString(data))
+}
+
+func decodeAddress(data []byte) (string, error) {
+	if tzbase58.HasKT1Affixes(data) {
+		if res, err := tzbase58.DecodeKT(hex.EncodeToString(data)); err == nil {
+			return res, nil
+		}
+	}
+
+	if res, err := tzbase58.DecodeTz(hex.EncodeToString(data)); err == nil {
+		return res, nil
+	}
+
+	return "", fmt.Errorf("decodeAddress: can't decode address from bytes: %v", data)
 }

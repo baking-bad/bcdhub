@@ -2,7 +2,7 @@ package unpack
 
 import (
 	"encoding/hex"
-	"unicode/utf8"
+	"unicode"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/formatter"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/unpack/rawbytes"
@@ -44,9 +44,18 @@ func Bytes(input string) string {
 	}
 
 	decoded, err := hex.DecodeString(input)
-	if err == nil && utf8.Valid(decoded) {
+	if err == nil && isASCII(decoded) {
 		return string(decoded)
 	}
 
 	return input
+}
+
+func isASCII(input []byte) bool {
+	for _, c := range input {
+		if c > unicode.MaxASCII {
+			return false
+		}
+	}
+	return true
 }
