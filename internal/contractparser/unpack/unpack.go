@@ -22,6 +22,7 @@ func KeyHash(input string) (string, error) {
 
 // Address -
 func Address(input string) (string, error) {
+	input = input[:44]
 	if input[:2] == "01" && input[len(input)-2:] == "00" {
 		return tzbase58.DecodeKT(input)
 	}

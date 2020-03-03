@@ -31,21 +31,22 @@ type NodeMetadata struct {
 func (nm *NodeMetadata) GetName(idx int) string {
 	if nm.Name == "" {
 		if idx != -1 {
-			return fmt.Sprintf("__entry__%d", idx)
+			return fmt.Sprintf("@%s_%d", nm.Type, idx)
 		}
 		return "default"
 	}
 	return nm.Name
 }
 
-// GetFieldName -
-func (nm *NodeMetadata) GetFieldName() string {
-	if nm.Name != "" {
-		return nm.Name
-	} else if nm.Type != "" {
-		return nm.Type
+// GetEntrypointName -
+func (nm *NodeMetadata) GetEntrypointName(idx int) string {
+	if nm.Name == "" {
+		if idx != -1 {
+			return fmt.Sprintf("entrypoint_%d", idx)
+		}
+		return "default"
 	}
-	return "__field__"
+	return nm.Name
 }
 
 type internalNode struct {

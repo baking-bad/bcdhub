@@ -23,7 +23,7 @@ func DecodePublicKey(input string) (string, error) {
 	}
 
 	if _, ok := prefixes[input[:2]]; !ok {
-		return "", fmt.Errorf("Unknown prefix %v", input[:2])
+		return "", fmt.Errorf("[DecodePublicKey] Unknown prefix %v", input[:2])
 	}
 
 	return encodeBase58(input[2:], prefixes[input[:2]])
@@ -38,7 +38,7 @@ func DecodeKeyHash(input string) (string, error) {
 	}
 
 	if _, ok := prefixes[input[:2]]; !ok {
-		return "", fmt.Errorf("Unknown prefix %v", input[:2])
+		return "", fmt.Errorf("[DecodeKeyHash] Unknown prefix %v", input[:2])
 	}
 
 	return encodeBase58(input[2:], prefixes[input[:2]])
@@ -60,7 +60,7 @@ func DecodeTz(input string) (string, error) {
 	}
 
 	if _, ok := prefixes[input[:4]]; !ok {
-		return "", fmt.Errorf("Unknown prefix %v", input[:4])
+		return "", fmt.Errorf("[DecodeTz] Unknown prefix %v %v", input[:4], input)
 	}
 
 	return encodeBase58(input[4:], prefixes[input[:4]])

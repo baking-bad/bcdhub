@@ -1,6 +1,8 @@
 package miguel
 
 import (
+	"time"
+
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/unpack"
@@ -18,10 +20,10 @@ func newLiteralDecoder() *literalDecoder {
 }
 
 // Decode -
-func (l *literalDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata) (interface{}, error) {
+func (l *literalDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata, isRoot bool) (interface{}, error) {
 	switch nm.Type {
 	case consts.CONTRACT, consts.MUTEZ, consts.NAT, consts.STRING, consts.INT, consts.SIGNATURE:
-		data, err := l.simple.Decode(node, path, nm, metadata)
+		data, err := l.simple.Decode(node, path, nm, metadata, false)
 		if err != nil {
 			return nil, err
 		}
@@ -84,9 +86,9 @@ func (l *literalDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMet
 	case consts.TIMESTAMP:
 		var value interface{}
 		if node.Get(consts.INT).Exists() {
-			value = node.Get(consts.INT).Int()
+			value = time.Unix(node.Get(consts.INT).Int(), 0).UTC()
 		} else if node.Get(consts.STRING).Exists() {
-			value = node.Get(consts.STRING).String()
+			value = node.Get(consts.STRING).Time().UTC()
 		}
 		return map[string]interface{}{
 			"value": value,

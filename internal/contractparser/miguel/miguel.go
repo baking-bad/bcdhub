@@ -20,7 +20,7 @@ var decoders = map[string]decoder{
 	consts.TypeUnion:      &namedUnionDecoder{},
 	consts.OR:             &orDecoder{},
 	consts.LAMBDA:         &lambdaDecoder{},
-	consts.OPTION:         newOptionDecoder(),
+	consts.OPTION:         &optionDecoder{},
 	"default":             newLiteralDecoder(),
 }
 
@@ -34,7 +34,7 @@ func MichelineToMiguel(data gjson.Result, metadata meta.Metadata) (interface{}, 
 		return nil, err
 	}
 
-	res, err := michelineNodeToMiguel(node, startPath, metadata)
+	res, err := michelineNodeToMiguel(node, startPath, metadata, true)
 	if err != nil {
 		return nil, err
 	}
@@ -71,16 +71,16 @@ func getStartPath(data gjson.Result, metadata meta.Metadata) (gjson.Result, stri
 	return data, "0", "", nil
 }
 
-func michelineNodeToMiguel(node gjson.Result, path string, metadata meta.Metadata) (interface{}, error) {
+func michelineNodeToMiguel(node gjson.Result, path string, metadata meta.Metadata, isRoot bool) (interface{}, error) {
 	nm, ok := metadata[path]
 	if !ok {
 		return nil, fmt.Errorf("Unknown metadata path: %s", path)
 	}
 
 	if dec, ok := decoders[nm.Type]; ok {
-		return dec.Decode(node, path, nm, metadata)
+		return dec.Decode(node, path, nm, metadata, isRoot)
 	}
-	return decoders["default"].Decode(node, path, nm, metadata)
+	return decoders["default"].Decode(node, path, nm, metadata, isRoot)
 }
 
 // GetGJSONPath -

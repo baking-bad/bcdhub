@@ -4,13 +4,16 @@ import (
 	"fmt"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/formatter"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
+	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 	"github.com/tidwall/gjson"
 )
 
 // Entrypoint -
 type Entrypoint struct {
 	Name       string      `json:"name"`
+	Type       string      `json:"type"`
 	Parameters interface{} `json:"parameters"`
 }
 
@@ -28,8 +31,9 @@ func GetEntrypoints(metadata meta.Metadata) ([]Entrypoint, error) {
 				return nil, err
 			}
 			ep = append(ep, Entrypoint{
-				Name:       nm.GetName(i),
+				Name:       nm.GetEntrypointName(i),
 				Parameters: params,
+				Type:       nm.Prim,
 			})
 		}
 	} else {
@@ -38,8 +42,9 @@ func GetEntrypoints(metadata meta.Metadata) ([]Entrypoint, error) {
 			return nil, err
 		}
 		ep = append(ep, Entrypoint{
-			Name:       root.GetName(-1),
+			Name:       root.GetEntrypointName(-1),
 			Parameters: params,
+			Type:       root.Prim,
 		})
 	}
 	return ep, nil
@@ -49,21 +54,45 @@ func parseEntrypointArg(metadata meta.Metadata, nm *meta.NodeMetadata, path stri
 	switch nm.Type {
 	case consts.TypeNamedTuple, consts.TypeNamedUnion, consts.TypeNamedEnum:
 		return parseEntrypointNamed(metadata, nm, path)
+	case consts.TypeTuple:
+		return parseEntrypointTuple(metadata, nm, path)
 	case consts.LIST, consts.SET:
 		return parseEntrypointList(metadata, nm, path)
 	case consts.OPTION:
 		return parseEntrypointOption(metadata, nm, path)
 	case consts.CONTRACT, consts.LAMBDA:
-		params := gjson.Parse(nm.Parameter).Value()
+		params := gjson.Parse(nm.Parameter)
+		data, err := formatter.MichelineToMichelson(params, true)
+		if err != nil {
+			return nil, err
+		}
 		return map[string]interface{}{
 			"type":   nm.Type,
-			"params": params,
+			"params": data,
 		}, nil
 	default:
 		return map[string]interface{}{
 			"type": nm.Type,
 		}, nil
 	}
+}
+
+func parseEntrypointTuple(metadata meta.Metadata, nm *meta.NodeMetadata, path string) (interface{}, error) {
+	tupleMeta := metadata[path]
+	if len(tupleMeta.Args) > 0 {
+		res := make([]interface{}, len(tupleMeta.Args))
+		for i, arg := range tupleMeta.Args {
+			value, err := parseEntrypointArg(metadata, metadata[arg], arg)
+			if err != nil {
+				return nil, err
+			}
+			res[i] = value
+		}
+		return res, nil
+	}
+	return map[string]interface{}{
+		"type": nm.Type,
+	}, nil
 }
 
 func parseEntrypointNamed(metadata meta.Metadata, nm *meta.NodeMetadata, path string) (interface{}, error) {
@@ -86,23 +115,44 @@ func parseEntrypointList(metadata meta.Metadata, nm *meta.NodeMetadata, path str
 		p = fmt.Sprintf("%s/s", path)
 	}
 	listMeta := metadata[p]
+	if helpers.StringInArray(listMeta.Type, []string{consts.TypeNamedTuple, consts.TypeTuple, consts.TypeEnum, consts.OPTION, consts.TypeNamedEnum, consts.TypeUnion, consts.TypeNamedUnion}) {
+		value, err := parseEntrypointArg(metadata, listMeta, p)
+		if err != nil {
+			return nil, err
+		}
+		return value, nil
+	}
+
 	if len(listMeta.Args) > 0 {
-		res := make([]interface{}, len(listMeta.Args))
+		params := make([]interface{}, len(listMeta.Args))
+		hasList := false
 		for i, arg := range listMeta.Args {
 			value, err := parseEntrypointArg(metadata, metadata[arg], arg)
 			if err != nil {
 				return nil, err
 			}
-			res[i] = value
+			params[i] = value
+
+			if !hasList {
+				hasList = metadata[arg].Type == consts.LIST
+			}
 		}
-		return res, nil
+		if hasList {
+			return params, nil
+		}
+		return map[string]interface{}{
+			"type":   nm.Type,
+			"params": params,
+		}, nil
 	}
+
 	value, err := parseEntrypointArg(metadata, listMeta, p)
 	if err != nil {
 		return nil, err
 	}
-	return []interface{}{
-		value,
+	return map[string]interface{}{
+		"type":   nm.Type,
+		"params": []interface{}{value},
 	}, nil
 }
 
@@ -110,21 +160,26 @@ func parseEntrypointOption(metadata meta.Metadata, nm *meta.NodeMetadata, path s
 	p := fmt.Sprintf("%s/o", path)
 	optionMeta := metadata[p]
 	if len(optionMeta.Args) > 0 {
-		res := make([]interface{}, len(optionMeta.Args))
+		params := make([]interface{}, len(optionMeta.Args))
 		for i, arg := range optionMeta.Args {
 			value, err := parseEntrypointArg(metadata, metadata[arg], arg)
 			if err != nil {
 				return nil, err
 			}
-			res[i] = value
+			params[i] = value
 		}
-		return res, nil
+		result := map[string]interface{}{
+			"type":   nm.Type,
+			"params": params,
+		}
+		return result, nil
 	}
 	value, err := parseEntrypointArg(metadata, optionMeta, p)
 	if err != nil {
 		return nil, err
 	}
-	return []interface{}{
-		value,
+	return map[string]interface{}{
+		"type":   nm.Type,
+		"params": []interface{}{value},
 	}, nil
 }

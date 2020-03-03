@@ -6,5 +6,5 @@ import (
 )
 
 type decoder interface {
-	Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata) (interface{}, error)
+	Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata, isRoot bool) (interface{}, error)
 }
