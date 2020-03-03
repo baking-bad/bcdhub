@@ -108,7 +108,7 @@ func TestToMicheline(t *testing.T) {
 		{
 			name:   "KT1FgscaMyhxoVLbVirJVVKpRXgiSGtDG9Z4",
 			input:  "0a00000016000006a868bd80219eb1f6a25108d1bdaa98ae27b2d9",
-			result: `{ "bytes": "000006a868bd80219eb1f6a25108d1bdaa98ae27b2d9" }`,
+			result: `{ "string": "tz1LFEVYR7YRCxT6Nm3Zfjdnfj77xZqhbR5U" }`,
 		},
 		{
 			name:   "KT1FgscaMyhxoVLbVirJVVKpRXgiSGtDG9Z4",
@@ -193,7 +193,7 @@ func TestToMicheline(t *testing.T) {
 		{
 			name:   "KT1FgscaMyhxoVLbVirJVVKpRXgiSGtDG9Z4",
 			input:  "0a00000016000006a868bd80219eb1f6a25108d1bdaa98ae27b2d9",
-			result: `{ "bytes": "000006a868bd80219eb1f6a25108d1bdaa98ae27b2d9" }`,
+			result: `{ "string": "tz1LFEVYR7YRCxT6Nm3Zfjdnfj77xZqhbR5U" }`,
 		},
 	}
 

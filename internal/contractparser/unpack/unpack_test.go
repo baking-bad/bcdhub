@@ -126,10 +126,10 @@ func TestBytes(t *testing.T) {
 			result:  `"admin"`,
 		},
 		{
-			name:    "KT1FgscaMyhxoVLbVirJVVKpRXgiSGtDG9Z4",
+			name:    "KT1FgscaMyhxoVLbVirJVVKpRXgiSGtDG9Z4 decode address from bytes #1",
 			input:   "050a00000016000006a868bd80219eb1f6a25108d1bdaa98ae27b2d9",
 			jsonstr: `{ "bytes": "000006a868bd80219eb1f6a25108d1bdaa98ae27b2d9" }`,
-			result:  "0x000006a868bd80219eb1f6a25108d1bdaa98ae27b2d9",
+			result:  `"tz1LFEVYR7YRCxT6Nm3Zfjdnfj77xZqhbR5U"`,
 		},
 		{
 			name:    "KT1FgscaMyhxoVLbVirJVVKpRXgiSGtDG9Z4",
@@ -228,10 +228,16 @@ func TestBytes(t *testing.T) {
 			result:  `"redeemAddress"`,
 		},
 		{
-			name:    "KT1FgscaMyhxoVLbVirJVVKpRXgiSGtDG9Z4",
+			name:    "KT1FgscaMyhxoVLbVirJVVKpRXgiSGtDG9Z4 decode address from bytes #2",
 			input:   "050a00000016000006a868bd80219eb1f6a25108d1bdaa98ae27b2d9",
 			jsonstr: `{ "bytes": "000006a868bd80219eb1f6a25108d1bdaa98ae27b2d9" }`,
-			result:  "0x000006a868bd80219eb1f6a25108d1bdaa98ae27b2d9",
+			result:  `"tz1LFEVYR7YRCxT6Nm3Zfjdnfj77xZqhbR5U"`,
+		},
+		{
+			name:    "decode keyhash from bytes",
+			input:   "050a000000150044c6f8bc6088cd3b64f0bca87f812634c3f0ed30",
+			jsonstr: ``,
+			result:  `"tz1RugzxKA8NwuymbGcy2wkSTvfRJpckfmDF"`,
 		},
 		// {
 		// 	name:    "if it`s",
@@ -251,6 +257,18 @@ func TestBytes(t *testing.T) {
 		// 	jsonstr: ``,
 		// 	result:  "",
 		// },
+		{
+			name:    "Test ascii string",
+			input:   "68747470733a2f2f6d6f6e6579657665727933646179732e636f6d2f6d6f6e6579657665727933646179732e6a736f6e",
+			jsonstr: ``,
+			result:  "https://moneyevery3days.com/moneyevery3days.json",
+		},
+		{
+			name:    "Test non-ascii string",
+			input:   "ff68747470733a2f2f6d6f6e6579657665727933646179732e636f6d2f6d6f6e6579657665727933646179732e6a736f6e",
+			jsonstr: ``,
+			result:  "ff68747470733a2f2f6d6f6e6579657665727933646179732e636f6d2f6d6f6e6579657665727933646179732e6a736f6e",
+		},
 	}
 
 	for _, tc := range validTestCases {
