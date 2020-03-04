@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/cerrors"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/miguel"
@@ -113,7 +113,7 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 		return op, nil
 	}
 
-	if operation.Parameters != "" && strings.HasPrefix(op.Destination, "KT") && !contractparser.IsParametersError(op.Result.Errors) {
+	if operation.Parameters != "" && strings.HasPrefix(op.Destination, "KT") && !cerrors.HasParametersError(op.Result.Errors) {
 		metadata, err := meta.GetMetadata(es, op.Destination, op.Network, "parameter", op.Protocol)
 		if err != nil {
 			return op, nil
@@ -123,7 +123,7 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 
 		op.Parameters, err = miguel.MichelineToMiguel(params, metadata)
 		if err != nil {
-			if !contractparser.IsGasExhaustedError(op.Result.Errors) {
+			if !cerrors.HasGasExhaustedError(op.Result.Errors) {
 				helpers.CatchErrorSentry(err)
 				return op, err
 			}

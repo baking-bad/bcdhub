@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/cerrors"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/miguel"
@@ -64,9 +65,10 @@ func (ctx *Context) prepareMempoolOperations(res gjson.Result, address, network 
 
 			Result: &models.OperationResult{
 				Status: status,
-				Errors: item.Get("errors").String(),
 			},
 		}
+
+		op.Result.Errors = cerrors.ParseArray(data.Get("errors"))
 
 		if op.Kind != consts.Transaction {
 			ret = append(ret, op)
