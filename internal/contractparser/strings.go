@@ -43,3 +43,18 @@ func IsParametersError(errorString string) bool {
 	}
 	return false
 }
+
+// IsGasExhaustedError -
+func IsGasExhaustedError(errorString string) bool {
+	data := gjson.Parse(errorString)
+	if !data.IsArray() {
+		return false
+	}
+	for _, err := range data.Array() {
+		errID := err.Get("id").String()
+		if strings.Contains(errID, consts.GasExhaustedError) {
+			return true
+		}
+	}
+	return false
+}

@@ -14,7 +14,10 @@ func (l *namedUnionDecoder) Decode(node gjson.Result, path string, nm *meta.Node
 	res := make(map[string]interface{})
 	for i, arg := range nm.Args {
 		argPath := strings.TrimPrefix(arg, path+"/")
-		unionPath := getGJSONPathUnion(argPath, node)
+		unionPath, err := getGJSONPathUnion(argPath, node)
+		if err != nil {
+			continue
+		}
 		argNode := node.Get(unionPath)
 
 		if argNode.Exists() {

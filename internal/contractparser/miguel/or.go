@@ -18,8 +18,11 @@ func (l *orDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata
 		if !strings.HasPrefix(arg, path) {
 			continue
 		}
-		argPath := strings.TrimPrefix(arg, path)
-		unionPath := getGJSONPathUnion(argPath, node)
+		argPath := strings.TrimPrefix(arg, path+"/")
+		unionPath, err := getGJSONPathUnion(argPath, node)
+		if err != nil {
+			continue
+		}
 		argNode := node.Get(unionPath)
 		if argNode.Exists() {
 			data, err := michelineNodeToMiguel(argNode, arg, metadata, false)

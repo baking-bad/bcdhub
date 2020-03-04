@@ -14,6 +14,7 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
 	github.com/jinzhu/gorm v1.9.11
+	github.com/labstack/gommon v0.3.0
 	github.com/pkg/errors v0.8.1
 	github.com/r3labs/diff v0.0.0-20191120142937-b4ed99a31f5a
 	github.com/sergi/go-diff v1.0.0

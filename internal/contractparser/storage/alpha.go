@@ -96,7 +96,7 @@ func (a Alpha) ParseOrigination(content gjson.Result, protocol string, level int
 }
 
 // Enrich -
-func (a Alpha) Enrich(storage string, bmd gjson.Result) (gjson.Result, error) {
+func (a Alpha) Enrich(storage string, bmd gjson.Result, skipEmpty bool) (gjson.Result, error) {
 	if bmd.IsArray() && len(bmd.Array()) == 0 {
 		return gjson.Parse(storage), nil
 	}
@@ -105,6 +105,9 @@ func (a Alpha) Enrich(storage string, bmd gjson.Result) (gjson.Result, error) {
 
 	res := make([]interface{}, 0)
 	for _, b := range bmd.Array() {
+		if skipEmpty && b.Get("value").String() == "" {
+			continue
+		}
 		elt := map[string]interface{}{
 			"prim": "Elt",
 		}

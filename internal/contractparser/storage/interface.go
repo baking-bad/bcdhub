@@ -16,5 +16,5 @@ type RichStorage struct {
 type Parser interface {
 	ParseTransaction(content gjson.Result, protocol string, level int64, operationID string) (RichStorage, error)
 	ParseOrigination(content gjson.Result, protocol string, level int64, operationID string) (RichStorage, error)
-	Enrich(string, gjson.Result) (gjson.Result, error)
+	Enrich(string, gjson.Result, bool) (gjson.Result, error)
 }
