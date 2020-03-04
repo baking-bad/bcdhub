@@ -3,6 +3,8 @@ package contractparser
 import (
 	"fmt"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/language"
+
 	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 	"github.com/tidwall/gjson"
 )
@@ -46,6 +48,10 @@ func (s *Script) Parse() {
 
 // Language -
 func (s *Script) Language() string {
+	if s.Code.Language == language.LangUnknown {
+		return language.DetectInEntries(s.Code.Parameter.Entrypoints())
+	}
+
 	return s.Code.Language
 }
 

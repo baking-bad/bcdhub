@@ -1,13 +1,5 @@
 package consts
 
-// Languages
-const (
-	LangSmartPy   = "smartpy"
-	LangLiquidity = "liquidity"
-	LangLigo      = "ligo"
-	LangUnknown   = "michelson"
-)
-
 // Tags name
 const (
 	ViewMethodTag      = "view_method"
