@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/language"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/node"
 	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 	"github.com/tidwall/gjson"
@@ -27,7 +28,7 @@ type Code struct {
 func newCode(script gjson.Result) (Code, error) {
 	res := Code{
 		parser:      &parser{},
-		Language:    consts.LangUnknown,
+		Language:    language.LangUnknown,
 		FailStrings: make(helpers.Set),
 		Primitives:  make(helpers.Set),
 		Tags:        make(helpers.Set),
@@ -100,25 +101,10 @@ func (c *Code) handlePrimitive(n node.Node) (err error) {
 		c.Annotations.Append(n.Annotations...)
 	}
 
-	if n.Is("") && n.Type == consts.KeyString && c.Language == consts.LangUnknown {
-		c.detectLanguage(n)
+	if n.Is("") && n.Type == consts.KeyString && c.Language == language.LangUnknown {
+		c.Language = language.Get(n)
 	}
 	c.Tags.Append(primTags(n))
 
 	return nil
-}
-
-func (c *Code) detectLanguage(n node.Node) {
-	if detectLiquidity(n, c.Parameter.Entrypoints()) {
-		c.Language = consts.LangLiquidity
-		return
-	}
-	if detectPython(n) {
-		c.Language = consts.LangSmartPy
-		return
-	}
-	if detectLIGO(n) {
-		c.Language = consts.LangLigo
-		return
-	}
 }
