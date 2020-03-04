@@ -27,19 +27,20 @@ func getOperations(rpc *noderpc.NodeRPC, es *elastic.Elastic, block int64, netwo
 				continue
 			}
 
-			protocol := opg.Get("protocol").String()
-			res := parseContent(item, protocol)
+			res := parseContent(item)
 			if res == nil {
 				continue
 			}
+
 			opgHash := opg.Get("hash").String()
+			protocol := opg.Get("protocol").String()
 			if err := finishParseOperation(es, rpc, item, protocol, network, opgHash, block, contracts, res); err != nil {
 				return nil, err
 			}
 
 			operations = append(operations, *res)
 
-			internal := parseInternalOperations(es, rpc, item, protocol, network, opgHash, block, contracts)
+			internal := parseInternalOperations(es, rpc, item, res, contracts)
 			operations = append(operations, internal...)
 
 		}
@@ -52,6 +53,7 @@ func finishParseOperation(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjson.
 	op.Hash = hash
 	op.Level = level
 	op.Network = network
+	op.Protocol = protocol
 	op.IndexedTime = time.Now().UnixNano() / 1000
 
 	if isContract(contracts, op.Destination) && isApplied(op) {
@@ -85,10 +87,9 @@ func needParse(item gjson.Result, idx int) bool {
 	return originationCondition || transactionCondition
 }
 
-func parseContent(item gjson.Result, protocol string) *models.Operation {
+func parseContent(item gjson.Result) *models.Operation {
 	op := models.Operation{
 		ID:             strings.ReplaceAll(uuid.New().String(), "-", ""),
-		Protocol:       protocol,
 		Kind:           item.Get("kind").String(),
 		Source:         item.Get("source").String(),
 		Fee:            item.Get("fee").Int(),
@@ -104,7 +105,7 @@ func parseContent(item gjson.Result, protocol string) *models.Operation {
 		Parameters:     item.Get("parameters").String(),
 		BalanceUpdates: parseBalanceUpdates(item, "metadata"),
 	}
-	res, bu := parseResult(item, protocol)
+	res, bu := parseResult(item)
 	op.Result = res
 	op.BalanceUpdates = append(op.BalanceUpdates, bu...)
 	if op.Kind == consts.Origination {
@@ -129,7 +130,7 @@ func parseBalanceUpdates(item gjson.Result, root string) []models.BalanceUpdate 
 	return bu
 }
 
-func createResult(item gjson.Result, path, protocol string) *models.OperationResult {
+func createResult(item gjson.Result, path string) *models.OperationResult {
 	return &models.OperationResult{
 		Status:                       item.Get(path + ".status").String(),
 		ConsumedGas:                  item.Get(path + ".consumed_gas").Int(),
@@ -141,7 +142,7 @@ func createResult(item gjson.Result, path, protocol string) *models.OperationRes
 	}
 }
 
-func parseResult(item gjson.Result, protocol string) (*models.OperationResult, []models.BalanceUpdate) {
+func parseResult(item gjson.Result) (*models.OperationResult, []models.BalanceUpdate) {
 	path := fmt.Sprintf("metadata.operation_result")
 	if !item.Get(path).Exists() {
 		path = fmt.Sprintf("result")
@@ -149,10 +150,10 @@ func parseResult(item gjson.Result, protocol string) (*models.OperationResult, [
 			return nil, nil
 		}
 	}
-	return createResult(item, path, protocol), parseBalanceUpdates(item, path)
+	return createResult(item, path), parseBalanceUpdates(item, path)
 }
 
-func parseInternalOperations(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjson.Result, protocol, network, hash string, level int64, contracts map[string]struct{}) []models.Operation {
+func parseInternalOperations(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjson.Result, main *models.Operation, contracts map[string]struct{}) []models.Operation {
 	path := fmt.Sprintf("metadata.internal_operation_results")
 	if !item.Get(path).Exists() {
 		path = fmt.Sprintf("metadata.internal_operations")
@@ -163,8 +164,9 @@ func parseInternalOperations(es *elastic.Elastic, rpc *noderpc.NodeRPC, item gjs
 
 	res := make([]models.Operation, 0)
 	for _, op := range item.Get(path).Array() {
-		val := parseContent(op, protocol)
-		if err := finishParseOperation(es, rpc, op, protocol, network, hash, level, contracts, val); err != nil {
+		val := parseContent(op)
+		val.Counter = main.Counter
+		if err := finishParseOperation(es, rpc, op, main.Protocol, main.Network, main.Hash, main.Level, contracts, val); err != nil {
 			logger.Error(err)
 			continue
 		}

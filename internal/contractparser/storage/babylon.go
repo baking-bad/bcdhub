@@ -97,7 +97,7 @@ func (b Babylon) ParseOrigination(content gjson.Result, protocol string, level i
 }
 
 // Enrich -
-func (b Babylon) Enrich(storage string, bmd gjson.Result) (gjson.Result, error) {
+func (b Babylon) Enrich(storage string, bmd gjson.Result, skipEmpty bool) (gjson.Result, error) {
 	if bmd.IsArray() && len(bmd.Array()) == 0 {
 		return gjson.Parse(storage), nil
 	}
@@ -105,11 +105,15 @@ func (b Babylon) Enrich(storage string, bmd gjson.Result) (gjson.Result, error) 
 	data := gjson.Parse(storage)
 	m := map[string][]interface{}{}
 	for _, bm := range bmd.Array() {
+		if skipEmpty && bm.Get("value").String() == "" {
+			continue
+		}
 		elt := map[string]interface{}{
 			"prim": "Elt",
 		}
 		args := make([]interface{}, 2)
 		args[0] = bm.Get("key").Value()
+
 		val := gjson.Parse(bm.Get("value").String())
 		args[1] = val.Value()
 

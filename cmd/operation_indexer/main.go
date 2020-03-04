@@ -1,11 +1,13 @@
 package main
 
 import (
+	"strings"
 	"time"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
 	"github.com/aopoltorzhicky/bcdhub/internal/logger"
+	"github.com/tidwall/gjson"
 )
 
 func main() {
@@ -25,6 +27,13 @@ func main() {
 		helpers.CatchErrorSentry(err)
 		return
 	}
+
+	gjson.AddModifier("upper", func(json, arg string) string {
+		return strings.ToUpper(json)
+	})
+	gjson.AddModifier("lower", func(json, arg string) string {
+		return strings.ToLower(json)
+	})
 
 	// Initial syncronization
 	if err = process(ctx); err != nil {

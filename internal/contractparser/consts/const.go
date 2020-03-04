@@ -48,4 +48,5 @@ const (
 // Error IDs
 const (
 	BadParameterError = "michelson_v1.bad_contract_parameter"
+	GasExhaustedError = "gas_exhausted.operation"
 )

@@ -133,14 +133,17 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 	if operation.Parameters != "" && strings.HasPrefix(op.Destination, "KT") && !contractparser.IsParametersError(op.Result.Errors) {
 		metadata, err := meta.GetMetadata(es, op.Destination, op.Network, "parameter", op.Protocol)
 		if err != nil {
-			return op, err
+			return op, nil
 		}
 
 		params := gjson.Parse(operation.Parameters)
 
 		op.Parameters, err = miguel.MichelineToMiguel(params, metadata)
 		if err != nil {
-			return op, err
+			if !contractparser.IsGasExhaustedError(op.Result.Errors) {
+				helpers.CatchErrorSentry(err)
+				return op, err
+			}
 		}
 	}
 
@@ -168,7 +171,7 @@ func setStorageDiff(es *elastic.Elastic, address, network string, storage string
 	if err != nil {
 		return err
 	}
-	store, err := enrichStorage(storage, bmd, op.Protocol)
+	store, err := enrichStorage(storage, bmd, op.Protocol, false)
 	if err != nil {
 		return err
 	}
@@ -187,7 +190,7 @@ func setStorageDiff(es *elastic.Elastic, address, network string, storage string
 				return err
 			}
 		}
-		prevStore, err := enrichStorage(prev.DeffatedStorage, prevBmd, op.Protocol)
+		prevStore, err := enrichStorage(prev.DeffatedStorage, prevBmd, op.Protocol, false)
 		if err != nil {
 			return err
 		}
@@ -230,7 +233,7 @@ func setStorageDiff(es *elastic.Elastic, address, network string, storage string
 	return nil
 }
 
-func enrichStorage(s string, bmd gjson.Result, protocol string) (gjson.Result, error) {
+func enrichStorage(s string, bmd gjson.Result, protocol string, skipEmpty bool) (gjson.Result, error) {
 	if len(bmd.Array()) == 0 {
 		return gjson.Parse(s), nil
 	}
@@ -243,7 +246,7 @@ func enrichStorage(s string, bmd gjson.Result, protocol string) (gjson.Result, e
 	} else {
 		parser = storage.NewAlpha(nil)
 	}
-	return parser.Enrich(s, bmd)
+	return parser.Enrich(s, bmd, skipEmpty)
 }
 
 func getPrevBmd(es *elastic.Elastic, bmd gjson.Result, level int64, address string) (gjson.Result, error) {

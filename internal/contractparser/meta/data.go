@@ -31,7 +31,7 @@ type NodeMetadata struct {
 func (nm *NodeMetadata) GetName(idx int) string {
 	if nm.Name == "" {
 		if idx != -1 {
-			return fmt.Sprintf("@%s_%d", nm.Type, idx)
+			return fmt.Sprintf("@%s_%d", nm.Prim, idx)
 		}
 		return "default"
 	}

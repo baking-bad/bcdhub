@@ -38,10 +38,16 @@ func MichelineToMiguel(data gjson.Result, metadata meta.Metadata) (interface{}, 
 	if err != nil {
 		return nil, err
 	}
-	if startPath != "0" && entrypoint != "" {
-		return map[string]interface{}{
-			entrypoint: res,
-		}, nil
+
+	root := metadata["0"]
+	if root.Prim == consts.OR {
+		for _, arg := range root.Args {
+			if arg == startPath {
+				return map[string]interface{}{
+					entrypoint: res,
+				}, nil
+			}
+		}
 	}
 	return res, nil
 }
@@ -112,7 +118,7 @@ func buildPathFromArray(parts []string) (res string) {
 	return
 }
 
-func getGJSONPathUnion(path string, node gjson.Result) (res string) {
+func getGJSONPathUnion(path string, node gjson.Result) (res string, err error) {
 	parts := strings.Split(path, "/")
 	if len(parts) > 0 {
 		idx := len(parts)
@@ -121,7 +127,7 @@ func getGJSONPathUnion(path string, node gjson.Result) (res string) {
 			case "0":
 				if node.IsObject() {
 					if node.Get(res+"prim").String() != "Left" {
-						return ""
+						return "", fmt.Errorf("Invalid path")
 					}
 					res += "args.0."
 				} else {
@@ -130,7 +136,7 @@ func getGJSONPathUnion(path string, node gjson.Result) (res string) {
 			case "1":
 				if node.IsObject() {
 					if node.Get(res+"prim").String() != "Right" {
-						return ""
+						return "", fmt.Errorf("Invalid path")
 					}
 					res += "args.0."
 				} else {

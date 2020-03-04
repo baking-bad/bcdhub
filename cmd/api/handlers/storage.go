@@ -29,7 +29,7 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 	}
 
 	protocol := storage.Get("_source.protocol").String()
-	s, err := enrichStorage(storage.Get("_source.deffated_storage").String(), bmd, protocol)
+	s, err := enrichStorage(storage.Get("_source.deffated_storage").String(), bmd, protocol, true)
 	if err != nil {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
