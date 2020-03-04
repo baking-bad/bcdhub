@@ -30,7 +30,7 @@ const (
 const (
 	Mainnet  = "mainnet"
 	Babylon  = "babylonnet"
-	Carthage = "cartagenet"
+	Carthage = "carthagenet"
 	Zeronet  = "zeronet"
 )
 

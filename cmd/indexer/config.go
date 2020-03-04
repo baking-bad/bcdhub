@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/logger"
 	"github.com/fatih/color"
 )
 
@@ -35,12 +36,11 @@ func (cfg config) print() {
 	green := color.New(color.FgGreen).SprintFunc()
 	blue := color.New(color.FgBlue).SprintFunc()
 
-	log.Print("-----------CONFIG-----------")
-	log.Printf("Indexer: %s", blue(cfg.Indexer))
+	logger.Info("Indexer: %s", blue(cfg.Indexer))
 	for _, node := range cfg.NodeRPC {
 		log.Printf("Node: [%s] %s", green(node.Network), node.Host)
 	}
-	log.Printf("Update every %s second", blue(cfg.UpdateTimer))
-	log.Printf("Elastic URI: %s", blue(cfg.Search.URI))
-	log.Printf("Files directory: %s", blue(cfg.FilesDirectory))
+	logger.Info("Update every %s second", blue(cfg.UpdateTimer))
+	logger.Info("Elastic URI: %s", blue(cfg.Search.URI))
+	logger.Info("Files directory: %s", blue(cfg.FilesDirectory))
 }

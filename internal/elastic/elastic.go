@@ -6,14 +6,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
-	"strings"
 	"time"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/logger"
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
-	"github.com/google/uuid"
 	"github.com/tidwall/gjson"
 )
 
@@ -36,9 +34,24 @@ func New(addresses []string) (*Elastic, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("Elasticsearch Server: %s", r.Get("version.number").String())
+	logger.Info("Elasticsearch Server: %s", r.Get("version.number").String())
 
 	return e, nil
+}
+
+// WaitNew -
+func WaitNew(addresses []string) *Elastic {
+	var es *Elastic
+	var err error
+
+	for es == nil {
+		es, err = New(addresses)
+		if err != nil {
+			logger.Warning("Waiting elastic up 30 second...")
+			time.Sleep(time.Second * 30)
+		}
+	}
+	return es
 }
 
 func (e *Elastic) getResponse(resp *esapi.Response) (result gjson.Result, err error) {
@@ -81,8 +94,7 @@ func (e *Elastic) query(index string, query map[string]interface{}, source ...st
 
 	defer resp.Body.Close()
 
-	result, err = e.getResponse(resp)
-	return
+	return e.getResponse(resp)
 }
 
 func (e *Elastic) executeSQL(sqlString string) (result gjson.Result, err error) {
@@ -105,8 +117,7 @@ func (e *Elastic) executeSQL(sqlString string) (result gjson.Result, err error) 
 	}
 	defer resp.Body.Close()
 
-	result, err = e.getResponse(resp)
-	return
+	return e.getResponse(resp)
 }
 
 func (e *Elastic) createScroll(index string, size int64, query map[string]interface{}) (result gjson.Result, err error) {
@@ -133,19 +144,17 @@ func (e *Elastic) createScroll(index string, size int64, query map[string]interf
 	}
 	defer resp.Body.Close()
 
-	result, err = e.getResponse(resp)
-	return
+	return e.getResponse(resp)
 }
 
 func (e *Elastic) queryScroll(scrollID string) (result gjson.Result, err error) {
 	resp, err := e.Scroll(e.Scroll.WithScrollID(scrollID), e.Scroll.WithScroll(time.Minute))
 	if err != nil {
-		log.Fatalf("Error: %s", err)
+		return
 	}
 	defer resp.Body.Close()
 
-	result, err = e.getResponse(resp)
-	return
+	return e.getResponse(resp)
 }
 
 // TestConnection -
@@ -155,136 +164,7 @@ func (e *Elastic) TestConnection() (result gjson.Result, err error) {
 		return
 	}
 
-	result, err = e.getResponse(res)
-	return
-}
-
-// AddDocument -
-func (e *Elastic) AddDocument(v interface{}, index string) (string, error) {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return "", err
-	}
-	req := esapi.IndexRequest{
-		Index:   index,
-		Body:    bytes.NewReader(b),
-		Refresh: "true",
-	}
-
-	res, err := req.Do(context.Background(), e)
-	if err != nil {
-		return "", err
-	}
-	defer res.Body.Close()
-
-	r, err := e.getResponse(res)
-	if err != nil {
-		return "", err
-	}
-	return r.Get("_id").String(), nil
-}
-
-// AddDocumentWithID -
-func (e *Elastic) AddDocumentWithID(v interface{}, index, docID string) (string, error) {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return "", err
-	}
-	req := esapi.IndexRequest{
-		Index:      index,
-		Body:       bytes.NewReader(b),
-		Refresh:    "true",
-		DocumentID: docID,
-	}
-
-	res, err := req.Do(context.Background(), e)
-	if err != nil {
-		return "", err
-	}
-	defer res.Body.Close()
-
-	r, err := e.getResponse(res)
-	if err != nil {
-		return "", err
-	}
-	return r.Get("_id").String(), nil
-}
-
-// BulkInsertArray -
-func (e *Elastic) BulkInsertArray(index string, v interface{}) error {
-	bulk := bytes.NewBuffer([]byte{})
-	arr := v.([]interface{})
-	for i := range arr {
-		id := uuid.New().String()
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_id": "%s"} }%s`, id, "\n"))
-		data, err := json.Marshal(arr[i])
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-		data = append(data, "\n"...)
-
-		bulk.Grow(len(meta) + len(data))
-		bulk.Write(meta)
-		bulk.Write(data)
-	}
-	return e.BulkInsert(index, bulk)
-}
-
-// CreateIndex -
-func (e *Elastic) CreateIndex(index string) error {
-	resp, err := e.Indices.Create(index, e.Indices.Create.WithContext(context.Background()))
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	_, err = e.getResponse(resp)
-	return err
-}
-
-// GetByID -
-func (e *Elastic) GetByID(index, id string) (result gjson.Result, err error) {
-	req := esapi.GetRequest{
-		Index:      index,
-		DocumentID: id,
-	}
-	resp, err := req.Do(context.Background(), e)
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
-
-	result, err = e.getResponse(resp)
-	return
-}
-
-// GetByIDs -
-func (e *Elastic) GetByIDs(index string, ids []string) (result gjson.Result, err error) {
-	query := newQuery().Query(
-		qItem{
-			"ids": qItem{
-				"values": ids,
-			},
-		},
-	)
-	return e.query(index, query)
-}
-
-// Match - returns data by match filter
-func (e *Elastic) Match(index string, match map[string]interface{}) (gjson.Result, error) {
-	query := map[string]interface{}{
-		"query": map[string]interface{}{
-			"match": match,
-		},
-	}
-	return e.query(index, query)
-}
-
-// MatchAll - returns all data
-func (e *Elastic) MatchAll(index string) (gjson.Result, error) {
-	query := newQuery().Query(matchAll()).All()
-	return e.query(index, query)
+	return e.getResponse(res)
 }
 
 // UpdateDoc - updates document by ID
@@ -310,43 +190,34 @@ func (e *Elastic) UpdateDoc(index, id string, v interface{}) (result gjson.Resul
 	return
 }
 
-// BulkInsert -
-func (e *Elastic) BulkInsert(index string, buf *bytes.Buffer) error {
-	req := esapi.BulkRequest{
-		Index:   index,
-		Body:    bytes.NewReader(buf.Bytes()),
-		Refresh: "true",
+// CreateIndexIfNotExists -
+func (e *Elastic) CreateIndexIfNotExists(index string) error {
+	req := esapi.IndicesExistsRequest{
+		Index: []string{index},
 	}
-
 	res, err := req.Do(context.Background(), e)
 	if err != nil {
 		return err
 	}
-	defer res.Body.Close()
 
-	_, err = e.getResponse(res)
-	return err
-}
-
-// CreateIndexIfNotExists -
-func (e *Elastic) CreateIndexIfNotExists(index string) error {
-	_, err := e.MatchAll(index)
-	if err != nil {
-		if !strings.Contains(err.Error(), IndexNotFoundError) {
-			return err
-		}
-	} else {
+	if !res.IsError() {
 		return nil
 	}
 
 	jsonFile, err := os.Open(fmt.Sprintf("mappings/%s.json", index))
 	if err != nil {
-		log.Printf("Can't open %s.json file.", index)
-		return err
+		res, err = e.Indices.Create(index)
+		if err != nil {
+			return err
+		}
+		if res.IsError() {
+			return fmt.Errorf("%s", res)
+		}
+		return nil
 	}
 	defer jsonFile.Close()
 
-	res, err := e.Indices.Create(index, e.Indices.Create.WithBody(jsonFile))
+	res, err = e.Indices.Create(index, e.Indices.Create.WithBody(jsonFile))
 	if err != nil {
 		return err
 	}
@@ -354,5 +225,4 @@ func (e *Elastic) CreateIndexIfNotExists(index string) error {
 		return fmt.Errorf("%s", res)
 	}
 	return nil
-
 }

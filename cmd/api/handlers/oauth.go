@@ -12,22 +12,10 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// OauthRequest -
-type OauthRequest struct {
-	State string `form:"state"`
-	Code  string `form:"code"`
-}
-
-// OauthParams -
-type OauthParams struct {
-	Provider string `uri:"provider"`
-}
-
 // OauthLogin -
 func (ctx *Context) OauthLogin(c *gin.Context) {
 	var params OauthParams
-	if err := c.BindUri(&params); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+	if err := c.BindUri(&params); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -39,7 +27,7 @@ func (ctx *Context) OauthLogin(c *gin.Context) {
 	case "gitlab":
 		redirectURL = ctx.OAUTH.Gitlab.AuthCodeURL(ctx.OAUTH.State)
 	default:
-		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("invalid provider %v", params.Provider))
+		handleError(c, fmt.Errorf("invalid provider %v", params.Provider), http.StatusBadRequest)
 		return
 	}
 
@@ -49,19 +37,17 @@ func (ctx *Context) OauthLogin(c *gin.Context) {
 // OauthCallback -
 func (ctx *Context) OauthCallback(c *gin.Context) {
 	var params OauthParams
-	if err := c.BindUri(&params); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+	if err := c.BindUri(&params); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	var req OauthRequest
-	if err := c.ShouldBind(&req); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+	if err := c.ShouldBind(&req); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	if req.State != ctx.OAUTH.State {
-		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("invalid oauth state"))
+		handleError(c, fmt.Errorf("invalid oauth state"), http.StatusBadRequest)
 		return
 	}
 
@@ -74,23 +60,20 @@ func (ctx *Context) OauthCallback(c *gin.Context) {
 	case "gitlab":
 		user, err = ctx.authGitlabUser(req.Code)
 	default:
-		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("invalid provider %v", params.Provider))
+		handleError(c, fmt.Errorf("invalid provider %v", params.Provider), http.StatusBadRequest)
 		return
 	}
 
-	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
-	if err := ctx.DB.GetOrCreateUser(&user); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+	if err := ctx.DB.GetOrCreateUser(&user); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	jwt, err := ctx.OAUTH.MakeJWT(user.ID)
-	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 

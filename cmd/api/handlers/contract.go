@@ -8,16 +8,10 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-type getContractRequest struct {
-	Address string `uri:"address"`
-	Network string `uri:"network"`
-}
-
 // GetContract -
 func (ctx *Context) GetContract(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -26,18 +20,15 @@ func (ctx *Context) GetContract(c *gin.Context) {
 		"network": req.Network,
 	}
 	cntr, err := ctx.ES.GetContract(by)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 	res, err := ctx.setProfileInfo(cntr)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 
-	if err := ctx.setAlias(&res); err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if err := ctx.setAlias(&res); handleError(c, err, 0) {
 		return
 	}
 
@@ -47,8 +38,7 @@ func (ctx *Context) GetContract(c *gin.Context) {
 // GetRandomContract -
 func (ctx *Context) GetRandomContract(c *gin.Context) {
 	cntr, err := ctx.ES.GetRandomContract()
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 

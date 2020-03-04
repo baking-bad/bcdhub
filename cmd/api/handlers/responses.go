@@ -81,3 +81,9 @@ type OperationResponse struct {
 	Operations []Operation `json:"operations"`
 	LastID     string      `json:"last_id"`
 }
+
+type userProfile struct {
+	Login         string         `json:"login"`
+	AvatarURL     string         `json:"avatarURL"`
+	Subscriptions []Subscription `json:"subscriptions"`
+}

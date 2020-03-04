@@ -10,8 +10,7 @@ import (
 // Recommendations -
 func (ctx *Context) Recommendations(c *gin.Context) {
 	subscriptions, err := ctx.DB.ListSubscriptions(ctx.OAUTH.UserID)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 
@@ -22,8 +21,7 @@ func (ctx *Context) Recommendations(c *gin.Context) {
 		}
 	}
 	contracts, err := ctx.ES.GetContractsByID(ids)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 
@@ -34,8 +32,7 @@ func (ctx *Context) Recommendations(c *gin.Context) {
 	}
 
 	recommended, err := ctx.ES.Recommendations(tags, prefferedLanguage, addresses, 5)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 

@@ -24,11 +24,7 @@ type Context struct {
 }
 
 func newContext(cfg config) (*Context, error) {
-	es, err := elastic.New([]string{cfg.Search.URI})
-	if err != nil {
-		return nil, err
-	}
-
+	es := elastic.WaitNew([]string{cfg.Search.URI})
 	states := make(map[string]*models.State)
 	RPCs := createRPCs(cfg)
 	indexers, err := createIndexers(es, cfg, states)
@@ -51,8 +47,7 @@ func newContext(cfg config) (*Context, error) {
 	}, nil
 }
 
-// Close -
-func (ctx *Context) Close() {
+func (ctx *Context) close() {
 	ctx.MQ.Close()
 }
 
@@ -109,8 +104,7 @@ func createIndexers(es *elastic.Elastic, cfg config, states map[string]*models.S
 	return idx, nil
 }
 
-// GetRPC -
-func (ctx *Context) GetRPC(network string) (*noderpc.NodeRPC, error) {
+func (ctx *Context) getRPC(network string) (*noderpc.NodeRPC, error) {
 	rpc, ok := ctx.RPCs[network]
 	if !ok {
 		return nil, fmt.Errorf("Unknown RPC network: %s", network)
@@ -118,11 +112,26 @@ func (ctx *Context) GetRPC(network string) (*noderpc.NodeRPC, error) {
 	return rpc, nil
 }
 
-// GetIndexer -
-func (ctx *Context) GetIndexer(network string) (index.Indexer, error) {
+func (ctx *Context) getIndexer(network string) (index.Indexer, error) {
 	idx, ok := ctx.Indexers[network]
 	if !ok {
 		return nil, fmt.Errorf("Unknown RPC network: %s", network)
 	}
 	return idx, nil
+}
+
+func (ctx *Context) createIndexes() error {
+	for _, index := range []string{
+		elastic.DocContracts,
+		elastic.DocMetadata,
+		elastic.DocBigMapDiff,
+		elastic.DocOperations,
+		elastic.DocStates,
+		elastic.DocProjects,
+	} {
+		if err := ctx.ES.CreateIndexIfNotExists(index); err != nil {
+			return err
+		}
+	}
+	return nil
 }

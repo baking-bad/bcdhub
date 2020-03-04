@@ -8,22 +8,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type subRequest struct {
-	ID   string `json:"id"`
-	Type string `json:"type"`
-}
-
 // ListSubscriptions -
 func (ctx *Context) ListSubscriptions(c *gin.Context) {
 	subscriptions, err := ctx.DB.ListSubscriptions(ctx.OAUTH.UserID)
-	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 
 	res, err := ctx.prepareSubscription(subscriptions)
-	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 
@@ -33,8 +26,7 @@ func (ctx *Context) ListSubscriptions(c *gin.Context) {
 // CreateSubscription -
 func (ctx *Context) CreateSubscription(c *gin.Context) {
 	var sub subRequest
-	if err := c.ShouldBindJSON(&sub); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := c.ShouldBindJSON(&sub); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -44,8 +36,7 @@ func (ctx *Context) CreateSubscription(c *gin.Context) {
 		EntityType: database.EntityType(sub.Type),
 	}
 
-	if err := ctx.DB.CreateSubscription(&subscription); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := ctx.DB.CreateSubscription(&subscription); handleError(c, err, 0) {
 		return
 	}
 
@@ -55,8 +46,7 @@ func (ctx *Context) CreateSubscription(c *gin.Context) {
 // DeleteSubscription -
 func (ctx *Context) DeleteSubscription(c *gin.Context) {
 	var sub subRequest
-	if err := c.ShouldBindJSON(&sub); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := c.ShouldBindJSON(&sub); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -66,8 +56,7 @@ func (ctx *Context) DeleteSubscription(c *gin.Context) {
 		EntityType: database.EntityType(sub.Type),
 	}
 
-	if err := ctx.DB.DeleteSubscription(&subscription); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if err := ctx.DB.DeleteSubscription(&subscription); handleError(c, err, 0) {
 		return
 	}
 

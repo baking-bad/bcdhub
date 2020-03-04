@@ -4,7 +4,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
 	"github.com/aopoltorzhicky/bcdhub/internal/logger"
@@ -28,9 +27,9 @@ func main() {
 		helpers.CatchErrorSentry(err)
 		return
 	}
-	defer ctx.Close()
+	defer ctx.close()
 
-	if err := ctx.ES.CreateIndexIfNotExists(elastic.DocContracts); err != nil {
+	if err := ctx.createIndexes(); err != nil {
 		logger.Error(err)
 		helpers.CatchErrorSentry(err)
 		return

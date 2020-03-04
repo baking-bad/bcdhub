@@ -12,14 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type voteRequest struct {
-	SourceAddress      string `json:"src"`
-	SourceNetwork      string `json:"src_network"`
-	DestinationAddress string `json:"dest"`
-	DestinationNetwork string `json:"dest_network"`
-	Vote               int    `json:"vote"`
-}
-
 var model = []metrics.Metric{
 	metrics.NewBool("Manager"),
 	metrics.NewArray("Tags"),
@@ -44,7 +36,7 @@ var mux sync.Mutex
 // Vote -
 func (ctx *Context) Vote(c *gin.Context) {
 	var req voteRequest
-	if err := c.BindJSON(&req); err != nil {
+	if err := c.BindJSON(&req); handleError(c, err, http.StatusBadRequest) {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
@@ -53,8 +45,7 @@ func (ctx *Context) Vote(c *gin.Context) {
 		"address": req.SourceAddress,
 		"network": req.SourceNetwork,
 	})
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 
@@ -62,13 +53,11 @@ func (ctx *Context) Vote(c *gin.Context) {
 		"address": req.DestinationAddress,
 		"network": req.DestinationNetwork,
 	})
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 
-	if err := compare(a, b, req.Vote); err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if err := compare(a, b, req.Vote); handleError(c, err, 0) {
 		return
 	}
 	c.JSON(http.StatusOK, "")

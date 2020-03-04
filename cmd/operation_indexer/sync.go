@@ -75,14 +75,14 @@ func syncNetwork(ctx *Context, network string, wg *sync.WaitGroup) {
 	localSentry := helpers.GetLocalSentry()
 	helpers.SetLocalTagSentry(localSentry, "network", network)
 
-	rpc, err := ctx.GetRPC(network)
+	rpc, err := ctx.getRPC(network)
 	if err != nil {
 		logger.Errorf("[%s] %s", network, err.Error())
 		helpers.LocalCatchErrorSentry(localSentry, err)
 		return
 	}
 
-	indexer, err := ctx.GetIndexer(network)
+	indexer, err := ctx.getIndexer(network)
 	if err != nil {
 		logger.Errorf("[%s] %s", network, err.Error())
 		helpers.LocalCatchErrorSentry(localSentry, err)

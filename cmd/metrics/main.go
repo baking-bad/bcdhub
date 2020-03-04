@@ -79,7 +79,7 @@ func main() {
 		helpers.CatchErrorSentry(err)
 		return
 	}
-	defer ctx.Close()
+	defer ctx.close()
 
 	closeChan := make(chan struct{})
 	signals := make(chan os.Signal, 1)

@@ -8,23 +8,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type aliasRequest struct {
-	Address string `form:"address"`
-	Network string `form:"network"`
-	Alias   string `form:"alias"`
-}
-
 // SetAlias -
 func (ctx *Context) SetAlias(c *gin.Context) {
 	var req aliasRequest
-
-	if err := c.BindJSON(&req); err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if err := c.BindJSON(&req); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	if req.Address == "" || req.Alias == "" || req.Network == "" {
-		_ = c.AbortWithError(http.StatusBadRequest, errors.New("Inavlid request data"))
+		handleError(c, errors.New("Inavlid request data"), http.StatusBadRequest)
 		return
 	}
 
@@ -32,21 +24,18 @@ func (ctx *Context) SetAlias(c *gin.Context) {
 		"address": req.Address,
 		"network": req.Network,
 	})
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 
 	project, err := ctx.ES.GetProject(contract.ProjectID)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 
 	project.Alias = req.Alias
 
-	if _, err := ctx.ES.UpdateDoc(elastic.DocProjects, project.ID, project); err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if _, err := ctx.ES.UpdateDoc(elastic.DocProjects, project.ID, project); handleError(c, err, http.StatusInternalServerError) {
 		return
 	}
 
