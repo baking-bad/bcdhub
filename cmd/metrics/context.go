@@ -17,10 +17,7 @@ type Context struct {
 }
 
 func newContext(cfg config) (*Context, error) {
-	es, err := elastic.New([]string{cfg.Search.URI})
-	if err != nil {
-		return nil, err
-	}
+	es := elastic.WaitNew([]string{cfg.Search.URI})
 	RPCs := createRPCs(cfg)
 	messageQueue, err := mq.New(cfg.Mq.URI, cfg.Mq.Queues)
 	if err != nil {
@@ -33,8 +30,7 @@ func newContext(cfg config) (*Context, error) {
 	}, nil
 }
 
-// Close -
-func (ctx *Context) Close() {
+func (ctx *Context) close() {
 	ctx.MQ.Close()
 }
 
@@ -48,8 +44,7 @@ func createRPCs(cfg config) map[string]*noderpc.NodeRPC {
 	return rpc
 }
 
-// GetRPC -
-func (ctx *Context) GetRPC(network string) (*noderpc.NodeRPC, error) {
+func (ctx *Context) getRPC(network string) (*noderpc.NodeRPC, error) {
 	if rpc, ok := ctx.RPC[network]; ok {
 		return rpc, nil
 	}

@@ -12,20 +12,17 @@ import (
 // GetEntrypoints -
 func (ctx *Context) GetEntrypoints(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	metadata, err := meta.GetMetadata(ctx.ES, req.Address, req.Network, "parameter", consts.HashBabylon)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 
 	entrypoints, err := miguel.GetEntrypoints(metadata)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 

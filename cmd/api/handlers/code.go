@@ -11,52 +11,33 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-type getContractCodeRequest struct {
-	Address string `uri:"address"`
-	Network string `uri:"network"`
-
-	Level int64 `form:"level,omitempty"`
-}
-
 // GetContractCode -
 func (ctx *Context) GetContractCode(c *gin.Context) {
 	var req getContractCodeRequest
-	if err := c.BindUri(&req); err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
-	if err := c.BindQuery(&req); err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if err := c.BindQuery(&req); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	code, err := ctx.getContractCode(req.Network, req.Address, req.Level)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 	c.JSON(http.StatusOK, code)
 }
 
-type getDiffRequest struct {
-	SourceAddress      string `form:"sa"`
-	SourceNetwork      string `form:"sn"`
-	DestinationAddress string `form:"da"`
-	DestinationNetwork string `form:"dn"`
-}
-
 // GetDiff -
 func (ctx *Context) GetDiff(c *gin.Context) {
 	var req getDiffRequest
-	if err := c.BindQuery(&req); err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if err := c.BindQuery(&req); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	d, err := ctx.getDiff(req.SourceAddress, req.SourceNetwork, req.DestinationAddress, req.DestinationNetwork, 0, 0)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 
@@ -81,6 +62,9 @@ func (ctx *Context) getContractCodeJSON(network, address string, level int64) (r
 	contract, err := contractparser.GetContract(rpc, address, network, level, ctx.Dir)
 	if err != nil {
 		return
+	}
+	if !contract.IsArray() && !contract.IsObject() {
+		return res, fmt.Errorf("Unknown contract: %s", address)
 	}
 
 	// return macros.FindMacros(contractJSON)
@@ -111,8 +95,7 @@ func (ctx *Context) getDiff(srcAddress, srcNetwork, destAddress, destNetwork str
 // GetMigrationDiff -
 func (ctx *Context) GetMigrationDiff(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -120,19 +103,16 @@ func (ctx *Context) GetMigrationDiff(c *gin.Context) {
 		"address": req.Address,
 		"network": consts.Mainnet,
 	})
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 
 	if contract.Level >= consts.LevelBabylon {
-		_ = c.AbortWithError(http.StatusBadRequest, fmt.Errorf("No migrations for contract %s", req.Address))
-		return
+		c.JSON(http.StatusOK, nil)
 	}
 
 	codeDiff, err := ctx.getDiff(contract.Address, contract.Network, contract.Address, contract.Network, contract.Level, 0)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 

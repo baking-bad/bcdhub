@@ -20,21 +20,15 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-type offsetRequest struct {
-	LastID string `form:"last_id"`
-}
-
 // GetContractOperations -
 func (ctx *Context) GetContractOperations(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	var offsetReq offsetRequest
-	if err := c.BindQuery(&offsetReq); err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if err := c.BindQuery(&offsetReq); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -42,21 +36,18 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 	var lastID uint64
 	if offsetReq.LastID != "" {
 		l, err := strconv.ParseUint(offsetReq.LastID, 10, 64)
-		if err != nil {
-			_ = c.AbortWithError(http.StatusBadRequest, err)
+		if handleError(c, err, 0) {
 			return
 		}
 		lastID = l
 	}
 	ops, err := ctx.ES.GetContractOperations(req.Network, req.Address, lastID, size)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 
 	resp, err := prepareOperations(ctx.ES, ops.Operations)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 	c.JSON(http.StatusOK, OperationResponse{
@@ -65,28 +56,20 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 	})
 }
 
-// OPGRequest -
-type OPGRequest struct {
-	Hash string `uri:"hash"`
-}
-
 // GetOperation -
 func (ctx *Context) GetOperation(c *gin.Context) {
 	var req OPGRequest
-	if err := c.BindUri(&req); err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	op, err := ctx.ES.GetOperationByHash(req.Hash)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 
 	resp, err := prepareOperations(ctx.ES, op)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 
@@ -200,7 +183,7 @@ func setStorageDiff(es *elastic.Elastic, address, network string, storage string
 			return err
 		}
 	} else {
-		if !strings.Contains(err.Error(), "Operation not found") {
+		if !strings.Contains(err.Error(), "Unknown") {
 			return err
 		}
 

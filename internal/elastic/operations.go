@@ -1,7 +1,6 @@
 package elastic
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
@@ -219,7 +218,7 @@ func (e *Elastic) GetPreviousOperation(address, network string, level int64) (op
 	}
 
 	if res.Get("hits.total.value").Int() < 1 {
-		return op, errors.New("Operation not found")
+		return op, fmt.Errorf("Unknown operation: %s in %s on %d", address, network, level)
 	}
 	op.ParseElasticJSON(res.Get("hits.hits.0"))
 	return

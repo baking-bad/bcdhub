@@ -17,23 +17,21 @@ import (
 // GetMempool -
 func (ctx *Context) GetMempool(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	api := tzkt.NewServicesTzKT(tzkt.TzKTServices, req.Network, time.Second*time.Duration(10))
 	res, err := api.GetMempool(req.Address)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 
 	ret, err := ctx.prepareMempoolOperations(res, req.Address, req.Network)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
+
 	c.JSON(http.StatusOK, ret)
 }
 

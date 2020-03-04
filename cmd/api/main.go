@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/tidwall/gjson"
+	"gopkg.in/go-playground/validator.v9"
 
 	"github.com/aopoltorzhicky/bcdhub/cmd/api/handlers"
 	"github.com/aopoltorzhicky/bcdhub/cmd/api/oauth"
@@ -15,6 +16,7 @@ import (
 	"github.com/aopoltorzhicky/bcdhub/internal/logger"
 	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 )
 
 func main() {
@@ -61,6 +63,18 @@ func main() {
 	ctx := handlers.NewContext(es, rpc, cfg.Dir, db, oauth)
 
 	r := gin.Default()
+
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterValidation("address", handlers.AddressValidator)
+	}
+
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterValidation("opg", handlers.OPGValidator)
+	}
+
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterValidation("network", handlers.NetworkValidator)
+	}
 
 	r.Use(corsSettings())
 	r.Use(helpers.SentryMiddleware())

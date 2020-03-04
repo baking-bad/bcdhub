@@ -9,8 +9,7 @@ import (
 // GetContractRating -
 func (ctx *Context) GetContractRating(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -19,14 +18,12 @@ func (ctx *Context) GetContractRating(c *gin.Context) {
 		"network": req.Network,
 	}
 	cntrID, err := ctx.ES.GetContractID(by)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 
 	rating, err := ctx.DB.GetSubscriptionRating(cntrID)
-	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 

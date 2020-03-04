@@ -8,21 +8,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type pageableRequest struct {
-	Offset int64 `form:"offset"`
-}
-
 // GetSameContracts -
 func (ctx *Context) GetSameContracts(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	var pageReq pageableRequest
-	if err := c.BindQuery(&pageReq); err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if err := c.BindQuery(&pageReq); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -31,14 +25,12 @@ func (ctx *Context) GetSameContracts(c *gin.Context) {
 		"network": req.Network,
 	}
 	contract, err := ctx.ES.GetContract(by)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 
 	v, err := ctx.ES.GetSameContracts(contract, 0, pageReq.Offset)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 	c.JSON(http.StatusOK, v)
@@ -47,8 +39,7 @@ func (ctx *Context) GetSameContracts(c *gin.Context) {
 // GetSimilarContracts -
 func (ctx *Context) GetSimilarContracts(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -57,19 +48,16 @@ func (ctx *Context) GetSimilarContracts(c *gin.Context) {
 		"network": req.Network,
 	}
 	contract, err := ctx.ES.GetContract(by)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 
 	s, err := ctx.ES.GetSimilarContracts(contract)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 	similar, err := ctx.getSimilarDiffs(s, contract)
-	if err != nil {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
+	if handleError(c, err, 0) {
 		return
 	}
 	c.JSON(http.StatusOK, similar)

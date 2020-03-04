@@ -15,8 +15,7 @@ func (ctx *Context) AuthJWTRequired() gin.HandlerFunc {
 		token := c.GetHeader("Authorization")
 
 		id, err := ctx.OAUTH.GetIDFromToken(token)
-		if err != nil {
-			c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("invalid auth"))
+		if handleError(c, err, http.StatusUnauthorized) {
 			return
 		}
 
