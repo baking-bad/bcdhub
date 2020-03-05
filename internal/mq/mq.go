@@ -41,8 +41,9 @@ func (mq *MQ) Send(channel, queue string, v interface{}) error {
 		false,
 		false,
 		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        body,
+			ContentType:  "text/plain",
+			Body:         body,
+			DeliveryMode: amqp.Persistent,
 		})
 }
 
