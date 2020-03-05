@@ -2,6 +2,7 @@ package main
 
 import (
 	"strings"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/tidwall/gjson"
@@ -51,7 +52,7 @@ func main() {
 	}
 	defer db.Close()
 
-	rpc := createRPC(cfg.RPCs)
+	rpc := createRPC(cfg)
 
 	oauth, err := oauth.New()
 	if err != nil {
@@ -152,10 +153,10 @@ func corsSettings() gin.HandlerFunc {
 	return cors.New(cfg)
 }
 
-func createRPC(data map[string]string) map[string]*noderpc.NodeRPC {
-	res := make(map[string]*noderpc.NodeRPC)
-	for k, v := range data {
-		res[k] = noderpc.NewNodeRPC(v)
+func createRPC(cfg config) map[string]noderpc.Pool {
+	rpc := make(map[string]noderpc.Pool)
+	for network, hosts := range cfg.NodeRPC {
+		rpc[network] = noderpc.NewPool(hosts, time.Second*30)
 	}
-	return res
+	return rpc
 }

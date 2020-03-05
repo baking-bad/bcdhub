@@ -32,7 +32,7 @@ func getContracts(es *elastic.Elastic, network string) (map[string]struct{}, map
 	return res, spendable, nil
 }
 
-func updateState(rpc *noderpc.NodeRPC, es *elastic.Elastic, currentLevel int64, s *models.State) error {
+func updateState(rpc noderpc.Pool, es *elastic.Elastic, currentLevel int64, s *models.State) error {
 	if s.Level >= currentLevel {
 		return nil
 	}

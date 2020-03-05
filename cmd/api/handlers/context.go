@@ -10,14 +10,14 @@ import (
 // Context -
 type Context struct {
 	ES    *elastic.Elastic
-	RPCs  map[string]*noderpc.NodeRPC
+	RPCs  map[string]noderpc.Pool
 	Dir   string
 	DB    database.DB
 	OAUTH oauth.Config
 }
 
 // NewContext -
-func NewContext(e *elastic.Elastic, rpcs map[string]*noderpc.NodeRPC, dir string, db database.DB, oauth oauth.Config) *Context {
+func NewContext(e *elastic.Elastic, rpcs map[string]noderpc.Pool, dir string, db database.DB, oauth oauth.Config) *Context {
 	return &Context{
 		ES:    e,
 		RPCs:  rpcs,

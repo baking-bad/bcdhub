@@ -15,7 +15,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func createContract(c index.Contract, rpc *noderpc.NodeRPC, es *elastic.Elastic, network, filesDirectory string) (n models.Contract, err error) {
+func createContract(c index.Contract, rpc noderpc.Pool, es *elastic.Elastic, network, filesDirectory string) (n models.Contract, err error) {
 	n.Level = c.Level
 	n.Timestamp = c.Timestamp.UTC()
 	n.Balance = c.Balance

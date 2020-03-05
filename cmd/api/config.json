@@ -3,11 +3,22 @@
     "uri": "http://localhost:9200"
   },
   "address": ":14000",
-  "rpc": {
-    "mainnet": "https://rpc.tzkt.io/mainnet",
-    "zeronet": "https://rpc.tzkt.io/zeronet",
-    "babylonnet": "https://rpc.tzkt.io/babylonnet",
-    "carthagenet": "https://rpc.tzkt.io/carthagenet"
+  "nodes":  {
+    "mainnet": [
+      "https://rpc.tzkt.io/mainnet",
+      "https://mainnet.tezos.org.ua"
+    ],
+    "zeronet": [
+      "https://rpc.tzkt.io/zeronet"
+    ],
+    "babylonnet": [
+      "https://babylontest-ssl.tezos.org.ua",
+      "https://rpc.tzkt.io/babylonnet"
+    ],
+    "carthagenet": [
+      "https://carthatest-ssl.tezos.org.ua",
+      "https://rpc.tzkt.io/carthagenet"
+    ]
   },
   "dir": "/home/artem/.bcd",
   "db": {

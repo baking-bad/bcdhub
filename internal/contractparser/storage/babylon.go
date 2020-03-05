@@ -17,11 +17,11 @@ import (
 // Babylon -
 type Babylon struct {
 	es  *elastic.Elastic
-	rpc *noderpc.NodeRPC
+	rpc noderpc.Pool
 }
 
 // NewBabylon -
-func NewBabylon(es *elastic.Elastic, rpc *noderpc.NodeRPC) Babylon {
+func NewBabylon(es *elastic.Elastic, rpc noderpc.Pool) Babylon {
 	return Babylon{
 		es:  es,
 		rpc: rpc,

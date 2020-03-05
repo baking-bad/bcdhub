@@ -12,7 +12,7 @@ import (
 // Context -
 type Context struct {
 	ES  *elastic.Elastic
-	RPC map[string]*noderpc.NodeRPC
+	RPC map[string]noderpc.Pool
 	MQ  *mq.MQ
 }
 
@@ -34,17 +34,15 @@ func (ctx *Context) close() {
 	ctx.MQ.Close()
 }
 
-func createRPCs(cfg config) map[string]*noderpc.NodeRPC {
-	rpc := make(map[string]*noderpc.NodeRPC)
-	for i := range cfg.NodeRPC {
-		nodeCfg := cfg.NodeRPC[i]
-		rpc[nodeCfg.Network] = noderpc.NewNodeRPC(nodeCfg.Host)
-		rpc[nodeCfg.Network].SetTimeout(time.Second * 30)
+func createRPCs(cfg config) map[string]noderpc.Pool {
+	rpc := make(map[string]noderpc.Pool)
+	for network, hosts := range cfg.NodeRPC {
+		rpc[network] = noderpc.NewPool(hosts, time.Second*30)
 	}
 	return rpc
 }
 
-func (ctx *Context) getRPC(network string) (*noderpc.NodeRPC, error) {
+func (ctx *Context) getRPC(network string) (noderpc.Pool, error) {
 	if rpc, ok := ctx.RPC[network]; ok {
 		return rpc, nil
 	}

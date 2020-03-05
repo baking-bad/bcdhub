@@ -5,9 +5,9 @@ type config struct {
 	Search  struct {
 		URI string `json:"uri"`
 	} `json:"search"`
-	RPCs map[string]string `json:"rpc"`
-	Dir  string            `json:"dir"`
-	DB   struct {
+	NodeRPC map[string][]string `json:"nodes"`
+	Dir     string              `json:"dir"`
+	DB      struct {
 		URI string `json:"uri"`
 	} `json:"db"`
 	Sentry struct {
