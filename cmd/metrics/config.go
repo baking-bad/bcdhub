@@ -15,11 +15,8 @@ type config struct {
 		URI    string   `json:"uri"`
 		Queues []string `json:"queues"`
 	} `json:"mq"`
-	NodeRPC []struct {
-		Host    string `json:"host"`
-		Network string `json:"network"`
-	} `json:"nodes"`
-	Sentry struct {
+	NodeRPC map[string][]string `json:"nodes"`
+	Sentry  struct {
 		Project string `json:"project"`
 		Env     string `json:"env"`
 		DSN     string `json:"dsn"`
@@ -29,8 +26,12 @@ type config struct {
 
 func (cfg config) print() {
 	blue := color.New(color.FgBlue).SprintFunc()
+	green := color.New(color.FgGreen).SprintFunc()
 
 	log.Print("-----------CONFIG-----------")
+	for network, hosts := range cfg.NodeRPC {
+		log.Printf("Nodes %s: %v", green(network), hosts)
+	}
 	log.Printf("Update every %s second", blue(cfg.UpdateTimer))
 	log.Printf("Elastic URI: %s", blue(cfg.Search.URI))
 	log.Print("----------------------------")

@@ -13,7 +13,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-func computeMetrics(rpc *noderpc.NodeRPC, es *elastic.Elastic, c *models.Contract, filesDirectory string) error {
+func computeMetrics(rpc noderpc.Pool, es *elastic.Elastic, c *models.Contract, filesDirectory string) error {
 	contract, err := contractparser.GetContract(rpc, c.Address, c.Network, 0, filesDirectory)
 	if err != nil {
 		return err

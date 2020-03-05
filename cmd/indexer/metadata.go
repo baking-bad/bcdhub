@@ -12,7 +12,7 @@ import (
 	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
 )
 
-func getMetadata(rpc *noderpc.NodeRPC, c *models.Contract, tag, filesDirectory string) (map[string]string, error) {
+func getMetadata(rpc noderpc.Pool, c *models.Contract, tag, filesDirectory string) (map[string]string, error) {
 	res := make(map[string]string)
 
 	a, err := createMetadata(rpc, 0, c, tag, filesDirectory)
@@ -54,7 +54,7 @@ func getEntrypointsFromMetadata(m meta.Metadata, c *models.Contract) {
 	}
 }
 
-func createMetadata(rpc *noderpc.NodeRPC, level int64, c *models.Contract, tag, filesDirectory string) (string, error) {
+func createMetadata(rpc noderpc.Pool, level int64, c *models.Contract, tag, filesDirectory string) (string, error) {
 	s, err := contractparser.GetContract(rpc, c.Address, c.Network, level, filesDirectory)
 	if err != nil {
 		return "", err
@@ -80,7 +80,7 @@ func createMetadata(rpc *noderpc.NodeRPC, level int64, c *models.Contract, tag, 
 	return "", fmt.Errorf("[createMetadata] Unknown tag '%s'", tag)
 }
 
-func saveMetadata(es *elastic.Elastic, rpc *noderpc.NodeRPC, c *models.Contract, filesDirectory string) error {
+func saveMetadata(es *elastic.Elastic, rpc noderpc.Pool, c *models.Contract, filesDirectory string) error {
 	storage, err := getMetadata(rpc, c, consts.STORAGE, filesDirectory)
 	if err != nil {
 		return err

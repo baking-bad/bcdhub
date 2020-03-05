@@ -17,7 +17,7 @@ import (
 type Context struct {
 	MQ       *mq.MQ
 	ES       *elastic.Elastic
-	RPCs     map[string]*noderpc.NodeRPC
+	RPCs     map[string]noderpc.Pool
 	Indexers map[string]index.Indexer
 	States   map[string]*models.State
 }
@@ -51,12 +51,10 @@ func (ctx *Context) Close() {
 	ctx.MQ.Close()
 }
 
-func createRPCs(cfg config) map[string]*noderpc.NodeRPC {
-	rpc := make(map[string]*noderpc.NodeRPC)
-	for i := range cfg.NodeRPC {
-		nodeCfg := cfg.NodeRPC[i]
-		rpc[nodeCfg.Network] = noderpc.NewNodeRPC(nodeCfg.Host)
-		rpc[nodeCfg.Network].SetTimeout(time.Second * 30)
+func createRPCs(cfg config) map[string]noderpc.Pool {
+	rpc := make(map[string]noderpc.Pool)
+	for network, hosts := range cfg.NodeRPC {
+		rpc[network] = noderpc.NewPool(hosts, time.Second*30)
 	}
 	return rpc
 }
@@ -104,7 +102,7 @@ func createIndexers(es *elastic.Elastic, cfg config, states map[string]*models.S
 	return idx, nil
 }
 
-func (ctx *Context) getRPC(network string) (*noderpc.NodeRPC, error) {
+func (ctx *Context) getRPC(network string) (noderpc.Pool, error) {
 	rpc, ok := ctx.RPCs[network]
 	if !ok {
 		return nil, fmt.Errorf("Unknown RPC network: %s", network)

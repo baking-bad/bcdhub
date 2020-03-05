@@ -11,7 +11,7 @@ import (
 )
 
 // GetContract -
-func GetContract(rpc *noderpc.NodeRPC, address, network string, level int64, filesDirectory string) (gjson.Result, error) {
+func GetContract(rpc noderpc.Pool, address, network string, level int64, filesDirectory string) (gjson.Result, error) {
 	if filesDirectory != "" {
 		var postfix string
 		if network == consts.Mainnet {

@@ -2,24 +2,23 @@
   "search": {
     "uri": "http://localhost:9200"
   },
-  "nodes": [
-    {
-      "host": "https://rpc.tzkt.io/mainnet",
-      "network": "mainnet"
-    },
-    {
-      "host": "https://rpc.tzkt.io/zeronet",
-      "network": "zeronet"
-    },
-    {
-      "host": "https://babylontest-ssl.tezos.org.ua",
-      "network": "babylonnet"
-    },
-    {
-      "host": "https://carthatest-ssl.tezos.org.ua",
-      "network": "carthagenet"
-    }
-  ],
+  "nodes":  {
+    "mainnet": [
+      "https://rpc.tzkt.io/mainnet",
+      "https://mainnet.tezos.org.ua"
+    ],
+    "zeronet": [
+      "https://rpc.tzkt.io/zeronet"
+    ],
+    "babylonnet": [
+      "https://babylontest-ssl.tezos.org.ua",
+      "https://rpc.tzkt.io/babylonnet"
+    ],
+    "carthagenet": [
+      "https://carthatest-ssl.tezos.org.ua",
+      "https://rpc.tzkt.io/carthagenet"
+    ]
+  },
   "tzkt": {
     "mainnet": "https://api.tzkt.io/v1/",
     "zeronet": "https://api.zeronet.tzkt.io/v1/",

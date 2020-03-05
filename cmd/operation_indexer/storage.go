@@ -8,7 +8,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-func getRichStorage(es *elastic.Elastic, rpc *noderpc.NodeRPC, op gjson.Result, level int64, protocol, operationID string) (storage.RichStorage, error) {
+func getRichStorage(es *elastic.Elastic, rpc noderpc.Pool, op gjson.Result, level int64, protocol, operationID string) (storage.RichStorage, error) {
 	kind := op.Get("kind").String()
 
 	switch protocol {
