@@ -11,9 +11,29 @@ import (
 
 // SearchResult -
 type SearchResult struct {
-	Count     int64             `json:"count"`
-	Time      int64             `json:"time"`
-	Contracts []models.Contract `json:"contracts"`
+	Count int64        `json:"count"`
+	Time  int64        `json:"time"`
+	Items []SearchItem `json:"items"`
+}
+
+// SearchItem -
+type SearchItem struct {
+	Type  string      `json:"type"`
+	Value string      `json:"value"`
+	Group *Group      `json:"group,omitempty"`
+	Body  interface{} `json:"body"`
+}
+
+// Group -
+type Group struct {
+	Count int64 `json:"count"`
+	Top   []Top `json:"top"`
+}
+
+// Top -
+type Top struct {
+	Network string `json:"network"`
+	Key     string `json:"key"`
 }
 
 // ContractStats -

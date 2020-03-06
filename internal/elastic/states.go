@@ -28,7 +28,7 @@ func (e *Elastic) CurrentState(network, typ string) (s models.State, err error) 
 		),
 	).One()
 
-	r, err := e.query(DocStates, query)
+	r, err := e.query([]string{DocStates}, query)
 	if err != nil {
 		if strings.Contains(err.Error(), IndexNotFoundError) {
 			return e.createState(network, typ)

@@ -3,7 +3,6 @@ package models
 import (
 	"time"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 	"github.com/tidwall/gjson"
 )
 
@@ -30,7 +29,6 @@ type Contract struct {
 
 	ProjectID         string  `json:"project_id,omitempty"`
 	FoundBy           string  `json:"found_by,omitempty"`
-	Group             *Group  `json:"group,omitempty"`
 	LastAction        BCDTime `json:"last_action,omitempty"`
 	TxCount           int64   `json:"tx_count,omitempty"`
 	SumTxAmount       int64   `json:"sum_tx_amount,omitempty"`
@@ -42,18 +40,6 @@ type Fingerprint struct {
 	Code      string `json:"code"`
 	Storage   string `json:"storage"`
 	Parameter string `json:"parameter"`
-}
-
-// Group -
-type Group struct {
-	Count int64         `json:"count"`
-	Top   []TopContract `json:"top"`
-}
-
-// TopContract -
-type TopContract struct {
-	Network string `json:"network"`
-	Address string `json:"address"`
 }
 
 // BCDTime -
@@ -116,33 +102,30 @@ func (f *Fingerprint) ParseElasticJSON(hit gjson.Result) {
 }
 
 func getFoundBy(hit gjson.Result) string {
-	keys := make([]string, 0)
-	for k := range hit.Get("highlight").Map() {
-		keys = append(keys, k)
-	}
+	keys := hit.Get("highlight").Map()
 
-	if helpers.StringInArray("address", keys) {
+	if _, ok := keys["address"]; ok {
 		return "address"
 	}
-	if helpers.StringInArray("manager", keys) {
+	if _, ok := keys["manager"]; ok {
 		return "manager"
 	}
-	if helpers.StringInArray("delegate", keys) {
+	if _, ok := keys["addredelegatess"]; ok {
 		return "delegate"
 	}
-	if helpers.StringInArray("tags", keys) {
+	if _, ok := keys["tags"]; ok {
 		return "tags"
 	}
-	if helpers.StringInArray("hardcoded", keys) {
+	if _, ok := keys["hardcoded"]; ok {
 		return "hardcoded addresses"
 	}
-	if helpers.StringInArray("annotations", keys) {
+	if _, ok := keys["annotations"]; ok {
 		return "annotations"
 	}
-	if helpers.StringInArray("fail_strings", keys) {
+	if _, ok := keys["fail_strings"]; ok {
 		return "fail strings"
 	}
-	if helpers.StringInArray("entrypoints", keys) {
+	if _, ok := keys["entrypoints"]; ok {
 		return "entrypoints"
 	}
 	return ""

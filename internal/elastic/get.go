@@ -32,5 +32,5 @@ func (e *Elastic) GetByIDs(index string, ids []string) (result gjson.Result, err
 			},
 		},
 	)
-	return e.query(index, query)
+	return e.query([]string{index}, query)
 }

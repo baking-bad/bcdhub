@@ -40,7 +40,7 @@ func (e *Elastic) GetOperationByHash(hash string) (ops []models.Operation, err e
 			},
 		},
 	}).All()
-	resp, err := e.query(DocOperations, query)
+	resp, err := e.query([]string{DocOperations}, query)
 	if err != nil {
 		return
 	}
@@ -124,7 +124,7 @@ func (e *Elastic) GetContractOperations(network, address string, lastID, size ui
 			},
 		}).All()
 
-	res, err := e.query(DocOperations, query)
+	res, err := e.query([]string{DocOperations}, query)
 	if err != nil {
 		return
 	}
@@ -172,7 +172,7 @@ func (e *Elastic) GetLastStorage(network, address string) (gjson.Result, error) 
 		}).
 		One()
 
-	res, err := e.query(DocOperations, query)
+	res, err := e.query([]string{DocOperations}, query)
 	if err != nil {
 		return gjson.Result{}, err
 	}
@@ -212,7 +212,7 @@ func (e *Elastic) GetPreviousOperation(address, network string, level int64) (op
 			},
 		}).One()
 
-	res, err := e.query(DocOperations, query)
+	res, err := e.query([]string{DocOperations}, query)
 	if err != nil {
 		return
 	}
