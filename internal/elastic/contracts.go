@@ -33,7 +33,7 @@ func getContractQuery(by map[string]interface{}) base {
 }
 
 func (e *Elastic) getContract(q map[string]interface{}) (c models.Contract, err error) {
-	res, err := e.query(DocContracts, q)
+	res, err := e.query([]string{DocContracts}, q)
 	if err != nil {
 		return
 	}
@@ -117,7 +117,7 @@ func (e *Elastic) GetContractsByID(ids []string) ([]models.Contract, error) {
 // GetContractField -
 func (e *Elastic) GetContractField(by map[string]interface{}, field string) (interface{}, error) {
 	query := getContractQuery(by).One()
-	res, err := e.query(DocContracts, query, field)
+	res, err := e.query([]string{DocContracts}, query, field)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +170,7 @@ func (e *Elastic) GetContractStats(address, network string) (stats ContractStats
 			},
 		},
 	).Zero()
-	res, err := e.query(DocOperations, query)
+	res, err := e.query([]string{DocOperations}, query)
 	if err != nil {
 		return
 	}
@@ -217,7 +217,7 @@ func (e *Elastic) Recommendations(tags []string, language string, blackList []st
 	b.Get("bool").Append("minimum_should_match", math.Min(2, float64(len(tagFilters)+1)))
 
 	query := newQuery().Query(b).Size(size)
-	resp, err := e.query(DocContracts, query)
+	resp, err := e.query([]string{DocContracts}, query)
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +249,7 @@ func (e *Elastic) computeMedianConsumedGas(address, network string) (int64, erro
 			},
 		}),
 	)
-	resp, err := e.query(DocOperations, query)
+	resp, err := e.query([]string{DocOperations}, query)
 	if err != nil {
 		return 0, err
 	}

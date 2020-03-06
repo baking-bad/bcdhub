@@ -100,7 +100,7 @@ func (e *Elastic) SearchByText(text string, offset int64, fields, networks []str
 				"projects",
 				qItem{
 					"terms": qItem{
-						"script": "doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value",
+						"script": "if (doc.containsKey('fingerprint.parameter')) {return doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value} else {return doc['hash.keyword'].value}",
 						"size":   defaultSize + offset,
 						"order": qItem{
 							"bucketsSort": "desc",
@@ -119,25 +119,57 @@ func (e *Elastic) SearchByText(text string, offset int64, fields, networks []str
 
 	query.Query(b)
 
-	resp, err := e.query(DocContracts, query)
+	resp, err := e.query([]string{DocContracts, DocOperations}, query)
 	if err != nil {
 		return SearchResult{}, err
 	}
+
 	if !grouping {
 		return SearchResult{
-			Contracts: parseContracts(resp),
-			Time:      resp.Get("took").Int(),
-			Count:     resp.Get("hits.total.value").Int(),
+			Items: parseSearchResponse(resp),
+			Time:  resp.Get("took").Int(),
+			Count: resp.Get("hits.total.value").Int(),
 		}, nil
 	}
 	return SearchResult{
-		Contracts: parseGroupContracts(resp, defaultSize, offset),
-		Time:      resp.Get("took").Int(),
-		Count:     resp.Get("hits.total.value").Int(),
+		Items: parseSearchGroupingResponse(resp, defaultSize, offset),
+		Time:  resp.Get("took").Int(),
+		Count: resp.Get("hits.total.value").Int(),
 	}, nil
 }
 
-func parseGroupContracts(data gjson.Result, size, offset int64) []models.Contract {
+func parseSearchResponse(data gjson.Result) []SearchItem {
+	items := make([]SearchItem, 0)
+	arr := data.Get("hits.hits").Array()
+	for i := range arr {
+		index := arr[i].Get("_index").String()
+		switch index {
+		case DocContracts:
+			var c models.Contract
+			c.ParseElasticJSON(arr[i])
+			item := SearchItem{
+				Type:  DocContracts,
+				Value: c.Address,
+				Body:  c,
+			}
+			items = append(items, item)
+		case DocOperations:
+			var op models.Operation
+			op.ParseElasticJSON(arr[i])
+			item := SearchItem{
+				Type:  DocOperations,
+				Value: op.Hash,
+				Body:  op,
+			}
+			items = append(items, item)
+		default:
+		}
+
+	}
+	return items
+}
+
+func parseSearchGroupingResponse(data gjson.Result, size, offset int64) []SearchItem {
 	buckets := data.Get("aggregations.projects.buckets")
 	if !buckets.Exists() {
 		return nil
@@ -145,30 +177,59 @@ func parseGroupContracts(data gjson.Result, size, offset int64) []models.Contrac
 
 	arr := buckets.Array()
 	lArr := int64(len(arr))
-	contracts := make([]models.Contract, 0)
+	items := make([]SearchItem, 0)
 	if offset > lArr {
-		return contracts
+		return items
 	}
 	arr = arr[offset:]
 	for i := range arr {
-		var c models.Contract
-		for j, item := range arr[i].Get("last.hits.hits").Array() {
-			if j == 0 {
-				c.ParseElasticJSON(item)
-			} else {
-				if j == 1 {
-					c.Group = &models.Group{
-						Count: arr[i].Get("doc_count").Int(),
-						Top:   make([]models.TopContract, 0),
-					}
-				}
-				c.Group.Top = append(c.Group.Top, models.TopContract{
-					Address: item.Get("_source.address").String(),
-					Network: item.Get("_source.network").String(),
-				})
+		searchItem := SearchItem{}
+		count := arr[i].Get("doc_count").Int()
+		if count > 1 {
+			if count > 4 {
+				count = 4
+			}
+			searchItem.Group = &Group{
+				Count: arr[i].Get("doc_count").Int(),
+				Top:   make([]Top, count),
 			}
 		}
-		contracts = append(contracts, c)
+
+		for j, item := range arr[i].Get("last.hits.hits").Array() {
+			index := item.Get("_index").String()
+			searchItem.Type = index
+
+			switch index {
+			case DocContracts:
+				if j == 0 {
+					var c models.Contract
+					c.ParseElasticJSON(item)
+					searchItem.Body = c
+					searchItem.Value = c.Address
+				} else {
+					searchItem.Group.Top[j-1] = Top{
+						Key:     item.Get("_source.address").String(),
+						Network: item.Get("_source.network").String(),
+					}
+				}
+			case DocOperations:
+				for j, item := range arr[i].Get("last.hits.hits").Array() {
+					if j == 0 {
+						var op models.Operation
+						op.ParseElasticJSON(item)
+						searchItem.Body = op
+						searchItem.Value = op.Hash
+					} else {
+						searchItem.Group.Top[j-1] = Top{
+							Key:     item.Get("_source.hash").String(),
+							Network: item.Get("_source.network").String(),
+						}
+					}
+				}
+			default:
+			}
+		}
+		items = append(items, searchItem)
 	}
-	return contracts
+	return items
 }

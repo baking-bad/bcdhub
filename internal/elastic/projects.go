@@ -39,7 +39,7 @@ func (e *Elastic) GetLastProjectContracts() ([]models.Contract, error) {
 		}),
 	).Zero()
 
-	resp, err := e.query(DocContracts, query)
+	resp, err := e.query([]string{DocContracts}, query)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func (e *Elastic) GetSameContracts(c models.Contract, size, offset int64) (scp S
 		),
 	).Sort("timestamp", "desc").Size(size).From(offset)
 
-	resp, err := e.query(DocContracts, q)
+	resp, err := e.query([]string{DocContracts}, q)
 	if err != nil {
 		return
 	}
@@ -134,7 +134,7 @@ func (e *Elastic) GetSimilarContracts(c models.Contract) ([]SimilarContract, err
 		),
 	).Zero()
 
-	resp, err := e.query(DocContracts, query)
+	resp, err := e.query([]string{DocContracts}, query)
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +200,7 @@ func (e *Elastic) GetProjectsStats() (stats []ProjectStats, err error) {
 			},
 		}),
 	).Zero()
-	resp, err := e.query(DocContracts, query)
+	resp, err := e.query([]string{DocContracts}, query)
 	if err != nil {
 		return
 	}
@@ -256,7 +256,7 @@ func (e *Elastic) GetProjectStats(projectID string) (p ProjectStats, err error) 
 			},
 		},
 	).Zero()
-	resp, err := e.query(DocContracts, query)
+	resp, err := e.query([]string{DocContracts}, query)
 	if err != nil {
 		return
 	}
