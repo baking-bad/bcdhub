@@ -154,12 +154,10 @@ func (e *Elastic) GetBigMap(address string, ptr int64) ([]BigMapDiff, error) {
 	for _, item := range res.Get("aggregations.keys.buckets").Array() {
 		bmd := item.Get("top_key.hits.hits.0")
 
-		var b models.BigMapDiff
+		var b BigMapDiff
 		b.ParseElasticJSON(bmd)
-		result = append(result, BigMapDiff{
-			Data:  b,
-			Count: item.Get("doc_count").Int(),
-		})
+		b.Count = item.Get("doc_count").Int()
+		result = append(result, b)
 	}
 	return result, nil
 }

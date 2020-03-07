@@ -66,13 +66,25 @@ func (ctx *Context) prepareBigMap(data []elastic.BigMapDiff, network, address st
 	res = make([]BigMapResponseItem, len(data))
 	for i := range data {
 		var value interface{}
-		if data[i].Data.Value != "" {
-			val := gjson.Parse(data[i].Data.Value)
+		if data[i].Value != "" {
+			val := gjson.Parse(data[i].Value)
 			metadata := babyMeta
-			if network == consts.Mainnet && data[i].Data.Level < consts.LevelBabylon {
+			if network == consts.Mainnet && data[i].Level < consts.LevelBabylon {
 				metadata = alphaMeta
 			}
-			value, err = miguel.BigMapValueToMiguel(val, data[i].Data.BinPath, metadata)
+			value, err = miguel.BigMapToMiguel(val, data[i].BinPath+"/v", metadata)
+			if err != nil {
+				return
+			}
+		}
+		var key interface{}
+		if data[i].Key != "" {
+			val := gjson.Parse(data[i].Key)
+			metadata := babyMeta
+			if network == consts.Mainnet && data[i].Level < consts.LevelBabylon {
+				metadata = alphaMeta
+			}
+			key, err = miguel.BigMapToMiguel(val, data[i].BinPath+"/k", metadata)
 			if err != nil {
 				return
 			}
@@ -80,9 +92,9 @@ func (ctx *Context) prepareBigMap(data []elastic.BigMapDiff, network, address st
 
 		res[i] = BigMapResponseItem{
 			Item: BigMapItem{
-				Key:     data[i].Data.Key,
-				KeyHash: data[i].Data.KeyHash,
-				Level:   data[i].Data.Level,
+				Key:     key,
+				KeyHash: data[i].KeyHash,
+				Level:   data[i].Level,
 				Value:   value,
 			},
 			Count: data[i].Count,
@@ -111,7 +123,7 @@ func (ctx *Context) prepareBigMapItem(data []models.BigMapDiff, network, address
 			if network == consts.Mainnet && data[i].Level < consts.LevelBabylon {
 				metadata = alphaMeta
 			}
-			value, err = miguel.BigMapValueToMiguel(val, data[i].BinPath, metadata)
+			value, err = miguel.BigMapToMiguel(val, data[i].BinPath+"/v", metadata)
 			if err != nil {
 				return
 			}
