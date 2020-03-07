@@ -117,3 +117,10 @@ type SameContractsResponse struct {
 	Count     uint64            `json:"count"`
 	Contracts []models.Contract `json:"contracts"`
 }
+
+// BigMapDiff -
+type BigMapDiff struct {
+	Data models.BigMapDiff `json:"data"`
+
+	Count int64 `json:"count"`
+}

@@ -3,6 +3,7 @@ package miguel
 import (
 	"fmt"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
 	"github.com/tidwall/gjson"
 )
@@ -12,8 +13,19 @@ type mapDecoder struct{}
 // Decode -
 func (l *mapDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata, isRoot bool) (interface{}, error) {
 	if node.Get("int").Exists() {
-		return map[string]interface{}{}, nil
+		return map[string]interface{}{
+			"type":  consts.BIGMAP,
+			"value": node.Get("int").Int(),
+		}, nil
 	}
+
+	if node.IsArray() && len(node.Array()) == 0 && path == "0/0" {
+		return map[string]interface{}{
+			"type":  consts.BIGMAP,
+			"value": 0,
+		}, nil
+	}
+
 	res := make(map[string]interface{})
 	gjsonPath := GetGJSONPath("k")
 	keyNode := node.Get(gjsonPath)
@@ -46,5 +58,6 @@ func (l *mapDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadat
 			}
 		}
 	}
+
 	return res, nil
 }

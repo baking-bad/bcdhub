@@ -25,6 +25,19 @@ type getContractRequest struct {
 	Network string `uri:"network" binding:"required,network"`
 }
 
+type getBigMapRequest struct {
+	Address string `uri:"address" binding:"required,address"`
+	Network string `uri:"network" binding:"required,network"`
+	Ptr     int64  `uri:"ptr" binding:"min=0"`
+}
+
+type getBigMapByKeyHashRequest struct {
+	Address string `uri:"address" binding:"required,address"`
+	Network string `uri:"network" binding:"required,network"`
+	Ptr     int64  `uri:"ptr" binding:"min=0"`
+	KeyHash string `uri:"key_hash" binding:"required"`
+}
+
 // OauthRequest -
 type OauthRequest struct {
 	State string `form:"state"`
