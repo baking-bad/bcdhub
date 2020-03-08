@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/cerrors"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/entrypoint"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
@@ -158,15 +159,16 @@ func parseBalanceUpdates(item gjson.Result, root string) []models.BalanceUpdate 
 }
 
 func createResult(item gjson.Result, path string) *models.OperationResult {
-	return &models.OperationResult{
+	result := &models.OperationResult{
 		Status:                       item.Get(path + ".status").String(),
 		ConsumedGas:                  item.Get(path + ".consumed_gas").Int(),
 		StorageSize:                  item.Get(path + ".storage_size").Int(),
 		PaidStorageSizeDiff:          item.Get(path + ".paid_storage_size_diff").Int(),
 		Originated:                   item.Get(path + ".originated_contracts.0").String(),
 		AllocatedDestinationContract: item.Get(path + ".allocated_destination_contract").Bool(),
-		Errors:                       item.Get(path + ".errors").String(),
 	}
+	result.Errors = cerrors.ParseArray(data.Get("errors"))
+	return result
 }
 
 func parseResult(item gjson.Result) (*models.OperationResult, []models.BalanceUpdate) {

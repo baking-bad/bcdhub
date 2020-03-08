@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/cerrors"
 	"github.com/tidwall/gjson"
 )
 
@@ -116,13 +117,13 @@ func (b *BalanceUpdate) ParseElasticJSON(data gjson.Result) {
 
 // OperationResult -
 type OperationResult struct {
-	Status                       string `json:"status"`
-	ConsumedGas                  int64  `json:"consumed_gas,omitempty"`
-	StorageSize                  int64  `json:"storage_size,omitempty"`
-	PaidStorageSizeDiff          int64  `json:"paid_storage_size_diff,omitempty"`
-	AllocatedDestinationContract bool   `json:"allocated_destination_contract,omitempty"`
-	Originated                   string `json:"-"`
-	Errors                       string `json:"errors,omitempty"`
+	Status                       string          `json:"status"`
+	ConsumedGas                  int64           `json:"consumed_gas,omitempty"`
+	StorageSize                  int64           `json:"storage_size,omitempty"`
+	PaidStorageSizeDiff          int64           `json:"paid_storage_size_diff,omitempty"`
+	AllocatedDestinationContract bool            `json:"allocated_destination_contract,omitempty"`
+	Originated                   string          `json:"-"`
+	Errors                       []cerrors.Error `json:"errors,omitempty"`
 
 	BalanceUpdates []BalanceUpdate `json:"balance_updates,omitempty"`
 }
@@ -141,6 +142,11 @@ func (o *OperationResult) ParseElasticJSON(data gjson.Result) {
 	o.StorageSize = data.Get("storage_size").Int()
 	o.PaidStorageSizeDiff = data.Get("paid_storage_size_diff").Int()
 	o.AllocatedDestinationContract = data.Get("allocated_destination_contract").Bool()
-	o.Errors = data.Get("errors").String()
 	o.BalanceUpdates = bu
+
+	parsedErrors, err := cerrors.ParseArray(data.Get("errors"))
+	if err != nil {
+		return
+	}
+	o.Errors = parsedErrors
 }
