@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/cerrors"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/entrypoint"
@@ -87,7 +86,7 @@ func finishParseOperation(es *elastic.Elastic, rpc noderpc.Pool, item gjson.Resu
 }
 
 func getEntrypoint(es *elastic.Elastic, item gjson.Result, op *models.Operation) error {
-	if op.Parameters != "" && strings.HasPrefix(op.Destination, "KT") && !contractparser.IsParametersError(op.Result.Errors) {
+	if op.Parameters != "" && strings.HasPrefix(op.Destination, "KT") && !cerrors.HasParametersError(op.Result.Errors) {
 		metadata, err := meta.GetMetadata(es, op.Destination, op.Network, "parameter", op.Protocol)
 		if err != nil {
 			return err
@@ -167,7 +166,7 @@ func createResult(item gjson.Result, path string) *models.OperationResult {
 		Originated:                   item.Get(path + ".originated_contracts.0").String(),
 		AllocatedDestinationContract: item.Get(path + ".allocated_destination_contract").Bool(),
 	}
-	result.Errors = cerrors.ParseArray(data.Get("errors"))
+	result.Errors = cerrors.ParseArray(item.Get("errors"))
 	return result
 }
 

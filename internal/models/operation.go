@@ -144,9 +144,5 @@ func (o *OperationResult) ParseElasticJSON(data gjson.Result) {
 	o.AllocatedDestinationContract = data.Get("allocated_destination_contract").Bool()
 	o.BalanceUpdates = bu
 
-	parsedErrors, err := cerrors.ParseArray(data.Get("errors"))
-	if err != nil {
-		return
-	}
-	o.Errors = parsedErrors
+	o.Errors = cerrors.ParseArray(data.Get("errors"))
 }
