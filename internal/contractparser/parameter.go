@@ -16,9 +16,10 @@ const (
 
 // Entrypoint -
 type Entrypoint struct {
-	Name string        `json:"name"`
-	Prim string        `json:"prim"`
-	Args []interface{} `json:"args,omitempty"`
+	Name      string       `json:"name"`
+	Prim      string       `json:"prim"`
+	Args      []Entrypoint `json:"args,omitempty"`
+	Parameter interface{}  `json:"parameter"`
 }
 
 // Parameter -
@@ -49,12 +50,7 @@ func newParameter(v gjson.Result) (Parameter, error) {
 	}
 	p.Metadata = m
 
-	e, err := p.EntrypointStructs()
-	if err != nil {
-		return p, err
-	}
-
-	tags, err := endpointsTags(e)
+	tags, err := endpointsTags(m)
 	if err != nil {
 		return p, err
 	}
@@ -94,82 +90,4 @@ func (p *Parameter) Entrypoints() []string {
 		}
 	}
 	return res
-}
-
-func (p *Parameter) buildEntrypoint(path string, idx int) (e Entrypoint, err error) {
-	m, ok := p.Metadata[path]
-	if !ok {
-		return e, fmt.Errorf("Unknown path: %s", path)
-	}
-
-	name := m.FieldName
-	if name == "" {
-		name = fmt.Sprintf(defaultEntrypoint, idx)
-	}
-
-	e.Name = name
-	e.Prim = m.Prim
-	e.Args = p.getEntrypointArgs(path)
-	return
-}
-
-func (p *Parameter) getEntrypointArgs(path string) []interface{} {
-	root := p.Metadata[path]
-	if root.Prim == consts.LAMBDA || root.Prim == consts.CONTRACT {
-		return []interface{}{root.Parameter}
-	}
-
-	args := make([]interface{}, 0)
-	for i := 0; i < 2; i++ {
-		subTree := fmt.Sprintf("%s%d", path, i)
-		m, ok := p.Metadata[subTree]
-		if !ok {
-			continue
-		}
-
-		if m.Prim == consts.PAIR || m.Prim == consts.OR || m.Prim == consts.OPTION {
-			args = append(args, map[string]interface{}{
-				"prim": m.Prim,
-				"args": p.getEntrypointArgs(subTree),
-			})
-		} else if m.Prim == consts.LAMBDA || m.Prim == consts.CONTRACT {
-			args = append(args, map[string]interface{}{
-				"prim": m.Prim,
-				"args": []interface{}{
-					m.Parameter,
-				},
-			})
-		} else {
-			args = append(args, map[string]interface{}{
-				"prim": m.Prim,
-			})
-		}
-	}
-	return args
-}
-
-// EntrypointStructs -
-func (p *Parameter) EntrypointStructs() ([]Entrypoint, error) {
-	root, ok := p.Metadata["0"]
-	if !ok {
-		return nil, fmt.Errorf("Unknown root metadata")
-	}
-	if root.Prim != consts.OR {
-		e, err := p.buildEntrypoint("0", 0)
-		if err != nil {
-			return nil, err
-		}
-		return []Entrypoint{e}, nil
-
-	}
-
-	res := make([]Entrypoint, len(root.Args))
-	for i := range root.Args {
-		e, err := p.buildEntrypoint(root.Args[i], i)
-		if err != nil {
-			return nil, err
-		}
-		res[i] = e
-	}
-	return res, nil
 }

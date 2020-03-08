@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
+
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/node"
 	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
@@ -27,13 +29,13 @@ func primTags(node node.Node) string {
 }
 
 func loadInterfaces() error {
-	files, err := ioutil.ReadDir("./interfaces/")
+	files, err := ioutil.ReadDir("interfaces/")
 	if err != nil {
 		return err
 	}
 
 	for _, f := range files {
-		path := fmt.Sprintf("./interfaces/%s", f.Name())
+		path := fmt.Sprintf("interfaces/%s", f.Name())
 		var e []Entrypoint
 		if err := jsonload.StructFromFile(path, &e); err != nil {
 			return err
@@ -44,7 +46,7 @@ func loadInterfaces() error {
 	return nil
 }
 
-func endpointsTags(endpoints []Entrypoint) ([]string, error) {
+func endpointsTags(metadata meta.Metadata) ([]string, error) {
 	if len(interfaces) == 0 {
 		if err := loadInterfaces(); err != nil {
 			return nil, err
@@ -52,18 +54,21 @@ func endpointsTags(endpoints []Entrypoint) ([]string, error) {
 	}
 	res := make([]string, 0)
 	for tag, i := range interfaces {
-		if findInterface(endpoints, i) {
+		if findInterface(metadata, i) {
 			res = append(res, tag)
 		}
 	}
 	return res, nil
 }
 
-func findInterface(entrypoints []Entrypoint, i []Entrypoint) bool {
+func findInterface(metadata meta.Metadata, i []Entrypoint) bool {
+	root := metadata["0"]
+
 	for _, ie := range i {
 		found := false
-		for _, e := range entrypoints {
-			if compareEntrypoints(ie, e) {
+		for _, e := range root.Args {
+			entrypointMeta := metadata[e]
+			if compareEntrypoints(metadata, ie, *entrypointMeta, e) {
 				found = true
 				break
 			}
@@ -75,51 +80,25 @@ func findInterface(entrypoints []Entrypoint, i []Entrypoint) bool {
 	return true
 }
 
-func deepEqual(a, b map[string]interface{}) bool {
-	for ak, av := range a {
-		bv, ok := b[ak]
-		if !ok {
-			return false
-		}
-
-		switch ak {
-		case consts.KeyArgs:
-			ava := av.([]interface{})
-			bva := bv.([]interface{})
-
-			if len(ava) != len(bva) {
-				return false
-			}
-
-			for j := range ava {
-				avam := ava[j].(map[string]interface{})
-				bvam := bva[j].(map[string]interface{})
-				if !deepEqual(avam, bvam) {
-					return false
-				}
-			}
-		case consts.KeyPrim:
-			if av != bv {
-				return false
-			}
-		default:
-			return false
-		}
+func compareEntrypoints(metadata meta.Metadata, in Entrypoint, en meta.NodeMetadata, path string) bool {
+	if in.Name != "" && en.Name != in.Name {
+		return false
 	}
-	return true
-}
-
-func compareEntrypoints(a, b Entrypoint) bool {
-	if a.Name != b.Name || a.Prim != b.Prim || len(a.Args) != len(b.Args) {
+	// fmt.Printf("[in] %+v\n[en] %+v\n\n", in, en)
+	if in.Prim != en.Prim {
 		return false
 	}
 
-	for i := range a.Args {
-		ai := a.Args[i].(map[string]interface{})
-		bi := b.Args[i].(map[string]interface{})
-		if !deepEqual(ai, bi) {
+	for i, inArg := range in.Args {
+		enPath := fmt.Sprintf("%s/%d", path, i)
+		enMeta, ok := metadata[enPath]
+		if !ok {
+			return false
+		}
+		if !compareEntrypoints(metadata, inArg, *enMeta, enPath) {
 			return false
 		}
 	}
+
 	return true
 }
