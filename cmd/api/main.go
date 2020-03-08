@@ -99,6 +99,11 @@ func main() {
 					address.GET("mempool", ctx.GetMempool)
 					address.GET("same", ctx.GetSameContracts)
 					address.GET("similar", ctx.GetSimilarContracts)
+					bigmap := address.Group("bigmap")
+					{
+						bigmap.GET(":ptr", ctx.GetBigMap)
+						bigmap.GET(":ptr/:key_hash", ctx.GetBigMapByKeyHash)
+					}
 				}
 			}
 		}

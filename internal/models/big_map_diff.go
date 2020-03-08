@@ -1,5 +1,7 @@
 package models
 
+import "github.com/tidwall/gjson"
+
 // BigMapDiff -
 type BigMapDiff struct {
 	Ptr         int64       `json:"ptr,omitempty"`
@@ -10,4 +12,18 @@ type BigMapDiff struct {
 	OperationID string      `json:"operation_id"`
 	Level       int64       `json:"level"`
 	Address     string      `json:"address"`
+	Network     string      `json:"network"`
+}
+
+// ParseElasticJSON -
+func (b *BigMapDiff) ParseElasticJSON(hit gjson.Result) {
+	b.Ptr = hit.Get("_source.ptr").Int()
+	b.BinPath = hit.Get("_source.bin_path").String()
+	b.Key = hit.Get("_source.key").Value()
+	b.KeyHash = hit.Get("_source.key_hash").String()
+	b.Value = hit.Get("_source.value").String()
+	b.OperationID = hit.Get("_source.operation_id").String()
+	b.Level = hit.Get("_source.level").Int()
+	b.Address = hit.Get("_source.address").String()
+	b.Network = hit.Get("_source.newtork").String()
 }

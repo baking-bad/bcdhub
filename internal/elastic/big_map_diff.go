@@ -113,3 +113,89 @@ func (e *Elastic) GetBigMapDiffsForAddress(address string) (gjson.Result, error)
 	}
 	return res.Get("aggregations.group_by_hash.buckets.#.group_docs.hits.hits.0._source"), nil
 }
+
+// GetBigMap -
+func (e *Elastic) GetBigMap(address string, ptr int64) ([]BigMapDiff, error) {
+	mustQuery := must(matchPhrase("address", address))
+	if ptr != 0 {
+		mustQuery.Extend(term("ptr", ptr))
+	}
+	b := boolQ(mustQuery)
+
+	if ptr == 0 {
+		b.Get("bool").Extend(
+			notMust(
+				qItem{
+					"exists": qItem{
+						"field": "ptr",
+					},
+				},
+			),
+		)
+	}
+
+	query := newQuery().Query(b).Add(
+		aggs("keys", qItem{
+			"terms": qItem{
+				"field": "key_hash.keyword",
+				"size":  maxQuerySize,
+			},
+			"aggs": qItem{
+				"top_key": topHits(1, "level", "desc"),
+			},
+		}),
+	).Sort("level", "desc").Zero()
+	res, err := e.query([]string{DocBigMapDiff}, query)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]BigMapDiff, 0)
+	for _, item := range res.Get("aggregations.keys.buckets").Array() {
+		bmd := item.Get("top_key.hits.hits.0")
+
+		var b BigMapDiff
+		b.ParseElasticJSON(bmd)
+		b.Count = item.Get("doc_count").Int()
+		result = append(result, b)
+	}
+	return result, nil
+}
+
+// GetBigMapDiffByPtrAndKeyHash -
+func (e *Elastic) GetBigMapDiffByPtrAndKeyHash(address string, ptr int64, keyHash string) ([]models.BigMapDiff, error) {
+	mustQuery := must(
+		matchPhrase("address", address),
+		matchPhrase("key_hash", keyHash),
+	)
+	if ptr != 0 {
+		mustQuery.Extend(term("ptr", ptr))
+	}
+	b := boolQ(mustQuery)
+
+	if ptr == 0 {
+		b.Get("bool").Extend(
+			notMust(
+				qItem{
+					"exists": qItem{
+						"field": "ptr",
+					},
+				},
+			),
+		)
+	}
+
+	query := newQuery().Query(b).Sort("level", "desc").All()
+	res, err := e.query([]string{DocBigMapDiff}, query)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]models.BigMapDiff, 0)
+	for _, item := range res.Get("hits.hits").Array() {
+		var b models.BigMapDiff
+		b.ParseElasticJSON(item)
+		result = append(result, b)
+	}
+	return result, nil
+}

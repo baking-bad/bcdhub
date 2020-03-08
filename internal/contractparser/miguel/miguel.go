@@ -52,6 +52,11 @@ func MichelineToMiguel(data gjson.Result, metadata meta.Metadata) (interface{}, 
 	return res, nil
 }
 
+// BigMapToMiguel -
+func BigMapToMiguel(data gjson.Result, binPath string, metadata meta.Metadata) (interface{}, error) {
+	return michelineNodeToMiguel(data, binPath, metadata, false)
+}
+
 func getStartPath(data gjson.Result, metadata meta.Metadata) (gjson.Result, string, string, error) {
 	var entrypoint, value gjson.Result
 	if data.IsArray() {

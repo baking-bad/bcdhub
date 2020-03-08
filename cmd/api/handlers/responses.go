@@ -87,3 +87,17 @@ type userProfile struct {
 	AvatarURL     string         `json:"avatarURL"`
 	Subscriptions []Subscription `json:"subscriptions"`
 }
+
+// BigMapItem -
+type BigMapItem struct {
+	Key     interface{} `json:"key"`
+	Value   interface{} `json:"value"`
+	KeyHash string      `json:"key_hash"`
+	Level   int64       `json:"level"`
+}
+
+// BigMapResponseItem -
+type BigMapResponseItem struct {
+	Item  BigMapItem `json:"data"`
+	Count int64      `json:"count"`
+}

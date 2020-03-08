@@ -6,13 +6,13 @@ import (
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/miguel"
 	"github.com/gin-gonic/gin"
+	"github.com/tidwall/gjson"
 )
 
 // GetContractStorage -
 func (ctx *Context) GetContractStorage(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
-		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
@@ -21,16 +21,17 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 		return
 	}
 
-	bmd, err := ctx.ES.GetBigMapDiffsForAddress(req.Address)
-	if handleError(c, err, 0) {
-		return
-	}
+	// bmd, err := ctx.ES.GetBigMapDiffsForAddress(req.Address)
+	// if handleError(c, err, 0) {
+	// 	return
+	// }
 
 	protocol := storage.Get("_source.protocol").String()
-	s, err := enrichStorage(storage.Get("_source.deffated_storage").String(), bmd, protocol, true)
-	if handleError(c, err, 0) {
-		return
-	}
+	s := gjson.Parse(storage.Get("_source.deffated_storage").String())
+	// s, err := enrichStorage(storage.Get("_source.deffated_storage").String(), bmd, protocol, true)
+	// if handleError(c, err, 0) {
+	// 	return
+	// }
 
 	metadata, err := meta.GetMetadata(ctx.ES, req.Address, req.Network, "storage", protocol)
 	if handleError(c, err, 0) {
