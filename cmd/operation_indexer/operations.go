@@ -5,7 +5,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/entrypoint"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/logger"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
@@ -56,21 +59,45 @@ func finishParseOperation(es *elastic.Elastic, rpc noderpc.Pool, item gjson.Resu
 	op.Protocol = protocol
 	op.IndexedTime = time.Now().UnixNano() / 1000
 
-	if isContract(contracts, op.Destination) && isApplied(op) {
-		rs, err := getRichStorage(es, rpc, item, level, protocol, op.ID)
+	if isContract(contracts, op.Destination) {
+		if isApplied(op) {
+			rs, err := getRichStorage(es, rpc, item, level, protocol, op.ID)
+			if err != nil {
+				return err
+			}
+			if rs.Empty {
+				return nil
+			}
+			op.DeffatedStorage = rs.DeffatedStorage
+
+			if len(rs.BigMapDiffs) > 0 {
+				if err := es.BulkSaveBigMapDiffs(rs.BigMapDiffs); err != nil {
+					return err
+				}
+			}
+		}
+
+		if err := getEntrypoint(es, item, op); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func getEntrypoint(es *elastic.Elastic, item gjson.Result, op *models.Operation) error {
+	if op.Parameters != "" && strings.HasPrefix(op.Destination, "KT") && !contractparser.IsParametersError(op.Result.Errors) {
+		metadata, err := meta.GetMetadata(es, op.Destination, op.Network, "parameter", op.Protocol)
 		if err != nil {
 			return err
 		}
-		if rs.Empty {
-			return nil
-		}
-		op.DeffatedStorage = rs.DeffatedStorage
 
-		if len(rs.BigMapDiffs) > 0 {
-			if err := es.BulkSaveBigMapDiffs(rs.BigMapDiffs); err != nil {
-				return err
-			}
+		params := item.Get("parameters")
+		ep, err := entrypoint.Get(params, metadata)
+		if err != nil {
+			return err
 		}
+		op.Entrypoint = ep
 	}
 	return nil
 }

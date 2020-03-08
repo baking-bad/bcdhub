@@ -33,6 +33,7 @@ type Operation struct {
 	Delegate      string    `json:"delegate,omitempty"`
 	Parameters    string    `json:"parameters,omitempty"`
 	FoundBy       string    `json:"found_by,omitempty"`
+	Entrypoint    string    `json:"entrypoint,omitempty"`
 
 	BalanceUpdates []BalanceUpdate  `json:"balance_updates,omitempty"`
 	Result         *OperationResult `json:"result,omitempty"`
@@ -65,6 +66,7 @@ func (o *Operation) ParseElasticJSON(resp gjson.Result) {
 	o.Balance = resp.Get("_source.balance").Int()
 	o.Delegate = resp.Get("_source.delegate").String()
 	o.Parameters = resp.Get("_source.parameters").String()
+	o.Entrypoint = resp.Get("_source.entrypoint").String()
 	o.FoundBy = getOperationsFoundBy(resp)
 
 	var opResult OperationResult
