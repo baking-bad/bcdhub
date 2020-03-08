@@ -68,7 +68,7 @@ func (ctx *Context) prepareMempoolOperations(res gjson.Result, address, network 
 			},
 		}
 
-		op.Result.Errors = cerrors.ParseArray(data.Get("errors"))
+		op.Result.Errors = cerrors.ParseArray(item.Get("errors"))
 
 		if op.Kind != consts.Transaction {
 			ret = append(ret, op)

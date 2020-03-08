@@ -166,7 +166,7 @@ func createResult(item gjson.Result, path string) *models.OperationResult {
 		Originated:                   item.Get(path + ".originated_contracts.0").String(),
 		AllocatedDestinationContract: item.Get(path + ".allocated_destination_contract").Bool(),
 	}
-	result.Errors = cerrors.ParseArray(item.Get("errors"))
+	result.Errors = cerrors.ParseArray(item.Get(path + ".errors"))
 	return result
 }
 
