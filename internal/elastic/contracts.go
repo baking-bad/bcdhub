@@ -238,7 +238,7 @@ func (e *Elastic) computeMedianConsumedGas(address, network string) (int64, erro
 			must(
 				matchPhrase("destination", address),
 				matchPhrase("network", network),
-				matchPhrase("result.status", "applied"),
+				matchPhrase("status", "applied"),
 			),
 		),
 	).Add(

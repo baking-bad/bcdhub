@@ -10,6 +10,7 @@ import (
 
 	"github.com/aopoltorzhicky/bcdhub/cmd/api/handlers"
 	"github.com/aopoltorzhicky/bcdhub/cmd/api/oauth"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/cerrors"
 	"github.com/aopoltorzhicky/bcdhub/internal/database"
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
@@ -43,6 +44,7 @@ func main() {
 		helpers.CatchErrorSentry(err)
 		return
 	}
+	cerrors.LoadErrorDescriptions("data/errors.json")
 
 	db, err := database.New(cfg.DB.URI)
 	if err != nil {

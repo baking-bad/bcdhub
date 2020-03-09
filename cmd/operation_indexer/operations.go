@@ -10,7 +10,6 @@ import (
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/entrypoint"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
-	"github.com/aopoltorzhicky/bcdhub/internal/logger"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
 	"github.com/google/uuid"
@@ -43,7 +42,10 @@ func getOperations(rpc noderpc.Pool, es *elastic.Elastic, block int64, network s
 
 			operations = append(operations, *res)
 
-			internal := parseInternalOperations(es, rpc, item, res, contracts)
+			internal, err := parseInternalOperations(es, rpc, item, res, contracts)
+			if err != nil {
+				return nil, err
+			}
 			operations = append(operations, internal...)
 
 		}
@@ -86,7 +88,7 @@ func finishParseOperation(es *elastic.Elastic, rpc noderpc.Pool, item gjson.Resu
 }
 
 func getEntrypoint(es *elastic.Elastic, item gjson.Result, op *models.Operation) error {
-	if op.Parameters != "" && strings.HasPrefix(op.Destination, "KT") && !cerrors.HasParametersError(op.Result.Errors) {
+	if op.Parameters != "" && strings.HasPrefix(op.Destination, "KT") {
 		metadata, err := meta.GetMetadata(es, op.Destination, op.Network, "parameter", op.Protocol)
 		if err != nil {
 			return err
@@ -94,7 +96,7 @@ func getEntrypoint(es *elastic.Elastic, item gjson.Result, op *models.Operation)
 
 		params := item.Get("parameters")
 		ep, err := entrypoint.Get(params, metadata)
-		if err != nil {
+		if err != nil && op.Errors == nil {
 			return err
 		}
 		op.Entrypoint = ep
@@ -103,7 +105,7 @@ func getEntrypoint(es *elastic.Elastic, item gjson.Result, op *models.Operation)
 }
 
 func isApplied(op *models.Operation) bool {
-	return op.Result != nil && op.Result.Status == "applied"
+	return op.Result != nil && op.Status == "applied"
 }
 
 func needParse(item gjson.Result, idx int) bool {
@@ -138,6 +140,9 @@ func parseContent(item gjson.Result) *models.Operation {
 	if op.Kind == consts.Origination {
 		op.Destination = res.Originated
 	}
+
+	op.Status = op.Result.Status
+	op.Errors = op.Result.Errors
 
 	return &op
 }
@@ -181,12 +186,12 @@ func parseResult(item gjson.Result) (*models.OperationResult, []models.BalanceUp
 	return createResult(item, path), parseBalanceUpdates(item, path)
 }
 
-func parseInternalOperations(es *elastic.Elastic, rpc noderpc.Pool, item gjson.Result, main *models.Operation, contracts map[string]struct{}) []models.Operation {
+func parseInternalOperations(es *elastic.Elastic, rpc noderpc.Pool, item gjson.Result, main *models.Operation, contracts map[string]struct{}) ([]models.Operation, error) {
 	path := fmt.Sprintf("metadata.internal_operation_results")
 	if !item.Get(path).Exists() {
 		path = fmt.Sprintf("metadata.internal_operations")
 		if !item.Get(path).Exists() {
-			return nil
+			return nil, nil
 		}
 	}
 
@@ -195,13 +200,12 @@ func parseInternalOperations(es *elastic.Elastic, rpc noderpc.Pool, item gjson.R
 		val := parseContent(op)
 		val.Counter = main.Counter
 		if err := finishParseOperation(es, rpc, op, main.Protocol, main.Network, main.Hash, main.Level, contracts, val); err != nil {
-			logger.Error(err)
-			continue
+			return nil, err
 		}
 		val.Internal = true
 		res = append(res, *val)
 	}
-	return res
+	return res, nil
 }
 
 func isContract(contracts map[string]struct{}, address string) bool {

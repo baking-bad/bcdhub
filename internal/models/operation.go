@@ -18,6 +18,7 @@ type Operation struct {
 	Hash     string `json:"hash"`
 	Internal bool   `json:"internal"`
 
+	Status        string    `json:"status"`
 	Timestamp     time.Time `json:"timestamp"`
 	Level         int64     `json:"level"`
 	Kind          string    `json:"kind"`
@@ -38,6 +39,7 @@ type Operation struct {
 
 	BalanceUpdates []BalanceUpdate  `json:"balance_updates,omitempty"`
 	Result         *OperationResult `json:"result,omitempty"`
+	Errors         []cerrors.Error  `json:"errors,omitempty"`
 
 	DeffatedStorage string `json:"deffated_storage"`
 }
@@ -53,6 +55,7 @@ func (o *Operation) ParseElasticJSON(resp gjson.Result) {
 	o.Network = resp.Get("_source.network").String()
 	o.Timestamp = resp.Get("_source.timestamp").Time().UTC()
 
+	o.Status = resp.Get("_source.status").String()
 	o.Level = resp.Get("_source.level").Int()
 	o.Kind = resp.Get("_source.kind").String()
 	o.Source = resp.Get("_source.source").String()
@@ -84,6 +87,8 @@ func (o *Operation) ParseElasticJSON(resp gjson.Result) {
 		bu[i] = b
 	}
 	o.BalanceUpdates = bu
+
+	o.Errors = cerrors.ParseArray(resp.Get("_source.errors"))
 }
 
 func getOperationsFoundBy(hit gjson.Result) string {
@@ -117,13 +122,13 @@ func (b *BalanceUpdate) ParseElasticJSON(data gjson.Result) {
 
 // OperationResult -
 type OperationResult struct {
-	Status                       string          `json:"status"`
+	Status                       string          `json:"-"`
 	ConsumedGas                  int64           `json:"consumed_gas,omitempty"`
 	StorageSize                  int64           `json:"storage_size,omitempty"`
 	PaidStorageSizeDiff          int64           `json:"paid_storage_size_diff,omitempty"`
 	AllocatedDestinationContract bool            `json:"allocated_destination_contract,omitempty"`
 	Originated                   string          `json:"-"`
-	Errors                       []cerrors.Error `json:"errors,omitempty"`
+	Errors                       []cerrors.Error `json:"-"`
 
 	BalanceUpdates []BalanceUpdate `json:"balance_updates,omitempty"`
 }
@@ -137,12 +142,9 @@ func (o *OperationResult) ParseElasticJSON(data gjson.Result) {
 		b.ParseElasticJSON(hit)
 		bu[i] = b
 	}
-	o.Status = data.Get("status").String()
 	o.ConsumedGas = data.Get("consumed_gas").Int()
 	o.StorageSize = data.Get("storage_size").Int()
 	o.PaidStorageSizeDiff = data.Get("paid_storage_size_diff").Int()
 	o.AllocatedDestinationContract = data.Get("allocated_destination_contract").Bool()
 	o.BalanceUpdates = bu
-
-	o.Errors = cerrors.ParseArray(data.Get("errors"))
 }

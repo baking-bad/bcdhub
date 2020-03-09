@@ -14,6 +14,11 @@ func (ctx *Context) Recommendations(c *gin.Context) {
 		return
 	}
 
+	if len(subscriptions) == 0 {
+		c.JSON(http.StatusOK, []interface{}{})
+		return
+	}
+
 	ids := make([]string, 0)
 	for i := range subscriptions {
 		if subscriptions[i].EntityType == "contract" {

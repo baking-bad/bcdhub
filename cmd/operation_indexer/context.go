@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/cerrors"
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/index"
 	"github.com/aopoltorzhicky/bcdhub/internal/logger"
@@ -37,6 +38,9 @@ func newContext(cfg config) (*Context, error) {
 		return nil, err
 	}
 
+	if err := cerrors.LoadErrorDescriptions("data/errors.json"); err != nil {
+		return nil, err
+	}
 	return &Context{
 		ES:       es,
 		RPCs:     RPCs,

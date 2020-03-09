@@ -64,6 +64,9 @@ func (ctx *Context) GetSimilarContracts(c *gin.Context) {
 }
 
 func (ctx *Context) getSimilarDiffs(similar []elastic.SimilarContract, contract models.Contract) ([]elastic.SimilarContract, error) {
+	if similar == nil {
+		return []elastic.SimilarContract{}, nil
+	}
 	for i := 0; i < len(similar); i++ {
 		src := &similar[i]
 		d, err := ctx.getDiff(contract.Address, contract.Network, src.Address, src.Network, 0, 0)
@@ -72,7 +75,9 @@ func (ctx *Context) getSimilarDiffs(similar []elastic.SimilarContract, contract 
 		}
 		src.Added = d.Added
 		src.Removed = d.Removed
-		src.ConsumedGasDiff = float64((src.MedianConsumedGas - contract.MedianConsumedGas)) / float64(contract.MedianConsumedGas)
+		if contract.MedianConsumedGas != 0 {
+			src.ConsumedGasDiff = float64((src.MedianConsumedGas - contract.MedianConsumedGas)) / float64(contract.MedianConsumedGas)
+		}
 	}
 	return similar, nil
 }

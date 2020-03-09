@@ -27,11 +27,9 @@
                 "prim": "pair"
             },
             {
-                "args": [
-                    {
-                        "prim": "nat"
-                    }
-                ],
+                "parameter": {
+                    "prim": "nat"
+                },
                 "prim": "contract"
             }
         ]
@@ -44,11 +42,9 @@
                 "prim": "address"
             },
             {
-                "args": [
-                    {
-                        "prim": "nat"
-                    }
-                ],
+                "parameter": {
+                    "prim": "nat"
+                },
                 "prim": "contract"
             }
         ]
@@ -61,11 +57,9 @@
                 "prim": "unit"
             },
             {
-                "args": [
-                    {
-                        "prim": "nat"
-                    }
-                ],
+                "parameter": {
+                    "prim": "nat"
+                },
                 "prim": "contract"
             }
         ]
@@ -75,18 +69,18 @@
         "prim": "pair",
         "args": [
             {
+                "prim": "address"
+            },
+            {
                 "args": [
                     {
                         "prim": "address"
                     },
                     {
-                        "prim": "address"
+                        "prim": "nat"
                     }
                 ],
                 "prim": "pair"
-            },
-            {
-                "prim": "nat"
             }
         ]
     }

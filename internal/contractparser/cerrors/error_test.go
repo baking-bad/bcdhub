@@ -53,10 +53,19 @@ func TestError_parse(t *testing.T) {
 				Location:    226,
 				With:        "{\"prim\":\"Unit\"}",
 			},
+		}, {
+			name: "Error 5",
+			args: `{"kind": "permanent", "id": "proto.005-PsBabyM1.contract.manager.unregistered_delegate", "hash": "tz1YB12JHVHw9GbN66wyfakGYgdTBvokmXQk"}`,
+			ret: Error{
+				Kind:        "permanent",
+				ID:          "proto.005-PsBabyM1.contract.manager.unregistered_delegate",
+				Title:       "Unregistered delegate",
+				Description: "A contract cannot be delegated to an unregistered delegate",
+			},
 		},
 	}
 
-	if err := loadErrorDescriptions(); err != nil {
+	if err := LoadErrorDescriptions("errors.json"); err != nil {
 		panic(err)
 	}
 	for _, tt := range tests {

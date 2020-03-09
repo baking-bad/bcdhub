@@ -7,6 +7,7 @@ import (
 
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/cerrors"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/entrypoint"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/miguel"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
@@ -68,7 +69,7 @@ func (ctx *Context) prepareMempoolOperations(res gjson.Result, address, network 
 			},
 		}
 
-		op.Result.Errors = cerrors.ParseArray(item.Get("errors"))
+		op.Errors = cerrors.ParseArray(item.Get("errors"))
 
 		if op.Kind != consts.Transaction {
 			ret = append(ret, op)
@@ -83,9 +84,16 @@ func (ctx *Context) prepareMempoolOperations(res gjson.Result, address, network 
 
 			params := gjson.Parse(params)
 
+			op.Entrypoint, err = entrypoint.Get(params, metadata)
+			if err != nil && op.Errors == nil {
+				return nil, err
+			}
+
 			op.Parameters, err = miguel.MichelineToMiguel(params, metadata)
 			if err != nil {
-				return nil, err
+				if !cerrors.HasParametersError(op.Errors) {
+					return nil, err
+				}
 			}
 		}
 

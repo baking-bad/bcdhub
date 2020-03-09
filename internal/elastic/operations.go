@@ -151,7 +151,7 @@ func (e *Elastic) GetLastStorage(network, address string) (gjson.Result, error) 
 				must(
 					matchPhrase("network", network),
 					matchPhrase("destination", address),
-					term("result.status", "applied"),
+					term("status", "applied"),
 				),
 				notMust(
 					term("deffated_storage", ""),
@@ -192,7 +192,7 @@ func (e *Elastic) GetPreviousOperation(address, network string, level int64) (op
 					matchPhrase("destination", address),
 					matchPhrase("network", network),
 					rangeQ("level", qItem{"lt": level}),
-					term("result.status", "applied"),
+					term("status", "applied"),
 				),
 				notMust(
 					term("deffated_storage", ""),

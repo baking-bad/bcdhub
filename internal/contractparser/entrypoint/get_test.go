@@ -130,6 +130,14 @@ func TestGet(t *testing.T) {
 			},
 			want:    "mint",
 			wantErr: false,
+		}, {
+			name: "case 6",
+			args: args{
+				node:     `{"entrypoint":"default","value":{"prim":"Left","args":[{"prim":"Left","args":[{"prim":"Left","args":[{"prim":"Left","args":[{"prim":"Right","args":[{"prim":"Some","args":[{"string":"KT1DSD5VoycG6TwpcYQMGES43rUvJxkAP31P"}]}]}]}]}]}]}}`,
+				metadata: `{"0":{"prim":"or","args":["0/0/0/0/0/0","0/0/0/0/0/1/o","0/0/0/0/1","0/0/0/1","0/0/1","0/1"],"type":"namedunion"},"0/0":{"prim":"or","type":"or"},"0/0/0":{"prim":"or","type":"or"},"0/0/0/0":{"prim":"or","type":"or"},"0/0/0/0/0":{"prim":"or","type":"or"},"0/0/0/0/0/0":{"fieldname":"collateralize","prim":"mutez","type":"mutez","name":"collateralize"},"0/0/0/0/0/1":{"fieldname":"delegate","prim":"option","type":"option"},"0/0/0/0/0/1/o":{"prim":"key_hash","type":"key_hash","name":"delegate"},"0/0/0/0/1":{"fieldname":"deposit","prim":"pair","args":["0/0/0/0/1/0","0/0/0/0/1/1"],"type":"namedtuple","name":"deposit"},"0/0/0/0/1/0":{"fieldname":"duration","prim":"int","type":"int","name":"duration"},"0/0/0/0/1/1":{"fieldname":"rate","prim":"nat","type":"nat","name":"rate"},"0/0/0/1":{"fieldname":"setOffer","prim":"pair","args":["0/0/0/1/0","0/0/0/1/1"],"type":"namedtuple","name":"setOffer"},"0/0/0/1/0":{"fieldname":"duration","prim":"int","type":"int","name":"duration"},"0/0/0/1/1":{"fieldname":"rate","prim":"nat","type":"nat","name":"rate"},"0/0/1":{"fieldname":"uncollateralize","prim":"mutez","type":"mutez","name":"uncollateralize"},"0/1":{"fieldname":"withdraw","prim":"unit","type":"unit","name":"withdraw"}}`,
+			},
+			want:    "delegate",
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {

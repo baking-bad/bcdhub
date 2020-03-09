@@ -9,8 +9,9 @@ import (
 
 var errorDescriptions gjson.Result
 
-func loadErrorDescriptions() (err error) {
-	f, err := os.Open("errors.json")
+// LoadErrorDescriptions -
+func LoadErrorDescriptions(filePath string) (err error) {
+	f, err := os.Open(filePath)
 	if err != nil {
 		return
 	}

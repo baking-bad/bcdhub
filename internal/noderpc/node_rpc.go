@@ -24,7 +24,7 @@ func NewNodeRPC(baseURL string) *NodeRPC {
 	return &NodeRPC{
 		baseURL:    baseURL,
 		timeout:    time.Second * 10,
-		retryCount: 100,
+		retryCount: 3,
 	}
 }
 

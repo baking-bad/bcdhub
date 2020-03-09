@@ -98,12 +98,15 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 		ManagerPubKey: operation.ManagerPubKey,
 		Balance:       operation.Balance,
 		Delegate:      operation.Delegate,
+		Status:        operation.Status,
+		Entrypoint:    operation.Entrypoint,
+		Errors:        operation.Errors,
 
 		BalanceUpdates: operation.BalanceUpdates,
 		Result:         operation.Result,
 	}
 
-	if operation.DeffatedStorage != "" && strings.HasPrefix(op.Destination, "KT") && op.Result.Status == "applied" {
+	if operation.DeffatedStorage != "" && strings.HasPrefix(op.Destination, "KT") && op.Status == "applied" {
 		if err := setStorageDiff(es, op.Destination, op.Network, operation.DeffatedStorage, &op); err != nil {
 			return op, err
 		}
@@ -113,7 +116,7 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 		return op, nil
 	}
 
-	if operation.Parameters != "" && strings.HasPrefix(op.Destination, "KT") && !cerrors.HasParametersError(op.Result.Errors) {
+	if operation.Parameters != "" && strings.HasPrefix(op.Destination, "KT") && !cerrors.HasParametersError(op.Errors) {
 		metadata, err := meta.GetMetadata(es, op.Destination, op.Network, "parameter", op.Protocol)
 		if err != nil {
 			return op, nil
@@ -123,7 +126,7 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 
 		op.Parameters, err = miguel.MichelineToMiguel(params, metadata)
 		if err != nil {
-			if !cerrors.HasGasExhaustedError(op.Result.Errors) {
+			if !cerrors.HasGasExhaustedError(op.Errors) {
 				helpers.CatchErrorSentry(err)
 				return op, err
 			}
