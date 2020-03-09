@@ -3,6 +3,7 @@ package language
 import (
 	"strings"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/node"
 )
 
@@ -37,9 +38,9 @@ func Get(n node.Node) string {
 }
 
 // DetectInEntries -
-func DetectInEntries(entries []string) string {
+func DetectInEntries(entries []meta.Entrypoint) string {
 	for _, e := range entries {
-		if strings.Contains(e, "_Liq_entry") {
+		if strings.Contains(e.Name, "_Liq_entry") {
 			return LangLiquidity
 		}
 	}

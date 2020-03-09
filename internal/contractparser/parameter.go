@@ -65,29 +65,3 @@ func (p *Parameter) handlePrimitive(n node.Node) error {
 	}
 	return nil
 }
-
-// Entrypoints -
-func (p *Parameter) Entrypoints() []string {
-	root, ok := p.Metadata["0"]
-	if !ok {
-		return nil
-	}
-	if root.Prim != consts.OR {
-		s := root.FieldName
-		if s == "" {
-			s = fmt.Sprintf(defaultEntrypoint, 0)
-		}
-		return []string{s}
-	}
-
-	res := make([]string, len(root.Args))
-	for i := range root.Args {
-		m := p.Metadata[root.Args[i]]
-		if m.FieldName != "" {
-			res[i] = m.FieldName
-		} else {
-			res[i] = fmt.Sprintf(defaultEntrypoint, i)
-		}
-	}
-	return res
-}

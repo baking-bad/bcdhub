@@ -5,7 +5,6 @@ import (
 
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/miguel"
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,7 +20,7 @@ func (ctx *Context) GetEntrypoints(c *gin.Context) {
 		return
 	}
 
-	entrypoints, err := miguel.GetEntrypoints(metadata)
+	entrypoints, err := metadata.GetEntrypoints()
 	if handleError(c, err, 0) {
 		return
 	}

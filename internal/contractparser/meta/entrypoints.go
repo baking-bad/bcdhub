@@ -1,11 +1,10 @@
-package miguel
+package meta
 
 import (
 	"fmt"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/formatter"
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
 	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 	"github.com/tidwall/gjson"
 )
@@ -18,7 +17,7 @@ type Entrypoint struct {
 }
 
 // GetEntrypoints -
-func GetEntrypoints(metadata meta.Metadata) ([]Entrypoint, error) {
+func (metadata Metadata) GetEntrypoints() ([]Entrypoint, error) {
 	root := metadata["0"]
 
 	ep := make([]Entrypoint, 0)
@@ -50,7 +49,7 @@ func GetEntrypoints(metadata meta.Metadata) ([]Entrypoint, error) {
 	return ep, nil
 }
 
-func parseEntrypointArg(metadata meta.Metadata, nm *meta.NodeMetadata, path string) (interface{}, error) {
+func parseEntrypointArg(metadata Metadata, nm *NodeMetadata, path string) (interface{}, error) {
 	switch nm.Type {
 	case consts.TypeNamedTuple, consts.TypeNamedUnion, consts.TypeNamedEnum:
 		return parseEntrypointNamed(metadata, nm, path)
@@ -77,7 +76,7 @@ func parseEntrypointArg(metadata meta.Metadata, nm *meta.NodeMetadata, path stri
 	}
 }
 
-func parseEntrypointTuple(metadata meta.Metadata, nm *meta.NodeMetadata, path string) (interface{}, error) {
+func parseEntrypointTuple(metadata Metadata, nm *NodeMetadata, path string) (interface{}, error) {
 	tupleMeta := metadata[path]
 	if len(tupleMeta.Args) > 0 {
 		res := make([]interface{}, len(tupleMeta.Args))
@@ -95,7 +94,7 @@ func parseEntrypointTuple(metadata meta.Metadata, nm *meta.NodeMetadata, path st
 	}, nil
 }
 
-func parseEntrypointNamed(metadata meta.Metadata, nm *meta.NodeMetadata, path string) (interface{}, error) {
+func parseEntrypointNamed(metadata Metadata, nm *NodeMetadata, path string) (interface{}, error) {
 	res := make(map[string]interface{})
 	for _, arg := range nm.Args {
 		argMeta := metadata[arg]
@@ -109,7 +108,7 @@ func parseEntrypointNamed(metadata meta.Metadata, nm *meta.NodeMetadata, path st
 	return res, nil
 }
 
-func parseEntrypointList(metadata meta.Metadata, nm *meta.NodeMetadata, path string) (interface{}, error) {
+func parseEntrypointList(metadata Metadata, nm *NodeMetadata, path string) (interface{}, error) {
 	p := fmt.Sprintf("%s/l", path)
 	if nm.Type == consts.SET {
 		p = fmt.Sprintf("%s/s", path)
@@ -156,7 +155,7 @@ func parseEntrypointList(metadata meta.Metadata, nm *meta.NodeMetadata, path str
 	}, nil
 }
 
-func parseEntrypointOption(metadata meta.Metadata, nm *meta.NodeMetadata, path string) (interface{}, error) {
+func parseEntrypointOption(metadata Metadata, nm *NodeMetadata, path string) (interface{}, error) {
 	p := fmt.Sprintf("%s/o", path)
 	optionMeta := metadata[p]
 	if len(optionMeta.Args) > 0 {

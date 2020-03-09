@@ -49,7 +49,8 @@ func (s *Script) Parse() {
 // Language -
 func (s *Script) Language() string {
 	if s.Code.Language == language.LangUnknown {
-		return language.DetectInEntries(s.Code.Parameter.Entrypoints())
+		entrypoints, _ := s.Code.Parameter.Metadata.GetEntrypoints()
+		return language.DetectInEntries(entrypoints)
 	}
 
 	return s.Code.Language

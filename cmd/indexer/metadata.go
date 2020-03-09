@@ -37,23 +37,6 @@ func getMetadata(rpc noderpc.Pool, c *models.Contract, tag, filesDirectory strin
 	return res, nil
 }
 
-func getEntrypointsFromMetadata(m meta.Metadata, c *models.Contract) {
-	root := m["0"]
-	c.Entrypoints = make([]string, 0)
-	if len(root.Args) > 0 {
-		for i := range root.Args {
-			arg := m[root.Args[i]]
-			name := arg.Name
-			if name == "" {
-				name = fmt.Sprintf("__entry__%d", i)
-			}
-			c.Entrypoints = append(c.Entrypoints, name)
-		}
-	} else {
-		c.Entrypoints = append(c.Entrypoints, "__entry__0")
-	}
-}
-
 func createMetadata(rpc noderpc.Pool, level int64, c *models.Contract, tag, filesDirectory string) (string, error) {
 	s, err := contractparser.GetContract(rpc, c.Address, c.Network, level, filesDirectory)
 	if err != nil {
@@ -63,15 +46,22 @@ func createMetadata(rpc noderpc.Pool, level int64, c *models.Contract, tag, file
 
 	args := script.Get(fmt.Sprintf("code.#(prim==\"%s\").args", tag))
 	if args.Exists() {
-		a, err := meta.ParseMetadata(args)
+		metadata, err := meta.ParseMetadata(args)
 		if err != nil {
 			return "", nil
 		}
-		if tag == consts.PARAMETER {
-			getEntrypointsFromMetadata(a, c)
+		if tag == consts.PARAMETER && level == 0 {
+			entrypoints, err := metadata.GetEntrypoints()
+			if err != nil {
+				return "", err
+			}
+			c.Entrypoints = make([]string, len(entrypoints))
+			for i := range entrypoints {
+				c.Entrypoints[i] = entrypoints[i]
+			}
 		}
 
-		b, err := json.Marshal(a)
+		b, err := json.Marshal(metadata)
 		if err != nil {
 			return "", err
 		}
