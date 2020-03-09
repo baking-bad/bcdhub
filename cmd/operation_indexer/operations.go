@@ -7,7 +7,6 @@ import (
 
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/cerrors"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/entrypoint"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
@@ -95,7 +94,7 @@ func getEntrypoint(es *elastic.Elastic, item gjson.Result, op *models.Operation)
 		}
 
 		params := item.Get("parameters")
-		ep, err := entrypoint.Get(params, metadata)
+		ep, err := metadata.GetByPath(params, metadata)
 		if err != nil && op.Errors == nil {
 			return err
 		}

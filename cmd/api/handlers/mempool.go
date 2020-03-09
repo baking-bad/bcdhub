@@ -7,7 +7,6 @@ import (
 
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/cerrors"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/entrypoint"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/miguel"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
@@ -82,14 +81,14 @@ func (ctx *Context) prepareMempoolOperations(res gjson.Result, address, network 
 				return nil, err
 			}
 
-			params := gjson.Parse(params)
+			paramsJSON := gjson.Parse(params)
 
-			op.Entrypoint, err = entrypoint.Get(params, metadata)
+			op.Entrypoint, err = metadata.GetByPath(paramsJSON)
 			if err != nil && op.Errors == nil {
 				return nil, err
 			}
 
-			op.Parameters, err = miguel.MichelineToMiguel(params, metadata)
+			op.Parameters, err = miguel.MichelineToMiguel(paramsJSON, metadata)
 			if err != nil {
 				if !cerrors.HasParametersError(op.Errors) {
 					return nil, err

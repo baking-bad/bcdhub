@@ -1,10 +1,9 @@
-package entrypoint
+package meta
 
 import (
 	"encoding/json"
 	"testing"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
 	"github.com/tidwall/gjson"
 )
 
@@ -143,12 +142,12 @@ func TestGet(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			node := gjson.Parse(tt.args.node)
-			var metadata meta.Metadata
+			var metadata Metadata
 			if err := json.Unmarshal([]byte(tt.args.metadata), &metadata); err != nil {
 				t.Errorf("Invalid metadata string: %v %s", err, tt.args.metadata)
 				return
 			}
-			got, err := Get(node, metadata)
+			got, err := metadata.GetByPath(node)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Get() error = %v, wantErr %v", err, tt.wantErr)
 				return
