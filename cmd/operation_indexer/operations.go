@@ -94,7 +94,7 @@ func getEntrypoint(es *elastic.Elastic, item gjson.Result, op *models.Operation)
 		}
 
 		params := item.Get("parameters")
-		ep, err := metadata.GetByPath(params, metadata)
+		ep, err := metadata.GetByPath(params)
 		if err != nil && op.Errors == nil {
 			return err
 		}

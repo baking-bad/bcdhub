@@ -57,7 +57,7 @@ func createMetadata(rpc noderpc.Pool, level int64, c *models.Contract, tag, file
 			}
 			c.Entrypoints = make([]string, len(entrypoints))
 			for i := range entrypoints {
-				c.Entrypoints[i] = entrypoints[i]
+				c.Entrypoints[i] = entrypoints[i].Name
 			}
 		}
 
