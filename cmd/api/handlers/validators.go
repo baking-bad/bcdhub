@@ -48,3 +48,20 @@ var OPGValidator validator.Func = func(fl validator.FieldLevel) bool {
 	}
 	return true
 }
+
+// StatusValidator -
+var StatusValidator validator.Func = func(fl validator.FieldLevel) bool {
+	status := fl.Field().String()
+	data := strings.Split(status, ",")
+	for i := range data {
+		if !helpers.StringInArray(data[i], []string{
+			consts.Applied,
+			consts.Backtracked,
+			consts.Failed,
+			consts.Skipped,
+		}) {
+			return false
+		}
+	}
+	return true
+}

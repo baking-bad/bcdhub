@@ -1,5 +1,7 @@
 package handlers
 
+import "time"
+
 type aliasRequest struct {
 	Address string `form:"address" binding:"required,address"`
 	Network string `form:"network" binding:"required,network"`
@@ -49,8 +51,12 @@ type OauthParams struct {
 	Provider string `uri:"provider"`
 }
 
-type offsetRequest struct {
-	LastID string `form:"last_id" binding:"omitempty,numeric"`
+type operationsRequest struct {
+	LastID      string    `form:"last_id" binding:"omitempty,numeric"`
+	From        time.Time `form:"from" binding:"omitempty" time_format:"unix" time_utc="1"`
+	To          time.Time `form:"to" binding:"omitempty,gtfield=From" time_format:"unix" time_utc="1"`
+	Status      string    `form:"status" binding:"omitempty,status"`
+	Entrypoints string    `form:"entrypoints" binding:"omitempty,excludesall=\"'"`
 }
 
 type pageableRequest struct {

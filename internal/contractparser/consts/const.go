@@ -50,3 +50,11 @@ const (
 	BadParameterError = "michelson_v1.bad_contract_parameter"
 	GasExhaustedError = "gas_exhausted.operation"
 )
+
+// Statuses
+const (
+	Applied     = "applied"
+	Backtracked = "backtracked"
+	Failed      = "failed"
+	Skipped     = "skipped"
+)

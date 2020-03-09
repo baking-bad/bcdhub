@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/cerrors"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
@@ -27,21 +28,15 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 		return
 	}
 
-	var offsetReq offsetRequest
-	if err := c.BindQuery(&offsetReq); handleError(c, err, http.StatusBadRequest) {
+	var filtersReq operationsRequest
+	if err := c.BindQuery(&filtersReq); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	size := uint64(10)
-	var lastID uint64
-	if offsetReq.LastID != "" {
-		l, err := strconv.ParseUint(offsetReq.LastID, 10, 64)
-		if handleError(c, err, 0) {
-			return
-		}
-		lastID = l
-	}
-	ops, err := ctx.ES.GetContractOperations(req.Network, req.Address, lastID, size)
+	filters := prepareFilters(filtersReq)
+
+	ops, err := ctx.ES.GetContractOperations(req.Network, req.Address, size, filters)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -74,6 +69,33 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, resp)
+}
+
+func prepareFilters(req operationsRequest) map[string]interface{} {
+	filters := map[string]interface{}{}
+
+	if req.LastID != "" {
+		filters["last_id"] = req.LastID
+	}
+
+	if !req.From.IsZero() {
+		filters["from"] = req.From.UTC().Format(time.RFC3339)
+	}
+
+	if !req.To.IsZero() {
+		filters["to"] = req.To.UTC().Format(time.RFC3339)
+	}
+
+	if req.Status != "" {
+		status := "'" + strings.Join(strings.Split(req.Status, ","), "','") + "'"
+		filters["status"] = status
+	}
+
+	if req.Entrypoints != "" {
+		entrypoints := "'" + strings.Join(strings.Split(req.Entrypoints, ","), "','") + "'"
+		filters["entrypoints"] = entrypoints
+	}
+	return filters
 }
 
 func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operation, error) {

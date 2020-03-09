@@ -58,14 +58,14 @@ func (e *Elastic) GetOperationByHash(hash string) (ops []models.Operation, err e
 	return ops, nil
 }
 
-func (e *Elastic) getContractOPG(address, network string, lastID, size uint64) ([]string, error) {
+func (e *Elastic) getContractOPG(address, network string, size uint64, filters map[string]interface{}) ([]string, error) {
 	if size == 0 {
 		size = 10
 	}
 
-	var lastIDFilter string
-	if lastID != 0 {
-		lastIDFilter = fmt.Sprintf(" AND indexed_time < %d", lastID)
+	filtersString, err := prepareOperationFilters(filters)
+	if err != nil {
+		return nil, err
 	}
 
 	sqlString := fmt.Sprintf(`SELECT hash, level
@@ -73,7 +73,7 @@ func (e *Elastic) getContractOPG(address, network string, lastID, size uint64) (
 		WHERE (source = '%s' OR destination = '%s') AND network = '%s' %s 
 		GROUP BY hash, level 
 		ORDER BY level DESC 
-		LIMIT %d`, address, address, network, lastIDFilter, size)
+		LIMIT %d`, address, address, network, filtersString, size)
 
 	res, err := e.executeSQL(sqlString)
 	if err != nil {
@@ -88,9 +88,32 @@ func (e *Elastic) getContractOPG(address, network string, lastID, size uint64) (
 	return hash, nil
 }
 
+func prepareOperationFilters(filters map[string]interface{}) (s string, err error) {
+	for k, v := range filters {
+		if v != "" {
+			s += " AND "
+			switch k {
+			case "from":
+				s += fmt.Sprintf("CAST(timestamp AS DATETIME) >= CAST('%s' AS DATETIME)", v)
+			case "to":
+				s += fmt.Sprintf("CAST(timestamp AS DATETIME) < CAST('%s' AS DATETIME)", v)
+			case "entrypoints":
+				s += fmt.Sprintf("entrypoint IN (%s)", v)
+			case "last_id":
+				s += fmt.Sprintf("indexed_time < %s", v)
+			case "status":
+				s += fmt.Sprintf("status IN (%s)", v)
+			default:
+				return "", fmt.Errorf("Unknown operation filter: %s %v", k, v)
+			}
+		}
+	}
+	return
+}
+
 // GetContractOperations -
-func (e *Elastic) GetContractOperations(network, address string, lastID, size uint64) (po PageableOperations, err error) {
-	opg, err := e.getContractOPG(address, network, lastID, size)
+func (e *Elastic) GetContractOperations(network, address string, size uint64, filters map[string]interface{}) (po PageableOperations, err error) {
+	opg, err := e.getContractOPG(address, network, size, filters)
 	if err != nil {
 		return
 	}
