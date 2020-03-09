@@ -79,6 +79,10 @@ func main() {
 		v.RegisterValidation("network", handlers.NetworkValidator)
 	}
 
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterValidation("status", handlers.StatusValidator)
+	}
+
 	r.Use(corsSettings())
 	r.Use(helpers.SentryMiddleware())
 	v1 := r.Group("v1")
