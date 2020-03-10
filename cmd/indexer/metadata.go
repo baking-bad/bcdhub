@@ -79,10 +79,50 @@ func saveMetadata(es *elastic.Elastic, rpc noderpc.Pool, c *models.Contract, fil
 	if err != nil {
 		return err
 	}
+
+	upgradable, err := isUpgradable(storage[consts.Babylon], parameter[consts.Babylon])
+	if err != nil {
+		return err
+	}
+
+	if upgradable {
+		c.Tags = append(c.Tags, consts.UpgradableTag)
+	}
+
 	data := map[string]interface{}{
 		consts.PARAMETER: parameter,
 		consts.STORAGE:   storage,
 	}
 	_, err = es.AddDocumentWithID(data, elastic.DocMetadata, c.Address)
 	return err
+}
+
+func isUpgradable(storage, parameter string) (bool, error) {
+	var paramMeta meta.Metadata
+	if err := json.Unmarshal([]byte(parameter), &paramMeta); err != nil {
+		return false, fmt.Errorf("Invalid parameter metadata: %v", err)
+	}
+
+	var storageMeta meta.Metadata
+	if err := json.Unmarshal([]byte(storage), &storageMeta); err != nil {
+		return false, fmt.Errorf("Invalid parameter metadata: %v", err)
+	}
+
+	for _, p := range paramMeta {
+		if p.Type != consts.LAMBDA {
+			continue
+		}
+
+		for _, s := range storageMeta {
+			if s.Type != consts.LAMBDA {
+				continue
+			}
+
+			if p.Parameter == s.Parameter {
+				return true, nil
+			}
+		}
+	}
+
+	return false, nil
 }
