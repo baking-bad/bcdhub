@@ -109,12 +109,12 @@ func isUpgradable(storage, parameter string) (bool, error) {
 	}
 
 	for _, p := range paramMeta {
-		if p.Type != "lambda" {
+		if p.Type != consts.LAMBDA {
 			continue
 		}
 
 		for _, s := range storageMeta {
-			if s.Type != "lambda" {
+			if s.Type != consts.LAMBDA {
 				continue
 			}
 
