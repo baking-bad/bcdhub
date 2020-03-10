@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/cerrors"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
@@ -78,12 +77,12 @@ func prepareFilters(req operationsRequest) map[string]interface{} {
 		filters["last_id"] = req.LastID
 	}
 
-	if !req.From.IsZero() {
-		filters["from"] = req.From.UTC().Format(time.RFC3339)
+	if req.From > 0 {
+		filters["from"] = req.From
 	}
 
-	if !req.To.IsZero() {
-		filters["to"] = req.To.UTC().Format(time.RFC3339)
+	if req.To > 0 {
+		filters["to"] = req.To
 	}
 
 	if req.Status != "" {

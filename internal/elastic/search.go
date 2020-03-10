@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/tidwall/gjson"
 )
@@ -31,38 +32,84 @@ func getFields(fields []string) ([]string, map[string]interface{}, error) {
 	return f, h, nil
 }
 
-func getNetworksFilter(networks []string) ([]qItem, error) {
-	res := make([]qItem, 0)
-	for i := range networks {
-		if _, ok := supportedNetworks[networks[i]]; !ok {
-			return nil, fmt.Errorf("Unsupported network: %s", networks[i])
+func prepareSearchFilters(filters map[string]interface{}) ([]qItem, error) {
+	mustItems := make([]qItem, 0)
+	for k, v := range filters {
+		switch k {
+		case "from":
+			val, ok := v.(uint)
+			if !ok {
+				return nil, fmt.Errorf("Invalid type for 'from' filter (wait int64): %T", v)
+			}
+			if val > 0 {
+				mustItems = append(mustItems, rangeQ("timestamp", qItem{
+					"gte": val * 1000,
+				}))
+			}
+		case "to":
+			val, ok := v.(uint)
+			if !ok {
+				return nil, fmt.Errorf("Invalid type for 'to' filter (wait int64): %T", v)
+			}
+			if val > 0 {
+				mustItems = append(mustItems, rangeQ("timestamp", qItem{
+					"lte": val * 1000,
+				}))
+			}
+		case "networks":
+			val, ok := v.([]string)
+			if !ok {
+				return nil, fmt.Errorf("Invalid type for 'network' filter (wait []string): %T", v)
+			}
+			if len(val) == 0 {
+				continue
+			}
+			mustItems = append(mustItems, in("network", val))
+		case "languages":
+			val, ok := v.([]string)
+			if !ok {
+				return nil, fmt.Errorf("Invalid type for 'language' filter (wait []string): %T", v)
+			}
+			if len(val) == 0 {
+				continue
+			}
+			mustItems = append(mustItems, in("language", val))
+		default:
+			return nil, fmt.Errorf("Unknown search filter: %s", k)
 		}
-		res = append(res, matchPhrase("network", networks[i]))
 	}
-	return res, nil
+	return mustItems, nil
 }
 
-func setDateFilter(mustItems []qItem, dateFrom, dateTo uint) []qItem {
-	if dateFrom == 0 && dateTo == 0 {
-		return mustItems
+func getSearchIndices(filters map[string]interface{}) ([]string, error) {
+	if val, ok := filters["indices"]; ok {
+		indices, ok := val.([]string)
+		if !ok {
+			return nil, fmt.Errorf("Invalid type for 'indices' filter (wait []string): %T", val)
+		}
+		for i := range indices {
+			if !helpers.StringInArray(indices[i], searchableInidices) {
+				return nil, fmt.Errorf("Invalid index name: %s", indices[i])
+			}
+		}
+		delete(filters, "indices")
+		return indices, nil
 	}
-	ts := qItem{}
-	if dateFrom > 0 {
-		ts["gte"] = dateFrom * 1000
-	}
-	if dateTo > 0 {
-		ts["lte"] = dateTo * 1000
-	}
-
-	mustItems = append(mustItems, rangeQ("timestamp", ts))
-	return mustItems
+	return searchableInidices, nil
 }
 
 // SearchByText -
-func (e *Elastic) SearchByText(text string, offset int64, fields, networks []string, dateFrom, dateTo uint, grouping bool) (SearchResult, error) {
+func (e *Elastic) SearchByText(text string, offset int64, fields []string, filters map[string]interface{}, grouping bool) (SearchResult, error) {
 	query := newQuery()
 
-	mustItems := make([]qItem, 0)
+	indices, err := getSearchIndices(filters)
+	if err != nil {
+		return SearchResult{}, err
+	}
+	mustItems, err := prepareSearchFilters(filters)
+	if err != nil {
+		return SearchResult{}, err
+	}
 	if text != "" {
 		internalFields, highlights, err := getFields(fields)
 		if err != nil {
@@ -70,23 +117,14 @@ func (e *Elastic) SearchByText(text string, offset int64, fields, networks []str
 		}
 		mustItems = append(mustItems, queryString(text, internalFields))
 
-		query.Highlights(highlights)
+		if !grouping {
+			query.Highlights(highlights)
+		}
 	}
-	mustItems = setDateFilter(mustItems, dateFrom, dateTo)
 
 	b := boolQ()
 	if len(mustItems) > 0 {
 		b.Get("bool").Extend(must(mustItems...))
-	}
-
-	if len(networks) > 0 {
-		networksFilter, err := getNetworksFilter(networks)
-		if err != nil {
-			return SearchResult{}, err
-		}
-		b.Get("bool").Extend(
-			should(networksFilter...),
-		).Append("minimum_should_match", 1)
 	}
 
 	if grouping {
@@ -119,7 +157,7 @@ func (e *Elastic) SearchByText(text string, offset int64, fields, networks []str
 
 	query.Query(b)
 
-	resp, err := e.query([]string{DocContracts, DocOperations}, query)
+	resp, err := e.query(indices, query)
 	if err != nil {
 		return SearchResult{}, err
 	}
@@ -186,12 +224,9 @@ func parseSearchGroupingResponse(data gjson.Result, size, offset int64) []Search
 		searchItem := SearchItem{}
 		count := arr[i].Get("doc_count").Int()
 		if count > 1 {
-			if count > 4 {
-				count = 4
-			}
 			searchItem.Group = &Group{
 				Count: arr[i].Get("doc_count").Int(),
-				Top:   make([]Top, count),
+				Top:   make([]Top, 0),
 			}
 		}
 
@@ -207,10 +242,10 @@ func parseSearchGroupingResponse(data gjson.Result, size, offset int64) []Search
 					searchItem.Body = c
 					searchItem.Value = c.Address
 				} else {
-					searchItem.Group.Top[j-1] = Top{
+					searchItem.Group.Top = append(searchItem.Group.Top, Top{
 						Key:     item.Get("_source.address").String(),
 						Network: item.Get("_source.network").String(),
-					}
+					})
 				}
 			case DocOperations:
 				for j, item := range arr[i].Get("last.hits.hits").Array() {
@@ -220,10 +255,10 @@ func parseSearchGroupingResponse(data gjson.Result, size, offset int64) []Search
 						searchItem.Body = op
 						searchItem.Value = op.Hash
 					} else {
-						searchItem.Group.Top[j-1] = Top{
+						searchItem.Group.Top = append(searchItem.Group.Top, Top{
 							Key:     item.Get("_source.hash").String(),
 							Network: item.Get("_source.network").String(),
-						}
+						})
 					}
 				}
 			default:

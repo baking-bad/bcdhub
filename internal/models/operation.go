@@ -97,6 +97,15 @@ func getOperationsFoundBy(hit gjson.Result) string {
 	if _, ok := keys["hash"]; ok {
 		return "hash"
 	}
+	if _, ok := keys["entrypoint"]; ok {
+		return "called entrypoint"
+	}
+	if _, ok := keys["errors.id"]; ok {
+		return "error id"
+	}
+	if _, ok := keys["errors.with"]; ok {
+		return "error text"
+	}
 	return ""
 }
 

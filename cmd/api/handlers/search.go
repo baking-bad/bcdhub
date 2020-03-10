@@ -18,14 +18,38 @@ func (ctx *Context) Search(c *gin.Context) {
 	if req.Fields != "" {
 		fields = strings.Split(req.Fields, ",")
 	}
-	var networks []string
-	if req.Networks != "" {
-		networks = strings.Split(req.Networks, ",")
-	}
-	contracts, err := ctx.ES.SearchByText(req.Text, int64(req.Offset), fields, networks, req.DateFrom, req.DateTo, req.Grouping != 0)
+	filters := getSearchFilters(req)
+
+	contracts, err := ctx.ES.SearchByText(req.Text, int64(req.Offset), fields, filters, req.Grouping != 0)
 	if handleError(c, err, 0) {
 		return
 	}
 
 	c.JSON(http.StatusOK, contracts)
+}
+
+func getSearchFilters(req searchRequest) map[string]interface{} {
+	filters := map[string]interface{}{}
+
+	if req.DateFrom > 0 {
+		filters["from"] = req.DateFrom
+	}
+
+	if req.DateTo > 0 {
+		filters["to"] = req.DateTo
+	}
+
+	if req.Networks != "" {
+		filters["networks"] = strings.Split(req.Networks, ",")
+	}
+
+	if req.Indices != "" {
+		filters["indices"] = strings.Split(req.Indices, ",")
+	}
+
+	if req.Languages != "" {
+		filters["languages"] = strings.Split(req.Languages, ",")
+	}
+
+	return filters
 }
