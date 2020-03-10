@@ -11,6 +11,7 @@ const (
 	TestingTag         = "testing"
 	VestingTag         = "vesting"
 	SpendableTag       = "spendable"
+	UpgradableTag      = "upgradable"
 )
 
 // Types
