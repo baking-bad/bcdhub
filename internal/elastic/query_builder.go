@@ -97,6 +97,14 @@ func term(key string, value interface{}) qItem {
 	}
 }
 
+func in(key string, value []string) qItem {
+	return qItem{
+		"terms": qItem{
+			key: value,
+		},
+	}
+}
+
 func excludes(fields []string) qItem {
 	return qItem{
 		"excludes": fields,

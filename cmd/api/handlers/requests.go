@@ -1,7 +1,5 @@
 package handlers
 
-import "time"
-
 type aliasRequest struct {
 	Address string `form:"address" binding:"required,address"`
 	Network string `form:"network" binding:"required,network"`
@@ -52,11 +50,11 @@ type OauthParams struct {
 }
 
 type operationsRequest struct {
-	LastID      string    `form:"last_id" binding:"omitempty,numeric"`
-	From        time.Time `form:"from" binding:"omitempty" time_format:"unix" time_utc="1"`
-	To          time.Time `form:"to" binding:"omitempty,gtfield=From" time_format:"unix" time_utc="1"`
-	Status      string    `form:"status" binding:"omitempty,status"`
-	Entrypoints string    `form:"entrypoints" binding:"omitempty,excludesall=\"'"`
+	LastID      string `form:"last_id" binding:"omitempty,numeric"`
+	From        uint   `form:"from" binding:"omitempty"`
+	To          uint   `form:"to" binding:"omitempty,gtfield=From"`
+	Status      string `form:"status" binding:"omitempty,status"`
+	Entrypoints string `form:"entrypoints" binding:"omitempty,excludesall=\"'"`
 }
 
 type pageableRequest struct {
@@ -64,13 +62,15 @@ type pageableRequest struct {
 }
 
 type searchRequest struct {
-	Text     string `form:"q"`
-	Fields   string `form:"f,omitempty"`
-	Networks string `form:"n,omitempty"`
-	Offset   uint   `form:"o,omitempty"`
-	DateFrom uint   `form:"s,omitempty"`
-	DateTo   uint   `form:"e,omitempty"`
-	Grouping uint   `form:"g,omitempty"`
+	Text      string `form:"q"`
+	Fields    string `form:"f,omitempty"`
+	Networks  string `form:"n,omitempty"`
+	Offset    uint   `form:"o,omitempty"`
+	DateFrom  uint   `form:"s,omitempty"`
+	DateTo    uint   `form:"e,omitempty"`
+	Grouping  uint   `form:"g,omitempty"`
+	Indices   string `form:"i,omitempty"`
+	Languages string `form:"l,omitempty"`
 }
 
 type subRequest struct {

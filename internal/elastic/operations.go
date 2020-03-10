@@ -94,9 +94,9 @@ func prepareOperationFilters(filters map[string]interface{}) (s string, err erro
 			s += " AND "
 			switch k {
 			case "from":
-				s += fmt.Sprintf("CAST(timestamp AS DATETIME) >= CAST('%s' AS DATETIME)", v)
+				s += fmt.Sprintf("timestamp >= %d", v)
 			case "to":
-				s += fmt.Sprintf("CAST(timestamp AS DATETIME) < CAST('%s' AS DATETIME)", v)
+				s += fmt.Sprintf("timestamp <= %d", v)
 			case "entrypoints":
 				s += fmt.Sprintf("entrypoint IN (%s)", v)
 			case "last_id":
