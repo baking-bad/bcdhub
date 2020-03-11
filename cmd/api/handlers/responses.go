@@ -58,7 +58,6 @@ type CodeDiff struct {
 type Contract struct {
 	*models.Contract
 
-	Alias   string       `json:"alias,omitempty"`
 	Profile *ProfileInfo `json:"profile,omitempty"`
 }
 

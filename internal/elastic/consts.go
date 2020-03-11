@@ -4,9 +4,8 @@ package elastic
 const (
 	DocContracts  = "contract"
 	DocStates     = "state"
-	DocProjects   = "project"
 	DocOperations = "operation"
-	DocBigMapDiff     = "bigmapdiff"
+	DocBigMapDiff = "bigmapdiff"
 	DocMetadata   = "metadata"
 )
 

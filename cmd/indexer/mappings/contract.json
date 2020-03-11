@@ -10,6 +10,15 @@
                     }
                 }
             },
+            "alias": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
             "balance": {
                 "type": "long"
             },

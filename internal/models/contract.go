@@ -33,6 +33,7 @@ type Contract struct {
 	TxCount           int64   `json:"tx_count,omitempty"`
 	SumTxAmount       int64   `json:"sum_tx_amount,omitempty"`
 	MedianConsumedGas int64   `json:"median_consumed_gas,omitempty"`
+	Alias             string  `json:"alias,omitempty"`
 }
 
 // Fingerprint -
@@ -90,6 +91,7 @@ func (c *Contract) ParseElasticJSON(hit gjson.Result) {
 	c.TxCount = hit.Get("_source.tx_count").Int()
 	c.SumTxAmount = hit.Get("_source.sum_tx_amount").Int()
 	c.MedianConsumedGas = hit.Get("_source.median_consumed_gas").Int()
+	c.Alias = hit.Get("_source.alias").String()
 
 	c.FoundBy = getFoundBy(hit)
 }
@@ -104,6 +106,9 @@ func (f *Fingerprint) ParseElasticJSON(hit gjson.Result) {
 func getFoundBy(hit gjson.Result) string {
 	keys := hit.Get("highlight").Map()
 
+	if _, ok := keys["alias"]; ok {
+		return "alias"
+	}
 	if _, ok := keys["address"]; ok {
 		return "address"
 	}

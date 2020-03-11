@@ -24,29 +24,27 @@ func getContractProjectID(c models.Contract, buckets []models.Contract) (string,
 		}
 	}
 
-	projID := strings.ReplaceAll(uuid.New().String(), "-", "")
-	proj := models.Project{
-		ID:    projID,
-		Alias: projID,
-	}
-
-	if _, err := ctx.ES.AddDocumentWithID(proj, elastic.DocProjects, projID); err != nil {
-		return "", err
-	}
-
-	return projID, nil
+	return strings.ReplaceAll(uuid.New().String(), "-", ""), nil
 }
 
 func parseContract(contract models.Contract) error {
-	buckets, err := ctx.ES.GetLastProjectContracts()
-	if err != nil {
-		return err
+	if contract.Alias == "" {
+		if err := setAlias(&contract); err != nil {
+			return err
+		}
 	}
-	projID, err := getContractProjectID(contract, buckets)
-	if err != nil {
-		return err
+
+	if contract.ProjectID == "" {
+		buckets, err := ctx.ES.GetLastProjectContracts()
+		if err != nil {
+			return err
+		}
+		projID, err := getContractProjectID(contract, buckets)
+		if err != nil {
+			return err
+		}
+		contract.ProjectID = projID
 	}
-	contract.ProjectID = projID
 
 	logger.Info("Contract %s to project %s", contract.Address, contract.ProjectID)
 

@@ -1,13 +1,14 @@
 package elastic
 
 var allFields = []string{
-	"address^10", "hash^10", "manager^8", "entrypoint^8", "errors.with^8", "delegate^6", "tags^4",
+	"alias^10", "hash^9", "address^9", "manager^8", "entrypoint^8", "errors.with^8", "delegate^6", "tags^4",
 	"errors.id^4", "hardcoded", "annotations", "fail_strings", "entrypoints", "language",
 }
 
 var mapFields = map[string]string{
-	"address":     "address^10",
-	"hash":        "hash^10",
+	"alias":       "alias^10",
+	"hash":        "hash^9",
+	"address":     "address^9",
 	"manager":     "manager^8",
 	"entrypoint":  "entrypoint^8",
 	"errors.with": "errors.with^4",
@@ -22,6 +23,7 @@ var mapFields = map[string]string{
 }
 
 var mapHighlights = qItem{
+	"alias":        qItem{},
 	"address":      qItem{},
 	"hash":         qItem{},
 	"manager":      qItem{},

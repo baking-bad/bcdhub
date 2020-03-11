@@ -45,6 +45,14 @@ func getOperation(data amqp.Delivery) error {
 		return fmt.Errorf("[parseOperation] Find operation error: %s", err)
 	}
 
+	if err := setOperationAliases(&op); err != nil {
+		return fmt.Errorf("[parseOperation] Error during set operation alias: %s", err)
+	}
+
+	if _, err := ctx.ES.UpdateDoc(elastic.DocOperations, op.ID, op); err != nil {
+		return err
+	}
+
 	for _, address := range []string{op.Source, op.Destination} {
 		if !strings.HasPrefix(address, "KT") {
 			continue

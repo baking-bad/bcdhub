@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/aopoltorzhicky/bcdhub/internal/database"
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/mq"
 	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
@@ -11,6 +12,7 @@ import (
 
 // Context -
 type Context struct {
+	DB  database.DB
 	ES  *elastic.Elastic
 	RPC map[string]noderpc.Pool
 	MQ  *mq.MQ
@@ -23,7 +25,14 @@ func newContext(cfg config) (*Context, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	db, err := database.New(cfg.DB.URI)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Context{
+		DB:  db,
 		ES:  es,
 		RPC: RPCs,
 		MQ:  messageQueue,
