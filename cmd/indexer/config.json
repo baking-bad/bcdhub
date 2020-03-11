@@ -1,6 +1,6 @@
 {
   "search": {
-    "uri": "http://localhost:9200"
+    "uri": "http://elastic:9200"
   },
   "nodes": {
     "mainnet": [
@@ -35,15 +35,15 @@
   "update_timer": 60,
   "files_directory": "/home/artem/.bcd",
   "mq": {
-    "uri": "amqp://guest:guest@localhost:5672/",
+    "uri": "amqp://guest:guest@mq:5672/",
     "queues": [
       "contracts"
     ]
   },
   "sentry": {
     "project": "indexer",
-    "env": "development",
+    "env": "production",
     "dsn": "https://eefa682518c84afdb0240bc9b94ed79c@sentry.io/3061530",
-    "debug": true
+    "debug": false
   }
 }

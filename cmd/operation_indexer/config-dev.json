@@ -1,8 +1,8 @@
 {
   "search": {
-    "uri": "http://elastic:9200"
+    "uri": "http://localhost:9200"
   },
-  "nodes": {
+  "nodes":  {
     "mainnet": [
       "https://rpc.tzkt.io/mainnet",
       "https://mainnet.tezos.org.ua"
@@ -34,15 +34,15 @@
   "indexer": "tzstats",
   "update_timer": 60,
   "mq": {
-    "uri": "amqp://guest:guest@mq:5672/",
+    "uri": "amqp://guest:guest@localhost:5672/",
     "queues": [
       "operations"
     ]
   },
   "sentry": {
     "project": "operation_indexer",
-    "env": "production",
+    "env": "development",
     "dsn": "https://eefa682518c84afdb0240bc9b94ed79c@sentry.io/3061530",
-    "debug": false
+    "debug": true
   }
 }
