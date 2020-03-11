@@ -3,6 +3,7 @@ services:
   elastic:
     container_name: bcd-elastic
     image: docker.elastic.co/elasticsearch/elasticsearch:7.5.1
+    restart: always
     volumes:
       - esdata:/usr/share/elasticsearch/data
     environment:
@@ -16,7 +17,20 @@ services:
       options:
         max-size: 10m
         max-file: "5"
-  
+
+  mq:
+    container_name: bcd-mq
+    image: rabbitmq:latest
+    restart: always
+    volumes:
+      - mqdata:/var/lib/rabbitmq
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    labels:
+      NAME: "rabbitmq"
+    logging: *my-logging        
+
   db:
     container_name: bcd-db
     image: postgres:latest
@@ -25,8 +39,6 @@ services:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
       - POSTGRES_DB=bcd
-    expose: 
-      - 5432
     volumes:
       - db:/var/lib/postgresql/data
     ports:
@@ -44,6 +56,9 @@ services:
       - GIN_MODE=release
     depends_on:
       - elastic
+      - db
+    volumes:
+      - /etc/bcd:/etc/bcd
     ports:
       - 127.0.0.1:14000:14000
     logging: *my-logging
@@ -55,23 +70,39 @@ services:
     build:
       context: .
       dockerfile: cmd/indexer/Dockerfile
+    volumes:
+      - /etc/bcd:/etc/bcd
     depends_on:
       - elastic
+      - mq
     logging: *my-logging
 
-  mq:
-    container_name: bcd-mq
-    hostname: mq
-    image: rabbitmq:latest
+  opindexer:
+    container_name: bcd-opindexer
     restart: always
-    ports:
-      - "15672:15672"
-      - "5672:5672"
-    labels:
-      NAME: "rabbitmq"
+    image: registry.github.com/aopoltorzhicky/bcdhub/opindexer
+    build:
+      context: .
+      dockerfile: cmd/operation_indexer/Dockerfile
+    depends_on:
+      - elastic
+      - mq
+    logging: *my-logging
+
+  metrics:
+    container_name: bcd-metrics
+    restart: always
+    image: registry.github.com/aopoltorzhicky/bcdhub/metrics
+    build:
+      context: .
+      dockerfile: cmd/metrics/Dockerfile
+    depends_on:
+      - elastic
+      - mq
     logging: *my-logging
 
 volumes:
   esdata:
+  mqdata:
   db:
     driver: local
