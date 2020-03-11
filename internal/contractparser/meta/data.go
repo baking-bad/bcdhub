@@ -311,6 +311,9 @@ func GetMetadata(es *elastic.Elastic, address, network, tag, protocol string) (M
 	}
 	n := GetMetadataNetwork(network, protocol)
 	path := fmt.Sprintf("_source.%s.%s", tag, n)
+	if !data.Get(path).Exists() && n == consts.MetadataAlpha {
+		return nil, nil
+	}
 	metadata := data.Get(path).String()
 
 	var res Metadata

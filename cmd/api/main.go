@@ -38,12 +38,7 @@ func main() {
 	helpers.SetTagSentry("project", cfg.Sentry.Project)
 	defer helpers.CatchPanicSentry()
 
-	es, err := elastic.New([]string{cfg.Search.URI})
-	if err != nil {
-		logger.Error(err)
-		helpers.CatchErrorSentry(err)
-		return
-	}
+	es := elastic.WaitNew([]string{cfg.Search.URI})
 	cerrors.LoadErrorDescriptions("data/errors.json")
 
 	db, err := database.New(cfg.DB.URI)

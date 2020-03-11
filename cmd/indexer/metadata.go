@@ -80,7 +80,7 @@ func saveMetadata(es *elastic.Elastic, rpc noderpc.Pool, c *models.Contract, fil
 		return err
 	}
 
-	upgradable, err := isUpgradable(storage[consts.Babylon], parameter[consts.Babylon])
+	upgradable, err := isUpgradable(storage[consts.MetadataBabylon], parameter[consts.MetadataBabylon])
 	if err != nil {
 		return err
 	}

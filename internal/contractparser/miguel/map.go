@@ -46,18 +46,36 @@ func (l *mapDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadat
 				}
 			}
 
-			switch kv := key.(type) {
-			case string:
-				res[kv] = value
-			case int, int64:
-				s := fmt.Sprintf("%d", kv)
-				res[s] = value
-			case map[string]interface{}:
-				s := fmt.Sprintf("%v", kv["value"])
-				res[s] = value
+			s, err := l.getKey(key)
+			if err != nil {
+				return nil, err
 			}
+			res[s] = value
 		}
 	}
 
 	return res, nil
+}
+
+func (l *mapDecoder) getKey(key interface{}) (s string, err error) {
+	switch kv := key.(type) {
+	case string:
+		s = kv
+	case int, int64:
+		s = fmt.Sprintf("%d", kv)
+	case map[string]interface{}:
+		s = fmt.Sprintf("%v", kv["value"])
+	case []interface{}:
+		s = ""
+		for i, item := range kv {
+			val := item.(map[string]interface{})
+			if i != 0 {
+				s += "@"
+			}
+			s += fmt.Sprintf("%v", val["value"])
+		}
+	default:
+		err = fmt.Errorf("Invalid map key type: %v %T", key, key)
+	}
+	return
 }
