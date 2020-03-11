@@ -1,9 +1,9 @@
 {
   "search": {
-    "uri": "http://localhost:9200"
+    "uri": "http://elastic:9200"
   },
   "address": ":14000",
-  "nodes":  {
+  "nodes": {
     "mainnet": [
       "https://rpc.tzkt.io/mainnet",
       "https://mainnet.tezos.org.ua"
@@ -22,12 +22,12 @@
   },
   "dir": "/home/artem/.bcd",
   "db": {
-    "uri": "host=127.0.0.1 port=5432 user=root dbname=bcd password=root sslmode=disable"
+    "uri": "host=db port=5432 user=root dbname=bcd password=root sslmode=disable"
   },
   "sentry": {
     "project": "api",
-    "env": "development",
+    "env": "production",
     "dsn": "https://eefa682518c84afdb0240bc9b94ed79c@sentry.io/3061530",
-    "debug": true
+    "debug": false
   }
 }

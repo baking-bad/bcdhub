@@ -1,16 +1,9 @@
 {
   "search": {
-    "uri": "http://elastic:9200"
+    "uri": "http://localhost:9200"
   },
-  "update_timer": 60,
-  "mq": {
-    "uri": "amqp://guest:guest@mq:5672/",
-    "queues": [
-      "operations",
-      "contracts"
-    ]
-  },
-  "nodes": {
+  "address": ":14000",
+  "nodes":  {
     "mainnet": [
       "https://rpc.tzkt.io/mainnet",
       "https://mainnet.tezos.org.ua"
@@ -27,10 +20,14 @@
       "https://rpc.tzkt.io/carthagenet"
     ]
   },
+  "dir": "/home/artem/.bcd",
+  "db": {
+    "uri": "host=127.0.0.1 port=5432 user=root dbname=bcd password=root sslmode=disable"
+  },
   "sentry": {
-    "project": "metrics",
-    "env": "production",
+    "project": "api",
+    "env": "development",
     "dsn": "https://eefa682518c84afdb0240bc9b94ed79c@sentry.io/3061530",
-    "debug": false
+    "debug": true
   }
 }

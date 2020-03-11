@@ -32,5 +32,6 @@ WORKDIR /app/operation_indexer
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /go/bin/operation_indexer /go/bin/operation_indexer
 COPY /cmd/operation_indexer/config.json /app/operation_indexer/config.json
+COPY /cmd/operation_indexer/data/errors.json /app/operation_indexer/data/errors.json
 
 ENTRYPOINT ["/go/bin/operation_indexer"]

@@ -60,7 +60,7 @@ services:
     logging: *my-logging
 
   mq:
-    container_name: mq
+    container_name: bcd-mq
     hostname: mq
     image: rabbitmq:latest
     restart: always
