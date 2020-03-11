@@ -33,7 +33,7 @@
   },
   "indexer": "tzstats",
   "update_timer": 60,
-  "files_directory": "/home/artem/.bcd",
+  "files_directory": "/etc/bcd",
   "mq": {
     "uri": "amqp://guest:guest@mq:5672/",
     "queues": [
