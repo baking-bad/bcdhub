@@ -27,11 +27,6 @@ func (ctx *Context) GetContract(c *gin.Context) {
 	if handleError(c, err, 0) {
 		return
 	}
-
-	if err := ctx.setAlias(&res); handleError(c, err, 0) {
-		return
-	}
-
 	c.JSON(http.StatusOK, res)
 }
 
@@ -43,17 +38,6 @@ func (ctx *Context) GetRandomContract(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, cntr)
-}
-
-func (ctx *Context) setAlias(contract *Contract) error {
-	project, err := ctx.ES.GetProject(contract.ProjectID)
-	if err != nil {
-		return err
-	}
-	if project.Alias != contract.ProjectID {
-		contract.Alias = project.Alias
-	}
-	return nil
 }
 
 func (ctx *Context) setProfileInfo(contract models.Contract) (Contract, error) {

@@ -125,7 +125,6 @@ func (ctx *Context) createIndexes() error {
 		elastic.DocBigMapDiff,
 		elastic.DocOperations,
 		elastic.DocStates,
-		elastic.DocProjects,
 	} {
 		if err := ctx.ES.CreateIndexIfNotExists(index); err != nil {
 			return err

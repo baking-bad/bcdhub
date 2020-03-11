@@ -32,7 +32,7 @@ func NewPool(urls []string, timeout time.Duration) Pool {
 	return data
 }
 
-func (p Pool) getNode() poolItem {
+func (p Pool) getNode() (poolItem, error) {
 	rand.Seed(time.Now().UnixNano())
 	nodes := make([]poolItem, 0)
 	for i := range p {
@@ -41,11 +41,18 @@ func (p Pool) getNode() poolItem {
 		}
 	}
 
-	return nodes[rand.Intn(len(nodes))]
+	if len(nodes) == 0 {
+		return poolItem{}, fmt.Errorf("No availiable nodes")
+	}
+
+	return nodes[rand.Intn(len(nodes))], nil
 }
 
 func (p Pool) call(method string, args ...interface{}) (reflect.Value, error) {
-	node := p.getNode()
+	node, err := p.getNode()
+	if err != nil {
+		return reflect.Value{}, err
+	}
 	nodeVal := reflect.ValueOf(&node.node)
 	if nodeVal.Kind() == reflect.Ptr {
 		nodeVal = nodeVal.Elem()
@@ -70,7 +77,7 @@ func (p Pool) call(method string, args ...interface{}) (reflect.Value, error) {
 
 	if !response[1].IsNil() {
 		node.blockTime = time.Now().Add(blockDuration)
-		return reflect.Value{}, response[1].Interface().(error)
+		return p.call(method, args...)
 	}
 	return response[0], nil
 }

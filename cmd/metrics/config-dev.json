@@ -10,7 +10,7 @@
       "contracts"
     ]
   },
-  "nodes":  {
+  "nodes": {
     "mainnet": [
       "https://rpc.tzkt.io/mainnet",
       "https://mainnet.tezos.org.ua"
@@ -26,6 +26,9 @@
       "https://carthatest-ssl.tezos.org.ua",
       "https://rpc.tzkt.io/carthagenet"
     ]
+  },
+  "db": {
+    "uri": "host=127.0.0.1 port=5432 user=root dbname=bcd password=root sslmode=disable"
   },
   "sentry": {
     "project": "metrics",

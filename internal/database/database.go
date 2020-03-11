@@ -16,6 +16,8 @@ type DB interface {
 	CreateSubscription(*Subscription) error
 	DeleteSubscription(*Subscription) error
 	GetSubscriptionRating(string) (SubRating, error)
+	GetAlias(address, network string) (string, error)
+	CreateAlias(string, string, string) error
 	Close()
 }
 

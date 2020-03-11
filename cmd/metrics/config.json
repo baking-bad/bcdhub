@@ -27,6 +27,9 @@
       "https://rpc.tzkt.io/carthagenet"
     ]
   },
+  "db": {
+    "uri": "host=db port=5432 user=root dbname=bcd password=root sslmode=disable"
+  },
   "sentry": {
     "project": "metrics",
     "env": "production",

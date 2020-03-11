@@ -18,24 +18,26 @@ type Operation struct {
 	Hash     string `json:"hash"`
 	Internal bool   `json:"internal"`
 
-	Status        string    `json:"status"`
-	Timestamp     time.Time `json:"timestamp"`
-	Level         int64     `json:"level"`
-	Kind          string    `json:"kind"`
-	Source        string    `json:"source"`
-	Fee           int64     `json:"fee,omitempty"`
-	Counter       int64     `json:"counter,omitempty"`
-	GasLimit      int64     `json:"gas_limit,omitempty"`
-	StorageLimit  int64     `json:"storage_limit,omitempty"`
-	Amount        int64     `json:"amount,omitempty"`
-	Destination   string    `json:"destination,omitempty"`
-	PublicKey     string    `json:"public_key,omitempty"`
-	ManagerPubKey string    `json:"manager_pubkey,omitempty"`
-	Balance       int64     `json:"balance,omitempty"`
-	Delegate      string    `json:"delegate,omitempty"`
-	Parameters    string    `json:"parameters,omitempty"`
-	FoundBy       string    `json:"found_by,omitempty"`
-	Entrypoint    string    `json:"entrypoint,omitempty"`
+	Status           string    `json:"status"`
+	Timestamp        time.Time `json:"timestamp"`
+	Level            int64     `json:"level"`
+	Kind             string    `json:"kind"`
+	Source           string    `json:"source"`
+	Fee              int64     `json:"fee,omitempty"`
+	Counter          int64     `json:"counter,omitempty"`
+	GasLimit         int64     `json:"gas_limit,omitempty"`
+	StorageLimit     int64     `json:"storage_limit,omitempty"`
+	Amount           int64     `json:"amount,omitempty"`
+	Destination      string    `json:"destination,omitempty"`
+	PublicKey        string    `json:"public_key,omitempty"`
+	ManagerPubKey    string    `json:"manager_pubkey,omitempty"`
+	Balance          int64     `json:"balance,omitempty"`
+	Delegate         string    `json:"delegate,omitempty"`
+	Parameters       string    `json:"parameters,omitempty"`
+	FoundBy          string    `json:"found_by,omitempty"`
+	Entrypoint       string    `json:"entrypoint,omitempty"`
+	SourceAlias      string    `json:"source_alias,omitempty"`
+	DestinationAlias string    `json:"destination_alias,omitempty"`
 
 	BalanceUpdates []BalanceUpdate  `json:"balance_updates,omitempty"`
 	Result         *OperationResult `json:"result,omitempty"`
@@ -71,6 +73,9 @@ func (o *Operation) ParseElasticJSON(resp gjson.Result) {
 	o.Delegate = resp.Get("_source.delegate").String()
 	o.Parameters = resp.Get("_source.parameters").String()
 	o.Entrypoint = resp.Get("_source.entrypoint").String()
+	o.SourceAlias = resp.Get("_source.source_alias").String()
+	o.DestinationAlias = resp.Get("_source.destination_alias").String()
+
 	o.FoundBy = getOperationsFoundBy(resp)
 
 	var opResult OperationResult
