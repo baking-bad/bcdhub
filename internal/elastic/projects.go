@@ -255,3 +255,33 @@ func (e *Elastic) GetProjectStats(projectID string) (p ProjectStats, err error) 
 	p.parse(resp.Get("aggregations"))
 	return
 }
+
+func (e *Elastic) getProjectsContracts(ids []string) (res []ContractID, err error) {
+	if len(ids) == 0 {
+		return
+	}
+
+	query := "SELECT address, network FROM contract WHERE project_id IN (%s)"
+
+	inString := "("
+	for i := range ids {
+		inString += fmt.Sprintf("'%s'", ids[i])
+		if i != len(ids)-1 {
+			inString += ","
+		}
+	}
+	inString += ")"
+
+	query = fmt.Sprintf(query, inString)
+	resp, err := e.executeSQL(query)
+	if err != nil {
+		return
+	}
+	res = make([]ContractID, 0)
+	for _, hit := range resp.Get("rows").Array() {
+		var cid ContractID
+		cid.ParseElasticJSONArray(hit)
+		res = append(res, cid)
+	}
+	return res, err
+}
