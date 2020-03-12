@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"log"
+	"os"
 	"time"
 
 	"github.com/getsentry/sentry-go"
@@ -10,7 +11,13 @@ import (
 )
 
 // InitSentry -
-func InitSentry(env, dsn string, debug bool) {
+func InitSentry(dsn string, debug bool) {
+	env := "development"
+
+	if bcdEnv := os.Getenv("BCD_ENV"); bcdEnv != "" {
+		env = bcdEnv
+	}
+
 	if err := sentry.Init(sentry.ClientOptions{
 		Dsn:              dsn,
 		Environment:      env,

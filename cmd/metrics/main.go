@@ -69,7 +69,7 @@ func main() {
 	}
 	cfg.print()
 
-	helpers.InitSentry(cfg.Sentry.Env, cfg.Sentry.DSN, cfg.Sentry.Debug)
+	helpers.InitSentry(cfg.Sentry.DSN, cfg.Sentry.Debug)
 	helpers.SetTagSentry("project", cfg.Sentry.Project)
 	defer helpers.CatchPanicSentry()
 

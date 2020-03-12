@@ -32,7 +32,6 @@
   },
   "sentry": {
     "project": "metrics",
-    "env": "production",
     "dsn": "https://eefa682518c84afdb0240bc9b94ed79c@sentry.io/3061530",
     "debug": false
   }
