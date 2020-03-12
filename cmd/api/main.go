@@ -30,11 +30,12 @@ func main() {
 	})
 
 	var cfg config
+
 	if err := jsonload.StructFromFile("config.json", &cfg); err != nil {
 		logger.Fatal(err)
 	}
 
-	helpers.InitSentry(cfg.Sentry.Env, cfg.Sentry.DSN, cfg.Sentry.Debug)
+	helpers.InitSentry(cfg.Sentry.DSN, cfg.Sentry.Debug)
 	helpers.SetTagSentry("project", cfg.Sentry.Project)
 	defer helpers.CatchPanicSentry()
 

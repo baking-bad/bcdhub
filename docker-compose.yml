@@ -27,18 +27,14 @@ services:
     ports:
       - "15672:15672"
       - "5672:5672"
-    labels:
-      NAME: "rabbitmq"
     logging: *my-logging        
 
   db:
     container_name: bcd-db
     image: postgres:latest
     restart: always
-    environment: 
-      - POSTGRES_USER=root
-      - POSTGRES_PASSWORD=root
-      - POSTGRES_DB=bcd
+    env_file:
+      - .env
     volumes:
       - db:/var/lib/postgresql/data
     ports:
@@ -52,8 +48,8 @@ services:
     build:
       context: .
       dockerfile: cmd/api/Dockerfile
-    environment:
-      - GIN_MODE=release
+    env_file:
+      - .env
     depends_on:
       - elastic
       - db
@@ -70,6 +66,8 @@ services:
     build:
       context: .
       dockerfile: cmd/indexer/Dockerfile
+    env_file:
+      - .env
     volumes:
       - /etc/bcd:/etc/bcd
     depends_on:
@@ -84,6 +82,8 @@ services:
     build:
       context: .
       dockerfile: cmd/operation_indexer/Dockerfile
+    env_file:
+      - .env
     depends_on:
       - elastic
       - mq
@@ -96,6 +96,8 @@ services:
     build:
       context: .
       dockerfile: cmd/metrics/Dockerfile
+    env_file:
+      - .env
     depends_on:
       - elastic
       - mq

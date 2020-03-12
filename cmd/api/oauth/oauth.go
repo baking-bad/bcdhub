@@ -2,6 +2,7 @@ package oauth
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
@@ -30,56 +31,27 @@ type Config struct {
 
 // New -
 func New() (Config, error) {
-	// TO-DO: uncomment in prod
-	// var githubClientID, githubClientSecret string
-	// var gitlabClientID, gitlabClientSecret string
-	// var jwtKey, oauthStateString string
+	envVars := []string{
+		"GITHUB_CLIENT_ID",
+		"GITHUB_CLIENT_SECRET",
+		"GITLAB_CLIENT_ID",
+		"GITLAB_CLIENT_SECRET",
+		"JWT_SECRET_KEY",
+		"OAUTH_STATE_STRING",
+	}
 
-	// if id := os.Getenv("GITHUB_CLIENT_ID"); id == "" {
-	// 	return nil, fmt.Errorf("empty GITHUB_CLIENT_ID env variable")
-	// } else {
-	// 	githubClientID = id
-	// }
+	for _, ev := range envVars {
+		if os.Getenv(ev) == "" {
+			return Config{}, fmt.Errorf("empty %s env variable", ev)
+		}
+	}
 
-	// if secret := os.Getenv("GITHUB_CLIENT_SECRET"); secret == "" {
-	// 	return nil, fmt.Errorf("empty GITHUB_CLIENT_SECRET env variable")
-	// } else {
-	// 	githubClientSecret = secret
-	// }
-
-	// if id := os.Getenv("GITLAB_CLIENT_ID"); id == "" {
-	// 	return nil, fmt.Errorf("empty GITLAB_CLIENT_ID env variable")
-	// } else {
-	// 	gitlabClientID = id
-	// }
-
-	// if secret := os.Getenv("GITLAB_CLIENT_SECRET"); secret == "" {
-	// 	return nil, fmt.Errorf("empty GITLAB_CLIENT_SECRET env variable")
-	// } else {
-	// 	gitlabClientSecret = secret
-	// }
-
-	// if jwt := os.Getenv("JWT_SECRET_KEY"); jwt == "" {
-	// 	return nil, fmt.Errorf("emtpty JWT_SECRET_KEY env variable")
-	// } else {
-	// 	jwtKey = jwt
-	// }
-
-	// if state := os.Getenv("OAUTH_STATE_STRING"); state == "" {
-	// 	return nil, fmt.Errorf("emtpty OAUTH_STATE_STRING env variable")
-	// } else {
-	// 	oauthStateString = state
-	// }
-
-	// TO-DO: delete in prod
-	githubClientID := "d35966939d838f410dd9"
-	githubClientSecret := "287ae6a529f479afadd19e4e2386b33f5889f58c"
-
-	gitlabClientID := "a403f53988e8da32a190afdcc84cba0861c4f2c465410c98daae343c46930d60"
-	gitlabClientSecret := "8d5e9e30cdad3208c6af8efd388c58642c7398f790f54c9fa338d74f46f8d714"
-
-	jwtKey := []byte("my_secret_key")
-	oauthStateString := "pseudo-random"
+	githubClientID := os.Getenv("GITHUB_CLIENT_ID")
+	githubClientSecret := os.Getenv("GITHUB_CLIENT_SECRET")
+	gitlabClientID := os.Getenv("GITLAB_CLIENT_ID")
+	gitlabClientSecret := os.Getenv("GITLAB_CLIENT_SECRET")
+	jwtKey := os.Getenv("JWT_SECRET_KEY")
+	oauthStateString := os.Getenv("OAUTH_STATE_STRING")
 
 	var cfg InitConfig
 	if err := jsonload.StructFromFile("./oauth/oauth_config.json", &cfg); err != nil {
@@ -101,7 +73,7 @@ func New() (Config, error) {
 			Scopes:       []string{"read_user"},
 			Endpoint:     gitlab.Endpoint,
 		},
-		JWTKey:         jwtKey,
+		JWTKey:         []byte(jwtKey),
 		State:          oauthStateString,
 		JWTRedirectURL: cfg.JwtRedirectURL,
 	}, nil
