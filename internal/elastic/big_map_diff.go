@@ -139,9 +139,13 @@ func (e *Elastic) GetBigMap(address string, ptr int64) ([]BigMapDiff, error) {
 			"terms": qItem{
 				"field": "key_hash.keyword",
 				"size":  maxQuerySize,
+				"order": qItem{
+					"bucketsSort": "desc",
+				},
 			},
 			"aggs": qItem{
-				"top_key": topHits(1, "level", "desc"),
+				"top_key":     topHits(1, "level", "desc"),
+				"bucketsSort": max("level"),
 			},
 		}),
 	).Sort("level", "desc").Zero()
