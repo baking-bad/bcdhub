@@ -146,3 +146,46 @@ func (b *BigMapDiff) ParseElasticJSON(hit gjson.Result) {
 	b.Address = hit.Get("_source.address").String()
 	b.Network = hit.Get("_source.newtork").String()
 }
+
+// ContractID -
+type ContractID struct {
+	Address string
+	Network string
+}
+
+// ParseElasticJSONArray -
+func (c *ContractID) ParseElasticJSONArray(hit gjson.Result) {
+	c.Address = hit.Get("0").String()
+	c.Network = hit.Get("1").String()
+}
+
+// TimelineItem -
+type TimelineItem struct {
+	Network          string    `json:"network"`
+	Hash             string    `json:"hash"`
+	Status           string    `json:"status"`
+	Timestamp        time.Time `json:"timestamp"`
+	Kind             string    `json:"kind"`
+	Source           string    `json:"source"`
+	Amount           int64     `json:"amount,omitempty"`
+	Destination      string    `json:"destination,omitempty"`
+	Entrypoint       string    `json:"entrypoint,omitempty"`
+	SourceAlias      string    `json:"source_alias,omitempty"`
+	DestinationAlias string    `json:"destination_alias,omitempty"`
+}
+
+// ParseElasticJSONArray -
+func (t *TimelineItem) ParseElasticJSONArray(hit gjson.Result) {
+	t.Network = hit.Get("0").String()
+	t.Hash = hit.Get("1").String()
+	t.Status = hit.Get("2").String()
+	t.Timestamp = hit.Get("3").Time()
+	t.Kind = hit.Get("4").String()
+	t.Source = hit.Get("5").String()
+	t.Destination = hit.Get("6").String()
+	t.Entrypoint = hit.Get("7").String()
+	t.Amount = hit.Get("8").Int()
+	t.SourceAlias = hit.Get("9").String()
+	t.DestinationAlias = hit.Get("10").String()
+
+}
