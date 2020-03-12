@@ -21,7 +21,6 @@ type config struct {
 	NodeRPC map[string][]string `json:"nodes"`
 	Sentry  struct {
 		Project string `json:"project"`
-		Env     string `json:"env"`
 		DSN     string `json:"dsn"`
 		Debug   bool   `json:"debug"`
 	} `json:"sentry"`

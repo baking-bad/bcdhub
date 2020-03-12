@@ -23,7 +23,6 @@ type config struct {
 	} `json:"mq"`
 	Sentry struct {
 		Project string `json:"project"`
-		Env     string `json:"env"`
 		DSN     string `json:"dsn"`
 		Debug   bool   `json:"debug"`
 	} `json:"sentry"`
