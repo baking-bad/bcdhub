@@ -6,8 +6,6 @@ import (
 	"log"
 	"net/http"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 // URLs
@@ -41,7 +39,7 @@ func (t *TzKT) request(method, endpoint string, params map[string]string, respon
 
 	req, err := http.NewRequest(method, uri, nil)
 	if err != nil {
-		return errors.Wrap(err, "http.NewRequest")
+		return fmt.Errorf("[http.NewRequest] %s", err)
 	}
 	q := req.URL.Query()
 	for key, value := range params {
@@ -49,6 +47,7 @@ func (t *TzKT) request(method, endpoint string, params map[string]string, respon
 	}
 	req.URL.RawQuery = q.Encode()
 
+	log.Println(req.URL)
 	var resp *http.Response
 	count := 0
 	for ; count < t.retryCount; count++ {
@@ -60,13 +59,13 @@ func (t *TzKT) request(method, endpoint string, params map[string]string, respon
 	}
 
 	if count == t.retryCount {
-		return errors.New("Max HTTP request retry exceeded")
+		return fmt.Errorf("Max HTTP request retry exceeded")
 	}
 	defer resp.Body.Close()
 
 	dec := json.NewDecoder(resp.Body)
 	if err = dec.Decode(response); err != nil {
-		return errors.Wrap(err, "json.Decode")
+		return fmt.Errorf("[json.Decode] %s", err)
 	}
 	return nil
 }
@@ -112,5 +111,21 @@ func (t *TzKT) GetSystemOperations(page, limit int64) (resp []SystemOperation, e
 // GetSystemOperationsCount - return system operations count
 func (t *TzKT) GetSystemOperationsCount() (resp int64, err error) {
 	err = t.request("GET", "operations/system/count", nil, &resp)
+	return
+}
+
+// GetAccounts - returns account by filters
+func (t *TzKT) GetAccounts(kind string, page, limit int64) (resp []Account, err error) {
+	params := map[string]string{}
+	if kind != "" && kind != ContractKindAll {
+		params["kind"] = kind
+	}
+	if limit == 0 {
+		limit = 1000
+	}
+	params["n"] = fmt.Sprintf("%d", limit)
+	params["p"] = fmt.Sprintf("%d", page)
+
+	err = t.request("GET", "contracts", params, &resp)
 	return
 }
