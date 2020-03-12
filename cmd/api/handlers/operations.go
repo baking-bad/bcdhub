@@ -137,7 +137,7 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 		return op, nil
 	}
 
-	if operation.Parameters != "" && strings.HasPrefix(op.Destination, "KT") && !cerrors.HasParametersError(op.Errors) {
+	if strings.HasPrefix(op.Destination, "KT") && !cerrors.HasParametersError(op.Errors) {
 		metadata, err := meta.GetMetadata(es, op.Destination, op.Network, "parameter", op.Protocol)
 		if err != nil {
 			return op, nil
@@ -202,7 +202,11 @@ func setStorageDiff(es *elastic.Elastic, address, network string, storage string
 			return err
 		}
 
-		prevStorage, err = miguel.MichelineToMiguel(prevStore, metadata)
+		prevMetadata, err := meta.GetMetadata(es, address, network, "storage", prev.Protocol)
+		if err != nil {
+			return err
+		}
+		prevStorage, err = miguel.MichelineToMiguel(prevStore, prevMetadata)
 		if err != nil {
 			return err
 		}

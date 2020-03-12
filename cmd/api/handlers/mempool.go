@@ -74,25 +74,27 @@ func (ctx *Context) prepareMempoolOperations(res gjson.Result, address, network 
 			ret = append(ret, op)
 			continue
 		}
-		params := item.Get("parameters").String()
-		if params != "" && strings.HasPrefix(op.Destination, "KT") && op.Protocol != "" {
-			metadata, err := meta.GetMetadata(ctx.ES, op.Destination, op.Network, "parameter", op.Protocol)
-			if err != nil {
-				return nil, err
-			}
-
-			paramsJSON := gjson.Parse(params)
-
-			op.Entrypoint, err = metadata.GetByPath(paramsJSON)
-			if err != nil && op.Errors == nil {
-				return nil, err
-			}
-
-			op.Parameters, err = miguel.MichelineToMiguel(paramsJSON, metadata)
-			if err != nil {
-				if !cerrors.HasParametersError(op.Errors) {
+		params := item.Get("parameters")
+		if strings.HasPrefix(op.Destination, "KT") && op.Protocol != "" {
+			if params.Exists() {
+				metadata, err := meta.GetMetadata(ctx.ES, op.Destination, op.Network, "parameter", op.Protocol)
+				if err != nil {
 					return nil, err
 				}
+
+				op.Entrypoint, err = metadata.GetByPath(params)
+				if err != nil && op.Errors == nil {
+					return nil, err
+				}
+
+				op.Parameters, err = miguel.MichelineToMiguel(params, metadata)
+				if err != nil {
+					if !cerrors.HasParametersError(op.Errors) {
+						return nil, err
+					}
+				}
+			} else {
+				op.Entrypoint = "default"
 			}
 		}
 

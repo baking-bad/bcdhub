@@ -16,7 +16,7 @@ type Entrypoint struct {
 	Parameters interface{} `json:"parameters"`
 }
 
-// GetEntrypoints -
+// GetEntrypoints returns contract entrypoints
 func (metadata Metadata) GetEntrypoints() ([]Entrypoint, error) {
 	root := metadata["0"]
 

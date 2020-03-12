@@ -137,6 +137,14 @@ func TestGet(t *testing.T) {
 			},
 			want:    "delegate",
 			wantErr: false,
+		}, {
+			name: "case 7",
+			args: args{
+				node:     `{ "prim": "Left", "args": [ { "prim": "Some", "args": [ { "bytes": "0161335f2d0bb57d4b0a94552214104639cb955df500"}]}]}`,
+				metadata: `{"0":{"typename":"_entries","prim":"or","args":["0/0/o","0/1/0","0/1/1/0","0/1/1/1/0","0/1/1/1/1"],"type":"namedunion"},"0/0":{"fieldname":"_Liq_entry_buy_for","prim":"option","type":"option"},"0/0/o":{"prim":"address","type":"address","name":"buy_for"},"0/1":{"prim":"or","type":"or"},"0/1/0":{"typename":"sell_request","fieldname":"_Liq_entry_sell_for","prim":"pair","args":["0/1/0/0/o","0/1/0/1/o"],"type":"namedtuple","name":"sell_for"},"0/1/0/0":{"fieldname":"buyer","prim":"option","type":"option"},"0/1/0/0/o":{"prim":"address","type":"address","name":"buyer"},"0/1/0/1":{"fieldname":"tokens","prim":"option","type":"option"},"0/1/0/1/o":{"prim":"mutez","type":"mutez","name":"tokens"},"0/1/1":{"prim":"or","type":"or"},"0/1/1/0":{"fieldname":"_Liq_entry_set_target_supply","prim":"mutez","type":"mutez","name":"set_target_supply"},"0/1/1/1":{"prim":"or","type":"or"},"0/1/1/1/0":{"typename":"sell_request","fieldname":"_Liq_entry_finalize_sale","prim":"pair","args":["0/1/1/1/0/0/o","0/1/1/1/0/1/o"],"type":"namedtuple","name":"finalize_sale"},"0/1/1/1/0/0":{"fieldname":"buyer","prim":"option","type":"option"},"0/1/1/1/0/0/o":{"prim":"address","type":"address","name":"buyer"},"0/1/1/1/0/1":{"fieldname":"tokens","prim":"option","type":"option"},"0/1/1/1/0/1/o":{"prim":"mutez","type":"mutez","name":"tokens"},"0/1/1/1/1":{"fieldname":"_Liq_entry_set_sell_adapter","prim":"address","type":"address","name":"set_sell_adapter"}}`,
+			},
+			want:    "buy_for",
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {

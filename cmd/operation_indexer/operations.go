@@ -87,18 +87,22 @@ func finishParseOperation(es *elastic.Elastic, rpc noderpc.Pool, item gjson.Resu
 }
 
 func getEntrypoint(es *elastic.Elastic, item gjson.Result, op *models.Operation) error {
-	if op.Parameters != "" && strings.HasPrefix(op.Destination, "KT") {
+	if strings.HasPrefix(op.Destination, "KT") {
 		metadata, err := meta.GetMetadata(es, op.Destination, op.Network, "parameter", op.Protocol)
 		if err != nil {
 			return err
 		}
 
 		params := item.Get("parameters")
-		ep, err := metadata.GetByPath(params)
-		if err != nil && op.Errors == nil {
-			return err
+		if params.Exists() {
+			ep, err := metadata.GetByPath(params)
+			if err != nil && op.Errors == nil {
+				return err
+			}
+			op.Entrypoint = ep
+		} else {
+			op.Entrypoint = "default"
 		}
-		op.Entrypoint = ep
 	}
 	return nil
 }
