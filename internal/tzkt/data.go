@@ -13,16 +13,17 @@ type Head struct {
 type Address struct {
 	Alias   string `json:"alias,omitempty"`
 	Address string `json:"address"`
+	Active  bool   `json:"active"`
 }
 
 // Origination -
 type Origination struct {
-	ID                 int       `json:"id"`
+	ID                 int64     `json:"id"`
 	Type               string    `json:"type"`
 	Level              int64     `json:"level"`
 	Timestamp          time.Time `json:"timestamp"`
 	Hash               string    `json:"hash"`
-	Counter            int       `json:"counter"`
+	Counter            int64     `json:"counter"`
 	Sender             Address   `json:"sender"`
 	GasLimit           int64     `json:"gasLimit"`
 	GasUsed            int64     `json:"gasUsed"`
@@ -44,10 +45,34 @@ type Origination struct {
 // SystemOperation -
 type SystemOperation struct {
 	Type          string    `json:"type"`
-	ID            int       `json:"id"`
+	ID            int64     `json:"id"`
 	Level         int64     `json:"level"`
 	Timestamp     time.Time `json:"timestamp"`
 	Kind          string    `json:"kind"`
 	Account       Address   `json:"account"`
 	BalanceChange int64     `json:"balanceChange"`
+}
+
+// Account -
+type Account struct {
+	Type              string    `json:"type"`
+	Kind              string    `json:"kind"`
+	Alias             string    `json:"alias"`
+	Address           string    `json:"address"`
+	Balance           int64     `json:"balance"`
+	Creator           *Address  `json:"creator,omitempty"`
+	Manager           *Address  `json:"manager,omitempty"`
+	Delegate          *Address  `json:"delegate,omitempty"`
+	DelegationLevel   int64     `json:"delegationLevel"`
+	DelegationTime    time.Time `json:"delegationTime"`
+	NumContracts      int64     `json:"numContracts"`
+	NumDelegations    int64     `json:"numDelegations"`
+	NumOriginations   int64     `json:"numOriginations"`
+	NumTransactions   int64     `json:"numTransactions"`
+	NumReveals        int64     `json:"numReveals"`
+	NumMigrations     int64     `json:"numMigrations"`
+	FirstActivity     int64     `json:"firstActivity"`
+	FirstActivityTime time.Time `json:"firstActivityTime"`
+	LastActivity      int64     `json:"lastActivity"`
+	LastActivityTime  time.Time `json:"lastActivityTime"`
 }

@@ -1,7 +1,6 @@
 package index
 
 import (
-	"strings"
 	"time"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/tzkt"
@@ -10,6 +9,8 @@ import (
 // TzKT -
 type TzKT struct {
 	api *tzkt.TzKT
+
+	lastContractsPage int64
 }
 
 // NewTzKT -
@@ -36,67 +37,36 @@ func (t *TzKT) GetHead() (Head, error) {
 func (t *TzKT) GetContracts(startLevel int64) ([]Contract, error) {
 	resp := make([]Contract, 0)
 
-	count, err := t.api.GetOriginationsCount()
-	if err != nil {
-		return nil, err
-	}
-
-	limit := int64(1000)
-	for ; count > 0; count = count - limit {
-		page := int64(count / limit)
-		ops, err := t.api.GetOriginations(page, limit)
-		if err != nil {
-			return resp, err
-		}
-
-		for i := len(ops) - 1; i >= 0; i-- {
-			op := ops[i]
-			if op.Level < startLevel {
-				count = 0
-				break
-			}
-			if op.Status == "applied" && op.OriginatedContract.Kind != "delegator_contract" {
-				resp = append(resp, Contract{
-					Level:     op.Level,
-					Timestamp: op.Timestamp,
-					Counter:   op.Counter,
-					Balance:   op.ContractBalance,
-					Manager:   op.ContractManager.Address,
-					Delegate:  op.ContractDelegate.Address,
-					Address:   op.OriginatedContract.Address,
-				})
-			}
-		}
-	}
-
-	if startLevel == 0 {
-		count, err = t.api.GetSystemOperationsCount()
+	end := false
+	for !end {
+		contracts, err := t.api.GetAccounts(tzkt.ContractKindAll, t.lastContractsPage, 1000)
 		if err != nil {
 			return nil, err
 		}
-
-		page := int64(0)
-		for ; count > 0; count = count - limit {
-			ops, err := t.api.GetSystemOperations(page, limit)
-			if err != nil {
-				return resp, err
+		for _, contract := range contracts {
+			if contract.FirstActivity <= startLevel {
+				continue
 			}
 
-			for _, op := range ops {
-				if op.Level > 1 {
-					count = 0
-					break
-				}
-				if op.Kind == "bootstrap" && strings.HasPrefix(op.Account.Address, "KT1") {
-					resp = append(resp, Contract{
-						Level:     op.Level,
-						Timestamp: op.Timestamp,
-						Address:   op.Account.Address,
-					})
-				}
+			data := Contract{
+				Address:   contract.Address,
+				Level:     contract.FirstActivity,
+				Timestamp: contract.FirstActivityTime,
+				Balance:   contract.Balance,
 			}
+			if contract.Manager != nil {
+				data.Manager = contract.Manager.Address
+			}
+			if contract.Delegate != nil {
+				data.Delegate = contract.Delegate.Address
+			}
+			resp = append(resp, data)
 
-			page = page + 1
+		}
+		if len(contracts) == 1000 {
+			t.lastContractsPage++
+		} else {
+			end = true
 		}
 	}
 
@@ -105,5 +75,9 @@ func (t *TzKT) GetContracts(startLevel int64) ([]Contract, error) {
 
 // GetContractOperationBlocks -
 func (t *TzKT) GetContractOperationBlocks(startBlock, endBlock int, knownContracts map[string]struct{}, spendable map[string]struct{}) ([]int64, error) {
-	return nil, nil
+	resp := make([]int64, endBlock-startBlock+1)
+	for i := startBlock; i < endBlock+1; i++ {
+		resp[i] = int64(i)
+	}
+	return resp, nil
 }

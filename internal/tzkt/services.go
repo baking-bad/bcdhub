@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -38,7 +37,7 @@ func (t *ServicesTzKT) request(method, endpoint string, params map[string]string
 
 	req, err := http.NewRequest(method, uri, nil)
 	if err != nil {
-		return res, errors.Wrap(err, "http.NewRequest")
+		return res, fmt.Errorf("[http.NewRequest] %s", err)
 	}
 	q := req.URL.Query()
 	for key, value := range params {
@@ -57,7 +56,7 @@ func (t *ServicesTzKT) request(method, endpoint string, params map[string]string
 	}
 
 	if count == t.retryCount {
-		return res, errors.New("Max HTTP request retry exceeded")
+		return res, fmt.Errorf("Max HTTP request retry exceeded")
 	}
 	defer resp.Body.Close()
 
