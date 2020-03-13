@@ -154,7 +154,7 @@ func main() {
 
 func corsSettings() gin.HandlerFunc {
 	cfg := cors.DefaultConfig()
-	cfg.AllowOrigins = []string{"http://localhost:8080"}
+	cfg.AllowOrigins = []string{"*"}
 	cfg.AllowCredentials = true
 	cfg.AddAllowHeaders("X-Requested-With", "Authorization")
 	return cors.New(cfg)
