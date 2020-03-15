@@ -326,15 +326,15 @@ func applyChangeOnArray(path []string, from interface{}, typ string, idx int, v 
 		}
 		if field.Elem().Kind() == reflect.Map {
 			if !field.Elem().IsValid() {
-				field.Elem().SetMapIndex(reflect.ValueOf("kind"), reflect.ValueOf("create"))
+				field.Elem().SetMapIndex(reflect.ValueOf("miguel_kind"), reflect.ValueOf("create"))
 			} else if !field.IsNil() {
-				field.Elem().SetMapIndex(reflect.ValueOf("kind"), reflect.ValueOf(typ))
+				field.Elem().SetMapIndex(reflect.ValueOf("miguel_kind"), reflect.ValueOf(typ))
 			} else {
-				field.Elem().SetMapIndex(reflect.ValueOf("kind"), reflect.ValueOf("delete"))
+				field.Elem().SetMapIndex(reflect.ValueOf("miguel_kind"), reflect.ValueOf("delete"))
 			}
 
 			if from != nil && typ != "delete" {
-				field.Elem().SetMapIndex(reflect.ValueOf("from"), reflect.ValueOf(from))
+				field.Elem().SetMapIndex(reflect.ValueOf("miguel_from"), reflect.ValueOf(from))
 			}
 		}
 		return nil
@@ -366,22 +366,22 @@ func applyChangeOnMap(path []string, from interface{}, typ string, v interface{}
 
 	if field.IsValid() && field.IsNil() {
 		value.SetMapIndex(reflect.ValueOf(path[0]), reflect.ValueOf(from))
-		value.SetMapIndex(reflect.ValueOf("kind"), reflect.ValueOf("delete"))
+		value.SetMapIndex(reflect.ValueOf("miguel_kind"), reflect.ValueOf("delete"))
 		return nil
 	}
 
 	if len(path) == 1 {
 		if value.Kind() == reflect.Map {
 			if !value.IsValid() {
-				value.SetMapIndex(reflect.ValueOf("kind"), reflect.ValueOf("create"))
+				value.SetMapIndex(reflect.ValueOf("miguel_kind"), reflect.ValueOf("create"))
 			} else if !value.IsNil() {
-				value.SetMapIndex(reflect.ValueOf("kind"), reflect.ValueOf(typ))
+				value.SetMapIndex(reflect.ValueOf("miguel_kind"), reflect.ValueOf(typ))
 			} else {
-				value.SetMapIndex(reflect.ValueOf("kind"), reflect.ValueOf("delete"))
+				value.SetMapIndex(reflect.ValueOf("miguel_kind"), reflect.ValueOf("delete"))
 			}
 
 			if from != nil && typ != "delete" {
-				value.SetMapIndex(reflect.ValueOf("from"), reflect.ValueOf(from))
+				value.SetMapIndex(reflect.ValueOf("miguel_from"), reflect.ValueOf(from))
 			}
 		}
 		return nil

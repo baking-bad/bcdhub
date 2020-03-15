@@ -12,7 +12,7 @@ type lambdaDecoder struct{}
 func (l *lambdaDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata, isRoot bool) (interface{}, error) {
 	val, err := formatter.MichelineToMichelson(node, false)
 	return map[string]interface{}{
-		"value": val,
-		"type":  nm.Type,
+		"miguel_value": val,
+		"miguel_type":  nm.Type,
 	}, err
 }

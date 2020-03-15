@@ -222,10 +222,6 @@ func getKey(metadata *NodeMetadata) string {
 		return metadata.FieldName
 	} else if metadata.InheritedName != "" {
 		return metadata.InheritedName
-	} else if helpers.StringInArray(metadata.Prim, []string{
-		consts.KEY, consts.KEYHASH, consts.SIGNATURE, consts.TIMESTAMP, consts.ADDRESS,
-	}) {
-		return metadata.Prim
 	}
 	return ""
 }

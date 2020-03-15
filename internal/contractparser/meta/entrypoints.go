@@ -11,9 +11,9 @@ import (
 
 // Entrypoint -
 type Entrypoint struct {
-	Name       string      `json:"name"`
-	Type       string      `json:"type"`
-	Parameters interface{} `json:"parameters"`
+	Name       string      `json:"miguel_name"`
+	Type       string      `json:"miguel_type"`
+	Parameters interface{} `json:"miguel_parameters"`
 }
 
 // GetEntrypoints returns contract entrypoints
@@ -108,12 +108,12 @@ func parseEntrypointArg(metadata Metadata, nm *NodeMetadata, path string) (inter
 			return nil, err
 		}
 		return map[string]interface{}{
-			"type":   nm.Type,
-			"params": data,
+			"miguel_type":       nm.Type,
+			"miguel_parameters": data,
 		}, nil
 	default:
 		return map[string]interface{}{
-			"type": nm.Type,
+			"miguel_type": nm.Type,
 		}, nil
 	}
 }
@@ -132,7 +132,7 @@ func parseEntrypointTuple(metadata Metadata, nm *NodeMetadata, path string) (int
 		return res, nil
 	}
 	return map[string]interface{}{
-		"type": nm.Type,
+		"miguel_type": nm.Type,
 	}, nil
 }
 
@@ -182,8 +182,8 @@ func parseEntrypointList(metadata Metadata, nm *NodeMetadata, path string) (inte
 			return params, nil
 		}
 		return map[string]interface{}{
-			"type":   nm.Type,
-			"params": params,
+			"miguel_type":       nm.Type,
+			"miguel_parameters": params,
 		}, nil
 	}
 
@@ -192,8 +192,8 @@ func parseEntrypointList(metadata Metadata, nm *NodeMetadata, path string) (inte
 		return nil, err
 	}
 	return map[string]interface{}{
-		"type":   nm.Type,
-		"params": []interface{}{value},
+		"miguel_type":       nm.Type,
+		"miguel_parameters": []interface{}{value},
 	}, nil
 }
 
@@ -210,8 +210,8 @@ func parseEntrypointOption(metadata Metadata, nm *NodeMetadata, path string) (in
 			params[i] = value
 		}
 		result := map[string]interface{}{
-			"type":   nm.Type,
-			"params": params,
+			"miguel_type":       nm.Type,
+			"miguel_parameters": params,
 		}
 		return result, nil
 	}
@@ -220,8 +220,8 @@ func parseEntrypointOption(metadata Metadata, nm *NodeMetadata, path string) (in
 		return nil, err
 	}
 	return map[string]interface{}{
-		"type":   nm.Type,
-		"params": []interface{}{value},
+		"miguel_type":       nm.Type,
+		"miguel_parameters": []interface{}{value},
 	}, nil
 }
 

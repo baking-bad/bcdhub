@@ -28,14 +28,14 @@ func (l *literalDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMet
 			return nil, err
 		}
 		return map[string]interface{}{
-			"value": data,
-			"type":  nm.Type,
+			"miguel_value": data,
+			"miguel_type":  nm.Type,
 		}, nil
 	case consts.BYTES:
 		data := unpack.Bytes(node.Get(consts.BYTES).String())
 		return map[string]interface{}{
-			"value": data,
-			"type":  nm.Type,
+			"miguel_value": data,
+			"miguel_type":  nm.Type,
 		}, nil
 	case consts.ADDRESS:
 		if node.Get(consts.BYTES).Exists() {
@@ -44,13 +44,13 @@ func (l *literalDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMet
 				return nil, err
 			}
 			return map[string]interface{}{
-				"value": data,
-				"type":  nm.Type,
+				"miguel_value": data,
+				"miguel_type":  nm.Type,
 			}, nil
 		}
 		return map[string]interface{}{
-			"value": node.Get(consts.STRING).String(),
-			"type":  nm.Type,
+			"miguel_value": node.Get(consts.STRING).String(),
+			"miguel_type":  nm.Type,
 		}, nil
 	case consts.KEYHASH:
 		if node.Get(consts.BYTES).Exists() {
@@ -59,13 +59,13 @@ func (l *literalDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMet
 				return nil, err
 			}
 			return map[string]interface{}{
-				"value": data,
-				"type":  nm.Type,
+				"miguel_value": data,
+				"miguel_type":  nm.Type,
 			}, nil
 		}
 		return map[string]interface{}{
-			"value": node.Get(consts.STRING).String(),
-			"type":  nm.Type,
+			"miguel_value": node.Get(consts.STRING).String(),
+			"miguel_type":  nm.Type,
 		}, nil
 	case consts.KEY:
 		if node.Get(consts.BYTES).Exists() {
@@ -74,13 +74,13 @@ func (l *literalDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMet
 				return nil, err
 			}
 			return map[string]interface{}{
-				"value": data,
-				"type":  nm.Type,
+				"miguel_value": data,
+				"miguel_type":  nm.Type,
 			}, nil
 		}
 		return map[string]interface{}{
-			"value": node.Get(consts.STRING).String(),
-			"type":  nm.Type,
+			"miguel_value": node.Get(consts.STRING).String(),
+			"miguel_type":  nm.Type,
 		}, nil
 
 	case consts.TIMESTAMP:
@@ -91,18 +91,18 @@ func (l *literalDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMet
 			value = node.Get(consts.STRING).Time().UTC()
 		}
 		return map[string]interface{}{
-			"value": value,
-			"type":  nm.Type,
+			"miguel_value": value,
+			"miguel_type":  nm.Type,
 		}, nil
 	case consts.BOOL:
 		return map[string]interface{}{
-			"value": node.Get("prim").String() != "False",
-			"type":  nm.Type,
+			"miguel_value": node.Get("prim").String() != "False",
+			"miguel_type":  nm.Type,
 		}, nil
 	case consts.UNIT:
 		return map[string]interface{}{
-			"value": nil,
-			"type":  nm.Type,
+			"miguel_value": nil,
+			"miguel_type":  nm.Type,
 		}, nil
 	}
 	return nil, nil

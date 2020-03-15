@@ -14,15 +14,15 @@ type mapDecoder struct{}
 func (l *mapDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata, isRoot bool) (interface{}, error) {
 	if node.Get("int").Exists() {
 		return map[string]interface{}{
-			"type":  consts.BIGMAP,
-			"value": node.Get("int").Int(),
+			"miguel_type":  consts.BIGMAP,
+			"miguel_value": node.Get("int").Int(),
 		}, nil
 	}
 
 	if node.IsArray() && len(node.Array()) == 0 && path == "0/0" {
 		return map[string]interface{}{
-			"type":  consts.BIGMAP,
-			"value": 0,
+			"miguel_type":  consts.BIGMAP,
+			"miguel_value": 0,
 		}, nil
 	}
 
@@ -64,7 +64,7 @@ func (l *mapDecoder) getKey(key interface{}) (s string, err error) {
 	case int, int64:
 		s = fmt.Sprintf("%d", kv)
 	case map[string]interface{}:
-		s = fmt.Sprintf("%v", kv["value"])
+		s = fmt.Sprintf("%v", kv["miguel_value"])
 	case []interface{}:
 		s = ""
 		for i, item := range kv {
@@ -72,7 +72,7 @@ func (l *mapDecoder) getKey(key interface{}) (s string, err error) {
 			if i != 0 {
 				s += "@"
 			}
-			s += fmt.Sprintf("%v", val["value"])
+			s += fmt.Sprintf("%v", val["miguel_value"])
 		}
 	default:
 		err = fmt.Errorf("Invalid map key type: %v %T", key, key)
