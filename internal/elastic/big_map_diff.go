@@ -116,11 +116,12 @@ func (e *Elastic) GetBigMapDiffsForAddress(address string) (gjson.Result, error)
 
 // GetBigMap -
 func (e *Elastic) GetBigMap(address string, ptr int64) ([]BigMapDiff, error) {
-	mustQuery := must(matchPhrase("address", address))
+	mustQuery := make([]qItem, 0)
+	mustQuery = append(mustQuery, matchPhrase("address", address))
 	if ptr != 0 {
-		mustQuery.Extend(term("ptr", ptr))
+		mustQuery = append(mustQuery, term("ptr", ptr))
 	}
-	b := boolQ(mustQuery)
+	b := boolQ(must(mustQuery...))
 
 	if ptr == 0 {
 		b.Get("bool").Extend(
