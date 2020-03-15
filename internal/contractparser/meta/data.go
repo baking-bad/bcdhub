@@ -27,6 +27,29 @@ type NodeMetadata struct {
 	Name          string   `json:"name,omitempty"`
 }
 
+// GetFieldName - returns field name by `path`. `idx` for ordering fields
+func (m Metadata) GetFieldName(path string, idx int) string {
+	nm := m[path]
+	if nm.Name != "" {
+		return nm.Name
+	}
+
+	root := m["0"]
+	for i := range root.Args {
+		if root.Args[i] == path {
+			if idx != -1 {
+				return fmt.Sprintf("entrypoint_%d", idx)
+			}
+			return "default"
+		}
+	}
+
+	if idx != -1 {
+		return fmt.Sprintf("@%s_%d", nm.Prim, idx)
+	}
+	return "unknown_field"
+}
+
 // GetName -
 func (nm *NodeMetadata) GetName(idx int) string {
 	if nm.Name == "" {

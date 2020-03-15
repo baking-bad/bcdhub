@@ -16,12 +16,8 @@ func (l *namedTupleDecoder) Decode(node gjson.Result, path string, nm *meta.Node
 		argPath := strings.TrimPrefix(arg, path+"/")
 		gjsonPath := GetGJSONPath(argPath)
 		argNode := node.Get(gjsonPath)
-		var name string
-		if !isRoot {
-			name = metadata[arg].GetName(i)
-		} else {
-			name = metadata[arg].GetEntrypointName(i)
-		}
+
+		name := metadata.GetFieldName(arg, i)
 
 		if argNode.Exists() {
 			data, err := michelineNodeToMiguel(argNode, arg, metadata, false)
