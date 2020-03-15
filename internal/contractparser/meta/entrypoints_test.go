@@ -145,6 +145,14 @@ func TestGet(t *testing.T) {
 			},
 			want:    "buy_for",
 			wantErr: false,
+		}, {
+			name: "case 8",
+			args: args{
+				node:     `{"entrypoint":"default","value":{"prim":"Left","args":[{"prim":"Left","args":[{"prim":"Left","args":[{"prim":"Pair","args":[{"string":"callTokenMint"},{"bytes":"050707070707070a0000001600008e79347cd2d28f275f6e2b5daec0f28de95fa6dc0005070703060707030603060508030b"}]}]}]}]}}`,
+				metadata: `{"0":{"prim":"or","args":["0/0/0/0","0/0/0/1","0/0/1/0","0/0/1/1","0/1/0/0","0/1/0/1","0/1/1/0","0/1/1/1"],"type":"union"},"0/0":{"prim":"or","type":"or"},"0/0/0":{"prim":"or","type":"or"},"0/0/0/0":{"prim":"pair","args":["0/0/0/0/0","0/0/0/0/1"],"type":"tuple"},"0/0/0/0/0":{"prim":"string","type":"string"},"0/0/0/0/1":{"prim":"bytes","type":"bytes"},"0/0/0/1":{"prim":"pair","args":["0/0/0/1/0","0/0/0/1/1/0","0/0/0/1/1/1"],"type":"tuple"},"0/0/0/1/0":{"prim":"nat","type":"nat"},"0/0/0/1/1":{"prim":"pair","type":"pair"},"0/0/0/1/1/0":{"prim":"lambda","parameter":"{\"prim\":\"big_map\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"bytes\"}]}","type":"lambda"},"0/0/0/1/1/1":{"prim":"lambda","parameter":"{\"prim\":\"pair\",\"args\":[{\"prim\":\"pair\",\"args\":[{\"prim\":\"string\"},{\"prim\":\"bytes\"}]},{\"prim\":\"big_map\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"bytes\"}]}]}","type":"lambda"},"0/0/1":{"prim":"or","type":"or"},"0/0/1/0":{"prim":"pair","args":["0/0/1/0/0","0/0/1/0/1"],"type":"tuple"},"0/0/1/0/0":{"prim":"unit","type":"unit"},"0/0/1/0/1":{"prim":"contract","parameter":"{\"prim\":\"nat\"}","type":"contract"},"0/0/1/1":{"prim":"address","type":"address"},"0/1":{"prim":"or","type":"or"},"0/1/0":{"prim":"or","type":"or"},"0/1/0/0":{"prim":"nat","type":"nat"},"0/1/0/1":{"prim":"lambda","parameter":"{\"prim\":\"big_map\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"bytes\"}]}","type":"lambda"},"0/1/1":{"prim":"or","type":"or"},"0/1/1/0":{"prim":"lambda","parameter":"{\"prim\":\"pair\",\"args\":[{\"prim\":\"pair\",\"args\":[{\"prim\":\"string\"},{\"prim\":\"bytes\"}]},{\"prim\":\"big_map\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"bytes\"}]}]}","type":"lambda"},"0/1/1/1":{"prim":"unit","type":"unit"}}`,
+			},
+			want:    "entrypoint_0",
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {

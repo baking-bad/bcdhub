@@ -75,7 +75,7 @@ func (metadata Metadata) GetByPath(node gjson.Result) (string, error) {
 		return eMeta.Name, nil
 	}
 
-	if entrypoint == "" {
+	if entrypoint == "" || (entrypoint == "default" && path != "0") {
 		if path == "0" {
 			return "default", nil
 		}

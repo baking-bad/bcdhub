@@ -87,7 +87,7 @@ func finishParseOperation(es *elastic.Elastic, rpc noderpc.Pool, item gjson.Resu
 }
 
 func getEntrypoint(es *elastic.Elastic, item gjson.Result, op *models.Operation) error {
-	if strings.HasPrefix(op.Destination, "KT") {
+	if strings.HasPrefix(op.Destination, "KT") && op.Kind == consts.Transaction {
 		metadata, err := meta.GetMetadata(es, op.Destination, op.Network, "parameter", op.Protocol)
 		if err != nil {
 			return err
