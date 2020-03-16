@@ -129,3 +129,17 @@ func (t *TzKT) GetAccounts(kind string, page, limit int64) (resp []Account, err 
 	err = t.request("GET", "contracts", params, &resp)
 	return
 }
+
+// GetContractOperationBlocks -
+func (t *TzKT) GetContractOperationBlocks(offset, limit int64) (resp []int64, err error) {
+	params := map[string]string{}
+	if limit == 0 {
+		limit = 10000
+	}
+
+	params["limit"] = fmt.Sprintf("%d", limit)
+	params["offset"] = fmt.Sprintf("%d", offset)
+
+	err = t.request("GET", "blocks/levels", params, &resp)
+	return
+}
