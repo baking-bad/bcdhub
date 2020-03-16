@@ -120,6 +120,10 @@ func needParse(item gjson.Result, idx int) bool {
 }
 
 func parseContent(item gjson.Result) *models.Operation {
+	amountTag := "amount"
+	if item.Get("kind").String() == consts.Origination {
+		amountTag = "balance"
+	}
 	op := models.Operation{
 		ID:             strings.ReplaceAll(uuid.New().String(), "-", ""),
 		Kind:           item.Get("kind").String(),
@@ -128,7 +132,7 @@ func parseContent(item gjson.Result) *models.Operation {
 		Counter:        item.Get("counter").Int(),
 		GasLimit:       item.Get("gas_limit").Int(),
 		StorageLimit:   item.Get("storage_limit").Int(),
-		Amount:         item.Get("amount").Int(),
+		Amount:         item.Get(amountTag).Int(),
 		Destination:    item.Get("destination").String(),
 		PublicKey:      item.Get("public_key").String(),
 		Balance:        item.Get("balance").Int(),
@@ -137,6 +141,7 @@ func parseContent(item gjson.Result) *models.Operation {
 		Parameters:     item.Get("parameters").String(),
 		BalanceUpdates: parseBalanceUpdates(item, "metadata"),
 	}
+
 	res, bu := parseResult(item)
 	op.Result = res
 	op.BalanceUpdates = append(op.BalanceUpdates, bu...)
