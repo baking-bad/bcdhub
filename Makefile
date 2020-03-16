@@ -7,5 +7,9 @@ up:
 build:
 	docker-compose build
 
+deploy:
+	docker-compose pull
+	docker-compose up -d
+
 api:
 	cd cmd/api && go run .
