@@ -29,7 +29,7 @@ func (t *TzKT) GetHead() (Head, error) {
 	}
 	resp.Level = head.Level
 	resp.Hash = head.Hash
-	resp.Timestamp = head.Timestamp
+	resp.Timestamp = head.Timestamp.UTC()
 	return resp, err
 }
 
@@ -51,7 +51,7 @@ func (t *TzKT) GetContracts(startLevel int64) ([]Contract, error) {
 			data := Contract{
 				Address:   contract.Address,
 				Level:     contract.FirstActivity,
-				Timestamp: contract.FirstActivityTime,
+				Timestamp: contract.FirstActivityTime.UTC(),
 				Balance:   contract.Balance,
 			}
 			if contract.Manager != nil {

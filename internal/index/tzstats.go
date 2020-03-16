@@ -46,7 +46,7 @@ func (t *TzStats) GetHead() (Head, error) {
 
 	resp.Level = head[0].Level
 	resp.Hash = head[0].Hash
-	resp.Timestamp = time.Unix(head[0].Timestamp/1000, 0)
+	resp.Timestamp = time.Unix(head[0].Timestamp/1000, 0).UTC()
 	return resp, nil
 }
 
@@ -86,7 +86,7 @@ func (t *TzStats) GetContracts(startLevel int64) ([]Contract, error) {
 		for _, c := range contracts {
 			all = append(all, Contract{
 				Level:     c.Level,
-				Timestamp: time.Unix(c.Timestamp/1000, 0),
+				Timestamp: time.Unix(c.Timestamp/1000, 0).UTC(),
 				Balance:   int64(c.Balance * 1000000),
 				Manager:   c.Manager,
 				Address:   c.Address,
