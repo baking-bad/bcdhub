@@ -95,7 +95,7 @@ func parseEntrypointArg(metadata Metadata, nm *NodeMetadata, path string) (inter
 	switch nm.Type {
 	case consts.TypeNamedTuple, consts.TypeNamedUnion, consts.TypeNamedEnum:
 		return parseEntrypointNamed(metadata, nm, path)
-	case consts.TypeTuple:
+	case consts.TypeTuple, consts.TypeUnion:
 		return parseEntrypointTuple(metadata, nm, path)
 	case consts.LIST, consts.SET:
 		return parseEntrypointList(metadata, nm, path)
