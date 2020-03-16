@@ -86,7 +86,12 @@ func (l *literalDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMet
 	case consts.TIMESTAMP:
 		var value interface{}
 		if node.Get(consts.INT).Exists() {
-			value = time.Unix(node.Get(consts.INT).Int(), 0).UTC()
+			intVal := node.Get(consts.INT).Int()
+			if 253402300799 > intVal { // 31 December 9999 23:59:59 Golang time restriction
+				value = time.Unix(intVal, 0).UTC()
+			} else {
+				value = intVal
+			}
 		} else if node.Get(consts.STRING).Exists() {
 			value = node.Get(consts.STRING).Time().UTC()
 		}
