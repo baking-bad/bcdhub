@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -9,9 +10,11 @@ import (
 
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/cerrors"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/formatter"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/miguel"
 	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/storage"
+	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/unpack/rawbytes"
 	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
 	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
@@ -97,6 +100,29 @@ func prepareFilters(req operationsRequest) map[string]interface{} {
 	return filters
 }
 
+func formatErrors(errs []cerrors.Error, op *Operation) error {
+	for i := range errs {
+		if errs[i].With != "" {
+			text := gjson.Parse(errs[i].With)
+			if text.Get("bytes").Exists() {
+				data := text.Get("bytes").String()
+				data = strings.TrimPrefix(data, "05")
+				decodedString, err := rawbytes.ToMicheline(data)
+				if err == nil {
+					text = gjson.Parse(decodedString)
+				}
+			}
+			errString, err := formatter.MichelineToMichelson(text, true)
+			if err != nil {
+				return err
+			}
+			errs[i].With = errString
+		}
+	}
+	op.Errors = errs
+	return nil
+}
+
 func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operation, error) {
 	op := Operation{
 		ID:        operation.ID,
@@ -121,10 +147,14 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 		Delegate:      operation.Delegate,
 		Status:        operation.Status,
 		Entrypoint:    operation.Entrypoint,
-		Errors:        operation.Errors,
 
 		BalanceUpdates: operation.BalanceUpdates,
 		Result:         operation.Result,
+	}
+
+	if err := formatErrors(operation.Errors, &op); err != nil {
+		log.Println(err)
+		return op, err
 	}
 
 	if operation.DeffatedStorage != "" && strings.HasPrefix(op.Destination, "KT") && op.Status == "applied" {
