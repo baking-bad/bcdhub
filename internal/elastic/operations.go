@@ -62,7 +62,12 @@ func (e *Elastic) GetOperationByHash(hash string) (ops []models.Operation, err e
 	return ops, nil
 }
 
-func (e *Elastic) getContractOPG(address, network string, size uint64, filters map[string]interface{}) ([]string, error) {
+type opgForContract struct {
+	hash    string
+	counter int64
+}
+
+func (e *Elastic) getContractOPG(address, network string, size uint64, filters map[string]interface{}) ([]opgForContract, error) {
 	if size == 0 {
 		size = 10
 	}
@@ -72,11 +77,10 @@ func (e *Elastic) getContractOPG(address, network string, size uint64, filters m
 		return nil, err
 	}
 
-	sqlString := fmt.Sprintf(`SELECT hash, level
+	sqlString := fmt.Sprintf(`SELECT hash, counter
 		FROM operation 
 		WHERE (source = '%s' OR destination = '%s') AND network = '%s' %s 
-		GROUP BY hash, level 
-		ORDER BY level DESC 
+		GROUP BY hash, counter
 		LIMIT %d`, address, address, network, filtersString, size)
 
 	res, err := e.executeSQL(sqlString)
@@ -84,12 +88,15 @@ func (e *Elastic) getContractOPG(address, network string, size uint64, filters m
 		return nil, err
 	}
 
-	hash := make([]string, 0)
+	resp := make([]opgForContract, 0)
 	for _, item := range res.Get("rows").Array() {
-		hash = append(hash, item.Get("0").String())
+		resp = append(resp, opgForContract{
+			hash:    item.Get("0").String(),
+			counter: item.Get("1").Int(),
+		})
 	}
 
-	return hash, nil
+	return resp, nil
 }
 
 func prepareOperationFilters(filters map[string]interface{}) (s string, err error) {
@@ -121,11 +128,14 @@ func (e *Elastic) GetContractOperations(network, address string, size uint64, fi
 	if err != nil {
 		return
 	}
+
 	s := make([]qItem, len(opg))
 	for i := range opg {
-		s[i] = matchPhrase("hash", opg[i])
+		s[i] = boolQ(must(
+			matchPhrase("hash", opg[i].hash),
+			term("counter", opg[i].counter),
+		))
 	}
-
 	b := boolQ(
 		should(s...),
 		must(
