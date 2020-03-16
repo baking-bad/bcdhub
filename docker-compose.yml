@@ -45,7 +45,7 @@ services:
   api:
     container_name: bcd-api
     restart: always
-    image: registry.github.com/aopoltorzhicky/bcdhub/api
+    image: bakingbad/bcdhub-api:${TAG:-latest}
     build:
       context: .
       dockerfile: cmd/api/Dockerfile
@@ -63,7 +63,7 @@ services:
   indexer:
     container_name: bcd-indexer
     restart: always
-    image: registry.github.com/aopoltorzhicky/bcdhub/indexer
+    image: bakingbad/bcdhub-indexer:${TAG:-latest}
     build:
       context: .
       dockerfile: cmd/indexer/Dockerfile
@@ -79,7 +79,7 @@ services:
   opindexer:
     container_name: bcd-opindexer
     restart: always
-    image: registry.github.com/aopoltorzhicky/bcdhub/opindexer
+    image: bakingbad/bcdhub-opindexer:${TAG:-latest}
     build:
       context: .
       dockerfile: cmd/operation_indexer/Dockerfile
@@ -93,7 +93,7 @@ services:
   metrics:
     container_name: bcd-metrics
     restart: always
-    image: registry.github.com/aopoltorzhicky/bcdhub/metrics
+    image: bakingbad/bcdhub-metrics:${TAG:-latest}
     build:
       context: .
       dockerfile: cmd/metrics/Dockerfile

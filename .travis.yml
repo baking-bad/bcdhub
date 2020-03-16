@@ -1,0 +1,11 @@
+if: tag IS present
+
+services:
+  - docker
+
+script:
+  - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD
+  - touch .env
+  - export TAG=${TRAVIS_TAG}
+  - docker-compose build
+  - docker-compose push
