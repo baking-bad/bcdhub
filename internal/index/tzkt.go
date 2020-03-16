@@ -75,9 +75,31 @@ func (t *TzKT) GetContracts(startLevel int64) ([]Contract, error) {
 
 // GetContractOperationBlocks -
 func (t *TzKT) GetContractOperationBlocks(startBlock, endBlock int, knownContracts map[string]struct{}, spendable map[string]struct{}) ([]int64, error) {
-	resp := make([]int64, endBlock-startBlock+1)
-	for i := startBlock; i < endBlock+1; i++ {
-		resp[i] = int64(i)
+	start := int64(startBlock)
+	end := false
+
+	result := make([]int64, 0)
+	for !end {
+		blocks, err := t.api.GetContractOperationBlocks(start, 10000)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(blocks) == 0 {
+			end = true
+			continue
+		}
+
+		for i := range blocks {
+			if blocks[i] <= int64(endBlock) {
+				result = append(result, blocks[i])
+			} else {
+				return result, nil
+			}
+		}
+
+		start += 10000
 	}
-	return resp, nil
+
+	return result, nil
 }
