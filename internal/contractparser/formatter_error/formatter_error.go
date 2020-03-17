@@ -78,7 +78,7 @@ func (c *code) locateInArray(node gjson.Result, indent string, isRoot bool) (str
 
 	var seq string
 
-	if length < formatter.LineSize {
+	if length < formatter.DefLineSize {
 		seq = strings.Join(items, fmt.Sprintf("%v; ", space))
 	} else {
 		seq = strings.Join(items, fmt.Sprintf("%v;\n%v", space, seqIndent))
@@ -140,7 +140,7 @@ func (c *code) locatePrimObject(node gjson.Result, indent string, isRoot, wrappe
 			length += len(item)
 		}
 
-		if length < formatter.LineSize {
+		if length < formatter.DefLineSize {
 			expr = fmt.Sprintf("%v %v", expr, strings.Join(items, " "))
 		} else {
 			res := []string{expr}
@@ -164,7 +164,7 @@ func (c *code) locatePrimObject(node gjson.Result, indent string, isRoot, wrappe
 				return "", err
 			}
 			length := len(indent) + len(expr) + len(item) + 1
-			if formatter.IsInline(node) || length < formatter.LineSize {
+			if formatter.IsInline(node) || length < formatter.DefLineSize {
 				argIndent = altIndent
 				expr = fmt.Sprintf("%v %v", expr, item)
 			} else {

@@ -186,7 +186,7 @@ func formatPrimObject(node gjson.Result, indent string, inline, isRoot, wrapped 
 				return "", err
 			}
 			length := len(indent) + len(expr) + len(item) + 1
-			if inline || IsInline(node) || length < LineSize {
+			if inline || IsInline(node) || length < lineSize {
 				argIndent = altIndent
 				expr = fmt.Sprintf("%v %v", expr, item)
 			} else {
