@@ -11,8 +11,8 @@ services:
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - discovery.type=single-node
     ports:
-      - "9300:9300"
-      - "9200:9200"
+      - "127.0.0.1:9300:9300"
+      - "127.0.0.1:9200:9200"
     logging: &my-logging
       options:
         max-size: 10m
@@ -26,8 +26,8 @@ services:
       - mqdata:/var/lib/rabbitmq
       - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
     ports:
-      - "15672:15672"
-      - "5672:5672"
+      - "127.0.0.1:15672:15672"
+      - "127.0.0.1:5672:5672"
     logging: *my-logging        
 
   db:
