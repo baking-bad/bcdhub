@@ -7,12 +7,6 @@ import (
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 )
 
-const (
-	eventSubscribe   = "subscribe"
-	eventUnsubscribe = "unsubscribe"
-	eventOperation   = "operation"
-)
-
 // Operation -
 type Operation struct {
 	ID        string    `json:"-"`

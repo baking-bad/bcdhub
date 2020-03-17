@@ -27,11 +27,6 @@ type Subscription struct {
 // EntityType -
 type EntityType string
 
-const (
-	project  EntityType = "project"
-	contract EntityType = "contract"
-)
-
 // Scan -
 func (e *EntityType) Scan(value interface{}) error {
 	*e = EntityType(value.([]byte))

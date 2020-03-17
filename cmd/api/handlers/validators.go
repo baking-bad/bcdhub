@@ -16,24 +16,18 @@ var AddressValidator validator.Func = func(fl validator.FieldLevel) bool {
 		return false
 	}
 	_, _, err := base58.CheckDecode(address)
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
 // NetworkValidator -
 var NetworkValidator validator.Func = func(fl validator.FieldLevel) bool {
 	network := fl.Field().String()
-	if helpers.StringInArray(network, []string{
+	return helpers.StringInArray(network, []string{
 		consts.Mainnet,
 		consts.Babylon,
 		consts.Carthage,
 		consts.Zeronet,
-	}) {
-		return true
-	}
-	return false
+	})
 }
 
 // OPGValidator -
@@ -43,10 +37,7 @@ var OPGValidator validator.Func = func(fl validator.FieldLevel) bool {
 		return false
 	}
 	_, _, err := base58.CheckDecode(hash)
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
 // StatusValidator -

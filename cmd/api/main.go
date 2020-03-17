@@ -30,7 +30,7 @@ func main() {
 	})
 
 	var cfg config
-	if err := jsonload.StructFromFile("config.json", &cfg); err != nil {
+	if err := jsonload.StructFromFile("config-dev.json", &cfg); err != nil {
 		logger.Fatal(err)
 	}
 
@@ -39,7 +39,9 @@ func main() {
 	defer helpers.CatchPanicSentry()
 
 	es := elastic.WaitNew([]string{cfg.Search.URI})
-	cerrors.LoadErrorDescriptions("data/errors.json")
+	if err := cerrors.LoadErrorDescriptions("data/errors.json"); err != nil {
+		logger.Fatal(err)
+	}
 
 	db, err := database.New(cfg.DB.URI)
 	if err != nil {
@@ -63,19 +65,27 @@ func main() {
 	r := gin.Default()
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		v.RegisterValidation("address", handlers.AddressValidator)
+		if err := v.RegisterValidation("address", handlers.AddressValidator); err != nil {
+			logger.Fatal(err)
+		}
 	}
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		v.RegisterValidation("opg", handlers.OPGValidator)
+		if err := v.RegisterValidation("opg", handlers.OPGValidator); err != nil {
+			logger.Fatal(err)
+		}
 	}
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		v.RegisterValidation("network", handlers.NetworkValidator)
+		if err := v.RegisterValidation("network", handlers.NetworkValidator); err != nil {
+			logger.Fatal(err)
+		}
 	}
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		v.RegisterValidation("status", handlers.StatusValidator)
+		if err := v.RegisterValidation("status", handlers.StatusValidator); err != nil {
+			logger.Fatal(err)
+		}
 	}
 
 	r.Use(corsSettings())

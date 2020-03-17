@@ -6,19 +6,7 @@ import (
 	"time"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
-	"github.com/tidwall/gjson"
 )
-
-func parseContracts(res gjson.Result) []models.Contract {
-	contracts := make([]models.Contract, 0)
-	arr := res.Get("hits.hits").Array()
-	for i := range arr {
-		var c models.Contract
-		c.ParseElasticJSON(arr[i])
-		contracts = append(contracts, c)
-	}
-	return contracts
-}
 
 func getContractQuery(by map[string]interface{}) base {
 	matches := make([]qItem, 0)

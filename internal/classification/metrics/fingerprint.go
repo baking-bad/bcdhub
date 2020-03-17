@@ -8,10 +8,6 @@ import (
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 )
 
-const (
-	levensteinThreashold = 100
-)
-
 // Fingerprint -
 type Fingerprint struct {
 	Section string

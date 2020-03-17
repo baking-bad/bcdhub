@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/database"
@@ -51,9 +50,9 @@ func createRPCs(cfg config) map[string]noderpc.Pool {
 	return rpc
 }
 
-func (ctx *Context) getRPC(network string) (noderpc.Pool, error) {
-	if rpc, ok := ctx.RPC[network]; ok {
-		return rpc, nil
-	}
-	return nil, fmt.Errorf("Unknown rpc network %s", network)
-}
+// func (ctx *Context) getRPC(network string) (noderpc.Pool, error) {
+// 	if rpc, ok := ctx.RPC[network]; ok {
+// 		return rpc, nil
+// 	}
+// 	return nil, fmt.Errorf("Unknown rpc network %s", network)
+// }

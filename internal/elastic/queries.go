@@ -39,13 +39,6 @@ var mapHighlights = qItem{
 	"entrypoint":   qItem{},
 }
 
-var supportedNetworks = map[string]struct{}{
-	"mainnet":     struct{}{},
-	"zeronet":     struct{}{},
-	"babylonnet":  struct{}{},
-	"carthagenet": struct{}{},
-}
-
 var searchableInidices = []string{
 	DocContracts,
 	DocOperations,

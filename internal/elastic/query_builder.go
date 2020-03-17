@@ -67,23 +67,9 @@ func rangeQ(field string, orders ...qItem) qItem {
 	}
 }
 
-func matchAll() qItem {
-	return qItem{
-		"match_all": qItem{},
-	}
-}
-
 func matchPhrase(key string, value interface{}) qItem {
 	return qItem{
 		"match_phrase": qItem{
-			key: value,
-		},
-	}
-}
-
-func match(key string, value interface{}) qItem {
-	return qItem{
-		"match": qItem{
 			key: value,
 		},
 	}
@@ -102,12 +88,6 @@ func in(key string, value []string) qItem {
 		"terms": qItem{
 			key: value,
 		},
-	}
-}
-
-func excludes(fields []string) qItem {
-	return qItem{
-		"excludes": fields,
 	}
 }
 

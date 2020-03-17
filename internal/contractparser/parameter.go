@@ -10,10 +10,6 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-const (
-	defaultEntrypoint = "entrypoint_%d"
-)
-
 // Entrypoint -
 type Entrypoint struct {
 	Name      string       `json:"name"`
