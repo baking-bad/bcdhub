@@ -47,7 +47,7 @@ func (t *TzKT) request(method, endpoint string, params map[string]string, respon
 	}
 	req.URL.RawQuery = q.Encode()
 
-	log.Println(req.URL)
+	// log.Println(req.URL)
 	var resp *http.Response
 	count := 0
 	for ; count < t.retryCount; count++ {

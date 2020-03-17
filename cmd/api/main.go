@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	"strings"
 	"time"
 
@@ -31,12 +30,7 @@ func main() {
 	})
 
 	var cfg config
-	env := os.Getenv("BCD_ENV")
-	configName := "config.json"
-	if env == "development" {
-		configName = "config-dev.json"
-	}
-	if err := jsonload.StructFromFile(configName, &cfg); err != nil {
+	if err := jsonload.StructFromFile("config.json", &cfg); err != nil {
 		logger.Fatal(err)
 	}
 

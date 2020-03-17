@@ -29,17 +29,13 @@ func getOperations(rpc noderpc.Pool, es *elastic.Elastic, block int64, network s
 			}
 
 			res := parseContent(item)
-			if res == nil {
-				continue
-			}
-
 			opgHash := opg.Get("hash").String()
 			protocol := opg.Get("protocol").String()
-			if err := finishParseOperation(es, rpc, item, protocol, network, opgHash, block, contracts, res); err != nil {
+			if err := finishParseOperation(es, rpc, item, protocol, network, opgHash, block, contracts, &res); err != nil {
 				return nil, err
 			}
 
-			operations = append(operations, *res)
+			operations = append(operations, res)
 
 			internal, err := parseInternalOperations(es, rpc, item, res, contracts)
 			if err != nil {
@@ -119,7 +115,7 @@ func needParse(item gjson.Result, idx int) bool {
 	return originationCondition || transactionCondition
 }
 
-func parseContent(item gjson.Result) *models.Operation {
+func parseContent(item gjson.Result) models.Operation {
 	amountTag := "amount"
 	if item.Get("kind").String() == consts.Origination {
 		amountTag = "balance"
@@ -152,7 +148,7 @@ func parseContent(item gjson.Result) *models.Operation {
 	op.Status = op.Result.Status
 	op.Errors = op.Result.Errors
 
-	return &op
+	return op
 }
 
 func parseBalanceUpdates(item gjson.Result, root string) []models.BalanceUpdate {
@@ -194,7 +190,7 @@ func parseResult(item gjson.Result) (*models.OperationResult, []models.BalanceUp
 	return createResult(item, path), parseBalanceUpdates(item, path)
 }
 
-func parseInternalOperations(es *elastic.Elastic, rpc noderpc.Pool, item gjson.Result, main *models.Operation, contracts map[string]struct{}) ([]models.Operation, error) {
+func parseInternalOperations(es *elastic.Elastic, rpc noderpc.Pool, item gjson.Result, main models.Operation, contracts map[string]struct{}) ([]models.Operation, error) {
 	path := fmt.Sprintf("metadata.internal_operation_results")
 	if !item.Get(path).Exists() {
 		path = fmt.Sprintf("metadata.internal_operations")
@@ -204,14 +200,15 @@ func parseInternalOperations(es *elastic.Elastic, rpc noderpc.Pool, item gjson.R
 	}
 
 	res := make([]models.Operation, 0)
-	for _, op := range item.Get(path).Array() {
+	for i, op := range item.Get(path).Array() {
 		val := parseContent(op)
 		val.Counter = main.Counter
-		if err := finishParseOperation(es, rpc, op, main.Protocol, main.Network, main.Hash, main.Level, contracts, val); err != nil {
+		if err := finishParseOperation(es, rpc, op, main.Protocol, main.Network, main.Hash, main.Level, contracts, &val); err != nil {
 			return nil, err
 		}
 		val.Internal = true
-		res = append(res, *val)
+		val.InternalIndex = int64(i + 1)
+		res = append(res, val)
 	}
 	return res, nil
 }
