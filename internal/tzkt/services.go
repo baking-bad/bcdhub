@@ -10,6 +10,13 @@ import (
 	"github.com/tidwall/gjson"
 )
 
+const (
+	tzKTServicesURL         = "https://services.tzkt.io"
+	tzKTServicesBabylonURL  = "https://services.tzkt.io/babylonnet"
+	tzKTServicesCarthageURL = "https://services.tzkt.io/carthagenet"
+	tzKTServicesZeroURL     = "https://services.tzkt.io/zeronet"
+)
+
 // ServicesTzKT -
 type ServicesTzKT struct {
 	Network string
@@ -20,7 +27,18 @@ type ServicesTzKT struct {
 }
 
 // NewServicesTzKT -
-func NewServicesTzKT(host, network string, timeout time.Duration) *ServicesTzKT {
+func NewServicesTzKT(network string, timeout time.Duration) *ServicesTzKT {
+	var host string
+	switch network {
+	case "babylonnet":
+		host = tzKTServicesBabylonURL
+	case "carthagenet":
+		host = tzKTServicesCarthageURL
+	case "zeronet":
+		host = tzKTServicesZeroURL
+	default:
+		host = tzKTServicesURL
+	}
 	return &ServicesTzKT{
 		Host:    host,
 		Network: network,

@@ -22,7 +22,7 @@ func (ctx *Context) GetMempool(c *gin.Context) {
 		return
 	}
 
-	api := tzkt.NewServicesTzKT(tzkt.TzKTServices, req.Network, time.Second*time.Duration(10))
+	api := tzkt.NewServicesTzKT(req.Network, time.Second*time.Duration(10))
 	res, err := api.GetMempool(req.Address)
 	if handleError(c, err, 0) {
 		return
