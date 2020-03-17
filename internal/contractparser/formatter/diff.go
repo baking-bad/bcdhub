@@ -8,6 +8,9 @@ import (
 	"github.com/tidwall/gjson"
 )
 
+// DiffLineSize -
+const DiffLineSize = 74
+
 // DiffResult -
 type DiffResult struct {
 	Left      [][]Item `json:"left"`
@@ -26,12 +29,12 @@ type Item struct {
 
 // Diff -
 func Diff(a, b gjson.Result) (res DiffResult, err error) {
-	aString, err := MichelineToMichelson(a, true, DefLineSize)
+	aString, err := MichelineToMichelson(a, true, DiffLineSize)
 	if err != nil {
 		return
 	}
 
-	bString, err := MichelineToMichelson(b, true, DefLineSize)
+	bString, err := MichelineToMichelson(b, true, DiffLineSize)
 	if err != nil {
 		return
 	}
@@ -39,12 +42,12 @@ func Diff(a, b gjson.Result) (res DiffResult, err error) {
 	dmp := diffmatchpatch.New()
 	diffList := dmp.DiffMain(aString, bString, true)
 
-	aCode, err := MichelineToMichelson(a, false, DefLineSize)
+	aCode, err := MichelineToMichelson(a, false, DiffLineSize)
 	if err != nil {
 		return
 	}
 
-	bCode, err := MichelineToMichelson(b, false, DefLineSize)
+	bCode, err := MichelineToMichelson(b, false, DiffLineSize)
 	if err != nil {
 		return
 	}

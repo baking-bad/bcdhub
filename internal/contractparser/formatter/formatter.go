@@ -10,7 +10,7 @@ import (
 )
 
 // DefLineSize -
-const DefLineSize = 100
+const DefLineSize = 88
 
 // IsFramed -
 func IsFramed(n gjson.Result) bool {
