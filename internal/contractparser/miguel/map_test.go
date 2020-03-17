@@ -27,14 +27,14 @@ func Test_mapDecoder_getKey(t *testing.T) {
 		}, {
 			name: "test array",
 			key: []interface{}{
-				map[string]interface{}{"type": "string", "value": "hello"},
-				map[string]interface{}{"type": "nat", "value": 42},
+				map[string]interface{}{"miguel_type": "string", "miguel_value": "hello"},
+				map[string]interface{}{"miguel_type": "nat", "miguel_value": 42},
 			},
 			wantS:   "hello@42",
 			wantErr: false,
 		}, {
 			name:    "test map",
-			key:     map[string]interface{}{"type": "string", "value": "hello"},
+			key:     map[string]interface{}{"miguel_type": "string", "miguel_value": "hello"},
 			wantS:   "hello",
 			wantErr: false,
 		}, {
