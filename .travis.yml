@@ -6,12 +6,6 @@ stages:
 
 jobs:
   include:
-    - stage: test
-      script:
-        - go mod download
-        - go test -v ./...
-        - touch .env
-        - docker-compose build
     - stage: deploy
       services:
         - docker
