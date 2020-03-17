@@ -13,3 +13,8 @@ deploy:
 
 api:
 	cd cmd/api && go run .
+
+clear_mq:
+	docker exec -it bcd-mq rabbitmqctl stop_app
+	docker exec -it bcd-mq rabbitmqctl reset
+	docker exec -it bcd-mq rabbitmqctl start_app

@@ -98,7 +98,7 @@ func (t *TzKT) GetContractOperationBlocks(startBlock, endBlock int, knownContrac
 			}
 		}
 
-		start += 10000
+		start = blocks[len(blocks)-1]
 	}
 
 	return result, nil
