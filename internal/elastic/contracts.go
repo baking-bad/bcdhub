@@ -5,7 +5,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models"
 )
 
 func getContractQuery(by map[string]interface{}) base {

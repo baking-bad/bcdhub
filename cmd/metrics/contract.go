@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
-	"github.com/aopoltorzhicky/bcdhub/internal/logger"
-	"github.com/aopoltorzhicky/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/google/uuid"
 	"github.com/streadway/amqp"
 )

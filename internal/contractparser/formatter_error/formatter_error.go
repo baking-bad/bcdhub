@@ -5,7 +5,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/formatter"
+	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/tidwall/gjson"
 )
 

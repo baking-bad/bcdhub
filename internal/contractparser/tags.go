@@ -5,11 +5,11 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
+	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/node"
-	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/node"
+	"github.com/baking-bad/bcdhub/internal/jsonload"
 )
 
 var interfaces = map[string][]Entrypoint{}

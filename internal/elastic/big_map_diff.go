@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/google/uuid"
 	"github.com/tidwall/gjson"
 )

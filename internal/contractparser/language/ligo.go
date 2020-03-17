@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/node"
+	"github.com/baking-bad/bcdhub/internal/contractparser/node"
 )
 
 type ligo struct{}

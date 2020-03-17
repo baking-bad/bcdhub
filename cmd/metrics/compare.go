@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/classification/functions"
-	"github.com/aopoltorzhicky/bcdhub/internal/classification/metrics"
-	"github.com/aopoltorzhicky/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/classification/functions"
+	"github.com/baking-bad/bcdhub/internal/classification/metrics"
+	"github.com/baking-bad/bcdhub/internal/models"
 )
 
 var model = []metrics.Metric{

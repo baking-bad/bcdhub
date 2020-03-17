@@ -5,11 +5,11 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser"
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/macros"
-	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
-	"github.com/aopoltorzhicky/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/contractparser"
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/macros"
+	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/tidwall/gjson"
 )
 

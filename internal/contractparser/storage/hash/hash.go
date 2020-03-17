@@ -3,7 +3,7 @@ package hash
 import (
 	"crypto/sha256"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/pack"
+	"github.com/baking-bad/bcdhub/internal/contractparser/pack"
 	"github.com/btcsuite/btcutil/base58"
 
 	"github.com/tidwall/gjson"

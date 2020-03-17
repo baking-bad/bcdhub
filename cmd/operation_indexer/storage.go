@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/storage"
-	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
-	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
+	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/tidwall/gjson"
 )
 

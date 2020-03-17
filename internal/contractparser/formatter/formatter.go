@@ -6,7 +6,7 @@ import (
 
 	"github.com/tidwall/gjson"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 )
 
 // DefLineSize -

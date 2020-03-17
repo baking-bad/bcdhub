@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser"
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
-	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
-	"github.com/aopoltorzhicky/bcdhub/internal/models"
-	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/contractparser"
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
 )
 
 func getMetadata(rpc noderpc.Pool, c *models.Contract, tag, filesDirectory string) (map[string]string, error) {

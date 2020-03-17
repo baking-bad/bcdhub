@@ -5,12 +5,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
-	"github.com/aopoltorzhicky/bcdhub/internal/index"
-	"github.com/aopoltorzhicky/bcdhub/internal/logger"
-	"github.com/aopoltorzhicky/bcdhub/internal/models"
-	"github.com/aopoltorzhicky/bcdhub/internal/mq"
-	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/index"
+	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/mq"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
 )
 
 // Context -

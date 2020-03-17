@@ -3,8 +3,8 @@ package handlers
 import (
 	"time"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/cerrors"
-	"github.com/aopoltorzhicky/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
+	"github.com/baking-bad/bcdhub/internal/models"
 )
 
 // Operation -

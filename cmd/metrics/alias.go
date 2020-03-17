@@ -1,6 +1,6 @@
 package main
 
-import "github.com/aopoltorzhicky/bcdhub/internal/models"
+import "github.com/baking-bad/bcdhub/internal/models"
 
 func setAlias(c *models.Contract) error {
 	alias, err := ctx.DB.GetAlias(c.Address, c.Network)

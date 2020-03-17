@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/unpack/tzbase58"
+	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/tzbase58"
 )
 
 type bytesDecoder struct{}

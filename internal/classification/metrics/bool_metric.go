@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models"
 )
 
 // Bool -

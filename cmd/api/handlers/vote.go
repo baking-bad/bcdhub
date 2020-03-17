@@ -7,8 +7,8 @@ import (
 	"os"
 	"sync"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/classification/metrics"
-	"github.com/aopoltorzhicky/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/classification/metrics"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
 )
 

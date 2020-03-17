@@ -4,7 +4,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/tidwall/gjson"
 )
 

@@ -1,6 +1,6 @@
 package metrics
 
-import "github.com/aopoltorzhicky/bcdhub/internal/models"
+import "github.com/baking-bad/bcdhub/internal/models"
 
 // Metric -
 type Metric interface {

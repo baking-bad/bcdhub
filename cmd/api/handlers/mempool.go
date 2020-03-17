@@ -5,12 +5,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/cerrors"
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/miguel"
-	"github.com/aopoltorzhicky/bcdhub/internal/models"
-	"github.com/aopoltorzhicky/bcdhub/internal/tzkt"
+	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/baking-bad/bcdhub/internal/contractparser/miguel"
+	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/tzkt"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 )

@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"github.com/aopoltorzhicky/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/tidwall/gjson"
 )
 

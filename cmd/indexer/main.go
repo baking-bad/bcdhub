@@ -4,9 +4,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
-	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
-	"github.com/aopoltorzhicky/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/jsonload"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/tidwall/gjson"
 )
 

@@ -6,10 +6,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
-	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
-	"github.com/aopoltorzhicky/bcdhub/internal/logger"
-	"github.com/aopoltorzhicky/bcdhub/internal/mq"
+	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/jsonload"
+	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/streadway/amqp"
 )
 

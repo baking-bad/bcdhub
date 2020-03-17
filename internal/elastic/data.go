@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/goombaio/namegenerator"
 	"github.com/tidwall/gjson"
 )

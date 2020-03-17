@@ -3,8 +3,8 @@ package language
 import (
 	"testing"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/node"
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/node"
 )
 
 func TestDetectSmartPy(t *testing.T) {

@@ -5,8 +5,8 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
-	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/tidwall/gjson"
 )
 

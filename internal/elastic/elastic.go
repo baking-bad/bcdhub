@@ -9,7 +9,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/tidwall/gjson"

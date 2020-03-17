@@ -6,7 +6,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/tzstats"
+	"github.com/baking-bad/bcdhub/internal/tzstats"
 )
 
 // TzStats -

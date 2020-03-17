@@ -3,7 +3,7 @@ package index
 import (
 	"time"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/tzkt"
+	"github.com/baking-bad/bcdhub/internal/tzkt"
 )
 
 // TzKT -

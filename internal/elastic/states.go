@@ -3,7 +3,7 @@ package elastic
 import (
 	"strings"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models"
 )
 
 func (e *Elastic) createState(network, typ string) (s models.State, err error) {

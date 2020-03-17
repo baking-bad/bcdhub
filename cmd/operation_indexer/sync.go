@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
-	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
-	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
-	"github.com/aopoltorzhicky/bcdhub/internal/logger"
-	"github.com/aopoltorzhicky/bcdhub/internal/models"
-	"github.com/aopoltorzhicky/bcdhub/internal/mq"
-	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/mq"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
 )
 
 func getContracts(es *elastic.Elastic, network string) (map[string]struct{}, map[string]struct{}, error) {

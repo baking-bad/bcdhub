@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/cerrors"
+	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/tidwall/gjson"
 )
 

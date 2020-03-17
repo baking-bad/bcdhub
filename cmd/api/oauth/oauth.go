@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/jsonload"
+	"github.com/baking-bad/bcdhub/internal/jsonload"
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"

@@ -3,8 +3,8 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/miguel"
+	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/baking-bad/bcdhub/internal/contractparser/miguel"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 )

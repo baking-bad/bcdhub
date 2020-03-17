@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models"
 )
 
 // Fingerprint -

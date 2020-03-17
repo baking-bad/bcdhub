@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/database"
+	"github.com/baking-bad/bcdhub/internal/database"
 
 	"github.com/gin-gonic/gin"
 )

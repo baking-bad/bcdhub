@@ -1,8 +1,8 @@
 package miguel
 
 import (
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/tidwall/gjson"
 )
 

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser"
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/formatter"
+	"github.com/baking-bad/bcdhub/internal/contractparser"
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 )

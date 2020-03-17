@@ -10,16 +10,16 @@ ENV GOOS=linux
 RUN apk --no-cache add ca-certificates
 RUN apk add --update git
 
-RUN mkdir -p $GOPATH/src/github.com/aopoltorzhicky/bcdhub/
+RUN mkdir -p $GOPATH/src/github.com/baking-bad/bcdhub/
 
-COPY ./go.* $GOPATH/src/github.com/aopoltorzhicky/bcdhub/
-WORKDIR $GOPATH/src/github.com/aopoltorzhicky/bcdhub
+COPY ./go.* $GOPATH/src/github.com/baking-bad/bcdhub/
+WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub
 RUN go mod download
 
 COPY cmd/metrics cmd/metrics
 COPY internal internal
 
-WORKDIR $GOPATH/src/github.com/aopoltorzhicky/bcdhub/cmd/metrics/
+WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub/cmd/metrics/
 RUN go build -a -installsuffix cgo -o /go/bin/metrics .
 
 # ---------------------------------------------------------------------

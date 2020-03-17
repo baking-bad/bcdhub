@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/database"
+	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/github"
 	"github.com/xanzy/go-gitlab"

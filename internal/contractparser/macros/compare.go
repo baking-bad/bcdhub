@@ -3,7 +3,7 @@ package macros
 import (
 	"fmt"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 )

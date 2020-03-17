@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 
 	"github.com/gin-gonic/gin"
 )

@@ -3,10 +3,10 @@ package contractparser
 import (
 	"fmt"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/language"
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/node"
-	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/language"
+	"github.com/baking-bad/bcdhub/internal/contractparser/node"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/tidwall/gjson"
 )
 

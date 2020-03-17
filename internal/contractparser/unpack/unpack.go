@@ -4,9 +4,9 @@ import (
 	"encoding/hex"
 	"unicode"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/formatter"
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/unpack/rawbytes"
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/unpack/tzbase58"
+	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
+	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/rawbytes"
+	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/tzbase58"
 	"github.com/tidwall/gjson"
 )
 

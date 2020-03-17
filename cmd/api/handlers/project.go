@@ -3,8 +3,8 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
-	"github.com/aopoltorzhicky/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
 )
 

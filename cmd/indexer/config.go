@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/fatih/color"
 )
 

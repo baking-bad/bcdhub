@@ -3,10 +3,10 @@ package main
 import (
 	"time"
 
-	"github.com/aopoltorzhicky/bcdhub/internal/database"
-	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
-	"github.com/aopoltorzhicky/bcdhub/internal/mq"
-	"github.com/aopoltorzhicky/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/database"
+	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/mq"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
 )
 
 // Context -

@@ -1,12 +1,12 @@
 package storage
 
 import (
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/consts"
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/meta"
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/miguel"
-	"github.com/aopoltorzhicky/bcdhub/internal/contractparser/storage/hash"
-	"github.com/aopoltorzhicky/bcdhub/internal/elastic"
-	"github.com/aopoltorzhicky/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/baking-bad/bcdhub/internal/contractparser/miguel"
+	"github.com/baking-bad/bcdhub/internal/contractparser/storage/hash"
+	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 )
