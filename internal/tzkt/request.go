@@ -46,6 +46,7 @@ func (t *TzKT) request(method, endpoint string, params map[string]string, respon
 		q.Add(key, value)
 	}
 	req.URL.RawQuery = q.Encode()
+	req.Header.Set("User-Agent", userAgent)
 
 	// log.Println(req.URL)
 	var resp *http.Response
@@ -138,7 +139,7 @@ func (t *TzKT) GetContractOperationBlocks(offset, limit int64) (resp []int64, er
 	}
 
 	params["limit"] = fmt.Sprintf("%d", limit)
-	params["offset"] = fmt.Sprintf("%d", offset)
+	params["offset.cr"] = fmt.Sprintf("%d", offset)
 
 	err = t.request("GET", "blocks/levels", params, &resp)
 	return
