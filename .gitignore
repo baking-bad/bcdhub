@@ -17,3 +17,4 @@
 
 cmd/api/train.csv
 cmd/test_operation
+docker-compose.local.yml

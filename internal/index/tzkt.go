@@ -39,7 +39,7 @@ func (t *TzKT) GetContracts(startLevel int64) ([]Contract, error) {
 
 	end := false
 	for !end {
-		contracts, err := t.api.GetAccounts(tzkt.ContractKindAll, t.lastContractsPage, 1000)
+		contracts, err := t.api.GetAccounts(tzkt.ContractKindSmart, t.lastContractsPage, 1000)
 		if err != nil {
 			return nil, err
 		}

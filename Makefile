@@ -6,7 +6,7 @@ up:
 
 build:
 	docker-compose build
-
+	
 deploy:
 	docker-compose pull
 	docker-compose up -d
@@ -14,7 +14,10 @@ deploy:
 api:
 	cd cmd/api && go run .
 
-clear_mq:
+clearmq:
 	docker exec -it bcd-mq rabbitmqctl stop_app
 	docker exec -it bcd-mq rabbitmqctl reset
 	docker exec -it bcd-mq rabbitmqctl start_app
+
+local:
+	docker-compose -f docker-compose.local.yml up -d --build
