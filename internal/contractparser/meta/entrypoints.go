@@ -21,7 +21,7 @@ func (metadata Metadata) GetEntrypoints() ([]Entrypoint, error) {
 	root := metadata["0"]
 
 	ep := make([]Entrypoint, 0)
-	if len(root.Args) > 0 && root.Prim == consts.OR && (root.Type == consts.TypeUnion || root.Type == consts.TypeNamedTuple || root.Type == consts.TypeNamedUnion) {
+	if len(root.Args) > 0 && root.Prim == consts.OR && (root.Type == consts.TypeUnion || root.Type == consts.TypeNamedEnum || root.Type == consts.TypeNamedTuple || root.Type == consts.TypeNamedUnion) {
 		for i, arg := range root.Args {
 			nm := metadata[arg]
 
