@@ -62,6 +62,7 @@ func (t *ServicesTzKT) request(method, endpoint string, params map[string]string
 		q.Add(key, value)
 	}
 	req.URL.RawQuery = q.Encode()
+	req.Header.Set("User-Agent", userAgent)
 
 	var resp *http.Response
 	count := 0
