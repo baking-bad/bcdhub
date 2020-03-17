@@ -2,7 +2,6 @@ package elastic
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/aopoltorzhicky/bcdhub/internal/models"
 	"github.com/tidwall/gjson"
@@ -35,10 +34,7 @@ func (e *Elastic) GetOperationByHash(hash string) (ops []models.Operation, err e
 				"type": "number",
 				"script": qItem{
 					"lang":   "painless",
-					"inline": "doc['level'].value * 100 + (doc['internal'].value ? 0 : 10) + (doc['indexed_time'].value / params.nano_ts)",
-					"params": qItem{
-						"nano_ts": time.Now().UnixNano(),
-					},
+					"inline": "doc['level'].value * 1000 + (doc['internal'].value ? (999 - doc['internal_index'].value) : 999)",
 				},
 				"order": "desc",
 			},
@@ -154,10 +150,7 @@ func (e *Elastic) GetContractOperations(network, address string, size uint64, fi
 					"type": "number",
 					"script": qItem{
 						"lang":   "painless",
-						"inline": "doc['level'].value * 100 + (doc['internal'].value ? 0 : 10) + (doc['indexed_time'].value / params.nano_ts)",
-						"params": qItem{
-							"nano_ts": time.Now().UnixNano(),
-						},
+						"inline": "doc['level'].value * 100 + (doc['internal'].value ? (999 - doc['internal_index'].value) : 999)",
 					},
 					"order": "desc",
 				},
@@ -204,10 +197,7 @@ func (e *Elastic) GetLastStorage(network, address string) (gjson.Result, error) 
 					"type": "number",
 					"script": qItem{
 						"lang":   "painless",
-						"inline": "doc['level'].value * 100 + (doc['internal'].value ? 0 : 10) + (doc['indexed_time'].value / params.nano_ts)",
-						"params": qItem{
-							"nano_ts": time.Now().UnixNano(),
-						},
+						"inline": "doc['level'].value * 1000 + (doc['internal'].value ? (999 - doc['internal_index'].value) : 999)",
 					},
 					"order": "desc",
 				},
@@ -248,10 +238,7 @@ func (e *Elastic) GetPreviousOperation(address, network string, level int64) (op
 					"type": "number",
 					"script": qItem{
 						"lang":   "painless",
-						"inline": "doc['level'].value * 100 + (doc['internal'].value ? 0 : 10) + (doc['indexed_time'].value / params.nano_ts)",
-						"params": qItem{
-							"nano_ts": time.Now().UnixNano(),
-						},
+						"inline": "doc['level'].value * 100 + (doc['internal'].value ? (999 - doc['internal_index'].value) : 999)",
 					},
 					"order": "desc",
 				},

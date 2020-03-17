@@ -13,10 +13,11 @@ type Operation struct {
 
 	IndexedTime int64 `json:"indexed_time"`
 
-	Network  string `json:"network"`
-	Protocol string `json:"protocol"`
-	Hash     string `json:"hash"`
-	Internal bool   `json:"internal"`
+	Network       string `json:"network"`
+	Protocol      string `json:"protocol"`
+	Hash          string `json:"hash"`
+	Internal      bool   `json:"internal"`
+	InternalIndex int64  `json:"internal_index,omitempty"`
 
 	Status           string    `json:"status"`
 	Timestamp        time.Time `json:"timestamp"`
@@ -56,6 +57,7 @@ func (o *Operation) ParseElasticJSON(resp gjson.Result) {
 	o.Internal = resp.Get("_source.internal").Bool()
 	o.Network = resp.Get("_source.network").String()
 	o.Timestamp = resp.Get("_source.timestamp").Time().UTC()
+	o.InternalIndex = resp.Get("_source.internal_index").Int()
 
 	o.Status = resp.Get("_source.status").String()
 	o.Level = resp.Get("_source.level").Int()
