@@ -31,7 +31,7 @@
     "babylonnet": "https://api.babylonnet.tzstats.com",
     "carthagenet": "https://api.carthagenet.tzstats.com"
   },
-  "indexer": "tzstats",
+  "indexer": "tzkt",
   "update_timer": 60,
   "files_directory": "/etc/bcd",
   "mq": {

@@ -6,3 +6,7 @@ const (
 	ContractKindDelegator = "delegator_contract"
 	ContractKindAll       = "all"
 )
+
+const (
+	userAgent = "BCD"
+)
