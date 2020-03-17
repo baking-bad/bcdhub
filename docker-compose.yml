@@ -8,7 +8,7 @@ services:
       - esdata:/usr/share/elasticsearch/data
     environment:
       - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS=-Xms16g -Xmx16g"
       - discovery.type=single-node
     ports:
       - "127.0.0.1:9300:9300"
