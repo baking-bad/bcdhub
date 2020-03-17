@@ -103,7 +103,7 @@ func parseEntrypointArg(metadata Metadata, nm *NodeMetadata, path string) (inter
 		return parseEntrypointOption(metadata, nm, path)
 	case consts.CONTRACT, consts.LAMBDA:
 		params := gjson.Parse(nm.Parameter)
-		data, err := formatter.MichelineToMichelson(params, true)
+		data, err := formatter.MichelineToMichelson(params, true, formatter.DefLineSize)
 		if err != nil {
 			return nil, err
 		}

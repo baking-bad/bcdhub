@@ -36,7 +36,7 @@ func Bytes(input string) string {
 		str, err := rawbytes.ToMicheline(input[2:])
 		if err == nil {
 			data := gjson.Parse(str)
-			res, err := formatter.MichelineToMichelson(data, false)
+			res, err := formatter.MichelineToMichelson(data, false, formatter.DefLineSize)
 
 			if err == nil {
 				return res
