@@ -23,15 +23,15 @@ func operationMetrics(op models.Operation, contract *models.Contract) error {
 	contract.SumTxAmount = stats.SumTxAmount
 	contract.MedianConsumedGas = stats.MedianConsumedGas
 
-	rpc, err := ctx.getRPC(contract.Network)
-	if err != nil {
-		return err
-	}
-	balance, err := rpc.GetContractBalance(contract.Address, op.Level)
-	if err != nil {
-		return err
-	}
-	contract.Balance = balance
+	// rpc, err := ctx.getRPC(contract.Network)
+	// if err != nil {
+	// 	return err
+	// }
+	// balance, err := rpc.GetContractBalance(contract.Address, op.Level)
+	// if err != nil {
+	// 	return err
+	// }
+	// contract.Balance = balance
 	return nil
 }
 
