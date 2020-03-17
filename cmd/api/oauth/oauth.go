@@ -53,8 +53,13 @@ func New() (Config, error) {
 	jwtKey := os.Getenv("JWT_SECRET_KEY")
 	oauthStateString := os.Getenv("OAUTH_STATE_STRING")
 
+	configName := "development.json"
+	if env := os.Getenv("BCD_ENV"); env == "production" {
+		configName = "production.json"
+	}
+
 	var cfg InitConfig
-	if err := jsonload.StructFromFile("./oauth/oauth_config.json", &cfg); err != nil {
+	if err := jsonload.StructFromFile(fmt.Sprintf("./oauth/%s", configName), &cfg); err != nil {
 		return Config{}, err
 	}
 
