@@ -3,7 +3,6 @@ module github.com/baking-bad/bcdhub
 go 1.13
 
 require (
-	github.com/baking-bad/bcdhub v0.0.0-20200317142316-54d343bafedd
 	github.com/btcsuite/btcutil v1.0.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20191218082911-5398a82b748f
