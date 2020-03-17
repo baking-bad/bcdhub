@@ -112,7 +112,7 @@ func TestMichelineToMichelson(t *testing.T) {
 			}
 
 			parsedData := gjson.ParseBytes(data)
-			result, err := MichelineToMichelson(parsedData, true)
+			result, err := MichelineToMichelson(parsedData, true, DefLineSize)
 			if err != nil {
 				t.Error("MichelineToMichelson error:", err)
 			}

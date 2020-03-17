@@ -9,8 +9,8 @@ import (
 	"github.com/aopoltorzhicky/bcdhub/internal/helpers"
 )
 
-// LineSize -
-const LineSize = 100
+// DefLineSize -
+const DefLineSize = 100
 
 // IsFramed -
 func IsFramed(n gjson.Result) bool {
@@ -58,23 +58,23 @@ func IsScript(n gjson.Result) bool {
 }
 
 // MichelineToMichelson -
-func MichelineToMichelson(n gjson.Result, inline bool) (string, error) {
-	return formatNode(n, "", inline, true, false)
+func MichelineToMichelson(n gjson.Result, inline bool, lineSize int) (string, error) {
+	return formatNode(n, "", inline, true, false, lineSize)
 }
 
-func formatNode(node gjson.Result, indent string, inline, isRoot, wrapped bool) (string, error) {
+func formatNode(node gjson.Result, indent string, inline, isRoot, wrapped bool, lineSize int) (string, error) {
 	if node.IsArray() {
-		return formatArray(node, indent, inline, isRoot)
+		return formatArray(node, indent, inline, isRoot, lineSize)
 	}
 
 	if node.IsObject() {
-		return formatObject(node, indent, inline, isRoot, wrapped)
+		return formatObject(node, indent, inline, isRoot, wrapped, lineSize)
 	}
 
 	return "", fmt.Errorf("data is not array or object %v", node)
 }
 
-func formatArray(node gjson.Result, indent string, inline, isRoot bool) (string, error) {
+func formatArray(node gjson.Result, indent string, inline, isRoot bool, lineSize int) (string, error) {
 	seqIndent := indent
 	isScriptRoot := isRoot && IsScript(node)
 	if !isScriptRoot {
@@ -84,7 +84,7 @@ func formatArray(node gjson.Result, indent string, inline, isRoot bool) (string,
 	items := make([]string, len(node.Array()))
 
 	for i, n := range node.Array() {
-		res, err := formatNode(n, seqIndent, inline, false, true)
+		res, err := formatNode(n, seqIndent, inline, false, true, lineSize)
 		if err != nil {
 			return "", err
 		}
@@ -107,7 +107,7 @@ func formatArray(node gjson.Result, indent string, inline, isRoot bool) (string,
 
 	var seq string
 
-	if inline || length < LineSize {
+	if inline || length < lineSize {
 		seq = strings.Join(items, fmt.Sprintf("%v; ", space))
 	} else {
 		seq = strings.Join(items, fmt.Sprintf("%v;\n%v", space, seqIndent))
@@ -120,15 +120,15 @@ func formatArray(node gjson.Result, indent string, inline, isRoot bool) (string,
 	return seq, nil
 }
 
-func formatObject(node gjson.Result, indent string, inline, isRoot, wrapped bool) (string, error) {
+func formatObject(node gjson.Result, indent string, inline, isRoot, wrapped bool, lineSize int) (string, error) {
 	if node.Get("prim").Exists() {
-		return formatPrimObject(node, indent, inline, isRoot, wrapped)
+		return formatPrimObject(node, indent, inline, isRoot, wrapped, lineSize)
 	}
 
 	return formatNonPrimObject(node)
 }
 
-func formatPrimObject(node gjson.Result, indent string, inline, isRoot, wrapped bool) (string, error) {
+func formatPrimObject(node gjson.Result, indent string, inline, isRoot, wrapped bool, lineSize int) (string, error) {
 	res := []string{node.Get("prim").String()}
 
 	if annots := node.Get("annots"); annots.Exists() {
@@ -148,7 +148,7 @@ func formatPrimObject(node gjson.Result, indent string, inline, isRoot, wrapped 
 		argIndent := indent + "  "
 		items := make([]string, len(args))
 		for i, a := range args {
-			res, err := formatNode(a, argIndent, inline, false, false)
+			res, err := formatNode(a, argIndent, inline, false, false, lineSize)
 			if err != nil {
 				return "", err
 			}
@@ -162,7 +162,7 @@ func formatPrimObject(node gjson.Result, indent string, inline, isRoot, wrapped 
 			length += len(item)
 		}
 
-		if inline || length < LineSize {
+		if inline || length < lineSize {
 			expr = fmt.Sprintf("%v %v", expr, strings.Join(items, " "))
 		} else {
 			res := []string{expr}
@@ -171,7 +171,7 @@ func formatPrimObject(node gjson.Result, indent string, inline, isRoot, wrapped 
 		}
 	} else if len(args) == 1 {
 		argIndent := indent + strings.Repeat(" ", len(expr)+1)
-		res, err := formatNode(args[0], argIndent, inline, false, false)
+		res, err := formatNode(args[0], argIndent, inline, false, false, lineSize)
 		if err != nil {
 			return "", err
 		}
@@ -181,7 +181,7 @@ func formatPrimObject(node gjson.Result, indent string, inline, isRoot, wrapped 
 		altIndent := indent + strings.Repeat(" ", len(expr)+2)
 
 		for _, arg := range args {
-			item, err := formatNode(arg, argIndent, inline, false, false)
+			item, err := formatNode(arg, argIndent, inline, false, false, lineSize)
 			if err != nil {
 				return "", err
 			}

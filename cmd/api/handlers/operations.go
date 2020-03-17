@@ -112,7 +112,7 @@ func formatErrors(errs []cerrors.Error, op *Operation) error {
 					text = gjson.Parse(decodedString)
 				}
 			}
-			errString, err := formatter.MichelineToMichelson(text, true)
+			errString, err := formatter.MichelineToMichelson(text, true, formatter.DefLineSize)
 			if err != nil {
 				return err
 			}

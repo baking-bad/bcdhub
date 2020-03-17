@@ -51,7 +51,7 @@ func (ctx *Context) getContractCode(network, address string, level int64) (strin
 	}
 
 	code := contract.Get("code")
-	return formatter.MichelineToMichelson(code, false)
+	return formatter.MichelineToMichelson(code, false, formatter.DefLineSize)
 }
 
 func (ctx *Context) getContractCodeJSON(network, address string, level int64) (res gjson.Result, err error) {

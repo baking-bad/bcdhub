@@ -26,12 +26,12 @@ type Item struct {
 
 // Diff -
 func Diff(a, b gjson.Result) (res DiffResult, err error) {
-	aString, err := MichelineToMichelson(a, true)
+	aString, err := MichelineToMichelson(a, true, DefLineSize)
 	if err != nil {
 		return
 	}
 
-	bString, err := MichelineToMichelson(b, true)
+	bString, err := MichelineToMichelson(b, true, DefLineSize)
 	if err != nil {
 		return
 	}
@@ -39,12 +39,12 @@ func Diff(a, b gjson.Result) (res DiffResult, err error) {
 	dmp := diffmatchpatch.New()
 	diffList := dmp.DiffMain(aString, bString, true)
 
-	aCode, err := MichelineToMichelson(a, false)
+	aCode, err := MichelineToMichelson(a, false, DefLineSize)
 	if err != nil {
 		return
 	}
 
-	bCode, err := MichelineToMichelson(b, false)
+	bCode, err := MichelineToMichelson(b, false, DefLineSize)
 	if err != nil {
 		return
 	}
