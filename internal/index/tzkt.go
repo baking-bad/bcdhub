@@ -54,8 +54,8 @@ func (t *TzKT) GetContracts(startLevel int64) ([]Contract, error) {
 				Timestamp: contract.FirstActivityTime.UTC(),
 				Balance:   contract.Balance,
 			}
-			if contract.Manager != nil {
-				data.Manager = contract.Manager.Address
+			if contract.Creator != nil {
+				data.Manager = contract.Creator.Address
 			}
 			if contract.Delegate != nil {
 				data.Delegate = contract.Delegate.Address

@@ -1,6 +1,7 @@
 package miguel
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
@@ -88,12 +89,12 @@ func (l *literalDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMet
 		if node.Get(consts.INT).Exists() {
 			intVal := node.Get(consts.INT).Int()
 			if 253402300799 > intVal { // 31 December 9999 23:59:59 Golang time restriction
-				value = time.Unix(intVal, 0).UTC()
+				value = time.Unix(intVal, 0).UTC().String()
 			} else {
-				value = intVal
+				value = fmt.Sprintf("%d", intVal)
 			}
 		} else if node.Get(consts.STRING).Exists() {
-			value = node.Get(consts.STRING).Time().UTC()
+			value = node.Get(consts.STRING).Time().UTC().String()
 		}
 		return map[string]interface{}{
 			"miguel_value": value,
