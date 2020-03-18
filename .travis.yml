@@ -1,17 +1,8 @@
-language: go
+services:
+  - docker
 
-stages:
-  - name: deploy
-    if: tag IS present
-
-jobs:
-  include:
-    - stage: deploy
-      services:
-        - docker
-      script:
-        - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD
-        - touch .env
-        - export TAG=${TRAVIS_TAG}
-        - docker-compose build
-        - docker-compose push
+script:
+  - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD
+  - touch .env
+  - export TAG=${TRAVIS_TAG}
+  - docker-compose build
