@@ -395,14 +395,24 @@ func applyChangeOnMap(path []string, from interface{}, typ string, v interface{}
 	}
 
 	if field.IsValid() && field.IsNil() {
-		value.SetMapIndex(reflect.ValueOf(path[0]), reflect.ValueOf(from))
-		value.SetMapIndex(reflect.ValueOf("miguel_kind"), reflect.ValueOf("delete"))
+		fromValue := reflect.ValueOf(from)
+		fromValue.SetMapIndex(reflect.ValueOf("miguel_kind"), reflect.ValueOf("delete"))
+		value.SetMapIndex(reflect.ValueOf(path[0]), fromValue)
+		return nil
+	}
+
+	fieldValue := field.Interface()
+	if fieldValue, ok := fieldValue.(map[string]interface{}); ok {
+		fromValue := reflect.ValueOf(fieldValue)
+		fromValue.SetMapIndex(reflect.ValueOf("miguel_kind"), reflect.ValueOf("create"))
+		value.SetMapIndex(reflect.ValueOf(path[0]), fromValue)
 		return nil
 	}
 
 	if len(path) == 1 {
+
 		if value.Kind() == reflect.Map {
-			if !value.IsValid() {
+			if from == nil || !value.IsValid() {
 				value.SetMapIndex(reflect.ValueOf("miguel_kind"), reflect.ValueOf("create"))
 			} else if !value.IsNil() {
 				value.SetMapIndex(reflect.ValueOf("miguel_kind"), reflect.ValueOf(typ))

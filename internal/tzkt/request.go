@@ -131,6 +131,12 @@ func (t *TzKT) GetAccounts(kind string, page, limit int64) (resp []Account, err 
 	return
 }
 
+// GetContractByAddress - returns contract by address
+func (t *TzKT) GetContractByAddress(address string) (resp Account, err error) {
+	err = t.request("GET", fmt.Sprintf("contracts/%s", address), nil, &resp)
+	return
+}
+
 // GetContractOperationBlocks -
 func (t *TzKT) GetContractOperationBlocks(offset, limit int64) (resp []int64, err error) {
 	params := map[string]string{}
