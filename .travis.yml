@@ -3,9 +3,12 @@ language: go
 go:
   - 1.13.x
 
+services:
+  - docker
+
 stages:
   - name: test
-    if: branch = ci
+    if: tag IS blank
   - name: deploy
     if: tag IS present
 
@@ -19,8 +22,6 @@ jobs:
         - touch .env
         - docker-compose build
     - stage: deploy
-      services:
-        - docker
       script:
         - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD
         - touch .env
