@@ -401,12 +401,14 @@ func applyChangeOnMap(path []string, from interface{}, typ string, v interface{}
 		return nil
 	}
 
-	fieldValue := field.Interface()
-	if fieldValue, ok := fieldValue.(map[string]interface{}); ok {
-		fromValue := reflect.ValueOf(fieldValue)
-		fromValue.SetMapIndex(reflect.ValueOf("miguel_kind"), reflect.ValueOf("create"))
-		value.SetMapIndex(reflect.ValueOf(path[0]), fromValue)
-		return nil
+	if field.IsValid() && field.CanInterface() {
+		fieldValue := field.Interface()
+		if fieldValue, ok := fieldValue.(map[string]interface{}); ok {
+			fromValue := reflect.ValueOf(fieldValue)
+			fromValue.SetMapIndex(reflect.ValueOf("miguel_kind"), reflect.ValueOf("create"))
+			value.SetMapIndex(reflect.ValueOf(path[0]), fromValue)
+			return nil
+		}
 	}
 
 	if len(path) == 1 {
