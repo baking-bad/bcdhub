@@ -6,7 +6,8 @@ up:
 
 build:
 	docker-compose build
-	
+
+deploy: export TAG=$(shell git pull -q && git describe --abbrev=0 --tags)
 deploy:
 	docker-compose pull
 	docker-compose up -d
