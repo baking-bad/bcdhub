@@ -150,7 +150,7 @@ func (e *Elastic) GetContractOperations(network, address string, size uint64, fi
 					"type": "number",
 					"script": qItem{
 						"lang":   "painless",
-						"inline": "doc['level'].value * 100 + (doc['internal'].value ? (999 - doc['internal_index'].value) : 999)",
+						"inline": "doc['level'].value * 1000 + (doc['internal'].value ? (999 - doc['internal_index'].value) : 999)",
 					},
 					"order": "desc",
 				},
@@ -238,7 +238,7 @@ func (e *Elastic) GetPreviousOperation(address, network string, level int64) (op
 					"type": "number",
 					"script": qItem{
 						"lang":   "painless",
-						"inline": "doc['level'].value * 100 + (doc['internal'].value ? (999 - doc['internal_index'].value) : 999)",
+						"inline": "doc['level'].value * 1000 + (doc['internal'].value ? (999 - doc['internal_index'].value) : 999)",
 					},
 					"order": "desc",
 				},
