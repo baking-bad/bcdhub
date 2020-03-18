@@ -123,7 +123,7 @@ func (e *Elastic) GetContracts(by map[string]interface{}) ([]models.Contract, er
 
 // GetRandomContract -
 func (e *Elastic) GetRandomContract() (models.Contract, error) {
-	query := newQuery().Query(qItem{
+	random := qItem{
 		"function_score": qItem{
 			"functions": []qItem{
 				qItem{
@@ -133,7 +133,13 @@ func (e *Elastic) GetRandomContract() (models.Contract, error) {
 				},
 			},
 		},
-	}).One()
+	}
+
+	txRange := rangeQ("tx_count", qItem{
+		"gte": 2,
+	})
+	b := boolQ(must(txRange, random))
+	query := newQuery().Query(b).One()
 	return e.getContract(query)
 }
 
