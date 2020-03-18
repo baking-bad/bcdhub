@@ -16,22 +16,24 @@ type Operation struct {
 	Network   string    `json:"network"`
 	Timesatmp time.Time `json:"timestamp"`
 
-	Level         int64           `json:"level"`
-	Kind          string          `json:"kind"`
-	Source        string          `json:"source"`
-	Fee           int64           `json:"fee,omitempty"`
-	Counter       int64           `json:"counter,omitempty"`
-	GasLimit      int64           `json:"gas_limit,omitempty"`
-	StorageLimit  int64           `json:"storage_limit,omitempty"`
-	Amount        int64           `json:"amount,omitempty"`
-	Destination   string          `json:"destination,omitempty"`
-	PublicKey     string          `json:"public_key,omitempty"`
-	ManagerPubKey string          `json:"manager_pubkey,omitempty"`
-	Balance       int64           `json:"balance,omitempty"`
-	Delegate      string          `json:"delegate,omitempty"`
-	Status        string          `json:"status"`
-	Entrypoint    string          `json:"entrypoint,omitempty"`
-	Errors        []cerrors.Error `json:"errors,omitempty"`
+	Level            int64           `json:"level"`
+	Kind             string          `json:"kind"`
+	Source           string          `json:"source"`
+	SourceAlias      string          `json:"source_alias"`
+	Fee              int64           `json:"fee,omitempty"`
+	Counter          int64           `json:"counter,omitempty"`
+	GasLimit         int64           `json:"gas_limit,omitempty"`
+	StorageLimit     int64           `json:"storage_limit,omitempty"`
+	Amount           int64           `json:"amount,omitempty"`
+	Destination      string          `json:"destination,omitempty"`
+	DestinationAlias string          `json:"destination_alias,omitempty"`
+	PublicKey        string          `json:"public_key,omitempty"`
+	ManagerPubKey    string          `json:"manager_pubkey,omitempty"`
+	Balance          int64           `json:"balance,omitempty"`
+	Delegate         string          `json:"delegate,omitempty"`
+	Status           string          `json:"status"`
+	Entrypoint       string          `json:"entrypoint,omitempty"`
+	Errors           []cerrors.Error `json:"errors,omitempty"`
 
 	BalanceUpdates []models.BalanceUpdate  `json:"balance_updates,omitempty"`
 	Result         *models.OperationResult `json:"result,omitempty"`

@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -132,28 +131,29 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 		Internal:  operation.Internal,
 		Timesatmp: operation.Timestamp,
 
-		Level:         operation.Level,
-		Kind:          operation.Kind,
-		Source:        operation.Source,
-		Fee:           operation.Fee,
-		Counter:       operation.Counter,
-		GasLimit:      operation.GasLimit,
-		StorageLimit:  operation.StorageLimit,
-		Amount:        operation.Amount,
-		Destination:   operation.Destination,
-		PublicKey:     operation.PublicKey,
-		ManagerPubKey: operation.ManagerPubKey,
-		Balance:       operation.Balance,
-		Delegate:      operation.Delegate,
-		Status:        operation.Status,
-		Entrypoint:    operation.Entrypoint,
+		Level:            operation.Level,
+		Kind:             operation.Kind,
+		Source:           operation.Source,
+		SourceAlias:      operation.SourceAlias,
+		Fee:              operation.Fee,
+		Counter:          operation.Counter,
+		GasLimit:         operation.GasLimit,
+		StorageLimit:     operation.StorageLimit,
+		Amount:           operation.Amount,
+		Destination:      operation.Destination,
+		DestinationAlias: operation.DestinationAlias,
+		PublicKey:        operation.PublicKey,
+		ManagerPubKey:    operation.ManagerPubKey,
+		Balance:          operation.Balance,
+		Delegate:         operation.Delegate,
+		Status:           operation.Status,
+		Entrypoint:       operation.Entrypoint,
 
 		BalanceUpdates: operation.BalanceUpdates,
 		Result:         operation.Result,
 	}
 
 	if err := formatErrors(operation.Errors, &op); err != nil {
-		log.Println(err)
 		return op, err
 	}
 
