@@ -1,3 +1,5 @@
+if: tag IS present
+
 services:
   - docker
 
@@ -6,3 +8,4 @@ script:
   - touch .env
   - export TAG=${TRAVIS_TAG}
   - docker-compose build
+  - docker-compose push
