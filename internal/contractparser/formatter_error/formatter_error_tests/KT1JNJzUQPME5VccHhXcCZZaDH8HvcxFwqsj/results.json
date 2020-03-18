@@ -4,7 +4,7 @@
     "string": "WrongCondition: self.data.balances.contains(sp.sender)"
   },
   "location": 601,
-  "row": 336,
+  "row": 346,
   "colStart": 23,
   "colEnd": 31
 }

@@ -4,7 +4,7 @@
     "string": "WrongCondition: sp.sender == self.data.current_player"
   },
   "location": 82,
-  "row": 39,
-  "colStart": 83,
-  "colEnd": 91
+  "row": 41,
+  "colStart": 13,
+  "colEnd": 21
 }
