@@ -76,7 +76,8 @@ func (e *Elastic) getContractOPG(address, network string, size uint64, filters m
 	sqlString := fmt.Sprintf(`SELECT hash, counter
 		FROM operation 
 		WHERE (source = '%s' OR destination = '%s') AND network = '%s' %s 
-		GROUP BY hash, counter
+		GROUP BY hash, counter, level
+		ORDER BY level DESC
 		LIMIT %d`, address, address, network, filtersString, size)
 
 	res, err := e.executeSQL(sqlString)
