@@ -1,8 +1,6 @@
 package language
 
 import (
-	"strings"
-
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/node"
 )
@@ -40,8 +38,12 @@ func Get(n node.Node) string {
 // DetectInEntries -
 func DetectInEntries(entries []meta.Entrypoint) string {
 	for _, e := range entries {
-		if strings.Contains(e.Name, "_Liq_entry") {
+		if new(liquidity).CheckEntries(e.Name) {
 			return LangLiquidity
+		}
+
+		if new(lorentz).CheckEntries(e.Name) {
+			return LangLorentz
 		}
 	}
 	return LangUnknown

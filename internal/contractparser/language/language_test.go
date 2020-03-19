@@ -3,6 +3,8 @@ package language
 import (
 	"testing"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/node"
 )
@@ -45,6 +47,14 @@ func TestDetectSmartPy(t *testing.T) {
 			},
 			res: LangSmartPy,
 		},
+		{
+			name: "SmartPy Value",
+			n: node.Node{
+				Value: interface{}(`Get-item:\d+`),
+				Type:  consts.KeyString,
+			},
+			res: LangSmartPy,
+		},
 	}
 
 	for _, tt := range testCases {
@@ -75,6 +85,22 @@ func TestDetectLiquidity(t *testing.T) {
 			n: node.Node{
 				Prim:        "address",
 				Annotations: []string{"_slash_"},
+			},
+			res: LangLiquidity,
+		},
+		{
+			name: "Liquidity Annotation",
+			n: node.Node{
+				Prim:        "address",
+				Annotations: []string{":_entries"},
+			},
+			res: LangLiquidity,
+		},
+		{
+			name: "Liquidity Annotation",
+			n: node.Node{
+				Prim:        "address",
+				Annotations: []string{`@\w+_slash_1`},
 			},
 			res: LangLiquidity,
 		},
@@ -286,6 +312,68 @@ func TestDetectLorentz(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if result := Get(tt.n); result != tt.res {
 				t.Errorf("Invalid result.\nGot: %v\nExpected: %v", result, tt.res)
+			}
+		})
+	}
+}
+
+func TestDetectInEntries(t *testing.T) {
+	testCases := []struct {
+		name    string
+		entries []meta.Entrypoint
+		res     string
+	}{
+		{
+			name: "liquidity entrypoints",
+			entries: []meta.Entrypoint{
+				meta.Entrypoint{
+					Name: "_Liq_entry",
+				},
+			},
+			res: LangLiquidity,
+		},
+		{
+			name: "lorentz entrypoints",
+			entries: []meta.Entrypoint{
+				meta.Entrypoint{
+					Name: "epwBeginUpgrade",
+				},
+			},
+			res: LangLorentz,
+		},
+		{
+			name: "lorentz entrypoints",
+			entries: []meta.Entrypoint{
+				meta.Entrypoint{
+					Name: "epwApplyMigration",
+				},
+			},
+			res: LangLorentz,
+		},
+		{
+			name: "lorentz entrypoints",
+			entries: []meta.Entrypoint{
+				meta.Entrypoint{
+					Name: "epwSetCode",
+				},
+			},
+			res: LangLorentz,
+		},
+		{
+			name: "random entrypoints",
+			entries: []meta.Entrypoint{
+				meta.Entrypoint{
+					Name: "setCode",
+				},
+			},
+			res: LangUnknown,
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			if result := DetectInEntries(tt.entries); result != tt.res {
+				t.Errorf("Invalid result.\nGot:%v\nExpected:%v", result, tt.res)
 			}
 		})
 	}
