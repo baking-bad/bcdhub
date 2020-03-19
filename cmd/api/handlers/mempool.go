@@ -42,6 +42,9 @@ func (ctx *Context) prepareMempoolOperations(res gjson.Result, address, network 
 	}
 	for _, item := range res.Array() {
 		status := item.Get("status").String()
+		if status == "applied" {
+			status = "pending"
+		}
 
 		op := Operation{
 			Protocol:  item.Get("protocol").String(),
