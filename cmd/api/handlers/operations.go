@@ -12,6 +12,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/miguel"
+	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
 	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/rawbytes"
 	"github.com/baking-bad/bcdhub/internal/elastic"
@@ -212,12 +213,12 @@ func setStorageDiff(es *elastic.Elastic, address, network string, storage string
 	if err != nil {
 		return err
 	}
-	currentStorage, err := miguel.MichelineToMiguel(store, metadata)
+	currentStorage, err := newmiguel.MichelineToMiguel(store, metadata)
 	if err != nil {
 		return err
 	}
 
-	var prevStorage interface{}
+	var prevStorage *newmiguel.Node
 	prev, err := es.GetPreviousOperation(address, op.Network, op.Level)
 	if err == nil {
 		var prevBmd gjson.Result
@@ -236,7 +237,7 @@ func setStorageDiff(es *elastic.Elastic, address, network string, storage string
 		if err != nil {
 			return err
 		}
-		prevStorage, err = miguel.MichelineToMiguel(prevStore, prevMetadata)
+		prevStorage, err = newmiguel.MichelineToMiguel(prevStore, prevMetadata)
 		if err != nil {
 			return err
 		}
@@ -248,27 +249,10 @@ func setStorageDiff(es *elastic.Elastic, address, network string, storage string
 		if currentStorage == nil {
 			return nil
 		}
-		switch reflect.ValueOf(currentStorage).Kind() {
-		case reflect.Map:
-			prevStorage = map[string]string{}
-		case reflect.Slice:
-			prevStorage = make([]interface{}, 0)
-		default:
-			return fmt.Errorf("Unsupported storage type: %T %v", currentStorage, currentStorage)
-		}
-
+		prevStorage = nil
 	}
 
-	changelog, err := diff.Diff(prevStorage, currentStorage)
-	if err != nil {
-		return err
-	}
-
-	if len(changelog) != 0 {
-		if err := applyChanges(changelog, &currentStorage); err != nil {
-			return err
-		}
-	}
+	currentStorage.Diff(prevStorage)
 
 	op.StorageDiff = currentStorage
 	return nil
@@ -299,7 +283,7 @@ func getPrevBmd(es *elastic.Elastic, bmd gjson.Result, level int64, address stri
 	return es.GetBigMapDiffsByKeyHash(keys, level, address)
 }
 
-func applyChanges(changelog diff.Changelog, v interface{}) (err error) {
+func applyChanges(changelog diff.Changelog, v *newmiguel.Node) (err error) {
 	for _, c := range changelog {
 		if err = applyChange(c.Path, c.From, c.Type, v); err != nil {
 			return
@@ -313,130 +297,65 @@ func applyChange(path []string, from interface{}, typ string, v interface{}) err
 		return nil
 	}
 
-	val := reflect.ValueOf(v)
-	if val.Kind() == reflect.Ptr {
-		val = val.Elem()
-	}
-	if val.Kind() == reflect.Interface {
-		val = val.Elem()
-	}
-
-	idx, err := strconv.Atoi(path[0])
-	if err == nil && val.Kind() == reflect.Slice {
-		return applyChangeOnArray(path, from, typ, idx, v)
-	}
-
-	return applyChangeOnMap(path, from, typ, v)
-}
-
-func applyChangeOnArray(path []string, from interface{}, typ string, idx int, v interface{}) error {
-	var elem, ptr, value reflect.Value
-	ptr = reflect.ValueOf(v)
-	if ptr.Kind() == reflect.Ptr {
-		elem = ptr.Elem()
-	}
-	if elem.Kind() == reflect.Interface {
-		value = elem.Elem()
-	}
-
-	var field reflect.Value
-	var newField interface{}
-
-	if value.Len() <= idx {
-		field = reflect.ValueOf(&from)
-		elem.Set(reflect.Append(value, reflect.ValueOf(from)))
-	} else {
-		field = value.Index(idx)
-	}
-	newField = field.Interface()
-
 	if len(path) == 1 {
-		if field.Kind() == reflect.Ptr {
-			field = field.Elem()
-		}
-		if field.Elem().Kind() == reflect.Map {
-			if !field.Elem().IsValid() {
-				field.Elem().SetMapIndex(reflect.ValueOf("miguel_kind"), reflect.ValueOf("create"))
-			} else if !field.IsNil() {
-				field.Elem().SetMapIndex(reflect.ValueOf("miguel_kind"), reflect.ValueOf(typ))
-			} else {
-				field.Elem().SetMapIndex(reflect.ValueOf("miguel_kind"), reflect.ValueOf("delete"))
+		value := getValue(v)
+		switch value.Kind() {
+		case reflect.Struct:
+			value.FieldByName("DiffType").Set(reflect.ValueOf(typ))
+			if typ == "update" || typ == "delete" {
+				value.FieldByName("From").Set(reflect.ValueOf(from))
 			}
-
-			if from != nil && typ != "delete" {
-				field.Elem().SetMapIndex(reflect.ValueOf("miguel_from"), reflect.ValueOf(from))
-			}
+		case reflect.Slice:
+		default:
+			return fmt.Errorf("[applyChange] Invalid value kind: %v", value.Kind())
 		}
 		return nil
 	}
-	if err := applyChange(path[1:], from, typ, &newField); err != nil {
+
+	field, err := getNodeField(v, path[0])
+	if err != nil {
+		return err
+	}
+	newField := field.Interface()
+	if err := applyChange(path[1:], from, typ, newField); err != nil {
 		return err
 	}
 	field.Set(reflect.ValueOf(newField))
+
 	return nil
 }
 
-func applyChangeOnMap(path []string, from interface{}, typ string, v interface{}) error {
-	var elem, ptr, value reflect.Value
-	ptr = reflect.ValueOf(v)
-	if ptr.Kind() == reflect.Ptr {
-		elem = ptr.Elem()
+func getValue(v interface{}) reflect.Value {
+	value := reflect.ValueOf(v)
+	if value.Kind() == reflect.Ptr {
+		value = value.Elem()
 	}
-	if elem.Kind() == reflect.Interface {
-		value = elem.Elem()
+	if value.Kind() == reflect.Interface {
+		value = value.Elem()
 	}
+	return value
+}
 
+func getNodeField(v interface{}, name string) (reflect.Value, error) {
+	value := getValue(v)
 	var field reflect.Value
-	for _, k := range value.MapKeys() {
-		if k.String() != path[0] {
-			continue
+	switch value.Kind() {
+	case reflect.Struct:
+		field = value.FieldByName(name)
+		if !field.IsValid() {
+			return reflect.Value{}, fmt.Errorf("[getNodeField] Invalid field name: %s", name)
 		}
-		field = value.MapIndex(k)
-	}
-
-	if field.IsValid() && field.IsNil() {
-		fromValue := reflect.ValueOf(from)
-		if fromValue.IsValid() {
-			fromValue.SetMapIndex(reflect.ValueOf("miguel_kind"), reflect.ValueOf("delete"))
+	case reflect.Slice:
+		idx, err := strconv.Atoi(name)
+		if err != nil {
+			return reflect.Value{}, err
 		}
-		value.SetMapIndex(reflect.ValueOf(path[0]), fromValue)
-		return nil
-	}
-
-	if field.IsValid() && field.CanInterface() {
-		fieldValue := field.Interface()
-		if fieldValue, ok := fieldValue.(map[string]interface{}); ok {
-			fromValue := reflect.ValueOf(fieldValue)
-			fromValue.SetMapIndex(reflect.ValueOf("miguel_kind"), reflect.ValueOf("create"))
-			value.SetMapIndex(reflect.ValueOf(path[0]), fromValue)
-			return nil
+		field = value.Index(idx)
+		if !field.IsValid() {
+			return reflect.Value{}, fmt.Errorf("[getNodeField] Invalid slice index: %s", name)
 		}
+	default:
+		return reflect.Value{}, fmt.Errorf("[getNodeField] Invalid value kind: %v", value.Kind())
 	}
-
-	if len(path) == 1 {
-
-		if value.Kind() == reflect.Map {
-			if from == nil || !value.IsValid() {
-				value.SetMapIndex(reflect.ValueOf("miguel_kind"), reflect.ValueOf("create"))
-			} else if !value.IsNil() {
-				value.SetMapIndex(reflect.ValueOf("miguel_kind"), reflect.ValueOf(typ))
-			} else {
-				value.SetMapIndex(reflect.ValueOf("miguel_kind"), reflect.ValueOf("delete"))
-			}
-
-			if from != nil && typ != "delete" {
-				value.SetMapIndex(reflect.ValueOf("miguel_from"), reflect.ValueOf(from))
-			}
-		}
-		return nil
-	}
-	if !field.IsValid() {
-		return fmt.Errorf("Invalid map field: %v", field)
-	}
-	newField := field.Interface()
-	if err := applyChange(path[1:], from, typ, &newField); err != nil {
-		return err
-	}
-	value.SetMapIndex(reflect.ValueOf(path[0]), reflect.ValueOf(newField))
-	return nil
+	return field, nil
 }
