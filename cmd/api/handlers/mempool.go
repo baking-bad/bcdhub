@@ -9,7 +9,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/miguel"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/tzkt"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -43,9 +42,6 @@ func (ctx *Context) prepareMempoolOperations(res gjson.Result, address, network 
 	}
 	for _, item := range res.Array() {
 		status := item.Get("status").String()
-		if status == "applied" {
-			continue
-		}
 
 		op := Operation{
 			Protocol:  item.Get("protocol").String(),
@@ -62,10 +58,7 @@ func (ctx *Context) prepareMempoolOperations(res gjson.Result, address, network 
 			Amount:       item.Get("amount").Int(),
 			Destination:  item.Get("destination").String(),
 			Mempool:      true,
-
-			Result: &models.OperationResult{
-				Status: status,
-			},
+			Status:       status,
 		}
 
 		op.Errors = cerrors.ParseArray(item.Get("errors"))
