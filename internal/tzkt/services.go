@@ -51,7 +51,7 @@ func NewServicesTzKT(network string, timeout time.Duration) *ServicesTzKT {
 }
 
 func (t *ServicesTzKT) request(method, endpoint string, params map[string]string) (res gjson.Result, err error) {
-	uri := fmt.Sprintf("%s/%s/v1/%s", t.Host, t.Network, endpoint)
+	uri := fmt.Sprintf("%s/v1/%s", t.Host, endpoint)
 
 	req, err := http.NewRequest(method, uri, nil)
 	if err != nil {
