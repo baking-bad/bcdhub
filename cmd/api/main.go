@@ -30,7 +30,7 @@ func main() {
 	})
 
 	var cfg config
-	if err := jsonload.StructFromFile("config-dev.json", &cfg); err != nil {
+	if err := jsonload.StructFromFile("config.json", &cfg); err != nil {
 		logger.Fatal(err)
 	}
 
