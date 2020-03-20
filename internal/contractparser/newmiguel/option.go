@@ -1,4 +1,4 @@
-package miguel
+package newmiguel
 
 import (
 	"fmt"
@@ -11,11 +11,11 @@ import (
 type optionDecoder struct{}
 
 // Decode -
-func (d *optionDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata, isRoot bool) (interface{}, error) {
+func (d *optionDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata, isRoot bool) (*Node, error) {
 	prim := node.Get("prim|@lower").String()
 	switch prim {
 	case consts.NONE:
-		return nil, nil
+		return &Node{}, nil
 	case consts.SOME:
 		arg := node.Get("args.0")
 		return michelineNodeToMiguel(arg, path+"/o", metadata, false)

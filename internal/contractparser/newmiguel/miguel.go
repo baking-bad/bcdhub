@@ -1,4 +1,4 @@
-package miguel
+package newmiguel
 
 import (
 	"fmt"
@@ -17,7 +17,7 @@ var decoders = map[string]decoder{
 	consts.MAP:            &mapDecoder{},
 	consts.BIGMAP:         &mapDecoder{},
 	consts.TypeNamedUnion: &namedUnionDecoder{},
-	consts.TypeUnion:      &namedUnionDecoder{},
+	consts.TypeUnion:      &unionDecoder{},
 	consts.OR:             &orDecoder{},
 	consts.LAMBDA:         &lambdaDecoder{},
 	consts.OPTION:         &optionDecoder{},
@@ -25,39 +25,33 @@ var decoders = map[string]decoder{
 }
 
 // MichelineToMiguel -
-func MichelineToMiguel(data gjson.Result, metadata meta.Metadata) (interface{}, error) {
+func MichelineToMiguel(data gjson.Result, metadata meta.Metadata) (*Node, error) {
+	return michelineNodeToMiguel(data, "0", metadata, true)
+}
+
+// BigMapToMiguel -
+func BigMapToMiguel(data gjson.Result, binPath string, metadata meta.Metadata) (*Node, error) {
+	return michelineNodeToMiguel(data, binPath, metadata, false)
+}
+
+// ParameterToMiguel -
+func ParameterToMiguel(data gjson.Result, metadata meta.Metadata) (*Node, error) {
 	if !data.IsArray() && !data.IsObject() {
 		return nil, nil
 	}
-	node, startPath, entrypoint, err := getStartPath(data, metadata)
+	node, startPath, err := getStartPath(data, metadata)
 	if err != nil {
 		return nil, err
 	}
-
+	node, startPath = getGJSONParameterPath(node, startPath)
 	res, err := michelineNodeToMiguel(node, startPath, metadata, true)
 	if err != nil {
 		return nil, err
 	}
-
-	root := metadata["0"]
-	if root.Prim == consts.OR {
-		for _, arg := range root.Args {
-			if arg == startPath {
-				return map[string]interface{}{
-					entrypoint: res,
-				}, nil
-			}
-		}
-	}
 	return res, nil
 }
 
-// BigMapToMiguel -
-func BigMapToMiguel(data gjson.Result, binPath string, metadata meta.Metadata) (interface{}, error) {
-	return michelineNodeToMiguel(data, binPath, metadata, false)
-}
-
-func getStartPath(data gjson.Result, metadata meta.Metadata) (gjson.Result, string, string, error) {
+func getStartPath(data gjson.Result, metadata meta.Metadata) (gjson.Result, string, error) {
 	var entrypoint, value gjson.Result
 	if data.IsArray() {
 		entrypoint = data.Get("0.entrypoint")
@@ -70,19 +64,19 @@ func getStartPath(data gjson.Result, metadata meta.Metadata) (gjson.Result, stri
 	if entrypoint.Exists() && value.Exists() {
 		root := metadata["0"]
 		if root.Prim != consts.OR && root.Type != consts.TypeNamedUnion && root.Type != consts.TypeNamedTuple {
-			return value, "0", "", nil
+			return value, "0", nil
 		}
 		for path, md := range metadata {
 			if md.FieldName == entrypoint.String() {
-				return value, path, entrypoint.String(), nil
+				return value, path, nil
 			}
 		}
-		return value, "0", entrypoint.String(), nil
+		return value, "0", nil
 	}
-	return data, "0", "", nil
+	return data, "0", nil
 }
 
-func michelineNodeToMiguel(node gjson.Result, path string, metadata meta.Metadata, isRoot bool) (interface{}, error) {
+func michelineNodeToMiguel(node gjson.Result, path string, metadata meta.Metadata, isRoot bool) (*Node, error) {
 	nm, ok := metadata[path]
 	if !ok {
 		return nil, fmt.Errorf("Unknown metadata path: %s", path)
@@ -161,4 +155,20 @@ func getGJSONPathUnion(path string, node gjson.Result) (res string, err error) {
 	}
 	res = strings.TrimSuffix(res, ".")
 	return
+}
+
+func getGJSONParameterPath(node gjson.Result, startPath string) (gjson.Result, string) {
+	path := startPath
+	prim := node.Get("prim").String()
+	if prim == "Right" {
+		path += "/1"
+		right := node.Get("args.0")
+		return getGJSONParameterPath(right, path)
+	}
+	if prim == "Left" {
+		path += "/0"
+		left := node.Get("args.0")
+		return getGJSONParameterPath(left, path)
+	}
+	return node, path
 }

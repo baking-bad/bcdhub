@@ -5,7 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/contractparser/miguel"
+	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
@@ -72,7 +72,7 @@ func (ctx *Context) prepareBigMap(data []elastic.BigMapDiff, network, address st
 			if network == consts.Mainnet && data[i].Level < consts.LevelBabylon {
 				metadata = alphaMeta
 			}
-			value, err = miguel.BigMapToMiguel(val, data[i].BinPath+"/v", metadata)
+			value, err = newmiguel.BigMapToMiguel(val, data[i].BinPath+"/v", metadata)
 			if err != nil {
 				return
 			}
@@ -84,7 +84,7 @@ func (ctx *Context) prepareBigMap(data []elastic.BigMapDiff, network, address st
 			if network == consts.Mainnet && data[i].Level < consts.LevelBabylon {
 				metadata = alphaMeta
 			}
-			key, err = miguel.BigMapToMiguel(val, data[i].BinPath+"/k", metadata)
+			key, err = newmiguel.BigMapToMiguel(val, data[i].BinPath+"/k", metadata)
 			if err != nil {
 				return
 			}
@@ -123,7 +123,7 @@ func (ctx *Context) prepareBigMapItem(data []models.BigMapDiff, network, address
 			if network == consts.Mainnet && data[i].Level < consts.LevelBabylon {
 				metadata = alphaMeta
 			}
-			value, err = miguel.BigMapToMiguel(val, data[i].BinPath+"/v", metadata)
+			value, err = newmiguel.BigMapToMiguel(val, data[i].BinPath+"/v", metadata)
 			if err != nil {
 				return
 			}

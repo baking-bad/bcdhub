@@ -1,4 +1,4 @@
-package miguel
+package newmiguel
 
 import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
@@ -9,10 +9,11 @@ import (
 type lambdaDecoder struct{}
 
 // Decode -
-func (l *lambdaDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata, isRoot bool) (interface{}, error) {
+func (l *lambdaDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata, isRoot bool) (*Node, error) {
 	val, err := formatter.MichelineToMichelson(node, false, formatter.DefLineSize)
-	return map[string]interface{}{
-		"miguel_value": val,
-		"miguel_type":  nm.Type,
+	return &Node{
+		Value: val,
+		Type:  nm.Type,
+		Prim:  nm.Prim,
 	}, err
 }

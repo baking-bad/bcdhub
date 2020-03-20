@@ -8,7 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/contractparser/miguel"
+	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/tzkt"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -83,7 +83,7 @@ func (ctx *Context) prepareMempoolOperations(res gjson.Result, address, network 
 					return nil, err
 				}
 
-				op.Parameters, err = miguel.MichelineToMiguel(params, metadata)
+				op.Parameters, err = newmiguel.ParameterToMiguel(params, metadata)
 				if err != nil {
 					if !cerrors.HasParametersError(op.Errors) {
 						return nil, err

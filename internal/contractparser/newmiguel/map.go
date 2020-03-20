@@ -1,4 +1,4 @@
-package miguel
+package newmiguel
 
 import (
 	"fmt"
@@ -11,36 +11,40 @@ import (
 type mapDecoder struct{}
 
 // Decode -
-func (l *mapDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata, isRoot bool) (interface{}, error) {
-	if node.Get("int").Exists() {
-		return map[string]interface{}{
-			"miguel_type":  consts.BIGMAP,
-			"miguel_value": node.Get("int").Int(),
+func (l *mapDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata, isRoot bool) (*Node, error) {
+	if data.Get("int").Exists() {
+		return &Node{
+			Type:  consts.BIGMAP,
+			Value: data.Get("int").Int(),
 		}, nil
 	}
 
-	if node.IsArray() && len(node.Array()) == 0 && path == "0/0" {
-		return map[string]interface{}{
-			"miguel_type":  consts.BIGMAP,
-			"miguel_value": 0,
+	if data.IsArray() && len(data.Array()) == 0 && path == "0/0" {
+		return &Node{
+			Type:  consts.BIGMAP,
+			Value: 0,
 		}, nil
 	}
 
-	res := make(map[string]interface{})
+	node := Node{
+		Prim:     nm.Prim,
+		Type:     nm.Type,
+		Children: make([]*Node, 0),
+	}
 	gjsonPath := GetGJSONPath("k")
-	keyNode := node.Get(gjsonPath)
+	keyJSON := data.Get(gjsonPath)
 
-	for i, k := range keyNode.Array() {
+	for i, k := range keyJSON.Array() {
 		key, err := michelineNodeToMiguel(k, path+"/k", metadata, false)
 		if err != nil {
 			return nil, err
 		}
 		if key != nil {
 			gjsonPath := fmt.Sprintf("%d.args.1", i)
-			valNode := node.Get(gjsonPath)
-			var value interface{}
-			if valNode.Exists() {
-				value, err = michelineNodeToMiguel(valNode, path+"/v", metadata, false)
+			valJSON := data.Get(gjsonPath)
+			var argNode *Node
+			if valJSON.Exists() {
+				argNode, err = michelineNodeToMiguel(valJSON, path+"/v", metadata, false)
 				if err != nil {
 					return nil, err
 				}
@@ -50,15 +54,16 @@ func (l *mapDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadat
 			if err != nil {
 				return nil, err
 			}
-			res[s] = value
+			argNode.Name = s
+			node.Children = append(node.Children, argNode)
 		}
 	}
 
-	return res, nil
+	return &node, nil
 }
 
-func (l *mapDecoder) getKey(key interface{}) (s string, err error) {
-	switch kv := key.(type) {
+func (l *mapDecoder) getKey(key *Node) (s string, err error) {
+	switch kv := key.Value.(type) {
 	case string:
 		s = kv
 	case int, int64:

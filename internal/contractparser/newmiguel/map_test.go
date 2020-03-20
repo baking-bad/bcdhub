@@ -1,45 +1,46 @@
-package miguel
+package newmiguel
 
 import "testing"
 
 func Test_mapDecoder_getKey(t *testing.T) {
 	tests := []struct {
 		name    string
-		key     interface{}
+		key     *Node
 		wantS   string
 		wantErr bool
 	}{
 		{
 			name:    "test int",
-			key:     1,
+			key:     &Node{Value: 1},
 			wantS:   "1",
 			wantErr: false,
 		}, {
 			name:    "test int64",
-			key:     int64(64),
+			key:     &Node{Value: int64(64)},
 			wantS:   "64",
 			wantErr: false,
 		}, {
 			name:    "test string",
-			key:     "test string",
+			key:     &Node{Value: "test string"},
 			wantS:   "test string",
 			wantErr: false,
 		}, {
 			name: "test array",
-			key: []interface{}{
-				map[string]interface{}{"miguel_type": "string", "miguel_value": "hello"},
-				map[string]interface{}{"miguel_type": "nat", "miguel_value": 42},
-			},
+			key: &Node{
+				Value: []interface{}{
+					map[string]interface{}{"miguel_type": "string", "miguel_value": "hello"},
+					map[string]interface{}{"miguel_type": "nat", "miguel_value": 42},
+				}},
 			wantS:   "hello@42",
 			wantErr: false,
 		}, {
 			name:    "test map",
-			key:     map[string]interface{}{"miguel_type": "string", "miguel_value": "hello"},
+			key:     &Node{Value: map[string]interface{}{"miguel_type": "string", "miguel_value": "hello"}},
 			wantS:   "hello",
 			wantErr: false,
 		}, {
 			name:    "test error",
-			key:     21.35,
+			key:     &Node{Value: 21.35},
 			wantS:   "",
 			wantErr: true,
 		},
