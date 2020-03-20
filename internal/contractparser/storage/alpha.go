@@ -96,27 +96,26 @@ func (a Alpha) ParseOrigination(content gjson.Result, protocol string, level int
 }
 
 // Enrich -
-func (a Alpha) Enrich(storage string, bmd gjson.Result, skipEmpty bool) (gjson.Result, error) {
-	if bmd.IsArray() && len(bmd.Array()) == 0 {
+func (a Alpha) Enrich(storage string, bmd []models.BigMapDiff, skipEmpty bool) (gjson.Result, error) {
+	if len(bmd) == 0 {
 		return gjson.Parse(storage), nil
 	}
 
 	p := newmiguel.GetGJSONPath("0")
 
 	res := make([]interface{}, 0)
-	for _, b := range bmd.Array() {
-		if skipEmpty && b.Get("value").String() == "" {
+	for _, b := range bmd {
+		if skipEmpty && b.Value == "" {
 			continue
 		}
 		elt := map[string]interface{}{
 			"prim": "Elt",
 		}
 		args := make([]interface{}, 1)
-		args[0] = b.Get("key").Value()
+		args[0] = b.Key
 
-		sVal := b.Get("value").String()
-		if sVal != "" {
-			val := gjson.Parse(sVal)
+		if b.Value != "" {
+			val := gjson.Parse(b.Value)
 			args = append(args, val.Value())
 		}
 

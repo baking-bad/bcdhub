@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -97,46 +98,58 @@ func (b Babylon) ParseOrigination(content gjson.Result, protocol string, level i
 }
 
 // Enrich -
-func (b Babylon) Enrich(storage string, bmd gjson.Result, skipEmpty bool) (gjson.Result, error) {
-	if bmd.IsArray() && len(bmd.Array()) == 0 {
+func (b Babylon) Enrich(storage string, bmd []models.BigMapDiff, skipEmpty bool) (gjson.Result, error) {
+	if len(bmd) == 0 {
 		return gjson.Parse(storage), nil
 	}
 
 	data := gjson.Parse(storage)
 	m := map[string][]interface{}{}
-	for _, bm := range bmd.Array() {
-		if skipEmpty && bm.Get("value").String() == "" {
+	for _, bm := range bmd {
+		if skipEmpty && bm.Value == "" {
 			continue
 		}
 		elt := map[string]interface{}{
 			"prim": "Elt",
 		}
 		args := make([]interface{}, 2)
-		args[0] = bm.Get("key").Value()
+		args[0] = bm.Key
 
-		val := gjson.Parse(bm.Get("value").String())
+		val := gjson.Parse(bm.Value)
 		args[1] = val.Value()
 
 		elt["args"] = args
 
-		binPath := strings.TrimPrefix(bm.Get("bin_path").String(), "0/")
-		p := newmiguel.GetGJSONPath(binPath)
-
-		res, err := b.findPtrJSONPath(bmd.Get("ptr").Int(), p, data)
-		if err != nil {
-			return data, err
+		var res string
+		if bm.BinPath != "0" {
+			binPath := strings.TrimPrefix(bm.BinPath, "0/")
+			p := newmiguel.GetGJSONPath(binPath)
+			jsonPath, err := b.findPtrJSONPath(bm.Ptr, p, data)
+			if err != nil {
+				return data, err
+			}
+			res = jsonPath
 		}
-		if _, ok := m[p]; !ok {
+
+		if _, ok := m[res]; !ok {
 			m[res] = make([]interface{}, 0)
 		}
 		m[res] = append(m[res], elt)
 	}
 	for p, arr := range m {
-		value, err := sjson.Set(storage, p, arr)
-		if err != nil {
-			return gjson.Result{}, err
+		if p == "" {
+			b, err := json.Marshal(arr)
+			if err != nil {
+				return data, err
+			}
+			data = gjson.ParseBytes(b)
+		} else {
+			value, err := sjson.Set(data.String(), p, arr)
+			if err != nil {
+				return gjson.Result{}, err
+			}
+			data = gjson.Parse(value)
 		}
-		data = gjson.Parse(value)
 	}
 	return data, nil
 }
@@ -234,6 +247,10 @@ func (b Babylon) findPtrJSONPath(ptr int64, path string, data gjson.Result) (str
 
 		if i == len(parts)-1 {
 			if buf.Get("int").Exists() && buf.Get("int").Int() == ptr {
+				if newPath.Len() != 0 {
+					newPath.WriteString(".")
+				}
+				newPath.WriteString(parts[i])
 				return newPath.String(), nil
 			}
 		}

@@ -75,7 +75,9 @@ func (node *Node) compareValue(second *Node) bool {
 	if second.Value == nil && node.Value == nil {
 		return true
 	}
-
+	if node.Type == consts.BIGMAP && second.Type == consts.BIGMAP {
+		return true
+	}
 	return reflect.DeepEqual(node.Value, second.Value)
 }
 
@@ -165,35 +167,24 @@ func defaultMerge(node, second *Node) {
 			node.Children = append(node.Children, second.Children[i])
 		}
 	}
-
-	var diffType string
-	eq := true
-	for i := range node.Children {
-		if diffType == "" && node.Children[i] != nil {
-			diffType = node.Children[i].DiffType
-		} else {
-			if node.Children[i] != nil && diffType != node.Children[i].DiffType {
-				eq = false
-				break
-			}
-		}
-	}
-
-	if eq {
-		node.DiffType = diffType
-	}
 }
 
 func mapMerge(node, second *Node) {
+	count := 0
 	for i := range node.Children {
 		found := false
 		for j := range second.Children {
-			if !node.Children[i].compareFields(second.Children[j]) {
+			if node.Children[i].Name != second.Children[j].Name {
 				continue
 			}
-
-			node.Children[i].Diff(second.Children[j])
+			if !node.Children[i].compareValue(second.Children[j]) {
+				node.Children[i].setDiffType(update)
+				node.Children[i].From = second.Children[j].Value
+			} else {
+				node.Children[i].compareChildren(second.Children[j])
+			}
 			found = true
+			count++
 		}
 
 		if !found {
@@ -201,17 +192,19 @@ func mapMerge(node, second *Node) {
 		}
 	}
 
-	for j := range second.Children {
-		found := false
-		for i := range node.Children {
-			if !node.Children[i].compareFields(second.Children[j]) {
-				continue
+	if count < len(second.Children) {
+		for j := range second.Children {
+			found := false
+			for i := range node.Children {
+				if !node.Children[i].compareFields(second.Children[j]) {
+					continue
+				}
+				found = true
 			}
-			found = true
-		}
-		if !found {
-			second.Children[j].setDiffType(delete)
-			node.Children = append(node.Children, second.Children[j])
+			if !found && second.Children[j].DiffType == "" {
+				second.Children[j].setDiffType(delete)
+				node.Children = append(node.Children, second.Children[j])
+			}
 		}
 	}
 }

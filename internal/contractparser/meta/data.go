@@ -34,20 +34,20 @@ func (m Metadata) GetFieldName(path string, idx int) string {
 		return nm.Name
 	}
 
-	root := m["0"]
-	for i := range root.Args {
-		if root.Args[i] == path {
-			if idx != -1 {
-				return fmt.Sprintf("entrypoint_%d", idx)
-			}
-			return "default"
-		}
-	}
+	// root := m["0"]
+	// for i := range root.Args {
+	// 	if root.Args[i] == path {
+	// 		if idx != -1 {
+	// 			return fmt.Sprintf("entrypoint_%d", idx)
+	// 		}
+	// 		return "default"
+	// 	}
+	// }
 
 	if idx != -1 {
 		return fmt.Sprintf("@%s_%d", nm.Prim, idx)
 	}
-	return "unknown_field"
+	return fmt.Sprintf("@%s", nm.Prim)
 }
 
 // GetName -
