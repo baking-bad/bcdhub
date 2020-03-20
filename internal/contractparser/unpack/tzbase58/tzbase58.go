@@ -44,6 +44,20 @@ func DecodeKeyHash(input string) (string, error) {
 	return encodeBase58(input[2:], prefixes[input[:2]])
 }
 
+// DecodeSignature -
+func DecodeSignature(input string) (string, error) {
+	prefix := []byte{4, 130, 43}
+
+	return encodeBase58(input, prefix)
+}
+
+// DecodeChainID -
+func DecodeChainID(input string) (string, error) {
+	prefix := []byte{87, 82, 0}
+
+	return encodeBase58(input, prefix)
+}
+
 // DecodeKT -
 func DecodeKT(input string) (string, error) {
 	prefix := []byte{2, 90, 121}
