@@ -28,7 +28,7 @@ func (l *literalDecoder) Decode(jsonData gjson.Result, path string, nm *meta.Nod
 	}
 
 	switch nm.Type {
-	case consts.CONTRACT, consts.MUTEZ, consts.NAT, consts.STRING, consts.INT, consts.SIGNATURE:
+	case consts.CONTRACT, consts.MUTEZ, consts.NAT, consts.STRING, consts.INT:
 		data, err := l.simple.Decode(jsonData, path, nm, metadata, false)
 		if err != nil {
 			return nil, err
@@ -59,6 +59,26 @@ func (l *literalDecoder) Decode(jsonData gjson.Result, path string, nm *meta.Nod
 	case consts.KEY:
 		if jsonData.Get(consts.BYTES).Exists() {
 			data, err := unpack.PublicKey(jsonData.Get(consts.BYTES).String())
+			if err != nil {
+				return nil, err
+			}
+			node.Value = data
+		} else {
+			node.Value = jsonData.Get(consts.STRING).String()
+		}
+	case consts.SIGNATURE:
+		if jsonData.Get(consts.BYTES).Exists() {
+			data, err := unpack.Signature(jsonData.Get(consts.BYTES).String())
+			if err != nil {
+				return nil, err
+			}
+			node.Value = data
+		} else {
+			node.Value = jsonData.Get(consts.STRING).String()
+		}
+	case consts.CHAINID:
+		if jsonData.Get(consts.BYTES).Exists() {
+			data, err := unpack.ChainID(jsonData.Get(consts.BYTES).String())
 			if err != nil {
 				return nil, err
 			}

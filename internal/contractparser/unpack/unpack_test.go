@@ -312,3 +312,77 @@ func TestAddress(t *testing.T) {
 		})
 	}
 }
+
+func TestSignature(t *testing.T) {
+	validTestCases := []struct {
+		name   string
+		input  string
+		result string
+	}{
+		{
+			name:   "sig",
+			input:  "bdc36db614aaa6084549020d376bb2469b5ea888dca2f7afbe5a0095bcc45ca0d8b5f00a051969437fe092debbcfe19d66378fbb74104de7eb1ecd895a64a80a",
+			result: `signpEFVQ1rW3TnVhc3PXf6SHRj7PvxwfJhBukWfB5X9rDhzpEk3ms5gRh763e922n52uQcjeqhqPdYi7WbFs2ERrNAPmCZJ`,
+		},
+		{
+			name:   "sig",
+			input:  "a04991b4e938cc42d6c01c42be3649a81a9f80d244d9b90e7ec4edf8e0a7b68b6c212da2fef076e48fed66802fa83442b960a36afdb3e60c3cf14d4010f41f03",
+			result: `sigixZejtj1GfDpyiWAQAmvbtnNmCXKyADqVvCaXJH9xHyhSnYYV8696Z3kkns5DNV7oMnMPfNzo3qm84DfEx1XG6saZmHiA`,
+		},
+	}
+
+	for _, tc := range validTestCases {
+		t.Run(tc.name, func(t *testing.T) {
+			res, err := Signature(tc.input)
+			if err != nil {
+				t.Errorf("error: %v", err)
+				return
+			}
+			if res != tc.result {
+				t.Errorf("\nInput: %v. \nGot: %v, \nexpected: %v.", tc.input, res, tc.result)
+			}
+		})
+	}
+}
+
+func TestChainID(t *testing.T) {
+	validTestCases := []struct {
+		name   string
+		input  string
+		result string
+	}{
+		{
+			name:   "chainID/main",
+			input:  "7a06a770",
+			result: `NetXdQprcVkpaWU`,
+		},
+		{
+			name:   "chainID/babylon",
+			input:  "458aa837",
+			result: `NetXUdfLh6Gm88t`,
+		},
+		{
+			name:   "chainID/carthage",
+			input:  "9caecab9",
+			result: `NetXjD3HPJJjmcd`,
+		},
+		{
+			name:   "chainID/zeronet",
+			input:  "0f6f0310",
+			result: `NetXKakFj1A7ouL`,
+		},
+	}
+
+	for _, tc := range validTestCases {
+		t.Run(tc.name, func(t *testing.T) {
+			res, err := ChainID(tc.input)
+			if err != nil {
+				t.Errorf("error: %v", err)
+				return
+			}
+			if res != tc.result {
+				t.Errorf("\nInput: %v. \nGot: %v, \nexpected: %v.", tc.input, res, tc.result)
+			}
+		})
+	}
+}

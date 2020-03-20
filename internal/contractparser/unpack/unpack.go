@@ -2,6 +2,7 @@ package unpack
 
 import (
 	"encoding/hex"
+	"fmt"
 	"unicode"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
@@ -9,6 +10,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/tzbase58"
 	"github.com/tidwall/gjson"
 )
+
+const signatureHexLength = 128
+const chainIDHexLength = 8
 
 // PublicKey -
 func PublicKey(input string) (string, error) {
@@ -28,6 +32,24 @@ func Address(input string) (string, error) {
 	}
 
 	return tzbase58.DecodeTz(input)
+}
+
+// Signature -
+func Signature(input string) (string, error) {
+	if len(input) != signatureHexLength {
+		return "", fmt.Errorf("[Signature] Wrong length of %v. Expected %v, Got: %v", input, signatureHexLength, len(input))
+	}
+
+	return tzbase58.DecodeSignature(input)
+}
+
+// ChainID -
+func ChainID(input string) (string, error) {
+	if len(input) != chainIDHexLength {
+		return "", fmt.Errorf("[ChainID] Wrong length of %v. Expected %v, Got: %v", input, chainIDHexLength, len(input))
+	}
+
+	return tzbase58.DecodeChainID(input)
 }
 
 // Bytes -
