@@ -26,7 +26,12 @@ func (e *Error) Parse(data gjson.Result) {
 	if !errorDescriptions.IsObject() {
 		return
 	}
-	errorID := strings.Join(strings.Split(e.ID, ".")[2:], ".")
+
+	parts := strings.Split(e.ID, ".")
+	if len(parts) > 1 {
+		parts = parts[2:]
+	}
+	errorID := strings.Join(parts, ".")
 	errorID = strings.Replace(errorID, ".", "\\.", -1)
 	errDescr := errorDescriptions.Get(errorID)
 	if errDescr.Exists() {
