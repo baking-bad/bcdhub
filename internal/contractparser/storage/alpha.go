@@ -3,7 +3,7 @@ package storage
 import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/contractparser/miguel"
+	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage/hash"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -101,7 +101,7 @@ func (a Alpha) Enrich(storage string, bmd gjson.Result, skipEmpty bool) (gjson.R
 		return gjson.Parse(storage), nil
 	}
 
-	p := miguel.GetGJSONPath("0")
+	p := newmiguel.GetGJSONPath("0")
 
 	res := make([]interface{}, 0)
 	for _, b := range bmd.Array() {

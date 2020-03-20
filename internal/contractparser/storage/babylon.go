@@ -6,7 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/contractparser/miguel"
+	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -120,7 +120,7 @@ func (b Babylon) Enrich(storage string, bmd gjson.Result, skipEmpty bool) (gjson
 		elt["args"] = args
 
 		binPath := strings.TrimPrefix(bm.Get("bin_path").String(), "0/")
-		p := miguel.GetGJSONPath(binPath)
+		p := newmiguel.GetGJSONPath(binPath)
 
 		res, err := b.findPtrJSONPath(bmd.Get("ptr").Int(), p, data)
 		if err != nil {

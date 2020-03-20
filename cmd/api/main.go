@@ -30,13 +30,13 @@ func main() {
 	})
 
 	var cfg config
-	if err := jsonload.StructFromFile("config-dev.json", &cfg); err != nil {
+	if err := jsonload.StructFromFile("config.json", &cfg); err != nil {
 		logger.Fatal(err)
 	}
 
-	// helpers.InitSentry(cfg.Sentry.DSN, cfg.Sentry.Debug)
-	// helpers.SetTagSentry("project", cfg.Sentry.Project)
-	// defer helpers.CatchPanicSentry()
+	helpers.InitSentry(cfg.Sentry.DSN, cfg.Sentry.Debug)
+	helpers.SetTagSentry("project", cfg.Sentry.Project)
+	defer helpers.CatchPanicSentry()
 
 	es := elastic.WaitNew([]string{cfg.Search.URI})
 	if err := cerrors.LoadErrorDescriptions("data/errors.json"); err != nil {
@@ -156,7 +156,7 @@ func main() {
 	}
 	if err := r.Run(cfg.Address); err != nil {
 		logger.Error(err)
-		// helpers.CatchErrorSentry(err)
+		helpers.CatchErrorSentry(err)
 		return
 	}
 }

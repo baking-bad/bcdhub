@@ -11,7 +11,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/contractparser/miguel"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
 	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/rawbytes"
@@ -175,8 +174,7 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 		}
 
 		params := gjson.Parse(operation.Parameters)
-
-		op.Parameters, err = miguel.MichelineToMiguel(params, metadata)
+		op.Parameters, err = newmiguel.ParameterToMiguel(params, metadata)
 		if err != nil {
 			if !cerrors.HasGasExhaustedError(op.Errors) {
 				helpers.CatchErrorSentry(err)
@@ -253,7 +251,6 @@ func setStorageDiff(es *elastic.Elastic, address, network string, storage string
 	}
 
 	currentStorage.Diff(prevStorage)
-
 	op.StorageDiff = currentStorage
 	return nil
 }

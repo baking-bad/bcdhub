@@ -15,7 +15,7 @@ func (d *optionDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMeta
 	prim := node.Get("prim|@lower").String()
 	switch prim {
 	case consts.NONE:
-		return nil, nil
+		return &Node{}, nil
 	case consts.SOME:
 		arg := node.Get("args.0")
 		return michelineNodeToMiguel(arg, path+"/o", metadata, false)

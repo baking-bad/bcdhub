@@ -26,6 +26,10 @@ type Node struct {
 
 // Diff -
 func (node *Node) Diff(prev *Node) {
+	if prev == nil {
+		node.setDiffType(create)
+		return
+	}
 	if !node.compareFields(prev) {
 		node.setDiffType(create)
 		return
@@ -76,38 +80,79 @@ func (node *Node) compareValue(second *Node) bool {
 }
 
 func (node *Node) compareChildren(second *Node) {
-	length := min(len(node.Children), len(second.Children))
+	if len(node.Children) == 0 && len(second.Children) == 0 {
+		return
+	}
 
-	if length == 0 {
-		if len(node.Children) == 0 && len(second.Children) != 0 {
-			node.setDiffType(delete)
-		} else if len(node.Children) != 0 && len(second.Children) == 0 {
-			node.setDiffType(create)
+	var diffType string
+	if len(node.Children) == 0 && len(second.Children) != 0 {
+		diffType = delete
+	} else if len(node.Children) != 0 && len(second.Children) == 0 {
+		diffType = create
+	}
+	if diffType != "" {
+		if node.Type != consts.MAP && node.Type != consts.BIGMAP {
+			node.setDiffType(diffType)
+		} else {
+			for i := range node.Children {
+				node.Children[i].setDiffType(diffType)
+			}
 		}
 		return
 	}
 
-	j := 0
-	for i := 0; i < length; i++ {
+	merge(node, second)
+}
+
+func (node *Node) setDiffType(typ string) {
+	node.DiffType = typ
+	for i := range node.Children {
+		if node.Children[i] == nil {
+			node.Children[i] = &Node{}
+		}
+		node.Children[i].setDiffType(typ)
+	}
+}
+
+func merge(node, second *Node) {
+	switch node.Type {
+	case consts.BIGMAP, consts.MAP:
+		mapMerge(node, second)
+	default:
+		defaultMerge(node, second)
+	}
+}
+
+func defaultMerge(node, second *Node) {
+	var j int
+	for i := 0; i < len(node.Children) && j < len(second.Children); i, j = i+1, j+1 {
+		if node.Children[i] == nil {
+			if second.Children[j] != nil {
+				node.Children[i] = second.Children[j]
+				node.Children[i].setDiffType(create)
+			} else {
+				node.Children[i] = &Node{}
+			}
+			continue
+		}
+		if second.Children[i] == nil {
+			node.Children[i].setDiffType(create)
+			continue
+		}
 		if !node.Children[i].compareFields(second.Children[j]) {
 			if node.Children[i].Prim == "" {
 				node.Children[i] = second.Children[j]
 				node.Children[i].setDiffType(delete)
-				j++
 				continue
 			}
 			if second.Children[i].Prim == "" {
 				node.Children[i].setDiffType(create)
-				j++
 				continue
 			}
-			second.Children[j].setDiffType(create)
 			i--
-			j++
 			continue
 		}
 		node.Children[i].Diff(second.Children[j])
-		j++
 	}
 
 	if len(node.Children) > j {
@@ -124,25 +169,50 @@ func (node *Node) compareChildren(second *Node) {
 	var diffType string
 	eq := true
 	for i := range node.Children {
-		if i == 0 {
+		if diffType == "" && node.Children[i] != nil {
 			diffType = node.Children[i].DiffType
 		} else {
-			if diffType != node.Children[i].DiffType {
+			if node.Children[i] != nil && diffType != node.Children[i].DiffType {
 				eq = false
 				break
 			}
 		}
 	}
 
-	if eq && node.Type != consts.BIGMAP && node.Type != consts.MAP {
+	if eq {
 		node.DiffType = diffType
 	}
 }
 
-func (node *Node) setDiffType(typ string) {
-	node.DiffType = typ
+func mapMerge(node, second *Node) {
 	for i := range node.Children {
-		node.Children[i].setDiffType(typ)
+		found := false
+		for j := range second.Children {
+			if !node.Children[i].compareFields(second.Children[j]) {
+				continue
+			}
+
+			node.Children[i].Diff(second.Children[j])
+			found = true
+		}
+
+		if !found {
+			node.Children[i].setDiffType(create)
+		}
+	}
+
+	for j := range second.Children {
+		found := false
+		for i := range node.Children {
+			if !node.Children[i].compareFields(second.Children[j]) {
+				continue
+			}
+			found = true
+		}
+		if !found {
+			second.Children[j].setDiffType(delete)
+			node.Children = append(node.Children, second.Children[j])
+		}
 	}
 }
 

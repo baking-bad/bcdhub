@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/contractparser/miguel"
+	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 )
@@ -38,7 +38,7 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 		return
 	}
 
-	resp, err := miguel.MichelineToMiguel(s, metadata)
+	resp, err := newmiguel.MichelineToMiguel(s, metadata)
 	if handleError(c, err, 0) {
 		return
 	}
