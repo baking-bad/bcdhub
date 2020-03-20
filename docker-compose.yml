@@ -54,9 +54,6 @@ services:
     depends_on:
       - elastic
       - db
-    volumes:
-      - /etc/bcd:/etc/bcd
-      - /prod/bcdhub/cmd/api/config.json:/app/api/config.json
     ports:
       - 127.0.0.1:14000:14000
     logging: *my-logging
@@ -70,9 +67,6 @@ services:
       dockerfile: cmd/indexer/Dockerfile
     env_file:
       - .env
-    volumes:
-      - /etc/bcd:/etc/bcd
-      - /prod/bcdhub/cmd/indexer/config.json:/app/indexer/config.json
     depends_on:
       - elastic
       - mq
@@ -87,8 +81,6 @@ services:
       dockerfile: cmd/operation_indexer/Dockerfile
     env_file:
       - .env
-    volumes:
-      - /prod/bcdhub/cmd/operation_indexer/config.json:/app/operation_indexer/config.json
     depends_on:
       - elastic
       - mq
@@ -103,8 +95,6 @@ services:
       dockerfile: cmd/metrics/Dockerfile
     env_file:
       - .env
-    volumes:
-      - /prod/bcdhub/cmd/metrics/config.json:/app/metrics/config.json
     depends_on:
       - elastic
       - mq
