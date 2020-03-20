@@ -15,5 +15,9 @@ func (l smartpy) Detect(n node.Node) bool {
 		return false
 	}
 
-	return strings.Contains(str, "SmartPy") || strings.Contains(str, "self.") || strings.Contains(str, "sp.") || strings.Contains(str, "WrongCondition")
+	return strings.Contains(str, "SmartPy") ||
+		strings.Contains(str, "self.") ||
+		strings.Contains(str, "sp.") ||
+		strings.Contains(str, "WrongCondition") ||
+		strings.Contains(str, `Get-item:\d+`)
 }
