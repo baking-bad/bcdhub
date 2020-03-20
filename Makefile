@@ -11,7 +11,8 @@ deploy: export TAG=$(shell git pull -q && git describe --abbrev=0 --tags)
 deploy:
 	git pull
 	docker-compose pull
-	docker-compose up -d
+	docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+	docker ps
 
 api:
 	cd cmd/api && go run .
