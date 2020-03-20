@@ -32,7 +32,7 @@ func (e *Elastic) BulkSaveBigMapDiffs(diffs []models.BigMapDiff) error {
 }
 
 // GetBigMapDiffsByOperationID -
-func (e *Elastic) GetBigMapDiffsByOperationID(operationID string) (gjson.Result, error) {
+func (e *Elastic) GetBigMapDiffsByOperationID(operationID string) ([]models.BigMapDiff, error) {
 	query := newQuery().
 		Query(
 			boolQ(
@@ -44,18 +44,26 @@ func (e *Elastic) GetBigMapDiffsByOperationID(operationID string) (gjson.Result,
 
 	res, err := e.query([]string{DocBigMapDiff}, query)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
-	return res.Get("hits.hits.#._source"), nil
+	response := make([]models.BigMapDiff, 0)
+	for _, item := range res.Get("hits.hits").Array() {
+		var bmd models.BigMapDiff
+		bmd.ParseElasticJSON(item)
+		response = append(response, bmd)
+	}
+	return response, nil
 }
 
-// GetBigMapDiffsByKeyHash -
-func (e *Elastic) GetBigMapDiffsByKeyHash(keys []string, level int64, address string) (gjson.Result, error) {
+// GetBigMapDiffsByKeyHashAndPtr -
+func (e *Elastic) GetBigMapDiffsByKeyHashAndPtr(keys []string, ptr []int64, level int64, address string) ([]models.BigMapDiff, error) {
 	shouldData := make([]qItem, len(keys))
 	for i := range keys {
-		shouldData[i] = matchPhrase("key_hash", keys[i])
+		shouldData[i] = boolQ(must(
+			matchPhrase("key_hash", keys[i]),
+			term("ptr", ptr[i]),
+		))
 	}
-
 	b := boolQ(
 		should(shouldData...),
 		must(matchPhrase("address", address)),
@@ -65,26 +73,27 @@ func (e *Elastic) GetBigMapDiffsByKeyHash(keys []string, level int64, address st
 	)
 	b.Get("bool").Append("minimum_should_match", 1)
 
-	query := newQuery().Query(b).
-		Add(qItem{
-			"aggs": qItem{
-				"last": qItem{
-					"terms": qItem{
-						"field": "key_hash.keyword",
-					},
-					"aggs": qItem{
-						"bmd": topHits(1, "level", "desc"),
-					},
-				},
-			},
-		}).
-		Zero()
+	query := newQuery().Query(b).Sort("level", "desc").All()
 
 	res, err := e.query([]string{DocBigMapDiff}, query)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
-	return res.Get("aggregations.last.buckets.#.bmd.hits.hits.0._source"), nil
+
+	response := make([]models.BigMapDiff, 0)
+	for i := range keys {
+		for _, item := range res.Get("hits.hits").Array() {
+			keyHash := item.Get("_source.key_hash").String()
+			pointer := item.Get("_source.ptr").Int()
+			if pointer == ptr[i] && keyHash == keys[i] {
+				var bmd models.BigMapDiff
+				bmd.ParseElasticJSON(item)
+				response = append(response, bmd)
+				break
+			}
+		}
+	}
+	return response, nil
 }
 
 // GetBigMapDiffsForAddress -

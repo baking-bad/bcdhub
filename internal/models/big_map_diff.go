@@ -1,6 +1,8 @@
 package models
 
-import "github.com/tidwall/gjson"
+import (
+	"github.com/tidwall/gjson"
+)
 
 // BigMapDiff -
 type BigMapDiff struct {

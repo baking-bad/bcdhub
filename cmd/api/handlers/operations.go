@@ -1,10 +1,7 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
-	"reflect"
-	"strconv"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
@@ -18,7 +15,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
-	"github.com/r3labs/diff"
 	"github.com/tidwall/gjson"
 )
 
@@ -156,7 +152,6 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 	if err := formatErrors(operation.Errors, &op); err != nil {
 		return op, err
 	}
-
 	if operation.DeffatedStorage != "" && strings.HasPrefix(op.Destination, "KT") && op.Status == "applied" {
 		if err := setStorageDiff(es, op.Destination, op.Network, operation.DeffatedStorage, &op); err != nil {
 			return op, err
@@ -219,8 +214,8 @@ func setStorageDiff(es *elastic.Elastic, address, network string, storage string
 	var prevStorage *newmiguel.Node
 	prev, err := es.GetPreviousOperation(address, op.Network, op.Level)
 	if err == nil {
-		var prevBmd gjson.Result
-		if len(bmd.Array()) > 0 {
+		var prevBmd []models.BigMapDiff
+		if len(bmd) > 0 {
 			prevBmd, err = getPrevBmd(es, bmd, op.Level, op.Destination)
 			if err != nil {
 				return err
@@ -255,8 +250,8 @@ func setStorageDiff(es *elastic.Elastic, address, network string, storage string
 	return nil
 }
 
-func enrichStorage(s string, bmd gjson.Result, protocol string, skipEmpty bool) (gjson.Result, error) {
-	if len(bmd.Array()) == 0 {
+func enrichStorage(s string, bmd []models.BigMapDiff, protocol string, skipEmpty bool) (gjson.Result, error) {
+	if len(bmd) == 0 {
 		return gjson.Parse(s), nil
 	}
 
@@ -271,88 +266,13 @@ func enrichStorage(s string, bmd gjson.Result, protocol string, skipEmpty bool) 
 	return parser.Enrich(s, bmd, skipEmpty)
 }
 
-func getPrevBmd(es *elastic.Elastic, bmd gjson.Result, level int64, address string) (gjson.Result, error) {
+func getPrevBmd(es *elastic.Elastic, bmd []models.BigMapDiff, level int64, address string) ([]models.BigMapDiff, error) {
 	keys := make([]string, 0)
-	for _, b := range bmd.Array() {
-		keys = append(keys, b.Get("key_hash").String())
+	ptr := make([]int64, 0)
+	for _, b := range bmd {
+		keys = append(keys, b.KeyHash)
+		ptr = append(ptr, b.Ptr)
 	}
 
-	return es.GetBigMapDiffsByKeyHash(keys, level, address)
-}
-
-func applyChanges(changelog diff.Changelog, v *newmiguel.Node) (err error) {
-	for _, c := range changelog {
-		if err = applyChange(c.Path, c.From, c.Type, v); err != nil {
-			return
-		}
-	}
-	return
-}
-
-func applyChange(path []string, from interface{}, typ string, v interface{}) error {
-	if len(path) == 0 {
-		return nil
-	}
-
-	if len(path) == 1 {
-		value := getValue(v)
-		switch value.Kind() {
-		case reflect.Struct:
-			value.FieldByName("DiffType").Set(reflect.ValueOf(typ))
-			if typ == "update" || typ == "delete" {
-				value.FieldByName("From").Set(reflect.ValueOf(from))
-			}
-		case reflect.Slice:
-		default:
-			return fmt.Errorf("[applyChange] Invalid value kind: %v", value.Kind())
-		}
-		return nil
-	}
-
-	field, err := getNodeField(v, path[0])
-	if err != nil {
-		return err
-	}
-	newField := field.Interface()
-	if err := applyChange(path[1:], from, typ, newField); err != nil {
-		return err
-	}
-	field.Set(reflect.ValueOf(newField))
-
-	return nil
-}
-
-func getValue(v interface{}) reflect.Value {
-	value := reflect.ValueOf(v)
-	if value.Kind() == reflect.Ptr {
-		value = value.Elem()
-	}
-	if value.Kind() == reflect.Interface {
-		value = value.Elem()
-	}
-	return value
-}
-
-func getNodeField(v interface{}, name string) (reflect.Value, error) {
-	value := getValue(v)
-	var field reflect.Value
-	switch value.Kind() {
-	case reflect.Struct:
-		field = value.FieldByName(name)
-		if !field.IsValid() {
-			return reflect.Value{}, fmt.Errorf("[getNodeField] Invalid field name: %s", name)
-		}
-	case reflect.Slice:
-		idx, err := strconv.Atoi(name)
-		if err != nil {
-			return reflect.Value{}, err
-		}
-		field = value.Index(idx)
-		if !field.IsValid() {
-			return reflect.Value{}, fmt.Errorf("[getNodeField] Invalid slice index: %s", name)
-		}
-	default:
-		return reflect.Value{}, fmt.Errorf("[getNodeField] Invalid value kind: %v", value.Kind())
-	}
-	return field, nil
+	return es.GetBigMapDiffsByKeyHashAndPtr(keys, ptr, level, address)
 }
