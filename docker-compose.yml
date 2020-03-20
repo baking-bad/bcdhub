@@ -8,7 +8,7 @@ services:
       - esdata:/usr/share/elasticsearch/data
     environment:
       - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms16g -Xmx16g"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - discovery.type=single-node
     ports:
       - "127.0.0.1:9300:9300"
@@ -54,8 +54,6 @@ services:
     depends_on:
       - elastic
       - db
-    volumes:
-      - /etc/bcd:/etc/bcd
     ports:
       - 127.0.0.1:14000:14000
     logging: *my-logging
@@ -69,8 +67,6 @@ services:
       dockerfile: cmd/indexer/Dockerfile
     env_file:
       - .env
-    volumes:
-      - /etc/bcd:/etc/bcd
     depends_on:
       - elastic
       - mq
