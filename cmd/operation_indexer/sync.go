@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic"
@@ -50,13 +51,13 @@ func updateState(rpc noderpc.Pool, es *elastic.Elastic, currentLevel int64, s *m
 	return nil
 }
 
-func saveOperations(ctx *Context, ops []models.Operation, s *models.State) error {
+func saveOperations(ctx *Context, ops []models.Operation, ts time.Time) error {
 	if len(ops) == 0 {
 		return nil
 	}
 
 	for j := range ops {
-		ops[j].Timestamp = s.Timestamp
+		ops[j].Timestamp = ts
 		if _, err := ctx.ES.AddDocumentWithID(ops[j], elastic.DocOperations, ops[j].ID); err != nil {
 			return err
 		}
@@ -136,8 +137,15 @@ func syncNetwork(ctx *Context, network string, wg *sync.WaitGroup) {
 				return
 			}
 
+			ts, err := rpc.GetLevelTime(int(l))
+			if err != nil {
+				logger.Errorf("[%s %d] %s", network, l, err.Error())
+				helpers.LocalCatchErrorSentry(localSentry, fmt.Errorf("[%d] %s", l, err.Error()))
+				return
+			}
+
 			logger.Info("[%s] %d/%d Found %d operations", network, l, cs.Level, len(ops))
-			if err := saveOperations(ctx, ops, s); err != nil {
+			if err := saveOperations(ctx, ops, ts); err != nil {
 				logger.Errorf("[%s %d] %s", network, l, err.Error())
 				helpers.LocalCatchErrorSentry(localSentry, fmt.Errorf("[%d] %s", l, err.Error()))
 				return
