@@ -120,6 +120,8 @@ func merge(node, second *Node) {
 	switch node.Type {
 	case consts.BIGMAP, consts.MAP:
 		mapMerge(node, second)
+	case consts.LIST, consts.SET:
+		listMerge(node, second)
 	default:
 		defaultMerge(node, second)
 	}
@@ -169,6 +171,99 @@ func defaultMerge(node, second *Node) {
 	}
 }
 
+func (node *Node) compare(second *Node) bool {
+	if !node.compareFields(second) {
+		return false
+	}
+	if !node.compareValue(second) {
+		return false
+	}
+	if len(node.Children) != len(second.Children) {
+		return false
+	}
+	for i := 0; i < len(node.Children); i++ {
+		if !node.Children[i].compare(second.Children[i]) {
+			return false
+		}
+	}
+	return true
+}
+
+func getMatrix(first, second []*Node) [][]int {
+	n := len(second)
+	m := len(first)
+
+	d := make([][]int, m+1)
+	for i := 0; i < m+1; i++ {
+		d[i] = make([]int, n+1, n+1)
+		d[i][0] = i
+	}
+	for j := range d[0] {
+		d[0][j] = j
+	}
+
+	for j := 1; j < n+1; j++ {
+		for i := 1; i < m+1; i++ {
+			cost := 0
+			if !first[i-1].compare(second[j-1]) {
+				cost = 1
+			}
+
+			d[i][j] = min(min(d[i-1][j]+1, d[i][j-1]+1), d[i-1][j-1]+cost)
+		}
+	}
+	return d
+}
+
+func mergeMatrix(d [][]int, i, j int, first, second *Node) []*Node {
+	children := make([]*Node, 0)
+	if i == 0 && j == 0 {
+		return children
+	}
+	if i == 0 {
+		second.Children[j-1].setDiffType(create)
+		children = append(children, second.Children[j-1])
+		return children
+	}
+	if j == 0 {
+		first.Children[i-1].setDiffType(create)
+		children = append(children, first.Children[i-1])
+		return children
+	}
+	left := d[i][j-1]
+	up := d[i-1][j]
+	upleft := d[i-1][j-1]
+
+	if upleft <= up && upleft <= left {
+		if upleft == d[i][j] {
+			children = mergeMatrix(d, i-1, j-1, first, second)
+			children = append(children, first.Children[i-1])
+		} else {
+			children = mergeMatrix(d, i-1, j-1, first, second)
+			first.Children[i-1].setDiffType(update)
+			first.Children[i-1].From = second.Children[j-1]
+			children = append(children, first.Children[i-1])
+		}
+	} else {
+		if left <= upleft && left <= up {
+			children = mergeMatrix(d, i, j-1, first, second)
+			first.Children[i-1].setDiffType(create)
+			children = append(children, first.Children[i-1])
+		} else {
+			children = mergeMatrix(d, i-1, j, first, second)
+			second.Children[j-1].setDiffType(delete)
+			children = append(children, second.Children[j-1])
+		}
+	}
+	return children
+}
+
+func listMerge(first, second *Node) {
+	d := getMatrix(first.Children, second.Children)
+	children := mergeMatrix(d, len(first.Children), len(second.Children), first, second)
+	first.Children = children
+}
+
 func mapMerge(node, second *Node) {
 	count := 0
 	for i := range node.Children {
@@ -183,6 +278,7 @@ func mapMerge(node, second *Node) {
 			} else {
 				node.Children[i].compareChildren(second.Children[j])
 			}
+
 			found = true
 			count++
 		}
