@@ -273,8 +273,15 @@ func mapMerge(node, second *Node) {
 				continue
 			}
 			if !node.Children[i].compareValue(second.Children[j]) {
-				node.Children[i].setDiffType(update)
-				node.Children[i].From = second.Children[j].Value
+				if node.Children[i].Value == nil {
+					node.Children[i].Value = second.Children[j].Value
+					node.Children[i].setDiffType(delete)
+				} else if second.Children[j].Value == nil {
+					node.Children[i].setDiffType(create)
+				} else {
+					node.Children[i].setDiffType(update)
+					node.Children[i].From = second.Children[j].Value
+				}
 			} else {
 				node.Children[i].compareChildren(second.Children[j])
 			}
