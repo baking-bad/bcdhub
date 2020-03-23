@@ -24,7 +24,7 @@ func setOperationAliases(op *models.Operation) error {
 		op.SourceAlias = aliasSource
 	}
 
-	aliasDest, err := ctx.DB.GetAlias(op.DestinationAlias, op.Network)
+	aliasDest, err := ctx.DB.GetAlias(op.Destination, op.Network)
 	if err != nil {
 		return err
 	}
