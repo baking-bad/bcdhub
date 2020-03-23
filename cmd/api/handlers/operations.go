@@ -144,6 +144,7 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 		Delegate:         operation.Delegate,
 		Status:           operation.Status,
 		Entrypoint:       operation.Entrypoint,
+		IndexedTime:      operation.IndexedTime,
 
 		BalanceUpdates: operation.BalanceUpdates,
 		Result:         operation.Result,
@@ -212,7 +213,7 @@ func setStorageDiff(es *elastic.Elastic, address, network string, storage string
 	}
 
 	var prevStorage *newmiguel.Node
-	prev, err := es.GetPreviousOperation(address, op.Network, op.Level)
+	prev, err := es.GetPreviousOperation(address, op.Network, op.IndexedTime)
 	if err == nil {
 		var prevBmd []models.BigMapDiff
 		if len(bmd) > 0 {

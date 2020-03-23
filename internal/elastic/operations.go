@@ -218,14 +218,14 @@ func (e *Elastic) GetLastStorage(network, address string) (gjson.Result, error) 
 }
 
 // GetPreviousOperation -
-func (e *Elastic) GetPreviousOperation(address, network string, level int64) (op models.Operation, err error) {
+func (e *Elastic) GetPreviousOperation(address, network string, indexedTime int64) (op models.Operation, err error) {
 	query := newQuery().
 		Query(
 			boolQ(
 				must(
 					matchPhrase("destination", address),
 					matchPhrase("network", network),
-					rangeQ("level", qItem{"lt": level}),
+					rangeQ("indexed_time", qItem{"lt": indexedTime}),
 					term("status", "applied"),
 				),
 				notMust(
@@ -252,7 +252,7 @@ func (e *Elastic) GetPreviousOperation(address, network string, level int64) (op
 	}
 
 	if res.Get("hits.total.value").Int() < 1 {
-		return op, fmt.Errorf("Unknown operation: %s in %s on %d", address, network, level)
+		return op, fmt.Errorf("Unknown operation: %s in %s on %d", address, network, indexedTime)
 	}
 	op.ParseElasticJSON(res.Get("hits.hits.0"))
 	return

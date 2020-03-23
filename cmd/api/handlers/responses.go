@@ -41,6 +41,8 @@ type Operation struct {
 	Parameters  interface{} `json:"parameters,omitempty"`
 	StorageDiff interface{} `json:"storage_diff,omitempty"`
 	Mempool     bool        `json:"mempool"`
+
+	IndexedTime int64 `json:"-"`
 }
 
 // CodeDiff -
