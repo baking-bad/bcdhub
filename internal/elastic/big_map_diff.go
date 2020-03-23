@@ -8,7 +8,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/google/uuid"
-	"github.com/tidwall/gjson"
 )
 
 // BulkSaveBigMapDiffs -
@@ -97,7 +96,7 @@ func (e *Elastic) GetBigMapDiffsByKeyHashAndPtr(keys []string, ptr []int64, leve
 }
 
 // GetBigMapDiffsForAddress -
-func (e *Elastic) GetBigMapDiffsForAddress(address string) (gjson.Result, error) {
+func (e *Elastic) GetBigMapDiffsForAddress(address string) ([]models.BigMapDiff, error) {
 	query := newQuery().Query(
 		boolQ(
 			must(
@@ -118,9 +117,15 @@ func (e *Elastic) GetBigMapDiffsForAddress(address string) (gjson.Result, error)
 
 	res, err := e.query([]string{DocBigMapDiff}, query)
 	if err != nil {
-		return res, err
+		return nil, err
 	}
-	return res.Get("aggregations.group_by_hash.buckets.#.group_docs.hits.hits.0._source"), nil
+	response := make([]models.BigMapDiff, 0)
+	for _, item := range res.Get("hits.hits").Array() {
+		var bmd models.BigMapDiff
+		bmd.ParseElasticJSON(item)
+		response = append(response, bmd)
+	}
+	return response, nil
 }
 
 // GetBigMap -
