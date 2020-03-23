@@ -10,6 +10,73 @@ import (
 	"github.com/tidwall/gjson"
 )
 
+func TestLiteralContract(t *testing.T) {
+	testCases := []struct {
+		name    string
+		rawJSON string
+		path    string
+		rawMeta string
+		isRoot  bool
+
+		expPrim string
+		expType string
+		expVal  string
+	}{
+		{
+			name:    "contract/KT",
+			rawJSON: `{"bytes": "016f516588d2ee560385e386708a13bd63da907cf300"}`,
+			path:    "0/0/1/0/1",
+			rawMeta: `{"0/0/1/0/1":{"prim":"contract","parameter":"{\"prim\":\"nat\"}","type":"contract"}}`,
+			isRoot:  false,
+			expPrim: consts.CONTRACT,
+			expType: consts.CONTRACT,
+			expVal:  "KT1JjN5bTE9yayzYHiBm6ruktwEWSHRF8aDm",
+		},
+		{
+			name:    "contract/tz3",
+			rawJSON: `{"bytes": "0002358cbffa97149631cfb999fa47f0035fb1ea8636"}`,
+			path:    "0/1/1/o/0",
+			rawMeta: `{"0/1/1/o/0":{"fieldname":"pour_dest","prim":"contract","parameter":"{\"prim\":\"nat\"}","type":"contract","name":"pour_dest"}}`,
+			isRoot:  false,
+			expPrim: consts.CONTRACT,
+			expType: consts.CONTRACT,
+			expVal:  "tz3RDC3Jdn4j15J7bBHZd29EUee9gVB1CxD9",
+		},
+	}
+
+	decoder := new(literalDecoder)
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			var metadata meta.Metadata
+			if err := json.Unmarshal([]byte(tt.rawMeta), &metadata); err != nil {
+				t.Errorf("Invalid metadata string: %v %s", err, tt.rawMeta)
+				return
+			}
+			nodeMetadata := metadata[tt.path]
+			jsonData := gjson.Parse(tt.rawJSON)
+
+			node, err := decoder.Decode(jsonData, tt.path, nodeMetadata, metadata, tt.isRoot)
+			if err != nil {
+				t.Errorf("Decode error: %v", err)
+				return
+			}
+
+			if node.Prim != tt.expPrim {
+				t.Errorf("Invalid prim. Got: %v, Expected: %v", node.Prim, tt.expPrim)
+			}
+
+			if node.Type != tt.expType {
+				t.Errorf("Invalid type. Got: %v, Expected: %v", node.Type, tt.expType)
+			}
+
+			if res, ok := node.Value.(string); !ok || res != tt.expVal {
+				t.Errorf("Invalid value. Got: %v, Expected: %v", res, tt.expVal)
+			}
+		})
+	}
+}
+
 func TestLiteralChainID(t *testing.T) {
 	testCases := []struct {
 		name    string

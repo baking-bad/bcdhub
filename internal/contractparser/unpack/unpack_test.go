@@ -386,3 +386,40 @@ func TestChainID(t *testing.T) {
 		})
 	}
 }
+
+func TestContract(t *testing.T) {
+	validTestCases := []struct {
+		name   string
+		input  string
+		result string
+	}{
+		{
+			name:   "contract/tz3",
+			input:  "0002358cbffa97149631cfb999fa47f0035fb1ea8636",
+			result: `tz3RDC3Jdn4j15J7bBHZd29EUee9gVB1CxD9`,
+		},
+		{
+			name:   "contract/KT",
+			input:  "016f516588d2ee560385e386708a13bd63da907cf300",
+			result: `KT1JjN5bTE9yayzYHiBm6ruktwEWSHRF8aDm`,
+		},
+		{
+			name:   "contract/KT%",
+			input:  "01e5bae183211979a662665319a0900df3542e65ba00646f",
+			result: `KT1VXUBQbYMt58yoKhNo73Zf8HTMfAd8Fqge%do`,
+		},
+	}
+
+	for _, tc := range validTestCases {
+		t.Run(tc.name, func(t *testing.T) {
+			res, err := Contract(tc.input)
+			if err != nil {
+				t.Errorf("error: %v", err)
+				return
+			}
+			if res != tc.result {
+				t.Errorf("\nInput: %v. \nGot: %v, \nexpected: %v.", tc.input, res, tc.result)
+			}
+		})
+	}
+}
