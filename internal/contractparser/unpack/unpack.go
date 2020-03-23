@@ -14,6 +14,8 @@ import (
 const signatureHexLength = 128
 const chainIDHexLength = 8
 
+const minPrintableASCII = 32
+
 // PublicKey -
 func PublicKey(input string) (string, error) {
 	return tzbase58.DecodePublicKey(input)
@@ -76,7 +78,7 @@ func Bytes(input string) string {
 
 func isASCII(input []byte) bool {
 	for _, c := range input {
-		if c > unicode.MaxASCII {
+		if c < minPrintableASCII || c > unicode.MaxASCII {
 			return false
 		}
 	}
