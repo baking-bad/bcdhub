@@ -241,7 +241,7 @@ func mergeMatrix(d [][]int, i, j int, first, second *Node) []*Node {
 		} else {
 			children = mergeMatrix(d, i-1, j-1, first, second)
 			first.Children[i-1].setDiffType(update)
-			first.Children[i-1].From = second.Children[j-1]
+			first.Children[i-1].From = second.Children[j-1].Value
 			children = append(children, first.Children[i-1])
 		}
 	} else {
