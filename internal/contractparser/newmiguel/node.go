@@ -4,6 +4,7 @@ import (
 	"reflect"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 )
 
 const (
@@ -93,14 +94,12 @@ func (node *Node) compareChildren(second *Node) {
 		diffType = create
 	}
 	if diffType != "" {
-		if node.Type != consts.MAP && node.Type != consts.BIGMAP {
+		if !helpers.StringInArray(node.Type, []string{
+			consts.BIGMAP, consts.MAP, consts.LIST, consts.SET,
+		}) {
 			node.setDiffType(diffType)
-		} else {
-			for i := range node.Children {
-				node.Children[i].setDiffType(diffType)
-			}
+			return
 		}
-		return
 	}
 
 	merge(node, second)
@@ -221,7 +220,7 @@ func mergeMatrix(d [][]int, i, j int, first, second *Node) []*Node {
 		return children
 	}
 	if i == 0 {
-		second.Children[j-1].setDiffType(create)
+		second.Children[j-1].setDiffType(delete)
 		children = append(children, second.Children[j-1])
 		return children
 	}
@@ -241,7 +240,7 @@ func mergeMatrix(d [][]int, i, j int, first, second *Node) []*Node {
 		} else {
 			children = mergeMatrix(d, i-1, j-1, first, second)
 			first.Children[i-1].setDiffType(update)
-			first.Children[i-1].From = second.Children[j-1]
+			first.Children[i-1].From = second.Children[j-1].Value
 			children = append(children, first.Children[i-1])
 		}
 	} else {
