@@ -11,8 +11,11 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-const signatureHexLength = 128
-const chainIDHexLength = 8
+const (
+	signatureHexLength = 128
+	chainIDHexLength   = 8
+	addressHexLength   = 44
+)
 
 // PublicKey -
 func PublicKey(input string) (string, error) {
@@ -26,7 +29,7 @@ func KeyHash(input string) (string, error) {
 
 // Address -
 func Address(input string) (string, error) {
-	input = input[:44]
+	input = input[:addressHexLength]
 	if input[:2] == "01" && input[len(input)-2:] == "00" {
 		return tzbase58.DecodeKT(input)
 	}
@@ -50,6 +53,29 @@ func ChainID(input string) (string, error) {
 	}
 
 	return tzbase58.DecodeChainID(input)
+}
+
+// Contract -
+func Contract(input string) (string, error) {
+	if len(input) < addressHexLength {
+		return "", fmt.Errorf("[Contract] Wrong length of %v. Expected %v, Got: %v", input, addressHexLength, len(input))
+	}
+
+	address, err := Address(input[:addressHexLength])
+	if err != nil {
+		return "", fmt.Errorf("[Contract] Cant decode Address %v error: %v", input, err)
+	}
+
+	if len(input) == addressHexLength {
+		return address, nil
+	}
+
+	tail, err := hex.DecodeString(input[addressHexLength:])
+	if err != nil {
+		return "", fmt.Errorf("[Contract] %v hex.DecodeString error: %v", input, err)
+	}
+
+	return fmt.Sprintf("%s%%%s", address, tail), nil
 }
 
 // Bytes -
