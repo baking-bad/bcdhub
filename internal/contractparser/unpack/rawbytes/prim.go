@@ -34,7 +34,7 @@ var primKeywords = []string{
 	"COMPARE",
 	"CONCAT",
 	"CONS",
-	"CREATE_ACCOUNT",
+	"__CREATE_ACCOUNT__", // DEPRECATED
 	"CREATE_CONTRACT",
 	"IMPLICIT_ACCOUNT",
 	"DIP",
@@ -118,8 +118,12 @@ var primKeywords = []string{
 	"operation",
 	"address",
 	"SLICE",
-	"DEFAULT_ACCOUNT",
-	"tez",
+	"DIG",
+	"DUG",
+	"EMPTY_BIG_MAP",
+	"APPLY",
+	"chain_id",
+	"CHAIN_ID",
 }
 
 type primDecoder struct {
