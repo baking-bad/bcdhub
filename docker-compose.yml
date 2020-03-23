@@ -98,6 +98,7 @@ services:
     depends_on:
       - elastic
       - mq
+      - db
     logging: *my-logging
 
 volumes:
