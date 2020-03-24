@@ -10,7 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 )
 
-// SetLanguageMigration - migration that set langugage to operation by annotations or entrypoints
+// SetLanguageMigration - migration that set langugage to contract by annotations or entrypoints
 type SetLanguageMigration struct{}
 
 // Do - migrate function
