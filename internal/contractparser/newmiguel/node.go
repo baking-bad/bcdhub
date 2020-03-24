@@ -220,13 +220,17 @@ func mergeMatrix(d [][]int, i, j int, first, second *Node) []*Node {
 		return children
 	}
 	if i == 0 {
-		second.Children[j-1].setDiffType(delete)
-		children = append(children, second.Children[j-1])
+		for idx := 0; idx < j; idx++ {
+			second.Children[idx].setDiffType(delete)
+			children = append(children, second.Children[idx])
+		}
 		return children
 	}
 	if j == 0 {
-		first.Children[i-1].setDiffType(create)
-		children = append(children, first.Children[i-1])
+		for idx := 0; idx < i; idx++ {
+			first.Children[idx].setDiffType(create)
+			children = append(children, first.Children[idx])
+		}
 		return children
 	}
 	left := d[i][j-1]
@@ -246,12 +250,12 @@ func mergeMatrix(d [][]int, i, j int, first, second *Node) []*Node {
 	} else {
 		if left <= upleft && left <= up {
 			children = mergeMatrix(d, i, j-1, first, second)
-			first.Children[i-1].setDiffType(create)
-			children = append(children, first.Children[i-1])
-		} else {
-			children = mergeMatrix(d, i-1, j, first, second)
 			second.Children[j-1].setDiffType(delete)
 			children = append(children, second.Children[j-1])
+		} else {
+			children = mergeMatrix(d, i-1, j, first, second)
+			first.Children[i-1].setDiffType(create)
+			children = append(children, first.Children[i-1])
 		}
 	}
 	return children
