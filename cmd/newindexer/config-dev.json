@@ -1,0 +1,81 @@
+{
+  "search": {
+    "uri": "http://localhost:9200"
+  },
+  "indexers": {
+    "mainnet": {
+      "rpc": {
+        "urls": [
+          "https://rpc.tzkt.io/mainnet",
+          "https://mainnet.tezos.org.ua"
+        ],
+        "timeout": 20
+      },
+      "boost": true,
+      "external_indexer": {
+        "type": "tzkt",
+        "link": "https://api.tzkt.io/v1/",
+        "timeout": 20
+      },
+      "update_timer": 60
+    },
+    "zeronet": {
+      "rpc": {
+        "urls": [
+          "https://rpc.tzkt.io/zeronet"
+        ],
+        "timeout": 20
+      },
+      "boost": true,
+      "external_indexer": {
+        "type": "tzkt",
+        "link": "https://api.zeronet.tzkt.io/v1/",
+        "timeout": 20
+      },
+      "update_timer": 60
+    },
+    "babylonnet": {
+      "rpc": {
+        "urls": [
+          "https://babylontest-ssl.tezos.org.ua",
+          "https://rpc.tzkt.io/babylonnet"
+        ],
+        "timeout": 20
+      },
+      "boost": true,
+      "external_indexer": {
+        "type": "tzkt",
+        "link": "https://api.babylon.tzkt.io/v1/",
+        "timeout": 20
+      },
+      "update_timer": 60
+    },
+    "carthagenet": {
+      "rpc": {
+        "urls": [
+          "https://carthatest-ssl.tezos.org.ua",
+          "https://rpc.tzkt.io/carthagenet"
+        ],
+        "timeout": 20
+      },
+      "boost": true,
+      "external_indexer": {
+        "type": "tzkt",
+        "link": "https://api.carthage.tzkt.io/v1/",
+        "timeout": 20
+      },
+      "update_timer": 60
+    }
+  },
+  "mq": {
+    "uri": "amqp://guest:guest@localhost:5672/",
+    "queues": [
+      "operations"
+    ]
+  },
+  "sentry": {
+    "project": "new_indexer",
+    "dsn": "https://eefa682518c84afdb0240bc9b94ed79c@sentry.io/3061530",
+    "debug": true
+  }
+}
