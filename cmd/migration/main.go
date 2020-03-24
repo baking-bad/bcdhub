@@ -17,7 +17,8 @@ func main() {
 		panic(err)
 	}
 
-	migration := migrations.SetTimestampMigration{}
+	// migration := migrations.SetTimestampMigration{}
+	migration := migrations.SetLanguageMigration{}
 	if err := migration.Do(ctx); err != nil {
 		panic(err)
 	}
