@@ -67,6 +67,16 @@ func (d *db) GetSubscriptionRating(entityID string) (SubRating, error) {
 	return s, nil
 }
 
+func (d *db) GetAliases(network string) ([]Alias, error) {
+	var aliases []Alias
+
+	if err := d.ORM.Where("network = ?", network).Find(&aliases).Error; err != nil {
+		return nil, err
+	}
+
+	return aliases, nil
+}
+
 func (d *db) GetAlias(address, network string) (string, error) {
 	var alias Alias
 	if err := d.ORM.Select("alias").Where("address = ? AND network = ?", address, network).First(&alias).Error; err != nil {

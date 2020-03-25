@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/index"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -18,10 +19,11 @@ type Context struct {
 	ES       *elastic.Elastic
 	RPCs     map[string]noderpc.Pool
 	Indexers map[string]index.Indexer
+	DB       database.DB
 }
 
 // NewContext - creates migration context from config
-func NewContext(cfg Config) (*Context, error) {
+func NewContext(cfg Config, db database.DB) (*Context, error) {
 	es, err := elastic.New([]string{cfg.Search.URI})
 	if err != nil {
 		return nil, err
@@ -43,6 +45,7 @@ func NewContext(cfg Config) (*Context, error) {
 		RPCs:     RPCs,
 		Indexers: indexers,
 		MQ:       messageQueue,
+		DB:       db,
 	}, nil
 }
 
