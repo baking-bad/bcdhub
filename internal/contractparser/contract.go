@@ -43,3 +43,8 @@ func GetContract(rpc noderpc.Pool, address, network string, level int64, filesDi
 	}
 	return rpc.GetContractJSON(address, level)
 }
+
+// IsDelegateContract -
+func IsDelegateContract(data gjson.Result) bool {
+	return false
+}

@@ -38,6 +38,7 @@ const (
 const (
 	Transaction = "transaction"
 	Origination = "origination"
+	Migration   = "migration"
 )
 
 // Levels

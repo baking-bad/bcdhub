@@ -44,7 +44,8 @@ type Operation struct {
 	Result         *OperationResult `json:"result,omitempty"`
 	Errors         []cerrors.Error  `json:"errors,omitempty"`
 
-	DeffatedStorage string `json:"deffated_storage"`
+	DeffatedStorage string       `json:"deffated_storage"`
+	Script          gjson.Result `json:"-"`
 }
 
 // ParseElasticJSON -

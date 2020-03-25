@@ -68,6 +68,16 @@ func (rpc *NodeRPC) get(uri string) (res gjson.Result, err error) {
 	return
 }
 
+// GetHead - get head
+func (rpc *NodeRPC) GetHead() (header Header, err error) {
+	data, err := rpc.get("chains/main/blocks/head/header")
+	if err != nil {
+		return
+	}
+	header.parseGJSON(data)
+	return
+}
+
 // GetLevel - get head level
 func (rpc *NodeRPC) GetLevel() (int64, error) {
 	head, err := rpc.get("chains/main/blocks/head/header")
@@ -75,6 +85,16 @@ func (rpc *NodeRPC) GetLevel() (int64, error) {
 		return 0, err
 	}
 	return head.Get("level").Int(), nil
+}
+
+// GetHeader - get head
+func (rpc *NodeRPC) GetHeader(level int64) (header Header, err error) {
+	data, err := rpc.get(fmt.Sprintf("chains/main/blocks/%d/header", level))
+	if err != nil {
+		return
+	}
+	header.parseGJSON(data)
+	return
 }
 
 // GetLevelTime - get level time
@@ -128,4 +148,25 @@ func (rpc *NodeRPC) GetContractJSON(address string, level int64) (gjson.Result, 
 // GetOperations -
 func (rpc *NodeRPC) GetOperations(block int64) (res gjson.Result, err error) {
 	return rpc.get(fmt.Sprintf("chains/main/blocks/%d/operations/3", block))
+}
+
+// GetContractsByBlock -
+func (rpc *NodeRPC) GetContractsByBlock(block int64) ([]string, error) {
+	if block != 1 {
+		return nil, fmt.Errorf("For less loading node RPC `block` value is only 1")
+	}
+	data, err := rpc.get(fmt.Sprintf("chains/main/blocks/%d/context/contracts", block))
+	if err != nil {
+		return nil, err
+	}
+	contracts := make([]string, 0)
+	for _, item := range data.Array() {
+		contracts = append(contracts, item.String())
+	}
+	return contracts, nil
+}
+
+// GetNetworkConstants -
+func (rpc *NodeRPC) GetNetworkConstants() (res gjson.Result, err error) {
+	return rpc.get("chains/main/blocks/head/context/constants")
 }

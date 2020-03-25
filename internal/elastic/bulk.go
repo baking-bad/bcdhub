@@ -5,7 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/google/uuid"
 )
@@ -28,14 +30,13 @@ func (e *Elastic) BulkInsert(index string, buf *bytes.Buffer) error {
 	return err
 }
 
-// BulkInsertArray -
-func (e *Elastic) BulkInsertArray(index string, v interface{}) error {
+// BulkInsertOperations -
+func (e *Elastic) BulkInsertOperations(v []models.Operation) error {
 	bulk := bytes.NewBuffer([]byte{})
-	arr := v.([]interface{})
-	for i := range arr {
+	for i := range v {
 		id := uuid.New().String()
 		meta := []byte(fmt.Sprintf(`{ "index" : { "_id": "%s"} }%s`, id, "\n"))
-		data, err := json.Marshal(arr[i])
+		data, err := json.Marshal(v[i])
 		if err != nil {
 			return err
 		}
@@ -45,5 +46,44 @@ func (e *Elastic) BulkInsertArray(index string, v interface{}) error {
 		bulk.Write(meta)
 		bulk.Write(data)
 	}
-	return e.BulkInsert(index, bulk)
+	return e.BulkInsert(DocOperations, bulk)
+}
+
+// BulkInsertContracts -
+func (e *Elastic) BulkInsertContracts(v []models.Contract) error {
+	bulk := bytes.NewBuffer([]byte{})
+	for i := range v {
+		id := uuid.New().String()
+		meta := []byte(fmt.Sprintf(`{ "index" : { "_id": "%s"} }%s`, id, "\n"))
+		data, err := json.Marshal(v[i])
+		if err != nil {
+			return err
+		}
+		data = append(data, "\n"...)
+
+		bulk.Grow(len(meta) + len(data))
+		bulk.Write(meta)
+		bulk.Write(data)
+	}
+	return e.BulkInsert(DocContracts, bulk)
+}
+
+// BulkSaveBigMapDiffs -
+func (e *Elastic) BulkSaveBigMapDiffs(diffs []models.BigMapDiff) error {
+	bulk := bytes.NewBuffer([]byte{})
+	for i := range diffs {
+		id := uuid.New().String()
+		meta := []byte(fmt.Sprintf(`{ "index" : { "_id": "%s"} }%s`, id, "\n"))
+		data, err := json.Marshal(diffs[i])
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		data = append(data, "\n"...)
+
+		bulk.Grow(len(meta) + len(data))
+		bulk.Write(meta)
+		bulk.Write(data)
+	}
+	return e.BulkInsert(DocBigMapDiff, bulk)
 }

@@ -72,20 +72,6 @@ services:
       - mq
     logging: *my-logging
 
-  opindexer:
-    container_name: bcd-opindexer
-    restart: always
-    image: bakingbad/bcdhub-opindexer:${TAG:-latest}
-    build:
-      context: .
-      dockerfile: cmd/operation_indexer/Dockerfile
-    env_file:
-      - .env
-    depends_on:
-      - elastic
-      - mq
-    logging: *my-logging
-
   metrics:
     container_name: bcd-metrics
     restart: always
