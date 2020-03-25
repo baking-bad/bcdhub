@@ -2,6 +2,7 @@ package elastic
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
 )
@@ -171,6 +172,10 @@ func minBucket(bucketsPath string) qItem {
 }
 
 func queryString(text string, fields []string) qItem {
+	sanitized := `[\+\-\=\&\|\>\<\!\(\)\{\}\[\]\^\"\~\*\?\:\\\/]`
+	re, _ := regexp.Compile(sanitized)
+	text = re.ReplaceAllString(text, "\\${1}")
+
 	queryS := qItem{
 		"query": fmt.Sprintf("*%s*", text),
 	}
