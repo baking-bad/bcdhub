@@ -23,7 +23,7 @@ type Context struct {
 }
 
 // NewContext - creates migration context from config
-func NewContext(cfg Config, db database.DB) (*Context, error) {
+func NewContext(cfg Config) (*Context, error) {
 	es, err := elastic.New([]string{cfg.Search.URI})
 	if err != nil {
 		return nil, err
@@ -40,6 +40,11 @@ func NewContext(cfg Config, db database.DB) (*Context, error) {
 		return nil, err
 	}
 
+	db, err := database.New(cfg.DB.URI)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Context{
 		ES:       es,
 		RPCs:     RPCs,
@@ -52,6 +57,7 @@ func NewContext(cfg Config, db database.DB) (*Context, error) {
 // Close -
 func (ctx *Context) Close() {
 	ctx.MQ.Close()
+	ctx.DB.Close()
 }
 
 func createRPCs(cfg Config) map[string]noderpc.Pool {
