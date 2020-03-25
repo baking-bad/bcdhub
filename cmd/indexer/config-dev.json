@@ -1,43 +1,29 @@
 {
+  "files_directory": "/etc/bcd",
   "search": {
     "uri": "http://localhost:9200"
   },
-  "nodes": {
-    "mainnet": [
-      "https://rpc.tzkt.io/mainnet",
-      "https://mainnet.tezos.org.ua"
-    ],
-    "zeronet": [
-      "https://rpc.tzkt.io/zeronet"
-    ],
-    "babylonnet": [
-      "https://babylontest-ssl.tezos.org.ua",
-      "https://rpc.tzkt.io/babylonnet"
-    ],
-    "carthagenet": [
-      "https://carthatest-ssl.tezos.org.ua",
-      "https://rpc.tzkt.io/carthagenet"
-    ]
+  "indexers": {
+    "mainnet": {
+      "rpc": {
+        "urls": [
+          "https://rpc.tzkt.io/mainnet",
+          "https://mainnet.tezos.org.ua"
+        ],
+        "timeout": 20
+      },
+      "boost": true,
+      "external_indexer": {
+        "type": "tzkt",
+        "link": "https://api.tzkt.io/v1/",
+        "timeout": 20
+      }
+    }
   },
-  "tzkt": {
-    "mainnet": "https://api.tzkt.io/v1/",
-    "zeronet": "https://api.zeronet.tzkt.io/v1/",
-    "babylonnet": "https://api.babylon.tzkt.io/v1/",
-    "carthagenet": "https://api.carthage.tzkt.io/v1/"
-  },
-  "tzstats": {
-    "mainnet": "https://api.tzstats.com",
-    "zeronet": "https://api.zeronet.tzstats.com",
-    "babylonnet": "https://api.babylonnet.tzstats.com",
-    "carthagenet": "https://api.carthagenet.tzstats.com"
-  },
-  "indexer": "tzkt",
-  "update_timer": 60,
-  "files_directory": "/home/artem/.bcd",
   "mq": {
     "uri": "amqp://guest:guest@localhost:5672/",
     "queues": [
-      "contracts"
+      "operations"
     ]
   },
   "sentry": {

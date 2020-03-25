@@ -1,9 +1,13 @@
 package main
 
 import (
+	"os"
+	"os/signal"
 	"strings"
-	"time"
+	"sync"
+	"syscall"
 
+	"github.com/baking-bad/bcdhub/cmd/indexer/indexer"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/jsonload"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -11,29 +15,15 @@ import (
 )
 
 func main() {
-	var cfg config
-	if err := jsonload.StructFromFile("config.json", &cfg); err != nil {
+	var cfg indexer.Config
+	if err := jsonload.StructFromFile("config-dev.json", &cfg); err != nil {
 		logger.Fatal(err)
 	}
-	cfg.print()
+	cfg.Print()
 
-	helpers.InitSentry(cfg.Sentry.DSN, cfg.Sentry.Debug)
-	helpers.SetTagSentry("project", cfg.Sentry.Project)
-	defer helpers.CatchPanicSentry()
-
-	ctx, err := newContext(cfg)
-	if err != nil {
-		logger.Error(err)
-		helpers.CatchErrorSentry(err)
-		return
-	}
-	defer ctx.close()
-
-	if err := ctx.createIndexes(); err != nil {
-		logger.Error(err)
-		helpers.CatchErrorSentry(err)
-		return
-	}
+	// helpers.InitSentry(cfg.Sentry.DSN, cfg.Sentry.Debug)
+	// helpers.SetTagSentry("project", cfg.Sentry.Project)
+	// defer helpers.CatchPanicSentry()
 
 	gjson.AddModifier("upper", func(json, arg string) string {
 		return strings.ToUpper(json)
@@ -42,18 +32,26 @@ func main() {
 		return strings.ToLower(json)
 	})
 
-	// Initial syncronization
-	if err = process(ctx); err != nil {
+	indexers, err := indexer.CreateIndexers(cfg)
+	if err != nil {
 		logger.Error(err)
 		helpers.CatchErrorSentry(err)
+		return
 	}
 
-	// Update state by ticker
-	ticker := time.NewTicker(time.Duration(cfg.UpdateTimer) * time.Second)
-	for range ticker.C {
-		if err = process(ctx); err != nil {
-			logger.Error(err)
-			helpers.CatchErrorSentry(err)
-		}
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
+
+	var wg sync.WaitGroup
+	for i := range indexers {
+		wg.Add(1)
+		go indexers[i].Sync(&wg)
 	}
+
+	<-sigChan
+	for i := range indexers {
+		go indexers[i].Stop()
+	}
+	wg.Wait()
+	logger.Info("Stopped")
 }

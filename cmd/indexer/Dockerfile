@@ -16,23 +16,22 @@ COPY ./go.* $GOPATH/src/github.com/baking-bad/bcdhub/
 WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub
 RUN go mod download
 
-COPY cmd/indexer cmd/indexer
+COPY cmd/operation_indexer cmd/operation_indexer
 COPY internal internal
 
-WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub/cmd/indexer/
-RUN go build -a -installsuffix cgo -o /go/bin/indexer .
+WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub/cmd/operation_indexer/
+RUN go build -a -installsuffix cgo -o /go/bin/operation_indexer .
 
 # ---------------------------------------------------------------------
 #  The second stage container, for running the application
 # ---------------------------------------------------------------------
 FROM scratch
 
-WORKDIR /app/indexer
+WORKDIR /app/operation_indexer
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=builder /go/bin/indexer /go/bin/indexer
-COPY /cmd/indexer/config.json /app/indexer/config.json
-COPY /cmd/indexer/interfaces /app/indexer/interfaces
-COPY /cmd/indexer/mappings /app/indexer/mappings
+COPY --from=builder /go/bin/operation_indexer /go/bin/operation_indexer
+COPY /cmd/operation_indexer/config.json /app/operation_indexer/config.json
+COPY /cmd/operation_indexer/data/errors.json /app/operation_indexer/data/errors.json
 
-ENTRYPOINT ["/go/bin/indexer"]
+ENTRYPOINT ["/go/bin/operation_indexer"]

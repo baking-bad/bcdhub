@@ -1,4 +1,4 @@
-package main
+package indexer
 
 var codes = map[string]string{
 	"parameter":        "00",

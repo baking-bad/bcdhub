@@ -1,56 +1,34 @@
-package main
+package parsers
 
 import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/tidwall/gjson"
 )
 
-func getMetadata(rpc noderpc.Pool, c *models.Contract, tag, filesDirectory string) (map[string]string, error) {
+func getMetadata(script gjson.Result, tag, filesDirectory, protoSymLink string, c *models.Contract) (map[string]string, error) {
 	res := make(map[string]string)
-
-	a, err := createMetadata(rpc, 0, c, tag, filesDirectory)
+	metadata, err := createMetadata(script, tag, filesDirectory, c)
 	if err != nil {
 		return nil, err
 	}
-
-	if c.Network == consts.Mainnet {
-		res[consts.MetadataBabylon] = a
-
-		if c.Level < consts.LevelBabylon {
-			a, err = createMetadata(rpc, consts.LevelBabylon-1, c, tag, filesDirectory)
-			if err != nil {
-				return nil, err
-			}
-			res[consts.MetadataAlpha] = a
-		}
-	} else {
-		res[consts.MetadataBabylon] = a
-		res[consts.MetadataAlpha] = a
-	}
+	res[protoSymLink] = metadata
 	return res, nil
 }
 
-func createMetadata(rpc noderpc.Pool, level int64, c *models.Contract, tag, filesDirectory string) (string, error) {
-	s, err := contractparser.GetContract(rpc, c.Address, c.Network, level, filesDirectory)
-	if err != nil {
-		return "", err
-	}
-	script := s.Get("script")
-
+func createMetadata(script gjson.Result, tag, filesDirectory string, c *models.Contract) (string, error) {
 	args := script.Get(fmt.Sprintf("code.#(prim==\"%s\").args", tag))
 	if args.Exists() {
 		metadata, err := meta.ParseMetadata(args)
 		if err != nil {
 			return "", nil
 		}
-		if tag == consts.PARAMETER && level == 0 {
+		if tag == consts.PARAMETER {
 			entrypoints, err := metadata.GetEntrypoints()
 			if err != nil {
 				return "", err
@@ -70,17 +48,17 @@ func createMetadata(rpc noderpc.Pool, level int64, c *models.Contract, tag, file
 	return "", fmt.Errorf("[createMetadata] Unknown tag '%s'", tag)
 }
 
-func saveMetadata(es *elastic.Elastic, rpc noderpc.Pool, c *models.Contract, filesDirectory string) error {
-	storage, err := getMetadata(rpc, c, consts.STORAGE, filesDirectory)
+func saveMetadata(es *elastic.Elastic, script gjson.Result, filesDirectory, protoSymLink string, c *models.Contract) error {
+	storage, err := getMetadata(script, consts.STORAGE, filesDirectory, protoSymLink, c)
 	if err != nil {
 		return err
 	}
-	parameter, err := getMetadata(rpc, c, consts.PARAMETER, filesDirectory)
+	parameter, err := getMetadata(script, consts.PARAMETER, filesDirectory, protoSymLink, c)
 	if err != nil {
 		return err
 	}
 
-	upgradable, err := isUpgradable(storage[consts.MetadataBabylon], parameter[consts.MetadataBabylon])
+	upgradable, err := isUpgradable(storage[protoSymLink], parameter[protoSymLink])
 	if err != nil {
 		return err
 	}
