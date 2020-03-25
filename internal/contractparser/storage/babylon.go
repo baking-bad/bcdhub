@@ -8,7 +8,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/tidwall/gjson"
@@ -17,39 +16,31 @@ import (
 
 // Babylon -
 type Babylon struct {
-	es  *elastic.Elastic
 	rpc noderpc.Pool
 }
 
 // NewBabylon -
-func NewBabylon(es *elastic.Elastic, rpc noderpc.Pool) Babylon {
+func NewBabylon(rpc noderpc.Pool) Babylon {
 	return Babylon{
-		es:  es,
 		rpc: rpc,
 	}
 }
 
 // ParseTransaction -
-func (b Babylon) ParseTransaction(content gjson.Result, protocol string, level int64, operationID string) (RichStorage, error) {
+func (b Babylon) ParseTransaction(content gjson.Result, metadata meta.Metadata, level int64, operationID string) (RichStorage, error) {
 	address := content.Get("destination").String()
-
-	m, err := meta.GetMetadata(b.es, address, consts.Babylon, "storage", protocol)
-	if err != nil {
-		return RichStorage{Empty: true}, err
-	}
-
 	result, err := getResult(content)
 	if err != nil {
 		return RichStorage{Empty: true}, err
 	}
 	var bm []models.BigMapDiff
 	if result.Get("big_map_diff.#").Int() > 0 {
-		ptrMap, err := b.binPathToPtrMap(m, result.Get("storage"))
+		ptrMap, err := b.binPathToPtrMap(metadata, result.Get("storage"))
 		if err != nil {
 			return RichStorage{Empty: true}, err
 		}
 
-		if bm, err = b.getBigMapDiff(result, ptrMap, operationID, address, level, m); err != nil {
+		if bm, err = b.getBigMapDiff(result, ptrMap, operationID, address, level, metadata); err != nil {
 			return RichStorage{Empty: true}, err
 		}
 	}
@@ -60,18 +51,13 @@ func (b Babylon) ParseTransaction(content gjson.Result, protocol string, level i
 }
 
 // ParseOrigination -
-func (b Babylon) ParseOrigination(content gjson.Result, protocol string, level int64, operationID string) (RichStorage, error) {
+func (b Babylon) ParseOrigination(content gjson.Result, metadata meta.Metadata, level int64, operationID string) (RichStorage, error) {
 	result, err := getResult(content)
 	if err != nil {
 		return RichStorage{Empty: true}, err
 	}
 
 	address := result.Get("originated_contracts.0").String()
-	m, err := meta.GetMetadata(b.es, address, consts.Babylon, "storage", protocol)
-	if err != nil {
-		return RichStorage{Empty: true}, err
-	}
-
 	data, err := b.rpc.GetScriptJSON(address, level)
 	if err != nil {
 		return RichStorage{Empty: true}, err
@@ -81,12 +67,12 @@ func (b Babylon) ParseOrigination(content gjson.Result, protocol string, level i
 
 	var bm []models.BigMapDiff
 	if result.Get("big_map_diff.#").Int() > 0 {
-		ptrToBin, err := b.binPathToPtrMap(m, st)
+		ptrToBin, err := b.binPathToPtrMap(metadata, st)
 		if err != nil {
 			return RichStorage{Empty: true}, err
 		}
 
-		if bm, err = b.getBigMapDiff(result, ptrToBin, operationID, address, level, m); err != nil {
+		if bm, err = b.getBigMapDiff(result, ptrToBin, operationID, address, level, metadata); err != nil {
 			return RichStorage{Empty: true}, err
 		}
 	}

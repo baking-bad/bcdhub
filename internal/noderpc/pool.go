@@ -82,6 +82,24 @@ func (p Pool) call(method string, args ...interface{}) (reflect.Value, error) {
 	return response[0], nil
 }
 
+// GetHead -
+func (p Pool) GetHead() (Header, error) {
+	data, err := p.call("GetHead")
+	if err != nil {
+		return Header{}, err
+	}
+	return data.Interface().(Header), nil
+}
+
+// GetHeader -
+func (p Pool) GetHeader(block int64) (Header, error) {
+	data, err := p.call("GetHeader", block)
+	if err != nil {
+		return Header{}, err
+	}
+	return data.Interface().(Header), nil
+}
+
 // GetLevel -
 func (p Pool) GetLevel() (int64, error) {
 	data, err := p.call("GetLevel")
@@ -130,6 +148,24 @@ func (p Pool) GetContractJSON(address string, level int64) (gjson.Result, error)
 // GetOperations -
 func (p Pool) GetOperations(block int64) (res gjson.Result, err error) {
 	data, err := p.call("GetOperations", block)
+	if err != nil {
+		return
+	}
+	return data.Interface().(gjson.Result), nil
+}
+
+// GetContractsByBlock -
+func (p Pool) GetContractsByBlock(block int64) ([]string, error) {
+	data, err := p.call("GetContractsByBlock", block)
+	if err != nil {
+		return nil, err
+	}
+	return data.Interface().([]string), nil
+}
+
+// GetNetworkConstants -
+func (p Pool) GetNetworkConstants() (res gjson.Result, err error) {
+	data, err := p.call("GetNetworkConstants")
 	if err != nil {
 		return
 	}

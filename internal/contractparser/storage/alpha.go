@@ -5,39 +5,29 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage/hash"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 )
 
 // Alpha -
-type Alpha struct {
-	es *elastic.Elastic
-}
+type Alpha struct{}
 
 // NewAlpha -
-func NewAlpha(es *elastic.Elastic) Alpha {
-	return Alpha{
-		es: es,
-	}
+func NewAlpha() Alpha {
+	return Alpha{}
 }
 
 // ParseTransaction -
-func (a Alpha) ParseTransaction(content gjson.Result, protocol string, level int64, operationID string) (RichStorage, error) {
+func (a Alpha) ParseTransaction(content gjson.Result, metadata meta.Metadata, level int64, operationID string) (RichStorage, error) {
 	address := content.Get("destination").String()
-
-	m, err := meta.GetMetadata(a.es, address, consts.Mainnet, "storage", protocol)
-	if err != nil {
-		return RichStorage{Empty: true}, err
-	}
 
 	result, err := getResult(content)
 	if err != nil {
 		return RichStorage{Empty: true}, err
 	}
 
-	bm, err := a.getBigMapDiff(result, operationID, address, level, m)
+	bm, err := a.getBigMapDiff(result, operationID, address, level, metadata)
 	if err != nil {
 		return RichStorage{Empty: true}, err
 	}
@@ -48,7 +38,7 @@ func (a Alpha) ParseTransaction(content gjson.Result, protocol string, level int
 }
 
 // ParseOrigination -
-func (a Alpha) ParseOrigination(content gjson.Result, protocol string, level int64, operationID string) (RichStorage, error) {
+func (a Alpha) ParseOrigination(content gjson.Result, metadata meta.Metadata, level int64, operationID string) (RichStorage, error) {
 	result, err := getResult(content)
 	if err != nil {
 		return RichStorage{Empty: true}, err
@@ -56,12 +46,8 @@ func (a Alpha) ParseOrigination(content gjson.Result, protocol string, level int
 	address := result.Get("originated_contracts.0").String()
 	storage := content.Get("script.storage")
 
-	m, err := meta.GetMetadata(a.es, address, consts.MetadataAlpha, "storage", protocol)
-	if err != nil {
-		return RichStorage{Empty: true}, err
-	}
 	var bmd []models.BigMapDiff
-	if bmMeta, ok := m["0/0"]; ok && bmMeta.Type == consts.BIGMAP {
+	if bmMeta, ok := metadata["0/0"]; ok && bmMeta.Type == consts.BIGMAP {
 		bigMapData := storage.Get("args.0")
 
 		bmd = make([]models.BigMapDiff, 0)

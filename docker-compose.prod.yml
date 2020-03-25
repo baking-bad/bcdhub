@@ -14,10 +14,6 @@ services:
       - /etc/bcd:/etc/bcd
       - ./cmd/indexer/config.json:/app/indexer/config.json
 
-  opindexer:
-    volumes:
-      - ./cmd/operation_indexer/config.json:/app/operation_indexer/config.json
-
   metrics:
     volumes:
       - ./cmd/metrics/config.json:/app/metrics/config.json
