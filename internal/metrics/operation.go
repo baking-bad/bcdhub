@@ -9,17 +9,14 @@ func (h *Handler) SetOperationAliases(op *models.Operation) error {
 		return err
 	}
 
-	if aliasSource != "" {
-		op.SourceAlias = aliasSource
-	}
+	op.SourceAlias = aliasSource
 
 	aliasDest, err := h.DB.GetAlias(op.Destination, op.Network)
 	if err != nil {
 		return err
 	}
 
-	if aliasDest != "" {
-		op.DestinationAlias = aliasDest
-	}
+	op.DestinationAlias = aliasDest
+
 	return nil
 }
