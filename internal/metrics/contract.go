@@ -12,18 +12,12 @@ import (
 
 // SetContractAlias -
 func (h *Handler) SetContractAlias(c *models.Contract) error {
-	if c.Alias != "" {
-		return nil
-	}
-
 	alias, err := h.DB.GetAlias(c.Address, c.Network)
 	if err != nil {
 		return err
 	}
 
-	if alias != "" {
-		c.Alias = alias
-	}
+	c.Alias = alias
 
 	return nil
 }
