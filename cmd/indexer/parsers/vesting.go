@@ -1,12 +1,12 @@
 package parsers
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -19,29 +19,43 @@ type VestingParser struct {
 	rpc            noderpc.Pool
 	es             *elastic.Elastic
 	filesDirectory string
-	protocols      map[string]string
 }
 
 // NewVestingParser -
-func NewVestingParser(rpc noderpc.Pool, es *elastic.Elastic, filesDirectory string, protocols map[string]string) *VestingParser {
+func NewVestingParser(rpc noderpc.Pool, es *elastic.Elastic, filesDirectory string) *VestingParser {
 	return &VestingParser{
 		rpc:            rpc,
 		es:             es,
 		filesDirectory: filesDirectory,
-		protocols:      protocols,
 	}
 }
 
 // Parse -
-func (p *VestingParser) Parse(data gjson.Result, network, address, protocol string) (models.Operation, *models.Contract, error) {
+func (p *VestingParser) Parse(data gjson.Result, network, address, protocol string) (models.Migration, *models.Contract, error) {
 	ts, err := time.Parse(time.RFC3339, "2018-06-30T00:00:00+00:00")
 	if err != nil {
-		return models.Operation{}, nil, err
+		return models.Migration{}, nil, err
 	}
+	migration := models.Migration{
+		ID:          strings.ReplaceAll(uuid.New().String(), "-", ""),
+		IndexedTime: time.Now().UnixNano() / 1000,
+
+		Network:   network,
+		Protocol:  protocol,
+		Address:   address,
+		Timestamp: ts,
+		Vesting:   true,
+	}
+	protoSymLink, err := meta.GetProtoSymLink(migration.Protocol)
+	if err != nil {
+		return migration, nil, err
+	}
+
 	op := models.Operation{
 		ID:          strings.ReplaceAll(uuid.New().String(), "-", ""),
 		Network:     network,
 		Protocol:    protocol,
+		Status:      "applied",
 		Kind:        consts.Migration,
 		Amount:      data.Get("balance").Int(),
 		Counter:     data.Get("counter").Int(),
@@ -53,14 +67,9 @@ func (p *VestingParser) Parse(data gjson.Result, network, address, protocol stri
 		IndexedTime: time.Now().UnixNano() / 1000,
 		Script:      data.Get("script"),
 	}
-
-	protoSymLink, ok := p.protocols[protocol]
-	if !ok {
-		return op, nil, fmt.Errorf("[%s] Unknown protocol: %s", network, protocol)
-	}
 	if !contractparser.IsDelegateContract(op.Script) {
 		contract, err := createNewContract(p.es, op, p.filesDirectory, protoSymLink)
-		return op, contract, err
+		return migration, contract, err
 	}
-	return op, nil, nil
+	return migration, nil, nil
 }

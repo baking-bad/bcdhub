@@ -7,6 +7,7 @@ const (
 	DocOperations = "operation"
 	DocBigMapDiff = "bigmapdiff"
 	DocMetadata   = "metadata"
+	DocMigrations = "migration"
 )
 
 // Index names

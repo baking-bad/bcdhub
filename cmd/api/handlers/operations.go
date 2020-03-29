@@ -164,7 +164,7 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 	}
 
 	if strings.HasPrefix(op.Destination, "KT") && !cerrors.HasParametersError(op.Errors) {
-		metadata, err := meta.GetMetadata(es, op.Destination, op.Network, "parameter", op.Protocol)
+		metadata, err := meta.GetMetadata(es, op.Destination, consts.PARAMETER, op.Protocol)
 		if err != nil {
 			return op, nil
 		}
@@ -195,7 +195,7 @@ func prepareOperations(es *elastic.Elastic, ops []models.Operation) ([]Operation
 }
 
 func setStorageDiff(es *elastic.Elastic, address, network string, storage string, op *Operation) error {
-	metadata, err := meta.GetMetadata(es, address, network, "storage", op.Protocol)
+	metadata, err := meta.GetContractMetadata(es, address)
 	if err != nil {
 		return err
 	}
@@ -207,7 +207,11 @@ func setStorageDiff(es *elastic.Elastic, address, network string, storage string
 	if err != nil {
 		return err
 	}
-	currentStorage, err := newmiguel.MichelineToMiguel(store, metadata)
+	storageMetadata, err := metadata.Get(consts.STORAGE, op.Protocol)
+	if err != nil {
+		return err
+	}
+	currentStorage, err := newmiguel.MichelineToMiguel(store, storageMetadata)
 	if err != nil {
 		return err
 	}
@@ -227,7 +231,7 @@ func setStorageDiff(es *elastic.Elastic, address, network string, storage string
 			return err
 		}
 
-		prevMetadata, err := meta.GetMetadata(es, address, network, "storage", prev.Protocol)
+		prevMetadata, err := metadata.Get(consts.STORAGE, prev.Protocol)
 		if err != nil {
 			return err
 		}
@@ -260,9 +264,9 @@ func enrichStorage(s string, bmd []models.BigMapDiff, protocol string, skipEmpty
 	if helpers.StringInArray(protocol, []string{
 		consts.HashBabylon, consts.HashCarthage, consts.HashZeroBabylon,
 	}) {
-		parser = storage.NewBabylon(nil, nil)
+		parser = storage.NewBabylon(nil)
 	} else {
-		parser = storage.NewAlpha(nil)
+		parser = storage.NewAlpha()
 	}
 	return parser.Enrich(s, bmd, skipEmpty)
 }

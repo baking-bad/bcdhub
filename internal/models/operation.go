@@ -9,7 +9,7 @@ import (
 
 // Operation -
 type Operation struct {
-	ID string `json:"id"`
+	ID string `json:"-"`
 
 	IndexedTime int64 `json:"indexed_time"`
 

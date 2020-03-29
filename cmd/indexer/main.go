@@ -16,14 +16,14 @@ import (
 
 func main() {
 	var cfg indexer.Config
-	if err := jsonload.StructFromFile("config-dev.json", &cfg); err != nil {
+	if err := jsonload.StructFromFile("config.json", &cfg); err != nil {
 		logger.Fatal(err)
 	}
 	cfg.Print()
 
-	// helpers.InitSentry(cfg.Sentry.DSN, cfg.Sentry.Debug)
-	// helpers.SetTagSentry("project", cfg.Sentry.Project)
-	// defer helpers.CatchPanicSentry()
+	helpers.InitSentry(cfg.Sentry.DSN, cfg.Sentry.Debug)
+	helpers.SetTagSentry("project", cfg.Sentry.Project)
+	defer helpers.CatchPanicSentry()
 
 	gjson.AddModifier("upper", func(json, arg string) string {
 		return strings.ToUpper(json)

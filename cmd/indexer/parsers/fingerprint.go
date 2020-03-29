@@ -13,36 +13,42 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-func computeFingerprint(script gjson.Result, contract *models.Contract) error {
-	colapsed, err := macros.FindMacros(script)
+func setFingerprint(script gjson.Result, contract *models.Contract) error {
+	fgpt, err := computeFingerprint(script)
 	if err != nil {
 		return err
 	}
+	contract.Fingerprint = fgpt
+	return nil
+}
 
+func computeFingerprint(script gjson.Result) (*models.Fingerprint, error) {
+	colapsed, err := macros.FindMacros(script)
+	if err != nil {
+		return nil, err
+	}
 	fgpt := models.Fingerprint{}
 	code := colapsed.Get(`code.#(prim="code")`)
 	codeFgpt, err := fingerprint(code, true)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	fgpt.Code = codeFgpt
 
 	params := colapsed.Get(`code.#(prim="parameter")`)
 	paramFgpt, err := fingerprint(params, false)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	fgpt.Parameter = paramFgpt
 
 	storage := colapsed.Get(`code.#(prim="storage")`)
 	storageFgpt, err := fingerprint(storage, false)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	fgpt.Storage = storageFgpt
-
-	contract.Fingerprint = &fgpt
-	return nil
+	return &fgpt, nil
 }
 
 func fingerprint(script gjson.Result, isCode bool) (string, error) {

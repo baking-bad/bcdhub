@@ -34,8 +34,7 @@ func (e *Elastic) BulkInsert(index string, buf *bytes.Buffer) error {
 func (e *Elastic) BulkInsertOperations(v []models.Operation) error {
 	bulk := bytes.NewBuffer([]byte{})
 	for i := range v {
-		id := uuid.New().String()
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_id": "%s"} }%s`, id, "\n"))
+		meta := []byte(fmt.Sprintf(`{ "index" : { "_id": "%s"} }%s`, v[i].ID, "\n"))
 		data, err := json.Marshal(v[i])
 		if err != nil {
 			return err
@@ -53,8 +52,7 @@ func (e *Elastic) BulkInsertOperations(v []models.Operation) error {
 func (e *Elastic) BulkInsertContracts(v []models.Contract) error {
 	bulk := bytes.NewBuffer([]byte{})
 	for i := range v {
-		id := uuid.New().String()
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_id": "%s"} }%s`, id, "\n"))
+		meta := []byte(fmt.Sprintf(`{ "index" : { "_id": "%s"} }%s`, v[i].ID, "\n"))
 		data, err := json.Marshal(v[i])
 		if err != nil {
 			return err
@@ -86,4 +84,22 @@ func (e *Elastic) BulkSaveBigMapDiffs(diffs []models.BigMapDiff) error {
 		bulk.Write(data)
 	}
 	return e.BulkInsert(DocBigMapDiff, bulk)
+}
+
+// BulkInsertMigrations -
+func (e *Elastic) BulkInsertMigrations(v []models.Migration) error {
+	bulk := bytes.NewBuffer([]byte{})
+	for i := range v {
+		meta := []byte(fmt.Sprintf(`{ "index" : { "_id": "%s"} }%s`, v[i].ID, "\n"))
+		data, err := json.Marshal(v[i])
+		if err != nil {
+			return err
+		}
+		data = append(data, "\n"...)
+
+		bulk.Grow(len(meta) + len(data))
+		bulk.Write(meta)
+		bulk.Write(data)
+	}
+	return e.BulkInsert(DocMigrations, bulk)
 }

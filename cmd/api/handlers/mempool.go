@@ -73,7 +73,7 @@ func (ctx *Context) prepareMempoolOperations(res gjson.Result, address, network 
 		params := item.Get("parameters")
 		if strings.HasPrefix(op.Destination, "KT") && op.Protocol != "" {
 			if params.Exists() {
-				metadata, err := meta.GetMetadata(ctx.ES, op.Destination, op.Network, "parameter", op.Protocol)
+				metadata, err := meta.GetMetadata(ctx.ES, address, consts.PARAMETER, op.Protocol)
 				if err != nil {
 					return nil, err
 				}

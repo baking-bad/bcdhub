@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/gin-gonic/gin"
@@ -33,7 +34,7 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 	// 	return
 	// }
 
-	metadata, err := meta.GetMetadata(ctx.ES, req.Address, req.Network, "storage", protocol)
+	metadata, err := meta.GetMetadata(ctx.ES, req.Address, consts.STORAGE, protocol)
 	if handleError(c, err, 0) {
 		return
 	}

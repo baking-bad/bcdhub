@@ -43,6 +43,11 @@ type Fingerprint struct {
 	Parameter string `json:"parameter"`
 }
 
+// Compare -
+func (f *Fingerprint) Compare(second *Fingerprint) bool {
+	return f.Code == second.Code && f.Parameter == second.Parameter && f.Storage == second.Storage
+}
+
 // BCDTime -
 type BCDTime struct {
 	time.Time
