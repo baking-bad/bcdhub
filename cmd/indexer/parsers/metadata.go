@@ -11,9 +11,9 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-func getMetadata(script gjson.Result, tag, filesDirectory, protoSymLink string, c *models.Contract) (map[string]string, error) {
+func getMetadata(script gjson.Result, tag, protoSymLink string, c *models.Contract) (map[string]string, error) {
 	res := make(map[string]string)
-	metadata, err := createMetadata(script, tag, filesDirectory, c)
+	metadata, err := createMetadata(script, tag, c)
 	if err != nil {
 		return nil, err
 	}
@@ -21,7 +21,28 @@ func getMetadata(script gjson.Result, tag, filesDirectory, protoSymLink string, 
 	return res, nil
 }
 
-func createMetadata(script gjson.Result, tag, filesDirectory string, c *models.Contract) (string, error) {
+func updateMetadata(es *elastic.Elastic, script gjson.Result, protoSymLink string, c *models.Contract) error {
+	metadata, err := es.GetMetadata(c.Address)
+	if err != nil {
+		return err
+	}
+	storage, err := createMetadata(script, consts.STORAGE, c)
+	if err != nil {
+		return err
+	}
+	parameter, err := createMetadata(script, consts.PARAMETER, c)
+	if err != nil {
+		return err
+	}
+
+	metadata.Parameter[protoSymLink] = parameter
+	metadata.Storage[protoSymLink] = storage
+
+	_, err = es.UpdateDoc(elastic.DocMetadata, c.Address, metadata)
+	return err
+}
+
+func createMetadata(script gjson.Result, tag string, c *models.Contract) (string, error) {
 	args := script.Get(fmt.Sprintf("code.#(prim==\"%s\").args", tag))
 	if args.Exists() {
 		metadata, err := meta.ParseMetadata(args)
@@ -48,12 +69,12 @@ func createMetadata(script gjson.Result, tag, filesDirectory string, c *models.C
 	return "", fmt.Errorf("[createMetadata] Unknown tag '%s'", tag)
 }
 
-func saveMetadata(es *elastic.Elastic, script gjson.Result, filesDirectory, protoSymLink string, c *models.Contract) error {
-	storage, err := getMetadata(script, consts.STORAGE, filesDirectory, protoSymLink, c)
+func saveMetadata(es *elastic.Elastic, script gjson.Result, protoSymLink string, c *models.Contract) error {
+	storage, err := getMetadata(script, consts.STORAGE, protoSymLink, c)
 	if err != nil {
 		return err
 	}
-	parameter, err := getMetadata(script, consts.PARAMETER, filesDirectory, protoSymLink, c)
+	parameter, err := getMetadata(script, consts.PARAMETER, protoSymLink, c)
 	if err != nil {
 		return err
 	}

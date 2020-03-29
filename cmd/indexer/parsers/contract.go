@@ -47,14 +47,14 @@ func computeMetrics(es *elastic.Elastic, operation models.Operation, filesDirect
 	contract.Tags = script.Tags.Values()
 	contract.Hardcoded = script.HardcodedAddresses.Values()
 
-	if err := computeFingerprint(operation.Script, contract); err != nil {
+	if err := setFingerprint(operation.Script, contract); err != nil {
 		return err
 	}
 	if err := saveToFile(operation.Script, contract, filesDirectory, protoSymLink); err != nil {
 		return err
 	}
 
-	return saveMetadata(es, operation.Script, filesDirectory, protoSymLink, contract)
+	return saveMetadata(es, operation.Script, protoSymLink, contract)
 }
 
 func saveToFile(script gjson.Result, c *models.Contract, filesDirectory, protoSymLink string) error {

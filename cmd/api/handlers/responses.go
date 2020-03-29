@@ -19,7 +19,7 @@ type Operation struct {
 	Level            int64           `json:"level"`
 	Kind             string          `json:"kind"`
 	Source           string          `json:"source"`
-	SourceAlias      string          `json:"source_alias"`
+	SourceAlias      string          `json:"source_alias,omitempty"`
 	Fee              int64           `json:"fee,omitempty"`
 	Counter          int64           `json:"counter,omitempty"`
 	GasLimit         int64           `json:"gas_limit,omitempty"`

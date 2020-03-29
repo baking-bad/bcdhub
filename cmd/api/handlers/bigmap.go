@@ -53,12 +53,12 @@ func (ctx *Context) GetBigMapByKeyHash(c *gin.Context) {
 }
 
 func (ctx *Context) prepareBigMap(data []elastic.BigMapDiff, network, address string) (res []BigMapResponseItem, err error) {
-	alphaMeta, err := meta.GetMetadata(ctx.ES, address, network, "storage", consts.Hash1)
+	alphaMeta, err := meta.GetMetadata(ctx.ES, address, consts.STORAGE, consts.Hash1)
 	if err != nil {
 		return
 	}
 
-	babyMeta, err := meta.GetMetadata(ctx.ES, address, network, "storage", consts.HashBabylon)
+	babyMeta, err := meta.GetMetadata(ctx.ES, address, consts.STORAGE, consts.HashBabylon)
 	if err != nil {
 		return
 	}
@@ -104,12 +104,12 @@ func (ctx *Context) prepareBigMap(data []elastic.BigMapDiff, network, address st
 }
 
 func (ctx *Context) prepareBigMapItem(data []models.BigMapDiff, network, address string) (res []BigMapItem, err error) {
-	alphaMeta, err := meta.GetMetadata(ctx.ES, address, network, "storage", consts.Hash1)
+	alphaMeta, err := meta.GetMetadata(ctx.ES, address, consts.STORAGE, consts.Hash1)
 	if err != nil {
 		return
 	}
 
-	babyMeta, err := meta.GetMetadata(ctx.ES, address, network, "storage", consts.HashBabylon)
+	babyMeta, err := meta.GetMetadata(ctx.ES, address, consts.STORAGE, consts.HashBabylon)
 	if err != nil {
 		return
 	}

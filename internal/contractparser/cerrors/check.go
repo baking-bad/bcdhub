@@ -1,15 +1,13 @@
 package cerrors
 
 import (
-	"strings"
-
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 )
 
 // HasParametersError -
-func HasParametersError(err []Error) bool {
+func HasParametersError(err []IError) bool {
 	for i := range err {
-		if strings.Contains(err[i].ID, consts.BadParameterError) {
+		if err[i].Is(consts.BadParameterError) {
 			return true
 		}
 	}
@@ -17,9 +15,9 @@ func HasParametersError(err []Error) bool {
 }
 
 // HasGasExhaustedError -
-func HasGasExhaustedError(err []Error) bool {
+func HasGasExhaustedError(err []IError) bool {
 	for i := range err {
-		if strings.Contains(err[i].ID, consts.GasExhaustedError) {
+		if err[i].Is(consts.GasExhaustedError) {
 			return true
 		}
 	}

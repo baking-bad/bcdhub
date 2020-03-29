@@ -60,7 +60,12 @@ func main() {
 		return
 	}
 
-	ctx := handlers.NewContext(es, rpc, cfg.Dir, db, oauth)
+	ctx, err := handlers.NewContext(es, rpc, cfg.Dir, db, oauth)
+	if err != nil {
+		logger.Error(err)
+		helpers.CatchErrorSentry(err)
+		return
+	}
 
 	r := gin.Default()
 
@@ -103,6 +108,7 @@ func main() {
 					address.GET("", ctx.GetContract)
 					address.GET("code", ctx.GetContractCode)
 					address.GET("operations", ctx.GetContractOperations)
+					address.GET("migrations", ctx.GetContractMigrations)
 					address.GET("entrypoints", ctx.GetEntrypoints)
 					address.GET("storage", ctx.GetContractStorage)
 					address.GET("migration", ctx.GetMigrationDiff)

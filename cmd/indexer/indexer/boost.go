@@ -9,6 +9,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/cmd/indexer/parsers"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/index"
@@ -28,7 +29,6 @@ type BoostIndexer struct {
 	state           models.State
 	messageQueue    *mq.MQ
 	filesDirectory  string
-	protocols       map[string]string
 	boost           bool
 
 	stop    chan struct{}
@@ -36,7 +36,7 @@ type BoostIndexer struct {
 }
 
 // NewBoostIndexer -
-func NewBoostIndexer(cfg Config, network string, protocols map[string]string) (*BoostIndexer, error) {
+func NewBoostIndexer(cfg Config, network string) (*BoostIndexer, error) {
 	logger.Info("[%s] Creating indexer object...", network)
 	config := cfg.Indexers[network]
 	es := elastic.WaitNew([]string{cfg.Search.URI})
@@ -79,7 +79,6 @@ func NewBoostIndexer(cfg Config, network string, protocols map[string]string) (*
 		messageQueue:    messageQueue,
 		state:           currentState,
 		filesDirectory:  cfg.FilesDirectory,
-		protocols:       protocols,
 		boost:           config.Boost,
 		stop:            make(chan struct{}),
 	}
@@ -118,7 +117,7 @@ func (bi *BoostIndexer) Sync(wg *sync.WaitGroup) error {
 					if !everySecond {
 						everySecond = true
 						ticker.Stop()
-						ticker = time.NewTicker(time.Second)
+						ticker = time.NewTicker(time.Duration(5) * time.Second)
 					}
 					continue
 				}
@@ -155,10 +154,6 @@ func (bi *BoostIndexer) process() error {
 			if err != nil {
 				return err
 			}
-
-			if len(levels) == 0 {
-				return nil
-			}
 		} else {
 			for i := bi.state.Level + 1; i <= head.Level; i++ {
 				levels = append(levels, i)
@@ -167,6 +162,9 @@ func (bi *BoostIndexer) process() error {
 
 		logger.Info("[%s] Found %d new levels", bi.Network, len(levels))
 
+		if len(levels) == 0 {
+			return nil
+		}
 		for _, level := range levels {
 			select {
 			case <-bi.stop:
@@ -190,7 +188,7 @@ func (bi *BoostIndexer) process() error {
 				}
 			}
 
-			operations, contracts, err := bi.getDataFromBlock(bi.Network, level)
+			operations, contracts, err := bi.getDataFromBlock(bi.Network, currentHead)
 			if err != nil {
 				return err
 			}
@@ -212,9 +210,17 @@ func (bi *BoostIndexer) process() error {
 				return err
 			}
 		}
+
+		if err := bi.updateState(head); err != nil {
+			return err
+		}
+		if bi.boost {
+			bi.boost = false
+		}
+		logger.Success("[%s] Synced", bi.Network)
+		return nil
 	}
 
-	logger.Success("[%s] Synced", bi.Network)
 	return fmt.Errorf("Same level")
 }
 
@@ -279,17 +285,21 @@ func (bi *BoostIndexer) saveOperations(ops []models.Operation) error {
 	return nil
 }
 
-func (bi *BoostIndexer) getDataFromBlock(network string, level int64) ([]models.Operation, []models.Contract, error) {
-	data, err := bi.rpc.GetOperations(level)
+func (bi *BoostIndexer) saveMigrations(migrations []models.Migration) error {
+	return bi.es.BulkInsertMigrations(migrations)
+}
+
+func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([]models.Operation, []models.Contract, error) {
+	data, err := bi.rpc.GetOperations(head.Level)
 	if err != nil {
 		return nil, nil, err
 	}
-	defaultParser := parsers.NewDefaultParser(bi.rpc, bi.es, bi.filesDirectory, bi.protocols)
+	defaultParser := parsers.NewDefaultParser(bi.rpc, bi.es, bi.filesDirectory)
 
 	operations := make([]models.Operation, 0)
 	contracts := make([]models.Contract, 0)
 	for _, opg := range data.Array() {
-		newOps, newContracts, err := defaultParser.Parse(opg, network, level)
+		newOps, newContracts, err := defaultParser.Parse(opg, network, head)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -308,13 +318,13 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) error {
 }
 
 func (bi *BoostIndexer) standartMigration(head noderpc.Header) error {
-	newSymLink, ok := bi.protocols[head.Protocol]
-	if !ok {
-		return fmt.Errorf("[%s] Unknown protocol: %s", bi.Network, head.Protocol)
+	newSymLink, err := meta.GetProtoSymLink(head.Protocol)
+	if err != nil {
+		return err
 	}
-	currentSymLink, ok := bi.protocols[bi.state.Protocol]
-	if !ok {
-		return fmt.Errorf("[%s] Unknown current protocol: %s", bi.Network, bi.state.Protocol)
+	currentSymLink, err := meta.GetProtoSymLink(bi.state.Protocol)
+	if err != nil {
+		return err
 	}
 	if newSymLink == currentSymLink {
 		return nil
@@ -328,6 +338,29 @@ func (bi *BoostIndexer) standartMigration(head noderpc.Header) error {
 		return err
 	}
 	log.Printf("[%s] Now %d contracts are indexed", bi.Network, len(contracts))
+
+	p := parsers.NewMigrationParser(bi.rpc, bi.es, bi.filesDirectory)
+	migrations := make([]models.Migration, 0)
+	for _, contract := range contracts {
+		script, err := bi.rpc.GetScriptJSON(contract.Address, head.Level)
+		if err != nil {
+			return err
+		}
+
+		migration, err := p.Parse(script, head, contract)
+		if err != nil {
+			return err
+		}
+
+		if migration != nil {
+			migrations = append(migrations, *migration)
+		}
+	}
+	if len(migrations) > 0 {
+		if err := bi.saveMigrations(migrations); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -337,9 +370,9 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header) error {
 		return err
 	}
 
-	p := parsers.NewVestingParser(bi.rpc, bi.es, bi.filesDirectory, bi.protocols)
+	p := parsers.NewVestingParser(bi.rpc, bi.es, bi.filesDirectory)
 
-	operations := make([]models.Operation, 0)
+	migrations := make([]models.Migration, 0)
 	contracts := make([]models.Contract, 0)
 	for _, address := range addresses {
 		if !strings.HasPrefix(address, "KT") {
@@ -351,24 +384,24 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header) error {
 			return err
 		}
 
-		operation, contract, err := p.Parse(data, bi.Network, address, head.Protocol)
+		migration, contract, err := p.Parse(data, bi.Network, address, head.Protocol)
 		if err != nil {
 			return err
 		}
-		operations = append(operations, operation)
+		migrations = append(migrations, migration)
 		if contract != nil {
 			contracts = append(contracts, *contract)
 		}
 	}
 
-	logger.Info("[%s] Found %d migration operations", bi.Network, len(operations))
+	logger.Info("[%s] Found %d migrations", bi.Network, len(migrations))
 	if len(contracts) > 0 {
 		if err := bi.saveContracts(contracts); err != nil {
 			return err
 		}
 	}
-	if len(operations) > 0 {
-		if err := bi.saveOperations(operations); err != nil {
+	if len(migrations) > 0 {
+		if err := bi.saveMigrations(migrations); err != nil {
 			return err
 		}
 	}
@@ -382,6 +415,7 @@ func (bi *BoostIndexer) createIndexes() error {
 		elastic.DocBigMapDiff,
 		elastic.DocOperations,
 		elastic.DocStates,
+		elastic.DocMigrations,
 	} {
 		if err := bi.es.CreateIndexIfNotExists(index); err != nil {
 			return err

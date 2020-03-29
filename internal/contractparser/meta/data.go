@@ -9,11 +9,44 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/node"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/jsonload"
 	"github.com/tidwall/gjson"
 )
 
+var protocols map[string]string
+
 // Metadata -
 type Metadata map[string]*NodeMetadata
+
+// ContractMetadata -
+type ContractMetadata struct {
+	Parameter map[string]Metadata `json:"parameter"`
+	Storage   map[string]Metadata `json:"storage"`
+}
+
+// Get - returns metadata by part and sym link
+func (c *ContractMetadata) Get(part, protocol string) (Metadata, error) {
+	protoSymLink, err := GetProtoSymLink(protocol)
+	if err != nil {
+		return nil, err
+	}
+	switch part {
+	case consts.STORAGE:
+		ret, ok := c.Storage[protoSymLink]
+		if !ok {
+			return nil, fmt.Errorf("[ContractMetadata.Get] Unknown storage sym link: %s", protoSymLink)
+		}
+		return ret, nil
+	case consts.PARAMETER:
+		ret, ok := c.Parameter[protoSymLink]
+		if !ok {
+			return nil, fmt.Errorf("[ContractMetadata.Get] Unknown parameter sym link: %s", protoSymLink)
+		}
+		return ret, nil
+	default:
+		return nil, fmt.Errorf("[ContractMetadata.Get] Unknown metadata part: %s", part)
+	}
+}
 
 // NodeMetadata -
 type NodeMetadata struct {
@@ -33,16 +66,6 @@ func (m Metadata) GetFieldName(path string, idx int) string {
 	if nm.Name != "" {
 		return nm.Name
 	}
-
-	// root := m["0"]
-	// for i := range root.Args {
-	// 	if root.Args[i] == path {
-	// 		if idx != -1 {
-	// 			return fmt.Sprintf("entrypoint_%d", idx)
-	// 		}
-	// 		return "default"
-	// 	}
-	// }
 
 	if idx != -1 {
 		return fmt.Sprintf("@%s_%d", nm.Prim, idx)
@@ -318,26 +341,85 @@ func getNodeType(n internalNode, metadata Metadata) (string, []string) {
 	return "", nil
 }
 
-// GetMetadata -
-func GetMetadata(es *elastic.Elastic, address, network, tag, protocol string) (Metadata, error) {
+// GetContractMetadata -
+func GetContractMetadata(es *elastic.Elastic, address string) (*ContractMetadata, error) {
 	if address == "" {
-		return nil, fmt.Errorf("[getMetadata] Empty address")
+		return nil, fmt.Errorf("[GetContractMetadata] Empty address")
 	}
 
-	data, err := es.GetByID(elastic.DocMetadata, address)
+	data, err := es.GetMetadata(address)
 	if err != nil {
 		return nil, err
 	}
-	n := GetMetadataNetwork(network, protocol)
-	path := fmt.Sprintf("_source.%s.%s", tag, n)
-	if !data.Get(path).Exists() && n == consts.MetadataAlpha {
-		return nil, nil
-	}
-	metadata := data.Get(path).String()
 
-	var res Metadata
-	if err := json.Unmarshal([]byte(metadata), &res); err != nil {
+	metadata := ContractMetadata{
+		Parameter: map[string]Metadata{},
+		Storage:   map[string]Metadata{},
+	}
+
+	for k, v := range data.Parameter {
+		var m Metadata
+		if err := json.Unmarshal([]byte(v), &m); err != nil {
+			return nil, err
+		}
+		metadata.Parameter[k] = m
+	}
+
+	for k, v := range data.Storage {
+		var m Metadata
+		if err := json.Unmarshal([]byte(v), &m); err != nil {
+			return nil, err
+		}
+		metadata.Storage[k] = m
+	}
+	return &metadata, nil
+}
+
+// GetMetadata -
+func GetMetadata(es *elastic.Elastic, address, part, protocol string) (Metadata, error) {
+	if address == "" {
+		return nil, fmt.Errorf("[GetMetadata] Empty address")
+	}
+
+	data, err := es.GetMetadata(address)
+	if err != nil {
 		return nil, err
 	}
-	return res, nil
+
+	var fullMetadata map[string]string
+	switch part {
+	case consts.STORAGE:
+		fullMetadata = data.Storage
+	case consts.PARAMETER:
+		fullMetadata = data.Parameter
+	default:
+		return nil, fmt.Errorf("[GetMetadata] Unknown metadata part: %s", part)
+	}
+
+	protoSymLink, err := GetProtoSymLink(protocol)
+	if err != nil {
+		return nil, err
+	}
+
+	sMetadata, ok := fullMetadata[protoSymLink]
+	if !ok {
+		return nil, fmt.Errorf("[GetMetadata] Unknown metadata sym link: %s", protoSymLink)
+	}
+
+	var metadata Metadata
+	err = json.Unmarshal([]byte(sMetadata), &metadata)
+	return metadata, err
+}
+
+// LoadProtocols -
+func LoadProtocols(fileName string) error {
+	return jsonload.StructFromFile(fileName, &protocols)
+}
+
+// GetProtoSymLink -
+func GetProtoSymLink(protocol string) (string, error) {
+	if protoSymLink, ok := protocols[protocol]; ok {
+		return protoSymLink, nil
+	}
+	return "", fmt.Errorf("Unknown protocol: %s", protocol)
 }

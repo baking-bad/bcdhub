@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
+	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/index"
-	"github.com/baking-bad/bcdhub/internal/jsonload"
 )
 
 // CreateIndexers -
@@ -14,17 +14,16 @@ func CreateIndexers(cfg Config) ([]Indexer, error) {
 	if err := cerrors.LoadErrorDescriptions("data/errors.json"); err != nil {
 		return nil, err
 	}
-	var protocols map[string]string
-	if err := jsonload.StructFromFile("protocols.json", &protocols); err != nil {
+	if err := meta.LoadProtocols("protocols.json"); err != nil {
 		return nil, err
 	}
-	return createIndexers(cfg, protocols)
+	return createIndexers(cfg)
 }
 
-func createIndexers(cfg Config, protocols map[string]string) ([]Indexer, error) {
+func createIndexers(cfg Config) ([]Indexer, error) {
 	indexers := make([]Indexer, 0)
 	for network := range cfg.Indexers {
-		bi, err := NewBoostIndexer(cfg, network, protocols)
+		bi, err := NewBoostIndexer(cfg, network)
 		if err != nil {
 			return nil, err
 		}
