@@ -6,11 +6,9 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
-	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/rawbytes"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -95,23 +93,10 @@ func prepareFilters(req operationsRequest) map[string]interface{} {
 	return filters
 }
 
-func formatErrors(errs []cerrors.Error, op *Operation) error {
+func formatErrors(errs []cerrors.IError, op *Operation) error {
 	for i := range errs {
-		if errs[i].With != "" {
-			text := gjson.Parse(errs[i].With)
-			if text.Get("bytes").Exists() {
-				data := text.Get("bytes").String()
-				data = strings.TrimPrefix(data, "05")
-				decodedString, err := rawbytes.ToMicheline(data)
-				if err == nil {
-					text = gjson.Parse(decodedString)
-				}
-			}
-			errString, err := formatter.MichelineToMichelson(text, true, formatter.DefLineSize)
-			if err != nil {
-				return err
-			}
-			errs[i].With = errString
+		if err := errs[i].Format(); err != nil {
+			return err
 		}
 	}
 	op.Errors = errs

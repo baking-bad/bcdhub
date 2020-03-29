@@ -120,3 +120,90 @@ func TestBalanceTooLowError_Parse(t *testing.T) {
 		})
 	}
 }
+
+func TestDefaultError_Format(t *testing.T) {
+	tests := []struct {
+		name        string
+		args        IError
+		compareWith string
+	}{
+		{
+			name: "Error 1",
+			args: &DefaultError{
+				Kind:        "temporary",
+				ID:          "proto.003-PsddFKi3.scriptRejectedRuntimeError",
+				Title:       "Script failed (runtime script error)",
+				Description: "A FAILWITH instruction was reached",
+				Location:    710,
+				With:        `{"prim":"Unit"}`,
+			},
+			compareWith: "Unit",
+		}, {
+			name: "Error 2",
+			args: &DefaultError{
+				Kind:        "temporary",
+				ID:          "proto.004-Pt24m4xi.gas_exhausted.operation",
+				Title:       "Gas quota exceeded for the operation",
+				Description: "A script or one of its callee took more time than the operation said it would",
+			},
+		}, {
+			name: "Error 3",
+			args: &DefaultError{
+				Kind:        "temporary",
+				ID:          "proto.004-Pt24m4xi.contract.balance_too_low",
+				Title:       "Balance too low",
+				Description: "An operation tried to spend more tokens than the contract has",
+			},
+		}, {
+			name: "Error 4",
+			args: &DefaultError{
+				Kind:        "temporary",
+				ID:          "proto.005-PsBabyM1.michelson_v1.script_rejected",
+				Title:       "Script failed",
+				Description: "A FAILWITH instruction was reached",
+				Location:    226,
+				With:        `{"prim":"Unit"}`,
+			},
+			compareWith: "Unit",
+		}, {
+			name: "Error 5",
+			args: &DefaultError{
+				Kind:        "permanent",
+				ID:          "proto.005-PsBabyM1.contract.manager.unregistered_delegate",
+				Title:       "Unregistered delegate",
+				Description: "A contract cannot be delegated to an unregistered delegate",
+			},
+		}, {
+			name: "Error 6",
+			args: &BalanceTooLowError{
+				DefaultError: DefaultError{
+					Kind:        "temporary",
+					ID:          "proto.004-Pt24m4xi.contract.balance_too_low",
+					Title:       "Balance too low",
+					Description: "An operation tried to spend more tokens than the contract has",
+				},
+				Balance: 5248650175,
+				Amount:  22571025048,
+			},
+		},
+	}
+
+	if err := LoadErrorDescriptions("errors.json"); err != nil {
+		panic(err)
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.args.Format()
+			switch err := tt.args.(type) {
+			case *BalanceTooLowError:
+				if err.With != tt.compareWith {
+					t.Errorf("Invalid formatted with error: %v != %v", err.With, tt.compareWith)
+				}
+			case *DefaultError:
+				if err.With != tt.compareWith {
+					t.Errorf("Invalid formatted with error: %v != %v", err.With, tt.compareWith)
+				}
+			}
+		})
+	}
+}
