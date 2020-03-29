@@ -3,6 +3,8 @@ package cerrors
 import (
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
+	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/rawbytes"
 	"github.com/tidwall/gjson"
 )
 
@@ -10,6 +12,7 @@ import (
 type IError interface {
 	Parse(data gjson.Result)
 	Is(string) bool
+	Format() error
 }
 
 // DefaultError -
@@ -42,6 +45,28 @@ func (e *DefaultError) Parse(data gjson.Result) {
 // Is -
 func (e *DefaultError) Is(errorID string) bool {
 	return strings.Contains(e.ID, errorID)
+}
+
+// Format -
+func (e *DefaultError) Format() error {
+	if e.With == "" {
+		return nil
+	}
+	text := gjson.Parse(e.With)
+	if text.Get("bytes").Exists() {
+		data := text.Get("bytes").String()
+		data = strings.TrimPrefix(data, "05")
+		decodedString, err := rawbytes.ToMicheline(data)
+		if err == nil {
+			text = gjson.Parse(decodedString)
+		}
+	}
+	errString, err := formatter.MichelineToMichelson(text, true, formatter.DefLineSize)
+	if err != nil {
+		return err
+	}
+	e.With = errString
+	return nil
 }
 
 // BalanceTooLowError -
@@ -85,12 +110,11 @@ func getErrorID(data gjson.Result) string {
 }
 
 func getErrorObject(data gjson.Result) IError {
-	id := getErrorID(data)
+	id := data.Get("id").String()
 	var e IError
-	switch id {
-	case balanceTooLow:
+	if strings.Contains(id, balanceTooLow) {
 		e = &BalanceTooLowError{}
-	default:
+	} else {
 		e = &DefaultError{}
 	}
 	e.Parse(data)

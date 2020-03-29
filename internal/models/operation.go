@@ -42,7 +42,7 @@ type Operation struct {
 
 	BalanceUpdates []BalanceUpdate  `json:"balance_updates,omitempty"`
 	Result         *OperationResult `json:"result,omitempty"`
-	Errors         []cerrors.Error  `json:"errors,omitempty"`
+	Errors         []cerrors.IError `json:"errors,omitempty"`
 
 	DeffatedStorage string       `json:"deffated_storage"`
 	Script          gjson.Result `json:"-"`
@@ -139,13 +139,13 @@ func (b *BalanceUpdate) ParseElasticJSON(data gjson.Result) {
 
 // OperationResult -
 type OperationResult struct {
-	Status                       string          `json:"-"`
-	ConsumedGas                  int64           `json:"consumed_gas,omitempty"`
-	StorageSize                  int64           `json:"storage_size,omitempty"`
-	PaidStorageSizeDiff          int64           `json:"paid_storage_size_diff,omitempty"`
-	AllocatedDestinationContract bool            `json:"allocated_destination_contract,omitempty"`
-	Originated                   string          `json:"-"`
-	Errors                       []cerrors.Error `json:"-"`
+	Status                       string           `json:"-"`
+	ConsumedGas                  int64            `json:"consumed_gas,omitempty"`
+	StorageSize                  int64            `json:"storage_size,omitempty"`
+	PaidStorageSizeDiff          int64            `json:"paid_storage_size_diff,omitempty"`
+	AllocatedDestinationContract bool             `json:"allocated_destination_contract,omitempty"`
+	Originated                   string           `json:"-"`
+	Errors                       []cerrors.IError `json:"-"`
 
 	BalanceUpdates []BalanceUpdate `json:"balance_updates,omitempty"`
 }
