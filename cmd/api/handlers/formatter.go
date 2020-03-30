@@ -22,6 +22,10 @@ func (ctx *Context) GetFormatter(c *gin.Context) {
 		return
 	}
 
+	if req.LineSize == 0 {
+		req.LineSize = formatter.DefLineSize
+	}
+
 	if req.LineSize < minLineSize || req.LineSize > maxLineSize {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("linesize should be between [%v...%v]", minLineSize, maxLineSize)})
 		return
