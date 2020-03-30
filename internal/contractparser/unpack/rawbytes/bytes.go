@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/tzbase58"
+	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/domaintypes"
 )
 
 type bytesDecoder struct{}
@@ -31,14 +31,14 @@ func (d bytesDecoder) Decode(dec *decoder, code *strings.Builder) (int, error) {
 
 	// log.Printf("[bytes Decode] data: %x\n", data)
 
-	if length == tzbase58.KeyHashLength {
+	if length == domaintypes.KeyHashBytesLength {
 		if res, err := decodeKeyHash(data); err == nil {
 			fmt.Fprintf(code, `{ "string": "%s" }`, res)
 			return 4 + length, nil
 		}
 	}
 
-	if length == tzbase58.AddressLength {
+	if length == domaintypes.AddressBytesLength {
 		if res, err := decodeAddress(data); err == nil {
 			fmt.Fprintf(code, `{ "string": "%s" }`, res)
 			return 4 + length, nil
@@ -62,17 +62,17 @@ func (d bytesDecoder) Decode(dec *decoder, code *strings.Builder) (int, error) {
 }
 
 func decodeKeyHash(data []byte) (string, error) {
-	return tzbase58.DecodeKeyHash(hex.EncodeToString(data))
+	return domaintypes.DecodeKeyHash(hex.EncodeToString(data))
 }
 
 func decodeAddress(data []byte) (string, error) {
-	if tzbase58.HasKT1Affixes(data) {
-		if res, err := tzbase58.DecodeKT(hex.EncodeToString(data)); err == nil {
+	if domaintypes.HasKT1Affixes(data) {
+		if res, err := domaintypes.DecodeKT(hex.EncodeToString(data)); err == nil {
 			return res, nil
 		}
 	}
 
-	if res, err := tzbase58.DecodeTz(hex.EncodeToString(data)); err == nil {
+	if res, err := domaintypes.DecodeTz(hex.EncodeToString(data)); err == nil {
 		return res, nil
 	}
 

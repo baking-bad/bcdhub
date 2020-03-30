@@ -4,6 +4,270 @@ import (
 	"testing"
 )
 
+func TestPulickKey(t *testing.T) {
+	tests := []struct {
+		name   string
+		input  string
+		result string
+	}{
+		{
+			name:   "ed25519 public key",
+			input:  "004e4ca2abb4baeed702a0ac5b0de9b5607dd1fedb399c0ce25e15b3868f67269e",
+			result: "edpkuEhzJqdFBCWMw6TU3deADRK2fq3GuwWFUphwyH7ero1Na4oGFP",
+		},
+		{
+			name:   "secp256k1 public key",
+			input:  "01030ed412d33412ab4b71df0aaba07df7ddd2a44eb55c87bf81868ba09a358bc0e0",
+			result: "sppk7bMuoa8w2LSKz3XEuPsKx1WavsMLCWgbWG9CZNAsJg9eTmkXRPd",
+		},
+		{
+			name:   "p256 public key",
+			input:  "02031a3ad5ea94de6912f9bc83fd31de49816e90602c5252d77b5b233bfe711b0dd2",
+			result: "p2pk66iTZwLmRPshQgUr2HE3RUzSFwAN5MNaBQ5rfduT1dGKXd25pNN",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			res, err := PublicKey(tt.input)
+			if err != nil {
+				t.Errorf("Error in PublicKey. Input: %v. Error: %v", tt.input, err)
+			}
+			if res != tt.result {
+				t.Errorf("Error in PublicKey. Input: %v. Got: %v. Expected: %v.", tt.input, res, tt.result)
+			}
+		})
+	}
+}
+
+func TestKeyHash(t *testing.T) {
+	tests := []struct {
+		input  string
+		result string
+	}{
+		{
+			input:  "0010fc2282886d9cf8a1eebdc2733e302c7b110f38",
+			result: "tz1MBqYpcoGU93c1bePp5A6dmwKYjmHXRopS",
+		},
+		{
+			input:  "003c8c2fe0f75ce212558df94c7a7306c2eeadd979",
+			result: "tz1RABAzdLWVvxAFf1wpeUALAkp32mVhSGXX",
+		},
+		{
+			input:  "004bf0acca4cc9e034b1d5f0f783c78e5ed44d866e",
+			result: "tz1SZZgtvMVXaBKPcez4gfjKUsDz1gs6vg6X",
+		},
+		{
+			input:  "0079e68d8f0a8d64ec856e193efc0a347ef4adf8ee",
+			result: "tz1WkaeRycRr999GrVFepJd9Nqi1FWqGyGqq",
+		},
+		{
+			input:  "01028562fb176188114cf437a757cdc75bc4aa8cae",
+			result: "tz28YZoayJjVz2bRgGeVjxE8NonMiJ3r2Wdu",
+		},
+		{
+			input:  "029d6a61cd3510193e257128da8f09a0b173bff695",
+			result: "tz3agP9LGe2cXmKQyYn6T68BHKjjktDbbSWX",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			res, err := KeyHash(tt.input)
+
+			if err != nil {
+				t.Errorf("Error in KeyHash. Error: %v", err)
+			}
+
+			if res != tt.result {
+				t.Errorf("Error in Keyhash. Got: %v. Expected: %v", res, tt.result)
+			}
+		})
+	}
+}
+
+func TestAddress(t *testing.T) {
+	tests := []struct {
+		name    string
+		address string
+		result  string
+	}{
+		{
+			name:    "tz1 address",
+			address: "00009e6ac2e529a49aedbcdd0ac9542d5c0f4ce76f77",
+			result:  `tz1a5fMLLY5WCarCzH7RKTJHX9mJFN8eaaWG`,
+		},
+		{
+			name:    "tz1 address",
+			address: "000010fc2282886d9cf8a1eebdc2733e302c7b110f38",
+			result:  "tz1MBqYpcoGU93c1bePp5A6dmwKYjmHXRopS",
+		},
+		{
+			name:    "tz1 address",
+			address: "000006a868bd80219eb1f6a25108d1bdaa98ae27b2d9",
+			result:  "tz1LFEVYR7YRCxT6Nm3Zfjdnfj77xZqhbR5U",
+		},
+		{
+			name:    "tz1 address",
+			address: "00003c8c2fe0f75ce212558df94c7a7306c2eeadd979",
+			result:  "tz1RABAzdLWVvxAFf1wpeUALAkp32mVhSGXX",
+		},
+		{
+			name:    "tz1 address",
+			address: "00004bf0acca4cc9e034b1d5f0f783c78e5ed44d866e",
+			result:  "tz1SZZgtvMVXaBKPcez4gfjKUsDz1gs6vg6X",
+		},
+		{
+			name:    "tz1 address",
+			address: "000079e68d8f0a8d64ec856e193efc0a347ef4adf8ee",
+			result:  "tz1WkaeRycRr999GrVFepJd9Nqi1FWqGyGqq",
+		},
+		{
+			name:    "tz2 address",
+			address: "0001028562fb176188114cf437a757cdc75bc4aa8cae",
+			result:  "tz28YZoayJjVz2bRgGeVjxE8NonMiJ3r2Wdu",
+		},
+		{
+			name:    "tz3 address",
+			address: "00029d6a61cd3510193e257128da8f09a0b173bff695",
+			result:  "tz3agP9LGe2cXmKQyYn6T68BHKjjktDbbSWX",
+		},
+		{
+			name:    "KT address",
+			address: "0168b709e887ddc34c3c9e468b5819b2f012b60ef700",
+			result:  "KT1J8T7U6J1BAo9fJAxvedHsNErnejwvPyUH",
+		},
+		{
+			name:    "KT address",
+			address: "011fb03e3ff9fedaf3a2200ffc64d27812da734bba00",
+			result:  `KT1BUKeJTemAaVBfRz6cqxeUBQGQqMxfG19A`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.address, func(t *testing.T) {
+			res, err := Address(tt.address)
+			if err != nil {
+				t.Errorf("Error in Address. Error: %v", err)
+			}
+			if res != tt.result {
+				t.Errorf("Error in Address. Got %v, Expected: %v", res, tt.result)
+			}
+		})
+	}
+}
+
+func TestSignature(t *testing.T) {
+	validTestCases := []struct {
+		name   string
+		input  string
+		result string
+	}{
+		{
+			name:   "sig",
+			input:  "bdc36db614aaa6084549020d376bb2469b5ea888dca2f7afbe5a0095bcc45ca0d8b5f00a051969437fe092debbcfe19d66378fbb74104de7eb1ecd895a64a80a",
+			result: `signpEFVQ1rW3TnVhc3PXf6SHRj7PvxwfJhBukWfB5X9rDhzpEk3ms5gRh763e922n52uQcjeqhqPdYi7WbFs2ERrNAPmCZJ`,
+		},
+		{
+			name:   "sig",
+			input:  "a04991b4e938cc42d6c01c42be3649a81a9f80d244d9b90e7ec4edf8e0a7b68b6c212da2fef076e48fed66802fa83442b960a36afdb3e60c3cf14d4010f41f03",
+			result: `sigixZejtj1GfDpyiWAQAmvbtnNmCXKyADqVvCaXJH9xHyhSnYYV8696Z3kkns5DNV7oMnMPfNzo3qm84DfEx1XG6saZmHiA`,
+		},
+	}
+
+	for _, tc := range validTestCases {
+		t.Run(tc.name, func(t *testing.T) {
+			res, err := Signature(tc.input)
+			if err != nil {
+				t.Errorf("error: %v", err)
+				return
+			}
+			if res != tc.result {
+				t.Errorf("\nInput: %v. \nGot: %v, \nexpected: %v.", tc.input, res, tc.result)
+			}
+		})
+	}
+}
+
+func TestChainID(t *testing.T) {
+	validTestCases := []struct {
+		name   string
+		input  string
+		result string
+	}{
+		{
+			name:   "chainID/main",
+			input:  "7a06a770",
+			result: `NetXdQprcVkpaWU`,
+		},
+		{
+			name:   "chainID/babylon",
+			input:  "458aa837",
+			result: `NetXUdfLh6Gm88t`,
+		},
+		{
+			name:   "chainID/carthage",
+			input:  "9caecab9",
+			result: `NetXjD3HPJJjmcd`,
+		},
+		{
+			name:   "chainID/zeronet",
+			input:  "0f6f0310",
+			result: `NetXKakFj1A7ouL`,
+		},
+	}
+
+	for _, tc := range validTestCases {
+		t.Run(tc.name, func(t *testing.T) {
+			res, err := ChainID(tc.input)
+			if err != nil {
+				t.Errorf("error: %v", err)
+				return
+			}
+			if res != tc.result {
+				t.Errorf("\nInput: %v. \nGot: %v, \nexpected: %v.", tc.input, res, tc.result)
+			}
+		})
+	}
+}
+
+func TestContract(t *testing.T) {
+	validTestCases := []struct {
+		name   string
+		input  string
+		result string
+	}{
+		{
+			name:   "contract/tz3",
+			input:  "0002358cbffa97149631cfb999fa47f0035fb1ea8636",
+			result: `tz3RDC3Jdn4j15J7bBHZd29EUee9gVB1CxD9`,
+		},
+		{
+			name:   "contract/KT",
+			input:  "016f516588d2ee560385e386708a13bd63da907cf300",
+			result: `KT1JjN5bTE9yayzYHiBm6ruktwEWSHRF8aDm`,
+		},
+		{
+			name:   "contract/KT%",
+			input:  "01e5bae183211979a662665319a0900df3542e65ba00646f",
+			result: `KT1VXUBQbYMt58yoKhNo73Zf8HTMfAd8Fqge%do`,
+		},
+	}
+
+	for _, tc := range validTestCases {
+		t.Run(tc.name, func(t *testing.T) {
+			res, err := Contract(tc.input)
+			if err != nil {
+				t.Errorf("error: %v", err)
+				return
+			}
+			if res != tc.result {
+				t.Errorf("\nInput: %v. \nGot: %v, \nexpected: %v.", tc.input, res, tc.result)
+			}
+		})
+	}
+}
+
 func TestBytes(t *testing.T) {
 	validTestCases := []struct {
 		name    string
@@ -276,149 +540,6 @@ func TestBytes(t *testing.T) {
 			res := Bytes(tc.input)
 			if res != tc.result {
 				t.Errorf("\nInput: %v. \nGot: %v\nexpected: %v.", tc.input, res, tc.result)
-			}
-		})
-	}
-}
-
-func TestAddress(t *testing.T) {
-	validTestCases := []struct {
-		name   string
-		input  string
-		result string
-	}{
-		{
-			name:   "KT address",
-			input:  "011fb03e3ff9fedaf3a2200ffc64d27812da734bba00",
-			result: `KT1BUKeJTemAaVBfRz6cqxeUBQGQqMxfG19A`,
-		},
-		{
-			name:   "tz1 address",
-			input:  "00009e6ac2e529a49aedbcdd0ac9542d5c0f4ce76f77",
-			result: `tz1a5fMLLY5WCarCzH7RKTJHX9mJFN8eaaWG`,
-		},
-	}
-
-	for _, tc := range validTestCases {
-		t.Run(tc.name, func(t *testing.T) {
-			res, err := Address(tc.input)
-			if err != nil {
-				t.Errorf("error: %v", err)
-				return
-			}
-			if res != tc.result {
-				t.Errorf("\nInput: %v. \nGot: %v, \nexpected: %v.", tc.input, res, tc.result)
-			}
-		})
-	}
-}
-
-func TestSignature(t *testing.T) {
-	validTestCases := []struct {
-		name   string
-		input  string
-		result string
-	}{
-		{
-			name:   "sig",
-			input:  "bdc36db614aaa6084549020d376bb2469b5ea888dca2f7afbe5a0095bcc45ca0d8b5f00a051969437fe092debbcfe19d66378fbb74104de7eb1ecd895a64a80a",
-			result: `signpEFVQ1rW3TnVhc3PXf6SHRj7PvxwfJhBukWfB5X9rDhzpEk3ms5gRh763e922n52uQcjeqhqPdYi7WbFs2ERrNAPmCZJ`,
-		},
-		{
-			name:   "sig",
-			input:  "a04991b4e938cc42d6c01c42be3649a81a9f80d244d9b90e7ec4edf8e0a7b68b6c212da2fef076e48fed66802fa83442b960a36afdb3e60c3cf14d4010f41f03",
-			result: `sigixZejtj1GfDpyiWAQAmvbtnNmCXKyADqVvCaXJH9xHyhSnYYV8696Z3kkns5DNV7oMnMPfNzo3qm84DfEx1XG6saZmHiA`,
-		},
-	}
-
-	for _, tc := range validTestCases {
-		t.Run(tc.name, func(t *testing.T) {
-			res, err := Signature(tc.input)
-			if err != nil {
-				t.Errorf("error: %v", err)
-				return
-			}
-			if res != tc.result {
-				t.Errorf("\nInput: %v. \nGot: %v, \nexpected: %v.", tc.input, res, tc.result)
-			}
-		})
-	}
-}
-
-func TestChainID(t *testing.T) {
-	validTestCases := []struct {
-		name   string
-		input  string
-		result string
-	}{
-		{
-			name:   "chainID/main",
-			input:  "7a06a770",
-			result: `NetXdQprcVkpaWU`,
-		},
-		{
-			name:   "chainID/babylon",
-			input:  "458aa837",
-			result: `NetXUdfLh6Gm88t`,
-		},
-		{
-			name:   "chainID/carthage",
-			input:  "9caecab9",
-			result: `NetXjD3HPJJjmcd`,
-		},
-		{
-			name:   "chainID/zeronet",
-			input:  "0f6f0310",
-			result: `NetXKakFj1A7ouL`,
-		},
-	}
-
-	for _, tc := range validTestCases {
-		t.Run(tc.name, func(t *testing.T) {
-			res, err := ChainID(tc.input)
-			if err != nil {
-				t.Errorf("error: %v", err)
-				return
-			}
-			if res != tc.result {
-				t.Errorf("\nInput: %v. \nGot: %v, \nexpected: %v.", tc.input, res, tc.result)
-			}
-		})
-	}
-}
-
-func TestContract(t *testing.T) {
-	validTestCases := []struct {
-		name   string
-		input  string
-		result string
-	}{
-		{
-			name:   "contract/tz3",
-			input:  "0002358cbffa97149631cfb999fa47f0035fb1ea8636",
-			result: `tz3RDC3Jdn4j15J7bBHZd29EUee9gVB1CxD9`,
-		},
-		{
-			name:   "contract/KT",
-			input:  "016f516588d2ee560385e386708a13bd63da907cf300",
-			result: `KT1JjN5bTE9yayzYHiBm6ruktwEWSHRF8aDm`,
-		},
-		{
-			name:   "contract/KT%",
-			input:  "01e5bae183211979a662665319a0900df3542e65ba00646f",
-			result: `KT1VXUBQbYMt58yoKhNo73Zf8HTMfAd8Fqge%do`,
-		},
-	}
-
-	for _, tc := range validTestCases {
-		t.Run(tc.name, func(t *testing.T) {
-			res, err := Contract(tc.input)
-			if err != nil {
-				t.Errorf("error: %v", err)
-				return
-			}
-			if res != tc.result {
-				t.Errorf("\nInput: %v. \nGot: %v, \nexpected: %v.", tc.input, res, tc.result)
 			}
 		})
 	}
