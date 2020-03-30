@@ -19,14 +19,16 @@ func createNewContract(es *elastic.Elastic, operation models.Operation, filesDir
 		return nil, fmt.Errorf("Invalid operation kind in computeContractMetrics: %s", operation.Kind)
 	}
 	contract := &models.Contract{
-		ID:        strings.ReplaceAll(uuid.New().String(), "-", ""),
-		Network:   operation.Network,
-		Level:     operation.Level,
-		Timestamp: operation.Timestamp,
-		Manager:   operation.Source,
-		Address:   operation.Destination,
-		Balance:   operation.Balance,
-		Delegate:  operation.Delegate,
+		ID:         strings.ReplaceAll(uuid.New().String(), "-", ""),
+		Network:    operation.Network,
+		Level:      operation.Level,
+		Timestamp:  operation.Timestamp,
+		Manager:    operation.Source,
+		Address:    operation.Destination,
+		Balance:    operation.Balance,
+		Delegate:   operation.Delegate,
+		LastAction: operation.Timestamp,
+		TxCount:    1,
 	}
 
 	err := computeMetrics(es, operation, filesDirectory, protoSymLink, contract)
