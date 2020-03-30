@@ -95,13 +95,12 @@ func (node *Node) compareChildren(second *Node) {
 	}
 	if diffType != "" {
 		if !helpers.StringInArray(node.Type, []string{
-			consts.BIGMAP, consts.MAP, consts.LIST, consts.SET,
+			consts.BIGMAP, consts.MAP, consts.LIST, consts.SET, consts.TypeNamedTuple, consts.TypeNamedUnion,
 		}) {
 			node.setDiffType(diffType)
 			return
 		}
 	}
-
 	merge(node, second)
 }
 
@@ -142,6 +141,7 @@ func defaultMerge(node, second *Node) {
 			node.Children[i].setDiffType(create)
 			continue
 		}
+
 		if !node.Children[i].compareFields(second.Children[j]) {
 			if node.Children[i].Prim == "" {
 				node.Children[i] = second.Children[j]
@@ -167,6 +167,18 @@ func defaultMerge(node, second *Node) {
 			second.Children[i].setDiffType(delete)
 			node.Children = append(node.Children, second.Children[i])
 		}
+	}
+
+	removed := true
+	for i := range node.Children {
+		if node.Children[i].DiffType != delete {
+			removed = false
+			break
+		}
+	}
+
+	if removed {
+		node.DiffType = delete
 	}
 }
 

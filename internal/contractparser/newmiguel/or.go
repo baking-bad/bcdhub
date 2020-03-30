@@ -16,6 +16,9 @@ func (l *orDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetadata
 		Prim:     nm.Type,
 		Children: make([]*Node, 0),
 	}
+	if data.Value() == nil {
+		return &node, nil
+	}
 	root := metadata["0"]
 	for i, arg := range root.Args {
 		if !strings.HasPrefix(arg, path) {
