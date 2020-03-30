@@ -90,3 +90,10 @@ type voteRequest struct {
 type OPGRequest struct {
 	Hash string `uri:"hash" binding:"required,opg"`
 }
+
+// FormatterRequest -
+type FormatterRequest struct {
+	Inline   bool   `form:"inline"`
+	LineSize int    `form:"lineSize"`
+	Code     string `form:"code"`
+}
