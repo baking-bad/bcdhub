@@ -17,7 +17,9 @@ func (l *tupleDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetad
 		Name:     nm.Name,
 		Children: make([]*Node, 0),
 	}
-
+	if data.Value() == nil {
+		return &node, nil
+	}
 	for _, arg := range nm.Args {
 		argPath := strings.TrimPrefix(arg, path+"/")
 		gjsonPath := GetGJSONPath(argPath)

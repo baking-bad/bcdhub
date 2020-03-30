@@ -16,6 +16,10 @@ func (l *unionDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetad
 		Prim:     nm.Prim,
 		Children: make([]*Node, 0),
 	}
+
+	if data.Value() == nil {
+		return &node, nil
+	}
 	for i, arg := range nm.Args {
 		argPath := strings.TrimPrefix(arg, path+"/")
 		unionPath, err := getGJSONPathUnion(argPath, data)

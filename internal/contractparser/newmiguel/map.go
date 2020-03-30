@@ -14,6 +14,7 @@ type mapDecoder struct{}
 func (l *mapDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata, isRoot bool) (*Node, error) {
 	if data.Get("int").Exists() {
 		return &Node{
+			Prim:  consts.BIGMAP,
 			Type:  consts.BIGMAP,
 			Value: data.Get("int").Int(),
 		}, nil
@@ -21,6 +22,7 @@ func (l *mapDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetadat
 
 	if data.IsArray() && len(data.Array()) == 0 && path == "0/0" {
 		return &Node{
+			Prim:  consts.BIGMAP,
 			Type:  consts.BIGMAP,
 			Value: 0,
 		}, nil
@@ -30,6 +32,9 @@ func (l *mapDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetadat
 		Prim:     nm.Prim,
 		Type:     nm.Type,
 		Children: make([]*Node, 0),
+	}
+	if data.Value() == nil {
+		return &node, nil
 	}
 	gjsonPath := GetGJSONPath("k")
 	keyJSON := data.Get(gjsonPath)
