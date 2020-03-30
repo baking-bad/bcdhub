@@ -123,6 +123,7 @@ func main() {
 		v1.GET("diff", ctx.GetDiff)
 		v1.GET("opg/:hash", ctx.GetOperation)
 		v1.GET("projects", ctx.GetProjects)
+		v1.GET("formatter", ctx.GetFormatter)
 
 		// PRIVATE
 		// TODO - remove in prod
