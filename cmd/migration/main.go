@@ -20,7 +20,8 @@ func main() {
 
 	// migration := migrations.SetTimestampMigration{}
 	// migration := migrations.SetLanguageMigration{}
-	migration := migrations.SetAliasMigration{}
+	// migration := migrations.SetOperationAliasMigration{}
+	migration := migrations.SetContractAliasMigration{}
 	if err := migration.Do(ctx); err != nil {
 		panic(err)
 	}
