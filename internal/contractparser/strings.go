@@ -27,3 +27,9 @@ func IsLiteral(prim string) bool {
 		consts.NAT, consts.STRING, consts.INT, consts.SIGNATURE,
 	})
 }
+
+func isAddress(str string) bool {
+	regexString := "(tz|KT)[0-9A-Za-z]{34}"
+	re := regexp.MustCompile(regexString)
+	return re.MatchString(str)
+}

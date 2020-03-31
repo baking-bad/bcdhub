@@ -121,6 +121,16 @@ func (rpc *NodeRPC) GetScriptJSON(address string, level int64) (gjson.Result, er
 	return contract.Get("script"), nil
 }
 
+// GetScriptStorageJSON -
+func (rpc *NodeRPC) GetScriptStorageJSON(address string, level int64) (gjson.Result, error) {
+	block := "head"
+	if level > 0 {
+		block = fmt.Sprintf("%d", level)
+	}
+
+	return rpc.get(fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s/storage", block, address))
+}
+
 // GetContractBalance -
 func (rpc *NodeRPC) GetContractBalance(address string, level int64) (int64, error) {
 	block := "head"

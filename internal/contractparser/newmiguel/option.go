@@ -11,14 +11,21 @@ import (
 type optionDecoder struct{}
 
 // Decode -
-func (d *optionDecoder) Decode(node gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata, isRoot bool) (*Node, error) {
-	prim := node.Get("prim|@lower").String()
+func (d *optionDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata, isRoot bool) (*Node, error) {
+	prim := data.Get("prim|@lower").String()
 	switch prim {
 	case consts.NONE:
-		return &Node{}, nil
+		return &Node{
+			IsOption: true,
+		}, nil
 	case consts.SOME:
-		arg := node.Get("args.0")
-		return michelineNodeToMiguel(arg, path+"/o", metadata, false)
+		arg := data.Get("args.0")
+		node, err := michelineNodeToMiguel(arg, path+"/o", metadata, false)
+		if err != nil {
+			return nil, err
+		}
+		node.IsOption = true
+		return node, nil
 	default:
 		return nil, fmt.Errorf("optionDecoder.Decode: Unknown prim value %s", prim)
 	}

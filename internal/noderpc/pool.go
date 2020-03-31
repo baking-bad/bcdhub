@@ -127,6 +127,15 @@ func (p Pool) GetScriptJSON(address string, level int64) (gjson.Result, error) {
 	return data.Interface().(gjson.Result), nil
 }
 
+// GetScriptStorageJSON -
+func (p Pool) GetScriptStorageJSON(address string, level int64) (gjson.Result, error) {
+	data, err := p.call("GetScriptStorageJSON", address, level)
+	if err != nil {
+		return gjson.Result{}, err
+	}
+	return data.Interface().(gjson.Result), nil
+}
+
 // GetContractBalance -
 func (p Pool) GetContractBalance(address string, level int64) (int64, error) {
 	data, err := p.call("GetContractBalance", address, level)

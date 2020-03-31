@@ -27,7 +27,7 @@ func NewBabylon(rpc noderpc.Pool) Babylon {
 }
 
 // ParseTransaction -
-func (b Babylon) ParseTransaction(content gjson.Result, metadata meta.Metadata, level int64, operationID string) (RichStorage, error) {
+func (b Babylon) ParseTransaction(content gjson.Result, metadata meta.Metadata, operation models.Operation) (RichStorage, error) {
 	address := content.Get("destination").String()
 	result, err := getResult(content)
 	if err != nil {
@@ -40,7 +40,7 @@ func (b Babylon) ParseTransaction(content gjson.Result, metadata meta.Metadata, 
 			return RichStorage{Empty: true}, err
 		}
 
-		if bm, err = b.getBigMapDiff(result, ptrMap, operationID, address, level, metadata); err != nil {
+		if bm, err = b.getBigMapDiff(result, ptrMap, address, metadata, operation); err != nil {
 			return RichStorage{Empty: true}, err
 		}
 	}
@@ -51,35 +51,33 @@ func (b Babylon) ParseTransaction(content gjson.Result, metadata meta.Metadata, 
 }
 
 // ParseOrigination -
-func (b Babylon) ParseOrigination(content gjson.Result, metadata meta.Metadata, level int64, operationID string) (RichStorage, error) {
+func (b Babylon) ParseOrigination(content gjson.Result, metadata meta.Metadata, operation models.Operation) (RichStorage, error) {
 	result, err := getResult(content)
 	if err != nil {
 		return RichStorage{Empty: true}, err
 	}
 
 	address := result.Get("originated_contracts.0").String()
-	data, err := b.rpc.GetScriptJSON(address, level)
+	storage, err := b.rpc.GetScriptStorageJSON(address, operation.Level)
 	if err != nil {
 		return RichStorage{Empty: true}, err
 	}
 
-	st := data.Get("storage")
-
 	var bm []models.BigMapDiff
 	if result.Get("big_map_diff.#").Int() > 0 {
-		ptrToBin, err := b.binPathToPtrMap(metadata, st)
+		ptrToBin, err := b.binPathToPtrMap(metadata, storage)
 		if err != nil {
 			return RichStorage{Empty: true}, err
 		}
 
-		if bm, err = b.getBigMapDiff(result, ptrToBin, operationID, address, level, metadata); err != nil {
+		if bm, err = b.getBigMapDiff(result, ptrToBin, address, metadata, operation); err != nil {
 			return RichStorage{Empty: true}, err
 		}
 	}
 
 	return RichStorage{
 		BigMapDiffs:     bm,
-		DeffatedStorage: st.String(),
+		DeffatedStorage: storage.String(),
 	}, nil
 }
 
@@ -140,27 +138,31 @@ func (b Babylon) Enrich(storage string, bmd []models.BigMapDiff, skipEmpty bool)
 	return data, nil
 }
 
-func (b Babylon) getBigMapDiff(result gjson.Result, ptrMap map[int64]string, operationID, address string, level int64, m meta.Metadata) ([]models.BigMapDiff, error) {
+func (b Babylon) getBigMapDiff(result gjson.Result, ptrMap map[int64]string, address string, m meta.Metadata, operation models.Operation) ([]models.BigMapDiff, error) {
 	bmd := make([]models.BigMapDiff, 0)
 
 	for _, item := range result.Get("big_map_diff").Array() {
-		if item.Get("action").String() == "update" {
-			ptr := item.Get("big_map").Int()
-			binPath, ok := ptrMap[ptr]
-			if !ok {
-				return nil, fmt.Errorf("Invalid big map pointer value: %d", ptr)
-			}
-			bmd = append(bmd, models.BigMapDiff{
-				Ptr:         ptr,
-				BinPath:     binPath,
-				Key:         item.Get("key").Value(),
-				KeyHash:     item.Get("key_hash").String(),
-				Value:       item.Get("value").String(),
-				OperationID: operationID,
-				Level:       level,
-				Address:     address,
-			})
+		if item.Get("action").String() != "update" {
+			continue
 		}
+
+		ptr := item.Get("big_map").Int()
+		binPath, ok := ptrMap[ptr]
+		if !ok {
+			return nil, fmt.Errorf("Invalid big map pointer value: %d", ptr)
+		}
+		bmd = append(bmd, models.BigMapDiff{
+			Ptr:         ptr,
+			BinPath:     binPath,
+			Key:         item.Get("key").Value(),
+			KeyHash:     item.Get("key_hash").String(),
+			Value:       item.Get("value").String(),
+			OperationID: operation.ID,
+			Level:       operation.Level,
+			Address:     address,
+			IndexedTime: operation.IndexedTime,
+			Network:     operation.Network,
+		})
 	}
 	return bmd, nil
 }

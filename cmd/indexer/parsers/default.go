@@ -49,8 +49,6 @@ func (p *DefaultParser) Parse(opg gjson.Result, network string, head noderpc.Hea
 			return nil, nil, err
 		}
 
-		op.IndexedTime = time.Now().UnixNano() / 1000
-
 		operations = append(operations, op)
 		if contract != nil {
 			contracts = append(contracts, *contract)
@@ -98,6 +96,7 @@ func (p *DefaultParser) parseTransaction(data gjson.Result, network, hash string
 	op.Delegate = data.Get("delegate").String()
 	op.Parameters = data.Get("parameters").String()
 	op.BalanceUpdates = p.parseBalanceUpdates(data, "metadata")
+	op.IndexedTime = time.Now().UnixNano() / 1000
 
 	operationResult, balanceUpdates := p.parseMetadata(data)
 	op.Result = operationResult
@@ -105,9 +104,7 @@ func (p *DefaultParser) parseTransaction(data gjson.Result, network, hash string
 	op.Status = op.Result.Status
 	op.Errors = op.Result.Errors
 
-	if op.Kind == consts.Transaction {
-		err = p.finishParseTransaction(data, &op)
-	}
+	err = p.finishParseOperation(data, &op)
 	return
 }
 
@@ -133,6 +130,7 @@ func (p *DefaultParser) parseOrigination(data gjson.Result, network, hash string
 		Parameters:     data.Get("parameters").String(),
 		Script:         data.Get("script"),
 		BalanceUpdates: p.parseBalanceUpdates(data, "metadata"),
+		IndexedTime:    time.Now().UnixNano() / 1000,
 	}
 
 	operationResult, balanceUpdates := p.parseMetadata(data)
@@ -147,11 +145,12 @@ func (p *DefaultParser) parseOrigination(data gjson.Result, network, hash string
 		return op, nil, err
 	}
 
+	var contract *models.Contract
 	if !contractparser.IsDelegateContract(op.Script) && p.isApplied(op) {
-		contract, err := createNewContract(p.es, op, p.filesDirectory, protoSymLink)
-		return op, contract, err
+		contract, err = createNewContract(p.es, op, p.filesDirectory, protoSymLink)
 	}
-	return op, nil, nil
+	err = p.finishParseOperation(data, &op)
+	return op, contract, err
 }
 
 func (p *DefaultParser) parseBalanceUpdates(item gjson.Result, root string) []models.BalanceUpdate {
@@ -193,7 +192,7 @@ func (p *DefaultParser) parseMetadata(item gjson.Result) (*models.OperationResul
 	return p.createResult(item, path), p.parseBalanceUpdates(item, path)
 }
 
-func (p *DefaultParser) finishParseTransaction(item gjson.Result, op *models.Operation) error {
+func (p *DefaultParser) finishParseOperation(item gjson.Result, op *models.Operation) error {
 	if !strings.HasPrefix(op.Destination, "KT") {
 		return nil
 	}
@@ -221,12 +220,16 @@ func (p *DefaultParser) finishParseTransaction(item gjson.Result, op *models.Ope
 			}
 		}
 
-		if err := p.findMigration(item, op); err != nil {
-			return err
+		if op.Kind == consts.Transaction {
+			if err := p.findMigration(item, op); err != nil {
+				return err
+			}
 		}
 	}
-
-	return p.getEntrypoint(item, metadata, op)
+	if op.Kind == consts.Transaction {
+		return p.getEntrypoint(item, metadata, op)
+	}
+	return nil
 }
 
 func (p *DefaultParser) findMigration(item gjson.Result, op *models.Operation) error {
@@ -313,7 +316,6 @@ func (p *DefaultParser) parseInternalOperations(item gjson.Result, main models.O
 		internalOperation.Hash = main.Hash
 		internalOperation.Level = main.Level
 		internalOperation.Timestamp = main.Timestamp
-		internalOperation.IndexedTime = time.Now().UnixNano() / 1000
 		internalOperation.Internal = true
 		internalOperation.InternalIndex = int64(i + 1)
 		res = append(res, internalOperation)
@@ -351,9 +353,9 @@ func (p *DefaultParser) getRichStorage(data gjson.Result, metadata *meta.Contrac
 	}
 	switch op.Kind {
 	case consts.Transaction:
-		return parser.ParseTransaction(data, m, op.Level, op.ID)
+		return parser.ParseTransaction(data, m, *op)
 	case consts.Origination:
-		return parser.ParseOrigination(data, m, op.Level, op.ID)
+		return parser.ParseOrigination(data, m, *op)
 	}
 	return storage.RichStorage{Empty: true}, nil
 }
