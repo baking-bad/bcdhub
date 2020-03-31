@@ -67,7 +67,7 @@ func (p *VestingParser) Parse(data gjson.Result, network, address, protocol stri
 		IndexedTime: time.Now().UnixNano() / 1000,
 		Script:      data.Get("script"),
 	}
-	if !contractparser.IsDelegateContract(op.Script) {
+	if !contractparser.IsDelegatorContract(op.Script) {
 		contract, err := createNewContract(p.es, op, p.filesDirectory, protoSymLink)
 		return migration, contract, err
 	}
