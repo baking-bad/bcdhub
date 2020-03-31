@@ -15,7 +15,7 @@ deploy:
 	docker ps
 
 api:
-	cd cmd/api && go run .
+	cd cmd/api && CONFIG_FILE=config-dev.json go run .
 
 clearmq:
 	docker exec -it bcd-mq rabbitmqctl stop_app
