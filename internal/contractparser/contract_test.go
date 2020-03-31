@@ -6,7 +6,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-func TestIsDelegateContract(t *testing.T) {
+func TestIsDelegatorContract(t *testing.T) {
 	tests := []struct {
 		name string
 		data string
@@ -29,8 +29,8 @@ func TestIsDelegateContract(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			data := gjson.Parse(tt.data)
-			if got := IsDelegateContract(data); got != tt.want {
-				t.Errorf("IsDelegateContract() = %v, want %v", got, tt.want)
+			if got := IsDelegatorContract(data); got != tt.want {
+				t.Errorf("IsDelegatorContract() = %v, want %v", got, tt.want)
 			}
 		})
 	}

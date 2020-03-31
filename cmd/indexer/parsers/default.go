@@ -146,7 +146,7 @@ func (p *DefaultParser) parseOrigination(data gjson.Result, network, hash string
 	}
 
 	var contract *models.Contract
-	if !contractparser.IsDelegateContract(op.Script) && p.isApplied(op) {
+	if !contractparser.IsDelegatorContract(op.Script) && p.isApplied(op) {
 		contract, err = createNewContract(p.es, op, p.filesDirectory, protoSymLink)
 	}
 	err = p.finishParseOperation(data, &op)
