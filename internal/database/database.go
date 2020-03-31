@@ -18,6 +18,7 @@ type DB interface {
 	GetSubscriptionRating(string) (SubRating, error)
 	GetAliases(network string) ([]Alias, error)
 	GetAlias(address, network string) (string, error)
+	GetOperationAliases(src, dst, network string) (OperationAlises, error)
 	CreateAlias(string, string, string) error
 	Close()
 }

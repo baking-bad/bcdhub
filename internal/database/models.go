@@ -54,3 +54,9 @@ type Alias struct {
 	Network string
 	Address string
 }
+
+// OperationAlises -
+type OperationAlises struct {
+	Source      string
+	Destination string
+}
