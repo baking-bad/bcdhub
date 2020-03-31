@@ -19,7 +19,7 @@ func NewAlpha() Alpha {
 }
 
 // ParseTransaction -
-func (a Alpha) ParseTransaction(content gjson.Result, metadata meta.Metadata, level int64, operationID string) (RichStorage, error) {
+func (a Alpha) ParseTransaction(content gjson.Result, metadata meta.Metadata, operation models.Operation) (RichStorage, error) {
 	address := content.Get("destination").String()
 
 	result, err := getResult(content)
@@ -27,7 +27,7 @@ func (a Alpha) ParseTransaction(content gjson.Result, metadata meta.Metadata, le
 		return RichStorage{Empty: true}, err
 	}
 
-	bm, err := a.getBigMapDiff(result, operationID, address, level, metadata)
+	bm, err := a.getBigMapDiff(result, address, metadata, operation)
 	if err != nil {
 		return RichStorage{Empty: true}, err
 	}
@@ -38,7 +38,7 @@ func (a Alpha) ParseTransaction(content gjson.Result, metadata meta.Metadata, le
 }
 
 // ParseOrigination -
-func (a Alpha) ParseOrigination(content gjson.Result, metadata meta.Metadata, level int64, operationID string) (RichStorage, error) {
+func (a Alpha) ParseOrigination(content gjson.Result, metadata meta.Metadata, operation models.Operation) (RichStorage, error) {
 	result, err := getResult(content)
 	if err != nil {
 		return RichStorage{Empty: true}, err
@@ -61,9 +61,11 @@ func (a Alpha) ParseOrigination(content gjson.Result, metadata meta.Metadata, le
 				Key:         item.Get("args.0").Value(),
 				KeyHash:     keyHash,
 				Value:       item.Get("args.1").String(),
-				OperationID: operationID,
-				Level:       level,
+				OperationID: operation.ID,
+				Level:       operation.Level,
 				Address:     address,
+				IndexedTime: operation.IndexedTime,
+				Network:     operation.Network,
 			})
 		}
 	}
@@ -116,7 +118,7 @@ func (a Alpha) Enrich(storage string, bmd []models.BigMapDiff, skipEmpty bool) (
 	return gjson.Parse(value), nil
 }
 
-func (a Alpha) getBigMapDiff(result gjson.Result, operationID, address string, level int64, m meta.Metadata) ([]models.BigMapDiff, error) {
+func (a Alpha) getBigMapDiff(result gjson.Result, address string, m meta.Metadata, operation models.Operation) ([]models.BigMapDiff, error) {
 	bmd := make([]models.BigMapDiff, 0)
 	for _, item := range result.Get("big_map_diff").Array() {
 		bmd = append(bmd, models.BigMapDiff{
@@ -124,9 +126,11 @@ func (a Alpha) getBigMapDiff(result gjson.Result, operationID, address string, l
 			Key:         item.Get("key").Value(),
 			KeyHash:     item.Get("key_hash").String(),
 			Value:       item.Get("value").String(),
-			OperationID: operationID,
-			Level:       level,
+			OperationID: operation.ID,
+			Level:       operation.Level,
 			Address:     address,
+			IndexedTime: operation.IndexedTime,
+			Network:     operation.Network,
 		})
 	}
 	return bmd, nil

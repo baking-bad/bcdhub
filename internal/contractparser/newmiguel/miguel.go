@@ -76,16 +76,25 @@ func getStartPath(data gjson.Result, metadata meta.Metadata) (gjson.Result, stri
 	return data, "0", nil
 }
 
-func michelineNodeToMiguel(node gjson.Result, path string, metadata meta.Metadata, isRoot bool) (*Node, error) {
+func michelineNodeToMiguel(data gjson.Result, path string, metadata meta.Metadata, isRoot bool) (node *Node, err error) {
 	nm, ok := metadata[path]
 	if !ok {
 		return nil, fmt.Errorf("Unknown metadata path: %s", path)
 	}
 
 	if dec, ok := decoders[nm.Type]; ok {
-		return dec.Decode(node, path, nm, metadata, isRoot)
+		node, err = dec.Decode(data, path, nm, metadata, isRoot)
+
+	} else {
+		node, err = decoders["default"].Decode(data, path, nm, metadata, isRoot)
 	}
-	return decoders["default"].Decode(node, path, nm, metadata, isRoot)
+	if err != nil {
+		return
+	}
+	if strings.HasSuffix(path, "/o") {
+		node.IsOption = true
+	}
+	return
 }
 
 // GetGJSONPath -

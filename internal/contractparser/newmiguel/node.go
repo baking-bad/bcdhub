@@ -21,6 +21,7 @@ type Node struct {
 	From     interface{} `json:"from,omitempty"`
 	DiffType string      `json:"diff_type,omitempty"`
 	Value    interface{} `json:"value,omitempty"`
+	IsOption bool        `json:"-"`
 
 	Children []*Node `json:"children,omitempty"`
 }
@@ -131,7 +132,7 @@ func defaultMerge(node, second *Node) {
 		if node.Children[i] == nil {
 			if second.Children[j] != nil {
 				node.Children[i] = second.Children[j]
-				node.Children[i].setDiffType(create)
+				node.Children[i].setDiffType(delete)
 			} else {
 				node.Children[i] = &Node{}
 			}
@@ -145,11 +146,20 @@ func defaultMerge(node, second *Node) {
 		if !node.Children[i].compareFields(second.Children[j]) {
 			if node.Children[i].Prim == "" {
 				node.Children[i] = second.Children[j]
-				node.Children[i].setDiffType(delete)
+				if node.Children[i].IsOption {
+					node.Children[i].setDiffType(update)
+				} else {
+					node.Children[i].setDiffType(delete)
+				}
 				continue
 			}
+
 			if second.Children[i].Prim == "" {
-				node.Children[i].setDiffType(create)
+				if node.Children[i].IsOption {
+					node.Children[i].setDiffType(update)
+				} else {
+					node.Children[i].setDiffType(create)
+				}
 				continue
 			}
 			i--

@@ -29,7 +29,7 @@ func (e *Elastic) GetBigMapDiffsByOperationID(operationID string) ([]models.BigM
 }
 
 // GetBigMapDiffsByKeyHashAndPtr -
-func (e *Elastic) GetBigMapDiffsByKeyHashAndPtr(keys []string, ptr []int64, level int64, address string) ([]models.BigMapDiff, error) {
+func (e *Elastic) GetBigMapDiffsByKeyHashAndPtr(keys []string, ptr []int64, indexedTime int64, address string) ([]models.BigMapDiff, error) {
 	shouldData := make([]qItem, len(keys))
 	for i := range keys {
 		shouldData[i] = boolQ(must(
@@ -41,12 +41,12 @@ func (e *Elastic) GetBigMapDiffsByKeyHashAndPtr(keys []string, ptr []int64, leve
 		should(shouldData...),
 		must(matchPhrase("address", address)),
 		filter(
-			rangeQ("level", qItem{"lt": level}),
+			rangeQ("indexed_time", qItem{"lt": indexedTime}),
 		),
 	)
 	b.Get("bool").Append("minimum_should_match", 1)
 
-	query := newQuery().Query(b).Sort("level", "desc").All()
+	query := newQuery().Query(b).Sort("indexed_time", "desc").All()
 
 	res, err := e.query([]string{DocBigMapDiff}, query)
 	if err != nil {
