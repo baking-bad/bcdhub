@@ -33,7 +33,7 @@ func parseContract(contract models.Contract) error {
 	h := metrics.New(ctx.ES, ctx.DB)
 
 	if contract.Alias == "" {
-		h.SetContractAlias(&contract, ctx.Aliases)
+		h.SetContractAlias(ctx.Aliases, &contract)
 	}
 
 	if contract.ProjectID == "" {
