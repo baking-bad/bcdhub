@@ -40,7 +40,7 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	helpers.InitSentry(cfg.Sentry.DSN, cfg.Sentry.Debug)
+	helpers.InitSentry(cfg.Sentry.Debug)
 	helpers.SetTagSentry("project", cfg.Sentry.Project)
 	defer helpers.CatchPanicSentry()
 
