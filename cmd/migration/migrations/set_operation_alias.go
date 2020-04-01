@@ -23,10 +23,13 @@ func (m *SetOperationAliasMigration) Do(ctx *Context) error {
 		return err
 	}
 
+	aliases, err := h.GetAliases(m.network)
+	if err != nil {
+		return err
+	}
+
 	for i := range operations {
-		if err := h.SetOperationAliases(&operations[i]); err != nil {
-			return err
-		}
+		h.SetOperationAliases(&operations[i], aliases)
 
 		if _, err := ctx.ES.UpdateDoc(elastic.DocOperations, operations[i].ID, operations[i]); err != nil {
 			return err
