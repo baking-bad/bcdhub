@@ -8,8 +8,10 @@ import (
 	"github.com/baking-bad/bcdhub/internal/metrics"
 )
 
-// SetContractAliasMigration - migration that set alias from db to contracts in mainnet
-type SetContractAliasMigration struct{}
+// SetContractAliasMigration - migration that set alias from db to contracts in choosen network
+type SetContractAliasMigration struct {
+	Network string
+}
 
 // Do - migrate function
 func (m *SetContractAliasMigration) Do(ctx *Context) error {
@@ -23,10 +25,13 @@ func (m *SetContractAliasMigration) Do(ctx *Context) error {
 		return err
 	}
 
+	aliases, err := h.GetAliases(m.Network)
+	if err != nil {
+		return err
+	}
+
 	for i := range contracts {
-		if err := h.SetContractAlias(&contracts[i]); err != nil {
-			return err
-		}
+		h.SetContractAlias(&contracts[i], aliases)
 
 		if _, err := ctx.ES.UpdateDoc(elastic.DocContracts, contracts[i].ID, contracts[i]); err != nil {
 			return err

@@ -10,7 +10,7 @@ import (
 
 // SetOperationAliasMigration - migration that set source or destination alias from db to operations in choosen network
 type SetOperationAliasMigration struct {
-	network string
+	Network string
 }
 
 // Do - migrate function
@@ -18,12 +18,12 @@ func (m *SetOperationAliasMigration) Do(ctx *Context) error {
 	start := time.Now()
 	h := metrics.New(ctx.ES, ctx.DB)
 
-	operations, err := ctx.ES.GetAllOperations(m.network)
+	operations, err := ctx.ES.GetAllOperations(m.Network)
 	if err != nil {
 		return err
 	}
 
-	aliases, err := h.GetAliases(m.network)
+	aliases, err := h.GetAliases(m.Network)
 	if err != nil {
 		return err
 	}
