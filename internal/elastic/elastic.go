@@ -74,7 +74,7 @@ func (e *Elastic) query(indices []string, query map[string]interface{}, source .
 		return
 	}
 
-	// log.Print(buf.String())
+	//log.Print(buf.String())
 
 	// Perform the search request.
 	var resp *esapi.Response

@@ -128,10 +128,18 @@ func (e *Elastic) SearchByText(text string, offset int64, fields []string, filte
 	}
 
 	if grouping {
-		th := topHits(5, "_score", "desc")
-		th.Get("top_hits").Append("highlight", qItem{
-			"fields": mapHighlights,
-		})
+		topHits := qItem{
+			"top_hits": qItem{
+				"size": 1,
+				"sort": qList{
+					sort("_score", "desc"),
+					qItem{"last_action": qItem{"order": "desc", "unmapped_type": "long"}},
+				},
+				"highlight": qItem{
+					"fields": mapHighlights,
+				},
+			},
+		}
 
 		query.Add(
 			aggs(
@@ -140,13 +148,23 @@ func (e *Elastic) SearchByText(text string, offset int64, fields []string, filte
 					"terms": qItem{
 						"script": "if (doc.containsKey('fingerprint.parameter')) {return doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value} else {return doc['hash.keyword'].value}",
 						"size":   defaultSize + offset,
-						"order": qItem{
-							"bucketsSort": "desc",
+						"order": qList{
+							qItem{"bucket_score": "desc"},
+							qItem{"bucket_time": "desc"},
 						},
 					},
 					"aggs": qItem{
-						"last":        th,
-						"bucketsSort": max("timestamp"),
+						"last": topHits,
+						"bucket_score": qItem{
+							"max": qItem{
+								"script": "_score",
+							},
+						},
+						"bucket_time": qItem{
+							"max": qItem{
+								"script": "if (doc.containsKey('last_action')) {return doc['last_action'].value} else {return doc['timestamp']}",
+							},
+						},
 					},
 				},
 			),
@@ -176,28 +194,44 @@ func (e *Elastic) SearchByText(text string, offset int64, fields []string, filte
 	}, nil
 }
 
+func parseHighlights(hit gjson.Result) map[string][]string {
+	highlight := hit.Get("highlight").Map()
+	res := make(map[string][]string, len(highlight))
+	for k, v := range highlight {
+		items := v.Array()
+		res[k] = make([]string, len(items))
+		for i, item := range items {
+			res[k][i] = item.String()
+		}
+	}
+	return res
+}
+
 func parseSearchResponse(data gjson.Result) []SearchItem {
 	items := make([]SearchItem, 0)
 	arr := data.Get("hits.hits").Array()
 	for i := range arr {
 		index := arr[i].Get("_index").String()
+		highlights := parseHighlights(arr[i])
 		switch index {
 		case DocContracts:
 			var c models.Contract
 			c.ParseElasticJSON(arr[i])
 			item := SearchItem{
-				Type:  DocContracts,
-				Value: c.Address,
-				Body:  c,
+				Type:       DocContracts,
+				Value:      c.Address,
+				Body:       c,
+				Highlights: highlights,
 			}
 			items = append(items, item)
 		case DocOperations:
 			var op models.Operation
 			op.ParseElasticJSON(arr[i])
 			item := SearchItem{
-				Type:  DocOperations,
-				Value: op.Hash,
-				Body:  op,
+				Type:       DocOperations,
+				Value:      op.Hash,
+				Body:       op,
+				Highlights: highlights,
 			}
 			items = append(items, item)
 		default:
@@ -232,6 +266,7 @@ func parseSearchGroupingResponse(data gjson.Result, size, offset int64) []Search
 
 		for j, item := range arr[i].Get("last.hits.hits").Array() {
 			index := item.Get("_index").String()
+			highlights := parseHighlights(item)
 			searchItem.Type = index
 
 			switch index {
@@ -241,6 +276,7 @@ func parseSearchGroupingResponse(data gjson.Result, size, offset int64) []Search
 					c.ParseElasticJSON(item)
 					searchItem.Body = c
 					searchItem.Value = c.Address
+					searchItem.Highlights = highlights
 				} else {
 					searchItem.Group.Top = append(searchItem.Group.Top, Top{
 						Key:     item.Get("_source.address").String(),
@@ -254,6 +290,7 @@ func parseSearchGroupingResponse(data gjson.Result, size, offset int64) []Search
 						op.ParseElasticJSON(item)
 						searchItem.Body = op
 						searchItem.Value = op.Hash
+						searchItem.Highlights = highlights
 					} else {
 						searchItem.Group.Top = append(searchItem.Group.Top, Top{
 							Key:     item.Get("_source.hash").String(),

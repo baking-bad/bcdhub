@@ -1,25 +1,37 @@
 package elastic
 
 var allFields = []string{
-	"alias^10", "hash^9", "address^9", "manager^8", "entrypoint^8", "errors.with^8", "delegate^6", "tags^4",
-	"errors.id^4", "hardcoded", "annotations", "fail_strings", "entrypoints", "language",
+	"alias^10",
+	"tags^9",
+	"entrypoints^8",
+	"entrypoint^8",
+	"fail_strings^7",
+	"errors.with^7",
+	"errors.id^6",
+	"language^5",
+	"annotations^4",
+	"delegate^2",
+	"hardcoded^2",
+	"manager",
+	"address",
+	"hash",
 }
 
 var mapFields = map[string]string{
 	"alias":       "alias^10",
-	"hash":        "hash^9",
-	"address":     "address^9",
-	"manager":     "manager^8",
+	"tags":        "tags^9",
+	"entry":       "entrypoints^8",
 	"entrypoint":  "entrypoint^8",
-	"errors.with": "errors.with^4",
-	"delegate":    "delegate^6",
-	"tags":        "tags^4",
-	"errors.id":   "errors.id^4",
-	"hardcoded":   "hardcoded",
-	"annots":      "annotations",
-	"fail":        "fail_strings",
-	"entry":       "entrypoints",
-	"language":    "language",
+	"fail":        "fail_strings^7",
+	"errors.with": "errors.with^7",
+	"errors.id":   "errors.id^6",
+	"language":    "language^5",
+	"annots":      "annotations^4",
+	"delegate":    "delegate^2",
+	"hardcoded":   "hardcoded^2",
+	"manager":     "manager",
+	"hash":        "hash",
+	"address":     "address",
 }
 
 var mapHighlights = qItem{
