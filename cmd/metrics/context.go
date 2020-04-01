@@ -3,6 +3,9 @@ package main
 import (
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/metrics"
+
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/mq"
@@ -11,10 +14,11 @@ import (
 
 // Context -
 type Context struct {
-	DB  database.DB
-	ES  *elastic.Elastic
-	RPC map[string]noderpc.Pool
-	MQ  *mq.MQ
+	DB      database.DB
+	ES      *elastic.Elastic
+	RPC     map[string]noderpc.Pool
+	MQ      *mq.MQ
+	Aliases map[string]string
 }
 
 func newContext(cfg config) (*Context, error) {
@@ -30,11 +34,18 @@ func newContext(cfg config) (*Context, error) {
 		return nil, err
 	}
 
+	h := metrics.New(es, db)
+	aliases, err := h.GetAliases(consts.Mainnet)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Context{
-		DB:  db,
-		ES:  es,
-		RPC: RPCs,
-		MQ:  messageQueue,
+		DB:      db,
+		ES:      es,
+		RPC:     RPCs,
+		MQ:      messageQueue,
+		Aliases: aliases,
 	}, nil
 }
 

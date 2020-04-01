@@ -34,9 +34,7 @@ func getOperation(data amqp.Delivery) error {
 func parseOperation(operation models.Operation) error {
 	h := metrics.New(ctx.ES, ctx.DB)
 
-	if err := h.SetOperationAliases(&operation); err != nil {
-		return fmt.Errorf("[parseOperation] Error during set operation alias: %s", err)
-	}
+	h.SetOperationAliases(&operation, ctx.Aliases)
 
 	if _, err := ctx.ES.UpdateDoc(elastic.DocOperations, operation.ID, operation); err != nil {
 		return err
