@@ -31,7 +31,13 @@ func (l *tupleDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetad
 			}
 			node.Children = append(node.Children, argNode)
 		} else {
-			node.Children = append(node.Children, nil)
+			argMeta := metadata[arg]
+			node.Children = append(node.Children, &Node{
+				Prim:     argMeta.Prim,
+				Type:     argMeta.Type,
+				Name:     argMeta.Name,
+				Children: make([]*Node, 0),
+			})
 		}
 	}
 	return &node, nil
