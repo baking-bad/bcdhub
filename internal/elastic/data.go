@@ -18,10 +18,11 @@ type SearchResult struct {
 
 // SearchItem -
 type SearchItem struct {
-	Type  string      `json:"type"`
-	Value string      `json:"value"`
-	Group *Group      `json:"group,omitempty"`
-	Body  interface{} `json:"body"`
+	Type       string              `json:"type"`
+	Value      string              `json:"value"`
+	Group      *Group              `json:"group,omitempty"`
+	Body       interface{}         `json:"body"`
+	Highlights map[string][]string `json:"highlights,omitempty"`
 }
 
 // Group -

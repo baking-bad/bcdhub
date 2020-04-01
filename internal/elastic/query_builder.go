@@ -13,6 +13,7 @@ const (
 )
 
 type qItem map[string]interface{}
+type qList []interface{}
 
 func boolQ(items ...qItem) qItem {
 	bq := qItem{}
