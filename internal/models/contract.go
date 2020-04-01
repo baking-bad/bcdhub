@@ -51,6 +51,7 @@ type Contract struct {
 	SumTxAmount       int64   `json:"sum_tx_amount,omitempty"`
 	MedianConsumedGas int64   `json:"median_consumed_gas,omitempty"`
 	Alias             string  `json:"alias,omitempty"`
+	DelegateAlias     string  `json:"delegate_alias,omitempty"`
 }
 
 // Fingerprint -
