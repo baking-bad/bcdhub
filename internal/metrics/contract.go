@@ -11,15 +11,8 @@ import (
 )
 
 // SetContractAlias -
-func (h *Handler) SetContractAlias(c *models.Contract) error {
-	alias, err := h.DB.GetAlias(c.Address, c.Network)
-	if err != nil {
-		return err
-	}
-
-	c.Alias = alias
-
-	return nil
+func (h *Handler) SetContractAlias(c *models.Contract, aliases map[string]string) {
+	c.Alias = aliases[c.Address]
 }
 
 // SetContractStats -
