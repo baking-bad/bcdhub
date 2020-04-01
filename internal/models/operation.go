@@ -46,6 +46,9 @@ type Operation struct {
 
 	DeffatedStorage string       `json:"deffated_storage"`
 	Script          gjson.Result `json:"-"`
+
+	Burned        int64  `json:"burned"`
+	DelegateAlias string `json:"delegate_alias"`
 }
 
 // ParseElasticJSON -

@@ -35,6 +35,7 @@ func parseOperation(operation models.Operation) error {
 	h := metrics.New(ctx.ES, ctx.DB)
 
 	h.SetOperationAliases(ctx.Aliases, &operation)
+	h.SetOperationBurned(&operation)
 
 	if _, err := ctx.ES.UpdateDoc(elastic.DocOperations, operation.ID, operation); err != nil {
 		return err
@@ -45,7 +46,7 @@ func parseOperation(operation models.Operation) error {
 			continue
 		}
 
-		if err := setOperationStats(address, operation.Network); err != nil {
+		if err := setOperationStats(address, operation); err != nil {
 			return fmt.Errorf("[parseOperation] Compute error message: %s", err)
 		}
 	}
@@ -54,9 +55,9 @@ func parseOperation(operation models.Operation) error {
 	return nil
 }
 
-func setOperationStats(address, network string) error {
+func setOperationStats(address string, operation models.Operation) error {
 	c, err := ctx.ES.GetContract(map[string]interface{}{
-		"network": network,
+		"network": operation.Network,
 		"address": address,
 	})
 
@@ -69,7 +70,7 @@ func setOperationStats(address, network string) error {
 
 	h := metrics.New(ctx.ES, ctx.DB)
 
-	if err := h.SetContractStats(&c); err != nil {
+	if err := h.SetContractStats(operation, &c); err != nil {
 		return fmt.Errorf("[setOperationStats] compute contract stats error message: %s", err)
 	}
 

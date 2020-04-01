@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+
 	"github.com/baking-bad/bcdhub/internal/classification/functions"
 	clmetrics "github.com/baking-bad/bcdhub/internal/classification/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -13,20 +15,29 @@ import (
 // SetContractAlias -
 func (h *Handler) SetContractAlias(aliases map[string]string, c *models.Contract) {
 	c.Alias = aliases[c.Address]
+
+	if c.Delegate != "" {
+		c.DelegateAlias = aliases[c.Delegate]
+	}
 }
 
 // SetContractStats -
-func (h *Handler) SetContractStats(c *models.Contract) error {
-	stats, err := h.ES.GetContractStats(c.Address, c.Network)
-	if err != nil {
-		return err
-	}
-	c.TxCount = stats.TxCount
+func (h *Handler) SetContractStats(op models.Operation, c *models.Contract) error {
+	c.TxCount++
 	c.LastAction = models.BCDTime{
-		Time: stats.LastAction,
+		Time: op.Timestamp,
 	}
-	c.SumTxAmount = stats.SumTxAmount
-	c.MedianConsumedGas = stats.MedianConsumedGas
+
+	if op.Status != consts.Applied {
+		return nil
+	}
+
+	if c.Address == op.Destination {
+		c.Balance += op.Amount
+	} else {
+		c.SumTxAmount += op.Amount
+		c.Balance -= op.Amount
+	}
 
 	return nil
 }
