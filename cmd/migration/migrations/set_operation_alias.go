@@ -4,20 +4,21 @@ import (
 	"log"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 )
 
-// SetOperationAliasMigration - migration that set source or destination alias from db to operations in mainnet
-type SetOperationAliasMigration struct{}
+// SetOperationAliasMigration - migration that set source or destination alias from db to operations in choosen network
+type SetOperationAliasMigration struct {
+	network string
+}
 
 // Do - migrate function
 func (m *SetOperationAliasMigration) Do(ctx *Context) error {
 	start := time.Now()
 	h := metrics.New(ctx.ES, ctx.DB)
 
-	operations, err := ctx.ES.GetAllOperations(consts.Mainnet)
+	operations, err := ctx.ES.GetAllOperations(m.network)
 	if err != nil {
 		return err
 	}
