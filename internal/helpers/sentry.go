@@ -11,7 +11,7 @@ import (
 )
 
 // InitSentry -
-func InitSentry(dsn string, debug bool) {
+func InitSentry(debug bool) {
 	env := "development"
 
 	if bcdEnv := os.Getenv("BCD_ENV"); bcdEnv != "" {
@@ -19,7 +19,7 @@ func InitSentry(dsn string, debug bool) {
 	}
 
 	if err := sentry.Init(sentry.ClientOptions{
-		Dsn:              dsn,
+		Dsn:              os.Getenv("SENTRY_DSN"),
 		Environment:      env,
 		Debug:            debug,
 		AttachStacktrace: true,

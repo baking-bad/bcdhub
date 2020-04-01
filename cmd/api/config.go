@@ -12,7 +12,6 @@ type config struct {
 	} `json:"db"`
 	Sentry struct {
 		Project string `json:"project"`
-		DSN     string `json:"dsn"`
 		Debug   bool   `json:"debug"`
 	} `json:"sentry"`
 }
