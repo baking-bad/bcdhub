@@ -11,7 +11,7 @@ import (
 )
 
 // SetContractAlias -
-func (h *Handler) SetContractAlias(c *models.Contract, aliases map[string]string) {
+func (h *Handler) SetContractAlias(aliases map[string]string, c *models.Contract) {
 	c.Alias = aliases[c.Address]
 }
 

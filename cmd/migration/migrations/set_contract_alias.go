@@ -25,13 +25,13 @@ func (m *SetContractAliasMigration) Do(ctx *Context) error {
 		return err
 	}
 
-	aliases, err := h.GetAliases(m.Network)
+	aliases, err := ctx.DB.GetAliasesMap(m.Network)
 	if err != nil {
 		return err
 	}
 
 	for i := range contracts {
-		h.SetContractAlias(&contracts[i], aliases)
+		h.SetContractAlias(aliases, &contracts[i])
 
 		if _, err := ctx.ES.UpdateDoc(elastic.DocContracts, contracts[i].ID, contracts[i]); err != nil {
 			return err

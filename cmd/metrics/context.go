@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/metrics"
 
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/elastic"
@@ -34,8 +33,7 @@ func newContext(cfg config) (*Context, error) {
 		return nil, err
 	}
 
-	h := metrics.New(es, db)
-	aliases, err := h.GetAliases(consts.Mainnet)
+	aliases, err := db.GetAliasesMap(consts.Mainnet)
 	if err != nil {
 		return nil, err
 	}

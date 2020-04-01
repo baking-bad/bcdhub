@@ -108,6 +108,21 @@ func (d *db) GetOperationAliases(src, dst, network string) (OperationAlises, err
 	return ret, nil
 }
 
+func (d *db) GetAliasesMap(network string) (map[string]string, error) {
+	var aliases []Alias
+
+	if err := d.ORM.Where("network = ?", network).Find(&aliases).Error; err != nil {
+		return nil, err
+	}
+
+	ret := make(map[string]string, len(aliases))
+	for _, a := range aliases {
+		ret[a.Address] = a.Alias
+	}
+
+	return ret, nil
+}
+
 func (d *db) CreateAlias(alias, address, network string) error {
 	return d.ORM.Create(&Alias{
 		Alias:   alias,
