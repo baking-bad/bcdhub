@@ -97,3 +97,10 @@ type FormatterRequest struct {
 	LineSize int    `form:"lineSize"`
 	Code     string `form:"code"`
 }
+
+type getMigrationRequest struct {
+	Address string `uri:"address" binding:"required,address"`
+	Network string `uri:"network" binding:"required,network"`
+
+	Protocol string `form:"protocol"`
+}

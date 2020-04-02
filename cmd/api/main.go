@@ -115,10 +115,10 @@ func main() {
 					address.GET("code", ctx.GetContractCode)
 					address.GET("operations", ctx.GetContractOperations)
 					address.GET("migrations", ctx.GetContractMigrations)
+					address.GET("migration", ctx.GetMigration)
 					address.GET("entrypoints", ctx.GetEntrypoints)
 					address.GET("storage", ctx.GetContractStorage)
 					address.GET("raw_storage", ctx.GetContractStorageRaw)
-					address.GET("migration", ctx.GetMigrationDiff)
 					address.GET("rating", ctx.GetContractRating)
 					address.GET("mempool", ctx.GetMempool)
 					address.GET("same", ctx.GetSameContracts)
@@ -140,8 +140,8 @@ func main() {
 
 		// PRIVATE
 		// TODO - remove in prod
-		v1.POST("vote", ctx.Vote)
-		v1.POST("set_alias", ctx.SetAlias)
+		// v1.POST("vote", ctx.Vote)
+		// v1.POST("set_alias", ctx.SetAlias)
 
 		oauth := v1.Group("oauth")
 		{

@@ -423,3 +423,27 @@ func GetProtoSymLink(protocol string) (string, error) {
 	}
 	return "", fmt.Errorf("Unknown protocol: %s", protocol)
 }
+
+// GetLevelByProtoSymLink -
+func GetLevelByProtoSymLink(symLink, network string) int64 {
+	if network != consts.Mainnet {
+		return 0
+	}
+	switch symLink {
+	case consts.MetadataAlpha:
+		return consts.LevelBabylon - 1
+	default:
+		return 0
+	}
+}
+
+// GetProtoSymLinkByLevel -
+func GetProtoSymLinkByLevel(level int64, network string) string {
+	if network != consts.Mainnet {
+		return consts.MetadataBabylon
+	}
+	if level < consts.LevelBabylon && level > 0 {
+		return consts.MetadataAlpha
+	}
+	return consts.MetadataBabylon
+}

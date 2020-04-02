@@ -11,18 +11,9 @@ import (
 )
 
 // GetContract -
-func GetContract(rpc noderpc.Pool, address, network string, level int64, filesDirectory string) (gjson.Result, error) {
+func GetContract(rpc noderpc.Pool, address, network, symLink, filesDirectory string) (gjson.Result, error) {
 	if filesDirectory != "" {
-		var postfix string
-		if network == consts.Mainnet {
-			if level < consts.LevelBabylon && level != 0 {
-				postfix = "_alpha"
-			} else {
-				postfix = "_babylon"
-			}
-		}
-
-		filePath := fmt.Sprintf("%s/contracts/%s/%s%s.json", filesDirectory, network, address, postfix)
+		filePath := fmt.Sprintf("%s/contracts/%s/%s_%s.json", filesDirectory, network, address, symLink)
 		_, err := os.Stat(filePath)
 		if err == nil {
 			f, err := os.Open(filePath)
@@ -35,13 +26,28 @@ func GetContract(rpc noderpc.Pool, address, network string, level int64, filesDi
 			if err != nil {
 				return gjson.Result{}, err
 			}
-			return gjson.ParseBytes(data), nil
+			contract := gjson.ParseBytes(data)
+			if contract.Get("script").Exists() {
+				contract = contract.Get("script")
+			}
+			return contract, nil
 		}
 		if !os.IsNotExist(err) {
 			return gjson.Result{}, err
 		}
 	}
-	return rpc.GetContractJSON(address, level)
+	var level int64
+	if symLink != consts.MetadataBabylon {
+		level = consts.LevelBabylon - 1
+	}
+	contract, err := rpc.GetContractJSON(address, level)
+	if err != nil {
+		return gjson.Result{}, err
+	}
+	if contract.Get("script").Exists() {
+		contract = contract.Get("script")
+	}
+	return contract, nil
 }
 
 // IsDelegatorContract -
