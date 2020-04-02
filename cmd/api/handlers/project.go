@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
@@ -69,7 +70,7 @@ func (ctx *Context) getSimilarDiffs(similar []elastic.SimilarContract, contract 
 	}
 	for i := 0; i < len(similar); i++ {
 		src := &similar[i]
-		d, err := ctx.getDiff(contract.Address, contract.Network, src.Address, src.Network, 0, 0)
+		d, err := ctx.getDiff(contract.Address, contract.Network, src.Address, src.Network, consts.MetadataBabylon, consts.MetadataBabylon)
 		if err != nil {
 			return nil, err
 		}

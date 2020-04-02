@@ -102,3 +102,25 @@ type BigMapResponseItem struct {
 	Item  BigMapItem `json:"data"`
 	Count int64      `json:"count"`
 }
+
+// Migration -
+type Migration struct {
+	Level     int64     `json:"level"`
+	Timestamp time.Time `json:"timestamp"`
+	Hash      string    `json:"hash,omitempty"`
+	Protocol  string    `json:"protocol"`
+	Vesting   bool      `json:"vesting"`
+}
+
+// CodeResponse -
+type CodeResponse struct {
+	Code           string        `json:"code"`
+	CurrentVersion string        `json:"current_version"`
+	Versions       []CodeVersion `json:"versions,omitempty"`
+}
+
+// CodeVersion -
+type CodeVersion struct {
+	Name  string `json:"name"`
+	Level int64  `json:"level"`
+}

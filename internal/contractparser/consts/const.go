@@ -60,3 +60,8 @@ const (
 	Failed      = "failed"
 	Skipped     = "skipped"
 )
+
+// Vesting -
+const (
+	Vesting = "vesting"
+)

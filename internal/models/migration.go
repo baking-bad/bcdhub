@@ -31,4 +31,5 @@ func (m *Migration) ParseElasticJSON(resp gjson.Result) {
 	m.Timestamp = resp.Get("_source.timestamp").Time().UTC()
 	m.Level = resp.Get("_source.level").Int()
 	m.Address = resp.Get("_source.address").String()
+	m.Vesting = resp.Get("_source.vesting").Bool()
 }
