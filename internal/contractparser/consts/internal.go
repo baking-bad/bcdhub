@@ -2,11 +2,11 @@ package consts
 
 // Tags name
 const (
-	ViewMethodTag      = "view_method"
-	ContractFactoryTag = "contract_factory"
+	ViewMethodTag      = "view"
+	ContractFactoryTag = "CREATE_CONTRACT"
 	DelegatableTag     = "delegatable"
-	ChainAwareTag      = "chain_aware"
-	CheckSigTag        = "checksig"
+	ChainAwareTag      = "CHAIN_ID"
+	CheckSigTag        = "CHECK_SIGNATURE"
 	FA12Tag            = "fa12"
 	TestingTag         = "testing"
 	VestingTag         = "vesting"
