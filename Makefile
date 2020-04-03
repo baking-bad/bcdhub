@@ -24,3 +24,6 @@ clearmq:
 
 local:
 	docker-compose -f docker-compose.local.yml up -d --build
+
+aliases:
+	cd scripts/aliases && go run .
