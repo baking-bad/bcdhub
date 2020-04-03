@@ -6,6 +6,23 @@ import (
 	"github.com/tidwall/gjson"
 )
 
+var foundByCategories = []string{
+	"alias",
+	"tags",
+	"entrypoints",
+	"entrypoint",
+	"fail_strings",
+	"errors.with",
+	"errors.id",
+	"language",
+	"annotations",
+	"delegate",
+	"hardcoded",
+	"manager",
+	"address",
+	"hash",
+}
+
 // Contract - entity for contract
 type Contract struct {
 	ID          string       `json:"id"`
@@ -98,7 +115,7 @@ func (c *Contract) ParseElasticJSON(hit gjson.Result) {
 	c.MedianConsumedGas = hit.Get("_source.median_consumed_gas").Int()
 	c.Alias = hit.Get("_source.alias").String()
 
-	c.FoundBy = getFoundBy(hit)
+	c.FoundBy = GetFoundBy(hit)
 }
 
 // ParseElasticJSON -
@@ -108,36 +125,20 @@ func (f *Fingerprint) ParseElasticJSON(hit gjson.Result) {
 	f.Storage = hit.Get("storage").String()
 }
 
-func getFoundBy(hit gjson.Result) string {
+// GetFoundBy -
+func GetFoundBy(hit gjson.Result) string {
 	keys := hit.Get("highlight").Map()
 
-	if _, ok := keys["alias"]; ok {
-		return "alias"
+	for _, category := range foundByCategories {
+		if _, ok := keys[category]; ok {
+			return category
+		}
 	}
-	if _, ok := keys["address"]; ok {
-		return "address"
+
+	for category := range keys {
+		return category
 	}
-	if _, ok := keys["manager"]; ok {
-		return "manager"
-	}
-	if _, ok := keys["addredelegatess"]; ok {
-		return "delegate"
-	}
-	if _, ok := keys["tags"]; ok {
-		return "tags"
-	}
-	if _, ok := keys["hardcoded"]; ok {
-		return "hardcoded addresses"
-	}
-	if _, ok := keys["annotations"]; ok {
-		return "annotations"
-	}
-	if _, ok := keys["fail_strings"]; ok {
-		return "fail strings"
-	}
-	if _, ok := keys["entrypoints"]; ok {
-		return "entrypoints"
-	}
+
 	return ""
 }
 

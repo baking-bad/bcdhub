@@ -79,7 +79,7 @@ func (o *Operation) ParseElasticJSON(resp gjson.Result) {
 	o.SourceAlias = resp.Get("_source.source_alias").String()
 	o.DestinationAlias = resp.Get("_source.destination_alias").String()
 
-	o.FoundBy = getOperationsFoundBy(resp)
+	o.FoundBy = GetFoundBy(resp)
 
 	var opResult OperationResult
 	opResult.ParseElasticJSON(resp.Get("_source.result"))
@@ -97,24 +97,6 @@ func (o *Operation) ParseElasticJSON(resp gjson.Result) {
 	o.BalanceUpdates = bu
 
 	o.Errors = cerrors.ParseArray(resp.Get("_source.errors"))
-}
-
-func getOperationsFoundBy(hit gjson.Result) string {
-	keys := hit.Get("highlight").Map()
-
-	if _, ok := keys["hash"]; ok {
-		return "hash"
-	}
-	if _, ok := keys["entrypoint"]; ok {
-		return "called entrypoint"
-	}
-	if _, ok := keys["errors.id"]; ok {
-		return "error id"
-	}
-	if _, ok := keys["errors.with"]; ok {
-		return "error text"
-	}
-	return ""
 }
 
 // BalanceUpdate -
