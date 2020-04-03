@@ -76,3 +76,10 @@ type Account struct {
 	LastActivity      int64     `json:"lastActivity"`
 	LastActivityTime  time.Time `json:"lastActivityTime"`
 }
+
+// Alias -
+type Alias struct {
+	Address string `json:"address"`
+	Alias   string `json:"alias"`
+	Logo    string `json:"logo"`
+}
