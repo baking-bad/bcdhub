@@ -52,42 +52,40 @@ func (ctx *Context) GetBigMapByKeyHash(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (ctx *Context) prepareBigMap(data []elastic.BigMapDiff, network, address string) (res []BigMapResponseItem, err error) {
-	alphaMeta, err := meta.GetMetadata(ctx.ES, address, consts.STORAGE, consts.Hash1)
-	if err != nil {
-		return
-	}
-
+func (ctx *Context) prepareBigMap(data []elastic.BigMapDiff, network, address string) ([]BigMapResponseItem, error) {
 	babyMeta, err := meta.GetMetadata(ctx.ES, address, consts.STORAGE, consts.HashBabylon)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	res = make([]BigMapResponseItem, len(data))
+	res := make([]BigMapResponseItem, len(data))
 	for i := range data {
+		metadata := babyMeta
+		if network == consts.Mainnet && data[i].Level < consts.LevelBabylon {
+			alphaMeta, err := meta.GetMetadata(ctx.ES, address, consts.STORAGE, consts.Hash1)
+			if err != nil {
+				return nil, err
+			}
+			metadata = alphaMeta
+		}
+
 		var value interface{}
 		if data[i].Value != "" {
 			val := gjson.Parse(data[i].Value)
-			metadata := babyMeta
-			if network == consts.Mainnet && data[i].Level < consts.LevelBabylon {
-				metadata = alphaMeta
-			}
-			value, err = newmiguel.BigMapToMiguel(val, data[i].BinPath+"/v", metadata)
+			valueData, err := newmiguel.BigMapToMiguel(val, data[i].BinPath+"/v", metadata)
 			if err != nil {
-				return
+				return nil, err
 			}
+			value = valueData
 		}
 		var key interface{}
 		if data[i].Key != "" {
 			val := gjson.Parse(data[i].Key)
-			metadata := babyMeta
-			if network == consts.Mainnet && data[i].Level < consts.LevelBabylon {
-				metadata = alphaMeta
-			}
-			key, err = newmiguel.BigMapToMiguel(val, data[i].BinPath+"/k", metadata)
+			keyData, err := newmiguel.BigMapToMiguel(val, data[i].BinPath+"/k", metadata)
 			if err != nil {
-				return
+				return nil, err
 			}
+			key = keyData
 		}
 
 		res[i] = BigMapResponseItem{
@@ -100,7 +98,7 @@ func (ctx *Context) prepareBigMap(data []elastic.BigMapDiff, network, address st
 			Count: data[i].Count,
 		}
 	}
-	return
+	return res, nil
 }
 
 func (ctx *Context) prepareBigMapItem(data []models.BigMapDiff, network, address string) (res []BigMapItem, err error) {
