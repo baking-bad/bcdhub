@@ -42,7 +42,7 @@ func main() {
 			Address: alias.Address,
 		}
 
-		if err := db.GetOrCreateAlias(&dbAlias); err != nil {
+		if err := db.CreateOrUpdateAlias(&dbAlias); err != nil {
 			fmt.Print("\r \r")
 			logger.Fatal(fmt.Errorf("%v in <%v> with alias <%v> got error: %v", alias.Address, consts.Mainnet, alias.Alias, err))
 		}
