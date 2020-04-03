@@ -20,6 +20,7 @@ type DB interface {
 	GetAlias(address, network string) (string, error)
 	GetOperationAliases(src, dst, network string) (OperationAlises, error)
 	CreateAlias(string, string, string) error
+	GetOrCreateAlias(a *Alias) error
 	Close()
 }
 

@@ -10,8 +10,7 @@ import (
 
 // URLs
 const (
-	TzKTURLV1    = "https://api.tzkt.io/v1/"
-	TzKTServices = "https://services.tzkt.io"
+	TzKTURLV1 = "https://api.tzkt.io/v1/"
 )
 
 // TzKT -
@@ -148,5 +147,11 @@ func (t *TzKT) GetContractOperationBlocks(offset, limit int64) (resp []int64, er
 	params["offset.cr"] = fmt.Sprintf("%d", offset)
 
 	err = t.request("GET", "blocks/levels", params, &resp)
+	return
+}
+
+// GetAliases - returns address aliases
+func (t *TzKT) GetAliases() (resp []Alias, err error) {
+	err = t.request("GET", "suggest/accounts", nil, &resp)
 	return
 }
