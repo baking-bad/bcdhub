@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/baking-bad/bcdhub/cmd/migration/migrations"
 	"github.com/baking-bad/bcdhub/internal/jsonload"
+	"github.com/baking-bad/bcdhub/scripts/migration/migrations"
 )
 
 func main() {
