@@ -1,5 +1,7 @@
 package elastic
 
+// TODO(artem, roman): this list is also at internal/models/contract.go, maybe some refactoring, go-lads?
+
 var allFields = []string{
 	"alias^10",
 	"tags^9",
