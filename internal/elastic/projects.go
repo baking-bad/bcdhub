@@ -256,7 +256,7 @@ func (e *Elastic) GetProjectStats(projectID string) (p ProjectStats, err error) 
 	return
 }
 
-func (e *Elastic) getProjectsContracts(ids []string) (res []ContractID, err error) {
+func (e *Elastic) getProjectsContracts(ids []string) (res []contractPair, err error) {
 	if len(ids) == 0 {
 		return
 	}
@@ -277,9 +277,9 @@ func (e *Elastic) getProjectsContracts(ids []string) (res []ContractID, err erro
 	if err != nil {
 		return
 	}
-	res = make([]ContractID, 0)
+	res = make([]contractPair, 0)
 	for _, hit := range resp.Get("rows").Array() {
-		var cid ContractID
+		var cid contractPair
 		cid.ParseElasticJSONArray(hit)
 		res = append(res, cid)
 	}

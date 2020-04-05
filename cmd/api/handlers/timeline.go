@@ -13,18 +13,15 @@ func (ctx *Context) GetTimeline(c *gin.Context) {
 		return
 	}
 
-	projectIDs := make([]string, 0)
 	contracts := make([]string, 0)
 
 	for _, sub := range subscriptions {
 		if sub.EntityType == "contract" {
 			contracts = append(contracts, sub.EntityID)
-		} else if sub.EntityType == "project" {
-			projectIDs = append(projectIDs, sub.EntityID)
 		}
 	}
 
-	data, err := ctx.ES.GetTimeline(projectIDs, contracts)
+	data, err := ctx.ES.GetTimeline(contracts)
 	if handleError(c, err, 0) {
 		return
 	}

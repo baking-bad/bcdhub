@@ -64,20 +64,30 @@ func (ctx *Context) DeleteSubscription(c *gin.Context) {
 }
 
 func (ctx *Context) prepareSubscription(subs []database.Subscription) ([]Subscription, error) {
-	res := make([]Subscription, len(subs))
-	for i, s := range subs {
-		c, err := ctx.ES.GetContractByID(s.EntityID)
-		if err != nil {
-			return nil, err
-		}
-		contract := Contract{
-			Contract: &c,
-		}
+	ids := make([]string, len(subs))
+	for i := range subs {
+		ids[i] = subs[i].EntityID
+	}
 
+	contracts, err := ctx.ES.GetContractsByID(ids)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]Subscription, len(contracts))
+	for i := range contracts {
 		res[i] = Subscription{
-			Contract:     &contract,
-			SubscribedAt: s.CreatedAt,
+			Contract: &Contract{
+				Contract: &contracts[i],
+			},
+		}
+		for j := range subs {
+			if subs[j].EntityID == contracts[i].ID {
+				res[i].SubscribedAt = subs[j].CreatedAt
+				break
+			}
 		}
 	}
+
 	return res, nil
 }

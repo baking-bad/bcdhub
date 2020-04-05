@@ -3,7 +3,6 @@ package meta
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
@@ -397,7 +396,6 @@ func GetMetadata(es *elastic.Elastic, address, part, protocol string) (Metadata,
 		return nil, fmt.Errorf("[GetMetadata] Unknown metadata part: %s", part)
 	}
 
-	log.Println(protocol)
 	protoSymLink, err := GetProtoSymLink(protocol)
 	if err != nil {
 		return nil, err

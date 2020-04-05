@@ -153,8 +153,8 @@ func (e *Elastic) GetContractStats(address, network string) (stats ContractStats
 			matchPhrase("source", address),
 			matchPhrase("destination", address),
 		),
+		minimumShouldMatch(1),
 	)
-	b.Get("bool").Append("minimum_should_match", 1)
 	query := newQuery().Query(b).Add(
 		qItem{
 			"aggs": qItem{
@@ -207,8 +207,8 @@ func (e *Elastic) Recommendations(tags []string, language string, blackList []st
 		notMust(
 			blackListFilters...,
 		),
+		minimumShouldMatch(int(math.Min(2, float64(len(tagFilters)+1)))),
 	)
-	b.Get("bool").Append("minimum_should_match", math.Min(2, float64(len(tagFilters)+1)))
 
 	query := newQuery().Query(b).Size(size)
 	resp, err := e.query([]string{DocContracts}, query)

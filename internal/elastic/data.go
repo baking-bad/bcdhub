@@ -147,14 +147,13 @@ func (b *BigMapDiff) ParseElasticJSON(hit gjson.Result) {
 	b.Network = hit.Get("_source.newtork").String()
 }
 
-// ContractID -
-type ContractID struct {
+type contractPair struct {
 	Address string
 	Network string
 }
 
 // ParseElasticJSONArray -
-func (c *ContractID) ParseElasticJSONArray(hit gjson.Result) {
+func (c *contractPair) ParseElasticJSONArray(hit gjson.Result) {
 	c.Address = hit.Get("0").String()
 	c.Network = hit.Get("1").String()
 }
@@ -168,24 +167,37 @@ type TimelineItem struct {
 	Kind             string    `json:"kind"`
 	Source           string    `json:"source"`
 	Amount           int64     `json:"amount,omitempty"`
+	Level            int64     `json:"level,omitempty"`
 	Destination      string    `json:"destination,omitempty"`
 	Entrypoint       string    `json:"entrypoint,omitempty"`
 	SourceAlias      string    `json:"source_alias,omitempty"`
 	DestinationAlias string    `json:"destination_alias,omitempty"`
 }
 
-// ParseElasticJSONArray -
-func (t *TimelineItem) ParseElasticJSONArray(hit gjson.Result) {
-	t.Network = hit.Get("0").String()
-	t.Hash = hit.Get("1").String()
-	t.Status = hit.Get("2").String()
-	t.Timestamp = hit.Get("3").Time()
-	t.Kind = hit.Get("4").String()
-	t.Source = hit.Get("5").String()
-	t.Destination = hit.Get("6").String()
-	t.Entrypoint = hit.Get("7").String()
-	t.Amount = hit.Get("8").Int()
-	t.SourceAlias = hit.Get("9").String()
-	t.DestinationAlias = hit.Get("10").String()
+// ParseJSONOperation -
+func (t *TimelineItem) ParseJSONOperation(hit gjson.Result) {
+	t.Network = hit.Get("_source.network").String()
+	t.Hash = hit.Get("_source.hash").String()
+	t.Status = hit.Get("_source.status").String()
+	t.Timestamp = hit.Get("_source.timestamp").Time()
+	t.Kind = hit.Get("_source.kind").String()
+	t.Source = hit.Get("_source.source").String()
+	t.Destination = hit.Get("_source.destination").String()
+	t.Entrypoint = hit.Get("_source.entrypoint").String()
+	t.Amount = hit.Get("_source.amount").Int()
+	t.Level = hit.Get("_source.level").Int()
+	t.SourceAlias = hit.Get("_source.source_alias").String()
+	t.DestinationAlias = hit.Get("_source.source_destination").String()
+}
 
+// ParseJSONMigration -
+func (t *TimelineItem) ParseJSONMigration(hit gjson.Result) {
+	t.Network = hit.Get("_source.network").String()
+	t.Hash = hit.Get("_source.hash").String()
+	t.Status = "applied"
+	t.Timestamp = hit.Get("_source.timestamp").Time()
+	t.Kind = DocMigrations
+	t.Source = hit.Get("_source.address").String()
+	t.Level = hit.Get("_source.level").Int()
+	t.SourceAlias = hit.Get("_source.source_alias").String()
 }
