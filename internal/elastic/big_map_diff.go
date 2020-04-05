@@ -43,8 +43,8 @@ func (e *Elastic) GetBigMapDiffsByKeyHashAndPtr(keys []string, ptr []int64, inde
 		filter(
 			rangeQ("indexed_time", qItem{"lt": indexedTime}),
 		),
+		minimumShouldMatch(1),
 	)
-	b.Get("bool").Append("minimum_should_match", 1)
 
 	query := newQuery().Query(b).Sort("indexed_time", "desc").All()
 

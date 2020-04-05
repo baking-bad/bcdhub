@@ -29,6 +29,20 @@ func boolQ(items ...qItem) qItem {
 	return bq
 }
 
+func minimumShouldMatch(value int) qItem {
+	return qItem{
+		"minimum_should_match": value,
+	}
+}
+
+func exists(field string) qItem {
+	return qItem{
+		"exists": qItem{
+			"field": field,
+		},
+	}
+}
+
 func must(items ...qItem) qItem {
 	return qItem{
 		"must": items,
