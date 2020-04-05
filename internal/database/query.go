@@ -131,6 +131,10 @@ func (d *db) CreateAlias(alias, address, network string) error {
 	}).Error
 }
 
+func (d *db) CreateOrUpdateAlias(a *Alias) error {
+	return d.ORM.Where("network = ? AND address = ?", a.Network, a.Address).Assign(Alias{Alias: a.Alias}).FirstOrCreate(a).Error
+}
+
 func (d *db) Close() {
 	d.ORM.Close()
 }

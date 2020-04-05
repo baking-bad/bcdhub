@@ -21,6 +21,7 @@ type DB interface {
 	GetOperationAliases(src, dst, network string) (OperationAlises, error)
 	GetAliasesMap(network string) (map[string]string, error)
 	CreateAlias(string, string, string) error
+	CreateOrUpdateAlias(a *Alias) error
 	Close()
 }
 
