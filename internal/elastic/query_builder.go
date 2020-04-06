@@ -228,7 +228,9 @@ func newQuery() base {
 }
 
 func (q base) Size(size int64) base {
-	q["size"] = size
+	if size != 0 {
+		q["size"] = size
+	}
 	return q
 }
 
@@ -248,7 +250,9 @@ func (q base) Zero() base {
 }
 
 func (q base) From(from int64) base {
-	q["from"] = from
+	if from != 0 {
+		q["from"] = from
+	}
 	return q
 }
 

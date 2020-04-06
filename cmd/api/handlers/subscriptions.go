@@ -69,7 +69,7 @@ func (ctx *Context) prepareSubscription(subs []database.Subscription) ([]Subscri
 		ids[i] = subs[i].EntityID
 	}
 
-	contracts, err := ctx.ES.GetContractsByID(ids)
+	contracts, err := ctx.ES.GetContractsByIDsWithSort(ids, "last_action", "desc")
 	if err != nil {
 		return nil, err
 	}
