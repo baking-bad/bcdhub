@@ -138,8 +138,8 @@ func (e *Elastic) GetContractOperations(network, address string, size uint64, fi
 		must(
 			matchPhrase("network", network),
 		),
+		minimumShouldMatch(1),
 	)
-	b.Get("bool").Append("minimum_should_match", 1)
 	query := newQuery().
 		Query(b).
 		Add(

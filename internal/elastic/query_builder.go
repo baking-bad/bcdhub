@@ -29,6 +29,20 @@ func boolQ(items ...qItem) qItem {
 	return bq
 }
 
+func minimumShouldMatch(value int) qItem {
+	return qItem{
+		"minimum_should_match": value,
+	}
+}
+
+func exists(field string) qItem {
+	return qItem{
+		"exists": qItem{
+			"field": field,
+		},
+	}
+}
+
 func must(items ...qItem) qItem {
 	return qItem{
 		"must": items,
@@ -214,7 +228,9 @@ func newQuery() base {
 }
 
 func (q base) Size(size int64) base {
-	q["size"] = size
+	if size != 0 {
+		q["size"] = size
+	}
 	return q
 }
 
@@ -234,7 +250,9 @@ func (q base) Zero() base {
 }
 
 func (q base) From(from int64) base {
-	q["from"] = from
+	if from != 0 {
+		q["from"] = from
+	}
 	return q
 }
 

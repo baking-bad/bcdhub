@@ -146,3 +146,58 @@ func (b *BigMapDiff) ParseElasticJSON(hit gjson.Result) {
 	b.Address = hit.Get("_source.address").String()
 	b.Network = hit.Get("_source.newtork").String()
 }
+
+type contractPair struct {
+	Address string
+	Network string
+}
+
+// ParseElasticJSONArray -
+func (c *contractPair) ParseElasticJSONArray(hit gjson.Result) {
+	c.Address = hit.Get("0").String()
+	c.Network = hit.Get("1").String()
+}
+
+// TimelineItem -
+type TimelineItem struct {
+	Network          string    `json:"network"`
+	Hash             string    `json:"hash"`
+	Status           string    `json:"status"`
+	Timestamp        time.Time `json:"timestamp"`
+	Kind             string    `json:"kind"`
+	Source           string    `json:"source"`
+	Amount           int64     `json:"amount,omitempty"`
+	Level            int64     `json:"level,omitempty"`
+	Destination      string    `json:"destination,omitempty"`
+	Entrypoint       string    `json:"entrypoint,omitempty"`
+	SourceAlias      string    `json:"source_alias,omitempty"`
+	DestinationAlias string    `json:"destination_alias,omitempty"`
+}
+
+// ParseJSONOperation -
+func (t *TimelineItem) ParseJSONOperation(hit gjson.Result) {
+	t.Network = hit.Get("_source.network").String()
+	t.Hash = hit.Get("_source.hash").String()
+	t.Status = hit.Get("_source.status").String()
+	t.Timestamp = hit.Get("_source.timestamp").Time()
+	t.Kind = hit.Get("_source.kind").String()
+	t.Source = hit.Get("_source.source").String()
+	t.Destination = hit.Get("_source.destination").String()
+	t.Entrypoint = hit.Get("_source.entrypoint").String()
+	t.Amount = hit.Get("_source.amount").Int()
+	t.Level = hit.Get("_source.level").Int()
+	t.SourceAlias = hit.Get("_source.source_alias").String()
+	t.DestinationAlias = hit.Get("_source.destination_alias").String()
+}
+
+// ParseJSONMigration -
+func (t *TimelineItem) ParseJSONMigration(hit gjson.Result) {
+	t.Network = hit.Get("_source.network").String()
+	t.Hash = hit.Get("_source.hash").String()
+	t.Status = "applied"
+	t.Timestamp = hit.Get("_source.timestamp").Time()
+	t.Kind = DocMigrations
+	t.Source = hit.Get("_source.address").String()
+	t.Level = hit.Get("_source.level").Int()
+	t.SourceAlias = hit.Get("_source.source_alias").String()
+}
