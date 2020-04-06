@@ -74,7 +74,7 @@ func findInBytes(input string, storage map[string]struct{}) {
 		return
 	}
 
-	if len(input) >= 1 && input[:2] == "05" {
+	if len(input) >= 1 && input[:2] == unpack.MainPrefix {
 		str, err := rawbytes.ToMicheline(input[2:])
 		if err == nil {
 			data := gjson.Parse(str)
