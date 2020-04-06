@@ -6,6 +6,7 @@ import (
 
 // BigMapDiff -
 type BigMapDiff struct {
+	ID          string      `json:"-"`
 	Ptr         int64       `json:"ptr,omitempty"`
 	BinPath     string      `json:"bin_path"`
 	Key         interface{} `json:"key"`
@@ -20,6 +21,7 @@ type BigMapDiff struct {
 
 // ParseElasticJSON -
 func (b *BigMapDiff) ParseElasticJSON(hit gjson.Result) {
+	b.ID = hit.Get("_id").String()
 	b.Ptr = hit.Get("_source.ptr").Int()
 	b.BinPath = hit.Get("_source.bin_path").String()
 	b.Key = hit.Get("_source.key").Value()

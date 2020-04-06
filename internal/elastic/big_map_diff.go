@@ -192,3 +192,40 @@ func (e *Elastic) GetBigMapDiffByPtrAndKeyHash(address string, ptr int64, keyHas
 	}
 	return result, nil
 }
+
+// GetAllBigMapDiff -
+func (e *Elastic) GetAllBigMapDiff(network string) ([]models.BigMapDiff, error) {
+	bmd := make([]models.BigMapDiff, 0)
+
+	query := newQuery().Query(
+		boolQ(
+			must(
+				matchPhrase("network", network),
+			),
+		),
+	)
+	result, err := e.createScroll(DocBigMapDiff, 1000, query)
+	if err != nil {
+		return nil, err
+	}
+	for {
+		scrollID := result.Get("_scroll_id").String()
+		hits := result.Get("hits.hits")
+		if hits.Get("#").Int() < 1 {
+			break
+		}
+
+		for _, item := range hits.Array() {
+			var c models.BigMapDiff
+			c.ParseElasticJSON(item)
+			bmd = append(bmd, c)
+		}
+
+		result, err = e.queryScroll(scrollID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return bmd, nil
+}
