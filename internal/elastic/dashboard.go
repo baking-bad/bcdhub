@@ -5,7 +5,7 @@ import (
 )
 
 // GetTimeline -
-func (e *Elastic) GetTimeline(contracts []string) ([]TimelineItem, error) {
+func (e *Elastic) GetTimeline(contracts []string, size, from int64) ([]TimelineItem, error) {
 	if len(contracts) == 0 {
 		return []TimelineItem{}, nil
 	}
@@ -42,7 +42,7 @@ func (e *Elastic) GetTimeline(contracts []string) ([]TimelineItem, error) {
 		should(conditions...),
 		minimumShouldMatch(1),
 	)
-	query := newQuery().Query(b).Sort("timestamp", "desc").All()
+	query := newQuery().Query(b).Size(size).From(from).Sort("timestamp", "desc")
 
 	result, err := e.query([]string{DocOperations, DocMigrations}, query)
 	if err != nil {

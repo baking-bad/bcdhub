@@ -187,7 +187,7 @@ func (t *TimelineItem) ParseJSONOperation(hit gjson.Result) {
 	t.Amount = hit.Get("_source.amount").Int()
 	t.Level = hit.Get("_source.level").Int()
 	t.SourceAlias = hit.Get("_source.source_alias").String()
-	t.DestinationAlias = hit.Get("_source.source_destination").String()
+	t.DestinationAlias = hit.Get("_source.destination_alias").String()
 }
 
 // ParseJSONMigration -

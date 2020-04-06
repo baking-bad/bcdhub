@@ -102,6 +102,34 @@ func (e *Elastic) GetContractsByID(ids []string) ([]models.Contract, error) {
 	return contracts, nil
 }
 
+// GetContractsByIDsWithSort -
+func (e *Elastic) GetContractsByIDsWithSort(ids []string, sortField, sortDirection string) ([]models.Contract, error) {
+	query := newQuery().Query(
+		qItem{
+			"ids": qItem{
+				"values": ids,
+			},
+		},
+	).Sort(sortField, sortDirection).All()
+	resp, err := e.query([]string{DocContracts}, query)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.Get("hits.total.value").Int() < 1 {
+		return nil, fmt.Errorf("Unknown contracts with IDs %s", ids)
+	}
+
+	contracts := make([]models.Contract, 0)
+	arr := resp.Get("hits.hits").Array()
+	for i := range arr {
+		var c models.Contract
+		c.ParseElasticJSON(arr[i])
+		contracts = append(contracts, c)
+	}
+	return contracts, nil
+}
+
 // GetContractField -
 func (e *Elastic) GetContractField(by map[string]interface{}, field string) (interface{}, error) {
 	query := getContractQuery(by).One()
@@ -210,7 +238,7 @@ func (e *Elastic) Recommendations(tags []string, language string, blackList []st
 		minimumShouldMatch(int(math.Min(2, float64(len(tagFilters)+1)))),
 	)
 
-	query := newQuery().Query(b).Size(size)
+	query := newQuery().Query(b).Size(size).Sort("last_action", "desc")
 	resp, err := e.query([]string{DocContracts}, query)
 	if err != nil {
 		return nil, err
