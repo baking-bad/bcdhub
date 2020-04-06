@@ -1,0 +1,66 @@
+package elastic
+
+import (
+	"fmt"
+
+	"github.com/baking-bad/bcdhub/internal/models"
+)
+
+// GetFA12 -
+func (e *Elastic) GetFA12(network string, size, offset int64) ([]models.Contract, error) {
+	query := newQuery().Query(
+		boolQ(
+			must(
+				matchPhrase("network", network),
+				matchPhrase("tags", "fa12"),
+			),
+		),
+	).Sort("timestamp", "desc").Size(size).From(offset)
+
+	result, err := e.query([]string{DocContracts}, query)
+	if err != nil {
+		return nil, err
+	}
+
+	contracts := make([]models.Contract, 0)
+	for _, hit := range result.Get("hits.hits").Array() {
+		var contract models.Contract
+		contract.ParseElasticJSON(hit)
+		contracts = append(contracts, contract)
+	}
+	return contracts, nil
+}
+
+// GetFA12TransferOperations -
+func (e *Elastic) GetFA12TransferOperations(network, address, lastID string) (PageableOperations, error) {
+	mustItems := []qItem{
+		matchPhrase("network", network),
+		matchPhrase("entrypoint", "transfer"),
+		matchQ("parameters", fmt.Sprintf(".*%s.*", address)),
+	}
+	if lastID != "" {
+		mustItems = append(mustItems, rangeQ("indexed_time", qItem{"lt": lastID}))
+	}
+
+	query := newQuery().Query(
+		boolQ(must(mustItems...)),
+	).Add(
+		aggs("last_id", min("indexed_time")),
+	).Sort("timestamp", "desc").Size(20)
+
+	po := PageableOperations{}
+	result, err := e.query([]string{DocOperations}, query)
+	if err != nil {
+		return po, err
+	}
+
+	operations := make([]models.Operation, 0)
+	for _, hit := range result.Get("hits.hits").Array() {
+		var operation models.Operation
+		operation.ParseElasticJSON(hit)
+		operations = append(operations, operation)
+	}
+	po.Operations = operations
+	po.LastID = result.Get("aggregations.last_id.value").String()
+	return po, nil
+}

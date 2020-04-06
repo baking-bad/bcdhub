@@ -8,6 +8,14 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 )
 
+// GetContractByAddressAndNetwork -
+func (e *Elastic) GetContractByAddressAndNetwork(network, address string) (models.Contract, error) {
+	return e.GetContract(map[string]interface{}{
+		"address": address,
+		"network": network,
+	})
+}
+
 func getContractQuery(by map[string]interface{}) base {
 	matches := make([]qItem, 0)
 	for k, v := range by {
@@ -278,4 +286,22 @@ func (e *Elastic) computeMedianConsumedGas(address, network string) (int64, erro
 
 	values := resp.Get("aggregations.consumed_gas.values").Map()
 	return values["50.0"].Int(), nil
+}
+
+// IsFA12Contract -
+func (e *Elastic) IsFA12Contract(network, address string) (bool, error) {
+	query := newQuery().Query(
+		boolQ(
+			must(
+				matchPhrase("network", network),
+				matchPhrase("address", address),
+				matchPhrase("tags", "fa12"),
+			),
+		),
+	)
+	resp, err := e.query([]string{DocContracts}, query, "address", "network")
+	if err != nil {
+		return false, err
+	}
+	return resp.Get("hits.total.value").Int() == 1, nil
 }

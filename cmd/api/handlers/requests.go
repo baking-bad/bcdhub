@@ -59,6 +59,11 @@ type operationsRequest struct {
 
 type pageableRequest struct {
 	Offset int64 `form:"offset" binding:"min=0"`
+	Size   int64 `form:"size" binding:"min=0"`
+}
+
+type cursorRequest struct {
+	LastID string `form:"last_id" binding:"omitempty,numeric"`
 }
 
 type searchRequest struct {
@@ -103,4 +108,8 @@ type getMigrationRequest struct {
 	Network string `uri:"network" binding:"required,network"`
 
 	Protocol string `form:"protocol"`
+}
+
+type getByNetwork struct {
+	Network string `uri:"network" binding:"required,network"`
 }

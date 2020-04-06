@@ -126,6 +126,16 @@ func (f *Fingerprint) ParseElasticJSON(hit gjson.Result) {
 	f.Storage = hit.Get("storage").String()
 }
 
+// IsFA12 - checks contract realizes fa12 interface
+func (c *Contract) IsFA12() bool {
+	for i := range c.Tags {
+		if c.Tags[i] == "fa12" {
+			return true
+		}
+	}
+	return false
+}
+
 // GetFoundBy -
 func GetFoundBy(hit gjson.Result) string {
 	keys := hit.Get("highlight").Map()

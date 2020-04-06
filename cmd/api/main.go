@@ -132,6 +132,18 @@ func main() {
 			}
 		}
 
+		fa12 := v1.Group("fa12")
+		{
+			network := fa12.Group(":network")
+			{
+				network.GET("", ctx.GetFA12)
+				address := network.Group(":address")
+				{
+					address.GET("transfers", ctx.GetFA12OperationsForAddress)
+				}
+			}
+		}
+
 		v1.GET("pick_random", ctx.GetRandomContract)
 		v1.GET("diff", ctx.GetDiff)
 		v1.GET("opg/:hash", ctx.GetOperation)

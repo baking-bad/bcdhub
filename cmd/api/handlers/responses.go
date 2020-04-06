@@ -124,3 +124,35 @@ type CodeVersion struct {
 	Name  string `json:"name"`
 	Level int64  `json:"level"`
 }
+
+// ContractFA12 -
+type ContractFA12 struct {
+	Network       string    `json:"network"`
+	Level         int64     `json:"level"`
+	Timestamp     time.Time `json:"timestamp"`
+	Address       string    `json:"address"`
+	Manager       string    `json:"manager,omitempty"`
+	Delegate      string    `json:"delegate,omitempty"`
+	Alias         string    `json:"alias,omitempty"`
+	DelegateAlias string    `json:"delegate_alias,omitempty"`
+}
+
+// TransferFA12 -
+type TransferFA12 struct {
+	Network   string    `json:"network"`
+	Protocol  string    `json:"protocol"`
+	Hash      string    `json:"hash"`
+	Counter   int64     `json:"counter,omitempty"`
+	Status    string    `json:"status"`
+	Timestamp time.Time `json:"timestamp"`
+	Level     int64     `json:"level"`
+	From      string    `json:"from"`
+	To        string    `json:"to"`
+	Amount    int64     `json:"amount"`
+}
+
+// PageableTransfersFA12 -
+type PageableTransfersFA12 struct {
+	Transfers []TransferFA12 `json:"transfers"`
+	LastID    string         `json:"last_id"`
+}
