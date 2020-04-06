@@ -12,22 +12,35 @@ import (
 )
 
 const (
-	signatureHexLength = 128
-	chainIDHexLength   = 8
-	addressHexLength   = 44
-	minPrintableASCII  = 32
-	ktPrefix           = "01"
-	ktSuffix           = "00"
-	unpackPrefix       = "05"
+	signatureHexLength   = 128
+	chainIDHexLength     = 8
+	addressHexLength     = 44
+	keyHashHexLength     = 42
+	pKeyEd25519HexLength = 66
+	pKey256HexLength     = 68
+	minPrintableASCII    = 32
+	ktPrefix             = "01"
+	ktSuffix             = "00"
+
+	// MainPrefix -
+	MainPrefix = "05"
 )
 
 // PublicKey -
 func PublicKey(input string) (string, error) {
+	if len(input) != pKeyEd25519HexLength && len(input) != pKey256HexLength {
+		return "", fmt.Errorf("[PublicKey] Wrong length of %v. Expected %v or %v, Got: %v", input, pKeyEd25519HexLength, pKey256HexLength, len(input))
+	}
+
 	return domaintypes.DecodePublicKey(input)
 }
 
 // KeyHash -
 func KeyHash(input string) (string, error) {
+	if len(input) != keyHashHexLength {
+		return "", fmt.Errorf("[KeyHash] Wrong length of %v. Expected %v, Got: %v", input, keyHashHexLength, len(input))
+	}
+
 	return domaintypes.DecodeKeyHash(input)
 }
 
@@ -87,7 +100,7 @@ func Contract(input string) (string, error) {
 
 // Bytes - unpack bytes
 func Bytes(input string) string {
-	if len(input) >= 1 && input[:2] == unpackPrefix {
+	if len(input) >= 1 && input[:2] == MainPrefix {
 		str, err := rawbytes.ToMicheline(input[2:])
 		if err == nil {
 			data := gjson.Parse(str)
