@@ -17,6 +17,9 @@ deploy:
 api:
 	cd cmd/api && CONFIG_FILE=config-dev.json go run .
 
+stage:
+	cd cmd/api && CONFIG_FILE=config-stage.json go run .
+
 clearmq:
 	docker exec -it bcd-mq rabbitmqctl stop_app
 	docker exec -it bcd-mq rabbitmqctl reset
