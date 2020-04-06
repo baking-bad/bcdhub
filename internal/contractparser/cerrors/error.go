@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
+	"github.com/baking-bad/bcdhub/internal/contractparser/unpack"
 	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/rawbytes"
 	"github.com/tidwall/gjson"
 )
@@ -55,7 +56,7 @@ func (e *DefaultError) Format() error {
 	text := gjson.Parse(e.With)
 	if text.Get("bytes").Exists() {
 		data := text.Get("bytes").String()
-		data = strings.TrimPrefix(data, "05")
+		data = strings.TrimPrefix(data, unpack.MainPrefix)
 		decodedString, err := rawbytes.ToMicheline(data)
 		if err == nil {
 			text = gjson.Parse(decodedString)

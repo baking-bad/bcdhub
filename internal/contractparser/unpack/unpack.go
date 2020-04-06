@@ -21,7 +21,9 @@ const (
 	minPrintableASCII    = 32
 	ktPrefix             = "01"
 	ktSuffix             = "00"
-	unpackPrefix         = "05"
+
+	// MainPrefix -
+	MainPrefix = "05"
 )
 
 // PublicKey -
@@ -98,7 +100,7 @@ func Contract(input string) (string, error) {
 
 // Bytes - unpack bytes
 func Bytes(input string) string {
-	if len(input) >= 1 && input[:2] == unpackPrefix {
+	if len(input) >= 1 && input[:2] == MainPrefix {
 		str, err := rawbytes.ToMicheline(input[2:])
 		if err == nil {
 			data := gjson.Parse(str)
