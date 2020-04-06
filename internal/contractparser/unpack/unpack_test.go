@@ -123,6 +123,16 @@ func TestAddress(t *testing.T) {
 			result:  "tz1WkaeRycRr999GrVFepJd9Nqi1FWqGyGqq",
 		},
 		{
+			name:    "tz1 address",
+			address: "0000d27fcbd31910d2226ba4c8f646d3d4c7b2f3a756",
+			result:  "tz1eq3gqb2iZHjHVHoPJqV84gZdBF2TMQiH4",
+		},
+		{
+			name:    "tz1 address",
+			address: "0000107c4009f2bcfcc248d6952998af5b7203b8ff59",
+			result:  "tz1M9CMEtsXm3QxA7FmMU2Qh7xzsuGXVbcDr",
+		},
+		{
 			name:    "tz2 address",
 			address: "0001028562fb176188114cf437a757cdc75bc4aa8cae",
 			result:  "tz28YZoayJjVz2bRgGeVjxE8NonMiJ3r2Wdu",
@@ -140,7 +150,17 @@ func TestAddress(t *testing.T) {
 		{
 			name:    "KT address",
 			address: "011fb03e3ff9fedaf3a2200ffc64d27812da734bba00",
-			result:  `KT1BUKeJTemAaVBfRz6cqxeUBQGQqMxfG19A`,
+			result:  "KT1BUKeJTemAaVBfRz6cqxeUBQGQqMxfG19A",
+		},
+		{
+			name:    "KT address",
+			address: "01d50e3f6f059dc86f5591455549313ce42d0c50f100",
+			result:  "KT1U1JZaXoG4u1EPnhHL4R4otzkWc1L34q3c",
+		},
+		{
+			name:    "KT address",
+			address: "01f8f6c6a0af7c20251bc7df108f2a6e2879a06c9a00",
+			result:  "KT1XHAmdRKugP1Q38CxDmpcRSxq143KpEiYx",
 		},
 	}
 
