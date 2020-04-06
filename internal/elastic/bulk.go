@@ -120,6 +120,5 @@ func (e *Elastic) BulkUpdateBigMapDiffs(updates []models.BigMapDiff) error {
 		bulk.Write(meta)
 		bulk.Write(data)
 	}
-	log.Println(bulk)
 	return e.BulkInsert(DocBigMapDiff, bulk)
 }

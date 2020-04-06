@@ -2,6 +2,7 @@ package elastic
 
 import (
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/tidwall/gjson"
 )
 
 // GetBigMapDiffsByOperationID -
@@ -193,18 +194,52 @@ func (e *Elastic) GetBigMapDiffByPtrAndKeyHash(address string, ptr int64, keyHas
 	return result, nil
 }
 
+// GetOperationsWithBigMapDiffs -
+func (e *Elastic) GetOperationsWithBigMapDiffs() ([]string, error) {
+	query := newQuery().Add(
+		aggs("op_ids", qItem{
+			"terms": qItem{
+				"field": "operation_id.keyword",
+				"size":  maxQuerySize,
+			},
+		}),
+	).Zero()
+
+	res, err := e.query([]string{DocBigMapDiff}, query)
+	if err != nil {
+		return nil, err
+	}
+
+	opIDs := make([]string, 0)
+	for _, hit := range res.Get("aggregations.op_ids.buckets").Array() {
+		opIDs = append(opIDs, hit.Get("key").String())
+	}
+	return opIDs, nil
+}
+
+// GetBigMapDiffsJSONByOperationID -
+func (e *Elastic) GetBigMapDiffsJSONByOperationID(operationID string) ([]gjson.Result, error) {
+	query := newQuery().
+		Query(
+			boolQ(
+				must(
+					matchPhrase("operation_id", operationID),
+				),
+			),
+		).All()
+
+	res, err := e.query([]string{DocBigMapDiff}, query)
+	if err != nil {
+		return nil, err
+	}
+	return res.Get("hits.hits").Array(), nil
+}
+
 // GetAllBigMapDiff -
-func (e *Elastic) GetAllBigMapDiff(network string) ([]models.BigMapDiff, error) {
+func (e *Elastic) GetAllBigMapDiff() ([]models.BigMapDiff, error) {
 	bmd := make([]models.BigMapDiff, 0)
 
-	query := newQuery().Query(
-		boolQ(
-			must(
-				matchPhrase("network", network),
-			),
-		),
-	)
-	result, err := e.createScroll(DocBigMapDiff, 1000, query)
+	result, err := e.createScroll(DocBigMapDiff, 1000, base{})
 	if err != nil {
 		return nil, err
 	}
