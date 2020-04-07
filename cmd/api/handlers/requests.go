@@ -113,3 +113,9 @@ type getMigrationRequest struct {
 type getByNetwork struct {
 	Network string `uri:"network" binding:"required,network"`
 }
+
+type bigMapSearchRequest struct {
+	Offset int64  `form:"offset" binding:"min=0"`
+	Size   int64  `form:"size" binding:"min=0"`
+	Search string `form:"q"`
+}

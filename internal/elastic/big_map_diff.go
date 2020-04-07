@@ -104,12 +104,18 @@ func (e *Elastic) GetBigMapDiffsForAddress(address string) ([]models.BigMapDiff,
 }
 
 // GetBigMap -
-func (e *Elastic) GetBigMap(address string, ptr int64) ([]BigMapDiff, error) {
-	mustQuery := make([]qItem, 0)
-	mustQuery = append(mustQuery, matchPhrase("address", address))
+func (e *Elastic) GetBigMap(address string, ptr int64, searchText string, size, offset int64) ([]BigMapDiff, error) {
+	mustQuery := []qItem{
+		matchPhrase("address", address),
+	}
+	if searchText != "" {
+		mustQuery = append(mustQuery, queryString(searchText, []string{"key", "key_hash", "key_strings"}))
+	}
+
 	if ptr != 0 {
 		mustQuery = append(mustQuery, term("ptr", ptr))
 	}
+
 	b := boolQ(must(mustQuery...))
 
 	if ptr == 0 {
@@ -124,28 +130,43 @@ func (e *Elastic) GetBigMap(address string, ptr int64) ([]BigMapDiff, error) {
 		)
 	}
 
+	if size == 0 {
+		size = 10
+	}
+
+	to := size + offset
 	query := newQuery().Query(b).Add(
 		aggs("keys", qItem{
 			"terms": qItem{
 				"field": "key_hash.keyword",
-				"size":  maxQuerySize,
+				"size":  to,
 				"order": qItem{
 					"bucketsSort": "desc",
 				},
 			},
 			"aggs": qItem{
-				"top_key":     topHits(1, "level", "desc"),
-				"bucketsSort": max("level"),
+				"top_key":     topHits(1, "indexed_time", "desc"),
+				"bucketsSort": max("indexed_time"),
 			},
 		}),
-	).Sort("level", "desc").Zero()
+	).Sort("indexed_time", "desc").Zero()
 	res, err := e.query([]string{DocBigMapDiff}, query)
 	if err != nil {
 		return nil, err
 	}
 
 	result := make([]BigMapDiff, 0)
-	for _, item := range res.Get("aggregations.keys.buckets").Array() {
+	arr := res.Get("aggregations.keys.buckets").Array()
+	if int64(len(arr)) < offset {
+		return nil, nil
+	}
+
+	if int64(len(arr)) < to {
+		to = int64(len(arr))
+	}
+
+	arr = arr[offset:to]
+	for _, item := range arr {
 		bmd := item.Get("top_key.hits.hits.0")
 
 		var b BigMapDiff

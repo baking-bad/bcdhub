@@ -20,7 +20,12 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		return
 	}
 
-	bm, err := ctx.ES.GetBigMap(req.Address, req.Ptr)
+	var pageReq bigMapSearchRequest
+	if err := c.BindQuery(&pageReq); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
+	bm, err := ctx.ES.GetBigMap(req.Address, req.Ptr, pageReq.Search, pageReq.Size, pageReq.Offset)
 	if handleError(c, err, 0) {
 		return
 	}
