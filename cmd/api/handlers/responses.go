@@ -125,8 +125,8 @@ type CodeVersion struct {
 	Level int64  `json:"level"`
 }
 
-// ContractFA12 -
-type ContractFA12 struct {
+// TokenContract -
+type TokenContract struct {
 	Network       string    `json:"network"`
 	Level         int64     `json:"level"`
 	Timestamp     time.Time `json:"timestamp"`
@@ -135,10 +135,12 @@ type ContractFA12 struct {
 	Delegate      string    `json:"delegate,omitempty"`
 	Alias         string    `json:"alias,omitempty"`
 	DelegateAlias string    `json:"delegate_alias,omitempty"`
+	Type          string    `json:"type"`
 }
 
-// TransferFA12 -
-type TransferFA12 struct {
+// TokenTransfer -
+type TokenTransfer struct {
+	Contract  string    `json:"contract"`
 	Network   string    `json:"network"`
 	Protocol  string    `json:"protocol"`
 	Hash      string    `json:"hash"`
@@ -151,8 +153,8 @@ type TransferFA12 struct {
 	Amount    int64     `json:"amount"`
 }
 
-// PageableTransfersFA12 -
-type PageableTransfersFA12 struct {
-	Transfers []TransferFA12 `json:"transfers"`
-	LastID    string         `json:"last_id"`
+// PageableTokenTransfers -
+type PageableTokenTransfers struct {
+	Transfers []TokenTransfer `json:"transfers"`
+	LastID    string          `json:"last_id"`
 }

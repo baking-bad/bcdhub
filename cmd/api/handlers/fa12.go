@@ -30,12 +30,12 @@ func (ctx *Context) GetFA12(c *gin.Context) {
 		pageReq.Size = 20
 	}
 
-	contracts, err := ctx.ES.GetFA12(req.Network, pageReq.Size, pageReq.Offset)
+	contracts, err := ctx.ES.GetTokens(req.Network, pageReq.Size, pageReq.Offset)
 	if handleError(c, err, 0) {
 		return
 	}
 
-	c.JSON(http.StatusOK, contractToFA12(contracts))
+	c.JSON(http.StatusOK, contractToTokens(contracts))
 }
 
 // GetFA12OperationsForAddress -
@@ -50,7 +50,7 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 		return
 	}
 
-	operations, err := ctx.ES.GetFA12TransferOperations(req.Network, req.Address, cursorReq.LastID)
+	operations, err := ctx.ES.GetTokenTransferOperations(req.Network, req.Address, cursorReq.LastID)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -62,10 +62,10 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 	c.JSON(http.StatusOK, ops)
 }
 
-func contractToFA12(contracts []models.Contract) []ContractFA12 {
-	fa12 := make([]ContractFA12, len(contracts))
+func contractToTokens(contracts []models.Contract) []TokenContract {
+	tokens := make([]TokenContract, len(contracts))
 	for i := range contracts {
-		fa12[i] = ContractFA12{
+		tokens[i] = TokenContract{
 			Network:       contracts[i].Network,
 			Level:         contracts[i].Level,
 			Timestamp:     contracts[i].Timestamp,
@@ -75,12 +75,20 @@ func contractToFA12(contracts []models.Contract) []ContractFA12 {
 			Alias:         contracts[i].Alias,
 			DelegateAlias: contracts[i].DelegateAlias,
 		}
+		for _, tag := range contracts[i].Tags {
+			if tag == consts.FA12Tag {
+				tokens[i].Type = consts.FA12Tag
+				break
+			} else if tag == consts.FA1Tag {
+				tokens[i].Type = consts.FA1Tag
+			}
+		}
 	}
-	return fa12
+	return tokens
 }
 
-func operationToTransfer(es *elastic.Elastic, po elastic.PageableOperations) (PageableTransfersFA12, error) {
-	transfers := make([]TransferFA12, 0)
+func operationToTransfer(es *elastic.Elastic, po elastic.PageableOperations) (PageableTokenTransfers, error) {
+	transfers := make([]TokenTransfer, 0)
 	contracts := map[string]bool{}
 	metadatas := map[string]meta.Metadata{}
 
@@ -88,9 +96,9 @@ func operationToTransfer(es *elastic.Elastic, po elastic.PageableOperations) (Pa
 		key := op.Network + op.Destination
 		isFA12, ok := contracts[key]
 		if !ok {
-			val, err := es.IsFA12Contract(op.Network, op.Destination)
+			val, err := es.IsFAContract(op.Network, op.Destination)
 			if err != nil {
-				return PageableTransfersFA12{}, err
+				return PageableTokenTransfers{}, err
 			}
 			contracts[key] = val
 			isFA12 = val
@@ -102,8 +110,9 @@ func operationToTransfer(es *elastic.Elastic, po elastic.PageableOperations) (Pa
 			continue
 		}
 
-		transfer := TransferFA12{
+		transfer := TokenTransfer{
 			Network:   op.Network,
+			Contract:  op.Destination,
 			Protocol:  op.Protocol,
 			Hash:      op.Hash,
 			Counter:   op.Counter,
@@ -116,7 +125,7 @@ func operationToTransfer(es *elastic.Elastic, po elastic.PageableOperations) (Pa
 		if !ok {
 			val, err := meta.GetMetadata(es, op.Destination, consts.PARAMETER, op.Protocol)
 			if err != nil {
-				return PageableTransfersFA12{}, fmt.Errorf("[operationToTransfer] Unknown metadata: %s", op.Destination)
+				return PageableTokenTransfers{}, fmt.Errorf("[operationToTransfer] Unknown metadata: %s", op.Destination)
 			}
 			metadatas[key] = val
 			metadata = val
@@ -125,7 +134,7 @@ func operationToTransfer(es *elastic.Elastic, po elastic.PageableOperations) (Pa
 		params := gjson.Parse(op.Parameters)
 		parameters, err := newmiguel.ParameterToMiguel(params, metadata)
 		if err != nil {
-			return PageableTransfersFA12{}, err
+			return PageableTokenTransfers{}, err
 		}
 		if len(parameters.Children) != 3 {
 			continue
@@ -134,13 +143,13 @@ func operationToTransfer(es *elastic.Elastic, po elastic.PageableOperations) (Pa
 		transfer.To = parameters.Children[1].Value.(string)
 		amount, err := strconv.ParseInt(parameters.Children[2].Value.(string), 10, 64)
 		if err != nil {
-			return PageableTransfersFA12{}, err
+			return PageableTokenTransfers{}, err
 		}
 		transfer.Amount = amount
 
 		transfers = append(transfers, transfer)
 	}
-	pt := PageableTransfersFA12{
+	pt := PageableTokenTransfers{
 		LastID:    po.LastID,
 		Transfers: transfers,
 	}

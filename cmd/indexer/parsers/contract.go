@@ -27,7 +27,7 @@ func createNewContract(es *elastic.Elastic, operation models.Operation, filesDir
 		Address:    operation.Destination,
 		Balance:    operation.Balance,
 		Delegate:   operation.Delegate,
-		LastAction: models.BCDTime{operation.Timestamp},
+		LastAction: models.BCDTime{Time: operation.Timestamp},
 		TxCount:    1,
 	}
 

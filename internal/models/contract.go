@@ -21,6 +21,8 @@ var foundByCategories = []string{
 	"manager",
 	"address",
 	"hash",
+	"key_hash",
+	"key_strings",
 }
 
 // Contract - entity for contract

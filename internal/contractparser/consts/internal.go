@@ -7,6 +7,7 @@ const (
 	DelegatableTag     = "delegatable"
 	ChainAwareTag      = "CHAIN_ID"
 	CheckSigTag        = "CHECK_SIGNATURE"
+	FA1Tag             = "fa1"
 	FA12Tag            = "fa12"
 	TestingTag         = "testing"
 	VestingTag         = "vesting"

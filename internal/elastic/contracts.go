@@ -288,18 +288,25 @@ func (e *Elastic) computeMedianConsumedGas(address, network string) (int64, erro
 	return values["50.0"].Int(), nil
 }
 
-// IsFA12Contract -
-func (e *Elastic) IsFA12Contract(network, address string) (bool, error) {
+// IsFAContract -
+func (e *Elastic) IsFAContract(network, address string) (bool, error) {
 	query := newQuery().Query(
 		boolQ(
 			must(
 				matchPhrase("network", network),
 				matchPhrase("address", address),
-				matchPhrase("tags", "fa12"),
+			),
+			filter(
+				qItem{
+					"terms": qItem{
+						"tags": []string{"fa12", "fa1"},
+					},
+					"minimum_should_match": 1,
+				},
 			),
 		),
 	)
-	resp, err := e.query([]string{DocContracts}, query, "address", "network")
+	resp, err := e.query([]string{DocContracts}, query, "address")
 	if err != nil {
 		return false, err
 	}

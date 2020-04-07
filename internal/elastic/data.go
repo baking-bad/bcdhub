@@ -144,7 +144,7 @@ func (b *BigMapDiff) ParseElasticJSON(hit gjson.Result) {
 	b.OperationID = hit.Get("_source.operation_id").String()
 	b.Level = hit.Get("_source.level").Int()
 	b.Address = hit.Get("_source.address").String()
-	b.Network = hit.Get("_source.newtork").String()
+	b.Network = hit.Get("_source.network").String()
 }
 
 type contractPair struct {
@@ -200,4 +200,28 @@ func (t *TimelineItem) ParseJSONMigration(hit gjson.Result) {
 	t.Source = hit.Get("_source.address").String()
 	t.Level = hit.Get("_source.level").Int()
 	t.SourceAlias = hit.Get("_source.source_alias").String()
+}
+
+// SearchBigMapDiff -
+type SearchBigMapDiff struct {
+	Ptr       int64     `json:"ptr,omitempty"`
+	Key       string    `json:"key"`
+	KeyHash   string    `json:"key_hash"`
+	Value     string    `json:"value"`
+	Level     int64     `json:"level"`
+	Address   string    `json:"address"`
+	Network   string    `json:"network"`
+	Timestamp time.Time `json:"timestamp"`
+}
+
+// ParseElasticJSON -
+func (b *SearchBigMapDiff) ParseElasticJSON(hit gjson.Result) {
+	b.Ptr = hit.Get("_source.ptr").Int()
+	b.Key = hit.Get("_source.key").String()
+	b.KeyHash = hit.Get("_source.key_hash").String()
+	b.Value = hit.Get("_source.value").String()
+	b.Level = hit.Get("_source.level").Int()
+	b.Address = hit.Get("_source.address").String()
+	b.Network = hit.Get("_source.network").String()
+	b.Timestamp = hit.Get("_source.timestamp").Time()
 }

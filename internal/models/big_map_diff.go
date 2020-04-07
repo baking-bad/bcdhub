@@ -34,7 +34,7 @@ func (b *BigMapDiff) ParseElasticJSON(hit gjson.Result) {
 	b.OperationID = hit.Get("_source.operation_id").String()
 	b.Level = hit.Get("_source.level").Int()
 	b.Address = hit.Get("_source.address").String()
-	b.Network = hit.Get("_source.newtork").String()
+	b.Network = hit.Get("_source.network").String()
 	b.IndexedTime = hit.Get("_source.indexed_time").Int()
 	b.Timestamp = hit.Get("_source.timestamp").Time().UTC()
 

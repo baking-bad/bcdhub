@@ -146,8 +146,13 @@ func (e *Elastic) SearchByText(text string, offset int64, fields []string, filte
 				"projects",
 				qItem{
 					"terms": qItem{
-						"script": "if (doc.containsKey('fingerprint.parameter')) {return doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value} else {return doc['hash.keyword'].value}",
-						"size":   defaultSize + offset,
+						"script": `
+							if (doc.containsKey('fingerprint.parameter')) {
+								return doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value
+							} else if (doc.containsKey('hash')) {
+								return doc['hash.keyword'].value
+							} else return doc['key_hash.keyword'].value`,
+						"size": defaultSize + offset,
 						"order": qList{
 							qItem{"bucket_score": "desc"},
 							qItem{"bucket_time": "desc"},
@@ -234,6 +239,16 @@ func parseSearchResponse(data gjson.Result) []SearchItem {
 				Highlights: highlights,
 			}
 			items = append(items, item)
+		case DocBigMapDiff:
+			var b SearchBigMapDiff
+			b.ParseElasticJSON(arr[i])
+			item := SearchItem{
+				Type:       DocBigMapDiff,
+				Value:      b.KeyHash,
+				Body:       b,
+				Highlights: highlights,
+			}
+			items = append(items, item)
 		default:
 		}
 
@@ -298,6 +313,12 @@ func parseSearchGroupingResponse(data gjson.Result, size, offset int64) []Search
 						})
 					}
 				}
+			case DocBigMapDiff:
+				var b SearchBigMapDiff
+				b.ParseElasticJSON(arr[i].Get("last.hits.hits.0"))
+				searchItem.Body = b
+				searchItem.Value = b.KeyHash
+				searchItem.Highlights = highlights
 			default:
 			}
 		}
