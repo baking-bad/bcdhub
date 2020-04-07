@@ -54,11 +54,6 @@ func findInObject(node gjson.Result, storage map[string]struct{}) {
 }
 
 func findInBytes(input string, storage map[string]struct{}) {
-	if res, err := unpack.PublicKey(input); err == nil {
-		storage[res] = struct{}{}
-		return
-	}
-
 	if res, err := unpack.KeyHash(input); err == nil {
 		storage[res] = struct{}{}
 		return
