@@ -132,7 +132,7 @@ func main() {
 			}
 		}
 
-		fa12 := v1.Group("fa12")
+		fa12 := v1.Group("tokens")
 		{
 			network := fa12.Group(":network")
 			{

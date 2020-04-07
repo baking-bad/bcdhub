@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
@@ -52,40 +53,44 @@ func (ctx *Context) GetBigMapByKeyHash(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (ctx *Context) prepareBigMap(data []elastic.BigMapDiff, network, address string) ([]BigMapResponseItem, error) {
-	babyMeta, err := meta.GetMetadata(ctx.ES, address, consts.STORAGE, consts.HashBabylon)
-	if err != nil {
-		return nil, err
+func (ctx *Context) prepareBigMap(data []elastic.BigMapDiff, network, address string) (res []BigMapResponseItem, err error) {
+	var alphaMeta meta.Metadata
+	if network == consts.Mainnet {
+		alphaMeta, err = meta.GetMetadata(ctx.ES, address, consts.STORAGE, consts.Hash1)
+		if err != nil {
+			if !strings.Contains(err.Error(), "Unknown metadata sym link: alpha") {
+				return
+			}
+		}
 	}
 
-	res := make([]BigMapResponseItem, len(data))
+	babyMeta, err := meta.GetMetadata(ctx.ES, address, consts.STORAGE, consts.HashBabylon)
+	if err != nil {
+		return
+	}
+
+	res = make([]BigMapResponseItem, len(data))
 	for i := range data {
 		metadata := babyMeta
 		if network == consts.Mainnet && data[i].Level < consts.LevelBabylon {
-			alphaMeta, err := meta.GetMetadata(ctx.ES, address, consts.STORAGE, consts.Hash1)
-			if err != nil {
-				return nil, err
-			}
 			metadata = alphaMeta
 		}
 
 		var value interface{}
 		if data[i].Value != "" {
 			val := gjson.Parse(data[i].Value)
-			valueData, err := newmiguel.BigMapToMiguel(val, data[i].BinPath+"/v", metadata)
+			value, err = newmiguel.BigMapToMiguel(val, data[i].BinPath+"/v", metadata)
 			if err != nil {
-				return nil, err
+				return
 			}
-			value = valueData
 		}
 		var key interface{}
 		if data[i].Key != "" {
 			val := gjson.Parse(data[i].Key)
-			keyData, err := newmiguel.BigMapToMiguel(val, data[i].BinPath+"/k", metadata)
+			key, err = newmiguel.BigMapToMiguel(val, data[i].BinPath+"/k", metadata)
 			if err != nil {
-				return nil, err
+				return
 			}
-			key = keyData
 		}
 
 		res[i] = BigMapResponseItem{
@@ -98,13 +103,18 @@ func (ctx *Context) prepareBigMap(data []elastic.BigMapDiff, network, address st
 			Count: data[i].Count,
 		}
 	}
-	return res, nil
+	return
 }
 
 func (ctx *Context) prepareBigMapItem(data []models.BigMapDiff, network, address string) (res []BigMapItem, err error) {
-	alphaMeta, err := meta.GetMetadata(ctx.ES, address, consts.STORAGE, consts.Hash1)
-	if err != nil {
-		return
+	var alphaMeta meta.Metadata
+	if network == consts.Mainnet {
+		alphaMeta, err = meta.GetMetadata(ctx.ES, address, consts.STORAGE, consts.Hash1)
+		if err != nil {
+			if !strings.Contains(err.Error(), "Unknown metadata sym link: alpha") {
+				return
+			}
+		}
 	}
 
 	babyMeta, err := meta.GetMetadata(ctx.ES, address, consts.STORAGE, consts.HashBabylon)

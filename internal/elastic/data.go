@@ -204,7 +204,7 @@ func (t *TimelineItem) ParseJSONMigration(hit gjson.Result) {
 
 // SearchBigMapDiff -
 type SearchBigMapDiff struct {
-	Ptr       int64     `json:"ptr,omitempty"`
+	Ptr       int64     `json:"ptr"`
 	Key       string    `json:"key"`
 	KeyHash   string    `json:"key_hash"`
 	Value     string    `json:"value"`
