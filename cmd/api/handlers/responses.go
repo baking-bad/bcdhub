@@ -91,10 +91,11 @@ type userProfile struct {
 
 // BigMapItem -
 type BigMapItem struct {
-	Key     interface{} `json:"key"`
-	Value   interface{} `json:"value"`
-	KeyHash string      `json:"key_hash"`
-	Level   int64       `json:"level"`
+	Key       interface{} `json:"key"`
+	Value     interface{} `json:"value"`
+	KeyHash   string      `json:"key_hash"`
+	Level     int64       `json:"level"`
+	Timestamp time.Time   `json:"timestamp"`
 }
 
 // BigMapResponseItem -
@@ -157,4 +158,18 @@ type TokenTransfer struct {
 type PageableTokenTransfers struct {
 	Transfers []TokenTransfer `json:"transfers"`
 	LastID    string          `json:"last_id"`
+}
+
+// BigMapDiffItem -
+type BigMapDiffItem struct {
+	Value     interface{} `json:"value"`
+	Level     int64       `json:"level"`
+	Timestamp time.Time   `json:"timestamp"`
+}
+
+// BigMapDiffByKeyResponse -
+type BigMapDiffByKeyResponse struct {
+	Key     interface{}      `json:"key,omitempty"`
+	KeyHash string           `json:"key_hash"`
+	Values  []BigMapDiffItem `json:"values,omitempty"`
 }
