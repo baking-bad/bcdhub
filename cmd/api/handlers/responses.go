@@ -152,6 +152,7 @@ type TokenTransfer struct {
 	From      string    `json:"from,omitempty"`
 	To        string    `json:"to"`
 	Amount    int64     `json:"amount"`
+	Source    string    `json:"source"`
 }
 
 // PageableTokenTransfers -

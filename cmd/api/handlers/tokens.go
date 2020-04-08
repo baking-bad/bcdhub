@@ -124,6 +124,7 @@ func operationToTransfer(es *elastic.Elastic, po elastic.PageableOperations) (Pa
 			Status:    op.Status,
 			Timestamp: op.Timestamp,
 			Level:     op.Level,
+			Source:    op.Source,
 		}
 
 		metadata, ok := metadatas[key]
