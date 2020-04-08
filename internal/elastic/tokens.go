@@ -14,11 +14,7 @@ func (e *Elastic) GetTokens(network string, size, offset int64) ([]models.Contra
 				matchPhrase("network", network),
 			),
 			filter(
-				qItem{
-					"terms": qItem{
-						"tags": []string{"fa12", "fa1"},
-					},
-				},
+				in("tags", []string{"fa12", "fa1"}),
 			),
 		),
 	).Sort("timestamp", "desc").Size(size).From(offset)
@@ -42,27 +38,7 @@ func (e *Elastic) GetTokenTransferOperations(network, address, packedAddress, la
 	if size == 0 {
 		size = defaultSize
 	}
-	mustItems := []qItem{
-		matchPhrase("network", network),
-		boolQ(
-			must(
-				boolQ(
-					should(
-						matchQ("entrypoint", "transfer"),
-						matchQ("entrypoint", "mint"),
-					),
-					minimumShouldMatch(1),
-				),
-				boolQ(
-					should(
-						matchQ("parameters", fmt.Sprintf(".*%s.*", address)),
-						matchQ("parameters", fmt.Sprintf(".*%s.*", packedAddress)),
-					),
-					minimumShouldMatch(1),
-				),
-			),
-		),
-	}
+	mustItems := []qItem{matchPhrase("network", network)}
 	if lastID != "" {
 		mustItems = append(mustItems, rangeQ("indexed_time", qItem{"lt": lastID}))
 	}
@@ -70,6 +46,14 @@ func (e *Elastic) GetTokenTransferOperations(network, address, packedAddress, la
 	query := newQuery().Query(
 		boolQ(
 			must(mustItems...),
+			filter(
+				in("entrypoint", []string{"mint", "transfer"}),
+			),
+			should(
+				matchQ("parameters", fmt.Sprintf(".*%s.*", address)),
+				matchQ("parameters", fmt.Sprintf(".*%s.*", packedAddress)),
+			),
+			minimumShouldMatch(1),
 		),
 	).Add(
 		aggs("last_id", min("indexed_time")),
