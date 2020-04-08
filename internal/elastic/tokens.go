@@ -38,18 +38,26 @@ func (e *Elastic) GetTokens(network string, size, offset int64) ([]models.Contra
 }
 
 // GetTokenTransferOperations -
-func (e *Elastic) GetTokenTransferOperations(network, address, lastID string) (PageableOperations, error) {
+func (e *Elastic) GetTokenTransferOperations(network, address, packedAddress, lastID string) (PageableOperations, error) {
 	mustItems := []qItem{
 		matchPhrase("network", network),
 		matchPhrase("entrypoint", "transfer"),
-		matchQ("parameters", fmt.Sprintf(".*%s.*", address)),
+		boolQ(
+			should(
+				matchQ("parameters", fmt.Sprintf(".*%s.*", address)),
+				matchQ("parameters", fmt.Sprintf(".*%s.*", packedAddress)),
+			),
+			minimumShouldMatch(1),
+		),
 	}
 	if lastID != "" {
 		mustItems = append(mustItems, rangeQ("indexed_time", qItem{"lt": lastID}))
 	}
 
 	query := newQuery().Query(
-		boolQ(must(mustItems...)),
+		boolQ(
+			must(mustItems...),
+		),
 	).Add(
 		aggs("last_id", min("indexed_time")),
 	).Sort("timestamp", "desc").Size(defaultSize)
