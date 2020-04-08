@@ -21,6 +21,8 @@ var foundByCategories = []string{
 	"manager",
 	"address",
 	"hash",
+	"key_hash",
+	"key_strings",
 }
 
 // Contract - entity for contract
@@ -124,6 +126,16 @@ func (f *Fingerprint) ParseElasticJSON(hit gjson.Result) {
 	f.Code = hit.Get("code").String()
 	f.Parameter = hit.Get("parameter").String()
 	f.Storage = hit.Get("storage").String()
+}
+
+// IsFA12 - checks contract realizes fa12 interface
+func (c *Contract) IsFA12() bool {
+	for i := range c.Tags {
+		if c.Tags[i] == "fa12" {
+			return true
+		}
+	}
+	return false
 }
 
 // GetFoundBy -

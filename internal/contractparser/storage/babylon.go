@@ -162,6 +162,7 @@ func (b Babylon) getBigMapDiff(result gjson.Result, ptrMap map[int64]string, add
 			Address:     address,
 			IndexedTime: operation.IndexedTime,
 			Network:     operation.Network,
+			Timestamp:   operation.Timestamp,
 		})
 	}
 	return bmd, nil

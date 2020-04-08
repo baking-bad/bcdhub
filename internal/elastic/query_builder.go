@@ -91,6 +91,14 @@ func matchPhrase(key string, value interface{}) qItem {
 	}
 }
 
+func matchQ(key string, value interface{}) qItem {
+	return qItem{
+		"match": qItem{
+			key: value,
+		},
+	}
+}
+
 func term(key string, value interface{}) qItem {
 	return qItem{
 		"term": qItem{

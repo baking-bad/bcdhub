@@ -27,3 +27,6 @@ local:
 
 aliases:
 	cd scripts/aliases && go run .
+
+migration:
+	cd scripts/migration && go run .

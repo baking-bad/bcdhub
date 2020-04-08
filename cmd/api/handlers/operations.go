@@ -28,10 +28,8 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 		return
 	}
 
-	size := uint64(10)
 	filters := prepareFilters(filtersReq)
-
-	ops, err := ctx.ES.GetContractOperations(req.Network, req.Address, size, filters)
+	ops, err := ctx.ES.GetContractOperations(req.Network, req.Address, filtersReq.Size, filters)
 	if handleError(c, err, 0) {
 		return
 	}
