@@ -52,7 +52,7 @@ func (e *Elastic) GetTokenTransferOperations(network, address, lastID string) (P
 		boolQ(must(mustItems...)),
 	).Add(
 		aggs("last_id", min("indexed_time")),
-	).Sort("timestamp", "desc").Size(20)
+	).Sort("timestamp", "desc").Size(defaultSize)
 
 	po := PageableOperations{}
 	result, err := e.query([]string{DocOperations}, query)

@@ -301,7 +301,6 @@ func (e *Elastic) IsFAContract(network, address string) (bool, error) {
 					"terms": qItem{
 						"tags": []string{"fa12", "fa1"},
 					},
-					"minimum_should_match": 1,
 				},
 			),
 		),
