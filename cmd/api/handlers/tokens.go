@@ -55,7 +55,7 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 	if handleError(c, err, 0) {
 		return
 	}
-	operations, err := ctx.ES.GetTokenTransferOperations(req.Network, req.Address, packedAddress, cursorReq.LastID)
+	operations, err := ctx.ES.GetTokenTransferOperations(req.Network, req.Address, packedAddress, cursorReq.LastID, cursorReq.Size)
 	if handleError(c, err, 0) {
 		return
 	}

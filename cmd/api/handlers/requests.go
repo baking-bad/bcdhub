@@ -53,6 +53,7 @@ type operationsRequest struct {
 	LastID      string `form:"last_id" binding:"omitempty,numeric"`
 	From        uint   `form:"from" binding:"omitempty"`
 	To          uint   `form:"to" binding:"omitempty,gtfield=From"`
+	Size        uint64 `form:"size" binding:"min=0"`
 	Status      string `form:"status" binding:"omitempty,status"`
 	Entrypoints string `form:"entrypoints" binding:"omitempty,excludesall=\"'"`
 }
@@ -64,6 +65,7 @@ type pageableRequest struct {
 
 type cursorRequest struct {
 	LastID string `form:"last_id" binding:"omitempty,numeric"`
+	Size   int64  `form:"size" binding:"min=0"`
 }
 
 type searchRequest struct {

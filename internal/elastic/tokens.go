@@ -38,7 +38,10 @@ func (e *Elastic) GetTokens(network string, size, offset int64) ([]models.Contra
 }
 
 // GetTokenTransferOperations -
-func (e *Elastic) GetTokenTransferOperations(network, address, packedAddress, lastID string) (PageableOperations, error) {
+func (e *Elastic) GetTokenTransferOperations(network, address, packedAddress, lastID string, size int64) (PageableOperations, error) {
+	if size == 0 {
+		size = defaultSize
+	}
 	mustItems := []qItem{
 		matchPhrase("network", network),
 		matchPhrase("entrypoint", "transfer"),
@@ -60,7 +63,7 @@ func (e *Elastic) GetTokenTransferOperations(network, address, packedAddress, la
 		),
 	).Add(
 		aggs("last_id", min("indexed_time")),
-	).Sort("timestamp", "desc").Size(defaultSize)
+	).Sort("timestamp", "desc").Size(size)
 
 	po := PageableOperations{}
 	result, err := e.query([]string{DocOperations}, query)

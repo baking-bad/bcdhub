@@ -65,7 +65,7 @@ type opgForContract struct {
 
 func (e *Elastic) getContractOPG(address, network string, size uint64, filters map[string]interface{}) ([]opgForContract, error) {
 	if size == 0 {
-		size = 10
+		size = defaultSize
 	}
 
 	filtersString, err := prepareOperationFilters(filters)
