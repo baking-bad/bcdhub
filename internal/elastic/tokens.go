@@ -44,13 +44,23 @@ func (e *Elastic) GetTokenTransferOperations(network, address, packedAddress, la
 	}
 	mustItems := []qItem{
 		matchPhrase("network", network),
-		matchPhrase("entrypoint", "transfer"),
 		boolQ(
-			should(
-				matchQ("parameters", fmt.Sprintf(".*%s.*", address)),
-				matchQ("parameters", fmt.Sprintf(".*%s.*", packedAddress)),
+			must(
+				boolQ(
+					should(
+						matchQ("entrypoint", "transfer"),
+						matchQ("entrypoint", "mint"),
+					),
+					minimumShouldMatch(1),
+				),
+				boolQ(
+					should(
+						matchQ("parameters", fmt.Sprintf(".*%s.*", address)),
+						matchQ("parameters", fmt.Sprintf(".*%s.*", packedAddress)),
+					),
+					minimumShouldMatch(1),
+				),
 			),
-			minimumShouldMatch(1),
 		),
 	}
 	if lastID != "" {

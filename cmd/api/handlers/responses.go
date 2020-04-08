@@ -149,7 +149,7 @@ type TokenTransfer struct {
 	Status    string    `json:"status"`
 	Timestamp time.Time `json:"timestamp"`
 	Level     int64     `json:"level"`
-	From      string    `json:"from"`
+	From      string    `json:"from,omitempty"`
 	To        string    `json:"to"`
 	Amount    int64     `json:"amount"`
 }

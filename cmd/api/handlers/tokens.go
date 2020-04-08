@@ -141,16 +141,25 @@ func operationToTransfer(es *elastic.Elastic, po elastic.PageableOperations) (Pa
 		if err != nil {
 			return PageableTokenTransfers{}, err
 		}
-		if len(parameters.Children) != 3 {
+
+		if op.Entrypoint == "transfer" && len(parameters.Children) == 3 {
+			transfer.From = parameters.Children[0].Value.(string)
+			transfer.To = parameters.Children[1].Value.(string)
+			amount, err := strconv.ParseInt(parameters.Children[2].Value.(string), 10, 64)
+			if err != nil {
+				return PageableTokenTransfers{}, err
+			}
+			transfer.Amount = amount
+		} else if op.Entrypoint == "mint" && len(parameters.Children) == 2 {
+			transfer.To = parameters.Children[0].Value.(string)
+			amount, err := strconv.ParseInt(parameters.Children[1].Value.(string), 10, 64)
+			if err != nil {
+				return PageableTokenTransfers{}, err
+			}
+			transfer.Amount = amount
+		} else {
 			continue
 		}
-		transfer.From = parameters.Children[0].Value.(string)
-		transfer.To = parameters.Children[1].Value.(string)
-		amount, err := strconv.ParseInt(parameters.Children[2].Value.(string), 10, 64)
-		if err != nil {
-			return PageableTokenTransfers{}, err
-		}
-		transfer.Amount = amount
 
 		transfers = append(transfers, transfer)
 	}
