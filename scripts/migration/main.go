@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/jsonload"
 	"github.com/baking-bad/bcdhub/scripts/migration/migrations"
 )
@@ -19,13 +18,13 @@ func main() {
 	}
 	defer ctx.Close()
 
-	// migration := migrations.SetTimestampMigration{}
-	// migration := migrations.SetLanguageMigration{}
-	// migration := migrations.SetOperationAliasMigration{}
-	migration := migrations.SetContractAliasMigration{
-		Network: consts.Mainnet,
-	}
+	migration := migrations.SetBMDTimestamp{}
 	if err := migration.Do(ctx); err != nil {
+		panic(err)
+	}
+
+	migration2 := migrations.SetBMDKeyStrings{}
+	if err := migration2.Do(ctx); err != nil {
 		panic(err)
 	}
 }

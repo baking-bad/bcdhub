@@ -53,12 +53,19 @@ type operationsRequest struct {
 	LastID      string `form:"last_id" binding:"omitempty,numeric"`
 	From        uint   `form:"from" binding:"omitempty"`
 	To          uint   `form:"to" binding:"omitempty,gtfield=From"`
+	Size        uint64 `form:"size" binding:"min=0"`
 	Status      string `form:"status" binding:"omitempty,status"`
 	Entrypoints string `form:"entrypoints" binding:"omitempty,excludesall=\"'"`
 }
 
 type pageableRequest struct {
 	Offset int64 `form:"offset" binding:"min=0"`
+	Size   int64 `form:"size" binding:"min=0"`
+}
+
+type cursorRequest struct {
+	LastID string `form:"last_id" binding:"omitempty,numeric"`
+	Size   int64  `form:"size" binding:"min=0"`
 }
 
 type searchRequest struct {
@@ -103,4 +110,14 @@ type getMigrationRequest struct {
 	Network string `uri:"network" binding:"required,network"`
 
 	Protocol string `form:"protocol"`
+}
+
+type getByNetwork struct {
+	Network string `uri:"network" binding:"required,network"`
+}
+
+type bigMapSearchRequest struct {
+	Offset int64  `form:"offset" binding:"min=0"`
+	Size   int64  `form:"size" binding:"min=0"`
+	Search string `form:"q"`
 }
