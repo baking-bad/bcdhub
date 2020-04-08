@@ -39,17 +39,7 @@ func (l *literalDecoder) Decode(jsonData gjson.Result, path string, nm *meta.Nod
 		node.Value = data
 	case consts.BYTES:
 		node.Value = unpack.Bytes(jsonData.Get(consts.BYTES).String())
-	case consts.ADDRESS:
-		if jsonData.Get(consts.BYTES).Exists() {
-			data, err := unpack.Address(jsonData.Get(consts.BYTES).String())
-			if err != nil {
-				return nil, err
-			}
-			node.Value = data
-		} else {
-			node.Value = jsonData.Get(consts.STRING).String()
-		}
-	case consts.CONTRACT:
+	case consts.CONTRACT, consts.ADDRESS:
 		if jsonData.Get(consts.BYTES).Exists() {
 			data, err := unpack.Contract(jsonData.Get(consts.BYTES).String())
 			if err != nil {

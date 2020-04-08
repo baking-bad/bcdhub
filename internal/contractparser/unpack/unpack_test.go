@@ -272,6 +272,11 @@ func TestContract(t *testing.T) {
 			input:  "01e5bae183211979a662665319a0900df3542e65ba00646f",
 			result: `KT1VXUBQbYMt58yoKhNo73Zf8HTMfAd8Fqge%do`,
 		},
+		{
+			name:   "contract/KT%",
+			input:  "01cf1d618c7a5ad83131092dfa462c138cac2a83af006164644469766964656e6473",
+			result: `KT1TTtduU7q21hUpMPQQKERy1NYaCTr72Q4s%addDividends`,
+		},
 	}
 
 	for _, tc := range validTestCases {
