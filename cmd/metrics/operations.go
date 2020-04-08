@@ -51,6 +51,10 @@ func parseOperation(operation models.Operation) error {
 		}
 	}
 
+	if err := h.SetBigMapDiffsKeyString(operation.ID); err != nil {
+		return err
+	}
+
 	logger.Info("Operation %s processed", operation.ID)
 	return nil
 }

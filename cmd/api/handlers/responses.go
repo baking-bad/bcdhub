@@ -91,10 +91,11 @@ type userProfile struct {
 
 // BigMapItem -
 type BigMapItem struct {
-	Key     interface{} `json:"key"`
-	Value   interface{} `json:"value"`
-	KeyHash string      `json:"key_hash"`
-	Level   int64       `json:"level"`
+	Key       interface{} `json:"key"`
+	Value     interface{} `json:"value"`
+	KeyHash   string      `json:"key_hash"`
+	Level     int64       `json:"level"`
+	Timestamp time.Time   `json:"timestamp"`
 }
 
 // BigMapResponseItem -
@@ -123,4 +124,53 @@ type CodeResponse struct {
 type CodeVersion struct {
 	Name  string `json:"name"`
 	Level int64  `json:"level"`
+}
+
+// TokenContract -
+type TokenContract struct {
+	Network       string    `json:"network"`
+	Level         int64     `json:"level"`
+	Timestamp     time.Time `json:"timestamp"`
+	Address       string    `json:"address"`
+	Manager       string    `json:"manager,omitempty"`
+	Delegate      string    `json:"delegate,omitempty"`
+	Alias         string    `json:"alias,omitempty"`
+	DelegateAlias string    `json:"delegate_alias,omitempty"`
+	Type          string    `json:"type"`
+}
+
+// TokenTransfer -
+type TokenTransfer struct {
+	Contract  string    `json:"contract"`
+	Network   string    `json:"network"`
+	Protocol  string    `json:"protocol"`
+	Hash      string    `json:"hash"`
+	Counter   int64     `json:"counter,omitempty"`
+	Status    string    `json:"status"`
+	Timestamp time.Time `json:"timestamp"`
+	Level     int64     `json:"level"`
+	From      string    `json:"from,omitempty"`
+	To        string    `json:"to"`
+	Amount    int64     `json:"amount"`
+	Source    string    `json:"source"`
+}
+
+// PageableTokenTransfers -
+type PageableTokenTransfers struct {
+	Transfers []TokenTransfer `json:"transfers"`
+	LastID    string          `json:"last_id"`
+}
+
+// BigMapDiffItem -
+type BigMapDiffItem struct {
+	Value     interface{} `json:"value"`
+	Level     int64       `json:"level"`
+	Timestamp time.Time   `json:"timestamp"`
+}
+
+// BigMapDiffByKeyResponse -
+type BigMapDiffByKeyResponse struct {
+	Key     interface{}      `json:"key,omitempty"`
+	KeyHash string           `json:"key_hash"`
+	Values  []BigMapDiffItem `json:"values,omitempty"`
 }

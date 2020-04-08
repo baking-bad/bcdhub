@@ -42,4 +42,9 @@ func main() {
 	if err := migrationMap[env].Do(ctx); err != nil {
 		log.Fatal(err)
 	}
+
+	migration2 := migrations.SetBMDKeyStrings{}
+	if err := migration2.Do(ctx); err != nil {
+		panic(err)
+	}
 }
