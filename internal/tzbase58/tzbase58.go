@@ -35,7 +35,7 @@ func checksum(input []byte) []byte {
 }
 
 // DecodeFromHex - decodes hex string from base58 with prefix
-func DecodeFromHex(input string, prefix []byte) (string, error) {
+func DecodeFromHex(input string, prefixLen int) (string, error) {
 	decoded := base58.Decode(input)
-	return hex.EncodeToString(decoded[len(prefix) : len(decoded)-checksumLen]), nil
+	return hex.EncodeToString(decoded[prefixLen : len(decoded)-checksumLen]), nil
 }

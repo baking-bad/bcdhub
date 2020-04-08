@@ -162,43 +162,43 @@ func TestDecodeFromHex(t *testing.T) {
 	tests := []struct {
 		name   string
 		input  string
-		prefix []byte
+		prefix int
 		res    string
 	}{
 		{
 			name:   "tz1",
 			input:  "tz1LFEVYR7YRCxT6Nm3Zfjdnfj77xZqhbR5U",
-			prefix: []byte{6, 161, 159},
+			prefix: len([]byte{6, 161, 159}),
 			res:    "06a868bd80219eb1f6a25108d1bdaa98ae27b2d9",
 		},
 		{
 			name:   "tz1",
 			input:  "tz1RugzxKA8NwuymbGcy2wkSTvfRJpckfmDF",
-			prefix: []byte{6, 161, 159},
+			prefix: len([]byte{6, 161, 159}),
 			res:    "44c6f8bc6088cd3b64f0bca87f812634c3f0ed30",
 		},
 		{
 			name:   "tz1",
 			input:  "tz1a5fMLLY5WCarCzH7RKTJHX9mJFN8eaaWG",
-			prefix: []byte{6, 161, 159},
+			prefix: len([]byte{6, 161, 159}),
 			res:    "9e6ac2e529a49aedbcdd0ac9542d5c0f4ce76f77",
 		},
 		{
 			name:   "tz3",
 			input:  "tz3RDC3Jdn4j15J7bBHZd29EUee9gVB1CxD9",
-			prefix: []byte{6, 161, 164},
+			prefix: len([]byte{6, 161, 164}),
 			res:    "358cbffa97149631cfb999fa47f0035fb1ea8636",
 		},
 		{
 			name:   "KT",
 			input:  "KT1BUKeJTemAaVBfRz6cqxeUBQGQqMxfG19A",
-			prefix: []byte{2, 90, 121},
+			prefix: len([]byte{2, 90, 121}),
 			res:    "1fb03e3ff9fedaf3a2200ffc64d27812da734bba",
 		},
 		{
 			name:   "secp256k1_public_key",
 			input:  "sppk7bMuoa8w2LSKz3XEuPsKx1WavsMLCWgbWG9CZNAsJg9eTmkXRPd",
-			prefix: []byte{3, 254, 226, 86},
+			prefix: len([]byte{3, 254, 226, 86}),
 			res:    "030ed412d33412ab4b71df0aaba07df7ddd2a44eb55c87bf81868ba09a358bc0e0",
 		},
 	}
