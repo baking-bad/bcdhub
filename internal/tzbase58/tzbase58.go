@@ -7,6 +7,8 @@ import (
 	"github.com/btcsuite/btcutil/base58"
 )
 
+const checksumLen = 4
+
 // EncodeFromHex - encodes hex string to base58 with prefix
 func EncodeFromHex(input string, prefix []byte) (string, error) {
 	bs, err := hex.DecodeString(input)
@@ -30,4 +32,10 @@ func checksum(input []byte) []byte {
 	h := sha256.Sum256(input)
 	h2 := sha256.Sum256(h[:])
 	return h2[:4]
+}
+
+// DecodeFromHex - decodes hex string from base58 with prefix
+func DecodeFromHex(input string, prefix []byte) (string, error) {
+	decoded := base58.Decode(input)
+	return hex.EncodeToString(decoded[len(prefix) : len(decoded)-checksumLen]), nil
 }
