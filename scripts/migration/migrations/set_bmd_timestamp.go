@@ -35,7 +35,7 @@ func (m *SetBMDTimestamp) Do(ctx *Context) error {
 		allBMD[i].Timestamp = ts
 
 		if (i%1000 == 0 || i == len(allBMD)-1) && i > 0 {
-			log.Print("Saving updated data from %d to %d...", lastIdx, i)
+			log.Printf("Saving updated data from %d to %d...", lastIdx, i)
 			if err := ctx.ES.BulkUpdateBigMapDiffs(allBMD[lastIdx:i]); err != nil {
 				return err
 			}
