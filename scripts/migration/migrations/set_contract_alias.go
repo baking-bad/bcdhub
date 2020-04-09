@@ -9,13 +9,18 @@ import (
 	"github.com/schollz/progressbar"
 )
 
-// SetContractAliasMigration - migration that set alias from db to contracts in choosen network
-type SetContractAliasMigration struct {
+// SetContractAlias - migration that set alias from db to contracts in choosen network
+type SetContractAlias struct {
 	Network string
 }
 
+// Description -
+func (m *SetContractAlias) Description() string {
+	return "set alias from db to contracts in choosen network"
+}
+
 // Do - migrate function
-func (m *SetContractAliasMigration) Do(ctx *Context) error {
+func (m *SetContractAlias) Do(ctx *Context) error {
 	h := metrics.New(ctx.ES, ctx.DB)
 
 	filter := make(map[string]interface{})

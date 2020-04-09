@@ -11,11 +11,16 @@ import (
 	"github.com/schollz/progressbar"
 )
 
-// SetTimestampMigration - migration that set timestamp from block head to operation
-type SetTimestampMigration struct{}
+// SetTimestamp - migration that set timestamp from block head to operation
+type SetTimestamp struct{}
+
+// Description -
+func (m *SetTimestamp) Description() string {
+	return "set timestamp from block head to operation"
+}
 
 // Do - migrate function
-func (m *SetTimestampMigration) Do(ctx *Context) error {
+func (m *SetTimestamp) Do(ctx *Context) error {
 	for _, network := range []string{consts.Mainnet, consts.Zeronet, consts.Carthage, consts.Babylon} {
 		rpc, err := ctx.GetRPC(network)
 		if err != nil {

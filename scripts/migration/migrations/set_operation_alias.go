@@ -9,13 +9,18 @@ import (
 	"github.com/schollz/progressbar"
 )
 
-// SetOperationAliasMigration - migration that set source or destination alias from db to operations in choosen network
-type SetOperationAliasMigration struct {
+// SetOperationAlias - migration that set source or destination alias from db to operations in choosen network
+type SetOperationAlias struct {
 	Network string
 }
 
+// Description -
+func (m *SetOperationAlias) Description() string {
+	return "set source or destination alias from db to operations in choosen network"
+}
+
 // Do - migrate function
-func (m *SetOperationAliasMigration) Do(ctx *Context) error {
+func (m *SetOperationAlias) Do(ctx *Context) error {
 	h := metrics.New(ctx.ES, ctx.DB)
 
 	operations, err := ctx.ES.GetAllOperations(m.Network)
