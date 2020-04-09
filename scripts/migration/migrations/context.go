@@ -3,6 +3,7 @@ package migrations
 import (
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
@@ -44,7 +45,21 @@ func NewContext(cfg Config) (*Context, error) {
 		return nil, err
 	}
 
-	db, err := database.New(cfg.DB.URI)
+	dbUser := os.Getenv("POSTGRES_USER")
+	if dbUser == "" {
+		return nil, fmt.Errorf("POSTGRES_USER env is not set")
+	}
+	dbPassword := os.Getenv("POSTGRES_PASSWORD")
+	if dbPassword == "" {
+		return nil, fmt.Errorf("POSTGRES_PASSWORD env is not set")
+	}
+	dbName := os.Getenv("POSTGRES_DB")
+	if dbName == "" {
+		return nil, fmt.Errorf("POSTGRES_DB env is not set")
+	}
+
+	dbURI := fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=%s", cfg.DB.Host, cfg.DB.Port, dbUser, dbName, dbPassword, cfg.DB.SSLMode)
+	db, err := database.New(dbURI)
 	if err != nil {
 		return nil, err
 	}
