@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/jsonload"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/scripts/migration/migrations"
 )
 
@@ -35,6 +37,8 @@ func main() {
 		log.Fatal("Unknown migration key: ", env)
 	}
 
+	start := time.Now()
+
 	var cfg migrations.Config
 	if err := jsonload.StructFromFile("config.json", &cfg); err != nil {
 		log.Fatal(err)
@@ -47,7 +51,11 @@ func main() {
 	}
 	defer ctx.Close()
 
+	logger.Info("Starting %v migration...", env)
+
 	if err := migrationMap[env].Do(ctx); err != nil {
 		log.Fatal(err)
 	}
+
+	logger.Success("%s migration done. Spent: %v", env, time.Since(start))
 }
