@@ -1,6 +1,7 @@
 package contractparser
 
 import (
+	"github.com/baking-bad/bcdhub/internal/contractparser/node"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/tidwall/gjson"
 )
@@ -9,14 +10,25 @@ import (
 type Storage struct {
 	*parser
 
-	Tags helpers.Set
+	Tags        helpers.Set
+	Annotations helpers.Set
 }
 
 func newStorage(storage gjson.Result) (Storage, error) {
-	res := Storage{
-		parser: &parser{},
-		Tags:   make(helpers.Set),
+	s := Storage{
+		parser:      &parser{},
+		Tags:        make(helpers.Set),
+		Annotations: make(helpers.Set),
 	}
-	err := res.parse(storage)
-	return res, err
+
+	s.primHandler = s.handlePrimitive
+	err := s.parse(storage)
+	return s, err
+}
+
+func (s *Storage) handlePrimitive(n node.Node) error {
+	if n.HasAnnots() {
+		s.Annotations.Append(filterAnnotations(n.Annotations)...)
+	}
+	return nil
 }
