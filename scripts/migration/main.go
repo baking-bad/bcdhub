@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -15,12 +16,19 @@ func main() {
 		"language":        &migrations.SetLanguageMigration{},
 		"contract_alias":  &migrations.SetContractAliasMigration{Network: consts.Mainnet},
 		"operation_alias": &migrations.SetOperationAliasMigration{Network: consts.Mainnet},
+		"bmd_key_strings": &migrations.SetBMDKeyStrings{},
+		"bmd_timestamp":   &migrations.SetBMDTimestamp{},
+		"fa1_tag":         &migrations.SetFA1Migration{},
 	}
 
 	env := os.Getenv("MIGRATION")
 
 	if env == "" {
-		log.Fatal("MIGRATION env variable is not set.")
+		fmt.Println("Set MIGRATION env variable. Available migrations:")
+		for key := range migrationMap {
+			fmt.Println("-", key)
+		}
+		return
 	}
 
 	if _, ok := migrationMap[env]; !ok {
@@ -41,10 +49,5 @@ func main() {
 
 	if err := migrationMap[env].Do(ctx); err != nil {
 		log.Fatal(err)
-	}
-
-	migration2 := migrations.SetBMDKeyStrings{}
-	if err := migration2.Do(ctx); err != nil {
-		panic(err)
 	}
 }
