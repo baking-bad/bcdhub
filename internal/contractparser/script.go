@@ -65,7 +65,7 @@ func (s *Script) getTags() {
 }
 
 func (s *Script) getAnnotations() {
-	s.Annotations.Merge(s.Code.Annotations)
+	s.Annotations = s.Code.Annotations
 	s.Annotations.Merge(s.Code.Storage.Annotations)
 	s.Annotations.Merge(s.Code.Parameter.Annotations)
 }
