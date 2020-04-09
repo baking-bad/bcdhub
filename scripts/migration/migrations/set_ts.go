@@ -14,7 +14,7 @@ type SetTimestampMigration struct{}
 // Do - migrate function
 func (m *SetTimestampMigration) Do(ctx *Context) error {
 	for _, network := range []string{consts.Mainnet, consts.Zeronet, consts.Carthage, consts.Babylon} {
-		operations, err := ctx.ES.GetAllOperations(network)
+		operations, err := ctx.ES.GetAllOperationsByNetwork(network)
 		if err != nil {
 			return err
 		}

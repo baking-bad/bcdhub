@@ -122,3 +122,22 @@ func (e *Elastic) BulkUpdateBigMapDiffs(updates []models.BigMapDiff) error {
 	}
 	return e.BulkInsert(DocBigMapDiff, bulk)
 }
+
+// BulkUpdateOperations -
+func (e *Elastic) BulkUpdateOperations(updates []models.Operation) error {
+	bulk := bytes.NewBuffer([]byte{})
+	for i := range updates {
+		meta := []byte(fmt.Sprintf(`{ "update": { "_id": "%s"}}%s{ "doc": `, updates[i].ID, "\n"))
+		data, err := json.Marshal(updates[i])
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		data = append(data, "}\n"...)
+
+		bulk.Grow(len(meta) + len(data))
+		bulk.Write(meta)
+		bulk.Write(data)
+	}
+	return e.BulkInsert(DocOperations, bulk)
+}

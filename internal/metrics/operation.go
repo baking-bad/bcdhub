@@ -1,8 +1,12 @@
 package metrics
 
 import (
+	"log"
+
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/tidwall/gjson"
 )
 
 // SetOperationAliases -
@@ -36,4 +40,13 @@ func (h *Handler) SetOperationBurned(op *models.Operation) {
 	}
 
 	op.Burned = burned
+}
+
+// SetOperationStrings -
+func (h *Handler) SetOperationStrings(op *models.Operation) {
+	params := gjson.Parse(op.Parameters)
+	op.ParameterStrings = stringer.Get(params)
+	log.Println(op.ParameterStrings)
+	storage := gjson.Parse(op.DeffatedStorage)
+	op.StorageStrings = stringer.Get(storage)
 }

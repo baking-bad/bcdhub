@@ -12,13 +12,14 @@ import (
 
 func main() {
 	migrationMap := map[string]migrations.Migration{
-		"timestamp":       &migrations.SetTimestampMigration{},
-		"language":        &migrations.SetLanguageMigration{},
-		"contract_alias":  &migrations.SetContractAliasMigration{Network: consts.Mainnet},
-		"operation_alias": &migrations.SetOperationAliasMigration{Network: consts.Mainnet},
-		"bmd_strings":     &migrations.SetBMDStrings{},
-		"bmd_timestamp":   &migrations.SetBMDTimestamp{},
-		"fa1_tag":         &migrations.SetFA1Migration{},
+		"timestamp":         &migrations.SetTimestampMigration{},
+		"language":          &migrations.SetLanguageMigration{},
+		"contract_alias":    &migrations.SetContractAliasMigration{Network: consts.Mainnet},
+		"operation_alias":   &migrations.SetOperationAliasMigration{Network: consts.Mainnet},
+		"bmd_strings":       &migrations.SetBMDStrings{},
+		"bmd_timestamp":     &migrations.SetBMDTimestamp{},
+		"fa1_tag":           &migrations.SetFA1Migration{},
+		"operation_strings": &migrations.SetOperationStrings{},
 	}
 
 	env := os.Getenv("MIGRATION")

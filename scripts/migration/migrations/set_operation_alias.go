@@ -18,7 +18,7 @@ func (m *SetOperationAliasMigration) Do(ctx *Context) error {
 	start := time.Now()
 	h := metrics.New(ctx.ES, ctx.DB)
 
-	operations, err := ctx.ES.GetAllOperations(m.Network)
+	operations, err := ctx.ES.GetAllOperationsByNetwork(m.Network)
 	if err != nil {
 		return err
 	}
