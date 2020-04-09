@@ -51,6 +51,11 @@ func findInObject(node gjson.Result, storage map[string]struct{}) {
 			findStrings(args, storage)
 		}
 	}
+
+	if node.Get("entrypoint").Exists() && node.Get("value").Exists() {
+		value := node.Get("value")
+		findStrings(value, storage)
+	}
 }
 
 func findInBytes(input string, storage map[string]struct{}) {

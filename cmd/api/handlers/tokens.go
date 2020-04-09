@@ -9,7 +9,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
-	"github.com/baking-bad/bcdhub/internal/contractparser/pack"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
@@ -51,11 +50,7 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 		return
 	}
 
-	packedAddress, err := pack.Address(req.Address)
-	if handleError(c, err, 0) {
-		return
-	}
-	operations, err := ctx.ES.GetTokenTransferOperations(req.Network, req.Address, packedAddress, cursorReq.LastID, cursorReq.Size)
+	operations, err := ctx.ES.GetTokenTransferOperations(req.Network, req.Address, cursorReq.LastID, cursorReq.Size)
 	if handleError(c, err, 0) {
 		return
 	}
