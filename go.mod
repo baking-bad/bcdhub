@@ -16,12 +16,17 @@ require (
 	github.com/jinzhu/gorm v1.9.11
 	github.com/pkg/errors v0.8.1
 	github.com/r3labs/diff v0.0.0-20191120142937-b4ed99a31f5a
+	github.com/schollz/progressbar/v3 v3.0.2 // indirect
 	github.com/sergi/go-diff v1.0.0
 	github.com/streadway/amqp v0.0.0-20200108173154-1c71cc93ed71
+	github.com/stretchr/objx v0.2.0 // indirect
+	github.com/stretchr/testify v1.5.1 // indirect
 	github.com/tidwall/gjson v1.4.0
 	github.com/tidwall/sjson v1.0.4
 	github.com/xanzy/go-gitlab v0.26.0
 	golang.org/x/crypto v0.0.0-20200115085410-6d4e4cb37c7d
 	golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421
+	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0
+	gopkg.in/yaml.v2 v2.2.8 // indirect
 )

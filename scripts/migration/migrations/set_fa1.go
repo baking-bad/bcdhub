@@ -3,8 +3,10 @@ package migrations
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"strings"
+
+	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/schollz/progressbar"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
@@ -70,27 +72,31 @@ type SetFA1Migration struct{}
 
 // Do - migrate function
 func (m *SetFA1Migration) Do(ctx *Context) error {
-	log.Print("Start SetFA1Migration...")
 	contracts, err := ctx.ES.GetContracts(nil)
 	if err != nil {
 		return err
 	}
 
-	log.Print("Loading FA1 interface...")
+	logger.Info("Loading FA1 interface...")
 	var fa1 []contractparser.Entrypoint
 	if err := json.Unmarshal(fa1Interface, &fa1); err != nil {
 		return err
 	}
 
-	log.Printf("Found %d contracts", len(contracts))
-	for i, c := range contracts {
+	logger.Info("Found %d contracts", len(contracts))
+
+	bar := progressbar.NewOptions(len(contracts), progressbar.OptionSetPredictTime(false))
+	for _, c := range contracts {
+		bar.Add(1)
 		m, err := meta.GetMetadata(ctx.ES, c.Address, consts.PARAMETER, consts.HashBabylon)
 		if err != nil {
 			if !strings.Contains(err.Error(), "Unknown metadata sym link") {
+				fmt.Print("\033[2K\r")
 				return err
 			}
 			m, err = meta.GetMetadata(ctx.ES, c.Address, consts.PARAMETER, consts.Hash1)
 			if err != nil {
+				fmt.Print("\033[2K\r")
 				return err
 			}
 		}
@@ -101,11 +107,14 @@ func (m *SetFA1Migration) Do(ctx *Context) error {
 		c.Tags = append(c.Tags, consts.FA1Tag)
 
 		if _, err := ctx.ES.UpdateDoc(elastic.DocContracts, c.ID, c); err != nil {
-			log.Println("ctx.ES.UpdateDoc error:", c.ID, c, err)
+			fmt.Print("\033[2K\r")
+			logger.Errorf("ctx.ES.UpdateDoc %v %v error: %v", c.ID, c, err)
 			return err
 		}
-		log.Printf("%d/%d | %v", i, len(contracts), c.ID)
 	}
+
+	fmt.Print("\033[2K\r")
+	logger.Info("Done. Total contracts: %d", len(contracts))
 
 	return nil
 }
