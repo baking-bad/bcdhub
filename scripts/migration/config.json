@@ -40,6 +40,8 @@
     ]
   },
   "db": {
-    "uri": "host=localhost port=5432 user=root dbname=bcd password=root sslmode=disable"
+    "host": "localhost",
+    "port": 5432,
+    "sslmode": "disable"
   }
 }

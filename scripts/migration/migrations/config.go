@@ -20,7 +20,9 @@ type Config struct {
 		Queues []string `json:"queues"`
 	} `json:"mq"`
 	DB struct {
-		URI string `json:"uri"`
+		Host    string `json:"host"`
+		Port    int    `json:"port"`
+		SSLMode string `json:"sslmode"`
 	} `json:"db"`
 }
 
@@ -35,6 +37,6 @@ func (cfg Config) Print() {
 	}
 	log.Printf("Elastic URI: %s", blue(cfg.Search.URI))
 	log.Printf("RabbitMQ URI: %s", blue(cfg.Mq.URI))
-	log.Printf("Postgres URI: %s", blue(cfg.DB.URI))
+	log.Printf("Postgres URI: %s", blue(cfg.DB.Host, ":", cfg.DB.Port))
 	log.Print("----------------------------")
 }
