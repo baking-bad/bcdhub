@@ -219,29 +219,6 @@ func (e *Elastic) GetBigMapDiffByPtrAndKeyHash(address string, ptr int64, keyHas
 	return result, nil
 }
 
-// GetOperationsWithBigMapDiffs -
-func (e *Elastic) GetOperationsWithBigMapDiffs() ([]string, error) {
-	query := newQuery().Add(
-		aggs("op_ids", qItem{
-			"terms": qItem{
-				"field": "operation_id.keyword",
-				"size":  maxQuerySize,
-			},
-		}),
-	).Zero()
-
-	res, err := e.query([]string{DocBigMapDiff}, query)
-	if err != nil {
-		return nil, err
-	}
-
-	opIDs := make([]string, 0)
-	for _, hit := range res.Get("aggregations.op_ids.buckets").Array() {
-		opIDs = append(opIDs, hit.Get("key").String())
-	}
-	return opIDs, nil
-}
-
 // GetBigMapDiffsJSONByOperationID -
 func (e *Elastic) GetBigMapDiffsJSONByOperationID(operationID string) ([]gjson.Result, error) {
 	query := newQuery().

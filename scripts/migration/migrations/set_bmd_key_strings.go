@@ -14,16 +14,23 @@ type SetBMDKeyStrings struct{}
 func (m *SetBMDKeyStrings) Do(ctx *Context) error {
 	log.Print("Start SetBMDKeyStrings migration...")
 	start := time.Now()
-	opIDs, err := ctx.ES.GetOperationsWithBigMapDiffs()
+	allBigMapDiffs, err := ctx.ES.GetAllBigMapDiff()
 	if err != nil {
 		return err
 	}
+	log.Printf("Found %d big map diff", len(allBigMapDiffs))
+
+	opIDs := make(map[string]struct{})
+	for i := range allBigMapDiffs {
+		opIDs[allBigMapDiffs[i].OperationID] = struct{}{}
+	}
+
 	log.Printf("Found %d unique operations with big map diff", len(opIDs))
 
 	h := metrics.New(ctx.ES, ctx.DB)
-	for i := range opIDs {
-		log.Printf("Compute for operation with id: %s", opIDs[i])
-		if err := h.SetBigMapDiffsKeyString(opIDs[i]); err != nil {
+	for id := range opIDs {
+		log.Printf("Compute for operation with id: %s", id)
+		if err := h.SetBigMapDiffsKeyString(id); err != nil {
 			return err
 		}
 	}
