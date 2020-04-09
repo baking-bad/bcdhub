@@ -16,7 +16,7 @@ func main() {
 		"language":        &migrations.SetLanguageMigration{},
 		"contract_alias":  &migrations.SetContractAliasMigration{Network: consts.Mainnet},
 		"operation_alias": &migrations.SetOperationAliasMigration{Network: consts.Mainnet},
-		"bmd_key_strings": &migrations.SetBMDKeyStrings{},
+		"bmd_strings":     &migrations.SetBMDStrings{},
 		"bmd_timestamp":   &migrations.SetBMDTimestamp{},
 		"fa1_tag":         &migrations.SetFA1Migration{},
 	}

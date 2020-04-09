@@ -49,6 +49,9 @@ type Operation struct {
 
 	Burned        int64  `json:"burned"`
 	DelegateAlias string `json:"delegate_alias"`
+
+	ParameterStrings []string `json:"parameter_strings"`
+	StorageStrings   []string `json:"storage_strings"`
 }
 
 // ParseElasticJSON -
@@ -100,6 +103,8 @@ func (o *Operation) ParseElasticJSON(resp gjson.Result) {
 	o.BalanceUpdates = bu
 
 	o.Errors = cerrors.ParseArray(resp.Get("_source.errors"))
+	o.ParameterStrings = parseStringsArray(resp.Get("_source.parameter_strings").Array())
+	o.StorageStrings = parseStringsArray(resp.Get("_source.storage_strings").Array())
 }
 
 // BalanceUpdate -
@@ -149,4 +154,12 @@ func (o *OperationResult) ParseElasticJSON(data gjson.Result) {
 	o.PaidStorageSizeDiff = data.Get("paid_storage_size_diff").Int()
 	o.AllocatedDestinationContract = data.Get("allocated_destination_contract").Bool()
 	o.BalanceUpdates = bu
+}
+
+func parseStringsArray(arr []gjson.Result) []string {
+	result := make([]string, 0)
+	for _, item := range arr {
+		result = append(result, item.String())
+	}
+	return result
 }

@@ -51,7 +51,7 @@ func parseOperation(operation models.Operation) error {
 		}
 	}
 
-	if err := h.SetBigMapDiffsKeyString(operation.ID); err != nil {
+	if err := h.SetBigMapDiffsStrings(operation.ID); err != nil {
 		return err
 	}
 
