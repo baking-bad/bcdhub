@@ -67,11 +67,16 @@ var fa1Interface = []byte(`[
     }
 ]`)
 
-// SetFA1Migration - migration that set fa1 tag to contract
-type SetFA1Migration struct{}
+// SetFA1 - migration that set fa1 tag to contract
+type SetFA1 struct{}
+
+// Description -
+func (m *SetFA1) Description() string {
+	return "set fa1 tag to contract"
+}
 
 // Do - migrate function
-func (m *SetFA1Migration) Do(ctx *Context) error {
+func (m *SetFA1) Do(ctx *Context) error {
 	contracts, err := ctx.ES.GetContracts(nil)
 	if err != nil {
 		return err

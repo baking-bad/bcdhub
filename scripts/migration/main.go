@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
@@ -14,21 +15,21 @@ import (
 
 func main() {
 	migrationMap := map[string]migrations.Migration{
-		"timestamp":       &migrations.SetTimestampMigration{},
-		"language":        &migrations.SetLanguageMigration{},
-		"contract_alias":  &migrations.SetContractAliasMigration{Network: consts.Mainnet},
-		"operation_alias": &migrations.SetOperationAliasMigration{Network: consts.Mainnet},
+		"timestamp":       &migrations.SetTimestamp{},
+		"language":        &migrations.SetLanguage{},
+		"contract_alias":  &migrations.SetContractAlias{Network: consts.Mainnet},
+		"operation_alias": &migrations.SetOperationAlias{Network: consts.Mainnet},
 		"bmd_key_strings": &migrations.SetBMDKeyStrings{},
 		"bmd_timestamp":   &migrations.SetBMDTimestamp{},
-		"fa1_tag":         &migrations.SetFA1Migration{},
+		"fa1_tag":         &migrations.SetFA1{},
 	}
 
 	env := os.Getenv("MIGRATION")
 
 	if env == "" {
 		fmt.Println("Set MIGRATION env variable. Available migrations:")
-		for key := range migrationMap {
-			fmt.Println("-", key)
+		for name, m := range migrationMap {
+			fmt.Printf("- %s%s| %s\n", name, strings.Repeat(" ", 25-len(name)), m.Description())
 		}
 		return
 	}
