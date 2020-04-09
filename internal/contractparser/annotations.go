@@ -1,16 +1,18 @@
 package contractparser
 
-import "strconv"
-
 func filterAnnotations(annots []string) []string {
 	var ret []string
 
 	for _, a := range annots {
-		if a[0] == '%' && isDigit(a[1:]) {
+		if len(a) < 2 {
 			continue
 		}
 
-		if !hasChar(a) {
+		if !isValidPrefix(a[0]) {
+			continue
+		}
+
+		if !isChar(a[1]) {
 			continue
 		}
 
@@ -20,17 +22,10 @@ func filterAnnotations(annots []string) []string {
 	return ret
 }
 
-func isDigit(input string) bool {
-	_, err := strconv.ParseUint(input, 10, 32)
-	return err == nil
+func isValidPrefix(c byte) bool {
+	return c == '%' || c == '@' || c == ':'
 }
 
-func hasChar(input string) bool {
-	for _, c := range input {
-		// check if char between A..Z or a..z
-		if (c >= 65 && c <= 90) || (c >= 97 && c <= 122) {
-			return true
-		}
-	}
-	return false
+func isChar(c byte) bool {
+	return (c >= 65 && c <= 90) || (c >= 97 && c <= 122)
 }
