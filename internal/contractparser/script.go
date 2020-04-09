@@ -59,9 +59,9 @@ func (s *Script) Language() string {
 }
 
 func (s *Script) getTags() {
-	s.Tags.Append(s.Code.Tags.Values()...)
-	s.Tags.Append(s.Storage.Tags.Values()...)
-	s.Tags.Append(s.Code.Parameter.Tags.Values()...)
+	s.Tags = s.Code.Tags
+	s.Tags.Merge(s.Storage.Tags)
+	s.Tags.Merge(s.Code.Parameter.Tags)
 }
 
 func (s *Script) getAnnotations() {
