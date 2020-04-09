@@ -12,7 +12,7 @@ func filterAnnotations(annots []string) []string {
 			continue
 		}
 
-		if !isChar(a[1]) {
+		if !isLetter(a[1]) {
 			continue
 		}
 
@@ -26,6 +26,6 @@ func isValidPrefix(c byte) bool {
 	return c == '%' || c == '@' || c == ':'
 }
 
-func isChar(c byte) bool {
+func isLetter(c byte) bool {
 	return (c >= 65 && c <= 90) || (c >= 97 && c <= 122)
 }
