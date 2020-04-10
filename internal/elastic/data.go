@@ -37,20 +37,6 @@ type Top struct {
 	Key     string `json:"key"`
 }
 
-// ContractStats -
-type ContractStats struct {
-	TxCount           int64
-	TotalWithdrawn    int64
-	MedianConsumedGas int64
-	LastAction        time.Time
-}
-
-func (c *ContractStats) parse(data gjson.Result) {
-	c.LastAction = data.Get("last_action.value_as_string").Time().UTC()
-	c.TxCount = data.Get("tx_count.value").Int()
-	c.TotalWithdrawn = data.Get("total_withdrawn.value").Int()
-}
-
 // ProjectStats -
 type ProjectStats struct {
 	TxCount        int64         `json:"tx_count"`
