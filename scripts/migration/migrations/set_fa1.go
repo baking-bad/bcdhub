@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/schollz/progressbar"
+	"github.com/schollz/progressbar/v3"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
