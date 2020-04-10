@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/schollz/progressbar"
+	"github.com/schollz/progressbar/v3"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/database"
