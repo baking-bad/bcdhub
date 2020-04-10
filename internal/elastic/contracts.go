@@ -194,9 +194,9 @@ func (e *Elastic) GetContractStats(address, network string) (stats ContractStats
 	query := newQuery().Query(b).Add(
 		qItem{
 			"aggs": qItem{
-				"last_action":   max("timestamp"),
-				"tx_count":      count("level"),
-				"sum_tx_amount": sum("amount"),
+				"last_action":     max("timestamp"),
+				"tx_count":        count("level"),
+				"total_withdrawn": sum("amount"),
 			},
 		},
 	).Zero()
@@ -212,6 +212,29 @@ func (e *Elastic) GetContractStats(address, network string) (stats ContractStats
 	}
 	stats.MedianConsumedGas = cg
 	return
+}
+
+// GetContractWithdrawn -
+func (e *Elastic) GetContractWithdrawn(address, network string) (int64, error) {
+	b := boolQ(
+		filter(
+			matchQ("network", network),
+			matchQ("source", address),
+		),
+	)
+	query := newQuery().Query(b).Add(
+		qItem{
+			"aggs": qItem{
+				"total_withdrawn": sum("amount"),
+			},
+		},
+	).Zero()
+	res, err := e.query([]string{DocOperations}, query)
+	if err != nil {
+		return 0, err
+	}
+
+	return res.Get("aggregations.total_withdrawn.value").Int(), nil
 }
 
 // GetContractID -
