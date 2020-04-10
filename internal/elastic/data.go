@@ -40,7 +40,7 @@ type Top struct {
 // ContractStats -
 type ContractStats struct {
 	TxCount           int64
-	SumTxAmount       int64
+	TotalWithdrawn    int64
 	MedianConsumedGas int64
 	LastAction        time.Time
 }
@@ -48,7 +48,7 @@ type ContractStats struct {
 func (c *ContractStats) parse(data gjson.Result) {
 	c.LastAction = data.Get("last_action.value_as_string").Time().UTC()
 	c.TxCount = data.Get("tx_count.value").Int()
-	c.SumTxAmount = data.Get("sum_tx_amount.value").Int()
+	c.TotalWithdrawn = data.Get("total_withdrawn.value").Int()
 }
 
 // ProjectStats -
