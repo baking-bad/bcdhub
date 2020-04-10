@@ -79,13 +79,13 @@ func (e *Elastic) GetBigMapDiffsForAddress(address string) ([]models.BigMapDiff,
 			),
 		),
 	).Add(aggs(
-		"group_by_hash", qItem{
+		"keys", qItem{
 			"terms": qItem{
 				"field": "key_hash.keyword",
-				"size":  maxQuerySize,
+				"size":  maxQuerySize, // TODO: arbitrary number of keys
 			},
 			"aggs": qItem{
-				"group_docs": topHits(1, "level", "desc"),
+				"top_key": topHits(1, "indexed_time", "desc"),
 			},
 		},
 	)).Zero()
@@ -95,10 +95,11 @@ func (e *Elastic) GetBigMapDiffsForAddress(address string) ([]models.BigMapDiff,
 		return nil, err
 	}
 	response := make([]models.BigMapDiff, 0)
-	for _, item := range res.Get("hits.hits").Array() {
-		var bmd models.BigMapDiff
-		bmd.ParseElasticJSON(item)
-		response = append(response, bmd)
+	for _, item := range res.Get("aggregations.keys.buckets").Array() {
+		bmd := item.Get("top_key.hits.hits.0")
+		var b models.BigMapDiff
+		b.ParseElasticJSON(bmd)
+		response = append(response, b)
 	}
 	return response, nil
 }

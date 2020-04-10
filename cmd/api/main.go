@@ -119,6 +119,7 @@ func main() {
 					address.GET("entrypoints", ctx.GetEntrypoints)
 					address.GET("storage", ctx.GetContractStorage)
 					address.GET("raw_storage", ctx.GetContractStorageRaw)
+					address.GET("rich_storage", ctx.GetContractStorageRich)
 					address.GET("rating", ctx.GetContractRating)
 					address.GET("mempool", ctx.GetMempool)
 					address.GET("same", ctx.GetSameContracts)
