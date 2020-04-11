@@ -97,8 +97,8 @@
             "tx_count": {
                 "type": "long"
             },
-            "sum_tx_amount": {
-                "type": "long"
+            "total_withdrawn": {
+              "type": "long"
             },
             "median_consumed_gas": {
                 "type": "long"

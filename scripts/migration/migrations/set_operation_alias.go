@@ -1,21 +1,26 @@
 package migrations
 
 import (
-	"log"
-	"time"
+	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
+	"github.com/schollz/progressbar/v3"
 )
 
-// SetOperationAliasMigration - migration that set source or destination alias from db to operations in choosen network
-type SetOperationAliasMigration struct {
+// SetOperationAlias - migration that set source or destination alias from db to operations in choosen network
+type SetOperationAlias struct {
 	Network string
 }
 
+// Description -
+func (m *SetOperationAlias) Description() string {
+	return "set source or destination alias from db to operations in choosen network"
+}
+
 // Do - migrate function
-func (m *SetOperationAliasMigration) Do(ctx *Context) error {
-	start := time.Now()
+func (m *SetOperationAlias) Do(ctx *Context) error {
 	h := metrics.New(ctx.ES, ctx.DB)
 
 	operations, err := ctx.ES.GetAllOperationsByNetwork(m.Network)
@@ -23,22 +28,27 @@ func (m *SetOperationAliasMigration) Do(ctx *Context) error {
 		return err
 	}
 
+	logger.Info("Found %d operations in %s", len(operations), m.Network)
+
 	aliases, err := ctx.DB.GetAliasesMap(m.Network)
 	if err != nil {
 		return err
 	}
 
+	bar := progressbar.NewOptions(len(operations), progressbar.OptionSetPredictTime(false))
+
 	for i := range operations {
+		bar.Add(1)
 		h.SetOperationAliases(aliases, &operations[i])
 
 		if _, err := ctx.ES.UpdateDoc(elastic.DocOperations, operations[i].ID, operations[i]); err != nil {
+			fmt.Print("\033[2K\r")
 			return err
 		}
-
-		log.Printf("Done %d/%d", i, len(operations))
 	}
 
-	log.Printf("Time spent: %v", time.Since(start))
+	fmt.Print("\033[2K\r")
+	logger.Info("[%s] done. Total operations: %d", m.Network, len(operations))
 
 	return nil
 }

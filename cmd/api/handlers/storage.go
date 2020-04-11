@@ -23,17 +23,8 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 		return
 	}
 
-	// bmd, err := ctx.ES.GetBigMapDiffsForAddress(req.Address)
-	// if handleError(c, err, 0) {
-	// 	return
-	// }
-
 	protocol := storage.Get("_source.protocol").String()
 	s := gjson.Parse(storage.Get("_source.deffated_storage").String())
-	// s, err := enrichStorage(storage.Get("_source.deffated_storage").String(), bmd, protocol, true)
-	// if handleError(c, err, 0) {
-	// 	return
-	// }
 
 	metadata, err := meta.GetMetadata(ctx.ES, req.Address, consts.STORAGE, protocol)
 	if handleError(c, err, 0) {
@@ -67,4 +58,30 @@ func (ctx *Context) GetContractStorageRaw(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, resp)
+}
+
+// GetContractStorageRich -
+func (ctx *Context) GetContractStorageRich(c *gin.Context) {
+	var req getContractRequest
+	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
+	storage, err := ctx.ES.GetLastStorage(req.Network, req.Address)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	bmd, err := ctx.ES.GetBigMapDiffsForAddress(req.Address)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	protocol := storage.Get("_source.protocol").String()
+	resp, err := enrichStorage(storage.Get("_source.deffated_storage").String(), bmd, protocol, true)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	c.JSON(http.StatusOK, resp.Value())
 }

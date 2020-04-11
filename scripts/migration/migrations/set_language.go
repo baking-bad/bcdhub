@@ -8,13 +8,19 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/language"
 	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/logger"
 )
 
-// SetLanguageMigration - migration that set langugage to contract by annotations or entrypoints
-type SetLanguageMigration struct{}
+// SetLanguage - migration that set langugage to contract by annotations or entrypoints
+type SetLanguage struct{}
+
+// Description -
+func (m *SetLanguage) Description() string {
+	return "set langugage to contract by annotations or entrypoints"
+}
 
 // Do - migrate function
-func (m *SetLanguageMigration) Do(ctx *Context) error {
+func (m *SetLanguage) Do(ctx *Context) error {
 	filter := make(map[string]interface{})
 	filter["language"] = language.LangUnknown
 
@@ -22,6 +28,8 @@ func (m *SetLanguageMigration) Do(ctx *Context) error {
 	if err != nil {
 		return err
 	}
+
+	logger.Info("Found %d contracts", len(contracts))
 
 	for i, c := range contracts {
 		lang := getLanguage(c.FailStrings, c.Annotations, c.Entrypoints)

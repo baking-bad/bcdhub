@@ -98,7 +98,7 @@ func (c *Code) handlePrimitive(n node.Node) (err error) {
 	c.Primitives.Append(n.Prim)
 
 	if n.HasAnnots() {
-		c.Annotations.Append(n.Annotations...)
+		c.Annotations.Append(filterAnnotations(n.Annotations)...)
 	}
 
 	if n.Is("") && n.Type == consts.KeyString && c.Language == language.LangUnknown {

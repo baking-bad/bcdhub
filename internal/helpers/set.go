@@ -38,3 +38,10 @@ func ArrayUniqueLen(arr []string) int {
 	}
 	return len(buf)
 }
+
+// Merge -
+func (s Set) Merge(m Set) {
+	for k := range m {
+		s[k] = struct{}{}
+	}
+}

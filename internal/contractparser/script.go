@@ -15,6 +15,7 @@ type Script struct {
 	Storage Storage
 
 	Tags               helpers.Set
+	Annotations        helpers.Set
 	HardcodedAddresses helpers.Set
 }
 
@@ -44,6 +45,7 @@ func New(script gjson.Result) (s Script, err error) {
 // Parse -
 func (s *Script) Parse() {
 	s.getTags()
+	s.getAnnotations()
 }
 
 // Language -
@@ -57,7 +59,13 @@ func (s *Script) Language() string {
 }
 
 func (s *Script) getTags() {
-	s.Tags.Append(s.Code.Tags.Values()...)
-	s.Tags.Append(s.Storage.Tags.Values()...)
-	s.Tags.Append(s.Code.Parameter.Tags.Values()...)
+	s.Tags = s.Code.Tags
+	s.Tags.Merge(s.Storage.Tags)
+	s.Tags.Merge(s.Code.Parameter.Tags)
+}
+
+func (s *Script) getAnnotations() {
+	s.Annotations = s.Code.Annotations
+	s.Annotations.Merge(s.Code.Storage.Annotations)
+	s.Annotations.Merge(s.Code.Parameter.Annotations)
 }

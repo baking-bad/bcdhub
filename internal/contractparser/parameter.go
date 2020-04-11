@@ -24,7 +24,8 @@ type Parameter struct {
 
 	Metadata meta.Metadata
 
-	Tags helpers.Set
+	Tags        helpers.Set
+	Annotations helpers.Set
 }
 
 func newParameter(v gjson.Result) (Parameter, error) {
@@ -32,8 +33,9 @@ func newParameter(v gjson.Result) (Parameter, error) {
 		return Parameter{}, fmt.Errorf("Parameter is not array")
 	}
 	p := Parameter{
-		parser: &parser{},
-		Tags:   make(helpers.Set),
+		parser:      &parser{},
+		Tags:        make(helpers.Set),
+		Annotations: make(helpers.Set),
 	}
 	p.primHandler = p.handlePrimitive
 	if err := p.parse(v); err != nil {
@@ -58,6 +60,10 @@ func newParameter(v gjson.Result) (Parameter, error) {
 func (p *Parameter) handlePrimitive(n node.Node) error {
 	if n.Is(consts.CONTRACT) {
 		p.Tags.Append(consts.ViewMethodTag)
+	}
+
+	if n.HasAnnots() {
+		p.Annotations.Append(filterAnnotations(n.Annotations)...)
 	}
 	return nil
 }

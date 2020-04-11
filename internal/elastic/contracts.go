@@ -179,39 +179,27 @@ func (e *Elastic) GetRandomContract() (models.Contract, error) {
 	return e.getContract(query)
 }
 
-// GetContractStats -
-func (e *Elastic) GetContractStats(address, network string) (stats ContractStats, err error) {
+// GetContractWithdrawn -
+func (e *Elastic) GetContractWithdrawn(address, network string) (int64, error) {
 	b := boolQ(
-		must(
-			matchPhrase("network", network),
+		filter(
+			matchQ("network", network),
+			matchQ("source", address),
 		),
-		should(
-			matchPhrase("source", address),
-			matchPhrase("destination", address),
-		),
-		minimumShouldMatch(1),
 	)
 	query := newQuery().Query(b).Add(
 		qItem{
 			"aggs": qItem{
-				"last_action":   max("timestamp"),
-				"tx_count":      count("level"),
-				"sum_tx_amount": sum("amount"),
+				"total_withdrawn": sum("amount"),
 			},
 		},
 	).Zero()
 	res, err := e.query([]string{DocOperations}, query)
 	if err != nil {
-		return
+		return 0, err
 	}
-	stats.parse(res.Get("aggregations"))
 
-	cg, err := e.computeMedianConsumedGas(address, network)
-	if err != nil {
-		return
-	}
-	stats.MedianConsumedGas = cg
-	return
+	return res.Get("aggregations.total_withdrawn.value").Int(), nil
 }
 
 // GetContractID -

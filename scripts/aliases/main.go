@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/schollz/progressbar/v3"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/tzkt"
@@ -34,8 +35,12 @@ func main() {
 	}
 	logger.Info("Got %d aliases from tzkt api", len(aliases))
 
+	bar := progressbar.NewOptions(len(aliases), progressbar.OptionSetPredictTime(false))
+
 	logger.Info("Saving aliases to db...")
-	for i, alias := range aliases {
+	for _, alias := range aliases {
+		bar.Add(1)
+
 		dbAlias := database.Alias{
 			Alias:   alias.Alias,
 			Network: consts.Mainnet,
@@ -43,13 +48,11 @@ func main() {
 		}
 
 		if err := db.CreateOrUpdateAlias(&dbAlias); err != nil {
-			fmt.Print("\r \r")
+			fmt.Print("\033[2K\r")
 			logger.Fatal(fmt.Errorf("%v in <%v> with alias <%v> got error: %v", alias.Address, consts.Mainnet, alias.Alias, err))
 		}
-
-		fmt.Printf("\rDone: %d/%d", i+1, len(aliases))
 	}
 
-	fmt.Print("\r \r")
-	logger.Info("Done. Spent: %v", time.Since(start))
+	fmt.Print("\033[2K\r")
+	logger.Success("Done. Spent: %v", time.Since(start))
 }
