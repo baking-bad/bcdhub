@@ -74,6 +74,8 @@ func contractToTokens(contracts []models.Contract) []TokenContract {
 			Delegate:      contracts[i].Delegate,
 			Alias:         contracts[i].Alias,
 			DelegateAlias: contracts[i].DelegateAlias,
+			Balance:       contracts[i].Balance,
+			TxCount:       contracts[i].TxCount,
 		}
 		for _, tag := range contracts[i].Tags {
 			if tag == consts.FA12Tag {
