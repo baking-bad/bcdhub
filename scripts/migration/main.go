@@ -15,15 +15,16 @@ import (
 
 func main() {
 	migrationMap := map[string]migrations.Migration{
-		"timestamp":        &migrations.SetTimestamp{},
-		"language":         &migrations.SetLanguage{},
-		"contract_alias":   &migrations.SetContractAlias{Network: consts.Mainnet},
-		"operation_alias":  &migrations.SetOperationAlias{Network: consts.Mainnet},
-		"bmd_key_strings":  &migrations.SetBMDKeyStrings{},
-		"bmd_timestamp":    &migrations.SetBMDTimestamp{},
-		"fa1_tag":          &migrations.SetFA1{},
-		"operation_burned": &migrations.SetOperationBurned{},
-		"total_withdrawn":  &migrations.SetTotalWithdrawn{},
+		"timestamp":         &migrations.SetTimestamp{},
+		"language":          &migrations.SetLanguage{},
+		"contract_alias":    &migrations.SetContractAlias{Network: consts.Mainnet},
+		"operation_alias":   &migrations.SetOperationAlias{Network: consts.Mainnet},
+		"bmd_strings":       &migrations.SetBMDStrings{},
+		"bmd_timestamp":     &migrations.SetBMDTimestamp{},
+		"fa1_tag":           &migrations.SetFA1{},
+		"operation_strings": &migrations.SetOperationStrings{},
+		"operation_burned":  &migrations.SetOperationBurned{},
+		"total_withdrawn":   &migrations.SetTotalWithdrawn{},
 	}
 
 	env := os.Getenv("MIGRATION")

@@ -8,19 +8,20 @@ import (
 
 // BigMapDiff -
 type BigMapDiff struct {
-	ID          string      `json:"-"`
-	Ptr         int64       `json:"ptr,omitempty"`
-	BinPath     string      `json:"bin_path"`
-	Key         interface{} `json:"key"`
-	KeyHash     string      `json:"key_hash"`
-	KeyStrings  []string    `json:"key_strings"`
-	Value       string      `json:"value"`
-	OperationID string      `json:"operation_id"`
-	Level       int64       `json:"level"`
-	Address     string      `json:"address"`
-	Network     string      `json:"network"`
-	IndexedTime int64       `json:"indexed_time"`
-	Timestamp   time.Time   `json:"timestamp"`
+	ID           string      `json:"-"`
+	Ptr          int64       `json:"ptr,omitempty"`
+	BinPath      string      `json:"bin_path"`
+	Key          interface{} `json:"key"`
+	KeyHash      string      `json:"key_hash"`
+	KeyStrings   []string    `json:"key_strings"`
+	Value        string      `json:"value"`
+	ValueStrings []string    `json:"value_strings"`
+	OperationID  string      `json:"operation_id"`
+	Level        int64       `json:"level"`
+	Address      string      `json:"address"`
+	Network      string      `json:"network"`
+	IndexedTime  int64       `json:"indexed_time"`
+	Timestamp    time.Time   `json:"timestamp"`
 }
 
 // ParseElasticJSON -
@@ -38,13 +39,6 @@ func (b *BigMapDiff) ParseElasticJSON(hit gjson.Result) {
 	b.IndexedTime = hit.Get("_source.indexed_time").Int()
 	b.Timestamp = hit.Get("_source.timestamp").Time().UTC()
 
-	b.parseKeyStringsArray(hit)
-}
-
-func (b *BigMapDiff) parseKeyStringsArray(hit gjson.Result) {
-	result := make([]string, 0)
-	for _, item := range hit.Get("_source.key_strings").Array() {
-		result = append(result, item.String())
-	}
-	b.KeyStrings = result
+	b.KeyStrings = parseStringsArray(hit.Get("_source.key_strings").Array())
+	b.ValueStrings = parseStringsArray(hit.Get("_source.value_strings").Array())
 }

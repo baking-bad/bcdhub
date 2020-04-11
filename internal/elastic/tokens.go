@@ -1,8 +1,6 @@
 package elastic
 
 import (
-	"fmt"
-
 	"github.com/baking-bad/bcdhub/internal/models"
 )
 
@@ -10,10 +8,8 @@ import (
 func (e *Elastic) GetTokens(network string, size, offset int64) ([]models.Contract, error) {
 	query := newQuery().Query(
 		boolQ(
-			must(
-				matchPhrase("network", network),
-			),
 			filter(
+				matchQ("network", network),
 				in("tags", []string{"fa12", "fa1"}),
 			),
 		),
@@ -34,26 +30,24 @@ func (e *Elastic) GetTokens(network string, size, offset int64) ([]models.Contra
 }
 
 // GetTokenTransferOperations -
-func (e *Elastic) GetTokenTransferOperations(network, address, packedAddress, lastID string, size int64) (PageableOperations, error) {
+func (e *Elastic) GetTokenTransferOperations(network, address, lastID string, size int64) (PageableOperations, error) {
 	if size == 0 {
 		size = defaultSize
 	}
-	mustItems := []qItem{matchPhrase("network", network)}
+	filterItems := []qItem{
+		in("entrypoint", []string{"mint", "transfer"}),
+		matchQ("parameter_strings", address),
+		matchQ("network", network),
+	}
 	if lastID != "" {
-		mustItems = append(mustItems, rangeQ("indexed_time", qItem{"lt": lastID}))
+		filterItems = append(filterItems, rangeQ("indexed_time", qItem{"lt": lastID}))
 	}
 
 	query := newQuery().Query(
 		boolQ(
-			must(mustItems...),
 			filter(
-				in("entrypoint", []string{"mint", "transfer"}),
+				filterItems...,
 			),
-			should(
-				matchQ("parameters", fmt.Sprintf(".*%s.*", address)),
-				matchQ("parameters", fmt.Sprintf(".*%s.*", packedAddress)),
-			),
-			minimumShouldMatch(1),
 		),
 	).Add(
 		aggs("last_id", min("indexed_time")),

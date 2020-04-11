@@ -249,7 +249,37 @@ func (e *Elastic) GetPreviousOperation(address, network string, indexedTime int6
 }
 
 // GetAllOperations -
-func (e *Elastic) GetAllOperations(network string) ([]models.Operation, error) {
+func (e *Elastic) GetAllOperations() ([]models.Operation, error) {
+	operations := make([]models.Operation, 0)
+
+	result, err := e.createScroll(DocOperations, 1000, base{})
+	if err != nil {
+		return nil, err
+	}
+	for {
+		scrollID := result.Get("_scroll_id").String()
+		hits := result.Get("hits.hits")
+		if hits.Get("#").Int() < 1 {
+			break
+		}
+
+		for _, item := range hits.Array() {
+			var op models.Operation
+			op.ParseElasticJSON(item)
+			operations = append(operations, op)
+		}
+
+		result, err = e.queryScroll(scrollID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return operations, nil
+}
+
+// GetAllOperationsByNetwork -
+func (e *Elastic) GetAllOperationsByNetwork(network string) ([]models.Operation, error) {
 	operations := make([]models.Operation, 0)
 
 	query := newQuery().Query(

@@ -36,6 +36,7 @@ func parseOperation(operation models.Operation) error {
 
 	h.SetOperationAliases(ctx.Aliases, &operation)
 	h.SetOperationBurned(&operation)
+	h.SetOperationStrings(&operation)
 
 	if _, err := ctx.ES.UpdateDoc(elastic.DocOperations, operation.ID, operation); err != nil {
 		return err
@@ -51,7 +52,7 @@ func parseOperation(operation models.Operation) error {
 		}
 	}
 
-	if err := h.SetBigMapDiffsKeyString(operation.ID); err != nil {
+	if err := h.SetBigMapDiffsStrings(operation.ID); err != nil {
 		return err
 	}
 

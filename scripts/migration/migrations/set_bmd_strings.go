@@ -1,20 +1,23 @@
 package migrations
 
 import (
+	"log"
+
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 )
 
-// SetBMDKeyStrings - migration that set key strings array at big map diff
-type SetBMDKeyStrings struct{}
+// SetBMDStrings - migration that set key and value strings array at big map diff
+type SetBMDStrings struct{}
 
 // Description -
-func (m *SetBMDKeyStrings) Description() string {
-	return "set key strings array at big map diff"
+func (m *SetBMDStrings) Description() string {
+	return "parse big map keys & values strings"
 }
 
 // Do - migrate function
-func (m *SetBMDKeyStrings) Do(ctx *Context) error {
+func (m *SetBMDStrings) Do(ctx *Context) error {
+	log.Print("Start SetBMDStrings migration...")
 	allBigMapDiffs, err := ctx.ES.GetAllBigMapDiff()
 	if err != nil {
 		return err
@@ -30,8 +33,8 @@ func (m *SetBMDKeyStrings) Do(ctx *Context) error {
 
 	h := metrics.New(ctx.ES, ctx.DB)
 	for id := range opIDs {
-		logger.Info("Compute for operation with id: %s", id)
-		if err := h.SetBigMapDiffsKeyString(id); err != nil {
+		log.Printf("Compute for operation with id: %s", id)
+		if err := h.SetBigMapDiffsStrings(id); err != nil {
 			return err
 		}
 	}
