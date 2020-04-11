@@ -22,7 +22,12 @@ func (m *SetTimestamp) Description() string {
 // Do - migrate function
 func (m *SetTimestamp) Do(ctx *Context) error {
 	for _, network := range []string{consts.Mainnet, consts.Zeronet, consts.Carthage, consts.Babylon} {
-		operations, err := ctx.ES.GetAllOperationsByNetwork(network)
+		rpc, err := ctx.GetRPC(network)
+		if err != nil {
+			return err
+		}
+
+		operations, err := ctx.ES.GetAllOperations(network)
 		if err != nil {
 			return err
 		}

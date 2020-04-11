@@ -15,13 +15,13 @@ import (
 
 func main() {
 	migrationMap := map[string]migrations.Migration{
-		"timestamp":         &migrations.SetTimestampMigration{},
-		"language":          &migrations.SetLanguageMigration{},
-		"contract_alias":    &migrations.SetContractAliasMigration{Network: consts.Mainnet},
-		"operation_alias":   &migrations.SetOperationAliasMigration{Network: consts.Mainnet},
+		"timestamp":         &migrations.SetTimestamp{},
+		"language":          &migrations.SetLanguage{},
+		"contract_alias":    &migrations.SetContractAlias{Network: consts.Mainnet},
+		"operation_alias":   &migrations.SetOperationAlias{Network: consts.Mainnet},
 		"bmd_strings":       &migrations.SetBMDStrings{},
 		"bmd_timestamp":     &migrations.SetBMDTimestamp{},
-		"fa1_tag":           &migrations.SetFA1Migration{},
+		"fa1_tag":           &migrations.SetFA1{},
 		"operation_strings": &migrations.SetOperationStrings{},
 		"operation_burned":  &migrations.SetOperationBurned{},
 		"total_withdrawn":   &migrations.SetTotalWithdrawn{},

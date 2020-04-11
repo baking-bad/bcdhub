@@ -23,7 +23,7 @@ func (m *SetOperationAlias) Description() string {
 func (m *SetOperationAlias) Do(ctx *Context) error {
 	h := metrics.New(ctx.ES, ctx.DB)
 
-	operations, err := ctx.ES.GetAllOperationsByNetwork(m.Network)
+	operations, err := ctx.ES.GetAllOperations(m.Network)
 	if err != nil {
 		return err
 	}
