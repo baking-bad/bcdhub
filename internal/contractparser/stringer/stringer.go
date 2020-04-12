@@ -1,6 +1,7 @@
 package stringer
 
 import (
+	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/baking-bad/bcdhub/internal/contractparser/unpack"
 	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/rawbytes"
 	"github.com/tidwall/gjson"
@@ -17,6 +18,35 @@ func Get(node gjson.Result) []string {
 	}
 
 	return result
+}
+
+// Stringify -
+func Stringify(node gjson.Result) string {
+	if node.IsObject() {
+		if node.Get("string").Exists() {
+			return node.Get("string").String()
+		}
+
+		if node.Get("bytes").Exists() {
+			hex := node.Get("bytes").String()
+
+			if res, err := unpack.KeyHash(hex); err == nil {
+				return res
+			}
+
+			if res, err := unpack.Contract(hex); err == nil {
+				return res
+			}
+
+			return unpack.Bytes(hex)
+		}
+	}
+
+	if res, err := formatter.MichelineToMichelson(node, true, formatter.DefLineSize); err == nil {
+		return res
+	}
+
+	return node.String()
 }
 
 func findStrings(node gjson.Result, storage map[string]struct{}) {
