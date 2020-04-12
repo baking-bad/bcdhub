@@ -60,18 +60,7 @@ func (e *Elastic) GetSameContracts(c models.Contract, size, offset int64) (scp S
 				matchPhrase("address", c.Address),
 			),
 		),
-	).Add(qItem{
-		"sort": qItem{
-			"_script": qItem{
-				"type": "number",
-				"script": qItem{
-					"lang":   "painless",
-					"inline": "doc['network.keyword'].value == 'mainnet' ? (2 * doc['timestamp'].value.toInstant().toEpochMilli()) : doc['timestamp'].value.toInstant().toEpochMilli()",
-				},
-				"order": "desc",
-			},
-		},
-	}).Size(size).From(offset)
+	).Sort("last_action", "desc").Size(size).From(offset)
 
 	resp, err := e.query([]string{DocContracts}, q)
 	if err != nil {
@@ -119,8 +108,8 @@ func (e *Elastic) GetSimilarContracts(c models.Contract) ([]SimilarContract, err
 					},
 				},
 				"aggs": qItem{
-					"last":        topHits(1, "timestamp", "desc"),
-					"bucketsSort": max("timestamp"),
+					"last":        topHits(1, "last_action", "desc"),
+					"bucketsSort": max("last_action"),
 				},
 			},
 		),

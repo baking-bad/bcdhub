@@ -137,6 +137,8 @@ type TokenContract struct {
 	Alias         string    `json:"alias,omitempty"`
 	DelegateAlias string    `json:"delegate_alias,omitempty"`
 	Type          string    `json:"type"`
+	Balance       int64     `json:"balance"`
+	TxCount       int64     `json:"tx_count,omitempty"`
 }
 
 // TokenTransfer -
