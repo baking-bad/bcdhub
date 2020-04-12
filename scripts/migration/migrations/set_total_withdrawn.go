@@ -44,7 +44,7 @@ func (m *SetTotalWithdrawn) Do(ctx *Context) error {
 			}
 
 			if totalWithdrawn > 0 {
-				c.TotalWithdrawn = totalWithdrawn
+				contracts[i].TotalWithdrawn = totalWithdrawn
 
 				if _, err := ctx.ES.UpdateDoc(elastic.DocContracts, contracts[i].ID, contracts[i]); err != nil {
 					fmt.Print("\033[2K\r")
