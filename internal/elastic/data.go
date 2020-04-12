@@ -201,6 +201,7 @@ type SearchBigMapDiff struct {
 	Address   string    `json:"address"`
 	Network   string    `json:"network"`
 	Timestamp time.Time `json:"timestamp"`
+	FoundBy   string    `json:"found_by"`
 }
 
 // ParseElasticJSON -
@@ -214,4 +215,5 @@ func (b *SearchBigMapDiff) ParseElasticJSON(hit gjson.Result) {
 	b.Address = hit.Get("_source.address").String()
 	b.Network = hit.Get("_source.network").String()
 	b.Timestamp = hit.Get("_source.timestamp").Time()
+	b.FoundBy = models.GetFoundBy(hit)
 }
