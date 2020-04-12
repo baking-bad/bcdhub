@@ -34,6 +34,7 @@ type Operation struct {
 	Status           string           `json:"status"`
 	Entrypoint       string           `json:"entrypoint,omitempty"`
 	Errors           []cerrors.IError `json:"errors,omitempty"`
+	Burned           int64            `json:"burned,omitempty"`
 
 	BalanceUpdates []models.BalanceUpdate  `json:"balance_updates,omitempty"`
 	Result         *models.OperationResult `json:"result,omitempty"`

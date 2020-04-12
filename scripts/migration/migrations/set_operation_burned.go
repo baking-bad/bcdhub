@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -31,22 +32,29 @@ func (m *SetOperationBurned) Do(ctx *Context) error {
 
 		bar := progressbar.NewOptions(len(operations), progressbar.OptionSetPredictTime(false))
 
-		var lastIdx int
+		var changed int64
+		var bulk []models.Operation
+
 		for i := range operations {
 			bar.Add(1)
+
 			h.SetOperationBurned(&operations[i])
 
-			if (i%1000 == 0 || i == len(operations)-1) && i > 0 {
-				fmt.Print("\033[2K\r")
-				if err := ctx.ES.BulkUpdateOperations(operations[lastIdx:i]); err != nil {
+			if operations[i].Burned > 0 {
+				changed++
+				bulk = append(bulk, operations[i])
+			}
+
+			if len(bulk) == 1000 || (i == len(operations)-1 && len(bulk) > 0) {
+				if err := ctx.ES.BulkUpdateOperations(bulk); err != nil {
 					return err
 				}
-				lastIdx = i
+				bulk = bulk[:0]
 			}
 		}
 
 		fmt.Print("\033[2K\r")
-		logger.Info("[%s] done. Total operations: %d", network, len(operations))
+		logger.Info("[%s] done. Total operations: %d. Changed: %d", network, len(operations), changed)
 	}
 	return nil
 }

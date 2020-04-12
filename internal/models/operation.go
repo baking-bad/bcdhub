@@ -43,11 +43,11 @@ type Operation struct {
 	BalanceUpdates []BalanceUpdate  `json:"balance_updates,omitempty"`
 	Result         *OperationResult `json:"result,omitempty"`
 	Errors         []cerrors.IError `json:"errors,omitempty"`
+	Burned         int64            `json:"burned,omitempty"`
 
 	DeffatedStorage string       `json:"deffated_storage"`
 	Script          gjson.Result `json:"-"`
 
-	Burned        int64  `json:"burned"`
 	DelegateAlias string `json:"delegate_alias"`
 
 	ParameterStrings []string `json:"parameter_strings"`
@@ -84,6 +84,7 @@ func (o *Operation) ParseElasticJSON(resp gjson.Result) {
 	o.Entrypoint = resp.Get("_source.entrypoint").String()
 	o.SourceAlias = resp.Get("_source.source_alias").String()
 	o.DestinationAlias = resp.Get("_source.destination_alias").String()
+	o.Burned = resp.Get("_source.burned").Int()
 
 	o.FoundBy = GetFoundBy(resp)
 

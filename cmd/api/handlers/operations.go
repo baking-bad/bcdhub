@@ -126,6 +126,7 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 		Balance:          operation.Balance,
 		Delegate:         operation.Delegate,
 		Status:           operation.Status,
+		Burned:           operation.Burned,
 		Entrypoint:       operation.Entrypoint,
 		IndexedTime:      operation.IndexedTime,
 
