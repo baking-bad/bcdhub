@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/schollz/progressbar/v3"
@@ -32,12 +31,17 @@ func (m *SetOperationBurned) Do(ctx *Context) error {
 
 		bar := progressbar.NewOptions(len(operations), progressbar.OptionSetPredictTime(false))
 
+		var lastIdx int
 		for i := range operations {
 			bar.Add(1)
 			h.SetOperationBurned(&operations[i])
-			if _, err := ctx.ES.UpdateDoc(elastic.DocOperations, operations[i].ID, operations[i]); err != nil {
+
+			if (i%1000 == 0 || i == len(operations)-1) && i > 0 {
 				fmt.Print("\033[2K\r")
-				return err
+				if err := ctx.ES.BulkUpdateOperations(operations[lastIdx:i]); err != nil {
+					return err
+				}
+				lastIdx = i
 			}
 		}
 

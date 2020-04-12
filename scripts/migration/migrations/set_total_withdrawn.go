@@ -43,13 +43,13 @@ func (m *SetTotalWithdrawn) Do(ctx *Context) error {
 				return err
 			}
 
-			fmt.Println("total withdrawn:", totalWithdrawn)
+			if totalWithdrawn > 0 {
+				c.TotalWithdrawn = totalWithdrawn
 
-			c.TotalWithdrawn = totalWithdrawn
-
-			if _, err := ctx.ES.UpdateDoc(elastic.DocContracts, contracts[i].ID, contracts[i]); err != nil {
-				fmt.Print("\033[2K\r")
-				return err
+				if _, err := ctx.ES.UpdateDoc(elastic.DocContracts, contracts[i].ID, contracts[i]); err != nil {
+					fmt.Print("\033[2K\r")
+					return err
+				}
 			}
 		}
 
