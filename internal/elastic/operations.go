@@ -128,15 +128,15 @@ func (e *Elastic) GetContractOperations(network, address string, size uint64, fi
 
 	s := make([]qItem, len(opg))
 	for i := range opg {
-		s[i] = boolQ(must(
-			matchPhrase("hash", opg[i].hash),
+		s[i] = boolQ(filter(
+			matchQ("hash", opg[i].hash),
 			term("counter", opg[i].counter),
 		))
 	}
 	b := boolQ(
 		should(s...),
-		must(
-			matchPhrase("network", network),
+		filter(
+			matchQ("network", network),
 		),
 		minimumShouldMatch(1),
 	)
@@ -151,7 +151,7 @@ func (e *Elastic) GetContractOperations(network, address string, size uint64, fi
 					"type": "number",
 					"script": qItem{
 						"lang":   "painless",
-						"inline": "doc['level'].value * 1000 + (doc['internal'].value ? (999 - doc['internal_index'].value) : 999)",
+						"inline": "doc['level'].value * 10000000000L + (doc['counter'].value) * 1000L + (doc['internal'].value ? (999L - doc['internal_index'].value) : 999L)",
 					},
 					"order": "desc",
 				},
