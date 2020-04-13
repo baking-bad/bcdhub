@@ -2,7 +2,6 @@ package jsonschema
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
@@ -51,11 +50,10 @@ func (m *listMaker) Do(binPath string, metadata meta.Metadata) (Schema, error) {
 		"required":   required,
 	}
 
-	name := fmt.Sprintf("%s_%s", nm.Prim, strings.ReplaceAll(binPath, "/", ""))
 	return Schema{
 		"type": "object",
 		"properties": Schema{
-			name: schema,
+			binPath: schema,
 		},
 	}, nil
 }

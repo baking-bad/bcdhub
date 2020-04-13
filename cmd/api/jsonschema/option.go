@@ -22,7 +22,7 @@ func optionWrapper(schema Schema, binPath string, metadata meta.Metadata) (Schem
 			"properties": Schema{
 				"schemaKey": Schema{
 					"type":  "string",
-					"const": "none",
+					"const": consts.NONE,
 				},
 			},
 		},
@@ -49,14 +49,18 @@ func optionWrapper(schema Schema, binPath string, metadata meta.Metadata) (Schem
 		if nm.FieldName != "" {
 			name = nm.FieldName
 		} else {
-			name = "option"
+			name = nm.Prim
 		}
 	}
 
 	return Schema{
 		"type":  "object",
-		"title": name,
+		"title": fmt.Sprintf("%s (optional)", name),
 		"oneOf": schemas,
+		"x-props": Schema{
+			"dense":    true,
+			"outlined": true,
+		},
 	}, nil
 
 }

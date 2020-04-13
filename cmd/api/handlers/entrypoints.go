@@ -52,3 +52,26 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 
 	c.JSON(http.StatusOK, schema)
 }
+
+// GetEntrypointData - returns entrypoint data from schema object
+func (ctx *Context) GetEntrypointData(c *gin.Context) {
+	var req getContractRequest
+	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+	var reqData getEntrypointDataRequest
+	if err := c.BindJSON(&reqData); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
+	metadata, err := meta.GetMetadata(ctx.ES, req.Address, consts.PARAMETER, consts.HashCarthage)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	result, err := metadata.BuildEntrypointMicheline(reqData.BinPath, reqData.Data)
+	if handleError(c, err, 0) {
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}

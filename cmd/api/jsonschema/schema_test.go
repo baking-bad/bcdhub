@@ -25,9 +25,13 @@ func TestCreate(t *testing.T) {
 			want: Schema{
 				"type": "object",
 				"properties": Schema{
-					"string_0": Schema{
+					"0": Schema{
 						"type":  "string",
 						"title": "string",
+						"x-props": Schema{
+							"dense":    true,
+							"outlined": true,
+						},
 					},
 				},
 			},
@@ -38,9 +42,13 @@ func TestCreate(t *testing.T) {
 			want: Schema{
 				"type": "object",
 				"properties": Schema{
-					"int_0": Schema{
+					"0": Schema{
 						"type":  "integer",
 						"title": "int",
+						"x-props": Schema{
+							"dense":    true,
+							"outlined": true,
+						},
 					},
 				},
 			},
@@ -51,9 +59,13 @@ func TestCreate(t *testing.T) {
 			want: Schema{
 				"type": "object",
 				"properties": Schema{
-					"nat_0": Schema{
+					"0": Schema{
 						"type":  "integer",
 						"title": "nat",
+						"x-props": Schema{
+							"dense":    true,
+							"outlined": true,
+						},
 					},
 				},
 			},
@@ -64,13 +76,21 @@ func TestCreate(t *testing.T) {
 			want: Schema{
 				"type": "object",
 				"properties": Schema{
-					"nat_01": Schema{
+					"0/1": Schema{
 						"type":  "integer",
 						"title": "nat",
+						"x-props": Schema{
+							"dense":    true,
+							"outlined": true,
+						},
 					},
-					"string_00": Schema{
+					"0/0": Schema{
 						"type":  "string",
 						"title": "string",
+						"x-props": Schema{
+							"dense":    true,
+							"outlined": true,
+						},
 					},
 				},
 			},
@@ -81,9 +101,13 @@ func TestCreate(t *testing.T) {
 			want: Schema{
 				"type": "object",
 				"properties": Schema{
-					"key_hash_0": Schema{
+					"0": Schema{
 						"type":  "string",
 						"title": "key_hash",
+						"x-props": Schema{
+							"dense":    true,
+							"outlined": true,
+						},
 					},
 				},
 			},
@@ -99,9 +123,13 @@ func TestCreate(t *testing.T) {
 			want: Schema{
 				"type": "object",
 				"properties": Schema{
-					"bool_0": Schema{
+					"0": Schema{
 						"type":  "boolean",
 						"title": "bool",
+						"x-props": Schema{
+							"dense":    true,
+							"outlined": true,
+						},
 					},
 				},
 			},
@@ -112,21 +140,29 @@ func TestCreate(t *testing.T) {
 			want: Schema{
 				"type": "object",
 				"properties": Schema{
-					"map_01": Schema{
+					"0/1": Schema{
 						"type":        "array",
 						"title":       "debit",
-						"x-itemTitle": "address_01k",
+						"x-itemTitle": "0/1/k",
 						"items": Schema{
 							"type":     "object",
-							"required": []string{"address_01k", "nat_01v"},
+							"required": []string{"0/1/k", "0/1/v"},
 							"properties": Schema{
-								"address_01k": Schema{
+								"0/1/k": Schema{
 									"type":  "string",
 									"title": "address",
+									"x-props": Schema{
+										"dense":    true,
+										"outlined": true,
+									},
 								},
-								"nat_01v": Schema{
+								"0/1/v": Schema{
 									"type":  "integer",
 									"title": "nat",
+									"x-props": Schema{
+										"dense":    true,
+										"outlined": true,
+									},
 								},
 							},
 						},
@@ -140,17 +176,21 @@ func TestCreate(t *testing.T) {
 			want: Schema{
 				"type": "object",
 				"properties": Schema{
-					"list_0": Schema{
+					"0": Schema{
 						"type":        "array",
 						"title":       "list",
-						"x-itemTitle": "int_0l",
+						"x-itemTitle": "0/l",
 						"items": Schema{
 							"type":     "object",
-							"required": []string{"int_0l"},
+							"required": []string{"0/l"},
 							"properties": Schema{
-								"int_0l": Schema{
+								"0/l": Schema{
 									"type":  "integer",
 									"title": "int",
+									"x-props": Schema{
+										"dense":    true,
+										"outlined": true,
+									},
 								},
 							},
 						},
@@ -164,10 +204,14 @@ func TestCreate(t *testing.T) {
 			want: Schema{
 				"type": "object",
 				"properties": Schema{
-					"timestamp_0": Schema{
+					"0": Schema{
 						"type":   "string",
 						"title":  "refund_time",
 						"format": "date-time",
+						"x-props": Schema{
+							"dense":    true,
+							"outlined": true,
+						},
 					},
 				},
 			},
@@ -186,9 +230,13 @@ func TestCreate(t *testing.T) {
 								"type":  "string",
 								"const": "0/1/0",
 							},
-							"bytes_010": Schema{
+							"0/1/0": Schema{
 								"type":  "string",
 								"title": "redeem",
+								"x-props": Schema{
+									"dense":    true,
+									"outlined": true,
+								},
 							},
 						},
 					},
@@ -199,9 +247,13 @@ func TestCreate(t *testing.T) {
 								"type":  "string",
 								"const": "0/1/1",
 							},
-							"bytes_011": Schema{
+							"0/1/1": Schema{
 								"type":  "string",
 								"title": "refund",
+								"x-props": Schema{
+									"dense":    true,
+									"outlined": true,
+								},
 							},
 						},
 					},
@@ -213,7 +265,7 @@ func TestCreate(t *testing.T) {
 			metadata: `{"0/1/o":{"fieldname":"Pour","prim":"pair","args":["0/1/o/0","0/1/o/1"],"type":"namedtuple","name":"Pour"},"0/1/o/0":{"fieldname":"pour_auth","prim":"signature","type":"signature","name":"pour_auth"},"0/1/o/1":{"fieldname":"pour_amount","prim":"mutez","type":"mutez","name":"pour_amount"}}`,
 			want: Schema{
 				"type":  "object",
-				"title": "Pour",
+				"title": "Pour (optional)",
 				"oneOf": []Schema{
 					Schema{
 						"title": "None",
@@ -221,11 +273,6 @@ func TestCreate(t *testing.T) {
 							"schemaKey": Schema{
 								"type":  "string",
 								"const": "none",
-							},
-							"noneField": Schema{
-								"type":     "string",
-								"title":    "Option",
-								"readOnly": true,
 							},
 						},
 					},
@@ -236,13 +283,130 @@ func TestCreate(t *testing.T) {
 								"type":  "string",
 								"const": "0/1/o",
 							},
-							"signature_01o0": Schema{
+							"0/1/o/0": Schema{
 								"type":  "string",
 								"title": "pour_auth",
+								"x-props": Schema{
+									"dense":    true,
+									"outlined": true,
+								},
 							},
-							"mutez_01o1": Schema{
+							"0/1/o/1": Schema{
 								"type":  "integer",
 								"title": "pour_amount",
+								"x-props": Schema{
+									"dense":    true,
+									"outlined": true,
+								},
+							},
+						},
+					},
+				},
+				"x-props": Schema{
+					"dense":    true,
+					"outlined": true,
+				},
+			},
+		}, {
+			name:     "Case 13: tzBTC upgrade",
+			binPath:  "0/1/1/1/1/0/0/0/1",
+			metadata: `{"0":{"prim":"or","args":["0/0/0/0","0/0/0/1","0/0/1/0","0/0/1/1/0","0/0/1/1/1","0/1/0/0","0/1/0/1","0/1/1/0","0/1/1/1/0","0/1/1/1/1/0/0/0/0","0/1/1/1/1/0/0/0/1","0/1/1/1/1/0/0/1/0","0/1/1/1/1/0/0/1/1","0/1/1/1/1/0/1/0/0","0/1/1/1/1/0/1/0/1","0/1/1/1/1/0/1/1/0","0/1/1/1/1/0/1/1/1","0/1/1/1/1/1/0/0/0","0/1/1/1/1/1/0/0/1","0/1/1/1/1/1/0/1/0","0/1/1/1/1/1/0/1/1","0/1/1/1/1/1/1/0/0","0/1/1/1/1/1/1/0/1","0/1/1/1/1/1/1/1/0","0/1/1/1/1/1/1/1/1/0","0/1/1/1/1/1/1/1/1/1"],"type":"namedunion"},"0/0":{"prim":"or","type":"or"},"0/0/0":{"prim":"or","type":"or"},"0/0/0/0":{"fieldname":"getVersion","prim":"pair","args":["0/0/0/0/0","0/0/0/0/1"],"type":"tuple","name":"getVersion"},"0/0/0/0/0":{"prim":"unit","type":"unit"},"0/0/0/0/1":{"prim":"contract","parameter":"{\"prim\":\"nat\"}","type":"contract"},"0/0/0/1":{"fieldname":"getAllowance","prim":"pair","args":["0/0/0/1/0/0","0/0/0/1/0/1","0/0/0/1/1"],"type":"namedtuple","name":"getAllowance"},"0/0/0/1/0":{"prim":"pair","type":"pair"},"0/0/0/1/0/0":{"typename":"owner","prim":"address","type":"address","name":"owner"},"0/0/0/1/0/1":{"typename":"spender","prim":"address","type":"address","name":"spender"},"0/0/0/1/1":{"prim":"contract","parameter":"{\"prim\":\"nat\"}","type":"contract"},"0/0/1":{"prim":"or","type":"or"},"0/0/1/0":{"fieldname":"getBalance","prim":"pair","args":["0/0/1/0/0","0/0/1/0/1"],"type":"namedtuple","name":"getBalance"},"0/0/1/0/0":{"typename":"owner","prim":"address","type":"address","name":"owner"},"0/0/1/0/1":{"prim":"contract","parameter":"{\"prim\":\"nat\"}","type":"contract"},"0/0/1/1":{"prim":"or","type":"or"},"0/0/1/1/0":{"fieldname":"getTotalSupply","prim":"pair","args":["0/0/1/1/0/0","0/0/1/1/0/1"],"type":"tuple","name":"getTotalSupply"},"0/0/1/1/0/0":{"prim":"unit","type":"unit"},"0/0/1/1/0/1":{"prim":"contract","parameter":"{\"prim\":\"nat\"}","type":"contract"},"0/0/1/1/1":{"fieldname":"getTotalMinted","prim":"pair","args":["0/0/1/1/1/0","0/0/1/1/1/1"],"type":"tuple","name":"getTotalMinted"},"0/0/1/1/1/0":{"prim":"unit","type":"unit"},"0/0/1/1/1/1":{"prim":"contract","parameter":"{\"prim\":\"nat\"}","type":"contract"},"0/1":{"prim":"or","type":"or"},"0/1/0":{"prim":"or","type":"or"},"0/1/0/0":{"fieldname":"getTotalBurned","prim":"pair","args":["0/1/0/0/0","0/1/0/0/1"],"type":"tuple","name":"getTotalBurned"},"0/1/0/0/0":{"prim":"unit","type":"unit"},"0/1/0/0/1":{"prim":"contract","parameter":"{\"prim\":\"nat\"}","type":"contract"},"0/1/0/1":{"fieldname":"getOwner","prim":"pair","args":["0/1/0/1/0","0/1/0/1/1"],"type":"tuple","name":"getOwner"},"0/1/0/1/0":{"prim":"unit","type":"unit"},"0/1/0/1/1":{"prim":"contract","parameter":"{\"prim\":\"address\"}","type":"contract"},"0/1/1":{"prim":"or","type":"or"},"0/1/1/0":{"fieldname":"getRedeemAddress","prim":"pair","args":["0/1/1/0/0","0/1/1/0/1"],"type":"tuple","name":"getRedeemAddress"},"0/1/1/0/0":{"prim":"unit","type":"unit"},"0/1/1/0/1":{"prim":"contract","parameter":"{\"prim\":\"address\"}","type":"contract"},"0/1/1/1":{"prim":"or","type":"or"},"0/1/1/1/0":{"fieldname":"getTokenMetadata","prim":"pair","args":["0/1/1/1/0/0","0/1/1/1/0/1"],"type":"tuple","name":"getTokenMetadata"},"0/1/1/1/0/0":{"prim":"list","type":"list"},"0/1/1/1/0/0/l":{"prim":"nat","type":"nat"},"0/1/1/1/0/1":{"prim":"contract","parameter":"{\"prim\":\"list\",\"args\":[{\"prim\":\"pair\",\"args\":[{\"prim\":\"nat\"},{\"prim\":\"pair\",\"args\":[{\"prim\":\"string\"},{\"prim\":\"pair\",\"args\":[{\"prim\":\"string\"},{\"prim\":\"pair\",\"args\":[{\"prim\":\"nat\"},{\"prim\":\"map\",\"args\":[{\"prim\":\"string\"},{\"prim\":\"string\"}]}]}]}]}]}]}","type":"contract"},"0/1/1/1/1":{"fieldname":"safeEntrypoints","prim":"or","type":"or"},"0/1/1/1/1/0":{"prim":"or","type":"or"},"0/1/1/1/1/0/0":{"prim":"or","type":"or"},"0/1/1/1/1/0/0/0":{"prim":"or","type":"or"},"0/1/1/1/1/0/0/0/0":{"fieldname":"run","prim":"pair","args":["0/1/1/1/1/0/0/0/0/0","0/1/1/1/1/0/0/0/0/1"],"type":"tuple","name":"run"},"0/1/1/1/1/0/0/0/0/0":{"prim":"string","type":"string"},"0/1/1/1/1/0/0/0/0/1":{"prim":"bytes","type":"bytes"},"0/1/1/1/1/0/0/0/1":{"fieldname":"upgrade","prim":"pair","args":["0/1/1/1/1/0/0/0/1/0/0","0/1/1/1/1/0/0/0/1/0/1","0/1/1/1/1/0/0/0/1/1/0","0/1/1/1/1/0/0/0/1/1/1/0/o","0/1/1/1/1/0/0/0/1/1/1/1/o"],"type":"tuple","name":"upgrade"},"0/1/1/1/1/0/0/0/1/0":{"prim":"pair","type":"pair"},"0/1/1/1/1/0/0/0/1/0/0":{"typename":"currentVersion","prim":"nat","type":"nat"},"0/1/1/1/1/0/0/0/1/0/1":{"typename":"newVersion","prim":"nat","type":"nat"},"0/1/1/1/1/0/0/0/1/1":{"prim":"pair","type":"pair"},"0/1/1/1/1/0/0/0/1/1/0":{"typename":"migrationScript","prim":"lambda","parameter":"{\"prim\":\"big_map\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"bytes\"}]}","type":"lambda"},"0/1/1/1/1/0/0/0/1/1/1":{"prim":"pair","type":"pair"},"0/1/1/1/1/0/0/0/1/1/1/0":{"typename":"newCode","prim":"option","type":"option"},"0/1/1/1/1/0/0/0/1/1/1/0/o":{"prim":"lambda","parameter":"{\"prim\":\"pair\",\"args\":[{\"prim\":\"pair\",\"args\":[{\"prim\":\"string\"},{\"prim\":\"bytes\"}]},{\"prim\":\"big_map\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"bytes\"}]}]}","type":"lambda"},"0/1/1/1/1/0/0/0/1/1/1/1":{"typename":"newPermCode","prim":"option","type":"option"},"0/1/1/1/1/0/0/0/1/1/1/1/o":{"prim":"lambda","parameter":"{\"prim\":\"pair\",\"args\":[{\"prim\":\"unit\"},{\"prim\":\"big_map\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"bytes\"}]}]}","type":"lambda"},"0/1/1/1/1/0/0/1":{"prim":"or","type":"or"},"0/1/1/1/1/0/0/1/0":{"fieldname":"epwBeginUpgrade","prim":"pair","args":["0/1/1/1/1/0/0/1/0/0","0/1/1/1/1/0/0/1/0/1"],"type":"namedtuple","name":"epwBeginUpgrade"},"0/1/1/1/1/0/0/1/0/0":{"typename":"current","prim":"nat","type":"nat","name":"current"},"0/1/1/1/1/0/0/1/0/1":{"typename":"new","prim":"nat","type":"nat","name":"new"},"0/1/1/1/1/0/0/1/1":{"typename":"migrationscript","fieldname":"epwApplyMigration","prim":"lambda","parameter":"{\"prim\":\"big_map\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"bytes\"}]}","type":"lambda","name":"epwApplyMigration"},"0/1/1/1/1/0/1":{"prim":"or","type":"or"},"0/1/1/1/1/0/1/0":{"prim":"or","type":"or"},"0/1/1/1/1/0/1/0/0":{"typename":"contractcode","fieldname":"epwSetCode","prim":"lambda","parameter":"{\"prim\":\"pair\",\"args\":[{\"prim\":\"pair\",\"args\":[{\"prim\":\"string\"},{\"prim\":\"bytes\"}]},{\"prim\":\"big_map\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"bytes\"}]}]}","type":"lambda","name":"epwSetCode"},"0/1/1/1/1/0/1/0/1":{"fieldname":"epwFinishUpgrade","prim":"unit","type":"unit","name":"epwFinishUpgrade"},"0/1/1/1/1/0/1/1":{"prim":"or","type":"or"},"0/1/1/1/1/0/1/1/0":{"fieldname":"transfer","prim":"pair","args":["0/1/1/1/1/0/1/1/0/0","0/1/1/1/1/0/1/1/0/1/0","0/1/1/1/1/0/1/1/0/1/1"],"type":"namedtuple","name":"transfer"},"0/1/1/1/1/0/1/1/0/0":{"typename":"from","prim":"address","type":"address","name":"from"},"0/1/1/1/1/0/1/1/0/1":{"prim":"pair","type":"pair"},"0/1/1/1/1/0/1/1/0/1/0":{"typename":"to","prim":"address","type":"address","name":"to"},"0/1/1/1/1/0/1/1/0/1/1":{"typename":"value","prim":"nat","type":"nat","name":"value"},"0/1/1/1/1/0/1/1/1":{"fieldname":"approve","prim":"pair","args":["0/1/1/1/1/0/1/1/1/0","0/1/1/1/1/0/1/1/1/1"],"type":"namedtuple","name":"approve"},"0/1/1/1/1/0/1/1/1/0":{"typename":"spender","prim":"address","type":"address","name":"spender"},"0/1/1/1/1/0/1/1/1/1":{"typename":"value","prim":"nat","type":"nat","name":"value"},"0/1/1/1/1/1":{"prim":"or","type":"or"},"0/1/1/1/1/1/0":{"prim":"or","type":"or"},"0/1/1/1/1/1/0/0":{"prim":"or","type":"or"},"0/1/1/1/1/1/0/0/0":{"fieldname":"mint","prim":"pair","args":["0/1/1/1/1/1/0/0/0/0","0/1/1/1/1/1/0/0/0/1"],"type":"namedtuple","name":"mint"},"0/1/1/1/1/1/0/0/0/0":{"typename":"to","prim":"address","type":"address","name":"to"},"0/1/1/1/1/1/0/0/0/1":{"typename":"value","prim":"nat","type":"nat","name":"value"},"0/1/1/1/1/1/0/0/1":{"typename":"value","fieldname":"burn","prim":"nat","type":"nat","name":"burn"},"0/1/1/1/1/1/0/1":{"prim":"or","type":"or"},"0/1/1/1/1/1/0/1/0":{"typename":"operator","fieldname":"addOperator","prim":"address","type":"address","name":"addOperator"},"0/1/1/1/1/1/0/1/1":{"typename":"operator","fieldname":"removeOperator","prim":"address","type":"address","name":"removeOperator"},"0/1/1/1/1/1/1":{"prim":"or","type":"or"},"0/1/1/1/1/1/1/0":{"prim":"or","type":"or"},"0/1/1/1/1/1/1/0/0":{"typename":"redeem","fieldname":"setRedeemAddress","prim":"address","type":"address","name":"setRedeemAddress"},"0/1/1/1/1/1/1/0/1":{"fieldname":"pause","prim":"unit","type":"unit","name":"pause"},"0/1/1/1/1/1/1/1":{"prim":"or","type":"or"},"0/1/1/1/1/1/1/1/0":{"fieldname":"unpause","prim":"unit","type":"unit","name":"unpause"},"0/1/1/1/1/1/1/1/1":{"prim":"or","type":"or"},"0/1/1/1/1/1/1/1/1/0":{"typename":"newOwner","fieldname":"transferOwnership","prim":"address","type":"address","name":"transferOwnership"},"0/1/1/1/1/1/1/1/1/1":{"fieldname":"acceptOwnership","prim":"unit","type":"unit","name":"acceptOwnership"}}`,
+			want: Schema{
+				"type": "object",
+				"properties": Schema{
+					"0/1/1/1/1/0/0/0/1/1/0": Schema{
+						"title": "lambda",
+						"type":  "string",
+						"x-props": Schema{
+							"dense":    true,
+							"outlined": true,
+						},
+					},
+					"0/1/1/1/1/0/0/0/1/0/0": Schema{
+						"title": "nat",
+						"type":  "integer",
+						"x-props": Schema{
+							"dense":    true,
+							"outlined": true,
+						},
+					},
+					"0/1/1/1/1/0/0/0/1/0/1": Schema{
+						"title": "nat",
+						"type":  "integer",
+						"x-props": Schema{
+							"dense":    true,
+							"outlined": true,
+						},
+					},
+					"0/1/1/1/1/0/0/0/1/1/1/0/o": Schema{
+						"type":  "object",
+						"title": "lambda (optional)",
+						"x-props": Schema{
+							"dense":    true,
+							"outlined": true,
+						},
+						"oneOf": []Schema{
+							Schema{
+								"title": "None",
+								"properties": Schema{
+									"schemaKey": Schema{
+										"type":  "string",
+										"const": "none",
+									},
+								},
+							},
+							Schema{
+								"title": "Some",
+								"properties": Schema{
+									"schemaKey": Schema{
+										"type":  "string",
+										"const": "0/1/1/1/1/0/0/0/1/1/1/0/o",
+									},
+									"0/1/1/1/1/0/0/0/1/1/1/0/o": Schema{
+										"type":  "string",
+										"title": "lambda",
+										"x-props": Schema{
+											"dense":    true,
+											"outlined": true,
+										},
+									},
+								},
+							},
+						},
+					},
+					"0/1/1/1/1/0/0/0/1/1/1/1/o": Schema{
+						"type":  "object",
+						"title": "lambda (optional)",
+						"x-props": Schema{
+							"dense":    true,
+							"outlined": true,
+						},
+						"oneOf": []Schema{
+							Schema{
+								"title": "None",
+								"properties": Schema{
+									"schemaKey": Schema{
+										"type":  "string",
+										"const": "none",
+									},
+								},
+							},
+							Schema{
+								"title": "Some",
+								"properties": Schema{
+									"schemaKey": Schema{
+										"type":  "string",
+										"const": "0/1/1/1/1/0/0/0/1/1/1/1/o",
+									},
+									"0/1/1/1/1/0/0/0/1/1/1/1/o": Schema{
+										"type":  "string",
+										"title": "lambda",
+										"x-props": Schema{
+											"dense":    true,
+											"outlined": true,
+										},
+									},
+								},
 							},
 						},
 					},

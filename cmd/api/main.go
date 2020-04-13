@@ -132,6 +132,7 @@ func main() {
 					{
 						entrypoints.GET("", ctx.GetEntrypoints)
 						entrypoints.GET("schema", ctx.GetEntrypointSchema)
+						entrypoints.POST("data", ctx.GetEntrypointData)
 					}
 				}
 			}
