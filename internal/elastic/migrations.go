@@ -36,8 +36,9 @@ func (e *Elastic) GetContractVersions(network, address string) ([]string, error)
 		),
 		should(
 			term("vesting", true),
-			matchPhrase("hash", ""),
+			matchQ("hash", ""),
 		),
+		minimumShouldMatch(1),
 	)
 	query := newQuery().Query(b).Sort("level", "desc").All()
 

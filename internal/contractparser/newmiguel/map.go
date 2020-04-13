@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/tidwall/gjson"
 )
@@ -55,6 +56,12 @@ func (l *mapDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetadat
 				}
 			}
 
+			if key.Value == nil && len(key.Children) > 0 {
+				key.Value, err = formatter.MichelineToMichelson(keyJSON, true, formatter.DefLineSize)
+				if err != nil {
+					return nil, err
+				}
+			}
 			s, err := l.getKey(key)
 			if err != nil {
 				return nil, err
