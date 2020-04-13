@@ -3,8 +3,6 @@ package language
 import (
 	"testing"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/node"
 )
@@ -59,7 +57,7 @@ func TestDetectSmartPy(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			if result := Get(tt.n); result != tt.res {
+			if result := GetFromCode(tt.n); result != tt.res {
 				t.Errorf("Invalid result.\nGot: %v\nExpected: %v", result, tt.res)
 			}
 		})
@@ -116,7 +114,7 @@ func TestDetectLiquidity(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			if result := Get(tt.n); result != tt.res {
+			if result := GetFromCode(tt.n); result != tt.res {
 				t.Errorf("Invalid result.\nGot: %v\nExpected: %v", result, tt.res)
 			}
 		})
@@ -245,7 +243,7 @@ func TestDetectLIGO(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			if result := Get(tt.n); result != tt.res {
+			if result := GetFromCode(tt.n); result != tt.res {
 				t.Errorf("Invalid result.\nGot: %v\nExpected: %v", result, tt.res)
 			}
 		})
@@ -310,61 +308,51 @@ func TestDetectLorentz(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			if result := Get(tt.n); result != tt.res {
+			if result := GetFromCode(tt.n); result != tt.res {
 				t.Errorf("Invalid result.\nGot: %v\nExpected: %v", result, tt.res)
 			}
 		})
 	}
 }
 
-func TestDetectInEntries(t *testing.T) {
+func TestGetFromParameter(t *testing.T) {
 	testCases := []struct {
-		name    string
-		entries []meta.Entrypoint
-		res     string
+		name string
+		n    node.Node
+		res  string
 	}{
 		{
 			name: "liquidity entrypoints",
-			entries: []meta.Entrypoint{
-				meta.Entrypoint{
-					Name: "_Liq_entry",
-				},
+			n: node.Node{
+				Annotations: []string{"%_Liq_entry"},
 			},
 			res: LangLiquidity,
 		},
 		{
 			name: "lorentz entrypoints",
-			entries: []meta.Entrypoint{
-				meta.Entrypoint{
-					Name: "epwBeginUpgrade",
-				},
+			n: node.Node{
+				Annotations: []string{"%epwBeginUpgrade"},
 			},
 			res: LangLorentz,
 		},
 		{
 			name: "lorentz entrypoints",
-			entries: []meta.Entrypoint{
-				meta.Entrypoint{
-					Name: "epwApplyMigration",
-				},
+			n: node.Node{
+				Annotations: []string{"%epwApplyMigration"},
 			},
 			res: LangLorentz,
 		},
 		{
 			name: "lorentz entrypoints",
-			entries: []meta.Entrypoint{
-				meta.Entrypoint{
-					Name: "epwSetCode",
-				},
+			n: node.Node{
+				Annotations: []string{"%epwSetCode"},
 			},
 			res: LangLorentz,
 		},
 		{
 			name: "random entrypoints",
-			entries: []meta.Entrypoint{
-				meta.Entrypoint{
-					Name: "setCode",
-				},
+			n: node.Node{
+				Annotations: []string{"%setCode"},
 			},
 			res: LangUnknown,
 		},
@@ -372,7 +360,7 @@ func TestDetectInEntries(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			if result := DetectInEntries(tt.entries); result != tt.res {
+			if result := GetFromParameter(tt.n); result != tt.res {
 				t.Errorf("Invalid result.\nGot:%v\nExpected:%v", result, tt.res)
 			}
 		})

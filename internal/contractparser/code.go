@@ -101,9 +101,10 @@ func (c *Code) handlePrimitive(n node.Node) (err error) {
 		c.Annotations.Append(filterAnnotations(n.Annotations)...)
 	}
 
-	if n.Is("") && n.Type == consts.KeyString && c.Language == language.LangUnknown {
-		c.Language = language.Get(n)
+	if c.Language == language.LangUnknown {
+		c.Language = language.GetFromCode(n)
 	}
+
 	c.Tags.Append(primTags(n))
 
 	return nil

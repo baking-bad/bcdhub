@@ -8,7 +8,7 @@ import (
 
 type smartpy struct{}
 
-func (l smartpy) Detect(n node.Node) bool {
+func (l smartpy) DetectInCode(n node.Node) bool {
 	str := n.GetString()
 
 	if str == "" {
@@ -20,4 +20,8 @@ func (l smartpy) Detect(n node.Node) bool {
 		strings.Contains(str, "sp.") ||
 		strings.Contains(str, "WrongCondition") ||
 		strings.Contains(str, `Get-item:\d+`)
+}
+
+func (l smartpy) DetectInParameter(n node.Node) bool {
+	return false
 }
