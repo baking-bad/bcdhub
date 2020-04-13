@@ -1,6 +1,6 @@
 {
   "search": {
-    "uri": "http://localhost:9200"
+    "uri": "http://localhost:9201"
   },
   "address": ":14000",
   "nodes":  {

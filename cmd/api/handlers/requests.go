@@ -121,3 +121,7 @@ type bigMapSearchRequest struct {
 	Size   int64  `form:"size" binding:"min=0"`
 	Search string `form:"q"`
 }
+
+type getEntrypointSchemaRequest struct {
+	BinPath string `form:"path" binding:"required"`
+}
