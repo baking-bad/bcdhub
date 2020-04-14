@@ -78,7 +78,7 @@ func (c *Code) parseStruct(n node.Node) error {
 func (c *Code) parseCode(args gjson.Result) error {
 	for i, val := range args.Array() {
 		if i == 0 {
-			c.Language = lorentzCostil(val)
+			c.Language = detectLorentzByCast(val)
 		}
 
 		if err := c.parse(val); err != nil {
@@ -113,7 +113,7 @@ func (c *Code) handlePrimitive(n node.Node) (err error) {
 	return nil
 }
 
-func lorentzCostil(val gjson.Result) string {
+func detectLorentzByCast(val gjson.Result) string {
 	// args.Array()[0][0]["prim"] == "CAST"
 	if val.IsArray() {
 		if val.Array()[0].IsObject() {
