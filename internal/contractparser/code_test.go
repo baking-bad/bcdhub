@@ -8,7 +8,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-func TestDetectLorentCast(t *testing.T) {
+func TestDetectLorentzCast(t *testing.T) {
 	testCases := []struct {
 		name  string
 		input string
@@ -39,7 +39,7 @@ func TestDetectLorentCast(t *testing.T) {
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			parsed := gjson.Parse(tt.input)
-			if got := detectLorentCast(parsed); got != tt.want {
+			if got := detectLorentzCast(parsed); got != tt.want {
 				t.Errorf("detectLorentCast invalid. expected: %v, got: %v", tt.want, got)
 			}
 		})
