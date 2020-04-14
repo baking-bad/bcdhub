@@ -22,6 +22,8 @@ func (m *orMaker) Do(binPath string, metadata meta.Metadata) (Schema, error) {
 			return nil, err
 		}
 
+		arg = strings.TrimSuffix(arg, "/o")
+
 		subProperties := Schema{
 			"schemaKey": Schema{
 				"type":  "string",
@@ -33,9 +35,12 @@ func (m *orMaker) Do(binPath string, metadata meta.Metadata) (Schema, error) {
 			for k := range props {
 				subProperties[k] = props[k]
 			}
+		} else {
+			subProperties[arg] = argSchema
+
 		}
 		schemas = append(schemas, Schema{
-			"title":      getOrTitile(arg, binPath),
+			"title":      getOrTitile(arg, binPath, metadata),
 			"properties": subProperties,
 		})
 	}
@@ -53,11 +58,23 @@ func (m *orMaker) Do(binPath string, metadata meta.Metadata) (Schema, error) {
 		"type":  "object",
 		"title": name,
 		"oneOf": schemas,
+		"x-props": Schema{
+			"dense":    true,
+			"outlined": true,
+		},
 	}, nil
 }
 
-func getOrTitile(binPath, rootPath string) string {
+func getOrTitile(binPath, rootPath string, metadata meta.Metadata) string {
 	var result strings.Builder
+	nm, ok := metadata[binPath]
+	if ok {
+		if nm.Name != "" {
+			result.WriteString(fmt.Sprintf("%s (", nm.Name))
+		} else if nm.FieldName != "" {
+			result.WriteString(fmt.Sprintf("%s (", nm.FieldName))
+		}
+	}
 	path := strings.TrimPrefix(binPath, rootPath)
 	path = strings.TrimPrefix(path, "/")
 
@@ -74,5 +91,10 @@ func getOrTitile(binPath, rootPath string) string {
 		}
 	}
 
+	if ok {
+		if nm.Name != "" || nm.FieldName != "" {
+			result.WriteByte(')')
+		}
+	}
 	return result.String()
 }

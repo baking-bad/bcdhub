@@ -222,9 +222,13 @@ func TestCreate(t *testing.T) {
 			want: Schema{
 				"type":  "object",
 				"title": "withdraw",
+				"x-props": Schema{
+					"dense":    true,
+					"outlined": true,
+				},
 				"oneOf": []Schema{
 					Schema{
-						"title": "Left",
+						"title": "redeem (Left)",
 						"properties": Schema{
 							"schemaKey": Schema{
 								"type":  "string",
@@ -241,7 +245,7 @@ func TestCreate(t *testing.T) {
 						},
 					},
 					Schema{
-						"title": "Right",
+						"title": "refund (Right)",
 						"properties": Schema{
 							"schemaKey": Schema{
 								"type":  "string",
@@ -281,7 +285,7 @@ func TestCreate(t *testing.T) {
 						"properties": Schema{
 							"schemaKey": Schema{
 								"type":  "string",
-								"const": "0/1/o",
+								"const": "some",
 							},
 							"0/1/o/0": Schema{
 								"type":  "string",
@@ -360,7 +364,7 @@ func TestCreate(t *testing.T) {
 								"properties": Schema{
 									"schemaKey": Schema{
 										"type":  "string",
-										"const": "0/1/1/1/1/0/0/0/1/1/1/0/o",
+										"const": "some",
 									},
 									"0/1/1/1/1/0/0/0/1/1/1/0/o": Schema{
 										"type":  "string",
@@ -396,7 +400,7 @@ func TestCreate(t *testing.T) {
 								"properties": Schema{
 									"schemaKey": Schema{
 										"type":  "string",
-										"const": "0/1/1/1/1/0/0/0/1/1/1/1/o",
+										"const": "some",
 									},
 									"0/1/1/1/1/0/0/0/1/1/1/1/o": Schema{
 										"type":  "string",

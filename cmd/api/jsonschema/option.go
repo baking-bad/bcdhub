@@ -30,7 +30,7 @@ func optionWrapper(schema Schema, binPath string, metadata meta.Metadata) (Schem
 	subProperties := Schema{
 		"schemaKey": Schema{
 			"type":  "string",
-			"const": binPath,
+			"const": consts.SOME,
 		},
 	}
 	if properties, ok := schema["properties"]; ok {

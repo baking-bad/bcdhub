@@ -6,182 +6,283 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/tidwall/gjson"
 )
 
 // BuildEntrypointMicheline -
 func (m Metadata) BuildEntrypointMicheline(binaryPath string, data map[string]interface{}) (interface{}, error) {
-	var builder strings.Builder
-	nm, ok := m[binaryPath]
-	if !ok {
-		return "", fmt.Errorf("Unknown binary path: %s", binaryPath)
+	if strings.HasSuffix(binaryPath, "/o") { // Hack for high-level option
+		binaryPath = strings.TrimSuffix(binaryPath, "/o")
+		option := make(map[string]interface{})
+		for k, v := range data {
+			option[k] = v
+		}
+		data[binaryPath] = option
 	}
-	builder.WriteString(fmt.Sprintf(`{"entrypoint": "%s", "value": `, nm.GetEntrypointName(-1)))
 
-	preprocessing(binaryPath, data)
-	if err := build(m, binaryPath, data, &builder); err != nil {
-		return "", err
+	micheline, err := build(m, binaryPath, data)
+	if err != nil {
+		return nil, err
 	}
-	builder.WriteString(`}`)
-	value := gjson.Parse(builder.String()).Value()
+	wrapped, err := wrapEntrypoint(binaryPath, micheline, m)
+	if err != nil {
+		return nil, err
+	}
+	value := gjson.Parse(wrapped).Value()
 	return value, nil
 }
 
-func build(metadata Metadata, path string, data map[string]interface{}, builder *strings.Builder) error {
+func build(metadata Metadata, path string, data map[string]interface{}) (string, error) {
 	nm, ok := metadata[path]
 	if !ok {
-		return fmt.Errorf("Unknown binary path: %s", path)
+		return "", fmt.Errorf("Unknown binary path: %s", path)
 	}
+
 	switch nm.Prim {
-	case consts.PAIR, consts.OR:
-		return pairBuilder(metadata, path, data, builder)
+	case consts.PAIR:
+		return pairBuilder(metadata, nm, path, data)
+	case consts.OR:
+		return orBuilder(metadata, nm, path, data)
 	case consts.UNIT:
-		return unitBuilder(metadata, path, data, builder)
+		return unitBuilder(metadata, nm, path, data)
 	case consts.LIST, consts.SET:
-		return listBuilder(metadata, path, data, builder)
+		return listBuilder(metadata, nm, path, data)
 	case consts.OPTION:
-		return optionBuilder(metadata, path, data, builder)
+		return optionBuilder(metadata, nm, path, data)
+	case consts.MAP:
+		return mapBuilder(metadata, nm, path, data)
 	default:
-		return defaultBuilder(metadata, path, data, builder)
+		return defaultBuilder(metadata, nm, path, data)
 	}
 }
 
-func defaultBuilder(metadata Metadata, path string, data map[string]interface{}, builder *strings.Builder) error {
-	nm, ok := metadata[path]
-	if !ok {
-		return fmt.Errorf("Unknown binary path: %s", path)
-	}
+func defaultBuilder(metadata Metadata, node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
 	value, ok := data[path]
 	if !ok {
-		return fmt.Errorf("'%s' is required field", getName(nm))
+		return "", fmt.Errorf("'%s' is required field", getName(node))
 	}
-	builder.WriteByte('{')
-	switch nm.Prim {
+
+	switch node.Prim {
 	case consts.STRING, consts.KEYHASH, consts.KEY, consts.ADDRESS, consts.CHAINID, consts.SIGNATURE, consts.CONTRACT, consts.TIMESTAMP, consts.LAMBDA:
-		builder.WriteString(fmt.Sprintf(`"string": "%s"`, value))
+		return fmt.Sprintf(`{"string": "%s"}`, value), nil
 	case consts.BYTES:
-		builder.WriteString(fmt.Sprintf(`"bytes": "%s"`, value))
+		return fmt.Sprintf(`{"bytes": "%s"}`, value), nil
 	case consts.INT, consts.NAT, consts.MUTEZ, consts.BIGMAP:
-		builder.WriteString(fmt.Sprintf(`"int": %0.f`, value))
+		switch t := value.(type) {
+		case int, int64, int8, int32, int16, uint, uint16, uint32, uint64, uint8:
+			return fmt.Sprintf(`{"int": %d}`, t), nil
+		case float32, float64:
+			return fmt.Sprintf(`{"int": %0.f}`, t), nil
+		default:
+			return "", fmt.Errorf("[defaultBuilder] Invalid integer type: %v", t)
+		}
 	case consts.BOOL:
 		sBool := "False"
 		if tb, ok := value.(bool); ok && tb {
 			sBool = "True"
 		}
-		builder.WriteString(fmt.Sprintf(`"prim": "%s"`, sBool))
+		return fmt.Sprintf(`{"prim": "%s"}`, sBool), nil
 	default:
-		return fmt.Errorf("[defaultBuilder] Unknown primitive type")
+		return "", fmt.Errorf("[defaultBuilder] Unknown primitive type: %s", node.Prim)
 	}
-	builder.WriteByte('}')
-	return nil
 }
 
-func pairBuilder(metadata Metadata, path string, data map[string]interface{}, builder *strings.Builder) error {
-	builder.WriteString(`{"prim": "Pair", "args":[`)
+func pairBuilder(metadata Metadata, node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
+	s := ""
 	for i, postfix := range []string{"/0", "/1"} {
+		if i != 0 {
+			s += ", "
+		}
 		argPath := path + postfix
-		if err := build(metadata, argPath, data, builder); err != nil {
-			return err
+		argStr, err := build(metadata, argPath, data)
+		if err != nil {
+			return "", err
 		}
-		if i == 0 {
-			builder.WriteByte(',')
-		}
+		s += argStr
 	}
-	builder.WriteString(`]}`)
-	return nil
+	return fmt.Sprintf(`{"prim": "Pair", "args":[%s]}`, s), nil
 }
 
-func unitBuilder(metadata Metadata, path string, data map[string]interface{}, builder *strings.Builder) error {
-	builder.WriteString(`{"prim": "Unit"}`)
-	return nil
+func unitBuilder(metadata Metadata, node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
+	return `{"prim": "Unit"}`, nil
 }
 
-func listBuilder(metadata Metadata, path string, data map[string]interface{}, builder *strings.Builder) error {
-	nm, ok := metadata[path]
-	if !ok {
-		return fmt.Errorf("Unknown binary path: %s", path)
-	}
+func listBuilder(metadata Metadata, node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
 	value, ok := data[path]
 	if !ok {
-		return fmt.Errorf("'%s' is required field", getName(nm))
+		return "", fmt.Errorf("'%s' is required field", getName(node))
 	}
 	listValue := interfaceSlice(value)
-	builder.WriteByte('[')
 
 	listPath := path + "/l"
-	if nm.Prim == consts.SET {
+	if node.Prim == consts.SET {
 		listPath = path + "/s"
 	}
+
+	listNode, ok := metadata[listPath]
+	if !ok {
+		return "", fmt.Errorf("Unknown binary path: %s", listPath)
+	}
+	var builder strings.Builder
 	for i := range listValue {
 		if i != 0 {
 			builder.WriteByte(',')
 		}
-		data[listPath] = listValue[i]
-		if err := build(metadata, listPath, data, builder); err != nil {
-			return err
+		if isDefault(listNode.Prim) {
+			data[listPath] = listValue[i]
+			argStr, err := build(metadata, listPath, data)
+			if err != nil {
+				return "", err
+			}
+			builder.WriteString(argStr)
+		} else {
+			mapListValue, ok := listValue[i].(map[string]interface{})
+			if !ok {
+				return "", fmt.Errorf("Invalid data: '%s'", getName(node))
+			}
+			argStr, err := build(metadata, listPath, mapListValue)
+			if err != nil {
+				return "", err
+			}
+			builder.WriteString(argStr)
 		}
 	}
 
-	builder.WriteByte(']')
-	return nil
+	return fmt.Sprintf("[%s]", builder.String()), nil
 }
 
-func preprocessing(binPath string, data map[string]interface{}) {
-	if !strings.HasSuffix(binPath, "/o") {
-		return
-	}
-	schemaKey, ok := data["schemaKey"]
+func mapBuilder(metadata Metadata, node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
+	value, ok := data[path]
 	if !ok {
-		return
+		return "", fmt.Errorf("'%s' is required field", getName(node))
 	}
-	optionData := map[string]interface{}{
-		"schemaKey": schemaKey,
-	}
-
-	for k, v := range data {
-		if !strings.HasPrefix(k, binPath) {
-			continue
+	var s string
+	listValue := interfaceSlice(value)
+	for i := range listValue {
+		if i != 0 {
+			s += ", "
 		}
-		optionData[k] = v
+		mapValue, ok := listValue[i].(map[string]interface{})
+		if !ok {
+			return "", fmt.Errorf("Invalid data: '%s'", getName(node))
+		}
+		var itemBuilder strings.Builder
+		keyStr, err := build(metadata, path+"/k", mapValue)
+		if err != nil {
+			return "", err
+		}
+		itemBuilder.WriteString(keyStr)
+		itemBuilder.WriteByte(',')
+		valStr, err := build(metadata, path+"/v", mapValue)
+		if err != nil {
+			return "", err
+		}
+		itemBuilder.WriteString(valStr)
+		s += fmt.Sprintf(`{"prim": "Elt", "args":[%s]}`, itemBuilder.String())
 	}
-	data[binPath] = optionData
+
+	return fmt.Sprintf("[%s]", s), nil
 }
 
-func optionBuilder(metadata Metadata, path string, data map[string]interface{}, builder *strings.Builder) error {
-	optionPath := path + "/o"
-	nm, ok := metadata[optionPath]
+func optionBuilder(metadata Metadata, node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
+	value, ok := data[path]
 	if !ok {
-		return fmt.Errorf("Unknown binary path: %s", optionPath)
-	}
-	value, ok := data[optionPath]
-	if !ok {
-		return fmt.Errorf("'%s' is required field", getName(nm))
+		return "", fmt.Errorf("'%s' is required field", getName(node))
 	}
 	mapValue, ok := value.(map[string]interface{})
 	if !ok {
-		return fmt.Errorf("Invalid data: '%s'", getName(nm))
+		return "", fmt.Errorf("Invalid data: '%s'", getName(node))
 	}
 	schemaKey, ok := mapValue["schemaKey"]
 	if !ok {
-		return fmt.Errorf("Invalid data: '%s'", getName(nm))
+		return "", fmt.Errorf("Invalid data: '%s'", getName(node))
 	}
 	switch schemaKey {
 	case consts.NONE:
-		builder.WriteString(`{"prim": "None"}`)
+		return `{"prim": "None"}`, nil
 	default:
-		builder.WriteString(`{"prim": "Some", "args":[`)
 		for k, v := range mapValue {
 			if k == "schemaKey" {
 				continue
 			}
 			data[k] = v
 		}
-		if err := build(metadata, optionPath, data, builder); err != nil {
-			return err
+		optionStr, err := build(metadata, path+"/o", mapValue)
+		if err != nil {
+			return "", err
 		}
-		builder.WriteString(`]}`)
+		return fmt.Sprintf(`{"prim": "Some", "args":[%s]}`, optionStr), nil
 	}
-	return nil
+}
+
+func orBuilder(metadata Metadata, node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
+	orData, ok := data[path]
+	if !ok {
+		return "", fmt.Errorf("'%s' is required", getName(node))
+	}
+	mapValue, ok := orData.(map[string]interface{})
+	if !ok {
+		return "", fmt.Errorf("Invalid data: '%s'", getName(node))
+	}
+	schemaKey, ok := mapValue["schemaKey"].(string)
+	if !ok {
+		return "", fmt.Errorf("Invalid data: '%s'", getName(node))
+	}
+	if !strings.HasPrefix(schemaKey, path) {
+		return "", fmt.Errorf("Invalid data: '%s'", getName(node))
+	}
+
+	childStr, err := build(metadata, schemaKey, mapValue)
+	if err != nil {
+		return "", err
+	}
+
+	orPath := strings.TrimPrefix(schemaKey, path+"/")
+	return wrapLeftRight(orPath, childStr, false), nil
+}
+
+func wrapEntrypoint(binPath, data string, metadata Metadata) (string, error) {
+	nm, ok := metadata[binPath]
+	if !ok {
+		return "", fmt.Errorf("Unknown binary path: %s", binPath)
+	}
+	entrypoint := getEntrypointName(nm)
+	if entrypoint == "default" {
+		data = wrapLeftRight(binPath, data, true)
+	}
+	return fmt.Sprintf(`{"entrypoint": "%s", "value": %s}`, entrypoint, data), nil
+}
+
+func wrapLeftRight(path, data string, skipFirst bool) string {
+	parts := strings.Split(path, "/")
+	if len(parts) < 2 {
+		return data
+	}
+
+	if skipFirst {
+		parts = parts[1:]
+	}
+
+	s := ""
+	for i := range parts {
+		var side string
+		switch parts[i] {
+		case "0":
+			side = "Left"
+		case "1":
+			side = "Right"
+		default:
+			return s
+		}
+
+		if s == "" {
+			s = `{"prim": "` + side + `", "args":[%s]}`
+		} else {
+			s = fmt.Sprintf(s, `{"prim": "`+side+`", "args":[%s]}`)
+		}
+	}
+	return fmt.Sprintf(s, data)
 }
 
 func getName(nm *NodeMetadata) string {
@@ -204,4 +305,19 @@ func interfaceSlice(slice interface{}) []interface{} {
 	}
 
 	return ret
+}
+
+func getEntrypointName(node *NodeMetadata) string {
+	if node.Name != "" {
+		return node.Name
+	}
+	return "default"
+}
+
+func isDefault(prim string) bool {
+	return helpers.StringInArray(prim, []string{
+		consts.STRING, consts.KEYHASH, consts.KEY, consts.ADDRESS, consts.CHAINID, consts.SIGNATURE,
+		consts.CONTRACT, consts.TIMESTAMP, consts.LAMBDA, consts.BYTES, consts.INT, consts.NAT,
+		consts.MUTEZ, consts.BIGMAP, consts.BOOL,
+	})
 }
