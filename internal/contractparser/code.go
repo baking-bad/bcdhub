@@ -117,8 +117,8 @@ func detectLorentzByCast(val gjson.Result) string {
 	// args.Array()[0][0]["prim"] == "CAST"
 	if val.IsArray() {
 		if val.Array()[0].IsObject() {
-			node := node.NewNodeJSON(val)
-			if node.Prim == "CAST" {
+			n := node.NewNodeJSON(val)
+			if n.Prim == "CAST" {
 				return language.LangLorentz
 			}
 		}
