@@ -112,7 +112,7 @@ func (c *Code) handlePrimitive(n node.Node) (err error) {
 }
 
 func detectLorentCast(val gjson.Result) string {
-	if val.Get("0.0.prim==\"CAST\"").Exists() {
+	if val.Get("0.0.prim").String() == "CAST" {
 		return language.LangLorentz
 	}
 
