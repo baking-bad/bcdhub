@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
@@ -23,14 +24,32 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 		return
 	}
 
+	var s gjson.Result
 	protocol := storage.Get("_source.protocol").String()
-	s := gjson.Parse(storage.Get("_source.deffated_storage").String())
+	if protocol != "" {
+		s = gjson.Parse(storage.Get("_source.deffated_storage").String())
+
+	} else {
+		rpc, ok := ctx.RPCs[req.Network]
+		if !ok {
+			handleError(c, fmt.Errorf("Unknown network: %s", req.Network), http.StatusBadRequest)
+			return
+		}
+		s, err = rpc.GetScriptStorageJSON(req.Address, 0)
+		if handleError(c, err, 0) {
+			return
+		}
+		header, err := rpc.GetHeader(0)
+		if handleError(c, err, 0) {
+			return
+		}
+		protocol = header.Protocol
+	}
 
 	metadata, err := meta.GetMetadata(ctx.ES, req.Address, consts.STORAGE, protocol)
 	if handleError(c, err, 0) {
 		return
 	}
-
 	resp, err := newmiguel.MichelineToMiguel(s, metadata)
 	if handleError(c, err, 0) {
 		return
