@@ -42,7 +42,12 @@ func computeMetrics(es *elastic.Elastic, operation models.Operation, filesDirect
 	}
 	script.Parse()
 
-	contract.Language = script.Language()
+	lang, err := script.Language()
+	if err != nil {
+		return fmt.Errorf("script.Language: %v", err)
+	}
+
+	contract.Language = lang
 	contract.FailStrings = script.Code.FailStrings.Values()
 	contract.Primitives = script.Code.Primitives.Values()
 	contract.Annotations = script.Annotations.Values()

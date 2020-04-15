@@ -49,13 +49,16 @@ func (s *Script) Parse() {
 }
 
 // Language -
-func (s *Script) Language() string {
+func (s *Script) Language() (string, error) {
 	if s.Code.Language == language.LangUnknown {
-		entrypoints, _ := s.Code.Parameter.Metadata.GetEntrypoints()
-		return language.DetectInEntries(entrypoints)
+		return s.Code.Parameter.Language, nil
 	}
 
-	return s.Code.Language
+	if s.Code.Parameter.Language == language.LangUnknown {
+		return s.Code.Language, nil
+	}
+
+	return "", fmt.Errorf("Language detect error. [code] %s | [parameter] %s", s.Code.Language, s.Code.Parameter.Language)
 }
 
 func (s *Script) getTags() {

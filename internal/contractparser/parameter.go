@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/language"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/node"
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -24,6 +25,7 @@ type Parameter struct {
 
 	Metadata meta.Metadata
 
+	Language    string
 	Tags        helpers.Set
 	Annotations helpers.Set
 }
@@ -34,6 +36,7 @@ func newParameter(v gjson.Result) (Parameter, error) {
 	}
 	p := Parameter{
 		parser:      &parser{},
+		Language:    language.LangUnknown,
 		Tags:        make(helpers.Set),
 		Annotations: make(helpers.Set),
 	}
@@ -65,5 +68,10 @@ func (p *Parameter) handlePrimitive(n node.Node) error {
 	if n.HasAnnots() {
 		p.Annotations.Append(filterAnnotations(n.Annotations)...)
 	}
+
+	if n.HasAnnots() && p.Language == language.LangUnknown {
+		p.Language = language.GetFromParameter(n)
+	}
+
 	return nil
 }
