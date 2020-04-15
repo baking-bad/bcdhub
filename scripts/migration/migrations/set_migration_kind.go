@@ -6,7 +6,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -31,36 +30,25 @@ func (m *SetMigrationKind) Do(ctx *Context) error {
 		bar := progressbar.NewOptions(len(migrations), progressbar.OptionSetPredictTime(false))
 		var bulk []elastic.BulkUpdateItem
 
-		for i, m := range migrations {
+		for i := range migrations {
 			bar.Add(1)
 
-			if m.Kind != "" {
+			if migrations[i].Kind != "" {
 				fmt.Print("\033[2K\r")
 				logger.Warning("Already migrated.")
 				return nil
 			}
 
-			migration := models.Migration{
-				ID:          m.ID,
-				IndexedTime: m.IndexedTime,
-				Protocol:    m.Protocol,
-				Hash:        m.Hash,
-				Network:     m.Network,
-				Timestamp:   m.Timestamp,
-				Level:       m.Level,
-				Address:     m.Address,
-			}
-
-			if m.Level == 0 {
-				migration.Kind = consts.MigrationGenesis
-			} else if m.Hash != "" {
-				migration.Kind = consts.MigrationLambda
+			if migrations[i].Level == 0 {
+				migrations[i].Kind = consts.MigrationGenesis
+			} else if migrations[i].Hash != "" {
+				migrations[i].Kind = consts.MigrationLambda
 			} else {
-				migration.Kind = consts.MigrationProtocol
-				migration.PrevProtocol = "Pt24m4xiPbLDhVgVfABUjirbmda3yohdN82Sp9FeuAXJ4eV9otd"
+				migrations[i].Kind = consts.MigrationProtocol
+				migrations[i].PrevProtocol = "Pt24m4xiPbLDhVgVfABUjirbmda3yohdN82Sp9FeuAXJ4eV9otd"
 			}
 
-			bulk = append(bulk, migration)
+			bulk = append(bulk, migrations[i])
 
 			if len(bulk) == 100 || (i == len(migrations)-1 && len(bulk) > 0) {
 				if err := ctx.ES.BulkUpdate("migration", bulk); err != nil {
