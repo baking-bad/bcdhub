@@ -79,9 +79,6 @@ func (ctx *Context) getSimilarDiffs(similar []elastic.SimilarContract, contract 
 		}
 		src.Added = diff.Diff.Added
 		src.Removed = diff.Diff.Removed
-		if contract.MedianConsumedGas != 0 {
-			src.ConsumedGasDiff = float64((src.MedianConsumedGas - contract.MedianConsumedGas)) / float64(contract.MedianConsumedGas)
-		}
 	}
 	return similar, nil
 }
