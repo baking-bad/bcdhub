@@ -3,7 +3,8 @@ package migrations
 import (
 	"fmt"
 
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/models"
+
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/schollz/progressbar/v3"
@@ -37,18 +38,30 @@ func (m *SetOperationAlias) Do(ctx *Context) error {
 
 	bar := progressbar.NewOptions(len(operations), progressbar.OptionSetPredictTime(false))
 
+	var changed int64
+	var bulk []models.Operation
+
 	for i := range operations {
 		bar.Add(1)
-		h.SetOperationAliases(aliases, &operations[i])
 
-		if _, err := ctx.ES.UpdateDoc(elastic.DocOperations, operations[i].ID, operations[i]); err != nil {
-			fmt.Print("\033[2K\r")
-			return err
+		found := h.SetOperationAliases(aliases, &operations[i])
+
+		if found {
+			changed++
+			bulk = append(bulk, operations[i])
+		}
+
+		if len(bulk) == 1000 || (i == len(operations)-1 && len(bulk) > 0) {
+			if err := ctx.ES.BulkUpdateOperations(bulk); err != nil {
+				fmt.Print("\033[2K\r")
+				return err
+			}
+			bulk = bulk[:0]
 		}
 	}
 
 	fmt.Print("\033[2K\r")
-	logger.Info("[%s] done. Total operations: %d", m.Network, len(operations))
+	logger.Info("[%s] done. Total operations: %d. Changed: %d", m.Network, len(operations), changed)
 
 	return nil
 }
