@@ -10,7 +10,10 @@ import (
 
 // URLs
 const (
-	TzKTURLV1 = "https://api.tzkt.io/v1/"
+	TzKTURLV1         = "https://api.tzkt.io/v1/"
+	TzKTBabylonURLV1  = "https://api.babylon.tzkt.io/v1/"
+	TzKTCarthageURLV1 = "https://api.carthage.tzkt.io/v1/"
+	TzKTZeroURLV1     = "https://api.zeronet.tzkt.io/v1/"
 )
 
 // TzKT -
@@ -23,6 +26,28 @@ type TzKT struct {
 
 // NewTzKT -
 func NewTzKT(host string, timeout time.Duration) *TzKT {
+	return &TzKT{
+		Host: host,
+		client: http.Client{
+			Timeout: time.Duration(timeout) * time.Second,
+		},
+
+		retryCount: 3,
+	}
+}
+
+// NewTzKTForNetwork -
+func NewTzKTForNetwork(network string, timeout time.Duration) *TzKT {
+	host := TzKTURLV1
+	switch network {
+	case "babylonnet":
+		host = TzKTBabylonURLV1
+	case "carthagenet":
+		host = TzKTCarthageURLV1
+	case "zeronet":
+		host = TzKTZeroURLV1
+	}
+
 	return &TzKT{
 		Host: host,
 		client: http.Client{
@@ -154,4 +179,25 @@ func (t *TzKT) GetContractOperationBlocks(offset, limit int64) (resp []int64, er
 func (t *TzKT) GetAliases() (resp []Alias, err error) {
 	err = t.request("GET", "suggest/accounts", nil, &resp)
 	return
+}
+
+// GetAllContractOperationBlocks -
+func (t *TzKT) GetAllContractOperationBlocks() ([]int64, error) {
+	offset := int64(0)
+	resp := make([]int64, 0)
+	end := false
+	for !end {
+		levels, err := t.GetContractOperationBlocks(offset, 0)
+		if err != nil {
+			return nil, err
+		}
+		for i := range levels {
+			resp = append(resp, levels[i])
+			if i == len(levels)-1 {
+				offset = levels[i]
+			}
+		}
+		end = len(levels) < 10000
+	}
+	return resp, nil
 }

@@ -25,6 +25,7 @@ func main() {
 		"operation_strings": &migrations.SetOperationStrings{},
 		"operation_burned":  &migrations.SetOperationBurned{},
 		"total_withdrawn":   &migrations.SetTotalWithdrawn{},
+		"lost":              &migrations.FindLostOperations{},
 	}
 
 	env := os.Getenv("MIGRATION")

@@ -139,6 +139,59 @@ func (bi *BoostIndexer) Stop() {
 	bi.stop <- struct{}{}
 }
 
+// Index -
+func (bi *BoostIndexer) Index(levels []int64) error {
+	if len(levels) == 0 {
+		return nil
+	}
+	for _, level := range levels {
+		select {
+		case <-bi.stop:
+			bi.stopped = true
+			bi.messageQueue.Close()
+			return nil
+		default:
+		}
+
+		currentHead, err := bi.rpc.GetHeader(level)
+		if err != nil {
+			return err
+		}
+
+		logger.Info("[%s] indexing %d block", bi.Network, level)
+
+		if currentHead.Protocol != bi.state.Protocol {
+			log.Printf("[%s] New protocol detected: %s -> %s", bi.Network, bi.state.Protocol, currentHead.Protocol)
+			if err := bi.migrate(currentHead); err != nil {
+				return err
+			}
+		}
+
+		operations, contracts, err := bi.getDataFromBlock(bi.Network, currentHead)
+		if err != nil {
+			return err
+		}
+
+		if len(contracts) > 0 {
+			logger.Info("[%s] Found %d new contracts", bi.Network, len(contracts))
+			if err := bi.saveContracts(contracts); err != nil {
+				return err
+			}
+		}
+		if len(operations) > 0 {
+			logger.Info("[%s] Found %d operations", bi.Network, len(operations))
+			if err := bi.saveOperations(operations); err != nil {
+				return err
+			}
+		}
+
+		if err := bi.updateState(currentHead); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (bi *BoostIndexer) process() error {
 	head, err := bi.rpc.GetHead()
 	if err != nil {
@@ -162,53 +215,8 @@ func (bi *BoostIndexer) process() error {
 
 		logger.Info("[%s] Found %d new levels", bi.Network, len(levels))
 
-		if len(levels) == 0 {
-			return nil
-		}
-		for _, level := range levels {
-			select {
-			case <-bi.stop:
-				bi.stopped = true
-				bi.messageQueue.Close()
-				return nil
-			default:
-			}
-
-			currentHead, err := bi.rpc.GetHeader(level)
-			if err != nil {
-				return err
-			}
-
-			logger.Info("[%s] %d/%d", bi.Network, level, head.Level)
-
-			if currentHead.Protocol != bi.state.Protocol {
-				log.Printf("[%s] New protocol detected: %s -> %s", bi.Network, bi.state.Protocol, currentHead.Protocol)
-				if err := bi.migrate(currentHead); err != nil {
-					return err
-				}
-			}
-
-			operations, contracts, err := bi.getDataFromBlock(bi.Network, currentHead)
-			if err != nil {
-				return err
-			}
-
-			if len(contracts) > 0 {
-				logger.Info("[%s] Found %d new contracts", bi.Network, len(contracts))
-				if err := bi.saveContracts(contracts); err != nil {
-					return err
-				}
-			}
-			if len(operations) > 0 {
-				logger.Info("[%s] Found %d operations", bi.Network, len(operations))
-				if err := bi.saveOperations(operations); err != nil {
-					return err
-				}
-			}
-
-			if err := bi.updateState(currentHead); err != nil {
-				return err
-			}
+		if err := bi.Index(levels); err != nil {
+			return err
 		}
 
 		if err := bi.updateState(head); err != nil {
@@ -342,6 +350,7 @@ func (bi *BoostIndexer) standartMigration(head noderpc.Header) error {
 	p := parsers.NewMigrationParser(bi.rpc, bi.es, bi.filesDirectory)
 	migrations := make([]models.Migration, 0)
 	for _, contract := range contracts {
+		logger.Info("Migrate %s...", contract.Address)
 		script, err := bi.rpc.GetScriptJSON(contract.Address, head.Level)
 		if err != nil {
 			return err
