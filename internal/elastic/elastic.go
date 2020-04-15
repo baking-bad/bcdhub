@@ -228,27 +228,3 @@ func (e *Elastic) CreateIndexIfNotExists(index string) error {
 	}
 	return nil
 }
-
-// Query -
-func (e *Elastic) Query(indices []string, query string, source ...string) (result gjson.Result, err error) {
-	buf := bytes.NewReader([]byte(query))
-
-	var resp *esapi.Response
-
-	options := []func(*esapi.SearchRequest){
-		e.Search.WithContext(context.Background()),
-		e.Search.WithIndex(indices...),
-		e.Search.WithBody(buf),
-		e.Search.WithSource(source...),
-	}
-
-	if resp, err = e.Search(
-		options...,
-	); err != nil {
-		return
-	}
-
-	defer resp.Body.Close()
-
-	return e.getResponse(resp)
-}

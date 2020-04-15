@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
+	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/baking-bad/bcdhub/internal/models"
 )
 
@@ -44,13 +45,6 @@ type Operation struct {
 	Mempool     bool        `json:"mempool"`
 
 	IndexedTime int64 `json:"-"`
-}
-
-// CodeDiff -
-type CodeDiff struct {
-	Full    string `json:"full,omitempty"`
-	Added   int64  `json:"added,omitempty"`
-	Removed int64  `json:"removed,omitempty"`
 }
 
 // Contract -
@@ -164,4 +158,11 @@ type BigMapDiffByKeyResponse struct {
 	Key     interface{}      `json:"key,omitempty"`
 	KeyHash string           `json:"key_hash"`
 	Values  []BigMapDiffItem `json:"values,omitempty"`
+}
+
+// CodeDiffResponse -
+type CodeDiffResponse struct {
+	Left  CodeDiffLeg          `json:"left"`
+	Right CodeDiffLeg          `json:"right"`
+	Diff  formatter.DiffResult `json:"diff"`
 }

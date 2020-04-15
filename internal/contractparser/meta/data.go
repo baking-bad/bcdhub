@@ -406,11 +406,8 @@ func LoadProtocols(fileName string) error {
 	return jsonload.StructFromFile(fileName, &protocols)
 }
 
-// GetProtoSymLink - TODO: REFACTOR THIS
+// GetProtoSymLink -
 func GetProtoSymLink(protocol string) (string, error) {
-	if protocol == consts.CurrentProto {
-		return consts.MetadataBabylon, nil
-	}
 	if protoSymLink, ok := protocols[protocol]; ok {
 		return protoSymLink, nil
 	}

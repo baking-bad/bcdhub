@@ -17,11 +17,11 @@ func (e *Elastic) GetTimeline(contracts []string, size, from int64) ([]TimelineI
 	conditions := make([]qItem, 0)
 	for i := range contractIDs {
 		boolItem := boolQ(
-			must(matchPhrase("network", contractIDs[i].Network)),
+			must(matchQ("network", contractIDs[i].Network)),
 			should(
-				matchPhrase("source", contractIDs[i].Address),
-				matchPhrase("destination", contractIDs[i].Address),
-				matchPhrase("address", contractIDs[i].Address),
+				matchQ("source", contractIDs[i].Address),
+				matchQ("destination", contractIDs[i].Address),
+				matchQ("address", contractIDs[i].Address),
 			),
 			minimumShouldMatch(1),
 		)
@@ -32,9 +32,9 @@ func (e *Elastic) GetTimeline(contracts []string, size, from int64) ([]TimelineI
 		must(
 			boolQ(
 				should(
-					matchPhrase("kind", "origination"),
+					matchQ("kind", "origination"),
 					exists("errors"),
-					matchPhrase("kind", "genesis"),
+					matchQ("kind", "genesis"),
 				),
 				minimumShouldMatch(1),
 			),

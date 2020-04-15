@@ -12,6 +12,11 @@ import (
 	"github.com/google/uuid"
 )
 
+// BulkUpdateItem -
+type BulkUpdateItem interface {
+	GetID() string
+}
+
 // BulkInsert -
 func (e *Elastic) BulkInsert(index string, buf *bytes.Buffer) error {
 	req := esapi.BulkRequest{
@@ -31,15 +36,10 @@ func (e *Elastic) BulkInsert(index string, buf *bytes.Buffer) error {
 }
 
 // BulkUpdate -
-func (e *Elastic) BulkUpdate(index string, updates []interface{}) error {
+func (e *Elastic) BulkUpdate(index string, updates []BulkUpdateItem) error {
 	bulk := bytes.NewBuffer([]byte{})
 	for i := range updates {
-		upd, ok := updates[i].(interface{ GetID() string })
-		if !ok {
-			return fmt.Errorf("GetID is not implemented")
-		}
-
-		meta := []byte(fmt.Sprintf(`{ "update": { "_id": "%s"}}%s{ "doc": `, upd.GetID(), "\n"))
+		meta := []byte(fmt.Sprintf(`{ "update": { "_id": "%s"}}%s{ "doc": `, updates[i].GetID(), "\n"))
 		data, err := json.Marshal(updates[i])
 		if err != nil {
 			log.Println(err)

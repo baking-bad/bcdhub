@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
@@ -68,21 +67,18 @@ func (ctx *Context) getSimilarDiffs(similar []elastic.SimilarContract, contract 
 	if similar == nil {
 		return []elastic.SimilarContract{}, nil
 	}
+
 	for i := 0; i < len(similar); i++ {
 		src := &similar[i]
-		d, err := ctx.getDiff(
-			contract.Address,
-			contract.Network,
-			src.Address,
-			src.Network,
-			consts.CurrentProto,
-			consts.CurrentProto,
+		diff, err := ctx.getContractCodeDiff(
+			CodeDiffLeg{Address: contract.Address, Network: contract.Network},
+			CodeDiffLeg{Address: src.Address, Network: src.Network},
 		)
 		if err != nil {
 			return nil, err
 		}
-		src.Added = d.Added
-		src.Removed = d.Removed
+		src.Added = diff.Diff.Added
+		src.Removed = diff.Diff.Removed
 		if contract.MedianConsumedGas != 0 {
 			src.ConsumedGasDiff = float64((src.MedianConsumedGas - contract.MedianConsumedGas)) / float64(contract.MedianConsumedGas)
 		}

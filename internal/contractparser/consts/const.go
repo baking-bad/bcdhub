@@ -12,11 +12,6 @@ const (
 	KeyTime   = "timestamp"
 )
 
-// Protocols
-const (
-	CurrentProto = ""
-)
-
 // Networks
 const (
 	Mainnet  = "mainnet"

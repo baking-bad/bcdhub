@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -22,44 +21,40 @@ func (ctx *Context) GetContractCode(c *gin.Context) {
 		return
 	}
 
-	code, err := ctx.getContractCode(req.Network, req.Address, req.Protocol, req.Level)
+	if req.Protocol == "" {
+		state, err := ctx.ES.CurrentState(req.Network)
+		if handleError(c, err, 0) {
+			return
+		}
+		req.Protocol = state.Protocol
+	}
+
+	code, err := ctx.getContractCodeJSON(req.Network, req.Address, req.Protocol, req.Level)
 	if handleError(c, err, 0) {
 		return
 	}
 
-	c.JSON(http.StatusOK, code)
+	resp, err := formatter.MichelineToMichelson(code, false, formatter.DefLineSize)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
 }
 
 // GetDiff -
 func (ctx *Context) GetDiff(c *gin.Context) {
-	var req getDiffRequest
-	if err := c.BindQuery(&req); handleError(c, err, http.StatusBadRequest) {
+	var req CodeDiffRequest
+	if err := c.BindJSON(&req); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
-	d, err := ctx.getDiff(
-		req.SourceAddress,
-		req.SourceNetwork,
-		req.DestinationAddress,
-		req.DestinationNetwork,
-		consts.CurrentProto,
-		consts.CurrentProto,
-	)
+	resp, err := ctx.getContractCodeDiff(req.Left, req.Right)
 	if handleError(c, err, 0) {
 		return
 	}
 
-	c.JSON(http.StatusOK, d)
-}
-
-func (ctx *Context) getContractCode(network, address, protocol string, fallbackLevel int64) (string, error) {
-	contract, err := ctx.getContractCodeJSON(network, address, protocol, fallbackLevel)
-	if err != nil {
-		return "", err
-	}
-
-	code := contract.Get("code")
-	return formatter.MichelineToMichelson(code, false, formatter.DefLineSize)
+	c.JSON(http.StatusOK, resp)
 }
 
 func (ctx *Context) getContractCodeJSON(network, address, protocol string, fallbackLevel int64) (res gjson.Result, err error) {
@@ -67,6 +62,7 @@ func (ctx *Context) getContractCodeJSON(network, address, protocol string, fallb
 	if !ok {
 		return res, fmt.Errorf("Unknown network %s", network)
 	}
+
 	contract, err := contractparser.GetContract(rpc, address, network, protocol, ctx.Dir, fallbackLevel)
 	if err != nil {
 		return
@@ -76,25 +72,41 @@ func (ctx *Context) getContractCodeJSON(network, address, protocol string, fallb
 	}
 
 	// return macros.FindMacros(contractJSON)
-	return contract, nil
+	return contract.Get("code"), nil
 }
 
-func (ctx *Context) getDiff(srcAddress, srcNetwork, destAddress, destNetwork string, srcProtocol, destProtocol string) (res formatter.DiffResult, err error) {
-	srcCode, err := ctx.getContractCodeJSON(srcNetwork, srcAddress, srcProtocol, 0) // fallbackLevel: head
-	if err != nil {
-		return
+func (ctx *Context) getContractCodeDiff(left, right CodeDiffLeg) (res CodeDiffResponse, err error) {
+	currentProtocols := make(map[string]string, 2)
+	sides := make([]gjson.Result, 2)
+
+	for i, leg := range []*CodeDiffLeg{&left, &right} {
+		if leg.Protocol == "" {
+			protocol, ok := currentProtocols[leg.Network]
+			if !ok {
+				state, err := ctx.ES.CurrentState(leg.Network)
+				if err != nil {
+					return res, err
+				}
+				leg.Protocol = state.Protocol
+				currentProtocols[leg.Network] = state.Protocol
+			} else {
+				leg.Protocol = protocol
+			}
+		}
+		code, err := ctx.getContractCodeJSON(leg.Network, leg.Address, leg.Protocol, leg.Level)
+		if err != nil {
+			return res, err
+		}
+		sides[i] = code
 	}
-	destCode, err := ctx.getContractCodeJSON(destNetwork, destAddress, destProtocol, 0) // fallbackLevel: head
+
+	diff, err := formatter.Diff(sides[0], sides[1])
 	if err != nil {
-		return
+		return res, err
 	}
-	a := srcCode.Get("code")
-	b := destCode.Get("code")
-	res, err = formatter.Diff(a, b)
-	if err != nil {
-		return
-	}
-	res.NameLeft = fmt.Sprintf("%s [%s]", srcAddress, srcNetwork)
-	res.NameRight = fmt.Sprintf("%s [%s]", destAddress, destNetwork)
-	return
+
+	res.Left = left
+	res.Right = right
+	res.Diff = diff
+	return res, nil
 }
