@@ -87,8 +87,13 @@ func main() {
 		}
 	}
 
+	var networks []string
+	for network := range cfg.NodeRPC {
+		networks = append(networks, network)
+	}
+
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		if err := v.RegisterValidation("network", handlers.NetworkValidator); err != nil {
+		if err := v.RegisterValidation("network", handlers.MakeNetworkValidator(networks)); err != nil {
 			logger.Fatal(err)
 		}
 	}

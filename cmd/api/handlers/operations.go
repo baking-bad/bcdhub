@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/baking-bad/bcdhub/cmd/indexer/parsers"
+	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
@@ -244,7 +244,7 @@ func enrichStorage(s string, bmd []models.BigMapDiff, protocol string, skipEmpty
 		return gjson.Parse(s), nil
 	}
 
-	parser, err := parsers.MakeStorageParser(nil, protocol)
+	parser, err := contractparser.MakeStorageParser(nil, protocol)
 	if err != nil {
 		return gjson.Result{}, err
 	}

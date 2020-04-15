@@ -12,14 +12,6 @@ const (
 	KeyTime   = "timestamp"
 )
 
-// Networks
-const (
-	Mainnet  = "mainnet"
-	Babylon  = "babylonnet"
-	Carthage = "carthagenet"
-	Zeronet  = "zeronet"
-)
-
 //Kind
 const (
 	Transaction = "transaction"

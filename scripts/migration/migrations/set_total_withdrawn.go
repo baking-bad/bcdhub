@@ -3,7 +3,6 @@ package migrations
 import (
 	"fmt"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/schollz/progressbar/v3"
@@ -21,7 +20,7 @@ func (m *SetTotalWithdrawn) Description() string {
 
 // Do - migrate function
 func (m *SetTotalWithdrawn) Do(ctx *Context) error {
-	for _, network := range []string{consts.Mainnet, consts.Zeronet, consts.Carthage, consts.Babylon} {
+	for _, network := range []string{"mainnet", "zeronet", "carthagenet", "babylonnet"} {
 		filter := make(map[string]interface{})
 		filter["network"] = network
 

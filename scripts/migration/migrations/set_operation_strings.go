@@ -4,7 +4,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 )
 
@@ -21,7 +20,7 @@ func (m *SetOperationStrings) Do(ctx *Context) error {
 	log.Print("Start SetOperationStrings migration...")
 	start := time.Now()
 
-	for _, network := range []string{consts.Mainnet, consts.Zeronet, consts.Carthage, consts.Babylon} {
+	for _, network := range []string{"mainnet", "zeronet", "carthagenet", "babylonnet"} {
 		operations, err := ctx.ES.GetAllOperations(network)
 		if err != nil {
 			return err

@@ -9,8 +9,6 @@ const (
 	CheckSigTag        = "CHECK_SIGNATURE"
 	FA1Tag             = "fa1"
 	FA12Tag            = "fa12"
-	TestingTag         = "testing"
-	VestingTag         = "vesting"
 	SpendableTag       = "spendable"
 	UpgradableTag      = "upgradable"
 )
@@ -29,4 +27,9 @@ const (
 const (
 	MetadataAlpha   = "alpha"
 	MetadataBabylon = "babylon"
+)
+
+// Mainnet
+const (
+	Mainnet = "mainnet"
 )

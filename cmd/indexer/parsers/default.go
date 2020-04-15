@@ -34,25 +34,6 @@ func NewDefaultParser(rpc noderpc.Pool, es *elastic.Elastic, filesDirectory stri
 	}
 }
 
-// MakeStorageParser -
-func MakeStorageParser(rpc noderpc.Pool, protocol string) (parser storage.Parser, err error) {
-	protoSymLink, err := meta.GetProtoSymLink(protocol)
-	if err != nil {
-		return nil, err
-	}
-
-	switch protoSymLink {
-	case consts.MetadataBabylon:
-		parser = storage.NewBabylon(rpc)
-	case consts.MetadataAlpha:
-		parser = storage.NewAlpha()
-	default:
-		return nil, fmt.Errorf("Unknown protocol %s", protocol)
-	}
-
-	return
-}
-
 // Parse -
 func (p *DefaultParser) Parse(opg gjson.Result, network string, head noderpc.Header) ([]models.Operation, []models.Contract, error) {
 	operations := make([]models.Operation, 0)
@@ -352,7 +333,7 @@ func (p *DefaultParser) needParse(item gjson.Result, idx int) bool {
 }
 
 func (p *DefaultParser) getRichStorage(data gjson.Result, metadata *meta.ContractMetadata, op *models.Operation) (storage.RichStorage, error) {
-	parser, err := MakeStorageParser(p.rpc, op.Protocol)
+	parser, err := contractparser.MakeStorageParser(p.rpc, op.Protocol)
 	if err != nil {
 		return storage.RichStorage{Empty: true}, err
 	}
