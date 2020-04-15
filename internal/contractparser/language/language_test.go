@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/node"
+	"github.com/tidwall/gjson"
 )
 
 func TestDetectSmartPy(t *testing.T) {
@@ -362,6 +363,44 @@ func TestGetFromParameter(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if result := GetFromParameter(tt.n); result != tt.res {
 				t.Errorf("Invalid result.\nGot:%v\nExpected:%v", result, tt.res)
+			}
+		})
+	}
+}
+
+func TestDetectLorentzCast(t *testing.T) {
+	testCases := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{
+			name:  "lorentz",
+			input: `[[{"prim":"CAST"}]]`,
+			want:  LangLorentz,
+		},
+		{
+			name:  "michelson",
+			input: `[[{"prim":"pair"}]]`,
+			want:  LangUnknown,
+		},
+		{
+			name:  "michelson",
+			input: `[{"prim": "CAST"},{"prim": "bool"}]`,
+			want:  LangUnknown,
+		},
+		{
+			name:  "michelson",
+			input: `[[{"prim": "nat"},{"prim": "CAST"}]]`,
+			want:  LangUnknown,
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			parsed := gjson.Parse(tt.input)
+			if got := DetectLorentzCast(parsed); got != tt.want {
+				t.Errorf("detectLorentCast invalid. expected: %v, got: %v", tt.want, got)
 			}
 		})
 	}
