@@ -89,7 +89,11 @@ func (rpc *NodeRPC) GetLevel() (int64, error) {
 
 // GetHeader - get head
 func (rpc *NodeRPC) GetHeader(level int64) (header Header, err error) {
-	data, err := rpc.get(fmt.Sprintf("chains/main/blocks/%d/header", level))
+	block := "head"
+	if level > 0 {
+		block = fmt.Sprintf("%d", level)
+	}
+	data, err := rpc.get(fmt.Sprintf("chains/main/blocks/%s/header", block))
 	if err != nil {
 		return
 	}
@@ -99,7 +103,11 @@ func (rpc *NodeRPC) GetHeader(level int64) (header Header, err error) {
 
 // GetLevelTime - get level time
 func (rpc *NodeRPC) GetLevelTime(level int) (time.Time, error) {
-	head, err := rpc.get(fmt.Sprintf("chains/main/blocks/%d/header", level))
+	block := "head"
+	if level > 0 {
+		block = fmt.Sprintf("%d", level)
+	}
+	head, err := rpc.get(fmt.Sprintf("chains/main/blocks/%s/header", block))
 	if err != nil {
 		return time.Now(), err
 	}

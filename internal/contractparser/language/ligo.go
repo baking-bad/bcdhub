@@ -9,7 +9,7 @@ import (
 
 type ligo struct{}
 
-func (l ligo) Detect(n node.Node) bool {
+func (l ligo) DetectInCode(n node.Node) bool {
 	if n.HasAnnots() {
 		for _, a := range n.Annotations {
 			if len(a) < 2 {
@@ -22,6 +22,10 @@ func (l ligo) Detect(n node.Node) bool {
 	}
 	str := n.GetString()
 	return hasLIGOKeywords(str)
+}
+
+func (l ligo) DetectInParameter(n node.Node) bool {
+	return false
 }
 
 func isDigit(input string) bool {

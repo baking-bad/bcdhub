@@ -8,7 +8,7 @@ import (
 
 type liquidity struct{}
 
-func (l liquidity) Detect(n node.Node) bool {
+func (l liquidity) DetectInCode(n node.Node) bool {
 	if !n.HasAnnots() {
 		return false
 	}
@@ -22,6 +22,20 @@ func (l liquidity) Detect(n node.Node) bool {
 	return false
 }
 
-func (l liquidity) CheckEntries(entry string) bool {
-	return strings.Contains(entry, "_Liq_entry")
+func (l liquidity) DetectInParameter(n node.Node) bool {
+	if !n.HasAnnots() {
+		return false
+	}
+
+	for _, entrypoint := range n.Annotations {
+		if entrypoint[0] != '%' {
+			continue
+		}
+
+		if strings.Contains(entrypoint, "_Liq_entry") {
+			return true
+		}
+	}
+
+	return false
 }
