@@ -7,8 +7,23 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/gin-gonic/gin"
 )
+
+func getParameterMetadata(es *elastic.Elastic, address, network string) (meta.Metadata, error) {
+	state, err := es.CurrentState(network)
+	if err != nil {
+		return nil, err
+	}
+
+	metadata, err := meta.GetMetadata(es, address, consts.PARAMETER, state.Protocol)
+	if err != nil {
+		return nil, err
+	}
+
+	return metadata, nil
+}
 
 // GetEntrypoints -
 func (ctx *Context) GetEntrypoints(c *gin.Context) {
@@ -17,12 +32,7 @@ func (ctx *Context) GetEntrypoints(c *gin.Context) {
 		return
 	}
 
-	state, err := ctx.ES.CurrentState(req.Network)
-	if handleError(c, err, 0) {
-		return
-	}
-
-	metadata, err := meta.GetMetadata(ctx.ES, req.Address, consts.PARAMETER, state.Protocol)
+	metadata, err := getParameterMetadata(ctx.ES, req.Address, req.Network)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -46,7 +56,7 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 		return
 	}
 
-	metadata, err := meta.GetMetadata(ctx.ES, req.Address, consts.PARAMETER, consts.HashCarthage)
+	metadata, err := getParameterMetadata(ctx.ES, req.Address, req.Network)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -70,7 +80,7 @@ func (ctx *Context) GetEntrypointData(c *gin.Context) {
 		return
 	}
 
-	metadata, err := meta.GetMetadata(ctx.ES, req.Address, consts.PARAMETER, consts.HashCarthage)
+	metadata, err := getParameterMetadata(ctx.ES, req.Address, req.Network)
 	if handleError(c, err, 0) {
 		return
 	}

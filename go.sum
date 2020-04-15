@@ -233,8 +233,6 @@ github.com/prometheus/procfs v0.0.0-20190117184657-bf6a532e95b1/go.mod h1:c3At6R
 github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
 github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
 github.com/ryanuber/columnize v2.1.0+incompatible/go.mod h1:sm1tb6uqfes/u+d4ooFouqFdy9/2g9QGwK3SQygK0Ts=
-github.com/schollz/progressbar/v3 v3.0.2 h1:F/9+vlQwVHliqXOXxZlR6ETX2r0AQOvczT61p0s2d1M=
-github.com/schollz/progressbar/v3 v3.0.2/go.mod h1:d+PD64vPuv+GL2EhUpvV579FR91WWhRHEnImqGsIBU4=
 github.com/schollz/progressbar/v3 v3.1.1 h1:IsKbXcalNftS2i4KUTkf/LTcMIrm1RUoefVaJQaizYw=
 github.com/schollz/progressbar/v3 v3.1.1/go.mod h1:d+PD64vPuv+GL2EhUpvV579FR91WWhRHEnImqGsIBU4=
 github.com/sergi/go-diff v1.0.0 h1:Kpca3qRNrduNnOQeazBd0ysaKrUJiIuISHxogkT9RPQ=
