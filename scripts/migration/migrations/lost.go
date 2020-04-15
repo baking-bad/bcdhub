@@ -1,7 +1,6 @@
 package migrations
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/baking-bad/bcdhub/cmd/indexer/indexer"
@@ -82,8 +81,7 @@ func (m *FindLostOperations) Do(ctx *Context) error {
 		}
 	}
 
-	fmt.Print("\033[2K\r")
-	logger.Info("[%s] done")
+	logger.Success("done")
 
 	return nil
 }
