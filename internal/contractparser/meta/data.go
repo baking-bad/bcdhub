@@ -24,7 +24,7 @@ type ContractMetadata struct {
 	Storage   map[string]Metadata `json:"storage"`
 }
 
-// Get - returns metadata by part and sym link
+// Get - returns metadata by part and protocol
 func (c *ContractMetadata) Get(part, protocol string) (Metadata, error) {
 	protoSymLink, err := GetProtoSymLink(protocol)
 	if err != nil {
@@ -251,16 +251,6 @@ func finishParseMetadata(metadata Metadata, path string, node internalNode) {
 	}
 }
 
-// GetMetadataNetwork -
-func GetMetadataNetwork(network string, protocol string) string {
-	if helpers.StringInArray(protocol, []string{
-		consts.HashBabylon, consts.HashCarthage,
-	}) {
-		return consts.MetadataBabylon
-	}
-	return consts.MetadataAlpha
-}
-
 func getKey(metadata *NodeMetadata) string {
 	if metadata.TypeName != "" {
 		return metadata.TypeName
@@ -416,34 +406,13 @@ func LoadProtocols(fileName string) error {
 	return jsonload.StructFromFile(fileName, &protocols)
 }
 
-// GetProtoSymLink -
+// GetProtoSymLink - TODO: REFACTOR THIS
 func GetProtoSymLink(protocol string) (string, error) {
+	if protocol == consts.CurrentProto {
+		return consts.MetadataBabylon, nil
+	}
 	if protoSymLink, ok := protocols[protocol]; ok {
 		return protoSymLink, nil
 	}
 	return "", fmt.Errorf("Unknown protocol: %s", protocol)
-}
-
-// GetLevelByProtoSymLink -
-func GetLevelByProtoSymLink(symLink, network string) int64 {
-	if network != consts.Mainnet {
-		return 0
-	}
-	switch symLink {
-	case consts.MetadataAlpha:
-		return consts.LevelBabylon - 1
-	default:
-		return 0
-	}
-}
-
-// GetProtoSymLinkByLevel -
-func GetProtoSymLinkByLevel(level int64, network string) string {
-	if network != consts.Mainnet {
-		return consts.MetadataBabylon
-	}
-	if level < consts.LevelBabylon && level > 0 {
-		return consts.MetadataAlpha
-	}
-	return consts.MetadataBabylon
 }

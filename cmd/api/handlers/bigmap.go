@@ -1,10 +1,9 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
-	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/elastic"
@@ -63,26 +62,23 @@ func (ctx *Context) GetBigMapByKeyHash(c *gin.Context) {
 }
 
 func (ctx *Context) prepareBigMap(data []elastic.BigMapDiff, network, address string) (res []BigMapResponseItem, err error) {
-	var alphaMeta meta.Metadata
-	if network == consts.Mainnet {
-		alphaMeta, err = meta.GetMetadata(ctx.ES, address, consts.STORAGE, consts.Hash1)
-		if err != nil {
-			if !strings.Contains(err.Error(), "Unknown metadata sym link: alpha") {
-				return
-			}
-		}
-	}
-
-	babyMeta, err := meta.GetMetadata(ctx.ES, address, consts.STORAGE, consts.HashBabylon)
+	contractMetadata, err := meta.GetContractMetadata(ctx.ES, address)
 	if err != nil {
 		return
 	}
 
 	res = make([]BigMapResponseItem, len(data))
 	for i := range data {
-		metadata := babyMeta
-		if network == consts.Mainnet && data[i].Level < consts.LevelBabylon {
-			metadata = alphaMeta
+		var protoSymLink string
+		protoSymLink, err = meta.GetProtoSymLink(data[i].Protocol)
+		if err != nil {
+			return
+		}
+
+		metadata, ok := contractMetadata.Storage[protoSymLink]
+		if !ok {
+			err = fmt.Errorf("Unknown metadata: %s", protoSymLink)
+			return
 		}
 
 		var value interface{}
@@ -117,17 +113,7 @@ func (ctx *Context) prepareBigMap(data []elastic.BigMapDiff, network, address st
 }
 
 func (ctx *Context) prepareBigMapItem(data []elastic.BigMapDiff, network, address, keyHash string) (res BigMapDiffByKeyResponse, err error) {
-	var alphaMeta meta.Metadata
-	if network == consts.Mainnet {
-		alphaMeta, err = meta.GetMetadata(ctx.ES, address, consts.STORAGE, consts.Hash1)
-		if err != nil {
-			if !strings.Contains(err.Error(), "Unknown metadata sym link: alpha") {
-				return
-			}
-		}
-	}
-
-	babyMeta, err := meta.GetMetadata(ctx.ES, address, consts.STORAGE, consts.HashBabylon)
+	contractMetadata, err := meta.GetContractMetadata(ctx.ES, address)
 	if err != nil {
 		return
 	}
@@ -135,9 +121,16 @@ func (ctx *Context) prepareBigMapItem(data []elastic.BigMapDiff, network, addres
 	var key interface{}
 	values := make([]BigMapDiffItem, len(data))
 	for i := range data {
-		metadata := babyMeta
-		if network == consts.Mainnet && data[i].Level < consts.LevelBabylon {
-			metadata = alphaMeta
+		var protoSymLink string
+		protoSymLink, err = meta.GetProtoSymLink(data[i].Protocol)
+		if err != nil {
+			return
+		}
+
+		metadata, ok := contractMetadata.Storage[protoSymLink]
+		if !ok {
+			err = fmt.Errorf("Unknown metadata: %s", protoSymLink)
+			return
 		}
 
 		var value interface{}

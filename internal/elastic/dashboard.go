@@ -34,7 +34,7 @@ func (e *Elastic) GetTimeline(contracts []string, size, from int64) ([]TimelineI
 				should(
 					matchPhrase("kind", "origination"),
 					exists("errors"),
-					exists("vesting"),
+					matchPhrase("kind", "genesis"),
 				),
 				minimumShouldMatch(1),
 			),

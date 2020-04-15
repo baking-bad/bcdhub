@@ -22,6 +22,7 @@ type BigMapDiff struct {
 	Network      string      `json:"network"`
 	IndexedTime  int64       `json:"indexed_time"`
 	Timestamp    time.Time   `json:"timestamp"`
+	Protocol     string      `json:"protocol"`
 }
 
 // ParseElasticJSON -
@@ -38,6 +39,7 @@ func (b *BigMapDiff) ParseElasticJSON(hit gjson.Result) {
 	b.Network = hit.Get("_source.network").String()
 	b.IndexedTime = hit.Get("_source.indexed_time").Int()
 	b.Timestamp = hit.Get("_source.timestamp").Time().UTC()
+	b.Protocol = hit.Get("_source.protocol").String()
 
 	b.KeyStrings = parseStringsArray(hit.Get("_source.key_strings").Array())
 	b.ValueStrings = parseStringsArray(hit.Get("_source.value_strings").Array())

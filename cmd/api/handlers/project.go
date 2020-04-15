@@ -70,7 +70,14 @@ func (ctx *Context) getSimilarDiffs(similar []elastic.SimilarContract, contract 
 	}
 	for i := 0; i < len(similar); i++ {
 		src := &similar[i]
-		d, err := ctx.getDiff(contract.Address, contract.Network, src.Address, src.Network, consts.MetadataBabylon, consts.MetadataBabylon)
+		d, err := ctx.getDiff(
+			contract.Address,
+			contract.Network,
+			src.Address,
+			src.Network,
+			consts.CurrentProto,
+			consts.CurrentProto,
+		)
 		if err != nil {
 			return nil, err
 		}

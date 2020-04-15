@@ -5,16 +5,21 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/tidwall/gjson"
 )
 
 // GetContract -
-func GetContract(rpc noderpc.Pool, address, network, symLink, filesDirectory string) (gjson.Result, error) {
+func GetContract(rpc noderpc.Pool, address, network, protocol, filesDirectory string, fallbackLevel int64) (gjson.Result, error) {
 	if filesDirectory != "" {
-		filePath := fmt.Sprintf("%s/contracts/%s/%s_%s.json", filesDirectory, network, address, symLink)
-		_, err := os.Stat(filePath)
+		protoSymLink, err := meta.GetProtoSymLink(protocol)
+		if err != nil {
+			return gjson.Result{}, err
+		}
+
+		filePath := fmt.Sprintf("%s/contracts/%s/%s_%s.json", filesDirectory, network, address, protoSymLink)
+		_, err = os.Stat(filePath)
 		if err == nil {
 			f, err := os.Open(filePath)
 			if err != nil {
@@ -36,11 +41,7 @@ func GetContract(rpc noderpc.Pool, address, network, symLink, filesDirectory str
 			return gjson.Result{}, err
 		}
 	}
-	var level int64
-	if symLink != consts.MetadataBabylon {
-		level = consts.LevelBabylon - 1
-	}
-	contract, err := rpc.GetContractJSON(address, level)
+	contract, err := rpc.GetContractJSON(address, fallbackLevel)
 	if err != nil {
 		return gjson.Result{}, err
 	}

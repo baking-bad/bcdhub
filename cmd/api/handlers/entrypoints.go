@@ -15,7 +15,7 @@ func (ctx *Context) GetEntrypoints(c *gin.Context) {
 		return
 	}
 
-	metadata, err := meta.GetMetadata(ctx.ES, req.Address, consts.PARAMETER, consts.HashCarthage)
+	metadata, err := meta.GetMetadata(ctx.ES, req.Address, consts.PARAMETER, consts.CurrentProto)
 	if handleError(c, err, 0) {
 		return
 	}

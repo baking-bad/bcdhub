@@ -347,7 +347,7 @@ func (bi *BoostIndexer) standartMigration(head noderpc.Header) error {
 			return err
 		}
 
-		migration, err := p.Parse(script, head, contract)
+		migration, err := p.Parse(script, head, contract, bi.state.Protocol)
 		if err != nil {
 			return err
 		}

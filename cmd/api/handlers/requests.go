@@ -7,10 +7,10 @@ type aliasRequest struct {
 }
 
 type getContractCodeRequest struct {
-	Address string `uri:"address" binding:"required,address"`
-	Network string `uri:"network" binding:"required,network"`
-
-	Level int64 `form:"level,omitempty"`
+	Address  string `uri:"address" binding:"required,address"`
+	Network  string `uri:"network" binding:"required,network"`
+	Protocol string `form:"protocol,omitempty"`
+	Level    int64  `form:"level,omitempty"`
 }
 
 type getDiffRequest struct {
@@ -106,10 +106,10 @@ type FormatterRequest struct {
 }
 
 type getMigrationRequest struct {
-	Address string `uri:"address" binding:"required,address"`
-	Network string `uri:"network" binding:"required,network"`
-
-	Protocol string `form:"protocol"`
+	Address      string `uri:"address" binding:"required,address"`
+	Network      string `uri:"network" binding:"required,network"`
+	ProtocolFrom string `form:"protocol_from"`
+	ProtocolTo   string `form:"protocol_to"`
 }
 
 type getByNetwork struct {

@@ -34,6 +34,25 @@ func NewDefaultParser(rpc noderpc.Pool, es *elastic.Elastic, filesDirectory stri
 	}
 }
 
+// MakeStorageParser -
+func MakeStorageParser(rpc noderpc.Pool, protocol string) (parser storage.Parser, err error) {
+	protoSymLink, err := meta.GetProtoSymLink(protocol)
+	if err != nil {
+		return nil, err
+	}
+
+	switch protoSymLink {
+	case consts.MetadataBabylon:
+		parser = storage.NewBabylon(rpc)
+	case consts.MetadataAlpha:
+		parser = storage.NewAlpha()
+	default:
+		return nil, fmt.Errorf("Unknown protocol %s", protocol)
+	}
+
+	return
+}
+
 // Parse -
 func (p *DefaultParser) Parse(opg gjson.Result, network string, head noderpc.Header) ([]models.Operation, []models.Contract, error) {
 	operations := make([]models.Operation, 0)
@@ -258,6 +277,7 @@ func (p *DefaultParser) findMigration(item gjson.Result, op *models.Operation) e
 				Address:   op.Destination,
 				Timestamp: op.Timestamp,
 				Hash:      op.Hash,
+				Kind:      consts.MigrationLambda,
 			}
 			if _, err := p.es.AddDocumentWithID(migration, elastic.DocMigrations, migration.ID); err != nil {
 				return err
@@ -332,19 +352,14 @@ func (p *DefaultParser) needParse(item gjson.Result, idx int) bool {
 }
 
 func (p *DefaultParser) getRichStorage(data gjson.Result, metadata *meta.ContractMetadata, op *models.Operation) (storage.RichStorage, error) {
-	protoSymLink, err := meta.GetProtoSymLink(op.Protocol)
+	parser, err := MakeStorageParser(p.rpc, op.Protocol)
 	if err != nil {
 		return storage.RichStorage{Empty: true}, err
 	}
 
-	var parser storage.Parser
-	switch protoSymLink {
-	case consts.MetadataBabylon:
-		parser = storage.NewBabylon(p.rpc)
-	case consts.MetadataAlpha:
-		parser = storage.NewAlpha()
-	default:
-		return storage.RichStorage{Empty: true}, fmt.Errorf("Unknown protocol: %s", op.Protocol)
+	protoSymLink, err := meta.GetProtoSymLink(op.Protocol)
+	if err != nil {
+		return storage.RichStorage{Empty: true}, err
 	}
 
 	m, ok := metadata.Storage[protoSymLink]
