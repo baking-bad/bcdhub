@@ -76,7 +76,7 @@ func (c *Code) parseStruct(n node.Node) error {
 }
 
 func (c *Code) parseCode(args gjson.Result) error {
-	c.Language = detectLorentzCast(args)
+	c.Language = language.DetectLorentzCast(args)
 
 	for _, val := range args.Array() {
 		if err := c.parse(val); err != nil {
@@ -110,12 +110,4 @@ func (c *Code) handlePrimitive(n node.Node) (err error) {
 	c.Tags.Append(primTags(n))
 
 	return nil
-}
-
-func detectLorentzCast(val gjson.Result) string {
-	if val.Get("0.0.prim").String() == "CAST" {
-		return language.LangLorentz
-	}
-
-	return language.LangUnknown
 }

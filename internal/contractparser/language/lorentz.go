@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/node"
+	"github.com/tidwall/gjson"
 )
 
 type lorentz struct{}
@@ -39,4 +40,13 @@ func (l lorentz) DetectInParameter(n node.Node) bool {
 	}
 
 	return false
+}
+
+// DetectLorentzCast - checks that first prim in code is CAST
+func DetectLorentzCast(val gjson.Result) string {
+	if val.Get("0.0.prim").String() == "CAST" {
+		return LangLorentz
+	}
+
+	return LangUnknown
 }
