@@ -27,7 +27,7 @@ func main() {
 		"total_withdrawn":    &migrations.SetTotalWithdrawn{},
 		"set_migration_kind": &migrations.SetMigrationKind{},
 		"set_bmd_protocol":   &migrations.SetBMDProtocol{},
-		"lost":              &migrations.FindLostOperations{},
+		"lost":               &migrations.FindLostOperations{},
 	}
 
 	env := os.Getenv("MIGRATION")

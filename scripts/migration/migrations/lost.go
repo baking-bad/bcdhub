@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/cmd/indexer/indexer"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/tzkt"
 )
@@ -27,7 +26,7 @@ func getIndexerConfig(ctx *Context) indexer.Config {
 	}
 
 	entities := map[string]indexer.EntityConfig{}
-	for _, network := range []string{consts.Mainnet, consts.Babylon, consts.Carthage, consts.Zeronet} {
+	for _, network := range []string{"mainnet", "zeronet", "carthagenet", "babylonnet"} {
 		entities[network] = indexer.EntityConfig{
 			Boost: false,
 			RPC: indexer.RPCConfig{
@@ -44,7 +43,7 @@ func getIndexerConfig(ctx *Context) indexer.Config {
 
 // Do - migrate function
 func (m *FindLostOperations) Do(ctx *Context) error {
-	for _, network := range []string{consts.Mainnet, consts.Babylon, consts.Carthage, consts.Zeronet} {
+	for _, network := range []string{"mainnet", "zeronet", "carthagenet", "babylonnet"} {
 		logger.Info("Start searching in %s...", network)
 
 		api := tzkt.NewTzKTForNetwork(network, time.Minute)
