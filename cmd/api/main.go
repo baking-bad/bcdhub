@@ -115,7 +115,6 @@ func main() {
 					address.GET("code", ctx.GetContractCode)
 					address.GET("operations", ctx.GetContractOperations)
 					address.GET("migrations", ctx.GetContractMigrations)
-					address.GET("entrypoints", ctx.GetEntrypoints)
 					address.GET("storage", ctx.GetContractStorage)
 					address.GET("raw_storage", ctx.GetContractStorageRaw)
 					address.GET("rich_storage", ctx.GetContractStorageRich)
@@ -127,6 +126,12 @@ func main() {
 					{
 						bigmap.GET(":ptr", ctx.GetBigMap)
 						bigmap.GET(":ptr/:key_hash", ctx.GetBigMapByKeyHash)
+					}
+					entrypoints := address.Group("entrypoints")
+					{
+						entrypoints.GET("", ctx.GetEntrypoints)
+						entrypoints.GET("schema", ctx.GetEntrypointSchema)
+						entrypoints.POST("data", ctx.GetEntrypointData)
 					}
 				}
 			}

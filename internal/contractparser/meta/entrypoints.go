@@ -13,6 +13,7 @@ import (
 type Entrypoint struct {
 	Name       string      `json:"miguel_name"`
 	Type       string      `json:"miguel_type"`
+	Path       string      `json:"miguel_path"`
 	Parameters interface{} `json:"miguel_parameters"`
 }
 
@@ -33,6 +34,7 @@ func (metadata Metadata) GetEntrypoints() ([]Entrypoint, error) {
 				Name:       nm.GetEntrypointName(i),
 				Parameters: params,
 				Type:       nm.Prim,
+				Path:       arg,
 			})
 		}
 	} else {
@@ -44,6 +46,7 @@ func (metadata Metadata) GetEntrypoints() ([]Entrypoint, error) {
 			Name:       root.GetEntrypointName(-1),
 			Parameters: params,
 			Type:       root.Prim,
+			Path:       "0",
 		})
 	}
 	return ep, nil

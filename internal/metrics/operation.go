@@ -8,13 +8,25 @@ import (
 )
 
 // SetOperationAliases -
-func (h *Handler) SetOperationAliases(aliases map[string]string, op *models.Operation) {
-	op.SourceAlias = aliases[op.Source]
-	op.DestinationAlias = aliases[op.Destination]
+func (h *Handler) SetOperationAliases(aliases map[string]string, op *models.Operation) bool {
+	var changed bool
 
-	if op.Delegate != "" {
-		op.DelegateAlias = aliases[op.Delegate]
+	if srcAlias, ok := aliases[op.Source]; ok {
+		op.SourceAlias = srcAlias
+		changed = true
 	}
+
+	if dstAlias, ok := aliases[op.Destination]; ok {
+		op.DestinationAlias = dstAlias
+		changed = true
+	}
+
+	if dlgtAlias, ok := aliases[op.Delegate]; ok {
+		op.DelegateAlias = dlgtAlias
+		changed = true
+	}
+
+	return changed
 }
 
 // SetOperationBurned -
