@@ -24,6 +24,7 @@ type Config struct {
 		Port    int    `json:"port"`
 		SSLMode string `json:"sslmode"`
 	} `json:"db"`
+	FilesDirectory string `json:"files_directory"`
 }
 
 // Print -
