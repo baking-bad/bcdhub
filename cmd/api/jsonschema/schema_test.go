@@ -155,6 +155,8 @@ func TestCreate(t *testing.T) {
 										"dense":    true,
 										"outlined": true,
 									},
+									"minLength": 36,
+									"maxLength": 36,
 								},
 								"0/1/v": Schema{
 									"type":  "integer",

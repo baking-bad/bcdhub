@@ -2,11 +2,11 @@ package meta
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/tidwall/gjson"
 )
 
@@ -120,28 +120,23 @@ func listBuilder(metadata Metadata, node *NodeMetadata, path string, data map[st
 		listPath = path + "/s"
 	}
 
-	listNode, ok := metadata[listPath]
-	if !ok {
-		return "", fmt.Errorf("Unknown binary path: %s", listPath)
-	}
 	var builder strings.Builder
+	log.Println(listValue)
 	for i := range listValue {
 		if i != 0 {
 			builder.WriteByte(',')
 		}
-		if isDefault(listNode.Prim) {
-			data[listPath] = listValue[i]
-			argStr, err := build(metadata, listPath, data)
+
+		switch t := listValue[i].(type) {
+		case map[string]interface{}:
+			argStr, err := build(metadata, listPath, t)
 			if err != nil {
 				return "", err
 			}
 			builder.WriteString(argStr)
-		} else {
-			mapListValue, ok := listValue[i].(map[string]interface{})
-			if !ok {
-				return "", fmt.Errorf("Invalid data: '%s'", getName(node))
-			}
-			argStr, err := build(metadata, listPath, mapListValue)
+		default:
+			data[listPath] = listValue[i]
+			argStr, err := build(metadata, listPath, data)
 			if err != nil {
 				return "", err
 			}
@@ -312,12 +307,4 @@ func getEntrypointName(node *NodeMetadata) string {
 		return node.Name
 	}
 	return "default"
-}
-
-func isDefault(prim string) bool {
-	return helpers.StringInArray(prim, []string{
-		consts.STRING, consts.KEYHASH, consts.KEY, consts.ADDRESS, consts.CHAINID, consts.SIGNATURE,
-		consts.CONTRACT, consts.TIMESTAMP, consts.LAMBDA, consts.BYTES, consts.INT, consts.NAT,
-		consts.MUTEZ, consts.BIGMAP, consts.BOOL,
-	})
 }

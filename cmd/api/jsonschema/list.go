@@ -42,6 +42,8 @@ func (m *listMaker) Do(binPath string, metadata meta.Metadata) (Schema, error) {
 			required = append(required, k)
 			schema["x-itemTitle"] = k
 		}
+	} else {
+		propertiesItems[path] = listSchema
 	}
 
 	schema["items"] = Schema{
