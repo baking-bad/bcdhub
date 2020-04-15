@@ -53,6 +53,7 @@ type Contract struct {
 	FoundBy           string  `json:"found_by,omitempty"`
 	LastAction        BCDTime `json:"last_action,omitempty"`
 	TxCount           int64   `json:"tx_count,omitempty"`
+	MigrationsCount   int64   `json:"migrations_count,omitempty"`
 	TotalWithdrawn    int64   `json:"total_withdrawn,omitempty"`
 	MedianConsumedGas int64   `json:"median_consumed_gas,omitempty"`
 	Alias             string  `json:"alias,omitempty"`
@@ -117,6 +118,7 @@ func (c *Contract) ParseElasticJSON(hit gjson.Result) {
 	}
 
 	c.TxCount = hit.Get("_source.tx_count").Int()
+	c.MigrationsCount = hit.Get("_source.migrations_count").Int()
 	c.TotalWithdrawn = hit.Get("_source.total_withdrawn").Int()
 	c.MedianConsumedGas = hit.Get("_source.median_consumed_gas").Int()
 	c.Alias = hit.Get("_source.alias").String()

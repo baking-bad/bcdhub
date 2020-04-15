@@ -67,7 +67,8 @@
     "uri": "amqp://guest:guest@localhost:5672/",
     "queues": [
       "operations",
-      "contracts"
+      "contracts",
+      "migrations"
     ]
   },
   "sentry": {

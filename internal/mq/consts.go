@@ -9,4 +9,5 @@ const (
 const (
 	QueueContracts  = "contracts"
 	QueueOperations = "operations"
+	QueueMigrations = "migrations"
 )
