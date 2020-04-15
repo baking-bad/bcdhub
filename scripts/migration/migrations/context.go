@@ -22,6 +22,8 @@ type Context struct {
 	RPCs     map[string]noderpc.Pool
 	Indexers map[string]index.Indexer
 	DB       database.DB
+
+	Config Config
 }
 
 // NewContext - creates migration context from config
@@ -70,6 +72,7 @@ func NewContext(cfg Config) (*Context, error) {
 		Indexers: indexers,
 		MQ:       messageQueue,
 		DB:       db,
+		Config:   cfg,
 	}, nil
 }
 

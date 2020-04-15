@@ -16,7 +16,8 @@ require (
 	github.com/jinzhu/gorm v1.9.11
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pkg/errors v0.8.1
-	github.com/schollz/progressbar/v3 v3.0.2
+	github.com/r3labs/diff v0.0.0-20191120142937-b4ed99a31f5a // indirect
+	github.com/schollz/progressbar/v3 v3.1.1
 	github.com/sergi/go-diff v1.0.0
 	github.com/streadway/amqp v0.0.0-20200108173154-1c71cc93ed71
 	github.com/stretchr/testify v1.5.1 // indirect
