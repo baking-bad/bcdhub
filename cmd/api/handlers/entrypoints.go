@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/cmd/api/jsonschema"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/gin-gonic/gin"
 )
@@ -73,5 +74,14 @@ func (ctx *Context) GetEntrypointData(c *gin.Context) {
 	if handleError(c, err, 0) {
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	if reqData.Format == "michelson" {
+		value := result.Get("value")
+		michelson, err := formatter.MichelineToMichelson(value, false, formatter.DefLineSize)
+		if handleError(c, err, 0) {
+			return
+		}
+		c.JSON(http.StatusOK, michelson)
+		return
+	}
+	c.JSON(http.StatusOK, result.Value())
 }

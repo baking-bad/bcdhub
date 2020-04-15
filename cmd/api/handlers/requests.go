@@ -129,4 +129,5 @@ type getEntrypointSchemaRequest struct {
 type getEntrypointDataRequest struct {
 	BinPath string                 `json:"path" binding:"required"`
 	Data    map[string]interface{} `json:"data" binding:"required"`
+	Format  string                 `json:"format"`
 }
