@@ -36,7 +36,7 @@ const (
 
 // MigrationKind -
 const (
-	MigrationGenesis  = "genesis"
-	MigrationLambda   = "lambda"
-	MigrationProtocol = "protocol"
+	MigrationBootstrap = "bootstrap"
+	MigrationLambda    = "lambda"
+	MigrationUpdate    = "update"
 )

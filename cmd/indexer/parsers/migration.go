@@ -52,12 +52,12 @@ func (p *MigrationParser) Parse(data gjson.Result, head noderpc.Header, old mode
 		IndexedTime: time.Now().UnixNano() / 1000,
 
 		Network:      old.Network,
-		Level:        head.Level,
+		Level:        head.Level - 1,
 		Protocol:     head.Protocol,
 		PrevProtocol: prevProtocol,
 		Address:      old.Address,
 		Timestamp:    head.Timestamp,
-		Kind:         consts.MigrationProtocol,
+		Kind:         consts.MigrationUpdate,
 	}
 	if _, err := p.es.UpdateDoc(elastic.DocContracts, old.ID, old); err != nil {
 		return nil, err

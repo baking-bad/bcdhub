@@ -31,20 +31,17 @@ func NewVestingParser(rpc noderpc.Pool, es *elastic.Elastic, filesDirectory stri
 }
 
 // Parse -
-func (p *VestingParser) Parse(data gjson.Result, network, address, protocol string) (models.Migration, *models.Contract, error) {
-	ts, err := time.Parse(time.RFC3339, "2018-06-30T00:00:00+00:00")
-	if err != nil {
-		return models.Migration{}, nil, err
-	}
+func (p *VestingParser) Parse(data gjson.Result, head noderpc.Header, network, address string) (models.Migration, *models.Contract, error) {
 	migration := models.Migration{
 		ID:          strings.ReplaceAll(uuid.New().String(), "-", ""),
 		IndexedTime: time.Now().UnixNano() / 1000,
 
+		Level:     head.Level - 1,
 		Network:   network,
-		Protocol:  protocol,
+		Protocol:  head.Protocol,
 		Address:   address,
-		Timestamp: ts,
-		Kind:      consts.MigrationGenesis,
+		Timestamp: head.Timestamp,
+		Kind:      consts.MigrationBootstrap,
 	}
 	protoSymLink, err := meta.GetProtoSymLink(migration.Protocol)
 	if err != nil {
@@ -54,7 +51,7 @@ func (p *VestingParser) Parse(data gjson.Result, network, address, protocol stri
 	op := models.Operation{
 		ID:          strings.ReplaceAll(uuid.New().String(), "-", ""),
 		Network:     network,
-		Protocol:    protocol,
+		Protocol:    head.Protocol,
 		Status:      "applied",
 		Kind:        consts.Migration,
 		Amount:      data.Get("balance").Int(),
@@ -63,7 +60,7 @@ func (p *VestingParser) Parse(data gjson.Result, network, address, protocol stri
 		Destination: address,
 		Balance:     data.Get("balance").Int(),
 		Delegate:    data.Get("delegate.value").String(),
-		Timestamp:   ts,
+		Timestamp:   head.Timestamp,
 		IndexedTime: time.Now().UnixNano() / 1000,
 		Script:      data.Get("script"),
 	}

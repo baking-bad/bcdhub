@@ -40,11 +40,14 @@ func (m *SetMigrationKind) Do(ctx *Context) error {
 			}
 
 			if migrations[i].Level == 0 {
-				migrations[i].Kind = consts.MigrationGenesis
+				migrations[i].Kind = consts.MigrationBootstrap
+				migrations[i].Level = 1
+				migrations[i].Protocol = "PtCJ7pwoxe8JasnHY8YonnLYjcVHmhiARPJvqcC6VfHT5s8k8sY"
 			} else if migrations[i].Hash != "" {
 				migrations[i].Kind = consts.MigrationLambda
 			} else {
-				migrations[i].Kind = consts.MigrationProtocol
+				migrations[i].Kind = consts.MigrationUpdate
+				migrations[i].Level = migrations[i].Level - 1
 				migrations[i].PrevProtocol = "Pt24m4xiPbLDhVgVfABUjirbmda3yohdN82Sp9FeuAXJ4eV9otd"
 			}
 
