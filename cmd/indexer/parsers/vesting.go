@@ -36,9 +36,9 @@ func (p *VestingParser) Parse(data gjson.Result, head noderpc.Header, network, a
 		ID:          strings.ReplaceAll(uuid.New().String(), "-", ""),
 		IndexedTime: time.Now().UnixNano() / 1000,
 
-		Level:     head.Level - 1,
+		Level:     head.Level,
 		Network:   network,
-		Protocol:  head.Protocol,
+		Protocol:  head.NextProtocol,
 		Address:   address,
 		Timestamp: head.Timestamp,
 		Kind:      consts.MigrationBootstrap,
@@ -51,7 +51,7 @@ func (p *VestingParser) Parse(data gjson.Result, head noderpc.Header, network, a
 	op := models.Operation{
 		ID:          strings.ReplaceAll(uuid.New().String(), "-", ""),
 		Network:     network,
-		Protocol:    head.Protocol,
+		Protocol:    head.NextProtocol,
 		Status:      "applied",
 		Kind:        consts.Migration,
 		Amount:      data.Get("balance").Int(),

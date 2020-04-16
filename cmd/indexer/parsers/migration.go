@@ -52,7 +52,7 @@ func (p *MigrationParser) Parse(data gjson.Result, head noderpc.Header, old mode
 		IndexedTime: time.Now().UnixNano() / 1000,
 
 		Network:      old.Network,
-		Level:        head.Level - 1,
+		Level:        head.Level,
 		Protocol:     head.Protocol,
 		PrevProtocol: prevProtocol,
 		Address:      old.Address,

@@ -47,7 +47,6 @@ func (m *SetMigrationKind) Do(ctx *Context) error {
 				migrations[i].Kind = consts.MigrationLambda
 			} else {
 				migrations[i].Kind = consts.MigrationUpdate
-				migrations[i].Level = migrations[i].Level - 1
 				migrations[i].PrevProtocol = "Pt24m4xiPbLDhVgVfABUjirbmda3yohdN82Sp9FeuAXJ4eV9otd"
 			}
 
