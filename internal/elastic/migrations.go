@@ -65,3 +65,16 @@ func (e *Elastic) GetAllMigrations(network string) ([]models.Migration, error) {
 
 	return migrations, nil
 }
+
+// GetMigrationByID -
+func (e *Elastic) GetMigrationByID(id string) (migration models.Migration, err error) {
+	resp, err := e.GetByID(DocMigrations, id)
+	if err != nil {
+		return
+	}
+	if !resp.Get("found").Bool() {
+		return migration, fmt.Errorf("Unknown migration with ID %s", id)
+	}
+	migration.ParseElasticJSON(resp)
+	return
+}

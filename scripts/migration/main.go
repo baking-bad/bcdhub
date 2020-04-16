@@ -28,6 +28,7 @@ func main() {
 		"set_migration_kind": &migrations.SetMigrationKind{},
 		"set_bmd_protocol":   &migrations.SetBMDProtocol{},
 		"lost":               &migrations.FindLostOperations{},
+		"contract_migrations_count": &migrations.SetContractMigrationsCount{},
 	}
 
 	env := os.Getenv("MIGRATION")

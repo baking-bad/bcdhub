@@ -21,6 +21,8 @@ func parseData(data amqp.Delivery) error {
 		return getContract(data)
 	case mq.QueueOperations:
 		return getOperation(data)
+	case mq.QueueMigrations:
+		return getMigrations(data)
 	default:
 		return fmt.Errorf("Unknown data routing key %s", data.RoutingKey)
 	}
