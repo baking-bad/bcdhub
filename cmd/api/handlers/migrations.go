@@ -30,7 +30,7 @@ func prepareMigrations(data []models.Migration) []Migration {
 			Timestamp:    data[i].Timestamp,
 			Hash:         data[i].Hash,
 			Protocol:     data[i].Protocol,
-			PrevProtocol: data[i].Protocol,
+			PrevProtocol: data[i].PrevProtocol,
 			Kind:         data[i].Kind,
 		}
 	}

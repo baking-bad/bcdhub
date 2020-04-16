@@ -264,11 +264,7 @@ func (p *DefaultParser) findMigration(item gjson.Result, op *models.Operation) (
 				Timestamp: op.Timestamp,
 				Hash:      op.Hash,
 				Kind:      consts.MigrationLambda,
-			}
-			if _, err := p.es.AddDocumentWithID(migration, elastic.DocMigrations, migration.ID); err != nil {
-				return err
-			}
-			break
+			}, nil
 		}
 	}
 	return nil, nil

@@ -1,6 +1,8 @@
 package elastic
 
 import (
+	"fmt"
+
 	"github.com/baking-bad/bcdhub/internal/models"
 )
 
