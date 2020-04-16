@@ -7,17 +7,24 @@ type aliasRequest struct {
 }
 
 type getContractCodeRequest struct {
-	Address string `uri:"address" binding:"required,address"`
-	Network string `uri:"network" binding:"required,network"`
-
-	Level int64 `form:"level,omitempty"`
+	Address  string `uri:"address" binding:"required,address"`
+	Network  string `uri:"network" binding:"required,network"`
+	Protocol string `form:"protocol,omitempty"`
+	Level    int64  `form:"level,omitempty"`
 }
 
-type getDiffRequest struct {
-	SourceAddress      string `form:"sa" binding:"required,address"`
-	SourceNetwork      string `form:"sn" binding:"required,network"`
-	DestinationAddress string `form:"da" binding:"required,address"`
-	DestinationNetwork string `form:"dn" binding:"required,network"`
+// CodeDiffLeg -
+type CodeDiffLeg struct {
+	Address  string `json:"address" binding:"required,address"`
+	Network  string `json:"network" binding:"required,network"`
+	Protocol string `json:"protocol,omitempty"`
+	Level    int64  `json:"level,omitempty"`
+}
+
+// CodeDiffRequest -
+type CodeDiffRequest struct {
+	Left  CodeDiffLeg `json:"left" binding:"required"`
+	Right CodeDiffLeg `json:"right" binding:"required"`
 }
 
 type getContractRequest struct {
@@ -103,13 +110,6 @@ type FormatterRequest struct {
 	Inline   bool   `form:"inline"`
 	LineSize int    `form:"lineSize"`
 	Code     string `form:"code"`
-}
-
-type getMigrationRequest struct {
-	Address string `uri:"address" binding:"required,address"`
-	Network string `uri:"network" binding:"required,network"`
-
-	Protocol string `form:"protocol"`
 }
 
 type getByNetwork struct {

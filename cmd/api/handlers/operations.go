@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
-	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -244,14 +244,11 @@ func enrichStorage(s string, bmd []models.BigMapDiff, protocol string, skipEmpty
 		return gjson.Parse(s), nil
 	}
 
-	var parser storage.Parser
-	if helpers.StringInArray(protocol, []string{
-		consts.HashBabylon, consts.HashCarthage, consts.HashZeroBabylon,
-	}) {
-		parser = storage.NewBabylon(nil)
-	} else {
-		parser = storage.NewAlpha()
+	parser, err := contractparser.MakeStorageParser(nil, protocol)
+	if err != nil {
+		return gjson.Result{}, err
 	}
+
 	return parser.Enrich(s, bmd, skipEmpty)
 }
 

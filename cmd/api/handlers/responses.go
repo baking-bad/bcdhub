@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
+	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/baking-bad/bcdhub/internal/models"
 )
 
@@ -44,13 +45,6 @@ type Operation struct {
 	Mempool     bool        `json:"mempool"`
 
 	IndexedTime int64 `json:"-"`
-}
-
-// CodeDiff -
-type CodeDiff struct {
-	Full    string `json:"full,omitempty"`
-	Added   int64  `json:"added,omitempty"`
-	Removed int64  `json:"removed,omitempty"`
 }
 
 // Contract -
@@ -107,24 +101,12 @@ type BigMapResponseItem struct {
 
 // Migration -
 type Migration struct {
-	Level     int64     `json:"level"`
-	Timestamp time.Time `json:"timestamp"`
-	Hash      string    `json:"hash,omitempty"`
-	Protocol  string    `json:"protocol"`
-	Vesting   bool      `json:"vesting"`
-}
-
-// CodeResponse -
-type CodeResponse struct {
-	Code           string        `json:"code"`
-	CurrentVersion string        `json:"current_version"`
-	Versions       []CodeVersion `json:"versions,omitempty"`
-}
-
-// CodeVersion -
-type CodeVersion struct {
-	Name  string `json:"name"`
-	Level int64  `json:"level"`
+	Level        int64     `json:"level"`
+	Timestamp    time.Time `json:"timestamp"`
+	Hash         string    `json:"hash,omitempty"`
+	Protocol     string    `json:"protocol"`
+	PrevProtocol string    `json:"prev_protocol"`
+	Kind         string    `json:"kind"`
 }
 
 // TokenContract -
@@ -176,4 +158,11 @@ type BigMapDiffByKeyResponse struct {
 	Key     interface{}      `json:"key,omitempty"`
 	KeyHash string           `json:"key_hash"`
 	Values  []BigMapDiffItem `json:"values,omitempty"`
+}
+
+// CodeDiffResponse -
+type CodeDiffResponse struct {
+	Left  CodeDiffLeg          `json:"left"`
+	Right CodeDiffLeg          `json:"right"`
+	Diff  formatter.DiffResult `json:"diff"`
 }

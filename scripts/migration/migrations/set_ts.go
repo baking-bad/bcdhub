@@ -7,7 +7,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -21,7 +20,7 @@ func (m *SetTimestamp) Description() string {
 
 // Do - migrate function
 func (m *SetTimestamp) Do(ctx *Context) error {
-	for _, network := range []string{consts.Mainnet, consts.Zeronet, consts.Carthage, consts.Babylon} {
+	for _, network := range []string{"mainnet", "zeronet", "carthagenet", "babylonnet"} {
 		rpc, err := ctx.GetRPC(network)
 		if err != nil {
 			return err

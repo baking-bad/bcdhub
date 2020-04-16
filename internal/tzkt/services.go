@@ -36,8 +36,10 @@ func NewServicesTzKT(network string, timeout time.Duration) *ServicesTzKT {
 		host = tzKTServicesCarthageURL
 	case "zeronet":
 		host = tzKTServicesZeroURL
-	default:
+	case "mainnet":
 		host = tzKTServicesURL
+	default:
+		panic(fmt.Sprintf("TzKT does not support %s", network))
 	}
 	return &ServicesTzKT{
 		Host:    host,

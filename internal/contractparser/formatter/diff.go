@@ -13,12 +13,11 @@ const DiffLineSize = 74
 
 // DiffResult -
 type DiffResult struct {
-	Left      [][]Item `json:"left"`
-	Right     [][]Item `json:"right"`
-	NameLeft  string   `json:"name_left,omitempty"`
-	NameRight string   `json:"name_right,omitempty"`
-	Removed   int64    `json:"removed"`
-	Added     int64    `json:"added"`
+	Left    [][]Item `json:"left"`
+	Right   [][]Item `json:"right"`
+	Removed int64    `json:"removed"`
+	Added   int64    `json:"added"`
+	Changed int64    `json:"changed"`
 }
 
 // Item -

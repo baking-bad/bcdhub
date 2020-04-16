@@ -19,15 +19,12 @@ var AddressValidator validator.Func = func(fl validator.FieldLevel) bool {
 	return err == nil
 }
 
-// NetworkValidator -
-var NetworkValidator validator.Func = func(fl validator.FieldLevel) bool {
-	network := fl.Field().String()
-	return helpers.StringInArray(network, []string{
-		consts.Mainnet,
-		consts.Babylon,
-		consts.Carthage,
-		consts.Zeronet,
-	})
+// MakeNetworkValidator -
+func MakeNetworkValidator(networks []string) validator.Func {
+	return func(fl validator.FieldLevel) bool {
+		network := fl.Field().String()
+		return helpers.StringInArray(network, networks)
+	}
 }
 
 // OPGValidator -

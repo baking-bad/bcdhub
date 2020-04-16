@@ -68,37 +68,6 @@ func (e *Elastic) GetAllMigrations(network string) ([]models.Migration, error) {
 	return migrations, nil
 }
 
-// GetContractVersions -
-func (e *Elastic) GetContractVersions(network, address string) ([]string, error) {
-	b := boolQ(
-		must(
-			matchPhrase("network", network),
-			matchPhrase("address", address),
-		),
-		should(
-			term("vesting", true),
-			matchQ("hash", ""),
-		),
-		minimumShouldMatch(1),
-	)
-	query := newQuery().Query(b).Sort("level", "desc").All()
-
-	data, err := e.query([]string{DocMigrations}, query)
-	if err != nil {
-		return nil, err
-	}
-
-	versions := make([]string, 0)
-	for _, hit := range data.Get("hits.hits").Array() {
-		if hit.Get("_source.vesting").Bool() {
-			versions = append(versions, "vesting")
-		} else {
-			versions = append(versions, hit.Get("_source.protocol").String())
-		}
-	}
-	return versions, nil
-}
-
 // GetMigrationByID -
 func (e *Elastic) GetMigrationByID(id string) (migration models.Migration, err error) {
 	resp, err := e.GetByID(DocMigrations, id)

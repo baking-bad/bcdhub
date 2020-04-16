@@ -263,6 +263,7 @@ func (p *DefaultParser) findMigration(item gjson.Result, op *models.Operation) (
 				Address:   op.Destination,
 				Timestamp: op.Timestamp,
 				Hash:      op.Hash,
+				Kind:      consts.MigrationLambda,
 			}, nil
 		}
 	}
@@ -337,19 +338,14 @@ func (p *DefaultParser) needParse(item gjson.Result, idx int) bool {
 }
 
 func (p *DefaultParser) getRichStorage(data gjson.Result, metadata *meta.ContractMetadata, op *models.Operation) (storage.RichStorage, error) {
-	protoSymLink, err := meta.GetProtoSymLink(op.Protocol)
+	parser, err := contractparser.MakeStorageParser(p.rpc, op.Protocol)
 	if err != nil {
 		return storage.RichStorage{Empty: true}, err
 	}
 
-	var parser storage.Parser
-	switch protoSymLink {
-	case consts.MetadataBabylon:
-		parser = storage.NewBabylon(p.rpc)
-	case consts.MetadataAlpha:
-		parser = storage.NewAlpha()
-	default:
-		return storage.RichStorage{Empty: true}, fmt.Errorf("Unknown protocol: %s", op.Protocol)
+	protoSymLink, err := meta.GetProtoSymLink(op.Protocol)
+	if err != nil {
+		return storage.RichStorage{Empty: true}, err
 	}
 
 	m, ok := metadata.Storage[protoSymLink]

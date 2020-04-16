@@ -3,7 +3,6 @@ package migrations
 import (
 	"fmt"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -22,7 +21,7 @@ func (m *SetOperationBurned) Description() string {
 func (m *SetOperationBurned) Do(ctx *Context) error {
 	h := metrics.New(ctx.ES, ctx.DB)
 
-	for _, network := range []string{consts.Mainnet, consts.Zeronet, consts.Carthage, consts.Babylon} {
+	for _, network := range []string{"mainnet", "zeronet", "carthagenet", "babylonnet"} {
 		operations, err := ctx.ES.GetAllOperations(network)
 		if err != nil {
 			return err

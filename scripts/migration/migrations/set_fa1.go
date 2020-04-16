@@ -93,13 +93,13 @@ func (m *SetFA1) Do(ctx *Context) error {
 	bar := progressbar.NewOptions(len(contracts), progressbar.OptionSetPredictTime(false))
 	for _, c := range contracts {
 		bar.Add(1)
-		m, err := meta.GetMetadata(ctx.ES, c.Address, consts.PARAMETER, consts.HashBabylon)
+		m, err := meta.GetMetadata(ctx.ES, c.Address, consts.PARAMETER, "PsBabyM1eUXZseaJdmXFApDSBqj8YBfwELoxZHHW77EMcAbbwAS")
 		if err != nil {
 			if !strings.Contains(err.Error(), "Unknown metadata sym link") {
 				fmt.Print("\033[2K\r")
 				return err
 			}
-			m, err = meta.GetMetadata(ctx.ES, c.Address, consts.PARAMETER, consts.Hash1)
+			m, err = meta.GetMetadata(ctx.ES, c.Address, consts.PARAMETER, "PtYuensgYBb3G3x1hLLbCmcav8ue8Kyd2khADcL5LsT5R1hcXex")
 			if err != nil {
 				fmt.Print("\033[2K\r")
 				return err

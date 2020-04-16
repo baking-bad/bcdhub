@@ -44,7 +44,7 @@ func (p *VestingParser) Parse(data gjson.Result, network, address, protocol stri
 		Protocol:  protocol,
 		Address:   address,
 		Timestamp: ts,
-		Vesting:   true,
+		Kind:      consts.MigrationGenesis,
 	}
 	protoSymLink, err := meta.GetProtoSymLink(migration.Protocol)
 	if err != nil {

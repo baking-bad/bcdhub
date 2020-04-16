@@ -118,6 +118,7 @@ type BigMapDiff struct {
 	Address     string    `json:"address"`
 	Network     string    `json:"network"`
 	Timestamp   time.Time `json:"timestamp"`
+	Protocol    string    `json:"protocol"`
 
 	Count int64 `json:"count"`
 }
@@ -134,6 +135,7 @@ func (b *BigMapDiff) ParseElasticJSON(hit gjson.Result) {
 	b.Address = hit.Get("_source.address").String()
 	b.Network = hit.Get("_source.network").String()
 	b.Timestamp = hit.Get("_source.timestamp").Time()
+	b.Protocol = hit.Get("_source.protocol").String()
 }
 
 type contractPair struct {

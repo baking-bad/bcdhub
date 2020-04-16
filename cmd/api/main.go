@@ -87,8 +87,13 @@ func main() {
 		}
 	}
 
+	var networks []string
+	for network := range cfg.NodeRPC {
+		networks = append(networks, network)
+	}
+
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		if err := v.RegisterValidation("network", handlers.NetworkValidator); err != nil {
+		if err := v.RegisterValidation("network", handlers.MakeNetworkValidator(networks)); err != nil {
 			logger.Fatal(err)
 		}
 	}
@@ -115,7 +120,6 @@ func main() {
 					address.GET("code", ctx.GetContractCode)
 					address.GET("operations", ctx.GetContractOperations)
 					address.GET("migrations", ctx.GetContractMigrations)
-					address.GET("migration", ctx.GetMigration)
 					address.GET("storage", ctx.GetContractStorage)
 					address.GET("raw_storage", ctx.GetContractStorageRaw)
 					address.GET("rich_storage", ctx.GetContractStorageRich)
@@ -151,7 +155,7 @@ func main() {
 		}
 
 		v1.GET("pick_random", ctx.GetRandomContract)
-		v1.GET("diff", ctx.GetDiff)
+		v1.POST("diff", ctx.GetDiff)
 		v1.GET("opg/:hash", ctx.GetOperation)
 		v1.GET("projects", ctx.GetProjects)
 		v1.GET("formatter", ctx.GetFormatter)

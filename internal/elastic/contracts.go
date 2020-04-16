@@ -250,32 +250,6 @@ func (e *Elastic) Recommendations(tags []string, language string, blackList []st
 	return contracts, nil
 }
 
-func (e *Elastic) computeMedianConsumedGas(address, network string) (int64, error) {
-	query := newQuery().Query(
-		boolQ(
-			must(
-				matchPhrase("destination", address),
-				matchPhrase("network", network),
-				matchPhrase("status", "applied"),
-			),
-		),
-	).Add(
-		aggs("consumed_gas", qItem{
-			"percentiles": qItem{
-				"field":    "result.consumed_gas",
-				"percents": []int{50},
-			},
-		}),
-	)
-	resp, err := e.query([]string{DocOperations}, query)
-	if err != nil {
-		return 0, err
-	}
-
-	values := resp.Get("aggregations.consumed_gas.values").Map()
-	return values["50.0"].Int(), nil
-}
-
 // IsFAContract -
 func (e *Elastic) IsFAContract(network, address string) (bool, error) {
 	query := newQuery().Query(
