@@ -15,17 +15,18 @@ import (
 
 func main() {
 	migrationMap := map[string]migrations.Migration{
-		"timestamp":         &migrations.SetTimestamp{},
-		"language":          &migrations.SetLanguage{},
-		"contract_alias":    &migrations.SetContractAlias{Network: consts.Mainnet},
-		"operation_alias":   &migrations.SetOperationAlias{Network: consts.Mainnet},
-		"bmd_strings":       &migrations.SetBMDStrings{},
-		"bmd_timestamp":     &migrations.SetBMDTimestamp{},
-		"fa1_tag":           &migrations.SetFA1{},
-		"operation_strings": &migrations.SetOperationStrings{},
-		"operation_burned":  &migrations.SetOperationBurned{},
-		"total_withdrawn":   &migrations.SetTotalWithdrawn{},
-		"lost":              &migrations.FindLostOperations{},
+		"timestamp":                 &migrations.SetTimestamp{},
+		"language":                  &migrations.SetLanguage{},
+		"contract_alias":            &migrations.SetContractAlias{Network: consts.Mainnet},
+		"operation_alias":           &migrations.SetOperationAlias{Network: consts.Mainnet},
+		"bmd_strings":               &migrations.SetBMDStrings{},
+		"bmd_timestamp":             &migrations.SetBMDTimestamp{},
+		"fa1_tag":                   &migrations.SetFA1{},
+		"operation_strings":         &migrations.SetOperationStrings{},
+		"operation_burned":          &migrations.SetOperationBurned{},
+		"total_withdrawn":           &migrations.SetTotalWithdrawn{},
+		"lost":                      &migrations.FindLostOperations{},
+		"contract_migrations_count": &migrations.SetContractMigrationsCount{},
 	}
 
 	env := os.Getenv("MIGRATION")

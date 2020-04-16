@@ -299,3 +299,18 @@ func (e *Elastic) IsFAContract(network, address string) (bool, error) {
 	}
 	return resp.Get("hits.total.value").Int() == 1, nil
 }
+
+// UpdateContractMigrationsCount -
+func (e *Elastic) UpdateContractMigrationsCount(address, network string) error {
+	contract, err := e.GetContract(map[string]interface{}{
+		"address": address,
+		"network": network,
+	})
+	if err != nil {
+		return err
+	}
+	contract.MigrationsCount++
+
+	_, err = e.UpdateDoc(DocContracts, contract.ID, contract)
+	return err
+}

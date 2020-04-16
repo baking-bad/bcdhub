@@ -228,3 +228,35 @@ func (e *Elastic) CreateIndexIfNotExists(index string) error {
 	}
 	return nil
 }
+
+func (e *Elastic) updateByQuery(indices []string, query map[string]interface{}, source ...string) (result gjson.Result, err error) {
+	var buf bytes.Buffer
+	if err = json.NewEncoder(&buf).Encode(query); err != nil {
+		return
+	}
+
+	// var pretty bytes.Buffer
+	// json.Indent(&pretty, buf.Bytes(), "", "  ")
+	// log.Print(pretty.String())
+
+	// Perform the update by query request.
+	var resp *esapi.Response
+
+	options := []func(*esapi.UpdateByQueryRequest){
+		e.UpdateByQuery.WithContext(context.Background()),
+		e.UpdateByQuery.WithBody(&buf),
+		e.UpdateByQuery.WithSource(source...),
+		e.UpdateByQuery.WithConflicts("proceed"),
+	}
+
+	if resp, err = e.UpdateByQuery(
+		indices,
+		options...,
+	); err != nil {
+		return
+	}
+
+	defer resp.Body.Close()
+
+	return e.getResponse(resp)
+}

@@ -11,7 +11,8 @@
     "uri": "amqp://guest:guest@mq:5672/",
     "queues": [
       "operations",
-      "contracts"
+      "contracts",
+      "migrations"
     ]
   },
   "indexers": {
