@@ -195,6 +195,14 @@ func (bi *BoostIndexer) Index(levels []int64) error {
 	return nil
 }
 
+// Rollback -
+func (bi *BoostIndexer) Rollback(level int64) error {
+	logger.Warning("[%s] Rollback from %d to %d", bi.Network, bi.state.Level, level)
+
+	logger.Success("[%s] Rollback finished", bi.Network)
+	return nil
+}
+
 func (bi *BoostIndexer) process() error {
 	head, err := bi.rpc.GetHead()
 	if err != nil {
@@ -233,6 +241,8 @@ func (bi *BoostIndexer) process() error {
 		}
 		logger.Success("[%s] Synced", bi.Network)
 		return nil
+	} else if head.Level < bi.state.Level {
+		bi.Rollback(head.Level)
 	}
 
 	return fmt.Errorf("Same level")
@@ -337,6 +347,9 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 }
 
 func (bi *BoostIndexer) migrate(head noderpc.Header) error {
+	if err := bi.createNewProtocol(head); err != nil {
+		return err
+	}
 	if bi.Network == consts.Mainnet && head.Level == 1 {
 		return bi.vestingMigration(head)
 	} else if bi.state.Protocol != "" {
@@ -344,6 +357,10 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) error {
 	} else {
 		return nil
 	}
+}
+
+func (bi *BoostIndexer) createNewProtocol(head noderpc.Header) error {
+	return nil
 }
 
 func (bi *BoostIndexer) standartMigration(head noderpc.Header) error {

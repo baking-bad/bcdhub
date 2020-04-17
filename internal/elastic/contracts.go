@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/tidwall/gjson"
 )
 
 // GetContractByAddressAndNetwork -
@@ -83,7 +84,7 @@ func (e *Elastic) GetContractByID(id string) (c models.Contract, err error) {
 		return
 	}
 	if !resp.Get("found").Bool() {
-		return c, fmt.Errorf("Unknown contract with ID %s", id)
+		return c, fmt.Errorf("%s: %s %s", RecordNotFound, DocContracts, id)
 	}
 	c.ParseElasticJSON(resp)
 	return
@@ -287,4 +288,23 @@ func (e *Elastic) UpdateContractMigrationsCount(address, network string) error {
 
 	_, err = e.UpdateDoc(DocContracts, contract.ID, contract)
 	return err
+}
+
+// GetContractAddressesByNetworkAndLevel -
+func (e *Elastic) GetContractAddressesByNetworkAndLevel(network string, maxLevel int64) (gjson.Result, error) {
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				matchQ("network", network),
+				rangeQ("level", qItem{
+					"gt": maxLevel,
+				}),
+			),
+		),
+	).All()
+	resp, err := e.query([]string{DocContracts}, query, "address")
+	if err != nil {
+		return resp, err
+	}
+	return resp, nil
 }

@@ -11,10 +11,10 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
 	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/google/uuid"
 	"github.com/tidwall/gjson"
 )
 
@@ -81,7 +81,7 @@ func (p *DefaultParser) parseContent(data gjson.Result, network, hash string, he
 }
 
 func (p *DefaultParser) parseTransaction(data gjson.Result, network, hash string, head noderpc.Header) (op models.Operation, migration *models.Migration, err error) {
-	op.ID = strings.ReplaceAll(uuid.New().String(), "-", "")
+	op.ID = helpers.GenerateID()
 	op.Network = network
 	op.Hash = hash
 	op.Protocol = head.Protocol
@@ -115,7 +115,7 @@ func (p *DefaultParser) parseTransaction(data gjson.Result, network, hash string
 
 func (p *DefaultParser) parseOrigination(data gjson.Result, network, hash string, head noderpc.Header) (models.Operation, *models.Contract, *models.Migration, error) {
 	op := models.Operation{
-		ID:             strings.ReplaceAll(uuid.New().String(), "-", ""),
+		ID:             helpers.GenerateID(),
 		Network:        network,
 		Hash:           hash,
 		Protocol:       head.Protocol,
@@ -254,7 +254,7 @@ func (p *DefaultParser) findMigration(item gjson.Result, op *models.Operation) (
 		if contractparser.HasLambda(value) {
 			logger.Info("[%s] Migration detected: %s", op.Network, op.Destination)
 			return &models.Migration{
-				ID:          strings.ReplaceAll(uuid.New().String(), "-", ""),
+				ID:          helpers.GenerateID(),
 				IndexedTime: time.Now().UnixNano() / 1000,
 
 				Network:   op.Network,

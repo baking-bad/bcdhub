@@ -83,6 +83,11 @@ func (t BCDTime) MarshalJSON() ([]byte, error) {
 	return t.Time.MarshalJSON()
 }
 
+// GetID -
+func (c Contract) GetID() string {
+	return c.ID
+}
+
 // ParseElasticJSON -
 func (c *Contract) ParseElasticJSON(hit gjson.Result) {
 	c.ID = hit.Get("_id").String()

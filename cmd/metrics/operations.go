@@ -67,7 +67,7 @@ func setOperationStats(address string, operation models.Operation) error {
 	})
 
 	if err != nil {
-		if strings.Contains(err.Error(), "Unknown contract") {
+		if strings.Contains(err.Error(), elastic.RecordNotFound) {
 			return nil
 		}
 		return fmt.Errorf("[setOperationStats] Find contract error: %s", err)

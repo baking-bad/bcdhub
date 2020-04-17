@@ -8,6 +8,7 @@ const (
 	DocBigMapDiff = "bigmapdiff"
 	DocMetadata   = "metadata"
 	DocMigrations = "migration"
+	DocProtocol   = "protocol"
 )
 
 // Index names
@@ -18,4 +19,5 @@ const (
 // Errors
 const (
 	IndexNotFoundError = "index_not_found_exception"
+	RecordNotFound     = "Record is not found:"
 )

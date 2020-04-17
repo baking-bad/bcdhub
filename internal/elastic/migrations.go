@@ -75,7 +75,7 @@ func (e *Elastic) GetMigrationByID(id string) (migration models.Migration, err e
 		return
 	}
 	if !resp.Get("found").Bool() {
-		return migration, fmt.Errorf("Unknown migration with ID %s", id)
+		return migration, fmt.Errorf("%s: %s %s", RecordNotFound, DocMigrations, id)
 	}
 	migration.ParseElasticJSON(resp)
 	return

@@ -28,7 +28,7 @@ func (m *SetMigrationKind) Do(ctx *Context) error {
 		logger.Info("Found %d migrations", len(migrations))
 
 		bar := progressbar.NewOptions(len(migrations), progressbar.OptionSetPredictTime(false))
-		var bulk []elastic.BulkUpdateItem
+		var bulk []elastic.Identifiable
 
 		for i := range migrations {
 			bar.Add(1)

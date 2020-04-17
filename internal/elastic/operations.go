@@ -14,7 +14,7 @@ func (e *Elastic) GetOperationByID(id string) (op models.Operation, err error) {
 		return
 	}
 	if !resp.Get("found").Bool() {
-		return op, fmt.Errorf("Unknown operation with ID %s", id)
+		return op, fmt.Errorf("%s: %s %s", DocOperations, DocMigrations, id)
 	}
 	op.ParseElasticJSON(resp)
 	return

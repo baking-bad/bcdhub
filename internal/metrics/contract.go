@@ -2,14 +2,13 @@ package metrics
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 
 	"github.com/baking-bad/bcdhub/internal/classification/functions"
 	clmetrics "github.com/baking-bad/bcdhub/internal/classification/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/google/uuid"
 )
 
 // SetContractAlias -
@@ -70,7 +69,7 @@ func getContractProjectID(c models.Contract, buckets []models.Contract) (string,
 		}
 	}
 
-	return strings.ReplaceAll(uuid.New().String(), "-", ""), nil
+	return helpers.GenerateID(), nil
 }
 
 var model = []clmetrics.Metric{
