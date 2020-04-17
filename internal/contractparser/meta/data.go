@@ -9,11 +9,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/node"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/jsonload"
 	"github.com/tidwall/gjson"
 )
-
-var protocols map[string]string
 
 // Metadata -
 type Metadata map[string]*NodeMetadata
@@ -399,11 +396,6 @@ func GetMetadata(es *elastic.Elastic, address, part, protocol string) (Metadata,
 	var metadata Metadata
 	err = json.Unmarshal([]byte(sMetadata), &metadata)
 	return metadata, err
-}
-
-// LoadProtocols -
-func LoadProtocols(fileName string) error {
-	return jsonload.StructFromFile(fileName, &protocols)
 }
 
 // GetProtoSymLink -

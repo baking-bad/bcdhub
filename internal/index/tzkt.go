@@ -103,3 +103,21 @@ func (t *TzKT) GetContractOperationBlocks(startBlock, endBlock int64) ([]int64, 
 
 	return result, nil
 }
+
+// GetProtocols -
+func (t *TzKT) GetProtocols() ([]Protocol, error) {
+	protocols, err := t.api.GetProtocols()
+	if err != nil {
+		return nil, err
+	}
+	res := make([]Protocol, len(protocols))
+	for i := range protocols {
+		res[i] = Protocol{
+			Hash:       protocols[i].Hash,
+			StartLevel: protocols[i].StartLevel,
+			LastLevel:  protocols[i].LastLevel,
+			Alias:      protocols[i].Metadata.Alias,
+		}
+	}
+	return res, nil
+}

@@ -14,8 +14,8 @@ type Protocol struct {
 	Alias      string `json:"alias"`
 }
 
-// ParseFromElasticJSON -
-func (p *Protocol) ParseFromElasticJSON(hit gjson.Result) {
+// ParseElasticJSON -
+func (p *Protocol) ParseElasticJSON(hit gjson.Result) {
 	p.ID = hit.Get("_id").String()
 	p.Hash = hit.Get("_source.hash").String()
 	p.Network = hit.Get("_source.network").String()

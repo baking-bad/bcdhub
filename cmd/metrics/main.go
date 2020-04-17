@@ -25,6 +25,8 @@ func parseData(data amqp.Delivery) error {
 		return getOperation(data)
 	case mq.QueueMigrations:
 		return getMigrations(data)
+	case mq.QueueRollback:
+		return doRollback(data)
 	default:
 		return fmt.Errorf("Unknown data routing key %s", data.RoutingKey)
 	}
@@ -70,7 +72,7 @@ func listenChannel(messageQueue *mq.MQ, queue string, closeChan chan struct{}) {
 func main() {
 	var err error
 	var cfg config
-	if err = jsonload.StructFromFile("config.json", &cfg); err != nil {
+	if err = jsonload.StructFromFile("config-dev.json", &cfg); err != nil {
 		logger.Fatal(err)
 	}
 	cfg.print()

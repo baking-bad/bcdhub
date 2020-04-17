@@ -17,8 +17,8 @@ type Identifiable interface {
 	GetID() string
 }
 
-// BulkInsert -
-func (e *Elastic) BulkInsert(index string, buf *bytes.Buffer) error {
+// Bulk -
+func (e *Elastic) Bulk(index string, buf *bytes.Buffer) error {
 	req := esapi.BulkRequest{
 		Index:   index,
 		Body:    bytes.NewReader(buf.Bytes()),
@@ -51,7 +51,26 @@ func (e *Elastic) BulkUpdate(index string, updates []Identifiable) error {
 		bulk.Write(meta)
 		bulk.Write(data)
 	}
-	return e.BulkInsert(index, bulk)
+	return e.Bulk(index, bulk)
+}
+
+// BulkDelete -
+func (e *Elastic) BulkDelete(index string, updates []Identifiable) error {
+	bulk := bytes.NewBuffer([]byte{})
+	for i := range updates {
+		meta := []byte(fmt.Sprintf(`{ "delete": { "_id": "%s"}}%s{ "doc": `, updates[i].GetID(), "\n"))
+		data, err := json.Marshal(updates[i])
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		data = append(data, "}\n"...)
+
+		bulk.Grow(len(meta) + len(data))
+		bulk.Write(meta)
+		bulk.Write(data)
+	}
+	return e.Bulk(index, bulk)
 }
 
 // BulkInsertOperations -
@@ -69,7 +88,7 @@ func (e *Elastic) BulkInsertOperations(v []models.Operation) error {
 		bulk.Write(meta)
 		bulk.Write(data)
 	}
-	return e.BulkInsert(DocOperations, bulk)
+	return e.Bulk(DocOperations, bulk)
 }
 
 // BulkInsertContracts -
@@ -87,7 +106,7 @@ func (e *Elastic) BulkInsertContracts(v []models.Contract) error {
 		bulk.Write(meta)
 		bulk.Write(data)
 	}
-	return e.BulkInsert(DocContracts, bulk)
+	return e.Bulk(DocContracts, bulk)
 }
 
 // BulkSaveBigMapDiffs -
@@ -107,7 +126,7 @@ func (e *Elastic) BulkSaveBigMapDiffs(diffs []models.BigMapDiff) error {
 		bulk.Write(meta)
 		bulk.Write(data)
 	}
-	return e.BulkInsert(DocBigMapDiff, bulk)
+	return e.Bulk(DocBigMapDiff, bulk)
 }
 
 // BulkInsertMigrations -
@@ -125,7 +144,7 @@ func (e *Elastic) BulkInsertMigrations(v []models.Migration) error {
 		bulk.Write(meta)
 		bulk.Write(data)
 	}
-	return e.BulkInsert(DocMigrations, bulk)
+	return e.Bulk(DocMigrations, bulk)
 }
 
 // BulkInsertProtocols -
@@ -143,5 +162,5 @@ func (e *Elastic) BulkInsertProtocols(v []models.Protocol) error {
 		bulk.Write(meta)
 		bulk.Write(data)
 	}
-	return e.BulkInsert(DocProtocol, bulk)
+	return e.Bulk(DocProtocol, bulk)
 }

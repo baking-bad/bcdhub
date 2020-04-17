@@ -3,6 +3,7 @@ module github.com/baking-bad/bcdhub
 go 1.13
 
 require (
+	cloud.google.com/go v0.37.4
 	github.com/btcsuite/btcutil v1.0.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20191218082911-5398a82b748f
@@ -14,6 +15,7 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
 	github.com/jinzhu/gorm v1.9.11
+	github.com/mkouhei/gosh v0.2.3 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/schollz/progressbar/v3 v3.1.1

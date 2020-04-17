@@ -302,9 +302,85 @@ func (e *Elastic) GetContractAddressesByNetworkAndLevel(network string, maxLevel
 			),
 		),
 	).All()
-	resp, err := e.query([]string{DocContracts}, query, "address")
+	resp, err := e.query([]string{DocContracts}, query, "address", "level")
 	if err != nil {
 		return resp, err
 	}
 	return resp, nil
+}
+
+// NeedParseOperation -
+func (e *Elastic) NeedParseOperation(network, source, destination string) (bool, error) {
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				matchQ("network", network),
+				boolQ(
+					should(
+						matchPhrase("address", source),
+						matchPhrase("address", destination),
+					),
+					minimumShouldMatch(1),
+				),
+			),
+		),
+	).One()
+	resp, err := e.query([]string{DocContracts}, query, "address")
+	if err != nil {
+		return false, err
+	}
+	return resp.Get("hits.total.value").Int() == 1, nil
+}
+
+// IsKnownContract -
+func (e *Elastic) IsKnownContract(network, address string) (bool, error) {
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				matchQ("network", network),
+				matchPhrase("address", address),
+			),
+		),
+	).One()
+	resp, err := e.query([]string{DocContracts}, query, "address")
+	if err != nil {
+		return false, err
+	}
+	return resp.Get("hits.total.value").Int() == 1, nil
+}
+
+// GetContractsIDByAddress -
+func (e *Elastic) GetContractsIDByAddress(addresses []string, network string) ([]string, error) {
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				matchQ("network", network),
+				in("address", addresses),
+			),
+		),
+	)
+	result, err := e.createScroll(DocContracts, 1000, query)
+	if err != nil {
+		return nil, err
+	}
+
+	ids := make([]string, 0)
+	for {
+		scrollID := result.Get("_scroll_id").String()
+		hits := result.Get("hits.hits")
+		if hits.Get("#").Int() < 1 {
+			break
+		}
+
+		for _, item := range hits.Array() {
+			ids = append(ids, item.Get("_id").String())
+		}
+
+		result, err = e.queryScroll(scrollID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return ids, nil
 }

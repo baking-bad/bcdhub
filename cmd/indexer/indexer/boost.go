@@ -27,6 +27,7 @@ type BoostIndexer struct {
 	es              *elastic.Elastic
 	externalIndexer index.Indexer
 	state           models.State
+	currentProtocol models.Protocol
 	messageQueue    *mq.MQ
 	filesDirectory  string
 	boost           bool
@@ -56,11 +57,17 @@ func NewBoostIndexer(cfg Config, network string) (*BoostIndexer, error) {
 		return nil, err
 	}
 
-	logger.Info("[%s] Getting current indexer state...", network)
 	currentState, err := es.CurrentState(network)
 	if err != nil {
 		return nil, err
 	}
+	logger.Info("[%s] Current indexer state: %d", network, currentState.Level)
+
+	currentProtocol, err := es.GetProtocol(network, currentState.Level)
+	if err != nil {
+		return nil, err
+	}
+	logger.Info("[%s] Current network protocol: %s", network, currentProtocol.Hash)
 
 	logger.Info("[%s] Getting network constants...", network)
 	constants, err := rpc.GetNetworkConstants()
@@ -78,6 +85,7 @@ func NewBoostIndexer(cfg Config, network string) (*BoostIndexer, error) {
 		externalIndexer: externalIndexer,
 		messageQueue:    messageQueue,
 		state:           currentState,
+		currentProtocol: currentProtocol,
 		filesDirectory:  cfg.FilesDirectory,
 		boost:           config.Boost,
 		stop:            make(chan struct{}),
@@ -160,8 +168,8 @@ func (bi *BoostIndexer) Index(levels []int64) error {
 
 		logger.Info("[%s] indexing %d block", bi.Network, level)
 
-		if currentHead.Protocol != bi.state.Protocol {
-			log.Printf("[%s] New protocol detected: %s -> %s", bi.Network, bi.state.Protocol, currentHead.Protocol)
+		if currentHead.Protocol != bi.currentProtocol.Hash {
+			log.Printf("[%s] New protocol detected: %s -> %s", bi.Network, bi.currentProtocol.Hash, currentHead.Protocol)
 			if err := bi.migrate(currentHead); err != nil {
 				return err
 			}
@@ -203,6 +211,29 @@ func (bi *BoostIndexer) Rollback(level int64) error {
 	return nil
 }
 
+func (bi *BoostIndexer) getBoostBlocks(head noderpc.Header) ([]int64, error) {
+	levels, err := bi.externalIndexer.GetContractOperationBlocks(bi.state.Level, head.Level)
+	if err != nil {
+		return nil, err
+	}
+
+	protocols, err := bi.externalIndexer.GetProtocols()
+	if err != nil {
+		return nil, err
+	}
+
+	protocolLevels := make([]int64, len(protocols))
+	for i := range protocols {
+		protocolLevels[i] = protocols[i].StartLevel
+	}
+
+	result := helpers.Merge2ArraysInt64(levels, protocolLevels)
+	if result[0] == 0 {
+		result = result[1:] // Drop 0 block
+	}
+	return result, err
+}
+
 func (bi *BoostIndexer) process() error {
 	head, err := bi.rpc.GetHead()
 	if err != nil {
@@ -214,7 +245,7 @@ func (bi *BoostIndexer) process() error {
 	if head.Level > bi.state.Level {
 		levels := make([]int64, 0)
 		if bi.boost {
-			levels, err = bi.externalIndexer.GetContractOperationBlocks(bi.state.Level, head.Level)
+			levels, err = bi.getBoostBlocks(head)
 			if err != nil {
 				return err
 			}
@@ -347,19 +378,28 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 }
 
 func (bi *BoostIndexer) migrate(head noderpc.Header) error {
-	if err := bi.createNewProtocol(head); err != nil {
+	if bi.Network == consts.Mainnet && head.Level == 1 {
+		if err := bi.vestingMigration(head); err != nil {
+			return err
+		}
+	} else if bi.currentProtocol.Hash != "" {
+		if err := bi.standartMigration(head); err != nil {
+			return err
+		}
+	}
+
+	if err := bi.updateProtocol(head); err != nil {
 		return err
 	}
-	if bi.Network == consts.Mainnet && head.Level == 1 {
-		return bi.vestingMigration(head)
-	} else if bi.state.Protocol != "" {
-		return bi.standartMigration(head)
-	} else {
-		return nil
-	}
+	return nil
 }
 
-func (bi *BoostIndexer) createNewProtocol(head noderpc.Header) error {
+func (bi *BoostIndexer) updateProtocol(head noderpc.Header) error {
+	protocol, err := bi.es.GetProtocol(bi.Network, head.Level)
+	if err != nil {
+		return err
+	}
+	bi.currentProtocol = protocol
 	return nil
 }
 
@@ -368,11 +408,7 @@ func (bi *BoostIndexer) standartMigration(head noderpc.Header) error {
 	if err != nil {
 		return err
 	}
-	currentSymLink, err := meta.GetProtoSymLink(bi.state.Protocol)
-	if err != nil {
-		return err
-	}
-	if newSymLink == currentSymLink {
+	if newSymLink == bi.currentProtocol.SymLink {
 		return nil
 	}
 
@@ -394,7 +430,7 @@ func (bi *BoostIndexer) standartMigration(head noderpc.Header) error {
 			return err
 		}
 
-		migration, err := p.Parse(script, head, contracts[i], bi.state.Protocol)
+		migration, err := p.Parse(script, head, contracts[i], bi.currentProtocol.Hash)
 		if err != nil {
 			return err
 		}

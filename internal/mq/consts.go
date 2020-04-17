@@ -10,4 +10,5 @@ const (
 	QueueContracts  = "contracts"
 	QueueOperations = "operations"
 	QueueMigrations = "migrations"
+	QueueRollback   = "rollback"
 )

@@ -40,7 +40,11 @@ func (p *DefaultParser) Parse(opg gjson.Result, network string, head noderpc.Hea
 	contracts := make([]models.Contract, 0)
 	migrations := make([]models.Migration, 0)
 	for idx, item := range opg.Get("contents").Array() {
-		if !p.needParse(item, idx) {
+		need, err := p.needParse(item, network, idx)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		if !need {
 			continue
 		}
 
@@ -329,12 +333,17 @@ func (p *DefaultParser) parseInternalOperations(item gjson.Result, main models.O
 	return res, contracts, migrations, nil
 }
 
-func (p *DefaultParser) needParse(item gjson.Result, idx int) bool {
+func (p *DefaultParser) needParse(item gjson.Result, network string, idx int) (bool, error) {
 	kind := item.Get("kind").String()
-	originationCondition := kind == consts.Origination && item.Get("script").Exists()
-	prefixCondition := strings.HasPrefix(item.Get("source").String(), "KT") || strings.HasPrefix(item.Get("destination").String(), "KT")
+	source := item.Get("source").String()
+	destination := item.Get("destination").String()
+	prefixCondition := strings.HasPrefix(source, "KT") || strings.HasPrefix(destination, "KT")
 	transactionCondition := kind == consts.Transaction && prefixCondition
-	return originationCondition || transactionCondition
+	if transactionCondition {
+		return p.es.NeedParseOperation(network, source, destination)
+	}
+	originationCondition := kind == consts.Origination && item.Get("script").Exists()
+	return originationCondition, nil
 }
 
 func (p *DefaultParser) getRichStorage(data gjson.Result, metadata *meta.ContractMetadata, op *models.Operation) (storage.RichStorage, error) {

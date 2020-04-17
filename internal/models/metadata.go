@@ -22,3 +22,8 @@ func (m *Metadata) ParseElasticJSON(hit gjson.Result) {
 		m.Storage[k] = v.String()
 	}
 }
+
+// GetID -
+func (m Metadata) GetID() string {
+	return m.ID
+}
