@@ -21,7 +21,6 @@ type Code struct {
 	Tags        helpers.Set
 	Language    string
 	FailStrings helpers.Set
-	Primitives  helpers.Set
 	Annotations helpers.Set
 }
 
@@ -30,7 +29,6 @@ func newCode(script gjson.Result) (Code, error) {
 		parser:      &parser{},
 		Language:    language.LangUnknown,
 		FailStrings: make(helpers.Set),
-		Primitives:  make(helpers.Set),
 		Tags:        make(helpers.Set),
 		Annotations: make(helpers.Set),
 	}
@@ -97,8 +95,6 @@ func (c *Code) handleArray(arr gjson.Result) error {
 }
 
 func (c *Code) handlePrimitive(n node.Node) (err error) {
-	c.Primitives.Append(n.Prim)
-
 	if n.HasAnnots() {
 		c.Annotations.Append(filterAnnotations(n.Annotations)...)
 	}
