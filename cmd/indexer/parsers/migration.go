@@ -57,7 +57,7 @@ func (p *MigrationParser) Parse(data gjson.Result, head noderpc.Header, old mode
 		PrevProtocol: prevProtocol,
 		Address:      old.Address,
 		Timestamp:    head.Timestamp,
-		Kind:         consts.MigrationProtocol,
+		Kind:         consts.MigrationUpdate,
 	}
 	if _, err := p.es.UpdateDoc(elastic.DocContracts, old.ID, old); err != nil {
 		return nil, err

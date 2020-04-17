@@ -3,8 +3,6 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/elastic"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -52,35 +50,24 @@ func (ctx *Context) GetSimilarContracts(c *gin.Context) {
 		return
 	}
 
-	s, err := ctx.ES.GetSimilarContracts(contract)
+	similar, err := ctx.ES.GetSimilarContracts(contract)
 	if handleError(c, err, 0) {
 		return
 	}
-	similar, err := ctx.getSimilarDiffs(s, contract)
-	if handleError(c, err, 0) {
-		return
-	}
-	c.JSON(http.StatusOK, similar)
-}
 
-func (ctx *Context) getSimilarDiffs(similar []elastic.SimilarContract, contract models.Contract) ([]elastic.SimilarContract, error) {
-	if similar == nil {
-		return []elastic.SimilarContract{}, nil
-	}
-
-	for i := 0; i < len(similar); i++ {
-		src := &similar[i]
+	for i := range similar {
 		diff, err := ctx.getContractCodeDiff(
 			CodeDiffLeg{Address: contract.Address, Network: contract.Network},
-			CodeDiffLeg{Address: src.Address, Network: src.Network},
+			CodeDiffLeg{Address: similar[i].Address, Network: similar[i].Network},
 		)
-		if err != nil {
-			return nil, err
+		if handleError(c, err, 0) {
+			return
 		}
-		src.Added = diff.Diff.Added
-		src.Removed = diff.Diff.Removed
+		similar[i].Added = diff.Diff.Added
+		similar[i].Removed = diff.Diff.Removed
 	}
-	return similar, nil
+
+	c.JSON(http.StatusOK, similar)
 }
 
 // GetProjects -

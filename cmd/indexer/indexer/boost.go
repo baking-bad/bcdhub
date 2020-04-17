@@ -337,10 +337,13 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 }
 
 func (bi *BoostIndexer) migrate(head noderpc.Header) error {
-	if bi.state.Protocol == "" {
+	if bi.Network == consts.Mainnet && head.Level == 1 {
 		return bi.vestingMigration(head)
+	} else if bi.state.Protocol != "" {
+		return bi.standartMigration(head)
+	} else {
+		return nil
 	}
-	return bi.standartMigration(head)
 }
 
 func (bi *BoostIndexer) standartMigration(head noderpc.Header) error {
@@ -392,7 +395,7 @@ func (bi *BoostIndexer) standartMigration(head noderpc.Header) error {
 }
 
 func (bi *BoostIndexer) vestingMigration(head noderpc.Header) error {
-	addresses, err := bi.rpc.GetContractsByBlock(1)
+	addresses, err := bi.rpc.GetContractsByBlock(head.Level)
 	if err != nil {
 		return err
 	}
@@ -406,12 +409,12 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header) error {
 			continue
 		}
 
-		data, err := bi.rpc.GetContractJSON(address, 1)
+		data, err := bi.rpc.GetContractJSON(address, head.Level)
 		if err != nil {
 			return err
 		}
 
-		migration, contract, err := p.Parse(data, bi.Network, address, head.Protocol)
+		migration, contract, err := p.Parse(data, head, bi.Network, address)
 		if err != nil {
 			return err
 		}
@@ -421,7 +424,7 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header) error {
 		}
 	}
 
-	logger.Info("[%s] Found %d migrations", bi.Network, len(migrations))
+	logger.Info("[%s] Found %d bootstrap migrations", bi.Network, len(migrations))
 	if len(contracts) > 0 {
 		if err := bi.saveContracts(contracts); err != nil {
 			return err
