@@ -1,5 +1,5 @@
 {
-  "files_directory": "/home/artem/.bcd",
+  "files_directory": "~/.bcd",
   "search": {
     "uri": "http://localhost:9200"
   },

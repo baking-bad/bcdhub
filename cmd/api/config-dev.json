@@ -20,7 +20,7 @@
       "https://rpc.tzkt.io/carthagenet"
     ]
   },
-  "dir": "/home/artem/.bcd",
+  "dir": "~/.bcd",
   "db": {
     "uri": "host=127.0.0.1 port=5432 user=root dbname=bcd password=root sslmode=disable"
   },

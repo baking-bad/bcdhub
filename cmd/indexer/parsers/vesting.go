@@ -37,7 +37,7 @@ func (p *VestingParser) Parse(data gjson.Result, head noderpc.Header, network, a
 
 		Level:     head.Level,
 		Network:   network,
-		Protocol:  head.NextProtocol,
+		Protocol:  head.Protocol,
 		Address:   address,
 		Timestamp: head.Timestamp,
 		Kind:      consts.MigrationBootstrap,
@@ -50,7 +50,7 @@ func (p *VestingParser) Parse(data gjson.Result, head noderpc.Header, network, a
 	op := models.Operation{
 		ID:          helpers.GenerateID(),
 		Network:     network,
-		Protocol:    head.NextProtocol,
+		Protocol:    head.Protocol,
 		Status:      "applied",
 		Kind:        consts.Migration,
 		Amount:      data.Get("balance").Int(),
