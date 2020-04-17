@@ -41,7 +41,6 @@ type Contract struct {
 	Tags        []string `json:"tags,omitempty"`
 	Hardcoded   []string `json:"hardcoded,omitempty"`
 	FailStrings []string `json:"fail_strings,omitempty"`
-	Primitives  []string `json:"primitives,omitempty"`
 	Annotations []string `json:"annotations,omitempty"`
 	Entrypoints []string `json:"entrypoints,omitempty"`
 
@@ -49,14 +48,14 @@ type Contract struct {
 	Manager  string `json:"manager,omitempty"`
 	Delegate string `json:"delegate,omitempty"`
 
-	ProjectID      string  `json:"project_id,omitempty"`
-	FoundBy        string  `json:"found_by,omitempty"`
-	LastAction     BCDTime `json:"last_action,omitempty"`
-	TxCount        int64   `json:"tx_count,omitempty"`
-	MigrationsCount   int64   `json:"migrations_count,omitempty"`
-	TotalWithdrawn int64   `json:"total_withdrawn,omitempty"`
-	Alias          string  `json:"alias,omitempty"`
-	DelegateAlias  string  `json:"delegate_alias,omitempty"`
+	ProjectID       string  `json:"project_id,omitempty"`
+	FoundBy         string  `json:"found_by,omitempty"`
+	LastAction      BCDTime `json:"last_action,omitempty"`
+	TxCount         int64   `json:"tx_count,omitempty"`
+	MigrationsCount int64   `json:"migrations_count,omitempty"`
+	TotalWithdrawn  int64   `json:"total_withdrawn,omitempty"`
+	Alias           string  `json:"alias,omitempty"`
+	DelegateAlias   string  `json:"delegate_alias,omitempty"`
 }
 
 // Fingerprint -
@@ -96,7 +95,6 @@ func (c *Contract) ParseElasticJSON(hit gjson.Result) {
 	c.Tags = parseStringArray(hit, "_source.tags")
 	c.Hardcoded = parseStringArray(hit, "_source.hardcoded")
 	c.Annotations = parseStringArray(hit, "_source.annotations")
-	c.Primitives = parseStringArray(hit, "_source.primitives")
 	c.FailStrings = parseStringArray(hit, "_source.fail_strings")
 	c.Entrypoints = parseStringArray(hit, "_source.entrypoints")
 
