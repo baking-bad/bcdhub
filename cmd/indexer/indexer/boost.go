@@ -412,11 +412,7 @@ func (bi *BoostIndexer) standartMigration(head noderpc.Header) error {
 }
 
 func (bi *BoostIndexer) vestingMigration(head noderpc.Header) error {
-	successor, err := bi.rpc.GetHeader(head.Level + 1)
-	if err != nil {
-		return err
-	}
-	addresses, err := bi.rpc.GetContractsByBlock(successor.Level)
+	addresses, err := bi.rpc.GetContractsByBlock(head.Level)
 	if err != nil {
 		return err
 	}
@@ -430,12 +426,12 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header) error {
 			continue
 		}
 
-		data, err := bi.rpc.GetContractJSON(address, successor.Level)
+		data, err := bi.rpc.GetContractJSON(address, head.Level)
 		if err != nil {
 			return err
 		}
 
-		migration, contract, err := p.Parse(data, successor, bi.Network, address)
+		migration, contract, err := p.Parse(data, head, bi.Network, address)
 		if err != nil {
 			return err
 		}
