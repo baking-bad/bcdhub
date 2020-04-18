@@ -50,6 +50,10 @@ func (s *Script) Parse() {
 
 // Language -
 func (s *Script) Language() (string, error) {
+	if s.Code.Language == s.Code.Parameter.Language {
+		return s.Code.Language, nil
+	}
+
 	if s.Code.Language == language.LangUnknown {
 		return s.Code.Parameter.Language, nil
 	}
