@@ -13,6 +13,7 @@ type State struct {
 	Timestamp time.Time `json:"timestamp"`
 	Network   string    `json:"network"`
 	Protocol  string    `json:"protocol"`
+	ChainID   string    `json:"chain_id"`
 }
 
 // ParseElasticJSON -
@@ -22,4 +23,5 @@ func (s *State) ParseElasticJSON(hit gjson.Result) {
 	s.Protocol = hit.Get("_source.protocol").String()
 	s.Level = hit.Get("_source.level").Int()
 	s.Timestamp = hit.Get("_source.timestamp").Time()
+	s.ChainID = hit.Get("_source.chain_id").String()
 }

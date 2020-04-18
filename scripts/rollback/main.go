@@ -38,7 +38,7 @@ func main() {
 		return
 	}
 
-	messageQueue, err := mq.New(*mqConnection, []string{"rollback"})
+	messageQueue, err := mq.New(*mqConnection, []string{"recalc"})
 	if err != nil {
 		panic(err)
 	}
@@ -49,7 +49,7 @@ func main() {
 		panic(err)
 	}
 
-	logger.Warning("Do you want rollback '%s' from %d to %d? (yes - continue. no - cancel)", state.Network, state.Level, *level)
+	logger.Warning("Do you want to rollback '%s' from %d to %d? (yes - continue. no - cancel)", state.Network, state.Level, *level)
 
 	reader := bufio.NewReader(os.Stdin)
 	text, err := reader.ReadString('\n')

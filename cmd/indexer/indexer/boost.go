@@ -222,16 +222,22 @@ func (bi *BoostIndexer) getBoostBlocks(head noderpc.Header) ([]int64, error) {
 		return nil, err
 	}
 
-	protocolLevels := make([]int64, len(protocols))
+	protocolLevels := make([]int64, 0)
 	for i := range protocols {
-		protocolLevels[i] = protocols[i].StartLevel
+		if protocols[i].StartLevel > bi.state.Level && protocols[i].StartLevel > 0 {
+			protocolLevels = append(protocolLevels, protocols[i].StartLevel)
+		}
 	}
 
 	result := helpers.Merge2ArraysInt64(levels, protocolLevels)
-	if result[0] == 0 {
-		result = result[1:] // Drop 0 block
-	}
 	return result, err
+}
+
+func (bi *BoostIndexer) validChainID(head noderpc.Header) bool {
+	if bi.state.ChainID == "" {
+		return bi.state.Level == 0
+	}
+	return bi.state.ChainID == head.ChainID
 }
 
 func (bi *BoostIndexer) process() error {
@@ -239,6 +245,11 @@ func (bi *BoostIndexer) process() error {
 	if err != nil {
 		return err
 	}
+
+	if !bi.validChainID(head) {
+		return fmt.Errorf("Invalid chain_id: %s (state) != %s (head)", bi.state.ChainID, head.ChainID)
+	}
+
 	logger.Info("[%s] Current node state: %d", bi.Network, head.Level)
 	logger.Info("[%s] Current indexer state: %d", bi.Network, bi.state.Level)
 
@@ -305,6 +316,7 @@ func (bi *BoostIndexer) updateState(head noderpc.Header) error {
 	bi.state.Level = head.Level
 	bi.state.Timestamp = head.Timestamp
 	bi.state.Protocol = head.Protocol
+	bi.state.ChainID = head.ChainID
 
 	if _, err := bi.es.UpdateDoc(elastic.DocStates, bi.state.ID, bi.state); err != nil {
 		return err
@@ -386,6 +398,8 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) error {
 		if err := bi.standartMigration(head); err != nil {
 			return err
 		}
+	} else {
+		return nil
 	}
 
 	if err := bi.updateProtocol(head); err != nil {
@@ -477,7 +491,6 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header) error {
 		}
 	}
 
-	logger.Info("[%s] Found %d bootstrap migrations", bi.Network, len(migrations))
 	if len(contracts) > 0 {
 		if err := bi.saveContracts(contracts); err != nil {
 			return err

@@ -13,7 +13,7 @@
       "operations",
       "contracts",
       "migrations",
-      "rollback"
+      "recalc"
     ]
   },
   "indexers": {

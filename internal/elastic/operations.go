@@ -329,8 +329,8 @@ func (e *Elastic) GetAffectedContracts(network string, fromLevel, toLevel int64)
 			filter(
 				matchQ("network", network),
 				rangeQ("level", qItem{
-					"gt":  fromLevel,
-					"lte": toLevel,
+					"lte": fromLevel,
+					"gt":  toLevel,
 				}),
 			),
 		),

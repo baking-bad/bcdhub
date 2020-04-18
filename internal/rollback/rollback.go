@@ -2,8 +2,10 @@ package rollback
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/mq"
@@ -17,7 +19,7 @@ func Rollback(e *elastic.Elastic, messageQueue *mq.MQ, fromState models.State, t
 	}
 	affectedContractIDs, err := getAffectedContracts(e, fromState.Network, fromState.Level, toLevel)
 	if err != nil {
-		return nil
+		return err
 	}
 	logger.Info("Rollback will affect %d contracts", len(affectedContractIDs))
 
@@ -31,9 +33,10 @@ func Rollback(e *elastic.Elastic, messageQueue *mq.MQ, fromState models.State, t
 		return err
 	}
 
+	time.Sleep(time.Second) // Golden hack: Waiting while elastic remove records
 	logger.Info("Sending to queue affected contract ids...")
 	for i := range affectedContractIDs {
-		if err := messageQueue.Send(mq.ChannelNew, mq.QueueRollback, affectedContractIDs[i]); err != nil {
+		if err := messageQueue.Send(mq.ChannelNew, mq.QueueRecalc, affectedContractIDs[i]); err != nil {
 			return err
 		}
 	}
@@ -107,6 +110,7 @@ func removeMetadata(e *elastic.Elastic, network string, fromLevel, toLevel int64
 	bulkDeleteMetadata := make([]elastic.Identifiable, 0)
 
 	arr := contracts.Array()
+	logger.Info("%d contracts will be removed", len(arr))
 	bar := progressbar.NewOptions(len(arr), progressbar.OptionSetPredictTime(false))
 	for _, contract := range arr {
 		bar.Add(1)
@@ -123,7 +127,6 @@ func removeMetadata(e *elastic.Elastic, network string, fromLevel, toLevel int64
 			return err
 		}
 	}
-	logger.Info("Removed")
 	return nil
 }
 
@@ -147,55 +150,40 @@ func updateMetadata(e *elastic.Elastic, network string, fromLevel, toLevel int64
 		return nil
 	}
 
-	restAliases, err := e.GetSymLinksToLevel(network, toLevel)
+	logger.Info("Rollback to %s from %s", rollbackProtocol.Hash, currentProtocol.Hash)
+	removingFields, err := e.GetSymLinksAfterLevel(network, toLevel)
 	if err != nil {
 		return err
 	}
 
 	logger.Info("Getting all metadata...")
-	metadata, err := e.GetAllMetadata(map[string]interface{}{
-		"network": network,
-	})
-	bulkUpdateMetadata := make([]elastic.Identifiable, 0)
+	metadata, err := e.GetAllMetadata()
+	if err != nil {
+		return err
+	}
 
-	bar := progressbar.NewOptions(len(metadata), progressbar.OptionSetPredictTime(false))
+	logger.Info("Found %d metadata", len(metadata))
+	bulkUpdateMetadata := make([]elastic.Identifiable, 0)
 	for _, m := range metadata {
-		bar.Add(1)
-		newMetadata, err := changeMetadata(m, restAliases)
-		if err != nil {
-			return err
-		}
-		bulkUpdateMetadata = append(bulkUpdateMetadata, newMetadata)
+		bulkUpdateMetadata = append(bulkUpdateMetadata, m)
 	}
 	fmt.Print("\033[2K\r")
 
-	logger.Info("Updating metadata...")
 	if len(bulkUpdateMetadata) > 0 {
-		if err := e.BulkUpdate(elastic.DocMetadata, bulkUpdateMetadata); err != nil {
-			return err
+		for _, field := range removingFields {
+			for i := 0; i < len(bulkUpdateMetadata); i += 1000 {
+				start := i * 1000
+				end := helpers.MinInt((i+1)*1000, len(bulkUpdateMetadata))
+				parameterScript := fmt.Sprintf("ctx._source.parameter.remove('%s')", field)
+				if err := e.BulkRemoveField(elastic.DocMetadata, parameterScript, bulkUpdateMetadata[start:end]); err != nil {
+					return err
+				}
+				storageScript := fmt.Sprintf("ctx._source.storage.remove('%s')", field)
+				if err := e.BulkRemoveField(elastic.DocMetadata, storageScript, bulkUpdateMetadata[start:end]); err != nil {
+					return err
+				}
+			}
 		}
 	}
-	logger.Info("Updated")
 	return nil
-}
-
-func changeMetadata(metadata models.Metadata, restAliases []string) (models.Metadata, error) {
-	newMetadata := models.Metadata{
-		ID:        metadata.ID,
-		Parameter: make(map[string]string),
-		Storage:   make(map[string]string),
-	}
-	for _, alias := range restAliases {
-		p, ok := metadata.Parameter[alias]
-		if !ok {
-			return newMetadata, fmt.Errorf("[Rollback] Unknown parameter alias: %s", alias)
-		}
-		newMetadata.Parameter[alias] = p
-		s, ok := metadata.Storage[alias]
-		if !ok {
-			return newMetadata, fmt.Errorf("[Rollback] Unknown storage alias: %s", alias)
-		}
-		newMetadata.Storage[alias] = s
-	}
-	return metadata, nil
 }

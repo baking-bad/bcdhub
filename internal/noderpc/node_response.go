@@ -11,10 +11,12 @@ type Header struct {
 	Level     int64     `json:"level"`
 	Protocol  string    `json:"protocol"`
 	Timestamp time.Time `json:"timestamp"`
+	ChainID   string    `json:"chain_id"`
 }
 
 func (h *Header) parseGJSON(data gjson.Result) {
 	h.Level = data.Get("level").Int()
 	h.Protocol = data.Get("protocol").String()
+	h.ChainID = data.Get("chain_id").String()
 	h.Timestamp = data.Get("timestamp").Time().UTC()
 }

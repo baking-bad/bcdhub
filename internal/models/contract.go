@@ -30,7 +30,7 @@ var foundByCategories = []string{
 
 // Contract - entity for contract
 type Contract struct {
-	ID          string       `json:"id"`
+	ID          string       `json:"-"`
 	Network     string       `json:"network"`
 	Level       int64        `json:"level"`
 	Timestamp   time.Time    `json:"timestamp"`

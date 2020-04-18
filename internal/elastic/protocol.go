@@ -77,14 +77,14 @@ func (e *Elastic) GetProtocolsByNetwork(network string) ([]models.Protocol, erro
 	return protocols, nil
 }
 
-// GetSymLinksToLevel - returns list of symlinks in `network` before `level`
-func (e *Elastic) GetSymLinksToLevel(network string, level int64) ([]string, error) {
+// GetSymLinksAfterLevel - returns list of symlinks in `network` after `level`
+func (e *Elastic) GetSymLinksAfterLevel(network string, level int64) ([]string, error) {
 	query := newQuery().Query(
 		boolQ(
 			filter(
 				matchQ("network", network),
 				rangeQ("start_level", qItem{
-					"lte": level,
+					"gt": level,
 				}),
 			),
 		),

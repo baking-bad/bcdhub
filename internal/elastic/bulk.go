@@ -58,17 +58,20 @@ func (e *Elastic) BulkUpdate(index string, updates []Identifiable) error {
 func (e *Elastic) BulkDelete(index string, updates []Identifiable) error {
 	bulk := bytes.NewBuffer([]byte{})
 	for i := range updates {
-		meta := []byte(fmt.Sprintf(`{ "delete": { "_id": "%s"}}%s{ "doc": `, updates[i].GetID(), "\n"))
-		data, err := json.Marshal(updates[i])
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-		data = append(data, "}\n"...)
-
-		bulk.Grow(len(meta) + len(data))
+		meta := []byte(fmt.Sprintf(`{ "delete": { "_index": "%s", "_id": "%s"}}%s`, index, updates[i].GetID(), "\n"))
+		bulk.Grow(len(meta))
 		bulk.Write(meta)
-		bulk.Write(data)
+	}
+	return e.Bulk(index, bulk)
+}
+
+// BulkRemoveField -
+func (e *Elastic) BulkRemoveField(index, script string, where []Identifiable) error {
+	bulk := bytes.NewBuffer([]byte{})
+	for i := range where {
+		meta := fmt.Sprintf(`{ "update": { "_id": "%s"}}%s{"script" : "%s"}%s`, where[i].GetID(), "\n", script, "\n")
+		bulk.Grow(len(meta))
+		bulk.WriteString(meta)
 	}
 	return e.Bulk(index, bulk)
 }

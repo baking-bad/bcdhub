@@ -20,8 +20,8 @@ func (e *Elastic) createState(network string) (s models.State, err error) {
 func (e *Elastic) CurrentState(network string) (s models.State, err error) {
 	query := newQuery().Query(
 		boolQ(
-			must(
-				matchPhrase("network", network),
+			filter(
+				matchQ("network", network),
 			),
 		),
 	).One()

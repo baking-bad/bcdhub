@@ -9,7 +9,7 @@
       "operations",
       "contracts",
       "migrations",
-      "rollback"
+      "recalc"
     ]
   },
   "nodes": {

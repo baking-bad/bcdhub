@@ -13,13 +13,12 @@ func (e *Elastic) GetMetadata(address string) (metadata models.Metadata, err err
 }
 
 // GetAllMetadata -
-func (e *Elastic) GetAllMetadata(q map[string]interface{}) ([]models.Metadata, error) {
-	metadata := make([]models.Metadata, 0)
-
-	result, err := e.createScroll(DocMetadata, 1000, q)
+func (e *Elastic) GetAllMetadata() ([]models.Metadata, error) {
+	result, err := e.createScroll(DocMetadata, 1000, map[string]interface{}{})
 	if err != nil {
 		return nil, err
 	}
+	metadata := make([]models.Metadata, 0)
 	for {
 		scrollID := result.Get("_scroll_id").String()
 		hits := result.Get("hits.hits")

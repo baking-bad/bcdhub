@@ -58,7 +58,6 @@ func computeMetrics(es *elastic.Elastic, operation models.Operation, filesDirect
 	if err := saveToFile(operation.Script, contract, filesDirectory, protoSymLink); err != nil {
 		return err
 	}
-
 	return saveMetadata(es, operation.Script, protoSymLink, contract)
 }
 

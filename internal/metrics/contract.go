@@ -41,6 +41,28 @@ func (h *Handler) SetContractStats(op models.Operation, c *models.Contract) erro
 	return nil
 }
 
+// UpdateContractStats -
+func (h *Handler) UpdateContractStats(c *models.Contract) error {
+	stats, err := h.ES.RecalcContractStats(c.Network, c.Address)
+	if err != nil {
+		return err
+	}
+	migrationsStats, err := h.ES.GetContractMigrationStats(c.Network, c.Address)
+	if err != nil {
+		return err
+	}
+
+	c.TxCount = stats.TxCount
+	c.LastAction = models.BCDTime{
+		Time: stats.LastAction,
+	}
+	c.Balance = stats.Balance
+	c.TotalWithdrawn = stats.TotalWithdrawn
+	c.MigrationsCount = migrationsStats.MigrationsCount
+
+	return nil
+}
+
 // SetContractProjectID -
 func (h *Handler) SetContractProjectID(c *models.Contract) error {
 	buckets, err := h.ES.GetLastProjectContracts()

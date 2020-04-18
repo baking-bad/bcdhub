@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -308,7 +309,7 @@ func (e *Elastic) DeleteByLevelAndNetwork(indices []string, network string, maxL
 		}
 
 		end = response.Get("version_conflicts").Int() == 0
-		log.Printf("Removed %d records from %d", response.Get("deleted").Int(), response.Get("total").Int())
+		log.Printf("Removed %d/%d records from %s", response.Get("deleted").Int(), response.Get("total").Int(), strings.Join(indices, ","))
 	}
 	return nil
 }
