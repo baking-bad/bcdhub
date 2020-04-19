@@ -6,6 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
+	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -90,18 +91,21 @@ func (ctx *Context) prepareBigMap(data []elastic.BigMapDiff, network, address st
 			}
 		}
 		var key interface{}
+		var keyString string
 		if data[i].Key != "" {
 			val := gjson.Parse(data[i].Key)
 			key, err = newmiguel.BigMapToMiguel(val, data[i].BinPath+"/k", metadata)
 			if err != nil {
 				return
 			}
+			keyString = stringer.Stringify(val)
 		}
 
 		res[i] = BigMapResponseItem{
 			Item: BigMapItem{
 				Key:       key,
 				KeyHash:   data[i].KeyHash,
+				KeyString: keyString,
 				Level:     data[i].Level,
 				Value:     value,
 				Timestamp: data[i].Timestamp,

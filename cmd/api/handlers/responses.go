@@ -89,6 +89,7 @@ type BigMapItem struct {
 	Key       interface{} `json:"key"`
 	Value     interface{} `json:"value"`
 	KeyHash   string      `json:"key_hash"`
+	KeyString string      `json:"key_string"`
 	Level     int64       `json:"level"`
 	Timestamp time.Time   `json:"timestamp"`
 }
