@@ -134,6 +134,7 @@ func (e *Elastic) SearchByText(text string, offset int64, fields []string, filte
 				"sort": qList{
 					sort("_score", "desc"),
 					qItem{"last_action": qItem{"order": "desc", "unmapped_type": "long"}},
+					sort("timestamp", "desc"),
 				},
 				"highlight": qItem{
 					"fields": mapHighlights,
