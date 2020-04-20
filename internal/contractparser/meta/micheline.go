@@ -12,14 +12,7 @@ import (
 
 // BuildEntrypointMicheline -
 func (m Metadata) BuildEntrypointMicheline(binaryPath string, data map[string]interface{}) (gjson.Result, error) {
-	if strings.HasSuffix(binaryPath, "/o") { // Hack for high-level option
-		binaryPath = strings.TrimSuffix(binaryPath, "/o")
-		option := make(map[string]interface{})
-		for k, v := range data {
-			option[k] = v
-		}
-		data[binaryPath] = option
-	}
+	binaryPath = prepareData(binaryPath, data)
 
 	micheline, err := build(m, binaryPath, data)
 	if err != nil {
@@ -30,6 +23,25 @@ func (m Metadata) BuildEntrypointMicheline(binaryPath string, data map[string]in
 		return gjson.Result{}, err
 	}
 	return gjson.Parse(wrapped), nil
+}
+
+func prepareData(binaryPath string, data map[string]interface{}) string {
+	if strings.HasSuffix(binaryPath, "/o") { // Hack for high-level option
+		binaryPath = strings.TrimSuffix(binaryPath, "/o")
+		option := make(map[string]interface{})
+		for k, v := range data {
+			option[k] = v
+		}
+		data[binaryPath] = option
+	}
+
+	for k, v := range data {
+		if strings.HasSuffix(k, "/o") {
+			newKey := strings.TrimSuffix(k, "/o")
+			data[newKey] = v
+		}
+	}
+	return binaryPath
 }
 
 func build(metadata Metadata, path string, data map[string]interface{}) (string, error) {
