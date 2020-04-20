@@ -173,7 +173,8 @@ func parseNodeMetadata(v gjson.Result, parent node.Node, path, inheritedName str
 			Node: &n,
 		}
 	} else if n.Is(consts.OPTION) {
-		return parseNodeMetadata(arr[0], parent, path+"/o", fieldName, metadata)
+		m := metadata[path]
+		return parseNodeMetadata(arr[0], parent, path+"/o", getKey(m), metadata)
 	}
 
 	args := make([]internalNode, 0)
