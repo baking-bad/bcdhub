@@ -159,6 +159,7 @@ type BigMapDiffByKeyResponse struct {
 	Key     interface{}      `json:"key,omitempty"`
 	KeyHash string           `json:"key_hash"`
 	Values  []BigMapDiffItem `json:"values,omitempty"`
+	Total   int64            `json:"total"`
 }
 
 // CodeDiffResponse -

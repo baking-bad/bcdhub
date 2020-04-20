@@ -179,7 +179,7 @@ func (e *Elastic) GetBigMap(address string, ptr int64, searchText string, size, 
 }
 
 // GetBigMapDiffByPtrAndKeyHash -
-func (e *Elastic) GetBigMapDiffByPtrAndKeyHash(address string, ptr int64, keyHash string, size, offset int64) ([]BigMapDiff, error) {
+func (e *Elastic) GetBigMapDiffByPtrAndKeyHash(address string, ptr int64, keyHash string, size, offset int64) ([]BigMapDiff, int64, error) {
 	mustQuery := must(
 		matchPhrase("address", address),
 		matchPhrase("key_hash", keyHash),
@@ -208,7 +208,7 @@ func (e *Elastic) GetBigMapDiffByPtrAndKeyHash(address string, ptr int64, keyHas
 	query := newQuery().Query(b).Sort("level", "desc").Size(size).From(offset)
 	res, err := e.query([]string{DocBigMapDiff}, query)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	result := make([]BigMapDiff, 0)
@@ -217,7 +217,9 @@ func (e *Elastic) GetBigMapDiffByPtrAndKeyHash(address string, ptr int64, keyHas
 		b.ParseElasticJSON(item)
 		result = append(result, b)
 	}
-	return result, nil
+
+	total := res.Get("hits.total.value").Int()
+	return result, total, nil
 }
 
 // GetBigMapDiffsJSONByOperationID -
