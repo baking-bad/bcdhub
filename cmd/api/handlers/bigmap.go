@@ -49,7 +49,7 @@ func (ctx *Context) GetBigMapByKeyHash(c *gin.Context) {
 		return
 	}
 
-	bm, err := ctx.ES.GetBigMapDiffByPtrAndKeyHash(req.Address, req.Ptr, req.KeyHash, pageReq.Size, pageReq.Offset)
+	bm, total, err := ctx.ES.GetBigMapDiffByPtrAndKeyHash(req.Address, req.Ptr, req.KeyHash, pageReq.Size, pageReq.Offset)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -59,6 +59,7 @@ func (ctx *Context) GetBigMapByKeyHash(c *gin.Context) {
 		return
 	}
 
+	response.Total = total
 	c.JSON(http.StatusOK, response)
 }
 
