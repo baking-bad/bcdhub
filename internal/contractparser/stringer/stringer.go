@@ -1,6 +1,9 @@
 package stringer
 
 import (
+	"encoding/hex"
+	"regexp"
+
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/baking-bad/bcdhub/internal/contractparser/unpack"
 	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/rawbytes"
@@ -67,7 +70,7 @@ func findInArray(node gjson.Result, storage map[string]struct{}) {
 
 func findInObject(node gjson.Result, storage map[string]struct{}) {
 	if node.Get("string").Exists() {
-		storage[node.Get("string").String()] = struct{}{}
+		findInString(node.Get("string").String(), storage)
 		return
 	}
 
@@ -85,6 +88,14 @@ func findInObject(node gjson.Result, storage map[string]struct{}) {
 	if node.Get("entrypoint").Exists() && node.Get("value").Exists() {
 		value := node.Get("value")
 		findStrings(value, storage)
+	}
+}
+
+var regexpRFC3339 = regexp.MustCompile(`^([0-9]+)-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\.[0-9]+)?(([Zz])|([\+|\-]([01][0-9]|2[0-3]):[0-5][0-9]))$`)
+
+func findInString(input string, storage map[string]struct{}) {
+	if !regexpRFC3339.MatchString(input) {
+		storage[input] = struct{}{}
 	}
 }
 
@@ -110,5 +121,10 @@ func findInBytes(input string, storage map[string]struct{}) {
 			data := gjson.Parse(str)
 			findStrings(data, storage)
 		}
+	}
+
+	decoded, err := hex.DecodeString(input)
+	if err == nil && unpack.IsASCII(decoded) {
+		storage[string(decoded)] = struct{}{}
 	}
 }
