@@ -34,6 +34,5 @@ COPY --from=builder /go/bin/api /go/bin/api
 COPY /cmd/api/config.json /app/api/config.json
 COPY /cmd/api/oauth/*.json /app/api/oauth/
 COPY /cmd/api/data/errors.json /app/api/data/errors.json
-COPY /cmd/api/data/protocols.json /app/api/data/protocols.json
 
 ENTRYPOINT ["/go/bin/api"]
