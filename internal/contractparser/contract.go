@@ -10,6 +10,10 @@ import (
 	"github.com/tidwall/gjson"
 )
 
+const (
+	contractFormatPath = "%s/contracts/%s/%s_%s.json"
+)
+
 // GetContract -
 func GetContract(rpc noderpc.Pool, address, network, protocol, filesDirectory string, fallbackLevel int64) (gjson.Result, error) {
 	if filesDirectory != "" {
@@ -18,7 +22,7 @@ func GetContract(rpc noderpc.Pool, address, network, protocol, filesDirectory st
 			return gjson.Result{}, err
 		}
 
-		filePath := fmt.Sprintf("%s/contracts/%s/%s_%s.json", filesDirectory, network, address, protoSymLink)
+		filePath := fmt.Sprintf(contractFormatPath, filesDirectory, network, address, protoSymLink)
 		_, err = os.Stat(filePath)
 		if err == nil {
 			f, err := os.Open(filePath)
@@ -49,6 +53,25 @@ func GetContract(rpc noderpc.Pool, address, network, protocol, filesDirectory st
 		contract = contract.Get("script")
 	}
 	return contract, nil
+}
+
+// RemoveContractFromFileSystem -
+func RemoveContractFromFileSystem(address, network, protocol, filesDirectory string) error {
+	if filesDirectory == "" {
+		return fmt.Errorf("Invalid filesDirectory: %s", filesDirectory)
+	}
+	protoSymLink, err := meta.GetProtoSymLink(protocol)
+	if err != nil {
+		return err
+	}
+
+	filePath := fmt.Sprintf(contractFormatPath, filesDirectory, network, address, protoSymLink)
+	if _, err = os.Stat(filePath); err == nil {
+		return os.Remove(filePath)
+	} else if !os.IsNotExist(err) {
+		return err
+	}
+	return nil
 }
 
 // IsDelegatorContract -

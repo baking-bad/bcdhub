@@ -80,6 +80,8 @@ func saveToFile(script gjson.Result, c *models.Contract, filesDirectory, protoSy
 		if _, err := f.WriteString(script.String()); err != nil {
 			return err
 		}
+	} else if err != nil {
+		return err
 	}
 	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -13,7 +14,7 @@ import (
 )
 
 // Rollback - rollback indexer state to level
-func Rollback(e *elastic.Elastic, messageQueue *mq.MQ, fromState models.State, toLevel int64) error {
+func Rollback(e *elastic.Elastic, messageQueue *mq.MQ, appDir string, fromState models.Block, toLevel int64) error {
 	if toLevel >= fromState.Level {
 		return fmt.Errorf("To level must be less than from level: %d >= %d", toLevel, fromState.Level)
 	}
@@ -26,10 +27,10 @@ func Rollback(e *elastic.Elastic, messageQueue *mq.MQ, fromState models.State, t
 	if err := rollbackOperations(e, fromState.Network, toLevel); err != nil {
 		return err
 	}
-	if err := rollbackContracts(e, fromState.Network, fromState.Level, toLevel); err != nil {
+	if err := rollbackContracts(e, fromState, toLevel, appDir); err != nil {
 		return err
 	}
-	if err := rollbackState(e, fromState, toLevel); err != nil {
+	if err := rollbackBlocks(e, fromState.Network, toLevel); err != nil {
 		return err
 	}
 
@@ -44,31 +45,21 @@ func Rollback(e *elastic.Elastic, messageQueue *mq.MQ, fromState models.State, t
 	return nil
 }
 
-func rollbackState(e *elastic.Elastic, fromState models.State, toLevel int64) error {
-	protocols, err := e.GetProtocolsByNetwork(fromState.Network)
-	if err != nil {
-		return err
-	}
-	rollbackProtocol, err := getProtocolByLevel(protocols, toLevel)
-	if err != nil {
-		return err
-	}
-
-	fromState.Level = toLevel
-	fromState.Protocol = rollbackProtocol.Hash
-	_, err = e.UpdateDoc(elastic.DocStates, fromState.ID, fromState)
-	return err
+func rollbackBlocks(e *elastic.Elastic, network string, toLevel int64) error {
+	logger.Info("Deleting blocks...")
+	return e.DeleteByLevelAndNetwork([]string{elastic.DocBlocks}, network, toLevel)
 }
+
 func rollbackOperations(e *elastic.Elastic, network string, toLevel int64) error {
 	logger.Info("Deleting operations, migrations and big map diffs...")
 	return e.DeleteByLevelAndNetwork([]string{elastic.DocBigMapDiff, elastic.DocMigrations, elastic.DocOperations}, network, toLevel)
 }
 
-func rollbackContracts(e *elastic.Elastic, network string, fromLevel, toLevel int64) error {
-	if err := removeMetadata(e, network, fromLevel, toLevel); err != nil {
+func rollbackContracts(e *elastic.Elastic, fromState models.Block, toLevel int64, appDir string) error {
+	if err := removeMetadata(e, fromState, toLevel, appDir); err != nil {
 		return err
 	}
-	if err := updateMetadata(e, network, fromLevel, toLevel); err != nil {
+	if err := updateMetadata(e, fromState.Network, fromState.Level, toLevel); err != nil {
 		return err
 	}
 
@@ -76,7 +67,7 @@ func rollbackContracts(e *elastic.Elastic, network string, fromLevel, toLevel in
 	if toLevel == 0 {
 		toLevel = -1
 	}
-	return e.DeleteByLevelAndNetwork([]string{elastic.DocContracts}, network, toLevel)
+	return e.DeleteByLevelAndNetwork([]string{elastic.DocContracts}, fromState.Network, toLevel)
 }
 
 func getAffectedContracts(es *elastic.Elastic, network string, fromLevel, toLevel int64) ([]string, error) {
@@ -100,9 +91,9 @@ func getProtocolByLevel(protocols []models.Protocol, level int64) (models.Protoc
 	return protocols[0], nil
 }
 
-func removeMetadata(e *elastic.Elastic, network string, fromLevel, toLevel int64) error {
+func removeMetadata(e *elastic.Elastic, fromState models.Block, toLevel int64, appDir string) error {
 	logger.Info("Preparing metadata for removing...")
-	contracts, err := e.GetContractAddressesByNetworkAndLevel(network, toLevel)
+	contracts, err := e.GetContractAddressesByNetworkAndLevel(fromState.Network, toLevel)
 	if err != nil {
 		return err
 	}
@@ -118,6 +109,10 @@ func removeMetadata(e *elastic.Elastic, network string, fromLevel, toLevel int64
 		bulkDeleteMetadata = append(bulkDeleteMetadata, models.Metadata{
 			ID: address,
 		})
+
+		if err := contractparser.RemoveContractFromFileSystem(address, fromState.Network, fromState.Protocol, appDir); err != nil {
+			return err
+		}
 	}
 	fmt.Print("\033[2K\r")
 

@@ -17,6 +17,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/rollback"
 )
 
 // BoostIndexer -
@@ -26,7 +27,7 @@ type BoostIndexer struct {
 	rpc             noderpc.Pool
 	es              *elastic.Elastic
 	externalIndexer index.Indexer
-	state           models.State
+	state           models.Block
 	currentProtocol models.Protocol
 	messageQueue    *mq.MQ
 	filesDirectory  string
@@ -166,6 +167,10 @@ func (bi *BoostIndexer) Index(levels []int64) error {
 			return err
 		}
 
+		if currentHead.Predecessor != bi.state.Hash && !bi.boost {
+			return fmt.Errorf("rollback")
+		}
+
 		logger.Info("[%s] indexing %d block", bi.Network, level)
 
 		if currentHead.Protocol != bi.currentProtocol.Hash {
@@ -196,7 +201,7 @@ func (bi *BoostIndexer) Index(levels []int64) error {
 			}
 		}
 
-		if err := bi.updateState(currentHead); err != nil {
+		if err := bi.createAndSaveBlock(currentHead); err != nil {
 			return err
 		}
 	}
@@ -204,11 +209,52 @@ func (bi *BoostIndexer) Index(levels []int64) error {
 }
 
 // Rollback -
-func (bi *BoostIndexer) Rollback(level int64) error {
-	logger.Warning("[%s] Rollback from %d to %d", bi.Network, bi.state.Level, level)
+func (bi *BoostIndexer) Rollback() error {
+	logger.Warning("[%s] Rollback from %d", bi.Network, bi.state.Level)
 
+	lastLevel, err := bi.getLastRollbackBlock()
+	if err != nil {
+		return err
+	}
+
+	if err := rollback.Rollback(bi.es, bi.messageQueue, bi.filesDirectory, bi.state, lastLevel); err != nil {
+		return err
+	}
+
+	helpers.CatchErrorSentry(fmt.Errorf("[%s] Rollback from %d to %d", bi.Network, bi.state.Level, lastLevel))
+
+	newState, err := bi.es.CurrentState(bi.Network)
+	if err != nil {
+		return err
+	}
+	bi.state = newState
+	logger.Info("[%s] New indexer state: %d", bi.Network, bi.state.Level)
 	logger.Success("[%s] Rollback finished", bi.Network)
 	return nil
+}
+
+func (bi *BoostIndexer) getLastRollbackBlock() (int64, error) {
+	var lastLevel int64
+	level := bi.state.Level
+
+	for end := false; !end; level-- {
+		headAtLevel, err := bi.rpc.GetHeader(level)
+		if err != nil {
+			return 0, err
+		}
+
+		block, err := bi.es.GetBlock(bi.Network, level)
+		if err != nil {
+			return 0, err
+		}
+
+		if block.Predecessor == headAtLevel.Predecessor {
+			logger.Info("Found equal predecessors at level: %d", block.Level)
+			end = true
+			lastLevel = block.Level - 1
+		}
+	}
+	return lastLevel, nil
 }
 
 func (bi *BoostIndexer) getBoostBlocks(head noderpc.Header) ([]int64, error) {
@@ -272,19 +318,20 @@ func (bi *BoostIndexer) process() error {
 			if strings.Contains(err.Error(), "bcd-quit") {
 				return nil
 			}
+			if err.Error() == "rollback" {
+				bi.Rollback()
+				return nil
+			}
 			return err
 		}
 
-		if err := bi.updateState(head); err != nil {
-			return err
-		}
 		if bi.boost {
 			bi.boost = false
 		}
 		logger.Success("[%s] Synced", bi.Network)
 		return nil
 	} else if head.Level < bi.state.Level {
-		bi.Rollback(head.Level)
+		bi.Rollback()
 	}
 
 	return fmt.Errorf("Same level")
@@ -309,18 +356,23 @@ func (bi *BoostIndexer) getContracts() (map[string]struct{}, map[string]struct{}
 	return res, spendable, nil
 }
 
-func (bi *BoostIndexer) updateState(head noderpc.Header) error {
-	if bi.state.Level >= head.Level {
-		return nil
+func (bi *BoostIndexer) createAndSaveBlock(head noderpc.Header) error {
+	newBlock := models.Block{
+		ID:          helpers.GenerateID(),
+		Network:     bi.Network,
+		Hash:        head.Hash,
+		Predecessor: head.Predecessor,
+		Protocol:    head.Protocol,
+		ChainID:     head.ChainID,
+		Level:       head.Level,
+		Timestamp:   head.Timestamp,
 	}
-	bi.state.Level = head.Level
-	bi.state.Timestamp = head.Timestamp
-	bi.state.Protocol = head.Protocol
-	bi.state.ChainID = head.ChainID
 
-	if _, err := bi.es.UpdateDoc(elastic.DocStates, bi.state.ID, bi.state); err != nil {
+	if _, err := bi.es.AddDocumentWithID(newBlock, elastic.DocBlocks, newBlock.ID); err != nil {
 		return err
 	}
+
+	bi.state = newBlock
 	return nil
 }
 
@@ -510,7 +562,7 @@ func (bi *BoostIndexer) createIndexes() error {
 		elastic.DocMetadata,
 		elastic.DocBigMapDiff,
 		elastic.DocOperations,
-		elastic.DocStates,
+		elastic.DocBlocks,
 		elastic.DocMigrations,
 	} {
 		if err := bi.es.CreateIndexIfNotExists(index); err != nil {

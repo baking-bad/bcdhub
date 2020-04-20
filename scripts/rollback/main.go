@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/mq"
@@ -15,6 +16,7 @@ import (
 func main() {
 	esConnection := flag.String("search", "http://localhost:9200", "Elastic search connection string")
 	mqConnection := flag.String("queue", "amqp://guest:guest@localhost:5672/", "Message queue connection string")
+	appDirectory := flag.String("dir", "/etc/bcd", "Directory which used to save application data")
 	level := flag.Int64("level", 0, "[mandatory] Level which rollback to")
 	network := flag.String("network", "", "[mandatory] Network (mainnet, zeronet, carthagenet, babylonnet)")
 	flag.Parse()
@@ -49,6 +51,9 @@ func main() {
 		panic(err)
 	}
 
+	logger.Warning("App directory: %s", *appDirectory)
+	logger.Warning("Elastic search connection string: %s", *esConnection)
+	logger.Warning("Rabbit mq connection string: %s", *mqConnection)
 	logger.Warning("Do you want to rollback '%s' from %d to %d? (yes - continue. no - cancel)", state.Network, state.Level, *level)
 
 	reader := bufio.NewReader(os.Stdin)
@@ -63,7 +68,11 @@ func main() {
 		return
 	}
 
-	if err = rollback.Rollback(es, messageQueue, state, *level); err != nil {
+	if err := meta.LoadProtocols(es); err != nil {
+		panic(err)
+	}
+
+	if err = rollback.Rollback(es, messageQueue, *appDirectory, state, *level); err != nil {
 		panic(err)
 	}
 	logger.Success("Done")

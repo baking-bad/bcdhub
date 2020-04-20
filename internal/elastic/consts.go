@@ -3,7 +3,7 @@ package elastic
 // Document names
 const (
 	DocContracts  = "contract"
-	DocStates     = "state"
+	DocBlocks     = "block"
 	DocOperations = "operation"
 	DocBigMapDiff = "bigmapdiff"
 	DocMetadata   = "metadata"

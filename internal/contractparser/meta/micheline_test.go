@@ -364,7 +364,7 @@ func TestMetadata_BuildEntrypointMicheline(t *testing.T) {
 				binaryPath: "0/0/0/1",
 				data: map[string]interface{}{
 					"0/0/0/1": []map[string]interface{}{
-						map[string]interface{}{
+						{
 							"0/0/0/1/k": "adasd",
 							"0/0/0/1/v": 123,
 						},
@@ -393,7 +393,7 @@ func TestMetadata_BuildEntrypointMicheline(t *testing.T) {
 						"0/0/0":     "sfasf",
 					},
 					"0/1/1": []map[string]interface{}{
-						map[string]interface{}{
+						{
 							"0/1/1/l/0": "sdsdg",
 							"0/1/1/l/1": "asdgsdfg",
 						},
@@ -409,7 +409,7 @@ func TestMetadata_BuildEntrypointMicheline(t *testing.T) {
 				binaryPath: "0/1/0/1",
 				data: map[string]interface{}{
 					"0/1/0/1": []map[string]interface{}{
-						map[string]interface{}{
+						{
 							"0/1/0/1/l/1/1/0": []string{},
 							"0/1/0/1/l/0":     234,
 							"0/1/0/1/l/1/0/0": 1234,

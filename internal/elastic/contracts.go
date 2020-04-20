@@ -163,7 +163,7 @@ func (e *Elastic) GetRandomContract() (models.Contract, error) {
 	random := qItem{
 		"function_score": qItem{
 			"functions": []qItem{
-				qItem{
+				{
 					"random_score": qItem{
 						"seed": time.Now().UnixNano(),
 					},
