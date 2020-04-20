@@ -113,14 +113,15 @@ func Bytes(input string) string {
 	}
 
 	decoded, err := hex.DecodeString(input)
-	if err == nil && isASCII(decoded) {
+	if err == nil && IsASCII(decoded) {
 		return string(decoded)
 	}
 
 	return input
 }
 
-func isASCII(input []byte) bool {
+// IsASCII -
+func IsASCII(input []byte) bool {
 	for _, c := range input {
 		if c < minPrintableASCII || c > unicode.MaxASCII {
 			return false
