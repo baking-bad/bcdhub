@@ -29,7 +29,7 @@ var symLinks = map[string]string{
 var protocols map[string]string
 
 // LoadProtocols -
-func LoadProtocols(e *elastic.Elastic) error {
+func LoadProtocols(e *elastic.Elastic, networks []string) error {
 	response, err := e.GetProtocols()
 	if err != nil {
 		if !strings.Contains(err.Error(), "404 Not Found") {
@@ -37,7 +37,7 @@ func LoadProtocols(e *elastic.Elastic) error {
 		}
 	}
 	if len(response) == 0 {
-		response, err = createProtocols(e)
+		response, err = createProtocols(e, networks)
 		if err != nil {
 			return err
 		}
@@ -49,9 +49,9 @@ func LoadProtocols(e *elastic.Elastic) error {
 	return nil
 }
 
-func createProtocols(es *elastic.Elastic) ([]models.Protocol, error) {
+func createProtocols(es *elastic.Elastic, networks []string) ([]models.Protocol, error) {
 	protocols := make([]models.Protocol, 0)
-	for _, network := range []string{"mainnet", "zeronet", "carthagenet", "babylonnet"} {
+	for _, network := range networks {
 		api := tzkt.NewTzKTForNetwork(network, time.Minute)
 
 		result, err := api.GetProtocols()

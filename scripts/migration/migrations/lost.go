@@ -27,12 +27,14 @@ func getIndexerConfig(ctx *Context) indexer.Config {
 
 	entities := map[string]indexer.EntityConfig{}
 	for _, network := range []string{"mainnet", "zeronet", "carthagenet", "babylonnet"} {
-		entities[network] = indexer.EntityConfig{
-			Boost: false,
-			RPC: indexer.RPCConfig{
-				URLs:    ctx.Config.NodeRPC[network],
-				Timeout: 20,
-			},
+		if len(ctx.Config.NodeRPC[network]) > 0 {
+			entities[network] = indexer.EntityConfig{
+				Boost: false,
+				RPC: indexer.RPCConfig{
+					URL:     ctx.Config.NodeRPC[network][0],
+					Timeout: 20,
+				},
+			}
 		}
 	}
 

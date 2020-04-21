@@ -42,7 +42,7 @@ func NewBoostIndexer(cfg Config, network string) (*BoostIndexer, error) {
 	logger.Info("[%s] Creating indexer object...", network)
 	config := cfg.Indexers[network]
 	es := elastic.WaitNew([]string{cfg.Search.URI})
-	rpc := noderpc.NewPool(config.RPC.URLs, time.Duration(config.RPC.Timeout)*time.Second)
+	rpc := noderpc.NewPool([]string{config.RPC.URL}, time.Duration(config.RPC.Timeout)*time.Second)
 
 	var externalIndexer index.Indexer
 	var err error

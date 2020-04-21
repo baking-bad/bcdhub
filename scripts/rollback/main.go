@@ -68,7 +68,7 @@ func main() {
 		return
 	}
 
-	if err := meta.LoadProtocols(es); err != nil {
+	if err := meta.LoadProtocols(es, []string{*network}); err != nil {
 		panic(err)
 	}
 
