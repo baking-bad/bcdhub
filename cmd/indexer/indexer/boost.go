@@ -562,7 +562,6 @@ func (bi *BoostIndexer) createIndexes() error {
 		elastic.DocMetadata,
 		elastic.DocBigMapDiff,
 		elastic.DocOperations,
-		elastic.DocBlocks,
 		elastic.DocMigrations,
 	} {
 		if err := bi.es.CreateIndexIfNotExists(index); err != nil {
