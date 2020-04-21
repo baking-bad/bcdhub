@@ -8,6 +8,7 @@ import (
 
 var foundByCategories = []string{
 	"alias",
+	"source_alias",
 	"tags",
 	"entrypoints",
 	"entrypoint",
@@ -26,6 +27,7 @@ var foundByCategories = []string{
 	"value_strings",
 	"parameter_strings",
 	"storage_strings",
+	"source",
 }
 
 // Contract - entity for contract

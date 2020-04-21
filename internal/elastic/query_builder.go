@@ -91,6 +91,16 @@ func matchPhrase(key string, value interface{}) qItem {
 	}
 }
 
+func matchPhrasePrefix(key string, prefix string) qItem {
+	return qItem{
+		"match_phrase_prefix": qItem{
+			key: qItem{
+				"query": prefix,
+			},
+		},
+	}
+}
+
 func matchQ(key string, value interface{}) qItem {
 	return qItem{
 		"match": qItem{
