@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/tidwall/gjson"
 )
 
 // GetContractByAddressAndNetwork -
@@ -83,7 +84,7 @@ func (e *Elastic) GetContractByID(id string) (c models.Contract, err error) {
 		return
 	}
 	if !resp.Get("found").Bool() {
-		return c, fmt.Errorf("Unknown contract with ID %s", id)
+		return c, fmt.Errorf("%s: %s %s", RecordNotFound, DocContracts, id)
 	}
 	c.ParseElasticJSON(resp)
 	return
@@ -162,7 +163,7 @@ func (e *Elastic) GetRandomContract() (models.Contract, error) {
 	random := qItem{
 		"function_score": qItem{
 			"functions": []qItem{
-				qItem{
+				{
 					"random_score": qItem{
 						"seed": time.Now().UnixNano(),
 					},
@@ -287,4 +288,182 @@ func (e *Elastic) UpdateContractMigrationsCount(address, network string) error {
 
 	_, err = e.UpdateDoc(DocContracts, contract.ID, contract)
 	return err
+}
+
+// GetContractAddressesByNetworkAndLevel -
+func (e *Elastic) GetContractAddressesByNetworkAndLevel(network string, maxLevel int64) (gjson.Result, error) {
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				matchQ("network", network),
+				rangeQ("level", qItem{
+					"gt": maxLevel,
+				}),
+			),
+		),
+	).All()
+	resp, err := e.query([]string{DocContracts}, query, "address")
+	if err != nil {
+		return resp, err
+	}
+	return resp.Get("hits.hits"), nil
+}
+
+// NeedParseOperation -
+func (e *Elastic) NeedParseOperation(network, source, destination string) (bool, error) {
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				matchQ("network", network),
+				boolQ(
+					should(
+						matchPhrase("address", source),
+						matchPhrase("address", destination),
+					),
+					minimumShouldMatch(1),
+				),
+			),
+		),
+	).One()
+	resp, err := e.query([]string{DocContracts}, query, "address")
+	if err != nil {
+		return false, err
+	}
+	return resp.Get("hits.total.value").Int() == 1, nil
+}
+
+// IsKnownContract -
+func (e *Elastic) IsKnownContract(network, address string) (bool, error) {
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				matchQ("network", network),
+				matchPhrase("address", address),
+			),
+		),
+	).One()
+	resp, err := e.query([]string{DocContracts}, query, "address")
+	if err != nil {
+		return false, err
+	}
+	return resp.Get("hits.total.value").Int() == 1, nil
+}
+
+// GetContractsIDByAddress -
+func (e *Elastic) GetContractsIDByAddress(addresses []string, network string) ([]string, error) {
+	shouldItems := make([]qItem, len(addresses))
+	for i := range addresses {
+		shouldItems[i] = matchPhrase("address", addresses[i])
+	}
+
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				matchQ("network", network),
+			),
+			should(shouldItems...),
+			minimumShouldMatch(1),
+		),
+	)
+	result, err := e.createScroll(DocContracts, 1000, query)
+	if err != nil {
+		return nil, err
+	}
+
+	ids := make([]string, 0)
+	for {
+		scrollID := result.Get("_scroll_id").String()
+		hits := result.Get("hits.hits")
+		if hits.Get("#").Int() < 1 {
+			break
+		}
+
+		for _, item := range hits.Array() {
+			ids = append(ids, item.Get("_id").String())
+		}
+
+		result, err = e.queryScroll(scrollID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return ids, nil
+}
+
+// RecalcContractStats -
+func (e *Elastic) RecalcContractStats(network, address string) (stats ContractStats, err error) {
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				matchQ("network", network),
+			),
+			should(
+				matchPhrase("source", address),
+				matchPhrase("destination", address),
+			),
+			minimumShouldMatch(1),
+		),
+	).Add(
+		qItem{
+			"aggs": qItem{
+				"tx_count":    count("indexed_time"),
+				"last_action": max("timestamp"),
+				"balance": qItem{
+					"scripted_metric": qItem{
+						"init_script":    "state.operations = []",
+						"map_script":     fmt.Sprintf("if (doc['status.keyword'].value == 'applied' && doc['amount'].size() != 0) {state.operations.add(doc['destination.keyword'].value == '%s' ? doc['amount'].value : -1L * doc['amount'].value)}", address),
+						"combine_script": "double balance = 0; for (amount in state.operations) { balance += amount } return balance",
+						"reduce_script":  "double balance = 0; for (a in states) { balance += a } return balance",
+					},
+				},
+				"total_withdrawn": qItem{
+					"scripted_metric": qItem{
+						"init_script":    "state.operations = []",
+						"map_script":     fmt.Sprintf("if (doc['status.keyword'].value == 'applied' && doc['amount'].size() != 0 && doc['source.keyword'].value == '%s') {state.operations.add(doc['amount'].value)}", address),
+						"combine_script": "double balance = 0; for (amount in state.operations) { balance += amount } return balance",
+						"reduce_script":  "double balance = 0; for (a in states) { balance += a } return balance",
+					},
+				},
+			},
+		},
+	).Zero()
+	response, err := e.query([]string{DocOperations}, query)
+	if err != nil {
+		return
+	}
+
+	stats.ParseElasticJSON(response.Get("aggregations"))
+
+	return
+}
+
+// GetContractMigrationStats -
+func (e *Elastic) GetContractMigrationStats(network, address string) (stats ContractMigrationsStats, err error) {
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				matchQ("network", network),
+			),
+			should(
+				matchPhrase("source", address),
+				matchPhrase("destination", address),
+			),
+			minimumShouldMatch(1),
+		),
+	).Add(
+		qItem{
+			"aggs": qItem{
+				"migrations_count": count("indexed_time"),
+			},
+		},
+	).Zero()
+	response, err := e.query([]string{DocMigrations}, query)
+	if err != nil {
+		return
+	}
+
+	stats.ParseElasticJSON(response.Get("aggregations"))
+
+	return
 }

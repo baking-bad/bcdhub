@@ -83,3 +83,17 @@ type Alias struct {
 	Alias   string `json:"alias"`
 	Logo    string `json:"logo"`
 }
+
+// Protocol -
+type Protocol struct {
+	Code       int64            `json:"code"`
+	Hash       string           `json:"hash"`
+	StartLevel int64            `json:"firstLevel"`
+	LastLevel  int64            `json:"lastLevel"`
+	Metadata   ProtocolMetadata `json:"metadata"`
+}
+
+// ProtocolMetadata -
+type ProtocolMetadata struct {
+	Alias string `json:"alias"`
+}

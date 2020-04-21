@@ -114,3 +114,8 @@ func (h contractOperation) Name() string {
 func (t *TzStats) GetContractOperationBlocks(startBlock, endBlock int64) ([]int64, error) {
 	return make([]int64, 0), nil
 }
+
+// GetProtocols -
+func (t *TzStats) GetProtocols() ([]Protocol, error) {
+	return nil, nil
+}

@@ -34,7 +34,6 @@ COPY --from=builder /go/bin/indexer /go/bin/indexer
 COPY /cmd/indexer/interfaces /app/indexer/interfaces
 COPY /cmd/indexer/mappings /app/indexer/mappings
 COPY /cmd/indexer/config.json /app/indexer/config.json
-COPY /cmd/indexer/protocols.json /app/indexer/protocols.json
 COPY /cmd/indexer/data/errors.json /app/indexer/data/errors.json
 
 ENTRYPOINT ["/go/bin/indexer"]

@@ -66,7 +66,7 @@ func createMetadata(script gjson.Result, tag string, c *models.Contract) (string
 		}
 		return string(b), nil
 	}
-	return "", fmt.Errorf("[createMetadata] Unknown tag '%s'", tag)
+	return "", fmt.Errorf("[createMetadata] Unknown tag '%s' contract %s", tag, c.Address)
 }
 
 func saveMetadata(es *elastic.Elastic, script gjson.Result, protoSymLink string, c *models.Contract) error {

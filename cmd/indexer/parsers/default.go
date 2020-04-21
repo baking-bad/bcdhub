@@ -11,10 +11,10 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
 	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/google/uuid"
 	"github.com/tidwall/gjson"
 )
 
@@ -40,7 +40,11 @@ func (p *DefaultParser) Parse(opg gjson.Result, network string, head noderpc.Hea
 	contracts := make([]models.Contract, 0)
 	migrations := make([]models.Migration, 0)
 	for idx, item := range opg.Get("contents").Array() {
-		if !p.needParse(item, idx) {
+		need, err := p.needParse(item, network, idx)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		if !need {
 			continue
 		}
 
@@ -81,7 +85,7 @@ func (p *DefaultParser) parseContent(data gjson.Result, network, hash string, he
 }
 
 func (p *DefaultParser) parseTransaction(data gjson.Result, network, hash string, head noderpc.Header) (op models.Operation, migration *models.Migration, err error) {
-	op.ID = strings.ReplaceAll(uuid.New().String(), "-", "")
+	op.ID = helpers.GenerateID()
 	op.Network = network
 	op.Hash = hash
 	op.Protocol = head.Protocol
@@ -115,7 +119,7 @@ func (p *DefaultParser) parseTransaction(data gjson.Result, network, hash string
 
 func (p *DefaultParser) parseOrigination(data gjson.Result, network, hash string, head noderpc.Header) (models.Operation, *models.Contract, *models.Migration, error) {
 	op := models.Operation{
-		ID:             strings.ReplaceAll(uuid.New().String(), "-", ""),
+		ID:             helpers.GenerateID(),
 		Network:        network,
 		Hash:           hash,
 		Protocol:       head.Protocol,
@@ -153,6 +157,9 @@ func (p *DefaultParser) parseOrigination(data gjson.Result, network, hash string
 	var contract *models.Contract
 	if !contractparser.IsDelegatorContract(op.Script) && p.isApplied(op) {
 		contract, err = createNewContract(p.es, op, p.filesDirectory, protoSymLink)
+		if err != nil {
+			return op, nil, nil, err
+		}
 	}
 	migration, err := p.finishParseOperation(data, &op)
 	return op, contract, migration, err
@@ -254,7 +261,7 @@ func (p *DefaultParser) findMigration(item gjson.Result, op *models.Operation) (
 		if contractparser.HasLambda(value) {
 			logger.Info("[%s] Migration detected: %s", op.Network, op.Destination)
 			return &models.Migration{
-				ID:          strings.ReplaceAll(uuid.New().String(), "-", ""),
+				ID:          helpers.GenerateID(),
 				IndexedTime: time.Now().UnixNano() / 1000,
 
 				Network:   op.Network,
@@ -329,12 +336,17 @@ func (p *DefaultParser) parseInternalOperations(item gjson.Result, main models.O
 	return res, contracts, migrations, nil
 }
 
-func (p *DefaultParser) needParse(item gjson.Result, idx int) bool {
+func (p *DefaultParser) needParse(item gjson.Result, network string, idx int) (bool, error) {
 	kind := item.Get("kind").String()
-	originationCondition := kind == consts.Origination && item.Get("script").Exists()
-	prefixCondition := strings.HasPrefix(item.Get("source").String(), "KT") || strings.HasPrefix(item.Get("destination").String(), "KT")
+	source := item.Get("source").String()
+	destination := item.Get("destination").String()
+	prefixCondition := strings.HasPrefix(source, "KT") || strings.HasPrefix(destination, "KT")
 	transactionCondition := kind == consts.Transaction && prefixCondition
-	return originationCondition || transactionCondition
+	if transactionCondition {
+		return p.es.NeedParseOperation(network, source, destination)
+	}
+	originationCondition := kind == consts.Origination && item.Get("script").Exists()
+	return originationCondition, nil
 }
 
 func (p *DefaultParser) getRichStorage(data gjson.Result, metadata *meta.ContractMetadata, op *models.Operation) (storage.RichStorage, error) {

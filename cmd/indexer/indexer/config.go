@@ -39,8 +39,8 @@ type ExternalIndexerConfig struct {
 
 // RPCConfig -
 type RPCConfig struct {
-	URLs    []string `json:"urls"`
-	Timeout int64    `json:"timeout"`
+	URL     string `json:"url"`
+	Timeout int64  `json:"timeout"`
 }
 
 // Print -
@@ -52,7 +52,7 @@ func (cfg Config) Print() {
 	log.Printf("Elastic URI: %s", blue(cfg.Search.URI))
 	for network, config := range cfg.Indexers {
 		log.Printf("[%s]", green(network))
-		log.Printf("Nodes: %v", config.RPC.URLs)
+		log.Printf("Nodes: %v", config.RPC.URL)
 		if config.ExternalIndexer != nil {
 			log.Printf("External indexer %s: %s", blue(config.ExternalIndexer.Type), config.ExternalIndexer.Link)
 		}

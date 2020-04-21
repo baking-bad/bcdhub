@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/language"
-
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/tidwall/gjson"
 )

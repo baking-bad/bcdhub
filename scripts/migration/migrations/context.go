@@ -28,14 +28,18 @@ type Context struct {
 
 // NewContext - creates migration context from config
 func NewContext(cfg Config) (*Context, error) {
-	if err := meta.LoadProtocols("protocols.json"); err != nil {
-		return nil, err
-	}
 	es, err := elastic.New([]string{cfg.Search.URI})
 	if err != nil {
 		return nil, err
 	}
+	networks := make([]string, 0)
+	for k := range cfg.NodeRPC {
+		networks = append(networks, k)
+	}
 
+	if err := meta.LoadProtocols(es, networks); err != nil {
+		return nil, err
+	}
 	RPCs := createRPCs(cfg)
 	indexers, err := createIndexers(es, cfg)
 	if err != nil {

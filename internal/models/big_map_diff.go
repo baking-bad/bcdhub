@@ -44,3 +44,8 @@ func (b *BigMapDiff) ParseElasticJSON(hit gjson.Result) {
 	b.KeyStrings = parseStringsArray(hit.Get("_source.key_strings").Array())
 	b.ValueStrings = parseStringsArray(hit.Get("_source.value_strings").Array())
 }
+
+// GetID -
+func (b BigMapDiff) GetID() string {
+	return b.ID
+}

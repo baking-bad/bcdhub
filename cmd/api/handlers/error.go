@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,7 +24,7 @@ func handleError(c *gin.Context, err error, code int) bool {
 }
 
 func getErrorCode(err error) int {
-	if strings.HasPrefix(err.Error(), "Unknown") {
+	if strings.Contains(err.Error(), elastic.RecordNotFound) {
 		return http.StatusNotFound
 	}
 	return http.StatusInternalServerError
