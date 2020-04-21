@@ -15,8 +15,13 @@ import (
 )
 
 func main() {
+	configFile := os.Getenv("CONFIG_FILE")
+	if configFile == "" {
+		configFile = "config.json"
+	}
+
 	var cfg indexer.Config
-	if err := jsonload.StructFromFile("config.json", &cfg); err != nil {
+	if err := jsonload.StructFromFile(configFile, &cfg); err != nil {
 		logger.Fatal(err)
 	}
 	cfg.Print()

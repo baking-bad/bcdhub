@@ -17,6 +17,12 @@ deploy:
 api:
 	cd cmd/api && CONFIG_FILE=config-dev.json go run .
 
+indexer:
+	cd cmd/indexer && CONFIG_FILE=config-dev.json go run .
+
+metrics:
+	cd cmd/metrics && CONFIG_FILE=config-dev.json go run .
+
 clearmq:
 	docker exec -it bcd-mq rabbitmqctl stop_app
 	docker exec -it bcd-mq rabbitmqctl reset
