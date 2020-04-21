@@ -35,18 +35,37 @@ func snapshot(es *elastic.Elastic, creds awsData) error {
 	if err != nil {
 		return err
 	}
-	snapshotName := fmt.Sprintf("snapshot_%s", strings.ToLower(time.Now().Format(time.RFC3339)))
+	snapshotName := fmt.Sprintf("snapshot_%s", strings.ToLower(time.Now().UTC().Format(time.RFC3339)))
 	return es.CreateSnapshots(name, snapshotName, mappingNames)
 }
 
 func restore(es *elastic.Elastic, creds awsData) error {
-	if err := restoreMappings(es, creds); err != nil {
+	listRepos, err := es.ListRepositories()
+	if err != nil {
 		return err
 	}
+
+	fmt.Println("")
+	fmt.Println("Availiable repositories")
+	fmt.Println("=======================================")
+	for i := range listRepos {
+		fmt.Println(listRepos[i])
+	}
+	fmt.Println("")
+
 	name, err := askQuestion("Please, enter target repository name:")
 	if err != nil {
 		return err
 	}
+
+	listSnaps, err := es.ListSnapshots(name)
+	if err != nil {
+		return err
+	}
+	fmt.Println("")
+	fmt.Println(listSnaps)
+	fmt.Println("")
+
 	snapshotName, err := askQuestion("Please, enter target snapshot name:")
 	if err != nil {
 		return err

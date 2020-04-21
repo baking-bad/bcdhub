@@ -70,6 +70,19 @@ func (e *Elastic) getResponse(resp *esapi.Response) (result gjson.Result, err er
 	return
 }
 
+func (e *Elastic) getTextResponse(resp *esapi.Response) (string, error) {
+	if resp.IsError() {
+		return "", fmt.Errorf(resp.String())
+	}
+
+	b, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return string(b), nil
+}
+
 func (e *Elastic) query(indices []string, query map[string]interface{}, source ...string) (result gjson.Result, err error) {
 	var buf bytes.Buffer
 	if err = json.NewEncoder(&buf).Encode(query); err != nil {

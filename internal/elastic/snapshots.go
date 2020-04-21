@@ -46,6 +46,33 @@ func (e *Elastic) CreateAWSRepository(name, awsBucketName, awsRegion string) err
 	return err
 }
 
+// ListRepositories -
+func (e *Elastic) ListRepositories() ([]string, error) {
+	options := []func(*esapi.CatRepositoriesRequest){
+		e.Cat.Repositories.WithContext(context.Background()),
+		e.Cat.Repositories.WithFormat("JSON"),
+	}
+	resp, err := e.Cat.Repositories(
+		options...,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	response, err := e.getResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]string, 0)
+	for _, item := range response.Array() {
+		result = append(result, fmt.Sprintf("%s (type: %s)", item.Get("id").String(), item.Get("type").String()))
+	}
+	return result, nil
+}
+
 // CreateSnapshots -
 func (e *Elastic) CreateSnapshots(repository, snapshot string, indices []string) error {
 	query := map[string]interface{}{
@@ -108,6 +135,30 @@ func (e *Elastic) RestoreSnapshots(repository, snapshot string, indices []string
 
 	_, err = e.getResponse(resp)
 	return err
+}
+
+// ListSnapshots -
+func (e *Elastic) ListSnapshots(repository string) (string, error) {
+	options := []func(*esapi.CatSnapshotsRequest){
+		e.Cat.Snapshots.WithContext(context.Background()),
+		e.Cat.Snapshots.WithRepository(repository),
+		e.Cat.Snapshots.WithPretty(),
+		e.Cat.Snapshots.WithV(true),
+	}
+	resp, err := e.Cat.Snapshots(
+		options...,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	defer resp.Body.Close()
+
+	response, err := e.getTextResponse(resp)
+	if err != nil {
+		return "", err
+	}
+	return response, nil
 }
 
 // GetMappings -
