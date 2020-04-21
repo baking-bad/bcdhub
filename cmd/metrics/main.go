@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
+	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/jsonload"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -23,6 +25,8 @@ func parseData(data amqp.Delivery) error {
 		return getOperation(data)
 	case mq.QueueMigrations:
 		return getMigrations(data)
+	case mq.QueueRecalc:
+		return recalculateAll(data)
 	default:
 		return fmt.Errorf("Unknown data routing key %s", data.RoutingKey)
 	}
@@ -30,7 +34,9 @@ func parseData(data amqp.Delivery) error {
 
 func handler(data amqp.Delivery) error {
 	if err := parseData(data); err != nil {
-		return err
+		if !strings.Contains(err.Error(), elastic.RecordNotFound) {
+			return err
+		}
 	}
 
 	if err := data.Ack(false); err != nil {

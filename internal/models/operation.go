@@ -108,6 +108,11 @@ func (o *Operation) ParseElasticJSON(resp gjson.Result) {
 	o.StorageStrings = parseStringsArray(resp.Get("_source.storage_strings").Array())
 }
 
+// GetID -
+func (o Operation) GetID() string {
+	return o.ID
+}
+
 // BalanceUpdate -
 type BalanceUpdate struct {
 	Kind     string `json:"kind"`

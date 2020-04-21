@@ -2,14 +2,13 @@ package metrics
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 
 	"github.com/baking-bad/bcdhub/internal/classification/functions"
 	clmetrics "github.com/baking-bad/bcdhub/internal/classification/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/google/uuid"
 )
 
 // SetContractAlias -
@@ -42,6 +41,28 @@ func (h *Handler) SetContractStats(op models.Operation, c *models.Contract) erro
 	return nil
 }
 
+// UpdateContractStats -
+func (h *Handler) UpdateContractStats(c *models.Contract) error {
+	stats, err := h.ES.RecalcContractStats(c.Network, c.Address)
+	if err != nil {
+		return err
+	}
+	migrationsStats, err := h.ES.GetContractMigrationStats(c.Network, c.Address)
+	if err != nil {
+		return err
+	}
+
+	c.TxCount = stats.TxCount
+	c.LastAction = models.BCDTime{
+		Time: stats.LastAction,
+	}
+	c.Balance = stats.Balance
+	c.TotalWithdrawn = stats.TotalWithdrawn
+	c.MigrationsCount = migrationsStats.MigrationsCount
+
+	return nil
+}
+
 // SetContractProjectID -
 func (h *Handler) SetContractProjectID(c *models.Contract) error {
 	buckets, err := h.ES.GetLastProjectContracts()
@@ -70,7 +91,7 @@ func getContractProjectID(c models.Contract, buckets []models.Contract) (string,
 		}
 	}
 
-	return strings.ReplaceAll(uuid.New().String(), "-", ""), nil
+	return helpers.GenerateID(), nil
 }
 
 var model = []clmetrics.Metric{

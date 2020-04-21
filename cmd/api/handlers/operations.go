@@ -224,7 +224,7 @@ func setStorageDiff(es *elastic.Elastic, address, network string, storage string
 			return err
 		}
 	} else {
-		if !strings.Contains(err.Error(), "Unknown") {
+		if !strings.Contains(err.Error(), elastic.RecordNotFound) {
 			return err
 		}
 

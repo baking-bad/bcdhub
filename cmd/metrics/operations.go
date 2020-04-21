@@ -43,7 +43,11 @@ func parseOperation(operation models.Operation) error {
 	}
 
 	for _, address := range []string{operation.Source, operation.Destination} {
-		if !strings.HasPrefix(address, "KT") {
+		need, err := ctx.ES.IsKnownContract(operation.Network, address)
+		if err != nil {
+			return err
+		}
+		if !need {
 			continue
 		}
 
@@ -67,7 +71,7 @@ func setOperationStats(address string, operation models.Operation) error {
 	})
 
 	if err != nil {
-		if strings.Contains(err.Error(), "Unknown contract") {
+		if strings.Contains(err.Error(), elastic.RecordNotFound) {
 			return nil
 		}
 		return fmt.Errorf("[setOperationStats] Find contract error: %s", err)

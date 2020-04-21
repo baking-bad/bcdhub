@@ -219,3 +219,29 @@ func (b *SearchBigMapDiff) ParseElasticJSON(hit gjson.Result) {
 	b.Timestamp = hit.Get("_source.timestamp").Time()
 	b.FoundBy = models.GetFoundBy(hit)
 }
+
+// ContractStats -
+type ContractStats struct {
+	TxCount        int64     `json:"tx_count"`
+	LastAction     time.Time `json:"last_action"`
+	Balance        int64     `json:"balance"`
+	TotalWithdrawn int64     `json:"total_withdrawn"`
+}
+
+// ParseElasticJSON -
+func (stats *ContractStats) ParseElasticJSON(hit gjson.Result) {
+	stats.TxCount = hit.Get("tx_count.value").Int()
+	stats.LastAction = time.Unix(0, hit.Get("last_action.value").Int()*1000000).UTC()
+	stats.Balance = hit.Get("balance.value").Int()
+	stats.TotalWithdrawn = hit.Get("total_withdrawn.value").Int()
+}
+
+// ContractMigrationsStats -
+type ContractMigrationsStats struct {
+	MigrationsCount int64 `json:"migrations_count"`
+}
+
+// ParseElasticJSON -
+func (stats *ContractMigrationsStats) ParseElasticJSON(hit gjson.Result) {
+	stats.MigrationsCount = hit.Get("migrations_count.value").Int()
+}

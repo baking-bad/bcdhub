@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 )
 
@@ -35,7 +36,11 @@ func (m *SetOperationStrings) Do(ctx *Context) error {
 
 			if (i%1000 == 0 || i == len(operations)-1) && i > 0 {
 				log.Printf("Saving updated data from %d to %d...", lastIdx, i)
-				if err := ctx.ES.BulkUpdateOperations(operations[lastIdx:i]); err != nil {
+				updates := make([]elastic.Identifiable, len(operations[lastIdx:i]))
+				for j := range operations[lastIdx:i] {
+					updates[j] = operations[lastIdx:i][j]
+				}
+				if err := ctx.ES.BulkUpdate("operation", updates); err != nil {
 					return err
 				}
 				lastIdx = i

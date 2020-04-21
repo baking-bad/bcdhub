@@ -12,15 +12,15 @@
     "queues": [
       "operations",
       "contracts",
-      "migrations"
+      "migrations",
+      "recalc"
     ]
   },
   "indexers": {
     "mainnet": {
       "rpc": {
         "urls": [
-          "https://rpc.tzkt.io/mainnet",
-          "https://mainnet.tezos.org.ua"
+          "https://rpc.tzkt.io/mainnet"
         ],
         "timeout": 20
       },
@@ -48,7 +48,6 @@
     "babylonnet": {
       "rpc": {
         "urls": [
-          "https://babylontest-ssl.tezos.org.ua",
           "https://rpc.tzkt.io/babylonnet"
         ],
         "timeout": 20
@@ -63,7 +62,6 @@
     "carthagenet": {
       "rpc": {
         "urls": [
-          "https://carthatest-ssl.tezos.org.ua",
           "https://rpc.tzkt.io/carthagenet"
         ],
         "timeout": 20

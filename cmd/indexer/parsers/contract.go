@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/google/uuid"
 	"github.com/tidwall/gjson"
 )
 
@@ -19,7 +18,7 @@ func createNewContract(es *elastic.Elastic, operation models.Operation, filesDir
 		return nil, fmt.Errorf("Invalid operation kind in computeContractMetrics: %s", operation.Kind)
 	}
 	contract := &models.Contract{
-		ID:         strings.ReplaceAll(uuid.New().String(), "-", ""),
+		ID:         helpers.GenerateID(),
 		Network:    operation.Network,
 		Level:      operation.Level,
 		Timestamp:  operation.Timestamp,
@@ -59,7 +58,6 @@ func computeMetrics(es *elastic.Elastic, operation models.Operation, filesDirect
 	if err := saveToFile(operation.Script, contract, filesDirectory, protoSymLink); err != nil {
 		return err
 	}
-
 	return saveMetadata(es, operation.Script, protoSymLink, contract)
 }
 
@@ -82,6 +80,8 @@ func saveToFile(script gjson.Result, c *models.Contract, filesDirectory, protoSy
 		if _, err := f.WriteString(script.String()); err != nil {
 			return err
 		}
+	} else if err != nil {
+		return err
 	}
 	return nil
 }

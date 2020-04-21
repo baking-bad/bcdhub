@@ -20,3 +20,11 @@ type Contract struct {
 	Address   string
 	Kind      string
 }
+
+// Protocol -
+type Protocol struct {
+	Hash       string
+	StartLevel int64
+	LastLevel  int64
+	Alias      string
+}

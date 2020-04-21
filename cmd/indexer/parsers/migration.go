@@ -1,15 +1,14 @@
 package parsers
 
 import (
-	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/google/uuid"
 	"github.com/tidwall/gjson"
 )
 
@@ -48,7 +47,7 @@ func (p *MigrationParser) Parse(data gjson.Result, head noderpc.Header, old mode
 	}
 
 	op := models.Migration{
-		ID:          strings.ReplaceAll(uuid.New().String(), "-", ""),
+		ID:          helpers.GenerateID(),
 		IndexedTime: time.Now().UnixNano() / 1000,
 
 		Network:      old.Network,

@@ -3,9 +3,9 @@ package migrations
 import (
 	"fmt"
 
+	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -32,7 +32,7 @@ func (m *SetOperationBurned) Do(ctx *Context) error {
 		bar := progressbar.NewOptions(len(operations), progressbar.OptionSetPredictTime(false))
 
 		var changed int64
-		var bulk []models.Operation
+		var bulk []elastic.Identifiable
 
 		for i := range operations {
 			bar.Add(1)
@@ -45,7 +45,7 @@ func (m *SetOperationBurned) Do(ctx *Context) error {
 			}
 
 			if len(bulk) == 1000 || (i == len(operations)-1 && len(bulk) > 0) {
-				if err := ctx.ES.BulkUpdateOperations(bulk); err != nil {
+				if err := ctx.ES.BulkUpdate("operation", bulk); err != nil {
 					return err
 				}
 				bulk = bulk[:0]

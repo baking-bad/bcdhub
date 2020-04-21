@@ -6,7 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -259,4 +261,55 @@ func (e *Elastic) updateByQuery(indices []string, query map[string]interface{}, 
 	defer resp.Body.Close()
 
 	return e.getResponse(resp)
+}
+
+func (e *Elastic) deleteByQuery(indices []string, query map[string]interface{}) (gjson.Result, error) {
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(query); err != nil {
+		return gjson.Result{}, err
+	}
+	// var pretty bytes.Buffer
+	// json.Indent(&pretty, buf.Bytes(), "", "  ")
+	// log.Print(pretty.String())
+
+	options := []func(*esapi.DeleteByQueryRequest){
+		e.DeleteByQuery.WithContext(context.Background()),
+		e.DeleteByQuery.WithConflicts("proceed"),
+	}
+	resp, err := e.DeleteByQuery(
+		indices,
+		bytes.NewReader(buf.Bytes()),
+		options...,
+	)
+	if err != nil {
+		return gjson.Result{}, err
+	}
+
+	defer resp.Body.Close()
+
+	return e.getResponse(resp)
+}
+
+// DeleteByLevelAndNetwork -
+func (e *Elastic) DeleteByLevelAndNetwork(indices []string, network string, maxLevel int64) error {
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				matchQ("network", network),
+				rangeQ("level", qItem{"gt": maxLevel}),
+			),
+		),
+	)
+	end := false
+
+	for !end {
+		response, err := e.deleteByQuery(indices, query)
+		if err != nil {
+			return err
+		}
+
+		end = response.Get("version_conflicts").Int() == 0
+		log.Printf("Removed %d/%d records from %s", response.Get("deleted").Int(), response.Get("total").Int(), strings.Join(indices, ","))
+	}
+	return nil
 }
