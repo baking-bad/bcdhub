@@ -15,8 +15,12 @@ func CreateIndexers(cfg Config) ([]Indexer, error) {
 	if err := cerrors.LoadErrorDescriptions("data/errors.json"); err != nil {
 		return nil, err
 	}
+	networks := make([]string, 0)
+	for k := range cfg.Indexers {
+		networks = append(networks, k)
+	}
 	es := elastic.WaitNew([]string{cfg.Search.URI})
-	if err := meta.LoadProtocols(es); err != nil {
+	if err := meta.LoadProtocols(es, networks); err != nil {
 		return nil, err
 	}
 	return createIndexers(cfg)

@@ -6,9 +6,7 @@
   "indexers": {
     "mainnet": {
       "rpc": {
-        "urls": [
-          "https://rpc.tzkt.io/mainnet"
-        ],
+        "url": "https://rpc.tzkt.io/mainnet",
         "timeout": 20
       },
       "boost": true,
@@ -20,9 +18,7 @@
     },
     "zeronet": {
       "rpc": {
-        "urls": [
-          "https://rpc.tzkt.io/zeronet"
-        ],
+        "url": "https://rpc.tzkt.io/zeronet",
         "timeout": 20
       },
       "boost": true,
@@ -34,9 +30,7 @@
     },
     "babylonnet": {
       "rpc": {
-        "urls": [
-          "https://rpc.tzkt.io/babylonnet"
-        ],
+        "url": "https://rpc.tzkt.io/babylonnet",
         "timeout": 20
       },
       "boost": true,
@@ -48,9 +42,7 @@
     },
     "carthagenet": {
       "rpc": {
-        "urls": [
-          "https://rpc.tzkt.io/carthagenet"
-        ],
+        "url": "https://rpc.tzkt.io/carthagenet",
         "timeout": 20
       },
       "boost": true,

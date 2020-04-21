@@ -32,7 +32,12 @@ func NewContext(cfg Config) (*Context, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := meta.LoadProtocols(es); err != nil {
+	networks := make([]string, 0)
+	for k := range cfg.NodeRPC {
+		networks = append(networks, k)
+	}
+
+	if err := meta.LoadProtocols(es, networks); err != nil {
 		return nil, err
 	}
 	RPCs := createRPCs(cfg)
