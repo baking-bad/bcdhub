@@ -31,6 +31,9 @@ func snapshot(es *elastic.Elastic, creds awsData) error {
 	if err := uploadMappings(es, creds); err != nil {
 		return err
 	}
+	if err := listRepositories(es); err != nil {
+		return err
+	}
 	name, err := askQuestion("Please, enter target repository name:")
 	if err != nil {
 		return err
@@ -40,6 +43,25 @@ func snapshot(es *elastic.Elastic, creds awsData) error {
 }
 
 func restore(es *elastic.Elastic, creds awsData) error {
+	if err := listRepositories(es); err != nil {
+		return err
+	}
+	name, err := askQuestion("Please, enter target repository name:")
+	if err != nil {
+		return err
+	}
+
+	if err := listSnapshots(es, name); err != nil {
+		return err
+	}
+	snapshotName, err := askQuestion("Please, enter target snapshot name:")
+	if err != nil {
+		return err
+	}
+	return es.RestoreSnapshots(name, snapshotName, mappingNames)
+}
+
+func listRepositories(es *elastic.Elastic) error {
 	listRepos, err := es.ListRepositories()
 	if err != nil {
 		return err
@@ -52,25 +74,18 @@ func restore(es *elastic.Elastic, creds awsData) error {
 		fmt.Println(listRepos[i])
 	}
 	fmt.Println("")
+	return nil
+}
 
-	name, err := askQuestion("Please, enter target repository name:")
-	if err != nil {
-		return err
-	}
-
-	listSnaps, err := es.ListSnapshots(name)
+func listSnapshots(es *elastic.Elastic, repository string) error {
+	listSnaps, err := es.ListSnapshots(repository)
 	if err != nil {
 		return err
 	}
 	fmt.Println("")
 	fmt.Println(listSnaps)
 	fmt.Println("")
-
-	snapshotName, err := askQuestion("Please, enter target snapshot name:")
-	if err != nil {
-		return err
-	}
-	return es.RestoreSnapshots(name, snapshotName, mappingNames)
+	return nil
 }
 
 func uploadMappings(es *elastic.Elastic, creds awsData) error {
