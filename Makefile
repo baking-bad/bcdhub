@@ -1,12 +1,6 @@
 include .env
 export $(shell sed 's/=.*//' .env)
 
-up:
-	docker-compose up -d
-
-build:
-	docker-compose build
-
 deploy: export TAG=$(shell git pull -q && git describe --abbrev=0 --tags)
 deploy:
 	git pull
@@ -28,11 +22,15 @@ clearmq:
 	docker exec -it bcd-mq rabbitmqctl reset
 	docker exec -it bcd-mq rabbitmqctl start_app
 
-local:
-	docker-compose -f docker-compose.local.yml up -d --build
-
 aliases:
 	cd scripts/aliases && go run .
 
 migration:
 	cd scripts/migration && go run .
+
+upd:
+	docker-compose -f docker-compose.yml docker-compose.prod.yml up -d --build
+
+s3-creds:
+	docker exec -it bcd-elastic bin/elasticsearch-keystore add s3.client.default.access_key
+	docker exec -it bcd-elastic bin/elasticsearch-keystore add s3.client.default.secret_key
