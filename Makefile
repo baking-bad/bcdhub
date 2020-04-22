@@ -31,6 +31,18 @@ migration:
 upd:
 	docker-compose -f docker-compose.yml docker-compose.prod.yml up -d --build
 
+es-aws:
+	cd scripts/es-aws && go build .
+
 s3-creds:
-	docker exec -it bcd-elastic bin/elasticsearch-keystore add s3.client.default.access_key
-	docker exec -it bcd-elastic bin/elasticsearch-keystore add s3.client.default.secret_key
+	docker exec -it bcd-elastic bin/elasticsearch-keystore add --stdin s3.client.default.access_key < echo "$(AWS_ACCESS_KEY_ID)"
+	docker exec -it bcd-elastic bin/elasticsearch-keystore add --stdin s3.client.default.secret_key < echo "$(AWS_SECRET_ACCESS_KEY)"
+
+s3-repo: es-aws
+	./scripts/es-aws/es-aws -a create_repository
+
+s3-restore: es-aws
+	./scripts/es-aws/es-aws -a restore
+
+s3-policy: es-aws
+	./scripts/es-aws/es-aws -a set_policy
