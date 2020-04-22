@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -59,6 +60,49 @@ func restore(es *elastic.Elastic, creds awsData) error {
 		return err
 	}
 	return es.RestoreSnapshots(name, snapshotName, mappingNames)
+}
+
+func setPolicy(es *elastic.Elastic, creds awsData) error {
+	if err := listPolicies(es); err != nil {
+		return err
+	}
+	policyID, err := askQuestion("Please, enter target new or existing policy ID:")
+	if err != nil {
+		return err
+	}
+	repository, err := askQuestion("Please, enter target repository name:")
+	if err != nil {
+		return err
+	}
+	schedule, err := askQuestion("Please, enter schedule in cron format (https://www.elastic.co/guide/en/elasticsearch/reference/current/trigger-schedule.html#schedule-cron):")
+	if err != nil {
+		return err
+	}
+	expiredAfter, err := askQuestion("Please, enter expiration in days:")
+	if err != nil {
+		return err
+	}
+	iExpiredAfter, err := strconv.ParseInt(expiredAfter, 10, 64)
+	if err != nil {
+		return err
+	}
+	return es.SetSnapshotPolicy(policyID, schedule, policyID, repository, iExpiredAfter)
+}
+
+func listPolicies(es *elastic.Elastic) error {
+	policies, err := es.GetAllPolicies()
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("")
+	fmt.Println("Availiable snapshot policies")
+	fmt.Println("=======================================")
+	for i := range policies {
+		fmt.Println(policies[i])
+	}
+	fmt.Println("")
+	return nil
 }
 
 func listRepositories(es *elastic.Elastic) error {

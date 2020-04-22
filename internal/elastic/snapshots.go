@@ -161,6 +161,69 @@ func (e *Elastic) ListSnapshots(repository string) (string, error) {
 	return response, nil
 }
 
+// SetSnapshotPolicy -
+func (e *Elastic) SetSnapshotPolicy(policyID, cronSchedule, name, repository string, expireAfterInDays int64) error {
+	query := map[string]interface{}{
+		"schedule":   cronSchedule,
+		"name":       name,
+		"repository": repository,
+		"config": map[string]interface{}{
+			"ignore_unavailable":   true,
+			"include_global_state": false,
+		},
+		"retention": map[string]interface{}{
+			"expire_after": fmt.Sprintf("%dd", expireAfterInDays),
+		},
+	}
+
+	var body bytes.Buffer
+	if err := json.NewEncoder(&body).Encode(query); err != nil {
+		return err
+	}
+
+	options := []func(*esapi.SlmPutLifecycleRequest){
+		e.SlmPutLifecycle.WithContext(context.Background()),
+		e.SlmPutLifecycle.WithBody(bytes.NewReader(body.Bytes())),
+	}
+	resp, err := e.SlmPutLifecycle(
+		policyID,
+		options...,
+	)
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	_, err = e.getResponse(resp)
+	return err
+}
+
+// GetAllPolicies -
+func (e *Elastic) GetAllPolicies() ([]string, error) {
+	options := []func(*esapi.SlmGetLifecycleRequest){
+		e.SlmGetLifecycle.WithContext(context.Background()),
+	}
+	resp, err := e.SlmGetLifecycle(
+		options...,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	response, err := e.getResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+	policyIDs := make([]string, 0)
+	for k := range response.Map() {
+		policyIDs = append(policyIDs, k)
+	}
+	return policyIDs, nil
+}
+
 // GetMappings -
 func (e *Elastic) GetMappings(indices []string) (map[string]string, error) {
 	options := []func(*esapi.IndicesGetMappingRequest){

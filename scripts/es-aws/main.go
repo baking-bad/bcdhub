@@ -15,6 +15,7 @@ var handlers = map[string]func(*elastic.Elastic, awsData) error{
 	"create_repository": createRepository,
 	"snapshot":          snapshot,
 	"restore":           restore,
+	"set_policy":        setPolicy,
 }
 
 func main() {
