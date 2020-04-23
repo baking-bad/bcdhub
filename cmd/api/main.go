@@ -109,6 +109,17 @@ func main() {
 	v1 := r.Group("v1")
 	{
 		v1.GET("search", ctx.Search)
+
+		stats := v1.Group("stats")
+		{
+			stats.GET("", ctx.GetStats)
+			networkStats := stats.Group(":network")
+			{
+				networkStats.GET("", ctx.GetNetworkStats)
+				networkStats.GET("series", ctx.GetSeries)
+			}
+		}
+
 		contract := v1.Group("contract")
 		contract.Use(ctx.IsAuthenticated())
 		{
