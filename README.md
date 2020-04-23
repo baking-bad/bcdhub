@@ -27,6 +27,10 @@ GITLAB_CLIENT_ID=
 GITLAB_CLIENT_SECRET=
 JWT_SECRET_KEY=
 OAUTH_STATE_STRING=
+BCD_AWS_BUCKET_NAME=
+BCD_AWS_REGION=
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
 POSTGRES_USER=
 POSTGRES_PASSWORD=
 POSTGRES_DB=
@@ -41,10 +45,10 @@ docker-compose up -d --build
 
 #### Option 2. Pull & run
 Using images from the dockerhub (need to specify tag):  
-https://hub.docker.com/repository/docker/bakingbad/bcdhub-api
-https://hub.docker.com/repository/docker/bakingbad/bcdhub-indexer
-https://hub.docker.com/repository/docker/bakingbad/bcdhub-opindexer
-https://hub.docker.com/repository/docker/bakingbad/bcdhub-metrics
+https://hub.docker.com/repository/docker/bakingbad/bcdhub-api  
+https://hub.docker.com/repository/docker/bakingbad/bcdhub-indexer  
+https://hub.docker.com/repository/docker/bakingbad/bcdhub-opindexer  
+https://hub.docker.com/repository/docker/bakingbad/bcdhub-metrics  
 
 ```bash
 TAG=2.0.0 make deploy
