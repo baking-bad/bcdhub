@@ -49,8 +49,6 @@ func (e *Elastic) GetTokenTransferOperations(network, address, lastID string, si
 				filterItems...,
 			),
 		),
-	).Add(
-		aggs("last_id", min("indexed_time")),
 	).Sort("timestamp", "desc").Size(size)
 
 	po := PageableOperations{}
@@ -59,13 +57,12 @@ func (e *Elastic) GetTokenTransferOperations(network, address, lastID string, si
 		return po, err
 	}
 
-	operations := make([]models.Operation, 0)
-	for _, hit := range result.Get("hits.hits").Array() {
-		var operation models.Operation
-		operation.ParseElasticJSON(hit)
-		operations = append(operations, operation)
+	hits := result.Get("hits.hits").Array()
+	operations := make([]models.Operation, len(hits))
+	for i, hit := range hits {
+		operations[i].ParseElasticJSON(hit)
 	}
 	po.Operations = operations
-	po.LastID = result.Get("aggregations.last_id.value").String()
+	po.LastID = result.Get("hits").Get("hits|@reverse|0").Get("_source.indexed_time").String()
 	return po, nil
 }

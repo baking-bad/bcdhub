@@ -16,12 +16,14 @@ var allFields = []string{
 	"errors.id^5",
 	"language^4",
 	"annotations^3",
+	"source_alias^3",
 	"delegate^2",
 	"hardcoded^2",
 	"manager",
 	"address",
 	"key_hash",
 	"hash",
+	"source",
 }
 
 var mapFields = map[string]string{
@@ -38,16 +40,19 @@ var mapFields = map[string]string{
 	"errors.id":         "errors.id^5",
 	"language":          "language^4",
 	"annots":            "annotations^3",
+	"source_alias":      "source_alias^3",
 	"delegate":          "delegate^2",
 	"hardcoded":         "hardcoded^2",
 	"manager":           "manager",
 	"hash":              "hash",
 	"key_hash":          "key_hash",
 	"address":           "address",
+	"source":            "source",
 }
 
 var mapHighlights = qItem{
 	"alias":             qItem{},
+	"source_alias":      qItem{},
 	"address":           qItem{},
 	"hash":              qItem{},
 	"manager":           qItem{},
@@ -66,6 +71,7 @@ var mapHighlights = qItem{
 	"value_strings":     qItem{},
 	"parameter_strings": qItem{},
 	"storage_strings":   qItem{},
+	"source":            qItem{},
 }
 
 var searchableInidices = []string{

@@ -35,8 +35,8 @@ es-aws:
 	cd scripts/es-aws && go build .
 
 s3-creds:
-	docker exec -it bcd-elastic bin/elasticsearch-keystore add --stdin s3.client.default.access_key < echo "$(AWS_ACCESS_KEY_ID)"
-	docker exec -it bcd-elastic bin/elasticsearch-keystore add --stdin s3.client.default.secret_key < echo "$(AWS_SECRET_ACCESS_KEY)"
+	docker exec -it bcd-elastic bin/elasticsearch-keystore add --stdin s3.client.default.access_key
+	docker exec -it bcd-elastic bin/elasticsearch-keystore add --stdin s3.client.default.secret_key
 
 s3-repo: es-aws
 	./scripts/es-aws/es-aws -a create_repository

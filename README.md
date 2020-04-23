@@ -45,10 +45,10 @@ docker-compose up -d --build
 
 #### Option 2. Pull & run
 Using images from the dockerhub (need to specify tag):  
-https://hub.docker.com/repository/docker/bakingbad/bcdhub-api
-https://hub.docker.com/repository/docker/bakingbad/bcdhub-indexer
-https://hub.docker.com/repository/docker/bakingbad/bcdhub-opindexer
-https://hub.docker.com/repository/docker/bakingbad/bcdhub-metrics
+https://hub.docker.com/repository/docker/bakingbad/bcdhub-api  
+https://hub.docker.com/repository/docker/bakingbad/bcdhub-indexer  
+https://hub.docker.com/repository/docker/bakingbad/bcdhub-opindexer  
+https://hub.docker.com/repository/docker/bakingbad/bcdhub-metrics  
 
 ```bash
 TAG=2.0.0 make deploy
