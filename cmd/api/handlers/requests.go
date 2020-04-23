@@ -131,3 +131,8 @@ type getEntrypointDataRequest struct {
 	Data    map[string]interface{} `json:"data" binding:"required"`
 	Format  string                 `json:"format"`
 }
+
+type getSeriesRequest struct {
+	Index  string `form:"index" binding:"oneof=contract operation"`
+	Period string `form:"period" binding:"oneof=year month week day"`
+}

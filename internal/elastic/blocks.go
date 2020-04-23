@@ -60,3 +60,30 @@ func (e *Elastic) GetBlock(network string, level int64) (block models.Block, err
 	block.ParseElasticJSON(hit)
 	return
 }
+
+// GetAllStates - return last block for all networks
+func (e *Elastic) GetAllStates() ([]models.Block, error) {
+	query := newQuery().Add(
+		aggs("by_network", qItem{
+			"terms": qItem{
+				"field": "network.keyword",
+				"size":  maxQuerySize,
+			},
+			"aggs": qItem{
+				"last": topHits(1, "level", "desc"),
+			},
+		}),
+	).Zero()
+
+	response, err := e.query([]string{DocBlocks}, query)
+	if err != nil {
+		return nil, err
+	}
+
+	hits := response.Get("aggregations.by_network.buckets.#.last.hits.hits.0").Array()
+	blocks := make([]models.Block, len(hits))
+	for i, hit := range hits {
+		blocks[i].ParseElasticJSON(hit)
+	}
+	return blocks, nil
+}

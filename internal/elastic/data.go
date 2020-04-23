@@ -245,3 +245,9 @@ type ContractMigrationsStats struct {
 func (stats *ContractMigrationsStats) ParseElasticJSON(hit gjson.Result) {
 	stats.MigrationsCount = hit.Get("migrations_count.value").Int()
 }
+
+// NetworkCountStats -
+type NetworkCountStats struct {
+	Contracts  int64 `json:"contracts"`
+	Operations int64 `json:"operations"`
+}

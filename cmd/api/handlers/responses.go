@@ -168,3 +168,10 @@ type CodeDiffResponse struct {
 	Right CodeDiffLeg          `json:"right"`
 	Diff  formatter.DiffResult `json:"diff"`
 }
+
+// NetworkStats -
+type NetworkStats struct {
+	ContractsCount  int64             `json:"contracts_count"`
+	OperationsCount int64             `json:"operations_count"`
+	Protocols       []models.Protocol `json:"protocols"`
+}
