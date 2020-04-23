@@ -61,10 +61,8 @@ func (e *Elastic) GetTokenTransferOperations(network, address, lastID string, si
 	operations := make([]models.Operation, len(hits))
 	for i, hit := range hits {
 		operations[i].ParseElasticJSON(hit)
-		if i == len(hits)-1 {
-			po.LastID = hit.Get("_source.indexed_time").String()
-		}
 	}
 	po.Operations = operations
+	po.LastID = result.Get("hits").Get("hits|@reverse|0").Get("_source.indexed_time").String()
 	return po, nil
 }
