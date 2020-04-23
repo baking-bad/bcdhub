@@ -2,6 +2,7 @@ package elastic
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/tidwall/gjson"
@@ -14,7 +15,7 @@ func (e *Elastic) GetOperationByID(id string) (op models.Operation, err error) {
 		return
 	}
 	if !resp.Get("found").Bool() {
-		return op, fmt.Errorf("Unknown operation with ID %s", id)
+		return op, fmt.Errorf("%s: %s %s", DocOperations, DocMigrations, id)
 	}
 	op.ParseElasticJSON(resp)
 	return
@@ -242,7 +243,7 @@ func (e *Elastic) GetPreviousOperation(address, network string, indexedTime int6
 	}
 
 	if res.Get("hits.total.value").Int() < 1 {
-		return op, fmt.Errorf("Unknown operation: %s in %s on %d", address, network, indexedTime)
+		return op, fmt.Errorf("%s: %s in %s on %d", RecordNotFound, address, network, indexedTime)
 	}
 	op.ParseElasticJSON(res.Get("hits.hits.0"))
 	return
@@ -319,4 +320,56 @@ func (e *Elastic) GetAllLevelsForNetwork(network string) (map[int64]struct{}, er
 	}
 
 	return levels, nil
+}
+
+// GetAffectedContracts -
+func (e *Elastic) GetAffectedContracts(network string, fromLevel, toLevel int64) ([]string, error) {
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				matchQ("network", network),
+				rangeQ("level", qItem{
+					"lte": fromLevel,
+					"gt":  toLevel,
+				}),
+			),
+		),
+	)
+
+	result, err := e.createScroll(DocOperations, 1000, query)
+	if err != nil {
+		return nil, err
+	}
+
+	addressesMap := make(map[string]struct{})
+	for {
+		scrollID := result.Get("_scroll_id").String()
+		hits := result.Get("hits.hits")
+		if hits.Get("#").Int() < 1 {
+			break
+		}
+
+		for _, item := range hits.Array() {
+			source := item.Get("_source.source").String()
+			destination := item.Get("_source.destination").String()
+			if strings.HasPrefix(source, "KT") {
+				addressesMap[source] = struct{}{}
+			}
+			if strings.HasPrefix(destination, "KT") {
+				addressesMap[destination] = struct{}{}
+			}
+		}
+
+		result, err = e.queryScroll(scrollID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	addresses := make([]string, 0)
+	for k := range addressesMap {
+		addresses = append(addresses, k)
+	}
+
+	return addresses, nil
 }

@@ -1,16 +1,15 @@
 package parsers
 
 import (
-	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/google/uuid"
 	"github.com/tidwall/gjson"
 )
 
@@ -33,12 +32,12 @@ func NewVestingParser(rpc noderpc.Pool, es *elastic.Elastic, filesDirectory stri
 // Parse -
 func (p *VestingParser) Parse(data gjson.Result, head noderpc.Header, network, address string) (models.Migration, *models.Contract, error) {
 	migration := models.Migration{
-		ID:          strings.ReplaceAll(uuid.New().String(), "-", ""),
+		ID:          helpers.GenerateID(),
 		IndexedTime: time.Now().UnixNano() / 1000,
 
 		Level:     head.Level,
 		Network:   network,
-		Protocol:  head.NextProtocol,
+		Protocol:  head.Protocol,
 		Address:   address,
 		Timestamp: head.Timestamp,
 		Kind:      consts.MigrationBootstrap,
@@ -49,9 +48,9 @@ func (p *VestingParser) Parse(data gjson.Result, head noderpc.Header, network, a
 	}
 
 	op := models.Operation{
-		ID:          strings.ReplaceAll(uuid.New().String(), "-", ""),
+		ID:          helpers.GenerateID(),
 		Network:     network,
-		Protocol:    head.NextProtocol,
+		Protocol:    head.Protocol,
 		Status:      "applied",
 		Kind:        consts.Migration,
 		Amount:      data.Get("balance").Int(),

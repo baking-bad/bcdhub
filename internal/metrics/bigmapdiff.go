@@ -2,6 +2,7 @@ package metrics
 
 import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
+	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/tidwall/gjson"
 )
@@ -16,7 +17,7 @@ func (h *Handler) SetBigMapDiffsStrings(operationID string) error {
 		return nil
 	}
 
-	result := make([]models.BigMapDiff, len(arr))
+	result := make([]elastic.Identifiable, len(arr))
 	for i, bmd := range arr {
 		var b models.BigMapDiff
 		b.ParseElasticJSON(bmd)
@@ -27,5 +28,5 @@ func (h *Handler) SetBigMapDiffsStrings(operationID string) error {
 		result[i] = b
 	}
 
-	return h.ES.BulkUpdateBigMapDiffs(result)
+	return h.ES.BulkUpdate(elastic.DocBigMapDiff, result)
 }

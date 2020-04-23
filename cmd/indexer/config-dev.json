@@ -6,9 +6,7 @@
   "indexers": {
     "mainnet": {
       "rpc": {
-        "urls": [
-          "https://rpc.tzkt.io/mainnet"
-        ],
+        "url": "https://rpc.tzkt.io/mainnet",
         "timeout": 20
       },
       "boost": true,
@@ -20,12 +18,10 @@
     },
     "zeronet": {
       "rpc": {
-        "urls": [
-          "https://zeronet.smartpy.io/"
-        ],
+        "url": "https://rpc.tzkt.io/zeronet",
         "timeout": 20
       },
-      "boost": false,
+      "boost": true,
       "external_indexer": {
         "type": "tzkt",
         "link": "https://api.zeronet.tzkt.io/v1/",
@@ -34,10 +30,7 @@
     },
     "babylonnet": {
       "rpc": {
-        "urls": [
-          "https://babylontest-ssl.tezos.org.ua",
-          "https://rpc.tzkt.io/babylonnet"
-        ],
+        "url": "https://rpc.tzkt.io/babylonnet",
         "timeout": 20
       },
       "boost": true,
@@ -49,10 +42,7 @@
     },
     "carthagenet": {
       "rpc": {
-        "urls": [
-          "https://carthatest-ssl.tezos.org.ua",
-          "https://rpc.tzkt.io/carthagenet"
-        ],
+        "url": "https://rpc.tzkt.io/carthagenet",
         "timeout": 20
       },
       "boost": true,
@@ -68,7 +58,8 @@
     "queues": [
       "operations",
       "contracts",
-      "migrations"
+      "migrations",
+      "recalc"
     ]
   },
   "sentry": {

@@ -2,10 +2,13 @@ version: "3.6"
 services:
   elastic:
     container_name: bcd-elastic
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.5.1
+    image: bakingbad/bcdhub-elastic:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: elastic.Dockerfile
     restart: always
     volumes:
-      - esdata:/usr/share/elasticsearch/data
+      - esdata:/usr/share/elasticsearch/data    
     environment:
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"

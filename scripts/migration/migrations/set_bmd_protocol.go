@@ -43,7 +43,11 @@ func (m *SetBMDProtocol) Do(ctx *Context) error {
 		allBMD[i].Protocol = proto
 
 		if (i%1000 == 0 || i == len(allBMD)-1) && i > 0 {
-			if err := ctx.ES.BulkUpdateBigMapDiffs(allBMD[lastIdx:i]); err != nil {
+			updates := make([]elastic.Identifiable, len(allBMD[lastIdx:i]))
+			for j := range allBMD[lastIdx:i] {
+				updates[j] = allBMD[lastIdx:i][j]
+			}
+			if err := ctx.ES.BulkUpdate("bigmapdiff", updates); err != nil {
 				fmt.Print("\033[2K\r")
 				return err
 			}

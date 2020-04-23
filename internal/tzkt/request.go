@@ -201,3 +201,9 @@ func (t *TzKT) GetAllContractOperationBlocks() ([]int64, error) {
 	}
 	return resp, nil
 }
+
+// GetProtocols -
+func (t *TzKT) GetProtocols() (resp []Protocol, err error) {
+	err = t.request("GET", "protocols", nil, &resp)
+	return
+}

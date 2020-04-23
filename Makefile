@@ -1,12 +1,6 @@
 include .env
 export $(shell sed 's/=.*//' .env)
 
-up:
-	docker-compose up -d
-
-build:
-	docker-compose build
-
 deploy: export TAG=$(shell git pull -q && git describe --abbrev=0 --tags)
 deploy:
 	git pull
@@ -17,13 +11,16 @@ deploy:
 api:
 	cd cmd/api && CONFIG_FILE=config-dev.json go run .
 
+indexer:
+	cd cmd/indexer && CONFIG_FILE=config-dev.json go run .
+
+metrics:
+	cd cmd/metrics && CONFIG_FILE=config-dev.json go run .
+
 clearmq:
 	docker exec -it bcd-mq rabbitmqctl stop_app
 	docker exec -it bcd-mq rabbitmqctl reset
 	docker exec -it bcd-mq rabbitmqctl start_app
-
-local:
-	docker-compose -f docker-compose.local.yml up -d --build
 
 aliases:
 	cd scripts/aliases && go run .

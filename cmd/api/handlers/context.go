@@ -19,7 +19,11 @@ type Context struct {
 
 // NewContext -
 func NewContext(e *elastic.Elastic, rpcs map[string]noderpc.Pool, dir string, db database.DB, oauth oauth.Config) (*Context, error) {
-	if err := meta.LoadProtocols("data/protocols.json"); err != nil {
+	networks := make([]string, 0)
+	for k := range rpcs {
+		networks = append(networks, k)
+	}
+	if err := meta.LoadProtocols(e, networks); err != nil {
 		return nil, err
 	}
 	return &Context{

@@ -6,6 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/index"
 )
 
@@ -14,7 +15,12 @@ func CreateIndexers(cfg Config) ([]Indexer, error) {
 	if err := cerrors.LoadErrorDescriptions("data/errors.json"); err != nil {
 		return nil, err
 	}
-	if err := meta.LoadProtocols("protocols.json"); err != nil {
+	networks := make([]string, 0)
+	for k := range cfg.Indexers {
+		networks = append(networks, k)
+	}
+	es := elastic.WaitNew([]string{cfg.Search.URI})
+	if err := meta.LoadProtocols(es, networks); err != nil {
 		return nil, err
 	}
 	return createIndexers(cfg)
