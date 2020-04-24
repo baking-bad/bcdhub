@@ -17,6 +17,7 @@ var handlers = map[string]func(*elastic.Elastic, awsData) error{
 	"restore":                restore,
 	"set_policy":             setPolicy,
 	"reload_secure_settings": reloadSecureSettings,
+	"delete_indices":         deleteIndices,
 }
 
 func main() {
