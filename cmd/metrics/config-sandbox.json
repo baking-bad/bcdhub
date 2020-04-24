@@ -14,7 +14,7 @@
   },
   "nodes": {
     "sandboxnet": [
-      "http://127.0.0.1:8732"
+      "http://sandbox:20000"
     ]
   },
   "db": {

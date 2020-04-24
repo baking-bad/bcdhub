@@ -31,7 +31,7 @@ WORKDIR /app/api
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /go/bin/api /go/bin/api
-COPY /cmd/api/config.json /app/api/config.json
+COPY /cmd/api/*.json /app/api/
 COPY /cmd/api/oauth/*.json /app/api/oauth/
 COPY /cmd/api/data/errors.json /app/api/data/errors.json
 
