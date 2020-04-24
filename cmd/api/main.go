@@ -63,7 +63,6 @@ func main() {
 	if err != nil {
 		logger.Error(err)
 		helpers.CatchErrorSentry(err)
-		return
 	}
 
 	ctx, err := handlers.NewContext(es, rpc, cfg.Dir, db, oauth)
