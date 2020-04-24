@@ -81,9 +81,8 @@ func NewBoostIndexer(cfg Config, network string) (*BoostIndexer, error) {
 		if err != nil {
 			return nil, err
 		}
-	} else {
-		logger.Info("[%s] Current network protocol: %s", network, currentProtocol.Hash)
 	}
+	logger.Info("[%s] Current network protocol: %s", network, currentProtocol.Hash)
 
 	logger.Info("[%s] Getting network constants...", network)
 	constants, err := rpc.GetNetworkConstants()
@@ -91,7 +90,7 @@ func NewBoostIndexer(cfg Config, network string) (*BoostIndexer, error) {
 		return nil, err
 	}
 	updateTimer := constants.Get("time_between_blocks.0").Int()
-	logger.Info("[%s] Data will be updates every %d seconds", network, updateTimer)
+	logger.Info("[%s] Data will be updated every %d seconds", network, updateTimer)
 
 	bi := &BoostIndexer{
 		Network:         network,
@@ -461,16 +460,16 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) error {
 		if err := bi.vestingMigration(head); err != nil {
 			return err
 		}
-	} else if bi.currentProtocol.Hash != "" {
+	} else {
+		if bi.currentProtocol.Hash == "" {
+			return fmt.Errorf("[%s] Protocol should be initialized", bi.Network)
+		}
 		if err := bi.standartMigration(head); err != nil {
 			return err
 		}
 	}
 
-	if err := bi.updateProtocol(head); err != nil {
-		return err
-	}
-	return nil
+	return bi.updateProtocol(head)
 }
 
 func createProtocol(es *elastic.Elastic, network, hash string, level int64) (protocol models.Protocol, err error) {
@@ -493,18 +492,12 @@ func createProtocol(es *elastic.Elastic, network, hash string, level int64) (pro
 }
 
 func (bi *BoostIndexer) updateProtocol(head noderpc.Header) error {
-	if bi.currentProtocol.Hash != "" {
-		if bi.currentProtocol.EndLevel == 0 {
-			logger.Info("[%s] Updating previous protocol (setting end level)", bi.Network)
-			bi.currentProtocol.EndLevel = head.Level - 1
-			_, err := bi.es.UpdateDoc(elastic.DocProtocol, bi.currentProtocol.ID, bi.currentProtocol)
-			if err != nil {
-				return err
-			}
-		}
-	} else {
-		if head.Level != 1 {
-			return fmt.Errorf("Protocol can be not initialized at zero state only (level 0), we are at %d", head.Level-1)
+	if bi.currentProtocol.EndLevel == 0 {
+		logger.Info("[%s] Finalizing the previous protocol", bi.Network)
+		bi.currentProtocol.EndLevel = head.Level - 1
+		_, err := bi.es.UpdateDoc(elastic.DocProtocol, bi.currentProtocol.ID, bi.currentProtocol)
+		if err != nil {
+			return err
 		}
 	}
 
