@@ -37,6 +37,13 @@ type BoostIndexer struct {
 	stopped bool
 }
 
+func maxLevel(a, b int64) int64 {
+	if a > b {
+		return a
+	}
+	return b
+}
+
 // NewBoostIndexer -
 func NewBoostIndexer(cfg Config, network string) (*BoostIndexer, error) {
 	logger.Info("[%s] Creating indexer object...", network)
@@ -66,9 +73,17 @@ func NewBoostIndexer(cfg Config, network string) (*BoostIndexer, error) {
 
 	currentProtocol, err := es.GetProtocol(network, currentState.Level)
 	if err != nil {
-		return nil, err
+		header, err := rpc.GetHeader(maxLevel(1, currentState.Level))
+		if err != nil {
+			return nil, err
+		}
+		currentProtocol, err = createProtocol(es, network, header.Protocol, 0)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		logger.Info("[%s] Current network protocol: %s", network, currentProtocol.Hash)
 	}
-	logger.Info("[%s] Current network protocol: %s", network, currentProtocol.Hash)
 
 	logger.Info("[%s] Getting network constants...", network)
 	constants, err := rpc.GetNetworkConstants()
@@ -167,7 +182,7 @@ func (bi *BoostIndexer) Index(levels []int64) error {
 			return err
 		}
 
-		if currentHead.Predecessor != bi.state.Hash && !bi.boost {
+		if bi.state.Level > 0 && currentHead.Predecessor != bi.state.Hash && !bi.boost {
 			return fmt.Errorf("rollback")
 		}
 
@@ -450,8 +465,6 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) error {
 		if err := bi.standartMigration(head); err != nil {
 			return err
 		}
-	} else {
-		return nil
 	}
 
 	if err := bi.updateProtocol(head); err != nil {
@@ -460,11 +473,53 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) error {
 	return nil
 }
 
+func createProtocol(es *elastic.Elastic, network, hash string, level int64) (protocol models.Protocol, err error) {
+	logger.Info("[%s] Creating new protocol %s starting at %d", network, hash, level)
+	protocol.SymLink, err = meta.GetProtoSymLink(hash)
+	if err != nil {
+		return
+	}
+
+	protocol.Network = network
+	protocol.Hash = hash
+	protocol.StartLevel = level
+	protocol.ID = helpers.GenerateID()
+
+	_, err = es.AddDocumentWithID(protocol, elastic.DocProtocol, protocol.ID)
+	if err != nil {
+		return
+	}
+	return
+}
+
 func (bi *BoostIndexer) updateProtocol(head noderpc.Header) error {
+	if bi.currentProtocol.Hash != "" {
+		if bi.currentProtocol.EndLevel == 0 {
+			logger.Info("[%s] Updating previous protocol (setting end level)", bi.Network)
+			bi.currentProtocol.EndLevel = head.Level - 1
+			_, err := bi.es.UpdateDoc(elastic.DocProtocol, bi.currentProtocol.ID, bi.currentProtocol)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		if head.Level != 1 {
+			return fmt.Errorf("Protocol can be not initialized at zero state only (level 0), we are at %d", head.Level-1)
+		}
+	}
+
 	protocol, err := bi.es.GetProtocol(bi.Network, head.Level)
 	if err != nil {
 		return err
 	}
+
+	if protocol.Hash != head.Hash {
+		protocol, err = createProtocol(bi.es, bi.Network, head.Protocol, head.Level)
+		if err != nil {
+			return err
+		}
+	}
+
 	bi.currentProtocol = protocol
 	return nil
 }

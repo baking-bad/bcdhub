@@ -19,7 +19,7 @@
   "indexers": {
     "sandboxnet": {
       "rpc": {
-        "url": "http://127.0.0.1:8732",
+        "url": "http://sandbox:20000",
         "timeout": 20
       },
       "boost": false
