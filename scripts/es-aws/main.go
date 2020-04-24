@@ -12,10 +12,11 @@ import (
 )
 
 var handlers = map[string]func(*elastic.Elastic, awsData) error{
-	"create_repository": createRepository,
-	"snapshot":          snapshot,
-	"restore":           restore,
-	"set_policy":        setPolicy,
+	"create_repository":      createRepository,
+	"snapshot":               snapshot,
+	"restore":                restore,
+	"set_policy":             setPolicy,
+	"reload_secure_settings": reloadSecureSettings,
 }
 
 func main() {

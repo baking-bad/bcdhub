@@ -1,9 +1,5 @@
 version: "3.6"
 services:
-  elastic:
-    environment:
-      - "ES_JAVA_OPTS=-Xms16g -Xmx16g"
-
   api:
     volumes:
       - /etc/bcd:/etc/bcd

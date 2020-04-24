@@ -5,14 +5,15 @@ services:
     image: bakingbad/bcdhub-elastic:${TAG:-latest}
     build:
       context: .
-      dockerfile: elastic.Dockerfile
+      dockerfile: elastic.dockerfile
     restart: always
     volumes:
       - esdata:/usr/share/elasticsearch/data    
     environment:
       - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - discovery.type=single-node
+    env_file:
+      - .env
     ports:
       - "127.0.0.1:9300:9300"
       - "127.0.0.1:9200:9200"
