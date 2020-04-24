@@ -1,0 +1,19 @@
+{
+  "search": {
+    "uri": "http://elastic:9200"
+  },
+  "address": ":14000",
+  "nodes": {
+    "sandboxnet": [
+      "http://127.0.0.1:8732"
+    ]
+  },
+  "dir": "/etc/bcd",
+  "db": {
+    "uri": "host=db port=5432 user=root dbname=bcd password=root sslmode=disable"
+  },
+  "sentry": {
+    "project": "api",
+    "debug": false
+  }
+}
