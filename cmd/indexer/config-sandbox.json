@@ -1,0 +1,28 @@
+{
+  "files_directory": "/etc/bcd",
+  "search": {
+    "uri": "http://elastic:9200"
+  },
+  "sentry": {
+    "project": "indexer",
+    "debug": false
+  },
+  "mq": {
+    "uri": "amqp://guest:guest@mq:5672/",
+    "queues": [
+      "operations",
+      "contracts",
+      "migrations",
+      "recalc"
+    ]
+  },
+  "indexers": {
+    "sandboxnet": {
+      "rpc": {
+        "url": "http://127.0.0.1:8732",
+        "timeout": 20
+      },
+      "boost": false
+    }
+  }
+}
