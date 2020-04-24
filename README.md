@@ -1,10 +1,11 @@
 # Better Call Dev Hub
 [![Build Status](https://travis-ci.org/baking-bad/bcdhub.svg?branch=master)](https://travis-ci.org/baking-bad/bcdhub)
+[![Docker Build Status](https://img.shields.io/docker/cloud/build/bakingbad/bcdhub-api)](https://hub.docker.com/r/bakingbad/bcdhub-api)
 [![made_with golang](https://img.shields.io/badge/made_with-golang-blue.svg)](https://golang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Backend for the Better Call Dev contract explorer & developer dashboard  
-https://better-call.dev
+https://you.better-call.dev
 
 ## How to run
 

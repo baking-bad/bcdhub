@@ -43,7 +43,14 @@ s3-repo: es-aws
 	./scripts/es-aws/es-aws -a create_repository
 
 s3-restore: es-aws
+	./scripts/es-aws/es-aws -a delete_indices
 	./scripts/es-aws/es-aws -a restore
+
+s3-snapshot: es-aws
+	./scripts/es-aws/es-aws -a snapshot
 
 s3-policy: es-aws
 	./scripts/es-aws/es-aws -a set_policy
+
+latest:
+	git tag latest -f && git push origin latest -f
