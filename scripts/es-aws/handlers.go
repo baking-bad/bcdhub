@@ -191,3 +191,18 @@ func restoreMappings(es *elastic.Elastic, creds awsData) error {
 	}
 	return nil
 }
+
+func reloadSecureSettings(es *elastic.Elastic, creds awsData) error {
+	resp, err := es.API.Nodes.ReloadSecureSettings()
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.IsError() {
+		return fmt.Errorf(resp.Status())
+	}
+
+	return nil
+}
