@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/jsonload"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/scripts/migration/migrations"
 )
@@ -32,6 +32,11 @@ func main() {
 		"state_chain_id":            &migrations.SetStateChainID{},
 	}
 
+	cfg, err := config.LoadDefaultConfig()
+	if err != nil {
+		logger.Fatal(err)
+	}
+
 	env := os.Getenv("MIGRATION")
 
 	if env == "" {
@@ -47,12 +52,6 @@ func main() {
 	}
 
 	start := time.Now()
-
-	var cfg migrations.Config
-	if err := jsonload.StructFromFile("config.json", &cfg); err != nil {
-		log.Fatal(err)
-	}
-	cfg.Print()
 
 	ctx, err := migrations.NewContext(cfg)
 	if err != nil {

@@ -20,7 +20,7 @@ func (m *SetTimestamp) Description() string {
 
 // Do - migrate function
 func (m *SetTimestamp) Do(ctx *Context) error {
-	for _, network := range []string{"mainnet", "zeronet", "carthagenet", "babylonnet"} {
+	for _, network := range []string{"mainnet", "zeronet", "carthagenet", "babylonnet"} { // TODO:
 		rpc, err := ctx.GetRPC(network)
 		if err != nil {
 			return err

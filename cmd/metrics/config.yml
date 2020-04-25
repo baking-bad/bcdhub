@@ -1,0 +1,37 @@
+rpc:
+    mainnet:
+        uri: https://mainnet.tezos.org.ua
+        timeout: 20
+    zeronet:
+        uri: https://rpc.tzkt.io/zeronet
+        timeout: 20
+    babylonnet:
+        uri: https://babylontest-ssl.tezos.org.ua
+        timeout: 20
+    carthagenet:
+        uri: https://carthatest-ssl.tezos.org.ua
+        timeout: 20
+
+sentry:
+    environment: production
+    uri: ${SENTRY_DSN}
+    debug: false
+
+elastic:
+    uri: http://elastic:9200
+
+rabbitmq:
+    uri: "amqp://${RABBIT_USER}:${RABBIT_PASSWORD}@mq:5672/"
+    queues:
+        - operations
+        - contracts
+        - migrations
+        - recalc
+
+db:
+    conn_string: "host=db port=5432 user=${POSTGRES_USER} dbname=bcd password=${POSTGRES_PASSWORD} sslmode=disable"
+
+metrics:
+    sentry:
+        enabled: true
+        project: metrics

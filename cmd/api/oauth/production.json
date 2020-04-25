@@ -1,5 +1,0 @@
-{
-  "githubCallbackURL": "https://api.better-call.dev/v1/oauth/github/callback",
-  "gitlabCallbackURL": "https://api.better-call.dev/v1/oauth/gitlab/callback",
-  "jwtRedirectURL": "https://better-call.dev/welcome"
-}

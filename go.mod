@@ -15,6 +15,7 @@ require (
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/uuid v1.1.1
 	github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
+	github.com/jessevdk/go-flags v0.0.0-20141203071132-1679536dcc89
 	github.com/jinzhu/gorm v1.9.11
 	github.com/labstack/gommon v0.3.0
 	github.com/mkouhei/gosh v0.2.3 // indirect
@@ -30,5 +31,5 @@ require (
 	golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0
-	gopkg.in/yaml.v2 v2.2.8 // indirect
+	gopkg.in/yaml.v2 v2.2.8
 )

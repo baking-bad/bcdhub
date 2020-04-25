@@ -3,6 +3,7 @@ package main
 import (
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/elastic"
@@ -19,15 +20,15 @@ type Context struct {
 	Aliases map[string]string
 }
 
-func newContext(cfg config) (*Context, error) {
-	es := elastic.WaitNew([]string{cfg.Search.URI})
+func newContext(cfg config.Config) (*Context, error) {
+	es := elastic.WaitNew([]string{cfg.Elastic.URI})
 	RPCs := createRPCs(cfg)
-	messageQueue, err := mq.New(cfg.Mq.URI, cfg.Mq.Queues)
+	messageQueue, err := mq.New(cfg.RabbitMQ.URI, cfg.RabbitMQ.Queues)
 	if err != nil {
 		return nil, err
 	}
 
-	db, err := database.New(cfg.DB.URI)
+	db, err := database.New(cfg.DB.ConnString)
 	if err != nil {
 		return nil, err
 	}
@@ -50,10 +51,10 @@ func (ctx *Context) close() {
 	ctx.MQ.Close()
 }
 
-func createRPCs(cfg config) map[string]noderpc.Pool {
+func createRPCs(cfg config.Config) map[string]noderpc.Pool {
 	rpc := make(map[string]noderpc.Pool)
-	for network, hosts := range cfg.NodeRPC {
-		rpc[network] = noderpc.NewPool(hosts, time.Second*30)
+	for network, rpcProvider := range cfg.RPC {
+		rpc[network] = noderpc.NewPool([]string{rpcProvider.URI}, time.Second*time.Duration(rpcProvider.Timeout))
 	}
 	return rpc
 }

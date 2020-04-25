@@ -17,7 +17,7 @@ func (m *SetContractMigrationsCount) Description() string {
 
 // Do - migrate function
 func (m *SetContractMigrationsCount) Do(ctx *Context) error {
-	for _, network := range []string{"mainnet", "zeronet", "carthagenet", "babylonnet"} {
+	for _, network := range []string{"mainnet", "zeronet", "carthagenet", "babylonnet"} { // TODO:
 		logger.Info("Migration in %s started", network)
 		migrations, err := ctx.ES.GetAllMigrations(network)
 		if err != nil {

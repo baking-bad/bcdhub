@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -29,12 +28,12 @@ func NewMigrationParser(rpc noderpc.Pool, es *elastic.Elastic, filesDirectory st
 }
 
 // Parse -
-func (p *MigrationParser) Parse(data gjson.Result, head noderpc.Header, old models.Contract, prevProtocol string) (*models.Migration, error) {
-	protoSymLink, err := meta.GetProtoSymLink(head.Protocol)
-	if err != nil {
+func (p *MigrationParser) Parse(data gjson.Result, old models.Contract, prevProtocol, newProtocol models.Protocol) (*models.Migration, error) {
+	if err := updateMetadata(p.es, data, newProtocol.SymLink, &old); err != nil {
 		return nil, err
 	}
-	if err := updateMetadata(p.es, data, protoSymLink, &old); err != nil {
+	migrationBlock, err := p.rpc.GetHeader(prevProtocol.EndLevel)
+	if err != nil {
 		return nil, err
 	}
 
@@ -51,11 +50,11 @@ func (p *MigrationParser) Parse(data gjson.Result, head noderpc.Header, old mode
 		IndexedTime: time.Now().UnixNano() / 1000,
 
 		Network:      old.Network,
-		Level:        head.Level,
-		Protocol:     head.Protocol,
-		PrevProtocol: prevProtocol,
+		Level:        prevProtocol.EndLevel,
+		Protocol:     newProtocol.Hash,
+		PrevProtocol: prevProtocol.Hash,
 		Address:      old.Address,
-		Timestamp:    head.Timestamp,
+		Timestamp:    migrationBlock.Timestamp,
 		Kind:         consts.MigrationUpdate,
 	}
 	if _, err := p.es.UpdateDoc(elastic.DocContracts, old.ID, old); err != nil {

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	"strings"
 	"time"
 
@@ -11,11 +10,11 @@ import (
 
 	"github.com/baking-bad/bcdhub/cmd/api/handlers"
 	"github.com/baking-bad/bcdhub/cmd/api/oauth"
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/jsonload"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/gin-gonic/gin"
@@ -23,6 +22,11 @@ import (
 )
 
 func main() {
+	cfg, err := config.LoadDefaultConfig()
+	if err != nil {
+		logger.Fatal(err)
+	}
+
 	gjson.AddModifier("upper", func(json, arg string) string {
 		return strings.ToUpper(json)
 	})
@@ -30,26 +34,18 @@ func main() {
 		return strings.ToLower(json)
 	})
 
-	configFile := os.Getenv("CONFIG_FILE")
-	if configFile == "" {
-		configFile = "config.json"
+	if cfg.API.Sentry.Enabled {
+		helpers.InitSentry(cfg.Sentry.Debug, cfg.Sentry.Environment, cfg.Sentry.Environment)
+		helpers.SetTagSentry("project", cfg.API.Sentry.Project)
+		defer helpers.CatchPanicSentry()
 	}
 
-	var cfg config
-	if err := jsonload.StructFromFile(configFile, &cfg); err != nil {
-		logger.Fatal(err)
-	}
-
-	helpers.InitSentry(cfg.Sentry.Debug)
-	helpers.SetTagSentry("project", cfg.Sentry.Project)
-	defer helpers.CatchPanicSentry()
-
-	es := elastic.WaitNew([]string{cfg.Search.URI})
+	es := elastic.WaitNew([]string{cfg.Elastic.URI})
 	if err := cerrors.LoadErrorDescriptions("data/errors.json"); err != nil {
 		logger.Fatal(err)
 	}
 
-	db, err := database.New(cfg.DB.URI)
+	db, err := database.New(cfg.DB.ConnString)
 	if err != nil {
 		logger.Error(err)
 		helpers.CatchErrorSentry(err)
@@ -59,13 +55,16 @@ func main() {
 
 	rpc := createRPC(cfg)
 
-	oauth, err := oauth.New()
-	if err != nil {
-		logger.Error(err)
-		helpers.CatchErrorSentry(err)
+	var oauthCfg oauth.Config
+	if cfg.API.OAuth.Enabled {
+		oauthCfg, err = oauth.New(cfg)
+		if err != nil {
+			logger.Error(err)
+			helpers.CatchErrorSentry(err)
+		}
 	}
 
-	ctx, err := handlers.NewContext(es, rpc, cfg.Dir, db, oauth)
+	ctx, err := handlers.NewContext(es, rpc, cfg.Share.Path, db, oauthCfg)
 	if err != nil {
 		logger.Error(err)
 		helpers.CatchErrorSentry(err)
@@ -86,13 +85,8 @@ func main() {
 		}
 	}
 
-	var networks []string
-	for network := range cfg.NodeRPC {
-		networks = append(networks, network)
-	}
-
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		if err := v.RegisterValidation("network", handlers.MakeNetworkValidator(networks)); err != nil {
+		if err := v.RegisterValidation("network", handlers.MakeNetworkValidator(cfg.API.Networks)); err != nil {
 			logger.Fatal(err)
 		}
 	}
@@ -201,7 +195,7 @@ func main() {
 			}
 		}
 	}
-	if err := r.Run(cfg.Address); err != nil {
+	if err := r.Run(cfg.API.Bind); err != nil {
 		logger.Error(err)
 		helpers.CatchErrorSentry(err)
 		return
@@ -216,10 +210,10 @@ func corsSettings() gin.HandlerFunc {
 	return cors.New(cfg)
 }
 
-func createRPC(cfg config) map[string]noderpc.Pool {
+func createRPC(cfg config.Config) map[string]noderpc.Pool {
 	rpc := make(map[string]noderpc.Pool)
-	for network, hosts := range cfg.NodeRPC {
-		rpc[network] = noderpc.NewPool(hosts, time.Second*30)
+	for network, rpcProvider := range cfg.RPC {
+		rpc[network] = noderpc.NewPool([]string{rpcProvider.URI}, time.Second*time.Duration(rpcProvider.Timeout))
 	}
 	return rpc
 }

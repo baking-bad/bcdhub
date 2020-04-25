@@ -11,6 +11,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/tzkt"
 )
 
+// This is the list of protocols BCD supports
+// Every time new protocol is proposed we determine if everything works fine or implement a custom handler otherwise
+// After that we append protocol to this list with a corresponding handler id (aka symlink)
 var symLinks = map[string]string{
 	"PrihK96nBAFSxVL1GLJTVhu9YnzkMFiBeuJRPA8NwuZVZCE1L6i": "alpha",
 	"PtBMwNZT94N7gXKw4i273CKcSaBrrBnqnt3RATExNKr9KNX2USV": "alpha",
@@ -26,7 +29,13 @@ var symLinks = map[string]string{
 	"PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb": "babylon",
 }
 
-var protocols map[string]string
+// GetProtoSymLink -
+func GetProtoSymLink(protocol string) (string, error) {
+	if protoSymLink, ok := symLinks[protocol]; ok {
+		return protoSymLink, nil
+	}
+	return "", fmt.Errorf("Unknown protocol: %s", protocol)
+}
 
 // LoadProtocols -
 func LoadProtocols(e *elastic.Elastic, networks []string) error {
@@ -41,10 +50,6 @@ func LoadProtocols(e *elastic.Elastic, networks []string) error {
 		if err != nil {
 			return err
 		}
-	}
-	protocols = make(map[string]string)
-	for _, p := range response {
-		protocols[p.Hash] = p.SymLink
 	}
 	return nil
 }

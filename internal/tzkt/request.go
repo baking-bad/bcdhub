@@ -29,7 +29,7 @@ func NewTzKT(host string, timeout time.Duration) *TzKT {
 	return &TzKT{
 		Host: host,
 		client: http.Client{
-			Timeout: time.Duration(timeout) * time.Second,
+			Timeout: timeout,
 		},
 
 		retryCount: 3,
@@ -51,7 +51,7 @@ func NewTzKTForNetwork(network string, timeout time.Duration) *TzKT {
 	return &TzKT{
 		Host: host,
 		client: http.Client{
-			Timeout: time.Duration(timeout) * time.Second,
+			Timeout: timeout,
 		},
 
 		retryCount: 3,

@@ -8,27 +8,23 @@ import (
 	"syscall"
 
 	"github.com/baking-bad/bcdhub/cmd/indexer/indexer"
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/jsonload"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/tidwall/gjson"
 )
 
 func main() {
-	configFile := os.Getenv("CONFIG_FILE")
-	if configFile == "" {
-		configFile = "config.json"
-	}
-
-	var cfg indexer.Config
-	if err := jsonload.StructFromFile(configFile, &cfg); err != nil {
+	cfg, err := config.LoadDefaultConfig()
+	if err != nil {
 		logger.Fatal(err)
 	}
-	cfg.Print()
 
-	helpers.InitSentry(cfg.Sentry.Debug)
-	helpers.SetTagSentry("project", cfg.Sentry.Project)
-	defer helpers.CatchPanicSentry()
+	if cfg.Indexer.Sentry.Enabled {
+		helpers.InitSentry(cfg.Sentry.Debug, cfg.Sentry.Environment, cfg.Sentry.Environment)
+		helpers.SetTagSentry("project", cfg.Indexer.Sentry.Project)
+		defer helpers.CatchPanicSentry()
+	}
 
 	gjson.AddModifier("upper", func(json, arg string) string {
 		return strings.ToUpper(json)

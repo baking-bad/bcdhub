@@ -6,28 +6,30 @@ import (
 
 	"github.com/schollz/progressbar/v3"
 
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/tzkt"
 )
 
-const (
-	dbURI = "host=127.0.0.1 port=5432 user=root dbname=bcd password=root sslmode=disable"
-)
-
 func main() {
 	start := time.Now()
+	cfg, err := config.LoadDefaultConfig()
+	if err != nil {
+		logger.Fatal(err)
+	}
 
-	api := tzkt.NewTzKT(tzkt.TzKTURLV1, time.Second*time.Duration(10))
-	logger.Success("Initialized tzkt api [%s]", tzkt.TzKTURLV1)
+	timeout := time.Duration(cfg.TzKT[consts.Mainnet].Timeout) * time.Second
+	api := tzkt.NewTzKT(cfg.TzKT[consts.Mainnet].URI, timeout)
+	logger.Success("TzKT API initialized")
 
-	db, err := database.New(dbURI)
+	db, err := database.New(cfg.DB.ConnString)
 	if err != nil {
 		logger.Fatal(err)
 	}
 	defer db.Close()
-	logger.Success("Initialized database [%s]", dbURI)
+	logger.Success("Database connection established")
 
 	aliases, err := api.GetAliases()
 	if err != nil {

@@ -398,11 +398,3 @@ func GetMetadata(es *elastic.Elastic, address, part, protocol string) (Metadata,
 	err = json.Unmarshal([]byte(sMetadata), &metadata)
 	return metadata, err
 }
-
-// GetProtoSymLink -
-func GetProtoSymLink(protocol string) (string, error) {
-	if protoSymLink, ok := protocols[protocol]; ok {
-		return protoSymLink, nil
-	}
-	return "", fmt.Errorf("Unknown protocol: %s", protocol)
-}

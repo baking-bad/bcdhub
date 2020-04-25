@@ -1,5 +1,0 @@
-{
-  "githubCallbackURL": "http://localhost:14000/v1/oauth/github/callback",
-  "gitlabCallbackURL": "http://localhost:14000/v1/oauth/gitlab/callback",
-  "jwtRedirectURL": "http://localhost:8080/welcome"
-}

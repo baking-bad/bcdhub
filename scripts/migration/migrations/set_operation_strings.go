@@ -21,7 +21,7 @@ func (m *SetOperationStrings) Do(ctx *Context) error {
 	log.Print("Start SetOperationStrings migration...")
 	start := time.Now()
 
-	for _, network := range []string{"mainnet", "zeronet", "carthagenet", "babylonnet"} {
+	for _, network := range []string{"mainnet", "zeronet", "carthagenet", "babylonnet"} { // TODO:
 		operations, err := ctx.ES.GetAllOperations(network)
 		if err != nil {
 			return err
