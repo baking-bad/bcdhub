@@ -1,12 +1,5 @@
 package tzstats
 
-// Avaliable URLs
-const (
-	MainNetURL    = "https://api.tzstats.com"
-	ZeroNetURL    = "https://api.zeronet.tzstats.com"
-	BabylonNetURL = "https://api.babylonnet.tzstats.com"
-)
-
 // Operation types
 const (
 	OperationTypeAll         = "n_ops"
