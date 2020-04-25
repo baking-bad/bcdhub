@@ -75,9 +75,11 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	helpers.InitSentry(cfg.Sentry.Debug)
-	helpers.SetTagSentry("project", cfg.Sentry.Project)
-	defer helpers.CatchPanicSentry()
+	if cfg.Metrics.Sentry.Enabled {
+		helpers.InitSentry(cfg.Sentry.Debug, cfg.Sentry.Environment, cfg.Sentry.URI)
+		helpers.SetTagSentry("project", cfg.Metrics.Sentry.Project)
+		defer helpers.CatchPanicSentry()
+	}
 
 	ctx, err = newContext(cfg)
 	if err != nil {
@@ -91,8 +93,8 @@ func main() {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
-	for i := range cfg.Mq.Queues {
-		go listenChannel(ctx.MQ, cfg.Mq.Queues[i], closeChan)
+	for i := range cfg.RabbitMQ.Queues {
+		go listenChannel(ctx.MQ, cfg.RabbitMQ.Queues[i], closeChan)
 	}
 
 	<-signals
