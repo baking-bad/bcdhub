@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/cmd/indexer/parsers"
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/elastic"
@@ -45,22 +46,26 @@ func maxLevel(a, b int64) int64 {
 }
 
 // NewBoostIndexer -
-func NewBoostIndexer(cfg Config, network string) (*BoostIndexer, error) {
+func NewBoostIndexer(cfg config.Config, network string, externalType string) (*BoostIndexer, error) {
 	logger.Info("[%s] Creating indexer object...", network)
-	config := cfg.Indexers[network]
-	es := elastic.WaitNew([]string{cfg.Search.URI})
-	rpc := noderpc.NewPool([]string{config.RPC.URL}, time.Duration(config.RPC.Timeout)*time.Second)
+	es := elastic.WaitNew([]string{cfg.Elastic.URI})
+
+	rpcProvider, ok := cfg.RPC[network]
+	if !ok {
+		return nil, fmt.Errorf("Unknown network %s", network)
+	}
+	rpc := noderpc.NewPool([]string{rpcProvider.URI}, time.Duration(rpcProvider.Timeout)*time.Second)
 
 	var externalIndexer index.Indexer
 	var err error
-	if config.Boost {
-		externalIndexer, err = createExternalInexer(config.ExternalIndexer)
+	if externalType != "" {
+		externalIndexer, err = createExternalInexer(cfg, network, externalType)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	messageQueue, err := mq.New(cfg.Mq.URI, cfg.Mq.Queues)
+	messageQueue, err := mq.New(cfg.RabbitMQ.URI, cfg.RabbitMQ.Queues)
 	if err != nil {
 		return nil, err
 	}
@@ -101,8 +106,8 @@ func NewBoostIndexer(cfg Config, network string) (*BoostIndexer, error) {
 		messageQueue:    messageQueue,
 		state:           currentState,
 		currentProtocol: currentProtocol,
-		filesDirectory:  cfg.FilesDirectory,
-		boost:           config.Boost,
+		filesDirectory:  cfg.Share.Path,
+		boost:           externalType != "",
 		stop:            make(chan struct{}),
 	}
 	err = bi.createIndexes()
@@ -456,20 +461,49 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 }
 
 func (bi *BoostIndexer) migrate(head noderpc.Header) error {
+	if bi.currentProtocol.EndLevel == 0 {
+		logger.Info("[%s] Finalizing the previous protocol %s", bi.Network, bi.currentProtocol.Alias)
+		bi.currentProtocol.EndLevel = head.Level - 1
+		_, err := bi.es.UpdateDoc(elastic.DocProtocol, bi.currentProtocol.ID, bi.currentProtocol)
+		if err != nil {
+			return err
+		}
+	}
+
+	newProtocol, err := bi.es.GetProtocol(bi.Network, head.Level)
+	if err != nil {
+		return err
+	}
+
+	if newProtocol.Hash != head.Hash {
+		logger.Warning("[%s] Couldn't find a suitable protocol for %s", bi.Network, head.Hash[:8])
+		newProtocol, err = createProtocol(bi.es, bi.Network, head.Protocol, head.Level)
+		if err != nil {
+			return err
+		}
+	}
+
 	if bi.Network == consts.Mainnet && head.Level == 1 {
 		if err := bi.vestingMigration(head); err != nil {
 			return err
 		}
 	} else {
-		if bi.currentProtocol.Hash == "" {
+		if bi.currentProtocol.SymLink == "" {
 			return fmt.Errorf("[%s] Protocol should be initialized", bi.Network)
 		}
-		if err := bi.standartMigration(head); err != nil {
-			return err
+		if newProtocol.SymLink != bi.currentProtocol.SymLink {
+			if err := bi.standartMigration(newProtocol); err != nil {
+				return err
+			}
+		} else {
+			logger.Info("[%s] Same symlink %s for %s / %s",
+				bi.Network, newProtocol.SymLink, bi.currentProtocol.Alias, newProtocol.Alias)
 		}
 	}
 
-	return bi.updateProtocol(head)
+	bi.currentProtocol = newProtocol
+	logger.Info("[%s] Migration to %s is completed", bi.Network, bi.currentProtocol.Alias)
+	return nil
 }
 
 func createProtocol(es *elastic.Elastic, network, hash string, level int64) (protocol models.Protocol, err error) {
@@ -479,6 +513,7 @@ func createProtocol(es *elastic.Elastic, network, hash string, level int64) (pro
 		return
 	}
 
+	protocol.Alias = hash[:8]
 	protocol.Network = network
 	protocol.Hash = hash
 	protocol.StartLevel = level
@@ -491,41 +526,7 @@ func createProtocol(es *elastic.Elastic, network, hash string, level int64) (pro
 	return
 }
 
-func (bi *BoostIndexer) updateProtocol(head noderpc.Header) error {
-	if bi.currentProtocol.EndLevel == 0 {
-		logger.Info("[%s] Finalizing the previous protocol", bi.Network)
-		bi.currentProtocol.EndLevel = head.Level - 1
-		_, err := bi.es.UpdateDoc(elastic.DocProtocol, bi.currentProtocol.ID, bi.currentProtocol)
-		if err != nil {
-			return err
-		}
-	}
-
-	protocol, err := bi.es.GetProtocol(bi.Network, head.Level)
-	if err != nil {
-		return err
-	}
-
-	if protocol.Hash != head.Hash {
-		protocol, err = createProtocol(bi.es, bi.Network, head.Protocol, head.Level)
-		if err != nil {
-			return err
-		}
-	}
-
-	bi.currentProtocol = protocol
-	return nil
-}
-
-func (bi *BoostIndexer) standartMigration(head noderpc.Header) error {
-	newSymLink, err := meta.GetProtoSymLink(head.Protocol)
-	if err != nil {
-		return err
-	}
-	if newSymLink == bi.currentProtocol.SymLink {
-		return nil
-	}
-
+func (bi *BoostIndexer) standartMigration(newProtocol models.Protocol) error {
 	log.Printf("[%s] Try to find migrations...", bi.Network)
 	contracts, err := bi.es.GetContracts(map[string]interface{}{
 		"network": bi.Network,
@@ -539,12 +540,12 @@ func (bi *BoostIndexer) standartMigration(head noderpc.Header) error {
 	migrations := make([]models.Migration, 0)
 	for i := range contracts {
 		logger.Info("Migrate %s...", contracts[i].Address)
-		script, err := bi.rpc.GetScriptJSON(contracts[i].Address, head.Level)
+		script, err := bi.rpc.GetScriptJSON(contracts[i].Address, newProtocol.StartLevel)
 		if err != nil {
 			return err
 		}
 
-		migration, err := p.Parse(script, head, contracts[i], bi.currentProtocol.Hash)
+		migration, err := p.Parse(script, contracts[i], bi.currentProtocol, newProtocol)
 		if err != nil {
 			return err
 		}

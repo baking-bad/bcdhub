@@ -2,10 +2,9 @@ package oauth
 
 import (
 	"fmt"
-	"os"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/jsonload"
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
@@ -30,57 +29,25 @@ type Config struct {
 }
 
 // New -
-func New() (Config, error) {
-	envVars := []string{
-		"GITHUB_CLIENT_ID",
-		"GITHUB_CLIENT_SECRET",
-		"GITLAB_CLIENT_ID",
-		"GITLAB_CLIENT_SECRET",
-		"JWT_SECRET_KEY",
-		"OAUTH_STATE_STRING",
-	}
-
-	for _, ev := range envVars {
-		if os.Getenv(ev) == "" {
-			return Config{}, fmt.Errorf("empty %s env variable", ev)
-		}
-	}
-
-	githubClientID := os.Getenv("GITHUB_CLIENT_ID")
-	githubClientSecret := os.Getenv("GITHUB_CLIENT_SECRET")
-	gitlabClientID := os.Getenv("GITLAB_CLIENT_ID")
-	gitlabClientSecret := os.Getenv("GITLAB_CLIENT_SECRET")
-	jwtKey := os.Getenv("JWT_SECRET_KEY")
-	oauthStateString := os.Getenv("OAUTH_STATE_STRING")
-
-	configName := "development.json"
-	if env := os.Getenv("BCD_ENV"); env == "production" {
-		configName = "production.json"
-	}
-
-	var cfg InitConfig
-	if err := jsonload.StructFromFile(fmt.Sprintf("./oauth/%s", configName), &cfg); err != nil {
-		return Config{}, err
-	}
-
+func New(cfg config.Config) (Config, error) {
 	return Config{
 		Github: &oauth2.Config{
-			RedirectURL:  cfg.GithubCallbackURL,
-			ClientID:     githubClientID,
-			ClientSecret: githubClientSecret,
+			RedirectURL:  cfg.OAuth.Github.CallbackURL,
+			ClientID:     cfg.OAuth.Github.ClientID,
+			ClientSecret: cfg.OAuth.Github.Secret,
 			Scopes:       []string{},
 			Endpoint:     github.Endpoint,
 		},
 		Gitlab: &oauth2.Config{
-			RedirectURL:  cfg.GitlabCallbackURL,
-			ClientID:     gitlabClientID,
-			ClientSecret: gitlabClientSecret,
+			RedirectURL:  cfg.OAuth.Gitlab.CallbackURL,
+			ClientID:     cfg.OAuth.Gitlab.ClientID,
+			ClientSecret: cfg.OAuth.Gitlab.Secret,
 			Scopes:       []string{"read_user"},
 			Endpoint:     gitlab.Endpoint,
 		},
-		JWTKey:         []byte(jwtKey),
-		State:          oauthStateString,
-		JWTRedirectURL: cfg.JwtRedirectURL,
+		JWTKey:         []byte(cfg.OAuth.JWT.Secret),
+		State:          cfg.OAuth.State,
+		JWTRedirectURL: cfg.OAuth.JWT.RedirectURL,
 	}, nil
 }
 

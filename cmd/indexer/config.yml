@@ -1,0 +1,58 @@
+rpc:
+    mainnet:
+        uri: https://mainnet.tezos.org.ua
+        timeout: 20
+    zeronet:
+        uri: https://rpc.tzkt.io/zeronet
+        timeout: 20
+    babylonnet:
+        uri: https://babylontest-ssl.tezos.org.ua
+        timeout: 20
+    carthagenet:
+        uri: https://carthatest-ssl.tezos.org.ua
+        timeout: 20
+
+tzkt:
+    mainnet:
+        uri: https://api.tzkt.io/v1/
+        timeout: 20
+    zeronet:
+        uri: https://api.zeronet.tzkt.io/v1/
+        timeout: 20
+    babylonnet:
+        uri: https://api.babylon.tzkt.io/v1/
+        timeout: 20
+    carthagenet:
+        uri: https://api.carthage.tzkt.io/v1/
+        timeout: 20
+
+share:
+    path: /etc/bcd
+
+sentry:
+    environment: production
+    uri: ${SENTRY_DSN}
+    debug: false
+
+elastic:
+    uri: https://elastic:9200
+
+rabbitmq:
+    uri: "amqp://${RABBIT_USER}:${RABBIT_PASSWORD}@mq:5672/"
+    queues:
+        - operations
+        - contracts
+        - migrations
+        - recalc
+
+indexer:
+    sentry:
+        enabled: true
+        project: indexer
+    networks:
+        mainnet:
+          boost: tzkt
+        carthagenet:
+          boost: tzkt
+        zeronet:
+          boost: tzkt

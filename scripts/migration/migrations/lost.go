@@ -3,7 +3,6 @@ package migrations
 import (
 	"time"
 
-	"github.com/baking-bad/bcdhub/cmd/indexer/indexer"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/tzkt"
 )
@@ -15,40 +14,15 @@ type FindLostOperations struct {
 
 // Description -
 func (m *FindLostOperations) Description() string {
-	return "find lost blocks and index it"
-}
-
-func getIndexerConfig(ctx *Context) indexer.Config {
-	cfg := indexer.Config{
-		Search:         ctx.Config.Search,
-		Mq:             ctx.Config.Mq,
-		FilesDirectory: ctx.Config.FilesDirectory,
-	}
-
-	entities := map[string]indexer.EntityConfig{}
-	for _, network := range []string{"mainnet", "zeronet", "carthagenet", "babylonnet"} {
-		if len(ctx.Config.NodeRPC[network]) > 0 {
-			entities[network] = indexer.EntityConfig{
-				Boost: false,
-				RPC: indexer.RPCConfig{
-					URL:     ctx.Config.NodeRPC[network][0],
-					Timeout: 20,
-				},
-			}
-		}
-	}
-
-	cfg.Indexers = entities
-
-	return cfg
+	return "find lost blocks"
 }
 
 // Do - migrate function
 func (m *FindLostOperations) Do(ctx *Context) error {
-	for _, network := range []string{"mainnet", "zeronet", "carthagenet", "babylonnet"} {
+	for network, tzktProvider := range ctx.Config.TzKT {
 		logger.Info("Start searching in %s...", network)
 
-		api := tzkt.NewTzKTForNetwork(network, time.Minute)
+		api := tzkt.NewTzKT(tzktProvider.URI, time.Second*time.Duration(tzktProvider.Timeout))
 		tzktLevels, err := api.GetAllContractOperationBlocks()
 		if err != nil {
 			return err
@@ -69,20 +43,9 @@ func (m *FindLostOperations) Do(ctx *Context) error {
 			}
 		}
 
-		logger.Warning("In %s skipped %d levels", network, len(skipped))
-
-		configIndexer := getIndexerConfig(ctx)
-		bi, err := indexer.NewBoostIndexer(configIndexer, network)
-		if err != nil {
-			return err
-		}
-
-		if err := bi.Index(skipped); err != nil {
-			return err
-		}
+		logger.Errorf("In %s skipped %d levels", network, len(skipped))
 	}
 
 	logger.Success("done")
-
 	return nil
 }

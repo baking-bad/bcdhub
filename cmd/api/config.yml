@@ -1,0 +1,54 @@
+rpc:
+    mainnet:
+        uri: https://mainnet.tezos.org.ua
+        timeout: 20
+    zeronet:
+        uri: https://rpc.tzkt.io/zeronet
+        timeout: 20
+    babylonnet:
+        uri: https://babylontest-ssl.tezos.org.ua
+        timeout: 20
+    carthagenet:
+        uri: https://carthatest-ssl.tezos.org.ua
+        timeout: 20
+
+share:
+    path: /etc/bcd
+
+sentry:
+    environment: production
+    uri: ${SENTRY_DSN}
+    debug: false
+
+elastic:
+    uri: http://elastic:9200
+
+db:
+    conn_string: "host=db port=5432 user=${POSTGRES_USER} dbname=bcd password=${POSTGRES_PASSWORD} sslmode=disable"
+
+oauth:
+    state: ${OAUTH_STATE_STRING}
+    jwt:
+        secret: ${JWT_SECRET_KEY}
+        redirect_url: https://you.better-call.dev/
+    github:
+        client_id: ${GITHUB_CLIENT_ID}
+        secret: ${GITHUB_CLIENT_SECRET}
+        callback_url: https://api.better-call.dev/v1/oauth/github/callback
+    gitlab:
+        client_id: ${GITLAB_CLIENT_ID}
+        secret: ${GITLAB_CLIENT_SECRET}
+        callback_url: https://api.better-call.dev/v1/oauth/gitlab/callback
+
+api:
+    bind: ":14000"
+    oauth:
+        enabled: true
+    sentry:
+        enabled: true
+        project: api
+    networks:
+        - mainnet
+        - carthagenet
+        - zeronet
+        - babylonnet

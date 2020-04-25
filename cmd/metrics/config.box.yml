@@ -1,0 +1,8 @@
+rpc:
+    sandboxnet:
+        uri: http://sandbox:8732
+        timeout: 20
+
+metrics:
+    sentry:
+        enabled: false

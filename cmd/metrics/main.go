@@ -7,9 +7,9 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/jsonload"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/streadway/amqp"
@@ -70,17 +70,10 @@ func listenChannel(messageQueue *mq.MQ, queue string, closeChan chan struct{}) {
 }
 
 func main() {
-	configFile := os.Getenv("CONFIG_FILE")
-	if configFile == "" {
-		configFile = "config.json"
-	}
-
-	var err error
-	var cfg config
-	if err = jsonload.StructFromFile(configFile, &cfg); err != nil {
+	cfg, err := config.LoadDefaultConfig()
+	if err != nil {
 		logger.Fatal(err)
 	}
-	cfg.print()
 
 	helpers.InitSentry(cfg.Sentry.Debug)
 	helpers.SetTagSentry("project", cfg.Sentry.Project)

@@ -1,0 +1,13 @@
+rpc:
+    sandboxnet:
+        uri: http://sandbox:8732
+        timeout: 10
+
+api:
+    bind: ":14000"
+    oauth:
+        enabled: false
+    sentry:
+        enabled: false
+    networks:
+        - sandboxnet

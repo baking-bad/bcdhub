@@ -21,7 +21,7 @@ func (m *SetOperationBurned) Description() string {
 func (m *SetOperationBurned) Do(ctx *Context) error {
 	h := metrics.New(ctx.ES, ctx.DB)
 
-	for _, network := range []string{"mainnet", "zeronet", "carthagenet", "babylonnet"} {
+	for _, network := range []string{"mainnet", "zeronet", "carthagenet", "babylonnet"} { // TODO:
 		operations, err := ctx.ES.GetAllOperations(network)
 		if err != nil {
 			return err

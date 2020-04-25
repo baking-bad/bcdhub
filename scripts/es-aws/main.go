@@ -2,13 +2,13 @@ package main
 
 import (
 	"bufio"
-	"flag"
-	"fmt"
 	"os"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/jessevdk/go-flags"
 )
 
 var handlers = map[string]func(*elastic.Elastic, awsData) error{
@@ -27,32 +27,35 @@ func main() {
 	}
 	keyString := strings.Join(handlerKeys, ",")
 
-	esConnection := flag.String("c", "http://localhost:9200", "Elastic search connection string")
-	action := flag.String("a", "", fmt.Sprintf("[mandatory] Action: %s", keyString))
-	flag.Parse()
-
-	sAction := *action
-	if sAction == "" {
-		logger.Errorf("'action' key is mandatory")
-		return
+	var options struct {
+		ConfigFiles []string `short:"f" default:"config.yml" description:"Config filename .yml"`
+		Action      string   `short:"a" description:"Action"`
+	}
+	_, err := flags.Parse(&options)
+	if err != nil {
+		logger.Fatal(err)
 	}
 
-	es := elastic.WaitNew([]string{*esConnection})
-
-	var creds awsData
-	if err := creds.FromEnv(); err != nil {
-		logger.Error(err)
-		return
+	cfg, err := config.LoadConfig(options.ConfigFiles...)
+	if err != nil {
+		logger.Fatal(err)
 	}
 
-	handler, ok := handlers[sAction]
+	es := elastic.WaitNew([]string{cfg.Elastic.URI})
+
+	creds := awsData{
+		BucketName: cfg.AWS.BucketName,
+		Region:     cfg.AWS.Region,
+	}
+
+	handler, ok := handlers[options.Action]
 	if !ok {
-		logger.Errorf("Invalid action: %s. Allowed: %s", sAction, keyString)
+		logger.Errorf("Invalid action: %s. Allowed: %s", options.Action, keyString)
 		return
 	}
 
 	if err := handler(es, creds); err != nil {
-		logger.Errorf("%s: %s", sAction, err)
+		logger.Errorf("%s: %s", options.Action, err)
 		return
 	}
 

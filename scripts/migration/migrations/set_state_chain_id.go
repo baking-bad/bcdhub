@@ -5,7 +5,7 @@ import (
 )
 
 // SetStateChainID - migration that set chain id to state model
-type SetStateChainID struct {}
+type SetStateChainID struct{}
 
 // Description -
 func (m *SetStateChainID) Description() string {
@@ -14,7 +14,7 @@ func (m *SetStateChainID) Description() string {
 
 // Do - migrate function
 func (m *SetStateChainID) Do(ctx *Context) error {
-	for _, network := range []string{"mainnet", "babylonnet", "carthagenet", "zeronet"} {
+	for _, network := range []string{"mainnet", "babylonnet", "carthagenet", "zeronet"} { // TODO:
 		logger.Info("Getting chain id for %s", network)
 		rpc, err := ctx.GetRPC(network)
 		if err != nil {
