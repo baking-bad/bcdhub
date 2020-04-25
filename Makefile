@@ -12,10 +12,10 @@ api:
 	cd cmd/api && go run . -f config.yml -f config.dev.yml
 
 indexer:
-	cd cmd/indexer && CONFIG_FILE=config-dev.json go run .
+	cd cmd/indexer && go run . -f config.yml -f config.dev.yml
 
 metrics:
-	cd cmd/metrics && CONFIG_FILE=config-dev.json go run .
+	cd cmd/metrics && go run . -f config.yml -f config.dev.yml
 
 clearmq:
 	docker exec -it bcd-mq rabbitmqctl stop_app
@@ -38,8 +38,8 @@ es-aws:
 	cd scripts/es-aws && go build .
 
 s3-creds: es-aws
-	docker exec -it $(CONTAINER) bash -c 'bin/elasticsearch-keystore add --stdin s3.client.default.access_key <<< "$$AWS_ACCESS_KEY_ID"'
-	docker exec -it $(CONTAINER) bash -c 'bin/elasticsearch-keystore add --stdin s3.client.default.secret_key <<< "$$AWS_SECRET_ACCESS_KEY"'
+	docker exec -it bcd-elastic bash -c 'bin/elasticsearch-keystore add --stdin s3.client.default.access_key <<< "$$AWS_ACCESS_KEY_ID"'
+	docker exec -it bcd-elastic bash -c 'bin/elasticsearch-keystore add --stdin s3.client.default.secret_key <<< "$$AWS_SECRET_ACCESS_KEY"'
 	./scripts/es-aws/es-aws -a reload_secure_settings -f scripts/config.yml
 
 s3-repo: es-aws

@@ -1,31 +1,3 @@
-rpc:
-    mainnet:
-        uri: https://mainnet.tezos.org.ua
-        timeout: 20
-    zeronet:
-        uri: https://rpc.tzkt.io/zeronet
-        timeout: 20
-    babylonnet:
-        uri: https://babylontest-ssl.tezos.org.ua
-        timeout: 20
-    carthagenet:
-        uri: https://carthatest-ssl.tezos.org.ua
-        timeout: 20
-
-tzkt:
-    mainnet:
-        uri: https://api.tzkt.io/v1/
-        timeout: 20
-    zeronet:
-        uri: https://api.zeronet.tzkt.io/v1/
-        timeout: 20
-    babylonnet:
-        uri: https://api.babylon.tzkt.io/v1/
-        timeout: 20
-    carthagenet:
-        uri: https://api.carthage.tzkt.io/v1/
-        timeout: 20
-
 share:
     path: ~/.bcd
 
