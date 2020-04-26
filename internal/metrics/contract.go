@@ -20,7 +20,7 @@ func (h *Handler) SetContractAlias(aliases map[string]string, c *models.Contract
 	}
 }
 
-// SetContractStats -
+// SetContractStats - TODO: update in a script
 func (h *Handler) SetContractStats(op models.Operation, c *models.Contract) error {
 	c.TxCount++
 	c.LastAction = models.BCDTime{

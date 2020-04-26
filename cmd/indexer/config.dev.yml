@@ -23,7 +23,7 @@ indexer:
     networks:
         mainnet:
           boost: tzkt
-        carthagenet:
-          boost: tzkt
-        zeronet:
-          boost: tzkt
+        # carthagenet:
+        #   boost: tzkt
+        # zeronet:
+        #   boost: tzkt

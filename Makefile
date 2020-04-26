@@ -26,7 +26,7 @@ aliases:
 	cd scripts/aliases && go run . -f ../config.yml
 
 rollback:
-	cd scripts/rollback && go run . -f ../config.yml -n $(NETWORK) -l $(LEVEL)
+	cd scripts/rollback && go run . -f ../config.yml
 
 migration:
 	cd scripts/migration && go run . -f ../config.yml

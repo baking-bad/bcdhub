@@ -31,13 +31,13 @@ func (c *ContractMetadata) Get(part, protocol string) (Metadata, error) {
 	case consts.STORAGE:
 		ret, ok := c.Storage[protoSymLink]
 		if !ok {
-			return nil, fmt.Errorf("[ContractMetadata.Get] Unknown storage sym link: %s", protoSymLink)
+			return nil, fmt.Errorf("[ContractMetadata.Get] Unknown storage sym link: %s (%s)", protoSymLink, protocol[:8])
 		}
 		return ret, nil
 	case consts.PARAMETER:
 		ret, ok := c.Parameter[protoSymLink]
 		if !ok {
-			return nil, fmt.Errorf("[ContractMetadata.Get] Unknown parameter sym link: %s", protoSymLink)
+			return nil, fmt.Errorf("[ContractMetadata.Get] Unknown parameter sym link: %s (%s)", protoSymLink, protocol[:8])
 		}
 		return ret, nil
 	default:

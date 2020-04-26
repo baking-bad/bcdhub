@@ -82,8 +82,8 @@ func (e *Elastic) GetProtocolsByNetwork(network string) ([]models.Protocol, erro
 	return protocols, nil
 }
 
-// GetSymLinksAfterLevel - returns list of symlinks in `network` after `level`
-func (e *Elastic) GetSymLinksAfterLevel(network string, level int64) ([]string, error) {
+// GetSymLinks - returns list of symlinks in `network` after `level`
+func (e *Elastic) GetSymLinks(network string, level int64) (map[string]bool, error) {
 	query := newQuery().Query(
 		boolQ(
 			filter(
@@ -98,15 +98,10 @@ func (e *Elastic) GetSymLinksAfterLevel(network string, level int64) ([]string, 
 	if err != nil {
 		return nil, err
 	}
-	symMap := make(map[string]struct{})
+	symMap := make(map[string]bool)
 	for _, hit := range response.Get("hits.hits").Array() {
 		symLink := hit.Get("_source.sym_link").String()
-		symMap[symLink] = struct{}{}
+		symMap[symLink] = true
 	}
-
-	result := make([]string, 0)
-	for k := range symMap {
-		result = append(result, k)
-	}
-	return result, nil
+	return symMap, nil
 }
