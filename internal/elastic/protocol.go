@@ -6,8 +6,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 )
 
-// GetProtocol - returns current protocol for `network` and `level`
-func (e *Elastic) GetProtocol(network string, level int64) (p models.Protocol, err error) {
+// GetProtocol - returns current protocol for `network` and `level` (`hash` is optional, leave empty string for default)
+func (e *Elastic) GetProtocol(network, hash string, level int64) (p models.Protocol, err error) {
 	filters := []qItem{
 		matchQ("network", network),
 	}
@@ -16,6 +16,11 @@ func (e *Elastic) GetProtocol(network string, level int64) (p models.Protocol, e
 			rangeQ("start_level", qItem{
 				"lte": level,
 			}),
+		)
+	}
+	if hash != "" {
+		filters = append(filters,
+			matchQ("hash", hash),
 		)
 	}
 
@@ -29,7 +34,7 @@ func (e *Elastic) GetProtocol(network string, level int64) (p models.Protocol, e
 		return
 	}
 	if response.Get("hits.total.value").Int() == 0 {
-		err = fmt.Errorf("Can't find current protocol for %s at level %d", network, level)
+		err = fmt.Errorf("Can't find current protocol for %s (hash = %s) at level %d", network, hash, level)
 		return
 	}
 	hit := response.Get("hits.hits.0")

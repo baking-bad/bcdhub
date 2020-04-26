@@ -91,7 +91,8 @@ func (e *Elastic) query(indices []string, query map[string]interface{}, source .
 
 	// var pretty bytes.Buffer
 	// json.Indent(&pretty, buf.Bytes(), "", "  ")
-	// log.Print(pretty.String())
+	// log.Println(indices)
+	// log.Println(pretty.String())
 
 	// Perform the search request.
 	var resp *esapi.Response
@@ -240,6 +241,24 @@ func (e *Elastic) CreateIndexIfNotExists(index string) error {
 	}
 	if res.IsError() {
 		return fmt.Errorf("%s", res)
+	}
+	return nil
+}
+
+// CreateIndexes -
+func (e *Elastic) CreateIndexes() error {
+	for _, index := range []string{
+		DocContracts,
+		DocMetadata,
+		DocBigMapDiff,
+		DocOperations,
+		DocMigrations,
+		DocProtocol,
+		DocBlocks,
+	} {
+		if err := e.CreateIndexIfNotExists(index); err != nil {
+			return err
+		}
 	}
 	return nil
 }

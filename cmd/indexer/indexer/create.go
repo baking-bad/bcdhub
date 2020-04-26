@@ -14,6 +14,7 @@ func CreateIndexers(cfg config.Config) ([]Indexer, error) {
 	if err := cerrors.LoadErrorDescriptions("data/errors.json"); err != nil {
 		return nil, err
 	}
+
 	indexers := make([]Indexer, 0)
 	for network, options := range cfg.Indexer.Networks {
 		bi, err := NewBoostIndexer(cfg, network, options.Boost)

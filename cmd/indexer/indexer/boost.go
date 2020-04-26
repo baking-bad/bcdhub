@@ -46,35 +46,61 @@ func maxLevel(a, b int64) int64 {
 }
 
 func fetchExternalProtocols(es *elastic.Elastic, externalIndexer index.Indexer, network string) error {
+	logger.Info("[%s] Fetching external protocols", network)
+	existingProtocols, err := es.GetProtocolsByNetwork(network)
+	if err != nil {
+		return err
+	}
+
+	exists := make(map[string]bool, 0)
+	for _, existingProtocol := range existingProtocols {
+		exists[existingProtocol.Hash] = true
+	}
+
 	extProtocols, err := externalIndexer.GetProtocols()
 	if err != nil {
 		return err
 	}
 
-	protocols := make([]models.Protocol, len(extProtocols))
+	protocols := make([]models.Protocol, 0)
 	for i := range extProtocols {
+		if _, ok := exists[extProtocols[i].Hash]; ok {
+			continue
+		}
 		symLink, err := meta.GetProtoSymLink(extProtocols[i].Hash)
 		if err != nil {
 			return err
 		}
-		protocols[i] = models.Protocol{
+		alias := extProtocols[i].Alias
+		if alias == "" {
+			alias = extProtocols[i].Hash[:8]
+		}
+		protocols = append(protocols, models.Protocol{
 			ID:         helpers.GenerateID(),
 			Hash:       extProtocols[i].Hash,
-			Alias:      extProtocols[i].Alias,
+			Alias:      alias,
 			StartLevel: extProtocols[i].StartLevel,
 			EndLevel:   extProtocols[i].LastLevel,
 			SymLink:    symLink,
 			Network:    network,
-		}
+		})
+		log.Printf("[%s] Fetched %s", network, alias)
 	}
 
-	return es.BulkInsertProtocols(protocols)
+	if len(protocols) > 0 {
+		return es.BulkInsertProtocols(protocols)
+	}
+	return nil
 }
 
 // NewBoostIndexer -
 func NewBoostIndexer(cfg config.Config, network string, externalType string) (*BoostIndexer, error) {
 	logger.Info("[%s] Creating indexer object...", network)
 	es := elastic.WaitNew([]string{cfg.Elastic.URI})
+	err := es.CreateIndexes()
+	if err != nil {
+		return nil, err
+	}
 
 	rpcProvider, ok := cfg.RPC[network]
 	if !ok {
@@ -83,14 +109,12 @@ func NewBoostIndexer(cfg config.Config, network string, externalType string) (*B
 	rpc := noderpc.NewPool([]string{rpcProvider.URI}, time.Duration(rpcProvider.Timeout)*time.Second)
 
 	var externalIndexer index.Indexer
-	var err error
 	if externalType != "" {
 		externalIndexer, err = createExternalIndexer(cfg, network, externalType)
 		if err != nil {
 			return nil, err
 		}
 
-		logger.Info("[%s] Fetching external protocols...", network)
 		err = fetchExternalProtocols(es, externalIndexer, network)
 		if err != nil {
 			return nil, err
@@ -108,7 +132,7 @@ func NewBoostIndexer(cfg config.Config, network string, externalType string) (*B
 	}
 	logger.Info("[%s] Current indexer state: %d", network, currentState.Level)
 
-	currentProtocol, err := es.GetProtocol(network, currentState.Level)
+	currentProtocol, err := es.GetProtocol(network, "", currentState.Level)
 	if err != nil {
 		header, err := rpc.GetHeader(maxLevel(1, currentState.Level))
 		if err != nil {
@@ -142,7 +166,6 @@ func NewBoostIndexer(cfg config.Config, network string, externalType string) (*B
 		boost:           externalType != "",
 		stop:            make(chan struct{}),
 	}
-	err = bi.createIndexes()
 	return bi, err
 }
 
@@ -493,8 +516,8 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 }
 
 func (bi *BoostIndexer) migrate(head noderpc.Header) error {
-	if bi.currentProtocol.EndLevel == 0 {
-		logger.Info("[%s] Finalizing the previous protocol %s", bi.Network, bi.currentProtocol.Alias)
+	if bi.currentProtocol.EndLevel == 0 && head.Level > 1 {
+		logger.Info("[%s] Finalizing the previous protocol: %s", bi.Network, bi.currentProtocol.Alias)
 		bi.currentProtocol.EndLevel = head.Level - 1
 		_, err := bi.es.UpdateDoc(elastic.DocProtocol, bi.currentProtocol.ID, bi.currentProtocol)
 		if err != nil {
@@ -502,13 +525,9 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) error {
 		}
 	}
 
-	newProtocol, err := bi.es.GetProtocol(bi.Network, head.Level)
+	newProtocol, err := bi.es.GetProtocol(bi.Network, head.Protocol, head.Level)
 	if err != nil {
-		return err
-	}
-
-	if newProtocol.Hash != head.Hash {
-		logger.Warning("[%s] Couldn't find a suitable protocol for %s", bi.Network, head.Hash[:8])
+		logger.Warning("[%s] %s", bi.Network, err)
 		newProtocol, err = createProtocol(bi.es, bi.Network, head.Protocol, head.Level)
 		if err != nil {
 			return err
@@ -631,21 +650,6 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header) error {
 	}
 	if len(migrations) > 0 {
 		if err := bi.saveMigrations(migrations); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (bi *BoostIndexer) createIndexes() error {
-	for _, index := range []string{
-		elastic.DocContracts,
-		elastic.DocMetadata,
-		elastic.DocBigMapDiff,
-		elastic.DocOperations,
-		elastic.DocMigrations,
-	} {
-		if err := bi.es.CreateIndexIfNotExists(index); err != nil {
 			return err
 		}
 	}
