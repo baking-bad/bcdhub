@@ -45,6 +45,32 @@ func maxLevel(a, b int64) int64 {
 	return b
 }
 
+func fetchExternalProtocols(es *elastic.Elastic, externalIndexer index.Indexer, network string) error {
+	extProtocols, err := externalIndexer.GetProtocols()
+	if err != nil {
+		return err
+	}
+
+	protocols := make([]models.Protocol, len(extProtocols))
+	for i := range extProtocols {
+		symLink, err := meta.GetProtoSymLink(extProtocols[i].Hash)
+		if err != nil {
+			return err
+		}
+		protocols = append(protocols, models.Protocol{
+			ID:         helpers.GenerateID(),
+			Hash:       extProtocols[i].Hash,
+			Alias:      extProtocols[i].Alias,
+			StartLevel: extProtocols[i].StartLevel,
+			EndLevel:   extProtocols[i].LastLevel,
+			SymLink:    symLink,
+			Network:    network,
+		})
+	}
+
+	return es.BulkInsertProtocols(protocols)
+}
+
 // NewBoostIndexer -
 func NewBoostIndexer(cfg config.Config, network string, externalType string) (*BoostIndexer, error) {
 	logger.Info("[%s] Creating indexer object...", network)
@@ -59,7 +85,13 @@ func NewBoostIndexer(cfg config.Config, network string, externalType string) (*B
 	var externalIndexer index.Indexer
 	var err error
 	if externalType != "" {
-		externalIndexer, err = createExternalInexer(cfg, network, externalType)
+		externalIndexer, err = createExternalIndexer(cfg, network, externalType)
+		if err != nil {
+			return nil, err
+		}
+
+		logger.Info("[%s] Fetching external protocols...", network)
+		err = fetchExternalProtocols(es, externalIndexer, network)
 		if err != nil {
 			return nil, err
 		}

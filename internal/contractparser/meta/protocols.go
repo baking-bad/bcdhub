@@ -2,13 +2,6 @@ package meta
 
 import (
 	"fmt"
-	"strings"
-	"time"
-
-	"github.com/baking-bad/bcdhub/internal/elastic"
-	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/tzkt"
 )
 
 // This is the list of protocols BCD supports
@@ -35,54 +28,4 @@ func GetProtoSymLink(protocol string) (string, error) {
 		return protoSymLink, nil
 	}
 	return "", fmt.Errorf("Unknown protocol: %s", protocol)
-}
-
-// LoadProtocols -
-func LoadProtocols(e *elastic.Elastic, networks []string) error {
-	response, err := e.GetProtocols()
-	if err != nil {
-		if !strings.Contains(err.Error(), "404 Not Found") {
-			return err
-		}
-	}
-	if len(response) == 0 {
-		response, err = createProtocols(e, networks)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func createProtocols(es *elastic.Elastic, networks []string) ([]models.Protocol, error) {
-	protocols := make([]models.Protocol, 0)
-	for _, network := range networks {
-		api := tzkt.NewTzKTForNetwork(network, time.Minute)
-
-		result, err := api.GetProtocols()
-		if err != nil {
-			return nil, err
-		}
-
-		for i := range result {
-			symLink, ok := symLinks[result[i].Hash]
-			if !ok {
-				return nil, fmt.Errorf("Unknown protocol: %s", result[i].Hash)
-			}
-			protocols = append(protocols, models.Protocol{
-				ID:         helpers.GenerateID(),
-				Hash:       result[i].Hash,
-				Alias:      result[i].Metadata.Alias,
-				StartLevel: result[i].StartLevel,
-				EndLevel:   result[i].LastLevel,
-				SymLink:    symLink,
-				Network:    network,
-			})
-		}
-
-	}
-	if err := es.BulkInsertProtocols(protocols); err != nil {
-		return nil, err
-	}
-	return protocols, nil
 }

@@ -12,6 +12,20 @@ rpc:
         uri: https://carthatest-ssl.tezos.org.ua
         timeout: 20
 
+tzkt:
+    mainnet:
+        services_uri: https://services.tzkt.io/v1/
+        timeout: 20
+    zeronet:
+        services_uri: https://services.zeronet.tzkt.io/v1/
+        timeout: 20
+    babylonnet:
+        services_uri: https://services.babylon.tzkt.io/v1/
+        timeout: 20
+    carthagenet:
+        services_uri: https://services.carthage.tzkt.io/v1/
+        timeout: 20
+
 share:
     path: /etc/bcd
 

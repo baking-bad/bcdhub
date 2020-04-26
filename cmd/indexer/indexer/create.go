@@ -6,8 +6,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
-	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/index"
 )
 
@@ -16,18 +14,6 @@ func CreateIndexers(cfg config.Config) ([]Indexer, error) {
 	if err := cerrors.LoadErrorDescriptions("data/errors.json"); err != nil {
 		return nil, err
 	}
-	networks := make([]string, 0)
-	for network := range cfg.Indexer.Networks {
-		networks = append(networks, network)
-	}
-	es := elastic.WaitNew([]string{cfg.Elastic.URI})
-	if err := meta.LoadProtocols(es, networks); err != nil {
-		return nil, err
-	}
-	return createIndexers(cfg)
-}
-
-func createIndexers(cfg config.Config) ([]Indexer, error) {
 	indexers := make([]Indexer, 0)
 	for network, options := range cfg.Indexer.Networks {
 		bi, err := NewBoostIndexer(cfg, network, options.Boost)
@@ -39,7 +25,7 @@ func createIndexers(cfg config.Config) ([]Indexer, error) {
 	return indexers, nil
 }
 
-func createExternalInexer(cfg config.Config, network, externalType string) (index.Indexer, error) {
+func createExternalIndexer(cfg config.Config, network, externalType string) (index.Indexer, error) {
 	switch externalType {
 	case "tzkt":
 		return index.NewTzKT(cfg.TzKT[network].URI, time.Duration(cfg.TzKT[network].Timeout)*time.Second), nil
