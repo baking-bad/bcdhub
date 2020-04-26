@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
 
@@ -50,7 +51,7 @@ func parseOperation(operation models.Operation) error {
 		}
 	}
 
-	if strings.HasPrefix(operation.Destination, "KT") {
+	if strings.HasPrefix(operation.Destination, "KT") || operation.Kind == consts.Origination {
 		if err := h.SetBigMapDiffsStrings(operation.ID); err != nil {
 			return err
 		}

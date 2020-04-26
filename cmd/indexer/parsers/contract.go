@@ -29,6 +29,10 @@ func createNewContract(es *elastic.Elastic, operation models.Operation, filesDir
 		LastAction: models.BCDTime{Time: operation.Timestamp},
 	}
 
+	if operation.Kind == consts.Origination {
+		contract.TxCount = 1
+	}
+
 	err := computeMetrics(es, operation, filesDirectory, protoSymLink, contract)
 	return contract, err
 }

@@ -33,7 +33,7 @@ func (h *Handler) SetContractStats(op models.Operation, c *models.Contract) erro
 
 	if c.Address == op.Destination {
 		c.Balance += op.Amount
-	} else {
+	} else if c.Address == op.Source {
 		c.TotalWithdrawn += op.Amount
 		c.Balance -= op.Amount
 	}
