@@ -57,7 +57,6 @@ func (p *VestingParser) Parse(data gjson.Result, head noderpc.Header, network, a
 		Counter:     data.Get("counter").Int(),
 		Source:      data.Get("manager").String(),
 		Destination: address,
-		Balance:     data.Get("balance").Int(),
 		Delegate:    data.Get("delegate.value").String(),
 		Timestamp:   head.Timestamp,
 		IndexedTime: time.Now().UnixNano() / 1000,

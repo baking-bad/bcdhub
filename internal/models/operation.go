@@ -32,7 +32,6 @@ type Operation struct {
 	Destination      string    `json:"destination,omitempty"`
 	PublicKey        string    `json:"public_key,omitempty"`
 	ManagerPubKey    string    `json:"manager_pubkey,omitempty"`
-	Balance          int64     `json:"balance,omitempty"`
 	Delegate         string    `json:"delegate,omitempty"`
 	Parameters       string    `json:"parameters,omitempty"`
 	FoundBy          string    `json:"found_by,omitempty"`
@@ -78,7 +77,6 @@ func (o *Operation) ParseElasticJSON(resp gjson.Result) {
 	o.Destination = resp.Get("_source.destination").String()
 	o.PublicKey = resp.Get("_source.public_key").String()
 	o.ManagerPubKey = resp.Get("_source.manager_pubkey").String()
-	o.Balance = resp.Get("_source.balance").Int()
 	o.Delegate = resp.Get("_source.delegate").String()
 	o.Parameters = resp.Get("_source.parameters").String()
 	o.Entrypoint = resp.Get("_source.entrypoint").String()
