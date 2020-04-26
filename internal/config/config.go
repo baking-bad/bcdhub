@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 
 	"github.com/jessevdk/go-flags"
@@ -132,6 +133,8 @@ func LoadConfig(filenames ...string) (Config, error) {
 	if err != nil {
 		return config, err
 	}
+
+	log.Println(string(res))
 
 	res = []byte(os.ExpandEnv(string(res)))
 	if err := yaml.Unmarshal(res, &config); err != nil {

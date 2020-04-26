@@ -527,7 +527,7 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) error {
 
 	newProtocol, err := bi.es.GetProtocol(bi.Network, head.Protocol, head.Level)
 	if err != nil {
-		logger.Warning("[%s] %s", bi.Network, err)
+		logger.Warning("%s", err)
 		newProtocol, err = createProtocol(bi.es, bi.Network, head.Protocol, head.Level)
 		if err != nil {
 			return err

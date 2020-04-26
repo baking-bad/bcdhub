@@ -35,7 +35,7 @@ sentry:
     debug: false
 
 elastic:
-    uri: https://elastic:9200
+    uri: http://elastic:9200
 
 rabbitmq:
     uri: "amqp://${RABBIT_USER}:${RABBIT_PASSWORD}@mq:5672/"
