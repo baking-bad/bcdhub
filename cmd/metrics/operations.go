@@ -43,41 +43,35 @@ func parseOperation(operation models.Operation) error {
 	}
 
 	for _, address := range []string{operation.Source, operation.Destination} {
-		need, err := ctx.ES.IsKnownContract(operation.Network, address)
-		if err != nil {
-			return err
-		}
-		if !need {
-			continue
-		}
-
-		if err := setOperationStats(address, operation); err != nil {
-			return fmt.Errorf("[parseOperation] Compute error message: %s", err)
+		if strings.HasPrefix(address, "KT") {
+			if err := setOperationStats(h, address, operation); err != nil {
+				return fmt.Errorf("[parseOperation] Compute error message: %s", err)
+			}
 		}
 	}
 
-	if err := h.SetBigMapDiffsStrings(operation.ID); err != nil {
-		return err
+	if strings.HasPrefix(operation.Destination, "KT") {
+		if err := h.SetBigMapDiffsStrings(operation.ID); err != nil {
+			return err
+		}
 	}
 
 	logger.Info("Operation %s processed", operation.ID)
 	return nil
 }
 
-func setOperationStats(address string, operation models.Operation) error {
+func setOperationStats(h *metrics.Handler, address string, operation models.Operation) error {
 	c, err := ctx.ES.GetContract(map[string]interface{}{
 		"network": operation.Network,
 		"address": address,
 	})
 
 	if err != nil {
-		if strings.Contains(err.Error(), elastic.RecordNotFound) {
+		if strings.Contains(err.Error(), "Unknown contract") {
 			return nil
 		}
 		return fmt.Errorf("[setOperationStats] Find contract error: %s", err)
 	}
-
-	h := metrics.New(ctx.ES, ctx.DB)
 
 	if err := h.SetContractStats(operation, &c); err != nil {
 		return fmt.Errorf("[setOperationStats] compute contract stats error message: %s", err)

@@ -146,9 +146,12 @@ func updateMetadata(e *elastic.Elastic, network string, fromLevel, toLevel int64
 	}
 
 	logger.Info("Rollback to %s from %s", rollbackProtocol.Hash, currentProtocol.Hash)
-	removingFields, err := e.GetSymLinksAfterLevel(network, toLevel)
+	deadSymLinks, err := e.GetSymLinks(network, toLevel)
 	if err != nil {
 		return err
+	}
+	if _, ok := deadSymLinks[rollbackProtocol.SymLink]; ok {
+		delete(deadSymLinks, rollbackProtocol.SymLink)
 	}
 
 	logger.Info("Getting all metadata...")
@@ -157,7 +160,7 @@ func updateMetadata(e *elastic.Elastic, network string, fromLevel, toLevel int64
 		return err
 	}
 
-	logger.Info("Found %d metadata", len(metadata))
+	logger.Info("Found %d metadata, will remove %v", len(metadata), deadSymLinks)
 	bulkUpdateMetadata := make([]elastic.Identifiable, 0)
 	for _, m := range metadata {
 		bulkUpdateMetadata = append(bulkUpdateMetadata, m)
@@ -165,15 +168,15 @@ func updateMetadata(e *elastic.Elastic, network string, fromLevel, toLevel int64
 	fmt.Print("\033[2K\r")
 
 	if len(bulkUpdateMetadata) > 0 {
-		for _, field := range removingFields {
+		for symLink := range deadSymLinks {
 			for i := 0; i < len(bulkUpdateMetadata); i += 1000 {
 				start := i * 1000
 				end := helpers.MinInt((i+1)*1000, len(bulkUpdateMetadata))
-				parameterScript := fmt.Sprintf("ctx._source.parameter.remove('%s')", field)
+				parameterScript := fmt.Sprintf("ctx._source.parameter.remove('%s')", symLink)
 				if err := e.BulkRemoveField(elastic.DocMetadata, parameterScript, bulkUpdateMetadata[start:end]); err != nil {
 					return err
 				}
-				storageScript := fmt.Sprintf("ctx._source.storage.remove('%s')", field)
+				storageScript := fmt.Sprintf("ctx._source.storage.remove('%s')", symLink)
 				if err := e.BulkRemoveField(elastic.DocMetadata, storageScript, bulkUpdateMetadata[start:end]); err != nil {
 					return err
 				}
