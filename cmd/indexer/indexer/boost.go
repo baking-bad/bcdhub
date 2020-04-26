@@ -57,7 +57,7 @@ func fetchExternalProtocols(es *elastic.Elastic, externalIndexer index.Indexer, 
 		if err != nil {
 			return err
 		}
-		protocols = append(protocols, models.Protocol{
+		protocols[i] = models.Protocol{
 			ID:         helpers.GenerateID(),
 			Hash:       extProtocols[i].Hash,
 			Alias:      extProtocols[i].Alias,
@@ -65,7 +65,7 @@ func fetchExternalProtocols(es *elastic.Elastic, externalIndexer index.Indexer, 
 			EndLevel:   extProtocols[i].LastLevel,
 			SymLink:    symLink,
 			Network:    network,
-		})
+		}
 	}
 
 	return es.BulkInsertProtocols(protocols)
