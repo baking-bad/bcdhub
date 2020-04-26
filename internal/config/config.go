@@ -17,8 +17,9 @@ type Config struct {
 	} `yaml:"rpc"`
 
 	TzKT map[string]struct {
-		URI     string `yaml:"uri"`
-		Timeout int    `yaml:"timeout"`
+		URI         string `yaml:"uri"`
+		ServicesURI string `yaml:"services_uri"`
+		Timeout     int    `yaml:"timeout"`
 	} `yaml:"tzkt"`
 
 	Share struct {

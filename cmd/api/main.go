@@ -17,6 +17,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/tzkt"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 )
@@ -54,6 +55,7 @@ func main() {
 	defer db.Close()
 
 	rpc := createRPC(cfg)
+	svcs := createTzKTSvcs(cfg)
 
 	var oauthCfg oauth.Config
 	if cfg.API.OAuth.Enabled {
@@ -64,7 +66,7 @@ func main() {
 		}
 	}
 
-	ctx, err := handlers.NewContext(es, rpc, cfg.Share.Path, db, oauthCfg)
+	ctx, err := handlers.NewContext(es, rpc, svcs, cfg.Share.Path, db, oauthCfg)
 	if err != nil {
 		logger.Error(err)
 		helpers.CatchErrorSentry(err)
@@ -216,4 +218,12 @@ func createRPC(cfg config.Config) map[string]noderpc.Pool {
 		rpc[network] = noderpc.NewPool([]string{rpcProvider.URI}, time.Second*time.Duration(rpcProvider.Timeout))
 	}
 	return rpc
+}
+
+func createTzKTSvcs(cfg config.Config) map[string]*tzkt.ServicesTzKT {
+	svc := make(map[string]*tzkt.ServicesTzKT)
+	for network, tzktProvider := range cfg.TzKT {
+		svc[network] = tzkt.NewServicesTzKT(network, tzktProvider.ServicesURI, time.Second*time.Duration(tzktProvider.Timeout))
+	}
+	return svc
 }

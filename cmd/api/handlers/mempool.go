@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -9,7 +10,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
-	"github.com/baking-bad/bcdhub/internal/tzkt"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 )
@@ -21,7 +21,11 @@ func (ctx *Context) GetMempool(c *gin.Context) {
 		return
 	}
 
-	api := tzkt.NewServicesTzKT(req.Network, time.Second*time.Duration(10))
+	api, ok := ctx.TzKTSvcs[req.Network]
+	if !ok {
+		c.AbortWithError(500, fmt.Errorf("TzKT services does not support %s", req.Network))
+		return
+	}
 	res, err := api.GetMempool(req.Address)
 	if handleError(c, err, 0) {
 		return

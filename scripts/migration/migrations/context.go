@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -29,10 +28,6 @@ func NewContext(cfg config.Config) (*Context, error) {
 	networks := make([]string, 0)
 	for k := range cfg.RPC {
 		networks = append(networks, k)
-	}
-
-	if err := meta.LoadProtocols(es, networks); err != nil {
-		return nil, err
 	}
 
 	RPCs := make(map[string]noderpc.Pool)

@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/mq"
@@ -61,10 +60,6 @@ func main() {
 	if text != "yes" {
 		logger.Success("Cancelled")
 		return
-	}
-
-	if err := meta.LoadProtocols(es, []string{options.Network}); err != nil {
-		panic(err)
 	}
 
 	if err = rollback.Rollback(es, messageQueue, cfg.Share.Path, state, options.Level); err != nil {
