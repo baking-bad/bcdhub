@@ -20,7 +20,7 @@ func (m *SetTotalWithdrawn) Description() string {
 
 // Do - migrate function
 func (m *SetTotalWithdrawn) Do(ctx *Context) error {
-	for _, network := range []string{"mainnet", "zeronet", "carthagenet", "babylonnet"} { // TODO:
+	for _, network := range ctx.Config.Migrations.Networks {
 		filter := make(map[string]interface{})
 		filter["network"] = network
 

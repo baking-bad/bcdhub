@@ -60,6 +60,14 @@ func MaxInt(a, b int) int {
 	return b
 }
 
+// MaxInt64 -
+func MaxInt64(a, b int64) int64 {
+	if a > b {
+		return a
+	}
+	return b
+}
+
 // MinInt -
 func MinInt(a, b int) int {
 	if a > b {

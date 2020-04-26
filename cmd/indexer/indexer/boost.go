@@ -38,13 +38,6 @@ type BoostIndexer struct {
 	stopped bool
 }
 
-func maxLevel(a, b int64) int64 {
-	if a > b {
-		return a
-	}
-	return b
-}
-
 func fetchExternalProtocols(es *elastic.Elastic, externalIndexer index.Indexer, network string) error {
 	logger.Info("[%s] Fetching external protocols", network)
 	existingProtocols, err := es.GetProtocolsByNetwork(network)
@@ -134,7 +127,7 @@ func NewBoostIndexer(cfg config.Config, network string, externalType string) (*B
 
 	currentProtocol, err := es.GetProtocol(network, "", currentState.Level)
 	if err != nil {
-		header, err := rpc.GetHeader(maxLevel(1, currentState.Level))
+		header, err := rpc.GetHeader(helpers.MaxInt64(1, currentState.Level))
 		if err != nil {
 			return nil, err
 		}

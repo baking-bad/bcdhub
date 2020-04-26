@@ -49,3 +49,10 @@ db:
 aws:
     bucket_name: bcd-elastic-snapshots
     region: eu-central-1
+
+migrations:
+    networks:
+        - mainnet
+        - carthagenet
+        - zeronet
+        - babylonnet
