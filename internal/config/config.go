@@ -93,6 +93,10 @@ type Config struct {
 		} `yaml:"sentry"`
 	} `yaml:"metrics"`
 
+	Migrations struct {
+		Networks []string `yaml:"networks"`
+	} `yaml:"migrations"`
+
 	AWS struct {
 		BucketName      string `yaml:"bucket_name"`
 		Region          string `yaml:"region"`

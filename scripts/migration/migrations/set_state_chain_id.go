@@ -14,7 +14,7 @@ func (m *SetStateChainID) Description() string {
 
 // Do - migrate function
 func (m *SetStateChainID) Do(ctx *Context) error {
-	for _, network := range []string{"mainnet", "babylonnet", "carthagenet", "zeronet"} { // TODO:
+	for _, network := range ctx.Config.Migrations.Networks {
 		logger.Info("Getting chain id for %s", network)
 		rpc, err := ctx.GetRPC(network)
 		if err != nil {
