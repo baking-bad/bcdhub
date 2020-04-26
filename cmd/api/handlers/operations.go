@@ -123,7 +123,6 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 		DestinationAlias: operation.DestinationAlias,
 		PublicKey:        operation.PublicKey,
 		ManagerPubKey:    operation.ManagerPubKey,
-		Balance:          operation.Balance,
 		Delegate:         operation.Delegate,
 		Status:           operation.Status,
 		Burned:           operation.Burned,

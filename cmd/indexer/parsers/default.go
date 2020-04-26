@@ -100,7 +100,6 @@ func (p *DefaultParser) parseTransaction(data gjson.Result, network, hash string
 	op.Amount = data.Get("amount").Int()
 	op.Destination = data.Get("destination").String()
 	op.PublicKey = data.Get("public_key").String()
-	op.Balance = data.Get("balance").Int()
 	op.ManagerPubKey = data.Get("manager_pubkey").String()
 	op.Delegate = data.Get("delegate").String()
 	op.Parameters = data.Get("parameters").String()
@@ -133,7 +132,6 @@ func (p *DefaultParser) parseOrigination(data gjson.Result, network, hash string
 		StorageLimit:   data.Get("storage_limit").Int(),
 		Amount:         data.Get("balance").Int(),
 		PublicKey:      data.Get("public_key").String(),
-		Balance:        data.Get("balance").Int(),
 		ManagerPubKey:  data.Get("manager_pubkey").String(),
 		Delegate:       data.Get("delegate").String(),
 		Parameters:     data.Get("parameters").String(),
