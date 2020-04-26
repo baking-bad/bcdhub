@@ -1,5 +1,5 @@
 share:
-    path: ~/.bcd
+    path: /home/${USER}/.bcd
 
 sentry:
     environment: development
