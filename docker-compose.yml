@@ -60,6 +60,8 @@ services:
       - db
     ports:
       - 127.0.0.1:14000:14000
+    volumes:
+      - /etc/bcd:/etc/bcd
     logging: *my-logging
 
   indexer:
@@ -74,6 +76,8 @@ services:
     depends_on:
       - elastic
       - mq
+    volumes:
+      - /etc/bcd:/etc/bcd
     logging: *my-logging
 
   metrics:

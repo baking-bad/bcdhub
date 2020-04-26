@@ -5,8 +5,8 @@ deploy: export TAG=$(shell git pull -q && git describe --abbrev=0 --tags)
 deploy:
 	git pull
 	docker-compose pull
-	docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-	docker ps
+	docker-compose up -d
+	docker-compose ps
 
 api:
 	cd cmd/api && go run . -f config.yml -f config.dev.yml
@@ -31,9 +31,6 @@ rollback:
 migration:
 	cd scripts/migration && go run . -f ../config.yml
 
-upd:
-	docker-compose -f docker-compose.yml docker-compose.prod.yml up -d --build
-
 es-aws:
 	cd scripts/es-aws && go build .
 
@@ -57,3 +54,9 @@ s3-policy: es-aws
 
 latest:
 	git tag latest -f && git push origin latest -f
+
+es-reset:
+	docker stop bcd-elastic || true
+	docker rm bcd-elastic || true
+	docker volume rm bcdhub_esdata || true
+	docker-compose up -d elastic
