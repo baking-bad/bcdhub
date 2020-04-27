@@ -64,6 +64,10 @@ func (ctx *Context) DeleteSubscription(c *gin.Context) {
 }
 
 func (ctx *Context) prepareSubscription(subs []database.Subscription) ([]Subscription, error) {
+	if len(subs) == 0 {
+		return []Subscription{}, nil
+	}
+
 	ids := make([]string, len(subs))
 	for i := range subs {
 		ids[i] = subs[i].EntityID

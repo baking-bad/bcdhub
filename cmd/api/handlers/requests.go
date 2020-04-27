@@ -97,7 +97,7 @@ type voteRequest struct {
 	SourceNetwork      string `json:"src_network" binding:"required,network"`
 	DestinationAddress string `json:"dest" binding:"required,address"`
 	DestinationNetwork string `json:"dest_network" binding:"required,network"`
-	Vote               int    `json:"vote" binding:"oneof=0 1"`
+	Vote               uint   `json:"vote" binding:"oneof=0 1"`
 }
 
 // OPGRequest -

@@ -23,6 +23,8 @@ type DB interface {
 	CreateAlias(string, string, string) error
 	CreateOrUpdateAlias(a *Alias) error
 	Close()
+	CreateOrUpdateAssessment(string, string, string, string, uint, uint) error
+	GetNextAssessmentWithValue(uint, uint) (Assessments, error)
 }
 
 type db struct {
@@ -42,7 +44,7 @@ func New(connectionString string) (DB, error) {
 		gormDB.Exec("CREATE TYPE entity_type AS ENUM ('unknown','project','contract');")
 	}
 
-	gormDB.AutoMigrate(&User{}, &Subscription{}, &Alias{})
+	gormDB.AutoMigrate(&User{}, &Subscription{}, &Alias{}, &Assessments{})
 
 	gormDB = gormDB.Set("gorm:auto_preload", false)
 
