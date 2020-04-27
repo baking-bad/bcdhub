@@ -1,53 +1,5 @@
 package elastic
 
-var mapFields = map[string]string{
-	"alias":             "alias^10",
-	"tags":              "tags^9",
-	"entry":             "entrypoints^8",
-	"entrypoint":        "entrypoint^8",
-	"key_strings":       "key_strings^8",
-	"value_strings":     "value_strings^7",
-	"parameter_strings": "parameter_strings^7",
-	"storage_strings":   "storage_strings^7",
-	"fail":              "fail_strings^6",
-	"errors.with":       "errors.with^6",
-	"errors.id":         "errors.id^5",
-	"language":          "language^4",
-	"annots":            "annotations^3",
-	"source_alias":      "source_alias^3",
-	"delegate":          "delegate^2",
-	"hardcoded":         "hardcoded^2",
-	"manager":           "manager",
-	"hash":              "hash",
-	"key_hash":          "key_hash",
-	"address":           "address",
-	"source":            "source",
-}
-
-var mapHighlights = qItem{
-	"alias":             qItem{},
-	"source_alias":      qItem{},
-	"address":           qItem{},
-	"hash":              qItem{},
-	"manager":           qItem{},
-	"delegate":          qItem{},
-	"tags":              qItem{},
-	"hardcoded":         qItem{},
-	"annotations":       qItem{},
-	"fail_strings":      qItem{},
-	"entrypoints":       qItem{},
-	"language":          qItem{},
-	"errors.id":         qItem{},
-	"errors.with":       qItem{},
-	"entrypoint":        qItem{},
-	"key_hash":          qItem{},
-	"key_strings":       qItem{},
-	"value_strings":     qItem{},
-	"parameter_strings": qItem{},
-	"storage_strings":   qItem{},
-	"source":            qItem{},
-}
-
 var searchableInidices = []string{
 	DocContracts,
 	DocOperations,
