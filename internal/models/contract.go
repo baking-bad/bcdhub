@@ -3,32 +3,9 @@ package models
 import (
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/tidwall/gjson"
 )
-
-var foundByCategories = []string{
-	"alias",
-	"source_alias",
-	"tags",
-	"entrypoints",
-	"entrypoint",
-	"fail_strings",
-	"errors.with",
-	"errors.id",
-	"language",
-	"annotations",
-	"delegate",
-	"hardcoded",
-	"manager",
-	"address",
-	"hash",
-	"key_hash",
-	"key_strings",
-	"value_strings",
-	"parameter_strings",
-	"storage_strings",
-	"source",
-}
 
 // Contract - entity for contract
 type Contract struct {
@@ -90,6 +67,43 @@ func (c Contract) GetID() string {
 	return c.ID
 }
 
+// GetScores -
+func (c Contract) GetScores(search string) []string {
+	if helpers.IsAddress(search) {
+		return []string{
+			"address^10",
+			"alias^9",
+			"tags^9",
+			"entrypoints^8",
+			"fail_strings^6",
+			"language^4",
+			"annotations^3",
+			"delegate^2",
+			"hardcoded^2",
+			"manager",
+		}
+	}
+	return []string{
+		"alias^10",
+		"tags^9",
+		"entrypoints^8",
+		"fail_strings^6",
+		"language^4",
+		"annotations^3",
+		"delegate^2",
+		"hardcoded^2",
+		"manager",
+		"address",
+	}
+}
+
+// FoundByName -
+func (c Contract) FoundByName(hit gjson.Result) string {
+	keys := hit.Get("highlight").Map()
+	categories := c.GetScores("")
+	return getFoundBy(keys, categories)
+}
+
 // ParseElasticJSON -
 func (c *Contract) ParseElasticJSON(hit gjson.Result) {
 	c.ID = hit.Get("_id").String()
@@ -126,7 +140,7 @@ func (c *Contract) ParseElasticJSON(hit gjson.Result) {
 	c.TotalWithdrawn = hit.Get("_source.total_withdrawn").Int()
 	c.Alias = hit.Get("_source.alias").String()
 
-	c.FoundBy = GetFoundBy(hit)
+	c.FoundBy = c.FoundByName(hit)
 }
 
 // ParseElasticJSON -
@@ -144,23 +158,6 @@ func (c *Contract) IsFA12() bool {
 		}
 	}
 	return false
-}
-
-// GetFoundBy -
-func GetFoundBy(hit gjson.Result) string {
-	keys := hit.Get("highlight").Map()
-
-	for _, category := range foundByCategories {
-		if _, ok := keys[category]; ok {
-			return category
-		}
-	}
-
-	for category := range keys {
-		return category
-	}
-
-	return ""
 }
 
 func parseStringArray(hit gjson.Result, tag string) []string {

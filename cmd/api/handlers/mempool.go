@@ -23,7 +23,7 @@ func (ctx *Context) GetMempool(c *gin.Context) {
 
 	api, ok := ctx.TzKTSvcs[req.Network]
 	if !ok {
-		c.AbortWithError(500, fmt.Errorf("TzKT services does not support %s", req.Network))
+		handleError(c, fmt.Errorf("TzKT services does not support %s", req.Network), 0)
 		return
 	}
 	res, err := api.GetMempool(req.Address)

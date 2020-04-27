@@ -1,31 +1,5 @@
 package elastic
 
-// TODO(artem, roman): this list is also at internal/models/contract.go, maybe some refactoring, go-lads?
-
-var allFields = []string{
-	"alias^10",
-	"tags^9",
-	"entrypoints^8",
-	"entrypoint^8",
-	"key_strings^8",
-	"value_strings^7",
-	"parameter_strings^7",
-	"storage_strings^7",
-	"fail_strings^6",
-	"errors.with^6",
-	"errors.id^5",
-	"language^4",
-	"annotations^3",
-	"source_alias^3",
-	"delegate^2",
-	"hardcoded^2",
-	"manager",
-	"address",
-	"key_hash",
-	"hash",
-	"source",
-}
-
 var mapFields = map[string]string{
 	"alias":             "alias^10",
 	"tags":              "tags^9",
