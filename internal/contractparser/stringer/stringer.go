@@ -2,6 +2,7 @@ package stringer
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"regexp"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
@@ -50,6 +51,16 @@ func Stringify(node gjson.Result) string {
 	}
 
 	return node.String()
+}
+
+// StringifyInterface -
+func StringifyInterface(value interface{}) (string, error) {
+	b, err := json.Marshal(value)
+	if err != nil {
+		return "", err
+	}
+	g := gjson.ParseBytes(b)
+	return Stringify(g), nil
 }
 
 func findStrings(node gjson.Result, storage map[string]struct{}) {

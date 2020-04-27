@@ -13,8 +13,12 @@ const (
 	defaultSize = 10
 )
 
-func getFields(fields []string) ([]string, map[string]interface{}, error) {
+func getFields(search string, fields []string) ([]string, map[string]interface{}, error) {
 	if len(fields) == 0 {
+		allFields, err := GetSearchScores(search, []string{DocContracts, DocOperations, DocBigMapDiff})
+		if err != nil {
+			return nil, nil, err
+		}
 		return allFields, mapHighlights, nil
 	}
 
@@ -111,7 +115,7 @@ func (e *Elastic) SearchByText(text string, offset int64, fields []string, filte
 		return SearchResult{}, err
 	}
 	if text != "" {
-		internalFields, highlights, err := getFields(fields)
+		internalFields, highlights, err := getFields(text, fields)
 		if err != nil {
 			return SearchResult{}, err
 		}
@@ -241,7 +245,7 @@ func parseSearchResponse(data gjson.Result) []SearchItem {
 			}
 			items = append(items, item)
 		case DocBigMapDiff:
-			var b SearchBigMapDiff
+			var b models.BigMapDiff
 			b.ParseElasticJSON(arr[i])
 			item := SearchItem{
 				Type:       DocBigMapDiff,
@@ -315,7 +319,7 @@ func parseSearchGroupingResponse(data gjson.Result, size, offset int64) []Search
 					}
 				}
 			case DocBigMapDiff:
-				var b SearchBigMapDiff
+				var b models.BigMapDiff
 				b.ParseElasticJSON(arr[i].Get("last.hits.hits.0"))
 				searchItem.Body = b
 				searchItem.Value = b.KeyHash

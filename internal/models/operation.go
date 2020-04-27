@@ -84,7 +84,7 @@ func (o *Operation) ParseElasticJSON(resp gjson.Result) {
 	o.DestinationAlias = resp.Get("_source.destination_alias").String()
 	o.Burned = resp.Get("_source.burned").Int()
 
-	o.FoundBy = GetFoundBy(resp)
+	o.FoundBy = o.FoundByName(resp)
 
 	var opResult OperationResult
 	opResult.ParseElasticJSON(resp.Get("_source.result"))
@@ -109,6 +109,27 @@ func (o *Operation) ParseElasticJSON(resp gjson.Result) {
 // GetID -
 func (o Operation) GetID() string {
 	return o.ID
+}
+
+// GetScores -
+func (o Operation) GetScores(search string) []string {
+	return []string{
+		"entrypoint^8",
+		"parameter_strings^7",
+		"storage_strings^7",
+		"errors.with^6",
+		"errors.id^5",
+		"source_alias^3",
+		"hash",
+		"source",
+	}
+}
+
+// FoundByName -
+func (o Operation) FoundByName(hit gjson.Result) string {
+	keys := hit.Get("highlight").Map()
+	categories := o.GetScores("")
+	return getFoundBy(keys, categories)
 }
 
 // BalanceUpdate -

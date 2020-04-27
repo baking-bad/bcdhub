@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/tidwall/gjson"
 )
@@ -95,7 +96,7 @@ func IsDelegatorContract(data gjson.Result) bool {
 
 func checkStorageIsDelegator(storage gjson.Result) bool {
 	if storage.Get("string").Exists() {
-		return isAddress(storage.Get("string").String())
+		return helpers.IsAddress(storage.Get("string").String())
 	}
 	return storage.Get("bytes").Exists()
 }

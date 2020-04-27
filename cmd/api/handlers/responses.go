@@ -175,3 +175,16 @@ type NetworkStats struct {
 	OperationsCount int64             `json:"operations_count"`
 	Protocols       []models.Protocol `json:"protocols"`
 }
+
+// SearchBigMapDiff -
+type SearchBigMapDiff struct {
+	Ptr       int64     `json:"ptr"`
+	Key       string    `json:"key"`
+	KeyHash   string    `json:"key_hash"`
+	Value     string    `json:"value"`
+	Level     int64     `json:"level"`
+	Address   string    `json:"address"`
+	Network   string    `json:"network"`
+	Timestamp time.Time `json:"timestamp"`
+	FoundBy   string    `json:"found_by"`
+}
