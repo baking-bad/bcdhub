@@ -223,3 +223,11 @@ type NetworkCountStats struct {
 	Contracts  int64 `json:"contracts"`
 	Operations int64 `json:"operations"`
 }
+
+// DiffTask -
+type DiffTask struct {
+	Network1 string
+	Address1 string
+	Network2 string
+	Address2 string
+}

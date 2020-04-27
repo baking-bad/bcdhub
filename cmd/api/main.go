@@ -168,7 +168,6 @@ func main() {
 
 		// PRIVATE
 		// TODO - remove in prod
-		// v1.POST("vote", ctx.Vote)
 		// v1.POST("set_alias", ctx.SetAlias)
 
 		oauth := v1.Group("oauth")
@@ -193,6 +192,11 @@ func main() {
 					subscriptions.DELETE("", ctx.DeleteSubscription)
 					subscriptions.GET("recommended", ctx.Recommendations)
 					subscriptions.GET("timeline", ctx.GetTimeline)
+				}
+				vote := profile.Group("vote")
+				{
+					vote.POST("", ctx.Vote)
+					vote.GET("task", ctx.GetNextDiffTask)
 				}
 			}
 		}

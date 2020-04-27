@@ -1,15 +1,11 @@
 package handlers
 
 import (
-	"encoding/csv"
-	"fmt"
 	"net/http"
-	"os"
-	"sync"
 
 	"github.com/baking-bad/bcdhub/internal/classification/metrics"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
 )
 
 var model = []metrics.Metric{
@@ -26,12 +22,6 @@ var model = []metrics.Metric{
 	metrics.NewFingerprint("storage"),
 	metrics.NewFingerprint("code"),
 }
-
-const (
-	fileName = "train.csv"
-)
-
-var mux sync.Mutex
 
 // Vote -
 func (ctx *Context) Vote(c *gin.Context) {
@@ -57,40 +47,21 @@ func (ctx *Context) Vote(c *gin.Context) {
 		return
 	}
 
-	if err := compare(a, b, req.Vote); handleError(c, err, 0) {
+	if err := ctx.DB.CreateOrUpdateAssessment(a.Address, a.Network, b.Address, b.Network, ctx.OAUTH.UserID, req.Vote); handleError(c, err, 0) {
 		return
 	}
 	c.JSON(http.StatusOK, "")
 }
 
-func compare(a, b models.Contract, vote int) error {
-	mux.Lock()
-	f, err := os.OpenFile(fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return err
+// GetNextDiffTask -
+func (ctx *Context) GetNextDiffTask(c *gin.Context) {
+	a, err := ctx.DB.GetNextAssessmentWithValue(ctx.OAUTH.UserID, 10)
+	if gorm.IsRecordNotFoundError(err) {
+		c.JSON(http.StatusOK, nil)
+		return
 	}
-	defer f.Close()
-
-	w := csv.NewWriter(f)
-	sum := 0.0
-	features := make([]float64, len(model))
-
-	record := make([]string, len(model)+1)
-	for i := range model {
-		f := model[i].Compute(a, b)
-		features[i] = f.Value
-		record[i] = fmt.Sprintf("%v", f.Value)
-
-		if sum > 1 {
-			return fmt.Errorf("Invalid metric weights. Check sum of weight is not equal 1")
-		}
+	if handleError(c, err, 0) {
+		return
 	}
-	record[len(record)-1] = fmt.Sprintf("%d", vote)
-
-	if err := w.Write(record); err != nil {
-		return err
-	}
-	w.Flush()
-	mux.Unlock()
-	return nil
+	c.JSON(http.StatusOK, a)
 }

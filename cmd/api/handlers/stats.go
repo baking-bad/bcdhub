@@ -12,6 +12,7 @@ func (ctx *Context) GetStats(c *gin.Context) {
 	if handleError(c, err, 0) {
 		return
 	}
+
 	c.JSON(http.StatusOK, stats)
 }
 

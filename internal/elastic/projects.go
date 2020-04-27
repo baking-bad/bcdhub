@@ -274,3 +274,58 @@ func (e *Elastic) getProjectsContracts(ids []string) (res []contractPair, err er
 	}
 	return res, err
 }
+
+// GetDiffTasks -
+func (e *Elastic) GetDiffTasks(offset int64) ([]DiffTask, error) {
+	query := newQuery().Add(
+		aggs("by_project", qItem{
+			"terms": qItem{
+				"field": "project_id.keyword",
+				"size":  maxQuerySize,
+			},
+			"aggs": qItem{
+				"by_fingerprint": qItem{
+					"terms": qItem{
+						"script": "doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value",
+						"size":   maxQuerySize,
+					},
+					"aggs": qItem{
+						"last": topHits(1, "last_action", "desc"),
+					},
+				},
+			},
+		}),
+	).From(offset).Zero()
+
+	resp, err := e.query([]string{DocContracts}, query)
+	if err != nil {
+		return nil, err
+	}
+
+	tasks := make([]DiffTask, 0)
+	buckets := resp.Get("aggregations.by_project.buckets").Array()
+	for _, bucket := range buckets {
+		similar := bucket.Get("by_fingerprint.buckets").Array()
+		if len(similar) < 2 {
+			continue
+		}
+
+		for i := 0; i < len(similar)-1; i++ {
+			var current models.Contract
+			current.ParseElasticJSON(similar[i].Get("last.hits.hits.0"))
+			for j := i + 1; j < len(similar); j++ {
+				var next models.Contract
+				next.ParseElasticJSON(similar[j].Get("last.hits.hits.0"))
+
+				tasks = append(tasks, DiffTask{
+					Network1: current.Network,
+					Address1: current.Address,
+					Network2: next.Network,
+					Address2: next.Address,
+				})
+			}
+		}
+	}
+
+	return tasks, nil
+}
