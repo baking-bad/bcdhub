@@ -95,7 +95,7 @@ func getContractProjectID(c models.Contract, buckets []models.Contract) (string,
 }
 
 var model = []clmetrics.Metric{
-	clmetrics.NewBool("Manager"),
+	clmetrics.NewManager(),
 	clmetrics.NewArray("Tags"),
 	clmetrics.NewArray("FailStrings"),
 	clmetrics.NewArray("Annotations"),

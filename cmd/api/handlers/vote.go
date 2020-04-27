@@ -9,7 +9,7 @@ import (
 )
 
 var model = []metrics.Metric{
-	metrics.NewBool("Manager"),
+	metrics.NewManager(),
 	metrics.NewArray("Tags"),
 	metrics.NewArray("FailStrings"),
 	metrics.NewArray("Annotations"),
