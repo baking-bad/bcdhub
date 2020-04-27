@@ -13,24 +13,49 @@ const (
 	defaultSize = 10
 )
 
-func getFields(search string, fields []string) ([]string, map[string]interface{}, error) {
+func getMapFields(allFields []string) map[string]string {
+	res := make(map[string]string)
+	for _, f := range allFields {
+		str := strings.Split(f, "^")
+		res[str[0]] = f
+	}
+	return res
+}
+
+func getHighlights(allFields []string) qItem {
+	res := make(qItem)
+	for _, f := range allFields {
+		str := strings.Split(f, "^")
+		res[str[0]] = qItem{}
+	}
+	return res
+}
+
+func getFields(search string, fields []string) ([]string, qItem, error) {
 	if len(fields) == 0 {
-		allFields, err := GetSearchScores(search, []string{DocContracts, DocOperations, DocBigMapDiff})
+		allFields, err := GetSearchScores(search, searchableInidices)
 		if err != nil {
 			return nil, nil, err
 		}
-		return allFields, mapHighlights, nil
+		highlights := getHighlights(allFields)
+		return allFields, highlights, nil
 	}
 
+	allFields, err := GetSearchScores(search, fields)
+	if err != nil {
+		return nil, nil, err
+	}
+	mapFields := getMapFields(allFields)
+
 	f := make([]string, 0)
-	h := make(map[string]interface{})
-	for i := range fields {
-		if nf, ok := mapFields[fields[i]]; ok {
+	h := make(qItem)
+	for _, field := range fields {
+		if nf, ok := mapFields[field]; ok {
 			f = append(f, nf)
 			s := strings.Split(nf, "^")
-			h[s[0]] = map[string]interface{}{}
+			h[s[0]] = qItem{}
 		} else {
-			return nil, nil, fmt.Errorf("Unknown field: %s", fields[i])
+			return nil, nil, fmt.Errorf("Unknown field: %s", field)
 		}
 	}
 	return f, h, nil
@@ -104,6 +129,13 @@ func getSearchIndices(filters map[string]interface{}) ([]string, error) {
 
 // SearchByText -
 func (e *Elastic) SearchByText(text string, offset int64, fields []string, filters map[string]interface{}, grouping bool) (SearchResult, error) {
+	if grouping {
+		return e.searchWithGroup(text, offset, fields, filters)
+	}
+	return e.searchWithoutGroup(text, offset, fields, filters)
+}
+
+func (e *Elastic) searchWithoutGroup(text string, offset int64, fields []string, filters map[string]interface{}) (SearchResult, error) {
 	query := newQuery()
 
 	indices, err := getSearchIndices(filters)
@@ -121,9 +153,7 @@ func (e *Elastic) SearchByText(text string, offset int64, fields []string, filte
 		}
 		mustItems = append(mustItems, queryString(text, internalFields))
 
-		if !grouping {
-			query.Highlights(highlights)
-		}
+		query.Highlights(highlights)
 	}
 
 	b := boolQ()
@@ -131,71 +161,97 @@ func (e *Elastic) SearchByText(text string, offset int64, fields []string, filte
 		b.Get("bool").Extend(must(mustItems...))
 	}
 
-	if grouping {
-		topHits := qItem{
-			"top_hits": qItem{
-				"size": 1,
-				"sort": qList{
-					sort("_score", "desc"),
-					qItem{"last_action": qItem{"order": "desc", "unmapped_type": "long"}},
-					sort("timestamp", "desc"),
-				},
-				"highlight": qItem{
-					"fields": mapHighlights,
-				},
-			},
-		}
-
-		query.Add(
-			aggs(
-				"projects",
-				qItem{
-					"terms": qItem{
-						"script": `
-							if (doc.containsKey('fingerprint.parameter')) {
-								return doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value
-							} else if (doc.containsKey('hash')) {
-								return doc['hash.keyword'].value
-							} else return doc['key_hash.keyword'].value`,
-						"size": defaultSize + offset,
-						"order": qList{
-							qItem{"bucket_score": "desc"},
-							qItem{"bucket_time": "desc"},
-						},
-					},
-					"aggs": qItem{
-						"last": topHits,
-						"bucket_score": qItem{
-							"max": qItem{
-								"script": "_score",
-							},
-						},
-						"bucket_time": qItem{
-							"max": qItem{
-								"script": "if (doc.containsKey('last_action')) {return doc['last_action'].value} else {return doc['timestamp']}",
-							},
-						},
-					},
-				},
-			),
-		).Zero()
-	} else {
-		query.From(offset).Size(defaultSize)
-	}
-
-	query.Query(b)
+	query.Query(b).From(offset).Size(defaultSize)
 
 	resp, err := e.query(indices, query)
 	if err != nil {
 		return SearchResult{}, err
 	}
 
-	if !grouping {
-		return SearchResult{
-			Items: parseSearchResponse(resp),
-			Time:  resp.Get("took").Int(),
-			Count: resp.Get("hits.total.value").Int(),
-		}, nil
+	return SearchResult{
+		Items: parseSearchResponse(resp),
+		Time:  resp.Get("took").Int(),
+		Count: resp.Get("hits.total.value").Int(),
+	}, nil
+}
+func (e *Elastic) searchWithGroup(text string, offset int64, fields []string, filters map[string]interface{}) (SearchResult, error) {
+	query := newQuery()
+
+	indices, err := getSearchIndices(filters)
+	if err != nil {
+		return SearchResult{}, err
+	}
+	mustItems, err := prepareSearchFilters(filters)
+	if err != nil {
+		return SearchResult{}, err
+	}
+
+	if text == "" {
+		return SearchResult{}, fmt.Errorf("Empty search string. Please query something")
+	}
+
+	internalFields, highlights, err := getFields(text, fields)
+	if err != nil {
+		return SearchResult{}, err
+	}
+	mustItems = append(mustItems, queryString(text, internalFields))
+
+	b := boolQ()
+	if len(mustItems) > 0 {
+		b.Get("bool").Extend(must(mustItems...))
+	}
+
+	topHits := qItem{
+		"top_hits": qItem{
+			"size": 1,
+			"sort": qList{
+				sort("_score", "desc"),
+				qItem{"last_action": qItem{"order": "desc", "unmapped_type": "long"}},
+				sort("timestamp", "desc"),
+			},
+			"highlight": qItem{
+				"fields": highlights,
+			},
+		},
+	}
+
+	query.Query(b).Add(
+		aggs(
+			"projects",
+			qItem{
+				"terms": qItem{
+					"script": `
+							if (doc.containsKey('fingerprint.parameter')) {
+								return doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value
+							} else if (doc.containsKey('hash')) {
+								return doc['hash.keyword'].value
+							} else return doc['key_hash.keyword'].value`,
+					"size": defaultSize + offset,
+					"order": qList{
+						qItem{"bucket_score": "desc"},
+						qItem{"bucket_time": "desc"},
+					},
+				},
+				"aggs": qItem{
+					"last": topHits,
+					"bucket_score": qItem{
+						"max": qItem{
+							"script": "_score",
+						},
+					},
+					"bucket_time": qItem{
+						"max": qItem{
+							"script": "if (doc.containsKey('last_action')) {return doc['last_action'].value} else {return doc['timestamp']}",
+						},
+					},
+				},
+			},
+		),
+	).Zero()
+
+	resp, err := e.query(indices, query)
+	if err != nil {
+		return SearchResult{}, err
 	}
 	return SearchResult{
 		Items: parseSearchGroupingResponse(resp, defaultSize, offset),
