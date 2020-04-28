@@ -35,6 +35,8 @@ func (m *mapMaker) Do(binPath string, metadata meta.Metadata) (Schema, error) {
 			required = append(required, k)
 			schema["x-itemTitle"] = k
 		}
+	} else {
+		propertiesItems[binPath+"/k"] = keySchema
 	}
 
 	valueSchema, err := Create(binPath+"/v", metadata)
@@ -47,6 +49,8 @@ func (m *mapMaker) Do(binPath string, metadata meta.Metadata) (Schema, error) {
 			propertiesItems[k] = props[k]
 			required = append(required, k)
 		}
+	} else {
+		propertiesItems[binPath+"/v"] = valueSchema
 	}
 
 	schema["items"] = Schema{

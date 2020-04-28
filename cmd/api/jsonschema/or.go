@@ -37,7 +37,6 @@ func (m *orMaker) Do(binPath string, metadata meta.Metadata) (Schema, error) {
 			}
 		} else {
 			subProperties[arg] = argSchema
-
 		}
 		schemas = append(schemas, Schema{
 			"title":      getOrTitile(arg, binPath, metadata),

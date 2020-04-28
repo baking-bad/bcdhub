@@ -262,11 +262,11 @@ func wrapEntrypoint(binPath, data string, metadata Metadata) (string, error) {
 
 func wrapLeftRight(path, data string, skipFirst bool) string {
 	parts := strings.Split(path, "/")
-	if len(parts) < 2 {
-		return data
-	}
 
 	if skipFirst {
+		if len(parts) < 2 {
+			return data
+		}
 		parts = parts[1:]
 	}
 
