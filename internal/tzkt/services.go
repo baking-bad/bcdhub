@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/tidwall/gjson"
 )
 
@@ -32,7 +33,7 @@ func NewServicesTzKT(network, uri string, timeout time.Duration) *ServicesTzKT {
 }
 
 func (t *ServicesTzKT) request(method, endpoint string, params map[string]string) (res gjson.Result, err error) {
-	uri := fmt.Sprintf("%s/v1/%s", t.Host, endpoint)
+	uri := helpers.URLJoin(t.Host, endpoint)
 
 	req, err := http.NewRequest(method, uri, nil)
 	if err != nil {

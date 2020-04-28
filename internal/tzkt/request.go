@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/baking-bad/bcdhub/internal/helpers"
 )
 
 // TzKT -
@@ -29,7 +31,7 @@ func NewTzKT(host string, timeout time.Duration) *TzKT {
 }
 
 func (t *TzKT) request(method, endpoint string, params map[string]string, response interface{}) error {
-	uri := fmt.Sprintf("%s%s", t.Host, endpoint)
+	uri := helpers.URLJoin(t.Host, endpoint)
 
 	req, err := http.NewRequest(method, uri, nil)
 	if err != nil {
