@@ -9,7 +9,7 @@ import (
 
 // Contract - entity for contract
 type Contract struct {
-	ID          string       `json:"-"`
+	ID          string       `json:"id"`
 	Network     string       `json:"network"`
 	Level       int64        `json:"level"`
 	Timestamp   time.Time    `json:"timestamp"`
