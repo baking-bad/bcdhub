@@ -35,7 +35,7 @@ func (e *Elastic) GetOperationByHash(hash string) (ops []models.Operation, err e
 				"type": "number",
 				"script": qItem{
 					"lang":   "painless",
-					"inline": "doc['level'].value * 1000 + (doc['internal'].value ? (999 - doc['internal_index'].value) : 999)",
+					"inline": "doc['counter'].value * 1000 + (doc['internal'].value ? (999 - doc['internal_index'].value) : 999)",
 				},
 				"order": "desc",
 			},
