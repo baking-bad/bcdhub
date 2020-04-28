@@ -17,7 +17,7 @@ func optionWrapper(schema Schema, binPath string, metadata meta.Metadata) (Schem
 		return nil, fmt.Errorf("[optionWrapper] Unknown metadata binPath: %s", binPath)
 	}
 	schemas := []Schema{
-		Schema{
+		{
 			"title": consts.None,
 			"properties": Schema{
 				"schemaKey": Schema{

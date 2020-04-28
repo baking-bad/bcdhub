@@ -229,7 +229,7 @@ func TestCreate(t *testing.T) {
 					"outlined": true,
 				},
 				"oneOf": []Schema{
-					Schema{
+					{
 						"title": "redeem (Left)",
 						"properties": Schema{
 							"schemaKey": Schema{
@@ -246,7 +246,7 @@ func TestCreate(t *testing.T) {
 							},
 						},
 					},
-					Schema{
+					{
 						"title": "refund (Right)",
 						"properties": Schema{
 							"schemaKey": Schema{
@@ -273,7 +273,7 @@ func TestCreate(t *testing.T) {
 				"type":  "object",
 				"title": "Pour (optional)",
 				"oneOf": []Schema{
-					Schema{
+					{
 						"title": "None",
 						"properties": Schema{
 							"schemaKey": Schema{
@@ -282,7 +282,7 @@ func TestCreate(t *testing.T) {
 							},
 						},
 					},
-					Schema{
+					{
 						"title": "Some",
 						"properties": Schema{
 							"schemaKey": Schema{
@@ -352,7 +352,7 @@ func TestCreate(t *testing.T) {
 							"outlined": true,
 						},
 						"oneOf": []Schema{
-							Schema{
+							{
 								"title": "None",
 								"properties": Schema{
 									"schemaKey": Schema{
@@ -361,7 +361,7 @@ func TestCreate(t *testing.T) {
 									},
 								},
 							},
-							Schema{
+							{
 								"title": "Some",
 								"properties": Schema{
 									"schemaKey": Schema{
@@ -388,7 +388,7 @@ func TestCreate(t *testing.T) {
 							"outlined": true,
 						},
 						"oneOf": []Schema{
-							Schema{
+							{
 								"title": "None",
 								"properties": Schema{
 									"schemaKey": Schema{
@@ -397,7 +397,7 @@ func TestCreate(t *testing.T) {
 									},
 								},
 							},
-							Schema{
+							{
 								"title": "Some",
 								"properties": Schema{
 									"schemaKey": Schema{
