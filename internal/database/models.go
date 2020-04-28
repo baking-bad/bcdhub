@@ -29,7 +29,7 @@ type EntityType string
 
 // Scan -
 func (e *EntityType) Scan(value interface{}) error {
-	*e = EntityType(value.([]byte))
+	*e = EntityType(value.(string))
 	return nil
 }
 
