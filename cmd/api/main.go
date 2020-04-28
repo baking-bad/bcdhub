@@ -100,7 +100,11 @@ func main() {
 	}
 
 	r.Use(corsSettings())
-	r.Use(helpers.SentryMiddleware())
+
+	if cfg.API.Sentry.Enabled {
+		r.Use(helpers.SentryMiddleware())
+	}
+
 	v1 := r.Group("v1")
 	{
 		v1.GET("search", ctx.Search)
