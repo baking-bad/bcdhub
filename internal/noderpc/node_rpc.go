@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/tidwall/gjson"
 )
 
@@ -34,7 +35,7 @@ func (rpc *NodeRPC) SetTimeout(timeout time.Duration) {
 }
 
 func (rpc *NodeRPC) get(uri string) (res gjson.Result, err error) {
-	url := fmt.Sprintf("%s/%s", rpc.baseURL, uri)
+	url := helpers.URLJoin(rpc.baseURL, uri)
 	client := http.Client{
 		Timeout: rpc.timeout,
 	}
