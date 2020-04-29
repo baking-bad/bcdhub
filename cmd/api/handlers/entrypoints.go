@@ -37,7 +37,7 @@ func (ctx *Context) GetEntrypoints(c *gin.Context) {
 		return
 	}
 
-	entrypoints, err := metadata.GetEntrypoints()
+	entrypoints, err := metadata.GetDocEntrypoints()
 	if handleError(c, err, 0) {
 		return
 	}
