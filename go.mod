@@ -26,6 +26,7 @@ require (
 	github.com/streadway/amqp v0.0.0-20200108173154-1c71cc93ed71
 	github.com/tidwall/gjson v1.4.0
 	github.com/tidwall/sjson v1.0.4
+	github.com/valyala/fastjson v1.5.1
 	github.com/xanzy/go-gitlab v0.26.0
 	golang.org/x/crypto v0.0.0-20200115085410-6d4e4cb37c7d
 	golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421

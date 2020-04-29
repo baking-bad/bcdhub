@@ -33,16 +33,7 @@ func Stringify(node gjson.Result) string {
 
 		if node.Get("bytes").Exists() {
 			hex := node.Get("bytes").String()
-
-			if res, err := unpack.KeyHash(hex); err == nil {
-				return res
-			}
-
-			if res, err := unpack.Contract(hex); err == nil {
-				return res
-			}
-
-			return unpack.Bytes(hex)
+			return unpackBytes(hex)
 		}
 	}
 
@@ -61,6 +52,18 @@ func StringifyInterface(value interface{}) (string, error) {
 	}
 	g := gjson.ParseBytes(b)
 	return Stringify(g), nil
+}
+
+func unpackBytes(bytes string) string {
+	if res, err := unpack.KeyHash(bytes); err == nil {
+		return res
+	}
+
+	if res, err := unpack.Contract(bytes); err == nil {
+		return res
+	}
+
+	return unpack.Bytes(bytes)
 }
 
 func findStrings(node gjson.Result, storage map[string]struct{}) {
