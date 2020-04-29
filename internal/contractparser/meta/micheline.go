@@ -2,7 +2,6 @@ package meta
 
 import (
 	"fmt"
-	"log"
 	"reflect"
 	"strings"
 
@@ -132,7 +131,6 @@ func listBuilder(metadata Metadata, node *NodeMetadata, path string, data map[st
 	}
 
 	var builder strings.Builder
-	log.Println(listValue)
 	for i := range listValue {
 		if i != 0 {
 			builder.WriteByte(',')
