@@ -16,9 +16,15 @@ func InitSentry(debug bool, environment, dsn string) {
 		Environment:      environment,
 		Debug:            debug,
 		AttachStacktrace: true,
+		BeforeSend:       beforeSend,
 	}); err != nil {
 		log.Printf("Sentry initialization failed: %v\n", err)
 	}
+}
+
+func beforeSend(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
+	log.Printf("[Sentry message] %s", event.Message)
+	return event
 }
 
 // SentryMiddleware -
