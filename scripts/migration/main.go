@@ -30,6 +30,7 @@ func main() {
 		"lost":                      &migrations.FindLostOperations{},
 		"contract_migrations_count": &migrations.SetContractMigrationsCount{},
 		"state_chain_id":            &migrations.SetStateChainID{},
+		"set_alias_slug":            &migrations.SetAliasSlug{},
 	}
 
 	cfg, err := config.LoadDefaultConfig()

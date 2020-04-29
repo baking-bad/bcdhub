@@ -17,11 +17,12 @@ type DB interface {
 	DeleteSubscription(*Subscription) error
 	GetSubscriptionRating(string) (SubRating, error)
 	GetAliases(network string) ([]Alias, error)
-	GetAlias(address, network string) (string, error)
+	GetAlias(address, network string) (Alias, error)
 	GetOperationAliases(src, dst, network string) (OperationAlises, error)
 	GetAliasesMap(network string) (map[string]string, error)
 	CreateAlias(string, string, string) error
 	CreateOrUpdateAlias(a *Alias) error
+	GetBySlug(string) (Alias, error)
 	Close()
 	CreateOrUpdateAssessment(string, string, string, string, uint, uint) error
 	GetNextAssessmentWithValue(uint, uint) (Assessments, error)

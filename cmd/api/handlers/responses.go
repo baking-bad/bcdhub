@@ -52,6 +52,7 @@ type Contract struct {
 	*models.Contract
 
 	Profile *ProfileInfo `json:"profile,omitempty"`
+	Slug    string       `json:"slug,omitempty"`
 }
 
 // ProfileInfo -
