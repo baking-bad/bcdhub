@@ -47,14 +47,6 @@ type SubRating struct {
 	} `json:"users"`
 }
 
-// Alias -
-type Alias struct {
-	ID      int64 `gorm:"primary_key,AUTO_INCREMENT"`
-	Alias   string
-	Network string
-	Address string
-}
-
 // OperationAlises -
 type OperationAlises struct {
 	Source      string

@@ -119,6 +119,11 @@ func main() {
 			}
 		}
 
+		slug := v1.Group("slug")
+		{
+			slug.GET(":slug", ctx.GetBySlug)
+		}
+
 		contract := v1.Group("contract")
 		contract.Use(ctx.IsAuthenticated())
 		{
