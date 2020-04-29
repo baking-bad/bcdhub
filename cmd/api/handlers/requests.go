@@ -136,3 +136,7 @@ type getSeriesRequest struct {
 	Index  string `form:"index" binding:"oneof=contract operation"`
 	Period string `form:"period" binding:"oneof=year month week day"`
 }
+
+type getBySlugRequest struct {
+	Slug string `uri:"slug"  binding:"required"`
+}

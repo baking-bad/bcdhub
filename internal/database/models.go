@@ -29,7 +29,7 @@ type EntityType string
 
 // Scan -
 func (e *EntityType) Scan(value interface{}) error {
-	*e = EntityType(value.([]byte))
+	*e = EntityType(value.(string))
 	return nil
 }
 
@@ -45,14 +45,6 @@ type SubRating struct {
 		Login     string `json:"login"`
 		AvatarURL string `json:"avatarURL"`
 	} `json:"users"`
-}
-
-// Alias -
-type Alias struct {
-	ID      int64 `gorm:"primary_key,AUTO_INCREMENT"`
-	Alias   string
-	Network string
-	Address string
 }
 
 // OperationAlises -

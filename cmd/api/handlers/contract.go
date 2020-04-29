@@ -27,6 +27,9 @@ func (ctx *Context) GetContract(c *gin.Context) {
 	if handleError(c, err, 0) {
 		return
 	}
+	if err := ctx.setContractSlug(&res); handleError(c, err, 0) {
+		return
+	}
 	c.JSON(http.StatusOK, res)
 }
 
@@ -59,4 +62,13 @@ func (ctx *Context) setProfileInfo(contract models.Contract) (Contract, error) {
 	}
 	res.Profile = &profile
 	return res, nil
+}
+
+func (ctx *Context) setContractSlug(contract *Contract) error {
+	a, err := ctx.DB.GetAlias(contract.Address, contract.Network)
+	if err != nil {
+		return err
+	}
+	contract.Slug = a.Slug
+	return nil
 }
