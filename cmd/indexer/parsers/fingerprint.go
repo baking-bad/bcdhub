@@ -23,7 +23,7 @@ func setFingerprint(script gjson.Result, contract *models.Contract) error {
 }
 
 func computeFingerprint(script gjson.Result) (*models.Fingerprint, error) {
-	colapsed, err := macros.FindMacros(script)
+	colapsed, err := macros.Collapse(script)
 	if err != nil {
 		return nil, err
 	}
