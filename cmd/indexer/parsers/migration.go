@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/tidwall/gjson"
@@ -37,7 +38,7 @@ func (p *MigrationParser) Parse(data gjson.Result, old models.Contract, prevProt
 		return nil, err
 	}
 
-	newFingerprint, err := computeFingerprint(data)
+	newFingerprint, err := metrics.GetFingerprint(data)
 	if err != nil {
 		return nil, err
 	}
