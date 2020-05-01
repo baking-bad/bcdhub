@@ -9,6 +9,6 @@ type family interface {
 }
 
 type macros interface {
-	Replace(*fastjson.Value, int) error
+	Replace(*fastjson.Value) error
 	Skip() int
 }

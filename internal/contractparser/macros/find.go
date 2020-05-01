@@ -59,23 +59,19 @@ func collapseArray(tree *fastjson.Value) error {
 		}
 	}
 
-	skip := 1
-	for j := 0; j < len(arr); j += skip {
-		for i := range families {
-			m, err := families[i].Find(arr[j:]...)
-			if err != nil {
-				return err
-			}
-			if m == nil {
-				continue
-			}
-			// log.Printf("found: %T", m)
-			if err := m.Replace(tree, j); err != nil {
-				return err
-			}
-			skip = m.Skip()
-			break
+	for i := range families {
+		m, err := families[i].Find(arr...)
+		if err != nil {
+			return err
 		}
+		if m == nil {
+			continue
+		}
+		// log.Printf("found: %T", m)
+		if err := m.Replace(tree); err != nil {
+			return err
+		}
+		break
 	}
 
 	return nil

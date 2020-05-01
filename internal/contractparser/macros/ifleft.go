@@ -49,7 +49,7 @@ func (f ifLeftFamily) Find(arr ...*fastjson.Value) (macros, error) {
 
 type assertLeft struct{}
 
-func (f assertLeft) Replace(tree *fastjson.Value, idx int) error {
+func (f assertLeft) Replace(tree *fastjson.Value) error {
 	if tree.Type() != fastjson.TypeArray {
 		return fmt.Errorf("Invalid tree type in assertLeft.Replace: %s", tree.Type())
 	}
@@ -75,7 +75,7 @@ func (f assertLeft) Skip() int {
 
 type assertRight struct{}
 
-func (f assertRight) Replace(tree *fastjson.Value, idx int) error {
+func (f assertRight) Replace(tree *fastjson.Value) error {
 	if tree.Type() != fastjson.TypeArray {
 		return fmt.Errorf("Invalid tree type in assertRight.Replace: %s", tree.Type())
 	}
