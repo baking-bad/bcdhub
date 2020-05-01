@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/tidwall/gjson"
 )
@@ -51,7 +52,7 @@ func computeMetrics(es *elastic.Elastic, operation models.Operation, filesDirect
 	contract.Tags = script.Tags.Values()
 	contract.Hardcoded = script.HardcodedAddresses.Values()
 
-	if err := setFingerprint(operation.Script, contract); err != nil {
+	if err := metrics.SetFingerprint(operation.Script, contract); err != nil {
 		return err
 	}
 	if err := saveToFile(operation.Script, contract, filesDirectory, protoSymLink); err != nil {

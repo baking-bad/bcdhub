@@ -31,6 +31,7 @@ func main() {
 		"contract_migrations_count": &migrations.SetContractMigrationsCount{},
 		"state_chain_id":            &migrations.SetStateChainID{},
 		"set_alias_slug":            &migrations.SetAliasSlug{},
+		"set_contract_fingerprint":  &migrations.SetContractFingerprint{},
 	}
 
 	cfg, err := config.LoadDefaultConfig()

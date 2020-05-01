@@ -1,4 +1,4 @@
-package parsers
+package metrics
 
 var codes = map[string]string{
 	"parameter":        "00",
