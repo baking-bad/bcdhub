@@ -1,40 +1,56 @@
 package macros
 
 import (
-	"github.com/tidwall/gjson"
-	"github.com/tidwall/sjson"
+	"fmt"
+
+	"github.com/valyala/fastjson"
 )
 
-type failMacros struct {
-	*defaultMacros
+type failFamily struct{}
 
-	NewValue map[string]interface{}
-}
-
-func newFailMacros() *failMacros {
-	return &failMacros{
-		defaultMacros: &defaultMacros{
-			Name: "FAIL",
-		},
-		NewValue: map[string]interface{}{
-			"prim": "FAIL",
-		},
+func (f failFamily) Find(arr ...*fastjson.Value) (macros, error) {
+	if len(arr) < 1 {
+		return nil, nil
 	}
-}
-
-func (m *failMacros) Find(data gjson.Result) bool {
-	if !data.IsArray() {
-		return false
+	tree := arr[0]
+	if tree.Type() != fastjson.TypeArray {
+		return nil, nil
 	}
 
-	arr := data.Array()
-	if len(arr) != 2 {
-		return false
+	failArr, err := tree.Array()
+	if err != nil {
+		return nil, err
 	}
 
-	return getPrim(arr[0]) == unit && getPrim(arr[1]) == failwith
+	if len(failArr) != 2 {
+		return nil, err
+	}
+
+	unit := getPrim(failArr[0])
+	failwith := getPrim(failArr[1])
+	if unit == pUNIT && failwith == pFAILWITH {
+		return failMacros{}, nil
+	}
+	return nil, nil
 }
 
-func (m *failMacros) Replace(json, path string) (res string, err error) {
-	return sjson.Set(json, path, m.NewValue)
+type failMacros struct{}
+
+func (f failMacros) Replace(tree *fastjson.Value, idx int) error {
+	if tree.Type() != fastjson.TypeArray {
+		return fmt.Errorf("Invalid tree type in failMacros.Replace: %s", tree.Type())
+	}
+
+	arena := fastjson.Arena{}
+	newValue := arena.NewObject()
+	newPrim := arena.NewString("FAIL")
+
+	newValue.Set("prim", newPrim)
+	*tree = *newValue
+
+	return nil
+}
+
+func (f failMacros) Skip() int {
+	return 1
 }
