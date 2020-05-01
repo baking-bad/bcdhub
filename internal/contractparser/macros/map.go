@@ -60,7 +60,7 @@ func (f mapFamily) Find(arr ...*fastjson.Value) (macros, error) {
 
 type mapCarMacros struct{}
 
-func (f mapCarMacros) Replace(tree *fastjson.Value, idx int) error {
+func (f mapCarMacros) Replace(tree *fastjson.Value) error {
 	if tree.Type() != fastjson.TypeArray {
 		return fmt.Errorf("Invalid tree type in mapCarMacros.Replace: %s", tree.Type())
 	}
@@ -92,7 +92,7 @@ func (f mapCarMacros) Skip() int {
 
 type mapCdrMacros struct{}
 
-func (f mapCdrMacros) Replace(tree *fastjson.Value, idx int) error {
+func (f mapCdrMacros) Replace(tree *fastjson.Value) error {
 	if tree.Type() != fastjson.TypeArray {
 		return fmt.Errorf("Invalid tree type in mapCdrMacros.Replace: %s", tree.Type())
 	}

@@ -39,7 +39,7 @@ type setCdrMacros struct {
 	skip int
 }
 
-func (f setCdrMacros) Replace(tree *fastjson.Value, idx int) error {
+func (f setCdrMacros) Replace(tree *fastjson.Value) error {
 	if tree.Type() != fastjson.TypeArray {
 		return nil
 	}

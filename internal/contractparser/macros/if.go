@@ -96,7 +96,7 @@ func (f ifFamily) isAssert(tree *fastjson.Value) bool {
 
 type assertMacros struct{}
 
-func (f assertMacros) Replace(tree *fastjson.Value, idx int) error {
+func (f assertMacros) Replace(tree *fastjson.Value) error {
 	if tree.Type() != fastjson.TypeArray {
 		return nil
 	}
@@ -117,7 +117,7 @@ func (f assertMacros) Skip() int {
 
 type assertEqMacros struct{}
 
-func (f assertEqMacros) Replace(tree *fastjson.Value, idx int) error {
+func (f assertEqMacros) Replace(tree *fastjson.Value) error {
 	if tree.Type() != fastjson.TypeArray {
 		return fmt.Errorf("Invalid tree type in assertEqMacros.Replace: %s", tree.Type())
 	}
@@ -139,7 +139,7 @@ func (f assertEqMacros) Skip() int {
 
 type assertCmpEqMacros struct{}
 
-func (f assertCmpEqMacros) Replace(tree *fastjson.Value, idx int) error {
+func (f assertCmpEqMacros) Replace(tree *fastjson.Value) error {
 	if tree.Type() != fastjson.TypeArray {
 		return fmt.Errorf("Invalid tree type in assertCmpEqMacros.Replace: %s", tree.Type())
 	}
@@ -161,7 +161,7 @@ func (f assertCmpEqMacros) Skip() int {
 
 type cmpEqMacros struct{}
 
-func (f cmpEqMacros) Replace(tree *fastjson.Value, idx int) error {
+func (f cmpEqMacros) Replace(tree *fastjson.Value) error {
 	if tree.Type() != fastjson.TypeArray {
 		return fmt.Errorf("Invalid tree type in cmpEqMacros.Replace: %s", tree.Type())
 	}
@@ -183,7 +183,7 @@ func (f cmpEqMacros) Skip() int {
 
 type ifEqMacros struct{}
 
-func (f ifEqMacros) Replace(tree *fastjson.Value, idx int) error {
+func (f ifEqMacros) Replace(tree *fastjson.Value) error {
 	if tree.Type() != fastjson.TypeArray {
 		return fmt.Errorf("Invalid tree type in assertMacros.Replace: %s", tree.Type())
 	}
@@ -210,7 +210,7 @@ func (f ifEqMacros) Skip() int {
 
 type ifCmpEqMacros struct{}
 
-func (f ifCmpEqMacros) Replace(tree *fastjson.Value, idx int) error {
+func (f ifCmpEqMacros) Replace(tree *fastjson.Value) error {
 	if tree.Type() != fastjson.TypeArray {
 		return fmt.Errorf("Invalid tree type in assertMacros.Replace: %s", tree.Type())
 	}

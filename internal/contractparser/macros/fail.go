@@ -36,7 +36,7 @@ func (f failFamily) Find(arr ...*fastjson.Value) (macros, error) {
 
 type failMacros struct{}
 
-func (f failMacros) Replace(tree *fastjson.Value, idx int) error {
+func (f failMacros) Replace(tree *fastjson.Value) error {
 	if tree.Type() != fastjson.TypeArray {
 		return fmt.Errorf("Invalid tree type in failMacros.Replace: %s", tree.Type())
 	}

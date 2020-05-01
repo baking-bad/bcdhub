@@ -40,7 +40,7 @@ type setCarMacros struct {
 	skip int
 }
 
-func (f setCarMacros) Replace(tree *fastjson.Value, idx int) error {
+func (f setCarMacros) Replace(tree *fastjson.Value) error {
 	if tree.Type() != fastjson.TypeArray {
 		return fmt.Errorf("Invalid tree type in setCarMacros.Replace: %s", tree.Type())
 	}
