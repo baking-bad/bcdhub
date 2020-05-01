@@ -98,7 +98,7 @@ type assertMacros struct{}
 
 func (f assertMacros) Replace(tree *fastjson.Value) error {
 	if tree.Type() != fastjson.TypeArray {
-		return nil
+		return fmt.Errorf("Invalid tree type in assertMacros.Replace: %s", tree.Type())
 	}
 
 	arena := fastjson.Arena{}
