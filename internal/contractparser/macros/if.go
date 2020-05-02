@@ -15,39 +15,28 @@ func (f ifFamily) Find(arr ...*fastjson.Value) (macros, error) {
 			return assertMacros{}, nil
 		}
 	case 2:
-		if !f.isAssert(arr[1]) {
-			return f.getCmpMacros(arr...)
-		}
-		if arr[0].Type() == fastjson.TypeObject {
-			if isEq(getPrim(arr[0])) {
-				return assertEqMacros{}, nil
-			} else if isCmpEq(getPrim(arr[0])) {
-				return assertCmpEqMacros{}, nil
-			}
-		} else if arr[0].Type() == fastjson.TypeArray {
-			flag, err := f.isCmpEqJSON(arr...)
-			if err != nil {
-				return nil, err
-			}
-			if flag {
-				return assertCmpEqMacros{}, nil
-			}
-		}
+		return f.getComplexMacros(arr...)
 	default:
 		return nil, nil
 	}
 	return nil, nil
 }
 
-func (f ifFamily) getCmpMacros(arr ...*fastjson.Value) (macros, error) {
+func (f ifFamily) getComplexMacros(arr ...*fastjson.Value) (macros, error) {
 	if arr[0].Type() == fastjson.TypeObject {
 		if isEq(getPrim(arr[0])) && getPrim(arr[1]) == pIF {
+			if f.isAssert(arr[1]) {
+				return assertEqMacros{}, nil
+			}
 			return ifEqMacros{}, nil
 		}
 		if isEq(getPrim(arr[1])) && getPrim(arr[0]) == pCOMPARE {
 			return cmpEqMacros{}, nil
 		}
 		if isCmpEq(getPrim(arr[0])) && getPrim(arr[1]) == pIF {
+			if f.isAssert(arr[1]) {
+				return assertEqMacros{}, nil
+			}
 			return ifCmpEqMacros{}, nil
 		}
 	} else if arr[0].Type() == fastjson.TypeArray {
@@ -56,6 +45,9 @@ func (f ifFamily) getCmpMacros(arr ...*fastjson.Value) (macros, error) {
 			return nil, err
 		}
 		if flag {
+			if f.isAssert(arr[1]) {
+				return assertCmpEqMacros{}, nil
+			}
 			return ifCmpEqMacros{}, nil
 		}
 	}
@@ -111,10 +103,6 @@ func (f assertMacros) Replace(tree *fastjson.Value) error {
 	return nil
 }
 
-func (f assertMacros) Skip() int {
-	return 1
-}
-
 type assertEqMacros struct{}
 
 func (f assertEqMacros) Replace(tree *fastjson.Value) error {
@@ -131,10 +119,6 @@ func (f assertEqMacros) Replace(tree *fastjson.Value) error {
 	*tree = *newValue
 
 	return nil
-}
-
-func (f assertEqMacros) Skip() int {
-	return 1
 }
 
 type assertCmpEqMacros struct{}
@@ -155,10 +139,6 @@ func (f assertCmpEqMacros) Replace(tree *fastjson.Value) error {
 	return nil
 }
 
-func (f assertCmpEqMacros) Skip() int {
-	return 1
-}
-
 type cmpEqMacros struct{}
 
 func (f cmpEqMacros) Replace(tree *fastjson.Value) error {
@@ -175,10 +155,6 @@ func (f cmpEqMacros) Replace(tree *fastjson.Value) error {
 	*tree = *newValue
 
 	return nil
-}
-
-func (f cmpEqMacros) Skip() int {
-	return 1
 }
 
 type ifEqMacros struct{}
@@ -204,10 +180,6 @@ func (f ifEqMacros) Replace(tree *fastjson.Value) error {
 	return nil
 }
 
-func (f ifEqMacros) Skip() int {
-	return 1
-}
-
 type ifCmpEqMacros struct{}
 
 func (f ifCmpEqMacros) Replace(tree *fastjson.Value) error {
@@ -226,8 +198,4 @@ func (f ifCmpEqMacros) Replace(tree *fastjson.Value) error {
 	*tree = *newValue
 
 	return nil
-}
-
-func (f ifCmpEqMacros) Skip() int {
-	return 1
 }

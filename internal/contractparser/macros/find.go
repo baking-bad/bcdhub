@@ -11,6 +11,7 @@ var families = []family{
 	failFamily{},
 	ifLeftFamily{},
 	ifNoneFamily{},
+	unpairFamily{},
 	setCarFamily{},
 	setCdrFamily{},
 	mapFamily{},

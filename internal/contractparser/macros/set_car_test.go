@@ -29,9 +29,7 @@ func Test_setCarFamily_Find(t *testing.T) {
 		}, {
 			name: "set car",
 			tree: `[{"prim":"CDR"},{"prim":"SWAP"},{"prim":"PAIR"}]`,
-			want: setCarMacros{
-				skip: 3,
-			},
+			want: setCarMacros{},
 		},
 	}
 	for _, tt := range tests {

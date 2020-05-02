@@ -1,7 +1,6 @@
 package macros
 
 import (
-	"log"
 	"reflect"
 	"testing"
 
@@ -144,7 +143,6 @@ func Test_ifFamily_Find(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			f := ifFamily{}
-			log.Println(tt.tree)
 			tree, err := fastjson.MustParse(tt.tree).Array()
 			if err != nil {
 				t.Errorf("ifFamily.Find() error = %v", err)

@@ -185,6 +185,14 @@ func TestCollapse(t *testing.T) {
 			name: "COMPARE LT IF in a raw",
 			tree: `[{"prim":"COMPARE"},{"prim":"LT"},{"prim":"IF","args":[[{"prim":"UNIT"},{"prim":"TRANSFER_TOKENS"},{"prim":"DIP","args":[[{"prim":"SWAP"}]]},{"prim":"CONS"}],[{"prim":"DROP"},{"prim":"DROP"},{"prim":"SWAP"}]]}]`,
 			want: `[{"prim":"COMPARE"},{"prim":"LT"},{"prim":"IF","args":[[{"prim":"UNIT"},{"prim":"TRANSFER_TOKENS"},{"prim":"DIP","args":[[{"prim":"SWAP"}]]},{"prim":"CONS"}],[{"prim":"DROP"},{"prim":"DROP"},{"prim":"SWAP"}]]}]`,
+		}, {
+			name: "UNPAIR",
+			tree: `[{"prim":"DUP"},{"prim":"CAR","annots":["%a"]},{"prim":"DIP","args":[[{"prim":"CDR","annots":["%b"]}]]}]`,
+			want: `{"prim":"UNPAIR","annots":["%a","%b"]}`,
+		}, {
+			name: "UNPAIR without annots",
+			tree: `[{"prim":"DUP"},{"prim":"CAR"},{"prim":"DIP","args":[[{"prim":"CDR"}]]}]`,
+			want: `{"prim":"UNPAIR"}`,
 		},
 	}
 	for _, tt := range tests {

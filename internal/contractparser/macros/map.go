@@ -86,10 +86,6 @@ func (f mapCarMacros) Replace(tree *fastjson.Value) error {
 	return nil
 }
 
-func (f mapCarMacros) Skip() int {
-	return 1
-}
-
 type mapCdrMacros struct{}
 
 func (f mapCdrMacros) Replace(tree *fastjson.Value) error {
@@ -116,8 +112,4 @@ func (f mapCdrMacros) Replace(tree *fastjson.Value) error {
 
 	*tree = *newValue
 	return nil
-}
-
-func (f mapCdrMacros) Skip() int {
-	return 1
 }

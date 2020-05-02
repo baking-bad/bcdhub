@@ -50,7 +50,3 @@ func (f failMacros) Replace(tree *fastjson.Value) error {
 
 	return nil
 }
-
-func (f failMacros) Skip() int {
-	return 1
-}
