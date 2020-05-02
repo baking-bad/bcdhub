@@ -12,6 +12,7 @@ var families = []family{
 	ifLeftFamily{},
 	ifNoneFamily{},
 	unpairFamily{},
+	cadrFamily{},
 	setCarFamily{},
 	setCdrFamily{},
 	mapFamily{},
