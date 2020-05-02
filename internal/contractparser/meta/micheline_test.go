@@ -455,7 +455,7 @@ func TestMetadata_BuildEntrypointMicheline(t *testing.T) {
 				return
 			}
 			if !reflect.DeepEqual(got.Value(), want) {
-				t.Errorf("Metadata.BuildEntrypointMicheline() = %v, want %v", got, want)
+				t.Errorf("Metadata.BuildEntrypointMicheline() = %v, want %v", got.Value(), want)
 			}
 		})
 	}
