@@ -105,7 +105,11 @@ func (ctx *Context) getContractCodeDiff(left, right CodeDiffLeg) (res CodeDiffRe
 		if err != nil {
 			return res, err
 		}
-		sides[i] = code
+		collapsed, err := macros.Collapse(code)
+		if err != nil {
+			return res, err
+		}
+		sides[i] = collapsed
 	}
 
 	diff, err := formatter.Diff(sides[0], sides[1])

@@ -31,14 +31,10 @@ func (f setCarFamily) Find(arr ...*fastjson.Value) (macros, error) {
 	if fPrim != pCDR || sPrim != pSWAP || tPrim != pPAIR {
 		return nil, nil
 	}
-	return setCarMacros{
-		skip: offset + 3,
-	}, nil
+	return setCarMacros{}, nil
 }
 
-type setCarMacros struct {
-	skip int
-}
+type setCarMacros struct{}
 
 func (f setCarMacros) Replace(tree *fastjson.Value) error {
 	if tree.Type() != fastjson.TypeArray {
@@ -61,8 +57,4 @@ func (f setCarMacros) Replace(tree *fastjson.Value) error {
 
 	*tree = *newValue
 	return nil
-}
-
-func (f setCarMacros) Skip() int {
-	return f.skip
 }

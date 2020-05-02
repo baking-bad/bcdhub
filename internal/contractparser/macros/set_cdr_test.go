@@ -26,15 +26,11 @@ func Test_setCdrFamily_Find(t *testing.T) {
 		}, {
 			name: "set cdr",
 			tree: `[{"prim":"CAR"},{"prim":"PAIR"}]`,
-			want: setCdrMacros{
-				skip: 2,
-			},
+			want: setCdrMacros{},
 		}, {
 			name: "set cdr",
 			tree: `[{"prim":"DUP"},{"prim":"CDR"},{"prim":"DROP"},{"prim":"CAR"},{"prim":"PAIR"}]`,
-			want: setCdrMacros{
-				skip: 5,
-			},
+			want: setCdrMacros{},
 		},
 	}
 	for _, tt := range tests {

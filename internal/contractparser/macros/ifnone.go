@@ -61,10 +61,6 @@ func (f assertNone) Replace(tree *fastjson.Value) error {
 	return nil
 }
 
-func (f assertNone) Skip() int {
-	return 1
-}
-
 type assertSome struct{}
 
 func (f assertSome) Replace(tree *fastjson.Value) error {
@@ -84,8 +80,4 @@ func (f assertSome) Replace(tree *fastjson.Value) error {
 
 	*tree = *newValue
 	return nil
-}
-
-func (f assertSome) Skip() int {
-	return 1
 }
