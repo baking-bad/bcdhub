@@ -27,5 +27,6 @@ const (
 	pPAIR     = `"PAIR"`
 	pDUP      = `"DUP"`
 	pDIP      = `"DIP"`
+	pDIG      = `"DIG"`
 	pDROP     = `"DROP"`
 )

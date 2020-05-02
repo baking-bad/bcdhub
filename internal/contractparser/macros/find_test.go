@@ -193,6 +193,10 @@ func TestCollapse(t *testing.T) {
 			name: "UNPAIR without annots",
 			tree: `[{"prim":"DUP"},{"prim":"CAR"},{"prim":"DIP","args":[[{"prim":"CDR"}]]}]`,
 			want: `{"prim":"UNPAIR"}`,
+		}, {
+			name: "CADR",
+			tree: `[{"prim":"parameter","args":[{"prim":"pair","args":[{"prim":"nat","annots":[":l"]},{"prim":"nat","annots":[":r"]}]}]},{"prim":"storage","args":[{"prim":"nat"}]},{"prim":"code","args":[[{"prim":"CAR"},{"prim":"CAR","annots":["@test"]}],{"prim":"PAIR"}]}]`,
+			want: `[{"prim":"parameter","args":[{"prim":"pair","args":[{"prim":"nat","annots":[":l"]},{"prim":"nat","annots":[":r"]}]}]},{"prim":"storage","args":[{"prim":"nat"}]},{"prim":"code","args":[{"prim":"CAAR","annots":["@test"]},{"prim":"PAIR"}]}]`,
 		},
 	}
 	for _, tt := range tests {
