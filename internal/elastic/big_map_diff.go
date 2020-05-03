@@ -29,19 +29,54 @@ func (e *Elastic) GetBigMapDiffsByOperationID(operationID string) ([]models.BigM
 	return response, nil
 }
 
-// GetBigMapDiffsByKeyHashAndPtr -
-func (e *Elastic) GetBigMapDiffsByKeyHashAndPtr(keys []string, ptr []int64, indexedTime int64, address string) ([]models.BigMapDiff, error) {
-	shouldData := make([]qItem, len(keys))
-	for i := range keys {
-		shouldData[i] = boolQ(must(
-			matchPhrase("key_hash", keys[i]),
-			term("ptr", ptr[i]),
+// GetUniqueBigMapDiffsByOperationID -
+func (e *Elastic) GetUniqueBigMapDiffsByOperationID(operationID string) ([]models.BigMapDiff, error) {
+	query := newQuery().
+		Query(
+			boolQ(
+				filter(
+					matchPhrase("operation_id", operationID),
+				),
+			),
+		).Add(aggs(
+		"keys", qItem{
+			"terms": qItem{
+				"field": "key_hash.keyword",
+				"size":  maxQuerySize,
+			},
+			"aggs": qItem{
+				"top_key": topHits(1, "indexed_time", "desc"),
+			},
+		},
+	)).Zero()
+
+	res, err := e.query([]string{DocBigMapDiff}, query)
+	if err != nil {
+		return nil, err
+	}
+	response := make([]models.BigMapDiff, 0)
+	for _, item := range res.Get("aggregations.keys.buckets").Array() {
+		bmd := item.Get("top_key.hits.hits.0")
+		var b models.BigMapDiff
+		b.ParseElasticJSON(bmd)
+		response = append(response, b)
+	}
+	return response, nil
+}
+
+// GetPrevBigMapDiffs -
+func (e *Elastic) GetPrevBigMapDiffs(filters []models.BigMapDiff, indexedTime int64, address string) ([]models.BigMapDiff, error) {
+	shouldData := make([]qItem, len(filters))
+	for i := range filters {
+		shouldData[i] = boolQ(filter(
+			matchPhrase("key_hash", filters[i].KeyHash),
+			matchPhrase("bin_path", filters[i].BinPath),
 		))
 	}
 	b := boolQ(
 		should(shouldData...),
-		must(matchPhrase("address", address)),
 		filter(
+			matchPhrase("address", address),
 			rangeQ("indexed_time", qItem{"lt": indexedTime}),
 		),
 		minimumShouldMatch(1),
@@ -55,17 +90,10 @@ func (e *Elastic) GetBigMapDiffsByKeyHashAndPtr(keys []string, ptr []int64, inde
 	}
 
 	response := make([]models.BigMapDiff, 0)
-	for i := range keys {
-		for _, item := range res.Get("hits.hits").Array() {
-			keyHash := item.Get("_source.key_hash").String()
-			pointer := item.Get("_source.ptr").Int()
-			if pointer == ptr[i] && keyHash == keys[i] {
-				var bmd models.BigMapDiff
-				bmd.ParseElasticJSON(item)
-				response = append(response, bmd)
-				break
-			}
-		}
+	for _, item := range res.Get("hits.hits").Array() {
+		var bmd models.BigMapDiff
+		bmd.ParseElasticJSON(item)
+		response = append(response, bmd)
 	}
 	return response, nil
 }

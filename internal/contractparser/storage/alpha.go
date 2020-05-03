@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"time"
+
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
@@ -64,7 +66,7 @@ func (a *Alpha) ParseOrigination(content gjson.Result, metadata meta.Metadata, o
 				OperationID: operation.ID,
 				Level:       operation.Level,
 				Address:     address,
-				IndexedTime: operation.IndexedTime,
+				IndexedTime: time.Now().UnixNano() / 1000,
 				Network:     operation.Network,
 				Timestamp:   operation.Timestamp,
 				Protocol:    operation.Protocol,
@@ -131,7 +133,7 @@ func (a *Alpha) getBigMapDiff(result gjson.Result, address string, m meta.Metada
 			OperationID: operation.ID,
 			Level:       operation.Level,
 			Address:     address,
-			IndexedTime: operation.IndexedTime,
+			IndexedTime: time.Now().UnixNano() / 1000,
 			Network:     operation.Network,
 			Timestamp:   operation.Timestamp,
 			Protocol:    operation.Protocol,
