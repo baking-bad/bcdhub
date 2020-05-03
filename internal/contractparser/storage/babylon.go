@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
@@ -183,7 +184,7 @@ func (b *Babylon) handleBigMapDiffUpdate(item gjson.Result, ptrMap map[int64]str
 		OperationID: operation.ID,
 		Level:       operation.Level,
 		Address:     address,
-		IndexedTime: operation.IndexedTime,
+		IndexedTime: time.Now().UnixNano() / 1000,
 		Network:     operation.Network,
 		Timestamp:   operation.Timestamp,
 		Protocol:    operation.Protocol,
@@ -225,7 +226,7 @@ func (b *Babylon) handleBigMapDiffCopy(item gjson.Result, ptrMap map[int64]strin
 			bmd[i].ID = ""
 			bmd[i].OperationID = operation.ID
 			bmd[i].Level = operation.Level
-			bmd[i].IndexedTime = operation.IndexedTime
+			bmd[i].IndexedTime = time.Now().UnixNano() / 1000
 			bmd[i].Timestamp = operation.Timestamp
 			bmd[i].Ptr = destinationPtr
 			bmd[i].Address = address
@@ -257,7 +258,7 @@ func (b *Babylon) handleBigMapDiffCopy(item gjson.Result, ptrMap map[int64]strin
 			diff.Ptr = destinationPtr
 			diff.Address = address
 			diff.Level = operation.Level
-			diff.IndexedTime = operation.IndexedTime
+			diff.IndexedTime = time.Now().UnixNano() / 1000
 			diff.Timestamp = operation.Timestamp
 			diff.OperationID = operation.ID
 			diff.BinPath = binPath
@@ -287,7 +288,7 @@ func (b *Babylon) handleBigMapDiffRemove(item gjson.Result, ptrMap map[int64]str
 		bmd[i].ID = ""
 		bmd[i].OperationID = operation.ID
 		bmd[i].Level = operation.Level
-		bmd[i].IndexedTime = operation.IndexedTime
+		bmd[i].IndexedTime = time.Now().UnixNano() / 1000
 		bmd[i].Timestamp = operation.Timestamp
 		bmd[i].Value = ""
 		bmd[i].ValueStrings = []string{}
