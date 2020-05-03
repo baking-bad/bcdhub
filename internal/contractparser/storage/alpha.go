@@ -14,12 +14,12 @@ import (
 type Alpha struct{}
 
 // NewAlpha -
-func NewAlpha() Alpha {
-	return Alpha{}
+func NewAlpha() *Alpha {
+	return &Alpha{}
 }
 
 // ParseTransaction -
-func (a Alpha) ParseTransaction(content gjson.Result, metadata meta.Metadata, operation models.Operation) (RichStorage, error) {
+func (a *Alpha) ParseTransaction(content gjson.Result, metadata meta.Metadata, operation models.Operation) (RichStorage, error) {
 	address := content.Get("destination").String()
 
 	result, err := getResult(content)
@@ -38,7 +38,7 @@ func (a Alpha) ParseTransaction(content gjson.Result, metadata meta.Metadata, op
 }
 
 // ParseOrigination -
-func (a Alpha) ParseOrigination(content gjson.Result, metadata meta.Metadata, operation models.Operation) (RichStorage, error) {
+func (a *Alpha) ParseOrigination(content gjson.Result, metadata meta.Metadata, operation models.Operation) (RichStorage, error) {
 	result, err := getResult(content)
 	if err != nil {
 		return RichStorage{Empty: true}, err
@@ -86,7 +86,7 @@ func (a Alpha) ParseOrigination(content gjson.Result, metadata meta.Metadata, op
 }
 
 // Enrich -
-func (a Alpha) Enrich(storage string, bmd []models.BigMapDiff, skipEmpty bool) (gjson.Result, error) {
+func (a *Alpha) Enrich(storage string, bmd []models.BigMapDiff, skipEmpty bool) (gjson.Result, error) {
 	if len(bmd) == 0 {
 		return gjson.Parse(storage), nil
 	}
@@ -120,7 +120,7 @@ func (a Alpha) Enrich(storage string, bmd []models.BigMapDiff, skipEmpty bool) (
 	return gjson.Parse(value), nil
 }
 
-func (a Alpha) getBigMapDiff(result gjson.Result, address string, m meta.Metadata, operation models.Operation) ([]models.BigMapDiff, error) {
+func (a *Alpha) getBigMapDiff(result gjson.Result, address string, m meta.Metadata, operation models.Operation) ([]models.BigMapDiff, error) {
 	bmd := make([]models.BigMapDiff, 0)
 	for _, item := range result.Get("big_map_diff").Array() {
 		bmd = append(bmd, models.BigMapDiff{
@@ -138,4 +138,9 @@ func (a Alpha) getBigMapDiff(result gjson.Result, address string, m meta.Metadat
 		})
 	}
 	return bmd, nil
+}
+
+// SetUpdates -
+func (a *Alpha) SetUpdates(temp map[int64][]models.BigMapDiff) {
+	return
 }

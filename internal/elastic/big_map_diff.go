@@ -10,7 +10,7 @@ func (e *Elastic) GetBigMapDiffsByOperationID(operationID string) ([]models.BigM
 	query := newQuery().
 		Query(
 			boolQ(
-				must(
+				filter(
 					matchPhrase("operation_id", operationID),
 				),
 			),
@@ -267,5 +267,43 @@ func (e *Elastic) GetAllBigMapDiff() ([]models.BigMapDiff, error) {
 		}
 	}
 
+	return bmd, nil
+}
+
+// GetAllBigMapDiffByPtr -
+func (e *Elastic) GetAllBigMapDiffByPtr(address, network string, ptr int64) ([]models.BigMapDiff, error) {
+	bmd := make([]models.BigMapDiff, 0)
+
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				matchQ("network", network),
+				matchPhrase("address", address),
+				term("ptr", ptr),
+			),
+		),
+	).Add(
+		aggs("keys", qItem{
+			"terms": qItem{
+				"field": "key_hash.keyword",
+			},
+			"aggs": qItem{
+				"top_key": topHits(1, "indexed_time", "desc"),
+			},
+		}),
+	).Sort("indexed_time", "desc").Zero()
+
+	result, err := e.query([]string{DocBigMapDiff}, query)
+	if err != nil {
+		return nil, err
+	}
+	buckets := result.Get("aggregations.keys.buckets").Array()
+	for _, item := range buckets {
+		hit := item.Get("top_key.hits.hits.0")
+
+		var b models.BigMapDiff
+		b.ParseElasticJSON(hit)
+		bmd = append(bmd, b)
+	}
 	return bmd, nil
 }
