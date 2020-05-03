@@ -23,6 +23,8 @@ type DefaultParser struct {
 	rpc            noderpc.Pool
 	es             *elastic.Elastic
 	filesDirectory string
+
+	updates map[int64][]models.BigMapDiff
 }
 
 // NewDefaultParser -
@@ -39,6 +41,10 @@ func (p *DefaultParser) Parse(opg gjson.Result, network string, head noderpc.Hea
 	operations := make([]models.Operation, 0)
 	contracts := make([]models.Contract, 0)
 	migrations := make([]models.Migration, 0)
+
+	// New OPG -> new temporary storage
+	p.updates = make(map[int64][]models.BigMapDiff)
+
 	for idx, item := range opg.Get("contents").Array() {
 		need, err := p.needParse(item, network, idx)
 		if err != nil {
@@ -348,7 +354,7 @@ func (p *DefaultParser) needParse(item gjson.Result, network string, idx int) (b
 }
 
 func (p *DefaultParser) getRichStorage(data gjson.Result, metadata *meta.ContractMetadata, op *models.Operation) (storage.RichStorage, error) {
-	parser, err := contractparser.MakeStorageParser(p.rpc, op.Protocol)
+	parser, err := contractparser.MakeStorageParser(p.rpc, p.es, op.Protocol)
 	if err != nil {
 		return storage.RichStorage{Empty: true}, err
 	}
@@ -362,6 +368,10 @@ func (p *DefaultParser) getRichStorage(data gjson.Result, metadata *meta.Contrac
 	if !ok {
 		return storage.RichStorage{Empty: true}, fmt.Errorf("Unknown metadata: %s", protoSymLink)
 	}
+
+	// Init parser by current context
+	parser.SetUpdates(p.updates)
+
 	switch op.Kind {
 	case consts.Transaction:
 		return parser.ParseTransaction(data, m, *op)

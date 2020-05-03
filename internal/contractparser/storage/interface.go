@@ -18,4 +18,6 @@ type Parser interface {
 	ParseTransaction(content gjson.Result, metadata meta.Metadata, operation models.Operation) (RichStorage, error)
 	ParseOrigination(content gjson.Result, metadata meta.Metadata, operation models.Operation) (RichStorage, error)
 	Enrich(string, []models.BigMapDiff, bool) (gjson.Result, error)
+
+	SetUpdates(map[int64][]models.BigMapDiff)
 }

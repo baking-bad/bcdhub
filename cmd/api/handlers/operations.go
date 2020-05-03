@@ -243,7 +243,7 @@ func enrichStorage(s string, bmd []models.BigMapDiff, protocol string, skipEmpty
 		return gjson.Parse(s), nil
 	}
 
-	parser, err := contractparser.MakeStorageParser(nil, protocol)
+	parser, err := contractparser.MakeStorageParser(nil, nil, protocol)
 	if err != nil {
 		return gjson.Result{}, err
 	}
