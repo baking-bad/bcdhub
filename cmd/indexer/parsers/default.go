@@ -193,7 +193,8 @@ func (p *DefaultParser) createResult(item gjson.Result, path string) *models.Ope
 		Originated:                   item.Get(path + ".originated_contracts.0").String(),
 		AllocatedDestinationContract: item.Get(path + ".allocated_destination_contract").Bool(),
 	}
-	result.Errors = cerrors.ParseArray(item.Get(path + ".errors"))
+	err := item.Get(path + ".errors")
+	result.Errors = cerrors.ParseArray(err)
 	return result
 }
 

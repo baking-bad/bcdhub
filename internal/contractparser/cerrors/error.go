@@ -3,6 +3,7 @@ package cerrors
 import (
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/baking-bad/bcdhub/internal/contractparser/unpack"
 	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/rawbytes"
@@ -31,13 +32,15 @@ func (e *DefaultError) Parse(data gjson.Result) {
 	e.ID = data.Get("id").String()
 	e.Kind = data.Get("kind").String()
 	if !errorDescriptions.IsObject() {
-		return
-	}
-	errorID := getErrorID(data)
-	errDescr := errorDescriptions.Get(errorID)
-	if errDescr.Exists() {
-		e.Title = errDescr.Get("title").String()
-		e.Description = errDescr.Get("descr").String()
+		e.Title = data.Get("title").String()
+		e.Description = data.Get("descr").String()
+	} else {
+		errorID := getErrorID(data)
+		errDescr := errorDescriptions.Get(errorID)
+		if errDescr.Exists() {
+			e.Title = errDescr.Get("title").String()
+			e.Description = errDescr.Get("descr").String()
+		}
 	}
 	e.Location = data.Get("location").Int()
 	e.With = data.Get("with").String()
@@ -113,7 +116,7 @@ func getErrorID(data gjson.Result) string {
 func getErrorObject(data gjson.Result) IError {
 	id := data.Get("id").String()
 	var e IError
-	if strings.Contains(id, balanceTooLow) {
+	if strings.Contains(id, consts.BalanceTooLowError) {
 		e = &BalanceTooLowError{}
 	} else {
 		e = &DefaultError{}

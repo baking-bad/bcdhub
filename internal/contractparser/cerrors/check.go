@@ -6,20 +6,35 @@ import (
 
 // HasParametersError -
 func HasParametersError(err []IError) bool {
+	return HasError(err, consts.BadParameterError)
+}
+
+// HasGasExhaustedError -
+func HasGasExhaustedError(err []IError) bool {
+	return HasError(err, consts.GasExhaustedError)
+}
+
+// HasScriptRejectedError -
+func HasScriptRejectedError(err []IError) bool {
+	return HasError(err, consts.ScriptRejectedError)
+}
+
+// HasError -
+func HasError(err []IError, errorID string) bool {
 	for i := range err {
-		if err[i].Is(consts.BadParameterError) {
+		if err[i].Is(errorID) {
 			return true
 		}
 	}
 	return false
 }
 
-// HasGasExhaustedError -
-func HasGasExhaustedError(err []IError) bool {
+// First -
+func First(err []IError, errorID string) IError {
 	for i := range err {
-		if err[i].Is(consts.GasExhaustedError) {
-			return true
+		if err[i].Is(errorID) {
+			return err[i]
 		}
 	}
-	return false
+	return nil
 }
