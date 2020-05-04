@@ -27,6 +27,11 @@ type CodeDiffRequest struct {
 	Right CodeDiffLeg `json:"right" binding:"required"`
 }
 
+type getDiffRequest struct {
+	Left  string `json:"left" binding:"required"`
+	Right string `json:"right" binding:"required"`
+}
+
 type getContractRequest struct {
 	Address string `uri:"address" binding:"required,address"`
 	Network string `uri:"network" binding:"required,network"`

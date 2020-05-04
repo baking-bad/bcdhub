@@ -65,6 +65,16 @@ func (ctx *Context) GetDiff(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// GetGeneralDiff -
+func (ctx *Context) GetGeneralDiff(c *gin.Context) {
+	var req getDiffRequest
+	if err := c.BindJSON(&req); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+	diff := formatter.DiffText(req.Left, req.Right)
+	c.JSON(http.StatusOK, diff)
+}
+
 func (ctx *Context) getContractCodeJSON(network, address, protocol string, fallbackLevel int64) (res gjson.Result, err error) {
 	rpc, ok := ctx.RPCs[network]
 	if !ok {

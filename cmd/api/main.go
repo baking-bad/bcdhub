@@ -169,8 +169,13 @@ func main() {
 			}
 		}
 
+		diff := v1.Group("diff")
+		{
+			diff.POST("", ctx.GetDiff)
+			diff.POST("text", ctx.GetGeneralDiff)
+		}
+
 		v1.GET("pick_random", ctx.GetRandomContract)
-		v1.POST("diff", ctx.GetDiff)
 		v1.GET("opg/:hash", ctx.GetOperation)
 		v1.GET("projects", ctx.GetProjects)
 		v1.GET("formatter", ctx.GetFormatter)

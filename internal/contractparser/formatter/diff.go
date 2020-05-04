@@ -17,7 +17,6 @@ type DiffResult struct {
 	Right   [][]Item `json:"right"`
 	Removed int64    `json:"removed"`
 	Added   int64    `json:"added"`
-	Changed int64    `json:"changed"`
 }
 
 // Item -
@@ -67,6 +66,37 @@ func Diff(a, b gjson.Result) (res DiffResult, err error) {
 	}
 
 	return postProcessing(diffA, diffB), nil
+}
+
+// DiffText -
+func DiffText(a, b string) (res DiffResult) {
+	dmp := diffmatchpatch.New()
+	diffList := dmp.DiffMain(a, b, true)
+	diffList = dmp.DiffCleanupSemantic(diffList)
+
+	response := DiffResult{
+		Left:  [][]Item{{}},
+		Right: [][]Item{{}},
+	}
+	for i := range diffList {
+		item := Item{
+			Type:  int(diffList[i].Type),
+			Chunk: diffList[i].Text,
+			ID:    i,
+		}
+		switch diffList[i].Type {
+		case 1:
+			response.Right[0] = append(response.Right[0], item)
+			response.Added++
+		case -1:
+			response.Left[0] = append(response.Left[0], item)
+			response.Removed++
+		case 0:
+			response.Left[0] = append(response.Left[0], item)
+			response.Right[0] = append(response.Right[0], item)
+		}
+	}
+	return response
 }
 
 func diffToLines(text string, diff []diffmatchpatch.Diff, side int8) ([][]Item, error) {
