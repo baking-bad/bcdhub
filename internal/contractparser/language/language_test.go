@@ -240,6 +240,14 @@ func TestDetectLIGO(t *testing.T) {
 			},
 			res: LangLigo,
 		},
+		{
+			name: "Ligo Value",
+			n: node.Node{
+				Value: interface{}("failed assertion"),
+				Type:  consts.KeyString,
+			},
+			res: LangLigo,
+		},
 	}
 
 	for _, tt := range testCases {

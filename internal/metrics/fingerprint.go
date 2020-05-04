@@ -1,4 +1,4 @@
-package parsers
+package metrics
 
 import (
 	"fmt"
@@ -13,8 +13,9 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-func setFingerprint(script gjson.Result, contract *models.Contract) error {
-	fgpt, err := computeFingerprint(script)
+// SetFingerprint -
+func SetFingerprint(script gjson.Result, contract *models.Contract) error {
+	fgpt, err := GetFingerprint(script)
 	if err != nil {
 		return err
 	}
@@ -22,8 +23,9 @@ func setFingerprint(script gjson.Result, contract *models.Contract) error {
 	return nil
 }
 
-func computeFingerprint(script gjson.Result) (*models.Fingerprint, error) {
-	colapsed, err := macros.FindMacros(script)
+// GetFingerprint -
+func GetFingerprint(script gjson.Result) (*models.Fingerprint, error) {
+	colapsed, err := macros.Collapse(script)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +107,7 @@ func fingerprint(script gjson.Result, isCode bool) (string, error) {
 			fgpt.WriteString(buf)
 		}
 	} else {
-		return "", fmt.Errorf("Unknwon script type: %v isCode: %v", script, isCode)
+		return "", fmt.Errorf("Unknown script type: %v isCode: %v", script, isCode)
 	}
 	return fgpt.String(), nil
 }

@@ -38,6 +38,7 @@ func hasLIGOKeywords(s string) bool {
 		"GET_FORCE",
 		"get_force",
 		"MAP FIND",
+		"failed assertion",
 	}
 
 	for _, keyword := range ligoKeywords {

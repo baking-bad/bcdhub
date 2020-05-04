@@ -1,4 +1,4 @@
-package parsers
+package metrics
 
 import (
 	"testing"

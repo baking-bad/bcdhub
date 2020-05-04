@@ -182,7 +182,7 @@ func setStorageDiff(es *elastic.Elastic, address, network string, storage string
 	if err != nil {
 		return err
 	}
-	bmd, err := es.GetBigMapDiffsByOperationID(op.ID)
+	bmd, err := es.GetUniqueBigMapDiffsByOperationID(op.ID)
 	if err != nil {
 		return err
 	}
@@ -243,7 +243,7 @@ func enrichStorage(s string, bmd []models.BigMapDiff, protocol string, skipEmpty
 		return gjson.Parse(s), nil
 	}
 
-	parser, err := contractparser.MakeStorageParser(nil, protocol)
+	parser, err := contractparser.MakeStorageParser(nil, nil, protocol)
 	if err != nil {
 		return gjson.Result{}, err
 	}
@@ -252,12 +252,5 @@ func enrichStorage(s string, bmd []models.BigMapDiff, protocol string, skipEmpty
 }
 
 func getPrevBmd(es *elastic.Elastic, bmd []models.BigMapDiff, indexedTime int64, address string) ([]models.BigMapDiff, error) {
-	keys := make([]string, 0)
-	ptr := make([]int64, 0)
-	for _, b := range bmd {
-		keys = append(keys, b.KeyHash)
-		ptr = append(ptr, b.Ptr)
-	}
-
-	return es.GetBigMapDiffsByKeyHashAndPtr(keys, ptr, indexedTime, address)
+	return es.GetPrevBigMapDiffs(bmd, indexedTime, address)
 }

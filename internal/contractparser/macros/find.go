@@ -4,108 +4,91 @@ import (
 	"fmt"
 
 	"github.com/tidwall/gjson"
-	"github.com/tidwall/sjson"
+	"github.com/valyala/fastjson"
 )
 
-// FindMacros -
-func FindMacros(script gjson.Result) (gjson.Result, error) {
-	var objectMacros = []macros{
-		newAssertMacros(),
-		newAssertSomeMacros(),
-		newAssertNoneMacros(),
-		newDipNMacros(),
-	}
+var families = []family{
+	failFamily{},
+	ifLeftFamily{},
+	ifNoneFamily{},
+	unpairFamily{},
+	cadrFamily{},
+	setCarFamily{},
+	setCdrFamily{},
+	mapFamily{},
+	ifFamily{},
+}
 
-	var arrayMacros = []macros{
-		newAssertCmpMacros(),
-		newAssertEqMacros(),
-		newFailMacros(),
-		newCompareIfMacros(),
-		newIfMacros(),
-		newCompareMacros(),
-		newDupNMacros(),
-		// newPairMacros(),
-		// newUnpairMacros(),
-		// newUnpairNMacros(),
-		newCadrMacros(),
-		newSetCarMacros(),
-	}
-
-	codePath := ""
-	for i, item := range script.Get("code").Array() {
-		if item.Get("prim").String() == "code" {
-			codePath = fmt.Sprintf("code.%d.args", i)
-			break
-		}
-	}
-	code := script.Get(codePath)
-	result, err := walkForMacros(code, "", code.String(), objectMacros, arrayMacros)
+// Collapse -
+func Collapse(tree gjson.Result) (gjson.Result, error) {
+	var p fastjson.Parser
+	val, err := p.Parse(tree.String())
 	if err != nil {
-		return script, err
+		return tree, err
 	}
 
-	resultJSON := gjson.Parse(result)
-	res, err := sjson.Set(script.String(), codePath, resultJSON.Value())
+	if err := collapse(val); err != nil {
+		return tree, err
+	}
+
+	return gjson.Parse(val.String()), nil
+}
+
+func collapse(tree *fastjson.Value) error {
+	switch tree.Type() {
+	case fastjson.TypeArray:
+		return collapseArray(tree)
+	case fastjson.TypeObject:
+		return collapseObject(tree)
+	default:
+		return fmt.Errorf("Invalid fastjson.Type: %v", tree.Type())
+	}
+}
+
+func collapseArray(tree *fastjson.Value) error {
+	if tree.Type() != fastjson.TypeArray {
+		return fmt.Errorf("Invalid collapseArray fastjson.Type: %v", tree.Type())
+	}
+
+	arr, err := tree.Array()
 	if err != nil {
-		return script, err
+		return err
 	}
-	return gjson.Parse(res), nil
-}
 
-func walkForMacros(script gjson.Result, jsonPath, textScript string, objectMacros []macros, arrayMacros []macros) (result string, err error) {
-	result = textScript
-	if script.IsArray() {
-		for i, item := range script.Array() {
-			var itemResult string
-			itemJSONPath := getIndexJSONPath(jsonPath, i)
-			itemResult, err = walkForMacros(item, itemJSONPath, result, objectMacros, arrayMacros)
-			if err != nil {
-				return
-			}
-			result = itemResult
-		}
-		return applyMacros(result, jsonPath, arrayMacros)
-	} else if script.IsObject() {
-		args := script.Get("args")
-		if args.Exists() {
-			var argsResult string
-			argsJSONPath := getArgsJSONPath(jsonPath)
-			argsResult, err = walkForMacros(args, argsJSONPath, result, objectMacros, arrayMacros)
-			if err != nil {
-				return
-			}
-			result = argsResult
-		}
-		return applyMacros(result, jsonPath, objectMacros)
-	}
-	return result, fmt.Errorf("Unknown script type: %v", script)
-}
-
-func applyMacros(json, jsonPath string, allMacros []macros) (res string, err error) {
-	res = json
-	for _, macros := range allMacros {
-		data := gjson.Parse(res).Get(jsonPath)
-		if macros.Find(data) {
-			macros.Collapse(data)
-			res, err = macros.Replace(res, jsonPath)
-			if err != nil {
-				return
-			}
+	for i := range arr {
+		if err := collapse(arr[i]); err != nil {
+			return err
 		}
 	}
-	return
+
+	for i := range families {
+		m, err := families[i].Find(arr...)
+		if err != nil {
+			return err
+		}
+		if m == nil {
+			continue
+		}
+		// log.Printf("found: %T", m)
+		if err := m.Replace(tree); err != nil {
+			return err
+		}
+		break
+	}
+
+	return nil
 }
 
-func getIndexJSONPath(jsonPath string, index int) string {
-	if jsonPath != "" {
-		return fmt.Sprintf("%s.%d", jsonPath, index)
+func collapseObject(tree *fastjson.Value) error {
+	if tree.Type() != fastjson.TypeObject {
+		return fmt.Errorf("Invalid collapseObject fastjson.Type: %v", tree.Type())
 	}
-	return fmt.Sprintf("%d", index)
-}
 
-func getArgsJSONPath(jsonPath string) string {
-	if jsonPath != "" {
-		return fmt.Sprintf("%s.args", jsonPath)
+	if tree.Exists("args") {
+		if err := collapseArray(tree.Get("args")); err != nil {
+			return err
+		}
 	}
-	return "args"
+
+	return nil
 }

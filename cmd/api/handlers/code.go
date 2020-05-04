@@ -6,6 +6,8 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
+	"github.com/baking-bad/bcdhub/internal/contractparser/macros"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 )
@@ -34,7 +36,13 @@ func (ctx *Context) GetContractCode(c *gin.Context) {
 		return
 	}
 
-	resp, err := formatter.MichelineToMichelson(code, false, formatter.DefLineSize)
+	collapsed, err := macros.Collapse(code)
+	if err != nil {
+		logger.Error(err)
+		collapsed = code
+	}
+
+	resp, err := formatter.MichelineToMichelson(collapsed, false, formatter.DefLineSize)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -97,7 +105,11 @@ func (ctx *Context) getContractCodeDiff(left, right CodeDiffLeg) (res CodeDiffRe
 		if err != nil {
 			return res, err
 		}
-		sides[i] = code
+		collapsed, err := macros.Collapse(code)
+		if err != nil {
+			return res, err
+		}
+		sides[i] = collapsed
 	}
 
 	diff, err := formatter.Diff(sides[0], sides[1])
