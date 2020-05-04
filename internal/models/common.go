@@ -13,7 +13,7 @@ func getFoundBy(keys map[string]gjson.Result, categories []string) string {
 			continue
 		}
 		if _, ok := keys[name[0]]; ok {
-			return category
+			return name[0]
 		}
 	}
 
