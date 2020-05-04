@@ -273,6 +273,44 @@ func (e *Elastic) GetAllOperations(network string) ([]models.Operation, error) {
 	return operations, nil
 }
 
+// GetAllOperationsByStatus -
+func (e *Elastic) GetAllOperationsByStatus(network, status string) ([]models.Operation, error) {
+	operations := make([]models.Operation, 0)
+
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				matchQ("network", network),
+				matchQ("status", status),
+			),
+		),
+	)
+	result, err := e.createScroll(DocOperations, 1000, query)
+	if err != nil {
+		return nil, err
+	}
+	for {
+		scrollID := result.Get("_scroll_id").String()
+		hits := result.Get("hits.hits")
+		if hits.Get("#").Int() < 1 {
+			break
+		}
+
+		for _, item := range hits.Array() {
+			var op models.Operation
+			op.ParseElasticJSON(item)
+			operations = append(operations, op)
+		}
+
+		result, err = e.queryScroll(scrollID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return operations, nil
+}
+
 // GetAllLevelsForNetwork -
 func (e *Elastic) GetAllLevelsForNetwork(network string) (map[int64]struct{}, error) {
 	levels := make(map[int64]struct{}, 0)

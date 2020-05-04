@@ -32,6 +32,7 @@ func main() {
 		"state_chain_id":            &migrations.SetStateChainID{},
 		"set_alias_slug":            &migrations.SetAliasSlug{},
 		"set_contract_fingerprint":  &migrations.SetContractFingerprint{},
+		"set_operation_errors":      &migrations.SetOperationErrors{},
 	}
 
 	cfg, err := config.LoadDefaultConfig()

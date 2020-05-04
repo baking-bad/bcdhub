@@ -62,6 +62,17 @@ func TestDefaultError_parse(t *testing.T) {
 				Title:       "Unregistered delegate",
 				Description: "A contract cannot be delegated to an unregistered delegate",
 			},
+		}, {
+			name: "Error 6",
+			args: `{ "kind": "temporary", "id": "proto.006-PsCARTHA.michelson_v1.script_rejected", "location": 1275, "with": {"string": "Wrong token type."}}`,
+			ret: DefaultError{
+				Kind:        "temporary",
+				ID:          "proto.006-PsCARTHA.michelson_v1.script_rejected",
+				Title:       "Script failed",
+				Description: "A FAILWITH instruction was reached",
+				Location:    1275,
+				With:        `{"string": "Wrong token type."}`,
+			},
 		},
 	}
 
