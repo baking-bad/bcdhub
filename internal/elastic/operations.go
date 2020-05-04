@@ -192,20 +192,7 @@ func (e *Elastic) GetLastStorage(network, address string) (gjson.Result, error) 
 					term("deffated_storage", ""),
 				),
 			),
-		).
-		Add(qItem{
-			"sort": qItem{
-				"_script": qItem{
-					"type": "number",
-					"script": qItem{
-						"lang":   "painless",
-						"inline": "doc['level'].value * 1000 + (doc['internal'].value ? (999 - doc['internal_index'].value) : 999)", // 😵
-					},
-					"order": "desc",
-				},
-			},
-		}).
-		One()
+		).Sort("indexed_time", "desc").One()
 
 	res, err := e.query([]string{DocOperations}, query)
 	if err != nil {

@@ -82,7 +82,19 @@ func (e *Elastic) GetPrevBigMapDiffs(filters []models.BigMapDiff, indexedTime in
 		minimumShouldMatch(1),
 	)
 
-	query := newQuery().Query(b).Sort("indexed_time", "desc").All()
+	query := newQuery().Query(b).
+		Add(aggs(
+			"keys", qItem{
+				"terms": qItem{
+					"field": "key_hash.keyword",
+					"size":  maxQuerySize,
+				},
+				"aggs": qItem{
+					"top_key": topHits(1, "indexed_time", "desc"),
+				},
+			},
+		)).
+		Sort("indexed_time", "desc").Zero()
 
 	res, err := e.query([]string{DocBigMapDiff}, query)
 	if err != nil {
@@ -90,10 +102,11 @@ func (e *Elastic) GetPrevBigMapDiffs(filters []models.BigMapDiff, indexedTime in
 	}
 
 	response := make([]models.BigMapDiff, 0)
-	for _, item := range res.Get("hits.hits").Array() {
-		var bmd models.BigMapDiff
-		bmd.ParseElasticJSON(item)
-		response = append(response, bmd)
+	for _, item := range res.Get("aggregations.keys.buckets").Array() {
+		bmd := item.Get("top_key.hits.hits.0")
+		var b models.BigMapDiff
+		b.ParseElasticJSON(bmd)
+		response = append(response, b)
 	}
 	return response, nil
 }
