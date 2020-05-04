@@ -1,13 +1,6 @@
 include .env
 export $(shell sed 's/=.*//' .env)
 
-deploy: export TAG=$(shell git pull -q && git describe --abbrev=0 --tags)
-deploy:
-	git pull
-	docker-compose pull
-	docker-compose up -d
-	docker-compose ps
-
 api:
 	cd cmd/api && go run . -f config.yml -f config.dev.yml
 
@@ -16,11 +9,6 @@ indexer:
 
 metrics:
 	cd cmd/metrics && go run . -f config.yml -f config.dev.yml
-
-clearmq:
-	docker exec -it bcd-mq rabbitmqctl stop_app
-	docker exec -it bcd-mq rabbitmqctl reset
-	docker exec -it bcd-mq rabbitmqctl start_app
 
 aliases:
 	cd scripts/aliases && go run . -f ../config.yml
@@ -60,3 +48,15 @@ es-reset:
 	docker rm bcd-elastic || true
 	docker volume rm bcdhub_esdata || true
 	docker-compose up -d elastic
+
+clearmq:
+	docker exec -it bcd-mq rabbitmqctl stop_app
+	docker exec -it bcd-mq rabbitmqctl reset
+	docker exec -it bcd-mq rabbitmqctl start_app
+
+deploy: export TAG=$(shell git pull -q && git describe --abbrev=0 --tags)
+deploy:
+	git pull
+	docker-compose pull
+	docker-compose up -d
+	docker-compose ps

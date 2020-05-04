@@ -1,4 +1,4 @@
-package meta
+package docstring
 
 import (
 	"encoding/json"

@@ -9,6 +9,17 @@ import (
 
 type listMaker struct{}
 
+func getItemsType(binPath string, metadata meta.Metadata) (string, error) {
+	nm := metadata[binPath]
+
+	switch nm.Prim {
+	case consts.STRING, consts.BYTES, consts.KEYHASH, consts.KEY, consts.CHAINID, consts.SIGNATURE, consts.CONTRACT, consts.LAMBDA, consts.ADDRESS:
+		return "string", nil
+	default:
+		return "object", nil
+	}
+}
+
 func (m *listMaker) Do(binPath string, metadata meta.Metadata) (Schema, error) {
 	nm, ok := metadata[binPath]
 	if !ok {
@@ -35,6 +46,11 @@ func (m *listMaker) Do(binPath string, metadata meta.Metadata) (Schema, error) {
 		return nil, err
 	}
 
+	itemsType, err := getItemsType(path, metadata)
+	if err != nil {
+		return nil, err
+	}
+
 	if properties, ok := listSchema["properties"]; ok {
 		props := properties.(Schema)
 		for k := range props {
@@ -47,7 +63,7 @@ func (m *listMaker) Do(binPath string, metadata meta.Metadata) (Schema, error) {
 	}
 
 	schema["items"] = Schema{
-		"type":       "object",
+		"type":       itemsType,
 		"properties": propertiesItems,
 		"required":   required,
 	}

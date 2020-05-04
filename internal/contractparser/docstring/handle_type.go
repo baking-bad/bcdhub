@@ -1,24 +1,25 @@
-package meta
+package docstring
 
 import (
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
+	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/tidwall/gjson"
 )
 
-func (md Metadata) handleTupleEnumUnion(dd *dsData, bPath string, i int) (string, error) {
+func handleTupleEnumUnion(dd *dsData, bPath string, i int, md meta.Metadata) (string, error) {
 	var node = md[bPath]
 	var args []TypedefArg
 
-	name, err := md.getVarName(dd, bPath)
+	name, err := getVarName(dd, bPath, md)
 	if err != nil {
 		return "", err
 	}
 
 	for i, argPath := range node.Args {
 		dd.arg = i
-		value, err := md.getTypeExpr(dd, argPath)
+		value, err := getTypeExpr(dd, argPath, md)
 		if err != nil {
 			return "", err
 		}
@@ -34,18 +35,18 @@ func (md Metadata) handleTupleEnumUnion(dd *dsData, bPath string, i int) (string
 	return fmt.Sprintf("$%s", name), nil
 }
 
-func (md Metadata) handleNamed(dd *dsData, bPath string, i int) (string, error) {
+func handleNamed(dd *dsData, bPath string, i int, md meta.Metadata) (string, error) {
 	var node = md[bPath]
 	var args []TypedefArg
 
-	name, err := md.getVarName(dd, bPath)
+	name, err := getVarName(dd, bPath, md)
 	if err != nil {
 		return "", err
 	}
 
 	for i, argPath := range node.Args {
 		dd.arg = i
-		value, err := md.getTypeExpr(dd, argPath)
+		value, err := getTypeExpr(dd, argPath, md)
 		if err != nil {
 			return "", err
 		}
@@ -62,7 +63,7 @@ func (md Metadata) handleNamed(dd *dsData, bPath string, i int) (string, error) 
 	return fmt.Sprintf("$%s", name), nil
 }
 
-func (md Metadata) handleContractLambda(dd *dsData, bPath string, i int) (string, error) {
+func handleContractLambda(dd *dsData, bPath string, i int, md meta.Metadata) (string, error) {
 	node := md[bPath]
 	parsed := gjson.Parse(node.Parameter)
 	parameter, err := formatter.MichelineToMichelson(parsed, true, formatter.DefLineSize)
@@ -74,7 +75,7 @@ func (md Metadata) handleContractLambda(dd *dsData, bPath string, i int) (string
 		return parameter, nil
 	}
 
-	name, err := md.getVarNameContractLambda(dd, bPath)
+	name, err := getVarNameContractLambda(dd, bPath, md)
 	if err != nil {
 		return "", err
 	}
@@ -87,18 +88,18 @@ func (md Metadata) handleContractLambda(dd *dsData, bPath string, i int) (string
 	return fmt.Sprintf("$%s", name), nil
 }
 
-func (md Metadata) handleMap(dd *dsData, bPath string, i int) (string, error) {
+func handleMap(dd *dsData, bPath string, i int, md meta.Metadata) (string, error) {
 	node := md[bPath]
 	var args []TypedefArg
-	name, err := md.getVarName(dd, bPath)
+	name, err := getVarName(dd, bPath, md)
 	if err != nil {
 		return "", err
 	}
-	key, err := md.getTypeExpr(dd, bPath+"/k")
+	key, err := getTypeExpr(dd, bPath+"/k", md)
 	if err != nil {
 		return "", err
 	}
-	value, err := md.getTypeExpr(dd, bPath+"/v")
+	value, err := getTypeExpr(dd, bPath+"/v", md)
 	if err != nil {
 		return "", err
 	}

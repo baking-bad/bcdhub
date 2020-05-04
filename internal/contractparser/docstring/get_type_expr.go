@@ -1,12 +1,13 @@
-package meta
+package docstring
 
 import (
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 )
 
-func (md Metadata) getSimpleExpr(bPath string) (string, error) {
+func getSimpleExpr(bPath string, md meta.Metadata) (string, error) {
 	node := md[bPath]
 
 	if isOption(bPath) {
@@ -16,12 +17,12 @@ func (md Metadata) getSimpleExpr(bPath string) (string, error) {
 	return node.Prim, nil
 }
 
-func (md Metadata) getCompactExpr(dd *dsData, bPath string) (string, error) {
+func getCompactExpr(dd *dsData, bPath string, md meta.Metadata) (string, error) {
 	node := md[bPath]
 
 	switch node.Prim {
 	case consts.CONTRACT, consts.LAMBDA:
-		varName, err := md.handleType(dd, bPath)
+		varName, err := handleType(dd, bPath, md)
 		if err != nil {
 			return "", err
 		}
@@ -35,7 +36,7 @@ func (md Metadata) getCompactExpr(dd *dsData, bPath string) (string, error) {
 		return expr, nil
 	case consts.LIST, consts.SET:
 		path := fmt.Sprintf("%s/%s", bPath, typePrefix[node.Prim])
-		varName, err := md.getTypeExpr(dd, path)
+		varName, err := getTypeExpr(dd, path, md)
 		if err != nil {
 			return "", err
 		}
@@ -49,7 +50,7 @@ func (md Metadata) getCompactExpr(dd *dsData, bPath string) (string, error) {
 		return expr, nil
 	case consts.OPTION:
 		path := fmt.Sprintf("%s/%s", bPath, typePrefix[node.Prim])
-		return md.getTypeExpr(dd, path)
+		return getTypeExpr(dd, path, md)
 	case consts.MAP, consts.BIGMAP:
 		key := md[bPath+"/k"]
 		val := md[bPath+"/v"]
@@ -63,12 +64,12 @@ func (md Metadata) getCompactExpr(dd *dsData, bPath string) (string, error) {
 	}
 }
 
-func (md Metadata) getComplexExpr(dd *dsData, bPath string) (string, error) {
+func getComplexExpr(dd *dsData, bPath string, md meta.Metadata) (string, error) {
 	node := md[bPath]
 
 	switch node.Prim {
 	case consts.PAIR, consts.OR:
-		varName, err := md.handleType(dd, bPath)
+		varName, err := handleType(dd, bPath, md)
 		if err != nil {
 			return "", err
 		}
@@ -79,7 +80,7 @@ func (md Metadata) getComplexExpr(dd *dsData, bPath string) (string, error) {
 
 		return varName, nil
 	case consts.MAP, consts.BIGMAP:
-		return md.handleType(dd, bPath)
+		return handleType(dd, bPath, md)
 	default:
 		return "", fmt.Errorf("[getComplexExpr] unknown node type %##v %s", md[bPath], bPath)
 	}

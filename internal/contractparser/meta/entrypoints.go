@@ -17,12 +17,23 @@ type Entrypoint struct {
 	Parameters interface{} `json:"miguel_parameters"`
 }
 
+// IsComplexEntryRoot -
+func (metadata Metadata) IsComplexEntryRoot() bool {
+	root := metadata["0"]
+	return len(root.Args) > 0 &&
+		root.Prim == consts.OR &&
+		(root.Type == consts.TypeUnion ||
+			root.Type == consts.TypeEnum ||
+			root.Type == consts.TypeNamedEnum ||
+			root.Type == consts.TypeNamedUnion)
+}
+
 // GetEntrypoints returns contract entrypoints
 func (metadata Metadata) GetEntrypoints() ([]Entrypoint, error) {
 	root := metadata["0"]
 
 	ep := make([]Entrypoint, 0)
-	if len(root.Args) > 0 && root.Prim == consts.OR && (root.Type == consts.TypeUnion || root.Type == consts.TypeNamedEnum || root.Type == consts.TypeNamedTuple || root.Type == consts.TypeNamedUnion) {
+	if metadata.IsComplexEntryRoot() {
 		for i, arg := range root.Args {
 			nm := metadata[arg]
 
@@ -50,6 +61,22 @@ func (metadata Metadata) GetEntrypoints() ([]Entrypoint, error) {
 		})
 	}
 	return ep, nil
+}
+
+// GetPathByName -
+func (metadata Metadata) GetPathByName(name string) (string, error) {
+	root := metadata["0"]
+	if metadata.IsComplexEntryRoot() {
+		for _, arg := range root.Args {
+			nm := metadata[arg]
+			if nm.FieldName == name {
+				return arg, nil
+			}
+		}
+	} else {
+		return "0", nil
+	}
+	return "", fmt.Errorf("Entrypoint `%s` not found", name)
 }
 
 // GetByPath - returns entrypoint name by parameters node

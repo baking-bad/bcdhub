@@ -10,7 +10,12 @@ import (
 )
 
 // BuildEntrypointMicheline -
-func (m Metadata) BuildEntrypointMicheline(binaryPath string, data map[string]interface{}) (gjson.Result, error) {
+func (m Metadata) BuildEntrypointMicheline(name string, data map[string]interface{}) (gjson.Result, error) {
+	binaryPath, err := m.GetPathByName(name)
+	if err != nil {
+		return gjson.Result{}, err
+	}
+
 	binaryPath = prepareData(binaryPath, data)
 
 	micheline, err := build(m, binaryPath, data)

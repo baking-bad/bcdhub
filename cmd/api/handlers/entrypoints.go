@@ -3,8 +3,8 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/cmd/api/jsonschema"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/docstring"
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/elastic"
@@ -37,36 +37,12 @@ func (ctx *Context) GetEntrypoints(c *gin.Context) {
 		return
 	}
 
-	entrypoints, err := metadata.GetDocEntrypoints()
+	entrypoints, err := docstring.GetEntrypoints(metadata)
 	if handleError(c, err, 0) {
 		return
 	}
 
 	c.JSON(http.StatusOK, entrypoints)
-}
-
-// GetEntrypointSchema - returns entrypoint schema
-func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
-	var req getContractRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
-		return
-	}
-	var reqSchema getEntrypointSchemaRequest
-	if err := c.BindQuery(&reqSchema); handleError(c, err, http.StatusBadRequest) {
-		return
-	}
-
-	metadata, err := getParameterMetadata(ctx.ES, req.Address, req.Network)
-	if handleError(c, err, 0) {
-		return
-	}
-
-	schema, err := jsonschema.Create(reqSchema.BinPath, metadata)
-	if handleError(c, err, 0) {
-		return
-	}
-
-	c.JSON(http.StatusOK, schema)
 }
 
 // GetEntrypointData - returns entrypoint data from schema object
@@ -85,7 +61,7 @@ func (ctx *Context) GetEntrypointData(c *gin.Context) {
 		return
 	}
 
-	result, err := metadata.BuildEntrypointMicheline(reqData.BinPath, reqData.Data)
+	result, err := metadata.BuildEntrypointMicheline(reqData.Name, reqData.Data)
 	if handleError(c, err, 0) {
 		return
 	}

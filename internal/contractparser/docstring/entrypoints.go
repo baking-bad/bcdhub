@@ -1,16 +1,19 @@
-package meta
+package docstring
 
 import (
 	"fmt"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/baking-bad/bcdhub/internal/jsonschema"
 )
 
-// DocEntrypoint -
-type DocEntrypoint struct {
-	Name string    `json:"name"`
-	Type []Typedef `json:"typedef"`
+// EntrypointSchema -
+type EntrypointSchema struct {
+	Name   string            `json:"name"`
+	Type   []Typedef         `json:"typedef"`
+	Schema jsonschema.Schema `json:"schema"`
 }
 
 // Typedef -
@@ -32,56 +35,64 @@ type dsData struct {
 	arg     int
 }
 
-// GetDocEntrypoints -
-func (md Metadata) GetDocEntrypoints() ([]DocEntrypoint, error) {
+// GetEntrypoints -
+func GetEntrypoints(md meta.Metadata) ([]EntrypointSchema, error) {
 	root := md["0"]
-	entrypoints := make([]DocEntrypoint, 0)
+	entrypoints := make([]EntrypointSchema, 0)
 
-	if isComplexRoot(root) {
+	if md.IsComplexEntryRoot() {
 		for i, binPath := range root.Args {
 			md[binPath].Name = md[binPath].GetEntrypointName(i)
 
-			typeDefs, err := md.parseEntrypointTypes(binPath)
+			typeDefs, err := parseEntrypointTypes(binPath, md)
 			if err != nil {
 				return nil, err
 			}
 
-			entrypoints = append(entrypoints, DocEntrypoint{
-				Name: md[binPath].Name,
-				Type: typeDefs,
+			schema, err := jsonschema.Create(binPath, md)
+			if err != nil {
+				return nil, err
+			}
+
+			entrypoints = append(entrypoints, EntrypointSchema{
+				Name:   md[binPath].Name,
+				Type:   typeDefs,
+				Schema: schema,
 			})
 		}
 	} else {
 		root.Name = root.GetEntrypointName(-1)
-		typeDefs, err := md.parseEntrypointTypes("0")
+		typeDefs, err := parseEntrypointTypes("0", md)
 		if err != nil {
 			return nil, err
 		}
 
-		entrypoints = append(entrypoints, DocEntrypoint{
-			Name: root.Name,
-			Type: typeDefs,
+		schema, err := jsonschema.Create("0", md)
+		if err != nil {
+			return nil, err
+		}
+
+		entrypoints = append(entrypoints, EntrypointSchema{
+			Name:   root.Name,
+			Type:   typeDefs,
+			Schema: schema,
 		})
 	}
 
 	return entrypoints, nil
 }
 
-func isComplexRoot(root *NodeMetadata) bool {
-	return len(root.Args) > 0 && root.Prim == consts.OR && (root.Type == consts.TypeUnion || root.Type == consts.TypeNamedEnum || root.Type == consts.TypeNamedTuple || root.Type == consts.TypeNamedUnion)
-}
-
-func (md Metadata) parseEntrypointTypes(bPath string) ([]Typedef, error) {
+func parseEntrypointTypes(bPath string, md meta.Metadata) ([]Typedef, error) {
 	var dd dsData
 
-	typ, err := md.getTypeExpr(&dd, bPath)
+	typ, err := getTypeExpr(&dd, bPath, md)
 	if err != nil {
 		return nil, err
 	}
 
 	node := md[bPath]
 
-	if isSimpleType(node.Prim) || md.isCompactType(bPath) {
+	if isSimpleType(node.Prim) || isCompactType(bPath, md) {
 		dd.insertTypedef(0, Typedef{
 			Name: node.Name,
 			Type: typ,
@@ -91,47 +102,47 @@ func (md Metadata) parseEntrypointTypes(bPath string) ([]Typedef, error) {
 	return dd.typedef, nil
 }
 
-func (md Metadata) handleType(dd *dsData, bPath string) (string, error) {
+func handleType(dd *dsData, bPath string, md meta.Metadata) (string, error) {
 	i := len(dd.typedef)
 
 	switch md[bPath].Type {
 	case consts.TypeTuple, consts.TypeEnum, consts.TypeUnion:
-		return md.handleTupleEnumUnion(dd, bPath, i)
+		return handleTupleEnumUnion(dd, bPath, i, md)
 	case consts.TypeNamedTuple, consts.TypeNamedEnum, consts.TypeNamedUnion:
-		return md.handleNamed(dd, bPath, i)
+		return handleNamed(dd, bPath, i, md)
 	case consts.CONTRACT, consts.LAMBDA:
-		return md.handleContractLambda(dd, bPath, i)
+		return handleContractLambda(dd, bPath, i, md)
 	case consts.MAP, consts.BIGMAP:
-		return md.handleMap(dd, bPath, i)
+		return handleMap(dd, bPath, i, md)
 	default:
 		return "", fmt.Errorf("[handleType] %##v %s", md[bPath], bPath)
 	}
 }
 
-func (md Metadata) getTypeExpr(dd *dsData, bPath string) (string, error) {
-	nodeType, err := md.getType(bPath)
+func getTypeExpr(dd *dsData, bPath string, md meta.Metadata) (string, error) {
+	nodeType, err := getType(bPath, md)
 	if err != nil {
 		return "", err
 	}
 
 	switch nodeType {
 	case TypedefSimple:
-		return md.getSimpleExpr(bPath)
+		return getSimpleExpr(bPath, md)
 	case TypedefCompact:
-		return md.getCompactExpr(dd, bPath)
+		return getCompactExpr(dd, bPath, md)
 	case TypedefComplex:
-		return md.getComplexExpr(dd, bPath)
+		return getComplexExpr(dd, bPath, md)
 	default:
 		return "", fmt.Errorf("[getTypeExpr] unknown node type %##v %s", md[bPath], bPath)
 	}
 }
 
-func (md Metadata) getVarName(dd *dsData, bPath string) (string, error) {
+func getVarName(dd *dsData, bPath string, md meta.Metadata) (string, error) {
 	if name := md[bPath].Name; name != "" {
 		return name, nil
 	}
 
-	parentNode := md.getParentNode(bPath)
+	parentNode := getParentNode(bPath, md)
 	prefix := parentNode.Name
 
 	if prefix == "" {
@@ -139,7 +150,7 @@ func (md Metadata) getVarName(dd *dsData, bPath string) (string, error) {
 		dd.counter++
 	}
 
-	suffix, err := md.getSuffix(dd, bPath)
+	suffix, err := getSuffix(dd, bPath, md)
 	if err != nil {
 		return "", err
 	}
@@ -147,8 +158,8 @@ func (md Metadata) getVarName(dd *dsData, bPath string) (string, error) {
 	return fmt.Sprintf("%s%s", prefix, suffix), nil
 }
 
-func (md Metadata) getSuffix(dd *dsData, bPath string) (string, error) {
-	parentNode := md.getParentNode(bPath)
+func getSuffix(dd *dsData, bPath string, md meta.Metadata) (string, error) {
+	parentNode := getParentNode(bPath, md)
 
 	switch parentNode.Prim {
 	case consts.LIST, consts.SET:
@@ -171,12 +182,12 @@ func (md Metadata) getSuffix(dd *dsData, bPath string) (string, error) {
 	return "", fmt.Errorf("[getSuffix] error. prim: %s, bPath: %s", md[bPath].Prim, bPath)
 }
 
-func (md Metadata) getParentNode(bPath string) *NodeMetadata {
+func getParentNode(bPath string, md meta.Metadata) *meta.NodeMetadata {
 	parentPath := bPath[:len(bPath)-2]
 	return md[parentPath]
 }
 
-func (md Metadata) getVarNameContractLambda(dd *dsData, bPath string) (string, error) {
+func getVarNameContractLambda(dd *dsData, bPath string, md meta.Metadata) (string, error) {
 	var node = md[bPath]
 	var suffix string
 

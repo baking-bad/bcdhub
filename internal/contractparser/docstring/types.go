@@ -1,10 +1,11 @@
-package meta
+package docstring
 
 import (
 	"fmt"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 )
 
 // Typdefs
@@ -37,7 +38,7 @@ var simpleTypes = []string{
 	consts.OPERATION,
 }
 
-func (md Metadata) getType(bPath string) (string, error) {
+func getType(bPath string, md meta.Metadata) (string, error) {
 	if _, ok := md[bPath]; !ok {
 		return "", fmt.Errorf("[getType] invalid metadata path %s", bPath)
 	}
@@ -46,11 +47,11 @@ func (md Metadata) getType(bPath string) (string, error) {
 		return TypedefSimple, nil
 	}
 
-	if md.isCompactType(bPath) {
+	if isCompactType(bPath, md) {
 		return TypedefCompact, nil
 	}
 
-	if md.isComplexType(bPath) {
+	if isComplexType(bPath, md) {
 		return TypedefComplex, nil
 	}
 
@@ -67,7 +68,7 @@ func isSimpleType(prim string) bool {
 	return false
 }
 
-func (md Metadata) isCompactType(bPath string) bool {
+func isCompactType(bPath string, md meta.Metadata) bool {
 	node := md[bPath]
 
 	if node.Type == consts.TypeNamedEnum || node.Type == consts.TypeNamedTuple || node.Type == consts.TypeNamedUnion {
@@ -99,7 +100,7 @@ func (md Metadata) isCompactType(bPath string) bool {
 	return false
 }
 
-func (md Metadata) isComplexType(bPath string) bool {
+func isComplexType(bPath string, md meta.Metadata) bool {
 	node := md[bPath]
 
 	if node.Prim == consts.OR {
