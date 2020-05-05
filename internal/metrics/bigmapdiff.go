@@ -17,7 +17,7 @@ func (h *Handler) SetBigMapDiffsStrings(operationID string) error {
 		return nil
 	}
 
-	result := make([]elastic.Identifiable, len(arr))
+	result := make([]elastic.Model, len(arr))
 	for i, bmd := range arr {
 		var b models.BigMapDiff
 		b.ParseElasticJSON(bmd)
@@ -25,8 +25,8 @@ func (h *Handler) SetBigMapDiffsStrings(operationID string) error {
 		b.KeyStrings = stringer.Get(bmd.Get("_source.key"))
 		value := gjson.Parse(bmd.Get("_source.value").String())
 		b.ValueStrings = stringer.Get(value)
-		result[i] = b
+		result[i] = &b
 	}
 
-	return h.ES.BulkUpdate(elastic.DocBigMapDiff, result)
+	return h.ES.BulkUpdate(result)
 }

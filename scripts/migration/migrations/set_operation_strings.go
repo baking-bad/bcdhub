@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/metrics"
+	"github.com/baking-bad/bcdhub/internal/models"
 )
 
 // SetOperationStrings - migration that set storage and parameter strings array at operation
@@ -23,8 +24,8 @@ func (m *SetOperationStrings) Do(ctx *config.Context) error {
 	start := time.Now()
 
 	for _, network := range ctx.Config.Migrations.Networks {
-		operations, err := ctx.ES.GetAllOperations(network)
-		if err != nil {
+		var operations []models.Operation
+		if err := ctx.ES.GetByNetwork(network, &operations); err != nil {
 			return err
 		}
 		log.Printf("Found %d operations", len(operations))
@@ -37,11 +38,11 @@ func (m *SetOperationStrings) Do(ctx *config.Context) error {
 
 			if (i%1000 == 0 || i == len(operations)-1) && i > 0 {
 				log.Printf("Saving updated data from %d to %d...", lastIdx, i)
-				updates := make([]elastic.Identifiable, len(operations[lastIdx:i]))
+				updates := make([]elastic.Model, len(operations[lastIdx:i]))
 				for j := range operations[lastIdx:i] {
-					updates[j] = operations[lastIdx:i][j]
+					updates[j] = &operations[lastIdx:i][j]
 				}
-				if err := ctx.ES.BulkUpdate("operation", updates); err != nil {
+				if err := ctx.ES.BulkUpdate(updates); err != nil {
 					return err
 				}
 				lastIdx = i

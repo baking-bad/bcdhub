@@ -20,8 +20,8 @@ func getOperation(data amqp.Delivery) error {
 		return fmt.Errorf("[getOperation] Unmarshal message body error: %s", err)
 	}
 
-	op, err := ctx.ES.GetOperationByID(operationID)
-	if err != nil {
+	op := models.Operation{ID: operationID}
+	if err := ctx.ES.GetByID(&op); err != nil {
 		return fmt.Errorf("[getOperation] Find operation error: %s", err)
 	}
 

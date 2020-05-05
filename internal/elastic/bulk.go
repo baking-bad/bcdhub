@@ -5,17 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
-
-// Identifiable -
-type Identifiable interface {
-	GetID() string
-}
 
 // Bulk -
 func (e *Elastic) Bulk(index string, buf *bytes.Buffer) error {
@@ -35,15 +28,41 @@ func (e *Elastic) Bulk(index string, buf *bytes.Buffer) error {
 	return err
 }
 
+// BulkInsert -
+func (e *Elastic) BulkInsert(items []Model) error {
+	if len(items) == 0 {
+		return nil
+	}
+	index := items[0].GetIndex()
+	bulk := bytes.NewBuffer([]byte{})
+	for i := range items {
+		id := helpers.GenerateID()
+		meta := []byte(fmt.Sprintf(`{ "index" : { "_id": "%s"} }%s`, id, "\n"))
+		data, err := json.Marshal(items[i])
+		if err != nil {
+			return err
+		}
+		data = append(data, "\n"...)
+
+		bulk.Grow(len(meta) + len(data))
+		bulk.Write(meta)
+		bulk.Write(data)
+	}
+	return e.Bulk(index, bulk)
+}
+
 // BulkUpdate -
-func (e *Elastic) BulkUpdate(index string, updates []Identifiable) error {
+func (e *Elastic) BulkUpdate(updates []Model) error {
+	if len(updates) == 0 {
+		return nil
+	}
+	index := updates[0].GetIndex()
 	bulk := bytes.NewBuffer([]byte{})
 	for i := range updates {
 		meta := []byte(fmt.Sprintf(`{ "update": { "_id": "%s"}}%s{ "doc": `, updates[i].GetID(), "\n"))
 		data, err := json.Marshal(updates[i])
 		if err != nil {
-			log.Println(err)
-			continue
+			return err
 		}
 		data = append(data, "}\n"...)
 
@@ -55,7 +74,11 @@ func (e *Elastic) BulkUpdate(index string, updates []Identifiable) error {
 }
 
 // BulkDelete -
-func (e *Elastic) BulkDelete(index string, updates []Identifiable) error {
+func (e *Elastic) BulkDelete(updates []Model) error {
+	if len(updates) == 0 {
+		return nil
+	}
+	index := updates[0].GetIndex()
 	bulk := bytes.NewBuffer([]byte{})
 	for i := range updates {
 		meta := []byte(fmt.Sprintf(`{ "delete": { "_index": "%s", "_id": "%s"}}%s`, index, updates[i].GetID(), "\n"))
@@ -66,7 +89,11 @@ func (e *Elastic) BulkDelete(index string, updates []Identifiable) error {
 }
 
 // BulkRemoveField -
-func (e *Elastic) BulkRemoveField(index, script string, where []Identifiable) error {
+func (e *Elastic) BulkRemoveField(script string, where []Model) error {
+	if len(where) == 0 {
+		return nil
+	}
+	index := where[0].GetIndex()
 	bulk := bytes.NewBuffer([]byte{})
 	for i := range where {
 		meta := fmt.Sprintf(`{ "update": { "_id": "%s"}}%s{"script" : "%s"}%s`, where[i].GetID(), "\n", script, "\n")
@@ -74,96 +101,4 @@ func (e *Elastic) BulkRemoveField(index, script string, where []Identifiable) er
 		bulk.WriteString(meta)
 	}
 	return e.Bulk(index, bulk)
-}
-
-// BulkInsertOperations -
-func (e *Elastic) BulkInsertOperations(v []models.Operation) error {
-	bulk := bytes.NewBuffer([]byte{})
-	for i := range v {
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_id": "%s"} }%s`, v[i].ID, "\n"))
-		data, err := json.Marshal(v[i])
-		if err != nil {
-			return err
-		}
-		data = append(data, "\n"...)
-
-		bulk.Grow(len(meta) + len(data))
-		bulk.Write(meta)
-		bulk.Write(data)
-	}
-	return e.Bulk(DocOperations, bulk)
-}
-
-// BulkInsertContracts -
-func (e *Elastic) BulkInsertContracts(v []models.Contract) error {
-	bulk := bytes.NewBuffer([]byte{})
-	for i := range v {
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_id": "%s"} }%s`, v[i].ID, "\n"))
-		data, err := json.Marshal(v[i])
-		if err != nil {
-			return err
-		}
-		data = append(data, "\n"...)
-
-		bulk.Grow(len(meta) + len(data))
-		bulk.Write(meta)
-		bulk.Write(data)
-	}
-	return e.Bulk(DocContracts, bulk)
-}
-
-// BulkSaveBigMapDiffs -
-func (e *Elastic) BulkSaveBigMapDiffs(diffs []models.BigMapDiff) error {
-	bulk := bytes.NewBuffer([]byte{})
-	for i := range diffs {
-		id := helpers.GenerateID()
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_id": "%s"} }%s`, id, "\n"))
-		data, err := json.Marshal(diffs[i])
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-		data = append(data, "\n"...)
-
-		bulk.Grow(len(meta) + len(data))
-		bulk.Write(meta)
-		bulk.Write(data)
-	}
-	return e.Bulk(DocBigMapDiff, bulk)
-}
-
-// BulkInsertMigrations -
-func (e *Elastic) BulkInsertMigrations(v []models.Migration) error {
-	bulk := bytes.NewBuffer([]byte{})
-	for i := range v {
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_id": "%s"} }%s`, v[i].ID, "\n"))
-		data, err := json.Marshal(v[i])
-		if err != nil {
-			return err
-		}
-		data = append(data, "\n"...)
-
-		bulk.Grow(len(meta) + len(data))
-		bulk.Write(meta)
-		bulk.Write(data)
-	}
-	return e.Bulk(DocMigrations, bulk)
-}
-
-// BulkInsertProtocols -
-func (e *Elastic) BulkInsertProtocols(v []models.Protocol) error {
-	bulk := bytes.NewBuffer([]byte{})
-	for i := range v {
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_id": "%s"} }%s`, v[i].ID, "\n"))
-		data, err := json.Marshal(v[i])
-		if err != nil {
-			return err
-		}
-		data = append(data, "\n"...)
-
-		bulk.Grow(len(meta) + len(data))
-		bulk.Write(meta)
-		bulk.Write(data)
-	}
-	return e.Bulk(DocProtocol, bulk)
 }

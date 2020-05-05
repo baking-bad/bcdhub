@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/node"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/tidwall/gjson"
 )
 
@@ -335,8 +336,8 @@ func GetContractMetadata(es *elastic.Elastic, address string) (*ContractMetadata
 		return nil, fmt.Errorf("[GetContractMetadata] Empty address")
 	}
 
-	data, err := es.GetMetadata(address)
-	if err != nil {
+	data := models.Metadata{ID: address}
+	if err := es.GetByID(&data); err != nil {
 		return nil, err
 	}
 
@@ -369,8 +370,8 @@ func GetMetadata(es *elastic.Elastic, address, part, protocol string) (Metadata,
 		return nil, fmt.Errorf("[GetMetadata] Empty address")
 	}
 
-	data, err := es.GetMetadata(address)
-	if err != nil {
+	data := models.Metadata{ID: address}
+	if err := es.GetByID(&data); err != nil {
 		return nil, err
 	}
 

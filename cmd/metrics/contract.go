@@ -18,8 +18,8 @@ func getContract(data amqp.Delivery) error {
 		return fmt.Errorf("[getContract] Unmarshal message body error: %s", err)
 	}
 
-	c, err := ctx.ES.GetContractByID(contractID)
-	if err != nil {
+	c := models.Contract{ID: contractID}
+	if err := ctx.ES.GetByID(&c); err != nil {
 		return fmt.Errorf("[getContract] Find contract error: %s", err)
 	}
 

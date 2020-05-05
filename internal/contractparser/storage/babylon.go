@@ -21,7 +21,7 @@ type Babylon struct {
 	rpc noderpc.Pool
 	es  *elastic.Elastic
 
-	updates map[int64][]models.BigMapDiff
+	updates map[int64][]*models.BigMapDiff
 }
 
 // NewBabylon -
@@ -30,7 +30,7 @@ func NewBabylon(rpc noderpc.Pool, es *elastic.Elastic) *Babylon {
 		rpc: rpc,
 		es:  es,
 
-		updates: make(map[int64][]models.BigMapDiff),
+		updates: make(map[int64][]*models.BigMapDiff),
 	}
 }
 
@@ -41,7 +41,7 @@ func (b *Babylon) ParseTransaction(content gjson.Result, metadata meta.Metadata,
 	if err != nil {
 		return RichStorage{Empty: true}, err
 	}
-	var bm []models.BigMapDiff
+	var bm []*models.BigMapDiff
 	if result.Get("big_map_diff.#").Int() > 0 {
 		ptrMap, err := b.binPathToPtrMap(metadata, result.Get("storage"))
 		if err != nil {
@@ -71,7 +71,7 @@ func (b *Babylon) ParseOrigination(content gjson.Result, metadata meta.Metadata,
 		return RichStorage{Empty: true}, err
 	}
 
-	var bm []models.BigMapDiff
+	var bm []*models.BigMapDiff
 	if result.Get("big_map_diff.#").Int() > 0 {
 		ptrToBin, err := b.binPathToPtrMap(metadata, storage)
 		if err != nil {
@@ -147,10 +147,10 @@ func (b *Babylon) Enrich(storage string, bmd []models.BigMapDiff, skipEmpty bool
 	return data, nil
 }
 
-func (b *Babylon) handleBigMapDiff(result gjson.Result, ptrMap map[int64]string, address string, operation models.Operation) ([]models.BigMapDiff, error) {
-	bmd := make([]models.BigMapDiff, 0)
+func (b *Babylon) handleBigMapDiff(result gjson.Result, ptrMap map[int64]string, address string, operation models.Operation) ([]*models.BigMapDiff, error) {
+	bmd := make([]*models.BigMapDiff, 0)
 
-	handlers := map[string]func(gjson.Result, map[int64]string, string, models.Operation) ([]models.BigMapDiff, error){
+	handlers := map[string]func(gjson.Result, map[int64]string, string, models.Operation) ([]*models.BigMapDiff, error){
 		"update": b.handleBigMapDiffUpdate,
 		"copy":   b.handleBigMapDiffCopy,
 		"remove": b.handleBigMapDiffRemove,
@@ -173,7 +173,7 @@ func (b *Babylon) handleBigMapDiff(result gjson.Result, ptrMap map[int64]string,
 	return bmd, nil
 }
 
-func (b *Babylon) handleBigMapDiffUpdate(item gjson.Result, ptrMap map[int64]string, address string, operation models.Operation) ([]models.BigMapDiff, error) {
+func (b *Babylon) handleBigMapDiffUpdate(item gjson.Result, ptrMap map[int64]string, address string, operation models.Operation) ([]*models.BigMapDiff, error) {
 	ptr := item.Get("big_map").Int()
 
 	bmd := models.BigMapDiff{
@@ -197,14 +197,14 @@ func (b *Babylon) handleBigMapDiffUpdate(item gjson.Result, ptrMap map[int64]str
 		bmd.BinPath = binPath
 	}
 
-	b.addToUpdates(bmd, ptr)
+	b.addToUpdates(&bmd, ptr)
 	if ptr >= 0 {
-		return []models.BigMapDiff{bmd}, nil
+		return []*models.BigMapDiff{&bmd}, nil
 	}
 	return nil, nil
 }
 
-func (b *Babylon) handleBigMapDiffCopy(item gjson.Result, ptrMap map[int64]string, address string, operation models.Operation) ([]models.BigMapDiff, error) {
+func (b *Babylon) handleBigMapDiffCopy(item gjson.Result, ptrMap map[int64]string, address string, operation models.Operation) ([]*models.BigMapDiff, error) {
 	sourcePtr := item.Get("source_big_map").Int()
 	destinationPtr := item.Get("destination_big_map").Int()
 
@@ -222,6 +222,7 @@ func (b *Babylon) handleBigMapDiffCopy(item gjson.Result, ptrMap map[int64]strin
 			binPath = bp
 		}
 
+		newUpdates := make([]*models.BigMapDiff, len(bmd))
 		for i := range bmd {
 			bmd[i].ID = ""
 			bmd[i].OperationID = operation.ID
@@ -231,14 +232,14 @@ func (b *Babylon) handleBigMapDiffCopy(item gjson.Result, ptrMap map[int64]strin
 			bmd[i].Ptr = destinationPtr
 			bmd[i].Address = address
 			bmd[i].BinPath = binPath
-
-			b.addToUpdates(bmd[i], destinationPtr)
+			newUpdates[i] = &bmd[i]
+			b.addToUpdates(newUpdates[i], destinationPtr)
 		}
 		if len(bmd) == 0 {
 			b.updates[destinationPtr] = []models.BigMapDiff{}
 		}
 		if destinationPtr >= 0 {
-			return bmd, nil
+			return newUpdates, nil
 		}
 		return nil, nil
 	} else if sourcePtr < 0 {
@@ -255,7 +256,7 @@ func (b *Babylon) handleBigMapDiffCopy(item gjson.Result, ptrMap map[int64]strin
 			binPath = bp
 		}
 
-		newUpdates := make([]models.BigMapDiff, len(bmd))
+		newUpdates := make([]*models.BigMapDiff, len(bmd))
 		for i, diff := range bmd {
 			diff.ID = ""
 			diff.Ptr = destinationPtr
@@ -266,7 +267,7 @@ func (b *Babylon) handleBigMapDiffCopy(item gjson.Result, ptrMap map[int64]strin
 			diff.OperationID = operation.ID
 			diff.BinPath = binPath
 			newUpdates[i] = diff
-			b.addToUpdates(diff, destinationPtr)
+			b.addToUpdates(newUpdates[i], destinationPtr)
 		}
 		if len(bmd) == 0 {
 			b.updates[destinationPtr] = []models.BigMapDiff{}
@@ -280,7 +281,7 @@ func (b *Babylon) handleBigMapDiffCopy(item gjson.Result, ptrMap map[int64]strin
 	return nil, nil
 }
 
-func (b *Babylon) handleBigMapDiffRemove(item gjson.Result, ptrMap map[int64]string, address string, operation models.Operation) ([]models.BigMapDiff, error) {
+func (b *Babylon) handleBigMapDiffRemove(item gjson.Result, ptrMap map[int64]string, address string, operation models.Operation) ([]*models.BigMapDiff, error) {
 	ptr := item.Get("big_map").Int()
 	if ptr < 0 {
 		delete(b.updates, ptr)
@@ -290,6 +291,7 @@ func (b *Babylon) handleBigMapDiffRemove(item gjson.Result, ptrMap map[int64]str
 	if err != nil {
 		return nil, err
 	}
+	newUpdates := make([]*models.BigMapDiff, len(bmd))
 	for i := range bmd {
 		bmd[i].ID = ""
 		bmd[i].OperationID = operation.ID
@@ -298,14 +300,15 @@ func (b *Babylon) handleBigMapDiffRemove(item gjson.Result, ptrMap map[int64]str
 		bmd[i].Timestamp = operation.Timestamp
 		bmd[i].Value = ""
 		bmd[i].ValueStrings = []string{}
-		b.addToUpdates(bmd[i], ptr)
+		newUpdates[i] = &bmd[i]
+		b.addToUpdates(newUpdates[i], ptr)
 	}
-	return bmd, nil
+	return newUpdates, nil
 }
 
-func (b *Babylon) addToUpdates(bmd models.BigMapDiff, ptr int64) {
+func (b *Babylon) addToUpdates(bmd *models.BigMapDiff, ptr int64) {
 	if arr, ok := b.updates[bmd.Ptr]; !ok {
-		b.updates[bmd.Ptr] = []models.BigMapDiff{bmd}
+		b.updates[bmd.Ptr] = []*models.BigMapDiff{bmd}
 	} else {
 		found := false
 		for j := range arr {
@@ -456,6 +459,6 @@ func (b *Babylon) findPtrJSONPath(ptr int64, path string, data gjson.Result) (st
 }
 
 // SetUpdates -
-func (b *Babylon) SetUpdates(temp map[int64][]models.BigMapDiff) {
+func (b *Babylon) SetUpdates(temp map[int64][]*models.BigMapDiff) {
 	b.updates = temp
 }

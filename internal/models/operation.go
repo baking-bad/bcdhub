@@ -108,12 +108,17 @@ func (o *Operation) ParseElasticJSON(resp gjson.Result) {
 }
 
 // GetID -
-func (o Operation) GetID() string {
+func (o *Operation) GetID() string {
 	return o.ID
 }
 
+// GetIndex -
+func (o *Operation) GetIndex() string {
+	return "operation"
+}
+
 // GetScores -
-func (o Operation) GetScores(search string) []string {
+func (o *Operation) GetScores(search string) []string {
 	return []string{
 		"entrypoint^8",
 		"parameter_strings^7",
@@ -127,7 +132,7 @@ func (o Operation) GetScores(search string) []string {
 }
 
 // FoundByName -
-func (o Operation) FoundByName(hit gjson.Result) string {
+func (o *Operation) FoundByName(hit gjson.Result) string {
 	keys := hit.Get("highlight").Map()
 	categories := o.GetScores("")
 	return getFoundBy(keys, categories)

@@ -6,10 +6,10 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 )
 
-var indexToModel = map[string]models.Scorable{
-	DocContracts:  models.Contract{},
-	DocOperations: models.Operation{},
-	DocBigMapDiff: models.BigMapDiff{},
+var indexToModel = map[string]Scorable{
+	DocContracts:  &models.Contract{},
+	DocOperations: &models.Operation{},
+	DocBigMapDiff: &models.BigMapDiff{},
 }
 
 // GetSearchScores -

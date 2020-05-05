@@ -22,8 +22,8 @@ func getMetadata(script gjson.Result, tag, protoSymLink string, c *models.Contra
 }
 
 func updateMetadata(es *elastic.Elastic, script gjson.Result, protoSymLink string, c *models.Contract) error {
-	metadata, err := es.GetMetadata(c.Address)
-	if err != nil {
+	metadata := models.Metadata{ID: c.Address}
+	if err := es.GetByID(&metadata); err != nil {
 		return err
 	}
 	storage, err := createMetadata(script, consts.STORAGE, c)

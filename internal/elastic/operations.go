@@ -8,19 +8,6 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-// GetOperationByID -
-func (e *Elastic) GetOperationByID(id string) (op models.Operation, err error) {
-	resp, err := e.GetByID(DocOperations, id)
-	if err != nil {
-		return
-	}
-	if !resp.Get("found").Bool() {
-		return op, fmt.Errorf("%s: %s %s", DocOperations, DocMigrations, id)
-	}
-	op.ParseElasticJSON(resp)
-	return
-}
-
 // GetOperationByHash -
 func (e *Elastic) GetOperationByHash(hash string) (ops []models.Operation, err error) {
 	query := newQuery().Query(
@@ -234,81 +221,6 @@ func (e *Elastic) GetPreviousOperation(address, network string, indexedTime int6
 	}
 	op.ParseElasticJSON(res.Get("hits.hits.0"))
 	return
-}
-
-// GetAllOperations -
-func (e *Elastic) GetAllOperations(network string) ([]models.Operation, error) {
-	operations := make([]models.Operation, 0)
-
-	query := newQuery().Query(
-		boolQ(
-			must(
-				matchPhrase("network", network),
-			),
-		),
-	).Sort("level", "asc")
-	result, err := e.createScroll(DocOperations, 1000, query)
-	if err != nil {
-		return nil, err
-	}
-	for {
-		scrollID := result.Get("_scroll_id").String()
-		hits := result.Get("hits.hits")
-		if hits.Get("#").Int() < 1 {
-			break
-		}
-
-		for _, item := range hits.Array() {
-			var op models.Operation
-			op.ParseElasticJSON(item)
-			operations = append(operations, op)
-		}
-
-		result, err = e.queryScroll(scrollID)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return operations, nil
-}
-
-// GetAllOperationsByStatus -
-func (e *Elastic) GetAllOperationsByStatus(network, status string) ([]models.Operation, error) {
-	operations := make([]models.Operation, 0)
-
-	query := newQuery().Query(
-		boolQ(
-			filter(
-				matchQ("network", network),
-				matchQ("status", status),
-			),
-		),
-	)
-	result, err := e.createScroll(DocOperations, 1000, query)
-	if err != nil {
-		return nil, err
-	}
-	for {
-		scrollID := result.Get("_scroll_id").String()
-		hits := result.Get("hits.hits")
-		if hits.Get("#").Int() < 1 {
-			break
-		}
-
-		for _, item := range hits.Array() {
-			var op models.Operation
-			op.ParseElasticJSON(item)
-			operations = append(operations, op)
-		}
-
-		result, err = e.queryScroll(scrollID)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return operations, nil
 }
 
 // GetAllLevelsForNetwork -

@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -31,8 +32,8 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 	stats.ContractsCount = counts.Contracts
 	stats.OperationsCount = counts.Operations
 
-	protocols, err := ctx.ES.GetProtocolsByNetwork(req.Network)
-	if handleError(c, err, 0) {
+	var protocols []models.Protocol
+	if err := ctx.ES.GetByNetwork(req.Network, &protocols); handleError(c, err, 0) {
 		return
 	}
 	stats.Protocols = protocols

@@ -1,12 +1,11 @@
 package migrations
 
 import (
-	"fmt"
-
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -21,21 +20,20 @@ func (m *SetMigrationKind) Description() string {
 // Do - migrate function
 func (m *SetMigrationKind) Do(ctx *config.Context) error {
 	for _, network := range ctx.Config.Migrations.Networks {
-		migrations, err := ctx.ES.GetAllMigrations(network)
-		if err != nil {
+		var migrations []models.Migration
+		if err := ctx.ES.GetByNetwork(network, &migrations); err != nil {
 			return err
 		}
 
 		logger.Info("Found %d migrations", len(migrations))
 
-		bar := progressbar.NewOptions(len(migrations), progressbar.OptionSetPredictTime(false))
-		var bulk []elastic.Identifiable
+		bar := progressbar.NewOptions(len(migrations), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish())
+		var bulk []elastic.Model
 
 		for i := range migrations {
 			bar.Add(1)
 
 			if migrations[i].Kind != "" {
-				fmt.Print("\033[2K\r")
 				logger.Warning("Already migrated.")
 				return nil
 			}
@@ -51,18 +49,16 @@ func (m *SetMigrationKind) Do(ctx *config.Context) error {
 				migrations[i].PrevProtocol = "Pt24m4xiPbLDhVgVfABUjirbmda3yohdN82Sp9FeuAXJ4eV9otd"
 			}
 
-			bulk = append(bulk, migrations[i])
+			bulk = append(bulk, &migrations[i])
 
 			if len(bulk) == 100 || (i == len(migrations)-1 && len(bulk) > 0) {
-				if err := ctx.ES.BulkUpdate("migration", bulk); err != nil {
-					fmt.Print("\033[2K\r")
+				if err := ctx.ES.BulkUpdate(bulk); err != nil {
 					return err
 				}
 				bulk = bulk[:0]
 			}
 		}
 
-		fmt.Print("\033[2K\r")
 		logger.Info("Done.")
 	}
 	return nil

@@ -77,19 +77,6 @@ func (e *Elastic) GetContract(by map[string]interface{}) (models.Contract, error
 	return e.getContract(query)
 }
 
-// GetContractByID -
-func (e *Elastic) GetContractByID(id string) (c models.Contract, err error) {
-	resp, err := e.GetByID(DocContracts, id)
-	if err != nil {
-		return
-	}
-	if !resp.Get("found").Bool() {
-		return c, fmt.Errorf("%s: %s %s", RecordNotFound, DocContracts, id)
-	}
-	c.ParseElasticJSON(resp)
-	return
-}
-
 // GetContractsByID -
 func (e *Elastic) GetContractsByID(ids []string) ([]models.Contract, error) {
 	resp, err := e.GetByIDs(DocContracts, ids)

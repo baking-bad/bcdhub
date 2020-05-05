@@ -15,8 +15,8 @@ func getMigrations(data amqp.Delivery) error {
 		return fmt.Errorf("[getMigrations] Unmarshal message body error: %s", err)
 	}
 
-	migration, err := ctx.ES.GetMigrationByID(migrationID)
-	if err != nil {
+	migration := models.Migration{ID: migrationID}
+	if err := ctx.ES.GetByID(&migration); err != nil {
 		return fmt.Errorf("[getMigrations] Find migration error: %s", err)
 	}
 

@@ -19,6 +19,16 @@ type Block struct {
 	Timestamp   time.Time `json:"timestamp"`
 }
 
+// GetID -
+func (b *Block) GetID() string {
+	return b.ID
+}
+
+// GetIndex -
+func (b *Block) GetIndex() string {
+	return "block"
+}
+
 // ParseElasticJSON -
 func (b *Block) ParseElasticJSON(hit gjson.Result) {
 	b.ID = hit.Get("_id").String()
@@ -29,9 +39,4 @@ func (b *Block) ParseElasticJSON(hit gjson.Result) {
 	b.ChainID = hit.Get("_source.chain_id").String()
 	b.Predecessor = hit.Get("_source.predecessor").String()
 	b.Hash = hit.Get("_source.hash").String()
-}
-
-// GetID -
-func (b Block) GetID() string {
-	return b.ID
 }

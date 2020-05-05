@@ -18,8 +18,8 @@ func recalculateAll(data amqp.Delivery) error {
 		return fmt.Errorf("[recalculateAll] Unmarshal message body error: %s", err)
 	}
 
-	c, err := ctx.ES.GetContractByID(contractID)
-	if err != nil {
+	c := models.Contract{ID: contractID}
+	if err := ctx.ES.GetByID(&c); err != nil {
 		if strings.Contains(err.Error(), "[404 Not Found]") {
 			return nil
 		}

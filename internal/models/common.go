@@ -23,3 +23,11 @@ func getFoundBy(keys map[string]gjson.Result, categories []string) string {
 
 	return ""
 }
+
+func parseStringArray(hit gjson.Result, tag string) []string {
+	res := make([]string, 0)
+	for _, t := range hit.Get(tag).Array() {
+		res = append(res, t.String())
+	}
+	return res
+}

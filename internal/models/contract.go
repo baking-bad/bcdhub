@@ -37,71 +37,14 @@ type Contract struct {
 	DelegateAlias   string  `json:"delegate_alias,omitempty"`
 }
 
-// Fingerprint -
-type Fingerprint struct {
-	Code      string `json:"code"`
-	Storage   string `json:"storage"`
-	Parameter string `json:"parameter"`
-}
-
-// Compare -
-func (f *Fingerprint) Compare(second *Fingerprint) bool {
-	return f.Code == second.Code && f.Parameter == second.Parameter && f.Storage == second.Storage
-}
-
-// BCDTime -
-type BCDTime struct {
-	time.Time
-}
-
-// MarshalJSON -
-func (t BCDTime) MarshalJSON() ([]byte, error) {
-	if t.IsZero() {
-		return []byte("null"), nil
-	}
-	return t.Time.MarshalJSON()
-}
-
 // GetID -
-func (c Contract) GetID() string {
+func (c *Contract) GetID() string {
 	return c.ID
 }
 
-// GetScores -
-func (c Contract) GetScores(search string) []string {
-	if helpers.IsAddress(search) {
-		return []string{
-			"address^10",
-			"alias^9",
-			"tags^9",
-			"entrypoints^8",
-			"fail_strings^6",
-			"language^4",
-			"annotations^3",
-			"delegate^2",
-			"hardcoded^2",
-			"manager",
-		}
-	}
-	return []string{
-		"alias^10",
-		"tags^9",
-		"entrypoints^8",
-		"fail_strings^6",
-		"language^4",
-		"annotations^3",
-		"delegate^2",
-		"hardcoded^2",
-		"manager",
-		"address",
-	}
-}
-
-// FoundByName -
-func (c Contract) FoundByName(hit gjson.Result) string {
-	keys := hit.Get("highlight").Map()
-	categories := c.GetScores("")
-	return getFoundBy(keys, categories)
+// GetIndex -
+func (c *Contract) GetIndex() string {
+	return "contract"
 }
 
 // ParseElasticJSON -
@@ -143,11 +86,41 @@ func (c *Contract) ParseElasticJSON(hit gjson.Result) {
 	c.FoundBy = c.FoundByName(hit)
 }
 
-// ParseElasticJSON -
-func (f *Fingerprint) ParseElasticJSON(hit gjson.Result) {
-	f.Code = hit.Get("code").String()
-	f.Parameter = hit.Get("parameter").String()
-	f.Storage = hit.Get("storage").String()
+// GetScores -
+func (c *Contract) GetScores(search string) []string {
+	if helpers.IsAddress(search) {
+		return []string{
+			"address^10",
+			"alias^9",
+			"tags^9",
+			"entrypoints^8",
+			"fail_strings^6",
+			"language^4",
+			"annotations^3",
+			"delegate^2",
+			"hardcoded^2",
+			"manager",
+		}
+	}
+	return []string{
+		"alias^10",
+		"tags^9",
+		"entrypoints^8",
+		"fail_strings^6",
+		"language^4",
+		"annotations^3",
+		"delegate^2",
+		"hardcoded^2",
+		"manager",
+		"address",
+	}
+}
+
+// FoundByName -
+func (c *Contract) FoundByName(hit gjson.Result) string {
+	keys := hit.Get("highlight").Map()
+	categories := c.GetScores("")
+	return getFoundBy(keys, categories)
 }
 
 // IsFA12 - checks contract realizes fa12 interface
@@ -160,10 +133,34 @@ func (c *Contract) IsFA12() bool {
 	return false
 }
 
-func parseStringArray(hit gjson.Result, tag string) []string {
-	res := make([]string, 0)
-	for _, t := range hit.Get(tag).Array() {
-		res = append(res, t.String())
+// Fingerprint -
+type Fingerprint struct {
+	Code      string `json:"code"`
+	Storage   string `json:"storage"`
+	Parameter string `json:"parameter"`
+}
+
+// Compare -
+func (f *Fingerprint) Compare(second *Fingerprint) bool {
+	return f.Code == second.Code && f.Parameter == second.Parameter && f.Storage == second.Storage
+}
+
+// ParseElasticJSON -
+func (f *Fingerprint) ParseElasticJSON(hit gjson.Result) {
+	f.Code = hit.Get("code").String()
+	f.Parameter = hit.Get("parameter").String()
+	f.Storage = hit.Get("storage").String()
+}
+
+// BCDTime -
+type BCDTime struct {
+	time.Time
+}
+
+// MarshalJSON -
+func (t BCDTime) MarshalJSON() ([]byte, error) {
+	if t.IsZero() {
+		return []byte("null"), nil
 	}
-	return res
+	return t.Time.MarshalJSON()
 }

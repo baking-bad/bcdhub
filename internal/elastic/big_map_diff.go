@@ -281,36 +281,6 @@ func (e *Elastic) GetBigMapDiffsJSONByOperationID(operationID string) ([]gjson.R
 	return res.Get("hits.hits").Array(), nil
 }
 
-// GetAllBigMapDiff -
-func (e *Elastic) GetAllBigMapDiff() ([]models.BigMapDiff, error) {
-	bmd := make([]models.BigMapDiff, 0)
-
-	result, err := e.createScroll(DocBigMapDiff, 1000, base{})
-	if err != nil {
-		return nil, err
-	}
-	for {
-		scrollID := result.Get("_scroll_id").String()
-		hits := result.Get("hits.hits")
-		if hits.Get("#").Int() < 1 {
-			break
-		}
-
-		for _, item := range hits.Array() {
-			var c models.BigMapDiff
-			c.ParseElasticJSON(item)
-			bmd = append(bmd, c)
-		}
-
-		result, err = e.queryScroll(scrollID)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return bmd, nil
-}
-
 // GetAllBigMapDiffByPtr -
 func (e *Elastic) GetAllBigMapDiffByPtr(address, network string, ptr int64) ([]models.BigMapDiff, error) {
 	bmd := make([]models.BigMapDiff, 0)
