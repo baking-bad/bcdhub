@@ -25,8 +25,8 @@ func (ctx *Context) Recommendations(c *gin.Context) {
 			ids = append(ids, subscriptions[i].EntityID)
 		}
 	}
-	contracts, err := ctx.ES.GetContractsByID(ids)
-	if handleError(c, err, 0) {
+	var contracts []models.Contract
+	if err := ctx.ES.GetByIDs(ids, &contracts); handleError(c, err, 0) {
 		return
 	}
 

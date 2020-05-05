@@ -67,7 +67,16 @@ func (e *Elastic) GetByNetwork(network string, output interface{}) error {
 }
 
 // GetByIDs -
-func (e *Elastic) GetByIDs(index string, ids []string) (result gjson.Result, err error) {
+func (e *Elastic) GetByIDs(ids []string, output interface{}) (err error) {
+	typ, err := getElementType(output)
+	if err != nil {
+		return err
+	}
+	index, err := getIndex(typ)
+	if err != nil {
+		return err
+	}
+
 	query := newQuery().Query(
 		qItem{
 			"ids": qItem{
@@ -75,7 +84,7 @@ func (e *Elastic) GetByIDs(index string, ids []string) (result gjson.Result, err
 			},
 		},
 	)
-	return e.query([]string{index}, query)
+	return e.getByScroll(index, query, typ, output)
 }
 
 func getElementType(output interface{}) (reflect.Type, error) {

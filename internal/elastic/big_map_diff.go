@@ -5,30 +5,6 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-// GetBigMapDiffsByOperationID -
-func (e *Elastic) GetBigMapDiffsByOperationID(operationID string) ([]models.BigMapDiff, error) {
-	query := newQuery().
-		Query(
-			boolQ(
-				filter(
-					matchPhrase("operation_id", operationID),
-				),
-			),
-		).All()
-
-	res, err := e.query([]string{DocBigMapDiff}, query)
-	if err != nil {
-		return nil, err
-	}
-	response := make([]models.BigMapDiff, 0)
-	for _, item := range res.Get("hits.hits").Array() {
-		var bmd models.BigMapDiff
-		bmd.ParseElasticJSON(item)
-		response = append(response, bmd)
-	}
-	return response, nil
-}
-
 // GetUniqueBigMapDiffsByOperationID -
 func (e *Elastic) GetUniqueBigMapDiffsByOperationID(operationID string) ([]models.BigMapDiff, error) {
 	query := newQuery().

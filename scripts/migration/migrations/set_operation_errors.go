@@ -36,11 +36,11 @@ func (m *SetOperationErrors) Do(ctx *config.Context) error {
 			bar.Add(1)
 
 			if (i%1000 == 0 || i == len(operations)-1) && i > 0 {
-				updates := make([]elastic.Identifiable, len(operations[lastIdx:i]))
+				updates := make([]elastic.Model, len(operations[lastIdx:i]))
 				for j := range operations[lastIdx:i] {
-					updates[j] = operations[lastIdx:i][j]
+					updates[j] = &operations[lastIdx:i][j]
 				}
-				if err := ctx.ES.BulkUpdate("operation", updates); err != nil {
+				if err := ctx.ES.BulkUpdate(updates); err != nil {
 					return err
 				}
 				lastIdx = i
