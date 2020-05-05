@@ -63,7 +63,7 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 			return
 		}
 
-		c.JSON(http.StatusOK, operation)
+		c.JSON(http.StatusOK, []Operation{operation})
 		return
 	}
 
