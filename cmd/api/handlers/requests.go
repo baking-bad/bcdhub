@@ -122,12 +122,8 @@ type bigMapSearchRequest struct {
 	Search string `form:"q"`
 }
 
-type getEntrypointSchemaRequest struct {
-	BinPath string `form:"path" binding:"required"`
-}
-
 type getEntrypointDataRequest struct {
-	BinPath string                 `json:"path" binding:"required"`
+	BinPath string                 `json:"bin_path" binding:"required"`
 	Data    map[string]interface{} `json:"data" binding:"required"`
 	Format  string                 `json:"format"`
 }

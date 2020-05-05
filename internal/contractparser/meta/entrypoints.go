@@ -17,12 +17,23 @@ type Entrypoint struct {
 	Parameters interface{} `json:"miguel_parameters"`
 }
 
+// IsComplexEntryRoot -
+func (metadata Metadata) IsComplexEntryRoot() bool {
+	root := metadata["0"]
+	return len(root.Args) > 0 &&
+		root.Prim == consts.OR &&
+		(root.Type == consts.TypeUnion ||
+			root.Type == consts.TypeEnum ||
+			root.Type == consts.TypeNamedEnum ||
+			root.Type == consts.TypeNamedUnion)
+}
+
 // GetEntrypoints returns contract entrypoints
 func (metadata Metadata) GetEntrypoints() ([]Entrypoint, error) {
 	root := metadata["0"]
 
 	ep := make([]Entrypoint, 0)
-	if len(root.Args) > 0 && root.Prim == consts.OR && (root.Type == consts.TypeUnion || root.Type == consts.TypeNamedEnum || root.Type == consts.TypeNamedTuple || root.Type == consts.TypeNamedUnion) {
+	if metadata.IsComplexEntryRoot() {
 		for i, arg := range root.Args {
 			nm := metadata[arg]
 
@@ -62,7 +73,7 @@ func (metadata Metadata) GetByPath(node gjson.Result) (string, error) {
 
 	startPath := "0"
 	if entrypoint != "" {
-		for key, nm := range metadata {
+		for key, nm := range metadata { // TODO: there can probably be collisions, better enumerate root args (if or)
 			if nm.FieldName == entrypoint {
 				startPath = key
 				break

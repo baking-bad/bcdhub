@@ -150,7 +150,6 @@ func main() {
 					entrypoints := address.Group("entrypoints")
 					{
 						entrypoints.GET("", ctx.GetEntrypoints)
-						entrypoints.GET("schema", ctx.GetEntrypointSchema)
 						entrypoints.POST("data", ctx.GetEntrypointData)
 					}
 				}

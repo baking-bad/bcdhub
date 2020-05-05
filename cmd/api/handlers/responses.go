@@ -4,7 +4,9 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
+	"github.com/baking-bad/bcdhub/internal/contractparser/docstring"
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
+	"github.com/baking-bad/bcdhub/internal/jsonschema"
 	"github.com/baking-bad/bcdhub/internal/models"
 )
 
@@ -188,6 +190,12 @@ type SearchBigMapDiff struct {
 	Network   string    `json:"network"`
 	Timestamp time.Time `json:"timestamp"`
 	FoundBy   string    `json:"found_by"`
+}
+
+// EntrypointSchema ;
+type EntrypointSchema struct {
+	docstring.EntrypointType
+	Schema jsonschema.Schema `json:"schema"`
 }
 
 // GetErrorLocationResponse -
