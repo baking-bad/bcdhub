@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -39,7 +40,9 @@ func NewContext(cfg config.Config) (*Context, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	if err := cerrors.LoadErrorDescriptions("data/errors.json"); err != nil {
+		return nil, err
+	}
 	return &Context{
 		ES:     es,
 		RPCs:   RPCs,

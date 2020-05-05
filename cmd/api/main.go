@@ -168,9 +168,11 @@ func main() {
 			}
 		}
 
+		v1.GET("opg/:hash", ctx.GetOperation)
+		v1.GET("operation/:id/error_location", ctx.GetOperationErrorLocation)
+
 		v1.GET("pick_random", ctx.GetRandomContract)
 		v1.POST("diff", ctx.GetDiff)
-		v1.GET("opg/:hash", ctx.GetOperation)
 		v1.GET("projects", ctx.GetProjects)
 		v1.GET("formatter", ctx.GetFormatter)
 

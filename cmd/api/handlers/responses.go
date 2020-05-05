@@ -12,7 +12,7 @@ import (
 
 // Operation -
 type Operation struct {
-	ID        string    `json:"-"`
+	ID        string    `json:"id"`
 	Protocol  string    `json:"protocol"`
 	Hash      string    `json:"hash"`
 	Internal  bool      `json:"internal"`
@@ -196,4 +196,12 @@ type SearchBigMapDiff struct {
 type EntrypointSchema struct {
 	docstring.EntrypointType
 	Schema jsonschema.Schema `json:"schema"`
+
+// GetErrorLocationResponse -
+type GetErrorLocationResponse struct {
+	Text        string `json:"text"`
+	FailedRow   int    `json:"failed_row"`
+	FirstRow    int    `json:"first_row"`
+	StartColumn int    `json:"start_col"`
+	EndColumn   int    `json:"end_col"`
 }

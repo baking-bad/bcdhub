@@ -47,10 +47,10 @@ type Operation struct {
 	DeffatedStorage string       `json:"deffated_storage"`
 	Script          gjson.Result `json:"-"`
 
-	DelegateAlias string `json:"delegate_alias"`
+	DelegateAlias string `json:"delegate_alias,omitempty"`
 
-	ParameterStrings []string `json:"parameter_strings"`
-	StorageStrings   []string `json:"storage_strings"`
+	ParameterStrings []string `json:"parameter_strings,omitempty"`
+	StorageStrings   []string `json:"storage_strings,omitempty"`
 }
 
 // ParseElasticJSON -
@@ -101,7 +101,8 @@ func (o *Operation) ParseElasticJSON(resp gjson.Result) {
 	}
 	o.BalanceUpdates = bu
 
-	o.Errors = cerrors.ParseArray(resp.Get("_source.errors"))
+	err := resp.Get("_source.errors")
+	o.Errors = cerrors.ParseArray(err)
 	o.ParameterStrings = parseStringsArray(resp.Get("_source.parameter_strings").Array())
 	o.StorageStrings = parseStringsArray(resp.Get("_source.storage_strings").Array())
 }

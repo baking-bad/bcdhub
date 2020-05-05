@@ -136,3 +136,7 @@ type getSeriesRequest struct {
 type getBySlugRequest struct {
 	Slug string `uri:"slug"  binding:"required"`
 }
+
+type getOperationByIDRequest struct {
+	ID string `uri:"id" binding:"required"`
+}

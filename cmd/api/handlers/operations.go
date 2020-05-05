@@ -1,12 +1,15 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
+	formattererror "github.com/baking-bad/bcdhub/internal/contractparser/formatter_error"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/elastic"
@@ -62,6 +65,29 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, resp)
+}
+
+// GetOperationErrorLocation -
+func (ctx *Context) GetOperationErrorLocation(c *gin.Context) {
+	var req getOperationByIDRequest
+	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+	operation, err := ctx.ES.GetOperationByID(req.ID)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	if !cerrors.HasScriptRejectedError(operation.Errors) {
+		handleError(c, fmt.Errorf("No reject script error in operation"), http.StatusBadRequest)
+		return
+	}
+
+	response, err := ctx.getErrorLocation(operation, 2)
+	if handleError(c, err, 0) {
+		return
+	}
+	c.JSON(http.StatusOK, response)
 }
 
 func prepareFilters(req operationsRequest) map[string]interface{} {
@@ -253,4 +279,47 @@ func enrichStorage(s string, bmd []models.BigMapDiff, protocol string, skipEmpty
 
 func getPrevBmd(es *elastic.Elastic, bmd []models.BigMapDiff, indexedTime int64, address string) ([]models.BigMapDiff, error) {
 	return es.GetPrevBigMapDiffs(bmd, indexedTime, address)
+}
+
+func (ctx *Context) getErrorLocation(operation models.Operation, window int) (GetErrorLocationResponse, error) {
+	rpc, ok := ctx.RPCs[operation.Network]
+	if !ok {
+		return GetErrorLocationResponse{}, fmt.Errorf("Unknown network: %s", operation.Network)
+	}
+	code, err := contractparser.GetContract(rpc, operation.Destination, operation.Network, operation.Protocol, ctx.Dir, 0)
+	if err != nil {
+		return GetErrorLocationResponse{}, err
+	}
+	opErr := cerrors.First(operation.Errors, consts.ScriptRejectedError)
+	if opErr == nil {
+		return GetErrorLocationResponse{}, fmt.Errorf("Can't find script rejevted error")
+	}
+	defaultError, ok := opErr.(*cerrors.DefaultError)
+	if !ok {
+		return GetErrorLocationResponse{}, fmt.Errorf("Invalid error type: %T", opErr)
+	}
+
+	location := int(defaultError.Location)
+	sections := code.Get("code")
+	row, sCol, eCol, err := formattererror.LocateContractError(sections, location)
+	if err != nil {
+		return GetErrorLocationResponse{}, err
+	}
+
+	michelson, err := formatter.MichelineToMichelson(sections, false, formatter.DefLineSize)
+	if err != nil {
+		return GetErrorLocationResponse{}, err
+	}
+	rows := strings.Split(michelson, "\n")
+	start := helpers.MaxInt(0, row-window)
+	end := helpers.MinInt(len(rows), row+window+1)
+
+	rows = rows[start:end]
+	return GetErrorLocationResponse{
+		Text:        strings.Join(rows, "\n"),
+		FailedRow:   row + 1,
+		StartColumn: sCol,
+		EndColumn:   eCol,
+		FirstRow:    start + 1,
+	}, nil
 }
