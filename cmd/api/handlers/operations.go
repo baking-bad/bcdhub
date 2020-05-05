@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
@@ -55,7 +57,13 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 	}
 
 	op, err := ctx.ES.GetOperationByHash(req.Hash)
-	if handleError(c, err, 0) {
+	if len(op) == 0 {
+		operation, err := ctx.getOperationFromMempool(req.Hash)
+		if handleError(c, err, 0) {
+			return
+		}
+
+		c.JSON(http.StatusOK, operation)
 		return
 	}
 
@@ -67,27 +75,45 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-// GetOperationErrorLocation -
-func (ctx *Context) GetOperationErrorLocation(c *gin.Context) {
-	var req getOperationByIDRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
-		return
+func (ctx *Context) getOperationFromMempool(hash string) (Operation, error) {
+	var wg sync.WaitGroup
+	var opCh = make(chan Operation, len(ctx.TzKTSvcs))
+
+	defer close(opCh)
+
+	for network := range ctx.TzKTSvcs {
+		wg.Add(1)
+		go ctx.getOperation(network, hash, opCh, &wg)
 	}
-	operation, err := ctx.ES.GetOperationByID(req.ID)
-	if handleError(c, err, 0) {
+
+	wg.Wait()
+
+	return <-opCh, nil
+}
+
+func (ctx *Context) getOperation(network, hash string, ops chan<- Operation, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	api, ok := ctx.TzKTSvcs[network]
+	if !ok {
 		return
 	}
 
-	if !cerrors.HasScriptRejectedError(operation.Errors) {
-		handleError(c, fmt.Errorf("No reject script error in operation"), http.StatusBadRequest)
+	res, err := api.GetMempool(hash)
+	if err != nil {
 		return
 	}
 
-	response, err := ctx.getErrorLocation(operation, 2)
-	if handleError(c, err, 0) {
+	if res.Get("#").Int() == 0 {
 		return
 	}
-	c.JSON(http.StatusOK, response)
+
+	operation, err := ctx.prepareMempoolOperation(res, network, hash)
+	if err != nil {
+		return
+	}
+
+	ops <- operation
 }
 
 func prepareFilters(req operationsRequest) map[string]interface{} {
@@ -281,6 +307,90 @@ func getPrevBmd(es *elastic.Elastic, bmd []models.BigMapDiff, indexedTime int64,
 	return es.GetPrevBigMapDiffs(bmd, indexedTime, address)
 }
 
+func (ctx *Context) prepareMempoolOperation(res gjson.Result, network, hash string) (Operation, error) {
+	item := res.Array()[0]
+
+	status := item.Get("status").String()
+	if status == "applied" {
+		status = "pending"
+	}
+
+	op := Operation{
+		Protocol:  item.Get("protocol").String(),
+		Hash:      item.Get("hash").String(),
+		Network:   network,
+		Timesatmp: time.Unix(item.Get("timestamp").Int(), 0).UTC(),
+
+		Kind:         item.Get("kind").String(),
+		Source:       item.Get("source").String(),
+		Fee:          item.Get("fee").Int(),
+		Counter:      item.Get("counter").Int(),
+		GasLimit:     item.Get("gas_limit").Int(),
+		StorageLimit: item.Get("storage_limit").Int(),
+		Amount:       item.Get("amount").Int(),
+		Destination:  item.Get("destination").String(),
+		Mempool:      true,
+		Status:       status,
+	}
+
+	op.Errors = cerrors.ParseArray(item.Get("errors"))
+
+	if op.Kind != consts.Transaction {
+		return op, nil
+	}
+
+	if strings.HasPrefix(op.Destination, "KT") && op.Protocol != "" {
+		if params := item.Get("parameters"); params.Exists() {
+			ctx.buildOperationParameters(params, &op)
+		} else {
+			op.Entrypoint = "default"
+		}
+	}
+
+	return op, nil
+}
+
+func (ctx *Context) buildOperationParameters(params gjson.Result, op *Operation) {
+	metadata, err := meta.GetMetadata(ctx.ES, op.Destination, consts.PARAMETER, op.Protocol)
+	if err != nil {
+		return
+	}
+
+	op.Entrypoint, err = metadata.GetByPath(params)
+	if err != nil && op.Errors == nil {
+		return
+	}
+
+	op.Parameters, err = newmiguel.ParameterToMiguel(params, metadata)
+	if err != nil {
+		if !cerrors.HasParametersError(op.Errors) {
+			return
+		}
+	}
+}
+
+// GetOperationErrorLocation -
+func (ctx *Context) GetOperationErrorLocation(c *gin.Context) {
+	var req getOperationByIDRequest
+	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+	operation, err := ctx.ES.GetOperationByID(req.ID)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	if !cerrors.HasScriptRejectedError(operation.Errors) {
+		handleError(c, fmt.Errorf("No reject script error in operation"), http.StatusBadRequest)
+		return
+	}
+
+	response, err := ctx.getErrorLocation(operation, 2)
+	if handleError(c, err, 0) {
+		return
+	}
+	c.JSON(http.StatusOK, response)
+}
 func (ctx *Context) getErrorLocation(operation models.Operation, window int) (GetErrorLocationResponse, error) {
 	rpc, ok := ctx.RPCs[operation.Network]
 	if !ok {
