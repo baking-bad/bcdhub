@@ -228,9 +228,12 @@ func (q qItem) Extend(item qItem) qItem {
 	return q
 }
 
-func (q qItem) Get(key string) qItem {
-	if v, ok := q[key]; ok {
-		return v.(qItem)
+func (q qItem) Get(name string) qItem {
+	if val, ok := q[name]; ok {
+		if typ, ok := val.(qItem); ok {
+			return typ
+		}
+		return nil
 	}
 	return nil
 }
@@ -311,4 +314,14 @@ func (q base) Highlights(highlights qItem) base {
 		"fields": highlights,
 	}
 	return q
+}
+
+func (q base) Get(name string) qItem {
+	if val, ok := q[name]; ok {
+		if typ, ok := val.(qItem); ok {
+			return typ
+		}
+		return nil
+	}
+	return nil
 }
