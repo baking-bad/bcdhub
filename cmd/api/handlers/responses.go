@@ -196,6 +196,7 @@ type SearchBigMapDiff struct {
 type EntrypointSchema struct {
 	docstring.EntrypointType
 	Schema jsonschema.Schema `json:"schema"`
+}
 
 // GetErrorLocationResponse -
 type GetErrorLocationResponse struct {
