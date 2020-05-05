@@ -54,6 +54,9 @@ clearmq:
 	docker exec -it bcd-mq rabbitmqctl reset
 	docker exec -it bcd-mq rabbitmqctl start_app
 
+test:
+	go test ./...
+
 deploy: export TAG=$(shell git pull -q && git describe --abbrev=0 --tags)
 deploy:
 	git pull

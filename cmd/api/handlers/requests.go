@@ -123,9 +123,9 @@ type bigMapSearchRequest struct {
 }
 
 type getEntrypointDataRequest struct {
-	Name   string                 `json:"name" binding:"required"`
-	Data   map[string]interface{} `json:"data" binding:"required"`
-	Format string                 `json:"format"`
+	BinPath string                 `json:"bin_path" binding:"required"`
+	Data    map[string]interface{} `json:"data" binding:"required"`
+	Format  string                 `json:"format"`
 }
 
 type getSeriesRequest struct {

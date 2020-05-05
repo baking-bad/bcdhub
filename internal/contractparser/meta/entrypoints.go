@@ -63,22 +63,6 @@ func (metadata Metadata) GetEntrypoints() ([]Entrypoint, error) {
 	return ep, nil
 }
 
-// GetPathByName -
-func (metadata Metadata) GetPathByName(name string) (string, error) {
-	root := metadata["0"]
-	if metadata.IsComplexEntryRoot() {
-		for _, arg := range root.Args {
-			nm := metadata[arg]
-			if nm.FieldName == name {
-				return arg, nil
-			}
-		}
-	} else {
-		return "0", nil
-	}
-	return "", fmt.Errorf("Entrypoint `%s` not found", name)
-}
-
 // GetByPath - returns entrypoint name by parameters node
 func (metadata Metadata) GetByPath(node gjson.Result) (string, error) {
 	var entrypoint string
@@ -89,7 +73,7 @@ func (metadata Metadata) GetByPath(node gjson.Result) (string, error) {
 
 	startPath := "0"
 	if entrypoint != "" {
-		for key, nm := range metadata {
+		for key, nm := range metadata { // TODO: there can probably be collisions, better enumerate root args (if or)
 			if nm.FieldName == entrypoint {
 				startPath = key
 				break

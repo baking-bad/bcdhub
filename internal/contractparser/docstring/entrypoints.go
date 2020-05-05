@@ -6,14 +6,13 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/jsonschema"
 )
 
-// EntrypointSchema -
-type EntrypointSchema struct {
-	Name   string            `json:"name"`
-	Type   []Typedef         `json:"typedef"`
-	Schema jsonschema.Schema `json:"schema"`
+// EntrypointType -
+type EntrypointType struct {
+	Name    string    `json:"name"`
+	Type    []Typedef `json:"typedef"`
+	BinPath string    `json:"bin_path"`
 }
 
 // Typedef -
@@ -36,9 +35,9 @@ type dsData struct {
 }
 
 // GetEntrypoints -
-func GetEntrypoints(md meta.Metadata) ([]EntrypointSchema, error) {
+func GetEntrypoints(md meta.Metadata) ([]EntrypointType, error) {
 	root := md["0"]
-	entrypoints := make([]EntrypointSchema, 0)
+	entrypoints := make([]EntrypointType, 0)
 
 	if md.IsComplexEntryRoot() {
 		for i, binPath := range root.Args {
@@ -49,15 +48,10 @@ func GetEntrypoints(md meta.Metadata) ([]EntrypointSchema, error) {
 				return nil, err
 			}
 
-			schema, err := jsonschema.Create(binPath, md)
-			if err != nil {
-				return nil, err
-			}
-
-			entrypoints = append(entrypoints, EntrypointSchema{
-				Name:   md[binPath].Name,
-				Type:   typeDefs,
-				Schema: schema,
+			entrypoints = append(entrypoints, EntrypointType{
+				Name:    md[binPath].Name,
+				Type:    typeDefs,
+				BinPath: binPath,
 			})
 		}
 	} else {
@@ -67,15 +61,10 @@ func GetEntrypoints(md meta.Metadata) ([]EntrypointSchema, error) {
 			return nil, err
 		}
 
-		schema, err := jsonschema.Create("0", md)
-		if err != nil {
-			return nil, err
-		}
-
-		entrypoints = append(entrypoints, EntrypointSchema{
-			Name:   root.Name,
-			Type:   typeDefs,
-			Schema: schema,
+		entrypoints = append(entrypoints, EntrypointType{
+			Name:    root.Name,
+			Type:    typeDefs,
+			BinPath: "0",
 		})
 	}
 
