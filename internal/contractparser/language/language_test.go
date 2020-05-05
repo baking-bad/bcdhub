@@ -49,10 +49,18 @@ func TestDetectSmartPy(t *testing.T) {
 		{
 			name: "SmartPy Value",
 			n: node.Node{
-				Value: interface{}(`Get-item:\d+`),
+				Value: interface{}(`Get-item:123`),
 				Type:  consts.KeyString,
 			},
 			res: LangSmartPy,
+		},
+		{
+			name: "SmartPy Value",
+			n: node.Node{
+				Value: interface{}(`Get-item:123a`),
+				Type:  consts.KeyString,
+			},
+			res: LangUnknown,
 		},
 	}
 

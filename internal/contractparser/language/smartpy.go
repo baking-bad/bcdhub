@@ -1,6 +1,7 @@
 package language
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/node"
@@ -15,11 +16,15 @@ func (l smartpy) DetectInCode(n node.Node) bool {
 		return false
 	}
 
+	if strings.HasPrefix(str, "Get-item:") {
+		re := regexp.MustCompile(`^Get-item:\d+$`)
+		return re.MatchString(str)
+	}
+
 	return strings.Contains(str, "SmartPy") ||
 		strings.Contains(str, "self.") ||
 		strings.Contains(str, "sp.") ||
-		strings.Contains(str, "WrongCondition") ||
-		strings.Contains(str, `Get-item:\d+`)
+		strings.Contains(str, "WrongCondition")
 }
 
 func (l smartpy) DetectInParameter(n node.Node) bool {
