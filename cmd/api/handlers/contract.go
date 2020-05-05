@@ -39,7 +39,7 @@ func (ctx *Context) GetRandomContract(c *gin.Context) {
 	cntr, err := ctx.ES.GetRandomContract()
 	if err != nil {
 		if strings.Contains(err.Error(), "Unknown contract") {
-			c.AbortWithStatus(204)
+			c.AbortWithStatus(http.StatusNoContent)
 		} else {
 			handleError(c, err, 0)
 		}

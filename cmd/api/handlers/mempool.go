@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -23,9 +22,10 @@ func (ctx *Context) GetMempool(c *gin.Context) {
 
 	api, ok := ctx.TzKTSvcs[req.Network]
 	if !ok {
-		handleError(c, fmt.Errorf("TzKT services does not support %s", req.Network), 0)
+		c.JSON(http.StatusNoContent, []Operation{})
 		return
 	}
+
 	res, err := api.GetMempool(req.Address)
 	if handleError(c, err, 0) {
 		return
