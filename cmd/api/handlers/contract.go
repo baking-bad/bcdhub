@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
@@ -36,11 +37,15 @@ func (ctx *Context) GetContract(c *gin.Context) {
 // GetRandomContract -
 func (ctx *Context) GetRandomContract(c *gin.Context) {
 	cntr, err := ctx.ES.GetRandomContract()
-	if handleError(c, err, 0) {
-		return
+	if err != nil {
+		if strings.Contains(err.Error(), "Unknown contract") {
+			c.AbortWithStatus(204)
+		} else {
+			handleError(c, err, 0)
+		}
+	} else {
+		c.JSON(http.StatusOK, cntr)
 	}
-
-	c.JSON(http.StatusOK, cntr)
 }
 
 func (ctx *Context) setProfileInfo(contract models.Contract) (Contract, error) {
