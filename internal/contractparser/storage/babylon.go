@@ -234,6 +234,9 @@ func (b *Babylon) handleBigMapDiffCopy(item gjson.Result, ptrMap map[int64]strin
 
 			b.addToUpdates(bmd[i], destinationPtr)
 		}
+		if len(bmd) == 0 {
+			b.updates[destinationPtr] = []models.BigMapDiff{}
+		}
 		if destinationPtr >= 0 {
 			return bmd, nil
 		}
@@ -264,6 +267,9 @@ func (b *Babylon) handleBigMapDiffCopy(item gjson.Result, ptrMap map[int64]strin
 			diff.BinPath = binPath
 			newUpdates[i] = diff
 			b.addToUpdates(diff, destinationPtr)
+		}
+		if len(bmd) == 0 {
+			b.updates[destinationPtr] = []models.BigMapDiff{}
 		}
 		if destinationPtr >= 0 {
 			return newUpdates, nil
