@@ -11,6 +11,7 @@ import (
 	_ "github.com/baking-bad/bcdhub/cmd/api/docs"
 	"github.com/baking-bad/bcdhub/cmd/api/handlers"
 	"github.com/baking-bad/bcdhub/cmd/api/seed"
+	"github.com/baking-bad/bcdhub/cmd/api/ws"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -192,6 +193,11 @@ func main() {
 					vote.GET("task", ctx.GetNextDiffTask)
 				}
 			}
+		}
+
+		wsi := v1.Group("ws")
+		{
+			wsi.GET("/stats", ws.StatsHandler)
 		}
 	}
 

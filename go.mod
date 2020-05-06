@@ -18,6 +18,7 @@ require (
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/uuid v1.1.1
 	github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
+	github.com/gorilla/websocket v1.4.2
 	github.com/jessevdk/go-flags v0.0.0-20141203071132-1679536dcc89
 	github.com/jinzhu/gorm v1.9.11
 	github.com/mailru/easyjson v0.7.1 // indirect
