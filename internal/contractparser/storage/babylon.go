@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/tidwall/gjson"
@@ -224,7 +225,7 @@ func (b *Babylon) handleBigMapDiffCopy(item gjson.Result, ptrMap map[int64]strin
 
 		newUpdates := make([]*models.BigMapDiff, len(bmd))
 		for i := range bmd {
-			bmd[i].ID = ""
+			bmd[i].ID = helpers.GenerateID()
 			bmd[i].OperationID = operation.ID
 			bmd[i].Level = operation.Level
 			bmd[i].IndexedTime = time.Now().UnixNano() / 1000
@@ -236,7 +237,7 @@ func (b *Babylon) handleBigMapDiffCopy(item gjson.Result, ptrMap map[int64]strin
 			b.addToUpdates(newUpdates[i], destinationPtr)
 		}
 		if len(bmd) == 0 {
-			b.updates[destinationPtr] = []models.BigMapDiff{}
+			b.updates[destinationPtr] = []*models.BigMapDiff{}
 		}
 		if destinationPtr >= 0 {
 			return newUpdates, nil
@@ -257,20 +258,20 @@ func (b *Babylon) handleBigMapDiffCopy(item gjson.Result, ptrMap map[int64]strin
 		}
 
 		newUpdates := make([]*models.BigMapDiff, len(bmd))
-		for i, diff := range bmd {
-			diff.ID = ""
-			diff.Ptr = destinationPtr
-			diff.Address = address
-			diff.Level = operation.Level
-			diff.IndexedTime = time.Now().UnixNano() / 1000
-			diff.Timestamp = operation.Timestamp
-			diff.OperationID = operation.ID
-			diff.BinPath = binPath
-			newUpdates[i] = diff
+		for i := range bmd {
+			bmd[i].ID = helpers.GenerateID()
+			bmd[i].Ptr = destinationPtr
+			bmd[i].Address = address
+			bmd[i].Level = operation.Level
+			bmd[i].IndexedTime = time.Now().UnixNano() / 1000
+			bmd[i].Timestamp = operation.Timestamp
+			bmd[i].OperationID = operation.ID
+			bmd[i].BinPath = binPath
+			newUpdates[i] = bmd[i]
 			b.addToUpdates(newUpdates[i], destinationPtr)
 		}
 		if len(bmd) == 0 {
-			b.updates[destinationPtr] = []models.BigMapDiff{}
+			b.updates[destinationPtr] = []*models.BigMapDiff{}
 		}
 		if destinationPtr >= 0 {
 			return newUpdates, nil
@@ -293,7 +294,7 @@ func (b *Babylon) handleBigMapDiffRemove(item gjson.Result, ptrMap map[int64]str
 	}
 	newUpdates := make([]*models.BigMapDiff, len(bmd))
 	for i := range bmd {
-		bmd[i].ID = ""
+		bmd[i].ID = helpers.GenerateID()
 		bmd[i].OperationID = operation.ID
 		bmd[i].Level = operation.Level
 		bmd[i].IndexedTime = time.Now().UnixNano() / 1000

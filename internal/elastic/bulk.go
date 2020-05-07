@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
 
@@ -36,8 +35,7 @@ func (e *Elastic) BulkInsert(items []Model) error {
 	index := items[0].GetIndex()
 	bulk := bytes.NewBuffer([]byte{})
 	for i := range items {
-		id := helpers.GenerateID()
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_id": "%s"} }%s`, id, "\n"))
+		meta := []byte(fmt.Sprintf(`{ "index" : { "_id": "%s"} }%s`, items[i].GetID(), "\n"))
 		data, err := json.Marshal(items[i])
 		if err != nil {
 			return err

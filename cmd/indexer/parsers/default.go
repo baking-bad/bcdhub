@@ -91,6 +91,7 @@ func (p *DefaultParser) parseContent(data gjson.Result, network, hash string, he
 }
 
 func (p *DefaultParser) parseTransaction(data gjson.Result, network, hash string, head noderpc.Header) (op models.Operation, migration *models.Migration, err error) {
+	op.ID = helpers.GenerateID()
 	op.Network = network
 	op.Hash = hash
 	op.Protocol = head.Protocol
@@ -123,6 +124,7 @@ func (p *DefaultParser) parseTransaction(data gjson.Result, network, hash string
 
 func (p *DefaultParser) parseOrigination(data gjson.Result, network, hash string, head noderpc.Header) (models.Operation, *models.Contract, *models.Migration, error) {
 	op := models.Operation{
+		ID:             helpers.GenerateID(),
 		Network:        network,
 		Hash:           hash,
 		Protocol:       head.Protocol,

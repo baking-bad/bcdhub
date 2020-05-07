@@ -38,17 +38,10 @@ type BoostIndexer struct {
 	stopped bool
 }
 
-<<<<<<< HEAD
 func (bi *BoostIndexer) fetchExternalProtocols() error {
 	logger.Info("[%s] Fetching external protocols", bi.Network)
-	existingProtocols, err := bi.es.GetProtocolsByNetwork(bi.Network)
-	if err != nil {
-=======
-func fetchExternalProtocols(es *elastic.Elastic, externalIndexer index.Indexer, network string) error {
-	logger.Info("[%s] Fetching external protocols", network)
 	var existingProtocols []models.Protocol
-	if err := es.GetByNetwork(network, &existingProtocols); err != nil {
->>>>>>> Refactor getAll methods
+	if err := es.GetByNetworkWithSort(network, "start_level", "desc", &existingProtocols); err != nil {
 		return err
 	}
 
@@ -87,14 +80,7 @@ func fetchExternalProtocols(es *elastic.Elastic, externalIndexer index.Indexer, 
 		log.Printf("[%s] Fetched %s", bi.Network, alias)
 	}
 
-<<<<<<< HEAD
-	if len(protocols) > 0 {
-		return bi.es.BulkInsertProtocols(protocols)
-	}
-	return nil
-=======
 	return es.BulkInsert(protocols)
->>>>>>> Refactor getAll methods
 }
 
 // NewBoostIndexer -

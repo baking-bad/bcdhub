@@ -66,6 +66,27 @@ func (e *Elastic) GetByNetwork(network string, output interface{}) error {
 	return e.getByScroll(index, query, typ, output)
 }
 
+// GetByNetworkWithSort -
+func (e *Elastic) GetByNetworkWithSort(network, sortField, sortOrder string, output interface{}) error {
+	typ, err := getElementType(output)
+	if err != nil {
+		return err
+	}
+	index, err := getIndex(typ)
+	if err != nil {
+		return err
+	}
+
+	query := newQuery().Query(
+		boolQ(
+			must(
+				matchPhrase("network", network),
+			),
+		),
+	).Sort(sortField, sortOrder)
+	return e.getByScroll(index, query, typ, output)
+}
+
 // GetByIDs -
 func (e *Elastic) GetByIDs(ids []string, output interface{}) (err error) {
 	typ, err := getElementType(output)

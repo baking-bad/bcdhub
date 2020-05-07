@@ -33,7 +33,7 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 	stats.OperationsCount = counts.Operations
 
 	var protocols []models.Protocol
-	if err := ctx.ES.GetByNetwork(req.Network, &protocols); handleError(c, err, 0) {
+	if err := ctx.ES.GetByNetworkWithSort(req.Network, "start_level", "desc", &protocols); handleError(c, err, 0) {
 		return
 	}
 	stats.Protocols = protocols
