@@ -127,7 +127,7 @@ func removeMetadata(e *elastic.Elastic, fromState models.Block, toLevel int64, a
 func updateMetadata(e *elastic.Elastic, network string, fromLevel, toLevel int64) error {
 	logger.Info("Preparing metadata for updating...")
 	var protocols []models.Protocol
-	if err := e.GetByNetwork(network, &protocols); err != nil {
+	if err := e.GetByNetworkWithSort(network, "start_level", "desc", &protocols); err != nil {
 		return err
 	}
 	rollbackProtocol, err := getProtocolByLevel(protocols, toLevel)
