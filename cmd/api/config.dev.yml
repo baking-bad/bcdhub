@@ -39,3 +39,9 @@ api:
         - babylonnet
     seed:
         enabled: false
+
+rabbitmq:
+    uri: "amqp://${RABBIT_USER}:${RABBIT_PASSWORD}@127.0.0.1:5672/"
+    queues:
+        - operations
+        - recalc

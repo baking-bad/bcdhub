@@ -76,6 +76,7 @@ services:
     depends_on:
       - elastic
       - mq
+      - metrics
     volumes:
       - /etc/bcd:/etc/bcd
     logging: *my-logging

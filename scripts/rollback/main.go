@@ -40,7 +40,7 @@ func main() {
 		logger.Fatal(fmt.Errorf("Level has to be in range 0..HEAD, not %s", levelStr))
 	}
 
-	messageQueue, err := mq.New(cfg.RabbitMQ.URI, []string{"recalc"})
+	messageQueue, err := mq.NewPublisher(cfg.RabbitMQ.URI)
 	if err != nil {
 		panic(err)
 	}

@@ -93,7 +93,7 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 	}
 	rpc := noderpc.NewWaitNode(rpcProvider.URI, time.Duration(rpcProvider.Timeout)*time.Second)
 
-	messageQueue, err := mq.New(cfg.RabbitMQ.URI, cfg.RabbitMQ.Queues)
+	messageQueue, err := mq.NewPublisher(cfg.RabbitMQ.URI)
 	if err != nil {
 		return nil, err
 	}
@@ -114,6 +114,7 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 	if err := bi.init(); err != nil {
 		return nil, err
 	}
+
 	return bi, nil
 }
 

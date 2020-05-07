@@ -194,20 +194,21 @@ func main() {
 				}
 			}
 		}
-
-		wsi := v1.Group("ws")
-		{
-			wsi.GET("/stats", ws.StatsHandler)
-		}
 	}
 
 	r.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	hub := ws.DefaultHub(cfg.Elastic.URI, cfg.RabbitMQ.URI, cfg.RabbitMQ.Queues)
+	hub.Run()
+	defer hub.Stop()
+	r.GET("ws", func(c *gin.Context) { ws.Handler(c, hub) })
 
 	if err := r.Run(cfg.API.Bind); err != nil {
 		logger.Error(err)
 		helpers.CatchErrorSentry(err)
 		return
 	}
+
 }
 
 func corsSettings() gin.HandlerFunc {
