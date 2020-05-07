@@ -249,13 +249,13 @@ func (bi *BoostIndexer) Index(levels []int64) error {
 			return err
 		}
 
-		if err := bi.saveContracts(contracts); err != nil {
+		if err := bi.saveModels(contracts, mq.QueueContracts); err != nil {
 			return err
 		}
-		if err := bi.saveOperations(operations); err != nil {
+		if err := bi.saveModels(operations, mq.QueueOperations); err != nil {
 			return err
 		}
-		if err := bi.saveMigrations(migrations); err != nil {
+		if err := bi.saveModels(migrations, mq.QueueMigrations); err != nil {
 			return err
 		}
 
@@ -434,42 +434,14 @@ func (bi *BoostIndexer) createAndSaveBlock(head noderpc.Header) error {
 	return nil
 }
 
-func (bi *BoostIndexer) saveContracts(contracts []elastic.Model) error {
-	logger.Info("[%s] Found %d new contracts", bi.Network, len(contracts))
-	if err := bi.es.BulkInsert(contracts); err != nil {
+func (bi *BoostIndexer) saveModels(items []elastic.Model, queue string) error {
+	logger.Info("[%s] Found %d new %s", bi.Network, len(items), queue)
+	if err := bi.es.BulkInsert(items); err != nil {
 		return err
 	}
 
-	for j := range contracts {
-		if err := bi.messageQueue.Send(mq.ChannelNew, mq.QueueContracts, contracts[j].GetID()); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (bi *BoostIndexer) saveOperations(operations []elastic.Model) error {
-	logger.Info("[%s] Found %d operations", bi.Network, len(operations))
-	if err := bi.es.BulkInsert(operations); err != nil {
-		return err
-	}
-
-	for j := range operations {
-		if err := bi.messageQueue.Send(mq.ChannelNew, mq.QueueOperations, operations[j].GetID()); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (bi *BoostIndexer) saveMigrations(migrations []elastic.Model) error {
-	logger.Info("[%s] Found %d migrations", bi.Network, len(migrations))
-	if err := bi.es.BulkInsert(migrations); err != nil {
-		return err
-	}
-
-	for j := range migrations {
-		if err := bi.messageQueue.Send(mq.ChannelNew, mq.QueueMigrations, migrations[j].GetID()); err != nil {
+	for j := range items {
+		if err := bi.messageQueue.Send(mq.ChannelNew, queue, items[j].GetID()); err != nil {
 			return err
 		}
 	}
@@ -595,7 +567,7 @@ func (bi *BoostIndexer) standartMigration(newProtocol models.Protocol) error {
 			migrations = append(migrations, migration)
 		}
 	}
-	if err := bi.saveMigrations(migrations); err != nil {
+	if err := bi.saveModels(migrations, mq.QueueMigrations); err != nil {
 		return err
 	}
 	return nil
@@ -631,10 +603,10 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header) error {
 		}
 	}
 
-	if err := bi.saveContracts(contracts); err != nil {
+	if err := bi.saveModels(contracts, mq.QueueContracts); err != nil {
 		return err
 	}
-	if err := bi.saveMigrations(migrations); err != nil {
+	if err := bi.saveModels(migrations, mq.QueueMigrations); err != nil {
 		return err
 	}
 	return nil
