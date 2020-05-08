@@ -33,4 +33,5 @@ require (
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0
 	gopkg.in/yaml.v2 v2.2.8
+	honnef.co/go/tools v0.0.0-20190106161140-3f1c8253044a
 )

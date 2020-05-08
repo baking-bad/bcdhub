@@ -1,6 +1,7 @@
 package migrations
 
 import (
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
 )
 
@@ -13,7 +14,7 @@ func (m *SetStateChainID) Description() string {
 }
 
 // Do - migrate function
-func (m *SetStateChainID) Do(ctx *Context) error {
+func (m *SetStateChainID) Do(ctx *config.Context) error {
 	for _, network := range ctx.Config.Migrations.Networks {
 		logger.Info("Getting chain id for %s", network)
 		rpc, err := ctx.GetRPC(network)

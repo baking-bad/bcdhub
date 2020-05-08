@@ -20,8 +20,8 @@ func (ctx *Context) GetMempool(c *gin.Context) {
 		return
 	}
 
-	api, ok := ctx.TzKTSvcs[req.Network]
-	if !ok {
+	api, err := ctx.GetTzKTService(req.Network)
+	if err != nil {
 		c.JSON(http.StatusNoContent, []Operation{})
 		return
 	}

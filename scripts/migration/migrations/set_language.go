@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/contractparser/language"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -20,7 +21,7 @@ func (m *SetLanguage) Description() string {
 }
 
 // Do - migrate function
-func (m *SetLanguage) Do(ctx *Context) error {
+func (m *SetLanguage) Do(ctx *config.Context) error {
 	filter := make(map[string]interface{})
 	filter["language"] = language.LangUnknown
 

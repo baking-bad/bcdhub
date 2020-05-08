@@ -1,6 +1,9 @@
 package migrations
 
-import "github.com/baking-bad/bcdhub/internal/logger"
+import (
+	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/baking-bad/bcdhub/internal/logger"
+)
 
 // SetAliasSlug - migration that set `slug` at Alias in db
 type SetAliasSlug struct{}
@@ -11,7 +14,7 @@ func (m *SetAliasSlug) Description() string {
 }
 
 // Do - migrate function
-func (m *SetAliasSlug) Do(ctx *Context) error {
+func (m *SetAliasSlug) Do(ctx *config.Context) error {
 	for _, network := range ctx.Config.Migrations.Networks {
 		all, err := ctx.DB.GetAliases(network)
 		if err != nil {

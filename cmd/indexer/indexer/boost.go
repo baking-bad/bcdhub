@@ -38,9 +38,9 @@ type BoostIndexer struct {
 	stopped bool
 }
 
-func fetchExternalProtocols(es *elastic.Elastic, externalIndexer index.Indexer, network string) error {
-	logger.Info("[%s] Fetching external protocols", network)
-	existingProtocols, err := es.GetProtocolsByNetwork(network)
+func (bi *BoostIndexer) fetchExternalProtocols() error {
+	logger.Info("[%s] Fetching external protocols", bi.Network)
+	existingProtocols, err := bi.es.GetProtocolsByNetwork(bi.Network)
 	if err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func fetchExternalProtocols(es *elastic.Elastic, externalIndexer index.Indexer, 
 		exists[existingProtocol.Hash] = true
 	}
 
-	extProtocols, err := externalIndexer.GetProtocols()
+	extProtocols, err := bi.externalIndexer.GetProtocols()
 	if err != nil {
 		return err
 	}
@@ -75,91 +75,91 @@ func fetchExternalProtocols(es *elastic.Elastic, externalIndexer index.Indexer, 
 			StartLevel: extProtocols[i].StartLevel,
 			EndLevel:   extProtocols[i].LastLevel,
 			SymLink:    symLink,
-			Network:    network,
+			Network:    bi.Network,
 		})
-		log.Printf("[%s] Fetched %s", network, alias)
+		log.Printf("[%s] Fetched %s", bi.Network, alias)
 	}
 
 	if len(protocols) > 0 {
-		return es.BulkInsertProtocols(protocols)
+		return bi.es.BulkInsertProtocols(protocols)
 	}
 	return nil
 }
 
 // NewBoostIndexer -
-func NewBoostIndexer(cfg config.Config, network string, externalType string) (*BoostIndexer, error) {
+func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOption) (*BoostIndexer, error) {
 	logger.Info("[%s] Creating indexer object...", network)
 	es := elastic.WaitNew([]string{cfg.Elastic.URI})
-	err := es.CreateIndexes()
-	if err != nil {
-		return nil, err
-	}
-
 	rpcProvider, ok := cfg.RPC[network]
 	if !ok {
 		return nil, fmt.Errorf("Unknown network %s", network)
 	}
 	rpc := noderpc.NewPool([]string{rpcProvider.URI}, time.Duration(rpcProvider.Timeout)*time.Second)
 
-	var externalIndexer index.Indexer
-	if externalType != "" {
-		externalIndexer, err = createExternalIndexer(cfg, network, externalType)
-		if err != nil {
-			return nil, err
-		}
-
-		err = fetchExternalProtocols(es, externalIndexer, network)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	messageQueue, err := mq.New(cfg.RabbitMQ.URI, cfg.RabbitMQ.Queues)
 	if err != nil {
 		return nil, err
 	}
 
-	currentState, err := es.CurrentState(network)
-	if err != nil {
-		return nil, err
-	}
-	logger.Info("[%s] Current indexer state: %d", network, currentState.Level)
-
-	currentProtocol, err := es.GetProtocol(network, "", currentState.Level)
-	if err != nil {
-		header, err := rpc.GetHeader(helpers.MaxInt64(1, currentState.Level))
-		if err != nil {
-			return nil, err
-		}
-		currentProtocol, err = createProtocol(es, network, header.Protocol, 0)
-		if err != nil {
-			return nil, err
-		}
-	}
-	logger.Info("[%s] Current network protocol: %s", network, currentProtocol.Hash)
-
-	logger.Info("[%s] Getting network constants...", network)
-	constants, err := rpc.GetNetworkConstants()
-	if err != nil {
-		return nil, err
-	}
-	updateTimer := constants.Get("time_between_blocks.0").Int()
-	logger.Info("[%s] Data will be updated every %d seconds", network, updateTimer)
-
 	bi := &BoostIndexer{
-		Network:         network,
-		UpdateTimer:     updateTimer,
-		rpc:             rpc,
-		es:              es,
-		externalIndexer: externalIndexer,
-		messageQueue:    messageQueue,
-		state:           currentState,
-		currentProtocol: currentProtocol,
-		filesDirectory:  cfg.Share.Path,
-		boost:           externalType != "",
-		stop:            make(chan struct{}),
+		Network:        network,
+		rpc:            rpc,
+		es:             es,
+		messageQueue:   messageQueue,
+		filesDirectory: cfg.Share.Path,
+		stop:           make(chan struct{}),
 	}
-	return bi, err
+
+	for _, opt := range opts {
+		opt(bi)
+	}
+
+	if err := bi.init(); err != nil {
+		return nil, err
+	}
+	return bi, nil
+}
+
+func (bi *BoostIndexer) init() error {
+	if err := bi.es.CreateIndexes(); err != nil {
+		return err
+	}
+
+	if bi.boost {
+		if err := bi.fetchExternalProtocols(); err != nil {
+			return err
+		}
+	}
+
+	currentState, err := bi.es.CurrentState(bi.Network)
+	if err != nil {
+		return err
+	}
+	bi.state = currentState
+	logger.Info("[%s] Current indexer state: %d", bi.Network, currentState.Level)
+
+	currentProtocol, err := bi.es.GetProtocol(bi.Network, "", currentState.Level)
+	if err != nil {
+		header, err := bi.rpc.GetHeader(helpers.MaxInt64(1, currentState.Level))
+		if err != nil {
+			return err
+		}
+		currentProtocol, err = createProtocol(bi.es, bi.Network, header.Protocol, 0)
+		if err != nil {
+			return err
+		}
+	}
+	bi.currentProtocol = currentProtocol
+	logger.Info("[%s] Current network protocol: %s", bi.Network, currentProtocol.Hash)
+
+	logger.Info("[%s] Getting network constants...", bi.Network)
+	constants, err := bi.rpc.GetNetworkConstants()
+	if err != nil {
+		return err
+	}
+	bi.UpdateTimer = constants.Get("time_between_blocks.0").Int()
+	logger.Info("[%s] Data will be updated every %d seconds", bi.Network, bi.UpdateTimer)
+	return nil
 }
 
 // Sync -

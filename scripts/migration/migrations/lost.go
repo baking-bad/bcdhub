@@ -3,6 +3,7 @@ package migrations
 import (
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/tzkt"
 )
@@ -18,7 +19,7 @@ func (m *FindLostOperations) Description() string {
 }
 
 // Do - migrate function
-func (m *FindLostOperations) Do(ctx *Context) error {
+func (m *FindLostOperations) Do(ctx *config.Context) error {
 	for network, tzktProvider := range ctx.Config.TzKT {
 		logger.Info("Start searching in %s...", network)
 

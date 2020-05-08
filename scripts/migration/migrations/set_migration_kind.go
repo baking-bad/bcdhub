@@ -3,6 +3,7 @@ package migrations
 import (
 	"fmt"
 
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -18,7 +19,7 @@ func (m *SetMigrationKind) Description() string {
 }
 
 // Do - migrate function
-func (m *SetMigrationKind) Do(ctx *Context) error {
+func (m *SetMigrationKind) Do(ctx *config.Context) error {
 	for _, network := range ctx.Config.Migrations.Networks {
 		migrations, err := ctx.ES.GetAllMigrations(network)
 		if err != nil {

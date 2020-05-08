@@ -2,34 +2,36 @@ package handlers
 
 import (
 	"github.com/baking-bad/bcdhub/cmd/api/oauth"
-	"github.com/baking-bad/bcdhub/internal/database"
-	"github.com/baking-bad/bcdhub/internal/elastic"
-	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/baking-bad/bcdhub/internal/tzkt"
+	"github.com/baking-bad/bcdhub/internal/config"
 )
 
 // Context -
 type Context struct {
-	ES       *elastic.Elastic
-	RPCs     map[string]noderpc.Pool
-	Dir      string
-	DB       database.DB
-	OAUTH    oauth.Config
-	TzKTSvcs map[string]*tzkt.ServicesTzKT
+	*config.Context
+	OAUTH oauth.Config
 }
 
 // NewContext -
-func NewContext(e *elastic.Elastic, rpcs map[string]noderpc.Pool, svcs map[string]*tzkt.ServicesTzKT, dir string, db database.DB, oauth oauth.Config) (*Context, error) {
-	networks := make([]string, 0)
-	for k := range rpcs {
-		networks = append(networks, k)
+func NewContext(cfg config.Config) (*Context, error) {
+	var oauthCfg oauth.Config
+	if cfg.API.OAuth.Enabled {
+		var err error
+		oauthCfg, err = oauth.New(cfg)
+		if err != nil {
+			return nil, err
+		}
 	}
+
+	ctx := config.NewContext(
+		config.WithElasticSearch(cfg.Elastic),
+		config.WithRPC(cfg.RPC),
+		config.WithDatabase(cfg.DB),
+		config.WithShare(cfg.Share.Path),
+		config.WithTzKTServices(cfg.TzKT),
+		config.WithLoadErrorDescriptions("data/errors.json"),
+	)
 	return &Context{
-		ES:       e,
-		RPCs:     rpcs,
-		Dir:      dir,
-		DB:       db,
-		OAUTH:    oauth,
-		TzKTSvcs: svcs,
+		Context: ctx,
+		OAUTH:   oauthCfg,
 	}, nil
 }
