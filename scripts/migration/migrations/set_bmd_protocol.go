@@ -1,11 +1,10 @@
 package migrations
 
 import (
-	"fmt"
-
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -19,13 +18,13 @@ func (m *SetBMDProtocol) Description() string {
 
 // Do - migrate function
 func (m *SetBMDProtocol) Do(ctx *config.Context) error {
-	allBMD, err := ctx.ES.GetAllBigMapDiff()
-	if err != nil {
+	var allBMD []models.BigMapDiff
+	if err := ctx.ES.GetAll(&allBMD); err != nil {
 		return err
 	}
 	logger.Info("Found %d unique operations with big map diff", len(allBMD))
 
-	bar := progressbar.NewOptions(len(allBMD), progressbar.OptionSetPredictTime(false))
+	bar := progressbar.NewOptions(len(allBMD), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish())
 	ops := make(map[string]string)
 	var lastIdx int
 
@@ -34,29 +33,26 @@ func (m *SetBMDProtocol) Do(ctx *config.Context) error {
 
 		proto, ok := ops[allBMD[i].OperationID]
 		if !ok {
-			operation, err := ctx.ES.GetByID(elastic.DocOperations, allBMD[i].OperationID)
-			if err != nil {
-				fmt.Print("\033[2K\r")
+			operation := models.Operation{ID: allBMD[i].OperationID}
+			if err := ctx.ES.GetByID(&operation); err != nil {
 				return err
 			}
-			proto = operation.Get("_source.protocol").String()
+			proto = operation.Protocol
 		}
 		allBMD[i].Protocol = proto
 
 		if (i%1000 == 0 || i == len(allBMD)-1) && i > 0 {
-			updates := make([]elastic.Identifiable, len(allBMD[lastIdx:i]))
+			updates := make([]elastic.Model, len(allBMD[lastIdx:i]))
 			for j := range allBMD[lastIdx:i] {
-				updates[j] = allBMD[lastIdx:i][j]
+				updates[j] = &allBMD[lastIdx:i][j]
 			}
-			if err := ctx.ES.BulkUpdate("bigmapdiff", updates); err != nil {
-				fmt.Print("\033[2K\r")
+			if err := ctx.ES.BulkUpdate(updates); err != nil {
 				return err
 			}
 			lastIdx = i
 		}
 	}
 
-	fmt.Print("\033[2K\r")
 	logger.Info("Done.")
 
 	return nil

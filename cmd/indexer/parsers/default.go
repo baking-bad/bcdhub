@@ -24,7 +24,7 @@ type DefaultParser struct {
 	es             *elastic.Elastic
 	filesDirectory string
 
-	updates map[int64][]models.BigMapDiff
+	updates map[int64][]*models.BigMapDiff
 }
 
 // NewDefaultParser -
@@ -37,13 +37,13 @@ func NewDefaultParser(rpc noderpc.Pool, es *elastic.Elastic, filesDirectory stri
 }
 
 // Parse -
-func (p *DefaultParser) Parse(opg gjson.Result, network string, head noderpc.Header) ([]models.Operation, []models.Contract, []models.Migration, error) {
-	operations := make([]models.Operation, 0)
-	contracts := make([]models.Contract, 0)
-	migrations := make([]models.Migration, 0)
+func (p *DefaultParser) Parse(opg gjson.Result, network string, head noderpc.Header) ([]*models.Operation, []*models.Contract, []*models.Migration, error) {
+	operations := make([]*models.Operation, 0)
+	contracts := make([]*models.Contract, 0)
+	migrations := make([]*models.Migration, 0)
 
 	// New OPG -> new temporary storage
-	p.updates = make(map[int64][]models.BigMapDiff)
+	p.updates = make(map[int64][]*models.BigMapDiff)
 
 	for idx, item := range opg.Get("contents").Array() {
 		need, err := p.needParse(item, network, idx)
@@ -60,12 +60,12 @@ func (p *DefaultParser) Parse(opg gjson.Result, network string, head noderpc.Hea
 			return nil, nil, nil, err
 		}
 
-		operations = append(operations, op)
+		operations = append(operations, &op)
 		if contract != nil {
-			contracts = append(contracts, *contract)
+			contracts = append(contracts, contract)
 		}
 		if migration != nil {
-			migrations = append(migrations, *migration)
+			migrations = append(migrations, migration)
 		}
 
 		internal, internalContracts, internalMigrations, err := p.parseInternalOperations(item, op, head)
@@ -232,7 +232,7 @@ func (p *DefaultParser) finishParseOperation(item gjson.Result, op *models.Opera
 		op.DeffatedStorage = rs.DeffatedStorage
 
 		if len(rs.BigMapDiffs) > 0 {
-			if err := p.es.BulkSaveBigMapDiffs(rs.BigMapDiffs); err != nil {
+			if err := p.es.BulkInsert(rs.GetBigMapDiffModels()); err != nil {
 				return nil, err
 			}
 		}
@@ -306,7 +306,7 @@ func (p *DefaultParser) getEntrypoint(item gjson.Result, metadata *meta.Contract
 	return nil
 }
 
-func (p *DefaultParser) parseInternalOperations(item gjson.Result, main models.Operation, head noderpc.Header) ([]models.Operation, []models.Contract, []models.Migration, error) {
+func (p *DefaultParser) parseInternalOperations(item gjson.Result, main models.Operation, head noderpc.Header) ([]*models.Operation, []*models.Contract, []*models.Migration, error) {
 	path := fmt.Sprintf("metadata.internal_operation_results")
 	if !item.Get(path).Exists() {
 		path = fmt.Sprintf("metadata.internal_operations")
@@ -315,19 +315,19 @@ func (p *DefaultParser) parseInternalOperations(item gjson.Result, main models.O
 		}
 	}
 
-	res := make([]models.Operation, 0)
-	contracts := make([]models.Contract, 0)
-	migrations := make([]models.Migration, 0)
+	operations := make([]*models.Operation, 0)
+	contracts := make([]*models.Contract, 0)
+	migrations := make([]*models.Migration, 0)
 	for i, op := range item.Get(path).Array() {
 		internalOperation, contract, migration, err := p.parseContent(op, main.Network, main.Hash, head)
 		if err != nil {
 			return nil, nil, nil, err
 		}
 		if contract != nil {
-			contracts = append(contracts, *contract)
+			contracts = append(contracts, contract)
 		}
 		if migration != nil {
-			migrations = append(migrations, *migration)
+			migrations = append(migrations, migration)
 		}
 
 		internalOperation.Counter = main.Counter
@@ -336,9 +336,9 @@ func (p *DefaultParser) parseInternalOperations(item gjson.Result, main models.O
 		internalOperation.Timestamp = main.Timestamp
 		internalOperation.Internal = true
 		internalOperation.InternalIndex = int64(i + 1)
-		res = append(res, internalOperation)
+		operations = append(operations, &internalOperation)
 	}
-	return res, contracts, migrations, nil
+	return operations, contracts, migrations, nil
 }
 
 func (p *DefaultParser) needParse(item gjson.Result, network string, idx int) (bool, error) {

@@ -98,15 +98,15 @@ func removeMetadata(e *elastic.Elastic, fromState models.Block, toLevel int64, a
 		return err
 	}
 
-	bulkDeleteMetadata := make([]elastic.Identifiable, 0)
+	bulkDeleteMetadata := make([]elastic.Model, 0)
 
 	arr := contracts.Array()
 	logger.Info("%d contracts will be removed", len(arr))
-	bar := progressbar.NewOptions(len(arr), progressbar.OptionSetPredictTime(false))
+	bar := progressbar.NewOptions(len(arr), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish(), progressbar.OptionShowCount())
 	for _, contract := range arr {
 		bar.Add(1)
 		address := contract.Get("_source.address").String()
-		bulkDeleteMetadata = append(bulkDeleteMetadata, models.Metadata{
+		bulkDeleteMetadata = append(bulkDeleteMetadata, &models.Metadata{
 			ID: address,
 		})
 
@@ -114,11 +114,10 @@ func removeMetadata(e *elastic.Elastic, fromState models.Block, toLevel int64, a
 			return err
 		}
 	}
-	fmt.Print("\033[2K\r")
 
 	logger.Info("Removing metadata...")
 	if len(bulkDeleteMetadata) > 0 {
-		if err := e.BulkDelete(elastic.DocMetadata, bulkDeleteMetadata); err != nil {
+		if err := e.BulkDelete(bulkDeleteMetadata); err != nil {
 			return err
 		}
 	}
@@ -127,8 +126,8 @@ func removeMetadata(e *elastic.Elastic, fromState models.Block, toLevel int64, a
 
 func updateMetadata(e *elastic.Elastic, network string, fromLevel, toLevel int64) error {
 	logger.Info("Preparing metadata for updating...")
-	protocols, err := e.GetProtocolsByNetwork(network)
-	if err != nil {
+	var protocols []models.Protocol
+	if err := e.GetByNetworkWithSort(network, "start_level", "desc", &protocols); err != nil {
 		return err
 	}
 	rollbackProtocol, err := getProtocolByLevel(protocols, toLevel)
@@ -155,17 +154,16 @@ func updateMetadata(e *elastic.Elastic, network string, fromLevel, toLevel int64
 	}
 
 	logger.Info("Getting all metadata...")
-	metadata, err := e.GetAllMetadata()
-	if err != nil {
+	var metadata []models.Metadata
+	if err := e.GetAll(&metadata); err != nil {
 		return err
 	}
 
 	logger.Info("Found %d metadata, will remove %v", len(metadata), deadSymLinks)
-	bulkUpdateMetadata := make([]elastic.Identifiable, 0)
+	bulkUpdateMetadata := make([]elastic.Model, 0)
 	for _, m := range metadata {
-		bulkUpdateMetadata = append(bulkUpdateMetadata, m)
+		bulkUpdateMetadata = append(bulkUpdateMetadata, &m)
 	}
-	fmt.Print("\033[2K\r")
 
 	if len(bulkUpdateMetadata) > 0 {
 		for symLink := range deadSymLinks {
@@ -173,11 +171,11 @@ func updateMetadata(e *elastic.Elastic, network string, fromLevel, toLevel int64
 				start := i * 1000
 				end := helpers.MinInt((i+1)*1000, len(bulkUpdateMetadata))
 				parameterScript := fmt.Sprintf("ctx._source.parameter.remove('%s')", symLink)
-				if err := e.BulkRemoveField(elastic.DocMetadata, parameterScript, bulkUpdateMetadata[start:end]); err != nil {
+				if err := e.BulkRemoveField(parameterScript, bulkUpdateMetadata[start:end]); err != nil {
 					return err
 				}
 				storageScript := fmt.Sprintf("ctx._source.storage.remove('%s')", symLink)
-				if err := e.BulkRemoveField(elastic.DocMetadata, storageScript, bulkUpdateMetadata[start:end]); err != nil {
+				if err := e.BulkRemoveField(storageScript, bulkUpdateMetadata[start:end]); err != nil {
 					return err
 				}
 			}

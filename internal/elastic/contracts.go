@@ -77,40 +77,6 @@ func (e *Elastic) GetContract(by map[string]interface{}) (models.Contract, error
 	return e.getContract(query)
 }
 
-// GetContractByID -
-func (e *Elastic) GetContractByID(id string) (c models.Contract, err error) {
-	resp, err := e.GetByID(DocContracts, id)
-	if err != nil {
-		return
-	}
-	if !resp.Get("found").Bool() {
-		return c, fmt.Errorf("%s: %s %s", RecordNotFound, DocContracts, id)
-	}
-	c.ParseElasticJSON(resp)
-	return
-}
-
-// GetContractsByID -
-func (e *Elastic) GetContractsByID(ids []string) ([]models.Contract, error) {
-	resp, err := e.GetByIDs(DocContracts, ids)
-	if err != nil {
-		return nil, err
-	}
-
-	if resp.Get("hits.total.value").Int() < 1 {
-		return nil, fmt.Errorf("Unknown contracts with IDs %s", ids)
-	}
-
-	contracts := make([]models.Contract, 0)
-	arr := resp.Get("hits.hits").Array()
-	for i := range arr {
-		var c models.Contract
-		c.ParseElasticJSON(arr[i])
-		contracts = append(contracts, c)
-	}
-	return contracts, nil
-}
-
 // GetContractsByIDsWithSort -
 func (e *Elastic) GetContractsByIDsWithSort(ids []string, sortField, sortDirection string) ([]models.Contract, error) {
 	query := newQuery().Query(
@@ -137,19 +103,6 @@ func (e *Elastic) GetContractsByIDsWithSort(ids []string, sortField, sortDirecti
 		contracts = append(contracts, c)
 	}
 	return contracts, nil
-}
-
-// GetContractField -
-func (e *Elastic) GetContractField(by map[string]interface{}, field string) (interface{}, error) {
-	query := getContractQuery(by).One()
-	res, err := e.query([]string{DocContracts}, query, field)
-	if err != nil {
-		return nil, err
-	}
-	if res.Get("hits.total.value").Int() < 1 {
-		return nil, fmt.Errorf("Unknown contract: %v", by)
-	}
-	return res.Get("hits.hits.0._source").Get(field).Value(), nil
 }
 
 // GetContracts -

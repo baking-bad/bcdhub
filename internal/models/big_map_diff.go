@@ -27,6 +27,16 @@ type BigMapDiff struct {
 	FoundBy string `json:"found_by"`
 }
 
+// GetID -
+func (b *BigMapDiff) GetID() string {
+	return b.ID
+}
+
+// GetIndex -
+func (b *BigMapDiff) GetIndex() string {
+	return "bigmapdiff"
+}
+
 // ParseElasticJSON -
 func (b *BigMapDiff) ParseElasticJSON(hit gjson.Result) {
 	b.ID = hit.Get("_id").String()
@@ -49,13 +59,8 @@ func (b *BigMapDiff) ParseElasticJSON(hit gjson.Result) {
 	b.FoundBy = b.FoundByName(hit)
 }
 
-// GetID -
-func (b BigMapDiff) GetID() string {
-	return b.ID
-}
-
 // GetScores -
-func (b BigMapDiff) GetScores(search string) []string {
+func (b *BigMapDiff) GetScores(search string) []string {
 	return []string{
 		"key_strings^8",
 		"value_strings^7",
@@ -65,7 +70,7 @@ func (b BigMapDiff) GetScores(search string) []string {
 }
 
 // FoundByName -
-func (b BigMapDiff) FoundByName(hit gjson.Result) string {
+func (b *BigMapDiff) FoundByName(hit gjson.Result) string {
 	keys := hit.Get("highlight").Map()
 	categories := b.GetScores("")
 	return getFoundBy(keys, categories)

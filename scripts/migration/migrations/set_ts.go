@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models"
 
 	"github.com/schollz/progressbar/v3"
 )
@@ -27,8 +28,8 @@ func (m *SetTimestamp) Do(ctx *config.Context) error {
 			return err
 		}
 
-		operations, err := ctx.ES.GetAllOperations(network)
-		if err != nil {
+		var operations []models.Operation
+		if err := ctx.ES.GetByNetwork(network, &operations); err != nil {
 			return err
 		}
 

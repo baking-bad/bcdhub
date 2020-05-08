@@ -30,8 +30,8 @@ func NewVestingParser(rpc noderpc.Pool, es *elastic.Elastic, filesDirectory stri
 }
 
 // Parse -
-func (p *VestingParser) Parse(data gjson.Result, head noderpc.Header, network, address string) (models.Migration, *models.Contract, error) {
-	migration := models.Migration{
+func (p *VestingParser) Parse(data gjson.Result, head noderpc.Header, network, address string) (*models.Migration, *models.Contract, error) {
+	migration := &models.Migration{
 		ID:          helpers.GenerateID(),
 		IndexedTime: time.Now().UnixNano() / 1000,
 

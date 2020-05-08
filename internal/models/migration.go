@@ -22,8 +22,13 @@ type Migration struct {
 }
 
 // GetID -
-func (m Migration) GetID() string {
+func (m *Migration) GetID() string {
 	return m.ID
+}
+
+// GetIndex -
+func (m *Migration) GetIndex() string {
+	return "migration"
 }
 
 // ParseElasticJSON -

@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -20,8 +21,9 @@ func (m *SetContractMigrationsCount) Description() string {
 func (m *SetContractMigrationsCount) Do(ctx *config.Context) error {
 	for _, network := range ctx.Config.Migrations.Networks {
 		logger.Info("Migration in %s started", network)
-		migrations, err := ctx.ES.GetAllMigrations(network)
-		if err != nil {
+
+		var migrations []models.Migration
+		if err := ctx.ES.GetByNetwork(network, &migrations); err != nil {
 			return err
 		}
 		logger.Info("%d migrations are in database", len(migrations))

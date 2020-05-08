@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage/hash"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
@@ -48,17 +49,18 @@ func (a *Alpha) ParseOrigination(content gjson.Result, metadata meta.Metadata, o
 	address := result.Get("originated_contracts.0").String()
 	storage := content.Get("script.storage")
 
-	var bmd []models.BigMapDiff
+	var bmd []*models.BigMapDiff
 	if bmMeta, ok := metadata["0/0"]; ok && bmMeta.Type == consts.BIGMAP {
 		bigMapData := storage.Get("args.0")
 
-		bmd = make([]models.BigMapDiff, 0)
+		bmd = make([]*models.BigMapDiff, 0)
 		for _, item := range bigMapData.Array() {
 			keyHash, err := hash.Key(item.Get("args.0"))
 			if err != nil {
 				return RichStorage{Empty: true}, err
 			}
-			bmd = append(bmd, models.BigMapDiff{
+			bmd = append(bmd, &models.BigMapDiff{
+				ID:          helpers.GenerateID(),
 				BinPath:     "0/0",
 				Key:         item.Get("args.0").Value(),
 				KeyHash:     keyHash,
@@ -122,10 +124,11 @@ func (a *Alpha) Enrich(storage string, bmd []models.BigMapDiff, skipEmpty bool) 
 	return gjson.Parse(value), nil
 }
 
-func (a *Alpha) getBigMapDiff(result gjson.Result, address string, m meta.Metadata, operation models.Operation) ([]models.BigMapDiff, error) {
-	bmd := make([]models.BigMapDiff, 0)
+func (a *Alpha) getBigMapDiff(result gjson.Result, address string, m meta.Metadata, operation models.Operation) ([]*models.BigMapDiff, error) {
+	bmd := make([]*models.BigMapDiff, 0)
 	for _, item := range result.Get("big_map_diff").Array() {
-		bmd = append(bmd, models.BigMapDiff{
+		bmd = append(bmd, &models.BigMapDiff{
+			ID:          helpers.GenerateID(),
 			BinPath:     "0/0",
 			Key:         item.Get("key").Value(),
 			KeyHash:     item.Get("key_hash").String(),
@@ -143,6 +146,6 @@ func (a *Alpha) getBigMapDiff(result gjson.Result, address string, m meta.Metada
 }
 
 // SetUpdates -
-func (a *Alpha) SetUpdates(temp map[int64][]models.BigMapDiff) {
+func (a *Alpha) SetUpdates(temp map[int64][]*models.BigMapDiff) {
 	return
 }

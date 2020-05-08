@@ -42,46 +42,6 @@ func (e *Elastic) GetProtocol(network, hash string, level int64) (p models.Proto
 	return
 }
 
-// GetProtocols - returns all protocols
-func (e *Elastic) GetProtocols() ([]models.Protocol, error) {
-	query := newQuery().Sort("start_level", "desc").All()
-	response, err := e.query([]string{DocProtocol}, query)
-	if err != nil {
-		return nil, err
-	}
-
-	protocols := make([]models.Protocol, 0)
-	for _, hit := range response.Get("hits.hits").Array() {
-		var p models.Protocol
-		p.ParseElasticJSON(hit)
-		protocols = append(protocols, p)
-	}
-	return protocols, nil
-}
-
-// GetProtocolsByNetwork - returns all protocols by `network`
-func (e *Elastic) GetProtocolsByNetwork(network string) ([]models.Protocol, error) {
-	query := newQuery().Query(
-		boolQ(
-			filter(
-				matchQ("network", network),
-			),
-		),
-	).Sort("start_level", "desc").All()
-	response, err := e.query([]string{DocProtocol}, query)
-	if err != nil {
-		return nil, err
-	}
-
-	protocols := make([]models.Protocol, 0)
-	for _, hit := range response.Get("hits.hits").Array() {
-		var p models.Protocol
-		p.ParseElasticJSON(hit)
-		protocols = append(protocols, p)
-	}
-	return protocols, nil
-}
-
 // GetSymLinks - returns list of symlinks in `network` after `level`
 func (e *Elastic) GetSymLinks(network string, level int64) (map[string]bool, error) {
 	query := newQuery().Query(

@@ -24,6 +24,11 @@ func (m *Metadata) ParseElasticJSON(hit gjson.Result) {
 }
 
 // GetID -
-func (m Metadata) GetID() string {
+func (m *Metadata) GetID() string {
 	return m.ID
+}
+
+// GetIndex -
+func (m *Metadata) GetIndex() string {
+	return "metadata"
 }

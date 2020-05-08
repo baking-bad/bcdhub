@@ -68,11 +68,11 @@ func (m *SetContractFingerprint) Do(ctx *config.Context) error {
 
 		if (i%1000 == 0 || i == len(contracts)-1) && i > 0 {
 			logger.Info("Saving updated data from %d to %d...", lastIdx, i)
-			updates := make([]elastic.Identifiable, len(contracts[lastIdx:i]))
+			updates := make([]elastic.Model, len(contracts[lastIdx:i]))
 			for j := range contracts[lastIdx:i] {
-				updates[j] = contracts[lastIdx:i][j]
+				updates[j] = &contracts[lastIdx:i][j]
 			}
-			if err := ctx.ES.BulkUpdate("contract", updates); err != nil {
+			if err := ctx.ES.BulkUpdate(updates); err != nil {
 				return err
 			}
 			lastIdx = i

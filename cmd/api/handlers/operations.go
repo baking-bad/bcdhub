@@ -375,8 +375,8 @@ func (ctx *Context) GetOperationErrorLocation(c *gin.Context) {
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-	operation, err := ctx.ES.GetOperationByID(req.ID)
-	if handleError(c, err, 0) {
+	operation := models.Operation{ID: req.ID}
+	if err := ctx.ES.GetByID(&operation); handleError(c, err, 0) {
 		return
 	}
 

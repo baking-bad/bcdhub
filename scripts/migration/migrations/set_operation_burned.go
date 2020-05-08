@@ -1,12 +1,11 @@
 package migrations
 
 import (
-	"fmt"
-
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -23,17 +22,17 @@ func (m *SetOperationBurned) Do(ctx *config.Context) error {
 	h := metrics.New(ctx.ES, ctx.DB)
 
 	for _, network := range ctx.Config.Migrations.Networks {
-		operations, err := ctx.ES.GetAllOperations(network)
-		if err != nil {
+		var operations []models.Operation
+		if err := ctx.ES.GetByNetwork(network, &operations); err != nil {
 			return err
 		}
 
 		logger.Info("Found %d operations in %s", len(operations), network)
 
-		bar := progressbar.NewOptions(len(operations), progressbar.OptionSetPredictTime(false))
+		bar := progressbar.NewOptions(len(operations), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish())
 
 		var changed int64
-		var bulk []elastic.Identifiable
+		var bulk []elastic.Model
 
 		for i := range operations {
 			bar.Add(1)
@@ -42,18 +41,17 @@ func (m *SetOperationBurned) Do(ctx *config.Context) error {
 
 			if operations[i].Burned > 0 {
 				changed++
-				bulk = append(bulk, operations[i])
+				bulk = append(bulk, &operations[i])
 			}
 
 			if len(bulk) == 1000 || (i == len(operations)-1 && len(bulk) > 0) {
-				if err := ctx.ES.BulkUpdate("operation", bulk); err != nil {
+				if err := ctx.ES.BulkUpdate(bulk); err != nil {
 					return err
 				}
 				bulk = bulk[:0]
 			}
 		}
 
-		fmt.Print("\033[2K\r")
 		logger.Info("[%s] done. Total operations: %d. Changed: %d", network, len(operations), changed)
 	}
 	return nil

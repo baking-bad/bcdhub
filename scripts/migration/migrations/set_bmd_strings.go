@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
+	"github.com/baking-bad/bcdhub/internal/models"
 )
 
 // SetBMDStrings - migration that set key and value strings array at big map diff
@@ -19,8 +20,8 @@ func (m *SetBMDStrings) Description() string {
 // Do - migrate function
 func (m *SetBMDStrings) Do(ctx *config.Context) error {
 	log.Print("Start SetBMDStrings migration...")
-	allBigMapDiffs, err := ctx.ES.GetAllBigMapDiff()
-	if err != nil {
+	var allBigMapDiffs []models.BigMapDiff
+	if err := ctx.ES.GetAll(&allBigMapDiffs); err != nil {
 		return err
 	}
 	logger.Info("Found %d big map diff", len(allBigMapDiffs))
