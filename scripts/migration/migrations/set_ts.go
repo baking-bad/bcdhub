@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 
@@ -19,7 +20,7 @@ func (m *SetTimestamp) Description() string {
 }
 
 // Do - migrate function
-func (m *SetTimestamp) Do(ctx *Context) error {
+func (m *SetTimestamp) Do(ctx *config.Context) error {
 	for _, network := range ctx.Config.Migrations.Networks {
 		rpc, err := ctx.GetRPC(network)
 		if err != nil {

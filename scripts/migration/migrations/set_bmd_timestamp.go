@@ -3,6 +3,7 @@ package migrations
 import (
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 )
@@ -16,7 +17,7 @@ func (m *SetBMDTimestamp) Description() string {
 }
 
 // Do - migrate function
-func (m *SetBMDTimestamp) Do(ctx *Context) error {
+func (m *SetBMDTimestamp) Do(ctx *config.Context) error {
 	allBMD, err := ctx.ES.GetAllBigMapDiff()
 	if err != nil {
 		return err

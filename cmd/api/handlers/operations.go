@@ -77,11 +77,11 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 
 func (ctx *Context) getOperationFromMempool(hash string) (Operation, error) {
 	var wg sync.WaitGroup
-	var opCh = make(chan Operation, len(ctx.TzKTSvcs))
+	var opCh = make(chan Operation, len(ctx.TzKTServices))
 
 	defer close(opCh)
 
-	for network := range ctx.TzKTSvcs {
+	for network := range ctx.TzKTServices {
 		wg.Add(1)
 		go ctx.getOperation(network, hash, opCh, &wg)
 	}
@@ -94,8 +94,8 @@ func (ctx *Context) getOperationFromMempool(hash string) (Operation, error) {
 func (ctx *Context) getOperation(network, hash string, ops chan<- Operation, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	api, ok := ctx.TzKTSvcs[network]
-	if !ok {
+	api, err := ctx.GetTzKTService(network)
+	if err != nil {
 		return
 	}
 
@@ -391,12 +391,13 @@ func (ctx *Context) GetOperationErrorLocation(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, response)
 }
+
 func (ctx *Context) getErrorLocation(operation models.Operation, window int) (GetErrorLocationResponse, error) {
-	rpc, ok := ctx.RPCs[operation.Network]
-	if !ok {
-		return GetErrorLocationResponse{}, fmt.Errorf("Unknown network: %s", operation.Network)
+	rpc, err := ctx.GetRPC(operation.Network)
+	if err != nil {
+		return GetErrorLocationResponse{}, err
 	}
-	code, err := contractparser.GetContract(rpc, operation.Destination, operation.Network, operation.Protocol, ctx.Dir, 0)
+	code, err := contractparser.GetContract(rpc, operation.Destination, operation.Network, operation.Protocol, ctx.SharePath, 0)
 	if err != nil {
 		return GetErrorLocationResponse{}, err
 	}

@@ -3,6 +3,7 @@ package migrations
 import (
 	"fmt"
 
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/schollz/progressbar/v3"
@@ -19,7 +20,7 @@ func (m *SetTotalWithdrawn) Description() string {
 }
 
 // Do - migrate function
-func (m *SetTotalWithdrawn) Do(ctx *Context) error {
+func (m *SetTotalWithdrawn) Do(ctx *config.Context) error {
 	for _, network := range ctx.Config.Migrations.Networks {
 		filter := make(map[string]interface{})
 		filter["network"] = network

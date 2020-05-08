@@ -1,6 +1,7 @@
 package migrations
 
 import (
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -17,7 +18,7 @@ func (m *SetContractFingerprint) Description() string {
 }
 
 // Do - migrate function
-func (m *SetContractFingerprint) Do(ctx *Context) error {
+func (m *SetContractFingerprint) Do(ctx *config.Context) error {
 	h := metrics.New(ctx.ES, ctx.DB)
 
 	filter := make(map[string]interface{})

@@ -2,22 +2,15 @@ package main
 
 import (
 	"strings"
-	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/tidwall/gjson"
 	"gopkg.in/go-playground/validator.v9"
 
 	"github.com/baking-bad/bcdhub/cmd/api/handlers"
-	"github.com/baking-bad/bcdhub/cmd/api/oauth"
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
-	"github.com/baking-bad/bcdhub/internal/database"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/baking-bad/bcdhub/internal/tzkt"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 )
@@ -41,37 +34,13 @@ func main() {
 		defer helpers.CatchPanicSentry()
 	}
 
-	es := elastic.WaitNew([]string{cfg.Elastic.URI})
-	if err := cerrors.LoadErrorDescriptions("data/errors.json"); err != nil {
-		logger.Fatal(err)
-	}
-
-	db, err := database.New(cfg.DB.ConnString)
+	ctx, err := handlers.NewContext(cfg)
 	if err != nil {
 		logger.Error(err)
 		helpers.CatchErrorSentry(err)
 		return
 	}
-	defer db.Close()
-
-	rpc := createRPC(cfg)
-	svcs := createTzKTSvcs(cfg)
-
-	var oauthCfg oauth.Config
-	if cfg.API.OAuth.Enabled {
-		oauthCfg, err = oauth.New(cfg)
-		if err != nil {
-			logger.Error(err)
-			helpers.CatchErrorSentry(err)
-		}
-	}
-
-	ctx, err := handlers.NewContext(es, rpc, svcs, cfg.Share.Path, db, oauthCfg)
-	if err != nil {
-		logger.Error(err)
-		helpers.CatchErrorSentry(err)
-		return
-	}
+	defer ctx.Close()
 
 	r := gin.Default()
 
@@ -224,20 +193,4 @@ func corsSettings() gin.HandlerFunc {
 	cfg.AllowCredentials = true
 	cfg.AddAllowHeaders("X-Requested-With", "Authorization")
 	return cors.New(cfg)
-}
-
-func createRPC(cfg config.Config) map[string]noderpc.Pool {
-	rpc := make(map[string]noderpc.Pool)
-	for network, rpcProvider := range cfg.RPC {
-		rpc[network] = noderpc.NewPool([]string{rpcProvider.URI}, time.Second*time.Duration(rpcProvider.Timeout))
-	}
-	return rpc
-}
-
-func createTzKTSvcs(cfg config.Config) map[string]*tzkt.ServicesTzKT {
-	svc := make(map[string]*tzkt.ServicesTzKT)
-	for network, tzktProvider := range cfg.TzKT {
-		svc[network] = tzkt.NewServicesTzKT(network, tzktProvider.ServicesURI, time.Second*time.Duration(tzktProvider.Timeout))
-	}
-	return svc
 }

@@ -3,6 +3,7 @@ package migrations
 import (
 	"fmt"
 
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
@@ -18,7 +19,7 @@ func (m *SetOperationBurned) Description() string {
 }
 
 // Do - migrate function
-func (m *SetOperationBurned) Do(ctx *Context) error {
+func (m *SetOperationBurned) Do(ctx *config.Context) error {
 	h := metrics.New(ctx.ES, ctx.DB)
 
 	for _, network := range ctx.Config.Migrations.Networks {

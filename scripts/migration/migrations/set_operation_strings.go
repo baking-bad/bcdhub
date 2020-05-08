@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 )
@@ -17,7 +18,7 @@ func (m *SetOperationStrings) Description() string {
 }
 
 // Do - migrate function
-func (m *SetOperationStrings) Do(ctx *Context) error {
+func (m *SetOperationStrings) Do(ctx *config.Context) error {
 	log.Print("Start SetOperationStrings migration...")
 	start := time.Now()
 

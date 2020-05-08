@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/schollz/progressbar/v3"
 
@@ -76,7 +77,7 @@ func (m *SetFA1) Description() string {
 }
 
 // Do - migrate function
-func (m *SetFA1) Do(ctx *Context) error {
+func (m *SetFA1) Do(ctx *config.Context) error {
 	contracts, err := ctx.ES.GetContracts(nil)
 	if err != nil {
 		return err

@@ -56,10 +56,13 @@ func main() {
 
 	start := time.Now()
 
-	ctx, err := migrations.NewContext(cfg)
-	if err != nil {
-		log.Fatal(err)
-	}
+	ctx := config.NewContext(
+		config.WithElasticSearch(cfg.Elastic),
+		config.WithDatabase(cfg.DB),
+		config.WithRPC(cfg.RPC),
+		config.WithConfigCopy(cfg),
+		config.WithLoadErrorDescriptions("data/errors.json"),
+	)
 	defer ctx.Close()
 
 	logger.Info("Starting %v migration...", env)

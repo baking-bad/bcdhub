@@ -3,6 +3,7 @@ package migrations
 import (
 	"fmt"
 
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -21,7 +22,7 @@ func (m *SetOperationAlias) Description() string {
 }
 
 // Do - migrate function
-func (m *SetOperationAlias) Do(ctx *Context) error {
+func (m *SetOperationAlias) Do(ctx *config.Context) error {
 	h := metrics.New(ctx.ES, ctx.DB)
 
 	operations, err := ctx.ES.GetAllOperations(m.Network)

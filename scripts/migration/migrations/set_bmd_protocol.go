@@ -3,6 +3,7 @@ package migrations
 import (
 	"fmt"
 
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/schollz/progressbar/v3"
@@ -17,7 +18,7 @@ func (m *SetBMDProtocol) Description() string {
 }
 
 // Do - migrate function
-func (m *SetBMDProtocol) Do(ctx *Context) error {
+func (m *SetBMDProtocol) Do(ctx *config.Context) error {
 	allBMD, err := ctx.ES.GetAllBigMapDiff()
 	if err != nil {
 		return err

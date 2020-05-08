@@ -3,6 +3,7 @@ package migrations
 import (
 	"fmt"
 
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/schollz/progressbar/v3"
 )
@@ -16,7 +17,7 @@ func (m *SetContractMigrationsCount) Description() string {
 }
 
 // Do - migrate function
-func (m *SetContractMigrationsCount) Do(ctx *Context) error {
+func (m *SetContractMigrationsCount) Do(ctx *config.Context) error {
 	for _, network := range ctx.Config.Migrations.Networks {
 		logger.Info("Migration in %s started", network)
 		migrations, err := ctx.ES.GetAllMigrations(network)

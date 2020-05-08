@@ -3,6 +3,7 @@ package migrations
 import (
 	"fmt"
 
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
@@ -20,7 +21,7 @@ func (m *SetContractAlias) Description() string {
 }
 
 // Do - migrate function
-func (m *SetContractAlias) Do(ctx *Context) error {
+func (m *SetContractAlias) Do(ctx *config.Context) error {
 	h := metrics.New(ctx.ES, ctx.DB)
 
 	filter := make(map[string]interface{})

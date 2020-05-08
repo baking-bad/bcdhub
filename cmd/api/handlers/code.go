@@ -66,12 +66,12 @@ func (ctx *Context) GetDiff(c *gin.Context) {
 }
 
 func (ctx *Context) getContractCodeJSON(network, address, protocol string, fallbackLevel int64) (res gjson.Result, err error) {
-	rpc, ok := ctx.RPCs[network]
-	if !ok {
-		return res, fmt.Errorf("Unknown network %s", network)
+	rpc, err := ctx.GetRPC(network)
+	if err != nil {
+		return res, err
 	}
 
-	contract, err := contractparser.GetContract(rpc, address, network, protocol, ctx.Dir, fallbackLevel)
+	contract, err := contractparser.GetContract(rpc, address, network, protocol, ctx.SharePath, fallbackLevel)
 	if err != nil {
 		return
 	}

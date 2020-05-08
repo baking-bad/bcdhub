@@ -15,7 +15,7 @@ import (
 	"github.com/streadway/amqp"
 )
 
-var ctx *Context
+var ctx *config.Context
 
 func parseData(data amqp.Delivery) error {
 	switch data.RoutingKey {
@@ -81,13 +81,18 @@ func main() {
 		defer helpers.CatchPanicSentry()
 	}
 
-	ctx, err = newContext(cfg)
-	if err != nil {
+	ctx = config.NewContext(
+		config.WithElasticSearch(cfg.Elastic),
+		config.WithRPC(cfg.RPC),
+		config.WithDatabase(cfg.DB),
+		config.WithRabbit(cfg.RabbitMQ),
+	)
+	defer ctx.Close()
+	if err := ctx.LoadAliases(); err != nil {
 		logger.Error(err)
 		helpers.CatchErrorSentry(err)
 		return
 	}
-	defer ctx.close()
 
 	closeChan := make(chan struct{})
 	signals := make(chan os.Signal, 1)

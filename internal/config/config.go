@@ -11,16 +11,13 @@ import (
 
 // Config -
 type Config struct {
-	RPC map[string]struct {
-		URI     string `yaml:"uri"`
-		Timeout int    `yaml:"timeout"`
-	} `yaml:"rpc"`
+	RPC  map[string]RPCConfig  `yaml:"rpc"`
+	TzKT map[string]TzKTConfig `yaml:"tzkt"`
 
-	TzKT map[string]struct {
-		URI         string `yaml:"uri"`
-		ServicesURI string `yaml:"services_uri"`
-		Timeout     int    `yaml:"timeout"`
-	} `yaml:"tzkt"`
+	Elastic  ElasticSearchConfig `yaml:"elastic"`
+	RabbitMQ RabbitConfig        `yaml:"rabbitmq"`
+	DB       DatabaseConfig      `yaml:"db"`
+	OAuth    OAuthConfig         `yaml:"oauth"`
 
 	Share struct {
 		Path string `yaml:"path"`
@@ -31,37 +28,6 @@ type Config struct {
 		URI         string `yaml:"uri"`
 		Debug       bool   `yaml:"debug"`
 	} `yaml:"sentry"`
-
-	Elastic struct {
-		URI string `yaml:"uri"`
-	} `yaml:"elastic"`
-
-	RabbitMQ struct {
-		URI    string   `yaml:"uri"`
-		Queues []string `yaml:"queues"`
-	} `yaml:"rabbitmq"`
-
-	DB struct {
-		ConnString string `yaml:"conn_string"`
-	} `yaml:"db"`
-
-	OAuth struct {
-		State string `yaml:"state"`
-		JWT   struct {
-			Secret      string `yaml:"secret"`
-			RedirectURL string `yaml:"redirect_url"`
-		} `yaml:"jwt"`
-		Github struct {
-			ClientID    string `yaml:"client_id"`
-			Secret      string `yaml:"secret"`
-			CallbackURL string `yaml:"callback_url"`
-		} `yaml:"github"`
-		Gitlab struct {
-			ClientID    string `yaml:"client_id"`
-			Secret      string `yaml:"secret"`
-			CallbackURL string `yaml:"callback_url"`
-		} `yaml:"gitlab"`
-	} `yaml:"oauth"`
 
 	API struct {
 		Bind  string `yaml:"bind"`
@@ -102,6 +68,54 @@ type Config struct {
 		AccessKeyID     string `yaml:"access_key_id"`
 		SecretAccessKey string `yaml:"secret_access_key"`
 	} `yaml:"aws"`
+}
+
+// RPCConfig -
+type RPCConfig struct {
+	URI     string `yaml:"uri"`
+	Timeout int    `yaml:"timeout"`
+}
+
+// ElasticSearchConfig -
+type ElasticSearchConfig struct {
+	URI string `yaml:"uri"`
+}
+
+// DatabaseConfig -
+type DatabaseConfig struct {
+	ConnString string `yaml:"conn_string"`
+}
+
+// RabbitConfig -
+type RabbitConfig struct {
+	URI    string   `yaml:"uri"`
+	Queues []string `yaml:"queues"`
+}
+
+// TzKTConfig -
+type TzKTConfig struct {
+	URI         string `yaml:"uri"`
+	ServicesURI string `yaml:"services_uri"`
+	Timeout     int    `yaml:"timeout"`
+}
+
+// OAuthConfig -
+type OAuthConfig struct {
+	State string `yaml:"state"`
+	JWT   struct {
+		Secret      string `yaml:"secret"`
+		RedirectURL string `yaml:"redirect_url"`
+	} `yaml:"jwt"`
+	Github struct {
+		ClientID    string `yaml:"client_id"`
+		Secret      string `yaml:"secret"`
+		CallbackURL string `yaml:"callback_url"`
+	} `yaml:"github"`
+	Gitlab struct {
+		ClientID    string `yaml:"client_id"`
+		Secret      string `yaml:"secret"`
+		CallbackURL string `yaml:"callback_url"`
+	} `yaml:"gitlab"`
 }
 
 // LoadConfig -

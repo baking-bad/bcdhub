@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/schollz/progressbar/v3"
@@ -20,7 +21,7 @@ func (m *SetOperationErrors) Description() string {
 }
 
 // Do - migrate function
-func (m *SetOperationErrors) Do(ctx *Context) error {
+func (m *SetOperationErrors) Do(ctx *config.Context) error {
 	start := time.Now()
 	for _, network := range ctx.Config.Migrations.Networks {
 		operations, err := ctx.ES.GetAllOperationsByStatus(network, "failed")

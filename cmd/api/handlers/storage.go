@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
@@ -30,9 +29,8 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 		s = gjson.Parse(storage.Get("_source.deffated_storage").String())
 
 	} else {
-		rpc, ok := ctx.RPCs[req.Network]
-		if !ok {
-			handleError(c, fmt.Errorf("Unknown network: %s", req.Network), http.StatusBadRequest)
+		rpc, err := ctx.GetRPC(req.Network)
+		if handleError(c, err, http.StatusBadRequest) {
 			return
 		}
 		s, err = rpc.GetScriptStorageJSON(req.Address, 0)
