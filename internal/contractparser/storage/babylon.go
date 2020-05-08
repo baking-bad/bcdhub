@@ -116,7 +116,7 @@ func (b *Babylon) Enrich(storage string, bmd []models.BigMapDiff, skipEmpty bool
 		if bm.BinPath != "0" {
 			binPath := strings.TrimPrefix(bm.BinPath, "0/")
 			p := newmiguel.GetGJSONPath(binPath)
-			jsonPath, err := b.findPtrJSONPath(p, data)
+			jsonPath, err := b.findPtrJSONPath(bm.Ptr, p, data)
 			if err != nil {
 				return data, err
 			}
@@ -380,16 +380,47 @@ func (b *Babylon) setMapPtr(storage gjson.Result, path string, m map[int64]strin
 	return nil
 }
 
-func (b *Babylon) findPtrJSONPath(path string, data gjson.Result) (string, error) {
+func (b *Babylon) findPtrJSONPath(ptr int64, path string, data gjson.Result) (string, error) {
 	val := data
 	parts := strings.Split(path, ".")
 
 	var newPath strings.Builder
 	for i := range parts {
-		buf := val.Get(parts[i])
+		if parts[i] == "#" && val.IsArray() {
+			for idx, item := range val.Array() {
+				if i == len(parts)-1 {
+					if ptr != item.Get("int").Int() {
+						continue
+					}
+					if newPath.Len() != 0 {
+						newPath.WriteString(".")
+					}
+					fmt.Fprintf(&newPath, "%d", idx)
+					return newPath.String(), nil
+				}
 
+				p := strings.Join(parts[i+1:], ".")
+				np, err := b.findPtrJSONPath(ptr, p, item)
+				if err != nil {
+					continue
+				}
+				if np != "" {
+					fmt.Fprintf(&newPath, ".%d.%s", idx, strings.TrimPrefix(np, "."))
+					return newPath.String(), nil
+				}
+			}
+			return "", fmt.Errorf("Invalid path")
+		}
+
+		buf := val.Get(parts[i])
+		if !buf.IsArray() && !buf.IsObject() {
+			return "", fmt.Errorf("Invalid path")
+		}
 		if i == len(parts)-1 {
 			if buf.Get("int").Exists() {
+				if ptr != buf.Get("int").Int() {
+					return "", fmt.Errorf("Invalid path")
+				}
 				if newPath.Len() != 0 {
 					newPath.WriteString(".")
 				}
@@ -402,7 +433,7 @@ func (b *Babylon) findPtrJSONPath(path string, data gjson.Result) (string, error
 				if i < len(parts)-1 {
 					fmt.Fprintf(&bufPath, ".%s", strings.Join(parts[i+1:], "."))
 				}
-				p, err := b.findPtrJSONPath(bufPath.String(), val)
+				p, err := b.findPtrJSONPath(ptr, bufPath.String(), val)
 				if err != nil {
 					return "", err
 				}
@@ -415,9 +446,11 @@ func (b *Babylon) findPtrJSONPath(path string, data gjson.Result) (string, error
 			if newPath.Len() != 0 {
 				newPath.WriteString(".")
 			}
+
 			newPath.WriteString(parts[i])
 			val = buf
 		}
+
 	}
 	return newPath.String(), nil
 }
