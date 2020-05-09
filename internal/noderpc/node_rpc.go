@@ -1,6 +1,8 @@
 package noderpc
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -61,6 +63,47 @@ func (rpc *NodeRPC) get(uri string) (res gjson.Result, err error) {
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return res, fmt.Errorf("get.ReadAll: %v", err)
+	}
+
+	res = gjson.ParseBytes(b)
+
+	resp.Body.Close()
+	return
+}
+
+func (rpc *NodeRPC) post(uri string, data map[string]interface{}) (res gjson.Result, err error) {
+	url := helpers.URLJoin(rpc.baseURL, uri)
+	client := http.Client{
+		Timeout: rpc.timeout,
+	}
+
+	bData, err := json.Marshal(data)
+	if err != nil {
+		return res, fmt.Errorf("post.json.Marshal: %v", err)
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewReader(bData))
+	if err != nil {
+		return res, fmt.Errorf("post.NewRequest: %v", err)
+	}
+
+	var resp *http.Response
+	count := 0
+	for ; count < rpc.retryCount; count++ {
+		if resp, err = client.Do(req); err != nil {
+			log.Printf("Attempt #%d: %s", count+1, err.Error())
+			continue
+		}
+		break
+	}
+
+	if count == rpc.retryCount {
+		return res, errors.New("Max HTTP request retry exceeded")
+	}
+
+	b, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return res, fmt.Errorf("post.ReadAll: %v", err)
 	}
 
 	res = gjson.ParseBytes(b)
@@ -188,4 +231,30 @@ func (rpc *NodeRPC) GetContractsByBlock(block int64) ([]string, error) {
 // GetNetworkConstants -
 func (rpc *NodeRPC) GetNetworkConstants() (res gjson.Result, err error) {
 	return rpc.get("chains/main/blocks/head/context/constants")
+}
+
+// RunCode -
+func (rpc *NodeRPC) RunCode(script, storage, input gjson.Result, chainID, source, payer, entrypoint string, amount, gas int64) (res gjson.Result, err error) {
+	data := map[string]interface{}{
+		"script":   script.Value(),
+		"storage":  storage.Value(),
+		"input":    input.Value(),
+		"amount":   fmt.Sprintf("%d", amount),
+		"chain_id": chainID,
+	}
+
+	if gas != 0 {
+		data["gas"] = fmt.Sprintf("%d", gas)
+	}
+	if source != "" {
+		data["source"] = source
+	}
+	if payer != "" {
+		data["payer"] = payer
+	}
+	if entrypoint != "" {
+		data["entrypoint"] = entrypoint
+	}
+
+	return rpc.post("chains/main/blocks/head/helpers/scripts/run_code", data)
 }

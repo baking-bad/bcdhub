@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/jsonschema"
 	"github.com/gin-gonic/gin"
+	"github.com/tidwall/gjson"
 )
 
 func getParameterMetadata(es *elastic.Elastic, address, network string) (meta.Metadata, error) {
@@ -66,12 +67,7 @@ func (ctx *Context) GetEntrypointData(c *gin.Context) {
 		return
 	}
 
-	metadata, err := getParameterMetadata(ctx.ES, req.Address, req.Network)
-	if handleError(c, err, 0) {
-		return
-	}
-
-	result, err := metadata.BuildEntrypointMicheline(reqData.BinPath, reqData.Data)
+	result, err := ctx.buildEntrypointMicheline(req.Network, req.Address, reqData.BinPath, reqData.Data)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -87,4 +83,13 @@ func (ctx *Context) GetEntrypointData(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, result.Value())
+}
+
+func (ctx *Context) buildEntrypointMicheline(network, address, binPath string, data map[string]interface{}) (gjson.Result, error) {
+	metadata, err := getParameterMetadata(ctx.ES, address, network)
+	if err != nil {
+		return gjson.Result{}, err
+	}
+
+	return metadata.BuildEntrypointMicheline(binPath, data)
 }

@@ -140,3 +140,12 @@ type getBySlugRequest struct {
 type getOperationByIDRequest struct {
 	ID string `uri:"id" binding:"required"`
 }
+
+type runCodeRequest struct {
+	Data     map[string]interface{} `json:"data" binding:"required"`
+	BinPath  string                 `json:"bin_path" binding:"required"`
+	Amount   int64                  `json:"amount,omitempty"`
+	GasLimit int64                  `json:"gas_limit,omitempty"`
+	Source   string                 `json:"source,omitempty" binding:"address"`
+	Sender   string                 `json:"sender,omitempty" binding:"address"`
+}

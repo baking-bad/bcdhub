@@ -8,20 +8,21 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/baking-bad/bcdhub/internal/jsonschema"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/tidwall/gjson"
 )
 
 // Operation -
 type Operation struct {
-	ID        string    `json:"id"`
+	ID        string    `json:"id,omitempty"`
 	Protocol  string    `json:"protocol"`
-	Hash      string    `json:"hash"`
+	Hash      string    `json:"hash,omitempty"`
 	Internal  bool      `json:"internal"`
 	Network   string    `json:"network"`
 	Timesatmp time.Time `json:"timestamp"`
 
 	Level            int64            `json:"level"`
 	Kind             string           `json:"kind"`
-	Source           string           `json:"source"`
+	Source           string           `json:"source,omitempty"`
 	SourceAlias      string           `json:"source_alias,omitempty"`
 	Fee              int64            `json:"fee,omitempty"`
 	Counter          int64            `json:"counter,omitempty"`
@@ -47,6 +48,22 @@ type Operation struct {
 	Mempool     bool        `json:"mempool"`
 
 	IndexedTime int64 `json:"-"`
+}
+
+// ParseJSON -
+func (o *Operation) ParseJSON(raw gjson.Result) {
+	o.Status = raw.Get("status").String()
+	o.Kind = raw.Get("kind").String()
+	o.Source = raw.Get("source").String()
+	o.Fee = raw.Get("fee").Int()
+	o.Counter = raw.Get("counter").Int()
+	o.GasLimit = raw.Get("gas_limit").Int()
+	o.StorageLimit = raw.Get("storage_limit").Int()
+	o.Amount = raw.Get("amount").Int()
+	o.Destination = raw.Get("destination").String()
+	o.PublicKey = raw.Get("public_key").String()
+	o.ManagerPubKey = raw.Get("manager_pubkey").String()
+	o.Delegate = raw.Get("delegate").String()
 }
 
 // Contract -
