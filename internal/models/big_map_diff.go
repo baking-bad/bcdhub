@@ -24,7 +24,7 @@ type BigMapDiff struct {
 	Timestamp    time.Time   `json:"timestamp"`
 	Protocol     string      `json:"protocol"`
 
-	FoundBy string `json:"found_by"`
+	FoundBy string `json:"found_by,omitempty"`
 }
 
 // GetID -

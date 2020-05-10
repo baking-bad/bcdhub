@@ -178,6 +178,7 @@ func (b *Babylon) handleBigMapDiffUpdate(item gjson.Result, ptrMap map[int64]str
 	ptr := item.Get("big_map").Int()
 
 	bmd := models.BigMapDiff{
+		ID:          helpers.GenerateID(),
 		Ptr:         ptr,
 		Key:         item.Get("key").Value(),
 		KeyHash:     item.Get("key_hash").String(),
