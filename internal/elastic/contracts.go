@@ -365,17 +365,23 @@ func (e *Elastic) RecalcContractStats(network, address string) (stats ContractSt
 				"balance": qItem{
 					"scripted_metric": qItem{
 						"init_script":    "state.operations = []",
-						"map_script":     fmt.Sprintf("if (doc['status.keyword'].value == 'applied' && doc['amount'].size() != 0) {state.operations.add(doc['destination.keyword'].value == '%s' ? doc['amount'].value : -1L * doc['amount'].value)}", address),
+						"map_script":     "if (doc['status.keyword'].value == 'applied' && doc['amount'].size() != 0) {state.operations.add(doc['destination.keyword'].value == params.address ? doc['amount'].value : -1L * doc['amount'].value)}",
 						"combine_script": "double balance = 0; for (amount in state.operations) { balance += amount } return balance",
 						"reduce_script":  "double balance = 0; for (a in states) { balance += a } return balance",
+						"params": qItem{
+							"address": address,
+						},
 					},
 				},
 				"total_withdrawn": qItem{
 					"scripted_metric": qItem{
 						"init_script":    "state.operations = []",
-						"map_script":     fmt.Sprintf("if (doc['status.keyword'].value == 'applied' && doc['amount'].size() != 0 && doc['source.keyword'].value == '%s') {state.operations.add(doc['amount'].value)}", address),
+						"map_script":     "if (doc['status.keyword'].value == 'applied' && doc['amount'].size() != 0 && doc['source.keyword'].value == params.address) {state.operations.add(doc['amount'].value)}",
 						"combine_script": "double balance = 0; for (amount in state.operations) { balance += amount } return balance",
 						"reduce_script":  "double balance = 0; for (a in states) { balance += a } return balance",
+						"params": qItem{
+							"address": address,
+						},
 					},
 				},
 			},
