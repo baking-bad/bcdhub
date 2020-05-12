@@ -51,10 +51,8 @@ func (e *Elastic) GetSameContracts(c models.Contract, size, offset int64) (scp S
 
 	q := newQuery().Query(
 		boolQ(
-			must(
-				matchPhrase("fingerprint.parameter", c.Fingerprint.Parameter),
-				matchPhrase("fingerprint.storage", c.Fingerprint.Storage),
-				matchPhrase("fingerprint.code", c.Fingerprint.Code),
+			filter(
+				matchPhrase("hash", c.Hash),
 			),
 			notMust(
 				matchPhrase("address", c.Address),
@@ -88,12 +86,14 @@ func (e *Elastic) GetSimilarContracts(c models.Contract) ([]SimilarContract, err
 	if c.Fingerprint == nil {
 		return nil, nil
 	}
-	fgpt := fmt.Sprintf("%s|%s|%s", c.Fingerprint.Parameter, c.Fingerprint.Storage, c.Fingerprint.Code)
 
 	query := newQuery().Query(
 		boolQ(
-			must(
+			filter(
 				matchPhrase("project_id", c.ProjectID),
+			),
+			notMust(
+				matchQ("hash.keyword", c.Hash),
 			),
 		),
 	).Add(
@@ -101,8 +101,8 @@ func (e *Elastic) GetSimilarContracts(c models.Contract) ([]SimilarContract, err
 			"projects",
 			qItem{
 				"terms": qItem{
-					"script": "doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value",
-					"size":   10000,
+					"field": "hash.keyword",
+					"size":  10000,
 					"order": qItem{
 						"bucketsSort": "desc",
 					},
@@ -129,10 +129,6 @@ func (e *Elastic) GetSimilarContracts(c models.Contract) ([]SimilarContract, err
 	for _, item := range buckets.Array() {
 		var buf models.Contract
 		buf.ParseElasticJSON(item.Get("last.hits.hits.0"))
-		bufF := fmt.Sprintf("%s|%s|%s", buf.Fingerprint.Parameter, buf.Fingerprint.Storage, buf.Fingerprint.Code)
-		if fgpt == bufF {
-			continue
-		}
 		res = append(res, SimilarContract{
 			Contract: &buf,
 			Count:    item.Get("doc_count").Int(),
@@ -155,8 +151,8 @@ func (e *Elastic) GetProjectsStats() (stats []ProjectStats, err error) {
 			"aggs": qItem{
 				"by_same": qItem{
 					"terms": qItem{
-						"script": "doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value",
-						"size":   maxQuerySize,
+						"field": "hash.keyword",
+						"size":  maxQuerySize,
 					},
 					"aggs": qItem{
 						"last_action_date":  max("last_action"),
@@ -165,7 +161,7 @@ func (e *Elastic) GetProjectsStats() (stats []ProjectStats, err error) {
 				},
 				"count": qItem{
 					"cardinality": qItem{
-						"script": "doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value",
+						"field": "hash.keyword",
 					},
 				},
 				"last_action_date":  maxBucket("by_same>last_action_date"),
@@ -204,10 +200,10 @@ func (e *Elastic) GetDiffTasks(offset int64) ([]DiffTask, error) {
 				"size":  maxQuerySize,
 			},
 			"aggs": qItem{
-				"by_fingerprint": qItem{
+				"by_hash": qItem{
 					"terms": qItem{
-						"script": "doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value",
-						"size":   maxQuerySize,
+						"field": "hash.keyword",
+						"size":  maxQuerySize,
 					},
 					"aggs": qItem{
 						"last": topHits(1, "last_action", "desc"),
@@ -225,7 +221,7 @@ func (e *Elastic) GetDiffTasks(offset int64) ([]DiffTask, error) {
 	tasks := make([]DiffTask, 0)
 	buckets := resp.Get("aggregations.by_project.buckets").Array()
 	for _, bucket := range buckets {
-		similar := bucket.Get("by_fingerprint.buckets").Array()
+		similar := bucket.Get("by_hash.buckets").Array()
 		if len(similar) < 2 {
 			continue
 		}

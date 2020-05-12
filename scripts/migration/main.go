@@ -33,6 +33,7 @@ func main() {
 		"set_alias_slug":            &migrations.SetAliasSlug{},
 		"set_contract_fingerprint":  &migrations.SetContractFingerprint{},
 		"set_operation_errors":      &migrations.SetOperationErrors{},
+		"set_contract_hash":         &migrations.SetContractHash{},
 	}
 
 	cfg, err := config.LoadDefaultConfig()

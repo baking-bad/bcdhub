@@ -1,6 +1,8 @@
 package contractparser
 
 import (
+	"crypto/sha512"
+	"encoding/hex"
 	"regexp"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
@@ -26,4 +28,13 @@ func IsLiteral(prim string) bool {
 		consts.KEY, consts.TIMESTAMP, consts.BOOL, consts.MUTEZ,
 		consts.NAT, consts.STRING, consts.INT, consts.SIGNATURE,
 	})
+}
+
+// ComputeContractHash -
+func ComputeContractHash(code string) (string, error) {
+	sha := sha512.New()
+	if _, err := sha.Write([]byte(code)); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(sha.Sum(nil)), nil
 }

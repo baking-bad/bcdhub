@@ -9,19 +9,20 @@ import (
 
 // Contract - entity for contract
 type Contract struct {
-	ID          string       `json:"id"`
-	Network     string       `json:"network"`
-	Level       int64        `json:"level"`
-	Timestamp   time.Time    `json:"timestamp"`
-	Balance     int64        `json:"balance"`
-	Fingerprint *Fingerprint `json:"fingerprint,omitempty"`
-	Language    string       `json:"language,omitempty"`
+	ID        string    `json:"id"`
+	Network   string    `json:"network"`
+	Level     int64     `json:"level"`
+	Timestamp time.Time `json:"timestamp"`
+	Balance   int64     `json:"balance"`
+	Language  string    `json:"language,omitempty"`
 
-	Tags        []string `json:"tags,omitempty"`
-	Hardcoded   []string `json:"hardcoded,omitempty"`
-	FailStrings []string `json:"fail_strings,omitempty"`
-	Annotations []string `json:"annotations,omitempty"`
-	Entrypoints []string `json:"entrypoints,omitempty"`
+	Hash        string       `json:"hash"`
+	Fingerprint *Fingerprint `json:"fingerprint,omitempty"`
+	Tags        []string     `json:"tags,omitempty"`
+	Hardcoded   []string     `json:"hardcoded,omitempty"`
+	FailStrings []string     `json:"fail_strings,omitempty"`
+	Annotations []string     `json:"annotations,omitempty"`
+	Entrypoints []string     `json:"entrypoints,omitempty"`
 
 	Address  string `json:"address"`
 	Manager  string `json:"manager,omitempty"`
@@ -68,6 +69,7 @@ func (c *Contract) ParseElasticJSON(hit gjson.Result) {
 		c.Fingerprint.ParseElasticJSON(f)
 	}
 
+	c.Hash = hit.Get("_source.hash").String()
 	c.Address = hit.Get("_source.address").String()
 	c.Manager = hit.Get("_source.manager").String()
 	c.Delegate = hit.Get("_source.delegate").String()
