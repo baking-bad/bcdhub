@@ -44,8 +44,5 @@ func parseContract(contract models.Contract) error {
 
 	logger.Info("Contract %s to project %s", contract.Address, contract.ProjectID)
 
-	if _, err := ctx.ES.UpdateDoc(elastic.DocContracts, contract.ID, contract); err != nil {
-		return err
-	}
-	return nil
+	return ctx.ES.UpdateFields(elastic.DocContracts, contract.ID, contract, "ProjectID", "Alias")
 }

@@ -185,29 +185,6 @@ func (e *Elastic) TestConnection() (result gjson.Result, err error) {
 	return e.getResponse(res)
 }
 
-// UpdateDoc - updates document by ID
-func (e *Elastic) UpdateDoc(index, id string, v interface{}) (result gjson.Result, err error) {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return
-	}
-	req := esapi.IndexRequest{
-		Index:      index,
-		DocumentID: id,
-		Body:       bytes.NewReader(b),
-		Refresh:    "true",
-	}
-
-	res, err := req.Do(context.Background(), e)
-	if err != nil {
-		return
-	}
-	defer res.Body.Close()
-
-	result, err = e.getResponse(res)
-	return
-}
-
 // CreateIndexIfNotExists -
 func (e *Elastic) CreateIndexIfNotExists(index string) error {
 	req := esapi.IndicesExistsRequest{
