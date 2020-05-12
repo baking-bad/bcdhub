@@ -43,10 +43,12 @@ func parseOperation(operation models.Operation) error {
 		return err
 	}
 
-	for _, address := range []string{operation.Source, operation.Destination} {
-		if strings.HasPrefix(address, "KT") {
-			if err := setOperationStats(h, address, operation); err != nil {
-				return fmt.Errorf("[parseOperation] Compute error message: %s", err)
+	if operation.Kind != consts.Origination {
+		for _, address := range []string{operation.Source, operation.Destination} {
+			if strings.HasPrefix(address, "KT") {
+				if err := setOperationStats(h, address, operation); err != nil {
+					return fmt.Errorf("[parseOperation] Compute error message: %s", err)
+				}
 			}
 		}
 	}
@@ -68,7 +70,7 @@ func setOperationStats(h *metrics.Handler, address string, operation models.Oper
 	})
 
 	if err != nil {
-		if strings.Contains(err.Error(), "Unknown contract") {
+		if elastic.IsRecordNotFound(err) {
 			return nil
 		}
 		return fmt.Errorf("[setOperationStats] Find contract error: %s", err)
@@ -78,9 +80,5 @@ func setOperationStats(h *metrics.Handler, address string, operation models.Oper
 		return fmt.Errorf("[setOperationStats] compute contract stats error message: %s", err)
 	}
 
-	if _, err := ctx.ES.UpdateDoc(elastic.DocContracts, c.ID, c); err != nil {
-		return err
-	}
-
-	return nil
+	return ctx.ES.UpdateFields(elastic.DocContracts, c.ID, c, "TxCount", "LastAction", "Balance", "TotalWithdrawn")
 }
