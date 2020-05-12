@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/tidwall/gjson"
@@ -74,19 +75,25 @@ func defaultBuilder(metadata Metadata, node *NodeMetadata, path string, data map
 	}
 
 	switch node.Prim {
-	case consts.STRING, consts.KEYHASH, consts.KEY, consts.ADDRESS, consts.CHAINID, consts.SIGNATURE, consts.CONTRACT, consts.TIMESTAMP, consts.LAMBDA:
+	case consts.STRING, consts.KEYHASH, consts.KEY, consts.ADDRESS, consts.CHAINID, consts.SIGNATURE, consts.CONTRACT, consts.LAMBDA:
 		return fmt.Sprintf(`{"string": "%s"}`, value), nil
 	case consts.BYTES:
 		return fmt.Sprintf(`{"bytes": "%s"}`, value), nil
 	case consts.INT, consts.NAT, consts.MUTEZ, consts.BIGMAP:
 		switch t := value.(type) {
 		case int, int64, int8, int32, int16, uint, uint16, uint32, uint64, uint8:
-			return fmt.Sprintf(`{"int": %d}`, t), nil
+			return fmt.Sprintf(`{"int": "%d"}`, t), nil
 		case float32, float64:
-			return fmt.Sprintf(`{"int": %0.f}`, t), nil
+			return fmt.Sprintf(`{"int": "%0.f"}`, t), nil
 		default:
 			return "", fmt.Errorf("[defaultBuilder] Invalid integer type: %v", t)
 		}
+	case consts.TIMESTAMP:
+		ts, err := time.Parse(time.RFC3339, value.(string))
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf(`{"int": "%d"}`, ts.UTC().Unix()), nil
 	case consts.BOOL:
 		sBool := "False"
 		if tb, ok := value.(bool); ok && tb {

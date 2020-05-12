@@ -180,3 +180,12 @@ func (p Pool) GetNetworkConstants() (res gjson.Result, err error) {
 	}
 	return data.Interface().(gjson.Result), nil
 }
+
+// RunCode -
+func (p Pool) RunCode(script, storage, input gjson.Result, chainID, source, payer, entrypoint string, amount, gas int64) (res gjson.Result, err error) {
+	data, err := p.call("RunCode", script, storage, input, chainID, source, payer, entrypoint, amount, gas)
+	if err != nil {
+		return
+	}
+	return data.Interface().(gjson.Result), nil
+}

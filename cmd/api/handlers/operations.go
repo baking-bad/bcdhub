@@ -199,18 +199,8 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 	}
 
 	if strings.HasPrefix(op.Destination, "KT") && !cerrors.HasParametersError(op.Errors) {
-		metadata, err := meta.GetMetadata(es, op.Destination, consts.PARAMETER, op.Protocol)
-		if err != nil {
-			return op, nil
-		}
-
-		params := gjson.Parse(operation.Parameters)
-		op.Parameters, err = newmiguel.ParameterToMiguel(params, metadata)
-		if err != nil {
-			if !cerrors.HasGasExhaustedError(op.Errors) {
-				helpers.CatchErrorSentry(err)
-				return op, err
-			}
+		if err := setParameters(es, operation.Parameters, &op); err != nil {
+			return op, err
 		}
 	}
 
@@ -229,7 +219,24 @@ func prepareOperations(es *elastic.Elastic, ops []models.Operation) ([]Operation
 	return resp, nil
 }
 
-func setStorageDiff(es *elastic.Elastic, address, network string, storage string, op *Operation) error {
+func setParameters(es *elastic.Elastic, parameters string, op *Operation) error {
+	metadata, err := meta.GetMetadata(es, op.Destination, consts.PARAMETER, op.Protocol)
+	if err != nil {
+		return nil
+	}
+
+	params := gjson.Parse(parameters)
+	op.Parameters, err = newmiguel.ParameterToMiguel(params, metadata)
+	if err != nil {
+		if !cerrors.HasGasExhaustedError(op.Errors) {
+			helpers.CatchErrorSentry(err)
+			return err
+		}
+	}
+	return nil
+}
+
+func setStorageDiff(es *elastic.Elastic, address, network, storage string, op *Operation) error {
 	metadata, err := meta.GetContractMetadata(es, address)
 	if err != nil {
 		return err
