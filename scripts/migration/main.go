@@ -34,6 +34,7 @@ func main() {
 		"set_contract_fingerprint":  &migrations.SetContractFingerprint{},
 		"set_operation_errors":      &migrations.SetOperationErrors{},
 		"set_contract_hash":         &migrations.SetContractHash{},
+		"recalc_contract_metrics":   &migrations.RecalcContractMetrics{},
 	}
 
 	cfg, err := config.LoadDefaultConfig()
