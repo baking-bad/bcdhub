@@ -22,6 +22,7 @@ type Code struct {
 	Language    string
 	FailStrings helpers.Set
 	Annotations helpers.Set
+	Hash        string
 }
 
 func newCode(script gjson.Result) (Code, error) {
@@ -39,6 +40,12 @@ func newCode(script gjson.Result) (Code, error) {
 	if len(code) != 3 {
 		return res, fmt.Errorf("Invalid tag 'code' length")
 	}
+
+	hash, err := ComputeContractHash(script.Get("code").Raw)
+	if err != nil {
+		return res, err
+	}
+	res.Hash = hash
 
 	for i := range code {
 		n := node.NewNodeJSON(code[i])

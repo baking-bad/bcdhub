@@ -47,6 +47,7 @@ func computeMetrics(es *elastic.Elastic, operation models.Operation, filesDirect
 	}
 
 	contract.Language = lang
+	contract.Hash = script.Code.Hash
 	contract.FailStrings = script.Code.FailStrings.Values()
 	contract.Annotations = script.Annotations.Values()
 	contract.Tags = script.Tags.Values()
