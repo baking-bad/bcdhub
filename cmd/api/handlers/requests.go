@@ -146,6 +146,6 @@ type runCodeRequest struct {
 	BinPath  string                 `json:"bin_path" binding:"required"`
 	Amount   int64                  `json:"amount,omitempty"`
 	GasLimit int64                  `json:"gas_limit,omitempty"`
-	Source   string                 `json:"source,omitempty" binding:"address"`
-	Sender   string                 `json:"sender,omitempty" binding:"address"`
+	Source   string                 `json:"source,omitempty" binding:"omitempty,address"`
+	Sender   string                 `json:"sender,omitempty" binding:"omitempty,address"`
 }
