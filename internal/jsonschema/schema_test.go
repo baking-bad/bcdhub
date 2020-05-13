@@ -429,7 +429,7 @@ func TestCreate(t *testing.T) {
 				return
 			}
 
-			got, err := Create(tt.binPath, metadata)
+			got, _, err := Create(tt.binPath, metadata)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Create() error = %v, wantErr %v", err, tt.wantErr)
 				return

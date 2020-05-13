@@ -9,18 +9,21 @@ import (
 
 type orMaker struct{}
 
-func (m *orMaker) Do(binPath string, metadata meta.Metadata) (Schema, error) {
+func (m *orMaker) Do(binPath string, metadata meta.Metadata) (Schema, DefaultModel, error) {
 	nm, ok := metadata[binPath]
 	if !ok {
-		return nil, fmt.Errorf("[orMaker] Unknown metadata binPath: %s", binPath)
+		return nil, nil, fmt.Errorf("[orMaker] Unknown metadata binPath: %s", binPath)
 	}
 
 	schemas := make([]Schema, 0)
+	model := make(DefaultModel)
 	for _, arg := range nm.Args {
-		argSchema, err := Create(arg, metadata)
+		argSchema, argModel, err := Create(arg, metadata)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
+
+		model.Extend(argModel, arg)
 
 		arg = strings.TrimSuffix(arg, "/o")
 
@@ -61,7 +64,7 @@ func (m *orMaker) Do(binPath string, metadata meta.Metadata) (Schema, error) {
 			"dense":    true,
 			"outlined": true,
 		},
-	}, nil
+	}, model, nil
 }
 
 func getOrTitile(binPath, rootPath string, metadata meta.Metadata) string {
