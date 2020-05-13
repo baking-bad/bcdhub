@@ -212,7 +212,8 @@ type SearchBigMapDiff struct {
 // EntrypointSchema ;
 type EntrypointSchema struct {
 	docstring.EntrypointType
-	Schema jsonschema.Schema `json:"schema"`
+	Schema       jsonschema.Schema       `json:"schema"`
+	DefaultModel jsonschema.DefaultModel `json:"default_model"`
 }
 
 // GetErrorLocationResponse -

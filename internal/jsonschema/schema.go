@@ -18,14 +18,14 @@ var fabric = map[string]maker{
 }
 
 // Create - creates json schema for entrypoint
-func Create(binPath string, metadata meta.Metadata) (Schema, error) {
+func Create(binPath string, metadata meta.Metadata) (Schema, DefaultModel, error) {
 	nm, ok := metadata[binPath]
 	if !ok {
-		return nil, fmt.Errorf("[Create] Unknown metadata binPath: %s", binPath)
+		return nil, nil, fmt.Errorf("[Create] Unknown metadata binPath: %s", binPath)
 	}
 
 	if nm.Prim == consts.UNIT {
-		return nil, nil
+		return nil, DefaultModel{}, nil
 	}
 
 	f, ok := fabric[nm.Prim]
@@ -33,13 +33,13 @@ func Create(binPath string, metadata meta.Metadata) (Schema, error) {
 		f = fabric["default"]
 	}
 
-	schema, err := f.Do(binPath, metadata)
+	schema, model, err := f.Do(binPath, metadata)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if strings.HasSuffix(binPath, "/o") {
 		return optionWrapper(schema, binPath, metadata)
 	}
-	return schema, nil
+	return schema, model, nil
 }

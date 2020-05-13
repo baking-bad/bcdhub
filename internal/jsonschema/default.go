@@ -9,10 +9,10 @@ import (
 
 type defaultMaker struct{}
 
-func (m *defaultMaker) Do(binPath string, metadata meta.Metadata) (Schema, error) {
+func (m *defaultMaker) Do(binPath string, metadata meta.Metadata) (Schema, DefaultModel, error) {
 	nm, ok := metadata[binPath]
 	if !ok {
-		return nil, fmt.Errorf("[defaultMaker] Unknown metadata binPath: %s", binPath)
+		return nil, nil, fmt.Errorf("[defaultMaker] Unknown metadata binPath: %s", binPath)
 	}
 
 	schema := Schema{
@@ -21,6 +21,8 @@ func (m *defaultMaker) Do(binPath string, metadata meta.Metadata) (Schema, error
 			"dense":    true,
 		},
 	}
+
+	model := make(DefaultModel)
 	switch nm.Prim {
 	case consts.INT, consts.NAT, consts.MUTEZ, consts.BIGMAP:
 		schema["type"] = "integer"
@@ -28,6 +30,7 @@ func (m *defaultMaker) Do(binPath string, metadata meta.Metadata) (Schema, error
 		schema["type"] = "string"
 	case consts.BOOL:
 		schema["type"] = "boolean"
+		model[binPath] = false
 	case consts.TIMESTAMP:
 		schema["type"] = "string"
 		schema["format"] = "date-time"
@@ -38,7 +41,7 @@ func (m *defaultMaker) Do(binPath string, metadata meta.Metadata) (Schema, error
 	case consts.OPTION:
 		return Create(binPath+"/o", metadata)
 	default:
-		return nil, fmt.Errorf("[defaultMaker] Unknown primitive: %s", nm.Prim)
+		return nil, nil, fmt.Errorf("[defaultMaker] Unknown primitive: %s", nm.Prim)
 	}
 	if nm.Name != "" {
 		schema["title"] = nm.Name
@@ -51,5 +54,5 @@ func (m *defaultMaker) Do(binPath string, metadata meta.Metadata) (Schema, error
 		"properties": Schema{
 			binPath: schema,
 		},
-	}, nil
+	}, model, nil
 }

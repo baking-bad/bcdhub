@@ -8,10 +8,10 @@ import (
 
 type mapMaker struct{}
 
-func (m *mapMaker) Do(binPath string, metadata meta.Metadata) (Schema, error) {
+func (m *mapMaker) Do(binPath string, metadata meta.Metadata) (Schema, DefaultModel, error) {
 	nm, ok := metadata[binPath]
 	if !ok {
-		return nil, fmt.Errorf("[mapMaker] Unknown metadata binPath: %s", binPath)
+		return nil, nil, fmt.Errorf("[mapMaker] Unknown metadata binPath: %s", binPath)
 	}
 	schema := Schema{
 		"type":  "array",
@@ -21,10 +21,12 @@ func (m *mapMaker) Do(binPath string, metadata meta.Metadata) (Schema, error) {
 		schema["title"] = nm.Name
 	}
 
-	keySchema, err := Create(binPath+"/k", metadata)
+	model := make(DefaultModel)
+	keySchema, keyModel, err := Create(binPath+"/k", metadata)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+	model.Extend(keyModel, binPath+"/k")
 
 	required := make([]string, 0)
 	propertiesItems := Schema{}
@@ -39,10 +41,12 @@ func (m *mapMaker) Do(binPath string, metadata meta.Metadata) (Schema, error) {
 		propertiesItems[binPath+"/k"] = keySchema
 	}
 
-	valueSchema, err := Create(binPath+"/v", metadata)
+	valueSchema, valueModel, err := Create(binPath+"/v", metadata)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+	model.Extend(valueModel, binPath+"/v")
+
 	if properties, ok := valueSchema["properties"]; ok {
 		props := properties.(Schema)
 		for k := range props {
@@ -64,5 +68,5 @@ func (m *mapMaker) Do(binPath string, metadata meta.Metadata) (Schema, error) {
 		"properties": Schema{
 			binPath: schema,
 		},
-	}, nil
+	}, model, nil
 }
