@@ -47,7 +47,8 @@ func (ctx *Context) Vote(c *gin.Context) {
 		return
 	}
 
-	if err := ctx.DB.CreateOrUpdateAssessment(a.Address, a.Network, b.Address, b.Network, ctx.OAUTH.UserID, req.Vote); handleError(c, err, 0) {
+	userID := CurrentUserID(c)
+	if err := ctx.DB.CreateOrUpdateAssessment(a.Address, a.Network, b.Address, b.Network, userID, req.Vote); handleError(c, err, 0) {
 		return
 	}
 	c.JSON(http.StatusOK, "")
@@ -55,7 +56,8 @@ func (ctx *Context) Vote(c *gin.Context) {
 
 // GetNextDiffTask -
 func (ctx *Context) GetNextDiffTask(c *gin.Context) {
-	a, err := ctx.DB.GetNextAssessmentWithValue(ctx.OAUTH.UserID, 10)
+	userID := CurrentUserID(c)
+	a, err := ctx.DB.GetNextAssessmentWithValue(userID, 10)
 	if gorm.IsRecordNotFoundError(err) {
 		c.JSON(http.StatusOK, nil)
 		return

@@ -25,16 +25,7 @@ func (ctx *Context) GetContractRating(c *gin.Context) {
 		return
 	}
 
-	by := map[string]interface{}{
-		"address": req.Address,
-		"network": req.Network,
-	}
-	cntrID, err := ctx.ES.GetContractID(by)
-	if handleError(c, err, 0) {
-		return
-	}
-
-	rating, err := ctx.DB.GetSubscriptionRating(cntrID)
+	rating, err := ctx.DB.GetSubscriptionRating(req.Address, req.Network)
 	if handleError(c, err, 0) {
 		return
 	}

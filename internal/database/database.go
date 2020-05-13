@@ -8,14 +8,19 @@ import (
 
 // DB -
 type DB interface {
+	// User
 	GetOrCreateUser(*User) error
 	GetUser(uint) (*User, error)
-	GetSubscription(string, string) (Subscription, error)
-	ListSubscriptions(uint) ([]Subscription, error)
-	ListSubscriptionsWithLimit(uint, int) ([]Subscription, error)
-	CreateSubscription(*Subscription) error
+
+	// Subscription
+	GetSubscription(address, network string) (Subscription, error)
+	ListSubscriptions(userID uint) ([]Subscription, error)
+	ListSubscriptionsWithLimit(userID uint, limit int) ([]Subscription, error)
+	UpsertSubscription(*Subscription) error
 	DeleteSubscription(*Subscription) error
-	GetSubscriptionRating(string) (SubRating, error)
+	GetSubscriptionRating(address, network string) (SubRating, error)
+
+	// Alias
 	GetAliases(network string) ([]Alias, error)
 	GetAlias(address, network string) (Alias, error)
 	GetOperationAliases(src, dst, network string) (OperationAlises, error)
@@ -23,9 +28,15 @@ type DB interface {
 	CreateAlias(string, string, string) error
 	CreateOrUpdateAlias(a *Alias) error
 	GetBySlug(string) (Alias, error)
-	Close()
+
+	// Assessment
 	CreateOrUpdateAssessment(string, string, string, string, uint, uint) error
 	GetNextAssessmentWithValue(uint, uint) (Assessments, error)
+
+	// Account
+	GetOrCreateAccount(*Account) error
+
+	Close()
 }
 
 type db struct {
@@ -41,15 +52,15 @@ func New(connectionString string) (DB, error) {
 
 	gormDB.LogMode(false)
 
-	if !gormDB.HasTable(&Subscription{}) {
-		gormDB.Exec("CREATE TYPE entity_type AS ENUM ('unknown','project','contract');")
-	}
-
-	gormDB.AutoMigrate(&User{}, &Subscription{}, &Alias{}, &Assessments{})
+	gormDB.AutoMigrate(&User{}, &Subscription{}, &Alias{}, &Assessments{}, &Account{})
 
 	gormDB = gormDB.Set("gorm:auto_preload", false)
 
 	return &db{
 		ORM: gormDB,
 	}, nil
+}
+
+func (d *db) Close() {
+	d.ORM.Close()
 }

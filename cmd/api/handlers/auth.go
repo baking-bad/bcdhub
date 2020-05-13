@@ -11,6 +11,15 @@ import (
 
 // AuthJWTRequired -
 func (ctx *Context) AuthJWTRequired() gin.HandlerFunc {
+	if ctx.Config.API.Seed.Enabled {
+		userID := ctx.OAUTH.UserID
+
+		return func(c *gin.Context) {
+			c.Set("userID", userID)
+			c.Next()
+		}
+	}
+
 	return func(c *gin.Context) {
 		token := c.GetHeader("Authorization")
 
@@ -19,7 +28,7 @@ func (ctx *Context) AuthJWTRequired() gin.HandlerFunc {
 			return
 		}
 
-		ctx.OAUTH.UserID = id
+		c.Set("userID", id)
 
 		helpers.SetUserIDSentry(fmt.Sprintf("%v", id))
 
@@ -30,6 +39,15 @@ func (ctx *Context) AuthJWTRequired() gin.HandlerFunc {
 
 // IsAuthenticated -
 func (ctx *Context) IsAuthenticated() gin.HandlerFunc {
+	if ctx.Config.API.Seed.Enabled {
+		userID := ctx.OAUTH.UserID
+
+		return func(c *gin.Context) {
+			c.Set("userID", userID)
+			c.Next()
+		}
+	}
+
 	return func(c *gin.Context) {
 		token := c.GetHeader("Authorization")
 
@@ -38,7 +56,7 @@ func (ctx *Context) IsAuthenticated() gin.HandlerFunc {
 			return
 		}
 
-		ctx.OAUTH.UserID = id
+		c.Set("userID", id)
 
 		c.Next()
 	}

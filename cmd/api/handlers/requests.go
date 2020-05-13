@@ -88,8 +88,16 @@ type searchRequest struct {
 }
 
 type subRequest struct {
-	ID   string `json:"id" binding:"required"`
-	Type string `json:"type" binding:"required"`
+	Address          string `json:"address" binding:"required"`
+	Network          string `json:"network" binding:"required"`
+	Alias            string `json:"alias,omitempty"`
+	WatchSame        bool   `json:"watchSame"`
+	WatchSimilar     bool   `json:"watchSimilar"`
+	WatchDeployed    bool   `json:"watchDeployed"`
+	WatchMigrations  bool   `json:"watchMigrations"`
+	WatchDeployments bool   `json:"watchDeployments"`
+	WatchCalls       bool   `json:"watchCalls"`
+	WatchErrors      bool   `json:"watchErrors"`
 }
 
 type voteRequest struct {

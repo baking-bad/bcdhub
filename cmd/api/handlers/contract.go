@@ -35,7 +35,7 @@ func (ctx *Context) GetContract(c *gin.Context) {
 	if handleError(c, err, 0) {
 		return
 	}
-	res, err := ctx.contractPostprocessing(cntr)
+	res, err := ctx.contractPostprocessing(cntr, CurrentUserID(c))
 	if handleError(c, err, 0) {
 		return
 	}
@@ -64,8 +64,8 @@ func (ctx *Context) GetRandomContract(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (ctx *Context) contractPostprocessing(cntr models.Contract) (Contract, error) {
-	res, err := ctx.setProfileInfo(cntr)
+func (ctx *Context) contractPostprocessing(cntr models.Contract, userID uint) (Contract, error) {
+	res, err := ctx.setProfileInfo(cntr, userID)
 	if err != nil {
 		return res, err
 	}
@@ -73,17 +73,16 @@ func (ctx *Context) contractPostprocessing(cntr models.Contract) (Contract, erro
 	return res, err
 }
 
-func (ctx *Context) setProfileInfo(contract models.Contract) (Contract, error) {
+func (ctx *Context) setProfileInfo(contract models.Contract, userID uint) (Contract, error) {
 	var res Contract
 	res.FromModel(contract)
 
-	if ctx.OAUTH.UserID == 0 {
+	if userID == 0 {
 		return res, nil
 	}
 
 	profile := ProfileInfo{}
-	_, err := ctx.DB.GetSubscription(res.ID, "contract")
-	if err == nil {
+	if _, err := ctx.DB.GetSubscription(res.Address, res.Network); err == nil {
 		profile.Subscribed = true
 	} else {
 		if !gorm.IsRecordNotFoundError(err) {

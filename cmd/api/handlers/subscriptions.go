@@ -10,17 +10,12 @@ import (
 
 // ListSubscriptions -
 func (ctx *Context) ListSubscriptions(c *gin.Context) {
-	subscriptions, err := ctx.DB.ListSubscriptions(ctx.OAUTH.UserID)
+	subscriptions, err := ctx.DB.ListSubscriptions(CurrentUserID(c))
 	if handleError(c, err, 0) {
 		return
 	}
 
-	res, err := ctx.prepareSubscription(subscriptions)
-	if handleError(c, err, 0) {
-		return
-	}
-
-	c.JSON(http.StatusOK, res)
+	c.JSON(http.StatusOK, prepareSubscriptions(subscriptions))
 }
 
 // CreateSubscription -
@@ -31,12 +26,13 @@ func (ctx *Context) CreateSubscription(c *gin.Context) {
 	}
 
 	subscription := database.Subscription{
-		UserID:     ctx.OAUTH.UserID,
-		EntityID:   sub.ID,
-		EntityType: database.EntityType(sub.Type),
+		UserID:    CurrentUserID(c),
+		Address:   sub.Address,
+		Network:   sub.Network,
+		WatchMask: buildWatchMask(sub),
 	}
 
-	if err := ctx.DB.CreateSubscription(&subscription); handleError(c, err, 0) {
+	if err := ctx.DB.UpsertSubscription(&subscription); handleError(c, err, 0) {
 		return
 	}
 
@@ -51,9 +47,9 @@ func (ctx *Context) DeleteSubscription(c *gin.Context) {
 	}
 
 	subscription := database.Subscription{
-		UserID:     ctx.OAUTH.UserID,
-		EntityID:   sub.ID,
-		EntityType: database.EntityType(sub.Type),
+		UserID:  CurrentUserID(c),
+		Address: sub.Address,
+		Network: sub.Network,
 	}
 
 	if err := ctx.DB.DeleteSubscription(&subscription); handleError(c, err, 0) {
@@ -63,21 +59,96 @@ func (ctx *Context) DeleteSubscription(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
-func (ctx *Context) prepareSubscription(subs []database.Subscription) ([]Subscription, error) {
-	if len(subs) == 0 {
-		return []Subscription{}, nil
+func prepareSubscriptions(subs []database.Subscription) []Subscription {
+	res := make([]Subscription, len(subs))
+
+	for i, sub := range subs {
+		res[i] = buildSubFromWatchMask(sub.WatchMask)
+		res[i].Address = sub.Address
+		res[i].Network = sub.Network
+		res[i].Alias = sub.Alias
+		res[i].SubscribedAt = sub.CreatedAt
 	}
 
-	ids := make([]string, len(subs))
-	for i := range subs {
-		ids[i] = subs[i].EntityID
+	return res
+}
+
+// Subscription flags
+const (
+	WatchSame uint = 1 << iota
+	WatchSimilar
+	WatchDeployed
+	WatchMigrations
+	WatchDeployments
+	WatchCalls
+	WatchErrors
+)
+
+func set(b, flag uint) uint { return b | flag }
+func has(b, flag uint) bool { return b&flag != 0 }
+
+func buildWatchMask(s subRequest) uint {
+	var b uint
+
+	if s.WatchSame {
+		b = set(b, WatchSame)
 	}
 
-	contracts, err := ctx.ES.GetContractsByIDsWithSort(ids, "last_action", "desc")
-	if err != nil {
-		return nil, err
+	if s.WatchSimilar {
+		b = set(b, WatchSimilar)
 	}
 
+	if s.WatchDeployed {
+		b = set(b, WatchDeployed)
+	}
+
+	if s.WatchMigrations {
+		b = set(b, WatchMigrations)
+	}
+
+	if s.WatchDeployments {
+		b = set(b, WatchDeployments)
+	}
+
+	if s.WatchCalls {
+		b = set(b, WatchCalls)
+	}
+
+	if s.WatchErrors {
+		b = set(b, WatchErrors)
+	}
+
+	return b
+}
+
+func buildSubFromWatchMask(mask uint) Subscription {
+	s := Subscription{}
+
+	if has(mask, WatchSame) {
+		s.WatchSame = true
+	}
+
+	if has(mask, WatchSimilar) {
+		s.WatchSimilar = true
+	}
+
+	if has(mask, WatchDeployed) {
+		s.WatchDeployed = true
+	}
+
+	if has(mask, WatchMigrations) {
+		s.WatchMigrations = true
+	}
+
+	if has(mask, WatchDeployments) {
+		s.WatchDeployments = true
+	}
+
+	if has(mask, WatchCalls) {
+		s.WatchCalls = true
+	}
+
+<<<<<<< HEAD
 	res := make([]Subscription, len(contracts))
 	for i := range contracts {
 		var contract Contract
@@ -91,7 +162,11 @@ func (ctx *Context) prepareSubscription(subs []database.Subscription) ([]Subscri
 				break
 			}
 		}
+=======
+	if has(mask, WatchErrors) {
+		s.WatchErrors = true
+>>>>>>> Refactor subscriptions. Refactor database package. Fix auth. Seed data for sandbox
 	}
 
-	return res, nil
+	return s
 }

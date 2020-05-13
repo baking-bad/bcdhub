@@ -7,13 +7,19 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-// Alias -
+// Alias model
 type Alias struct {
 	ID      int64  `gorm:"primary_key,AUTO_INCREMENT" json:"-"`
 	Alias   string `json:"alias"`
 	Network string `json:"network"`
 	Address string `json:"address"`
 	Slug    string `json:"slug"`
+}
+
+// OperationAlises -
+type OperationAlises struct {
+	Source      string
+	Destination string
 }
 
 // AfterUpdate -
@@ -69,4 +75,51 @@ func setSlug(a *Alias, tx *gorm.DB) error {
 	}
 	tx.Model(a).Update("slug", slug)
 	return nil
+}
+
+func (d *db) GetOperationAliases(src, dst, network string) (OperationAlises, error) {
+	var ret OperationAlises
+	if err := d.ORM.Raw(`
+	SELECT
+	COALESCE(
+		(SELECT a.alias
+		FROM aliases a
+		WHERE a.address = ? AND a.network = ?
+		), '') AS source,
+	COALESCE(
+		(SELECT a.alias
+		FROM aliases a
+		WHERE a.address = ? AND a.network = ?
+		), '') AS destination;`, src, network, dst, network).Scan(&ret).Error; err != nil {
+		return ret, err
+	}
+
+	return ret, nil
+}
+
+func (d *db) GetAliasesMap(network string) (map[string]string, error) {
+	var aliases []Alias
+
+	if err := d.ORM.Where("network = ?", network).Find(&aliases).Error; err != nil {
+		return nil, err
+	}
+
+	ret := make(map[string]string, len(aliases))
+	for _, a := range aliases {
+		ret[a.Address] = a.Alias
+	}
+
+	return ret, nil
+}
+
+func (d *db) CreateAlias(alias, address, network string) error {
+	return d.ORM.Create(&Alias{
+		Alias:   alias,
+		Address: address,
+		Network: network,
+	}).Error
+}
+
+func (d *db) CreateOrUpdateAlias(a *Alias) error {
+	return d.ORM.Where("network = ? AND address = ?", a.Network, a.Address).Assign(Alias{Alias: a.Alias}).FirstOrCreate(a).Error
 }

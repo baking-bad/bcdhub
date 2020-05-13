@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/cmd/api/docs"
 	_ "github.com/baking-bad/bcdhub/cmd/api/docs"
 	"github.com/baking-bad/bcdhub/cmd/api/handlers"
+	"github.com/baking-bad/bcdhub/cmd/api/seed"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -54,6 +55,12 @@ func main() {
 		return
 	}
 	defer ctx.Close()
+
+	if cfg.API.Seed.Enabled {
+		if err := seed.Run(ctx, cfg.Seed); err != nil {
+			logger.Fatal(err)
+		}
+	}
 
 	r := gin.Default()
 
@@ -177,7 +184,6 @@ func main() {
 					subscriptions.GET("", ctx.ListSubscriptions)
 					subscriptions.POST("", ctx.CreateSubscription)
 					subscriptions.DELETE("", ctx.DeleteSubscription)
-					subscriptions.GET("recommended", ctx.Recommendations)
 					subscriptions.GET("timeline", ctx.GetTimeline)
 				}
 				vote := profile.Group("vote")

@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/baking-bad/bcdhub/cmd/api/oauth"
 	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/gin-gonic/gin"
 )
 
 // Context -
@@ -29,9 +30,19 @@ func NewContext(cfg config.Config) (*Context, error) {
 		config.WithShare(cfg.Share.Path),
 		config.WithTzKTServices(cfg.TzKT),
 		config.WithLoadErrorDescriptions("data/errors.json"),
+		config.WithConfigCopy(cfg),
 	)
 	return &Context{
 		Context: ctx,
 		OAUTH:   oauthCfg,
 	}, nil
+}
+
+// CurrentUserID - return userID (uint) from gin context
+func CurrentUserID(c *gin.Context) uint {
+	var userID uint
+	if val, ok := c.Get("userID"); ok && val != nil {
+		userID, _ = val.(uint)
+	}
+	return userID
 }
