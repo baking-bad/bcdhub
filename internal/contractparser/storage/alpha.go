@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage/hash"
+	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/tidwall/gjson"
@@ -109,7 +110,10 @@ func (a *Alpha) Enrich(storage string, bmd []models.BigMapDiff, skipEmpty bool) 
 		args[0] = b.Key
 
 		if b.Value != "" {
-			val := gjson.Parse(b.Value)
+			val, err := stringer.Micheline(gjson.Parse(b.Value))
+			if err != nil {
+				return val, err
+			}
 			args = append(args, val.Value())
 		}
 

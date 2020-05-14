@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
+	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -108,7 +109,10 @@ func (b *Babylon) Enrich(storage string, bmd []models.BigMapDiff, skipEmpty bool
 		args := make([]interface{}, 2)
 		args[0] = bm.Key
 
-		val := gjson.Parse(bm.Value)
+		val, err := stringer.Micheline(gjson.Parse(bm.Value))
+		if err != nil {
+			return data, err
+		}
 		args[1] = val.Value()
 
 		elt["args"] = args
