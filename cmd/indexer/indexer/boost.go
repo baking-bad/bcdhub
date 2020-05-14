@@ -91,7 +91,7 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 	if !ok {
 		return nil, fmt.Errorf("Unknown network %s", network)
 	}
-	rpc := noderpc.NewPool([]string{rpcProvider.URI}, time.Duration(rpcProvider.Timeout)*time.Second)
+	rpc := noderpc.NewWaitNode(rpcProvider.URI, time.Duration(rpcProvider.Timeout)*time.Second)
 
 	messageQueue, err := mq.New(cfg.RabbitMQ.URI, cfg.RabbitMQ.Queues)
 	if err != nil {

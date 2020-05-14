@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/tidwall/gjson"
 )
 
@@ -30,6 +31,26 @@ func NewPool(urls []string, timeout time.Duration) Pool {
 		data[i].node.SetTimeout(timeout)
 	}
 	return data
+}
+
+// NewWaitNode -
+func NewWaitNode(url string, timeout time.Duration) Pool {
+	item := poolItem{node: NewNodeRPC(url)}
+
+	item.node.SetTimeout(timeout)
+
+	for {
+		if _, err := item.node.GetLevel(); err == nil {
+			break
+		}
+
+		logger.Warning("Waiting node up 30 second...")
+		time.Sleep(time.Second * 30)
+	}
+
+	item.blockTime = time.Now()
+
+	return Pool{item}
 }
 
 func (p Pool) getNode() (poolItem, error) {
