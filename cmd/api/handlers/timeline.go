@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -30,5 +32,5 @@ func (ctx *Context) GetTimeline(c *gin.Context) {
 	// 	return
 	// }
 
-	// c.JSON(http.StatusOK, data)
+	c.JSON(http.StatusOK, []TimelineItem{})
 }

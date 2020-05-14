@@ -67,4 +67,4 @@ api:
         - zeronet
         - babylonnet
     seed:
-      enabled: false
+        enabled: false

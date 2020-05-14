@@ -3,6 +3,29 @@ rpc:
         uri: http://sandbox:8732
         timeout: 10
 
+seed:
+    user:
+        login: "sandboxuser"
+        name: "Default User"
+        avatar_url: "https://services.tzkt.io/v1/avatars/bcd"
+        token: ""
+    subscriptions:
+        - address: "tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb"
+          network: "sandboxnet"
+        - address: "tz1aSkwEot3L2kmUvcoxzjMomb9mvBNuzFK6"
+          network: "sandboxnet"
+    aliases:
+        - alias: "Alice"
+          network: "sandboxnet"
+          address: "tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb"
+        - alias: "Bob"
+          network: "sandboxnet"
+          address: "tz1aSkwEot3L2kmUvcoxzjMomb9mvBNuzFK6"
+    accounts:
+        - private_key: "privatekey"
+          public_key_hash: "publickeyhash"
+          network: "sandboxnet"
+
 api:
     bind: ":14000"
     oauth:
@@ -11,3 +34,5 @@ api:
         enabled: false
     networks:
         - sandboxnet
+    seed:
+        enabled: true

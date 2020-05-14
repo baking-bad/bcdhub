@@ -10,7 +10,13 @@ import (
 
 // ListSubscriptions -
 func (ctx *Context) ListSubscriptions(c *gin.Context) {
-	subscriptions, err := ctx.DB.ListSubscriptions(CurrentUserID(c))
+	userID := CurrentUserID(c)
+	if userID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user"})
+		return
+	}
+
+	subscriptions, err := ctx.DB.ListSubscriptions(userID)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -25,8 +31,14 @@ func (ctx *Context) CreateSubscription(c *gin.Context) {
 		return
 	}
 
+	userID := CurrentUserID(c)
+	if userID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user"})
+		return
+	}
+
 	subscription := database.Subscription{
-		UserID:    CurrentUserID(c),
+		UserID:    userID,
 		Address:   sub.Address,
 		Network:   sub.Network,
 		WatchMask: buildWatchMask(sub),
@@ -46,8 +58,14 @@ func (ctx *Context) DeleteSubscription(c *gin.Context) {
 		return
 	}
 
+	userID := CurrentUserID(c)
+	if userID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user"})
+		return
+	}
+
 	subscription := database.Subscription{
-		UserID:  CurrentUserID(c),
+		UserID:  userID,
 		Address: sub.Address,
 		Network: sub.Network,
 	}
@@ -84,38 +102,35 @@ const (
 	WatchErrors
 )
 
-func set(b, flag uint) uint { return b | flag }
-func has(b, flag uint) bool { return b&flag != 0 }
-
 func buildWatchMask(s subRequest) uint {
 	var b uint
 
 	if s.WatchSame {
-		b = set(b, WatchSame)
+		b = b | WatchSame
 	}
 
 	if s.WatchSimilar {
-		b = set(b, WatchSimilar)
+		b = b | WatchSimilar
 	}
 
 	if s.WatchDeployed {
-		b = set(b, WatchDeployed)
+		b = b | WatchDeployed
 	}
 
 	if s.WatchMigrations {
-		b = set(b, WatchMigrations)
+		b = b | WatchMigrations
 	}
 
 	if s.WatchDeployments {
-		b = set(b, WatchDeployments)
+		b = b | WatchDeployments
 	}
 
 	if s.WatchCalls {
-		b = set(b, WatchCalls)
+		b = b | WatchCalls
 	}
 
 	if s.WatchErrors {
-		b = set(b, WatchErrors)
+		b = b | WatchErrors
 	}
 
 	return b
@@ -124,31 +139,30 @@ func buildWatchMask(s subRequest) uint {
 func buildSubFromWatchMask(mask uint) Subscription {
 	s := Subscription{}
 
-	if has(mask, WatchSame) {
+	if mask&WatchSame != 0 {
 		s.WatchSame = true
 	}
 
-	if has(mask, WatchSimilar) {
+	if mask&WatchSimilar != 0 {
 		s.WatchSimilar = true
 	}
 
-	if has(mask, WatchDeployed) {
+	if mask&WatchDeployed != 0 {
 		s.WatchDeployed = true
 	}
 
-	if has(mask, WatchMigrations) {
+	if mask&WatchMigrations != 0 {
 		s.WatchMigrations = true
 	}
 
-	if has(mask, WatchDeployments) {
+	if mask&WatchDeployments != 0 {
 		s.WatchDeployments = true
 	}
 
-	if has(mask, WatchCalls) {
+	if mask&WatchCalls != 0 {
 		s.WatchCalls = true
 	}
 
-<<<<<<< HEAD
 	res := make([]Subscription, len(contracts))
 	for i := range contracts {
 		var contract Contract
@@ -162,10 +176,9 @@ func buildSubFromWatchMask(mask uint) Subscription {
 				break
 			}
 		}
-=======
-	if has(mask, WatchErrors) {
+	}
+	if mask&WatchErrors != 0 {
 		s.WatchErrors = true
->>>>>>> Refactor subscriptions. Refactor database package. Fix auth. Seed data for sandbox
 	}
 
 	return s

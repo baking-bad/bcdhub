@@ -90,7 +90,7 @@ type searchRequest struct {
 type subRequest struct {
 	Address          string `json:"address" binding:"required"`
 	Network          string `json:"network" binding:"required"`
-	Alias            string `json:"alias,omitempty"`
+	Alias            string `json:"alias"`
 	WatchSame        bool   `json:"watchSame"`
 	WatchSimilar     bool   `json:"watchSimilar"`
 	WatchDeployed    bool   `json:"watchDeployed"`

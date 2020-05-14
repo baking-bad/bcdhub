@@ -40,9 +40,11 @@ func NewContext(cfg config.Config) (*Context, error) {
 
 // CurrentUserID - return userID (uint) from gin context
 func CurrentUserID(c *gin.Context) uint {
-	var userID uint
 	if val, ok := c.Get("userID"); ok && val != nil {
-		userID, _ = val.(uint)
+		if userID, valid := val.(uint); valid {
+			return userID
+		}
 	}
-	return userID
+
+	return 0
 }
