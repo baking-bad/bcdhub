@@ -2,12 +2,13 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser"
-	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 )
@@ -61,11 +62,13 @@ func (ctx *Context) RunCode(c *gin.Context) {
 		return
 	}
 
-	main := Operation{
+	log.Println(response)
+
+	main := models.Operation{
 		IndexedTime: time.Now().UTC().UnixNano(),
 		Protocol:    state.Protocol,
 		Network:     req.Network,
-		Timesatmp:   time.Now().UTC(),
+		Timestamp:   time.Now().UTC(),
 		Source:      reqRunCode.Source,
 		Destination: req.Address,
 		GasLimit:    reqRunCode.GasLimit,
@@ -76,10 +79,10 @@ func (ctx *Context) RunCode(c *gin.Context) {
 		Entrypoint:  entrypoint,
 	}
 
-	if err := setParameters(ctx.ES, input.Raw, &main); handleError(c, err, 0) {
-		return
-	}
-	operations, err := ctx.parseRunCodeResponse(response, main)
+	// if err := setParameters(ctx.ES, input.Raw, &main); handleError(c, err, 0) {
+	// 	return
+	// }
+	operations, err := ctx.parseRunCodeResponse(response, &main)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -87,7 +90,7 @@ func (ctx *Context) RunCode(c *gin.Context) {
 	c.JSON(http.StatusOK, operations)
 }
 
-func (ctx *Context) parseRunCodeResponse(response gjson.Result, main Operation) ([]Operation, error) {
+func (ctx *Context) parseRunCodeResponse(response gjson.Result, main *models.Operation) ([]models.Operation, error) {
 	if response.IsArray() {
 		return ctx.parseFailedRunCode(response, main)
 	} else if response.IsObject() {
@@ -96,38 +99,55 @@ func (ctx *Context) parseRunCodeResponse(response gjson.Result, main Operation) 
 	return nil, fmt.Errorf("Unknown response: %v", response.Value())
 }
 
-func (ctx *Context) parseFailedRunCode(response gjson.Result, main Operation) ([]Operation, error) {
-	operations := make([]Operation, 0)
-	main.Errors = cerrors.ParseArray(response)
-	if err := formatErrors(main.Errors, &main); err != nil {
-		return nil, err
-	}
-	main.Status = "failed"
-	operations = append(operations, main)
+func (ctx *Context) parseFailedRunCode(response gjson.Result, main *models.Operation) ([]models.Operation, error) {
+	operations := make([]models.Operation, 0)
+	// main.Errors = cerrors.ParseArray(response)
+	// if err := formatErrors(main.Errors, main); err != nil {
+	// 	return nil, err
+	// }
+	// main.Status = "failed"
+	// operations = append(operations, *main)
 	return operations, nil
 }
 
-func (ctx *Context) parseAppliedRunCode(response gjson.Result, main Operation) ([]Operation, error) {
-	operations := make([]Operation, 0)
+func (ctx *Context) parseAppliedRunCode(response gjson.Result, main *models.Operation) ([]models.Operation, error) {
+	operations := make([]models.Operation, 0)
 
-	storage := response.Get("storage").String()
-	if err := setStorageDiff(ctx.ES, main.Destination, main.Network, storage, &main); err != nil {
-		return nil, err
-	}
+	// metadata, err := meta.GetContractMetadata(ctx.ES, main.Destination)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// bmd, err := ctx.parseBigMapDiffs(response, main)
+	// if err != nil {
+	// 	return err
+	// }
 
-	operations = append(operations, main)
+	// operations = append(operations, *main)
 
-	operationsJSON := response.Get("operations").Array()
-	for _, item := range operationsJSON {
-		var op Operation
-		op.ParseJSON(item)
-		op.Status = "applied"
-		op.Network = main.Network
-		op.Timesatmp = main.Timesatmp
-		op.Protocol = main.Protocol
-		op.Level = main.Level
-		op.Internal = true
-		operations = append(operations, op)
-	}
+	// operationsJSON := response.Get("operations").Array()
+	// for _, item := range operationsJSON {
+	// 	var op models.Operation
+	// 	op.ParseElasticJSON(item)
+	// 	op.Status = "applied"
+	// 	op.Network = main.Network
+	// 	op.Timestamp = main.Timestamp
+	// 	op.Protocol = main.Protocol
+	// 	op.Level = main.Level
+	// 	op.Internal = true
+	// 	operations = append(operations, op)
+	// }
 	return operations, nil
 }
+
+// func (ctx *Context) parseBigMapDiffs(response gjson.Result, metadata meta.Metadata, operation *Operation) ([]models.BigMapDiff, error) {
+// 	rpc, err := ctx.GetRPC(operation.Network)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	parser := storage.NewSimulate(rpc, ctx.ES)
+// 	switch operation.Kind {
+// 	case consts.Transaction:
+// 		parser.ParseTransaction(response, metadata)
+// 	case consts.Origination:
+// 	}
+// }

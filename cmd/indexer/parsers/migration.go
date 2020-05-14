@@ -46,7 +46,11 @@ func (p *MigrationParser) Parse(data gjson.Result, old models.Contract, prevProt
 		return nil, nil
 	}
 
-	op := models.Migration{
+	if _, err := p.es.UpdateDoc(elastic.DocContracts, old.ID, old); err != nil {
+		return nil, err
+	}
+
+	return &models.Migration{
 		ID:          helpers.GenerateID(),
 		IndexedTime: time.Now().UnixNano() / 1000,
 
@@ -57,9 +61,5 @@ func (p *MigrationParser) Parse(data gjson.Result, old models.Contract, prevProt
 		Address:      old.Address,
 		Timestamp:    migrationBlock.Timestamp,
 		Kind:         consts.MigrationUpdate,
-	}
-	if _, err := p.es.UpdateDoc(elastic.DocContracts, old.ID, old); err != nil {
-		return nil, err
-	}
-	return &op, nil
+	}, nil
 }

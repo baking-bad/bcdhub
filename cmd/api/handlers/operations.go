@@ -160,7 +160,7 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 		Hash:      operation.Hash,
 		Network:   operation.Network,
 		Internal:  operation.Internal,
-		Timesatmp: operation.Timestamp,
+		Timestamp: operation.Timestamp,
 
 		Level:            operation.Level,
 		Kind:             operation.Kind,
@@ -245,17 +245,26 @@ func setStorageDiff(es *elastic.Elastic, address, network, storage string, op *O
 	if err != nil {
 		return err
 	}
-	store, err := enrichStorage(storage, bmd, op.Protocol, false)
+	storageDiff, err := getStorageDiff(es, bmd, address, storage, metadata, false, op)
 	if err != nil {
 		return err
+	}
+	op.StorageDiff = storageDiff
+	return nil
+}
+
+func getStorageDiff(es *elastic.Elastic, bmd []models.BigMapDiff, address, storage string, metadata *meta.ContractMetadata, isSimulating bool, op *Operation) (interface{}, error) {
+	store, err := enrichStorage(storage, bmd, op.Protocol, false, false)
+	if err != nil {
+		return nil, err
 	}
 	storageMetadata, err := metadata.Get(consts.STORAGE, op.Protocol)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	currentStorage, err := newmiguel.MichelineToMiguel(store, storageMetadata)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var prevStorage *newmiguel.Node
@@ -265,44 +274,43 @@ func setStorageDiff(es *elastic.Elastic, address, network, storage string, op *O
 		if len(bmd) > 0 {
 			prevBmd, err = getPrevBmd(es, bmd, op.IndexedTime, op.Destination)
 			if err != nil {
-				return err
+				return nil, err
 			}
 		}
-		prevStore, err := enrichStorage(prev.DeffatedStorage, prevBmd, op.Protocol, false)
+		prevStore, err := enrichStorage(prev.DeffatedStorage, prevBmd, op.Protocol, false, isSimulating)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		prevMetadata, err := metadata.Get(consts.STORAGE, prev.Protocol)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		prevStorage, err = newmiguel.MichelineToMiguel(prevStore, prevMetadata)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	} else {
 		if !strings.Contains(err.Error(), elastic.RecordNotFound) {
-			return err
+			return nil, err
 		}
 
 		if currentStorage == nil {
-			return nil
+			return nil, nil
 		}
 		prevStorage = nil
 	}
 
 	currentStorage.Diff(prevStorage)
-	op.StorageDiff = currentStorage
-	return nil
+	return currentStorage, nil
 }
 
-func enrichStorage(s string, bmd []models.BigMapDiff, protocol string, skipEmpty bool) (gjson.Result, error) {
+func enrichStorage(s string, bmd []models.BigMapDiff, protocol string, skipEmpty, isSimulating bool) (gjson.Result, error) {
 	if len(bmd) == 0 {
 		return gjson.Parse(s), nil
 	}
 
-	parser, err := contractparser.MakeStorageParser(nil, nil, protocol)
+	parser, err := contractparser.MakeStorageParser(nil, nil, protocol, isSimulating)
 	if err != nil {
 		return gjson.Result{}, err
 	}
@@ -326,7 +334,7 @@ func (ctx *Context) prepareMempoolOperation(res gjson.Result, network, hash stri
 		Protocol:  item.Get("protocol").String(),
 		Hash:      item.Get("hash").String(),
 		Network:   network,
-		Timesatmp: time.Unix(item.Get("timestamp").Int(), 0).UTC(),
+		Timestamp: time.Unix(item.Get("timestamp").Int(), 0).UTC(),
 
 		Kind:         item.Get("kind").String(),
 		Source:       item.Get("source").String(),

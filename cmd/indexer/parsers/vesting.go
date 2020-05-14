@@ -30,7 +30,7 @@ func NewVestingParser(rpc noderpc.Pool, es *elastic.Elastic, filesDirectory stri
 }
 
 // Parse -
-func (p *VestingParser) Parse(data gjson.Result, head noderpc.Header, network, address string) (*models.Migration, *models.Contract, error) {
+func (p *VestingParser) Parse(data gjson.Result, head noderpc.Header, network, address string) ([]elastic.Model, error) {
 	migration := &models.Migration{
 		ID:          helpers.GenerateID(),
 		IndexedTime: time.Now().UnixNano() / 1000,
@@ -42,29 +42,37 @@ func (p *VestingParser) Parse(data gjson.Result, head noderpc.Header, network, a
 		Timestamp: head.Timestamp,
 		Kind:      consts.MigrationBootstrap,
 	}
-	protoSymLink, err := meta.GetProtoSymLink(migration.Protocol)
-	if err != nil {
-		return migration, nil, err
-	}
+	parsedModels := []elastic.Model{migration}
 
-	op := models.Operation{
-		ID:          helpers.GenerateID(),
-		Network:     network,
-		Protocol:    head.Protocol,
-		Status:      "applied",
-		Kind:        consts.Migration,
-		Amount:      data.Get("balance").Int(),
-		Counter:     data.Get("counter").Int(),
-		Source:      data.Get("manager").String(),
-		Destination: address,
-		Delegate:    data.Get("delegate.value").String(),
-		Timestamp:   head.Timestamp,
-		IndexedTime: time.Now().UnixNano() / 1000,
-		Script:      data.Get("script"),
-	}
-	if !contractparser.IsDelegatorContract(op.Script) {
+	script := data.Get("script")
+	if !contractparser.IsDelegatorContract(script) {
+		op := models.Operation{
+			ID:          helpers.GenerateID(),
+			Network:     network,
+			Protocol:    head.Protocol,
+			Status:      "applied",
+			Kind:        consts.Migration,
+			Amount:      data.Get("balance").Int(),
+			Counter:     data.Get("counter").Int(),
+			Source:      data.Get("manager").String(),
+			Destination: address,
+			Delegate:    data.Get("delegate.value").String(),
+			Timestamp:   head.Timestamp,
+			IndexedTime: time.Now().UnixNano() / 1000,
+			Script:      script,
+		}
+
+		protoSymLink, err := meta.GetProtoSymLink(migration.Protocol)
+		if err != nil {
+			return nil, err
+		}
 		contract, err := createNewContract(p.es, op, p.filesDirectory, protoSymLink)
-		return migration, contract, err
+		if err != nil {
+			return nil, err
+		}
+		if contract != nil {
+			parsedModels = append(parsedModels, contract)
+		}
 	}
-	return migration, nil, nil
+	return parsedModels, nil
 }

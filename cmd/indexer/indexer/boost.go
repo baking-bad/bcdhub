@@ -244,22 +244,13 @@ func (bi *BoostIndexer) Index(levels []int64) error {
 			}
 		}
 
-		operations, contracts, migrations, err := bi.getDataFromBlock(bi.Network, currentHead)
+		parsedModels, err := bi.getDataFromBlock(bi.Network, currentHead)
 		if err != nil {
 			return err
 		}
+		parsedModels = append(parsedModels, bi.createBlock(currentHead))
 
-		if err := bi.saveModels(contracts, mq.QueueContracts); err != nil {
-			return err
-		}
-		if err := bi.saveModels(operations, mq.QueueOperations); err != nil {
-			return err
-		}
-		if err := bi.saveModels(migrations, mq.QueueMigrations); err != nil {
-			return err
-		}
-
-		if err := bi.createAndSaveBlock(currentHead); err != nil {
+		if err := bi.saveModels(parsedModels); err != nil {
 			return err
 		}
 	}
@@ -414,7 +405,7 @@ func (bi *BoostIndexer) getContracts() (map[string]struct{}, map[string]struct{}
 	return res, spendable, nil
 }
 
-func (bi *BoostIndexer) createAndSaveBlock(head noderpc.Header) error {
+func (bi *BoostIndexer) createBlock(head noderpc.Header) *models.Block {
 	newBlock := models.Block{
 		ID:          helpers.GenerateID(),
 		Network:     bi.Network,
@@ -426,55 +417,55 @@ func (bi *BoostIndexer) createAndSaveBlock(head noderpc.Header) error {
 		Timestamp:   head.Timestamp,
 	}
 
-	if _, err := bi.es.AddDocumentWithID(newBlock, elastic.DocBlocks, newBlock.ID); err != nil {
-		return err
-	}
-
 	bi.state = newBlock
-	return nil
+	return &newBlock
 }
 
-func (bi *BoostIndexer) saveModels(items []elastic.Model, queue string) error {
-	logger.Info("[%s] Found %d new %s", bi.Network, len(items), queue)
+func (bi *BoostIndexer) getQueueByModel(model elastic.Model) string {
+	switch model.GetIndex() {
+	case elastic.DocContracts:
+		return mq.QueueContracts
+	case elastic.DocOperations:
+		return mq.QueueOperations
+	case elastic.DocMigrations:
+		return mq.QueueMigrations
+	}
+	return ""
+}
+
+func (bi *BoostIndexer) saveModels(items []elastic.Model) error {
+	logger.Info("[%s] Found %d new models", bi.Network, len(items))
 	if err := bi.es.BulkInsert(items); err != nil {
 		return err
 	}
 
-	for j := range items {
-		if err := bi.messageQueue.Send(mq.ChannelNew, queue, items[j].GetID()); err != nil {
-			return err
+	for i := range items {
+		if queue := bi.getQueueByModel(items[i]); queue != "" {
+			if err := bi.messageQueue.Send(mq.ChannelNew, queue, items[i].GetID()); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
 }
 
-func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([]elastic.Model, []elastic.Model, []elastic.Model, error) {
+func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([]elastic.Model, error) {
 	data, err := bi.rpc.GetOperations(head.Level)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
 	defaultParser := parsers.NewDefaultParser(bi.rpc, bi.es, bi.filesDirectory)
 
-	operations := make([]elastic.Model, 0)
-	contracts := make([]elastic.Model, 0)
-	migrations := make([]elastic.Model, 0)
+	parsedModels := make([]elastic.Model, 0)
 	for _, opg := range data.Array() {
-		newOps, newContracts, newMigrations, err := defaultParser.Parse(opg, network, head)
+		parsed, err := defaultParser.Parse(opg, network, head)
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, err
 		}
-		for i := range newOps {
-			operations = append(operations, newOps[i])
-		}
-		for i := range newContracts {
-			contracts = append(contracts, newContracts[i])
-		}
-		for i := range newMigrations {
-			migrations = append(migrations, newMigrations[i])
-		}
+		parsedModels = append(parsedModels, parsed...)
 	}
 
-	return operations, contracts, migrations, nil
+	return parsedModels, nil
 }
 
 func (bi *BoostIndexer) migrate(head noderpc.Header) error {
@@ -567,7 +558,7 @@ func (bi *BoostIndexer) standartMigration(newProtocol models.Protocol) error {
 			migrations = append(migrations, migration)
 		}
 	}
-	if err := bi.saveModels(migrations, mq.QueueMigrations); err != nil {
+	if err := bi.saveModels(migrations); err != nil {
 		return err
 	}
 	return nil
@@ -581,8 +572,7 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header) error {
 
 	p := parsers.NewVestingParser(bi.rpc, bi.es, bi.filesDirectory)
 
-	migrations := make([]elastic.Model, 0)
-	contracts := make([]elastic.Model, 0)
+	parsedModels := make([]elastic.Model, 0)
 	for _, address := range addresses {
 		if !strings.HasPrefix(address, "KT") {
 			continue
@@ -593,20 +583,14 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header) error {
 			return err
 		}
 
-		migration, contract, err := p.Parse(data, head, bi.Network, address)
+		parsed, err := p.Parse(data, head, bi.Network, address)
 		if err != nil {
 			return err
 		}
-		migrations = append(migrations, migration)
-		if contract != nil {
-			contracts = append(contracts, contract)
-		}
+		parsedModels = append(parsedModels, parsed...)
 	}
 
-	if err := bi.saveModels(contracts, mq.QueueContracts); err != nil {
-		return err
-	}
-	if err := bi.saveModels(migrations, mq.QueueMigrations); err != nil {
+	if err := bi.saveModels(parsedModels); err != nil {
 		return err
 	}
 	return nil

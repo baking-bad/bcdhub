@@ -18,7 +18,7 @@ type Operation struct {
 	Hash      string    `json:"hash,omitempty"`
 	Internal  bool      `json:"internal"`
 	Network   string    `json:"network"`
-	Timesatmp time.Time `json:"timestamp"`
+	Timestamp time.Time `json:"timestamp"`
 
 	Level            int64            `json:"level"`
 	Kind             string           `json:"kind"`
