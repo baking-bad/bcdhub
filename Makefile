@@ -13,6 +13,9 @@ metrics:
 aliases:
 	cd scripts/aliases && go run . -f ../config.yml
 
+sitemap:
+	cd scripts/sitemap && go run . -f ../config.yml
+
 rollback:
 	cd scripts/rollback && go run . -f ../config.yml
 
