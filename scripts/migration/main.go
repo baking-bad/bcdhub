@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -37,23 +37,14 @@ func main() {
 		"recalc_contract_metrics":   &migrations.RecalcContractMetrics{},
 	}
 
-	cfg, err := config.LoadDefaultConfig()
+	migrationName, err := chooseMigration(migrationMap)
 	if err != nil {
 		logger.Fatal(err)
 	}
 
-	env := os.Getenv("MIGRATION")
-
-	if env == "" {
-		fmt.Println("Set MIGRATION env variable. Available migrations:")
-		for name, m := range migrationMap {
-			fmt.Printf("- %s%s| %s\n", name, strings.Repeat(" ", 25-len(name)), m.Description())
-		}
-		return
-	}
-
-	if _, ok := migrationMap[env]; !ok {
-		log.Fatal("Unknown migration key: ", env)
+	cfg, err := config.LoadDefaultConfig()
+	if err != nil {
+		logger.Fatal(err)
 	}
 
 	start := time.Now()
@@ -67,11 +58,48 @@ func main() {
 	)
 	defer ctx.Close()
 
-	logger.Info("Starting %v migration...", env)
+	logger.Info("Starting %v migration...", migrationName)
 
-	if err := migrationMap[env].Do(ctx); err != nil {
+	if err := migrationMap[migrationName].Do(ctx); err != nil {
 		log.Fatal(err)
 	}
 
-	logger.Success("%s migration done. Spent: %v", env, time.Since(start))
+	logger.Success("%s migration done. Spent: %v", migrationName, time.Since(start))
+}
+
+func chooseMigration(migrationMap map[string]migrations.Migration) (string, error) {
+	var mKeys = make([]string, 0, len(migrationMap))
+
+	for m := range migrationMap {
+		mKeys = append(mKeys, m)
+	}
+
+	sort.Strings(mKeys)
+
+	fmt.Println("Available migrations:")
+	for i, name := range mKeys {
+		spaces := 30 - len(name)
+		desc := migrationMap[name].Description()
+
+		if i > 9 {
+			spaces--
+		}
+
+		fmt.Printf("[%d] %s%s| %s\n", i, name, strings.Repeat(" ", spaces), desc)
+	}
+
+	var input int
+	fmt.Println("\nEnter migration #:")
+	fmt.Scanln(&input)
+
+	if input < 0 || input > len(mKeys)-1 {
+		return "", fmt.Errorf("Invalid # of migration: %d", input)
+	}
+
+	migration := mKeys[input]
+	if _, ok := migrationMap[migration]; !ok {
+		return "", fmt.Errorf("Unknown migration key: %s", migration)
+	}
+
+	return migration, nil
 }
