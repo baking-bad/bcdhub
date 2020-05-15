@@ -2,7 +2,6 @@ package datasources
 
 import (
 	"fmt"
-	"log"
 	"sync"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -87,7 +86,6 @@ func (c *RabbitMQ) listenChannel(queue string) {
 func (c *RabbitMQ) handler(data amqp.Delivery) error {
 	switch data.RoutingKey {
 	case mq.QueueOperations, mq.QueueRecalc:
-		log.Println(data.RoutingKey)
 		val := Data{
 			Type: c.GetType(),
 			Body: data.Body,

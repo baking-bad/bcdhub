@@ -85,7 +85,7 @@ func main() {
 		config.WithElasticSearch(cfg.Elastic),
 		config.WithRPC(cfg.RPC),
 		config.WithDatabase(cfg.DB),
-		config.WithRabbit(cfg.RabbitMQ),
+		config.WithRabbitReceiver(cfg.RabbitMQ, "metrics"),
 	)
 	defer ctx.Close()
 	if err := ctx.LoadAliases(); err != nil {
