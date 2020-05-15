@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -65,8 +64,6 @@ func (ctx *Context) RunCode(c *gin.Context) {
 	if handleError(c, err, 0) {
 		return
 	}
-
-	log.Println(response)
 
 	main := Operation{
 		IndexedTime: time.Now().UTC().UnixNano(),
@@ -134,6 +131,9 @@ func (ctx *Context) parseAppliedRunCode(response gjson.Result, main *Operation) 
 		if err := setParameters(ctx.ES, item.Get("parameters").Raw, &op); err != nil {
 			return nil, err
 		}
+		if err := ctx.setSimulateStorageDiff(item, &op); err != nil {
+			return nil, err
+		}
 		operations = append(operations, op)
 	}
 	return operations, nil
@@ -152,10 +152,11 @@ func (ctx *Context) parseBigMapDiffs(response gjson.Result, metadata meta.Metada
 	switch operation.Kind {
 	case consts.Transaction:
 		rs, err = parser.ParseTransaction(response, metadata, model)
-		if err != nil {
-			return nil, err
-		}
 	case consts.Origination:
+		rs, err = parser.ParseOrigination(response, metadata, model)
+	}
+	if err != nil {
+		return nil, err
 	}
 	if rs.Empty {
 		return nil, nil

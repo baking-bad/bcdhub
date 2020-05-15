@@ -161,12 +161,12 @@ func (p *DefaultParser) parseOrigination(data gjson.Result, network, hash string
 	originationModels := []elastic.Model{&op}
 
 	if !contractparser.IsDelegatorContract(op.Script) && p.isApplied(op) {
-		contract, err := createNewContract(p.es, op, p.filesDirectory, protoSymLink)
+		contractModels, err := createNewContract(p.es, op, p.filesDirectory, protoSymLink)
 		if err != nil {
 			return nil, op, err
 		}
-		if contract != nil {
-			originationModels = append(originationModels, contract)
+		if len(contractModels) > 0 {
+			originationModels = append(originationModels, contractModels...)
 		}
 		return originationModels, op, nil
 	}

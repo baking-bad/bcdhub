@@ -66,12 +66,12 @@ func (p *VestingParser) Parse(data gjson.Result, head noderpc.Header, network, a
 		if err != nil {
 			return nil, err
 		}
-		contract, err := createNewContract(p.es, op, p.filesDirectory, protoSymLink)
+		contractModels, err := createNewContract(p.es, op, p.filesDirectory, protoSymLink)
 		if err != nil {
 			return nil, err
 		}
-		if contract != nil {
-			parsedModels = append(parsedModels, contract)
+		if len(contractModels) > 0 {
+			parsedModels = append(parsedModels, contractModels...)
 		}
 	}
 	return parsedModels, nil
