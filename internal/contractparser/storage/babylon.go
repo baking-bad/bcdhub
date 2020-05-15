@@ -107,7 +107,15 @@ func (b *Babylon) Enrich(storage string, bmd []models.BigMapDiff, skipEmpty bool
 			"prim": "Elt",
 		}
 		args := make([]interface{}, 2)
-		args[0] = bm.Key
+		keyBytes, err := json.Marshal(bm.Key)
+		if err != nil {
+			return data, err
+		}
+		key, err := stringer.MichelineFromBytes(keyBytes)
+		if err != nil {
+			return data, err
+		}
+		args[0] = key.Value()
 
 		val, err := stringer.Micheline(gjson.Parse(bm.Value))
 		if err != nil {

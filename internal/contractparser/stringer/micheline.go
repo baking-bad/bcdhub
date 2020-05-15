@@ -23,6 +23,22 @@ func Micheline(node gjson.Result) (gjson.Result, error) {
 	return gjson.Parse(newValue.String()), nil
 }
 
+// MichelineFromBytes -
+func MichelineFromBytes(data []byte) (gjson.Result, error) {
+	var p fastjson.Parser
+	value, err := p.ParseBytes(data)
+	if err != nil {
+		return gjson.Result{}, err
+	}
+
+	newValue, err := processing(value)
+	if err != nil {
+		return gjson.Result{}, err
+	}
+
+	return gjson.Parse(newValue.String()), nil
+}
+
 func processing(value *fastjson.Value) (*fastjson.Value, error) {
 	switch value.Type() {
 	case fastjson.TypeArray:
