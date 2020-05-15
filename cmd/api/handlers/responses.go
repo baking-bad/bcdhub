@@ -66,6 +66,72 @@ func (o *Operation) ParseJSON(raw gjson.Result) {
 	o.Delegate = raw.Get("delegate").String()
 }
 
+// FromModel -
+func (o *Operation) FromModel(operation models.Operation) {
+	o.ID = operation.ID
+	o.Protocol = operation.Protocol
+	o.Hash = operation.Hash
+	o.Network = operation.Network
+	o.Internal = operation.Internal
+	o.Timestamp = operation.Timestamp
+
+	o.Level = operation.Level
+	o.Kind = operation.Kind
+	o.Source = operation.Source
+	o.SourceAlias = operation.SourceAlias
+	o.Fee = operation.Fee
+	o.Counter = operation.Counter
+	o.GasLimit = operation.GasLimit
+	o.StorageLimit = operation.StorageLimit
+	o.Amount = operation.Amount
+	o.Destination = operation.Destination
+	o.DestinationAlias = operation.DestinationAlias
+	o.PublicKey = operation.PublicKey
+	o.ManagerPubKey = operation.ManagerPubKey
+	o.Delegate = operation.Delegate
+	o.Status = operation.Status
+	o.Burned = operation.Burned
+	o.Entrypoint = operation.Entrypoint
+	o.IndexedTime = operation.IndexedTime
+
+	o.BalanceUpdates = operation.BalanceUpdates
+	o.Result = operation.Result
+}
+
+// ToModel -
+func (o *Operation) ToModel() models.Operation {
+	return models.Operation{
+		ID:        o.ID,
+		Protocol:  o.Protocol,
+		Hash:      o.Hash,
+		Network:   o.Network,
+		Internal:  o.Internal,
+		Timestamp: o.Timestamp,
+
+		Level:            o.Level,
+		Kind:             o.Kind,
+		Source:           o.Source,
+		SourceAlias:      o.SourceAlias,
+		Fee:              o.Fee,
+		Counter:          o.Counter,
+		GasLimit:         o.GasLimit,
+		StorageLimit:     o.StorageLimit,
+		Amount:           o.Amount,
+		Destination:      o.Destination,
+		DestinationAlias: o.DestinationAlias,
+		PublicKey:        o.PublicKey,
+		ManagerPubKey:    o.ManagerPubKey,
+		Delegate:         o.Delegate,
+		Status:           o.Status,
+		Burned:           o.Burned,
+		Entrypoint:       o.Entrypoint,
+		IndexedTime:      o.IndexedTime,
+
+		BalanceUpdates: o.BalanceUpdates,
+		Result:         o.Result,
+	}
+}
+
 // Contract -
 type Contract struct {
 	*models.Contract

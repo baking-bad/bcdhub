@@ -154,36 +154,8 @@ func formatErrors(errs []cerrors.IError, op *Operation) error {
 }
 
 func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operation, error) {
-	op := Operation{
-		ID:        operation.ID,
-		Protocol:  operation.Protocol,
-		Hash:      operation.Hash,
-		Network:   operation.Network,
-		Internal:  operation.Internal,
-		Timestamp: operation.Timestamp,
-
-		Level:            operation.Level,
-		Kind:             operation.Kind,
-		Source:           operation.Source,
-		SourceAlias:      operation.SourceAlias,
-		Fee:              operation.Fee,
-		Counter:          operation.Counter,
-		GasLimit:         operation.GasLimit,
-		StorageLimit:     operation.StorageLimit,
-		Amount:           operation.Amount,
-		Destination:      operation.Destination,
-		DestinationAlias: operation.DestinationAlias,
-		PublicKey:        operation.PublicKey,
-		ManagerPubKey:    operation.ManagerPubKey,
-		Delegate:         operation.Delegate,
-		Status:           operation.Status,
-		Burned:           operation.Burned,
-		Entrypoint:       operation.Entrypoint,
-		IndexedTime:      operation.IndexedTime,
-
-		BalanceUpdates: operation.BalanceUpdates,
-		Result:         operation.Result,
-	}
+	var op Operation
+	op.FromModel(operation)
 
 	if err := formatErrors(operation.Errors, &op); err != nil {
 		return op, err
