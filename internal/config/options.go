@@ -32,11 +32,7 @@ func WithRPC(rpcConfig map[string]RPCConfig) ContextOption {
 // WithElasticSearch -
 func WithElasticSearch(esConfig ElasticSearchConfig) ContextOption {
 	return func(ctx *Context) {
-		es, err := elastic.WaitNew([]string{esConfig.URI})
-		if err != nil {
-			log.Panicf("Elastic search connection error: %s", err)
-		}
-		ctx.ES = es
+		ctx.ES = elastic.WaitNew([]string{esConfig.URI})
 	}
 }
 
