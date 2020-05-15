@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"testing"
+
+	"github.com/baking-bad/bcdhub/internal/models"
 )
 
 func TestIsUpgradable(t *testing.T) {
@@ -42,7 +44,16 @@ func TestIsUpgradable(t *testing.T) {
 				return
 			}
 
-			result, err := isUpgradable(string(storageFile), string(paramFile))
+			symLink := "test"
+			metadata := models.Metadata{
+				Parameter: map[string]string{
+					symLink: string(paramFile),
+				},
+				Storage: map[string]string{
+					symLink: string(storageFile),
+				},
+			}
+			result, err := isUpgradable(metadata, symLink)
 			if err != nil {
 				t.Errorf("isUpgradable %v error: %v", tt.address, err)
 				return
