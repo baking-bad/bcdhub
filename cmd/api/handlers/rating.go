@@ -6,7 +6,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetContractRating -
+// GetContractRating godoc
+// @Summary Get contract rating
+// @Description Get contract rating
+// @Tags contract
+// @ID get-contract-rating
+// @Param network path string true "Network"
+// @Param address path string true "KT address"
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} database.SubRating
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /contract/{network}/{address}/rating [get]
 func (ctx *Context) GetContractRating(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {

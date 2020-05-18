@@ -11,6 +11,11 @@ import (
 	"github.com/tidwall/gjson"
 )
 
+// Error -
+type Error struct {
+	Message string `json:"message" example:"text"`
+}
+
 // Operation -
 type Operation struct {
 	ID        string    `json:"id,omitempty"`
@@ -161,7 +166,7 @@ type TimelineItem struct {
 // OperationResponse -
 type OperationResponse struct {
 	Operations []Operation `json:"operations"`
-	LastID     string      `json:"last_id"`
+	LastID     string      `json:"last_id" example:"1588640276994159"`
 }
 
 type userProfile struct {
@@ -257,8 +262,8 @@ type CodeDiffResponse struct {
 
 // NetworkStats -
 type NetworkStats struct {
-	ContractsCount  int64             `json:"contracts_count"`
-	OperationsCount int64             `json:"operations_count"`
+	ContractsCount  int64             `json:"contracts_count" example:"10"`
+	OperationsCount int64             `json:"operations_count" example:"100"`
 	Protocols       []models.Protocol `json:"protocols"`
 }
 

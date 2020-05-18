@@ -6,12 +6,12 @@ import "github.com/tidwall/gjson"
 type Protocol struct {
 	ID string `json:"-"`
 
-	Hash       string `json:"hash"`
-	Network    string `json:"network"`
-	StartLevel int64  `json:"start_level"`
-	EndLevel   int64  `json:"end_level"`
-	SymLink    string `json:"sym_link"`
-	Alias      string `json:"alias"`
+	Hash       string `json:"hash" example:"PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb"`
+	Network    string `json:"network" example:"mainnet"`
+	StartLevel int64  `json:"start_level" example:"851969"`
+	EndLevel   int64  `json:"end_level" example:"0"`
+	SymLink    string `json:"sym_link" example:"babylon"`
+	Alias      string `json:"alias" example:"Carthage"`
 }
 
 // GetID -

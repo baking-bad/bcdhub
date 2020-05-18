@@ -13,7 +13,19 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-// GetMempool -
+// GetMempool godoc
+// @Summary Get contract mempool operations
+// @Description Get contract mempool operations
+// @Tags contract
+// @ID get-contract-mempool
+// @Param network path string true "Network"
+// @Param address path string true "KT address"
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} Operation
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /contract/{network}/{address}/mempool [get]
 func (ctx *Context) GetMempool(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {

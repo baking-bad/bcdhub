@@ -102,7 +102,7 @@ type voteRequest struct {
 
 // OPGRequest -
 type OPGRequest struct {
-	Hash string `uri:"hash" binding:"required,opg"`
+	Hash string `uri:"hash" binding:"required,opg" example:"ooy4c6G2BZzybYEY3vRQ7WXGL63tFmamTeGTHdjUxhd6ckbSNnb"`
 }
 
 // FormatterRequest -
@@ -113,7 +113,7 @@ type FormatterRequest struct {
 }
 
 type getByNetwork struct {
-	Network string `uri:"network" binding:"required,network"`
+	Network string `uri:"network" binding:"required,network" example:"mainnet"`
 }
 
 type bigMapSearchRequest struct {
@@ -129,8 +129,8 @@ type getEntrypointDataRequest struct {
 }
 
 type getSeriesRequest struct {
-	Index  string `form:"index" binding:"oneof=contract operation"`
-	Period string `form:"period" binding:"oneof=year month week day"`
+	Index  string `form:"index" binding:"oneof=contract operation" example="contract"`
+	Period string `form:"period" binding:"oneof=year month week day" example="year"`
 }
 
 type getBySlugRequest struct {

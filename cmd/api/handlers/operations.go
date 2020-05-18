@@ -21,7 +21,25 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-// GetContractOperations -
+// GetContractOperations godoc
+// @Summary Get contract operations
+// @Description Get contract operations
+// @Tags contract
+// @ID get-contract-operations
+// @Param network path string true "Network"
+// @Param address path string true "KT address"
+// @Param last_id query string false "Last operation ID"
+// @Param from query integer false "Timestamp"
+// @Param to query integer false "Timestamp"
+// @Param size query integer false "Expected OPG count"
+// @Param status query string false "Comma-separated operations statuses"
+// @Param entrypoints query string false "Comma-separated called entrypoints list"
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} OperationResponse
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /contract/{network}/{address}/operations [get]
 func (ctx *Context) GetContractOperations(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
@@ -49,7 +67,18 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 	})
 }
 
-// GetOperation -
+// GetOperation godoc
+// @Summary Get operation group
+// @Description Get operation group by hash
+// @Tags operations
+// @ID get-opg
+// @Param hash path string true "Operation group hash"
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} Operation
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /opg/{hash} [get]
 func (ctx *Context) GetOperation(c *gin.Context) {
 	var req OPGRequest
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
@@ -73,6 +102,40 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, resp)
+}
+
+// GetOperationErrorLocation godoc
+// @Summary Get code line where operation failed
+// @DescriptionGet code line where operation failed
+// @Tags operations
+// @ID get-operation-error-location
+// @Param id path string true "Internal BCD operation ID"
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} GetErrorLocationResponse
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /operation/{id}/error_location [get]
+func (ctx *Context) GetOperationErrorLocation(c *gin.Context) {
+	var req getOperationByIDRequest
+	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+	operation := models.Operation{ID: req.ID}
+	if err := ctx.ES.GetByID(&operation); handleError(c, err, 0) {
+		return
+	}
+
+	if !cerrors.HasScriptRejectedError(operation.Errors) {
+		handleError(c, fmt.Errorf("No reject script error in operation"), http.StatusBadRequest)
+		return
+	}
+
+	response, err := ctx.getErrorLocation(operation, 2)
+	if handleError(c, err, 0) {
+		return
+	}
+	c.JSON(http.StatusOK, response)
 }
 
 func (ctx *Context) getOperationFromMempool(hash string) (Operation, error) {
@@ -348,29 +411,6 @@ func (ctx *Context) buildOperationParameters(params gjson.Result, op *Operation)
 			return
 		}
 	}
-}
-
-// GetOperationErrorLocation -
-func (ctx *Context) GetOperationErrorLocation(c *gin.Context) {
-	var req getOperationByIDRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
-		return
-	}
-	operation := models.Operation{ID: req.ID}
-	if err := ctx.ES.GetByID(&operation); handleError(c, err, 0) {
-		return
-	}
-
-	if !cerrors.HasScriptRejectedError(operation.Errors) {
-		handleError(c, fmt.Errorf("No reject script error in operation"), http.StatusBadRequest)
-		return
-	}
-
-	response, err := ctx.getErrorLocation(operation, 2)
-	if handleError(c, err, 0) {
-		return
-	}
-	c.JSON(http.StatusOK, response)
 }
 
 func (ctx *Context) getErrorLocation(operation models.Operation, window int) (GetErrorLocationResponse, error) {

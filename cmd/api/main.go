@@ -7,13 +7,24 @@ import (
 	"github.com/tidwall/gjson"
 	"gopkg.in/go-playground/validator.v9"
 
+	_ "github.com/baking-bad/bcdhub/cmd/api/docs"
 	"github.com/baking-bad/bcdhub/cmd/api/handlers"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	"github.com/swaggo/gin-swagger/swaggerFiles"
 )
+
+// @title Better Call Dev API
+// @version 1.0
+// @description This is API description for Better Call Dev service.
+
+// @host api.better-call.dev
+// @BasePath /v1
+// @query.collection.format multi
 
 func main() {
 	cfg, err := config.LoadDefaultConfig()
@@ -76,7 +87,13 @@ func main() {
 
 	v1 := r.Group("v1")
 	{
+		v1.GET("opg/:hash", ctx.GetOperation)
+		v1.GET("operation/:id/error_location", ctx.GetOperationErrorLocation)
+		v1.GET("pick_random", ctx.GetRandomContract)
+		v1.GET("projects", ctx.GetProjects)
 		v1.GET("search", ctx.Search)
+
+		v1.POST("diff", ctx.GetDiff)
 
 		stats := v1.Group("stats")
 		{
@@ -138,18 +155,6 @@ func main() {
 			}
 		}
 
-		v1.GET("opg/:hash", ctx.GetOperation)
-		v1.GET("operation/:id/error_location", ctx.GetOperationErrorLocation)
-
-		v1.GET("pick_random", ctx.GetRandomContract)
-		v1.POST("diff", ctx.GetDiff)
-		v1.GET("projects", ctx.GetProjects)
-		v1.GET("formatter", ctx.GetFormatter)
-
-		// PRIVATE
-		// TODO - remove in prod
-		// v1.POST("set_alias", ctx.SetAlias)
-
 		oauth := v1.Group("oauth")
 		{
 			provider := oauth.Group(":provider")
@@ -181,6 +186,9 @@ func main() {
 			}
 		}
 	}
+
+	r.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	if err := r.Run(cfg.API.Bind); err != nil {
 		logger.Error(err)
 		helpers.CatchErrorSentry(err)

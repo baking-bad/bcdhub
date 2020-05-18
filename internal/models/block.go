@@ -10,13 +10,13 @@ import (
 type Block struct {
 	ID string `json:"-"`
 
-	Network     string    `json:"network"`
-	Hash        string    `json:"hash"`
-	Level       int64     `json:"level"`
-	Predecessor string    `json:"predecessor"`
-	ChainID     string    `json:"chain_id"`
-	Protocol    string    `json:"protocol"`
-	Timestamp   time.Time `json:"timestamp"`
+	Network     string    `json:"network" example:"mainnet"`
+	Hash        string    `json:"hash" example:"BLyAEwaXShJuZasvUezHUfLqzZ48V8XrPvXF2wRaH15tmzEpsHT"`
+	Level       int64     `json:"level" example:"24"`
+	Predecessor string    `json:"predecessor" example:"BMWVEwEYw9m5iaHzqxDfkPzZTV4rhkSouRh3DkVMVGkxZ3EVaNs"`
+	ChainID     string    `json:"chain_id" example:"NetXdQprcVkpaWU"`
+	Protocol    string    `json:"protocol" example:"PtCJ7pwoxe8JasnHY8YonnLYjcVHmhiARPJvqcC6VfHT5s8k8sY"`
+	Timestamp   time.Time `json:"timestamp" example:"2018-06-30T18:05:27Z"`
 }
 
 // GetID -
