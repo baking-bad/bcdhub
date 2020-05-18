@@ -8,6 +8,7 @@ import (
 // Every time new protocol is proposed we determine if everything works fine or implement a custom handler otherwise
 // After that we append protocol to this list with a corresponding handler id (aka symlink)
 var symLinks = map[string]string{
+	"ProtoGenesisGenesisGenesisGenesisGenesisGenesk612im": "alpha",
 	"PrihK96nBAFSxVL1GLJTVhu9YnzkMFiBeuJRPA8NwuZVZCE1L6i": "alpha",
 	"PtBMwNZT94N7gXKw4i273CKcSaBrrBnqnt3RATExNKr9KNX2USV": "alpha",
 	"ProtoDemoNoopsDemoNoopsDemoNoopsDemoNoopsDemo6XBoYp": "alpha",
