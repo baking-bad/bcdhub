@@ -9,6 +9,9 @@ import (
 
 // Micheline -
 func Micheline(node gjson.Result) (gjson.Result, error) {
+	if !node.IsArray() && !node.IsObject() {
+		return node, nil
+	}
 	var p fastjson.Parser
 	value, err := p.Parse(node.String())
 	if err != nil {
@@ -71,9 +74,8 @@ func processingObject(value *fastjson.Value) (*fastjson.Value, error) {
 		valString := string(value.GetStringBytes("bytes"))
 		unpackedValue := unpackBytes(valString)
 		value.Del("bytes")
-		value.Set("string", fastjson.MustParse(fmt.Sprintf(`"%s"`, unpackedValue)))
-		return value, nil
-
+		arena := fastjson.Arena{}
+		value.Set("string", arena.NewString(unpackedValue))
 	} else if value.Exists("args") {
 		args := value.Get("args")
 		newArgs, err := processingArray(args)
