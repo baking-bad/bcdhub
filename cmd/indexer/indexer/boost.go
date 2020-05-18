@@ -177,7 +177,11 @@ func (bi *BoostIndexer) Sync(wg *sync.WaitGroup) error {
 	}
 
 	everySecond := false
-	ticker := time.NewTicker(time.Duration(bi.UpdateTimer) * time.Second)
+	duration := time.Duration(bi.UpdateTimer) * time.Second
+	if duration.Microseconds() <= 0 {
+		duration = 1 * time.Second
+	}
+	ticker := time.NewTicker(duration)
 	for {
 		select {
 		case <-bi.stop:
