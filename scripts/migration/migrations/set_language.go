@@ -15,6 +15,11 @@ import (
 // SetLanguage - migration that set langugage to contract by annotations or entrypoints
 type SetLanguage struct{}
 
+// Key -
+func (m *SetLanguage) Key() string {
+	return "language"
+}
+
 // Description -
 func (m *SetLanguage) Description() string {
 	return "set langugage to contract by annotations or entrypoints"

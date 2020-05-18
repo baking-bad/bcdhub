@@ -12,6 +12,11 @@ import (
 // SetOperationBurned - migration that set burned to operations in all networks
 type SetOperationBurned struct{}
 
+// Key -
+func (m *SetOperationBurned) Key() string {
+	return "operation_burned"
+}
+
 // Description -
 func (m *SetOperationBurned) Description() string {
 	return "set burned to operations in all networks"

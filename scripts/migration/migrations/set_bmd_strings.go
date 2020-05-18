@@ -12,6 +12,11 @@ import (
 // SetBMDStrings - migration that set key and value strings array at big map diff
 type SetBMDStrings struct{}
 
+// Key -
+func (m *SetBMDStrings) Key() string {
+	return "bmd_strings"
+}
+
 // Description -
 func (m *SetBMDStrings) Description() string {
 	return "parse big map keys & values strings"

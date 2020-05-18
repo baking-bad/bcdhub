@@ -15,6 +15,11 @@ type SetContractAlias struct {
 	Network string
 }
 
+// Key -
+func (m *SetContractAlias) Key() string {
+	return "contract_alias"
+}
+
 // Description -
 func (m *SetContractAlias) Description() string {
 	return "set alias from db to contracts in choosen network"

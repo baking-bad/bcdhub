@@ -11,6 +11,11 @@ import (
 // SetBMDProtocol - migration that set `Protocol` at big map diff
 type SetBMDProtocol struct{}
 
+// Key -
+func (m *SetBMDProtocol) Key() string {
+	return "set_bmd_protocol"
+}
+
 // Description -
 func (m *SetBMDProtocol) Description() string {
 	return "set `Protocol` at big map diff"

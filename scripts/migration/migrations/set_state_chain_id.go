@@ -8,6 +8,11 @@ import (
 // SetStateChainID - migration that set chain id to state model
 type SetStateChainID struct{}
 
+// Key -
+func (m *SetStateChainID) Key() string {
+	return "state_chain_id"
+}
+
 // Description -
 func (m *SetStateChainID) Description() string {
 	return "set chain id to state model"

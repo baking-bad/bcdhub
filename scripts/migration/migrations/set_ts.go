@@ -15,6 +15,11 @@ import (
 // SetTimestamp - migration that set timestamp from block head to operation
 type SetTimestamp struct{}
 
+// Key -
+func (m *SetTimestamp) Key() string {
+	return "timestamp"
+}
+
 // Description -
 func (m *SetTimestamp) Description() string {
 	return "set timestamp from block head to operation"

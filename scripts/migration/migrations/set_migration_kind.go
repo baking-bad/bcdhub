@@ -12,6 +12,11 @@ import (
 // SetMigrationKind - migration that sets `Kind` & `PrevProtocol` field to all contract migrations
 type SetMigrationKind struct{}
 
+// Key -
+func (m *SetMigrationKind) Key() string {
+	return "set_migration_kind"
+}
+
 // Description -
 func (m *SetMigrationKind) Description() string {
 	return "set `Kind` and `PrevProtocol` to contract migrations in all networks"

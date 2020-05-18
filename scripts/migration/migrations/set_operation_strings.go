@@ -13,6 +13,11 @@ import (
 // SetOperationStrings - migration that set storage and parameter strings array at operation
 type SetOperationStrings struct{}
 
+// Key -
+func (m *SetOperationStrings) Key() string {
+	return "operation_strings"
+}
+
 // Description -
 func (m *SetOperationStrings) Description() string {
 	return "parse parameter & storage strings"

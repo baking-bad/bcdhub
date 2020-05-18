@@ -12,6 +12,11 @@ import (
 // SetContractFingerprint - migration that set `Fingerprint` to contract
 type SetContractFingerprint struct{}
 
+// Key -
+func (m *SetContractFingerprint) Key() string {
+	return "set_contract_fingerprint"
+}
+
 // Description -
 func (m *SetContractFingerprint) Description() string {
 	return "set `Fingerprint` to contract"
