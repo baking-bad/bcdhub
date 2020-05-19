@@ -40,9 +40,9 @@ func (e *Elastic) GetLastProjectContracts() ([]models.Contract, error) {
 }
 
 // GetSameContracts -
-func (e *Elastic) GetSameContracts(c models.Contract, size, offset int64) (scp SameContractsResponse, err error) {
+func (e *Elastic) GetSameContracts(c models.Contract, size, offset int64) (pcr SameContractsResponse, err error) {
 	if c.Fingerprint == nil {
-		return scp, fmt.Errorf("Invalid contract data")
+		return pcr, fmt.Errorf("Invalid contract data")
 	}
 
 	if size == 0 {
@@ -67,7 +67,7 @@ func (e *Elastic) GetSameContracts(c models.Contract, size, offset int64) (scp S
 
 	arr := resp.Get("hits.hits")
 	if !arr.Exists() {
-		return scp, fmt.Errorf("Empty response: %v", resp)
+		return pcr, fmt.Errorf("Empty response: %v", resp)
 	}
 
 	contracts := make([]models.Contract, 0)
@@ -76,15 +76,15 @@ func (e *Elastic) GetSameContracts(c models.Contract, size, offset int64) (scp S
 		c.ParseElasticJSON(item)
 		contracts = append(contracts, c)
 	}
-	scp.Contracts = contracts
-	scp.Count = resp.Get("hits.total.value").Uint()
+	pcr.Contracts = contracts
+	pcr.Count = resp.Get("hits.total.value").Uint()
 	return
 }
 
 // GetSimilarContracts -
-func (e *Elastic) GetSimilarContracts(c models.Contract) ([]SimilarContract, error) {
+func (e *Elastic) GetSimilarContracts(c models.Contract) (pcr []SimilarContract, err error) {
 	if c.Fingerprint == nil {
-		return nil, nil
+		return
 	}
 
 	query := newQuery().Query(
@@ -117,24 +117,26 @@ func (e *Elastic) GetSimilarContracts(c models.Contract) ([]SimilarContract, err
 
 	resp, err := e.query([]string{DocContracts}, query)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	buckets := resp.Get("aggregations.projects.buckets")
 	if !buckets.Exists() {
-		return nil, nil
+		return
 	}
 
-	res := make([]SimilarContract, 0)
+	contracts := make([]SimilarContract, 0)
 	for _, item := range buckets.Array() {
-		var buf models.Contract
-		buf.ParseElasticJSON(item.Get("last.hits.hits.0"))
-		res = append(res, SimilarContract{
-			Contract: &buf,
-			Count:    item.Get("doc_count").Int(),
-		})
+		var contract models.Contract
+		contract.ParseElasticJSON(item.Get("last.hits.hits.0"))
+
+		similar := SimilarContract{
+			Contract: &contract,
+			Count:    item.Get("doc_count").Uint(),
+		}
+		contracts = append(contracts, similar)
 	}
-	return res, nil
+	return contracts, nil
 }
 
 // GetProjectsStats -
@@ -149,23 +151,13 @@ func (e *Elastic) GetProjectsStats() (stats []ProjectStats, err error) {
 				"size":  maxQuerySize,
 			},
 			"aggs": qItem{
-				"by_same": qItem{
-					"terms": qItem{
-						"field": "hash.keyword",
-						"size":  maxQuerySize,
-					},
-					"aggs": qItem{
-						"last_action_date":  max("last_action"),
-						"first_deploy_date": min("timestamp"),
-					},
-				},
 				"count": qItem{
 					"cardinality": qItem{
 						"field": "hash.keyword",
 					},
 				},
-				"last_action_date":  maxBucket("by_same>last_action_date"),
-				"first_deploy_date": minBucket("by_same>first_deploy_date"),
+				"last_action_date":  max("last_action"),
+				"first_deploy_date": min("timestamp"),
 				"language": qItem{
 					"terms": qItem{
 						"field": "language.keyword",
@@ -184,9 +176,7 @@ func (e *Elastic) GetProjectsStats() (stats []ProjectStats, err error) {
 	count := resp.Get("aggregations.by_project.buckets.#").Int()
 	stats = make([]ProjectStats, count)
 	for i, item := range resp.Get("aggregations.by_project.buckets").Array() {
-		var p ProjectStats
-		p.parse(item)
-		stats[i] = p
+		stats[i].parse(item)
 	}
 	return
 }

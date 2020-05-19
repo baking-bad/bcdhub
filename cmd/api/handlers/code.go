@@ -67,6 +67,8 @@ func (ctx *Context) GetContractCode(c *gin.Context) {
 // @Description Get diff between two contracts
 // @Tags contract
 // @ID get-diff
+// @Param left body CodeDiffLeg true "First compared contract"
+// @Param right body CodeDiffLeg true "Second compared contract"
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} CodeDiffResponse

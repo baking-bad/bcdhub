@@ -17,7 +17,7 @@ import (
 // @Param size query integer false "Requested count"
 // @Accept json
 // @Produce json
-// @Success 200 {object} elastic.SameContractsResponse
+// @Success 200 {object} SameContractsResponse
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /contract/{network}/{address}/same [get]
@@ -41,11 +41,15 @@ func (ctx *Context) GetSameContracts(c *gin.Context) {
 		return
 	}
 
-	v, err := ctx.ES.GetSameContracts(contract, 0, pageReq.Offset)
+	sameContracts, err := ctx.ES.GetSameContracts(contract, 0, pageReq.Offset)
 	if handleError(c, err, 0) {
 		return
 	}
-	c.JSON(http.StatusOK, v)
+
+	var response SameContractsResponse
+	response.FromModel(sameContracts)
+
+	c.JSON(http.StatusOK, response)
 }
 
 // GetSimilarContracts godoc
@@ -57,7 +61,7 @@ func (ctx *Context) GetSameContracts(c *gin.Context) {
 // @Param address path string true "KT address"
 // @Accept  json
 // @Produce  json
-// @Success 200 {array} elastic.SimilarContract
+// @Success 200 {array} SimilarContract
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /contract/{network}/{address}/similar [get]
@@ -81,6 +85,7 @@ func (ctx *Context) GetSimilarContracts(c *gin.Context) {
 		return
 	}
 
+	response := make([]SimilarContract, len(similar))
 	for i := range similar {
 		diff, err := ctx.getContractCodeDiff(
 			CodeDiffLeg{Address: contract.Address, Network: contract.Network},
@@ -89,11 +94,10 @@ func (ctx *Context) GetSimilarContracts(c *gin.Context) {
 		if handleError(c, err, 0) {
 			return
 		}
-		similar[i].Added = diff.Diff.Added
-		similar[i].Removed = diff.Diff.Removed
+		response[i].FromModels(similar[i], diff)
 	}
 
-	c.JSON(http.StatusOK, similar)
+	c.JSON(http.StatusOK, response)
 }
 
 // GetProjects godoc
@@ -103,7 +107,7 @@ func (ctx *Context) GetSimilarContracts(c *gin.Context) {
 // @ID get-projects
 // @Accept  json
 // @Produce  json
-// @Success 200 {array} elastic.ProjectStats
+// @Success 200 {array} ProjectStats
 // @Failure 500 {object} Error
 // @Router /projects [get]
 func (ctx *Context) GetProjects(c *gin.Context) {
@@ -111,5 +115,9 @@ func (ctx *Context) GetProjects(c *gin.Context) {
 	if handleError(c, err, 0) {
 		return
 	}
-	c.JSON(http.StatusOK, projects)
+	stats := make([]ProjectStats, len(projects))
+	for i := range projects {
+		stats[i].FromModel(projects[i])
+	}
+	c.JSON(http.StatusOK, stats)
 }

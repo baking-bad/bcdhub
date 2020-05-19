@@ -7,6 +7,7 @@ import (
 	"github.com/tidwall/gjson"
 	"gopkg.in/go-playground/validator.v9"
 
+	"github.com/baking-bad/bcdhub/cmd/api/docs"
 	_ "github.com/baking-bad/bcdhub/cmd/api/docs"
 	"github.com/baking-bad/bcdhub/cmd/api/handlers"
 	"github.com/baking-bad/bcdhub/internal/config"
@@ -22,7 +23,6 @@ import (
 // @version 1.0
 // @description This is API description for Better Call Dev service.
 
-// @host api.better-call.dev
 // @BasePath /v1
 // @query.collection.format multi
 
@@ -31,6 +31,8 @@ func main() {
 	if err != nil {
 		logger.Fatal(err)
 	}
+
+	docs.SwaggerInfo.Host = cfg.API.Bind
 
 	gjson.AddModifier("upper", func(json, arg string) string {
 		return strings.ToUpper(json)

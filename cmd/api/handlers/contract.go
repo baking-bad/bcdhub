@@ -49,7 +49,7 @@ func (ctx *Context) GetContract(c *gin.Context) {
 // @ID get-random-contract
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} models.Contract
+// @Success 200 {object} Contract
 // @Failure 500 {object} Error
 // @Router /pick_random [get]
 func (ctx *Context) GetRandomContract(c *gin.Context) {
@@ -74,9 +74,9 @@ func (ctx *Context) contractPostprocessing(cntr models.Contract) (Contract, erro
 }
 
 func (ctx *Context) setProfileInfo(contract models.Contract) (Contract, error) {
-	res := Contract{
-		Contract: &contract,
-	}
+	var res Contract
+	res.FromModel(contract)
+
 	if ctx.OAUTH.UserID == 0 {
 		return res, nil
 	}

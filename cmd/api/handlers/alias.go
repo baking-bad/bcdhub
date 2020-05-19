@@ -15,7 +15,7 @@ import (
 // @Param slug path string true "Slug"
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} database.Alias
+// @Success 200 {object} Alias
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /slug/{slug} [get]
@@ -33,5 +33,7 @@ func (ctx *Context) GetBySlug(c *gin.Context) {
 	if handleError(c, err, 0) {
 		return
 	}
-	c.JSON(http.StatusOK, a)
+	var alias Alias
+	alias.FromModel(a)
+	c.JSON(http.StatusOK, alias)
 }

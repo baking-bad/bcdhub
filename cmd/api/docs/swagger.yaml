@@ -2,35 +2,6 @@ basePath: /v1
 definitions:
   cerrors.IError:
     type: object
-  database.Alias:
-    properties:
-      address:
-        example: KT1CeekjGVRc5ASmgWDc658NBExetoKNuiqz
-        type: string
-      alias:
-        example: Contract alias
-        type: string
-      network:
-        example: babylonnet
-        type: string
-      slug:
-        example: contract_slug
-        type: string
-    type: object
-  database.SubRating:
-    properties:
-      count:
-        type: integer
-      users:
-        items:
-          properties:
-            avatarURL:
-              type: string
-            login:
-              type: string
-          type: object
-        type: array
-    type: object
   docstring.Typedef:
     properties:
       args:
@@ -48,119 +19,6 @@ definitions:
         type: string
       value:
         type: string
-    type: object
-  elastic.LightContract:
-    properties:
-      address:
-        type: string
-      deploy_time:
-        type: string
-      network:
-        type: string
-    type: object
-  elastic.ProjectStats:
-    properties:
-      contracts_count:
-        type: integer
-      first_deploy:
-        type: string
-      language:
-        type: string
-      last:
-        $ref: '#/definitions/elastic.LightContract'
-        type: object
-      last_action:
-        type: string
-      last_deploy:
-        type: string
-      name:
-        type: string
-      tx_count:
-        type: integer
-      versions_count:
-        type: integer
-    type: object
-  elastic.SameContractsResponse:
-    properties:
-      contracts:
-        items:
-          $ref: '#/definitions/models.Contract'
-        type: array
-      count:
-        type: integer
-    type: object
-  elastic.SimilarContract:
-    properties:
-      added:
-        type: integer
-      address:
-        type: string
-      alias:
-        type: string
-      annotations:
-        items:
-          type: string
-        type: array
-      balance:
-        type: integer
-      consumed_gas_diff:
-        type: number
-      count:
-        type: integer
-      delegate:
-        type: string
-      delegate_alias:
-        type: string
-      diff:
-        type: string
-      entrypoints:
-        items:
-          type: string
-        type: array
-      fail_strings:
-        items:
-          type: string
-        type: array
-      fingerprint:
-        $ref: '#/definitions/models.Fingerprint'
-        type: object
-      found_by:
-        type: string
-      hardcoded:
-        items:
-          type: string
-        type: array
-      hash:
-        type: string
-      id:
-        type: string
-      language:
-        type: string
-      last_action:
-        $ref: '#/definitions/models.BCDTime'
-        type: object
-      level:
-        type: integer
-      manager:
-        type: string
-      migrations_count:
-        type: integer
-      network:
-        type: string
-      project_id:
-        type: string
-      removed:
-        type: integer
-      tags:
-        items:
-          type: string
-        type: array
-      timestamp:
-        type: string
-      total_withdrawn:
-        type: integer
-      tx_count:
-        type: integer
     type: object
   formatter.DiffResult:
     properties:
@@ -192,6 +50,36 @@ definitions:
     type: object
   gin.H:
     additionalProperties: true
+    type: object
+  handlers.Alias:
+    properties:
+      address:
+        example: KT1CeekjGVRc5ASmgWDc658NBExetoKNuiqz
+        type: string
+      alias:
+        example: Contract alias
+        type: string
+      network:
+        example: babylonnet
+        type: string
+      slug:
+        example: contract_slug
+        type: string
+    type: object
+  handlers.BalanceUpdate:
+    properties:
+      category:
+        type: string
+      change:
+        type: integer
+      contract:
+        type: string
+      cycle:
+        type: integer
+      delegate:
+        type: string
+      kind:
+        type: string
     type: object
   handlers.BigMapDiffByKeyResponse:
     properties:
@@ -237,6 +125,30 @@ definitions:
       data:
         $ref: '#/definitions/handlers.BigMapItem'
         type: object
+    type: object
+  handlers.Block:
+    properties:
+      chain_id:
+        example: NetXdQprcVkpaWU
+        type: string
+      hash:
+        example: BLyAEwaXShJuZasvUezHUfLqzZ48V8XrPvXF2wRaH15tmzEpsHT
+        type: string
+      level:
+        example: 24
+        type: integer
+      network:
+        example: mainnet
+        type: string
+      predecessor:
+        example: BMWVEwEYw9m5iaHzqxDfkPzZTV4rhkSouRh3DkVMVGkxZ3EVaNs
+        type: string
+      protocol:
+        example: PtCJ7pwoxe8JasnHY8YonnLYjcVHmhiARPJvqcC6VfHT5s8k8sY
+        type: string
+      timestamp:
+        example: "2018-06-30T18:05:27Z"
+        type: string
     type: object
   handlers.CodeDiffLeg:
     properties:
@@ -288,9 +200,6 @@ definitions:
         items:
           type: string
         type: array
-      fingerprint:
-        $ref: '#/definitions/models.Fingerprint'
-        type: object
       found_by:
         type: string
       hardcoded:
@@ -304,8 +213,7 @@ definitions:
       language:
         type: string
       last_action:
-        $ref: '#/definitions/models.BCDTime'
-        type: object
+        type: string
       level:
         type: integer
       manager:
@@ -368,6 +276,15 @@ definitions:
       text:
         type: string
     type: object
+  handlers.LightContract:
+    properties:
+      address:
+        type: string
+      deploy_time:
+        type: string
+      network:
+        type: string
+    type: object
   handlers.Migration:
     properties:
       hash:
@@ -393,7 +310,7 @@ definitions:
         type: integer
       protocols:
         items:
-          $ref: '#/definitions/models.Protocol'
+          $ref: '#/definitions/handlers.Protocol'
         type: array
     type: object
   handlers.Operation:
@@ -404,7 +321,7 @@ definitions:
         type: integer
       balance_updates:
         items:
-          $ref: '#/definitions/models.BalanceUpdate'
+          $ref: '#/definitions/handlers.BalanceUpdate'
         type: array
       burned:
         type: integer
@@ -449,7 +366,7 @@ definitions:
       public_key:
         type: string
       result:
-        $ref: '#/definitions/models.OperationResult'
+        $ref: '#/definitions/handlers.OperationResult'
         type: object
       source:
         type: string
@@ -474,6 +391,21 @@ definitions:
           type: integer
         type: array
     type: object
+  handlers.OperationResult:
+    properties:
+      allocated_destination_contract:
+        example: true
+        type: boolean
+      consumed_gas:
+        example: 100
+        type: integer
+      paid_storage_size_diff:
+        example: 300
+        type: integer
+      storage_size:
+        example: 200
+        type: integer
+    type: object
   handlers.PageableTokenTransfers:
     properties:
       last_id:
@@ -487,6 +419,147 @@ definitions:
     properties:
       subscribed:
         type: boolean
+    type: object
+  handlers.ProjectStats:
+    properties:
+      contracts_count:
+        type: integer
+      first_deploy:
+        type: string
+      language:
+        type: string
+      last:
+        $ref: '#/definitions/handlers.LightContract'
+        type: object
+      last_action:
+        type: string
+      last_deploy:
+        type: string
+      name:
+        type: string
+      tx_count:
+        type: integer
+      versions_count:
+        type: integer
+    type: object
+  handlers.Protocol:
+    properties:
+      alias:
+        example: Carthage
+        type: string
+      end_level:
+        example: 0
+        type: integer
+      hash:
+        example: PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb
+        type: string
+      network:
+        example: mainnet
+        type: string
+      start_level:
+        example: 851969
+        type: integer
+    type: object
+  handlers.SameContractsResponse:
+    properties:
+      contracts:
+        items:
+          $ref: '#/definitions/handlers.Contract'
+        type: array
+      count:
+        type: integer
+    type: object
+  handlers.Series:
+    items:
+      items:
+        type: integer
+      type: array
+    type: array
+  handlers.SimilarContract:
+    properties:
+      added:
+        type: integer
+      address:
+        type: string
+      alias:
+        type: string
+      annotations:
+        items:
+          type: string
+        type: array
+      balance:
+        type: integer
+      count:
+        type: integer
+      delegate:
+        type: string
+      delegate_alias:
+        type: string
+      entrypoints:
+        items:
+          type: string
+        type: array
+      fail_strings:
+        items:
+          type: string
+        type: array
+      found_by:
+        type: string
+      hardcoded:
+        items:
+          type: string
+        type: array
+      hash:
+        type: string
+      id:
+        type: string
+      language:
+        type: string
+      last_action:
+        type: string
+      level:
+        type: integer
+      manager:
+        type: string
+      migrations_count:
+        type: integer
+      network:
+        type: string
+      profile:
+        $ref: '#/definitions/handlers.ProfileInfo'
+        type: object
+      project_id:
+        type: string
+      removed:
+        type: integer
+      slug:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      timestamp:
+        type: string
+      total_withdrawn:
+        type: integer
+      tx_count:
+        type: integer
+    type: object
+  handlers.SubRating:
+    properties:
+      count:
+        type: integer
+      users:
+        items:
+          $ref: '#/definitions/handlers.SubRatingUser'
+        type: array
+    type: object
+  handlers.SubRatingUser:
+    properties:
+      avatarURL:
+        type: string
+      login:
+        type: string
     type: object
   handlers.TokenContract:
     properties:
@@ -545,155 +618,6 @@ definitions:
     type: object
   jsonschema.Schema:
     additionalProperties: true
-    type: object
-  models.BCDTime:
-    type: object
-  models.BalanceUpdate:
-    properties:
-      category:
-        type: string
-      change:
-        type: integer
-      contract:
-        type: string
-      cycle:
-        type: integer
-      delegate:
-        type: string
-      kind:
-        type: string
-    type: object
-  models.Block:
-    properties:
-      chain_id:
-        example: NetXdQprcVkpaWU
-        type: string
-      hash:
-        example: BLyAEwaXShJuZasvUezHUfLqzZ48V8XrPvXF2wRaH15tmzEpsHT
-        type: string
-      level:
-        example: 24
-        type: integer
-      network:
-        example: mainnet
-        type: string
-      predecessor:
-        example: BMWVEwEYw9m5iaHzqxDfkPzZTV4rhkSouRh3DkVMVGkxZ3EVaNs
-        type: string
-      protocol:
-        example: PtCJ7pwoxe8JasnHY8YonnLYjcVHmhiARPJvqcC6VfHT5s8k8sY
-        type: string
-      timestamp:
-        example: "2018-06-30T18:05:27Z"
-        type: string
-    type: object
-  models.Contract:
-    properties:
-      address:
-        type: string
-      alias:
-        type: string
-      annotations:
-        items:
-          type: string
-        type: array
-      balance:
-        type: integer
-      delegate:
-        type: string
-      delegate_alias:
-        type: string
-      entrypoints:
-        items:
-          type: string
-        type: array
-      fail_strings:
-        items:
-          type: string
-        type: array
-      fingerprint:
-        $ref: '#/definitions/models.Fingerprint'
-        type: object
-      found_by:
-        type: string
-      hardcoded:
-        items:
-          type: string
-        type: array
-      hash:
-        type: string
-      id:
-        type: string
-      language:
-        type: string
-      last_action:
-        $ref: '#/definitions/models.BCDTime'
-        type: object
-      level:
-        type: integer
-      manager:
-        type: string
-      migrations_count:
-        type: integer
-      network:
-        type: string
-      project_id:
-        type: string
-      tags:
-        items:
-          type: string
-        type: array
-      timestamp:
-        type: string
-      total_withdrawn:
-        type: integer
-      tx_count:
-        type: integer
-    type: object
-  models.Fingerprint:
-    properties:
-      code:
-        type: string
-      parameter:
-        type: string
-      storage:
-        type: string
-    type: object
-  models.OperationResult:
-    properties:
-      allocated_destination_contract:
-        type: boolean
-      balance_updates:
-        items:
-          $ref: '#/definitions/models.BalanceUpdate'
-        type: array
-      consumed_gas:
-        type: integer
-      paid_storage_size_diff:
-        type: integer
-      storage_size:
-        type: integer
-    type: object
-  models.Protocol:
-    properties:
-      alias:
-        example: Carthage
-        type: string
-      end_level:
-        example: 0
-        type: integer
-      hash:
-        example: PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb
-        type: string
-      network:
-        example: mainnet
-        type: string
-      start_level:
-        example: 851969
-        type: integer
-      sym_link:
-        example: babylon
-        type: string
     type: object
   newmiguel.Node:
     properties:
@@ -1196,7 +1120,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/database.SubRating'
+              $ref: '#/definitions/handlers.SubRating'
             type: array
         "400":
           description: Bad Request
@@ -1310,7 +1234,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/elastic.SameContractsResponse'
+            $ref: '#/definitions/handlers.SameContractsResponse'
         "400":
           description: Bad Request
           schema:
@@ -1346,7 +1270,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/elastic.SimilarContract'
+              $ref: '#/definitions/handlers.SimilarContract'
             type: array
         "400":
           description: Bad Request
@@ -1400,6 +1324,19 @@ paths:
       - application/json
       description: Get diff between two contracts
       operationId: get-diff
+      parameters:
+      - description: First compared contract
+        in: body
+        name: left
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CodeDiffLeg'
+      - description: Second compared contract
+        in: body
+        name: right
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CodeDiffLeg'
       produces:
       - application/json
       responses:
@@ -1491,7 +1428,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.Contract'
+            $ref: '#/definitions/handlers.Contract'
         "500":
           description: Internal Server Error
           schema:
@@ -1512,7 +1449,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/elastic.ProjectStats'
+              $ref: '#/definitions/handlers.ProjectStats'
             type: array
         "500":
           description: Internal Server Error
@@ -1539,7 +1476,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/database.Alias'
+            $ref: '#/definitions/handlers.Alias'
         "400":
           description: Bad Request
           schema:
@@ -1564,7 +1501,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.Block'
+              $ref: '#/definitions/handlers.Block'
             type: array
         "500":
           description: Internal Server Error
@@ -1639,9 +1576,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              type: integer
-            type: array
+            $ref: '#/definitions/handlers.Series'
         "400":
           description: Bad Request
           schema:

@@ -717,7 +717,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/database.SubRating"
+                                "$ref": "#/definitions/handlers.SubRating"
                             }
                         }
                     },
@@ -886,7 +886,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/elastic.SameContractsResponse"
+                            "$ref": "#/definitions/handlers.SameContractsResponse"
                         }
                     },
                     "400": {
@@ -940,7 +940,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/elastic.SimilarContract"
+                                "$ref": "#/definitions/handlers.SimilarContract"
                             }
                         }
                     },
@@ -1025,6 +1025,26 @@
                 ],
                 "summary": "Get diff between two contracts",
                 "operationId": "get-diff",
+                "parameters": [
+                    {
+                        "description": "First compared contract",
+                        "name": "left",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CodeDiffLeg"
+                        }
+                    },
+                    {
+                        "description": "Second compared contract",
+                        "name": "right",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CodeDiffLeg"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1157,7 +1177,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.Contract"
+                            "$ref": "#/definitions/handlers.Contract"
                         }
                     },
                     "500": {
@@ -1189,7 +1209,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/elastic.ProjectStats"
+                                "$ref": "#/definitions/handlers.ProjectStats"
                             }
                         }
                     },
@@ -1229,7 +1249,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/database.Alias"
+                            "$ref": "#/definitions/handlers.Alias"
                         }
                     },
                     "400": {
@@ -1267,7 +1287,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.Block"
+                                "$ref": "#/definitions/handlers.Block"
                             }
                         }
                     },
@@ -1376,10 +1396,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            }
+                            "$ref": "#/definitions/handlers.Series"
                         }
                     },
                     "400": {
@@ -1526,49 +1543,6 @@
         "cerrors.IError": {
             "type": "object"
         },
-        "database.Alias": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "type": "string",
-                    "example": "KT1CeekjGVRc5ASmgWDc658NBExetoKNuiqz"
-                },
-                "alias": {
-                    "type": "string",
-                    "example": "Contract alias"
-                },
-                "network": {
-                    "type": "string",
-                    "example": "babylonnet"
-                },
-                "slug": {
-                    "type": "string",
-                    "example": "contract_slug"
-                }
-            }
-        },
-        "database.SubRating": {
-            "type": "object",
-            "properties": {
-                "count": {
-                    "type": "integer"
-                },
-                "users": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "avatarURL": {
-                                "type": "string"
-                            },
-                            "login": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "docstring.Typedef": {
             "type": "object",
             "properties": {
@@ -1594,176 +1568,6 @@
                 },
                 "value": {
                     "type": "string"
-                }
-            }
-        },
-        "elastic.LightContract": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "type": "string"
-                },
-                "deploy_time": {
-                    "type": "string"
-                },
-                "network": {
-                    "type": "string"
-                }
-            }
-        },
-        "elastic.ProjectStats": {
-            "type": "object",
-            "properties": {
-                "contracts_count": {
-                    "type": "integer"
-                },
-                "first_deploy": {
-                    "type": "string"
-                },
-                "language": {
-                    "type": "string"
-                },
-                "last": {
-                    "type": "object",
-                    "$ref": "#/definitions/elastic.LightContract"
-                },
-                "last_action": {
-                    "type": "string"
-                },
-                "last_deploy": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "tx_count": {
-                    "type": "integer"
-                },
-                "versions_count": {
-                    "type": "integer"
-                }
-            }
-        },
-        "elastic.SameContractsResponse": {
-            "type": "object",
-            "properties": {
-                "contracts": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Contract"
-                    }
-                },
-                "count": {
-                    "type": "integer"
-                }
-            }
-        },
-        "elastic.SimilarContract": {
-            "type": "object",
-            "properties": {
-                "added": {
-                    "type": "integer"
-                },
-                "address": {
-                    "type": "string"
-                },
-                "alias": {
-                    "type": "string"
-                },
-                "annotations": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "balance": {
-                    "type": "integer"
-                },
-                "consumed_gas_diff": {
-                    "type": "number"
-                },
-                "count": {
-                    "type": "integer"
-                },
-                "delegate": {
-                    "type": "string"
-                },
-                "delegate_alias": {
-                    "type": "string"
-                },
-                "diff": {
-                    "type": "string"
-                },
-                "entrypoints": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "fail_strings": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "fingerprint": {
-                    "type": "object",
-                    "$ref": "#/definitions/models.Fingerprint"
-                },
-                "found_by": {
-                    "type": "string"
-                },
-                "hardcoded": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "hash": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "language": {
-                    "type": "string"
-                },
-                "last_action": {
-                    "type": "object",
-                    "$ref": "#/definitions/models.BCDTime"
-                },
-                "level": {
-                    "type": "integer"
-                },
-                "manager": {
-                    "type": "string"
-                },
-                "migrations_count": {
-                    "type": "integer"
-                },
-                "network": {
-                    "type": "string"
-                },
-                "project_id": {
-                    "type": "string"
-                },
-                "removed": {
-                    "type": "integer"
-                },
-                "tags": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "timestamp": {
-                    "type": "string"
-                },
-                "total_withdrawn": {
-                    "type": "integer"
-                },
-                "tx_count": {
-                    "type": "integer"
                 }
             }
         },
@@ -1813,6 +1617,50 @@
         "gin.H": {
             "type": "object",
             "additionalProperties": true
+        },
+        "handlers.Alias": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "example": "KT1CeekjGVRc5ASmgWDc658NBExetoKNuiqz"
+                },
+                "alias": {
+                    "type": "string",
+                    "example": "Contract alias"
+                },
+                "network": {
+                    "type": "string",
+                    "example": "babylonnet"
+                },
+                "slug": {
+                    "type": "string",
+                    "example": "contract_slug"
+                }
+            }
+        },
+        "handlers.BalanceUpdate": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "change": {
+                    "type": "integer"
+                },
+                "contract": {
+                    "type": "string"
+                },
+                "cycle": {
+                    "type": "integer"
+                },
+                "delegate": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string"
+                }
+            }
         },
         "handlers.BigMapDiffByKeyResponse": {
             "type": "object",
@@ -1880,6 +1728,39 @@
                 "data": {
                     "type": "object",
                     "$ref": "#/definitions/handlers.BigMapItem"
+                }
+            }
+        },
+        "handlers.Block": {
+            "type": "object",
+            "properties": {
+                "chain_id": {
+                    "type": "string",
+                    "example": "NetXdQprcVkpaWU"
+                },
+                "hash": {
+                    "type": "string",
+                    "example": "BLyAEwaXShJuZasvUezHUfLqzZ48V8XrPvXF2wRaH15tmzEpsHT"
+                },
+                "level": {
+                    "type": "integer",
+                    "example": 24
+                },
+                "network": {
+                    "type": "string",
+                    "example": "mainnet"
+                },
+                "predecessor": {
+                    "type": "string",
+                    "example": "BMWVEwEYw9m5iaHzqxDfkPzZTV4rhkSouRh3DkVMVGkxZ3EVaNs"
+                },
+                "protocol": {
+                    "type": "string",
+                    "example": "PtCJ7pwoxe8JasnHY8YonnLYjcVHmhiARPJvqcC6VfHT5s8k8sY"
+                },
+                "timestamp": {
+                    "type": "string",
+                    "example": "2018-06-30T18:05:27Z"
                 }
             }
         },
@@ -1957,10 +1838,6 @@
                         "type": "string"
                     }
                 },
-                "fingerprint": {
-                    "type": "object",
-                    "$ref": "#/definitions/models.Fingerprint"
-                },
                 "found_by": {
                     "type": "string"
                 },
@@ -1980,8 +1857,7 @@
                     "type": "string"
                 },
                 "last_action": {
-                    "type": "object",
-                    "$ref": "#/definitions/models.BCDTime"
+                    "type": "string"
                 },
                 "level": {
                     "type": "integer"
@@ -2076,6 +1952,20 @@
                 }
             }
         },
+        "handlers.LightContract": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "deploy_time": {
+                    "type": "string"
+                },
+                "network": {
+                    "type": "string"
+                }
+            }
+        },
         "handlers.Migration": {
             "type": "object",
             "properties": {
@@ -2113,7 +2003,7 @@
                 "protocols": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.Protocol"
+                        "$ref": "#/definitions/handlers.Protocol"
                     }
                 }
             }
@@ -2130,7 +2020,7 @@
                 "balance_updates": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.BalanceUpdate"
+                        "$ref": "#/definitions/handlers.BalanceUpdate"
                     }
                 },
                 "burned": {
@@ -2198,7 +2088,7 @@
                 },
                 "result": {
                     "type": "object",
-                    "$ref": "#/definitions/models.OperationResult"
+                    "$ref": "#/definitions/handlers.OperationResult"
                 },
                 "source": {
                     "type": "string"
@@ -2235,6 +2125,27 @@
                 }
             }
         },
+        "handlers.OperationResult": {
+            "type": "object",
+            "properties": {
+                "allocated_destination_contract": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "consumed_gas": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "paid_storage_size_diff": {
+                    "type": "integer",
+                    "example": 300
+                },
+                "storage_size": {
+                    "type": "integer",
+                    "example": 200
+                }
+            }
+        },
         "handlers.PageableTokenTransfers": {
             "type": "object",
             "properties": {
@@ -2254,6 +2165,217 @@
             "properties": {
                 "subscribed": {
                     "type": "boolean"
+                }
+            }
+        },
+        "handlers.ProjectStats": {
+            "type": "object",
+            "properties": {
+                "contracts_count": {
+                    "type": "integer"
+                },
+                "first_deploy": {
+                    "type": "string"
+                },
+                "language": {
+                    "type": "string"
+                },
+                "last": {
+                    "type": "object",
+                    "$ref": "#/definitions/handlers.LightContract"
+                },
+                "last_action": {
+                    "type": "string"
+                },
+                "last_deploy": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "tx_count": {
+                    "type": "integer"
+                },
+                "versions_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.Protocol": {
+            "type": "object",
+            "properties": {
+                "alias": {
+                    "type": "string",
+                    "example": "Carthage"
+                },
+                "end_level": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "hash": {
+                    "type": "string",
+                    "example": "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb"
+                },
+                "network": {
+                    "type": "string",
+                    "example": "mainnet"
+                },
+                "start_level": {
+                    "type": "integer",
+                    "example": 851969
+                }
+            }
+        },
+        "handlers.SameContractsResponse": {
+            "type": "object",
+            "properties": {
+                "contracts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.Contract"
+                    }
+                },
+                "count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.Series": {
+            "type": "array",
+            "items": {
+                "type": "array",
+                "items": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.SimilarContract": {
+            "type": "object",
+            "properties": {
+                "added": {
+                    "type": "integer"
+                },
+                "address": {
+                    "type": "string"
+                },
+                "alias": {
+                    "type": "string"
+                },
+                "annotations": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "balance": {
+                    "type": "integer"
+                },
+                "count": {
+                    "type": "integer"
+                },
+                "delegate": {
+                    "type": "string"
+                },
+                "delegate_alias": {
+                    "type": "string"
+                },
+                "entrypoints": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "fail_strings": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "found_by": {
+                    "type": "string"
+                },
+                "hardcoded": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "hash": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "language": {
+                    "type": "string"
+                },
+                "last_action": {
+                    "type": "string"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "manager": {
+                    "type": "string"
+                },
+                "migrations_count": {
+                    "type": "integer"
+                },
+                "network": {
+                    "type": "string"
+                },
+                "profile": {
+                    "type": "object",
+                    "$ref": "#/definitions/handlers.ProfileInfo"
+                },
+                "project_id": {
+                    "type": "string"
+                },
+                "removed": {
+                    "type": "integer"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "total_withdrawn": {
+                    "type": "integer"
+                },
+                "tx_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.SubRating": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.SubRatingUser"
+                    }
+                }
+            }
+        },
+        "handlers.SubRatingUser": {
+            "type": "object",
+            "properties": {
+                "avatarURL": {
+                    "type": "string"
+                },
+                "login": {
+                    "type": "string"
                 }
             }
         },
@@ -2343,225 +2465,6 @@
         "jsonschema.Schema": {
             "type": "object",
             "additionalProperties": true
-        },
-        "models.BCDTime": {
-            "type": "object"
-        },
-        "models.BalanceUpdate": {
-            "type": "object",
-            "properties": {
-                "category": {
-                    "type": "string"
-                },
-                "change": {
-                    "type": "integer"
-                },
-                "contract": {
-                    "type": "string"
-                },
-                "cycle": {
-                    "type": "integer"
-                },
-                "delegate": {
-                    "type": "string"
-                },
-                "kind": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.Block": {
-            "type": "object",
-            "properties": {
-                "chain_id": {
-                    "type": "string",
-                    "example": "NetXdQprcVkpaWU"
-                },
-                "hash": {
-                    "type": "string",
-                    "example": "BLyAEwaXShJuZasvUezHUfLqzZ48V8XrPvXF2wRaH15tmzEpsHT"
-                },
-                "level": {
-                    "type": "integer",
-                    "example": 24
-                },
-                "network": {
-                    "type": "string",
-                    "example": "mainnet"
-                },
-                "predecessor": {
-                    "type": "string",
-                    "example": "BMWVEwEYw9m5iaHzqxDfkPzZTV4rhkSouRh3DkVMVGkxZ3EVaNs"
-                },
-                "protocol": {
-                    "type": "string",
-                    "example": "PtCJ7pwoxe8JasnHY8YonnLYjcVHmhiARPJvqcC6VfHT5s8k8sY"
-                },
-                "timestamp": {
-                    "type": "string",
-                    "example": "2018-06-30T18:05:27Z"
-                }
-            }
-        },
-        "models.Contract": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "type": "string"
-                },
-                "alias": {
-                    "type": "string"
-                },
-                "annotations": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "balance": {
-                    "type": "integer"
-                },
-                "delegate": {
-                    "type": "string"
-                },
-                "delegate_alias": {
-                    "type": "string"
-                },
-                "entrypoints": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "fail_strings": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "fingerprint": {
-                    "type": "object",
-                    "$ref": "#/definitions/models.Fingerprint"
-                },
-                "found_by": {
-                    "type": "string"
-                },
-                "hardcoded": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "hash": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "language": {
-                    "type": "string"
-                },
-                "last_action": {
-                    "type": "object",
-                    "$ref": "#/definitions/models.BCDTime"
-                },
-                "level": {
-                    "type": "integer"
-                },
-                "manager": {
-                    "type": "string"
-                },
-                "migrations_count": {
-                    "type": "integer"
-                },
-                "network": {
-                    "type": "string"
-                },
-                "project_id": {
-                    "type": "string"
-                },
-                "tags": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "timestamp": {
-                    "type": "string"
-                },
-                "total_withdrawn": {
-                    "type": "integer"
-                },
-                "tx_count": {
-                    "type": "integer"
-                }
-            }
-        },
-        "models.Fingerprint": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string"
-                },
-                "parameter": {
-                    "type": "string"
-                },
-                "storage": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.OperationResult": {
-            "type": "object",
-            "properties": {
-                "allocated_destination_contract": {
-                    "type": "boolean"
-                },
-                "balance_updates": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.BalanceUpdate"
-                    }
-                },
-                "consumed_gas": {
-                    "type": "integer"
-                },
-                "paid_storage_size_diff": {
-                    "type": "integer"
-                },
-                "storage_size": {
-                    "type": "integer"
-                }
-            }
-        },
-        "models.Protocol": {
-            "type": "object",
-            "properties": {
-                "alias": {
-                    "type": "string",
-                    "example": "Carthage"
-                },
-                "end_level": {
-                    "type": "integer",
-                    "example": 0
-                },
-                "hash": {
-                    "type": "string",
-                    "example": "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb"
-                },
-                "network": {
-                    "type": "string",
-                    "example": "mainnet"
-                },
-                "start_level": {
-                    "type": "integer",
-                    "example": 851969
-                },
-                "sym_link": {
-                    "type": "string",
-                    "example": "babylon"
-                }
-            }
         },
         "newmiguel.Node": {
             "type": "object",

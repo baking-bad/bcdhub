@@ -14,7 +14,7 @@ import (
 // @ID get-stats
 // @Accept  json
 // @Produce  json
-// @Success 200 {array} models.Block
+// @Success 200 {array} Block
 // @Failure 500 {object} Error
 // @Router /stats [get]
 func (ctx *Context) GetStats(c *gin.Context) {
@@ -22,6 +22,11 @@ func (ctx *Context) GetStats(c *gin.Context) {
 	if handleError(c, err, 0) {
 		return
 	}
+	blocks := make([]Block, len(stats))
+	for i := range stats {
+		blocks[i].FromModel(stats[i])
+	}
+
 	c.JSON(http.StatusOK, stats)
 }
 
@@ -55,7 +60,11 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 	if err := ctx.ES.GetByNetworkWithSort(req.Network, "start_level", "desc", &protocols); handleError(c, err, 0) {
 		return
 	}
-	stats.Protocols = protocols
+	ps := make([]Protocol, len(protocols))
+	for i := range protocols {
+		ps[i].FromModel(protocols[i])
+	}
+	stats.Protocols = ps
 
 	c.JSON(http.StatusOK, stats)
 }
@@ -70,7 +79,7 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 // @Param period query string true "One of period (year, month, week, day)"  Enums(year, month, week, day)
 // @Accept  json
 // @Produce  json
-// @Success 200 {array} int64
+// @Success 200 {object} Series
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /stats/{network}/series [get]
@@ -89,6 +98,8 @@ func (ctx *Context) GetSeries(c *gin.Context) {
 	if handleError(c, err, 0) {
 		return
 	}
+	var response Series
+	response = series
 
-	c.JSON(http.StatusOK, series)
+	c.JSON(http.StatusOK, response)
 }

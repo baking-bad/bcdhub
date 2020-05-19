@@ -15,7 +15,7 @@ import (
 // @Param address path string true "KT address"
 // @Accept  json
 // @Produce  json
-// @Success 200 {array} database.SubRating
+// @Success 200 {array} SubRating
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /contract/{network}/{address}/rating [get]
@@ -38,6 +38,7 @@ func (ctx *Context) GetContractRating(c *gin.Context) {
 	if handleError(c, err, 0) {
 		return
 	}
-
-	c.JSON(http.StatusOK, rating)
+	var subRating SubRating
+	subRating.FromModel(rating)
+	c.JSON(http.StatusOK, subRating)
 }

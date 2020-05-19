@@ -220,6 +220,11 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 	var op Operation
 	op.FromModel(operation)
 
+	var result *OperationResult
+	result.FromModel(*operation.Result)
+	op.Result = result
+	op.BalanceUpdates = prepareBalanceUpdates(operation.BalanceUpdates)
+
 	if err := formatErrors(operation.Errors, &op); err != nil {
 		return op, err
 	}
@@ -240,6 +245,16 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 	}
 
 	return op, nil
+}
+
+func prepareBalanceUpdates(updates []models.BalanceUpdate) []BalanceUpdate {
+	result := make([]BalanceUpdate, len(updates))
+	for i := range updates {
+		var update BalanceUpdate
+		update.FromModel(updates[i])
+		result[i] = update
+	}
+	return result
 }
 
 func prepareOperations(es *elastic.Elastic, ops []models.Operation) ([]Operation, error) {
