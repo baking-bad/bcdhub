@@ -3,7 +3,6 @@ module github.com/baking-bad/bcdhub
 go 1.13
 
 require (
-	cloud.google.com/go v0.37.4
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/aws/aws-sdk-go v1.30.10
 	github.com/btcsuite/btcutil v1.0.1
@@ -21,7 +20,6 @@ require (
 	github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
 	github.com/jessevdk/go-flags v0.0.0-20141203071132-1679536dcc89
 	github.com/jinzhu/gorm v1.9.11
-	github.com/labstack/gommon v0.3.0
 	github.com/mailru/easyjson v0.7.1 // indirect
 	github.com/mkouhei/gosh v0.2.3 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
@@ -43,5 +41,4 @@ require (
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0
 	gopkg.in/yaml.v2 v2.3.0
-	honnef.co/go/tools v0.0.0-20190106161140-3f1c8253044a
 )
