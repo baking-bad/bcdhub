@@ -15,9 +15,9 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-// GetFA12 godoc
-// @Summary Get all fa12 tokens
-// @Description Get all fa12 tokens
+// GetFA godoc
+// @Summary Get all fa tokens
+// @Description Get all fa tokens
 // @Tags tokens
 // @ID get-tokens
 // @Param network path string true "Network"
@@ -29,7 +29,7 @@ import (
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /tokens/{network} [get]
-func (ctx *Context) GetFA12(c *gin.Context) {
+func (ctx *Context) GetFA(c *gin.Context) {
 	var req getByNetwork
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
 		return
@@ -57,9 +57,9 @@ func (ctx *Context) GetFA12(c *gin.Context) {
 // @Tags tokens
 // @ID get-token-transfers
 // @Param network path string true "Network"
-// @Param address path string true "KT address"
+// @Param address path string true "KT address" minlength(36) maxlength(36)
 // @Param last_id query string false "Last transfer ID"
-// @Param size query integer false "Requested count"
+// @Param size query integer false "Requested count" mininum(1)
 // @Accept json
 // @Produce json
 // @Success 200 {object} PageableTokenTransfers

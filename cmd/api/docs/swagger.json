@@ -7,7 +7,6 @@
         "license": {},
         "version": "1.0"
     },
-    "host": "api.better-call.dev",
     "basePath": "/v1",
     "paths": {
         "/contract/{network}/{address}": {
@@ -33,6 +32,8 @@
                         "required": true
                     },
                     {
+                        "maxLength": 36,
+                        "minLength": 36,
                         "type": "string",
                         "description": "KT address",
                         "name": "address",
@@ -85,6 +86,8 @@
                         "required": true
                     },
                     {
+                        "maxLength": 36,
+                        "minLength": 36,
                         "type": "string",
                         "description": "KT address",
                         "name": "address",
@@ -147,6 +150,8 @@
                         "required": true
                     },
                     {
+                        "maxLength": 36,
+                        "minLength": 36,
                         "type": "string",
                         "description": "KT address",
                         "name": "address",
@@ -216,6 +221,8 @@
                         "required": true
                     },
                     {
+                        "maxLength": 36,
+                        "minLength": 36,
                         "type": "string",
                         "description": "KT address",
                         "name": "address",
@@ -268,6 +275,8 @@
                         "required": true
                     },
                     {
+                        "maxLength": 36,
+                        "minLength": 36,
                         "type": "string",
                         "description": "KT address",
                         "name": "address",
@@ -323,6 +332,8 @@
                         "required": true
                     },
                     {
+                        "maxLength": 36,
+                        "minLength": 36,
                         "type": "string",
                         "description": "KT address",
                         "name": "address",
@@ -401,6 +412,8 @@
                         "required": true
                     },
                     {
+                        "maxLength": 36,
+                        "minLength": 36,
                         "type": "string",
                         "description": "KT address",
                         "name": "address",
@@ -442,6 +455,8 @@
                         }
                     },
                     {
+                        "maxLength": 36,
+                        "minLength": 36,
                         "description": "Operation sender",
                         "name": "sender",
                         "in": "body",
@@ -450,6 +465,8 @@
                         }
                     },
                     {
+                        "maxLength": 36,
+                        "minLength": 36,
                         "description": "Operation source",
                         "name": "source",
                         "in": "body",
@@ -506,6 +523,8 @@
                         "required": true
                     },
                     {
+                        "maxLength": 36,
+                        "minLength": 36,
                         "type": "string",
                         "description": "KT address",
                         "name": "address",
@@ -561,6 +580,8 @@
                         "required": true
                     },
                     {
+                        "maxLength": 36,
+                        "minLength": 36,
                         "type": "string",
                         "description": "KT address",
                         "name": "address",
@@ -616,6 +637,8 @@
                         "required": true
                     },
                     {
+                        "maxLength": 36,
+                        "minLength": 36,
                         "type": "string",
                         "description": "KT address",
                         "name": "address",
@@ -704,6 +727,8 @@
                         "required": true
                     },
                     {
+                        "maxLength": 36,
+                        "minLength": 36,
                         "type": "string",
                         "description": "KT address",
                         "name": "address",
@@ -759,6 +784,8 @@
                         "required": true
                     },
                     {
+                        "maxLength": 36,
+                        "minLength": 36,
                         "type": "string",
                         "description": "KT address",
                         "name": "address",
@@ -811,6 +838,8 @@
                         "required": true
                     },
                     {
+                        "maxLength": 36,
+                        "minLength": 36,
                         "type": "string",
                         "description": "KT address",
                         "name": "address",
@@ -863,6 +892,8 @@
                         "required": true
                     },
                     {
+                        "maxLength": 36,
+                        "minLength": 36,
                         "type": "string",
                         "description": "KT address",
                         "name": "address",
@@ -927,6 +958,8 @@
                         "required": true
                     },
                     {
+                        "maxLength": 36,
+                        "minLength": 36,
                         "type": "string",
                         "description": "KT address",
                         "name": "address",
@@ -982,6 +1015,8 @@
                         "required": true
                     },
                     {
+                        "maxLength": 36,
+                        "minLength": 36,
                         "type": "string",
                         "description": "KT address",
                         "name": "address",
@@ -1127,6 +1162,8 @@
                 "operationId": "get-opg",
                 "parameters": [
                     {
+                        "maxLength": 51,
+                        "minLength": 51,
                         "type": "string",
                         "description": "Operation group hash",
                         "name": "hash",
@@ -1211,6 +1248,106 @@
                             "items": {
                                 "$ref": "#/definitions/handlers.ProjectStats"
                             }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/search": {
+            "get": {
+                "description": "Search any data in contracts, operations and big map diff with filters",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "search"
+                ],
+                "summary": "Search in better-call",
+                "operationId": "search",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Query string",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma-separated field names among which will search",
+                        "name": "f",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma-separated networks list for searching",
+                        "name": "n",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "description": "Offset for pagination",
+                        "name": "o",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "description": "Return search result since given timestamp",
+                        "name": "s",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "description": "Return search result before given timestamp",
+                        "name": "e",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            0,
+                            1
+                        ],
+                        "type": "integer",
+                        "description": "Grouping by contracts similarity. 0 - false, any others - true",
+                        "name": "g",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma-separated list of indices for searching. Values: contract, operation, bigmapdiff",
+                        "name": "i",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma-separated list of languages for searching. Values: smartpy, liquidity, ligo, lorentz, michelson",
+                        "name": "l",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/elastic.SearchResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
                         }
                     },
                     "500": {
@@ -1416,7 +1553,7 @@
         },
         "/tokens/{network}": {
             "get": {
-                "description": "Get all fa12 tokens",
+                "description": "Get all fa tokens",
                 "consumes": [
                     "application/json"
                 ],
@@ -1426,7 +1563,7 @@
                 "tags": [
                     "tokens"
                 ],
-                "summary": "Get all fa12 tokens",
+                "summary": "Get all fa tokens",
                 "operationId": "get-tokens",
                 "parameters": [
                     {
@@ -1497,6 +1634,8 @@
                         "required": true
                     },
                     {
+                        "maxLength": 36,
+                        "minLength": 36,
                         "type": "string",
                         "description": "KT address",
                         "name": "address",
@@ -1567,6 +1706,75 @@
                     "type": "string"
                 },
                 "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "elastic.Group": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "top": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/elastic.Top"
+                    }
+                }
+            }
+        },
+        "elastic.SearchItem": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "type": "object"
+                },
+                "group": {
+                    "type": "object",
+                    "$ref": "#/definitions/elastic.Group"
+                },
+                "highlights": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "type": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "elastic.SearchResult": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/elastic.SearchItem"
+                    }
+                },
+                "time": {
+                    "type": "integer"
+                }
+            }
+        },
+        "elastic.Top": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "network": {
                     "type": "string"
                 }
             }
@@ -2185,9 +2393,6 @@
                     "$ref": "#/definitions/handlers.LightContract"
                 },
                 "last_action": {
-                    "type": "string"
-                },
-                "last_deploy": {
                     "type": "string"
                 },
                 "name": {

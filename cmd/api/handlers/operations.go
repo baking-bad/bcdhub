@@ -27,11 +27,11 @@ import (
 // @Tags contract
 // @ID get-contract-operations
 // @Param network path string true "Network"
-// @Param address path string true "KT address"
+// @Param address path string true "KT address" minlength(36) maxlength(36)
 // @Param last_id query string false "Last operation ID"
 // @Param from query integer false "Timestamp"
 // @Param to query integer false "Timestamp"
-// @Param size query integer false "Expected OPG count"
+// @Param size query integer false "Expected OPG count" mininum(1)
 // @Param status query string false "Comma-separated operations statuses"
 // @Param entrypoints query string false "Comma-separated called entrypoints list"
 // @Accept  json
@@ -72,7 +72,7 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 // @Description Get operation group by hash
 // @Tags operations
 // @ID get-opg
-// @Param hash path string true "Operation group hash"
+// @Param hash path string true "Operation group hash"  minlength(51) maxlength(51)
 // @Accept  json
 // @Produce  json
 // @Success 200 {array} Operation

@@ -18,7 +18,7 @@ import (
 // @Tags contract
 // @ID get-contract-bigmap
 // @Param network path string true "Network"
-// @Param address path string true "KT address"
+// @Param address path string true "KT address" minlength(36) maxlength(36)
 // @Param ptr path integer true "Big map pointer"
 // @Accept  json
 // @Produce  json
@@ -56,9 +56,9 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 // @Tags contract
 // @ID get-contract-bigmap-keyhash
 // @Param network path string true "Network"
-// @Param address path string true "KT address"
+// @Param address path string true "KT address" minlength(36) maxlength(36)
 // @Param ptr path integer true "Big map pointer"
-// @Param key_hash path string true "Key hash in big map"
+// @Param key_hash path string true "Key hash in big map" minlength(54) maxlength(54)
 // @Accept json
 // @Produce json
 // @Success 200 {array} BigMapDiffByKeyResponse

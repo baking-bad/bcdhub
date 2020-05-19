@@ -17,7 +17,7 @@ import (
 // @Tags contract
 // @ID get-contract-storage
 // @Param network path string true "Network"
-// @Param address path string true "KT address"
+// @Param address path string true "KT address" minlength(36) maxlength(36)
 // @Accept json
 // @Produce json
 // @Success 200 {object} newmiguel.Node
@@ -74,7 +74,7 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 // @Tags contract
 // @ID get-contract-storage-raw
 // @Param network path string true "Network"
-// @Param address path string true "KT address"
+// @Param address path string true "KT address" minlength(36) maxlength(36)
 // @Accept json
 // @Produce json
 // @Success 200 {string} string
@@ -107,7 +107,7 @@ func (ctx *Context) GetContractStorageRaw(c *gin.Context) {
 // @Tags contract
 // @ID get-contract-storage-rich
 // @Param network path string true "Network"
-// @Param address path string true "KT address"
+// @Param address path string true "KT address" minlength(36) maxlength(36)
 // @Accept json
 // @Produce json
 // @Success 200 {object} gin.H

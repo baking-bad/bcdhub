@@ -19,7 +19,7 @@ import (
 // @Tags contract
 // @ID get-contract-mempool
 // @Param network path string true "Network"
-// @Param address path string true "KT address"
+// @Param address path string true "KT address" minlength(36) maxlength(36)
 // @Accept  json
 // @Produce  json
 // @Success 200 {array} Operation

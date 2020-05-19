@@ -153,7 +153,10 @@ type OperationResult struct {
 }
 
 // FromModel -
-func (r *OperationResult) FromModel(result models.OperationResult) {
+func (r *OperationResult) FromModel(result *models.OperationResult) {
+	if result == nil {
+		return
+	}
 	r.AllocatedDestinationContract = result.AllocatedDestinationContract
 	r.ConsumedGas = result.ConsumedGas
 	r.PaidStorageSizeDiff = result.PaidStorageSizeDiff

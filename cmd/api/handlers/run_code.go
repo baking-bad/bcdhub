@@ -22,13 +22,13 @@ import (
 // @Tags contract
 // @ID get-contract-entrypoints-run
 // @Param network path string true "Network"
-// @Param address path string true "KT address"
+// @Param address path string true "KT address" minlength(36) maxlength(36)
 // @Param bin_path body string true "Entrypoint binary path"
 // @Param data body object true "Entrypoint`s arguments data"
 // @Param amount body integer false "Operation amount"
 // @Param gas_limit body integer false "Operation gas limit"
-// @Param sender body string false "Operation sender"
-// @Param source body string false "Operation source"
+// @Param sender body string false "Operation sender" minlength(36) maxlength(36)
+// @Param source body string false "Operation source" minlength(36) maxlength(36)
 // @Accept json
 // @Produce json
 // @Success 200 {array} Operation

@@ -149,7 +149,7 @@ func main() {
 		{
 			network := fa12.Group(":network")
 			{
-				network.GET("", ctx.GetFA12)
+				network.GET("", ctx.GetFA)
 				address := network.Group(":address")
 				{
 					address.GET("transfers", ctx.GetFA12OperationsForAddress)
