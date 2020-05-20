@@ -12,7 +12,19 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-// GetContractCode -
+// GetContractCode godoc
+// @Summary Get contract code
+// @Description Get contract code
+// @Tags contract
+// @ID get-contract-code
+// @Param network path string true "Network"
+// @Param address path string true "KT address" minlength(36) maxlength(36)
+// @Accept  json
+// @Produce  json
+// @Success 200 {string} string
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /contract/{network}/{address}/code [get]
 func (ctx *Context) GetContractCode(c *gin.Context) {
 	var req getContractCodeRequest
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
@@ -50,7 +62,19 @@ func (ctx *Context) GetContractCode(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-// GetDiff -
+// GetDiff godoc
+// @Summary Get diff between two contracts
+// @Description Get diff between two contracts
+// @Tags contract
+// @ID get-diff
+// @Param left body CodeDiffLeg true "First compared contract"
+// @Param right body CodeDiffLeg true "Second compared contract"
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} CodeDiffResponse
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /diff [post]
 func (ctx *Context) GetDiff(c *gin.Context) {
 	var req CodeDiffRequest
 	if err := c.BindJSON(&req); handleError(c, err, http.StatusBadRequest) {

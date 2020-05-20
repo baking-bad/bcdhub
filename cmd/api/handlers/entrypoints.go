@@ -13,21 +13,19 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-func getParameterMetadata(es *elastic.Elastic, address, network string) (meta.Metadata, error) {
-	state, err := es.CurrentState(network)
-	if err != nil {
-		return nil, err
-	}
-
-	metadata, err := meta.GetMetadata(es, address, consts.PARAMETER, state.Protocol)
-	if err != nil {
-		return nil, err
-	}
-
-	return metadata, nil
-}
-
-// GetEntrypoints -
+// GetEntrypoints godoc
+// @Summary Get contract entrypoints
+// @Description Get contract entrypoints
+// @Tags contract
+// @ID get-contract-entrypoints
+// @Param network path string true "Network"
+// @Param address path string true "KT address" minlength(36) maxlength(36)
+// @Accept json
+// @Produce json
+// @Success 200 {array} EntrypointSchema
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /contract/{network}/{address}/entrypoints [get]
 func (ctx *Context) GetEntrypoints(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
@@ -56,7 +54,22 @@ func (ctx *Context) GetEntrypoints(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-// GetEntrypointData - returns entrypoint data from schema object
+// GetEntrypointData godoc
+// @Summary Get entrypoint data from schema object
+// @Description Get entrypoint data from schema object
+// @Tags contract
+// @ID get-contract-entrypoints-data
+// @Param network path string true "Network"
+// @Param address path string true "KT address" minlength(36) maxlength(36)
+// @Param bin_path body string true "Entrypoint binary path"
+// @Param data body object true "Entrypoint`s arguments data"
+// @Param format body object false "Return format (michelson | empty if micheline)"
+// @Accept json
+// @Produce json
+// @Success 200 {object} gin.H
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /contract/{network}/{address}/entrypoints/data [post]
 func (ctx *Context) GetEntrypointData(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
@@ -92,4 +105,18 @@ func (ctx *Context) buildEntrypointMicheline(network, address, binPath string, d
 	}
 
 	return metadata.BuildEntrypointMicheline(binPath, data)
+}
+
+func getParameterMetadata(es *elastic.Elastic, address, network string) (meta.Metadata, error) {
+	state, err := es.CurrentState(network)
+	if err != nil {
+		return nil, err
+	}
+
+	metadata, err := meta.GetMetadata(es, address, consts.PARAMETER, state.Protocol)
+	if err != nil {
+		return nil, err
+	}
+
+	return metadata, nil
 }

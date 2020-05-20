@@ -7,7 +7,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetContractMigrations -
+// GetContractMigrations godoc
+// @Summary Get contract migrations
+// @Description Get contract migrations
+// @Tags contract
+// @ID get-contract-migrations
+// @Param network path string true "Network"
+// @Param address path string true "KT address" minlength(36) maxlength(36)
+// @Accept json
+// @Produce json
+// @Success 200 {array} Migration
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /contract/{network}/{address}/migrations [get]
 func (ctx *Context) GetContractMigrations(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {

@@ -6,10 +6,17 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser/docstring"
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
+	"github.com/baking-bad/bcdhub/internal/database"
+	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/jsonschema"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/tidwall/gjson"
 )
+
+// Error -
+type Error struct {
+	Message string `json:"message" example:"text"`
+}
 
 // Operation -
 type Operation struct {
@@ -40,8 +47,8 @@ type Operation struct {
 	Errors           []cerrors.IError `json:"errors,omitempty"`
 	Burned           int64            `json:"burned,omitempty"`
 
-	BalanceUpdates []models.BalanceUpdate  `json:"balance_updates,omitempty"`
-	Result         *models.OperationResult `json:"result,omitempty"`
+	BalanceUpdates []BalanceUpdate  `json:"balance_updates,omitempty"`
+	Result         *OperationResult `json:"result,omitempty"`
 
 	Parameters  interface{} `json:"parameters,omitempty"`
 	StorageDiff interface{} `json:"storage_diff,omitempty"`
@@ -93,13 +100,18 @@ func (o *Operation) FromModel(operation models.Operation) {
 	o.Burned = operation.Burned
 	o.Entrypoint = operation.Entrypoint
 	o.IndexedTime = operation.IndexedTime
-
-	o.BalanceUpdates = operation.BalanceUpdates
-	o.Result = operation.Result
 }
 
 // ToModel -
 func (o *Operation) ToModel() models.Operation {
+	var result *models.OperationResult
+	if o.Result != nil {
+		result = o.Result.ToModel()
+	}
+	balanceUpdates := make([]models.BalanceUpdate, len(o.BalanceUpdates))
+	for i := range o.BalanceUpdates {
+		balanceUpdates[i] = o.BalanceUpdates[i].ToModel()
+	}
 	return models.Operation{
 		ID:        o.ID,
 		Protocol:  o.Protocol,
@@ -127,17 +139,136 @@ func (o *Operation) ToModel() models.Operation {
 		Entrypoint:       o.Entrypoint,
 		IndexedTime:      o.IndexedTime,
 
-		BalanceUpdates: o.BalanceUpdates,
-		Result:         o.Result,
+		BalanceUpdates: balanceUpdates,
+		Result:         result,
 	}
+}
+
+// OperationResult -
+type OperationResult struct {
+	ConsumedGas                  int64 `json:"consumed_gas,omitempty" example:"100"`
+	StorageSize                  int64 `json:"storage_size,omitempty" example:"200"`
+	PaidStorageSizeDiff          int64 `json:"paid_storage_size_diff,omitempty" example:"300"`
+	AllocatedDestinationContract bool  `json:"allocated_destination_contract,omitempty" example:"true"`
+}
+
+// FromModel -
+func (r *OperationResult) FromModel(result *models.OperationResult) {
+	if result == nil || r == nil {
+		return
+	}
+	r.AllocatedDestinationContract = result.AllocatedDestinationContract
+	r.ConsumedGas = result.ConsumedGas
+	r.PaidStorageSizeDiff = result.PaidStorageSizeDiff
+	r.StorageSize = result.StorageSize
+	return
+}
+
+// ToModel -
+func (r *OperationResult) ToModel() (result *models.OperationResult) {
+	if r == nil {
+		return nil
+	}
+	result.AllocatedDestinationContract = r.AllocatedDestinationContract
+	result.ConsumedGas = r.ConsumedGas
+	result.PaidStorageSizeDiff = r.PaidStorageSizeDiff
+	result.StorageSize = r.StorageSize
+	return
+}
+
+// BalanceUpdate -
+type BalanceUpdate struct {
+	Kind     string `json:"kind"`
+	Contract string `json:"contract,omitempty"`
+	Change   int64  `json:"change"`
+	Category string `json:"category,omitempty"`
+	Delegate string `json:"delegate,omitempty"`
+	Cycle    int    `json:"cycle,omitempty"`
+}
+
+// FromModel -
+func (u *BalanceUpdate) FromModel(update models.BalanceUpdate) {
+	u.Category = update.Category
+	u.Change = update.Change
+	u.Contract = update.Contract
+	u.Cycle = update.Cycle
+	u.Delegate = update.Delegate
+	u.Kind = update.Kind
+}
+
+// ToModel -
+func (u *BalanceUpdate) ToModel() (update models.BalanceUpdate) {
+	update.Category = u.Category
+	update.Change = u.Change
+	update.Contract = u.Contract
+	update.Cycle = u.Cycle
+	update.Delegate = u.Delegate
+	update.Kind = u.Kind
+	return
 }
 
 // Contract -
 type Contract struct {
-	*models.Contract
+	ID        string    `json:"id"`
+	Network   string    `json:"network"`
+	Level     int64     `json:"level"`
+	Timestamp time.Time `json:"timestamp"`
+	Balance   int64     `json:"balance"`
+	Language  string    `json:"language,omitempty"`
+
+	Hash        string   `json:"hash"`
+	Tags        []string `json:"tags,omitempty"`
+	Hardcoded   []string `json:"hardcoded,omitempty"`
+	FailStrings []string `json:"fail_strings,omitempty"`
+	Annotations []string `json:"annotations,omitempty"`
+	Entrypoints []string `json:"entrypoints,omitempty"`
+
+	Address  string `json:"address"`
+	Manager  string `json:"manager,omitempty"`
+	Delegate string `json:"delegate,omitempty"`
+
+	ProjectID       string     `json:"project_id,omitempty"`
+	FoundBy         string     `json:"found_by,omitempty"`
+	LastAction      *time.Time `json:"last_action,omitempty"`
+	TxCount         int64      `json:"tx_count,omitempty"`
+	MigrationsCount int64      `json:"migrations_count,omitempty"`
+	TotalWithdrawn  int64      `json:"total_withdrawn,omitempty"`
+	Alias           string     `json:"alias,omitempty"`
+	DelegateAlias   string     `json:"delegate_alias,omitempty"`
 
 	Profile *ProfileInfo `json:"profile,omitempty"`
 	Slug    string       `json:"slug,omitempty"`
+}
+
+// FromModel -
+func (c *Contract) FromModel(contract models.Contract) {
+	c.Address = contract.Address
+	c.Alias = contract.Alias
+	c.Annotations = contract.Annotations
+	c.Balance = contract.Balance
+	c.Delegate = contract.Delegate
+	c.DelegateAlias = contract.DelegateAlias
+	c.Entrypoints = contract.Entrypoints
+	c.FailStrings = contract.FailStrings
+	c.FoundBy = contract.FoundBy
+	c.Hardcoded = contract.Hardcoded
+	c.Hash = contract.Hash
+	c.ID = contract.ID
+	c.Language = contract.Language
+
+	if !contract.LastAction.IsZero() {
+		c.LastAction = &contract.LastAction.Time
+	}
+
+	c.Level = contract.Level
+	c.Manager = contract.Manager
+	c.MigrationsCount = contract.MigrationsCount
+	c.Network = contract.Network
+	c.ProjectID = contract.ProjectID
+	c.Tags = contract.Tags
+	c.Timestamp = contract.Timestamp
+	c.TotalWithdrawn = contract.TotalWithdrawn
+	c.TxCount = contract.TxCount
 }
 
 // ProfileInfo -
@@ -161,7 +292,7 @@ type TimelineItem struct {
 // OperationResponse -
 type OperationResponse struct {
 	Operations []Operation `json:"operations"`
-	LastID     string      `json:"last_id"`
+	LastID     string      `json:"last_id" example:"1588640276994159"`
 }
 
 type userProfile struct {
@@ -257,9 +388,9 @@ type CodeDiffResponse struct {
 
 // NetworkStats -
 type NetworkStats struct {
-	ContractsCount  int64             `json:"contracts_count"`
-	OperationsCount int64             `json:"operations_count"`
-	Protocols       []models.Protocol `json:"protocols"`
+	ContractsCount  int64      `json:"contracts_count" example:"10"`
+	OperationsCount int64      `json:"operations_count" example:"100"`
+	Protocols       []Protocol `json:"protocols"`
 }
 
 // SearchBigMapDiff -
@@ -290,3 +421,164 @@ type GetErrorLocationResponse struct {
 	StartColumn int    `json:"start_col"`
 	EndColumn   int    `json:"end_col"`
 }
+
+// Alias -
+type Alias struct {
+	Alias   string `json:"alias" example:"Contract alias"`
+	Network string `json:"network" example:"babylonnet"`
+	Address string `json:"address" example:"KT1CeekjGVRc5ASmgWDc658NBExetoKNuiqz"`
+	Slug    string `json:"slug" example:"contract_slug"`
+}
+
+// FromModel -
+func (a *Alias) FromModel(alias database.Alias) {
+	a.Alias = alias.Alias
+	a.Address = alias.Address
+	a.Network = alias.Network
+	a.Slug = alias.Slug
+}
+
+// Protocol -
+type Protocol struct {
+	Hash       string `json:"hash" example:"PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb"`
+	Network    string `json:"network" example:"mainnet"`
+	StartLevel int64  `json:"start_level" example:"851969"`
+	EndLevel   int64  `json:"end_level" example:"0"`
+	Alias      string `json:"alias" example:"Carthage"`
+}
+
+// FromModel -
+func (p *Protocol) FromModel(protocol models.Protocol) {
+	p.Hash = protocol.Hash
+	p.Network = protocol.Network
+	p.StartLevel = protocol.StartLevel
+	p.EndLevel = protocol.EndLevel
+	p.Alias = protocol.Alias
+}
+
+// Block -
+type Block struct {
+	Network     string    `json:"network" example:"mainnet"`
+	Hash        string    `json:"hash" example:"BLyAEwaXShJuZasvUezHUfLqzZ48V8XrPvXF2wRaH15tmzEpsHT"`
+	Level       int64     `json:"level" example:"24"`
+	Predecessor string    `json:"predecessor" example:"BMWVEwEYw9m5iaHzqxDfkPzZTV4rhkSouRh3DkVMVGkxZ3EVaNs"`
+	ChainID     string    `json:"chain_id" example:"NetXdQprcVkpaWU"`
+	Protocol    string    `json:"protocol" example:"PtCJ7pwoxe8JasnHY8YonnLYjcVHmhiARPJvqcC6VfHT5s8k8sY"`
+	Timestamp   time.Time `json:"timestamp" example:"2018-06-30T18:05:27Z"`
+}
+
+// FromModel -
+func (b *Block) FromModel(block models.Block) {
+	b.Network = block.Network
+	b.Hash = block.Hash
+	b.Level = block.Level
+	b.Predecessor = block.Predecessor
+	b.ChainID = block.ChainID
+	b.Protocol = block.Protocol
+	b.Timestamp = block.Timestamp
+}
+
+// ProjectStats -
+type ProjectStats struct {
+	TxCount        int64         `json:"tx_count"`
+	LastAction     time.Time     `json:"last_action"`
+	FirstDeploy    time.Time     `json:"first_deploy"`
+	VersionsCount  int64         `json:"versions_count"`
+	ContractsCount int64         `json:"contracts_count"`
+	Language       string        `json:"language"`
+	Name           string        `json:"name"`
+	Last           LightContract `json:"last"`
+}
+
+// FromModel -
+func (s *ProjectStats) FromModel(stats elastic.ProjectStats) {
+	s.TxCount = stats.TxCount
+	s.LastAction = stats.LastAction
+	s.FirstDeploy = stats.FirstDeploy
+	s.VersionsCount = stats.VersionsCount
+	s.ContractsCount = stats.ContractsCount
+	s.Language = stats.Language
+	s.Name = stats.Name
+
+	var last LightContract
+	last.FromModel(stats.Last)
+	s.Last = last
+}
+
+// LightContract -
+type LightContract struct {
+	Address  string    `json:"address"`
+	Network  string    `json:"network"`
+	Deployed time.Time `json:"deploy_time"`
+}
+
+// FromModel -
+func (c *LightContract) FromModel(light elastic.LightContract) {
+	c.Address = light.Address
+	c.Network = light.Network
+	c.Deployed = light.Deployed
+}
+
+// SimilarContract -
+type SimilarContract struct {
+	*Contract
+	Count   uint64 `json:"count"`
+	Added   int64  `json:"added,omitempty"`
+	Removed int64  `json:"removed,omitempty"`
+}
+
+// FromModels -
+func (c *SimilarContract) FromModels(similar elastic.SimilarContract, diff CodeDiffResponse) {
+	var contract Contract
+	contract.FromModel(*similar.Contract)
+	c.Contract = &contract
+
+	c.Count = similar.Count
+	c.Added = diff.Diff.Added
+	c.Removed = diff.Diff.Removed
+}
+
+// SameContractsResponse -
+type SameContractsResponse struct {
+	Count     uint64     `json:"count"`
+	Contracts []Contract `json:"contracts"`
+}
+
+// FromModel -
+func (c *SameContractsResponse) FromModel(same elastic.SameContractsResponse) {
+	c.Count = same.Count
+
+	c.Contracts = make([]Contract, len(same.Contracts))
+	for i := range same.Contracts {
+		var contract Contract
+		contract.FromModel(same.Contracts[i])
+		c.Contracts[i] = contract
+	}
+}
+
+// SubRating -
+type SubRating struct {
+	Count int             `json:"count"`
+	Users []SubRatingUser `json:"users"`
+}
+
+// SubRatingUser -
+type SubRatingUser struct {
+	Login     string `json:"login"`
+	AvatarURL string `json:"avatarURL"`
+}
+
+// FromModel -
+func (r *SubRating) FromModel(rating database.SubRating) {
+	r.Count = rating.Count
+	r.Users = make([]SubRatingUser, len(rating.Users))
+	for i := range rating.Users {
+		r.Users[i] = SubRatingUser{
+			Login:     rating.Users[i].Login,
+			AvatarURL: rating.Users[i].AvatarURL,
+		}
+	}
+}
+
+// Series -
+type Series [][]int64

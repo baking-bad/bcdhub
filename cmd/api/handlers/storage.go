@@ -11,7 +11,19 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-// GetContractStorage -
+// GetContractStorage godoc
+// @Summary Get contract storage
+// @Description Get contract storage
+// @Tags contract
+// @ID get-contract-storage
+// @Param network path string true "Network"
+// @Param address path string true "KT address" minlength(36) maxlength(36)
+// @Accept json
+// @Produce json
+// @Success 200 {object} newmiguel.Node
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /contract/{network}/{address}/storage [get]
 func (ctx *Context) GetContractStorage(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
@@ -56,7 +68,19 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-// GetContractStorageRaw -
+// GetContractStorageRaw godoc
+// @Summary Get contract raw storage
+// @Description Get contract raw storage
+// @Tags contract
+// @ID get-contract-storage-raw
+// @Param network path string true "Network"
+// @Param address path string true "KT address" minlength(36) maxlength(36)
+// @Accept json
+// @Produce json
+// @Success 200 {string} string
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /contract/{network}/{address}/raw_storage [get]
 func (ctx *Context) GetContractStorageRaw(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
@@ -77,7 +101,19 @@ func (ctx *Context) GetContractStorageRaw(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-// GetContractStorageRich -
+// GetContractStorageRich godoc
+// @Summary Get contract rich storage
+// @Description Get contract rich storage
+// @Tags contract
+// @ID get-contract-storage-rich
+// @Param network path string true "Network"
+// @Param address path string true "KT address" minlength(36) maxlength(36)
+// @Accept json
+// @Produce json
+// @Success 200 {object} gin.H
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /contract/{network}/{address}/rich_storage [get]
 func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {

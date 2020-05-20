@@ -12,7 +12,20 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-// GetBigMap -
+// GetBigMap godoc
+// @Summary Get big map by pointer
+// @Description Get contract rating
+// @Tags contract
+// @ID get-contract-bigmap
+// @Param network path string true "Network"
+// @Param address path string true "KT address" minlength(36) maxlength(36)
+// @Param ptr path integer true "Big map pointer"
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} BigMapResponseItem
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /contract/{network}/{address}/bigmap/{ptr} [get]
 func (ctx *Context) GetBigMap(c *gin.Context) {
 	var req getBigMapRequest
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
@@ -37,7 +50,21 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// GetBigMapByKeyHash -
+// GetBigMapByKeyHash godoc
+// @Summary Get big map diffs by pointer and key hash
+// @Description Get big map diffs by pointer and key hash
+// @Tags contract
+// @ID get-contract-bigmap-keyhash
+// @Param network path string true "Network"
+// @Param address path string true "KT address" minlength(36) maxlength(36)
+// @Param ptr path integer true "Big map pointer"
+// @Param key_hash path string true "Key hash in big map" minlength(54) maxlength(54)
+// @Accept json
+// @Produce json
+// @Success 200 {array} BigMapDiffByKeyResponse
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /contract/{network}/{address}/bigmap/{ptr}/{key_hash} [get]
 func (ctx *Context) GetBigMapByKeyHash(c *gin.Context) {
 	var req getBigMapByKeyHashRequest
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {

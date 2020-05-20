@@ -80,10 +80,10 @@ func (ctx *Context) prepareSubscription(subs []database.Subscription) ([]Subscri
 
 	res := make([]Subscription, len(contracts))
 	for i := range contracts {
+		var contract Contract
+		contract.FromModel(contracts[i])
 		res[i] = Subscription{
-			Contract: &Contract{
-				Contract: &contracts[i],
-			},
+			Contract: &contract,
 		}
 		for j := range subs {
 			if subs[j].EntityID == contracts[i].ID {

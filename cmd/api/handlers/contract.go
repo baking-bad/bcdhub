@@ -2,14 +2,25 @@ package handlers
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 )
 
-// GetContract -
+// GetContract godoc
+// @Summary Get contract info
+// @Description Get full contract info
+// @Tags contract
+// @ID get-contract
+// @Param network path string true "Network"
+// @Param address path string true "KT address" minlength(36) maxlength(36)
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} Contract
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /contract/{network}/{address} [get]
 func (ctx *Context) GetContract(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
@@ -24,34 +35,48 @@ func (ctx *Context) GetContract(c *gin.Context) {
 	if handleError(c, err, 0) {
 		return
 	}
-	res, err := ctx.setProfileInfo(cntr)
+	res, err := ctx.contractPostprocessing(cntr)
 	if handleError(c, err, 0) {
-		return
-	}
-	if err := ctx.setContractSlug(&res); handleError(c, err, 0) {
 		return
 	}
 	c.JSON(http.StatusOK, res)
 }
 
-// GetRandomContract -
+// GetRandomContract godoc
+// @Summary Show random contract
+// @Description Get random contract with 2 or more operations
+// @Tags contract
+// @ID get-random-contract
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} Contract
+// @Failure 500 {object} Error
+// @Router /pick_random [get]
 func (ctx *Context) GetRandomContract(c *gin.Context) {
 	cntr, err := ctx.ES.GetRandomContract()
-	if err != nil {
-		if strings.Contains(err.Error(), "Unknown contract") {
-			c.AbortWithStatus(http.StatusNoContent)
-		} else {
-			handleError(c, err, 0)
-		}
-	} else {
-		c.JSON(http.StatusOK, cntr)
+	if handleError(c, err, 0) {
+		return
 	}
+	res, err := ctx.contractPostprocessing(cntr)
+	if handleError(c, err, 0) {
+		return
+	}
+	c.JSON(http.StatusOK, res)
+}
+
+func (ctx *Context) contractPostprocessing(cntr models.Contract) (Contract, error) {
+	res, err := ctx.setProfileInfo(cntr)
+	if err != nil {
+		return res, err
+	}
+	err = ctx.setContractSlug(&res)
+	return res, err
 }
 
 func (ctx *Context) setProfileInfo(contract models.Contract) (Contract, error) {
-	res := Contract{
-		Contract: &contract,
-	}
+	var res Contract
+	res.FromModel(contract)
+
 	if ctx.OAUTH.UserID == 0 {
 		return res, nil
 	}

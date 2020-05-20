@@ -1,35 +1,24 @@
 package handlers
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 )
 
-// SetAlias -
-func (ctx *Context) SetAlias(c *gin.Context) {
-	var request []aliasRequest
-	if err := c.BindJSON(&request); handleError(c, err, http.StatusBadRequest) {
-		return
-	}
-
-	for _, req := range request {
-		if req.Address == "" || req.Alias == "" || req.Network == "" {
-			handleError(c, errors.New("Inavlid request data"), http.StatusBadRequest)
-			return
-		}
-
-		if err := ctx.DB.CreateAlias(req.Alias, req.Address, req.Network); handleError(c, err, 0) {
-			return
-		}
-	}
-
-	c.JSON(http.StatusOK, gin.H{"status": "ok"})
-}
-
-// GetBySlug -
+// GetBySlug godoc
+// @Summary Get contract by slug
+// @Description Get contract by slug
+// @Tags contract
+// @ID get-contract-by-slug
+// @Param slug path string true "Slug"
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} Alias
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /slug/{slug} [get]
 func (ctx *Context) GetBySlug(c *gin.Context) {
 	var req getBySlugRequest
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
@@ -44,5 +33,7 @@ func (ctx *Context) GetBySlug(c *gin.Context) {
 	if handleError(c, err, 0) {
 		return
 	}
-	c.JSON(http.StatusOK, a)
+	var alias Alias
+	alias.FromModel(a)
+	c.JSON(http.StatusOK, alias)
 }

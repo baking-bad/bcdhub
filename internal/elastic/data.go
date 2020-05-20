@@ -41,7 +41,6 @@ type Top struct {
 type ProjectStats struct {
 	TxCount        int64         `json:"tx_count"`
 	LastAction     time.Time     `json:"last_action"`
-	LastDeploy     time.Time     `json:"last_deploy"`
 	FirstDeploy    time.Time     `json:"first_deploy"`
 	VersionsCount  int64         `json:"versions_count"`
 	ContractsCount int64         `json:"contracts_count"`
@@ -83,16 +82,6 @@ func (stats *ProjectStats) getName(data gjson.Result) string {
 	return name
 }
 
-// SimilarContract -
-type SimilarContract struct {
-	*models.Contract
-	Count           int64   `json:"count"`
-	Diff            string  `json:"diff,omitempty"`
-	Added           int64   `json:"added,omitempty"`
-	Removed         int64   `json:"removed,omitempty"`
-	ConsumedGasDiff float64 `json:"consumed_gas_diff"`
-}
-
 // PageableOperations -
 type PageableOperations struct {
 	Operations []models.Operation `json:"operations"`
@@ -103,6 +92,12 @@ type PageableOperations struct {
 type SameContractsResponse struct {
 	Count     uint64            `json:"count"`
 	Contracts []models.Contract `json:"contracts"`
+}
+
+// SimilarContract -
+type SimilarContract struct {
+	*models.Contract
+	Count uint64 `json:"count"`
 }
 
 // BigMapDiff -

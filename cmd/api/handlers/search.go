@@ -10,7 +10,26 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Search -
+// Search godoc
+// @Summary Search in better-call
+// @Description Search any data in contracts, operations and big map diff with filters
+// @Tags search
+// @ID search
+// @Param q query string true "Query string"
+// @Param f query string false "Comma-separated field names among which will search"
+// @Param n query string false "Comma-separated networks list for searching"
+// @Param o query integer false "Offset for pagination" mininum(0)
+// @Param s query integer false "Return search result since given timestamp" mininum(0)
+// @Param e query integer false "Return search result before given timestamp" mininum(0)
+// @Param g query integer false "Grouping by contracts similarity. 0 - false, any others - true" Enums(0, 1)
+// @Param i query string false "Comma-separated list of indices for searching. Values: contract, operation, bigmapdiff""
+// @Param l query string false "Comma-separated list of languages for searching. Values: smartpy, liquidity, ligo, lorentz, michelson"
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} elastic.SearchResult
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /search [get]
 func (ctx *Context) Search(c *gin.Context) {
 	var req searchRequest
 	if err := c.BindQuery(&req); handleError(c, err, http.StatusBadRequest) {
