@@ -95,7 +95,7 @@ func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 	}
 
 	protocol := storage.Get("_source.protocol").String()
-	resp, err := enrichStorage(storage.Get("_source.deffated_storage").String(), bmd, protocol, true)
+	resp, err := enrichStorage(storage.Get("_source.deffated_storage").String(), bmd, protocol, true, false)
 	if handleError(c, err, 0) {
 		return
 	}

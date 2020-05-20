@@ -52,7 +52,11 @@ func (p *parser) parse(v gjson.Result) error {
 }
 
 // MakeStorageParser -
-func MakeStorageParser(rpc noderpc.Pool, es *elastic.Elastic, protocol string) (parser storage.Parser, err error) {
+func MakeStorageParser(rpc noderpc.Pool, es *elastic.Elastic, protocol string, isSimulating bool) (storage.Parser, error) {
+	if isSimulating {
+		return storage.NewSimulate(rpc, es), nil
+	}
+
 	protoSymLink, err := meta.GetProtoSymLink(protocol)
 	if err != nil {
 		return nil, err
@@ -60,12 +64,10 @@ func MakeStorageParser(rpc noderpc.Pool, es *elastic.Elastic, protocol string) (
 
 	switch protoSymLink {
 	case consts.MetadataBabylon:
-		parser = storage.NewBabylon(rpc, es)
+		return storage.NewBabylon(rpc, es), nil
 	case consts.MetadataAlpha:
-		parser = storage.NewAlpha()
+		return storage.NewAlpha(), nil
 	default:
 		return nil, fmt.Errorf("Unknown protocol %s", protocol)
 	}
-
-	return
 }

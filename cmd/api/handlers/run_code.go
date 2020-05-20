@@ -3,11 +3,15 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 )
@@ -65,7 +69,7 @@ func (ctx *Context) RunCode(c *gin.Context) {
 		IndexedTime: time.Now().UTC().UnixNano(),
 		Protocol:    state.Protocol,
 		Network:     req.Network,
-		Timesatmp:   time.Now().UTC(),
+		Timestamp:   time.Now().UTC(),
 		Source:      reqRunCode.Source,
 		Destination: req.Address,
 		GasLimit:    reqRunCode.GasLimit,
@@ -79,7 +83,10 @@ func (ctx *Context) RunCode(c *gin.Context) {
 	if err := setParameters(ctx.ES, input.Raw, &main); handleError(c, err, 0) {
 		return
 	}
-	operations, err := ctx.parseRunCodeResponse(response, main)
+	if err := ctx.setSimulateStorageDiff(response, &main); handleError(c, err, 0) {
+		return
+	}
+	operations, err := ctx.parseRunCodeResponse(response, &main)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -87,7 +94,7 @@ func (ctx *Context) RunCode(c *gin.Context) {
 	c.JSON(http.StatusOK, operations)
 }
 
-func (ctx *Context) parseRunCodeResponse(response gjson.Result, main Operation) ([]Operation, error) {
+func (ctx *Context) parseRunCodeResponse(response gjson.Result, main *Operation) ([]Operation, error) {
 	if response.IsArray() {
 		return ctx.parseFailedRunCode(response, main)
 	} else if response.IsObject() {
@@ -96,38 +103,92 @@ func (ctx *Context) parseRunCodeResponse(response gjson.Result, main Operation) 
 	return nil, fmt.Errorf("Unknown response: %v", response.Value())
 }
 
-func (ctx *Context) parseFailedRunCode(response gjson.Result, main Operation) ([]Operation, error) {
-	operations := make([]Operation, 0)
+func (ctx *Context) parseFailedRunCode(response gjson.Result, main *Operation) ([]Operation, error) {
 	main.Errors = cerrors.ParseArray(response)
-	if err := formatErrors(main.Errors, &main); err != nil {
+	if err := formatErrors(main.Errors, main); err != nil {
 		return nil, err
 	}
 	main.Status = "failed"
-	operations = append(operations, main)
-	return operations, nil
+	return []Operation{*main}, nil
 }
 
-func (ctx *Context) parseAppliedRunCode(response gjson.Result, main Operation) ([]Operation, error) {
-	operations := make([]Operation, 0)
-
-	storage := response.Get("storage").String()
-	if err := setStorageDiff(ctx.ES, main.Destination, main.Network, storage, &main); err != nil {
-		return nil, err
-	}
-
-	operations = append(operations, main)
+func (ctx *Context) parseAppliedRunCode(response gjson.Result, main *Operation) ([]Operation, error) {
+	operations := []Operation{*main}
 
 	operationsJSON := response.Get("operations").Array()
 	for _, item := range operationsJSON {
 		var op Operation
-		op.ParseJSON(item)
+		op.Kind = item.Get("kind").String()
+		op.Amount = item.Get("amount").Int()
+		op.Source = item.Get("source").String()
+		op.Destination = item.Get("destination").String()
 		op.Status = "applied"
 		op.Network = main.Network
-		op.Timesatmp = main.Timesatmp
+		op.Timestamp = main.Timestamp
 		op.Protocol = main.Protocol
 		op.Level = main.Level
 		op.Internal = true
+		if err := setParameters(ctx.ES, item.Get("parameters").Raw, &op); err != nil {
+			return nil, err
+		}
+		if err := ctx.setSimulateStorageDiff(item, &op); err != nil {
+			return nil, err
+		}
 		operations = append(operations, op)
 	}
 	return operations, nil
+}
+
+func (ctx *Context) parseBigMapDiffs(response gjson.Result, metadata meta.Metadata, operation *Operation) ([]models.BigMapDiff, error) {
+	rpc, err := ctx.GetRPC(operation.Network)
+	if err != nil {
+		return nil, err
+	}
+
+	model := operation.ToModel()
+	parser := storage.NewSimulate(rpc, ctx.ES)
+
+	rs := storage.RichStorage{Empty: true}
+	switch operation.Kind {
+	case consts.Transaction:
+		rs, err = parser.ParseTransaction(response, metadata, model)
+	case consts.Origination:
+		rs, err = parser.ParseOrigination(response, metadata, model)
+	}
+	if err != nil {
+		return nil, err
+	}
+	if rs.Empty {
+		return nil, nil
+	}
+	bmd := make([]models.BigMapDiff, len(rs.BigMapDiffs))
+	for i := range rs.BigMapDiffs {
+		bmd[i] = *rs.BigMapDiffs[i]
+	}
+	return bmd, nil
+}
+
+func (ctx *Context) setSimulateStorageDiff(response gjson.Result, main *Operation) error {
+	storage := response.Get("storage").String()
+	if storage == "" || !strings.HasPrefix(main.Destination, "KT") || main.Status != "applied" {
+		return nil
+	}
+	metadata, err := meta.GetContractMetadata(ctx.ES, main.Destination)
+	if err != nil {
+		return err
+	}
+	storageMetadata, err := metadata.Get(consts.STORAGE, main.Protocol)
+	if err != nil {
+		return err
+	}
+	bmd, err := ctx.parseBigMapDiffs(response, storageMetadata, main)
+	if err != nil {
+		return err
+	}
+	storageDiff, err := getStorageDiff(ctx.ES, bmd, main.Destination, storage, metadata, true, main)
+	if err != nil {
+		return err
+	}
+	main.StorageDiff = storageDiff
+	return nil
 }

@@ -243,27 +243,22 @@ func (bi *BoostIndexer) Index(levels []int64) error {
 
 		if currentHead.Protocol != bi.currentProtocol.Hash {
 			log.Printf("[%s] New protocol detected: %s -> %s", bi.Network, bi.currentProtocol.Hash, currentHead.Protocol)
-			if err := bi.migrate(currentHead); err != nil {
+			migrationModels, err := bi.migrate(currentHead)
+			if err != nil {
+				return err
+			}
+			if err := bi.saveModels(migrationModels); err != nil {
 				return err
 			}
 		}
 
-		operations, contracts, migrations, err := bi.getDataFromBlock(bi.Network, currentHead)
+		parsedModels, err := bi.getDataFromBlock(bi.Network, currentHead)
 		if err != nil {
 			return err
 		}
+		parsedModels = append(parsedModels, bi.createBlock(currentHead))
 
-		if err := bi.saveModels(contracts, mq.QueueContracts); err != nil {
-			return err
-		}
-		if err := bi.saveModels(operations, mq.QueueOperations); err != nil {
-			return err
-		}
-		if err := bi.saveModels(migrations, mq.QueueMigrations); err != nil {
-			return err
-		}
-
-		if err := bi.createAndSaveBlock(currentHead); err != nil {
+		if err := bi.saveModels(parsedModels); err != nil {
 			return err
 		}
 	}
@@ -418,7 +413,7 @@ func (bi *BoostIndexer) getContracts() (map[string]struct{}, map[string]struct{}
 	return res, spendable, nil
 }
 
-func (bi *BoostIndexer) createAndSaveBlock(head noderpc.Header) error {
+func (bi *BoostIndexer) createBlock(head noderpc.Header) *models.Block {
 	newBlock := models.Block{
 		ID:          helpers.GenerateID(),
 		Network:     bi.Network,
@@ -430,65 +425,65 @@ func (bi *BoostIndexer) createAndSaveBlock(head noderpc.Header) error {
 		Timestamp:   head.Timestamp,
 	}
 
-	if _, err := bi.es.AddDocumentWithID(newBlock, elastic.DocBlocks, newBlock.ID); err != nil {
-		return err
-	}
-
 	bi.state = newBlock
-	return nil
+	return &newBlock
 }
 
-func (bi *BoostIndexer) saveModels(items []elastic.Model, queue string) error {
-	logger.Info("[%s] Found %d new %s", bi.Network, len(items), queue)
+func (bi *BoostIndexer) getQueueByModel(model elastic.Model) string {
+	switch model.GetIndex() {
+	case elastic.DocContracts:
+		return mq.QueueContracts
+	case elastic.DocOperations:
+		return mq.QueueOperations
+	case elastic.DocMigrations:
+		return mq.QueueMigrations
+	}
+	return ""
+}
+
+func (bi *BoostIndexer) saveModels(items []elastic.Model) error {
+	logger.Info("[%s] Found %d new models", bi.Network, len(items))
 	if err := bi.es.BulkInsert(items); err != nil {
 		return err
 	}
 
-	for j := range items {
-		if err := bi.messageQueue.Send(mq.ChannelNew, queue, items[j].GetID()); err != nil {
-			return err
+	for i := range items {
+		if queue := bi.getQueueByModel(items[i]); queue != "" {
+			if err := bi.messageQueue.Send(mq.ChannelNew, queue, items[i].GetID()); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
 }
 
-func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([]elastic.Model, []elastic.Model, []elastic.Model, error) {
+func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([]elastic.Model, error) {
 	data, err := bi.rpc.GetOperations(head.Level)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
 	defaultParser := parsers.NewDefaultParser(bi.rpc, bi.es, bi.filesDirectory)
 
-	operations := make([]elastic.Model, 0)
-	contracts := make([]elastic.Model, 0)
-	migrations := make([]elastic.Model, 0)
+	parsedModels := make([]elastic.Model, 0)
 	for _, opg := range data.Array() {
-		newOps, newContracts, newMigrations, err := defaultParser.Parse(opg, network, head)
+		parsed, err := defaultParser.Parse(opg, network, head)
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, err
 		}
-		for i := range newOps {
-			operations = append(operations, newOps[i])
-		}
-		for i := range newContracts {
-			contracts = append(contracts, newContracts[i])
-		}
-		for i := range newMigrations {
-			migrations = append(migrations, newMigrations[i])
-		}
+		parsedModels = append(parsedModels, parsed...)
 	}
 
-	return operations, contracts, migrations, nil
+	return parsedModels, nil
 }
 
-func (bi *BoostIndexer) migrate(head noderpc.Header) error {
+func (bi *BoostIndexer) migrate(head noderpc.Header) ([]elastic.Model, error) {
+	updates := make([]elastic.Model, 0)
+	newModels := make([]elastic.Model, 0)
+
 	if bi.currentProtocol.EndLevel == 0 && head.Level > 1 {
 		logger.Info("[%s] Finalizing the previous protocol: %s", bi.Network, bi.currentProtocol.Alias)
 		bi.currentProtocol.EndLevel = head.Level - 1
-		_, err := bi.es.UpdateDoc(elastic.DocProtocol, bi.currentProtocol.ID, bi.currentProtocol)
-		if err != nil {
-			return err
-		}
+		updates = append(updates, &bi.currentProtocol)
 	}
 
 	newProtocol, err := bi.es.GetProtocol(bi.Network, head.Protocol, head.Level)
@@ -496,22 +491,26 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) error {
 		logger.Warning("%s", err)
 		newProtocol, err = createProtocol(bi.es, bi.Network, head.Protocol, head.Level)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
 	if bi.Network == consts.Mainnet && head.Level == 1 {
-		if err := bi.vestingMigration(head); err != nil {
-			return err
+		vestingMigrations, err := bi.vestingMigration(head)
+		if err != nil {
+			return nil, err
 		}
+		newModels = append(newModels, vestingMigrations...)
 	} else {
 		if bi.currentProtocol.SymLink == "" {
-			return fmt.Errorf("[%s] Protocol should be initialized", bi.Network)
+			return nil, fmt.Errorf("[%s] Protocol should be initialized", bi.Network)
 		}
 		if newProtocol.SymLink != bi.currentProtocol.SymLink {
-			if err := bi.standartMigration(newProtocol); err != nil {
-				return err
+			migrations, err := bi.standartMigration(newProtocol)
+			if err != nil {
+				return nil, err
 			}
+			newModels = append(newModels, migrations...)
 		} else {
 			logger.Info("[%s] Same symlink %s for %s / %s",
 				bi.Network, newProtocol.SymLink, bi.currentProtocol.Alias, newProtocol.Alias)
@@ -519,8 +518,14 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) error {
 	}
 
 	bi.currentProtocol = newProtocol
+	newModels = append(newModels, &newProtocol)
+
+	if err := bi.es.BulkUpdate(updates); err != nil {
+		return nil, err
+	}
+
 	logger.Info("[%s] Migration to %s is completed", bi.Network, bi.currentProtocol.Alias)
-	return nil
+	return newModels, nil
 }
 
 func createProtocol(es *elastic.Elastic, network, hash string, level int64) (protocol models.Protocol, err error) {
@@ -535,58 +540,49 @@ func createProtocol(es *elastic.Elastic, network, hash string, level int64) (pro
 	protocol.Hash = hash
 	protocol.StartLevel = level
 	protocol.ID = helpers.GenerateID()
-
-	_, err = es.AddDocumentWithID(protocol, elastic.DocProtocol, protocol.ID)
-	if err != nil {
-		return
-	}
 	return
 }
 
-func (bi *BoostIndexer) standartMigration(newProtocol models.Protocol) error {
+func (bi *BoostIndexer) standartMigration(newProtocol models.Protocol) ([]elastic.Model, error) {
 	log.Printf("[%s] Try to find migrations...", bi.Network)
 	contracts, err := bi.es.GetContracts(map[string]interface{}{
 		"network": bi.Network,
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 	log.Printf("[%s] Now %d contracts are indexed", bi.Network, len(contracts))
 
 	p := parsers.NewMigrationParser(bi.rpc, bi.es, bi.filesDirectory)
-	migrations := make([]elastic.Model, 0)
+	newModels := make([]elastic.Model, 0)
 	for i := range contracts {
 		logger.Info("Migrate %s...", contracts[i].Address)
 		script, err := bi.rpc.GetScriptJSON(contracts[i].Address, newProtocol.StartLevel)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
-		migration, err := p.Parse(script, contracts[i], bi.currentProtocol, newProtocol)
+		createdModels, err := p.Parse(script, contracts[i], bi.currentProtocol, newProtocol)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
-		if migration != nil {
-			migrations = append(migrations, migration)
+		if len(createdModels) > 0 {
+			newModels = append(newModels, createdModels...)
 		}
 	}
-	if err := bi.saveModels(migrations, mq.QueueMigrations); err != nil {
-		return err
-	}
-	return nil
+	return newModels, nil
 }
 
-func (bi *BoostIndexer) vestingMigration(head noderpc.Header) error {
+func (bi *BoostIndexer) vestingMigration(head noderpc.Header) ([]elastic.Model, error) {
 	addresses, err := bi.rpc.GetContractsByBlock(head.Level)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	p := parsers.NewVestingParser(bi.rpc, bi.es, bi.filesDirectory)
 
-	migrations := make([]elastic.Model, 0)
-	contracts := make([]elastic.Model, 0)
+	parsedModels := make([]elastic.Model, 0)
 	for _, address := range addresses {
 		if !strings.HasPrefix(address, "KT") {
 			continue
@@ -594,24 +590,15 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header) error {
 
 		data, err := bi.rpc.GetContractJSON(address, head.Level)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
-		migration, contract, err := p.Parse(data, head, bi.Network, address)
+		parsed, err := p.Parse(data, head, bi.Network, address)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		migrations = append(migrations, migration)
-		if contract != nil {
-			contracts = append(contracts, contract)
-		}
+		parsedModels = append(parsedModels, parsed...)
 	}
 
-	if err := bi.saveModels(contracts, mq.QueueContracts); err != nil {
-		return err
-	}
-	if err := bi.saveModels(migrations, mq.QueueMigrations); err != nil {
-		return err
-	}
-	return nil
+	return parsedModels, nil
 }

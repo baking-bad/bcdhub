@@ -42,7 +42,7 @@ func (e *Elastic) GetAll(output interface{}) error {
 	if err != nil {
 		return err
 	}
-	return e.getByScroll(index, nil, typ, output)
+	return e.getByScroll(index, newQuery(), typ, output)
 }
 
 // GetByNetwork -

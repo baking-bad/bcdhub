@@ -54,7 +54,7 @@ func (ctx *Context) prepareMempoolOperations(res gjson.Result, address, network 
 			Protocol:  item.Get("protocol").String(),
 			Hash:      item.Get("hash").String(),
 			Network:   network,
-			Timesatmp: time.Unix(item.Get("timestamp").Int(), 0).UTC(),
+			Timestamp: time.Unix(item.Get("timestamp").Int(), 0).UTC(),
 
 			Kind:         item.Get("kind").String(),
 			Source:       item.Get("source").String(),

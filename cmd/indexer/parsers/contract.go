@@ -1,12 +1,14 @@
 package parsers
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/metrics"
@@ -14,11 +16,11 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-func createNewContract(es *elastic.Elastic, operation models.Operation, filesDirectory, protoSymLink string) (*models.Contract, error) {
+func createNewContract(es *elastic.Elastic, operation models.Operation, filesDirectory, protoSymLink string) ([]elastic.Model, error) {
 	if operation.Kind != consts.Origination && operation.Kind != consts.Migration {
 		return nil, fmt.Errorf("Invalid operation kind in computeContractMetrics: %s", operation.Kind)
 	}
-	contract := &models.Contract{
+	contract := models.Contract{
 		ID:         helpers.GenerateID(),
 		Network:    operation.Network,
 		Level:      operation.Level,
@@ -31,8 +33,29 @@ func createNewContract(es *elastic.Elastic, operation models.Operation, filesDir
 		TxCount:    1,
 	}
 
-	err := computeMetrics(es, operation, filesDirectory, protoSymLink, contract)
-	return contract, err
+	if err := computeMetrics(es, operation, filesDirectory, protoSymLink, &contract); err != nil {
+		return nil, err
+	}
+
+	metadata, err := createMetadata(operation.Script, protoSymLink, &contract)
+	if err != nil {
+		return nil, err
+	}
+
+	upgradable, err := isUpgradable(*metadata, protoSymLink)
+	if err != nil {
+		return nil, err
+	}
+
+	if upgradable {
+		contract.Tags = append(contract.Tags, consts.UpgradableTag)
+	}
+
+	if err := setEntrypoints(*metadata, protoSymLink, &contract); err != nil {
+		return nil, err
+	}
+
+	return []elastic.Model{&contract, metadata}, nil
 }
 
 func computeMetrics(es *elastic.Elastic, operation models.Operation, filesDirectory, protoSymLink string, contract *models.Contract) error {
@@ -57,10 +80,7 @@ func computeMetrics(es *elastic.Elastic, operation models.Operation, filesDirect
 	if err := metrics.SetFingerprint(operation.Script, contract); err != nil {
 		return err
 	}
-	if err := saveToFile(operation.Script, contract, filesDirectory, protoSymLink); err != nil {
-		return err
-	}
-	return saveMetadata(es, operation.Script, protoSymLink, contract)
+	return saveToFile(operation.Script, contract, filesDirectory, protoSymLink)
 }
 
 func saveToFile(script gjson.Result, c *models.Contract, filesDirectory, protoSymLink string) error {
@@ -84,6 +104,55 @@ func saveToFile(script gjson.Result, c *models.Contract, filesDirectory, protoSy
 		}
 	} else if err != nil {
 		return err
+	}
+	return nil
+}
+
+func isUpgradable(metadata models.Metadata, protoSymLink string) (bool, error) {
+	parameter := metadata.Parameter[protoSymLink]
+	storage := metadata.Storage[protoSymLink]
+
+	var paramMeta meta.Metadata
+	if err := json.Unmarshal([]byte(parameter), &paramMeta); err != nil {
+		return false, fmt.Errorf("Invalid parameter metadata: %v", err)
+	}
+
+	var storageMeta meta.Metadata
+	if err := json.Unmarshal([]byte(storage), &storageMeta); err != nil {
+		return false, fmt.Errorf("Invalid parameter metadata: %v", err)
+	}
+
+	for _, p := range paramMeta {
+		if p.Type != consts.LAMBDA {
+			continue
+		}
+
+		for _, s := range storageMeta {
+			if s.Type != consts.LAMBDA {
+				continue
+			}
+
+			if p.Parameter == s.Parameter {
+				return true, nil
+			}
+		}
+	}
+
+	return false, nil
+}
+
+func setEntrypoints(metadata models.Metadata, protoSymLink string, contract *models.Contract) error {
+	var parameterMetadata meta.Metadata
+	if err := json.Unmarshal([]byte(metadata.Parameter[protoSymLink]), &parameterMetadata); err != nil {
+		return err
+	}
+	entrypoints, err := parameterMetadata.GetEntrypoints()
+	if err != nil {
+		return err
+	}
+	contract.Entrypoints = make([]string, len(entrypoints))
+	for i := range entrypoints {
+		contract.Entrypoints[i] = entrypoints[i].Name
 	}
 	return nil
 }

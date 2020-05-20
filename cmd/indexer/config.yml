@@ -9,7 +9,7 @@ rpc:
         uri: https://babylontest-ssl.tezos.org.ua
         timeout: 20
     carthagenet:
-        uri: https://carthatest-ssl.tezos.org.ua
+        uri: https://rpc.tzkt.io/carthagenet
         timeout: 20
 
 tzkt:

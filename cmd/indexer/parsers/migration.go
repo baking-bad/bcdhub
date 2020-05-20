@@ -29,10 +29,16 @@ func NewMigrationParser(rpc noderpc.Pool, es *elastic.Elastic, filesDirectory st
 }
 
 // Parse -
-func (p *MigrationParser) Parse(data gjson.Result, old models.Contract, prevProtocol, newProtocol models.Protocol) (*models.Migration, error) {
-	if err := updateMetadata(p.es, data, newProtocol.SymLink, &old); err != nil {
+func (p *MigrationParser) Parse(data gjson.Result, old models.Contract, prevProtocol, newProtocol models.Protocol) ([]elastic.Model, error) {
+	metadata := models.Metadata{ID: old.Address}
+	if err := p.es.GetByID(&metadata); err != nil {
 		return nil, err
 	}
+
+	if err := updateMetadata(data, newProtocol.SymLink, &old, &metadata); err != nil {
+		return nil, err
+	}
+
 	migrationBlock, err := p.rpc.GetHeader(prevProtocol.EndLevel)
 	if err != nil {
 		return nil, err
@@ -43,10 +49,10 @@ func (p *MigrationParser) Parse(data gjson.Result, old models.Contract, prevProt
 		return nil, err
 	}
 	if newFingerprint.Compare(old.Fingerprint) {
-		return nil, nil
+		return []elastic.Model{&metadata}, nil
 	}
 
-	op := models.Migration{
+	migration := models.Migration{
 		ID:          helpers.GenerateID(),
 		IndexedTime: time.Now().UnixNano() / 1000,
 
@@ -58,8 +64,6 @@ func (p *MigrationParser) Parse(data gjson.Result, old models.Contract, prevProt
 		Timestamp:    migrationBlock.Timestamp,
 		Kind:         consts.MigrationUpdate,
 	}
-	if _, err := p.es.UpdateDoc(elastic.DocContracts, old.ID, old); err != nil {
-		return nil, err
-	}
-	return &op, nil
+
+	return []elastic.Model{&metadata, &migration}, nil
 }
