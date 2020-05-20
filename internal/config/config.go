@@ -18,6 +18,7 @@ type Config struct {
 	RabbitMQ RabbitConfig        `yaml:"rabbitmq"`
 	DB       DatabaseConfig      `yaml:"db"`
 	OAuth    OAuthConfig         `yaml:"oauth"`
+	Seed     SeedConfig          `yaml:"seed"`
 
 	Share struct {
 		Path string `yaml:"path"`
@@ -39,6 +40,9 @@ type Config struct {
 			Project string `yaml:"project"`
 		} `yaml:"sentry"`
 		Networks []string `yaml:"networks"`
+		Seed     struct {
+			Enabled bool `yaml:"enabled"`
+		} `yaml:"seed"`
 	} `yaml:"api"`
 
 	Indexer struct {
@@ -116,6 +120,30 @@ type OAuthConfig struct {
 		Secret      string `yaml:"secret"`
 		CallbackURL string `yaml:"callback_url"`
 	} `yaml:"gitlab"`
+}
+
+// SeedConfig -
+type SeedConfig struct {
+	User struct {
+		Login     string `yaml:"login"`
+		Name      string `yaml:"name"`
+		AvatarURL string `yaml:"avatar_url"`
+		Token     string `yaml:"token"`
+	} `yaml:"user"`
+	Subscriptions []struct {
+		Address string `yaml:"address"`
+		Network string `yaml:"network"`
+	} `yaml:"subscriptions"`
+	Aliases []struct {
+		Alias   string `yaml:"alias"`
+		Network string `yaml:"network"`
+		Address string `yaml:"address"`
+	} `yaml:"aliases"`
+	Accounts []struct {
+		PrivateKey    string `yaml:"private_key"`
+		PublicKeyHash string `yaml:"public_key_hash"`
+		Network       string `yaml:"network"`
+	} `yaml:"accounts"`
 }
 
 // LoadConfig -

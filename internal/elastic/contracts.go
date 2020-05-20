@@ -2,7 +2,6 @@ package elastic
 
 import (
 	"fmt"
-	"math"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -165,43 +164,6 @@ func (e *Elastic) GetContractID(by map[string]interface{}) (string, error) {
 	}
 
 	return cntr.ID, nil
-}
-
-// Recommendations -
-func (e *Elastic) Recommendations(tags []string, language string, blackList []string, size int64) ([]models.Contract, error) {
-	tagFilters := make([]qItem, len(tags))
-	for i := range tags {
-		tagFilters[i] = matchPhrase("tags", tags[i])
-	}
-
-	blackListFilters := make([]qItem, len(blackList))
-	for i := range blackList {
-		blackListFilters[i] = matchPhrase("address", blackList[i])
-	}
-
-	tagFilters = append(tagFilters, matchPhrase("language", language))
-	b := boolQ(
-		should(tagFilters...),
-		notMust(
-			blackListFilters...,
-		),
-		minimumShouldMatch(int(math.Min(2, float64(len(tagFilters)+1)))),
-	)
-
-	query := newQuery().Query(b).Size(size).Sort("last_action", "desc")
-	resp, err := e.query([]string{DocContracts}, query)
-	if err != nil {
-		return nil, err
-	}
-
-	contracts := make([]models.Contract, 0)
-	arr := resp.Get("hits.hits").Array()
-	for i := range arr {
-		var c models.Contract
-		c.ParseElasticJSON(arr[i])
-		contracts = append(contracts, c)
-	}
-	return contracts, nil
 }
 
 // IsFAContract -

@@ -278,9 +278,17 @@ type ProfileInfo struct {
 
 // Subscription -
 type Subscription struct {
-	*Contract
-
-	SubscribedAt time.Time `json:"subscribed_at"`
+	Address          string    `json:"address"`
+	Network          string    `json:"network"`
+	Alias            string    `json:"alias,omitempty"`
+	SubscribedAt     time.Time `json:"subscribed_at"`
+	WatchSame        bool      `json:"watchSame"`
+	WatchSimilar     bool      `json:"watchSimilar"`
+	WatchDeployed    bool      `json:"watchDeployed"`
+	WatchMigrations  bool      `json:"watchMigrations"`
+	WatchDeployments bool      `json:"watchDeployments"`
+	WatchCalls       bool      `json:"watchCalls"`
+	WatchErrors      bool      `json:"watchErrors"`
 }
 
 // TimelineItem -
@@ -299,6 +307,7 @@ type userProfile struct {
 	Login         string         `json:"login"`
 	AvatarURL     string         `json:"avatarURL"`
 	Subscriptions []Subscription `json:"subscriptions"`
+	MarkReadAt    time.Time      `json:"mark_read_at"`
 }
 
 // BigMapItem -

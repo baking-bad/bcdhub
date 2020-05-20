@@ -10,17 +10,18 @@ import (
 
 // ListSubscriptions -
 func (ctx *Context) ListSubscriptions(c *gin.Context) {
-	subscriptions, err := ctx.DB.ListSubscriptions(ctx.OAUTH.UserID)
+	userID := CurrentUserID(c)
+	if userID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user"})
+		return
+	}
+
+	subscriptions, err := ctx.DB.ListSubscriptions(userID)
 	if handleError(c, err, 0) {
 		return
 	}
 
-	res, err := ctx.prepareSubscription(subscriptions)
-	if handleError(c, err, 0) {
-		return
-	}
-
-	c.JSON(http.StatusOK, res)
+	c.JSON(http.StatusOK, prepareSubscriptions(subscriptions))
 }
 
 // CreateSubscription -
@@ -30,13 +31,20 @@ func (ctx *Context) CreateSubscription(c *gin.Context) {
 		return
 	}
 
-	subscription := database.Subscription{
-		UserID:     ctx.OAUTH.UserID,
-		EntityID:   sub.ID,
-		EntityType: database.EntityType(sub.Type),
+	userID := CurrentUserID(c)
+	if userID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user"})
+		return
 	}
 
-	if err := ctx.DB.CreateSubscription(&subscription); handleError(c, err, 0) {
+	subscription := database.Subscription{
+		UserID:    userID,
+		Address:   sub.Address,
+		Network:   sub.Network,
+		WatchMask: buildWatchMask(sub),
+	}
+
+	if err := ctx.DB.UpsertSubscription(&subscription); handleError(c, err, 0) {
 		return
 	}
 
@@ -50,10 +58,16 @@ func (ctx *Context) DeleteSubscription(c *gin.Context) {
 		return
 	}
 
+	userID := CurrentUserID(c)
+	if userID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user"})
+		return
+	}
+
 	subscription := database.Subscription{
-		UserID:     ctx.OAUTH.UserID,
-		EntityID:   sub.ID,
-		EntityType: database.EntityType(sub.Type),
+		UserID:  userID,
+		Address: sub.Address,
+		Network: sub.Network,
 	}
 
 	if err := ctx.DB.DeleteSubscription(&subscription); handleError(c, err, 0) {
@@ -63,35 +77,95 @@ func (ctx *Context) DeleteSubscription(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
-func (ctx *Context) prepareSubscription(subs []database.Subscription) ([]Subscription, error) {
-	if len(subs) == 0 {
-		return []Subscription{}, nil
+func prepareSubscriptions(subs []database.Subscription) []Subscription {
+	res := make([]Subscription, len(subs))
+
+	for i, sub := range subs {
+		res[i] = buildSubFromWatchMask(sub.WatchMask)
+		res[i].Address = sub.Address
+		res[i].Network = sub.Network
+		res[i].Alias = sub.Alias
+		res[i].SubscribedAt = sub.CreatedAt
 	}
 
-	ids := make([]string, len(subs))
-	for i := range subs {
-		ids[i] = subs[i].EntityID
+	return res
+}
+
+// Subscription flags
+const (
+	WatchSame uint = 1 << iota
+	WatchSimilar
+	WatchDeployed
+	WatchMigrations
+	WatchDeployments
+	WatchCalls
+	WatchErrors
+)
+
+func buildWatchMask(s subRequest) uint {
+	var b uint
+
+	if s.WatchSame {
+		b = b | WatchSame
 	}
 
-	contracts, err := ctx.ES.GetContractsByIDsWithSort(ids, "last_action", "desc")
-	if err != nil {
-		return nil, err
+	if s.WatchSimilar {
+		b = b | WatchSimilar
 	}
 
-	res := make([]Subscription, len(contracts))
-	for i := range contracts {
-		var contract Contract
-		contract.FromModel(contracts[i])
-		res[i] = Subscription{
-			Contract: &contract,
-		}
-		for j := range subs {
-			if subs[j].EntityID == contracts[i].ID {
-				res[i].SubscribedAt = subs[j].CreatedAt
-				break
-			}
-		}
+	if s.WatchDeployed {
+		b = b | WatchDeployed
 	}
 
-	return res, nil
+	if s.WatchMigrations {
+		b = b | WatchMigrations
+	}
+
+	if s.WatchDeployments {
+		b = b | WatchDeployments
+	}
+
+	if s.WatchCalls {
+		b = b | WatchCalls
+	}
+
+	if s.WatchErrors {
+		b = b | WatchErrors
+	}
+
+	return b
+}
+
+func buildSubFromWatchMask(mask uint) Subscription {
+	s := Subscription{}
+
+	if mask&WatchSame != 0 {
+		s.WatchSame = true
+	}
+
+	if mask&WatchSimilar != 0 {
+		s.WatchSimilar = true
+	}
+
+	if mask&WatchDeployed != 0 {
+		s.WatchDeployed = true
+	}
+
+	if mask&WatchMigrations != 0 {
+		s.WatchMigrations = true
+	}
+
+	if mask&WatchDeployments != 0 {
+		s.WatchDeployments = true
+	}
+
+	if mask&WatchCalls != 0 {
+		s.WatchCalls = true
+	}
+
+	if mask&WatchErrors != 0 {
+		s.WatchErrors = true
+	}
+
+	return s
 }
