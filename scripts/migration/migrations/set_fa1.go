@@ -71,6 +71,11 @@ var fa1Interface = []byte(`[
 // SetFA1 - migration that set fa1 tag to contract
 type SetFA1 struct{}
 
+// Key -
+func (m *SetFA1) Key() string {
+	return "fa1_tag"
+}
+
 // Description -
 func (m *SetFA1) Description() string {
 	return "set fa1 tag to contract"

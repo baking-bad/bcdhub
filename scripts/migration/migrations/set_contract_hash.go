@@ -14,6 +14,11 @@ import (
 // SetContractHash - migration that set `Hash` to contract
 type SetContractHash struct{}
 
+// Key -
+func (m *SetContractHash) Key() string {
+	return "set_contract_hash"
+}
+
 // Description -
 func (m *SetContractHash) Description() string {
 	return "set `Hash` to contract"

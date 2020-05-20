@@ -12,6 +12,11 @@ import (
 // SetContractMigrationsCount -
 type SetContractMigrationsCount struct{}
 
+// Key -
+func (m *SetContractMigrationsCount) Key() string {
+	return "contract_migrations_count"
+}
+
 // Description -
 func (m *SetContractMigrationsCount) Description() string {
 	return "set contract field `migrations_count`"

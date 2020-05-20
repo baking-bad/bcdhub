@@ -14,6 +14,11 @@ import (
 // RecalcContractMetrics - migration that recalculate contract metrics
 type RecalcContractMetrics struct{}
 
+// Key -
+func (m *RecalcContractMetrics) Key() string {
+	return "recalc_contract_metrics"
+}
+
 // Description -
 func (m *RecalcContractMetrics) Description() string {
 	return "recalculate contract metrics"

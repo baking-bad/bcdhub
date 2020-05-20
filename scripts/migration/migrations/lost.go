@@ -13,6 +13,11 @@ type FindLostOperations struct {
 	Network string
 }
 
+// Key -
+func (m *FindLostOperations) Key() string {
+	return "lost"
+}
+
 // Description -
 func (m *FindLostOperations) Description() string {
 	return "find lost blocks"

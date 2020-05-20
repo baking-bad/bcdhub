@@ -15,6 +15,11 @@ type SetOperationErrors struct {
 	Network string
 }
 
+// Key -
+func (m *SetOperationErrors) Key() string {
+	return "set_operation_errors"
+}
+
 // Description -
 func (m *SetOperationErrors) Description() string {
 	return "fill `Errors` in operations"

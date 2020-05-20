@@ -14,6 +14,11 @@ type SetTotalWithdrawn struct {
 	Network string
 }
 
+// Key -
+func (m *SetTotalWithdrawn) Key() string {
+	return "total_withdrawn"
+}
+
 // Description -
 func (m *SetTotalWithdrawn) Description() string {
 	return "set total_withdrawn to contracts in all networks"

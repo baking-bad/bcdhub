@@ -8,6 +8,11 @@ import (
 // SetAliasSlug - migration that set `slug` at Alias in db
 type SetAliasSlug struct{}
 
+// Key -
+func (m *SetAliasSlug) Key() string {
+	return "set_alias_slug"
+}
+
 // Description -
 func (m *SetAliasSlug) Description() string {
 	return "set `slug` at Alias in db"

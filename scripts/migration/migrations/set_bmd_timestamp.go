@@ -12,6 +12,11 @@ import (
 // SetBMDTimestamp - migration that set timestamp at big map diff
 type SetBMDTimestamp struct{}
 
+// Key -
+func (m *SetBMDTimestamp) Key() string {
+	return "bmd_timestamp"
+}
+
 // Description -
 func (m *SetBMDTimestamp) Description() string {
 	return "set timestamp at big map diff"

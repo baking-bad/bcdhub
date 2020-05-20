@@ -3,7 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
+	"math"
+	"strconv"
 	"strings"
 	"time"
 
@@ -13,47 +14,38 @@ import (
 	"github.com/baking-bad/bcdhub/scripts/migration/migrations"
 )
 
+var migrationsList = []migrations.Migration{
+	&migrations.SetTimestamp{},
+	&migrations.SetLanguage{},
+	&migrations.SetContractAlias{Network: consts.Mainnet},
+	&migrations.SetOperationAlias{Network: consts.Mainnet},
+	&migrations.SetBMDStrings{},
+	&migrations.SetBMDTimestamp{},
+	&migrations.SetFA1{},
+	&migrations.SetOperationStrings{},
+	&migrations.SetOperationBurned{},
+	&migrations.SetTotalWithdrawn{},
+	&migrations.SetMigrationKind{},
+	&migrations.SetBMDProtocol{},
+	&migrations.FindLostOperations{},
+	&migrations.SetContractMigrationsCount{},
+	&migrations.SetStateChainID{},
+	&migrations.SetAliasSlug{},
+	&migrations.SetContractFingerprint{},
+	&migrations.SetOperationErrors{},
+	&migrations.SetContractHash{},
+	&migrations.RecalcContractMetrics{},
+}
+
 func main() {
-	migrationMap := map[string]migrations.Migration{
-		"timestamp":                 &migrations.SetTimestamp{},
-		"language":                  &migrations.SetLanguage{},
-		"contract_alias":            &migrations.SetContractAlias{Network: consts.Mainnet},
-		"operation_alias":           &migrations.SetOperationAlias{Network: consts.Mainnet},
-		"bmd_strings":               &migrations.SetBMDStrings{},
-		"bmd_timestamp":             &migrations.SetBMDTimestamp{},
-		"fa1_tag":                   &migrations.SetFA1{},
-		"operation_strings":         &migrations.SetOperationStrings{},
-		"operation_burned":          &migrations.SetOperationBurned{},
-		"total_withdrawn":           &migrations.SetTotalWithdrawn{},
-		"set_migration_kind":        &migrations.SetMigrationKind{},
-		"set_bmd_protocol":          &migrations.SetBMDProtocol{},
-		"lost":                      &migrations.FindLostOperations{},
-		"contract_migrations_count": &migrations.SetContractMigrationsCount{},
-		"state_chain_id":            &migrations.SetStateChainID{},
-		"set_alias_slug":            &migrations.SetAliasSlug{},
-		"set_contract_fingerprint":  &migrations.SetContractFingerprint{},
-		"set_operation_errors":      &migrations.SetOperationErrors{},
-		"set_contract_hash":         &migrations.SetContractHash{},
-		"recalc_contract_metrics":   &migrations.RecalcContractMetrics{},
+	migration, err := chooseMigration()
+	if err != nil {
+		logger.Fatal(err)
 	}
 
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
 		logger.Fatal(err)
-	}
-
-	env := os.Getenv("MIGRATION")
-
-	if env == "" {
-		fmt.Println("Set MIGRATION env variable. Available migrations:")
-		for name, m := range migrationMap {
-			fmt.Printf("- %s%s| %s\n", name, strings.Repeat(" ", 25-len(name)), m.Description())
-		}
-		return
-	}
-
-	if _, ok := migrationMap[env]; !ok {
-		log.Fatal("Unknown migration key: ", env)
 	}
 
 	start := time.Now()
@@ -67,11 +59,36 @@ func main() {
 	)
 	defer ctx.Close()
 
-	logger.Info("Starting %v migration...", env)
+	logger.Info("Starting %v migration...", migration.Key())
 
-	if err := migrationMap[env].Do(ctx); err != nil {
+	if err := migration.Do(ctx); err != nil {
 		log.Fatal(err)
 	}
 
-	logger.Success("%s migration done. Spent: %v", env, time.Since(start))
+	logger.Success("%s migration done. Spent: %v", migration.Key(), time.Since(start))
+}
+
+func chooseMigration() (migrations.Migration, error) {
+	fmt.Println("Available migrations:")
+	for i, migration := range migrationsList {
+		spaces := 30 - len(migration.Key()) - int(math.Log10(float64(i)+0.1))
+		desc := migration.Description()
+
+		fmt.Printf("[%d] %s%s| %s\n", i, migration.Key(), strings.Repeat(" ", spaces), desc)
+	}
+
+	var input string
+	fmt.Println("\nEnter migration #:")
+	fmt.Scanln(&input)
+
+	index, err := strconv.Atoi(input)
+	if err != nil {
+		return nil, err
+	}
+
+	if index < 0 || index > len(migrationsList)-1 {
+		return nil, fmt.Errorf("Invalid # of migration: %s", input)
+	}
+
+	return migrationsList[index], nil
 }

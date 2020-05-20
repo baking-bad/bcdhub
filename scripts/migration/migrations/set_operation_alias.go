@@ -15,6 +15,11 @@ type SetOperationAlias struct {
 	Network string
 }
 
+// Key -
+func (m *SetOperationAlias) Key() string {
+	return "operation_alias"
+}
+
 // Description -
 func (m *SetOperationAlias) Description() string {
 	return "set source or destination alias from db to operations in choosen network"
