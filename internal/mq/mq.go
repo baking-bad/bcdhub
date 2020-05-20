@@ -3,6 +3,7 @@ package mq
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/streadway/amqp"
 )
@@ -11,6 +12,8 @@ import (
 type MQ struct {
 	Conn    *amqp.Connection
 	Channel *amqp.Channel
+
+	service string
 }
 
 // Close -
@@ -47,9 +50,11 @@ func (mq *MQ) Send(channel, queue string, v interface{}) error {
 		})
 }
 
-// New -
-func New(connection string, queues []string) (*MQ, error) {
-	mq := &MQ{}
+// NewReceiver -
+func NewReceiver(connection string, queues []string, service string) (*MQ, error) {
+	mq := &MQ{
+		service: service,
+	}
 	conn, err := amqp.Dial(connection)
 	if err != nil {
 		return nil, err
@@ -76,12 +81,12 @@ func New(connection string, queues []string) (*MQ, error) {
 	}
 
 	for _, queue := range queues {
-		_, err = ch.QueueDeclare(queue, true, false, false, false, nil)
+		q, err := ch.QueueDeclare(fmt.Sprintf("%s.%s", queue, service), true, false, false, false, nil)
 		if err != nil {
 			return nil, err
 		}
 		if err = ch.QueueBind(
-			queue,
+			q.Name,
 			queue,
 			ChannelNew,
 			false,
@@ -93,7 +98,34 @@ func New(connection string, queues []string) (*MQ, error) {
 	return mq, nil
 }
 
+// NewPublisher -
+func NewPublisher(connection string) (*MQ, error) {
+	mq := &MQ{}
+	conn, err := amqp.Dial(connection)
+	if err != nil {
+		return nil, err
+	}
+	mq.Conn = conn
+
+	ch, err := conn.Channel()
+	if err != nil {
+		return nil, err
+	}
+	mq.Channel = ch
+
+	err = ch.ExchangeDeclare(
+		ChannelNew,
+		"direct",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	return mq, err
+}
+
 // Consume -
 func (mq *MQ) Consume(queue string) (<-chan amqp.Delivery, error) {
-	return mq.Channel.Consume(queue, "", false, false, false, false, nil)
+	return mq.Channel.Consume(fmt.Sprintf("%s.%s", queue, mq.service), "", false, false, false, false, nil)
 }

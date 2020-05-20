@@ -226,3 +226,11 @@ type DiffTask struct {
 	Network2 string
 	Address2 string
 }
+
+// ContractCountStats -
+type ContractCountStats struct {
+	Total          int64
+	SameCount      int64
+	TotalWithdrawn int64
+	Balance        int64
+}

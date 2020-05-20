@@ -11,6 +11,7 @@ import (
 	_ "github.com/baking-bad/bcdhub/cmd/api/docs"
 	"github.com/baking-bad/bcdhub/cmd/api/handlers"
 	"github.com/baking-bad/bcdhub/cmd/api/seed"
+	"github.com/baking-bad/bcdhub/cmd/api/ws"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -197,11 +198,17 @@ func main() {
 
 	r.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
+	hub := ws.DefaultHub(cfg.Elastic.URI, cfg.RabbitMQ.URI, cfg.RabbitMQ.Queues)
+	hub.Run()
+	defer hub.Stop()
+	r.GET("ws", func(c *gin.Context) { ws.Handler(c, hub) })
+
 	if err := r.Run(cfg.API.Bind); err != nil {
 		logger.Error(err)
 		helpers.CatchErrorSentry(err)
 		return
 	}
+
 }
 
 func corsSettings() gin.HandlerFunc {

@@ -47,10 +47,21 @@ func WithDatabase(dbConfig DatabaseConfig) ContextOption {
 	}
 }
 
-// WithRabbit -
-func WithRabbit(rabbitConfig RabbitConfig) ContextOption {
+// WithRabbitReceiver -
+func WithRabbitReceiver(rabbitConfig RabbitConfig, service string) ContextOption {
 	return func(ctx *Context) {
-		messageQueue, err := mq.New(rabbitConfig.URI, rabbitConfig.Queues)
+		messageQueue, err := mq.NewReceiver(rabbitConfig.URI, rabbitConfig.Queues, service)
+		if err != nil {
+			log.Panicf("Rabbit MQ connection error: %s", err)
+		}
+		ctx.MQ = messageQueue
+	}
+}
+
+// WithRabbitPublisher -
+func WithRabbitPublisher(rabbitConfig RabbitConfig, service string) ContextOption {
+	return func(ctx *Context) {
+		messageQueue, err := mq.NewPublisher(rabbitConfig.URI)
 		if err != nil {
 			log.Panicf("Rabbit MQ connection error: %s", err)
 		}

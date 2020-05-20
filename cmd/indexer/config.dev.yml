@@ -11,11 +11,6 @@ elastic:
 
 rabbitmq:
     uri: "amqp://${RABBIT_USER}:${RABBIT_PASSWORD}@127.0.0.1:5672/"
-    queues:
-        - operations
-        - contracts
-        - migrations
-        - recalc
 
 indexer:
     sentry:
