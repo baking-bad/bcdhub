@@ -57,7 +57,7 @@ func (ctx *Context) GetRandomContract(c *gin.Context) {
 	if handleError(c, err, 0) {
 		return
 	}
-	res, err := ctx.contractPostprocessing(cntr)
+	res, err := ctx.contractPostprocessing(cntr, CurrentUserID(c))
 	if handleError(c, err, 0) {
 		return
 	}

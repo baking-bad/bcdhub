@@ -163,20 +163,6 @@ func buildSubFromWatchMask(mask uint) Subscription {
 		s.WatchCalls = true
 	}
 
-	res := make([]Subscription, len(contracts))
-	for i := range contracts {
-		var contract Contract
-		contract.FromModel(contracts[i])
-		res[i] = Subscription{
-			Contract: &contract,
-		}
-		for j := range subs {
-			if subs[j].EntityID == contracts[i].ID {
-				res[i].SubscribedAt = subs[j].CreatedAt
-				break
-			}
-		}
-	}
 	if mask&WatchErrors != 0 {
 		s.WatchErrors = true
 	}
