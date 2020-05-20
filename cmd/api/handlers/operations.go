@@ -221,7 +221,7 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 	op.FromModel(operation)
 
 	var result *OperationResult
-	result.FromModel(*operation.Result)
+	result.FromModel(operation.Result)
 	op.Result = result
 	op.BalanceUpdates = prepareBalanceUpdates(operation.BalanceUpdates)
 

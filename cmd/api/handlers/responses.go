@@ -104,7 +104,7 @@ func (o *Operation) FromModel(operation models.Operation) {
 
 // ToModel -
 func (o *Operation) ToModel() models.Operation {
-	var result models.OperationResult
+	var result *models.OperationResult
 	if o.Result != nil {
 		result = o.Result.ToModel()
 	}
@@ -154,17 +154,21 @@ type OperationResult struct {
 
 // FromModel -
 func (r *OperationResult) FromModel(result *models.OperationResult) {
-	if result == nil {
+	if result == nil || r == nil {
 		return
 	}
 	r.AllocatedDestinationContract = result.AllocatedDestinationContract
 	r.ConsumedGas = result.ConsumedGas
 	r.PaidStorageSizeDiff = result.PaidStorageSizeDiff
 	r.StorageSize = result.StorageSize
+	return
 }
 
 // ToModel -
-func (r *OperationResult) ToModel() (result models.OperationResult) {
+func (r *OperationResult) ToModel() (result *models.OperationResult) {
+	if r == nil {
+		return nil
+	}
 	result.AllocatedDestinationContract = r.AllocatedDestinationContract
 	result.ConsumedGas = r.ConsumedGas
 	result.PaidStorageSizeDiff = r.PaidStorageSizeDiff
@@ -200,6 +204,7 @@ func (u *BalanceUpdate) ToModel() (update models.BalanceUpdate) {
 	update.Cycle = u.Cycle
 	update.Delegate = u.Delegate
 	update.Kind = u.Kind
+	return
 }
 
 // Contract -
