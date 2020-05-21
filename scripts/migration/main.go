@@ -35,6 +35,7 @@ var migrationsList = []migrations.Migration{
 	&migrations.SetOperationErrors{},
 	&migrations.SetContractHash{},
 	&migrations.RecalcContractMetrics{},
+	&migrations.SetEmptyBmdPtr{},
 }
 
 func main() {

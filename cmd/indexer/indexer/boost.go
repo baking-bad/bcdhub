@@ -507,11 +507,14 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) ([]elastic.Model, error) {
 			return nil, fmt.Errorf("[%s] Protocol should be initialized", bi.Network)
 		}
 		if newProtocol.SymLink != bi.currentProtocol.SymLink {
-			migrations, err := bi.standartMigration(newProtocol)
+			migrations, migrationUpdates, err := bi.standartMigration(newProtocol)
 			if err != nil {
 				return nil, err
 			}
 			newModels = append(newModels, migrations...)
+			if len(migrationUpdates) > 0 {
+				updates = append(updates, migrationUpdates...)
+			}
 		} else {
 			logger.Info("[%s] Same symlink %s for %s / %s",
 				bi.Network, newProtocol.SymLink, bi.currentProtocol.Alias, newProtocol.Alias)
@@ -544,35 +547,39 @@ func createProtocol(es *elastic.Elastic, network, hash string, level int64) (pro
 	return
 }
 
-func (bi *BoostIndexer) standartMigration(newProtocol models.Protocol) ([]elastic.Model, error) {
+func (bi *BoostIndexer) standartMigration(newProtocol models.Protocol) ([]elastic.Model, []elastic.Model, error) {
 	log.Printf("[%s] Try to find migrations...", bi.Network)
 	contracts, err := bi.es.GetContracts(map[string]interface{}{
 		"network": bi.Network,
 	})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	log.Printf("[%s] Now %d contracts are indexed", bi.Network, len(contracts))
 
 	p := parsers.NewMigrationParser(bi.rpc, bi.es, bi.filesDirectory)
 	newModels := make([]elastic.Model, 0)
+	newUpdates := make([]elastic.Model, 0)
 	for i := range contracts {
 		logger.Info("Migrate %s...", contracts[i].Address)
 		script, err := bi.rpc.GetScriptJSON(contracts[i].Address, newProtocol.StartLevel)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
-		createdModels, err := p.Parse(script, contracts[i], bi.currentProtocol, newProtocol)
+		createdModels, updates, err := p.Parse(script, contracts[i], bi.currentProtocol, newProtocol)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		if len(createdModels) > 0 {
 			newModels = append(newModels, createdModels...)
 		}
+		if len(updates) > 0 {
+			newUpdates = append(newUpdates, updates...)
+		}
 	}
-	return newModels, nil
+	return newModels, newUpdates, nil
 }
 
 func (bi *BoostIndexer) vestingMigration(head noderpc.Header) ([]elastic.Model, error) {

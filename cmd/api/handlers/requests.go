@@ -33,13 +33,11 @@ type getContractRequest struct {
 }
 
 type getBigMapRequest struct {
-	Address string `uri:"address" binding:"required,address"`
 	Network string `uri:"network" binding:"required,network"`
 	Ptr     int64  `uri:"ptr" binding:"min=0"`
 }
 
 type getBigMapByKeyHashRequest struct {
-	Address string `uri:"address" binding:"required,address"`
 	Network string `uri:"network" binding:"required,network"`
 	Ptr     int64  `uri:"ptr" binding:"min=0"`
 	KeyHash string `uri:"key_hash" binding:"required"`
@@ -137,8 +135,8 @@ type getEntrypointDataRequest struct {
 }
 
 type getSeriesRequest struct {
-	Index  string `form:"index" binding:"oneof=contract operation" example="contract"`
-	Period string `form:"period" binding:"oneof=year month week day" example="year"`
+	Index  string `form:"index" binding:"oneof=contract operation" example:"contract"`
+	Period string `form:"period" binding:"oneof=year month week day" example:"year"`
 }
 
 type getBySlugRequest struct {

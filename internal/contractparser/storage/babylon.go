@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
@@ -45,7 +44,7 @@ func (b *Babylon) ParseTransaction(content gjson.Result, metadata meta.Metadata,
 	}
 	var bm []*models.BigMapDiff
 	if result.Get("big_map_diff.#").Int() > 0 {
-		ptrMap, err := b.binPathToPtrMap(metadata, result.Get("storage"))
+		ptrMap, err := FindBigMapPointers(metadata, result.Get("storage"))
 		if err != nil {
 			return RichStorage{Empty: true}, err
 		}
@@ -75,7 +74,7 @@ func (b *Babylon) ParseOrigination(content gjson.Result, metadata meta.Metadata,
 
 	var bm []*models.BigMapDiff
 	if result.Get("big_map_diff.#").Int() > 0 {
-		ptrToBin, err := b.binPathToPtrMap(metadata, storage)
+		ptrToBin, err := FindBigMapPointers(metadata, storage)
 		if err != nil {
 			return RichStorage{Empty: true}, err
 		}
@@ -337,64 +336,6 @@ func (b *Babylon) addToUpdates(bmd *models.BigMapDiff, ptr int64) {
 			b.updates[bmd.Ptr] = append(b.updates[bmd.Ptr], bmd)
 		}
 	}
-}
-
-func (b *Babylon) binPathToPtrMap(m meta.Metadata, storage gjson.Result) (map[int64]string, error) {
-	key := make(map[int64]string)
-	keyInt := storage.Get("int")
-
-	if keyInt.Exists() {
-		key[keyInt.Int()] = "0"
-		return key, nil
-	}
-
-	for k, v := range m {
-		if v.Prim != consts.BIGMAP {
-			continue
-		}
-
-		if err := b.setMapPtr(storage, k, key); err != nil {
-			return nil, err
-		}
-	}
-	return key, nil
-}
-
-func (b *Babylon) setMapPtr(storage gjson.Result, path string, m map[int64]string) error {
-	var buf strings.Builder
-
-	trimmed := strings.TrimPrefix(path, "0/")
-	for _, s := range strings.Split(trimmed, "/") {
-		switch s {
-		case "l", "s":
-			buf.WriteString("#.")
-		case "k":
-			buf.WriteString("#.args.0.")
-		case "v":
-			buf.WriteString("#.args.1.")
-		case "o":
-			buf.WriteString("args.0.")
-		default:
-			buf.WriteString("args.")
-			buf.WriteString(s)
-			buf.WriteString(".")
-		}
-	}
-	buf.WriteString("int")
-
-	ptr := storage.Get(buf.String())
-	if !ptr.Exists() {
-		return fmt.Errorf("Path %s is not pointer: %s", path, buf.String())
-	}
-
-	for _, p := range ptr.Array() {
-		if _, ok := m[p.Int()]; ok {
-			return fmt.Errorf("Pointer already exists: %d", p.Int())
-		}
-		m[p.Int()] = path
-	}
-
-	return nil
 }
 
 func (b *Babylon) findPtrJSONPath(ptr int64, path string, data gjson.Result) (string, error) {

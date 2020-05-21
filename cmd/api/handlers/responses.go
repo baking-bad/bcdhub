@@ -326,6 +326,14 @@ type BigMapResponseItem struct {
 	Count int64      `json:"count"`
 }
 
+// GetBigMapResponse -
+type GetBigMapResponse struct {
+	Address    string `json:"address"`
+	Network    string `json:"network"`
+	Ptr        int64  `json:"ptr"`
+	ActiveKeys uint   `json:"active_keys"`
+}
+
 // Migration -
 type Migration struct {
 	Level        int64     `json:"level"`

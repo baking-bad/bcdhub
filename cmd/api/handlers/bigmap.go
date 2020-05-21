@@ -13,19 +13,19 @@ import (
 )
 
 // GetBigMap godoc
-// @Summary Get big map by pointer
-// @Description Get contract rating
-// @Tags contract
-// @ID get-contract-bigmap
+// @Summary Get big map info by pointer
+// @Description Get big map info by pointer
+// @Tags bigmap
+// @ID get-bigmap
 // @Param network path string true "Network"
-// @Param address path string true "KT address" minlength(36) maxlength(36)
 // @Param ptr path integer true "Big map pointer"
 // @Accept  json
 // @Produce  json
-// @Success 200 {array} BigMapResponseItem
+// @Success 200 {array} GetBigMapResponse
+// @Success 204 {object} gin.H
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /contract/{network}/{address}/bigmap/{ptr} [get]
+// @Router /bigmap/{network}/{ptr} [get]
 func (ctx *Context) GetBigMap(c *gin.Context) {
 	var req getBigMapRequest
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
@@ -37,12 +37,54 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		return
 	}
 
-	bm, err := ctx.ES.GetBigMap(req.Address, req.Ptr, pageReq.Search, pageReq.Size, pageReq.Offset)
+	bm, err := ctx.ES.GetBigMapKeys(req.Ptr, req.Network, pageReq.Search, pageReq.Size, pageReq.Offset)
 	if handleError(c, err, 0) {
 		return
 	}
 
-	response, err := ctx.prepareBigMap(bm, req.Network, req.Address)
+	response, err := ctx.prepareBigMap(bm)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	if response.Address == "" {
+		c.JSON(http.StatusNoContent, gin.H{})
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
+// GetBigMapKeys godoc
+// @Summary Get big map keys by pointer
+// @Description Get big map keys by pointer
+// @Tags bigmap
+// @ID get-bigmap-keys
+// @Param network path string true "Network"
+// @Param ptr path integer true "Big map pointer"
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} BigMapResponseItem
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /bigmap/{network}/{ptr}/keys [get]
+func (ctx *Context) GetBigMapKeys(c *gin.Context) {
+	var req getBigMapRequest
+	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
+	var pageReq bigMapSearchRequest
+	if err := c.BindQuery(&pageReq); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
+	bm, err := ctx.ES.GetBigMapKeys(req.Ptr, req.Network, pageReq.Search, pageReq.Size, pageReq.Offset)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	response, err := ctx.prepareBigMapKeys(bm)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -53,10 +95,9 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 // GetBigMapByKeyHash godoc
 // @Summary Get big map diffs by pointer and key hash
 // @Description Get big map diffs by pointer and key hash
-// @Tags contract
-// @ID get-contract-bigmap-keyhash
+// @Tags bigmap
+// @ID get-bigmap-keyhash
 // @Param network path string true "Network"
-// @Param address path string true "KT address" minlength(36) maxlength(36)
 // @Param ptr path integer true "Big map pointer"
 // @Param key_hash path string true "Key hash in big map" minlength(54) maxlength(54)
 // @Accept json
@@ -64,7 +105,7 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 // @Success 200 {array} BigMapDiffByKeyResponse
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /contract/{network}/{address}/bigmap/{ptr}/{key_hash} [get]
+// @Router /bigmap/{network}/{ptr}/keys/{key_hash} [get]
 func (ctx *Context) GetBigMapByKeyHash(c *gin.Context) {
 	var req getBigMapByKeyHashRequest
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
@@ -76,12 +117,12 @@ func (ctx *Context) GetBigMapByKeyHash(c *gin.Context) {
 		return
 	}
 
-	bm, total, err := ctx.ES.GetBigMapDiffByPtrAndKeyHash(req.Address, req.Ptr, req.KeyHash, pageReq.Size, pageReq.Offset)
+	bm, total, err := ctx.ES.GetBigMapDiffByPtrAndKeyHash(req.Ptr, req.Network, req.KeyHash, pageReq.Size, pageReq.Offset)
 	if handleError(c, err, 0) {
 		return
 	}
 
-	response, err := ctx.prepareBigMapItem(bm, req.Network, req.Address, req.KeyHash)
+	response, err := ctx.prepareBigMapItem(bm, req.KeyHash)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -90,43 +131,36 @@ func (ctx *Context) GetBigMapByKeyHash(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (ctx *Context) prepareBigMap(data []elastic.BigMapDiff, network, address string) (res []BigMapResponseItem, err error) {
-	contractMetadata, err := meta.GetContractMetadata(ctx.ES, address)
-	if err != nil {
+func (ctx *Context) prepareBigMap(data []elastic.BigMapDiff) (res GetBigMapResponse, err error) {
+	if len(data) == 0 {
 		return
 	}
-
-	res = make([]BigMapResponseItem, len(data))
+	res.Address = data[0].Address
+	res.Network = data[0].Network
+	res.Ptr = data[0].Ptr
 	for i := range data {
-		var protoSymLink string
-		protoSymLink, err = meta.GetProtoSymLink(data[i].Protocol)
-		if err != nil {
-			return
-		}
-
-		metadata, ok := contractMetadata.Storage[protoSymLink]
-		if !ok {
-			err = fmt.Errorf("Unknown metadata: %s", protoSymLink)
-			return
-		}
-
-		var value interface{}
 		if data[i].Value != "" {
-			val := gjson.Parse(data[i].Value)
-			value, err = newmiguel.BigMapToMiguel(val, data[i].BinPath+"/v", metadata)
-			if err != nil {
-				return
-			}
+			res.ActiveKeys++
 		}
-		var key interface{}
-		var keyString string
-		if data[i].Key != "" {
-			val := gjson.Parse(data[i].Key)
-			key, err = newmiguel.BigMapToMiguel(val, data[i].BinPath+"/k", metadata)
-			if err != nil {
-				return
-			}
-			keyString = stringer.Stringify(val)
+	}
+	return
+}
+
+func (ctx *Context) prepareBigMapKeys(data []elastic.BigMapDiff) ([]BigMapResponseItem, error) {
+	if len(data) == 0 {
+		return []BigMapResponseItem{}, nil
+	}
+
+	contractMetadata, err := meta.GetContractMetadata(ctx.ES, data[0].Address)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]BigMapResponseItem, len(data))
+	for i := range data {
+		key, value, keyString, err := prepareItem(data[i], contractMetadata)
+		if err != nil {
+			return nil, err
 		}
 
 		res[i] = BigMapResponseItem{
@@ -141,47 +175,25 @@ func (ctx *Context) prepareBigMap(data []elastic.BigMapDiff, network, address st
 			Count: data[i].Count,
 		}
 	}
-	return
+	return res, nil
 }
 
-func (ctx *Context) prepareBigMapItem(data []elastic.BigMapDiff, network, address, keyHash string) (res BigMapDiffByKeyResponse, err error) {
-	contractMetadata, err := meta.GetContractMetadata(ctx.ES, address)
+func (ctx *Context) prepareBigMapItem(data []elastic.BigMapDiff, keyHash string) (res BigMapDiffByKeyResponse, err error) {
+	if len(data) == 0 {
+		return
+	}
+
+	contractMetadata, err := meta.GetContractMetadata(ctx.ES, data[0].Address)
 	if err != nil {
 		return
 	}
 
-	var key interface{}
+	var key, value interface{}
 	values := make([]BigMapDiffItem, len(data))
 	for i := range data {
-		var protoSymLink string
-		protoSymLink, err = meta.GetProtoSymLink(data[i].Protocol)
+		key, value, _, err = prepareItem(data[i], contractMetadata)
 		if err != nil {
 			return
-		}
-
-		metadata, ok := contractMetadata.Storage[protoSymLink]
-		if !ok {
-			err = fmt.Errorf("Unknown metadata: %s", protoSymLink)
-			return
-		}
-
-		var value interface{}
-		if data[i].Value != "" {
-			val := gjson.Parse(data[i].Value)
-			value, err = newmiguel.BigMapToMiguel(val, data[i].BinPath+"/v", metadata)
-			if err != nil {
-				return
-			}
-		}
-
-		if i == 0 {
-			if data[i].Key != "" {
-				val := gjson.Parse(data[i].Key)
-				key, err = newmiguel.BigMapToMiguel(val, data[i].BinPath+"/k", metadata)
-				if err != nil {
-					return
-				}
-			}
 		}
 
 		values[i] = BigMapDiffItem{
@@ -195,4 +207,43 @@ func (ctx *Context) prepareBigMapItem(data []elastic.BigMapDiff, network, addres
 	res.KeyHash = keyHash
 	res.Key = key
 	return
+}
+
+func prepareItem(item elastic.BigMapDiff, contractMetadata *meta.ContractMetadata) (interface{}, interface{}, string, error) {
+	var protoSymLink string
+	protoSymLink, err := meta.GetProtoSymLink(item.Protocol)
+	if err != nil {
+		return nil, nil, "", err
+	}
+
+	metadata, ok := contractMetadata.Storage[protoSymLink]
+	if !ok {
+		err = fmt.Errorf("Unknown metadata: %s", protoSymLink)
+		return nil, nil, "", err
+	}
+
+	binPath := item.BinPath
+	if protoSymLink == "alpha" {
+		binPath = "0/0"
+	}
+
+	var value interface{}
+	if item.Value != "" {
+		val := gjson.Parse(item.Value)
+		value, err = newmiguel.BigMapToMiguel(val, binPath+"/v", metadata)
+		if err != nil {
+			return nil, nil, "", err
+		}
+	}
+	var key interface{}
+	var keyString string
+	if item.Key != "" {
+		val := gjson.Parse(item.Key)
+		key, err = newmiguel.BigMapToMiguel(val, binPath+"/k", metadata)
+		if err != nil {
+			return nil, nil, "", err
+		}
+		keyString = stringer.Stringify(val)
+	}
+	return key, value, keyString, err
 }

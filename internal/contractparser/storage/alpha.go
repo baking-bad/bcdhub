@@ -73,6 +73,7 @@ func (a *Alpha) ParseOrigination(content gjson.Result, metadata meta.Metadata, o
 				Network:     operation.Network,
 				Timestamp:   operation.Timestamp,
 				Protocol:    operation.Protocol,
+				Ptr:         -1,
 			})
 		}
 	}
@@ -144,6 +145,7 @@ func (a *Alpha) getBigMapDiff(result gjson.Result, address string, m meta.Metada
 			Network:     operation.Network,
 			Timestamp:   operation.Timestamp,
 			Protocol:    operation.Protocol,
+			Ptr:         -1,
 		})
 	}
 	return bmd, nil

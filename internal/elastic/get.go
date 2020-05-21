@@ -45,6 +45,19 @@ func (e *Elastic) GetAll(output interface{}) error {
 	return e.getByScroll(index, newQuery(), typ, output)
 }
 
+// GetAllByQuery -
+func (e *Elastic) GetAllByQuery(query base, output interface{}) error {
+	typ, err := getElementType(output)
+	if err != nil {
+		return err
+	}
+	index, err := getIndex(typ)
+	if err != nil {
+		return err
+	}
+	return e.getByScroll(index, query, typ, output)
+}
+
 // GetByNetwork -
 func (e *Elastic) GetByNetwork(network string, output interface{}) error {
 	typ, err := getElementType(output)

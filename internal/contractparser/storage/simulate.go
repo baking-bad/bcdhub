@@ -25,7 +25,7 @@ func (b *Simulate) ParseTransaction(content gjson.Result, metadata meta.Metadata
 	storage := content.Get("storage")
 	var bm []*models.BigMapDiff
 	if content.Get("big_map_diff.#").Int() > 0 {
-		ptrMap, err := b.binPathToPtrMap(metadata, storage)
+		ptrMap, err := FindBigMapPointers(metadata, storage)
 		if err != nil {
 			return RichStorage{Empty: true}, err
 		}
@@ -46,7 +46,7 @@ func (b *Simulate) ParseOrigination(content gjson.Result, metadata meta.Metadata
 
 	var bm []*models.BigMapDiff
 	if content.Get("big_map_diff.#").Int() > 0 {
-		ptrMap, err := b.binPathToPtrMap(metadata, storage)
+		ptrMap, err := FindBigMapPointers(metadata, storage)
 		if err != nil {
 			return RichStorage{Empty: true}, err
 		}

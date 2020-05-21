@@ -1,9 +1,13 @@
 package parsers
 
 import (
+	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/metrics"
@@ -29,27 +33,35 @@ func NewMigrationParser(rpc noderpc.Pool, es *elastic.Elastic, filesDirectory st
 }
 
 // Parse -
-func (p *MigrationParser) Parse(data gjson.Result, old models.Contract, prevProtocol, newProtocol models.Protocol) ([]elastic.Model, error) {
+func (p *MigrationParser) Parse(script gjson.Result, old models.Contract, previous, next models.Protocol) ([]elastic.Model, []elastic.Model, error) {
 	metadata := models.Metadata{ID: old.Address}
 	if err := p.es.GetByID(&metadata); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	if err := updateMetadata(data, newProtocol.SymLink, &old, &metadata); err != nil {
-		return nil, err
+	if err := updateMetadata(script, next.SymLink, &old, &metadata); err != nil {
+		return nil, nil, err
 	}
 
-	migrationBlock, err := p.rpc.GetHeader(prevProtocol.EndLevel)
+	migrationBlock, err := p.rpc.GetHeader(previous.EndLevel)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	newFingerprint, err := metrics.GetFingerprint(data)
+	var updates []elastic.Model
+	if previous.SymLink == "alpha" {
+		updates, err = p.getUpdates(script, old, next, metadata)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
+	newFingerprint, err := metrics.GetFingerprint(script)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if newFingerprint.Compare(old.Fingerprint) {
-		return []elastic.Model{&metadata}, nil
+		return []elastic.Model{&metadata}, updates, nil
 	}
 
 	migration := models.Migration{
@@ -57,13 +69,56 @@ func (p *MigrationParser) Parse(data gjson.Result, old models.Contract, prevProt
 		IndexedTime: time.Now().UnixNano() / 1000,
 
 		Network:      old.Network,
-		Level:        prevProtocol.EndLevel,
-		Protocol:     newProtocol.Hash,
-		PrevProtocol: prevProtocol.Hash,
+		Level:        previous.EndLevel,
+		Protocol:     next.Hash,
+		PrevProtocol: previous.Hash,
 		Address:      old.Address,
 		Timestamp:    migrationBlock.Timestamp,
 		Kind:         consts.MigrationUpdate,
 	}
 
-	return []elastic.Model{&metadata, &migration}, nil
+	return []elastic.Model{&metadata, &migration}, updates, nil
+}
+
+func (p *MigrationParser) getUpdates(script gjson.Result, contract models.Contract, protocol models.Protocol, metadata models.Metadata) ([]elastic.Model, error) {
+	stringMetadata, ok := metadata.Storage[protocol.SymLink]
+	if !ok {
+		return nil, fmt.Errorf("[MigrationParser.getUpdates] Unknown metadata sym link: %s", protocol.SymLink)
+	}
+
+	var m meta.Metadata
+	if err := json.Unmarshal([]byte(stringMetadata), &m); err != nil {
+		return nil, err
+	}
+
+	storageJSON := script.Get("storage")
+	newMapPtr, err := storage.FindBigMapPointers(m, storageJSON)
+	if err != nil {
+		return nil, err
+	}
+	if len(newMapPtr) != 1 {
+		return nil, nil
+	}
+	var newPath string
+	var newPtr int64
+	for p, b := range newMapPtr {
+		newPath = b
+		newPtr = p
+	}
+
+	bmd, err := p.es.GetBigMapsForAddress(contract.Network, contract.Address)
+	if err != nil {
+		return nil, err
+	}
+	if len(bmd) == 0 {
+		return nil, nil
+	}
+
+	updates := make([]elastic.Model, len(bmd))
+	for i := range bmd {
+		bmd[i].BinPath = newPath
+		bmd[i].Ptr = newPtr
+		updates[i] = &bmd[i]
+	}
+	return updates, nil
 }
