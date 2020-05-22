@@ -95,8 +95,15 @@ func main() {
 		r.Use(helpers.SentryMiddleware())
 	}
 
+	hub := ws.DefaultHub(cfg.Elastic.URI, cfg.RabbitMQ.URI, cfg.RabbitMQ.Queues)
+	hub.Run()
+	defer hub.Stop()
+
 	v1 := r.Group("v1")
 	{
+		v1.GET("docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+		v1.GET("ws", func(c *gin.Context) { ws.Handler(c, hub) })
+
 		v1.GET("opg/:hash", ctx.GetOperation)
 		v1.GET("operation/:id/error_location", ctx.GetOperationErrorLocation)
 		v1.GET("pick_random", ctx.GetRandomContract)
@@ -188,13 +195,6 @@ func main() {
 			}
 		}
 	}
-
-	r.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
-	hub := ws.DefaultHub(cfg.Elastic.URI, cfg.RabbitMQ.URI, cfg.RabbitMQ.Queues)
-	hub.Run()
-	defer hub.Stop()
-	r.GET("ws", func(c *gin.Context) { ws.Handler(c, hub) })
 
 	if err := r.Run(cfg.API.Bind); err != nil {
 		logger.Error(err)
