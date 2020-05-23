@@ -166,6 +166,8 @@
                         "required": true
                     },
                     {
+                        "maxLength": 54,
+                        "minLength": 54,
                         "type": "string",
                         "description": "Key hash in big map",
                         "name": "key_hash",
@@ -664,6 +666,7 @@
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
                         "description": "Expected OPG count",
                         "name": "size",
@@ -907,6 +910,7 @@
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
                         "description": "Requested count",
                         "name": "size",
@@ -1482,6 +1486,51 @@
                 }
             }
         },
+        "/stats/{network}/languages": {
+            "get": {
+                "description": "Get languages stats for network",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "statistics"
+                ],
+                "summary": "Get languages stats for network",
+                "operationId": "get-network-languages",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/stats/{network}/series": {
             "get": {
                 "description": "Get count series data for network",
@@ -1495,7 +1544,7 @@
                     "statistics"
                 ],
                 "summary": "Get network series",
-                "operationId": "get-network-stats",
+                "operationId": "get-network-series",
                 "parameters": [
                     {
                         "type": "string",
@@ -1649,6 +1698,7 @@
                         "in": "query"
                     },
                     {
+                        "minimum": 1,
                         "type": "integer",
                         "description": "Requested count",
                         "name": "size",
