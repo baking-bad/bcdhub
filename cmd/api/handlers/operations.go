@@ -220,9 +220,9 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 	var op Operation
 	op.FromModel(operation)
 
-	var result *OperationResult
+	var result OperationResult
 	result.FromModel(operation.Result)
-	op.Result = result
+	op.Result = &result
 	op.BalanceUpdates = prepareBalanceUpdates(operation.BalanceUpdates)
 
 	if err := formatErrors(operation.Errors, &op); err != nil {
