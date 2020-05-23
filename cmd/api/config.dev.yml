@@ -7,7 +7,7 @@ sentry:
     debug: true
 
 elastic:
-    uri: http://127.0.0.1:9201
+    uri: http://127.0.0.1:9200
 
 db:
     conn_string: "host=127.0.0.1 port=5432 user=${POSTGRES_USER} dbname=bcd password=${POSTGRES_PASSWORD} sslmode=disable"
