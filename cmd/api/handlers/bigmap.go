@@ -32,7 +32,7 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		return
 	}
 
-	bm, err := ctx.ES.GetBigMapKeys(req.Ptr, req.Network, "", 0, 0)
+	bm, err := ctx.ES.GetBigMapKeys(req.Ptr, req.Network, "", 10000, 0)
 	if handleError(c, err, 0) {
 		return
 	}

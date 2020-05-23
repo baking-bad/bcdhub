@@ -142,9 +142,6 @@ func (e *Elastic) GetBigMapKeys(ptr int64, network, searchText string, size, off
 	if size == 0 {
 		size = defaultSize
 	}
-	if offset == 0 {
-		offset = maxQuerySize
-	}
 
 	to := size + offset
 	query := newQuery().Query(b).Add(
