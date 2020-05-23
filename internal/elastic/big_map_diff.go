@@ -200,13 +200,14 @@ func (e *Elastic) GetBigMapKeys(ptr int64, network, searchText string, size, off
 
 // GetBigMapDiffByPtrAndKeyHash -
 func (e *Elastic) GetBigMapDiffByPtrAndKeyHash(ptr int64, network, keyHash string, size, offset int64) ([]BigMapDiff, int64, error) {
-	mustQuery := must(
-		matchPhrase("network", network),
-		matchPhrase("key_hash", keyHash),
-	)
 	if ptr < 0 {
 		return nil, 0, fmt.Errorf("Invalid pointer value: %d", ptr)
 	}
+	mustQuery := must(
+		matchPhrase("network", network),
+		matchPhrase("key_hash", keyHash),
+		term("ptr", ptr),
+	)
 	b := boolQ(mustQuery)
 
 	if size == 0 {

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
@@ -120,6 +121,9 @@ func (ctx *Context) GetBigMapByKeyHash(c *gin.Context) {
 	bm, total, err := ctx.ES.GetBigMapDiffByPtrAndKeyHash(req.Ptr, req.Network, req.KeyHash, pageReq.Size, pageReq.Offset)
 	if handleError(c, err, 0) {
 		return
+	}
+	for i := range bm {
+		log.Println(bm[i].Ptr)
 	}
 
 	response, err := ctx.prepareBigMapItem(bm, req.KeyHash)
