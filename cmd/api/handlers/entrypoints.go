@@ -81,7 +81,7 @@ func (ctx *Context) GetEntrypointData(c *gin.Context) {
 	}
 
 	result, err := ctx.buildEntrypointMicheline(req.Network, req.Address, reqData.BinPath, reqData.Data)
-	if handleError(c, err, 0) {
+	if handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
