@@ -757,6 +757,19 @@ paths:
         name: ptr
         required: true
         type: integer
+      - description: Search string
+        in: query
+        name: search
+        type: string
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      - description: Requested count
+        in: query
+        minimum: 1
+        name: size
+        type: integer
       produces:
       - application/json
       responses:
@@ -801,6 +814,15 @@ paths:
         name: key_hash
         required: true
         type: string
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      - description: Requested count
+        in: query
+        minimum: 1
+        name: size
+        type: integer
       produces:
       - application/json
       responses:

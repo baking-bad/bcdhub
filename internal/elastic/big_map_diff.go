@@ -125,34 +125,25 @@ func (e *Elastic) GetBigMapDiffsForAddress(address string) ([]models.BigMapDiff,
 
 // GetBigMapKeys -
 func (e *Elastic) GetBigMapKeys(ptr int64, network, searchText string, size, offset int64) ([]BigMapDiff, error) {
-	mustQuery := []qItem{
-		matchPhrase("network", network),
-	}
-
 	if ptr < 0 {
 		return nil, fmt.Errorf("Invalid pointer value: %d", ptr)
 	}
-	mustQuery = append(mustQuery, term("ptr", ptr))
+
+	mustQuery := []qItem{
+		matchPhrase("network", network),
+		term("ptr", ptr),
+	}
 
 	if searchText != "" {
 		mustQuery = append(mustQuery, queryString(searchText, []string{"key", "key_hash", "key_strings"}))
 	}
 	b := boolQ(must(mustQuery...))
 
-	if ptr == 0 {
-		b.Get("bool").Extend(
-			notMust(
-				qItem{
-					"exists": qItem{
-						"field": "ptr",
-					},
-				},
-			),
-		)
-	}
-
 	if size == 0 {
 		size = defaultSize
+	}
+	if offset == 0 {
+		offset = maxQuerySize
 	}
 
 	to := size + offset

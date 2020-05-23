@@ -98,6 +98,25 @@
                         "name": "ptr",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search string",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Requested count",
+                        "name": "size",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -162,6 +181,19 @@
                         "name": "key_hash",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Requested count",
+                        "name": "size",
+                        "in": "query"
                     }
                 ],
                 "responses": {

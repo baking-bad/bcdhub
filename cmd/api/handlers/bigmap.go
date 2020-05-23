@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
@@ -33,12 +32,7 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		return
 	}
 
-	var pageReq bigMapSearchRequest
-	if err := c.BindQuery(&pageReq); handleError(c, err, http.StatusBadRequest) {
-		return
-	}
-
-	bm, err := ctx.ES.GetBigMapKeys(req.Ptr, req.Network, pageReq.Search, pageReq.Size, pageReq.Offset)
+	bm, err := ctx.ES.GetBigMapKeys(req.Ptr, req.Network, "", 0, 0)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -63,6 +57,9 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 // @ID get-bigmap-keys
 // @Param network path string true "Network"
 // @Param ptr path integer true "Big map pointer"
+// @Param search query string false "Search string"
+// @Param offset query integer false "Offset"
+// @Param size query integer false "Requested count" mininum(1)
 // @Accept  json
 // @Produce  json
 // @Success 200 {array} BigMapResponseItem
@@ -101,6 +98,8 @@ func (ctx *Context) GetBigMapKeys(c *gin.Context) {
 // @Param network path string true "Network"
 // @Param ptr path integer true "Big map pointer"
 // @Param key_hash path string true "Key hash in big map" minlength(54) maxlength(54)
+// @Param offset query integer false "Offset"
+// @Param size query integer false "Requested count" mininum(1)
 // @Accept json
 // @Produce json
 // @Success 200 {array} BigMapDiffByKeyResponse
@@ -121,9 +120,6 @@ func (ctx *Context) GetBigMapByKeyHash(c *gin.Context) {
 	bm, total, err := ctx.ES.GetBigMapDiffByPtrAndKeyHash(req.Ptr, req.Network, req.KeyHash, pageReq.Size, pageReq.Offset)
 	if handleError(c, err, 0) {
 		return
-	}
-	for i := range bm {
-		log.Println(bm[i].Ptr)
 	}
 
 	response, err := ctx.prepareBigMapItem(bm, req.KeyHash)
