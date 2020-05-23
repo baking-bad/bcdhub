@@ -9,6 +9,7 @@ func (e *Elastic) GetItemsCountForNetwork(network string) (stats NetworkCountSta
 	query := newQuery().Query(
 		boolQ(
 			filter(
+				exists("entrypoint"),
 				matchQ("network", network),
 			),
 		),
