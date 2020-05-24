@@ -112,11 +112,7 @@ func (c *Client) receive() {
 		default:
 			messageType, data, err := c.conn.ReadMessage()
 			if err != nil {
-				if websocket.IsCloseError(err, websocket.CloseGoingAway) {
-					c.Close()
-				} else {
-					logger.Error(err)
-				}
+				c.Close()
 				continue
 			}
 

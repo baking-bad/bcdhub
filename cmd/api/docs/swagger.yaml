@@ -1752,12 +1752,42 @@ paths:
       summary: Network statistics
       tags:
       - statistics
+  /stats/{network}/languages:
+    get:
+      consumes:
+      - application/json
+      description: Get languages stats for network
+      operationId: get-network-languages
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Get languages stats for network
+      tags:
+      - statistics
   /stats/{network}/series:
     get:
       consumes:
       - application/json
       description: Get count series data for network
-      operationId: get-network-stats
+      operationId: get-network-series
       parameters:
       - description: Network
         in: path

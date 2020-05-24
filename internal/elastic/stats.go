@@ -9,6 +9,7 @@ func (e *Elastic) GetItemsCountForNetwork(network string) (stats NetworkCountSta
 	query := newQuery().Query(
 		boolQ(
 			filter(
+				exists("entrypoint"),
 				matchQ("network", network),
 			),
 		),
@@ -171,6 +172,37 @@ func (e *Elastic) GetFACountByNetwork() (map[string]int64, error) {
 	for _, item := range data {
 		key := item.Get("key").String()
 		count := item.Get("same.value").Int()
+		counts[key] = count
+	}
+	return counts, nil
+}
+
+// GetLanguagesForNetwork -
+func (e *Elastic) GetLanguagesForNetwork(network string) (map[string]int64, error) {
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				matchQ("network", network),
+			),
+		),
+	).Add(
+		aggs("languages", qItem{
+			"terms": qItem{
+				"field": "language.keyword",
+			},
+		}),
+	).Zero()
+
+	response, err := e.query([]string{DocContracts}, query)
+	if err != nil {
+		return nil, err
+	}
+
+	data := response.Get("aggregations.languages.buckets").Array()
+	counts := make(map[string]int64)
+	for _, item := range data {
+		key := item.Get("key").String()
+		count := item.Get("doc_count").Int()
 		counts[key] = count
 	}
 	return counts, nil

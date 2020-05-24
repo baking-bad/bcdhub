@@ -61,7 +61,7 @@ func (ctx *Context) RunCode(c *gin.Context) {
 	}
 
 	input, err := ctx.buildEntrypointMicheline(req.Network, req.Address, reqRunCode.BinPath, reqRunCode.Data)
-	if handleError(c, err, 0) {
+	if handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 

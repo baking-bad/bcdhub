@@ -119,6 +119,7 @@ func main() {
 			{
 				networkStats.GET("", ctx.GetNetworkStats)
 				networkStats.GET("series", ctx.GetSeries)
+				networkStats.GET("languages", ctx.GetLanguagesStatsForNetwork)
 			}
 		}
 
