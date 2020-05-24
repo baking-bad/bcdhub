@@ -9,7 +9,7 @@ import (
 // BigMapDiff -
 type BigMapDiff struct {
 	ID           string      `json:"-"`
-	Ptr          int64       `json:"ptr,omitempty"`
+	Ptr          int64       `json:"ptr"`
 	BinPath      string      `json:"bin_path"`
 	Key          interface{} `json:"key"`
 	KeyHash      string      `json:"key_hash"`

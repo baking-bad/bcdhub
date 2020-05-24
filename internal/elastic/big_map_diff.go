@@ -1,6 +1,8 @@
 package elastic
 
 import (
+	"fmt"
+
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/tidwall/gjson"
 )
@@ -121,32 +123,21 @@ func (e *Elastic) GetBigMapDiffsForAddress(address string) ([]models.BigMapDiff,
 	return response, nil
 }
 
-// GetBigMap -
-func (e *Elastic) GetBigMap(address string, ptr int64, searchText string, size, offset int64) ([]BigMapDiff, error) {
-	mustQuery := []qItem{
-		matchPhrase("address", address),
+// GetBigMapKeys -
+func (e *Elastic) GetBigMapKeys(ptr int64, network, searchText string, size, offset int64) ([]BigMapDiff, error) {
+	if ptr < 0 {
+		return nil, fmt.Errorf("Invalid pointer value: %d", ptr)
 	}
+
+	mustQuery := []qItem{
+		matchPhrase("network", network),
+		term("ptr", ptr),
+	}
+
 	if searchText != "" {
 		mustQuery = append(mustQuery, queryString(searchText, []string{"key", "key_hash", "key_strings"}))
 	}
-
-	if ptr != 0 {
-		mustQuery = append(mustQuery, term("ptr", ptr))
-	}
-
 	b := boolQ(must(mustQuery...))
-
-	if ptr == 0 {
-		b.Get("bool").Extend(
-			notMust(
-				qItem{
-					"exists": qItem{
-						"field": "ptr",
-					},
-				},
-			),
-		)
-	}
 
 	if size == 0 {
 		size = defaultSize
@@ -196,27 +187,16 @@ func (e *Elastic) GetBigMap(address string, ptr int64, searchText string, size, 
 }
 
 // GetBigMapDiffByPtrAndKeyHash -
-func (e *Elastic) GetBigMapDiffByPtrAndKeyHash(address string, ptr int64, keyHash string, size, offset int64) ([]BigMapDiff, int64, error) {
+func (e *Elastic) GetBigMapDiffByPtrAndKeyHash(ptr int64, network, keyHash string, size, offset int64) ([]BigMapDiff, int64, error) {
+	if ptr < 0 {
+		return nil, 0, fmt.Errorf("Invalid pointer value: %d", ptr)
+	}
 	mustQuery := must(
-		matchPhrase("address", address),
+		matchPhrase("network", network),
 		matchPhrase("key_hash", keyHash),
+		term("ptr", ptr),
 	)
-	if ptr != 0 {
-		mustQuery.Extend(term("ptr", ptr))
-	}
 	b := boolQ(mustQuery)
-
-	if ptr == 0 {
-		b.Get("bool").Extend(
-			notMust(
-				qItem{
-					"exists": qItem{
-						"field": "ptr",
-					},
-				},
-			),
-		)
-	}
 
 	if size == 0 {
 		size = defaultSize
@@ -293,4 +273,33 @@ func (e *Elastic) GetAllBigMapDiffByPtr(address, network string, ptr int64) ([]m
 		bmd = append(bmd, b)
 	}
 	return bmd, nil
+}
+
+// GetBigMapDiffsWithEmptyPtr -
+func (e *Elastic) GetBigMapDiffsWithEmptyPtr() (response []models.BigMapDiff, err error) {
+	query := newQuery().Query(
+		boolQ(
+			notMust(
+				exists("ptr"),
+			),
+		),
+	).Sort("indexed_time", "desc").Zero()
+
+	err = e.GetAllByQuery(query, &response)
+	return
+}
+
+// GetBigMapsForAddress -
+func (e *Elastic) GetBigMapsForAddress(network, address string) (response []models.BigMapDiff, err error) {
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				matchQ("network", network),
+				matchPhrase("address", address),
+			),
+		),
+	).Sort("indexed_time", "desc").Zero()
+
+	err = e.GetAllByQuery(query, &response)
+	return
 }

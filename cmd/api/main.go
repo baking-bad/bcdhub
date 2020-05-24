@@ -95,8 +95,15 @@ func main() {
 		r.Use(helpers.SentryMiddleware())
 	}
 
+	hub := ws.DefaultHub(cfg.Elastic.URI, cfg.RabbitMQ.URI, cfg.RabbitMQ.Queues)
+	hub.Run()
+	defer hub.Stop()
+
 	v1 := r.Group("v1")
 	{
+		v1.GET("docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+		v1.GET("ws", func(c *gin.Context) { ws.Handler(c, hub) })
+
 		v1.GET("opg/:hash", ctx.GetOperation)
 		v1.GET("operation/:id/error_location", ctx.GetOperationErrorLocation)
 		v1.GET("pick_random", ctx.GetRandomContract)
@@ -121,58 +128,51 @@ func main() {
 			slug.GET(":slug", ctx.GetBySlug)
 		}
 
-		contract := v1.Group("contract")
+		bigmap := v1.Group("bigmap/:network/:ptr")
+		{
+			bigmap.GET("", ctx.GetBigMap)
+			keys := bigmap.Group("keys")
+			{
+				keys.GET("", ctx.GetBigMapKeys)
+				keys.GET(":key_hash", ctx.GetBigMapByKeyHash)
+			}
+		}
+
+		contract := v1.Group("contract/:network/:address")
 		contract.Use(ctx.IsAuthenticated())
 		{
-			network := contract.Group(":network")
+			contract.GET("", ctx.GetContract)
+			contract.GET("code", ctx.GetContractCode)
+			contract.GET("operations", ctx.GetContractOperations)
+			contract.GET("migrations", ctx.GetContractMigrations)
+			contract.GET("storage", ctx.GetContractStorage)
+			contract.GET("raw_storage", ctx.GetContractStorageRaw)
+			contract.GET("rich_storage", ctx.GetContractStorageRich)
+			contract.GET("rating", ctx.GetContractRating)
+			contract.GET("mempool", ctx.GetMempool)
+			contract.GET("same", ctx.GetSameContracts)
+			contract.GET("similar", ctx.GetSimilarContracts)
+			entrypoints := contract.Group("entrypoints")
 			{
-				address := network.Group(":address")
-				{
-					address.GET("", ctx.GetContract)
-					address.GET("code", ctx.GetContractCode)
-					address.GET("operations", ctx.GetContractOperations)
-					address.GET("migrations", ctx.GetContractMigrations)
-					address.GET("storage", ctx.GetContractStorage)
-					address.GET("raw_storage", ctx.GetContractStorageRaw)
-					address.GET("rich_storage", ctx.GetContractStorageRich)
-					address.GET("rating", ctx.GetContractRating)
-					address.GET("mempool", ctx.GetMempool)
-					address.GET("same", ctx.GetSameContracts)
-					address.GET("similar", ctx.GetSimilarContracts)
-					bigmap := address.Group("bigmap")
-					{
-						bigmap.GET(":ptr", ctx.GetBigMap)
-						bigmap.GET(":ptr/:key_hash", ctx.GetBigMapByKeyHash)
-					}
-					entrypoints := address.Group("entrypoints")
-					{
-						entrypoints.GET("", ctx.GetEntrypoints)
-						entrypoints.POST("data", ctx.GetEntrypointData)
-						entrypoints.POST("trace", ctx.RunCode)
-					}
-				}
+				entrypoints.GET("", ctx.GetEntrypoints)
+				entrypoints.POST("data", ctx.GetEntrypointData)
+				entrypoints.POST("trace", ctx.RunCode)
 			}
 		}
 
-		fa12 := v1.Group("tokens")
+		fa12 := v1.Group("tokens/:network")
 		{
-			network := fa12.Group(":network")
+			fa12.GET("", ctx.GetFA)
+			address := fa12.Group(":address")
 			{
-				network.GET("", ctx.GetFA)
-				address := network.Group(":address")
-				{
-					address.GET("transfers", ctx.GetFA12OperationsForAddress)
-				}
+				address.GET("transfers", ctx.GetFA12OperationsForAddress)
 			}
 		}
 
-		oauth := v1.Group("oauth")
+		oauth := v1.Group("oauth/:provider")
 		{
-			provider := oauth.Group(":provider")
-			{
-				provider.GET("login", ctx.OauthLogin)
-				provider.GET("callback", ctx.OauthCallback)
-			}
+			oauth.GET("login", ctx.OauthLogin)
+			oauth.GET("callback", ctx.OauthCallback)
 		}
 
 		authorized := v1.Group("/")
@@ -196,13 +196,6 @@ func main() {
 			}
 		}
 	}
-
-	r.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
-	hub := ws.DefaultHub(cfg.Elastic.URI, cfg.RabbitMQ.URI, cfg.RabbitMQ.Queues)
-	hub.Run()
-	defer hub.Stop()
-	r.GET("ws", func(c *gin.Context) { ws.Handler(c, hub) })
 
 	if err := r.Run(cfg.API.Bind); err != nil {
 		logger.Error(err)

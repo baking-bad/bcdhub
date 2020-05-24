@@ -44,7 +44,7 @@ oauth:
     state: ${OAUTH_STATE_STRING}
     jwt:
         secret: ${JWT_SECRET_KEY}
-        redirect_url: https://you.better-call.dev/
+        redirect_url: https://better-call.dev/welcome
     github:
         client_id: ${GITHUB_CLIENT_ID}
         secret: ${GITHUB_CLIENT_SECRET}
