@@ -80,6 +80,8 @@ func (l *mapDecoder) getKey(key *Node) (s string, err error) {
 		s = kv
 	case int, int64:
 		s = fmt.Sprintf("%d", kv)
+	case bool:
+		s = fmt.Sprintf("%t", kv)
 	case map[string]interface{}:
 		s = fmt.Sprintf("%v", kv["miguel_value"])
 	case []interface{}:
