@@ -94,6 +94,11 @@ func (c *RabbitMQ) handler(data amqp.Delivery) error {
 			ch <- val
 		}
 	default:
+		if data.RoutingKey == "" {
+			logger.Warning("Rabbit MQ server stopped! API need to be restarted. Closing connection...")
+			c.stop <- struct{}{}
+			return nil
+		}
 		return fmt.Errorf("Unknown data routing key %s", data.RoutingKey)
 	}
 
