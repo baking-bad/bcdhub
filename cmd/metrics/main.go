@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 
 	"github.com/baking-bad/bcdhub/internal/config"
@@ -17,6 +16,8 @@ import (
 
 var ctx *config.Context
 
+const metricStoppedError = "METRICS_STOPPED"
+
 func parseData(data amqp.Delivery) error {
 	switch data.RoutingKey {
 	case mq.QueueContracts:
@@ -28,13 +29,19 @@ func parseData(data amqp.Delivery) error {
 	case mq.QueueRecalc:
 		return recalculateAll(data)
 	default:
+		if data.RoutingKey == "" {
+			return fmt.Errorf(metricStoppedError)
+		}
 		return fmt.Errorf("Unknown data routing key %s", data.RoutingKey)
 	}
 }
 
 func handler(data amqp.Delivery) error {
 	if err := parseData(data); err != nil {
-		if !strings.Contains(err.Error(), elastic.RecordNotFound) {
+		if err.Error() == metricStoppedError {
+			return err
+		}
+		if !elastic.IsRecordNotFound(err) {
 			return err
 		}
 	}
@@ -62,6 +69,10 @@ func listenChannel(messageQueue *mq.MQ, queue string, closeChan chan struct{}) {
 			return
 		case msg := <-msgs:
 			if err := handler(msg); err != nil {
+				if err.Error() == metricStoppedError {
+					logger.Warning("[%s] Rabbit MQ server stopped! Metrics service need to be restarted. Closing connection...", queue)
+					return
+				}
 				logger.Errorf("[listenChannel] %s", err.Error())
 				helpers.LocalCatchErrorSentry(localSentry, fmt.Errorf("[listenChannel] %s", err.Error()))
 			}
