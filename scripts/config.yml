@@ -1,6 +1,6 @@
 rpc:
     mainnet:
-        uri: https://mainnet.tezos.org.ua
+        uri: https://mainnet-tezos.giganode.io
         timeout: 20
     zeronet:
         uri: https://rpc.tzkt.io/zeronet
@@ -9,7 +9,7 @@ rpc:
         uri: https://rpc.tzkt.io/babylonnet
         timeout: 20
     carthagenet:
-        uri: https://rpc.tzkt.io/carthagenet
+        uri: https://testnet-tezos.giganode.io
         timeout: 20
     sandboxnet:
         uri: http://sandbox:8732
