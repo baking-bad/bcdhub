@@ -54,7 +54,8 @@ type Operation struct {
 	StorageDiff interface{} `json:"storage_diff,omitempty"`
 	Mempool     bool        `json:"mempool"`
 
-	IndexedTime int64 `json:"-"`
+	IndexedTime  int64 `json:"-"`
+	ContentIndex int64 `json:"content_index"`
 }
 
 // ParseJSON -
@@ -100,6 +101,7 @@ func (o *Operation) FromModel(operation models.Operation) {
 	o.Burned = operation.Burned
 	o.Entrypoint = operation.Entrypoint
 	o.IndexedTime = operation.IndexedTime
+	o.ContentIndex = operation.InternalIndex
 }
 
 // ToModel -
