@@ -53,7 +53,7 @@ func (p *DefaultParser) Parse(opg gjson.Result, network string, head noderpc.Hea
 		}
 
 		hash := opg.Get("hash").String()
-		resultModels, mainOperation, err := p.parseContent(item, network, hash, head)
+		resultModels, mainOperation, err := p.parseContent(item, network, hash, head, int64(idx))
 		if err != nil {
 			return nil, err
 		}
@@ -62,7 +62,7 @@ func (p *DefaultParser) Parse(opg gjson.Result, network string, head noderpc.Hea
 			parsedModels = append(parsedModels, resultModels...)
 		}
 
-		internalModels, err := p.parseInternalOperations(item, mainOperation, head)
+		internalModels, err := p.parseInternalOperations(item, mainOperation, head, int64(idx))
 		if err != nil {
 			return nil, err
 		}
@@ -71,17 +71,17 @@ func (p *DefaultParser) Parse(opg gjson.Result, network string, head noderpc.Hea
 	return parsedModels, nil
 }
 
-func (p *DefaultParser) parseContent(data gjson.Result, network, hash string, head noderpc.Header) ([]elastic.Model, models.Operation, error) {
+func (p *DefaultParser) parseContent(data gjson.Result, network, hash string, head noderpc.Header, contentIdx int64) ([]elastic.Model, models.Operation, error) {
 	kind := data.Get("kind").String()
 	switch kind {
 	case consts.Origination:
-		return p.parseOrigination(data, network, hash, head)
+		return p.parseOrigination(data, network, hash, head, contentIdx)
 	default:
-		return p.parseTransaction(data, network, hash, head)
+		return p.parseTransaction(data, network, hash, head, contentIdx)
 	}
 }
 
-func (p *DefaultParser) parseTransaction(data gjson.Result, network, hash string, head noderpc.Header) ([]elastic.Model, models.Operation, error) {
+func (p *DefaultParser) parseTransaction(data gjson.Result, network, hash string, head noderpc.Header, contentIdx int64) ([]elastic.Model, models.Operation, error) {
 	op := models.Operation{
 		ID:             helpers.GenerateID(),
 		Network:        network,
@@ -103,6 +103,7 @@ func (p *DefaultParser) parseTransaction(data gjson.Result, network, hash string
 		Parameters:     data.Get("parameters").String(),
 		BalanceUpdates: p.parseBalanceUpdates(data, "metadata"),
 		IndexedTime:    time.Now().UnixNano() / 1000,
+		ContentIndex:   contentIdx,
 	}
 	operationResult, balanceUpdates := p.parseMetadata(data)
 	op.Result = operationResult
@@ -122,7 +123,7 @@ func (p *DefaultParser) parseTransaction(data gjson.Result, network, hash string
 	return transactionModels, op, nil
 }
 
-func (p *DefaultParser) parseOrigination(data gjson.Result, network, hash string, head noderpc.Header) ([]elastic.Model, models.Operation, error) {
+func (p *DefaultParser) parseOrigination(data gjson.Result, network, hash string, head noderpc.Header, contentIdx int64) ([]elastic.Model, models.Operation, error) {
 	op := models.Operation{
 		ID:             helpers.GenerateID(),
 		Network:        network,
@@ -144,6 +145,7 @@ func (p *DefaultParser) parseOrigination(data gjson.Result, network, hash string
 		Script:         data.Get("script"),
 		BalanceUpdates: p.parseBalanceUpdates(data, "metadata"),
 		IndexedTime:    time.Now().UnixNano() / 1000,
+		ContentIndex:   contentIdx,
 	}
 
 	operationResult, balanceUpdates := p.parseMetadata(data)
@@ -320,7 +322,7 @@ func (p *DefaultParser) getEntrypoint(item gjson.Result, metadata *meta.Contract
 	return nil
 }
 
-func (p *DefaultParser) parseInternalOperations(item gjson.Result, main models.Operation, head noderpc.Header) ([]elastic.Model, error) {
+func (p *DefaultParser) parseInternalOperations(item gjson.Result, main models.Operation, head noderpc.Header, contentIdx int64) ([]elastic.Model, error) {
 	path := fmt.Sprintf("metadata.internal_operation_results")
 	if !item.Get(path).Exists() {
 		path = fmt.Sprintf("metadata.internal_operations")
@@ -331,7 +333,7 @@ func (p *DefaultParser) parseInternalOperations(item gjson.Result, main models.O
 
 	internalModels := make([]elastic.Model, 0)
 	for _, op := range item.Get(path).Array() {
-		parsedModels, _, err := p.parseContent(op, main.Network, main.Hash, head)
+		parsedModels, _, err := p.parseContent(op, main.Network, main.Hash, head, contentIdx)
 		if err != nil {
 			return nil, err
 		}

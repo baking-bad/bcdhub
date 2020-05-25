@@ -11,7 +11,8 @@ import (
 type Operation struct {
 	ID string `json:"-"`
 
-	IndexedTime int64 `json:"indexed_time"`
+	IndexedTime  int64 `json:"indexed_time"`
+	ContentIndex int64 `json:"content_index,omitempty"`
 
 	Network       string `json:"network"`
 	Protocol      string `json:"protocol"`
@@ -57,6 +58,7 @@ type Operation struct {
 func (o *Operation) ParseElasticJSON(resp gjson.Result) {
 	o.ID = resp.Get("_id").String()
 	o.IndexedTime = resp.Get("_source.indexed_time").Int()
+	o.ContentIndex = resp.Get("_source.content_index").Int()
 
 	o.Protocol = resp.Get("_source.protocol").String()
 	o.Hash = resp.Get("_source.hash").String()

@@ -101,7 +101,7 @@ func (o *Operation) FromModel(operation models.Operation) {
 	o.Burned = operation.Burned
 	o.Entrypoint = operation.Entrypoint
 	o.IndexedTime = operation.IndexedTime
-	o.ContentIndex = operation.InternalIndex
+	o.ContentIndex = operation.ContentIndex
 }
 
 // ToModel -
