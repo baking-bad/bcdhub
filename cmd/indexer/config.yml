@@ -1,15 +1,15 @@
 rpc:
     mainnet:
-        uri: https://mainnet.tezos.org.ua
+        uri: https://mainnet-tezos.giganode.io
         timeout: 20
     zeronet:
         uri: https://rpc.tzkt.io/zeronet
         timeout: 20
     babylonnet:
-        uri: https://babylontest-ssl.tezos.org.ua
+        uri: https://rpc.tzkt.io/babylonnet
         timeout: 20
     carthagenet:
-        uri: https://rpc.tzkt.io/carthagenet
+        uri: https://testnet-tezos.giganode.io
         timeout: 20
 
 tzkt:
