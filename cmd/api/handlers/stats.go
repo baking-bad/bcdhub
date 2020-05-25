@@ -66,6 +66,12 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 	}
 	stats.Protocols = ps
 
+	languages, err := ctx.ES.GetLanguagesForNetwork(req.Network)
+	if handleError(c, err, 0) {
+		return
+	}
+	stats.Languages = languages
+
 	c.JSON(http.StatusOK, stats)
 }
 
@@ -102,31 +108,4 @@ func (ctx *Context) GetSeries(c *gin.Context) {
 	response = series
 
 	c.JSON(http.StatusOK, response)
-}
-
-// GetLanguagesStatsForNetwork godoc
-// @Summary Get languages stats for network
-// @Description Get languages stats for network
-// @Tags statistics
-// @ID get-network-languages
-// @Param network path string true "Network"
-// @Accept  json
-// @Produce  json
-// @Success 200 {object} gin.H
-// @Failure 400 {object} Error
-// @Failure 500 {object} Error
-// @Router /stats/{network}/languages [get]
-func (ctx *Context) GetLanguagesStatsForNetwork(c *gin.Context) {
-	var req getByNetwork
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
-		return
-	}
-
-	stats, err := ctx.ES.GetLanguagesForNetwork(req.Network)
-	if handleError(c, err, 0) {
-		return
-	}
-	delete(stats, "michelson")
-
-	c.JSON(http.StatusOK, stats)
 }
