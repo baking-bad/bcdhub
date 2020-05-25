@@ -170,8 +170,8 @@ func (p *DefaultParser) parseOrigination(data gjson.Result, network, hash string
 		if len(contractModels) > 0 {
 			originationModels = append(originationModels, contractModels...)
 		}
-		return originationModels, op, nil
 	}
+
 	additionalModels, err := p.finishParseOperation(data, &op)
 	if len(additionalModels) > 0 {
 		originationModels = append(originationModels, additionalModels...)
@@ -201,7 +201,7 @@ func (p *DefaultParser) createResult(item gjson.Result, path string) *models.Ope
 		StorageSize:                  item.Get(path + ".storage_size").Int(),
 		PaidStorageSizeDiff:          item.Get(path + ".paid_storage_size_diff").Int(),
 		Originated:                   item.Get(path + ".originated_contracts.0").String(),
-		AllocatedDestinationContract: item.Get(path + ".allocated_destination_contract").Bool(),
+		AllocatedDestinationContract: item.Get(path+".allocated_destination_contract").Bool() || item.Get("kind").String() == consts.Origination,
 	}
 	err := item.Get(path + ".errors")
 	result.Errors = cerrors.ParseArray(err)

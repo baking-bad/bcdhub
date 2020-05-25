@@ -42,6 +42,10 @@ func createNewContract(es *elastic.Elastic, operation models.Operation, filesDir
 		return nil, err
 	}
 
+	if _, err := es.AddDocumentWithID(metadata, elastic.DocMetadata, contract.Address); err != nil {
+		return nil, err
+	}
+
 	upgradable, err := isUpgradable(*metadata, protoSymLink)
 	if err != nil {
 		return nil, err
@@ -55,7 +59,7 @@ func createNewContract(es *elastic.Elastic, operation models.Operation, filesDir
 		return nil, err
 	}
 
-	return []elastic.Model{&contract, metadata}, nil
+	return []elastic.Model{&contract}, nil
 }
 
 func computeMetrics(es *elastic.Elastic, operation models.Operation, filesDirectory, protoSymLink string, contract *models.Contract) error {
