@@ -1044,6 +1044,19 @@
                         "name": "address",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Requested count",
+                        "name": "size",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1544,51 +1557,6 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/handlers.NetworkStats"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/stats/{network}/languages": {
-            "get": {
-                "description": "Get languages stats for network",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "statistics"
-                ],
-                "summary": "Get languages stats for network",
-                "operationId": "get-network-languages",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Network",
-                        "name": "network",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/gin.H"
                         }
                     },
                     "400": {
@@ -2346,6 +2314,12 @@
                     "type": "integer",
                     "example": 10
                 },
+                "languages": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
                 "operations_count": {
                     "type": "integer",
                     "example": 100
@@ -2374,6 +2348,9 @@
                     }
                 },
                 "burned": {
+                    "type": "integer"
+                },
+                "content_index": {
                     "type": "integer"
                 },
                 "counter": {

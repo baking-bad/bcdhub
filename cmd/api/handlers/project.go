@@ -41,7 +41,7 @@ func (ctx *Context) GetSameContracts(c *gin.Context) {
 		return
 	}
 
-	sameContracts, err := ctx.ES.GetSameContracts(contract, 0, pageReq.Offset)
+	sameContracts, err := ctx.ES.GetSameContracts(contract, pageReq.Size, pageReq.Offset)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -59,6 +59,8 @@ func (ctx *Context) GetSameContracts(c *gin.Context) {
 // @ID get-contract-similar
 // @Param network path string true "Network"
 // @Param address path string true "KT address" minlength(36) maxlength(36)
+// @Param offset query integer false "Offset"
+// @Param size query integer false "Requested count" mininum(1)
 // @Accept  json
 // @Produce  json
 // @Success 200 {array} SimilarContract
@@ -71,6 +73,11 @@ func (ctx *Context) GetSimilarContracts(c *gin.Context) {
 		return
 	}
 
+	var pageReq pageableRequest
+	if err := c.BindQuery(&pageReq); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
 	by := map[string]interface{}{
 		"address": req.Address,
 		"network": req.Network,
@@ -80,7 +87,7 @@ func (ctx *Context) GetSimilarContracts(c *gin.Context) {
 		return
 	}
 
-	similar, err := ctx.ES.GetSimilarContracts(contract)
+	similar, err := ctx.ES.GetSimilarContracts(contract, pageReq.Size, pageReq.Offset)
 	if handleError(c, err, 0) {
 		return
 	}
