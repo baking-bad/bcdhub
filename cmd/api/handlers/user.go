@@ -19,16 +19,10 @@ func (ctx *Context) GetUserProfile(c *gin.Context) {
 		return
 	}
 
-	subscriptions, err := ctx.DB.ListSubscriptionsWithLimit(userID, 10)
-	if handleError(c, err, 0) {
-		return
-	}
-
 	profile := userProfile{
-		Login:         user.Login,
-		AvatarURL:     user.AvatarURL,
-		Subscriptions: prepareSubscriptions(subscriptions),
-		MarkReadAt:    user.MarkReadAt,
+		Login:      user.Login,
+		AvatarURL:  user.AvatarURL,
+		MarkReadAt: user.MarkReadAt,
 	}
 
 	c.JSON(http.StatusOK, profile)

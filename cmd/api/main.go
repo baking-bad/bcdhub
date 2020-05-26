@@ -147,7 +147,6 @@ func main() {
 			contract.GET("storage", ctx.GetContractStorage)
 			contract.GET("raw_storage", ctx.GetContractStorageRaw)
 			contract.GET("rich_storage", ctx.GetContractStorageRich)
-			contract.GET("rating", ctx.GetContractRating)
 			contract.GET("mempool", ctx.GetMempool)
 			contract.GET("same", ctx.GetSameContracts)
 			contract.GET("similar", ctx.GetSimilarContracts)

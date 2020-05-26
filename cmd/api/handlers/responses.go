@@ -238,8 +238,9 @@ type Contract struct {
 	Alias           string     `json:"alias,omitempty"`
 	DelegateAlias   string     `json:"delegate_alias,omitempty"`
 
-	Profile *ProfileInfo `json:"profile,omitempty"`
-	Slug    string       `json:"slug,omitempty"`
+	Subscription    *Subscription `json:"subscription,omitempty"`
+	TotalSubscribed int           `json:"total_subscribed"`
+	Slug            string        `json:"slug,omitempty"`
 }
 
 // FromModel -
@@ -273,24 +274,19 @@ func (c *Contract) FromModel(contract models.Contract) {
 	c.TxCount = contract.TxCount
 }
 
-// ProfileInfo -
-type ProfileInfo struct {
-	Subscribed bool `json:"subscribed"`
-}
-
 // Subscription -
 type Subscription struct {
 	Address          string    `json:"address"`
 	Network          string    `json:"network"`
 	Alias            string    `json:"alias,omitempty"`
 	SubscribedAt     time.Time `json:"subscribed_at"`
-	WatchSame        bool      `json:"watchSame"`
-	WatchSimilar     bool      `json:"watchSimilar"`
-	WatchDeployed    bool      `json:"watchDeployed"`
-	WatchMigrations  bool      `json:"watchMigrations"`
-	WatchDeployments bool      `json:"watchDeployments"`
-	WatchCalls       bool      `json:"watchCalls"`
-	WatchErrors      bool      `json:"watchErrors"`
+	WatchSame        bool      `json:"watch_same"`
+	WatchSimilar     bool      `json:"watch_similar"`
+	WatchDeployed    bool      `json:"watch_deployed"`
+	WatchMigrations  bool      `json:"watch_migrations"`
+	WatchDeployments bool      `json:"watch_deployments"`
+	WatchCalls       bool      `json:"watch_calls"`
+	WatchErrors      bool      `json:"watch_errors"`
 }
 
 // TimelineItem -
@@ -306,10 +302,9 @@ type OperationResponse struct {
 }
 
 type userProfile struct {
-	Login         string         `json:"login"`
-	AvatarURL     string         `json:"avatarURL"`
-	Subscriptions []Subscription `json:"subscriptions"`
-	MarkReadAt    time.Time      `json:"mark_read_at"`
+	Login      string    `json:"login"`
+	AvatarURL  string    `json:"avatar_url"`
+	MarkReadAt time.Time `json:"mark_read_at"`
 }
 
 // BigMapItem -
@@ -573,30 +568,6 @@ func (c *SameContractsResponse) FromModel(same elastic.SameContractsResponse) {
 		var contract Contract
 		contract.FromModel(same.Contracts[i])
 		c.Contracts[i] = contract
-	}
-}
-
-// SubRating -
-type SubRating struct {
-	Count int             `json:"count"`
-	Users []SubRatingUser `json:"users"`
-}
-
-// SubRatingUser -
-type SubRatingUser struct {
-	Login     string `json:"login"`
-	AvatarURL string `json:"avatarURL"`
-}
-
-// FromModel -
-func (r *SubRating) FromModel(rating database.SubRating) {
-	r.Count = rating.Count
-	r.Users = make([]SubRatingUser, len(rating.Users))
-	for i := range rating.Users {
-		r.Users[i] = SubRatingUser{
-			Login:     rating.Users[i].Login,
-			AvatarURL: rating.Users[i].AvatarURL,
-		}
 	}
 }
 

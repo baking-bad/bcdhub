@@ -64,40 +64,30 @@ func (ctx *Context) GetRandomContract(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (ctx *Context) contractPostprocessing(cntr models.Contract, userID uint) (Contract, error) {
-	res, err := ctx.setProfileInfo(cntr, userID)
-	if err != nil {
-		return res, err
-	}
-	err = ctx.setContractSlug(&res)
-	return res, err
-}
-
-func (ctx *Context) setProfileInfo(contract models.Contract, userID uint) (Contract, error) {
+func (ctx *Context) contractPostprocessing(contract models.Contract, userID uint) (Contract, error) {
 	var res Contract
 	res.FromModel(contract)
 
-	if userID == 0 {
-		return res, nil
-	}
-
-	profile := ProfileInfo{}
-	if _, err := ctx.DB.GetSubscription(res.Address, res.Network); err == nil {
-		profile.Subscribed = true
-	} else {
-		if !gorm.IsRecordNotFoundError(err) {
+	if userID != 0 {
+		if sub, err := ctx.DB.GetSubscription(userID, res.Address, res.Network); err == nil {
+			subscription := PrepareSubscription(sub)
+			res.Subscription = &subscription
+		} else if !gorm.IsRecordNotFoundError(err) {
 			return res, err
 		}
 	}
-	res.Profile = &profile
-	return res, nil
-}
 
-func (ctx *Context) setContractSlug(contract *Contract) error {
-	a, err := ctx.DB.GetAlias(contract.Address, contract.Network)
-	if err != nil {
-		return err
+	if totalSubscribed, err := ctx.DB.GetSubscriptionsCount(res.Address, res.Network); err == nil {
+		res.TotalSubscribed = totalSubscribed
+	} else {
+		return res, err
 	}
-	contract.Slug = a.Slug
-	return nil
+
+	if alias, err := ctx.DB.GetAlias(contract.Address, contract.Network); err == nil {
+		res.Slug = alias.Slug
+	} else {
+		return res, err
+	}
+
+	return res, nil
 }

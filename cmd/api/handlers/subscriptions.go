@@ -21,7 +21,7 @@ func (ctx *Context) ListSubscriptions(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, prepareSubscriptions(subscriptions))
+	c.JSON(http.StatusOK, PrepareSubscriptions(subscriptions))
 }
 
 // CreateSubscription -
@@ -77,15 +77,22 @@ func (ctx *Context) DeleteSubscription(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }
 
-func prepareSubscriptions(subs []database.Subscription) []Subscription {
+// PrepareSubscription -
+func PrepareSubscription(sub database.Subscription) (res Subscription) {
+	res = buildSubFromWatchMask(sub.WatchMask)
+	res.Address = sub.Address
+	res.Network = sub.Network
+	res.Alias = sub.Alias
+	res.SubscribedAt = sub.CreatedAt
+	return
+}
+
+// PrepareSubscriptions -
+func PrepareSubscriptions(subs []database.Subscription) []Subscription {
 	res := make([]Subscription, len(subs))
 
 	for i, sub := range subs {
-		res[i] = buildSubFromWatchMask(sub.WatchMask)
-		res[i].Address = sub.Address
-		res[i].Network = sub.Network
-		res[i].Alias = sub.Alias
-		res[i].SubscribedAt = sub.CreatedAt
+		res[i] = PrepareSubscription(sub)
 	}
 
 	return res
