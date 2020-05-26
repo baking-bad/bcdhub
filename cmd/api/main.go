@@ -95,7 +95,7 @@ func main() {
 		r.Use(helpers.SentryMiddleware())
 	}
 
-	hub := ws.DefaultHub(cfg.Elastic.URI, cfg.RabbitMQ.URI, cfg.RabbitMQ.Queues)
+	hub := ws.DefaultHub(cfg.Elastic.URI, cfg.Elastic.Timeout, cfg.RabbitMQ.URI, cfg.RabbitMQ.Queues)
 	hub.Run()
 	defer hub.Stop()
 

@@ -21,7 +21,7 @@ type Context struct {
 }
 
 func newContext(cfg config.Config) (*Context, error) {
-	es := elastic.WaitNew([]string{cfg.Elastic.URI})
+	es := elastic.WaitNew([]string{cfg.Elastic.URI}, cfg.Elastic.Timeout)
 	RPCs := createRPCs(cfg)
 	messageQueue, err := mq.NewReceiver(cfg.RabbitMQ.URI, cfg.RabbitMQ.Queues, "metrics")
 	if err != nil {
