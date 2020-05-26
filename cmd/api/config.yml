@@ -14,15 +14,19 @@ rpc:
 
 tzkt:
     mainnet:
+        uri: https://api.tzkt.io/v1/
         services_uri: https://services.tzkt.io/v1/
         timeout: 20
     zeronet:
+        uri: https://api.zeronet.tzkt.io/v1/
         services_uri: https://services.tzkt.io/zeronet/v1/
         timeout: 20
     babylonnet:
+        uri: https://api.babylon.tzkt.io/v1/
         services_uri: https://services.tzkt.io/babylonnet/v1/
         timeout: 20
     carthagenet:
+        uri: https://api.carthage.tzkt.io/v1/
         services_uri: https://services.tzkt.io/carthagenet/v1/
         timeout: 20
 
@@ -73,4 +77,17 @@ rabbitmq:
     uri: "amqp://${RABBIT_USER}:${RABBIT_PASSWORD}@mq:5672/"
     queues:
         - operations
+        - contracts
+        - migrations
         - recalc
+
+aws:
+  bucket_name: bcd-elastic-snapshots
+  region: eu-central-1
+
+migrations:
+    networks:
+        - mainnet
+        - carthagenet
+        - zeronet
+        - babylonnet
