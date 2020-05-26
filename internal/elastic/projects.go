@@ -82,9 +82,15 @@ func (e *Elastic) GetSameContracts(c models.Contract, size, offset int64) (pcr S
 }
 
 // GetSimilarContracts -
-func (e *Elastic) GetSimilarContracts(c models.Contract) (pcr []SimilarContract, err error) {
+func (e *Elastic) GetSimilarContracts(c models.Contract, size, offset int64) (pcr []SimilarContract, err error) {
 	if c.Fingerprint == nil {
 		return
+	}
+
+	if size == 0 {
+		size = defaultSize
+	} else if size+offset > maxQuerySize {
+		size = maxQuerySize - offset
 	}
 
 	query := newQuery().Query(
@@ -102,7 +108,7 @@ func (e *Elastic) GetSimilarContracts(c models.Contract) (pcr []SimilarContract,
 			qItem{
 				"terms": qItem{
 					"field": "hash.keyword",
-					"size":  10000,
+					"size":  size + offset,
 					"order": qItem{
 						"bucketsSort": "desc",
 					},
@@ -126,7 +132,8 @@ func (e *Elastic) GetSimilarContracts(c models.Contract) (pcr []SimilarContract,
 	}
 
 	contracts := make([]SimilarContract, 0)
-	for _, item := range buckets.Array() {
+	arr := buckets.Array()[offset:]
+	for _, item := range arr {
 		var contract models.Contract
 		contract.ParseElasticJSON(item.Get("last.hits.hits.0"))
 

@@ -361,6 +361,10 @@ definitions:
       contracts_count:
         example: 10
         type: integer
+      languages:
+        additionalProperties:
+          type: integer
+        type: object
       operations_count:
         example: 100
         type: integer
@@ -380,6 +384,8 @@ definitions:
           $ref: '#/definitions/handlers.BalanceUpdate'
         type: array
       burned:
+        type: integer
+      content_index:
         type: integer
       counter:
         type: integer
@@ -1403,6 +1409,15 @@ paths:
         name: address
         required: true
         type: string
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      - description: Requested count
+        in: query
+        minimum: 1
+        name: size
+        type: integer
       produces:
       - application/json
       responses:
@@ -1750,36 +1765,6 @@ paths:
           schema:
             $ref: '#/definitions/handlers.Error'
       summary: Network statistics
-      tags:
-      - statistics
-  /stats/{network}/languages:
-    get:
-      consumes:
-      - application/json
-      description: Get languages stats for network
-      operationId: get-network-languages
-      parameters:
-      - description: Network
-        in: path
-        name: network
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/gin.H'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.Error'
-      summary: Get languages stats for network
       tags:
       - statistics
   /stats/{network}/series:
