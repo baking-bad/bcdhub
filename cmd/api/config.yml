@@ -36,6 +36,7 @@ sentry:
 
 elastic:
     uri: http://elastic:9200
+    timeout: 30
 
 db:
     conn_string: "host=db port=5432 user=${POSTGRES_USER} dbname=bcd password=${POSTGRES_PASSWORD} sslmode=disable"

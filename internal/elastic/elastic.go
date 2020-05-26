@@ -42,15 +42,15 @@ func New(addresses []string) (*Elastic, error) {
 }
 
 // WaitNew -
-func WaitNew(addresses []string) *Elastic {
+func WaitNew(addresses []string, timeout int) *Elastic {
 	var es *Elastic
 	var err error
 
 	for es == nil {
 		es, err = New(addresses)
 		if err != nil {
-			logger.Warning("Waiting elastic up 30 second...")
-			time.Sleep(time.Second * 30)
+			logger.Warning("Waiting elastic up %d seconds...", timeout)
+			time.Sleep(time.Second * time.Duration(timeout))
 		}
 	}
 	return es

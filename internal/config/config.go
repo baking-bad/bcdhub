@@ -82,7 +82,8 @@ type RPCConfig struct {
 
 // ElasticSearchConfig -
 type ElasticSearchConfig struct {
-	URI string `yaml:"uri"`
+	URI     string `yaml:"uri"`
+	Timeout int    `yaml:"timeout"`
 }
 
 // DatabaseConfig -
