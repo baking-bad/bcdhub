@@ -539,6 +539,12 @@ func (c *LightContract) FromModel(light elastic.LightContract) {
 	c.Deployed = light.Deployed
 }
 
+// SimilarContractsResponse -
+type SimilarContractsResponse struct {
+	Count     uint64            `json:"count"`
+	Contracts []SimilarContract `json:"contracts"`
+}
+
 // SimilarContract -
 type SimilarContract struct {
 	*Contract
@@ -547,8 +553,8 @@ type SimilarContract struct {
 	Removed int64  `json:"removed,omitempty"`
 }
 
-// FromModels -
-func (c *SimilarContract) FromModels(similar elastic.SimilarContract, diff CodeDiffResponse) {
+// FromModel -
+func (c *SimilarContract) FromModel(similar elastic.SimilarContract, diff CodeDiffResponse) {
 	var contract Contract
 	contract.FromModel(*similar.Contract)
 	c.Contract = &contract

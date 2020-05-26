@@ -177,6 +177,8 @@ func postProcessing(resA, resB [][]Item) DiffResult {
 
 		left := resA[l]
 		right := resB[r]
+		leftType := 0
+		rightType := 0
 
 		for lIdx < len(left) || rIdx < len(right) {
 			if lIdx == len(left) {
@@ -185,6 +187,7 @@ func postProcessing(resA, resB [][]Item) DiffResult {
 				}
 				if right[rIdx].Type > -2 && right[rIdx].Type < 2 {
 					right[rIdx].Type = 1
+					rightType = 1
 				}
 				newRight = append(newRight, right[rIdx])
 				rIdx++
@@ -195,6 +198,7 @@ func postProcessing(resA, resB [][]Item) DiffResult {
 				}
 				if left[lIdx].Type > -2 && left[lIdx].Type < 2 {
 					left[lIdx].Type = -1
+					leftType = -1
 				}
 				newLeft = append(newLeft, left[lIdx])
 				lIdx++
@@ -212,6 +216,7 @@ func postProcessing(resA, resB [][]Item) DiffResult {
 			if left[lIdx].ID > right[rIdx].ID || left[lIdx].Type == 0 {
 				if right[rIdx].Type > -2 && right[rIdx].Type < 2 {
 					right[rIdx].Type = 1
+					rightType = 1
 				}
 				newRight = append(newRight, right[rIdx])
 				rIdx++
@@ -219,6 +224,7 @@ func postProcessing(resA, resB [][]Item) DiffResult {
 			} else if left[lIdx].ID < right[rIdx].ID || right[rIdx].Type == 0 {
 				if left[lIdx].Type > -2 && left[lIdx].Type < 2 {
 					left[lIdx].Type = -1
+					leftType = -1
 				}
 				newLeft = append(newLeft, left[lIdx])
 				lIdx++
@@ -234,10 +240,10 @@ func postProcessing(resA, resB [][]Item) DiffResult {
 
 		res.Left = append(res.Left, newLeft)
 		res.Right = append(res.Right, newRight)
-		if len(newRight) == 0 {
+		if leftType == -1 {
 			res.Removed++
 		}
-		if len(newLeft) == 0 {
+		if rightType == 1 {
 			res.Added++
 		}
 		if lIdx == len(left) {
