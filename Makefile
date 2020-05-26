@@ -11,16 +11,16 @@ metrics:
 	cd cmd/metrics && go run . -f config.yml -f config.dev.yml
 
 aliases:
-	cd scripts/aliases && go run . -f ../config.yml
+	docker exec -it bcd-api aliases
 
 sitemap:
 	cd scripts/sitemap && go run . -f ../config.yml
 
 rollback:
-	cd scripts/rollback && go run . -f ../config.yml
+	docker exec -it bcd-api rollback
 
 migration:
-	cd scripts/migration && go run . -f ../config.yml
+	docker exec -it bcd-api migration
 
 es-aws:
 	cd scripts/es-aws && go build .
