@@ -35,7 +35,7 @@ func (ctx *Context) GetContract(c *gin.Context) {
 	if handleError(c, err, 0) {
 		return
 	}
-	res, err := ctx.contractPostprocessing(cntr, CurrentUserID(c))
+	res, err := ctx.contractPostprocessing(cntr, c)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -57,18 +57,19 @@ func (ctx *Context) GetRandomContract(c *gin.Context) {
 	if handleError(c, err, 0) {
 		return
 	}
-	res, err := ctx.contractPostprocessing(cntr, CurrentUserID(c))
+
+	res, err := ctx.contractPostprocessing(cntr, c)
 	if handleError(c, err, 0) {
 		return
 	}
 	c.JSON(http.StatusOK, res)
 }
 
-func (ctx *Context) contractPostprocessing(contract models.Contract, userID uint) (Contract, error) {
+func (ctx *Context) contractPostprocessing(contract models.Contract, c *gin.Context) (Contract, error) {
 	var res Contract
 	res.FromModel(contract)
 
-	if userID != 0 {
+	if userID, err := ctx.getUserFromToken(c); err == nil && userID != 0 {
 		if sub, err := ctx.DB.GetSubscription(userID, res.Address, res.Network); err == nil {
 			subscription := PrepareSubscription(sub)
 			res.Subscription = &subscription
