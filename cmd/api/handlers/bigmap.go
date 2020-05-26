@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
 	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 )
@@ -43,11 +44,55 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 	}
 
 	if response.Address == "" {
-		c.JSON(http.StatusNoContent, gin.H{})
+		history, err := ctx.ES.GetBigMapHistory(req.Ptr, req.Network)
+		if handleError(c, err, 0) {
+			return
+		}
+		if len(history) == 0 {
+			c.JSON(http.StatusNoContent, gin.H{})
+			return
+		}
+		c.JSON(http.StatusOK, GetBigMapResponse{
+			Address: history[0].Address,
+			Network: req.Network,
+			Ptr:     req.Ptr,
+		})
 		return
 	}
 
 	c.JSON(http.StatusOK, response)
+}
+
+// GetBigMapHistory godoc
+// @Summary Get big map actions (alloc/copy/remove)
+// @Description Get big map actions (alloc/copy/remove)
+// @Tags bigmap
+// @ID get-bigmap-history
+// @Param network path string true "Network"
+// @Param ptr path integer true "Big map pointer"
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} BigMapHistoryResponse
+// @Success 204 {object} gin.H
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /bigmap/{network}/{ptr}/history [get]
+func (ctx *Context) GetBigMapHistory(c *gin.Context) {
+	var req getBigMapRequest
+	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
+	bm, err := ctx.ES.GetBigMapHistory(req.Ptr, req.Network)
+	if handleError(c, err, 0) {
+		return
+	}
+	if bm == nil {
+		c.JSON(http.StatusNoContent, gin.H{})
+		return
+	}
+
+	c.JSON(http.StatusOK, prepareBigMapHistory(bm, req.Ptr))
 }
 
 // GetBigMapKeys godoc
@@ -246,4 +291,30 @@ func prepareItem(item elastic.BigMapDiff, contractMetadata *meta.ContractMetadat
 		keyString = stringer.Stringify(val)
 	}
 	return key, value, keyString, err
+}
+
+func prepareBigMapHistory(arr []models.BigMapAction, ptr int64) BigMapHistoryResponse {
+	if len(arr) == 0 {
+		return BigMapHistoryResponse{}
+	}
+	response := BigMapHistoryResponse{
+		Address: arr[0].Address,
+		Network: arr[0].Network,
+		Ptr:     ptr,
+		Items:   make([]BigMapHistoryItem, len(arr)),
+	}
+
+	for i := range arr {
+		response.Items[i] = BigMapHistoryItem{
+			Action:    arr[i].Action,
+			Timestamp: arr[i].Timestamp,
+		}
+		if arr[i].DestinationPtr != nil && *arr[i].DestinationPtr != ptr {
+			response.Items[i].DestinationPtr = arr[i].DestinationPtr
+		} else if arr[i].SourcePtr != nil && *arr[i].SourcePtr != ptr {
+			response.Items[i].SourcePtr = arr[i].SourcePtr
+		}
+	}
+
+	return response
 }

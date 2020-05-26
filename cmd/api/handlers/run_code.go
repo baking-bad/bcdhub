@@ -179,9 +179,11 @@ func (ctx *Context) parseBigMapDiffs(response gjson.Result, metadata meta.Metada
 	if rs.Empty {
 		return nil, nil
 	}
-	bmd := make([]models.BigMapDiff, len(rs.BigMapDiffs))
-	for i := range rs.BigMapDiffs {
-		bmd[i] = *rs.BigMapDiffs[i]
+	bmd := make([]models.BigMapDiff, len(rs.Models))
+	for i := range rs.Models {
+		if val, ok := rs.Models[i].(*models.BigMapDiff); ok {
+			bmd[i] = *val
+		}
 	}
 	return bmd, nil
 }

@@ -130,6 +130,7 @@ func main() {
 		bigmap := v1.Group("bigmap/:network/:ptr")
 		{
 			bigmap.GET("", ctx.GetBigMap)
+			bigmap.GET("history", ctx.GetBigMapHistory)
 			keys := bigmap.Group("keys")
 			{
 				keys.GET("", ctx.GetBigMapKeys)
