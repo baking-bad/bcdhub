@@ -41,6 +41,7 @@ func (ctx *Context) CreateSubscription(c *gin.Context) {
 		UserID:    userID,
 		Address:   sub.Address,
 		Network:   sub.Network,
+		Alias:     sub.Alias,
 		WatchMask: buildWatchMask(sub),
 	}
 

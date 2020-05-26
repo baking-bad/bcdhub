@@ -89,13 +89,13 @@ type subRequest struct {
 	Address          string `json:"address" binding:"required"`
 	Network          string `json:"network" binding:"required"`
 	Alias            string `json:"alias"`
-	WatchSame        bool   `json:"watchSame"`
-	WatchSimilar     bool   `json:"watchSimilar"`
-	WatchDeployed    bool   `json:"watchDeployed"`
-	WatchMigrations  bool   `json:"watchMigrations"`
-	WatchDeployments bool   `json:"watchDeployments"`
-	WatchCalls       bool   `json:"watchCalls"`
-	WatchErrors      bool   `json:"watchErrors"`
+	WatchSame        bool   `json:"watch_same"`
+	WatchSimilar     bool   `json:"watch_similar"`
+	WatchDeployed    bool   `json:"watch_deployed"`
+	WatchMigrations  bool   `json:"watch_migrations"`
+	WatchDeployments bool   `json:"watch_deployments"`
+	WatchCalls       bool   `json:"watch_calls"`
+	WatchErrors      bool   `json:"watch_errors"`
 }
 
 type voteRequest struct {
