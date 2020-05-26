@@ -77,7 +77,7 @@ func (bi *BoostIndexer) fetchExternalProtocols() error {
 			SymLink:    symLink,
 			Network:    bi.Network,
 		})
-		log.Printf("[%s] Fetched %s", bi.Network, alias)
+		logger.Info("[%s] Fetched %s", bi.Network, alias)
 	}
 
 	return bi.es.BulkInsert(protocols)

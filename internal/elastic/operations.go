@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/tidwall/gjson"
 )
 
 // GetOperationByHash -
@@ -165,35 +164,8 @@ func (e *Elastic) GetContractOperations(network, address string, size uint64, fi
 	return
 }
 
-// GetLastStorage -
-func (e *Elastic) GetLastStorage(network, address string) (gjson.Result, error) {
-	query := newQuery().
-		Query(
-			boolQ(
-				must(
-					matchPhrase("network", network),
-					matchPhrase("destination", address),
-					term("status", "applied"),
-				),
-				notMust(
-					term("deffated_storage", ""),
-				),
-			),
-		).Sort("indexed_time", "desc").One()
-
-	res, err := e.query([]string{DocOperations}, query)
-	if err != nil {
-		return gjson.Result{}, err
-	}
-
-	if res.Get("hits.total.value").Int() < 1 {
-		return gjson.Result{}, nil
-	}
-	return res.Get("hits.hits.0"), nil
-}
-
-// GetPreviousOperation -
-func (e *Elastic) GetPreviousOperation(address, network string, indexedTime int64) (op models.Operation, err error) {
+// GetLastOperation -
+func (e *Elastic) GetLastOperation(address, network string, indexedTime int64) (op models.Operation, err error) {
 	query := newQuery().
 		Query(
 			boolQ(

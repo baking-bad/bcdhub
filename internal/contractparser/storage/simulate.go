@@ -23,7 +23,7 @@ func NewSimulate(rpc noderpc.Pool, es *elastic.Elastic) *Simulate {
 // ParseTransaction -
 func (b *Simulate) ParseTransaction(content gjson.Result, metadata meta.Metadata, operation models.Operation) (RichStorage, error) {
 	storage := content.Get("storage")
-	var bm []*models.BigMapDiff
+	var bm []elastic.Model
 	if content.Get("big_map_diff.#").Int() > 0 {
 		ptrMap, err := FindBigMapPointers(metadata, storage)
 		if err != nil {
@@ -35,7 +35,7 @@ func (b *Simulate) ParseTransaction(content gjson.Result, metadata meta.Metadata
 		}
 	}
 	return RichStorage{
-		BigMapDiffs:     bm,
+		Models:          bm,
 		DeffatedStorage: storage.Raw,
 	}, nil
 }
@@ -44,7 +44,7 @@ func (b *Simulate) ParseTransaction(content gjson.Result, metadata meta.Metadata
 func (b *Simulate) ParseOrigination(content gjson.Result, metadata meta.Metadata, operation models.Operation) (RichStorage, error) {
 	storage := operation.Script.Get("storage")
 
-	var bm []*models.BigMapDiff
+	var bm []elastic.Model
 	if content.Get("big_map_diff.#").Int() > 0 {
 		ptrMap, err := FindBigMapPointers(metadata, storage)
 		if err != nil {
@@ -57,7 +57,7 @@ func (b *Simulate) ParseOrigination(content gjson.Result, metadata meta.Metadata
 	}
 
 	return RichStorage{
-		BigMapDiffs:     bm,
+		Models:          bm,
 		DeffatedStorage: storage.String(),
 	}, nil
 }

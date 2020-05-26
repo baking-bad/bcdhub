@@ -2,13 +2,14 @@ package elastic
 
 // Document names
 const (
-	DocContracts  = "contract"
-	DocBlocks     = "block"
-	DocOperations = "operation"
-	DocBigMapDiff = "bigmapdiff"
-	DocMetadata   = "metadata"
-	DocMigrations = "migration"
-	DocProtocol   = "protocol"
+	DocContracts     = "contract"
+	DocBlocks        = "block"
+	DocOperations    = "operation"
+	DocBigMapDiff    = "bigmapdiff"
+	DocBigMapActions = "bigmapaction"
+	DocMetadata      = "metadata"
+	DocMigrations    = "migration"
+	DocProtocol      = "protocol"
 )
 
 // Index names
