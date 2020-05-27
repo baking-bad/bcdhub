@@ -56,6 +56,11 @@ func main() {
 		return
 	}
 	defer ctx.Close()
+	if err := ctx.LoadAliases(); err != nil {
+		logger.Error(err)
+		helpers.CatchErrorSentry(err)
+		return
+	}
 
 	if cfg.API.Seed.Enabled {
 		if err := seed.Run(ctx, cfg.Seed); err != nil {
