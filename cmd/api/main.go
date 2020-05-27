@@ -34,7 +34,7 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	docs.SwaggerInfo.Host = cfg.API.Bind
+	docs.SwaggerInfo.Host = cfg.API.SwaggerHost
 
 	gjson.AddModifier("upper", func(json, arg string) string {
 		return strings.ToUpper(json)
