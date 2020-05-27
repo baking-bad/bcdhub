@@ -66,3 +66,9 @@ deploy:
 	docker-compose pull
 	docker-compose up -d
 	docker-compose ps
+
+docs:
+	# wget https://github.com/swaggo/swag/releases/download/v1.6.6/swag_1.6.6_Linux_x86_64.tar.gz
+	# tar -zxvf swag_1.6.6_Linux_x86_64.tar.gz
+	# sudo cp swag /usr/bin/swag
+	cd cmd/api && swag init --parseDependency
