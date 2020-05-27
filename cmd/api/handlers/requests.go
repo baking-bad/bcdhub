@@ -123,9 +123,10 @@ type getByNetwork struct {
 }
 
 type bigMapSearchRequest struct {
-	Offset int64  `form:"offset" binding:"min=0"`
-	Size   int64  `form:"size" binding:"min=0"`
-	Search string `form:"q"`
+	Offset      int64  `form:"offset" binding:"min=0"`
+	Size        int64  `form:"size" binding:"min=0"`
+	Search      string `form:"q"`
+	SkipRemoved bool   `form:"skip_removed"`
 }
 
 type getEntrypointDataRequest struct {
