@@ -180,6 +180,7 @@ func main() {
 			profile := authorized.Group("profile")
 			{
 				profile.GET("", ctx.GetUserProfile)
+				profile.GET("/mark_all_read", ctx.UserMarkAllRead)
 				subscriptions := profile.Group("subscriptions")
 				{
 					subscriptions.GET("", ctx.ListSubscriptions)

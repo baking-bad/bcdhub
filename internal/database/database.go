@@ -11,6 +11,7 @@ type DB interface {
 	// User
 	GetOrCreateUser(*User) error
 	GetUser(uint) (*User, error)
+	UpdateUserMarkReadAt(uint, int64) error
 
 	// Subscription
 	GetSubscription(address, network string) (Subscription, error)
