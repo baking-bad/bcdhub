@@ -70,6 +70,64 @@
                 }
             }
         },
+        "/bigmap/{network}/{ptr}/history": {
+            "get": {
+                "description": "Get big map actions (alloc/copy/remove)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bigmap"
+                ],
+                "summary": "Get big map actions (alloc/copy/remove)",
+                "operationId": "get-bigmap-history",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Big map pointer",
+                        "name": "ptr",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.BigMapHistoryResponse"
+                        }
+                    },
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/bigmap/{network}/{ptr}/keys": {
             "get": {
                 "description": "Get big map keys by pointer",
@@ -1991,6 +2049,43 @@
                 },
                 "value": {
                     "type": "object"
+                }
+            }
+        },
+        "handlers.BigMapHistoryItem": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "destination_ptr": {
+                    "type": "integer"
+                },
+                "source_ptr": {
+                    "type": "integer"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.BigMapHistoryResponse": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.BigMapHistoryItem"
+                    }
+                },
+                "network": {
+                    "type": "string"
+                },
+                "ptr": {
+                    "type": "integer"
                 }
             }
         },

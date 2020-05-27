@@ -24,7 +24,7 @@ type DefaultParser struct {
 	es             *elastic.Elastic
 	filesDirectory string
 
-	updates map[int64][]*models.BigMapDiff
+	storageParser storage.Parser
 }
 
 // NewDefaultParser -
@@ -39,9 +39,6 @@ func NewDefaultParser(rpc noderpc.Pool, es *elastic.Elastic, filesDirectory stri
 // Parse -
 func (p *DefaultParser) Parse(opg gjson.Result, network string, head noderpc.Header) ([]elastic.Model, error) {
 	parsedModels := make([]elastic.Model, 0)
-
-	// New OPG -> new temporary storage
-	p.updates = make(map[int64][]*models.BigMapDiff)
 
 	for idx, item := range opg.Get("contents").Array() {
 		need, err := p.needParse(item, network, idx)
@@ -244,8 +241,8 @@ func (p *DefaultParser) finishParseOperation(item gjson.Result, op *models.Opera
 		}
 		op.DeffatedStorage = rs.DeffatedStorage
 
-		if len(rs.BigMapDiffs) > 0 {
-			resultModels = append(resultModels, rs.GetBigMapDiffModels()...)
+		if len(rs.Models) > 0 {
+			resultModels = append(resultModels, rs.Models...)
 		}
 
 		if op.Kind == consts.Transaction {
@@ -367,9 +364,12 @@ func (p *DefaultParser) needParse(item gjson.Result, network string, idx int) (b
 }
 
 func (p *DefaultParser) getRichStorage(data gjson.Result, metadata *meta.ContractMetadata, op *models.Operation) (storage.RichStorage, error) {
-	parser, err := contractparser.MakeStorageParser(p.rpc, p.es, op.Protocol, false)
-	if err != nil {
-		return storage.RichStorage{Empty: true}, err
+	if p.storageParser == nil {
+		parser, err := contractparser.MakeStorageParser(p.rpc, p.es, op.Protocol, false)
+		if err != nil {
+			return storage.RichStorage{Empty: true}, err
+		}
+		p.storageParser = parser
 	}
 
 	protoSymLink, err := meta.GetProtoSymLink(op.Protocol)
@@ -382,14 +382,11 @@ func (p *DefaultParser) getRichStorage(data gjson.Result, metadata *meta.Contrac
 		return storage.RichStorage{Empty: true}, fmt.Errorf("Unknown metadata: %s", protoSymLink)
 	}
 
-	// Init parser by current context
-	parser.SetUpdates(p.updates)
-
 	switch op.Kind {
 	case consts.Transaction:
-		return parser.ParseTransaction(data, m, *op)
+		return p.storageParser.ParseTransaction(data, m, *op)
 	case consts.Origination:
-		return parser.ParseOrigination(data, m, *op)
+		return p.storageParser.ParseOrigination(data, m, *op)
 	}
 	return storage.RichStorage{Empty: true}, nil
 }

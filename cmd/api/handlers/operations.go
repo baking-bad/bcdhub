@@ -304,7 +304,38 @@ func setStorageDiff(es *elastic.Elastic, address, network, storage string, op *O
 }
 
 func getStorageDiff(es *elastic.Elastic, bmd []models.BigMapDiff, address, storage string, metadata *meta.ContractMetadata, isSimulating bool, op *Operation) (interface{}, error) {
-	currentStorage, err := getEnrichStorageMiguel(es, bmd, op.Protocol, storage, metadata, isSimulating)
+	var prevStorage *newmiguel.Node
+	var prevDeffatedStorage string
+	prev, err := es.GetLastOperation(address, op.Network, op.IndexedTime)
+	if err == nil {
+		prevBmd, err := getPrevBmd(es, bmd, op.IndexedTime, op.Destination)
+		if err != nil {
+			return nil, err
+		}
+
+		var exDeffatedStorage string
+		exOp, err := es.GetLastOperation(address, prev.Network, prev.IndexedTime)
+		if err == nil {
+			exDeffatedStorage = exOp.DeffatedStorage
+		} else {
+			if !elastic.IsRecordNotFound(err) {
+				return nil, err
+			}
+		}
+
+		prevStorage, err = getEnrichStorageMiguel(es, prevBmd, prev.Protocol, prev.DeffatedStorage, exDeffatedStorage, metadata, isSimulating)
+		if err != nil {
+			return nil, err
+		}
+		prevDeffatedStorage = prev.DeffatedStorage
+	} else {
+		if !elastic.IsRecordNotFound(err) {
+			return nil, err
+		}
+		prevStorage = nil
+	}
+
+	currentStorage, err := getEnrichStorageMiguel(es, bmd, op.Protocol, storage, prevDeffatedStorage, metadata, isSimulating)
 	if err != nil {
 		return nil, err
 	}
@@ -312,30 +343,12 @@ func getStorageDiff(es *elastic.Elastic, bmd []models.BigMapDiff, address, stora
 		return nil, nil
 	}
 
-	var prevStorage *newmiguel.Node
-	prev, err := es.GetPreviousOperation(address, op.Network, op.IndexedTime)
-	if err == nil {
-		prevBmd, err := getPrevBmd(es, bmd, op.IndexedTime, op.Destination)
-		if err != nil {
-			return nil, err
-		}
-		prevStorage, err = getEnrichStorageMiguel(es, prevBmd, prev.Protocol, prev.DeffatedStorage, metadata, isSimulating)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		if !strings.Contains(err.Error(), elastic.RecordNotFound) {
-			return nil, err
-		}
-		prevStorage = nil
-	}
-
 	currentStorage.Diff(prevStorage)
 	return currentStorage, nil
 }
 
-func getEnrichStorageMiguel(es *elastic.Elastic, bmd []models.BigMapDiff, protocol, storage string, metadata *meta.ContractMetadata, isSimulating bool) (*newmiguel.Node, error) {
-	store, err := enrichStorage(storage, bmd, protocol, false, isSimulating)
+func getEnrichStorageMiguel(es *elastic.Elastic, bmd []models.BigMapDiff, protocol, storage, prevStorage string, metadata *meta.ContractMetadata, isSimulating bool) (*newmiguel.Node, error) {
+	store, err := enrichStorage(storage, prevStorage, bmd, protocol, false, isSimulating)
 	if err != nil {
 		return nil, err
 	}
@@ -346,7 +359,7 @@ func getEnrichStorageMiguel(es *elastic.Elastic, bmd []models.BigMapDiff, protoc
 	return newmiguel.MichelineToMiguel(store, storageMetadata)
 }
 
-func enrichStorage(s string, bmd []models.BigMapDiff, protocol string, skipEmpty, isSimulating bool) (gjson.Result, error) {
+func enrichStorage(s, prevStorage string, bmd []models.BigMapDiff, protocol string, skipEmpty, isSimulating bool) (gjson.Result, error) {
 	if len(bmd) == 0 {
 		return gjson.Parse(s), nil
 	}
@@ -356,7 +369,7 @@ func enrichStorage(s string, bmd []models.BigMapDiff, protocol string, skipEmpty
 		return gjson.Result{}, err
 	}
 
-	return parser.Enrich(s, bmd, skipEmpty)
+	return parser.Enrich(s, prevStorage, bmd, skipEmpty)
 }
 
 func getPrevBmd(es *elastic.Elastic, bmd []models.BigMapDiff, indexedTime int64, address string) ([]models.BigMapDiff, error) {

@@ -82,6 +82,9 @@ func (e *Elastic) GetPrevBigMapDiffs(filters []models.BigMapDiff, indexedTime in
 	response := make([]models.BigMapDiff, 0)
 	for _, item := range res.Get("aggregations.keys.buckets").Array() {
 		bmd := item.Get("top_key.hits.hits.0")
+		if bmd.Get("value").String() == "" {
+			continue
+		}
 		var b models.BigMapDiff
 		b.ParseElasticJSON(bmd)
 		response = append(response, b)
@@ -283,7 +286,7 @@ func (e *Elastic) GetBigMapDiffsWithEmptyPtr() (response []models.BigMapDiff, er
 				exists("ptr"),
 			),
 		),
-	).Sort("indexed_time", "desc").Zero()
+	).Sort("indexed_time", "desc")
 
 	err = e.GetAllByQuery(query, &response)
 	return
@@ -298,7 +301,26 @@ func (e *Elastic) GetBigMapsForAddress(network, address string) (response []mode
 				matchPhrase("address", address),
 			),
 		),
-	).Sort("indexed_time", "desc").Zero()
+	).Sort("indexed_time", "desc")
+
+	err = e.GetAllByQuery(query, &response)
+	return
+}
+
+// GetBigMapHistory -
+func (e *Elastic) GetBigMapHistory(ptr int64, network string) (response []models.BigMapAction, err error) {
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				matchQ("network", network),
+			),
+			should(
+				term("source_ptr", ptr),
+				term("destination_ptr", ptr),
+			),
+			minimumShouldMatch(1),
+		),
+	).Sort("indexed_time", "desc")
 
 	err = e.GetAllByQuery(query, &response)
 	return
