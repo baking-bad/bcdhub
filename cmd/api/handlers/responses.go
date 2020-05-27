@@ -298,7 +298,7 @@ type TimelineItem struct {
 // OperationResponse -
 type OperationResponse struct {
 	Operations []Operation `json:"operations"`
-	LastID     string      `json:"last_id" example:"1588640276994159"`
+	LastID     string      `json:"last_id,omitempty" example:"1588640276994159"`
 }
 
 type userProfile struct {
@@ -573,3 +573,19 @@ func (c *SameContractsResponse) FromModel(same elastic.SameContractsResponse) {
 
 // Series -
 type Series [][]int64
+
+// BigMapHistoryResponse -
+type BigMapHistoryResponse struct {
+	Address string              `json:"address"`
+	Network string              `json:"network"`
+	Ptr     int64               `json:"ptr"`
+	Items   []BigMapHistoryItem `json:"items,omitempty"`
+}
+
+// BigMapHistoryItem -
+type BigMapHistoryItem struct {
+	Action         string    `json:"action"`
+	SourcePtr      *int64    `json:"source_ptr,omitempty"`
+	DestinationPtr *int64    `json:"destination_ptr,omitempty"`
+	Timestamp      time.Time `json:"timestamp"`
+}

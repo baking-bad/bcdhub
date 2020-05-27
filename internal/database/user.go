@@ -30,3 +30,7 @@ func (d *db) GetUser(userID uint) (*User, error) {
 
 	return &user, nil
 }
+
+func (d *db) UpdateUserMarkReadAt(userID uint, ts int64) error {
+	return d.ORM.Model(&User{}).Where("id = ?", userID).Update("mark_read_at", time.Unix(ts, 0)).Error
+}

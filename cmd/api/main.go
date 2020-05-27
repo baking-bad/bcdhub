@@ -34,7 +34,7 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	docs.SwaggerInfo.Host = cfg.API.Bind
+	docs.SwaggerInfo.Host = cfg.API.SwaggerHost
 
 	gjson.AddModifier("upper", func(json, arg string) string {
 		return strings.ToUpper(json)
@@ -130,6 +130,7 @@ func main() {
 		bigmap := v1.Group("bigmap/:network/:ptr")
 		{
 			bigmap.GET("", ctx.GetBigMap)
+			bigmap.GET("history", ctx.GetBigMapHistory)
 			keys := bigmap.Group("keys")
 			{
 				keys.GET("", ctx.GetBigMapKeys)
@@ -179,6 +180,7 @@ func main() {
 			profile := authorized.Group("profile")
 			{
 				profile.GET("", ctx.GetUserProfile)
+				profile.GET("/mark_all_read", ctx.UserMarkAllRead)
 				subscriptions := profile.Group("subscriptions")
 				{
 					subscriptions.GET("", ctx.ListSubscriptions)

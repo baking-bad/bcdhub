@@ -155,3 +155,7 @@ type runCodeRequest struct {
 	Source   string                 `json:"source,omitempty" binding:"omitempty,address"`
 	Sender   string                 `json:"sender,omitempty" binding:"omitempty,address"`
 }
+
+type markReadRequest struct {
+	Timestamp int64 `json:"timestamp"`
+}
