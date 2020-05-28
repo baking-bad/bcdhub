@@ -628,6 +628,15 @@ definitions:
       tx_count:
         type: integer
     type: object
+  handlers.SimilarContractsResponse:
+    properties:
+      contracts:
+        items:
+          $ref: '#/definitions/handlers.SimilarContract'
+        type: array
+      count:
+        type: integer
+    type: object
   handlers.Subscription:
     properties:
       address:
@@ -1456,9 +1465,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/handlers.SimilarContract'
-            type: array
+            $ref: '#/definitions/handlers.SimilarContractsResponse'
         "400":
           description: Bad Request
           schema:

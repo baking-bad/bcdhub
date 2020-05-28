@@ -1081,10 +1081,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/handlers.SimilarContract"
-                            }
+                            "$ref": "#/definitions/handlers.SimilarContractsResponse"
                         }
                     },
                     "400": {
@@ -2727,6 +2724,20 @@ var doc = `{
                     "type": "integer"
                 },
                 "tx_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.SimilarContractsResponse": {
+            "type": "object",
+            "properties": {
+                "contracts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.SimilarContract"
+                    }
+                },
+                "count": {
                     "type": "integer"
                 }
             }

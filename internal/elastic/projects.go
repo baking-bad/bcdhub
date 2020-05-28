@@ -46,7 +46,9 @@ func (e *Elastic) GetSameContracts(c models.Contract, size, offset int64) (pcr S
 	}
 
 	if size == 0 {
-		size = 10
+		size = defaultSize
+	} else if size+offset > maxQuerySize {
+		size = maxQuerySize - offset
 	}
 
 	q := newQuery().Query(
@@ -82,7 +84,7 @@ func (e *Elastic) GetSameContracts(c models.Contract, size, offset int64) (pcr S
 }
 
 // GetSimilarContracts -
-func (e *Elastic) GetSimilarContracts(c models.Contract, size, offset int64) (pcr []SimilarContract, err error) {
+func (e *Elastic) GetSimilarContracts(c models.Contract, size, offset int64) (pcr []SimilarContract, total uint64, err error) {
 	if c.Fingerprint == nil {
 		return
 	}
@@ -131,6 +133,7 @@ func (e *Elastic) GetSimilarContracts(c models.Contract, size, offset int64) (pc
 		return
 	}
 
+	total = resp.Get("hits.total.value").Uint()
 	contracts := make([]SimilarContract, 0)
 	arr := buckets.Array()[offset:]
 	for _, item := range arr {
@@ -143,7 +146,7 @@ func (e *Elastic) GetSimilarContracts(c models.Contract, size, offset int64) (pc
 		}
 		contracts = append(contracts, similar)
 	}
-	return contracts, nil
+	return contracts, total, nil
 }
 
 // GetProjectsStats -
