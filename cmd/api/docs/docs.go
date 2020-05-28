@@ -857,63 +857,6 @@ var doc = `{
                 }
             }
         },
-        "/contract/{network}/{address}/rating": {
-            "get": {
-                "description": "Get contract rating",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "contract"
-                ],
-                "summary": "Get contract rating",
-                "operationId": "get-contract-rating",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Network",
-                        "name": "network",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "maxLength": 36,
-                        "minLength": 36,
-                        "type": "string",
-                        "description": "KT address",
-                        "name": "address",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/handlers.SubRating"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    }
-                }
-            }
-        },
         "/contract/{network}/{address}/raw_storage": {
             "get": {
                 "description": "Get contract raw storage",
@@ -2281,15 +2224,15 @@ var doc = `{
                 "network": {
                     "type": "string"
                 },
-                "profile": {
-                    "type": "object",
-                    "$ref": "#/definitions/handlers.ProfileInfo"
-                },
                 "project_id": {
                     "type": "string"
                 },
                 "slug": {
                     "type": "string"
+                },
+                "subscription": {
+                    "type": "object",
+                    "$ref": "#/definitions/handlers.Subscription"
                 },
                 "tags": {
                     "type": "array",
@@ -2299,6 +2242,9 @@ var doc = `{
                 },
                 "timestamp": {
                     "type": "string"
+                },
+                "totalSubscribed": {
+                    "type": "integer"
                 },
                 "total_withdrawn": {
                     "type": "integer"
@@ -2596,14 +2542,6 @@ var doc = `{
                 }
             }
         },
-        "handlers.ProfileInfo": {
-            "type": "object",
-            "properties": {
-                "subscribed": {
-                    "type": "boolean"
-                }
-            }
-        },
         "handlers.ProjectStats": {
             "type": "object",
             "properties": {
@@ -2757,10 +2695,6 @@ var doc = `{
                 "network": {
                     "type": "string"
                 },
-                "profile": {
-                    "type": "object",
-                    "$ref": "#/definitions/handlers.ProfileInfo"
-                },
                 "project_id": {
                     "type": "string"
                 },
@@ -2770,6 +2704,10 @@ var doc = `{
                 "slug": {
                     "type": "string"
                 },
+                "subscription": {
+                    "type": "object",
+                    "$ref": "#/definitions/handlers.Subscription"
+                },
                 "tags": {
                     "type": "array",
                     "items": {
@@ -2778,6 +2716,9 @@ var doc = `{
                 },
                 "timestamp": {
                     "type": "string"
+                },
+                "totalSubscribed": {
+                    "type": "integer"
                 },
                 "total_withdrawn": {
                     "type": "integer"
@@ -2801,28 +2742,41 @@ var doc = `{
                 }
             }
         },
-        "handlers.SubRating": {
+        "handlers.Subscription": {
             "type": "object",
             "properties": {
-                "count": {
-                    "type": "integer"
-                },
-                "users": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handlers.SubRatingUser"
-                    }
-                }
-            }
-        },
-        "handlers.SubRatingUser": {
-            "type": "object",
-            "properties": {
-                "avatarURL": {
+                "address": {
                     "type": "string"
                 },
-                "login": {
+                "alias": {
                     "type": "string"
+                },
+                "network": {
+                    "type": "string"
+                },
+                "subscribed_at": {
+                    "type": "string"
+                },
+                "watch_calls": {
+                    "type": "boolean"
+                },
+                "watch_deployed": {
+                    "type": "boolean"
+                },
+                "watch_deployments": {
+                    "type": "boolean"
+                },
+                "watch_errors": {
+                    "type": "boolean"
+                },
+                "watch_migrations": {
+                    "type": "boolean"
+                },
+                "watch_same": {
+                    "type": "boolean"
+                },
+                "watch_similar": {
+                    "type": "boolean"
                 }
             }
         },
