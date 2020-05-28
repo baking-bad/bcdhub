@@ -53,7 +53,7 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	if err := createTasks(cfg.DB.ConnString, cfg.Elastic.URI, uint(userID), offset, size); err != nil {
+	if err := createTasks(cfg.DB.ConnString, cfg.Elastic.URI, cfg.Elastic.Timeout, uint(userID), offset, size); err != nil {
 		logger.Error(err)
 	}
 

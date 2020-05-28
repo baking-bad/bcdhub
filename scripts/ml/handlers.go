@@ -9,8 +9,8 @@ import (
 	"github.com/schollz/progressbar/v3"
 )
 
-func createTasks(dbConn, esConn string, userID uint, offset, size int) error {
-	es := elastic.WaitNew([]string{esConn})
+func createTasks(dbConn, esConn string, esTimeout int, userID uint, offset, size int) error {
+	es := elastic.WaitNew([]string{esConn}, esTimeout)
 
 	db, err := database.New(dbConn)
 	if err != nil {
