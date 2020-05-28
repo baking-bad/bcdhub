@@ -41,7 +41,7 @@ func (ctx *Context) GetSameContracts(c *gin.Context) {
 		return
 	}
 
-	sameContracts, err := ctx.ES.GetSameContracts(contract, 0, pageReq.Offset)
+	sameContracts, err := ctx.ES.GetSameContracts(contract, pageReq.Size, pageReq.Offset)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -59,15 +59,22 @@ func (ctx *Context) GetSameContracts(c *gin.Context) {
 // @ID get-contract-similar
 // @Param network path string true "Network"
 // @Param address path string true "KT address" minlength(36) maxlength(36)
+// @Param offset query integer false "Offset"
+// @Param size query integer false "Requested count" mininum(1)
 // @Accept  json
 // @Produce  json
-// @Success 200 {array} SimilarContract
+// @Success 200 {object} SimilarContractsResponse
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /contract/{network}/{address}/similar [get]
 func (ctx *Context) GetSimilarContracts(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
+	var pageReq pageableRequest
+	if err := c.BindQuery(&pageReq); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -80,12 +87,15 @@ func (ctx *Context) GetSimilarContracts(c *gin.Context) {
 		return
 	}
 
-	similar, err := ctx.ES.GetSimilarContracts(contract)
+	similar, total, err := ctx.ES.GetSimilarContracts(contract, pageReq.Size, pageReq.Offset)
 	if handleError(c, err, 0) {
 		return
 	}
 
-	response := make([]SimilarContract, len(similar))
+	response := SimilarContractsResponse{
+		Count:     total,
+		Contracts: make([]SimilarContract, len(similar)),
+	}
 	for i := range similar {
 		diff, err := ctx.getContractCodeDiff(
 			CodeDiffLeg{Address: contract.Address, Network: contract.Network},
@@ -94,7 +104,7 @@ func (ctx *Context) GetSimilarContracts(c *gin.Context) {
 		if handleError(c, err, 0) {
 			return
 		}
-		response[i].FromModels(similar[i], diff)
+		response.Contracts[i].FromModel(similar[i], diff)
 	}
 
 	c.JSON(http.StatusOK, response)

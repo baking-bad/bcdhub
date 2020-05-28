@@ -10,24 +10,13 @@ import (
 // RichStorage -
 type RichStorage struct {
 	DeffatedStorage string
-	BigMapDiffs     []*models.BigMapDiff
+	Models          []elastic.Model
 	Empty           bool
-}
-
-// GetBigMapDiffModels -
-func (r RichStorage) GetBigMapDiffModels() []elastic.Model {
-	result := make([]elastic.Model, len(r.BigMapDiffs))
-	for i := range r.BigMapDiffs {
-		result[i] = r.BigMapDiffs[i]
-	}
-	return result
 }
 
 // Parser -
 type Parser interface {
 	ParseTransaction(content gjson.Result, metadata meta.Metadata, operation models.Operation) (RichStorage, error)
 	ParseOrigination(content gjson.Result, metadata meta.Metadata, operation models.Operation) (RichStorage, error)
-	Enrich(string, []models.BigMapDiff, bool) (gjson.Result, error)
-
-	SetUpdates(map[int64][]*models.BigMapDiff)
+	Enrich(string, string, []models.BigMapDiff, bool) (gjson.Result, error)
 }

@@ -41,7 +41,7 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	es := elastic.WaitNew([]string{cfg.Elastic.URI})
+	es := elastic.WaitNew([]string{cfg.Elastic.URI}, cfg.Elastic.Timeout)
 
 	creds := awsData{
 		BucketName: cfg.AWS.BucketName,

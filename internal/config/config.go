@@ -31,8 +31,9 @@ type Config struct {
 	} `yaml:"sentry"`
 
 	API struct {
-		Bind  string `yaml:"bind"`
-		OAuth struct {
+		Bind        string `yaml:"bind"`
+		SwaggerHost string `yaml:"swagger_host"`
+		OAuth       struct {
 			Enabled bool `yaml:"enabled"`
 		} `yaml:"oauth"`
 		Sentry struct {
@@ -82,7 +83,8 @@ type RPCConfig struct {
 
 // ElasticSearchConfig -
 type ElasticSearchConfig struct {
-	URI string `yaml:"uri"`
+	URI     string `yaml:"uri"`
+	Timeout int    `yaml:"timeout"`
 }
 
 // DatabaseConfig -

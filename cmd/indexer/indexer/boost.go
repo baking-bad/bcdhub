@@ -77,7 +77,7 @@ func (bi *BoostIndexer) fetchExternalProtocols() error {
 			SymLink:    symLink,
 			Network:    bi.Network,
 		})
-		log.Printf("[%s] Fetched %s", bi.Network, alias)
+		logger.Info("[%s] Fetched %s", bi.Network, alias)
 	}
 
 	return bi.es.BulkInsert(protocols)
@@ -86,7 +86,7 @@ func (bi *BoostIndexer) fetchExternalProtocols() error {
 // NewBoostIndexer -
 func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOption) (*BoostIndexer, error) {
 	logger.Info("[%s] Creating indexer object...", network)
-	es := elastic.WaitNew([]string{cfg.Elastic.URI})
+	es := elastic.WaitNew([]string{cfg.Elastic.URI}, cfg.Elastic.Timeout)
 	rpcProvider, ok := cfg.RPC[network]
 	if !ok {
 		return nil, fmt.Errorf("Unknown network %s", network)

@@ -34,7 +34,7 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	docs.SwaggerInfo.Host = cfg.API.Bind
+	docs.SwaggerInfo.Host = cfg.API.SwaggerHost
 
 	gjson.AddModifier("upper", func(json, arg string) string {
 		return strings.ToUpper(json)
@@ -95,7 +95,7 @@ func main() {
 		r.Use(helpers.SentryMiddleware())
 	}
 
-	hub := ws.DefaultHub(cfg.Elastic.URI, cfg.RabbitMQ.URI, cfg.RabbitMQ.Queues)
+	hub := ws.DefaultHub(cfg.Elastic.URI, cfg.Elastic.Timeout, cfg.RabbitMQ.URI, cfg.RabbitMQ.Queues)
 	hub.Run()
 	defer hub.Stop()
 
@@ -130,6 +130,7 @@ func main() {
 		bigmap := v1.Group("bigmap/:network/:ptr")
 		{
 			bigmap.GET("", ctx.GetBigMap)
+			bigmap.GET("history", ctx.GetBigMapHistory)
 			keys := bigmap.Group("keys")
 			{
 				keys.GET("", ctx.GetBigMapKeys)
@@ -147,7 +148,6 @@ func main() {
 			contract.GET("storage", ctx.GetContractStorage)
 			contract.GET("raw_storage", ctx.GetContractStorageRaw)
 			contract.GET("rich_storage", ctx.GetContractStorageRich)
-			contract.GET("rating", ctx.GetContractRating)
 			contract.GET("mempool", ctx.GetMempool)
 			contract.GET("same", ctx.GetSameContracts)
 			contract.GET("similar", ctx.GetSimilarContracts)
@@ -180,12 +180,13 @@ func main() {
 			profile := authorized.Group("profile")
 			{
 				profile.GET("", ctx.GetUserProfile)
+				profile.GET("/mark_all_read", ctx.UserMarkAllRead)
 				subscriptions := profile.Group("subscriptions")
 				{
 					subscriptions.GET("", ctx.ListSubscriptions)
 					subscriptions.POST("", ctx.CreateSubscription)
 					subscriptions.DELETE("", ctx.DeleteSubscription)
-					subscriptions.GET("timeline", ctx.GetTimeline)
+					subscriptions.GET("events", ctx.GetEvents)
 				}
 				vote := profile.Group("vote")
 				{

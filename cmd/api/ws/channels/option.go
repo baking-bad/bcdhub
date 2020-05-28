@@ -24,9 +24,9 @@ func WithSource(sources []datasources.DataSource, typ string) ChannelOption {
 }
 
 // WithElasticSearch -
-func WithElasticSearch(connection string) ChannelOption {
+func WithElasticSearch(connection string, timeout int) ChannelOption {
 	return func(c *DefaultChannel) {
-		es := elastic.WaitNew([]string{connection})
+		es := elastic.WaitNew([]string{connection}, timeout)
 		c.es = es
 	}
 }

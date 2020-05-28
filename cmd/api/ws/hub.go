@@ -39,13 +39,13 @@ func NewHub(opts ...HubOption) *Hub {
 }
 
 // DefaultHub -
-func DefaultHub(elasticConnection, rabbitConnection string, queues []string) *Hub {
+func DefaultHub(elasticConnection string, elasticTimeout int, rabbitConnection string, queues []string) *Hub {
 	hub := NewHub(
 		WithRabbitSource(rabbitConnection, queues),
 	)
 	hub.AddPublicChannel(channels.NewStatsChannel(
 		channels.WithSource(hub.sources, datasources.RabbitType),
-		channels.WithElasticSearch(elasticConnection),
+		channels.WithElasticSearch(elasticConnection, elasticTimeout),
 	))
 	return hub
 }

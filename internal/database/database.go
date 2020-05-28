@@ -11,14 +11,14 @@ type DB interface {
 	// User
 	GetOrCreateUser(*User) error
 	GetUser(uint) (*User, error)
+	UpdateUserMarkReadAt(uint, int64) error
 
 	// Subscription
-	GetSubscription(address, network string) (Subscription, error)
+	GetSubscription(userID uint, address, network string) (Subscription, error)
 	ListSubscriptions(userID uint) ([]Subscription, error)
-	ListSubscriptionsWithLimit(userID uint, limit int) ([]Subscription, error)
 	UpsertSubscription(*Subscription) error
 	DeleteSubscription(*Subscription) error
-	GetSubscriptionRating(address, network string) (SubRating, error)
+	GetSubscriptionsCount(address, network string) (int, error)
 
 	// Alias
 	GetAliases(network string) ([]Alias, error)

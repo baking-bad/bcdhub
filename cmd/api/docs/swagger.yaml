@@ -111,21 +111,6 @@ definitions:
         example: contract_slug
         type: string
     type: object
-  handlers.BalanceUpdate:
-    properties:
-      category:
-        type: string
-      change:
-        type: integer
-      contract:
-        type: string
-      cycle:
-        type: integer
-      delegate:
-        type: string
-      kind:
-        type: string
-    type: object
   handlers.BigMapDiffByKeyResponse:
     properties:
       key:
@@ -147,6 +132,30 @@ definitions:
         type: string
       value:
         type: object
+    type: object
+  handlers.BigMapHistoryItem:
+    properties:
+      action:
+        type: string
+      destination_ptr:
+        type: integer
+      source_ptr:
+        type: integer
+      timestamp:
+        type: string
+    type: object
+  handlers.BigMapHistoryResponse:
+    properties:
+      address:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/handlers.BigMapHistoryItem'
+        type: array
+      network:
+        type: string
+      ptr:
+        type: integer
     type: object
   handlers.BigMapItem:
     properties:
@@ -267,13 +276,13 @@ definitions:
         type: integer
       network:
         type: string
-      profile:
-        $ref: '#/definitions/handlers.ProfileInfo'
-        type: object
       project_id:
         type: string
       slug:
         type: string
+      subscription:
+        $ref: '#/definitions/handlers.Subscription'
+        type: object
       tags:
         items:
           type: string
@@ -281,6 +290,8 @@ definitions:
       timestamp:
         type: string
       total_withdrawn:
+        type: integer
+      totalSubscribed:
         type: integer
       tx_count:
         type: integer
@@ -361,6 +372,10 @@ definitions:
       contracts_count:
         example: 10
         type: integer
+      languages:
+        additionalProperties:
+          type: integer
+        type: object
       operations_count:
         example: 100
         type: integer
@@ -375,11 +390,9 @@ definitions:
         type: integer
       balance:
         type: integer
-      balance_updates:
-        items:
-          $ref: '#/definitions/handlers.BalanceUpdate'
-        type: array
       burned:
+        type: integer
+      content_index:
         type: integer
       counter:
         type: integer
@@ -444,7 +457,7 @@ definitions:
         type: string
       operations:
         items:
-          type: integer
+          $ref: '#/definitions/handlers.Operation'
         type: array
     type: object
   handlers.OperationResult:
@@ -470,11 +483,6 @@ definitions:
         items:
           $ref: '#/definitions/handlers.TokenTransfer'
         type: array
-    type: object
-  handlers.ProfileInfo:
-    properties:
-      subscribed:
-        type: boolean
     type: object
   handlers.ProjectStats:
     properties:
@@ -579,15 +587,15 @@ definitions:
         type: integer
       network:
         type: string
-      profile:
-        $ref: '#/definitions/handlers.ProfileInfo'
-        type: object
       project_id:
         type: string
       removed:
         type: integer
       slug:
         type: string
+      subscription:
+        $ref: '#/definitions/handlers.Subscription'
+        type: object
       tags:
         items:
           type: string
@@ -596,24 +604,44 @@ definitions:
         type: string
       total_withdrawn:
         type: integer
+      totalSubscribed:
+        type: integer
       tx_count:
         type: integer
     type: object
-  handlers.SubRating:
+  handlers.SimilarContractsResponse:
     properties:
+      contracts:
+        items:
+          $ref: '#/definitions/handlers.SimilarContract'
+        type: array
       count:
         type: integer
-      users:
-        items:
-          $ref: '#/definitions/handlers.SubRatingUser'
-        type: array
     type: object
-  handlers.SubRatingUser:
+  handlers.Subscription:
     properties:
-      avatarURL:
+      address:
         type: string
-      login:
+      alias:
         type: string
+      network:
+        type: string
+      subscribed_at:
+        type: string
+      watch_calls:
+        type: boolean
+      watch_deployed:
+        type: boolean
+      watch_deployments:
+        type: boolean
+      watch_errors:
+        type: boolean
+      watch_migrations:
+        type: boolean
+      watch_same:
+        type: boolean
+      watch_similar:
+        type: boolean
     type: object
   handlers.TokenContract:
     properties:
@@ -738,6 +766,45 @@ paths:
           schema:
             $ref: '#/definitions/handlers.Error'
       summary: Get big map info by pointer
+      tags:
+      - bigmap
+  /bigmap/{network}/{ptr}/history:
+    get:
+      consumes:
+      - application/json
+      description: Get big map actions (alloc/copy/remove)
+      operationId: get-bigmap-history
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: Big map pointer
+        in: path
+        name: ptr
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.BigMapHistoryResponse'
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/gin.H'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Get big map actions (alloc/copy/remove)
       tags:
       - bigmap
   /bigmap/{network}/{ptr}/keys:
@@ -1225,45 +1292,6 @@ paths:
       summary: Get contract operations
       tags:
       - contract
-  /contract/{network}/{address}/rating:
-    get:
-      consumes:
-      - application/json
-      description: Get contract rating
-      operationId: get-contract-rating
-      parameters:
-      - description: Network
-        in: path
-        name: network
-        required: true
-        type: string
-      - description: KT address
-        in: path
-        maxLength: 36
-        minLength: 36
-        name: address
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/handlers.SubRating'
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.Error'
-      summary: Get contract rating
-      tags:
-      - contract
   /contract/{network}/{address}/raw_storage:
     get:
       consumes:
@@ -1403,15 +1431,22 @@ paths:
         name: address
         required: true
         type: string
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      - description: Requested count
+        in: query
+        minimum: 1
+        name: size
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/handlers.SimilarContract'
-            type: array
+            $ref: '#/definitions/handlers.SimilarContractsResponse'
         "400":
           description: Bad Request
           schema:
@@ -1606,7 +1641,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Search any data in contracts, operations and big map diff with filters
+      description: Search any data in contracts, operations and big map diff with
+        filters
       operationId: search
       parameters:
       - description: Query string
@@ -1644,11 +1680,13 @@ paths:
         in: query
         name: g
         type: integer
-      - description: 'Comma-separated list of indices for searching. Values: contract, operation, bigmapdiff'
+      - description: 'Comma-separated list of indices for searching. Values: contract,
+          operation, bigmapdiff'
         in: query
         name: i
         type: string
-      - description: 'Comma-separated list of languages for searching. Values: smartpy, liquidity, ligo, lorentz, michelson'
+      - description: 'Comma-separated list of languages for searching. Values: smartpy,
+          liquidity, ligo, lorentz, michelson'
         in: query
         name: l
         type: string
@@ -1750,36 +1788,6 @@ paths:
           schema:
             $ref: '#/definitions/handlers.Error'
       summary: Network statistics
-      tags:
-      - statistics
-  /stats/{network}/languages:
-    get:
-      consumes:
-      - application/json
-      description: Get languages stats for network
-      operationId: get-network-languages
-      parameters:
-      - description: Network
-        in: path
-        name: network
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/gin.H'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.Error'
-      summary: Get languages stats for network
       tags:
       - statistics
   /stats/{network}/series:

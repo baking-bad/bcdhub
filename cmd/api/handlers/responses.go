@@ -47,8 +47,7 @@ type Operation struct {
 	Errors           []cerrors.IError `json:"errors,omitempty"`
 	Burned           int64            `json:"burned,omitempty"`
 
-	BalanceUpdates []BalanceUpdate  `json:"balance_updates,omitempty"`
-	Result         *OperationResult `json:"result,omitempty"`
+	Result *OperationResult `json:"result,omitempty"`
 
 	Parameters  interface{} `json:"parameters,omitempty"`
 	StorageDiff interface{} `json:"storage_diff,omitempty"`
@@ -110,10 +109,6 @@ func (o *Operation) ToModel() models.Operation {
 	if o.Result != nil {
 		result = o.Result.ToModel()
 	}
-	balanceUpdates := make([]models.BalanceUpdate, len(o.BalanceUpdates))
-	for i := range o.BalanceUpdates {
-		balanceUpdates[i] = o.BalanceUpdates[i].ToModel()
-	}
 	return models.Operation{
 		ID:        o.ID,
 		Protocol:  o.Protocol,
@@ -141,8 +136,7 @@ func (o *Operation) ToModel() models.Operation {
 		Entrypoint:       o.Entrypoint,
 		IndexedTime:      o.IndexedTime,
 
-		BalanceUpdates: balanceUpdates,
-		Result:         result,
+		Result: result,
 	}
 }
 
@@ -178,37 +172,6 @@ func (r *OperationResult) ToModel() (result *models.OperationResult) {
 	return
 }
 
-// BalanceUpdate -
-type BalanceUpdate struct {
-	Kind     string `json:"kind"`
-	Contract string `json:"contract,omitempty"`
-	Change   int64  `json:"change"`
-	Category string `json:"category,omitempty"`
-	Delegate string `json:"delegate,omitempty"`
-	Cycle    int    `json:"cycle,omitempty"`
-}
-
-// FromModel -
-func (u *BalanceUpdate) FromModel(update models.BalanceUpdate) {
-	u.Category = update.Category
-	u.Change = update.Change
-	u.Contract = update.Contract
-	u.Cycle = update.Cycle
-	u.Delegate = update.Delegate
-	u.Kind = update.Kind
-}
-
-// ToModel -
-func (u *BalanceUpdate) ToModel() (update models.BalanceUpdate) {
-	update.Category = u.Category
-	update.Change = u.Change
-	update.Contract = u.Contract
-	update.Cycle = u.Cycle
-	update.Delegate = u.Delegate
-	update.Kind = u.Kind
-	return
-}
-
 // Contract -
 type Contract struct {
 	ID        string    `json:"id"`
@@ -238,8 +201,9 @@ type Contract struct {
 	Alias           string     `json:"alias,omitempty"`
 	DelegateAlias   string     `json:"delegate_alias,omitempty"`
 
-	Profile *ProfileInfo `json:"profile,omitempty"`
-	Slug    string       `json:"slug,omitempty"`
+	Subscription    *Subscription `json:"subscription,omitempty"`
+	TotalSubscribed int           `json:"total_subscribed"`
+	Slug            string        `json:"slug,omitempty"`
 }
 
 // FromModel -
@@ -273,28 +237,23 @@ func (c *Contract) FromModel(contract models.Contract) {
 	c.TxCount = contract.TxCount
 }
 
-// ProfileInfo -
-type ProfileInfo struct {
-	Subscribed bool `json:"subscribed"`
-}
-
 // Subscription -
 type Subscription struct {
 	Address          string    `json:"address"`
 	Network          string    `json:"network"`
 	Alias            string    `json:"alias,omitempty"`
 	SubscribedAt     time.Time `json:"subscribed_at"`
-	WatchSame        bool      `json:"watchSame"`
-	WatchSimilar     bool      `json:"watchSimilar"`
-	WatchDeployed    bool      `json:"watchDeployed"`
-	WatchMigrations  bool      `json:"watchMigrations"`
-	WatchDeployments bool      `json:"watchDeployments"`
-	WatchCalls       bool      `json:"watchCalls"`
-	WatchErrors      bool      `json:"watchErrors"`
+	WatchSame        bool      `json:"watch_same"`
+	WatchSimilar     bool      `json:"watch_similar"`
+	WatchDeployed    bool      `json:"watch_deployed"`
+	WatchMigrations  bool      `json:"watch_migrations"`
+	WatchDeployments bool      `json:"watch_deployments"`
+	WatchCalls       bool      `json:"watch_calls"`
+	WatchErrors      bool      `json:"watch_errors"`
 }
 
-// TimelineItem -
-type TimelineItem struct {
+// Event -
+type Event struct {
 	Event string    `json:"event"`
 	Date  time.Time `json:"date"`
 }
@@ -302,14 +261,13 @@ type TimelineItem struct {
 // OperationResponse -
 type OperationResponse struct {
 	Operations []Operation `json:"operations"`
-	LastID     string      `json:"last_id" example:"1588640276994159"`
+	LastID     string      `json:"last_id,omitempty" example:"1588640276994159"`
 }
 
 type userProfile struct {
-	Login         string         `json:"login"`
-	AvatarURL     string         `json:"avatarURL"`
-	Subscriptions []Subscription `json:"subscriptions"`
-	MarkReadAt    time.Time      `json:"mark_read_at"`
+	Login      string    `json:"login"`
+	AvatarURL  string    `json:"avatar_url"`
+	MarkReadAt time.Time `json:"mark_read_at"`
 }
 
 // BigMapItem -
@@ -539,6 +497,12 @@ func (c *LightContract) FromModel(light elastic.LightContract) {
 	c.Deployed = light.Deployed
 }
 
+// SimilarContractsResponse -
+type SimilarContractsResponse struct {
+	Count     uint64            `json:"count"`
+	Contracts []SimilarContract `json:"contracts"`
+}
+
 // SimilarContract -
 type SimilarContract struct {
 	*Contract
@@ -547,8 +511,8 @@ type SimilarContract struct {
 	Removed int64  `json:"removed,omitempty"`
 }
 
-// FromModels -
-func (c *SimilarContract) FromModels(similar elastic.SimilarContract, diff CodeDiffResponse) {
+// FromModel -
+func (c *SimilarContract) FromModel(similar elastic.SimilarContract, diff CodeDiffResponse) {
 	var contract Contract
 	contract.FromModel(*similar.Contract)
 	c.Contract = &contract
@@ -576,29 +540,21 @@ func (c *SameContractsResponse) FromModel(same elastic.SameContractsResponse) {
 	}
 }
 
-// SubRating -
-type SubRating struct {
-	Count int             `json:"count"`
-	Users []SubRatingUser `json:"users"`
-}
-
-// SubRatingUser -
-type SubRatingUser struct {
-	Login     string `json:"login"`
-	AvatarURL string `json:"avatarURL"`
-}
-
-// FromModel -
-func (r *SubRating) FromModel(rating database.SubRating) {
-	r.Count = rating.Count
-	r.Users = make([]SubRatingUser, len(rating.Users))
-	for i := range rating.Users {
-		r.Users[i] = SubRatingUser{
-			Login:     rating.Users[i].Login,
-			AvatarURL: rating.Users[i].AvatarURL,
-		}
-	}
-}
-
 // Series -
 type Series [][]int64
+
+// BigMapHistoryResponse -
+type BigMapHistoryResponse struct {
+	Address string              `json:"address"`
+	Network string              `json:"network"`
+	Ptr     int64               `json:"ptr"`
+	Items   []BigMapHistoryItem `json:"items,omitempty"`
+}
+
+// BigMapHistoryItem -
+type BigMapHistoryItem struct {
+	Action         string    `json:"action"`
+	SourcePtr      *int64    `json:"source_ptr,omitempty"`
+	DestinationPtr *int64    `json:"destination_ptr,omitempty"`
+	Timestamp      time.Time `json:"timestamp"`
+}

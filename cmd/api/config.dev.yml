@@ -8,6 +8,7 @@ sentry:
 
 elastic:
     uri: http://127.0.0.1:9200
+    timeout: 30
 
 db:
     conn_string: "host=127.0.0.1 port=5432 user=${POSTGRES_USER} dbname=bcd password=${POSTGRES_PASSWORD} sslmode=disable"
@@ -28,6 +29,7 @@ oauth:
 
 api:
     bind: "127.0.0.1:14000"
+    swagger_host: "localhost:14000"
     oauth:
         enabled: true
     sentry:

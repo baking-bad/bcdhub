@@ -70,6 +70,64 @@
                 }
             }
         },
+        "/bigmap/{network}/{ptr}/history": {
+            "get": {
+                "description": "Get big map actions (alloc/copy/remove)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bigmap"
+                ],
+                "summary": "Get big map actions (alloc/copy/remove)",
+                "operationId": "get-bigmap-history",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Big map pointer",
+                        "name": "ptr",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.BigMapHistoryResponse"
+                        }
+                    },
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/bigmap/{network}/{ptr}/keys": {
             "get": {
                 "description": "Get big map keys by pointer",
@@ -782,63 +840,6 @@
                 }
             }
         },
-        "/contract/{network}/{address}/rating": {
-            "get": {
-                "description": "Get contract rating",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "contract"
-                ],
-                "summary": "Get contract rating",
-                "operationId": "get-contract-rating",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Network",
-                        "name": "network",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "maxLength": 36,
-                        "minLength": 36,
-                        "type": "string",
-                        "description": "KT address",
-                        "name": "address",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/handlers.SubRating"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    }
-                }
-            }
-        },
         "/contract/{network}/{address}/raw_storage": {
             "get": {
                 "description": "Get contract raw storage",
@@ -1044,16 +1045,26 @@
                         "name": "address",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Requested count",
+                        "name": "size",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/handlers.SimilarContract"
-                            }
+                            "$ref": "#/definitions/handlers.SimilarContractsResponse"
                         }
                     },
                     "400": {
@@ -1561,51 +1572,6 @@
                 }
             }
         },
-        "/stats/{network}/languages": {
-            "get": {
-                "description": "Get languages stats for network",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "statistics"
-                ],
-                "summary": "Get languages stats for network",
-                "operationId": "get-network-languages",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Network",
-                        "name": "network",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/gin.H"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    }
-                }
-            }
-        },
         "/stats/{network}/series": {
             "get": {
                 "description": "Get count series data for network",
@@ -1972,29 +1938,6 @@
                 }
             }
         },
-        "handlers.BalanceUpdate": {
-            "type": "object",
-            "properties": {
-                "category": {
-                    "type": "string"
-                },
-                "change": {
-                    "type": "integer"
-                },
-                "contract": {
-                    "type": "string"
-                },
-                "cycle": {
-                    "type": "integer"
-                },
-                "delegate": {
-                    "type": "string"
-                },
-                "kind": {
-                    "type": "string"
-                }
-            }
-        },
         "handlers.BigMapDiffByKeyResponse": {
             "type": "object",
             "properties": {
@@ -2026,6 +1969,43 @@
                 },
                 "value": {
                     "type": "object"
+                }
+            }
+        },
+        "handlers.BigMapHistoryItem": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "destination_ptr": {
+                    "type": "integer"
+                },
+                "source_ptr": {
+                    "type": "integer"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.BigMapHistoryResponse": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.BigMapHistoryItem"
+                    }
+                },
+                "network": {
+                    "type": "string"
+                },
+                "ptr": {
+                    "type": "integer"
                 }
             }
         },
@@ -2204,15 +2184,15 @@
                 "network": {
                     "type": "string"
                 },
-                "profile": {
-                    "type": "object",
-                    "$ref": "#/definitions/handlers.ProfileInfo"
-                },
                 "project_id": {
                     "type": "string"
                 },
                 "slug": {
                     "type": "string"
+                },
+                "subscription": {
+                    "type": "object",
+                    "$ref": "#/definitions/handlers.Subscription"
                 },
                 "tags": {
                     "type": "array",
@@ -2222,6 +2202,9 @@
                 },
                 "timestamp": {
                     "type": "string"
+                },
+                "totalSubscribed": {
+                    "type": "integer"
                 },
                 "total_withdrawn": {
                     "type": "integer"
@@ -2346,6 +2329,12 @@
                     "type": "integer",
                     "example": 10
                 },
+                "languages": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
                 "operations_count": {
                     "type": "integer",
                     "example": 100
@@ -2367,13 +2356,10 @@
                 "balance": {
                     "type": "integer"
                 },
-                "balance_updates": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handlers.BalanceUpdate"
-                    }
-                },
                 "burned": {
+                    "type": "integer"
+                },
+                "content_index": {
                     "type": "integer"
                 },
                 "counter": {
@@ -2470,7 +2456,7 @@
                 "operations": {
                     "type": "array",
                     "items": {
-                        "type": "integer"
+                        "$ref": "#/definitions/handlers.Operation"
                     }
                 }
             }
@@ -2507,14 +2493,6 @@
                     "items": {
                         "$ref": "#/definitions/handlers.TokenTransfer"
                     }
-                }
-            }
-        },
-        "handlers.ProfileInfo": {
-            "type": "object",
-            "properties": {
-                "subscribed": {
-                    "type": "boolean"
                 }
             }
         },
@@ -2671,10 +2649,6 @@
                 "network": {
                     "type": "string"
                 },
-                "profile": {
-                    "type": "object",
-                    "$ref": "#/definitions/handlers.ProfileInfo"
-                },
                 "project_id": {
                     "type": "string"
                 },
@@ -2683,6 +2657,10 @@
                 },
                 "slug": {
                     "type": "string"
+                },
+                "subscription": {
+                    "type": "object",
+                    "$ref": "#/definitions/handlers.Subscription"
                 },
                 "tags": {
                     "type": "array",
@@ -2693,6 +2671,9 @@
                 "timestamp": {
                     "type": "string"
                 },
+                "totalSubscribed": {
+                    "type": "integer"
+                },
                 "total_withdrawn": {
                     "type": "integer"
                 },
@@ -2701,28 +2682,55 @@
                 }
             }
         },
-        "handlers.SubRating": {
+        "handlers.SimilarContractsResponse": {
             "type": "object",
             "properties": {
-                "count": {
-                    "type": "integer"
-                },
-                "users": {
+                "contracts": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/handlers.SubRatingUser"
+                        "$ref": "#/definitions/handlers.SimilarContract"
                     }
+                },
+                "count": {
+                    "type": "integer"
                 }
             }
         },
-        "handlers.SubRatingUser": {
+        "handlers.Subscription": {
             "type": "object",
             "properties": {
-                "avatarURL": {
+                "address": {
                     "type": "string"
                 },
-                "login": {
+                "alias": {
                     "type": "string"
+                },
+                "network": {
+                    "type": "string"
+                },
+                "subscribed_at": {
+                    "type": "string"
+                },
+                "watch_calls": {
+                    "type": "boolean"
+                },
+                "watch_deployed": {
+                    "type": "boolean"
+                },
+                "watch_deployments": {
+                    "type": "boolean"
+                },
+                "watch_errors": {
+                    "type": "boolean"
+                },
+                "watch_migrations": {
+                    "type": "boolean"
+                },
+                "watch_same": {
+                    "type": "boolean"
+                },
+                "watch_similar": {
+                    "type": "boolean"
                 }
             }
         },

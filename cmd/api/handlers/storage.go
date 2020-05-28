@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
@@ -30,16 +31,15 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 		return
 	}
 
-	storage, err := ctx.ES.GetLastStorage(req.Network, req.Address)
+	last, err := ctx.ES.GetLastOperation(req.Address, req.Network, time.Now().UnixNano()/1000)
 	if handleError(c, err, 0) {
 		return
 	}
 
 	var s gjson.Result
-	protocol := storage.Get("_source.protocol").String()
+	protocol := last.Protocol
 	if protocol != "" {
-		s = gjson.Parse(storage.Get("_source.deffated_storage").String())
-
+		s = gjson.Parse(last.DeffatedStorage)
 	} else {
 		rpc, err := ctx.GetRPC(req.Network)
 		if handleError(c, err, http.StatusBadRequest) {
@@ -87,12 +87,12 @@ func (ctx *Context) GetContractStorageRaw(c *gin.Context) {
 		return
 	}
 
-	storage, err := ctx.ES.GetLastStorage(req.Network, req.Address)
+	last, err := ctx.ES.GetLastOperation(req.Address, req.Network, time.Now().UnixNano()/1000)
 	if handleError(c, err, 0) {
 		return
 	}
 
-	s := gjson.Parse(storage.Get("_source.deffated_storage").String())
+	s := gjson.Parse(last.DeffatedStorage)
 	resp, err := formatter.MichelineToMichelson(s, false, formatter.DefLineSize)
 	if handleError(c, err, 0) {
 		return
@@ -120,7 +120,12 @@ func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 		return
 	}
 
-	storage, err := ctx.ES.GetLastStorage(req.Network, req.Address)
+	last, err := ctx.ES.GetLastOperation(req.Address, req.Network, time.Now().UnixNano()/1000)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	prev, err := ctx.ES.GetLastOperation(req.Address, req.Network, last.IndexedTime)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -130,8 +135,7 @@ func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 		return
 	}
 
-	protocol := storage.Get("_source.protocol").String()
-	resp, err := enrichStorage(storage.Get("_source.deffated_storage").String(), bmd, protocol, true, false)
+	resp, err := enrichStorage(last.DeffatedStorage, prev.DeffatedStorage, bmd, last.Protocol, true, false)
 	if handleError(c, err, 0) {
 		return
 	}

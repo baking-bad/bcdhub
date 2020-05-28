@@ -19,6 +19,7 @@ sentry:
 
 elastic:
     uri: http://elastic:9200
+    timeout: 30
 
 rabbitmq:
     uri: "amqp://${RABBIT_USER}:${RABBIT_PASSWORD}@mq:5672/"
