@@ -12,22 +12,32 @@ type Assessments struct {
 	Assessment uint   `gorm:"not null" json:"-"`
 }
 
+// Assessment field values
+const (
+	AssessmentUndefined  = 10
+	AssessmentSimilar    = 1
+	AssessmentNotSimilar = 0
+)
+
 // CreateAssessment -
-func (d *db) CreateOrUpdateAssessment(address1, network1, address2, network2 string, userID, assessment uint) error {
-	a := Assessments{
-		Address1:   address1,
-		Network1:   network1,
-		Address2:   address2,
-		Network2:   network2,
-		UserID:     userID,
-		Assessment: assessment,
-	}
-	return d.ORM.Assign(a).FirstOrCreate(&a).Error
+func (d *db) CreateAssessment(a *Assessments) error {
+	return d.ORM.Create(a).Error
+}
+
+// UpdateAssessment -
+func (d *db) CreateOrUpdateAssessment(a *Assessments) error {
+	return d.ORM.Where(
+		"address1 = ? AND network1 = ? AND address2 = ? AND network2 = ? AND user_id = ?",
+		a.Address1, a.Network1, a.Address2, a.Network2, a.UserID).
+		Assign(Assessments{Assessment: a.Assessment}).
+		FirstOrCreate(a).Error
 }
 
 func (d *db) GetNextAssessmentWithValue(userID, assessment uint) (Assessments, error) {
 	var a Assessments
-	if err := d.ORM.Where("user_id = ? AND assessment = ?", userID, assessment).Order(gorm.Expr("random()")).First(&a).Error; err != nil {
+	if err := d.ORM.Where("user_id = ? AND assessment = ?", userID, assessment).
+		Order(gorm.Expr("random()")).
+		First(&a).Error; err != nil {
 		return a, err
 	}
 	return a, nil

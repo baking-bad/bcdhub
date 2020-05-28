@@ -182,7 +182,7 @@ func (e *Elastic) GetProjectsStats() (stats []ProjectStats, err error) {
 }
 
 // GetDiffTasks -
-func (e *Elastic) GetDiffTasks(offset int64) ([]DiffTask, error) {
+func (e *Elastic) GetDiffTasks() ([]DiffTask, error) {
 	query := newQuery().Add(
 		aggs("by_project", qItem{
 			"terms": qItem{
@@ -201,7 +201,7 @@ func (e *Elastic) GetDiffTasks(offset int64) ([]DiffTask, error) {
 				},
 			},
 		}),
-	).From(offset).Zero()
+	).Zero()
 
 	resp, err := e.query([]string{DocContracts}, query)
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/classification/metrics"
+	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 )
@@ -47,8 +48,15 @@ func (ctx *Context) Vote(c *gin.Context) {
 		return
 	}
 
-	userID := CurrentUserID(c)
-	if err := ctx.DB.CreateOrUpdateAssessment(a.Address, a.Network, b.Address, b.Network, userID, req.Vote); handleError(c, err, 0) {
+	assessment := database.Assessments{
+		Address1:   a.Address,
+		Network1:   a.Network,
+		Address2:   b.Address,
+		Network2:   b.Network,
+		UserID:     CurrentUserID(c),
+		Assessment: req.Vote,
+	}
+	if err := ctx.DB.CreateOrUpdateAssessment(&assessment); handleError(c, err, 0) {
 		return
 	}
 	c.JSON(http.StatusOK, "")
@@ -57,7 +65,7 @@ func (ctx *Context) Vote(c *gin.Context) {
 // GetNextDiffTask -
 func (ctx *Context) GetNextDiffTask(c *gin.Context) {
 	userID := CurrentUserID(c)
-	a, err := ctx.DB.GetNextAssessmentWithValue(userID, 10)
+	a, err := ctx.DB.GetNextAssessmentWithValue(userID, database.AssessmentUndefined)
 	if gorm.IsRecordNotFoundError(err) {
 		c.JSON(http.StatusOK, nil)
 		return

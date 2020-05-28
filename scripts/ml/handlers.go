@@ -8,29 +8,36 @@ import (
 	"github.com/schollz/progressbar/v3"
 )
 
-func createTasks(dbConn, esConn string, userID uint, offset int64) error {
+func createTasks(dbConn, esConn string, userID uint, offset, size int) error {
 	es := elastic.WaitNew([]string{esConn})
 
-	fullDBConn, err := askDatabaseConnectionString(dbConn)
-	if err != nil {
-		return err
-	}
-
-	db, err := database.New(fullDBConn)
+	db, err := database.New(dbConn)
 	if err != nil {
 		return err
 	}
 	defer db.Close()
 
-	diffTasks, err := es.GetDiffTasks(offset)
+	allTasks, err := es.GetDiffTasks()
 	if err != nil {
 		return err
 	}
 
-	bar := progressbar.NewOptions(len(diffTasks), progressbar.OptionSetPredictTime(false))
-	for _, diff := range diffTasks {
+	fmt.Printf("Total %d pairs, picking %d:%d\n", len(allTasks), offset, offset+size)
+
+	tasks := allTasks[offset : offset+size]
+
+	bar := progressbar.NewOptions(len(tasks), progressbar.OptionSetPredictTime(false))
+	for _, diff := range tasks {
 		bar.Add(1)
-		if err := db.CreateOrUpdateAssessment(diff.Address1, diff.Network1, diff.Address2, diff.Network2, userID, 10); err != nil {
+		a := database.Assessments{
+			Address1:   diff.Address1,
+			Network1:   diff.Network1,
+			Address2:   diff.Address2,
+			Network2:   diff.Network2,
+			UserID:     userID,
+			Assessment: database.AssessmentUndefined,
+		}
+		if err := db.CreateAssessment(&a); err != nil {
 			fmt.Print("\033[2K\r")
 			return err
 		}

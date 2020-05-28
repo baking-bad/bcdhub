@@ -66,3 +66,6 @@ deploy:
 	docker-compose pull
 	docker-compose up -d
 	docker-compose ps
+
+task:
+	cd scripts/ml && go run . -f ../config.yml
