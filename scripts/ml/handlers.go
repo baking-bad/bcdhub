@@ -2,35 +2,46 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/schollz/progressbar/v3"
 )
 
-func createTasks(dbConn, esConn string, esTimeout int, userID uint, offset int64) error {
+func createTasks(dbConn, esConn string, esTimeout int, userID uint, offset, size int) error {
 	es := elastic.WaitNew([]string{esConn}, esTimeout)
 
-	fullDBConn, err := askDatabaseConnectionString(dbConn)
-	if err != nil {
-		return err
-	}
-
-	db, err := database.New(fullDBConn)
+	db, err := database.New(dbConn)
 	if err != nil {
 		return err
 	}
 	defer db.Close()
 
-	diffTasks, err := es.GetDiffTasks(offset)
+	allTasks, err := es.GetDiffTasks()
 	if err != nil {
 		return err
 	}
 
-	bar := progressbar.NewOptions(len(diffTasks), progressbar.OptionSetPredictTime(false))
-	for _, diff := range diffTasks {
+	rand.Seed(42)
+	rand.Shuffle(len(allTasks), func(i, j int) { allTasks[i], allTasks[j] = allTasks[j], allTasks[i] })
+
+	fmt.Printf("Total %d pairs, picking %d:%d\n", len(allTasks), offset, offset+size)
+
+	tasks := allTasks[offset : offset+size]
+
+	bar := progressbar.NewOptions(len(tasks), progressbar.OptionSetPredictTime(false))
+	for _, diff := range tasks {
 		bar.Add(1)
-		if err := db.CreateOrUpdateAssessment(diff.Address1, diff.Network1, diff.Address2, diff.Network2, userID, 10); err != nil {
+		a := database.Assessments{
+			Address1:   diff.Address1,
+			Network1:   diff.Network1,
+			Address2:   diff.Address2,
+			Network2:   diff.Network2,
+			UserID:     userID,
+			Assessment: database.AssessmentUndefined,
+		}
+		if err := db.CreateAssessment(&a); err != nil {
 			fmt.Print("\033[2K\r")
 			return err
 		}
