@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/elastic"
@@ -21,6 +22,9 @@ func createTasks(dbConn, esConn string, userID uint, offset, size int) error {
 	if err != nil {
 		return err
 	}
+
+	rand.Seed(42)
+	rand.Shuffle(len(allTasks), func(i, j int) { allTasks[i], allTasks[j] = allTasks[j], allTasks[i] })
 
 	fmt.Printf("Total %d pairs, picking %d:%d\n", len(allTasks), offset, offset+size)
 
