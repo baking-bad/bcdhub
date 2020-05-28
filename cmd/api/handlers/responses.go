@@ -47,8 +47,7 @@ type Operation struct {
 	Errors           []cerrors.IError `json:"errors,omitempty"`
 	Burned           int64            `json:"burned,omitempty"`
 
-	BalanceUpdates []BalanceUpdate  `json:"balance_updates,omitempty"`
-	Result         *OperationResult `json:"result,omitempty"`
+	Result *OperationResult `json:"result,omitempty"`
 
 	Parameters  interface{} `json:"parameters,omitempty"`
 	StorageDiff interface{} `json:"storage_diff,omitempty"`
@@ -110,10 +109,6 @@ func (o *Operation) ToModel() models.Operation {
 	if o.Result != nil {
 		result = o.Result.ToModel()
 	}
-	balanceUpdates := make([]models.BalanceUpdate, len(o.BalanceUpdates))
-	for i := range o.BalanceUpdates {
-		balanceUpdates[i] = o.BalanceUpdates[i].ToModel()
-	}
 	return models.Operation{
 		ID:        o.ID,
 		Protocol:  o.Protocol,
@@ -141,8 +136,7 @@ func (o *Operation) ToModel() models.Operation {
 		Entrypoint:       o.Entrypoint,
 		IndexedTime:      o.IndexedTime,
 
-		BalanceUpdates: balanceUpdates,
-		Result:         result,
+		Result: result,
 	}
 }
 
@@ -175,37 +169,6 @@ func (r *OperationResult) ToModel() (result *models.OperationResult) {
 	result.ConsumedGas = r.ConsumedGas
 	result.PaidStorageSizeDiff = r.PaidStorageSizeDiff
 	result.StorageSize = r.StorageSize
-	return
-}
-
-// BalanceUpdate -
-type BalanceUpdate struct {
-	Kind     string `json:"kind"`
-	Contract string `json:"contract,omitempty"`
-	Change   int64  `json:"change"`
-	Category string `json:"category,omitempty"`
-	Delegate string `json:"delegate,omitempty"`
-	Cycle    int    `json:"cycle,omitempty"`
-}
-
-// FromModel -
-func (u *BalanceUpdate) FromModel(update models.BalanceUpdate) {
-	u.Category = update.Category
-	u.Change = update.Change
-	u.Contract = update.Contract
-	u.Cycle = update.Cycle
-	u.Delegate = update.Delegate
-	u.Kind = update.Kind
-}
-
-// ToModel -
-func (u *BalanceUpdate) ToModel() (update models.BalanceUpdate) {
-	update.Category = u.Category
-	update.Change = u.Change
-	update.Contract = u.Contract
-	update.Cycle = u.Cycle
-	update.Delegate = u.Delegate
-	update.Kind = u.Kind
 	return
 }
 
@@ -289,8 +252,8 @@ type Subscription struct {
 	WatchErrors      bool      `json:"watch_errors"`
 }
 
-// TimelineItem -
-type TimelineItem struct {
+// Event -
+type Event struct {
 	Event string    `json:"event"`
 	Date  time.Time `json:"date"`
 }
