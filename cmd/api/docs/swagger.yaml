@@ -111,21 +111,6 @@ definitions:
         example: contract_slug
         type: string
     type: object
-  handlers.BalanceUpdate:
-    properties:
-      category:
-        type: string
-      change:
-        type: integer
-      contract:
-        type: string
-      cycle:
-        type: integer
-      delegate:
-        type: string
-      kind:
-        type: string
-    type: object
   handlers.BigMapDiffByKeyResponse:
     properties:
       key:
@@ -405,10 +390,6 @@ definitions:
         type: integer
       balance:
         type: integer
-      balance_updates:
-        items:
-          $ref: '#/definitions/handlers.BalanceUpdate'
-        type: array
       burned:
         type: integer
       content_index:

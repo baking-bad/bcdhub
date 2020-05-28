@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/goombaio/namegenerator"
 	"github.com/tidwall/gjson"
@@ -132,61 +133,6 @@ func (b *BigMapDiff) ParseElasticJSON(hit gjson.Result) {
 	b.Protocol = hit.Get("_source.protocol").String()
 }
 
-type contractPair struct {
-	Address string
-	Network string
-}
-
-// ParseElasticJSONArray -
-func (c *contractPair) ParseElasticJSONArray(hit gjson.Result) {
-	c.Address = hit.Get("0").String()
-	c.Network = hit.Get("1").String()
-}
-
-// TimelineItem -
-type TimelineItem struct {
-	Network          string    `json:"network"`
-	Hash             string    `json:"hash"`
-	Status           string    `json:"status"`
-	Timestamp        time.Time `json:"timestamp"`
-	Kind             string    `json:"kind"`
-	Source           string    `json:"source"`
-	Amount           int64     `json:"amount,omitempty"`
-	Level            int64     `json:"level,omitempty"`
-	Destination      string    `json:"destination,omitempty"`
-	Entrypoint       string    `json:"entrypoint,omitempty"`
-	SourceAlias      string    `json:"source_alias,omitempty"`
-	DestinationAlias string    `json:"destination_alias,omitempty"`
-}
-
-// ParseJSONOperation -
-func (t *TimelineItem) ParseJSONOperation(hit gjson.Result) {
-	t.Network = hit.Get("_source.network").String()
-	t.Hash = hit.Get("_source.hash").String()
-	t.Status = hit.Get("_source.status").String()
-	t.Timestamp = hit.Get("_source.timestamp").Time()
-	t.Kind = hit.Get("_source.kind").String()
-	t.Source = hit.Get("_source.source").String()
-	t.Destination = hit.Get("_source.destination").String()
-	t.Entrypoint = hit.Get("_source.entrypoint").String()
-	t.Amount = hit.Get("_source.amount").Int()
-	t.Level = hit.Get("_source.level").Int()
-	t.SourceAlias = hit.Get("_source.source_alias").String()
-	t.DestinationAlias = hit.Get("_source.destination_alias").String()
-}
-
-// ParseJSONMigration -
-func (t *TimelineItem) ParseJSONMigration(hit gjson.Result) {
-	t.Network = hit.Get("_source.network").String()
-	t.Hash = hit.Get("_source.hash").String()
-	t.Status = "applied"
-	t.Timestamp = hit.Get("_source.timestamp").Time()
-	t.Kind = DocMigrations
-	t.Source = hit.Get("_source.address").String()
-	t.Level = hit.Get("_source.level").Int()
-	t.SourceAlias = hit.Get("_source.source_alias").String()
-}
-
 // ContractStats -
 type ContractStats struct {
 	TxCount        int64     `json:"tx_count"`
@@ -233,4 +179,123 @@ type ContractCountStats struct {
 	SameCount      int64
 	TotalWithdrawn int64
 	Balance        int64
+}
+
+// SubscriptionRequest -
+type SubscriptionRequest struct {
+	ID              uint
+	Address         string
+	Network         string
+	WithSame        bool
+	WithSimilar     bool
+	WithDeployed    bool
+	WithMigrations  bool
+	WithErrors      bool
+	WithCalls       bool
+	WithDeployments bool
+}
+
+// EventContract -
+type EventContract struct {
+	SubscriptionID uint   `json:"subscription_id"`
+	Network        string `json:"network"`
+	Address        string `json:"hash"`
+}
+
+// Event -
+type Event struct {
+	Index string      `json:"index"`
+	Body  interface{} `json:"body,omitempty"`
+}
+
+// EventOperation -
+type EventOperation struct {
+	ContentIndex int64 `json:"content_index,omitempty"`
+
+	Network       string `json:"network"`
+	Protocol      string `json:"protocol"`
+	Hash          string `json:"hash"`
+	Internal      bool   `json:"internal"`
+	InternalIndex int64  `json:"internal_index,omitempty"`
+
+	Status           string    `json:"status"`
+	Timestamp        time.Time `json:"timestamp"`
+	Level            int64     `json:"level"`
+	Kind             string    `json:"kind"`
+	Source           string    `json:"source"`
+	Fee              int64     `json:"fee,omitempty"`
+	Counter          int64     `json:"counter,omitempty"`
+	GasLimit         int64     `json:"gas_limit,omitempty"`
+	StorageLimit     int64     `json:"storage_limit,omitempty"`
+	Amount           int64     `json:"amount,omitempty"`
+	Destination      string    `json:"destination,omitempty"`
+	Delegate         string    `json:"delegate,omitempty"`
+	Entrypoint       string    `json:"entrypoint,omitempty"`
+	SourceAlias      string    `json:"source_alias,omitempty"`
+	DestinationAlias string    `json:"destination_alias,omitempty"`
+
+	Result *models.OperationResult `json:"result,omitempty"`
+	Errors []cerrors.IError        `json:"errors,omitempty"`
+	Burned int64                   `json:"burned,omitempty"`
+
+	DelegateAlias string `json:"delegate_alias,omitempty"`
+}
+
+// ParseElasticJSON -
+func (o *EventOperation) ParseElasticJSON(resp gjson.Result) {
+	o.ContentIndex = resp.Get("_source.content_index").Int()
+
+	o.Protocol = resp.Get("_source.protocol").String()
+	o.Hash = resp.Get("_source.hash").String()
+	o.Internal = resp.Get("_source.internal").Bool()
+	o.Network = resp.Get("_source.network").String()
+	o.Timestamp = resp.Get("_source.timestamp").Time().UTC()
+	o.InternalIndex = resp.Get("_source.internal_index").Int()
+
+	o.Status = resp.Get("_source.status").String()
+	o.Level = resp.Get("_source.level").Int()
+	o.Kind = resp.Get("_source.kind").String()
+	o.Source = resp.Get("_source.source").String()
+	o.Fee = resp.Get("_source.fee").Int()
+	o.Counter = resp.Get("_source.counter").Int()
+	o.GasLimit = resp.Get("_source.gas_limit").Int()
+	o.StorageLimit = resp.Get("_source.storage_limit").Int()
+	o.Amount = resp.Get("_source.amount").Int()
+	o.Destination = resp.Get("_source.destination").String()
+	o.Delegate = resp.Get("_source.delegate").String()
+	o.Entrypoint = resp.Get("_source.entrypoint").String()
+	o.SourceAlias = resp.Get("_source.source_alias").String()
+	o.DestinationAlias = resp.Get("_source.destination_alias").String()
+	o.Burned = resp.Get("_source.burned").Int()
+
+	var opResult models.OperationResult
+	opResult.ParseElasticJSON(resp.Get("_source.result"))
+	o.Result = &opResult
+
+	err := resp.Get("_source.errors")
+	o.Errors = cerrors.ParseArray(err)
+}
+
+// EventMigration -
+type EventMigration struct {
+	Network      string    `json:"network"`
+	Protocol     string    `json:"protocol"`
+	PrevProtocol string    `json:"prev_protocol,omitempty"`
+	Hash         string    `json:"hash,omitempty"`
+	Timestamp    time.Time `json:"timestamp"`
+	Level        int64     `json:"level"`
+	Address      string    `json:"address"`
+	Kind         string    `json:"kind"`
+}
+
+// ParseElasticJSON -
+func (m *EventMigration) ParseElasticJSON(resp gjson.Result) {
+	m.Protocol = resp.Get("_source.protocol").String()
+	m.PrevProtocol = resp.Get("_source.prev_protocol").String()
+	m.Hash = resp.Get("_source.hash").String()
+	m.Network = resp.Get("_source.network").String()
+	m.Timestamp = resp.Get("_source.timestamp").Time().UTC()
+	m.Level = resp.Get("_source.level").Int()
+	m.Address = resp.Get("_source.address").String()
+	m.Kind = resp.Get("_source.kind").String()
 }

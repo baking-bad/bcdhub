@@ -186,7 +186,7 @@ func main() {
 					subscriptions.GET("", ctx.ListSubscriptions)
 					subscriptions.POST("", ctx.CreateSubscription)
 					subscriptions.DELETE("", ctx.DeleteSubscription)
-					subscriptions.GET("timeline", ctx.GetTimeline)
+					subscriptions.GET("events", ctx.GetEvents)
 				}
 				vote := profile.Group("vote")
 				{

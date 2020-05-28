@@ -1938,29 +1938,6 @@
                 }
             }
         },
-        "handlers.BalanceUpdate": {
-            "type": "object",
-            "properties": {
-                "category": {
-                    "type": "string"
-                },
-                "change": {
-                    "type": "integer"
-                },
-                "contract": {
-                    "type": "string"
-                },
-                "cycle": {
-                    "type": "integer"
-                },
-                "delegate": {
-                    "type": "string"
-                },
-                "kind": {
-                    "type": "string"
-                }
-            }
-        },
         "handlers.BigMapDiffByKeyResponse": {
             "type": "object",
             "properties": {
@@ -2378,12 +2355,6 @@
                 },
                 "balance": {
                     "type": "integer"
-                },
-                "balance_updates": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handlers.BalanceUpdate"
-                    }
                 },
                 "burned": {
                     "type": "integer"
