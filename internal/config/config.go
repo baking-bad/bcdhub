@@ -133,8 +133,10 @@ type SeedConfig struct {
 		Token     string `yaml:"token"`
 	} `yaml:"user"`
 	Subscriptions []struct {
-		Address string `yaml:"address"`
-		Network string `yaml:"network"`
+		Address   string `yaml:"address"`
+		Network   string `yaml:"network"`
+		Alias     string `yaml:"alias"`
+		WatchMask uint   `yaml:"watch_mask"`
 	} `yaml:"subscriptions"`
 	Aliases []struct {
 		Alias   string `yaml:"alias"`

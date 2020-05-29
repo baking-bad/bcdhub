@@ -24,9 +24,11 @@ func Run(ctx *handlers.Context, seed config.SeedConfig) error {
 	// 2. seed subscriptions
 	for _, sub := range seed.Subscriptions {
 		subscription := database.Subscription{
-			UserID:  user.ID,
-			Address: sub.Address,
-			Network: sub.Network,
+			UserID:    user.ID,
+			Address:   sub.Address,
+			Network:   sub.Network,
+			Alias:     sub.Alias,
+			WatchMask: sub.WatchMask,
 		}
 
 		if err := ctx.DB.UpsertSubscription(&subscription); err != nil {
