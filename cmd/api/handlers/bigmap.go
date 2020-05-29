@@ -33,7 +33,7 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		return
 	}
 
-	bm, err := ctx.ES.GetBigMapKeys(req.Ptr, req.Network, "", 10000, 0)
+	bm, err := ctx.ES.GetBigMapKeys(req.Ptr, req.Network, "", 10000, 0, false)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -122,7 +122,7 @@ func (ctx *Context) GetBigMapKeys(c *gin.Context) {
 		return
 	}
 
-	bm, err := ctx.ES.GetBigMapKeys(req.Ptr, req.Network, pageReq.Search, pageReq.Size, pageReq.Offset)
+	bm, err := ctx.ES.GetBigMapKeys(req.Ptr, req.Network, pageReq.Search, pageReq.Size, pageReq.Offset, pageReq.SkipRemoved)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -188,6 +188,11 @@ func (ctx *Context) prepareBigMap(data []elastic.BigMapDiff) (res GetBigMapRespo
 			res.ActiveKeys++
 		}
 	}
+
+	if alias, ok := ctx.Aliases[res.Address]; ok {
+		res.ContractAlias = alias
+	}
+
 	return
 }
 

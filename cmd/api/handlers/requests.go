@@ -123,9 +123,10 @@ type getByNetwork struct {
 }
 
 type bigMapSearchRequest struct {
-	Offset int64  `form:"offset" binding:"min=0"`
-	Size   int64  `form:"size" binding:"min=0"`
-	Search string `form:"q"`
+	Offset      int64  `form:"offset" binding:"min=0"`
+	Size        int64  `form:"size" binding:"min=0"`
+	Search      string `form:"q"`
+	SkipRemoved bool   `form:"skip_removed"`
 }
 
 type getEntrypointDataRequest struct {
@@ -135,7 +136,7 @@ type getEntrypointDataRequest struct {
 }
 
 type getSeriesRequest struct {
-	Index  string `form:"index" binding:"oneof=contract operation" example:"contract"`
+	Name   string `form:"name" binding:"oneof=contract operation paid_storage_size_diff consumed_gas" example:"contract"`
 	Period string `form:"period" binding:"oneof=year month week day" example:"year"`
 }
 

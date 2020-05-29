@@ -49,7 +49,24 @@ func (e *Elastic) GetItemsCountForNetwork(network string) (stats NetworkCountSta
 }
 
 // GetDateHistogram -
-func (e *Elastic) GetDateHistogram(network, index, period string) ([][]int64, error) {
+func (e *Elastic) GetDateHistogram(network, index, function, field, period string) ([][]int64, error) {
+	hist := qItem{
+		"date_histogram": qItem{
+			"field":             "timestamp",
+			"calendar_interval": period,
+		},
+	}
+
+	if field != "" && function != "" {
+		hist.Append("aggs", qItem{
+			"result": qItem{
+				function: qItem{
+					"field": field,
+				},
+			},
+		})
+	}
+
 	query := newQuery().Query(
 		boolQ(
 			filter(
@@ -57,12 +74,7 @@ func (e *Elastic) GetDateHistogram(network, index, period string) ([][]int64, er
 			),
 		),
 	).Add(
-		aggs("hist", qItem{
-			"date_histogram": qItem{
-				"field":             "timestamp",
-				"calendar_interval": period,
-			},
-		}),
+		aggs("hist", hist),
 	).Zero()
 
 	response, err := e.query([]string{index}, query)
@@ -73,9 +85,14 @@ func (e *Elastic) GetDateHistogram(network, index, period string) ([][]int64, er
 	data := response.Get("aggregations.hist.buckets").Array()
 	histogram := make([][]int64, 0)
 	for _, hit := range data {
+		key := "doc_count"
+		if function != "" && field != "" {
+			key = "result.value"
+		}
+
 		item := []int64{
 			hit.Get("key").Int(),
-			hit.Get("doc_count").Int(),
+			hit.Get(key).Int(),
 		}
 		histogram = append(histogram, item)
 	}

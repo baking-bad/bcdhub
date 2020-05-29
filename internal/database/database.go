@@ -30,7 +30,8 @@ type DB interface {
 	GetBySlug(string) (Alias, error)
 
 	// Assessment
-	CreateOrUpdateAssessment(string, string, string, string, uint, uint) error
+	CreateAssessment(a *Assessments) error
+	CreateOrUpdateAssessment(a *Assessments) error
 	GetNextAssessmentWithValue(uint, uint) (Assessments, error)
 
 	// Account

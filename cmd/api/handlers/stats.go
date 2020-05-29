@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -81,8 +82,8 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 // @Tags statistics
 // @ID get-network-series
 // @Param network path string true "Network"
-// @Param index query string true "One of index name (contract, operation)" Enums(contract, operation)
-// @Param period query string true "One of period (year, month, week, day)"  Enums(year, month, week, day)
+// @Param name query string true "One of names" Enums(contract, operation, paid_storage_size_diff, consumed_gas)
+// @Param period query string true "One of periods"  Enums(year, month, week, day)
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} Series
@@ -100,7 +101,12 @@ func (ctx *Context) GetSeries(c *gin.Context) {
 		return
 	}
 
-	series, err := ctx.ES.GetDateHistogram(req.Network, reqArgs.Index, reqArgs.Period)
+	params, err := getSeriesIndexAndField(reqArgs.Name)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	series, err := ctx.ES.GetDateHistogram(req.Network, params.Index, params.Function, params.Field, reqArgs.Period)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -108,4 +114,37 @@ func (ctx *Context) GetSeries(c *gin.Context) {
 	response = series
 
 	c.JSON(http.StatusOK, response)
+}
+
+type seriesParams struct {
+	Index    string
+	Function string
+	Field    string
+}
+
+func getSeriesIndexAndField(name string) (seriesParams, error) {
+	switch name {
+	case "contract":
+		return seriesParams{
+			Index: "contract",
+		}, nil
+	case "operation":
+		return seriesParams{
+			Index: "operation",
+		}, nil
+	case "paid_storage_size_diff":
+		return seriesParams{
+			Index:    "operation",
+			Function: "sum",
+			Field:    "result.paid_storage_size_diff",
+		}, nil
+	case "consumed_gas":
+		return seriesParams{
+			Index:    "operation",
+			Function: "sum",
+			Field:    "result.consumed_gas",
+		}, nil
+	default:
+		return seriesParams{}, fmt.Errorf("Unknown series name: %s", name)
+	}
 }
