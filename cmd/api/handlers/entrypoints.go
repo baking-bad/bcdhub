@@ -120,3 +120,17 @@ func getParameterMetadata(es *elastic.Elastic, address, network string) (meta.Me
 
 	return metadata, nil
 }
+
+func getStorageMetadata(es *elastic.Elastic, address, network string) (meta.Metadata, error) {
+	state, err := es.CurrentState(network)
+	if err != nil {
+		return nil, err
+	}
+
+	metadata, err := meta.GetMetadata(es, address, consts.STORAGE, state.Protocol)
+	if err != nil {
+		return nil, err
+	}
+
+	return metadata, nil
+}
