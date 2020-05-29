@@ -34,6 +34,11 @@ type dsData struct {
 	arg     int
 }
 
+// GetTypedef -
+func GetTypedef(binPath string, md meta.Metadata) ([]Typedef, error) {
+	return parseEntrypointTypes(binPath, md)
+}
+
 // GetEntrypoints -
 func GetEntrypoints(md meta.Metadata) ([]EntrypointType, error) {
 	root := md["0"]

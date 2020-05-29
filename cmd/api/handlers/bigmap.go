@@ -203,17 +203,7 @@ func (ctx *Context) prepareBigMap(data []elastic.BigMapDiff) (res GetBigMapRespo
 		return
 	}
 
-	entrypoints, err := docstring.GetEntrypoints(metadata)
-	if err != nil {
-		return
-	}
-
-	for _, e := range entrypoints {
-		if e.BinPath == data[0].BinPath {
-			res.Typdef = &e
-		}
-	}
-
+	res.Typedef, err = docstring.GetTypedef(data[0].BinPath, metadata)
 	return
 }
 
