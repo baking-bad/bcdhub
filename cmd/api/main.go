@@ -187,6 +187,7 @@ func main() {
 					subscriptions.POST("", ctx.CreateSubscription)
 					subscriptions.DELETE("", ctx.DeleteSubscription)
 					subscriptions.GET("events", ctx.GetEvents)
+					subscriptions.GET("mempool", ctx.GetMempoolEvents)
 				}
 				vote := profile.Group("vote")
 				{

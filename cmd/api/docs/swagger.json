@@ -2203,7 +2203,7 @@
                 "timestamp": {
                     "type": "string"
                 },
-                "totalSubscribed": {
+                "total_subscribed": {
                     "type": "integer"
                 },
                 "total_withdrawn": {
@@ -2671,7 +2671,7 @@
                 "timestamp": {
                     "type": "string"
                 },
-                "totalSubscribed": {
+                "total_subscribed": {
                     "type": "integer"
                 },
                 "total_withdrawn": {
@@ -2714,13 +2714,13 @@
                 "watch_calls": {
                     "type": "boolean"
                 },
-                "watch_deployed": {
-                    "type": "boolean"
-                },
                 "watch_deployments": {
                     "type": "boolean"
                 },
                 "watch_errors": {
+                    "type": "boolean"
+                },
+                "watch_mempool": {
                     "type": "boolean"
                 },
                 "watch_migrations": {

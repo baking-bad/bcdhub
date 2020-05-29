@@ -394,6 +394,8 @@ func (ctx *Context) prepareMempoolOperation(res gjson.Result, network, hash stri
 		Status:       status,
 	}
 
+	op.SourceAlias, _ = ctx.Aliases[op.Source]
+	op.DestinationAlias, _ = ctx.Aliases[op.Destination]
 	op.Errors = cerrors.ParseArray(item.Get("errors"))
 
 	if op.Kind != consts.Transaction {
