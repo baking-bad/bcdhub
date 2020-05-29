@@ -127,7 +127,7 @@ func (e *Elastic) GetBigMapDiffsForAddress(address string) ([]models.BigMapDiff,
 }
 
 // GetBigMapKeys -
-func (e *Elastic) GetBigMapKeys(ptr int64, network, searchText string, size, offset int64, skipRemoved bool) ([]BigMapDiff, error) {
+func (e *Elastic) GetBigMapKeys(ptr int64, network, searchText string, size, offset int64) ([]BigMapDiff, error) {
 	if ptr < 0 {
 		return nil, fmt.Errorf("Invalid pointer value: %d", ptr)
 	}
@@ -141,15 +141,8 @@ func (e *Elastic) GetBigMapKeys(ptr int64, network, searchText string, size, off
 		mustQuery = append(mustQuery, queryString(searchText, []string{"key", "key_hash", "key_strings"}))
 	}
 
-	notMustQuery := []qItem{}
-
-	if skipRemoved {
-		notMustQuery = append(notMustQuery, matchQ("value.keyword", ""))
-	}
-
 	b := boolQ(
 		must(mustQuery...),
-		notMust(notMustQuery...),
 	)
 
 	if size == 0 {
