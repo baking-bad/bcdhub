@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/docstring"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
@@ -191,6 +192,26 @@ func (ctx *Context) prepareBigMap(data []elastic.BigMapDiff) (res GetBigMapRespo
 
 	if alias, ok := ctx.Aliases[res.Address]; ok {
 		res.ContractAlias = alias
+	}
+
+	if res.Address == "" || data[0].BinPath == "" {
+		return
+	}
+
+	metadata, err := getParameterMetadata(ctx.ES, res.Address, res.Network)
+	if err != nil {
+		return
+	}
+
+	entrypoints, err := docstring.GetEntrypoints(metadata)
+	if err != nil {
+		return
+	}
+
+	for _, e := range entrypoints {
+		if e.BinPath == data[0].BinPath {
+			res.Typdef = &e
+		}
 	}
 
 	return
