@@ -198,7 +198,7 @@ func (ctx *Context) prepareBigMap(data []elastic.BigMapDiff) (res GetBigMapRespo
 		return
 	}
 
-	metadata, err := getParameterMetadata(ctx.ES, res.Address, res.Network)
+	metadata, err := getStorageMetadata(ctx.ES, res.Address, res.Network)
 	if err != nil {
 		return
 	}
