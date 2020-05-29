@@ -2,8 +2,9 @@ package elastic
 
 import (
 	"fmt"
+	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/tidwall/gjson"
 )
 
@@ -21,18 +22,7 @@ func (e *Elastic) GetEvents(subscriptions []SubscriptionRequest, size, offset in
 	indicesMap := make(map[string]struct{})
 
 	for i := range subscriptions {
-		contract, err := e.GetContract(map[string]interface{}{
-			"address": subscriptions[i].Address,
-			"network": subscriptions[i].Network,
-		})
-		eventContracts, err := e.getRelatedContracts(subscriptions[i], contract)
-		if err != nil {
-			return nil, err
-		}
-		items := getEventsQuery(subscriptions[i], eventContracts, indicesMap)
-		if err != nil {
-			return nil, err
-		}
+		items := getEventsQuery(subscriptions[i], indicesMap)
 		shouldItems = append(shouldItems, items...)
 	}
 
@@ -44,10 +34,10 @@ func (e *Elastic) GetEvents(subscriptions []SubscriptionRequest, size, offset in
 		return []Event{}, nil
 	}
 
-	return e.getEvents(shouldItems, indices, size, offset)
+	return e.getEvents(subscriptions, shouldItems, indices, size, offset)
 }
 
-func (e *Elastic) getEvents(shouldItems []qItem, indices []string, size, offset int64) ([]Event, error) {
+func (e *Elastic) getEvents(subscriptions []SubscriptionRequest, shouldItems []qItem, indices []string, size, offset int64) ([]Event, error) {
 	query := newQuery()
 	if len(shouldItems) != 0 {
 		query.Query(
@@ -67,7 +57,7 @@ func (e *Elastic) getEvents(shouldItems []qItem, indices []string, size, offset 
 	hits := response.Get("hits.hits").Array()
 	events := make([]Event, len(hits))
 	for i, hit := range hits {
-		event, err := parseEvent(hit)
+		event, err := parseEvent(subscriptions, hit)
 		if err != nil {
 			return nil, err
 		}
@@ -77,236 +67,219 @@ func (e *Elastic) getEvents(shouldItems []qItem, indices []string, size, offset 
 	return events, nil
 }
 
-func parseEvent(hit gjson.Result) (Event, error) {
+func (m *EventMigration) makeEvent(subscriptions []SubscriptionRequest) (Event, error) {
+	res := Event{
+		Type:    EventTypeMigration,
+		Address: m.Address,
+		Network: m.Network,
+		Body:    m,
+	}
+	for i := range subscriptions {
+		if m.Network == subscriptions[i].Network && m.Address == subscriptions[i].Address {
+			res.Alias = subscriptions[i].Alias
+			return res, nil
+		}
+	}
+	return Event{}, fmt.Errorf("Couldn't find a matching subscription for %v", m)
+}
+
+func (o *EventOperation) makeEvent(subscriptions []SubscriptionRequest) (Event, error) {
+	res := Event{
+		Network: o.Network,
+		Body:    o,
+	}
+	for i := range subscriptions {
+		if o.Network != subscriptions[i].Network {
+			continue
+		}
+		if o.Source != subscriptions[i].Address && o.Destination != subscriptions[i].Address {
+			continue
+		}
+
+		res.Address = subscriptions[i].Address
+		res.Alias = subscriptions[i].Alias
+
+		if o.Status != "applied" {
+			res.Type = EventTypeError
+		} else if o.Source == subscriptions[i].Address {
+			if o.Kind == "origination" {
+				res.Type = EventTypeDeploy
+			} else if o.Kind == "transaction" {
+				res.Type = EventTypeCall
+			}
+		} else if o.Destination == subscriptions[i].Address {
+			if o.Kind == "transaction" {
+				res.Type = EventTypeInvoke
+			}
+		}
+		return res, nil
+	}
+	return Event{}, fmt.Errorf("Couldn't find a matching subscription for %v", o)
+}
+
+func (c *EventContract) makeEvent(subscriptions []SubscriptionRequest) (Event, error) {
+	res := Event{
+		Body: c,
+	}
+	for i := range subscriptions {
+		if c.Hash == subscriptions[i].Hash || c.ProjectID == subscriptions[i].ProjectID {
+			res.Network = subscriptions[i].Network
+			res.Address = subscriptions[i].Address
+			res.Alias = subscriptions[i].Alias
+
+			if c.Hash == subscriptions[i].Hash {
+				res.Type = EventTypeSame
+			} else {
+				res.Type = EventTypeSimilar
+			}
+			return res, nil
+		}
+	}
+	return Event{}, fmt.Errorf("Couldn't find a matching subscription for %v", c)
+}
+
+func parseEvent(subscriptions []SubscriptionRequest, hit gjson.Result) (Event, error) {
 	index := hit.Get("_index").String()
 	switch index {
 	case DocOperations:
 		var event EventOperation
 		event.ParseElasticJSON(hit)
-		return Event{
-			Index: index,
-			Body:  event,
-		}, nil
+		return event.makeEvent(subscriptions)
 	case DocMigrations:
 		var event EventMigration
 		event.ParseElasticJSON(hit)
-		return Event{
-			Index: index,
-			Body:  event,
-		}, nil
+		return event.makeEvent(subscriptions)
+	case DocContracts:
+		var event EventContract
+		event.ParseElasticJSON(hit)
+		return event.makeEvent(subscriptions)
 	default:
 		return Event{}, fmt.Errorf("[parseEvent] Invalid reponse type: %s", index)
 	}
 }
 
-func getEventsQuery(subscription SubscriptionRequest, contracts []EventContract, indices map[string]struct{}) []qItem {
+func getEventsQuery(subscription SubscriptionRequest, indices map[string]struct{}) []qItem {
 	shouldItems := make([]qItem, 0)
 
-	if item := getEventsWatchMigrations(subscription, contracts); item != nil {
+	if item := getEventsWatchMigrations(subscription); item != nil {
 		shouldItems = append(shouldItems, item)
 		indices[DocMigrations] = struct{}{}
 	}
-	if item := getEventsWatchDeployments(subscription, contracts); item != nil {
+	if item := getEventsWatchCalls(subscription); item != nil {
 		shouldItems = append(shouldItems, item)
 		indices[DocOperations] = struct{}{}
 	}
-	if item := getEventsWatchCalls(subscription, contracts); item != nil {
+	if item := getEventsWatchErrors(subscription); item != nil {
 		shouldItems = append(shouldItems, item)
 		indices[DocOperations] = struct{}{}
 	}
-	if item := getEventsWatchErrors(subscription, contracts); item != nil {
+	if item := getEventsWatchDeployments(subscription); item != nil {
 		shouldItems = append(shouldItems, item)
 		indices[DocOperations] = struct{}{}
+	}
+
+	if strings.HasPrefix(subscription.Address, "KT") {
+		if item := getSubscriptionWithSame(subscription); item != nil {
+			shouldItems = append(shouldItems, item)
+			indices[DocContracts] = struct{}{}
+		}
+		if item := getSubscriptionWithSimilar(subscription); item != nil {
+			shouldItems = append(shouldItems, item)
+			indices[DocContracts] = struct{}{}
+		}
 	}
 
 	return shouldItems
 }
 
-func getEventsWatchMigrations(subscription SubscriptionRequest, contracts []EventContract) qItem {
+func getEventsWatchMigrations(subscription SubscriptionRequest) qItem {
 	if !subscription.WithMigrations {
 		return nil
 	}
 
-	items := make([]qItem, len(contracts))
-	for i := range contracts {
-		items[i] = boolQ(
-			filter(
-				term("network.keyword", contracts[i].Network),
-				term("address.keyword", contracts[i].Address),
-			),
-		)
-	}
-
 	return boolQ(
-		should(items...),
-		minimumShouldMatch(1),
+		filter(
+			in("kind.keyword", []string{consts.MigrationBootstrap, consts.MigrationLambda, consts.MigrationUpdate}),
+			term("network.keyword", subscription.Network),
+			term("address.keyword", subscription.Address),
+		),
 	)
 }
 
-func getEventsWatchDeployments(subscription SubscriptionRequest, contracts []EventContract) qItem {
+func getEventsWatchDeployments(subscription SubscriptionRequest) qItem {
 	if !subscription.WithDeployments {
 		return nil
 	}
 
-	items := make([]qItem, len(contracts))
-	for i := range contracts {
-		items[i] = boolQ(
-			filter(
-				term("kind.keyword", "origination"),
-				term("network.keyword", contracts[i].Network),
-				term("source.keyword", contracts[i].Address),
-			),
-		)
-	}
-
 	return boolQ(
-		should(items...),
-		minimumShouldMatch(1),
+		filter(
+			term("kind.keyword", "origination"),
+			term("network.keyword", subscription.Network),
+			term("source.keyword", subscription.Address),
+		),
 	)
 }
 
-func getEventsWatchCalls(subscription SubscriptionRequest, contracts []EventContract) qItem {
+func getEventsWatchCalls(subscription SubscriptionRequest) qItem {
 	if !subscription.WithCalls {
 		return nil
 	}
 
-	items := make([]qItem, len(contracts))
-	for i := range contracts {
-		items[i] = boolQ(
-			filter(
-				term("kind.keyword", "transaction"),
-				term("network.keyword", contracts[i].Network),
-				term("destination.keyword", contracts[i].Address),
-			),
-		)
+	addressKeyword := "destination.keyword"
+	if strings.HasPrefix(subscription.Address, "tz") {
+		addressKeyword = "source.keyword"
 	}
 
 	return boolQ(
-		should(items...),
-		minimumShouldMatch(1),
+		filter(
+			term("kind.keyword", "transaction"),
+			term("status.keyword", "applied"),
+			term("network.keyword", subscription.Network),
+			term(addressKeyword, subscription.Address),
+		),
 	)
 }
 
-func getEventsWatchErrors(subscription SubscriptionRequest, contracts []EventContract) qItem {
+func getEventsWatchErrors(subscription SubscriptionRequest) qItem {
 	if !subscription.WithErrors {
 		return nil
 	}
 
-	items := make([]qItem, len(contracts))
-	for i := range contracts {
-		items[i] = boolQ(
-			filter(
-				term("network.keyword", contracts[i].Network),
-				boolQ(
-					should(
-						term("source.keyword", contracts[i].Address),
-						term("destination.keyword", contracts[i].Address),
-					),
-					minimumShouldMatch(1),
-				),
-			),
-			notMust(
-				term("status.keyword", "applied"),
-			),
-		)
-	}
-
 	return boolQ(
-		should(items...),
-		minimumShouldMatch(1),
+		filter(
+			term("network.keyword", subscription.Network),
+			boolQ(
+				should(
+					term("source.keyword", subscription.Address),
+					term("destination.keyword", subscription.Address),
+				),
+				minimumShouldMatch(1),
+			),
+		),
+		notMust(
+			term("status.keyword", "applied"),
+		),
 	)
 }
 
-func (e *Elastic) getRelatedContracts(subscription SubscriptionRequest, contract models.Contract) ([]EventContract, error) {
-	query, err := getRelatedContractsQuery(subscription, contract)
-	if err != nil {
-		return nil, err
-	}
-
-	var contracts []models.Contract
-	if err := e.GetAllByQuery(query, &contracts); err != nil {
-		return nil, err
-	}
-
-	result := make([]EventContract, len(contracts))
-	for i := range contracts {
-		result[i] = EventContract{
-			SubscriptionID: subscription.ID,
-			Address:        contracts[i].Address,
-			Network:        contracts[i].Network,
-		}
-	}
-
-	return result, nil
-}
-
-func getRelatedContractsQuery(subscription SubscriptionRequest, contract models.Contract) (base, error) {
-	shouldItems := []qItem{
-		boolQ(
-			filter(
-				term("network.keyword", contract.Network),
-				term("address.keyword", contract.Address),
-			),
-		),
-	}
-
-	// Filter subscription mask contracts
-	if len(subscription.Address) < 2 {
-		return nil, fmt.Errorf("Invalid subscription address: %s %s", subscription.Network, subscription.Address)
-	}
-
-	switch subscription.Address[:2] {
-	case "KT":
-		if item := getSubscriptionWithSame(subscription, contract); item != nil {
-			shouldItems = append(shouldItems, item)
-		}
-		if item := getSubscriptionWithSimilar(subscription, contract); item != nil {
-			shouldItems = append(shouldItems, item)
-		}
-	default:
-		if item := getSubscriptionWithDeployed(subscription, subscription.Address); item != nil {
-			shouldItems = append(shouldItems, item)
-		}
-	}
-
-	return newQuery().Query(
-		boolQ(
-			should(
-				shouldItems...,
-			),
-			minimumShouldMatch(1),
-		),
-	).All(), nil
-}
-
-func getSubscriptionWithSame(subscription SubscriptionRequest, contract models.Contract) qItem {
+func getSubscriptionWithSame(subscription SubscriptionRequest) qItem {
 	if !subscription.WithSame {
 		return nil
 	}
 
 	return boolQ(
-		filter(term("hash.keyword", contract.Hash)),
+		filter(term("hash.keyword", subscription.Hash)),
+		notMust(term("address.keyword", subscription.Address)),
 	)
 }
 
-func getSubscriptionWithSimilar(subscription SubscriptionRequest, contract models.Contract) qItem {
+func getSubscriptionWithSimilar(subscription SubscriptionRequest) qItem {
 	if !subscription.WithSimilar {
 		return nil
 	}
 	return boolQ(
-		filter(term("project_id.keyword", contract.ProjectID)),
-		notMust(term("hash.keyword", contract.Hash)),
-	)
-}
-
-func getSubscriptionWithDeployed(subscription SubscriptionRequest, address string) qItem {
-	if !subscription.WithDeployed {
-		return nil
-	}
-	return boolQ(
-		filter(
-			term("manager.keyword", address),
-			term("network.keyword", subscription.Network),
-		),
+		filter(term("project_id.keyword", subscription.ProjectID)),
+		notMust(term("hash.keyword", subscription.Hash)),
+		notMust(term("address.keyword", subscription.Address)),
 	)
 }
