@@ -292,6 +292,7 @@ type GetBigMapResponse struct {
 	Network       string              `json:"network"`
 	Ptr           int64               `json:"ptr"`
 	ActiveKeys    uint                `json:"active_keys"`
+	TotalKeys     uint                `json:"total_keys"`
 	ContractAlias string              `json:"contract_alias"`
 	Typedef       []docstring.Typedef `json:"typedef,omitempty"`
 }

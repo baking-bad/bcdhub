@@ -2259,11 +2259,23 @@
                 "address": {
                     "type": "string"
                 },
+                "contract_alias": {
+                    "type": "string"
+                },
                 "network": {
                     "type": "string"
                 },
                 "ptr": {
                     "type": "integer"
+                },
+                "total_keys": {
+                    "type": "integer"
+                },
+                "typedef": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/docstring.Typedef"
+                    }
                 }
             }
         },
@@ -2458,7 +2470,7 @@
                 "operations": {
                     "type": "array",
                     "items": {
-                        "type": "integer"
+                        "$ref": "#/definitions/handlers.Operation"
                     }
                 }
             }

@@ -161,10 +161,6 @@ func parseEvent(subscriptions []SubscriptionRequest, hit gjson.Result) (Event, e
 func getEventsQuery(subscription SubscriptionRequest, indices map[string]struct{}) []qItem {
 	shouldItems := make([]qItem, 0)
 
-	if item := getEventsWatchMigrations(subscription); item != nil {
-		shouldItems = append(shouldItems, item)
-		indices[DocMigrations] = struct{}{}
-	}
 	if item := getEventsWatchCalls(subscription); item != nil {
 		shouldItems = append(shouldItems, item)
 		indices[DocOperations] = struct{}{}
@@ -179,6 +175,10 @@ func getEventsQuery(subscription SubscriptionRequest, indices map[string]struct{
 	}
 
 	if strings.HasPrefix(subscription.Address, "KT") {
+		if item := getEventsWatchMigrations(subscription); item != nil {
+			shouldItems = append(shouldItems, item)
+			indices[DocMigrations] = struct{}{}
+		}
 		if item := getSubscriptionWithSame(subscription); item != nil {
 			shouldItems = append(shouldItems, item)
 			indices[DocContracts] = struct{}{}
