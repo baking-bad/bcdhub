@@ -75,3 +75,6 @@ docs:
 	# tar -zxvf swag_1.6.6_Linux_x86_64.tar.gz
 	# sudo cp swag /usr/bin/swag
 	cd cmd/api && swag init --parseDependency
+
+images:
+	docker-compose build
