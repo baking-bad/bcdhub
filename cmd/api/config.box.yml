@@ -13,11 +13,11 @@ seed:
         - address: tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb
           network: sandboxnet
           alias: Alice
-          watch_mask: 94
+          watch_mask: 127
         - address: tz1aSkwEot3L2kmUvcoxzjMomb9mvBNuzFK6
           network: sandboxnet
           alias: Bob
-          watch_mask: 94
+          watch_mask: 127
     aliases:
         - alias: Alice
           network: sandboxnet
