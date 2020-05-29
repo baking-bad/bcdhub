@@ -33,7 +33,7 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		return
 	}
 
-	bm, err := ctx.ES.GetBigMapKeys(req.Ptr, req.Network, "", 10000, 0, false)
+	bm, err := ctx.ES.GetBigMapKeys(req.Ptr, req.Network, "", 10000, 0)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -122,7 +122,7 @@ func (ctx *Context) GetBigMapKeys(c *gin.Context) {
 		return
 	}
 
-	bm, err := ctx.ES.GetBigMapKeys(req.Ptr, req.Network, pageReq.Search, pageReq.Size, pageReq.Offset, pageReq.SkipRemoved)
+	bm, err := ctx.ES.GetBigMapKeys(req.Ptr, req.Network, pageReq.Search, pageReq.Size, pageReq.Offset)
 	if handleError(c, err, 0) {
 		return
 	}
