@@ -289,9 +289,9 @@ definitions:
         type: array
       timestamp:
         type: string
-      total_withdrawn:
+      total_subscribed:
         type: integer
-      totalSubscribed:
+      total_withdrawn:
         type: integer
       tx_count:
         type: integer
@@ -457,7 +457,7 @@ definitions:
         type: string
       operations:
         items:
-          $ref: '#/definitions/handlers.Operation'
+          type: integer
         type: array
     type: object
   handlers.OperationResult:
@@ -602,9 +602,9 @@ definitions:
         type: array
       timestamp:
         type: string
-      total_withdrawn:
+      total_subscribed:
         type: integer
-      totalSubscribed:
+      total_withdrawn:
         type: integer
       tx_count:
         type: integer
@@ -1641,8 +1641,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Search any data in contracts, operations and big map diff with
-        filters
+      description: Search any data in contracts, operations and big map diff with filters
       operationId: search
       parameters:
       - description: Query string
@@ -1680,13 +1679,11 @@ paths:
         in: query
         name: g
         type: integer
-      - description: 'Comma-separated list of indices for searching. Values: contract,
-          operation, bigmapdiff'
+      - description: 'Comma-separated list of indices for searching. Values: contract, operation, bigmapdiff'
         in: query
         name: i
         type: string
-      - description: 'Comma-separated list of languages for searching. Values: smartpy,
-          liquidity, ligo, lorentz, michelson'
+      - description: 'Comma-separated list of languages for searching. Values: smartpy, liquidity, ligo, lorentz, michelson'
         in: query
         name: l
         type: string
@@ -1802,15 +1799,17 @@ paths:
         name: network
         required: true
         type: string
-      - description: One of index name (contract, operation)
+      - description: One of names
         enum:
         - contract
         - operation
+        - paid_storage_size_diff
+        - consumed_gas
         in: query
-        name: index
+        name: name
         required: true
         type: string
-      - description: One of period (year, month, week, day)
+      - description: One of periods
         enum:
         - year
         - month
