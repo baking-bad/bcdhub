@@ -35,7 +35,7 @@ func (d *db) ListSubscriptions(userID uint) ([]Subscription, error) {
 func (d *db) UpsertSubscription(s *Subscription) error {
 	return d.ORM.
 		Where("user_id = ? AND address = ? AND network = ?", s.UserID, s.Address, s.Network).
-		Assign(Subscription{WatchMask: s.WatchMask}).
+		Assign(Subscription{WatchMask: s.WatchMask, Alias: s.Alias}).
 		FirstOrCreate(s).Error
 }
 

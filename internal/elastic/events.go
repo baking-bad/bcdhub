@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/tidwall/gjson"
 )
 
@@ -198,6 +199,7 @@ func getEventsWatchMigrations(subscription SubscriptionRequest) qItem {
 
 	return boolQ(
 		filter(
+			in("kind.keyword", []string{consts.MigrationBootstrap, consts.MigrationLambda, consts.MigrationUpdate}),
 			term("network.keyword", subscription.Network),
 			term("address.keyword", subscription.Address),
 		),
