@@ -288,11 +288,12 @@ type BigMapResponseItem struct {
 
 // GetBigMapResponse -
 type GetBigMapResponse struct {
-	Address       string `json:"address"`
-	Network       string `json:"network"`
-	Ptr           int64  `json:"ptr"`
-	ActiveKeys    uint   `json:"active_keys"`
-	ContractAlias string `json:"contract_alias"`
+	Address       string                    `json:"address"`
+	Network       string                    `json:"network"`
+	Ptr           int64                     `json:"ptr"`
+	ActiveKeys    uint                      `json:"active_keys"`
+	ContractAlias string                    `json:"contract_alias"`
+	Typdef        *docstring.EntrypointType `json:"typedef,omitempty"`
 }
 
 // Migration -

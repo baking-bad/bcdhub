@@ -138,7 +138,7 @@ func (e *Elastic) GetBigMapKeys(ptr int64, network, searchText string, size, off
 	}
 
 	if searchText != "" {
-		mustQuery = append(mustQuery, queryString(searchText, []string{"key", "key_hash", "key_strings"}))
+		mustQuery = append(mustQuery, queryString(searchText, []string{"key", "key_hash", "key_strings", "bin_path"}))
 	}
 
 	b := boolQ(
