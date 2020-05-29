@@ -231,6 +231,7 @@ func getEventsWatchCalls(subscription SubscriptionRequest) qItem {
 	return boolQ(
 		filter(
 			term("kind.keyword", "transaction"),
+			term("status.keyword", "applied"),
 			term("network.keyword", subscription.Network),
 			term(addressKeyword, subscription.Address),
 		),

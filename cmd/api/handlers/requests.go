@@ -91,7 +91,7 @@ type subRequest struct {
 	Alias            string `json:"alias"`
 	WatchSame        bool   `json:"watch_same"`
 	WatchSimilar     bool   `json:"watch_similar"`
-	WatchDeployed    bool   `json:"watch_deployed"`
+	WatchMempool     bool   `json:"watch_mempool"`
 	WatchMigrations  bool   `json:"watch_migrations"`
 	WatchDeployments bool   `json:"watch_deployments"`
 	WatchCalls       bool   `json:"watch_calls"`

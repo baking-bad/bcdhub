@@ -103,7 +103,7 @@ func PrepareSubscriptions(subs []database.Subscription) []Subscription {
 const (
 	WatchSame uint = 1 << iota
 	WatchSimilar
-	WatchDeployed
+	WatchMempool
 	WatchMigrations
 	WatchDeployments
 	WatchCalls
@@ -121,8 +121,8 @@ func buildWatchMask(s subRequest) uint {
 		b = b | WatchSimilar
 	}
 
-	if s.WatchDeployed {
-		b = b | WatchDeployed
+	if s.WatchMempool {
+		b = b | WatchMempool
 	}
 
 	if s.WatchMigrations {
@@ -155,8 +155,8 @@ func buildSubFromWatchMask(mask uint) Subscription {
 		s.WatchSimilar = true
 	}
 
-	if mask&WatchDeployed != 0 {
-		s.WatchDeployed = true
+	if mask&WatchMempool != 0 {
+		s.WatchMempool = true
 	}
 
 	if mask&WatchMigrations != 0 {

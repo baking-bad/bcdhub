@@ -190,7 +190,7 @@ type SubscriptionRequest struct {
 	ProjectID       string
 	WithSame        bool
 	WithSimilar     bool
-	WithDeployed    bool
+	WithMempool     bool
 	WithMigrations  bool
 	WithErrors      bool
 	WithCalls       bool
@@ -224,6 +224,7 @@ const (
 	EventTypeDeploy    = "deploy"
 	EventTypeSame      = "same"
 	EventTypeSimilar   = "similar"
+	EventTypeMempool   = "mempool"
 )
 
 // Event -

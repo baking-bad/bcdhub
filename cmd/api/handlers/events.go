@@ -54,7 +54,7 @@ func (ctx *Context) getEvents(subscriptions []database.Subscription, size, offse
 
 			WithSame:        subscriptions[i].WatchMask&WatchSame != 0,
 			WithSimilar:     subscriptions[i].WatchMask&WatchSimilar != 0,
-			WithDeployed:    subscriptions[i].WatchMask&WatchDeployed != 0,
+			WithMempool:     subscriptions[i].WatchMask&WatchMempool != 0,
 			WithMigrations:  subscriptions[i].WatchMask&WatchMigrations != 0,
 			WithDeployments: subscriptions[i].WatchMask&WatchDeployments != 0,
 			WithCalls:       subscriptions[i].WatchMask&WatchCalls != 0,
