@@ -183,9 +183,11 @@ type ContractCountStats struct {
 
 // SubscriptionRequest -
 type SubscriptionRequest struct {
-	ID              uint
 	Address         string
 	Network         string
+	Alias           string
+	Hash            string
+	ProjectID       string
 	WithSame        bool
 	WithSimilar     bool
 	WithDeployed    bool
@@ -197,69 +199,75 @@ type SubscriptionRequest struct {
 
 // EventContract -
 type EventContract struct {
-	SubscriptionID uint   `json:"subscription_id"`
-	Network        string `json:"network"`
-	Address        string `json:"hash"`
+	Network   string    `json:"network"`
+	Address   string    `json:"address"`
+	Hash      string    `json:"hash"`
+	ProjectID string    `json:"project_id"`
+	Timestamp time.Time `json:"timestamp"`
 }
+
+// ParseElasticJSON -
+func (m *EventContract) ParseElasticJSON(resp gjson.Result) {
+	m.Network = resp.Get("_source.network").String()
+	m.Address = resp.Get("_source.address").String()
+	m.Hash = resp.Get("_source.hash").String()
+	m.ProjectID = resp.Get("_source.project_id").String()
+	m.Timestamp = resp.Get("_source.timestamp").Time().UTC()
+}
+
+// EventType -
+const (
+	EventTypeError     = "error"
+	EventTypeMigration = "migration"
+	EventTypeCall      = "call"
+	EventTypeInvoke    = "invoke"
+	EventTypeDeploy    = "deploy"
+	EventTypeSame      = "same"
+	EventTypeSimilar   = "similar"
+)
 
 // Event -
 type Event struct {
-	Index string      `json:"index"`
-	Body  interface{} `json:"body,omitempty"`
+	Type    string      `json:"type"`
+	Address string      `json:"address"`
+	Network string      `json:"network"`
+	Alias   string      `json:"alias"`
+	Body    interface{} `json:"body,omitempty"`
 }
 
 // EventOperation -
 type EventOperation struct {
-	ContentIndex int64 `json:"content_index,omitempty"`
-
-	Network       string `json:"network"`
-	Protocol      string `json:"protocol"`
-	Hash          string `json:"hash"`
-	Internal      bool   `json:"internal"`
-	InternalIndex int64  `json:"internal_index,omitempty"`
-
+	Network          string    `json:"network"`
+	Hash             string    `json:"hash"`
+	Internal         bool      `json:"internal"`
 	Status           string    `json:"status"`
 	Timestamp        time.Time `json:"timestamp"`
-	Level            int64     `json:"level"`
 	Kind             string    `json:"kind"`
-	Source           string    `json:"source"`
 	Fee              int64     `json:"fee,omitempty"`
-	Counter          int64     `json:"counter,omitempty"`
-	GasLimit         int64     `json:"gas_limit,omitempty"`
-	StorageLimit     int64     `json:"storage_limit,omitempty"`
 	Amount           int64     `json:"amount,omitempty"`
-	Destination      string    `json:"destination,omitempty"`
-	Delegate         string    `json:"delegate,omitempty"`
 	Entrypoint       string    `json:"entrypoint,omitempty"`
+	Source           string    `json:"source"`
 	SourceAlias      string    `json:"source_alias,omitempty"`
+	Destination      string    `json:"destination,omitempty"`
 	DestinationAlias string    `json:"destination_alias,omitempty"`
+	Delegate         string    `json:"delegate,omitempty"`
+	DelegateAlias    string    `json:"delegate_alias,omitempty"`
 
 	Result *models.OperationResult `json:"result,omitempty"`
 	Errors []cerrors.IError        `json:"errors,omitempty"`
 	Burned int64                   `json:"burned,omitempty"`
-
-	DelegateAlias string `json:"delegate_alias,omitempty"`
 }
 
 // ParseElasticJSON -
 func (o *EventOperation) ParseElasticJSON(resp gjson.Result) {
-	o.ContentIndex = resp.Get("_source.content_index").Int()
-
-	o.Protocol = resp.Get("_source.protocol").String()
 	o.Hash = resp.Get("_source.hash").String()
 	o.Internal = resp.Get("_source.internal").Bool()
 	o.Network = resp.Get("_source.network").String()
 	o.Timestamp = resp.Get("_source.timestamp").Time().UTC()
-	o.InternalIndex = resp.Get("_source.internal_index").Int()
-
 	o.Status = resp.Get("_source.status").String()
-	o.Level = resp.Get("_source.level").Int()
 	o.Kind = resp.Get("_source.kind").String()
 	o.Source = resp.Get("_source.source").String()
 	o.Fee = resp.Get("_source.fee").Int()
-	o.Counter = resp.Get("_source.counter").Int()
-	o.GasLimit = resp.Get("_source.gas_limit").Int()
-	o.StorageLimit = resp.Get("_source.storage_limit").Int()
 	o.Amount = resp.Get("_source.amount").Int()
 	o.Destination = resp.Get("_source.destination").String()
 	o.Delegate = resp.Get("_source.delegate").String()

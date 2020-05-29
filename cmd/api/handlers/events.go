@@ -37,10 +37,20 @@ func (ctx *Context) GetEvents(c *gin.Context) {
 func (ctx *Context) getEvents(subscriptions []database.Subscription, size, offset int64) ([]elastic.Event, error) {
 	subs := make([]elastic.SubscriptionRequest, len(subscriptions))
 	for i := range subscriptions {
+		contract, err := ctx.ES.GetContract(map[string]interface{}{
+			"address": subscriptions[i].Address,
+			"network": subscriptions[i].Network,
+		})
+		if err != nil {
+			return []elastic.Event{}, err
+		}
+
 		subs[i] = elastic.SubscriptionRequest{
-			ID:      subscriptions[i].ID,
-			Address: subscriptions[i].Address,
-			Network: subscriptions[i].Network,
+			Address:   subscriptions[i].Address,
+			Network:   subscriptions[i].Network,
+			Alias:     subscriptions[i].Alias,
+			Hash:      contract.Hash,
+			ProjectID: contract.ProjectID,
 
 			WithSame:        subscriptions[i].WatchMask&WatchSame != 0,
 			WithSimilar:     subscriptions[i].WatchMask&WatchSimilar != 0,
