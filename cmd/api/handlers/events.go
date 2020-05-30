@@ -63,20 +63,10 @@ func (ctx *Context) GetMempoolEvents(c *gin.Context) {
 func (ctx *Context) getEvents(subscriptions []database.Subscription, size, offset int64) ([]elastic.Event, error) {
 	subs := make([]elastic.SubscriptionRequest, len(subscriptions))
 	for i := range subscriptions {
-		contract, err := ctx.ES.GetContract(map[string]interface{}{
-			"address": subscriptions[i].Address,
-			"network": subscriptions[i].Network,
-		})
-		if err != nil {
-			return []elastic.Event{}, err
-		}
-
 		subs[i] = elastic.SubscriptionRequest{
-			Address:   subscriptions[i].Address,
-			Network:   subscriptions[i].Network,
-			Alias:     subscriptions[i].Alias,
-			Hash:      contract.Hash,
-			ProjectID: contract.ProjectID,
+			Address: subscriptions[i].Address,
+			Network: subscriptions[i].Network,
+			Alias:   subscriptions[i].Alias,
 
 			WithSame:        subscriptions[i].WatchMask&WatchSame != 0,
 			WithSimilar:     subscriptions[i].WatchMask&WatchSimilar != 0,
@@ -85,6 +75,18 @@ func (ctx *Context) getEvents(subscriptions []database.Subscription, size, offse
 			WithDeployments: subscriptions[i].WatchMask&WatchDeployments != 0,
 			WithCalls:       subscriptions[i].WatchMask&WatchCalls != 0,
 			WithErrors:      subscriptions[i].WatchMask&WatchErrors != 0,
+		}
+
+		if strings.HasPrefix(subscriptions[i].Address, "KT") {
+			contract, err := ctx.ES.GetContract(map[string]interface{}{
+				"address": subscriptions[i].Address,
+				"network": subscriptions[i].Network,
+			})
+			if err != nil {
+				return []elastic.Event{}, err
+			}
+			subs[i].Hash = contract.Hash
+			subs[i].ProjectID = contract.ProjectID
 		}
 	}
 

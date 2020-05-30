@@ -14,7 +14,7 @@ func (e *Elastic) GetEvents(subscriptions []SubscriptionRequest, size, offset in
 		return []Event{}, nil
 	}
 
-	if size == 0 || size > 50 {
+	if size == 0 || size > 50 { // TODO: ???
 		size = defaultSize
 	}
 
@@ -245,16 +245,15 @@ func getEventsWatchErrors(subscription SubscriptionRequest) qItem {
 		return nil
 	}
 
+	addressKeyword := "destination.keyword"
+	if strings.HasPrefix(subscription.Address, "tz") {
+		addressKeyword = "source.keyword"
+	}
+
 	return boolQ(
 		filter(
 			term("network.keyword", subscription.Network),
-			boolQ(
-				should(
-					term("source.keyword", subscription.Address),
-					term("destination.keyword", subscription.Address),
-				),
-				minimumShouldMatch(1),
-			),
+			term(addressKeyword, subscription.Address),
 		),
 		notMust(
 			term("status.keyword", "applied"),
