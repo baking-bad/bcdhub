@@ -39,29 +39,48 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		return
 	}
 
-	response, err := ctx.prepareBigMap(bm)
-	if handleError(c, err, 0) {
-		return
+	res := GetBigMapResponse{
+		Network: req.Network,
+		Ptr:     req.Ptr,
 	}
 
-	if response.Address == "" {
-		history, err := ctx.ES.GetBigMapHistory(req.Ptr, req.Network)
+	if len(bm) > 0 {
+		res.Address = bm[0].Address
+		res.TotalKeys = uint(len(bm))
+
+		for i := range bm {
+			if bm[i].Value != "" {
+				res.ActiveKeys++
+			}
+		}
+
+		metadata, err := getStorageMetadata(ctx.ES, res.Address, res.Network)
 		if handleError(c, err, 0) {
 			return
 		}
-		if len(history) == 0 {
+
+		res.Typedef, err = docstring.GetTypedef(bm[0].BinPath, metadata)
+		if handleError(c, err, 0) {
+			return
+		}
+	} else {
+		actions, err := ctx.ES.GetBigMapHistory(req.Ptr, req.Network)
+		if handleError(c, err, 0) {
+			return
+		}
+		if len(actions) == 0 {
 			c.JSON(http.StatusNoContent, gin.H{})
 			return
 		}
-		c.JSON(http.StatusOK, GetBigMapResponse{
-			Address: history[0].Address,
-			Network: req.Network,
-			Ptr:     req.Ptr,
-		})
-		return
+
+		res.Address = actions[0].Address
 	}
 
-	c.JSON(http.StatusOK, response)
+	if alias, ok := ctx.Aliases[res.Address]; ok {
+		res.ContractAlias = alias
+	}
+
+	c.JSON(http.StatusOK, res)
 }
 
 // GetBigMapHistory godoc
@@ -175,38 +194,6 @@ func (ctx *Context) GetBigMapByKeyHash(c *gin.Context) {
 
 	response.Total = total
 	c.JSON(http.StatusOK, response)
-}
-
-func (ctx *Context) prepareBigMap(data []elastic.BigMapDiff) (res GetBigMapResponse, err error) {
-	if len(data) == 0 {
-		return
-	}
-	res.Address = data[0].Address
-	res.Network = data[0].Network
-	res.Ptr = data[0].Ptr
-	res.TotalKeys = uint(len(data))
-
-	for i := range data {
-		if data[i].Value != "" {
-			res.ActiveKeys++
-		}
-	}
-
-	if alias, ok := ctx.Aliases[res.Address]; ok {
-		res.ContractAlias = alias
-	}
-
-	if res.Address == "" || data[0].BinPath == "" {
-		return
-	}
-
-	metadata, err := getStorageMetadata(ctx.ES, res.Address, res.Network)
-	if err != nil {
-		return
-	}
-
-	res.Typedef, err = docstring.GetTypedef(data[0].BinPath, metadata)
-	return
 }
 
 func (ctx *Context) prepareBigMapKeys(data []elastic.BigMapDiff) ([]BigMapResponseItem, error) {
