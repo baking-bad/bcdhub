@@ -76,7 +76,7 @@ func (b *Babylon) ParseOrigination(content gjson.Result, metadata meta.Metadata,
 	var bm []elastic.Model
 	if result.Get("big_map_diff.#").Int() > 0 {
 		ptrToBin, err := FindBigMapPointers(metadata, storage)
-		if err != nil {
+		if err != nil || len(ptrToBin) == 0 {
 			// If pointers are not found into script`s storage we try to receive storage from node and find pointers there
 			// If pointers are not found after that -> throw error
 			storage, err = b.rpc.GetScriptStorageJSON(address, operation.Level)
