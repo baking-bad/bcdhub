@@ -15,6 +15,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -100,7 +101,7 @@ func main() {
 		r.Use(helpers.SentryMiddleware())
 	}
 
-	hub := ws.DefaultHub(cfg.Elastic.URI, cfg.Elastic.Timeout, cfg.RabbitMQ.URI, cfg.RabbitMQ.Queues)
+	hub := ws.DefaultHub(cfg.Elastic.URI, cfg.Elastic.Timeout, cfg.RabbitMQ.URI, []string{mq.QueueOperations, mq.QueueRecalc})
 	hub.Run()
 	defer hub.Stop()
 
