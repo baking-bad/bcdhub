@@ -32,7 +32,7 @@ seed:
 
 api:
     bind: ":14000"
-    swagger_host: "localhost:14000"
+    swagger_host: "localhost:42000"
     oauth:
         enabled: false
     sentry:
