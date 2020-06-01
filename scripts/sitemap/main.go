@@ -32,6 +32,8 @@ func buildXML(aliases []database.Alias) error {
 	u := &URLSet{Xmlns: "http://www.sitemaps.org/schemas/sitemap/0.9"}
 	modDate := time.Now().Format("2006-01-02")
 
+	u.URLs = append(u.URLs, URL{Location: "https://better-call.dev/", LastMod: modDate})
+
 	for _, a := range aliases {
 		loc := fmt.Sprintf("https://better-call.dev/@%s", a.Slug)
 		u.URLs = append(u.URLs, URL{Location: loc, LastMod: modDate})
