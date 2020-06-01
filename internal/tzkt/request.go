@@ -73,44 +73,6 @@ func (t *TzKT) GetHead() (resp Head, err error) {
 	return
 }
 
-// GetOriginations - return originations
-func (t *TzKT) GetOriginations(page, limit int64) (resp []Origination, err error) {
-	if limit == 0 {
-		limit = 1000
-	}
-	params := map[string]string{
-		"p": fmt.Sprintf("%d", page),
-		"n": fmt.Sprintf("%d", limit),
-	}
-	err = t.request("GET", "operations/originations", params, &resp)
-	return
-}
-
-// GetOriginationsCount - return originations count
-func (t *TzKT) GetOriginationsCount() (resp int64, err error) {
-	err = t.request("GET", "operations/originations/count", nil, &resp)
-	return
-}
-
-// GetSystemOperations - return system operations
-func (t *TzKT) GetSystemOperations(page, limit int64) (resp []SystemOperation, err error) {
-	if limit == 0 {
-		limit = 1000
-	}
-	params := map[string]string{
-		"p": fmt.Sprintf("%d", page),
-		"n": fmt.Sprintf("%d", limit),
-	}
-	err = t.request("GET", "operations/system", params, &resp)
-	return
-}
-
-// GetSystemOperationsCount - return system operations count
-func (t *TzKT) GetSystemOperationsCount() (resp int64, err error) {
-	err = t.request("GET", "operations/system/count", nil, &resp)
-	return
-}
-
 // GetAccounts - returns account by filters
 func (t *TzKT) GetAccounts(kind string, page, limit int64) (resp []Account, err error) {
 	params := map[string]string{}
@@ -120,16 +82,10 @@ func (t *TzKT) GetAccounts(kind string, page, limit int64) (resp []Account, err 
 	if limit == 0 {
 		limit = 1000
 	}
-	params["n"] = fmt.Sprintf("%d", limit)
-	params["p"] = fmt.Sprintf("%d", page)
+	params["limit"] = fmt.Sprintf("%d", limit)
+	params["offset.pg"] = fmt.Sprintf("%d", page)
 
 	err = t.request("GET", "contracts", params, &resp)
-	return
-}
-
-// GetContractByAddress - returns contract by address
-func (t *TzKT) GetContractByAddress(address string) (resp Account, err error) {
-	err = t.request("GET", fmt.Sprintf("contracts/%s", address), nil, &resp)
 	return
 }
 
