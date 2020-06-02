@@ -82,7 +82,7 @@ func (e *Elastic) GetPrevBigMapDiffs(filters []models.BigMapDiff, indexedTime in
 	response := make([]models.BigMapDiff, 0)
 	for _, item := range res.Get("aggregations.keys.buckets").Array() {
 		bmd := item.Get("top_key.hits.hits.0")
-		if bmd.Get("value").String() == "" {
+		if bmd.Get("_source.value").String() == "" {
 			continue
 		}
 		var b models.BigMapDiff
