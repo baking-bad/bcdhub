@@ -278,7 +278,15 @@ func (b *Babylon) handleBigMapDiffCopy(item gjson.Result, ptrMap map[int64]strin
 	if len(bmd) == 0 {
 		b.updates[destinationPtr] = []elastic.Model{}
 	} else {
+		binPath, ok := ptrMap[destinationPtr]
+		if !ok {
+			binPath, ok = b.temporaryBinPaths[destinationPtr]
+			if !ok {
+				return nil, fmt.Errorf("Invalid big map pointer: %d", destinationPtr)
+			}
+		}
 		for i := range bmd {
+			bmd[i].BinPath = binPath
 			bmd[i].ID = helpers.GenerateID()
 			bmd[i].Ptr = destinationPtr
 			bmd[i].Address = address
