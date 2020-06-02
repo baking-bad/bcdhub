@@ -17,9 +17,9 @@ indexer:
     sentry:
         enabled: false
     networks:
-        # mainnet:
-        #   boost: tzkt
-        carthagenet:
+        mainnet:
           boost: tzkt
+        # carthagenet:
+        #   boost: tzkt
         # zeronet:
         #   boost: tzkt
