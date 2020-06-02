@@ -133,7 +133,7 @@ func (e *Elastic) GetSimilarContracts(c models.Contract, size, offset int64) (pc
 		return
 	}
 
-	total = resp.Get("hits.total.value").Uint()
+	total = resp.Get("aggregations.projects.buckets.#").Uint()
 	contracts := make([]SimilarContract, 0)
 	arr := buckets.Array()[offset:]
 	for _, item := range arr {
