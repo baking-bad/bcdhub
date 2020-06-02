@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/tidwall/gjson"
@@ -56,11 +56,11 @@ func (p *MigrationParser) Parse(script gjson.Result, old models.Contract, previo
 		}
 	}
 
-	newFingerprint, err := metrics.GetFingerprint(script)
+	newHash, err := contractparser.ComputeContractHash(script.Str)
 	if err != nil {
 		return nil, nil, err
 	}
-	if newFingerprint.Compare(old.Fingerprint) {
+	if newHash == old.Hash {
 		return []elastic.Model{&metadata}, updates, nil
 	}
 
