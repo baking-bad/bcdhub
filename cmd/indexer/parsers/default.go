@@ -329,13 +329,13 @@ func (p *DefaultParser) parseInternalOperations(item gjson.Result, main models.O
 	}
 
 	internalModels := make([]elastic.Model, 0)
-	for _, op := range item.Get(path).Array() {
+	for i, op := range item.Get(path).Array() {
 		parsedModels, _, err := p.parseContent(op, main.Network, main.Hash, head, contentIdx)
 		if err != nil {
 			return nil, err
 		}
-		for i := range parsedModels {
-			if internalOperation, ok := parsedModels[i].(*models.Operation); ok {
+		for j := range parsedModels {
+			if internalOperation, ok := parsedModels[j].(*models.Operation); ok {
 				internalOperation.Counter = main.Counter
 				internalOperation.Hash = main.Hash
 				internalOperation.Level = main.Level
@@ -344,7 +344,7 @@ func (p *DefaultParser) parseInternalOperations(item gjson.Result, main models.O
 				internalOperation.InternalIndex = int64(i + 1)
 			}
 
-			internalModels = append(internalModels, parsedModels[i])
+			internalModels = append(internalModels, parsedModels[j])
 		}
 	}
 	return internalModels, nil
