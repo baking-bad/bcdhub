@@ -56,7 +56,7 @@ func (p *MigrationParser) Parse(script gjson.Result, old models.Contract, previo
 		}
 	}
 
-	newHash, err := contractparser.ComputeContractHash(script.Str)
+	newHash, err := contractparser.ComputeContractHash(script.Get("code").Raw)
 	if err != nil {
 		return nil, nil, err
 	}
