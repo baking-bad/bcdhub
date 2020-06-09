@@ -108,7 +108,7 @@ func (a *Alpha) Enrich(storage, sPrevStorage string, bmd []models.BigMapDiff, sk
 		elt := map[string]interface{}{
 			"prim": "Elt",
 		}
-		args := make([]interface{}, 1)
+		args := make([]interface{}, 2)
 		args[0] = b.Key
 
 		if b.Value != "" {
@@ -117,6 +117,8 @@ func (a *Alpha) Enrich(storage, sPrevStorage string, bmd []models.BigMapDiff, sk
 				return val, err
 			}
 			args = append(args, val.Value())
+		} else {
+			args[1] = nil
 		}
 
 		elt["args"] = args
