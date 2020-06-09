@@ -17,7 +17,14 @@ import (
 )
 
 var mappingNames = []string{
-	elastic.DocBigMapDiff, elastic.DocBlocks, elastic.DocContracts, elastic.DocMetadata, elastic.DocMigrations, elastic.DocOperations, elastic.DocProtocol,
+	elastic.DocBigMapDiff,
+	elastic.DocBlocks,
+	elastic.DocContracts,
+	elastic.DocMetadata,
+	elastic.DocMigrations,
+	elastic.DocOperations,
+	elastic.DocProtocol,
+	elastic.DocBigMapActions,
 }
 
 func createRepository(es *elastic.Elastic, creds awsData) error {

@@ -61,7 +61,7 @@ oauth:
 
 api:
     bind: ":14000"
-    swagger_host: "better-call.dev"
+    swagger_host: "api.better-call.dev"
     oauth:
         enabled: true
     sentry:

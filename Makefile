@@ -78,3 +78,15 @@ docs:
 
 images:
 	docker-compose build
+
+stable-images:
+	TAG=$$STABLE_TAG docker-compose build
+
+stable:
+	TAG=$$STABLE_TAG docker-compose up -default
+
+upgrade:
+	docker-compose down
+	TAG=$$STABLE_TAG $(MAKE) es-reset
+	$(MAKE) s3-creds
+	$(MAKE) s3-repo
