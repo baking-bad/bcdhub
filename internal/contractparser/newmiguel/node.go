@@ -146,20 +146,12 @@ func defaultMerge(node, second *Node) {
 		if !node.Children[i].compareFields(second.Children[j]) {
 			if node.Children[i].Prim == "" {
 				node.Children[i] = second.Children[j]
-				if node.Children[i].IsOption {
-					node.Children[i].setDiffType(update)
-				} else {
-					node.Children[i].setDiffType(delete)
-				}
+				node.Children[i].setDiffType(delete)
 				continue
 			}
 
 			if second.Children[i].Prim == "" {
-				if node.Children[i].IsOption {
-					node.Children[i].setDiffType(update)
-				} else {
-					node.Children[i].setDiffType(create)
-				}
+				node.Children[i].setDiffType(create)
 				continue
 			}
 			i--
