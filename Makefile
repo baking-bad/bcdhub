@@ -83,10 +83,8 @@ stable-images:
 	TAG=$$STABLE_TAG docker-compose build
 
 stable:
-	TAG=$$STABLE_TAG docker-compose up -default
+	TAG=$$STABLE_TAG docker-compose up -d
 
 upgrade:
 	docker-compose down
 	TAG=$$STABLE_TAG $(MAKE) es-reset
-	$(MAKE) s3-creds
-	$(MAKE) s3-repo
