@@ -32,7 +32,7 @@ func buildXML(aliases []database.Alias, networks []string) error {
 	u := &URLSet{Xmlns: "http://www.sitemaps.org/schemas/sitemap/0.9"}
 	modDate := time.Now().Format("2006-01-02")
 
-	u.URLs = append(u.URLs, URL{Location: "https://better-call.dev/", LastMod: modDate})
+	u.URLs = append(u.URLs, URL{Location: "https://better-call.dev", LastMod: modDate})
 	u.URLs = append(u.URLs, URL{Location: "https://better-call.dev/stats", LastMod: modDate})
 	u.URLs = append(u.URLs, URL{Location: "https://better-call.dev/search", LastMod: modDate})
 	u.URLs = append(u.URLs, URL{Location: "https://api.better-call.dev/v1/docs/index.html", LastMod: modDate})
