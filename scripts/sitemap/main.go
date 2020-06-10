@@ -28,11 +28,19 @@ type URLSet struct {
 	URLs    []URL    `xml:"url"`
 }
 
-func buildXML(aliases []database.Alias) error {
+func buildXML(aliases []database.Alias, networks []string) error {
 	u := &URLSet{Xmlns: "http://www.sitemaps.org/schemas/sitemap/0.9"}
 	modDate := time.Now().Format("2006-01-02")
 
 	u.URLs = append(u.URLs, URL{Location: "https://better-call.dev/", LastMod: modDate})
+	u.URLs = append(u.URLs, URL{Location: "https://better-call.dev/stats", LastMod: modDate})
+	u.URLs = append(u.URLs, URL{Location: "https://better-call.dev/search", LastMod: modDate})
+	u.URLs = append(u.URLs, URL{Location: "https://api.better-call.dev/v1/docs/index.html", LastMod: modDate})
+
+	for _, network := range networks {
+		loc := fmt.Sprintf("https://better-call.dev/stats/%s", network)
+		u.URLs = append(u.URLs, URL{Location: loc, LastMod: modDate})
+	}
 
 	for _, a := range aliases {
 		loc := fmt.Sprintf("https://better-call.dev/@%s", a.Slug)
@@ -97,7 +105,7 @@ func main() {
 
 	logger.Info("Total contract aliases: %d", len(contracts))
 
-	if err := buildXML(contracts); err != nil {
+	if err := buildXML(contracts, cfg.Migrations.Networks); err != nil {
 		logger.Fatal(err)
 	}
 
