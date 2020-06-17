@@ -484,6 +484,11 @@ Select the snapshot you made.
 make stable
 ```
 
+## Contact us
+* Telegram: https://t.me/baking_bad_chat
+* Twitter: https://twitter.com/TezosBakingBad
+* Slack: https://tezos-dev.slack.com/archives/CV5NX7F2L
+
 
 ## About
 This project is the successor of the first [serverless](https://github.com/baking-bad/better-call-dev) version (aka BCD1). It has been rewritten from scratch in Golang.   
