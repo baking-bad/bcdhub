@@ -43,7 +43,7 @@ elastic:
     timeout: 10
 
 db:
-    conn_string: "host=db port=5432 user=${POSTGRES_USER} dbname=bcd password=${POSTGRES_PASSWORD} sslmode=disable"
+    conn_string: "host=db port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"
 
 oauth:
     state: ${OAUTH_STATE_STRING}
@@ -76,7 +76,7 @@ api:
         enabled: false
 
 rabbitmq:
-    uri: "amqp://${RABBIT_USER}:${RABBIT_PASSWORD}@mq:5672/"
+    uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mq:5672/"
     queues:
         - operations
         - recalc

@@ -11,7 +11,7 @@ elastic:
     timeout: 30
 
 rabbitmq:
-    uri: "amqp://${RABBIT_USER}:${RABBIT_PASSWORD}@127.0.0.1:5672/"
+    uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@127.0.0.1:5672/"
 
 indexer:
     sentry:

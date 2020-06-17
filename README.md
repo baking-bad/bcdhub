@@ -41,6 +41,17 @@ BCD uses `X.Y.Z` version format where:
 BCD web interface developed at https://github.com/baking-bad/bcd uses the same version scheme.  
 `X.Y.*` versions of backend and frontent MUST BE compatible which means that for every change in API responses `Y` has to be increased.
 
+### Publishing releases
+Is essentially tagging commits:
+```bash
+make latest  # forced tag update
+```
+For stable release:
+```bash
+git tag X.Y.Z
+git push --tags
+```
+
 ## Docker images
 Although you can install and run each part of BCD Hub independently, as system services for instance, the simplest approach is to use dockerized versions orchestrated by _docker-compose_.  
 
@@ -56,7 +67,7 @@ Docker tags are essentially produced from Git tags using the following rules:
 ### Building images
 ```bash
 make images  # latest
-make stable-images  # where TAG is read from .env file
+make stable-images  # requires STABLE_TAG variable in the .env file
 ```
 
 ## Configuration
@@ -147,7 +158,7 @@ db:
 RabbitMQ settings and list of queues to subscribe
 ```yml
 rabbitmq:
-    uri: "amqp://${RABBIT_USER}:${RABBIT_PASSWORD}@mq:5672/"
+    uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mq:5672/"
     queues:
         - operations
         - recalc
@@ -167,17 +178,10 @@ seed:
           network: sandboxnet
           alias: Alice
           watch_mask: 127
-        - address: tz1aSkwEot3L2kmUvcoxzjMomb9mvBNuzFK6
-          network: sandboxnet
-          alias: Bob
-          watch_mask: 127
     aliases:
         - alias: Alice
           network: sandboxnet
           address: tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb
-        - alias: Bob
-          network: sandboxnet
-          address: tz1aSkwEot3L2kmUvcoxzjMomb9mvBNuzFK6
 ```
 
 #### `api`
@@ -193,9 +197,6 @@ api:
         project: api
     networks:
         - mainnet
-        - carthagenet
-        - zeronet
-        - babylonnet
     seed:
         enabled: false
 ```
@@ -210,10 +211,6 @@ indexer:
     networks:
         mainnet:
           boost: tzkt
-        carthagenet:
-          boost: tzkt
-        zeronet:
-          boost: tzkt
 ```
 
 #### `metrics`
@@ -226,30 +223,65 @@ metrics:
 ```
 
 ### Docker settings `docker-compose.yml`
+Connects all the services together. The compose file is pretty straightforward and universal, although there are several settings you may want to change:
 
+* Container names
+* Ports
+* Shared paths
+
+If you are altering these settings make sure you are in sync with the `config.yml` (also keep in mind that container names are essentially hostnames in the internal docker network).
+
+#### Local RPC node
+A typical problem is to access service running on the host machine from inside a docker container. Currently there's no unversal (cross-platform) way to do it (should be fixed in docker 20). A suggested way is the following:
+
+1. Expose your node at `172.17.0.1:8732` (docker gateway)
+2. For each docker service that needs to access RPC add to compose file:
+    ```yml
+    extra_hosts:
+        sandbox: 172.17.0.1
+    ```
+3. Now you can update configuration:
+    ```yml
+    rpc:
+        sandboxnet:
+            uri: http://sandbox:8732
+            timeout: 20     
+    ```
 
 ### Environment variables `.env`
+About env files: https://docs.docker.com/compose/env-file/
 
-```
-GITHUB_CLIENT_ID=
-GITHUB_CLIENT_SECRET=
-GITLAB_CLIENT_ID=
-GITLAB_CLIENT_SECRET=
-JWT_SECRET_KEY=
-OAUTH_STATE_STRING=
-BCD_AWS_BUCKET_NAME=
-BCD_AWS_REGION=
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
-POSTGRES_USER=root
-POSTGRES_PASSWORD=root
-POSTGRES_DB=bcd
-RABBIT_USER=guest
-RABBIT_PASSWORD=guest
-GIN_MODE=debug
-"ES_JAVA_OPTS=-Xms1g -Xmx1g"
-USER_ID=1
-```
+#### System config _required_
+* `GIN_MODE` _release_ for production, _debug_ otherwise
+* `ES_JAVA_OPTS` _"-Xms1g -Xmx1g"_ max RAM allocation for Elastic Search (_g_ for GB, _m_ for MB)
+
+#### Credentials _required_
+* `POSTGRES_USER` e.g. _root_
+* `POSTGRES_PASSWORD` e.g. _root_
+* `POSTGRES_DB` e.g. _bcd_
+* `RABBITMQ_DEFAULT_USER` e.g. _guest_
+* `RABBITMQ_DEFAULT_PASS` e.g. _guest_
+
+#### OAuth creds _required if `oauth: enabled`_
+* `GITHUB_CLIENT_ID`
+* `GITHUB_CLIENT_SECRET`
+* `GITLAB_CLIENT_ID`
+* `GITLAB_CLIENT_SECRET`
+* `JWT_SECRET_KEY`
+* `OAUTH_STATE_STRING`
+
+#### Sentry creds _required if `sentry: enabled`_
+* `SENTRY_DSN`
+
+#### Snapshot settings
+* `BCD_AWS_BUCKET_NAME`
+* `BCD_AWS_REGION`
+* `AWS_ACCESS_KEY_ID`
+* `AWS_SECRET_ACCESS_KEY`
+
+#### Others
+* `STABLE_TAG` _required for building & running images_ e.g. _2.5_
+* `USER_ID` _required for single-user mode_ e.g. _1_
 
 ## Deploy
 If you are looking for a full-fledged BCD setup with GUI (e.g. for local development env) check out https://github.com/baking-bad/bbbox
@@ -266,31 +298,30 @@ You will also need several ports to be not busy:
 * `5432` PostgreSQL
 
 ### Get ready
-
 1. Clone this repo
 ```bash
 git clone https://github.com/baking-bad/bcdhub.git
 cd bcdhub
 ```
 
-2. Create and edit `.env` file (see _Configuration_)
+2. Create and fill `.env` file (see _Configuration_)
 ```bash
 your-text-editor .env
 ```
 
 ### Environments
-
 There are several predefined configurations serving different purposes.
 
 #### Production `better-call.dev`
 * Stable docker images `X.Y`
 * `/cmd/{service}/config.yml` files are used internally
+* Requires `STABLE_TAG` environment set
 * Deployed via `make stable`
 
 #### Staging `you.better-call.dev`
 * Latest docker images `latest`
-* Deployed via https://github.com/baking-bad/bbbox using `custom` target
 * Single `config.yml` file mapped through docker volumes
+* Deployed via https://github.com/baking-bad/bbbox using `make custom`
 
 #### Development `localhost`
 * `config.yml` + `config.dev.yml` files are used (merged)
@@ -300,7 +331,16 @@ There are several predefined configurations serving different purposes.
 #### Sandbox `bbbox`
 See https://github.com/baking-bad/bbbox
 
-#### Yours
+
+## Running
+
+### Startup
+It takes around 20-30 seconds to initialize all services, API endpoints might return errors until then.  
+**NOTE** that if you specified local RPC node that's not running, BCDHub will wait for it indefinitely.
+
+### Single user mode
+If `USER_ID` variable is set all API endpoints that are hidden behind auth become accessible without JWT token.  
+This is done specifically for sandbox environment.
 
 
 ## Contract aliases
@@ -328,17 +368,6 @@ docker restart bcd-api
 
 ### Upgrade from snapshot
 
-
-## Making releases
-
-```bash
-make latest
-```
-
-```bash
-git tag X.Y.Z
-git push --tags
-```
 
 ## About
 This project is the successor of the first [serverless](https://github.com/baking-bad/better-call-dev) version (aka BCD1). It has been rewritten from scratch in Golang.   
