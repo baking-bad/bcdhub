@@ -88,3 +88,6 @@ stable:
 upgrade:
 	docker-compose down
 	TAG=$$STABLE_TAG $(MAKE) es-reset
+
+restart:
+	docker-compose restart bcd-api bcd-metrics bcd-indexer
