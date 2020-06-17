@@ -60,13 +60,6 @@ clearmq:
 test:
 	go test ./...
 
-deploy: export TAG=$(shell git pull -q && git describe --abbrev=0 --tags)
-deploy:
-	git pull
-	docker-compose pull
-	docker-compose up -d
-	docker-compose ps
-
 task:
 	cd scripts/ml && go run . -f ../config.yml
   
@@ -81,6 +74,9 @@ images:
 
 stable-images:
 	TAG=$$STABLE_TAG docker-compose build
+
+stable-pull:
+	TAG=$$STABLE_TAG docker-compose pull
 
 stable:
 	TAG=$$STABLE_TAG docker-compose up -d

@@ -344,29 +344,145 @@ This is done specifically for sandbox environment.
 
 
 ## Contract aliases
-In order to 
+
+#### 1. Fetch from TzKT
 ```bash
 make aliases
 ```
 
+#### 2. Apply to indexed data
 ```bash
 make migration
 ```
+You'd need to run it twice:
 
+* First select _[2] contract_alias_
+* Next select _[3] operation_alias_
+
+#### 3. Refresh contexts
+Lastly you need to restart services in order to fill contexts with aliases:
 ```bash
-docker restart bcd-api
+make restart
 ```
 
 ## Snapshots
+Full indexing process (mainnet + carthagenet + zeronet) requires about 2 hours, however there are cases when you cannot afford that.  
+Elastic Search has a built-in incremental snapshotting mechanism which we use together with the AWS S3 plugin.
 
+**NOTE:** currently we don't provide public snapshots.  
+You can set up your own S3 repo: https://medium.com/@federicopanini/elasticsearch-backup-snapshot-and-restore-on-aws-s3-f1fc32fbca7f  
+Alternatively, contact us for granting access
 
-## Upgrade
+### Get ready
+* Make sure you have snapshot settings in your `.env` file
+* Elastic service `bcd-elastic` should be up and initialized
+
+### Make snapshot
+
+#### 1. Initialize credentials
+```
+make s3-creds
+```
+No further actions required
+
+#### 2. Create local repository (if not exists)
+```
+make s3-repo
+```
+Follow the instruction: you can choose an arbitrary name for your repo.
+
+#### 3. Create snapshot
+```
+make s3-snapshot
+```
+Select an existing repository to store your snapshot.
+
+#### 4. Schedule automatic snapshots
+```
+make s3-policy
+```
+Select an existing repository and configure time intervals using cron expressions: https://www.elastic.co/guide/en/elasticsearch/reference/master/trigger-schedule.html#schedule-cron
+
+### Restore snapshot
+
+#### 1. Cleanup (optional)
+In some cases it's not possible to apply snapshot on top of existing indices. You'd need to clear the data then.  
+**WARNING:** This will delete all data from your elastic instance.
+```
+make es-reset
+```
+Wait for Elastic to be initialized.
+
+#### 2. Initialize creds and repo
+Follow steps 1 and 2 from the _make snapshot_ instruction.
+
+#### 3. Apply snapshot
+```
+make s3-restore
+```
+Select the latest (by date) snapshot from the list. It's taking a while, don't worry about the seeming freeze.
+
+## Version upgrade
+This is mostly for production environment, for all others a simple "start from the scratch" would work.
 
 ### Soft update
+E.g. applying hotfixes. No breaking changes in the database schema.
 
-### Migrations
+#### 1. Build stable images
+Make sure you are on master branch
+```
+git pull
+make stable-images
+make stable
+```
+
+#### 1'. Pull stable images
+```
+make stable-pull
+```
+
+#### 2. Deploy
+```
+make stable
+```
+
+### Data migration
+E.g. new field added to one of the elastic models. You'd need to write a migration script to update existing data.
+
+#### 1. Pull migration script
+```
+git pull
+```
+
+#### 2. Run migration
+```
+make migration
+```
+Select your script.
+
 
 ### Upgrade from snapshot
+In case you need to reindex from scratch you can set up a secondary BCDHub instance, fill the index, make a snapshot, and then apply it to the production instance.
+
+#### 0. Make a snapshot
+Typically you'd use staging for that.
+
+#### 1. Stop BCDHub and clear indexed data
+```
+make upgrade
+```
+Wait for Elastic to be initialized after restart.
+
+#### 2. Restore snapshot
+```
+make s3-restore
+```
+Select the snapshot you made.
+
+#### 3. Run the rest of the services
+```
+make stable
+```
 
 
 ## About
