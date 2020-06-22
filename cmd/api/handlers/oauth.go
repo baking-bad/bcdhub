@@ -94,10 +94,17 @@ func (ctx *Context) authGithubUser(code string) (database.User, error) {
 		return user, fmt.Errorf("getGithubUser failed: %s", err.Error())
 	}
 
+	var name string
+	if u.Name == nil {
+		name = *u.Login
+	} else {
+		name = *u.Name
+	}
+
 	user = database.User{
 		Token:     token.AccessToken,
 		Login:     *u.Login,
-		Name:      *u.Name,
+		Name:      name,
 		AvatarURL: *u.AvatarURL,
 	}
 
