@@ -8,6 +8,10 @@ import (
 
 type liquidity struct{}
 
+func (l liquidity) Tag() string {
+	return LangLiquidity
+}
+
 func (l liquidity) DetectInCode(n node.Node) bool {
 	if !n.HasAnnots() {
 		return false

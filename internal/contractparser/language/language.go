@@ -10,26 +10,31 @@ const (
 	LangLiquidity = "liquidity"
 	LangLigo      = "ligo"
 	LangLorentz   = "lorentz"
-	LangUnknown   = "michelson"
+	LangMichelson = "michelson"
+	LangSCaml     = "scaml"
+	LangUnknown   = "unknown"
 )
 
 type language interface {
+	Tag() string
 	DetectInCode(node.Node) bool
 	DetectInParameter(node.Node) bool
 }
 
-var languages = map[string]language{
-	LangSmartPy:   smartpy{},
-	LangLiquidity: liquidity{},
-	LangLigo:      ligo{},
-	LangLorentz:   lorentz{},
+var languages = []language{
+	smartpy{},
+	liquidity{},
+	ligo{},
+	lorentz{},
+	michelson{},
+	scaml{},
 }
 
 // GetFromCode -
 func GetFromCode(n node.Node) string {
-	for lang, detector := range languages {
+	for _, detector := range languages {
 		if detector.DetectInCode(n) {
-			return lang
+			return detector.Tag()
 		}
 	}
 	return LangUnknown
@@ -37,9 +42,9 @@ func GetFromCode(n node.Node) string {
 
 // GetFromParameter -
 func GetFromParameter(n node.Node) string {
-	for lang, detector := range languages {
+	for _, detector := range languages {
 		if detector.DetectInParameter(n) {
-			return lang
+			return detector.Tag()
 		}
 	}
 	return LangUnknown
