@@ -9,6 +9,10 @@ import (
 
 type smartpy struct{}
 
+func (l smartpy) Tag() string {
+	return LangSmartPy
+}
+
 func (l smartpy) DetectInCode(n node.Node) bool {
 	str := n.GetString()
 

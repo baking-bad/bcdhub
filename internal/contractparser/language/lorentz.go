@@ -10,6 +10,10 @@ import (
 
 type lorentz struct{}
 
+func (l lorentz) Tag() string {
+	return LangLorentz
+}
+
 const lorentzPrefix = "%epw"
 
 var lorentzCamelCase = regexp.MustCompile(`([A-Z][a-z0-9]+)((\d)|([A-Z0-9][a-z0-9]+))*([A-Z])?`)
@@ -21,7 +25,7 @@ func (l lorentz) DetectInCode(n node.Node) bool {
 		return false
 	}
 
-	return strings.Contains(str, "UStore")
+	return strings.Contains(str, "UStore") || strings.Contains(str, "Lorentz") || strings.Contains(str, "lorentz")
 }
 
 func (l lorentz) DetectInParameter(n node.Node) bool {

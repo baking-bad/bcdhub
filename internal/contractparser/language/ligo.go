@@ -9,6 +9,10 @@ import (
 
 type ligo struct{}
 
+func (l ligo) Tag() string {
+	return LangLigo
+}
+
 func (l ligo) DetectInCode(n node.Node) bool {
 	if n.HasAnnots() {
 		for _, a := range n.Annotations {
