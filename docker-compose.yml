@@ -28,7 +28,6 @@ services:
     restart: always
     volumes:
       - mqdata:/var/lib/rabbitmq
-      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
     env_file:
       - .env
     ports:
