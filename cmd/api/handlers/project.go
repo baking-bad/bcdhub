@@ -110,16 +110,7 @@ func (ctx *Context) GetSimilarContracts(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// GetProjects godoc
-// @Summary Show projects
-// @Description Get all projects stats
-// @Tags projects
-// @ID get-projects
-// @Accept  json
-// @Produce  json
-// @Success 200 {array} ProjectStats
-// @Failure 500 {object} Error
-// @Router /projects [get]
+// GetProjects -
 func (ctx *Context) GetProjects(c *gin.Context) {
 	projects, err := ctx.ES.GetProjectsStats()
 	if handleError(c, err, 0) {

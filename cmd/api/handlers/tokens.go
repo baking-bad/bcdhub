@@ -16,8 +16,8 @@ import (
 )
 
 // GetFA godoc
-// @Summary Get all fa tokens
-// @Description Get all fa tokens
+// @Summary Get all contracts that implement FA1/FA1.2 standard
+// @Description Get all contracts that implement FA1/FA1.2 standard
 // @Tags tokens
 // @ID get-tokens
 // @Param network path string true "Network"
@@ -52,8 +52,8 @@ func (ctx *Context) GetFA(c *gin.Context) {
 }
 
 // GetFA12OperationsForAddress godoc
-// @Summary Get token transfers
-// @Description Get token transfers
+// @Summary Get all token transfers (FA1/FA1.2) where given address is src/dst
+// @Description Get all token transfers (FA1/FA1.2) where given address is src/dst
 // @Tags tokens
 // @ID get-token-transfers
 // @Param network path string true "Network"

@@ -1332,39 +1332,6 @@ var doc = `{
                 }
             }
         },
-        "/projects": {
-            "get": {
-                "description": "Get all projects stats",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "projects"
-                ],
-                "summary": "Show projects",
-                "operationId": "get-projects",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/handlers.ProjectStats"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    }
-                }
-            }
-        },
         "/search": {
             "get": {
                 "description": "Search any data in contracts, operations and big map diff with filters",
@@ -1661,7 +1628,7 @@ var doc = `{
         },
         "/tokens/{network}": {
             "get": {
-                "description": "Get all fa tokens",
+                "description": "Get all contracts that implement FA1/FA1.2 standard",
                 "consumes": [
                     "application/json"
                 ],
@@ -1671,7 +1638,7 @@ var doc = `{
                 "tags": [
                     "tokens"
                 ],
-                "summary": "Get all fa tokens",
+                "summary": "Get all contracts that implement FA1/FA1.2 standard",
                 "operationId": "get-tokens",
                 "parameters": [
                     {
@@ -1721,7 +1688,7 @@ var doc = `{
         },
         "/tokens/{network}/{address}/transfers": {
             "get": {
-                "description": "Get token transfers",
+                "description": "Get all token transfers (FA1/FA1.2) where given address is src/dst",
                 "consumes": [
                     "application/json"
                 ],
@@ -1731,7 +1698,7 @@ var doc = `{
                 "tags": [
                     "tokens"
                 ],
-                "summary": "Get token transfers",
+                "summary": "Get all token transfers (FA1/FA1.2) where given address is src/dst",
                 "operationId": "get-token-transfers",
                 "parameters": [
                     {
@@ -2315,20 +2282,6 @@ var doc = `{
                 }
             }
         },
-        "handlers.LightContract": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "type": "string"
-                },
-                "deploy_time": {
-                    "type": "string"
-                },
-                "network": {
-                    "type": "string"
-                }
-            }
-        },
         "handlers.Migration": {
             "type": "object",
             "properties": {
@@ -2523,36 +2476,6 @@ var doc = `{
                     "items": {
                         "$ref": "#/definitions/handlers.TokenTransfer"
                     }
-                }
-            }
-        },
-        "handlers.ProjectStats": {
-            "type": "object",
-            "properties": {
-                "contracts_count": {
-                    "type": "integer"
-                },
-                "first_deploy": {
-                    "type": "string"
-                },
-                "language": {
-                    "type": "string"
-                },
-                "last": {
-                    "type": "object",
-                    "$ref": "#/definitions/handlers.LightContract"
-                },
-                "last_action": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "tx_count": {
-                    "type": "integer"
-                },
-                "versions_count": {
-                    "type": "integer"
                 }
             }
         },

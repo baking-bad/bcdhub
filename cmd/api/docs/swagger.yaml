@@ -351,15 +351,6 @@ definitions:
       text:
         type: string
     type: object
-  handlers.LightContract:
-    properties:
-      address:
-        type: string
-      deploy_time:
-        type: string
-      network:
-        type: string
-    type: object
   handlers.Migration:
     properties:
       hash:
@@ -491,26 +482,6 @@ definitions:
         items:
           $ref: '#/definitions/handlers.TokenTransfer'
         type: array
-    type: object
-  handlers.ProjectStats:
-    properties:
-      contracts_count:
-        type: integer
-      first_deploy:
-        type: string
-      language:
-        type: string
-      last:
-        $ref: '#/definitions/handlers.LightContract'
-        type: object
-      last_action:
-        type: string
-      name:
-        type: string
-      tx_count:
-        type: integer
-      versions_count:
-        type: integer
     type: object
   handlers.Protocol:
     properties:
@@ -1623,28 +1594,6 @@ paths:
       summary: Show random contract
       tags:
       - contract
-  /projects:
-    get:
-      consumes:
-      - application/json
-      description: Get all projects stats
-      operationId: get-projects
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/handlers.ProjectStats'
-            type: array
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.Error'
-      summary: Show projects
-      tags:
-      - projects
   /search:
     get:
       consumes:
@@ -1852,7 +1801,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get all fa tokens
+      description: Get all contracts that implement FA1/FA1.2 standard
       operationId: get-tokens
       parameters:
       - description: Network
@@ -1885,14 +1834,14 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.Error'
-      summary: Get all fa tokens
+      summary: Get all contracts that implement FA1/FA1.2 standard
       tags:
       - tokens
   /tokens/{network}/{address}/transfers:
     get:
       consumes:
       - application/json
-      description: Get token transfers
+      description: Get all token transfers (FA1/FA1.2) where given address is src/dst
       operationId: get-token-transfers
       parameters:
       - description: Network
@@ -1931,7 +1880,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.Error'
-      summary: Get token transfers
+      summary: Get all token transfers (FA1/FA1.2) where given address is src/dst
       tags:
       - tokens
 swagger: "2.0"
