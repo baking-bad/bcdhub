@@ -3,7 +3,6 @@ package noderpc
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -52,6 +51,24 @@ func NewWaitNodeRPC(baseURL string, opts ...NodeOption) *NodeRPC {
 	return node
 }
 
+func (rpc *NodeRPC) parseResponse(resp *http.Response) (res gjson.Result, err error) {
+	if resp.StatusCode >= 500 {
+		return res, NewNodeUnavailiableError(rpc.baseURL, resp.StatusCode)
+	}
+
+	b, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return res, fmt.Errorf("post.ReadAll: %v", err)
+	}
+
+	if resp.StatusCode != 200 {
+		err = fmt.Errorf("%d: %s", resp.StatusCode, string(b))
+	} else {
+		res = gjson.ParseBytes(b)
+	}
+	return
+}
+
 func (rpc *NodeRPC) get(uri string) (res gjson.Result, err error) {
 	url := helpers.URLJoin(rpc.baseURL, uri)
 	client := http.Client{
@@ -73,18 +90,11 @@ func (rpc *NodeRPC) get(uri string) (res gjson.Result, err error) {
 	}
 
 	if count == rpc.retryCount {
-		return res, errors.New("Max HTTP request retry exceeded")
+		return res, NewMaxRetryExceededError(rpc.baseURL)
 	}
+	defer resp.Body.Close()
 
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return res, fmt.Errorf("get.ReadAll: %v", err)
-	}
-
-	res = gjson.ParseBytes(b)
-
-	resp.Body.Close()
-	return
+	return rpc.parseResponse(resp)
 }
 
 func (rpc *NodeRPC) post(uri string, data map[string]interface{}) (res gjson.Result, err error) {
@@ -114,20 +124,11 @@ func (rpc *NodeRPC) post(uri string, data map[string]interface{}) (res gjson.Res
 	}
 
 	if count == rpc.retryCount {
-		return res, errors.New("Max HTTP request retry exceeded")
+		return res, NewMaxRetryExceededError(rpc.baseURL)
 	}
 	defer resp.Body.Close()
 
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return res, fmt.Errorf("post.ReadAll: %v", err)
-	}
-
-	res = gjson.ParseBytes(b)
-	if !res.IsArray() && !res.IsObject() {
-		err = fmt.Errorf("%s: %s", uri, string(b))
-	}
-	return
+	return rpc.parseResponse(resp)
 }
 
 // GetHead - get head

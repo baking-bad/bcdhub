@@ -101,8 +101,11 @@ func (p Pool) call(method string, args ...interface{}) (reflect.Value, error) {
 	}
 
 	if !response[1].IsNil() {
-		node.block()
-		return p.call(method, args...)
+		if IsNodeUnavailiableError(response[1].Interface().(error)) {
+			node.block()
+			return p.call(method, args...)
+		}
+		return response[0], response[1].Interface().(error)
 	}
 	return response[0], nil
 }
