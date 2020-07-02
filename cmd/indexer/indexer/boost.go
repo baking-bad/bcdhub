@@ -462,6 +462,9 @@ func (bi *BoostIndexer) saveModels(items []elastic.Model) error {
 }
 
 func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([]elastic.Model, error) {
+	if head.Level <= 1 {
+		return nil, nil
+	}
 	data, err := bi.rpc.GetOperations(head.Level)
 	if err != nil {
 		return nil, err
