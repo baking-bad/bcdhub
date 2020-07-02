@@ -8,7 +8,7 @@ import (
 
 type ifFamily struct{}
 
-func (f ifFamily) Find(arr ...*fastjson.Value) (macros, error) {
+func (f ifFamily) Find(arr ...*fastjson.Value) (Macros, error) {
 	switch len(arr) {
 	case 1:
 		if f.isAssert(arr[0]) {
@@ -22,7 +22,7 @@ func (f ifFamily) Find(arr ...*fastjson.Value) (macros, error) {
 	return nil, nil
 }
 
-func (f ifFamily) getComplexMacros(arr ...*fastjson.Value) (macros, error) {
+func (f ifFamily) getComplexMacros(arr ...*fastjson.Value) (Macros, error) {
 	if arr[0].Type() == fastjson.TypeObject {
 		if isEq(getPrim(arr[0])) && getPrim(arr[1]) == pIF {
 			if f.isAssert(arr[1]) {

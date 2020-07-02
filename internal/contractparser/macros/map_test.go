@@ -11,7 +11,7 @@ func Test_mapFamily_Find(t *testing.T) {
 	tests := []struct {
 		name    string
 		tree    string
-		want    macros
+		want    Macros
 		wantErr bool
 	}{
 		{

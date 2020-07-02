@@ -8,7 +8,7 @@ import (
 
 type ifNoneFamily struct{}
 
-func (f ifNoneFamily) Find(arr ...*fastjson.Value) (macros, error) {
+func (f ifNoneFamily) Find(arr ...*fastjson.Value) (Macros, error) {
 	if len(arr) < 1 {
 		return nil, nil
 	}

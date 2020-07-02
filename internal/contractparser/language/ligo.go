@@ -5,13 +5,10 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/node"
+	"github.com/tidwall/gjson"
 )
 
 type ligo struct{}
-
-func (l ligo) Tag() string {
-	return LangLigo
-}
 
 func (l ligo) DetectInCode(n node.Node) bool {
 	if n.HasAnnots() {
@@ -29,6 +26,11 @@ func (l ligo) DetectInCode(n node.Node) bool {
 }
 
 func (l ligo) DetectInParameter(n node.Node) bool {
+	return false
+}
+
+// DetectInFirstPrim -
+func (l ligo) DetectInFirstPrim(val gjson.Result) bool {
 	return false
 }
 

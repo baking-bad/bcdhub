@@ -4,10 +4,12 @@ import (
 	"github.com/valyala/fastjson"
 )
 
-type family interface {
-	Find(...*fastjson.Value) (macros, error)
+// Family -
+type Family interface {
+	Find(...*fastjson.Value) (Macros, error)
 }
 
-type macros interface {
+// Macros -
+type Macros interface {
 	Replace(*fastjson.Value) error
 }

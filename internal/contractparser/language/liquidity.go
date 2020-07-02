@@ -4,13 +4,10 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/node"
+	"github.com/tidwall/gjson"
 )
 
 type liquidity struct{}
-
-func (l liquidity) Tag() string {
-	return LangLiquidity
-}
 
 func (l liquidity) DetectInCode(n node.Node) bool {
 	if !n.HasAnnots() {
@@ -41,5 +38,9 @@ func (l liquidity) DetectInParameter(n node.Node) bool {
 		}
 	}
 
+	return false
+}
+
+func (l liquidity) DetectInFirstPrim(val gjson.Result) bool {
 	return false
 }

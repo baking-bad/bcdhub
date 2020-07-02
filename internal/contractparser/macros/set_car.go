@@ -8,7 +8,7 @@ import (
 
 type setCarFamily struct{}
 
-func (f setCarFamily) Find(arr ...*fastjson.Value) (macros, error) {
+func (f setCarFamily) Find(arr ...*fastjson.Value) (Macros, error) {
 	var offset int
 	switch len(arr) {
 	case 3:

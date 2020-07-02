@@ -8,7 +8,7 @@ import (
 
 type cadrFamily struct{}
 
-func (f cadrFamily) Find(arr ...*fastjson.Value) (macros, error) {
+func (f cadrFamily) Find(arr ...*fastjson.Value) (Macros, error) {
 	if len(arr) < 2 {
 		return nil, nil
 	}

@@ -3,6 +3,11 @@ package helpers
 // Set -
 type Set map[string]struct{}
 
+// Add - add item to set
+func (s Set) Add(item string) {
+	s[item] = struct{}{}
+}
+
 // Append - append items to set
 func (s Set) Append(str ...string) {
 	for j := range str {
