@@ -42,14 +42,11 @@ func (m *DropMichelson) Do(ctx *config.Context) error {
 		contracts[i].Language = language.LangUnknown
 
 		bulk = append(bulk, &contracts[i])
+	}
 
-		if len(bulk) == 1000 || (i == len(contracts)-1 && len(bulk) > 0) {
-			if err := ctx.ES.BulkUpdate(bulk); err != nil {
-				return err
-			}
-
-			bulk = bulk[:0]
-		}
+	if err := ctx.ES.BulkUpdate(bulk); err != nil {
+		logger.Errorf("ctx.ES.BulkUpdate error: %v", err)
+		return err
 	}
 
 	logger.Info("Done. Total contracts: %d.", len(contracts))
