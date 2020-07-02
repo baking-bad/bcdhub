@@ -384,7 +384,7 @@ func TestGetFromParameter(t *testing.T) {
 	}
 }
 
-func TestDetectLorentzCast(t *testing.T) {
+func TestGetFromFirstPrim(t *testing.T) {
 	testCases := []struct {
 		name  string
 		input string
@@ -392,12 +392,12 @@ func TestDetectLorentzCast(t *testing.T) {
 	}{
 		{
 			name:  "lorentz",
-			input: `[[{"prim":"CAST"}]]`,
+			input: `{"prim":"CAST"}`,
 			want:  LangLorentz,
 		},
 		{
 			name:  "michelson",
-			input: `[[{"prim":"pair"}]]`,
+			input: `{"prim":"pair"}`,
 			want:  LangUnknown,
 		},
 		{
@@ -410,13 +410,18 @@ func TestDetectLorentzCast(t *testing.T) {
 			input: `[[{"prim": "nat"},{"prim": "CAST"}]]`,
 			want:  LangUnknown,
 		},
+		{
+			name:  "scaml",
+			input: `[]`,
+			want:  LangSCaml,
+		},
 	}
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			parsed := gjson.Parse(tt.input)
-			if got := DetectLorentzCast(parsed); got != tt.want {
-				t.Errorf("detectLorentCast invalid. expected: %v, got: %v", tt.want, got)
+			if got := GetFromFirstPrim(parsed); got != tt.want {
+				t.Errorf("GetFromFirstPrim invalid. expected: %v, got: %v", tt.want, got)
 			}
 		})
 	}

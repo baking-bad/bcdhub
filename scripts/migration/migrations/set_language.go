@@ -2,17 +2,16 @@ package migrations
 
 import (
 	"log"
-	"regexp"
-	"strconv"
-	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/contractparser/language"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/schollz/progressbar/v3"
 )
 
-// SetLanguage - migration that set langugage to contract by annotations or entrypoints
+// SetLanguage - migration that set langugage to contracts with unknown language
 type SetLanguage struct{}
 
 // Key -
@@ -22,7 +21,7 @@ func (m *SetLanguage) Key() string {
 
 // Description -
 func (m *SetLanguage) Description() string {
-	return "set langugage to contract by annotations or entrypoints"
+	return "set langugage to contracts with unknown language"
 }
 
 // Do - migrate function
@@ -37,135 +36,59 @@ func (m *SetLanguage) Do(ctx *config.Context) error {
 
 	logger.Info("Found %d contracts", len(contracts))
 
-	for i, c := range contracts {
-		lang := getLanguage(c.FailStrings, c.Annotations, c.Entrypoints)
+	state, err := ctx.ES.GetAllStates()
+	if err != nil {
+		return err
+	}
+
+	logger.Info("Getting current protocols...")
+	protocols := map[string]string{}
+	for i := range state {
+		logger.Info("%s -> %s", state[i].Network, state[i].Protocol)
+		protocols[state[i].Network] = state[i].Protocol
+	}
+
+	var results []elastic.Model
+	bar := progressbar.NewOptions(len(contracts), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish(), progressbar.OptionShowCount())
+	for i := range contracts {
+		bar.Add(1)
+		rpc, err := ctx.GetRPC(contracts[i].Network)
+		if err != nil {
+			log.Println("ctx.GetRPC error:", contracts[i].ID, contracts[i].Network, err)
+			return err
+		}
+
+		protocol := protocols[contracts[i].Network]
+		rawScript, err := contractparser.GetContract(rpc, contracts[i].Address, contracts[i].Network, protocol, ctx.Config.Share.Path, 0)
+		if err != nil {
+			log.Println("contractparser.GetContract error:", contracts[i].ID, contracts[i].Address, err)
+			return err
+		}
+
+		script, err := contractparser.New(rawScript)
+		if err != nil {
+			log.Println("contractparser.New error:", contracts[i].ID, contracts[i].Address, err)
+			return err
+		}
+
+		lang, err := script.Language()
+		if err != nil {
+			log.Println("script.Language error:", contracts[i].ID, contracts[i].Address, err)
+			return err
+		}
 
 		if lang == language.LangUnknown {
 			continue
 		}
 
-		c.Language = lang
+		contracts[i].Language = lang
+		results = append(results, &contracts[i])
+	}
 
-		if _, err := ctx.ES.UpdateDoc(elastic.DocContracts, c.ID, c); err != nil {
-			log.Println("ctx.ES.UpdateDoc error:", c.ID, c, err)
-			return err
-		}
-
-		log.Printf("%d/%d | %v | [%v]", i, len(contracts), c.ID, lang)
+	if err := ctx.ES.BulkUpdate(results); err != nil {
+		log.Println("ctx.ES.BulkUpdate error:", err)
+		return err
 	}
 
 	return nil
-}
-
-type liquidity struct{}
-type ligo struct{}
-type lorentz struct{}
-type smartpy struct{}
-type detector interface {
-	Detect([]string, []string, []string) bool
-}
-
-func getLanguage(failstrings, annotations, entrypoints []string) string {
-	languages := map[string]detector{
-		language.LangSmartPy:   smartpy{},
-		language.LangLiquidity: liquidity{},
-		language.LangLigo:      ligo{},
-		language.LangLorentz:   lorentz{},
-	}
-
-	for language, l := range languages {
-		if l.Detect(failstrings, annotations, entrypoints) {
-			return language
-		}
-	}
-
-	return language.LangUnknown
-}
-
-func (l liquidity) Detect(_, annotations, entrypoints []string) bool {
-	for _, a := range annotations {
-		if strings.Contains(a, "_slash_") || strings.Contains(a, ":_entries") || strings.Contains(a, `@\w+_slash_1`) {
-			return true
-		}
-	}
-
-	for _, e := range entrypoints {
-		if strings.Contains(e, "_Liq_entry") {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (l ligo) Detect(failstrings, annotations, _ []string) bool {
-	for _, a := range annotations {
-		if len(a) < 2 {
-			continue
-		}
-		if a[0] == '%' && isDigit(a[1:]) {
-			return true
-		}
-	}
-
-	for _, f := range failstrings {
-		if hasLIGOKeywords(f) {
-			return true
-		}
-	}
-
-	return false
-}
-
-func isDigit(input string) bool {
-	_, err := strconv.ParseUint(input, 10, 32)
-	return err == nil
-}
-
-func hasLIGOKeywords(s string) bool {
-	ligoKeywords := []string{
-		"GET_FORCE",
-		"get_force",
-		"MAP FIND",
-	}
-
-	for _, keyword := range ligoKeywords {
-		if s == keyword {
-			return true
-		}
-	}
-
-	return strings.Contains(s, "get_entrypoint") || strings.Contains(s, "get_contract")
-}
-
-var lorentzCamelCase = regexp.MustCompile(`([A-Z][a-z0-9]+)((\d)|([A-Z0-9][a-z0-9]+))*([A-Z])?`)
-
-func (l lorentz) Detect(failstrings, _, entrypoints []string) bool {
-	for _, f := range failstrings {
-		if strings.Contains(f, "UStore") {
-			return true
-		}
-	}
-
-	for _, e := range entrypoints {
-		if strings.HasPrefix(e, "epw") && lorentzCamelCase.MatchString(e[3:]) {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (l smartpy) Detect(failstrings, _, _ []string) bool {
-	for _, f := range failstrings {
-		if strings.Contains(f, "SmartPy") ||
-			strings.Contains(f, "self.") ||
-			strings.Contains(f, "sp.") ||
-			strings.Contains(f, "WrongCondition") ||
-			strings.Contains(f, `Get-item:\d+`) {
-			return true
-		}
-	}
-
-	return false
 }

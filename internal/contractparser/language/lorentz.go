@@ -10,10 +10,6 @@ import (
 
 type lorentz struct{}
 
-func (l lorentz) Tag() string {
-	return LangLorentz
-}
-
 const lorentzPrefix = "%epw"
 
 var lorentzCamelCase = regexp.MustCompile(`([A-Z][a-z0-9]+)((\d)|([A-Z0-9][a-z0-9]+))*([A-Z])?`)
@@ -46,11 +42,7 @@ func (l lorentz) DetectInParameter(n node.Node) bool {
 	return false
 }
 
-// DetectLorentzCast - checks that first prim in code is CAST
-func DetectLorentzCast(val gjson.Result) string {
-	if val.Get("0.0.prim").String() == "CAST" {
-		return LangLorentz
-	}
-
-	return LangUnknown
+// DetectInFirstPrim -
+func (l lorentz) DetectInFirstPrim(val gjson.Result) bool {
+	return val.Get("prim").String() == "CAST"
 }

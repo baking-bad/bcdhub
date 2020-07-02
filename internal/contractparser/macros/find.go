@@ -7,45 +7,33 @@ import (
 	"github.com/valyala/fastjson"
 )
 
-var families = []family{
-	failFamily{},
-	ifLeftFamily{},
-	ifNoneFamily{},
-	unpairFamily{},
-	cadrFamily{},
-	setCarFamily{},
-	setCdrFamily{},
-	mapFamily{},
-	ifFamily{},
-}
-
 // Collapse -
-func Collapse(tree gjson.Result) (gjson.Result, error) {
+func Collapse(tree gjson.Result, families *[]Family) (gjson.Result, error) {
 	var p fastjson.Parser
 	val, err := p.Parse(tree.String())
 	if err != nil {
 		return tree, err
 	}
 
-	if err := collapse(val); err != nil {
+	if err := collapse(val, families); err != nil {
 		return tree, err
 	}
 
 	return gjson.Parse(val.String()), nil
 }
 
-func collapse(tree *fastjson.Value) error {
+func collapse(tree *fastjson.Value, families *[]Family) error {
 	switch tree.Type() {
 	case fastjson.TypeArray:
-		return collapseArray(tree)
+		return collapseArray(tree, families)
 	case fastjson.TypeObject:
-		return collapseObject(tree)
+		return collapseObject(tree, families)
 	default:
 		return fmt.Errorf("Invalid fastjson.Type: %v", tree.Type())
 	}
 }
 
-func collapseArray(tree *fastjson.Value) error {
+func collapseArray(tree *fastjson.Value, families *[]Family) error {
 	if tree.Type() != fastjson.TypeArray {
 		return fmt.Errorf("Invalid collapseArray fastjson.Type: %v", tree.Type())
 	}
@@ -56,13 +44,13 @@ func collapseArray(tree *fastjson.Value) error {
 	}
 
 	for i := range arr {
-		if err := collapse(arr[i]); err != nil {
+		if err := collapse(arr[i], families); err != nil {
 			return err
 		}
 	}
 
-	for i := range families {
-		m, err := families[i].Find(arr...)
+	for i := range *families {
+		m, err := (*families)[i].Find(arr...)
 		if err != nil {
 			return err
 		}
@@ -79,13 +67,13 @@ func collapseArray(tree *fastjson.Value) error {
 	return nil
 }
 
-func collapseObject(tree *fastjson.Value) error {
+func collapseObject(tree *fastjson.Value, families *[]Family) error {
 	if tree.Type() != fastjson.TypeObject {
 		return fmt.Errorf("Invalid collapseObject fastjson.Type: %v", tree.Type())
 	}
 
 	if tree.Exists("args") {
-		if err := collapseArray(tree.Get("args")); err != nil {
+		if err := collapseArray(tree.Get("args"), families); err != nil {
 			return err
 		}
 	}

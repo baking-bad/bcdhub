@@ -19,7 +19,7 @@ type Code struct {
 	Code      gjson.Result
 
 	Tags        helpers.Set
-	Language    string
+	Language    helpers.Set
 	FailStrings helpers.Set
 	Annotations helpers.Set
 	Hash        string
@@ -28,7 +28,7 @@ type Code struct {
 func newCode(script gjson.Result) (Code, error) {
 	res := Code{
 		parser:      &parser{},
-		Language:    language.LangUnknown,
+		Language:    make(helpers.Set),
 		FailStrings: make(helpers.Set),
 		Tags:        make(helpers.Set),
 		Annotations: make(helpers.Set),
@@ -81,7 +81,8 @@ func (c *Code) parseStruct(n node.Node) error {
 }
 
 func (c *Code) parseCode(args gjson.Result) error {
-	c.Language = language.DetectLorentzCast(args)
+	lang := language.GetFromFirstPrim(args.Get("0.0"))
+	c.Language.Add(lang)
 
 	for _, val := range args.Array() {
 		if err := c.parse(val); err != nil {
@@ -106,9 +107,8 @@ func (c *Code) handlePrimitive(n node.Node) (err error) {
 		c.Annotations.Append(filterAnnotations(n.Annotations)...)
 	}
 
-	if c.Language == language.LangUnknown {
-		c.Language = language.GetFromCode(n)
-	}
+	lang := language.GetFromCode(n)
+	c.Language.Add(lang)
 
 	c.Tags.Append(primTags(n))
 

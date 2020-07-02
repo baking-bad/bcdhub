@@ -8,7 +8,7 @@ import (
 
 type unpairFamily struct{}
 
-func (f unpairFamily) Find(arr ...*fastjson.Value) (macros, error) {
+func (f unpairFamily) Find(arr ...*fastjson.Value) (Macros, error) {
 	if len(arr) != 3 {
 		return nil, nil
 	}

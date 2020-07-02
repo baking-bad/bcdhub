@@ -5,13 +5,10 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/node"
+	"github.com/tidwall/gjson"
 )
 
 type smartpy struct{}
-
-func (l smartpy) Tag() string {
-	return LangSmartPy
-}
 
 func (l smartpy) DetectInCode(n node.Node) bool {
 	str := n.GetString()
@@ -32,5 +29,9 @@ func (l smartpy) DetectInCode(n node.Node) bool {
 }
 
 func (l smartpy) DetectInParameter(n node.Node) bool {
+	return false
+}
+
+func (l smartpy) DetectInFirstPrim(val gjson.Result) bool {
 	return false
 }
