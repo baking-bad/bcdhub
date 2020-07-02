@@ -82,7 +82,6 @@ func (ctx *Context) RunCode(c *gin.Context) {
 	if handleError(c, err, 0) {
 		return
 	}
-
 	main := Operation{
 		IndexedTime: time.Now().UTC().UnixNano(),
 		Protocol:    state.Protocol,

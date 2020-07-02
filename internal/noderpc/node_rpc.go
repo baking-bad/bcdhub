@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/tidwall/gjson"
 )
 
@@ -23,17 +24,32 @@ type NodeRPC struct {
 }
 
 // NewNodeRPC -
-func NewNodeRPC(baseURL string) *NodeRPC {
-	return &NodeRPC{
+func NewNodeRPC(baseURL string, opts ...NodeOption) *NodeRPC {
+	node := &NodeRPC{
 		baseURL:    baseURL,
 		timeout:    time.Second * 10,
 		retryCount: 3,
 	}
+
+	for _, opt := range opts {
+		opt(node)
+	}
+	return node
 }
 
-// SetTimeout - default is 10 sec
-func (rpc *NodeRPC) SetTimeout(timeout time.Duration) {
-	rpc.timeout = timeout
+// NewWaitNodeRPC -
+func NewWaitNodeRPC(baseURL string, opts ...NodeOption) *NodeRPC {
+	node := NewNodeRPC(baseURL, opts...)
+
+	for {
+		if _, err := node.GetLevel(); err == nil {
+			break
+		}
+
+		logger.Warning("Waiting node %s up 30 second...", baseURL)
+		time.Sleep(time.Second * 30)
+	}
+	return node
 }
 
 func (rpc *NodeRPC) get(uri string) (res gjson.Result, err error) {
@@ -100,6 +116,7 @@ func (rpc *NodeRPC) post(uri string, data map[string]interface{}) (res gjson.Res
 	if count == rpc.retryCount {
 		return res, errors.New("Max HTTP request retry exceeded")
 	}
+	defer resp.Body.Close()
 
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -107,8 +124,9 @@ func (rpc *NodeRPC) post(uri string, data map[string]interface{}) (res gjson.Res
 	}
 
 	res = gjson.ParseBytes(b)
-
-	resp.Body.Close()
+	if !res.IsArray() && !res.IsObject() {
+		err = fmt.Errorf("%s: %s", uri, string(b))
+	}
 	return
 }
 

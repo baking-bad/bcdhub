@@ -23,7 +23,10 @@ func WithRPC(rpcConfig map[string]RPCConfig) ContextOption {
 		}
 		rpc := make(map[string]noderpc.Pool)
 		for network, rpcProvider := range rpcConfig {
-			rpc[network] = noderpc.NewPool([]string{rpcProvider.URI}, time.Second*time.Duration(rpcProvider.Timeout))
+			rpc[network] = noderpc.NewPool(
+				[]string{rpcProvider.URI},
+				noderpc.WithTimeout(time.Second*time.Duration(rpcProvider.Timeout)),
+			)
 		}
 		ctx.RPC = rpc
 	}
