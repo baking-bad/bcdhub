@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -42,7 +43,7 @@ func GetContract(rpc noderpc.Pool, address, network, protocol, filesDirectory st
 			}
 			return contract, nil
 		}
-		if !os.IsNotExist(err) {
+		if !strings.Contains(err.Error(), "no such file or directory") {
 			return gjson.Result{}, err
 		}
 	}

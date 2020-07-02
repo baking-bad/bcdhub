@@ -9,7 +9,7 @@ rpc:
         uri: https://rpc.tzkt.io/babylonnet
         timeout: 20
     carthagenet:
-        uri: https://testnet-tezos.giganode.io
+        uri: https://rpc.tzkt.io/carthagenet
         timeout: 20
 
 tzkt:
