@@ -380,7 +380,9 @@ func (bi *BoostIndexer) process() error {
 				return nil
 			}
 			if err.Error() == "rollback" {
-				bi.Rollback()
+				if !time.Now().Add(time.Duration(-5) * time.Minute).After(head.Timestamp) { // Check that node is out of sync
+					bi.Rollback()
+				}
 				return nil
 			}
 			return err
