@@ -1,8 +1,6 @@
 package migrations
 
 import (
-	"log"
-
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/contractparser/language"
@@ -54,26 +52,26 @@ func (m *SetLanguage) Do(ctx *config.Context) error {
 		bar.Add(1)
 		rpc, err := ctx.GetRPC(contracts[i].Network)
 		if err != nil {
-			log.Println("ctx.GetRPC error:", contracts[i].ID, contracts[i].Network, err)
+			logger.Errorf("ctx.GetRPC %v %s error: %v", contracts[i].ID, contracts[i].Network, err)
 			return err
 		}
 
 		protocol := protocols[contracts[i].Network]
 		rawScript, err := contractparser.GetContract(rpc, contracts[i].Address, contracts[i].Network, protocol, ctx.Config.Share.Path, 0)
 		if err != nil {
-			log.Println("contractparser.GetContract error:", contracts[i].ID, contracts[i].Address, err)
+			logger.Errorf("contractparser.GetContract %v %s error: %v", contracts[i].ID, contracts[i].Address, err)
 			return err
 		}
 
 		script, err := contractparser.New(rawScript)
 		if err != nil {
-			log.Println("contractparser.New error:", contracts[i].ID, contracts[i].Address, err)
+			logger.Errorf("contractparser.New %v %s error: %v", contracts[i].ID, contracts[i].Address, err)
 			return err
 		}
 
 		lang, err := script.Language()
 		if err != nil {
-			log.Println("script.Language error:", contracts[i].ID, contracts[i].Address, err)
+			logger.Errorf("script.Language %v %s error: %v", contracts[i].ID, contracts[i].Address, err)
 			return err
 		}
 
@@ -86,9 +84,11 @@ func (m *SetLanguage) Do(ctx *config.Context) error {
 	}
 
 	if err := ctx.ES.BulkUpdate(results); err != nil {
-		log.Println("ctx.ES.BulkUpdate error:", err)
+		logger.Errorf("ctx.ES.BulkUpdate error: %v", err)
 		return err
 	}
+
+	logger.Info("Done. Total contracts: %d.", len(contracts))
 
 	return nil
 }
