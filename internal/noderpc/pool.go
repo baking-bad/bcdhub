@@ -6,64 +6,68 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/tidwall/gjson"
 )
 
 // Pool - node pool
-type Pool []poolItem
+type Pool []*poolItem
 
 type poolItem struct {
 	node      *NodeRPC
 	blockTime time.Time
 }
 
-var blockDuration = time.Minute
+func newPoolItem(url string, opts ...NodeOption) *poolItem {
+	return &poolItem{
+		node:      NewNodeRPC(url, opts...),
+		blockTime: time.Now(),
+	}
+}
+
+func newWaitPoolItem(url string, opts ...NodeOption) *poolItem {
+	return &poolItem{
+		node:      NewWaitNodeRPC(url, opts...),
+		blockTime: time.Now(),
+	}
+}
+
+func (p *poolItem) block() {
+	p.blockTime = time.Now().Add(time.Minute * 5)
+}
+
+func (p *poolItem) isBlocked() bool {
+	return time.Now().After(p.blockTime)
+}
 
 // NewPool - creates `Pool` struct by `urls`
-func NewPool(urls []string, timeout time.Duration) Pool {
-	data := make(Pool, len(urls))
+func NewPool(urls []string, opts ...NodeOption) Pool {
+	pool := make(Pool, len(urls))
 	for i := range urls {
-		data[i] = poolItem{
-			node:      NewNodeRPC(urls[i]),
-			blockTime: time.Now(),
-		}
-		data[i].node.SetTimeout(timeout)
+		pool[i] = newPoolItem(urls[i], opts...)
 	}
-	return data
+	return pool
 }
 
-// NewWaitNode -
-func NewWaitNode(url string, timeout time.Duration) Pool {
-	item := poolItem{node: NewNodeRPC(url)}
-
-	item.node.SetTimeout(timeout)
-
-	for {
-		if _, err := item.node.GetLevel(); err == nil {
-			break
-		}
-
-		logger.Warning("Waiting node up 30 second...")
-		time.Sleep(time.Second * 30)
+// NewWaitPool -
+func NewWaitPool(urls []string, opts ...NodeOption) Pool {
+	pool := make(Pool, len(urls))
+	for i := range urls {
+		pool[i] = newWaitPoolItem(urls[i], opts...)
 	}
-
-	item.blockTime = time.Now()
-
-	return Pool{item}
+	return pool
 }
 
-func (p Pool) getNode() (poolItem, error) {
+func (p Pool) getNode() (*poolItem, error) {
 	rand.Seed(time.Now().UnixNano())
-	nodes := make([]poolItem, 0)
+	nodes := make([]*poolItem, 0)
 	for i := range p {
-		if time.Now().After(p[i].blockTime) {
+		if p[i].isBlocked() {
 			nodes = append(nodes, p[i])
 		}
 	}
 
 	if len(nodes) == 0 {
-		return poolItem{}, fmt.Errorf("No availiable nodes")
+		return nil, fmt.Errorf("No availiable nodes")
 	}
 
 	return nodes[rand.Intn(len(nodes))], nil
@@ -92,12 +96,12 @@ func (p Pool) call(method string, args ...interface{}) (reflect.Value, error) {
 
 	response := mthd.Call(in)
 	if len(response) != 2 {
-		node.blockTime = time.Now().Add(blockDuration)
+		node.block()
 		return reflect.Value{}, fmt.Errorf("Invalid response length: %d", len(response))
 	}
 
 	if !response[1].IsNil() {
-		node.blockTime = time.Now().Add(blockDuration)
+		node.block()
 		return p.call(method, args...)
 	}
 	return response[0], nil
@@ -197,16 +201,16 @@ func (p Pool) GetContractsByBlock(block int64) ([]string, error) {
 func (p Pool) GetNetworkConstants() (res gjson.Result, err error) {
 	data, err := p.call("GetNetworkConstants")
 	if err != nil {
-		return
+		return gjson.Result{}, err
 	}
 	return data.Interface().(gjson.Result), nil
 }
 
 // RunCode -
-func (p Pool) RunCode(script, storage, input gjson.Result, chainID, source, payer, entrypoint string, amount, gas int64) (res gjson.Result, err error) {
+func (p Pool) RunCode(script, storage, input gjson.Result, chainID, source, payer, entrypoint string, amount, gas int64) (gjson.Result, error) {
 	data, err := p.call("RunCode", script, storage, input, chainID, source, payer, entrypoint, amount, gas)
 	if err != nil {
-		return
+		return gjson.Result{}, err
 	}
 	return data.Interface().(gjson.Result), nil
 }

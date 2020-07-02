@@ -55,7 +55,10 @@ func (ctx *Context) close() {
 func createRPCs(cfg config.Config) map[string]noderpc.Pool {
 	rpc := make(map[string]noderpc.Pool)
 	for network, rpcProvider := range cfg.RPC {
-		rpc[network] = noderpc.NewPool([]string{rpcProvider.URI}, time.Second*time.Duration(rpcProvider.Timeout))
+		rpc[network] = noderpc.NewPool(
+			[]string{rpcProvider.URI},
+			noderpc.WithTimeout(time.Second*time.Duration(rpcProvider.Timeout)),
+		)
 	}
 	return rpc
 }
