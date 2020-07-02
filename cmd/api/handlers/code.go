@@ -48,7 +48,7 @@ func (ctx *Context) GetContractCode(c *gin.Context) {
 		return
 	}
 
-	collapsed, err := macros.Collapse(code)
+	collapsed, err := macros.Collapse(code, macros.GetAllFamilies())
 	if err != nil {
 		logger.Error(err)
 		collapsed = code
@@ -129,7 +129,7 @@ func (ctx *Context) getContractCodeDiff(left, right CodeDiffLeg) (res CodeDiffRe
 		if err != nil {
 			return res, err
 		}
-		collapsed, err := macros.Collapse(code)
+		collapsed, err := macros.Collapse(code, macros.GetAllFamilies())
 		if err != nil {
 			return res, err
 		}

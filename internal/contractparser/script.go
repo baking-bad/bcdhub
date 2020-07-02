@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/language"
+	"github.com/baking-bad/bcdhub/internal/contractparser/macros"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/tidwall/gjson"
 )
@@ -49,19 +50,31 @@ func (s *Script) Parse() {
 
 // Language -
 func (s *Script) Language() (string, error) {
-	if s.Code.Language == s.Code.Parameter.Language {
-		return s.Code.Language, nil
+	result := language.LangUnknown
+
+	possibleLanguages := s.Code.Language
+	possibleLanguages.Merge(s.Code.Parameter.Language)
+	possibleLanguages.Merge(s.Code.Storage.Language)
+
+	for _, lang := range language.Priorities() {
+		if _, ok := possibleLanguages[lang]; ok {
+			result = lang
+			break
+		}
 	}
 
-	if s.Code.Language == language.LangUnknown {
-		return s.Code.Parameter.Language, nil
+	if result == language.LangSCaml || result == language.LangUnknown {
+		hasMacros, err := macros.HasMacros(s.Code.Code, macros.GetLangugageFamilies())
+		if err != nil {
+			return result, err
+		}
+
+		if hasMacros {
+			result = language.LangMichelson
+		}
 	}
 
-	if s.Code.Parameter.Language == language.LangUnknown {
-		return s.Code.Language, nil
-	}
-
-	return "", fmt.Errorf("Language detect error. [code] %s | [parameter] %s", s.Code.Language, s.Code.Parameter.Language)
+	return result, nil
 }
 
 func (s *Script) getTags() {

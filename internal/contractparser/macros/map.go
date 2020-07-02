@@ -8,7 +8,7 @@ import (
 
 type mapFamily struct{}
 
-func (f mapFamily) Find(arr ...*fastjson.Value) (macros, error) {
+func (f mapFamily) Find(arr ...*fastjson.Value) (Macros, error) {
 	if len(arr) < 5 {
 		return nil, nil
 	}

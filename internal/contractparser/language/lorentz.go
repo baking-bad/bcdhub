@@ -21,7 +21,7 @@ func (l lorentz) DetectInCode(n node.Node) bool {
 		return false
 	}
 
-	return strings.Contains(str, "UStore")
+	return strings.Contains(str, "UStore") || strings.Contains(str, "Lorentz") || strings.Contains(str, "lorentz")
 }
 
 func (l lorentz) DetectInParameter(n node.Node) bool {
@@ -42,11 +42,7 @@ func (l lorentz) DetectInParameter(n node.Node) bool {
 	return false
 }
 
-// DetectLorentzCast - checks that first prim in code is CAST
-func DetectLorentzCast(val gjson.Result) string {
-	if val.Get("0.0.prim").String() == "CAST" {
-		return LangLorentz
-	}
-
-	return LangUnknown
+// DetectInFirstPrim -
+func (l lorentz) DetectInFirstPrim(val gjson.Result) bool {
+	return val.Get("prim").String() == "CAST"
 }

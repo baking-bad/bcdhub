@@ -25,7 +25,7 @@ type Parameter struct {
 
 	Metadata meta.Metadata
 
-	Language    string
+	Language    helpers.Set
 	Tags        helpers.Set
 	Annotations helpers.Set
 }
@@ -36,7 +36,7 @@ func newParameter(v gjson.Result) (Parameter, error) {
 	}
 	p := Parameter{
 		parser:      &parser{},
-		Language:    language.LangUnknown,
+		Language:    make(helpers.Set),
 		Tags:        make(helpers.Set),
 		Annotations: make(helpers.Set),
 	}
@@ -69,8 +69,9 @@ func (p *Parameter) handlePrimitive(n node.Node) error {
 		p.Annotations.Append(filterAnnotations(n.Annotations)...)
 	}
 
-	if n.HasAnnots() && p.Language == language.LangUnknown {
-		p.Language = language.GetFromParameter(n)
+	if n.HasAnnots() {
+		lang := language.GetFromCode(n)
+		p.Language.Add(lang)
 	}
 
 	return nil

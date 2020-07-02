@@ -8,7 +8,7 @@ import (
 
 type setCdrFamily struct{}
 
-func (f setCdrFamily) Find(arr ...*fastjson.Value) (macros, error) {
+func (f setCdrFamily) Find(arr ...*fastjson.Value) (Macros, error) {
 	var offset int
 	switch len(arr) {
 	case 2:

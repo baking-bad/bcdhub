@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/node"
+	"github.com/tidwall/gjson"
 )
 
 type liquidity struct{}
@@ -37,5 +38,9 @@ func (l liquidity) DetectInParameter(n node.Node) bool {
 		}
 	}
 
+	return false
+}
+
+func (l liquidity) DetectInFirstPrim(val gjson.Result) bool {
 	return false
 }
