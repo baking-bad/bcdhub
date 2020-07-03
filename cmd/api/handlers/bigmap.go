@@ -122,7 +122,7 @@ func (ctx *Context) GetBigMapHistory(c *gin.Context) {
 // @ID get-bigmap-keys
 // @Param network path string true "Network"
 // @Param ptr path integer true "Big map pointer"
-// @Param search query string false "Search string"
+// @Param q query string false "Search string"
 // @Param offset query integer false "Offset"
 // @Param size query integer false "Requested count" mininum(1)
 // @Accept  json
