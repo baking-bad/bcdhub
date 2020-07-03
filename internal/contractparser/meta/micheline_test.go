@@ -121,7 +121,7 @@ func Test_defaultBuilder(t *testing.T) {
 				return
 			}
 
-			res, err := defaultBuilder(metadata, metadata[tt.args.path], tt.args.path, tt.args.data)
+			res, err := defaultBuilder(metadata, metadata[tt.args.path], tt.args.path, tt.args.data, false)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("defaultBuilder() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -52,7 +52,7 @@ func NewWaitNodeRPC(baseURL string, opts ...NodeOption) *NodeRPC {
 }
 
 func (rpc *NodeRPC) parseResponse(resp *http.Response) (res gjson.Result, err error) {
-	if resp.StatusCode >= 500 {
+	if resp.StatusCode > 500 {
 		return res, NewNodeUnavailiableError(rpc.baseURL, resp.StatusCode)
 	}
 
@@ -63,9 +63,8 @@ func (rpc *NodeRPC) parseResponse(resp *http.Response) (res gjson.Result, err er
 
 	if resp.StatusCode != 200 {
 		err = fmt.Errorf("%d: %s", resp.StatusCode, string(b))
-	} else {
-		res = gjson.ParseBytes(b)
 	}
+	res = gjson.ParseBytes(b)
 	return
 }
 

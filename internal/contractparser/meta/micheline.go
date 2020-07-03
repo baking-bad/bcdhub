@@ -11,10 +11,10 @@ import (
 )
 
 // BuildEntrypointMicheline -
-func (m Metadata) BuildEntrypointMicheline(binaryPath string, data map[string]interface{}) (gjson.Result, error) {
+func (m Metadata) BuildEntrypointMicheline(binaryPath string, data map[string]interface{}, needValidate bool) (gjson.Result, error) {
 	binaryPath = prepareData(binaryPath, data)
 
-	micheline, err := build(m, binaryPath, data)
+	micheline, err := m.buildParameters(binaryPath, data, needValidate)
 	if err != nil {
 		return gjson.Result{}, err
 	}
@@ -44,34 +44,38 @@ func prepareData(binaryPath string, data map[string]interface{}) string {
 	return binaryPath
 }
 
-func build(metadata Metadata, path string, data map[string]interface{}) (string, error) {
-	nm, ok := metadata[path]
+func (m Metadata) buildParameters(path string, data map[string]interface{}, needValidate bool) (string, error) {
+	nm, ok := m[path]
 	if !ok {
 		return "", fmt.Errorf("Unknown binary path: %s", path)
 	}
 
 	switch nm.Prim {
 	case consts.PAIR:
-		return pairBuilder(metadata, nm, path, data)
+		return m.pairParametersBuilder(nm, path, data, needValidate)
 	case consts.OR:
-		return orBuilder(metadata, nm, path, data)
+		return m.orParametersBuilder(nm, path, data, needValidate)
 	case consts.UNIT:
-		return unitBuilder(metadata, nm, path, data)
+		return m.unitParametersBuilder(nm, path, data, needValidate)
 	case consts.LIST, consts.SET:
-		return listBuilder(metadata, nm, path, data)
+		return m.listParametersBuilder(nm, path, data, needValidate)
 	case consts.OPTION:
-		return optionBuilder(metadata, nm, path, data)
+		return m.optionParametersBuilder(nm, path, data, needValidate)
 	case consts.MAP:
-		return mapBuilder(metadata, nm, path, data)
+		return m.mapParametersBuilder(nm, path, data, needValidate)
 	default:
-		return defaultBuilder(metadata, nm, path, data)
+		return m.defaultParametersBuilder(nm, path, data, needValidate)
 	}
 }
 
-func defaultBuilder(metadata Metadata, node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
+func (m Metadata) defaultParametersBuilder(node *NodeMetadata, path string, data map[string]interface{}, needValidate bool) (string, error) {
 	value, ok := data[path]
 	if !ok {
 		return "", fmt.Errorf("'%s' is required field", getName(node))
+	}
+
+	if needValidate && !validate(node.Prim, value) {
+		return "", fmt.Errorf("Invalid parameter input: %s %v", node.Prim, value)
 	}
 
 	switch node.Prim {
@@ -105,14 +109,14 @@ func defaultBuilder(metadata Metadata, node *NodeMetadata, path string, data map
 	}
 }
 
-func pairBuilder(metadata Metadata, node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
+func (m Metadata) pairParametersBuilder(node *NodeMetadata, path string, data map[string]interface{}, needValidate bool) (string, error) {
 	s := ""
 	for i, postfix := range []string{"/0", "/1"} {
 		if i != 0 {
 			s += ", "
 		}
 		argPath := path + postfix
-		argStr, err := build(metadata, argPath, data)
+		argStr, err := m.buildParameters(argPath, data, needValidate)
 		if err != nil {
 			return "", err
 		}
@@ -121,11 +125,11 @@ func pairBuilder(metadata Metadata, node *NodeMetadata, path string, data map[st
 	return fmt.Sprintf(`{"prim": "Pair", "args":[%s]}`, s), nil
 }
 
-func unitBuilder(metadata Metadata, node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
+func (m Metadata) unitParametersBuilder(node *NodeMetadata, path string, data map[string]interface{}, needValidate bool) (string, error) {
 	return `{"prim": "Unit"}`, nil
 }
 
-func listBuilder(metadata Metadata, node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
+func (m Metadata) listParametersBuilder(node *NodeMetadata, path string, data map[string]interface{}, needValidate bool) (string, error) {
 	value, ok := data[path]
 	if !ok {
 		return "", fmt.Errorf("'%s' is required field", getName(node))
@@ -145,14 +149,14 @@ func listBuilder(metadata Metadata, node *NodeMetadata, path string, data map[st
 
 		switch t := listValue[i].(type) {
 		case map[string]interface{}:
-			argStr, err := build(metadata, listPath, t)
+			argStr, err := m.buildParameters(listPath, t, needValidate)
 			if err != nil {
 				return "", err
 			}
 			builder.WriteString(argStr)
 		default:
 			data[listPath] = listValue[i]
-			argStr, err := build(metadata, listPath, data)
+			argStr, err := m.buildParameters(listPath, data, needValidate)
 			if err != nil {
 				return "", err
 			}
@@ -163,7 +167,7 @@ func listBuilder(metadata Metadata, node *NodeMetadata, path string, data map[st
 	return fmt.Sprintf("[%s]", builder.String()), nil
 }
 
-func mapBuilder(metadata Metadata, node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
+func (m Metadata) mapParametersBuilder(node *NodeMetadata, path string, data map[string]interface{}, needValidate bool) (string, error) {
 	value, ok := data[path]
 	if !ok {
 		return "", fmt.Errorf("'%s' is required field", getName(node))
@@ -179,13 +183,13 @@ func mapBuilder(metadata Metadata, node *NodeMetadata, path string, data map[str
 			return "", fmt.Errorf("Invalid data: '%s'", getName(node))
 		}
 		var itemBuilder strings.Builder
-		keyStr, err := build(metadata, path+"/k", mapValue)
+		keyStr, err := m.buildParameters(path+"/k", mapValue, needValidate)
 		if err != nil {
 			return "", err
 		}
 		itemBuilder.WriteString(keyStr)
 		itemBuilder.WriteByte(',')
-		valStr, err := build(metadata, path+"/v", mapValue)
+		valStr, err := m.buildParameters(path+"/v", mapValue, needValidate)
 		if err != nil {
 			return "", err
 		}
@@ -196,7 +200,7 @@ func mapBuilder(metadata Metadata, node *NodeMetadata, path string, data map[str
 	return fmt.Sprintf("[%s]", s), nil
 }
 
-func optionBuilder(metadata Metadata, node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
+func (m Metadata) optionParametersBuilder(node *NodeMetadata, path string, data map[string]interface{}, needValidate bool) (string, error) {
 	value, ok := data[path]
 	if !ok {
 		return "", fmt.Errorf("'%s' is required field", getName(node))
@@ -219,7 +223,7 @@ func optionBuilder(metadata Metadata, node *NodeMetadata, path string, data map[
 			}
 			data[k] = v
 		}
-		optionStr, err := build(metadata, path+"/o", mapValue)
+		optionStr, err := m.buildParameters(path+"/o", mapValue, needValidate)
 		if err != nil {
 			return "", err
 		}
@@ -227,7 +231,7 @@ func optionBuilder(metadata Metadata, node *NodeMetadata, path string, data map[
 	}
 }
 
-func orBuilder(metadata Metadata, node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
+func (m Metadata) orParametersBuilder(node *NodeMetadata, path string, data map[string]interface{}, needValidate bool) (string, error) {
 	orData, ok := data[path]
 	if !ok {
 		return "", fmt.Errorf("'%s' is required", getName(node))
@@ -244,7 +248,7 @@ func orBuilder(metadata Metadata, node *NodeMetadata, path string, data map[stri
 		return "", fmt.Errorf("Invalid data: '%s'", getName(node))
 	}
 
-	childStr, err := build(metadata, schemaKey, mapValue)
+	childStr, err := m.buildParameters(schemaKey, mapValue, needValidate)
 	if err != nil {
 		return "", err
 	}
