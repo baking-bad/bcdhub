@@ -80,7 +80,7 @@ func (ctx *Context) GetEntrypointData(c *gin.Context) {
 		return
 	}
 
-	result, err := ctx.buildEntrypointMicheline(req.Network, req.Address, reqData.BinPath, reqData.Data)
+	result, err := ctx.buildEntrypointMicheline(req.Network, req.Address, reqData.BinPath, reqData.Data, false)
 	if handleError(c, err, http.StatusBadRequest) {
 		return
 	}
@@ -98,13 +98,13 @@ func (ctx *Context) GetEntrypointData(c *gin.Context) {
 	c.JSON(http.StatusOK, result.Value())
 }
 
-func (ctx *Context) buildEntrypointMicheline(network, address, binPath string, data map[string]interface{}) (gjson.Result, error) {
+func (ctx *Context) buildEntrypointMicheline(network, address, binPath string, data map[string]interface{}, needValidate bool) (gjson.Result, error) {
 	metadata, err := getParameterMetadata(ctx.ES, address, network)
 	if err != nil {
 		return gjson.Result{}, err
 	}
 
-	return metadata.BuildEntrypointMicheline(binPath, data)
+	return metadata.BuildEntrypointMicheline(binPath, data, needValidate)
 }
 
 func getParameterMetadata(es *elastic.Elastic, address, network string) (meta.Metadata, error) {

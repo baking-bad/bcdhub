@@ -60,7 +60,7 @@ func (ctx *Context) RunCode(c *gin.Context) {
 		return
 	}
 
-	input, err := ctx.buildEntrypointMicheline(req.Network, req.Address, reqRunCode.BinPath, reqRunCode.Data)
+	input, err := ctx.buildEntrypointMicheline(req.Network, req.Address, reqRunCode.BinPath, reqRunCode.Data, true)
 	if handleError(c, err, http.StatusBadRequest) {
 		return
 	}

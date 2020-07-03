@@ -1,6 +1,6 @@
 rpc:
     mainnet:
-        uri: https://mainnet-tezos.giganode.io
+        uri: https://rpc.tzkt.io/mainnet
         timeout: 20
     zeronet:
         uri: https://rpc.tzkt.io/zeronet
