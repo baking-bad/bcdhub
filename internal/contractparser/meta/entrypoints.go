@@ -28,6 +28,12 @@ func (metadata Metadata) IsComplexEntryRoot() bool {
 			root.Type == consts.TypeNamedUnion)
 }
 
+// BuildEntrypointMicheline -
+func (metadata Metadata) BuildEntrypointMicheline(binaryPath string, data map[string]interface{}, needValidate bool) (gjson.Result, error) {
+	builder := NewParameterBuilder(metadata, needValidate)
+	return builder.Build(binaryPath, data)
+}
+
 // GetEntrypoints returns contract entrypoints
 func (metadata Metadata) GetEntrypoints() ([]Entrypoint, error) {
 	root := metadata["0"]
