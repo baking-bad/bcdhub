@@ -19,6 +19,8 @@ func validate(typ string, value interface{}) bool {
 		valid = &bytesValidator{}
 	case consts.ADDRESS:
 		valid = &addressValidator{}
+	case consts.SIGNATURE:
+		valid = &base58Validator{}
 	default:
 		return true
 	}
@@ -48,5 +50,16 @@ func (v *addressValidator) Validate(value interface{}) bool {
 		return false
 	}
 	_, _, err := base58.CheckDecode(address)
+	return err == nil
+}
+
+type base58Validator struct{}
+
+func (v *base58Validator) Validate(value interface{}) bool {
+	sValue, ok := value.(string)
+	if !ok {
+		return false
+	}
+	_, _, err := base58.CheckDecode(sValue)
 	return err == nil
 }
