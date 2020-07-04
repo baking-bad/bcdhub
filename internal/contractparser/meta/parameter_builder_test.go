@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"reflect"
 	"testing"
+
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 )
 
 func Test_unitBuilder(t *testing.T) {
@@ -32,18 +34,19 @@ func Test_unitBuilder(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var metadata Metadata
 			if err := json.Unmarshal([]byte(tt.args.metadata), &metadata); err != nil {
-				t.Errorf("unitBuilder() %v", err)
+				t.Errorf("unitParameterBuilder() %v", err)
 				return
 			}
 
-			res, err := unitBuilder(metadata, metadata[tt.args.path], tt.args.path, tt.args.data)
+			pb := unitParameterBuilder{}
+			res, err := pb.Build(metadata[tt.args.path], tt.args.path, tt.args.data)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("unitBuilder() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("unitParameterBuilder() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
 			if res != tt.want {
-				t.Errorf("unitBuilder() %v, want %v", res, tt.want)
+				t.Errorf("unitParameterBuilder() %v, want %v", res, tt.want)
 			}
 		})
 	}
@@ -121,14 +124,17 @@ func Test_defaultBuilder(t *testing.T) {
 				return
 			}
 
-			res, err := defaultBuilder(metadata, metadata[tt.args.path], tt.args.path, tt.args.data, false)
+			pb := defaultParameterBuilder{
+				validate: false,
+			}
+			res, err := pb.Build(metadata[tt.args.path], tt.args.path, tt.args.data)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("defaultBuilder() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("defaultParameterBuilder() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
 			if res != tt.want {
-				t.Errorf("defaultBuilder() %v, want %v", res, tt.want)
+				t.Errorf("defaultParameterBuilder() %v, want %v", res, tt.want)
 			}
 		})
 	}
@@ -163,18 +169,19 @@ func Test_pairBuilder(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var metadata Metadata
 			if err := json.Unmarshal([]byte(tt.args.metadata), &metadata); err != nil {
-				t.Errorf("pairBuilder() %v", err)
+				t.Errorf("pairParameterBuilder() %v", err)
 				return
 			}
 
-			res, err := pairBuilder(metadata, metadata[tt.args.path], tt.args.path, tt.args.data)
+			builder := NewParameterBuilder(metadata, false)
+			res, err := builder.parameterBuilders[consts.PAIR].Build(metadata[tt.args.path], tt.args.path, tt.args.data)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("pairBuilder() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("pairParameterBuilder() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
 			if res != tt.want {
-				t.Errorf("pairBuilder() %v, want %v", res, tt.want)
+				t.Errorf("pairParameterBuilder() %v, want %v", res, tt.want)
 			}
 		})
 	}
@@ -208,18 +215,19 @@ func Test_listBuilder(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var metadata Metadata
 			if err := json.Unmarshal([]byte(tt.args.metadata), &metadata); err != nil {
-				t.Errorf("listBuilder() %v", err)
+				t.Errorf("listParameterBuilder() %v", err)
 				return
 			}
 
-			res, err := listBuilder(metadata, metadata[tt.args.path], tt.args.path, tt.args.data)
+			builder := NewParameterBuilder(metadata, false)
+			res, err := builder.parameterBuilders[consts.LIST].Build(metadata[tt.args.path], tt.args.path, tt.args.data)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("listBuilder() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("listParameterBuilder() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
 			if res != tt.want {
-				t.Errorf("listBuilder() %v, want %v", res, tt.want)
+				t.Errorf("listParameterBuilder() %v, want %v", res, tt.want)
 			}
 		})
 	}
@@ -272,18 +280,18 @@ func Test_optionBuilder(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var metadata Metadata
 			if err := json.Unmarshal([]byte(tt.args.metadata), &metadata); err != nil {
-				t.Errorf("optionBuilder() %v", err)
+				t.Errorf("optionParameterBuilder() %v", err)
 				return
 			}
-
-			res, err := optionBuilder(metadata, metadata[tt.args.path], tt.args.path, tt.args.data)
+			builder := NewParameterBuilder(metadata, false)
+			res, err := builder.parameterBuilders[consts.OPTION].Build(metadata[tt.args.path], tt.args.path, tt.args.data)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("optionBuilder() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("optionParameterBuilder() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
 			if res != tt.want {
-				t.Errorf("optionBuilder() %v, want %v", res, tt.want)
+				t.Errorf("optionParameterBuilder() %v, want %v", res, tt.want)
 			}
 		})
 	}
@@ -441,15 +449,15 @@ func TestMetadata_BuildEntrypointMicheline(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var metadata Metadata
 			if err := json.Unmarshal([]byte(tt.metadata), &metadata); err != nil {
-				t.Errorf("optionBuilder() %v", err)
+				t.Errorf("BuildEntrypointMicheline() %v", err)
 				return
 			}
 			var want map[string]interface{}
 			if err := json.Unmarshal([]byte(tt.want), &want); err != nil {
-				t.Errorf("optionBuilder() %v", err)
+				t.Errorf("BuildEntrypointMicheline() %v", err)
 				return
 			}
-			got, err := metadata.BuildEntrypointMicheline(tt.args.binaryPath, tt.args.data)
+			got, err := metadata.BuildEntrypointMicheline(tt.args.binaryPath, tt.args.data, false)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Metadata.BuildEntrypointMicheline() error = %v, wantErr %v", err, tt.wantErr)
 				return

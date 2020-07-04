@@ -1,6 +1,12 @@
 package meta
 
-import "regexp"
+import (
+	"regexp"
+	"strings"
+
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/btcsuite/btcutil/base58"
+)
 
 type validator interface {
 	Validate(value interface{}) bool
@@ -8,9 +14,12 @@ type validator interface {
 
 func validate(typ string, value interface{}) bool {
 	var valid validator
-	if typ == "bytes" {
+	switch typ {
+	case consts.BYTES:
 		valid = &bytesValidator{}
-	} else {
+	case consts.ADDRESS:
+		valid = &addressValidator{}
+	default:
 		return true
 	}
 	return valid.Validate(value)
@@ -26,4 +35,18 @@ func (v *bytesValidator) Validate(value interface{}) bool {
 
 	re := regexp.MustCompile(`^([a-f0-9][a-f0-9])*$`)
 	return re.MatchString(sValue)
+}
+
+type addressValidator struct{}
+
+func (v *addressValidator) Validate(value interface{}) bool {
+	address, ok := value.(string)
+	if !ok {
+		return false
+	}
+	if !(strings.HasPrefix(address, "KT") || strings.HasPrefix(address, "tz")) || len(address) != 36 {
+		return false
+	}
+	_, _, err := base58.CheckDecode(address)
+	return err == nil
 }
