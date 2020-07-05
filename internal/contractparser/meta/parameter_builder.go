@@ -112,7 +112,7 @@ func (b defaultParameterBuilder) Build(node *NodeMetadata, path string, data map
 	}
 
 	if b.validate && !validate(node.Prim, value) {
-		return "", fmt.Errorf("Invalid parameter input: %s %v", node.Prim, value)
+		return "", fmt.Errorf("Invalid %s \"%v\"", node.Prim, value)
 	}
 
 	switch node.Prim {
