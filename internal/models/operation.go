@@ -25,6 +25,7 @@ type Operation struct {
 	Level            int64     `json:"level"`
 	Kind             string    `json:"kind"`
 	Source           string    `json:"source"`
+	Nonce            int64     `json:"nonce,omitempty"`
 	Fee              int64     `json:"fee,omitempty"`
 	Counter          int64     `json:"counter,omitempty"`
 	GasLimit         int64     `json:"gas_limit,omitempty"`
@@ -72,6 +73,7 @@ func (o *Operation) ParseElasticJSON(resp gjson.Result) {
 	o.Kind = resp.Get("_source.kind").String()
 	o.Source = resp.Get("_source.source").String()
 	o.Fee = resp.Get("_source.fee").Int()
+	o.Nonce = resp.Get("_source.nonce").Int()
 	o.Counter = resp.Get("_source.counter").Int()
 	o.GasLimit = resp.Get("_source.gas_limit").Int()
 	o.StorageLimit = resp.Get("_source.storage_limit").Int()

@@ -58,7 +58,7 @@ func (rpc *NodeRPC) parseResponse(resp *http.Response, checkStatusCode bool) (re
 
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return res, fmt.Errorf("post.ReadAll: %v", err)
+		return res, fmt.Errorf("ReadAll: %v", err)
 	}
 
 	if checkStatusCode && resp.StatusCode != 200 {
