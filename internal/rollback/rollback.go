@@ -52,7 +52,7 @@ func rollbackBlocks(e *elastic.Elastic, network string, toLevel int64) error {
 
 func rollbackOperations(e *elastic.Elastic, network string, toLevel int64) error {
 	logger.Info("Deleting operations, migrations and big map diffs...")
-	return e.DeleteByLevelAndNetwork([]string{elastic.DocBigMapDiff, elastic.DocMigrations, elastic.DocOperations}, network, toLevel)
+	return e.DeleteByLevelAndNetwork([]string{elastic.DocBigMapDiff, elastic.DocBigMapActions, elastic.DocMigrations, elastic.DocOperations}, network, toLevel)
 }
 
 func rollbackContracts(e *elastic.Elastic, fromState models.Block, toLevel int64, appDir string) error {

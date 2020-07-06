@@ -17,14 +17,28 @@ import (
 	"github.com/tidwall/sjson"
 )
 
+const defaultPointer = -32768
+
+type temporaryPointerData struct {
+	sourcePtr int64
+	binPath   string
+}
+
+func (tpd *temporaryPointerData) updateBinPath(binPath string) {
+	tpd.binPath = binPath
+}
+
+func (tpd *temporaryPointerData) updateSourcePointer(sourcePtr int64) {
+	tpd.sourcePtr = sourcePtr
+}
+
 // Babylon -
 type Babylon struct {
 	rpc noderpc.Pool
 	es  *elastic.Elastic
 
 	updates           map[int64][]elastic.Model
-	temporaryPointers map[int64]int64
-	temporaryBinPaths map[int64]string
+	temporaryPointers map[int64]*temporaryPointerData
 }
 
 // NewBabylon -
@@ -34,8 +48,7 @@ func NewBabylon(rpc noderpc.Pool, es *elastic.Elastic) *Babylon {
 		es:  es,
 
 		updates:           make(map[int64][]elastic.Model),
-		temporaryPointers: make(map[int64]int64),
-		temporaryBinPaths: make(map[int64]string),
+		temporaryPointers: make(map[int64]*temporaryPointerData),
 	}
 }
 
@@ -218,25 +231,23 @@ func (b *Babylon) handleBigMapDiffUpdate(item gjson.Result, ptrMap map[int64]str
 		Timestamp:   operation.Timestamp,
 		Protocol:    operation.Protocol,
 	}
+
 	newPtr := ptr
 	if ptr < 0 {
-		oldPtr, err := b.getSourcePointer(ptr)
+		bufPtr, err := b.getSourcePointer(ptr)
 		if err != nil {
 			return nil, err
 		}
-		newPtr = oldPtr
+		newPtr = bufPtr
 	}
 
-	binPath, ok := ptrMap[newPtr]
-	if !ok {
-		binPath, ok = b.temporaryBinPaths[newPtr]
-		if !ok {
-			return nil, fmt.Errorf("Invalid big map pointer: %d", newPtr)
+	binPath := b.getPointerBinaryPath(ptrMap, newPtr)
+	if binPath != "" {
+		bmd.BinPath = binPath
+		if _, ok := b.temporaryPointers[ptr]; ok {
+			b.temporaryPointers[ptr].updateBinPath(binPath)
 		}
 	}
-
-	bmd.BinPath = binPath
-	b.temporaryBinPaths[ptr] = binPath
 
 	b.addToUpdates(bmd, ptr)
 	if ptr > -1 {
@@ -250,18 +261,17 @@ func (b *Babylon) handleBigMapDiffCopy(item gjson.Result, ptrMap map[int64]strin
 	destinationPtr := item.Get("destination_big_map").Int()
 
 	newUpdates := make([]elastic.Model, 0)
-	b.temporaryPointers[destinationPtr] = sourcePtr
 
 	if destinationPtr > -1 {
 		var srcPtr int64
 		if sourcePtr > -1 {
 			srcPtr = sourcePtr
 		} else {
-			ptr, err := b.getSourcePointer(sourcePtr)
+			bufPtr, err := b.getSourcePointer(sourcePtr)
 			if err != nil {
 				return nil, err
 			}
-			srcPtr = ptr
+			srcPtr = bufPtr
 		}
 		newUpdates = append(newUpdates, b.createBigMapDiffAction("copy", address, &srcPtr, &destinationPtr, operation))
 	}
@@ -271,20 +281,14 @@ func (b *Babylon) handleBigMapDiffCopy(item gjson.Result, ptrMap map[int64]strin
 		return nil, err
 	}
 
-	if err := b.setCopyTemporaryBinPaths(sourcePtr, destinationPtr, ptrMap); err != nil {
+	if err := b.updateTemporaryPointers(sourcePtr, destinationPtr, ptrMap); err != nil {
 		return nil, err
 	}
 
 	if len(bmd) == 0 {
-		b.updates[destinationPtr] = []elastic.Model{}
+		b.updates[destinationPtr] = newUpdates
 	} else {
-		binPath, ok := ptrMap[destinationPtr]
-		if !ok {
-			binPath, ok = b.temporaryBinPaths[destinationPtr]
-			if !ok {
-				return nil, fmt.Errorf("Invalid big map pointer: %d", destinationPtr)
-			}
-		}
+		binPath := b.getPointerBinaryPath(ptrMap, destinationPtr)
 		for i := range bmd {
 			bmd[i].BinPath = binPath
 			bmd[i].ID = helpers.GenerateID()
@@ -333,9 +337,19 @@ func (b *Babylon) handleBigMapDiffRemove(item gjson.Result, ptrMap map[int64]str
 func (b *Babylon) handleBigMapDiffAlloc(item gjson.Result, ptrMap map[int64]string, address string, operation models.Operation) ([]elastic.Model, error) {
 	ptr := item.Get("big_map").Int()
 	b.updates[ptr] = []elastic.Model{}
-	return []elastic.Model{
-		b.createBigMapDiffAction("alloc", address, &ptr, nil, operation),
-	}, nil
+	b.temporaryPointers[ptr] = &temporaryPointerData{
+		sourcePtr: defaultPointer,
+	}
+
+	var models []elastic.Model
+	if ptr > -1 {
+		models = append(
+			models,
+			b.createBigMapDiffAction("alloc", address, &ptr, nil, operation),
+		)
+	}
+
+	return models, nil
 }
 
 func (b *Babylon) getDiffsFromUpdates(ptr int64) ([]models.BigMapDiff, error) {
@@ -461,7 +475,10 @@ func (b *Babylon) findPtrJSONPath(ptr int64, path string, storage gjson.Result) 
 func (b *Babylon) getSourcePointer(ptr int64) (int64, error) {
 	for ptr < 0 {
 		if val, ok := b.temporaryPointers[ptr]; ok {
-			ptr = val
+			if val.sourcePtr == defaultPointer {
+				break
+			}
+			ptr = val.sourcePtr
 		} else {
 			return ptr, fmt.Errorf("Unknown temporary pointer: %d", ptr)
 		}
@@ -469,20 +486,18 @@ func (b *Babylon) getSourcePointer(ptr int64) (int64, error) {
 	return ptr, nil
 }
 
-func (b *Babylon) setCopyTemporaryBinPaths(src, dst int64, ptrMap map[int64]string) error {
-	if src > -1 {
-		if val, ok := ptrMap[src]; ok {
-			b.temporaryBinPaths[dst] = val
-			b.temporaryBinPaths[src] = val
-		} else {
-			return fmt.Errorf("Invalid big map pointer: %d", src)
+func (b *Babylon) updateTemporaryPointers(src, dst int64, ptrMap map[int64]string) error {
+	binPath := b.getPointerBinaryPath(ptrMap, src)
+	if binPath == "" {
+		binPath = b.getPointerBinaryPath(ptrMap, dst)
+	}
+	if binPath != "" {
+		b.temporaryPointers[dst] = &temporaryPointerData{
+			sourcePtr: src,
+			binPath:   binPath,
 		}
 	} else {
-		if val, ok := b.temporaryBinPaths[src]; ok {
-			b.temporaryBinPaths[dst] = val
-		} else {
-			return fmt.Errorf("Invalid big map pointer: %d", src)
-		}
+		return fmt.Errorf("[updateTemporaryPointers] Invalid big map pointer: %d -> %d", src, dst)
 	}
 
 	return nil
@@ -501,4 +516,16 @@ func (b *Babylon) getCopyBigMapDiff(src int64, address, network string) (bmd []m
 		}
 	}
 	return
+}
+
+func (b *Babylon) getPointerBinaryPath(ptrMap map[int64]string, ptr int64) string {
+	binPath, ok := ptrMap[ptr]
+	if !ok {
+		val, ok := b.temporaryPointers[ptr]
+		if !ok {
+			return ""
+		}
+		binPath = val.binPath
+	}
+	return binPath
 }
