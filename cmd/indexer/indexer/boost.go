@@ -226,6 +226,8 @@ func (bi *BoostIndexer) Index(levels []int64) error {
 		return nil
 	}
 	for _, level := range levels {
+		helpers.SetTagSentry("level", fmt.Sprintf("%d", level))
+
 		select {
 		case <-bi.stop:
 			bi.stopped = true

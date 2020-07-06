@@ -50,6 +50,8 @@ func (p *DefaultParser) Parse(opg gjson.Result, network string, head noderpc.Hea
 		}
 
 		hash := opg.Get("hash").String()
+		helpers.SetTagSentry("hash", hash)
+
 		resultModels, mainOperation, err := p.parseContent(item, network, hash, head, int64(idx))
 		if err != nil {
 			return nil, err
