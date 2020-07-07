@@ -7,12 +7,12 @@ import (
 
 // Handler -
 type Handler struct {
-	ES *elastic.Elastic
+	ES elastic.IElastic
 	DB database.DB
 }
 
 // New -
-func New(es *elastic.Elastic, db database.DB) *Handler {
+func New(es elastic.IElastic, db database.DB) *Handler {
 	return &Handler{
 		ES: es,
 		DB: db,

@@ -41,7 +41,7 @@ func (m *SetContractHash) Do(ctx *config.Context) error {
 		if err != nil {
 			return err
 		}
-		state, err := ctx.ES.CurrentState(network)
+		state, err := ctx.ES.GetLastBlock(network)
 		if err != nil {
 			return err
 		}

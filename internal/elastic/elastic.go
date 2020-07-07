@@ -56,6 +56,11 @@ func WaitNew(addresses []string, timeout int) *Elastic {
 	return es
 }
 
+// GetAPI -
+func (e *Elastic) GetAPI() *esapi.API {
+	return e.API
+}
+
 func (e *Elastic) getResponse(resp *esapi.Response) (result gjson.Result, err error) {
 	if resp.IsError() {
 		return result, fmt.Errorf(resp.String())

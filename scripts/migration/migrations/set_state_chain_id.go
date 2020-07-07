@@ -31,7 +31,7 @@ func (m *SetStateChainID) Do(ctx *config.Context) error {
 			return err
 		}
 		logger.Info("Chain ID: %s", header.ChainID)
-		state, err := ctx.ES.CurrentState(network)
+		state, err := ctx.ES.GetLastBlock(network)
 		if err != nil {
 			return err
 		}

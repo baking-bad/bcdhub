@@ -52,7 +52,7 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 	}
 
 	filters := prepareFilters(filtersReq)
-	ops, err := ctx.ES.GetContractOperations(req.Network, req.Address, filtersReq.Size, filters)
+	ops, err := ctx.ES.GetOperationsForContract(req.Network, req.Address, filtersReq.Size, filters)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -220,7 +220,7 @@ func formatErrors(errs []cerrors.IError, op *Operation) error {
 	return nil
 }
 
-func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operation, error) {
+func prepareOperation(es elastic.IElastic, operation models.Operation) (Operation, error) {
 	var op Operation
 	op.FromModel(operation)
 
@@ -263,7 +263,7 @@ func PrepareOperations(es *elastic.Elastic, ops []models.Operation) ([]Operation
 	return resp, nil
 }
 
-func setParameters(es *elastic.Elastic, parameters string, op *Operation) error {
+func setParameters(es elastic.IElastic, parameters string, op *Operation) error {
 	metadata, err := meta.GetMetadata(es, op.Destination, consts.PARAMETER, op.Protocol)
 	if err != nil {
 		return nil
@@ -280,12 +280,12 @@ func setParameters(es *elastic.Elastic, parameters string, op *Operation) error 
 	return nil
 }
 
-func setStorageDiff(es *elastic.Elastic, address, network, storage string, op *Operation) error {
+func setStorageDiff(es elastic.IElastic, address, network, storage string, op *Operation) error {
 	metadata, err := meta.GetContractMetadata(es, address)
 	if err != nil {
 		return err
 	}
-	bmd, err := es.GetUniqueBigMapDiffsByOperationID(op.ID)
+	bmd, err := es.GetBigMapDiffsUniqueByOperationID(op.ID)
 	if err != nil {
 		return err
 	}
@@ -297,7 +297,7 @@ func setStorageDiff(es *elastic.Elastic, address, network, storage string, op *O
 	return nil
 }
 
-func getStorageDiff(es *elastic.Elastic, bmd []models.BigMapDiff, address, storage string, metadata *meta.ContractMetadata, isSimulating bool, op *Operation) (interface{}, error) {
+func getStorageDiff(es elastic.IElastic, bmd []models.BigMapDiff, address, storage string, metadata *meta.ContractMetadata, isSimulating bool, op *Operation) (interface{}, error) {
 	var prevStorage *newmiguel.Node
 	var prevDeffatedStorage string
 	prev, err := es.GetLastOperation(address, op.Network, op.IndexedTime)
@@ -341,7 +341,7 @@ func getStorageDiff(es *elastic.Elastic, bmd []models.BigMapDiff, address, stora
 	return currentStorage, nil
 }
 
-func getEnrichStorageMiguel(es *elastic.Elastic, bmd []models.BigMapDiff, protocol, storage, prevStorage string, metadata *meta.ContractMetadata, isSimulating bool) (*newmiguel.Node, error) {
+func getEnrichStorageMiguel(es elastic.IElastic, bmd []models.BigMapDiff, protocol, storage, prevStorage string, metadata *meta.ContractMetadata, isSimulating bool) (*newmiguel.Node, error) {
 	store, err := enrichStorage(storage, prevStorage, bmd, protocol, false, isSimulating)
 	if err != nil {
 		return nil, err
@@ -366,11 +366,11 @@ func enrichStorage(s, prevStorage string, bmd []models.BigMapDiff, protocol stri
 	return parser.Enrich(s, prevStorage, bmd, skipEmpty)
 }
 
-func getPrevBmd(es *elastic.Elastic, bmd []models.BigMapDiff, indexedTime int64, address string) ([]models.BigMapDiff, error) {
+func getPrevBmd(es elastic.IElastic, bmd []models.BigMapDiff, indexedTime int64, address string) ([]models.BigMapDiff, error) {
 	if len(bmd) == 0 {
 		return nil, nil
 	}
-	return es.GetPrevBigMapDiffs(bmd, indexedTime, address)
+	return es.GetBigMapDiffsPrevious(bmd, indexedTime, address)
 }
 
 func (ctx *Context) prepareMempoolOperation(res gjson.Result, network, hash string) (Operation, error) {

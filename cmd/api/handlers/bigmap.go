@@ -182,7 +182,7 @@ func (ctx *Context) GetBigMapByKeyHash(c *gin.Context) {
 		return
 	}
 
-	bm, total, err := ctx.ES.GetBigMapDiffByPtrAndKeyHash(req.Ptr, req.Network, req.KeyHash, pageReq.Size, pageReq.Offset)
+	bm, total, err := ctx.ES.GetBigMapDiffsByPtrAndKeyHash(req.Ptr, req.Network, req.KeyHash, pageReq.Size, pageReq.Offset)
 	if handleError(c, err, 0) {
 		return
 	}

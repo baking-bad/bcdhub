@@ -107,8 +107,8 @@ func (ctx *Context) buildEntrypointMicheline(network, address, binPath string, d
 	return metadata.BuildEntrypointMicheline(binPath, data, needValidate)
 }
 
-func getParameterMetadata(es *elastic.Elastic, address, network string) (meta.Metadata, error) {
-	state, err := es.CurrentState(network)
+func getParameterMetadata(es elastic.IElastic, address, network string) (meta.Metadata, error) {
+	state, err := es.GetLastBlock(network)
 	if err != nil {
 		return nil, err
 	}
@@ -121,8 +121,8 @@ func getParameterMetadata(es *elastic.Elastic, address, network string) (meta.Me
 	return metadata, nil
 }
 
-func getStorageMetadata(es *elastic.Elastic, address, network string) (meta.Metadata, error) {
-	state, err := es.CurrentState(network)
+func getStorageMetadata(es elastic.IElastic, address, network string) (meta.Metadata, error) {
+	state, err := es.GetLastBlock(network)
 	if err != nil {
 		return nil, err
 	}

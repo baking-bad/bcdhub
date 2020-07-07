@@ -9,8 +9,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
 
-// Bulk -
-func (e *Elastic) Bulk(buf *bytes.Buffer) error {
+func (e *Elastic) bulk(buf *bytes.Buffer) error {
 	req := esapi.BulkRequest{
 		Body:    bytes.NewReader(buf.Bytes()),
 		Refresh: "true",
@@ -45,7 +44,7 @@ func (e *Elastic) BulkInsert(items []Model) error {
 		bulk.Write(data)
 
 		if (i%1000 == 0 && i > 0) || i == len(items)-1 {
-			if err := e.Bulk(bulk); err != nil {
+			if err := e.bulk(bulk); err != nil {
 				return err
 			}
 			bulk.Reset()
@@ -73,7 +72,7 @@ func (e *Elastic) BulkUpdate(updates []Model) error {
 		bulk.Write(data)
 
 		if (i%1000 == 0 && i > 0) || i == len(updates)-1 {
-			if err := e.Bulk(bulk); err != nil {
+			if err := e.bulk(bulk); err != nil {
 				return err
 			}
 			bulk.Reset()
@@ -94,7 +93,7 @@ func (e *Elastic) BulkDelete(updates []Model) error {
 		bulk.Write(meta)
 
 		if (i%1000 == 0 && i > 0) || i == len(updates)-1 {
-			if err := e.Bulk(bulk); err != nil {
+			if err := e.bulk(bulk); err != nil {
 				return err
 			}
 			bulk.Reset()
@@ -115,7 +114,7 @@ func (e *Elastic) BulkRemoveField(script string, where []Model) error {
 		bulk.WriteString(meta)
 
 		if (i%1000 == 0 && i > 0) || i == len(where)-1 {
-			if err := e.Bulk(bulk); err != nil {
+			if err := e.bulk(bulk); err != nil {
 				return err
 			}
 			bulk.Reset()

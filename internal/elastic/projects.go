@@ -6,8 +6,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 )
 
-// GetLastProjectContracts -
-func (e *Elastic) GetLastProjectContracts() ([]models.Contract, error) {
+// GetProjectsLastContract -
+func (e *Elastic) GetProjectsLastContract() ([]models.Contract, error) {
 	query := newQuery().Add(
 		aggs("projects", qItem{
 			"terms": qItem{

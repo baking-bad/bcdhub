@@ -7,8 +7,8 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-// GetUniqueBigMapDiffsByOperationID -
-func (e *Elastic) GetUniqueBigMapDiffsByOperationID(operationID string) ([]models.BigMapDiff, error) {
+// GetBigMapDiffsUniqueByOperationID -
+func (e *Elastic) GetBigMapDiffsUniqueByOperationID(operationID string) ([]models.BigMapDiff, error) {
 	query := newQuery().
 		Query(
 			boolQ(
@@ -42,8 +42,8 @@ func (e *Elastic) GetUniqueBigMapDiffsByOperationID(operationID string) ([]model
 	return response, nil
 }
 
-// GetPrevBigMapDiffs -
-func (e *Elastic) GetPrevBigMapDiffs(filters []models.BigMapDiff, indexedTime int64, address string) ([]models.BigMapDiff, error) {
+// GetBigMapDiffsPrevious -
+func (e *Elastic) GetBigMapDiffsPrevious(filters []models.BigMapDiff, indexedTime int64, address string) ([]models.BigMapDiff, error) {
 	shouldData := make([]qItem, len(filters))
 	for i := range filters {
 		shouldData[i] = boolQ(filter(
@@ -192,8 +192,8 @@ func (e *Elastic) GetBigMapKeys(ptr int64, network, searchText string, size, off
 	return result, nil
 }
 
-// GetBigMapDiffByPtrAndKeyHash -
-func (e *Elastic) GetBigMapDiffByPtrAndKeyHash(ptr int64, network, keyHash string, size, offset int64) ([]BigMapDiff, int64, error) {
+// GetBigMapDiffsByPtrAndKeyHash -
+func (e *Elastic) GetBigMapDiffsByPtrAndKeyHash(ptr int64, network, keyHash string, size, offset int64) ([]BigMapDiff, int64, error) {
 	if ptr < 0 {
 		return nil, 0, fmt.Errorf("Invalid pointer value: %d", ptr)
 	}
@@ -243,8 +243,8 @@ func (e *Elastic) GetBigMapDiffsJSONByOperationID(operationID string) ([]gjson.R
 	return res.Get("hits.hits").Array(), nil
 }
 
-// GetAllBigMapDiffByPtr -
-func (e *Elastic) GetAllBigMapDiffByPtr(address, network string, ptr int64) ([]models.BigMapDiff, error) {
+// GetBigMapDiffsByPtr -
+func (e *Elastic) GetBigMapDiffsByPtr(address, network string, ptr int64) ([]models.BigMapDiff, error) {
 	bmd := make([]models.BigMapDiff, 0)
 
 	query := newQuery().Query(
@@ -291,7 +291,7 @@ func (e *Elastic) GetBigMapDiffsWithEmptyPtr() (response []models.BigMapDiff, er
 		),
 	).Sort("indexed_time", "desc")
 
-	err = e.GetAllByQuery(query, &response)
+	err = e.getAllByQuery(query, &response)
 	return
 }
 
@@ -306,7 +306,7 @@ func (e *Elastic) GetBigMapsForAddress(network, address string) (response []mode
 		),
 	).Sort("indexed_time", "desc")
 
-	err = e.GetAllByQuery(query, &response)
+	err = e.getAllByQuery(query, &response)
 	return
 }
 
@@ -325,6 +325,6 @@ func (e *Elastic) GetBigMapHistory(ptr int64, network string) (response []models
 		),
 	).Sort("indexed_time", "desc")
 
-	err = e.GetAllByQuery(query, &response)
+	err = e.getAllByQuery(query, &response)
 	return
 }

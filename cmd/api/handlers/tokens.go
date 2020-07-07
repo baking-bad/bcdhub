@@ -224,7 +224,7 @@ func (ctx *Context) contractToTokens(contracts []models.Contract, network, versi
 	}, nil
 }
 
-func operationToTransfer(es *elastic.Elastic, po elastic.PageableOperations) (PageableTokenTransfers, error) {
+func operationToTransfer(es elastic.IElastic, po elastic.PageableOperations) (PageableTokenTransfers, error) {
 	transfers := make([]TokenTransfer, 0)
 	contracts := map[string]bool{}
 	metadatas := map[string]meta.Metadata{}

@@ -15,7 +15,7 @@ import (
 // Context -
 type Context struct {
 	DB           database.DB
-	ES           *elastic.Elastic
+	ES           elastic.IElastic
 	MQ           *mq.MQ
 	RPC          map[string]noderpc.INode
 	TzKTServices map[string]*tzkt.ServicesTzKT

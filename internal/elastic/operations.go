@@ -106,8 +106,8 @@ func prepareOperationFilters(filters map[string]interface{}) (s string, err erro
 	return
 }
 
-// GetContractOperations -
-func (e *Elastic) GetContractOperations(network, address string, size uint64, filters map[string]interface{}) (po PageableOperations, err error) {
+// GetOperationsForContract -
+func (e *Elastic) GetOperationsForContract(network, address string, size uint64, filters map[string]interface{}) (po PageableOperations, err error) {
 	opg, err := e.getContractOPG(address, network, size, filters)
 	if err != nil {
 		return
@@ -283,8 +283,8 @@ func (e *Elastic) GetAffectedContracts(network string, fromLevel, toLevel int64)
 	return addresses, nil
 }
 
-// GetAllOperationsByStatus -
-func (e *Elastic) GetAllOperationsByStatus(network, status string) ([]models.Operation, error) {
+// GetOperationsByStatus -
+func (e *Elastic) GetOperationsByStatus(network, status string) ([]models.Operation, error) {
 	operations := make([]models.Operation, 0)
 
 	query := newQuery().Query(

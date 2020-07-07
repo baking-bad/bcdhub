@@ -158,7 +158,7 @@ func (ctx *Context) RunCode(c *gin.Context) {
 		return
 	}
 
-	state, err := ctx.ES.CurrentState(req.Network)
+	state, err := ctx.ES.GetLastBlock(req.Network)
 	if handleError(c, err, 0) {
 		return
 	}

@@ -46,7 +46,7 @@ func main() {
 	}
 
 	es := elastic.WaitNew([]string{cfg.Elastic.URI}, cfg.Elastic.Timeout)
-	state, err := es.CurrentState(network)
+	state, err := es.GetLastBlock(network)
 	if err != nil {
 		panic(err)
 	}

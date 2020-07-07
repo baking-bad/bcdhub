@@ -14,7 +14,7 @@ import (
 )
 
 // Rollback - rollback indexer state to level
-func Rollback(e *elastic.Elastic, messageQueue *mq.MQ, appDir string, fromState models.Block, toLevel int64) error {
+func Rollback(e elastic.IElastic, messageQueue *mq.MQ, appDir string, fromState models.Block, toLevel int64) error {
 	if toLevel >= fromState.Level {
 		return fmt.Errorf("To level must be less than from level: %d >= %d", toLevel, fromState.Level)
 	}
@@ -45,17 +45,17 @@ func Rollback(e *elastic.Elastic, messageQueue *mq.MQ, appDir string, fromState 
 	return nil
 }
 
-func rollbackBlocks(e *elastic.Elastic, network string, toLevel int64) error {
+func rollbackBlocks(e elastic.IElastic, network string, toLevel int64) error {
 	logger.Info("Deleting blocks...")
 	return e.DeleteByLevelAndNetwork([]string{elastic.DocBlocks}, network, toLevel)
 }
 
-func rollbackOperations(e *elastic.Elastic, network string, toLevel int64) error {
+func rollbackOperations(e elastic.IElastic, network string, toLevel int64) error {
 	logger.Info("Deleting operations, migrations and big map diffs...")
 	return e.DeleteByLevelAndNetwork([]string{elastic.DocBigMapDiff, elastic.DocBigMapActions, elastic.DocMigrations, elastic.DocOperations}, network, toLevel)
 }
 
-func rollbackContracts(e *elastic.Elastic, fromState models.Block, toLevel int64, appDir string) error {
+func rollbackContracts(e elastic.IElastic, fromState models.Block, toLevel int64, appDir string) error {
 	if err := removeMetadata(e, fromState, toLevel, appDir); err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func rollbackContracts(e *elastic.Elastic, fromState models.Block, toLevel int64
 	return e.DeleteByLevelAndNetwork([]string{elastic.DocContracts}, fromState.Network, toLevel)
 }
 
-func getAffectedContracts(es *elastic.Elastic, network string, fromLevel, toLevel int64) ([]string, error) {
+func getAffectedContracts(es elastic.IElastic, network string, fromLevel, toLevel int64) ([]string, error) {
 	addresses, err := es.GetAffectedContracts(network, fromLevel, toLevel)
 	if err != nil {
 		return nil, err
@@ -91,7 +91,7 @@ func getProtocolByLevel(protocols []models.Protocol, level int64) (models.Protoc
 	return protocols[0], nil
 }
 
-func removeMetadata(e *elastic.Elastic, fromState models.Block, toLevel int64, appDir string) error {
+func removeMetadata(e elastic.IElastic, fromState models.Block, toLevel int64, appDir string) error {
 	logger.Info("Preparing metadata for removing...")
 	contracts, err := e.GetContractAddressesByNetworkAndLevel(fromState.Network, toLevel)
 	if err != nil {
@@ -124,7 +124,7 @@ func removeMetadata(e *elastic.Elastic, fromState models.Block, toLevel int64, a
 	return nil
 }
 
-func updateMetadata(e *elastic.Elastic, network string, fromLevel, toLevel int64) error {
+func updateMetadata(e elastic.IElastic, network string, fromLevel, toLevel int64) error {
 	logger.Info("Preparing metadata for updating...")
 	var protocols []models.Protocol
 	if err := e.GetByNetworkWithSort(network, "start_level", "desc", &protocols); err != nil {
