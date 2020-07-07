@@ -15,7 +15,7 @@ import (
 type Context struct {
 	DB      database.DB
 	ES      elastic.IElastic
-	RPC     map[string]noderpc.Pool
+	RPC     map[string]noderpc.RPC
 	MQ      *mq.MQ
 	Aliases map[string]string
 }
@@ -52,8 +52,8 @@ func (ctx *Context) close() {
 	ctx.DB.Close()
 }
 
-func createRPCs(cfg config.Config) map[string]noderpc.Pool {
-	rpc := make(map[string]noderpc.Pool)
+func createRPCs(cfg config.Config) map[string]noderpc.RPC {
+	rpc := make(map[string]noderpc.RPC)
 	for network, rpcProvider := range cfg.RPC {
 		rpc[network] = noderpc.NewPool(
 			[]string{rpcProvider.URI},
@@ -63,7 +63,7 @@ func createRPCs(cfg config.Config) map[string]noderpc.Pool {
 	return rpc
 }
 
-// func (ctx *Context) getRPC(network string) (noderpc.Pool, error) {
+// func (ctx *Context) getRPC(network string) (noderpc.IPool, error) {
 // 	if rpc, ok := ctx.RPC[network]; ok {
 // 		return rpc, nil
 // 	}

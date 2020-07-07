@@ -93,8 +93,8 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 	if !ok {
 		return nil, fmt.Errorf("Unknown network %s", network)
 	}
-	rpc := noderpc.NewWaitPool(
-		[]string{rpcProvider.URI},
+	rpc := noderpc.NewWaitNodeRPC(
+		rpcProvider.URI,
 		noderpc.WithTimeout(time.Duration(rpcProvider.Timeout)*time.Second),
 	)
 
