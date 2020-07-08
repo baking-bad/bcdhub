@@ -403,6 +403,17 @@ func TestGetDocEntrypoints(t *testing.T) {
 			},
 			result: `[{"name":"addSuperTransferAgent","typedef":[{"name":"addSuperTransferAgent","type":"address"}],"bin_path":"0/0/0/0/0"},{"name":"addTransferAgent","typedef":[{"name":"addTransferAgent","type":"address"}],"bin_path":"0/0/0/0/1"},{"name":"approve","typedef":[{"name":"approve","type":"pair","args":[{"key":"amount","value":"int"},{"key":"f","value":"address"},{"key":"t","value":"address"}]}],"bin_path":"0/0/0/1/0"},{"name":"approveFeeless","typedef":[{"name":"approveFeeless","type":"pair","args":[{"key":"amount","value":"int"},{"key":"b","value":"bytes"},{"key":"f","value":"address"},{"key":"k","value":"key"},{"key":"nonce","value":"nat"},{"key":"s","value":"signature"},{"key":"t","value":"address"}]}],"bin_path":"0/0/0/1/1"},{"name":"burn","typedef":[{"name":"burn","type":"pair","args":[{"key":"address","value":"address"},{"key":"amount","value":"int"}]}],"bin_path":"0/0/1/0/0"},{"name":"changeEventSinkContractAddress","typedef":[{"name":"changeEventSinkContractAddress","type":"address"}],"bin_path":"0/0/1/0/1"},{"name":"decreaseAllowance","typedef":[{"name":"decreaseAllowance","type":"pair","args":[{"key":"amount","value":"int"},{"key":"f","value":"address"},{"key":"t","value":"address"}]}],"bin_path":"0/0/1/1/0"},{"name":"decreaseAllowanceFeeless","typedef":[{"name":"decreaseAllowanceFeeless","type":"pair","args":[{"key":"amount","value":"int"},{"key":"b","value":"bytes"},{"key":"f","value":"address"},{"key":"k","value":"key"},{"key":"nonce","value":"nat"},{"key":"s","value":"signature"},{"key":"t","value":"address"}]}],"bin_path":"0/0/1/1/1/0"},{"name":"deleteSuperTransferAgent","typedef":[{"name":"deleteSuperTransferAgent","type":"address"}],"bin_path":"0/0/1/1/1/1"},{"name":"deleteTransferAgent","typedef":[{"name":"deleteTransferAgent","type":"address"}],"bin_path":"0/1/0/0/0"},{"name":"increaseAllowance","typedef":[{"name":"increaseAllowance","type":"pair","args":[{"key":"amount","value":"int"},{"key":"f","value":"address"},{"key":"t","value":"address"}]}],"bin_path":"0/1/0/0/1"},{"name":"increaseAllowanceFeeless","typedef":[{"name":"increaseAllowanceFeeless","type":"pair","args":[{"key":"amount","value":"int"},{"key":"b","value":"bytes"},{"key":"f","value":"address"},{"key":"k","value":"key"},{"key":"nonce","value":"nat"},{"key":"s","value":"signature"},{"key":"t","value":"address"}]}],"bin_path":"0/1/0/1/0"},{"name":"mint","typedef":[{"name":"mint","type":"pair","args":[{"key":"address","value":"address"},{"key":"amount","value":"int"}]}],"bin_path":"0/1/0/1/1/0"},{"name":"resetAllAllowances","typedef":[{"name":"resetAllAllowances","type":"address"}],"bin_path":"0/1/0/1/1/1"},{"name":"resetAllowance","typedef":[{"name":"resetAllowance","type":"pair","args":[{"key":"address","value":"address"},{"key":"f","value":"address"}]}],"bin_path":"0/1/1/0/0"},{"name":"setAdministrator","typedef":[{"name":"setAdministrator","type":"address"}],"bin_path":"0/1/1/0/1"},{"name":"setPause","typedef":[{"name":"setPause","type":"bool"}],"bin_path":"0/1/1/1/0"},{"name":"transfer","typedef":[{"name":"transfer","type":"pair","args":[{"key":"amount","value":"int"},{"key":"f","value":"address"},{"key":"t","value":"address"}]}],"bin_path":"0/1/1/1/1/0"},{"name":"transferFeeless","typedef":[{"name":"transferFeeless","type":"pair","args":[{"key":"amount","value":"int"},{"key":"b","value":"bytes"},{"key":"f","value":"address"},{"key":"k","value":"key"},{"key":"nonce","value":"nat"},{"key":"s","value":"signature"},{"key":"t","value":"address"}]}],"bin_path":"0/1/1/1/1/1"}]`,
 		},
+		{
+			name: "bigmap/carthagenet/3520",
+			metadata: meta.Metadata{
+				"0":     &meta.NodeMetadata{Prim: "big_map", Type: "big_map"},
+				"0/k":   &meta.NodeMetadata{Prim: "pair", Args: []string{"0/k/0", "0/k/1"}, Type: "namedtuple"},
+				"0/k/0": &meta.NodeMetadata{FieldName: "test", Prim: "string", Type: "string", Name: "test"},
+				"0/k/1": &meta.NodeMetadata{FieldName: "test2", Prim: "string", Type: "string", Name: "test2"},
+				"0/v":   &meta.NodeMetadata{Prim: "string", Type: "string"},
+			},
+			result: `[{"name":"default","typedef":[{"name":"default","type":"big_map","args":[{"key":"key","value":"$default_key"},{"key":"value","value":"string"}]},{"name":"default_key","type":"pair","args":[{"key":"test","value":"string"},{"key":"test2","value":"string"}]}],"bin_path":"0"}]`,
+		},
 	}
 
 	for _, tt := range tests {
@@ -414,6 +425,48 @@ func TestGetDocEntrypoints(t *testing.T) {
 			}
 
 			json, err := json.Marshal(entrypoints)
+			if err != nil {
+				t.Errorf("json.Marshal error: %v", err)
+				return
+			}
+
+			if string(json) != tt.result {
+				t.Errorf("invalid json")
+			}
+		})
+	}
+}
+
+func TestGetTypedef(t *testing.T) {
+	tests := []struct {
+		name     string
+		binPath  string
+		metadata meta.Metadata
+		result   string
+	}{
+		{
+			name:    "bigmap/carthagenet/3520",
+			binPath: "0",
+			metadata: meta.Metadata{
+				"0":     &meta.NodeMetadata{Prim: "big_map", Type: "big_map"},
+				"0/k":   &meta.NodeMetadata{Prim: "pair", Args: []string{"0/k/0", "0/k/1"}, Type: "namedtuple"},
+				"0/k/0": &meta.NodeMetadata{FieldName: "test", Prim: "string", Type: "string", Name: "test"},
+				"0/k/1": &meta.NodeMetadata{FieldName: "test2", Prim: "string", Type: "string", Name: "test2"},
+				"0/v":   &meta.NodeMetadata{Prim: "string", Type: "string"},
+			},
+			result: `[{"name":"default","type":"big_map","args":[{"key":"key","value":"$default_key"},{"key":"value","value":"string"}]},{"name":"default_key","type":"pair","args":[{"key":"test","value":"string"},{"key":"test2","value":"string"}]}]`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			typedef, err := GetTypedef(tt.binPath, tt.metadata)
+			if err != nil {
+				t.Errorf("GetTypedef error %v", err)
+				return
+			}
+
+			json, err := json.Marshal(typedef)
 			if err != nil {
 				t.Errorf("json.Marshal error: %v", err)
 				return
