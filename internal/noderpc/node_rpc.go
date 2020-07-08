@@ -51,7 +51,7 @@ func NewWaitNodeRPC(baseURL string, opts ...NodeOption) *NodeRPC {
 	return node
 }
 
-func (rpc *NodeRPC) parseResponse(resp *http.Response) (res gjson.Result, err error) {
+func (rpc *NodeRPC) parseResponse(resp *http.Response, checkStatusCode bool) (res gjson.Result, err error) {
 	if resp.StatusCode > 500 {
 		return res, NewNodeUnavailiableError(rpc.baseURL, resp.StatusCode)
 	}
@@ -61,7 +61,7 @@ func (rpc *NodeRPC) parseResponse(resp *http.Response) (res gjson.Result, err er
 		return res, fmt.Errorf("post.ReadAll: %v", err)
 	}
 
-	if resp.StatusCode != 200 {
+	if checkStatusCode && resp.StatusCode != 200 {
 		err = fmt.Errorf("%d: %s", resp.StatusCode, string(b))
 	}
 	res = gjson.ParseBytes(b)
@@ -93,10 +93,10 @@ func (rpc *NodeRPC) get(uri string) (res gjson.Result, err error) {
 	}
 	defer resp.Body.Close()
 
-	return rpc.parseResponse(resp)
+	return rpc.parseResponse(resp, true)
 }
 
-func (rpc *NodeRPC) post(uri string, data map[string]interface{}) (res gjson.Result, err error) {
+func (rpc *NodeRPC) post(uri string, data map[string]interface{}, checkStatusCode bool) (res gjson.Result, err error) {
 	url := helpers.URLJoin(rpc.baseURL, uri)
 	client := http.Client{
 		Timeout: rpc.timeout,
@@ -127,7 +127,7 @@ func (rpc *NodeRPC) post(uri string, data map[string]interface{}) (res gjson.Res
 	}
 	defer resp.Body.Close()
 
-	return rpc.parseResponse(resp)
+	return rpc.parseResponse(resp, checkStatusCode)
 }
 
 // GetHead - get head
@@ -274,5 +274,5 @@ func (rpc *NodeRPC) RunCode(script, storage, input gjson.Result, chainID, source
 		data["entrypoint"] = entrypoint
 	}
 
-	return rpc.post("chains/main/blocks/head/helpers/scripts/run_code", data)
+	return rpc.post("chains/main/blocks/head/helpers/scripts/run_code", data, false)
 }
