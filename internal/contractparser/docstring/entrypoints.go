@@ -36,6 +36,10 @@ type dsData struct {
 
 // GetTypedef -
 func GetTypedef(binPath string, md meta.Metadata) ([]Typedef, error) {
+	if root := md[binPath]; root.Name == "" {
+		root.Name = root.GetEntrypointName(-1)
+	}
+
 	return parseEntrypointTypes(binPath, md)
 }
 
