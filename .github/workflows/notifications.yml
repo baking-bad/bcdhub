@@ -17,10 +17,16 @@ jobs:
       with:
         to: ${{ secrets.TELEGRAM_TO }}
         token: ${{ secrets.TELEGRAM_TOKEN }}
-        args: Better Call Dev backend ${{ env.RELEASE_VERSION }} has been released 🎉\nDocker images will be available in a few minutes.\nMore info at https://github.com/baking-bad/bcdhub/releases/tag/${{ env.RELEASE_VERSION }}
+        message: |
+          Better Call Dev backend ${{ env.RELEASE_VERSION }} has been released 🎉
+          Docker images will be available in a few minutes.
+          More info at https://github.com/baking-bad/bcdhub/releases/tag/${{ env.RELEASE_VERSION }}
     - name: Slack notification
       uses: Ilshidur/action-slack@master
       env:
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
       with:
-        args: Better Call Dev backend ${{ env.RELEASE_VERSION }} has been released 🎉\nDocker images will be available in a few minutes.\nMore info at https://github.com/baking-bad/bcdhub/releases/tag/${{ env.RELEASE_VERSION }}
+        args: |
+          Better Call Dev backend ${{ env.RELEASE_VERSION }} has been released 🎉
+          Docker images will be available in a few minutes.
+          More info at https://github.com/baking-bad/bcdhub/releases/tag/${{ env.RELEASE_VERSION }}
