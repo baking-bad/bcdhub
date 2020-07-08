@@ -388,7 +388,16 @@ func (p *DefaultParser) getRichStorage(data gjson.Result, metadata *meta.Contrac
 	case consts.Transaction:
 		return p.storageParser.ParseTransaction(data, m, *op)
 	case consts.Origination:
-		return p.storageParser.ParseOrigination(data, m, *op)
+		rs, err := p.storageParser.ParseOrigination(data, m, *op)
+		if err != nil {
+			return rs, err
+		}
+		storage, err := p.rpc.GetScriptStorageJSON(op.Destination, op.Level)
+		if err != nil {
+			return rs, err
+		}
+		rs.DeffatedStorage = storage.String()
+		return rs, err
 	}
 	return storage.RichStorage{Empty: true}, nil
 }
