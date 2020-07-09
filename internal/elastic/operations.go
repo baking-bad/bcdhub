@@ -21,7 +21,7 @@ func (e *Elastic) GetOperationByHash(hash string) (ops []models.Operation, err e
 				"type": "number",
 				"script": qItem{
 					"lang":   "painless",
-					"inline": "doc['counter'].value * 1000 + (doc['internal'].value ? (999 - doc['internal_index'].value) : 999)",
+					"inline": "doc['counter'].value * 1000 + (doc['internal'].value ? (999 - doc['nonce'].value) : 999)",
 				},
 				"order": "desc",
 			},
@@ -138,7 +138,7 @@ func (e *Elastic) GetContractOperations(network, address string, size uint64, fi
 					"type": "number",
 					"script": qItem{
 						"lang":   "painless",
-						"inline": "doc['level'].value * 10000000000L + (doc['counter'].value) * 1000L + (doc['internal'].value ? (999L - doc['internal_index'].value) : 999L)",
+						"inline": "doc['level'].value * 10000000000L + (doc['counter'].value) * 1000L + (doc['internal'].value ? (999L - doc['nonce'].value) : 999L)",
 					},
 					"order": "desc",
 				},
