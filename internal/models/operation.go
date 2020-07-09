@@ -14,18 +14,17 @@ type Operation struct {
 	IndexedTime  int64 `json:"indexed_time"`
 	ContentIndex int64 `json:"content_index,omitempty"`
 
-	Network       string `json:"network"`
-	Protocol      string `json:"protocol"`
-	Hash          string `json:"hash"`
-	Internal      bool   `json:"internal"`
-	InternalIndex int64  `json:"internal_index,omitempty"`
+	Network  string `json:"network"`
+	Protocol string `json:"protocol"`
+	Hash     string `json:"hash"`
+	Internal bool   `json:"internal"`
+	Nonce    *int64 `json:"nonce,omitempty"`
 
 	Status           string    `json:"status"`
 	Timestamp        time.Time `json:"timestamp"`
 	Level            int64     `json:"level"`
 	Kind             string    `json:"kind"`
 	Source           string    `json:"source"`
-	Nonce            int64     `json:"nonce,omitempty"`
 	Fee              int64     `json:"fee,omitempty"`
 	Counter          int64     `json:"counter,omitempty"`
 	GasLimit         int64     `json:"gas_limit,omitempty"`
@@ -66,14 +65,18 @@ func (o *Operation) ParseElasticJSON(resp gjson.Result) {
 	o.Internal = resp.Get("_source.internal").Bool()
 	o.Network = resp.Get("_source.network").String()
 	o.Timestamp = resp.Get("_source.timestamp").Time().UTC()
-	o.InternalIndex = resp.Get("_source.internal_index").Int()
+
+	nonceJSON := resp.Get("_source.nonce")
+	if nonceJSON.Exists() {
+		nonce := nonceJSON.Int()
+		o.Nonce = &nonce
+	}
 
 	o.Status = resp.Get("_source.status").String()
 	o.Level = resp.Get("_source.level").Int()
 	o.Kind = resp.Get("_source.kind").String()
 	o.Source = resp.Get("_source.source").String()
 	o.Fee = resp.Get("_source.fee").Int()
-	o.Nonce = resp.Get("_source.nonce").Int()
 	o.Counter = resp.Get("_source.counter").Int()
 	o.GasLimit = resp.Get("_source.gas_limit").Int()
 	o.StorageLimit = resp.Get("_source.storage_limit").Int()

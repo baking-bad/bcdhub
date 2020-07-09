@@ -100,7 +100,6 @@ func (p *DefaultParser) parseTransaction(data gjson.Result, network, hash string
 		ManagerPubKey:  data.Get("manager_pubkey").String(),
 		Delegate:       data.Get("delegate").String(),
 		Parameters:     data.Get("parameters").String(),
-		Nonce:          data.Get("nonce").Int(),
 		BalanceUpdates: p.parseBalanceUpdates(data, "metadata"),
 		IndexedTime:    time.Now().UnixNano() / 1000,
 		ContentIndex:   contentIdx,
@@ -142,7 +141,6 @@ func (p *DefaultParser) parseOrigination(data gjson.Result, network, hash string
 		ManagerPubKey:  data.Get("manager_pubkey").String(),
 		Delegate:       data.Get("delegate").String(),
 		Parameters:     data.Get("parameters").String(),
-		Nonce:          data.Get("nonce").Int(),
 		Script:         data.Get("script"),
 		BalanceUpdates: p.parseBalanceUpdates(data, "metadata"),
 		IndexedTime:    time.Now().UnixNano() / 1000,
@@ -333,7 +331,7 @@ func (p *DefaultParser) parseInternalOperations(item gjson.Result, main models.O
 	}
 
 	internalModels := make([]elastic.Model, 0)
-	for i, op := range item.Get(path).Array() {
+	for _, op := range item.Get(path).Array() {
 		parsedModels, _, err := p.parseContent(op, main.Network, main.Hash, head, contentIdx)
 		if err != nil {
 			return nil, err
@@ -345,7 +343,9 @@ func (p *DefaultParser) parseInternalOperations(item gjson.Result, main models.O
 				internalOperation.Level = main.Level
 				internalOperation.Timestamp = main.Timestamp
 				internalOperation.Internal = true
-				internalOperation.InternalIndex = int64(i + 1)
+
+				nonce := op.Get("nonce").Int()
+				internalOperation.Nonce = &nonce
 			}
 
 			internalModels = append(internalModels, parsedModels[j])
