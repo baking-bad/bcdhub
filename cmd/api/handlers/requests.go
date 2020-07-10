@@ -148,6 +148,13 @@ type getOperationByIDRequest struct {
 	ID string `uri:"id" binding:"required"`
 }
 
+type runOperationRequest struct {
+	Data    map[string]interface{} `json:"data" binding:"required"`
+	BinPath string                 `json:"bin_path" binding:"required"`
+	Amount  int64                  `json:"amount,omitempty"`
+	Source  string                 `json:"source,omitempty" binding:"omitempty,address"`
+}
+
 type runCodeRequest struct {
 	Data     map[string]interface{} `json:"data" binding:"required"`
 	BinPath  string                 `json:"bin_path" binding:"required"`

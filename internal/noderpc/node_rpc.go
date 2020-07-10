@@ -107,6 +107,8 @@ func (rpc *NodeRPC) post(uri string, data map[string]interface{}, checkStatusCod
 		return res, fmt.Errorf("post.json.Marshal: %v", err)
 	}
 
+	//log.Println(gjson.ParseBytes(bData).String())
+
 	req, err := http.NewRequest("POST", url, bytes.NewReader(bData))
 	if err != nil {
 		return res, fmt.Errorf("post.NewRequest: %v", err)
@@ -275,4 +277,39 @@ func (rpc *NodeRPC) RunCode(script, storage, input gjson.Result, chainID, source
 	}
 
 	return rpc.post("chains/main/blocks/head/helpers/scripts/run_code", data, false)
+}
+
+// RunOperation -
+func (rpc *NodeRPC) RunOperation(chainID, branch, source, destination string, fee, gasLimit, storageLimit, counter, amount int64, parameters gjson.Result) (res gjson.Result, err error) {
+	data := map[string]interface{}{
+		"operation": map[string]interface{}{
+			"branch":    branch,
+			"signature": "sigUHx32f9wesZ1n2BWpixXz4AQaZggEtchaQNHYGRCoWNAXx45WGW2ua3apUUUAGMLPwAU41QoaFCzVSL61VaessLg4YbbP", // base58_encode(b'0' * 64, b'sig').decode()
+			"contents": []interface{}{
+				map[string]interface{}{
+					"kind":          "transaction",
+					"fee":           fmt.Sprintf("%d", fee),
+					"counter":       fmt.Sprintf("%d", counter),
+					"gas_limit":     fmt.Sprintf("%d", gasLimit),
+					"storage_limit": fmt.Sprintf("%d", storageLimit),
+					"source":        source,
+					"destination":   destination,
+					"amount":        fmt.Sprintf("%d", amount),
+					"parameters":    parameters.Value(),
+				},
+			},
+		},
+		"chain_id": chainID,
+	}
+
+	return rpc.post("chains/main/blocks/head/helpers/scripts/run_operation", data, false)
+}
+
+// GetCounter -
+func (rpc *NodeRPC) GetCounter(address string) (int64, error) {
+	data, err := rpc.get(fmt.Sprintf("chains/main/blocks/head/context/contracts/%s/counter", address))
+	if err != nil {
+		return 0, err
+	}
+	return data.Int(), nil
 }

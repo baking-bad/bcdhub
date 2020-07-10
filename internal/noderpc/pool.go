@@ -217,3 +217,21 @@ func (p Pool) RunCode(script, storage, input gjson.Result, chainID, source, paye
 	}
 	return data.Interface().(gjson.Result), nil
 }
+
+// RunOperation -
+func (p Pool) RunOperation(chainID, branch, source, destination string, fee, gasLimit, storageLimit, counter, amount int64, parameters gjson.Result) (gjson.Result, error) {
+	data, err := p.call("RunOperation", chainID, branch, source, destination, fee, gasLimit, storageLimit, counter, amount, parameters)
+	if err != nil {
+		return gjson.Result{}, err
+	}
+	return data.Interface().(gjson.Result), nil
+}
+
+// GetCounter -
+func (p Pool) GetCounter(address string) (int64, error) {
+	data, err := p.call("GetCounter", address)
+	if err != nil {
+		return 0, err
+	}
+	return data.Int(), nil
+}

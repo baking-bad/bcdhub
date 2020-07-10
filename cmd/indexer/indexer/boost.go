@@ -154,7 +154,7 @@ func (bi *BoostIndexer) init() error {
 	logger.Info("[%s] Current network protocol: %s", bi.Network, currentProtocol.Hash)
 
 	logger.Info("[%s] Getting network constants...", bi.Network)
-	constants, err := bi.rpc.GetNetworkConstants()
+	constants, err := bi.rpc.GetNetworkConstants() // TODO: store hard gas/storage limits in Protocol
 	if err != nil {
 		return err
 	}

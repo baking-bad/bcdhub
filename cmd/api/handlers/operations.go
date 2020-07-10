@@ -57,7 +57,7 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 		return
 	}
 
-	resp, err := prepareOperations(ctx.ES, ops.Operations)
+	resp, err := PrepareOperations(ctx.ES, ops.Operations)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -96,7 +96,7 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 		return
 	}
 
-	resp, err := prepareOperations(ctx.ES, op)
+	resp, err := PrepareOperations(ctx.ES, op)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -246,7 +246,8 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation) (Operatio
 	return op, nil
 }
 
-func prepareOperations(es *elastic.Elastic, ops []models.Operation) ([]Operation, error) {
+// PrepareOperations -
+func PrepareOperations(es *elastic.Elastic, ops []models.Operation) ([]Operation, error) {
 	resp := make([]Operation, len(ops))
 	for i := 0; i < len(ops); i++ {
 		op, err := prepareOperation(es, ops[i])

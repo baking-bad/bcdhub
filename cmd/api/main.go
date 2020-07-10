@@ -162,6 +162,7 @@ func main() {
 				entrypoints.GET("", ctx.GetEntrypoints)
 				entrypoints.POST("data", ctx.GetEntrypointData)
 				entrypoints.POST("trace", ctx.RunCode)
+				entrypoints.POST("run_operation", ctx.RunOperation)
 			}
 		}
 
