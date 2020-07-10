@@ -6,15 +6,123 @@ import (
 	"strings"
 	"time"
 
+	"github.com/baking-bad/bcdhub/cmd/indexer/parsers"
 	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 )
+
+// RunOperation -
+func (ctx *Context) RunOperation(c *gin.Context) {
+	var req getContractRequest
+	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+	var reqRunOp runOperationRequest
+	if err := c.BindJSON(&reqRunOp); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
+	rpc, err := ctx.GetRPC(req.Network)
+	if handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
+	state, err := ctx.ES.CurrentState(req.Network)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	parameters, err := ctx.buildEntrypointMicheline(req.Network, req.Address, reqRunOp.BinPath, reqRunOp.Data, true)
+	if handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
+	if !parameters.Get("entrypoint").Exists() || !parameters.Get("value").Exists() {
+		handleError(c, fmt.Errorf("Error occured while building parameters: %s", parameters.String()), 0)
+		return
+	}
+
+	counter, err := rpc.GetCounter(reqRunOp.Source)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	// TODO: store in state instead
+	constants, err := rpc.GetNetworkConstants()
+	if handleError(c, err, 0) {
+		return
+	}
+
+	hardGasLimit := constants.Get("hard_gas_limit_per_operation").Int()
+	hardStorageLimit := constants.Get("hard_storage_limit_per_operation").Int()
+
+	response, err := rpc.RunOperation(
+		state.ChainID,
+		state.Hash,
+		reqRunOp.Source,
+		req.Address,
+		0, // fee
+		hardGasLimit,
+		hardStorageLimit,
+		counter+1,
+		reqRunOp.Amount,
+		parameters,
+	)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	defaultParser := parsers.NewDefaultParser(rpc, ctx.ES, ctx.SharePath)
+
+	header := noderpc.Header{
+		Level:       state.Level,
+		Protocol:    state.Protocol,
+		Timestamp:   state.Timestamp,
+		ChainID:     state.ChainID,
+		Hash:        state.Hash,
+		Predecessor: state.Predecessor,
+	}
+
+	operations, err := defaultParser.Parse(response, req.Network, header)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	ops := make([]models.Operation, len(operations))
+	for i, item := range operations {
+		op, ok := item.(*models.Operation)
+		if ok {
+			// TODO: move burn calculation from metrics to indexer
+			if op.Status == consts.Applied && op.Result != nil {
+				var burned int64
+
+				if op.Result.PaidStorageSizeDiff != 0 {
+					burned += op.Result.PaidStorageSizeDiff * 1000
+				}
+				if op.Result.AllocatedDestinationContract {
+					burned += 257000
+				}
+
+				op.Burned = burned
+			}
+			ops[i] = *op
+		}
+	}
+
+	resp, err := PrepareOperations(ctx.ES, ops)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
 
 // RunCode godoc
 // @Summary Execute entrypoint with passed arguments
