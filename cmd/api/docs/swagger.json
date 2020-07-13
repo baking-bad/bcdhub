@@ -160,7 +160,7 @@
                     {
                         "type": "string",
                         "description": "Search string",
-                        "name": "search",
+                        "name": "q",
                         "in": "query"
                     },
                     {
@@ -1634,8 +1634,14 @@
                     },
                     {
                         "type": "integer",
-                        "description": "Offset",
+                        "description": "Offset (deprecated)",
                         "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Last ID",
+                        "name": "last_id",
                         "in": "query"
                     },
                     {
@@ -1670,7 +1676,7 @@
                 }
             }
         },
-        "/tokens/{network}/{address}/transfers": {
+        "/tokens/{network}/transfers/{address}": {
             "get": {
                 "description": "Get all token transfers (FA1/FA1.2) where given address is src/dst",
                 "consumes": [
@@ -1720,6 +1726,84 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/handlers.PageableTokenTransfers"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/tokens/{network}/version/{faversion}": {
+            "get": {
+                "description": "Get all contracts that implement FA1/FA1.2 standard by version",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tokens"
+                ],
+                "summary": "Get all contracts that implement FA1/FA1.2 standard by version",
+                "operationId": "get-tokens",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "fa1",
+                            "fa12",
+                            "fa2"
+                        ],
+                        "type": "string",
+                        "description": "FA token version",
+                        "name": "faversion",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset (deprecated)",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Last ID",
+                        "name": "last_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Requested count",
+                        "name": "size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.TokenContract"
+                            }
                         }
                     },
                     "400": {
@@ -2423,7 +2507,7 @@
                 "operations": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/handlers.Operation"
+                        "type": "integer"
                     }
                 }
             }
@@ -2689,11 +2773,20 @@
                 "delegate_alias": {
                     "type": "string"
                 },
+                "last_action": {
+                    "type": "string"
+                },
                 "level": {
                     "type": "integer"
                 },
                 "manager": {
                     "type": "string"
+                },
+                "methods": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/handlers.TokenMethodStats"
+                    }
                 },
                 "network": {
                     "type": "string"
@@ -2706,6 +2799,17 @@
                 },
                 "type": {
                     "type": "string"
+                }
+            }
+        },
+        "handlers.TokenMethodStats": {
+            "type": "object",
+            "properties": {
+                "average_consumed_gas": {
+                    "type": "integer"
+                },
+                "call_count": {
+                    "type": "integer"
                 }
             }
         },

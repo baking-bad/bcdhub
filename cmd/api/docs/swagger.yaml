@@ -456,7 +456,7 @@ definitions:
         type: string
       operations:
         items:
-          $ref: '#/definitions/handlers.Operation'
+          type: integer
         type: array
     type: object
   handlers.OperationResult:
@@ -634,10 +634,16 @@ definitions:
         type: string
       delegate_alias:
         type: string
+      last_action:
+        type: string
       level:
         type: integer
       manager:
         type: string
+      methods:
+        additionalProperties:
+          $ref: '#/definitions/handlers.TokenMethodStats'
+        type: object
       network:
         type: string
       timestamp:
@@ -646,6 +652,13 @@ definitions:
         type: integer
       type:
         type: string
+    type: object
+  handlers.TokenMethodStats:
+    properties:
+      average_consumed_gas:
+        type: integer
+      call_count:
+        type: integer
     type: object
   handlers.TokenTransfer:
     properties:
@@ -805,7 +818,7 @@ paths:
         type: integer
       - description: Search string
         in: query
-        name: search
+        name: q
         type: string
       - description: Offset
         in: query
@@ -1598,8 +1611,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Search any data in contracts, operations and big map diff with
-        filters
+      description: Search any data in contracts, operations and big map diff with filters
       operationId: search
       parameters:
       - description: Query string
@@ -1637,13 +1649,11 @@ paths:
         in: query
         name: g
         type: integer
-      - description: 'Comma-separated list of indices for searching. Values: contract,
-          operation, bigmapdiff'
+      - description: 'Comma-separated list of indices for searching. Values: contract, operation, bigmapdiff'
         in: query
         name: i
         type: string
-      - description: 'Comma-separated list of languages for searching. Values: smartpy,
-          liquidity, ligo, lorentz, michelson'
+      - description: 'Comma-separated list of languages for searching. Values: smartpy, liquidity, ligo, lorentz, michelson'
         in: query
         name: l
         type: string
@@ -1809,10 +1819,14 @@ paths:
         name: network
         required: true
         type: string
-      - description: Offset
+      - description: Offset (deprecated)
         in: query
         name: offset
         type: integer
+      - description: Last ID
+        in: query
+        name: last_id
+        type: string
       - description: Requested count
         in: query
         name: size
@@ -1837,7 +1851,7 @@ paths:
       summary: Get all contracts that implement FA1/FA1.2 standard
       tags:
       - tokens
-  /tokens/{network}/{address}/transfers:
+  /tokens/{network}/transfers/{address}:
     get:
       consumes:
       - application/json
@@ -1881,6 +1895,59 @@ paths:
           schema:
             $ref: '#/definitions/handlers.Error'
       summary: Get all token transfers (FA1/FA1.2) where given address is src/dst
+      tags:
+      - tokens
+  /tokens/{network}/version/{faversion}:
+    get:
+      consumes:
+      - application/json
+      description: Get all contracts that implement FA1/FA1.2 standard by version
+      operationId: get-tokens
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: FA token version
+        enum:
+        - fa1
+        - fa12
+        - fa2
+        in: path
+        name: faversion
+        required: true
+        type: string
+      - description: Offset (deprecated)
+        in: query
+        name: offset
+        type: integer
+      - description: Last ID
+        in: query
+        name: last_id
+        type: string
+      - description: Requested count
+        in: query
+        name: size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.TokenContract'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Get all contracts that implement FA1/FA1.2 standard by version
       tags:
       - tokens
 swagger: "2.0"
