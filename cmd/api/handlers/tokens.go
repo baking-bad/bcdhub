@@ -70,7 +70,7 @@ func (ctx *Context) GetFA(c *gin.Context) {
 // @Tags tokens
 // @ID get-tokens
 // @Param network path string true "Network"
-// @Param faversion path string true "FA token version" Enums("fa1", "fa12", "fa2")
+// @Param faversion path string true "FA token version" Enums(fa1, fa12, fa2)
 // @Param offset query integer false "Offset (deprecated)"
 // @Param last_id query string false "Last ID"
 // @Param size query integer false "Requested count"
@@ -79,7 +79,7 @@ func (ctx *Context) GetFA(c *gin.Context) {
 // @Success 200 {array} TokenContract
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /tokens/{network}/{faversion} [get]
+// @Router /tokens/{network}/version/{faversion} [get]
 func (ctx *Context) GetFAByVersion(c *gin.Context) {
 	var req getTokensByVersion
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
@@ -127,7 +127,7 @@ func (ctx *Context) GetFAByVersion(c *gin.Context) {
 // @Success 200 {object} PageableTokenTransfers
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /tokens/{network}/{address}/transfers [get]
+// @Router /tokens/{network}/transfers/{address} [get]
 func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
