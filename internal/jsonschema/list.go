@@ -2,6 +2,7 @@ package jsonschema
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
@@ -46,24 +47,26 @@ func (m *listMaker) Do(binPath string, metadata meta.Metadata) (Schema, DefaultM
 		return nil, nil, err
 	}
 
-	itemsType, err := getItemsType(path, metadata)
-	if err != nil {
-		return nil, nil, err
-	}
+	// itemsType, err := getItemsType(path, metadata)
+	// if err != nil {
+	// 	return nil, nil, err
+	// }
 
 	if properties, ok := listSchema["properties"]; ok {
 		props := properties.(Schema)
 		for k := range props {
 			propertiesItems[k] = props[k]
 			required = append(required, k)
-			schema["x-itemTitle"] = k
+			log.Println(k)
+			log.Println(props[k])
+			//schema["x-itemTitle"] = k
 		}
 	} else {
 		propertiesItems[path] = listSchema
 	}
 
 	schema["items"] = Schema{
-		"type":       itemsType,
+		"type":       "object", // itemsType
 		"properties": propertiesItems,
 		"required":   required,
 	}

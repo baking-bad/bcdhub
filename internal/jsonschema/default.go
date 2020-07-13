@@ -16,10 +16,7 @@ func (m *defaultMaker) Do(binPath string, metadata meta.Metadata) (Schema, Defau
 	}
 
 	schema := Schema{
-		"x-props": Schema{
-			"outlined": true,
-			"dense":    true,
-		},
+		"prim": nm.Prim,
 	}
 
 	model := make(DefaultModel)
@@ -45,8 +42,6 @@ func (m *defaultMaker) Do(binPath string, metadata meta.Metadata) (Schema, Defau
 	}
 	if nm.Name != "" {
 		schema["title"] = nm.Name
-	} else {
-		schema["title"] = nm.Prim
 	}
 
 	return Schema{
