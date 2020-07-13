@@ -95,6 +95,12 @@ func main() {
 		}
 	}
 
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		if err := v.RegisterValidation("faversion", handlers.FAVersionValidator); err != nil {
+			logger.Fatal(err)
+		}
+	}
+
 	r.Use(corsSettings())
 
 	if cfg.API.Sentry.Enabled {
@@ -169,9 +175,10 @@ func main() {
 		fa12 := v1.Group("tokens/:network")
 		{
 			fa12.GET("", ctx.GetFA)
-			address := fa12.Group(":address")
+			fa12.GET("version/:faversion", ctx.GetFAByVersion)
+			transfers := fa12.Group("transfers")
 			{
-				address.GET("transfers", ctx.GetFA12OperationsForAddress)
+				transfers.GET(":address", ctx.GetFA12OperationsForAddress)
 			}
 		}
 

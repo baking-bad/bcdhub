@@ -21,7 +21,8 @@ import (
 // @Tags tokens
 // @ID get-tokens
 // @Param network path string true "Network"
-// @Param offset query integer false "Offset"
+// @Param offset query integer false "Offset (deprecated)"
+// @Param last_id query string false "Last ID"
 // @Param size query integer false "Requested count"
 // @Accept json
 // @Produce json
@@ -35,20 +36,81 @@ func (ctx *Context) GetFA(c *gin.Context) {
 		return
 	}
 
-	var pageReq pageableRequest
-	if err := c.BindQuery(&pageReq); handleError(c, err, http.StatusBadRequest) {
+	var cursorReq cursorRequest
+	if err := c.BindQuery(&cursorReq); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-	if pageReq.Size == 0 {
-		pageReq.Size = 20
+	if cursorReq.Size == 0 {
+		cursorReq.Size = 20
 	}
-
-	contracts, err := ctx.ES.GetTokens(req.Network, pageReq.Size, pageReq.Offset)
+	var lastID int64
+	if cursorReq.LastID != "" {
+		var err error
+		lastID, err = strconv.ParseInt(cursorReq.LastID, 10, 64)
+		if handleError(c, err, http.StatusBadRequest) {
+			return
+		}
+	}
+	contracts, err := ctx.ES.GetTokens(req.Network, "", lastID, cursorReq.Size)
 	if handleError(c, err, 0) {
 		return
 	}
 
-	c.JSON(http.StatusOK, contractToTokens(contracts))
+	tokens, err := ctx.contractToTokens(contracts, req.Network, "")
+	if handleError(c, err, 0) {
+		return
+	}
+
+	c.JSON(http.StatusOK, tokens)
+}
+
+// GetFAByVersion godoc
+// @Summary Get all contracts that implement FA1/FA1.2 standard by version
+// @Description Get all contracts that implement FA1/FA1.2 standard by version
+// @Tags tokens
+// @ID get-tokens
+// @Param network path string true "Network"
+// @Param faversion path string true "FA token version" Enums("fa1", "fa12", "fa2")
+// @Param offset query integer false "Offset (deprecated)"
+// @Param last_id query string false "Last ID"
+// @Param size query integer false "Requested count"
+// @Accept json
+// @Produce json
+// @Success 200 {array} TokenContract
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /tokens/{network}/{faversion} [get]
+func (ctx *Context) GetFAByVersion(c *gin.Context) {
+	var req getTokensByVersion
+	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
+	var cursorReq cursorRequest
+	if err := c.BindQuery(&cursorReq); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+	if cursorReq.Size == 0 {
+		cursorReq.Size = 20
+	}
+	var lastID int64
+	if cursorReq.LastID != "" {
+		var err error
+		lastID, err = strconv.ParseInt(cursorReq.LastID, 10, 64)
+		if handleError(c, err, http.StatusBadRequest) {
+			return
+		}
+	}
+	contracts, err := ctx.ES.GetTokens(req.Network, req.Version, lastID, cursorReq.Size)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	tokens, err := ctx.contractToTokens(contracts, req.Network, req.Version)
+	if handleError(c, err, 0) {
+		return
+	}
+	c.JSON(http.StatusOK, tokens)
 }
 
 // GetFA12OperationsForAddress godoc
@@ -89,8 +151,9 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 	c.JSON(http.StatusOK, ops)
 }
 
-func contractToTokens(contracts []models.Contract) []TokenContract {
+func (ctx *Context) contractToTokens(contracts []models.Contract, network, version string) (PageableTokenContracts, error) {
 	tokens := make([]TokenContract, len(contracts))
+	addresses := make([]string, len(contracts))
 	for i := range contracts {
 		tokens[i] = TokenContract{
 			Network:       contracts[i].Network,
@@ -103,6 +166,7 @@ func contractToTokens(contracts []models.Contract) []TokenContract {
 			DelegateAlias: contracts[i].DelegateAlias,
 			Balance:       contracts[i].Balance,
 			TxCount:       contracts[i].TxCount,
+			LastAction:    contracts[i].LastAction.Time,
 		}
 		for _, tag := range contracts[i].Tags {
 			if tag == consts.FA12Tag {
@@ -112,8 +176,47 @@ func contractToTokens(contracts []models.Contract) []TokenContract {
 				tokens[i].Type = consts.FA1Tag
 			}
 		}
+		addresses[i] = tokens[i].Address
 	}
-	return tokens
+
+	if version != "" {
+		interfaceVersion, ok := ctx.Interfaces[version]
+		if !ok {
+			return PageableTokenContracts{}, fmt.Errorf("Unknown interface version: %s", version)
+		}
+		methods := make([]string, len(interfaceVersion))
+		for i := range interfaceVersion {
+			methods[i] = interfaceVersion[i].Name
+		}
+
+		stats, err := ctx.ES.GetTokensStats(network, addresses, methods)
+		if err != nil {
+			return PageableTokenContracts{}, err
+		}
+
+		for i := range tokens {
+			stat, ok := stats[tokens[i].Address]
+			if !ok {
+				continue
+			}
+			tokens[i].Methods = make(map[string]TokenMethodStats)
+			for method, value := range stat {
+				tokens[i].Methods[method] = TokenMethodStats{
+					CallCount:          value.Count,
+					AverageConsumedGas: value.ConsumedGas,
+				}
+			}
+		}
+	}
+
+	var lastID int64
+	if len(contracts) > 0 {
+		lastID = contracts[len(contracts)-1].LastAction.UTC().Unix()
+	}
+	return PageableTokenContracts{
+		Tokens: tokens,
+		LastID: lastID,
+	}, nil
 }
 
 func operationToTransfer(es *elastic.Elastic, po elastic.PageableOperations) (PageableTokenTransfers, error) {

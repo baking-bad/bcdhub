@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/mq"
@@ -22,7 +23,8 @@ type Context struct {
 	Config    Config
 	SharePath string
 
-	Aliases map[string]string
+	Aliases    map[string]string
+	Interfaces map[string][]kinds.Entrypoint
 }
 
 // NewContext -

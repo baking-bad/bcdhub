@@ -116,6 +116,11 @@ type getByNetwork struct {
 	Network string `uri:"network" binding:"required,network" example:"mainnet"`
 }
 
+type getTokensByVersion struct {
+	Network string `uri:"network" binding:"required,network" example:"mainnet"`
+	Version string `uri:"faversion" binding:"required,faversion" example:"fa2"`
+}
+
 type bigMapSearchRequest struct {
 	Offset      int64  `form:"offset" binding:"min=0"`
 	Size        int64  `form:"size" binding:"min=0"`

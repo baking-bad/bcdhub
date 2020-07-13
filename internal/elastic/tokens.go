@@ -1,19 +1,30 @@
 package elastic
 
 import (
+	"log"
+
 	"github.com/baking-bad/bcdhub/internal/models"
 )
 
 // GetTokens -
-func (e *Elastic) GetTokens(network string, size, offset int64) ([]models.Contract, error) {
+func (e *Elastic) GetTokens(network, tokenInterface string, lastAction, size int64) ([]models.Contract, error) {
+	tags := []string{"fa12", "fa1"}
+	if tokenInterface == "fa12" || tokenInterface == "fa1" || tokenInterface == "fa2" {
+		tags = []string{tokenInterface}
+	}
+
 	query := newQuery().Query(
 		boolQ(
 			filter(
 				matchQ("network", network),
-				in("tags", []string{"fa12", "fa1"}),
+				in("tags", tags),
 			),
 		),
-	).Sort("timestamp", "desc").Size(size).From(offset)
+	).Sort("last_action", "desc").Size(size)
+
+	if lastAction != 0 {
+		query = query.SearchAfter([]interface{}{lastAction * 1000})
+	}
 
 	result, err := e.query([]string{DocContracts}, query)
 	if err != nil {
@@ -65,4 +76,78 @@ func (e *Elastic) GetTokenTransferOperations(network, address, lastID string, si
 	po.Operations = operations
 	po.LastID = result.Get("hits").Get("hits|@reverse|0").Get("_source.indexed_time").String()
 	return po, nil
+}
+
+// GetTokensStats -
+func (e *Elastic) GetTokensStats(network string, addresses, entrypoints []string) (map[string]TokenUsageStats, error) {
+	addressFilters := make([]qItem, len(addresses))
+	for i := range addresses {
+		addressFilters[i] = matchPhrase("destination", addresses[i])
+	}
+
+	entrypointFilters := make([]qItem, len(entrypoints))
+	for i := range entrypoints {
+		entrypointFilters[i] = matchPhrase("entrypoint", entrypoints[i])
+	}
+
+	query := newQuery().Query(
+		boolQ(
+			must(
+				matchQ("network", network),
+				boolQ(
+					should(addressFilters...),
+					minimumShouldMatch(1),
+				),
+				boolQ(
+					should(entrypointFilters...),
+					minimumShouldMatch(1),
+				),
+			),
+		),
+	).Add(
+		aggs("by_dest", qItem{
+			"terms": qItem{
+				"field": "destination.keyword",
+				"size":  maxQuerySize,
+			},
+			"aggs": qItem{
+				"by_entrypoint": qItem{
+					"terms": qItem{
+						"field": "entrypoint.keyword",
+						"size":  maxQuerySize,
+					},
+					"aggs": qItem{
+						"average_consumed_gas": qItem{
+							"sum": qItem{"field": "result.consumed_gas"},
+						},
+					},
+				},
+			},
+		}),
+	).Zero()
+
+	result, err := e.query([]string{DocOperations}, query)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	response := make(map[string]TokenUsageStats)
+	buckets := result.Get("aggregations.by_dest.buckets").Array()
+	for _, bucket := range buckets {
+		address := bucket.Get("key").String()
+		tokenUsage := make(TokenUsageStats)
+		methods := bucket.Get("by_entrypoint.buckets").Array()
+		for _, method := range methods {
+			key := method.Get("key").String()
+			tokenUsage[key] = TokenMethodUsageStats{
+				Count:       method.Get("doc_count").Int(),
+				ConsumedGas: method.Get("average_consumed_gas.value").Int(),
+			}
+		}
+
+		response[address] = tokenUsage
+	}
+
+	return response, nil
 }

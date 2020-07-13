@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"testing"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/tidwall/gjson"
 )
 
@@ -61,6 +62,13 @@ func TestTagFA12(t *testing.T) {
 				t.Errorf("newParameter error %v", err)
 				return
 			}
+
+			interfaces, err := kinds.Load()
+			if err != nil {
+				t.Errorf("newParameter error %v", err)
+				return
+			}
+			p.FindTags(interfaces)
 
 			if _, ok := p.Tags[fa12tag]; tt.res != ok {
 				t.Errorf("Wrong res. Got: %v", p.Tags)

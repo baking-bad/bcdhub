@@ -310,17 +310,31 @@ type Migration struct {
 
 // TokenContract -
 type TokenContract struct {
-	Network       string    `json:"network"`
-	Level         int64     `json:"level"`
-	Timestamp     time.Time `json:"timestamp"`
-	Address       string    `json:"address"`
-	Manager       string    `json:"manager,omitempty"`
-	Delegate      string    `json:"delegate,omitempty"`
-	Alias         string    `json:"alias,omitempty"`
-	DelegateAlias string    `json:"delegate_alias,omitempty"`
-	Type          string    `json:"type"`
-	Balance       int64     `json:"balance"`
-	TxCount       int64     `json:"tx_count,omitempty"`
+	Network       string                      `json:"network"`
+	Level         int64                       `json:"level"`
+	Timestamp     time.Time                   `json:"timestamp"`
+	LastAction    time.Time                   `json:"last_action"`
+	Address       string                      `json:"address"`
+	Manager       string                      `json:"manager,omitempty"`
+	Delegate      string                      `json:"delegate,omitempty"`
+	Alias         string                      `json:"alias,omitempty"`
+	DelegateAlias string                      `json:"delegate_alias,omitempty"`
+	Type          string                      `json:"type"`
+	Balance       int64                       `json:"balance"`
+	TxCount       int64                       `json:"tx_count"`
+	Methods       map[string]TokenMethodStats `json:"methods,omitempty"`
+}
+
+// TokenMethodStats -
+type TokenMethodStats struct {
+	CallCount          int64 `json:"call_count"`
+	AverageConsumedGas int64 `json:"average_consumed_gas"`
+}
+
+// PageableTokenContracts -
+type PageableTokenContracts struct {
+	Tokens []TokenContract `json:"tokens"`
+	LastID int64           `json:"last_id,omitempty"`
 }
 
 // TokenTransfer -
@@ -343,7 +357,7 @@ type TokenTransfer struct {
 // PageableTokenTransfers -
 type PageableTokenTransfers struct {
 	Transfers []TokenTransfer `json:"transfers"`
-	LastID    string          `json:"last_id"`
+	LastID    string          `json:"last_id,omitempty"`
 }
 
 // BigMapDiffItem -

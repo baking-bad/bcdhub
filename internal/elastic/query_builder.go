@@ -289,6 +289,11 @@ func (q base) Sort(key, order string) base {
 	return q
 }
 
+func (q base) SearchAfter(value []interface{}) base {
+	q["search_after"] = value
+	return q
+}
+
 func (q base) Add(items ...qItem) base {
 	for _, item := range items {
 		for k, v := range item {
