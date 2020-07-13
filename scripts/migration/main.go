@@ -21,7 +21,7 @@ var migrationsList = []migrations.Migration{
 	&migrations.SetOperationAlias{Network: consts.Mainnet},
 	&migrations.SetBMDStrings{},
 	&migrations.SetBMDTimestamp{},
-	&migrations.SetFA1{},
+	&migrations.SetFA{},
 	&migrations.SetOperationStrings{},
 	&migrations.SetOperationBurned{},
 	&migrations.SetTotalWithdrawn{},
@@ -58,6 +58,7 @@ func main() {
 		config.WithRPC(cfg.RPC),
 		config.WithConfigCopy(cfg),
 		config.WithLoadErrorDescriptions("data/errors.json"),
+		config.WithContractsInterfaces(),
 	)
 	defer ctx.Close()
 

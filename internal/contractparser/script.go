@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/contractparser/language"
 	"github.com/baking-bad/bcdhub/internal/contractparser/macros"
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -48,8 +49,8 @@ func New(script gjson.Result) (s Script, err error) {
 }
 
 // Parse -
-func (s *Script) Parse() {
-	s.getTags()
+func (s *Script) Parse(interfaces map[string][]kinds.Entrypoint) {
+	s.getTags(interfaces)
 	s.getAnnotations()
 }
 
@@ -82,9 +83,11 @@ func (s *Script) Language() (string, error) {
 	return result, nil
 }
 
-func (s *Script) getTags() {
+func (s *Script) getTags(interfaces map[string][]kinds.Entrypoint) {
 	s.Tags = s.Code.Tags
 	s.Tags.Merge(s.Storage.Tags)
+
+	s.Code.Parameter.FindTags(interfaces)
 	s.Tags.Merge(s.Code.Parameter.Tags)
 }
 

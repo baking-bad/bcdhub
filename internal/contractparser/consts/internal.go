@@ -10,6 +10,7 @@ const (
 	CheckSigTag        = "CHECK_SIGNATURE"
 	FA1Tag             = "fa1"
 	FA12Tag            = "fa12"
+	FA2Tag             = "fa2"
 	SpendableTag       = "spendable"
 	UpgradableTag      = "upgradable"
 )

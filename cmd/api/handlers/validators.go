@@ -53,3 +53,17 @@ var StatusValidator validator.Func = func(fl validator.FieldLevel) bool {
 	}
 	return true
 }
+
+// FAVersionValidator -
+var FAVersionValidator validator.Func = func(fl validator.FieldLevel) bool {
+	version := fl.Field().String()
+	if !helpers.StringInArray(version, []string{
+		consts.FA1Tag,
+		consts.FA12Tag,
+		consts.FA2Tag,
+	}) {
+		return false
+	}
+
+	return true
+}

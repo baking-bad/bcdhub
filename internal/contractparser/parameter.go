@@ -4,20 +4,13 @@ import (
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/contractparser/language"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/node"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/tidwall/gjson"
 )
-
-// Entrypoint -
-type Entrypoint struct {
-	Name      string       `json:"name"`
-	Prim      string       `json:"prim"`
-	Args      []Entrypoint `json:"args,omitempty"`
-	Parameter interface{}  `json:"parameter"`
-}
 
 // Parameter -
 type Parameter struct {
@@ -51,12 +44,6 @@ func newParameter(v gjson.Result) (Parameter, error) {
 	}
 	p.Metadata = m
 
-	tags, err := endpointsTags(m)
-	if err != nil {
-		return p, err
-	}
-	p.Tags.Append(tags...)
-
 	return p, err
 }
 
@@ -74,5 +61,15 @@ func (p *Parameter) handlePrimitive(n node.Node) error {
 		p.Language.Add(lang)
 	}
 
+	return nil
+}
+
+// FindTags -
+func (p *Parameter) FindTags(interfaces map[string][]kinds.Entrypoint) error {
+	tags, err := endpointsTags(p.Metadata, interfaces)
+	if err != nil {
+		return err
+	}
+	p.Tags.Append(tags...)
 	return nil
 }

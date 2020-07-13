@@ -2,17 +2,13 @@ package contractparser
 
 import (
 	"fmt"
-	"io/ioutil"
-	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/node"
-	"github.com/baking-bad/bcdhub/internal/jsonload"
 )
-
-var interfaces = map[string][]Entrypoint{}
 
 func primTags(node node.Node) string {
 	switch node.Prim {
@@ -28,30 +24,7 @@ func primTags(node node.Node) string {
 	return ""
 }
 
-func loadInterfaces() error {
-	files, err := ioutil.ReadDir("interfaces/")
-	if err != nil {
-		return err
-	}
-
-	for _, f := range files {
-		path := fmt.Sprintf("interfaces/%s", f.Name())
-		var e []Entrypoint
-		if err := jsonload.StructFromFile(path, &e); err != nil {
-			return err
-		}
-		name := strings.Split(f.Name(), ".")[0]
-		interfaces[name] = e
-	}
-	return nil
-}
-
-func endpointsTags(metadata meta.Metadata) ([]string, error) {
-	if len(interfaces) == 0 {
-		if err := loadInterfaces(); err != nil {
-			return nil, err
-		}
-	}
+func endpointsTags(metadata meta.Metadata, interfaces map[string][]kinds.Entrypoint) ([]string, error) {
 	res := make([]string, 0)
 	for tag, i := range interfaces {
 		if findInterface(metadata, i) {
@@ -61,7 +34,7 @@ func endpointsTags(metadata meta.Metadata) ([]string, error) {
 	return res, nil
 }
 
-func findInterface(metadata meta.Metadata, i []Entrypoint) bool {
+func findInterface(metadata meta.Metadata, i []kinds.Entrypoint) bool {
 	root := metadata["0"]
 
 	for _, ie := range i {
@@ -80,7 +53,7 @@ func findInterface(metadata meta.Metadata, i []Entrypoint) bool {
 	return true
 }
 
-func compareEntrypoints(metadata meta.Metadata, in Entrypoint, en meta.NodeMetadata, path string) bool {
+func compareEntrypoints(metadata meta.Metadata, in kinds.Entrypoint, en meta.NodeMetadata, path string) bool {
 	if in.Name != "" && en.Name != in.Name {
 		return false
 	}

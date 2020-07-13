@@ -308,3 +308,12 @@ func (m *EventMigration) ParseElasticJSON(resp gjson.Result) {
 	m.Address = resp.Get("_source.address").String()
 	m.Kind = resp.Get("_source.kind").String()
 }
+
+// TokenMethodUsageStats -
+type TokenMethodUsageStats struct {
+	Count       int64
+	ConsumedGas int64
+}
+
+// TokenUsageStats -
+type TokenUsageStats map[string]TokenMethodUsageStats

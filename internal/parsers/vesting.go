@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -17,14 +18,16 @@ type VestingParser struct {
 	rpc            noderpc.INode
 	es             *elastic.Elastic
 	filesDirectory string
+	interfaces     map[string][]kinds.Entrypoint
 }
 
 // NewVestingParser -
-func NewVestingParser(rpc noderpc.INode, es *elastic.Elastic, filesDirectory string) *VestingParser {
+func NewVestingParser(rpc noderpc.INode, es *elastic.Elastic, filesDirectory string, interfaces map[string][]kinds.Entrypoint) *VestingParser {
 	return &VestingParser{
 		rpc:            rpc,
 		es:             es,
 		filesDirectory: filesDirectory,
+		interfaces:     interfaces,
 	}
 }
 
@@ -64,7 +67,7 @@ func (p *VestingParser) Parse(data gjson.Result, head noderpc.Header, network, a
 	if err != nil {
 		return nil, err
 	}
-	contractModels, err := createNewContract(p.es, op, p.filesDirectory, protoSymLink)
+	contractModels, err := createNewContract(p.es, p.interfaces, op, p.filesDirectory, protoSymLink)
 	if err != nil {
 		return nil, err
 	}

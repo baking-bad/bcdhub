@@ -1,6 +1,8 @@
 package logger
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -54,4 +56,23 @@ func Log(text string) {
 // Logf -
 func Logf(format string, v ...interface{}) {
 	log.Printf(format, v...)
+}
+
+// JSON - pretty json log
+func JSON(data string) {
+	var pretty bytes.Buffer
+	if err := json.Indent(&pretty, []byte(data), "", "  "); err != nil {
+		Error(err)
+	} else {
+		Info(pretty.String())
+	}
+}
+
+// InterfaceToJSON - pretty json log
+func InterfaceToJSON(data interface{}) {
+	if result, err := json.MarshalIndent(data, "", "  "); err != nil {
+		Error(err)
+	} else {
+		Info(string(result))
+	}
 }

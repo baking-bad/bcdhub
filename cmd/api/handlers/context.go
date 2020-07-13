@@ -31,6 +31,7 @@ func NewContext(cfg config.Config) (*Context, error) {
 		config.WithTzKTServices(cfg.TzKT),
 		config.WithLoadErrorDescriptions("data/errors.json"),
 		config.WithConfigCopy(cfg),
+		config.WithContractsInterfaces(),
 	)
 	return &Context{
 		Context: ctx,

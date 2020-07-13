@@ -8,6 +8,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -16,7 +17,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-func createNewContract(es *elastic.Elastic, operation models.Operation, filesDirectory, protoSymLink string) ([]elastic.Model, error) {
+func createNewContract(es *elastic.Elastic, interfaces map[string][]kinds.Entrypoint, operation models.Operation, filesDirectory, protoSymLink string) ([]elastic.Model, error) {
 	if operation.Kind != consts.Origination && operation.Kind != consts.Migration {
 		return nil, fmt.Errorf("Invalid operation kind in computeContractMetrics: %s", operation.Kind)
 	}
@@ -33,7 +34,7 @@ func createNewContract(es *elastic.Elastic, operation models.Operation, filesDir
 		TxCount:    1,
 	}
 
-	if err := computeMetrics(es, operation, filesDirectory, protoSymLink, &contract); err != nil {
+	if err := computeMetrics(operation, interfaces, filesDirectory, protoSymLink, &contract); err != nil {
 		return nil, err
 	}
 
@@ -62,12 +63,12 @@ func createNewContract(es *elastic.Elastic, operation models.Operation, filesDir
 	return []elastic.Model{&contract}, nil
 }
 
-func computeMetrics(es *elastic.Elastic, operation models.Operation, filesDirectory, protoSymLink string, contract *models.Contract) error {
+func computeMetrics(operation models.Operation, interfaces map[string][]kinds.Entrypoint, filesDirectory, protoSymLink string, contract *models.Contract) error {
 	script, err := contractparser.New(operation.Script)
 	if err != nil {
 		return fmt.Errorf("contractparser.New: %v", err)
 	}
-	script.Parse()
+	script.Parse(interfaces)
 
 	lang, err := script.Language()
 	if err != nil {

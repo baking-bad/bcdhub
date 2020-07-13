@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
 	"github.com/baking-bad/bcdhub/internal/elastic"
@@ -23,16 +24,18 @@ type DefaultParser struct {
 	rpc            noderpc.INode
 	es             *elastic.Elastic
 	filesDirectory string
+	interfaces     map[string][]kinds.Entrypoint
 
 	storageParser storage.Parser
 }
 
 // NewDefaultParser -
-func NewDefaultParser(rpc noderpc.INode, es *elastic.Elastic, filesDirectory string) *DefaultParser {
+func NewDefaultParser(rpc noderpc.INode, es *elastic.Elastic, filesDirectory string, interfaces map[string][]kinds.Entrypoint) *DefaultParser {
 	return &DefaultParser{
 		rpc:            rpc,
 		es:             es,
 		filesDirectory: filesDirectory,
+		interfaces:     interfaces,
 	}
 }
 
@@ -162,7 +165,7 @@ func (p *DefaultParser) parseOrigination(data gjson.Result, network, hash string
 	originationModels := []elastic.Model{&op}
 
 	if p.isApplied(op) {
-		contractModels, err := createNewContract(p.es, op, p.filesDirectory, protoSymLink)
+		contractModels, err := createNewContract(p.es, p.interfaces, op, p.filesDirectory, protoSymLink)
 		if err != nil {
 			return nil, op, err
 		}

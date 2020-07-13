@@ -9,6 +9,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -33,6 +34,7 @@ type BoostIndexer struct {
 	messageQueue    *mq.MQ
 	filesDirectory  string
 	boost           bool
+	interfaces      map[string][]kinds.Entrypoint
 
 	stop    chan struct{}
 	stopped bool
@@ -100,6 +102,10 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 	if err != nil {
 		return nil, err
 	}
+	interfaces, err := kinds.Load()
+	if err != nil {
+		return nil, err
+	}
 
 	bi := &BoostIndexer{
 		Network:        network,
@@ -108,6 +114,7 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 		messageQueue:   messageQueue,
 		filesDirectory: cfg.Share.Path,
 		stop:           make(chan struct{}),
+		interfaces:     interfaces,
 	}
 
 	for _, opt := range opts {
@@ -458,7 +465,7 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 	if err != nil {
 		return nil, err
 	}
-	defaultParser := parsers.NewDefaultParser(bi.rpc, bi.es, bi.filesDirectory)
+	defaultParser := parsers.NewDefaultParser(bi.rpc, bi.es, bi.filesDirectory, bi.interfaces)
 
 	parsedModels := make([]elastic.Model, 0)
 	for _, opg := range data.Array() {
@@ -583,7 +590,7 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header) ([]elastic.Model, 
 		return nil, err
 	}
 
-	p := parsers.NewVestingParser(bi.rpc, bi.es, bi.filesDirectory)
+	p := parsers.NewVestingParser(bi.rpc, bi.es, bi.filesDirectory, bi.interfaces)
 
 	parsedModels := make([]elastic.Model, 0)
 	for _, address := range addresses {
