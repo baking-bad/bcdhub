@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/baking-bad/bcdhub/cmd/indexer/parsers"
 	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
@@ -14,6 +13,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 )

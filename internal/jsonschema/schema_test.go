@@ -26,12 +26,8 @@ func TestCreate(t *testing.T) {
 				"type": "object",
 				"properties": Schema{
 					"0": Schema{
-						"type":  "string",
-						"title": "string",
-						"x-props": Schema{
-							"dense":    true,
-							"outlined": true,
-						},
+						"type": "string",
+						"prim": "string",
 					},
 				},
 			},
@@ -43,12 +39,8 @@ func TestCreate(t *testing.T) {
 				"type": "object",
 				"properties": Schema{
 					"0": Schema{
-						"type":  "integer",
-						"title": "int",
-						"x-props": Schema{
-							"dense":    true,
-							"outlined": true,
-						},
+						"type": "integer",
+						"prim": "int",
 					},
 				},
 			},
@@ -60,12 +52,8 @@ func TestCreate(t *testing.T) {
 				"type": "object",
 				"properties": Schema{
 					"0": Schema{
-						"type":  "integer",
-						"title": "nat",
-						"x-props": Schema{
-							"dense":    true,
-							"outlined": true,
-						},
+						"type": "integer",
+						"prim": "nat",
 					},
 				},
 			},
@@ -77,20 +65,12 @@ func TestCreate(t *testing.T) {
 				"type": "object",
 				"properties": Schema{
 					"0/1": Schema{
-						"type":  "integer",
-						"title": "nat",
-						"x-props": Schema{
-							"dense":    true,
-							"outlined": true,
-						},
+						"type": "integer",
+						"prim": "nat",
 					},
 					"0/0": Schema{
-						"type":  "string",
-						"title": "string",
-						"x-props": Schema{
-							"dense":    true,
-							"outlined": true,
-						},
+						"type": "string",
+						"prim": "string",
 					},
 				},
 			},
@@ -102,12 +82,8 @@ func TestCreate(t *testing.T) {
 				"type": "object",
 				"properties": Schema{
 					"0": Schema{
-						"type":  "string",
-						"title": "key_hash",
-						"x-props": Schema{
-							"dense":    true,
-							"outlined": true,
-						},
+						"type": "string",
+						"prim": "key_hash",
 					},
 				},
 			},
@@ -124,12 +100,8 @@ func TestCreate(t *testing.T) {
 				"type": "object",
 				"properties": Schema{
 					"0": Schema{
-						"type":  "boolean",
-						"title": "bool",
-						"x-props": Schema{
-							"dense":    true,
-							"outlined": true,
-						},
+						"type": "boolean",
+						"prim": "bool",
 					},
 				},
 			},
@@ -149,22 +121,14 @@ func TestCreate(t *testing.T) {
 							"required": []string{"0/1/k", "0/1/v"},
 							"properties": Schema{
 								"0/1/k": Schema{
-									"type":  "string",
-									"title": "address",
-									"x-props": Schema{
-										"dense":    true,
-										"outlined": true,
-									},
+									"type":      "string",
+									"prim":      "address",
 									"minLength": 36,
 									"maxLength": 36,
 								},
 								"0/1/v": Schema{
-									"type":  "integer",
-									"title": "nat",
-									"x-props": Schema{
-										"dense":    true,
-										"outlined": true,
-									},
+									"type": "integer",
+									"prim": "nat",
 								},
 							},
 						},
@@ -179,20 +143,15 @@ func TestCreate(t *testing.T) {
 				"type": "object",
 				"properties": Schema{
 					"0": Schema{
-						"type":        "array",
-						"title":       "list",
-						"x-itemTitle": "0/l",
+						"type":  "array",
+						"title": "list",
 						"items": Schema{
 							"type":     "object",
 							"required": []string{"0/l"},
 							"properties": Schema{
 								"0/l": Schema{
-									"type":  "integer",
-									"title": "int",
-									"x-props": Schema{
-										"dense":    true,
-										"outlined": true,
-									},
+									"type": "integer",
+									"prim": "int",
 								},
 							},
 						},
@@ -208,12 +167,9 @@ func TestCreate(t *testing.T) {
 				"properties": Schema{
 					"0": Schema{
 						"type":   "string",
+						"prim":   "timestamp",
 						"title":  "refund_time",
 						"format": "date-time",
-						"x-props": Schema{
-							"dense":    true,
-							"outlined": true,
-						},
 					},
 				},
 			},
@@ -224,13 +180,10 @@ func TestCreate(t *testing.T) {
 			want: Schema{
 				"type":  "object",
 				"title": "withdraw",
-				"x-props": Schema{
-					"dense":    true,
-					"outlined": true,
-				},
+				"prim":  "or",
 				"oneOf": []Schema{
 					{
-						"title": "redeem (Left)",
+						"title": "redeem",
 						"properties": Schema{
 							"schemaKey": Schema{
 								"type":  "string",
@@ -238,16 +191,13 @@ func TestCreate(t *testing.T) {
 							},
 							"0/1/0": Schema{
 								"type":  "string",
+								"prim":  "bytes",
 								"title": "redeem",
-								"x-props": Schema{
-									"dense":    true,
-									"outlined": true,
-								},
 							},
 						},
 					},
 					{
-						"title": "refund (Right)",
+						"title": "refund",
 						"properties": Schema{
 							"schemaKey": Schema{
 								"type":  "string",
@@ -255,11 +205,8 @@ func TestCreate(t *testing.T) {
 							},
 							"0/1/1": Schema{
 								"type":  "string",
+								"prim":  "bytes",
 								"title": "refund",
-								"x-props": Schema{
-									"dense":    true,
-									"outlined": true,
-								},
 							},
 						},
 					},
@@ -271,7 +218,8 @@ func TestCreate(t *testing.T) {
 			metadata: `{"0/1/o":{"fieldname":"Pour","prim":"pair","args":["0/1/o/0","0/1/o/1"],"type":"namedtuple","name":"Pour"},"0/1/o/0":{"fieldname":"pour_auth","prim":"signature","type":"signature","name":"pour_auth"},"0/1/o/1":{"fieldname":"pour_amount","prim":"mutez","type":"mutez","name":"pour_amount"}}`,
 			want: Schema{
 				"type":  "object",
-				"title": "Pour (optional)",
+				"prim":  "option",
+				"title": "Pour",
 				"oneOf": []Schema{
 					{
 						"title": "None",
@@ -292,25 +240,15 @@ func TestCreate(t *testing.T) {
 							"0/1/o/0": Schema{
 								"type":  "string",
 								"title": "pour_auth",
-								"x-props": Schema{
-									"dense":    true,
-									"outlined": true,
-								},
+								"prim":  "signature",
 							},
 							"0/1/o/1": Schema{
 								"type":  "integer",
 								"title": "pour_amount",
-								"x-props": Schema{
-									"dense":    true,
-									"outlined": true,
-								},
+								"prim":  "mutez",
 							},
 						},
 					},
-				},
-				"x-props": Schema{
-					"dense":    true,
-					"outlined": true,
 				},
 			},
 		}, {
@@ -321,36 +259,21 @@ func TestCreate(t *testing.T) {
 				"type": "object",
 				"properties": Schema{
 					"0/1/1/1/1/0/0/0/1/1/0": Schema{
-						"title": "lambda",
-						"type":  "string",
-						"x-props": Schema{
-							"dense":    true,
-							"outlined": true,
-						},
+						"prim": "lambda",
+						"type": "string",
 					},
 					"0/1/1/1/1/0/0/0/1/0/0": Schema{
-						"title": "nat",
-						"type":  "integer",
-						"x-props": Schema{
-							"dense":    true,
-							"outlined": true,
-						},
+						"prim": "nat",
+						"type": "integer",
 					},
 					"0/1/1/1/1/0/0/0/1/0/1": Schema{
-						"title": "nat",
-						"type":  "integer",
-						"x-props": Schema{
-							"dense":    true,
-							"outlined": true,
-						},
+						"prim": "nat",
+						"type": "integer",
 					},
 					"0/1/1/1/1/0/0/0/1/1/1/0/o": Schema{
 						"type":  "object",
-						"title": "lambda (optional)",
-						"x-props": Schema{
-							"dense":    true,
-							"outlined": true,
-						},
+						"prim":  "option",
+						"title": "",
 						"oneOf": []Schema{
 							{
 								"title": "None",
@@ -369,12 +292,8 @@ func TestCreate(t *testing.T) {
 										"const": "some",
 									},
 									"0/1/1/1/1/0/0/0/1/1/1/0/o": Schema{
-										"type":  "string",
-										"title": "lambda",
-										"x-props": Schema{
-											"dense":    true,
-											"outlined": true,
-										},
+										"type": "string",
+										"prim": "lambda",
 									},
 								},
 							},
@@ -382,11 +301,8 @@ func TestCreate(t *testing.T) {
 					},
 					"0/1/1/1/1/0/0/0/1/1/1/1/o": Schema{
 						"type":  "object",
-						"title": "lambda (optional)",
-						"x-props": Schema{
-							"dense":    true,
-							"outlined": true,
-						},
+						"prim":  "option",
+						"title": "",
 						"oneOf": []Schema{
 							{
 								"title": "None",
@@ -405,12 +321,8 @@ func TestCreate(t *testing.T) {
 										"const": "some",
 									},
 									"0/1/1/1/1/0/0/0/1/1/1/1/o": Schema{
-										"type":  "string",
-										"title": "lambda",
-										"x-props": Schema{
-											"dense":    true,
-											"outlined": true,
-										},
+										"type": "string",
+										"prim": "lambda",
 									},
 								},
 							},
