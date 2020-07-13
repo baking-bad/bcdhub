@@ -108,7 +108,7 @@ type defaultParameterBuilder struct {
 func (b defaultParameterBuilder) Build(node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
 	value, ok := data[path]
 	if !ok {
-		return "", fmt.Errorf("'%s' is required field", getName(node))
+		return "", fmt.Errorf("'%s' is required", getName(node))
 	}
 
 	if b.validate && !validate(node.Prim, value) {
@@ -181,7 +181,7 @@ type listParameterBuilder struct {
 func (b listParameterBuilder) Build(node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
 	value, ok := data[path]
 	if !ok {
-		return "", fmt.Errorf("'%s' is required field", getName(node))
+		return "", fmt.Errorf("'%s' is required", getName(node))
 	}
 	listValue := interfaceSlice(value)
 
@@ -224,7 +224,7 @@ type mapParameterBuilder struct {
 func (b mapParameterBuilder) Build(node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
 	value, ok := data[path]
 	if !ok {
-		return "", fmt.Errorf("'%s' is required field", getName(node))
+		return "", fmt.Errorf("'%s' is required", getName(node))
 	}
 	var s string
 	listValue := interfaceSlice(value)
@@ -262,7 +262,7 @@ type optionParameterBuilder struct {
 func (b optionParameterBuilder) Build(node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
 	value, ok := data[path]
 	if !ok {
-		return "", fmt.Errorf("'%s' is required field", getName(node))
+		return "", fmt.Errorf("'%s' is required", getName(node))
 	}
 	mapValue, ok := value.(map[string]interface{})
 	if !ok {

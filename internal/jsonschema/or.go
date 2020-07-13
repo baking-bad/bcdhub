@@ -58,12 +58,9 @@ func (m *orMaker) Do(binPath string, metadata meta.Metadata) (Schema, DefaultMod
 
 	return Schema{
 		"type":  "object",
+		"prim":  nm.Prim,
 		"title": name,
 		"oneOf": schemas,
-		"x-props": Schema{
-			"dense":    true,
-			"outlined": true,
-		},
 	}, model, nil
 }
 
@@ -72,15 +69,16 @@ func getOrTitile(binPath, rootPath string, metadata meta.Metadata) string {
 	nm, ok := metadata[binPath]
 	if ok {
 		if nm.Name != "" {
-			result.WriteString(fmt.Sprintf("%s (", nm.Name))
+			return nm.Name
 		} else if nm.FieldName != "" {
-			result.WriteString(fmt.Sprintf("%s (", nm.FieldName))
+			return nm.FieldName
 		}
 	}
+
 	path := strings.TrimPrefix(binPath, rootPath)
 	path = strings.TrimPrefix(path, "/")
-
 	parts := strings.Split(path, "/")
+
 	for i := range parts {
 		if i != 0 {
 			result.WriteByte(' ')
@@ -93,10 +91,5 @@ func getOrTitile(binPath, rootPath string, metadata meta.Metadata) string {
 		}
 	}
 
-	if ok {
-		if nm.Name != "" || nm.FieldName != "" {
-			result.WriteByte(')')
-		}
-	}
 	return result.String()
 }
