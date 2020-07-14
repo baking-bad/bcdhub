@@ -17,4 +17,6 @@ jobs:
         go mod download
         go test -v ./...
     - name: Test build
-      run: docker-compose build
+      run: |
+        touch .env
+        docker-compose build
