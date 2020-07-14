@@ -9,9 +9,6 @@ services:
 stages:
   - name: test
     if: tag IS blank
-  # - name: deploy
-  #   if: 
-  #     - tag = latest
 
 jobs:
   include:
@@ -22,9 +19,3 @@ jobs:
         - go test -v ./...
         - touch .env
         - docker-compose build
-    # - stage: deploy
-    #   script:
-    #     - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD
-    #     - touch .env
-    #     - docker-compose build
-    #     - docker-compose push
