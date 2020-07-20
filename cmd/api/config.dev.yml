@@ -34,6 +34,7 @@ api:
         enabled: true
     sentry:
         enabled: false
+        project: api
     networks:
         - mainnet
         - carthagenet
