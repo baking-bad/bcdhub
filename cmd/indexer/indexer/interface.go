@@ -6,7 +6,7 @@ import (
 
 // Indexer -
 type Indexer interface {
-	Sync(wg *sync.WaitGroup) error
+	Sync(wg *sync.WaitGroup)
 	Stop()
 	Index(levels []int64) error
 	Rollback() error

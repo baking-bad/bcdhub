@@ -10,6 +10,7 @@ import (
 
 type listMaker struct{}
 
+// nolint
 func getItemsType(binPath string, metadata meta.Metadata) (string, error) {
 	nm := metadata[binPath]
 

@@ -171,6 +171,7 @@ func uploadMappings(es *elastic.Elastic, creds awsData) error {
 	return nil
 }
 
+// nolint
 func restoreMappings(es *elastic.Elastic, creds awsData) error {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(creds.Region),

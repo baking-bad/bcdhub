@@ -132,8 +132,8 @@ func (ctx *Context) getMempoolEvents(subscriptions []database.Subscription) ([]e
 				Destination: item.Get("destination").String(),
 			}
 
-			op.SourceAlias, _ = ctx.Aliases[op.Source]
-			op.DestinationAlias, _ = ctx.Aliases[op.Destination]
+			op.SourceAlias = ctx.Aliases[op.Source]
+			op.DestinationAlias = ctx.Aliases[op.Destination]
 			op.Errors = cerrors.ParseArray(item.Get("errors"))
 
 			protocol := item.Get("protocol").String()

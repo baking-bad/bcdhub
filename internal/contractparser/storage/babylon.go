@@ -28,6 +28,7 @@ func (tpd *temporaryPointerData) updateBinPath(binPath string) {
 	tpd.binPath = binPath
 }
 
+// nolint
 func (tpd *temporaryPointerData) updateSourcePointer(sourcePtr int64) {
 	tpd.sourcePtr = sourcePtr
 }

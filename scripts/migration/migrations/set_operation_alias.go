@@ -47,7 +47,7 @@ func (m *SetOperationAlias) Do(ctx *config.Context) error {
 	var bulk []elastic.Model
 
 	for i := range operations {
-		bar.Add(1)
+		bar.Add(1) //nolint
 
 		found := h.SetOperationAliases(aliases, &operations[i])
 

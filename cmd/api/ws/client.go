@@ -17,7 +17,7 @@ type ClientHandler func(*Client, []byte) error
 // ClientEvent -
 type ClientEvent func([]byte) error
 
-// Client -
+// Client - nolint
 type Client struct {
 	id   int
 	conn *websocket.Conn
@@ -31,8 +31,8 @@ type Client struct {
 	handlers map[string]ClientHandler
 	sendMux  sync.Mutex
 
-	onSubscribe   ClientEvent
-	onUnsubscribe ClientEvent
+	onSubscribe   ClientEvent //nolint
+	onUnsubscribe ClientEvent //nolint
 
 	hub *Hub
 }

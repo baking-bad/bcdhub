@@ -184,6 +184,7 @@ func count(field string) qItem {
 	}
 }
 
+// nolint
 func maxBucket(bucketsPath string) qItem {
 	return qItem{
 		"max_bucket": qItem{
@@ -192,6 +193,7 @@ func maxBucket(bucketsPath string) qItem {
 	}
 }
 
+// nolint
 func minBucket(bucketsPath string) qItem {
 	return qItem{
 		"min_bucket": qItem{

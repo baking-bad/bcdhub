@@ -32,7 +32,7 @@ func createTasks(dbConn, esConn string, esTimeout int, userID uint, offset, size
 
 	bar := progressbar.NewOptions(len(tasks), progressbar.OptionSetPredictTime(false))
 	for _, diff := range tasks {
-		bar.Add(1)
+		bar.Add(1) //nolint
 		a := database.Assessments{
 			Address1:   diff.Address1,
 			Network1:   diff.Network1,

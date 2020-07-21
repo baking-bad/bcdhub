@@ -34,7 +34,7 @@ func (m *SetBMDProtocol) Do(ctx *config.Context) error {
 	var lastIdx int
 
 	for i := range allBMD {
-		bar.Add(1)
+		bar.Add(1) //nolint
 
 		proto, ok := ops[allBMD[i].OperationID]
 		if !ok {

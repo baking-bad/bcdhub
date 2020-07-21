@@ -47,7 +47,7 @@ func (m *SetContractAlias) Do(ctx *config.Context) error {
 	bar := progressbar.NewOptions(len(contracts), progressbar.OptionSetPredictTime(false))
 
 	for i := range contracts {
-		bar.Add(1)
+		bar.Add(1) //nolint
 		h.SetContractAlias(aliases, &contracts[i])
 
 		if _, err := ctx.ES.UpdateDoc(elastic.DocContracts, contracts[i].ID, contracts[i]); err != nil {

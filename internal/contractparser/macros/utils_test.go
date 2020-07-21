@@ -44,9 +44,6 @@ func Test_getPrim(t *testing.T) {
 }
 
 func Test_getArgs(t *testing.T) {
-	type args struct {
-		tree *fastjson.Value
-	}
 	tests := []struct {
 		name string
 		tree string

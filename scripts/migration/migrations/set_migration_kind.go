@@ -36,7 +36,7 @@ func (m *SetMigrationKind) Do(ctx *config.Context) error {
 		var bulk []elastic.Model
 
 		for i := range migrations {
-			bar.Add(1)
+			bar.Add(1) //nolint
 
 			if migrations[i].Kind != "" {
 				logger.Warning("Already migrated.")

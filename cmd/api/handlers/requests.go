@@ -1,11 +1,5 @@
 package handlers
 
-type aliasRequest struct {
-	Address string `form:"address" binding:"required,address"`
-	Network string `form:"network" binding:"required,network"`
-	Alias   string `form:"alias"  binding:"required"`
-}
-
 type getContractCodeRequest struct {
 	Address  string `uri:"address" binding:"required,address"`
 	Network  string `uri:"network" binding:"required,network"`

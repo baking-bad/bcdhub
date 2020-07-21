@@ -157,19 +157,20 @@ func (r *OperationResult) FromModel(result *models.OperationResult) {
 	r.ConsumedGas = result.ConsumedGas
 	r.PaidStorageSizeDiff = result.PaidStorageSizeDiff
 	r.StorageSize = result.StorageSize
-	return
 }
 
 // ToModel -
-func (r *OperationResult) ToModel() (result *models.OperationResult) {
+func (r *OperationResult) ToModel() *models.OperationResult {
 	if r == nil {
 		return nil
 	}
-	result.AllocatedDestinationContract = r.AllocatedDestinationContract
-	result.ConsumedGas = r.ConsumedGas
-	result.PaidStorageSizeDiff = r.PaidStorageSizeDiff
-	result.StorageSize = r.StorageSize
-	return
+
+	return &models.OperationResult{
+		AllocatedDestinationContract: r.AllocatedDestinationContract,
+		ConsumedGas:                  r.ConsumedGas,
+		PaidStorageSizeDiff:          r.PaidStorageSizeDiff,
+		StorageSize:                  r.StorageSize,
+	}
 }
 
 // Contract -
@@ -336,7 +337,7 @@ type TokenTransfer struct {
 	To        string    `json:"to"`
 	Amount    int64     `json:"amount"`
 	Source    string    `json:"source"`
-	Nonce     *int64    `json:"omitempty,nonce"`
+	Nonce     *int64    `json:"nonce,omitempty"`
 }
 
 // PageableTokenTransfers -

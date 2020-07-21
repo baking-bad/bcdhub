@@ -41,7 +41,7 @@ func (m *SetEmptyBmdPtr) Do(ctx *config.Context) error {
 	updates := make([]elastic.Model, len(empty))
 	bar := progressbar.NewOptions(len(empty), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish())
 	for i := range empty {
-		bar.Add(1)
+		bar.Add(1) //nolint
 
 		rpc, err := ctx.GetRPC(empty[i].Network)
 		if err != nil {
@@ -71,9 +71,8 @@ func (m *SetEmptyBmdPtr) Do(ctx *config.Context) error {
 			}
 
 			for pointer, binPath := range binPathMap {
-				path := newmiguel.GetGJSONPath(strings.TrimPrefix(binPath, "0/"))
-				path += ".int"
-				empty[i].BinPath = binPath
+				path := fmt.Sprintf("%s.int", newmiguel.GetGJSONPath(strings.TrimPrefix(binPath, "0/")))
+				empty[i].BinPath = path
 				empty[i].Ptr = pointer
 				pointerMap[empty[i].Address] = pointer
 			}

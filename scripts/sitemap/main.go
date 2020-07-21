@@ -54,7 +54,10 @@ func buildXML(aliases []database.Alias, networks []string) error {
 
 	xmlWriter := io.Writer(file)
 
-	xmlWriter.Write([]byte(xml.Header))
+	_, err = xmlWriter.Write([]byte(xml.Header))
+	if err != nil {
+		return err
+	}
 
 	enc := xml.NewEncoder(xmlWriter)
 	enc.Indent("", "  ")

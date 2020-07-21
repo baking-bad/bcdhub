@@ -35,7 +35,7 @@ func (m *SetContractMigrationsCount) Do(ctx *config.Context) error {
 		bar := progressbar.NewOptions(len(migrations), progressbar.OptionSetPredictTime(false))
 
 		for i := range migrations {
-			bar.Add(1)
+			bar.Add(1) //nolint
 
 			if err := ctx.ES.UpdateContractMigrationsCount(migrations[i].Address, migrations[i].Network); err != nil {
 				fmt.Print("\033[2K\r")

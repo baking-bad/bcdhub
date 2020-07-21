@@ -37,7 +37,7 @@ func (m *DropMichelson) Do(ctx *config.Context) error {
 	bar := progressbar.NewOptions(len(contracts), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish())
 
 	for i := range contracts {
-		bar.Add(1)
+		bar.Add(1) //nolint
 
 		contracts[i].Language = language.LangUnknown
 

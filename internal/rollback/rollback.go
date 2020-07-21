@@ -104,7 +104,7 @@ func removeMetadata(e *elastic.Elastic, fromState models.Block, toLevel int64, a
 	logger.Info("%d contracts will be removed", len(arr))
 	bar := progressbar.NewOptions(len(arr), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish(), progressbar.OptionShowCount())
 	for _, contract := range arr {
-		bar.Add(1)
+		bar.Add(1) //nolint
 		address := contract.Get("_source.address").String()
 		bulkDeleteMetadata = append(bulkDeleteMetadata, &models.Metadata{
 			ID: address,
@@ -149,9 +149,8 @@ func updateMetadata(e *elastic.Elastic, network string, fromLevel, toLevel int64
 	if err != nil {
 		return err
 	}
-	if _, ok := deadSymLinks[rollbackProtocol.SymLink]; ok {
-		delete(deadSymLinks, rollbackProtocol.SymLink)
-	}
+
+	delete(deadSymLinks, rollbackProtocol.SymLink)
 
 	logger.Info("Getting all metadata...")
 	var metadata []models.Metadata

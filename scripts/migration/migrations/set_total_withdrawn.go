@@ -40,7 +40,7 @@ func (m *SetTotalWithdrawn) Do(ctx *config.Context) error {
 		bar := progressbar.NewOptions(len(contracts), progressbar.OptionSetPredictTime(false))
 
 		for i, c := range contracts {
-			bar.Add(1)
+			bar.Add(1) //nolint
 
 			totalWithdrawn, err := ctx.ES.GetContractWithdrawn(c.Address, c.Network)
 			if err != nil {

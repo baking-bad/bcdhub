@@ -1,5 +1,6 @@
 package macros
 
+//nolint
 const (
 	pUNIT     = `"UNIT"`
 	pFAILWITH = `"FAILWITH"`
