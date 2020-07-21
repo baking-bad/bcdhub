@@ -204,7 +204,10 @@ func TestDefaultError_Format(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.args.Format()
+			err := tt.args.Format()
+			if err != nil {
+				t.Errorf("args format error %v", err)
+			}
 			switch err := tt.args.(type) {
 			case *BalanceTooLowError:
 				if err.With != tt.compareWith {

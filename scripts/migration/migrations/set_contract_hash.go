@@ -51,7 +51,7 @@ func (m *SetContractHash) Do(ctx *config.Context) error {
 		bar := progressbar.NewOptions(len(contracts), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish(), progressbar.OptionShowCount())
 		var lastIdx int
 		for i := range contracts {
-			bar.Add(1)
+			bar.Add(1) //nolint
 			if contracts[i].Hash != "" {
 				continue
 			}

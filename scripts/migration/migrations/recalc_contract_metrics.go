@@ -44,7 +44,7 @@ func (m *RecalcContractMetrics) Do(ctx *config.Context) error {
 
 		var lastIdx int
 		for i := range contracts {
-			bar.Add(1)
+			bar.Add(1) //nolint
 
 			if err := h.UpdateContractStats(&contracts[i]); err != nil {
 				return err

@@ -89,10 +89,8 @@ func IsDelegatorContract(data gjson.Result) bool {
 		return false
 	}
 	code := data.Get("code")
-	if !checkCodeIsDelegator(code) {
-		return false
-	}
-	return true
+
+	return checkCodeIsDelegator(code)
 }
 
 func checkStorageIsDelegator(storage gjson.Result) bool {

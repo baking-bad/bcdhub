@@ -41,7 +41,7 @@ func main() {
 
 	logger.Info("Saving aliases to db...")
 	for _, alias := range aliases {
-		bar.Add(1)
+		bar.Add(1) //nolint
 
 		dbAlias := database.Alias{
 			Alias:   alias.Alias,

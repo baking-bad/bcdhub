@@ -98,18 +98,6 @@ func (t *TzStats) GetContracts(startLevel int64) ([]Contract, error) {
 	}
 }
 
-type contractOperation struct {
-	ID       int64  `tzstats:"row_id"`
-	Level    int64  `tzstats:"height"`
-	Sender   string `tzstats:"sender"`
-	Receiver string `tzstats:"receiver"`
-}
-
-// Name -
-func (h contractOperation) Name() string {
-	return tzstats.TableOperation
-}
-
 // GetContractOperationBlocks -
 func (t *TzStats) GetContractOperationBlocks(startBlock, endBlock int64) ([]int64, error) {
 	return make([]int64, 0), nil

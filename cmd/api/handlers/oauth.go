@@ -84,7 +84,7 @@ func (ctx *Context) OauthCallback(c *gin.Context) {
 func (ctx *Context) authGithubUser(code string) (database.User, error) {
 	var user database.User
 
-	token, err := ctx.OAUTH.Github.Exchange(oauth2.NoContext, code)
+	token, err := ctx.OAUTH.Github.Exchange(context.Background(), code)
 	if err != nil {
 		return user, fmt.Errorf("github code exchange failed: %s", err.Error())
 	}
@@ -122,7 +122,7 @@ func getGithubUser(token *oauth2.Token) (*github.User, *github.Response, error) 
 func (ctx *Context) authGitlabUser(code string) (database.User, error) {
 	var user database.User
 
-	token, err := ctx.OAUTH.Gitlab.Exchange(oauth2.NoContext, code)
+	token, err := ctx.OAUTH.Gitlab.Exchange(context.Background(), code)
 	if err != nil {
 		return user, fmt.Errorf("gitlab code exchange failed: %s", err.Error())
 	}

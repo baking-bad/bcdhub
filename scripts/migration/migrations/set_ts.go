@@ -45,7 +45,7 @@ func (m *SetTimestamp) Do(ctx *config.Context) error {
 		lastLevel := int64(-1)
 		var lastTs time.Time
 		for _, operation := range operations {
-			bar.Add(1)
+			bar.Add(1) //nolint
 			if operation.Level == lastLevel {
 				operation.Timestamp = lastTs
 			} else {

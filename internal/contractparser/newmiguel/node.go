@@ -208,7 +208,7 @@ func getMatrix(first, second []*Node) [][]int {
 
 	d := make([][]int, m+1)
 	for i := 0; i < m+1; i++ {
-		d[i] = make([]int, n+1, n+1)
+		d[i] = make([]int, n+1)
 		d[i][0] = i
 	}
 	for j := range d[0] {

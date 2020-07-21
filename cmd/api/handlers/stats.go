@@ -110,10 +110,8 @@ func (ctx *Context) GetSeries(c *gin.Context) {
 	if handleError(c, err, 0) {
 		return
 	}
-	var response Series
-	response = series
 
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, series)
 }
 
 type seriesParams struct {

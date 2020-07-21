@@ -197,7 +197,7 @@ func (e *Elastic) GetLastOperation(address, network string, indexedTime int64) (
 
 // GetAllLevelsForNetwork -
 func (e *Elastic) GetAllLevelsForNetwork(network string) (map[int64]struct{}, error) {
-	levels := make(map[int64]struct{}, 0)
+	levels := make(map[int64]struct{})
 
 	query := newQuery().Query(
 		boolQ(

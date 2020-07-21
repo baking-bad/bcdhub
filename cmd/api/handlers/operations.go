@@ -86,6 +86,10 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 	}
 
 	op, err := ctx.ES.GetOperationByHash(req.Hash)
+	if handleError(c, err, 0) {
+		return
+	}
+
 	if len(op) == 0 {
 		operation, err := ctx.getOperationFromMempool(req.Hash)
 		if handleError(c, err, 0) {
@@ -395,8 +399,8 @@ func (ctx *Context) prepareMempoolOperation(res gjson.Result, network, hash stri
 		Status:       status,
 	}
 
-	op.SourceAlias, _ = ctx.Aliases[op.Source]
-	op.DestinationAlias, _ = ctx.Aliases[op.Destination]
+	op.SourceAlias = ctx.Aliases[op.Source]
+	op.DestinationAlias = ctx.Aliases[op.Destination]
 	op.Errors = cerrors.ParseArray(item.Get("errors"))
 
 	if op.Kind != consts.Transaction {

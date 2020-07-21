@@ -45,7 +45,7 @@ func (bi *BoostIndexer) fetchExternalProtocols() error {
 		return err
 	}
 
-	exists := make(map[string]bool, 0)
+	exists := make(map[string]bool)
 	for _, existingProtocol := range existingProtocols {
 		exists[existingProtocol.Hash] = true
 	}
@@ -164,7 +164,7 @@ func (bi *BoostIndexer) init() error {
 }
 
 // Sync -
-func (bi *BoostIndexer) Sync(wg *sync.WaitGroup) error {
+func (bi *BoostIndexer) Sync(wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	bi.stopped = false
@@ -177,7 +177,7 @@ func (bi *BoostIndexer) Sync(wg *sync.WaitGroup) error {
 		helpers.CatchErrorSentry(err)
 	}
 	if bi.stopped {
-		return nil
+		return
 	}
 
 	everySecond := false
@@ -191,7 +191,7 @@ func (bi *BoostIndexer) Sync(wg *sync.WaitGroup) error {
 		case <-bi.stop:
 			bi.stopped = true
 			bi.messageQueue.Close()
-			return nil
+			return
 		case <-ticker.C:
 			if err := bi.process(); err != nil {
 				if err.Error() == "Same level" {
@@ -383,7 +383,9 @@ func (bi *BoostIndexer) process() error {
 			}
 			if err.Error() == "rollback" {
 				if !time.Now().Add(time.Duration(-5) * time.Minute).After(head.Timestamp) { // Check that node is out of sync
-					bi.Rollback()
+					if err := bi.Rollback(); err != nil {
+						return err
+					}
 				}
 				return nil
 			}
@@ -396,29 +398,12 @@ func (bi *BoostIndexer) process() error {
 		logger.Success("[%s] Synced", bi.Network)
 		return nil
 	} else if head.Level < bi.state.Level {
-		bi.Rollback()
-	}
-
-	return fmt.Errorf("Same level")
-}
-
-func (bi *BoostIndexer) getContracts() (map[string]struct{}, map[string]struct{}, error) {
-	addresses, err := bi.es.GetContracts(map[string]interface{}{
-		"network": bi.Network,
-	})
-	if err != nil {
-		return nil, nil, err
-	}
-	res := make(map[string]struct{})
-	spendable := make(map[string]struct{})
-	for _, a := range addresses {
-		res[a.Address] = struct{}{}
-		if helpers.StringInArray(consts.SpendableTag, a.Tags) {
-			spendable[a.Address] = struct{}{}
+		if err := bi.Rollback(); err != nil {
+			return err
 		}
 	}
 
-	return res, spendable, nil
+	return fmt.Errorf("Same level")
 }
 
 func (bi *BoostIndexer) createBlock(head noderpc.Header) *models.Block {

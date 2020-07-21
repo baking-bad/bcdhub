@@ -9,8 +9,6 @@ import (
 )
 
 func TestCreate(t *testing.T) {
-	type args struct {
-	}
 	tests := []struct {
 		name     string
 		binPath  string

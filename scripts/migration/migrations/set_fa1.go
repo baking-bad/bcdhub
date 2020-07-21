@@ -98,7 +98,7 @@ func (m *SetFA1) Do(ctx *config.Context) error {
 
 	bar := progressbar.NewOptions(len(contracts), progressbar.OptionSetPredictTime(false))
 	for _, c := range contracts {
-		bar.Add(1)
+		bar.Add(1) //nolint
 		m, err := meta.GetMetadata(ctx.ES, c.Address, consts.PARAMETER, "PsBabyM1eUXZseaJdmXFApDSBqj8YBfwELoxZHHW77EMcAbbwAS")
 		if err != nil {
 			if !strings.Contains(err.Error(), "Unknown metadata sym link") {

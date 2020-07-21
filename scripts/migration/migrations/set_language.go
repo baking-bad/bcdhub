@@ -49,7 +49,7 @@ func (m *SetLanguage) Do(ctx *config.Context) error {
 	var results []elastic.Model
 	bar := progressbar.NewOptions(len(contracts), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish(), progressbar.OptionShowCount())
 	for i := range contracts {
-		bar.Add(1)
+		bar.Add(1) //nolint
 		rpc, err := ctx.GetRPC(contracts[i].Network)
 		if err != nil {
 			logger.Errorf("ctx.GetRPC %v %s error: %v", contracts[i].ID, contracts[i].Network, err)

@@ -3,26 +3,10 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/classification/metrics"
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 )
-
-var model = []metrics.Metric{
-	metrics.NewManager(),
-	metrics.NewArray("Tags"),
-	metrics.NewArray("FailStrings"),
-	metrics.NewArray("Annotations"),
-	metrics.NewBool("Language"),
-	metrics.NewArray("Entrypoints"),
-	metrics.NewFingerprintLength("parameter"),
-	metrics.NewFingerprintLength("storage"),
-	metrics.NewFingerprintLength("code"),
-	metrics.NewFingerprint("parameter"),
-	metrics.NewFingerprint("storage"),
-	metrics.NewFingerprint("code"),
-}
 
 // Vote -
 func (ctx *Context) Vote(c *gin.Context) {

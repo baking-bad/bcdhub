@@ -208,9 +208,9 @@ func (p *DefaultParser) createResult(item gjson.Result, path string) *models.Ope
 }
 
 func (p *DefaultParser) parseMetadata(item gjson.Result) (*models.OperationResult, []models.BalanceUpdate) {
-	path := fmt.Sprintf("metadata.operation_result")
+	path := "metadata.operation_result"
 	if !item.Get(path).Exists() {
-		path = fmt.Sprintf("result")
+		path = "result"
 		if !item.Get(path).Exists() {
 			return nil, nil
 		}
@@ -265,9 +265,9 @@ func (p *DefaultParser) finishParseOperation(item gjson.Result, op *models.Opera
 }
 
 func (p *DefaultParser) findMigration(item gjson.Result, op *models.Operation) (*models.Migration, error) {
-	path := fmt.Sprintf("metadata.operation_result.big_map_diff")
+	path := "metadata.operation_result.big_map_diff"
 	if !item.Get(path).Exists() {
-		path = fmt.Sprintf("result.big_map_diff")
+		path = "result.big_map_diff"
 		if !item.Get(path).Exists() {
 			return nil, nil
 		}
@@ -322,9 +322,9 @@ func (p *DefaultParser) getEntrypoint(item gjson.Result, metadata *meta.Contract
 }
 
 func (p *DefaultParser) parseInternalOperations(item gjson.Result, main models.Operation, head noderpc.Header, contentIdx int64) ([]elastic.Model, error) {
-	path := fmt.Sprintf("metadata.internal_operation_results")
+	path := "metadata.internal_operation_results"
 	if !item.Get(path).Exists() {
-		path = fmt.Sprintf("metadata.internal_operations")
+		path = "metadata.internal_operations"
 		if !item.Get(path).Exists() {
 			return nil, nil
 		}

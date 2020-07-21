@@ -40,7 +40,7 @@ func (m *SetOperationBurned) Do(ctx *config.Context) error {
 		var bulk []elastic.Model
 
 		for i := range operations {
-			bar.Add(1)
+			bar.Add(1) //nolint
 
 			h.SetOperationBurned(&operations[i])
 

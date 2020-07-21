@@ -38,7 +38,7 @@ func (m *SetOperationErrors) Do(ctx *config.Context) error {
 		var lastIdx int
 		bar := progressbar.NewOptions(len(operations), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish())
 		for i := range operations {
-			bar.Add(1)
+			bar.Add(1) //nolint
 
 			if (i%1000 == 0 || i == len(operations)-1) && i > 0 {
 				updates := make([]elastic.Model, len(operations[lastIdx:i]))
