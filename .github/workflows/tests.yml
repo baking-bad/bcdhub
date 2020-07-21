@@ -24,7 +24,7 @@ jobs:
         GO111MODULE: on
       run: |
         go mod download
-        go test -v ./...
+        go test ./...
     - name: docker-compose test build
       run: |
         touch .env
