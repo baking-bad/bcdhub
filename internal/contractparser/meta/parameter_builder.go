@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/translator"
 	"github.com/tidwall/gjson"
 )
 
@@ -43,6 +44,10 @@ func NewParameterBuilder(metadata Metadata, needValidation bool) ParameterBuilde
 			metadata: metadata,
 		},
 		consts.UNIT: unitParameterBuilder{},
+		consts.LAMBDA: lambdaParameterBuilder{
+			builder:  &b,
+			metadata: metadata,
+		},
 		"default": defaultParameterBuilder{
 			validate: needValidation,
 		},
@@ -116,7 +121,7 @@ func (b defaultParameterBuilder) Build(node *NodeMetadata, path string, data map
 	}
 
 	switch node.Prim {
-	case consts.STRING, consts.KEYHASH, consts.KEY, consts.ADDRESS, consts.CHAINID, consts.SIGNATURE, consts.CONTRACT, consts.LAMBDA:
+	case consts.STRING, consts.KEYHASH, consts.KEY, consts.ADDRESS, consts.CHAINID, consts.SIGNATURE, consts.CONTRACT:
 		return fmt.Sprintf(`{"string": "%s"}`, value), nil
 	case consts.BYTES:
 		return fmt.Sprintf(`{"bytes": "%s"}`, value), nil
@@ -331,6 +336,30 @@ func (b ParameterBuilder) wrapEntrypoint(binPath, data string) (string, error) {
 		data = wrapLeftRight(binPath, data, true)
 	}
 	return fmt.Sprintf(`{"entrypoint": "%s", "value": %s}`, entrypoint, data), nil
+}
+
+type lambdaParameterBuilder struct {
+	builder  *ParameterBuilder
+	metadata Metadata
+}
+
+func (b lambdaParameterBuilder) Build(node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
+	lambdaData, ok := data[path]
+	if !ok {
+		return "", fmt.Errorf("'%s' is required", getName(node))
+	}
+	sLambda := fmt.Sprintf("%s", lambdaData)
+	t, err := translator.NewConverter(
+		translator.WithDefaultGrammar(),
+	)
+	if err != nil {
+		return "", err
+	}
+	jsonLambda, err := t.FromString(sLambda)
+	if err != nil {
+		return "", err
+	}
+	return jsonLambda.String(), nil
 }
 
 func wrapLeftRight(path, data string, skipFirst bool) string {

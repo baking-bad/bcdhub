@@ -1,4 +1,4 @@
-package grammar
+package translator
 
 // ConverterOption -
 type ConverterOption func(*Converter)
