@@ -68,6 +68,16 @@ func getStartPath(data gjson.Result, metadata meta.Metadata) (gjson.Result, stri
 		}
 		for path, md := range metadata {
 			if md.FieldName == entrypoint.String() {
+				parentParts := strings.Split(path, "/")
+				parentParts = parentParts[0 : len(parentParts)-1]
+				parent := strings.Join(parentParts, "/")
+				parentNode, ok := metadata[parent]
+				if !ok {
+					continue
+				}
+				if parentNode.Type != consts.OR {
+					continue
+				}
 				return value, path, nil
 			}
 		}
@@ -84,7 +94,6 @@ func michelineNodeToMiguel(data gjson.Result, path string, metadata meta.Metadat
 
 	if dec, ok := decoders[nm.Type]; ok {
 		node, err = dec.Decode(data, path, nm, metadata, isRoot)
-
 	} else {
 		node, err = decoders["default"].Decode(data, path, nm, metadata, isRoot)
 	}
