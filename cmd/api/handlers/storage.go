@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
+	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 )
@@ -31,21 +32,18 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 		return
 	}
 
+	var protocol string
+	var deffatedStorage gjson.Result
 	last, err := ctx.ES.GetLastOperation(req.Address, req.Network, time.Now().UnixNano()/1000)
-	if handleError(c, err, 0) {
-		return
-	}
-
-	var s gjson.Result
-	protocol := last.Protocol
-	if protocol != "" {
-		s = gjson.Parse(last.DeffatedStorage)
-	} else {
+	if err != nil {
+		if !elastic.IsRecordNotFound(err) && handleError(c, err, 0) {
+			return
+		}
 		rpc, err := ctx.GetRPC(req.Network)
 		if handleError(c, err, http.StatusBadRequest) {
 			return
 		}
-		s, err = rpc.GetScriptStorageJSON(req.Address, 0)
+		deffatedStorage, err = rpc.GetScriptStorageJSON(req.Address, 0)
 		if handleError(c, err, 0) {
 			return
 		}
@@ -54,13 +52,16 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 			return
 		}
 		protocol = header.Protocol
+	} else {
+		protocol = last.Protocol
+		deffatedStorage = gjson.Parse(last.DeffatedStorage)
 	}
 
 	metadata, err := meta.GetMetadata(ctx.ES, req.Address, consts.STORAGE, protocol)
 	if handleError(c, err, 0) {
 		return
 	}
-	resp, err := newmiguel.MichelineToMiguel(s, metadata)
+	resp, err := newmiguel.MichelineToMiguel(deffatedStorage, metadata)
 	if handleError(c, err, 0) {
 		return
 	}
