@@ -1,4 +1,4 @@
-package grammar
+package translator
 
 const defaultGrammar = `
 	instrs         <- instr (Semi instr)* Semi?    
