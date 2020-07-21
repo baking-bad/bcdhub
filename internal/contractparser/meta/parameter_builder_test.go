@@ -398,7 +398,7 @@ func TestMetadata_BuildEntrypointMicheline(t *testing.T) {
 				data: map[string]interface{}{
 					"0/0": map[string]interface{}{
 						"schemaKey": "0/0/0",
-						"0/0/0":     "sfasf",
+						"0/0/0":     "{ PUSH nat 42 ; DUP ; DROP }",
 					},
 					"0/1/1": []map[string]interface{}{
 						{
@@ -409,7 +409,7 @@ func TestMetadata_BuildEntrypointMicheline(t *testing.T) {
 					"0/1/0": 234,
 				},
 			},
-			want: `{"entrypoint": "default", "value": {"prim": "Pair", "args":[{"prim": "Left", "args":[{"string": "sfasf"}]}, {"prim": "Pair", "args":[{"int": "234"}, [{"prim": "Pair", "args":[{"string": "sdsdg"}, {"string": "asdgsdfg"}]}]]}]}}`,
+			want: `{"entrypoint": "default", "value": {"prim": "Pair", "args":[{"prim": "Left", "args":[[[{"args":[{"prim": "nat"}, {"int": "42"}], "prim": "PUSH"}, {"prim": "DUP"}, {"prim": "DROP"}]]]}, {"prim": "Pair", "args":[{"int": "234"}, [{"prim": "Pair", "args":[{"string": "sdsdg"}, {"string": "asdgsdfg"}]}]]}]}}`,
 		}, {
 			name:     "KT1UXMkUNEsSaugsL19SEgiWWPGgDLB4gPjd: updateCountryRestrictions",
 			metadata: `{"0":{"prim":"or","args":["0/0/0/0","0/0/0/1","0/0/1/0","0/0/1/1","0/1/0/0","0/1/0/1","0/1/1"],"type":"namedunion"},"0/0":{"prim":"or","type":"or"},"0/0/0":{"prim":"or","type":"or"},"0/0/0/0":{"fieldname":"addToken","prim":"address","type":"address","name":"addToken"},"0/0/0/1":{"fieldname":"checkTransfer","prim":"pair","args":["0/0/0/1/0","0/0/0/1/1"],"type":"namedtuple","name":"checkTransfer"},"0/0/0/1/0":{"fieldname":"0","prim":"address","type":"address","name":"0"},"0/0/0/1/1":{"fieldname":"1","prim":"address","type":"address","name":"1"},"0/0/1":{"prim":"or","type":"or"},"0/0/1/0":{"fieldname":"setAccount","prim":"pair","args":["0/0/1/0/0","0/0/1/0/1"],"type":"namedtuple","name":"setAccount"},"0/0/1/0/0":{"fieldname":"0","prim":"address","type":"address","name":"0"},"0/0/1/0/1":{"fieldname":"1","prim":"pair","args":["0/0/1/0/1/0","0/0/1/0/1/1"],"type":"namedtuple","name":"1"},"0/0/1/0/1/0":{"fieldname":"registrar","prim":"address","type":"address","name":"registrar"},"0/0/1/0/1/1":{"fieldname":"restricted","prim":"bool","type":"bool","name":"restricted"},"0/0/1/1":{"fieldname":"setRegistrar","prim":"pair","args":["0/0/1/1/0","0/0/1/1/1"],"type":"namedtuple","name":"setRegistrar"},"0/0/1/1/0":{"fieldname":"0","prim":"address","type":"address","name":"0"},"0/0/1/1/1":{"fieldname":"1","prim":"bool","type":"bool","name":"1"},"0/1":{"prim":"or","type":"or"},"0/1/0":{"prim":"or","type":"or"},"0/1/0/0":{"fieldname":"setToken","prim":"pair","args":["0/1/0/0/0","0/1/0/0/1"],"type":"namedtuple","name":"setToken"},"0/1/0/0/0":{"fieldname":"0","prim":"address","type":"address","name":"0"},"0/1/0/0/1":{"fieldname":"1","prim":"bool","type":"bool","name":"1"},"0/1/0/1":{"fieldname":"updateCountryRestrictions","prim":"list","type":"list","name":"updateCountryRestrictions"},"0/1/0/1/l":{"prim":"pair","args":["0/1/0/1/l/0","0/1/0/1/l/1"],"type":"namedtuple"},"0/1/0/1/l/0":{"fieldname":"0","prim":"nat","type":"nat","name":"0"},"0/1/0/1/l/1":{"fieldname":"1","prim":"pair","args":["0/1/0/1/l/1/0/0","0/1/0/1/l/1/0/1","0/1/0/1/l/1/1/0","0/1/0/1/l/1/1/1"],"type":"namedtuple","name":"1"},"0/1/0/1/l/1/0":{"prim":"pair","type":"pair"},"0/1/0/1/l/1/0/0":{"fieldname":"country_invest_limit","prim":"nat","type":"nat","name":"country_invest_limit"},"0/1/0/1/l/1/0/1":{"fieldname":"min_rating","prim":"nat","type":"nat","name":"min_rating"},"0/1/0/1/l/1/1":{"prim":"pair","type":"pair"},"0/1/0/1/l/1/1/0":{"fieldname":"rating_restrictions","prim":"map","type":"map","name":"rating_restrictions"},"0/1/0/1/l/1/1/0/k":{"prim":"nat","type":"nat"},"0/1/0/1/l/1/1/0/v":{"prim":"nat","type":"nat"},"0/1/0/1/l/1/1/1":{"fieldname":"vesting","prim":"timestamp","type":"timestamp","name":"vesting"},"0/1/1":{"fieldname":"updateGlobalLimit","prim":"nat","type":"nat","name":"updateGlobalLimit"}}`,
@@ -436,12 +436,12 @@ func TestMetadata_BuildEntrypointMicheline(t *testing.T) {
 				data: map[string]interface{}{
 					"0/1/1/1/1/0/0/0/1/0/0":     1,
 					"0/1/1/1/1/0/0/0/1/0/1":     1,
-					"0/1/1/1/1/0/0/0/1/1/0":     "asdf",
+					"0/1/1/1/1/0/0/0/1/1/0":     "{ PUSH nat 42 ; DUP ; DROP }",
 					"0/1/1/1/1/0/0/0/1/1/1/0/o": map[string]interface{}{"schemaKey": "none"},
 					"0/1/1/1/1/0/0/0/1/1/1/1/o": map[string]interface{}{"schemaKey": "none"},
 				},
 			},
-			want: `{"entrypoint": "upgrade", "value": {"prim": "Pair", "args":[{"prim": "Pair", "args":[{"int": "1"},{"int": "1"}]},{"prim": "Pair", "args":[{"string": "asdf"}, {"prim": "Pair", "args":[{"prim": "None"},{"prim": "None"}]}]}]}}`,
+			want: `{"entrypoint": "upgrade", "value": {"prim": "Pair", "args":[{"prim": "Pair", "args":[{"int": "1"},{"int": "1"}]},{"prim": "Pair", "args":[[[{"args":[{"prim": "nat"}, {"int": "42"}], "prim": "PUSH"}, {"prim": "DUP"}, {"prim": "DROP"}]], {"prim": "Pair", "args":[{"prim": "None"},{"prim": "None"}]}]}]}}`,
 		},
 	}
 
