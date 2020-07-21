@@ -3,6 +3,7 @@ module github.com/baking-bad/bcdhub
 go 1.13
 
 require (
+	github.com/alecthomas/participle v0.5.0
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/aws/aws-sdk-go v1.30.10
 	github.com/btcsuite/btcutil v1.0.1
@@ -15,6 +16,7 @@ require (
 	github.com/gin-gonic/gin v1.5.0
 	github.com/go-openapi/spec v0.19.8 // indirect
 	github.com/go-openapi/swag v0.19.9 // indirect
+	github.com/goccmack/gocc v0.0.0-20200615163339-47605ef073d3 // indirect
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/uuid v1.1.1
 	github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
@@ -28,6 +30,7 @@ require (
 	github.com/schollz/progressbar/v3 v3.1.1
 	github.com/sergi/go-diff v1.1.0
 	github.com/streadway/amqp v0.0.0-20200108173154-1c71cc93ed71
+	github.com/stretchr/testify v1.5.1
 	github.com/swaggo/gin-swagger v1.2.0
 	github.com/swaggo/swag v1.6.5
 	github.com/tidwall/gjson v1.4.0
@@ -35,7 +38,9 @@ require (
 	github.com/urfave/cli v1.22.4 // indirect
 	github.com/valyala/fastjson v1.5.1
 	github.com/xanzy/go-gitlab v0.26.0
+	github.com/yhirose/go-peg v0.0.0-20190710015414-7eb2cf046928
 	golang.org/x/crypto v0.0.0-20200115085410-6d4e4cb37c7d
+	golang.org/x/exp v0.0.0-20190121172915-509febef88a4
 	golang.org/x/net v0.0.0-20200513185701-a91f0712d120 // indirect
 	golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421
 	golang.org/x/tools v0.0.0-20200515220128-d3bf790afa53 // indirect
