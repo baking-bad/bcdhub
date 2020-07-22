@@ -5,6 +5,7 @@ const (
 	ViewMethodTag      = "view"
 	ContractFactoryTag = "CREATE_CONTRACT"
 	DelegatableTag     = "delegatable"
+	DelegatorTag       = "delegator"
 	ChainAwareTag      = "CHAIN_ID"
 	CheckSigTag        = "CHECK_SIGNATURE"
 	FA1Tag             = "fa1"
