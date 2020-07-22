@@ -25,7 +25,7 @@ import (
 type BoostIndexer struct {
 	Network         string
 	UpdateTimer     int64
-	rpc             noderpc.Pool
+	rpc             noderpc.INode
 	es              *elastic.Elastic
 	externalIndexer index.Indexer
 	state           models.Block

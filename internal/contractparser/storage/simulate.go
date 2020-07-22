@@ -14,7 +14,7 @@ type Simulate struct {
 }
 
 // NewSimulate -
-func NewSimulate(rpc noderpc.Pool, es *elastic.Elastic) *Simulate {
+func NewSimulate(rpc noderpc.INode, es *elastic.Elastic) *Simulate {
 	return &Simulate{
 		Babylon: NewBabylon(rpc, es),
 	}

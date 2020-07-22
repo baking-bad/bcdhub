@@ -16,7 +16,7 @@ type Context struct {
 	DB           database.DB
 	ES           *elastic.Elastic
 	MQ           *mq.MQ
-	RPC          map[string]noderpc.Pool
+	RPC          map[string]noderpc.INode
 	TzKTServices map[string]*tzkt.ServicesTzKT
 
 	Config    Config
@@ -36,7 +36,7 @@ func NewContext(opts ...ContextOption) *Context {
 }
 
 // GetRPC -
-func (ctx *Context) GetRPC(network string) (noderpc.Pool, error) {
+func (ctx *Context) GetRPC(network string) (noderpc.INode, error) {
 	if rpc, ok := ctx.RPC[network]; ok {
 		return rpc, nil
 	}

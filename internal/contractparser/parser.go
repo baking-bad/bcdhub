@@ -52,7 +52,7 @@ func (p *parser) parse(v gjson.Result) error {
 }
 
 // MakeStorageParser -
-func MakeStorageParser(rpc noderpc.Pool, es *elastic.Elastic, protocol string, isSimulating bool) (storage.Parser, error) {
+func MakeStorageParser(rpc noderpc.INode, es *elastic.Elastic, protocol string, isSimulating bool) (storage.Parser, error) {
 	if isSimulating {
 		return storage.NewSimulate(rpc, es), nil
 	}

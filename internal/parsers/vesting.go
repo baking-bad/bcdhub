@@ -15,13 +15,13 @@ import (
 
 // VestingParser -
 type VestingParser struct {
-	rpc            noderpc.Pool
+	rpc            noderpc.INode
 	es             *elastic.Elastic
 	filesDirectory string
 }
 
 // NewVestingParser -
-func NewVestingParser(rpc noderpc.Pool, es *elastic.Elastic, filesDirectory string) *VestingParser {
+func NewVestingParser(rpc noderpc.INode, es *elastic.Elastic, filesDirectory string) *VestingParser {
 	return &VestingParser{
 		rpc:            rpc,
 		es:             es,

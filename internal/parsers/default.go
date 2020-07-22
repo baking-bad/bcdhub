@@ -20,7 +20,7 @@ import (
 
 // DefaultParser -
 type DefaultParser struct {
-	rpc            noderpc.Pool
+	rpc            noderpc.INode
 	es             *elastic.Elastic
 	filesDirectory string
 
@@ -28,7 +28,7 @@ type DefaultParser struct {
 }
 
 // NewDefaultParser -
-func NewDefaultParser(rpc noderpc.Pool, es *elastic.Elastic, filesDirectory string) *DefaultParser {
+func NewDefaultParser(rpc noderpc.INode, es *elastic.Elastic, filesDirectory string) *DefaultParser {
 	return &DefaultParser{
 		rpc:            rpc,
 		es:             es,

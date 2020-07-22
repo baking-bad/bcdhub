@@ -133,13 +133,8 @@ func (rpc *NodeRPC) post(uri string, data map[string]interface{}, checkStatusCod
 }
 
 // GetHead - get head
-func (rpc *NodeRPC) GetHead() (header Header, err error) {
-	data, err := rpc.get("chains/main/blocks/head/header")
-	if err != nil {
-		return
-	}
-	header.parseGJSON(data)
-	return
+func (rpc *NodeRPC) GetHead() (Header, error) {
+	return rpc.GetHeader(0)
 }
 
 // GetLevel - get head level
@@ -151,7 +146,7 @@ func (rpc *NodeRPC) GetLevel() (int64, error) {
 	return head.Get("level").Int(), nil
 }
 
-// GetHeader - get head
+// GetHeader - get head for certain level
 func (rpc *NodeRPC) GetHeader(level int64) (header Header, err error) {
 	block := "head"
 	if level > 0 {
