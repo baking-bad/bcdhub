@@ -54,8 +54,7 @@ func buildXML(aliases []database.Alias, networks []string) error {
 
 	xmlWriter := io.Writer(file)
 
-	_, err = xmlWriter.Write([]byte(xml.Header))
-	if err != nil {
+	if _, err = xmlWriter.Write([]byte(xml.Header)); err != nil {
 		return err
 	}
 

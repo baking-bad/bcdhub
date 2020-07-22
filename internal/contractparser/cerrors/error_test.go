@@ -207,6 +207,7 @@ func TestDefaultError_Format(t *testing.T) {
 			err := tt.args.Format()
 			if err != nil {
 				t.Errorf("args format error %v", err)
+				return
 			}
 			switch err := tt.args.(type) {
 			case *BalanceTooLowError:
