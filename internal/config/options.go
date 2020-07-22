@@ -21,7 +21,7 @@ func WithRPC(rpcConfig map[string]RPCConfig) ContextOption {
 		if len(rpcConfig) == 0 {
 			panic("RPC config is invalid")
 		}
-		rpc := make(map[string]noderpc.Pool)
+		rpc := make(map[string]noderpc.INode)
 		for network, rpcProvider := range rpcConfig {
 			rpc[network] = noderpc.NewPool(
 				[]string{rpcProvider.URI},

@@ -17,7 +17,7 @@ const (
 )
 
 // GetContract -
-func GetContract(rpc noderpc.Pool, address, network, protocol, filesDirectory string, fallbackLevel int64) (gjson.Result, error) {
+func GetContract(rpc noderpc.INode, address, network, protocol, filesDirectory string, fallbackLevel int64) (gjson.Result, error) {
 	if filesDirectory != "" {
 		protoSymLink, err := meta.GetProtoSymLink(protocol)
 		if err != nil {

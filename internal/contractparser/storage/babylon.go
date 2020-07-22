@@ -35,7 +35,7 @@ func (tpd *temporaryPointerData) updateSourcePointer(sourcePtr int64) {
 
 // Babylon -
 type Babylon struct {
-	rpc noderpc.Pool
+	rpc noderpc.INode
 	es  *elastic.Elastic
 
 	updates           map[int64][]elastic.Model
@@ -43,7 +43,7 @@ type Babylon struct {
 }
 
 // NewBabylon -
-func NewBabylon(rpc noderpc.Pool, es *elastic.Elastic) *Babylon {
+func NewBabylon(rpc noderpc.INode, es *elastic.Elastic) *Babylon {
 	return &Babylon{
 		rpc: rpc,
 		es:  es,
