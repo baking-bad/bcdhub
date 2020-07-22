@@ -42,7 +42,7 @@ func (m *SetFA) Do(ctx *config.Context) error {
 		updates := make([]elastic.Model, 0)
 		bar := progressbar.NewOptions(len(contracts), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish())
 		for _, c := range contracts {
-			bar.Add(1)
+			bar.Add(1) //nolint
 
 			m, err := meta.GetMetadata(ctx.ES, c.Address, consts.PARAMETER, "PsBabyM1eUXZseaJdmXFApDSBqj8YBfwELoxZHHW77EMcAbbwAS")
 			if err != nil {

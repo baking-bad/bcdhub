@@ -68,7 +68,10 @@ func TestTagFA12(t *testing.T) {
 				t.Errorf("newParameter error %v", err)
 				return
 			}
-			p.FindTags(interfaces)
+			if err := p.FindTags(interfaces); err != nil {
+				t.Errorf("newParameter error %v", err)
+				return
+			}
 
 			if _, ok := p.Tags[fa12tag]; tt.res != ok {
 				t.Errorf("Wrong res. Got: %v", p.Tags)
