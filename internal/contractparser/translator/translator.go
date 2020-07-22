@@ -165,7 +165,7 @@ func sanitizeString(token string) string {
 
 func validatePrimitive(prim string) error {
 	// TODO: handle macros
-	if _, err := regexp.MatchString(
+	valid, err := regexp.MatchString(
 		`INT|ISNAT|CAST|RENAME|DROP|DUP|SWAP|PUSH|SOME|NONE|UNIT|IF_NONE|PAIR|CAR|CDR|LEFT
 		|RIGHT|IF_LEFT|IF_RIGHT|NIL|CONS|IF_CONS|SIZE|EMPTY_SET|EMPTY_MAP|MAP|ITER|MEM|GET
 		|UPDATE|IF|LOOP|LOOP_LEFT|LAMBDA|EXEC|DIP|FAILWITH|CONCAT|SLICE|PACK|UNPACK|ADD|SUB
@@ -174,7 +174,11 @@ func validatePrimitive(prim string) error {
 		|SET_DELEGATE|CREATE_CONTRACT|IMPLICIT_ACCOUNT|NOW|AMOUNT|BALANCE|STEPS_TO_QUOTA|SOURCE
 		|SENDER|ADDRESS|CHAIN_ID|option|list|set|contract|pair|or|lambda|map|big_map|key|unit
 		|signature|operation|address|int|nat|string|bytes|mutez|bool|key_hash|timestamp|chain_id`,
-		prim); err != nil {
+		prim)
+	if err != nil {
+		return err
+	}
+	if !valid {
 		return fmt.Errorf("Invalid primitive %s", prim)
 	}
 	return nil
