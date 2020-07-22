@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/language"
 	"github.com/baking-bad/bcdhub/internal/contractparser/macros"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/tidwall/gjson"
 )
 
@@ -87,7 +88,9 @@ func (s *Script) getTags(interfaces map[string][]kinds.Entrypoint) {
 	s.Tags = s.Code.Tags
 	s.Tags.Merge(s.Storage.Tags)
 
-	s.Code.Parameter.FindTags(interfaces)
+	if err := s.Code.Parameter.FindTags(interfaces); err != nil {
+		logger.Error(err)
+	}
 	s.Tags.Merge(s.Code.Parameter.Tags)
 }
 
