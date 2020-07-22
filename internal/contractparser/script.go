@@ -3,6 +3,7 @@ package contractparser
 import (
 	"fmt"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/language"
 	"github.com/baking-bad/bcdhub/internal/contractparser/macros"
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -38,6 +39,10 @@ func New(script gjson.Result) (s Script, err error) {
 	}
 	s.HardcodedAddresses = hardcoded
 	s.Tags = make(helpers.Set)
+
+	if IsDelegatorContract(script) {
+		s.Tags.Add(consts.DelegatorTag)
+	}
 
 	return
 }

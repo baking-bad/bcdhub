@@ -3,7 +3,6 @@ package parsers
 import (
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/elastic"
@@ -45,34 +44,33 @@ func (p *VestingParser) Parse(data gjson.Result, head noderpc.Header, network, a
 	parsedModels := []elastic.Model{migration}
 
 	script := data.Get("script")
-	if !contractparser.IsDelegatorContract(script) {
-		op := models.Operation{
-			ID:          helpers.GenerateID(),
-			Network:     network,
-			Protocol:    head.Protocol,
-			Status:      "applied",
-			Kind:        consts.Migration,
-			Amount:      data.Get("balance").Int(),
-			Counter:     data.Get("counter").Int(),
-			Source:      data.Get("manager").String(),
-			Destination: address,
-			Delegate:    data.Get("delegate.value").String(),
-			Timestamp:   head.Timestamp,
-			IndexedTime: time.Now().UnixNano() / 1000,
-			Script:      script,
-		}
-
-		protoSymLink, err := meta.GetProtoSymLink(migration.Protocol)
-		if err != nil {
-			return nil, err
-		}
-		contractModels, err := createNewContract(p.es, op, p.filesDirectory, protoSymLink)
-		if err != nil {
-			return nil, err
-		}
-		if len(contractModels) > 0 {
-			parsedModels = append(parsedModels, contractModels...)
-		}
+	op := models.Operation{
+		ID:          helpers.GenerateID(),
+		Network:     network,
+		Protocol:    head.Protocol,
+		Status:      "applied",
+		Kind:        consts.Migration,
+		Amount:      data.Get("balance").Int(),
+		Counter:     data.Get("counter").Int(),
+		Source:      data.Get("manager").String(),
+		Destination: address,
+		Delegate:    data.Get("delegate.value").String(),
+		Timestamp:   head.Timestamp,
+		IndexedTime: time.Now().UnixNano() / 1000,
+		Script:      script,
 	}
+
+	protoSymLink, err := meta.GetProtoSymLink(migration.Protocol)
+	if err != nil {
+		return nil, err
+	}
+	contractModels, err := createNewContract(p.es, op, p.filesDirectory, protoSymLink)
+	if err != nil {
+		return nil, err
+	}
+	if len(contractModels) > 0 {
+		parsedModels = append(parsedModels, contractModels...)
+	}
+
 	return parsedModels, nil
 }

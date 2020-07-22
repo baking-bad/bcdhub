@@ -161,7 +161,7 @@ func (p *DefaultParser) parseOrigination(data gjson.Result, network, hash string
 
 	originationModels := []elastic.Model{&op}
 
-	if !contractparser.IsDelegatorContract(op.Script) && p.isApplied(op) {
+	if p.isApplied(op) {
 		contractModels, err := createNewContract(p.es, op, p.filesDirectory, protoSymLink)
 		if err != nil {
 			return nil, op, err
@@ -360,11 +360,8 @@ func (p *DefaultParser) needParse(item gjson.Result, network string, idx int) (b
 	destination := item.Get("destination").String()
 	prefixCondition := strings.HasPrefix(source, "KT") || strings.HasPrefix(destination, "KT")
 	transactionCondition := kind == consts.Transaction && prefixCondition
-	if transactionCondition {
-		return p.es.NeedParseOperation(network, source, destination)
-	}
 	originationCondition := kind == consts.Origination && item.Get("script").Exists()
-	return originationCondition, nil
+	return originationCondition || transactionCondition, nil
 }
 
 func (p *DefaultParser) getRichStorage(data gjson.Result, metadata *meta.ContractMetadata, op *models.Operation) (storage.RichStorage, error) {
