@@ -1,6 +1,8 @@
 package translator
 
 import (
+	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/valyala/fastjson"
@@ -65,6 +67,11 @@ func (t *MichelineTranslator) exprTranslate(ast *peg.Ast) (*fastjson.Value, erro
 }
 
 func (t *MichelineTranslator) tokenTranslate(ast *peg.Ast) (*fastjson.Value, error) {
+	if ast.Name == "prim" {
+		if err := validatePrimitive(ast.Token); err != nil {
+			return nil, err
+		}
+	}
 	arena := fastjson.Arena{}
 	return arena.NewString(ast.Token), nil
 }
@@ -156,4 +163,18 @@ func sanitizeString(token string) string {
 		token = strings.ReplaceAll(token, from, to)
 	}
 	return token
+}
+
+func validatePrimitive(prim string) error {
+	// TODO: handle macros
+	valid, err := regexp.MatchString(
+		"^INT|ISNAT|CAST|RENAME|DROP|DUP|SWAP|PUSH|SOME|NONE|UNIT|IF_NONE|PAIR|CAR|CDR|LEFT|RIGHT|IF_LEFT|IF_RIGHT|NIL|CONS|IF_CONS|SIZE|EMPTY_SET|EMPTY_MAP|MAP|ITER|MEM|GET|UPDATE|IF|LOOP|LOOP_LEFT|LAMBDA|EXEC|DIP|FAILWITH|CONCAT|SLICE|PACK|UNPACK|ADD|SUB|MUL|EDIV|ABS|NEG|LSL|LSR|OR|AND|XOR|NOT|COMPARE|EQ|NEQ|LT|GT|LE|GE|CHECK_SIGNATURE|BLAKE2B|SHA256|SHA512|HASH_KEY|DIG|DUG|EMPTY_BIG_MAP|APPLY|SELF|CONTRACT|TRANSFER_TOKENS|SET_DELEGATE|CREATE_CONTRACT|IMPLICIT_ACCOUNT|NOW|AMOUNT|BALANCE|STEPS_TO_QUOTA|SOURCE|SENDER|ADDRESS|CHAIN_ID|option|list|set|contract|pair|or|lambda|map|big_map|key|unit|signature|operation|address|int|nat|string|bytes|mutez|bool|key_hash|timestamp|chain_id|code|storage|parameter|Unit|False|True|Elt|None|Some|Pair|Left|Right$",
+		prim)
+	if err != nil {
+		return err
+	}
+	if !valid {
+		return fmt.Errorf("Invalid primitive %s", prim)
+	}
+	return nil
 }
