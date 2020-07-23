@@ -169,6 +169,11 @@ func (ctx *Context) contractToTokens(contracts []models.Contract, network, versi
 			LastAction:    contracts[i].LastAction.Time,
 		}
 		for _, tag := range contracts[i].Tags {
+			if tag == consts.FA2Tag {
+				tokens[i].Type = consts.FA2Tag
+				break
+			}
+
 			if tag == consts.FA12Tag {
 				tokens[i].Type = consts.FA12Tag
 				break

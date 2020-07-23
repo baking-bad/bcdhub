@@ -80,3 +80,51 @@ func TestTagFA12(t *testing.T) {
 	}
 
 }
+
+func TestTagFA2(t *testing.T) {
+	fa2tag := "fa2"
+
+	testCases := []struct {
+		name string
+		path string
+		res  bool
+	}{
+		{
+			name: "carthagenet/KT19nsmdVr54y2MLG1zKtbRUc6TqLfdYXNRG",
+			path: "testdata/tags/fa2-carthagenet-KT19nsmdVr54y2MLG1zKtbRUc6TqLfdYXNRG.json",
+			res:  true,
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			file, err := ioutil.ReadFile(tt.path)
+			if err != nil {
+				t.Errorf("ioutil.ReadFile %v error %v", tt.path, err)
+				return
+			}
+
+			parsed := gjson.ParseBytes(file)
+			p, err := newParameter(parsed)
+			if err != nil {
+				t.Errorf("newParameter error %v", err)
+				return
+			}
+
+			interfaces, err := kinds.Load()
+			if err != nil {
+				t.Errorf("newParameter error %v", err)
+				return
+			}
+			if err := p.FindTags(interfaces); err != nil {
+				t.Errorf("newParameter error %v", err)
+				return
+			}
+
+			if _, ok := p.Tags[fa2tag]; tt.res != ok {
+				t.Errorf("Wrong res. Got: %v", p.Tags)
+			}
+		})
+	}
+
+}
