@@ -53,7 +53,7 @@ func (l *mapDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetadat
 			}
 
 			if key.Value == nil && len(key.Children) > 0 {
-				key.Value, err = formatter.MichelineToMichelson(keyJSON, true, formatter.DefLineSize)
+				key.Value, err = formatter.MichelineToMichelson(k, true, formatter.DefLineSize)
 				if err != nil {
 					return nil, err
 				}
