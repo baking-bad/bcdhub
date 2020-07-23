@@ -172,7 +172,7 @@ func uploadMappings(es elastic.IElastic, creds awsData) error {
 }
 
 // nolint
-func restoreMappings(es *elastic.IElastic, creds awsData) error {
+func restoreMappings(es elastic.IElastic, creds awsData) error {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(creds.Region),
 		Credentials: credentials.NewEnvCredentials(),
