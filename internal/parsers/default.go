@@ -30,7 +30,7 @@ type DefaultParser struct {
 }
 
 // NewDefaultParser -
-func NewDefaultParser(rpc noderpc.INode, es *elastic.IElastic, filesDirectory string, interfaces map[string][]kinds.Entrypoint) *DefaultParser {
+func NewDefaultParser(rpc noderpc.INode, es elastic.IElastic, filesDirectory string, interfaces map[string][]kinds.Entrypoint) *DefaultParser {
 	return &DefaultParser{
 		rpc:            rpc,
 		es:             es,

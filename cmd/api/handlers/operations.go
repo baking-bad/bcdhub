@@ -251,7 +251,7 @@ func prepareOperation(es elastic.IElastic, operation models.Operation) (Operatio
 }
 
 // PrepareOperations -
-func PrepareOperations(es *elastic.Elastic, ops []models.Operation) ([]Operation, error) {
+func PrepareOperations(es elastic.IElastic, ops []models.Operation) ([]Operation, error) {
 	resp := make([]Operation, len(ops))
 	for i := 0; i < len(ops); i++ {
 		op, err := prepareOperation(es, ops[i])

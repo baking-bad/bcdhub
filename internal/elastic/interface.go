@@ -150,8 +150,9 @@ type IStats interface {
 
 // ITokens -
 type ITokens interface {
-	GetTokens(string, int64, int64) ([]models.Contract, error)
+	GetTokens(string, string, int64, int64) ([]models.Contract, error)
 	GetTokenTransferOperations(string, string, string, int64) (PageableOperations, error)
+	GetTokensStats(string, []string, []string) (map[string]TokenUsageStats, error)
 }
 
 // IElastic -
