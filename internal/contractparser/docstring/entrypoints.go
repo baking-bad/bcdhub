@@ -108,10 +108,12 @@ func handleType(dd *dsData, bPath string, md meta.Metadata) (string, error) {
 		return handleTupleEnumUnion(dd, bPath, i, md)
 	case consts.TypeNamedTuple, consts.TypeNamedEnum, consts.TypeNamedUnion:
 		return handleNamed(dd, bPath, i, md)
-	case consts.CONTRACT, consts.LAMBDA:
-		return handleContractLambda(dd, bPath, i, md)
+	case consts.CONTRACT:
+		return handleContract(dd, bPath, i, md)
 	case consts.MAP, consts.BIGMAP:
 		return handleMap(dd, bPath, i, md)
+	case consts.LAMBDA:
+		return handleLambda(dd, bPath, i, md)
 	default:
 		return "", fmt.Errorf("[handleType] %##v %s", md[bPath], bPath)
 	}

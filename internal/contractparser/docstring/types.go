@@ -75,7 +75,7 @@ func isCompactType(bPath string, md meta.Metadata) bool {
 		return false
 	}
 
-	for _, t := range []string{consts.LIST, consts.SET, consts.OPTION, consts.CONTRACT, consts.LAMBDA} {
+	for _, t := range []string{consts.LIST, consts.SET, consts.OPTION, consts.CONTRACT} {
 		if node.Prim == t {
 			return true
 		}
@@ -93,6 +93,12 @@ func isCompactType(bPath string, md meta.Metadata) bool {
 		key := md[bPath+"/k"]
 		val := md[bPath+"/v"]
 		if isSimpleType(key.Prim) && isSimpleType(val.Prim) {
+			return true
+		}
+	}
+
+	if node.Prim == consts.LAMBDA {
+		if isSimpleType(node.Parameter) && isSimpleType(node.ReturnValue) {
 			return true
 		}
 	}
@@ -128,6 +134,12 @@ func isComplexType(bPath string, md meta.Metadata) bool {
 			if !isSimpleType(md[arg].Prim) {
 				return true
 			}
+		}
+	}
+
+	if node.Prim == consts.LAMBDA {
+		if !isSimpleType(node.Parameter) || !isSimpleType(node.ReturnValue) {
+			return true
 		}
 	}
 
