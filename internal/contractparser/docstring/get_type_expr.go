@@ -79,7 +79,7 @@ func getComplexExpr(dd *dsData, bPath string, md meta.Metadata) (string, error) 
 		}
 
 		return varName, nil
-	case consts.MAP, consts.BIGMAP:
+	case consts.MAP, consts.BIGMAP, consts.LAMBDA:
 		return handleType(dd, bPath, md)
 	default:
 		return "", fmt.Errorf("[getComplexExpr] unknown node type %##v %s", md[bPath], bPath)

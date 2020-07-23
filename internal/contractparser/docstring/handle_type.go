@@ -63,7 +63,7 @@ func handleNamed(dd *dsData, bPath string, i int, md meta.Metadata) (string, err
 	return fmt.Sprintf("$%s", name), nil
 }
 
-func handleContractLambda(dd *dsData, bPath string, i int, md meta.Metadata) (string, error) {
+func handleContract(dd *dsData, bPath string, i int, md meta.Metadata) (string, error) {
 	node := md[bPath]
 	parsed := gjson.Parse(node.Parameter)
 	parameter, err := formatter.MichelineToMichelson(parsed, true, formatter.DefLineSize)
@@ -106,6 +106,41 @@ func handleMap(dd *dsData, bPath string, i int, md meta.Metadata) (string, error
 
 	args = append(args, TypedefArg{Key: "key", Value: key})
 	args = append(args, TypedefArg{Key: "value", Value: value})
+
+	dd.insertTypedef(i, Typedef{
+		Name: name,
+		Type: node.Prim,
+		Args: args,
+	})
+
+	return fmt.Sprintf("$%s", name), nil
+}
+
+func handleLambda(dd *dsData, bPath string, i int, md meta.Metadata) (string, error) {
+	node := md[bPath]
+	parsedParameter := gjson.Parse(node.Parameter)
+	parameter, err := formatter.MichelineToMichelson(parsedParameter, true, formatter.DefLineSize)
+	if err != nil {
+		return "", err
+	}
+	var returnValue string
+	if node.ReturnValue != "" {
+		parsedReturn := gjson.Parse(node.ReturnValue)
+		returnValue, err = formatter.MichelineToMichelson(parsedReturn, true, formatter.DefLineSize)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	name, err := getVarNameContractLambda(dd, bPath, md)
+	if err != nil {
+		return "", err
+	}
+
+	args := []TypedefArg{
+		TypedefArg{Key: "input", Value: parameter},
+		TypedefArg{Key: "return", Value: returnValue},
+	}
 
 	dd.insertTypedef(i, Typedef{
 		Name: name,
