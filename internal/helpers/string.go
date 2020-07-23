@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"path"
 	"strings"
+	"unicode"
 
 	"github.com/google/uuid"
 )
@@ -32,4 +33,16 @@ func URLJoin(baseURL, queryPath string) string {
 	}
 	u.Path = path.Join(u.Path, queryPath)
 	return u.String()
+}
+
+// SpaceStringsBuilder -
+func SpaceStringsBuilder(str string) string {
+	var b strings.Builder
+	b.Grow(len(str))
+	for _, ch := range str {
+		if !unicode.IsSpace(ch) {
+			b.WriteRune(ch)
+		}
+	}
+	return b.String()
 }
