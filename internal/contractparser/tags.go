@@ -119,14 +119,19 @@ func compareEntrypoints(metadata meta.Metadata, in kinds.Entrypoint, en meta.Nod
 			return false
 		}
 	case consts.CONTRACT:
-		inObj := in.Parameter.(map[string]interface{})
-		var enObj map[string]interface{}
-		err := json.Unmarshal([]byte(en.Parameter), &enObj)
-		if err != nil {
+		if in.Parameter == nil {
 			return false
 		}
-
-		return contractParameterCompare(inObj, enObj)
+		inObj := in.Parameter.(map[string]interface{})
+		return lambdaAndContractPartsCompare(inObj, en.Parameter)
+	case consts.LAMBDA:
+		if in.ReturnValue == nil || in.Parameter == nil {
+			return false
+		}
+		inParamObj := in.Parameter.(map[string]interface{})
+		inReturnObj := in.ReturnValue.(map[string]interface{})
+		return lambdaAndContractPartsCompare(inParamObj, en.Parameter) &&
+			lambdaAndContractPartsCompare(inReturnObj, en.ReturnValue)
 	default:
 		for i, inArg := range in.Args {
 			enPath := fmt.Sprintf("%s/%d", path, i)
@@ -143,7 +148,16 @@ func compareEntrypoints(metadata meta.Metadata, in kinds.Entrypoint, en meta.Nod
 	return true
 }
 
-func contractParameterCompare(in, en map[string]interface{}) bool {
+func lambdaAndContractPartsCompare(inObj map[string]interface{}, en string) bool {
+	var enObj map[string]interface{}
+	if err := json.Unmarshal([]byte(en), &enObj); err != nil {
+		return false
+	}
+
+	return partCompare(inObj, enObj)
+}
+
+func partCompare(in, en map[string]interface{}) bool {
 	if in["prim"] != en["prim"] {
 		return false
 	}
@@ -167,7 +181,7 @@ func contractParameterCompare(in, en map[string]interface{}) bool {
 	}
 
 	for idx := range iargs {
-		if !contractParameterCompare(iargs[idx].(map[string]interface{}), eargs[idx].(map[string]interface{})) {
+		if !partCompare(iargs[idx].(map[string]interface{}), eargs[idx].(map[string]interface{})) {
 			return false
 		}
 	}
