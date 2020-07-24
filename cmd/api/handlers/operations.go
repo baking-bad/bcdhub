@@ -220,7 +220,7 @@ func formatErrors(errs []cerrors.IError, op *Operation) error {
 	return nil
 }
 
-func prepareOperation(es *elastic.Elastic, operation models.Operation, bmd []models.BigMapDiff) (Operation, error) {
+func prepareOperation(es elastic.IElastic, operation models.Operation, bmd []models.BigMapDiff) (Operation, error) {
 	var op Operation
 	op.FromModel(operation)
 
@@ -250,10 +250,10 @@ func prepareOperation(es *elastic.Elastic, operation models.Operation, bmd []mod
 	return op, nil
 }
 
-func prepareOperations(es *elastic.Elastic, ops []models.Operation) ([]Operation, error) {
+func prepareOperations(es elastic.IElastic, ops []models.Operation) ([]Operation, error) {
 	resp := make([]Operation, len(ops))
 	for i := 0; i < len(ops); i++ {
-		bmd, err := es.GetUniqueBigMapDiffsByOperationID(ops[i].ID)
+		bmd, err := es.GetBigMapDiffsUniqueByOperationID(ops[i].ID)
 		if err != nil {
 			return nil, err
 		}
@@ -283,7 +283,7 @@ func setParameters(es elastic.IElastic, parameters string, op *Operation) error 
 	return nil
 }
 
-func setStorageDiff(es *elastic.Elastic, address, network, storage string, op *Operation, bmd []models.BigMapDiff) error {
+func setStorageDiff(es elastic.IElastic, address, network, storage string, op *Operation, bmd []models.BigMapDiff) error {
 	metadata, err := meta.GetContractMetadata(es, address)
 	if err != nil {
 		return err
