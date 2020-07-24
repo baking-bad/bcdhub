@@ -90,14 +90,16 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		Predecessor: state.Predecessor,
 	}
 
-	operations, err := defaultParser.Parse(response, req.Network, header)
+	parsedModels, err := defaultParser.Parse(response, req.Network, header)
 	if handleError(c, err, 0) {
 		return
 	}
 
-	ops := make([]models.Operation, len(operations))
-	for i, item := range operations {
-		op, ok := item.(*models.Operation)
+	operation := new(models.Operation)
+	bmd := make([]models.BigMapDiff, 0)
+
+	for i := range parsedModels {
+		op, ok := parsedModels[i].(*models.Operation)
 		if ok {
 			// TODO: move burn calculation from metrics to indexer
 			if op.Status == consts.Applied && op.Result != nil {
@@ -112,11 +114,16 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 
 				op.Burned = burned
 			}
-			ops[i] = *op
+			operation = op
+		} else {
+			diff, ok := parsedModels[i].(*models.BigMapDiff)
+			if ok {
+				bmd = append(bmd, *diff)
+			}
 		}
 	}
 
-	resp, err := PrepareOperations(ctx.ES, ops)
+	resp, err := prepareOperation(ctx.ES, *operation, bmd)
 	if handleError(c, err, 0) {
 		return
 	}
