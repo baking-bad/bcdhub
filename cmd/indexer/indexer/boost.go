@@ -27,7 +27,7 @@ type BoostIndexer struct {
 	Network         string
 	UpdateTimer     int64
 	rpc             noderpc.INode
-	es              *elastic.Elastic
+	es              elastic.IElastic
 	externalIndexer index.Indexer
 	state           models.Block
 	currentProtocol models.Protocol
@@ -93,8 +93,8 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 	if !ok {
 		return nil, fmt.Errorf("Unknown network %s", network)
 	}
-	rpc := noderpc.NewWaitPool(
-		[]string{rpcProvider.URI},
+	rpc := noderpc.NewWaitNodeRPC(
+		rpcProvider.URI,
 		noderpc.WithTimeout(time.Duration(rpcProvider.Timeout)*time.Second),
 	)
 
@@ -139,7 +139,7 @@ func (bi *BoostIndexer) init() error {
 		}
 	}
 
-	currentState, err := bi.es.CurrentState(bi.Network)
+	currentState, err := bi.es.GetLastBlock(bi.Network)
 	if err != nil {
 		return err
 	}
@@ -293,7 +293,7 @@ func (bi *BoostIndexer) Rollback() error {
 
 	helpers.CatchErrorSentry(fmt.Errorf("[%s] Rollback from %d to %d", bi.Network, bi.state.Level, lastLevel))
 
-	newState, err := bi.es.CurrentState(bi.Network)
+	newState, err := bi.es.GetLastBlock(bi.Network)
 	if err != nil {
 		return err
 	}
@@ -534,7 +534,7 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) ([]elastic.Model, error) {
 	return newModels, nil
 }
 
-func createProtocol(es *elastic.Elastic, network, hash string, level int64) (protocol models.Protocol, err error) {
+func createProtocol(es elastic.IElastic, network, hash string, level int64) (protocol models.Protocol, err error) {
 	logger.Info("[%s] Creating new protocol %s starting at %d", network, hash, level)
 	protocol.SymLink, err = meta.GetProtoSymLink(hash)
 	if err != nil {

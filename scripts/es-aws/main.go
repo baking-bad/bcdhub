@@ -11,7 +11,7 @@ import (
 	"github.com/jessevdk/go-flags"
 )
 
-var handlers = map[string]func(*elastic.Elastic, awsData) error{
+var handlers = map[string]func(elastic.IElastic, awsData) error{
 	"create_repository":      createRepository,
 	"snapshot":               snapshot,
 	"restore":                restore,

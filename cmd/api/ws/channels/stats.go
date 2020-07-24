@@ -102,7 +102,7 @@ func (c *StatsChannel) listen(source datasources.DataSource) {
 }
 
 func (c *StatsChannel) createMessage() error {
-	states, err := c.es.GetAllStates()
+	states, err := c.es.GetLastBlocks()
 	if err != nil {
 		return err
 	}

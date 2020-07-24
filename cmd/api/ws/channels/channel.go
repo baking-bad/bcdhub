@@ -18,7 +18,7 @@ type Channel interface {
 type DefaultChannel struct {
 	sources []datasources.DataSource
 
-	es *elastic.Elastic
+	es elastic.IElastic
 }
 
 // NewDefaultChannel -

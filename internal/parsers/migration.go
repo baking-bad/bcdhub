@@ -19,12 +19,12 @@ import (
 // MigrationParser -
 type MigrationParser struct {
 	rpc            noderpc.INode
-	es             *elastic.Elastic
+	es             elastic.IElastic
 	filesDirectory string
 }
 
 // NewMigrationParser -
-func NewMigrationParser(rpc noderpc.INode, es *elastic.Elastic, filesDirectory string) *MigrationParser {
+func NewMigrationParser(rpc noderpc.INode, es elastic.IElastic, filesDirectory string) *MigrationParser {
 	return &MigrationParser{
 		rpc:            rpc,
 		es:             es,

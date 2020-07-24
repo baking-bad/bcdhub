@@ -53,7 +53,7 @@ func (ctx *Context) GetContract(c *gin.Context) {
 // @Failure 500 {object} Error
 // @Router /pick_random [get]
 func (ctx *Context) GetRandomContract(c *gin.Context) {
-	cntr, err := ctx.ES.GetRandomContract()
+	cntr, err := ctx.ES.GetContractRandom()
 	if handleError(c, err, 0) {
 		return
 	}

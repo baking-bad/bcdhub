@@ -65,7 +65,7 @@ func (h *Handler) UpdateContractStats(c *models.Contract) error {
 
 // SetContractProjectID -
 func (h *Handler) SetContractProjectID(c *models.Contract) error {
-	buckets, err := h.ES.GetLastProjectContracts()
+	buckets, err := h.ES.GetProjectsLastContract()
 	if err != nil {
 		return err
 	}

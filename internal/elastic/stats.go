@@ -4,8 +4,8 @@ import (
 	"fmt"
 )
 
-// GetItemsCountForNetwork -
-func (e *Elastic) GetItemsCountForNetwork(network string) (stats NetworkCountStats, err error) {
+// GetNetworkCountStats -
+func (e *Elastic) GetNetworkCountStats(network string) (stats NetworkCountStats, err error) {
 	query := newQuery().Query(
 		boolQ(
 			filter(

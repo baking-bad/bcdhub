@@ -35,7 +35,7 @@ func (m *SetContractFingerprint) Do(ctx *config.Context) error {
 
 	logger.Info("Found %d contracts", len(contracts))
 
-	state, err := ctx.ES.GetAllStates()
+	state, err := ctx.ES.GetLastBlocks()
 	if err != nil {
 		return err
 	}

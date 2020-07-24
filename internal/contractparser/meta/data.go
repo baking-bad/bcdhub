@@ -335,7 +335,7 @@ func getNodeType(n internalNode, metadata Metadata) (string, []string) {
 }
 
 // GetContractMetadata -
-func GetContractMetadata(es *elastic.Elastic, address string) (*ContractMetadata, error) {
+func GetContractMetadata(es elastic.IElastic, address string) (*ContractMetadata, error) {
 	if address == "" {
 		return nil, fmt.Errorf("[GetContractMetadata] Empty address")
 	}
@@ -369,7 +369,7 @@ func GetContractMetadata(es *elastic.Elastic, address string) (*ContractMetadata
 }
 
 // GetMetadata -
-func GetMetadata(es *elastic.Elastic, address, part, protocol string) (Metadata, error) {
+func GetMetadata(es elastic.IElastic, address, part, protocol string) (Metadata, error) {
 	if address == "" {
 		return nil, fmt.Errorf("[GetMetadata] Empty address")
 	}

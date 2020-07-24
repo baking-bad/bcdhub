@@ -19,7 +19,7 @@ import (
 // @Failure 500 {object} Error
 // @Router /stats [get]
 func (ctx *Context) GetStats(c *gin.Context) {
-	stats, err := ctx.ES.GetAllStates()
+	stats, err := ctx.ES.GetLastBlocks()
 	if handleError(c, err, 0) {
 		return
 	}
@@ -50,7 +50,7 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 	}
 
 	var stats NetworkStats
-	counts, err := ctx.ES.GetItemsCountForNetwork(req.Network)
+	counts, err := ctx.ES.GetNetworkCountStats(req.Network)
 	if handleError(c, err, 0) {
 		return
 	}

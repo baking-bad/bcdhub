@@ -17,7 +17,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-func createNewContract(es *elastic.Elastic, interfaces map[string][]kinds.Entrypoint, operation models.Operation, filesDirectory, protoSymLink string) ([]elastic.Model, error) {
+func createNewContract(es elastic.IElastic, interfaces map[string][]kinds.Entrypoint, operation models.Operation, filesDirectory, protoSymLink string) ([]elastic.Model, error) {
 	if operation.Kind != consts.Origination && operation.Kind != consts.Migration {
 		return nil, fmt.Errorf("Invalid operation kind in computeContractMetrics: %s", operation.Kind)
 	}

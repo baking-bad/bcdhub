@@ -8,14 +8,6 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-// GetContractByAddressAndNetwork -
-func (e *Elastic) GetContractByAddressAndNetwork(network, address string) (models.Contract, error) {
-	return e.GetContract(map[string]interface{}{
-		"address": address,
-		"network": network,
-	})
-}
-
 func getContractQuery(by map[string]interface{}) base {
 	matches := make([]qItem, 0)
 	for k, v := range by {
@@ -76,42 +68,14 @@ func (e *Elastic) GetContract(by map[string]interface{}) (models.Contract, error
 	return e.getContract(query)
 }
 
-// GetContractsByIDsWithSort -
-func (e *Elastic) GetContractsByIDsWithSort(ids []string, sortField, sortDirection string) ([]models.Contract, error) {
-	query := newQuery().Query(
-		qItem{
-			"ids": qItem{
-				"values": ids,
-			},
-		},
-	).Sort(sortField, sortDirection).All()
-	resp, err := e.query([]string{DocContracts}, query)
-	if err != nil {
-		return nil, err
-	}
-
-	if resp.Get("hits.total.value").Int() < 1 {
-		return nil, fmt.Errorf("Unknown contracts with IDs %s", ids)
-	}
-
-	contracts := make([]models.Contract, 0)
-	arr := resp.Get("hits.hits").Array()
-	for i := range arr {
-		var c models.Contract
-		c.ParseElasticJSON(arr[i])
-		contracts = append(contracts, c)
-	}
-	return contracts, nil
-}
-
 // GetContracts -
 func (e *Elastic) GetContracts(by map[string]interface{}) ([]models.Contract, error) {
 	query := getContractQuery(by)
 	return e.getContracts(query)
 }
 
-// GetRandomContract -
-func (e *Elastic) GetRandomContract() (models.Contract, error) {
+// GetContractRandom -
+func (e *Elastic) GetContractRandom() (models.Contract, error) {
 	random := qItem{
 		"function_score": qItem{
 			"functions": []qItem{
@@ -153,17 +117,6 @@ func (e *Elastic) GetContractWithdrawn(address, network string) (int64, error) {
 	}
 
 	return res.Get("aggregations.total_withdrawn.value").Int(), nil
-}
-
-// GetContractID -
-func (e *Elastic) GetContractID(by map[string]interface{}) (string, error) {
-	query := getContractQuery(by).One()
-	cntr, err := e.getContract(query)
-	if err != nil {
-		return "", err
-	}
-
-	return cntr.ID, nil
 }
 
 // IsFAContract -
@@ -237,23 +190,6 @@ func (e *Elastic) NeedParseOperation(network, source, destination string) (bool,
 					),
 					minimumShouldMatch(1),
 				),
-			),
-		),
-	).One()
-	resp, err := e.query([]string{DocContracts}, query, "address")
-	if err != nil {
-		return false, err
-	}
-	return resp.Get("hits.total.value").Int() == 1, nil
-}
-
-// IsKnownContract -
-func (e *Elastic) IsKnownContract(network, address string) (bool, error) {
-	query := newQuery().Query(
-		boolQ(
-			filter(
-				matchQ("network", network),
-				matchPhrase("address", address),
 			),
 		),
 	).One()

@@ -7,34 +7,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 )
 
-// CurrentState - returns current indexer state for network
-func (e *Elastic) CurrentState(network string) (block models.Block, err error) {
-	block.Network = network
-
-	query := newQuery().Query(
-		boolQ(
-			filter(
-				matchQ("network", network),
-			),
-		),
-	).Sort("level", "desc").One()
-
-	r, err := e.query([]string{DocBlocks}, query)
-	if err != nil {
-		if strings.Contains(err.Error(), IndexNotFoundError) {
-			return block, nil
-		}
-		return
-	}
-
-	if r.Get("hits.total.value").Int() == 0 {
-		return block, nil
-	}
-	hit := r.Get("hits.hits.0")
-	block.ParseElasticJSON(hit)
-	return
-}
-
 // GetBlock -
 func (e *Elastic) GetBlock(network string, level int64) (block models.Block, err error) {
 	block.Network = network
@@ -61,8 +33,36 @@ func (e *Elastic) GetBlock(network string, level int64) (block models.Block, err
 	return
 }
 
-// GetAllStates - return last block for all networks
-func (e *Elastic) GetAllStates() ([]models.Block, error) {
+// GetLastBlock - returns current indexer state for network
+func (e *Elastic) GetLastBlock(network string) (block models.Block, err error) {
+	block.Network = network
+
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				matchQ("network", network),
+			),
+		),
+	).Sort("level", "desc").One()
+
+	r, err := e.query([]string{DocBlocks}, query)
+	if err != nil {
+		if strings.Contains(err.Error(), IndexNotFoundError) {
+			return block, nil
+		}
+		return
+	}
+
+	if r.Get("hits.total.value").Int() == 0 {
+		return block, nil
+	}
+	hit := r.Get("hits.hits.0")
+	block.ParseElasticJSON(hit)
+	return
+}
+
+// GetLastBlocks - return last block for all networks
+func (e *Elastic) GetLastBlocks() ([]models.Block, error) {
 	query := newQuery().Add(
 		aggs("by_network", qItem{
 			"terms": qItem{

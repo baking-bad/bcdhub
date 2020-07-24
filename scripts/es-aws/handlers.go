@@ -27,7 +27,7 @@ var mappingNames = []string{
 	elastic.DocBigMapActions,
 }
 
-func createRepository(es *elastic.Elastic, creds awsData) error {
+func createRepository(es elastic.IElastic, creds awsData) error {
 	name, err := askQuestion("Please, enter new repository name:")
 	if err != nil {
 		return err
@@ -36,7 +36,7 @@ func createRepository(es *elastic.Elastic, creds awsData) error {
 	return es.CreateAWSRepository(name, creds.BucketName, creds.Region)
 }
 
-func snapshot(es *elastic.Elastic, creds awsData) error {
+func snapshot(es elastic.IElastic, creds awsData) error {
 	if err := uploadMappings(es, creds); err != nil {
 		return err
 	}
@@ -51,7 +51,7 @@ func snapshot(es *elastic.Elastic, creds awsData) error {
 	return es.CreateSnapshots(name, snapshotName, mappingNames)
 }
 
-func restore(es *elastic.Elastic, creds awsData) error {
+func restore(es elastic.IElastic, creds awsData) error {
 	if err := listRepositories(es); err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func restore(es *elastic.Elastic, creds awsData) error {
 	return es.RestoreSnapshots(name, snapshotName, mappingNames)
 }
 
-func setPolicy(es *elastic.Elastic, creds awsData) error {
+func setPolicy(es elastic.IElastic, creds awsData) error {
 	if err := listPolicies(es); err != nil {
 		return err
 	}
@@ -97,7 +97,7 @@ func setPolicy(es *elastic.Elastic, creds awsData) error {
 	return es.SetSnapshotPolicy(policyID, schedule, policyID, repository, iExpiredAfter)
 }
 
-func listPolicies(es *elastic.Elastic) error {
+func listPolicies(es elastic.IElastic) error {
 	policies, err := es.GetAllPolicies()
 	if err != nil {
 		return err
@@ -113,7 +113,7 @@ func listPolicies(es *elastic.Elastic) error {
 	return nil
 }
 
-func listRepositories(es *elastic.Elastic) error {
+func listRepositories(es elastic.IElastic) error {
 	listRepos, err := es.ListRepositories()
 	if err != nil {
 		return err
@@ -129,7 +129,7 @@ func listRepositories(es *elastic.Elastic) error {
 	return nil
 }
 
-func listSnapshots(es *elastic.Elastic, repository string) error {
+func listSnapshots(es elastic.IElastic, repository string) error {
 	listSnaps, err := es.ListSnapshots(repository)
 	if err != nil {
 		return err
@@ -140,7 +140,7 @@ func listSnapshots(es *elastic.Elastic, repository string) error {
 	return nil
 }
 
-func uploadMappings(es *elastic.Elastic, creds awsData) error {
+func uploadMappings(es elastic.IElastic, creds awsData) error {
 	mappings, err := es.GetMappings(mappingNames)
 	if err != nil {
 		return err
@@ -172,7 +172,7 @@ func uploadMappings(es *elastic.Elastic, creds awsData) error {
 }
 
 // nolint
-func restoreMappings(es *elastic.Elastic, creds awsData) error {
+func restoreMappings(es elastic.IElastic, creds awsData) error {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(creds.Region),
 		Credentials: credentials.NewEnvCredentials(),
@@ -201,8 +201,9 @@ func restoreMappings(es *elastic.Elastic, creds awsData) error {
 	return nil
 }
 
-func reloadSecureSettings(es *elastic.Elastic, creds awsData) error {
-	resp, err := es.API.Nodes.ReloadSecureSettings()
+func reloadSecureSettings(es elastic.IElastic, creds awsData) error {
+	api := es.GetAPI()
+	resp, err := api.Nodes.ReloadSecureSettings()
 	if err != nil {
 		return err
 	}
@@ -216,12 +217,13 @@ func reloadSecureSettings(es *elastic.Elastic, creds awsData) error {
 	return nil
 }
 
-func deleteIndices(es *elastic.Elastic, creds awsData) error {
+func deleteIndices(es elastic.IElastic, creds awsData) error {
+	api := es.GetAPI()
 	options := []func(*esapi.IndicesDeleteRequest){
-		es.API.Indices.Delete.WithAllowNoIndices(true),
+		api.Indices.Delete.WithAllowNoIndices(true),
 	}
 
-	resp, err := es.API.Indices.Delete(mappingNames, options...)
+	resp, err := api.Indices.Delete(mappingNames, options...)
 	if err != nil {
 		return err
 	}

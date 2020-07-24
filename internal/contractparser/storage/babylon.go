@@ -36,14 +36,14 @@ func (tpd *temporaryPointerData) updateSourcePointer(sourcePtr int64) {
 // Babylon -
 type Babylon struct {
 	rpc noderpc.INode
-	es  *elastic.Elastic
+	es  elastic.IBigMapDiff
 
 	updates           map[int64][]elastic.Model
 	temporaryPointers map[int64]*temporaryPointerData
 }
 
 // NewBabylon -
-func NewBabylon(rpc noderpc.INode, es *elastic.Elastic) *Babylon {
+func NewBabylon(rpc noderpc.INode, es elastic.IBigMapDiff) *Babylon {
 	return &Babylon{
 		rpc: rpc,
 		es:  es,
@@ -315,7 +315,7 @@ func (b *Babylon) handleBigMapDiffRemove(item gjson.Result, ptrMap map[int64]str
 		delete(b.updates, ptr)
 		return nil, nil
 	}
-	bmd, err := b.es.GetAllBigMapDiffByPtr(address, operation.Network, ptr)
+	bmd, err := b.es.GetBigMapDiffsByPtr(address, operation.Network, ptr)
 	if err != nil {
 		return nil, err
 	}
@@ -506,7 +506,7 @@ func (b *Babylon) updateTemporaryPointers(src, dst int64, ptrMap map[int64]strin
 
 func (b *Babylon) getCopyBigMapDiff(src int64, address, network string) (bmd []models.BigMapDiff, err error) {
 	if src > -1 {
-		bmd, err = b.es.GetAllBigMapDiffByPtr(address, network, src)
+		bmd, err = b.es.GetBigMapDiffsByPtr(address, network, src)
 		if err != nil {
 			return nil, err
 		}

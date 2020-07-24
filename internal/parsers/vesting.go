@@ -16,13 +16,13 @@ import (
 // VestingParser -
 type VestingParser struct {
 	rpc            noderpc.INode
-	es             *elastic.Elastic
+	es             elastic.IElastic
 	filesDirectory string
 	interfaces     map[string][]kinds.Entrypoint
 }
 
 // NewVestingParser -
-func NewVestingParser(rpc noderpc.INode, es *elastic.Elastic, filesDirectory string, interfaces map[string][]kinds.Entrypoint) *VestingParser {
+func NewVestingParser(rpc noderpc.INode, es elastic.IElastic, filesDirectory string, interfaces map[string][]kinds.Entrypoint) *VestingParser {
 	return &VestingParser{
 		rpc:            rpc,
 		es:             es,
