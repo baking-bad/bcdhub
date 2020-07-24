@@ -57,7 +57,7 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 		return
 	}
 
-	resp, err := PrepareOperations(ctx.ES, ops.Operations)
+	resp, err := prepareOperations(ctx.ES, ops.Operations)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -100,7 +100,7 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 		return
 	}
 
-	resp, err := PrepareOperations(ctx.ES, op)
+	resp, err := prepareOperations(ctx.ES, op)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -220,7 +220,7 @@ func formatErrors(errs []cerrors.IError, op *Operation) error {
 	return nil
 }
 
-func prepareOperation(es elastic.IElastic, operation models.Operation) (Operation, error) {
+func prepareOperation(es *elastic.Elastic, operation models.Operation, bmd []models.BigMapDiff) (Operation, error) {
 	var op Operation
 	op.FromModel(operation)
 
@@ -232,7 +232,7 @@ func prepareOperation(es elastic.IElastic, operation models.Operation) (Operatio
 		return op, err
 	}
 	if operation.DeffatedStorage != "" && strings.HasPrefix(op.Destination, "KT") && op.Status == "applied" {
-		if err := setStorageDiff(es, op.Destination, op.Network, operation.DeffatedStorage, &op); err != nil {
+		if err := setStorageDiff(es, op.Destination, op.Network, operation.DeffatedStorage, &op, bmd); err != nil {
 			return op, err
 		}
 	}
@@ -250,11 +250,14 @@ func prepareOperation(es elastic.IElastic, operation models.Operation) (Operatio
 	return op, nil
 }
 
-// PrepareOperations -
-func PrepareOperations(es elastic.IElastic, ops []models.Operation) ([]Operation, error) {
+func prepareOperations(es *elastic.Elastic, ops []models.Operation) ([]Operation, error) {
 	resp := make([]Operation, len(ops))
 	for i := 0; i < len(ops); i++ {
-		op, err := prepareOperation(es, ops[i])
+		bmd, err := es.GetUniqueBigMapDiffsByOperationID(ops[i].ID)
+		if err != nil {
+			return nil, err
+		}
+		op, err := prepareOperation(es, ops[i], bmd)
 		if err != nil {
 			return nil, err
 		}
@@ -280,12 +283,8 @@ func setParameters(es elastic.IElastic, parameters string, op *Operation) error 
 	return nil
 }
 
-func setStorageDiff(es elastic.IElastic, address, network, storage string, op *Operation) error {
+func setStorageDiff(es *elastic.Elastic, address, network, storage string, op *Operation, bmd []models.BigMapDiff) error {
 	metadata, err := meta.GetContractMetadata(es, address)
-	if err != nil {
-		return err
-	}
-	bmd, err := es.GetBigMapDiffsUniqueByOperationID(op.ID)
 	if err != nil {
 		return err
 	}

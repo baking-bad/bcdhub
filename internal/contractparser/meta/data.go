@@ -53,6 +53,7 @@ type NodeMetadata struct {
 	InheritedName string   `json:"-"`
 	Prim          string   `json:"prim,omitempty"`
 	Parameter     string   `json:"parameter,omitempty"`
+	ReturnValue   string   `json:"return_value,omitempty"`
 	Args          []string `json:"args,omitempty"`
 	Type          string   `json:"type,omitempty"`
 	Name          string   `json:"name,omitempty"`
@@ -166,6 +167,9 @@ func parseNodeMetadata(v gjson.Result, parent node.Node, path, inheritedName str
 		if len(arr) > 0 {
 			m := metadata[path]
 			m.Parameter = arr[0].String()
+			if len(arr) == 2 {
+				m.ReturnValue = arr[1].String()
+			}
 		}
 		return internalNode{
 			Node: &n,
