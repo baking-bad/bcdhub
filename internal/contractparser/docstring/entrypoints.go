@@ -195,7 +195,6 @@ func getVarNameContractLambda(dd *dsData, bPath string, md meta.Metadata) (strin
 	case consts.CONTRACT:
 		suffix = "_param"
 	case consts.LAMBDA:
-		suffix = "_input"
 	default:
 		return "", fmt.Errorf("[getVarNameContractLambda] error. node type: %s, bPath: %s", node.Type, bPath)
 	}
