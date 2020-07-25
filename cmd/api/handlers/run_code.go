@@ -95,8 +95,8 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		return
 	}
 
-	operation := new(models.Operation)
-	bmd := make([]models.BigMapDiff, 0)
+	operations := make([]*models.Operation, 0)
+	diffs := make([]*models.BigMapDiff, 0)
 
 	for i := range parsedModels {
 		op, ok := parsedModels[i].(*models.Operation)
@@ -114,18 +114,28 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 
 				op.Burned = burned
 			}
-			operation = op
+			operations = append(operations, op)
 		} else {
 			diff, ok := parsedModels[i].(*models.BigMapDiff)
 			if ok {
-				bmd = append(bmd, *diff)
+				diffs = append(diffs, diff)
 			}
 		}
 	}
 
-	resp, err := prepareOperation(ctx.ES, *operation, bmd)
-	if handleError(c, err, 0) {
-		return
+	resp := make([]Operation, len(operations))
+	for i := range operations {
+		bmd := make([]models.BigMapDiff, 0)
+		for j := range diffs {
+			if diffs[j].OperationID == operations[i].ID {
+				bmd = append(bmd, *diffs[j])
+			}
+		}
+		op, err := prepareOperation(ctx.ES, *operations[i], bmd)
+		if handleError(c, err, 0) {
+			return
+		}
+		resp[i] = op
 	}
 
 	c.JSON(http.StatusOK, resp)
