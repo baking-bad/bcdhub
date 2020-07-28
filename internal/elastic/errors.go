@@ -4,5 +4,5 @@ import "strings"
 
 // IsRecordNotFound -
 func IsRecordNotFound(err error) bool {
-	return strings.Contains(err.Error(), RecordNotFound)
+	return err != nil && strings.Contains(err.Error(), RecordNotFound)
 }

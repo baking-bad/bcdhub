@@ -8,6 +8,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/translator"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/tidwall/gjson"
 )
 
@@ -35,11 +36,19 @@ func NewParameterBuilder(metadata Metadata, needValidation bool) ParameterBuilde
 			builder:  &b,
 			metadata: metadata,
 		},
+		consts.SET: listParameterBuilder{
+			builder:  &b,
+			metadata: metadata,
+		},
 		consts.OPTION: optionParameterBuilder{
 			builder:  &b,
 			metadata: metadata,
 		},
 		consts.MAP: mapParameterBuilder{
+			builder:  &b,
+			metadata: metadata,
+		},
+		consts.BIGMAP: mapParameterBuilder{
 			builder:  &b,
 			metadata: metadata,
 		},
@@ -113,7 +122,12 @@ type defaultParameterBuilder struct {
 func (b defaultParameterBuilder) Build(node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
 	value, ok := data[path]
 	if !ok {
-		return "", fmt.Errorf("'%s' is required", getName(node))
+		if !helpers.StringInArray(node.Prim, []string{
+			consts.STRING, consts.BYTES,
+		}) {
+			return "", fmt.Errorf("'%s' is required", getName(node))
+		}
+		value = ""
 	}
 
 	if b.validate && !validate(node.Prim, value) {
@@ -125,7 +139,7 @@ func (b defaultParameterBuilder) Build(node *NodeMetadata, path string, data map
 		return fmt.Sprintf(`{"string": "%s"}`, value), nil
 	case consts.BYTES:
 		return fmt.Sprintf(`{"bytes": "%s"}`, value), nil
-	case consts.INT, consts.NAT, consts.MUTEZ, consts.BIGMAP:
+	case consts.INT, consts.NAT, consts.MUTEZ:
 		switch t := value.(type) {
 		case int, int64, int8, int32, int16, uint, uint16, uint32, uint64, uint8:
 			return fmt.Sprintf(`{"int": "%d"}`, t), nil

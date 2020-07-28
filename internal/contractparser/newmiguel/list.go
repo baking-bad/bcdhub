@@ -6,7 +6,9 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-type listDecoder struct{}
+type listDecoder struct {
+	parent *miguel
+}
 
 // Decode -
 func (l *listDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata, isRoot bool) (*Node, error) {
@@ -27,7 +29,7 @@ func (l *listDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetada
 			subPath = "/s"
 		}
 		for _, arg := range arr {
-			argNode, err := michelineNodeToMiguel(arg, path+subPath, metadata, false)
+			argNode, err := l.parent.Convert(arg, path+subPath, metadata, false)
 			if err != nil {
 				return nil, err
 			}

@@ -7,7 +7,9 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-type unionDecoder struct{}
+type unionDecoder struct {
+	parent *miguel
+}
 
 // Decode -
 func (l *unionDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata, isRoot bool) (*Node, error) {
@@ -28,7 +30,7 @@ func (l *unionDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetad
 		}
 		argJSON := data.Get(unionPath)
 		if argJSON.Exists() {
-			argNode, err := michelineNodeToMiguel(argJSON, arg, metadata, false)
+			argNode, err := l.parent.Convert(argJSON, arg, metadata, false)
 			if err != nil {
 				return nil, err
 			}

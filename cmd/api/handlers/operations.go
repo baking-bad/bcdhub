@@ -86,13 +86,13 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 	}
 
 	op, err := ctx.ES.GetOperationByHash(req.Hash)
-	if handleError(c, err, 0) {
+	if !elastic.IsRecordNotFound(err) && handleError(c, err, 0) {
 		return
 	}
 
 	if len(op) == 0 {
 		operation, err := ctx.getOperationFromMempool(req.Hash)
-		if handleError(c, err, 0) {
+		if handleError(c, err, http.StatusNotFound) {
 			return
 		}
 

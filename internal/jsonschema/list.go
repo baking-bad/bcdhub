@@ -2,7 +2,6 @@ package jsonschema
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
@@ -43,7 +42,7 @@ func (m *listMaker) Do(binPath string, metadata meta.Metadata) (Schema, DefaultM
 	required := make([]string, 0)
 	propertiesItems := Schema{}
 
-	listSchema, model, err := Create(path, metadata)
+	listSchema, _, err := Create(path, metadata)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -58,8 +57,6 @@ func (m *listMaker) Do(binPath string, metadata meta.Metadata) (Schema, DefaultM
 		for k := range props {
 			propertiesItems[k] = props[k]
 			required = append(required, k)
-			log.Println(k)
-			log.Println(props[k])
 			//schema["x-itemTitle"] = k
 		}
 	} else {
@@ -71,6 +68,8 @@ func (m *listMaker) Do(binPath string, metadata meta.Metadata) (Schema, DefaultM
 		"properties": propertiesItems,
 		"required":   required,
 	}
+	model := make(DefaultModel)
+	model[binPath] = make([]interface{}, 0)
 
 	return Schema{
 		"type": "object",

@@ -9,7 +9,9 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-type mapDecoder struct{}
+type mapDecoder struct {
+	parent *miguel
+}
 
 // Decode -
 func (l *mapDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata, isRoot bool) (node *Node, err error) {
@@ -37,7 +39,7 @@ func (l *mapDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetadat
 	keyJSON := data.Get(gjsonPath)
 
 	for i, k := range keyJSON.Array() {
-		key, err := michelineNodeToMiguel(k, path+"/k", metadata, false)
+		key, err := l.parent.Convert(k, path+"/k", metadata, false)
 		if err != nil {
 			return nil, err
 		}
@@ -46,7 +48,7 @@ func (l *mapDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetadat
 			valJSON := data.Get(gjsonPath)
 			var argNode *Node
 			if valJSON.Exists() {
-				argNode, err = michelineNodeToMiguel(valJSON, path+"/v", metadata, false)
+				argNode, err = l.parent.Convert(valJSON, path+"/v", metadata, false)
 				if err != nil {
 					return nil, err
 				}

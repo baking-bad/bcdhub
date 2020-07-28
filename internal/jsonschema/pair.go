@@ -27,7 +27,7 @@ func (m *pairMaker) Do(binPath string, metadata meta.Metadata) (Schema, DefaultM
 			for k := range props {
 				schema[k] = props[k]
 			}
-		} else if subSchema["type"] == "object" {
+		} else {
 			schema[arg] = subSchema
 		}
 	}

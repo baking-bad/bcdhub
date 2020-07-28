@@ -138,8 +138,8 @@ func handleLambda(dd *dsData, bPath string, i int, md meta.Metadata) (string, er
 	}
 
 	args := []TypedefArg{
-		TypedefArg{Key: "input", Value: parameter},
-		TypedefArg{Key: "return", Value: returnValue},
+		{Key: "input", Value: parameter},
+		{Key: "return", Value: returnValue},
 	}
 
 	dd.insertTypedef(i, Typedef{

@@ -8,16 +8,17 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 )
 
-var fabric = map[string]maker{
-	"default":   &defaultMaker{},
-	consts.PAIR: &pairMaker{},
-	consts.MAP:  &mapMaker{},
-	consts.LIST: &listMaker{},
-	consts.SET:  &listMaker{},
-	consts.OR:   &orMaker{},
+var makers = map[string]maker{
+	"default":     &defaultMaker{},
+	consts.PAIR:   &pairMaker{},
+	consts.MAP:    &mapMaker{},
+	consts.BIGMAP: &mapMaker{},
+	consts.LIST:   &listMaker{},
+	consts.SET:    &listMaker{},
+	consts.OR:     &orMaker{},
 }
 
-// Create - creates json schema for entrypoint
+// Create - creates json schema for metadata
 func Create(binPath string, metadata meta.Metadata) (Schema, DefaultModel, error) {
 	nm, ok := metadata[binPath]
 	if !ok {
@@ -28,9 +29,9 @@ func Create(binPath string, metadata meta.Metadata) (Schema, DefaultModel, error
 		return nil, DefaultModel{}, nil
 	}
 
-	f, ok := fabric[nm.Prim]
+	f, ok := makers[nm.Prim]
 	if !ok {
-		f = fabric["default"]
+		f = makers["default"]
 	}
 
 	schema, model, err := f.Do(binPath, metadata)

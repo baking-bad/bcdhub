@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 )
 
@@ -14,8 +15,44 @@ func (m *orMaker) Do(binPath string, metadata meta.Metadata) (Schema, DefaultMod
 	if !ok {
 		return nil, nil, fmt.Errorf("[orMaker] Unknown metadata binPath: %s", binPath)
 	}
+	switch nm.Type {
+	case consts.TypeEnum, consts.TypeNamedEnum:
+		return getEnum(binPath, metadata, nm)
+	default:
+		return getOr(binPath, metadata, nm)
+	}
+}
 
-	schemas := make([]Schema, 0)
+func getEnum(binPath string, metadata meta.Metadata, nm *meta.NodeMetadata) (Schema, DefaultModel, error) {
+	oneOf := make([]Schema, 0)
+	model := make(DefaultModel)
+	for _, arg := range nm.Args {
+		if _, ok := model[binPath]; !ok {
+			model[binPath] = DefaultModel{
+				"schemaKey": arg,
+			}
+		}
+		oneOf = append(oneOf, Schema{
+			"properties": Schema{
+				"schemaKey": Schema{
+					"type":  "string",
+					"const": arg,
+				},
+			},
+			"title": getOrTitle(arg, binPath, metadata),
+		})
+	}
+
+	return Schema{
+		"type":  "object",
+		"prim":  nm.Prim,
+		"title": getName(nm, binPath),
+		"oneOf": oneOf,
+	}, model, nil
+}
+
+func getOr(binPath string, metadata meta.Metadata, nm *meta.NodeMetadata) (Schema, DefaultModel, error) {
+	oneOf := make([]Schema, 0)
 	model := make(DefaultModel)
 	for _, arg := range nm.Args {
 		argSchema, argModel, err := Create(arg, metadata)
@@ -41,36 +78,28 @@ func (m *orMaker) Do(binPath string, metadata meta.Metadata) (Schema, DefaultMod
 		} else {
 			subProperties[arg] = argSchema
 		}
-		schemas = append(schemas, Schema{
-			"title":      getOrTitile(arg, binPath, metadata),
+		oneOf = append(oneOf, Schema{
+			"title":      getOrTitle(arg, binPath, metadata),
 			"properties": subProperties,
 		})
-	}
-
-	name := nm.Name
-	if nm.Name == "" {
-		if nm.FieldName != "" {
-			name = nm.FieldName
-		} else {
-			name = fmt.Sprintf("%s_%s", nm.Prim, strings.ReplaceAll(binPath, "/", ""))
-		}
 	}
 
 	return Schema{
 		"type":  "object",
 		"prim":  nm.Prim,
-		"title": name,
-		"oneOf": schemas,
+		"title": getName(nm, binPath),
+		"oneOf": oneOf,
 	}, model, nil
 }
 
-func getOrTitile(binPath, rootPath string, metadata meta.Metadata) string {
+func getOrTitle(binPath, rootPath string, metadata meta.Metadata) string {
 	var result strings.Builder
 	nm, ok := metadata[binPath]
 	if ok {
 		if nm.Name != "" {
 			return nm.Name
-		} else if nm.FieldName != "" {
+		}
+		if nm.FieldName != "" {
 			return nm.FieldName
 		}
 	}
@@ -92,4 +121,14 @@ func getOrTitile(binPath, rootPath string, metadata meta.Metadata) string {
 	}
 
 	return result.String()
+}
+
+func getName(nm *meta.NodeMetadata, binPath string) string {
+	if nm.Name != "" {
+		return nm.Name
+	}
+	if nm.FieldName != "" {
+		return nm.FieldName
+	}
+	return fmt.Sprintf("%s_%s", nm.Prim, strings.ReplaceAll(binPath, "/", ""))
 }
