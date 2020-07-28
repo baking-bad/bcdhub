@@ -24,8 +24,9 @@ func TestCreate(t *testing.T) {
 				"type": "object",
 				"properties": Schema{
 					"0": Schema{
-						"type": "string",
-						"prim": "string",
+						"type":  "string",
+						"prim":  "string",
+						"title": "string",
 					},
 				},
 			},
@@ -37,8 +38,9 @@ func TestCreate(t *testing.T) {
 				"type": "object",
 				"properties": Schema{
 					"0": Schema{
-						"type": "integer",
-						"prim": "int",
+						"type":  "integer",
+						"prim":  "int",
+						"title": "int",
 					},
 				},
 			},
@@ -50,8 +52,9 @@ func TestCreate(t *testing.T) {
 				"type": "object",
 				"properties": Schema{
 					"0": Schema{
-						"type": "integer",
-						"prim": "nat",
+						"type":  "integer",
+						"prim":  "nat",
+						"title": "nat",
 					},
 				},
 			},
@@ -63,12 +66,14 @@ func TestCreate(t *testing.T) {
 				"type": "object",
 				"properties": Schema{
 					"0/1": Schema{
-						"type": "integer",
-						"prim": "nat",
+						"type":  "integer",
+						"prim":  "nat",
+						"title": "nat",
 					},
 					"0/0": Schema{
-						"type": "string",
-						"prim": "string",
+						"type":  "string",
+						"prim":  "string",
+						"title": "string",
 					},
 				},
 			},
@@ -80,8 +85,9 @@ func TestCreate(t *testing.T) {
 				"type": "object",
 				"properties": Schema{
 					"0": Schema{
-						"type": "string",
-						"prim": "key_hash",
+						"type":  "string",
+						"prim":  "key_hash",
+						"title": "key_hash",
 					},
 				},
 			},
@@ -98,8 +104,9 @@ func TestCreate(t *testing.T) {
 				"type": "object",
 				"properties": Schema{
 					"0": Schema{
-						"type": "boolean",
-						"prim": "bool",
+						"type":  "boolean",
+						"prim":  "bool",
+						"title": "bool",
 					},
 				},
 			},
@@ -121,12 +128,14 @@ func TestCreate(t *testing.T) {
 								"0/1/k": Schema{
 									"type":      "string",
 									"prim":      "address",
+									"title":     "address",
 									"minLength": 36,
 									"maxLength": 36,
 								},
 								"0/1/v": Schema{
-									"type": "integer",
-									"prim": "nat",
+									"type":  "integer",
+									"prim":  "nat",
+									"title": "nat",
 								},
 							},
 						},
@@ -148,8 +157,9 @@ func TestCreate(t *testing.T) {
 							"required": []string{"0/l"},
 							"properties": Schema{
 								"0/l": Schema{
-									"type": "integer",
-									"prim": "int",
+									"type":  "integer",
+									"prim":  "int",
+									"title": "int",
 								},
 							},
 						},
@@ -257,16 +267,19 @@ func TestCreate(t *testing.T) {
 				"type": "object",
 				"properties": Schema{
 					"0/1/1/1/1/0/0/0/1/1/0": Schema{
-						"prim": "lambda",
-						"type": "string",
+						"prim":  "lambda",
+						"type":  "string",
+						"title": "lambda",
 					},
 					"0/1/1/1/1/0/0/0/1/0/0": Schema{
-						"prim": "nat",
-						"type": "integer",
+						"prim":  "nat",
+						"type":  "integer",
+						"title": "nat",
 					},
 					"0/1/1/1/1/0/0/0/1/0/1": Schema{
-						"prim": "nat",
-						"type": "integer",
+						"prim":  "nat",
+						"type":  "integer",
+						"title": "nat",
 					},
 					"0/1/1/1/1/0/0/0/1/1/1/0/o": Schema{
 						"type":  "object",
@@ -290,8 +303,9 @@ func TestCreate(t *testing.T) {
 										"const": "some",
 									},
 									"0/1/1/1/1/0/0/0/1/1/1/0/o": Schema{
-										"type": "string",
-										"prim": "lambda",
+										"type":  "string",
+										"prim":  "lambda",
+										"title": "lambda",
 									},
 								},
 							},
@@ -319,8 +333,9 @@ func TestCreate(t *testing.T) {
 										"const": "some",
 									},
 									"0/1/1/1/1/0/0/0/1/1/1/1/o": Schema{
-										"type": "string",
-										"prim": "lambda",
+										"type":  "string",
+										"prim":  "lambda",
+										"title": "lambda",
 									},
 								},
 							},
