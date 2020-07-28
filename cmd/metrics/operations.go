@@ -43,16 +43,6 @@ func parseOperation(operation models.Operation) error {
 		return err
 	}
 
-	if operation.Kind != consts.Origination {
-		for _, address := range []string{operation.Source, operation.Destination} {
-			if strings.HasPrefix(address, "KT") {
-				if err := setOperationStats(h, address, operation); err != nil {
-					return fmt.Errorf("[parseOperation] Compute error message: %s", err)
-				}
-			}
-		}
-	}
-
 	if strings.HasPrefix(operation.Destination, "KT") || operation.Kind == consts.Origination {
 		if err := h.SetBigMapDiffsStrings(operation.ID); err != nil {
 			return err
@@ -61,24 +51,4 @@ func parseOperation(operation models.Operation) error {
 
 	logger.Info("Operation %s processed", operation.ID)
 	return nil
-}
-
-func setOperationStats(h *metrics.Handler, address string, operation models.Operation) error {
-	c, err := ctx.ES.GetContract(map[string]interface{}{
-		"network": operation.Network,
-		"address": address,
-	})
-
-	if err != nil {
-		if elastic.IsRecordNotFound(err) {
-			return nil
-		}
-		return fmt.Errorf("[setOperationStats] Find contract error: %s", err)
-	}
-
-	if err := h.SetContractStats(operation, &c); err != nil {
-		return fmt.Errorf("[setOperationStats] compute contract stats error message: %s", err)
-	}
-
-	return ctx.ES.UpdateFields(elastic.DocContracts, c.ID, c, "TxCount", "LastAction", "Balance", "TotalWithdrawn")
 }

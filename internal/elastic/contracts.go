@@ -200,6 +200,50 @@ func (e *Elastic) NeedParseOperation(network, source, destination string) (bool,
 	return resp.Get("hits.total.value").Int() == 1, nil
 }
 
+// GetContractsByAddress -
+func (e *Elastic) GetContractsByAddress(addresses []string, network string) ([]models.Contract, error) {
+	shouldItems := make([]qItem, len(addresses))
+	for i := range addresses {
+		shouldItems[i] = matchPhrase("address", addresses[i])
+	}
+
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				matchQ("network", network),
+			),
+			should(shouldItems...),
+			minimumShouldMatch(1),
+		),
+	)
+	result, err := e.createScroll(DocContracts, 1000, query)
+	if err != nil {
+		return nil, err
+	}
+
+	contracts := make([]models.Contract, 0)
+	for {
+		scrollID := result.Get("_scroll_id").String()
+		hits := result.Get("hits.hits")
+		if hits.Get("#").Int() < 1 {
+			break
+		}
+
+		for _, item := range hits.Array() {
+			var c models.Contract
+			c.ParseElasticJSON(item)
+			contracts = append(contracts, c)
+		}
+
+		result, err = e.queryScroll(scrollID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return contracts, nil
+}
+
 // GetContractsIDByAddress -
 func (e *Elastic) GetContractsIDByAddress(addresses []string, network string) ([]string, error) {
 	shouldItems := make([]qItem, len(addresses))

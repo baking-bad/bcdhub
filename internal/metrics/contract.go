@@ -3,7 +3,6 @@ package metrics
 import (
 	"fmt"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 
 	"github.com/baking-bad/bcdhub/internal/classification/functions"
@@ -18,27 +17,6 @@ func (h *Handler) SetContractAlias(aliases map[string]string, c *models.Contract
 	if c.Delegate != "" {
 		c.DelegateAlias = aliases[c.Delegate]
 	}
-}
-
-// SetContractStats - TODO: update in a script
-func (h *Handler) SetContractStats(op models.Operation, c *models.Contract) error {
-	c.TxCount++
-	c.LastAction = models.BCDTime{
-		Time: op.Timestamp,
-	}
-
-	if op.Status != consts.Applied {
-		return nil
-	}
-
-	if c.Address == op.Destination {
-		c.Balance += op.Amount
-	} else if c.Address == op.Source {
-		c.TotalWithdrawn += op.Amount
-		c.Balance -= op.Amount
-	}
-
-	return nil
 }
 
 // UpdateContractStats -
@@ -57,7 +35,6 @@ func (h *Handler) UpdateContractStats(c *models.Contract) error {
 		Time: stats.LastAction,
 	}
 	c.Balance = stats.Balance
-	c.TotalWithdrawn = stats.TotalWithdrawn
 	c.MigrationsCount = migrationsStats.MigrationsCount
 
 	return nil

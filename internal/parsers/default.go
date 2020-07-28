@@ -261,6 +261,9 @@ func (p *DefaultParser) finishParseOperation(item gjson.Result, op *models.Opera
 			}
 		}
 	}
+	if err := p.computeMetrics(op); err != nil {
+		return resultModels, nil
+	}
 	if op.Kind == consts.Transaction {
 		return resultModels, p.getEntrypoint(item, metadata, op)
 	}
@@ -402,4 +405,48 @@ func (p *DefaultParser) getRichStorage(data gjson.Result, metadata *meta.Contrac
 		return rs, err
 	}
 	return storage.RichStorage{Empty: true}, nil
+}
+
+func (p *DefaultParser) computeMetrics(op *models.Operation) error {
+	addresses := []string{op.Destination}
+
+	balances := make(map[string]int64)
+	for _, bu := range op.BalanceUpdates {
+		if !strings.HasPrefix(bu.Contract, "KT") {
+			continue
+		}
+		balance, err := p.rpc.GetContractBalance(bu.Contract, op.Level)
+		if err != nil {
+			return err
+		}
+		balances[bu.Contract] = balance
+		addresses = append(addresses, bu.Contract)
+	}
+
+	balance, err := p.rpc.GetContractBalance(op.Destination, op.Level)
+	if err != nil {
+		return err
+	}
+	balances[op.Destination] = balance
+
+	contracts, err := p.es.GetContractsByAddress(addresses, op.Network)
+	if err != nil {
+		return err
+	}
+
+	newModels := make([]elastic.Model, 0)
+	for i := range contracts {
+		if op.Destination == contracts[i].Address {
+			contracts[i].TxCount++
+			contracts[i].LastAction = models.BCDTime{
+				Time: op.Timestamp,
+			}
+		}
+		if b, ok := balances[contracts[i].Address]; ok {
+			contracts[i].Balance = b
+		}
+		newModels = append(newModels, &contracts[i])
+	}
+
+	return p.es.BulkUpdate(newModels)
 }

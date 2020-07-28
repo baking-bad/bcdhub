@@ -33,7 +33,6 @@ type Contract struct {
 	LastAction      BCDTime `json:"last_action,omitempty"`
 	TxCount         int64   `json:"tx_count,omitempty"`
 	MigrationsCount int64   `json:"migrations_count,omitempty"`
-	TotalWithdrawn  int64   `json:"total_withdrawn,omitempty"`
 	Alias           string  `json:"alias,omitempty"`
 	DelegateAlias   string  `json:"delegate_alias,omitempty"`
 }
@@ -82,7 +81,6 @@ func (c *Contract) ParseElasticJSON(hit gjson.Result) {
 
 	c.TxCount = hit.Get("_source.tx_count").Int()
 	c.MigrationsCount = hit.Get("_source.migrations_count").Int()
-	c.TotalWithdrawn = hit.Get("_source.total_withdrawn").Int()
 	c.Alias = hit.Get("_source.alias").String()
 
 	c.FoundBy = c.FoundByName(hit)

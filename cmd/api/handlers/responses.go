@@ -198,7 +198,6 @@ type Contract struct {
 	LastAction      *time.Time `json:"last_action,omitempty"`
 	TxCount         int64      `json:"tx_count,omitempty"`
 	MigrationsCount int64      `json:"migrations_count,omitempty"`
-	TotalWithdrawn  int64      `json:"total_withdrawn,omitempty"`
 	Alias           string     `json:"alias,omitempty"`
 	DelegateAlias   string     `json:"delegate_alias,omitempty"`
 
@@ -234,7 +233,6 @@ func (c *Contract) FromModel(contract models.Contract) {
 	c.ProjectID = contract.ProjectID
 	c.Tags = contract.Tags
 	c.Timestamp = contract.Timestamp
-	c.TotalWithdrawn = contract.TotalWithdrawn
 	c.TxCount = contract.TxCount
 }
 

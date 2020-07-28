@@ -78,6 +78,7 @@ type IContract interface {
 	GetContractMigrationStats(string, string) (ContractMigrationsStats, error)
 	GetContractAddressesByNetworkAndLevel(string, int64) (gjson.Result, error)
 	GetContracts(map[string]interface{}) ([]models.Contract, error)
+	GetContractsByAddress([]string, string) ([]models.Contract, error)
 	GetContractsIDByAddress([]string, string) ([]string, error)
 	GetAffectedContracts(string, int64, int64) ([]string, error)
 	IsFAContract(string, string) (bool, error)
