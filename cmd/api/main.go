@@ -101,6 +101,12 @@ func main() {
 		}
 	}
 
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		if err := v.RegisterValidation("fill_type", handlers.FillTypeValidator); err != nil {
+			logger.Fatal(err)
+		}
+	}
+
 	r.Use(corsSettings())
 
 	if cfg.API.Sentry.Enabled {
@@ -157,9 +163,15 @@ func main() {
 			contract.GET("code", ctx.GetContractCode)
 			contract.GET("operations", ctx.GetContractOperations)
 			contract.GET("migrations", ctx.GetContractMigrations)
-			contract.GET("storage", ctx.GetContractStorage)
-			contract.GET("raw_storage", ctx.GetContractStorageRaw)
-			contract.GET("rich_storage", ctx.GetContractStorageRich)
+
+			storage := contract.Group("storage")
+			{
+				storage.GET("", ctx.GetContractStorage)
+				storage.GET("raw", ctx.GetContractStorageRaw)
+				storage.GET("rich", ctx.GetContractStorageRich)
+				storage.GET("schema", ctx.GetContractStorageSchema)
+			}
+
 			contract.GET("mempool", ctx.GetMempool)
 			contract.GET("same", ctx.GetSameContracts)
 			contract.GET("similar", ctx.GetSimilarContracts)
@@ -170,6 +182,7 @@ func main() {
 				entrypoints.POST("trace", ctx.RunCode)
 				entrypoints.POST("run_operation", ctx.RunOperation)
 			}
+			contract.POST("fork", ctx.ForkContract)
 		}
 
 		fa12 := v1.Group("tokens/:network")

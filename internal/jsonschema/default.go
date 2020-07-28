@@ -23,18 +23,24 @@ func (m *defaultMaker) Do(binPath string, metadata meta.Metadata) (Schema, Defau
 	switch nm.Prim {
 	case consts.INT, consts.NAT, consts.MUTEZ, consts.BIGMAP:
 		schema["type"] = "integer"
+		if nm.Prim != consts.BIGMAP {
+			model[binPath] = 0
+		}
 	case consts.STRING, consts.BYTES, consts.KEYHASH, consts.KEY, consts.CHAINID, consts.SIGNATURE, consts.CONTRACT, consts.LAMBDA:
 		schema["type"] = "string"
+		model[binPath] = ""
 	case consts.BOOL:
 		schema["type"] = "boolean"
 		model[binPath] = false
 	case consts.TIMESTAMP:
 		schema["type"] = "string"
 		schema["format"] = "date-time"
+		model[binPath] = ""
 	case consts.ADDRESS:
 		schema["type"] = "string"
 		schema["minLength"] = 36
 		schema["maxLength"] = 36
+		model[binPath] = ""
 	case consts.OPTION:
 		return Create(binPath+"/o", metadata)
 	default:
@@ -42,6 +48,12 @@ func (m *defaultMaker) Do(binPath string, metadata meta.Metadata) (Schema, Defau
 	}
 	if nm.Name != "" {
 		schema["title"] = nm.Name
+	} else {
+		schema["title"] = nm.Prim
+	}
+
+	if nm.Prim == consts.BIGMAP {
+		schema["title"] = fmt.Sprintf("%s (ptr)", schema["title"])
 	}
 
 	return Schema{

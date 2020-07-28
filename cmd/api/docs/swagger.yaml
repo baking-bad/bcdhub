@@ -676,6 +676,8 @@ definitions:
         type: integer
       network:
         type: string
+      nonce:
+        type: integer
       protocol:
         type: string
       source:
@@ -1284,80 +1286,6 @@ paths:
       summary: Get contract operations
       tags:
       - contract
-  /contract/{network}/{address}/raw_storage:
-    get:
-      consumes:
-      - application/json
-      description: Get contract raw storage
-      operationId: get-contract-storage-raw
-      parameters:
-      - description: Network
-        in: path
-        name: network
-        required: true
-        type: string
-      - description: KT address
-        in: path
-        maxLength: 36
-        minLength: 36
-        name: address
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.Error'
-      summary: Get contract raw storage
-      tags:
-      - contract
-  /contract/{network}/{address}/rich_storage:
-    get:
-      consumes:
-      - application/json
-      description: Get contract rich storage
-      operationId: get-contract-storage-rich
-      parameters:
-      - description: Network
-        in: path
-        name: network
-        required: true
-        type: string
-      - description: KT address
-        in: path
-        maxLength: 36
-        minLength: 36
-        name: address
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/gin.H'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.Error'
-      summary: Get contract rich storage
-      tags:
-      - contract
   /contract/{network}/{address}/same:
     get:
       consumes:
@@ -1485,6 +1413,124 @@ paths:
           schema:
             $ref: '#/definitions/handlers.Error'
       summary: Get contract storage
+      tags:
+      - contract
+  /contract/{network}/{address}/storage/raw:
+    get:
+      consumes:
+      - application/json
+      description: Get contract raw storage
+      operationId: get-contract-storage-raw
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: KT address
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: address
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Get contract raw storage
+      tags:
+      - contract
+  /contract/{network}/{address}/storage/rich:
+    get:
+      consumes:
+      - application/json
+      description: Get contract rich storage
+      operationId: get-contract-storage-rich
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: KT address
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: address
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Get contract rich storage
+      tags:
+      - contract
+  /contract/{network}/{address}/storage/schema:
+    get:
+      consumes:
+      - application/json
+      description: Get contract storage schema
+      operationId: get-contract-storage-schema
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: KT address
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: address
+        required: true
+        type: string
+      - description: Fill storage type
+        enum:
+        - empty
+        - current
+        in: query
+        name: fill_type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.EntrypointSchema'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Get contract storage schema
       tags:
       - contract
   /diff:

@@ -47,8 +47,13 @@ func (metadata Metadata) GetEntrypoints() ([]Entrypoint, error) {
 			if err != nil {
 				return nil, err
 			}
+
+			name := nm.GetEntrypointName(i)
+			if root.Type == consts.TypeNamedEnum || root.Type == consts.TypeEnum {
+				name = nm.GetName(i)
+			}
 			ep = append(ep, Entrypoint{
-				Name:       nm.GetEntrypointName(i),
+				Name:       name,
 				Parameters: params,
 				Type:       nm.Prim,
 				Path:       arg,

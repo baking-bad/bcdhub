@@ -9,29 +9,62 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-var decoders = map[string]decoder{
-	consts.TypeNamedTuple: &namedTupleDecoder{},
-	consts.TypeTuple:      &tupleDecoder{},
-	consts.LIST:           &listDecoder{},
-	consts.SET:            &listDecoder{},
-	consts.MAP:            &mapDecoder{},
-	consts.BIGMAP:         &mapDecoder{},
-	consts.TypeNamedUnion: &namedUnionDecoder{},
-	consts.TypeUnion:      &unionDecoder{},
-	consts.OR:             &orDecoder{},
-	consts.LAMBDA:         &lambdaDecoder{},
-	consts.OPTION:         &optionDecoder{},
-	"default":             newLiteralDecoder(),
+type miguel struct {
+	decoders map[string]decoder
+}
+
+func newMiguel() *miguel {
+	m := &miguel{}
+	decoders := map[string]decoder{
+		consts.TypeNamedEnum:  &enumDecoder{},
+		consts.TypeEnum:       &enumDecoder{},
+		consts.TypeNamedTuple: &namedTupleDecoder{parent: m},
+		consts.TypeTuple:      &tupleDecoder{parent: m},
+		consts.TypeNamedUnion: &namedUnionDecoder{parent: m},
+		consts.TypeUnion:      &unionDecoder{parent: m},
+		consts.LIST:           &listDecoder{parent: m},
+		consts.SET:            &listDecoder{parent: m},
+		consts.MAP:            &mapDecoder{parent: m},
+		consts.BIGMAP:         &mapDecoder{parent: m},
+		consts.OR:             &orDecoder{parent: m},
+		consts.LAMBDA:         &lambdaDecoder{},
+		consts.OPTION:         &optionDecoder{parent: m},
+		"default":             newLiteralDecoder(),
+	}
+	m.decoders = decoders
+
+	return m
+}
+
+// Convert -
+func (m *miguel) Convert(data gjson.Result, path string, metadata meta.Metadata, isRoot bool) (node *Node, err error) {
+	nm, ok := metadata[path]
+	if !ok {
+		return nil, fmt.Errorf("Unknown metadata path: %s", path)
+	}
+
+	if dec, ok := m.decoders[nm.Type]; ok {
+		node, err = dec.Decode(data, path, nm, metadata, isRoot)
+	} else {
+		node, err = m.decoders["default"].Decode(data, path, nm, metadata, isRoot)
+	}
+	if err != nil {
+		return
+	}
+	if strings.HasSuffix(path, "/o") {
+		node.IsOption = true
+	}
+	return
 }
 
 // MichelineToMiguel -
 func MichelineToMiguel(data gjson.Result, metadata meta.Metadata) (*Node, error) {
-	return michelineNodeToMiguel(data, "0", metadata, true)
+	return newMiguel().Convert(data, "0", metadata, true)
 }
 
 // BigMapToMiguel -
 func BigMapToMiguel(data gjson.Result, binPath string, metadata meta.Metadata) (*Node, error) {
-	return michelineNodeToMiguel(data, binPath, metadata, false)
+	return newMiguel().Convert(data, binPath, metadata, false)
 }
 
 // ParameterToMiguel -
@@ -44,7 +77,7 @@ func ParameterToMiguel(data gjson.Result, metadata meta.Metadata) (*Node, error)
 		return nil, err
 	}
 	node, startPath = getGJSONParameterPath(node, startPath)
-	res, err := michelineNodeToMiguel(node, startPath, metadata, true)
+	res, err := newMiguel().Convert(node, startPath, metadata, true)
 	if err != nil {
 		return nil, err
 	}
@@ -84,26 +117,6 @@ func getStartPath(data gjson.Result, metadata meta.Metadata) (gjson.Result, stri
 		return value, "0", nil
 	}
 	return data, "0", nil
-}
-
-func michelineNodeToMiguel(data gjson.Result, path string, metadata meta.Metadata, isRoot bool) (node *Node, err error) {
-	nm, ok := metadata[path]
-	if !ok {
-		return nil, fmt.Errorf("Unknown metadata path: %s", path)
-	}
-
-	if dec, ok := decoders[nm.Type]; ok {
-		node, err = dec.Decode(data, path, nm, metadata, isRoot)
-	} else {
-		node, err = decoders["default"].Decode(data, path, nm, metadata, isRoot)
-	}
-	if err != nil {
-		return
-	}
-	if strings.HasSuffix(path, "/o") {
-		node.IsOption = true
-	}
-	return
 }
 
 // GetGJSONPath -
@@ -189,4 +202,29 @@ func getGJSONParameterPath(node gjson.Result, startPath string) (gjson.Result, s
 		return getGJSONParameterPath(left, path)
 	}
 	return node, path
+}
+
+// GetGJSONPathForData -
+func GetGJSONPathForData(path string) string {
+	parts := strings.Split(path, "/")
+	if len(parts) == 0 {
+		return ""
+	}
+
+	var res strings.Builder
+	for _, part := range parts {
+		switch part {
+		case "l", "s":
+			res.WriteString("#.")
+		case "k":
+			res.WriteString("#.args.0.")
+		case "v":
+			res.WriteString("#.args.1.")
+		case "o":
+			res.WriteString("args.0.")
+		default:
+			res.WriteString(fmt.Sprintf("args.%s.", part))
+		}
+	}
+	return strings.TrimSuffix(res.String(), ".")
 }

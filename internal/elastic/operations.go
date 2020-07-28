@@ -32,8 +32,9 @@ func (e *Elastic) GetOperationByHash(hash string) (ops []models.Operation, err e
 		return
 	}
 	if resp.Get("hits.total.value").Int() < 1 {
-		return nil, fmt.Errorf("Unknown operation with hash %s", hash)
+		return nil, fmt.Errorf("%s: %s", RecordNotFound, hash)
 	}
+
 	count := resp.Get("hits.hits.#").Int()
 	ops = make([]models.Operation, count)
 	for i, item := range resp.Get("hits.hits").Array() {

@@ -7,7 +7,9 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-type namedTupleDecoder struct{}
+type namedTupleDecoder struct {
+	parent *miguel
+}
 
 // Decode -
 func (l *namedTupleDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata, isRoot bool) (*Node, error) {
@@ -26,7 +28,7 @@ func (l *namedTupleDecoder) Decode(data gjson.Result, path string, nm *meta.Node
 		name := metadata.GetFieldName(arg, i)
 
 		if argJSON.Exists() {
-			argNode, err := michelineNodeToMiguel(argJSON, arg, metadata, false)
+			argNode, err := l.parent.Convert(argJSON, arg, metadata, false)
 			if err != nil {
 				return nil, err
 			}

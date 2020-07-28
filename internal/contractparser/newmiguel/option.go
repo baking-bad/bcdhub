@@ -8,7 +8,9 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-type optionDecoder struct{}
+type optionDecoder struct {
+	parent *miguel
+}
 
 // Decode -
 func (d *optionDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetadata, metadata meta.Metadata, isRoot bool) (*Node, error) {
@@ -20,7 +22,7 @@ func (d *optionDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMeta
 		}, nil
 	case consts.SOME:
 		arg := data.Get("args.0")
-		node, err := michelineNodeToMiguel(arg, path+"/o", metadata, false)
+		node, err := d.parent.Convert(arg, path+"/o", metadata, false)
 		if err != nil {
 			return nil, err
 		}

@@ -63,3 +63,12 @@ var FAVersionValidator validator.Func = func(fl validator.FieldLevel) bool {
 		consts.FA2Tag,
 	})
 }
+
+// FillTypeValidator -
+var FillTypeValidator validator.Func = func(fl validator.FieldLevel) bool {
+	fillType := fl.Field().String()
+	return helpers.StringInArray(fillType, []string{
+		"empty",
+		"current",
+	})
+}

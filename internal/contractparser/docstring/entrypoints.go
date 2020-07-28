@@ -80,6 +80,43 @@ func GetEntrypoints(md meta.Metadata) ([]EntrypointType, error) {
 	return entrypoints, nil
 }
 
+// GetStorage -
+func GetStorage(md meta.Metadata) ([]EntrypointType, error) {
+	root := md["0"]
+	entrypoints := make([]EntrypointType, 0)
+
+	if md.IsComplexEntryRoot() {
+		for i, binPath := range root.Args {
+			md[binPath].Name = md[binPath].GetName(i)
+
+			typeDefs, err := parseEntrypointTypes(binPath, md)
+			if err != nil {
+				return nil, err
+			}
+
+			entrypoints = append(entrypoints, EntrypointType{
+				Name:    md[binPath].Name,
+				Type:    typeDefs,
+				BinPath: binPath,
+			})
+		}
+	} else {
+		root.Name = root.GetName(-1)
+		typeDefs, err := parseEntrypointTypes("0", md)
+		if err != nil {
+			return nil, err
+		}
+
+		entrypoints = append(entrypoints, EntrypointType{
+			Name:    root.Name,
+			Type:    typeDefs,
+			BinPath: "0",
+		})
+	}
+
+	return entrypoints, nil
+}
+
 func parseEntrypointTypes(bPath string, md meta.Metadata) ([]Typedef, error) {
 	var dd dsData
 
