@@ -415,6 +415,9 @@ func (p *DefaultParser) computeMetrics(op *models.Operation) error {
 		if !strings.HasPrefix(bu.Contract, "KT") {
 			continue
 		}
+		if _, ok := balances[bu.Contract]; ok {
+			continue
+		}
 		balance, err := p.rpc.GetContractBalance(bu.Contract, op.Level)
 		if err != nil {
 			return err
