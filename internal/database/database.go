@@ -9,7 +9,7 @@ import (
 // DB -
 type DB interface {
 	// User
-	GetOrCreateUser(*User) error
+	GetOrCreateUser(*User, string) error
 	GetUser(uint) (*User, error)
 	UpdateUserMarkReadAt(uint, int64) error
 

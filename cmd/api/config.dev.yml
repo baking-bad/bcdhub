@@ -25,7 +25,7 @@ oauth:
     gitlab:
         client_id: ${GITLAB_CLIENT_ID}
         secret: ${GITLAB_CLIENT_SECRET}
-        callback_url: https://localhost:14000/v1/oauth/gitlab/callback
+        callback_url: http://localhost:14000/v1/oauth/gitlab/callback
 
 api:
     bind: "127.0.0.1:14000"

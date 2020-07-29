@@ -208,6 +208,8 @@ func main() {
 		authorized := v1.Group("/")
 		authorized.Use(ctx.AuthJWTRequired())
 		{
+			authorized.GET("public_repos", ctx.ListPublicRepos)
+
 			profile := authorized.Group("profile")
 			{
 				profile.GET("", ctx.GetUserProfile)
