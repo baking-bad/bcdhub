@@ -51,7 +51,7 @@ func (ctx *Context) GetFA(c *gin.Context) {
 			return
 		}
 	}
-	contracts, err := ctx.ES.GetTokens(req.Network, "", lastID, cursorReq.Size)
+	contracts, total, err := ctx.ES.GetTokens(req.Network, "", lastID, cursorReq.Size)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -60,6 +60,7 @@ func (ctx *Context) GetFA(c *gin.Context) {
 	if handleError(c, err, 0) {
 		return
 	}
+	tokens.Total = total
 
 	c.JSON(http.StatusOK, tokens)
 }
@@ -101,7 +102,7 @@ func (ctx *Context) GetFAByVersion(c *gin.Context) {
 			return
 		}
 	}
-	contracts, err := ctx.ES.GetTokens(req.Network, req.Version, lastID, cursorReq.Size)
+	contracts, total, err := ctx.ES.GetTokens(req.Network, req.Version, lastID, cursorReq.Size)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -110,6 +111,7 @@ func (ctx *Context) GetFAByVersion(c *gin.Context) {
 	if handleError(c, err, 0) {
 		return
 	}
+	tokens.Total = total
 	c.JSON(http.StatusOK, tokens)
 }
 
@@ -200,15 +202,24 @@ func (ctx *Context) contractToTokens(contracts []models.Contract, network, versi
 		}
 
 		for i := range tokens {
+			tokens[i].Methods = make(map[string]TokenMethodStats)
 			stat, ok := stats[tokens[i].Address]
 			if !ok {
+				for _, method := range methods {
+					tokens[i].Methods[method] = TokenMethodStats{}
+				}
 				continue
 			}
-			tokens[i].Methods = make(map[string]TokenMethodStats)
-			for method, value := range stat {
+
+			for _, method := range methods {
+				s, ok := stat[method]
+				if !ok {
+					tokens[i].Methods[method] = TokenMethodStats{}
+					continue
+				}
 				tokens[i].Methods[method] = TokenMethodStats{
-					CallCount:          value.Count,
-					AverageConsumedGas: value.ConsumedGas,
+					CallCount:          s.Count,
+					AverageConsumedGas: s.ConsumedGas,
 				}
 			}
 		}
