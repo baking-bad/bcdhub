@@ -34,7 +34,7 @@ func (m *SetOperationErrors) Do(ctx *config.Context) error {
 				"network": network,
 				"status":  "failed",
 			},
-			false,
+			0,
 			false,
 		)
 		if err != nil {

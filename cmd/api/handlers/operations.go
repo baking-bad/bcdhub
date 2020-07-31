@@ -89,8 +89,8 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 		map[string]interface{}{
 			"hash": req.Hash,
 		},
+		0,
 		true,
-		false,
 	)
 	if !elastic.IsRecordNotFound(err) && handleError(c, err, 0) {
 		return

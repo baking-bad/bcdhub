@@ -151,7 +151,7 @@ func (e *Elastic) GetLastOperation(address, network string, indexedTime int64) (
 	}
 
 	if res.Get("hits.total.value").Int() < 1 {
-		return op, fmt.Errorf("%s: %s in %s on %d", RecordNotFound, address, network, indexedTime)
+		return op, fmt.Errorf("%s %s in %s on %d", RecordNotFound, address, network, indexedTime)
 	}
 	op.ParseElasticJSON(res.Get("hits.hits.0"))
 	return
@@ -246,7 +246,7 @@ func (e *Elastic) GetAffectedContracts(network string, fromLevel, toLevel int64)
 }
 
 // GetOperations -
-func (e *Elastic) GetOperations(filters map[string]interface{}, sort, one bool) ([]models.Operation, error) {
+func (e *Elastic) GetOperations(filters map[string]interface{}, size int64, sort bool) ([]models.Operation, error) {
 	operations := make([]models.Operation, 0)
 
 	query := filtersToQuery(filters)
@@ -266,10 +266,12 @@ func (e *Elastic) GetOperations(filters map[string]interface{}, sort, one bool) 
 		})
 	}
 
-	if one {
+	if size == 1 {
 		query = query.One()
-	} else {
+	} else if size == 0 {
 		query = query.All()
+	} else {
+		query = query.Size(size).All()
 	}
 
 	result, err := e.createScroll(DocOperations, 1000, query)
