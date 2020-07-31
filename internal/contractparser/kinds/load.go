@@ -11,6 +11,9 @@ func Load() (map[string][]Entrypoint, error) {
 		Fa1{},
 		Fa1_2{},
 		Fa2{},
+		ViewNat{},
+		ViewAddress{},
+		ViewBalanceOf{},
 	} {
 		var e []Entrypoint
 		if err := json.Unmarshal([]byte(i.GetJSON()), &e); err != nil {

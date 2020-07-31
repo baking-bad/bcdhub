@@ -40,6 +40,10 @@ func endpointsTags(metadata meta.Metadata, interfaces map[string][]kinds.Entrypo
 func findInterface(metadata meta.Metadata, i []kinds.Entrypoint) bool {
 	root := metadata["0"]
 
+	if len(root.Args) == 0 && len(i) == 1 {
+		return compareEntrypoints(metadata, i[0], *root, "0")
+	}
+
 	for _, ie := range i {
 		found := false
 		for _, e := range root.Args {

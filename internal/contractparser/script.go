@@ -46,6 +46,10 @@ func New(script gjson.Result) (s Script, err error) {
 		s.Tags.Add(consts.DelegatorTag)
 	}
 
+	if IsMultisigContract(script) {
+		s.Tags.Add(consts.MultisigTag)
+	}
+
 	return
 }
 
