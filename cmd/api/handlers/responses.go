@@ -55,6 +55,8 @@ type Operation struct {
 
 	IndexedTime  int64 `json:"-"`
 	ContentIndex int64 `json:"content_index"`
+
+	RawMempool interface{} `json:"rawMempool"`
 }
 
 // ParseJSON -
