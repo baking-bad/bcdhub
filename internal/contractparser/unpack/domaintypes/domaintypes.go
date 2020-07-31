@@ -15,9 +15,9 @@ const (
 // DecodePublicKey -
 func DecodePublicKey(input string) (string, error) {
 	prefixes := map[string][]byte{
-		"00": []byte{13, 15, 37, 217},
-		"01": []byte{3, 254, 226, 86},
-		"02": []byte{3, 178, 139, 127},
+		"00": {13, 15, 37, 217},
+		"01": {3, 254, 226, 86},
+		"02": {3, 178, 139, 127},
 	}
 
 	if _, ok := prefixes[input[:2]]; !ok {
@@ -30,9 +30,9 @@ func DecodePublicKey(input string) (string, error) {
 // DecodeKeyHash -
 func DecodeKeyHash(input string) (string, error) {
 	prefixes := map[string][]byte{
-		"00": []byte{6, 161, 159},
-		"01": []byte{6, 161, 161},
-		"02": []byte{6, 161, 164},
+		"00": {6, 161, 159},
+		"01": {6, 161, 161},
+		"02": {6, 161, 164},
 	}
 
 	if _, ok := prefixes[input[:2]]; !ok {
@@ -66,9 +66,9 @@ func DecodeKT(input string) (string, error) {
 // DecodeTz -
 func DecodeTz(input string) (string, error) {
 	prefixes := map[string][]byte{
-		"0000": []byte{6, 161, 159},
-		"0001": []byte{6, 161, 161},
-		"0002": []byte{6, 161, 164},
+		"0000": {6, 161, 159},
+		"0001": {6, 161, 161},
+		"0002": {6, 161, 164},
 	}
 
 	if _, ok := prefixes[input[:4]]; !ok {
@@ -81,4 +81,13 @@ func DecodeTz(input string) (string, error) {
 // HasKT1Affixes -
 func HasKT1Affixes(data []byte) bool {
 	return data[0] == 0x01 && data[len(data)-1] == 0x00
+}
+
+// DecodeOpgHash -
+func DecodeOpgHash(input string) (string, error) {
+	if len(input) != 51 {
+		return "", fmt.Errorf("[DecodeOpgHash] invalid input length: %d != 51", len(input))
+	}
+
+	return tzbase58.DecodeToHex(input, []byte{5, 116})
 }
