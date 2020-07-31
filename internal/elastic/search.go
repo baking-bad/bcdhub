@@ -2,6 +2,7 @@ package elastic
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -12,6 +13,22 @@ import (
 const (
 	defaultSize = 10
 )
+
+type searchContext struct {
+	Text       string
+	Indices    []string
+	Fields     []string
+	Highlights qItem
+	Offset     int64
+}
+
+func newSearchContext() searchContext {
+	return searchContext{
+		Fields:     make([]string, 0),
+		Indices:    make([]string, 0),
+		Highlights: make(qItem),
+	}
+}
 
 func getMapFields(allFields []string) map[string]string {
 	res := make(map[string]string)
@@ -61,53 +78,62 @@ func getFields(search string, fields []string) ([]string, qItem, error) {
 	return f, h, nil
 }
 
-func prepareSearchFilters(filters map[string]interface{}) ([]qItem, error) {
-	mustItems := make([]qItem, 0)
+func prepareSearchFilters(filters map[string]interface{}) (string, error) {
+	builder := strings.Builder{}
+
 	for k, v := range filters {
+		if builder.Len() != 0 {
+			builder.WriteString(" AND ")
+		}
 		switch k {
 		case "from":
-			val, ok := v.(uint)
+			val, ok := v.(string)
 			if !ok {
-				return nil, fmt.Errorf("Invalid type for 'from' filter (wait int64): %T", v)
+				return "", fmt.Errorf("Invalid type for 'from' filter (wait string): %T", v)
 			}
-			if val > 0 {
-				mustItems = append(mustItems, rangeQ("timestamp", qItem{
-					"gte": val * 1000,
-				}))
+			if val != "" {
+				builder.WriteString(fmt.Sprintf("timestamp:{%s TO *}", val))
 			}
 		case "to":
-			val, ok := v.(uint)
+			val, ok := v.(string)
 			if !ok {
-				return nil, fmt.Errorf("Invalid type for 'to' filter (wait int64): %T", v)
+				return "", fmt.Errorf("Invalid type for 'to' filter (wait string): %T", v)
 			}
-			if val > 0 {
-				mustItems = append(mustItems, rangeQ("timestamp", qItem{
-					"lte": val * 1000,
-				}))
+			if val != "" {
+				builder.WriteString(fmt.Sprintf("timestamp:{* TO %s}", val))
 			}
 		case "networks":
 			val, ok := v.([]string)
 			if !ok {
-				return nil, fmt.Errorf("Invalid type for 'network' filter (wait []string): %T", v)
+				return "", fmt.Errorf("Invalid type for 'network' filter (wait []string): %T", v)
 			}
 			if len(val) == 0 {
 				continue
 			}
-			mustItems = append(mustItems, in("network", val))
+			var str string
+			if len(val) > 1 {
+				str = fmt.Sprintf("network:(%s)", strings.Join(val, " OR "))
+			} else {
+				str = fmt.Sprintf("network:%s", val[0])
+			}
+			builder.WriteString(str)
 		case "languages":
 			val, ok := v.([]string)
 			if !ok {
-				return nil, fmt.Errorf("Invalid type for 'language' filter (wait []string): %T", v)
+				return "", fmt.Errorf("Invalid type for 'language' filter (wait []string): %T", v)
 			}
-			if len(val) == 0 {
-				continue
+			var str string
+			if len(val) > 1 {
+				str = fmt.Sprintf("language:(%s)", strings.Join(val, " OR "))
+			} else {
+				str = fmt.Sprintf("language:%s", val[0])
 			}
-			mustItems = append(mustItems, in("language", val))
+			builder.WriteString(str)
 		default:
-			return nil, fmt.Errorf("Unknown search filter: %s", k)
+			return "", fmt.Errorf("Unknown search filter: %s", k)
 		}
 	}
-	return mustItems, nil
+	return builder.String(), nil
 }
 
 func getSearchIndices(filters map[string]interface{}) ([]string, error) {
@@ -128,133 +154,39 @@ func getSearchIndices(filters map[string]interface{}) ([]string, error) {
 }
 
 // SearchByText -
-func (e *Elastic) SearchByText(text string, offset int64, fields []string, filters map[string]interface{}, grouping bool) (SearchResult, error) {
-	if grouping {
-		return e.searchWithGroup(text, offset, fields, filters)
-	}
-	return e.searchWithoutGroup(text, offset, fields, filters)
-}
-
-func (e *Elastic) searchWithoutGroup(text string, offset int64, fields []string, filters map[string]interface{}) (SearchResult, error) {
-	query := newQuery()
-
-	indices, err := getSearchIndices(filters)
-	if err != nil {
-		return SearchResult{}, err
-	}
-	mustItems, err := prepareSearchFilters(filters)
-	if err != nil {
-		return SearchResult{}, err
-	}
-	if text != "" {
-		internalFields, highlights, err := getFields(text, fields)
-		if err != nil {
-			return SearchResult{}, err
-		}
-		mustItems = append(mustItems, queryString(text, internalFields))
-
-		query.Highlights(highlights)
-	}
-
-	b := boolQ()
-	if len(mustItems) > 0 {
-		b.Get("bool").Extend(must(mustItems...))
-	}
-
-	query.Query(b).From(offset).Size(defaultSize)
-
-	resp, err := e.query(indices, query)
-	if err != nil {
-		return SearchResult{}, err
-	}
-
-	return SearchResult{
-		Items: parseSearchResponse(resp),
-		Time:  resp.Get("took").Int(),
-		Count: resp.Get("hits.total.value").Int(),
-	}, nil
-}
-func (e *Elastic) searchWithGroup(text string, offset int64, fields []string, filters map[string]interface{}) (SearchResult, error) {
-	query := newQuery()
-
-	indices, err := getSearchIndices(filters)
-	if err != nil {
-		return SearchResult{}, err
-	}
-	mustItems, err := prepareSearchFilters(filters)
-	if err != nil {
-		return SearchResult{}, err
-	}
-
+func (e *Elastic) SearchByText(text string, offset int64, fields []string, filters map[string]interface{}, group bool) (SearchResult, error) {
 	if text == "" {
 		return SearchResult{}, fmt.Errorf("Empty search string. Please query something")
 	}
 
-	internalFields, highlights, err := getFields(text, fields)
+	ctx, err := prepare(text, filters, fields)
 	if err != nil {
 		return SearchResult{}, err
 	}
-	mustItems = append(mustItems, queryString(text, internalFields))
+	ctx.Offset = offset
 
-	b := boolQ()
-	if len(mustItems) > 0 {
-		b.Get("bool").Extend(must(mustItems...))
+	query := newQuery().Query(
+		queryString(ctx.Text, ctx.Fields),
+	)
+
+	if group {
+		query = grouping(ctx, query)
 	}
 
-	topHits := qItem{
-		"top_hits": qItem{
-			"size": 1,
-			"sort": qList{
-				sort("_score", "desc"),
-				qItem{"last_action": qItem{"order": "desc", "unmapped_type": "long"}},
-				sort("timestamp", "desc"),
-			},
-			"highlight": qItem{
-				"fields": highlights,
-			},
-		},
-	}
-
-	query.Query(b).Add(
-		aggs(
-			"projects",
-			qItem{
-				"terms": qItem{
-					"script": `
-							if (doc.containsKey('fingerprint.parameter')) {
-								return doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value
-							} else if (doc.containsKey('hash')) {
-								return doc['hash.keyword'].value
-							} else return doc['key_hash.keyword'].value`,
-					"size": defaultSize + offset,
-					"order": qList{
-						qItem{"bucket_score": "desc"},
-						qItem{"bucket_time": "desc"},
-					},
-				},
-				"aggs": qItem{
-					"last": topHits,
-					"bucket_score": qItem{
-						"max": qItem{
-							"script": "_score",
-						},
-					},
-					"bucket_time": qItem{
-						"max": qItem{
-							"script": "if (doc.containsKey('last_action')) {return doc['last_action'].value} else {return doc['timestamp']}",
-						},
-					},
-				},
-			},
-		),
-	).Zero()
-
-	resp, err := e.query(indices, query)
+	resp, err := e.query(ctx.Indices, query)
 	if err != nil {
 		return SearchResult{}, err
 	}
+
+	var items []SearchItem
+	if group {
+		items = parseSearchGroupingResponse(resp, defaultSize, offset)
+	} else {
+		items = parseSearchResponse(resp)
+	}
+
 	return SearchResult{
-		Items: parseSearchGroupingResponse(resp, defaultSize, offset),
+		Items: items,
 		Time:  resp.Get("took").Int(),
 		Count: resp.Get("hits.total.value").Int(),
 	}, nil
@@ -386,4 +318,97 @@ func parseSearchGroupingResponse(data gjson.Result, size, offset int64) []Search
 		items = append(items, searchItem)
 	}
 	return items
+}
+
+func prepare(search string, filters map[string]interface{}, fields []string) (searchContext, error) {
+	ctx := newSearchContext()
+
+	needEscape := true
+	re := regexp.MustCompile(`^ptr:\d+$`)
+	if re.MatchString(search) {
+		ctx.Text = strings.TrimPrefix(search, "ptr:")
+		ctx.Indices = []string{DocBigMapDiff}
+		ctx.Fields = []string{"ptr"}
+		needEscape = false
+	} else {
+		sanitized := `[\+\-\=\&\|\>\<\!\(\)\{\}\[\]\^\"\~\*\?\:\\\/]`
+		re = regexp.MustCompile(sanitized)
+		ctx.Text = re.ReplaceAllString(search, "\\${1}")
+
+		indices, err := getSearchIndices(filters)
+		if err != nil {
+			return ctx, err
+		}
+		internalFields, highlights, err := getFields(ctx.Text, fields)
+		if err != nil {
+			return ctx, err
+		}
+		ctx.Indices = indices
+		ctx.Highlights = highlights
+		ctx.Fields = internalFields
+	}
+
+	if needEscape {
+		ctx.Text = fmt.Sprintf("*%s*", ctx.Text)
+	}
+
+	filterString, err := prepareSearchFilters(filters)
+	if err != nil {
+		return ctx, err
+	}
+	if filterString != "" {
+		ctx.Text = fmt.Sprintf("%s AND %s", filterString, ctx.Text)
+	}
+	return ctx, nil
+}
+
+func grouping(ctx searchContext, query base) base {
+	topHits := qItem{
+		"top_hits": qItem{
+			"size": 1,
+			"sort": qList{
+				sort("_score", "desc"),
+				qItem{"last_action": qItem{"order": "desc", "unmapped_type": "long"}},
+				sort("timestamp", "desc"),
+			},
+			"highlight": qItem{
+				"fields": ctx.Highlights,
+			},
+		},
+	}
+
+	query.Add(
+		aggs(
+			"projects",
+			qItem{
+				"terms": qItem{
+					"script": `
+							if (doc.containsKey('fingerprint.parameter')) {
+								return doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value
+							} else if (doc.containsKey('hash')) {
+								return doc['hash.keyword'].value
+							} else return doc['key_hash.keyword'].value`,
+					"size": defaultSize + ctx.Offset,
+					"order": qList{
+						qItem{"bucket_score": "desc"},
+						qItem{"bucket_time": "desc"},
+					},
+				},
+				"aggs": qItem{
+					"last": topHits,
+					"bucket_score": qItem{
+						"max": qItem{
+							"script": "_score",
+						},
+					},
+					"bucket_time": qItem{
+						"max": qItem{
+							"script": "if (doc.containsKey('last_action')) {return doc['last_action'].value} else {return doc['timestamp']}",
+						},
+					},
+				},
+			},
+		),
+	).Zero()
+	return query
 }
