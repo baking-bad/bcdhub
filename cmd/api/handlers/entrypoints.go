@@ -31,7 +31,6 @@ func (ctx *Context) GetEntrypoints(c *gin.Context) {
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-
 	metadata, err := getParameterMetadata(ctx.ES, req.Address, req.Network)
 	if handleError(c, err, 0) {
 		return
@@ -96,6 +95,85 @@ func (ctx *Context) GetEntrypointData(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, result.Value())
+}
+
+// GetEntrypointSchema godoc
+// @Summary Get contract`s entrypoint schema
+// @Description Get contract`s entrypoint schema
+// @Tags contract
+// @ID get-contract-entrypoints-schema
+// @Param network path string true "Network"
+// @Param address path string true "KT address" minlength(36) maxlength(36)
+// @Param entrypoint query string true "Entrypoint name"
+// @Param fill_type query string false "Fill storage type" Enums(empty, latest)
+// @Accept json
+// @Produce json
+// @Success 200 {array} EntrypointSchema
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /contract/{network}/{address}/entrypoints/schema [get]
+func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
+	var req getContractRequest
+	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
+	var esReq entrypointSchemaRequest
+	if err := c.BindQuery(&esReq); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
+	metadata, err := getParameterMetadata(ctx.ES, req.Address, req.Network)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	entrypoints, err := docstring.GetEntrypoints(metadata)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	schema := new(EntrypointSchema)
+	for _, entrypoint := range entrypoints {
+		if entrypoint.Name != esReq.EntrypointName {
+			continue
+		}
+
+		schema.EntrypointType = entrypoint
+		schema.Schema, schema.DefaultModel, err = jsonschema.Create(entrypoint.BinPath, metadata)
+		if handleError(c, err, 0) {
+			return
+		}
+		if esReq.FillType != "latest" {
+			continue
+		}
+
+		op, err := ctx.ES.GetOperations(
+			map[string]interface{}{
+				"network":     req.Network,
+				"destination": req.Address,
+				"kind":        consts.Transaction,
+				"entrypoint":  esReq.EntrypointName,
+			},
+			true,
+			true,
+		)
+		if handleError(c, err, 0) {
+			return
+		}
+		if len(op) != 1 {
+			break
+		}
+		parameters := gjson.Parse(op[0].Parameters)
+		if parameters.Get("value").Exists() && parameters.Get("entrypoint").Exists() {
+			parameters = parameters.Get("value")
+		}
+		if err := schema.DefaultModel.FillForEntrypoint(parameters, metadata, esReq.EntrypointName); handleError(c, err, 0) {
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, schema)
 }
 
 func (ctx *Context) buildEntrypointMicheline(network, address, binPath string, data map[string]interface{}, needValidate bool) (gjson.Result, error) {

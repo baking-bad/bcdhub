@@ -49,6 +49,43 @@ func (model DefaultModel) Fill(data gjson.Result, metadata meta.Metadata) error 
 	return model.fill(data, metadata, root, "0", false)
 }
 
+// FillForEntrypoint - fill `model` from `data` by entrypoint `metadata`
+func (model DefaultModel) FillForEntrypoint(data gjson.Result, metadata meta.Metadata, entrypoint string) error {
+	root, ok := metadata["0"]
+	if !ok {
+		return fmt.Errorf("I've got no roots, but my home was never on the ground")
+	}
+	for k := range model {
+		delete(model, k)
+	}
+	path := "0"
+	for i := range root.Args {
+		nm, ok := metadata[root.Args[i]]
+		if !ok {
+			return fmt.Errorf("Unknown node: %s", root.Args[i])
+		}
+		if nm.Name == entrypoint {
+			path = root.Args[i]
+			root = nm
+
+			parts := strings.Split(path, "/")
+			if len(parts) > 1 {
+				sData := data.String()
+				for i := range parts[1:] {
+					if parts[len(parts)-i-1] == "0" {
+						sData = fmt.Sprintf(`{"args":[%s]}`, sData)
+					} else {
+						sData = fmt.Sprintf(`{"args":[{}, %s]}`, sData)
+					}
+				}
+				data = gjson.Parse(sData)
+			}
+			break
+		}
+	}
+	return model.fill(data, metadata, root, path, false)
+}
+
 func (model DefaultModel) fill(data gjson.Result, metadata meta.Metadata, node *meta.NodeMetadata, path string, isOption bool, indices ...int) error {
 	if !isOption {
 		if err := model.optionWrapper(data, metadata, node, path, indices...); err != nil {

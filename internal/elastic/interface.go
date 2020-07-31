@@ -98,11 +98,10 @@ type IMigrations interface {
 
 // IOperations -
 type IOperations interface {
-	GetOperationByHash(string) (ops []models.Operation, err error)
 	GetOperationsForContract(string, string, uint64, map[string]interface{}) (PageableOperations, error)
 	GetLastOperation(string, string, int64) (models.Operation, error)
 	GetAllLevelsForNetwork(string) (map[int64]struct{}, error)
-	GetOperationsByStatus(string, string) ([]models.Operation, error)
+	GetOperations(map[string]interface{}, bool, bool) ([]models.Operation, error)
 }
 
 // IProjects -

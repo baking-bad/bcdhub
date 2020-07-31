@@ -7,45 +7,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 )
 
-// GetOperationByHash -
-func (e *Elastic) GetOperationByHash(hash string) (ops []models.Operation, err error) {
-	query := newQuery().Query(
-		boolQ(
-			must(
-				matchPhrase("hash", hash),
-			),
-		),
-	).Add(qItem{
-		"sort": qItem{
-			"_script": qItem{
-				"type": "number",
-				"script": qItem{
-					"lang":   "painless",
-					"inline": "doc['counter'].value * 1000 + (doc['internal'].value ? (998 - doc['nonce'].value) : 999)",
-				},
-				"order": "desc",
-			},
-		},
-	}).All()
-	resp, err := e.query([]string{DocOperations}, query)
-	if err != nil {
-		return
-	}
-	if resp.Get("hits.total.value").Int() < 1 {
-		return nil, fmt.Errorf("%s: %s", RecordNotFound, hash)
-	}
-
-	count := resp.Get("hits.hits.#").Int()
-	ops = make([]models.Operation, count)
-	for i, item := range resp.Get("hits.hits").Array() {
-		var o models.Operation
-		o.ParseElasticJSON(item)
-		ops[i] = o
-	}
-
-	return ops, nil
-}
-
 type opgForContract struct {
 	hash    string
 	counter int64
@@ -284,18 +245,33 @@ func (e *Elastic) GetAffectedContracts(network string, fromLevel, toLevel int64)
 	return addresses, nil
 }
 
-// GetOperationsByStatus -
-func (e *Elastic) GetOperationsByStatus(network, status string) ([]models.Operation, error) {
+// GetOperations -
+func (e *Elastic) GetOperations(filters map[string]interface{}, sort, one bool) ([]models.Operation, error) {
 	operations := make([]models.Operation, 0)
 
-	query := newQuery().Query(
-		boolQ(
-			filter(
-				matchQ("network", network),
-				matchQ("status", status),
-			),
-		),
-	)
+	query := filtersToQuery(filters)
+
+	if sort {
+		query.Add(qItem{
+			"sort": qItem{
+				"_script": qItem{
+					"type": "number",
+					"script": qItem{
+						"lang":   "painless",
+						"inline": "doc['level'].value * 10000000000L + (doc['counter'].value) * 1000L + (doc['internal'].value ? (998L - doc['nonce'].value) : 999L)",
+					},
+					"order": "desc",
+				},
+			},
+		})
+	}
+
+	if one {
+		query = query.One()
+	} else {
+		query = query.All()
+	}
+
 	result, err := e.createScroll(DocOperations, 1000, query)
 	if err != nil {
 		return nil, err

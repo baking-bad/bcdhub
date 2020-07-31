@@ -8,7 +8,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-func getContractQuery(by map[string]interface{}) base {
+func filtersToQuery(by map[string]interface{}) base {
 	matches := make([]qItem, 0)
 	for k, v := range by {
 		matches = append(matches, matchPhrase(k, v))
@@ -64,13 +64,13 @@ func (e *Elastic) getContracts(q map[string]interface{}) ([]models.Contract, err
 
 // GetContract -
 func (e *Elastic) GetContract(by map[string]interface{}) (models.Contract, error) {
-	query := getContractQuery(by).One()
+	query := filtersToQuery(by).One()
 	return e.getContract(query)
 }
 
 // GetContracts -
 func (e *Elastic) GetContracts(by map[string]interface{}) ([]models.Contract, error) {
-	query := getContractQuery(by)
+	query := filtersToQuery(by)
 	return e.getContracts(query)
 }
 

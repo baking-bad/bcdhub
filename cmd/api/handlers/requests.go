@@ -171,6 +171,11 @@ type storageSchemaRequest struct {
 	FillType string `form:"fill_type,omitempty" binding:"omitempty,fill_type"`
 }
 
+type entrypointSchemaRequest struct {
+	FillType       string `form:"fill_type,omitempty" binding:"omitempty"`
+	EntrypointName string `form:"entrypoint" binding:"required"`
+}
+
 type forkRequest struct {
 	Storage map[string]interface{} `json:"storage" binding:"required"`
 }

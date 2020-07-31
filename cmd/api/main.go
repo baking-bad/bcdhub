@@ -178,6 +178,7 @@ func main() {
 			entrypoints := contract.Group("entrypoints")
 			{
 				entrypoints.GET("", ctx.GetEntrypoints)
+				entrypoints.GET("schema", ctx.GetEntrypointSchema)
 				entrypoints.POST("data", ctx.GetEntrypointData)
 				entrypoints.POST("trace", ctx.RunCode)
 				entrypoints.POST("run_operation", ctx.RunOperation)
