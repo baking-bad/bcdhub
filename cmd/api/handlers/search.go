@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
 	"github.com/baking-bad/bcdhub/internal/elastic"
@@ -58,11 +59,11 @@ func getSearchFilters(req searchRequest) map[string]interface{} {
 	filters := map[string]interface{}{}
 
 	if req.DateFrom > 0 {
-		filters["from"] = req.DateFrom
+		filters["from"] = time.Unix(int64(req.DateFrom), 0).Format(time.RFC3339)
 	}
 
 	if req.DateTo > 0 {
-		filters["to"] = req.DateTo
+		filters["to"] = time.Unix(int64(req.DateTo), 0).Format(time.RFC3339)
 	}
 
 	if req.Networks != "" {
