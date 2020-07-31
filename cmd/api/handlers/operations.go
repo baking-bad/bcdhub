@@ -85,7 +85,13 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 		return
 	}
 
-	op, err := ctx.ES.GetOperationByHash(req.Hash)
+	op, err := ctx.ES.GetOperations(
+		map[string]interface{}{
+			"hash": req.Hash,
+		},
+		true,
+		false,
+	)
 	if !elastic.IsRecordNotFound(err) && handleError(c, err, 0) {
 		return
 	}

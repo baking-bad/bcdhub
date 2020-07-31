@@ -29,7 +29,14 @@ func (m *SetOperationErrors) Description() string {
 func (m *SetOperationErrors) Do(ctx *config.Context) error {
 	start := time.Now()
 	for _, network := range ctx.Config.Migrations.Networks {
-		operations, err := ctx.ES.GetOperationsByStatus(network, "failed")
+		operations, err := ctx.ES.GetOperations(
+			map[string]interface{}{
+				"network": network,
+				"status":  "failed",
+			},
+			false,
+			false,
+		)
 		if err != nil {
 			return err
 		}
