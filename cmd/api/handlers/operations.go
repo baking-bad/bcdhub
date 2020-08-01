@@ -402,6 +402,7 @@ func (ctx *Context) prepareMempoolOperation(res gjson.Result, network, hash stri
 		Destination:  item.Get("destination").String(),
 		Mempool:      true,
 		Status:       status,
+		RawMempool:   item.Value(),
 	}
 
 	op.SourceAlias = ctx.Aliases[op.Source]

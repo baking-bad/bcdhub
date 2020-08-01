@@ -1,14 +1,12 @@
 package elastic
 
 import (
-	"log"
-
 	"github.com/baking-bad/bcdhub/internal/models"
 )
 
 // GetTokens -
-func (e *Elastic) GetTokens(network, tokenInterface string, lastAction, size int64) ([]models.Contract, error) {
-	tags := []string{"fa12", "fa1"}
+func (e *Elastic) GetTokens(network, tokenInterface string, lastAction, size int64) ([]models.Contract, int64, error) {
+	tags := []string{"fa12", "fa1", "fa2"}
 	if tokenInterface == "fa12" || tokenInterface == "fa1" || tokenInterface == "fa2" {
 		tags = []string{tokenInterface}
 	}
@@ -28,7 +26,7 @@ func (e *Elastic) GetTokens(network, tokenInterface string, lastAction, size int
 
 	result, err := e.query([]string{DocContracts}, query)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	contracts := make([]models.Contract, 0)
@@ -37,7 +35,7 @@ func (e *Elastic) GetTokens(network, tokenInterface string, lastAction, size int
 		contract.ParseElasticJSON(hit)
 		contracts = append(contracts, contract)
 	}
-	return contracts, nil
+	return contracts, result.Get("hits.total.value").Int(), nil
 }
 
 // GetTokenTransferOperations -
@@ -128,7 +126,6 @@ func (e *Elastic) GetTokensStats(network string, addresses, entrypoints []string
 
 	result, err := e.query([]string{DocOperations}, query)
 	if err != nil {
-		log.Println(err)
 		return nil, err
 	}
 

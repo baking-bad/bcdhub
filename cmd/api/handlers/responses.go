@@ -55,6 +55,8 @@ type Operation struct {
 
 	IndexedTime  int64 `json:"-"`
 	ContentIndex int64 `json:"content_index"`
+
+	RawMempool interface{} `json:"rawMempool"`
 }
 
 // ParseJSON -
@@ -333,6 +335,7 @@ type TokenMethodStats struct {
 
 // PageableTokenContracts -
 type PageableTokenContracts struct {
+	Total  int64           `json:"total"`
 	Tokens []TokenContract `json:"tokens"`
 	LastID int64           `json:"last_id,omitempty"`
 }
