@@ -173,13 +173,6 @@ func (e *Elastic) GetFACountByNetwork() (map[string]int64, error) {
 			"terms": qItem{
 				"field": "network.keyword",
 			},
-			"aggs": qItem{
-				"same": qItem{
-					"cardinality": qItem{
-						"script": "doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value",
-					},
-				},
-			},
 		}),
 	).Zero()
 
@@ -192,7 +185,7 @@ func (e *Elastic) GetFACountByNetwork() (map[string]int64, error) {
 	counts := make(map[string]int64)
 	for _, item := range data {
 		key := item.Get("key").String()
-		count := item.Get("same.value").Int()
+		count := item.Get("doc_count").Int()
 		counts[key] = count
 	}
 	return counts, nil
