@@ -52,10 +52,12 @@ func (ctx *Context) Search(c *gin.Context) {
 		return
 	}
 
-	item, err := ctx.searchInMempool(req.Text)
-	if err == nil {
-		result.Items = append(result.Items, item)
-		result.Count++
+	if result.Count == 0 {
+		item, err := ctx.searchInMempool(req.Text)
+		if err == nil {
+			result.Items = append(result.Items, item)
+			result.Count++
+		}
 	}
 
 	c.JSON(http.StatusOK, result)
