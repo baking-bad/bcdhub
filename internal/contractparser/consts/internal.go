@@ -8,7 +8,7 @@ const (
 	ChainAwareTag      = "CHAIN_ID"
 	CheckSigTag        = "CHECK_SIGNATURE"
 	FA1Tag             = "fa1"
-	FA12Tag            = "fa1.2"
+	FA12Tag            = "fa12"
 	FA2Tag             = "fa2"
 	UpgradableTag      = "upgradable"
 	MultisigTag        = "multisig"
