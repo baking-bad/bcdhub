@@ -179,3 +179,7 @@ type entrypointSchemaRequest struct {
 type forkRequest struct {
 	Storage map[string]interface{} `json:"storage" binding:"required"`
 }
+
+type storageRequest struct {
+	Level int `form:"level" binding:"omitempty,gte=1"`
+}

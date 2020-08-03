@@ -524,6 +524,80 @@
                 }
             }
         },
+        "/contract/{network}/{address}/entrypoints/schema": {
+            "get": {
+                "description": "Get contract`s entrypoint schema",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contract"
+                ],
+                "summary": "Get contract`s entrypoint schema",
+                "operationId": "get-contract-entrypoints-schema",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "description": "KT address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Entrypoint name",
+                        "name": "entrypoint",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "empty",
+                            "latest"
+                        ],
+                        "type": "string",
+                        "description": "Fill storage type",
+                        "name": "fill_type",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.EntrypointSchema"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/contract/{network}/{address}/entrypoints/trace": {
             "post": {
                 "description": "Execute entrypoint with passed arguments",
@@ -1004,6 +1078,12 @@
                         "name": "address",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Level",
+                        "name": "level",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1011,6 +1091,12 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/newmiguel.Node"
+                        }
+                    },
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
                         }
                     },
                     "400": {
@@ -1058,11 +1144,23 @@
                         "name": "address",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Level",
+                        "name": "level",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "204": {
+                        "description": "No Content",
                         "schema": {
                             "type": "string"
                         }
@@ -1112,11 +1210,23 @@
                         "name": "address",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Level",
+                        "name": "level",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "204": {
+                        "description": "No Content",
                         "schema": {
                             "$ref": "#/definitions/gin.H"
                         }

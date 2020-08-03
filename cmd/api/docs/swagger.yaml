@@ -1071,6 +1071,57 @@ paths:
       summary: Get entrypoint data from schema object
       tags:
       - contract
+  /contract/{network}/{address}/entrypoints/schema:
+    get:
+      consumes:
+      - application/json
+      description: Get contract`s entrypoint schema
+      operationId: get-contract-entrypoints-schema
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: KT address
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: address
+        required: true
+        type: string
+      - description: Entrypoint name
+        in: query
+        name: entrypoint
+        required: true
+        type: string
+      - description: Fill storage type
+        enum:
+        - empty
+        - latest
+        in: query
+        name: fill_type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.EntrypointSchema'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Get contract`s entrypoint schema
+      tags:
+      - contract
   /contract/{network}/{address}/entrypoints/trace:
     post:
       consumes:
@@ -1397,6 +1448,10 @@ paths:
         name: address
         required: true
         type: string
+      - description: Level
+        in: query
+        name: level
+        type: integer
       produces:
       - application/json
       responses:
@@ -1404,6 +1459,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/newmiguel.Node'
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/gin.H'
         "400":
           description: Bad Request
           schema:
@@ -1434,11 +1493,19 @@ paths:
         name: address
         required: true
         type: string
+      - description: Level
+        in: query
+        name: level
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
+          schema:
+            type: string
+        "204":
+          description: No Content
           schema:
             type: string
         "400":
@@ -1471,11 +1538,19 @@ paths:
         name: address
         required: true
         type: string
+      - description: Level
+        in: query
+        name: level
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        "204":
+          description: No Content
           schema:
             $ref: '#/definitions/gin.H'
         "400":

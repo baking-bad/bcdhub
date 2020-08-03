@@ -101,7 +101,7 @@ type IOperations interface {
 	GetOperationsForContract(string, string, uint64, map[string]interface{}) (PageableOperations, error)
 	GetLastOperation(string, string, int64) (models.Operation, error)
 	GetAllLevelsForNetwork(string) (map[int64]struct{}, error)
-	GetOperations(map[string]interface{}, bool, bool) ([]models.Operation, error)
+	GetOperations(map[string]interface{}, int64, bool) ([]models.Operation, error)
 }
 
 // IProjects -

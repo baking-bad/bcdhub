@@ -155,7 +155,7 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 				"kind":        consts.Transaction,
 				"entrypoint":  esReq.EntrypointName,
 			},
-			true,
+			1,
 			true,
 		)
 		if handleError(c, err, 0) {
