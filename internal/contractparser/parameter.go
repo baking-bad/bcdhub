@@ -3,7 +3,6 @@ package contractparser
 import (
 	"fmt"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/contractparser/language"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
@@ -48,10 +47,6 @@ func newParameter(v gjson.Result) (Parameter, error) {
 }
 
 func (p *Parameter) handlePrimitive(n node.Node) error {
-	if n.Is(consts.CONTRACT) {
-		p.Tags.Append(consts.ViewMethodTag)
-	}
-
 	if n.HasAnnots() {
 		p.Annotations.Append(filterAnnotations(n.Annotations)...)
 	}

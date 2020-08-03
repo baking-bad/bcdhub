@@ -2,17 +2,16 @@ package consts
 
 // Tags name
 const (
-	ViewMethodTag      = "view"
 	ContractFactoryTag = "CREATE_CONTRACT"
-	DelegatableTag     = "delegatable"
+	DelegatableTag     = "SET_DELEGATE"
 	DelegatorTag       = "delegator"
 	ChainAwareTag      = "CHAIN_ID"
 	CheckSigTag        = "CHECK_SIGNATURE"
 	FA1Tag             = "fa1"
-	FA12Tag            = "fa12"
+	FA12Tag            = "fa1.2"
 	FA2Tag             = "fa2"
-	SpendableTag       = "spendable"
 	UpgradableTag      = "upgradable"
+	MultisigTag        = "multisig"
 )
 
 // Types
