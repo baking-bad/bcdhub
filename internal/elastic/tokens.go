@@ -116,7 +116,7 @@ func (e *Elastic) GetTokensStats(network string, addresses, entrypoints []string
 					},
 					"aggs": qItem{
 						"average_consumed_gas": qItem{
-							"sum": qItem{"field": "result.consumed_gas"},
+							"avg": qItem{"field": "result.consumed_gas"},
 						},
 					},
 				},
