@@ -27,11 +27,22 @@ func EncodeFromBytes(input, prefix []byte) string {
 	return base58.CheckEncode(payload, prefix[0])
 }
 
-// DecodeFromHex - decodes hex string from base58 with prefix
-func DecodeFromHex(input string, prefixLen int) (string, error) {
-	decoded, _, err := base58.CheckDecode(input)
+// DecodeToHex - decodes hex string from base58 with prefix
+func DecodeToHex(input string, prefix []byte) (string, error) {
+	decoded, version, err := base58.CheckDecode(input)
 	if err != nil {
 		return "", err
 	}
-	return hex.EncodeToString(decoded[prefixLen-1:]), nil
+	if len(prefix) > 0 {
+		if version != prefix[0] {
+			return "", fmt.Errorf("[DecodeToHex] Unknown version %v %v", version, prefix[0])
+		}
+
+		for i := range prefix[1:] {
+			if decoded[i] != prefix[i+1] {
+				return "", fmt.Errorf("[DecodeToHex] Unknown prefix %v %v", decoded[:2], prefix)
+			}
+		}
+	}
+	return hex.EncodeToString(decoded[len(prefix)-1:]), nil
 }

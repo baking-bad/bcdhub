@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
+	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/domaintypes"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
@@ -50,6 +51,14 @@ func (ctx *Context) Search(c *gin.Context) {
 	result, err = postProcessing(result)
 	if handleError(c, err, 0) {
 		return
+	}
+
+	if result.Count == 0 {
+		item, err := ctx.searchInMempool(req.Text)
+		if err == nil {
+			result.Items = append(result.Items, item)
+			result.Count++
+		}
 	}
 
 	c.JSON(http.StatusOK, result)
@@ -105,4 +114,24 @@ func postProcessing(result elastic.SearchResult) (elastic.SearchResult, error) {
 		}
 	}
 	return result, nil
+}
+
+func (ctx *Context) searchInMempool(q string) (elastic.SearchItem, error) {
+	if _, err := domaintypes.DecodeOpgHash(q); err != nil {
+		return elastic.SearchItem{}, err
+	}
+
+	operation, err := ctx.getOperationFromMempool(q)
+	if err != nil {
+		return elastic.SearchItem{}, err
+	}
+
+	return elastic.SearchItem{
+		Type:  elastic.DocOperations,
+		Value: operation.Hash,
+		Body:  operation,
+		Highlights: map[string][]string{
+			"hash": {operation.Hash},
+		},
+	}, nil
 }
