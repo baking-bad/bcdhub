@@ -19,14 +19,14 @@ var makers = map[string]maker{
 }
 
 // Create - creates json schema for metadata
-func Create(binPath string, metadata meta.Metadata) (Schema, DefaultModel, error) {
+func Create(binPath string, metadata meta.Metadata) (Schema, error) {
 	nm, ok := metadata[binPath]
 	if !ok {
-		return nil, nil, fmt.Errorf("[Create] Unknown metadata binPath: %s", binPath)
+		return nil, fmt.Errorf("[Create] Unknown metadata binPath: %s", binPath)
 	}
 
 	if nm.Prim == consts.UNIT {
-		return nil, DefaultModel{}, nil
+		return nil, nil
 	}
 
 	f, ok := makers[nm.Prim]
@@ -34,13 +34,13 @@ func Create(binPath string, metadata meta.Metadata) (Schema, DefaultModel, error
 		f = makers["default"]
 	}
 
-	schema, model, err := f.Do(binPath, metadata)
+	schema, err := f.Do(binPath, metadata)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	if strings.HasSuffix(binPath, "/o") {
 		return optionWrapper(schema, binPath, metadata)
 	}
-	return schema, model, nil
+	return schema, nil
 }

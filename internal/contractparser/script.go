@@ -54,7 +54,7 @@ func New(script gjson.Result) (s Script, err error) {
 }
 
 // Parse -
-func (s *Script) Parse(interfaces map[string][]kinds.Entrypoint) {
+func (s *Script) Parse(interfaces map[string]kinds.ContractKind) {
 	s.getTags(interfaces)
 	s.getAnnotations()
 }
@@ -88,7 +88,7 @@ func (s *Script) Language() (string, error) {
 	return result, nil
 }
 
-func (s *Script) getTags(interfaces map[string][]kinds.Entrypoint) {
+func (s *Script) getTags(interfaces map[string]kinds.ContractKind) {
 	s.Tags = s.Code.Tags
 	s.Tags.Merge(s.Storage.Tags)
 

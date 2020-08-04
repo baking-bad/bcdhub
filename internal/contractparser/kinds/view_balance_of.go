@@ -1,5 +1,8 @@
 package kinds
 
+// ViewBalanceOfName - name of tag
+const ViewBalanceOfName = "view_balance_of"
+
 // ViewBalanceOf -
 type ViewBalanceOf struct{}
 
@@ -36,4 +39,9 @@ func (v ViewBalanceOf) GetJSON() string {
 // GetName -
 func (v ViewBalanceOf) GetName() string {
 	return "view_balance_of"
+}
+
+// IsRoot -
+func (v ViewBalanceOf) IsRoot() bool {
+	return true
 }

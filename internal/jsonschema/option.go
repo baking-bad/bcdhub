@@ -8,13 +8,13 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 )
 
-func optionWrapper(schema Schema, binPath string, metadata meta.Metadata) (Schema, DefaultModel, error) {
+func optionWrapper(schema Schema, binPath string, metadata meta.Metadata) (Schema, error) {
 	if !strings.HasSuffix(binPath, "/o") {
-		return nil, nil, nil
+		return nil, nil
 	}
 	nm, ok := metadata[binPath]
 	if !ok {
-		return nil, nil, fmt.Errorf("[optionWrapper] Unknown metadata binPath: %s", binPath)
+		return nil, fmt.Errorf("[optionWrapper] Unknown metadata binPath: %s", binPath)
 	}
 	schemas := []Schema{
 		{
@@ -52,12 +52,11 @@ func optionWrapper(schema Schema, binPath string, metadata meta.Metadata) (Schem
 	}
 
 	return Schema{
-			"type":  "object",
-			"prim":  "option",
-			"title": name,
-			"oneOf": schemas,
-		}, DefaultModel{
-			"schemaKey": consts.NONE,
-		}, nil
+		"type":    "object",
+		"prim":    "option",
+		"title":   name,
+		"oneOf":   schemas,
+		"default": consts.NONE,
+	}, nil
 
 }

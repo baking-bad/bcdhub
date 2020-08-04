@@ -8,19 +8,17 @@ import (
 
 type pairMaker struct{}
 
-func (m *pairMaker) Do(binPath string, metadata meta.Metadata) (Schema, DefaultModel, error) {
+func (m *pairMaker) Do(binPath string, metadata meta.Metadata) (Schema, error) {
 	nm, ok := metadata[binPath]
 	if !ok {
-		return nil, nil, fmt.Errorf("[pairMaker] Unknown metadata binPath: %s", binPath)
+		return nil, fmt.Errorf("[pairMaker] Unknown metadata binPath: %s", binPath)
 	}
 	schema := make(Schema)
-	model := make(DefaultModel)
 	for _, arg := range nm.Args {
-		subSchema, subModel, err := Create(arg, metadata)
+		subSchema, err := Create(arg, metadata)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
-		model.Extend(subModel, arg)
 
 		if properties, ok := subSchema["properties"]; ok {
 			props := properties.(Schema)
@@ -35,5 +33,5 @@ func (m *pairMaker) Do(binPath string, metadata meta.Metadata) (Schema, DefaultM
 	return Schema{
 		"type":       "object",
 		"properties": schema,
-	}, model, nil
+	}, nil
 }

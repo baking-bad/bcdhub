@@ -24,7 +24,7 @@ type Context struct {
 	SharePath string
 
 	Aliases    map[string]string
-	Interfaces map[string][]kinds.Entrypoint
+	Interfaces map[string]kinds.ContractKind
 }
 
 // NewContext -

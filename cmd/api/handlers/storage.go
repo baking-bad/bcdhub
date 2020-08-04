@@ -236,7 +236,7 @@ func (ctx *Context) GetContractStorageSchema(c *gin.Context) {
 	if len(data) > 0 {
 		schema.EntrypointType = data[0]
 	}
-	schema.Schema, schema.DefaultModel, err = jsonschema.Create("0", metadata)
+	schema.Schema, err = jsonschema.Create("0", metadata)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -250,6 +250,7 @@ func (ctx *Context) GetContractStorageSchema(c *gin.Context) {
 		if handleError(c, err, 0) {
 			return
 		}
+		schema.DefaultModel = make(jsonschema.DefaultModel)
 		if err := schema.DefaultModel.Fill(storage, metadata); handleError(c, err, 0) {
 			return
 		}

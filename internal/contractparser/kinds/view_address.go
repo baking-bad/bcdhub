@@ -1,5 +1,8 @@
 package kinds
 
+// ViewAddressName - name of tag
+const ViewAddressName = "view_address"
+
 // ViewAddress -
 type ViewAddress struct{}
 
@@ -14,5 +17,10 @@ func (v ViewAddress) GetJSON() string {
 
 // GetName -
 func (v ViewAddress) GetName() string {
-	return "view_address"
+	return ViewAddressName
+}
+
+// IsRoot -
+func (v ViewAddress) IsRoot() bool {
+	return true
 }

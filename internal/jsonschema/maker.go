@@ -13,7 +13,7 @@ import (
 )
 
 type maker interface {
-	Do(string, meta.Metadata) (Schema, DefaultModel, error)
+	Do(string, meta.Metadata) (Schema, error)
 }
 
 // Schema -
@@ -46,7 +46,7 @@ func (model DefaultModel) Fill(data gjson.Result, metadata meta.Metadata) error 
 	for k := range model {
 		delete(model, k)
 	}
-	return model.fill(data, metadata, root, "0", false)
+	return model.fill(data, metadata, root, "0", "0", false)
 }
 
 // FillForEntrypoint - fill `model` from `data` by entrypoint `metadata`
@@ -59,6 +59,7 @@ func (model DefaultModel) FillForEntrypoint(data gjson.Result, metadata meta.Met
 		delete(model, k)
 	}
 	path := "0"
+
 	for i := range root.Args {
 		nm, ok := metadata[root.Args[i]]
 		if !ok {
@@ -67,34 +68,29 @@ func (model DefaultModel) FillForEntrypoint(data gjson.Result, metadata meta.Met
 		if nm.Name == entrypoint {
 			path = root.Args[i]
 			root = nm
-
-			parts := strings.Split(path, "/")
-			if len(parts) > 1 {
-				sData := data.String()
-				for i := range parts[1:] {
-					if parts[len(parts)-i-1] == "0" {
-						sData = fmt.Sprintf(`{"args":[%s]}`, sData)
-					} else {
-						sData = fmt.Sprintf(`{"args":[{}, %s]}`, sData)
-					}
-				}
-				data = gjson.Parse(sData)
+			prim := data.Get("prim|@lower").String()
+			for prim == consts.LEFT || prim == consts.RIGHT {
+				data = data.Get("args.0")
+				prim = data.Get("prim|@lower").String()
 			}
 			break
 		}
 	}
-	return model.fill(data, metadata, root, path, false)
+
+	return model.fill(data, metadata, root, path, path, false)
 }
 
-func (model DefaultModel) fill(data gjson.Result, metadata meta.Metadata, node *meta.NodeMetadata, path string, isOption bool, indices ...int) error {
+func (model DefaultModel) fill(data gjson.Result, metadata meta.Metadata, node *meta.NodeMetadata, path, prefix string, isOption bool, indices ...int) error {
 	if !isOption {
-		if err := model.optionWrapper(data, metadata, node, path, indices...); err != nil {
+		if err := model.optionWrapper(data, metadata, node, path, prefix, indices...); err != nil {
 			return err
 		}
 		if _, ok := model[path]; ok {
 			return nil
 		}
 	}
+
+	binPath := prepareBinPath(path, prefix)
 
 	switch node.Prim {
 	case consts.PAIR:
@@ -104,7 +100,7 @@ func (model DefaultModel) fill(data gjson.Result, metadata meta.Metadata, node *
 				return fmt.Errorf("Unknown pair arg path: %s", argPath)
 			}
 
-			if err := model.fill(data, metadata, arg, argPath, false, indices...); err != nil {
+			if err := model.fill(data, metadata, arg, argPath, prefix, false, indices...); err != nil {
 				return err
 			}
 		}
@@ -113,8 +109,9 @@ func (model DefaultModel) fill(data gjson.Result, metadata meta.Metadata, node *
 		if node.Prim == consts.SET {
 			suffix = "s"
 		}
+
 		listPath := fmt.Sprintf("%s/%s", path, suffix)
-		jsonPath := getGJSONPath(path, indices...)
+		jsonPath := getGJSONPath(path, binPath, indices...)
 		arr := data.Get(jsonPath).Array()
 		itemNode, ok := metadata[listPath]
 		if !ok {
@@ -124,18 +121,18 @@ func (model DefaultModel) fill(data gjson.Result, metadata meta.Metadata, node *
 		for i := range arr {
 			itemModel := make(DefaultModel)
 			newIndices := append(indices, i)
-			if err := itemModel.fill(data, metadata, itemNode, listPath, false, newIndices...); err != nil {
+			if err := itemModel.fill(data, metadata, itemNode, listPath, prefix, false, newIndices...); err != nil {
 				return err
 			}
 			result = append(result, itemModel)
 		}
 		model[path] = result
 	case consts.INT, consts.NAT, consts.MUTEZ:
-		jsonPath := getGJSONPath(path, indices...)
+		jsonPath := getGJSONPath(path, binPath, indices...)
 		i := getDataByPath(jsonPath, consts.INT, data)
 		model[path] = i.Int()
-	case consts.STRING, consts.TIMESTAMP, consts.KEY, consts.KEYHASH, consts.CONTRACT, consts.ADDRESS:
-		jsonPath := getGJSONPath(path, indices...)
+	case consts.STRING, consts.TIMESTAMP, consts.KEY, consts.KEYHASH, consts.CONTRACT, consts.ADDRESS, consts.SIGNATURE:
+		jsonPath := getGJSONPath(path, binPath, indices...)
 
 		str := getDataByPath(jsonPath, consts.STRING, data)
 		s := str.String()
@@ -146,11 +143,11 @@ func (model DefaultModel) fill(data gjson.Result, metadata meta.Metadata, node *
 
 		model[path] = s
 	case consts.BYTES:
-		jsonPath := getGJSONPath(path, indices...)
+		jsonPath := getGJSONPath(path, binPath, indices...)
 		str := getDataByPath(jsonPath, consts.BYTES, data)
 		model[path] = str.String()
 	case consts.MAP, consts.BIGMAP:
-		jsonPath := getGJSONPath(path, indices...)
+		jsonPath := getGJSONPath(path, binPath, indices...)
 		mapData := data.Get(jsonPath).Array()
 		result := make([]interface{}, 0)
 		for i := range mapData {
@@ -162,7 +159,7 @@ func (model DefaultModel) fill(data gjson.Result, metadata meta.Metadata, node *
 				if !ok {
 					return fmt.Errorf("Unknown map node: %s", keyPath)
 				}
-				if err := itemModel.fill(data, metadata, keyNode, keyPath, false, newIndices...); err != nil {
+				if err := itemModel.fill(data, metadata, keyNode, keyPath, prefix, false, newIndices...); err != nil {
 					return err
 				}
 			}
@@ -171,7 +168,7 @@ func (model DefaultModel) fill(data gjson.Result, metadata meta.Metadata, node *
 		model[path] = result
 	case consts.OR:
 		orPath := path
-		jsonPath := getGJSONPath(path, indices...)
+		jsonPath := getGJSONPath(orPath, binPath, indices...)
 		end := false
 		for !end {
 			jsonPath = strings.TrimPrefix(jsonPath, ".")
@@ -192,27 +189,37 @@ func (model DefaultModel) fill(data gjson.Result, metadata meta.Metadata, node *
 			"schemaKey": orPath,
 		}
 	case consts.LAMBDA:
-		jsonPath := getGJSONPath(path, indices...)
+		jsonPath := getGJSONPath(path, binPath, indices...)
 		str, err := formatter.MichelineToMichelson(data.Get(jsonPath), false, formatter.DefLineSize)
 		if err != nil {
 			return err
 		}
 		model[path] = str
 	case consts.BOOL:
-		jsonPath := getGJSONPath(path, indices...)
+		jsonPath := getGJSONPath(path, binPath, indices...)
 		b := getDataByPath(jsonPath, "prim|@lower", data)
 		model[path] = b.Bool()
+	case consts.OPTION:
+		optionNode, ok := metadata[path]
+		if !ok {
+			return fmt.Errorf("Unknown option node: %s", path)
+		}
+		if !strings.HasSuffix(path, "/o") {
+			path += "/o"
+		}
+		if err := model.fill(data, metadata, optionNode, path, prefix, false, indices...); err != nil {
+			return err
+		}
 	default:
 	}
 	return nil
 }
 
-func getGJSONPath(path string, indices ...int) string {
-	if path == "0" {
+func getGJSONPath(fullPath, path string, indices ...int) string {
+	if fullPath == "0" || path == "" {
 		return ""
 	}
-	trimmedPath := strings.TrimPrefix(path, "0/")
-	jsonPath := newmiguel.GetGJSONPathForData(trimmedPath)
+	jsonPath := newmiguel.GetGJSONPathForData(path)
 	for i := range indices {
 		jsonPath = strings.Replace(jsonPath, "#", fmt.Sprintf("%d", indices[i]), 1)
 	}
@@ -227,13 +234,14 @@ func getDataByPath(path, suffix string, data gjson.Result) gjson.Result {
 	return data.Get(p)
 }
 
-func (model DefaultModel) optionWrapper(data gjson.Result, metadata meta.Metadata, node *meta.NodeMetadata, path string, indices ...int) error {
+func (model DefaultModel) optionWrapper(data gjson.Result, metadata meta.Metadata, node *meta.NodeMetadata, path, prefix string, indices ...int) error {
 	if !strings.HasSuffix(path, "/o") {
 		return nil
 	}
-	jsonPath := getGJSONPath(path, indices...)
+	binPath := prepareBinPath(path, prefix)
+	jsonPath := getGJSONPath(path, binPath, indices...)
 	if !data.Get(jsonPath).Exists() {
-		model[path] = DefaultModel{
+		model[strings.TrimSuffix(path, "/o")] = DefaultModel{
 			"schemaKey": consts.NONE,
 		}
 		return nil
@@ -242,9 +250,21 @@ func (model DefaultModel) optionWrapper(data gjson.Result, metadata meta.Metadat
 	optionModel := DefaultModel{
 		"schemaKey": consts.SOME,
 	}
-	if err := optionModel.fill(data, metadata, node, path, true, indices...); err != nil {
+	if err := optionModel.fill(data, metadata, node, path, prefix, true, indices...); err != nil {
 		return err
 	}
-	model[path] = optionModel
+	model[strings.TrimSuffix(path, "/o")] = optionModel
 	return nil
+}
+
+func prepareBinPath(path, prefix string) string {
+	binPath := strings.TrimPrefix(path, prefix)
+	if path == "0" {
+		binPath = path
+	}
+
+	if strings.HasPrefix(binPath, "/") {
+		binPath = strings.TrimPrefix(binPath, "/")
+	}
+	return binPath
 }

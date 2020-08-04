@@ -1,11 +1,19 @@
 package kinds
 
+// FA2Name - name of tag
+const FA2Name = "fa2"
+
 // Fa2 -
 type Fa2 struct{}
 
 // GetName -
 func (fa2 Fa2) GetName() string {
-	return "fa2"
+	return FA2Name
+}
+
+// IsRoot -
+func (fa2 Fa2) IsRoot() bool {
+	return false
 }
 
 // GetJSON -

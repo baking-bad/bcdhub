@@ -4,4 +4,5 @@ package kinds
 type IContractKind interface {
 	GetJSON() string
 	GetName() string
+	IsRoot() bool
 }

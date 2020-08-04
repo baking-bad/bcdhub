@@ -433,6 +433,8 @@ definitions:
         type: string
       public_key:
         type: string
+      rawMempool:
+        type: object
       result:
         $ref: '#/definitions/handlers.OperationResult'
         type: object

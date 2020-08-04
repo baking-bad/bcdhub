@@ -21,10 +21,10 @@ func getItemsType(binPath string, metadata meta.Metadata) (string, error) {
 	}
 }
 
-func (m *listMaker) Do(binPath string, metadata meta.Metadata) (Schema, DefaultModel, error) {
+func (m *listMaker) Do(binPath string, metadata meta.Metadata) (Schema, error) {
 	nm, ok := metadata[binPath]
 	if !ok {
-		return nil, nil, fmt.Errorf("[listMaker] Unknown metadata binPath: %s", binPath)
+		return nil, fmt.Errorf("[listMaker] Unknown metadata binPath: %s", binPath)
 	}
 	schema := Schema{
 		"type":  "array",
@@ -42,22 +42,16 @@ func (m *listMaker) Do(binPath string, metadata meta.Metadata) (Schema, DefaultM
 	required := make([]string, 0)
 	propertiesItems := Schema{}
 
-	listSchema, _, err := Create(path, metadata)
+	listSchema, err := Create(path, metadata)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-
-	// itemsType, err := getItemsType(path, metadata)
-	// if err != nil {
-	// 	return nil, nil, err
-	// }
 
 	if properties, ok := listSchema["properties"]; ok {
 		props := properties.(Schema)
 		for k := range props {
 			propertiesItems[k] = props[k]
 			required = append(required, k)
-			//schema["x-itemTitle"] = k
 		}
 	} else {
 		propertiesItems[path] = listSchema
@@ -68,13 +62,12 @@ func (m *listMaker) Do(binPath string, metadata meta.Metadata) (Schema, DefaultM
 		"properties": propertiesItems,
 		"required":   required,
 	}
-	model := make(DefaultModel)
-	model[binPath] = make([]interface{}, 0)
+	schema["default"] = make([]interface{}, 0)
 
 	return Schema{
 		"type": "object",
 		"properties": Schema{
 			binPath: schema,
 		},
-	}, model, nil
+	}, nil
 }

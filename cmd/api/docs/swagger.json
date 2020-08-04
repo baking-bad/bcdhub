@@ -2647,6 +2647,9 @@
                 "public_key": {
                     "type": "string"
                 },
+                "rawMempool": {
+                    "type": "object"
+                },
                 "result": {
                     "type": "object",
                     "$ref": "#/definitions/handlers.OperationResult"

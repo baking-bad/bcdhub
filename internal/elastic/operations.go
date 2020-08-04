@@ -266,20 +266,15 @@ func (e *Elastic) GetOperations(filters map[string]interface{}, size int64, sort
 		})
 	}
 
-	if size == 1 {
-		query = query.One()
-	} else if size == 0 {
-		query = query.All()
-	} else {
-		query = query.Size(size).All()
+	if size == 0 || size > defaultSize {
+		size = 1000
 	}
 
-	result, err := e.createScroll(DocOperations, 1000, query)
+	result, err := e.createScroll(DocOperations, size, query)
 	if err != nil {
 		return nil, err
 	}
 	for {
-		scrollID := result.Get("_scroll_id").String()
 		hits := result.Get("hits.hits")
 		if hits.Get("#").Int() < 1 {
 			break
@@ -291,6 +286,11 @@ func (e *Elastic) GetOperations(filters map[string]interface{}, size int64, sort
 			operations = append(operations, op)
 		}
 
+		if len(operations) == int(size) {
+			break
+		}
+
+		scrollID := result.Get("_scroll_id").String()
 		result, err = e.queryScroll(scrollID)
 		if err != nil {
 			return nil, err

@@ -18,11 +18,11 @@ type VestingParser struct {
 	rpc            noderpc.INode
 	es             elastic.IElastic
 	filesDirectory string
-	interfaces     map[string][]kinds.Entrypoint
+	interfaces     map[string]kinds.ContractKind
 }
 
 // NewVestingParser -
-func NewVestingParser(rpc noderpc.INode, es elastic.IElastic, filesDirectory string, interfaces map[string][]kinds.Entrypoint) *VestingParser {
+func NewVestingParser(rpc noderpc.INode, es elastic.IElastic, filesDirectory string, interfaces map[string]kinds.ContractKind) *VestingParser {
 	return &VestingParser{
 		rpc:            rpc,
 		es:             es,
