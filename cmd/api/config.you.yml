@@ -7,11 +7,11 @@ sentry:
     debug: true
 
 elastic:
-    uri: http://127.0.0.1:9200
+    uri: http://127.0.0.1:9400
     timeout: 1
 
 db:
-    conn_string: "host=127.0.0.1 port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"
+    conn_string: "host=127.0.0.1 port=5532 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"
 
 oauth:
     state: ${OAUTH_STATE_STRING}
@@ -44,7 +44,7 @@ api:
         enabled: false
 
 rabbitmq:
-    uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@127.0.0.1:5672/"
+    uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@127.0.0.1:5772/"
     queues:
         - operations
         - recalc

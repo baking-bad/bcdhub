@@ -5,8 +5,8 @@ rpc:
     zeronet:
         uri: https://rpc.tzkt.io/zeronet
         timeout: 20
-    babylonnet:
-        uri: https://rpc.tzkt.io/babylonnet
+    dalphanet:
+        uri: https://rpc.tzkt.io/dalphanet
         timeout: 20
     carthagenet:
         uri: https://rpc.tzkt.io/carthagenet
@@ -20,10 +20,6 @@ tzkt:
     zeronet:
         uri: https://api.zeronet.tzkt.io/v1/
         services_uri: https://services.tzkt.io/zeronet/v1/
-        timeout: 20
-    babylonnet:
-        uri: https://api.babylon.tzkt.io/v1/
-        services_uri: https://services.tzkt.io/babylonnet/v1/
         timeout: 20
     carthagenet:
         uri: https://api.carthage.tzkt.io/v1/
@@ -71,7 +67,7 @@ api:
         - mainnet
         - carthagenet
         - zeronet
-        - babylonnet
+        - dalphanet
     seed:
         enabled: false
 
@@ -90,4 +86,4 @@ migrations:
         - mainnet
         - carthagenet
         - zeronet
-        - babylonnet
+        - dalphanet
