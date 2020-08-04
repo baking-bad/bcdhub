@@ -324,3 +324,66 @@ func (e *Elastic) GetContractMigrationStats(network, address string) (stats Cont
 
 	return
 }
+
+// GetDAppStats -
+func (e *Elastic) GetDAppStats(network, address, period string) (stats DAppStats, err error) {
+	matches := []qItem{
+		matchQ("network", network),
+		matchPhrase("destination", address),
+		matchQ("status", "applied"),
+	}
+	r, err := periodToRange(period)
+	if err != nil {
+		return
+	}
+	matches = append(matches, r)
+
+	query := newQuery().Query(
+		boolQ(
+			filter(matches...),
+		),
+	).Add(
+		qItem{
+			"aggs": qItem{
+				"users": qItem{
+					"cardinality": qItem{
+						"field": "source.keyword",
+					},
+				},
+				"tx":     count("indexed_time"),
+				"volume": sum("amount"),
+			},
+		},
+	).Zero()
+
+	response, err := e.query([]string{DocOperations}, query)
+	if err != nil {
+		return
+	}
+
+	stats.ParseElasticJSON(response.Get("aggregations"))
+	return
+}
+
+func periodToRange(period string) (qItem, error) {
+	var str string
+	switch period {
+	case "year":
+		str = "now-1y/d"
+	case "month":
+		str = "now-1M/d"
+	case "week":
+		str = "now-1w/d"
+	case "day":
+		str = "now-1d/d"
+	default:
+		return nil, fmt.Errorf("Unknown period value: %s", period)
+	}
+	return qItem{
+		"range": qItem{
+			"timestamp": qItem{
+				"gte": str,
+			},
+		},
+	}, nil
+}

@@ -317,3 +317,17 @@ type TokenMethodUsageStats struct {
 
 // TokenUsageStats -
 type TokenUsageStats map[string]TokenMethodUsageStats
+
+// DAppStats -
+type DAppStats struct {
+	Users  int64 `json:"users"`
+	Txs    int64 `json:"txs"`
+	Volume int64 `json:"volume"`
+}
+
+// ParseElasticJSON -
+func (stats *DAppStats) ParseElasticJSON(hit gjson.Result) {
+	stats.Txs = hit.Get("tx.value").Int()
+	stats.Users = hit.Get("users.value").Int()
+	stats.Volume = hit.Get("volume.value").Int()
+}

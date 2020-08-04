@@ -281,7 +281,7 @@
         },
         "/contract/{network}/{address}": {
             "get": {
-                "description": "Get full contract info",
+                "description": "Show total volume, unique users and transactions count for period",
                 "consumes": [
                     "application/json"
                 ],
@@ -291,8 +291,8 @@
                 "tags": [
                     "contract"
                 ],
-                "summary": "Get contract info",
-                "operationId": "get-contract",
+                "summary": "Show contract stats",
+                "operationId": "get-contract-stats",
                 "parameters": [
                     {
                         "type": "string",
@@ -309,19 +309,26 @@
                         "name": "address",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "enum": [
+                            "year",
+                            "month",
+                            "week",
+                            "day"
+                        ],
+                        "type": "string",
+                        "description": "One of periods",
+                        "name": "period",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.Contract"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
+                            "$ref": "#/definitions/elastic.DAppStats"
                         }
                     },
                     "500": {
@@ -1740,7 +1747,9 @@
                             "contract",
                             "operation",
                             "paid_storage_size_diff",
-                            "consumed_gas"
+                            "consumed_gas",
+                            "users",
+                            "volume"
                         ],
                         "type": "string",
                         "description": "One of names",
@@ -1760,6 +1769,12 @@
                         "name": "period",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Contract address",
+                        "name": "address",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -2025,6 +2040,20 @@
                 },
                 "value": {
                     "type": "string"
+                }
+            }
+        },
+        "elastic.DAppStats": {
+            "type": "object",
+            "properties": {
+                "txs": {
+                    "type": "integer"
+                },
+                "users": {
+                    "type": "integer"
+                },
+                "volume": {
+                    "type": "integer"
                 }
             }
         },

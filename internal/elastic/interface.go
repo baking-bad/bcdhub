@@ -84,6 +84,7 @@ type IContract interface {
 	NeedParseOperation(string, string, string) (bool, error)
 	RecalcContractStats(string, string) (ContractStats, error)
 	UpdateContractMigrationsCount(string, string) error
+	GetDAppStats(string, string, string) (DAppStats, error)
 }
 
 // IEvents -
@@ -140,7 +141,7 @@ type ISnapshot interface {
 // IStats -
 type IStats interface {
 	GetNetworkCountStats(string) (NetworkCountStats, error)
-	GetDateHistogram(string, string, string, string, string) ([][]int64, error)
+	GetDateHistogram(string, string, string, string, string, string) ([][]int64, error)
 	GetCallsCountByNetwork() (map[string]int64, error)
 	GetContractStatsByNetwork() (map[string]ContractCountStats, error)
 	GetFACountByNetwork() (map[string]int64, error)
