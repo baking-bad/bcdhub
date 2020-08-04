@@ -10,10 +10,10 @@ import (
 
 type orMaker struct{}
 
-func (m *orMaker) Do(binPath string, metadata meta.Metadata) (Schema, DefaultModel, error) {
+func (m *orMaker) Do(binPath string, metadata meta.Metadata) (Schema, error) {
 	nm, ok := metadata[binPath]
 	if !ok {
-		return nil, nil, fmt.Errorf("[orMaker] Unknown metadata binPath: %s", binPath)
+		return nil, fmt.Errorf("[orMaker] Unknown metadata binPath: %s", binPath)
 	}
 	switch nm.Type {
 	case consts.TypeEnum, consts.TypeNamedEnum:
@@ -23,15 +23,9 @@ func (m *orMaker) Do(binPath string, metadata meta.Metadata) (Schema, DefaultMod
 	}
 }
 
-func getEnum(binPath string, metadata meta.Metadata, nm *meta.NodeMetadata) (Schema, DefaultModel, error) {
+func getEnum(binPath string, metadata meta.Metadata, nm *meta.NodeMetadata) (Schema, error) {
 	oneOf := make([]Schema, 0)
-	model := make(DefaultModel)
 	for _, arg := range nm.Args {
-		if _, ok := model[binPath]; !ok {
-			model[binPath] = DefaultModel{
-				"schemaKey": arg,
-			}
-		}
 		oneOf = append(oneOf, Schema{
 			"properties": Schema{
 				"schemaKey": Schema{
@@ -44,23 +38,21 @@ func getEnum(binPath string, metadata meta.Metadata, nm *meta.NodeMetadata) (Sch
 	}
 
 	return Schema{
-		"type":  "object",
-		"prim":  nm.Prim,
-		"title": getName(nm, binPath),
-		"oneOf": oneOf,
-	}, model, nil
+		"type":    "object",
+		"prim":    nm.Prim,
+		"title":   getName(nm, binPath),
+		"oneOf":   oneOf,
+		"default": nm.Args[0],
+	}, nil
 }
 
-func getOr(binPath string, metadata meta.Metadata, nm *meta.NodeMetadata) (Schema, DefaultModel, error) {
+func getOr(binPath string, metadata meta.Metadata, nm *meta.NodeMetadata) (Schema, error) {
 	oneOf := make([]Schema, 0)
-	model := make(DefaultModel)
 	for _, arg := range nm.Args {
-		argSchema, argModel, err := Create(arg, metadata)
+		argSchema, err := Create(arg, metadata)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
-
-		model.Extend(argModel, arg)
 
 		arg = strings.TrimSuffix(arg, "/o")
 
@@ -89,7 +81,7 @@ func getOr(binPath string, metadata meta.Metadata, nm *meta.NodeMetadata) (Schem
 		"prim":  nm.Prim,
 		"title": getName(nm, binPath),
 		"oneOf": oneOf,
-	}, model, nil
+	}, nil
 }
 
 func getOrTitle(binPath, rootPath string, metadata meta.Metadata) string {

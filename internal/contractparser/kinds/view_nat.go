@@ -1,5 +1,8 @@
 package kinds
 
+// ViewNatName - name of tag
+const ViewNatName = "view_nat"
+
 // ViewNat -
 type ViewNat struct{}
 
@@ -15,4 +18,9 @@ func (v ViewNat) GetJSON() string {
 // GetName -
 func (v ViewNat) GetName() string {
 	return "view_nat"
+}
+
+// IsRoot -
+func (v ViewNat) IsRoot() bool {
+	return true
 }

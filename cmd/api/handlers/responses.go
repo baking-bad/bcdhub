@@ -410,7 +410,7 @@ type SearchBigMapDiff struct {
 type EntrypointSchema struct {
 	docstring.EntrypointType
 	Schema       jsonschema.Schema       `json:"schema"`
-	DefaultModel jsonschema.DefaultModel `json:"default_model"`
+	DefaultModel jsonschema.DefaultModel `json:"default_model,omitempty"`
 }
 
 // GetErrorLocationResponse -

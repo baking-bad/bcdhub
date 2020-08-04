@@ -60,8 +60,8 @@ func (p *Parameter) handlePrimitive(n node.Node) error {
 }
 
 // FindTags -
-func (p *Parameter) FindTags(interfaces map[string][]kinds.Entrypoint) error {
-	tags, err := endpointsTags(p.Metadata, interfaces)
+func (p *Parameter) FindTags(interfaces map[string]kinds.ContractKind) error {
+	tags, err := kinds.Find(p.Metadata, interfaces)
 	if err != nil {
 		return err
 	}

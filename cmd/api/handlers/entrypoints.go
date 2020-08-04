@@ -44,7 +44,7 @@ func (ctx *Context) GetEntrypoints(c *gin.Context) {
 	resp := make([]EntrypointSchema, len(entrypoints))
 	for i, entrypoint := range entrypoints {
 		resp[i].EntrypointType = entrypoint
-		resp[i].Schema, resp[i].DefaultModel, err = jsonschema.Create(entrypoint.BinPath, metadata)
+		resp[i].Schema, err = jsonschema.Create(entrypoint.BinPath, metadata)
 		if handleError(c, err, 0) {
 			return
 		}
@@ -140,7 +140,7 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 		}
 
 		schema.EntrypointType = entrypoint
-		schema.Schema, schema.DefaultModel, err = jsonschema.Create(entrypoint.BinPath, metadata)
+		schema.Schema, err = jsonschema.Create(entrypoint.BinPath, metadata)
 		if handleError(c, err, 0) {
 			return
 		}
@@ -168,6 +168,7 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 		if parameters.Get("value").Exists() && parameters.Get("entrypoint").Exists() {
 			parameters = parameters.Get("value")
 		}
+		schema.DefaultModel = make(jsonschema.DefaultModel)
 		if err := schema.DefaultModel.FillForEntrypoint(parameters, metadata, esReq.EntrypointName); handleError(c, err, 0) {
 			return
 		}

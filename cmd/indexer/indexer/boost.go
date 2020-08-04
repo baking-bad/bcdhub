@@ -34,7 +34,7 @@ type BoostIndexer struct {
 	messageQueue    *mq.MQ
 	filesDirectory  string
 	boost           bool
-	interfaces      map[string][]kinds.Entrypoint
+	interfaces      map[string]kinds.ContractKind
 
 	stop    chan struct{}
 	stopped bool

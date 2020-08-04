@@ -191,9 +191,9 @@ func (ctx *Context) contractToTokens(contracts []models.Contract, network, versi
 		if !ok {
 			return PageableTokenContracts{}, fmt.Errorf("Unknown interface version: %s", version)
 		}
-		methods := make([]string, len(interfaceVersion))
-		for i := range interfaceVersion {
-			methods[i] = interfaceVersion[i].Name
+		methods := make([]string, len(interfaceVersion.Entrypoints))
+		for i := range interfaceVersion.Entrypoints {
+			methods[i] = interfaceVersion.Entrypoints[i].Name
 		}
 
 		stats, err := ctx.ES.GetTokensStats(network, addresses, methods)

@@ -24,13 +24,13 @@ type DefaultParser struct {
 	rpc            noderpc.INode
 	es             elastic.IElastic
 	filesDirectory string
-	interfaces     map[string][]kinds.Entrypoint
+	interfaces     map[string]kinds.ContractKind
 
 	storageParser storage.Parser
 }
 
 // NewDefaultParser -
-func NewDefaultParser(rpc noderpc.INode, es elastic.IElastic, filesDirectory string, interfaces map[string][]kinds.Entrypoint) *DefaultParser {
+func NewDefaultParser(rpc noderpc.INode, es elastic.IElastic, filesDirectory string, interfaces map[string]kinds.ContractKind) *DefaultParser {
 	return &DefaultParser{
 		rpc:            rpc,
 		es:             es,
