@@ -5,8 +5,8 @@ rpc:
     zeronet:
         uri: https://rpc.tzkt.io/zeronet
         timeout: 20
-    babylonnet:
-        uri: https://rpc.tzkt.io/babylonnet
+    dalphanet:
+        uri: https://rpc.tzkt.io/dalphanet
         timeout: 20
     carthagenet:
         uri: https://testnet-tezos.giganode.io
