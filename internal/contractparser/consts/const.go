@@ -12,12 +12,13 @@ const (
 	KeyTime   = "timestamp"
 )
 
-//Kind
+// Kind
 const (
-	Transaction = "transaction"
-	Origination = "origination"
-	Delegation  = "delegation"
-	Migration   = "migration"
+	Transaction    = "transaction"
+	Origination    = "origination"
+	OriginationNew = "origination_new"
+	Delegation     = "delegation"
+	Migration      = "migration"
 )
 
 // Error IDs

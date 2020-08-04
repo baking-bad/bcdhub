@@ -17,6 +17,20 @@
                 "config.dev.yml"
             ],
             "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "name": "Launch Indexer",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/cmd/indexer/main.go",
+            "args": [
+                "-f",
+                "config.yml",
+                "-f",
+                "config.dev.yml"
+            ],
+            "envFile": "${workspaceFolder}/.env"
         }
     ]
 }

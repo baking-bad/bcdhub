@@ -18,7 +18,9 @@ import (
 )
 
 func createNewContract(es elastic.IElastic, interfaces map[string]kinds.ContractKind, operation models.Operation, filesDirectory, protoSymLink string) ([]elastic.Model, error) {
-	if operation.Kind != consts.Origination && operation.Kind != consts.Migration {
+	if !helpers.StringInArray(operation.Kind, []string{
+		consts.Origination, consts.OriginationNew, consts.Migration,
+	}) {
 		return nil, fmt.Errorf("Invalid operation kind in computeContractMetrics: %s", operation.Kind)
 	}
 	contract := models.Contract{
