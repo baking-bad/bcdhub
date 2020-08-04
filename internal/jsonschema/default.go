@@ -37,7 +37,8 @@ func (m *defaultMaker) Do(binPath string, metadata meta.Metadata) (Schema, error
 		if nm.Prim != consts.BIGMAP {
 			schema["default"] = 0
 		}
-	case consts.STRING, consts.BYTES, consts.KEYHASH, consts.KEY, consts.CHAINID, consts.SIGNATURE, consts.LAMBDA:
+	case consts.STRING, consts.BYTES, consts.KEYHASH, consts.KEY, consts.CHAINID, consts.SIGNATURE, consts.LAMBDA,
+		consts.BAKERHASH, consts.BLS12381FR, consts.BLS12381G1, consts.BLS12381G2, consts.NEVER, consts.SAPLINGSTATE, consts.SAPLINGTRANSACTION:
 		schema["type"] = "string"
 		schema["default"] = ""
 	case consts.BOOL:

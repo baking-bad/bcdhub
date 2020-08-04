@@ -76,7 +76,7 @@ func (p *DefaultParser) Parse(opg gjson.Result, network string, head noderpc.Hea
 func (p *DefaultParser) parseContent(data gjson.Result, network, hash string, head noderpc.Header, contentIdx int64) ([]elastic.Model, models.Operation, error) {
 	kind := data.Get("kind").String()
 	switch kind {
-	case consts.Origination:
+	case consts.Origination, consts.OriginationNew:
 		return p.parseOrigination(data, network, hash, head, contentIdx)
 	default:
 		return p.parseTransaction(data, network, hash, head, contentIdx)
@@ -363,7 +363,7 @@ func (p *DefaultParser) needParse(item gjson.Result, network string, idx int) (b
 	destination := item.Get("destination").String()
 	prefixCondition := strings.HasPrefix(source, "KT") || strings.HasPrefix(destination, "KT")
 	transactionCondition := kind == consts.Transaction && prefixCondition
-	originationCondition := kind == consts.Origination && item.Get("script").Exists()
+	originationCondition := (kind == consts.Origination || kind == consts.OriginationNew) && item.Get("script").Exists()
 	return originationCondition || transactionCondition, nil
 }
 

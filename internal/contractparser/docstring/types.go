@@ -36,6 +36,13 @@ var simpleTypes = []string{
 	consts.CHAINID,
 	consts.UNIT,
 	consts.OPERATION,
+	consts.BAKERHASH,
+	consts.BLS12381FR,
+	consts.BLS12381G1,
+	consts.BLS12381G2,
+	consts.NEVER,
+	consts.SAPLINGSTATE,
+	consts.SAPLINGTRANSACTION,
 }
 
 func getType(bPath string, md meta.Metadata) (string, error) {

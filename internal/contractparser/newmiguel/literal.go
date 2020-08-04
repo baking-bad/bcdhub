@@ -31,13 +31,13 @@ func (l *literalDecoder) Decode(jsonData gjson.Result, path string, nm *meta.Nod
 		return &node, nil
 	}
 	switch nm.Type {
-	case consts.MUTEZ, consts.NAT, consts.STRING, consts.INT:
+	case consts.MUTEZ, consts.NAT, consts.STRING, consts.INT, consts.SAPLINGSTATE:
 		data, err := l.simple.Decode(jsonData, path, nm, metadata, false)
 		if err != nil {
 			return nil, err
 		}
 		node.Value = data
-	case consts.BYTES:
+	case consts.BYTES, consts.SAPLINGTRANSACTION, consts.BLS12381FR, consts.BLS12381G1, consts.BLS12381G2:
 		if jsonData.Get(consts.BYTES).Exists() {
 			node.Value = unpack.Bytes(jsonData.Get(consts.BYTES).String())
 		} else if jsonData.Get(consts.STRING).Exists() {
@@ -106,6 +106,8 @@ func (l *literalDecoder) Decode(jsonData gjson.Result, path string, nm *meta.Nod
 		}
 	case consts.BOOL:
 		node.Value = jsonData.Get("prim").String() != "False"
+	case consts.BAKERHASH:
+		node.Value = jsonData.Get(consts.STRING).String()
 	case consts.UNIT:
 		node.Value = nil
 	}
