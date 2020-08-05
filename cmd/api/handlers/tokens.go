@@ -26,7 +26,7 @@ import (
 // @Param size query integer false "Requested count"
 // @Accept json
 // @Produce json
-// @Success 200 {array} TokenContract
+// @Success 200 {array} PageableTokenContracts
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /tokens/{network} [get]
@@ -77,7 +77,7 @@ func (ctx *Context) GetFA(c *gin.Context) {
 // @Param size query integer false "Requested count"
 // @Accept json
 // @Produce json
-// @Success 200 {array} TokenContract
+// @Success 200 {array} PageableTokenContracts
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /tokens/{network}/version/{faversion} [get]

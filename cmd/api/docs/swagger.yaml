@@ -458,7 +458,7 @@ definitions:
         type: string
       operations:
         items:
-          type: integer
+          $ref: '#/definitions/handlers.Operation'
         type: array
     type: object
   handlers.OperationResult:
@@ -474,6 +474,17 @@ definitions:
         type: integer
       storage_size:
         example: 200
+        type: integer
+    type: object
+  handlers.PageableTokenContracts:
+    properties:
+      last_id:
+        type: integer
+      tokens:
+        items:
+          $ref: '#/definitions/handlers.TokenContract'
+        type: array
+      total:
         type: integer
     type: object
   handlers.PageableTokenTransfers:
@@ -1734,7 +1745,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Search any data in contracts, operations and big map diff with filters
+      description: Search any data in contracts, operations and big map diff with
+        filters
       operationId: search
       parameters:
       - description: Query string
@@ -1772,11 +1784,13 @@ paths:
         in: query
         name: g
         type: integer
-      - description: 'Comma-separated list of indices for searching. Values: contract, operation, bigmapdiff'
+      - description: 'Comma-separated list of indices for searching. Values: contract,
+          operation, bigmapdiff'
         in: query
         name: i
         type: string
-      - description: 'Comma-separated list of languages for searching. Values: smartpy, liquidity, ligo, lorentz, michelson'
+      - description: 'Comma-separated list of languages for searching. Values: smartpy,
+          liquidity, ligo, lorentz, michelson'
         in: query
         name: l
         type: string
@@ -1961,7 +1975,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/handlers.TokenContract'
+              $ref: '#/definitions/handlers.PageableTokenContracts'
             type: array
         "400":
           description: Bad Request
@@ -2060,7 +2074,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/handlers.TokenContract'
+              $ref: '#/definitions/handlers.PageableTokenContracts'
             type: array
         "400":
           description: Bad Request
