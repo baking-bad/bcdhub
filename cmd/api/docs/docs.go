@@ -1863,7 +1863,7 @@ var doc = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/handlers.TokenContract"
+                                "$ref": "#/definitions/handlers.PageableTokenContracts"
                             }
                         }
                     },
@@ -2008,7 +2008,7 @@ var doc = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/handlers.TokenContract"
+                                "$ref": "#/definitions/handlers.PageableTokenContracts"
                             }
                         }
                     },
@@ -2730,7 +2730,7 @@ var doc = `{
                 "operations": {
                     "type": "array",
                     "items": {
-                        "type": "integer"
+                        "$ref": "#/definitions/handlers.Operation"
                     }
                 }
             }
@@ -2753,6 +2753,23 @@ var doc = `{
                 "storage_size": {
                     "type": "integer",
                     "example": 200
+                }
+            }
+        },
+        "handlers.PageableTokenContracts": {
+            "type": "object",
+            "properties": {
+                "last_id": {
+                    "type": "integer"
+                },
+                "tokens": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.TokenContract"
+                    }
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },
