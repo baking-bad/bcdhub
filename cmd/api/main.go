@@ -226,6 +226,12 @@ func main() {
 				}
 			}
 		}
+
+		dapps := v1.Group("dapps")
+		{
+			dapps.GET("", ctx.GetDAppList)
+			dapps.GET(":network/:address", ctx.GetDApp)
+		}
 	}
 
 	if err := r.Run(cfg.API.Bind); err != nil {
