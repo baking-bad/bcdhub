@@ -135,8 +135,10 @@ type getEntrypointDataRequest struct {
 }
 
 type getSeriesRequest struct {
-	Name   string `form:"name" binding:"oneof=contract operation paid_storage_size_diff consumed_gas" example:"contract"`
+	Name   string `form:"name" binding:"oneof=contract operation paid_storage_size_diff consumed_gas volume users" example:"contract"`
 	Period string `form:"period" binding:"oneof=year month week day" example:"year"`
+
+	Address string `form:"address,omitempty" binding:"omitempty,address"`
 }
 
 type getBySlugRequest struct {
@@ -182,4 +184,8 @@ type forkRequest struct {
 
 type storageRequest struct {
 	Level int `form:"level" binding:"omitempty,gte=1"`
+}
+
+type periodRequest struct {
+	Period string `form:"period" binding:"oneof=year month week day" example:"year"`
 }

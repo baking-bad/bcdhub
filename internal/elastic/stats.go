@@ -49,7 +49,7 @@ func (e *Elastic) GetNetworkCountStats(network string) (stats NetworkCountStats,
 }
 
 // GetDateHistogram -
-func (e *Elastic) GetDateHistogram(network, index, function, field, period string) ([][]int64, error) {
+func (e *Elastic) GetDateHistogram(network, index, function, field, period, address string) ([][]int64, error) {
 	hist := qItem{
 		"date_histogram": qItem{
 			"field":             "timestamp",
@@ -67,10 +67,17 @@ func (e *Elastic) GetDateHistogram(network, index, function, field, period strin
 		})
 	}
 
+	matches := []qItem{
+		matchQ("network", network),
+	}
+	if address != "" {
+		matches = append(matches, matchPhrase("destination", address))
+	}
+
 	query := newQuery().Query(
 		boolQ(
 			filter(
-				matchQ("network", network),
+				matches...,
 			),
 		),
 	).Add(

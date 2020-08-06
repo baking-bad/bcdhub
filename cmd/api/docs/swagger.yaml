@@ -20,6 +20,15 @@ definitions:
       value:
         type: string
     type: object
+  elastic.DAppStats:
+    properties:
+      txs:
+        type: integer
+      users:
+        type: integer
+      volume:
+        type: integer
+    type: object
   elastic.Group:
     properties:
       count:
@@ -921,8 +930,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get full contract info
-      operationId: get-contract
+      description: Show total volume, unique users and transactions count for period
+      operationId: get-contract-stats
       parameters:
       - description: Network
         in: path
@@ -936,22 +945,28 @@ paths:
         name: address
         required: true
         type: string
+      - description: One of periods
+        enum:
+        - year
+        - month
+        - week
+        - day
+        in: query
+        name: period
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.Contract'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.Error'
+            $ref: '#/definitions/elastic.DAppStats'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.Error'
-      summary: Get contract info
+      summary: Show contract stats
       tags:
       - contract
   /contract/{network}/{address}/code:
@@ -1912,6 +1927,8 @@ paths:
         - operation
         - paid_storage_size_diff
         - consumed_gas
+        - users
+        - volume
         in: query
         name: name
         required: true
@@ -1925,6 +1942,10 @@ paths:
         in: query
         name: period
         required: true
+        type: string
+      - description: Contract address
+        in: query
+        name: address
         type: string
       produces:
       - application/json

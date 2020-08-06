@@ -82,8 +82,9 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 // @Tags statistics
 // @ID get-network-series
 // @Param network path string true "Network"
-// @Param name query string true "One of names" Enums(contract, operation, paid_storage_size_diff, consumed_gas)
+// @Param name query string true "One of names" Enums(contract, operation, paid_storage_size_diff, consumed_gas, users, volume)
 // @Param period query string true "One of periods"  Enums(year, month, week, day)
+// @Param address query string false "Contract address"
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} Series
@@ -106,7 +107,7 @@ func (ctx *Context) GetSeries(c *gin.Context) {
 		return
 	}
 
-	series, err := ctx.ES.GetDateHistogram(req.Network, params.Index, params.Function, params.Field, reqArgs.Period)
+	series, err := ctx.ES.GetDateHistogram(req.Network, params.Index, params.Function, params.Field, reqArgs.Period, reqArgs.Address)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -141,6 +142,18 @@ func getSeriesIndexAndField(name string) (seriesParams, error) {
 			Index:    "operation",
 			Function: "sum",
 			Field:    "result.consumed_gas",
+		}, nil
+	case "users":
+		return seriesParams{
+			Index:    "operation",
+			Function: "cardinality",
+			Field:    "source.keyword",
+		}, nil
+	case "volume":
+		return seriesParams{
+			Index:    "operation",
+			Function: "sum",
+			Field:    "amount",
 		}, nil
 	default:
 		return seriesParams{}, fmt.Errorf("Unknown series name: %s", name)

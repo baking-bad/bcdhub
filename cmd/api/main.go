@@ -184,6 +184,7 @@ func main() {
 				entrypoints.POST("run_operation", ctx.RunOperation)
 			}
 			contract.POST("fork", ctx.ForkContract)
+			contract.GET("stats", ctx.GetContractStats)
 		}
 
 		fa12 := v1.Group("tokens/:network")
