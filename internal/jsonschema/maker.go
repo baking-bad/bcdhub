@@ -85,7 +85,7 @@ func (model DefaultModel) fill(data gjson.Result, metadata meta.Metadata, node *
 		if err := model.optionWrapper(data, metadata, node, path, prefix, indices...); err != nil {
 			return err
 		}
-		if _, ok := model[path]; ok {
+		if _, ok := model[strings.TrimSuffix(path, "/o")]; ok {
 			return nil
 		}
 	}
