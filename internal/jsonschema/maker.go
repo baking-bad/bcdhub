@@ -3,6 +3,7 @@ package jsonschema
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
@@ -131,7 +132,7 @@ func (model DefaultModel) fill(data gjson.Result, metadata meta.Metadata, node *
 		jsonPath := getGJSONPath(path, binPath, indices...)
 		i := getDataByPath(jsonPath, consts.INT, data)
 		model[path] = i.Int()
-	case consts.STRING, consts.TIMESTAMP, consts.KEY, consts.KEYHASH, consts.CONTRACT, consts.ADDRESS, consts.SIGNATURE:
+	case consts.STRING, consts.KEY, consts.KEYHASH, consts.CONTRACT, consts.ADDRESS, consts.SIGNATURE:
 		jsonPath := getGJSONPath(path, binPath, indices...)
 
 		str := getDataByPath(jsonPath, consts.STRING, data)
@@ -139,6 +140,17 @@ func (model DefaultModel) fill(data gjson.Result, metadata meta.Metadata, node *
 		if !str.Exists() {
 			str = getDataByPath(jsonPath, consts.BYTES, data)
 			s = unpack.Bytes(str.String())
+		}
+
+		model[path] = s
+	case consts.TIMESTAMP:
+		jsonPath := getGJSONPath(path, binPath, indices...)
+
+		str := getDataByPath(jsonPath, consts.STRING, data)
+		s := str.String()
+		if !str.Exists() {
+			str = getDataByPath(jsonPath, consts.INT, data)
+			s = time.Unix(str.Int(), 0).Format(time.RFC3339)
 		}
 
 		model[path] = s
