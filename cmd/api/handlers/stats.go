@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
@@ -84,7 +85,7 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 // @Param network path string true "Network"
 // @Param name query string true "One of names" Enums(contract, operation, paid_storage_size_diff, consumed_gas, users, volume)
 // @Param period query string true "One of periods"  Enums(year, month, week, day)
-// @Param address query string false "Contract address"
+// @Param address query string false "Comma-separated contract addresses"
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} Series
@@ -107,7 +108,11 @@ func (ctx *Context) GetSeries(c *gin.Context) {
 		return
 	}
 
-	series, err := ctx.ES.GetDateHistogram(req.Network, params.Index, params.Function, params.Field, reqArgs.Period, reqArgs.Address)
+	var addresses []string
+	if reqArgs.Address != "" {
+		addresses = strings.Split(reqArgs.Address, ",")
+	}
+	series, err := ctx.ES.GetDateHistogram(req.Network, params.Index, params.Function, params.Field, reqArgs.Period, addresses)
 	if handleError(c, err, 0) {
 		return
 	}
