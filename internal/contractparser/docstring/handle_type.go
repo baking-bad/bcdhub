@@ -19,7 +19,7 @@ func handleTupleEnumUnion(dd *dsData, bPath string, i int, md meta.Metadata) (st
 
 	for i, argPath := range node.Args {
 		dd.arg = i
-		value, err := getTypeExpr(dd, argPath, md)
+		value, err := getTypeExpr(dd, trimOption(argPath), md)
 		if err != nil {
 			return "", err
 		}

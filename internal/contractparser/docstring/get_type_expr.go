@@ -2,6 +2,7 @@ package docstring
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
@@ -88,4 +89,8 @@ func getComplexExpr(dd *dsData, bPath string, md meta.Metadata) (string, error) 
 
 func isOption(path string) bool {
 	return path[len(path)-1] == 'o'
+}
+
+func trimOption(path string) string {
+	return strings.TrimSuffix(path, "/o")
 }
