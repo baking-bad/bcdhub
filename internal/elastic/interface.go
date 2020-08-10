@@ -153,6 +153,7 @@ type ITokens interface {
 	GetTokens(string, string, int64, int64) ([]models.Contract, int64, error)
 	GetTokenTransferOperations(string, string, string, int64) (PageableOperations, error)
 	GetTokensStats(string, []string, []string) (map[string]TokenUsageStats, error)
+	GetTokenVolumeSeries(string, string, []string, uint) ([][]int64, error)
 }
 
 // IElastic -

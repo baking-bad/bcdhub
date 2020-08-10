@@ -52,6 +52,7 @@ type Operation struct {
 
 	ParameterStrings []string `json:"parameter_strings,omitempty"`
 	StorageStrings   []string `json:"storage_strings,omitempty"`
+	Tags             []string `json:"tags,omitempty"`
 }
 
 // ParseElasticJSON -
@@ -112,6 +113,7 @@ func (o *Operation) ParseElasticJSON(resp gjson.Result) {
 	o.Errors = cerrors.ParseArray(err)
 	o.ParameterStrings = parseStringsArray(resp.Get("_source.parameter_strings").Array())
 	o.StorageStrings = parseStringsArray(resp.Get("_source.storage_strings").Array())
+	o.Tags = parseStringsArray(resp.Get("_source.tags").Array())
 }
 
 // GetID -

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
@@ -151,6 +152,44 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, ops)
+}
+
+// GetTokenVolumeSeries godoc
+// @Summary Get volume series for token
+// @Description Get volume series for token
+// @Tags tokens
+// @ID get-token-series
+// @Param network path string true "Network"
+// @Param period query string true "One of periods"  Enums(year, month, week, day)
+// @Param address query string true "Comma-separated contract addresses"
+// @Param token_id query int true "Comma-separated contract addresses"
+// @Accept json
+// @Produce  json
+// @Success 200 {object} Series
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /tokens/{network}/series [get]
+func (ctx *Context) GetTokenVolumeSeries(c *gin.Context) {
+	var req getByNetwork
+	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
+	var reqArgs getTokenSeriesRequest
+	if err := c.BindQuery(&reqArgs); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
+	var addresses []string
+	if reqArgs.Address != "" {
+		addresses = strings.Split(reqArgs.Address, ",")
+	}
+	series, err := ctx.ES.GetTokenVolumeSeries(req.Network, reqArgs.Period, addresses, reqArgs.TokenID)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	c.JSON(http.StatusOK, series)
 }
 
 func (ctx *Context) contractToTokens(contracts []models.Contract, network, version string) (PageableTokenContracts, error) {

@@ -190,6 +190,7 @@ func main() {
 		fa12 := v1.Group("tokens/:network")
 		{
 			fa12.GET("", ctx.GetFA)
+			fa12.GET("series", ctx.GetTokenVolumeSeries)
 			fa12.GET("version/:faversion", ctx.GetFAByVersion)
 			transfers := fa12.Group("transfers")
 			{

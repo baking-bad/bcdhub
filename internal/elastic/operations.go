@@ -253,6 +253,7 @@ func (e *Elastic) GetOperations(filters map[string]interface{}, size int64, sort
 		})
 	}
 
+	requestedSize := size
 	if size == 0 || size > defaultSize {
 		size = defaultScrollSize
 	}

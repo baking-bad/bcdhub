@@ -58,7 +58,7 @@ func New(connectionString string) (DB, error) {
 
 	gormDB.LogMode(false)
 
-	gormDB.AutoMigrate(&User{}, &Subscription{}, &Alias{}, &Assessments{}, &Account{}, &Picture{}, &DApp{})
+	gormDB.AutoMigrate(&User{}, &Subscription{}, &Alias{}, &Assessments{}, &Account{}, &Picture{}, &DApp{}, &Token{})
 
 	gormDB = gormDB.Set("gorm:auto_preload", false)
 

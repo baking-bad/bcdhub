@@ -15,7 +15,7 @@ type Alias struct {
 	Network     string     `json:"network"`
 	Address     string     `json:"address"`
 	Slug        string     `json:"slug,omitempty"`
-	ReleaseDate *time.Time `json:"-"`
+	ReleaseDate *time.Time `json:"release_date"`
 	DAppID      uint       `json:"-"`
 }
 

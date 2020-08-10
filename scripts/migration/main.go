@@ -12,6 +12,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/scripts/migration/migrations"
+	"github.com/tidwall/gjson"
 )
 
 var migrationsList = []migrations.Migration{
@@ -37,6 +38,8 @@ var migrationsList = []migrations.Migration{
 	&migrations.RecalcContractMetrics{},
 	&migrations.SetEmptyBmdPtr{},
 	&migrations.DropMichelson{},
+	&migrations.SetOperationTags{},
+	&migrations.CreateTransfersTags{},
 }
 
 func main() {
@@ -49,6 +52,13 @@ func main() {
 	if err != nil {
 		logger.Fatal(err)
 	}
+
+	gjson.AddModifier("upper", func(json, arg string) string {
+		return strings.ToUpper(json)
+	})
+	gjson.AddModifier("lower", func(json, arg string) string {
+		return strings.ToLower(json)
+	})
 
 	start := time.Now()
 

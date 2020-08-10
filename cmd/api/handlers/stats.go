@@ -160,6 +160,12 @@ func getSeriesIndexAndField(name string) (seriesParams, error) {
 			Function: "sum",
 			Field:    "amount",
 		}, nil
+	case "token_volume":
+		return seriesParams{
+			Index:    "transfer",
+			Function: "sum",
+			Field:    "amount",
+		}, nil
 	default:
 		return seriesParams{}, fmt.Errorf("Unknown series name: %s", name)
 	}

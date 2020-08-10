@@ -148,3 +148,62 @@ func (e *Elastic) GetTokensStats(network string, addresses, entrypoints []string
 
 	return response, nil
 }
+
+// GetTokenVolumeSeries -
+func (e *Elastic) GetTokenVolumeSeries(network, period string, address []string, tokenID uint) ([][]int64, error) {
+	hist := qItem{
+		"date_histogram": qItem{
+			"field":             "timestamp",
+			"calendar_interval": period,
+		},
+	}
+
+	hist.Append("aggs", qItem{
+		"result": qItem{
+			"sum": qItem{
+				"field": "amount",
+			},
+		},
+	})
+
+	matches := []qItem{
+		matchQ("network", network),
+		matchQ("status", "applied"),
+	}
+	if len(address) > 0 {
+		addresses := make([]qItem, len(address))
+		for i := range address {
+			addresses[i] = matchPhrase("contract", address[i])
+		}
+		matches = append(matches, boolQ(
+			should(addresses...),
+			minimumShouldMatch(1),
+		))
+	}
+
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				matches...,
+			),
+		),
+	).Add(
+		aggs("hist", hist),
+	).Zero()
+
+	response, err := e.query([]string{DocTransfers}, query)
+	if err != nil {
+		return nil, err
+	}
+
+	data := response.Get("aggregations.hist.buckets").Array()
+	histogram := make([][]int64, 0)
+	for _, hit := range data {
+		item := []int64{
+			hit.Get("key").Int(),
+			hit.Get("result.value").Int(),
+		}
+		histogram = append(histogram, item)
+	}
+	return histogram, nil
+}
