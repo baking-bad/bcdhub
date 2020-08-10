@@ -89,8 +89,8 @@ func isCompactType(bPath string, md meta.Metadata) bool {
 	}
 
 	if (node.Prim == consts.OR || node.Prim == consts.PAIR) && len(node.Args) == 2 {
-		arg0 := md[node.Args[0]]
-		arg1 := md[node.Args[1]]
+		arg0 := md[trimOption(node.Args[0])]
+		arg1 := md[trimOption(node.Args[1])]
 		if isSimpleType(arg0.Prim) && isSimpleType(arg1.Prim) {
 			return true
 		}
@@ -138,7 +138,7 @@ func isComplexType(bPath string, md meta.Metadata) bool {
 		}
 
 		for _, arg := range node.Args {
-			if !isSimpleType(md[arg].Prim) {
+			if !isSimpleType(md[trimOption(arg)].Prim) {
 				return true
 			}
 		}
