@@ -65,6 +65,35 @@ func (ctx *Context) GetRandomContract(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
+// GetContractTransfers godoc
+// @Summary Show contract`s tokens transfers
+// @Description Show contract`s tokens transfers
+// @Tags contract
+// @ID get-contract-transfers
+// @Param size query integer false "Transfers count" mininum(1)
+// @Param offset query integer false "Offset" mininum(1)
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} TransferResponse
+// @Failure 500 {object} Error
+// @Router /{network}/{address}/transfers [get]
+func (ctx *Context) GetContractTransfers(c *gin.Context) {
+	var req pageableRequest
+	if err := c.BindQuery(&req); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+	var contractRequest getContractRequest
+	if err := c.BindUri(&contractRequest); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
+	transfers, err := ctx.ES.GetContractTransfers(contractRequest.Network, contractRequest.Address, req.Size, req.Offset)
+	if handleError(c, err, 0) {
+		return
+	}
+	c.JSON(http.StatusOK, transfers)
+}
+
 func (ctx *Context) contractPostprocessing(contract models.Contract, c *gin.Context) (Contract, error) {
 	var res Contract
 	res.FromModel(contract)
