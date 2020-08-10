@@ -207,3 +207,9 @@ type getTokenSeriesRequest struct {
 	Period  string `form:"period" binding:"oneof=all year month week day" example:"year"`
 	TokenID uint   `form:"token_id"`
 }
+
+type getTokenSeriesRequest struct {
+	TokenID uint   `form:"token_id"`
+	Period  string `form:"period" binding:"oneof=year month week day" example:"year"`
+	Address string `form:"address"`
+}
