@@ -65,34 +65,33 @@ func (ctx *Context) GetRandomContract(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-// GetContractStats godoc
-// @Summary Show contract stats
-// @Description Show total volume, unique users and transactions count for period
+// GetContractTransfers godoc
+// @Summary Show contract`s tokens transfers
+// @Description Show contract`s tokens transfers
 // @Tags contract
-// @ID get-contract-stats
-// @Param network path string true "Network"
-// @Param address path string true "KT address" minlength(36) maxlength(36)
-// @Param period query string true "One of periods"  Enums(year, month, week, day)
+// @ID get-contract-transfers
+// @Param size query integer false "Transfers count" mininum(1)
+// @Param offset query integer false "Offset" mininum(1)
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} elastic.DAppStats
+// @Success 200 {object} TransferResponse
 // @Failure 500 {object} Error
-// @Router /contract/{network}/{address} [get]
-func (ctx *Context) GetContractStats(c *gin.Context) {
-	var req getContractRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+// @Router /{network}/{address}/transfers [get]
+func (ctx *Context) GetContractTransfers(c *gin.Context) {
+	var req pageableRequest
+	if err := c.BindQuery(&req); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-	var reqPeriod periodRequest
-	if err := c.BindQuery(&reqPeriod); handleError(c, err, http.StatusBadRequest) {
-		return
-	}
-	stats, err := ctx.ES.GetDAppStats(req.Network, req.Address, reqPeriod.Period)
-	if handleError(c, err, 0) {
+	var contractRequest getContractRequest
+	if err := c.BindUri(&contractRequest); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
-	c.JSON(http.StatusOK, stats)
+	transfers, err := ctx.ES.GetContractTransfers(contractRequest.Network, contractRequest.Address, req.Size, req.Offset)
+	if handleError(c, err, 0) {
+		return
+	}
+	c.JSON(http.StatusOK, transfers)
 }
 
 func (ctx *Context) contractPostprocessing(contract models.Contract, c *gin.Context) (Contract, error) {

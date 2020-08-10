@@ -137,6 +137,7 @@ func main() {
 			{
 				networkStats.GET("", ctx.GetNetworkStats)
 				networkStats.GET("series", ctx.GetSeries)
+				networkStats.GET("contracts", ctx.GetContractsStats)
 			}
 		}
 
@@ -163,6 +164,7 @@ func main() {
 			contract.GET("code", ctx.GetContractCode)
 			contract.GET("operations", ctx.GetContractOperations)
 			contract.GET("migrations", ctx.GetContractMigrations)
+			contract.GET("transfers", ctx.GetContractTransfers)
 
 			storage := contract.Group("storage")
 			{
@@ -184,7 +186,6 @@ func main() {
 				entrypoints.POST("run_operation", ctx.RunOperation)
 			}
 			contract.POST("fork", ctx.ForkContract)
-			contract.GET("stats", ctx.GetContractStats)
 		}
 
 		fa12 := v1.Group("tokens/:network")

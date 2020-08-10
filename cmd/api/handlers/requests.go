@@ -1,5 +1,7 @@
 package handlers
 
+import "strings"
+
 type getContractCodeRequest struct {
 	Address  string `uri:"address" binding:"required,address"`
 	Network  string `uri:"network" binding:"required,network"`
@@ -190,8 +192,21 @@ type periodRequest struct {
 	Period string `form:"period" binding:"oneof=year month week day" example:"year"`
 }
 
+// GetTokenStatsRequest -
+type GetTokenStatsRequest struct {
+	Period    string `form:"period" binding:"oneof=all year month week day" example:"year"`
+	Contracts string `form:"contracts"`
+}
+
+// Addresses -
+func (req GetTokenStatsRequest) Addresses() []string {
+	if req.Contracts == "" {
+		return nil
+	}
+	return strings.Split(req.Contracts, ",")
+}
+
 type getTokenSeriesRequest struct {
-	TokenID uint   `form:"token_id"`
-	Period  string `form:"period" binding:"oneof=year month week day" example:"year"`
-	Address string `form:"address"`
+	*GetTokenStatsRequest
+	TokenID uint `form:"token_id"`
 }

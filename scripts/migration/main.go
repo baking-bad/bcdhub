@@ -69,6 +69,7 @@ func main() {
 		config.WithConfigCopy(cfg),
 		config.WithLoadErrorDescriptions("data/errors.json"),
 		config.WithContractsInterfaces(),
+		config.WithAliases(consts.Mainnet),
 	)
 	defer ctx.Close()
 

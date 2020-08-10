@@ -31,6 +31,11 @@ func (m *Migration) GetIndex() string {
 	return "migration"
 }
 
+// GetQueue -
+func (m *Migration) GetQueue() string {
+	return "migrations"
+}
+
 // ParseElasticJSON -
 func (m *Migration) ParseElasticJSON(resp gjson.Result) {
 	m.ID = resp.Get("_id").String()

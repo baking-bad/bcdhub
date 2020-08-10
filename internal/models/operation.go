@@ -126,6 +126,11 @@ func (o *Operation) GetIndex() string {
 	return "operation"
 }
 
+// GetQueue -
+func (o *Operation) GetQueue() string {
+	return "operations"
+}
+
 // GetScores -
 func (o *Operation) GetScores(search string) []string {
 	return []string{

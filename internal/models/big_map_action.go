@@ -30,6 +30,11 @@ func (b *BigMapAction) GetIndex() string {
 	return "bigmapaction"
 }
 
+// GetQueue -
+func (b *BigMapAction) GetQueue() string {
+	return ""
+}
+
 // ParseElasticJSON -
 func (b *BigMapAction) ParseElasticJSON(hit gjson.Result) {
 	b.ID = hit.Get("_id").String()

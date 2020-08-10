@@ -37,7 +37,7 @@ func Rollback(e elastic.IElastic, messageQueue *mq.MQ, appDir string, fromState 
 	time.Sleep(time.Second) // Golden hack: Waiting while elastic remove records
 	logger.Info("Sending to queue affected contract ids...")
 	for i := range affectedContractIDs {
-		if err := messageQueue.Send(mq.ChannelNew, mq.QueueRecalc, affectedContractIDs[i]); err != nil {
+		if err := messageQueue.SendToQueue(mq.ChannelNew, mq.QueueRecalc, affectedContractIDs[i]); err != nil {
 			return err
 		}
 	}
@@ -52,7 +52,7 @@ func rollbackBlocks(e elastic.IElastic, network string, toLevel int64) error {
 
 func rollbackOperations(e elastic.IElastic, network string, toLevel int64) error {
 	logger.Info("Deleting operations, migrations and big map diffs...")
-	return e.DeleteByLevelAndNetwork([]string{elastic.DocBigMapDiff, elastic.DocBigMapActions, elastic.DocMigrations, elastic.DocOperations}, network, toLevel)
+	return e.DeleteByLevelAndNetwork([]string{elastic.DocBigMapDiff, elastic.DocBigMapActions, elastic.DocMigrations, elastic.DocOperations, elastic.DocTransfers}, network, toLevel)
 }
 
 func rollbackContracts(e elastic.IElastic, fromState models.Block, toLevel int64, appDir string) error {

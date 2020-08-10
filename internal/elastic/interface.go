@@ -4,12 +4,15 @@ import (
 	"io"
 
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/tidwall/gjson"
 )
 
 // Model -
 type Model interface {
+	mq.IQueued
+
 	GetID() string
 	GetIndex() string
 	ParseElasticJSON(gjson.Result)
@@ -84,7 +87,8 @@ type IContract interface {
 	NeedParseOperation(string, string, string) (bool, error)
 	RecalcContractStats(string, string) (ContractStats, error)
 	UpdateContractMigrationsCount(string, string) error
-	GetDAppStats(string, string, string) (DAppStats, error)
+	GetDAppStats(string, []string, string) (DAppStats, error)
+	GetContractTransfers(string, string, int64, int64) (TransfersResponse, error)
 }
 
 // IEvents -

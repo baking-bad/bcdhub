@@ -24,8 +24,9 @@ import (
 
 // BoostIndexer -
 type BoostIndexer struct {
-	Network         string
-	UpdateTimer     int64
+	Network     string
+	UpdateTimer int64
+
 	rpc             noderpc.INode
 	es              elastic.IElastic
 	externalIndexer index.Indexer
@@ -429,18 +430,6 @@ func (bi *BoostIndexer) createBlock(head noderpc.Header) *models.Block {
 	return &newBlock
 }
 
-func (bi *BoostIndexer) getQueueByModel(model elastic.Model) string {
-	switch model.GetIndex() {
-	case elastic.DocContracts:
-		return mq.QueueContracts
-	case elastic.DocOperations:
-		return mq.QueueOperations
-	case elastic.DocMigrations:
-		return mq.QueueMigrations
-	}
-	return ""
-}
-
 func (bi *BoostIndexer) saveModels(items []elastic.Model) error {
 	logger.Info("[%s] Found %d new models", bi.Network, len(items))
 	if err := bi.es.BulkInsert(items); err != nil {
@@ -448,10 +437,8 @@ func (bi *BoostIndexer) saveModels(items []elastic.Model) error {
 	}
 
 	for i := range items {
-		if queue := bi.getQueueByModel(items[i]); queue != "" {
-			if err := bi.messageQueue.Send(mq.ChannelNew, queue, items[i].GetID()); err != nil {
-				return err
-			}
+		if err := bi.messageQueue.Send(mq.ChannelNew, items[i], items[i].GetID()); err != nil {
+			return err
 		}
 	}
 	return nil

@@ -4,6 +4,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/schollz/progressbar/v3"
 )
@@ -23,6 +24,7 @@ func (m *CreateTransfersTags) Description() string {
 
 // Do - migrate function
 func (m *CreateTransfersTags) Do(ctx *config.Context) error {
+	h := metrics.New(ctx.ES, ctx.DB)
 	operations, err := ctx.ES.GetOperations(map[string]interface{}{
 		"entrypoint": "transfer",
 	}, 0, false)
@@ -40,7 +42,9 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 		if err != nil {
 			return err
 		}
+
 		for i := range transfers {
+			h.SetTransferAliases(ctx.Aliases, transfers[i])
 			result = append(result, transfers[i])
 		}
 	}

@@ -126,6 +126,13 @@ func (p *DefaultParser) parseTransaction(data gjson.Result, network, hash string
 	if err := p.tagOperation(&op); err != nil {
 		return nil, op, err
 	}
+	transfers, err := models.CreateTransfers(&op)
+	if err != nil {
+		return nil, op, err
+	}
+	for i := range transfers {
+		transactionModels = append(transactionModels, transfers[i])
+	}
 	return transactionModels, op, nil
 }
 

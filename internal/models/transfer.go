@@ -16,12 +16,15 @@ type Transfer struct {
 	IndexedTime int64     `json:"indexed_time"`
 	Network     string    `json:"network"`
 	Contract    string    `json:"contract"`
+	Alias       string    `json:"alias,omitempty"`
 	Hash        string    `json:"hash"`
 	Status      string    `json:"status"`
 	Timestamp   time.Time `json:"timestamp"`
 	Level       int64     `json:"level"`
 	From        string    `json:"from"`
+	FromAlias   string    `json:"from_alias,omitempty"`
 	To          string    `json:"to"`
+	ToAlias     string    `json:"to_alias,omitempty"`
 	TokenID     int64     `json:"token_id"`
 	Amount      int64     `json:"amount"`
 }
@@ -32,12 +35,15 @@ func (t *Transfer) ParseElasticJSON(resp gjson.Result) {
 	t.IndexedTime = resp.Get("_source.indexed_time").Int()
 	t.Network = resp.Get("_source.network").String()
 	t.Contract = resp.Get("_source.contract").String()
+	t.Alias = resp.Get("_source.alias").String()
 	t.Hash = resp.Get("_source.hash").String()
 	t.Status = resp.Get("_source.status").String()
 	t.Timestamp = resp.Get("_source.timestamp").Time().UTC()
 	t.Level = resp.Get("_source.level").Int()
 	t.From = resp.Get("_source.from").String()
+	t.FromAlias = resp.Get("_source.from_alias").String()
 	t.To = resp.Get("_source.to").String()
+	t.ToAlias = resp.Get("_source.to_alias").String()
 	t.Amount = resp.Get("_source.amount").Int()
 	t.TokenID = resp.Get("_source.token_id").Int()
 }
@@ -50,6 +56,11 @@ func (t *Transfer) GetID() string {
 // GetIndex -
 func (t *Transfer) GetIndex() string {
 	return "transfer"
+}
+
+// GetQueue -
+func (t *Transfer) GetQueue() string {
+	return "transfers"
 }
 
 // GetScores -

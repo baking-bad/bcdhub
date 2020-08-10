@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
@@ -180,9 +179,10 @@ func (ctx *Context) GetTokenVolumeSeries(c *gin.Context) {
 		return
 	}
 
-	var addresses []string
-	if reqArgs.Address != "" {
-		addresses = strings.Split(reqArgs.Address, ",")
+	addresses := reqArgs.Addresses()
+	if len(addresses) == 0 {
+		handleError(c, fmt.Errorf("Empty address list"), http.StatusBadRequest)
+		return
 	}
 	series, err := ctx.ES.GetTokenVolumeSeries(req.Network, reqArgs.Period, addresses, reqArgs.TokenID)
 	if handleError(c, err, 0) {

@@ -32,3 +32,8 @@ func (m *Metadata) GetID() string {
 func (m *Metadata) GetIndex() string {
 	return "metadata"
 }
+
+// GetQueue -
+func (m *Metadata) GetQueue() string {
+	return ""
+}

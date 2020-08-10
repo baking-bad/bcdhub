@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -28,6 +29,8 @@ func parseData(data amqp.Delivery) error {
 		return getMigrations(data)
 	case mq.QueueRecalc:
 		return recalculateAll(data)
+	case mq.QueueTransfers:
+		return getTransfer(data)
 	default:
 		if data.RoutingKey == "" {
 			return fmt.Errorf(metricStoppedError)
@@ -97,13 +100,9 @@ func main() {
 		config.WithRPC(cfg.RPC),
 		config.WithDatabase(cfg.DB),
 		config.WithRabbitReceiver(cfg.RabbitMQ, "metrics"),
+		config.WithAliases(consts.Mainnet),
 	)
 	defer ctx.Close()
-	if err := ctx.LoadAliases(); err != nil {
-		logger.Error(err)
-		helpers.CatchErrorSentry(err)
-		return
-	}
 
 	closeChan := make(chan struct{})
 	signals := make(chan os.Signal, 1)

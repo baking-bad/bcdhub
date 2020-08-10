@@ -29,6 +29,11 @@ func (b *Block) GetIndex() string {
 	return "block"
 }
 
+// GetQueue -
+func (b *Block) GetQueue() string {
+	return ""
+}
+
 // ParseElasticJSON -
 func (b *Block) ParseElasticJSON(hit gjson.Result) {
 	b.ID = hit.Get("_id").String()

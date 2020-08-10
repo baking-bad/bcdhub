@@ -170,3 +170,38 @@ func getSeriesIndexAndField(name string) (seriesParams, error) {
 		return seriesParams{}, fmt.Errorf("Unknown series name: %s", name)
 	}
 }
+
+// GetContractsStats godoc
+// @Summary Show contracts stats
+// @Description Show total volume, unique users and transactions count for period
+// @Tags contract
+// @ID get-stats-contracts
+// @Param network path string true "Network"
+// @Param contracts query string true "Comma-separated KT addresses" minlength(36)
+// @Param period query string true "One of periods"  Enums(all, year, month, week, day)
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} elastic.DAppStats
+// @Failure 500 {object} Error
+// @Router /contract/{network}/stats [get]
+func (ctx *Context) GetContractsStats(c *gin.Context) {
+	var req getByNetwork
+	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+	var reqStats GetTokenStatsRequest
+	if err := c.BindQuery(&reqStats); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+	addresses := reqStats.Addresses()
+	if len(addresses) == 0 {
+		handleError(c, fmt.Errorf("Empty address list"), http.StatusBadRequest)
+		return
+	}
+	stats, err := ctx.ES.GetDAppStats(req.Network, addresses, reqStats.Period)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	c.JSON(http.StatusOK, stats)
+}

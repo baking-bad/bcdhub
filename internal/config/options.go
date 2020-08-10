@@ -123,3 +123,17 @@ func WithContractsInterfaces() ContextOption {
 		ctx.Interfaces = result
 	}
 }
+
+// WithAliases -
+func WithAliases(network string) ContextOption {
+	return func(ctx *Context) {
+		if ctx.DB == nil {
+			panic("[WithAliases] Empty database connection")
+		}
+		aliases, err := ctx.DB.GetAliasesMap(network)
+		if err != nil {
+			panic(err)
+		}
+		ctx.Aliases = aliases
+	}
+}
