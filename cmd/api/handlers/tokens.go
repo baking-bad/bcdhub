@@ -165,7 +165,7 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 // @Param token_id query int true "Comma-separated contract addresses"
 // @Accept json
 // @Produce  json
-// @Success 200 {object} [][]interface{}
+// @Success 200 {object} Series
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /tokens/{network}/series [get]
