@@ -87,3 +87,7 @@ upgrade:
 
 restart:
 	docker-compose restart bcd-api bcd-metrics bcd-indexer
+
+release:
+	BCDHUB_VERSION=$$(cat version.json | grep version | awk -F\" '{ print $$4 }')
+	git tag $$BCDHUB_VERSION && git push origin $$BCDHUB_VERSION
