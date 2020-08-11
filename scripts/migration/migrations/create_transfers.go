@@ -37,7 +37,9 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 
 	bar := progressbar.NewOptions(len(operations), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish(), progressbar.OptionShowCount())
 	for i := range operations {
-		bar.Add(1)
+		if err := bar.Add(1); err != nil {
+			return err
+		}
 		transfers, err := models.CreateTransfers(&operations[i])
 		if err != nil {
 			return err

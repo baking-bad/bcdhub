@@ -188,10 +188,6 @@ type storageRequest struct {
 	Level int `form:"level" binding:"omitempty,gte=1"`
 }
 
-type periodRequest struct {
-	Period string `form:"period" binding:"oneof=year month week day" example:"year"`
-}
-
 // GetTokenStatsRequest -
 type GetTokenStatsRequest struct {
 	Period    string `form:"period" binding:"oneof=all year month week day" example:"year"`

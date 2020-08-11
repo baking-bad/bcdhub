@@ -129,7 +129,7 @@ func CreateTransfers(o *Operation) ([]*Transfer, error) {
 			transfer.To = toAddr
 			transfer.Amount = parameters.Get("args.1.args.1.int").Int()
 			transfers = append(transfers, transfer)
-			break
+			return transfers, nil
 		case consts.FA2Tag:
 			for _, from := range parameters.Array() {
 				fromAddr, err := getAddress(from.Get("args.0"))
@@ -149,11 +149,11 @@ func CreateTransfers(o *Operation) ([]*Transfer, error) {
 					transfers = append(transfers, transfer)
 				}
 			}
-			break
+			return transfers, nil
 		default:
 		}
 	}
-	return transfers, nil
+	return nil, nil
 }
 
 func getParameters(str string) gjson.Result {

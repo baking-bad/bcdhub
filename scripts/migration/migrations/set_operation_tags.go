@@ -36,7 +36,9 @@ func (m *SetOperationTags) Do(ctx *config.Context) error {
 
 	tags := make(map[string][]string)
 	for i := range operations {
-		bar.Add(1)
+		if err := bar.Add(1); err != nil {
+			return err
+		}
 
 		if _, ok := tags[operations[i].Destination]; !ok {
 			contract, err := ctx.ES.GetContract(map[string]interface{}{
