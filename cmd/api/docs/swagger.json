@@ -279,7 +279,7 @@
                 }
             }
         },
-        "/contract/{network}/{address}": {
+        "/contract/{network}/stats": {
             "get": {
                 "description": "Show total volume, unique users and transactions count for period",
                 "consumes": [
@@ -291,8 +291,8 @@
                 "tags": [
                     "contract"
                 ],
-                "summary": "Show contract stats",
-                "operationId": "get-contract-stats",
+                "summary": "Show contracts stats",
+                "operationId": "get-stats-contracts",
                 "parameters": [
                     {
                         "type": "string",
@@ -302,16 +302,16 @@
                         "required": true
                     },
                     {
-                        "maxLength": 36,
                         "minLength": 36,
                         "type": "string",
-                        "description": "KT address",
-                        "name": "address",
-                        "in": "path",
+                        "description": "Comma-separated KT addresses",
+                        "name": "contracts",
+                        "in": "query",
                         "required": true
                     },
                     {
                         "enum": [
+                            "all",
                             "year",
                             "month",
                             "week",
@@ -329,6 +329,60 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/elastic.DAppStats"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/contract/{network}/{address}": {
+            "get": {
+                "description": "Get full contract info",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contract"
+                ],
+                "summary": "Get contract info",
+                "operationId": "get-contract",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "description": "KT address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Contract"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
                         }
                     },
                     "500": {
@@ -1772,7 +1826,7 @@
                     },
                     {
                         "type": "string",
-                        "description": "Contract address",
+                        "description": "Comma-separated contract addresses",
                         "name": "address",
                         "in": "query"
                     }
@@ -1848,6 +1902,81 @@
                             "items": {
                                 "$ref": "#/definitions/handlers.PageableTokenContracts"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/tokens/{network}/series": {
+            "get": {
+                "description": "Get volume series for token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tokens"
+                ],
+                "summary": "Get volume series for token",
+                "operationId": "get-token-series",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "all",
+                            "year",
+                            "month",
+                            "week",
+                            "day"
+                        ],
+                        "type": "string",
+                        "description": "One of periods",
+                        "name": "period",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "description": "KT address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Comma-separated contract addresses",
+                        "name": "token_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Series"
                         }
                     },
                     "400": {
@@ -2009,11 +2138,80 @@
                     }
                 }
             }
+        },
+        "/{network}/{address}/transfers": {
+            "get": {
+                "description": "Show contract`s tokens transfers",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contract"
+                ],
+                "summary": "Show contract`s tokens transfers",
+                "operationId": "get-contract-transfers",
+                "parameters": [
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Transfers count",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.TransferResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
         "cerrors.IError": {
             "type": "object"
+        },
+        "database.Token": {
+            "type": "object",
+            "properties": {
+                "contract": {
+                    "type": "string"
+                },
+                "decimals": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "network": {
+                    "type": "string"
+                },
+                "symbol": {
+                    "type": "string"
+                },
+                "token_id": {
+                    "type": "integer"
+                }
+            }
         },
         "docstring.Typedef": {
             "type": "object",
@@ -2713,7 +2911,7 @@
                 "operations": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/handlers.Operation"
+                        "type": "integer"
                     }
                 }
             }
@@ -3077,6 +3275,71 @@
                 },
                 "to": {
                     "type": "string"
+                }
+            }
+        },
+        "handlers.Transfer": {
+            "type": "object",
+            "properties": {
+                "alias": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": "integer"
+                },
+                "contract": {
+                    "type": "string"
+                },
+                "from": {
+                    "type": "string"
+                },
+                "from_alias": {
+                    "type": "string"
+                },
+                "hash": {
+                    "type": "string"
+                },
+                "indexed_time": {
+                    "type": "integer"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "network": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                },
+                "to_alias": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "object",
+                    "$ref": "#/definitions/database.Token"
+                },
+                "token_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.TransferResponse": {
+            "type": "object",
+            "properties": {
+                "total": {
+                    "type": "integer"
+                },
+                "transfers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.Transfer"
+                    }
                 }
             }
         },

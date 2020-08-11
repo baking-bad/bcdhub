@@ -160,12 +160,12 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 // @Tags tokens
 // @ID get-token-series
 // @Param network path string true "Network"
-// @Param period query string true "One of periods"  Enums(year, month, week, day)
+// @Param period query string true "One of periods"  Enums(all, year, month, week, day)
 // @Param address path string true "KT address" minlength(36) maxlength(36)
 // @Param token_id query int true "Comma-separated contract addresses"
 // @Accept json
 // @Produce  json
-// @Success 200 {object} [][]interface{}
+// @Success 200 {object} Series
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /tokens/{network}/series [get]
