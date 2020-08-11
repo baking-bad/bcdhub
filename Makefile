@@ -88,3 +88,9 @@ restart:
 release:
 	BCDHUB_VERSION=$$(cat version.json | grep version | awk -F\" '{ print $$4 }')
 	git tag $$BCDHUB_VERSION && git push origin $$BCDHUB_VERSION
+
+db-dump:
+	docker exec -it bcd-db pg_dump -c bcd > dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
+
+db-restore:
+	docker exec -i bcd-db psql --username $$POSTGRES_USER -v ON_ERROR_STOP=on bcd < $(BACKUP)

@@ -40,6 +40,7 @@ require (
 	github.com/valyala/fastjson v1.5.1
 	github.com/xanzy/go-gitlab v0.26.0
 	github.com/yhirose/go-peg v0.0.0-20190710015414-7eb2cf046928
+	go.mongodb.org/mongo-driver v1.4.0 // indirect
 	golang.org/x/crypto v0.0.0-20200115085410-6d4e4cb37c7d
 	golang.org/x/exp v0.0.0-20190121172915-509febef88a4
 	golang.org/x/net v0.0.0-20200513185701-a91f0712d120 // indirect

@@ -42,6 +42,9 @@ type DB interface {
 	GetDApps() ([]DApp, error)
 	GetDApp(id uint) (DApp, error)
 
+	// Tokens
+	GetTokens() ([]Token, error)
+
 	Close()
 }
 

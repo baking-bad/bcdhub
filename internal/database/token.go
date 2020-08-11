@@ -11,3 +11,14 @@ type Token struct {
 	TokenID  uint   `json:"token_id"`
 	DAppID   uint   `json:"-"`
 }
+
+// GetTokens -
+func (d *db) GetTokens() ([]Token, error) {
+	var tokens []Token
+
+	if err := d.ORM.Find(&tokens).Error; err != nil {
+		return nil, err
+	}
+
+	return tokens, nil
+}

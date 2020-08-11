@@ -207,6 +207,7 @@ func (req GetTokenStatsRequest) Addresses() []string {
 }
 
 type getTokenSeriesRequest struct {
-	*GetTokenStatsRequest
-	TokenID uint `form:"token_id"`
+	Address string `form:"address" binding:"required,address"`
+	Period  string `form:"period" binding:"oneof=all year month week day" example:"year"`
+	TokenID uint   `form:"token_id"`
 }

@@ -3,13 +3,21 @@ package handlers
 import (
 	"github.com/baking-bad/bcdhub/cmd/api/oauth"
 	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/gin-gonic/gin"
 )
+
+type tokenKey struct {
+	Network  string
+	Contract string
+	TokenID  int64
+}
 
 // Context -
 type Context struct {
 	*config.Context
-	OAUTH oauth.Config
+	OAUTH  oauth.Config
+	Tokens map[tokenKey]database.Token
 }
 
 // NewContext -
@@ -33,9 +41,25 @@ func NewContext(cfg config.Config) (*Context, error) {
 		config.WithConfigCopy(cfg),
 		config.WithContractsInterfaces(),
 	)
+
+	tokens, err := ctx.DB.GetTokens()
+	if err != nil {
+		return nil, err
+	}
+
+	mapTokens := make(map[tokenKey]database.Token)
+	for i := range tokens {
+		mapTokens[tokenKey{
+			Network:  tokens[i].Network,
+			Contract: tokens[i].Contract,
+			TokenID:  int64(tokens[i].TokenID),
+		}] = tokens[i]
+	}
+
 	return &Context{
 		Context: ctx,
 		OAUTH:   oauthCfg,
+		Tokens:  mapTokens,
 	}, nil
 }
 
@@ -48,4 +72,14 @@ func CurrentUserID(c *gin.Context) uint {
 	}
 
 	return 0
+}
+
+// FindToken -
+func (ctx *Context) FindToken(network, address string, tokenID int64) (database.Token, bool) {
+	token, ok := ctx.Tokens[tokenKey{
+		Network:  network,
+		Contract: address,
+		TokenID:  tokenID,
+	}]
+	return token, ok
 }
