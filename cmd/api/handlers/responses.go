@@ -296,7 +296,7 @@ type GetBigMapResponse struct {
 	Ptr           int64               `json:"ptr"`
 	ActiveKeys    uint                `json:"active_keys"`
 	TotalKeys     uint                `json:"total_keys"`
-	ContractAlias string              `json:"contract_alias"`
+	ContractAlias string              `json:"contract_alias,omitempty"`
 	Typedef       []docstring.Typedef `json:"typedef,omitempty"`
 }
 

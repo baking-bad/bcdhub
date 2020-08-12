@@ -8,7 +8,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/jsonschema"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
@@ -40,45 +39,21 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 	if err := c.BindQuery(&sReq); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-
-	var protocol string
-	var deffatedStorage gjson.Result
-	filters := map[string]interface{}{
-		"destination": req.Address,
-		"network":     req.Network,
-		"status":      "applied",
-	}
-	if sReq.Level > 0 {
-		filters["level"] = sReq.Level
-	}
-	ops, err := ctx.ES.GetOperations(filters, 1, true)
-	if err != nil {
-		if !elastic.IsRecordNotFound(err) && handleError(c, err, 0) {
-			return
-		}
-		rpc, err := ctx.GetRPC(req.Network)
-		if handleError(c, err, http.StatusBadRequest) {
-			return
-		}
-
-		deffatedStorage, err = rpc.GetScriptStorageJSON(req.Address, int64(sReq.Level))
-		if handleError(c, err, 0) {
-			return
-		}
-		header, err := rpc.GetHeader(int64(sReq.Level))
-		if handleError(c, err, 0) {
-			return
-		}
-		protocol = header.Protocol
-	} else if len(ops) > 0 {
-		protocol = ops[0].Protocol
-		deffatedStorage = gjson.Parse(ops[0].DeffatedStorage)
-	} else {
-		c.JSON(http.StatusNoContent, gin.H{})
+	rpc, err := ctx.GetRPC(req.Network)
+	if handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
-	metadata, err := meta.GetMetadata(ctx.ES, req.Address, consts.STORAGE, protocol)
+	deffatedStorage, err := rpc.GetScriptStorageJSON(req.Address, int64(sReq.Level))
+	if handleError(c, err, 0) {
+		return
+	}
+	header, err := rpc.GetHeader(int64(sReq.Level))
+	if handleError(c, err, 0) {
+		return
+	}
+
+	metadata, err := meta.GetMetadata(ctx.ES, req.Address, consts.STORAGE, header.Protocol)
 	if handleError(c, err, 0) {
 		return
 	}
