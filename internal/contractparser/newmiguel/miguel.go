@@ -108,7 +108,7 @@ func getStartPath(data gjson.Result, metadata meta.Metadata) (gjson.Result, stri
 				if !ok {
 					continue
 				}
-				if parentNode.Type != consts.OR {
+				if parentNode.Prim != consts.OR { // Distinct between entrypoints and field names
 					continue
 				}
 				return value, path, nil
