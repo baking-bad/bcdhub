@@ -1,5 +1,5 @@
-on: push
-name: Tests
+on: pull_request
+name: Pull Request Tests 
 jobs:
   golangci:
     name: lint
