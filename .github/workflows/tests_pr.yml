@@ -1,4 +1,8 @@
-on: pull_request
+on:
+  push:
+    branches-ignore:
+      - master
+
 name: Pull Request Tests 
 jobs:
   golangci:
