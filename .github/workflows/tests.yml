@@ -26,7 +26,6 @@ jobs:
       run: |
         go mod download
         go test ./...
-    - uses: satackey/action-docker-layer-caching@v0.0.5
     - name: docker-compose test build
       run: |
         touch .env
