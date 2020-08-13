@@ -271,6 +271,8 @@ type userProfile struct {
 	Login      string    `json:"login"`
 	AvatarURL  string    `json:"avatar_url"`
 	MarkReadAt time.Time `json:"mark_read_at"`
+
+	Subscriptions []Subscription `json:"subscriptions"`
 }
 
 // BigMapItem -

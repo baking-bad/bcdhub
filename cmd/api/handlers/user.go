@@ -20,10 +20,17 @@ func (ctx *Context) GetUserProfile(c *gin.Context) {
 		return
 	}
 
+	subscriptions, err := ctx.DB.ListSubscriptions(userID)
+	if handleError(c, err, 0) {
+		return
+	}
+
 	profile := userProfile{
 		Login:      user.Login,
 		AvatarURL:  user.AvatarURL,
 		MarkReadAt: user.MarkReadAt,
+
+		Subscriptions: PrepareSubscriptions(subscriptions),
 	}
 
 	c.JSON(http.StatusOK, profile)
