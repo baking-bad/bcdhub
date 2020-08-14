@@ -221,7 +221,8 @@ func main() {
 				vote := profile.Group("vote")
 				{
 					vote.POST("", ctx.Vote)
-					vote.GET("task", ctx.GetNextDiffTask)
+					vote.GET("tasks", ctx.GetTasks)
+					vote.GET("generate", ctx.GenerateTasks)
 				}
 			}
 		}

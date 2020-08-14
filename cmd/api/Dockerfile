@@ -29,7 +29,6 @@ WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub/scripts/
 RUN cd aliases && go build -a -installsuffix cgo -o /go/bin/aliases .
 RUN cd es-aws && go build -a -installsuffix cgo -o /go/bin/es-aws .
 RUN cd migration && go build -a -installsuffix cgo -o /go/bin/migration .
-RUN cd ml && go build -a -installsuffix cgo -o /go/bin/ml .
 RUN cd rollback && go build -a -installsuffix cgo -o /go/bin/rollback .
 
 # ---------------------------------------------------------------------

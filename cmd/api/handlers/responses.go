@@ -268,9 +268,11 @@ type OperationResponse struct {
 }
 
 type userProfile struct {
-	Login      string    `json:"login"`
-	AvatarURL  string    `json:"avatar_url"`
-	MarkReadAt time.Time `json:"mark_read_at"`
+	Login           string    `json:"login"`
+	AvatarURL       string    `json:"avatar_url"`
+	MarkReadAt      time.Time `json:"mark_read_at"`
+	RegisteredAt    time.Time `json:"registered_at"`
+	MarkedContracts int       `json:"marked_contracts"`
 
 	Subscriptions []Subscription `json:"subscriptions"`
 }
