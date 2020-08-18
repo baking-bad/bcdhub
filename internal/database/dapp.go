@@ -8,20 +8,22 @@ import (
 
 // DApp model
 type DApp struct {
-	ID               uint           `gorm:"primary_key" json:"-"`
-	CreatedAt        time.Time      `json:"-"`
-	UpdatedAt        time.Time      `json:"-"`
-	DeletedAt        *time.Time     `json:"-"`
-	Name             string         `json:"name"`
-	ShortDescription string         `json:"short_description"`
-	FullDescription  string         `json:"full_description"`
-	Version          string         `json:"version"`
-	License          string         `json:"license"`
-	WebSite          string         `json:"website"`
-	Authors          pq.StringArray `gorm:"type:varchar(128)[]" json:"authors"`
-	SocialLinks      pq.StringArray `gorm:"type:varchar(1024)[]" json:"social_links"`
-	Interfaces       pq.StringArray `gorm:"type:varchar(64)[]" json:"interfaces"`
-	Categories       pq.StringArray `gorm:"type:varchar(32)[]" json:"categories"`
+	ID                uint           `gorm:"primary_key" json:"-"`
+	CreatedAt         time.Time      `json:"-"`
+	UpdatedAt         time.Time      `json:"-"`
+	DeletedAt         *time.Time     `json:"-"`
+	Name              string         `json:"name"`
+	ShortDescription  string         `json:"short_description"`
+	FullDescription   string         `json:"full_description"`
+	Version           string         `json:"version"`
+	License           string         `json:"license"`
+	WebSite           string         `json:"website"`
+	AgoraReviewPostID uint           `json:"agora_review_post_id,omitempty"`
+	AgoraQAPostID     uint           `json:"agora_qa_post_id,omitempty"`
+	Authors           pq.StringArray `gorm:"type:varchar(128)[]" json:"authors"`
+	SocialLinks       pq.StringArray `gorm:"type:varchar(1024)[]" json:"social_links"`
+	Interfaces        pq.StringArray `gorm:"type:varchar(64)[]" json:"interfaces"`
+	Categories        pq.StringArray `gorm:"type:varchar(32)[]" json:"categories"`
 
 	Pictures  []Picture `json:"pictures,omitempty"`
 	Contracts []Alias   `json:"contracts,omitempty"`
