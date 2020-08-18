@@ -145,7 +145,7 @@ type ISnapshot interface {
 // IStats -
 type IStats interface {
 	GetNetworkCountStats(string) (NetworkCountStats, error)
-	GetDateHistogram(string, string, string, string, string, []string) ([][]int64, error)
+	GetDateHistogram(period string, opts ...HistogramOption) ([][]int64, error)
 	GetCallsCountByNetwork() (map[string]int64, error)
 	GetContractStatsByNetwork() (map[string]ContractCountStats, error)
 	GetFACountByNetwork() (map[string]int64, error)

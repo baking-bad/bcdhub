@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
 )
@@ -103,16 +104,15 @@ func (ctx *Context) GetSeries(c *gin.Context) {
 		return
 	}
 
-	params, err := getSeriesIndexAndField(reqArgs.Name)
+	options, err := getHistogramOptions(reqArgs.Name, req.Network)
 	if handleError(c, err, 0) {
 		return
 	}
 
-	var addresses []string
 	if reqArgs.Address != "" {
-		addresses = strings.Split(reqArgs.Address, ",")
+		options = append(options, elastic.WithHistogramAddresses(strings.Split(reqArgs.Address, ",")...))
 	}
-	series, err := ctx.ES.GetDateHistogram(req.Network, params.Index, params.Function, params.Field, reqArgs.Period, addresses)
+	series, err := ctx.ES.GetDateHistogram(reqArgs.Period, options...)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -120,54 +120,55 @@ func (ctx *Context) GetSeries(c *gin.Context) {
 	c.JSON(http.StatusOK, series)
 }
 
-type seriesParams struct {
-	Index    string
-	Function string
-	Field    string
-}
-
-func getSeriesIndexAndField(name string) (seriesParams, error) {
+func getHistogramOptions(name, network string) ([]elastic.HistogramOption, error) {
+	filters := map[string]interface{}{
+		"network": network,
+	}
 	switch name {
 	case "contract":
-		return seriesParams{
-			Index: "contract",
+		return []elastic.HistogramOption{
+			elastic.WithHistogramIndices("contract"),
+			elastic.WithHistogramFilters(filters),
 		}, nil
 	case "operation":
-		return seriesParams{
-			Index: "operation",
+		filters["entrypoint"] = ""
+
+		return []elastic.HistogramOption{
+			elastic.WithHistogramIndices("operation"),
+			elastic.WithHistogramFilters(filters),
 		}, nil
 	case "paid_storage_size_diff":
-		return seriesParams{
-			Index:    "operation",
-			Function: "sum",
-			Field:    "result.paid_storage_size_diff",
+		return []elastic.HistogramOption{
+			elastic.WithHistogramIndices("operation"),
+			elastic.WithHistogramFunction("sum", "result.paid_storage_size_diff"),
+			elastic.WithHistogramFilters(filters),
 		}, nil
 	case "consumed_gas":
-		return seriesParams{
-			Index:    "operation",
-			Function: "sum",
-			Field:    "result.consumed_gas",
+		return []elastic.HistogramOption{
+			elastic.WithHistogramIndices("operation"),
+			elastic.WithHistogramFunction("sum", "result.consumed_gas"),
+			elastic.WithHistogramFilters(filters),
 		}, nil
 	case "users":
-		return seriesParams{
-			Index:    "operation",
-			Function: "cardinality",
-			Field:    "source.keyword",
+		return []elastic.HistogramOption{
+			elastic.WithHistogramIndices("operation"),
+			elastic.WithHistogramFunction("cardinality", "source.keyword"),
+			elastic.WithHistogramFilters(filters),
 		}, nil
 	case "volume":
-		return seriesParams{
-			Index:    "operation",
-			Function: "sum",
-			Field:    "amount",
+		return []elastic.HistogramOption{
+			elastic.WithHistogramIndices("operation"),
+			elastic.WithHistogramFunction("sum", "amount"),
+			elastic.WithHistogramFilters(filters),
 		}, nil
 	case "token_volume":
-		return seriesParams{
-			Index:    "transfer",
-			Function: "sum",
-			Field:    "amount",
+		return []elastic.HistogramOption{
+			elastic.WithHistogramIndices("transfer"),
+			elastic.WithHistogramFunction("sum", "amount"),
+			elastic.WithHistogramFilters(filters),
 		}, nil
 	default:
-		return seriesParams{}, fmt.Errorf("Unknown series name: %s", name)
+		return nil, fmt.Errorf("Unknown series name: %s", name)
 	}
 }
 
