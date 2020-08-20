@@ -143,43 +143,6 @@ func (e *Elastic) executeSQL(sqlString string) (result gjson.Result, err error) 
 	return e.getResponse(resp)
 }
 
-func (e *Elastic) createScroll(index string, size int64, query map[string]interface{}) (result gjson.Result, err error) {
-	var buf bytes.Buffer
-	if err = json.NewEncoder(&buf).Encode(query); err != nil {
-		return
-	}
-
-	// log.Print(buf.String())
-
-	var resp *esapi.Response
-	options := []func(*esapi.SearchRequest){
-		e.Search.WithContext(context.Background()),
-		e.Search.WithIndex(index),
-		e.Search.WithBody(&buf),
-		e.Search.WithScroll(time.Minute),
-		e.Search.WithSize(int(size)),
-	}
-
-	if resp, err = e.Search(
-		options...,
-	); err != nil {
-		return
-	}
-	defer resp.Body.Close()
-
-	return e.getResponse(resp)
-}
-
-func (e *Elastic) queryScroll(scrollID string) (result gjson.Result, err error) {
-	resp, err := e.Scroll(e.Scroll.WithScrollID(scrollID), e.Scroll.WithScroll(time.Minute))
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
-
-	return e.getResponse(resp)
-}
-
 // TestConnection -
 func (e *Elastic) TestConnection() (result gjson.Result, err error) {
 	res, err := e.Info()

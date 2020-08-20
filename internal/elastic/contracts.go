@@ -33,30 +33,10 @@ func (e *Elastic) getContract(q map[string]interface{}) (c models.Contract, err 
 	return
 }
 
-func (e *Elastic) getContracts(q map[string]interface{}) ([]models.Contract, error) {
+func (e *Elastic) getContracts(query base) ([]models.Contract, error) {
 	contracts := make([]models.Contract, 0)
-
-	result, err := e.createScroll(DocContracts, 1000, q)
-	if err != nil {
+	if err := e.getAllByQuery(query, &contracts); err != nil {
 		return nil, err
-	}
-	for {
-		scrollID := result.Get("_scroll_id").String()
-		hits := result.Get("hits.hits")
-		if hits.Get("#").Int() < 1 {
-			break
-		}
-
-		for _, item := range hits.Array() {
-			var c models.Contract
-			c.ParseElasticJSON(item)
-			contracts = append(contracts, c)
-		}
-
-		result, err = e.queryScroll(scrollID)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	return contracts, nil
@@ -200,6 +180,20 @@ func (e *Elastic) NeedParseOperation(network, source, destination string) (bool,
 	return resp.Get("hits.total.value").Int() == 1, nil
 }
 
+type contractIDs struct {
+	IDs []string
+}
+
+// GetIndex -
+func (ids *contractIDs) GetIndex() string {
+	return DocContracts
+}
+
+// ParseElasticJSON -
+func (ids *contractIDs) ParseElasticJSON(hit gjson.Result) {
+	ids.IDs = append(ids.IDs, hit.Get("_id").String())
+}
+
 // GetContractsIDByAddress -
 func (e *Elastic) GetContractsIDByAddress(addresses []string, network string) ([]string, error) {
 	shouldItems := make([]qItem, len(addresses))
@@ -216,30 +210,12 @@ func (e *Elastic) GetContractsIDByAddress(addresses []string, network string) ([
 			minimumShouldMatch(1),
 		),
 	)
-	result, err := e.createScroll(DocContracts, 1000, query)
-	if err != nil {
-		return nil, err
+
+	ids := contractIDs{
+		IDs: make([]string, 0),
 	}
-
-	ids := make([]string, 0)
-	for {
-		scrollID := result.Get("_scroll_id").String()
-		hits := result.Get("hits.hits")
-		if hits.Get("#").Int() < 1 {
-			break
-		}
-
-		for _, item := range hits.Array() {
-			ids = append(ids, item.Get("_id").String())
-		}
-
-		result, err = e.queryScroll(scrollID)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return ids, nil
+	err := e.getAllByQuery(query, &ids)
+	return ids.IDs, err
 }
 
 // RecalcContractStats -
