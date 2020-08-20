@@ -48,7 +48,6 @@ COPY /cmd/api/data/errors.json /app/api/data/errors.json
 COPY --from=builder /go/bin/aliases /go/bin/aliases
 COPY --from=builder /go/bin/es-aws /go/bin/es-aws
 COPY --from=builder /go/bin/migration /go/bin/migration
-COPY --from=builder /go/bin/ml /go/bin/ml
 COPY --from=builder /go/bin/rollback /go/bin/rollback
 
 ENTRYPOINT ["/go/bin/api"]
