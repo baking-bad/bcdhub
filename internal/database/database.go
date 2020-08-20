@@ -32,7 +32,8 @@ type DB interface {
 	// Assessment
 	CreateAssessment(a *Assessments) error
 	CreateOrUpdateAssessment(a *Assessments) error
-	GetNextAssessmentWithValue(uint, uint) (Assessments, error)
+	GetAssessmentsWithValue(uint, uint, uint) ([]Assessments, error)
+	GetUserCompletedAssesments(userID uint) (count int, err error)
 
 	// Account
 	GetOrCreateAccount(*Account) error

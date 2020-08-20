@@ -14,31 +14,48 @@ type Assessments struct {
 
 // Assessment field values
 const (
-	AssessmentUndefined  = 10
-	AssessmentSimilar    = 1
-	AssessmentNotSimilar = 0
+	AssessmentUndefined  = uint(10)
+	AssessmentSimilar    = uint(1)
+	AssessmentNotSimilar = uint(2)
 )
 
 // CreateAssessment -
 func (d *db) CreateAssessment(a *Assessments) error {
-	return d.ORM.Create(a).Error
+	return d.ORM.
+		Attrs(Assessments{Assessment: a.Assessment}).
+		FirstOrCreate(a).Error
 }
 
 // UpdateAssessment -
 func (d *db) CreateOrUpdateAssessment(a *Assessments) error {
-	return d.ORM.Where(
-		"address1 = ? AND network1 = ? AND address2 = ? AND network2 = ? AND user_id = ?",
-		a.Address1, a.Network1, a.Address2, a.Network2, a.UserID).
+	return d.ORM.
 		Assign(Assessments{Assessment: a.Assessment}).
 		FirstOrCreate(a).Error
 }
 
-func (d *db) GetNextAssessmentWithValue(userID, assessment uint) (Assessments, error) {
-	var a Assessments
-	if err := d.ORM.Where("user_id = ? AND assessment = ?", userID, assessment).
-		Order(gorm.Expr("random()")).
-		First(&a).Error; err != nil {
-		return a, err
+// GetAssessmentsWithValue -
+func (d *db) GetAssessmentsWithValue(userID, assessment, size uint) (result []Assessments, err error) {
+	a := &Assessments{
+		UserID: userID,
 	}
-	return a, nil
+	if assessment == AssessmentUndefined || assessment == AssessmentSimilar || assessment == AssessmentNotSimilar {
+		a.Assessment = assessment
+	}
+	query := d.ORM.
+		Where(a).
+		Order(gorm.Expr("random()"))
+
+	if size > 0 {
+		query = query.Limit(size)
+	}
+	err = query.Find(&result).Error
+	return
+}
+
+// GetUserCompletedAssesments -
+func (d *db) GetUserCompletedAssesments(userID uint) (count int, err error) {
+	err = d.ORM.Model(&Assessments{}).
+		Where("user_id = ? AND (assessment = ? OR assessment = ?)", userID, AssessmentSimilar, AssessmentNotSimilar).
+		Count(&count).Error
+	return
 }

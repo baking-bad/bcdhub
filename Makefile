@@ -59,9 +59,6 @@ clearmq:
 
 test:
 	go test ./...
-
-task:
-	cd scripts/ml && go run . -f ../config.yml
   
 docs:
 	# wget https://github.com/swaggo/swag/releases/download/v1.6.6/swag_1.6.6_Linux_x86_64.tar.gz

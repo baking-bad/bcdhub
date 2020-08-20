@@ -25,10 +25,17 @@ func (ctx *Context) GetUserProfile(c *gin.Context) {
 		return
 	}
 
+	count, err := ctx.DB.GetUserCompletedAssesments(user.ID)
+	if handleError(c, err, 0) {
+		return
+	}
+
 	profile := userProfile{
-		Login:      user.Login,
-		AvatarURL:  user.AvatarURL,
-		MarkReadAt: user.MarkReadAt,
+		Login:           user.Login,
+		AvatarURL:       user.AvatarURL,
+		MarkReadAt:      user.MarkReadAt,
+		RegisteredAt:    user.CreatedAt,
+		MarkedContracts: count,
 
 		Subscriptions: PrepareSubscriptions(subscriptions),
 	}

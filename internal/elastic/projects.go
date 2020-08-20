@@ -2,6 +2,8 @@ package elastic
 
 import (
 	"fmt"
+	"math/rand"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models"
 )
@@ -243,5 +245,7 @@ func (e *Elastic) GetDiffTasks() ([]DiffTask, error) {
 		}
 	}
 
+	rand.Seed(time.Now().Unix())
+	rand.Shuffle(len(tasks), func(i, j int) { tasks[i], tasks[j] = tasks[j], tasks[i] })
 	return tasks, nil
 }
