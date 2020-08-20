@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/tidwall/gjson"
 )
 
 type opgForContract struct {
@@ -157,10 +158,21 @@ func (e *Elastic) GetLastOperation(address, network string, indexedTime int64) (
 	return
 }
 
+type levelsForNetwork map[int64]struct{}
+
+// GetIndex -
+func (levels levelsForNetwork) GetIndex() string {
+	return DocOperations
+}
+
+// ParseElasticJSON -
+func (levels levelsForNetwork) ParseElasticJSON(hit gjson.Result) {
+	level := hit.Get("_source.level").Int()
+	levels[level] = struct{}{}
+}
+
 // GetAllLevelsForNetwork -
 func (e *Elastic) GetAllLevelsForNetwork(network string) (map[int64]struct{}, error) {
-	levels := make(map[int64]struct{})
-
 	query := newQuery().Query(
 		boolQ(
 			filter(
@@ -168,29 +180,29 @@ func (e *Elastic) GetAllLevelsForNetwork(network string) (map[int64]struct{}, er
 			),
 		),
 	).Sort("level", "asc")
-	result, err := e.createScroll(DocOperations, 1000, query)
-	if err != nil {
-		return nil, err
+
+	levels := make(levelsForNetwork)
+	err := e.getAllByQuery(query, &levels)
+	return levels, err
+}
+
+type affectedAddresses map[string]struct{}
+
+// GetIndex -
+func (a affectedAddresses) GetIndex() string {
+	return DocOperations
+}
+
+// ParseElasticJSON -
+func (a affectedAddresses) ParseElasticJSON(hit gjson.Result) {
+	source := hit.Get("_source.source").String()
+	destination := hit.Get("_source.destination").String()
+	if strings.HasPrefix(source, "KT") {
+		a[source] = struct{}{}
 	}
-	for {
-		scrollID := result.Get("_scroll_id").String()
-		hits := result.Get("hits.hits")
-		if hits.Get("#").Int() < 1 {
-			break
-		}
-
-		for _, item := range hits.Array() {
-			level := item.Get("_source.level").Int()
-			levels[level] = struct{}{}
-		}
-
-		result, err = e.queryScroll(scrollID)
-		if err != nil {
-			return nil, err
-		}
+	if strings.HasPrefix(destination, "KT") {
+		a[destination] = struct{}{}
 	}
-
-	return levels, nil
 }
 
 // GetAffectedContracts -
@@ -207,34 +219,9 @@ func (e *Elastic) GetAffectedContracts(network string, fromLevel, toLevel int64)
 		),
 	)
 
-	result, err := e.createScroll(DocOperations, 1000, query)
-	if err != nil {
+	addressesMap := make(affectedAddresses)
+	if err := e.getAllByQuery(query, addressesMap); err != nil {
 		return nil, err
-	}
-
-	addressesMap := make(map[string]struct{})
-	for {
-		scrollID := result.Get("_scroll_id").String()
-		hits := result.Get("hits.hits")
-		if hits.Get("#").Int() < 1 {
-			break
-		}
-
-		for _, item := range hits.Array() {
-			source := item.Get("_source.source").String()
-			destination := item.Get("_source.destination").String()
-			if strings.HasPrefix(source, "KT") {
-				addressesMap[source] = struct{}{}
-			}
-			if strings.HasPrefix(destination, "KT") {
-				addressesMap[destination] = struct{}{}
-			}
-		}
-
-		result, err = e.queryScroll(scrollID)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	addresses := make([]string, 0)
@@ -267,35 +254,10 @@ func (e *Elastic) GetOperations(filters map[string]interface{}, size int64, sort
 	}
 
 	if size == 0 || size > defaultSize {
-		size = 1000
+		size = defaultScrollSize
 	}
 
-	result, err := e.createScroll(DocOperations, size, query)
-	if err != nil {
-		return nil, err
-	}
-	for {
-		hits := result.Get("hits.hits")
-		if hits.Get("#").Int() < 1 {
-			break
-		}
-
-		for _, item := range hits.Array() {
-			var op models.Operation
-			op.ParseElasticJSON(item)
-			operations = append(operations, op)
-		}
-
-		if len(operations) == int(size) {
-			break
-		}
-
-		scrollID := result.Get("_scroll_id").String()
-		result, err = e.queryScroll(scrollID)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return operations, nil
+	ctx := newScrollContext(e, query, size)
+	err := ctx.get(&operations)
+	return operations, err
 }
