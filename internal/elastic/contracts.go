@@ -180,16 +180,18 @@ func (e *Elastic) NeedParseOperation(network, source, destination string) (bool,
 	return resp.Get("hits.total.value").Int() == 1, nil
 }
 
-type contractIDs []string
+type contractIDs struct {
+	IDs []string
+}
 
 // GetIndex -
-func (ids contractIDs) GetIndex() string {
+func (ids *contractIDs) GetIndex() string {
 	return DocContracts
 }
 
 // ParseElasticJSON -
-func (ids contractIDs) ParseElasticJSON(hit gjson.Result) {
-	ids = append(ids, hit.Get("_id").String())
+func (ids *contractIDs) ParseElasticJSON(hit gjson.Result) {
+	ids.IDs = append(ids.IDs, hit.Get("_id").String())
 }
 
 // GetContractsIDByAddress -
@@ -208,12 +210,12 @@ func (e *Elastic) GetContractsIDByAddress(addresses []string, network string) ([
 			minimumShouldMatch(1),
 		),
 	)
-	ids := make(contractIDs, 0)
-	if err := e.getAllByQuery(query, &ids); err != nil {
-		return nil, err
-	}
 
-	return ids, nil
+	ids := contractIDs{
+		IDs: make([]string, 0),
+	}
+	err := e.getAllByQuery(query, &ids)
+	return ids.IDs, err
 }
 
 // RecalcContractStats -
