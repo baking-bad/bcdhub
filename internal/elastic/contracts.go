@@ -184,6 +184,16 @@ type contractIDs struct {
 	IDs []string
 }
 
+// GetQueue -
+func (ids *contractIDs) GetQueue() string {
+	return ""
+}
+
+// GetID -
+func (ids *contractIDs) GetID() string {
+	return ""
+}
+
 // GetIndex -
 func (ids *contractIDs) GetIndex() string {
 	return DocContracts

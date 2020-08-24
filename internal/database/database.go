@@ -15,6 +15,7 @@ type DB interface {
 
 	// Subscription
 	GetSubscription(userID uint, address, network string) (Subscription, error)
+	GetSubscriptions(address, network string) ([]Subscription, error)
 	ListSubscriptions(userID uint) ([]Subscription, error)
 	UpsertSubscription(*Subscription) error
 	DeleteSubscription(*Subscription) error

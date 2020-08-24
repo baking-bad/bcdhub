@@ -253,6 +253,8 @@ type Subscription struct {
 	WatchDeployments bool      `json:"watch_deployments"`
 	WatchCalls       bool      `json:"watch_calls"`
 	WatchErrors      bool      `json:"watch_errors"`
+	SentryEnabled    bool      `json:"sentry_enabled"`
+	SentryDSN        string    `json:"sentry_dsn,omitempty"`
 }
 
 // Event -

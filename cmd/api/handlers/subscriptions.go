@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/database"
@@ -30,6 +31,10 @@ func (ctx *Context) CreateSubscription(c *gin.Context) {
 	if err := c.ShouldBindJSON(&sub); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
+	if sub.SentryEnabled && sub.SentryDSN == "" {
+		handleError(c, fmt.Errorf("You have to set `Sentry DSN` when sentry notifications is enabled"), http.StatusBadRequest)
+		return
+	}
 
 	userID := CurrentUserID(c)
 	if userID == 0 {
@@ -42,7 +47,8 @@ func (ctx *Context) CreateSubscription(c *gin.Context) {
 		Address:   sub.Address,
 		Network:   sub.Network,
 		Alias:     sub.Alias,
-		WatchMask: buildWatchMask(sub),
+		WatchMask: sub.getMask(),
+		SentryDSN: sub.SentryDSN,
 	}
 
 	if err := ctx.DB.UpsertSubscription(&subscription); handleError(c, err, 0) {
@@ -80,11 +86,12 @@ func (ctx *Context) DeleteSubscription(c *gin.Context) {
 
 // PrepareSubscription -
 func PrepareSubscription(sub database.Subscription) (res Subscription) {
-	res = buildSubFromWatchMask(sub.WatchMask)
+	res = newSubscriptionWithMask(sub.WatchMask)
 	res.Address = sub.Address
 	res.Network = sub.Network
 	res.Alias = sub.Alias
 	res.SubscribedAt = sub.CreatedAt
+	res.SentryDSN = sub.SentryDSN
 	return
 }
 
@@ -97,83 +104,4 @@ func PrepareSubscriptions(subs []database.Subscription) []Subscription {
 	}
 
 	return res
-}
-
-// Subscription flags
-const (
-	WatchSame uint = 1 << iota
-	WatchSimilar
-	WatchMempool
-	WatchMigrations
-	WatchDeployments
-	WatchCalls
-	WatchErrors
-)
-
-func buildWatchMask(s subRequest) uint {
-	var b uint
-
-	if s.WatchSame {
-		b = b | WatchSame
-	}
-
-	if s.WatchSimilar {
-		b = b | WatchSimilar
-	}
-
-	if s.WatchMempool {
-		b = b | WatchMempool
-	}
-
-	if s.WatchMigrations {
-		b = b | WatchMigrations
-	}
-
-	if s.WatchDeployments {
-		b = b | WatchDeployments
-	}
-
-	if s.WatchCalls {
-		b = b | WatchCalls
-	}
-
-	if s.WatchErrors {
-		b = b | WatchErrors
-	}
-
-	return b
-}
-
-func buildSubFromWatchMask(mask uint) Subscription {
-	s := Subscription{}
-
-	if mask&WatchSame != 0 {
-		s.WatchSame = true
-	}
-
-	if mask&WatchSimilar != 0 {
-		s.WatchSimilar = true
-	}
-
-	if mask&WatchMempool != 0 {
-		s.WatchMempool = true
-	}
-
-	if mask&WatchMigrations != 0 {
-		s.WatchMigrations = true
-	}
-
-	if mask&WatchDeployments != 0 {
-		s.WatchDeployments = true
-	}
-
-	if mask&WatchCalls != 0 {
-		s.WatchCalls = true
-	}
-
-	if mask&WatchErrors != 0 {
-		s.WatchErrors = true
-	}
-
-	return s
 }
