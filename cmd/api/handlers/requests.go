@@ -207,23 +207,3 @@ type getTokenSeriesRequest struct {
 	Period  string `form:"period" binding:"oneof=all year month week day" example:"year"`
 	TokenID uint   `form:"token_id"`
 }
-
-// GetTokenStatsRequest -
-type GetTokenStatsRequest struct {
-	Period    string `form:"period" binding:"oneof=all year month week day" example:"year"`
-	Contracts string `form:"contracts"`
-}
-
-// Addresses -
-func (req GetTokenStatsRequest) Addresses() []string {
-	if req.Contracts == "" {
-		return nil
-	}
-	return strings.Split(req.Contracts, ",")
-}
-
-type getTokenSeriesRequest struct {
-	Address string `form:"address" binding:"required,address"`
-	Period  string `form:"period" binding:"oneof=all year month week day" example:"year"`
-	TokenID uint   `form:"token_id"`
-}

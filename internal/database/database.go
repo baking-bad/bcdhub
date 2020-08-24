@@ -61,15 +61,7 @@ func New(connectionString string) (DB, error) {
 
 	gormDB.LogMode(false)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 	gormDB.AutoMigrate(&User{}, &Subscription{}, &Alias{}, &Assessments{}, &Account{}, &Picture{}, &DApp{}, &Token{})
-=======
-	gormDB.AutoMigrate(&User{}, &Subscription{}, &Alias{}, &Assessments{}, &Account{}, &Picture{}, &DApp{})
->>>>>>> DApp: database
-=======
-	gormDB.AutoMigrate(&User{}, &Subscription{}, &Alias{}, &Assessments{}, &Account{}, &Picture{}, &DApp{}, &Token{})
->>>>>>> Tokens stats
 
 	gormDB = gormDB.Set("gorm:auto_preload", false)
 
