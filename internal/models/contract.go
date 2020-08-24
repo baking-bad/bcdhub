@@ -48,6 +48,11 @@ func (c *Contract) GetIndex() string {
 	return "contract"
 }
 
+// GetQueue -
+func (c *Contract) GetQueue() string {
+	return "contracts"
+}
+
 // ParseElasticJSON -
 func (c *Contract) ParseElasticJSON(hit gjson.Result) {
 	c.ID = hit.Get("_id").String()

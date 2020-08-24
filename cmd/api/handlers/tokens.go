@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"math"
 	"net/http"
 	"strconv"
 
@@ -151,6 +152,52 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, ops)
+}
+
+// GetTokenVolumeSeries godoc
+// @Summary Get volume series for token
+// @Description Get volume series for token
+// @Tags tokens
+// @ID get-token-series
+// @Param network path string true "Network"
+// @Param period query string true "One of periods"  Enums(all, year, month, week, day)
+// @Param address path string true "KT address" minlength(36) maxlength(36)
+// @Param token_id query int true "Comma-separated contract addresses"
+// @Accept json
+// @Produce  json
+// @Success 200 {object} Series
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /tokens/{network}/series [get]
+func (ctx *Context) GetTokenVolumeSeries(c *gin.Context) {
+	var req getByNetwork
+	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
+	var reqArgs getTokenSeriesRequest
+	if err := c.BindQuery(&reqArgs); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
+	series, err := ctx.ES.GetTokenVolumeSeries(req.Network, reqArgs.Period, []string{reqArgs.Address}, reqArgs.TokenID)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	if token, ok := ctx.FindToken(req.Network, reqArgs.Address, int64(reqArgs.TokenID)); ok {
+		response := make([][]interface{}, len(series))
+		for i := range series {
+			response[i] = []interface{}{
+				series[i][0],
+				float64(series[i][1]) / math.Pow10(int(token.Decimals)),
+			}
+		}
+		c.JSON(http.StatusOK, response)
+		return
+	}
+
+	c.JSON(http.StatusOK, series)
 }
 
 func (ctx *Context) contractToTokens(contracts []models.Contract, network, version string) (PageableTokenContracts, error) {

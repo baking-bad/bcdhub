@@ -38,6 +38,13 @@ type DB interface {
 	// Account
 	GetOrCreateAccount(*Account) error
 
+	// DApp
+	GetDApps() ([]DApp, error)
+	GetDApp(id uint) (DApp, error)
+
+	// Tokens
+	GetTokens() ([]Token, error)
+
 	Close()
 }
 
@@ -54,7 +61,7 @@ func New(connectionString string) (DB, error) {
 
 	gormDB.LogMode(false)
 
-	gormDB.AutoMigrate(&User{}, &Subscription{}, &Alias{}, &Assessments{}, &Account{})
+	gormDB.AutoMigrate(&User{}, &Subscription{}, &Alias{}, &Assessments{}, &Account{}, &Picture{}, &DApp{}, &Token{})
 
 	gormDB = gormDB.Set("gorm:auto_preload", false)
 

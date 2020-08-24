@@ -14,6 +14,7 @@ rabbitmq:
         - contracts
         - migrations
         - recalc
+        - transfers
 
 db:
     conn_string: "host=127.0.0.1 port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"

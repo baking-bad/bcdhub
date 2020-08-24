@@ -3,17 +3,20 @@ package database
 import (
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/jinzhu/gorm"
 )
 
 // Alias model
 type Alias struct {
-	ID      int64  `gorm:"primary_key,AUTO_INCREMENT" json:"-"`
-	Alias   string `json:"alias"`
-	Network string `json:"network"`
-	Address string `json:"address"`
-	Slug    string `json:"slug"`
+	ID          int64      `gorm:"primary_key,AUTO_INCREMENT" json:"-"`
+	Alias       string     `json:"alias"`
+	Network     string     `json:"network"`
+	Address     string     `json:"address"`
+	Slug        string     `json:"slug,omitempty"`
+	ReleaseDate *time.Time `json:"release_date"`
+	DAppID      uint       `json:"-"`
 }
 
 // OperationAlises -

@@ -302,17 +302,27 @@ func (e *Elastic) GetContractMigrationStats(network, address string) (stats Cont
 }
 
 // GetDAppStats -
-func (e *Elastic) GetDAppStats(network, address, period string) (stats DAppStats, err error) {
+func (e *Elastic) GetDAppStats(network string, addresses []string, period string) (stats DAppStats, err error) {
+	addressMatches := make([]qItem, len(addresses))
+	for i := range addresses {
+		addressMatches[i] = matchPhrase("destination", addresses[i])
+	}
+
 	matches := []qItem{
 		matchQ("network", network),
-		matchPhrase("destination", address),
+		boolQ(
+			should(addressMatches...),
+			minimumShouldMatch(1),
+		),
 		matchQ("status", "applied"),
 	}
 	r, err := periodToRange(period)
 	if err != nil {
 		return
 	}
-	matches = append(matches, r)
+	if r != nil {
+		matches = append(matches, r)
+	}
 
 	query := newQuery().Query(
 		boolQ(
@@ -352,6 +362,8 @@ func periodToRange(period string) (qItem, error) {
 		str = "now-1w/d"
 	case "day":
 		str = "now-1d/d"
+	case "all":
+		return nil, nil
 	default:
 		return nil, fmt.Errorf("Unknown period value: %s", period)
 	}
@@ -361,5 +373,40 @@ func periodToRange(period string) (qItem, error) {
 				"gte": str,
 			},
 		},
+	}, nil
+}
+
+// GetContractTransfers -
+func (e *Elastic) GetContractTransfers(network string, address string, size, offset int64) (TransfersResponse, error) {
+	matches := []qItem{
+		matchQ("network", network),
+		matchPhrase("contract", address),
+	}
+
+	if size == 0 {
+		size = defaultSize
+	}
+
+	query := newQuery().Query(
+		boolQ(
+			filter(matches...),
+		),
+	).Sort("indexed_time", "desc").Size(size).From(offset)
+
+	response, err := e.query([]string{DocTransfers}, query)
+	if err != nil {
+		return TransfersResponse{}, err
+	}
+
+	transfers := make([]models.Transfer, 0)
+	hits := response.Get("hits.hits").Array()
+	for _, hit := range hits {
+		var transfer models.Transfer
+		transfer.ParseElasticJSON(hit)
+		transfers = append(transfers, transfer)
+	}
+	return TransfersResponse{
+		Transfers: transfers,
+		Total:     response.Get("hits.total.value").Int(),
 	}, nil
 }

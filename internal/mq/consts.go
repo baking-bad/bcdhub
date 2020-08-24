@@ -11,4 +11,5 @@ const (
 	QueueOperations = "operations"
 	QueueMigrations = "migrations"
 	QueueRecalc     = "recalc"
+	QueueTransfers  = "transfers"
 )

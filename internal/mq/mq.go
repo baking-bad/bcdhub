@@ -27,7 +27,16 @@ func (mq *MQ) Close() {
 }
 
 // Send -
-func (mq *MQ) Send(channel, queue string, v interface{}) error {
+func (mq *MQ) Send(channel string, queue IQueued, v interface{}) error {
+	q := queue.GetQueue()
+	if q == "" {
+		return nil
+	}
+	return mq.SendToQueue(channel, q, v)
+}
+
+// SendToQueue -
+func (mq *MQ) SendToQueue(channel, queue string, v interface{}) error {
 	if mq.Channel == nil || mq.Conn == nil {
 		return errors.New("Invaid connection or channel")
 	}

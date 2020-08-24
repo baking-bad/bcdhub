@@ -48,64 +48,6 @@ func (e *Elastic) GetNetworkCountStats(network string) (stats NetworkCountStats,
 	return
 }
 
-// GetDateHistogram -
-func (e *Elastic) GetDateHistogram(network, index, function, field, period, address string) ([][]int64, error) {
-	hist := qItem{
-		"date_histogram": qItem{
-			"field":             "timestamp",
-			"calendar_interval": period,
-		},
-	}
-
-	if field != "" && function != "" {
-		hist.Append("aggs", qItem{
-			"result": qItem{
-				function: qItem{
-					"field": field,
-				},
-			},
-		})
-	}
-
-	matches := []qItem{
-		matchQ("network", network),
-	}
-	if address != "" {
-		matches = append(matches, matchPhrase("destination", address))
-	}
-
-	query := newQuery().Query(
-		boolQ(
-			filter(
-				matches...,
-			),
-		),
-	).Add(
-		aggs("hist", hist),
-	).Zero()
-
-	response, err := e.query([]string{index}, query)
-	if err != nil {
-		return nil, err
-	}
-
-	data := response.Get("aggregations.hist.buckets").Array()
-	histogram := make([][]int64, 0)
-	for _, hit := range data {
-		key := "doc_count"
-		if function != "" && field != "" {
-			key = "result.value"
-		}
-
-		item := []int64{
-			hit.Get("key").Int(),
-			hit.Get(key).Int(),
-		}
-		histogram = append(histogram, item)
-	}
-	return histogram, nil
-}
-
 // GetCallsCountByNetwork -
 func (e *Elastic) GetCallsCountByNetwork() (map[string]int64, error) {
 	query := newQuery().Query(exists("entrypoint")).Add(

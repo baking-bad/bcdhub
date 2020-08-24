@@ -37,6 +37,11 @@ func (b *BigMapDiff) GetIndex() string {
 	return "bigmapdiff"
 }
 
+// GetQueue -
+func (b *BigMapDiff) GetQueue() string {
+	return ""
+}
+
 // ParseElasticJSON -
 func (b *BigMapDiff) ParseElasticJSON(hit gjson.Result) {
 	b.ID = hit.Get("_id").String()

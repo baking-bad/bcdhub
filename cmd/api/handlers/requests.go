@@ -1,5 +1,7 @@
 package handlers
 
+import "strings"
+
 type getContractCodeRequest struct {
 	Address  string `uri:"address" binding:"required,address"`
 	Network  string `uri:"network" binding:"required,network"`
@@ -135,10 +137,10 @@ type getEntrypointDataRequest struct {
 }
 
 type getSeriesRequest struct {
-	Name   string `form:"name" binding:"oneof=contract operation paid_storage_size_diff consumed_gas volume users" example:"contract"`
+	Name   string `form:"name" binding:"oneof=contract operation paid_storage_size_diff consumed_gas volume users token_volume" example:"contract"`
 	Period string `form:"period" binding:"oneof=year month week day" example:"year"`
 
-	Address string `form:"address,omitempty" binding:"omitempty,address"`
+	Address string `form:"address,omitempty" binding:"omitempty"`
 }
 
 type getBySlugRequest struct {
@@ -186,6 +188,22 @@ type storageRequest struct {
 	Level int `form:"level" binding:"omitempty,gte=1"`
 }
 
-type periodRequest struct {
-	Period string `form:"period" binding:"oneof=year month week day" example:"year"`
+// GetTokenStatsRequest -
+type GetTokenStatsRequest struct {
+	Period    string `form:"period" binding:"oneof=all year month week day" example:"year"`
+	Contracts string `form:"contracts"`
+}
+
+// Addresses -
+func (req GetTokenStatsRequest) Addresses() []string {
+	if req.Contracts == "" {
+		return nil
+	}
+	return strings.Split(req.Contracts, ",")
+}
+
+type getTokenSeriesRequest struct {
+	Address string `form:"address" binding:"required,address"`
+	Period  string `form:"period" binding:"oneof=all year month week day" example:"year"`
+	TokenID uint   `form:"token_id"`
 }

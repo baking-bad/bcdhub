@@ -3,7 +3,9 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
 )
@@ -84,7 +86,7 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 // @Param network path string true "Network"
 // @Param name query string true "One of names" Enums(contract, operation, paid_storage_size_diff, consumed_gas, users, volume)
 // @Param period query string true "One of periods"  Enums(year, month, week, day)
-// @Param address query string false "Contract address"
+// @Param address query string false "Comma-separated contract addresses"
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} Series
@@ -102,12 +104,15 @@ func (ctx *Context) GetSeries(c *gin.Context) {
 		return
 	}
 
-	params, err := getSeriesIndexAndField(reqArgs.Name)
+	options, err := getHistogramOptions(reqArgs.Name, req.Network)
 	if handleError(c, err, 0) {
 		return
 	}
 
-	series, err := ctx.ES.GetDateHistogram(req.Network, params.Index, params.Function, params.Field, reqArgs.Period, reqArgs.Address)
+	if reqArgs.Address != "" {
+		options = append(options, elastic.WithHistogramAddresses(strings.Split(reqArgs.Address, ",")...))
+	}
+	series, err := ctx.ES.GetDateHistogram(reqArgs.Period, options...)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -115,47 +120,89 @@ func (ctx *Context) GetSeries(c *gin.Context) {
 	c.JSON(http.StatusOK, series)
 }
 
-type seriesParams struct {
-	Index    string
-	Function string
-	Field    string
-}
-
-func getSeriesIndexAndField(name string) (seriesParams, error) {
+func getHistogramOptions(name, network string) ([]elastic.HistogramOption, error) {
+	filters := map[string]interface{}{
+		"network": network,
+	}
 	switch name {
 	case "contract":
-		return seriesParams{
-			Index: "contract",
+		return []elastic.HistogramOption{
+			elastic.WithHistogramIndices("contract"),
+			elastic.WithHistogramFilters(filters),
 		}, nil
 	case "operation":
-		return seriesParams{
-			Index: "operation",
+		filters["entrypoint"] = ""
+
+		return []elastic.HistogramOption{
+			elastic.WithHistogramIndices("operation"),
+			elastic.WithHistogramFilters(filters),
 		}, nil
 	case "paid_storage_size_diff":
-		return seriesParams{
-			Index:    "operation",
-			Function: "sum",
-			Field:    "result.paid_storage_size_diff",
+		return []elastic.HistogramOption{
+			elastic.WithHistogramIndices("operation"),
+			elastic.WithHistogramFunction("sum", "result.paid_storage_size_diff"),
+			elastic.WithHistogramFilters(filters),
 		}, nil
 	case "consumed_gas":
-		return seriesParams{
-			Index:    "operation",
-			Function: "sum",
-			Field:    "result.consumed_gas",
+		return []elastic.HistogramOption{
+			elastic.WithHistogramIndices("operation"),
+			elastic.WithHistogramFunction("sum", "result.consumed_gas"),
+			elastic.WithHistogramFilters(filters),
 		}, nil
 	case "users":
-		return seriesParams{
-			Index:    "operation",
-			Function: "cardinality",
-			Field:    "source.keyword",
+		return []elastic.HistogramOption{
+			elastic.WithHistogramIndices("operation"),
+			elastic.WithHistogramFunction("cardinality", "source.keyword"),
+			elastic.WithHistogramFilters(filters),
 		}, nil
 	case "volume":
-		return seriesParams{
-			Index:    "operation",
-			Function: "sum",
-			Field:    "amount",
+		return []elastic.HistogramOption{
+			elastic.WithHistogramIndices("operation"),
+			elastic.WithHistogramFunction("sum", "amount"),
+			elastic.WithHistogramFilters(filters),
+		}, nil
+	case "token_volume":
+		return []elastic.HistogramOption{
+			elastic.WithHistogramIndices("transfer"),
+			elastic.WithHistogramFunction("sum", "amount"),
+			elastic.WithHistogramFilters(filters),
 		}, nil
 	default:
-		return seriesParams{}, fmt.Errorf("Unknown series name: %s", name)
+		return nil, fmt.Errorf("Unknown series name: %s", name)
 	}
+}
+
+// GetContractsStats godoc
+// @Summary Show contracts stats
+// @Description Show total volume, unique users and transactions count for period
+// @Tags contract
+// @ID get-stats-contracts
+// @Param network path string true "Network"
+// @Param contracts query string true "Comma-separated KT addresses" minlength(36)
+// @Param period query string true "One of periods"  Enums(all, year, month, week, day)
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} elastic.DAppStats
+// @Failure 500 {object} Error
+// @Router /contract/{network}/stats [get]
+func (ctx *Context) GetContractsStats(c *gin.Context) {
+	var req getByNetwork
+	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+	var reqStats GetTokenStatsRequest
+	if err := c.BindQuery(&reqStats); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+	addresses := reqStats.Addresses()
+	if len(addresses) == 0 {
+		handleError(c, fmt.Errorf("Empty address list"), http.StatusBadRequest)
+		return
+	}
+	stats, err := ctx.ES.GetDAppStats(req.Network, addresses, reqStats.Period)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	c.JSON(http.StatusOK, stats)
 }

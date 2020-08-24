@@ -10,6 +10,7 @@ const (
 	DocMetadata      = "metadata"
 	DocMigrations    = "migration"
 	DocProtocol      = "protocol"
+	DocTransfers     = "transfer"
 )
 
 // Index names

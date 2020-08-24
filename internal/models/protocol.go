@@ -34,3 +34,8 @@ func (p *Protocol) ParseElasticJSON(hit gjson.Result) {
 	p.Alias = hit.Get("_source.alias").String()
 	p.SymLink = hit.Get("_source.sym_link").String()
 }
+
+// GetQueue -
+func (p *Protocol) GetQueue() string {
+	return ""
+}

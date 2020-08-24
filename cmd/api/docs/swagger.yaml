@@ -2,6 +2,21 @@ basePath: /v1
 definitions:
   cerrors.IError:
     type: object
+  database.Token:
+    properties:
+      contract:
+        type: string
+      decimals:
+        type: integer
+      name:
+        type: string
+      network:
+        type: string
+      symbol:
+        type: string
+      token_id:
+        type: integer
+    type: object
   docstring.Typedef:
     properties:
       args:
@@ -467,7 +482,7 @@ definitions:
         type: string
       operations:
         items:
-          $ref: '#/definitions/handlers.Operation'
+          type: integer
         type: array
     type: object
   handlers.OperationResult:
@@ -711,6 +726,49 @@ definitions:
       to:
         type: string
     type: object
+  handlers.Transfer:
+    properties:
+      alias:
+        type: string
+      amount:
+        type: integer
+      contract:
+        type: string
+      from:
+        type: string
+      from_alias:
+        type: string
+      hash:
+        type: string
+      indexed_time:
+        type: integer
+      level:
+        type: integer
+      network:
+        type: string
+      status:
+        type: string
+      timestamp:
+        type: string
+      to:
+        type: string
+      to_alias:
+        type: string
+      token:
+        $ref: '#/definitions/database.Token'
+        type: object
+      token_id:
+        type: integer
+    type: object
+  handlers.TransferResponse:
+    properties:
+      total:
+        type: integer
+      transfers:
+        items:
+          $ref: '#/definitions/handlers.Transfer'
+        type: array
+    type: object
   jsonschema.DefaultModel:
     additionalProperties: true
     type: object
@@ -743,6 +801,37 @@ info:
   title: Better Call Dev API
   version: "1.0"
 paths:
+  /{network}/{address}/transfers:
+    get:
+      consumes:
+      - application/json
+      description: Show contract`s tokens transfers
+      operationId: get-contract-transfers
+      parameters:
+      - description: Transfers count
+        in: query
+        minimum: 1
+        name: size
+        type: integer
+      - description: Offset
+        in: query
+        minimum: 1
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.TransferResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Show contract`s tokens transfers
+      tags:
+      - contract
   /bigmap/{network}/{ptr}:
     get:
       consumes:
@@ -930,8 +1019,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Show total volume, unique users and transactions count for period
-      operationId: get-contract-stats
+      description: Get full contract info
+      operationId: get-contract
       parameters:
       - description: Network
         in: path
@@ -945,28 +1034,22 @@ paths:
         name: address
         required: true
         type: string
-      - description: One of periods
-        enum:
-        - year
-        - month
-        - week
-        - day
-        in: query
-        name: period
-        required: true
-        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/elastic.DAppStats'
+            $ref: '#/definitions/handlers.Contract'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.Error'
-      summary: Show contract stats
+      summary: Get contract info
       tags:
       - contract
   /contract/{network}/{address}/code:
@@ -1636,6 +1719,49 @@ paths:
       summary: Get contract storage schema
       tags:
       - contract
+  /contract/{network}/stats:
+    get:
+      consumes:
+      - application/json
+      description: Show total volume, unique users and transactions count for period
+      operationId: get-stats-contracts
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: Comma-separated KT addresses
+        in: query
+        minLength: 36
+        name: contracts
+        required: true
+        type: string
+      - description: One of periods
+        enum:
+        - all
+        - year
+        - month
+        - week
+        - day
+        in: query
+        name: period
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/elastic.DAppStats'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Show contracts stats
+      tags:
+      - contract
   /diff:
     post:
       consumes:
@@ -1760,8 +1886,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Search any data in contracts, operations and big map diff with
-        filters
+      description: Search any data in contracts, operations and big map diff with filters
       operationId: search
       parameters:
       - description: Query string
@@ -1799,13 +1924,11 @@ paths:
         in: query
         name: g
         type: integer
-      - description: 'Comma-separated list of indices for searching. Values: contract,
-          operation, bigmapdiff'
+      - description: 'Comma-separated list of indices for searching. Values: contract, operation, bigmapdiff'
         in: query
         name: i
         type: string
-      - description: 'Comma-separated list of languages for searching. Values: smartpy,
-          liquidity, ligo, lorentz, michelson'
+      - description: 'Comma-separated list of languages for searching. Values: smartpy, liquidity, ligo, lorentz, michelson'
         in: query
         name: l
         type: string
@@ -1943,7 +2066,7 @@ paths:
         name: period
         required: true
         type: string
-      - description: Contract address
+      - description: Comma-separated contract addresses
         in: query
         name: address
         type: string
@@ -2007,6 +2130,59 @@ paths:
           schema:
             $ref: '#/definitions/handlers.Error'
       summary: Get all contracts that implement FA1/FA1.2 standard
+      tags:
+      - tokens
+  /tokens/{network}/series:
+    get:
+      consumes:
+      - application/json
+      description: Get volume series for token
+      operationId: get-token-series
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: One of periods
+        enum:
+        - all
+        - year
+        - month
+        - week
+        - day
+        in: query
+        name: period
+        required: true
+        type: string
+      - description: KT address
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: address
+        required: true
+        type: string
+      - description: Comma-separated contract addresses
+        in: query
+        name: token_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.Series'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Get volume series for token
       tags:
       - tokens
   /tokens/{network}/transfers/{address}:

@@ -122,6 +122,17 @@ func (p *DefaultParser) parseTransaction(data gjson.Result, network, hash string
 	if len(additionalModels) > 0 {
 		transactionModels = append(transactionModels, additionalModels...)
 	}
+
+	if err := p.tagOperation(&op); err != nil {
+		return nil, op, err
+	}
+	transfers, err := models.CreateTransfers(&op)
+	if err != nil {
+		return nil, op, err
+	}
+	for i := range transfers {
+		transactionModels = append(transactionModels, transfers[i])
+	}
 	return transactionModels, op, nil
 }
 
@@ -402,4 +413,29 @@ func (p *DefaultParser) getRichStorage(data gjson.Result, metadata *meta.Contrac
 		return rs, err
 	}
 	return storage.RichStorage{Empty: true}, nil
+}
+
+func (p *DefaultParser) tagOperation(o *models.Operation) error {
+	if !strings.HasPrefix(o.Destination, "KT") {
+		return nil
+	}
+	contract, err := p.es.GetContract(map[string]interface{}{
+		"network": o.Network,
+		"address": o.Destination,
+	})
+	if err != nil {
+		if elastic.IsRecordNotFound(err) {
+			return nil
+		}
+		return err
+	}
+	o.Tags = make([]string, 0)
+	for _, tag := range contract.Tags {
+		if helpers.StringInArray(tag, []string{
+			consts.FA12Tag, consts.FA2Tag,
+		}) {
+			o.Tags = append(o.Tags, tag)
+		}
+	}
+	return nil
 }

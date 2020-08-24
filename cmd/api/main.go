@@ -137,6 +137,7 @@ func main() {
 			{
 				networkStats.GET("", ctx.GetNetworkStats)
 				networkStats.GET("series", ctx.GetSeries)
+				networkStats.GET("contracts", ctx.GetContractsStats)
 			}
 		}
 
@@ -163,6 +164,7 @@ func main() {
 			contract.GET("code", ctx.GetContractCode)
 			contract.GET("operations", ctx.GetContractOperations)
 			contract.GET("migrations", ctx.GetContractMigrations)
+			contract.GET("transfers", ctx.GetContractTransfers)
 
 			storage := contract.Group("storage")
 			{
@@ -184,12 +186,12 @@ func main() {
 				entrypoints.POST("run_operation", ctx.RunOperation)
 			}
 			contract.POST("fork", ctx.ForkContract)
-			contract.GET("stats", ctx.GetContractStats)
 		}
 
 		fa12 := v1.Group("tokens/:network")
 		{
 			fa12.GET("", ctx.GetFA)
+			fa12.GET("series", ctx.GetTokenVolumeSeries)
 			fa12.GET("version/:faversion", ctx.GetFAByVersion)
 			transfers := fa12.Group("transfers")
 			{
@@ -225,6 +227,12 @@ func main() {
 					vote.GET("generate", ctx.GenerateTasks)
 				}
 			}
+		}
+
+		dapps := v1.Group("dapps")
+		{
+			dapps.GET("", ctx.GetDAppList)
+			dapps.GET(":network/:address", ctx.GetDApp)
 		}
 	}
 

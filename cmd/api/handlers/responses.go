@@ -584,3 +584,15 @@ type BigMapHistoryItem struct {
 	DestinationPtr *int64    `json:"destination_ptr,omitempty"`
 	Timestamp      time.Time `json:"timestamp"`
 }
+
+// Transfer -
+type Transfer struct {
+	*models.Transfer
+	Token *database.Token `json:"token,omitempty"`
+}
+
+// TransferResponse -
+type TransferResponse struct {
+	Transfers []Transfer `json:"transfers"`
+	Total     int64      `json:"total"`
+}
