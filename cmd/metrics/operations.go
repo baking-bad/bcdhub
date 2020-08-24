@@ -51,10 +51,15 @@ func parseOperation(operation models.Operation) error {
 				}
 			}
 		}
+
 	}
 
 	if strings.HasPrefix(operation.Destination, "KT") || operation.Kind == consts.Origination {
 		if err := h.SetBigMapDiffsStrings(operation.ID); err != nil {
+			return err
+		}
+
+		if err := h.SendSentryNotifications(operation); err != nil {
 			return err
 		}
 	}

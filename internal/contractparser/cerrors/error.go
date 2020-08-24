@@ -15,6 +15,8 @@ type IError interface {
 	Parse(data gjson.Result)
 	Is(string) bool
 	Format() error
+	String() string
+	GetTitle() string
 }
 
 // DefaultError -
@@ -51,6 +53,11 @@ func (e *DefaultError) Is(errorID string) bool {
 	return strings.Contains(e.ID, errorID)
 }
 
+// GetTitle -
+func (e *DefaultError) GetTitle() string {
+	return e.Title
+}
+
 // Format -
 func (e *DefaultError) Format() error {
 	if e.With == "" {
@@ -71,6 +78,11 @@ func (e *DefaultError) Format() error {
 	}
 	e.With = errString
 	return nil
+}
+
+// String -
+func (e *DefaultError) String() string {
+	return e.With
 }
 
 // BalanceTooLowError -

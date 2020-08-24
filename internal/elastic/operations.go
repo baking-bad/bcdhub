@@ -158,17 +158,32 @@ func (e *Elastic) GetLastOperation(address, network string, indexedTime int64) (
 	return
 }
 
-type levelsForNetwork map[int64]struct{}
+type levelsForNetwork struct {
+	levels map[int64]struct{}
+}
+
+// GetQueue -
+func (levels *levelsForNetwork) GetQueue() string {
+	return ""
+}
+
+// GetID -
+func (levels *levelsForNetwork) GetID() string {
+	return ""
+}
 
 // GetIndex -
-func (levels levelsForNetwork) GetIndex() string {
+func (levels *levelsForNetwork) GetIndex() string {
 	return DocOperations
 }
 
 // ParseElasticJSON -
-func (levels levelsForNetwork) ParseElasticJSON(hit gjson.Result) {
+func (levels *levelsForNetwork) ParseElasticJSON(hit gjson.Result) {
 	level := hit.Get("_source.level").Int()
-	levels[level] = struct{}{}
+	if levels.levels == nil {
+		levels.levels = make(map[int64]struct{})
+	}
+	levels.levels[level] = struct{}{}
 }
 
 // GetAllLevelsForNetwork -
@@ -181,27 +196,44 @@ func (e *Elastic) GetAllLevelsForNetwork(network string) (map[int64]struct{}, er
 		),
 	).Sort("level", "asc")
 
-	levels := make(levelsForNetwork)
+	levels := levelsForNetwork{
+		levels: make(map[int64]struct{}),
+	}
 	err := e.getAllByQuery(query, &levels)
-	return levels, err
+	return levels.levels, err
 }
 
-type affectedAddresses map[string]struct{}
+type affected struct {
+	addresses map[string]struct{}
+}
+
+// GetQueue -
+func (a *affected) GetQueue() string {
+	return ""
+}
+
+// GetID -
+func (a *affected) GetID() string {
+	return ""
+}
 
 // GetIndex -
-func (a affectedAddresses) GetIndex() string {
+func (a *affected) GetIndex() string {
 	return DocOperations
 }
 
 // ParseElasticJSON -
-func (a affectedAddresses) ParseElasticJSON(hit gjson.Result) {
+func (a *affected) ParseElasticJSON(hit gjson.Result) {
 	source := hit.Get("_source.source").String()
 	destination := hit.Get("_source.destination").String()
+	if a.addresses == nil {
+		a.addresses = make(map[string]struct{})
+	}
 	if strings.HasPrefix(source, "KT") {
-		a[source] = struct{}{}
+		a.addresses[source] = struct{}{}
 	}
 	if strings.HasPrefix(destination, "KT") {
-		a[destination] = struct{}{}
+		a.addresses[destination] = struct{}{}
 	}
 }
 
@@ -219,13 +251,15 @@ func (e *Elastic) GetAffectedContracts(network string, fromLevel, toLevel int64)
 		),
 	)
 
-	addressesMap := make(affectedAddresses)
-	if err := e.getAllByQuery(query, addressesMap); err != nil {
+	affectedMap := affected{
+		addresses: make(map[string]struct{}),
+	}
+	if err := e.getAllByQuery(query, &affectedMap); err != nil {
 		return nil, err
 	}
 
 	addresses := make([]string, 0)
-	for k := range addressesMap {
+	for k := range affectedMap.addresses {
 		addresses = append(addresses, k)
 	}
 

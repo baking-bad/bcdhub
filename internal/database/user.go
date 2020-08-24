@@ -9,10 +9,11 @@ import (
 // User model
 type User struct {
 	gorm.Model
-	Login         string `gorm:"primary_key;not null"`
-	Name          string
-	AvatarURL     string `gorm:"not null"`
-	Token         string `gorm:"not null"`
+	Login     string `gorm:"primary_key;not null"`
+	Name      string
+	AvatarURL string `gorm:"not null"`
+	Token     string `gorm:"not null"`
+
 	Subscriptions []Subscription
 	MarkReadAt    time.Time
 }

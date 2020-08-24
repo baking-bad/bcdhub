@@ -81,6 +81,18 @@ type searchRequest struct {
 	Languages string `form:"l,omitempty"`
 }
 
+// Subscription flags
+const (
+	WatchSame uint = 1 << iota
+	WatchSimilar
+	WatchMempool
+	WatchMigrations
+	WatchDeployments
+	WatchCalls
+	WatchErrors
+	SentryEnabled
+)
+
 type subRequest struct {
 	Address          string `json:"address" binding:"required"`
 	Network          string `json:"network" binding:"required"`
@@ -92,6 +104,59 @@ type subRequest struct {
 	WatchDeployments bool   `json:"watch_deployments"`
 	WatchCalls       bool   `json:"watch_calls"`
 	WatchErrors      bool   `json:"watch_errors"`
+	SentryEnabled    bool   `json:"sentry_enabled"`
+	SentryDSN        string `json:"sentry_dsn,omitempty"`
+}
+
+func newSubscriptionWithMask(mask uint) Subscription {
+	return Subscription{
+		WatchSame:        mask&WatchSame != 0,
+		WatchSimilar:     mask&WatchSimilar != 0,
+		WatchMempool:     mask&WatchMempool != 0,
+		WatchMigrations:  mask&WatchMigrations != 0,
+		WatchDeployments: mask&WatchDeployments != 0,
+		WatchCalls:       mask&WatchCalls != 0,
+		WatchErrors:      mask&WatchErrors != 0,
+		SentryEnabled:    mask&SentryEnabled != 0,
+	}
+}
+
+func (s subRequest) getMask() uint {
+	var b uint
+
+	if s.WatchSame {
+		b = b | WatchSame
+	}
+
+	if s.WatchSimilar {
+		b = b | WatchSimilar
+	}
+
+	if s.WatchMempool {
+		b = b | WatchMempool
+	}
+
+	if s.WatchMigrations {
+		b = b | WatchMigrations
+	}
+
+	if s.WatchDeployments {
+		b = b | WatchDeployments
+	}
+
+	if s.WatchCalls {
+		b = b | WatchCalls
+	}
+
+	if s.WatchErrors {
+		b = b | WatchErrors
+	}
+
+	if s.SentryEnabled {
+		b = b | SentryEnabled
+	}
+
+	return b
 }
 
 type voteRequest struct {

@@ -10,32 +10,41 @@ type Subscription struct {
 	Network   string `gorm:"primary_key;not null"`
 	Alias     string
 	WatchMask uint
+	SentryDSN string
 }
 
 func (d *db) GetSubscription(userID uint, address, network string) (s Subscription, err error) {
 	err = d.ORM.
 		Where("user_id = ? AND address = ? AND network = ?", userID, address, network).
-		Find(&s).Error
+		First(&s).Error
 	return
+}
+
+func (d *db) GetSubscriptions(address, network string) ([]Subscription, error) {
+	var subs []Subscription
+
+	err := d.ORM.
+		Where("address = ? AND network = ?", address, network).
+		Find(&subs).Error
+
+	return subs, err
 }
 
 func (d *db) ListSubscriptions(userID uint) ([]Subscription, error) {
 	var subs []Subscription
 
-	if err := d.ORM.
+	err := d.ORM.
 		Where("user_id = ?", userID).
 		Order("created_at DESC").
-		Find(&subs).Error; err != nil {
-		return nil, err
-	}
+		Find(&subs).Error
 
-	return subs, nil
+	return subs, err
 }
 
 func (d *db) UpsertSubscription(s *Subscription) error {
 	return d.ORM.
 		Where("user_id = ? AND address = ? AND network = ?", s.UserID, s.Address, s.Network).
-		Assign(Subscription{Alias: s.Alias, WatchMask: s.WatchMask}).
+		Assign(Subscription{Alias: s.Alias, WatchMask: s.WatchMask, SentryDSN: s.SentryDSN}).
 		FirstOrCreate(s).Error
 }
 

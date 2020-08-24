@@ -110,7 +110,12 @@ func (ctx *scrollContext) get(output interface{}) error {
 			if err != nil {
 				return err
 			}
-			el.Set(reflect.Append(el, n))
+
+			if el.Kind() == reflect.Slice {
+				el.Set(reflect.Append(el, n))
+			} else {
+				el.Set(n)
+			}
 		}
 
 		result, err = ctx.queryScroll(scrollID)
@@ -138,12 +143,17 @@ func getElementType(output interface{}) (reflect.Type, error) {
 	if arr.Kind() != reflect.Ptr {
 		return arr.Elem(), fmt.Errorf("Invalid `output` type: %s", arr.Kind())
 	}
-	return arr.Elem().Elem(), nil
+	arr = arr.Elem()
+	if arr.Kind() == reflect.Slice {
+		return arr.Elem(), nil
+	}
+	return arr, nil
 }
 
 func getIndex(typ reflect.Type) (string, error) {
 	newItem := reflect.New(typ)
 	interfaceType := reflect.TypeOf((*Model)(nil)).Elem()
+
 	if !newItem.Type().Implements(interfaceType) {
 		return "", fmt.Errorf("Implements: 'output' is not implemented `Model` interface")
 	}
