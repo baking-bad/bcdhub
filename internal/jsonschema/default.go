@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/pkg/errors"
 )
 
 type defaultMaker struct{}
@@ -13,7 +14,7 @@ type defaultMaker struct{}
 func (m *defaultMaker) Do(binPath string, metadata meta.Metadata) (Schema, error) {
 	nm, ok := metadata[binPath]
 	if !ok {
-		return nil, fmt.Errorf("[defaultMaker] Unknown metadata binPath: %s", binPath)
+		return nil, errors.Errorf("[defaultMaker] Unknown metadata binPath: %s", binPath)
 	}
 
 	schema := Schema{
@@ -56,7 +57,7 @@ func (m *defaultMaker) Do(binPath string, metadata meta.Metadata) (Schema, error
 	case consts.OPTION:
 		return Create(binPath+"/o", metadata)
 	default:
-		return nil, fmt.Errorf("[defaultMaker] Unknown primitive: %s", nm.Prim)
+		return nil, errors.Errorf("[defaultMaker] Unknown primitive: %s", nm.Prim)
 	}
 	if nm.Name != "" {
 		schema["title"] = nm.Name

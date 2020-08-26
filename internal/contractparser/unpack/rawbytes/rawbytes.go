@@ -1,9 +1,10 @@
 package rawbytes
 
 import (
-	"fmt"
 	"io"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 var forgers = map[byte]forger{
@@ -32,7 +33,7 @@ func ToMicheline(input string) (string, error) {
 	if _, err := dec.Read(b); err != nil && err != io.EOF {
 		return "", err
 	} else if err == nil {
-		return "", fmt.Errorf("input is not empty")
+		return "", errors.Errorf("input is not empty")
 	}
 
 	return code.String(), nil
@@ -48,5 +49,5 @@ func hexToMicheline(dec *decoder, code *strings.Builder) (int, error) {
 		// log.Printf("[hexToMicheline] forger: %T\n", f)
 		return f.Decode(dec, code)
 	}
-	return 1, fmt.Errorf("Unknown type: %x", ft[0])
+	return 1, errors.Errorf("Unknown type: %x", ft[0])
 }

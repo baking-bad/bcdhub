@@ -2,7 +2,8 @@ package kinds
 
 import (
 	"encoding/json"
-	"fmt"
+
+	"github.com/pkg/errors"
 )
 
 // ContractKind -
@@ -33,7 +34,7 @@ func Load(names ...string) (map[string]ContractKind, error) {
 	for _, name := range names {
 		i, ok := items[name]
 		if !ok {
-			return nil, fmt.Errorf("Invalid interface name: %s", name)
+			return nil, errors.Errorf("Invalid interface name: %s", name)
 		}
 		var e []Entrypoint
 		if err := json.Unmarshal([]byte(i.GetJSON()), &e); err != nil {

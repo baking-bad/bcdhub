@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -12,6 +11,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/mq"
+	"github.com/pkg/errors"
 	"github.com/streadway/amqp"
 )
 
@@ -33,9 +33,9 @@ func parseData(data amqp.Delivery) error {
 		return getTransfer(data)
 	default:
 		if data.RoutingKey == "" {
-			return fmt.Errorf(metricStoppedError)
+			return errors.Errorf(metricStoppedError)
 		}
-		return fmt.Errorf("Unknown data routing key %s", data.RoutingKey)
+		return errors.Errorf("Unknown data routing key %s", data.RoutingKey)
 	}
 }
 
@@ -50,7 +50,7 @@ func handler(data amqp.Delivery) error {
 	}
 
 	if err := data.Ack(false); err != nil {
-		return fmt.Errorf("Error acknowledging message: %s", err)
+		return errors.Errorf("Error acknowledging message: %s", err)
 	}
 	return nil
 }
@@ -77,7 +77,7 @@ func listenChannel(messageQueue *mq.MQ, queue string, closeChan chan struct{}) {
 					return
 				}
 				logger.Errorf("[listenChannel] %s", err.Error())
-				helpers.LocalCatchErrorSentry(localSentry, fmt.Errorf("[listenChannel] %s", err.Error()))
+				helpers.LocalCatchErrorSentry(localSentry, errors.Errorf("[listenChannel] %s", err.Error()))
 			}
 		}
 	}

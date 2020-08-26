@@ -1,8 +1,6 @@
 package elastic
 
-import (
-	"fmt"
-)
+import "github.com/pkg/errors"
 
 // GetNetworkCountStats -
 func (e *Elastic) GetNetworkCountStats(network string) (stats NetworkCountStats, err error) {
@@ -41,7 +39,7 @@ func (e *Elastic) GetNetworkCountStats(network string) (stats NetworkCountStats,
 		case DocOperations:
 			stats.Operations = count
 		default:
-			return stats, fmt.Errorf("Unknwon index: %s", key)
+			return stats, errors.Errorf("Unknwon index: %s", key)
 		}
 	}
 

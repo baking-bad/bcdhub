@@ -14,6 +14,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -63,7 +64,7 @@ func (e *Elastic) GetAPI() *esapi.API {
 
 func (e *Elastic) getResponse(resp *esapi.Response) (result gjson.Result, err error) {
 	if resp.IsError() {
-		return result, fmt.Errorf(resp.String())
+		return result, errors.Errorf(resp.String())
 	}
 
 	b, err := ioutil.ReadAll(resp.Body)
@@ -77,7 +78,7 @@ func (e *Elastic) getResponse(resp *esapi.Response) (result gjson.Result, err er
 
 func (e *Elastic) getTextResponse(resp *esapi.Response) (string, error) {
 	if resp.IsError() {
-		return "", fmt.Errorf(resp.String())
+		return "", errors.Errorf(resp.String())
 	}
 
 	b, err := ioutil.ReadAll(resp.Body)
@@ -174,7 +175,7 @@ func (e *Elastic) CreateIndexIfNotExists(index string) error {
 			return err
 		}
 		if res.IsError() {
-			return fmt.Errorf("%s", res)
+			return errors.Errorf("%s", res)
 		}
 		return nil
 	}
@@ -185,7 +186,7 @@ func (e *Elastic) CreateIndexIfNotExists(index string) error {
 		return err
 	}
 	if res.IsError() {
-		return fmt.Errorf("%s", res)
+		return errors.Errorf("%s", res)
 	}
 	return nil
 }

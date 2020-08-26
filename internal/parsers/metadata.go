@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -49,7 +50,7 @@ func createMetadataSection(script gjson.Result, tag string, c *models.Contract) 
 		}
 		return string(b), nil
 	}
-	return "", fmt.Errorf("[createMetadata] Unknown tag '%s' contract %s", tag, c.Address)
+	return "", errors.Errorf("[createMetadata] Unknown tag '%s' contract %s", tag, c.Address)
 }
 
 func createMetadata(script gjson.Result, protoSymLink string, c *models.Contract) (*models.Metadata, error) {

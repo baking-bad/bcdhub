@@ -1,11 +1,11 @@
 package ws
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/baking-bad/bcdhub/cmd/api/ws/channels"
 	"github.com/baking-bad/bcdhub/cmd/api/ws/datasources"
+	"github.com/pkg/errors"
 	"github.com/valyala/fastjson"
 )
 
@@ -122,7 +122,7 @@ func subscribeHandler(c *Client, data []byte) error {
 	channelName := string(val.GetStringBytes("channel"))
 	channel, ok := c.hub.public[channelName]
 	if !ok {
-		return fmt.Errorf("Unknown channel: %s", channelName)
+		return errors.Errorf("Unknown channel: %s", channelName)
 	}
 	c.mux.Lock()
 	c.subscriptions[channelName] = struct{}{}
@@ -139,7 +139,7 @@ func unsubscribeHandler(c *Client, data []byte) error {
 	}
 	channelName := string(val.GetStringBytes("channel"))
 	if _, ok := c.hub.public[channelName]; !ok {
-		return fmt.Errorf("Unknown channel: %s", channelName)
+		return errors.Errorf("Unknown channel: %s", channelName)
 	}
 	c.mux.Lock()
 	delete(c.subscriptions, channelName)

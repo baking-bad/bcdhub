@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/pkg/errors"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -67,7 +68,7 @@ func (m *SetEmptyBmdPtr) Do(ctx *config.Context) error {
 			}
 
 			if len(binPathMap) != 1 {
-				return fmt.Errorf("Invalid big map diff counter: %d", len(binPathMap))
+				return errors.Errorf("Invalid big map diff counter: %d", len(binPathMap))
 			}
 
 			for pointer, binPath := range binPathMap {

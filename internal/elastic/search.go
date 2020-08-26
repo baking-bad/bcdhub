@@ -7,6 +7,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -72,7 +73,7 @@ func getFields(search string, fields []string) ([]string, qItem, error) {
 			s := strings.Split(nf, "^")
 			h[s[0]] = qItem{}
 		} else {
-			return nil, nil, fmt.Errorf("Unknown field: %s", field)
+			return nil, nil, errors.Errorf("Unknown field: %s", field)
 		}
 	}
 	return f, h, nil
@@ -89,7 +90,7 @@ func prepareSearchFilters(filters map[string]interface{}) (string, error) {
 		case "from":
 			val, ok := v.(string)
 			if !ok {
-				return "", fmt.Errorf("Invalid type for 'from' filter (wait string): %T", v)
+				return "", errors.Errorf("Invalid type for 'from' filter (wait string): %T", v)
 			}
 			if val != "" {
 				builder.WriteString(fmt.Sprintf("timestamp:{%s TO *}", val))
@@ -97,7 +98,7 @@ func prepareSearchFilters(filters map[string]interface{}) (string, error) {
 		case "to":
 			val, ok := v.(string)
 			if !ok {
-				return "", fmt.Errorf("Invalid type for 'to' filter (wait string): %T", v)
+				return "", errors.Errorf("Invalid type for 'to' filter (wait string): %T", v)
 			}
 			if val != "" {
 				builder.WriteString(fmt.Sprintf("timestamp:{* TO %s}", val))
@@ -105,7 +106,7 @@ func prepareSearchFilters(filters map[string]interface{}) (string, error) {
 		case "networks":
 			val, ok := v.([]string)
 			if !ok {
-				return "", fmt.Errorf("Invalid type for 'network' filter (wait []string): %T", v)
+				return "", errors.Errorf("Invalid type for 'network' filter (wait []string): %T", v)
 			}
 			if len(val) == 0 {
 				continue
@@ -120,7 +121,7 @@ func prepareSearchFilters(filters map[string]interface{}) (string, error) {
 		case "languages":
 			val, ok := v.([]string)
 			if !ok {
-				return "", fmt.Errorf("Invalid type for 'language' filter (wait []string): %T", v)
+				return "", errors.Errorf("Invalid type for 'language' filter (wait []string): %T", v)
 			}
 			var str string
 			if len(val) > 1 {
@@ -130,7 +131,7 @@ func prepareSearchFilters(filters map[string]interface{}) (string, error) {
 			}
 			builder.WriteString(str)
 		default:
-			return "", fmt.Errorf("Unknown search filter: %s", k)
+			return "", errors.Errorf("Unknown search filter: %s", k)
 		}
 	}
 	return builder.String(), nil
@@ -140,11 +141,11 @@ func getSearchIndices(filters map[string]interface{}) ([]string, error) {
 	if val, ok := filters["indices"]; ok {
 		indices, ok := val.([]string)
 		if !ok {
-			return nil, fmt.Errorf("Invalid type for 'indices' filter (wait []string): %T", val)
+			return nil, errors.Errorf("Invalid type for 'indices' filter (wait []string): %T", val)
 		}
 		for i := range indices {
 			if !helpers.StringInArray(indices[i], searchableInidices) {
-				return nil, fmt.Errorf("Invalid index name: %s", indices[i])
+				return nil, errors.Errorf("Invalid index name: %s", indices[i])
 			}
 		}
 		delete(filters, "indices")
@@ -156,7 +157,7 @@ func getSearchIndices(filters map[string]interface{}) ([]string, error) {
 // SearchByText -
 func (e *Elastic) SearchByText(text string, offset int64, fields []string, filters map[string]interface{}, group bool) (SearchResult, error) {
 	if text == "" {
-		return SearchResult{}, fmt.Errorf("Empty search string. Please query something")
+		return SearchResult{}, errors.Errorf("Empty search string. Please query something")
 	}
 
 	ctx, err := prepare(text, filters, fields)

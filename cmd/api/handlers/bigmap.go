@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/docstring"
@@ -11,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -268,7 +268,7 @@ func prepareItem(item elastic.BigMapDiff, contractMetadata *meta.ContractMetadat
 
 	metadata, ok := contractMetadata.Storage[protoSymLink]
 	if !ok {
-		err = fmt.Errorf("Unknown metadata: %s", protoSymLink)
+		err = errors.Errorf("Unknown metadata: %s", protoSymLink)
 		return nil, nil, "", err
 	}
 

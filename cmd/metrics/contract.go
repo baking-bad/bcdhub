@@ -2,9 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/metrics"
+	"github.com/pkg/errors"
 
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -15,16 +15,16 @@ import (
 func getContract(data amqp.Delivery) error {
 	var contractID string
 	if err := json.Unmarshal(data.Body, &contractID); err != nil {
-		return fmt.Errorf("[getContract] Unmarshal message body error: %s", err)
+		return errors.Errorf("[getContract] Unmarshal message body error: %s", err)
 	}
 
 	c := models.Contract{ID: contractID}
 	if err := ctx.ES.GetByID(&c); err != nil {
-		return fmt.Errorf("[getContract] Find contract error: %s", err)
+		return errors.Errorf("[getContract] Find contract error: %s", err)
 	}
 
 	if err := parseContract(c); err != nil {
-		return fmt.Errorf("[getContract] Compute error message: %s", err)
+		return errors.Errorf("[getContract] Compute error message: %s", err)
 	}
 	return nil
 }
@@ -38,7 +38,7 @@ func parseContract(contract models.Contract) error {
 
 	if contract.ProjectID == "" {
 		if err := h.SetContractProjectID(&contract); err != nil {
-			return fmt.Errorf("[parseContract] Error during set contract projectID: %s", err)
+			return errors.Errorf("[parseContract] Error during set contract projectID: %s", err)
 		}
 	}
 

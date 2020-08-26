@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -71,7 +72,7 @@ func formatNode(node gjson.Result, indent string, inline, isRoot, wrapped bool, 
 		return formatObject(node, indent, inline, isRoot, wrapped, lineSize)
 	}
 
-	return "", fmt.Errorf("data is not array or object %v", node)
+	return "", errors.Errorf("data is not array or object %v", node)
 }
 
 func formatArray(node gjson.Result, indent string, inline, isRoot bool, lineSize int) (string, error) {
@@ -203,7 +204,7 @@ func formatPrimObject(node gjson.Result, indent string, inline, isRoot, wrapped 
 
 func formatNonPrimObject(node gjson.Result) (string, error) {
 	if len(node.Map()) != 1 {
-		return "", fmt.Errorf("node keys count != 1: %v", node)
+		return "", errors.Errorf("node keys count != 1: %v", node)
 	}
 
 	for coreType, value := range node.Map() {
@@ -216,5 +217,5 @@ func formatNonPrimObject(node gjson.Result) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("invalid coreType: %v", node)
+	return "", errors.Errorf("invalid coreType: %v", node)
 }

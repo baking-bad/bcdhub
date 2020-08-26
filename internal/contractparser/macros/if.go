@@ -3,6 +3,7 @@ package macros
 import (
 	"fmt"
 
+	"github.com/pkg/errors"
 	"github.com/valyala/fastjson"
 )
 
@@ -90,7 +91,7 @@ type assertMacros struct{}
 
 func (f assertMacros) Replace(tree *fastjson.Value) error {
 	if tree.Type() != fastjson.TypeArray {
-		return fmt.Errorf("Invalid tree type in assertMacros.Replace: %s", tree.Type())
+		return errors.Errorf("Invalid tree type in assertMacros.Replace: %s", tree.Type())
 	}
 
 	arena := fastjson.Arena{}
@@ -107,7 +108,7 @@ type assertEqMacros struct{}
 
 func (f assertEqMacros) Replace(tree *fastjson.Value) error {
 	if tree.Type() != fastjson.TypeArray {
-		return fmt.Errorf("Invalid tree type in assertEqMacros.Replace: %s", tree.Type())
+		return errors.Errorf("Invalid tree type in assertEqMacros.Replace: %s", tree.Type())
 	}
 	eqType := tree.GetStringBytes("0", "prim")
 
@@ -125,7 +126,7 @@ type assertCmpEqMacros struct{}
 
 func (f assertCmpEqMacros) Replace(tree *fastjson.Value) error {
 	if tree.Type() != fastjson.TypeArray {
-		return fmt.Errorf("Invalid tree type in assertCmpEqMacros.Replace: %s", tree.Type())
+		return errors.Errorf("Invalid tree type in assertCmpEqMacros.Replace: %s", tree.Type())
 	}
 	eqType := tree.GetStringBytes("0", "prim")
 
@@ -143,7 +144,7 @@ type cmpEqMacros struct{}
 
 func (f cmpEqMacros) Replace(tree *fastjson.Value) error {
 	if tree.Type() != fastjson.TypeArray {
-		return fmt.Errorf("Invalid tree type in cmpEqMacros.Replace: %s", tree.Type())
+		return errors.Errorf("Invalid tree type in cmpEqMacros.Replace: %s", tree.Type())
 	}
 	eqType := tree.GetStringBytes("1", "prim")
 
@@ -161,7 +162,7 @@ type ifEqMacros struct{}
 
 func (f ifEqMacros) Replace(tree *fastjson.Value) error {
 	if tree.Type() != fastjson.TypeArray {
-		return fmt.Errorf("Invalid tree type in assertMacros.Replace: %s", tree.Type())
+		return errors.Errorf("Invalid tree type in assertMacros.Replace: %s", tree.Type())
 	}
 	eqType := tree.GetStringBytes("0", "prim")
 	args := tree.Get("1", "args")
@@ -184,7 +185,7 @@ type ifCmpEqMacros struct{}
 
 func (f ifCmpEqMacros) Replace(tree *fastjson.Value) error {
 	if tree.Type() != fastjson.TypeArray {
-		return fmt.Errorf("Invalid tree type in assertMacros.Replace: %s", tree.Type())
+		return errors.Errorf("Invalid tree type in assertMacros.Replace: %s", tree.Type())
 	}
 	eqType := tree.GetStringBytes("0", "prim")
 	args := tree.Get("1", "args")

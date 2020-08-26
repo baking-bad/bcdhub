@@ -6,6 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/pkg/errors"
 )
 
 // EntrypointType -
@@ -152,7 +153,7 @@ func handleType(dd *dsData, bPath string, md meta.Metadata) (string, error) {
 	case consts.LAMBDA:
 		return handleLambda(dd, bPath, i, md)
 	default:
-		return "", fmt.Errorf("[handleType] %##v %s", md[bPath], bPath)
+		return "", errors.Errorf("[handleType] %##v %s", md[bPath], bPath)
 	}
 }
 
@@ -170,7 +171,7 @@ func getTypeExpr(dd *dsData, bPath string, md meta.Metadata) (string, error) {
 	case TypedefComplex:
 		return getComplexExpr(dd, bPath, md)
 	default:
-		return "", fmt.Errorf("[getTypeExpr] unknown node type %##v %s", md[bPath], bPath)
+		return "", errors.Errorf("[getTypeExpr] unknown node type %##v %s", md[bPath], bPath)
 	}
 }
 
@@ -216,7 +217,7 @@ func getSuffix(dd *dsData, bPath string, md meta.Metadata) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("[getSuffix] error. prim: %s, bPath: %s", md[bPath].Prim, bPath)
+	return "", errors.Errorf("[getSuffix] error. prim: %s, bPath: %s", md[bPath].Prim, bPath)
 }
 
 func getParentNode(bPath string, md meta.Metadata) *meta.NodeMetadata {
@@ -233,7 +234,7 @@ func getVarNameContractLambda(dd *dsData, bPath string, md meta.Metadata) (strin
 		suffix = "_param"
 	case consts.LAMBDA:
 	default:
-		return "", fmt.Errorf("[getVarNameContractLambda] error. node type: %s, bPath: %s", node.Type, bPath)
+		return "", errors.Errorf("[getVarNameContractLambda] error. node type: %s, bPath: %s", node.Type, bPath)
 	}
 
 	varName := fmt.Sprintf("%s%d%s", node.Type, dd.counter, suffix)

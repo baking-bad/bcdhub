@@ -1,7 +1,6 @@
 package metrics
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/macros"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -107,7 +107,7 @@ func fingerprint(script gjson.Result, isCode bool) (string, error) {
 			fgpt.WriteString(buf)
 		}
 	} else {
-		return "", fmt.Errorf("Unknown script type: %v isCode: %v", script, isCode)
+		return "", errors.Errorf("Unknown script type: %v isCode: %v", script, isCode)
 	}
 	return fgpt.String(), nil
 }
@@ -141,5 +141,5 @@ func getCode(prim string) (string, error) {
 			return code, nil
 		}
 	}
-	return "00", fmt.Errorf("Unknown primitive: %s", prim)
+	return "00", errors.Errorf("Unknown primitive: %s", prim)
 }

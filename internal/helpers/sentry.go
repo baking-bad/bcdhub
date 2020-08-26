@@ -1,12 +1,16 @@
 package helpers
 
 import (
+	"fmt"
 	"log"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/getsentry/sentry-go"
 	sentrygin "github.com/getsentry/sentry-go/gin"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 )
 
 // InitSentry -
@@ -58,7 +62,47 @@ func CatchPanicSentry() {
 
 // CatchErrorSentry -
 func CatchErrorSentry(err error) {
-	sentry.CaptureException(err)
+	withStack := fmt.Sprintf("%+v", errors.WithStack(err))
+	frames := make([]sentry.Frame, 0)
+	lines := strings.Split(withStack, "\n")
+	if len(lines) > 1 {
+		lines = lines[1:]
+	}
+
+	var frame sentry.Frame
+	for i, line := range lines {
+		if i%2 == 0 {
+			dotsSplits := strings.SplitAfterN(line, ".", 2)
+			frame = sentry.Frame{
+				Function: dotsSplits[1],
+				Module:   dotsSplits[0],
+			}
+		} else {
+			parts := strings.Split(line, ":")
+			frame.AbsPath = parts[0]
+			lineNo, _ := strconv.Atoi(parts[1])
+			frame.Lineno = lineNo
+			frames = append(frames, frame)
+		}
+	}
+
+	for left, right := 0, len(frames)-1; left < right; left, right = left+1, right-1 {
+		frames[left], frames[right] = frames[right], frames[left]
+	}
+
+	stackTrace := &sentry.Stacktrace{
+		Frames: frames,
+	}
+	sentry.CaptureEvent(&sentry.Event{
+		Message: err.Error(),
+		Level:   sentry.LevelError,
+		Exception: []sentry.Exception{
+			{
+				Value:      err.Error(),
+				Stacktrace: stackTrace,
+			},
+		},
+	})
 	sentry.Flush(time.Second * 5)
 }
 

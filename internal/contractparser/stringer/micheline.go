@@ -1,8 +1,7 @@
 package stringer
 
 import (
-	"fmt"
-
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"github.com/valyala/fastjson"
 )
@@ -51,7 +50,7 @@ func processing(value *fastjson.Value) (*fastjson.Value, error) {
 	case fastjson.TypeNull:
 		return value, nil
 	default:
-		return value, fmt.Errorf("Unknown node type: %s", value.Type().String())
+		return value, errors.Errorf("Unknown node type: %s", value.Type().String())
 	}
 }
 

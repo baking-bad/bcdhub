@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"reflect"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/esapi"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -136,7 +136,7 @@ func (ctx *scrollContext) clear() error {
 func getElementType(output interface{}) (reflect.Type, error) {
 	arr := reflect.TypeOf(output)
 	if arr.Kind() != reflect.Ptr {
-		return arr.Elem(), fmt.Errorf("Invalid `output` type: %s", arr.Kind())
+		return arr.Elem(), errors.Errorf("Invalid `output` type: %s", arr.Kind())
 	}
 	return arr.Elem().Elem(), nil
 }
@@ -145,16 +145,16 @@ func getIndex(typ reflect.Type) (string, error) {
 	newItem := reflect.New(typ)
 	interfaceType := reflect.TypeOf((*Model)(nil)).Elem()
 	if !newItem.Type().Implements(interfaceType) {
-		return "", fmt.Errorf("Implements: 'output' is not implemented `Model` interface")
+		return "", errors.Errorf("Implements: 'output' is not implemented `Model` interface")
 	}
 
 	getIndex := newItem.MethodByName("GetIndex")
 	if !getIndex.IsValid() {
-		return "", fmt.Errorf("getIndex: 'output' is not implemented `Model` interface")
+		return "", errors.Errorf("getIndex: 'output' is not implemented `Model` interface")
 	}
 	getIndexResult := getIndex.Call(nil)
 	if len(getIndexResult) != 1 {
-		return "", fmt.Errorf("Something went wrong during call GetIndex")
+		return "", errors.Errorf("Something went wrong during call GetIndex")
 	}
 	return getIndexResult[0].Interface().(string), nil
 }
@@ -163,7 +163,7 @@ func parseResponseItem(item gjson.Result, typ reflect.Type) (reflect.Value, erro
 	n := reflect.New(typ)
 	parse := n.MethodByName("ParseElasticJSON")
 	if !parse.IsValid() {
-		return n.Elem(), fmt.Errorf("parse: 'output' is not implemented `Model` interface")
+		return n.Elem(), errors.Errorf("parse: 'output' is not implemented `Model` interface")
 	}
 	parse.Call([]reflect.Value{reflect.ValueOf(item)})
 	return n.Elem(), nil

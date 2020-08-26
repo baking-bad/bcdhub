@@ -1,9 +1,8 @@
 package jsonschema
 
 import (
-	"fmt"
-
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/pkg/errors"
 )
 
 type mapMaker struct{}
@@ -11,7 +10,7 @@ type mapMaker struct{}
 func (m *mapMaker) Do(binPath string, metadata meta.Metadata) (Schema, error) {
 	nm, ok := metadata[binPath]
 	if !ok {
-		return nil, fmt.Errorf("[mapMaker] Unknown metadata binPath: %s", binPath)
+		return nil, errors.Errorf("[mapMaker] Unknown metadata binPath: %s", binPath)
 	}
 	schema := Schema{
 		"type":  "array",

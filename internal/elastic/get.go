@@ -2,9 +2,9 @@ package elastic
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/elastic/go-elasticsearch/v8/esapi"
+	"github.com/pkg/errors"
 )
 
 // GetByID -
@@ -24,7 +24,7 @@ func (e *Elastic) GetByID(ret Model) error {
 		return err
 	}
 	if !result.Get("found").Bool() {
-		return fmt.Errorf("%s: %s %s", RecordNotFound, ret.GetIndex(), ret.GetID())
+		return errors.Errorf("%s: %s %s", RecordNotFound, ret.GetIndex(), ret.GetID())
 	}
 	ret.ParseElasticJSON(result)
 	return nil

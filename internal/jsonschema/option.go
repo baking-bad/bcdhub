@@ -1,11 +1,11 @@
 package jsonschema
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/pkg/errors"
 )
 
 func optionWrapper(schema Schema, binPath string, metadata meta.Metadata) (Schema, error) {
@@ -14,7 +14,7 @@ func optionWrapper(schema Schema, binPath string, metadata meta.Metadata) (Schem
 	}
 	nm, ok := metadata[binPath]
 	if !ok {
-		return nil, fmt.Errorf("[optionWrapper] Unknown metadata binPath: %s", binPath)
+		return nil, errors.Errorf("[optionWrapper] Unknown metadata binPath: %s", binPath)
 	}
 	schemas := []Schema{
 		{

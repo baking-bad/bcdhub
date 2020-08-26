@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -94,7 +95,7 @@ func (metadata Metadata) GetByPath(node gjson.Result) (string, error) {
 	path := getPath(node, startPath)
 	eMeta, ok := metadata[path]
 	if !ok {
-		return entrypoint, fmt.Errorf("Invalid parameter: %s", node.String())
+		return entrypoint, errors.Errorf("Invalid parameter: %s", node.String())
 	}
 	if eMeta.Name != "" {
 		return eMeta.Name, nil

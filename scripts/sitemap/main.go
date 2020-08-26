@@ -12,6 +12,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/pkg/errors"
 )
 
 // URL is awesome
@@ -61,7 +62,7 @@ func buildXML(aliases []database.Alias, networks []string) error {
 	enc := xml.NewEncoder(xmlWriter)
 	enc.Indent("", "  ")
 	if err := enc.Encode(u); err != nil {
-		return fmt.Errorf("encode error: %v", err)
+		return errors.Errorf("encode error: %v", err)
 	}
 
 	return nil

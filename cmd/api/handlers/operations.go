@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 	"sync"
@@ -18,6 +17,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -137,7 +137,7 @@ func (ctx *Context) GetOperationErrorLocation(c *gin.Context) {
 	}
 
 	if !cerrors.HasScriptRejectedError(operation.Errors) {
-		handleError(c, fmt.Errorf("No reject script error in operation"), http.StatusBadRequest)
+		handleError(c, errors.Errorf("No reject script error in operation"), http.StatusBadRequest)
 		return
 	}
 
@@ -454,11 +454,11 @@ func (ctx *Context) getErrorLocation(operation models.Operation, window int) (Ge
 	}
 	opErr := cerrors.First(operation.Errors, consts.ScriptRejectedError)
 	if opErr == nil {
-		return GetErrorLocationResponse{}, fmt.Errorf("Can't find script rejevted error")
+		return GetErrorLocationResponse{}, errors.Errorf("Can't find script rejevted error")
 	}
 	defaultError, ok := opErr.(*cerrors.DefaultError)
 	if !ok {
-		return GetErrorLocationResponse{}, fmt.Errorf("Invalid error type: %T", opErr)
+		return GetErrorLocationResponse{}, errors.Errorf("Invalid error type: %T", opErr)
 	}
 
 	location := int(defaultError.Location)

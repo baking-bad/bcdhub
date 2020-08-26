@@ -1,10 +1,10 @@
 package elastic
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -80,7 +80,7 @@ func (m *EventMigration) makeEvent(subscriptions []SubscriptionRequest) (Event, 
 			return res, nil
 		}
 	}
-	return Event{}, fmt.Errorf("Couldn't find a matching subscription for %v", m)
+	return Event{}, errors.Errorf("Couldn't find a matching subscription for %v", m)
 }
 
 func (o *EventOperation) makeEvent(subscriptions []SubscriptionRequest) (Event, error) {
@@ -114,7 +114,7 @@ func (o *EventOperation) makeEvent(subscriptions []SubscriptionRequest) (Event, 
 		}
 		return res, nil
 	}
-	return Event{}, fmt.Errorf("Couldn't find a matching subscription for %v", o)
+	return Event{}, errors.Errorf("Couldn't find a matching subscription for %v", o)
 }
 
 func (c *EventContract) makeEvent(subscriptions []SubscriptionRequest) (Event, error) {
@@ -135,7 +135,7 @@ func (c *EventContract) makeEvent(subscriptions []SubscriptionRequest) (Event, e
 			return res, nil
 		}
 	}
-	return Event{}, fmt.Errorf("Couldn't find a matching subscription for %v", c)
+	return Event{}, errors.Errorf("Couldn't find a matching subscription for %v", c)
 }
 
 func parseEvent(subscriptions []SubscriptionRequest, hit gjson.Result) (Event, error) {
@@ -154,7 +154,7 @@ func parseEvent(subscriptions []SubscriptionRequest, hit gjson.Result) (Event, e
 		event.ParseElasticJSON(hit)
 		return event.makeEvent(subscriptions)
 	default:
-		return Event{}, fmt.Errorf("[parseEvent] Invalid reponse type: %s", index)
+		return Event{}, errors.Errorf("[parseEvent] Invalid reponse type: %s", index)
 	}
 }
 

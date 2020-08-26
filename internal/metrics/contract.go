@@ -1,10 +1,9 @@
 package metrics
 
 import (
-	"fmt"
-
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/pkg/errors"
 
 	"github.com/baking-bad/bcdhub/internal/classification/functions"
 	clmetrics "github.com/baking-bad/bcdhub/internal/classification/metrics"
@@ -117,7 +116,7 @@ func compare(a, b models.Contract) (bool, error) {
 		f := model[i].Compute(a, b)
 		features[i] = f.Value
 		if sum > 1 {
-			return false, fmt.Errorf("Invalid metric weights. Check sum of weight is not equal 1")
+			return false, errors.Errorf("Invalid metric weights. Check sum of weight is not equal 1")
 		}
 	}
 

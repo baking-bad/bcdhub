@@ -1,10 +1,9 @@
 package newmiguel
 
 import (
-	"fmt"
-
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -29,6 +28,6 @@ func (d *optionDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMeta
 		node.IsOption = true
 		return node, nil
 	default:
-		return nil, fmt.Errorf("optionDecoder.Decode: Unknown prim value %s", prim)
+		return nil, errors.Errorf("optionDecoder.Decode: Unknown prim value %s", prim)
 	}
 }

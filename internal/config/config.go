@@ -1,11 +1,11 @@
 package config
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 
 	"github.com/jessevdk/go-flags"
+	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
 
@@ -154,7 +154,7 @@ type SeedConfig struct {
 func LoadConfig(filenames ...string) (Config, error) {
 	var config Config
 	if len(filenames) <= 0 {
-		return config, fmt.Errorf("You have to provide at least one filename")
+		return config, errors.Errorf("You have to provide at least one filename")
 	}
 
 	var sections map[string]interface{}

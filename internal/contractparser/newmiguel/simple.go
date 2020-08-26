@@ -1,10 +1,9 @@
 package newmiguel
 
 import (
-	"fmt"
-
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -21,7 +20,7 @@ func (l *simpleDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMeta
 		case consts.STRING, consts.BYTES, consts.INT:
 			return v.String(), nil
 		default:
-			return nil, fmt.Errorf("Unknown simple type: %s %v", k, data)
+			return nil, errors.Errorf("Unknown simple type: %s %v", k, data)
 		}
 	}
 	return nil, nil

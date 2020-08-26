@@ -1,8 +1,7 @@
 package macros
 
 import (
-	"fmt"
-
+	"github.com/pkg/errors"
 	"github.com/valyala/fastjson"
 )
 
@@ -38,7 +37,7 @@ type failMacros struct{}
 
 func (f failMacros) Replace(tree *fastjson.Value) error {
 	if tree.Type() != fastjson.TypeArray {
-		return fmt.Errorf("Invalid tree type in failMacros.Replace: %s", tree.Type())
+		return errors.Errorf("Invalid tree type in failMacros.Replace: %s", tree.Type())
 	}
 
 	arena := fastjson.Arena{}

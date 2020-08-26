@@ -16,6 +16,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -394,7 +395,7 @@ func (p *DefaultParser) getRichStorage(data gjson.Result, metadata *meta.Contrac
 
 	m, ok := metadata.Storage[protoSymLink]
 	if !ok {
-		return storage.RichStorage{Empty: true}, fmt.Errorf("Unknown metadata: %s", protoSymLink)
+		return storage.RichStorage{Empty: true}, errors.Errorf("Unknown metadata: %s", protoSymLink)
 	}
 
 	switch op.Kind {

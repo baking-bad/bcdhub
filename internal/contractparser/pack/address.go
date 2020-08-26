@@ -3,9 +3,9 @@ package pack
 import (
 	"bytes"
 	"encoding/hex"
-	"fmt"
 
 	"github.com/btcsuite/btcutil/base58"
+	"github.com/pkg/errors"
 )
 
 // Address -
@@ -35,7 +35,7 @@ func Address(address string) (string, error) {
 		buf.Write(decodedAddress)
 		buf.WriteByte(0)
 	default:
-		return "", fmt.Errorf("[pack.Address] Unknown address prefix: %s", prefix)
+		return "", errors.Errorf("[pack.Address] Unknown address prefix: %s", prefix)
 	}
 
 	return hex.EncodeToString(buf.Bytes()), nil

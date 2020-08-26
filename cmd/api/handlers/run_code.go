@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -15,6 +14,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -45,7 +45,7 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 	}
 
 	if !parameters.Get("entrypoint").Exists() || !parameters.Get("value").Exists() {
-		handleError(c, fmt.Errorf("Error occured while building parameters: %s", parameters.String()), 0)
+		handleError(c, errors.Errorf("Error occured while building parameters: %s", parameters.String()), 0)
 		return
 	}
 
@@ -191,7 +191,7 @@ func (ctx *Context) RunCode(c *gin.Context) {
 	}
 
 	if !input.Get("entrypoint").Exists() || !input.Get("value").Exists() {
-		handleError(c, fmt.Errorf("Error during build parameters: %s", input.String()), 0)
+		handleError(c, errors.Errorf("Error during build parameters: %s", input.String()), 0)
 		return
 	}
 
@@ -242,7 +242,7 @@ func (ctx *Context) parseRunCodeResponse(response gjson.Result, main *Operation)
 	} else if response.IsObject() {
 		return ctx.parseAppliedRunCode(response, main)
 	}
-	return nil, fmt.Errorf("Unknown response: %v", response.Value())
+	return nil, errors.Errorf("Unknown response: %v", response.Value())
 }
 
 func (ctx *Context) parseFailedRunCode(response gjson.Result, main *Operation) ([]Operation, error) {

@@ -1,9 +1,8 @@
 package elastic
 
 import (
-	"fmt"
-
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/pkg/errors"
 )
 
 var indexToModel = map[string]Scorable{
@@ -22,7 +21,7 @@ func GetSearchScores(search string, indices []string) ([]string, error) {
 	for i := range indices {
 		model, ok := indexToModel[indices[i]]
 		if !ok {
-			return nil, fmt.Errorf("[GetSearchScores] Unknown scorable model: %s", indices[i])
+			return nil, errors.Errorf("[GetSearchScores] Unknown scorable model: %s", indices[i])
 		}
 		modelScores := model.GetScores(search)
 		result = append(result, modelScores...)

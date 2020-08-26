@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -62,7 +63,7 @@ func prepareOperationFilters(filters map[string]interface{}) (s string, err erro
 			case "status":
 				s += fmt.Sprintf("status IN (%s)", v)
 			default:
-				return "", fmt.Errorf("Unknown operation filter: %s %v", k, v)
+				return "", errors.Errorf("Unknown operation filter: %s %v", k, v)
 			}
 		}
 	}
@@ -152,7 +153,7 @@ func (e *Elastic) GetLastOperation(address, network string, indexedTime int64) (
 	}
 
 	if res.Get("hits.total.value").Int() < 1 {
-		return op, fmt.Errorf("%s %s in %s on %d", RecordNotFound, address, network, indexedTime)
+		return op, errors.Errorf("%s %s in %s on %d", RecordNotFound, address, network, indexedTime)
 	}
 	op.ParseElasticJSON(res.Get("hits.hits.0"))
 	return

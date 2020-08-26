@@ -1,11 +1,11 @@
 package oauth
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
 	"golang.org/x/oauth2/gitlab"
@@ -81,11 +81,11 @@ func (c Config) GetIDFromToken(token string) (uint, error) {
 	})
 
 	if err != nil {
-		return 0, fmt.Errorf("failed to parse token %v", token)
+		return 0, errors.Errorf("failed to parse token %v", token)
 	}
 
 	if !tkn.Valid {
-		return 0, fmt.Errorf("invalid token %v", token)
+		return 0, errors.Errorf("invalid token %v", token)
 	}
 
 	return claims.UserID, nil

@@ -2,15 +2,15 @@ package tzbase58
 
 import (
 	"encoding/hex"
-	"fmt"
 
 	"github.com/btcsuite/btcutil/base58"
+	"github.com/pkg/errors"
 )
 
 // EncodeFromHex - encodes hex string to base58 with prefix
 func EncodeFromHex(input string, prefix []byte) (string, error) {
 	if len(prefix) < 1 {
-		return "", fmt.Errorf("Invalid prefix %v. Should be at least 1 symbol length", prefix)
+		return "", errors.Errorf("Invalid prefix %v. Should be at least 1 symbol length", prefix)
 	}
 
 	bs, err := hex.DecodeString(input)
@@ -35,12 +35,12 @@ func DecodeToHex(input string, prefix []byte) (string, error) {
 	}
 	if len(prefix) > 0 {
 		if version != prefix[0] {
-			return "", fmt.Errorf("[DecodeToHex] Unknown version %v %v", version, prefix[0])
+			return "", errors.Errorf("[DecodeToHex] Unknown version %v %v", version, prefix[0])
 		}
 
 		for i := range prefix[1:] {
 			if decoded[i] != prefix[i+1] {
-				return "", fmt.Errorf("[DecodeToHex] Unknown prefix %v %v", decoded[:2], prefix)
+				return "", errors.Errorf("[DecodeToHex] Unknown prefix %v %v", decoded[:2], prefix)
 			}
 		}
 	}

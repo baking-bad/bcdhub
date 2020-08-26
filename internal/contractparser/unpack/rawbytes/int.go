@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 type intDecoder struct{}
@@ -37,7 +39,7 @@ func (d intDecoder) Decode(dec *decoder, code *strings.Builder) (int, error) {
 // DecodeSigned -
 func (d intDecoder) DecodeSigned(source []byte) (string, error) {
 	if len(source) == 0 {
-		return "", fmt.Errorf("expected non-empty byte array")
+		return "", errors.Errorf("expected non-empty byte array")
 	}
 
 	// Split input into 8-bit bitstrings
@@ -79,7 +81,7 @@ func (d intDecoder) DecodeSigned(source []byte) (string, error) {
 	ret := new(big.Int)
 	_, success := ret.SetString(bitString, 2)
 	if !success {
-		return "", fmt.Errorf("failed to parse bit string %s to big.Int", bitString)
+		return "", errors.Errorf("failed to parse bit string %s to big.Int", bitString)
 	}
 
 	return fmt.Sprintf("%v", ret), nil

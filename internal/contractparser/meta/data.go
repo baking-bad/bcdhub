@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -32,17 +33,17 @@ func (c *ContractMetadata) Get(part, protocol string) (Metadata, error) {
 	case consts.STORAGE:
 		ret, ok := c.Storage[protoSymLink]
 		if !ok {
-			return nil, fmt.Errorf("[ContractMetadata.Get] Unknown storage sym link: %s (%s)", protoSymLink, protocol[:8])
+			return nil, errors.Errorf("[ContractMetadata.Get] Unknown storage sym link: %s (%s)", protoSymLink, protocol[:8])
 		}
 		return ret, nil
 	case consts.PARAMETER:
 		ret, ok := c.Parameter[protoSymLink]
 		if !ok {
-			return nil, fmt.Errorf("[ContractMetadata.Get] Unknown parameter sym link: %s (%s)", protoSymLink, protocol[:8])
+			return nil, errors.Errorf("[ContractMetadata.Get] Unknown parameter sym link: %s (%s)", protoSymLink, protocol[:8])
 		}
 		return ret, nil
 	default:
-		return nil, fmt.Errorf("[ContractMetadata.Get] Unknown metadata part: %s", part)
+		return nil, errors.Errorf("[ContractMetadata.Get] Unknown metadata part: %s", part)
 	}
 }
 
@@ -123,12 +124,12 @@ func ParseMetadata(v gjson.Result) (Metadata, error) {
 			parseNodeMetadata(val[0], parent, parent.Path, "", m)
 			return m, nil
 		}
-		return nil, fmt.Errorf("[ParseMetadata] Invalid data length: %d", len(val))
+		return nil, errors.Errorf("[ParseMetadata] Invalid data length: %d", len(val))
 	} else if v.IsObject() {
 		parseNodeMetadata(v, parent, parent.Path, "", m)
 		return m, nil
 	} else {
-		return nil, fmt.Errorf("Unknown value type: %T", v.Type)
+		return nil, errors.Errorf("Unknown value type: %T", v.Type)
 	}
 }
 
@@ -337,7 +338,7 @@ func getNodeType(n internalNode, metadata Metadata) (string, []string) {
 // GetContractMetadata -
 func GetContractMetadata(es elastic.IElastic, address string) (*ContractMetadata, error) {
 	if address == "" {
-		return nil, fmt.Errorf("[GetContractMetadata] Empty address")
+		return nil, errors.Errorf("[GetContractMetadata] Empty address")
 	}
 
 	data := models.Metadata{ID: address}
@@ -371,7 +372,7 @@ func GetContractMetadata(es elastic.IElastic, address string) (*ContractMetadata
 // GetMetadata -
 func GetMetadata(es elastic.IElastic, address, part, protocol string) (Metadata, error) {
 	if address == "" {
-		return nil, fmt.Errorf("[GetMetadata] Empty address")
+		return nil, errors.Errorf("[GetMetadata] Empty address")
 	}
 
 	data := models.Metadata{ID: address}
@@ -386,7 +387,7 @@ func GetMetadata(es elastic.IElastic, address, part, protocol string) (Metadata,
 	case consts.PARAMETER:
 		fullMetadata = data.Parameter
 	default:
-		return nil, fmt.Errorf("[GetMetadata] Unknown metadata part: %s", part)
+		return nil, errors.Errorf("[GetMetadata] Unknown metadata part: %s", part)
 	}
 
 	protoSymLink, err := GetProtoSymLink(protocol)
@@ -396,7 +397,7 @@ func GetMetadata(es elastic.IElastic, address, part, protocol string) (Metadata,
 
 	sMetadata, ok := fullMetadata[protoSymLink]
 	if !ok {
-		return nil, fmt.Errorf("[GetMetadata] Unknown metadata sym link: %s", protoSymLink)
+		return nil, errors.Errorf("[GetMetadata] Unknown metadata sym link: %s", protoSymLink)
 	}
 
 	var metadata Metadata

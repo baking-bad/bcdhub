@@ -2,12 +2,12 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/pkg/errors"
 
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -17,16 +17,16 @@ import (
 func getOperation(data amqp.Delivery) error {
 	var operationID string
 	if err := json.Unmarshal(data.Body, &operationID); err != nil {
-		return fmt.Errorf("[getOperation] Unmarshal message body error: %s", err)
+		return errors.Errorf("[getOperation] Unmarshal message body error: %s", err)
 	}
 
 	op := models.Operation{ID: operationID}
 	if err := ctx.ES.GetByID(&op); err != nil {
-		return fmt.Errorf("[getOperation] Find operation error: %s", err)
+		return errors.Errorf("[getOperation] Find operation error: %s", err)
 	}
 
 	if err := parseOperation(op); err != nil {
-		return fmt.Errorf("[getOperation] Compute error message: %s", err)
+		return errors.Errorf("[getOperation] Compute error message: %s", err)
 	}
 
 	return nil
@@ -47,7 +47,7 @@ func parseOperation(operation models.Operation) error {
 		for _, address := range []string{operation.Source, operation.Destination} {
 			if strings.HasPrefix(address, "KT") {
 				if err := setOperationStats(h, address, operation); err != nil {
-					return fmt.Errorf("[parseOperation] Compute error message: %s", err)
+					return errors.Errorf("[parseOperation] Compute error message: %s", err)
 				}
 			}
 		}
@@ -73,11 +73,11 @@ func setOperationStats(h *metrics.Handler, address string, operation models.Oper
 		if elastic.IsRecordNotFound(err) {
 			return nil
 		}
-		return fmt.Errorf("[setOperationStats] Find contract error: %s", err)
+		return errors.Errorf("[setOperationStats] Find contract error: %s", err)
 	}
 
 	if err := h.SetContractStats(operation, &c); err != nil {
-		return fmt.Errorf("[setOperationStats] compute contract stats error message: %s", err)
+		return errors.Errorf("[setOperationStats] compute contract stats error message: %s", err)
 	}
 
 	return ctx.ES.UpdateFields(elastic.DocContracts, c.ID, c, "TxCount", "LastAction", "Balance", "TotalWithdrawn")

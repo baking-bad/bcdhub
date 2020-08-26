@@ -6,6 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -40,7 +41,7 @@ func newMiguel() *miguel {
 func (m *miguel) Convert(data gjson.Result, path string, metadata meta.Metadata, isRoot bool) (node *Node, err error) {
 	nm, ok := metadata[path]
 	if !ok {
-		return nil, fmt.Errorf("Unknown metadata path: %s", path)
+		return nil, errors.Errorf("Unknown metadata path: %s", path)
 	}
 
 	if dec, ok := m.decoders[nm.Type]; ok {
@@ -157,7 +158,7 @@ func getGJSONPathUnion(path string, node gjson.Result) (res string, err error) {
 			case "0":
 				if node.IsObject() {
 					if node.Get(res+"prim").String() != "Left" {
-						return "", fmt.Errorf("Invalid path")
+						return "", errors.Errorf("Invalid path")
 					}
 					res += "args.0."
 				} else {
@@ -166,7 +167,7 @@ func getGJSONPathUnion(path string, node gjson.Result) (res string, err error) {
 			case "1":
 				if node.IsObject() {
 					if node.Get(res+"prim").String() != "Right" {
-						return "", fmt.Errorf("Invalid path")
+						return "", errors.Errorf("Invalid path")
 					}
 					res += "args.0."
 				} else {

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"math"
 	"net/http"
 	"strconv"
@@ -13,6 +12,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -236,7 +236,7 @@ func (ctx *Context) contractToTokens(contracts []models.Contract, network, versi
 	if version != "" {
 		interfaceVersion, ok := ctx.Interfaces[version]
 		if !ok {
-			return PageableTokenContracts{}, fmt.Errorf("Unknown interface version: %s", version)
+			return PageableTokenContracts{}, errors.Errorf("Unknown interface version: %s", version)
 		}
 		methods := make([]string, len(interfaceVersion.Entrypoints))
 		for i := range interfaceVersion.Entrypoints {
@@ -322,7 +322,7 @@ func operationToTransfer(es elastic.IElastic, po elastic.PageableOperations) (Pa
 		if !ok {
 			val, err := meta.GetMetadata(es, op.Destination, consts.PARAMETER, op.Protocol)
 			if err != nil {
-				return PageableTokenTransfers{}, fmt.Errorf("[operationToTransfer] Unknown metadata: %s", op.Destination)
+				return PageableTokenTransfers{}, errors.Errorf("[operationToTransfer] Unknown metadata: %s", op.Destination)
 			}
 			metadatas[key] = val
 			metadata = val
