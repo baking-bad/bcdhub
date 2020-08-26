@@ -1,1 +1,300 @@
-{"mappings":{"properties":{"amount":{"type":"long"},"balance":{"type":"long"},"balance_updates":{"properties":{"change":{"type":"long"},"contract":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"kind":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}}}},"burned":{"type":"long"},"counter":{"type":"long"},"deffated_storage":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"delegate":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"delegate_alias":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"destination":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"destination_alias":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"entrypoint":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"errors":{"properties":{"amount":{"type":"long"},"balance":{"type":"long"},"descr":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"id":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"kind":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"location":{"type":"long"},"title":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"with":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}}}},"fee":{"type":"long"},"gas_limit":{"type":"long"},"hash":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"indexed_time":{"type":"long"},"internal":{"type":"boolean"},"nonce":{"type":"long"},"kind":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"level":{"type":"long"},"manager_pubkey":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"network":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"parameter_strings":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"parameters":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"protocol":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"result":{"properties":{"allocated_destination_contract":{"type":"boolean"},"consumed_gas":{"type":"long"},"paid_storage_size_diff":{"type":"long"},"storage_size":{"type":"long"}}},"source":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"source_alias":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"status":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"storage_limit":{"type":"long"},"storage_strings":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"timestamp":{"type":"date"}}}}
+{
+    "mappings": {
+        "properties": {
+            "amount": {
+                "type": "long"
+            },
+            "balance": {
+                "type": "long"
+            },
+            "balance_updates": {
+                "properties": {
+                    "change": {
+                        "type": "long"
+                    },
+                    "contract": {
+                        "type": "text",
+                        "fields": {
+                            "keyword": {
+                                "type": "keyword",
+                                "ignore_above": 256
+                            }
+                        }
+                    },
+                    "kind": {
+                        "type": "text",
+                        "fields": {
+                            "keyword": {
+                                "type": "keyword",
+                                "ignore_above": 256
+                            }
+                        }
+                    }
+                }
+            },
+            "burned": {
+                "type": "long"
+            },
+            "counter": {
+                "type": "long"
+            },
+            "deffated_storage": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "delegate": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "delegate_alias": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "destination": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "destination_alias": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "entrypoint": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "errors": {
+                "properties": {
+                    "amount": {
+                        "type": "long"
+                    },
+                    "balance": {
+                        "type": "long"
+                    },
+                    "descr": {
+                        "type": "text",
+                        "fields": {
+                            "keyword": {
+                                "type": "keyword",
+                                "ignore_above": 256
+                            }
+                        }
+                    },
+                    "expected_form": {
+                        "type": "text"
+                    },
+                    "id": {
+                        "type": "text",
+                        "fields": {
+                            "keyword": {
+                                "type": "keyword",
+                                "ignore_above": 256
+                            }
+                        }
+                    },
+                    "kind": {
+                        "type": "text",
+                        "fields": {
+                            "keyword": {
+                                "type": "keyword",
+                                "ignore_above": 256
+                            }
+                        }
+                    },
+                    "location": {
+                        "type": "long"
+                    },
+                    "title": {
+                        "type": "text",
+                        "fields": {
+                            "keyword": {
+                                "type": "keyword",
+                                "ignore_above": 256
+                            }
+                        }
+                    },
+                    "with": {
+                        "type": "text",
+                        "fields": {
+                            "keyword": {
+                                "type": "keyword",
+                                "ignore_above": 256
+                            }
+                        }
+                    },
+                    "wrong_expression": {
+                        "type": "text"
+                    }
+                }
+            },
+            "fee": {
+                "type": "long"
+            },
+            "gas_limit": {
+                "type": "long"
+            },
+            "hash": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "indexed_time": {
+                "type": "long"
+            },
+            "internal": {
+                "type": "boolean"
+            },
+            "nonce": {
+                "type": "long"
+            },
+            "kind": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "level": {
+                "type": "long"
+            },
+            "manager_pubkey": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "network": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "parameter_strings": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "parameters": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "protocol": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "result": {
+                "properties": {
+                    "allocated_destination_contract": {
+                        "type": "boolean"
+                    },
+                    "consumed_gas": {
+                        "type": "long"
+                    },
+                    "paid_storage_size_diff": {
+                        "type": "long"
+                    },
+                    "storage_size": {
+                        "type": "long"
+                    }
+                }
+            },
+            "source": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "source_alias": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "status": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "storage_limit": {
+                "type": "long"
+            },
+            "storage_strings": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "timestamp": {
+                "type": "date"
+            }
+        }
+    }
+}

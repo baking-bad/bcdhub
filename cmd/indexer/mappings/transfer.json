@@ -1,0 +1,84 @@
+{
+    "mappings": {
+        "properties": {
+            "amount": {
+                "type": "long"
+            },
+            "indexed_time": {
+                "type": "long"
+            },
+            "token_id": {
+                "type": "long"
+            },
+            "level": {
+                "type": "long"
+            },
+            "contract": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "ignore_above": 256.0,
+                        "type": "keyword"
+                    }
+                }
+            },
+            "alias": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "ignore_above": 256.0,
+                        "type": "keyword"
+                    }
+                }
+            },
+            "from": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "ignore_above": 256.0,
+                        "type": "keyword"
+                    }
+                }
+            },
+            "to": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "ignore_above": 256.0,
+                        "type": "keyword"
+                    }
+                }
+            },
+            "hash": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "ignore_above": 256.0,
+                        "type": "keyword"
+                    }
+                }
+            },
+            "network": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "ignore_above": 256.0,
+                        "type": "keyword"
+                    }
+                }
+            },
+            "status": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "ignore_above": 256.0,
+                        "type": "keyword"
+                    }
+                }
+            },
+            "timestamp": {
+                "type": "date"
+            }
+        }
+    }
+}
