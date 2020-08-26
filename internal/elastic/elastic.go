@@ -196,11 +196,13 @@ func (e *Elastic) CreateIndexes() error {
 	for _, index := range []string{
 		DocContracts,
 		DocMetadata,
+		DocBigMapActions,
 		DocBigMapDiff,
 		DocOperations,
 		DocMigrations,
 		DocProtocol,
 		DocBlocks,
+		DocTransfers,
 	} {
 		if err := e.CreateIndexIfNotExists(index); err != nil {
 			return err

@@ -130,9 +130,65 @@ func getErrorObject(data gjson.Result) IError {
 	var e IError
 	if strings.Contains(id, consts.BalanceTooLowError) {
 		e = &BalanceTooLowError{}
+	} else if strings.Contains(id, consts.InvalidSyntacticConstantError) {
+		e = &InvalidSyntacticConstantError{}
 	} else {
 		e = &DefaultError{}
 	}
 	e.Parse(data)
 	return e
+}
+
+// InvalidSyntacticConstantError -
+type InvalidSyntacticConstantError struct {
+	DefaultError
+
+	WrongExpression string `json:"wrong_expression"`
+	ExpectedForm    string `json:"expected_form"`
+}
+
+// Parse - parse error from json
+func (e *InvalidSyntacticConstantError) Parse(data gjson.Result) {
+	e.DefaultError = DefaultError{}
+	e.DefaultError.Parse(data)
+
+	for _, key := range []string{"wrongExpression", "wrong_expression"} {
+		item := data.Get(key)
+		if item.Exists() {
+			e.WrongExpression = item.String()
+			break
+		}
+	}
+
+	for _, key := range []string{"expectedForm", "expected_form"} {
+		item := data.Get(key)
+		if item.Exists() {
+			e.ExpectedForm = item.String()
+			break
+		}
+	}
+}
+
+// String -
+func (e *InvalidSyntacticConstantError) String() string {
+	return gjson.Parse(e.WrongExpression).Raw
+}
+
+// Format -
+func (e *InvalidSyntacticConstantError) Format() error {
+	if err := e.DefaultError.Format(); err != nil {
+		return err
+	}
+	wrongExpression, err := formatter.MichelineToMichelson(gjson.Parse(e.WrongExpression), false, formatter.DefLineSize)
+	if err != nil {
+		return err
+	}
+	e.WrongExpression = wrongExpression
+
+	expectedForm, err := formatter.MichelineToMichelson(gjson.Parse(e.ExpectedForm), false, formatter.DefLineSize)
+	if err != nil {
+		return err
+	}
+	e.ExpectedForm = expectedForm
+	return nil
 }

@@ -40,8 +40,12 @@ func (e *Elastic) BulkInsert(items []Model) error {
 		data = append(data, "\n"...)
 
 		bulk.Grow(len(meta) + len(data))
-		bulk.Write(meta)
-		bulk.Write(data)
+		if _, err := bulk.Write(meta); err != nil {
+			return err
+		}
+		if _, err := bulk.Write(data); err != nil {
+			return err
+		}
 
 		if (i%1000 == 0 && i > 0) || i == len(items)-1 {
 			if err := e.bulk(bulk); err != nil {

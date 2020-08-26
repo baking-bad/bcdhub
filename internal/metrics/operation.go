@@ -85,7 +85,6 @@ func (h *Handler) SendSentryNotifications(operation models.Operation) error {
 		initSentry(operation.Network, subscription.SentryDSN)
 
 		hub := sentry.CurrentHub().Clone()
-
 		tags := map[string]string{
 			"hash":    operation.Hash,
 			"source":  operation.Source,
@@ -102,13 +101,17 @@ func (h *Handler) SendSentryNotifications(operation models.Operation) error {
 		exceptions := make([]sentry.Exception, 0)
 		var message string
 		for i := range operation.Errors {
+			if err := operation.Errors[i].Format(); err != nil {
+				return err
+			}
+
 			if i == 0 {
 				message = operation.Errors[i].GetTitle()
 			}
 
 			exceptions = append(exceptions, sentry.Exception{
-				Value: operation.Errors[i].GetTitle(),
-				Type:  operation.Errors[i].String(),
+				Value: operation.Errors[i].String(),
+				Type:  operation.Errors[i].GetTitle(),
 			})
 		}
 

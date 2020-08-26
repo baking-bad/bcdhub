@@ -222,3 +222,40 @@ func TestDefaultError_Format(t *testing.T) {
 		})
 	}
 }
+
+func TestInvalidSyntacticConstantError_Parse(t *testing.T) {
+	tests := []struct {
+		name string
+		args string
+		ret  InvalidSyntacticConstantError
+	}{
+		{
+			name: "Error 1",
+			args: `{ "kind": "permanent", "id": "proto.005-PsBabyM1.invalidSyntacticConstantError", "location": 0, "expectedForm":{"prim": "unit"}, "wrongExpression":{"int": "0"}}`,
+			ret: InvalidSyntacticConstantError{
+				DefaultError: DefaultError{
+					Kind:        "permanent",
+					ID:          "proto.005-PsBabyM1.invalidSyntacticConstantError",
+					Title:       "Invalid constant (parse error)",
+					Description: "A compile-time constant was invalid for its expected form.",
+				},
+				ExpectedForm:    `{"prim": "unit"}`,
+				WrongExpression: `{"int": "0"}`,
+			},
+		},
+	}
+
+	if err := LoadErrorDescriptions("errors.json"); err != nil {
+		panic(err)
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var e InvalidSyntacticConstantError
+			data := gjson.Parse(tt.args)
+			e.Parse(data)
+			if !reflect.DeepEqual(e, tt.ret) {
+				t.Errorf("Invalid parsed error: %v != %v", e, tt.ret)
+			}
+		})
+	}
+}
