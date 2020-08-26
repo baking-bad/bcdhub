@@ -1,10 +1,10 @@
 package elastic
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -26,7 +26,7 @@ func (e *Elastic) getContract(q map[string]interface{}) (c models.Contract, err 
 		return
 	}
 	if res.Get("hits.total.value").Int() < 1 {
-		return c, fmt.Errorf("%s: %v", RecordNotFound, q)
+		return c, errors.Errorf("%s: %v", RecordNotFound, q)
 	}
 	hit := res.Get("hits.hits.0")
 	c.ParseElasticJSON(hit)
@@ -365,7 +365,7 @@ func periodToRange(period string) (qItem, error) {
 	case "all":
 		return nil, nil
 	default:
-		return nil, fmt.Errorf("Unknown period value: %s", period)
+		return nil, errors.Errorf("Unknown period value: %s", period)
 	}
 	return qItem{
 		"range": qItem{

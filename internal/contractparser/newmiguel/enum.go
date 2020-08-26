@@ -7,6 +7,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -37,7 +38,7 @@ func (l *enumDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetada
 
 	valNode, ok := metadata[path+tail]
 	if !ok {
-		return nil, fmt.Errorf("Unknown enum path: %s", path+tail)
+		return nil, errors.Errorf("Unknown enum path: %s", path+tail)
 	}
 	if valNode.Name != "" {
 		node.Value = valNode.Name

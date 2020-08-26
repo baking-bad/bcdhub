@@ -11,6 +11,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -58,11 +59,11 @@ func (rpc *NodeRPC) parseResponse(resp *http.Response, checkStatusCode bool) (re
 
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return res, fmt.Errorf("ReadAll: %v", err)
+		return res, errors.Errorf("ReadAll: %v", err)
 	}
 
 	if checkStatusCode && resp.StatusCode != 200 {
-		err = fmt.Errorf("%d: %s", resp.StatusCode, string(b))
+		err = errors.Errorf("%d: %s", resp.StatusCode, string(b))
 	}
 	res = gjson.ParseBytes(b)
 	return
@@ -75,7 +76,7 @@ func (rpc *NodeRPC) get(uri string) (res gjson.Result, err error) {
 	}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return res, fmt.Errorf("get.NewRequest: %v", err)
+		return res, errors.Errorf("get.NewRequest: %v", err)
 	}
 
 	var resp *http.Response
@@ -104,14 +105,14 @@ func (rpc *NodeRPC) post(uri string, data map[string]interface{}, checkStatusCod
 
 	bData, err := json.Marshal(data)
 	if err != nil {
-		return res, fmt.Errorf("post.json.Marshal: %v", err)
+		return res, errors.Errorf("post.json.Marshal: %v", err)
 	}
 
 	//log.Println(gjson.ParseBytes(bData).String())
 
 	req, err := http.NewRequest("POST", url, bytes.NewReader(bData))
 	if err != nil {
-		return res, fmt.Errorf("post.NewRequest: %v", err)
+		return res, errors.Errorf("post.NewRequest: %v", err)
 	}
 
 	var resp *http.Response
@@ -230,7 +231,7 @@ func (rpc *NodeRPC) GetOperations(block int64) (res gjson.Result, err error) {
 // GetContractsByBlock -
 func (rpc *NodeRPC) GetContractsByBlock(block int64) ([]string, error) {
 	if block != 1 {
-		return nil, fmt.Errorf("For less loading node RPC `block` value is only 1")
+		return nil, errors.Errorf("For less loading node RPC `block` value is only 1")
 	}
 	data, err := rpc.get(fmt.Sprintf("chains/main/blocks/%d/context/contracts", block))
 	if err != nil {

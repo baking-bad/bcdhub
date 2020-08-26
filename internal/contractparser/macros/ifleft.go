@@ -1,8 +1,7 @@
 package macros
 
 import (
-	"fmt"
-
+	"github.com/pkg/errors"
 	"github.com/valyala/fastjson"
 )
 
@@ -51,7 +50,7 @@ type assertLeft struct{}
 
 func (f assertLeft) Replace(tree *fastjson.Value) error {
 	if tree.Type() != fastjson.TypeArray {
-		return fmt.Errorf("Invalid tree type in assertLeft.Replace: %s", tree.Type())
+		return errors.Errorf("Invalid tree type in assertLeft.Replace: %s", tree.Type())
 	}
 
 	arena := fastjson.Arena{}
@@ -73,7 +72,7 @@ type assertRight struct{}
 
 func (f assertRight) Replace(tree *fastjson.Value) error {
 	if tree.Type() != fastjson.TypeArray {
-		return fmt.Errorf("Invalid tree type in assertRight.Replace: %s", tree.Type())
+		return errors.Errorf("Invalid tree type in assertRight.Replace: %s", tree.Type())
 	}
 
 	arena := fastjson.Arena{}

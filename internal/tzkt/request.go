@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/pkg/errors"
 )
 
 // TzKT -
@@ -35,7 +36,7 @@ func (t *TzKT) request(method, endpoint string, params map[string]string, respon
 
 	req, err := http.NewRequest(method, uri, nil)
 	if err != nil {
-		return fmt.Errorf("[http.NewRequest] %s", err)
+		return errors.Errorf("[http.NewRequest] %s", err)
 	}
 	q := req.URL.Query()
 	for key, value := range params {
@@ -56,13 +57,13 @@ func (t *TzKT) request(method, endpoint string, params map[string]string, respon
 	}
 
 	if count == t.retryCount {
-		return fmt.Errorf("Max HTTP request retry exceeded")
+		return errors.Errorf("Max HTTP request retry exceeded")
 	}
 	defer resp.Body.Close()
 
 	dec := json.NewDecoder(resp.Body)
 	if err = dec.Decode(response); err != nil {
-		return fmt.Errorf("[json.Decode] %s", err)
+		return errors.Errorf("[json.Decode] %s", err)
 	}
 	return nil
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -92,7 +93,7 @@ func (l *mapDecoder) getKey(key *Node) (s string, err error) {
 			s += fmt.Sprintf("%v", val["miguel_value"])
 		}
 	default:
-		err = fmt.Errorf("Invalid map key type: %v %T", key, key)
+		err = errors.Errorf("Invalid map key type: %v %T", key, key)
 	}
 	return
 }

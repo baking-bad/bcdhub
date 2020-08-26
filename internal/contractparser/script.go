@@ -1,14 +1,13 @@
 package contractparser
 
 import (
-	"fmt"
-
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/contractparser/language"
 	"github.com/baking-bad/bcdhub/internal/contractparser/macros"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -32,7 +31,7 @@ func New(script gjson.Result) (s Script, err error) {
 
 	s.Storage, err = newStorage(script.Get("storage"))
 	if err != nil {
-		return s, fmt.Errorf("newStorage: %v", err)
+		return s, errors.Errorf("newStorage: %v", err)
 	}
 
 	hardcoded, err := FindHardcodedAddresses(script.Get("code"))

@@ -1,11 +1,11 @@
 package storage
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -55,12 +55,12 @@ func setMapPtr(storage gjson.Result, path string, m map[int64]string) error {
 
 	ptr := storage.Get(buf.String())
 	if !ptr.Exists() {
-		return fmt.Errorf("Path %s is not pointer: %s", path, buf.String())
+		return errors.Errorf("Path %s is not pointer: %s", path, buf.String())
 	}
 
 	for _, p := range ptr.Array() {
 		if _, ok := m[p.Int()]; ok {
-			return fmt.Errorf("Pointer already exists: %d", p.Int())
+			return errors.Errorf("Pointer already exists: %d", p.Int())
 		}
 		m[p.Int()] = path
 	}

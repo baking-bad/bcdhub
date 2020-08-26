@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/hex"
-	"fmt"
 	"math"
 
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -20,7 +20,7 @@ func Micheline(node gjson.Result) ([]byte, error) {
 		return packObject(node)
 	}
 
-	return nil, fmt.Errorf("invalid micheline data %v", node)
+	return nil, errors.Errorf("invalid micheline data %v", node)
 }
 
 func packArray(node gjson.Result) ([]byte, error) {
@@ -67,7 +67,7 @@ func packObject(node gjson.Result) ([]byte, error) {
 		return packObjectString(node)
 	}
 
-	return nil, fmt.Errorf("some shit happend %v", node)
+	return nil, errors.Errorf("some shit happend %v", node)
 }
 
 func packObjectPrim(node gjson.Result) ([]byte, error) {

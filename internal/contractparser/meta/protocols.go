@@ -1,8 +1,6 @@
 package meta
 
-import (
-	"fmt"
-)
+import "github.com/pkg/errors"
 
 // This is the list of protocols BCD supports
 // Every time new protocol is proposed we determine if everything works fine or implement a custom handler otherwise
@@ -29,5 +27,5 @@ func GetProtoSymLink(protocol string) (string, error) {
 	if protoSymLink, ok := symLinks[protocol]; ok {
 		return protoSymLink, nil
 	}
-	return "", fmt.Errorf("Unknown protocol: %s", protocol)
+	return "", errors.Errorf("Unknown protocol: %s", protocol)
 }

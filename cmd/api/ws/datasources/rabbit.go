@@ -1,11 +1,11 @@
 package datasources
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/mq"
+	"github.com/pkg/errors"
 	"github.com/streadway/amqp"
 )
 
@@ -99,13 +99,13 @@ func (c *RabbitMQ) handler(data amqp.Delivery) error {
 	default:
 		if data.RoutingKey == "" {
 			logger.Warning("Rabbit MQ server stopped! API need to be restarted. Closing connection...")
-			return fmt.Errorf("WS_RABBIT_STOPPED")
+			return errors.Errorf("WS_RABBIT_STOPPED")
 		}
-		return fmt.Errorf("Unknown data routing key %s", data.RoutingKey)
+		return errors.Errorf("Unknown data routing key %s", data.RoutingKey)
 	}
 
 	if err := data.Ack(false); err != nil {
-		return fmt.Errorf("Error acknowledging message: %s", err)
+		return errors.Errorf("Error acknowledging message: %s", err)
 	}
 	return nil
 }

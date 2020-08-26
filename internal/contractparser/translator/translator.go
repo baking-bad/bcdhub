@@ -1,10 +1,10 @@
 package translator
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/valyala/fastjson"
 	"github.com/yhirose/go-peg"
 )
@@ -174,7 +174,7 @@ func validatePrimitive(prim string) error {
 		return err
 	}
 	if !valid {
-		return fmt.Errorf("Invalid primitive %s", prim)
+		return errors.Errorf("Invalid primitive %s", prim)
 	}
 	return nil
 }

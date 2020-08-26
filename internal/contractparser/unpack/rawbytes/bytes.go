@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/domaintypes"
+	"github.com/pkg/errors"
 )
 
 type bytesDecoder struct{}
@@ -76,5 +77,5 @@ func decodeAddress(data []byte) (string, error) {
 		return res, nil
 	}
 
-	return "", fmt.Errorf("decodeAddress: can't decode address from bytes: %v", data)
+	return "", errors.Errorf("decodeAddress: can't decode address from bytes: %v", data)
 }

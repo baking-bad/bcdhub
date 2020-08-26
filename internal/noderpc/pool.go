@@ -1,11 +1,11 @@
 package noderpc
 
 import (
-	"fmt"
 	"math/rand"
 	"reflect"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -67,7 +67,7 @@ func (p Pool) getNode() (*poolItem, error) {
 	}
 
 	if len(nodes) == 0 {
-		return nil, fmt.Errorf("No availiable nodes")
+		return nil, errors.Errorf("No availiable nodes")
 	}
 
 	return nodes[rand.Intn(len(nodes))], nil
@@ -86,7 +86,7 @@ func (p Pool) call(method string, args ...interface{}) (reflect.Value, error) {
 	mthd := nodeVal.MethodByName(method)
 	numIn := mthd.Type().NumIn()
 	if numIn != len(args) {
-		return reflect.Value{}, fmt.Errorf("Invalid args count: wait %d got %d", numIn, len(args))
+		return reflect.Value{}, errors.Errorf("Invalid args count: wait %d got %d", numIn, len(args))
 	}
 
 	in := make([]reflect.Value, numIn)
@@ -97,7 +97,7 @@ func (p Pool) call(method string, args ...interface{}) (reflect.Value, error) {
 	response := mthd.Call(in)
 	if len(response) != 2 {
 		node.block()
-		return reflect.Value{}, fmt.Errorf("Invalid response length: %d", len(response))
+		return reflect.Value{}, errors.Errorf("Invalid response length: %d", len(response))
 	}
 
 	if !response[1].IsNil() {

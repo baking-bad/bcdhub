@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/domaintypes"
 	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/rawbytes"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -29,7 +30,7 @@ const (
 // PublicKey -
 func PublicKey(input string) (string, error) {
 	if len(input) != pKeyEd25519HexLength && len(input) != pKey256HexLength {
-		return "", fmt.Errorf("[PublicKey] Wrong length of %v. Expected %v or %v, Got: %v", input, pKeyEd25519HexLength, pKey256HexLength, len(input))
+		return "", errors.Errorf("[PublicKey] Wrong length of %v. Expected %v or %v, Got: %v", input, pKeyEd25519HexLength, pKey256HexLength, len(input))
 	}
 
 	return domaintypes.DecodePublicKey(input)
@@ -38,7 +39,7 @@ func PublicKey(input string) (string, error) {
 // KeyHash -
 func KeyHash(input string) (string, error) {
 	if len(input) != keyHashHexLength {
-		return "", fmt.Errorf("[KeyHash] Wrong length of %v. Expected %v, Got: %v", input, keyHashHexLength, len(input))
+		return "", errors.Errorf("[KeyHash] Wrong length of %v. Expected %v, Got: %v", input, keyHashHexLength, len(input))
 	}
 
 	return domaintypes.DecodeKeyHash(input)
@@ -47,7 +48,7 @@ func KeyHash(input string) (string, error) {
 // Address - unpack KT, tz1, tz2, tz3 addresses
 func Address(input string) (string, error) {
 	if len(input) != addressHexLength {
-		return "", fmt.Errorf("[Address] Wrong length of %v. Expected %v, Got: %v", input, addressHexLength, len(input))
+		return "", errors.Errorf("[Address] Wrong length of %v. Expected %v, Got: %v", input, addressHexLength, len(input))
 	}
 
 	if input[:2] == ktPrefix && input[len(input)-2:] == ktSuffix {
@@ -60,7 +61,7 @@ func Address(input string) (string, error) {
 // Signature -
 func Signature(input string) (string, error) {
 	if len(input) != signatureHexLength {
-		return "", fmt.Errorf("[Signature] Wrong length of %v. Expected %v, Got: %v", input, signatureHexLength, len(input))
+		return "", errors.Errorf("[Signature] Wrong length of %v. Expected %v, Got: %v", input, signatureHexLength, len(input))
 	}
 
 	return domaintypes.DecodeSignature(input)
@@ -69,7 +70,7 @@ func Signature(input string) (string, error) {
 // ChainID -
 func ChainID(input string) (string, error) {
 	if len(input) != chainIDHexLength {
-		return "", fmt.Errorf("[ChainID] Wrong length of %v. Expected %v, Got: %v", input, chainIDHexLength, len(input))
+		return "", errors.Errorf("[ChainID] Wrong length of %v. Expected %v, Got: %v", input, chainIDHexLength, len(input))
 	}
 
 	return domaintypes.DecodeChainID(input)
@@ -78,12 +79,12 @@ func ChainID(input string) (string, error) {
 // Contract - unpack contract
 func Contract(input string) (string, error) {
 	if len(input) < addressHexLength {
-		return "", fmt.Errorf("[Contract] Wrong length of %v. Expected %v, Got: %v", input, addressHexLength, len(input))
+		return "", errors.Errorf("[Contract] Wrong length of %v. Expected %v, Got: %v", input, addressHexLength, len(input))
 	}
 
 	address, err := Address(input[:addressHexLength])
 	if err != nil {
-		return "", fmt.Errorf("[Contract] Cant decode Address %v error: %v", input, err)
+		return "", errors.Errorf("[Contract] Cant decode Address %v error: %v", input, err)
 	}
 
 	if len(input) == addressHexLength {
@@ -92,7 +93,7 @@ func Contract(input string) (string, error) {
 
 	tail, err := hex.DecodeString(input[addressHexLength:])
 	if err != nil {
-		return "", fmt.Errorf("[Contract] %v hex.DecodeString error: %v", input, err)
+		return "", errors.Errorf("[Contract] %v hex.DecodeString error: %v", input, err)
 	}
 
 	return fmt.Sprintf("%s%%%s", address, tail), nil

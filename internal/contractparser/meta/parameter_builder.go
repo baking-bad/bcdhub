@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/translator"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -101,7 +102,7 @@ func (b ParameterBuilder) prepareData(binaryPath string, data map[string]interfa
 func (b ParameterBuilder) buildParameters(path string, data map[string]interface{}) (string, error) {
 	nm, ok := b.metadata[path]
 	if !ok {
-		return "", fmt.Errorf("Unknown binary path: %s", path)
+		return "", errors.Errorf("Unknown binary path: %s", path)
 	}
 
 	pb, ok := b.parameterBuilders[nm.Prim]
@@ -125,13 +126,13 @@ func (b defaultParameterBuilder) Build(node *NodeMetadata, path string, data map
 		if !helpers.StringInArray(node.Prim, []string{
 			consts.STRING, consts.BYTES,
 		}) {
-			return "", fmt.Errorf("'%s' is required", getName(node))
+			return "", errors.Errorf("'%s' is required", getName(node))
 		}
 		value = ""
 	}
 
 	if b.validate && !validate(node.Prim, value) {
-		return "", fmt.Errorf("Invalid %s \"%v\"", node.Prim, value)
+		return "", errors.Errorf("Invalid %s \"%v\"", node.Prim, value)
 	}
 
 	switch node.Prim {
@@ -146,7 +147,7 @@ func (b defaultParameterBuilder) Build(node *NodeMetadata, path string, data map
 		case float32, float64:
 			return fmt.Sprintf(`{"int": "%0.f"}`, t), nil
 		default:
-			return "", fmt.Errorf("[defaultBuilder] Invalid integer type: %v", t)
+			return "", errors.Errorf("[defaultBuilder] Invalid integer type: %v", t)
 		}
 	case consts.TIMESTAMP:
 		ts, err := time.Parse(time.RFC3339, value.(string))
@@ -161,7 +162,7 @@ func (b defaultParameterBuilder) Build(node *NodeMetadata, path string, data map
 		}
 		return fmt.Sprintf(`{"prim": "%s"}`, sBool), nil
 	default:
-		return "", fmt.Errorf("[defaultBuilder] Unknown primitive type: %s", node.Prim)
+		return "", errors.Errorf("[defaultBuilder] Unknown primitive type: %s", node.Prim)
 	}
 }
 
@@ -200,7 +201,7 @@ type listParameterBuilder struct {
 func (b listParameterBuilder) Build(node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
 	value, ok := data[path]
 	if !ok {
-		return "", fmt.Errorf("'%s' is required", getName(node))
+		return "", errors.Errorf("'%s' is required", getName(node))
 	}
 	listValue := interfaceSlice(value)
 
@@ -243,7 +244,7 @@ type mapParameterBuilder struct {
 func (b mapParameterBuilder) Build(node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
 	value, ok := data[path]
 	if !ok {
-		return "", fmt.Errorf("'%s' is required", getName(node))
+		return "", errors.Errorf("'%s' is required", getName(node))
 	}
 	var s string
 	listValue := interfaceSlice(value)
@@ -253,7 +254,7 @@ func (b mapParameterBuilder) Build(node *NodeMetadata, path string, data map[str
 		}
 		mapValue, ok := listValue[i].(map[string]interface{})
 		if !ok {
-			return "", fmt.Errorf("Invalid data: '%s'", getName(node))
+			return "", errors.Errorf("Invalid data: '%s'", getName(node))
 		}
 		var itemBuilder strings.Builder
 		keyStr, err := b.builder.buildParameters(path+"/k", mapValue)
@@ -281,15 +282,15 @@ type optionParameterBuilder struct {
 func (b optionParameterBuilder) Build(node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
 	value, ok := data[path]
 	if !ok {
-		return "", fmt.Errorf("'%s' is required", getName(node))
+		return "", errors.Errorf("'%s' is required", getName(node))
 	}
 	mapValue, ok := value.(map[string]interface{})
 	if !ok {
-		return "", fmt.Errorf("Invalid data: '%s'", getName(node))
+		return "", errors.Errorf("Invalid data: '%s'", getName(node))
 	}
 	schemaKey, ok := mapValue["schemaKey"]
 	if !ok {
-		return "", fmt.Errorf("Invalid data: '%s'", getName(node))
+		return "", errors.Errorf("Invalid data: '%s'", getName(node))
 	}
 	switch schemaKey {
 	case consts.NONE:
@@ -317,18 +318,18 @@ type orParameterBuilder struct {
 func (b orParameterBuilder) Build(node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
 	orData, ok := data[path]
 	if !ok {
-		return "", fmt.Errorf("'%s' is required", getName(node))
+		return "", errors.Errorf("'%s' is required", getName(node))
 	}
 	mapValue, ok := orData.(map[string]interface{})
 	if !ok {
-		return "", fmt.Errorf("Invalid data: '%s'", getName(node))
+		return "", errors.Errorf("Invalid data: '%s'", getName(node))
 	}
 	schemaKey, ok := mapValue["schemaKey"].(string)
 	if !ok {
-		return "", fmt.Errorf("Invalid data: '%s'", getName(node))
+		return "", errors.Errorf("Invalid data: '%s'", getName(node))
 	}
 	if !strings.HasPrefix(schemaKey, path) {
-		return "", fmt.Errorf("Invalid data: '%s'", getName(node))
+		return "", errors.Errorf("Invalid data: '%s'", getName(node))
 	}
 
 	childStr, err := b.builder.buildParameters(schemaKey, mapValue)
@@ -343,7 +344,7 @@ func (b orParameterBuilder) Build(node *NodeMetadata, path string, data map[stri
 func (b ParameterBuilder) wrapEntrypoint(binPath, data string) (string, error) {
 	nm, ok := b.metadata[binPath]
 	if !ok {
-		return "", fmt.Errorf("Unknown binary path: %s", binPath)
+		return "", errors.Errorf("Unknown binary path: %s", binPath)
 	}
 	entrypoint := getEntrypointName(nm)
 	if entrypoint == "default" {
@@ -360,7 +361,7 @@ type lambdaParameterBuilder struct {
 func (b lambdaParameterBuilder) Build(node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
 	lambdaData, ok := data[path]
 	if !ok {
-		return "", fmt.Errorf("'%s' is required", getName(node))
+		return "", errors.Errorf("'%s' is required", getName(node))
 	}
 	sLambda := fmt.Sprintf("%s", lambdaData)
 	t, err := translator.NewConverter(

@@ -10,13 +10,14 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/mq"
+	"github.com/pkg/errors"
 	"github.com/schollz/progressbar/v3"
 )
 
 // Rollback - rollback indexer state to level
 func Rollback(e elastic.IElastic, messageQueue *mq.MQ, appDir string, fromState models.Block, toLevel int64) error {
 	if toLevel >= fromState.Level {
-		return fmt.Errorf("To level must be less than from level: %d >= %d", toLevel, fromState.Level)
+		return errors.Errorf("To level must be less than from level: %d >= %d", toLevel, fromState.Level)
 	}
 	affectedContractIDs, err := getAffectedContracts(e, fromState.Network, fromState.Level, toLevel)
 	if err != nil {
@@ -86,7 +87,7 @@ func getProtocolByLevel(protocols []models.Protocol, level int64) (models.Protoc
 		}
 	}
 	if len(protocols) == 0 {
-		return models.Protocol{}, fmt.Errorf("Can't find protocol for level %d", level)
+		return models.Protocol{}, errors.Errorf("Can't find protocol for level %d", level)
 	}
 	return protocols[0], nil
 }

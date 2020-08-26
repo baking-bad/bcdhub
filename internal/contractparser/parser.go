@@ -1,14 +1,13 @@
 package contractparser
 
 import (
-	"fmt"
-
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/node"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -46,7 +45,7 @@ func (p *parser) parse(v gjson.Result) error {
 			}
 		}
 	} else {
-		return fmt.Errorf("Unknown value type: %T", v.Type)
+		return errors.Errorf("Unknown value type: %T", v.Type)
 	}
 	return nil
 }
@@ -68,6 +67,6 @@ func MakeStorageParser(rpc noderpc.INode, es elastic.IElastic, protocol string, 
 	case consts.MetadataAlpha:
 		return storage.NewAlpha(), nil
 	default:
-		return nil, fmt.Errorf("Unknown protocol %s", protocol)
+		return nil, errors.Errorf("Unknown protocol %s", protocol)
 	}
 }

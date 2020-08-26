@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
+	"github.com/pkg/errors"
 )
 
 var mappingNames = []string{
@@ -165,7 +166,7 @@ func uploadMappings(es elastic.IElastic, creds awsData) error {
 			Body:        body,
 			ContentType: aws.String("application/json"),
 		}); err != nil {
-			return fmt.Errorf("failed to upload file, %v", err)
+			return errors.Errorf("failed to upload file, %v", err)
 		}
 	}
 	return nil
@@ -190,7 +191,7 @@ func restoreMappings(es elastic.IElastic, creds awsData) error {
 			Bucket: aws.String(creds.BucketName),
 			Key:    aws.String(fileName),
 		}); err != nil {
-			return fmt.Errorf("failed to upload file, %v", err)
+			return errors.Errorf("failed to upload file, %v", err)
 		}
 		data := bytes.NewReader(buf.Bytes())
 
@@ -211,7 +212,7 @@ func reloadSecureSettings(es elastic.IElastic, creds awsData) error {
 	defer resp.Body.Close()
 
 	if resp.IsError() {
-		return fmt.Errorf(resp.Status())
+		return errors.Errorf(resp.Status())
 	}
 
 	return nil
@@ -231,7 +232,7 @@ func deleteIndices(es elastic.IElastic, creds awsData) error {
 	defer resp.Body.Close()
 
 	if resp.IsError() {
-		return fmt.Errorf(resp.Status())
+		return errors.Errorf(resp.Status())
 	}
 
 	return nil

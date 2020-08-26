@@ -12,6 +12,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/scripts/migration/migrations"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -101,7 +102,7 @@ func chooseMigration() (migrations.Migration, error) {
 	}
 
 	if index < 0 || index > len(migrationsList)-1 {
-		return nil, fmt.Errorf("Invalid # of migration: %s", input)
+		return nil, errors.Errorf("Invalid # of migration: %s", input)
 	}
 
 	return migrationsList[index], nil

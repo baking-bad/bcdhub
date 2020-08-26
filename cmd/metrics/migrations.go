@@ -2,26 +2,26 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/pkg/errors"
 	"github.com/streadway/amqp"
 )
 
 func getMigrations(data amqp.Delivery) error {
 	var migrationID string
 	if err := json.Unmarshal(data.Body, &migrationID); err != nil {
-		return fmt.Errorf("[getMigrations] Unmarshal message body error: %s", err)
+		return errors.Errorf("[getMigrations] Unmarshal message body error: %s", err)
 	}
 
 	migration := models.Migration{ID: migrationID}
 	if err := ctx.ES.GetByID(&migration); err != nil {
-		return fmt.Errorf("[getMigrations] Find migration error: %s", err)
+		return errors.Errorf("[getMigrations] Find migration error: %s", err)
 	}
 
 	if err := parseMigration(migration); err != nil {
-		return fmt.Errorf("[getMigrations] Compute error message: %s", err)
+		return errors.Errorf("[getMigrations] Compute error message: %s", err)
 	}
 
 	return nil

@@ -6,6 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/pkg/errors"
 )
 
 func getSimpleExpr(bPath string, md meta.Metadata) (string, error) {
@@ -61,7 +62,7 @@ func getCompactExpr(dd *dsData, bPath string, md meta.Metadata) (string, error) 
 		arg1 := md[node.Args[1]]
 		return fmt.Sprintf("%s(%s, %s)", node.Prim, arg0.Prim, arg1.Prim), nil
 	default:
-		return "", fmt.Errorf("[getCompactExpr] unknown node type %##v %s", md[bPath], bPath)
+		return "", errors.Errorf("[getCompactExpr] unknown node type %##v %s", md[bPath], bPath)
 	}
 }
 
@@ -83,7 +84,7 @@ func getComplexExpr(dd *dsData, bPath string, md meta.Metadata) (string, error) 
 	case consts.MAP, consts.BIGMAP, consts.LAMBDA:
 		return handleType(dd, bPath, md)
 	default:
-		return "", fmt.Errorf("[getComplexExpr] unknown node type %##v %s", md[bPath], bPath)
+		return "", errors.Errorf("[getComplexExpr] unknown node type %##v %s", md[bPath], bPath)
 	}
 }
 

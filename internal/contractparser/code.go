@@ -1,12 +1,11 @@
 package contractparser
 
 import (
-	"fmt"
-
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/language"
 	"github.com/baking-bad/bcdhub/internal/contractparser/node"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -38,7 +37,7 @@ func newCode(script gjson.Result) (Code, error) {
 
 	code := script.Get("code").Array()
 	if len(code) != 3 {
-		return res, fmt.Errorf("Invalid tag 'code' length")
+		return res, errors.Errorf("Invalid tag 'code' length")
 	}
 
 	hash, err := ComputeContractHash(script.Get("code").Raw)

@@ -1,8 +1,6 @@
 package config
 
 import (
-	"fmt"
-
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/database"
@@ -10,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/tzkt"
+	"github.com/pkg/errors"
 )
 
 // Context -
@@ -42,7 +41,7 @@ func (ctx *Context) GetRPC(network string) (noderpc.INode, error) {
 	if rpc, ok := ctx.RPC[network]; ok {
 		return rpc, nil
 	}
-	return nil, fmt.Errorf("Unknown rpc network %s", network)
+	return nil, errors.Errorf("Unknown rpc network %s", network)
 }
 
 // GetTzKTService -
@@ -50,13 +49,13 @@ func (ctx *Context) GetTzKTService(network string) (*tzkt.ServicesTzKT, error) {
 	if rpc, ok := ctx.TzKTServices[network]; ok {
 		return rpc, nil
 	}
-	return nil, fmt.Errorf("Unknown tzkt service network %s", network)
+	return nil, errors.Errorf("Unknown tzkt service network %s", network)
 }
 
 // LoadAliases -
 func (ctx *Context) LoadAliases() error {
 	if ctx.DB == nil {
-		return fmt.Errorf("Connection to database is not initialized")
+		return errors.Errorf("Connection to database is not initialized")
 	}
 	aliases, err := ctx.DB.GetAliasesMap(consts.Mainnet)
 	if err != nil {

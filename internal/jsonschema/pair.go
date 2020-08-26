@@ -1,9 +1,8 @@
 package jsonschema
 
 import (
-	"fmt"
-
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/pkg/errors"
 )
 
 type pairMaker struct{}
@@ -11,7 +10,7 @@ type pairMaker struct{}
 func (m *pairMaker) Do(binPath string, metadata meta.Metadata) (Schema, error) {
 	nm, ok := metadata[binPath]
 	if !ok {
-		return nil, fmt.Errorf("[pairMaker] Unknown metadata binPath: %s", binPath)
+		return nil, errors.Errorf("[pairMaker] Unknown metadata binPath: %s", binPath)
 	}
 	schema := make(Schema)
 	for _, arg := range nm.Args {

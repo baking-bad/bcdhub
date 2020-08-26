@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -61,7 +62,7 @@ func GetContract(rpc noderpc.INode, address, network, protocol, filesDirectory s
 // RemoveContractFromFileSystem -
 func RemoveContractFromFileSystem(address, network, protocol, filesDirectory string) error {
 	if filesDirectory == "" {
-		return fmt.Errorf("Invalid filesDirectory: %s", filesDirectory)
+		return errors.Errorf("Invalid filesDirectory: %s", filesDirectory)
 	}
 	protoSymLink, err := meta.GetProtoSymLink(protocol)
 	if err != nil {

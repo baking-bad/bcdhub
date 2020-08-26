@@ -14,6 +14,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -21,7 +22,7 @@ func createNewContract(es elastic.IElastic, interfaces map[string]kinds.Contract
 	if !helpers.StringInArray(operation.Kind, []string{
 		consts.Origination, consts.OriginationNew, consts.Migration,
 	}) {
-		return nil, fmt.Errorf("Invalid operation kind in computeContractMetrics: %s", operation.Kind)
+		return nil, errors.Errorf("Invalid operation kind in computeContractMetrics: %s", operation.Kind)
 	}
 	contract := models.Contract{
 		ID:         helpers.GenerateID(),
@@ -68,13 +69,13 @@ func createNewContract(es elastic.IElastic, interfaces map[string]kinds.Contract
 func computeMetrics(operation models.Operation, interfaces map[string]kinds.ContractKind, filesDirectory, protoSymLink string, contract *models.Contract) error {
 	script, err := contractparser.New(operation.Script)
 	if err != nil {
-		return fmt.Errorf("contractparser.New: %v", err)
+		return errors.Errorf("contractparser.New: %v", err)
 	}
 	script.Parse(interfaces)
 
 	lang, err := script.Language()
 	if err != nil {
-		return fmt.Errorf("script.Language: %v", err)
+		return errors.Errorf("script.Language: %v", err)
 	}
 
 	contract.Language = lang
@@ -121,12 +122,12 @@ func isUpgradable(metadata models.Metadata, protoSymLink string) (bool, error) {
 
 	var paramMeta meta.Metadata
 	if err := json.Unmarshal([]byte(parameter), &paramMeta); err != nil {
-		return false, fmt.Errorf("Invalid parameter metadata: %v", err)
+		return false, errors.Errorf("Invalid parameter metadata: %v", err)
 	}
 
 	var storageMeta meta.Metadata
 	if err := json.Unmarshal([]byte(storage), &storageMeta); err != nil {
-		return false, fmt.Errorf("Invalid parameter metadata: %v", err)
+		return false, errors.Errorf("Invalid parameter metadata: %v", err)
 	}
 
 	for _, p := range paramMeta {

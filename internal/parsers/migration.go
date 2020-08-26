@@ -2,7 +2,6 @@ package parsers
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser"
@@ -13,6 +12,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -83,7 +83,7 @@ func (p *MigrationParser) Parse(script gjson.Result, old models.Contract, previo
 func (p *MigrationParser) getUpdates(script gjson.Result, contract models.Contract, protocol models.Protocol, metadata models.Metadata) ([]elastic.Model, error) {
 	stringMetadata, ok := metadata.Storage[protocol.SymLink]
 	if !ok {
-		return nil, fmt.Errorf("[MigrationParser.getUpdates] Unknown metadata sym link: %s", protocol.SymLink)
+		return nil, errors.Errorf("[MigrationParser.getUpdates] Unknown metadata sym link: %s", protocol.SymLink)
 	}
 
 	var m meta.Metadata

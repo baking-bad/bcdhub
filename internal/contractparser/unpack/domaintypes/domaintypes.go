@@ -1,9 +1,8 @@
 package domaintypes
 
 import (
-	"fmt"
-
 	"github.com/baking-bad/bcdhub/internal/tzbase58"
+	"github.com/pkg/errors"
 )
 
 // Length consts
@@ -21,7 +20,7 @@ func DecodePublicKey(input string) (string, error) {
 	}
 
 	if _, ok := prefixes[input[:2]]; !ok {
-		return "", fmt.Errorf("[DecodePublicKey] Unknown prefix %v", input[:2])
+		return "", errors.Errorf("[DecodePublicKey] Unknown prefix %v", input[:2])
 	}
 
 	return tzbase58.EncodeFromHex(input[2:], prefixes[input[:2]])
@@ -36,7 +35,7 @@ func DecodeKeyHash(input string) (string, error) {
 	}
 
 	if _, ok := prefixes[input[:2]]; !ok {
-		return "", fmt.Errorf("[DecodeKeyHash] Unknown prefix %v", input[:2])
+		return "", errors.Errorf("[DecodeKeyHash] Unknown prefix %v", input[:2])
 	}
 
 	return tzbase58.EncodeFromHex(input[2:], prefixes[input[:2]])
@@ -72,7 +71,7 @@ func DecodeTz(input string) (string, error) {
 	}
 
 	if _, ok := prefixes[input[:4]]; !ok {
-		return "", fmt.Errorf("[DecodeTz] Unknown prefix %v %v", input[:4], input)
+		return "", errors.Errorf("[DecodeTz] Unknown prefix %v %v", input[:4], input)
 	}
 
 	return tzbase58.EncodeFromHex(input[4:], prefixes[input[:4]])
@@ -86,7 +85,7 @@ func HasKT1Affixes(data []byte) bool {
 // DecodeOpgHash -
 func DecodeOpgHash(input string) (string, error) {
 	if len(input) != 51 {
-		return "", fmt.Errorf("[DecodeOpgHash] invalid input length: %d != 51", len(input))
+		return "", errors.Errorf("[DecodeOpgHash] invalid input length: %d != 51", len(input))
 	}
 
 	return tzbase58.DecodeToHex(input, []byte{5, 116})

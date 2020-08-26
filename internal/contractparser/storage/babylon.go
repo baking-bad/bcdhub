@@ -13,6 +13,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 )
@@ -356,7 +357,7 @@ func (b *Babylon) handleBigMapDiffAlloc(item gjson.Result, ptrMap map[int64]stri
 func (b *Babylon) getDiffsFromUpdates(ptr int64) ([]models.BigMapDiff, error) {
 	updates, ok := b.updates[ptr]
 	if !ok {
-		return nil, fmt.Errorf("[handleBigMapDiffCopy] Unknown temporary pointer: %d %v", ptr, b.updates)
+		return nil, errors.Errorf("[handleBigMapDiffCopy] Unknown temporary pointer: %d %v", ptr, b.updates)
 	}
 	bmd := make([]models.BigMapDiff, 0)
 	for i := range updates {
@@ -427,17 +428,17 @@ func (b *Babylon) findPtrJSONPath(ptr int64, path string, storage gjson.Result) 
 					return newPath.String(), nil
 				}
 			}
-			return "", fmt.Errorf("Invalid path")
+			return "", errors.Errorf("Invalid path")
 		}
 
 		buf := val.Get(parts[i])
 		if !buf.IsArray() && !buf.IsObject() {
-			return "", fmt.Errorf("Invalid path")
+			return "", errors.Errorf("Invalid path")
 		}
 		if i == len(parts)-1 {
 			if buf.Get("int").Exists() {
 				if ptr != buf.Get("int").Int() {
-					return "", fmt.Errorf("Invalid path")
+					return "", errors.Errorf("Invalid path")
 				}
 				if newPath.Len() != 0 {
 					newPath.WriteString(".")
@@ -481,7 +482,7 @@ func (b *Babylon) getSourcePointer(ptr int64) (int64, error) {
 			}
 			ptr = val.sourcePtr
 		} else {
-			return ptr, fmt.Errorf("Unknown temporary pointer: %d", ptr)
+			return ptr, errors.Errorf("Unknown temporary pointer: %d", ptr)
 		}
 	}
 	return ptr, nil
@@ -498,7 +499,7 @@ func (b *Babylon) updateTemporaryPointers(src, dst int64, ptrMap map[int64]strin
 			binPath:   binPath,
 		}
 	} else {
-		return fmt.Errorf("[updateTemporaryPointers] Invalid big map pointer: %d -> %d", src, dst)
+		return errors.Errorf("[updateTemporaryPointers] Invalid big map pointer: %d -> %d", src, dst)
 	}
 
 	return nil

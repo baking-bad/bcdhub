@@ -1,8 +1,7 @@
 package macros
 
 import (
-	"fmt"
-
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"github.com/valyala/fastjson"
 )
@@ -29,13 +28,13 @@ func collapse(tree *fastjson.Value, families *[]Family) error {
 	case fastjson.TypeObject:
 		return collapseObject(tree, families)
 	default:
-		return fmt.Errorf("Invalid fastjson.Type: %v", tree.Type())
+		return errors.Errorf("Invalid fastjson.Type: %v", tree.Type())
 	}
 }
 
 func collapseArray(tree *fastjson.Value, families *[]Family) error {
 	if tree.Type() != fastjson.TypeArray {
-		return fmt.Errorf("Invalid collapseArray fastjson.Type: %v", tree.Type())
+		return errors.Errorf("Invalid collapseArray fastjson.Type: %v", tree.Type())
 	}
 
 	arr, err := tree.Array()
@@ -69,7 +68,7 @@ func collapseArray(tree *fastjson.Value, families *[]Family) error {
 
 func collapseObject(tree *fastjson.Value, families *[]Family) error {
 	if tree.Type() != fastjson.TypeObject {
-		return fmt.Errorf("Invalid collapseObject fastjson.Type: %v", tree.Type())
+		return errors.Errorf("Invalid collapseObject fastjson.Type: %v", tree.Type())
 	}
 
 	if tree.Exists("args") {

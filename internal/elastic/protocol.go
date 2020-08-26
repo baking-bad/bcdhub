@@ -1,9 +1,8 @@
 package elastic
 
 import (
-	"fmt"
-
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/pkg/errors"
 )
 
 // GetProtocol - returns current protocol for `network` and `level` (`hash` is optional, leave empty string for default)
@@ -34,7 +33,7 @@ func (e *Elastic) GetProtocol(network, hash string, level int64) (p models.Proto
 		return
 	}
 	if response.Get("hits.total.value").Int() == 0 {
-		err = fmt.Errorf("Couldn't find a protocol for %s (hash = %s) at level %d", network, hash, level)
+		err = errors.Errorf("Couldn't find a protocol for %s (hash = %s) at level %d", network, hash, level)
 		return
 	}
 	hit := response.Get("hits.hits.0")

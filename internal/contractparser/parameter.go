@@ -1,13 +1,12 @@
 package contractparser
 
 import (
-	"fmt"
-
 	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/contractparser/language"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/node"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -24,7 +23,7 @@ type Parameter struct {
 
 func newParameter(v gjson.Result) (Parameter, error) {
 	if !v.IsArray() {
-		return Parameter{}, fmt.Errorf("Parameter is not array")
+		return Parameter{}, errors.Errorf("Parameter is not array")
 	}
 	p := Parameter{
 		parser:      &parser{},

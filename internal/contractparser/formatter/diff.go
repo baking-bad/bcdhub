@@ -1,9 +1,9 @@
 package formatter
 
 import (
-	"fmt"
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/sergi/go-diff/diffmatchpatch"
 	"github.com/tidwall/gjson"
 )
@@ -116,7 +116,7 @@ func diffToLines(text string, diff []diffmatchpatch.Diff, side int8) ([][]Item, 
 
 			if nextOffset < chunkLen {
 				if text[ptr] != '\n' {
-					return nil, fmt.Errorf("It is not end of line: %s, %d", text, ptr)
+					return nil, errors.Errorf("It is not end of line: %s, %d", text, ptr)
 				}
 				ptr++
 				res = append(res, line)

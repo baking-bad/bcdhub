@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/gin-gonic/gin"
 	"github.com/google/go-github/github"
+	"github.com/pkg/errors"
 	"github.com/xanzy/go-gitlab"
 	"golang.org/x/oauth2"
 )
@@ -27,7 +28,7 @@ func (ctx *Context) OauthLogin(c *gin.Context) {
 	case "gitlab":
 		redirectURL = ctx.OAUTH.Gitlab.AuthCodeURL(ctx.OAUTH.State)
 	default:
-		handleError(c, fmt.Errorf("invalid provider %v", params.Provider), http.StatusBadRequest)
+		handleError(c, errors.Errorf("invalid provider %v", params.Provider), http.StatusBadRequest)
 		return
 	}
 
@@ -47,7 +48,7 @@ func (ctx *Context) OauthCallback(c *gin.Context) {
 	}
 
 	if req.State != ctx.OAUTH.State {
-		handleError(c, fmt.Errorf("invalid oauth state"), http.StatusBadRequest)
+		handleError(c, errors.Errorf("invalid oauth state"), http.StatusBadRequest)
 		return
 	}
 
@@ -60,7 +61,7 @@ func (ctx *Context) OauthCallback(c *gin.Context) {
 	case "gitlab":
 		user, err = ctx.authGitlabUser(req.Code)
 	default:
-		handleError(c, fmt.Errorf("invalid provider %v", params.Provider), http.StatusBadRequest)
+		handleError(c, errors.Errorf("invalid provider %v", params.Provider), http.StatusBadRequest)
 		return
 	}
 
@@ -86,12 +87,12 @@ func (ctx *Context) authGithubUser(code string) (database.User, error) {
 
 	token, err := ctx.OAUTH.Github.Exchange(context.Background(), code)
 	if err != nil {
-		return user, fmt.Errorf("github code exchange failed: %s", err.Error())
+		return user, errors.Errorf("github code exchange failed: %s", err.Error())
 	}
 
 	u, _, err := getGithubUser(token)
 	if err != nil {
-		return user, fmt.Errorf("getGithubUser failed: %s", err.Error())
+		return user, errors.Errorf("getGithubUser failed: %s", err.Error())
 	}
 
 	var name string
@@ -124,12 +125,12 @@ func (ctx *Context) authGitlabUser(code string) (database.User, error) {
 
 	token, err := ctx.OAUTH.Gitlab.Exchange(context.Background(), code)
 	if err != nil {
-		return user, fmt.Errorf("gitlab code exchange failed: %s", err.Error())
+		return user, errors.Errorf("gitlab code exchange failed: %s", err.Error())
 	}
 
 	u, _, err := getGitlabUser(token.AccessToken)
 	if err != nil {
-		return user, fmt.Errorf("getGitlabUser failed: %s", err.Error())
+		return user, errors.Errorf("getGitlabUser failed: %s", err.Error())
 	}
 
 	user = database.User{

@@ -1,11 +1,11 @@
 package elastic
 
 import (
-	"fmt"
 	"math/rand"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/pkg/errors"
 )
 
 // GetProjectsLastContract -
@@ -29,7 +29,7 @@ func (e *Elastic) GetProjectsLastContract() ([]models.Contract, error) {
 
 	arr := resp.Get("aggregations.projects.buckets.#.last.hits.hits.0")
 	if !arr.Exists() {
-		return nil, fmt.Errorf("Empty response: %v", resp)
+		return nil, errors.Errorf("Empty response: %v", resp)
 	}
 
 	contracts := make([]models.Contract, 0)
@@ -44,7 +44,7 @@ func (e *Elastic) GetProjectsLastContract() ([]models.Contract, error) {
 // GetSameContracts -
 func (e *Elastic) GetSameContracts(c models.Contract, size, offset int64) (pcr SameContractsResponse, err error) {
 	if c.Fingerprint == nil {
-		return pcr, fmt.Errorf("Invalid contract data")
+		return pcr, errors.Errorf("Invalid contract data")
 	}
 
 	if size == 0 {
@@ -71,7 +71,7 @@ func (e *Elastic) GetSameContracts(c models.Contract, size, offset int64) (pcr S
 
 	arr := resp.Get("hits.hits")
 	if !arr.Exists() {
-		return pcr, fmt.Errorf("Empty response: %v", resp)
+		return pcr, errors.Errorf("Empty response: %v", resp)
 	}
 
 	contracts := make([]models.Contract, 0)

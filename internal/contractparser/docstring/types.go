@@ -1,11 +1,11 @@
 package docstring
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/pkg/errors"
 )
 
 // Typdefs
@@ -47,7 +47,7 @@ var simpleTypes = []string{
 
 func getType(bPath string, md meta.Metadata) (string, error) {
 	if _, ok := md[bPath]; !ok {
-		return "", fmt.Errorf("[getType] invalid metadata path %s", bPath)
+		return "", errors.Errorf("[getType] invalid metadata path %s", bPath)
 	}
 
 	if isSimpleType(md[bPath].Prim) {
@@ -62,7 +62,7 @@ func getType(bPath string, md meta.Metadata) (string, error) {
 		return TypedefComplex, nil
 	}
 
-	return "", fmt.Errorf("unknown type of node %##v %s", md[bPath], bPath)
+	return "", errors.Errorf("unknown type of node %##v %s", md[bPath], bPath)
 }
 
 func isSimpleType(prim string) bool {

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 func decodeAnnots(dec *decoder) (string, int, error) {
@@ -17,7 +19,7 @@ func decodeAnnots(dec *decoder) (string, int, error) {
 	length := int(binary.BigEndian.Uint32(sb))
 	if length != 0 {
 		if dec.Len() < length {
-			return "", 4, fmt.Errorf("Invalid annots length got %d has %d", length, dec.Len())
+			return "", 4, errors.Errorf("Invalid annots length got %d has %d", length, dec.Len())
 		}
 		data := make([]byte, length)
 		if n, err := dec.Read(data); err != nil && err != io.EOF {

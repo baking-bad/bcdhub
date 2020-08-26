@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/elastic/go-elasticsearch/v8/esapi"
+	"github.com/pkg/errors"
 )
 
 // CreateAWSRepository -
@@ -269,7 +270,7 @@ func (e *Elastic) CreateMapping(index string, r io.Reader) error {
 		return err
 	}
 	if res.IsError() {
-		return fmt.Errorf("%s", res)
+		return errors.Errorf("%s", res)
 	}
 	return nil
 }

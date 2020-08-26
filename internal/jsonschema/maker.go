@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/contractparser/unpack"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -42,7 +43,7 @@ func (model DefaultModel) Extend(another DefaultModel, binPath string) {
 func (model DefaultModel) Fill(data gjson.Result, metadata meta.Metadata) error {
 	root, ok := metadata["0"]
 	if !ok {
-		return fmt.Errorf("I've got no roots, but my home was never on the ground")
+		return errors.Errorf("I've got no roots, but my home was never on the ground")
 	}
 	for k := range model {
 		delete(model, k)
@@ -54,7 +55,7 @@ func (model DefaultModel) Fill(data gjson.Result, metadata meta.Metadata) error 
 func (model DefaultModel) FillForEntrypoint(data gjson.Result, metadata meta.Metadata, entrypoint string) error {
 	root, ok := metadata["0"]
 	if !ok {
-		return fmt.Errorf("I've got no roots, but my home was never on the ground")
+		return errors.Errorf("I've got no roots, but my home was never on the ground")
 	}
 	for k := range model {
 		delete(model, k)
@@ -64,7 +65,7 @@ func (model DefaultModel) FillForEntrypoint(data gjson.Result, metadata meta.Met
 	for i := range root.Args {
 		nm, ok := metadata[root.Args[i]]
 		if !ok {
-			return fmt.Errorf("Unknown node: %s", root.Args[i])
+			return errors.Errorf("Unknown node: %s", root.Args[i])
 		}
 		if nm.Name == entrypoint {
 			path = root.Args[i]
@@ -98,7 +99,7 @@ func (model DefaultModel) fill(data gjson.Result, metadata meta.Metadata, node *
 		for _, argPath := range node.Args {
 			arg, ok := metadata[argPath]
 			if !ok {
-				return fmt.Errorf("Unknown pair arg path: %s", argPath)
+				return errors.Errorf("Unknown pair arg path: %s", argPath)
 			}
 
 			if err := model.fill(data, metadata, arg, argPath, prefix, false, indices...); err != nil {
@@ -116,7 +117,7 @@ func (model DefaultModel) fill(data gjson.Result, metadata meta.Metadata, node *
 		arr := data.Get(jsonPath).Array()
 		itemNode, ok := metadata[listPath]
 		if !ok {
-			return fmt.Errorf("Unknown list node: %s", listPath)
+			return errors.Errorf("Unknown list node: %s", listPath)
 		}
 		result := make([]interface{}, 0)
 		for i := range arr {
@@ -169,7 +170,7 @@ func (model DefaultModel) fill(data gjson.Result, metadata meta.Metadata, node *
 				keyPath := path + suffix
 				keyNode, ok := metadata[keyPath]
 				if !ok {
-					return fmt.Errorf("Unknown map node: %s", keyPath)
+					return errors.Errorf("Unknown map node: %s", keyPath)
 				}
 				if err := itemModel.fill(data, metadata, keyNode, keyPath, prefix, false, newIndices...); err != nil {
 					return err
@@ -214,7 +215,7 @@ func (model DefaultModel) fill(data gjson.Result, metadata meta.Metadata, node *
 	case consts.OPTION:
 		optionNode, ok := metadata[path]
 		if !ok {
-			return fmt.Errorf("Unknown option node: %s", path)
+			return errors.Errorf("Unknown option node: %s", path)
 		}
 		if !strings.HasSuffix(path, "/o") {
 			path += "/o"

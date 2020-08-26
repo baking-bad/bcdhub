@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser"
@@ -9,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/macros"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -100,7 +100,7 @@ func (ctx *Context) getContractCodeJSON(network, address, protocol string, fallb
 		return
 	}
 	if !contract.IsArray() && !contract.IsObject() {
-		return res, fmt.Errorf("Unknown contract: %s", address)
+		return res, errors.Errorf("Unknown contract: %s", address)
 	}
 
 	// return macros.FindMacros(contractJSON)

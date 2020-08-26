@@ -20,7 +20,11 @@ import (
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/baking-bad/bcdhub/internal/rollback"
+	"github.com/pkg/errors"
 )
+
+var errBcdQuit = errors.New("bcd-quit")
+var errRollback = errors.New("rollback")
 
 // BoostIndexer -
 type BoostIndexer struct {
@@ -92,7 +96,7 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 	es := elastic.WaitNew([]string{cfg.Elastic.URI}, cfg.Elastic.Timeout)
 	rpcProvider, ok := cfg.RPC[network]
 	if !ok {
-		return nil, fmt.Errorf("Unknown network %s", network)
+		return nil, errors.Errorf("Unknown network %s", network)
 	}
 	rpc := noderpc.NewWaitNodeRPC(
 		rpcProvider.URI,
@@ -240,7 +244,7 @@ func (bi *BoostIndexer) Index(levels []int64) error {
 		case <-bi.stop:
 			bi.stopped = true
 			bi.messageQueue.Close()
-			return fmt.Errorf("bcd-quit")
+			return errBcdQuit
 		default:
 		}
 
@@ -250,7 +254,7 @@ func (bi *BoostIndexer) Index(levels []int64) error {
 		}
 
 		if bi.state.Level > 0 && currentHead.Predecessor != bi.state.Hash && !bi.boost {
-			return fmt.Errorf("rollback")
+			return errRollback
 		}
 
 		logger.Info("[%s] indexing %d block", bi.Network, level)
@@ -292,7 +296,7 @@ func (bi *BoostIndexer) Rollback() error {
 		return err
 	}
 
-	helpers.CatchErrorSentry(fmt.Errorf("[%s] Rollback from %d to %d", bi.Network, bi.state.Level, lastLevel))
+	helpers.CatchErrorSentry(errors.Errorf("[%s] Rollback from %d to %d", bi.Network, bi.state.Level, lastLevel))
 
 	newState, err := bi.es.GetLastBlock(bi.Network)
 	if err != nil {
@@ -364,7 +368,7 @@ func (bi *BoostIndexer) process() error {
 	}
 
 	if !bi.validChainID(head) {
-		return fmt.Errorf("Invalid chain_id: %s (state) != %s (head)", bi.state.ChainID, head.ChainID)
+		return errors.Errorf("Invalid chain_id: %s (state) != %s (head)", bi.state.ChainID, head.ChainID)
 	}
 
 	logger.Info("[%s] Current node state: %d", bi.Network, head.Level)
@@ -386,10 +390,10 @@ func (bi *BoostIndexer) process() error {
 		logger.Info("[%s] Found %d new levels", bi.Network, len(levels))
 
 		if err := bi.Index(levels); err != nil {
-			if strings.Contains(err.Error(), "bcd-quit") {
+			if errors.Is(err, errBcdQuit) {
 				return nil
 			}
-			if err.Error() == "rollback" {
+			if errors.Is(err, errRollback) {
 				if !time.Now().Add(time.Duration(-5) * time.Minute).After(head.Timestamp) { // Check that node is out of sync
 					if err := bi.Rollback(); err != nil {
 						return err
@@ -411,7 +415,7 @@ func (bi *BoostIndexer) process() error {
 		}
 	}
 
-	return fmt.Errorf("Same level")
+	return errors.Errorf("Same level")
 }
 
 func (bi *BoostIndexer) createBlock(head noderpc.Header) *models.Block {
@@ -493,7 +497,7 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) ([]elastic.Model, error) {
 		newModels = append(newModels, vestingMigrations...)
 	} else {
 		if bi.currentProtocol.SymLink == "" {
-			return nil, fmt.Errorf("[%s] Protocol should be initialized", bi.Network)
+			return nil, errors.Errorf("[%s] Protocol should be initialized", bi.Network)
 		}
 		if newProtocol.SymLink != bi.currentProtocol.SymLink {
 			migrations, migrationUpdates, err := bi.standartMigration(newProtocol)

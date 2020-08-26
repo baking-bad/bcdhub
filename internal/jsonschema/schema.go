@@ -1,11 +1,11 @@
 package jsonschema
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/pkg/errors"
 )
 
 var makers = map[string]maker{
@@ -22,7 +22,7 @@ var makers = map[string]maker{
 func Create(binPath string, metadata meta.Metadata) (Schema, error) {
 	nm, ok := metadata[binPath]
 	if !ok {
-		return nil, fmt.Errorf("[Create] Unknown metadata binPath: %s", binPath)
+		return nil, errors.Errorf("[Create] Unknown metadata binPath: %s", binPath)
 	}
 
 	if nm.Prim == consts.UNIT {

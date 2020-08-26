@@ -1,12 +1,12 @@
 package metrics
 
 import (
-	"fmt"
 	"reflect"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/pkg/errors"
 )
 
 // Array -
@@ -78,6 +78,6 @@ func (m *Array) getContractFieldArray(c models.Contract) ([]interface{}, error) 
 		}
 		return ret, nil
 	default:
-		return nil, fmt.Errorf("Invalid field %s type: %v", m.Field, f.Kind())
+		return nil, errors.Errorf("Invalid field %s type: %v", m.Field, f.Kind())
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"unicode"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -42,7 +43,7 @@ func (c *code) locateError(node gjson.Result, indent string, isRoot, wrapped boo
 		return c.locateInObject(node, indent, isRoot, wrapped)
 	}
 
-	return "", fmt.Errorf("node is not array or object: %v", node)
+	return "", errors.Errorf("node is not array or object: %v", node)
 }
 
 func (c *code) locateInArray(node gjson.Result, indent string, isRoot bool) (string, error) {
@@ -181,7 +182,7 @@ func (c *code) locatePrimObject(node gjson.Result, indent string, isRoot, wrappe
 
 func (c *code) locateNonPrimObject(node gjson.Result) (string, error) {
 	if len(node.Map()) != 1 {
-		return "", fmt.Errorf("node keys count != 1 %v", node)
+		return "", errors.Errorf("node keys count != 1 %v", node)
 	}
 
 	for coreType, value := range node.Map() {
@@ -194,7 +195,7 @@ func (c *code) locateNonPrimObject(node gjson.Result) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("invalid coreType %v", node)
+	return "", errors.Errorf("invalid coreType %v", node)
 }
 
 func unicodeMark(s string) string {

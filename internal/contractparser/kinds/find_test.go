@@ -1,39 +1,39 @@
 package kinds
 
 import (
-	"fmt"
 	"io/ioutil"
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
 func testFile(t *testing.T, tag, path string, res bool) error {
 	file, err := ioutil.ReadFile(path)
 	if err != nil {
-		return fmt.Errorf("ioutil.ReadFile %v error %v", path, err)
+		return errors.Errorf("ioutil.ReadFile %v error %v", path, err)
 	}
 
 	parsed := gjson.ParseBytes(file)
 	m, err := meta.ParseMetadata(parsed)
 	if err != nil {
-		return fmt.Errorf("meta.ParseMetadata %v error %v", path, err)
+		return errors.Errorf("meta.ParseMetadata %v error %v", path, err)
 	}
 
 	interfaces, err := Load()
 	if err != nil {
-		return fmt.Errorf("newParameter error %v", err)
+		return errors.Errorf("newParameter error %v", err)
 	}
 
 	tags, err := Find(m, interfaces)
 	if err != nil {
-		return fmt.Errorf("Find error %v", err)
+		return errors.Errorf("Find error %v", err)
 	}
 
 	if ok := helpers.StringInArray(tag, tags); res != ok {
-		return fmt.Errorf("ok != res: %v != %v", ok, res)
+		return errors.Errorf("ok != res: %v != %v", ok, res)
 	}
 	return nil
 }

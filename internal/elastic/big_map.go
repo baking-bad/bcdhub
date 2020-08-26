@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -129,7 +130,7 @@ func (e *Elastic) GetBigMapDiffsForAddress(address string) ([]models.BigMapDiff,
 // GetBigMapKeys -
 func (e *Elastic) GetBigMapKeys(ptr int64, network, searchText string, size, offset int64) ([]BigMapDiff, error) {
 	if ptr < 0 {
-		return nil, fmt.Errorf("Invalid pointer value: %d", ptr)
+		return nil, errors.Errorf("Invalid pointer value: %d", ptr)
 	}
 
 	mustQuery := []qItem{
@@ -195,7 +196,7 @@ func (e *Elastic) GetBigMapKeys(ptr int64, network, searchText string, size, off
 // GetBigMapDiffsByPtrAndKeyHash -
 func (e *Elastic) GetBigMapDiffsByPtrAndKeyHash(ptr int64, network, keyHash string, size, offset int64) ([]BigMapDiff, int64, error) {
 	if ptr < 0 {
-		return nil, 0, fmt.Errorf("Invalid pointer value: %d", ptr)
+		return nil, 0, errors.Errorf("Invalid pointer value: %d", ptr)
 	}
 	mustQuery := must(
 		matchPhrase("network", network),

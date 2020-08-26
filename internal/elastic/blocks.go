@@ -1,10 +1,10 @@
 package elastic
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/pkg/errors"
 )
 
 // GetBlock -
@@ -26,7 +26,7 @@ func (e *Elastic) GetBlock(network string, level int64) (block models.Block, err
 	}
 
 	if r.Get("hits.total.value").Int() == 0 {
-		return block, fmt.Errorf("%s: block in %s at level %d", RecordNotFound, network, level)
+		return block, errors.Errorf("%s: block in %s at level %d", RecordNotFound, network, level)
 	}
 	hit := r.Get("hits.hits.0")
 	block.ParseElasticJSON(hit)

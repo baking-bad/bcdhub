@@ -1,13 +1,13 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 )
 
 // GetStats godoc
@@ -168,7 +168,7 @@ func getHistogramOptions(name, network string) ([]elastic.HistogramOption, error
 			elastic.WithHistogramFilters(filters),
 		}, nil
 	default:
-		return nil, fmt.Errorf("Unknown series name: %s", name)
+		return nil, errors.Errorf("Unknown series name: %s", name)
 	}
 }
 
@@ -196,7 +196,7 @@ func (ctx *Context) GetContractsStats(c *gin.Context) {
 	}
 	addresses := reqStats.Addresses()
 	if len(addresses) == 0 {
-		handleError(c, fmt.Errorf("Empty address list"), http.StatusBadRequest)
+		handleError(c, errors.Errorf("Empty address list"), http.StatusBadRequest)
 		return
 	}
 	stats, err := ctx.ES.GetDAppStats(req.Network, addresses, reqStats.Period)

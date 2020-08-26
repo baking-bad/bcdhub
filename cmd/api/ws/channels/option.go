@@ -1,11 +1,10 @@
 package channels
 
 import (
-	"fmt"
-
 	"github.com/baking-bad/bcdhub/cmd/api/ws/datasources"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/pkg/errors"
 )
 
 // ChannelOption -
@@ -37,5 +36,5 @@ func getSourceByType(sources []datasources.DataSource, typ string) (datasources.
 			return sources[i], nil
 		}
 	}
-	return nil, fmt.Errorf("unknown source type: %s", typ)
+	return nil, errors.Errorf("unknown source type: %s", typ)
 }
