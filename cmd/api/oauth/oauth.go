@@ -1,11 +1,13 @@
 package oauth
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/baking-bad/bcdhub/cmd/api/providers"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/pkg/errors"
 )
 
 // Config -

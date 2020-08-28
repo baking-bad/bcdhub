@@ -69,7 +69,7 @@ func (ctx *Context) runVerification(taskID uint, sourceURL string) {
 		Dir:   tempDir,
 	}
 
-	err = ctx.MQ.Send(mq.ChannelNew, mq.QueueCompilations, data)
+	err = ctx.MQ.Send(mq.ChannelNew, data, data)
 	if ctx.handleCompilationError(taskID, err) {
 		return
 	}

@@ -6,6 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 )
 
 // OauthLogin -
