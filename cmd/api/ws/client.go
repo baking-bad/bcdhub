@@ -25,7 +25,7 @@ type Client struct {
 	sender chan channels.Message
 	stop   chan struct{}
 
-	subscriptions map[string]struct{}
+	subscriptions map[string]channels.Channel
 	mux           sync.Mutex
 
 	handlers map[string]ClientHandler
@@ -46,7 +46,7 @@ func NewClient(conn *websocket.Conn) *Client {
 		sender: make(chan channels.Message),
 		stop:   make(chan struct{}),
 
-		subscriptions: make(map[string]struct{}),
+		subscriptions: make(map[string]channels.Channel),
 		handlers:      make(map[string]ClientHandler),
 	}
 }
@@ -96,9 +96,10 @@ func (c *Client) sendError(err error) {
 	}
 }
 
-func (c *Client) sendOk() error {
+func (c *Client) sendOk(text string) error {
 	msg := StatusMessage{
 		Status: OkStatus,
+		Text:   text,
 	}
 	return c.sendMessage(msg)
 }

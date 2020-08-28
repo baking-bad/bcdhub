@@ -75,7 +75,6 @@ rabbitmq:
     uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mq:5672/"
     queues:
         - operations
-        - recalc
 
 aws:
   bucket_name: bcd-elastic-snapshots

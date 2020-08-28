@@ -88,7 +88,7 @@ func (c *RabbitMQ) listenChannel(queue string) {
 
 func (c *RabbitMQ) handler(data amqp.Delivery) error {
 	switch data.RoutingKey {
-	case mq.QueueOperations, mq.QueueRecalc:
+	case mq.QueueOperations:
 		val := Data{
 			Type: c.GetType(),
 			Body: data.Body,
