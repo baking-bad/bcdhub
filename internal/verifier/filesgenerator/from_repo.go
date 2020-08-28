@@ -50,7 +50,9 @@ func unzipFiles(data []byte, dest string) ([]string, error) {
 		fpath := filepath.Join(dest, zipFile.Name)
 
 		if zipFile.FileInfo().IsDir() {
-			os.MkdirAll(fpath, os.ModePerm)
+			if err := os.MkdirAll(fpath, os.ModePerm); err != nil {
+				return nil, err
+			}
 			continue
 		}
 
