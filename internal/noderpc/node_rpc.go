@@ -309,3 +309,18 @@ func (rpc *NodeRPC) GetCounter(address string) (int64, error) {
 	}
 	return data.Int(), nil
 }
+
+// GetCode -
+func (rpc *NodeRPC) GetCode(address string, level int64) (gjson.Result, error) {
+	block := "head"
+	if level > 0 {
+		block = fmt.Sprintf("%d", level)
+	}
+
+	contract, err := rpc.get(fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s/script", block, address))
+	if err != nil {
+		return gjson.Result{}, err
+	}
+
+	return contract.Get("code"), nil
+}

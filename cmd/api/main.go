@@ -209,6 +209,8 @@ func main() {
 		authorized.Use(ctx.AuthJWTRequired())
 		{
 			authorized.GET("public_repos", ctx.ListPublicRepos)
+			authorized.GET("compilations", ctx.ListCompilationTasks)
+			authorized.POST("verify", ctx.VerifyContract)
 
 			profile := authorized.Group("profile")
 			{

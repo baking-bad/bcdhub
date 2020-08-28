@@ -272,3 +272,15 @@ type getTokenSeriesRequest struct {
 	Period  string `form:"period" binding:"oneof=all year month week day" example:"year"`
 	TokenID uint   `form:"token_id"`
 }
+
+type verificationRequest struct {
+	Address   string `json:"address"`
+	Network   string `json:"network"`
+	SourceURL string `json:"sourceURL"`
+}
+
+type compilationTasksRequest struct {
+	Limit  uint   `form:"limit" binding:"omitempty,min=0"`
+	Offset uint   `form:"offset" binding:"omitempty,min=0"`
+	Kind   string `form:"kind"`
+}

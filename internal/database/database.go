@@ -46,6 +46,13 @@ type DB interface {
 	// Tokens
 	GetTokens() ([]Token, error)
 
+	// CompilationTask
+	ListCompilationTasks(userID, limit, offset uint, kind string) ([]CompilationTask, error)
+	GetCompilationTask(taskID uint) (*CompilationTask, error)
+	CreateCompilationTask(ct *CompilationTask) error
+	UpdateTaskStatus(taskID uint, status string) error
+	UpdateTaskResults(task *CompilationTask, status string, results []CompilationTaskResult) error
+
 	Close()
 }
 
@@ -62,7 +69,18 @@ func New(connectionString string) (DB, error) {
 
 	gormDB.LogMode(false)
 
-	gormDB.AutoMigrate(&User{}, &Subscription{}, &Alias{}, &Assessments{}, &Account{}, &Picture{}, &DApp{}, &Token{})
+	gormDB.AutoMigrate(
+		&User{},
+		&Subscription{},
+		&Alias{},
+		&Assessments{},
+		&Account{},
+		&Picture{},
+		&DApp{},
+		&Token{},
+		&CompilationTask{},
+		&CompilationTaskResult{},
+	)
 
 	gormDB = gormDB.Set("gorm:auto_preload", false)
 
