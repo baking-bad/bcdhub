@@ -57,7 +57,7 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 		return
 	}
 
-	resp, err := prepareOperations(ctx.ES, ops.Operations)
+	resp, err := PrepareOperations(ctx.ES, ops.Operations)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -106,7 +106,7 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 		return
 	}
 
-	resp, err := prepareOperations(ctx.ES, op)
+	resp, err := PrepareOperations(ctx.ES, op)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -256,7 +256,8 @@ func prepareOperation(es elastic.IElastic, operation models.Operation, bmd []mod
 	return op, nil
 }
 
-func prepareOperations(es elastic.IElastic, ops []models.Operation) ([]Operation, error) {
+// PrepareOperations -
+func PrepareOperations(es elastic.IElastic, ops []models.Operation) ([]Operation, error) {
 	resp := make([]Operation, len(ops))
 	for i := 0; i < len(ops); i++ {
 		bmd, err := es.GetBigMapDiffsUniqueByOperationID(ops[i].ID)

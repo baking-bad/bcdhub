@@ -90,6 +90,7 @@ func (c *StatsChannel) listen(source datasources.DataSource) {
 		select {
 		case <-c.stop:
 			source.Unsubscribe(ch)
+			return
 		case data := <-ch:
 			if data.Type != datasources.RabbitType {
 				continue

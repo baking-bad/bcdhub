@@ -1,6 +1,7 @@
 package ws
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/baking-bad/bcdhub/cmd/api/ws/channels"
@@ -14,6 +15,11 @@ type Hub struct {
 	sources []datasources.DataSource
 	clients map[int]*Client
 	public  map[string]channels.Channel
+
+	elastic struct {
+		connection string
+		timeout    int
+	}
 
 	stop chan struct{}
 	wg   sync.WaitGroup
@@ -42,7 +48,9 @@ func NewHub(opts ...HubOption) *Hub {
 func DefaultHub(elasticConnection string, elasticTimeout int, rabbitConnection string, queues []string) *Hub {
 	hub := NewHub(
 		WithRabbitSource(rabbitConnection, queues),
+		WithElasticParams(elasticConnection, elasticTimeout),
 	)
+
 	hub.AddPublicChannel(channels.NewStatsChannel(
 		channels.WithSource(hub.sources, datasources.RabbitType),
 		channels.WithElasticSearch(elasticConnection, elasticTimeout),
@@ -81,10 +89,14 @@ func (h *Hub) Run() {
 	}
 
 	for _, channel := range h.public {
-		h.wg.Add(1)
-		go h.listenChannel(channel)
-		channel.Run()
+		h.runChannel(channel)
 	}
+}
+
+func (h *Hub) runChannel(channel channels.Channel) {
+	h.wg.Add(1)
+	go h.listenChannel(channel)
+	channel.Run()
 }
 
 // Stop -
@@ -113,19 +125,45 @@ func (h *Hub) listenChannel(channel channels.Channel) {
 	}
 }
 
+func createDynamicChannels(c *Client, channelName string, data *fastjson.Value) (channels.Channel, error) {
+	switch channelName {
+	case "operations":
+		address := parseString(data, "address")
+		network := parseString(data, "network")
+
+		operationsChannelName := fmt.Sprintf("%s_%s_%s", channelName, network, address)
+		if _, ok := c.subscriptions[operationsChannelName]; ok {
+			return nil, nil
+		}
+		return channels.NewOperationsChannel(address, network,
+			channels.WithSource(c.hub.sources, datasources.RabbitType),
+			channels.WithElasticSearch(c.hub.elastic.connection, c.hub.elastic.timeout),
+		), nil
+	default:
+		return nil, errors.Errorf("Unknown channel: %s", channelName)
+	}
+}
+
 func subscribeHandler(c *Client, data []byte) error {
 	var p fastjson.Parser
 	val, err := p.ParseBytes(data)
 	if err != nil {
 		return err
 	}
-	channelName := string(val.GetStringBytes("channel"))
+	channelName := parseString(val, "channel")
 	channel, ok := c.hub.public[channelName]
 	if !ok {
-		return errors.Errorf("Unknown channel: %s", channelName)
+		channel, err = createDynamicChannels(c, channelName, val)
+		if err != nil {
+			return err
+		}
+		if channel == nil {
+			return nil
+		}
+		c.hub.runChannel(channel)
 	}
 	c.mux.Lock()
-	c.subscriptions[channelName] = struct{}{}
+	c.subscriptions[channel.GetName()] = channel
 	c.mux.Unlock()
 
 	return channel.Init()
@@ -137,12 +175,18 @@ func unsubscribeHandler(c *Client, data []byte) error {
 	if err != nil {
 		return err
 	}
-	channelName := string(val.GetStringBytes("channel"))
-	if _, ok := c.hub.public[channelName]; !ok {
-		return errors.Errorf("Unknown channel: %s", channelName)
-	}
+	channelName := parseString(val, "channel")
 	c.mux.Lock()
+	if channel, ok := c.subscriptions[channelName]; ok {
+		if _, isPublic := c.hub.public[channelName]; !isPublic {
+			channel.Stop()
+		}
+	}
 	delete(c.subscriptions, channelName)
 	c.mux.Unlock()
-	return c.sendOk()
+	return c.sendOk(fmt.Sprintf("unsubscribed from %s", channelName))
+}
+
+func parseString(val *fastjson.Value, key string) string {
+	return string(val.GetStringBytes(key))
 }
