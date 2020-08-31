@@ -10,7 +10,8 @@ import (
 // Public -
 type Public interface {
 	GetRepos(login string) ([]Project, error)
-	ArchivePath(owner, repo string) string
+	GetRefs(owner, repo string) ([]Ref, error)
+	ArchivePath(owner, repo, ref string) string
 }
 
 // Oauth -
@@ -19,13 +20,6 @@ type Oauth interface {
 	Init(cfg config.Config)
 	AuthCodeURL(state string) string
 	AuthUser(code string) (database.User, error)
-}
-
-// Project -
-type Project struct {
-	User    string `json:"user"`
-	Project string `json:"project"`
-	URL     string `json:"url"`
 }
 
 // InitOauth -

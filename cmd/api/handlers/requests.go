@@ -282,5 +282,9 @@ type verificationRequest struct {
 type compilationTasksRequest struct {
 	Limit  uint   `form:"limit" binding:"omitempty,min=0"`
 	Offset uint   `form:"offset" binding:"omitempty,min=0"`
-	Kind   string `form:"kind"`
+	Kind   string `form:"kind" binding:"omitempty,compilation_kind"`
+}
+
+type publicRefsRequest struct {
+	Repo string `form:"repo" binding:"required"`
 }

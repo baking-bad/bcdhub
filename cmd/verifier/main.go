@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -25,9 +27,9 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	if cfg.Metrics.Sentry.Enabled {
+	if cfg.Verifier.Sentry.Enabled {
 		helpers.InitSentry(cfg.Sentry.Debug, cfg.Sentry.Environment, cfg.Sentry.URI)
-		helpers.SetTagSentry("project", cfg.Metrics.Sentry.Project)
+		helpers.SetTagSentry("project", cfg.Verifier.Sentry.Project)
 		defer helpers.CatchPanicSentry()
 	}
 
@@ -46,11 +48,20 @@ func main() {
 
 	defer context.MQ.Close()
 
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
+
 	logger.Info("Connected to %s queue", mq.QueueCompilations)
 
-	for msg := range msgs {
-		if err := context.handleMessage(msg); err != nil {
-			logger.Error(err)
+	for {
+		select {
+		case <-signals:
+			logger.Info("Stopped verifier")
+			return
+		case msg := <-msgs:
+			if err := context.handleMessage(msg); err != nil {
+				logger.Error(err)
+			}
 		}
 	}
 

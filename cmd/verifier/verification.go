@@ -60,30 +60,27 @@ func tryToCompile(task compilation.Task) []database.CompilationTaskResult {
 	var result []database.CompilationTaskResult
 
 	for _, filepath := range task.Files {
-		var compilationErr string
-		jsonb := new(postgres.Jsonb)
-
-		data, err := compilers.BuildFromFile(filepath)
-		if err != nil {
-			result = append(result, database.CompilationTaskResult{
-				CompilationTaskID: task.ID,
-				Path:              strings.TrimPrefix(filepath, task.Dir),
-				Error:             err.Error(),
-			})
-			continue
-		}
-
-		if err := jsonb.Scan([]byte(data.Script)); err != nil {
-			compilationErr = err.Error()
-		}
-
-		result = append(result, database.CompilationTaskResult{
+		taskResult := database.CompilationTaskResult{
 			CompilationTaskID: task.ID,
 			Path:              strings.TrimPrefix(filepath, task.Dir),
-			Script:            jsonb,
-			Language:          data.Language,
-			Error:             compilationErr,
-		})
+		}
+
+		data, err := compilers.BuildFromFile(filepath)
+
+		if err != nil {
+			taskResult.Error = err.Error()
+		} else {
+			jsonb := new(postgres.Jsonb)
+
+			if err := jsonb.Scan([]byte(data.Script)); err != nil {
+				taskResult.Error = err.Error()
+			}
+
+			taskResult.Script = jsonb
+			taskResult.Language = data.Language
+		}
+
+		result = append(result, taskResult)
 	}
 
 	return result
@@ -94,36 +91,39 @@ func compareCode(original gjson.Result, results []database.CompilationTaskResult
 
 	for i, r := range results {
 		if r.Error != "" {
-			results[i].Status = compilation.StatusError
-			results[i].Script = new(postgres.Jsonb)
+			finalizeResult(compilation.StatusError, nil, &results[i])
 			continue
 		}
 
 		script, err := r.Script.Value()
 		if err != nil {
-			results[i].Status = compilation.StatusError
-			results[i].Script = new(postgres.Jsonb)
-			results[i].Error = err.Error()
+			finalizeResult(compilation.StatusError, err, &results[i])
 			continue
 		}
 
 		eq, err := helpers.AreEqualJSON(original.Raw, string(script.([]byte)))
 		if err != nil {
-			results[i].Status = compilation.StatusError
-			results[i].Script = new(postgres.Jsonb)
-			results[i].Error = err.Error()
+			finalizeResult(compilation.StatusError, err, &results[i])
 			continue
 		}
 
-		if eq {
-			status = compilation.StatusSuccess
-			results[i].Status = compilation.StatusSuccess
+		if !eq {
+			finalizeResult(compilation.StatusMismatch, nil, &results[i])
 			continue
 		}
 
-		results[i].Status = compilation.StatusMismatch
-		results[i].Script = new(postgres.Jsonb)
+		status = compilation.StatusSuccess
+		results[i].Status = compilation.StatusSuccess
 	}
 
 	return status, results
+}
+
+func finalizeResult(status string, err error, result *database.CompilationTaskResult) {
+	result.Status = status
+	result.Script = new(postgres.Jsonb)
+
+	if err != nil {
+		result.Error = err.Error()
+	}
 }

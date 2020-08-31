@@ -3,6 +3,7 @@ package handlers
 import (
 	"io/ioutil"
 	"net/http"
+	"os"
 	"path/filepath"
 
 	"github.com/baking-bad/bcdhub/internal/database"
@@ -52,8 +53,15 @@ func (ctx *Context) VerifyContract(c *gin.Context) {
 func (ctx *Context) runVerification(taskID uint, sourceURL string) {
 	dir := filepath.Join(ctx.SharePath, "/compilations")
 
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		err := os.MkdirAll(dir, os.ModePerm)
+		if ctx.handleCompilationError(taskID, err) {
+			return
+		}
+	}
+
 	tempDir, err := ioutil.TempDir(dir, "verification")
-	if err != nil {
+	if ctx.handleCompilationError(taskID, err) {
 		return
 	}
 

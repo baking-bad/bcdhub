@@ -100,7 +100,73 @@ func (p *Gitlab) GetRepos(login string) ([]Project, error) {
 	return res, nil
 }
 
+// GetRefs -
+func (p *Gitlab) GetRefs(owner, repo string) ([]Ref, error) {
+	client, err := gitlab.NewClient("")
+	if err != nil {
+		return nil, err
+	}
+
+	id := fmt.Sprintf("%s/%s", owner, repo)
+
+	branches, err := p.getBranches(client, id, owner, repo)
+	if err != nil {
+		return nil, err
+	}
+
+	tags, err := p.getTags(client, id, owner, repo)
+	if err != nil {
+		return nil, err
+	}
+
+	return append(branches, tags...), nil
+}
+
+func (p *Gitlab) getTags(client *gitlab.Client, id, owner, repo string) ([]Ref, error) {
+	tags, resp, err := client.Tags.ListTags(id, nil)
+	if resp.StatusCode == http.StatusNotFound {
+		return []Ref{}, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]Ref, len(tags))
+
+	for i, t := range tags {
+		res[i] = Ref{
+			Name: t.Name,
+			URL:  p.ArchivePath(owner, repo, t.Name),
+			Type: RefTypeTag,
+		}
+	}
+
+	return res, nil
+}
+
+func (p *Gitlab) getBranches(client *gitlab.Client, id, owner, repo string) ([]Ref, error) {
+	branches, resp, err := client.Branches.ListBranches(id, nil)
+	if resp.StatusCode == http.StatusNotFound {
+		return []Ref{}, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]Ref, len(branches))
+
+	for i, t := range branches {
+		res[i] = Ref{
+			Name: t.Name,
+			URL:  p.ArchivePath(owner, repo, t.Name),
+			Type: RefTypeBranch,
+		}
+	}
+
+	return res, nil
+}
+
 // ArchivePath -
-func (p *Gitlab) ArchivePath(owner, repo string) string {
-	return fmt.Sprintf("https://gitlab.com/%s/%s/-/archive/master/%s-master.zip", owner, repo, repo)
+func (p *Gitlab) ArchivePath(owner, repo, ref string) string {
+	return fmt.Sprintf("https://gitlab.com/%s/%s/-/archive/%s/%s-%s.zip", owner, repo, ref, repo, ref)
 }

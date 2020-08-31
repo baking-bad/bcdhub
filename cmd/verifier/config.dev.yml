@@ -13,8 +13,6 @@ verifier:
     sentry:
         enabled: false
         project: verifier
-    seed:
-        enabled: false
 
 rabbitmq:
     uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@127.0.0.1:5672/"

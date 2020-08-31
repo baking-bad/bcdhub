@@ -3,6 +3,8 @@ package compilers
 import (
 	"fmt"
 	"path/filepath"
+
+	"github.com/baking-bad/bcdhub/internal/helpers"
 )
 
 // Paths to compilers
@@ -45,11 +47,5 @@ func BuildFromFile(path string) (*Data, error) {
 
 // IsValidExtension -
 func IsValidExtension(ext string) bool {
-	for _, e := range []string{".ligo", ".religo", ".mligo", ".tz", ".py"} {
-		if ext == e {
-			return true
-		}
-	}
-
-	return false
+	return helpers.StringInArray(ext, []string{".ligo", ".religo", ".mligo", ".tz", ".py"})
 }

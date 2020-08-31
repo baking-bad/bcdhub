@@ -107,6 +107,12 @@ func main() {
 		}
 	}
 
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		if err := v.RegisterValidation("compilation_kind", handlers.CompilationKindValidator); err != nil {
+			logger.Fatal(err)
+		}
+	}
+
 	r.Use(corsSettings())
 
 	if cfg.API.Sentry.Enabled {
@@ -208,7 +214,8 @@ func main() {
 		authorized := v1.Group("/")
 		authorized.Use(ctx.AuthJWTRequired())
 		{
-			authorized.GET("public_repos", ctx.ListPublicRepos)
+			authorized.GET("repos", ctx.ListPublicRepos)
+			authorized.GET("refs", ctx.ListPublicRefs)
 			authorized.GET("compilations", ctx.ListCompilationTasks)
 			authorized.POST("verify", ctx.VerifyContract)
 

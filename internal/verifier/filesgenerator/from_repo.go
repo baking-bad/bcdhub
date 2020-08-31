@@ -30,8 +30,8 @@ func downloadFile(url string) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusNotFound {
-		return nil, fmt.Errorf("file not found")
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("FG downloadFile invalid status code %d", resp.StatusCode)
 	}
 
 	return ioutil.ReadAll(resp.Body)
@@ -47,41 +47,49 @@ func unzipFiles(data []byte, dest string) ([]string, error) {
 
 	// Read all the files from zip archive
 	for _, zipFile := range zipReader.File {
-		fpath := filepath.Join(dest, zipFile.Name)
-
-		if zipFile.FileInfo().IsDir() {
-			if err := os.MkdirAll(fpath, os.ModePerm); err != nil {
-				return nil, err
-			}
-			continue
-		}
-
-		if !compilers.IsValidExtension(filepath.Ext(zipFile.Name)) {
-			continue
-		}
-
-		filenames = append(filenames, fpath)
-
-		if err = os.MkdirAll(filepath.Dir(fpath), os.ModePerm); err != nil {
+		fpath, err := unzipFile(zipFile, dest)
+		if err != nil {
 			return nil, err
 		}
 
-		f, err := zipFile.Open()
-		if err != nil {
-			return nil, fmt.Errorf("zipFile.Open() %v", err)
-		}
-		defer f.Close()
-
-		outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
-		if err != nil {
-			return nil, fmt.Errorf("os.OpenFile() %v", err)
-		}
-		defer outFile.Close()
-
-		if _, err = io.Copy(outFile, f); err != nil {
-			return nil, err
+		if fpath != "" {
+			filenames = append(filenames, fpath)
 		}
 	}
 
 	return filenames, nil
+}
+
+func unzipFile(zipFile *zip.File, dest string) (string, error) {
+	fpath := filepath.Join(dest, zipFile.Name)
+
+	if zipFile.FileInfo().IsDir() {
+		return "", os.MkdirAll(fpath, os.ModePerm)
+	}
+
+	if !compilers.IsValidExtension(filepath.Ext(zipFile.Name)) {
+		return "", nil
+	}
+
+	if err := os.MkdirAll(filepath.Dir(fpath), os.ModePerm); err != nil {
+		return "", err
+	}
+
+	f, err := zipFile.Open()
+	if err != nil {
+		return "", fmt.Errorf("zipFile.Open() %v", err)
+	}
+	defer f.Close()
+
+	outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+	if err != nil {
+		return "", fmt.Errorf("os.OpenFile() %v", err)
+	}
+	defer outFile.Close()
+
+	if _, err := io.Copy(outFile, f); err != nil {
+		return "", err
+	}
+
+	return fpath, nil
 }

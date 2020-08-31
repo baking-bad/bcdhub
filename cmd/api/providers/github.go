@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/database"
@@ -102,7 +103,50 @@ func (p *Github) GetRepos(login string) ([]Project, error) {
 	return res, nil
 }
 
+// GetRefs -
+func (p *Github) GetRefs(owner, repo string) ([]Ref, error) {
+	client := github.NewClient(nil)
+
+	branches, err := p.getRefs(client, owner, repo, "heads", "refs/heads/", RefTypeBranch)
+	if err != nil {
+		return nil, err
+	}
+
+	tags, err := p.getRefs(client, owner, repo, "tags", "refs/tags/", RefTypeTag)
+	if err != nil {
+		return nil, err
+	}
+
+	return append(branches, tags...), nil
+}
+
+func (p *Github) getRefs(client *github.Client, owner, repo, optType, prefix, refType string) ([]Ref, error) {
+	opts := new(github.ReferenceListOptions)
+	opts.Type = optType
+
+	refs, resp, err := client.Git.ListRefs(context.Background(), owner, repo, opts)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode == http.StatusNotFound {
+		return []Ref{}, nil
+	}
+
+	res := make([]Ref, len(refs))
+
+	for i, r := range refs {
+		ref := strings.TrimPrefix(*r.Ref, prefix)
+		res[i] = Ref{
+			Name: ref,
+			URL:  p.ArchivePath(owner, repo, ref),
+			Type: refType,
+		}
+	}
+
+	return res, nil
+}
+
 // ArchivePath -
-func (p *Github) ArchivePath(owner, repo string) string {
-	return fmt.Sprintf("https://github.com/%s/%s/archive/master.zip", owner, repo)
+func (p *Github) ArchivePath(owner, repo, ref string) string {
+	return fmt.Sprintf("https://github.com/%s/%s/archive/%s.zip", owner, repo, ref)
 }

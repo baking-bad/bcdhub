@@ -3,8 +3,6 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/verifier/compilation"
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,24 +24,10 @@ func (ctx *Context) ListCompilationTasks(c *gin.Context) {
 		return
 	}
 
-	if !isValidCompilationKind(ctReq.Kind) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid kind"})
-		return
-	}
-
 	tasks, err := ctx.DB.ListCompilationTasks(userID, ctReq.Limit, ctReq.Offset, ctReq.Kind)
 	if handleError(c, err, 0) {
 		return
 	}
 
 	c.JSON(http.StatusOK, tasks)
-}
-
-func isValidCompilationKind(kind string) bool {
-	return helpers.StringInArray(kind, []string{
-		"",
-		compilation.KindCompilation,
-		compilation.KindVerification,
-		compilation.KindDeployment,
-	})
 }

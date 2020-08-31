@@ -45,7 +45,8 @@ func (c *ligo) checkExtension(path string) error {
 		".mligo":  "let main",
 	}
 
-	if _, ok := entrypoints[ext]; !ok {
+	entrypoint, ok := entrypoints[ext]
+	if !ok {
 		return fmt.Errorf("invalid file extension %v", path)
 	}
 
@@ -57,7 +58,7 @@ func (c *ligo) checkExtension(path string) error {
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		if strings.Contains(scanner.Text(), entrypoints[ext]) {
+		if strings.Contains(scanner.Text(), entrypoint) {
 			return nil
 		}
 	}
