@@ -214,9 +214,6 @@ func main() {
 		authorized := v1.Group("/")
 		authorized.Use(ctx.AuthJWTRequired())
 		{
-			authorized.GET("repos", ctx.ListPublicRepos)
-			authorized.GET("refs", ctx.ListPublicRefs)
-			authorized.GET("compilations", ctx.ListCompilationTasks)
 			authorized.POST("verify", ctx.VerifyContract)
 
 			profile := authorized.Group("profile")
@@ -237,6 +234,9 @@ func main() {
 					vote.GET("tasks", ctx.GetTasks)
 					vote.GET("generate", ctx.GenerateTasks)
 				}
+				profile.GET("repos", ctx.ListPublicRepos)
+				profile.GET("refs", ctx.ListPublicRefs)
+				profile.GET("compilations", ctx.ListCompilationTasks)
 			}
 		}
 
