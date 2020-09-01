@@ -33,11 +33,12 @@ func (ctx *Context) VerifyContract(c *gin.Context) {
 	}
 
 	task := database.CompilationTask{
-		UserID:  user.ID,
-		Address: req.Address,
-		Network: req.Network,
-		Kind:    compilation.KindVerification,
-		Status:  compilation.StatusPending,
+		UserID:    user.ID,
+		Address:   req.Address,
+		Network:   req.Network,
+		SourceURL: req.SourceURL,
+		Kind:      compilation.KindVerification,
+		Status:    compilation.StatusPending,
 	}
 
 	err = ctx.DB.CreateCompilationTask(&task)

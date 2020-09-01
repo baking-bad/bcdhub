@@ -16,6 +16,7 @@ type CompilationTask struct {
 	UserID    uint                    `json:"user_id"`
 	Address   string                  `json:"address"`
 	Network   string                  `json:"network"`
+	SourceURL string                  `json:"source_url"`
 	Kind      string                  `gorm:"not null" json:"kind"`
 	Status    string                  `gorm:"not null" json:"status"`
 	Results   []CompilationTaskResult `json:"results,omitempty"`
