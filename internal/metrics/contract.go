@@ -155,19 +155,16 @@ func (h *Handler) SetContractVerification(c *models.Contract) error {
 	}
 
 	basePath := provider.BaseFilePath(user.Login, task.Repo, task.Ref)
-	var sourceURL string
 
+	var sourceURL string
 	for _, r := range task.Results {
 		if r.Status == compilation.StatusSuccess {
 			sourceURL = basePath + r.Path
 			break
 		}
 	}
-
-	if sourceURL != "" {
-		c.Verified = true
-		c.VerificationSource = sourceURL
-	}
+	c.Verified = sourceURL != ""
+	c.VerificationSource = sourceURL
 
 	return nil
 }
