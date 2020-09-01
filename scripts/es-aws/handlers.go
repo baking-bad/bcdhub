@@ -26,6 +26,7 @@ var mappingNames = []string{
 	elastic.DocOperations,
 	elastic.DocProtocol,
 	elastic.DocBigMapActions,
+	elastic.DocTransfers,
 }
 
 func createRepository(es elastic.IElastic, creds awsData) error {
