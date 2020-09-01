@@ -598,3 +598,9 @@ type TransferResponse struct {
 	Transfers []Transfer `json:"transfers"`
 	Total     int64      `json:"total"`
 }
+
+// CompilationTasksResponse -
+type CompilationTasksResponse struct {
+	Tasks []database.CompilationTask `json:"tasks"`
+	Count int                        `json:"count"`
+}
