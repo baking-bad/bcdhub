@@ -35,7 +35,7 @@ type CompilationTaskResult struct {
 func (d *db) ListCompilationTasks(userID, limit, offset uint, kind string) ([]CompilationTask, error) {
 	var tasks []CompilationTask
 
-	req := d.ORM.Preload("Results").Where("user_id = ?", userID)
+	req := d.ORM.Preload("Results").Where("user_id = ?", userID).Order("created_at desc")
 
 	if kind != "" {
 		req = req.Where("kind = ?", kind)
