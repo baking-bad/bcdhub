@@ -1,7 +1,7 @@
 package metrics
 
 import (
-	"github.com/baking-bad/bcdhub/cmd/api/providers"
+	"github.com/baking-bad/bcdhub/internal/providers"
 	"github.com/baking-bad/bcdhub/internal/compiler/compilation"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"

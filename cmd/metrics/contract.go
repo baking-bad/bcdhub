@@ -3,11 +3,11 @@ package main
 import (
 	"encoding/json"
 
-	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/pkg/errors"
 
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/streadway/amqp"
 )

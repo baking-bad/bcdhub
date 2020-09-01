@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/cmd/api/providers"
 	"github.com/baking-bad/bcdhub/internal/database"
+	"github.com/baking-bad/bcdhub/internal/providers"
 	"github.com/gin-gonic/gin"
 )
 
