@@ -125,11 +125,11 @@ func (p *Github) getRefs(client *github.Client, owner, repo, optType, prefix, re
 	opts.Type = optType
 
 	refs, resp, err := client.Git.ListRefs(context.Background(), owner, repo, opts)
-	if err != nil {
-		return nil, err
-	}
 	if resp.StatusCode == http.StatusNotFound {
 		return []Ref{}, nil
+	}
+	if err != nil {
+		return nil, err
 	}
 
 	res := make([]Ref, len(refs))
