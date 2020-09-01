@@ -8,11 +8,11 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/baking-bad/bcdhub/internal/compiler/compilation"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/mq"
-	"github.com/baking-bad/bcdhub/internal/verifier/compilation"
 	"github.com/streadway/amqp"
 )
 
@@ -27,9 +27,9 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	if cfg.Verifier.Sentry.Enabled {
+	if cfg.Compiler.Sentry.Enabled {
 		helpers.InitSentry(cfg.Sentry.Debug, cfg.Sentry.Environment, cfg.Sentry.URI)
-		helpers.SetTagSentry("project", cfg.Verifier.Sentry.Project)
+		helpers.SetTagSentry("project", cfg.Compiler.Sentry.Project)
 		defer helpers.CatchPanicSentry()
 	}
 
@@ -37,16 +37,18 @@ func main() {
 		config.NewContext(
 			config.WithRPC(cfg.RPC),
 			config.WithDatabase(cfg.DB),
-			config.WithRabbitReceiver(cfg.RabbitMQ, "verifier"),
+			config.WithRabbitReceiver(cfg.RabbitMQ, "compiler"),
+			config.WithRabbitPublisher(cfg.RabbitMQ, "compiler"),
+			config.WithElasticSearch(cfg.Elastic),
 		),
 	}
 
-	msgs, err := context.MQ.Consume(mq.QueueCompilations)
+	msgs, err := context.MQReceiver.Consume(mq.QueueCompilations)
 	if err != nil {
 		logger.Fatal(err)
 	}
 
-	defer context.MQ.Close()
+	defer context.Close()
 
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
@@ -56,7 +58,7 @@ func main() {
 	for {
 		select {
 		case <-signals:
-			logger.Info("Stopped verifier")
+			logger.Info("Stopped compiler")
 			return
 		case msg := <-msgs:
 			if err := context.handleMessage(msg); err != nil {

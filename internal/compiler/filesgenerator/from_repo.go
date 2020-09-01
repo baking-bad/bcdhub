@@ -10,7 +10,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/baking-bad/bcdhub/internal/verifier/compilers"
+	"github.com/baking-bad/bcdhub/internal/compiler/compilers"
 )
 
 // FromRepo - download files from github or gitlab repo url and save them to dir

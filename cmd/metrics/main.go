@@ -109,7 +109,7 @@ func main() {
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
 	for i := range cfg.RabbitMQ.Queues {
-		go listenChannel(ctx.MQ, cfg.RabbitMQ.Queues[i], closeChan)
+		go listenChannel(ctx.MQReceiver, cfg.RabbitMQ.Queues[i], closeChan)
 	}
 
 	<-signals

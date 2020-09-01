@@ -63,12 +63,12 @@ type Config struct {
 		} `yaml:"sentry"`
 	} `yaml:"metrics"`
 
-	Verifier struct {
+	Compiler struct {
 		Sentry struct {
 			Enabled bool   `yaml:"enabled"`
 			Project string `yaml:"project"`
 		} `yaml:"sentry"`
-	} `yaml:"verifier"`
+	} `yaml:"compiler"`
 
 	Migrations struct {
 		Networks []string `yaml:"networks"`

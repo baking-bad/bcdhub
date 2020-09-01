@@ -9,12 +9,16 @@ sentry:
 db:
     conn_string: "host=127.0.0.1 port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"
 
-verifier:
+compiler:
     sentry:
         enabled: false
-        project: verifier
+        project: compiler
 
 rabbitmq:
     uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@127.0.0.1:5672/"
     queues:
        - compilations
+
+elastic:
+    uri: http://127.0.0.1:9200
+    timeout: 1

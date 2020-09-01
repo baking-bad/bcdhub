@@ -204,9 +204,11 @@ type Contract struct {
 	Alias           string     `json:"alias,omitempty"`
 	DelegateAlias   string     `json:"delegate_alias,omitempty"`
 
-	Subscription    *Subscription `json:"subscription,omitempty"`
-	TotalSubscribed int           `json:"total_subscribed"`
-	Slug            string        `json:"slug,omitempty"`
+	Subscription       *Subscription `json:"subscription,omitempty"`
+	TotalSubscribed    int           `json:"total_subscribed"`
+	Slug               string        `json:"slug,omitempty"`
+	Verified           bool          `json:"verified,omitempty"`
+	VerificationSource string        `json:"verification_source,omitempty"`
 }
 
 // FromModel -
@@ -238,6 +240,8 @@ func (c *Contract) FromModel(contract models.Contract) {
 	c.Timestamp = contract.Timestamp
 	c.TotalWithdrawn = contract.TotalWithdrawn
 	c.TxCount = contract.TxCount
+	c.Verified = contract.Verified
+	c.VerificationSource = contract.VerificationSource
 }
 
 // Subscription -

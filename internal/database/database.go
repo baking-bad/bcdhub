@@ -49,6 +49,7 @@ type DB interface {
 	// CompilationTask
 	ListCompilationTasks(userID, limit, offset uint, kind string) ([]CompilationTask, error)
 	GetCompilationTask(taskID uint) (*CompilationTask, error)
+	GetCompilationTaskSource(address, network, status string) (string, error)
 	CreateCompilationTask(ct *CompilationTask) error
 	UpdateTaskStatus(taskID uint, status string) error
 	UpdateTaskResults(task *CompilationTask, status string, results []CompilationTaskResult) error

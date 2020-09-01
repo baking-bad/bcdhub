@@ -6,11 +6,11 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/baking-bad/bcdhub/internal/compiler/compilation"
+	"github.com/baking-bad/bcdhub/internal/compiler/filesgenerator"
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/mq"
-	"github.com/baking-bad/bcdhub/internal/verifier/compilation"
-	"github.com/baking-bad/bcdhub/internal/verifier/filesgenerator"
 	"github.com/gin-gonic/gin"
 )
 
@@ -78,7 +78,7 @@ func (ctx *Context) runVerification(taskID uint, sourceURL string) {
 		Dir:   tempDir,
 	}
 
-	err = ctx.MQ.Send(mq.ChannelNew, data, data)
+	err = ctx.MQPublisher.Send(mq.ChannelNew, data, data)
 	if ctx.handleCompilationError(taskID, err) {
 		return
 	}

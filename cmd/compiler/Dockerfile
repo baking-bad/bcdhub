@@ -16,11 +16,11 @@ COPY ./go.* $GOPATH/src/github.com/baking-bad/bcdhub/
 WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub
 RUN go mod download
 
-COPY cmd/verifier cmd/verifier
+COPY cmd/compiler cmd/compiler
 COPY internal internal
 
-WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub/cmd/verifier/
-RUN go build -a -installsuffix cgo -o /go/bin/verifier .
+WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub/cmd/compiler/
+RUN go build -a -installsuffix cgo -o /go/bin/compiler .
 
 # ---------------------------------------------------------------------
 #  The second stage container, for running the application
@@ -45,10 +45,10 @@ RUN cp ./tezos-client /usr/local/bin/
 # golang application
 ENV PATH="/go/bin/:$PATH"
 
-WORKDIR /app/verifier
+WORKDIR /app/compiler
 
 COPY --from=app_builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=app_builder /go/bin/verifier /go/bin/verifier
-COPY /cmd/verifier/*.yml /app/verifier/
+COPY --from=app_builder /go/bin/compiler /go/bin/compiler
+COPY /cmd/compiler/*.yml /app/compiler/
 
-ENTRYPOINT ["/go/bin/verifier"]
+ENTRYPOINT ["/go/bin/compiler"]

@@ -3,11 +3,12 @@ package main
 import (
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/compiler/compilation"
+	"github.com/baking-bad/bcdhub/internal/compiler/compilers"
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/verifier/compilation"
-	"github.com/baking-bad/bcdhub/internal/verifier/compilers"
+	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/tidwall/gjson"
 )
@@ -53,7 +54,15 @@ func (ctx *Context) verify(ct compilation.Task) error {
 		return err
 	}
 
-	return nil
+	contract, err := ctx.ES.GetContract(map[string]interface{}{
+		"address": task.Address,
+		"network": task.Network,
+	})
+	if err != nil {
+		return err
+	}
+
+	return ctx.MQPublisher.Send(mq.ChannelNew, &contract, contract.GetID())
 }
 
 func tryToCompile(task compilation.Task) []database.CompilationTaskResult {

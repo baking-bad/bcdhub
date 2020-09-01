@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 
+	"github.com/baking-bad/bcdhub/internal/compiler/compilation"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/pkg/errors"
 
@@ -42,7 +43,19 @@ func parseContract(contract models.Contract) error {
 		}
 	}
 
+	if !contract.Verified {
+		sourceURL, err := h.DB.GetCompilationTaskSource(contract.Address, contract.Network, compilation.StatusSuccess)
+		if err != nil {
+			return errors.Errorf("[parseContract] GetCompilationTaskSource error %s", err)
+		}
+
+		if sourceURL != "" {
+			contract.Verified = true
+			contract.VerificationSource = sourceURL
+		}
+	}
+
 	logger.Info("Contract %s to project %s", contract.Address, contract.ProjectID)
 
-	return ctx.ES.UpdateFields(elastic.DocContracts, contract.ID, contract, "ProjectID", "Alias")
+	return ctx.ES.UpdateFields(elastic.DocContracts, contract.ID, contract, "ProjectID", "Alias", "Verified", "VerificationSource")
 }

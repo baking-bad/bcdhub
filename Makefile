@@ -10,8 +10,8 @@ indexer:
 metrics:
 	cd cmd/metrics && go run . -f config.yml -f config.dev.yml
 
-verifier:
-	cd cmd/verifier && go run . -f config.yml -f config.dev.yml
+compiler:
+	cd cmd/compiler && go run . -f config.yml -f config.dev.yml
 
 aliases:
 	cd scripts/aliases && go run . -f ../config.yml

@@ -1,8 +1,10 @@
 package database
 
 import (
+	"errors"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/gorm/dialects/postgres"
 )
 
@@ -65,6 +67,22 @@ func (d *db) GetCompilationTask(taskID uint) (*CompilationTask, error) {
 	}
 
 	return &task, nil
+}
+
+// GetCompilationTaskSource -
+func (d *db) GetCompilationTaskSource(address, network, status string) (string, error) {
+	var task CompilationTask
+
+	err := d.ORM.Preload("Results").Where("address = ? AND network = ? AND status = ?", address, network, status).First(&task).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return "", nil
+	}
+
+	if err != nil {
+		return "", err
+	}
+
+	return task.SourceURL, nil
 }
 
 // CreateCompilationTask -

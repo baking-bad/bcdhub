@@ -3,9 +3,9 @@ package handlers
 import (
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/compiler/compilation"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/verifier/compilation"
 	"github.com/btcsuite/btcutil/base58"
 	"gopkg.in/go-playground/validator.v9"
 )
