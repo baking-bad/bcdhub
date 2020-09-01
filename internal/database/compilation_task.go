@@ -1,10 +1,8 @@
 package database
 
 import (
-	"errors"
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/gorm/dialects/postgres"
 )
 
@@ -18,7 +16,8 @@ type CompilationTask struct {
 	UserID    uint                    `json:"user_id"`
 	Address   string                  `json:"address"`
 	Network   string                  `json:"network"`
-	SourceURL string                  `json:"source_url"`
+	Repo      string                  `json:"repo"`
+	Ref       string                  `json:"ref"`
 	Kind      string                  `gorm:"not null" json:"kind"`
 	Status    string                  `gorm:"not null" json:"status"`
 	Results   []CompilationTaskResult `json:"results,omitempty"`
@@ -69,20 +68,11 @@ func (d *db) GetCompilationTask(taskID uint) (*CompilationTask, error) {
 	return &task, nil
 }
 
-// GetCompilationTaskSource -
-func (d *db) GetCompilationTaskSource(address, network, status string) (string, error) {
-	var task CompilationTask
+// GetCompilationTaskBy -
+func (d *db) GetCompilationTaskBy(address, network, status string) (*CompilationTask, error) {
+	task := new(CompilationTask)
 
-	err := d.ORM.Preload("Results").Where("address = ? AND network = ? AND status = ?", address, network, status).First(&task).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return "", nil
-	}
-
-	if err != nil {
-		return "", err
-	}
-
-	return task.SourceURL, nil
+	return task, d.ORM.Preload("Results").Where("address = ? AND network = ? AND status = ?", address, network, status).First(task).Error
 }
 
 // CreateCompilationTask -

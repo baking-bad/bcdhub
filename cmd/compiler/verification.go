@@ -69,9 +69,16 @@ func tryToCompile(task compilation.Task) []database.CompilationTaskResult {
 	var result []database.CompilationTaskResult
 
 	for _, filepath := range task.Files {
+		path := strings.TrimPrefix(filepath, task.Dir)
+		pathParts := strings.SplitAfterN(path, "/", 3)
+		if len(pathParts) != 3 {
+			continue
+		}
+
+		//
 		taskResult := database.CompilationTaskResult{
 			CompilationTaskID: task.ID,
-			Path:              strings.TrimPrefix(filepath, task.Dir),
+			Path:              pathParts[2],
 		}
 
 		data, err := compilers.BuildFromFile(filepath)

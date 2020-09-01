@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/baking-bad/bcdhub/cmd/api/providers"
 	"github.com/baking-bad/bcdhub/internal/compiler/compilation"
 	"github.com/baking-bad/bcdhub/internal/compiler/filesgenerator"
 	"github.com/baking-bad/bcdhub/internal/database"
@@ -32,13 +33,19 @@ func (ctx *Context) VerifyContract(c *gin.Context) {
 		return
 	}
 
+	provider, err := providers.NewPublic(user.Provider)
+	if handleError(c, err, 0) {
+		return
+	}
+
 	task := database.CompilationTask{
-		UserID:    user.ID,
-		Address:   req.Address,
-		Network:   req.Network,
-		SourceURL: req.SourceURL,
-		Kind:      compilation.KindVerification,
-		Status:    compilation.StatusPending,
+		UserID:  user.ID,
+		Address: req.Address,
+		Network: req.Network,
+		Repo:    req.Repo,
+		Ref:     req.Ref,
+		Kind:    compilation.KindVerification,
+		Status:  compilation.StatusPending,
 	}
 
 	err = ctx.DB.CreateCompilationTask(&task)
@@ -46,7 +53,7 @@ func (ctx *Context) VerifyContract(c *gin.Context) {
 		return
 	}
 
-	go ctx.runVerification(task.ID, req.SourceURL)
+	go ctx.runVerification(task.ID, provider.ArchivePath(user.Login, req.Repo, req.Ref))
 
 	c.JSON(http.StatusOK, gin.H{"status": compilation.StatusPending})
 }

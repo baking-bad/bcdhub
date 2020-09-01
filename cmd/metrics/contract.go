@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 
-	"github.com/baking-bad/bcdhub/internal/compiler/compilation"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/pkg/errors"
 
@@ -44,14 +43,8 @@ func parseContract(contract models.Contract) error {
 	}
 
 	if !contract.Verified {
-		sourceURL, err := h.DB.GetCompilationTaskSource(contract.Address, contract.Network, compilation.StatusSuccess)
-		if err != nil {
-			return errors.Errorf("[parseContract] GetCompilationTaskSource error %s", err)
-		}
-
-		if sourceURL != "" {
-			contract.Verified = true
-			contract.VerificationSource = sourceURL
+		if err := h.SetContractVerification(&contract); err != nil {
+			return errors.Errorf("[parseContract] Error during set contract verification: %s", err)
 		}
 	}
 

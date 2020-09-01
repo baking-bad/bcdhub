@@ -12,6 +12,7 @@ type Public interface {
 	GetRepos(login string) ([]Project, error)
 	GetRefs(owner, repo string) ([]Ref, error)
 	ArchivePath(owner, repo, ref string) string
+	BaseFilePath(owner, repo, ref string) string
 }
 
 // Oauth -

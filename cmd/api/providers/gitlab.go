@@ -170,3 +170,8 @@ func (p *Gitlab) getBranches(client *gitlab.Client, id, owner, repo string) ([]R
 func (p *Gitlab) ArchivePath(owner, repo, ref string) string {
 	return fmt.Sprintf("https://gitlab.com/%s/%s/-/archive/%s/%s-%s.zip", owner, repo, ref, repo, ref)
 }
+
+// BaseFilePath -
+func (p *Gitlab) BaseFilePath(owner, repo, ref string) string {
+	return fmt.Sprintf("https://gitlab.com/%s/%s/-/blob/%s/", owner, repo, ref)
+}

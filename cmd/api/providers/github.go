@@ -150,3 +150,8 @@ func (p *Github) getRefs(client *github.Client, owner, repo, optType, prefix, re
 func (p *Github) ArchivePath(owner, repo, ref string) string {
 	return fmt.Sprintf("https://github.com/%s/%s/archive/%s.zip", owner, repo, ref)
 }
+
+// BaseFilePath -
+func (p *Github) BaseFilePath(owner, repo, ref string) string {
+	return fmt.Sprintf("https://github.com/%s/%s/blob/%s/", owner, repo, ref)
+}

@@ -274,9 +274,10 @@ type getTokenSeriesRequest struct {
 }
 
 type verificationRequest struct {
-	Address   string `json:"address"`
-	Network   string `json:"network"`
-	SourceURL string `json:"sourceURL"`
+	Address string `json:"address"`
+	Network string `json:"network"`
+	Repo    string `json:"repo"`
+	Ref     string `json:"ref"`
 }
 
 type compilationTasksRequest struct {
