@@ -84,3 +84,9 @@ func (d *db) UpdateTaskResults(task *CompilationTask, status string, results []C
 
 	return d.ORM.Save(task).Error
 }
+
+// CountCompilationTasks -
+func (d *db) CountCompilationTasks(userID uint) (int64, error) {
+	var count int64
+	return count, d.ORM.Model(&CompilationTask{}).Where("user_id = ?", userID).Count(&count).Error
+}

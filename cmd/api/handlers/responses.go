@@ -270,11 +270,12 @@ type OperationResponse struct {
 }
 
 type userProfile struct {
-	Login           string    `json:"login"`
-	AvatarURL       string    `json:"avatar_url"`
-	MarkReadAt      time.Time `json:"mark_read_at"`
-	RegisteredAt    time.Time `json:"registered_at"`
-	MarkedContracts int       `json:"marked_contracts"`
+	Login            string    `json:"login"`
+	AvatarURL        string    `json:"avatar_url"`
+	MarkReadAt       time.Time `json:"mark_read_at"`
+	RegisteredAt     time.Time `json:"registered_at"`
+	MarkedContracts  int       `json:"marked_contracts"`
+	CompilationTasks int64     `json:"compilation_tasks"`
 
 	Subscriptions []Subscription `json:"subscriptions"`
 }
@@ -597,10 +598,4 @@ type Transfer struct {
 type TransferResponse struct {
 	Transfers []Transfer `json:"transfers"`
 	Total     int64      `json:"total"`
-}
-
-// CompilationTasksResponse -
-type CompilationTasksResponse struct {
-	Tasks []database.CompilationTask `json:"tasks"`
-	Count int                        `json:"count"`
 }

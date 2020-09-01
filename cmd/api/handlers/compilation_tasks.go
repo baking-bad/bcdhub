@@ -29,8 +29,5 @@ func (ctx *Context) ListCompilationTasks(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, CompilationTasksResponse{
-		Tasks: tasks,
-		Count: len(tasks),
-	})
+	c.JSON(http.StatusOK, tasks)
 }

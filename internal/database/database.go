@@ -52,6 +52,7 @@ type DB interface {
 	CreateCompilationTask(ct *CompilationTask) error
 	UpdateTaskStatus(taskID uint, status string) error
 	UpdateTaskResults(task *CompilationTask, status string, results []CompilationTaskResult) error
+	CountCompilationTasks(userID uint) (int64, error)
 
 	Close()
 }
