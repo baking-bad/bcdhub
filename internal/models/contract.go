@@ -91,6 +91,8 @@ func (c *Contract) ParseElasticJSON(hit gjson.Result) {
 	c.MigrationsCount = hit.Get("_source.migrations_count").Int()
 	c.TotalWithdrawn = hit.Get("_source.total_withdrawn").Int()
 	c.Alias = hit.Get("_source.alias").String()
+	c.Verified = hit.Get("_source.verified").Bool()
+	c.VerificationSource = hit.Get("_source.verification_source").String()
 
 	c.FoundBy = c.FoundByName(hit)
 }
