@@ -3,6 +3,7 @@ package handlers
 import (
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/compiler/compilation"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/btcsuite/btcutil/base58"
@@ -70,5 +71,15 @@ var FillTypeValidator validator.Func = func(fl validator.FieldLevel) bool {
 	return helpers.StringInArray(fillType, []string{
 		"empty",
 		"current",
+	})
+}
+
+// CompilationKindValidator -
+var CompilationKindValidator validator.Func = func(fl validator.FieldLevel) bool {
+	kind := fl.Field().String()
+	return helpers.StringInArray(kind, []string{
+		compilation.KindCompilation,
+		compilation.KindVerification,
+		compilation.KindDeployment,
 	})
 }

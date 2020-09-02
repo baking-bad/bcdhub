@@ -7,9 +7,10 @@ const (
 
 // Queues
 const (
-	QueueContracts  = "contracts"
-	QueueOperations = "operations"
-	QueueMigrations = "migrations"
-	QueueRecalc     = "recalc"
-	QueueTransfers  = "transfers"
+	QueueContracts    = "contracts"
+	QueueOperations   = "operations"
+	QueueMigrations   = "migrations"
+	QueueRecalc       = "recalc"
+	QueueTransfers    = "transfers"
+	QueueCompilations = "compilations"
 )

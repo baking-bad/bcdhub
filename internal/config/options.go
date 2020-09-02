@@ -58,7 +58,7 @@ func WithRabbitReceiver(rabbitConfig RabbitConfig, service string) ContextOption
 		if err != nil {
 			log.Panicf("Rabbit MQ connection error: %s", err)
 		}
-		ctx.MQ = messageQueue
+		ctx.MQReceiver = messageQueue
 	}
 }
 
@@ -69,7 +69,7 @@ func WithRabbitPublisher(rabbitConfig RabbitConfig, service string) ContextOptio
 		if err != nil {
 			log.Panicf("Rabbit MQ connection error: %s", err)
 		}
-		ctx.MQ = messageQueue
+		ctx.MQPublisher = messageQueue
 	}
 }
 
