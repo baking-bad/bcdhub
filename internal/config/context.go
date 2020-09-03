@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/baking-bad/bcdhub/internal/aws"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/database"
@@ -17,6 +18,7 @@ type Context struct {
 	ES           elastic.IElastic
 	MQPublisher  *mq.MQ
 	MQReceiver   *mq.MQ
+	AWS          *aws.Client
 	RPC          map[string]noderpc.INode
 	TzKTServices map[string]*tzkt.ServicesTzKT
 

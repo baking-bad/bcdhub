@@ -7,7 +7,7 @@ import (
 )
 
 // CompilationTask model
-// kind: Verify, Deploy, Compile
+// kind: verification or deployment
 type CompilationTask struct {
 	ID        uint                    `gorm:"primary_key" json:"id"`
 	CreatedAt time.Time               `json:"created_at"`
@@ -30,8 +30,11 @@ type CompilationTaskResult struct {
 	Status            string          `json:"status"`
 	Language          string          `json:"language,omitempty"`
 	Path              string          `json:"path"`
+	AWSPath           string          `json:"aws_path"`
 	Script            *postgres.Jsonb `json:"script,omitempty"`
 	Error             string          `json:"error,omitempty"`
+	Schema            interface{}     `gorm:"-" json:"schema,omitempty"`
+	Typedef           interface{}     `gorm:"-" json:"typedef,omitempty"`
 }
 
 func (d *db) ListCompilationTasks(userID, limit, offset uint, kind string) ([]CompilationTask, error) {

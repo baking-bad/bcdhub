@@ -78,7 +78,6 @@ var FillTypeValidator validator.Func = func(fl validator.FieldLevel) bool {
 var CompilationKindValidator validator.Func = func(fl validator.FieldLevel) bool {
 	kind := fl.Field().String()
 	return helpers.StringInArray(kind, []string{
-		compilation.KindCompilation,
 		compilation.KindVerification,
 		compilation.KindDeployment,
 	})

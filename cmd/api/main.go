@@ -214,8 +214,6 @@ func main() {
 		authorized := v1.Group("/")
 		authorized.Use(ctx.AuthJWTRequired())
 		{
-			authorized.POST("verify", ctx.VerifyContract)
-
 			profile := authorized.Group("profile")
 			{
 				profile.GET("", ctx.GetUserProfile)
@@ -236,7 +234,14 @@ func main() {
 				}
 				profile.GET("repos", ctx.ListPublicRepos)
 				profile.GET("refs", ctx.ListPublicRefs)
-				profile.GET("compilations", ctx.ListCompilationTasks)
+
+				compilations := profile.Group("compilations")
+				{
+					compilations.GET("", ctx.ListCompilationTasks)
+					compilations.POST("verify", ctx.VerifyContract)
+					compilations.POST("deploy", ctx.DeployContract)
+					compilations.POST("deploy/finalize", ctx.FinalizeDeploy)
+				}
 			}
 		}
 

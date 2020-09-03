@@ -1,10 +1,7 @@
 package main
 
 import (
-	"strings"
-
 	"github.com/baking-bad/bcdhub/internal/compiler/compilation"
-	"github.com/baking-bad/bcdhub/internal/compiler/compilers"
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -31,7 +28,7 @@ func (ctx *Context) verify(ct compilation.Task) error {
 		return err
 	}
 
-	results := tryToCompile(ct)
+	results := compile(ct)
 
 	node, err := ctx.GetRPC(task.Network)
 	if err != nil {
@@ -63,43 +60,6 @@ func (ctx *Context) verify(ct compilation.Task) error {
 	}
 
 	return ctx.MQPublisher.Send(mq.ChannelNew, &contract, contract.GetID())
-}
-
-func tryToCompile(task compilation.Task) []database.CompilationTaskResult {
-	var result []database.CompilationTaskResult
-
-	for _, filepath := range task.Files {
-		path := strings.TrimPrefix(filepath, task.Dir)
-		pathParts := strings.SplitAfterN(path, "/", 3)
-		if len(pathParts) != 3 {
-			continue
-		}
-
-		//
-		taskResult := database.CompilationTaskResult{
-			CompilationTaskID: task.ID,
-			Path:              pathParts[2],
-		}
-
-		data, err := compilers.BuildFromFile(filepath)
-
-		if err != nil {
-			taskResult.Error = err.Error()
-		} else {
-			jsonb := new(postgres.Jsonb)
-
-			if err := jsonb.Scan([]byte(data.Script)); err != nil {
-				taskResult.Error = err.Error()
-			}
-
-			taskResult.Script = jsonb
-			taskResult.Language = data.Language
-		}
-
-		result = append(result, taskResult)
-	}
-
-	return result
 }
 
 func compareCode(original gjson.Result, results []database.CompilationTaskResult) (string, []database.CompilationTaskResult) {

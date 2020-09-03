@@ -280,6 +280,12 @@ type verificationRequest struct {
 	Ref     string `json:"ref"`
 }
 
+type deploymentRequest struct {
+	Address string `json:"address"`
+	Network string `json:"network"`
+	TaskID  uint   `json:"task_id"`
+}
+
 type compilationTasksRequest struct {
 	Limit  uint   `form:"limit" binding:"omitempty,min=0"`
 	Offset uint   `form:"offset" binding:"omitempty,min=0"`
