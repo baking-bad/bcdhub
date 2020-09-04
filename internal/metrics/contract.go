@@ -1,10 +1,10 @@
 package metrics
 
 import (
-	"github.com/baking-bad/bcdhub/internal/providers"
 	"github.com/baking-bad/bcdhub/internal/compiler/compilation"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/providers"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 
@@ -149,17 +149,20 @@ func (h *Handler) SetContractVerification(c *models.Contract) error {
 		return err
 	}
 
-	provider, err := providers.NewPublic(user.Provider)
-	if err != nil {
-		return err
-	}
-
-	basePath := provider.BaseFilePath(user.Login, task.Repo, task.Ref)
-
 	var sourceURL string
 	for _, r := range task.Results {
 		if r.Status == compilation.StatusSuccess {
-			sourceURL = basePath + r.Path
+			if r.AWSPath != "" {
+				sourceURL = r.AWSPath
+			} else {
+				provider, err := providers.NewPublic(user.Provider)
+				if err != nil {
+					return err
+				}
+				basePath := provider.BaseFilePath(user.Login, task.Repo, task.Ref)
+				sourceURL = basePath + r.Path
+			}
+
 			break
 		}
 	}

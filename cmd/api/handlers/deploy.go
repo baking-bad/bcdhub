@@ -111,16 +111,36 @@ func (ctx *Context) FinalizeDeploy(c *gin.Context) {
 		return
 	}
 
+	var results []database.CompilationTaskResult
+	for _, r := range t.Results {
+		if r.Status != compilation.StatusSuccess || r.ID == req.ResultID {
+			results = append(results, r)
+		}
+	}
+
 	task := database.CompilationTask{
 		UserID:  user.ID,
 		Address: req.Address,
 		Network: req.Network,
 		Kind:    compilation.KindVerification,
 		Status:  compilation.StatusSuccess,
-		Results: t.Results,
+		Results: results,
 	}
 
 	err = ctx.DB.CreateCompilationTask(&task)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	contract, err := ctx.ES.GetContract(map[string]interface{}{
+		"address": req.Address,
+		"network": req.Network,
+	})
+	if handleError(c, err, 0) {
+		return
+	}
+
+	err = ctx.MQPublisher.Send(mq.ChannelNew, &contract, contract.GetID())
 	if handleError(c, err, 0) {
 		return
 	}

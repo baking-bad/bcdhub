@@ -281,9 +281,10 @@ type verificationRequest struct {
 }
 
 type deploymentRequest struct {
-	Address string `json:"address"`
-	Network string `json:"network"`
-	TaskID  uint   `json:"task_id"`
+	Address  string `json:"address"`
+	Network  string `json:"network"`
+	TaskID   uint   `json:"task_id"`
+	ResultID uint   `json:"result_id"`
 }
 
 type compilationTasksRequest struct {
