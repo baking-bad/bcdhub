@@ -101,6 +101,7 @@ func (h *Hub) runChannel(channel channels.Channel) {
 
 // Stop -
 func (h *Hub) Stop() {
+	h.mux.Lock()
 	close(h.stop)
 	for _, channel := range h.public {
 		channel.Stop()
@@ -108,6 +109,7 @@ func (h *Hub) Stop() {
 	for _, client := range h.clients {
 		client.Close()
 	}
+	h.mux.Unlock()
 	h.wg.Wait()
 }
 
@@ -118,9 +120,11 @@ func (h *Hub) listenChannel(channel channels.Channel) {
 		case <-h.stop:
 			return
 		case msg := <-channel.Listen():
+			h.mux.Lock()
 			for _, client := range h.clients {
 				client.Send(msg)
 			}
+			h.mux.Unlock()
 		}
 	}
 }
