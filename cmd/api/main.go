@@ -133,6 +133,7 @@ func main() {
 		v1.GET("pick_random", ctx.GetRandomContract)
 		v1.GET("projects", ctx.GetProjects)
 		v1.GET("search", ctx.Search)
+		v1.POST("fork", ctx.ForkContract)
 
 		v1.POST("diff", ctx.GetDiff)
 
@@ -191,7 +192,6 @@ func main() {
 				entrypoints.POST("trace", ctx.RunCode)
 				entrypoints.POST("run_operation", ctx.RunOperation)
 			}
-			contract.POST("fork", ctx.ForkContract)
 		}
 
 		fa12 := v1.Group("tokens/:network")
