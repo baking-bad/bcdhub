@@ -25,7 +25,6 @@ var migrationsList = []migrations.Migration{
 	&migrations.SetBMDTimestamp{},
 	&migrations.SetFA{},
 	&migrations.SetOperationStrings{},
-	&migrations.SetOperationBurned{},
 	&migrations.SetTotalWithdrawn{},
 	&migrations.SetMigrationKind{},
 	&migrations.SetBMDProtocol{},
