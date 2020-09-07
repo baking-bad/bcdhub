@@ -3,47 +3,59 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 )
 
 // ForkContract -
 func (ctx *Context) ForkContract(c *gin.Context) {
-	var req getContractRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	var req forkRequest
+	if err := c.BindJSON(&req); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-	var forkReq forkRequest
-	if err := c.BindJSON(&forkReq); handleError(c, err, http.StatusBadRequest) {
-		return
-	}
-
-	rpc, err := ctx.GetRPC(req.Network)
+	response, err := ctx.buildStorageDataFromForkRequest(req)
 	if handleError(c, err, 0) {
 		return
-	}
-
-	script, err := rpc.GetScriptJSON(req.Address, 0)
-	if handleError(c, err, 0) {
-		return
-	}
-
-	storage, err := ctx.buildStorageMicheline(req.Network, req.Address, "0", forkReq.Storage, false)
-	if handleError(c, err, 0) {
-		return
-	}
-	response := gin.H{
-		"code":    script.Get("code").Value(),
-		"storage": storage.Get("value").Value(),
 	}
 	c.JSON(http.StatusOK, response)
 }
 
-func (ctx *Context) buildStorageMicheline(network, address, binPath string, data map[string]interface{}, needValidate bool) (gjson.Result, error) {
-	metadata, err := getStorageMetadata(ctx.ES, address, network)
-	if err != nil {
-		return gjson.Result{}, err
+func (ctx *Context) buildStorageDataFromForkRequest(req forkRequest) (gin.H, error) {
+	var err error
+	var script gjson.Result
+	var metadata meta.Metadata
+
+	if req.Script != "" {
+		script = gjson.Parse(req.Script)
+		metadata, err = meta.ParseMetadata(script.Get("#(prim==\"storage\").args"))
+		if err != nil {
+			return nil, err
+		}
+
+	} else {
+		rpc, err := ctx.GetRPC(req.Network)
+		if err != nil {
+			return nil, err
+		}
+		script, err = rpc.GetScriptJSON(req.Address, 0)
+		if err != nil {
+			return nil, err
+		}
+		metadata, err = getStorageMetadata(ctx.ES, req.Address, req.Network)
+		if err != nil {
+			return nil, err
+		}
+		script = script.Get("code")
 	}
 
-	return metadata.BuildEntrypointMicheline(binPath, data, needValidate)
+	storage, err := metadata.BuildEntrypointMicheline("0", req.Storage, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return gin.H{
+		"code":    script.Value(),
+		"storage": storage.Get("value").Value(),
+	}, nil
 }
