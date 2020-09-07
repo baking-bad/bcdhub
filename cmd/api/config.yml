@@ -2,8 +2,8 @@ rpc:
     mainnet:
         uri: https://rpc.tzkt.io/mainnet
         timeout: 20
-    zeronet:
-        uri: https://rpc.tzkt.io/zeronet
+    delphinet:
+        uri: https://rpc.tzkt.io/delphinet
         timeout: 20
     dalphanet:
         uri: https://rpc.tzkt.io/dalphanet
@@ -17,10 +17,10 @@ tzkt:
         uri: https://api.tzkt.io/v1/
         services_uri: https://services.tzkt.io/v1/
         timeout: 20
-    zeronet:
-        uri: https://api.zeronet.tzkt.io/v1/
-        services_uri: https://services.tzkt.io/zeronet/v1/
-        timeout: 20
+    # delphinet:
+    #     uri: https://api.delphinet.tzkt.io/v1/
+    #     services_uri: https://services.tzkt.io/delphinet/v1/
+    #     timeout: 20
     carthagenet:
         uri: https://api.carthage.tzkt.io/v1/
         services_uri: https://services.tzkt.io/carthagenet/v1/
@@ -66,7 +66,7 @@ api:
     networks:
         - mainnet
         - carthagenet
-        - zeronet
+        - delphinet
         - dalphanet
     seed:
         enabled: false
@@ -85,5 +85,5 @@ migrations:
     networks:
         - mainnet
         - carthagenet
-        - zeronet
+        - delphinet
         - dalphanet
