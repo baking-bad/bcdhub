@@ -1,11 +1,8 @@
 package metrics
 
 import (
-	"github.com/baking-bad/bcdhub/internal/compiler/compilation"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/providers"
-	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 
 	"github.com/baking-bad/bcdhub/internal/classification/functions"
@@ -135,39 +132,13 @@ func (h *Handler) SetContractVerification(c *models.Contract) error {
 		return nil
 	}
 
-	task, err := h.DB.GetCompilationTaskBy(c.Address, c.Network, compilation.StatusSuccess)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil
-		}
-
-		return errors.Errorf("[SetContractVerification] error %s", err)
-	}
-
-	user, err := h.DB.GetUser(task.UserID)
+	v, err := h.DB.GetVerificationBy(c.Address, c.Network)
 	if err != nil {
 		return err
 	}
 
-	var sourceURL string
-	for _, r := range task.Results {
-		if r.Status == compilation.StatusSuccess {
-			if r.AWSPath != "" {
-				sourceURL = r.AWSPath
-			} else {
-				provider, err := providers.NewPublic(user.Provider)
-				if err != nil {
-					return err
-				}
-				basePath := provider.BaseFilePath(user.Login, task.Repo, task.Ref)
-				sourceURL = basePath + r.Path
-			}
-
-			break
-		}
-	}
-	c.Verified = sourceURL != ""
-	c.VerificationSource = sourceURL
+	c.Verified = v.SourcePath != ""
+	c.VerificationSource = v.SourcePath
 
 	return nil
 }

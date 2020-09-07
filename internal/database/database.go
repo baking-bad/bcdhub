@@ -55,6 +55,17 @@ type DB interface {
 	UpdateTaskResults(task *CompilationTask, status string, results []CompilationTaskResult) error
 	CountCompilationTasks(userID uint) (int64, error)
 
+	// Verification
+	ListVerifications(userID, limit, offset uint) ([]Verification, error)
+	CreateVerification(v *Verification) error
+	GetVerificationBy(address, network string) (*Verification, error)
+
+	// Deployment
+	ListDeployments(userID, limit, offset uint) ([]Deployment, error)
+	CreateDeployment(dt *Deployment) error
+	GetDeploymentBy(opHash string) (*Deployment, error)
+	UpdateDeployment(dt *Deployment) error
+
 	Close()
 }
 
@@ -82,6 +93,8 @@ func New(connectionString string) (DB, error) {
 		&Token{},
 		&CompilationTask{},
 		&CompilationTaskResult{},
+		&Verification{},
+		&Deployment{},
 	)
 
 	gormDB = gormDB.Set("gorm:auto_preload", false)

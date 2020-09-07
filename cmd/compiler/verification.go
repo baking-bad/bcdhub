@@ -6,12 +6,14 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/mq"
+	"github.com/baking-bad/bcdhub/internal/providers"
 	"github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/tidwall/gjson"
 )
 
 func (ctx *Context) verification(ct compilation.Task) error {
-	if err := ctx.verify(ct); err != nil {
+	task, err := ctx.verify(ct)
+	if err != nil {
 		if dbErr := ctx.DB.UpdateTaskStatus(ct.ID, compilation.StatusFailed); dbErr != nil {
 			return dbErr
 		}
@@ -19,35 +21,38 @@ func (ctx *Context) verification(ct compilation.Task) error {
 		return err
 	}
 
-	return nil
-}
-
-func (ctx *Context) verify(ct compilation.Task) error {
-	task, err := ctx.DB.GetCompilationTask(ct.ID)
+	user, err := ctx.DB.GetUser(task.UserID)
 	if err != nil {
 		return err
 	}
 
-	results := compile(ct)
+	var sourcePath string
+	for _, r := range task.Results {
+		if r.Status == compilation.StatusSuccess {
+			if r.AWSPath != "" {
+				sourcePath = r.AWSPath
+			} else {
+				provider, err := providers.NewPublic(user.Provider)
+				if err != nil {
+					return err
+				}
+				basePath := provider.BaseFilePath(user.Login, task.Repo, task.Ref)
+				sourcePath = basePath + r.Path
+			}
 
-	node, err := ctx.GetRPC(task.Network)
-	if err != nil {
-		return err
+			break
+		}
 	}
 
-	code, err := node.GetCode(task.Address, 0)
-	if err != nil {
-		return err
+	verification := database.Verification{
+		UserID:            task.UserID,
+		CompilationTaskID: task.ID,
+		Address:           task.Address,
+		Network:           task.Network,
+		SourcePath:        sourcePath,
 	}
 
-	status, res := compareCode(code, results)
-	if err != nil {
-		return err
-	}
-
-	logger.Info("id: %v | kind: %v | status: %s | address: %s | network: %s", ct.ID, ct.Kind, status, task.Address, task.Network)
-
-	if err := ctx.DB.UpdateTaskResults(task, status, res); err != nil {
+	if err := ctx.DB.CreateVerification(&verification); err != nil {
 		return err
 	}
 
@@ -60,6 +65,38 @@ func (ctx *Context) verify(ct compilation.Task) error {
 	}
 
 	return ctx.MQPublisher.Send(mq.ChannelNew, &contract, contract.GetID())
+}
+
+func (ctx *Context) verify(ct compilation.Task) (*database.CompilationTask, error) {
+	task, err := ctx.DB.GetCompilationTask(ct.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	results := compile(ct)
+
+	node, err := ctx.GetRPC(task.Network)
+	if err != nil {
+		return nil, err
+	}
+
+	code, err := node.GetCode(task.Address, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	status, res := compareCode(code, results)
+	if err != nil {
+		return nil, err
+	}
+
+	logger.Info("id: %v | kind: %v | status: %s | address: %s | network: %s", ct.ID, ct.Kind, status, task.Address, task.Network)
+
+	if err := ctx.DB.UpdateTaskResults(task, status, res); err != nil {
+		return nil, err
+	}
+
+	return task, nil
 }
 
 func compareCode(original gjson.Result, results []database.CompilationTaskResult) (string, []database.CompilationTaskResult) {

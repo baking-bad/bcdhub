@@ -10,13 +10,41 @@ import (
 	"github.com/baking-bad/bcdhub/internal/compiler/compilation"
 	"github.com/baking-bad/bcdhub/internal/compiler/filesgenerator"
 	"github.com/baking-bad/bcdhub/internal/database"
+	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/gin-gonic/gin"
 )
 
-// DeployContract -
-func (ctx *Context) DeployContract(c *gin.Context) {
+// ListDeployments -
+func (ctx *Context) ListDeployments(c *gin.Context) {
+	userID := CurrentUserID(c)
+	if userID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user"})
+		return
+	}
+
+	_, err := ctx.DB.GetUser(userID)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	var ctReq compilationRequest
+	if err := c.BindQuery(&ctReq); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
+	deployments, err := ctx.DB.ListDeployments(userID, ctReq.Limit, ctReq.Offset)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	c.JSON(http.StatusOK, deployments)
+}
+
+// CreateDeployment -
+func (ctx *Context) CreateDeployment(c *gin.Context) {
 	userID := CurrentUserID(c)
 	if userID == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user"})
@@ -88,8 +116,8 @@ func (ctx *Context) runDeployment(taskID uint, form *multipart.Form) error {
 	return nil
 }
 
-// FinalizeDeploy -
-func (ctx *Context) FinalizeDeploy(c *gin.Context) {
+// FinalizeDeployment -
+func (ctx *Context) FinalizeDeployment(c *gin.Context) {
 	userID := CurrentUserID(c)
 	if userID == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user"})
@@ -106,43 +134,36 @@ func (ctx *Context) FinalizeDeploy(c *gin.Context) {
 		return
 	}
 
-	t, err := ctx.DB.GetCompilationTask(req.TaskID)
+	d := database.Deployment{
+		UserID:            user.ID,
+		CompilationTaskID: req.TaskID,
+		OperationHash:     req.OperationHash,
+	}
+
+	err = ctx.DB.CreateDeployment(&d)
 	if handleError(c, err, 0) {
 		return
 	}
 
-	var results []database.CompilationTaskResult
-	for _, r := range t.Results {
-		if r.Status != compilation.StatusSuccess || r.ID == req.ResultID {
-			results = append(results, r)
+	op, err := ctx.ES.GetOperations(
+		map[string]interface{}{
+			"hash": req.OperationHash,
+		},
+		0,
+		true,
+	)
+
+	if !elastic.IsRecordNotFound(err) && handleError(c, err, 0) {
+		return
+	}
+
+	if len(op) != 0 {
+		h := metrics.New(ctx.ES, ctx.DB)
+
+		err := h.SetOperationDeployment(&op[0])
+		if handleError(c, err, 0) {
+			return
 		}
-	}
-
-	task := database.CompilationTask{
-		UserID:  user.ID,
-		Address: req.Address,
-		Network: req.Network,
-		Kind:    compilation.KindVerification,
-		Status:  compilation.StatusSuccess,
-		Results: results,
-	}
-
-	err = ctx.DB.CreateCompilationTask(&task)
-	if handleError(c, err, 0) {
-		return
-	}
-
-	contract, err := ctx.ES.GetContract(map[string]interface{}{
-		"address": req.Address,
-		"network": req.Network,
-	})
-	if handleError(c, err, 0) {
-		return
-	}
-
-	err = ctx.MQPublisher.Send(mq.ChannelNew, &contract, contract.GetID())
-	if handleError(c, err, 0) {
-		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": compilation.StatusSuccess})

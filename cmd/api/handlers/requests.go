@@ -281,16 +281,20 @@ type verificationRequest struct {
 }
 
 type deploymentRequest struct {
-	Address  string `json:"address"`
-	Network  string `json:"network"`
-	TaskID   uint   `json:"task_id"`
-	ResultID uint   `json:"result_id"`
+	OperationHash string `json:"operation_hash"`
+	TaskID        uint   `json:"task_id"`
+	ResultID      uint   `json:"result_id"`
 }
 
 type compilationTasksRequest struct {
 	Limit  uint   `form:"limit" binding:"omitempty,min=0"`
 	Offset uint   `form:"offset" binding:"omitempty,min=0"`
 	Kind   string `form:"kind" binding:"omitempty,compilation_kind"`
+}
+
+type compilationRequest struct {
+	Limit  uint `form:"limit" binding:"omitempty,min=0"`
+	Offset uint `form:"offset" binding:"omitempty,min=0"`
 }
 
 type publicRefsRequest struct {

@@ -238,9 +238,13 @@ func main() {
 				compilations := profile.Group("compilations")
 				{
 					compilations.GET("", ctx.ListCompilationTasks)
-					compilations.POST("verify", ctx.VerifyContract)
-					compilations.POST("deploy", ctx.DeployContract)
-					compilations.POST("deploy/finalize", ctx.FinalizeDeploy)
+
+					compilations.GET("verification", ctx.ListVerifications)
+					compilations.POST("verification", ctx.CreateVerification)
+
+					compilations.GET("deployment", ctx.ListDeployments)
+					compilations.POST("deployment", ctx.CreateDeployment)
+					compilations.PATCH("deployment", ctx.FinalizeDeployment)
 				}
 			}
 		}

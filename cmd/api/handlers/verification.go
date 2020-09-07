@@ -15,8 +15,34 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// VerifyContract -
-func (ctx *Context) VerifyContract(c *gin.Context) {
+// ListVerifications -
+func (ctx *Context) ListVerifications(c *gin.Context) {
+	userID := CurrentUserID(c)
+	if userID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user"})
+		return
+	}
+
+	_, err := ctx.DB.GetUser(userID)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	var ctReq compilationRequest
+	if err := c.BindQuery(&ctReq); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
+	verifications, err := ctx.DB.ListVerifications(userID, ctReq.Limit, ctReq.Offset)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	c.JSON(http.StatusOK, verifications)
+}
+
+// CreateVerification -
+func (ctx *Context) CreateVerification(c *gin.Context) {
 	userID := CurrentUserID(c)
 	if userID == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user"})
