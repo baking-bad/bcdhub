@@ -40,6 +40,7 @@ var migrationsList = []migrations.Migration{
 	&migrations.DropMichelson{},
 	&migrations.SetOperationTags{},
 	&migrations.CreateTransfersTags{},
+	&migrations.SetProtocolConstants{},
 }
 
 func main() {
