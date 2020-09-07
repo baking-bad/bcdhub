@@ -75,12 +75,7 @@ func (bi *BoostIndexer) fetchExternalProtocols() error {
 			alias = extProtocols[i].Hash[:8]
 		}
 
-		constants, err := bi.rpc.GetNetworkConstants(extProtocols[i].StartLevel)
-		if err != nil {
-			return err
-		}
-
-		protocols = append(protocols, &models.Protocol{
+		newProtocol := &models.Protocol{
 			ID:         helpers.GenerateID(),
 			Hash:       extProtocols[i].Hash,
 			Alias:      alias,
@@ -88,13 +83,22 @@ func (bi *BoostIndexer) fetchExternalProtocols() error {
 			EndLevel:   extProtocols[i].LastLevel,
 			SymLink:    symLink,
 			Network:    bi.Network,
-			Constants: models.Constants{
-				CostPerByte:                  constants.Get("cost_per_byte").Int(),
-				HardGasLimitPerOperation:     constants.Get("hard_gas_limit_per_operation").Int(),
-				HardStorageLimitPerOperation: constants.Get("hard_storage_limit_per_operation").Int(),
-				TimeBetweenBlocks:            constants.Get("time_between_blocks.0").Int(),
-			},
-		})
+		}
+
+		protocolConstants := models.Constants{}
+		if newProtocol.StartLevel != newProtocol.EndLevel || newProtocol.EndLevel != 0 {
+			constants, err := bi.rpc.GetNetworkConstants(extProtocols[i].StartLevel)
+			if err != nil {
+				return err
+			}
+			protocolConstants.CostPerByte = constants.Get("cost_per_byte").Int()
+			protocolConstants.HardGasLimitPerOperation = constants.Get("hard_gas_limit_per_operation").Int()
+			protocolConstants.HardStorageLimitPerOperation = constants.Get("hard_storage_limit_per_operation").Int()
+			protocolConstants.TimeBetweenBlocks = constants.Get("time_between_blocks.0").Int()
+		}
+		newProtocol.Constants = protocolConstants
+
+		protocols = append(protocols, newProtocol)
 		logger.Info("[%s] Fetched %s", bi.Network, alias)
 	}
 
