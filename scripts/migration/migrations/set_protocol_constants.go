@@ -3,6 +3,7 @@ package migrations
 import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 )
 
@@ -26,11 +27,15 @@ func (m *SetProtocolConstants) Do(ctx *config.Context) error {
 		return err
 	}
 
-	updatedModels := make([]elastic.Model, len(protocols))
+	updatedModels := make([]elastic.Model, 0)
 	for i := range protocols {
 		if protocols[i].StartLevel == protocols[i].EndLevel && protocols[i].EndLevel == 0 {
 			protocols[i].Constants = models.Constants{}
-			updatedModels[i] = &protocols[i]
+			updatedModels = append(updatedModels, &protocols[i])
+			continue
+		}
+
+		if protocols[i].Network == "zeronet" {
 			continue
 		}
 
@@ -48,7 +53,9 @@ func (m *SetProtocolConstants) Do(ctx *config.Context) error {
 			HardStorageLimitPerOperation: constants.Get("hard_storage_limit_per_operation").Int(),
 			TimeBetweenBlocks:            constants.Get("time_between_blocks.0").Int(),
 		}
-		updatedModels[i] = &protocols[i]
+
+		logger.Info("%##v", protocols[i])
+		updatedModels = append(updatedModels, &protocols[i])
 	}
 	return ctx.ES.BulkUpdate(updatedModels)
 }
