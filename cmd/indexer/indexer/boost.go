@@ -28,8 +28,7 @@ var errRollback = errors.New("rollback")
 
 // BoostIndexer -
 type BoostIndexer struct {
-	Network     string
-	UpdateTimer int64
+	Network string
 
 	rpc             noderpc.INode
 	es              elastic.IElastic
@@ -75,6 +74,12 @@ func (bi *BoostIndexer) fetchExternalProtocols() error {
 		if alias == "" {
 			alias = extProtocols[i].Hash[:8]
 		}
+
+		constants, err := bi.rpc.GetNetworkConstants(extProtocols[i].StartLevel)
+		if err != nil {
+			return err
+		}
+
 		protocols = append(protocols, &models.Protocol{
 			ID:         helpers.GenerateID(),
 			Hash:       extProtocols[i].Hash,
@@ -83,6 +88,12 @@ func (bi *BoostIndexer) fetchExternalProtocols() error {
 			EndLevel:   extProtocols[i].LastLevel,
 			SymLink:    symLink,
 			Network:    bi.Network,
+			Constants: models.Constants{
+				CostPerByte:                  constants.Get("cost_per_byte").Int(),
+				HardGasLimitPerOperation:     constants.Get("hard_gas_limit_per_operation").Int(),
+				HardStorageLimitPerOperation: constants.Get("hard_storage_limit_per_operation").Int(),
+				TimeBetweenBlocks:            constants.Get("time_between_blocks.0").Int(),
+			},
 		})
 		logger.Info("[%s] Fetched %s", bi.Network, alias)
 	}
@@ -164,14 +175,7 @@ func (bi *BoostIndexer) init() error {
 	}
 	bi.currentProtocol = currentProtocol
 	logger.Info("[%s] Current network protocol: %s", bi.Network, currentProtocol.Hash)
-
-	logger.Info("[%s] Getting network constants...", bi.Network)
-	constants, err := bi.rpc.GetNetworkConstants() // TODO: store hard gas/storage limits in Protocol
-	if err != nil {
-		return err
-	}
-	bi.UpdateTimer = constants.Get("time_between_blocks.0").Int()
-	logger.Info("[%s] Data will be updated every %d seconds", bi.Network, bi.UpdateTimer)
+	logger.Info("[%s] Data will be updated every %d seconds", bi.Network, currentProtocol.Constants.TimeBetweenBlocks)
 	return nil
 }
 
@@ -193,7 +197,7 @@ func (bi *BoostIndexer) Sync(wg *sync.WaitGroup) {
 	}
 
 	everySecond := false
-	duration := time.Duration(bi.UpdateTimer) * time.Second
+	duration := time.Duration(bi.currentProtocol.Constants.TimeBetweenBlocks) * time.Second
 	if duration.Microseconds() <= 0 {
 		duration = 1 * time.Second
 	}
@@ -221,7 +225,7 @@ func (bi *BoostIndexer) Sync(wg *sync.WaitGroup) {
 			if everySecond {
 				everySecond = false
 				ticker.Stop()
-				ticker = time.NewTicker(time.Duration(bi.UpdateTimer) * time.Second)
+				ticker = time.NewTicker(duration)
 			}
 		}
 	}
@@ -456,7 +460,7 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 	if err != nil {
 		return nil, err
 	}
-	defaultParser := parsers.NewDefaultParser(bi.rpc, bi.es, bi.filesDirectory, bi.interfaces)
+	defaultParser := parsers.NewDefaultParser(bi.rpc, bi.es, bi.filesDirectory, bi.interfaces, bi.currentProtocol.Constants)
 
 	parsedModels := make([]elastic.Model, 0)
 	for _, opg := range data.Array() {

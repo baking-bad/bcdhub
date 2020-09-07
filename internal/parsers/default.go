@@ -27,16 +27,19 @@ type DefaultParser struct {
 	filesDirectory string
 	interfaces     map[string]kinds.ContractKind
 
+	constants models.Constants
+
 	storageParser storage.Parser
 }
 
 // NewDefaultParser -
-func NewDefaultParser(rpc noderpc.INode, es elastic.IElastic, filesDirectory string, interfaces map[string]kinds.ContractKind) *DefaultParser {
+func NewDefaultParser(rpc noderpc.INode, es elastic.IElastic, filesDirectory string, interfaces map[string]kinds.ContractKind, constants models.Constants) *DefaultParser {
 	return &DefaultParser{
 		rpc:            rpc,
 		es:             es,
 		filesDirectory: filesDirectory,
 		interfaces:     interfaces,
+		constants:      constants,
 	}
 }
 
@@ -108,11 +111,14 @@ func (p *DefaultParser) parseTransaction(data gjson.Result, network, hash string
 		IndexedTime:    time.Now().UnixNano() / 1000,
 		ContentIndex:   contentIdx,
 	}
+
 	operationResult, balanceUpdates := p.parseMetadata(data)
 	op.Result = operationResult
 	op.BalanceUpdates = append(op.BalanceUpdates, balanceUpdates...)
 	op.Status = op.Result.Status
 	op.Errors = op.Result.Errors
+
+	p.setBurned(&op)
 
 	additionalModels, err := p.finishParseOperation(data, &op)
 	if err != nil {
@@ -168,6 +174,8 @@ func (p *DefaultParser) parseOrigination(data gjson.Result, network, hash string
 	op.Status = op.Result.Status
 	op.Errors = op.Result.Errors
 	op.Destination = operationResult.Originated
+
+	p.setBurned(&op)
 
 	protoSymLink, err := meta.GetProtoSymLink(op.Protocol)
 	if err != nil {
@@ -439,4 +447,26 @@ func (p *DefaultParser) tagOperation(o *models.Operation) error {
 		}
 	}
 	return nil
+}
+
+func (p *DefaultParser) setBurned(operation *models.Operation) {
+	if operation.Status != consts.Applied {
+		return
+	}
+
+	if operation.Result == nil {
+		return
+	}
+
+	var burned int64
+
+	if operation.Result.PaidStorageSizeDiff != 0 {
+		burned += operation.Result.PaidStorageSizeDiff * p.constants.CostPerByte
+	}
+
+	if operation.Result.AllocatedDestinationContract {
+		burned += 257 * p.constants.CostPerByte
+	}
+
+	operation.Burned = burned
 }
