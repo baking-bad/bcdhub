@@ -47,3 +47,9 @@ func (d *db) GetVerificationBy(address, network string) (*Verification, error) {
 func (d *db) CreateVerification(v *Verification) error {
 	return d.ORM.Create(v).Error
 }
+
+// CountVerifications -
+func (d *db) CountVerifications(userID uint) (int64, error) {
+	var count int64
+	return count, d.ORM.Model(&Verification{}).Where("user_id = ?", userID).Count(&count).Error
+}

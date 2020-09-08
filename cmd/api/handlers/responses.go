@@ -280,6 +280,8 @@ type userProfile struct {
 	RegisteredAt     time.Time `json:"registered_at"`
 	MarkedContracts  int       `json:"marked_contracts"`
 	CompilationTasks int64     `json:"compilation_tasks"`
+	Verifications    int64     `json:"verifications"`
+	Deployments      int64     `json:"deployments"`
 
 	Subscriptions []Subscription `json:"subscriptions"`
 }

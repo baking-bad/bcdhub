@@ -59,12 +59,14 @@ type DB interface {
 	ListVerifications(userID, limit, offset uint) ([]Verification, error)
 	CreateVerification(v *Verification) error
 	GetVerificationBy(address, network string) (*Verification, error)
+	CountVerifications(userID uint) (int64, error)
 
 	// Deployment
 	ListDeployments(userID, limit, offset uint) ([]Deployment, error)
 	CreateDeployment(dt *Deployment) error
 	GetDeploymentBy(opHash string) (*Deployment, error)
 	UpdateDeployment(dt *Deployment) error
+	CountDeployments(userID uint) (int64, error)
 
 	Close()
 }

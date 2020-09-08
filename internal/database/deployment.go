@@ -57,3 +57,9 @@ func (d *db) GetDeploymentBy(opHash string) (*Deployment, error) {
 func (d *db) UpdateDeployment(dt *Deployment) error {
 	return d.ORM.Save(dt).Error
 }
+
+// CountDeployments -
+func (d *db) CountDeployments(userID uint) (int64, error) {
+	var count int64
+	return count, d.ORM.Model(&Deployment{}).Where("user_id = ?", userID).Count(&count).Error
+}
