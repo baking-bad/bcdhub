@@ -3,6 +3,7 @@ package metrics
 import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 
 	"github.com/baking-bad/bcdhub/internal/classification/functions"
@@ -134,6 +135,9 @@ func (h *Handler) SetContractVerification(c *models.Contract) error {
 
 	v, err := h.DB.GetVerificationBy(c.Address, c.Network)
 	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return nil
+		}
 		return err
 	}
 

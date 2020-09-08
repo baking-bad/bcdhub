@@ -285,8 +285,8 @@ type verificationRequest struct {
 }
 
 type deploymentRequest struct {
-	OperationHash string `json:"operation_hash"`
-	TaskID        uint   `json:"task_id"`
+	OperationHash string `json:"operation_hash" binding:"required"`
+	TaskID        uint   `json:"task_id" binding:"required"`
 	ResultID      uint   `json:"result_id"`
 }
 

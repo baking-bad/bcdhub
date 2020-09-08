@@ -91,7 +91,7 @@ func (t *TzKT) GetAccounts(kind string, page, limit int64) (resp []Account, err 
 }
 
 // GetContractOperationBlocks -
-func (t *TzKT) GetContractOperationBlocks(offset, limit int64) (resp []int64, err error) {
+func (t *TzKT) GetContractOperationBlocks(offset, limit int64, needSmartContracts, needDelegators bool) (resp []int64, err error) {
 	params := map[string]string{}
 	if limit == 0 {
 		limit = 10000
@@ -99,6 +99,8 @@ func (t *TzKT) GetContractOperationBlocks(offset, limit int64) (resp []int64, er
 
 	params["limit"] = fmt.Sprintf("%d", limit)
 	params["offset.cr"] = fmt.Sprintf("%d", offset)
+	params["smartContracts"] = fmt.Sprintf("%v", needSmartContracts)
+	params["delegatorContracts"] = fmt.Sprintf("%v", needDelegators)
 
 	err = t.request("GET", "blocks/levels", params, &resp)
 	return
@@ -116,7 +118,7 @@ func (t *TzKT) GetAllContractOperationBlocks() ([]int64, error) {
 	resp := make([]int64, 0)
 	end := false
 	for !end {
-		levels, err := t.GetContractOperationBlocks(offset, 0)
+		levels, err := t.GetContractOperationBlocks(offset, 0, true, true)
 		if err != nil {
 			return nil, err
 		}

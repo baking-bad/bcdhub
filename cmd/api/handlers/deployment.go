@@ -68,13 +68,11 @@ func (ctx *Context) CreateDeployment(c *gin.Context) {
 		Status: compilation.StatusPending,
 	}
 
-	err = ctx.DB.CreateCompilationTask(&task)
-	if handleError(c, err, 0) {
+	if err = ctx.DB.CreateCompilationTask(&task); handleError(c, err, 0) {
 		return
 	}
 
-	err = ctx.runDeployment(task.ID, form)
-	if handleError(c, err, 0) {
+	if err = ctx.runDeployment(task.ID, form); handleError(c, err, 0) {
 		return
 	}
 
@@ -85,8 +83,7 @@ func (ctx *Context) runDeployment(taskID uint, form *multipart.Form) error {
 	dir := filepath.Join(ctx.SharePath, "/compilations")
 
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		err := os.MkdirAll(dir, os.ModePerm)
-		if ctx.handleCompilationError(taskID, err) {
+		if err := os.MkdirAll(dir, os.ModePerm); ctx.handleCompilationError(taskID, err) {
 			return err
 		}
 	}
@@ -108,8 +105,7 @@ func (ctx *Context) runDeployment(taskID uint, form *multipart.Form) error {
 		Dir:   tempDir,
 	}
 
-	err = ctx.MQPublisher.Send(mq.ChannelNew, data, data)
-	if ctx.handleCompilationError(taskID, err) {
+	if err = ctx.MQPublisher.Send(mq.ChannelNew, data, data); ctx.handleCompilationError(taskID, err) {
 		return err
 	}
 
@@ -134,10 +130,21 @@ func (ctx *Context) FinalizeDeployment(c *gin.Context) {
 		return
 	}
 
+	task, err := ctx.DB.GetCompilationTask(req.TaskID)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	paths := make([]string, len(task.Results))
+	for i := range task.Results {
+		paths[i] = task.Results[i].AWSPath
+	}
+
 	d := database.Deployment{
 		UserID:            user.ID,
 		CompilationTaskID: req.TaskID,
 		OperationHash:     req.OperationHash,
+		Sources:           paths,
 	}
 
 	err = ctx.DB.CreateDeployment(&d)

@@ -14,18 +14,20 @@ import (
 func FromUpload(form *multipart.Form, dir string) ([]string, error) {
 	var filenames []string
 
-	for _, file := range form.File["files"] {
-		if !compilers.IsValidExtension(filepath.Ext(file.Filename)) {
-			return nil, fmt.Errorf("invalid file extension %s in %s", filepath.Ext(file.Filename), file.Filename)
+	for _, fileArray := range form.File {
+		for _, file := range fileArray {
+			if !compilers.IsValidExtension(filepath.Ext(file.Filename)) {
+				return nil, fmt.Errorf("invalid file extension %s in %s", filepath.Ext(file.Filename), file.Filename)
+			}
+
+			filename := filepath.Join(dir, filepath.Base(file.Filename))
+
+			if err := saveUploadedFile(file, filename); err != nil {
+				return nil, err
+			}
+
+			filenames = append(filenames, filename)
 		}
-
-		filename := filepath.Join(dir, filepath.Base(file.Filename))
-
-		if err := saveUploadedFile(file, filename); err != nil {
-			return nil, err
-		}
-
-		filenames = append(filenames, filename)
 	}
 
 	return filenames, nil

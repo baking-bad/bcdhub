@@ -1,19 +1,23 @@
 package database
 
-import "time"
+import (
+	"time"
+
+	"github.com/lib/pq"
+)
 
 // Deployment -
 type Deployment struct {
-	ID                uint       `gorm:"primary_key" json:"id"`
-	CreatedAt         time.Time  `json:"created_at"`
-	UpdatedAt         time.Time  `json:"updated_at"`
-	DeletedAt         *time.Time `sql:"index" json:"-"`
-	UserID            uint       `json:"user_id"`
-	CompilationTaskID uint       `json:"-"`
-	Address           string     `json:"address"`
-	Network           string     `json:"network"`
-	OperationHash     string     `json:"operation_hash"`
-	Sources           []string   `json:"sources"`
+	ID                uint           `gorm:"primary_key" json:"id"`
+	CreatedAt         time.Time      `json:"created_at"`
+	UpdatedAt         time.Time      `json:"updated_at"`
+	DeletedAt         *time.Time     `sql:"index" json:"-"`
+	UserID            uint           `json:"user_id"`
+	CompilationTaskID uint           `json:"-"`
+	Address           string         `json:"address"`
+	Network           string         `json:"network"`
+	OperationHash     string         `json:"operation_hash"`
+	Sources           pq.StringArray `gorm:"type:varchar(128)[]" json:"sources"`
 }
 
 // ListDeployments -

@@ -2,6 +2,7 @@ package main
 
 import (
 	"strings"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/tidwall/gjson"
@@ -265,9 +266,11 @@ func main() {
 }
 
 func corsSettings() gin.HandlerFunc {
-	cfg := cors.DefaultConfig()
-	cfg.AllowOrigins = []string{"*"}
-	cfg.AllowCredentials = true
-	cfg.AddAllowHeaders("X-Requested-With", "Authorization")
-	return cors.New(cfg)
+	return cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PATCH"},
+		AllowHeaders:     []string{"X-Requested-With", "Authorization", "Origin", "Content-Length", "Content-Type", "Referer", "Cache-Control"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	})
 }

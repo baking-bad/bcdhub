@@ -80,7 +80,7 @@ func (t *TzKT) GetContractOperationBlocks(startBlock, endBlock int64) ([]int64, 
 
 	result := make([]int64, 0)
 	for !end {
-		blocks, err := t.api.GetContractOperationBlocks(start, 10000)
+		blocks, err := t.api.GetContractOperationBlocks(start, 10000, true, true)
 		if err != nil {
 			return nil, err
 		}
