@@ -41,6 +41,7 @@ var migrationsList = []migrations.Migration{
 	&migrations.SetOperationTags{},
 	&migrations.CreateTransfersTags{},
 	&migrations.SetProtocolConstants{},
+	&migrations.SetOperationAllocatedBurned{},
 }
 
 func main() {
