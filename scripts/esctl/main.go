@@ -40,45 +40,61 @@ func main() {
 
 	parser := flags.NewParser(&options, flags.Default)
 
-	parser.AddCommand("rollback",
+	if _, err := parser.AddCommand("rollback",
 		"Rollback state",
 		"Rollback network state to certain level",
-		&rollbackCmd)
+		&rollbackCmd); err != nil {
+		logger.Fatal(err)
+	}
 
-	parser.AddCommand("remove",
+	if _, err := parser.AddCommand("remove",
 		"Remove network data",
 		"Remove full network data from BCD",
-		&removeCmd)
+		&removeCmd); err != nil {
+		logger.Fatal(err)
+	}
 
-	parser.AddCommand("create_repository",
+	if _, err := parser.AddCommand("create_repository",
 		"Create repository",
 		"Create repository",
-		&createRepoCmd)
+		&createRepoCmd); err != nil {
+		logger.Fatal(err)
+	}
 
-	parser.AddCommand("snapshot",
+	if _, err := parser.AddCommand("snapshot",
 		"Create snapshot",
 		"Create snapshot",
-		&snapshotCmd)
+		&snapshotCmd); err != nil {
+		logger.Fatal(err)
+	}
 
-	parser.AddCommand("restore",
+	if _, err := parser.AddCommand("restore",
 		"Restore snapshot",
 		"Restore snapshot",
-		&restoreCmd)
+		&restoreCmd); err != nil {
+		logger.Fatal(err)
+	}
 
-	parser.AddCommand("set_policy",
+	if _, err := parser.AddCommand("set_policy",
 		"Set policy",
 		"Set elastic snapshot policy",
-		&setPolicyCmd)
+		&setPolicyCmd); err != nil {
+		logger.Fatal(err)
+	}
 
-	parser.AddCommand("reload_secure_settings",
+	if _, err := parser.AddCommand("reload_secure_settings",
 		"Reload secure settings",
 		"Reload secure settings",
-		&reloadSecureSettingsCmd)
+		&reloadSecureSettingsCmd); err != nil {
+		logger.Fatal(err)
+	}
 
-	parser.AddCommand("delete_indices",
+	if _, err := parser.AddCommand("delete_indices",
 		"Delete indices",
 		"Delete indices",
-		&deleteIndicesCmd)
+		&deleteIndicesCmd); err != nil {
+		logger.Fatal(err)
+	}
 
 	if _, err := parser.Parse(); err != nil {
 		panic(err)

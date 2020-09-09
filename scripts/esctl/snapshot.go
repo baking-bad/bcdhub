@@ -13,7 +13,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/baking-bad/bcdhub/internal/elastic"
-	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/pkg/errors"
 )
 
@@ -227,41 +226,5 @@ func restoreMappings(es elastic.IElastic, creds awsData) error {
 			return err
 		}
 	}
-	return nil
-}
-
-func reloadSecureSettings(es elastic.IElastic, creds awsData) error {
-	api := es.GetAPI()
-	resp, err := api.Nodes.ReloadSecureSettings()
-	if err != nil {
-		return err
-	}
-
-	defer resp.Body.Close()
-
-	if resp.IsError() {
-		return errors.Errorf(resp.Status())
-	}
-
-	return nil
-}
-
-func deleteIndices(es elastic.IElastic, creds awsData) error {
-	api := es.GetAPI()
-	options := []func(*esapi.IndicesDeleteRequest){
-		api.Indices.Delete.WithAllowNoIndices(true),
-	}
-
-	resp, err := api.Indices.Delete(mappingNames, options...)
-	if err != nil {
-		return err
-	}
-
-	defer resp.Body.Close()
-
-	if resp.IsError() {
-		return errors.Errorf(resp.Status())
-	}
-
 	return nil
 }
