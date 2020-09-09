@@ -1,5 +1,5 @@
 share:
-    path: /home/${USER}/.bcd
+    path: ${HOME}/.bcd
 
 sentry:
     environment: development
@@ -25,7 +25,7 @@ oauth:
     gitlab:
         client_id: ${GITLAB_CLIENT_ID}
         secret: ${GITLAB_CLIENT_SECRET}
-        callback_url: https://localhost:14000/v1/oauth/gitlab/callback
+        callback_url: http://localhost:14000/v1/oauth/gitlab/callback
 
 api:
     bind: "127.0.0.1:14000"
@@ -47,4 +47,3 @@ rabbitmq:
     uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@127.0.0.1:5672/"
     queues:
         - operations
-        - recalc

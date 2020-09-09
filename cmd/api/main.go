@@ -2,6 +2,7 @@ package main
 
 import (
 	"strings"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/tidwall/gjson"
@@ -70,6 +71,7 @@ func main() {
 	}
 
 	r := gin.Default()
+	r.MaxMultipartMemory = 4 << 20 // max upload size 4 MiB
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		if err := v.RegisterValidation("address", handlers.AddressValidator); err != nil {
@@ -107,6 +109,12 @@ func main() {
 		}
 	}
 
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		if err := v.RegisterValidation("compilation_kind", handlers.CompilationKindValidator); err != nil {
+			logger.Fatal(err)
+		}
+	}
+
 	r.Use(corsSettings())
 
 	if cfg.API.Sentry.Enabled {
@@ -127,6 +135,7 @@ func main() {
 		v1.GET("pick_random", ctx.GetRandomContract)
 		v1.GET("projects", ctx.GetProjects)
 		v1.GET("search", ctx.Search)
+		v1.POST("fork", ctx.ForkContract)
 
 		v1.POST("diff", ctx.GetDiff)
 
@@ -185,7 +194,6 @@ func main() {
 				entrypoints.POST("trace", ctx.RunCode)
 				entrypoints.POST("run_operation", ctx.RunOperation)
 			}
-			contract.POST("fork", ctx.ForkContract)
 		}
 
 		fa12 := v1.Group("tokens/:network")
@@ -226,6 +234,20 @@ func main() {
 					vote.GET("tasks", ctx.GetTasks)
 					vote.GET("generate", ctx.GenerateTasks)
 				}
+				profile.GET("repos", ctx.ListPublicRepos)
+				profile.GET("refs", ctx.ListPublicRefs)
+
+				compilations := profile.Group("compilations")
+				{
+					compilations.GET("", ctx.ListCompilationTasks)
+
+					compilations.GET("verification", ctx.ListVerifications)
+					compilations.POST("verification", ctx.CreateVerification)
+
+					compilations.GET("deployment", ctx.ListDeployments)
+					compilations.POST("deployment", ctx.CreateDeployment)
+					compilations.PATCH("deployment", ctx.FinalizeDeployment)
+				}
 			}
 		}
 
@@ -245,9 +267,11 @@ func main() {
 }
 
 func corsSettings() gin.HandlerFunc {
-	cfg := cors.DefaultConfig()
-	cfg.AllowOrigins = []string{"*"}
-	cfg.AllowCredentials = true
-	cfg.AddAllowHeaders("X-Requested-With", "Authorization")
-	return cors.New(cfg)
+	return cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PATCH"},
+		AllowHeaders:     []string{"X-Requested-With", "Authorization", "Origin", "Content-Length", "Content-Type", "Referer", "Cache-Control"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	})
 }

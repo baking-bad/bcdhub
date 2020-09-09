@@ -26,3 +26,16 @@ func WithRabbitSource(connection string, queues []string) HubOption {
 		h.sources = append(h.sources, rmq)
 	}
 }
+
+// WithElasticParams -
+func WithElasticParams(connection string, timeout int) HubOption {
+	return func(h *Hub) {
+		h.elastic = struct {
+			connection string
+			timeout    int
+		}{
+			connection: connection,
+			timeout:    timeout,
+		}
+	}
+}

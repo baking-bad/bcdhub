@@ -1,0 +1,197 @@
+# SPDX-FileCopyrightText: 2020 TQ Tezos <https://tqtezos.com/>
+#
+# SPDX-License-Identifier: MPL-2.0
+diff --git a/src/bin_client/dune b/src/bin_client/dune
+index cd22cd7..dc732e2 100644
+--- a/src/bin_client/dune
++++ b/src/bin_client/dune
+@@ -68,7 +68,10 @@
+                     -open Tezos_client_commands
+                     -open Tezos_mockup_commands
+                     -open Tezos_client_base_unix
+-                    -linkall)))
++                    -linkall
++                    -ccopt -static
++                    -cclib "-lusb-1.0 -lhidapi-libusb -ludev"
++                    )))
+ 
+ (rule
+   (target void_for_linking)
+diff --git a/src/bin_node/dune b/src/bin_node/dune
+index 568dcab..14cf4e0 100644
+--- a/src/bin_node/dune
++++ b/src/bin_node/dune
+@@ -79,7 +79,9 @@
+                    -open Tezos_shell_context
+                    -open Tezos_workers
+                    -open Tezos_protocol_updater
+-                   -linkall)))
++                   -linkall
++                   -ccopt -static
++                   )))
+ 
+ (rule
+   (target void_for_linking)
+diff --git a/src/proto_006_PsCARTHA/bin_accuser/dune b/src/proto_006_PsCARTHA/bin_accuser/dune
+index e99ac8f..5afd74b 100644
+--- a/src/proto_006_PsCARTHA/bin_accuser/dune
++++ b/src/proto_006_PsCARTHA/bin_accuser/dune
+@@ -10,7 +10,10 @@
+                    -open Tezos_client_commands
+                    -open Tezos_baking_006_PsCARTHA_commands
+                    -open Tezos_stdlib_unix
+-                   -open Tezos_client_base_unix)))
++                   -open Tezos_client_base_unix
++                   -ccopt -static
++                   -cclib "-lusb-1.0 -lhidapi-libusb -ludev"
++                   )))
+ 
+ (alias
+  (name runtest_lint)
+diff --git a/src/proto_006_PsCARTHA/bin_baker/dune b/src/proto_006_PsCARTHA/bin_baker/dune
+index d96ef4c..baa8598 100644
+--- a/src/proto_006_PsCARTHA/bin_baker/dune
++++ b/src/proto_006_PsCARTHA/bin_baker/dune
+@@ -10,7 +10,10 @@
+                    -open Tezos_client_commands
+                    -open Tezos_baking_006_PsCARTHA_commands
+                    -open Tezos_stdlib_unix
+-                   -open Tezos_client_base_unix)))
++                   -open Tezos_client_base_unix
++                   -ccopt -static
++                   -cclib "-lusb-1.0 -lhidapi-libusb -ludev"
++                   )))
+ 
+ (alias
+  (name runtest_lint)
+diff --git a/src/proto_006_PsCARTHA/bin_endorser/dune b/src/proto_006_PsCARTHA/bin_endorser/dune
+index c675ab3..ac0f52b 100644
+--- a/src/proto_006_PsCARTHA/bin_endorser/dune
++++ b/src/proto_006_PsCARTHA/bin_endorser/dune
+@@ -10,7 +10,9 @@
+                    -open Tezos_client_commands
+                    -open Tezos_baking_006_PsCARTHA_commands
+                    -open Tezos_stdlib_unix
+-                   -open Tezos_client_base_unix)))
++                   -open Tezos_client_base_unix
++                   -ccopt -static
++                   -cclib "-lusb-1.0 -lhidapi-libusb -ludev")))
+ 
+ (alias
+  (name runtest_lint)
+diff --git a/src/bin_signer/dune b/src/bin_signer/dune
+index e4c9a7c..2a5f941 100644
+--- a/src/bin_signer/dune
++++ b/src/bin_signer/dune
+@@ -19,7 +19,10 @@
+                    -open Tezos_rpc_http_server
+                    -open Tezos_rpc_http_client_unix
+                    -open Tezos_stdlib_unix
+-                   -open Tezos_stdlib)))
++                   -open Tezos_stdlib
++                   -ccopt -static
++                   -cclib "-lusb-1.0 -lhidapi-libusb -ludev"
++                   )))
+ 
+ (alias
+  (name runtest_lint)
+diff --git a/src/lib_protocol_compiler/dune b/src/lib_protocol_compiler/dune
+index 0902181..30fe55b 100644
+--- a/src/lib_protocol_compiler/dune
++++ b/src/lib_protocol_compiler/dune
+@@ -65,7 +65,7 @@
+  (public_name tezos-protocol-compiler)
+  (modes native)
+  (libraries tezos_protocol_compiler_native)
+- (flags (:standard -linkall))
++ (flags (:standard -linkall -ccopt -static))
+  (modules Main_native))
+ 
+ (executable
+diff --git a/src/lib_client_base_unix/client_config.ml b/src/lib_client_base_unix/client_config.ml
+index 422de8d72..acf9c8570 100644
+--- a/src/lib_client_base_unix/client_config.ml
++++ b/src/lib_client_base_unix/client_config.ml
+@@ -746,7 +746,7 @@ let default_parsed_config_args =
+  * (when all/most commands will fail) or emits a warning (some commands may
+  * fail).
+  *)
+-let check_base_dir_for_mode (ctx : #Client_context.full) client_mode base_dir =
++let check_base_dir_for_mode client_mode base_dir =
+   let open Tezos_mockup.Persistence in
+   let base_dir_class = classify_base_dir base_dir in
+   match client_mode with
+@@ -769,21 +769,7 @@ let check_base_dir_for_mode (ctx : #Client_context.full) client_mode base_dir =
+           base_dir_class
+     | _ ->
+         return_unit )
+-  | Mode_mockup -> (
+-    match base_dir_class with
+-    | Base_dir_is_empty
+-    | Base_dir_does_not_exist
+-    | Base_dir_is_nonempty
+-    | Base_dir_is_file ->
+-        ctx#warning
+-          "@[<hv>Base dir %s has state `%a`.@ Some commands (e.g., transfer) \
+-           might not work correctly.@]"
+-          base_dir
+-          pp_base_dir_class
+-          base_dir_class
+-        >>= fun () -> return_unit
+-    | Base_dir_is_mockup ->
+-        return_unit )
++  | Mode_mockup -> return_unit
+
+ let build_endpoint addr port tls =
+   let updatecomp updatef ov uri =
+@@ -836,7 +822,7 @@ let parse_config_args (ctx : #Client_context.full) argv =
+         (* In mockup mode base dir may be created automatically. *)
+         return dir ) )
+   >>=? fun base_dir ->
+-  check_base_dir_for_mode ctx client_mode base_dir
++  check_base_dir_for_mode client_mode base_dir
+   >>=? fun () ->
+   ( match config_file with
+   | None ->
+diff --git a/src/lib_micheline/micheline_parser.ml b/src/lib_micheline/micheline_parser.ml
+index 7fe64222f..b753650e5 100644
+--- a/src/lib_micheline/micheline_parser.ml
++++ b/src/lib_micheline/micheline_parser.ml
+@@ -725,35 +725,8 @@ let rec parse ?(check = true) errors tokens stack =
+       parse ~check errors rest (push_mode mode stack)
+
+ (* indentation checker *)
+-and do_check ?(toplevel = false) errors = function
+-  | Seq ({start; stop}, []) as expr ->
+-      if start.column >= stop.column then Misaligned expr :: errors else errors
+-  | ( Prim ({start; stop}, _, first :: rest, _)
+-    | Seq ({start; stop}, first :: rest) ) as expr ->
+-      let {column = first_column; line = first_line; _} = min_point [first] in
+-      if start.column >= stop.column then Misaligned expr :: errors
+-      else if (not toplevel) && start.column >= first_column then
+-        Misaligned expr :: errors
+-      else
+-        (* In a sequence or in the arguments of a primitive, we
+-           require all items to be aligned, but we relax the rule to
+-           allow consecutive items to be written on the same line. *)
+-        let rec in_line_or_aligned prev_start_line errors = function
+-          | [] ->
+-              errors
+-          | expr :: rest ->
+-              let {column; line = start_line; _} = min_point [expr] in
+-              let {line = stop_line; _} = max_point [expr] in
+-              let errors =
+-                if stop_line <> prev_start_line && column <> first_column then
+-                  Misaligned expr :: errors
+-                else errors
+-              in
+-              in_line_or_aligned start_line errors rest
+-        in
+-        in_line_or_aligned first_line errors rest
+-  | Prim (_, _, [], _) | String _ | Int _ | Bytes _ ->
+-      errors
++and do_check ?toplevel:_ errors = function
++  | _ -> errors
+
+ let parse_expression ?check tokens =
+   let result =

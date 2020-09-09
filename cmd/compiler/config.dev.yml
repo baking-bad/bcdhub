@@ -1,0 +1,44 @@
+share:
+    path: ${HOME}/.bcd
+
+rpc:
+    mainnet:
+        uri: https://rpc.tzkt.io/mainnet
+        timeout: 20
+    zeronet:
+        uri: https://rpc.tzkt.io/zeronet
+        timeout: 20
+    dalphanet:
+        uri: https://rpc.tzkt.io/dalphanet
+        timeout: 20
+    carthagenet:
+        uri: https://rpc.tzkt.io/carthagenet
+        timeout: 20
+
+sentry:
+    environment: development
+    uri: ${SENTRY_DSN}
+    debug: true
+
+db:
+    conn_string: "host=db port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"
+
+aws:
+    bucket_name: bcd-contract-sources
+    region: eu-central-1
+    access_key_id: ${AWS_ACCESS_KEY_ID}
+    secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+
+compiler:
+    sentry:
+        enabled: false
+        project: compiler
+
+rabbitmq:
+    uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mq:5672/"
+    queues:
+       - compilations
+
+elastic:
+    uri: http://elastic:9200
+    timeout: 1

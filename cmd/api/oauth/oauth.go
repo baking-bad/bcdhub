@@ -1,27 +1,18 @@
 package oauth
 
 import (
+	"fmt"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/providers"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/github"
-	"golang.org/x/oauth2/gitlab"
 )
-
-// InitConfig -
-type InitConfig struct {
-	GithubCallbackURL string `json:"githubCallbackURL"`
-	GitlabCallbackURL string `json:"gitlabCallbackURL"`
-	JwtRedirectURL    string `json:"jwtRedirectURL"`
-}
 
 // Config -
 type Config struct {
-	Github         *oauth2.Config
-	Gitlab         *oauth2.Config
+	Providers      map[string]providers.Oauth
 	JWTKey         []byte
 	State          string
 	UserID         uint
@@ -31,20 +22,7 @@ type Config struct {
 // New -
 func New(cfg config.Config) (Config, error) {
 	return Config{
-		Github: &oauth2.Config{
-			RedirectURL:  cfg.OAuth.Github.CallbackURL,
-			ClientID:     cfg.OAuth.Github.ClientID,
-			ClientSecret: cfg.OAuth.Github.Secret,
-			Scopes:       []string{},
-			Endpoint:     github.Endpoint,
-		},
-		Gitlab: &oauth2.Config{
-			RedirectURL:  cfg.OAuth.Gitlab.CallbackURL,
-			ClientID:     cfg.OAuth.Gitlab.ClientID,
-			ClientSecret: cfg.OAuth.Gitlab.Secret,
-			Scopes:       []string{"read_user"},
-			Endpoint:     gitlab.Endpoint,
-		},
+		Providers:      providers.InitOauth(cfg),
 		JWTKey:         []byte(cfg.OAuth.JWT.Secret),
 		State:          cfg.OAuth.State,
 		JWTRedirectURL: cfg.OAuth.JWT.RedirectURL,
@@ -86,6 +64,10 @@ func (c Config) GetIDFromToken(token string) (uint, error) {
 
 	if !tkn.Valid {
 		return 0, errors.Errorf("invalid token %v", token)
+	}
+
+	if time.Now().Unix() > claims.StandardClaims.ExpiresAt {
+		return 0, fmt.Errorf("token expired")
 	}
 
 	return claims.UserID, nil

@@ -246,6 +246,10 @@ type entrypointSchemaRequest struct {
 }
 
 type forkRequest struct {
+	Address string `json:"address" binding:"required_without=Script,omitempty,address"`
+	Network string `json:"network" binding:"required_with=Address,omitempty,network"`
+	Script  string `json:"script" binding:"required_without=Network Address,omitempty"`
+
 	Storage map[string]interface{} `json:"storage" binding:"required"`
 }
 
@@ -271,4 +275,32 @@ type getTokenSeriesRequest struct {
 	Address string `form:"address" binding:"required,address"`
 	Period  string `form:"period" binding:"oneof=all year month week day" example:"year"`
 	TokenID uint   `form:"token_id"`
+}
+
+type verificationRequest struct {
+	Address string `json:"address"`
+	Network string `json:"network"`
+	Repo    string `json:"repo"`
+	Ref     string `json:"ref"`
+}
+
+type deploymentRequest struct {
+	OperationHash string `json:"operation_hash" binding:"required"`
+	TaskID        uint   `json:"task_id" binding:"required"`
+	ResultID      uint   `json:"result_id"`
+}
+
+type compilationTasksRequest struct {
+	Limit  uint   `form:"limit" binding:"omitempty,min=0"`
+	Offset uint   `form:"offset" binding:"omitempty,min=0"`
+	Kind   string `form:"kind" binding:"omitempty,compilation_kind"`
+}
+
+type compilationRequest struct {
+	Limit  uint `form:"limit" binding:"omitempty,min=0"`
+	Offset uint `form:"offset" binding:"omitempty,min=0"`
+}
+
+type publicRefsRequest struct {
+	Repo string `form:"repo" binding:"required"`
 }

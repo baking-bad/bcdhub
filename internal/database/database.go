@@ -9,7 +9,7 @@ import (
 // DB -
 type DB interface {
 	// User
-	GetOrCreateUser(*User) error
+	GetOrCreateUser(*User, string) error
 	GetUser(uint) (*User, error)
 	UpdateUserMarkReadAt(uint, int64) error
 
@@ -46,6 +46,28 @@ type DB interface {
 	// Tokens
 	GetTokens() ([]Token, error)
 
+	// CompilationTask
+	ListCompilationTasks(userID, limit, offset uint, kind string) ([]CompilationTask, error)
+	GetCompilationTask(taskID uint) (*CompilationTask, error)
+	GetCompilationTaskBy(address, network, status string) (*CompilationTask, error)
+	CreateCompilationTask(ct *CompilationTask) error
+	UpdateTaskStatus(taskID uint, status string) error
+	UpdateTaskResults(task *CompilationTask, status string, results []CompilationTaskResult) error
+	CountCompilationTasks(userID uint) (int64, error)
+
+	// Verification
+	ListVerifications(userID, limit, offset uint) ([]Verification, error)
+	CreateVerification(v *Verification) error
+	GetVerificationBy(address, network string) (*Verification, error)
+	CountVerifications(userID uint) (int64, error)
+
+	// Deployment
+	ListDeployments(userID, limit, offset uint) ([]Deployment, error)
+	CreateDeployment(dt *Deployment) error
+	GetDeploymentBy(opHash string) (*Deployment, error)
+	UpdateDeployment(dt *Deployment) error
+	CountDeployments(userID uint) (int64, error)
+
 	Close()
 }
 
@@ -62,7 +84,20 @@ func New(connectionString string) (DB, error) {
 
 	gormDB.LogMode(false)
 
-	gormDB.AutoMigrate(&User{}, &Subscription{}, &Alias{}, &Assessments{}, &Account{}, &Picture{}, &DApp{}, &Token{})
+	gormDB.AutoMigrate(
+		&User{},
+		&Subscription{},
+		&Alias{},
+		&Assessments{},
+		&Account{},
+		&Picture{},
+		&DApp{},
+		&Token{},
+		&CompilationTask{},
+		&CompilationTaskResult{},
+		&Verification{},
+		&Deployment{},
+	)
 
 	gormDB = gormDB.Set("gorm:auto_preload", false)
 

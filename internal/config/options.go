@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/aws"
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/database"
@@ -58,7 +59,7 @@ func WithRabbitReceiver(rabbitConfig RabbitConfig, service string) ContextOption
 		if err != nil {
 			log.Panicf("Rabbit MQ connection error: %s", err)
 		}
-		ctx.MQ = messageQueue
+		ctx.MQReceiver = messageQueue
 	}
 }
 
@@ -69,7 +70,7 @@ func WithRabbitPublisher(rabbitConfig RabbitConfig, service string) ContextOptio
 		if err != nil {
 			log.Panicf("Rabbit MQ connection error: %s", err)
 		}
-		ctx.MQ = messageQueue
+		ctx.MQPublisher = messageQueue
 	}
 }
 
@@ -135,5 +136,16 @@ func WithAliases(network string) ContextOption {
 			panic(err)
 		}
 		ctx.Aliases = aliases
+	}
+}
+
+// WithAWS -
+func WithAWS(cfg AWSConfig) ContextOption {
+	return func(ctx *Context) {
+		client, err := aws.New(cfg.AccessKeyID, cfg.SecretAccessKey, cfg.Region, cfg.BucketName)
+		if err != nil {
+			log.Panicf("aws client init error: %s", err)
+		}
+		ctx.AWS = client
 	}
 }

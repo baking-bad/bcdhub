@@ -235,3 +235,12 @@ func (p Pool) GetCounter(address string) (int64, error) {
 	}
 	return data.Int(), nil
 }
+
+// GetCode -
+func (p Pool) GetCode(address string, level int64) (gjson.Result, error) {
+	data, err := p.call("GetCode", address, level)
+	if err != nil {
+		return gjson.Result{}, err
+	}
+	return data.Interface().(gjson.Result), nil
+}

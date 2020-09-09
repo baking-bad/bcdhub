@@ -22,4 +22,5 @@ type INode interface {
 	RunCode(gjson.Result, gjson.Result, gjson.Result, string, string, string, string, int64, int64) (gjson.Result, error)
 	RunOperation(string, string, string, string, int64, int64, int64, int64, int64, gjson.Result) (gjson.Result, error)
 	GetCounter(string) (int64, error)
+	GetCode(address string, level int64) (gjson.Result, error)
 }

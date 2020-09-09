@@ -38,6 +38,10 @@ func parseOperation(operation models.Operation) error {
 	h.SetOperationAliases(ctx.Aliases, &operation)
 	h.SetOperationStrings(&operation)
 
+	if err := h.SetOperationDeployment(&operation); err != nil {
+		return err
+	}
+
 	if _, err := ctx.ES.UpdateDoc(elastic.DocOperations, operation.ID, operation); err != nil {
 		return err
 	}

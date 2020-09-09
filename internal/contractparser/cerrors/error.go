@@ -179,16 +179,20 @@ func (e *InvalidSyntacticConstantError) Format() error {
 	if err := e.DefaultError.Format(); err != nil {
 		return err
 	}
-	wrongExpression, err := formatter.MichelineToMichelson(gjson.Parse(e.WrongExpression), false, formatter.DefLineSize)
-	if err != nil {
-		return err
+	if e.WrongExpression != "" {
+		wrongExpression, err := formatter.MichelineToMichelson(gjson.Parse(e.WrongExpression), false, formatter.DefLineSize)
+		if err != nil {
+			return err
+		}
+		e.WrongExpression = wrongExpression
 	}
-	e.WrongExpression = wrongExpression
 
-	expectedForm, err := formatter.MichelineToMichelson(gjson.Parse(e.ExpectedForm), false, formatter.DefLineSize)
-	if err != nil {
-		return err
+	if e.ExpectedForm != "" {
+		expectedForm, err := formatter.MichelineToMichelson(gjson.Parse(e.ExpectedForm), false, formatter.DefLineSize)
+		if err != nil {
+			return err
+		}
+		e.ExpectedForm = expectedForm
 	}
-	e.ExpectedForm = expectedForm
 	return nil
 }

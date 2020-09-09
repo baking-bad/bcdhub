@@ -204,9 +204,11 @@ type Contract struct {
 	Alias           string     `json:"alias,omitempty"`
 	DelegateAlias   string     `json:"delegate_alias,omitempty"`
 
-	Subscription    *Subscription `json:"subscription,omitempty"`
-	TotalSubscribed int           `json:"total_subscribed"`
-	Slug            string        `json:"slug,omitempty"`
+	Subscription       *Subscription `json:"subscription,omitempty"`
+	TotalSubscribed    int           `json:"total_subscribed"`
+	Slug               string        `json:"slug,omitempty"`
+	Verified           bool          `json:"verified,omitempty"`
+	VerificationSource string        `json:"verification_source,omitempty"`
 }
 
 // FromModel -
@@ -238,6 +240,8 @@ func (c *Contract) FromModel(contract models.Contract) {
 	c.Timestamp = contract.Timestamp
 	c.TotalWithdrawn = contract.TotalWithdrawn
 	c.TxCount = contract.TxCount
+	c.Verified = contract.Verified
+	c.VerificationSource = contract.VerificationSource
 }
 
 // Subscription -
@@ -270,11 +274,14 @@ type OperationResponse struct {
 }
 
 type userProfile struct {
-	Login           string    `json:"login"`
-	AvatarURL       string    `json:"avatar_url"`
-	MarkReadAt      time.Time `json:"mark_read_at"`
-	RegisteredAt    time.Time `json:"registered_at"`
-	MarkedContracts int       `json:"marked_contracts"`
+	Login            string    `json:"login"`
+	AvatarURL        string    `json:"avatar_url"`
+	MarkReadAt       time.Time `json:"mark_read_at"`
+	RegisteredAt     time.Time `json:"registered_at"`
+	MarkedContracts  int       `json:"marked_contracts"`
+	CompilationTasks int64     `json:"compilation_tasks"`
+	Verifications    int64     `json:"verifications"`
+	Deployments      int64     `json:"deployments"`
 
 	Subscriptions []Subscription `json:"subscriptions"`
 }

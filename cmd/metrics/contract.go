@@ -3,11 +3,11 @@ package main
 import (
 	"encoding/json"
 
-	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/pkg/errors"
 
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/streadway/amqp"
 )
@@ -42,7 +42,13 @@ func parseContract(contract models.Contract) error {
 		}
 	}
 
+	if !contract.Verified {
+		if err := h.SetContractVerification(&contract); err != nil {
+			return errors.Errorf("[parseContract] Error during set contract verification: %s", err)
+		}
+	}
+
 	logger.Info("Contract %s to project %s", contract.Address, contract.ProjectID)
 
-	return ctx.ES.UpdateFields(elastic.DocContracts, contract.ID, contract, "ProjectID", "Alias")
+	return ctx.ES.UpdateFields(elastic.DocContracts, contract.ID, contract, "ProjectID", "Alias", "Verified", "VerificationSource")
 }

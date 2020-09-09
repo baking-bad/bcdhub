@@ -30,12 +30,30 @@ func (ctx *Context) GetUserProfile(c *gin.Context) {
 		return
 	}
 
+	compilationTasks, err := ctx.DB.CountCompilationTasks(user.ID)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	verifications, err := ctx.DB.CountVerifications(user.ID)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	deployments, err := ctx.DB.CountDeployments(user.ID)
+	if handleError(c, err, 0) {
+		return
+	}
+
 	profile := userProfile{
-		Login:           user.Login,
-		AvatarURL:       user.AvatarURL,
-		MarkReadAt:      user.MarkReadAt,
-		RegisteredAt:    user.CreatedAt,
-		MarkedContracts: count,
+		Login:            user.Login,
+		AvatarURL:        user.AvatarURL,
+		MarkReadAt:       user.MarkReadAt,
+		RegisteredAt:     user.CreatedAt,
+		MarkedContracts:  count,
+		CompilationTasks: compilationTasks,
+		Verifications:    verifications,
+		Deployments:      deployments,
 
 		Subscriptions: PrepareSubscriptions(subscriptions),
 	}

@@ -15,7 +15,7 @@ func Run(ctx *handlers.Context, seed config.SeedConfig) error {
 		AvatarURL: seed.User.AvatarURL,
 	}
 
-	if err := ctx.DB.GetOrCreateUser(&user); err != nil {
+	if err := ctx.DB.GetOrCreateUser(&user, ""); err != nil {
 		return err
 	}
 

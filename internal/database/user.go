@@ -9,17 +9,26 @@ import (
 // User model
 type User struct {
 	gorm.Model
-	Login     string `gorm:"primary_key;not null"`
-	Name      string
-	AvatarURL string `gorm:"not null"`
-	Token     string `gorm:"not null"`
-
+	Login         string `gorm:"primary_key;not null"`
+	Name          string
+	AvatarURL     string `gorm:"not null"`
+	Token         string `gorm:"not null"`
+	Provider      string
 	Subscriptions []Subscription
 	MarkReadAt    time.Time
 }
 
-func (d *db) GetOrCreateUser(u *User) error {
-	return d.ORM.Where("login = ?", u.Login).FirstOrCreate(u).Error
+func (d *db) GetOrCreateUser(u *User, token string) error {
+	err := d.ORM.Where("login = ?", u.Login).First(u).Error
+	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return d.ORM.Create(u).Error
+		}
+
+		return err
+	}
+
+	return d.ORM.Model(u).Where("login = ?", u.Login).Update("token", u.Token).Error
 }
 
 func (d *db) GetUser(userID uint) (*User, error) {

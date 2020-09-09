@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/baking-bad/bcdhub/internal/aws"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/database"
@@ -15,7 +16,9 @@ import (
 type Context struct {
 	DB           database.DB
 	ES           elastic.IElastic
-	MQ           *mq.MQ
+	MQPublisher  *mq.MQ
+	MQReceiver   *mq.MQ
+	AWS          *aws.Client
 	RPC          map[string]noderpc.INode
 	TzKTServices map[string]*tzkt.ServicesTzKT
 
@@ -67,8 +70,11 @@ func (ctx *Context) LoadAliases() error {
 
 // Close -
 func (ctx *Context) Close() {
-	if ctx.MQ != nil {
-		ctx.MQ.Close()
+	if ctx.MQPublisher != nil {
+		ctx.MQPublisher.Close()
+	}
+	if ctx.MQReceiver != nil {
+		ctx.MQReceiver.Close()
 	}
 	if ctx.DB != nil {
 		ctx.DB.Close()
