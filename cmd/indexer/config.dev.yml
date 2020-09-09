@@ -21,6 +21,6 @@ indexer:
           boost: tzkt
         # carthagenet:
         #   boost: tzkt
-        # zeronet:
+        # delphinet:
         #   boost: tzkt
         # dalphanet:

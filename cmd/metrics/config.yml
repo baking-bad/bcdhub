@@ -2,8 +2,8 @@ rpc:
     mainnet:
         uri: https://mainnet-tezos.giganode.io
         timeout: 20
-    zeronet:
-        uri: https://rpc.tzkt.io/zeronet
+    delphinet:
+        uri: https://rpc.tzkt.io/delphinet
         timeout: 20
     dalphanet:
         uri: https://rpc.tzkt.io/dalphanet

@@ -54,14 +54,10 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		return
 	}
 
-	// TODO: store in state instead
-	constants, err := rpc.GetNetworkConstants()
+	protocol, err := ctx.ES.GetProtocol(req.Network, "", -1)
 	if handleError(c, err, 0) {
 		return
 	}
-
-	hardGasLimit := constants.Get("hard_gas_limit_per_operation").Int()
-	hardStorageLimit := constants.Get("hard_storage_limit_per_operation").Int()
 
 	response, err := rpc.RunOperation(
 		state.ChainID,
@@ -69,8 +65,8 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		reqRunOp.Source,
 		req.Address,
 		0, // fee
-		hardGasLimit,
-		hardStorageLimit,
+		protocol.Constants.HardGasLimitPerOperation,
+		protocol.Constants.HardStorageLimitPerOperation,
 		counter+1,
 		reqRunOp.Amount,
 		parameters,
@@ -79,7 +75,7 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		return
 	}
 
-	defaultParser := parsers.NewDefaultParser(rpc, ctx.ES, ctx.SharePath, ctx.Interfaces)
+	defaultParser := parsers.NewDefaultParser(rpc, ctx.ES, ctx.SharePath, ctx.Interfaces, protocol.Constants)
 
 	header := noderpc.Header{
 		Level:       state.Level,
@@ -99,27 +95,11 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 	diffs := make([]*models.BigMapDiff, 0)
 
 	for i := range parsedModels {
-		op, ok := parsedModels[i].(*models.Operation)
-		if ok {
-			// TODO: move burn calculation from metrics to indexer
-			if op.Status == consts.Applied && op.Result != nil {
-				var burned int64
-
-				if op.Result.PaidStorageSizeDiff != 0 {
-					burned += op.Result.PaidStorageSizeDiff * 1000
-				}
-				if op.Result.AllocatedDestinationContract {
-					burned += 257000
-				}
-
-				op.Burned = burned
-			}
-			operations = append(operations, op)
-		} else {
-			diff, ok := parsedModels[i].(*models.BigMapDiff)
-			if ok {
-				diffs = append(diffs, diff)
-			}
+		switch val := parsedModels[i].(type) {
+		case *models.Operation:
+			operations = append(operations, val)
+		case *models.BigMapDiff:
+			diffs = append(diffs, val)
 		}
 	}
 

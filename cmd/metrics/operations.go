@@ -36,7 +36,6 @@ func parseOperation(operation models.Operation) error {
 	h := metrics.New(ctx.ES, ctx.DB)
 
 	h.SetOperationAliases(ctx.Aliases, &operation)
-	h.SetOperationBurned(&operation)
 	h.SetOperationStrings(&operation)
 
 	if err := h.SetOperationDeployment(&operation); err != nil {

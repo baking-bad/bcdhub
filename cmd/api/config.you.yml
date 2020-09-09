@@ -38,7 +38,7 @@ api:
     networks:
         - mainnet
         - carthagenet
-        - zeronet
+        - delphinet
         - dalphanet
     seed:
         enabled: false

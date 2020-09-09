@@ -6,12 +6,21 @@ import "github.com/tidwall/gjson"
 type Protocol struct {
 	ID string `json:"-"`
 
-	Hash       string `json:"hash"`
-	Network    string `json:"network"`
-	StartLevel int64  `json:"start_level"`
-	EndLevel   int64  `json:"end_level"`
-	SymLink    string `json:"sym_link"`
-	Alias      string `json:"alias"`
+	Hash       string    `json:"hash"`
+	Network    string    `json:"network"`
+	StartLevel int64     `json:"start_level"`
+	EndLevel   int64     `json:"end_level"`
+	SymLink    string    `json:"sym_link"`
+	Alias      string    `json:"alias"`
+	Constants  Constants `json:"constants"`
+}
+
+// Constants -
+type Constants struct {
+	CostPerByte                  int64 `json:"cost_per_byte"`
+	HardGasLimitPerOperation     int64 `json:"hard_gas_limit_per_operation"`
+	HardStorageLimitPerOperation int64 `json:"hard_storage_limit_per_operation"`
+	TimeBetweenBlocks            int64 `json:"time_between_blocks"`
 }
 
 // GetID -
@@ -33,6 +42,12 @@ func (p *Protocol) ParseElasticJSON(hit gjson.Result) {
 	p.EndLevel = hit.Get("_source.end_level").Int()
 	p.Alias = hit.Get("_source.alias").String()
 	p.SymLink = hit.Get("_source.sym_link").String()
+	p.Constants = Constants{
+		CostPerByte:                  hit.Get("_source.constants.cost_per_byte").Int(),
+		HardGasLimitPerOperation:     hit.Get("_source.constants.hard_gas_limit_per_operation").Int(),
+		HardStorageLimitPerOperation: hit.Get("_source.constants.hard_storage_limit_per_operation").Int(),
+		TimeBetweenBlocks:            hit.Get("_source.constants.time_between_blocks").Int(),
+	}
 }
 
 // GetQueue -

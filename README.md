@@ -366,7 +366,7 @@ make restart
 ```
 
 ## Snapshots
-Full indexing process (mainnet + carthagenet + zeronet) requires about 2 hours, however there are cases when you cannot afford that.  
+Full indexing process (mainnet + carthagenet + delphinet + dalphanet) requires about 2 hours, however there are cases when you cannot afford that.  
 Elastic Search has a built-in incremental snapshotting mechanism which we use together with the AWS S3 plugin.
 
 **NOTE:** currently we don't provide public snapshots.  

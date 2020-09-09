@@ -245,8 +245,12 @@ func (rpc *NodeRPC) GetContractsByBlock(block int64) ([]string, error) {
 }
 
 // GetNetworkConstants -
-func (rpc *NodeRPC) GetNetworkConstants() (res gjson.Result, err error) {
-	return rpc.get("chains/main/blocks/head/context/constants")
+func (rpc *NodeRPC) GetNetworkConstants(level int64) (res gjson.Result, err error) {
+	block := "head"
+	if level > 0 {
+		block = fmt.Sprintf("%d", level)
+	}
+	return rpc.get(fmt.Sprintf("chains/main/blocks/%s/context/constants", block))
 }
 
 // RunCode -
