@@ -65,6 +65,7 @@ type Config struct {
 	} `yaml:"metrics"`
 
 	Compiler struct {
+		AWS    AWSConfig `yaml:"aws"`
 		Sentry struct {
 			Enabled bool   `yaml:"enabled"`
 			Project string `yaml:"project"`

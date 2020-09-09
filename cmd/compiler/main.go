@@ -39,7 +39,7 @@ func main() {
 			config.WithRabbitReceiver(cfg.RabbitMQ, "compiler"),
 			config.WithRabbitPublisher(cfg.RabbitMQ, "compiler"),
 			config.WithElasticSearch(cfg.Elastic),
-			config.WithAWS(cfg.AWS),
+			config.WithAWS(cfg.Compiler.AWS),
 		),
 	}
 

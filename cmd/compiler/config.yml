@@ -23,13 +23,12 @@ sentry:
 db:
     conn_string: "host=db port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"
 
-aws:
-    bucket_name: bcd-contract-sources
-    region: eu-central-1
-    access_key_id: ${AWS_ACCESS_KEY_ID}
-    secret_access_key: ${AWS_SECRET_ACCESS_KEY}
-
 compiler:
+    aws:
+        bucket_name: bcd-contract-sources
+        region: eu-central-1
+        access_key_id: ${AWS_ACCESS_KEY_ID}
+        secret_access_key: ${AWS_SECRET_ACCESS_KEY}
     sentry:
         enabled: true
         project: compiler
