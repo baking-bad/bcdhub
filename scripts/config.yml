@@ -20,7 +20,7 @@ tzkt:
         uri: https://api.tzkt.io/v1/
         timeout: 20
     delphinet:
-        uri: https://api.delphinet.tzkt.io/v1/
+        uri: https://api.delphi.tzkt.io/v1/
         timeout: 20
     carthagenet:
         uri: https://api.carthage.tzkt.io/v1/
