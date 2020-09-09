@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -25,12 +26,16 @@ func (ctx *Context) GetStats(c *gin.Context) {
 	if handleError(c, err, 0) {
 		return
 	}
-	blocks := make([]Block, len(stats))
+	blocks := make([]Block, 0)
 	for i := range stats {
-		blocks[i].FromModel(stats[i])
+		if helpers.StringInArray(stats[i].Network, ctx.Config.API.Networks) {
+			var block Block
+			block.FromModel(stats[i])
+			blocks = append(blocks, block)
+		}
 	}
 
-	c.JSON(http.StatusOK, stats)
+	c.JSON(http.StatusOK, blocks)
 }
 
 // GetNetworkStats godoc

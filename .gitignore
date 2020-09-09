@@ -18,5 +18,5 @@
 
 cmd/api/train.csv
 docker-compose.local.yml
-scripts/es-aws/es-aws
+scripts/esctl/esctl
 sitemap.xml

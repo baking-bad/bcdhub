@@ -64,7 +64,7 @@ func WithRabbitReceiver(rabbitConfig RabbitConfig, service string) ContextOption
 }
 
 // WithRabbitPublisher -
-func WithRabbitPublisher(rabbitConfig RabbitConfig, service string) ContextOption {
+func WithRabbitPublisher(rabbitConfig RabbitConfig) ContextOption {
 	return func(ctx *Context) {
 		messageQueue, err := mq.NewPublisher(rabbitConfig.URI)
 		if err != nil {
