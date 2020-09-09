@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/tidwall/gjson"
 )
 
@@ -40,10 +41,11 @@ type Operation struct {
 	SourceAlias      string    `json:"source_alias,omitempty"`
 	DestinationAlias string    `json:"destination_alias,omitempty"`
 
-	BalanceUpdates []BalanceUpdate  `json:"balance_updates,omitempty"`
-	Result         *OperationResult `json:"result,omitempty"`
-	Errors         []cerrors.IError `json:"errors,omitempty"`
-	Burned         int64            `json:"burned,omitempty"`
+	BalanceUpdates                     []BalanceUpdate  `json:"balance_updates,omitempty"`
+	Result                             *OperationResult `json:"result,omitempty"`
+	Errors                             []cerrors.IError `json:"errors,omitempty"`
+	Burned                             int64            `json:"burned,omitempty"`
+	AllocatedDestinationContractBurned int64            `json:"allocated_destination_contract_burned,omitempty"`
 
 	DeffatedStorage string       `json:"deffated_storage"`
 	Script          gjson.Result `json:"-"`
@@ -91,6 +93,7 @@ func (o *Operation) ParseElasticJSON(resp gjson.Result) {
 	o.SourceAlias = resp.Get("_source.source_alias").String()
 	o.DestinationAlias = resp.Get("_source.destination_alias").String()
 	o.Burned = resp.Get("_source.burned").Int()
+	o.AllocatedDestinationContractBurned = resp.Get("_source.allocated_destination_contract_burned").Int()
 
 	o.FoundBy = o.FoundByName(resp)
 
@@ -150,6 +153,35 @@ func (o *Operation) FoundByName(hit gjson.Result) string {
 	keys := hit.Get("highlight").Map()
 	categories := o.GetScores("")
 	return getFoundBy(keys, categories)
+}
+
+// SetAllocationBurn -
+func (o *Operation) SetAllocationBurn(constants Constants) {
+	o.AllocatedDestinationContractBurned = 257 * constants.CostPerByte
+}
+
+// SetBurned -
+func (o *Operation) SetBurned(constants Constants) {
+	if o.Status != consts.Applied {
+		return
+	}
+
+	if o.Result == nil {
+		return
+	}
+
+	var burned int64
+
+	if o.Result.PaidStorageSizeDiff != 0 {
+		burned += o.Result.PaidStorageSizeDiff * constants.CostPerByte
+	}
+
+	if o.Result.AllocatedDestinationContract {
+		o.SetAllocationBurn(constants)
+		burned += o.AllocatedDestinationContractBurned
+	}
+
+	o.Burned = burned
 }
 
 // BalanceUpdate -
