@@ -71,6 +71,7 @@ func main() {
 	}
 
 	r := gin.Default()
+	r.MaxMultipartMemory = 4 << 20 // max upload size 4 MiB
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		if err := v.RegisterValidation("address", handlers.AddressValidator); err != nil {
