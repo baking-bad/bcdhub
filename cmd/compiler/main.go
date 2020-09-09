@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -40,6 +39,7 @@ func main() {
 			config.WithRabbitReceiver(cfg.RabbitMQ, "compiler"),
 			config.WithRabbitPublisher(cfg.RabbitMQ, "compiler"),
 			config.WithElasticSearch(cfg.Elastic),
+			config.WithAWS(cfg.AWS),
 		),
 	}
 
@@ -94,10 +94,8 @@ func (ctx *Context) parseData(data amqp.Delivery) error {
 	switch ct.Kind {
 	case compilation.KindVerification:
 		return ctx.verification(ct)
-	case compilation.KindCompilation:
-		log.Fatal("not implemented", compilation.KindCompilation)
 	case compilation.KindDeployment:
-		log.Fatal("not implemented", compilation.KindDeployment)
+		return ctx.deployment(ct)
 	}
 
 	return fmt.Errorf("[parseData] Unknown compilation task kind %s", ct.Kind)

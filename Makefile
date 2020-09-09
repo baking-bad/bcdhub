@@ -11,7 +11,8 @@ metrics:
 	cd cmd/metrics && go run . -f config.yml -f config.dev.yml
 
 compiler:
-	cd cmd/compiler && go run . -f config.yml -f config.dev.yml
+	docker-compose -f docker-compose.yml -f cmd/compiler/docker-compose.debug.yml up -d --build compiler-dev
+	docker logs -f bcd-compiler-dev
 
 aliases:
 	cd scripts/aliases && go run . -f ../config.yml

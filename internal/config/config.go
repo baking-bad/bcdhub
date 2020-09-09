@@ -17,6 +17,7 @@ type Config struct {
 	Elastic  ElasticSearchConfig `yaml:"elastic"`
 	RabbitMQ RabbitConfig        `yaml:"rabbitmq"`
 	DB       DatabaseConfig      `yaml:"db"`
+	AWS      AWSConfig           `yaml:"aws"`
 	OAuth    OAuthConfig         `yaml:"oauth"`
 	Seed     SeedConfig          `yaml:"seed"`
 
@@ -73,13 +74,14 @@ type Config struct {
 	Migrations struct {
 		Networks []string `yaml:"networks"`
 	} `yaml:"migrations"`
+}
 
-	AWS struct {
-		BucketName      string `yaml:"bucket_name"`
-		Region          string `yaml:"region"`
-		AccessKeyID     string `yaml:"access_key_id"`
-		SecretAccessKey string `yaml:"secret_access_key"`
-	} `yaml:"aws"`
+// AWSConfig -
+type AWSConfig struct {
+	BucketName      string `yaml:"bucket_name"`
+	Region          string `yaml:"region"`
+	AccessKeyID     string `yaml:"access_key_id"`
+	SecretAccessKey string `yaml:"secret_access_key"`
 }
 
 // RPCConfig -

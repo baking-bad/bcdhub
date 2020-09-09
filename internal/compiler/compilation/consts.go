@@ -3,7 +3,6 @@ package compilation
 // compilation kinds
 const (
 	KindVerification = "verification"
-	KindCompilation  = "compilation"
 	KindDeployment   = "deployment"
 )
 
