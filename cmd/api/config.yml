@@ -18,7 +18,7 @@ tzkt:
         services_uri: https://services.tzkt.io/v1/
         timeout: 20
     delphinet:
-        uri: https://api.delphinet.tzkt.io/v1/
+        uri: https://api.delphi.tzkt.io/v1/
         services_uri: https://services.tzkt.io/delphinet/v1/
         timeout: 20
     carthagenet:
