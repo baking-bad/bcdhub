@@ -136,6 +136,7 @@ func main() {
 		v1.GET("projects", ctx.GetProjects)
 		v1.GET("search", ctx.Search)
 		v1.POST("fork", ctx.ForkContract)
+		v1.GET("config", ctx.GetConfig)
 
 		v1.POST("diff", ctx.GetDiff)
 

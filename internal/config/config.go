@@ -112,6 +112,7 @@ type RabbitConfig struct {
 type TzKTConfig struct {
 	URI         string `yaml:"uri"`
 	ServicesURI string `yaml:"services_uri"`
+	BaseURI     string `yaml:"base_uri"`
 	Timeout     int    `yaml:"timeout"`
 }
 

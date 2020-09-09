@@ -16,14 +16,17 @@ tzkt:
     mainnet:
         uri: https://api.tzkt.io/v1/
         services_uri: https://services.tzkt.io/v1/
+        base_uri: https://tzkt.io/
         timeout: 20
     delphinet:
         uri: https://api.delphi.tzkt.io/v1/
         services_uri: https://services.tzkt.io/delphinet/v1/
+        base_uri: https://delphi.tzkt.io/
         timeout: 20
     carthagenet:
         uri: https://api.carthage.tzkt.io/v1/
         services_uri: https://services.tzkt.io/carthagenet/v1/
+        base_uri: https://carthage.tzkt.io/
         timeout: 20
 
 share:
