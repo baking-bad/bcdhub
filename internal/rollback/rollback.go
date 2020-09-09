@@ -99,19 +99,27 @@ func removeMetadata(e elastic.IElastic, fromState models.Block, toLevel int64, a
 		return err
 	}
 
+	addresses := make([]string, 0)
+	arr := contracts.Array()
+	for _, contract := range arr {
+		addresses = append(addresses, contract.Get("_source.address").String())
+	}
+
+	return removeContractsMetadata(e, fromState.Network, addresses, fromState.Protocol, appDir)
+}
+
+func removeContractsMetadata(e elastic.IElastic, network string, addresses []string, protocol string, appDir string) error {
 	bulkDeleteMetadata := make([]elastic.Model, 0)
 
-	arr := contracts.Array()
-	logger.Info("%d contracts will be removed", len(arr))
-	bar := progressbar.NewOptions(len(arr), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish(), progressbar.OptionShowCount())
-	for _, contract := range arr {
+	logger.Info("%d contracts will be removed", len(addresses))
+	bar := progressbar.NewOptions(len(addresses), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish(), progressbar.OptionShowCount())
+	for _, address := range addresses {
 		bar.Add(1) //nolint
-		address := contract.Get("_source.address").String()
 		bulkDeleteMetadata = append(bulkDeleteMetadata, &models.Metadata{
 			ID: address,
 		})
 
-		if err := contractparser.RemoveContractFromFileSystem(address, fromState.Network, fromState.Protocol, appDir); err != nil {
+		if err := contractparser.RemoveContractFromFileSystem(address, network, protocol, appDir); err != nil {
 			return err
 		}
 	}

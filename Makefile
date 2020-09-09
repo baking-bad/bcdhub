@@ -19,32 +19,43 @@ aliases:
 sitemap:
 	cd scripts/sitemap && go run . -f ../config.yml
 
-rollback:
-	cd scripts/rollback && go run . -f ../config.yml
 
 migration:
 	cd scripts/migration && go run . -f ../config.yml
 
-es-aws:
-	cd scripts/es-aws && go build .
+esctl:
+	cd scripts/esctl && go build .
 
-s3-creds: es-aws
+rollback: esctl
+	./scripts/esctl/esctl -f scripts/config.yml rollback -n $(NETWORK) -l $(LEVEL)
+	rm scripts/esctl/esctl
+
+remove: esctl
+	./scripts/esctl/esctl -f scripts/config.yml remove -n $(NETWORK) 
+	rm scripts/esctl/esctl
+
+s3-creds: esctl
 	docker exec -it bcd-elastic bash -c 'bin/elasticsearch-keystore add --stdin s3.client.default.access_key <<< "$$AWS_ACCESS_KEY_ID"'
 	docker exec -it bcd-elastic bash -c 'bin/elasticsearch-keystore add --stdin s3.client.default.secret_key <<< "$$AWS_SECRET_ACCESS_KEY"'
-	./scripts/es-aws/es-aws -a reload_secure_settings -f scripts/config.yml
+	./scripts/esctl/esctl -f scripts/config.yml reload_secure_settings
+	rm scripts/esctl/esctl
 
-s3-repo: es-aws
-	./scripts/es-aws/es-aws -a create_repository -f scripts/config.yml
+s3-repo: esctl
+	./scripts/esctl/esctl -f scripts/config.yml create_repository
+	rm scripts/esctl/esctl
 
-s3-restore: es-aws
-	./scripts/es-aws/es-aws -a delete_indices -f scripts/config.yml
-	./scripts/es-aws/es-aws -a restore -f scripts/config.yml
+s3-restore: esctl
+	./scripts/esctl/esctl -f scripts/config.yml delete_indices
+	./scripts/esctl/esctl -f scripts/config.yml restore
+	rm scripts/esctl/esctl
 
-s3-snapshot: es-aws
-	./scripts/es-aws/es-aws -a snapshot -f scripts/config.yml
+s3-snapshot: esctl
+	./scripts/esctl/esctls -f scripts/config.yml snapshot
+	rm scripts/esctl/esctl
 
-s3-policy: es-aws
-	./scripts/es-aws/es-aws -a set_policy -f scripts/config.yml
+s3-policy: esctl
+	./scripts/esctl/esctl -f scripts/config.yml set_policy
+	rm scripts/esctl/esctl
 
 latest:
 	git tag latest -f && git push origin latest -f

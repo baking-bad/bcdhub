@@ -38,7 +38,7 @@ func main() {
 			config.WithRPC(cfg.RPC),
 			config.WithDatabase(cfg.DB),
 			config.WithRabbitReceiver(cfg.RabbitMQ, "compiler"),
-			config.WithRabbitPublisher(cfg.RabbitMQ, "compiler"),
+			config.WithRabbitPublisher(cfg.RabbitMQ),
 			config.WithElasticSearch(cfg.Elastic),
 		),
 	}
