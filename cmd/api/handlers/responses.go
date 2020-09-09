@@ -605,3 +605,11 @@ type TransferResponse struct {
 	Transfers []Transfer `json:"transfers"`
 	Total     int64      `json:"total"`
 }
+
+// ConfigResponse -
+type ConfigResponse struct {
+	Networks      []string          `json:"networks"`
+	OauthEnabled  bool              `json:"oauth_enabled"`
+	RPCEndpoints  map[string]string `json:"rpc_endpoints"`
+	TzKTEndpoints map[string]string `json:"tzkt_endpoints"`
+}
