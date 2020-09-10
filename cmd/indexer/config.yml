@@ -50,3 +50,6 @@ indexer:
         delphinet:
           boost: tzkt
         dalphanet:
+
+db:
+    conn_string: "host=db port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"

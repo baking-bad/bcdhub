@@ -25,22 +25,34 @@ type DefaultParser struct {
 	rpc            noderpc.INode
 	es             elastic.IElastic
 	filesDirectory string
-	interfaces     map[string]kinds.ContractKind
 
-	constants models.Constants
-
-	storageParser storage.Parser
+	interfaces map[string]kinds.ContractKind
+	constants  models.Constants
+	tokenViews TokenViews
 }
 
 // NewDefaultParser -
-func NewDefaultParser(rpc noderpc.INode, es elastic.IElastic, filesDirectory string, interfaces map[string]kinds.ContractKind, constants models.Constants) *DefaultParser {
+func NewDefaultParser(rpc noderpc.INode, es elastic.IElastic, filesDirectory string) *DefaultParser {
 	return &DefaultParser{
 		rpc:            rpc,
 		es:             es,
 		filesDirectory: filesDirectory,
-		interfaces:     interfaces,
-		constants:      constants,
 	}
+}
+
+// SetConstants -
+func (p *DefaultParser) SetConstants(constants models.Constants) {
+	p.constants = constants
+}
+
+// SetInterface -
+func (p *DefaultParser) SetInterface(interfaces map[string]kinds.ContractKind) {
+	p.interfaces = interfaces
+}
+
+// SetTokenViews -
+func (p *DefaultParser) SetTokenViews(views TokenViews) {
+	p.tokenViews = views
 }
 
 // Parse -
@@ -388,12 +400,9 @@ func (p *DefaultParser) needParse(item gjson.Result, network string, idx int) (b
 }
 
 func (p *DefaultParser) getRichStorage(data gjson.Result, metadata *meta.ContractMetadata, op *models.Operation) (storage.RichStorage, error) {
-	if p.storageParser == nil {
-		parser, err := contractparser.MakeStorageParser(p.rpc, p.es, op.Protocol, false)
-		if err != nil {
-			return storage.RichStorage{Empty: true}, err
-		}
-		p.storageParser = parser
+	storageParser, err := contractparser.MakeStorageParser(p.rpc, p.es, op.Protocol, false)
+	if err != nil {
+		return storage.RichStorage{Empty: true}, err
 	}
 
 	protoSymLink, err := meta.GetProtoSymLink(op.Protocol)
@@ -408,9 +417,9 @@ func (p *DefaultParser) getRichStorage(data gjson.Result, metadata *meta.Contrac
 
 	switch op.Kind {
 	case consts.Transaction:
-		return p.storageParser.ParseTransaction(data, m, *op)
+		return storageParser.ParseTransaction(data, m, *op)
 	case consts.Origination:
-		rs, err := p.storageParser.ParseOrigination(data, m, *op)
+		rs, err := storageParser.ParseOrigination(data, m, *op)
 		if err != nil {
 			return rs, err
 		}
