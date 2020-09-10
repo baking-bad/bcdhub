@@ -50,7 +50,7 @@ s3-restore: esctl
 	rm scripts/esctl/esctl
 
 s3-snapshot: esctl
-	./scripts/esctl/esctls -f scripts/config.yml snapshot
+	./scripts/esctl/esctl -f scripts/config.yml snapshot
 	rm scripts/esctl/esctl
 
 s3-policy: esctl
