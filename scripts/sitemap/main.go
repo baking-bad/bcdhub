@@ -29,7 +29,7 @@ type URLSet struct {
 	URLs    []URL    `xml:"url"`
 }
 
-func buildXML(aliases []database.Alias, networks []string) error {
+func buildXML(aliases []database.Alias, networks []string, dapps []database.DApp) error {
 	u := &URLSet{Xmlns: "http://www.sitemaps.org/schemas/sitemap/0.9"}
 	modDate := time.Now().Format("2006-01-02")
 
@@ -45,6 +45,11 @@ func buildXML(aliases []database.Alias, networks []string) error {
 
 	for _, a := range aliases {
 		loc := fmt.Sprintf("https://better-call.dev/@%s", a.Slug)
+		u.URLs = append(u.URLs, URL{Location: loc, LastMod: modDate})
+	}
+
+	for _, d := range dapps {
+		loc := fmt.Sprintf("https://better-call.dev/dapps/%s", d.Slug)
 		u.URLs = append(u.URLs, URL{Location: loc, LastMod: modDate})
 	}
 
@@ -85,6 +90,11 @@ func main() {
 		logger.Fatal(err)
 	}
 
+	dapps, err := ctx.DB.GetDApps()
+	if err != nil {
+		logger.Fatal(err)
+	}
+
 	var contracts []database.Alias
 
 	for _, a := range aliases {
@@ -108,7 +118,7 @@ func main() {
 
 	logger.Info("Total contract aliases: %d", len(contracts))
 
-	if err := buildXML(contracts, cfg.Migrations.Networks); err != nil {
+	if err := buildXML(contracts, cfg.Migrations.Networks, dapps); err != nil {
 		logger.Fatal(err)
 	}
 
