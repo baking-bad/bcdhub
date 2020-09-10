@@ -91,7 +91,7 @@ func main() {
 
 	if cfg.Metrics.Sentry.Enabled {
 		helpers.InitSentry(cfg.Sentry.Debug, cfg.Sentry.Environment, cfg.Sentry.URI)
-		helpers.SetTagSentry("project", cfg.Metrics.Sentry.Project)
+		helpers.SetTagSentry("project", cfg.Metrics.ProjectName)
 		defer helpers.CatchPanicSentry()
 	}
 
@@ -99,7 +99,7 @@ func main() {
 		config.WithElasticSearch(cfg.Elastic),
 		config.WithRPC(cfg.RPC),
 		config.WithDatabase(cfg.DB),
-		config.WithRabbitReceiver(cfg.RabbitMQ, "metrics"),
+		config.WithRabbitReceiver(cfg.RabbitMQ, cfg.Metrics.ProjectName, cfg.Metrics.Queues),
 		config.WithAliases(consts.Mainnet),
 	)
 	defer ctx.Close()
@@ -108,8 +108,8 @@ func main() {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
-	for i := range cfg.RabbitMQ.Queues {
-		go listenChannel(ctx.MQReceiver, cfg.RabbitMQ.Queues[i], closeChan)
+	for i := range cfg.Metrics.Queues {
+		go listenChannel(ctx.MQReceiver, cfg.Metrics.Queues[i], closeChan)
 	}
 
 	<-signals

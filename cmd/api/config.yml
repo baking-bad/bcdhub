@@ -59,13 +59,13 @@ oauth:
         callback_url: https://api.better-call.dev/v1/oauth/gitlab/callback
 
 api:
+    project_name: api
     bind: ":14000"
     swagger_host: "api.better-call.dev"
     oauth:
         enabled: true
     sentry:
         enabled: true
-        project: api
     networks:
         - mainnet
         - carthagenet
@@ -73,11 +73,11 @@ api:
         - dalphanet
     seed:
         enabled: false
+    queues:
+        - operations
 
 rabbitmq:
     uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mq:5672/"
-    queues:
-        - operations
 
 aws:
   bucket_name: bcd-elastic-snapshots

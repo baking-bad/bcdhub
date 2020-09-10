@@ -4,5 +4,12 @@ rpc:
         timeout: 20
 
 metrics:
+    project_name: metrics
     sentry:
         enabled: false
+    queues:
+        - operations
+        - contracts
+        - migrations
+        - recalc
+        - transfers

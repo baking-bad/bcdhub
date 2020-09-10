@@ -28,7 +28,7 @@ func main() {
 
 	if cfg.Compiler.Sentry.Enabled {
 		helpers.InitSentry(cfg.Sentry.Debug, cfg.Sentry.Environment, cfg.Sentry.URI)
-		helpers.SetTagSentry("project", cfg.Compiler.Sentry.Project)
+		helpers.SetTagSentry("project", cfg.Compiler.ProjectName)
 		defer helpers.CatchPanicSentry()
 	}
 
@@ -36,8 +36,8 @@ func main() {
 		config.NewContext(
 			config.WithRPC(cfg.RPC),
 			config.WithDatabase(cfg.DB),
-			config.WithRabbitReceiver(cfg.RabbitMQ, "compiler"),
-			config.WithRabbitPublisher(cfg.RabbitMQ, "compiler"),
+			config.WithRabbitReceiver(cfg.RabbitMQ, cfg.Compiler.ProjectName, cfg.Compiler.Queues),
+			config.WithRabbitPublisher(cfg.RabbitMQ, cfg.Compiler.ProjectName),
 			config.WithElasticSearch(cfg.Elastic),
 			config.WithAWS(cfg.Compiler.AWS),
 		),

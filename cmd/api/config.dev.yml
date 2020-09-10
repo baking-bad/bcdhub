@@ -28,13 +28,13 @@ oauth:
         callback_url: http://localhost:14000/v1/oauth/gitlab/callback
 
 api:
+    project_name: api
     bind: "127.0.0.1:14000"
     swagger_host: "localhost:14000"
     oauth:
         enabled: true
     sentry:
         enabled: false
-        project: api
     networks:
         - mainnet
         - carthagenet
@@ -42,8 +42,9 @@ api:
         - dalphanet
     seed:
         enabled: false
+    queues:
+        - operations
 
 rabbitmq:
     uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@127.0.0.1:5672/"
-    queues:
-        - operations
+   
