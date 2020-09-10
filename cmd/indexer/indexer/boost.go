@@ -11,6 +11,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/index"
@@ -39,6 +40,7 @@ type BoostIndexer struct {
 	filesDirectory  string
 	boost           bool
 	interfaces      map[string]kinds.ContractKind
+	tokenViews      parsers.TokenViews
 
 	stop    chan struct{}
 	stopped bool
@@ -118,11 +120,23 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 		noderpc.WithTimeout(time.Duration(rpcProvider.Timeout)*time.Second),
 	)
 
+	db, err := database.New(cfg.DB.ConnString)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
 	messageQueue, err := mq.NewPublisher(cfg.RabbitMQ.URI)
 	if err != nil {
 		return nil, err
 	}
+
 	interfaces, err := kinds.Load()
+	if err != nil {
+		return nil, err
+	}
+
+	tokenViews, err := parsers.NewTokenViews(db)
 	if err != nil {
 		return nil, err
 	}
@@ -135,6 +149,7 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 		filesDirectory: cfg.Share.Path,
 		stop:           make(chan struct{}),
 		interfaces:     interfaces,
+		tokenViews:     tokenViews,
 	}
 
 	for _, opt := range opts {
@@ -464,7 +479,10 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 	if err != nil {
 		return nil, err
 	}
-	defaultParser := parsers.NewDefaultParser(bi.rpc, bi.es, bi.filesDirectory, bi.interfaces, bi.currentProtocol.Constants)
+	defaultParser := parsers.NewDefaultParser(bi.rpc, bi.es, bi.filesDirectory)
+	defaultParser.SetConstants(bi.currentProtocol.Constants)
+	defaultParser.SetInterface(bi.interfaces)
+	defaultParser.SetTokenViews(bi.tokenViews)
 
 	parsedModels := make([]elastic.Model, 0)
 	for _, opg := range data.Array() {
