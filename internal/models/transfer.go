@@ -137,15 +137,15 @@ func CreateTransfers(o *Operation) ([]*Transfer, error) {
 					return nil, err
 				}
 				for _, to := range from.Get("args.1").Array() {
-					toAddr, err := getAddress(from.Get("args.0"))
+					toAddr, err := getAddress(to.Get("args.0"))
 					if err != nil {
 						return nil, err
 					}
 					transfer := newTransfer(o)
 					transfer.From = fromAddr
 					transfer.To = toAddr
-					transfer.Amount = to.Get("args.1.args.1").Int()
-					transfer.TokenID = to.Get("args.1.args.0").Int()
+					transfer.Amount = to.Get("args.1.args.1.int").Int()
+					transfer.TokenID = to.Get("args.1.args.0.int").Int()
 					transfers = append(transfers, transfer)
 				}
 			}
