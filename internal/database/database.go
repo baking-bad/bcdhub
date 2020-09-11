@@ -42,6 +42,7 @@ type DB interface {
 	// DApp
 	GetDApps() ([]DApp, error)
 	GetDApp(id uint) (DApp, error)
+	GetDAppBySlug(slug string) (dapp DApp, err error)
 
 	// Tokens
 	GetTokens() ([]Token, error)

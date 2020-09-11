@@ -50,3 +50,9 @@ func (d *db) GetDApp(id uint) (dapp DApp, err error) {
 	err = d.ORM.Preload("Pictures").Preload("Contracts").Preload("Tokens").Where("id = ?", id).First(&dapp).Error
 	return
 }
+
+// GetDAppBySlug -
+func (d *db) GetDAppBySlug(slug string) (dapp DApp, err error) {
+	err = d.ORM.Preload("Pictures").Preload("Contracts").Preload("Tokens").Where("slug = ?", slug).First(&dapp).Error
+	return
+}

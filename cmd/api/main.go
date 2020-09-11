@@ -255,7 +255,7 @@ func main() {
 		dapps := v1.Group("dapps")
 		{
 			dapps.GET("", ctx.GetDAppList)
-			dapps.GET(":network/:address", ctx.GetDApp)
+			dapps.GET(":slug", ctx.GetDApp)
 		}
 	}
 
