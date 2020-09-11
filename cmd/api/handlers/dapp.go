@@ -18,17 +18,12 @@ func (ctx *Context) GetDAppList(c *gin.Context) {
 
 // GetDApp -
 func (ctx *Context) GetDApp(c *gin.Context) {
-	var req getContractRequest
+	var req getDappRequest
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
-	alias, err := ctx.DB.GetAlias(req.Address, req.Network)
-	if handleError(c, err, 0) {
-		return
-	}
-
-	dapp, err := ctx.DB.GetDApp(alias.DAppID)
+	dapp, err := ctx.DB.GetDAppBySlug(req.Slug)
 	if handleError(c, err, 0) {
 		return
 	}
