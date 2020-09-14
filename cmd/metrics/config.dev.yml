@@ -9,17 +9,17 @@ elastic:
 
 rabbitmq:
     uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@127.0.0.1:5672/"
+
+db:
+    conn_string: "host=127.0.0.1 port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"
+
+metrics:
+    project_name: metrics
+    sentry:
+        enabled: false
     queues:
         - operations
         - contracts
         - migrations
         - recalc
         - transfers
-
-db:
-    conn_string: "host=127.0.0.1 port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"
-
-metrics:
-    sentry:
-        enabled: false
-        project: metrics

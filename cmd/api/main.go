@@ -47,7 +47,7 @@ func main() {
 
 	if cfg.API.Sentry.Enabled {
 		helpers.InitSentry(cfg.Sentry.Debug, cfg.Sentry.Environment, cfg.Sentry.URI)
-		helpers.SetTagSentry("project", cfg.API.Sentry.Project)
+		helpers.SetTagSentry("project", cfg.API.ProjectName)
 		defer helpers.CatchPanicSentry()
 	}
 

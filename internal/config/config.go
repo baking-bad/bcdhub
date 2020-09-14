@@ -32,25 +32,26 @@ type Config struct {
 	} `yaml:"sentry"`
 
 	API struct {
+		ProjectName string `yaml:"project_name"`
 		Bind        string `yaml:"bind"`
 		SwaggerHost string `yaml:"swagger_host"`
 		OAuth       struct {
 			Enabled bool `yaml:"enabled"`
 		} `yaml:"oauth"`
 		Sentry struct {
-			Enabled bool   `yaml:"enabled"`
-			Project string `yaml:"project"`
+			Enabled bool `yaml:"enabled"`
 		} `yaml:"sentry"`
 		Networks []string `yaml:"networks"`
 		Seed     struct {
 			Enabled bool `yaml:"enabled"`
 		} `yaml:"seed"`
+		Queues []string `yaml:"queues"`
 	} `yaml:"api"`
 
 	Indexer struct {
-		Sentry struct {
-			Enabled bool   `yaml:"enabled"`
-			Project string `yaml:"project"`
+		ProjectName string `yaml:"project_name"`
+		Sentry      struct {
+			Enabled bool `yaml:"enabled"`
 		} `yaml:"sentry"`
 		Networks map[string]struct {
 			Boost string `yaml:"boost"`
@@ -58,18 +59,20 @@ type Config struct {
 	} `yaml:"indexer"`
 
 	Metrics struct {
-		Sentry struct {
-			Enabled bool   `yaml:"enabled"`
-			Project string `yaml:"project"`
+		ProjectName string `yaml:"project_name"`
+		Sentry      struct {
+			Enabled bool `yaml:"enabled"`
 		} `yaml:"sentry"`
+		Queues []string `yaml:"queues"`
 	} `yaml:"metrics"`
 
 	Compiler struct {
-		AWS    AWSConfig `yaml:"aws"`
-		Sentry struct {
-			Enabled bool   `yaml:"enabled"`
-			Project string `yaml:"project"`
+		ProjectName string    `yaml:"project_name"`
+		AWS         AWSConfig `yaml:"aws"`
+		Sentry      struct {
+			Enabled bool `yaml:"enabled"`
 		} `yaml:"sentry"`
+		Queues []string `yaml:"queues"`
 	} `yaml:"compiler"`
 
 	Migrations struct {
@@ -104,8 +107,7 @@ type DatabaseConfig struct {
 
 // RabbitConfig -
 type RabbitConfig struct {
-	URI    string   `yaml:"uri"`
-	Queues []string `yaml:"queues"`
+	URI string `yaml:"uri"`
 }
 
 // TzKTConfig -

@@ -31,6 +31,7 @@ seed:
           network: "sandboxnet"
 
 api:
+    project_name: api
     bind: ":14000"
     swagger_host: "localhost:42000"
     oauth:
@@ -41,3 +42,5 @@ api:
         - sandboxnet
     seed:
         enabled: true
+    queues:
+        - operations

@@ -22,7 +22,7 @@ func main() {
 
 	if cfg.Indexer.Sentry.Enabled {
 		helpers.InitSentry(cfg.Sentry.Debug, cfg.Sentry.Environment, cfg.Sentry.URI)
-		helpers.SetTagSentry("project", cfg.Indexer.Sentry.Project)
+		helpers.SetTagSentry("project", cfg.Indexer.ProjectName)
 		defer helpers.CatchPanicSentry()
 	}
 

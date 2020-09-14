@@ -39,9 +39,9 @@ rabbitmq:
     uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mq:5672/"
 
 indexer:
+    project_name: indexer
     sentry:
         enabled: true
-        project: indexer
     networks:
         mainnet:
           boost: tzkt
