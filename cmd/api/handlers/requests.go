@@ -304,3 +304,7 @@ type compilationRequest struct {
 type publicRefsRequest struct {
 	Repo string `form:"repo" binding:"required"`
 }
+
+type getDappRequest struct {
+	Slug string `uri:"slug" binding:"required"`
+}

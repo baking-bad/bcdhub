@@ -13,7 +13,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/baking-bad/bcdhub/internal/elastic"
-	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/pkg/errors"
 )
 
@@ -29,20 +28,16 @@ var mappingNames = []string{
 	elastic.DocTransfers,
 }
 
-func createRepository(es elastic.IElastic, creds awsData) error {
-	name, err := askQuestion("Please, enter new repository name:")
-	if err != nil {
+type snapshotCommand struct{}
+
+var snapshotCmd snapshotCommand
+
+// Execute
+func (x *snapshotCommand) Execute(args []string) error {
+	if err := uploadMappings(ctx.ES, creds); err != nil {
 		return err
 	}
-
-	return es.CreateAWSRepository(name, creds.BucketName, creds.Region)
-}
-
-func snapshot(es elastic.IElastic, creds awsData) error {
-	if err := uploadMappings(es, creds); err != nil {
-		return err
-	}
-	if err := listRepositories(es); err != nil {
+	if err := listRepositories(ctx.ES); err != nil {
 		return err
 	}
 	name, err := askQuestion("Please, enter target repository name:")
@@ -50,11 +45,16 @@ func snapshot(es elastic.IElastic, creds awsData) error {
 		return err
 	}
 	snapshotName := fmt.Sprintf("snapshot_%s", strings.ToLower(time.Now().UTC().Format(time.RFC3339)))
-	return es.CreateSnapshots(name, snapshotName, mappingNames)
+	return ctx.ES.CreateSnapshots(name, snapshotName, mappingNames)
 }
 
-func restore(es elastic.IElastic, creds awsData) error {
-	if err := listRepositories(es); err != nil {
+type restoreCommand struct{}
+
+var restoreCmd restoreCommand
+
+// Execute
+func (x *restoreCommand) Execute(args []string) error {
+	if err := listRepositories(ctx.ES); err != nil {
 		return err
 	}
 	name, err := askQuestion("Please, enter target repository name:")
@@ -62,18 +62,23 @@ func restore(es elastic.IElastic, creds awsData) error {
 		return err
 	}
 
-	if err := listSnapshots(es, name); err != nil {
+	if err := listSnapshots(ctx.ES, name); err != nil {
 		return err
 	}
 	snapshotName, err := askQuestion("Please, enter target snapshot name:")
 	if err != nil {
 		return err
 	}
-	return es.RestoreSnapshots(name, snapshotName, mappingNames)
+	return ctx.ES.RestoreSnapshots(name, snapshotName, mappingNames)
 }
 
-func setPolicy(es elastic.IElastic, creds awsData) error {
-	if err := listPolicies(es); err != nil {
+type setPolicyCommand struct{}
+
+var setPolicyCmd setPolicyCommand
+
+// Execute
+func (x *setPolicyCommand) Execute(args []string) error {
+	if err := listPolicies(ctx.ES); err != nil {
 		return err
 	}
 	policyID, err := askQuestion("Please, enter target new or existing policy ID:")
@@ -96,7 +101,28 @@ func setPolicy(es elastic.IElastic, creds awsData) error {
 	if err != nil {
 		return err
 	}
-	return es.SetSnapshotPolicy(policyID, schedule, policyID, repository, iExpiredAfter)
+	return ctx.ES.SetSnapshotPolicy(policyID, schedule, policyID, repository, iExpiredAfter)
+}
+
+type reloadSecureSettingsCommand struct{}
+
+var reloadSecureSettingsCmd reloadSecureSettingsCommand
+
+// Execute
+func (x *reloadSecureSettingsCommand) Execute(args []string) error {
+	api := ctx.ES.GetAPI()
+	resp, err := api.Nodes.ReloadSecureSettings()
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.IsError() {
+		return errors.Errorf(resp.Status())
+	}
+
+	return nil
 }
 
 func listPolicies(es elastic.IElastic) error {
@@ -200,41 +226,5 @@ func restoreMappings(es elastic.IElastic, creds awsData) error {
 			return err
 		}
 	}
-	return nil
-}
-
-func reloadSecureSettings(es elastic.IElastic, creds awsData) error {
-	api := es.GetAPI()
-	resp, err := api.Nodes.ReloadSecureSettings()
-	if err != nil {
-		return err
-	}
-
-	defer resp.Body.Close()
-
-	if resp.IsError() {
-		return errors.Errorf(resp.Status())
-	}
-
-	return nil
-}
-
-func deleteIndices(es elastic.IElastic, creds awsData) error {
-	api := es.GetAPI()
-	options := []func(*esapi.IndicesDeleteRequest){
-		api.Indices.Delete.WithAllowNoIndices(true),
-	}
-
-	resp, err := api.Indices.Delete(mappingNames, options...)
-	if err != nil {
-		return err
-	}
-
-	defer resp.Body.Close()
-
-	if resp.IsError() {
-		return errors.Errorf(resp.Status())
-	}
-
 	return nil
 }

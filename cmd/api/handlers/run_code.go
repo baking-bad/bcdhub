@@ -75,7 +75,9 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		return
 	}
 
-	defaultParser := parsers.NewDefaultParser(rpc, ctx.ES, ctx.SharePath, ctx.Interfaces, protocol.Constants)
+	defaultParser := parsers.NewDefaultParser(rpc, ctx.ES, ctx.SharePath)
+	defaultParser.SetConstants(protocol.Constants)
+	defaultParser.SetInterface(ctx.Interfaces)
 
 	header := noderpc.Header{
 		Level:       state.Level,

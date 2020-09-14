@@ -18,6 +18,7 @@ type DApp struct {
 	Version           string         `json:"version"`
 	License           string         `json:"license"`
 	WebSite           string         `json:"website"`
+	Slug              string         `json:"slug,omitempty"`
 	AgoraReviewPostID uint           `json:"agora_review_post_id,omitempty"`
 	AgoraQAPostID     uint           `json:"agora_qa_post_id,omitempty"`
 	Authors           pq.StringArray `gorm:"type:varchar(128)[]" json:"authors"`
@@ -47,5 +48,11 @@ func (d *db) GetDApps() (dapps []DApp, err error) {
 // GetDApp -
 func (d *db) GetDApp(id uint) (dapp DApp, err error) {
 	err = d.ORM.Preload("Pictures").Preload("Contracts").Preload("Tokens").Where("id = ?", id).First(&dapp).Error
+	return
+}
+
+// GetDAppBySlug -
+func (d *db) GetDAppBySlug(slug string) (dapp DApp, err error) {
+	err = d.ORM.Preload("Pictures").Preload("Contracts").Preload("Tokens").Where("slug = ?", slug).First(&dapp).Error
 	return
 }

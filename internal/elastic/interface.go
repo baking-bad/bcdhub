@@ -106,7 +106,10 @@ type IOperations interface {
 	GetOperationsForContract(string, string, uint64, map[string]interface{}) (PageableOperations, error)
 	GetLastOperation(string, string, int64) (models.Operation, error)
 	GetAllLevelsForNetwork(string) (map[int64]struct{}, error)
-	GetOperations(map[string]interface{}, int64, bool) ([]models.Operation, error)
+
+	// GetOperations - get operation by `filter`. `Size` - if 0 - return all, else certain `size` operations.
+	// `Sort` - sort by time and content index by desc
+	GetOperations(filter map[string]interface{}, size int64, sort bool) ([]models.Operation, error)
 }
 
 // IProjects -
@@ -158,6 +161,7 @@ type ITokens interface {
 	GetTokenTransferOperations(string, string, string, int64) (PageableOperations, error)
 	GetTokensStats(string, []string, []string) (map[string]TokenUsageStats, error)
 	GetTokenVolumeSeries(string, string, []string, uint) ([][]int64, error)
+	GetBalances(string, string, int64, ...TokenBalance) (map[TokenBalance]int64, error)
 }
 
 // IElastic -

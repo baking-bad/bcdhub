@@ -5,7 +5,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -27,11 +27,18 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 	h := metrics.New(ctx.ES, ctx.DB)
 	operations, err := ctx.ES.GetOperations(map[string]interface{}{
 		"entrypoint": "transfer",
+		// "destination": "KT1KzoKR7v1HjF2JqfYAWFV2ihzmUVJsDqXy",
+		// "network":     "mainnet",
 	}, 0, false)
 	if err != nil {
 		return err
 	}
 	logger.Info("Found %d operations with transfer entrypoint", len(operations))
+
+	tokenViews, err := parsers.NewTokenViews(ctx.DB)
+	if err != nil {
+		return err
+	}
 
 	result := make([]elastic.Model, 0)
 
@@ -40,7 +47,11 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 		if err := bar.Add(1); err != nil {
 			return err
 		}
-		transfers, err := models.CreateTransfers(&operations[i])
+		rpc, err := ctx.GetRPC(operations[i].Network)
+		if err != nil {
+			return err
+		}
+		transfers, err := parsers.MakeTransfers(rpc, ctx.ES, operations[i], tokenViews)
 		if err != nil {
 			return err
 		}
@@ -56,7 +67,7 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 		return err
 	}
 
-	logger.Info("Done. %d transfers were saves.", len(result))
+	logger.Info("Done. %d transfers were saved.", len(result))
 
 	return nil
 }

@@ -78,6 +78,21 @@ func RemoveContractFromFileSystem(address, network, protocol, filesDirectory str
 	return nil
 }
 
+// RemoveAllContracts -
+func RemoveAllContracts(network, filesDirectory string) error {
+	if filesDirectory == "" {
+		return errors.Errorf("Invalid filesDirectory: %s", filesDirectory)
+	}
+
+	dirPath := fmt.Sprintf("%s/contracts/%s", filesDirectory, network)
+	if _, err := os.Stat(dirPath); err == nil {
+		return os.RemoveAll(dirPath)
+	} else if !os.IsNotExist(err) {
+		return err
+	}
+	return nil
+}
+
 // IsDelegatorContract -
 func IsDelegatorContract(data gjson.Result) bool {
 	if data.String() == "" {

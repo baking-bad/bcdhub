@@ -25,22 +25,34 @@ type DefaultParser struct {
 	rpc            noderpc.INode
 	es             elastic.IElastic
 	filesDirectory string
-	interfaces     map[string]kinds.ContractKind
 
-	constants models.Constants
-
-	storageParser storage.Parser
+	interfaces map[string]kinds.ContractKind
+	constants  models.Constants
+	tokenViews TokenViews
 }
 
 // NewDefaultParser -
-func NewDefaultParser(rpc noderpc.INode, es elastic.IElastic, filesDirectory string, interfaces map[string]kinds.ContractKind, constants models.Constants) *DefaultParser {
+func NewDefaultParser(rpc noderpc.INode, es elastic.IElastic, filesDirectory string) *DefaultParser {
 	return &DefaultParser{
 		rpc:            rpc,
 		es:             es,
 		filesDirectory: filesDirectory,
-		interfaces:     interfaces,
-		constants:      constants,
 	}
+}
+
+// SetConstants -
+func (p *DefaultParser) SetConstants(constants models.Constants) {
+	p.constants = constants
+}
+
+// SetInterface -
+func (p *DefaultParser) SetInterface(interfaces map[string]kinds.ContractKind) {
+	p.interfaces = interfaces
+}
+
+// SetTokenViews -
+func (p *DefaultParser) SetTokenViews(views TokenViews) {
+	p.tokenViews = views
 }
 
 // Parse -
@@ -118,7 +130,7 @@ func (p *DefaultParser) parseTransaction(data gjson.Result, network, hash string
 	op.Status = op.Result.Status
 	op.Errors = op.Result.Errors
 
-	p.setBurned(&op)
+	op.SetBurned(p.constants)
 
 	additionalModels, err := p.finishParseOperation(data, &op)
 	if err != nil {
@@ -133,7 +145,7 @@ func (p *DefaultParser) parseTransaction(data gjson.Result, network, hash string
 	if err := p.tagOperation(&op); err != nil {
 		return nil, op, err
 	}
-	transfers, err := models.CreateTransfers(&op)
+	transfers, err := MakeTransfers(p.rpc, p.es, op, p.tokenViews)
 	if err != nil {
 		return nil, op, err
 	}
@@ -175,7 +187,7 @@ func (p *DefaultParser) parseOrigination(data gjson.Result, network, hash string
 	op.Errors = op.Result.Errors
 	op.Destination = operationResult.Originated
 
-	p.setBurned(&op)
+	op.SetBurned(p.constants)
 
 	protoSymLink, err := meta.GetProtoSymLink(op.Protocol)
 	if err != nil {
@@ -388,12 +400,9 @@ func (p *DefaultParser) needParse(item gjson.Result, network string, idx int) (b
 }
 
 func (p *DefaultParser) getRichStorage(data gjson.Result, metadata *meta.ContractMetadata, op *models.Operation) (storage.RichStorage, error) {
-	if p.storageParser == nil {
-		parser, err := contractparser.MakeStorageParser(p.rpc, p.es, op.Protocol, false)
-		if err != nil {
-			return storage.RichStorage{Empty: true}, err
-		}
-		p.storageParser = parser
+	storageParser, err := contractparser.MakeStorageParser(p.rpc, p.es, op.Protocol, false)
+	if err != nil {
+		return storage.RichStorage{Empty: true}, err
 	}
 
 	protoSymLink, err := meta.GetProtoSymLink(op.Protocol)
@@ -408,9 +417,9 @@ func (p *DefaultParser) getRichStorage(data gjson.Result, metadata *meta.Contrac
 
 	switch op.Kind {
 	case consts.Transaction:
-		return p.storageParser.ParseTransaction(data, m, *op)
+		return storageParser.ParseTransaction(data, m, *op)
 	case consts.Origination:
-		rs, err := p.storageParser.ParseOrigination(data, m, *op)
+		rs, err := storageParser.ParseOrigination(data, m, *op)
 		if err != nil {
 			return rs, err
 		}
@@ -447,26 +456,4 @@ func (p *DefaultParser) tagOperation(o *models.Operation) error {
 		}
 	}
 	return nil
-}
-
-func (p *DefaultParser) setBurned(operation *models.Operation) {
-	if operation.Status != consts.Applied {
-		return
-	}
-
-	if operation.Result == nil {
-		return
-	}
-
-	var burned int64
-
-	if operation.Result.PaidStorageSizeDiff != 0 {
-		burned += operation.Result.PaidStorageSizeDiff * p.constants.CostPerByte
-	}
-
-	if operation.Result.AllocatedDestinationContract {
-		burned += 257 * p.constants.CostPerByte
-	}
-
-	operation.Burned = burned
 }

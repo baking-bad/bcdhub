@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
@@ -53,12 +54,17 @@ func (ctx *Context) GetContract(c *gin.Context) {
 // @Failure 500 {object} Error
 // @Router /pick_random [get]
 func (ctx *Context) GetRandomContract(c *gin.Context) {
-	cntr, err := ctx.ES.GetContractRandom()
-	if handleError(c, err, 0) {
-		return
+	var contract models.Contract
+
+	for !helpers.StringInArray(contract.Network, ctx.Config.API.Networks) {
+		cntr, err := ctx.ES.GetContractRandom()
+		if handleError(c, err, 0) {
+			return
+		}
+		contract = cntr
 	}
 
-	res, err := ctx.contractPostprocessing(cntr, c)
+	res, err := ctx.contractPostprocessing(contract, c)
 	if handleError(c, err, 0) {
 		return
 	}
