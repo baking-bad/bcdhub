@@ -3,10 +3,7 @@ package models
 import (
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/contractparser/unpack"
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -80,7 +77,8 @@ func (t *Transfer) FoundByName(hit gjson.Result) string {
 	return getFoundBy(keys, categories)
 }
 
-func newTransfer(o *Operation) *Transfer {
+// EmptyTransfer -
+func EmptyTransfer(o Operation) *Transfer {
 	return &Transfer{
 		ID:          helpers.GenerateID(),
 		IndexedTime: o.IndexedTime,
@@ -91,83 +89,4 @@ func newTransfer(o *Operation) *Transfer {
 		Timestamp:   o.Timestamp,
 		Level:       o.Level,
 	}
-}
-
-func getAddress(data gjson.Result) (string, error) {
-	if data.Get("string").Exists() {
-		return data.Get("string").String(), nil
-	}
-
-	if data.Get("bytes").Exists() {
-		return unpack.Address(data.Get("bytes").String())
-	}
-	return "", errors.Errorf("Unknown address data: %s", data.Raw)
-}
-
-// CreateTransfers -
-func CreateTransfers(o *Operation) ([]*Transfer, error) {
-	if o.Entrypoint != "transfer" {
-		return nil, nil
-	}
-
-	parameters := getParameters(o.Parameters)
-
-	transfers := make([]*Transfer, 0)
-	for i := range o.Tags {
-		switch o.Tags[i] {
-		case consts.FA12Tag:
-			transfer := newTransfer(o)
-			fromAddr, err := getAddress(parameters.Get("args.0"))
-			if err != nil {
-				return nil, err
-			}
-			toAddr, err := getAddress(parameters.Get("args.1.args.0"))
-			if err != nil {
-				return nil, err
-			}
-			transfer.From = fromAddr
-			transfer.To = toAddr
-			transfer.Amount = parameters.Get("args.1.args.1.int").Int()
-			transfers = append(transfers, transfer)
-			return transfers, nil
-		case consts.FA2Tag:
-			for _, from := range parameters.Array() {
-				fromAddr, err := getAddress(from.Get("args.0"))
-				if err != nil {
-					return nil, err
-				}
-				for _, to := range from.Get("args.1").Array() {
-					toAddr, err := getAddress(to.Get("args.0"))
-					if err != nil {
-						return nil, err
-					}
-					transfer := newTransfer(o)
-					transfer.From = fromAddr
-					transfer.To = toAddr
-					transfer.Amount = to.Get("args.1.args.1.int").Int()
-					transfer.TokenID = to.Get("args.1.args.0.int").Int()
-					transfers = append(transfers, transfer)
-				}
-			}
-			return transfers, nil
-		default:
-		}
-	}
-	return nil, nil
-}
-
-func getParameters(str string) gjson.Result {
-	parameters := gjson.Parse(str)
-	if !parameters.Get("value").Exists() {
-		return parameters
-	}
-	parameters = parameters.Get("value")
-	for end := false; !end; {
-		prim := parameters.Get("prim|@lower").String()
-		end = prim != consts.LEFT && prim != consts.RIGHT
-		if !end {
-			parameters = parameters.Get("args.0")
-		}
-	}
-	return parameters
 }
