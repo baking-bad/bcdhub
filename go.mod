@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/aws/aws-sdk-go v1.30.10
+	github.com/aymerick/raymond v2.0.3-0.20180322193309-b565731e1464+incompatible
 	github.com/btcsuite/btcutil v1.0.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20191218082911-5398a82b748f
@@ -37,6 +38,7 @@ require (
 	github.com/valyala/fastjson v1.5.1
 	github.com/xanzy/go-gitlab v0.33.0
 	github.com/yhirose/go-peg v0.0.0-20190710015414-7eb2cf046928
+	go.mongodb.org/mongo-driver v1.4.1
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d

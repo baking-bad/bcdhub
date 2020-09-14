@@ -1,7 +1,11 @@
 package elastic
 
 import (
+	"strconv"
+	"strings"
+
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/pkg/errors"
 )
 
 // GetTokens -
@@ -206,4 +210,115 @@ func (e *Elastic) GetTokenVolumeSeries(network, period string, address []string,
 		histogram = append(histogram, item)
 	}
 	return histogram, nil
+}
+
+// TokenBalance -
+type TokenBalance struct {
+	Address string
+	TokenID int64
+}
+
+// GetBalances -
+func (e *Elastic) GetBalances(network, contract string, level int64, addresses ...TokenBalance) (map[TokenBalance]int64, error) {
+	filters := []qItem{
+		matchQ("network", network),
+		matchQ("contract", contract),
+	}
+	if level > 0 {
+		filters = append(filters, rangeQ("level", qItem{
+			"lt": level,
+		}))
+	}
+
+	b := boolQ(
+		filter(filters...),
+	)
+
+	if len(addresses) > 0 {
+		addressFilters := make([]qItem, 0)
+
+		for _, a := range addresses {
+			addressFilters = append(addressFilters, boolQ(
+				filter(
+					matchPhrase("from", a.Address),
+					term("token_id", a.TokenID),
+				),
+			))
+		}
+
+		b.Get("bool").Extend(
+			should(addressFilters...),
+		)
+		b.Get("bool").Extend(minimumShouldMatch(1))
+	}
+
+	query := newQuery().Query(b).Add(
+		qItem{
+			"aggs": qItem{
+				"balances": qItem{
+					"scripted_metric": qItem{
+						"init_script": "state.balances = [:]",
+						"map_script": `
+						if (!state.balances.containsKey(doc['from.keyword'].value)) {
+							state.balances[doc['from.keyword'].value + '_' + doc['token_id'].value] = doc['amount'].value;
+						} else {
+							state.balances[doc['from.keyword'].value + '_' + doc['token_id'].value] -= doc['amount'].value;
+						}
+						
+						if (!state.balances.containsKey(doc['to.keyword'].value)) {
+							state.balances[doc['to.keyword'].value + '_' + doc['token_id'].value] = doc['amount'].value;
+						} else {
+							state.balances[doc['to.keyword'].value + '_' + doc['token_id'].value] += doc['amount'].value;
+						}
+						`,
+						"combine_script": `
+						Map balances = [:]; 
+						for (entry in state.balances.entrySet()) { 
+							if (!balances.containsKey(entry.getKey())) {
+								balances[entry.getKey()] = entry.getValue();
+							} else {
+								balances[entry.getKey()] += entry.getValue();
+							}
+						} 
+						return balances;
+						`,
+						"reduce_script": `
+						Map balances = [:]; 
+						for (state in states) { 
+							for (entry in state.entrySet()) {
+								if (!balances.containsKey(entry.getKey())) {
+									balances[entry.getKey()] = entry.getValue();
+								} else {
+									balances[entry.getKey()] += entry.getValue();
+								}
+							}
+						} 
+						return balances;
+						`,
+					},
+				},
+			},
+		},
+	).Zero()
+	response, err := e.query([]string{DocTransfers}, query)
+	if err != nil {
+		return nil, err
+	}
+
+	balances := make(map[TokenBalance]int64)
+	for address, balance := range response.Get("aggregations.balances.value").Map() {
+		parts := strings.Split(address, "_")
+		if len(parts) != 2 {
+			return nil, errors.Errorf("Invalid addressToken key split size: %d", len(parts))
+		}
+		tokenID, err := strconv.ParseInt(parts[1], 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		balances[TokenBalance{
+			Address: parts[0],
+			TokenID: tokenID,
+		}] = balance.Int()
+	}
+	return balances, nil
 }

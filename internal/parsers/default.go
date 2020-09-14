@@ -145,7 +145,7 @@ func (p *DefaultParser) parseTransaction(data gjson.Result, network, hash string
 	if err := p.tagOperation(&op); err != nil {
 		return nil, op, err
 	}
-	transfers, err := models.CreateTransfers(&op)
+	transfers, err := MakeTransfers(p.rpc, p.es, op, p.tokenViews)
 	if err != nil {
 		return nil, op, err
 	}
