@@ -28,3 +28,10 @@ func WithBoost(externalType, network string, cfg config.Config) BoostIndexerOpti
 		}
 	}
 }
+
+// WithSkipDelegatorBlocks -
+func WithSkipDelegatorBlocks() BoostIndexerOption {
+	return func(bi *BoostIndexer) {
+		bi.skipDelegatorBlocks = true
+	}
+}

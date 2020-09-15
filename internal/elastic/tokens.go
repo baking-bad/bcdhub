@@ -154,7 +154,7 @@ func (e *Elastic) GetTokensStats(network string, addresses, entrypoints []string
 }
 
 // GetTokenVolumeSeries -
-func (e *Elastic) GetTokenVolumeSeries(network, period string, address []string, tokenID uint) ([][]int64, error) {
+func (e *Elastic) GetTokenVolumeSeries(network, period string, contracts []string, initiators []string, tokenID uint) ([][]int64, error) {
 	hist := qItem{
 		"date_histogram": qItem{
 			"field":             "timestamp",
@@ -173,11 +173,23 @@ func (e *Elastic) GetTokenVolumeSeries(network, period string, address []string,
 	matches := []qItem{
 		matchQ("network", network),
 		matchQ("status", "applied"),
+		term("token_id", tokenID),
 	}
-	if len(address) > 0 {
-		addresses := make([]qItem, len(address))
-		for i := range address {
-			addresses[i] = matchPhrase("contract", address[i])
+	if len(contracts) > 0 {
+		addresses := make([]qItem, len(contracts))
+		for i := range contracts {
+			addresses[i] = matchPhrase("contract", contracts[i])
+		}
+		matches = append(matches, boolQ(
+			should(addresses...),
+			minimumShouldMatch(1),
+		))
+	}
+
+	if len(initiators) > 0 {
+		addresses := make([]qItem, len(initiators))
+		for i := range initiators {
+			addresses[i] = matchPhrase("initiator", initiators[i])
 		}
 		matches = append(matches, boolQ(
 			should(addresses...),

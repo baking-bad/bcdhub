@@ -13,6 +13,7 @@ type Transfer struct {
 	IndexedTime int64     `json:"indexed_time"`
 	Network     string    `json:"network"`
 	Contract    string    `json:"contract"`
+	Initiator   string    `json:"initiator"`
 	Alias       string    `json:"alias,omitempty"`
 	Hash        string    `json:"hash"`
 	Status      string    `json:"status"`
@@ -32,6 +33,7 @@ func (t *Transfer) ParseElasticJSON(resp gjson.Result) {
 	t.IndexedTime = resp.Get("_source.indexed_time").Int()
 	t.Network = resp.Get("_source.network").String()
 	t.Contract = resp.Get("_source.contract").String()
+	t.Initiator = resp.Get("_source.initiator").String()
 	t.Alias = resp.Get("_source.alias").String()
 	t.Hash = resp.Get("_source.hash").String()
 	t.Status = resp.Get("_source.status").String()
@@ -67,6 +69,7 @@ func (t *Transfer) GetScores(search string) []string {
 		"hash^7",
 		"from^7",
 		"to^6",
+		"initiator",
 	}
 }
 
@@ -88,5 +91,6 @@ func EmptyTransfer(o Operation) *Transfer {
 		Status:      o.Status,
 		Timestamp:   o.Timestamp,
 		Level:       o.Level,
+		Initiator:   o.Source,
 	}
 }

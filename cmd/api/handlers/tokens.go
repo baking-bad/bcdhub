@@ -180,12 +180,12 @@ func (ctx *Context) GetTokenVolumeSeries(c *gin.Context) {
 		return
 	}
 
-	series, err := ctx.ES.GetTokenVolumeSeries(req.Network, reqArgs.Period, []string{reqArgs.Address}, reqArgs.TokenID)
+	series, err := ctx.ES.GetTokenVolumeSeries(req.Network, reqArgs.Period, []string{reqArgs.Contract}, reqArgs.GetAddresses(), reqArgs.TokenID)
 	if handleError(c, err, 0) {
 		return
 	}
 
-	if token, ok := ctx.FindToken(req.Network, reqArgs.Address, int64(reqArgs.TokenID)); ok {
+	if token, ok := ctx.FindToken(req.Network, reqArgs.Contract, int64(reqArgs.TokenID)); ok {
 		response := make([][]interface{}, len(series))
 		for i := range series {
 			response[i] = []interface{}{

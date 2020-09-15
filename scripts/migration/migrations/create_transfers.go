@@ -51,7 +51,11 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 		if err != nil {
 			return err
 		}
-		transfers, err := parsers.MakeTransfers(rpc, ctx.ES, operations[i], tokenViews)
+
+		parser := parsers.NewTransferParser(rpc, ctx.ES)
+		parser.SetViews(tokenViews)
+
+		transfers, err := parser.Parse(operations[i])
 		if err != nil {
 			return err
 		}

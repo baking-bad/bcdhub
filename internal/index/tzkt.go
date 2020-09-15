@@ -74,13 +74,13 @@ func (t *TzKT) GetContracts(startLevel int64) ([]Contract, error) {
 }
 
 // GetContractOperationBlocks -
-func (t *TzKT) GetContractOperationBlocks(startBlock, endBlock int64) ([]int64, error) {
+func (t *TzKT) GetContractOperationBlocks(startBlock, endBlock int64, skipDelegatorBlocks bool) ([]int64, error) {
 	start := int64(startBlock)
 	end := false
 
 	result := make([]int64, 0)
 	for !end {
-		blocks, err := t.api.GetContractOperationBlocks(start, 10000, true, true)
+		blocks, err := t.api.GetContractOperationBlocks(start, 10000, true, !skipDelegatorBlocks)
 		if err != nil {
 			return nil, err
 		}

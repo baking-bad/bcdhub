@@ -1,5 +1,13 @@
 package elastic
 
+// Histogram filter kinds
+const (
+	HistogramFilterKindExists    = "exists"
+	HistogramFilterKindMatch     = "match"
+	HistogramFilterKindIn        = "in"
+	HistogramFilterKindAddresses = "address"
+)
+
 type histogramContext struct {
 	Indices  []string
 	Period   string
@@ -7,8 +15,14 @@ type histogramContext struct {
 		Name  string
 		Field string
 	}
-	Addresses []string
-	Filters   map[string]interface{}
+	Filters []HistogramFilter
+}
+
+// HistogramFilter -
+type HistogramFilter struct {
+	Field string
+	Value interface{}
+	Kind  string
 }
 
 func (ctx histogramContext) hasFunction() bool {
@@ -34,23 +48,28 @@ func (ctx histogramContext) build() base {
 	}
 
 	matches := make([]qItem, 0)
-	for key, value := range ctx.Filters {
-		if value == "" {
-			matches = append(matches, exists(key))
-		} else {
-			matches = append(matches, matchQ(key, value))
+	for _, filter := range ctx.Filters {
+		switch filter.Kind {
+		case HistogramFilterKindExists:
+			matches = append(matches, exists(filter.Field))
+		case HistogramFilterKindMatch:
+			matches = append(matches, matchQ(filter.Field, filter.Value))
+		case HistogramFilterKindIn:
+			if arr, ok := filter.Value.([]string); ok {
+				matches = append(matches, in(filter.Field, arr))
+			}
+		case HistogramFilterKindAddresses:
+			if value, ok := filter.Value.([]string); ok {
+				addresses := make([]qItem, len(value))
+				for i := range value {
+					addresses[i] = matchPhrase(filter.Field, value[i])
+				}
+				matches = append(matches, boolQ(
+					should(addresses...),
+					minimumShouldMatch(1),
+				))
+			}
 		}
-	}
-
-	if len(ctx.Addresses) > 0 {
-		addresses := make([]qItem, len(ctx.Addresses))
-		for i := range ctx.Addresses {
-			addresses[i] = matchPhrase("destination", ctx.Addresses[i])
-		}
-		matches = append(matches, boolQ(
-			should(addresses...),
-			minimumShouldMatch(1),
-		))
 	}
 
 	return newQuery().Query(
@@ -84,15 +103,8 @@ func WithHistogramFunction(function, field string) HistogramOption {
 	}
 }
 
-// WithHistogramAddresses -
-func WithHistogramAddresses(addresses ...string) HistogramOption {
-	return func(h *histogramContext) {
-		h.Addresses = addresses
-	}
-}
-
 // WithHistogramFilters -
-func WithHistogramFilters(filters map[string]interface{}) HistogramOption {
+func WithHistogramFilters(filters []HistogramFilter) HistogramOption {
 	return func(h *histogramContext) {
 		h.Filters = filters
 	}

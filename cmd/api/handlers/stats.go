@@ -109,14 +109,16 @@ func (ctx *Context) GetSeries(c *gin.Context) {
 		return
 	}
 
-	options, err := getHistogramOptions(reqArgs.Name, req.Network)
+	var addresses []string
+	if reqArgs.Address != "" {
+		addresses = strings.Split(reqArgs.Address, ",")
+	}
+
+	options, err := getHistogramOptions(reqArgs.Name, req.Network, addresses...)
 	if handleError(c, err, 0) {
 		return
 	}
 
-	if reqArgs.Address != "" {
-		options = append(options, elastic.WithHistogramAddresses(strings.Split(reqArgs.Address, ",")...))
-	}
 	series, err := ctx.ES.GetDateHistogram(reqArgs.Period, options...)
 	if handleError(c, err, 0) {
 		return
@@ -125,10 +127,15 @@ func (ctx *Context) GetSeries(c *gin.Context) {
 	c.JSON(http.StatusOK, series)
 }
 
-func getHistogramOptions(name, network string) ([]elastic.HistogramOption, error) {
-	filters := map[string]interface{}{
-		"network": network,
+func getHistogramOptions(name, network string, addresses ...string) ([]elastic.HistogramOption, error) {
+	filters := []elastic.HistogramFilter{
+		{
+			Field: "network",
+			Value: network,
+			Kind:  elastic.HistogramFilterKindMatch,
+		},
 	}
+
 	switch name {
 	case "contract":
 		return []elastic.HistogramOption{
@@ -136,31 +143,75 @@ func getHistogramOptions(name, network string) ([]elastic.HistogramOption, error
 			elastic.WithHistogramFilters(filters),
 		}, nil
 	case "operation":
-		filters["entrypoint"] = ""
+		filters = append(filters, elastic.HistogramFilter{
+			Field: "entrypoint",
+			Value: "",
+			Kind:  elastic.HistogramFilterKindExists,
+		})
+
+		if len(addresses) > 0 {
+			filters = append(filters, elastic.HistogramFilter{
+				Kind:  elastic.HistogramFilterKindAddresses,
+				Value: addresses,
+				Field: "destination",
+			})
+		}
 
 		return []elastic.HistogramOption{
 			elastic.WithHistogramIndices("operation"),
 			elastic.WithHistogramFilters(filters),
 		}, nil
 	case "paid_storage_size_diff":
+		if len(addresses) > 0 {
+			filters = append(filters, elastic.HistogramFilter{
+				Kind:  elastic.HistogramFilterKindAddresses,
+				Value: addresses,
+				Field: "destination",
+			})
+		}
+
 		return []elastic.HistogramOption{
 			elastic.WithHistogramIndices("operation"),
 			elastic.WithHistogramFunction("sum", "result.paid_storage_size_diff"),
 			elastic.WithHistogramFilters(filters),
 		}, nil
 	case "consumed_gas":
+		if len(addresses) > 0 {
+			filters = append(filters, elastic.HistogramFilter{
+				Kind:  elastic.HistogramFilterKindAddresses,
+				Value: addresses,
+				Field: "destination",
+			})
+		}
+
 		return []elastic.HistogramOption{
 			elastic.WithHistogramIndices("operation"),
 			elastic.WithHistogramFunction("sum", "result.consumed_gas"),
 			elastic.WithHistogramFilters(filters),
 		}, nil
 	case "users":
+		if len(addresses) > 0 {
+			filters = append(filters, elastic.HistogramFilter{
+				Kind:  elastic.HistogramFilterKindAddresses,
+				Value: addresses,
+				Field: "destination",
+			})
+		}
+
 		return []elastic.HistogramOption{
 			elastic.WithHistogramIndices("operation"),
 			elastic.WithHistogramFunction("cardinality", "source.keyword"),
 			elastic.WithHistogramFilters(filters),
 		}, nil
 	case "volume":
+		if len(addresses) > 0 {
+			filters = append(filters, elastic.HistogramFilter{
+				Kind:  elastic.HistogramFilterKindAddresses,
+				Value: addresses,
+				Field: "destination",
+			})
+		}
+
 		return []elastic.HistogramOption{
 			elastic.WithHistogramIndices("operation"),
 			elastic.WithHistogramFunction("sum", "amount"),

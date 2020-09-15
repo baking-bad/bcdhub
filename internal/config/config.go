@@ -56,6 +56,7 @@ type Config struct {
 		Networks map[string]struct {
 			Boost string `yaml:"boost"`
 		} `yaml:"networks"`
+		SkipDelegatorBlocks bool `yaml:"skip_delegator_blocks"`
 	} `yaml:"indexer"`
 
 	Metrics struct {
