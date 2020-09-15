@@ -31,16 +31,17 @@ var errRollback = errors.New("rollback")
 type BoostIndexer struct {
 	Network string
 
-	rpc             noderpc.INode
-	es              elastic.IElastic
-	externalIndexer index.Indexer
-	state           models.Block
-	currentProtocol models.Protocol
-	messageQueue    *mq.MQ
-	filesDirectory  string
-	boost           bool
-	interfaces      map[string]kinds.ContractKind
-	tokenViews      parsers.TokenViews
+	rpc                 noderpc.INode
+	es                  elastic.IElastic
+	externalIndexer     index.Indexer
+	state               models.Block
+	currentProtocol     models.Protocol
+	messageQueue        *mq.MQ
+	filesDirectory      string
+	boost               bool
+	interfaces          map[string]kinds.ContractKind
+	tokenViews          parsers.TokenViews
+	skipDelegatorBlocks bool
 
 	stop    chan struct{}
 	stopped bool
@@ -356,7 +357,7 @@ func (bi *BoostIndexer) getLastRollbackBlock() (int64, error) {
 }
 
 func (bi *BoostIndexer) getBoostBlocks(head noderpc.Header) ([]int64, error) {
-	levels, err := bi.externalIndexer.GetContractOperationBlocks(bi.state.Level, head.Level)
+	levels, err := bi.externalIndexer.GetContractOperationBlocks(bi.state.Level, head.Level, bi.skipDelegatorBlocks)
 	if err != nil {
 		return nil, err
 	}

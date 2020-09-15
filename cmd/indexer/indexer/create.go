@@ -17,6 +17,9 @@ func CreateIndexers(cfg config.Config) ([]Indexer, error) {
 		if options.Boost != "" {
 			boostOptions = append(boostOptions, WithBoost(options.Boost, network, cfg))
 		}
+		if cfg.Indexer.SkipDelegatorBlocks {
+			boostOptions = append(boostOptions, WithSkipDelegatorBlocks())
+		}
 		bi, err := NewBoostIndexer(cfg, network, boostOptions...)
 		if err != nil {
 			return nil, err

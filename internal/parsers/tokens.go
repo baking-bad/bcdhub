@@ -74,25 +74,45 @@ func (views TokenViews) GetByOperation(operation models.Operation) (database.Tok
 	return view, ok
 }
 
-// MakeTransfers -
-func MakeTransfers(rpc noderpc.INode, es elastic.IElastic, operation models.Operation, views TokenViews) ([]*models.Transfer, error) {
-	if view, ok := views.GetByOperation(operation); ok {
-		return runView(rpc, es, view, operation)
+// TransferParser -
+type TransferParser struct {
+	rpc   noderpc.INode
+	es    elastic.IElastic
+	views TokenViews
+}
+
+// NewTransferParser -
+func NewTransferParser(rpc noderpc.INode, es elastic.IElastic) TransferParser {
+	return TransferParser{
+		rpc: rpc,
+		es:  es,
+	}
+}
+
+// SetViews -
+func (p *TransferParser) SetViews(views TokenViews) {
+	p.views = views
+}
+
+// Parse -
+func (p TransferParser) Parse(operation models.Operation) ([]*models.Transfer, error) {
+	if view, ok := p.views.GetByOperation(operation); ok {
+		return p.runView(view, operation)
 	} else if operation.Entrypoint == "transfer" {
 		parameters := getParameters(operation.Parameters)
 		for i := range operation.Tags {
 			switch operation.Tags[i] {
 			case consts.FA12Tag:
-				return makeFA12Transfers(operation, parameters)
+				return p.makeFA12Transfers(operation, parameters)
 			case consts.FA2Tag:
-				return makeFA2Transfers(operation, parameters)
+				return p.makeFA2Transfers(operation, parameters)
 			}
 		}
 	}
 	return nil, nil
 }
 
-func makeFA12Transfers(operation models.Operation, parameters gjson.Result) ([]*models.Transfer, error) {
+func (p TransferParser) makeFA12Transfers(operation models.Operation, parameters gjson.Result) ([]*models.Transfer, error) {
 	transfer := models.EmptyTransfer(operation)
 	fromAddr, err := getAddress(parameters.Get("args.0"))
 	if err != nil {
@@ -108,7 +128,7 @@ func makeFA12Transfers(operation models.Operation, parameters gjson.Result) ([]*
 	return []*models.Transfer{transfer}, nil
 }
 
-func makeFA2Transfers(operation models.Operation, parameters gjson.Result) ([]*models.Transfer, error) {
+func (p TransferParser) makeFA2Transfers(operation models.Operation, parameters gjson.Result) ([]*models.Transfer, error) {
 	transfers := make([]*models.Transfer, 0)
 	for _, from := range parameters.Array() {
 		fromAddr, err := getAddress(from.Get("args.0"))
@@ -131,43 +151,16 @@ func makeFA2Transfers(operation models.Operation, parameters gjson.Result) ([]*m
 	return transfers, nil
 }
 
-func getParameters(str string) gjson.Result {
-	parameters := gjson.Parse(str)
-	if !parameters.Get("value").Exists() {
-		return parameters
-	}
-	parameters = parameters.Get("value")
-	for end := false; !end; {
-		prim := parameters.Get("prim|@lower").String()
-		end = prim != consts.LEFT && prim != consts.RIGHT
-		if !end {
-			parameters = parameters.Get("args.0")
-		}
-	}
-	return parameters
-}
-
-func getAddress(data gjson.Result) (string, error) {
-	if data.Get("string").Exists() {
-		return data.Get("string").String(), nil
-	}
-
-	if data.Get("bytes").Exists() {
-		return unpack.Address(data.Get("bytes").String())
-	}
-	return "", errors.Errorf("Unknown address data: %s", data.Raw)
-}
-
-func runView(rpc noderpc.INode, es elastic.IElastic, view database.TokenViewImplementation, operation models.Operation) ([]*models.Transfer, error) {
+func (p TransferParser) runView(view database.TokenViewImplementation, operation models.Operation) ([]*models.Transfer, error) {
 	parser, err := view.MichelsonParameterView.GetParser()
 	if err != nil {
 		return nil, err
 	}
-	state, err := es.GetLastBlock(operation.Network)
+	state, err := p.es.GetLastBlock(operation.Network)
 	if err != nil {
 		return nil, err
 	}
-	protocol, err := es.GetProtocol(operation.Network, "", -1)
+	protocol, err := p.es.GetProtocol(operation.Network, "", -1)
 	if err != nil {
 		return nil, err
 	}
@@ -179,26 +172,14 @@ func runView(rpc noderpc.INode, es elastic.IElastic, view database.TokenViewImpl
 		return nil, err
 	}
 
-	response, err := rpc.RunCode(code, storage, parameter, state.ChainID, "", "", operation.Entrypoint, 0, protocol.Constants.HardGasLimitPerOperation)
+	response, err := p.rpc.RunCode(code, storage, parameter, state.ChainID, "", "", operation.Entrypoint, 0, protocol.Constants.HardGasLimitPerOperation)
 	if err != nil {
 		return nil, err
 	}
-	return parseResponse(es, parser, operation, response)
+	return p.parseResponse(parser, operation, response)
 }
 
-func normalizeParameter(params string) gjson.Result {
-	parameter := gjson.Parse(params)
-	if parameter.Get("value").Exists() {
-		parameter = parameter.Get("value")
-	}
-
-	for prim := parameter.Get("prim").String(); prim == "Right" || prim == "Left"; prim = parameter.Get("prim").String() {
-		parameter = parameter.Get("args.0")
-	}
-	return parameter
-}
-
-func parseResponse(es elastic.IElastic, parser database.BalanceViewParser, operation models.Operation, response gjson.Result) ([]*models.Transfer, error) {
+func (p TransferParser) parseResponse(parser database.BalanceViewParser, operation models.Operation, response gjson.Result) ([]*models.Transfer, error) {
 	newBalances := parser.Parse(response)
 	addresses := make([]elastic.TokenBalance, len(newBalances))
 	for i := range newBalances {
@@ -206,7 +187,7 @@ func parseResponse(es elastic.IElastic, parser database.BalanceViewParser, opera
 		addresses[i].TokenID = newBalances[i].TokenID
 	}
 
-	oldBalances, err := es.GetBalances(operation.Network, operation.Destination, operation.Level, addresses...)
+	oldBalances, err := p.es.GetBalances(operation.Network, operation.Destination, operation.Level, addresses...)
 	if err != nil {
 		return nil, err
 	}
@@ -234,4 +215,43 @@ func parseResponse(es elastic.IElastic, parser database.BalanceViewParser, opera
 	}
 
 	return transfers, nil
+}
+
+func normalizeParameter(params string) gjson.Result {
+	parameter := gjson.Parse(params)
+	if parameter.Get("value").Exists() {
+		parameter = parameter.Get("value")
+	}
+
+	for prim := parameter.Get("prim").String(); prim == "Right" || prim == "Left"; prim = parameter.Get("prim").String() {
+		parameter = parameter.Get("args.0")
+	}
+	return parameter
+}
+
+func getParameters(str string) gjson.Result {
+	parameters := gjson.Parse(str)
+	if !parameters.Get("value").Exists() {
+		return parameters
+	}
+	parameters = parameters.Get("value")
+	for end := false; !end; {
+		prim := parameters.Get("prim|@lower").String()
+		end = prim != consts.LEFT && prim != consts.RIGHT
+		if !end {
+			parameters = parameters.Get("args.0")
+		}
+	}
+	return parameters
+}
+
+func getAddress(data gjson.Result) (string, error) {
+	if data.Get("string").Exists() {
+		return data.Get("string").String(), nil
+	}
+
+	if data.Get("bytes").Exists() {
+		return unpack.Address(data.Get("bytes").String())
+	}
+	return "", errors.Errorf("Unknown address data: %s", data.Raw)
 }

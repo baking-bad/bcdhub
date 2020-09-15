@@ -272,9 +272,18 @@ func (req GetTokenStatsRequest) Addresses() []string {
 }
 
 type getTokenSeriesRequest struct {
-	Address string `form:"address" binding:"required,address"`
-	Period  string `form:"period" binding:"oneof=all year month week day" example:"year"`
-	TokenID uint   `form:"token_id"`
+	Contract  string `form:"contract" binding:"required,address"`
+	Addresses string `form:"addresses" binding:"required"`
+	Period    string `form:"period" binding:"oneof=all year month week day" example:"year"`
+	TokenID   uint   `form:"token_id"`
+}
+
+// GetAddresses -
+func (req getTokenSeriesRequest) GetAddresses() []string {
+	if req.Addresses == "" {
+		return nil
+	}
+	return strings.Split(req.Addresses, ",")
 }
 
 type verificationRequest struct {

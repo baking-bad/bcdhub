@@ -26,7 +26,7 @@ func (d *db) CreateAssessment(a *Assessments) error {
 		FirstOrCreate(a).Error
 }
 
-// UpdateAssessment -
+// CreateOrUpdateAssessment -
 func (d *db) CreateOrUpdateAssessment(a *Assessments) error {
 	return d.ORM.
 		Assign(Assessments{Assessment: a.Assessment}).

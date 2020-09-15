@@ -26,9 +26,9 @@ type DefaultParser struct {
 	es             elastic.IElastic
 	filesDirectory string
 
-	interfaces map[string]kinds.ContractKind
-	constants  models.Constants
-	tokenViews TokenViews
+	interfaces     map[string]kinds.ContractKind
+	constants      models.Constants
+	transferParser TransferParser
 }
 
 // NewDefaultParser -
@@ -37,6 +37,8 @@ func NewDefaultParser(rpc noderpc.INode, es elastic.IElastic, filesDirectory str
 		rpc:            rpc,
 		es:             es,
 		filesDirectory: filesDirectory,
+
+		transferParser: NewTransferParser(rpc, es),
 	}
 }
 
@@ -52,7 +54,7 @@ func (p *DefaultParser) SetInterface(interfaces map[string]kinds.ContractKind) {
 
 // SetTokenViews -
 func (p *DefaultParser) SetTokenViews(views TokenViews) {
-	p.tokenViews = views
+	p.transferParser.SetViews(views)
 }
 
 // Parse -
@@ -145,7 +147,7 @@ func (p *DefaultParser) parseTransaction(data gjson.Result, network, hash string
 	if err := p.tagOperation(&op); err != nil {
 		return nil, op, err
 	}
-	transfers, err := MakeTransfers(p.rpc, p.es, op, p.tokenViews)
+	transfers, err := p.transferParser.Parse(op)
 	if err != nil {
 		return nil, op, err
 	}
