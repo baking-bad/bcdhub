@@ -14,8 +14,8 @@ type Subscription struct {
 }
 
 func (d *db) GetSubscription(userID uint, address, network string) (s Subscription, err error) {
-	err = d.ORM.
-		Where("user_id = ? AND address = ? AND network = ?", userID, address, network).
+	err = d.
+		Scopes(userIDScope(userID), networkScope(network), addressScope(address)).
 		First(&s).Error
 	return
 }
@@ -23,8 +23,8 @@ func (d *db) GetSubscription(userID uint, address, network string) (s Subscripti
 func (d *db) GetSubscriptions(address, network string) ([]Subscription, error) {
 	var subs []Subscription
 
-	err := d.ORM.
-		Where("address = ? AND network = ?", address, network).
+	err := d.
+		Scopes(contract(address, network)).
 		Find(&subs).Error
 
 	return subs, err
@@ -33,8 +33,8 @@ func (d *db) GetSubscriptions(address, network string) ([]Subscription, error) {
 func (d *db) ListSubscriptions(userID uint) ([]Subscription, error) {
 	var subs []Subscription
 
-	err := d.ORM.
-		Where("user_id = ?", userID).
+	err := d.
+		Scopes(userIDScope(userID)).
 		Order("created_at DESC").
 		Find(&subs).Error
 
@@ -42,22 +42,22 @@ func (d *db) ListSubscriptions(userID uint) ([]Subscription, error) {
 }
 
 func (d *db) UpsertSubscription(s *Subscription) error {
-	return d.ORM.
-		Where("user_id = ? AND address = ? AND network = ?", s.UserID, s.Address, s.Network).
+	return d.
+		Scopes(userIDScope(s.UserID), contract(s.Address, s.Network)).
 		Assign(Subscription{Alias: s.Alias, WatchMask: s.WatchMask, SentryDSN: s.SentryDSN}).
 		FirstOrCreate(s).Error
 }
 
 func (d *db) DeleteSubscription(s *Subscription) error {
-	return d.ORM.Unscoped().
-		Where("user_id = ? AND address = ? AND network = ?", s.UserID, s.Address, s.Network).
+	return d.Unscoped().
+		Scopes(userIDScope(s.UserID), contract(s.Address, s.Network)).
 		Delete(Subscription{}).Error
 }
 
 func (d *db) GetSubscriptionsCount(address, network string) (count int, err error) {
-	err = d.ORM.
+	err = d.
 		Model(&Subscription{}).
-		Where("address = ? AND network = ?", address, network).
+		Scopes(contract(address, network)).
 		Count(&count).Error
 	return
 }

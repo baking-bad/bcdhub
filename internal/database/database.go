@@ -8,46 +8,46 @@ import (
 
 // DB -
 type DB interface {
-	// User
-	GetOrCreateUser(*User, string) error
-	GetUser(uint) (*User, error)
-	UpdateUserMarkReadAt(uint, int64) error
+	IAccount
+	IAlias
+	IAssessment
+	ICompilationTask
+	IDApp
+	IDeployment
+	ISubscription
+	IToken
+	IUser
+	IVerification
 
-	// Subscription
-	GetSubscription(userID uint, address, network string) (Subscription, error)
-	GetSubscriptions(address, network string) ([]Subscription, error)
-	ListSubscriptions(userID uint) ([]Subscription, error)
-	UpsertSubscription(*Subscription) error
-	DeleteSubscription(*Subscription) error
-	GetSubscriptionsCount(address, network string) (int, error)
+	Close()
+}
 
-	// Alias
+// IAccount -
+type IAccount interface {
+	GetOrCreateAccount(*Account) error
+}
+
+// IAlias -
+type IAlias interface {
 	GetAliases(network string) ([]Alias, error)
 	GetAlias(address, network string) (Alias, error)
-	GetOperationAliases(src, dst, network string) (OperationAlises, error)
+	GetOperationAliases(src, dst, network string) (OperationAliases, error)
 	GetAliasesMap(network string) (map[string]string, error)
 	CreateAlias(string, string, string) error
 	CreateOrUpdateAlias(a *Alias) error
 	GetBySlug(string) (Alias, error)
+}
 
-	// Assessment
+// IAssessment -
+type IAssessment interface {
 	CreateAssessment(a *Assessments) error
 	CreateOrUpdateAssessment(a *Assessments) error
 	GetAssessmentsWithValue(uint, uint, uint) ([]Assessments, error)
 	GetUserCompletedAssesments(userID uint) (count int, err error)
+}
 
-	// Account
-	GetOrCreateAccount(*Account) error
-
-	// DApp
-	GetDApps() ([]DApp, error)
-	GetDApp(id uint) (DApp, error)
-	GetDAppBySlug(slug string) (dapp DApp, err error)
-
-	// Tokens
-	GetTokens() ([]Token, error)
-
-	// CompilationTask
+// ICompilationTask -
+type ICompilationTask interface {
 	ListCompilationTasks(userID, limit, offset uint, kind string) ([]CompilationTask, error)
 	GetCompilationTask(taskID uint) (*CompilationTask, error)
 	GetCompilationTaskBy(address, network, status string) (*CompilationTask, error)
@@ -55,25 +55,56 @@ type DB interface {
 	UpdateTaskStatus(taskID uint, status string) error
 	UpdateTaskResults(task *CompilationTask, status string, results []CompilationTaskResult) error
 	CountCompilationTasks(userID uint) (int64, error)
+}
 
-	// Verification
-	ListVerifications(userID, limit, offset uint) ([]Verification, error)
-	CreateVerification(v *Verification) error
-	GetVerificationBy(address, network string) (*Verification, error)
-	CountVerifications(userID uint) (int64, error)
+// IDApp -
+type IDApp interface {
+	GetDApps() ([]DApp, error)
+	GetDApp(id uint) (DApp, error)
+	GetDAppBySlug(slug string) (dapp DApp, err error)
+}
 
-	// Deployment
+// IDeployment -
+type IDeployment interface {
 	ListDeployments(userID, limit, offset uint) ([]Deployment, error)
 	CreateDeployment(dt *Deployment) error
 	GetDeploymentBy(opHash string) (*Deployment, error)
 	UpdateDeployment(dt *Deployment) error
 	CountDeployments(userID uint) (int64, error)
+}
 
-	Close()
+// ISubscription -
+type ISubscription interface {
+	GetSubscription(userID uint, address, network string) (Subscription, error)
+	GetSubscriptions(address, network string) ([]Subscription, error)
+	ListSubscriptions(userID uint) ([]Subscription, error)
+	UpsertSubscription(*Subscription) error
+	DeleteSubscription(*Subscription) error
+	GetSubscriptionsCount(address, network string) (int, error)
+}
+
+// IToken -
+type IToken interface {
+	GetTokens() ([]Token, error)
+}
+
+// IUser -
+type IUser interface {
+	GetOrCreateUser(*User, string) error
+	GetUser(uint) (*User, error)
+	UpdateUserMarkReadAt(uint, int64) error
+}
+
+// IVerification -
+type IVerification interface {
+	ListVerifications(userID, limit, offset uint) ([]Verification, error)
+	CreateVerification(v *Verification) error
+	GetVerificationBy(address, network string) (*Verification, error)
+	CountVerifications(userID uint) (int64, error)
 }
 
 type db struct {
-	ORM *gorm.DB
+	*gorm.DB
 }
 
 // New - creates db connection
@@ -102,11 +133,9 @@ func New(connectionString string) (DB, error) {
 
 	gormDB = gormDB.Set("gorm:auto_preload", false)
 
-	return &db{
-		ORM: gormDB,
-	}, nil
+	return &db{gormDB}, nil
 }
 
 func (d *db) Close() {
-	d.ORM.Close()
+	d.DB.Close()
 }
