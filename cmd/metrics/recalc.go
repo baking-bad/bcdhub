@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/elastic"
@@ -13,10 +12,7 @@ import (
 )
 
 func recalculateAll(data amqp.Delivery) error {
-	var contractID string
-	if err := json.Unmarshal(data.Body, &contractID); err != nil {
-		return errors.Errorf("[recalculateAll] Unmarshal message body error: %s", err)
-	}
+	contractID := string(data.Body)
 
 	c := models.Contract{ID: contractID}
 	if err := ctx.ES.GetByID(&c); err != nil {

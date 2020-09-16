@@ -43,7 +43,10 @@ api:
     seed:
         enabled: false
     queues:
-        - operations
+        operations:
+            non_durable: true
+            auto_deleted: true
 
 rabbitmq:
     uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@127.0.0.1:5772/"
+    publisher: true

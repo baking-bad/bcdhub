@@ -35,6 +35,11 @@ func (b *BigMapAction) GetQueue() string {
 	return ""
 }
 
+// Marshal -
+func (b *BigMapAction) Marshal() ([]byte, error) {
+	return nil, nil
+}
+
 // ParseElasticJSON -
 func (b *BigMapAction) ParseElasticJSON(hit gjson.Result) {
 	b.ID = hit.Get("_id").String()

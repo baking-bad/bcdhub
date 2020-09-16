@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/json"
-
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
@@ -12,10 +10,7 @@ import (
 )
 
 func getTransfer(data amqp.Delivery) error {
-	var transferID string
-	if err := json.Unmarshal(data.Body, &transferID); err != nil {
-		return errors.Errorf("[getTransfer] Unmarshal message body error: %s", err)
-	}
+	transferID := string(data.Body)
 
 	transfer := models.Transfer{ID: transferID}
 	if err := ctx.ES.GetByID(&transfer); err != nil {

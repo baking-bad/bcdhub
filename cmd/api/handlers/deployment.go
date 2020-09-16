@@ -13,7 +13,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
-	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/gin-gonic/gin"
 )
 
@@ -105,7 +104,7 @@ func (ctx *Context) runDeployment(taskID uint, form *multipart.Form) error {
 		Dir:   tempDir,
 	}
 
-	if err = ctx.MQPublisher.Send(mq.ChannelNew, data, data); ctx.handleCompilationError(taskID, err) {
+	if err = ctx.MQ.Send(data); ctx.handleCompilationError(taskID, err) {
 		return err
 	}
 

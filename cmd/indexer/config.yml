@@ -37,6 +37,7 @@ elastic:
 
 rabbitmq:
     uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mq:5672/"
+    publisher: true
 
 indexer:
     project_name: indexer

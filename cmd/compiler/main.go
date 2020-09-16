@@ -36,14 +36,13 @@ func main() {
 		config.NewContext(
 			config.WithRPC(cfg.RPC),
 			config.WithDatabase(cfg.DB),
-			config.WithRabbitReceiver(cfg.RabbitMQ, cfg.Compiler.ProjectName, cfg.Compiler.Queues),
-			config.WithRabbitPublisher(cfg.RabbitMQ),
+			config.WithRabbit(cfg.RabbitMQ, cfg.Compiler.ProjectName, cfg.Compiler.Queues),
 			config.WithElasticSearch(cfg.Elastic),
 			config.WithAWS(cfg.Compiler.AWS),
 		),
 	}
 
-	msgs, err := context.MQReceiver.Consume(mq.QueueCompilations)
+	msgs, err := context.MQ.Consume(mq.QueueCompilations)
 	if err != nil {
 		logger.Fatal(err)
 	}

@@ -40,7 +40,7 @@ func NewContext(cfg config.Config) (*Context, error) {
 		config.WithLoadErrorDescriptions("data/errors.json"),
 		config.WithConfigCopy(cfg),
 		config.WithContractsInterfaces(),
-		config.WithRabbitPublisher(cfg.RabbitMQ),
+		config.WithRabbit(cfg.RabbitMQ, cfg.API.ProjectName, cfg.API.Queues),
 	)
 
 	tokens, err := ctx.DB.GetTokens()

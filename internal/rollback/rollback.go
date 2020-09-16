@@ -15,7 +15,7 @@ import (
 )
 
 // Rollback - rollback indexer state to level
-func Rollback(e elastic.IElastic, messageQueue *mq.MQ, appDir string, fromState models.Block, toLevel int64) error {
+func Rollback(e elastic.IElastic, messageQueue mq.IMessagePublisher, appDir string, fromState models.Block, toLevel int64) error {
 	if toLevel >= fromState.Level {
 		return errors.Errorf("To level must be less than from level: %d >= %d", toLevel, fromState.Level)
 	}
@@ -38,7 +38,7 @@ func Rollback(e elastic.IElastic, messageQueue *mq.MQ, appDir string, fromState 
 	time.Sleep(time.Second) // Golden hack: Waiting while elastic remove records
 	logger.Info("Sending to queue affected contract ids...")
 	for i := range affectedContractIDs {
-		if err := messageQueue.SendToQueue(mq.ChannelNew, mq.QueueRecalc, affectedContractIDs[i]); err != nil {
+		if err := messageQueue.SendRaw(mq.QueueRecalc, []byte(affectedContractIDs[i])); err != nil {
 			return err
 		}
 	}

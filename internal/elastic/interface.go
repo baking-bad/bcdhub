@@ -11,7 +11,7 @@ import (
 
 // Model -
 type Model interface {
-	mq.IQueued
+	mq.IMessage
 
 	GetID() string
 	GetIndex() string

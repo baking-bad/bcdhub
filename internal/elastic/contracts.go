@@ -189,6 +189,11 @@ func (ids *contractIDs) GetQueue() string {
 	return ""
 }
 
+// Marshal -
+func (ids *contractIDs) Marshal() ([]byte, error) {
+	return nil, nil
+}
+
 // GetID -
 func (ids *contractIDs) GetID() string {
 	return ""

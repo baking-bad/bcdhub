@@ -32,8 +32,8 @@ metrics:
     sentry:
         enabled: true
     queues:
-        - operations
-        - contracts
-        - migrations
-        - recalc
-        - transfers
+        operations:
+        contracts:
+        migrations:
+        recalc:
+        transfers:

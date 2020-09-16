@@ -213,6 +213,11 @@ func (a *affected) GetQueue() string {
 	return ""
 }
 
+// Marshal -
+func (a *affected) Marshal() ([]byte, error) {
+	return nil, nil
+}
+
 // GetID -
 func (a *affected) GetID() string {
 	return ""

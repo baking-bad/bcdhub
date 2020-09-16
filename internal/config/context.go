@@ -16,8 +16,7 @@ import (
 type Context struct {
 	DB           database.DB
 	ES           elastic.IElastic
-	MQPublisher  *mq.MQ
-	MQReceiver   *mq.MQ
+	MQ           *mq.QueueManager
 	AWS          *aws.Client
 	RPC          map[string]noderpc.INode
 	TzKTServices map[string]*tzkt.ServicesTzKT
@@ -70,11 +69,8 @@ func (ctx *Context) LoadAliases() error {
 
 // Close -
 func (ctx *Context) Close() {
-	if ctx.MQPublisher != nil {
-		ctx.MQPublisher.Close()
-	}
-	if ctx.MQReceiver != nil {
-		ctx.MQReceiver.Close()
+	if ctx.MQ != nil {
+		ctx.MQ.Close()
 	}
 	if ctx.DB != nil {
 		ctx.DB.Close()

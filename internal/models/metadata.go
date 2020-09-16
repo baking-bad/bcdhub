@@ -37,3 +37,8 @@ func (m *Metadata) GetIndex() string {
 func (m *Metadata) GetQueue() string {
 	return ""
 }
+
+// Marshal -
+func (m *Metadata) Marshal() ([]byte, error) {
+	return nil, nil
+}

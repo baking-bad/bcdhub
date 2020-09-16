@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
@@ -15,10 +14,7 @@ import (
 )
 
 func getOperation(data amqp.Delivery) error {
-	var operationID string
-	if err := json.Unmarshal(data.Body, &operationID); err != nil {
-		return errors.Errorf("[getOperation] Unmarshal message body error: %s", err)
-	}
+	operationID := string(data.Body)
 
 	op := models.Operation{ID: operationID}
 	if err := ctx.ES.GetByID(&op); err != nil {

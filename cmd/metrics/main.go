@@ -55,7 +55,7 @@ func handler(data amqp.Delivery) error {
 	return nil
 }
 
-func listenChannel(messageQueue *mq.MQ, queue string, closeChan chan struct{}) {
+func listenChannel(messageQueue mq.IMessageReceiver, queue string, closeChan chan struct{}) {
 	localSentry := helpers.GetLocalSentry()
 	helpers.SetLocalTagSentry(localSentry, "queue", queue)
 
@@ -99,7 +99,7 @@ func main() {
 		config.WithElasticSearch(cfg.Elastic),
 		config.WithRPC(cfg.RPC),
 		config.WithDatabase(cfg.DB),
-		config.WithRabbitReceiver(cfg.RabbitMQ, cfg.Metrics.ProjectName, cfg.Metrics.Queues),
+		config.WithRabbit(cfg.RabbitMQ, cfg.Metrics.ProjectName, cfg.Metrics.Queues),
 		config.WithAliases(consts.Mainnet),
 	)
 	defer ctx.Close()
@@ -108,8 +108,8 @@ func main() {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
-	for i := range cfg.Metrics.Queues {
-		go listenChannel(ctx.MQReceiver, cfg.Metrics.Queues[i], closeChan)
+	for _, queue := range ctx.MQ.GetQueues() {
+		go listenChannel(ctx.MQ, queue, closeChan)
 	}
 
 	<-signals

@@ -13,37 +13,31 @@ import (
 type RabbitMQ struct {
 	*DefaultSource
 
-	source *mq.MQ
-	queues []string
+	source *mq.QueueManager
 
 	stop chan struct{}
 	wg   sync.WaitGroup
 }
 
 // NewRabbitMQ -
-func NewRabbitMQ(connectionString string, queues []string) (*RabbitMQ, error) {
-	messageQueue, err := mq.NewReceiver(connectionString, queues, "ws")
-	if err != nil {
-		return nil, err
-	}
+func NewRabbitMQ(messageQueue *mq.QueueManager) (*RabbitMQ, error) {
 	return &RabbitMQ{
 		DefaultSource: NewDefaultSource(),
 		source:        messageQueue,
-		queues:        queues,
 		stop:          make(chan struct{}),
 	}, nil
 }
 
 // Run -
 func (c *RabbitMQ) Run() {
-	if len(c.queues) == 0 {
+	if len(c.source.GetQueues()) == 0 {
 		logger.Warning("Empty rabbit queues")
 		return
 	}
 
-	for i := range c.queues {
+	for _, queue := range c.source.GetQueues() {
 		c.wg.Add(1)
-		go c.listenChannel(c.queues[i])
+		go c.listenChannel(queue)
 	}
 }
 

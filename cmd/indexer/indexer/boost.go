@@ -36,7 +36,7 @@ type BoostIndexer struct {
 	externalIndexer     index.Indexer
 	state               models.Block
 	currentProtocol     models.Protocol
-	messageQueue        *mq.MQ
+	messageQueue        *mq.QueueManager
 	filesDirectory      string
 	boost               bool
 	interfaces          map[string]kinds.ContractKind
@@ -127,7 +127,7 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 	}
 	defer db.Close()
 
-	messageQueue, err := mq.NewPublisher(cfg.RabbitMQ.URI)
+	messageQueue, err := mq.NewQueueManager(cfg.RabbitMQ.URI, cfg.Indexer.ProjectName, cfg.RabbitMQ.NeedPublisher)
 	if err != nil {
 		return nil, err
 	}
@@ -465,7 +465,7 @@ func (bi *BoostIndexer) saveModels(items []elastic.Model) error {
 	}
 
 	for i := range items {
-		if err := bi.messageQueue.Send(mq.ChannelNew, items[i], items[i].GetID()); err != nil {
+		if err := bi.messageQueue.Send(items[i]); err != nil {
 			return err
 		}
 	}

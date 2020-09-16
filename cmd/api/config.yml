@@ -74,10 +74,13 @@ api:
     seed:
         enabled: false
     queues:
-        - operations
+        operations:
+            non_durable: true
+            auto_deleted: true
 
 rabbitmq:
     uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mq:5672/"
+    publisher: true
 
 aws:
   bucket_name: bcd-elastic-snapshots

@@ -55,6 +55,11 @@ func (c *Contract) GetQueue() string {
 	return "contracts"
 }
 
+// Marshal -
+func (c *Contract) Marshal() ([]byte, error) {
+	return []byte(c.ID), nil
+}
+
 // ParseElasticJSON -
 func (c *Contract) ParseElasticJSON(hit gjson.Result) {
 	c.ID = hit.Get("_id").String()

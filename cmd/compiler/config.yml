@@ -33,10 +33,11 @@ compiler:
     sentry:
         enabled: true
     queues:
-        - compilations
+        compilations:
 
 rabbitmq:
     uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mq:5672/"
+    publisher: true
 
 elastic:
     uri: http://elastic:9200

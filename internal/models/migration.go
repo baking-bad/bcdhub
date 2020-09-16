@@ -36,6 +36,11 @@ func (m *Migration) GetQueue() string {
 	return "migrations"
 }
 
+// Marshal -
+func (m *Migration) Marshal() ([]byte, error) {
+	return []byte(m.ID), nil
+}
+
 // ParseElasticJSON -
 func (m *Migration) ParseElasticJSON(resp gjson.Result) {
 	m.ID = resp.Get("_id").String()
