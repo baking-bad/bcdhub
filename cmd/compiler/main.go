@@ -69,13 +69,11 @@ func main() {
 }
 
 func (ctx *Context) handleMessage(data amqp.Delivery) error {
-	defer func(d amqp.Delivery) {
-		if err := data.Ack(false); err != nil {
-			logger.Errorf("Error acknowledging message: %s", err)
-		}
-	}(data)
+	if err := ctx.parseData(data); err != nil {
+		return err
+	}
 
-	return ctx.parseData(data)
+	return data.Ack(false)
 }
 
 func (ctx *Context) parseData(data amqp.Delivery) error {
