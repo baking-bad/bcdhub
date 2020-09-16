@@ -1,6 +1,10 @@
 package compilation
 
-import "github.com/baking-bad/bcdhub/internal/mq"
+import (
+	"encoding/json"
+
+	"github.com/baking-bad/bcdhub/internal/mq"
+)
 
 // Task -
 type Task struct {
@@ -13,4 +17,9 @@ type Task struct {
 // GetQueue -
 func (t Task) GetQueue() string {
 	return mq.QueueCompilations
+}
+
+// Marshal -
+func (t Task) Marshal() ([]byte, error) {
+	return json.Marshal(t)
 }

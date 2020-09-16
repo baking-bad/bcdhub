@@ -42,6 +42,11 @@ func (b *BigMapDiff) GetQueue() string {
 	return ""
 }
 
+// Marshal -
+func (b *BigMapDiff) Marshal() ([]byte, error) {
+	return nil, nil
+}
+
 // ParseElasticJSON -
 func (b *BigMapDiff) ParseElasticJSON(hit gjson.Result) {
 	b.ID = hit.Get("_id").String()

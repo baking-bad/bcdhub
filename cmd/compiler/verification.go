@@ -5,7 +5,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/baking-bad/bcdhub/internal/providers"
 	"github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/tidwall/gjson"
@@ -64,7 +63,7 @@ func (ctx *Context) verification(ct compilation.Task) error {
 		return err
 	}
 
-	return ctx.MQPublisher.Send(mq.ChannelNew, &contract, contract.GetID())
+	return ctx.MQ.Send(&contract)
 }
 
 func (ctx *Context) verify(ct compilation.Task) (*database.CompilationTask, error) {

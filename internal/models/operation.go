@@ -134,6 +134,11 @@ func (o *Operation) GetQueue() string {
 	return "operations"
 }
 
+// Marshal -
+func (o *Operation) Marshal() ([]byte, error) {
+	return []byte(o.ID), nil
+}
+
 // GetScores -
 func (o *Operation) GetScores(search string) []string {
 	return []string{

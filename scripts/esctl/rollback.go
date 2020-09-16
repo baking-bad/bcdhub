@@ -25,7 +25,7 @@ func (x *rollbackCommand) Execute(args []string) error {
 		return nil
 	}
 
-	if err = rollback.Rollback(ctx.ES, ctx.MQPublisher, ctx.Config.Share.Path, state, x.Level); err != nil {
+	if err = rollback.Rollback(ctx.ES, ctx.MQ, ctx.Config.Share.Path, state, x.Level); err != nil {
 		return err
 	}
 	logger.Success("Done")

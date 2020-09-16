@@ -45,7 +45,7 @@ type Config struct {
 		Seed     struct {
 			Enabled bool `yaml:"enabled"`
 		} `yaml:"seed"`
-		Queues []string `yaml:"queues"`
+		Queues Queues `yaml:"queues"`
 	} `yaml:"api"`
 
 	Indexer struct {
@@ -64,7 +64,7 @@ type Config struct {
 		Sentry      struct {
 			Enabled bool `yaml:"enabled"`
 		} `yaml:"sentry"`
-		Queues []string `yaml:"queues"`
+		Queues Queues `yaml:"queues"`
 	} `yaml:"metrics"`
 
 	Compiler struct {
@@ -73,7 +73,7 @@ type Config struct {
 		Sentry      struct {
 			Enabled bool `yaml:"enabled"`
 		} `yaml:"sentry"`
-		Queues []string `yaml:"queues"`
+		Queues Queues `yaml:"queues"`
 	} `yaml:"compiler"`
 
 	Migrations struct {
@@ -108,7 +108,8 @@ type DatabaseConfig struct {
 
 // RabbitConfig -
 type RabbitConfig struct {
-	URI string `yaml:"uri"`
+	URI           string `yaml:"uri"`
+	NeedPublisher bool   `yaml:"publisher"`
 }
 
 // TzKTConfig -
@@ -162,6 +163,15 @@ type SeedConfig struct {
 		PublicKeyHash string `yaml:"public_key_hash"`
 		Network       string `yaml:"network"`
 	} `yaml:"accounts"`
+}
+
+// Queues -
+type Queues map[string]QueueParams
+
+// QueueParams -
+type QueueParams struct {
+	NonDurable  bool `yaml:"non_durable"`
+	AutoDeleted bool `yaml:"auto_deleted"`
 }
 
 // LoadConfig -

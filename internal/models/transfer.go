@@ -62,6 +62,11 @@ func (t *Transfer) GetQueue() string {
 	return "transfers"
 }
 
+// Marshal -
+func (t *Transfer) Marshal() ([]byte, error) {
+	return []byte(t.ID), nil
+}
+
 // GetScores -
 func (t *Transfer) GetScores(search string) []string {
 	return []string{

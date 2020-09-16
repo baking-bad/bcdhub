@@ -2,7 +2,9 @@ package ws
 
 import (
 	"github.com/baking-bad/bcdhub/cmd/api/ws/datasources"
+	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/mq"
 )
 
 // HubOption -
@@ -16,9 +18,9 @@ func WithSource(source datasources.DataSource) HubOption {
 }
 
 // WithRabbitSource -
-func WithRabbitSource(connection string, queues []string) HubOption {
+func WithRabbitSource(messageQueue *mq.QueueManager) HubOption {
 	return func(h *Hub) {
-		rmq, err := datasources.NewRabbitMQ(connection, queues)
+		rmq, err := datasources.NewRabbitMQ(messageQueue)
 		if err != nil {
 			logger.Error(err)
 			return
@@ -27,15 +29,9 @@ func WithRabbitSource(connection string, queues []string) HubOption {
 	}
 }
 
-// WithElasticParams -
-func WithElasticParams(connection string, timeout int) HubOption {
+// WithElastic -
+func WithElastic(es elastic.IElastic) HubOption {
 	return func(h *Hub) {
-		h.elastic = struct {
-			connection string
-			timeout    int
-		}{
-			connection: connection,
-			timeout:    timeout,
-		}
+		h.elastic = es
 	}
 }

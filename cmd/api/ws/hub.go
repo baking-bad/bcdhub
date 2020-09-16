@@ -6,6 +6,8 @@ import (
 
 	"github.com/baking-bad/bcdhub/cmd/api/ws/channels"
 	"github.com/baking-bad/bcdhub/cmd/api/ws/datasources"
+	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/pkg/errors"
 	"github.com/valyala/fastjson"
 )
@@ -16,10 +18,7 @@ type Hub struct {
 	clients map[int]*Client
 	public  map[string]channels.Channel
 
-	elastic struct {
-		connection string
-		timeout    int
-	}
+	elastic elastic.IElastic
 
 	stop chan struct{}
 	wg   sync.WaitGroup
@@ -45,15 +44,16 @@ func NewHub(opts ...HubOption) *Hub {
 }
 
 // DefaultHub -
-func DefaultHub(elasticConnection string, elasticTimeout int, rabbitConnection string, queues []string) *Hub {
+func DefaultHub(connectionElastic string, timeoutElastic int, messageQueue *mq.QueueManager) *Hub {
+	es := elastic.WaitNew([]string{connectionElastic}, timeoutElastic)
 	hub := NewHub(
-		WithRabbitSource(rabbitConnection, queues),
-		WithElasticParams(elasticConnection, elasticTimeout),
+		WithRabbitSource(messageQueue),
+		WithElastic(es),
 	)
 
 	hub.AddPublicChannel(channels.NewStatsChannel(
 		channels.WithSource(hub.sources, datasources.RabbitType),
-		channels.WithElasticSearch(elasticConnection, elasticTimeout),
+		channels.WithElasticSearch(es),
 	))
 	return hub
 }
@@ -141,7 +141,7 @@ func createDynamicChannels(c *Client, channelName string, data *fastjson.Value) 
 		}
 		return channels.NewOperationsChannel(address, network,
 			channels.WithSource(c.hub.sources, datasources.RabbitType),
-			channels.WithElasticSearch(c.hub.elastic.connection, c.hub.elastic.timeout),
+			channels.WithElasticSearch(c.hub.elastic),
 		), nil
 	default:
 		return nil, errors.Errorf("Unknown channel: %s", channelName)

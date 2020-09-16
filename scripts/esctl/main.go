@@ -33,7 +33,7 @@ func main() {
 
 		ctx = config.NewContext(
 			config.WithElasticSearch(cfg.Elastic),
-			config.WithRabbitPublisher(cfg.RabbitMQ),
+			config.WithRabbit(cfg.RabbitMQ, "", nil),
 			config.WithConfigCopy(cfg),
 		)
 	}

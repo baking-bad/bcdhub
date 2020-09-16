@@ -33,6 +33,11 @@ func (p *Protocol) GetIndex() string {
 	return "protocol"
 }
 
+// Marshal -
+func (p *Protocol) Marshal() ([]byte, error) {
+	return nil, nil
+}
+
 // ParseElasticJSON -
 func (p *Protocol) ParseElasticJSON(hit gjson.Result) {
 	p.ID = hit.Get("_id").String()

@@ -43,4 +43,6 @@ api:
     seed:
         enabled: true
     queues:
-        - operations
+        operations:
+            non_durable: true
+            auto_deleted: true
