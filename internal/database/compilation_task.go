@@ -40,18 +40,10 @@ type CompilationTaskResult struct {
 func (d *db) ListCompilationTasks(userID, limit, offset uint, kind string) ([]CompilationTask, error) {
 	var tasks []CompilationTask
 
-	req := d.ORM.Preload("Results").Where("user_id = ?", userID).Order("created_at desc")
+	req := d.Preload("Results").Scopes(userIDScope(userID), pagination(limit, offset), createdAtDesc)
 
 	if kind != "" {
 		req = req.Where("kind = ?", kind)
-	}
-
-	if limit > 0 {
-		req = req.Limit(limit)
-	}
-
-	if offset > 0 {
-		req = req.Offset(offset)
 	}
 
 	if err := req.Find(&tasks).Error; err != nil {
@@ -64,7 +56,7 @@ func (d *db) ListCompilationTasks(userID, limit, offset uint, kind string) ([]Co
 func (d *db) GetCompilationTask(taskID uint) (*CompilationTask, error) {
 	var task CompilationTask
 
-	if err := d.ORM.Preload("Results").Where("id = ?", taskID).First(&task).Error; err != nil {
+	if err := d.Preload("Results").Where("id = ?", taskID).First(&task).Error; err != nil {
 		return nil, err
 	}
 
@@ -75,17 +67,17 @@ func (d *db) GetCompilationTask(taskID uint) (*CompilationTask, error) {
 func (d *db) GetCompilationTaskBy(address, network, status string) (*CompilationTask, error) {
 	task := new(CompilationTask)
 
-	return task, d.ORM.Preload("Results").Where("address = ? AND network = ? AND status = ?", address, network, status).First(task).Error
+	return task, d.Preload("Results").Scopes(contract(address, network)).Where("status = ?", status).First(task).Error
 }
 
 // CreateCompilationTask -
 func (d *db) CreateCompilationTask(ct *CompilationTask) error {
-	return d.ORM.Create(ct).Error
+	return d.Create(ct).Error
 }
 
 // UpdateTaskStatus -
 func (d *db) UpdateTaskStatus(taskID uint, status string) error {
-	return d.ORM.Model(&CompilationTask{}).Where("id = ?", taskID).Update("status", status).Error
+	return d.Model(&CompilationTask{}).Where("id = ?", taskID).Update("status", status).Error
 }
 
 // UpdateTaskResults -
@@ -93,11 +85,11 @@ func (d *db) UpdateTaskResults(task *CompilationTask, status string, results []C
 	task.Status = status
 	task.Results = results
 
-	return d.ORM.Save(task).Error
+	return d.Save(task).Error
 }
 
 // CountCompilationTasks -
 func (d *db) CountCompilationTasks(userID uint) (int64, error) {
 	var count int64
-	return count, d.ORM.Model(&CompilationTask{}).Where("user_id = ?", userID).Count(&count).Error
+	return count, d.Model(&CompilationTask{}).Scopes(userIDScope(userID)).Count(&count).Error
 }

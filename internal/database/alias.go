@@ -19,8 +19,8 @@ type Alias struct {
 	DAppID      uint       `json:"-"`
 }
 
-// OperationAlises -
-type OperationAlises struct {
+// OperationAliases -
+type OperationAliases struct {
 	Source      string
 	Destination string
 }
@@ -33,7 +33,7 @@ func (a *Alias) AfterUpdate(tx *gorm.DB) (err error) {
 func (d *db) GetAliases(network string) ([]Alias, error) {
 	var aliases []Alias
 
-	if err := d.ORM.Where("network = ?", network).Find(&aliases).Error; err != nil {
+	if err := d.Scopes(networkScope(network)).Find(&aliases).Error; err != nil {
 		return nil, err
 	}
 
@@ -42,7 +42,7 @@ func (d *db) GetAliases(network string) ([]Alias, error) {
 
 func (d *db) GetAlias(address, network string) (Alias, error) {
 	var alias Alias
-	if err := d.ORM.Where("address = ? AND network = ?", address, network).First(&alias).Error; err != nil {
+	if err := d.Scopes(contract(address, network)).First(&alias).Error; err != nil {
 		if !gorm.IsRecordNotFoundError(err) {
 			return alias, err
 		}
@@ -53,7 +53,7 @@ func (d *db) GetAlias(address, network string) (Alias, error) {
 
 func (d *db) GetBySlug(slug string) (Alias, error) {
 	var a Alias
-	if err := d.ORM.Where("slug = ?", slug).Find(&a).Error; err != nil {
+	if err := d.Where("slug = ?", slug).Find(&a).Error; err != nil {
 		return a, err
 	}
 	return a, nil
@@ -80,9 +80,9 @@ func setSlug(a *Alias, tx *gorm.DB) error {
 	return nil
 }
 
-func (d *db) GetOperationAliases(src, dst, network string) (OperationAlises, error) {
-	var ret OperationAlises
-	if err := d.ORM.Raw(`
+func (d *db) GetOperationAliases(src, dst, network string) (OperationAliases, error) {
+	var ret OperationAliases
+	if err := d.Raw(`
 	SELECT
 	COALESCE(
 		(SELECT a.alias
@@ -103,7 +103,7 @@ func (d *db) GetOperationAliases(src, dst, network string) (OperationAlises, err
 func (d *db) GetAliasesMap(network string) (map[string]string, error) {
 	var aliases []Alias
 
-	if err := d.ORM.Where("network = ?", network).Find(&aliases).Error; err != nil {
+	if err := d.Scopes(networkScope(network)).Find(&aliases).Error; err != nil {
 		return nil, err
 	}
 
@@ -116,7 +116,7 @@ func (d *db) GetAliasesMap(network string) (map[string]string, error) {
 }
 
 func (d *db) CreateAlias(alias, address, network string) error {
-	return d.ORM.Create(&Alias{
+	return d.Create(&Alias{
 		Alias:   alias,
 		Address: address,
 		Network: network,
@@ -124,5 +124,5 @@ func (d *db) CreateAlias(alias, address, network string) error {
 }
 
 func (d *db) CreateOrUpdateAlias(a *Alias) error {
-	return d.ORM.Where("network = ? AND address = ?", a.Network, a.Address).Assign(Alias{Alias: a.Alias}).FirstOrCreate(a).Error
+	return d.Scopes(contract(a.Address, a.Network)).Assign(Alias{Alias: a.Alias}).FirstOrCreate(a).Error
 }

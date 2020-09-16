@@ -13,5 +13,5 @@ type Account struct {
 
 // GetOrCreateAccount -
 func (d *db) GetOrCreateAccount(a *Account) error {
-	return d.ORM.Where("user_id = ? AND private_key = ?", a.UserID, a.PrivateKey).FirstOrCreate(a).Error
+	return d.Where("user_id = ? AND private_key = ?", a.UserID, a.PrivateKey).FirstOrCreate(a).Error
 }

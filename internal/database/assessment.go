@@ -21,14 +21,14 @@ const (
 
 // CreateAssessment -
 func (d *db) CreateAssessment(a *Assessments) error {
-	return d.ORM.
+	return d.
 		Attrs(Assessments{Assessment: a.Assessment}).
 		FirstOrCreate(a).Error
 }
 
 // CreateOrUpdateAssessment -
 func (d *db) CreateOrUpdateAssessment(a *Assessments) error {
-	return d.ORM.
+	return d.
 		Assign(Assessments{Assessment: a.Assessment}).
 		FirstOrCreate(a).Error
 }
@@ -41,7 +41,7 @@ func (d *db) GetAssessmentsWithValue(userID, assessment, size uint) (result []As
 	if assessment == AssessmentUndefined || assessment == AssessmentSimilar || assessment == AssessmentNotSimilar {
 		a.Assessment = assessment
 	}
-	query := d.ORM.
+	query := d.
 		Where(a).
 		Order(gorm.Expr("random()"))
 
@@ -54,7 +54,7 @@ func (d *db) GetAssessmentsWithValue(userID, assessment, size uint) (result []As
 
 // GetUserCompletedAssesments -
 func (d *db) GetUserCompletedAssesments(userID uint) (count int, err error) {
-	err = d.ORM.Model(&Assessments{}).
+	err = d.Model(&Assessments{}).
 		Where("user_id = ? AND (assessment = ? OR assessment = ?)", userID, AssessmentSimilar, AssessmentNotSimilar).
 		Count(&count).Error
 	return

@@ -42,18 +42,18 @@ type Picture struct {
 
 // GetDApps -
 func (d *db) GetDApps() (dapps []DApp, err error) {
-	err = d.ORM.Preload("Pictures").Preload("Contracts").Preload("Tokens").Preload("DexTokens").Find(&dapps).Error
+	err = d.Preload("Pictures").Preload("Contracts").Preload("Tokens").Preload("DexTokens").Find(&dapps).Error
 	return
 }
 
 // GetDApp -
 func (d *db) GetDApp(id uint) (dapp DApp, err error) {
-	err = d.ORM.Preload("Pictures").Preload("Contracts").Preload("Tokens").Preload("DexTokens").Where("id = ?", id).First(&dapp).Error
+	err = d.Preload("Pictures").Preload("Contracts").Preload("Tokens").Preload("DexTokens").Scopes(idScope(id)).First(&dapp).Error
 	return
 }
 
 // GetDAppBySlug -
 func (d *db) GetDAppBySlug(slug string) (dapp DApp, err error) {
-	err = d.ORM.Preload("Pictures").Preload("Contracts").Preload("Tokens").Preload("DexTokens").Where("slug = ?", slug).First(&dapp).Error
+	err = d.Preload("Pictures").Preload("Contracts").Preload("Tokens").Preload("DexTokens").Where("slug = ?", slug).First(&dapp).Error
 	return
 }

@@ -154,7 +154,7 @@ func getKey(a, b gjson.Result, key string) (gjson.Result, gjson.Result, bool) {
 func (d *db) GetTokens() ([]Token, error) {
 	var tokens []Token
 
-	if err := d.ORM.Find(&tokens).Error; err != nil {
+	if err := d.Find(&tokens).Error; err != nil {
 		return nil, err
 	}
 
