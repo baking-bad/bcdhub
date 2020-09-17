@@ -26,9 +26,11 @@ type DefaultParser struct {
 	es             elastic.IElastic
 	filesDirectory string
 
-	interfaces     map[string]kinds.ContractKind
-	constants      models.Constants
+	interfaces map[string]kinds.ContractKind
+	constants  models.Constants
+
 	transferParser TransferParser
+	storageParser  storage.Parser
 }
 
 // NewDefaultParser -
@@ -402,9 +404,12 @@ func (p *DefaultParser) needParse(item gjson.Result, network string, idx int) (b
 }
 
 func (p *DefaultParser) getRichStorage(data gjson.Result, metadata *meta.ContractMetadata, op *models.Operation) (storage.RichStorage, error) {
-	storageParser, err := contractparser.MakeStorageParser(p.rpc, p.es, op.Protocol, false)
-	if err != nil {
-		return storage.RichStorage{Empty: true}, err
+	if p.storageParser == nil {
+		parser, err := contractparser.MakeStorageParser(p.rpc, p.es, op.Protocol, false)
+		if err != nil {
+			return storage.RichStorage{Empty: true}, err
+		}
+		p.storageParser = parser
 	}
 
 	protoSymLink, err := meta.GetProtoSymLink(op.Protocol)
@@ -419,9 +424,9 @@ func (p *DefaultParser) getRichStorage(data gjson.Result, metadata *meta.Contrac
 
 	switch op.Kind {
 	case consts.Transaction:
-		return storageParser.ParseTransaction(data, m, *op)
+		return p.storageParser.ParseTransaction(data, m, *op)
 	case consts.Origination:
-		rs, err := storageParser.ParseOrigination(data, m, *op)
+		rs, err := p.storageParser.ParseOrigination(data, m, *op)
 		if err != nil {
 			return rs, err
 		}
