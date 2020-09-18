@@ -334,9 +334,20 @@
                             ]
                           },
                           {
-                            "prim": "address",
-                            "annots": [
-                              "%operator"
+                            "prim": "pair",
+                            "args": [
+                              {
+                                "prim": "address",
+                                "annots": [
+                                  "%operator"
+                                ]
+                              },
+                              {
+                                "prim": "nat",
+                                "annots": [
+                                  "%token_id"
+                                ]
+                              }
                             ]
                           }
                         ],
@@ -354,9 +365,20 @@
                             ]
                           },
                           {
-                            "prim": "address",
-                            "annots": [
-                              "%operator"
+                            "prim": "pair",
+                            "args": [
+                              {
+                                "prim": "address",
+                                "annots": [
+                                  "%operator"
+                                ]
+                              },
+                              {
+                                "prim": "nat",
+                                "annots": [
+                                  "%token_id"
+                                ]
+                              }
                             ]
                           }
                         ],
