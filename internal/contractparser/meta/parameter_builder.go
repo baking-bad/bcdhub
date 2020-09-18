@@ -347,9 +347,6 @@ func (b ParameterBuilder) wrapEntrypoint(binPath, data string) (string, error) {
 		return "", errors.Errorf("Unknown binary path: %s", binPath)
 	}
 	entrypoint := getEntrypointName(nm)
-	if entrypoint == "default" {
-		data = wrapLeftRight(binPath, data, true)
-	}
 	return fmt.Sprintf(`{"entrypoint": "%s", "value": %s}`, entrypoint, data), nil
 }
 
