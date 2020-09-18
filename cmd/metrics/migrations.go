@@ -8,7 +8,7 @@ import (
 )
 
 func getMigrations(data amqp.Delivery) error {
-	migrationID := string(data.Body)
+	migrationID := parseID(data.Body)
 
 	migration := models.Migration{ID: migrationID}
 	if err := ctx.ES.GetByID(&migration); err != nil {

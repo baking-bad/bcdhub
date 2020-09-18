@@ -14,7 +14,7 @@ import (
 )
 
 func getOperation(data amqp.Delivery) error {
-	operationID := string(data.Body)
+	operationID := parseID(data.Body)
 
 	op := models.Operation{ID: operationID}
 	if err := ctx.ES.GetByID(&op); err != nil {

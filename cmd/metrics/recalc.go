@@ -12,7 +12,7 @@ import (
 )
 
 func recalculateAll(data amqp.Delivery) error {
-	contractID := string(data.Body)
+	contractID := parseID(data.Body)
 
 	c := models.Contract{ID: contractID}
 	if err := ctx.ES.GetByID(&c); err != nil {
