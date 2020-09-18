@@ -16,6 +16,14 @@ func Test_parseID(t *testing.T) {
 			name: "With quotes",
 			data: []byte(`"test"`),
 			want: "test",
+		}, {
+			name: "Empty string",
+			data: []byte(``),
+			want: "",
+		}, {
+			name: "Empty quoted string",
+			data: []byte(`""`),
+			want: "",
 		},
 	}
 	for _, tt := range tests {

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"encoding/json"
+	"strings"
 
 	"github.com/pkg/errors"
 
@@ -51,9 +51,10 @@ func parseContract(contract models.Contract) error {
 }
 
 func parseID(data []byte) string {
-	var id string
-	if err := json.Unmarshal(data, &id); err != nil {
-		id = string(data)
+	id := string(data)
+	if strings.HasPrefix(id, `"`) && strings.HasSuffix(id, `"`) {
+		id = strings.TrimPrefix(id, `"`)
+		id = strings.TrimSuffix(id, `"`)
 	}
 	return id
 }
