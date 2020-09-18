@@ -10,7 +10,7 @@ import (
 )
 
 func getTransfer(data amqp.Delivery) error {
-	transferID := string(data.Body)
+	transferID := parseID(data.Body)
 
 	transfer := models.Transfer{ID: transferID}
 	if err := ctx.ES.GetByID(&transfer); err != nil {

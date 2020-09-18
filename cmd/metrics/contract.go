@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+
 	"github.com/pkg/errors"
 
 	"github.com/baking-bad/bcdhub/internal/elastic"
@@ -11,7 +13,7 @@ import (
 )
 
 func getContract(data amqp.Delivery) error {
-	contractID := string(data.Body)
+	contractID := parseID(data.Body)
 
 	c := models.Contract{ID: contractID}
 	if err := ctx.ES.GetByID(&c); err != nil {
@@ -46,4 +48,12 @@ func parseContract(contract models.Contract) error {
 	logger.Info("Contract %s to project %s", contract.Address, contract.ProjectID)
 
 	return ctx.ES.UpdateFields(elastic.DocContracts, contract.ID, contract, "ProjectID", "Alias", "Verified", "VerificationSource")
+}
+
+func parseID(data []byte) string {
+	var id string
+	if err := json.Unmarshal(data, &id); err != nil {
+		id = string(data)
+	}
+	return id
 }
