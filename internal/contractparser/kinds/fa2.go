@@ -121,7 +121,15 @@ func (fa2 Fa2) GetJSON() string {
 									"prim": "address"
 								},
 								{
-									"prim": "address"
+									"prim": "pair",
+									"args": [
+										{
+											"prim": "address"
+										},
+										{
+											"prim": "nat"
+										}
+									]
 								}
 							]
 						},
@@ -132,7 +140,15 @@ func (fa2 Fa2) GetJSON() string {
 									"prim": "address"
 								},
 								{
-									"prim": "address"
+									"prim": "pair",
+									"args": [
+										{
+											"prim": "address"
+										},
+										{
+											"prim": "nat"
+										}
+									]
 								}
 							]
 						}
