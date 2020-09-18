@@ -346,8 +346,7 @@ func (b ParameterBuilder) wrapEntrypoint(binPath, data string) (string, error) {
 	if !ok {
 		return "", errors.Errorf("Unknown binary path: %s", binPath)
 	}
-	entrypoint := getEntrypointName(nm)
-	return fmt.Sprintf(`{"entrypoint": "%s", "value": %s}`, entrypoint, data), nil
+	return getParameterData(nm, binPath, data)
 }
 
 type lambdaParameterBuilder struct {
@@ -432,4 +431,13 @@ func getEntrypointName(node *NodeMetadata) string {
 		return node.Name
 	}
 	return "default"
+}
+
+func getParameterData(nm *NodeMetadata, binPath, data string) (string, error) {
+	entrypoint := nm.Name
+	if nm.Name == "" {
+		entrypoint = "default"
+		data = wrapLeftRight(binPath, data, true)
+	}
+	return fmt.Sprintf(`{"entrypoint": "%s", "value": %s}`, entrypoint, data), nil
 }
