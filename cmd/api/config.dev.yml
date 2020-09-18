@@ -7,7 +7,7 @@ sentry:
     debug: true
 
 elastic:
-    uri: http://127.0.0.1:9200
+    uri: http://127.0.0.1:9202
     timeout: 1
 
 db:
