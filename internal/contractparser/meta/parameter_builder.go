@@ -426,13 +426,6 @@ func interfaceSlice(slice interface{}) []interface{} {
 	return ret
 }
 
-func getEntrypointName(node *NodeMetadata) string {
-	if node.Name != "" {
-		return node.Name
-	}
-	return "default"
-}
-
 func getParameterData(nm *NodeMetadata, binPath, data string) (string, error) {
 	entrypoint := nm.Name
 	if nm.Name == "" {
