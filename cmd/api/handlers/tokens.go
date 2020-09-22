@@ -361,3 +361,33 @@ func operationToTransfer(es elastic.IElastic, po elastic.PageableOperations) (Pa
 	}
 	return pt, nil
 }
+
+// GetContractTokens godoc
+// @Summary List contract tokens
+// @Description List contract tokens
+// @Tags contract
+// @ID get-contract-token
+// @Param network path string true "Network"
+// @Param address path string true "KT address" minlength(36) maxlength(36)
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} []models.TokenMetadata
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /contract/{network}/{address}/tokens [get]
+func (ctx *Context) GetContractTokens(c *gin.Context) {
+	var req getContractRequest
+	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+	metadata, err := ctx.ES.GetTokenMetadatas(req.Address, req.Network)
+	if err != nil {
+		if !elastic.IsRecordNotFound(err) {
+			handleError(c, err, 0)
+		} else {
+			c.JSON(http.StatusOK, []interface{}{})
+		}
+		return
+	}
+	c.JSON(http.StatusOK, metadata)
+}

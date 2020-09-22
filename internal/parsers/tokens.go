@@ -194,6 +194,7 @@ func (p TransferParser) parseResponse(parser database.BalanceViewParser, operati
 
 	transfers := make([]*models.Transfer, 0)
 	for _, balance := range newBalances {
+
 		transfer := models.EmptyTransfer(operation)
 		if oldBalance, ok := oldBalances[elastic.TokenBalance{
 			TokenID: balance.TokenID,

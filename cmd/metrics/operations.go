@@ -63,6 +63,14 @@ func parseOperation(operation models.Operation) error {
 		}
 	}
 
+	rpc, err := ctx.GetRPC(operation.Network)
+	if err != nil {
+		return err
+	}
+	if err := h.FixTokenMetadata(rpc, ctx.SharePath, &operation); err != nil {
+		return err
+	}
+
 	logger.Info("Operation %s processed", operation.ID)
 	return nil
 }

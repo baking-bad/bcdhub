@@ -392,7 +392,7 @@ func periodToRange(period string) (qItem, error) {
 }
 
 // GetContractTransfers -
-func (e *Elastic) GetContractTransfers(network string, address string, size, offset int64) (TransfersResponse, error) {
+func (e *Elastic) GetContractTransfers(network string, address string, tokenID, size, offset int64) (TransfersResponse, error) {
 	matches := []qItem{
 		matchQ("network", network),
 		matchPhrase("contract", address),
@@ -400,6 +400,10 @@ func (e *Elastic) GetContractTransfers(network string, address string, size, off
 
 	if size == 0 {
 		size = defaultSize
+	}
+
+	if tokenID != -1 {
+		matches = append(matches, term("token_id", tokenID))
 	}
 
 	query := newQuery().Query(

@@ -203,6 +203,7 @@ func (e *Elastic) CreateIndexes() error {
 		DocProtocol,
 		DocBlocks,
 		DocTransfers,
+		DocTokenMetadata,
 	} {
 		if err := e.CreateIndexIfNotExists(index); err != nil {
 			return err

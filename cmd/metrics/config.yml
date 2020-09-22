@@ -37,3 +37,6 @@ metrics:
         migrations:
         recalc:
         transfers:
+
+share:
+    path: /etc/bcd

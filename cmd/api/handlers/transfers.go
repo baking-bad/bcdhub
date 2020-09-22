@@ -14,13 +14,14 @@ import (
 // @ID get-contract-transfers
 // @Param size query integer false "Transfers count" mininum(1)
 // @Param offset query integer false "Offset" mininum(1)
+// @Param token_id query integer false "Token ID" mininum(1)
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} TransferResponse
 // @Failure 500 {object} Error
 // @Router /{network}/{address}/transfers [get]
 func (ctx *Context) GetContractTransfers(c *gin.Context) {
-	var req pageableRequest
+	var req getContractTransfers
 	if err := c.BindQuery(&req); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
@@ -29,7 +30,12 @@ func (ctx *Context) GetContractTransfers(c *gin.Context) {
 		return
 	}
 
-	transfers, err := ctx.ES.GetContractTransfers(contractRequest.Network, contractRequest.Address, req.Size, req.Offset)
+	tokenID := int64(-1)
+	if req.TokenID != nil {
+		tokenID = int64(*req.TokenID)
+	}
+
+	transfers, err := ctx.ES.GetContractTransfers(contractRequest.Network, contractRequest.Address, tokenID, req.Size, req.Offset)
 	if handleError(c, err, 0) {
 		return
 	}

@@ -317,3 +317,8 @@ type publicRefsRequest struct {
 type getDappRequest struct {
 	Slug string `uri:"slug" binding:"required"`
 }
+
+type getContractTransfers struct {
+	pageableRequest
+	TokenID *uint `form:"token_id"  binding:"omitempty,min=0"`
+}

@@ -6,9 +6,10 @@ import (
 )
 
 var indexToModel = map[string]Scorable{
-	DocContracts:  &models.Contract{},
-	DocOperations: &models.Operation{},
-	DocBigMapDiff: &models.BigMapDiff{},
+	DocContracts:     &models.Contract{},
+	DocOperations:    &models.Operation{},
+	DocBigMapDiff:    &models.BigMapDiff{},
+	DocTokenMetadata: &models.TokenMetadata{},
 }
 
 // GetSearchScores -

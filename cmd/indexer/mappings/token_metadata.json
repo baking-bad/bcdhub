@@ -1,0 +1,121 @@
+{
+    "mappings": {
+        "properties": {
+            "symbol": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "ignore_above": 256.0,
+                        "type": "keyword"
+                    }
+                }
+            },
+            "registry_address": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "ignore_above": 256.0,
+                        "type": "keyword"
+                    }
+                }
+            },
+            "token_id": {
+                "type": "long"
+            },
+            "level": {
+                "type": "long"
+            },
+            "contract": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "ignore_above": 256.0,
+                        "type": "keyword"
+                    }
+                }
+            },
+            "decimals": {
+                "type": "long"
+            },
+            "name": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "ignore_above": 256.0,
+                        "type": "keyword"
+                    }
+                }
+            },
+            "extras": {
+                "properties": {
+                    "offchainUri": {
+                        "type": "text",
+                        "fields": {
+                            "keyword": {
+                                "ignore_above": 256.0,
+                                "type": "keyword"
+                            }
+                        }
+                    },
+                    "t": {
+                        "type": "text",
+                        "fields": {
+                            "keyword": {
+                                "ignore_above": 256.0,
+                                "type": "keyword"
+                            }
+                        }
+                    },
+                    "ipfs_cid": {
+                        "type": "text",
+                        "fields": {
+                            "keyword": {
+                                "ignore_above": 256.0,
+                                "type": "keyword"
+                            }
+                        }
+                    },
+                    "description": {
+                        "type": "text",
+                        "fields": {
+                            "keyword": {
+                                "ignore_above": 256.0,
+                                "type": "keyword"
+                            }
+                        }
+                    },
+                    "attr2": {
+                        "type": "text",
+                        "fields": {
+                            "keyword": {
+                                "ignore_above": 256.0,
+                                "type": "keyword"
+                            }
+                        }
+                    },
+                    "attr1": {
+                        "type": "text",
+                        "fields": {
+                            "keyword": {
+                                "ignore_above": 256.0,
+                                "type": "keyword"
+                            }
+                        }
+                    }
+                }
+            },
+            "network": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "ignore_above": 256.0,
+                        "type": "keyword"
+                    }
+                }
+            },
+            "timestamp": {
+                "type": "date"
+            }
+        }
+    }
+}

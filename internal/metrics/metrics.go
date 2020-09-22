@@ -13,8 +13,5 @@ type Handler struct {
 
 // New -
 func New(es elastic.IElastic, db database.DB) *Handler {
-	return &Handler{
-		ES: es,
-		DB: db,
-	}
+	return &Handler{es, db}
 }

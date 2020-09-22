@@ -5,40 +5,60 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser"
+	"github.com/baking-bad/bcdhub/internal/contractparser/tokens"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/mq"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
 	"github.com/schollz/progressbar/v3"
 )
 
+// Manager -
+type Manager struct {
+	e            elastic.IElastic
+	messageQueue mq.IMessagePublisher
+	rpc          noderpc.INode
+	sharePath    string
+}
+
+// NewManager -
+func NewManager(e elastic.IElastic, messageQueue mq.IMessagePublisher, rpc noderpc.INode, sharePath string) Manager {
+	return Manager{
+		e, messageQueue, rpc, sharePath,
+	}
+}
+
 // Rollback - rollback indexer state to level
-func Rollback(e elastic.IElastic, messageQueue mq.IMessagePublisher, appDir string, fromState models.Block, toLevel int64) error {
+func (rm Manager) Rollback(fromState models.Block, toLevel int64) error {
 	if toLevel >= fromState.Level {
 		return errors.Errorf("To level must be less than from level: %d >= %d", toLevel, fromState.Level)
 	}
-	affectedContractIDs, err := getAffectedContracts(e, fromState.Network, fromState.Level, toLevel)
+	affectedContractIDs, err := rm.getAffectedContracts(fromState.Network, fromState.Level, toLevel)
 	if err != nil {
 		return err
 	}
 	logger.Info("Rollback will affect %d contracts", len(affectedContractIDs))
 
-	if err := rollbackOperations(e, fromState.Network, toLevel); err != nil {
+	if err := rm.rollbackOperations(fromState.Network, toLevel); err != nil {
 		return err
 	}
-	if err := rollbackContracts(e, fromState, toLevel, appDir); err != nil {
+	if err := rm.rollbackContracts(fromState, toLevel); err != nil {
 		return err
 	}
-	if err := rollbackBlocks(e, fromState.Network, toLevel); err != nil {
+	if err := rm.rollbackBlocks(fromState.Network, toLevel); err != nil {
+		return err
+	}
+	if err := rm.rollbackTokenMetadata(fromState.Network, toLevel); err != nil {
 		return err
 	}
 
 	time.Sleep(time.Second) // Golden hack: Waiting while elastic remove records
 	logger.Info("Sending to queue affected contract ids...")
 	for i := range affectedContractIDs {
-		if err := messageQueue.SendRaw(mq.QueueRecalc, []byte(affectedContractIDs[i])); err != nil {
+		if err := rm.messageQueue.SendRaw(mq.QueueRecalc, []byte(affectedContractIDs[i])); err != nil {
 			return err
 		}
 	}
@@ -46,21 +66,51 @@ func Rollback(e elastic.IElastic, messageQueue mq.IMessagePublisher, appDir stri
 	return nil
 }
 
-func rollbackBlocks(e elastic.IElastic, network string, toLevel int64) error {
+func (rm Manager) rollbackBlocks(network string, toLevel int64) error {
 	logger.Info("Deleting blocks...")
-	return e.DeleteByLevelAndNetwork([]string{elastic.DocBlocks}, network, toLevel)
+	return rm.e.DeleteByLevelAndNetwork([]string{elastic.DocBlocks}, network, toLevel)
 }
 
-func rollbackOperations(e elastic.IElastic, network string, toLevel int64) error {
-	logger.Info("Deleting operations, migrations and big map diffs...")
-	return e.DeleteByLevelAndNetwork([]string{elastic.DocBigMapDiff, elastic.DocBigMapActions, elastic.DocMigrations, elastic.DocOperations, elastic.DocTransfers}, network, toLevel)
+func (rm Manager) rollbackOperations(network string, toLevel int64) error {
+	logger.Info("Deleting operations, migrations, transfers and big map diffs...")
+	return rm.e.DeleteByLevelAndNetwork([]string{elastic.DocBigMapDiff, elastic.DocBigMapActions, elastic.DocMigrations, elastic.DocOperations, elastic.DocTransfers}, network, toLevel)
 }
 
-func rollbackContracts(e elastic.IElastic, fromState models.Block, toLevel int64, appDir string) error {
-	if err := removeMetadata(e, fromState, toLevel, appDir); err != nil {
+func (rm Manager) rollbackTokenMetadata(network string, toLevel int64) error {
+	logger.Info("Finding affected token metadata...")
+	affected, err := rm.e.GetAffectedTokenMetadata(network, toLevel)
+	if err != nil {
+		if !elastic.IsRecordNotFound(err) {
+			return err
+		}
+		return nil
+	}
+	logger.Info("Deleting token metadata...")
+	if err := rm.e.DeleteByLevelAndNetwork([]string{elastic.DocTokenMetadata}, network, toLevel); err != nil {
 		return err
 	}
-	if err := updateMetadata(e, fromState.Network, fromState.Level, toLevel); err != nil {
+
+	logger.Info("Receiving new token metadata for level %d...", toLevel)
+	result := make([]elastic.Model, 0)
+	for _, m := range affected {
+		parser := tokens.NewTokenMetadataParser(rm.e, rm.rpc, rm.sharePath, network)
+		metadata, err := parser.Parse(m.Contract, toLevel)
+		if err != nil {
+			continue
+		}
+		for j := range metadata {
+			result = append(result, metadata[j].ToModel(m.Contract, m.Network))
+		}
+	}
+	logger.Info("Saving new token metadata...")
+	return rm.e.BulkInsert(result)
+}
+
+func (rm Manager) rollbackContracts(fromState models.Block, toLevel int64) error {
+	if err := rm.removeMetadata(fromState, toLevel); err != nil {
+		return err
+	}
+	if err := rm.updateMetadata(fromState.Network, fromState.Level, toLevel); err != nil {
 		return err
 	}
 
@@ -68,19 +118,19 @@ func rollbackContracts(e elastic.IElastic, fromState models.Block, toLevel int64
 	if toLevel == 0 {
 		toLevel = -1
 	}
-	return e.DeleteByLevelAndNetwork([]string{elastic.DocContracts}, fromState.Network, toLevel)
+	return rm.e.DeleteByLevelAndNetwork([]string{elastic.DocContracts}, fromState.Network, toLevel)
 }
 
-func getAffectedContracts(es elastic.IElastic, network string, fromLevel, toLevel int64) ([]string, error) {
-	addresses, err := es.GetAffectedContracts(network, fromLevel, toLevel)
+func (rm Manager) getAffectedContracts(network string, fromLevel, toLevel int64) ([]string, error) {
+	addresses, err := rm.e.GetAffectedContracts(network, fromLevel, toLevel)
 	if err != nil {
 		return nil, err
 	}
 
-	return es.GetContractsIDByAddress(addresses, network)
+	return rm.e.GetContractsIDByAddress(addresses, network)
 }
 
-func getProtocolByLevel(protocols []models.Protocol, level int64) (models.Protocol, error) {
+func (rm Manager) getProtocolByLevel(protocols []models.Protocol, level int64) (models.Protocol, error) {
 	for _, p := range protocols {
 		if p.StartLevel <= level {
 			return p, nil
@@ -92,9 +142,9 @@ func getProtocolByLevel(protocols []models.Protocol, level int64) (models.Protoc
 	return protocols[0], nil
 }
 
-func removeMetadata(e elastic.IElastic, fromState models.Block, toLevel int64, appDir string) error {
+func (rm Manager) removeMetadata(fromState models.Block, toLevel int64) error {
 	logger.Info("Preparing metadata for removing...")
-	contracts, err := e.GetContractAddressesByNetworkAndLevel(fromState.Network, toLevel)
+	contracts, err := rm.e.GetContractAddressesByNetworkAndLevel(fromState.Network, toLevel)
 	if err != nil {
 		return err
 	}
@@ -105,10 +155,10 @@ func removeMetadata(e elastic.IElastic, fromState models.Block, toLevel int64, a
 		addresses = append(addresses, contract.Get("_source.address").String())
 	}
 
-	return removeContractsMetadata(e, fromState.Network, addresses, fromState.Protocol, appDir)
+	return rm.removeContractsMetadata(fromState.Network, addresses, fromState.Protocol)
 }
 
-func removeContractsMetadata(e elastic.IElastic, network string, addresses []string, protocol string, appDir string) error {
+func (rm Manager) removeContractsMetadata(network string, addresses []string, protocol string) error {
 	bulkDeleteMetadata := make([]elastic.Model, 0)
 
 	logger.Info("%d contracts will be removed", len(addresses))
@@ -119,32 +169,32 @@ func removeContractsMetadata(e elastic.IElastic, network string, addresses []str
 			ID: address,
 		})
 
-		if err := contractparser.RemoveContractFromFileSystem(address, network, protocol, appDir); err != nil {
+		if err := contractparser.RemoveContractFromFileSystem(address, network, protocol, rm.sharePath); err != nil {
 			return err
 		}
 	}
 
 	logger.Info("Removing metadata...")
 	if len(bulkDeleteMetadata) > 0 {
-		if err := e.BulkDelete(bulkDeleteMetadata); err != nil {
+		if err := rm.e.BulkDelete(bulkDeleteMetadata); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func updateMetadata(e elastic.IElastic, network string, fromLevel, toLevel int64) error {
+func (rm Manager) updateMetadata(network string, fromLevel, toLevel int64) error {
 	logger.Info("Preparing metadata for updating...")
 	var protocols []models.Protocol
-	if err := e.GetByNetworkWithSort(network, "start_level", "desc", &protocols); err != nil {
+	if err := rm.e.GetByNetworkWithSort(network, "start_level", "desc", &protocols); err != nil {
 		return err
 	}
-	rollbackProtocol, err := getProtocolByLevel(protocols, toLevel)
+	rollbackProtocol, err := rm.getProtocolByLevel(protocols, toLevel)
 	if err != nil {
 		return err
 	}
 
-	currentProtocol, err := getProtocolByLevel(protocols, fromLevel)
+	currentProtocol, err := rm.getProtocolByLevel(protocols, fromLevel)
 	if err != nil {
 		return err
 	}
@@ -154,7 +204,7 @@ func updateMetadata(e elastic.IElastic, network string, fromLevel, toLevel int64
 	}
 
 	logger.Info("Rollback to %s from %s", rollbackProtocol.Hash, currentProtocol.Hash)
-	deadSymLinks, err := e.GetSymLinks(network, toLevel)
+	deadSymLinks, err := rm.e.GetSymLinks(network, toLevel)
 	if err != nil {
 		return err
 	}
@@ -163,7 +213,7 @@ func updateMetadata(e elastic.IElastic, network string, fromLevel, toLevel int64
 
 	logger.Info("Getting all metadata...")
 	var metadata []models.Metadata
-	if err := e.GetAll(&metadata); err != nil {
+	if err := rm.e.GetAll(&metadata); err != nil {
 		return err
 	}
 
@@ -179,11 +229,11 @@ func updateMetadata(e elastic.IElastic, network string, fromLevel, toLevel int64
 				start := i * 1000
 				end := helpers.MinInt((i+1)*1000, len(bulkUpdateMetadata))
 				parameterScript := fmt.Sprintf("ctx._source.parameter.remove('%s')", symLink)
-				if err := e.BulkRemoveField(parameterScript, bulkUpdateMetadata[start:end]); err != nil {
+				if err := rm.e.BulkRemoveField(parameterScript, bulkUpdateMetadata[start:end]); err != nil {
 					return err
 				}
 				storageScript := fmt.Sprintf("ctx._source.storage.remove('%s')", symLink)
-				if err := e.BulkRemoveField(storageScript, bulkUpdateMetadata[start:end]); err != nil {
+				if err := rm.e.BulkRemoveField(storageScript, bulkUpdateMetadata[start:end]); err != nil {
 					return err
 				}
 			}

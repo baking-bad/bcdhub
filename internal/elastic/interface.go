@@ -88,7 +88,7 @@ type IContract interface {
 	RecalcContractStats(string, string) (ContractStats, error)
 	UpdateContractMigrationsCount(string, string) error
 	GetDAppStats(string, []string, string) (DAppStats, error)
-	GetContractTransfers(string, string, int64, int64) (TransfersResponse, error)
+	GetContractTransfers(string, string, int64, int64, int64) (TransfersResponse, error)
 }
 
 // IEvents -
@@ -164,6 +164,13 @@ type ITokens interface {
 	GetBalances(string, string, int64, ...TokenBalance) (map[TokenBalance]int64, error)
 }
 
+// ITokenMatadata -
+type ITokenMatadata interface {
+	GetTokenMetadatas(address string, network string) ([]models.TokenMetadata, error)
+	GetTokenMetadata(address string, network string, tokenID int64) (models.TokenMetadata, error)
+	GetAffectedTokenMetadata(network string, level int64) ([]models.TokenMetadata, error)
+}
+
 // IElastic -
 type IElastic interface {
 	IGeneral
@@ -181,4 +188,5 @@ type IElastic interface {
 	ISnapshot
 	IStats
 	ITokens
+	ITokenMatadata
 }

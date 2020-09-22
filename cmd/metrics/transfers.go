@@ -26,7 +26,11 @@ func getTransfer(data amqp.Delivery) error {
 
 func parseTransfer(transfer models.Transfer) error {
 	h := metrics.New(ctx.ES, ctx.DB)
-	if h.SetTransferAliases(ctx.Aliases, &transfer) {
+	ok, err := h.SetTransferAliases(ctx.Aliases, &transfer)
+	if err != nil {
+		return err
+	}
+	if ok {
 		if _, err := ctx.ES.UpdateDoc(elastic.DocTransfers, transfer.ID, transfer); err != nil {
 			return err
 		}

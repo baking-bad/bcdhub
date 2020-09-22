@@ -243,6 +243,16 @@ func parseSearchResponse(data gjson.Result) []SearchItem {
 				Highlights: highlights,
 			}
 			items = append(items, item)
+		case DocTokenMetadata:
+			var token models.TokenMetadata
+			token.ParseElasticJSON(arr[i])
+			item := SearchItem{
+				Type:       DocBigMapDiff,
+				Value:      token.Contract,
+				Body:       token,
+				Highlights: highlights,
+			}
+			items = append(items, item)
 		default:
 		}
 
@@ -312,6 +322,12 @@ func parseSearchGroupingResponse(data gjson.Result, size, offset int64) []Search
 				b.ParseElasticJSON(arr[i].Get("last.hits.hits.0"))
 				searchItem.Body = b
 				searchItem.Value = b.KeyHash
+				searchItem.Highlights = highlights
+			case DocTokenMetadata:
+				var token models.TokenMetadata
+				token.ParseElasticJSON(arr[i].Get("last.hits.hits.0"))
+				searchItem.Body = token
+				searchItem.Value = token.Contract
 				searchItem.Highlights = highlights
 			default:
 			}
@@ -388,6 +404,8 @@ func grouping(ctx searchContext, query base) base {
 								return doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value
 							} else if (doc.containsKey('hash')) {
 								return doc['hash.keyword'].value
+							} else if (doc.containsKey('token_id')) {
+								return doc['contract.keyword'].value + '|' + doc['network.keyword'].value + '|' + doc['token_id'].value
 							} else return doc['key_hash.keyword'].value`,
 					"size": defaultSize + ctx.Offset,
 					"order": qList{
