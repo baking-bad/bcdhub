@@ -101,6 +101,7 @@ func main() {
 		config.WithDatabase(cfg.DB),
 		config.WithRabbit(cfg.RabbitMQ, cfg.Metrics.ProjectName, cfg.Metrics.Queues),
 		config.WithAliases(consts.Mainnet),
+		config.WithShare(cfg.Share.Path),
 	)
 	defer ctx.Close()
 

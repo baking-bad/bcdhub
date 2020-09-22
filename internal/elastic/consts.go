@@ -11,6 +11,7 @@ const (
 	DocMigrations    = "migration"
 	DocProtocol      = "protocol"
 	DocTransfers     = "transfer"
+	DocTokenMetadata = "token_metadata"
 )
 
 // Index names

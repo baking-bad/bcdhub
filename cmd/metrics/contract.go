@@ -1,8 +1,6 @@
 package main
 
 import (
-	"strings"
-
 	"github.com/pkg/errors"
 
 	"github.com/baking-bad/bcdhub/internal/elastic"
@@ -45,16 +43,16 @@ func parseContract(contract models.Contract) error {
 		}
 	}
 
+	rpc, err := ctx.GetRPC(contract.Network)
+	if err != nil {
+		return err
+	}
+
+	if err := h.CreateTokenMetadata(rpc, ctx.SharePath, &contract); err != nil {
+		return err
+	}
+
 	logger.Info("Contract %s to project %s", contract.Address, contract.ProjectID)
 
 	return ctx.ES.UpdateFields(elastic.DocContracts, contract.ID, contract, "ProjectID", "Alias", "Verified", "VerificationSource")
-}
-
-func parseID(data []byte) string {
-	id := string(data)
-	if strings.HasPrefix(id, `"`) && strings.HasSuffix(id, `"`) {
-		id = strings.TrimPrefix(id, `"`)
-		id = strings.TrimSuffix(id, `"`)
-	}
-	return id
 }

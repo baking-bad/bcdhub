@@ -61,8 +61,11 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 		}
 
 		for i := range transfers {
-			h.SetTransferAliases(ctx.Aliases, transfers[i])
+			if _, err := h.SetTransferAliases(ctx.Aliases, transfers[i]); err != nil {
+				return err
+			}
 			result = append(result, transfers[i])
+
 		}
 	}
 

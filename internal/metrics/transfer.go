@@ -1,9 +1,11 @@
 package metrics
 
-import "github.com/baking-bad/bcdhub/internal/models"
+import (
+	"github.com/baking-bad/bcdhub/internal/models"
+)
 
 // SetTransferAliases -
-func (h *Handler) SetTransferAliases(aliases map[string]string, transfer *models.Transfer) bool {
+func (h *Handler) SetTransferAliases(aliases map[string]string, transfer *models.Transfer) (bool, error) {
 	var changed bool
 
 	if alias, ok := aliases[transfer.From]; ok {
@@ -21,5 +23,5 @@ func (h *Handler) SetTransferAliases(aliases map[string]string, transfer *models
 		changed = true
 	}
 
-	return changed
+	return changed, nil
 }

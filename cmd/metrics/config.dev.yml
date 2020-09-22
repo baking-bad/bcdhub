@@ -24,3 +24,5 @@ metrics:
         recalc:
         transfers:
 
+share:
+    path: ${HOME}/.bcd

@@ -35,6 +35,8 @@ func main() {
 			config.WithElasticSearch(cfg.Elastic),
 			config.WithRabbit(cfg.RabbitMQ, "", nil),
 			config.WithConfigCopy(cfg),
+			config.WithRPC(cfg.RPC),
+			config.WithShare(cfg.Share.Path),
 		)
 	}
 

@@ -174,6 +174,7 @@ func main() {
 			contract.GET("operations", ctx.GetContractOperations)
 			contract.GET("migrations", ctx.GetContractMigrations)
 			contract.GET("transfers", ctx.GetContractTransfers)
+			contract.GET("tokens", ctx.GetContractTokens)
 
 			storage := contract.Group("storage")
 			{
