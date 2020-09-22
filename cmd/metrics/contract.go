@@ -47,10 +47,7 @@ func parseContract(contract models.Contract) error {
 	if err != nil {
 		return err
 	}
-
-	if err := h.CreateTokenMetadata(rpc, ctx.SharePath, &contract); err != nil {
-		return err
-	}
+	_ = h.CreateTokenMetadata(rpc, ctx.SharePath, &contract)
 
 	logger.Info("Contract %s to project %s", contract.Address, contract.ProjectID)
 

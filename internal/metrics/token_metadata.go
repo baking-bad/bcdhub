@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/tokens"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 )
@@ -25,6 +26,7 @@ func (h *Handler) CreateTokenMetadata(rpc noderpc.INode, sharePath string, c *mo
 
 	result := make([]elastic.Model, 0)
 	for i := range metadata {
+		logger.Info("Token metadata for %s with token id %d found", c.Address, metadata[i].TokenID)
 		result = append(result, metadata[i].ToModel(c.Address, c.Network))
 	}
 
