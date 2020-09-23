@@ -25,6 +25,8 @@ type DApp struct {
 	SocialLinks       pq.StringArray `gorm:"type:varchar(1024)[]" json:"social_links"`
 	Interfaces        pq.StringArray `gorm:"type:varchar(64)[]" json:"interfaces"`
 	Categories        pq.StringArray `gorm:"type:varchar(32)[]" json:"categories"`
+	Order             uint           `json:"-"`
+	Soon              bool           `gorm:"default:false" json:"soon"`
 
 	Pictures  []Picture `json:"pictures,omitempty"`
 	Contracts []Alias   `json:"contracts,omitempty"`
@@ -42,7 +44,7 @@ type Picture struct {
 
 // GetDApps -
 func (d *db) GetDApps() (dapps []DApp, err error) {
-	err = d.Preload("Pictures").Preload("Contracts").Preload("Tokens").Preload("DexTokens").Find(&dapps).Error
+	err = d.Preload("Pictures").Preload("Contracts").Preload("Tokens").Preload("DexTokens").Order(`order`).Find(&dapps).Error
 	return
 }
 
