@@ -129,6 +129,7 @@ func New(connectionString string) (DB, error) {
 		&CompilationTaskResult{},
 		&Verification{},
 		&Deployment{},
+		&DexToken{},
 	)
 
 	gormDB = gormDB.Set("gorm:auto_preload", false)

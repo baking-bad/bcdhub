@@ -274,13 +274,13 @@ func (e *Elastic) GetBalances(network, contract string, level int64, addresses .
 						if (!state.balances.containsKey(doc['from.keyword'].value)) {
 							state.balances[doc['from.keyword'].value + '_' + doc['token_id'].value] = doc['amount'].value;
 						} else {
-							state.balances[doc['from.keyword'].value + '_' + doc['token_id'].value] -= doc['amount'].value;
+							state.balances[doc['from.keyword'].value + '_' + doc['token_id'].value] = state.balances[doc['from.keyword'].value + '_' + doc['token_id'].value] - doc['amount'].value;
 						}
 						
 						if (!state.balances.containsKey(doc['to.keyword'].value)) {
 							state.balances[doc['to.keyword'].value + '_' + doc['token_id'].value] = doc['amount'].value;
 						} else {
-							state.balances[doc['to.keyword'].value + '_' + doc['token_id'].value] += doc['amount'].value;
+							state.balances[doc['to.keyword'].value + '_' + doc['token_id'].value] = state.balances[doc['to.keyword'].value + '_' + doc['token_id'].value] + doc['amount'].value;
 						}
 						`,
 						"combine_script": `
@@ -289,7 +289,7 @@ func (e *Elastic) GetBalances(network, contract string, level int64, addresses .
 							if (!balances.containsKey(entry.getKey())) {
 								balances[entry.getKey()] = entry.getValue();
 							} else {
-								balances[entry.getKey()] += entry.getValue();
+								balances[entry.getKey()] = balances[entry.getKey()] + entry.getValue();
 							}
 						} 
 						return balances;
@@ -301,7 +301,7 @@ func (e *Elastic) GetBalances(network, contract string, level int64, addresses .
 								if (!balances.containsKey(entry.getKey())) {
 									balances[entry.getKey()] = entry.getValue();
 								} else {
-									balances[entry.getKey()] += entry.getValue();
+									balances[entry.getKey()] = balances[entry.getKey()] + entry.getValue();
 								}
 							}
 						} 
@@ -333,4 +333,60 @@ func (e *Elastic) GetBalances(network, contract string, level int64, addresses .
 		}] = balance.Int()
 	}
 	return balances, nil
+}
+
+// TokenSupply -
+type TokenSupply struct {
+	Supply     int64 `json:"supply"`
+	Transfered int64 `json:"transfered"`
+}
+
+// GetTokenSupply -
+func (e *Elastic) GetTokenSupply(network, address string, tokenID int64) (result TokenSupply, err error) {
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				matchQ("network", network),
+				matchPhrase("contract", address),
+				term("token_id", tokenID),
+				matchQ("status", "applied"),
+			),
+		),
+	).Add(
+		qItem{
+			"aggs": qItem{
+				"result": qItem{
+					"scripted_metric": qItem{
+						"init_script": `state.result = ["supply":0, "transfered":0]`,
+						"map_script": `
+							if (doc['from.keyword'].value == "") {
+								state.result["supply"] = state.result["supply"] + doc["amount"].value;
+							} else if (doc['to.keyword'].value == "") {
+								state.result["supply"] = state.result["supply"] - doc["amount"].value;
+							} else {							
+								state.result["transfered"] = state.result["transfered"] + doc["amount"].value;
+						}`,
+						"combine_script": `return state.result`,
+						"reduce_script": `
+							Map result = ["supply":0, "transfered":0]; 
+							for (state in states) { 
+								result["transfered"] = result["transfered"] + state["transfered"];
+								result["supply"] = result["supply"] + state["supply"];
+							} 
+							return result;
+						`,
+					},
+				},
+			},
+		},
+	).Zero()
+	response, err := e.query([]string{DocTransfers}, query)
+	if err != nil {
+		return
+	}
+
+	result.Supply = response.Get("aggregations.result.value.supply").Int()
+	result.Transfered = response.Get("aggregations.result.value.transfered").Int()
+
+	return
 }

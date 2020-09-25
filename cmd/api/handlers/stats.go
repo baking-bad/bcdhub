@@ -200,7 +200,7 @@ func getHistogramOptions(name, network string, addresses ...string) ([]elastic.H
 
 		return []elastic.HistogramOption{
 			elastic.WithHistogramIndices("operation"),
-			elastic.WithHistogramFunction("cardinality", "source.keyword"),
+			elastic.WithHistogramFunction("cardinality", "initiator.keyword"),
 			elastic.WithHistogramFilters(filters),
 		}, nil
 	case "volume":

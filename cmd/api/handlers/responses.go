@@ -615,3 +615,48 @@ type ConfigResponse struct {
 	RPCEndpoints  map[string]string `json:"rpc_endpoints"`
 	TzKTEndpoints map[string]string `json:"tzkt_endpoints"`
 }
+
+// DApp -
+type DApp struct {
+	Name              string   `json:"name"`
+	ShortDescription  string   `json:"short_description"`
+	FullDescription   string   `json:"full_description"`
+	Version           string   `json:"version"`
+	License           string   `json:"license"`
+	WebSite           string   `json:"website"`
+	Slug              string   `json:"slug,omitempty"`
+	AgoraReviewPostID uint     `json:"agora_review_post_id,omitempty"`
+	AgoraQAPostID     uint     `json:"agora_qa_post_id,omitempty"`
+	Authors           []string `json:"authors"`
+	SocialLinks       []string `json:"social_links"`
+	Interfaces        []string `json:"interfaces"`
+	Categories        []string `json:"categories"`
+	Soon              bool     `json:"soon"`
+	Logo              string   `json:"logo"`
+	Cover             string   `json:"cover,omitempty"`
+
+	Screenshots []Screenshot           `json:"screenshots,omitempty"`
+	Contracts   []DAppContract         `json:"contracts,omitempty"`
+	DexTokens   []models.TokenMetadata `json:"dex_tokens,omitempty"`
+	Tokens      []Token                `json:"tokens,omitempty"`
+}
+
+// DAppContract -
+type DAppContract struct {
+	Network     string    `json:"network"`
+	Address     string    `json:"address"`
+	Alias       string    `json:"alias,omitempty"`
+	ReleaseDate time.Time `json:"release_date"`
+}
+
+// Screenshot -
+type Screenshot struct {
+	Type string `json:"type"`
+	Link string `json:"link"`
+}
+
+// Token -
+type Token struct {
+	models.TokenMetadata
+	elastic.TokenSupply
+}

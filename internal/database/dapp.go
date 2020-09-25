@@ -25,13 +25,12 @@ type DApp struct {
 	SocialLinks       pq.StringArray `gorm:"type:varchar(1024)[]" json:"social_links"`
 	Interfaces        pq.StringArray `gorm:"type:varchar(64)[]" json:"interfaces"`
 	Categories        pq.StringArray `gorm:"type:varchar(32)[]" json:"categories"`
+	Contracts         pq.StringArray `gorm:"type:varchar(36)[]" json:"contracts"`
 	Order             uint           `json:"-"`
 	Soon              bool           `gorm:"default:false" json:"soon"`
 
-	Pictures  []Picture `json:"pictures,omitempty"`
-	Contracts []Alias   `json:"contracts,omitempty"`
-	Tokens    []Token   `json:"tokens,omitempty"`
-	DexTokens []Token   `gorm:"many2many:dex_tokens;" json:"dex_tokens,omitempty"`
+	Pictures  []Picture  `json:"pictures,omitempty"`
+	DexTokens []DexToken `json:"dex_tokens,omitempty"`
 }
 
 // Picture model
@@ -42,20 +41,28 @@ type Picture struct {
 	DAppID uint   `json:"-"`
 }
 
+// DexToken -
+type DexToken struct {
+	ID       uint `gorm:"primary_key,AUTO_INCREMENT" json:"-"`
+	DAppID   uint
+	Contract string
+	TokenID  uint
+}
+
 // GetDApps -
 func (d *db) GetDApps() (dapps []DApp, err error) {
-	err = d.Preload("Pictures").Preload("Contracts").Preload("Tokens").Preload("DexTokens").Order(`order`).Find(&dapps).Error
+	err = d.Preload("Pictures").Order(`order`).Find(&dapps).Error
 	return
 }
 
 // GetDApp -
 func (d *db) GetDApp(id uint) (dapp DApp, err error) {
-	err = d.Preload("Pictures").Preload("Contracts").Preload("Tokens").Preload("DexTokens").Scopes(idScope(id)).First(&dapp).Error
+	err = d.Preload("Pictures").Preload("DexTokens").Scopes(idScope(id)).First(&dapp).Error
 	return
 }
 
 // GetDAppBySlug -
 func (d *db) GetDAppBySlug(slug string) (dapp DApp, err error) {
-	err = d.Preload("Pictures").Preload("Contracts").Preload("Tokens").Preload("DexTokens").Where("slug = ?", slug).First(&dapp).Error
+	err = d.Preload("Pictures").Preload("DexTokens").Where("slug = ?", slug).First(&dapp).Error
 	return
 }

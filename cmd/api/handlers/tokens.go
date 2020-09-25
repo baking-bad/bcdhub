@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"math"
 	"net/http"
 	"strconv"
 
@@ -185,18 +184,6 @@ func (ctx *Context) GetTokenVolumeSeries(c *gin.Context) {
 		return
 	}
 
-	if token, ok := ctx.FindToken(req.Network, reqArgs.Contract, int64(reqArgs.TokenID)); ok {
-		response := make([][]interface{}, len(series))
-		for i := range series {
-			response[i] = []interface{}{
-				series[i][0],
-				float64(series[i][1]) / math.Pow10(int(token.Decimals)),
-			}
-		}
-		c.JSON(http.StatusOK, response)
-		return
-	}
-
 	c.JSON(http.StatusOK, series)
 }
 
@@ -371,7 +358,7 @@ func operationToTransfer(es elastic.IElastic, po elastic.PageableOperations) (Pa
 // @Param address path string true "KT address" minlength(36) maxlength(36)
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} []models.TokenMetadata
+// @Success 200 {object} []Token
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /contract/{network}/{address}/tokens [get]
@@ -380,7 +367,7 @@ func (ctx *Context) GetContractTokens(c *gin.Context) {
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-	metadata, err := ctx.ES.GetTokenMetadatas(req.Address, req.Network)
+	tokens, err := ctx.getTokens(req.Network, req.Address)
 	if err != nil {
 		if !elastic.IsRecordNotFound(err) {
 			handleError(c, err, 0)
@@ -389,5 +376,24 @@ func (ctx *Context) GetContractTokens(c *gin.Context) {
 		}
 		return
 	}
-	c.JSON(http.StatusOK, metadata)
+	c.JSON(http.StatusOK, tokens)
+}
+
+func (ctx *Context) getTokens(network, address string) ([]Token, error) {
+
+	metadata, err := ctx.ES.GetTokenMetadatas(address, network)
+	if err != nil {
+		return nil, err
+	}
+	tokens := make([]Token, 0)
+	for _, token := range metadata {
+		supply, err := ctx.ES.GetTokenSupply(network, address, token.TokenID)
+		if err != nil {
+			return nil, err
+		}
+		tokens = append(tokens, Token{
+			token, supply,
+		})
+	}
+	return tokens, nil
 }
