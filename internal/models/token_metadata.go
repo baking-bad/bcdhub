@@ -12,7 +12,7 @@ type TokenMetadata struct {
 	ID string `json:"-"`
 
 	Contract        string    `json:"contract"`
-	RegistryAddress string    `json:"registry_address"`
+	RegistryAddress string    `json:"registry_address,omitempty"`
 	Network         string    `json:"network"`
 	Timestamp       time.Time `json:"timestamp"`
 	Level           int64     `json:"level,omitempty"`
@@ -31,7 +31,7 @@ func (tm *TokenMetadata) ParseElasticJSON(resp gjson.Result) {
 	tm.Contract = resp.Get("_source.contract").String()
 	tm.RegistryAddress = resp.Get("_source.registry_address").String()
 	tm.Network = resp.Get("_source.network").String()
-	tm.Timestamp = resp.Get("_source.timestamp").Time()
+	tm.Timestamp = resp.Get("_source.timestamp").Time().UTC()
 	tm.Level = resp.Get("_source.level").Int()
 
 	tm.TokenID = resp.Get("_source.token_id").Int()

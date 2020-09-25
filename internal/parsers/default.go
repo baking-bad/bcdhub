@@ -112,6 +112,7 @@ func (p *DefaultParser) parseTransaction(data gjson.Result, network, hash string
 		Level:          head.Level,
 		Timestamp:      head.Timestamp,
 		Kind:           data.Get("kind").String(),
+		Initiator:      data.Get("source").String(),
 		Source:         data.Get("source").String(),
 		Fee:            data.Get("fee").Int(),
 		Counter:        data.Get("counter").Int(),
@@ -168,6 +169,7 @@ func (p *DefaultParser) parseOrigination(data gjson.Result, network, hash string
 		Level:          head.Level,
 		Timestamp:      head.Timestamp,
 		Kind:           data.Get("kind").String(),
+		Initiator:      data.Get("source").String(),
 		Source:         data.Get("source").String(),
 		Fee:            data.Get("fee").Int(),
 		Counter:        data.Get("counter").Int(),
@@ -382,6 +384,7 @@ func (p *DefaultParser) parseInternalOperations(item gjson.Result, main models.O
 				internalOperation.Level = main.Level
 				internalOperation.Timestamp = main.Timestamp
 				internalOperation.Internal = true
+				internalOperation.Initiator = main.Source
 
 				nonce := op.Get("nonce").Int()
 				internalOperation.Nonce = &nonce

@@ -3,6 +3,10 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/database"
+	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,7 +17,16 @@ func (ctx *Context) GetDAppList(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, dapps)
+	results := make([]DApp, len(dapps))
+	for i := range dapps {
+		result, err := ctx.appendDAppInfo(dapps[i], false)
+		if handleError(c, err, 0) {
+			return
+		}
+		results[i] = result
+	}
+
+	c.JSON(http.StatusOK, results)
 }
 
 // GetDApp -
@@ -28,5 +41,94 @@ func (ctx *Context) GetDApp(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, dapp)
+	response, err := ctx.appendDAppInfo(dapp, true)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
+func (ctx *Context) appendDAppInfo(dapp database.DApp, withDetails bool) (DApp, error) {
+	result := DApp{
+		Name:              dapp.Name,
+		ShortDescription:  dapp.ShortDescription,
+		FullDescription:   dapp.FullDescription,
+		Version:           dapp.Version,
+		License:           dapp.License,
+		WebSite:           dapp.WebSite,
+		Slug:              dapp.Slug,
+		AgoraReviewPostID: dapp.AgoraReviewPostID,
+		AgoraQAPostID:     dapp.AgoraQAPostID,
+		Authors:           dapp.Authors,
+		SocialLinks:       dapp.SocialLinks,
+		Interfaces:        dapp.Interfaces,
+		Categories:        dapp.Categories,
+		Soon:              dapp.Soon,
+	}
+
+	if len(dapp.Pictures) > 0 {
+		screenshots := make([]Screenshot, 0)
+		for _, pic := range dapp.Pictures {
+			switch pic.Type {
+			case "logo":
+				result.Logo = pic.Link
+			case "cover":
+				result.Cover = pic.Link
+			default:
+				screenshots = append(screenshots, Screenshot{
+					Type: pic.Type,
+					Link: pic.Link,
+				})
+			}
+		}
+
+		result.Screenshots = screenshots
+	}
+
+	if withDetails {
+		if len(dapp.DexTokens) > 0 {
+			tokens := make([]models.TokenMetadata, len(dapp.DexTokens))
+			for i, token := range dapp.DexTokens {
+				tokenMetadata, err := ctx.ES.GetTokenMetadata(token.Contract, consts.Mainnet, int64(token.TokenID))
+				if err != nil {
+					return result, err
+				}
+				tokens[i] = tokenMetadata
+			}
+			result.DexTokens = tokens
+		}
+
+		if len(dapp.Contracts) > 0 {
+			contracts := make([]DAppContract, 0)
+
+			for _, address := range dapp.Contracts {
+				contract, err := ctx.ES.GetContract(map[string]interface{}{
+					"network": consts.Mainnet,
+					"address": address,
+				})
+				if err != nil {
+					return result, err
+				}
+				contracts = append(contracts, DAppContract{
+					Network:     contract.Network,
+					Address:     contract.Address,
+					Alias:       contract.Alias,
+					ReleaseDate: contract.Timestamp.UTC(),
+				})
+
+				tokens, err := ctx.getTokens(consts.Mainnet, address)
+				if err != nil {
+					if elastic.IsRecordNotFound(err) {
+						continue
+					}
+					return result, err
+				}
+				result.Tokens = append(result.Tokens, tokens...)
+			}
+			result.Contracts = contracts
+		}
+	}
+
+	return result, nil
 }

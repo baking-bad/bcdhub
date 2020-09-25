@@ -25,6 +25,7 @@ type Operation struct {
 	Timestamp        time.Time `json:"timestamp"`
 	Level            int64     `json:"level"`
 	Kind             string    `json:"kind"`
+	Initiator        string    `json:"initiator"`
 	Source           string    `json:"source"`
 	Fee              int64     `json:"fee,omitempty"`
 	Counter          int64     `json:"counter,omitempty"`
@@ -78,6 +79,7 @@ func (o *Operation) ParseElasticJSON(resp gjson.Result) {
 	o.Status = resp.Get("_source.status").String()
 	o.Level = resp.Get("_source.level").Int()
 	o.Kind = resp.Get("_source.kind").String()
+	o.Initiator = resp.Get("_source.source").String()
 	o.Source = resp.Get("_source.source").String()
 	o.Fee = resp.Get("_source.fee").Int()
 	o.Counter = resp.Get("_source.counter").Int()
