@@ -41,11 +41,11 @@ func MichelineToMiguel(micheline *C.char, metadataBytes *C.char) *C.char {
 }
 
 //export MichelineToMichelson
-func MichelineToMichelson(micheline *C.char, inline C.char, lineSize C.int) *C.char {
+func MichelineToMichelson(micheline *C.char, oneLine C.char, lineSize C.int) *C.char {
 	converter := JSONConverter{}
 
 	data := gjson.Parse(C.GoString(micheline))
-	michelson, err := formatter.MichelineToMichelson(data, inline == 0, int(lineSize))
+	michelson, err := formatter.MichelineToMichelson(data, oneLine == 0, int(lineSize))
 	if err != nil {
 		return converter.EncodeError(err)
 	}
