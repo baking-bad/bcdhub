@@ -172,7 +172,7 @@ func (p TransferParser) runView(view database.TokenViewImplementation, operation
 		return nil, err
 	}
 
-	response, err := p.rpc.RunCode(code, storage, parameter, state.ChainID, "", "", operation.Entrypoint, 0, protocol.Constants.HardGasLimitPerOperation)
+	response, err := p.rpc.RunCode(code, storage, parameter, state.ChainID, operation.Source, operation.Initiator, operation.Entrypoint, operation.Amount, protocol.Constants.HardGasLimitPerOperation)
 	if err != nil {
 		return nil, err
 	}
