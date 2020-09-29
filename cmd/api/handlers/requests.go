@@ -70,7 +70,7 @@ type cursorRequest struct {
 }
 
 type searchRequest struct {
-	Text      string `form:"q"`
+	Text      string `form:"q" binding:"required,search"`
 	Fields    string `form:"f,omitempty"`
 	Networks  string `form:"n,omitempty"`
 	Offset    uint   `form:"o,omitempty"`
