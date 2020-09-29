@@ -1,7 +1,6 @@
 package channels
 
 import (
-	"encoding/json"
 	"fmt"
 	"sync"
 
@@ -96,13 +95,7 @@ func (c *OperationsChannel) listen(source datasources.DataSource) {
 }
 
 func (c *OperationsChannel) createMessage(data datasources.Data) error {
-	var operationID string
-	bytes := data.Body.([]byte)
-	if err := json.Unmarshal(bytes, &operationID); err != nil {
-		return err
-	}
-
-	op := models.Operation{ID: operationID}
+	op := models.Operation{ID: string(data.Body.([]byte))}
 	if err := c.es.GetByID(&op); err != nil {
 		return errors.Errorf("[OperationsChannel.createMessage] Find operation error: %s", err)
 	}
