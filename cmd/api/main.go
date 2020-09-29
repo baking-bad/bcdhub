@@ -114,6 +114,12 @@ func main() {
 		}
 	}
 
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		if err := v.RegisterValidation("search", handlers.SearchStringValidator); err != nil {
+			logger.Fatal(err)
+		}
+	}
+
 	r.Use(corsSettings())
 
 	if cfg.API.Sentry.Enabled {

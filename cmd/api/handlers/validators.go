@@ -82,3 +82,8 @@ var CompilationKindValidator validator.Func = func(fl validator.FieldLevel) bool
 		compilation.KindDeployment,
 	})
 }
+
+// SearchStringValidator -
+var SearchStringValidator validator.Func = func(fl validator.FieldLevel) bool {
+	return len(fl.Field().String()) > 2
+}
