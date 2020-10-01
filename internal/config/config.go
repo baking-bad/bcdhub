@@ -35,6 +35,7 @@ type Config struct {
 		ProjectName string `yaml:"project_name"`
 		Bind        string `yaml:"bind"`
 		SwaggerHost string `yaml:"swagger_host"`
+		CorsEnabled bool   `yaml:"cors_enabled"`
 		OAuth       struct {
 			Enabled bool `yaml:"enabled"`
 		} `yaml:"oauth"`
