@@ -34,6 +34,7 @@ api:
     project_name: api
     bind: ":14000"
     swagger_host: "localhost:42000"
+    cors_enabled: true
     oauth:
         enabled: false
     sentry:

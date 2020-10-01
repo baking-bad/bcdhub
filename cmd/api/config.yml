@@ -62,6 +62,7 @@ api:
     project_name: api
     bind: ":14000"
     swagger_host: "api.better-call.dev"
+    cors_enabled: false
     oauth:
         enabled: true
     sentry:
