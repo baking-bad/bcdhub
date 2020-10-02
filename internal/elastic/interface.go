@@ -42,9 +42,11 @@ type IGeneral interface {
 
 // IBigMap -
 type IBigMap interface {
+	GetBigMapKey(network, keyHash string, ptr int64) (BigMapDiff, error)
 	GetBigMapKeys(int64, string, string, int64, int64) ([]BigMapDiff, error)
 	GetBigMapsForAddress(string, string) ([]models.BigMapDiff, error)
 	GetBigMapHistory(int64, string) ([]models.BigMapAction, error)
+	GetBigMapValuesByKey(string) ([]BigMapDiff, error)
 }
 
 // IBigMapDiff -
@@ -63,6 +65,7 @@ type IBlock interface {
 	GetBlock(string, int64) (models.Block, error)
 	GetLastBlock(string) (models.Block, error)
 	GetLastBlocks() ([]models.Block, error)
+	GetNetworkAlias(chainID string) (string, error)
 }
 
 // IBulk -

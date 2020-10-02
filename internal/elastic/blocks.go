@@ -87,3 +87,25 @@ func (e *Elastic) GetLastBlocks() ([]models.Block, error) {
 	}
 	return blocks, nil
 }
+
+// GetNetworkAlias -
+func (e *Elastic) GetNetworkAlias(chainID string) (string, error) {
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				matchQ("chain_id", chainID),
+			),
+		),
+	).One()
+
+	r, err := e.query([]string{DocBlocks}, query)
+	if err != nil {
+		return "", err
+	}
+
+	if r.Get("hits.total.value").Int() == 0 {
+		return "", errors.Errorf("%s: block in %s", RecordNotFound, chainID)
+	}
+
+	return r.Get("hits.hits.0._source.network").String(), nil
+}

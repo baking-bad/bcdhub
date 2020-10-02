@@ -73,6 +73,16 @@ func (m Metadata) GetFieldName(path string, idx int) string {
 	return fmt.Sprintf("@%s", nm.Prim)
 }
 
+// Find - returns node by `annot`. If node is not found, returns `nil`
+func (m Metadata) Find(annot string) string {
+	for key, value := range m {
+		if value.Name == annot {
+			return key
+		}
+	}
+	return ""
+}
+
 // GetName -
 func (nm *NodeMetadata) GetName(idx int) string {
 	if nm.Name == "" {
