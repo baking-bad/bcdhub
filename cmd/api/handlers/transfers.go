@@ -9,7 +9,7 @@ import (
 
 // GetContractTransfers godoc
 // @Summary Show contract`s tokens transfers
-// @Description Show contract`s tokens transfers
+// @Description Show contract`s tokens transfers.
 // @Tags contract
 // @ID get-contract-transfers
 // @Param size query integer false "Transfers count" mininum(1)
@@ -40,7 +40,7 @@ func (ctx *Context) GetContractTransfers(c *gin.Context) {
 		Contracts: []string{contractRequest.Address},
 		Size:      req.Size,
 		Offset:    req.Offset,
-		TokenID:   TokenID,
+		TokenID:   tokenID,
 	})
 	if handleError(c, err, 0) {
 		return

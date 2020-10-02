@@ -109,21 +109,33 @@ func NewQueueManager(connection, service string, needPublisher bool, queues ...Q
 
 // SendRaw -
 func (q QueueManager) SendRaw(queue string, body []byte) error {
+	if q.publisher == nil {
+		return nil
+	}
 	return q.publisher.SendRaw(queue, body)
 }
 
 // Send -
 func (q QueueManager) Send(message IMessage) error {
+	if q.publisher == nil {
+		return nil
+	}
 	return q.publisher.Send(message)
 }
 
 // Consume -
 func (q QueueManager) Consume(queue string) (<-chan amqp.Delivery, error) {
+	if q.receiver == nil {
+		return nil, nil
+	}
 	return q.receiver.Consume(queue)
 }
 
 // GetQueues -
 func (q QueueManager) GetQueues() []string {
+	if q.receiver == nil {
+		return nil
+	}
 	return q.receiver.GetQueues()
 }
 

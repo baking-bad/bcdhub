@@ -47,9 +47,9 @@ func (t *Transfer) ParseElasticJSON(resp gjson.Result) {
 	t.ToAlias = resp.Get("_source.to_alias").String()
 	t.TokenID = resp.Get("_source.token_id").Int()
 	t.Amount = resp.Get("_source.amount").Float()
-	nonce := resp.Get("_source.indexed_time").Int()
+	nonce := resp.Get("_source.nonce").Int()
 	t.Nonce = &nonce
-	counter := resp.Get("_source.indexed_time").Int()
+	counter := resp.Get("_source.counter").Int()
 	t.Counter = &counter
 }
 

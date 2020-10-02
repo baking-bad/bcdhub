@@ -1,16 +1,23 @@
 package elastic
 
 import (
+	"fmt"
+
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
+)
+
+const (
+	maxTransfersSize = 100
 )
 
 // GetTransfersContext -
 type GetTransfersContext struct {
 	Contracts []string
 	Network   string
-	From      string
-	To        string
+	Address   string
+	Start     uint
+	End       uint
 	SortOrder string
 	LastID    string
 	Size      int64
@@ -21,12 +28,13 @@ type GetTransfersContext struct {
 	filters []qItem
 }
 
-func (ctx GetTransfersContext) buildQuery() base {
+func (ctx *GetTransfersContext) buildQuery() base {
 	ctx.query = newQuery()
 	ctx.filters = make([]qItem, 0)
 
 	ctx.filterNetwork()
-	ctx.filterAddresses()
+	ctx.filterAddress()
+	ctx.filterTime()
 	ctx.filterCursor()
 	ctx.filterContracts()
 	ctx.filterTokenID()
@@ -44,35 +52,46 @@ func (ctx GetTransfersContext) buildQuery() base {
 	return ctx.query
 }
 
-func (ctx GetTransfersContext) filterNetwork() {
+func (ctx *GetTransfersContext) filterNetwork() {
 	if ctx.Network != "" {
 		ctx.filters = append(ctx.filters, matchQ("network", ctx.Network))
 	}
 }
 
-func (ctx GetTransfersContext) filterTokenID() {
+func (ctx *GetTransfersContext) filterAddress() {
+	if ctx.Address == "" {
+		return
+	}
+
+	ctx.filters = append(ctx.filters, boolQ(
+		should(
+			matchPhrase("from", ctx.Address),
+			matchPhrase("to", ctx.Address),
+		),
+		minimumShouldMatch(1),
+	))
+}
+
+func (ctx *GetTransfersContext) filterTokenID() {
 	if ctx.TokenID >= 0 {
 		ctx.filters = append(ctx.filters, term("token_id", ctx.TokenID))
 	}
 }
 
-func (ctx GetTransfersContext) filterAddresses() {
-	if ctx.From != "" || ctx.To != "" {
-		shouldItems := make([]qItem, 0)
-		if ctx.From != "" {
-			shouldItems = append(shouldItems, matchPhrase("from", ctx.From))
-		}
-		if ctx.To != "" {
-			shouldItems = append(shouldItems, matchPhrase("to", ctx.To))
-		}
-		ctx.filters = append(ctx.filters, boolQ(
-			should(shouldItems...),
-			minimumShouldMatch(1),
-		))
+func (ctx *GetTransfersContext) filterTime() {
+	ts := qItem{}
+	if ctx.Start > 0 {
+		ts["gte"] = ctx.Start
+	}
+	if ctx.End > 0 {
+		ts["lt"] = ctx.End
+	}
+	if len(ts) > 0 {
+		ctx.filters = append(ctx.filters, rangeQ("timestamp", ts))
 	}
 }
 
-func (ctx GetTransfersContext) filterCursor() {
+func (ctx *GetTransfersContext) filterCursor() {
 	if ctx.LastID != "" {
 		eq := "lt"
 		if ctx.SortOrder == "asc" {
@@ -82,7 +101,7 @@ func (ctx GetTransfersContext) filterCursor() {
 	}
 }
 
-func (ctx GetTransfersContext) filterContracts() {
+func (ctx *GetTransfersContext) filterContracts() {
 	if len(ctx.Contracts) == 0 {
 		return
 	}
@@ -90,25 +109,25 @@ func (ctx GetTransfersContext) filterContracts() {
 	ctx.filters = append(ctx.filters, in("contract", ctx.Contracts))
 }
 
-func (ctx GetTransfersContext) appendSize() {
-	if ctx.Size > 0 && ctx.Size <= 100 {
+func (ctx *GetTransfersContext) appendSize() {
+	if ctx.Size > 0 && ctx.Size <= maxTransfersSize {
 		ctx.query.Size(ctx.Size)
 	} else {
 		ctx.query.Size(defaultSize)
 	}
 }
 
-func (ctx GetTransfersContext) appendOffset() {
-	if ctx.Offset > 0 && ctx.Offset <= 100 {
-		ctx.query.Offset(ctx.Offset)
+func (ctx *GetTransfersContext) appendOffset() {
+	if ctx.Offset > 0 && ctx.Offset <= maxTransfersSize {
+		ctx.query.From(ctx.Offset)
 	}
 }
 
-func (ctx GetTransfersContext) appendSort() {
+func (ctx *GetTransfersContext) appendSort() {
 	if helpers.StringInArray(ctx.SortOrder, []string{"desc", "asc"}) {
-		ctx.query.Sort("indexed_time", ctx.SortOrder)
+		ctx.query.Sort("timestamp", ctx.SortOrder)
 	} else {
-		ctx.query.Sort("indexed_time", "desc")
+		ctx.query.Sort("timestamp", "desc")
 	}
 }
 
@@ -126,9 +145,7 @@ func (e *Elastic) GetTransfers(ctx GetTransfersContext) (TransfersResponse, erro
 	transfers := make([]models.Transfer, len(hits))
 	for i, hit := range hits {
 		transfers[i].ParseElasticJSON(hit)
-		if i == len(hits)-1 {
-			po.LastID = transfers[i].ID
-		}
+		po.LastID = fmt.Sprintf("%d", transfers[i].IndexedTime)
 	}
 	po.Transfers = transfers
 	po.Total = result.Get("hits.total.value").Int()

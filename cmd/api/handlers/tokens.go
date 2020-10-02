@@ -120,15 +120,15 @@ func (ctx *Context) GetFAByVersion(c *gin.Context) {
 // @Param network path string true "Network"
 // @Param address path string true "KT address" minlength(36) maxlength(36)
 // @Param last_id query string false "Last transfer ID"
-// @Param size query integer false "Requested count" mininum(1)
+// @Param size query integer false "Requested count" mininum(1) maximum(100)
 // @Param sort query string false "Sort: one of `asc` and `desc`"
-// @Param from query string false "Filter by from address"
-// @Param to query string false "Filter by to address"
+// @Param start query integer false "Timestamp in seconds" mininum(1)
+// @Param end query integer false "Timestamp in seconds" mininum(1)
 // @Param contracts query string false "Comma-separated list of contracts which tokens will be requested"
 // @Param token_id query integer false "Token ID" mininum(0)
 // @Accept json
 // @Produce json
-// @Success 200 {object} PageableTokenTransfers
+// @Success 200 {object} elastic.TransfersResponse
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /tokens/{network}/transfers/{address} [get]
@@ -143,15 +143,26 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 		return
 	}
 
+	var contracts []string
+	if ctxReq.Contracts != "" {
+		contracts = strings.Split(ctxReq.Contracts, ",")
+	}
+
+	tokenID := int64(-1)
+	if ctxReq.TokenID != nil {
+		tokenID = *ctxReq.TokenID
+	}
+
 	transfers, err := ctx.ES.GetTransfers(elastic.GetTransfersContext{
 		Network:   req.Network,
-		Contracts: strings.Split(ctxReq.Contracts, ","),
-		From:      ctxReq.From,
-		To:        ctxReq.To,
+		Address:   req.Address,
+		Contracts: contracts,
+		Start:     ctxReq.Start * 1000,
+		End:       ctxReq.End * 1000,
 		LastID:    ctxReq.LastID,
 		SortOrder: ctxReq.Sort,
 		Size:      ctxReq.Size,
-		TokenID:   -1,
+		TokenID:   tokenID,
 	})
 	if handleError(c, err, 0) {
 		return

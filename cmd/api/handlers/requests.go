@@ -325,9 +325,9 @@ type getContractTransfers struct {
 
 type getTransfersRequest struct {
 	cursorRequest
-	From      string `form:"from"  binding:"omitempty,address"`
-	To        string `form:"to"  binding:"omitempty,address"`
+	Start     uint   `form:"start"  binding:"omitempty,min=1"`
+	End       uint   `form:"end"  binding:"omitempty,min=1,gtfield=Start"`
 	Contracts string `form:"contracts"  binding:"omitempty"`
 	Sort      string `form:"sort" binding:"omitempty,oneof=asc desc"`
-	TokenID   uint   `form:"token_id" binding:"omitempty,min=0"`
+	TokenID   *int64 `form:"token_id" binding:"omitempty,min=0"`
 }
