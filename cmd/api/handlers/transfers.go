@@ -21,12 +21,12 @@ import (
 // @Failure 500 {object} Error
 // @Router /{network}/{address}/transfers [get]
 func (ctx *Context) GetContractTransfers(c *gin.Context) {
-	var req getContractTransfers
-	if err := c.BindQuery(&req); handleError(c, err, http.StatusBadRequest) {
-		return
-	}
 	var contractRequest getContractRequest
 	if err := c.BindUri(&contractRequest); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+	var req getContractTransfers
+	if err := c.BindQuery(&req); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -35,7 +35,13 @@ func (ctx *Context) GetContractTransfers(c *gin.Context) {
 		tokenID = int64(*req.TokenID)
 	}
 
-	transfers, err := ctx.ES.GetContractTransfers(contractRequest.Network, contractRequest.Address, tokenID, req.Size, req.Offset)
+	transfers, err := ctx.ES.GetTransfers(elastic.GetTransfersContext{
+		Network:   contractRequest.Network,
+		Contracts: []string{contractRequest.Address},
+		Size:      req.Size,
+		Offset:    req.Offset,
+		TokenID:   TokenID,
+	})
 	if handleError(c, err, 0) {
 		return
 	}

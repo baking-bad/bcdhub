@@ -42,44 +42,6 @@ func (e *Elastic) GetTokens(network, tokenInterface string, lastAction, size int
 	return contracts, result.Get("hits.total.value").Int(), nil
 }
 
-// GetTokenTransferOperations -
-func (e *Elastic) GetTokenTransferOperations(network, address, lastID string, size int64) (PageableOperations, error) {
-	if size == 0 {
-		size = defaultSize
-	}
-	filterItems := []qItem{
-		in("entrypoint", []string{"mint", "transfer"}),
-		matchQ("parameter_strings", address),
-		matchQ("network", network),
-	}
-	if lastID != "" {
-		filterItems = append(filterItems, rangeQ("indexed_time", qItem{"lt": lastID}))
-	}
-
-	query := newQuery().Query(
-		boolQ(
-			filter(
-				filterItems...,
-			),
-		),
-	).Sort("timestamp", "desc").Size(size)
-
-	po := PageableOperations{}
-	result, err := e.query([]string{DocOperations}, query)
-	if err != nil {
-		return po, err
-	}
-
-	hits := result.Get("hits.hits").Array()
-	operations := make([]models.Operation, len(hits))
-	for i, hit := range hits {
-		operations[i].ParseElasticJSON(hit)
-	}
-	po.Operations = operations
-	po.LastID = result.Get("hits").Get("hits|@reverse|0").Get("_source.indexed_time").String()
-	return po, nil
-}
-
 // GetTokensStats -
 func (e *Elastic) GetTokensStats(network string, addresses, entrypoints []string) (map[string]TokenUsageStats, error) {
 	addressFilters := make([]qItem, len(addresses))

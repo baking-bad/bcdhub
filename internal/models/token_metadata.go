@@ -11,6 +11,7 @@ import (
 type TokenMetadata struct {
 	ID string `json:"-"`
 
+	Interface       string    `json:"interface"`
 	Contract        string    `json:"contract"`
 	RegistryAddress string    `json:"registry_address,omitempty"`
 	Network         string    `json:"network"`
@@ -28,6 +29,7 @@ type TokenMetadata struct {
 func (tm *TokenMetadata) ParseElasticJSON(resp gjson.Result) {
 	tm.ID = resp.Get("_id").String()
 
+	tm.Interface = resp.Get("_source.interface").String()
 	tm.Contract = resp.Get("_source.contract").String()
 	tm.RegistryAddress = resp.Get("_source.registry_address").String()
 	tm.Network = resp.Get("_source.network").String()

@@ -322,3 +322,12 @@ type getContractTransfers struct {
 	pageableRequest
 	TokenID *uint `form:"token_id"  binding:"omitempty,min=0"`
 }
+
+type getTransfersRequest struct {
+	cursorRequest
+	From      string `form:"from"  binding:"omitempty,address"`
+	To        string `form:"to"  binding:"omitempty,address"`
+	Contracts string `form:"contracts"  binding:"omitempty"`
+	Sort      string `form:"sort" binding:"omitempty,oneof=asc desc"`
+	TokenID   uint   `form:"token_id" binding:"omitempty,min=0"`
+}

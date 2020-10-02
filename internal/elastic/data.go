@@ -336,4 +336,5 @@ func (stats *DAppStats) ParseElasticJSON(hit gjson.Result) {
 type TransfersResponse struct {
 	Transfers []models.Transfer `json:"transfers"`
 	Total     int64             `json:"total"`
+	LastID    string            `json:"last_id"`
 }

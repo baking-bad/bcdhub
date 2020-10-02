@@ -3,16 +3,13 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 )
 
 // GetFA godoc
@@ -124,6 +121,11 @@ func (ctx *Context) GetFAByVersion(c *gin.Context) {
 // @Param address path string true "KT address" minlength(36) maxlength(36)
 // @Param last_id query string false "Last transfer ID"
 // @Param size query integer false "Requested count" mininum(1)
+// @Param sort query string false "Sort: one of `asc` and `desc`"
+// @Param from query string false "Filter by from address"
+// @Param to query string false "Filter by to address"
+// @Param contracts query string false "Comma-separated list of contracts which tokens will be requested"
+// @Param token_id query integer false "Token ID" mininum(0)
 // @Accept json
 // @Produce json
 // @Success 200 {object} PageableTokenTransfers
@@ -136,21 +138,26 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 		return
 	}
 
-	var cursorReq cursorRequest
-	if err := c.BindQuery(&cursorReq); handleError(c, err, http.StatusBadRequest) {
+	var ctxReq getTransfersRequest
+	if err := c.BindQuery(&ctxReq); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
-	operations, err := ctx.ES.GetTokenTransferOperations(req.Network, req.Address, cursorReq.LastID, cursorReq.Size)
+	transfers, err := ctx.ES.GetTransfers(elastic.GetTransfersContext{
+		Network:   req.Network,
+		Contracts: strings.Split(ctxReq.Contracts, ","),
+		From:      ctxReq.From,
+		To:        ctxReq.To,
+		LastID:    ctxReq.LastID,
+		SortOrder: ctxReq.Sort,
+		Size:      ctxReq.Size,
+		TokenID:   -1,
+	})
 	if handleError(c, err, 0) {
 		return
 	}
 
-	ops, err := operationToTransfer(ctx.ES, operations)
-	if handleError(c, err, 0) {
-		return
-	}
-	c.JSON(http.StatusOK, ops)
+	c.JSON(http.StatusOK, transfers)
 }
 
 // GetTokenVolumeSeries godoc
@@ -268,86 +275,6 @@ func (ctx *Context) contractToTokens(contracts []models.Contract, network, versi
 		Tokens: tokens,
 		LastID: lastID,
 	}, nil
-}
-
-func operationToTransfer(es elastic.IElastic, po elastic.PageableOperations) (PageableTokenTransfers, error) {
-	transfers := make([]TokenTransfer, 0)
-	contracts := map[string]bool{}
-	metadatas := map[string]meta.Metadata{}
-
-	for _, op := range po.Operations {
-		key := op.Network + op.Destination
-		isFA12, ok := contracts[key]
-		if !ok {
-			val, err := es.IsFAContract(op.Network, op.Destination)
-			if err != nil {
-				return PageableTokenTransfers{}, err
-			}
-			contracts[key] = val
-			isFA12 = val
-		}
-		if !isFA12 {
-			continue
-		}
-		if cerrors.HasParametersError(op.Errors) || cerrors.HasGasExhaustedError(op.Errors) {
-			continue
-		}
-
-		transfer := TokenTransfer{
-			Network:   op.Network,
-			Contract:  op.Destination,
-			Protocol:  op.Protocol,
-			Hash:      op.Hash,
-			Counter:   op.Counter,
-			Status:    op.Status,
-			Timestamp: op.Timestamp,
-			Level:     op.Level,
-			Source:    op.Source,
-			Nonce:     op.Nonce,
-		}
-
-		metadata, ok := metadatas[key]
-		if !ok {
-			val, err := meta.GetMetadata(es, op.Destination, consts.PARAMETER, op.Protocol)
-			if err != nil {
-				return PageableTokenTransfers{}, errors.Errorf("[operationToTransfer] Unknown metadata: %s", op.Destination)
-			}
-			metadatas[key] = val
-			metadata = val
-		}
-
-		params := gjson.Parse(op.Parameters)
-		parameters, err := newmiguel.ParameterToMiguel(params, metadata)
-		if err != nil {
-			return PageableTokenTransfers{}, err
-		}
-
-		if op.Entrypoint == "transfer" && len(parameters.Children) == 3 {
-			transfer.From = parameters.Children[0].Value.(string)
-			transfer.To = parameters.Children[1].Value.(string)
-			amount, err := strconv.ParseInt(parameters.Children[2].Value.(string), 10, 64)
-			if err != nil {
-				return PageableTokenTransfers{}, err
-			}
-			transfer.Amount = amount
-		} else if op.Entrypoint == "mint" && len(parameters.Children) == 2 {
-			transfer.To = parameters.Children[0].Value.(string)
-			amount, err := strconv.ParseInt(parameters.Children[1].Value.(string), 10, 64)
-			if err != nil {
-				return PageableTokenTransfers{}, err
-			}
-			transfer.Amount = amount
-		} else {
-			continue
-		}
-
-		transfers = append(transfers, transfer)
-	}
-	pt := PageableTokenTransfers{
-		LastID:    po.LastID,
-		Transfers: transfers,
-	}
-	return pt, nil
 }
 
 // GetContractTokens godoc
