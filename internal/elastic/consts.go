@@ -12,6 +12,7 @@ const (
 	DocProtocol      = "protocol"
 	DocTransfers     = "transfer"
 	DocTokenMetadata = "token_metadata"
+	DocTZIP          = "tzip"
 )
 
 // Index names

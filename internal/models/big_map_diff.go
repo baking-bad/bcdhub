@@ -39,12 +39,12 @@ func (b *BigMapDiff) GetIndex() string {
 
 // GetQueue -
 func (b *BigMapDiff) GetQueue() string {
-	return ""
+	return "bigmapdiffs"
 }
 
 // Marshal -
 func (b *BigMapDiff) Marshal() ([]byte, error) {
-	return nil, nil
+	return []byte(b.ID), nil
 }
 
 // ParseElasticJSON -

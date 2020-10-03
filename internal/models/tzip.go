@@ -4,7 +4,10 @@ import "github.com/tidwall/gjson"
 
 // TZIP -
 type TZIP struct {
-	ID string `json:"-"`
+	ID      string `json:"-"`
+	Level   int64  `json:"level"`
+	Address string `json:"address"`
+	Network string `json:"network"`
 
 	TZIP16
 }
@@ -24,6 +27,9 @@ type TZIP16 struct {
 // ParseElasticJSON -
 func (t *TZIP) ParseElasticJSON(resp gjson.Result) {
 	t.ID = resp.Get("_id").String()
+	t.Level = resp.Get("_source.level").Int()
+	t.Address = resp.Get("_source.address").String()
+	t.Network = resp.Get("_source.network").String()
 
 	t.Name = resp.Get("_source.name").String()
 	t.Description = resp.Get("_source.description").String()

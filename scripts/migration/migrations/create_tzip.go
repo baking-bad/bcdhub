@@ -4,6 +4,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/parsers/tzip"
 	"github.com/schollz/progressbar/v3"
 )
@@ -46,10 +47,15 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 		})
 
 		t, err := parser.Parse(tzip.ParseContext{
-			Address:  bmd[i].Address,
-			Network:  bmd[i].Network,
-			Protocol: bmd[i].Protocol,
-			Pointer:  bmd[i].Ptr,
+			BigMapDiff: models.BigMapDiff{
+				Address:  bmd[i].Address,
+				Network:  bmd[i].Network,
+				Ptr:      bmd[i].Ptr,
+				Value:    bmd[i].Value,
+				KeyHash:  bmd[i].KeyHash,
+				Protocol: bmd[i].Protocol,
+				BinPath:  bmd[i].BinPath,
+			},
 		})
 		if err != nil {
 			return err

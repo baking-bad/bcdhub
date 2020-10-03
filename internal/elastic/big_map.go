@@ -333,7 +333,8 @@ func (e *Elastic) GetBigMapHistory(ptr int64, network string) (response []models
 // GetBigMapKey -
 func (e *Elastic) GetBigMapKey(network, keyHash string, ptr int64) (data BigMapDiff, err error) {
 	if ptr < 0 {
-		return data, errors.Errorf("Invalid pointer value: %d", ptr)
+		err = errors.Errorf("Invalid pointer value: %d", ptr)
+		return
 	}
 	mustQuery := must(
 		matchPhrase("network", network),
@@ -348,6 +349,9 @@ func (e *Elastic) GetBigMapKey(network, keyHash string, ptr int64) (data BigMapD
 		return
 	}
 
+	if !res.Get("hits.hits.0").Exists() {
+		return data, errors.Errorf("%s: %v", RecordNotFound, query)
+	}
 	data.ParseElasticJSON(res.Get("hits.hits.0"))
 	return
 }

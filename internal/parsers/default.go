@@ -16,7 +16,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/baking-bad/bcdhub/internal/parsers/tzip"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
@@ -32,7 +31,6 @@ type DefaultParser struct {
 
 	transferParser TransferParser
 	storageParser  storage.Parser
-	tzipParser     tzip.Parser
 
 	ipfs  []string
 	views TokenViews
@@ -51,9 +49,6 @@ func NewDefaultParser(rpc noderpc.INode, es elastic.IElastic, shareFolder string
 	}
 
 	dp.transferParser = NewTransferParser(rpc, es, WithTokenViewsTransferParser(dp.views))
-	dp.tzipParser = tzip.NewParser(es, rpc, tzip.ParserConfig{
-		IPFSGateways: dp.ipfs,
-	})
 
 	return &dp
 }
@@ -283,11 +278,7 @@ func (p *DefaultParser) finishParseOperation(item gjson.Result, op *models.Opera
 		}
 		op.DeffatedStorage = rs.DeffatedStorage
 
-		tzipModels, err := p.findTZIP(rs)
-		if err != nil {
-			return nil, err
-		}
-		resultModels = append(resultModels, tzipModels...)
+		resultModels = append(resultModels, rs.Models...)
 
 		if op.Kind == consts.Transaction {
 			migration, err := p.findMigration(item, op)
@@ -302,34 +293,6 @@ func (p *DefaultParser) finishParseOperation(item gjson.Result, op *models.Opera
 	}
 	if op.Kind == consts.Transaction {
 		return resultModels, p.getEntrypoint(item, metadata, op)
-	}
-	return resultModels, nil
-}
-
-func (p *DefaultParser) findTZIP(richStorage storage.RichStorage) ([]elastic.Model, error) {
-	if len(richStorage.Models) == 0 {
-		return nil, nil
-	}
-	resultModels := make([]elastic.Model, 0)
-	for i := range richStorage.Models {
-		if bmd, ok := richStorage.Models[i].(*models.BigMapDiff); ok {
-			if bmd.KeyHash != tzip.EmptyStringKey {
-				continue
-			}
-			tzipModel, err := p.tzipParser.Parse(tzip.ParseContext{
-				Address:  bmd.Address,
-				Network:  bmd.Network,
-				Pointer:  bmd.Ptr,
-				Protocol: bmd.Protocol,
-			})
-			if err != nil {
-				return nil, err
-			}
-			if tzipModel != nil {
-				resultModels = append(resultModels, tzipModel)
-			}
-		}
-		resultModels = append(resultModels, richStorage.Models[i])
 	}
 	return resultModels, nil
 }

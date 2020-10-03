@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 
@@ -68,27 +67,21 @@ func (s TezosStorage) Get(value string) (*models.TZIP, error) {
 
 	bmd, err := s.es.GetBigMapKey(s.network, key, s.ptr)
 	if err != nil {
+		if elastic.IsRecordNotFound(err) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
-	bytesValue := gjson.Parse(bmd.Value).Get("bytes").String()
-	if bytesValue == "" {
-		return nil, errors.Wrap(ErrInvalidOrEmptyKey, bmd.Value)
-	}
-
-	decodedBytes, err := hex.DecodeString(bytesValue)
-	if err != nil {
-		return nil, err
-	}
+	decoded := DecodeValue(bmd.Value)
 
 	var data models.TZIP
 	data.ID = helpers.GenerateID()
-	err = json.Unmarshal(decodedBytes, &data)
+	err = json.Unmarshal([]byte(decoded), &data)
 	return &data, err
 }
 
 func (s *TezosStorage) fillFields(uri TezosStorageURI) error {
-
 	if uri.Network != "" {
 		s.network = uri.Network
 	}

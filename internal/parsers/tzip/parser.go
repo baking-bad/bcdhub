@@ -1,16 +1,13 @@
 package tzip
 
 import (
-	"encoding/hex"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/baking-bad/bcdhub/internal/parsers/tzip/storage"
 	tzipStorage "github.com/baking-bad/bcdhub/internal/parsers/tzip/storage"
 	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 )
 
 const (
@@ -24,11 +21,8 @@ const (
 
 // ParseContext -
 type ParseContext struct {
-	Address  string
-	Network  string
-	Protocol string
-	Hash     string
-	Pointer  int64
+	BigMapDiff models.BigMapDiff
+	Hash       string
 }
 
 // Parser -
@@ -37,8 +31,6 @@ type Parser struct {
 	rpc noderpc.INode
 
 	cfg ParserConfig
-
-	ctx ParseContext
 }
 
 // NewParser -
@@ -53,29 +45,15 @@ func NewParser(es elastic.IElastic, rpc noderpc.INode, cfg ParserConfig) Parser 
 
 // Parse -
 func (p *Parser) Parse(ctx ParseContext) (*models.TZIP, error) {
-	p.ctx = ctx
-
-	if ctx.Pointer == 0 {
-		bmPtr, err := storage.FindBigMapPointer(p.es, p.rpc, ctx.Address, ctx.Network, ctx.Protocol)
-		if err != nil {
-			return nil, err
-		}
-		ctx.Pointer = bmPtr
+	decoded := tzipStorage.DecodeValue(ctx.BigMapDiff.Value)
+	if decoded == "" {
+		return nil, nil
 	}
 
-	bmd, err := p.es.GetBigMapKey(ctx.Network, EmptyStringKey, ctx.Pointer)
-	if err != nil {
-		return nil, err
-	}
-	value := gjson.Parse(bmd.Value).Get("bytes").String()
-	decodedValue, err := hex.DecodeString(value)
-	if err == nil {
-		value = string(decodedValue)
-	}
-	return p.getFromStorage(value)
+	return p.getFromStorage(ctx, decoded)
 }
 
-func (p Parser) getFromStorage(url string) (*models.TZIP, error) {
+func (p Parser) getFromStorage(ctx ParseContext, url string) (*models.TZIP, error) {
 	var store tzipStorage.Storage
 	switch {
 	case strings.HasPrefix(url, tzipStorage.PrefixHTTPS), strings.HasPrefix(url, tzipStorage.PrefixHTTP):
@@ -90,12 +68,22 @@ func (p Parser) getFromStorage(url string) (*models.TZIP, error) {
 	case strings.HasPrefix(url, tzipStorage.PrefixSHA256):
 		store = tzipStorage.NewSha256Storage(
 			tzipStorage.WithTimeoutSha256(p.cfg.HTTPTimeout),
-			tzipStorage.WithHashSha256(p.ctx.Hash),
+			tzipStorage.WithHashSha256(ctx.Hash),
 		)
 	case strings.HasPrefix(url, tzipStorage.PrefixTezosStorage):
-		store = tzipStorage.NewTezosStorage(p.es, p.rpc, p.ctx.Address, p.ctx.Network, p.ctx.Pointer)
+		store = tzipStorage.NewTezosStorage(p.es, p.rpc, ctx.BigMapDiff.Address, ctx.BigMapDiff.Network, ctx.BigMapDiff.Ptr)
 	default:
 		return nil, errors.Wrap(ErrUnknownStorageType, url)
 	}
-	return store.Get(url)
+	val, err := store.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	if val == nil {
+		return nil, nil
+	}
+	val.Address = ctx.BigMapDiff.Address
+	val.Network = ctx.BigMapDiff.Network
+	val.Level = ctx.BigMapDiff.Level
+	return val, nil
 }

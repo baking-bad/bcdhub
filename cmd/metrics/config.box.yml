@@ -13,4 +13,5 @@ metrics:
         migrations:
         recalc:
         transfers:
+        bigmapdiffs:
 

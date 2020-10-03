@@ -37,6 +37,11 @@ metrics:
         migrations:
         recalc:
         transfers:
+        bigmapdiffs:
 
 share:
     path: /etc/bcd
+
+ipfs:
+    - https://ipfs.io
+    - https://dweb.link
