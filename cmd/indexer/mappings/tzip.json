@@ -1,0 +1,129 @@
+{
+    "mappings": {
+        "properties": {
+            "license": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "ignore_above": 256.0,
+                        "type": "keyword"
+                    }
+                }
+            },
+            "interfaces": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "ignore_above": 256.0,
+                        "type": "keyword"
+                    }
+                }
+            },
+            "name": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "ignore_above": 256.0,
+                        "type": "keyword"
+                    }
+                }
+            },
+            "description": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "ignore_above": 256.0,
+                        "type": "keyword"
+                    }
+                }
+            },
+            "version": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "ignore_above": 256.0,
+                        "type": "keyword"
+                    }
+                }
+            },
+            "views": {
+                "properties": {
+                    "name": {
+                        "type": "text",
+                        "fields": {
+                            "keyword": {
+                                "ignore_above": 256.0,
+                                "type": "keyword"
+                            }
+                        }
+                    },
+                    "implementations": {
+                        "properties": {
+                            "michelson-storage-view": {
+                                "properties": {
+                                    "code": {
+                                        "properties": {
+                                            "prim": {
+                                                "type": "text",
+                                                "fields": {
+                                                    "keyword": {
+                                                        "ignore_above": 256.0,
+                                                        "type": "keyword"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "parameter": {
+                                        "properties": {
+                                            "prim": {
+                                                "type": "text",
+                                                "fields": {
+                                                    "keyword": {
+                                                        "ignore_above": 256.0,
+                                                        "type": "keyword"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "return-type": {
+                                        "properties": {
+                                            "prim": {
+                                                "type": "text",
+                                                "fields": {
+                                                    "keyword": {
+                                                        "ignore_above": 256.0,
+                                                        "type": "keyword"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "authors": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "ignore_above": 256.0,
+                        "type": "keyword"
+                    }
+                }
+            },
+            "homepage": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "ignore_above": 256.0,
+                        "type": "keyword"
+                    }
+                }
+            }
+        }
+    }
+}
