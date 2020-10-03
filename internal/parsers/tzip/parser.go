@@ -10,10 +10,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-const (
-	metadataAnnot = "metadata"
-)
-
 // Public consts
 const (
 	EmptyStringKey = "expru5X1yxJG6ezR2uHMotwMLNmSzQyh5t1vUnhjx4cS6Pv9qE1Sdo"

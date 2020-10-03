@@ -27,22 +27,21 @@ func (uri *TezosStorageURI) Parse(value string) (err error) {
 		return errors.Wrap(ErrInvalidTezosStoragePrefix, value)
 	}
 
-	key := strings.TrimPrefix(value, tezosStoragePrefix)
-	if strings.HasPrefix(key, "//") {
-		key := strings.TrimPrefix(value, "//")
-		parts := strings.Split(key, "/")
+	uri.Key = strings.TrimPrefix(value, tezosStoragePrefix)
+	if strings.HasPrefix(uri.Key, "//") {
+		uri.Key = strings.TrimPrefix(value, "//")
+		parts := strings.Split(uri.Key, "/")
 		if len(parts) > 1 {
 			uri.parseHost(parts[0])
 
 			if len(parts) == 2 {
-				key, err = url.QueryUnescape(parts[1])
+				uri.Key, err = url.QueryUnescape(parts[1])
 				if err != nil {
 					return
 				}
 			}
 		}
 	}
-	uri.Key = key
 	return
 }
 
