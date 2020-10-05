@@ -9,24 +9,25 @@ import (
 
 // Transfer -
 type Transfer struct {
-	ID          string    `json:"-"`
-	IndexedTime int64     `json:"indexed_time"`
-	Network     string    `json:"network"`
-	Contract    string    `json:"contract"`
-	Initiator   string    `json:"initiator"`
-	Alias       string    `json:"alias,omitempty"`
-	Hash        string    `json:"hash"`
-	Status      string    `json:"status"`
-	Timestamp   time.Time `json:"timestamp"`
-	Level       int64     `json:"level"`
-	From        string    `json:"from"`
-	FromAlias   string    `json:"from_alias,omitempty"`
-	To          string    `json:"to"`
-	ToAlias     string    `json:"to_alias,omitempty"`
-	TokenID     int64     `json:"token_id"`
-	Amount      float64   `json:"amount"`
-	Nonce       *int64    `json:"nonce"`
-	Counter     *int64    `json:"counter"`
+	ID             string    `json:"-"`
+	IndexedTime    int64     `json:"indexed_time"`
+	Network        string    `json:"network"`
+	Contract       string    `json:"contract"`
+	Alias          string    `json:"alias,omitempty"`
+	Initiator      string    `json:"initiator"`
+	InitiatorAlias string    `json:"initiator_alias,omitempty"`
+	Hash           string    `json:"hash"`
+	Status         string    `json:"status"`
+	Timestamp      time.Time `json:"timestamp"`
+	Level          int64     `json:"level"`
+	From           string    `json:"from"`
+	FromAlias      string    `json:"from_alias,omitempty"`
+	To             string    `json:"to"`
+	ToAlias        string    `json:"to_alias,omitempty"`
+	TokenID        int64     `json:"token_id"`
+	Amount         float64   `json:"amount"`
+	Nonce          *int64    `json:"nonce"`
+	Counter        *int64    `json:"counter"`
 }
 
 // ParseElasticJSON -

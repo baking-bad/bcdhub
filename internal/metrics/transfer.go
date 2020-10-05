@@ -23,5 +23,10 @@ func (h *Handler) SetTransferAliases(aliases map[string]string, transfer *models
 		changed = true
 	}
 
+	if alias, ok := aliases[transfer.Initiator]; ok {
+		transfer.InitiatorAlias = alias
+		changed = true
+	}
+
 	return changed, nil
 }
