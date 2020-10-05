@@ -44,6 +44,7 @@ var migrationsList = []migrations.Migration{
 	&migrations.SetOperationAllocatedBurned{},
 	&migrations.CreateTokenMetadata{},
 	&migrations.SetOperationInitiator{},
+	&migrations.UpdateDapps{},
 }
 
 func main() {
