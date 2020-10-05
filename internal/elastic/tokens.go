@@ -337,8 +337,8 @@ func (e *Elastic) GetBalances(network, contract string, level int64, addresses .
 
 // TokenSupply -
 type TokenSupply struct {
-	Supply     int64 `json:"supply"`
-	Transfered int64 `json:"transfered"`
+	Supply     float64 `json:"supply"`
+	Transfered float64 `json:"transfered"`
 }
 
 // GetTokenSupply -
@@ -385,8 +385,8 @@ func (e *Elastic) GetTokenSupply(network, address string, tokenID int64) (result
 		return
 	}
 
-	result.Supply = response.Get("aggregations.result.value.supply").Int()
-	result.Transfered = response.Get("aggregations.result.value.transfered").Int()
+	result.Supply = response.Get("aggregations.result.value.supply").Float()
+	result.Transfered = response.Get("aggregations.result.value.transfered").Float()
 
 	return
 }
