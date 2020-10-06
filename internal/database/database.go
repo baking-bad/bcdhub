@@ -62,6 +62,8 @@ type IDApp interface {
 	GetDApps() ([]DApp, error)
 	GetDApp(id uint) (DApp, error)
 	GetDAppBySlug(slug string) (dapp DApp, err error)
+	CreateDapp(dapp *DApp) error
+	DeleteDapps() error
 }
 
 // IDeployment -
@@ -86,6 +88,8 @@ type ISubscription interface {
 // IToken -
 type IToken interface {
 	GetTokens() ([]Token, error)
+	CreateToken(token *Token) error
+	DeleteTokens() error
 }
 
 // IUser -

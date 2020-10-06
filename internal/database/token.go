@@ -13,12 +13,12 @@ import (
 // Token -
 type Token struct {
 	ID       uint   `gorm:"primary_key" json:"-"`
-	Name     string `json:"name"`
-	Symbol   string `json:"symbol"`
-	Decimals uint   `json:"decimals"`
-	Contract string `json:"contract"`
-	Network  string `json:"network"`
-	TokenID  uint   `json:"token_id"`
+	Name     string `json:"name" yaml:"name"`
+	Symbol   string `json:"symbol" yaml:"symbol"`
+	Decimals uint   `json:"decimals" yaml:"decimals"`
+	Contract string `json:"contract" yaml:"contract"`
+	Network  string `json:"network" yaml:"network"`
+	TokenID  uint   `json:"token_id" yaml:"token_id"`
 	DAppID   uint   `json:"-"`
 
 	MetadataJSON postgres.Jsonb `json:"-"`
@@ -27,7 +27,11 @@ type Token struct {
 
 // BeforeSave -
 func (token *Token) BeforeSave(tx *gorm.DB) error {
-	return token.MetadataJSON.Scan(token.Metadata)
+	data, err := json.Marshal(token.Metadata)
+	if err != nil {
+		return err
+	}
+	return token.MetadataJSON.Scan(data)
 }
 
 // AfterFind -
@@ -44,11 +48,11 @@ func (token *Token) AfterFind(tx *gorm.DB) error {
 
 // TokenMetadata -
 type TokenMetadata struct {
-	Version    string      `json:"version"`
-	License    string      `json:"license"`
-	Authors    []string    `json:"authors"`
-	Interfaces []string    `json:"interfaces"`
-	Views      []TokenView `json:"views"`
+	Version    string      `json:"version,omitempty"`
+	License    string      `json:"license,omitempty"`
+	Authors    []string    `json:"authors,omitempty"`
+	Interfaces []string    `json:"interfaces,omitempty"`
+	Views      []TokenView `json:"views,omitempty"`
 }
 
 // TokenView -
@@ -207,4 +211,18 @@ func (p withTokenIDBalanceParser) Parse(response gjson.Result) []TokenBalance {
 		})
 	}
 	return balances
+}
+
+// CreateToken -
+func (d *db) CreateToken(token *Token) error {
+	return d.Create(token).Error
+}
+
+// DeleteTokens -
+func (d *db) DeleteTokens() error {
+	if err := d.DropTableIfExists(&Token{}).Error; err != nil {
+		return err
+	}
+
+	return d.CreateTable(&Token{}).Error
 }
