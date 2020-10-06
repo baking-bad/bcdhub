@@ -4,7 +4,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 
 	"github.com/baking-bad/bcdhub/internal/classification/functions"
 	clmetrics "github.com/baking-bad/bcdhub/internal/classification/metrics"
@@ -110,15 +109,11 @@ var model = []clmetrics.Metric{
 }
 
 func compare(a, b models.Contract) (bool, error) {
-	sum := 0.0
 	features := make([]float64, len(model))
 
 	for i := range model {
 		f := model[i].Compute(a, b)
 		features[i] = f.Value
-		if sum > 1 {
-			return false, errors.Errorf("Invalid metric weights. Check sum of weight is not equal 1")
-		}
 	}
 
 	clf := functions.NewLinearSVC()

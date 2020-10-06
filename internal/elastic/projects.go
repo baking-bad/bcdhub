@@ -11,16 +11,20 @@ import (
 // GetProjectsLastContract -
 func (e *Elastic) GetProjectsLastContract() ([]models.Contract, error) {
 	query := newQuery().Add(
-		aggs("projects", qItem{
-			"terms": qItem{
-				"field": "project_id.keyword",
-				"size":  maxQuerySize,
+		aggs(
+			aggItem{
+				"projects", qItem{
+					"terms": qItem{
+						"field": "project_id.keyword",
+						"size":  maxQuerySize,
+					},
+					"aggs": qItem{
+						"last": topHits(1, "timestamp", "desc"),
+					},
+				},
 			},
-			"aggs": qItem{
-				"last": topHits(1, "timestamp", "desc"),
-			},
-		}),
-	).Zero()
+		),
+	).Sort("timestamp", "desc").Zero()
 
 	resp, err := e.query([]string{DocContracts}, query)
 	if err != nil {
@@ -108,18 +112,20 @@ func (e *Elastic) GetSimilarContracts(c models.Contract, size, offset int64) (pc
 		),
 	).Add(
 		aggs(
-			"projects",
-			qItem{
-				"terms": qItem{
-					"field": "hash.keyword",
-					"size":  size + offset,
-					"order": qItem{
-						"bucketsSort": "desc",
+			aggItem{
+				"projects",
+				qItem{
+					"terms": qItem{
+						"field": "hash.keyword",
+						"size":  size + offset,
+						"order": qItem{
+							"bucketsSort": "desc",
+						},
 					},
-				},
-				"aggs": qItem{
-					"last":        topHits(1, "last_action", "desc"),
-					"bucketsSort": max("last_action"),
+					"aggs": qItem{
+						"last":        topHits(1, "last_action", "desc"),
+						"bucketsSort": max("last_action"),
+					},
 				},
 			},
 		),
@@ -151,68 +157,30 @@ func (e *Elastic) GetSimilarContracts(c models.Contract, size, offset int64) (pc
 	return contracts, total, nil
 }
 
-// GetProjectsStats -
-func (e *Elastic) GetProjectsStats() (stats []ProjectStats, err error) {
-	last := topHits(1, "timestamp", "desc")
-	last.Get("top_hits").Append("_source", includes([]string{"address", "network", "timestamp"}))
-
-	query := newQuery().Add(
-		aggs("by_project", qItem{
-			"terms": qItem{
-				"field": "project_id.keyword",
-				"size":  maxQuerySize,
-			},
-			"aggs": qItem{
-				"count": qItem{
-					"cardinality": qItem{
-						"field": "hash.keyword",
-					},
-				},
-				"last_action_date":  max("last_action"),
-				"first_deploy_date": min("timestamp"),
-				"language": qItem{
-					"terms": qItem{
-						"field": "language.keyword",
-						"size":  1,
-					},
-				},
-				"tx_count": sum("tx_count"),
-				"last":     last,
-			},
-		}),
-	).Zero()
-	resp, err := e.query([]string{DocContracts}, query)
-	if err != nil {
-		return
-	}
-	count := resp.Get("aggregations.by_project.buckets.#").Int()
-	stats = make([]ProjectStats, count)
-	for i, item := range resp.Get("aggregations.by_project.buckets").Array() {
-		stats[i].parse(item)
-	}
-	return
-}
-
 // GetDiffTasks -
 func (e *Elastic) GetDiffTasks() ([]DiffTask, error) {
 	query := newQuery().Add(
-		aggs("by_project", qItem{
-			"terms": qItem{
-				"field": "project_id.keyword",
-				"size":  maxQuerySize,
-			},
-			"aggs": qItem{
-				"by_hash": qItem{
+		aggs(
+			aggItem{
+				"by_project", qItem{
 					"terms": qItem{
-						"field": "hash.keyword",
+						"field": "project_id.keyword",
 						"size":  maxQuerySize,
 					},
 					"aggs": qItem{
-						"last": topHits(1, "last_action", "desc"),
+						"by_hash": qItem{
+							"terms": qItem{
+								"field": "hash.keyword",
+								"size":  maxQuerySize,
+							},
+							"aggs": qItem{
+								"last": topHits(1, "last_action", "desc"),
+							},
+						},
 					},
 				},
 			},
-		}),
+		),
 	).Zero()
 
 	resp, err := e.query([]string{DocContracts}, query)

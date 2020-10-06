@@ -10,6 +10,10 @@ import (
 
 // Find - finds `interfaces` in metadata and return array of found tags
 func Find(metadata meta.Metadata, interfaces map[string]ContractKind) ([]string, error) {
+	if len(interfaces) == 0 {
+		return nil, nil
+	}
+
 	res := make([]string, 0)
 
 	for tag, i := range interfaces {

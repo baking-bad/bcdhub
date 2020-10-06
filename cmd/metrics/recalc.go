@@ -3,7 +3,6 @@ package main
 import (
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -46,7 +45,7 @@ func recalc(contract models.Contract) error {
 		return errors.Errorf("[recalc] Compute contract stats error message: %s", err)
 	}
 
-	if _, err := ctx.ES.UpdateDoc(elastic.DocContracts, contract.ID, contract); err != nil {
+	if _, err := ctx.ES.UpdateDoc(&contract); err != nil {
 		return err
 	}
 

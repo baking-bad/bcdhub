@@ -75,7 +75,7 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		return
 	}
 
-	defaultParser := parsers.NewDefaultParser(
+	defaultParser := parsers.NewOPGParser(
 		rpc,
 		ctx.ES,
 		ctx.SharePath,

@@ -3,6 +3,7 @@ package elastic
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/pkg/errors"
@@ -15,7 +16,7 @@ type opgForContract struct {
 }
 
 func (e *Elastic) getContractOPG(address, network string, size uint64, filters map[string]interface{}) ([]opgForContract, error) {
-	if size == 0 {
+	if size == 0 || size > maxQuerySize {
 		size = defaultSize
 	}
 
@@ -94,7 +95,7 @@ func (e *Elastic) GetOperationsForContract(network, address string, size uint64,
 	query := newQuery().
 		Query(b).
 		Add(
-			aggs("last_id", min("indexed_time")),
+			aggs(aggItem{"last_id", min("indexed_time")}),
 		).
 		Add(qItem{
 			"sort": qItem{
@@ -157,51 +158,6 @@ func (e *Elastic) GetLastOperation(address, network string, indexedTime int64) (
 	}
 	op.ParseElasticJSON(res.Get("hits.hits.0"))
 	return
-}
-
-type levelsForNetwork struct {
-	levels map[int64]struct{}
-}
-
-// GetQueue -
-func (levels *levelsForNetwork) GetQueue() string {
-	return ""
-}
-
-// GetID -
-func (levels *levelsForNetwork) GetID() string {
-	return ""
-}
-
-// GetIndex -
-func (levels *levelsForNetwork) GetIndex() string {
-	return DocOperations
-}
-
-// ParseElasticJSON -
-func (levels *levelsForNetwork) ParseElasticJSON(hit gjson.Result) {
-	level := hit.Get("_source.level").Int()
-	if levels.levels == nil {
-		levels.levels = make(map[int64]struct{})
-	}
-	levels.levels[level] = struct{}{}
-}
-
-// GetAllLevelsForNetwork -
-func (e *Elastic) GetAllLevelsForNetwork(network string) (map[int64]struct{}, error) {
-	query := newQuery().Query(
-		boolQ(
-			filter(
-				matchQ("network", network),
-			),
-		),
-	).Sort("level", "asc")
-
-	levels := levelsForNetwork{
-		levels: make(map[int64]struct{}),
-	}
-	err := e.getAllByQuery(query, &levels)
-	return levels.levels, err
 }
 
 type affected struct {
@@ -301,4 +257,46 @@ func (e *Elastic) GetOperations(filters map[string]interface{}, size int64, sort
 	ctx := newScrollContext(e, query, requestedSize)
 	err := ctx.get(&operations)
 	return operations, err
+}
+
+// OperationsStats -
+type OperationsStats struct {
+	Count      int64
+	LastAction time.Time
+}
+
+// GetOperationsStats -
+func (e Elastic) GetOperationsStats(network, address string) (stats OperationsStats, err error) {
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				matchQ("network", network),
+				boolQ(
+					should(
+						matchPhrase("source", address),
+						matchPhrase("destination", address),
+					),
+					minimumShouldMatch(1),
+				),
+			),
+		),
+	).Add(
+		aggs(
+			aggItem{
+				"opg", count("hash.keyword"),
+			},
+			aggItem{
+				"last_action", max("timestamp"),
+			},
+		),
+	).Zero()
+
+	response, err := e.query([]string{DocOperations}, query)
+	if err != nil {
+		return
+	}
+
+	stats.Count = response.Get("aggregations.opg.value").Int()
+	stats.LastAction = response.Get("aggregations.last_action.value_as_string").Time().UTC()
+	return
 }

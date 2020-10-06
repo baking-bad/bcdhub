@@ -477,7 +477,7 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 		return nil, err
 	}
 
-	defaultParser := parsers.NewDefaultParser(
+	defaultParser := parsers.NewOPGParser(
 		bi.rpc,
 		bi.es,
 		bi.cfg.Share.Path,
@@ -529,7 +529,7 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) ([]elastic.Model, error) {
 			return nil, errors.Errorf("[%s] Protocol should be initialized", bi.Network)
 		}
 		if newProtocol.SymLink != bi.currentProtocol.SymLink {
-			migrations, migrationUpdates, err := bi.standartMigration(newProtocol)
+			migrations, migrationUpdates, err := bi.standartMigration(newProtocol, head)
 			if err != nil {
 				return nil, err
 			}
@@ -569,7 +569,7 @@ func createProtocol(es elastic.IElastic, network, hash string, level int64) (pro
 	return
 }
 
-func (bi *BoostIndexer) standartMigration(newProtocol models.Protocol) ([]elastic.Model, []elastic.Model, error) {
+func (bi *BoostIndexer) standartMigration(newProtocol models.Protocol, head noderpc.Header) ([]elastic.Model, []elastic.Model, error) {
 	log.Printf("[%s] Try to find migrations...", bi.Network)
 	contracts, err := bi.es.GetContracts(map[string]interface{}{
 		"network": bi.Network,
@@ -579,7 +579,7 @@ func (bi *BoostIndexer) standartMigration(newProtocol models.Protocol) ([]elasti
 	}
 	log.Printf("[%s] Now %d contracts are indexed", bi.Network, len(contracts))
 
-	p := parsers.NewMigrationParser(bi.rpc, bi.es, bi.cfg.Share.Path)
+	p := parsers.NewMigrationParser(bi.es, bi.cfg.Share.Path)
 	newModels := make([]elastic.Model, 0)
 	newUpdates := make([]elastic.Model, 0)
 	for i := range contracts {
@@ -589,7 +589,7 @@ func (bi *BoostIndexer) standartMigration(newProtocol models.Protocol) ([]elasti
 			return nil, nil, err
 		}
 
-		createdModels, updates, err := p.Parse(script, contracts[i], bi.currentProtocol, newProtocol)
+		createdModels, updates, err := p.Parse(script, contracts[i], bi.currentProtocol, newProtocol, head.Timestamp)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -610,7 +610,7 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header) ([]elastic.Model, 
 		return nil, err
 	}
 
-	p := parsers.NewVestingParser(bi.rpc, bi.es, bi.cfg.Share.Path, bi.interfaces)
+	p := parsers.NewVestingParser(bi.cfg.Share.Path, bi.interfaces)
 
 	parsedModels := make([]elastic.Model, 0)
 	for _, address := range addresses {

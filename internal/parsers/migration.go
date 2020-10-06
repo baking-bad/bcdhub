@@ -11,49 +11,42 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
 // MigrationParser -
 type MigrationParser struct {
-	rpc            noderpc.INode
 	es             elastic.IElastic
 	filesDirectory string
 }
 
 // NewMigrationParser -
-func NewMigrationParser(rpc noderpc.INode, es elastic.IElastic, filesDirectory string) *MigrationParser {
+func NewMigrationParser(es elastic.IElastic, filesDirectory string) *MigrationParser {
 	return &MigrationParser{
-		rpc:            rpc,
 		es:             es,
 		filesDirectory: filesDirectory,
 	}
 }
 
 // Parse -
-func (p *MigrationParser) Parse(script gjson.Result, old models.Contract, previous, next models.Protocol) ([]elastic.Model, []elastic.Model, error) {
+func (p *MigrationParser) Parse(script gjson.Result, old models.Contract, previous, next models.Protocol, timestamp time.Time) ([]elastic.Model, []elastic.Model, error) {
 	metadata := models.Metadata{ID: old.Address}
 	if err := p.es.GetByID(&metadata); err != nil {
 		return nil, nil, err
 	}
 
-	if err := updateMetadata(script, next.SymLink, &old, &metadata); err != nil {
-		return nil, nil, err
-	}
-
-	migrationBlock, err := p.rpc.GetHeader(previous.EndLevel)
-	if err != nil {
+	if err := NewMetadataParser(next.SymLink).UpdateMetadata(script, old.Address, &metadata); err != nil {
 		return nil, nil, err
 	}
 
 	var updates []elastic.Model
 	if previous.SymLink == "alpha" {
-		updates, err = p.getUpdates(script, old, next, metadata)
+		newUpdates, err := p.getUpdates(script, old, next, metadata)
 		if err != nil {
 			return nil, nil, err
 		}
+		updates = newUpdates
 	}
 
 	newHash, err := contractparser.ComputeContractHash(script.Get("code").Raw)
@@ -73,7 +66,7 @@ func (p *MigrationParser) Parse(script gjson.Result, old models.Contract, previo
 		Protocol:     next.Hash,
 		PrevProtocol: previous.Hash,
 		Address:      old.Address,
-		Timestamp:    migrationBlock.Timestamp,
+		Timestamp:    timestamp,
 		Kind:         consts.MigrationUpdate,
 	}
 

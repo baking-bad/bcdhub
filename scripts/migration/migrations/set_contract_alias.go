@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/schollz/progressbar/v3"
@@ -50,7 +49,7 @@ func (m *SetContractAlias) Do(ctx *config.Context) error {
 		bar.Add(1) //nolint
 		h.SetContractAlias(aliases, &contracts[i])
 
-		if _, err := ctx.ES.UpdateDoc(elastic.DocContracts, contracts[i].ID, contracts[i]); err != nil {
+		if _, err := ctx.ES.UpdateDoc(&contracts[i]); err != nil {
 			fmt.Print("\033[2K\r")
 			return err
 		}

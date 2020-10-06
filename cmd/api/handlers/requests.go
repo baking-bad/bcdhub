@@ -2,9 +2,13 @@ package handlers
 
 import "strings"
 
+type getContractRequest struct {
+	Address string `uri:"address" binding:"required,address"`
+	Network string `uri:"network" binding:"required,network"`
+}
+
 type getContractCodeRequest struct {
-	Address  string `uri:"address" binding:"required,address"`
-	Network  string `uri:"network" binding:"required,network"`
+	getContractRequest
 	Protocol string `form:"protocol,omitempty"`
 	Level    int64  `form:"level,omitempty"`
 }
@@ -21,11 +25,6 @@ type CodeDiffLeg struct {
 type CodeDiffRequest struct {
 	Left  CodeDiffLeg `json:"left" binding:"required"`
 	Right CodeDiffLeg `json:"right" binding:"required"`
-}
-
-type getContractRequest struct {
-	Address string `uri:"address" binding:"required,address"`
-	Network string `uri:"network" binding:"required,network"`
 }
 
 type getBigMapRequest struct {
@@ -94,8 +93,7 @@ const (
 )
 
 type subRequest struct {
-	Address          string `json:"address" binding:"required"`
-	Network          string `json:"network" binding:"required"`
+	getContractRequest
 	Alias            string `json:"alias"`
 	WatchSame        bool   `json:"watch_same"`
 	WatchSimilar     bool   `json:"watch_similar"`
@@ -189,8 +187,7 @@ type getTokensByVersion struct {
 }
 
 type bigMapSearchRequest struct {
-	Offset      int64  `form:"offset" binding:"min=0"`
-	Size        int64  `form:"size" binding:"min=0"`
+	pageableRequest
 	Search      string `form:"q"`
 	SkipRemoved bool   `form:"skip_removed"`
 }
@@ -287,10 +284,9 @@ func (req getTokenSeriesRequest) GetAddresses() []string {
 }
 
 type verificationRequest struct {
-	Address string `json:"address"`
-	Network string `json:"network"`
-	Repo    string `json:"repo"`
-	Ref     string `json:"ref"`
+	getContractRequest
+	Repo string `json:"repo"`
+	Ref  string `json:"ref"`
 }
 
 type deploymentRequest struct {
@@ -299,17 +295,15 @@ type deploymentRequest struct {
 	ResultID      uint   `json:"result_id"`
 }
 
-type compilationTasksRequest struct {
-	Limit  uint   `form:"limit" binding:"omitempty,min=0"`
-	Offset uint   `form:"offset" binding:"omitempty,min=0"`
-	Kind   string `form:"kind" binding:"omitempty,compilation_kind"`
-}
-
 type compilationRequest struct {
 	Limit  uint `form:"limit" binding:"omitempty,min=0"`
 	Offset uint `form:"offset" binding:"omitempty,min=0"`
 }
 
+type compilationTasksRequest struct {
+	compilationRequest
+	Kind string `form:"kind" binding:"omitempty,compilation_kind"`
+}
 type publicRefsRequest struct {
 	Repo string `form:"repo" binding:"required"`
 }

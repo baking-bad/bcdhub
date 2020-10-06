@@ -69,25 +69,26 @@ func (e *Elastic) GetTokensStats(network string, addresses, entrypoints []string
 			),
 		),
 	).Add(
-		aggs("by_dest", qItem{
-			"terms": qItem{
-				"field": "destination.keyword",
-				"size":  maxQuerySize,
-			},
-			"aggs": qItem{
-				"by_entrypoint": qItem{
-					"terms": qItem{
-						"field": "entrypoint.keyword",
-						"size":  maxQuerySize,
+		aggs(
+			aggItem{
+				"body",
+				composite(
+					maxQuerySize,
+					aggItem{
+						"destination", termsAgg("destination.keyword", 0),
 					},
-					"aggs": qItem{
-						"average_consumed_gas": qItem{
-							"avg": qItem{"field": "result.consumed_gas"},
+					aggItem{
+						"entrypoint", termsAgg("entrypoint.keyword", 0),
+					},
+				).Extend(
+					aggs(
+						aggItem{
+							"average_consumed_gas", avg("result.consumed_gas"),
 						},
-					},
-				},
+					),
+				),
 			},
-		}),
+		),
 	).Zero()
 
 	result, err := e.query([]string{DocOperations}, query)
@@ -96,20 +97,19 @@ func (e *Elastic) GetTokensStats(network string, addresses, entrypoints []string
 	}
 
 	response := make(map[string]TokenUsageStats)
-	buckets := result.Get("aggregations.by_dest.buckets").Array()
+	buckets := result.Get("aggregations.body.buckets").Array()
 	for _, bucket := range buckets {
-		address := bucket.Get("key").String()
-		tokenUsage := make(TokenUsageStats)
-		methods := bucket.Get("by_entrypoint.buckets").Array()
-		for _, method := range methods {
-			key := method.Get("key").String()
-			tokenUsage[key] = TokenMethodUsageStats{
-				Count:       method.Get("doc_count").Int(),
-				ConsumedGas: method.Get("average_consumed_gas.value").Int(),
-			}
+		address := bucket.Get("key.destination").String()
+		method := bucket.Get("key.entrypoint").String()
+		usage := TokenMethodUsageStats{
+			Count:       bucket.Get("doc_count").Int(),
+			ConsumedGas: bucket.Get("average_consumed_gas.value").Int(),
 		}
 
-		response[address] = tokenUsage
+		if _, ok := response[address]; !ok {
+			response[address] = make(TokenUsageStats)
+		}
+		response[address][method] = usage
 	}
 
 	return response, nil
@@ -166,7 +166,7 @@ func (e *Elastic) GetTokenVolumeSeries(network, period string, contracts []strin
 			),
 		),
 	).Add(
-		aggs("hist", hist),
+		aggs(aggItem{"hist", hist}),
 	).Zero()
 
 	response, err := e.query([]string{DocTransfers}, query)

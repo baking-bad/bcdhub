@@ -37,7 +37,7 @@ func (m *SetStateChainID) Do(ctx *config.Context) error {
 		}
 		state.ChainID = header.ChainID
 
-		if _, err := ctx.ES.UpdateDoc("state", state.ID, state); err != nil {
+		if _, err := ctx.ES.UpdateDoc(&state); err != nil {
 			return err
 		}
 		logger.Info("%s updated chain id", network)

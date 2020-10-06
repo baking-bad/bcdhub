@@ -17,17 +17,22 @@ func (e *Elastic) GetBigMapDiffsUniqueByOperationID(operationID string) ([]model
 					matchPhrase("operation_id", operationID),
 				),
 			),
-		).Add(aggs(
-		"keys", qItem{
-			"terms": qItem{
-				"field": "key_hash.keyword",
-				"size":  maxQuerySize,
-			},
-			"aggs": qItem{
-				"top_key": topHits(1, "indexed_time", "desc"),
-			},
-		},
-	)).Zero()
+		).
+		Add(
+			aggs(
+				aggItem{
+					"keys", qItem{
+						"terms": qItem{
+							"field": "key_hash.keyword",
+							"size":  maxQuerySize,
+						},
+						"aggs": qItem{
+							"top_key": topHits(1, "indexed_time", "desc"),
+						},
+					},
+				},
+			),
+		).Zero()
 
 	res, err := e.query([]string{DocBigMapDiff}, query)
 	if err != nil {
@@ -62,17 +67,21 @@ func (e *Elastic) GetBigMapDiffsPrevious(filters []models.BigMapDiff, indexedTim
 	)
 
 	query := newQuery().Query(b).
-		Add(aggs(
-			"keys", qItem{
-				"terms": qItem{
-					"field": "key_hash.keyword",
-					"size":  maxQuerySize,
+		Add(
+			aggs(
+				aggItem{
+					"keys", qItem{
+						"terms": qItem{
+							"field": "key_hash.keyword",
+							"size":  maxQuerySize,
+						},
+						"aggs": qItem{
+							"top_key": topHits(1, "indexed_time", "desc"),
+						},
+					},
 				},
-				"aggs": qItem{
-					"top_key": topHits(1, "indexed_time", "desc"),
-				},
-			},
-		)).
+			),
+		).
 		Sort("indexed_time", "desc").Zero()
 
 	res, err := e.query([]string{DocBigMapDiff}, query)
@@ -101,17 +110,21 @@ func (e *Elastic) GetBigMapDiffsForAddress(address string) ([]models.BigMapDiff,
 				matchPhrase("address", address),
 			),
 		),
-	).Add(aggs(
-		"keys", qItem{
-			"terms": qItem{
-				"field": "key_hash.keyword",
-				"size":  maxQuerySize, // TODO: arbitrary number of keys
+	).Add(
+		aggs(
+			aggItem{
+				"keys", qItem{
+					"terms": qItem{
+						"field": "key_hash.keyword",
+						"size":  maxQuerySize, // TODO: arbitrary number of keys
+					},
+					"aggs": qItem{
+						"top_key": topHits(1, "indexed_time", "desc"),
+					},
+				},
 			},
-			"aggs": qItem{
-				"top_key": topHits(1, "indexed_time", "desc"),
-			},
-		},
-	)).Zero()
+		),
+	).Zero()
 
 	res, err := e.query([]string{DocBigMapDiff}, query)
 	if err != nil {
@@ -152,17 +165,19 @@ func (e *Elastic) GetBigMapKeys(ptr int64, network, searchText string, size, off
 
 	to := size + offset
 	query := newQuery().Query(b).Add(
-		aggs("keys", qItem{
-			"terms": qItem{
-				"field": "key_hash.keyword",
-				"size":  to,
-				"order": qItem{
-					"bucketsSort": "desc",
+		aggs(aggItem{
+			"keys", qItem{
+				"terms": qItem{
+					"field": "key_hash.keyword",
+					"size":  to,
+					"order": qItem{
+						"bucketsSort": "desc",
+					},
 				},
-			},
-			"aggs": qItem{
-				"top_key":     topHits(1, "indexed_time", "desc"),
-				"bucketsSort": max("indexed_time"),
+				"aggs": qItem{
+					"top_key":     topHits(1, "indexed_time", "desc"),
+					"bucketsSort": max("indexed_time"),
+				},
 			},
 		}),
 	).Sort("indexed_time", "desc").Zero()
@@ -257,12 +272,15 @@ func (e *Elastic) GetBigMapDiffsByPtr(address, network string, ptr int64) ([]mod
 			),
 		),
 	).Add(
-		aggs("keys", qItem{
-			"terms": qItem{
-				"field": "key_hash.keyword",
-			},
-			"aggs": qItem{
-				"top_key": topHits(1, "indexed_time", "desc"),
+		aggs(aggItem{
+			"keys", qItem{
+				"terms": qItem{
+					"field": "key_hash.keyword",
+					"size":  maxQuerySize,
+				},
+				"aggs": qItem{
+					"top_key": topHits(1, "indexed_time", "desc"),
+				},
 			},
 		}),
 	).Sort("indexed_time", "desc").Zero()
@@ -280,20 +298,6 @@ func (e *Elastic) GetBigMapDiffsByPtr(address, network string, ptr int64) ([]mod
 		bmd = append(bmd, b)
 	}
 	return bmd, nil
-}
-
-// GetBigMapDiffsWithEmptyPtr -
-func (e *Elastic) GetBigMapDiffsWithEmptyPtr() (response []models.BigMapDiff, err error) {
-	query := newQuery().Query(
-		boolQ(
-			notMust(
-				exists("ptr"),
-			),
-		),
-	).Sort("indexed_time", "desc")
-
-	err = e.getAllByQuery(query, &response)
-	return
 }
 
 // GetBigMapsForAddress -
@@ -364,16 +368,20 @@ func (e *Elastic) GetBigMapValuesByKey(keyHash string) ([]BigMapDiff, error) {
 	b := boolQ(mustQuery)
 
 	query := newQuery().Query(b).Add(
-		aggs("items", qItem{
-			"terms": qItem{
-				"script": qItem{
-					"source": "doc['network.keyword'].value + doc['address.keyword'].value + String.format('%d', new def[] {doc['ptr'].value})",
+		aggs(
+			aggItem{
+				"items", qItem{
+					"terms": qItem{
+						"script": qItem{
+							"source": "doc['network.keyword'].value + doc['address.keyword'].value + String.format('%d', new def[] {doc['ptr'].value})",
+						},
+					},
+					"aggs": qItem{
+						"top_key": topHits(1, "indexed_time", "desc"),
+					},
 				},
 			},
-			"aggs": qItem{
-				"top_key": topHits(1, "indexed_time", "desc"),
-			},
-		}),
+		),
 	).Zero()
 
 	response, err := e.query([]string{DocBigMapDiff}, query)

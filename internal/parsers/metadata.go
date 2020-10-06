@@ -11,32 +11,57 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-func getMetadata(script gjson.Result, tag, protoSymLink string, c *models.Contract) (map[string]string, error) {
+// MetadataParser -
+type MetadataParser struct {
+	symLink string
+}
+
+// NewMetadataParser -
+func NewMetadataParser(symLink string) MetadataParser {
+	return MetadataParser{symLink}
+}
+
+// Parse -
+func (p MetadataParser) Parse(script gjson.Result, address string) (m models.Metadata, err error) {
+	m.ID = address
+	m.Storage, err = p.getMetadata(script, consts.STORAGE, address)
+	if err != nil {
+		return
+	}
+	m.Parameter, err = p.getMetadata(script, consts.PARAMETER, address)
+	if err != nil {
+		return
+	}
+	return
+}
+
+func (p MetadataParser) getMetadata(script gjson.Result, tag, address string) (map[string]string, error) {
 	res := make(map[string]string)
-	metadata, err := createMetadataSection(script, tag, c)
+	metadata, err := p.createMetadataSection(script, tag, address)
 	if err != nil {
 		return nil, err
 	}
-	res[protoSymLink] = metadata
+	res[p.symLink] = metadata
 	return res, nil
 }
 
-func updateMetadata(script gjson.Result, protoSymLink string, c *models.Contract, metadata *models.Metadata) error {
-	storage, err := createMetadataSection(script, consts.STORAGE, c)
+// UpdateMetadata -
+func (p MetadataParser) UpdateMetadata(script gjson.Result, address string, metadata *models.Metadata) error {
+	storage, err := p.createMetadataSection(script, consts.STORAGE, address)
 	if err != nil {
 		return err
 	}
-	parameter, err := createMetadataSection(script, consts.PARAMETER, c)
+	parameter, err := p.createMetadataSection(script, consts.PARAMETER, address)
 	if err != nil {
 		return err
 	}
-	metadata.Storage[protoSymLink] = storage
-	metadata.Parameter[protoSymLink] = parameter
+	metadata.Storage[p.symLink] = storage
+	metadata.Parameter[p.symLink] = parameter
 
 	return nil
 }
 
-func createMetadataSection(script gjson.Result, tag string, c *models.Contract) (string, error) {
+func (p MetadataParser) createMetadataSection(script gjson.Result, tag, address string) (string, error) {
 	args := script.Get(fmt.Sprintf("code.#(prim==\"%s\").args", tag))
 	if args.Exists() {
 		metadata, err := meta.ParseMetadata(args)
@@ -50,22 +75,5 @@ func createMetadataSection(script gjson.Result, tag string, c *models.Contract) 
 		}
 		return string(b), nil
 	}
-	return "", errors.Errorf("[createMetadata] Unknown tag '%s' contract %s", tag, c.Address)
-}
-
-func createMetadata(script gjson.Result, protoSymLink string, c *models.Contract) (*models.Metadata, error) {
-	storage, err := getMetadata(script, consts.STORAGE, protoSymLink, c)
-	if err != nil {
-		return nil, err
-	}
-	parameter, err := getMetadata(script, consts.PARAMETER, protoSymLink, c)
-	if err != nil {
-		return nil, err
-	}
-
-	return &models.Metadata{
-		ID:        c.Address,
-		Storage:   storage,
-		Parameter: parameter,
-	}, nil
+	return "", errors.Errorf("[createMetadata] Unknown tag '%s' contract %s", tag, address)
 }

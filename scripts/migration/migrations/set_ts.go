@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 
@@ -56,7 +55,7 @@ func (m *SetTimestamp) Do(ctx *config.Context) error {
 				}
 				operation.Timestamp = ts
 			}
-			if _, err := ctx.ES.UpdateDoc(elastic.DocOperations, operation.ID, operation); err != nil {
+			if _, err := ctx.ES.UpdateDoc(&operation); err != nil {
 				fmt.Print("\033[2K\r")
 				return err
 			}

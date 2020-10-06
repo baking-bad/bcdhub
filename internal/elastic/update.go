@@ -11,15 +11,15 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-// UpdateDoc - updates document by ID
-func (e *Elastic) UpdateDoc(index, id string, v interface{}) (result gjson.Result, err error) {
-	b, err := json.Marshal(v)
+// UpdateDoc - updates document
+func (e *Elastic) UpdateDoc(model Model) (result gjson.Result, err error) {
+	b, err := json.Marshal(model)
 	if err != nil {
 		return
 	}
 	req := esapi.IndexRequest{
-		Index:      index,
-		DocumentID: id,
+		Index:      model.GetIndex(),
+		DocumentID: model.GetID(),
 		Body:       bytes.NewReader(b),
 		Refresh:    "true",
 	}

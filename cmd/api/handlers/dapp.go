@@ -88,19 +88,25 @@ func (ctx *Context) appendDAppInfo(dapp database.DApp, withDetails bool) (DApp, 
 
 	if withDetails {
 		if len(dapp.DexTokens) > 0 {
-			tokens := make([]models.TokenMetadata, len(dapp.DexTokens))
-			for i, token := range dapp.DexTokens {
-				tokenMetadata, err := ctx.ES.GetTokenMetadata(token.Contract, consts.Mainnet, int64(token.TokenID))
+			result.DexTokens = make([]models.TokenMetadata, 0)
+			for _, token := range dapp.DexTokens {
+				tokenMetadata, err := ctx.ES.GetTokenMetadata(elastic.GetTokenMetadataContext{
+					Contract: token.Contract,
+					Network:  consts.Mainnet,
+					TokenID:  int64(token.TokenID),
+				})
 				if err != nil {
+					if elastic.IsRecordNotFound(err) {
+						continue
+					}
 					return result, err
 				}
-				tokens[i] = tokenMetadata
+				result.DexTokens = append(result.DexTokens, tokenMetadata...)
 			}
-			result.DexTokens = tokens
 		}
 
 		if len(dapp.Contracts) > 0 {
-			contracts := make([]DAppContract, 0)
+			result.Contracts = make([]DAppContract, 0)
 
 			for _, address := range dapp.Contracts {
 				contract, err := ctx.ES.GetContract(map[string]interface{}{
@@ -110,7 +116,7 @@ func (ctx *Context) appendDAppInfo(dapp database.DApp, withDetails bool) (DApp, 
 				if err != nil {
 					return result, err
 				}
-				contracts = append(contracts, DAppContract{
+				result.Contracts = append(result.Contracts, DAppContract{
 					Network:     contract.Network,
 					Address:     contract.Address,
 					Alias:       contract.Alias,
@@ -126,7 +132,6 @@ func (ctx *Context) appendDAppInfo(dapp database.DApp, withDetails bool) (DApp, 
 				}
 				result.Tokens = append(result.Tokens, tokens...)
 			}
-			result.Contracts = contracts
 		}
 	}
 

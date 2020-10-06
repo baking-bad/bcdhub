@@ -109,16 +109,3 @@ func (ctx *Context) GetSimilarContracts(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response)
 }
-
-// GetProjects -
-func (ctx *Context) GetProjects(c *gin.Context) {
-	projects, err := ctx.ES.GetProjectsStats()
-	if handleError(c, err, 0) {
-		return
-	}
-	stats := make([]ProjectStats, len(projects))
-	for i := range projects {
-		stats[i].FromModel(projects[i])
-	}
-	c.JSON(http.StatusOK, stats)
-}

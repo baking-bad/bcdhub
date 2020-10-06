@@ -54,7 +54,11 @@ func (h *Handler) FixTokenMetadata(rpc noderpc.INode, sharePath string, operatio
 		return nil
 	}
 
-	tokenMetadata, err := h.ES.GetTokenMetadatas(operation.Destination, operation.Network)
+	tokenMetadata, err := h.ES.GetTokenMetadata(elastic.GetTokenMetadataContext{
+		Contract: operation.Destination,
+		Network:  operation.Network,
+		TokenID:  -1,
+	})
 	if err != nil {
 		if !elastic.IsRecordNotFound(err) {
 			return err

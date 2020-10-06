@@ -78,7 +78,14 @@ func (rm Manager) rollbackOperations(network string, toLevel int64) error {
 
 func (rm Manager) rollbackTokenMetadata(network string, toLevel int64) error {
 	logger.Info("Finding affected token metadata...")
-	affected, err := rm.e.GetAffectedTokenMetadata(network, toLevel)
+	affected, err := rm.e.GetTokenMetadata(elastic.GetTokenMetadataContext{
+		Network: network,
+		TokenID: -1,
+		Level: elastic.Range{
+			Value:      toLevel,
+			Comparator: "gt",
+		},
+	})
 	if err != nil {
 		if !elastic.IsRecordNotFound(err) {
 			return err
