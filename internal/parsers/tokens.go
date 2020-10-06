@@ -81,17 +81,28 @@ type TransferParser struct {
 	views TokenViews
 }
 
-// NewTransferParser -
-func NewTransferParser(rpc noderpc.INode, es elastic.IElastic) TransferParser {
-	return TransferParser{
-		rpc: rpc,
-		es:  es,
+// TransferParserOption -
+type TransferParserOption func(dp *TransferParser)
+
+// WithTokenViewsTransferParser -
+func WithTokenViewsTransferParser(views TokenViews) TransferParserOption {
+	return func(tp *TransferParser) {
+		tp.views = views
 	}
 }
 
-// SetViews -
-func (p *TransferParser) SetViews(views TokenViews) {
-	p.views = views
+// NewTransferParser -
+func NewTransferParser(rpc noderpc.INode, es elastic.IElastic, opts ...TransferParserOption) TransferParser {
+	tp := TransferParser{
+		rpc: rpc,
+		es:  es,
+	}
+
+	for i := range opts {
+		opts[i](&tp)
+	}
+
+	return tp
 }
 
 // Parse -

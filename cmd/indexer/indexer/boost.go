@@ -26,6 +26,7 @@ import (
 
 var errBcdQuit = errors.New("bcd-quit")
 var errRollback = errors.New("rollback")
+var errSameLevel = errors.New("Same level")
 
 // BoostIndexer -
 type BoostIndexer struct {
@@ -37,11 +38,12 @@ type BoostIndexer struct {
 	state               models.Block
 	currentProtocol     models.Protocol
 	messageQueue        *mq.QueueManager
-	filesDirectory      string
 	boost               bool
 	interfaces          map[string]kinds.ContractKind
 	tokenViews          parsers.TokenViews
 	skipDelegatorBlocks bool
+
+	cfg config.Config
 
 	stop    chan struct{}
 	stopped bool
@@ -143,14 +145,14 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 	}
 
 	bi := &BoostIndexer{
-		Network:        network,
-		rpc:            rpc,
-		es:             es,
-		messageQueue:   messageQueue,
-		filesDirectory: cfg.Share.Path,
-		stop:           make(chan struct{}),
-		interfaces:     interfaces,
-		tokenViews:     tokenViews,
+		Network:      network,
+		rpc:          rpc,
+		es:           es,
+		messageQueue: messageQueue,
+		stop:         make(chan struct{}),
+		interfaces:   interfaces,
+		tokenViews:   tokenViews,
+		cfg:          cfg,
 	}
 
 	for _, opt := range opts {
@@ -230,7 +232,7 @@ func (bi *BoostIndexer) Sync(wg *sync.WaitGroup) {
 			return
 		case <-ticker.C:
 			if err := bi.process(); err != nil {
-				if err.Error() == "Same level" {
+				if errors.Is(err, errSameLevel) {
 					if !everySecond {
 						everySecond = true
 						ticker.Stop()
@@ -316,7 +318,7 @@ func (bi *BoostIndexer) Rollback() error {
 		return err
 	}
 
-	manager := rollback.NewManager(bi.es, bi.messageQueue, bi.rpc, bi.filesDirectory)
+	manager := rollback.NewManager(bi.es, bi.messageQueue, bi.rpc, bi.cfg.Share.Path)
 	if err := manager.Rollback(bi.state, lastLevel); err != nil {
 		return err
 	}
@@ -379,20 +381,13 @@ func (bi *BoostIndexer) getBoostBlocks(head noderpc.Header) ([]int64, error) {
 	return result, err
 }
 
-func (bi *BoostIndexer) validChainID(head noderpc.Header) bool {
-	if bi.state.ChainID == "" {
-		return bi.state.Level == 0
-	}
-	return bi.state.ChainID == head.ChainID
-}
-
 func (bi *BoostIndexer) process() error {
 	head, err := bi.rpc.GetHead()
 	if err != nil {
 		return err
 	}
 
-	if !bi.validChainID(head) {
+	if !bi.state.ValidateChainID(head.ChainID) {
 		return errors.Errorf("Invalid chain_id: %s (state) != %s (head)", bi.state.ChainID, head.ChainID)
 	}
 
@@ -440,7 +435,7 @@ func (bi *BoostIndexer) process() error {
 		}
 	}
 
-	return errors.Errorf("Same level")
+	return errSameLevel
 }
 
 func (bi *BoostIndexer) createBlock(head noderpc.Header) *models.Block {
@@ -481,10 +476,16 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 	if err != nil {
 		return nil, err
 	}
-	defaultParser := parsers.NewDefaultParser(bi.rpc, bi.es, bi.filesDirectory)
-	defaultParser.SetConstants(bi.currentProtocol.Constants)
-	defaultParser.SetInterface(bi.interfaces)
-	defaultParser.SetTokenViews(bi.tokenViews)
+
+	defaultParser := parsers.NewDefaultParser(
+		bi.rpc,
+		bi.es,
+		bi.cfg.Share.Path,
+		parsers.WithIPFSGateways(bi.cfg.IPFSGateways),
+		parsers.WithConstants(bi.currentProtocol.Constants),
+		parsers.WithInterfaces(bi.interfaces),
+		parsers.WithTokenViews(bi.tokenViews),
+	)
 
 	parsedModels := make([]elastic.Model, 0)
 	for _, opg := range data.Array() {
@@ -578,7 +579,7 @@ func (bi *BoostIndexer) standartMigration(newProtocol models.Protocol) ([]elasti
 	}
 	log.Printf("[%s] Now %d contracts are indexed", bi.Network, len(contracts))
 
-	p := parsers.NewMigrationParser(bi.rpc, bi.es, bi.filesDirectory)
+	p := parsers.NewMigrationParser(bi.rpc, bi.es, bi.cfg.Share.Path)
 	newModels := make([]elastic.Model, 0)
 	newUpdates := make([]elastic.Model, 0)
 	for i := range contracts {
@@ -609,7 +610,7 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header) ([]elastic.Model, 
 		return nil, err
 	}
 
-	p := parsers.NewVestingParser(bi.rpc, bi.es, bi.filesDirectory, bi.interfaces)
+	p := parsers.NewVestingParser(bi.rpc, bi.es, bi.cfg.Share.Path, bi.interfaces)
 
 	parsedModels := make([]elastic.Model, 0)
 	for _, address := range addresses {

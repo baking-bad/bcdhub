@@ -31,6 +31,8 @@ func parseData(data amqp.Delivery) error {
 		return recalculateAll(data)
 	case mq.QueueTransfers:
 		return getTransfer(data)
+	case mq.QueueBigMapDiffs:
+		return getBigMapDiff(data)
 	default:
 		if data.RoutingKey == "" {
 			return errors.Errorf(metricStoppedError)

@@ -21,6 +21,8 @@ type Config struct {
 	OAuth    OAuthConfig         `yaml:"oauth"`
 	Seed     SeedConfig          `yaml:"seed"`
 
+	IPFSGateways []string `yaml:"ipfs"`
+
 	Share struct {
 		Path string `yaml:"path"`
 	} `yaml:"share"`

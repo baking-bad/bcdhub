@@ -23,6 +23,7 @@ metrics:
         migrations:
         recalc:
         transfers:
+        bigmapdiffs:
 
 share:
     path: ${HOME}/.bcd

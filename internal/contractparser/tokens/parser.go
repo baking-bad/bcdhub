@@ -175,29 +175,22 @@ func (t TokenMetadataParser) hasTokenMetadataRegistry(address, protocol string) 
 		return nil, err
 	}
 
-	for _, node := range metadata {
-		if node.Name == TokenMetadataRegistry {
-			return metadata, nil
-		}
+	binPath := metadata.Find(TokenMetadataRegistry)
+	if binPath != "" {
+		return metadata, nil
 	}
 
 	return nil, nil
 }
 
 func (t TokenMetadataParser) getBigMapPtr(address string, state models.Block) (int64, error) {
-	resistryStorageMetadata, err := meta.GetMetadata(t.es, address, consts.STORAGE, state.Protocol)
+	registryStorageMetadata, err := meta.GetMetadata(t.es, address, consts.STORAGE, state.Protocol)
 	if err != nil {
 		return 0, err
 	}
 
-	var bmPath string
-	for binPath, node := range resistryStorageMetadata {
-		if node.Name == TokenMetadataRegistryStorageKey {
-			bmPath = binPath
-			break
-		}
-	}
-	if bmPath == "" {
+	binPath := registryStorageMetadata.Find(TokenMetadataRegistryStorageKey)
+	if binPath == "" {
 		return 0, ErrNoMetadataKeyInStorage
 	}
 
@@ -206,12 +199,12 @@ func (t TokenMetadataParser) getBigMapPtr(address string, state models.Block) (i
 		return 0, err
 	}
 
-	ptrs, err := storage.FindBigMapPointers(resistryStorageMetadata, registryStorage)
+	ptrs, err := storage.FindBigMapPointers(registryStorageMetadata, registryStorage)
 	if err != nil {
 		return 0, err
 	}
 	for ptr, path := range ptrs {
-		if path == bmPath {
+		if path == binPath {
 			return ptr, nil
 		}
 	}
