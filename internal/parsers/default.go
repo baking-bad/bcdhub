@@ -31,32 +31,26 @@ type DefaultParser struct {
 
 	transferParser TransferParser
 	storageParser  storage.Parser
+
+	ipfs  []string
+	views TokenViews
 }
 
 // NewDefaultParser -
-func NewDefaultParser(rpc noderpc.INode, es elastic.IElastic, filesDirectory string) *DefaultParser {
-	return &DefaultParser{
+func NewDefaultParser(rpc noderpc.INode, es elastic.IElastic, shareFolder string, opts ...DefaultParserOption) *DefaultParser {
+	dp := DefaultParser{
 		rpc:            rpc,
 		es:             es,
-		filesDirectory: filesDirectory,
-
-		transferParser: NewTransferParser(rpc, es),
+		filesDirectory: shareFolder,
 	}
-}
 
-// SetConstants -
-func (p *DefaultParser) SetConstants(constants models.Constants) {
-	p.constants = constants
-}
+	for i := range opts {
+		opts[i](&dp)
+	}
 
-// SetInterface -
-func (p *DefaultParser) SetInterface(interfaces map[string]kinds.ContractKind) {
-	p.interfaces = interfaces
-}
+	dp.transferParser = NewTransferParser(rpc, es, WithTokenViewsTransferParser(dp.views))
 
-// SetTokenViews -
-func (p *DefaultParser) SetTokenViews(views TokenViews) {
-	p.transferParser.SetViews(views)
+	return &dp
 }
 
 // Parse -
@@ -284,9 +278,7 @@ func (p *DefaultParser) finishParseOperation(item gjson.Result, op *models.Opera
 		}
 		op.DeffatedStorage = rs.DeffatedStorage
 
-		if len(rs.Models) > 0 {
-			resultModels = append(resultModels, rs.Models...)
-		}
+		resultModels = append(resultModels, rs.Models...)
 
 		if op.Kind == consts.Transaction {
 			migration, err := p.findMigration(item, op)

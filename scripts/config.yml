@@ -50,3 +50,7 @@ migrations:
         - carthagenet
         - delphinet
         - dalphanet
+
+ipfs:
+    - https://ipfs.io
+    - https://dweb.link

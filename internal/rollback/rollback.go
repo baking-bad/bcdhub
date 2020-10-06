@@ -73,7 +73,7 @@ func (rm Manager) rollbackBlocks(network string, toLevel int64) error {
 
 func (rm Manager) rollbackOperations(network string, toLevel int64) error {
 	logger.Info("Deleting operations, migrations, transfers and big map diffs...")
-	return rm.e.DeleteByLevelAndNetwork([]string{elastic.DocBigMapDiff, elastic.DocBigMapActions, elastic.DocMigrations, elastic.DocOperations, elastic.DocTransfers}, network, toLevel)
+	return rm.e.DeleteByLevelAndNetwork([]string{elastic.DocBigMapDiff, elastic.DocBigMapActions, elastic.DocTZIP, elastic.DocMigrations, elastic.DocOperations, elastic.DocTransfers}, network, toLevel)
 }
 
 func (rm Manager) rollbackTokenMetadata(network string, toLevel int64) error {

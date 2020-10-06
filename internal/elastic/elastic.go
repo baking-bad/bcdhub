@@ -204,6 +204,7 @@ func (e *Elastic) CreateIndexes() error {
 		DocBlocks,
 		DocTransfers,
 		DocTokenMetadata,
+		DocTZIP,
 	} {
 		if err := e.CreateIndexIfNotExists(index); err != nil {
 			return err

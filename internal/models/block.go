@@ -50,3 +50,11 @@ func (b *Block) ParseElasticJSON(hit gjson.Result) {
 	b.Predecessor = hit.Get("_source.predecessor").String()
 	b.Hash = hit.Get("_source.hash").String()
 }
+
+// ValidateChainID -
+func (b Block) ValidateChainID(chainID string) bool {
+	if b.ChainID == "" {
+		return b.Level == 0
+	}
+	return b.ChainID == chainID
+}

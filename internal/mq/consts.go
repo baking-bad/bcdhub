@@ -13,4 +13,5 @@ const (
 	QueueRecalc       = "recalc"
 	QueueTransfers    = "transfers"
 	QueueCompilations = "compilations"
+	QueueBigMapDiffs  = "bigmapdiffs"
 )

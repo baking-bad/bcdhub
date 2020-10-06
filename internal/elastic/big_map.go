@@ -329,3 +329,66 @@ func (e *Elastic) GetBigMapHistory(ptr int64, network string) (response []models
 	err = e.getAllByQuery(query, &response)
 	return
 }
+
+// GetBigMapKey -
+func (e *Elastic) GetBigMapKey(network, keyHash string, ptr int64) (data BigMapDiff, err error) {
+	if ptr < 0 {
+		err = errors.Errorf("Invalid pointer value: %d", ptr)
+		return
+	}
+	mustQuery := must(
+		matchPhrase("network", network),
+		matchPhrase("key_hash", keyHash),
+		term("ptr", ptr),
+	)
+	b := boolQ(mustQuery)
+
+	query := newQuery().Query(b).Sort("level", "desc").One()
+	res, err := e.query([]string{DocBigMapDiff}, query)
+	if err != nil {
+		return
+	}
+
+	if !res.Get("hits.hits.0").Exists() {
+		return data, errors.Errorf("%s: %v", RecordNotFound, query)
+	}
+	data.ParseElasticJSON(res.Get("hits.hits.0"))
+	return
+}
+
+// GetBigMapValuesByKey -
+func (e *Elastic) GetBigMapValuesByKey(keyHash string) ([]BigMapDiff, error) {
+	mustQuery := must(
+		matchPhrase("key_hash", keyHash),
+	)
+	b := boolQ(mustQuery)
+
+	query := newQuery().Query(b).Add(
+		aggs("items", qItem{
+			"terms": qItem{
+				"script": qItem{
+					"source": "doc['network.keyword'].value + doc['address.keyword'].value + String.format('%d', new def[] {doc['ptr'].value})",
+				},
+			},
+			"aggs": qItem{
+				"top_key": topHits(1, "indexed_time", "desc"),
+			},
+		}),
+	).Zero()
+
+	response, err := e.query([]string{DocBigMapDiff}, query)
+	if err != nil {
+		return nil, err
+	}
+
+	bmd := make([]BigMapDiff, 0)
+	buckets := response.Get("aggregations.items.buckets").Array()
+	for _, item := range buckets {
+		hit := item.Get("top_key.hits.hits.0")
+
+		var b BigMapDiff
+		b.ParseElasticJSON(hit)
+		bmd = append(bmd, b)
+	}
+	return bmd, nil
+}
