@@ -130,7 +130,6 @@ func main() {
 		contract.Use(ctx.IsAuthenticated())
 		{
 			contract.GET("", ctx.GetContract)
-			contract.GET("info", ctx.GetInfo)
 			contract.GET("code", ctx.GetContractCode)
 			contract.GET("operations", ctx.GetContractOperations)
 			contract.GET("migrations", ctx.GetContractMigrations)
@@ -159,6 +158,11 @@ func main() {
 				entrypoints.POST("trace", ctx.RunCode)
 				entrypoints.POST("run_operation", ctx.RunOperation)
 			}
+		}
+
+		account := v1.Group("account/:network/:address")
+		{
+			account.GET("", ctx.GetInfo)
 		}
 
 		fa12 := v1.Group("tokens/:network")

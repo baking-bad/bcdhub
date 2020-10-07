@@ -16,6 +16,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/parsers/transfer"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
@@ -30,11 +31,11 @@ type OPGParser struct {
 	constants  models.Constants
 
 	contractParser ContractParser
-	transferParser TransferParser
+	transferParser transfer.Parser
 	storageParser  storage.Parser
 
 	ipfs  []string
-	views TokenViews
+	views transfer.TokenViews
 }
 
 // NewOPGParser -
@@ -49,7 +50,7 @@ func NewOPGParser(rpc noderpc.INode, es elastic.IElastic, shareFolder string, op
 		opts[i](&dp)
 	}
 
-	dp.transferParser = NewTransferParser(rpc, es, WithTokenViewsTransferParser(dp.views))
+	dp.transferParser = transfer.NewParser(rpc, es, transfer.WithTokenViews(dp.views))
 	dp.contractParser = NewContractParser(dp.interfaces, WithShareDirContractParser(shareFolder))
 
 	return &dp

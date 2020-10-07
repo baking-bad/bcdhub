@@ -20,6 +20,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
+	"github.com/baking-bad/bcdhub/internal/parsers/transfer"
 	"github.com/baking-bad/bcdhub/internal/rollback"
 	"github.com/pkg/errors"
 )
@@ -40,7 +41,7 @@ type BoostIndexer struct {
 	messageQueue        *mq.QueueManager
 	boost               bool
 	interfaces          map[string]kinds.ContractKind
-	tokenViews          parsers.TokenViews
+	tokenViews          transfer.TokenViews
 	skipDelegatorBlocks bool
 
 	cfg config.Config
@@ -139,7 +140,7 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 		return nil, err
 	}
 
-	tokenViews, err := parsers.NewTokenViews(db)
+	tokenViews, err := transfer.NewTokenViews(db)
 	if err != nil {
 		return nil, err
 	}

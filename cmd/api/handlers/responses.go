@@ -636,10 +636,21 @@ type Token struct {
 
 // AccountInfo -
 type AccountInfo struct {
-	Address    string    `json:"address"`
-	Network    string    `json:"network"`
-	Alias      string    `json:"alias,omitempty"`
-	Balance    int64     `json:"balance"`
-	TxCount    int64     `json:"tx_count"`
-	LastAction time.Time `json:"last_action"`
+	Address    string         `json:"address"`
+	Network    string         `json:"network"`
+	Alias      string         `json:"alias,omitempty"`
+	Balance    int64          `json:"balance"`
+	TxCount    int64          `json:"tx_count"`
+	LastAction time.Time      `json:"last_action"`
+	Tokens     []TokenBalance `json:"tokens"`
+}
+
+// TokenBalance -
+type TokenBalance struct {
+	Contract string `json:"contract"`
+	TokenID  int64  `json:"token_id"`
+	Balance  int64  `json:"balance"`
+	Symbol   string `json:"symbol,omitempty"`
+	Name     string `json:"name,omitempty"`
+	Decimals int64  `json:"decimals"`
 }

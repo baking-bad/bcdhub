@@ -3,6 +3,7 @@ package parsers
 import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/parsers/transfer"
 )
 
 // OPGParserOption -
@@ -30,7 +31,7 @@ func WithInterfaces(interfaces map[string]kinds.ContractKind) OPGParserOption {
 }
 
 // WithTokenViews -
-func WithTokenViews(views TokenViews) OPGParserOption {
+func WithTokenViews(views transfer.TokenViews) OPGParserOption {
 	return func(dp *OPGParser) {
 		dp.views = views
 	}

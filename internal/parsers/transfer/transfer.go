@@ -1,99 +1,24 @@
-package parsers
+package transfer
 
 import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/contractparser/unpack"
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/jinzhu/gorm"
-	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
-// TokenKey -
-type TokenKey struct {
-	Address    string
-	Network    string
-	Entrypoint string
-}
-
-// TokenViews -
-type TokenViews map[TokenKey]database.TokenViewImplementation
-
-// NewTokenViews -
-func NewTokenViews(db database.DB) (TokenViews, error) {
-	tokens, err := db.GetTokens()
-	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	views := make(TokenViews)
-	for _, token := range tokens {
-		if len(token.Metadata.Views) == 0 {
-			continue
-		}
-
-		for _, view := range token.Metadata.Views {
-			for _, implementation := range view.Implementations {
-				for _, entrypoint := range implementation.MichelsonParameterView.Entrypoints {
-					views[TokenKey{
-						Address:    token.Contract,
-						Network:    token.Network,
-						Entrypoint: entrypoint,
-					}] = implementation
-				}
-			}
-		}
-	}
-
-	return views, nil
-}
-
-// Get -
-func (views TokenViews) Get(address, network, entrypoint string) (database.TokenViewImplementation, bool) {
-	view, ok := views[TokenKey{
-		Address:    address,
-		Network:    network,
-		Entrypoint: entrypoint,
-	}]
-	return view, ok
-}
-
-// GetByOperation -
-func (views TokenViews) GetByOperation(operation models.Operation) (database.TokenViewImplementation, bool) {
-	view, ok := views[TokenKey{
-		Address:    operation.Destination,
-		Network:    operation.Network,
-		Entrypoint: operation.Entrypoint,
-	}]
-	return view, ok
-}
-
-// TransferParser -
-type TransferParser struct {
+// Parser -
+type Parser struct {
 	rpc   noderpc.INode
 	es    elastic.IElastic
 	views TokenViews
 }
 
-// TransferParserOption -
-type TransferParserOption func(dp *TransferParser)
-
-// WithTokenViewsTransferParser -
-func WithTokenViewsTransferParser(views TokenViews) TransferParserOption {
-	return func(tp *TransferParser) {
-		tp.views = views
-	}
-}
-
-// NewTransferParser -
-func NewTransferParser(rpc noderpc.INode, es elastic.IElastic, opts ...TransferParserOption) TransferParser {
-	tp := TransferParser{
+// NewParser -
+func NewParser(rpc noderpc.INode, es elastic.IElastic, opts ...ParserOption) Parser {
+	tp := Parser{
 		rpc: rpc,
 		es:  es,
 	}
@@ -106,7 +31,7 @@ func NewTransferParser(rpc noderpc.INode, es elastic.IElastic, opts ...TransferP
 }
 
 // Parse -
-func (p TransferParser) Parse(operation models.Operation) ([]*models.Transfer, error) {
+func (p Parser) Parse(operation models.Operation) ([]*models.Transfer, error) {
 	if view, ok := p.views.GetByOperation(operation); ok {
 		return p.runView(view, operation)
 	} else if operation.Entrypoint == "transfer" {
@@ -123,7 +48,7 @@ func (p TransferParser) Parse(operation models.Operation) ([]*models.Transfer, e
 	return nil, nil
 }
 
-func (p TransferParser) makeFA12Transfers(operation models.Operation, parameters gjson.Result) ([]*models.Transfer, error) {
+func (p Parser) makeFA12Transfers(operation models.Operation, parameters gjson.Result) ([]*models.Transfer, error) {
 	transfer := models.EmptyTransfer(operation)
 	fromAddr, err := getAddress(parameters.Get("args.0"))
 	if err != nil {
@@ -141,7 +66,7 @@ func (p TransferParser) makeFA12Transfers(operation models.Operation, parameters
 	return []*models.Transfer{transfer}, nil
 }
 
-func (p TransferParser) makeFA2Transfers(operation models.Operation, parameters gjson.Result) ([]*models.Transfer, error) {
+func (p Parser) makeFA2Transfers(operation models.Operation, parameters gjson.Result) ([]*models.Transfer, error) {
 	transfers := make([]*models.Transfer, 0)
 	for _, from := range parameters.Array() {
 		fromAddr, err := getAddress(from.Get("args.0"))
@@ -166,7 +91,7 @@ func (p TransferParser) makeFA2Transfers(operation models.Operation, parameters 
 	return transfers, nil
 }
 
-func (p TransferParser) runView(view database.TokenViewImplementation, operation models.Operation) ([]*models.Transfer, error) {
+func (p Parser) runView(view database.TokenViewImplementation, operation models.Operation) ([]*models.Transfer, error) {
 	parser, err := view.MichelsonParameterView.GetParser()
 	if err != nil {
 		return nil, err
@@ -194,7 +119,7 @@ func (p TransferParser) runView(view database.TokenViewImplementation, operation
 	return p.parseResponse(parser, operation, response)
 }
 
-func (p TransferParser) parseResponse(parser database.BalanceViewParser, operation models.Operation, response gjson.Result) ([]*models.Transfer, error) {
+func (p Parser) parseResponse(parser database.BalanceViewParser, operation models.Operation, response gjson.Result) ([]*models.Transfer, error) {
 	newBalances := parser.Parse(response)
 	addresses := make([]elastic.TokenBalance, len(newBalances))
 	for i := range newBalances {
@@ -233,43 +158,4 @@ func (p TransferParser) parseResponse(parser database.BalanceViewParser, operati
 	}
 
 	return transfers, nil
-}
-
-func normalizeParameter(params string) gjson.Result {
-	parameter := gjson.Parse(params)
-	if parameter.Get("value").Exists() {
-		parameter = parameter.Get("value")
-	}
-
-	for prim := parameter.Get("prim").String(); prim == "Right" || prim == "Left"; prim = parameter.Get("prim").String() {
-		parameter = parameter.Get("args.0")
-	}
-	return parameter
-}
-
-func getParameters(str string) gjson.Result {
-	parameters := gjson.Parse(str)
-	if !parameters.Get("value").Exists() {
-		return parameters
-	}
-	parameters = parameters.Get("value")
-	for end := false; !end; {
-		prim := parameters.Get("prim|@lower").String()
-		end = prim != consts.LEFT && prim != consts.RIGHT
-		if !end {
-			parameters = parameters.Get("args.0")
-		}
-	}
-	return parameters
-}
-
-func getAddress(data gjson.Result) (string, error) {
-	if data.Get("string").Exists() {
-		return data.Get("string").String(), nil
-	}
-
-	if data.Get("bytes").Exists() {
-		return unpack.Address(data.Get("bytes").String())
-	}
-	return "", errors.Errorf("Unknown address data: %s", data.Raw)
 }

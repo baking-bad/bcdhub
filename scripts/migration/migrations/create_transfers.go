@@ -5,7 +5,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
-	"github.com/baking-bad/bcdhub/internal/parsers"
+	"github.com/baking-bad/bcdhub/internal/parsers/transfer"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -35,7 +35,7 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 	}
 	logger.Info("Found %d operations with transfer entrypoint", len(operations))
 
-	tokenViews, err := parsers.NewTokenViews(ctx.DB)
+	tokenViews, err := transfer.NewTokenViews(ctx.DB)
 	if err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 			return err
 		}
 
-		parser := parsers.NewTransferParser(rpc, ctx.ES, parsers.WithTokenViewsTransferParser(tokenViews))
+		parser := transfer.NewParser(rpc, ctx.ES, transfer.WithTokenViews(tokenViews))
 
 		transfers, err := parser.Parse(operations[i])
 		if err != nil {
