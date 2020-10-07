@@ -31,6 +31,7 @@ type IGeneral interface {
 	CreateIndexIfNotExists(string) error
 	CreateIndexes() error
 	DeleteByLevelAndNetwork([]string, string, int64) error
+	DeleteByContract(indices []string, network, address string) error
 	GetAll(interface{}) error
 	GetAPI() *esapi.API
 	GetByID(Model) error

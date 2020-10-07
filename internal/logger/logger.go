@@ -153,3 +153,9 @@ func Debug(values ...interface{}) {
 	_, _ = fmt.Fprintf(buff, "\n")
 	fmt.Print(buff.String())
 }
+
+// Question -
+func Question(format string, v ...interface{}) {
+	blue := color.New(color.FgMagenta).SprintFunc()
+	log.Printf("[%s] %s", blue("?"), fmt.Sprintf(format, v...))
+}
