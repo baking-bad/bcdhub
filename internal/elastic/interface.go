@@ -91,7 +91,6 @@ type IContract interface {
 	RecalcContractStats(string, string) (ContractStats, error)
 	UpdateContractMigrationsCount(string, string) error
 	GetDAppStats(string, []string, string) (DAppStats, error)
-	GetContractTransfers(string, string, int64, int64, int64) (TransfersResponse, error)
 }
 
 // IEvents -
@@ -161,11 +160,11 @@ type IStats interface {
 // ITokens -
 type ITokens interface {
 	GetTokens(string, string, int64, int64) ([]models.Contract, int64, error)
-	GetTokenTransferOperations(string, string, string, int64) (PageableOperations, error)
 	GetTokensStats(string, []string, []string) (map[string]TokenUsageStats, error)
 	GetTokenVolumeSeries(string, string, []string, []string, uint) ([][]int64, error)
 	GetBalances(string, string, int64, ...TokenBalance) (map[TokenBalance]int64, error)
 	GetTokenSupply(network, address string, tokenID int64) (result TokenSupply, err error)
+	GetTransfers(ctx GetTransfersContext) (TransfersResponse, error)
 }
 
 // ITokenMatadata -

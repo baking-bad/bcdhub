@@ -135,7 +135,9 @@ func (p TransferParser) makeFA12Transfers(operation models.Operation, parameters
 	}
 	transfer.From = fromAddr
 	transfer.To = toAddr
-	transfer.Amount = parameters.Get("args.1.args.1.int").Int()
+	transfer.Nonce = operation.Nonce
+	transfer.Counter = &operation.Counter
+	transfer.Amount = parameters.Get("args.1.args.1.int").Float()
 	return []*models.Transfer{transfer}, nil
 }
 
@@ -154,8 +156,10 @@ func (p TransferParser) makeFA2Transfers(operation models.Operation, parameters 
 			transfer := models.EmptyTransfer(operation)
 			transfer.From = fromAddr
 			transfer.To = toAddr
-			transfer.Amount = to.Get("args.1.args.1.int").Int()
+			transfer.Amount = to.Get("args.1.args.1.int").Float()
 			transfer.TokenID = to.Get("args.1.args.0.int").Int()
+			transfer.Nonce = operation.Nonce
+			transfer.Counter = &operation.Counter
 			transfers = append(transfers, transfer)
 		}
 	}
@@ -217,12 +221,14 @@ func (p TransferParser) parseResponse(parser database.BalanceViewParser, operati
 			} else {
 				transfer.From = balance.Address
 			}
-			transfer.Amount = delta
+			transfer.Amount = float64(delta)
 		} else {
-			transfer.Amount = balance.Value
+			transfer.Amount = float64(balance.Value)
 			transfer.To = balance.Address
 		}
 		transfer.TokenID = balance.TokenID
+		transfer.Nonce = operation.Nonce
+		transfer.Counter = &operation.Counter
 		transfers = append(transfers, transfer)
 	}
 

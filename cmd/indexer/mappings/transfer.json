@@ -2,7 +2,7 @@
     "mappings": {
         "properties": {
             "amount": {
-                "type": "long"
+                "type": "double"
             },
             "indexed_time": {
                 "type": "long"
