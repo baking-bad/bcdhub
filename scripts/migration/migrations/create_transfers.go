@@ -114,14 +114,16 @@ func (m *CreateTransfersTags) deleteTransfers(ctx *config.Context) (err error) {
 }
 
 func (m *CreateTransfersTags) getOperations(ctx *config.Context) ([]models.Operation, error) {
-	filters := map[string]interface{}{
-		"entrypoint": "transfer",
-	}
+	filters := map[string]interface{}{}
 	if m.Network != "" {
 		filters["network"] = m.Network
 		if m.Address != "" {
 			filters["destination"] = m.Address
+		} else {
+			filters["entrypoint"] = "transfer"
 		}
+	} else {
+		filters["entrypoint"] = "transfer"
 	}
 	return ctx.ES.GetOperations(filters, 0, false)
 }
