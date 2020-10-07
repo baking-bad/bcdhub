@@ -305,6 +305,7 @@ func (e *Elastic) GetBalances(network, contract string, level int64, addresses .
 func (e *Elastic) GetAccountBalances(network, address string) (map[TokenBalance]int64, error) {
 	filters := []qItem{
 		matchQ("network", network),
+		matchQ("status", "applied"),
 	}
 
 	if address != "" {
@@ -325,12 +326,21 @@ func (e *Elastic) GetAccountBalances(network, address string) (map[TokenBalance]
 			"aggs": qItem{
 				"balances": qItem{
 					"scripted_metric": qItem{
+						"params": qItem{
+							"address": address,
+						},
 						"init_script": "state.balances = [:]",
 						"map_script": `
-						if (!state.balances.containsKey(doc['contract.keyword'].value)) {
-							state.balances[doc['contract.keyword'].value + '_' + doc['token_id'].value] = doc['amount'].value;
+						def amount = doc['amount'].value;
+						if (doc['from.keyword'].value == params.address) {
+							amount = -amount;
+						}
+
+						def key = doc['contract.keyword'].value + '_' + doc['token_id'].value;
+						if (!state.balances.containsKey(key)) {
+							state.balances[key] = amount;
 						} else {
-							state.balances[doc['contract.keyword'].value + '_' + doc['token_id'].value] = state.balances[doc['contract.keyword'].value + '_' + doc['token_id'].value] - doc['amount'].value;
+							state.balances[key] = state.balances[key] + amount;
 						}						
 						`,
 						"combine_script": `

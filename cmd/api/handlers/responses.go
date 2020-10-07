@@ -211,6 +211,8 @@ type Contract struct {
 	Slug               string        `json:"slug,omitempty"`
 	Verified           bool          `json:"verified,omitempty"`
 	VerificationSource string        `json:"verification_source,omitempty"`
+
+	Tokens []TokenBalance `json:"tokens"`
 }
 
 // FromModel -

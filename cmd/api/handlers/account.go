@@ -50,14 +50,24 @@ func (ctx *Context) GetInfo(c *gin.Context) {
 		TxCount:    stats.Count,
 		Balance:    balance,
 		LastAction: stats.LastAction,
-		Tokens:     make([]TokenBalance, 0),
 	}
 
-	tokenBalances, err := ctx.ES.GetAccountBalances(req.Network, req.Address)
+	tokenBalances, err := ctx.getAccountBalances(req.Network, req.Address)
 	if handleError(c, err, 0) {
 		return
 	}
+	accountInfo.Tokens = tokenBalances
 
+	c.JSON(http.StatusOK, accountInfo)
+}
+
+func (ctx *Context) getAccountBalances(network, address string) ([]TokenBalance, error) {
+	tokenBalances, err := ctx.ES.GetAccountBalances(network, address)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]TokenBalance, 0)
 	for key, b := range tokenBalances {
 		tb := TokenBalance{
 			Contract: key.Address,
@@ -67,7 +77,7 @@ func (ctx *Context) GetInfo(c *gin.Context) {
 		token, err := ctx.ES.GetTokenMetadata(elastic.GetTokenMetadataContext{
 			TokenID:  key.TokenID,
 			Contract: key.Address,
-			Network:  req.Network,
+			Network:  network,
 		})
 		if err == nil {
 			tb.Decimals = token[0].Decimals
@@ -75,8 +85,8 @@ func (ctx *Context) GetInfo(c *gin.Context) {
 			tb.Symbol = token[0].Symbol
 		}
 
-		accountInfo.Tokens = append(accountInfo.Tokens, tb)
+		result = append(result, tb)
 	}
 
-	c.JSON(http.StatusOK, accountInfo)
+	return result, nil
 }
