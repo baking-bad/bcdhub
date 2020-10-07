@@ -95,10 +95,8 @@ func (e *Elastic) query(indices []string, query map[string]interface{}, source .
 		return
 	}
 
-	// var pretty bytes.Buffer
-	// json.Indent(&pretty, buf.Bytes(), "", "  ")
-	// log.Println(indices)
-	// log.Println(pretty.String())
+	// logger.InterfaceToJSON(query)
+	// logger.InterfaceToJSON(indices)
 
 	// Perform the search request.
 	var resp *esapi.Response
@@ -219,9 +217,8 @@ func (e *Elastic) updateByQuery(indices []string, query map[string]interface{}, 
 		return
 	}
 
-	// var pretty bytes.Buffer
-	// json.Indent(&pretty, buf.Bytes(), "", "  ")
-	// log.Print(pretty.String())
+	// logger.InterfaceToJSON(query)
+	// logger.InterfaceToJSON(indices)
 
 	// Perform the update by query request.
 	var resp *esapi.Response
@@ -250,9 +247,9 @@ func (e *Elastic) deleteByQuery(indices []string, query map[string]interface{}) 
 	if err := json.NewEncoder(&buf).Encode(query); err != nil {
 		return gjson.Result{}, err
 	}
-	// var pretty bytes.Buffer
-	// json.Indent(&pretty, buf.Bytes(), "", "  ")
-	// log.Print(pretty.String())
+
+	// logger.InterfaceToJSON(query)
+	// logger.InterfaceToJSON(indices)
 
 	options := []func(*esapi.DeleteByQueryRequest){
 		e.DeleteByQuery.WithContext(context.Background()),
@@ -280,6 +277,35 @@ func (e *Elastic) DeleteByLevelAndNetwork(indices []string, network string, maxL
 				matchQ("network", network),
 				rangeQ("level", qItem{"gt": maxLevel}),
 			),
+		),
+	)
+	end := false
+
+	for !end {
+		response, err := e.deleteByQuery(indices, query)
+		if err != nil {
+			return err
+		}
+
+		end = response.Get("version_conflicts").Int() == 0
+		log.Printf("Removed %d/%d records from %s", response.Get("deleted").Int(), response.Get("total").Int(), strings.Join(indices, ","))
+	}
+	return nil
+}
+
+// DeleteByContract -
+// TODO - delete context
+func (e *Elastic) DeleteByContract(indices []string, network, address string) error {
+	filters := make([]qItem, 0)
+	if network != "" {
+		filters = append(filters, matchQ("network", network))
+	}
+	if address != "" {
+		filters = append(filters, matchPhrase("contract", address))
+	}
+	query := newQuery().Query(
+		boolQ(
+			filter(filters...),
 		),
 	)
 	end := false
