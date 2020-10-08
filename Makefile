@@ -36,8 +36,8 @@ remove: esctl
 	rm scripts/esctl/esctl
 
 s3-creds: esctl
-	docker exec -it bcd-elastic bash -c 'bin/elasticsearch-keystore add --stdin s3.client.default.access_key <<< "$$AWS_ACCESS_KEY_ID"'
-	docker exec -it bcd-elastic bash -c 'bin/elasticsearch-keystore add --stdin s3.client.default.secret_key <<< "$$AWS_SECRET_ACCESS_KEY"'
+	docker exec -it bcd-elastic bash -c 'bin/elasticsearch-keystore add --force --stdin s3.client.default.access_key <<< "$$AWS_ACCESS_KEY_ID"'
+	docker exec -it bcd-elastic bash -c 'bin/elasticsearch-keystore add --force --stdin s3.client.default.secret_key <<< "$$AWS_SECRET_ACCESS_KEY"'
 	./scripts/esctl/esctl -f scripts/config.yml reload_secure_settings
 	rm scripts/esctl/esctl
 
@@ -46,7 +46,7 @@ s3-repo: esctl
 	rm scripts/esctl/esctl
 
 s3-restore: esctl
-	./scripts/esctl/esctl -f scripts/config.yml delete_indices
+	#./scripts/esctl/esctl -f scripts/config.yml delete_indices
 	./scripts/esctl/esctl -f scripts/config.yml restore
 	rm scripts/esctl/esctl
 
