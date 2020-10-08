@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"sync"
+	"time"
 
 	"github.com/baking-bad/bcdhub/cmd/api/ws/channels"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -111,6 +112,10 @@ func (c *Client) receive() {
 		case <-c.stop:
 			return
 		default:
+			if err := c.conn.SetReadDeadline(time.Now().Add(time.Second * 10)); err != nil {
+				logger.Error(err)
+				continue
+			}
 			messageType, data, err := c.conn.ReadMessage()
 			if err != nil {
 				c.Close()
