@@ -181,7 +181,7 @@ type TokenBalance struct {
 type onlyBalanceParser struct{}
 
 func (p onlyBalanceParser) GetReturnType() gjson.Result {
-	return gjson.Parse(`{ "prim": "map", "args": [ { "prim": "address"}, {"prim": "nat"} ] }`)
+	return gjson.Parse(`{ "prim": "map", "args": [ { "prim": "address"}, {"prim": "int"} ] }`)
 }
 
 func (p onlyBalanceParser) Parse(response gjson.Result) []TokenBalance {
@@ -198,7 +198,7 @@ func (p onlyBalanceParser) Parse(response gjson.Result) []TokenBalance {
 type withTokenIDBalanceParser struct{}
 
 func (p withTokenIDBalanceParser) GetReturnType() gjson.Result {
-	return gjson.Parse(`{ "prim": "map", "args": [ { "prim": "pair", "args": [{ "prim": "address"}, {"prim": "nat"}] }, { "prim" : "nat" } ] }`)
+	return gjson.Parse(`{ "prim": "map", "args": [ { "prim": "pair", "args": [{ "prim": "address"}, {"prim": "nat"}] }, { "prim" : "int" } ] }`)
 }
 
 func (p withTokenIDBalanceParser) Parse(response gjson.Result) []TokenBalance {

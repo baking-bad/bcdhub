@@ -28,6 +28,7 @@ type IGeneral interface {
 	CreateIndexes() error
 	DeleteIndices(indices []string) error
 	DeleteByLevelAndNetwork([]string, string, int64) error
+	DeleteByContract(indices []string, network, address string) error
 	GetAll(interface{}) error
 	GetByID(Model) error
 	GetByNetwork(string, interface{}) error

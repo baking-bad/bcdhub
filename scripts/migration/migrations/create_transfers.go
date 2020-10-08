@@ -1,6 +1,10 @@
 package migrations
 
 import (
+	"bufio"
+	"os"
+	"strings"
+
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -10,7 +14,10 @@ import (
 )
 
 // CreateTransfersTags -
-type CreateTransfersTags struct{}
+type CreateTransfersTags struct {
+	Network string
+	Address string
+}
 
 // Key -
 func (m *CreateTransfersTags) Key() string {
@@ -24,12 +31,14 @@ func (m *CreateTransfersTags) Description() string {
 
 // Do - migrate function
 func (m *CreateTransfersTags) Do(ctx *config.Context) error {
+	logger.Info("Starting create transfer migration...")
+	if err := m.deleteTransfers(ctx); err != nil {
+		return err
+	}
+
 	h := metrics.New(ctx.ES, ctx.DB)
-	operations, err := ctx.ES.GetOperations(map[string]interface{}{
-		"entrypoint": "transfer",
-		// "destination": "KT1KzoKR7v1HjF2JqfYAWFV2ihzmUVJsDqXy",
-		// "network":     "mainnet",
-	}, 0, false)
+
+	operations, err := m.getOperations(ctx)
 	if err != nil {
 		return err
 	}
@@ -73,7 +82,46 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 		return err
 	}
 
-	logger.Info("Done. %d transfers were saved.", len(result))
+	logger.Info("Done. %d transfers were saved", len(result))
 
 	return nil
+}
+
+func (m *CreateTransfersTags) ask(question string) (string, error) {
+	logger.Question(question)
+	reader := bufio.NewReader(os.Stdin)
+	text, err := reader.ReadString('\n')
+	if err != nil {
+		return "", err
+	}
+	return strings.Replace(text, "\n", "", -1), nil
+}
+
+func (m *CreateTransfersTags) deleteTransfers(ctx *config.Context) (err error) {
+	m.Network, err = m.ask("Enter network (empty if all):")
+	if err != nil {
+		return
+	}
+	if m.Network != "" {
+		if m.Address, err = m.ask("Enter KT address (empty if all):"); err != nil {
+			return
+		}
+	}
+
+	return ctx.ES.DeleteByContract([]string{elastic.DocTransfers}, m.Network, m.Address)
+}
+
+func (m *CreateTransfersTags) getOperations(ctx *config.Context) ([]models.Operation, error) {
+	filters := map[string]interface{}{}
+	if m.Network != "" {
+		filters["network"] = m.Network
+		if m.Address != "" {
+			filters["destination"] = m.Address
+		} else {
+			filters["entrypoint"] = "transfer"
+		}
+	} else {
+		filters["entrypoint"] = "transfer"
+	}
+	return ctx.ES.GetOperations(filters, 0, false)
 }

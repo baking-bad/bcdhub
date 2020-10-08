@@ -15,6 +15,8 @@ Loads and decodes operations related to smart contracts and also keeps track of 
 Receives new contract/operation events from the indexer and calculates various metrics that are used for ranking, linking, and labelling contracts and operations.
 * `API`  
 Exposes RESTful JSON API for accessing indexed data (with on-the-fly decoding). Also provides a set of methods for authentication and managing user profiles.
+* `Compiler`  
+Contains compilers of various high-level contract languages (LIGO, SmartPy, etc) as well as a service handling compilation tasks
 
 Those microservices are sharing access to databases and communicating via message queue:
 
@@ -118,6 +120,8 @@ sentry:
 aws:
     bucket_name: bcd-elastic-snapshots
     region: eu-central-1
+    access_key_id: ${AWS_ACCESS_KEY_ID}
+    secret_access_key: ${AWS_SECRET_ACCESS_KEY}
 ```
 
 #### `oauth`
@@ -159,9 +163,7 @@ RabbitMQ settings and list of queues to subscribe
 ```yml
 rabbitmq:
     uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mq:5672/"
-    queues:
-        - operations
-        - recalc
+    publisher: true
 ```
 
 #### `seed`
@@ -184,30 +186,42 @@ seed:
           address: tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb
 ```
 
+#### `ipfs`
+IPFS settings (list of http gateways)
+```yml
+ipfs:
+    - https://ipfs.io
+    - https://dweb.link
+```
+
 #### `api`
 API service settings: 
 ```yml
 api:
+    project_name: api
     bind: ":14000"
     swagger_host: "api.better-call.dev"
     oauth:
         enabled: true
     sentry:
         enabled: true
-        project: api
     networks:
         - mainnet
     seed:
         enabled: false
+    queues:
+        operations:
+            non_durable: true
+            auto_deleted: true
 ```
 
 #### `indexer`
 Indexer service settings. Note the optional _boost_ setting which tells indexer to use third-party service in order to speed up the process.
 ```yml
 indexer:
+    project_name: indexer
     sentry:
         enabled: true
-        project: indexer
     networks:
         mainnet:
           boost: tzkt
@@ -217,10 +231,35 @@ indexer:
 Metrics service settings
 ```yml
 metrics:
+    project_name: metrics
     sentry:
         enabled: true
-        project: metrics
+    queues:
+        operations:
+        contracts:
+        migrations:
+        recalc:
+        transfers:
+        bigmapdiffs:
 ```
+
+#### `compiler`
+Compiler service settings
+```yml
+compiler:
+    project_name: compiler
+    aws:
+        bucket_name: bcd-contract-sources
+        region: eu-central-1
+        access_key_id: ${AWS_ACCESS_KEY_ID}
+        secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+    sentry:
+        enabled: true
+    queues:
+        compilations:
+```
+
+
 
 ### Docker settings `docker-compose.yml`
 Connects all the services together. The compose file is pretty straightforward and universal, although there are several settings you may want to change:
@@ -274,8 +313,6 @@ About env files: https://docs.docker.com/compose/env-file/
 * `SENTRY_DSN`
 
 #### Snapshot settings
-* `BCD_AWS_BUCKET_NAME`
-* `BCD_AWS_REGION`
 * `AWS_ACCESS_KEY_ID`
 * `AWS_SECRET_ACCESS_KEY`
 

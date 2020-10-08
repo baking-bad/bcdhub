@@ -75,7 +75,9 @@ func main() {
 
 	initValidators(cfg)
 
-	r.Use(corsSettings())
+	if cfg.API.CorsEnabled {
+		r.Use(corsSettings())
+	}
 
 	if cfg.API.Sentry.Enabled {
 		r.Use(helpers.SentryMiddleware())
