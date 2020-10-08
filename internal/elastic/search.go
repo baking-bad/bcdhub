@@ -396,10 +396,11 @@ func grouping(ctx searchContext, query base) base {
 
 	query.Add(
 		aggs(
-			"projects",
-			qItem{
-				"terms": qItem{
-					"script": `
+			aggItem{
+				"projects",
+				qItem{
+					"terms": qItem{
+						"script": `
 							if (doc.containsKey('fingerprint.parameter')) {
 								return doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value
 							} else if (doc.containsKey('hash')) {
@@ -407,22 +408,23 @@ func grouping(ctx searchContext, query base) base {
 							} else if (doc.containsKey('token_id')) {
 								return doc['contract.keyword'].value + '|' + doc['network.keyword'].value + '|' + doc['token_id'].value
 							} else return doc['key_hash.keyword'].value`,
-					"size": defaultSize + ctx.Offset,
-					"order": qList{
-						qItem{"bucket_score": "desc"},
-						qItem{"bucket_time": "desc"},
-					},
-				},
-				"aggs": qItem{
-					"last": topHits,
-					"bucket_score": qItem{
-						"max": qItem{
-							"script": "_score",
+						"size": defaultSize + ctx.Offset,
+						"order": qList{
+							qItem{"bucket_score": "desc"},
+							qItem{"bucket_time": "desc"},
 						},
 					},
-					"bucket_time": qItem{
-						"max": qItem{
-							"script": "if (doc.containsKey('last_action')) {return doc['last_action'].value} else {return doc['timestamp']}",
+					"aggs": qItem{
+						"last": topHits,
+						"bucket_score": qItem{
+							"max": qItem{
+								"script": "_score",
+							},
+						},
+						"bucket_time": qItem{
+							"max": qItem{
+								"script": "if (doc.containsKey('last_action')) {return doc['last_action'].value} else {return doc['timestamp']}",
+							},
 						},
 					},
 				},

@@ -16,12 +16,12 @@ func (e *Elastic) GetNetworkCountStats(network string) (stats NetworkCountStats,
 			minimumShouldMatch(1),
 		),
 	).Add(
-		aggs("by_index", qItem{
-			"terms": qItem{
-				"field": "_index",
-				"size":  maxQuerySize,
+		aggs(
+			aggItem{
+				"by_index",
+				termsAgg("_index", maxQuerySize),
 			},
-		}),
+		),
 	).Zero()
 
 	response, err := e.query([]string{DocContracts, DocOperations}, query)
@@ -49,11 +49,14 @@ func (e *Elastic) GetNetworkCountStats(network string) (stats NetworkCountStats,
 // GetCallsCountByNetwork -
 func (e *Elastic) GetCallsCountByNetwork() (map[string]int64, error) {
 	query := newQuery().Query(exists("entrypoint")).Add(
-		aggs("network", qItem{
-			"terms": qItem{
-				"field": "network.keyword",
+		aggs(
+			aggItem{"network", qItem{
+				"terms": qItem{
+					"field": "network.keyword",
+				},
 			},
-		}),
+			},
+		),
 	).Zero()
 
 	response, err := e.query([]string{DocOperations}, query)
@@ -74,20 +77,24 @@ func (e *Elastic) GetCallsCountByNetwork() (map[string]int64, error) {
 // GetContractStatsByNetwork -
 func (e *Elastic) GetContractStatsByNetwork() (map[string]ContractCountStats, error) {
 	query := newQuery().Add(
-		aggs("network", qItem{
-			"terms": qItem{
-				"field": "network.keyword",
-			},
-			"aggs": qItem{
-				"same": qItem{
-					"cardinality": qItem{
-						"script": "doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value",
+		aggs(
+			aggItem{
+				"network", qItem{
+					"terms": qItem{
+						"field": "network.keyword",
+					},
+					"aggs": qItem{
+						"same": qItem{
+							"cardinality": qItem{
+								"script": "doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value",
+							},
+						},
+						"balance":         sum("balance"),
+						"total_withdrawn": sum("total_withdrawn"),
 					},
 				},
-				"balance":         sum("balance"),
-				"total_withdrawn": sum("total_withdrawn"),
 			},
-		}),
+		),
 	).Zero()
 	response, err := e.query([]string{DocContracts}, query)
 	if err != nil {
@@ -116,11 +123,15 @@ func (e *Elastic) GetFACountByNetwork() (map[string]int64, error) {
 			"fa12",
 		}),
 	).Add(
-		aggs("network", qItem{
-			"terms": qItem{
-				"field": "network.keyword",
+		aggs(
+			aggItem{
+				"network", qItem{
+					"terms": qItem{
+						"field": "network.keyword",
+					},
+				},
 			},
-		}),
+		),
 	).Zero()
 
 	response, err := e.query([]string{DocContracts}, query)
@@ -147,11 +158,15 @@ func (e *Elastic) GetLanguagesForNetwork(network string) (map[string]int64, erro
 			),
 		),
 	).Add(
-		aggs("languages", qItem{
-			"terms": qItem{
-				"field": "language.keyword",
+		aggs(
+			aggItem{
+				"languages", qItem{
+					"terms": qItem{
+						"field": "language.keyword",
+					},
+				},
 			},
-		}),
+		),
 	).Zero()
 
 	response, err := e.query([]string{DocContracts}, query)

@@ -5,7 +5,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/mq"
-	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/tidwall/gjson"
 )
 
@@ -26,18 +25,15 @@ type Scorable interface {
 
 // IGeneral -
 type IGeneral interface {
-	AddDocument(interface{}, string) (string, error)
-	AddDocumentWithID(interface{}, string, string) (string, error)
-	CreateIndexIfNotExists(string) error
 	CreateIndexes() error
+	DeleteIndices(indices []string) error
 	DeleteByLevelAndNetwork([]string, string, int64) error
 	DeleteByContract(indices []string, network, address string) error
 	GetAll(interface{}) error
-	GetAPI() *esapi.API
 	GetByID(Model) error
 	GetByNetwork(string, interface{}) error
 	GetByNetworkWithSort(string, string, string, interface{}) error
-	UpdateDoc(string, string, interface{}) (gjson.Result, error)
+	UpdateDoc(model Model) (result gjson.Result, err error)
 	UpdateFields(string, string, interface{}, ...string) error
 }
 
@@ -58,7 +54,6 @@ type IBigMapDiff interface {
 	GetBigMapDiffsByPtrAndKeyHash(int64, string, string, int64, int64) ([]BigMapDiff, int64, error)
 	GetBigMapDiffsJSONByOperationID(string) ([]gjson.Result, error)
 	GetBigMapDiffsByPtr(string, string, int64) ([]models.BigMapDiff, error)
-	GetBigMapDiffsWithEmptyPtr() ([]models.BigMapDiff, error)
 }
 
 // IBlock -
@@ -81,14 +76,12 @@ type IBulk interface {
 type IContract interface {
 	GetContract(map[string]interface{}) (models.Contract, error)
 	GetContractRandom() (models.Contract, error)
-	GetContractWithdrawn(string, string) (int64, error)
 	GetContractMigrationStats(string, string) (ContractMigrationsStats, error)
 	GetContractAddressesByNetworkAndLevel(string, int64) (gjson.Result, error)
 	GetContracts(map[string]interface{}) ([]models.Contract, error)
 	GetContractsIDByAddress([]string, string) ([]string, error)
 	GetAffectedContracts(string, int64, int64) ([]string, error)
 	IsFAContract(string, string) (bool, error)
-	NeedParseOperation(string, string, string) (bool, error)
 	RecalcContractStats(string, string) (ContractStats, error)
 	UpdateContractMigrationsCount(string, string) error
 	GetDAppStats(string, []string, string) (DAppStats, error)
@@ -108,7 +101,7 @@ type IMigrations interface {
 type IOperations interface {
 	GetOperationsForContract(string, string, uint64, map[string]interface{}) (PageableOperations, error)
 	GetLastOperation(string, string, int64) (models.Operation, error)
-	GetAllLevelsForNetwork(string) (map[int64]struct{}, error)
+	GetOperationsStats(network, address string) (OperationsStats, error)
 
 	// GetOperations - get operation by `filter`. `Size` - if 0 - return all, else certain `size` operations.
 	// `Sort` - sort by time and content index by desc
@@ -120,7 +113,6 @@ type IProjects interface {
 	GetProjectsLastContract() ([]models.Contract, error)
 	GetSameContracts(models.Contract, int64, int64) (SameContractsResponse, error)
 	GetSimilarContracts(models.Contract, int64, int64) ([]SimilarContract, uint64, error)
-	GetProjectsStats() ([]ProjectStats, error)
 	GetDiffTasks() ([]DiffTask, error)
 }
 
@@ -146,6 +138,7 @@ type ISnapshot interface {
 	GetAllPolicies() ([]string, error)
 	GetMappings([]string) (map[string]string, error)
 	CreateMapping(string, io.Reader) error
+	ReloadSecureSettings() error
 }
 
 // IStats -
@@ -164,15 +157,14 @@ type ITokens interface {
 	GetTokensStats(string, []string, []string) (map[string]TokenUsageStats, error)
 	GetTokenVolumeSeries(string, string, []string, []string, uint) ([][]int64, error)
 	GetBalances(string, string, int64, ...TokenBalance) (map[TokenBalance]int64, error)
+	GetAccountBalances(string, string) (map[TokenBalance]int64, error)
 	GetTokenSupply(network, address string, tokenID int64) (result TokenSupply, err error)
 	GetTransfers(ctx GetTransfersContext) (TransfersResponse, error)
 }
 
 // ITokenMatadata -
 type ITokenMatadata interface {
-	GetTokenMetadatas(address string, network string) ([]models.TokenMetadata, error)
-	GetTokenMetadata(address string, network string, tokenID int64) (models.TokenMetadata, error)
-	GetAffectedTokenMetadata(network string, level int64) ([]models.TokenMetadata, error)
+	GetTokenMetadata(ctx GetTokenMetadataContext) ([]models.TokenMetadata, error)
 }
 
 // IElastic -

@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"os/signal"
+	"runtime"
 	"strings"
 	"sync"
 	"syscall"
@@ -40,6 +41,13 @@ func main() {
 		return
 	}
 
+	countCPU := runtime.NumCPU()
+	if countCPU > len(indexers) {
+		countCPU = len(indexers)
+	}
+	logger.Warning("Indexer started on %d CPU cores", countCPU)
+	runtime.GOMAXPROCS(countCPU)
+
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
@@ -50,6 +58,7 @@ func main() {
 	}
 
 	<-sigChan
+
 	for i := range indexers {
 		go indexers[i].Stop()
 	}

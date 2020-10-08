@@ -319,9 +319,15 @@ func (ctx *Context) GetContractTokens(c *gin.Context) {
 }
 
 func (ctx *Context) getTokens(network, address string) ([]Token, error) {
-
-	metadata, err := ctx.ES.GetTokenMetadatas(address, network)
+	metadata, err := ctx.ES.GetTokenMetadata(elastic.GetTokenMetadataContext{
+		Contract: address,
+		Network:  network,
+		TokenID:  -1,
+	})
 	if err != nil {
+		if elastic.IsRecordNotFound(err) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	tokens := make([]Token, 0)

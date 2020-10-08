@@ -38,7 +38,7 @@ func parseOperation(operation models.Operation) error {
 		return err
 	}
 
-	if _, err := ctx.ES.UpdateDoc(elastic.DocOperations, operation.ID, operation); err != nil {
+	if _, err := ctx.ES.UpdateDoc(&operation); err != nil {
 		return err
 	}
 

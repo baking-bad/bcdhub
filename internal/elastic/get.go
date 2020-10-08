@@ -61,6 +61,6 @@ func (e *Elastic) GetByNetworkWithSort(network, sortField, sortOrder string, out
 }
 
 func (e *Elastic) getAllByQuery(query base, output interface{}) error {
-	ctx := newScrollContext(e, query, defaultScrollSize)
+	ctx := newScrollContext(e, query, 0, defaultScrollSize)
 	return ctx.get(output)
 }

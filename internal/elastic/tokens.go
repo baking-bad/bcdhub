@@ -69,25 +69,26 @@ func (e *Elastic) GetTokensStats(network string, addresses, entrypoints []string
 			),
 		),
 	).Add(
-		aggs("by_dest", qItem{
-			"terms": qItem{
-				"field": "destination.keyword",
-				"size":  maxQuerySize,
-			},
-			"aggs": qItem{
-				"by_entrypoint": qItem{
-					"terms": qItem{
-						"field": "entrypoint.keyword",
-						"size":  maxQuerySize,
+		aggs(
+			aggItem{
+				"body",
+				composite(
+					maxQuerySize,
+					aggItem{
+						"destination", termsAgg("destination.keyword", 0),
 					},
-					"aggs": qItem{
-						"average_consumed_gas": qItem{
-							"avg": qItem{"field": "result.consumed_gas"},
+					aggItem{
+						"entrypoint", termsAgg("entrypoint.keyword", 0),
+					},
+				).Extend(
+					aggs(
+						aggItem{
+							"average_consumed_gas", avg("result.consumed_gas"),
 						},
-					},
-				},
+					),
+				),
 			},
-		}),
+		),
 	).Zero()
 
 	result, err := e.query([]string{DocOperations}, query)
@@ -96,20 +97,19 @@ func (e *Elastic) GetTokensStats(network string, addresses, entrypoints []string
 	}
 
 	response := make(map[string]TokenUsageStats)
-	buckets := result.Get("aggregations.by_dest.buckets").Array()
+	buckets := result.Get("aggregations.body.buckets").Array()
 	for _, bucket := range buckets {
-		address := bucket.Get("key").String()
-		tokenUsage := make(TokenUsageStats)
-		methods := bucket.Get("by_entrypoint.buckets").Array()
-		for _, method := range methods {
-			key := method.Get("key").String()
-			tokenUsage[key] = TokenMethodUsageStats{
-				Count:       method.Get("doc_count").Int(),
-				ConsumedGas: method.Get("average_consumed_gas.value").Int(),
-			}
+		address := bucket.Get("key.destination").String()
+		method := bucket.Get("key.entrypoint").String()
+		usage := TokenMethodUsageStats{
+			Count:       bucket.Get("doc_count").Int(),
+			ConsumedGas: bucket.Get("average_consumed_gas.value").Int(),
 		}
 
-		response[address] = tokenUsage
+		if _, ok := response[address]; !ok {
+			response[address] = make(TokenUsageStats)
+		}
+		response[address][method] = usage
 	}
 
 	return response, nil
@@ -166,7 +166,7 @@ func (e *Elastic) GetTokenVolumeSeries(network, period string, contracts []strin
 			),
 		),
 	).Add(
-		aggs("hist", hist),
+		aggs(aggItem{"hist", hist}),
 	).Zero()
 
 	response, err := e.query([]string{DocTransfers}, query)
@@ -196,8 +196,12 @@ type TokenBalance struct {
 func (e *Elastic) GetBalances(network, contract string, level int64, addresses ...TokenBalance) (map[TokenBalance]int64, error) {
 	filters := []qItem{
 		matchQ("network", network),
-		matchQ("contract", contract),
 	}
+
+	if contract != "" {
+		filters = append(filters, matchPhrase("contract", contract))
+	}
+
 	if level > 0 {
 		filters = append(filters, rangeQ("level", qItem{
 			"lt": level,
@@ -244,6 +248,100 @@ func (e *Elastic) GetBalances(network, contract string, level int64, addresses .
 						} else {
 							state.balances[doc['to.keyword'].value + '_' + doc['token_id'].value] = state.balances[doc['to.keyword'].value + '_' + doc['token_id'].value] + doc['amount'].value;
 						}
+						`,
+						"combine_script": `
+						Map balances = [:]; 
+						for (entry in state.balances.entrySet()) { 
+							if (!balances.containsKey(entry.getKey())) {
+								balances[entry.getKey()] = entry.getValue();
+							} else {
+								balances[entry.getKey()] = balances[entry.getKey()] + entry.getValue();
+							}
+						} 
+						return balances;
+						`,
+						"reduce_script": `
+						Map balances = [:]; 
+						for (state in states) { 
+							for (entry in state.entrySet()) {
+								if (!balances.containsKey(entry.getKey())) {
+									balances[entry.getKey()] = entry.getValue();
+								} else {
+									balances[entry.getKey()] = balances[entry.getKey()] + entry.getValue();
+								}
+							}
+						} 
+						return balances;
+						`,
+					},
+				},
+			},
+		},
+	).Zero()
+	response, err := e.query([]string{DocTransfers}, query)
+	if err != nil {
+		return nil, err
+	}
+
+	balances := make(map[TokenBalance]int64)
+	for address, balance := range response.Get("aggregations.balances.value").Map() {
+		parts := strings.Split(address, "_")
+		if len(parts) != 2 {
+			return nil, errors.Errorf("Invalid addressToken key split size: %d", len(parts))
+		}
+		tokenID, err := strconv.ParseInt(parts[1], 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		balances[TokenBalance{
+			Address: parts[0],
+			TokenID: tokenID,
+		}] = balance.Int()
+	}
+	return balances, nil
+}
+
+// GetAccountBalances -
+func (e *Elastic) GetAccountBalances(network, address string) (map[TokenBalance]int64, error) {
+	filters := []qItem{
+		matchQ("network", network),
+		matchQ("status", "applied"),
+	}
+
+	if address != "" {
+		filters = append(filters, boolQ(
+			should(
+				matchPhrase("from", address),
+				matchPhrase("to", address),
+			),
+		))
+	}
+
+	b := boolQ(
+		filter(filters...),
+	)
+
+	query := newQuery().Query(b).Add(
+		qItem{
+			"aggs": qItem{
+				"balances": qItem{
+					"scripted_metric": qItem{
+						"params": qItem{
+							"address": address,
+						},
+						"init_script": "state.balances = [:]",
+						"map_script": `
+						def amount = doc['amount'].value;
+						if (doc['from.keyword'].value == params.address) {
+							amount = -amount;
+						}
+
+						def key = doc['contract.keyword'].value + '_' + doc['token_id'].value;
+						if (!state.balances.containsKey(key)) {
+							state.balances[key] = amount;
+						} else {
+							state.balances[key] = state.balances[key] + amount;
+						}						
 						`,
 						"combine_script": `
 						Map balances = [:]; 

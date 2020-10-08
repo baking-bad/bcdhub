@@ -1,11 +1,6 @@
 package parsers
 
 import (
-	"encoding/json"
-	"fmt"
-	"os"
-	"path"
-
 	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
@@ -15,10 +10,48 @@ import (
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 )
 
-func createNewContract(es elastic.IElastic, interfaces map[string]kinds.ContractKind, operation models.Operation, filesDirectory, protoSymLink string) ([]elastic.Model, error) {
+// ContractParser -
+type ContractParser struct {
+	interfaces     map[string]kinds.ContractKind
+	filesDirectory string
+
+	metadata map[string]*meta.ContractMetadata
+
+	scriptSaver ScriptSaver
+}
+
+// NewContractParser -
+func NewContractParser(interfaces map[string]kinds.ContractKind, opts ...ContractParserOption) ContractParser {
+	parser := ContractParser{
+		interfaces: interfaces,
+		metadata:   make(map[string]*meta.ContractMetadata),
+	}
+
+	for i := range opts {
+		opts[i](&parser)
+	}
+
+	return parser
+}
+
+// ContractParserOption -
+type ContractParserOption func(p *ContractParser)
+
+// WithShareDirContractParser -
+func WithShareDirContractParser(dir string) ContractParserOption {
+	return func(p *ContractParser) {
+		if dir == "" {
+			return
+		}
+		p.filesDirectory = dir
+		p.scriptSaver = NewFileScriptSaver(dir)
+	}
+}
+
+// Parse -
+func (p *ContractParser) Parse(operation models.Operation) ([]elastic.Model, error) {
 	if !helpers.StringInArray(operation.Kind, []string{
 		consts.Origination, consts.OriginationNew, consts.Migration,
 	}) {
@@ -37,41 +70,52 @@ func createNewContract(es elastic.IElastic, interfaces map[string]kinds.Contract
 		TxCount:    1,
 	}
 
-	if err := computeMetrics(operation, interfaces, filesDirectory, protoSymLink, &contract); err != nil {
-		return nil, err
-	}
-
-	metadata, err := createMetadata(operation.Script, protoSymLink, &contract)
+	protoSymLink, err := meta.GetProtoSymLink(operation.Protocol)
 	if err != nil {
 		return nil, err
 	}
 
-	if _, err := es.AddDocumentWithID(metadata, elastic.DocMetadata, contract.Address); err != nil {
+	if err := p.computeMetrics(operation, protoSymLink, &contract); err != nil {
 		return nil, err
 	}
 
-	upgradable, err := isUpgradable(*metadata, protoSymLink)
+	metadata, err := NewMetadataParser(protoSymLink).Parse(operation.Script, contract.Address)
 	if err != nil {
 		return nil, err
 	}
 
-	if upgradable {
+	contractMetadata, err := meta.GetContractMetadataFromModel(metadata)
+	if err != nil {
+		return nil, err
+	}
+	p.metadata[metadata.ID] = contractMetadata
+
+	if contractMetadata.IsUpgradable(protoSymLink) {
 		contract.Tags = append(contract.Tags, consts.UpgradableTag)
 	}
 
-	if err := setEntrypoints(*metadata, protoSymLink, &contract); err != nil {
+	if err := setEntrypoints(contractMetadata, protoSymLink, &contract); err != nil {
 		return nil, err
 	}
 
-	return []elastic.Model{&contract}, nil
+	return []elastic.Model{&metadata, &contract}, nil
 }
 
-func computeMetrics(operation models.Operation, interfaces map[string]kinds.ContractKind, filesDirectory, protoSymLink string, contract *models.Contract) error {
+// GetContractMetadata -
+func (p ContractParser) GetContractMetadata(address string) (*meta.ContractMetadata, error) {
+	metadata, ok := p.metadata[address]
+	if !ok {
+		return nil, errors.Errorf("Unknown parsed metadata: %s", address)
+	}
+	return metadata, nil
+}
+
+func (p ContractParser) computeMetrics(operation models.Operation, protoSymLink string, contract *models.Contract) error {
 	script, err := contractparser.New(operation.Script)
 	if err != nil {
 		return errors.Errorf("contractparser.New: %v", err)
 	}
-	script.Parse(interfaces)
+	script.Parse(p.interfaces)
 
 	lang, err := script.Language()
 	if err != nil {
@@ -88,73 +132,18 @@ func computeMetrics(operation models.Operation, interfaces map[string]kinds.Cont
 	if err := metrics.SetFingerprint(operation.Script, contract); err != nil {
 		return err
 	}
-	return saveToFile(operation.Script, contract, filesDirectory, protoSymLink)
-}
-
-func saveToFile(script gjson.Result, c *models.Contract, filesDirectory, protoSymLink string) error {
-	filePath := fmt.Sprintf("%s/contracts/%s/%s_%s.json", filesDirectory, c.Network, c.Address, protoSymLink)
-	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		d := path.Dir(filePath)
-		if _, err := os.Stat(d); os.IsNotExist(err) {
-			if err := os.MkdirAll(d, os.ModePerm); err != nil {
-				return err
-			}
-		}
-
-		f, err := os.Create(filePath)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-
-		if _, err := f.WriteString(script.String()); err != nil {
-			return err
-		}
-	} else if err != nil {
-		return err
+	if p.scriptSaver != nil {
+		return p.scriptSaver.Save(operation.Script, scriptSaveContext{
+			Network: contract.Network,
+			Address: contract.Address,
+			SymLink: protoSymLink,
+		})
 	}
 	return nil
 }
 
-func isUpgradable(metadata models.Metadata, protoSymLink string) (bool, error) {
-	parameter := metadata.Parameter[protoSymLink]
-	storage := metadata.Storage[protoSymLink]
-
-	var paramMeta meta.Metadata
-	if err := json.Unmarshal([]byte(parameter), &paramMeta); err != nil {
-		return false, errors.Errorf("Invalid parameter metadata: %v", err)
-	}
-
-	var storageMeta meta.Metadata
-	if err := json.Unmarshal([]byte(storage), &storageMeta); err != nil {
-		return false, errors.Errorf("Invalid parameter metadata: %v", err)
-	}
-
-	for _, p := range paramMeta {
-		if p.Type != consts.LAMBDA {
-			continue
-		}
-
-		for _, s := range storageMeta {
-			if s.Type != consts.LAMBDA {
-				continue
-			}
-
-			if p.Parameter == s.Parameter {
-				return true, nil
-			}
-		}
-	}
-
-	return false, nil
-}
-
-func setEntrypoints(metadata models.Metadata, protoSymLink string, contract *models.Contract) error {
-	var parameterMetadata meta.Metadata
-	if err := json.Unmarshal([]byte(metadata.Parameter[protoSymLink]), &parameterMetadata); err != nil {
-		return err
-	}
-	entrypoints, err := parameterMetadata.GetEntrypoints()
+func setEntrypoints(metadata *meta.ContractMetadata, symLink string, contract *models.Contract) error {
+	entrypoints, err := metadata.Parameter[symLink].GetEntrypoints()
 	if err != nil {
 		return err
 	}

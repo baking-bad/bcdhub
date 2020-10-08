@@ -64,15 +64,19 @@ func (e *Elastic) GetLastBlock(network string) (block models.Block, err error) {
 // GetLastBlocks - return last block for all networks
 func (e *Elastic) GetLastBlocks() ([]models.Block, error) {
 	query := newQuery().Add(
-		aggs("by_network", qItem{
-			"terms": qItem{
-				"field": "network.keyword",
-				"size":  maxQuerySize,
+		aggs(
+			aggItem{
+				"by_network", qItem{
+					"terms": qItem{
+						"field": "network.keyword",
+						"size":  maxQuerySize,
+					},
+					"aggs": qItem{
+						"last": topHits(1, "level", "desc"),
+					},
+				},
 			},
-			"aggs": qItem{
-				"last": topHits(1, "level", "desc"),
-			},
-		}),
+		),
 	).Zero()
 
 	response, err := e.query([]string{DocBlocks}, query)

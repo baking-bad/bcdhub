@@ -106,7 +106,15 @@ func (ctx *GetTransfersContext) filterContracts() {
 		return
 	}
 
-	ctx.filters = append(ctx.filters, in("contract", ctx.Contracts))
+	shouldItems := make([]qItem, len(ctx.Contracts))
+	for i := range ctx.Contracts {
+		shouldItems[i] = matchPhrase("contract", ctx.Contracts[i])
+	}
+
+	ctx.filters = append(ctx.filters, boolQ(
+		should(shouldItems...),
+		minimumShouldMatch(1),
+	))
 }
 
 func (ctx *GetTransfersContext) appendSize() {

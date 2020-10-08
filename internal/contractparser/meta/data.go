@@ -47,6 +47,26 @@ func (c *ContractMetadata) Get(part, protocol string) (Metadata, error) {
 	}
 }
 
+// IsUpgradable -
+func (c *ContractMetadata) IsUpgradable(symLink string) bool {
+	for _, p := range c.Parameter[symLink] {
+		if p.Type != consts.LAMBDA {
+			continue
+		}
+
+		for _, s := range c.Storage[symLink] {
+			if s.Type != consts.LAMBDA {
+				continue
+			}
+
+			if p.Parameter == s.Parameter {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // NodeMetadata -
 type NodeMetadata struct {
 	TypeName      string   `json:"typename,omitempty"`
@@ -346,7 +366,7 @@ func getNodeType(n internalNode, metadata Metadata) (string, []string) {
 }
 
 // GetContractMetadata -
-func GetContractMetadata(es elastic.IElastic, address string) (*ContractMetadata, error) {
+func GetContractMetadata(es elastic.IGeneral, address string) (*ContractMetadata, error) {
 	if address == "" {
 		return nil, errors.Errorf("[GetContractMetadata] Empty address")
 	}
@@ -356,27 +376,32 @@ func GetContractMetadata(es elastic.IElastic, address string) (*ContractMetadata
 		return nil, err
 	}
 
-	metadata := ContractMetadata{
+	return GetContractMetadataFromModel(data)
+}
+
+// GetContractMetadataFromModel -
+func GetContractMetadataFromModel(metadata models.Metadata) (*ContractMetadata, error) {
+	contractMetadata := ContractMetadata{
 		Parameter: map[string]Metadata{},
 		Storage:   map[string]Metadata{},
 	}
 
-	for k, v := range data.Parameter {
+	for k, v := range metadata.Parameter {
 		var m Metadata
 		if err := json.Unmarshal([]byte(v), &m); err != nil {
 			return nil, err
 		}
-		metadata.Parameter[k] = m
+		contractMetadata.Parameter[k] = m
 	}
 
-	for k, v := range data.Storage {
+	for k, v := range metadata.Storage {
 		var m Metadata
 		if err := json.Unmarshal([]byte(v), &m); err != nil {
 			return nil, err
 		}
-		metadata.Storage[k] = m
+		contractMetadata.Storage[k] = m
 	}
-	return &metadata, nil
+	return &contractMetadata, nil
 }
 
 // GetMetadata -

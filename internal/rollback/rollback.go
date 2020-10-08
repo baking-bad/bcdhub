@@ -5,13 +5,13 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser"
-	"github.com/baking-bad/bcdhub/internal/contractparser/tokens"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/parsers/tokens"
 	"github.com/pkg/errors"
 	"github.com/schollz/progressbar/v3"
 )
@@ -78,7 +78,14 @@ func (rm Manager) rollbackOperations(network string, toLevel int64) error {
 
 func (rm Manager) rollbackTokenMetadata(network string, toLevel int64) error {
 	logger.Info("Finding affected token metadata...")
-	affected, err := rm.e.GetAffectedTokenMetadata(network, toLevel)
+	affected, err := rm.e.GetTokenMetadata(elastic.GetTokenMetadataContext{
+		Network: network,
+		TokenID: -1,
+		Level: elastic.Range{
+			Value:      toLevel,
+			Comparator: "gt",
+		},
+	})
 	if err != nil {
 		if !elastic.IsRecordNotFound(err) {
 			return err

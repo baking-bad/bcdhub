@@ -76,29 +76,6 @@ func (e *Elastic) GetContractRandom() (models.Contract, error) {
 	return e.getContract(query)
 }
 
-// GetContractWithdrawn -
-func (e *Elastic) GetContractWithdrawn(address, network string) (int64, error) {
-	b := boolQ(
-		filter(
-			matchQ("network", network),
-			matchQ("source", address),
-		),
-	)
-	query := newQuery().Query(b).Add(
-		qItem{
-			"aggs": qItem{
-				"total_withdrawn": sum("amount"),
-			},
-		},
-	).Zero()
-	res, err := e.query([]string{DocOperations}, query)
-	if err != nil {
-		return 0, err
-	}
-
-	return res.Get("aggregations.total_withdrawn.value").Int(), nil
-}
-
 // IsFAContract -
 func (e *Elastic) IsFAContract(network, address string) (bool, error) {
 	query := newQuery().Query(
@@ -134,7 +111,7 @@ func (e *Elastic) UpdateContractMigrationsCount(address, network string) error {
 	}
 	contract.MigrationsCount++
 
-	_, err = e.UpdateDoc(DocContracts, contract.ID, contract)
+	_, err = e.UpdateDoc(&contract)
 	return err
 }
 
@@ -155,29 +132,6 @@ func (e *Elastic) GetContractAddressesByNetworkAndLevel(network string, maxLevel
 		return resp, err
 	}
 	return resp.Get("hits.hits"), nil
-}
-
-// NeedParseOperation -
-func (e *Elastic) NeedParseOperation(network, source, destination string) (bool, error) {
-	query := newQuery().Query(
-		boolQ(
-			filter(
-				matchQ("network", network),
-				boolQ(
-					should(
-						matchPhrase("address", source),
-						matchPhrase("address", destination),
-					),
-					minimumShouldMatch(1),
-				),
-			),
-		),
-	).One()
-	resp, err := e.query([]string{DocContracts}, query, "address")
-	if err != nil {
-		return false, err
-	}
-	return resp.Get("hits.total.value").Int() == 1, nil
 }
 
 type contractIDs struct {
@@ -300,11 +254,11 @@ func (e *Elastic) GetContractMigrationStats(network, address string) (stats Cont
 			minimumShouldMatch(1),
 		),
 	).Add(
-		qItem{
-			"aggs": qItem{
-				"migrations_count": count("indexed_time"),
+		aggs(
+			aggItem{
+				"migrations_count", count("indexed_time"),
 			},
-		},
+		),
 	).Zero()
 	response, err := e.query([]string{DocMigrations}, query)
 	if err != nil {
@@ -344,17 +298,11 @@ func (e *Elastic) GetDAppStats(network string, addresses []string, period string
 			filter(matches...),
 		),
 	).Add(
-		qItem{
-			"aggs": qItem{
-				"users": qItem{
-					"cardinality": qItem{
-						"field": "source.keyword",
-					},
-				},
-				"tx":     count("indexed_time"),
-				"volume": sum("amount"),
-			},
-		},
+		aggs(
+			aggItem{"users", cardinality("source.keyword")},
+			aggItem{"tx", count("indexed_time")},
+			aggItem{"volume", sum("amount")},
+		),
 	).Zero()
 
 	response, err := e.query([]string{DocOperations}, query)

@@ -15,24 +15,26 @@ import (
 const defaultScrollSize = 1000
 
 type scrollContext struct {
-	Query base
-	Size  int64
+	Query     base
+	Size      int64
+	ChunkSize int64
 
 	e         *Elastic
 	scrollIds map[string]struct{}
 }
 
-func newScrollContext(e *Elastic, query base, size int64) *scrollContext {
+func newScrollContext(e *Elastic, query base, size, chunkSize int64) *scrollContext {
 	return &scrollContext{
 		e:         e,
 		scrollIds: make(map[string]struct{}),
 
-		Query: query,
-		Size:  size,
+		Query:     query,
+		Size:      size,
+		ChunkSize: chunkSize,
 	}
 }
 
-func (ctx *scrollContext) createScroll(index string, size int64, query map[string]interface{}) (result gjson.Result, err error) {
+func (ctx *scrollContext) createScroll(index string, query map[string]interface{}) (result gjson.Result, err error) {
 	var buf bytes.Buffer
 	if err = json.NewEncoder(&buf).Encode(query); err != nil {
 		return
@@ -44,7 +46,7 @@ func (ctx *scrollContext) createScroll(index string, size int64, query map[strin
 		ctx.e.Search.WithIndex(index),
 		ctx.e.Search.WithBody(&buf),
 		ctx.e.Search.WithScroll(time.Minute),
-		ctx.e.Search.WithSize(int(size)),
+		ctx.e.Search.WithSize(int(ctx.ChunkSize)),
 	}
 
 	if resp, err = ctx.e.Search(
@@ -91,7 +93,7 @@ func (ctx *scrollContext) get(output interface{}) error {
 		return err
 	}
 
-	result, err := ctx.createScroll(index, ctx.Size, ctx.Query)
+	result, err := ctx.createScroll(index, ctx.Query)
 	if err != nil {
 		return err
 	}
@@ -105,6 +107,7 @@ func (ctx *scrollContext) get(output interface{}) error {
 			break
 		}
 
+		isBreak := false
 		for _, item := range hits.Array() {
 			n, err := parseResponseItem(item, typ)
 			if err != nil {
@@ -113,9 +116,16 @@ func (ctx *scrollContext) get(output interface{}) error {
 
 			if el.Kind() == reflect.Slice {
 				el.Set(reflect.Append(el, n))
+				if el.Len() == int(ctx.Size) {
+					isBreak = true
+					break
+				}
 			} else {
 				el.Set(n)
 			}
+		}
+		if isBreak {
+			break
 		}
 
 		result, err = ctx.queryScroll(scrollID)
@@ -130,6 +140,7 @@ func (ctx *scrollContext) get(output interface{}) error {
 func (ctx *scrollContext) clear() error {
 	ctx.Query = nil
 	ctx.Size = 0
+	ctx.ChunkSize = 0
 
 	ids := make([]string, 0)
 	for k := range ctx.scrollIds {

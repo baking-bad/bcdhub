@@ -119,16 +119,60 @@ func in(key string, value []string) qItem {
 	}
 }
 
-func includes(fields []string) qItem {
+type aggItem struct {
+	name string
+	body qItem
+}
+
+func aggs(items ...aggItem) qItem {
+	body := qItem{}
+	for i := range items {
+		body[items[i].name] = items[i].body
+	}
 	return qItem{
-		"includes": fields,
+		"aggs": body,
 	}
 }
 
-func aggs(name string, item qItem) qItem {
+func cardinality(field string) qItem {
 	return qItem{
-		"aggs": qItem{
-			name: item,
+		"cardinality": qItem{
+			"field": field,
+		},
+	}
+}
+
+func avg(field string) qItem {
+	return qItem{
+		"avg": qItem{
+			"field": field,
+		},
+	}
+}
+
+func termsAgg(field string, size int64) qItem {
+	t := qItem{
+		"field": field,
+	}
+	if size > 0 {
+		t["size"] = size
+	}
+	return qItem{
+		"terms": t,
+	}
+}
+
+func composite(size int64, items ...aggItem) qItem {
+	body := make([]qItem, 0)
+	for i := range items {
+		body = append(body, qItem{
+			items[i].name: items[i].body,
+		})
+	}
+	return qItem{
+		"composite": qItem{
+			"sources": body,
+			"size":    size,
 		},
 	}
 }

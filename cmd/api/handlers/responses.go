@@ -211,6 +211,8 @@ type Contract struct {
 	Slug               string        `json:"slug,omitempty"`
 	Verified           bool          `json:"verified,omitempty"`
 	VerificationSource string        `json:"verification_source,omitempty"`
+
+	Tokens []TokenBalance `json:"tokens"`
 }
 
 // FromModel -
@@ -493,33 +495,6 @@ func (b *Block) FromModel(block models.Block) {
 	b.Timestamp = block.Timestamp
 }
 
-// ProjectStats -
-type ProjectStats struct {
-	TxCount        int64         `json:"tx_count"`
-	LastAction     time.Time     `json:"last_action"`
-	FirstDeploy    time.Time     `json:"first_deploy"`
-	VersionsCount  int64         `json:"versions_count"`
-	ContractsCount int64         `json:"contracts_count"`
-	Language       string        `json:"language"`
-	Name           string        `json:"name"`
-	Last           LightContract `json:"last"`
-}
-
-// FromModel -
-func (s *ProjectStats) FromModel(stats elastic.ProjectStats) {
-	s.TxCount = stats.TxCount
-	s.LastAction = stats.LastAction
-	s.FirstDeploy = stats.FirstDeploy
-	s.VersionsCount = stats.VersionsCount
-	s.ContractsCount = stats.ContractsCount
-	s.Language = stats.Language
-	s.Name = stats.Name
-
-	var last LightContract
-	last.FromModel(stats.Last)
-	s.Last = last
-}
-
 // LightContract -
 type LightContract struct {
 	Address  string    `json:"address"`
@@ -659,4 +634,25 @@ type Screenshot struct {
 type Token struct {
 	models.TokenMetadata
 	elastic.TokenSupply
+}
+
+// AccountInfo -
+type AccountInfo struct {
+	Address    string         `json:"address"`
+	Network    string         `json:"network"`
+	Alias      string         `json:"alias,omitempty"`
+	Balance    int64          `json:"balance"`
+	TxCount    int64          `json:"tx_count"`
+	LastAction time.Time      `json:"last_action"`
+	Tokens     []TokenBalance `json:"tokens"`
+}
+
+// TokenBalance -
+type TokenBalance struct {
+	Contract string `json:"contract"`
+	TokenID  int64  `json:"token_id"`
+	Balance  int64  `json:"balance"`
+	Symbol   string `json:"symbol,omitempty"`
+	Name     string `json:"name,omitempty"`
+	Decimals int64  `json:"decimals"`
 }

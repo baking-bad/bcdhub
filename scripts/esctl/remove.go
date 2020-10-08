@@ -3,8 +3,6 @@ package main
 import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/rollback"
-	"github.com/elastic/go-elasticsearch/v8/esapi"
-	"github.com/pkg/errors"
 )
 
 type removeCommand struct {
@@ -42,21 +40,5 @@ var deleteIndicesCmd deleteIndicesCommand
 
 // Execute
 func (x *deleteIndicesCommand) Execute(args []string) error {
-	api := ctx.ES.GetAPI()
-	options := []func(*esapi.IndicesDeleteRequest){
-		api.Indices.Delete.WithAllowNoIndices(true),
-	}
-
-	resp, err := api.Indices.Delete(mappingNames, options...)
-	if err != nil {
-		return err
-	}
-
-	defer resp.Body.Close()
-
-	if resp.IsError() {
-		return errors.Errorf(resp.Status())
-	}
-
-	return nil
+	return ctx.ES.DeleteIndices(mappingNames)
 }

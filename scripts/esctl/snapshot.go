@@ -112,19 +112,7 @@ var reloadSecureSettingsCmd reloadSecureSettingsCommand
 
 // Execute
 func (x *reloadSecureSettingsCommand) Execute(args []string) error {
-	api := ctx.ES.GetAPI()
-	resp, err := api.Nodes.ReloadSecureSettings()
-	if err != nil {
-		return err
-	}
-
-	defer resp.Body.Close()
-
-	if resp.IsError() {
-		return errors.Errorf(resp.Status())
-	}
-
-	return nil
+	return ctx.ES.ReloadSecureSettings()
 }
 
 func listPolicies(es elastic.IElastic) error {

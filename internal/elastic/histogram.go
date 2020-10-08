@@ -38,13 +38,15 @@ func (ctx histogramContext) build() base {
 	}
 
 	if ctx.hasFunction() {
-		hist.Append("aggs", qItem{
-			"result": qItem{
-				ctx.Function.Name: qItem{
-					"field": ctx.Function.Field,
+		hist.Extend(aggs(
+			aggItem{
+				"result", qItem{
+					ctx.Function.Name: qItem{
+						"field": ctx.Function.Field,
+					},
 				},
 			},
-		})
+		))
 	}
 
 	matches := make([]qItem, 0)
@@ -79,7 +81,7 @@ func (ctx histogramContext) build() base {
 			),
 		),
 	).Add(
-		aggs("hist", hist),
+		aggs(aggItem{"hist", hist}),
 	).Zero()
 }
 

@@ -152,8 +152,7 @@ func (e *Elastic) TestConnection() (result gjson.Result, err error) {
 	return e.getResponse(res)
 }
 
-// CreateIndexIfNotExists -
-func (e *Elastic) CreateIndexIfNotExists(index string) error {
+func (e *Elastic) createIndexIfNotExists(index string) error {
 	req := esapi.IndicesExistsRequest{
 		Index: []string{index},
 	}
@@ -204,7 +203,7 @@ func (e *Elastic) CreateIndexes() error {
 		DocTokenMetadata,
 		DocTZIP,
 	} {
-		if err := e.CreateIndexIfNotExists(index); err != nil {
+		if err := e.createIndexIfNotExists(index); err != nil {
 			return err
 		}
 	}
@@ -294,6 +293,39 @@ func (e *Elastic) DeleteByLevelAndNetwork(indices []string, network string, maxL
 	return nil
 }
 
+// DeleteIndices -
+func (e *Elastic) DeleteIndices(indices []string) error {
+	options := []func(*esapi.IndicesDeleteRequest){
+		e.Indices.Delete.WithAllowNoIndices(true),
+	}
+
+	resp, err := e.Indices.Delete(indices, options...)
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.IsError() {
+		return errors.Errorf(resp.Status())
+	}
+
+	return nil
+}
+
+// ReloadSecureSettings -
+func (e *Elastic) ReloadSecureSettings() error {
+	resp, err := e.Nodes.ReloadSecureSettings()
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	if resp.IsError() {
+		return errors.Errorf(resp.Status())
+	}
+
 // DeleteByContract -
 // TODO - delete context
 func (e *Elastic) DeleteByContract(indices []string, network, address string) error {
@@ -320,5 +352,6 @@ func (e *Elastic) DeleteByContract(indices []string, network, address string) er
 		end = response.Get("version_conflicts").Int() == 0
 		log.Printf("Removed %d/%d records from %s", response.Get("deleted").Int(), response.Get("total").Int(), strings.Join(indices, ","))
 	}
+  
 	return nil
 }
