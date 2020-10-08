@@ -326,6 +326,9 @@ func (e *Elastic) ReloadSecureSettings() error {
 		return errors.Errorf(resp.Status())
 	}
 
+	return nil
+}
+
 // DeleteByContract -
 // TODO - delete context
 func (e *Elastic) DeleteByContract(indices []string, network, address string) error {
@@ -352,6 +355,6 @@ func (e *Elastic) DeleteByContract(indices []string, network, address string) er
 		end = response.Get("version_conflicts").Int() == 0
 		log.Printf("Removed %d/%d records from %s", response.Get("deleted").Int(), response.Get("total").Int(), strings.Join(indices, ","))
 	}
-  
+
 	return nil
 }
