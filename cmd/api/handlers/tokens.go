@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
@@ -18,9 +17,8 @@ import (
 // @Tags tokens
 // @ID get-tokens
 // @Param network path string true "Network"
-// @Param offset query integer false "Offset (deprecated)"
-// @Param last_id query string false "Last ID"
-// @Param size query integer false "Requested count"
+// @Param offset query integer false "Offset"
+// @Param size query integer false "Requested count" minimum(0) maximum(100)
 // @Accept json
 // @Produce json
 // @Success 200 {array} PageableTokenContracts
@@ -33,22 +31,14 @@ func (ctx *Context) GetFA(c *gin.Context) {
 		return
 	}
 
-	var cursorReq cursorRequest
+	var cursorReq pageableRequest
 	if err := c.BindQuery(&cursorReq); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 	if cursorReq.Size == 0 {
 		cursorReq.Size = 20
 	}
-	var lastID int64
-	if cursorReq.LastID != "" {
-		var err error
-		lastID, err = strconv.ParseInt(cursorReq.LastID, 10, 64)
-		if handleError(c, err, http.StatusBadRequest) {
-			return
-		}
-	}
-	contracts, total, err := ctx.ES.GetTokens(req.Network, "", lastID, cursorReq.Size)
+	contracts, total, err := ctx.ES.GetTokens(req.Network, "", cursorReq.Offset, cursorReq.Size)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -69,9 +59,8 @@ func (ctx *Context) GetFA(c *gin.Context) {
 // @ID get-tokens
 // @Param network path string true "Network"
 // @Param faversion path string true "FA token version" Enums(fa1, fa12, fa2)
-// @Param offset query integer false "Offset (deprecated)"
-// @Param last_id query string false "Last ID"
-// @Param size query integer false "Requested count"
+// @Param offset query integer false "Offset"
+// @Param size query integer false "Requested count" minimum(0) maximum(100)
 // @Accept json
 // @Produce json
 // @Success 200 {array} PageableTokenContracts
@@ -84,22 +73,14 @@ func (ctx *Context) GetFAByVersion(c *gin.Context) {
 		return
 	}
 
-	var cursorReq cursorRequest
+	var cursorReq pageableRequest
 	if err := c.BindQuery(&cursorReq); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 	if cursorReq.Size == 0 {
 		cursorReq.Size = 20
 	}
-	var lastID int64
-	if cursorReq.LastID != "" {
-		var err error
-		lastID, err = strconv.ParseInt(cursorReq.LastID, 10, 64)
-		if handleError(c, err, http.StatusBadRequest) {
-			return
-		}
-	}
-	contracts, total, err := ctx.ES.GetTokens(req.Network, req.Version, lastID, cursorReq.Size)
+	contracts, total, err := ctx.ES.GetTokens(req.Network, req.Version, cursorReq.Offset, cursorReq.Size)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -278,13 +259,8 @@ func (ctx *Context) contractToTokens(contracts []models.Contract, network, versi
 		}
 	}
 
-	var lastID int64
-	if len(contracts) > 0 {
-		lastID = contracts[len(contracts)-1].LastAction.UTC().Unix()
-	}
 	return PageableTokenContracts{
 		Tokens: tokens,
-		LastID: lastID,
 	}, nil
 }
 
