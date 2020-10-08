@@ -9,7 +9,7 @@ import (
 )
 
 // GetTokens -
-func (e *Elastic) GetTokens(network, tokenInterface string, lastAction, size int64) ([]models.Contract, int64, error) {
+func (e *Elastic) GetTokens(network, tokenInterface string, offset, size int64) ([]models.Contract, int64, error) {
 	tags := []string{"fa12", "fa1", "fa2"}
 	if tokenInterface == "fa12" || tokenInterface == "fa1" || tokenInterface == "fa2" {
 		tags = []string{tokenInterface}
@@ -22,10 +22,10 @@ func (e *Elastic) GetTokens(network, tokenInterface string, lastAction, size int
 				in("tags", tags),
 			),
 		),
-	).Sort("last_action", "desc").Size(size)
+	).Sort("timestamp", "desc").Size(size)
 
-	if lastAction != 0 {
-		query = query.SearchAfter([]interface{}{lastAction * 1000})
+	if offset != 0 {
+		query = query.From(offset)
 	}
 
 	result, err := e.query([]string{DocContracts}, query)

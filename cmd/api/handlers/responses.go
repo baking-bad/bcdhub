@@ -352,7 +352,6 @@ type TokenMethodStats struct {
 type PageableTokenContracts struct {
 	Total  int64           `json:"total"`
 	Tokens []TokenContract `json:"tokens"`
-	LastID int64           `json:"last_id,omitempty"`
 }
 
 // TokenTransfer -
