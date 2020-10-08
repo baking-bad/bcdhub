@@ -37,7 +37,7 @@ services:
 
   db:
     container_name: bcd-db
-    image: postgres:latest
+    image: postgres:12
     restart: always
     env_file:
       - .env
