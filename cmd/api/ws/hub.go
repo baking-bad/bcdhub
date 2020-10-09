@@ -15,23 +15,19 @@ import (
 // Hub -
 type Hub struct {
 	sources []datasources.DataSource
-	clients map[int]*Client
-	public  map[string]channels.Channel
+	clients sync.Map
+	public  sync.Map
 
 	elastic elastic.IElastic
 
 	stop chan struct{}
 	wg   sync.WaitGroup
-
-	mux sync.Mutex
 }
 
 // NewHub -
 func NewHub(opts ...HubOption) *Hub {
 	h := &Hub{
 		sources: make([]datasources.DataSource, 0),
-		clients: make(map[int]*Client),
-		public:  make(map[string]channels.Channel),
 
 		stop: make(chan struct{}),
 	}
@@ -60,7 +56,7 @@ func DefaultHub(connectionElastic string, timeoutElastic int, messageQueue *mq.Q
 
 // AddPublicChannel -
 func (h *Hub) AddPublicChannel(channel channels.Channel) {
-	h.public[channel.GetName()] = channel
+	h.public.Store(channel.GetName(), channel)
 }
 
 // AddClient -
@@ -68,17 +64,23 @@ func (h *Hub) AddClient(client *Client) {
 	client.hub = h
 	client.AddHandler("subscribe", subscribeHandler)
 	client.AddHandler("unsubscribe", unsubscribeHandler)
-	h.mux.Lock()
-	h.clients[client.id] = client
-	h.mux.Unlock()
+	h.clients.Store(client.id, client)
+}
+
+// GetPublicChannel -
+func (h *Hub) GetPublicChannel(name string) (channels.Channel, bool) {
+	c, ok := h.public.Load(name)
+	if !ok {
+		return nil, ok
+	}
+	channel, ok := c.(channels.Channel)
+	return channel, ok
 }
 
 // RemoveClient -
 func (h *Hub) RemoveClient(client *Client) {
-	if _, ok := h.clients[client.id]; ok {
-		h.mux.Lock()
-		delete(h.clients, client.id)
-		h.mux.Unlock()
+	if _, ok := h.clients.Load(client.id); ok {
+		h.clients.Delete(client.id)
 	}
 }
 
@@ -88,9 +90,11 @@ func (h *Hub) Run() {
 		h.sources[i].Run()
 	}
 
-	for _, channel := range h.public {
-		h.runChannel(channel)
-	}
+	h.public.Range(func(key, val interface{}) bool {
+		ch := val.(channels.Channel)
+		h.runChannel(ch)
+		return true
+	})
 }
 
 func (h *Hub) runChannel(channel channels.Channel) {
@@ -101,16 +105,21 @@ func (h *Hub) runChannel(channel channels.Channel) {
 
 // Stop -
 func (h *Hub) Stop() {
-	h.mux.Lock()
+	defer h.wg.Wait()
+
 	close(h.stop)
-	for _, channel := range h.public {
-		channel.Stop()
-	}
-	for _, client := range h.clients {
+
+	h.clients.Range(func(key, val interface{}) bool {
+		client := val.(*Client)
 		client.Close()
-	}
-	h.mux.Unlock()
-	h.wg.Wait()
+		return true
+	})
+
+	h.public.Range(func(key, val interface{}) bool {
+		ch := val.(channels.Channel)
+		ch.Stop()
+		return true
+	})
 }
 
 func (h *Hub) listenChannel(channel channels.Channel) {
@@ -120,11 +129,14 @@ func (h *Hub) listenChannel(channel channels.Channel) {
 		case <-h.stop:
 			return
 		case msg := <-channel.Listen():
-			h.mux.Lock()
-			for _, client := range h.clients {
-				client.Send(msg)
+			if msg.Body == nil && msg.ChannelName == "" {
+				return
 			}
-			h.mux.Unlock()
+			h.clients.Range(func(key, val interface{}) bool {
+				client := val.(*Client)
+				client.Send(msg)
+				return true
+			})
 		}
 	}
 }
@@ -136,7 +148,7 @@ func createDynamicChannels(c *Client, channelName string, data *fastjson.Value) 
 		network := parseString(data, "network")
 
 		operationsChannelName := fmt.Sprintf("%s_%s_%s", channelName, network, address)
-		if _, ok := c.subscriptions[operationsChannelName]; ok {
+		if _, ok := c.subscriptions.Load(operationsChannelName); ok {
 			return nil, nil
 		}
 		return channels.NewOperationsChannel(address, network,
@@ -155,7 +167,7 @@ func subscribeHandler(c *Client, data []byte) error {
 		return err
 	}
 	channelName := parseString(val, "channel")
-	channel, ok := c.hub.public[channelName]
+	channel, ok := c.hub.GetPublicChannel(channelName)
 	if !ok {
 		channel, err = createDynamicChannels(c, channelName, val)
 		if err != nil {
@@ -166,9 +178,7 @@ func subscribeHandler(c *Client, data []byte) error {
 		}
 		c.hub.runChannel(channel)
 	}
-	c.mux.Lock()
-	c.subscriptions[channel.GetName()] = channel
-	c.mux.Unlock()
+	c.subscriptions.Store(channel.GetName(), channel)
 
 	return channel.Init()
 }
@@ -180,14 +190,12 @@ func unsubscribeHandler(c *Client, data []byte) error {
 		return err
 	}
 	channelName := parseString(val, "channel")
-	c.mux.Lock()
-	if channel, ok := c.subscriptions[channelName]; ok {
-		if _, isPublic := c.hub.public[channelName]; !isPublic {
+	if channel, ok := c.GetSubscription(channelName); ok {
+		if _, isPublic := c.hub.public.Load(channelName); !isPublic {
 			channel.Stop()
 		}
 	}
-	delete(c.subscriptions, channelName)
-	c.mux.Unlock()
+	c.subscriptions.Delete(channelName)
 	return c.sendOk(fmt.Sprintf("unsubscribed from %s", channelName))
 }
 

@@ -18,36 +18,26 @@ type DataSource interface {
 
 // DefaultSource -
 type DefaultSource struct {
-	subscribers map[chan Data]struct{}
-	mux         sync.Mutex
+	subscribers sync.Map
 }
 
 // NewDefaultSource -
 func NewDefaultSource() *DefaultSource {
-	return &DefaultSource{
-		subscribers: make(map[chan Data]struct{}),
-	}
+	return &DefaultSource{}
 }
 
 // Subscribe -
 func (s *DefaultSource) Subscribe() chan Data {
 	ch := make(chan Data)
-	s.mux.Lock()
-	defer s.mux.Unlock()
-
-	s.subscribers[ch] = struct{}{}
-
+	s.subscribers.Store(ch, struct{}{})
 	return ch
 }
 
 // Unsubscribe -
 func (s *DefaultSource) Unsubscribe(ch chan Data) {
-	s.mux.Lock()
-	defer s.mux.Unlock()
-
-	if _, ok := s.subscribers[ch]; ok {
+	if _, ok := s.subscribers.Load(ch); ok {
 		close(ch)
-		delete(s.subscribers, ch)
+		s.subscribers.Delete(ch)
 	}
 }
 

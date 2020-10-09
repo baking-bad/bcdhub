@@ -45,9 +45,10 @@ func (c *RabbitMQ) Run() {
 func (c *RabbitMQ) Stop() {
 	close(c.stop)
 	c.wg.Wait()
-	for ch := range c.subscribers {
-		close(ch)
-	}
+	c.subscribers.Range(func(key, val interface{}) bool {
+		close(key.(chan Data))
+		return true
+	})
 	c.source.Close()
 }
 
@@ -87,9 +88,12 @@ func (c *RabbitMQ) handler(data amqp.Delivery) error {
 			Type: c.GetType(),
 			Body: data.Body,
 		}
-		for ch := range c.subscribers {
+
+		c.subscribers.Range(func(key, value interface{}) bool {
+			ch := key.(chan Data)
 			ch <- val
-		}
+			return true
+		})
 	default:
 		if data.RoutingKey == "" {
 			logger.Warning("Rabbit MQ server stopped! API need to be restarted. Closing connection...")

@@ -57,7 +57,7 @@ func (s HTTPStorage) Get(value string) (*models.TZIP, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, nil
 	}
 	defer resp.Body.Close()
 
