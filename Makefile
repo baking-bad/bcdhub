@@ -94,8 +94,10 @@ stable:
 	TAG=$$STABLE_TAG docker-compose up -d
 
 upgrade:
+	$(MAKE) clearmq
 	docker-compose down
 	TAG=$$STABLE_TAG $(MAKE) es-reset
+	docker-compose up -d db mq
 
 restart:
 	docker-compose restart bcd-api bcd-metrics bcd-indexer

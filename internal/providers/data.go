@@ -13,6 +13,12 @@ type Project struct {
 	URL     string `json:"url"`
 }
 
+// Account -
+type Account struct {
+	Login     string `json:"login"`
+	AvatarURL string `json:"avatarURL"`
+}
+
 // Ref -
 type Ref struct {
 	Name string `json:"name"`

@@ -205,6 +205,7 @@ func main() {
 					vote.GET("tasks", ctx.GetTasks)
 					vote.GET("generate", ctx.GenerateTasks)
 				}
+				profile.GET("accounts", ctx.ListPublicAccounts)
 				profile.GET("repos", ctx.ListPublicRepos)
 				profile.GET("refs", ctx.ListPublicRefs)
 

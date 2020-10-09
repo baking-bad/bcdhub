@@ -72,6 +72,11 @@ func getGitlabUser(token string) (*gitlab.User, *gitlab.Response, error) {
 	return client.Users.CurrentUser()
 }
 
+// GetOrganizations -
+func (p *Gitlab) GetOrganizations(login string) ([]Account, error) {
+	return []Account{}, nil
+}
+
 // GetRepos -
 func (p *Gitlab) GetRepos(login string) ([]Project, error) {
 	client, err := gitlab.NewClient("")

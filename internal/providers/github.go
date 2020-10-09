@@ -79,6 +79,28 @@ func getGithubUser(token *oauth2.Token) (*github.User, *github.Response, error) 
 	return client.Users.Get(context.Background(), "")
 }
 
+// GetOrganizations -
+func (p *Github) GetOrganizations(login string) ([]Account, error) {
+	client := github.NewClient(nil)
+	orgs, resp, err := client.Organizations.List(context.Background(), login, nil)
+	if resp.StatusCode == http.StatusNotFound {
+		return []Account{}, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]Account, len(orgs))
+	for i, org := range orgs {
+		res[i] = Account{
+			Login:     org.GetLogin(),
+			AvatarURL: org.GetAvatarURL(),
+		}
+	}
+
+	return res, nil
+}
+
 // GetRepos -
 func (p *Github) GetRepos(login string) ([]Project, error) {
 	client := github.NewClient(nil)
