@@ -304,8 +304,14 @@ type compilationTasksRequest struct {
 	compilationRequest
 	Kind string `form:"kind" binding:"omitempty,compilation_kind"`
 }
+
+type publicReposRequest struct {
+	Login string `form:"login" binding:"required"`
+}
+
 type publicRefsRequest struct {
-	Repo string `form:"repo" binding:"required"`
+	Owner string `form:"owner" binding:"required"`
+	Repo  string `form:"repo" binding:"required"`
 }
 
 type getDappRequest struct {

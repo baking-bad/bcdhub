@@ -9,6 +9,7 @@ import (
 
 // Public -
 type Public interface {
+	GetOrganizations(login string) ([]Account, error)
 	GetRepos(login string) ([]Project, error)
 	GetRefs(owner, repo string) ([]Ref, error)
 	ArchivePath(owner, repo, ref string) string
