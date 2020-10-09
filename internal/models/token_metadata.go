@@ -23,6 +23,7 @@ type TokenMetadata struct {
 	Name     string                 `json:"name"`
 	Decimals int64                  `json:"decimals"`
 	Extras   map[string]interface{} `json:"extras,omitempty"`
+	FoundBy  string                 `json:"found_by,omitempty"`
 }
 
 // ParseElasticJSON -
@@ -45,6 +46,7 @@ func (tm *TokenMetadata) ParseElasticJSON(resp gjson.Result) {
 	for k, v := range resp.Get("_source.extras").Map() {
 		tm.Extras[k] = v.Value()
 	}
+	tm.FoundBy = tm.FoundByName(resp)
 }
 
 // GetID -
@@ -70,8 +72,8 @@ func (tm *TokenMetadata) Marshal() ([]byte, error) {
 // GetScores -
 func (tm *TokenMetadata) GetScores(search string) []string {
 	return []string{
-		"symbol^10",
-		"name^10",
+		"name^8",
+		"symbol^8",
 		"contract^7",
 		"registry_address^6",
 	}
