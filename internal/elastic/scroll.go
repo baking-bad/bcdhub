@@ -24,6 +24,9 @@ type scrollContext struct {
 }
 
 func newScrollContext(e *Elastic, query base, size, chunkSize int64) *scrollContext {
+	if chunkSize == 0 {
+		chunkSize = defaultScrollSize
+	}
 	return &scrollContext{
 		e:         e,
 		scrollIds: make(map[string]struct{}),

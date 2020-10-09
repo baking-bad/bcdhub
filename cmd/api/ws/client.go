@@ -26,8 +26,7 @@ type Client struct {
 	sender chan channels.Message
 	stop   chan struct{}
 
-	subscriptions map[string]channels.Channel
-	mux           sync.Mutex
+	subscriptions sync.Map
 
 	handlers map[string]ClientHandler
 	sendMux  sync.Mutex
@@ -47,18 +46,25 @@ func NewClient(conn *websocket.Conn) *Client {
 		sender: make(chan channels.Message),
 		stop:   make(chan struct{}),
 
-		subscriptions: make(map[string]channels.Channel),
-		handlers:      make(map[string]ClientHandler),
+		handlers: make(map[string]ClientHandler),
 	}
+}
+
+// GetSubscription -
+func (c *Client) GetSubscription(name string) (channels.Channel, bool) {
+	val, ok := c.subscriptions.Load(name)
+	if !ok {
+		return nil, ok
+	}
+	channel, ok := val.(channels.Channel)
+	return channel, ok
 }
 
 // Send -
 func (c *Client) Send(msg channels.Message) {
-	c.mux.Lock()
-	if _, ok := c.subscriptions[msg.ChannelName]; ok {
+	if _, ok := c.subscriptions.Load(msg.ChannelName); ok {
 		c.sender <- msg
 	}
-	c.mux.Unlock()
 }
 
 // Run -
@@ -84,6 +90,9 @@ func (c *Client) sendMessage(message interface{}) error {
 	c.sendMux.Lock()
 	defer c.sendMux.Unlock()
 
+	if err := c.conn.SetWriteDeadline(time.Now().Add(time.Second * 2)); err != nil {
+		return err
+	}
 	return c.conn.WriteJSON(message)
 }
 
