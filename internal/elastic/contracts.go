@@ -279,6 +279,7 @@ func (e *Elastic) GetDAppStats(network string, addresses []string, period string
 
 	matches := []qItem{
 		matchQ("network", network),
+		exists("entrypoint"),
 		boolQ(
 			should(addressMatches...),
 			minimumShouldMatch(1),
@@ -300,7 +301,7 @@ func (e *Elastic) GetDAppStats(network string, addresses []string, period string
 	).Add(
 		aggs(
 			aggItem{"users", cardinality("source.keyword")},
-			aggItem{"tx", count("indexed_time")},
+			aggItem{"calls", count("indexed_time")},
 			aggItem{"volume", sum("amount")},
 		),
 	).Zero()
