@@ -149,6 +149,12 @@ func getHistogramOptions(name, network string, addresses ...string) ([]elastic.H
 			Kind:  elastic.HistogramFilterKindExists,
 		})
 
+		filters = append(filters, elastic.HistogramFilter{
+			Field: "status",
+			Value: "applied",
+			Kind:  elastic.HistogramFilterKindMatch,
+		})
+
 		if len(addresses) > 0 {
 			filters = append(filters, elastic.HistogramFilter{
 				Kind:  elastic.HistogramFilterKindAddresses,
