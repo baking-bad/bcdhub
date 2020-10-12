@@ -21,15 +21,22 @@ func (e *Elastic) GetBigMapDiffsUniqueByOperationID(operationID string) ([]model
 		Add(
 			aggs(
 				aggItem{
-					"keys", qItem{
-						"terms": qItem{
-							"field": "key_hash.keyword",
-							"size":  maxQuerySize,
+					"keys",
+					composite(
+						maxQuerySize,
+						aggItem{
+							"ptr", termsAgg("ptr", 0),
 						},
-						"aggs": qItem{
-							"top_key": topHits(1, "indexed_time", "desc"),
+						aggItem{
+							"key_hash", termsAgg("key_hash.keyword", 0),
 						},
-					},
+					).Extend(
+						aggs(
+							aggItem{
+								"top_key", topHits(1, "indexed_time", "desc"),
+							},
+						),
+					),
 				},
 			),
 		).Zero()
