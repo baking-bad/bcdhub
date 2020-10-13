@@ -69,12 +69,12 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 			return err
 		}
 
-		for i := range transfers {
-			if _, err := h.SetTransferAliases(ctx.Aliases, transfers[i]); err != nil {
+		for j := range transfers {
+			if _, err := h.SetTransferAliases(ctx.Aliases, transfers[j]); err != nil {
 				return err
 			}
-			result = append(result, transfers[i])
-
+			// logger.Info("%s %##v", operations[i].Entrypoint, transfers[j])
+			result = append(result, transfers[j])
 		}
 	}
 
