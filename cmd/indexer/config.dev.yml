@@ -25,8 +25,8 @@ indexer:
     networks:
         mainnet:
           boost: tzkt
-        carthagenet:
-          boost: tzkt
-        delphinet:
-          boost: tzkt
-        dalphanet:
+        # carthagenet:
+        #   boost: tzkt
+        # delphinet:
+        #   boost: tzkt
+        # dalphanet:

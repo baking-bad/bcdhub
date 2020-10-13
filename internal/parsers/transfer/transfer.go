@@ -60,8 +60,6 @@ func (p Parser) makeFA12Transfers(operation models.Operation, parameters gjson.R
 	}
 	transfer.From = fromAddr
 	transfer.To = toAddr
-	transfer.Nonce = operation.Nonce
-	transfer.Counter = operation.Counter
 	transfer.Amount = parameters.Get("args.1.args.1.int").Float()
 	return []*models.Transfer{transfer}, nil
 }
@@ -83,8 +81,6 @@ func (p Parser) makeFA2Transfers(operation models.Operation, parameters gjson.Re
 			transfer.To = toAddr
 			transfer.Amount = to.Get("args.1.args.1.int").Float()
 			transfer.TokenID = to.Get("args.1.args.0.int").Int()
-			transfer.Nonce = operation.Nonce
-			transfer.Counter = operation.Counter
 			transfers = append(transfers, transfer)
 		}
 	}
