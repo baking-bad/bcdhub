@@ -77,6 +77,14 @@ func (p *OPGParser) Parse(opg gjson.Result, network string, head noderpc.Header)
 			return nil, err
 		}
 
+		transfers, err := p.transferParser.Parse(mainOperation)
+		if err != nil {
+			return nil, err
+		}
+		for i := range transfers {
+			resultModels = append(resultModels, transfers[i])
+		}
+
 		if len(resultModels) > 0 {
 			parsedModels = append(parsedModels, resultModels...)
 		}
@@ -146,13 +154,6 @@ func (p *OPGParser) parseTransaction(data gjson.Result, network, hash string, he
 
 	if err := p.tagOperation(&op); err != nil {
 		return nil, op, err
-	}
-	transfers, err := p.transferParser.Parse(op)
-	if err != nil {
-		return nil, op, err
-	}
-	for i := range transfers {
-		transactionModels = append(transactionModels, transfers[i])
 	}
 	return transactionModels, op, nil
 }
@@ -381,6 +382,14 @@ func (p *OPGParser) parseInternalOperations(item gjson.Result, main models.Opera
 
 				nonce := op.Get("nonce").Int()
 				internalOperation.Nonce = &nonce
+
+				transfers, err := p.transferParser.Parse(*internalOperation)
+				if err != nil {
+					return nil, err
+				}
+				for i := range transfers {
+					internalModels = append(internalModels, transfers[i])
+				}
 			}
 
 			internalModels = append(internalModels, parsedModels[j])
