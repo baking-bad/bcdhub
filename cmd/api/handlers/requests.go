@@ -60,7 +60,7 @@ type operationsRequest struct {
 
 type pageableRequest struct {
 	Offset int64 `form:"offset" binding:"min=0"`
-	Size   int64 `form:"size" binding:"min=0,max=100"`
+	Size   int64 `form:"size" binding:"min=0,max=10000"`
 }
 
 type cursorRequest struct {
