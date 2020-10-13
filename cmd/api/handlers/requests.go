@@ -65,7 +65,7 @@ type pageableRequest struct {
 
 type cursorRequest struct {
 	LastID string `form:"last_id" binding:"omitempty,numeric"`
-	Size   int64  `form:"size" binding:"min=0,max=100"`
+	Size   int64  `form:"size" binding:"min=0,max=10000"`
 }
 
 type searchRequest struct {
