@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	maxTransfersSize = 100
+	maxTransfersSize = 10000
 )
 
 // GetTransfersContext -
@@ -121,7 +121,7 @@ func (ctx *GetTransfersContext) appendSize() {
 	if ctx.Size > 0 && ctx.Size <= maxTransfersSize {
 		ctx.query.Size(ctx.Size)
 	} else {
-		ctx.query.Size(defaultSize)
+		ctx.query.Size(maxTransfersSize)
 	}
 }
 
