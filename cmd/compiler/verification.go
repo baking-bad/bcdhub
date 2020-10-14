@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/baking-bad/bcdhub/internal/compiler/compilation"
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -93,6 +95,10 @@ func (ctx *Context) verify(ct compilation.Task) (*database.CompilationTask, erro
 
 	if err := ctx.DB.UpdateTaskResults(task, status, res); err != nil {
 		return nil, err
+	}
+
+	if status != compilation.StatusSuccess {
+		return nil, fmt.Errorf("verification for task_id %v failed", ct.ID)
 	}
 
 	return task, nil
