@@ -16,6 +16,7 @@ type CompilationTask struct {
 	UserID    uint                    `json:"user_id"`
 	Address   string                  `json:"address"`
 	Network   string                  `json:"network"`
+	Account   string                  `json:"account"`
 	Repo      string                  `json:"repo"`
 	Ref       string                  `json:"ref"`
 	Kind      string                  `gorm:"not null" json:"kind"`
