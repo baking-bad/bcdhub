@@ -11,6 +11,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/parsers/contract"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
@@ -36,7 +37,7 @@ func (p *MigrationParser) Parse(script gjson.Result, old models.Contract, previo
 		return nil, nil, err
 	}
 
-	if err := NewMetadataParser(next.SymLink).UpdateMetadata(script, old.Address, &metadata); err != nil {
+	if err := contract.NewMetadataParser(next.SymLink).UpdateMetadata(script, old.Address, &metadata); err != nil {
 		return nil, nil, err
 	}
 

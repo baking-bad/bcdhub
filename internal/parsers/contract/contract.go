@@ -1,4 +1,4 @@
-package parsers
+package contract
 
 import (
 	"github.com/baking-bad/bcdhub/internal/contractparser"
@@ -12,8 +12,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// ContractParser -
-type ContractParser struct {
+// Parser -
+type Parser struct {
 	interfaces     map[string]kinds.ContractKind
 	filesDirectory string
 
@@ -22,9 +22,9 @@ type ContractParser struct {
 	scriptSaver ScriptSaver
 }
 
-// NewContractParser -
-func NewContractParser(interfaces map[string]kinds.ContractKind, opts ...ContractParserOption) ContractParser {
-	parser := ContractParser{
+// NewParser -
+func NewParser(interfaces map[string]kinds.ContractKind, opts ...ParserOption) Parser {
+	parser := Parser{
 		interfaces: interfaces,
 		metadata:   make(map[string]*meta.ContractMetadata),
 	}
@@ -36,12 +36,12 @@ func NewContractParser(interfaces map[string]kinds.ContractKind, opts ...Contrac
 	return parser
 }
 
-// ContractParserOption -
-type ContractParserOption func(p *ContractParser)
+// ParserOption -
+type ParserOption func(p *Parser)
 
 // WithShareDirContractParser -
-func WithShareDirContractParser(dir string) ContractParserOption {
-	return func(p *ContractParser) {
+func WithShareDirContractParser(dir string) ParserOption {
+	return func(p *Parser) {
 		if dir == "" {
 			return
 		}
@@ -51,7 +51,7 @@ func WithShareDirContractParser(dir string) ContractParserOption {
 }
 
 // Parse -
-func (p *ContractParser) Parse(operation models.Operation) ([]elastic.Model, error) {
+func (p *Parser) Parse(operation models.Operation) ([]elastic.Model, error) {
 	if !helpers.StringInArray(operation.Kind, []string{
 		consts.Origination, consts.OriginationNew, consts.Migration,
 	}) {
@@ -102,7 +102,7 @@ func (p *ContractParser) Parse(operation models.Operation) ([]elastic.Model, err
 }
 
 // GetContractMetadata -
-func (p ContractParser) GetContractMetadata(address string) (*meta.ContractMetadata, error) {
+func (p Parser) GetContractMetadata(address string) (*meta.ContractMetadata, error) {
 	metadata, ok := p.metadata[address]
 	if !ok {
 		return nil, errors.Errorf("Unknown parsed metadata: %s", address)
@@ -110,7 +110,7 @@ func (p ContractParser) GetContractMetadata(address string) (*meta.ContractMetad
 	return metadata, nil
 }
 
-func (p ContractParser) computeMetrics(operation models.Operation, protoSymLink string, contract *models.Contract) error {
+func (p Parser) computeMetrics(operation models.Operation, protoSymLink string, contract *models.Contract) error {
 	script, err := contractparser.New(operation.Script)
 	if err != nil {
 		return errors.Errorf("contractparser.New: %v", err)

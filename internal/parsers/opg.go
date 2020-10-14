@@ -16,6 +16,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/parsers/contract"
 	"github.com/baking-bad/bcdhub/internal/parsers/transfer"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -30,7 +31,7 @@ type OPGParser struct {
 	interfaces map[string]kinds.ContractKind
 	constants  models.Constants
 
-	contractParser ContractParser
+	contractParser contract.Parser
 	transferParser transfer.Parser
 	storageParser  storage.Parser
 
@@ -51,7 +52,7 @@ func NewOPGParser(rpc noderpc.INode, es elastic.IElastic, shareFolder string, op
 	}
 
 	dp.transferParser = transfer.NewParser(rpc, es, transfer.WithTokenViews(dp.views))
-	dp.contractParser = NewContractParser(dp.interfaces, WithShareDirContractParser(shareFolder))
+	dp.contractParser = contract.NewParser(dp.interfaces, contract.WithShareDirContractParser(shareFolder))
 
 	return &dp
 }

@@ -1,0 +1,30 @@
+{
+    "metadata": {
+        "operation_result": {
+            "status": "applied",
+            "storage": {
+                "prim": "Pair",
+                "args": [
+                    {
+                        "int": "32"
+                    },
+                    {
+                        "prim": "Unit"
+                    }
+                ]
+            },
+            "big_map_diff": [
+                {
+                    "action": "update",
+                    "big_map": "32",
+                    "key_hash": "exprtyR4Nfvh8E3JvVPgCcxWos4QKeyPywArUEVEoW7r2FrfyDBLsJ",
+                    "key": {
+                        "bytes": "9b993873da2a9888957cc4f4ff14eb31619a29fe9ed1d51ee226dea98d5f4f3a"
+                    }
+                }
+            ],
+            "consumed_gas": "192283",
+            "storage_size": "2976"
+        }
+    }
+}

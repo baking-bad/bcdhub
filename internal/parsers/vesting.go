@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/parsers/contract"
 	"github.com/tidwall/gjson"
 )
 
@@ -58,7 +59,7 @@ func (p *VestingParser) Parse(data gjson.Result, head noderpc.Header, network, a
 		Script:      script,
 	}
 
-	parser := NewContractParser(p.interfaces, WithShareDirContractParser(p.filesDirectory))
+	parser := contract.NewParser(p.interfaces, contract.WithShareDirContractParser(p.filesDirectory))
 	contractModels, err := parser.Parse(op)
 	if err != nil {
 		return nil, err
