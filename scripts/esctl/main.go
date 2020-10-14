@@ -27,16 +27,16 @@ func main() {
 		}
 
 		creds = awsData{
-			BucketName: cfg.AWS.BucketName,
-			Region:     cfg.AWS.Region,
+			BucketName: cfg.Scripts.AWS.BucketName,
+			Region:     cfg.Scripts.AWS.Region,
 		}
 
 		ctx = config.NewContext(
 			config.WithElasticSearch(cfg.Elastic),
-			config.WithRabbit(cfg.RabbitMQ, "", nil),
+			config.WithRabbit(cfg.RabbitMQ, "", cfg.Scripts.MQ),
 			config.WithConfigCopy(cfg),
 			config.WithRPC(cfg.RPC),
-			config.WithShare(cfg.Share.Path),
+			config.WithShare(cfg.SharePath),
 		)
 	}
 

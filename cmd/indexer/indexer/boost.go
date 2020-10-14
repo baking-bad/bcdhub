@@ -131,7 +131,7 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 	}
 	defer db.Close()
 
-	messageQueue, err := mq.NewQueueManager(cfg.RabbitMQ.URI, cfg.Indexer.ProjectName, cfg.RabbitMQ.NeedPublisher)
+	messageQueue, err := mq.NewQueueManager(cfg.RabbitMQ.URI, cfg.Indexer.ProjectName, cfg.Indexer.MQ.NeedPublisher)
 	if err != nil {
 		return nil, err
 	}
@@ -320,7 +320,7 @@ func (bi *BoostIndexer) Rollback() error {
 		return err
 	}
 
-	manager := rollback.NewManager(bi.es, bi.messageQueue, bi.rpc, bi.cfg.Share.Path)
+	manager := rollback.NewManager(bi.es, bi.messageQueue, bi.rpc, bi.cfg.SharePath)
 	if err := manager.Rollback(bi.state, lastLevel); err != nil {
 		return err
 	}
@@ -592,7 +592,7 @@ func (bi *BoostIndexer) standartMigration(newProtocol models.Protocol, head node
 	}
 	log.Printf("[%s] Now %d contracts are indexed", bi.Network, len(contracts))
 
-	p := parsers.NewMigrationParser(bi.es, bi.cfg.Share.Path)
+	p := parsers.NewMigrationParser(bi.es, bi.cfg.SharePath)
 	newModels := make([]elastic.Model, 0)
 	newUpdates := make([]elastic.Model, 0)
 	for i := range contracts {
@@ -623,7 +623,7 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header) ([]elastic.Model, 
 		return nil, err
 	}
 
-	p := parsers.NewVestingParser(bi.cfg.Share.Path, bi.interfaces)
+	p := parsers.NewVestingParser(bi.cfg.SharePath, bi.interfaces)
 
 	parsedModels := make([]elastic.Model, 0)
 	for _, address := range addresses {

@@ -29,17 +29,12 @@ tzkt:
         base_uri: https://carthage.tzkt.io/
         timeout: 20
 
-share:
-    path: /etc/bcd
-
-sentry:
-    environment: production
-    uri: ${SENTRY_DSN}
-    debug: false
-
 elastic:
     uri: http://elastic:9200
     timeout: 10
+
+rabbitmq:
+    uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mq:5672/"
 
 db:
     conn_string: "host=db port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"
@@ -58,38 +53,89 @@ oauth:
         secret: ${GITLAB_CLIENT_SECRET}
         callback_url: https://api.better-call.dev/v1/oauth/gitlab/callback
 
+sentry:
+    environment: production
+    uri: ${SENTRY_DSN}
+    debug: false
+
+share_path: /etc/bcd
+
 api:
     project_name: api
     bind: ":14000"
     swagger_host: "api.better-call.dev"
     cors_enabled: false
-    oauth:
-        enabled: true
-    sentry:
-        enabled: true
+    oauth_enabled: true
+    sentry_enabled: true
+    seed_enabled: false
     networks:
         - mainnet
         - carthagenet
         - delphinet
         - dalphanet
-    seed:
-        enabled: false
-    queues:
-        operations:
-            non_durable: true
-            auto_deleted: true
+    mq:
+        publisher: true
+        queues:
+            operations:
+                non_durable: true
+                auto_deleted: true
 
-rabbitmq:
-    uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mq:5672/"
-    publisher: true
+compiler:
+    project_name: compiler
+    aws:
+        bucket_name: bcd-contract-sources
+        region: eu-central-1
+        access_key_id: ${AWS_ACCESS_KEY_ID}
+        secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+    sentry_enabled: true
+    mq:
+        publisher: true
+        queues:
+            compilations:
 
-aws:
-  bucket_name: bcd-elastic-snapshots
-  region: eu-central-1
+indexer:
+    project_name: indexer
+    sentry_enabled: true
+    mq:
+        publisher: true
+    networks:
+        mainnet:
+            boost: tzkt
+        carthagenet:
+            boost: tzkt
+        delphinet:
+            boost: tzkt
+        dalphanet:
 
-migrations:
+metrics:
+    project_name: metrics
+    sentry_enabled: true
+    mq:
+        publisher: false
+        queues:
+            operations:
+            contracts:
+            migrations:
+            recalc:
+            transfers:
+            bigmapdiffs:
+    ipfs:
+        - https://ipfs.io
+        - https://dweb.link
+
+scripts:
+    aws:
+        bucket_name: bcd-elastic-snapshots
+        region: eu-central-1
+        access_key_id: ${AWS_ACCESS_KEY_ID}
+        secret_access_key: ${AWS_SECRET_ACCESS_KEY}
     networks:
         - mainnet
         - carthagenet
         - delphinet
         - dalphanet
+    mq:
+        publisher: true
+    ipfs:
+        - https://ipfs.io
+        - https://dweb.link

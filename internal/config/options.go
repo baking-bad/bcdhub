@@ -53,10 +53,10 @@ func WithDatabase(dbConfig DatabaseConfig) ContextOption {
 }
 
 // WithRabbit -
-func WithRabbit(rabbitConfig RabbitConfig, service string, queues Queues) ContextOption {
+func WithRabbit(rabbitConfig RabbitConfig, service string, mqConfig MQConfig) ContextOption {
 	return func(ctx *Context) {
 		mqueues := make([]mq.Queue, 0)
-		for name, params := range queues {
+		for name, params := range mqConfig.Queues {
 			mqueues = append(mqueues, mq.Queue{
 				Name:       name,
 				AutoDelete: params.AutoDeleted,
@@ -64,7 +64,7 @@ func WithRabbit(rabbitConfig RabbitConfig, service string, queues Queues) Contex
 			})
 		}
 
-		messageQueue, err := mq.NewQueueManager(rabbitConfig.URI, service, rabbitConfig.NeedPublisher, mqueues...)
+		messageQueue, err := mq.NewQueueManager(rabbitConfig.URI, service, mqConfig.NeedPublisher, mqueues...)
 		if err != nil {
 			log.Panicf("Rabbit MQ connection error: %s", err)
 		}

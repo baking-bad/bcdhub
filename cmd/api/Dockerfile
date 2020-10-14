@@ -40,7 +40,7 @@ WORKDIR /app/api
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /go/bin/api /go/bin/api
-COPY /cmd/api/*.yml /app/api/
+COPY config.yml /app/api/config.yml
 COPY /cmd/api/data/errors.json /app/api/data/errors.json
 
 COPY --from=builder /go/bin/esctl /go/bin/esctl

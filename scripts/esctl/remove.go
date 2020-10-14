@@ -24,7 +24,7 @@ func (x *removeCommand) Execute(args []string) error {
 		return nil
 	}
 
-	if err = rollback.Remove(ctx.ES, x.Network, ctx.Config.Share.Path); err != nil {
+	if err = rollback.Remove(ctx.ES, x.Network, ctx.Config.SharePath); err != nil {
 		return err
 	}
 

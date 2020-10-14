@@ -91,7 +91,7 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	if cfg.Metrics.Sentry.Enabled {
+	if cfg.Metrics.SentryEnabled {
 		helpers.InitSentry(cfg.Sentry.Debug, cfg.Sentry.Environment, cfg.Sentry.URI)
 		helpers.SetTagSentry("project", cfg.Metrics.ProjectName)
 		defer helpers.CatchPanicSentry()
@@ -101,9 +101,9 @@ func main() {
 		config.WithElasticSearch(cfg.Elastic),
 		config.WithRPC(cfg.RPC),
 		config.WithDatabase(cfg.DB),
-		config.WithRabbit(cfg.RabbitMQ, cfg.Metrics.ProjectName, cfg.Metrics.Queues),
+		config.WithRabbit(cfg.RabbitMQ, cfg.Metrics.ProjectName, cfg.Metrics.MQ),
 		config.WithAliases(consts.Mainnet),
-		config.WithShare(cfg.Share.Path),
+		config.WithShare(cfg.SharePath),
 	)
 	defer ctx.Close()
 

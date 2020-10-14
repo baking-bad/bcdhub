@@ -87,6 +87,7 @@ type QueueManager struct {
 }
 
 // NewQueueManager -
+// func NewQueueManager(connection, service string, needPublisher bool, queues ...Queue) (*QueueManager, error) {
 func NewQueueManager(connection, service string, needPublisher bool, queues ...Queue) (*QueueManager, error) {
 	q := QueueManager{}
 	if service != "" && len(queues) > 0 {

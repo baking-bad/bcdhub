@@ -1,5 +1,19 @@
 version: "3.6"
 services:
+  elastic:
+    ports:
+      - "127.0.0.1:9308:9300"
+      - "127.0.0.1:9208:9200"
+
+  mq:
+    ports:
+      - "127.0.0.1:15678:15672"
+      - "127.0.0.1:5678:5672"    
+
+  db:
+    ports:
+      - 127.0.0.1:5438:5432
+
   compiler-dev:
     container_name: bcd-compiler-dev
     restart: always

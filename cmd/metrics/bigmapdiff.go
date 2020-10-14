@@ -37,7 +37,7 @@ func tzipHandler(bmd models.BigMapDiff) error {
 		return err
 	}
 	tzipParser := tzip.NewParser(ctx.ES, rpc, tzip.ParserConfig{
-		IPFSGateways: ctx.Config.IPFSGateways,
+		IPFSGateways: ctx.Config.Metrics.IPFSGateways,
 	})
 
 	model, err := tzipParser.Parse(tzip.ParseContext{

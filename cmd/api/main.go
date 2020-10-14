@@ -44,7 +44,7 @@ func main() {
 		return strings.ToLower(json)
 	})
 
-	if cfg.API.Sentry.Enabled {
+	if cfg.API.SentryEnabled {
 		helpers.InitSentry(cfg.Sentry.Debug, cfg.Sentry.Environment, cfg.Sentry.URI)
 		helpers.SetTagSentry("project", cfg.API.ProjectName)
 		defer helpers.CatchPanicSentry()
@@ -65,7 +65,7 @@ func main() {
 	}
 
 	if cfg.API.Seed.Enabled {
-		if err := seed.Run(ctx, cfg.Seed); err != nil {
+		if err := seed.Run(ctx, cfg.API.Seed); err != nil {
 			logger.Fatal(err)
 		}
 	}
@@ -125,7 +125,7 @@ func main() {
 		r.Use(corsSettings())
 	}
 
-	if cfg.API.Sentry.Enabled {
+	if cfg.API.SentryEnabled {
 		r.Use(helpers.SentryMiddleware())
 	}
 

@@ -21,7 +21,7 @@ func (ctx *Context) GetConfig(c *gin.Context) {
 
 	cfg := ConfigResponse{
 		Networks:      ctx.Config.API.Networks,
-		OauthEnabled:  ctx.Config.API.OAuth.Enabled,
+		OauthEnabled:  ctx.Config.API.OAuthEnabled,
 		RPCEndpoints:  rpcEndpoints,
 		TzKTEndpoints: tzktEndpoints,
 	}
