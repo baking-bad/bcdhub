@@ -67,6 +67,7 @@ func (ctx *Context) CreateVerification(c *gin.Context) {
 		UserID:  user.ID,
 		Address: req.Address,
 		Network: req.Network,
+		Account: req.Account,
 		Repo:    req.Repo,
 		Ref:     req.Ref,
 		Kind:    compilation.KindVerification,
@@ -78,7 +79,7 @@ func (ctx *Context) CreateVerification(c *gin.Context) {
 		return
 	}
 
-	go ctx.runVerification(task.ID, provider.ArchivePath(user.Login, req.Repo, req.Ref))
+	go ctx.runVerification(task.ID, provider.ArchivePath(req.Account, req.Repo, req.Ref))
 
 	c.JSON(http.StatusOK, gin.H{"status": compilation.StatusPending})
 }

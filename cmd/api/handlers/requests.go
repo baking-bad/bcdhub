@@ -285,8 +285,9 @@ func (req getTokenSeriesRequest) GetAddresses() []string {
 
 type verificationRequest struct {
 	getContractRequest
-	Repo string `json:"repo"`
-	Ref  string `json:"ref"`
+	Account string `json:"account"`
+	Repo    string `json:"repo"`
+	Ref     string `json:"ref"`
 }
 
 type deploymentRequest struct {
