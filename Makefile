@@ -2,12 +2,14 @@ include .env
 export $(shell sed 's/=.*//' .env)
 
 api:
-	cd cmd/api && go run . -f config.yml -f config.dev.yml
+	cd cmd/api && go run . -f config.yml -f config.dev.yml -f config.you.yml
 
 indexer:
+	docker-compose -f docker-compose.yml -f docker-compose.debug.yml up -d elastic mq db
 	cd cmd/indexer && go run . -f config.yml -f config.dev.yml
 
 metrics:
+	docker-compose -f docker-compose.yml -f docker-compose.debug.yml up -d elastic mq db
 	cd cmd/metrics && go run . -f config.yml -f config.dev.yml
 
 compiler:
@@ -19,7 +21,6 @@ aliases:
 
 sitemap:
 	cd scripts/sitemap && go run . -f ../config.yml
-
 
 migration:
 	cd scripts/migration && go run . -f ../config.yml

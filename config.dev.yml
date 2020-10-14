@@ -1,0 +1,125 @@
+rpc:
+    mainnet:
+        uri: https://rpc.tzkt.io/mainnet
+        timeout: 20
+    delphinet:
+        uri: https://rpc.tzkt.io/delphinet
+        timeout: 20
+    dalphanet:
+        uri: https://rpc.tzkt.io/dalphanet
+        timeout: 20
+    carthagenet:
+        uri: https://rpc.tzkt.io/carthagenet
+        timeout: 20
+
+tzkt:
+    mainnet:
+        uri: https://api.tzkt.io/v1/
+        services_uri: https://services.tzkt.io/v1/
+        base_uri: https://tzkt.io/
+        timeout: 20
+    delphinet:
+        uri: https://api.delphi.tzkt.io/v1/
+        services_uri: https://services.tzkt.io/delphinet/v1/
+        base_uri: https://delphi.tzkt.io/
+        timeout: 20
+    carthagenet:
+        uri: https://api.carthage.tzkt.io/v1/
+        services_uri: https://services.tzkt.io/carthagenet/v1/
+        base_uri: https://carthage.tzkt.io/
+        timeout: 20
+
+elastic:
+    uri: http://127.0.0.1:9208
+    timeout: 1
+
+rabbitmq:
+    uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@127.0.0.1:5678/"
+
+db:
+    conn_string: "host=127.0.0.1 port=5438 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"
+
+oauth:
+    state: ${OAUTH_STATE_STRING}
+    jwt:
+        secret: ${JWT_SECRET_KEY}
+        redirect_url: http://localhost:8080/welcome
+    github:
+        client_id: ${GITHUB_CLIENT_ID}
+        secret: ${GITHUB_CLIENT_SECRET}
+        callback_url: http://localhost:14000/v1/oauth/github/callback
+    gitlab:
+        client_id: ${GITLAB_CLIENT_ID}
+        secret: ${GITLAB_CLIENT_SECRET}
+        callback_url: http://localhost:14000/v1/oauth/gitlab/callback
+
+sentry:
+    environment: development
+    uri: ${SENTRY_DSN}
+    debug: true
+
+share_path: ${HOME}/.bcd
+
+api:
+    project_name: api
+    bind: "127.0.0.1:14000"
+    swagger_host: "localhost:14000"
+    cors_enabled: true
+    oauth_enabled: true
+    sentry_enabled: false
+    seed_enabled: false
+    networks:
+        - mainnet
+        - carthagenet
+        - delphinet
+        - dalphanet
+    mq:
+        publisher: true
+        queues:
+            operations:
+                non_durable: true
+                auto_deleted: true
+
+compiler:
+    project_name: compiler
+    aws:
+        bucket_name: bcd-contract-sources
+        region: eu-central-1
+        access_key_id: ${AWS_ACCESS_KEY_ID}
+        secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+    sentry_enabled: false
+    mq:
+        publisher: true
+        queues:
+            compilations:
+
+indexer:
+    project_name: indexer
+    sentry_enabled: false
+    mq:
+        publisher: true
+    networks:
+        mainnet:
+            boost: tzkt
+        # carthagenet:
+        #     boost: tzkt
+        # delphinet:
+        #     boost: tzkt
+        # dalphanet:
+
+metrics:
+    project_name: metrics
+    sentry_enabled: false
+    mq:
+        publisher: false
+        queues:
+            operations:
+            contracts:
+            migrations:
+            recalc:
+            transfers:
+            bigmapdiffs:
+    ipfs:
+        - https://ipfs.io
+        - https://dweb.link
+

@@ -117,7 +117,7 @@ func main() {
 
 	logger.Info("Total aliases: %d", len(aliasModels))
 
-	if err := buildXML(aliasModels, cfg.Migrations.Networks, dapps); err != nil {
+	if err := buildXML(aliasModels, cfg.Scripts.Networks, dapps); err != nil {
 		logger.Fatal(err)
 	}
 

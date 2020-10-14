@@ -23,7 +23,7 @@ type Context struct {
 // NewContext -
 func NewContext(cfg config.Config) (*Context, error) {
 	var oauthCfg oauth.Config
-	if cfg.API.OAuth.Enabled {
+	if cfg.API.OAuthEnabled {
 		var err error
 		oauthCfg, err = oauth.New(cfg)
 		if err != nil {
@@ -35,12 +35,12 @@ func NewContext(cfg config.Config) (*Context, error) {
 		config.WithElasticSearch(cfg.Elastic),
 		config.WithRPC(cfg.RPC),
 		config.WithDatabase(cfg.DB),
-		config.WithShare(cfg.Share.Path),
+		config.WithShare(cfg.SharePath),
 		config.WithTzKTServices(cfg.TzKT),
 		config.WithLoadErrorDescriptions("data/errors.json"),
 		config.WithConfigCopy(cfg),
 		config.WithContractsInterfaces(),
-		config.WithRabbit(cfg.RabbitMQ, cfg.API.ProjectName, cfg.API.Queues),
+		config.WithRabbit(cfg.RabbitMQ, cfg.API.ProjectName, cfg.API.MQ),
 	)
 
 	tokens, err := ctx.ES.GetTokenMetadata(elastic.GetTokenMetadataContext{

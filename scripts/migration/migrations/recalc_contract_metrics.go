@@ -30,7 +30,7 @@ func (m *RecalcContractMetrics) Do(ctx *config.Context) error {
 	start := time.Now()
 	h := metrics.New(ctx.ES, ctx.DB)
 
-	for _, network := range ctx.Config.Migrations.Networks {
+	for _, network := range ctx.Config.Scripts.Networks {
 		contracts, err := ctx.ES.GetContracts(map[string]interface{}{
 			"network": network,
 		})

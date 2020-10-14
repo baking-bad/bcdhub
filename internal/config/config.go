@@ -11,85 +11,57 @@ import (
 
 // Config -
 type Config struct {
-	RPC  map[string]RPCConfig  `yaml:"rpc"`
-	TzKT map[string]TzKTConfig `yaml:"tzkt"`
-
-	Elastic  ElasticSearchConfig `yaml:"elastic"`
-	RabbitMQ RabbitConfig        `yaml:"rabbitmq"`
-	DB       DatabaseConfig      `yaml:"db"`
-	AWS      AWSConfig           `yaml:"aws"`
-	OAuth    OAuthConfig         `yaml:"oauth"`
-	Seed     SeedConfig          `yaml:"seed"`
-
-	IPFSGateways []string `yaml:"ipfs"`
-
-	Share struct {
-		Path string `yaml:"path"`
-	} `yaml:"share"`
-
-	Sentry struct {
-		Environment string `yaml:"environment"`
-		URI         string `yaml:"uri"`
-		Debug       bool   `yaml:"debug"`
-	} `yaml:"sentry"`
+	RPC       map[string]RPCConfig  `yaml:"rpc"`
+	TzKT      map[string]TzKTConfig `yaml:"tzkt"`
+	Elastic   ElasticSearchConfig   `yaml:"elastic"`
+	RabbitMQ  RabbitConfig          `yaml:"rabbitmq"`
+	DB        DatabaseConfig        `yaml:"db"`
+	OAuth     OAuthConfig           `yaml:"oauth"`
+	Sentry    SentryConfig          `yaml:"sentry"`
+	SharePath string                `yaml:"share_path"`
 
 	API struct {
-		ProjectName string `yaml:"project_name"`
-		Bind        string `yaml:"bind"`
-		SwaggerHost string `yaml:"swagger_host"`
-		CorsEnabled bool   `yaml:"cors_enabled"`
-		OAuth       struct {
-			Enabled bool `yaml:"enabled"`
-		} `yaml:"oauth"`
-		Sentry struct {
-			Enabled bool `yaml:"enabled"`
-		} `yaml:"sentry"`
-		Networks []string `yaml:"networks"`
-		Seed     struct {
-			Enabled bool `yaml:"enabled"`
-		} `yaml:"seed"`
-		Queues Queues `yaml:"queues"`
+		ProjectName   string     `yaml:"project_name"`
+		Bind          string     `yaml:"bind"`
+		SwaggerHost   string     `yaml:"swagger_host"`
+		CorsEnabled   bool       `yaml:"cors_enabled"`
+		OAuthEnabled  bool       `yaml:"oauth_enabled"`
+		SentryEnabled bool       `yaml:"sentry_enabled"`
+		Seed          SeedConfig `yaml:"seed"`
+		Networks      []string   `yaml:"networks"`
+		MQ            MQConfig   `yaml:"mq"`
 	} `yaml:"api"`
 
+	Compiler struct {
+		ProjectName   string    `yaml:"project_name"`
+		SentryEnabled bool      `yaml:"sentry_enabled"`
+		AWS           AWSConfig `yaml:"aws"`
+		MQ            MQConfig  `yaml:"mq"`
+	} `yaml:"compiler"`
+
 	Indexer struct {
-		ProjectName string `yaml:"project_name"`
-		Sentry      struct {
-			Enabled bool `yaml:"enabled"`
-		} `yaml:"sentry"`
-		Networks map[string]struct {
+		ProjectName   string `yaml:"project_name"`
+		SentryEnabled bool   `yaml:"sentry_enabled"`
+		Networks      map[string]struct {
 			Boost string `yaml:"boost"`
 		} `yaml:"networks"`
-		SkipDelegatorBlocks bool `yaml:"skip_delegator_blocks"`
+		SkipDelegatorBlocks bool     `yaml:"skip_delegator_blocks"`
+		MQ                  MQConfig `yaml:"mq"`
 	} `yaml:"indexer"`
 
 	Metrics struct {
-		ProjectName string `yaml:"project_name"`
-		Sentry      struct {
-			Enabled bool `yaml:"enabled"`
-		} `yaml:"sentry"`
-		Queues Queues `yaml:"queues"`
+		ProjectName   string   `yaml:"project_name"`
+		SentryEnabled bool     `yaml:"sentry_enabled"`
+		MQ            MQConfig `yaml:"mq"`
+		IPFSGateways  []string `yaml:"ipfs"`
 	} `yaml:"metrics"`
 
-	Compiler struct {
-		ProjectName string    `yaml:"project_name"`
-		AWS         AWSConfig `yaml:"aws"`
-		Sentry      struct {
-			Enabled bool `yaml:"enabled"`
-		} `yaml:"sentry"`
-		Queues Queues `yaml:"queues"`
-	} `yaml:"compiler"`
-
-	Migrations struct {
-		Networks []string `yaml:"networks"`
-	} `yaml:"migrations"`
-}
-
-// AWSConfig -
-type AWSConfig struct {
-	BucketName      string `yaml:"bucket_name"`
-	Region          string `yaml:"region"`
-	AccessKeyID     string `yaml:"access_key_id"`
-	SecretAccessKey string `yaml:"secret_access_key"`
+	Scripts struct {
+		AWS          AWSConfig `yaml:"aws"`
+		Networks     []string  `yaml:"networks"`
+		MQ           MQConfig  `yaml:"mq"`
+		IPFSGateways []string  `yaml:"ipfs"`
+	} `yaml:"scripts"`
 }
 
 // RPCConfig -
@@ -98,10 +70,23 @@ type RPCConfig struct {
 	Timeout int    `yaml:"timeout"`
 }
 
+// TzKTConfig -
+type TzKTConfig struct {
+	URI         string `yaml:"uri"`
+	ServicesURI string `yaml:"services_uri"`
+	BaseURI     string `yaml:"base_uri"`
+	Timeout     int    `yaml:"timeout"`
+}
+
 // ElasticSearchConfig -
 type ElasticSearchConfig struct {
 	URI     string `yaml:"uri"`
 	Timeout int    `yaml:"timeout"`
+}
+
+// RabbitConfig -
+type RabbitConfig struct {
+	URI string `yaml:"uri"`
 }
 
 // DatabaseConfig -
@@ -109,18 +94,12 @@ type DatabaseConfig struct {
 	ConnString string `yaml:"conn_string"`
 }
 
-// RabbitConfig -
-type RabbitConfig struct {
-	URI           string `yaml:"uri"`
-	NeedPublisher bool   `yaml:"publisher"`
-}
-
-// TzKTConfig -
-type TzKTConfig struct {
-	URI         string `yaml:"uri"`
-	ServicesURI string `yaml:"services_uri"`
-	BaseURI     string `yaml:"base_uri"`
-	Timeout     int    `yaml:"timeout"`
+// AWSConfig -
+type AWSConfig struct {
+	BucketName      string `yaml:"bucket_name"`
+	Region          string `yaml:"region"`
+	AccessKeyID     string `yaml:"access_key_id"`
+	SecretAccessKey string `yaml:"secret_access_key"`
 }
 
 // OAuthConfig -
@@ -144,7 +123,8 @@ type OAuthConfig struct {
 
 // SeedConfig -
 type SeedConfig struct {
-	User struct {
+	Enabled bool `yaml:"enabled"`
+	User    struct {
 		Login     string `yaml:"login"`
 		Name      string `yaml:"name"`
 		AvatarURL string `yaml:"avatar_url"`
@@ -168,8 +148,18 @@ type SeedConfig struct {
 	} `yaml:"accounts"`
 }
 
-// Queues -
-type Queues map[string]QueueParams
+// SentryConfig -
+type SentryConfig struct {
+	Environment string `yaml:"environment"`
+	URI         string `yaml:"uri"`
+	Debug       bool   `yaml:"debug"`
+}
+
+// MQConfig -
+type MQConfig struct {
+	NeedPublisher bool                   `yaml:"publisher"`
+	Queues        map[string]QueueParams `yaml:"queues"`
+}
 
 // QueueParams -
 type QueueParams struct {

@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -26,7 +27,7 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	if cfg.Compiler.Sentry.Enabled {
+	if cfg.Compiler.SentryEnabled {
 		helpers.InitSentry(cfg.Sentry.Debug, cfg.Sentry.Environment, cfg.Sentry.URI)
 		helpers.SetTagSentry("project", cfg.Compiler.ProjectName)
 		defer helpers.CatchPanicSentry()
@@ -36,7 +37,7 @@ func main() {
 		config.NewContext(
 			config.WithRPC(cfg.RPC),
 			config.WithDatabase(cfg.DB),
-			config.WithRabbit(cfg.RabbitMQ, cfg.Compiler.ProjectName, cfg.Compiler.Queues),
+			config.WithRabbit(cfg.RabbitMQ, cfg.Compiler.ProjectName, cfg.Compiler.MQ),
 			config.WithElasticSearch(cfg.Elastic),
 			config.WithAWS(cfg.Compiler.AWS),
 		),
@@ -78,7 +79,8 @@ func (ctx *Context) handleMessage(data amqp.Delivery) error {
 
 func (ctx *Context) parseData(data amqp.Delivery) error {
 	if data.RoutingKey != mq.QueueCompilations {
-		return fmt.Errorf("[parseData] Unknown data routing key %s", data.RoutingKey)
+		log.Printf("[parseData] Unknown data routing key %s", data.RoutingKey)
+		return data.Ack(false)
 	}
 
 	var ct compilation.Task
