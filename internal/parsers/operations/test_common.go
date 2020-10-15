@@ -169,8 +169,8 @@ func compareTransfers(t *testing.T, one, two *models.Transfer) bool {
 		log.Printf("Counter: %d != %d", one.Counter, two.Counter)
 		return false
 	}
-	if one.Nonce != nil && two.Nonce != nil && *one.Nonce != *two.Nonce {
-		log.Printf("SourcePtr: %d != %d", one.Nonce, two.Nonce)
+	if !compareInt64Ptr(one.Nonce, two.Nonce) {
+		log.Printf("Transfer.Nonce: %d != %d", *one.Nonce, *two.Nonce)
 		return false
 	}
 	return true
@@ -181,8 +181,8 @@ func compareOperations(t *testing.T, one, two *models.Operation) bool {
 		log.Printf("Internal: %v != %v", one.Internal, two.Internal)
 		return false
 	}
-	if one.Nonce != nil && two.Nonce != nil && *one.Nonce != *two.Nonce {
-		log.Printf("SourcePtr: %d != %d", one.Nonce, two.Nonce)
+	if !compareInt64Ptr(one.Nonce, two.Nonce) {
+		log.Printf("Operation.Nonce: %d != %d", *one.Nonce, *two.Nonce)
 		return false
 	}
 	if one.Timestamp != two.Timestamp {
@@ -285,20 +285,12 @@ func compareOperations(t *testing.T, one, two *models.Operation) bool {
 		log.Printf("DelegateAlias: %s != %s", one.DelegateAlias, two.DelegateAlias)
 		return false
 	}
-	if compareJSON(t, one.Parameters, two.Parameters) {
+	if !compareJSON(t, one.Parameters, two.Parameters) {
 		log.Printf("Parameters: %s != %s", one.Parameters, two.Parameters)
 		return false
 	}
-	if compareJSON(t, one.DeffatedStorage, two.DeffatedStorage) {
+	if !compareJSON(t, one.DeffatedStorage, two.DeffatedStorage) {
 		log.Printf("DeffatedStorage: %s != %s", one.DeffatedStorage, two.DeffatedStorage)
-		return false
-	}
-	if !reflect.DeepEqual(one.ParameterStrings, two.ParameterStrings) {
-		log.Printf("ParameterStrings: %s != %s", one.ParameterStrings, two.ParameterStrings)
-		return false
-	}
-	if !reflect.DeepEqual(one.StorageStrings, two.StorageStrings) {
-		log.Printf("StorageStrings: %s != %s", one.StorageStrings, two.StorageStrings)
 		return false
 	}
 	if !reflect.DeepEqual(one.Tags, two.Tags) {
@@ -317,7 +309,7 @@ func compareBigMapDiff(t *testing.T, one, two *models.BigMapDiff) bool {
 		log.Printf("KeyHash: %s != %s", one.KeyHash, two.KeyHash)
 		return false
 	}
-	if compareJSON(t, one.Value, two.Value) {
+	if !compareJSON(t, one.Value, two.Value) {
 		log.Printf("Value: %s != %s", one.Value, two.Value)
 		return false
 	}
@@ -353,12 +345,12 @@ func compareBigMapAction(one, two *models.BigMapAction) bool {
 		log.Printf("Action: %s != %s", one.Action, two.Action)
 		return false
 	}
-	if one.SourcePtr != nil && two.SourcePtr != nil && *one.SourcePtr != *two.SourcePtr {
-		log.Printf("SourcePtr: %d != %d", one.SourcePtr, two.SourcePtr)
+	if !compareInt64Ptr(one.SourcePtr, two.SourcePtr) {
+		log.Printf("SourcePtr: %d != %d", *one.SourcePtr, *two.SourcePtr)
 		return false
 	}
-	if one.DestinationPtr != nil && two.DestinationPtr != nil && *one.DestinationPtr != *two.DestinationPtr {
-		log.Printf("DestinationPtr: %d != %d", one.DestinationPtr, two.DestinationPtr)
+	if !compareInt64Ptr(one.DestinationPtr, two.DestinationPtr) {
+		log.Printf("DestinationPtr: %d != %d", *one.DestinationPtr, *two.DestinationPtr)
 		return false
 	}
 	if one.Level != two.Level {
@@ -385,4 +377,8 @@ func compareJSON(t *testing.T, one, two string) bool {
 		return one == two
 	}
 	return assert.JSONEq(t, one, two)
+}
+
+func compareInt64Ptr(one, two *int64) bool {
+	return (one != nil && two != nil && *one != *two) || (one == nil && two == nil)
 }

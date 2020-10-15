@@ -47,6 +47,12 @@ func TestGroup_Parse(t *testing.T) {
 					Level:     1151495,
 				},
 				network: "mainnet",
+				constants: models.Constants{
+					CostPerByte:                  1000,
+					HardGasLimitPerOperation:     1040000,
+					HardStorageLimitPerOperation: 60000,
+					TimeBetweenBlocks:            60,
+				},
 			},
 			filename: "./data/rpc/opg/opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt.json",
 			want: []elastic.Model{
@@ -96,7 +102,7 @@ func TestGroup_Parse(t *testing.T) {
 					Protocol:         "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 					Hash:             "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
 					Internal:         true,
-					Nonce:            setInt64(1),
+					Nonce:            setInt64(0),
 					Status:           "applied",
 					Timestamp:        timestamp,
 					Level:            1151495,
