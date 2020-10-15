@@ -110,7 +110,6 @@ func (ctx *scrollContext) get(output interface{}) error {
 			break
 		}
 
-		isBreak := false
 		for _, item := range hits.Array() {
 			n, err := parseResponseItem(item, typ)
 			if err != nil {
@@ -119,16 +118,12 @@ func (ctx *scrollContext) get(output interface{}) error {
 
 			if el.Kind() == reflect.Slice {
 				el.Set(reflect.Append(el, n))
-				if el.Len() == int(ctx.Size) {
-					isBreak = true
-					break
+				if ctx.Size > 0 && el.Len() == int(ctx.Size) {
+					return ctx.clear()
 				}
 			} else {
 				el.Set(n)
 			}
-		}
-		if isBreak {
-			break
 		}
 
 		result, err = ctx.queryScroll(scrollID)

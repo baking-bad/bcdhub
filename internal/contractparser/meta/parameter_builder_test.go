@@ -442,6 +442,22 @@ func TestMetadata_BuildEntrypointMicheline(t *testing.T) {
 				},
 			},
 			want: `{"entrypoint": "upgrade", "value": {"prim": "Pair", "args":[{"prim": "Pair", "args":[{"int": "1"},{"int": "1"}]},{"prim": "Pair", "args":[[[{"args":[{"prim": "nat"}, {"int": "42"}], "prim": "PUSH"}, {"prim": "DUP"}, {"prim": "DROP"}]], {"prim": "Pair", "args":[{"prim": "None"},{"prim": "None"}]}]}]}}`,
+		}, {
+			name:     "Single asset token: storage",
+			metadata: `{"0":{"prim":"pair","args":["0/0","0/1"],"type":"namedtuple"},"0/0":{"fieldname":"admin","prim":"pair","args":["0/0/0/0","0/0/0/1","0/0/1/o"],"type":"namedtuple","name":"admin"},"0/0/0":{"prim":"pair","type":"pair"},"0/0/0/0":{"fieldname":"admin","prim":"address","type":"address","name":"admin"},"0/0/0/1":{"fieldname":"paused","prim":"bool","type":"bool","name":"paused"},"0/0/1":{"fieldname":"pending_admin","prim":"option","type":"option"},"0/0/1/o":{"prim":"address","type":"address","name":"pending_admin"},"0/1":{"fieldname":"assets","prim":"pair","args":["0/1/0/0","0/1/0/1","0/1/1/0","0/1/1/1"],"type":"namedtuple","name":"assets"},"0/1/0":{"prim":"pair","type":"pair"},"0/1/0/0":{"fieldname":"ledger","prim":"big_map","type":"big_map","name":"ledger"},"0/1/0/0/k":{"prim":"address","type":"address"},"0/1/0/0/v":{"prim":"nat","type":"nat"},"0/1/0/1":{"fieldname":"operators","prim":"big_map","type":"big_map","name":"operators"},"0/1/0/1/k":{"prim":"pair","args":["0/1/0/1/k/0","0/1/0/1/k/1/0","0/1/0/1/k/1/1"],"type":"tuple"},"0/1/0/1/k/0":{"prim":"address","type":"address"},"0/1/0/1/k/1":{"prim":"pair","type":"pair"},"0/1/0/1/k/1/0":{"prim":"address","type":"address"},"0/1/0/1/k/1/1":{"prim":"nat","type":"nat"},"0/1/0/1/v":{"prim":"unit","type":"unit"},"0/1/1":{"prim":"pair","type":"pair"},"0/1/1/0":{"fieldname":"token_metadata","prim":"big_map","type":"big_map","name":"token_metadata"},"0/1/1/0/k":{"prim":"nat","type":"nat"},"0/1/1/0/v":{"prim":"pair","args":["0/1/1/0/v/0","0/1/1/0/v/1/0","0/1/1/0/v/1/1/0","0/1/1/0/v/1/1/1/0","0/1/1/0/v/1/1/1/1"],"type":"namedtuple"},"0/1/1/0/v/0":{"fieldname":"token_id","prim":"nat","type":"nat","name":"token_id"},"0/1/1/0/v/1":{"prim":"pair","type":"pair"},"0/1/1/0/v/1/0":{"fieldname":"symbol","prim":"string","type":"string","name":"symbol"},"0/1/1/0/v/1/1":{"prim":"pair","type":"pair"},"0/1/1/0/v/1/1/0":{"fieldname":"name","prim":"string","type":"string","name":"name"},"0/1/1/0/v/1/1/1":{"prim":"pair","type":"pair"},"0/1/1/0/v/1/1/1/0":{"fieldname":"decimals","prim":"nat","type":"nat","name":"decimals"},"0/1/1/0/v/1/1/1/1":{"fieldname":"extras","prim":"map","type":"map","name":"extras"},"0/1/1/0/v/1/1/1/1/k":{"prim":"string","type":"string"},"0/1/1/0/v/1/1/1/1/v":{"prim":"string","type":"string"},"0/1/1/1":{"fieldname":"total_supply","prim":"nat","type":"nat","name":"total_supply"}}`,
+			args: args{
+				binaryPath: "0",
+				data: map[string]interface{}{
+					"0/0/0/0": "tz1TAGGfYDciKRL1ceFWCNCkNmxoQMroaFcb",
+					"0/0/0/1": false,
+					"0/0/1/o": map[string]interface{}{"schemaKey": "none"},
+					"0/1/0/0": []interface{}{},
+					"0/1/0/1": []interface{}{},
+					"0/1/1/0": []interface{}{},
+					"0/1/1/1": 0,
+				},
+			},
+			want: `{"entrypoint": "default", "value": {"prim": "Pair", "args":[{"prim": "Pair", "args":[{"prim": "Pair", "args":[{"string": "tz1TAGGfYDciKRL1ceFWCNCkNmxoQMroaFcb"}, {"prim": "False"}]}, {"prim": "None"}]}, {"prim": "Pair", "args":[{"prim": "Pair", "args":[[], []]}, {"prim": "Pair", "args":[[], {"int": "0"}]}]}]}}`,
 		},
 	}
 

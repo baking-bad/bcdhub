@@ -126,13 +126,13 @@ func (b defaultParameterBuilder) Build(node *NodeMetadata, path string, data map
 		if !helpers.StringInArray(node.Prim, []string{
 			consts.STRING, consts.BYTES,
 		}) {
-			return "", errors.Errorf("'%s' is required", getName(node))
+			return "", NewRequiredError(getName(node))
 		}
 		value = ""
 	}
 
 	if b.validate && !validate(node.Prim, value) {
-		return "", errors.Errorf("Invalid %s \"%v\"", node.Prim, value)
+		return "", NewValidationError(node.Prim)
 	}
 
 	switch node.Prim {
@@ -201,7 +201,7 @@ type listParameterBuilder struct {
 func (b listParameterBuilder) Build(node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
 	value, ok := data[path]
 	if !ok {
-		return "", errors.Errorf("'%s' is required", getName(node))
+		return "", NewRequiredError(getName(node))
 	}
 	listValue := interfaceSlice(value)
 
@@ -244,7 +244,7 @@ type mapParameterBuilder struct {
 func (b mapParameterBuilder) Build(node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
 	value, ok := data[path]
 	if !ok {
-		return "", errors.Errorf("'%s' is required", getName(node))
+		return "", NewRequiredError(getName(node))
 	}
 	var s string
 	listValue := interfaceSlice(value)
@@ -254,7 +254,7 @@ func (b mapParameterBuilder) Build(node *NodeMetadata, path string, data map[str
 		}
 		mapValue, ok := listValue[i].(map[string]interface{})
 		if !ok {
-			return "", errors.Errorf("Invalid data: '%s'", getName(node))
+			return "", NewValidationError(getName(node))
 		}
 		var itemBuilder strings.Builder
 		keyStr, err := b.builder.buildParameters(path+"/k", mapValue)
@@ -282,15 +282,15 @@ type optionParameterBuilder struct {
 func (b optionParameterBuilder) Build(node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
 	value, ok := data[path]
 	if !ok {
-		return "", errors.Errorf("'%s' is required", getName(node))
+		return "", NewRequiredError(getName(node))
 	}
 	mapValue, ok := value.(map[string]interface{})
 	if !ok {
-		return "", errors.Errorf("Invalid data: '%s'", getName(node))
+		return "", NewValidationError(getName(node))
 	}
 	schemaKey, ok := mapValue["schemaKey"]
 	if !ok {
-		return "", errors.Errorf("Invalid data: '%s'", getName(node))
+		return "", NewValidationError(getName(node))
 	}
 	switch schemaKey {
 	case consts.NONE:
@@ -318,18 +318,18 @@ type orParameterBuilder struct {
 func (b orParameterBuilder) Build(node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
 	orData, ok := data[path]
 	if !ok {
-		return "", errors.Errorf("'%s' is required", getName(node))
+		return "", NewRequiredError(getName(node))
 	}
 	mapValue, ok := orData.(map[string]interface{})
 	if !ok {
-		return "", errors.Errorf("Invalid data: '%s'", getName(node))
+		return "", NewValidationError(getName(node))
 	}
 	schemaKey, ok := mapValue["schemaKey"].(string)
 	if !ok {
-		return "", errors.Errorf("Invalid data: '%s'", getName(node))
+		return "", NewValidationError(getName(node))
 	}
 	if !strings.HasPrefix(schemaKey, path) {
-		return "", errors.Errorf("Invalid data: '%s'", getName(node))
+		return "", NewValidationError(getName(node))
 	}
 
 	childStr, err := b.builder.buildParameters(schemaKey, mapValue)
@@ -357,7 +357,7 @@ type lambdaParameterBuilder struct {
 func (b lambdaParameterBuilder) Build(node *NodeMetadata, path string, data map[string]interface{}) (string, error) {
 	lambdaData, ok := data[path]
 	if !ok {
-		return "", errors.Errorf("'%s' is required", getName(node))
+		return "", NewRequiredError(getName(node))
 	}
 	sLambda := fmt.Sprintf("%s", lambdaData)
 	t, err := translator.NewConverter(
@@ -405,10 +405,13 @@ func wrapLeftRight(path, data string, skipFirst bool) string {
 }
 
 func getName(nm *NodeMetadata) string {
-	if nm.Name == "" {
-		return nm.Prim
+	if nm.Name != "" {
+		return nm.Name
 	}
-	return nm.Name
+	if nm.FieldName != "" {
+		return nm.FieldName
+	}
+	return nm.Prim
 }
 
 func interfaceSlice(slice interface{}) []interface{} {
