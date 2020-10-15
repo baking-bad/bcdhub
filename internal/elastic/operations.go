@@ -249,17 +249,12 @@ func (e *Elastic) GetOperations(filters map[string]interface{}, size int64, sort
 		})
 	}
 
-	requestedSize := size
-	if size == 0 || size > maxQuerySize {
-		requestedSize = maxQuerySize
+	scrollSize := size
+	if defaultScrollSize < scrollSize || scrollSize == 0 {
+		scrollSize = defaultScrollSize
 	}
 
-	scrollSize := int64(defaultScrollSize)
-	if defaultScrollSize > size {
-		scrollSize = size
-	}
-
-	ctx := newScrollContext(e, query, requestedSize, scrollSize)
+	ctx := newScrollContext(e, query, size, scrollSize)
 	err := ctx.get(&operations)
 	return operations, err
 }

@@ -52,11 +52,16 @@ func optionWrapper(schema Schema, binPath string, metadata meta.Metadata) (Schem
 	}
 
 	return Schema{
-		"type":    "object",
-		"prim":    "option",
-		"title":   name,
-		"oneOf":   schemas,
-		"default": consts.NONE,
+		"type":  "object",
+		"prim":  "option",
+		"title": name,
+		"oneOf": schemas,
+		"default": Schema{
+			"schemaKey": Schema{
+				"type":  "string",
+				"const": consts.NONE,
+			},
+		},
 	}, nil
 
 }

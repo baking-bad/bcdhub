@@ -239,10 +239,15 @@ func TestCreate(t *testing.T) {
 			binPath:  "0/1/o",
 			metadata: `{"0/1/o":{"fieldname":"Pour","prim":"pair","args":["0/1/o/0","0/1/o/1"],"type":"namedtuple","name":"Pour"},"0/1/o/0":{"fieldname":"pour_auth","prim":"signature","type":"signature","name":"pour_auth"},"0/1/o/1":{"fieldname":"pour_amount","prim":"mutez","type":"mutez","name":"pour_amount"}}`,
 			want: Schema{
-				"type":    "object",
-				"prim":    "option",
-				"title":   "Pour",
-				"default": "none",
+				"type":  "object",
+				"prim":  "option",
+				"title": "Pour",
+				"default": Schema{
+					"schemaKey": Schema{
+						"type":  "string",
+						"const": "none",
+					},
+				},
 				"oneOf": []Schema{
 					{
 						"title": "None",
@@ -302,10 +307,15 @@ func TestCreate(t *testing.T) {
 						"default": 0,
 					},
 					"0/1/1/1/1/0/0/0/1/1/1/0/o": Schema{
-						"type":    "object",
-						"prim":    "option",
-						"title":   "",
-						"default": "none",
+						"type":  "object",
+						"prim":  "option",
+						"title": "",
+						"default": Schema{
+							"schemaKey": Schema{
+								"type":  "string",
+								"const": "none",
+							},
+						},
 						"oneOf": []Schema{
 							{
 								"title": "None",
@@ -334,10 +344,15 @@ func TestCreate(t *testing.T) {
 						},
 					},
 					"0/1/1/1/1/0/0/0/1/1/1/1/o": Schema{
-						"type":    "object",
-						"prim":    "option",
-						"title":   "",
-						"default": "none",
+						"type":  "object",
+						"prim":  "option",
+						"title": "",
+						"default": Schema{
+							"schemaKey": Schema{
+								"type":  "string",
+								"const": "none",
+							},
+						},
 						"oneOf": []Schema{
 							{
 								"title": "None",

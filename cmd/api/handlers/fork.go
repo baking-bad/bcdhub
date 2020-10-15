@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
@@ -15,7 +16,12 @@ func (ctx *Context) ForkContract(c *gin.Context) {
 		return
 	}
 	response, err := ctx.buildStorageDataFromForkRequest(req)
-	if handleError(c, err, 0) {
+	if err != nil {
+		var code int
+		if errors.As(err, &meta.ValidationError{}) || errors.As(err, &meta.RequiredError{}) {
+			code = http.StatusBadRequest
+		}
+		handleError(c, err, code)
 		return
 	}
 	c.JSON(http.StatusOK, response)
