@@ -1,6 +1,8 @@
 package meta
 
-import "github.com/pkg/errors"
+import (
+	"github.com/pkg/errors"
+)
 
 // This is the list of protocols BCD supports
 // Every time new protocol is proposed we determine if everything works fine or implement a custom handler otherwise

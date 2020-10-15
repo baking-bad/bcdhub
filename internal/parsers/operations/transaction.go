@@ -91,6 +91,7 @@ func (p Transaction) Parse(data gjson.Result) ([]elastic.Model, error) {
 
 func (p Transaction) fillInternal(tx *models.Operation) {
 	if p.main == nil {
+		p.main = tx
 		return
 	}
 

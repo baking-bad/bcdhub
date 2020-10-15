@@ -2,8 +2,6 @@ package operations
 
 import (
 	"fmt"
-	"log"
-	"reflect"
 	"testing"
 	"time"
 
@@ -182,108 +180,7 @@ func compareRichStorage(t *testing.T, one, two storage.RichStorage) bool {
 		return false
 	}
 
-	for i := range one.Models {
-		switch oneItem := one.Models[i].(type) {
-		case *models.BigMapDiff:
-			twoItem, ok := two.Models[i].(*models.BigMapDiff)
-			if !ok {
-				return false
-			}
-			if !compareBigMapDiff(t, oneItem, twoItem) {
-				return false
-			}
-		case *models.BigMapAction:
-			twoItem, ok := two.Models[i].(*models.BigMapAction)
-			if !ok {
-				return false
-			}
-			if !compareBigMapAction(oneItem, twoItem) {
-				return false
-			}
-		}
-	}
-
-	return true
-}
-
-func compareBigMapDiff(t *testing.T, one, two *models.BigMapDiff) bool {
-	if one.Address != two.Address {
-		log.Printf("Address: %s != %s", one.Address, two.Address)
-		return false
-	}
-	if one.KeyHash != two.KeyHash {
-		log.Printf("KeyHash: %s != %s", one.KeyHash, two.KeyHash)
-		return false
-	}
-	if !assert.JSONEq(t, one.Value, two.Value) {
-		log.Printf("Value: %s != %s", one.Value, two.Value)
-		return false
-	}
-	if one.BinPath != two.BinPath {
-		log.Printf("BinPath: %s != %s", one.BinPath, two.BinPath)
-		return false
-	}
-	if one.OperationID != two.OperationID {
-		log.Printf("OperationID: %s != %s", one.OperationID, two.OperationID)
-		return false
-	}
-	if one.Level != two.Level {
-		log.Printf("Level: %d != %d", one.Level, two.Level)
-		return false
-	}
-	if one.Network != two.Network {
-		log.Printf("Network: %s != %s", one.Network, two.Network)
-		return false
-	}
-	if one.Timestamp != two.Timestamp {
-		log.Printf("Timestamp: %s != %s", one.Timestamp, two.Timestamp)
-		return false
-	}
-	if one.Protocol != two.Protocol {
-		log.Printf("Protocol: %s != %s", one.Protocol, two.Protocol)
-		return false
-	}
-	if !reflect.DeepEqual(one.Key, two.Key) {
-		log.Printf("Key: %s != %s", one.Key, two.Key)
-		return false
-	}
-	return true
-}
-
-func compareBigMapAction(one, two *models.BigMapAction) bool {
-	if one.Action != two.Action {
-		log.Printf("Action: %s != %s", one.Action, two.Action)
-		return false
-	}
-	if one.SourcePtr != nil && two.SourcePtr != nil && *one.SourcePtr != *two.SourcePtr {
-		log.Printf("SourcePtr: %d != %d", one.SourcePtr, two.SourcePtr)
-		return false
-	}
-	if one.DestinationPtr != nil && two.DestinationPtr != nil && *one.DestinationPtr != *two.DestinationPtr {
-		log.Printf("DestinationPtr: %d != %d", one.DestinationPtr, two.DestinationPtr)
-		return false
-	}
-	if one.OperationID != two.OperationID {
-		log.Printf("OperationID: %s != %s", one.OperationID, two.OperationID)
-		return false
-	}
-	if one.Level != two.Level {
-		log.Printf("Level: %d != %d", one.Level, two.Level)
-		return false
-	}
-	if one.Address != two.Address {
-		log.Printf("Address: %s != %s", one.Address, two.Address)
-		return false
-	}
-	if one.Network != two.Network {
-		log.Printf("Network: %s != %s", one.Network, two.Network)
-		return false
-	}
-	if one.Timestamp != two.Timestamp {
-		log.Printf("Timestamp: %s != %s", one.Timestamp, two.Timestamp)
-		return false
-	}
-	return true
+	return compareParserResponse(t, one.Models, two.Models)
 }
 
 func setInt64(x int64) *int64 {
