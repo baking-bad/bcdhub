@@ -89,6 +89,17 @@ definitions:
       network:
         type: string
     type: object
+  elastic.TransfersResponse:
+    properties:
+      last_id:
+        type: string
+      total:
+        type: integer
+      transfers:
+        items:
+          $ref: '#/definitions/models.Transfer'
+        type: array
+    type: object
   formatter.DiffResult:
     properties:
       added:
@@ -119,6 +130,25 @@ definitions:
     type: object
   gin.H:
     additionalProperties: true
+    type: object
+  handlers.AccountInfo:
+    properties:
+      address:
+        type: string
+      alias:
+        type: string
+      balance:
+        type: integer
+      last_action:
+        type: string
+      network:
+        type: string
+      tokens:
+        items:
+          $ref: '#/definitions/handlers.TokenBalance'
+        type: array
+      tx_count:
+        type: integer
     type: object
   handlers.Alias:
     properties:
@@ -313,12 +343,20 @@ definitions:
         type: array
       timestamp:
         type: string
+      tokens:
+        items:
+          $ref: '#/definitions/handlers.TokenBalance'
+        type: array
       total_subscribed:
         type: integer
       total_withdrawn:
         type: integer
       tx_count:
         type: integer
+      verification_source:
+        type: string
+      verified:
+        type: boolean
     type: object
   handlers.EntrypointSchema:
     properties:
@@ -409,6 +447,8 @@ definitions:
     type: object
   handlers.Operation:
     properties:
+      allocated_destination_contract_burned:
+        type: integer
       amount:
         type: integer
       balance:
@@ -482,7 +522,7 @@ definitions:
         type: string
       operations:
         items:
-          type: integer
+          $ref: '#/definitions/handlers.Operation'
         type: array
     type: object
   handlers.OperationResult:
@@ -502,23 +542,12 @@ definitions:
     type: object
   handlers.PageableTokenContracts:
     properties:
-      last_id:
-        type: integer
       tokens:
         items:
           $ref: '#/definitions/handlers.TokenContract'
         type: array
       total:
         type: integer
-    type: object
-  handlers.PageableTokenTransfers:
-    properties:
-      last_id:
-        type: string
-      transfers:
-        items:
-          $ref: '#/definitions/handlers.TokenTransfer'
-        type: array
     type: object
   handlers.Protocol:
     properties:
@@ -618,12 +647,20 @@ definitions:
         type: array
       timestamp:
         type: string
+      tokens:
+        items:
+          $ref: '#/definitions/handlers.TokenBalance'
+        type: array
       total_subscribed:
         type: integer
       total_withdrawn:
         type: integer
       tx_count:
         type: integer
+      verification_source:
+        type: string
+      verified:
+        type: boolean
     type: object
   handlers.SimilarContractsResponse:
     properties:
@@ -642,6 +679,10 @@ definitions:
         type: string
       network:
         type: string
+      sentry_dsn:
+        type: string
+      sentry_enabled:
+        type: boolean
       subscribed_at:
         type: string
       watch_calls:
@@ -658,6 +699,53 @@ definitions:
         type: boolean
       watch_similar:
         type: boolean
+    type: object
+  handlers.Token:
+    properties:
+      contract:
+        type: string
+      decimals:
+        type: integer
+      extras:
+        additionalProperties: true
+        type: object
+      found_by:
+        type: string
+      interface:
+        type: string
+      level:
+        type: integer
+      name:
+        type: string
+      network:
+        type: string
+      registry_address:
+        type: string
+      supply:
+        type: number
+      symbol:
+        type: string
+      timestamp:
+        type: string
+      token_id:
+        type: integer
+      transfered:
+        type: number
+    type: object
+  handlers.TokenBalance:
+    properties:
+      balance:
+        type: integer
+      contract:
+        type: string
+      decimals:
+        type: integer
+      name:
+        type: string
+      symbol:
+        type: string
+      token_id:
+        type: integer
     type: object
   handlers.TokenContract:
     properties:
@@ -697,43 +785,16 @@ definitions:
       call_count:
         type: integer
     type: object
-  handlers.TokenTransfer:
-    properties:
-      amount:
-        type: integer
-      contract:
-        type: string
-      counter:
-        type: integer
-      from:
-        type: string
-      hash:
-        type: string
-      level:
-        type: integer
-      network:
-        type: string
-      nonce:
-        type: integer
-      protocol:
-        type: string
-      source:
-        type: string
-      status:
-        type: string
-      timestamp:
-        type: string
-      to:
-        type: string
-    type: object
   handlers.Transfer:
     properties:
       alias:
         type: string
       amount:
-        type: integer
+        type: number
       contract:
         type: string
+      counter:
+        type: integer
       from:
         type: string
       from_alias:
@@ -742,10 +803,16 @@ definitions:
         type: string
       indexed_time:
         type: integer
+      initiator:
+        type: string
+      initiator_alias:
+        type: string
       level:
         type: integer
       network:
         type: string
+      nonce:
+        type: integer
       status:
         type: string
       timestamp:
@@ -775,6 +842,45 @@ definitions:
   jsonschema.Schema:
     additionalProperties: true
     type: object
+  models.Transfer:
+    properties:
+      alias:
+        type: string
+      amount:
+        type: number
+      contract:
+        type: string
+      counter:
+        type: integer
+      from:
+        type: string
+      from_alias:
+        type: string
+      hash:
+        type: string
+      indexed_time:
+        type: integer
+      initiator:
+        type: string
+      initiator_alias:
+        type: string
+      level:
+        type: integer
+      network:
+        type: string
+      nonce:
+        type: integer
+      status:
+        type: string
+      timestamp:
+        type: string
+      to:
+        type: string
+      to_alias:
+        type: string
+      token_id:
+        type: integer
+    type: object
   newmiguel.Node:
     properties:
       children:
@@ -794,6 +900,8 @@ definitions:
       value:
         type: object
     type: object
+  postgres.Jsonb:
+    type: object
 info:
   contact: {}
   description: This is API description for Better Call Dev service.
@@ -805,7 +913,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Show contract`s tokens transfers
+      description: Show contract`s tokens transfers.
       operationId: get-contract-transfers
       parameters:
       - description: Transfers count
@@ -817,6 +925,11 @@ paths:
         in: query
         minimum: 1
         name: offset
+        type: integer
+      - description: Token ID
+        in: query
+        minimum: 1
+        name: token_id
         type: integer
       produces:
       - application/json
@@ -832,6 +945,43 @@ paths:
       summary: Show contract`s tokens transfers
       tags:
       - contract
+  /account/{network}/{address}:
+    get:
+      consumes:
+      - application/json
+      description: Get account info
+      operationId: get-account-info
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: Address
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: address
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.AccountInfo'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Get account info
+      tags:
+      - account
   /bigmap/{network}/{ptr}:
     get:
       consumes:
@@ -1719,6 +1869,47 @@ paths:
       summary: Get contract storage schema
       tags:
       - contract
+  /contract/{network}/{address}/tokens:
+    get:
+      consumes:
+      - application/json
+      description: List contract tokens
+      operationId: get-contract-token
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: KT address
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: address
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              items:
+                $ref: '#/definitions/handlers.Token'
+              type: array
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: List contract tokens
+      tags:
+      - contract
   /contract/{network}/stats:
     get:
       consumes:
@@ -2093,21 +2284,17 @@ paths:
       consumes:
       - application/json
       description: Get all contracts that implement FA1/FA1.2 standard
-      operationId: get-tokens
+      operationId: get-fa-all
       parameters:
       - description: Network
         in: path
         name: network
         required: true
         type: string
-      - description: Offset (deprecated)
+      - description: Offset
         in: query
         name: offset
         type: integer
-      - description: Last ID
-        in: query
-        name: last_id
-        type: string
       - description: Requested count
         in: query
         name: size
@@ -2146,7 +2333,6 @@ paths:
         type: string
       - description: One of periods
         enum:
-        - all
         - year
         - month
         - week
@@ -2155,14 +2341,19 @@ paths:
         name: period
         required: true
         type: string
+      - description: Comma-separated contract addresses
+        in: path
+        name: addresses
+        required: true
+        type: string
       - description: KT address
         in: path
         maxLength: 36
         minLength: 36
-        name: address
+        name: contract
         required: true
         type: string
-      - description: Comma-separated contract addresses
+      - description: Token ID
         in: query
         name: token_id
         required: true
@@ -2213,13 +2404,36 @@ paths:
         minimum: 1
         name: size
         type: integer
+      - description: 'Sort: one of `asc` and `desc`'
+        in: query
+        name: sort
+        type: string
+      - description: Timestamp in seconds
+        in: query
+        minimum: 1
+        name: start
+        type: integer
+      - description: Timestamp in seconds
+        in: query
+        minimum: 1
+        name: end
+        type: integer
+      - description: Comma-separated list of contracts which tokens will be requested
+        in: query
+        name: contracts
+        type: string
+      - description: Token ID
+        in: query
+        minimum: 0
+        name: token_id
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.PageableTokenTransfers'
+            $ref: '#/definitions/elastic.TransfersResponse'
         "400":
           description: Bad Request
           schema:
@@ -2236,7 +2450,7 @@ paths:
       consumes:
       - application/json
       description: Get all contracts that implement FA1/FA1.2 standard by version
-      operationId: get-tokens
+      operationId: get-fa-version
       parameters:
       - description: Network
         in: path
@@ -2252,14 +2466,10 @@ paths:
         name: faversion
         required: true
         type: string
-      - description: Offset (deprecated)
+      - description: Offset
         in: query
         name: offset
         type: integer
-      - description: Last ID
-        in: query
-        name: last_id
-        type: string
       - description: Requested count
         in: query
         name: size

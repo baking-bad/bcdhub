@@ -33,9 +33,10 @@ require (
 	github.com/streadway/amqp v0.0.0-20200108173154-1c71cc93ed71
 	github.com/stretchr/testify v1.5.1
 	github.com/swaggo/gin-swagger v1.2.0
-	github.com/swaggo/swag v1.6.5
+	github.com/swaggo/swag v1.6.7
 	github.com/tidwall/gjson v1.4.0
 	github.com/tidwall/sjson v1.0.4
+	github.com/urfave/cli v1.22.2 // indirect
 	github.com/valyala/fastjson v1.5.1
 	github.com/xanzy/go-gitlab v0.33.0
 	github.com/yhirose/go-peg v0.0.0-20190710015414-7eb2cf046928

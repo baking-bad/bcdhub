@@ -9,6 +9,60 @@
     },
     "basePath": "/v1",
     "paths": {
+        "/account/{network}/{address}": {
+            "get": {
+                "description": "Get account info",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "account"
+                ],
+                "summary": "Get account info",
+                "operationId": "get-account-info",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "description": "Address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.AccountInfo"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/bigmap/{network}/{ptr}": {
             "get": {
                 "description": "Get big map info by pointer",
@@ -1371,6 +1425,66 @@
                 }
             }
         },
+        "/contract/{network}/{address}/tokens": {
+            "get": {
+                "description": "List contract tokens",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contract"
+                ],
+                "summary": "List contract tokens",
+                "operationId": "get-contract-token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "description": "KT address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/handlers.Token"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/diff": {
             "post": {
                 "description": "Get diff between two contracts",
@@ -1866,7 +1980,7 @@
                     "tokens"
                 ],
                 "summary": "Get all contracts that implement FA1/FA1.2 standard",
-                "operationId": "get-tokens",
+                "operationId": "get-fa-all",
                 "parameters": [
                     {
                         "type": "string",
@@ -1877,14 +1991,8 @@
                     },
                     {
                         "type": "integer",
-                        "description": "Offset (deprecated)",
+                        "description": "Offset",
                         "name": "offset",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Last ID",
-                        "name": "last_id",
                         "in": "query"
                     },
                     {
@@ -1943,7 +2051,6 @@
                     },
                     {
                         "enum": [
-                            "all",
                             "year",
                             "month",
                             "week",
@@ -1956,17 +2063,24 @@
                         "required": true
                     },
                     {
+                        "type": "string",
+                        "description": "Comma-separated contract addresses",
+                        "name": "addresses",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "maxLength": 36,
                         "minLength": 36,
                         "type": "string",
                         "description": "KT address",
-                        "name": "address",
+                        "name": "contract",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "Comma-separated contract addresses",
+                        "description": "Token ID",
                         "name": "token_id",
                         "in": "query",
                         "required": true
@@ -2037,13 +2151,46 @@
                         "description": "Requested count",
                         "name": "size",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort: one of `asc` and `desc`",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Timestamp in seconds",
+                        "name": "start",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Timestamp in seconds",
+                        "name": "end",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma-separated list of contracts which tokens will be requested",
+                        "name": "contracts",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "description": "Token ID",
+                        "name": "token_id",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.PageableTokenTransfers"
+                            "$ref": "#/definitions/elastic.TransfersResponse"
                         }
                     },
                     "400": {
@@ -2074,7 +2221,7 @@
                     "tokens"
                 ],
                 "summary": "Get all contracts that implement FA1/FA1.2 standard by version",
-                "operationId": "get-tokens",
+                "operationId": "get-fa-version",
                 "parameters": [
                     {
                         "type": "string",
@@ -2097,14 +2244,8 @@
                     },
                     {
                         "type": "integer",
-                        "description": "Offset (deprecated)",
+                        "description": "Offset",
                         "name": "offset",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Last ID",
-                        "name": "last_id",
                         "in": "query"
                     },
                     {
@@ -2141,7 +2282,7 @@
         },
         "/{network}/{address}/transfers": {
             "get": {
-                "description": "Show contract`s tokens transfers",
+                "description": "Show contract`s tokens transfers.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2166,6 +2307,13 @@
                         "type": "integer",
                         "description": "Offset",
                         "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Token ID",
+                        "name": "token_id",
                         "in": "query"
                     }
                 ],
@@ -2324,6 +2472,23 @@
                 }
             }
         },
+        "elastic.TransfersResponse": {
+            "type": "object",
+            "properties": {
+                "last_id": {
+                    "type": "string"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "transfers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Transfer"
+                    }
+                }
+            }
+        },
         "formatter.DiffResult": {
             "type": "object",
             "properties": {
@@ -2370,6 +2535,35 @@
         "gin.H": {
             "type": "object",
             "additionalProperties": true
+        },
+        "handlers.AccountInfo": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "alias": {
+                    "type": "string"
+                },
+                "balance": {
+                    "type": "integer"
+                },
+                "last_action": {
+                    "type": "string"
+                },
+                "network": {
+                    "type": "string"
+                },
+                "tokens": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.TokenBalance"
+                    }
+                },
+                "tx_count": {
+                    "type": "integer"
+                }
+            }
         },
         "handlers.Alias": {
             "type": "object",
@@ -2657,6 +2851,12 @@
                 "timestamp": {
                     "type": "string"
                 },
+                "tokens": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.TokenBalance"
+                    }
+                },
                 "total_subscribed": {
                     "type": "integer"
                 },
@@ -2665,6 +2865,12 @@
                 },
                 "tx_count": {
                     "type": "integer"
+                },
+                "verification_source": {
+                    "type": "string"
+                },
+                "verified": {
+                    "type": "boolean"
                 }
             }
         },
@@ -2802,6 +3008,9 @@
         "handlers.Operation": {
             "type": "object",
             "properties": {
+                "allocated_destination_contract_burned": {
+                    "type": "integer"
+                },
                 "amount": {
                     "type": "integer"
                 },
@@ -2911,7 +3120,7 @@
                 "operations": {
                     "type": "array",
                     "items": {
-                        "type": "integer"
+                        "$ref": "#/definitions/handlers.Operation"
                     }
                 }
             }
@@ -2940,9 +3149,6 @@
         "handlers.PageableTokenContracts": {
             "type": "object",
             "properties": {
-                "last_id": {
-                    "type": "integer"
-                },
                 "tokens": {
                     "type": "array",
                     "items": {
@@ -2951,20 +3157,6 @@
                 },
                 "total": {
                     "type": "integer"
-                }
-            }
-        },
-        "handlers.PageableTokenTransfers": {
-            "type": "object",
-            "properties": {
-                "last_id": {
-                    "type": "string"
-                },
-                "transfers": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handlers.TokenTransfer"
-                    }
                 }
             }
         },
@@ -3113,6 +3305,12 @@
                 "timestamp": {
                     "type": "string"
                 },
+                "tokens": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.TokenBalance"
+                    }
+                },
                 "total_subscribed": {
                     "type": "integer"
                 },
@@ -3121,6 +3319,12 @@
                 },
                 "tx_count": {
                     "type": "integer"
+                },
+                "verification_source": {
+                    "type": "string"
+                },
+                "verified": {
+                    "type": "boolean"
                 }
             }
         },
@@ -3150,6 +3354,12 @@
                 "network": {
                     "type": "string"
                 },
+                "sentry_dsn": {
+                    "type": "string"
+                },
+                "sentry_enabled": {
+                    "type": "boolean"
+                },
                 "subscribed_at": {
                     "type": "string"
                 },
@@ -3173,6 +3383,77 @@
                 },
                 "watch_similar": {
                     "type": "boolean"
+                }
+            }
+        },
+        "handlers.Token": {
+            "type": "object",
+            "properties": {
+                "contract": {
+                    "type": "string"
+                },
+                "decimals": {
+                    "type": "integer"
+                },
+                "extras": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "found_by": {
+                    "type": "string"
+                },
+                "interface": {
+                    "type": "string"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "network": {
+                    "type": "string"
+                },
+                "registry_address": {
+                    "type": "string"
+                },
+                "supply": {
+                    "type": "number"
+                },
+                "symbol": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "token_id": {
+                    "type": "integer"
+                },
+                "transfered": {
+                    "type": "number"
+                }
+            }
+        },
+        "handlers.TokenBalance": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "integer"
+                },
+                "contract": {
+                    "type": "string"
+                },
+                "decimals": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "symbol": {
+                    "type": "string"
+                },
+                "token_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -3234,50 +3515,6 @@
                 }
             }
         },
-        "handlers.TokenTransfer": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "type": "integer"
-                },
-                "contract": {
-                    "type": "string"
-                },
-                "counter": {
-                    "type": "integer"
-                },
-                "from": {
-                    "type": "string"
-                },
-                "hash": {
-                    "type": "string"
-                },
-                "level": {
-                    "type": "integer"
-                },
-                "network": {
-                    "type": "string"
-                },
-                "nonce": {
-                    "type": "integer"
-                },
-                "protocol": {
-                    "type": "string"
-                },
-                "source": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "string"
-                },
-                "to": {
-                    "type": "string"
-                }
-            }
-        },
         "handlers.Transfer": {
             "type": "object",
             "properties": {
@@ -3285,10 +3522,13 @@
                     "type": "string"
                 },
                 "amount": {
-                    "type": "integer"
+                    "type": "number"
                 },
                 "contract": {
                     "type": "string"
+                },
+                "counter": {
+                    "type": "integer"
                 },
                 "from": {
                     "type": "string"
@@ -3302,11 +3542,20 @@
                 "indexed_time": {
                     "type": "integer"
                 },
+                "initiator": {
+                    "type": "string"
+                },
+                "initiator_alias": {
+                    "type": "string"
+                },
                 "level": {
                     "type": "integer"
                 },
                 "network": {
                     "type": "string"
+                },
+                "nonce": {
+                    "type": "integer"
                 },
                 "status": {
                     "type": "string"
@@ -3351,6 +3600,65 @@
             "type": "object",
             "additionalProperties": true
         },
+        "models.Transfer": {
+            "type": "object",
+            "properties": {
+                "alias": {
+                    "type": "string"
+                },
+                "amount": {
+                    "type": "number"
+                },
+                "contract": {
+                    "type": "string"
+                },
+                "counter": {
+                    "type": "integer"
+                },
+                "from": {
+                    "type": "string"
+                },
+                "from_alias": {
+                    "type": "string"
+                },
+                "hash": {
+                    "type": "string"
+                },
+                "indexed_time": {
+                    "type": "integer"
+                },
+                "initiator": {
+                    "type": "string"
+                },
+                "initiator_alias": {
+                    "type": "string"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "network": {
+                    "type": "string"
+                },
+                "nonce": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                },
+                "to_alias": {
+                    "type": "string"
+                },
+                "token_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "newmiguel.Node": {
             "type": "object",
             "properties": {
@@ -3379,6 +3687,9 @@
                     "type": "object"
                 }
             }
+        },
+        "postgres.Jsonb": {
+            "type": "object"
         }
     }
 }
