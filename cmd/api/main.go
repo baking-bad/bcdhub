@@ -73,7 +73,53 @@ func main() {
 	r := gin.Default()
 	r.MaxMultipartMemory = 4 << 20 // max upload size 4 MiB
 
-	initValidators(cfg)
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		if err := v.RegisterValidation("address", handlers.AddressValidator); err != nil {
+			logger.Fatal(err)
+		}
+	}
+
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		if err := v.RegisterValidation("opg", handlers.OPGValidator); err != nil {
+			logger.Fatal(err)
+		}
+	}
+
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		if err := v.RegisterValidation("network", handlers.MakeNetworkValidator(cfg.API.Networks)); err != nil {
+			logger.Fatal(err)
+		}
+	}
+
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		if err := v.RegisterValidation("status", handlers.StatusValidator); err != nil {
+			logger.Fatal(err)
+		}
+	}
+
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		if err := v.RegisterValidation("faversion", handlers.FAVersionValidator); err != nil {
+			logger.Fatal(err)
+		}
+	}
+
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		if err := v.RegisterValidation("fill_type", handlers.FillTypeValidator); err != nil {
+			logger.Fatal(err)
+		}
+	}
+
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		if err := v.RegisterValidation("compilation_kind", handlers.CompilationKindValidator); err != nil {
+			logger.Fatal(err)
+		}
+	}
+
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		if err := v.RegisterValidation("search", handlers.SearchStringValidator); err != nil {
+			logger.Fatal(err)
+		}
+	}
 
 	if cfg.API.CorsEnabled {
 		r.Use(corsSettings())
@@ -246,54 +292,4 @@ func corsSettings() gin.HandlerFunc {
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	})
-}
-
-func initValidators(cfg config.Config) {
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		if err := v.RegisterValidation("address", handlers.AddressValidator); err != nil {
-			logger.Fatal(err)
-		}
-	}
-
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		if err := v.RegisterValidation("opg", handlers.OPGValidator); err != nil {
-			logger.Fatal(err)
-		}
-	}
-
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		if err := v.RegisterValidation("network", handlers.MakeNetworkValidator(cfg.API.Networks)); err != nil {
-			logger.Fatal(err)
-		}
-	}
-
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		if err := v.RegisterValidation("status", handlers.StatusValidator); err != nil {
-			logger.Fatal(err)
-		}
-	}
-
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		if err := v.RegisterValidation("faversion", handlers.FAVersionValidator); err != nil {
-			logger.Fatal(err)
-		}
-	}
-
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		if err := v.RegisterValidation("fill_type", handlers.FillTypeValidator); err != nil {
-			logger.Fatal(err)
-		}
-	}
-
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		if err := v.RegisterValidation("compilation_kind", handlers.CompilationKindValidator); err != nil {
-			logger.Fatal(err)
-		}
-	}
-
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		if err := v.RegisterValidation("search", handlers.SearchStringValidator); err != nil {
-			logger.Fatal(err)
-		}
-	}
 }
