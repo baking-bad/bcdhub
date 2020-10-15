@@ -15,7 +15,7 @@ import (
 // @Summary Get all contracts that implement FA1/FA1.2 standard
 // @Description Get all contracts that implement FA1/FA1.2 standard
 // @Tags tokens
-// @ID get-tokens
+// @ID get-fa-all
 // @Param network path string true "Network"
 // @Param offset query integer false "Offset"
 // @Param size query integer false "Requested count" minimum(0) maximum(100)
@@ -56,7 +56,7 @@ func (ctx *Context) GetFA(c *gin.Context) {
 // @Summary Get all contracts that implement FA1/FA1.2 standard by version
 // @Description Get all contracts that implement FA1/FA1.2 standard by version
 // @Tags tokens
-// @ID get-tokens
+// @ID get-fa-version
 // @Param network path string true "Network"
 // @Param faversion path string true "FA token version" Enums(fa1, fa12, fa2)
 // @Param offset query integer false "Offset"
