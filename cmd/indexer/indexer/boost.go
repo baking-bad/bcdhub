@@ -489,19 +489,19 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 	// 	parsers.WithTokenViews(bi.tokenViews),
 	// )
 
-	parser := operations.NewGroup(operations.NewParseParams(
-		bi.rpc,
-		bi.es,
-		operations.WithConstants(bi.currentProtocol.Constants),
-		operations.WithHead(head),
-		operations.WithIPFSGateways(bi.cfg.IPFSGateways),
-		operations.WithInterfaces(bi.interfaces),
-		operations.WithShareDirectory(bi.cfg.Share.Path),
-		operations.WithTokenViews(bi.tokenViews),
-		operations.WithNetwork(network),
-	))
 	parsedModels := make([]elastic.Model, 0)
 	for _, opg := range data.Array() {
+		parser := operations.NewGroup(operations.NewParseParams(
+			bi.rpc,
+			bi.es,
+			operations.WithConstants(bi.currentProtocol.Constants),
+			operations.WithHead(head),
+			operations.WithIPFSGateways(bi.cfg.IPFSGateways),
+			operations.WithInterfaces(bi.interfaces),
+			operations.WithShareDirectory(bi.cfg.Share.Path),
+			operations.WithTokenViews(bi.tokenViews),
+			operations.WithNetwork(network),
+		))
 		parsed, err := parser.Parse(opg)
 		if err != nil {
 			return nil, err
