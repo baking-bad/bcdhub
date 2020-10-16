@@ -21,7 +21,7 @@ import (
 // @Param size query integer false "Requested count" minimum(0) maximum(100)
 // @Accept json
 // @Produce json
-// @Success 200 {array} PageableTokenContracts
+// @Success 200 {object} PageableTokenContracts
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /tokens/{network} [get]
@@ -63,7 +63,7 @@ func (ctx *Context) GetFA(c *gin.Context) {
 // @Param size query integer false "Requested count" minimum(0) maximum(100)
 // @Accept json
 // @Produce json
-// @Success 200 {array} PageableTokenContracts
+// @Success 200 {object} PageableTokenContracts
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /tokens/{network}/version/{faversion} [get]
@@ -273,7 +273,7 @@ func (ctx *Context) contractToTokens(contracts []models.Contract, network, versi
 // @Param address path string true "KT address" minlength(36) maxlength(36)
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} []Token
+// @Success 200 {array} Token
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /contract/{network}/{address}/tokens [get]

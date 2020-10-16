@@ -131,7 +131,7 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 // @Summary Execute entrypoint with passed arguments
 // @Description Execute entrypoint with passed arguments
 // @Tags contract
-// @ID get-contract-entrypoints-run
+// @ID run-code
 // @Param network path string true "Network"
 // @Param address path string true "KT address" minlength(36) maxlength(36)
 // @Param bin_path body string true "Entrypoint binary path"

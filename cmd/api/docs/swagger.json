@@ -97,10 +97,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/handlers.GetBigMapResponse"
-                            }
+                            "$ref": "#/definitions/handlers.GetBigMapResponse"
                         }
                     },
                     "204": {
@@ -312,10 +309,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/handlers.BigMapDiffByKeyResponse"
-                            }
+                            "$ref": "#/definitions/handlers.BigMapDiffByKeyResponse"
                         }
                     },
                     "400": {
@@ -383,6 +377,12 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/elastic.DAppStats"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
                         }
                     },
                     "500": {
@@ -692,10 +692,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/handlers.EntrypointSchema"
-                            }
+                            "$ref": "#/definitions/handlers.EntrypointSchema"
                         }
                     },
                     "400": {
@@ -726,7 +723,7 @@
                     "contract"
                 ],
                 "summary": "Execute entrypoint with passed arguments",
-                "operationId": "get-contract-entrypoints-run",
+                "operationId": "run-code",
                 "parameters": [
                     {
                         "type": "string",
@@ -1208,12 +1205,6 @@
                             "$ref": "#/definitions/newmiguel.Node"
                         }
                     },
-                    "204": {
-                        "description": "No Content",
-                        "schema": {
-                            "$ref": "#/definitions/gin.H"
-                        }
-                    },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
@@ -1463,10 +1454,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/definitions/handlers.Token"
-                                }
+                                "$ref": "#/definitions/handlers.Token"
                             }
                         }
                     },
@@ -2006,10 +1994,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/handlers.PageableTokenContracts"
-                            }
+                            "$ref": "#/definitions/handlers.PageableTokenContracts"
                         }
                     },
                     "400": {
@@ -2259,10 +2244,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/handlers.PageableTokenContracts"
-                            }
+                            "$ref": "#/definitions/handlers.PageableTokenContracts"
                         }
                     },
                     "400": {
@@ -2322,6 +2304,12 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/handlers.TransferResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
                         }
                     },
                     "500": {
@@ -3120,7 +3108,7 @@
                 "operations": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/handlers.Operation"
+                        "type": "integer"
                     }
                 }
             }

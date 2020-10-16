@@ -108,7 +108,7 @@ func (ctx *Context) GetEntrypointData(c *gin.Context) {
 // @Param fill_type query string false "Fill storage type" Enums(empty, latest)
 // @Accept json
 // @Produce json
-// @Success 200 {array} EntrypointSchema
+// @Success 200 {object} EntrypointSchema
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /contract/{network}/{address}/entrypoints/schema [get]
