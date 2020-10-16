@@ -1,9 +1,11 @@
 package operations
 
 import (
+	"sync"
+
 	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
-	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
 	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/contract"
@@ -19,9 +21,10 @@ type ParseParams struct {
 	interfaces map[string]kinds.ContractKind
 	constants  models.Constants
 
-	contractParser contract.Parser
-	transferParser transfer.Parser
-	storageParser  storage.Parser
+	contractParser *contract.Parser
+	transferParser *transfer.Parser
+
+	storageParser *RichStorage
 
 	ipfs  []string
 	views transfer.TokenViews
@@ -31,6 +34,8 @@ type ParseParams struct {
 	head       noderpc.Header
 	contentIdx int64
 	main       *models.Operation
+
+	once *sync.Once
 }
 
 // ParseParamsOption -
@@ -107,23 +112,28 @@ func WithMainOperation(main *models.Operation) ParseParamsOption {
 }
 
 // NewParseParams -
-func NewParseParams(rpc noderpc.INode, es elastic.IElastic, opts ...ParseParamsOption) ParseParams {
-	params := ParseParams{
-		es:  es,
-		rpc: rpc,
+func NewParseParams(rpc noderpc.INode, es elastic.IElastic, opts ...ParseParamsOption) *ParseParams {
+	params := &ParseParams{
+		es:   es,
+		rpc:  rpc,
+		once: &sync.Once{},
 	}
 	for i := range opts {
-		opts[i](&params)
+		opts[i](params)
 	}
 
 	params.transferParser = transfer.NewParser(
-		rpc, es,
+		params.rpc, params.es,
 		transfer.WithTokenViews(params.views),
 	)
 	params.contractParser = contract.NewParser(
 		params.interfaces,
 		contract.WithShareDirContractParser(params.shareDir),
 	)
-
+	storageParser, err := NewRichStorage(es, rpc, params.head.Protocol)
+	if err != nil {
+		logger.Error(err)
+	}
+	params.storageParser = storageParser
 	return params
 }

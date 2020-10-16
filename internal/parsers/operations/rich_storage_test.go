@@ -1,7 +1,6 @@
 package operations
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -11,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"github.com/tidwall/gjson"
 )
 
 func TestRichStorage_Parse(t *testing.T) {
@@ -122,19 +122,21 @@ func TestRichStorage_Parse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			storageFile := fmt.Sprintf("./data/rpc/script/storage/%s_%d.json", tt.operation.Destination, tt.operation.Level)
-			storageJSON, err := readJSONFile(storageFile)
+			storageJSON, err := readStorage(tt.operation.Destination, tt.operation.Level)
 			if err != nil {
-				t.Errorf(`readJSONFile("%s") = error %v`, storageFile, err)
+				t.Errorf(`readStorage("%s"m %d) = error %v`, tt.operation.Destination, tt.operation.Level, err)
 				return
 			}
-
 			tt.want.DeffatedStorage = storageJSON.String()
 
 			rpc.
 				EXPECT().
 				GetScriptStorageJSON(tt.operation.Destination, tt.operation.Level).
-				Return(storageJSON, nil).
+				DoAndReturn(
+					func(address string, level int64) (gjson.Result, error) {
+						return readStorage(address, level)
+					},
+				).
 				AnyTimes()
 
 			es.
@@ -154,13 +156,17 @@ func TestRichStorage_Parse(t *testing.T) {
 				return
 			}
 
-			got, err := NewRichStorage(es, rpc, tt.operation, metadata).Parse(data)
+			parser, err := NewRichStorage(es, rpc, tt.operation.Protocol)
+			if err != nil {
+				t.Errorf(`NewRichStorage = error %v`, err)
+				return
+			}
+
+			got, err := parser.Parse(data, metadata, tt.operation)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RichStorage.Parse() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-
-			// log.Print(cmp.Diff(got, tt.want))
 
 			if !compareRichStorage(t, got, tt.want) {
 				t.Errorf("RichStorage.Parse() = %v, want %v", got, tt.want)

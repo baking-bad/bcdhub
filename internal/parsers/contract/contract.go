@@ -23,14 +23,14 @@ type Parser struct {
 }
 
 // NewParser -
-func NewParser(interfaces map[string]kinds.ContractKind, opts ...ParserOption) Parser {
-	parser := Parser{
+func NewParser(interfaces map[string]kinds.ContractKind, opts ...ParserOption) *Parser {
+	parser := &Parser{
 		interfaces: interfaces,
 		metadata:   make(map[string]*meta.ContractMetadata),
 	}
 
 	for i := range opts {
-		opts[i](&parser)
+		opts[i](parser)
 	}
 
 	return parser
@@ -102,7 +102,7 @@ func (p *Parser) Parse(operation models.Operation) ([]elastic.Model, error) {
 }
 
 // GetContractMetadata -
-func (p Parser) GetContractMetadata(address string) (*meta.ContractMetadata, error) {
+func (p *Parser) GetContractMetadata(address string) (*meta.ContractMetadata, error) {
 	metadata, ok := p.metadata[address]
 	if !ok {
 		return nil, errors.Errorf("Unknown parsed metadata: %s", address)
@@ -110,7 +110,7 @@ func (p Parser) GetContractMetadata(address string) (*meta.ContractMetadata, err
 	return metadata, nil
 }
 
-func (p Parser) computeMetrics(operation models.Operation, protoSymLink string, contract *models.Contract) error {
+func (p *Parser) computeMetrics(operation models.Operation, protoSymLink string, contract *models.Contract) error {
 	script, err := contractparser.New(operation.Script)
 	if err != nil {
 		return errors.Errorf("contractparser.New: %v", err)

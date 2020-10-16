@@ -31,8 +31,8 @@ type OPGParser struct {
 	interfaces map[string]kinds.ContractKind
 	constants  models.Constants
 
-	contractParser contract.Parser
-	transferParser transfer.Parser
+	contractParser *contract.Parser
+	transferParser *transfer.Parser
 	storageParser  storage.Parser
 
 	ipfs  []string

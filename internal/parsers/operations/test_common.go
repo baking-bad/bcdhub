@@ -10,6 +10,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
@@ -53,6 +54,11 @@ func readTestContractModel(address string) (models.Contract, error) {
 	return contract, err
 }
 
+func readStorage(address string, level int64) (gjson.Result, error) {
+	storageFile := fmt.Sprintf("./data/rpc/script/storage/%s_%d.json", address, level)
+	return readJSONFile(storageFile)
+}
+
 func compareParserResponse(t *testing.T, got, want []elastic.Model) bool {
 	if len(got) != len(want) {
 		log.Printf("len(got) != len(want): %d != %d", len(got), len(want))
@@ -93,6 +99,22 @@ func compareParserResponse(t *testing.T, got, want []elastic.Model) bool {
 				return false
 			}
 			if !compareBigMapAction(one, two) {
+				return false
+			}
+		case *models.Contract:
+			two, ok := want[i].(*models.Contract)
+			if !ok {
+				return false
+			}
+			if !compareContract(t, one, two) {
+				return false
+			}
+		case *models.Metadata:
+			two, ok := want[i].(*models.Metadata)
+			if !ok {
+				return false
+			}
+			if !compareMetadata(t, one, two) {
 				return false
 			}
 		default:
@@ -302,7 +324,7 @@ func compareOperations(t *testing.T, one, two *models.Operation) bool {
 
 func compareBigMapDiff(t *testing.T, one, two *models.BigMapDiff) bool {
 	if one.Address != two.Address {
-		log.Printf("Address: %s != %s", one.Address, two.Address)
+		log.Printf("BigMapDiff.Address: %s != %s", one.Address, two.Address)
 		return false
 	}
 	if one.KeyHash != two.KeyHash {
@@ -310,7 +332,7 @@ func compareBigMapDiff(t *testing.T, one, two *models.BigMapDiff) bool {
 		return false
 	}
 	if !compareJSON(t, one.Value, two.Value) {
-		log.Printf("Value: %s != %s", one.Value, two.Value)
+		log.Printf("BigMapDiff.Value: %s != %s", one.Value, two.Value)
 		return false
 	}
 	if one.BinPath != two.BinPath {
@@ -358,7 +380,7 @@ func compareBigMapAction(one, two *models.BigMapAction) bool {
 		return false
 	}
 	if one.Address != two.Address {
-		log.Printf("Address: %s != %s", one.Address, two.Address)
+		log.Printf("BigMapAction.Address: %s != %s", one.Address, two.Address)
 		return false
 	}
 	if one.Network != two.Network {
@@ -372,6 +394,102 @@ func compareBigMapAction(one, two *models.BigMapAction) bool {
 	return true
 }
 
+func compareContract(t *testing.T, one, two *models.Contract) bool {
+	if one.Network != two.Network {
+		log.Printf("Contract.Network: %s != %s", one.Network, two.Network)
+		return false
+	}
+	if one.Address != two.Address {
+		log.Printf("Contract.Address: %s != %s", one.Address, two.Address)
+		return false
+	}
+	if one.Language != two.Language {
+		log.Printf("Contract.Language: %s != %s", one.Language, two.Language)
+		return false
+	}
+	if one.Hash != two.Hash {
+		log.Printf("Contract.Hash: %s != %s", one.Hash, two.Hash)
+		return false
+	}
+	if one.Manager != two.Manager {
+		log.Printf("Contract.Manager: %s != %s", one.Manager, two.Manager)
+		return false
+	}
+	if one.Level != two.Level {
+		log.Printf("Contract.Level: %d != %d", one.Level, two.Level)
+		return false
+	}
+	if one.TxCount != two.TxCount {
+		log.Printf("Contract.TxCount: %d != %d", one.TxCount, two.TxCount)
+		return false
+	}
+	if one.Balance != two.Balance {
+		log.Printf("Contract.Balance: %d != %d", one.Balance, two.Balance)
+		return false
+	}
+	if one.Timestamp != two.Timestamp {
+		log.Printf("Contract.Timestamp: %s != %s", one.Timestamp, two.Timestamp)
+		return false
+	}
+	if one.LastAction.Time != two.LastAction.Time {
+		log.Printf("Contract.LastAction: %s != %s", one.LastAction.Time, two.LastAction.Time)
+		return false
+	}
+	if !compareStringArray(one.Tags, two.Tags) {
+		log.Printf("Contract.Tags: %v != %v", one.Tags, two.Tags)
+		return false
+	}
+	if !compareStringArray(one.Hardcoded, two.Hardcoded) {
+		log.Printf("Contract.Hardcoded: %v != %v", one.Hardcoded, two.Hardcoded)
+		return false
+	}
+	if !compareStringArray(one.FailStrings, two.FailStrings) {
+		log.Printf("Contract.FailStrings: %v != %v", one.FailStrings, two.FailStrings)
+		return false
+	}
+	if !compareStringArray(one.Annotations, two.Annotations) {
+		log.Printf("Contract.Annotations: %v != %v", one.Annotations, two.Annotations)
+		return false
+	}
+	if !compareStringArray(one.Entrypoints, two.Entrypoints) {
+		log.Printf("Contract.Entrypoints: %v != %v", one.Entrypoints, two.Entrypoints)
+		return false
+	}
+	return true
+}
+
+func compareMetadata(t *testing.T, one, two *models.Metadata) bool {
+	if one.ID != two.ID {
+		log.Printf("Metadata.ID: %s != %s", one.ID, two.ID)
+		return false
+	}
+
+	for key, value := range one.Parameter {
+		if valueTwo, ok := two.Parameter[key]; ok {
+			if !compareJSON(t, value, valueTwo) {
+				log.Printf("Metadata.Parameter[%s]: %s != %s", key, value, valueTwo)
+				return false
+			}
+		} else {
+			log.Printf("Metadata.Parameter[%s] is absent", key)
+			return false
+		}
+	}
+
+	for key, value := range one.Storage {
+		if valueTwo, ok := two.Storage[key]; ok {
+			if !compareJSON(t, value, valueTwo) {
+				log.Printf("Metadata.Storage[%s]: %s != %s", key, value, valueTwo)
+				return false
+			}
+		} else {
+			log.Printf("Metadata.Storage[%s] is absent", key)
+			return false
+		}
+	}
+	return true
+}
+
 func compareJSON(t *testing.T, one, two string) bool {
 	if one == "" {
 		return one == two
@@ -380,5 +498,19 @@ func compareJSON(t *testing.T, one, two string) bool {
 }
 
 func compareInt64Ptr(one, two *int64) bool {
-	return (one != nil && two != nil && *one != *two) || (one == nil && two == nil)
+	return (one != nil && two != nil && *one == *two) || (one == nil && two == nil)
+}
+
+func compareStringArray(one, two []string) bool {
+	if len(one) != len(two) {
+		return false
+	}
+
+	for i := range one {
+		if !helpers.StringInArray(one[i], two) {
+			return false
+		}
+	}
+
+	return true
 }

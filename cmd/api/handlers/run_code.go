@@ -12,7 +12,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/baking-bad/bcdhub/internal/parsers"
+	"github.com/baking-bad/bcdhub/internal/parsers/operations"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -75,14 +75,6 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		return
 	}
 
-	defaultParser := parsers.NewOPGParser(
-		rpc,
-		ctx.ES,
-		ctx.SharePath,
-		parsers.WithConstants(protocol.Constants),
-		parsers.WithInterfaces(ctx.Interfaces),
-	)
-
 	header := noderpc.Header{
 		Level:       state.Level,
 		Protocol:    state.Protocol,
@@ -92,7 +84,17 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		Predecessor: state.Predecessor,
 	}
 
-	parsedModels, err := defaultParser.Parse(response, req.Network, header)
+	parser := operations.NewGroup(operations.NewParseParams(
+		rpc,
+		ctx.ES,
+		operations.WithConstants(protocol.Constants),
+		operations.WithHead(header),
+		operations.WithInterfaces(ctx.Interfaces),
+		operations.WithShareDirectory(ctx.SharePath),
+		operations.WithNetwork(req.Network),
+	))
+
+	parsedModels, err := parser.Parse(response)
 	if handleError(c, err, 0) {
 		return
 	}

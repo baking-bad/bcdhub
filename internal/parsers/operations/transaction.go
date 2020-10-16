@@ -118,7 +118,7 @@ func (p Transaction) appliedHandler(item gjson.Result, op *models.Operation) ([]
 
 	resultModels := make([]elastic.Model, 0)
 
-	rs, err := NewRichStorage(p.es, p.rpc, op, metadata).Parse(item)
+	rs, err := p.storageParser.Parse(item, metadata, op)
 	if err != nil {
 		return nil, err
 	}

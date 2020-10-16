@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -75,7 +74,7 @@ func (p Origination) Parse(data gjson.Result) ([]elastic.Model, error) {
 }
 
 func (p Origination) appliedHandler(item gjson.Result, origination *models.Operation) ([]elastic.Model, error) {
-	if !strings.HasPrefix(origination.Destination, "KT") || origination.Status == consts.Applied {
+	if !strings.HasPrefix(origination.Destination, "KT") || origination.Status != consts.Applied {
 		return nil, nil
 	}
 
@@ -89,16 +88,10 @@ func (p Origination) appliedHandler(item gjson.Result, origination *models.Opera
 
 	metadata, err := p.contractParser.GetContractMetadata(origination.Destination)
 	if err != nil {
-		metadata, err = meta.GetContractMetadata(p.es, origination.Destination)
-		if err != nil {
-			if strings.Contains(err.Error(), "404 Not Found") {
-				return nil, nil
-			}
-			return nil, err
-		}
+		return nil, err
 	}
 
-	rs, err := NewRichStorage(p.es, p.rpc, origination, metadata).Parse(item)
+	rs, err := p.storageParser.Parse(item, metadata, origination)
 	if err != nil {
 		return nil, err
 	}

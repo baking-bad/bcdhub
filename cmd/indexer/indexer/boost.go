@@ -20,6 +20,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
+	"github.com/baking-bad/bcdhub/internal/parsers/operations"
 	"github.com/baking-bad/bcdhub/internal/parsers/transfer"
 	"github.com/baking-bad/bcdhub/internal/rollback"
 	"github.com/pkg/errors"
@@ -478,19 +479,30 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 		return nil, err
 	}
 
-	defaultParser := parsers.NewOPGParser(
+	// parser := parsers.NewOPGParser(
+	// 	bi.rpc,
+	// 	bi.es,
+	// 	bi.cfg.Share.Path,
+	// 	parsers.WithIPFSGateways(bi.cfg.IPFSGateways),
+	// 	parsers.WithConstants(bi.currentProtocol.Constants),
+	// 	parsers.WithInterfaces(bi.interfaces),
+	// 	parsers.WithTokenViews(bi.tokenViews),
+	// )
+
+	parser := operations.NewGroup(operations.NewParseParams(
 		bi.rpc,
 		bi.es,
-		bi.cfg.Share.Path,
-		parsers.WithIPFSGateways(bi.cfg.IPFSGateways),
-		parsers.WithConstants(bi.currentProtocol.Constants),
-		parsers.WithInterfaces(bi.interfaces),
-		parsers.WithTokenViews(bi.tokenViews),
-	)
-
+		operations.WithConstants(bi.currentProtocol.Constants),
+		operations.WithHead(head),
+		operations.WithIPFSGateways(bi.cfg.IPFSGateways),
+		operations.WithInterfaces(bi.interfaces),
+		operations.WithShareDirectory(bi.cfg.Share.Path),
+		operations.WithTokenViews(bi.tokenViews),
+		operations.WithNetwork(network),
+	))
 	parsedModels := make([]elastic.Model, 0)
 	for _, opg := range data.Array() {
-		parsed, err := defaultParser.Parse(opg, network, head)
+		parsed, err := parser.Parse(opg)
 		if err != nil {
 			return nil, err
 		}

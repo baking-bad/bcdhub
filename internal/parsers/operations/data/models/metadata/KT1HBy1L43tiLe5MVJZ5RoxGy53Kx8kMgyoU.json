@@ -1,0 +1,8 @@
+{
+    "parameter": {
+        "babylon": "{\"0\":{\"prim\":\"or\",\"args\":[\"0/0\",\"0/1\"],\"type\":\"namedunion\"},\"0/0\":{\"fieldname\":\"mint\",\"prim\":\"pair\",\"args\":[\"0/0/0\",\"0/0/1\"],\"type\":\"namedtuple\",\"name\":\"mint\"},\"0/0/0\":{\"fieldname\":\"address\",\"prim\":\"address\",\"type\":\"address\",\"name\":\"address\"},\"0/0/1\":{\"fieldname\":\"amount\",\"prim\":\"int\",\"type\":\"int\",\"name\":\"amount\"},\"0/1\":{\"fieldname\":\"setEuroTzMain\",\"prim\":\"address\",\"type\":\"address\",\"name\":\"setEuroTzMain\"}}"
+    },
+    "storage": {
+        "babylon": "{\"0\":{\"prim\":\"pair\",\"args\":[\"0/0\",\"0/1/0/o\",\"0/1/1\"],\"type\":\"namedtuple\"},\"0/0\":{\"fieldname\":\"balances\",\"prim\":\"big_map\",\"type\":\"big_map\",\"name\":\"balances\"},\"0/0/k\":{\"prim\":\"address\",\"type\":\"address\"},\"0/0/v\":{\"prim\":\"pair\",\"args\":[\"0/0/v/0\",\"0/0/v/1\"],\"type\":\"namedtuple\"},\"0/0/v/0\":{\"fieldname\":\"approvals\",\"prim\":\"map\",\"type\":\"map\",\"name\":\"approvals\"},\"0/0/v/0/k\":{\"prim\":\"address\",\"type\":\"address\"},\"0/0/v/0/v\":{\"prim\":\"int\",\"type\":\"int\"},\"0/0/v/1\":{\"fieldname\":\"balance\",\"prim\":\"int\",\"type\":\"int\",\"name\":\"balance\"},\"0/1\":{\"prim\":\"pair\",\"type\":\"pair\"},\"0/1/0\":{\"fieldname\":\"euroTzMain\",\"prim\":\"option\",\"type\":\"option\"},\"0/1/0/o\":{\"prim\":\"address\",\"type\":\"address\",\"name\":\"euroTzMain\"},\"0/1/1\":{\"fieldname\":\"totalSupply\",\"prim\":\"int\",\"type\":\"int\",\"name\":\"totalSupply\"}}"
+    }
+}

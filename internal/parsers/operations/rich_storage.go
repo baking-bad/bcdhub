@@ -14,54 +14,46 @@ import (
 
 // RichStorage -
 type RichStorage struct {
-	rpc noderpc.INode
 	es  elastic.IElastic
+	rpc noderpc.INode
 
-	operation *models.Operation
-	metadata  *meta.ContractMetadata
-
-	storageParser storage.Parser
+	parser storage.Parser
 }
 
 // NewRichStorage -
-func NewRichStorage(es elastic.IElastic, rpc noderpc.INode, operation *models.Operation, metadata *meta.ContractMetadata) RichStorage {
-	return RichStorage{
-		rpc:       rpc,
-		es:        es,
-		operation: operation,
-		metadata:  metadata,
+func NewRichStorage(es elastic.IElastic, rpc noderpc.INode, protocol string) (*RichStorage, error) {
+	storageParser, err := contractparser.MakeStorageParser(rpc, es, protocol, false)
+	if err != nil {
+		return nil, err
 	}
+	return &RichStorage{
+		es:     es,
+		rpc:    rpc,
+		parser: storageParser,
+	}, nil
 }
 
 // Parse -
-func (p RichStorage) Parse(data gjson.Result) (storage.RichStorage, error) {
-	if p.storageParser == nil {
-		parser, err := contractparser.MakeStorageParser(p.rpc, p.es, p.operation.Protocol, false)
-		if err != nil {
-			return storage.RichStorage{Empty: true}, err
-		}
-		p.storageParser = parser
-	}
-
-	protoSymLink, err := meta.GetProtoSymLink(p.operation.Protocol)
+func (p *RichStorage) Parse(data gjson.Result, metadata *meta.ContractMetadata, operation *models.Operation) (storage.RichStorage, error) {
+	protoSymLink, err := meta.GetProtoSymLink(operation.Protocol)
 	if err != nil {
 		return storage.RichStorage{Empty: true}, err
 	}
 
-	m, ok := p.metadata.Storage[protoSymLink]
+	m, ok := metadata.Storage[protoSymLink]
 	if !ok {
 		return storage.RichStorage{Empty: true}, errors.Errorf("Unknown metadata: %s", protoSymLink)
 	}
 
-	switch p.operation.Kind {
+	switch operation.Kind {
 	case consts.Transaction:
-		return p.storageParser.ParseTransaction(data, m, *p.operation)
+		return p.parser.ParseTransaction(data, m, *operation)
 	case consts.Origination:
-		rs, err := p.storageParser.ParseOrigination(data, m, *p.operation)
+		rs, err := p.parser.ParseOrigination(data, m, *operation)
 		if err != nil {
 			return rs, err
 		}
-		storage, err := p.rpc.GetScriptStorageJSON(p.operation.Destination, p.operation.Level)
+		storage, err := p.rpc.GetScriptStorageJSON(operation.Destination, operation.Level)
 		if err != nil {
 			return rs, err
 		}
