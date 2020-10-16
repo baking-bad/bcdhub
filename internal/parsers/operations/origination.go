@@ -48,6 +48,11 @@ func (p Origination) Parse(data gjson.Result) ([]elastic.Model, error) {
 		ContentIndex:   p.contentIdx,
 	}
 
+	if data.Get("nonce").Exists() {
+		nonce := data.Get("nonce").Int()
+		origination.Nonce = &nonce
+	}
+
 	p.fillInternal(&origination)
 
 	operationMetadata := parseMetadata(data)
