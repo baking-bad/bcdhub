@@ -18,6 +18,7 @@ import (
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} TransferResponse
+// @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /{network}/{address}/transfers [get]
 func (ctx *Context) GetContractTransfers(c *gin.Context) {

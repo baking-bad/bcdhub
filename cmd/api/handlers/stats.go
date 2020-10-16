@@ -245,6 +245,7 @@ func getHistogramOptions(name, network string, addresses ...string) ([]elastic.H
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} elastic.DAppStats
+// @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /contract/{network}/stats [get]
 func (ctx *Context) GetContractsStats(c *gin.Context) {

@@ -522,7 +522,7 @@ definitions:
         type: string
       operations:
         items:
-          $ref: '#/definitions/handlers.Operation'
+          type: integer
         type: array
     type: object
   handlers.OperationResult:
@@ -938,6 +938,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/handlers.TransferResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
         "500":
           description: Internal Server Error
           schema:
@@ -1005,9 +1009,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/handlers.GetBigMapResponse'
-            type: array
+            $ref: '#/definitions/handlers.GetBigMapResponse'
         "204":
           description: No Content
           schema:
@@ -1151,9 +1153,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/handlers.BigMapDiffByKeyResponse'
-            type: array
+            $ref: '#/definitions/handlers.BigMapDiffByKeyResponse'
         "400":
           description: Bad Request
           schema:
@@ -1369,9 +1369,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/handlers.EntrypointSchema'
-            type: array
+            $ref: '#/definitions/handlers.EntrypointSchema'
         "400":
           description: Bad Request
           schema:
@@ -1388,7 +1386,7 @@ paths:
       consumes:
       - application/json
       description: Execute entrypoint with passed arguments
-      operationId: get-contract-entrypoints-run
+      operationId: run-code
       parameters:
       - description: Network
         in: path
@@ -1720,10 +1718,6 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/newmiguel.Node'
-        "204":
-          description: No Content
-          schema:
-            $ref: '#/definitions/gin.H'
         "400":
           description: Bad Request
           schema:
@@ -1895,9 +1889,7 @@ paths:
           description: OK
           schema:
             items:
-              items:
-                $ref: '#/definitions/handlers.Token'
-              type: array
+              $ref: '#/definitions/handlers.Token'
             type: array
         "400":
           description: Bad Request
@@ -1946,6 +1938,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/elastic.DAppStats'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
         "500":
           description: Internal Server Error
           schema:
@@ -2305,9 +2301,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/handlers.PageableTokenContracts'
-            type: array
+            $ref: '#/definitions/handlers.PageableTokenContracts'
         "400":
           description: Bad Request
           schema:
@@ -2480,9 +2474,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/handlers.PageableTokenContracts'
-            type: array
+            $ref: '#/definitions/handlers.PageableTokenContracts'
         "400":
           description: Bad Request
           schema:

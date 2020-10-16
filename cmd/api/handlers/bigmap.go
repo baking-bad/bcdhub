@@ -23,7 +23,7 @@ import (
 // @Param ptr path integer true "Big map pointer"
 // @Accept  json
 // @Produce  json
-// @Success 200 {array} GetBigMapResponse
+// @Success 200 {object} GetBigMapResponse
 // @Success 204 {object} gin.H
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
@@ -167,7 +167,7 @@ func (ctx *Context) GetBigMapKeys(c *gin.Context) {
 // @Param size query integer false "Requested count" mininum(1)
 // @Accept json
 // @Produce json
-// @Success 200 {array} BigMapDiffByKeyResponse
+// @Success 200 {object} BigMapDiffByKeyResponse
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /bigmap/{network}/{ptr}/keys/{key_hash} [get]
