@@ -103,7 +103,7 @@ func (e *Elastic) GetOperationsForContract(network, address string, size uint64,
 					"type": "number",
 					"script": qItem{
 						"lang":   "painless",
-						"inline": "doc['level'].value * 10000000000L + (doc['counter'].value) * 1000L + (doc['internal'].value ? (998L - doc['nonce'].value) : 999L)",
+						"source": "doc['level'].value * 10000000000L + (doc['counter'].value) * 1000L + (doc['internal'].value ? (998L - doc['nonce'].value) : 999L)",
 					},
 					"order": "desc",
 				},
@@ -241,7 +241,7 @@ func (e *Elastic) GetOperations(filters map[string]interface{}, size int64, sort
 					"type": "number",
 					"script": qItem{
 						"lang":   "painless",
-						"inline": "doc['level'].value * 10000000000L + (doc['counter'].value) * 1000L + (doc['internal'].value ? (998L - doc['nonce'].value) : 999L)",
+						"source": "doc['level'].value * 10000000000L + (doc['counter'].value) * 1000L + (doc['internal'].value ? (998L - doc['nonce'].value) : 999L)",
 					},
 					"order": "desc",
 				},
