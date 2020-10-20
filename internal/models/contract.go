@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/models/utils"
 	"github.com/tidwall/gjson"
 )
 
@@ -69,11 +70,11 @@ func (c *Contract) ParseElasticJSON(hit gjson.Result) {
 	c.Balance = hit.Get("_source.balance").Int()
 	c.Language = hit.Get("_source.language").String()
 
-	c.Tags = parseStringArray(hit, "_source.tags")
-	c.Hardcoded = parseStringArray(hit, "_source.hardcoded")
-	c.Annotations = parseStringArray(hit, "_source.annotations")
-	c.FailStrings = parseStringArray(hit, "_source.fail_strings")
-	c.Entrypoints = parseStringArray(hit, "_source.entrypoints")
+	c.Tags = utils.StringArray(hit, "_source.tags")
+	c.Hardcoded = utils.StringArray(hit, "_source.hardcoded")
+	c.Annotations = utils.StringArray(hit, "_source.annotations")
+	c.FailStrings = utils.StringArray(hit, "_source.fail_strings")
+	c.Entrypoints = utils.StringArray(hit, "_source.entrypoints")
 
 	f := hit.Get("_source.fingerprint")
 	if f.Exists() {
@@ -136,7 +137,7 @@ func (c *Contract) GetScores(search string) []string {
 func (c *Contract) FoundByName(hit gjson.Result) string {
 	keys := hit.Get("highlight").Map()
 	categories := c.GetScores("")
-	return getFoundBy(keys, categories)
+	return utils.GetFoundBy(keys, categories)
 }
 
 // IsFA12 - checks contract realizes fa12 interface

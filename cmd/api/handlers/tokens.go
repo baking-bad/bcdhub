@@ -283,12 +283,7 @@ func (ctx *Context) GetContractTokens(c *gin.Context) {
 		return
 	}
 	tokens, err := ctx.getTokens(req.Network, req.Address)
-	if err != nil {
-		if !elastic.IsRecordNotFound(err) {
-			handleError(c, err, 0)
-		} else {
-			c.JSON(http.StatusOK, []interface{}{})
-		}
+	if handleError(c, err, 0) {
 		return
 	}
 	c.JSON(http.StatusOK, tokens)
@@ -302,7 +297,7 @@ func (ctx *Context) getTokens(network, address string) ([]Token, error) {
 	})
 	if err != nil {
 		if elastic.IsRecordNotFound(err) {
-			return nil, nil
+			return []Token{}, nil
 		}
 		return nil, err
 	}
@@ -312,8 +307,9 @@ func (ctx *Context) getTokens(network, address string) ([]Token, error) {
 		if err != nil {
 			return nil, err
 		}
+		tokenMetadata := TokenMetadataFromElasticModel(token)
 		tokens = append(tokens, Token{
-			token, supply,
+			tokenMetadata, supply,
 		})
 	}
 	return tokens, nil

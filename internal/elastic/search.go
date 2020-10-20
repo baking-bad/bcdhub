@@ -243,12 +243,12 @@ func parseSearchResponse(data gjson.Result) []SearchItem {
 				Highlights: highlights,
 			}
 			items = append(items, item)
-		case DocTokenMetadata:
-			var token models.TokenMetadata
+		case DocTZIP:
+			var token models.TZIP
 			token.ParseElasticJSON(arr[i])
 			item := SearchItem{
 				Type:       DocBigMapDiff,
-				Value:      token.Contract,
+				Value:      token.Address,
 				Body:       token,
 				Highlights: highlights,
 			}
@@ -323,11 +323,11 @@ func parseSearchGroupingResponse(data gjson.Result, size, offset int64) []Search
 				searchItem.Body = b
 				searchItem.Value = b.KeyHash
 				searchItem.Highlights = highlights
-			case DocTokenMetadata:
-				var token models.TokenMetadata
+			case DocTZIP:
+				var token models.TZIP
 				token.ParseElasticJSON(arr[i].Get("last.hits.hits.0"))
 				searchItem.Body = token
-				searchItem.Value = token.Contract
+				searchItem.Value = token.Address
 				searchItem.Highlights = highlights
 			default:
 			}

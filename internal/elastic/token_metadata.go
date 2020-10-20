@@ -23,18 +23,20 @@ func (ctx GetTokenMetadataContext) buildQuery() base {
 	filters := make([]qItem, 0)
 
 	if ctx.Contract != "" {
-		filters = append(filters, matchPhrase("contract", ctx.Contract))
+		filters = append(filters, matchPhrase("address", ctx.Contract))
 	}
 	if ctx.Network != "" {
 		filters = append(filters, matchQ("network", ctx.Network))
-	}
-	if ctx.TokenID >= 0 {
-		filters = append(filters, term("token_id", ctx.TokenID))
 	}
 	if ctx.Level.Comparator != "" {
 		filters = append(filters, rangeQ("level", qItem{
 			ctx.Level.Comparator: ctx.Level.Value,
 		}))
+	}
+	if ctx.TokenID != -1 {
+		filters = append(filters, term(
+			"tokens.token_id", ctx.TokenID,
+		))
 	}
 	return newQuery().Query(
 		boolQ(
@@ -43,9 +45,21 @@ func (ctx GetTokenMetadataContext) buildQuery() base {
 	).All()
 }
 
+// TokenMetadata -
+type TokenMetadata struct {
+	Address         string
+	Network         string
+	Symbol          string
+	Name            string
+	TokenID         int64
+	Decimals        int64
+	RegistryAddress string
+	Extras          map[string]interface{}
+}
+
 // GetTokenMetadata -
-func (e *Elastic) GetTokenMetadata(ctx GetTokenMetadataContext) (tokens []models.TokenMetadata, err error) {
-	response, err := e.query([]string{DocTokenMetadata}, ctx.buildQuery())
+func (e *Elastic) GetTokenMetadata(ctx GetTokenMetadataContext) (tokens []TokenMetadata, err error) {
+	response, err := e.query([]string{DocTZIP}, ctx.buildQuery())
 	if err != nil {
 		return
 	}
@@ -53,11 +67,31 @@ func (e *Elastic) GetTokenMetadata(ctx GetTokenMetadataContext) (tokens []models
 		return nil, errors.Errorf("%s: token metadata", RecordNotFound)
 	}
 
-	tokens = make([]models.TokenMetadata, 0)
+	tokens = make([]TokenMetadata, 0)
 	for _, hit := range response.Get("hits.hits").Array() {
-		var token models.TokenMetadata
-		token.ParseElasticJSON(hit)
-		tokens = append(tokens, token)
+		var tzip models.TZIP
+		tzip.ParseElasticJSON(hit)
+
+		for i := range tzip.Tokens.Static {
+			tokens = append(tokens, TokenMetadata{
+				Address:         tzip.Address,
+				Network:         tzip.Network,
+				RegistryAddress: tzip.Tokens.Static[i].RegistryAddress,
+				Symbol:          tzip.Tokens.Static[i].Symbol,
+				Name:            tzip.Tokens.Static[i].Name,
+				Decimals:        tzip.Tokens.Static[i].Decimals,
+				TokenID:         tzip.Tokens.Static[i].TokenID,
+				Extras:          tzip.Tokens.Static[i].Extras,
+			})
+		}
 	}
+	return
+}
+
+// GetTZIP -
+func (e *Elastic) GetTZIP(network, address string) (t models.TZIP, err error) {
+	t.Address = address
+	t.Network = network
+	err = e.GetByID(&t)
 	return
 }

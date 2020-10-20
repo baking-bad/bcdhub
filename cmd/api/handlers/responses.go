@@ -609,10 +609,10 @@ type DApp struct {
 	Logo              string   `json:"logo"`
 	Cover             string   `json:"cover,omitempty"`
 
-	Screenshots []Screenshot           `json:"screenshots,omitempty"`
-	Contracts   []DAppContract         `json:"contracts,omitempty"`
-	DexTokens   []models.TokenMetadata `json:"dex_tokens,omitempty"`
-	Tokens      []Token                `json:"tokens,omitempty"`
+	Screenshots []Screenshot    `json:"screenshots,omitempty"`
+	Contracts   []DAppContract  `json:"contracts,omitempty"`
+	DexTokens   []TokenMetadata `json:"dex_tokens,omitempty"`
+	Tokens      []Token         `json:"tokens,omitempty"`
 }
 
 // DAppContract -
@@ -631,7 +631,7 @@ type Screenshot struct {
 
 // Token -
 type Token struct {
-	models.TokenMetadata
+	TokenMetadata
 	elastic.TokenSupply
 }
 
@@ -648,10 +648,25 @@ type AccountInfo struct {
 
 // TokenBalance -
 type TokenBalance struct {
+	TokenMetadata
+	Balance int64 `json:"balance"`
+}
+
+// TokenMetadata -
+type TokenMetadata struct {
 	Contract string `json:"contract"`
 	TokenID  int64  `json:"token_id"`
-	Balance  int64  `json:"balance"`
 	Symbol   string `json:"symbol,omitempty"`
 	Name     string `json:"name,omitempty"`
 	Decimals int64  `json:"decimals"`
+}
+
+// TokenMetadataFromElasticModel -
+func TokenMetadataFromElasticModel(model elastic.TokenMetadata) (tm TokenMetadata) {
+	tm.TokenID = model.TokenID
+	tm.Symbol = model.Symbol
+	tm.Name = model.Name
+	tm.Decimals = model.Decimals
+	tm.Contract = model.Address
+	return
 }

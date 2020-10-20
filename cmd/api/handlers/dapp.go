@@ -6,7 +6,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/elastic"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -88,7 +87,7 @@ func (ctx *Context) appendDAppInfo(dapp database.DApp, withDetails bool) (DApp, 
 
 	if withDetails {
 		if len(dapp.DexTokens) > 0 {
-			result.DexTokens = make([]models.TokenMetadata, 0)
+			result.DexTokens = make([]TokenMetadata, 0)
 			for _, token := range dapp.DexTokens {
 				tokenMetadata, err := ctx.ES.GetTokenMetadata(elastic.GetTokenMetadataContext{
 					Contract: token.Contract,
@@ -101,7 +100,10 @@ func (ctx *Context) appendDAppInfo(dapp database.DApp, withDetails bool) (DApp, 
 					}
 					return result, err
 				}
-				result.DexTokens = append(result.DexTokens, tokenMetadata...)
+				for i := range tokenMetadata {
+					tm := TokenMetadataFromElasticModel(tokenMetadata[i])
+					result.DexTokens = append(result.DexTokens, tm)
+				}
 			}
 		}
 
@@ -125,9 +127,6 @@ func (ctx *Context) appendDAppInfo(dapp database.DApp, withDetails bool) (DApp, 
 
 				tokens, err := ctx.getTokens(consts.Mainnet, address)
 				if err != nil {
-					if elastic.IsRecordNotFound(err) {
-						continue
-					}
 					return result, err
 				}
 				result.Tokens = append(result.Tokens, tokens...)

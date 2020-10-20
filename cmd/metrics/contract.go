@@ -47,8 +47,9 @@ func parseContract(contract models.Contract) error {
 	if err != nil {
 		return err
 	}
-	_ = h.CreateTokenMetadata(rpc, ctx.SharePath, &contract)
-
+	if err = h.CreateTokenMetadata(rpc, ctx.SharePath, &contract); err != nil {
+		logger.Error(err)
+	}
 	logger.Info("Contract %s to project %s", contract.Address, contract.ProjectID)
 
 	return ctx.ES.UpdateFields(elastic.DocContracts, contract.ID, contract, "ProjectID", "Alias", "Verified", "VerificationSource")

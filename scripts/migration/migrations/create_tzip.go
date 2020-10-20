@@ -38,6 +38,18 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 			return err
 		}
 
+		check := models.TZIP{
+			Address: bmd[i].Address,
+			Network: bmd[i].Network,
+		}
+		if err := ctx.ES.GetByID(&check); err != nil {
+			if !elastic.IsRecordNotFound(err) {
+				return err
+			}
+		} else {
+			continue
+		}
+
 		rpc, err := ctx.GetRPC(bmd[i].Network)
 		if err != nil {
 			return err

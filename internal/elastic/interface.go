@@ -162,9 +162,10 @@ type ITokens interface {
 	GetTransfers(ctx GetTransfersContext) (TransfersResponse, error)
 }
 
-// ITokenMatadata -
-type ITokenMatadata interface {
-	GetTokenMetadata(ctx GetTokenMetadataContext) ([]models.TokenMetadata, error)
+// ITZIP -
+type ITZIP interface {
+	GetTZIP(network, address string) (models.TZIP, error)
+	GetTokenMetadata(ctx GetTokenMetadataContext) ([]TokenMetadata, error)
 }
 
 // IElastic -
@@ -184,5 +185,5 @@ type IElastic interface {
 	ISnapshot
 	IStats
 	ITokens
-	ITokenMatadata
+	ITZIP
 }

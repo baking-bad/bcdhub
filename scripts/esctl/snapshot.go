@@ -26,7 +26,6 @@ var mappingNames = []string{
 	elastic.DocProtocol,
 	elastic.DocBigMapActions,
 	elastic.DocTransfers,
-	elastic.DocTokenMetadata,
 	elastic.DocTZIP,
 }
 

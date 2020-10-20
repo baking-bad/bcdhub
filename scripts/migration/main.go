@@ -17,6 +17,7 @@ import (
 )
 
 var migrationsList = []migrations.Migration{
+	&migrations.BigRussianBoss{},
 	&migrations.SetTimestamp{},
 	&migrations.SetLanguage{},
 	&migrations.SetContractAlias{Network: consts.Mainnet},
@@ -39,10 +40,10 @@ var migrationsList = []migrations.Migration{
 	&migrations.CreateTransfersTags{},
 	&migrations.SetProtocolConstants{},
 	&migrations.SetOperationAllocatedBurned{},
-	&migrations.CreateTokenMetadata{},
 	&migrations.SetOperationInitiator{},
 	&migrations.UpdateDapps{},
 	&migrations.CreateTZIP{},
+	&migrations.FillTZIP{},
 }
 
 func main() {

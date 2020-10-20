@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 )
 
@@ -62,7 +61,6 @@ func (s HTTPStorage) Get(value string) (*models.TZIP, error) {
 	defer resp.Body.Close()
 
 	var data models.TZIP
-	data.ID = helpers.GenerateID()
 	err = json.NewDecoder(resp.Body).Decode(&data)
 	return &data, err
 }

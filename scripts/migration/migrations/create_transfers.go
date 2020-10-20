@@ -1,10 +1,6 @@
 package migrations
 
 import (
-	"bufio"
-	"os"
-	"strings"
-
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -88,23 +84,13 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 	return nil
 }
 
-func (m *CreateTransfersTags) ask(question string) (string, error) {
-	logger.Question(question)
-	reader := bufio.NewReader(os.Stdin)
-	text, err := reader.ReadString('\n')
-	if err != nil {
-		return "", err
-	}
-	return strings.Replace(text, "\n", "", -1), nil
-}
-
 func (m *CreateTransfersTags) deleteTransfers(ctx *config.Context) (err error) {
-	m.Network, err = m.ask("Enter network (empty if all):")
+	m.Network, err = ask("Enter network (empty if all):")
 	if err != nil {
 		return
 	}
 	if m.Network != "" {
-		if m.Address, err = m.ask("Enter KT address (empty if all):"); err != nil {
+		if m.Address, err = ask("Enter KT address (empty if all):"); err != nil {
 			return
 		}
 	}
