@@ -6,7 +6,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser/docstring"
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
-	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/jsonschema"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -447,8 +446,8 @@ type Alias struct {
 }
 
 // FromModel -
-func (a *Alias) FromModel(alias database.Alias) {
-	a.Alias = alias.Alias
+func (a *Alias) FromModel(alias *models.TZIP) {
+	a.Alias = alias.Name
 	a.Address = alias.Address
 	a.Network = alias.Network
 	a.Slug = alias.Slug
@@ -573,7 +572,7 @@ type BigMapHistoryItem struct {
 // Transfer -
 type Transfer struct {
 	*models.Transfer
-	Token *database.Token `json:"token,omitempty"`
+	Token *TokenMetadata `json:"token,omitempty"`
 }
 
 // TransferResponse -
@@ -595,12 +594,10 @@ type DApp struct {
 	Name              string   `json:"name"`
 	ShortDescription  string   `json:"short_description"`
 	FullDescription   string   `json:"full_description"`
-	Version           string   `json:"version"`
-	License           string   `json:"license"`
 	WebSite           string   `json:"website"`
 	Slug              string   `json:"slug,omitempty"`
-	AgoraReviewPostID uint     `json:"agora_review_post_id,omitempty"`
-	AgoraQAPostID     uint     `json:"agora_qa_post_id,omitempty"`
+	AgoraReviewPostID int64    `json:"agora_review_post_id,omitempty"`
+	AgoraQAPostID     int64    `json:"agora_qa_post_id,omitempty"`
 	Authors           []string `json:"authors"`
 	SocialLinks       []string `json:"social_links"`
 	Interfaces        []string `json:"interfaces"`

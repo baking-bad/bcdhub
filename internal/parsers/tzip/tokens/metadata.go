@@ -34,7 +34,7 @@ func (m Metadata) ToModel(address, network string) *models.TZIP {
 		Network: network,
 		Level:   m.Level,
 		TZIP12: tzip.TZIP12{
-			Tokens: tzip.TokenMetadataType{
+			Tokens: &tzip.TokenMetadataType{
 				Static: []tzip.TokenMetadata{
 					{
 						Symbol:          m.Symbol,

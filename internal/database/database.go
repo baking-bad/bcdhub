@@ -9,13 +9,10 @@ import (
 // DB -
 type DB interface {
 	IAccount
-	IAlias
 	IAssessment
 	ICompilationTask
-	IDApp
 	IDeployment
 	ISubscription
-	IToken
 	IUser
 	IVerification
 
@@ -25,17 +22,6 @@ type DB interface {
 // IAccount -
 type IAccount interface {
 	GetOrCreateAccount(*Account) error
-}
-
-// IAlias -
-type IAlias interface {
-	GetAliases(network string) ([]Alias, error)
-	GetAlias(address, network string) (Alias, error)
-	GetOperationAliases(src, dst, network string) (OperationAliases, error)
-	GetAliasesMap(network string) (map[string]string, error)
-	CreateAlias(string, string, string) error
-	CreateOrUpdateAlias(a *Alias) error
-	GetBySlug(string) (Alias, error)
 }
 
 // IAssessment -
@@ -57,15 +43,6 @@ type ICompilationTask interface {
 	CountCompilationTasks(userID uint) (int64, error)
 }
 
-// IDApp -
-type IDApp interface {
-	GetDApps() ([]DApp, error)
-	GetDApp(id uint) (DApp, error)
-	GetDAppBySlug(slug string) (dapp DApp, err error)
-	CreateDapp(dapp *DApp) error
-	DeleteDapps() error
-}
-
 // IDeployment -
 type IDeployment interface {
 	ListDeployments(userID, limit, offset uint) ([]Deployment, error)
@@ -83,13 +60,6 @@ type ISubscription interface {
 	UpsertSubscription(*Subscription) error
 	DeleteSubscription(*Subscription) error
 	GetSubscriptionsCount(address, network string) (int, error)
-}
-
-// IToken -
-type IToken interface {
-	GetTokens() ([]Token, error)
-	CreateToken(token *Token) error
-	DeleteTokens() error
 }
 
 // IUser -
@@ -123,17 +93,12 @@ func New(connectionString string) (DB, error) {
 	gormDB.AutoMigrate(
 		&User{},
 		&Subscription{},
-		&Alias{},
 		&Assessments{},
 		&Account{},
-		&Picture{},
-		&DApp{},
-		&Token{},
 		&CompilationTask{},
 		&CompilationTaskResult{},
 		&Verification{},
 		&Deployment{},
-		&DexToken{},
 	)
 
 	gormDB = gormDB.Set("gorm:auto_preload", false)

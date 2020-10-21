@@ -4,21 +4,21 @@ import (
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/gin-gonic/gin"
 )
 
 // GetDAppList -
 func (ctx *Context) GetDAppList(c *gin.Context) {
-	dapps, err := ctx.DB.GetDApps()
+	dapps, err := ctx.ES.GetDApps()
 	if handleError(c, err, 0) {
 		return
 	}
 
 	results := make([]DApp, len(dapps))
 	for i := range dapps {
-		result, err := ctx.appendDAppInfo(dapps[i], false)
+		result, err := ctx.appendDAppInfo(&dapps[i], false)
 		if handleError(c, err, 0) {
 			return
 		}
@@ -35,7 +35,7 @@ func (ctx *Context) GetDApp(c *gin.Context) {
 		return
 	}
 
-	dapp, err := ctx.DB.GetDAppBySlug(req.Slug)
+	dapp, err := ctx.ES.GetDAppBySlug(req.Slug)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -48,13 +48,11 @@ func (ctx *Context) GetDApp(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (ctx *Context) appendDAppInfo(dapp database.DApp, withDetails bool) (DApp, error) {
+func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, error) {
 	result := DApp{
 		Name:              dapp.Name,
 		ShortDescription:  dapp.ShortDescription,
 		FullDescription:   dapp.FullDescription,
-		Version:           dapp.Version,
-		License:           dapp.License,
 		WebSite:           dapp.WebSite,
 		Slug:              dapp.Slug,
 		AgoraReviewPostID: dapp.AgoraReviewPostID,

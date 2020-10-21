@@ -46,3 +46,8 @@ func SpaceStringsBuilder(str string) string {
 	}
 	return b.String()
 }
+
+// Slug -
+func Slug(alias string) string {
+	return strings.ReplaceAll(strings.ToLower(alias), " ", "-")
+}

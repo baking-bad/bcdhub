@@ -56,10 +56,10 @@ func (ctx *Context) GetTzKTService(network string) (*tzkt.ServicesTzKT, error) {
 
 // LoadAliases -
 func (ctx *Context) LoadAliases() error {
-	if ctx.DB == nil {
+	if ctx.ES == nil {
 		return errors.Errorf("Connection to database is not initialized")
 	}
-	aliases, err := ctx.DB.GetAliasesMap(consts.Mainnet)
+	aliases, err := ctx.ES.GetAliasesMap(consts.Mainnet)
 	if err != nil {
 		return err
 	}

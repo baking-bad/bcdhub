@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/tidwall/gjson"
 )
@@ -165,7 +166,14 @@ type ITokens interface {
 // ITZIP -
 type ITZIP interface {
 	GetTZIP(network, address string) (models.TZIP, error)
+	GetTZIPWithViews() ([]models.TZIP, error)
 	GetTokenMetadata(ctx GetTokenMetadataContext) ([]TokenMetadata, error)
+	GetDApps() ([]tzip.DApp, error)
+	GetDAppBySlug(slug string) (*tzip.DApp, error)
+	GetBySlug(slug string) (*models.TZIP, error)
+	GetAliases(network string) ([]models.TZIP, error)
+	GetAliasesMap(network string) (map[string]string, error)
+	GetAlias(network, address string) (*models.TZIP, error)
 }
 
 // IElastic -

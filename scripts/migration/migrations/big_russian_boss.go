@@ -25,6 +25,9 @@ func (m *BigRussianBoss) Do(ctx *config.Context) error {
 	if err := m.createTZIP(ctx); err != nil {
 		return err
 	}
+	if err := m.fillAliases(ctx); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -49,6 +52,20 @@ func (m *BigRussianBoss) createTZIP(ctx *config.Context) error {
 	}
 	if yes == "yes" {
 		migration := CreateTZIP{}
+		if err := migration.Do(ctx); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (m *BigRussianBoss) fillAliases(ctx *config.Context) error {
+	yes, err := ask("Do you want to fill aliases? (yes/no)")
+	if err != nil {
+		return err
+	}
+	if yes == "yes" {
+		migration := Aliases{}
 		if err := migration.Do(ctx); err != nil {
 			return err
 		}

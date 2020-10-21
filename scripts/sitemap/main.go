@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/pkg/errors"
 )
 
@@ -29,7 +29,7 @@ type URLSet struct {
 	URLs    []URL    `xml:"url"`
 }
 
-func buildXML(aliases []database.Alias, networks []string, dapps []database.DApp) error {
+func buildXML(aliases []models.TZIP, networks []string, dapps []tzip.DApp) error {
 	u := &URLSet{Xmlns: "http://www.sitemaps.org/schemas/sitemap/0.9"}
 	modDate := time.Now().Format("2006-01-02")
 
@@ -85,40 +85,39 @@ func main() {
 	)
 	defer ctx.Close()
 
-	aliases, err := ctx.DB.GetAliases(consts.Mainnet)
+	aliases, err := ctx.ES.GetAliases(consts.Mainnet)
 	if err != nil {
 		logger.Fatal(err)
 	}
 
-	dapps, err := ctx.DB.GetDApps()
+	dapps, err := ctx.ES.GetDApps()
 	if err != nil {
 		logger.Fatal(err)
 	}
 
-	var contracts []database.Alias
+	var aliasModels []models.TZIP
 
 	for _, a := range aliases {
-		if strings.HasPrefix(a.Address, "tz") || a.Slug == "" {
+		if a.Slug == "" {
 			continue
 		}
 
-		by := map[string]interface{}{
-			"address": a.Address,
-			"network": a.Network,
+		data := models.TZIP{
+			Address: a.Address,
+			Network: a.Network,
 		}
-		cntr, err := ctx.ES.GetContract(by)
-		if err != nil {
+		if err := ctx.ES.GetByID(&data); err != nil {
 			continue
 		}
 
-		logger.Info("%s %s", a.Address, cntr.Alias)
+		logger.Info("%s %s", a.Address, data.Name)
 
-		contracts = append(contracts, a)
+		aliasModels = append(aliasModels, a)
 	}
 
-	logger.Info("Total contract aliases: %d", len(contracts))
+	logger.Info("Total aliases: %d", len(aliasModels))
 
-	if err := buildXML(contracts, cfg.Migrations.Networks, dapps); err != nil {
+	if err := buildXML(aliasModels, cfg.Migrations.Networks, dapps); err != nil {
 		logger.Fatal(err)
 	}
 

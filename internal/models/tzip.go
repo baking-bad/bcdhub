@@ -13,9 +13,11 @@ type TZIP struct {
 	Level   int64  `json:"level"`
 	Address string `json:"address"`
 	Network string `json:"network"`
+	Slug    string `json:"slug,omitempty"`
 
 	tzip.TZIP12
 	tzip.TZIP16
+	tzip.DApps
 }
 
 // HasToken -
@@ -33,8 +35,11 @@ func (t *TZIP) ParseElasticJSON(resp gjson.Result) {
 	t.Level = resp.Get("_source.level").Int()
 	t.Address = resp.Get("_source.address").String()
 	t.Network = resp.Get("_source.network").String()
+	t.Slug = resp.Get("_source.slug").String()
 
 	t.TZIP12.ParseElasticJSON(resp)
+	t.TZIP16.ParseElasticJSON(resp)
+	t.DApps.ParseElasticJSON(resp)
 }
 
 // GetID -

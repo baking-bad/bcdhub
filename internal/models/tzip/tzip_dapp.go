@@ -5,14 +5,30 @@ import (
 	"github.com/tidwall/gjson"
 )
 
+// DApps -
+type DApps struct {
+	DApps []DApp `json:"dapps,omitempty"`
+}
+
+// ParseElasticJSON -
+func (t *DApps) ParseElasticJSON(resp gjson.Result) {
+	dapps := resp.Get("_source.dapps")
+	if dapps.Exists() && dapps.IsArray() {
+		t.DApps = make([]DApp, 0)
+		for _, dapp := range dapps.Array() {
+			var app DApp
+			app.ParseElasticJSON(dapp)
+			t.DApps = append(t.DApps, app)
+		}
+	}
+}
+
 // DApp -
 type DApp struct {
 	Name              string   `json:"name"`
 	ShortDescription  string   `json:"short_description"`
 	FullDescription   string   `json:"full_description"`
-	Version           string   `json:"version"`
-	License           string   `json:"license"`
-	WebSite           string   `json:"website"`
+	WebSite           string   `json:"web_site"`
 	Slug              string   `json:"slug,omitempty"`
 	AgoraReviewPostID int64    `json:"agora_review_post_id,omitempty"`
 	AgoraQAPostID     int64    `json:"agora_qa_post_id,omitempty"`
@@ -30,26 +46,24 @@ type DApp struct {
 
 // ParseElasticJSON -
 func (t *DApp) ParseElasticJSON(resp gjson.Result) {
-	t.Name = resp.Get("_source.name").String()
-	t.ShortDescription = resp.Get("_source.short_description").String()
-	t.FullDescription = resp.Get("_source.full_description").String()
-	t.Version = resp.Get("_source.version").String()
-	t.License = resp.Get("_source.license").Time().String()
-	t.WebSite = resp.Get("_source.website").String()
-	t.Slug = resp.Get("_source.slug").String()
-	t.AgoraReviewPostID = resp.Get("_source.agora_review_post_id").Int()
-	t.AgoraQAPostID = resp.Get("_source.agora_qa_post_id").Int()
+	t.Name = resp.Get("name").String()
+	t.ShortDescription = resp.Get("short_description").String()
+	t.FullDescription = resp.Get("full_description").String()
+	t.WebSite = resp.Get("web_site").String()
+	t.Slug = resp.Get("slug").String()
+	t.AgoraReviewPostID = resp.Get("agora_review_post_id").Int()
+	t.AgoraQAPostID = resp.Get("agora_qa_post_id").Int()
 
-	t.Authors = utils.StringArray(resp, "_source.authors")
-	t.SocialLinks = utils.StringArray(resp, "_source.social_links")
-	t.Interfaces = utils.StringArray(resp, "_source.interfaces")
-	t.Categories = utils.StringArray(resp, "_source.categories")
-	t.Contracts = utils.StringArray(resp, "_source.contracts")
+	t.Authors = utils.StringArray(resp, "authors")
+	t.SocialLinks = utils.StringArray(resp, "social_links")
+	t.Interfaces = utils.StringArray(resp, "interfaces")
+	t.Categories = utils.StringArray(resp, "categories")
+	t.Contracts = utils.StringArray(resp, "contracts")
 
-	t.Order = resp.Get("_source.order").Int()
-	t.Soon = resp.Get("_source.soon").Bool()
+	t.Order = resp.Get("order").Int()
+	t.Soon = resp.Get("soon").Bool()
 
-	tokens := resp.Get("_source.dex_tokens")
+	tokens := resp.Get("dex_tokens")
 	if tokens.Exists() {
 		t.DexTokens = make([]DexToken, 0)
 		for _, hit := range tokens.Array() {
@@ -59,7 +73,7 @@ func (t *DApp) ParseElasticJSON(resp gjson.Result) {
 		}
 	}
 
-	pictures := resp.Get("_source.pictures")
+	pictures := resp.Get("pictures")
 	if pictures.Exists() {
 		t.Pictures = make([]Picture, 0)
 		for _, hit := range pictures.Array() {

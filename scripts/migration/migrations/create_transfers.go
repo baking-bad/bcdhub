@@ -41,7 +41,7 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 	}
 	logger.Info("Found %d operations with transfer entrypoint", len(operations))
 
-	tokenViews, err := transfer.NewTokenViews(ctx.DB)
+	tokenViews, err := transfer.NewTokenViews(ctx.ES)
 	if err != nil {
 		return err
 	}

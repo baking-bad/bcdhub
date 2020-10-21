@@ -8,7 +8,7 @@ import (
 
 // TZIP12 -
 type TZIP12 struct {
-	Tokens TokenMetadataType `json:"tokens,omitempty"`
+	Tokens *TokenMetadataType `json:"tokens,omitempty"`
 }
 
 // TokenMetadataType -
@@ -31,7 +31,7 @@ type TokenMetadata struct {
 func (t *TZIP12) ParseElasticJSON(resp gjson.Result) {
 	tokensJSON := resp.Get("_source.tokens.static")
 	if tokensJSON.Exists() {
-		t.Tokens = TokenMetadataType{
+		t.Tokens = &TokenMetadataType{
 			Static: make([]TokenMetadata, 0),
 		}
 

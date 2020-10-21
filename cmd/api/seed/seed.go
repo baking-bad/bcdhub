@@ -4,6 +4,9 @@ import (
 	"github.com/baking-bad/bcdhub/cmd/api/handlers"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/database"
+	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
 // Run -
@@ -37,16 +40,18 @@ func Run(ctx *handlers.Context, seed config.SeedConfig) error {
 	}
 
 	// 3. seed aliases
+	aliasModels := make([]elastic.Model, 0)
 	for _, a := range seed.Aliases {
-		alias := database.Alias{
-			Alias:   a.Alias,
+		aliasModels = append(aliasModels, &models.TZIP{
+			TZIP16: tzip.TZIP16{
+				Name: a.Alias,
+			},
 			Network: a.Network,
 			Address: a.Address,
-		}
-
-		if err := ctx.DB.CreateOrUpdateAlias(&alias); err != nil {
-			return err
-		}
+		})
+	}
+	if err := ctx.ES.BulkInsert(aliasModels); err != nil {
+		return err
 	}
 
 	// 4. seed accounts
