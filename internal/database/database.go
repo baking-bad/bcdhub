@@ -1,7 +1,11 @@
 package database
 
 import (
+	"time"
+
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/jinzhu/gorm"
+
 	// postgres driver
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
@@ -104,6 +108,22 @@ func New(connectionString string) (DB, error) {
 	gormDB = gormDB.Set("gorm:auto_preload", false)
 
 	return &db{gormDB}, nil
+}
+
+// WaitNew - waiting for db up and creating connection
+func WaitNew(connectionString string, timeout int) DB {
+	var db DB
+	var err error
+
+	for db == nil {
+		db, err = New(connectionString)
+		if err != nil {
+			logger.Warning("Waiting postgres up %d seconds...", timeout)
+			time.Sleep(time.Second * time.Duration(timeout))
+		}
+	}
+
+	return db
 }
 
 func (d *db) Close() {

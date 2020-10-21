@@ -44,11 +44,7 @@ func WithElasticSearch(esConfig ElasticSearchConfig) ContextOption {
 // WithDatabase -
 func WithDatabase(dbConfig DatabaseConfig) ContextOption {
 	return func(ctx *Context) {
-		db, err := database.New(dbConfig.ConnString)
-		if err != nil {
-			log.Panicf("Database connection error: %s", err)
-		}
-		ctx.DB = db
+		ctx.DB = database.WaitNew(dbConfig.ConnString, dbConfig.Timeout)
 	}
 }
 
@@ -64,11 +60,7 @@ func WithRabbit(rabbitConfig RabbitConfig, service string, mqConfig MQConfig) Co
 			})
 		}
 
-		messageQueue, err := mq.NewQueueManager(rabbitConfig.URI, service, mqConfig.NeedPublisher, mqueues...)
-		if err != nil {
-			log.Panicf("Rabbit MQ connection error: %s", err)
-		}
-		ctx.MQ = messageQueue
+		ctx.MQ = mq.WaitNew(rabbitConfig.URI, service, mqConfig.NeedPublisher, rabbitConfig.Timeout, mqueues...)
 	}
 }
 

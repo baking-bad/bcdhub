@@ -49,6 +49,6 @@ WORKDIR /app/compiler
 
 COPY --from=app_builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=app_builder /go/bin/compiler /go/bin/compiler
-COPY /cmd/compiler/config.dev.yml /app/compiler/config.yml
+COPY build/compiler/dev/config.yml /configs/development.yml
 
 ENTRYPOINT ["/go/bin/compiler"]

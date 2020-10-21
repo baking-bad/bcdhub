@@ -16,21 +16,23 @@ COPY ./go.* $GOPATH/src/github.com/baking-bad/bcdhub/
 WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub
 RUN go mod download
 
-COPY cmd/metrics cmd/metrics
+COPY cmd/indexer cmd/indexer
 COPY internal internal
 
-WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub/cmd/metrics/
-RUN go build -a -installsuffix cgo -o /go/bin/metrics .
+WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub/cmd/indexer/
+RUN go build -a -installsuffix cgo -o /go/bin/indexer .
 
 # ---------------------------------------------------------------------
 #  The second stage container, for running the application
 # ---------------------------------------------------------------------
 FROM scratch
 
-WORKDIR /app/metrics
+WORKDIR /app/indexer
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=builder /go/bin/metrics /go/bin/metrics
-COPY /cmd/metrics/*.yml /app/metrics/
+COPY --from=builder /go/bin/indexer /go/bin/indexer
+COPY cmd/indexer/mappings /app/indexer/mappings
+COPY configs/*.yml /app/indexer/
+COPY cmd/indexer/data/errors.json /app/indexer/data/errors.json
 
-ENTRYPOINT ["/go/bin/metrics"]
+ENTRYPOINT ["/go/bin/indexer"]

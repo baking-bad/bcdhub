@@ -1,6 +1,6 @@
 rpc:
     mainnet:
-        uri: https://rpc.tzkt.io/mainnet
+        uri: https://mainnet-tezos.giganode.io
         timeout: 20
     delphinet:
         uri: https://rpc.tzkt.io/delphinet
@@ -9,7 +9,7 @@ rpc:
         uri: https://rpc.tzkt.io/dalphanet
         timeout: 20
     carthagenet:
-        uri: https://rpc.tzkt.io/carthagenet
+        uri: https://testnet-tezos.giganode.io
         timeout: 20
 
 tzkt:
@@ -35,36 +35,42 @@ elastic:
 
 rabbitmq:
     uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mq:5672/"
+    timeout: 10
 
 db:
     conn_string: "host=db port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"
+    timeout: 10
 
 oauth:
     state: ${OAUTH_STATE_STRING}
     jwt:
         secret: ${JWT_SECRET_KEY}
-        redirect_url: https://better-call.dev/welcome
+        redirect_url: https://you.better-call.dev/welcome
     github:
         client_id: ${GITHUB_CLIENT_ID}
         secret: ${GITHUB_CLIENT_SECRET}
-        callback_url: https://api.better-call.dev/v1/oauth/github/callback
+        callback_url: https://you.better-call.dev/v1/oauth/github/callback
     gitlab:
         client_id: ${GITLAB_CLIENT_ID}
         secret: ${GITLAB_CLIENT_SECRET}
-        callback_url: https://api.better-call.dev/v1/oauth/gitlab/callback
+        callback_url: https://you.better-call.dev/v1/oauth/gitlab/callback
 
 sentry:
-    environment: production
+    environment: staging
     uri: ${SENTRY_DSN}
     debug: false
 
 share_path: /etc/bcd
 
+ipfs:
+    - https://ipfs.io
+    - https://dweb.link
+
 api:
     project_name: api
-    bind: ":14000"
-    swagger_host: "api.better-call.dev"
-    cors_enabled: false
+    bind: ":42000"
+    swagger_host: "you.better-call.dev"
+    cors_enabled: true
     oauth_enabled: true
     sentry_enabled: true
     seed_enabled: false
@@ -119,9 +125,6 @@ metrics:
             recalc:
             transfers:
             bigmapdiffs:
-    ipfs:
-        - https://ipfs.io
-        - https://dweb.link
 
 scripts:
     aws:
@@ -136,6 +139,3 @@ scripts:
         - dalphanet
     mq:
         publisher: true
-    ipfs:
-        - https://ipfs.io
-        - https://dweb.link

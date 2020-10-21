@@ -1,24 +1,32 @@
 package config
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 
-	"github.com/jessevdk/go-flags"
-	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
+)
+
+// Environments
+const (
+	EnvironmentVar  = "BCD_ENV"
+	EnvironmentDev  = "development"
+	EnvironmentProd = "production"
+	EnvironmentYou  = "you"
 )
 
 // Config -
 type Config struct {
-	RPC       map[string]RPCConfig  `yaml:"rpc"`
-	TzKT      map[string]TzKTConfig `yaml:"tzkt"`
-	Elastic   ElasticSearchConfig   `yaml:"elastic"`
-	RabbitMQ  RabbitConfig          `yaml:"rabbitmq"`
-	DB        DatabaseConfig        `yaml:"db"`
-	OAuth     OAuthConfig           `yaml:"oauth"`
-	Sentry    SentryConfig          `yaml:"sentry"`
-	SharePath string                `yaml:"share_path"`
+	RPC          map[string]RPCConfig  `yaml:"rpc"`
+	TzKT         map[string]TzKTConfig `yaml:"tzkt"`
+	Elastic      ElasticSearchConfig   `yaml:"elastic"`
+	RabbitMQ     RabbitConfig          `yaml:"rabbitmq"`
+	DB           DatabaseConfig        `yaml:"db"`
+	OAuth        OAuthConfig           `yaml:"oauth"`
+	Sentry       SentryConfig          `yaml:"sentry"`
+	SharePath    string                `yaml:"share_path"`
+	IPFSGateways []string              `yaml:"ipfs"`
 
 	API struct {
 		ProjectName   string     `yaml:"project_name"`
@@ -53,14 +61,12 @@ type Config struct {
 		ProjectName   string   `yaml:"project_name"`
 		SentryEnabled bool     `yaml:"sentry_enabled"`
 		MQ            MQConfig `yaml:"mq"`
-		IPFSGateways  []string `yaml:"ipfs"`
 	} `yaml:"metrics"`
 
 	Scripts struct {
-		AWS          AWSConfig `yaml:"aws"`
-		Networks     []string  `yaml:"networks"`
-		MQ           MQConfig  `yaml:"mq"`
-		IPFSGateways []string  `yaml:"ipfs"`
+		AWS      AWSConfig `yaml:"aws"`
+		Networks []string  `yaml:"networks"`
+		MQ       MQConfig  `yaml:"mq"`
 	} `yaml:"scripts"`
 }
 
@@ -86,12 +92,14 @@ type ElasticSearchConfig struct {
 
 // RabbitConfig -
 type RabbitConfig struct {
-	URI string `yaml:"uri"`
+	URI     string `yaml:"uri"`
+	Timeout int    `yaml:"timeout"`
 }
 
 // DatabaseConfig -
 type DatabaseConfig struct {
 	ConnString string `yaml:"conn_string"`
+	Timeout    int    `yaml:"timeout"`
 }
 
 // AWSConfig -
@@ -167,59 +175,41 @@ type QueueParams struct {
 	AutoDeleted bool `yaml:"auto_deleted"`
 }
 
+// LoadDefaultConfig -
+func LoadDefaultConfig() (Config, error) {
+	configurations := map[string]string{
+		EnvironmentProd: "production.yml",
+		EnvironmentYou:  "you.yml",
+		EnvironmentDev:  "../../configs/development.yml",
+	}
+
+	env := os.Getenv(EnvironmentVar)
+
+	config, ok := configurations[env]
+	if !ok {
+		return Config{}, fmt.Errorf("Unknown configuration for %s variable %s", EnvironmentVar, env)
+	}
+
+	return LoadConfig(config)
+}
+
 // LoadConfig -
-func LoadConfig(filenames ...string) (Config, error) {
+func LoadConfig(filename string) (Config, error) {
 	var config Config
-	if len(filenames) <= 0 {
-		return config, errors.Errorf("You have to provide at least one filename")
+	if filename == "" {
+		return config, fmt.Errorf("you have to provide configuration filename")
 	}
 
-	var sections map[string]interface{}
-	for _, filename := range filenames {
-
-		var override map[string]interface{}
-		src, err := ioutil.ReadFile(filename)
-		if err != nil {
-			return config, err
-		}
-		if err := yaml.Unmarshal(src, &override); err != nil {
-			return config, err
-		}
-
-		if sections == nil {
-			sections = override
-		} else {
-			for k, v := range override {
-				sections[k] = v
-			}
-		}
-	}
-
-	res, err := yaml.Marshal(sections)
+	src, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return config, err
+		return config, fmt.Errorf("reading file %s error: %w", filename, err)
 	}
 
-	// log.Println(string(res))
+	expanded := os.ExpandEnv(string(src))
 
-	res = []byte(os.ExpandEnv(string(res)))
-	if err := yaml.Unmarshal(res, &config); err != nil {
-		return config, err
+	if err := yaml.Unmarshal([]byte(expanded), &config); err != nil {
+		return config, fmt.Errorf("unmarshaling configuration file %s error: %w", filename, err)
 	}
 
 	return config, nil
-}
-
-// LoadDefaultConfig -
-func LoadDefaultConfig() (Config, error) {
-	var options struct {
-		ConfigFiles []string `short:"f" default:"config.yml" description:"Config filename.yml"`
-	}
-
-	_, err := flags.Parse(&options)
-	if err != nil {
-		return Config{}, err
-	}
-
-	return LoadConfig(options.ConfigFiles...)
 }

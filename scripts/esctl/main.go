@@ -13,34 +13,31 @@ import (
 var ctx *config.Context
 var creds awsData
 
-type args struct {
-	ConfigFiles func(string) `short:"f" long:"files" default:"config.yml" description:"Config filename.yml"`
+type awsData struct {
+	BucketName string
+	Region     string
 }
 
 func main() {
-	var options args
-	options.ConfigFiles = func(value string) {
-		filenames := strings.Split(value, " ")
-		cfg, err := config.LoadConfig(filenames...)
-		if err != nil {
-			logger.Fatal(err)
-		}
-
-		creds = awsData{
-			BucketName: cfg.Scripts.AWS.BucketName,
-			Region:     cfg.Scripts.AWS.Region,
-		}
-
-		ctx = config.NewContext(
-			config.WithElasticSearch(cfg.Elastic),
-			config.WithRabbit(cfg.RabbitMQ, "", cfg.Scripts.MQ),
-			config.WithConfigCopy(cfg),
-			config.WithRPC(cfg.RPC),
-			config.WithShare(cfg.SharePath),
-		)
+	cfg, err := config.LoadDefaultConfig()
+	if err != nil {
+		logger.Fatal(err)
 	}
 
-	parser := flags.NewParser(&options, flags.Default)
+	creds = awsData{
+		BucketName: cfg.Scripts.AWS.BucketName,
+		Region:     cfg.Scripts.AWS.Region,
+	}
+
+	ctx = config.NewContext(
+		config.WithElasticSearch(cfg.Elastic),
+		config.WithRabbit(cfg.RabbitMQ, "", cfg.Scripts.MQ),
+		config.WithConfigCopy(cfg),
+		config.WithRPC(cfg.RPC),
+		config.WithShare(cfg.SharePath),
+	)
+
+	parser := flags.NewParser(nil, flags.Default)
 
 	if _, err := parser.AddCommand("rollback",
 		"Rollback state",

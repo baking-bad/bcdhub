@@ -16,13 +16,13 @@ jobs:
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         prerelease: false
-    - name: Create Sentry release
-      uses: getsentry/action-release@v1
-      env:
-        SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-        SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-        SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
-        SENTRY_URL: ${{ secrets.SENTRY_URL }}
-      with:
-        environment: production
-        version: ${{ env.RELEASE_VERSION }}
+    # - name: Create Sentry release
+    #   uses: getsentry/action-release@v1
+    #   env:
+    #     SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+    #     SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+    #     SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+    #     SENTRY_URL: ${{ secrets.SENTRY_URL }}
+    #   with:
+    #     environment: production
+    #     version: ${{ env.RELEASE_VERSION }}
