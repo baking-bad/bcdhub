@@ -30,43 +30,49 @@ tzkt:
         timeout: 20
 
 elastic:
-    uri: http://127.0.0.1:9208
-    timeout: 1
+    uri: http://elastic:9200
+    timeout: 10
 
 rabbitmq:
-    uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@127.0.0.1:5678/"
+    uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mq:5672/"
+    timeout: 10
 
 db:
-    conn_string: "host=127.0.0.1 port=5438 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"
+    conn_string: "host=db port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"
+    timeout: 10
 
 oauth:
     state: ${OAUTH_STATE_STRING}
     jwt:
         secret: ${JWT_SECRET_KEY}
-        redirect_url: http://localhost:8080/welcome
+        redirect_url: https://better-call.dev/welcome
     github:
         client_id: ${GITHUB_CLIENT_ID}
         secret: ${GITHUB_CLIENT_SECRET}
-        callback_url: http://localhost:14000/v1/oauth/github/callback
+        callback_url: https://api.better-call.dev/v1/oauth/github/callback
     gitlab:
         client_id: ${GITLAB_CLIENT_ID}
         secret: ${GITLAB_CLIENT_SECRET}
-        callback_url: http://localhost:14000/v1/oauth/gitlab/callback
+        callback_url: https://api.better-call.dev/v1/oauth/gitlab/callback
 
 sentry:
-    environment: development
+    environment: production
     uri: ${SENTRY_DSN}
-    debug: true
+    debug: false
 
-share_path: ${HOME}/.bcd
+share_path: /etc/bcd
+
+ipfs:
+    - https://ipfs.io
+    - https://dweb.link
 
 api:
     project_name: api
-    bind: "127.0.0.1:14000"
-    swagger_host: "localhost:14000"
-    cors_enabled: true
+    bind: ":14000"
+    swagger_host: "api.better-call.dev"
+    cors_enabled: false
     oauth_enabled: true
-    sentry_enabled: false
+    sentry_enabled: true
     seed_enabled: false
     networks:
         - mainnet
@@ -87,7 +93,7 @@ compiler:
         region: eu-central-1
         access_key_id: ${AWS_ACCESS_KEY_ID}
         secret_access_key: ${AWS_SECRET_ACCESS_KEY}
-    sentry_enabled: false
+    sentry_enabled: true
     mq:
         publisher: true
         queues:
@@ -95,21 +101,21 @@ compiler:
 
 indexer:
     project_name: indexer
-    sentry_enabled: false
+    sentry_enabled: true
     mq:
         publisher: true
     networks:
         mainnet:
             boost: tzkt
-        # carthagenet:
-        #     boost: tzkt
-        # delphinet:
-        #     boost: tzkt
-        # dalphanet:
+        carthagenet:
+            boost: tzkt
+        delphinet:
+            boost: tzkt
+        dalphanet:
 
 metrics:
     project_name: metrics
-    sentry_enabled: false
+    sentry_enabled: true
     mq:
         publisher: false
         queues:
@@ -119,7 +125,17 @@ metrics:
             recalc:
             transfers:
             bigmapdiffs:
-    ipfs:
-        - https://ipfs.io
-        - https://dweb.link
 
+scripts:
+    aws:
+        bucket_name: bcd-elastic-snapshots
+        region: eu-central-1
+        access_key_id: ${AWS_ACCESS_KEY_ID}
+        secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+    networks:
+        - mainnet
+        - carthagenet
+        - delphinet
+        - dalphanet
+    mq:
+        publisher: true

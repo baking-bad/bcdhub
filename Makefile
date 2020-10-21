@@ -2,65 +2,50 @@ include .env
 export $(shell sed 's/=.*//' .env)
 
 api:
-	cd cmd/api && go run . -f config.yml -f config.dev.yml -f config.you.yml
+	docker-compose up -d elastic mq db
+	cd cmd/api && go run .
 
 indexer:
-	docker-compose -f docker-compose.yml -f docker-compose.debug.yml up -d elastic mq db
-	cd cmd/indexer && go run . -f config.yml -f config.dev.yml
+	docker-compose up -d elastic mq db
+	cd cmd/indexer && go run .
 
 metrics:
-	docker-compose -f docker-compose.yml -f docker-compose.debug.yml up -d elastic mq db
-	cd cmd/metrics && go run . -f config.yml -f config.dev.yml
+	docker-compose up -d elastic mq db
+	cd cmd/metrics && go run .
 
 compiler:
-	docker-compose -f docker-compose.yml -f docker-compose.debug.yml up -d --build compiler-dev
+	docker-compose -f docker-compose.yml -f build/compiler/dev/docker-compose.yml up -d --build compiler-dev
 	docker logs -f bcd-compiler-dev
 
-aliases:
-	cd scripts/aliases && go run . -f ../config.yml
-
 sitemap:
-	cd scripts/sitemap && go run . -f ../config.yml
+	cd scripts/sitemap && go run .
 
 migration:
-	cd scripts/migration && go run . -f ../config.yml
+	cd scripts/migration && go run .
 
-esctl:
-	cd scripts/esctl && go build .
+rollback:
+	cd scripts/esctl && go run . rollback -n $(NETWORK) -l $(LEVEL)
 
-rollback: esctl
-	./scripts/esctl/esctl -f scripts/config.yml rollback -n $(NETWORK) -l $(LEVEL)
-	rm scripts/esctl/esctl
+remove:
+	cd scripts/esctl && go run . remove -n $(NETWORK) 
 
-remove: esctl
-	./scripts/esctl/esctl -f scripts/config.yml remove -n $(NETWORK) 
-	rm scripts/esctl/esctl
-
-s3-creds: esctl
+s3-creds:
 	docker exec -it bcd-elastic bash -c 'bin/elasticsearch-keystore add --force --stdin s3.client.default.access_key <<< "$$AWS_ACCESS_KEY_ID"'
 	docker exec -it bcd-elastic bash -c 'bin/elasticsearch-keystore add --force --stdin s3.client.default.secret_key <<< "$$AWS_SECRET_ACCESS_KEY"'
-	./scripts/esctl/esctl -f scripts/config.yml reload_secure_settings
-	rm scripts/esctl/esctl
+	cd scripts/esctl && go run . reload_secure_settings
 
-s3-repo: esctl
-	./scripts/esctl/esctl -f scripts/config.yml create_repository
-	rm scripts/esctl/esctl
+s3-repo:
+	cd scripts/esctl && go run . create_repository
 
-s3-restore: esctl
-	#./scripts/esctl/esctl -f scripts/config.yml delete_indices
-	./scripts/esctl/esctl -f scripts/config.yml restore
-	rm scripts/esctl/esctl
+s3-restore:
+	# cd scripts/esctl && go run .delete_indices
+	cd scripts/esctl && go run . restore
 
-s3-snapshot: esctl
-	./scripts/esctl/esctl -f scripts/config.yml snapshot
-	rm scripts/esctl/esctl
+s3-snapshot:
+	cd scripts/esctl && go run . snapshot
 
-s3-policy: esctl
-	./scripts/esctl/esctl -f scripts/config.yml set_policy
-	rm scripts/esctl/esctl
-
-latest:
-	git tag latest -f && git push origin latest -f
+s3-policy:
+	cd scripts/esctl && go run . set_policy
 
 es-reset:
 	docker stop bcd-elastic || true
@@ -101,7 +86,7 @@ upgrade:
 	docker-compose up -d db mq
 
 restart:
-	docker-compose restart bcd-api bcd-metrics bcd-indexer
+	docker-compose restart bcd-api bcd-metrics bcd-indexer bcd-compiler
 
 release:
 	BCDHUB_VERSION=$$(cat version.json | grep version | awk -F\" '{ print $$4 }')

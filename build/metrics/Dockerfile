@@ -16,24 +16,21 @@ COPY ./go.* $GOPATH/src/github.com/baking-bad/bcdhub/
 WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub
 RUN go mod download
 
-COPY cmd/api cmd/api
+COPY cmd/metrics cmd/metrics
 COPY internal internal
 
-WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub/cmd/api/
-RUN go build -a -installsuffix cgo -o /go/bin/api .
+WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub/cmd/metrics/
+RUN go build -a -installsuffix cgo -o /go/bin/metrics .
 
 # ---------------------------------------------------------------------
 #  The second stage container, for running the application
 # ---------------------------------------------------------------------
 FROM scratch
 
-ENV PATH="/go/bin/:$PATH"
-
-WORKDIR /app/api
+WORKDIR /app/metrics
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=builder /go/bin/api /go/bin/api
-COPY config.yml /app/api/config.yml
-COPY /cmd/api/data/errors.json /app/api/data/errors.json
+COPY --from=builder /go/bin/metrics /go/bin/metrics
+COPY configs/*.yml /app/metrics/
 
-ENTRYPOINT ["/go/bin/api"]
+ENTRYPOINT ["/go/bin/metrics"]

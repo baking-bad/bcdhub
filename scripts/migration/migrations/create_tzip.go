@@ -55,7 +55,7 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 			return err
 		}
 		parser := tzip.NewParser(ctx.ES, rpc, tzip.ParserConfig{
-			IPFSGateways: ctx.Config.Scripts.IPFSGateways,
+			IPFSGateways: ctx.Config.IPFSGateways,
 		})
 
 		t, err := parser.Parse(tzip.ParseContext{

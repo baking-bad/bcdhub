@@ -26,6 +26,7 @@ jobs:
     - name: golang tests
       env:
         GO111MODULE: on
+        BCD_ENV: production
       run: |
         go mod download
         go test ./...

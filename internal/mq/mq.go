@@ -3,7 +3,9 @@ package mq
 import (
 	"errors"
 	"fmt"
+	"time"
 
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/streadway/amqp"
 )
 
@@ -84,6 +86,21 @@ func (mq *MQ) GetQueues() []string {
 type QueueManager struct {
 	receiver  IMessageReceiver
 	publisher IMessagePublisher
+}
+
+// WaitNew -
+func WaitNew(connection, service string, needPublisher bool, timeout int, queues ...Queue) *QueueManager {
+	var qm *QueueManager
+	var err error
+
+	for qm == nil {
+		qm, err = NewQueueManager(connection, service, needPublisher, queues...)
+		if err != nil {
+			logger.Warning("Waiting mq up %d seconds...", timeout)
+			time.Sleep(time.Second * time.Duration(timeout))
+		}
+	}
+	return qm
 }
 
 // NewQueueManager -
