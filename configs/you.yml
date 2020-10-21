@@ -3,7 +3,7 @@ rpc:
         uri: https://mainnet-tezos.giganode.io
         timeout: 20
     delphinet:
-        uri: https://rpc.tzkt.io/delphinet
+        uri: https://delphinet-tezos.giganode.io
         timeout: 20
     dalphanet:
         uri: https://rpc.tzkt.io/dalphanet
