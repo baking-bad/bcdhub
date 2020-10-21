@@ -27,10 +27,6 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	fmt.Println("db:", cfg.DB)
-	fmt.Println("mq:", cfg.RabbitMQ)
-	fmt.Println("es:", cfg.Elastic)
-
 	if cfg.Compiler.SentryEnabled {
 		helpers.InitSentry(cfg.Sentry.Debug, cfg.Sentry.Environment, cfg.Sentry.URI)
 		helpers.SetTagSentry("project", cfg.Compiler.ProjectName)
