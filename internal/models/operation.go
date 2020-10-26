@@ -70,12 +70,7 @@ func (o *Operation) ParseElasticJSON(resp gjson.Result) {
 	o.Internal = resp.Get("_source.internal").Bool()
 	o.Network = resp.Get("_source.network").String()
 	o.Timestamp = resp.Get("_source.timestamp").Time().UTC()
-
-	nonceJSON := resp.Get("_source.nonce")
-	if nonceJSON.Exists() {
-		nonce := nonceJSON.Int()
-		o.Nonce = &nonce
-	}
+	o.Nonce = utils.Int64Pointer(resp, "_source.nonce")
 
 	o.Status = resp.Get("_source.status").String()
 	o.Level = resp.Get("_source.level").Int()

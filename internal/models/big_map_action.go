@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/models/utils"
 	"github.com/tidwall/gjson"
 )
 
@@ -45,15 +46,8 @@ func (b *BigMapAction) ParseElasticJSON(hit gjson.Result) {
 	b.ID = hit.Get("_id").String()
 	b.Action = hit.Get("_source.action").String()
 
-	if hit.Get("_source.source_ptr").Exists() {
-		srcPtr := hit.Get("_source.source_ptr").Int()
-		b.SourcePtr = &srcPtr
-	}
-
-	if hit.Get("_source.destination_ptr").Exists() {
-		dstPtr := hit.Get("_source.destination_ptr").Int()
-		b.DestinationPtr = &dstPtr
-	}
+	b.SourcePtr = utils.Int64Pointer(hit, "_source.source_ptr")
+	b.DestinationPtr = utils.Int64Pointer(hit, "_source.destination_ptr")
 
 	b.OperationID = hit.Get("_source.operation_id").String()
 	b.Level = hit.Get("_source.level").Int()
