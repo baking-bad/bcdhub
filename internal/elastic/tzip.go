@@ -65,7 +65,7 @@ func (e *Elastic) GetTokenMetadata(ctx GetTokenMetadataContext) (tokens []TokenM
 		return
 	}
 	if response.Get("hits.total.value").Int() == 0 {
-		return nil, errors.Errorf("%s: token metadata", RecordNotFound)
+		return nil, errors.Errorf("%s token metadata", RecordNotFound)
 	}
 
 	tokens = make([]TokenMetadata, 0)
@@ -249,7 +249,7 @@ func (e *Elastic) GetAlias(network, address string) (*models.TZIP, error) {
 		return nil, err
 	}
 	if response.Get("hits.total.value").Int() == 0 {
-		return nil, errors.Errorf("%s: token metadata", RecordNotFound)
+		return nil, errors.Errorf("%s token metadata", RecordNotFound)
 	}
 
 	var data models.TZIP

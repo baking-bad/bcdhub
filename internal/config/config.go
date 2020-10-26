@@ -86,8 +86,8 @@ type TzKTConfig struct {
 
 // ElasticSearchConfig -
 type ElasticSearchConfig struct {
-	URI     string `yaml:"uri"`
-	Timeout int    `yaml:"timeout"`
+	URI     []string `yaml:"uri"`
+	Timeout int      `yaml:"timeout"`
 }
 
 // RabbitConfig -
