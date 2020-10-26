@@ -9,7 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/baking-bad/bcdhub/internal/parsers/tokens"
+	"github.com/baking-bad/bcdhub/internal/parsers/tzip/tokens"
 )
 
 // CreateTokenMetadata -
@@ -54,7 +54,7 @@ func (h *Handler) FixTokenMetadata(rpc noderpc.INode, sharePath string, operatio
 		return nil
 	}
 
-	tokenMetadata, err := h.ES.GetTokenMetadata(elastic.GetTokenMetadataContext{
+	tokenMetadatas, err := h.ES.GetTokenMetadata(elastic.GetTokenMetadataContext{
 		Contract: operation.Destination,
 		Network:  operation.Network,
 		TokenID:  -1,
@@ -65,26 +65,25 @@ func (h *Handler) FixTokenMetadata(rpc noderpc.INode, sharePath string, operatio
 		}
 		return nil
 	}
-	registry := tokenMetadata[0].RegistryAddress
-
-	parser := tokens.NewTokenMetadataParser(h.ES, rpc, sharePath, operation.Network)
-	metadata, err := parser.ParseWithRegistry(operation.Destination, registry, operation.Level)
-	if err != nil {
-		return err
-	}
-
 	result := make([]elastic.Model, 0)
-	for _, m := range metadata {
-		newMetadata := m.ToModel(operation.Destination, operation.Network)
-		for _, tm := range tokenMetadata {
-			if newMetadata.Is(tm) {
-				if newMetadata.Compare(tm) {
-					newMetadata.ID = tm.ID
-					result = append(result, newMetadata)
-				}
+
+	for _, tokenMetadata := range tokenMetadatas {
+		parser := tokens.NewTokenMetadataParser(h.ES, rpc, sharePath, operation.Network)
+		metadata, err := parser.ParseWithRegistry(operation.Destination, tokenMetadata.RegistryAddress, operation.Level)
+		if err != nil {
+			return err
+		}
+
+		for _, m := range metadata {
+			newMetadata := m.ToModel(tokenMetadata.Address, tokenMetadata.Network)
+			if newMetadata.HasToken(tokenMetadata.Network, tokenMetadata.Address, tokenMetadata.TokenID) {
+				result = append(result, newMetadata)
 				break
 			}
 		}
+	}
+	if len(result) == 0 {
+		return nil
 	}
 
 	return h.ES.BulkUpdate(result)

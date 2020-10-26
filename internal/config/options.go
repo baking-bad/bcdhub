@@ -126,11 +126,14 @@ func WithContractsInterfaces() ContextOption {
 // WithAliases -
 func WithAliases(network string) ContextOption {
 	return func(ctx *Context) {
-		if ctx.DB == nil {
+		if ctx.ES == nil {
 			panic("[WithAliases] Empty database connection")
 		}
-		aliases, err := ctx.DB.GetAliasesMap(network)
+		aliases, err := ctx.ES.GetAliasesMap(network)
 		if err != nil {
+			if elastic.IsRecordNotFound(err) {
+				return
+			}
 			panic(err)
 		}
 		ctx.Aliases = aliases

@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/models/utils"
 	"github.com/tidwall/gjson"
 )
 
@@ -83,5 +84,5 @@ func (b *BigMapDiff) GetScores(search string) []string {
 func (b *BigMapDiff) FoundByName(hit gjson.Result) string {
 	keys := hit.Get("highlight").Map()
 	categories := b.GetScores("")
-	return getFoundBy(keys, categories)
+	return utils.GetFoundBy(keys, categories)
 }

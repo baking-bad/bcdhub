@@ -11,7 +11,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/baking-bad/bcdhub/internal/parsers/tokens"
 	"github.com/pkg/errors"
 	"github.com/schollz/progressbar/v3"
 )
@@ -51,9 +50,6 @@ func (rm Manager) Rollback(fromState models.Block, toLevel int64) error {
 	if err := rm.rollbackBlocks(fromState.Network, toLevel); err != nil {
 		return err
 	}
-	if err := rm.rollbackTokenMetadata(fromState.Network, toLevel); err != nil {
-		return err
-	}
 
 	time.Sleep(time.Second) // Golden hack: Waiting while elastic remove records
 	logger.Info("Sending to queue affected contract ids...")
@@ -74,43 +70,6 @@ func (rm Manager) rollbackBlocks(network string, toLevel int64) error {
 func (rm Manager) rollbackOperations(network string, toLevel int64) error {
 	logger.Info("Deleting operations, migrations, transfers and big map diffs...")
 	return rm.e.DeleteByLevelAndNetwork([]string{elastic.DocBigMapDiff, elastic.DocBigMapActions, elastic.DocTZIP, elastic.DocMigrations, elastic.DocOperations, elastic.DocTransfers}, network, toLevel)
-}
-
-func (rm Manager) rollbackTokenMetadata(network string, toLevel int64) error {
-	logger.Info("Finding affected token metadata...")
-	affected, err := rm.e.GetTokenMetadata(elastic.GetTokenMetadataContext{
-		Network: network,
-		TokenID: -1,
-		Level: elastic.Range{
-			Value:      toLevel,
-			Comparator: "gt",
-		},
-	})
-	if err != nil {
-		if !elastic.IsRecordNotFound(err) {
-			return err
-		}
-		return nil
-	}
-	logger.Info("Deleting token metadata...")
-	if err := rm.e.DeleteByLevelAndNetwork([]string{elastic.DocTokenMetadata}, network, toLevel); err != nil {
-		return err
-	}
-
-	logger.Info("Receiving new token metadata for level %d...", toLevel)
-	result := make([]elastic.Model, 0)
-	for _, m := range affected {
-		parser := tokens.NewTokenMetadataParser(rm.e, rm.rpc, rm.sharePath, network)
-		metadata, err := parser.Parse(m.Contract, toLevel)
-		if err != nil {
-			continue
-		}
-		for j := range metadata {
-			result = append(result, metadata[j].ToModel(m.Contract, m.Network))
-		}
-	}
-	logger.Info("Saving new token metadata...")
-	return rm.e.BulkInsert(result)
 }
 
 func (rm Manager) rollbackContracts(fromState models.Block, toLevel int64) error {

@@ -26,7 +26,6 @@ RUN swag init --parseDependency
 RUN go build -a -installsuffix cgo -o /go/bin/api .
 
 WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub/scripts/
-RUN cd aliases && go build -a -installsuffix cgo -o /go/bin/aliases .
 RUN cd esctl && go build -a -installsuffix cgo -o /go/bin/esctl .
 RUN cd migration && go build -a -installsuffix cgo -o /go/bin/migration .
 
@@ -44,7 +43,6 @@ COPY --from=builder /go/bin/api /go/bin/api
 COPY /cmd/api/*.yml /app/api/
 COPY /cmd/api/data/errors.json /app/api/data/errors.json
 
-COPY --from=builder /go/bin/aliases /go/bin/aliases
 COPY --from=builder /go/bin/esctl /go/bin/esctl
 COPY --from=builder /go/bin/migration /go/bin/migration
 

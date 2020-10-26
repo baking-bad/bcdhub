@@ -1,8 +1,9 @@
 package transfer
 
 import (
-	"github.com/baking-bad/bcdhub/internal/database"
+	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/jinzhu/gorm"
 )
 
@@ -13,12 +14,12 @@ type TokenKey struct {
 	Entrypoint string
 }
 
-// TokenViews -
-type TokenViews map[TokenKey]database.TokenViewImplementation
+// TokenEvents -
+type TokenEvents map[TokenKey]tzip.EventImplementation
 
 // NewTokenViews -
-func NewTokenViews(db database.DB) (TokenViews, error) {
-	tokens, err := db.GetTokens()
+func NewTokenViews(es elastic.IElastic) (TokenEvents, error) {
+	tokens, err := es.GetTZIPWithViews()
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return nil, nil
@@ -26,17 +27,17 @@ func NewTokenViews(db database.DB) (TokenViews, error) {
 		return nil, err
 	}
 
-	views := make(TokenViews)
+	views := make(TokenEvents)
 	for _, token := range tokens {
-		if len(token.Metadata.Views) == 0 {
+		if len(token.Events) == 0 {
 			continue
 		}
 
-		for _, view := range token.Metadata.Views {
+		for _, view := range token.Events {
 			for _, implementation := range view.Implementations {
 				for _, entrypoint := range implementation.MichelsonParameterView.Entrypoints {
 					views[TokenKey{
-						Address:    token.Contract,
+						Address:    token.Address,
 						Network:    token.Network,
 						Entrypoint: entrypoint,
 					}] = implementation
@@ -49,8 +50,8 @@ func NewTokenViews(db database.DB) (TokenViews, error) {
 }
 
 // Get -
-func (views TokenViews) Get(address, network, entrypoint string) (database.TokenViewImplementation, bool) {
-	view, ok := views[TokenKey{
+func (events TokenEvents) Get(address, network, entrypoint string) (tzip.EventImplementation, bool) {
+	view, ok := events[TokenKey{
 		Address:    address,
 		Network:    network,
 		Entrypoint: entrypoint,
@@ -59,11 +60,11 @@ func (views TokenViews) Get(address, network, entrypoint string) (database.Token
 }
 
 // GetByOperation -
-func (views TokenViews) GetByOperation(operation models.Operation) (database.TokenViewImplementation, bool) {
-	view, ok := views[TokenKey{
+func (events TokenEvents) GetByOperation(operation models.Operation) (tzip.EventImplementation, bool) {
+	event, ok := events[TokenKey{
 		Address:    operation.Destination,
 		Network:    operation.Network,
 		Entrypoint: operation.Entrypoint,
 	}]
-	return view, ok
+	return event, ok
 }

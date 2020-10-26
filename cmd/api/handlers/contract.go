@@ -90,7 +90,7 @@ func (ctx *Context) contractPostprocessing(contract models.Contract, c *gin.Cont
 		return res, err
 	}
 
-	if alias, err := ctx.DB.GetAlias(contract.Address, contract.Network); err == nil {
+	if alias, err := ctx.ES.GetAlias(contract.Network, contract.Address); err == nil {
 		res.Slug = alias.Slug
 	} else {
 		return res, err

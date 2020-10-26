@@ -4,8 +4,8 @@ package transfer
 type ParserOption func(dp *Parser)
 
 // WithTokenViews -
-func WithTokenViews(views TokenViews) ParserOption {
+func WithTokenViews(events TokenEvents) ParserOption {
 	return func(tp *Parser) {
-		tp.views = views
+		tp.events = events
 	}
 }

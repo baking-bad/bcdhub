@@ -182,6 +182,7 @@ func main() {
 			contract.GET("operations", ctx.GetContractOperations)
 			contract.GET("migrations", ctx.GetContractMigrations)
 			contract.GET("transfers", ctx.GetContractTransfers)
+
 			tokens := contract.Group("tokens")
 			{
 				tokens.GET("", ctx.GetContractTokens)
@@ -211,6 +212,7 @@ func main() {
 		account := v1.Group("account/:network/:address")
 		{
 			account.GET("", ctx.GetInfo)
+			account.GET("metadata", ctx.GetMetadata)
 		}
 
 		fa12 := v1.Group("tokens/:network")

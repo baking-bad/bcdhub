@@ -1,50 +1,50 @@
 package models
 
-import "github.com/tidwall/gjson"
+import (
+	"fmt"
+
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
+	"github.com/baking-bad/bcdhub/internal/models/utils"
+	"github.com/tidwall/gjson"
+)
 
 // TZIP -
 type TZIP struct {
-	ID      string `json:"-"`
 	Level   int64  `json:"level"`
 	Address string `json:"address"`
 	Network string `json:"network"`
+	Slug    string `json:"slug,omitempty"`
 
-	TZIP16
+	tzip.TZIP12
+	tzip.TZIP16
+	tzip.DApps
 }
 
-// TZIP16 -
-type TZIP16 struct {
-	Name        string      `json:"name"`
-	Description string      `json:"description"`
-	Version     string      `json:"version"`
-	License     string      `json:"license"`
-	Homepage    string      `json:"homepage"`
-	Authors     []string    `json:"authors"`
-	Interfaces  []string    `json:"interfaces"`
-	Views       interface{} `json:"views"`
+// HasToken -
+func (t TZIP) HasToken(network, address string, tokenID int64) bool {
+	for i := range t.Tokens.Static {
+		if t.Address == address && t.Network == network && t.Tokens.Static[i].TokenID == tokenID {
+			return true
+		}
+	}
+	return false
 }
 
 // ParseElasticJSON -
 func (t *TZIP) ParseElasticJSON(resp gjson.Result) {
-	t.ID = resp.Get("_id").String()
 	t.Level = resp.Get("_source.level").Int()
 	t.Address = resp.Get("_source.address").String()
 	t.Network = resp.Get("_source.network").String()
+	t.Slug = resp.Get("_source.slug").String()
 
-	t.Name = resp.Get("_source.name").String()
-	t.Description = resp.Get("_source.description").String()
-	t.Version = resp.Get("_source.version").String()
-	t.License = resp.Get("_source.license").Time().String()
-	t.Homepage = resp.Get("_source.homepage").String()
-
-	t.Authors = parseStringArray(resp, "_source.authors")
-	t.Interfaces = parseStringArray(resp, "_source.interfaces")
-	t.Views = resp.Get("_source.views").Value()
+	t.TZIP12.ParseElasticJSON(resp)
+	t.TZIP16.ParseElasticJSON(resp)
+	t.DApps.ParseElasticJSON(resp)
 }
 
 // GetID -
 func (t *TZIP) GetID() string {
-	return t.ID
+	return fmt.Sprintf("%s_%s", t.Network, t.Address)
 }
 
 // GetIndex -
@@ -64,12 +64,16 @@ func (t *TZIP) Marshal() ([]byte, error) {
 
 // GetScores -
 func (t *TZIP) GetScores(search string) []string {
-	return []string{}
+	return []string{
+		"tokens.name^8",
+		"tokens.symbol^8",
+		"address^7",
+	}
 }
 
 // FoundByName -
 func (t *TZIP) FoundByName(hit gjson.Result) string {
 	keys := hit.Get("highlight").Map()
 	categories := t.GetScores("")
-	return getFoundBy(keys, categories)
+	return utils.GetFoundBy(keys, categories)
 }

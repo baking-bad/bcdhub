@@ -9,7 +9,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage/hash"
 	"github.com/baking-bad/bcdhub/internal/elastic"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
@@ -76,7 +75,6 @@ func (s TezosStorage) Get(value string) (*models.TZIP, error) {
 	decoded := DecodeValue(bmd.Value)
 
 	var data models.TZIP
-	data.ID = helpers.GenerateID()
 	err = json.Unmarshal([]byte(decoded), &data)
 	return &data, err
 }

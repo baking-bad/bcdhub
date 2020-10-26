@@ -13,7 +13,7 @@ var searchableInidices = []string{
 	DocContracts,
 	DocOperations,
 	DocBigMapDiff,
-	DocTokenMetadata,
+	DocTZIP,
 }
 
 type qItem map[string]interface{}

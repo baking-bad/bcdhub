@@ -2,18 +2,18 @@ package transfer
 
 import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/tidwall/gjson"
 )
 
 // Parser -
 type Parser struct {
-	rpc   noderpc.INode
-	es    elastic.IElastic
-	views TokenViews
+	rpc    noderpc.INode
+	es     elastic.IElastic
+	events TokenEvents
 }
 
 // NewParser -
@@ -32,7 +32,7 @@ func NewParser(rpc noderpc.INode, es elastic.IElastic, opts ...ParserOption) *Pa
 
 // Parse -
 func (p *Parser) Parse(operation models.Operation) ([]*models.Transfer, error) {
-	if view, ok := p.views.GetByOperation(operation); ok {
+	if view, ok := p.events.GetByOperation(operation); ok {
 		return p.runView(view, operation)
 	} else if operation.Entrypoint == "transfer" {
 		parameters := getParameters(operation.Parameters)
@@ -87,8 +87,8 @@ func (p *Parser) makeFA2Transfers(operation models.Operation, parameters gjson.R
 	return transfers, nil
 }
 
-func (p *Parser) runView(view database.TokenViewImplementation, operation models.Operation) ([]*models.Transfer, error) {
-	parser, err := view.MichelsonParameterView.GetParser()
+func (p Parser) runView(event tzip.EventImplementation, operation models.Operation) ([]*models.Transfer, error) {
+	parser, err := event.MichelsonParameterView.GetParser()
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (p *Parser) runView(view database.TokenViewImplementation, operation models
 
 	parameter := normalizeParameter(operation.Parameters)
 	storage := gjson.Parse(`[]`)
-	code, err := view.MichelsonParameterView.CodeJSON()
+	code, err := event.MichelsonParameterView.CodeJSON()
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func (p *Parser) runView(view database.TokenViewImplementation, operation models
 	return p.parseResponse(parser, operation, response)
 }
 
-func (p *Parser) parseResponse(parser database.BalanceViewParser, operation models.Operation, response gjson.Result) ([]*models.Transfer, error) {
+func (p Parser) parseResponse(parser tzip.BalanceViewParser, operation models.Operation, response gjson.Result) ([]*models.Transfer, error) {
 	newBalances := parser.Parse(response)
 	addresses := make([]elastic.TokenBalance, len(newBalances))
 	for i := range newBalances {

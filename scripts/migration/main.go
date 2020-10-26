@@ -17,32 +17,14 @@ import (
 )
 
 var migrationsList = []migrations.Migration{
-	&migrations.SetTimestamp{},
-	&migrations.SetLanguage{},
-	&migrations.SetContractAlias{Network: consts.Mainnet},
-	&migrations.SetOperationAlias{Network: consts.Mainnet},
-	&migrations.SetBMDStrings{},
-	&migrations.SetBMDTimestamp{},
-	&migrations.SetFA{},
-	&migrations.SetOperationStrings{},
-	&migrations.SetMigrationKind{},
-	&migrations.SetBMDProtocol{},
-	&migrations.SetContractMigrationsCount{},
-	&migrations.SetStateChainID{},
-	&migrations.SetAliasSlug{},
-	&migrations.SetContractFingerprint{},
-	&migrations.SetOperationErrors{},
-	&migrations.SetContractHash{},
+	&migrations.BigRussianBoss{},
+	&migrations.Aliases{},
 	&migrations.RecalcContractMetrics{},
-	&migrations.DropMichelson{},
 	&migrations.SetOperationTags{},
 	&migrations.CreateTransfersTags{},
 	&migrations.SetProtocolConstants{},
-	&migrations.SetOperationAllocatedBurned{},
-	&migrations.CreateTokenMetadata{},
-	&migrations.SetOperationInitiator{},
-	&migrations.UpdateDapps{},
 	&migrations.CreateTZIP{},
+	&migrations.FillTZIP{},
 }
 
 func main() {

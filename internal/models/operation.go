@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/models/utils"
 	"github.com/tidwall/gjson"
 )
 
@@ -159,7 +160,7 @@ func (o *Operation) GetScores(search string) []string {
 func (o *Operation) FoundByName(hit gjson.Result) string {
 	keys := hit.Get("highlight").Map()
 	categories := o.GetScores("")
-	return getFoundBy(keys, categories)
+	return utils.GetFoundBy(keys, categories)
 }
 
 // SetAllocationBurn -

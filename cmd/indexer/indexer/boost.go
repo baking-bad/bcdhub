@@ -42,7 +42,7 @@ type BoostIndexer struct {
 	messageQueue        *mq.QueueManager
 	boost               bool
 	interfaces          map[string]kinds.ContractKind
-	tokenViews          transfer.TokenViews
+	tokenViews          transfer.TokenEvents
 	skipDelegatorBlocks bool
 
 	cfg config.Config
@@ -141,11 +141,6 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 		return nil, err
 	}
 
-	tokenViews, err := transfer.NewTokenViews(db)
-	if err != nil {
-		return nil, err
-	}
-
 	bi := &BoostIndexer{
 		Network:      network,
 		rpc:          rpc,
@@ -153,7 +148,6 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 		messageQueue: messageQueue,
 		stop:         make(chan struct{}),
 		interfaces:   interfaces,
-		tokenViews:   tokenViews,
 		cfg:          cfg,
 	}
 
@@ -164,6 +158,12 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 	if err := bi.init(); err != nil {
 		return nil, err
 	}
+
+	tokenViews, err := transfer.NewTokenViews(es)
+	if err != nil {
+		return nil, err
+	}
+	bi.tokenViews = tokenViews
 
 	return bi, nil
 }
@@ -499,7 +499,7 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 			operations.WithIPFSGateways(bi.cfg.IPFSGateways),
 			operations.WithInterfaces(bi.interfaces),
 			operations.WithShareDirectory(bi.cfg.Share.Path),
-			operations.WithTokenViews(bi.tokenViews),
+			operations.WithTokenEvents(bi.tokenViews),
 			operations.WithNetwork(network),
 		))
 		parsed, err := parser.Parse(opg)
