@@ -499,7 +499,7 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 			operations.WithIPFSGateways(bi.cfg.IPFSGateways),
 			operations.WithInterfaces(bi.interfaces),
 			operations.WithShareDirectory(bi.cfg.Share.Path),
-			operations.WithTokenViews(bi.tokenViews),
+			operations.WithTokenEvents(bi.tokenViews),
 			operations.WithNetwork(network),
 		))
 		parsed, err := parser.Parse(opg)

@@ -11,9 +11,9 @@ import (
 
 // Parser -
 type Parser struct {
-	rpc   noderpc.INode
-	es    elastic.IElastic
-	views TokenEvents
+	rpc    noderpc.INode
+	es     elastic.IElastic
+	events TokenEvents
 }
 
 // NewParser -
@@ -32,7 +32,7 @@ func NewParser(rpc noderpc.INode, es elastic.IElastic, opts ...ParserOption) *Pa
 
 // Parse -
 func (p *Parser) Parse(operation models.Operation) ([]*models.Transfer, error) {
-	if view, ok := p.views.GetByOperation(operation); ok {
+	if view, ok := p.events.GetByOperation(operation); ok {
 		return p.runView(view, operation)
 	} else if operation.Entrypoint == "transfer" {
 		parameters := getParameters(operation.Parameters)
