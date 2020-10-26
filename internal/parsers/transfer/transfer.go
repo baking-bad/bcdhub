@@ -17,21 +17,21 @@ type Parser struct {
 }
 
 // NewParser -
-func NewParser(rpc noderpc.INode, es elastic.IElastic, opts ...ParserOption) Parser {
-	tp := Parser{
+func NewParser(rpc noderpc.INode, es elastic.IElastic, opts ...ParserOption) *Parser {
+	tp := &Parser{
 		rpc: rpc,
 		es:  es,
 	}
 
 	for i := range opts {
-		opts[i](&tp)
+		opts[i](tp)
 	}
 
 	return tp
 }
 
 // Parse -
-func (p Parser) Parse(operation models.Operation) ([]*models.Transfer, error) {
+func (p *Parser) Parse(operation models.Operation) ([]*models.Transfer, error) {
 	if view, ok := p.views.GetByOperation(operation); ok {
 		return p.runView(view, operation)
 	} else if operation.Entrypoint == "transfer" {
@@ -48,7 +48,7 @@ func (p Parser) Parse(operation models.Operation) ([]*models.Transfer, error) {
 	return nil, nil
 }
 
-func (p Parser) makeFA12Transfers(operation models.Operation, parameters gjson.Result) ([]*models.Transfer, error) {
+func (p *Parser) makeFA12Transfers(operation models.Operation, parameters gjson.Result) ([]*models.Transfer, error) {
 	transfer := models.EmptyTransfer(operation)
 	fromAddr, err := getAddress(parameters.Get("args.0"))
 	if err != nil {
@@ -64,7 +64,7 @@ func (p Parser) makeFA12Transfers(operation models.Operation, parameters gjson.R
 	return []*models.Transfer{transfer}, nil
 }
 
-func (p Parser) makeFA2Transfers(operation models.Operation, parameters gjson.Result) ([]*models.Transfer, error) {
+func (p *Parser) makeFA2Transfers(operation models.Operation, parameters gjson.Result) ([]*models.Transfer, error) {
 	transfers := make([]*models.Transfer, 0)
 	for _, from := range parameters.Array() {
 		fromAddr, err := getAddress(from.Get("args.0"))
@@ -87,7 +87,7 @@ func (p Parser) makeFA2Transfers(operation models.Operation, parameters gjson.Re
 	return transfers, nil
 }
 
-func (p Parser) runView(view database.TokenViewImplementation, operation models.Operation) ([]*models.Transfer, error) {
+func (p *Parser) runView(view database.TokenViewImplementation, operation models.Operation) ([]*models.Transfer, error) {
 	parser, err := view.MichelsonParameterView.GetParser()
 	if err != nil {
 		return nil, err
@@ -115,7 +115,7 @@ func (p Parser) runView(view database.TokenViewImplementation, operation models.
 	return p.parseResponse(parser, operation, response)
 }
 
-func (p Parser) parseResponse(parser database.BalanceViewParser, operation models.Operation, response gjson.Result) ([]*models.Transfer, error) {
+func (p *Parser) parseResponse(parser database.BalanceViewParser, operation models.Operation, response gjson.Result) ([]*models.Transfer, error) {
 	newBalances := parser.Parse(response)
 	addresses := make([]elastic.TokenBalance, len(newBalances))
 	for i := range newBalances {

@@ -1,0 +1,32 @@
+{
+    "balance_updates": [
+        {
+            "kind": "contract",
+            "contract": "tz1XWGzpVmLV4oyGc7aM3GhjXEZQh4Qutgq3",
+            "change": "-1420"
+        },
+        {
+            "kind": "freezer",
+            "category": "fees",
+            "delegate": "tz1gfArv665EUkSg2ojMBzcbfwuPxAvqPvjo",
+            "cycle": 285,
+            "change": "1420"
+        }
+    ],
+    "operation_result": {
+        "status": "applied",
+        "balance_updates": [
+            {
+                "kind": "contract",
+                "contract": "tz1XWGzpVmLV4oyGc7aM3GhjXEZQh4Qutgq3",
+                "change": "-29075891"
+            },
+            {
+                "kind": "contract",
+                "contract": "tz1KvnPAoC4XTeLqtvYMGMt8BYdbkAjkbtvf",
+                "change": "29075891"
+            }
+        ],
+        "consumed_gas": "10207"
+    }
+}

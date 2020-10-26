@@ -1,0 +1,26 @@
+{
+    "metadata": {
+        "balance_updates": [
+            {
+                "kind": "contract",
+                "contract": "KT1W29iVvZsmyPiY2sMzFpuUcKipPoaPPTHC",
+                "change": "-40000"
+            },
+            {
+                "kind": "freezer",
+                "category": "fees",
+                "delegate": "tz3UoffC7FG7zfpmvmjUmUeAaHvzdcUvAj6r",
+                "level": 106,
+                "change": "40000"
+            }
+        ],
+        "operation_result": {
+            "status": "backtracked",
+            "storage": {
+                "bytes": "01406b3971d89bcf2c1dcdd442847b7bb8bba61b4f00"
+            },
+            "consumed_gas": "96591",
+            "storage_size": "196"
+        }
+    }
+}

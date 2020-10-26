@@ -1,4 +1,4 @@
-package parsers
+package contract
 
 import (
 	"fmt"

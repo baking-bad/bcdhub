@@ -1,0 +1,322 @@
+{
+    "parameter": {
+        "babylon": {
+            "0": {
+                "prim": "or",
+                "args": [
+                    "0/0",
+                    "0/1/0",
+                    "0/1/1/0",
+                    "0/1/1/1/0",
+                    "0/1/1/1/1/0",
+                    "0/1/1/1/1/1/0",
+                    "0/1/1/1/1/1/1/0",
+                    "0/1/1/1/1/1/1/1/0",
+                    "0/1/1/1/1/1/1/1/1/0",
+                    "0/1/1/1/1/1/1/1/1/1"
+                ],
+                "type": "namedunion"
+            },
+            "0/0": {
+                "fieldname": "transfer",
+                "prim": "pair",
+                "args": [
+                    "0/0/0",
+                    "0/0/1/0",
+                    "0/0/1/1"
+                ],
+                "type": "namedtuple",
+                "name": "transfer"
+            },
+            "0/0/0": {
+                "typename": "from",
+                "prim": "address",
+                "type": "address",
+                "name": "from"
+            },
+            "0/0/1": {
+                "prim": "pair",
+                "type": "pair"
+            },
+            "0/0/1/0": {
+                "typename": "to",
+                "prim": "address",
+                "type": "address",
+                "name": "to"
+            },
+            "0/0/1/1": {
+                "typename": "value",
+                "prim": "nat",
+                "type": "nat",
+                "name": "value"
+            },
+            "0/1": {
+                "prim": "or",
+                "type": "or"
+            },
+            "0/1/0": {
+                "fieldname": "approve",
+                "prim": "pair",
+                "args": [
+                    "0/1/0/0",
+                    "0/1/0/1"
+                ],
+                "type": "namedtuple",
+                "name": "approve"
+            },
+            "0/1/0/0": {
+                "typename": "spender",
+                "prim": "address",
+                "type": "address",
+                "name": "spender"
+            },
+            "0/1/0/1": {
+                "typename": "value",
+                "prim": "nat",
+                "type": "nat",
+                "name": "value"
+            },
+            "0/1/1": {
+                "prim": "or",
+                "type": "or"
+            },
+            "0/1/1/0": {
+                "fieldname": "getAllowance",
+                "prim": "pair",
+                "args": [
+                    "0/1/1/0/0/0",
+                    "0/1/1/0/0/1",
+                    "0/1/1/0/1"
+                ],
+                "type": "namedtuple",
+                "name": "getAllowance"
+            },
+            "0/1/1/0/0": {
+                "prim": "pair",
+                "type": "pair"
+            },
+            "0/1/1/0/0/0": {
+                "typename": "owner",
+                "prim": "address",
+                "type": "address",
+                "name": "owner"
+            },
+            "0/1/1/0/0/1": {
+                "typename": "spender",
+                "prim": "address",
+                "type": "address",
+                "name": "spender"
+            },
+            "0/1/1/0/1": {
+                "prim": "contract",
+                "parameter": "{\"prim\":\"nat\",\"annots\":[\":remaining\"]}",
+                "type": "contract"
+            },
+            "0/1/1/1": {
+                "prim": "or",
+                "type": "or"
+            },
+            "0/1/1/1/0": {
+                "fieldname": "getBalance",
+                "prim": "pair",
+                "args": [
+                    "0/1/1/1/0/0",
+                    "0/1/1/1/0/1"
+                ],
+                "type": "namedtuple",
+                "name": "getBalance"
+            },
+            "0/1/1/1/0/0": {
+                "typename": "owner",
+                "prim": "address",
+                "type": "address",
+                "name": "owner"
+            },
+            "0/1/1/1/0/1": {
+                "prim": "contract",
+                "parameter": "{\"prim\":\"nat\",\"annots\":[\":balance\"]}",
+                "type": "contract"
+            },
+            "0/1/1/1/1": {
+                "prim": "or",
+                "type": "or"
+            },
+            "0/1/1/1/1/0": {
+                "fieldname": "getTotalSupply",
+                "prim": "pair",
+                "args": [
+                    "0/1/1/1/1/0/0",
+                    "0/1/1/1/1/0/1"
+                ],
+                "type": "tuple",
+                "name": "getTotalSupply"
+            },
+            "0/1/1/1/1/0/0": {
+                "prim": "unit",
+                "type": "unit"
+            },
+            "0/1/1/1/1/0/1": {
+                "prim": "contract",
+                "parameter": "{\"prim\":\"nat\",\"annots\":[\":totalSupply\"]}",
+                "type": "contract"
+            },
+            "0/1/1/1/1/1": {
+                "prim": "or",
+                "type": "or"
+            },
+            "0/1/1/1/1/1/0": {
+                "fieldname": "setPause",
+                "prim": "bool",
+                "type": "bool",
+                "name": "setPause"
+            },
+            "0/1/1/1/1/1/1": {
+                "prim": "or",
+                "type": "or"
+            },
+            "0/1/1/1/1/1/1/0": {
+                "fieldname": "setAdministrator",
+                "prim": "address",
+                "type": "address",
+                "name": "setAdministrator"
+            },
+            "0/1/1/1/1/1/1/1": {
+                "prim": "or",
+                "type": "or"
+            },
+            "0/1/1/1/1/1/1/1/0": {
+                "fieldname": "getAdministrator",
+                "prim": "pair",
+                "args": [
+                    "0/1/1/1/1/1/1/1/0/0",
+                    "0/1/1/1/1/1/1/1/0/1"
+                ],
+                "type": "tuple",
+                "name": "getAdministrator"
+            },
+            "0/1/1/1/1/1/1/1/0/0": {
+                "prim": "unit",
+                "type": "unit"
+            },
+            "0/1/1/1/1/1/1/1/0/1": {
+                "prim": "contract",
+                "parameter": "{\"prim\":\"address\",\"annots\":[\":administrator\"]}",
+                "type": "contract"
+            },
+            "0/1/1/1/1/1/1/1/1": {
+                "prim": "or",
+                "type": "or"
+            },
+            "0/1/1/1/1/1/1/1/1/0": {
+                "fieldname": "mint",
+                "prim": "pair",
+                "args": [
+                    "0/1/1/1/1/1/1/1/1/0/0",
+                    "0/1/1/1/1/1/1/1/1/0/1"
+                ],
+                "type": "namedtuple",
+                "name": "mint"
+            },
+            "0/1/1/1/1/1/1/1/1/0/0": {
+                "typename": "to",
+                "prim": "address",
+                "type": "address",
+                "name": "to"
+            },
+            "0/1/1/1/1/1/1/1/1/0/1": {
+                "typename": "value",
+                "prim": "nat",
+                "type": "nat",
+                "name": "value"
+            },
+            "0/1/1/1/1/1/1/1/1/1": {
+                "fieldname": "burn",
+                "prim": "pair",
+                "args": [
+                    "0/1/1/1/1/1/1/1/1/1/0",
+                    "0/1/1/1/1/1/1/1/1/1/1"
+                ],
+                "type": "namedtuple",
+                "name": "burn"
+            },
+            "0/1/1/1/1/1/1/1/1/1/0": {
+                "typename": "from",
+                "prim": "address",
+                "type": "address",
+                "name": "from"
+            },
+            "0/1/1/1/1/1/1/1/1/1/1": {
+                "typename": "value",
+                "prim": "nat",
+                "type": "nat",
+                "name": "value"
+            }
+        }
+    },
+    "storage": {
+        "babylon": {
+            "0": {
+                "prim": "pair",
+                "args": [
+                    "0/0",
+                    "0/1/0",
+                    "0/1/1/0",
+                    "0/1/1/1"
+                ],
+                "type": "tuple"
+            },
+            "0/0": {
+                "prim": "big_map",
+                "type": "big_map"
+            },
+            "0/0/k": {
+                "prim": "address",
+                "type": "address"
+            },
+            "0/0/v": {
+                "prim": "pair",
+                "args": [
+                    "0/0/v/0",
+                    "0/0/v/1"
+                ],
+                "type": "tuple"
+            },
+            "0/0/v/0": {
+                "prim": "nat",
+                "type": "nat"
+            },
+            "0/0/v/1": {
+                "prim": "map",
+                "type": "map"
+            },
+            "0/0/v/1/k": {
+                "prim": "address",
+                "type": "address"
+            },
+            "0/0/v/1/v": {
+                "prim": "nat",
+                "type": "nat"
+            },
+            "0/1": {
+                "prim": "pair",
+                "type": "pair"
+            },
+            "0/1/0": {
+                "prim": "address",
+                "type": "address"
+            },
+            "0/1/1": {
+                "prim": "pair",
+                "type": "pair"
+            },
+            "0/1/1/0": {
+                "prim": "bool",
+                "type": "bool"
+            },
+            "0/1/1/1": {
+                "prim": "nat",
+                "type": "nat"
+            }
+        }
+    }
+}

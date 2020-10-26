@@ -1,0 +1,16 @@
+{
+    "balance_updates": [
+        {
+            "kind": "contract",
+            "contract": "tz1Yshp26pvsFcjwpDQvoLdHsWEJMrvwuCpo",
+            "change": "-2655"
+        },
+        {
+            "kind": "freezer",
+            "category": "fees",
+            "delegate": "tz1aWXP237BLwNHJcCD4b3DutCevhqq2T1Z9",
+            "cycle": 392,
+            "change": "2655"
+        }
+    ]
+}
