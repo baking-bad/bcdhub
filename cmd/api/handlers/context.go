@@ -43,25 +43,27 @@ func NewContext(cfg config.Config) (*Context, error) {
 		config.WithRabbit(cfg.RabbitMQ, cfg.API.ProjectName, cfg.API.MQ),
 	)
 
+	mapTokens := make(map[tokenKey]TokenMetadata)
 	tokens, err := ctx.ES.GetTokenMetadata(elastic.GetTokenMetadataContext{
 		TokenID: -1,
 	})
 	if err != nil {
-		return nil, err
-	}
-
-	mapTokens := make(map[tokenKey]TokenMetadata)
-	for i := range tokens {
-		mapTokens[tokenKey{
-			Network:  tokens[i].Network,
-			Contract: tokens[i].Address,
-			TokenID:  int64(tokens[i].TokenID),
-		}] = TokenMetadata{
-			Contract: tokens[i].Address,
-			TokenID:  tokens[i].TokenID,
-			Symbol:   tokens[i].Symbol,
-			Name:     tokens[i].Name,
-			Decimals: tokens[i].Decimals,
+		if !elastic.IsRecordNotFound(err) {
+			return nil, err
+		}
+	} else {
+		for i := range tokens {
+			mapTokens[tokenKey{
+				Network:  tokens[i].Network,
+				Contract: tokens[i].Address,
+				TokenID:  int64(tokens[i].TokenID),
+			}] = TokenMetadata{
+				Contract: tokens[i].Address,
+				TokenID:  tokens[i].TokenID,
+				Symbol:   tokens[i].Symbol,
+				Name:     tokens[i].Name,
+				Decimals: tokens[i].Decimals,
+			}
 		}
 	}
 

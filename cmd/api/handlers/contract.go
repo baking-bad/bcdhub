@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
@@ -92,7 +93,7 @@ func (ctx *Context) contractPostprocessing(contract models.Contract, c *gin.Cont
 
 	if alias, err := ctx.ES.GetAlias(contract.Network, contract.Address); err == nil {
 		res.Slug = alias.Slug
-	} else {
+	} else if !elastic.IsRecordNotFound(err) {
 		return res, err
 	}
 

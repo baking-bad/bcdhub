@@ -37,7 +37,7 @@ func WithRPC(rpcConfig map[string]RPCConfig) ContextOption {
 // WithElasticSearch -
 func WithElasticSearch(esConfig ElasticSearchConfig) ContextOption {
 	return func(ctx *Context) {
-		ctx.ES = elastic.WaitNew([]string{esConfig.URI}, esConfig.Timeout)
+		ctx.ES = elastic.WaitNew(esConfig.URI, esConfig.Timeout)
 	}
 }
 

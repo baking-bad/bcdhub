@@ -40,8 +40,8 @@ func NewHub(opts ...HubOption) *Hub {
 }
 
 // DefaultHub -
-func DefaultHub(connectionElastic string, timeoutElastic int, messageQueue *mq.QueueManager) *Hub {
-	es := elastic.WaitNew([]string{connectionElastic}, timeoutElastic)
+func DefaultHub(connectionElastic []string, timeoutElastic int, messageQueue *mq.QueueManager) *Hub {
+	es := elastic.WaitNew(connectionElastic, timeoutElastic)
 	hub := NewHub(
 		WithRabbitSource(messageQueue),
 		WithElastic(es),
