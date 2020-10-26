@@ -2,15 +2,15 @@ include .env
 export $(shell sed 's/=.*//' .env)
 
 api:
-	docker-compose up -d elastic mq db
+	docker-compose up -d $$COMPOSE_PREFIX-elastic $$COMPOSE_PREFIX-mq $$COMPOSE_PREFIX-db
 	cd cmd/api && go run .
 
 indexer:
-	docker-compose up -d elastic mq db
+	docker-compose up -d $$COMPOSE_PREFIX-elastic $$COMPOSE_PREFIX-mq $$COMPOSE_PREFIX-db
 	cd cmd/indexer && go run .
 
 metrics:
-	docker-compose up -d elastic mq db
+	docker-compose up -d $$COMPOSE_PREFIX-elastic $$COMPOSE_PREFIX-mq $$COMPOSE_PREFIX-db
 	cd cmd/metrics && go run .
 
 compiler:
@@ -30,15 +30,14 @@ remove:
 	cd scripts/esctl && go run . remove -n $(NETWORK) 
 
 s3-creds:
-	docker exec -it bcd-elastic bash -c 'bin/elasticsearch-keystore add --force --stdin s3.client.default.access_key <<< "$$AWS_ACCESS_KEY_ID"'
-	docker exec -it bcd-elastic bash -c 'bin/elasticsearch-keystore add --force --stdin s3.client.default.secret_key <<< "$$AWS_SECRET_ACCESS_KEY"'
+	docker exec -it $$COMPOSE_PREFIX-elastic bash -c 'bin/elasticsearch-keystore add --force --stdin s3.client.default.access_key <<< "$$AWS_ACCESS_KEY_ID"'
+	docker exec -it $$COMPOSE_PREFIX-elastic bash -c 'bin/elasticsearch-keystore add --force --stdin s3.client.default.secret_key <<< "$$AWS_SECRET_ACCESS_KEY"'
 	cd scripts/esctl && go run . reload_secure_settings
 
 s3-repo:
 	cd scripts/esctl && go run . create_repository
 
 s3-restore:
-	# cd scripts/esctl && go run .delete_indices
 	cd scripts/esctl && go run . restore
 
 s3-snapshot:
@@ -48,15 +47,15 @@ s3-policy:
 	cd scripts/esctl && go run . set_policy
 
 es-reset:
-	docker stop bcd-elastic || true
-	docker rm bcd-elastic || true
+	docker stop $$COMPOSE_PREFIX-elastic || true
+	docker rm $$COMPOSE_PREFIX-elastic || true
 	docker volume rm bcdhub_esdata || true
-	docker-compose up -d elastic
+	docker-compose up -d $$COMPOSE_PREFIX-elastic
 
 clearmq:
-	docker exec -it bcd-mq rabbitmqctl stop_app
-	docker exec -it bcd-mq rabbitmqctl reset
-	docker exec -it bcd-mq rabbitmqctl start_app
+	docker exec -it $$COMPOSE_PREFIX-mq rabbitmqctl stop_app
+	docker exec -it $$COMPOSE_PREFIX-mq rabbitmqctl reset
+	docker exec -it $$COMPOSE_PREFIX-mq rabbitmqctl start_app
 
 test:
 	go test ./...
@@ -83,17 +82,17 @@ upgrade:
 	$(MAKE) clearmq
 	docker-compose down
 	TAG=$$STABLE_TAG $(MAKE) es-reset
-	docker-compose up -d db mq
+	docker-compose up -d $$COMPOSE_PREFIX-db $$COMPOSE_PREFIX-mq
 
 restart:
-	docker-compose restart bcd-api bcd-metrics bcd-indexer bcd-compiler
+	docker-compose restart $$COMPOSE_PREFIX-api $$COMPOSE_PREFIX-metrics $$COMPOSE_PREFIX-indexer $$COMPOSE_PREFIX-compiler
 
 release:
 	BCDHUB_VERSION=$$(cat version.json | grep version | awk -F\" '{ print $$4 }')
 	git tag $$BCDHUB_VERSION && git push origin $$BCDHUB_VERSION
 
 db-dump:
-	docker exec -it bcd-db pg_dump -c bcd > dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
+	docker exec -it $$COMPOSE_PREFIX-db pg_dump -c bcd > dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
 
 db-restore:
-	docker exec -i bcd-db psql --username $$POSTGRES_USER -v ON_ERROR_STOP=on bcd < $(BACKUP)
+	docker exec -i $$COMPOSE_PREFIX-db psql --username $$POSTGRES_USER -v ON_ERROR_STOP=on bcd < $(BACKUP)
