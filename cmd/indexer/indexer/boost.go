@@ -498,7 +498,7 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 			operations.WithHead(head),
 			operations.WithIPFSGateways(bi.cfg.IPFSGateways),
 			operations.WithInterfaces(bi.interfaces),
-			operations.WithShareDirectory(bi.cfg.Share.Path),
+			operations.WithShareDirectory(bi.cfg.SharePath),
 			operations.WithTokenEvents(bi.tokenViews),
 			operations.WithNetwork(network),
 		))
