@@ -102,6 +102,7 @@ compiler:
 indexer:
     project_name: indexer
     sentry_enabled: false
+    skip_delegator_blocks: true
     mq:
         publisher: true
     networks:
