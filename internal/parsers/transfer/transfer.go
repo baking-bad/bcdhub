@@ -130,7 +130,6 @@ func (p Parser) parseResponse(parser tzip.BalanceViewParser, operation models.Op
 
 	transfers := make([]*models.Transfer, 0)
 	for _, balance := range newBalances {
-
 		transfer := models.EmptyTransfer(operation)
 		if oldBalance, ok := oldBalances[elastic.TokenBalance{
 			TokenID: balance.TokenID,
@@ -148,8 +147,6 @@ func (p Parser) parseResponse(parser tzip.BalanceViewParser, operation models.Op
 			transfer.To = balance.Address
 		}
 		transfer.TokenID = balance.TokenID
-		transfer.Nonce = operation.Nonce
-		transfer.Counter = operation.Counter
 		transfers = append(transfers, transfer)
 	}
 

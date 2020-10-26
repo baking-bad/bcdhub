@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -30,7 +31,11 @@ func parseTransfer(transfer models.Transfer) error {
 		return err
 	}
 	if ok {
-		if _, err := ctx.ES.UpdateDoc(&transfer); err != nil {
+		if err := ctx.ES.UpdateFields(
+			elastic.DocTransfers, transfer.ID,
+			transfer,
+			"FromAlias", "ToAlias", "Alias", "InitiatorAlias",
+		); err != nil {
 			return err
 		}
 	}

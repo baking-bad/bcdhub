@@ -28,7 +28,7 @@ type Transfer struct {
 	TokenID        int64     `json:"token_id"`
 	Amount         float64   `json:"amount"`
 	Counter        int64     `json:"counter"`
-	Nonce          *int64    `json:"nonce"`
+	Nonce          *int64    `json:"nonce,omitempty"`
 }
 
 // ParseElasticJSON -
@@ -51,8 +51,7 @@ func (t *Transfer) ParseElasticJSON(resp gjson.Result) {
 	t.TokenID = resp.Get("_source.token_id").Int()
 	t.Amount = resp.Get("_source.amount").Float()
 	t.Counter = resp.Get("_source.counter").Int()
-	nonce := resp.Get("_source.nonce").Int()
-	t.Nonce = &nonce
+	t.Nonce = utils.Int64Pointer(resp, "_source.nonce")
 }
 
 // GetID -
