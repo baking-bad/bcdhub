@@ -1,7 +1,7 @@
 version: "3.6"
 services:
   elastic:
-    container_name: ${COMPOSE_PREFIX:-bcd}-elastic
+    container_name: ${BCD_ENV:-development}-elastic
     image: bakingbad/bcdhub-elastic:${TAG:-latest}
     build:
       context: .
@@ -22,7 +22,7 @@ services:
         max-file: "5"
 
   mq:
-    container_name: ${COMPOSE_PREFIX:-bcd}-mq
+    container_name: ${BCD_ENV:-development}-mq
     image: rabbitmq:latest
     restart: always
     volumes:
@@ -32,7 +32,7 @@ services:
     logging: *my-logging
 
   db:
-    container_name: ${COMPOSE_PREFIX:-bcd}-db
+    container_name: ${BCD_ENV:-development}-db
     image: postgres:12
     restart: always
     env_file:
@@ -44,7 +44,7 @@ services:
     logging: *my-logging
 
   api:
-    container_name: ${COMPOSE_PREFIX:-bcd}-api
+    container_name: ${BCD_ENV:-development}-api
     restart: always
     image: bakingbad/bcdhub-api:${TAG:-latest}
     build:
@@ -63,7 +63,7 @@ services:
     logging: *my-logging
 
   indexer:
-    container_name: ${COMPOSE_PREFIX:-bcd}-indexer
+    container_name: ${BCD_ENV:-development}-indexer
     restart: always
     image: bakingbad/bcdhub-indexer:${TAG:-latest}
     build:
@@ -80,7 +80,7 @@ services:
     logging: *my-logging
 
   metrics:
-    container_name: ${COMPOSE_PREFIX:-bcd}-metrics
+    container_name: ${BCD_ENV:-development}-metrics
     restart: always
     image: bakingbad/bcdhub-metrics:${TAG:-latest}
     build:
@@ -95,7 +95,7 @@ services:
     logging: *my-logging
 
   compiler:
-    container_name: ${COMPOSE_PREFIX:-bcd}-compiler
+    container_name: ${BCD_ENV:-development}-compiler
     restart: always
     image: bakingbad/bcdhub-compiler:${TAG:-latest}
     build:
@@ -112,7 +112,7 @@ services:
     logging: *my-logging
 
   gui:
-    container_name: ${COMPOSE_PREFIX:-bcd}-gui
+    container_name: ${BCD_ENV:-development}-gui
     restart: always
     image: bakingbad/bcdhub-gui:${TAG:-latest}
     entrypoint: /bin/bash
