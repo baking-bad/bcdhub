@@ -30,7 +30,8 @@ tzkt:
         timeout: 20
 
 elastic:
-    uri: http://127.0.0.1:9200
+    uri:
+        - http://127.0.0.1:9200
     timeout: 10
 
 rabbitmq:
