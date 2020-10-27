@@ -310,7 +310,7 @@ func (b *Babylon) handleBigMapDiffCopy(item gjson.Result, ptrMap map[int64]strin
 	return newUpdates, nil
 }
 
-func (b *Babylon) handleBigMapDiffRemove(item gjson.Result, ptrMap map[int64]string, address string, operation models.Operation) ([]elastic.Model, error) {
+func (b *Babylon) handleBigMapDiffRemove(item gjson.Result, _ map[int64]string, address string, operation models.Operation) ([]elastic.Model, error) {
 	ptr := item.Get("big_map").Int()
 	if ptr < 0 {
 		delete(b.updates, ptr)
@@ -336,7 +336,7 @@ func (b *Babylon) handleBigMapDiffRemove(item gjson.Result, ptrMap map[int64]str
 	return newUpdates, nil
 }
 
-func (b *Babylon) handleBigMapDiffAlloc(item gjson.Result, ptrMap map[int64]string, address string, operation models.Operation) ([]elastic.Model, error) {
+func (b *Babylon) handleBigMapDiffAlloc(item gjson.Result, _ map[int64]string, address string, operation models.Operation) ([]elastic.Model, error) {
 	ptr := item.Get("big_map").Int()
 	b.updates[ptr] = []elastic.Model{}
 	b.temporaryPointers[ptr] = &temporaryPointerData{

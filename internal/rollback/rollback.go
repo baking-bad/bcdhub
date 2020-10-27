@@ -184,9 +184,9 @@ func (rm Manager) updateMetadata(network string, fromLevel, toLevel int64) error
 	}
 
 	logger.Info("Found %d metadata, will remove %v", len(metadata), deadSymLinks)
-	bulkUpdateMetadata := make([]elastic.Model, 0)
-	for _, m := range metadata {
-		bulkUpdateMetadata = append(bulkUpdateMetadata, &m)
+	bulkUpdateMetadata := make([]elastic.Model, len(metadata))
+	for i := range metadata {
+		bulkUpdateMetadata[i] = &metadata[i]
 	}
 
 	if len(bulkUpdateMetadata) > 0 {

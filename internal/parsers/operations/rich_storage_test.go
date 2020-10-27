@@ -10,7 +10,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"github.com/tidwall/gjson"
 )
 
 func TestRichStorage_Parse(t *testing.T) {
@@ -132,11 +131,7 @@ func TestRichStorage_Parse(t *testing.T) {
 			rpc.
 				EXPECT().
 				GetScriptStorageJSON(tt.operation.Destination, tt.operation.Level).
-				DoAndReturn(
-					func(address string, level int64) (gjson.Result, error) {
-						return readStorage(address, level)
-					},
-				).
+				DoAndReturn(readStorage).
 				AnyTimes()
 
 			es.

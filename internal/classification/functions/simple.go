@@ -20,7 +20,7 @@ func NewSimple() Simple {
 func (s Simple) Predict(features []float64) int {
 	var prob float64
 	for i := 0; i < len(s.coeffs); i++ {
-		prob = prob + s.coeffs[i]*features[i]
+		prob += s.coeffs[i] * features[i]
 	}
 	if (prob + s.intercepts) > 0 {
 		return 1

@@ -116,8 +116,8 @@ func (ctx *Context) getMempoolEvents(subscriptions []database.Subscription) ([]e
 
 		for _, item := range res.Array() {
 			status := item.Get("status").String()
-			if status == "applied" {
-				status = "pending"
+			if status == consts.Applied {
+				status = "pending" //nolint
 			}
 
 			op := elastic.EventOperation{
@@ -150,7 +150,7 @@ func (ctx *Context) getMempoolEvents(subscriptions []database.Subscription) ([]e
 						return events, err
 					}
 				} else {
-					op.Entrypoint = "default"
+					op.Entrypoint = consts.DefaultEntrypoint
 				}
 			}
 

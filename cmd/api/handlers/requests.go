@@ -123,35 +123,35 @@ func (s subRequest) getMask() uint {
 	var b uint
 
 	if s.WatchSame {
-		b = b | WatchSame
+		b |= WatchSame
 	}
 
 	if s.WatchSimilar {
-		b = b | WatchSimilar
+		b |= WatchSimilar
 	}
 
 	if s.WatchMempool {
-		b = b | WatchMempool
+		b |= WatchMempool
 	}
 
 	if s.WatchMigrations {
-		b = b | WatchMigrations
+		b |= WatchMigrations
 	}
 
 	if s.WatchDeployments {
-		b = b | WatchDeployments
+		b |= WatchDeployments
 	}
 
 	if s.WatchCalls {
-		b = b | WatchCalls
+		b |= WatchCalls
 	}
 
 	if s.WatchErrors {
-		b = b | WatchErrors
+		b |= WatchErrors
 	}
 
 	if s.SentryEnabled {
-		b = b | SentryEnabled
+		b |= SentryEnabled
 	}
 
 	return b

@@ -10,7 +10,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-func testFile(t *testing.T, tag, path string, res bool) error {
+func testFile(tag, path string, res bool) error {
 	file, err := ioutil.ReadFile(path)
 	if err != nil {
 		return errors.Errorf("ioutil.ReadFile %v error %v", path, err)
@@ -78,7 +78,7 @@ func TestTagFA12(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := testFile(t, "fa12", tt.path, tt.res); err != nil {
+			if err := testFile("fa12", tt.path, tt.res); err != nil {
 				t.Error(err)
 			}
 		})
@@ -101,7 +101,7 @@ func TestTagFA2(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := testFile(t, "fa2", tt.path, tt.res); err != nil {
+			if err := testFile("fa2", tt.path, tt.res); err != nil {
 				t.Error(err)
 			}
 		})
@@ -124,7 +124,7 @@ func TestTagViewNat(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := testFile(t, "view_nat", tt.path, tt.res); err != nil {
+			if err := testFile("view_nat", tt.path, tt.res); err != nil {
 				t.Error(err)
 			}
 		})
@@ -147,7 +147,7 @@ func TestTagViewBalanceOf(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := testFile(t, "view_balance_of", tt.path, tt.res); err != nil {
+			if err := testFile("view_balance_of", tt.path, tt.res); err != nil {
 				t.Error(err)
 			}
 		})
@@ -169,7 +169,7 @@ func TestEmpty(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := testFile(t, "view_nat", tt.path, tt.res); err != nil {
+			if err := testFile("view_nat", tt.path, tt.res); err != nil {
 				t.Error(err)
 			}
 		})

@@ -19,14 +19,6 @@ type Metadata struct {
 	Extras          map[string]interface{}
 }
 
-// IsEmpty -
-func (m Metadata) IsEmpty() bool {
-	return m.Decimals == 0 &&
-		len(m.Extras) == 0 &&
-		m.Symbol == "" &&
-		m.Name == ""
-}
-
 // ToModel -
 func (m Metadata) ToModel(address, network string) *models.TZIP {
 	return &models.TZIP{

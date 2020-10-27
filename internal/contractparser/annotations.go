@@ -1,7 +1,7 @@
 package contractparser
 
 func filterAnnotations(annots []string) []string {
-	var ret []string
+	ret := make([]string, 0)
 
 	for _, a := range annots {
 		if len(a) < 2 {

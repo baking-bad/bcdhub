@@ -20,7 +20,8 @@ type parser struct {
 }
 
 func (p *parser) parse(v gjson.Result) error {
-	if v.IsArray() {
+	switch {
+	case v.IsArray():
 		arr := v.Array()
 		for _, a := range arr {
 			if err := p.parse(a); err != nil {
@@ -32,7 +33,7 @@ func (p *parser) parse(v gjson.Result) error {
 				return err
 			}
 		}
-	} else if v.IsObject() {
+	case v.IsObject():
 		node := node.NewNodeJSON(v)
 		for _, a := range node.Args.Array() {
 			if err := p.parse(a); err != nil {
@@ -44,14 +45,15 @@ func (p *parser) parse(v gjson.Result) error {
 				return err
 			}
 		}
-	} else {
+	default:
 		return errors.Errorf("Unknown value type: %T", v.Type)
 	}
+
 	return nil
 }
 
 // MakeStorageParser -
-func MakeStorageParser(rpc noderpc.INode, es elastic.IElastic, protocol string, isSimulating bool) (storage.Parser, error) {
+func MakeStorageParser(rpc noderpc.INode, es elastic.IBigMapDiff, protocol string, isSimulating bool) (storage.Parser, error) {
 	if isSimulating {
 		return storage.NewSimulate(rpc, es), nil
 	}

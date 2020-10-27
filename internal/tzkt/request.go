@@ -31,6 +31,7 @@ func NewTzKT(host string, timeout time.Duration) *TzKT {
 	}
 }
 
+//nolint
 func (t *TzKT) request(method, endpoint string, params map[string]string, response interface{}) error {
 	uri := helpers.URLJoin(t.Host, endpoint)
 

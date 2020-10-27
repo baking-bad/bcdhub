@@ -140,9 +140,9 @@ func packObjectInt(node gjson.Result) []byte {
 	b := (i & 0x3F)
 
 	if val < 0 {
-		b = b | 0xC0
+		b |= 0xC0
 	} else {
-		b = b | 0x80
+		b |= 0x80
 	}
 
 	result = append(result, byte(b))

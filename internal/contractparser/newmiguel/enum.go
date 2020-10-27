@@ -40,11 +40,13 @@ func (l *enumDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetada
 	if !ok {
 		return nil, errors.Errorf("Unknown enum path: %s", path+tail)
 	}
-	if valNode.Name != "" {
+
+	switch {
+	case valNode.Name != "":
 		node.Value = valNode.Name
-	} else if tail == "" {
+	case tail == "":
 		node.Value = consts.UNIT
-	} else {
+	default:
 		bin := strings.Replace(tail, "/", "", -1)
 		i, err := strconv.ParseInt(bin, 2, 64)
 		if err != nil {

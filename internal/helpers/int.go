@@ -5,6 +5,7 @@ import (
 )
 
 // Merge2ArraysInt64 -
+//nolint
 func Merge2ArraysInt64(a, b []int64) []int64 {
 	if len(a) == 0 && len(b) == 0 {
 		return []int64{}

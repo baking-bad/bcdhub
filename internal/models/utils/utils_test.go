@@ -6,6 +6,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
+//nolint
 func TestInt64Pointer(t *testing.T) {
 	type args struct {
 		hit gjson.Result

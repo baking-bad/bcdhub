@@ -70,10 +70,7 @@ func (c *smartpy) findEntrypoint(path string) (string, error) {
 	}
 	defer file.Close()
 
-	smartPyRe, err := regexp.Compile(`^class (\w+)\(sp.Contract\):$`)
-	if err != nil {
-		return "", err
-	}
+	smartPyRe := regexp.MustCompile(`^class (\w+)\(sp.Contract\):$`)
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {

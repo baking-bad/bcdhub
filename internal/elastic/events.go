@@ -99,19 +99,17 @@ func (o *EventOperation) makeEvent(subscriptions []SubscriptionRequest) (Event, 
 		res.Address = subscriptions[i].Address
 		res.Alias = subscriptions[i].Alias
 
-		if o.Status != "applied" {
+		switch {
+		case o.Status != "applied":
 			res.Type = EventTypeError
-		} else if o.Source == subscriptions[i].Address {
-			if o.Kind == "origination" {
-				res.Type = EventTypeDeploy
-			} else if o.Kind == "transaction" {
-				res.Type = EventTypeCall
-			}
-		} else if o.Destination == subscriptions[i].Address {
-			if o.Kind == "transaction" {
-				res.Type = EventTypeInvoke
-			}
+		case o.Source == subscriptions[i].Address && o.Kind == "origination":
+			res.Type = EventTypeDeploy
+		case o.Source == subscriptions[i].Address && o.Kind == "transaction":
+			res.Type = EventTypeCall
+		case o.Destination == subscriptions[i].Address && o.Kind == "transaction":
+			res.Type = EventTypeInvoke
 		}
+
 		return res, nil
 	}
 	return Event{}, errors.Errorf("Couldn't find a matching subscription for %v", o)

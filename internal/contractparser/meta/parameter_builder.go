@@ -432,7 +432,7 @@ func interfaceSlice(slice interface{}) []interface{} {
 func getParameterData(nm *NodeMetadata, binPath, data string) (string, error) {
 	entrypoint := nm.Name
 	if nm.Name == "" {
-		entrypoint = "default"
+		entrypoint = consts.DefaultEntrypoint
 		data = wrapLeftRight(binPath, data, true)
 	}
 	return fmt.Sprintf(`{"entrypoint": "%s", "value": %s}`, entrypoint, data), nil

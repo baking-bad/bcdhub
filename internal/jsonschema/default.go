@@ -23,7 +23,7 @@ func (m *defaultMaker) Do(binPath string, metadata meta.Metadata) (Schema, error
 
 	switch nm.Prim {
 	case consts.CONTRACT:
-		schema["type"] = "string"
+		schema["type"] = "string" //nolint
 		schema["default"] = ""
 
 		tags, err := kinds.CheckParameterForTags(nm.Parameter)

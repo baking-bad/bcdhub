@@ -19,44 +19,39 @@ type Error struct {
 
 // Operation -
 type Operation struct {
-	ID        string    `json:"id,omitempty"`
-	Protocol  string    `json:"protocol"`
-	Hash      string    `json:"hash,omitempty"`
-	Internal  bool      `json:"internal"`
-	Network   string    `json:"network"`
-	Timestamp time.Time `json:"timestamp"`
-
 	Level                              int64            `json:"level"`
-	Kind                               string           `json:"kind"`
-	Source                             string           `json:"source,omitempty"`
-	SourceAlias                        string           `json:"source_alias,omitempty"`
 	Fee                                int64            `json:"fee,omitempty"`
 	Counter                            int64            `json:"counter,omitempty"`
 	GasLimit                           int64            `json:"gas_limit,omitempty"`
 	StorageLimit                       int64            `json:"storage_limit,omitempty"`
 	Amount                             int64            `json:"amount,omitempty"`
+	Balance                            int64            `json:"balance,omitempty"`
+	Burned                             int64            `json:"burned,omitempty"`
+	AllocatedDestinationContractBurned int64            `json:"allocated_destination_contract_burned,omitempty"`
+	IndexedTime                        int64            `json:"-"`
+	ContentIndex                       int64            `json:"content_index"`
+	Errors                             []cerrors.IError `json:"errors,omitempty"`
+	Result                             *OperationResult `json:"result,omitempty"`
+	Parameters                         interface{}      `json:"parameters,omitempty"`
+	StorageDiff                        interface{}      `json:"storage_diff,omitempty"`
+	RawMempool                         interface{}      `json:"rawMempool"`
+	Timestamp                          time.Time        `json:"timestamp"`
+	ID                                 string           `json:"id,omitempty"`
+	Protocol                           string           `json:"protocol"`
+	Hash                               string           `json:"hash,omitempty"`
+	Network                            string           `json:"network"`
+	Kind                               string           `json:"kind"`
+	Source                             string           `json:"source,omitempty"`
+	SourceAlias                        string           `json:"source_alias,omitempty"`
 	Destination                        string           `json:"destination,omitempty"`
 	DestinationAlias                   string           `json:"destination_alias,omitempty"`
 	PublicKey                          string           `json:"public_key,omitempty"`
 	ManagerPubKey                      string           `json:"manager_pubkey,omitempty"`
-	Balance                            int64            `json:"balance,omitempty"`
 	Delegate                           string           `json:"delegate,omitempty"`
 	Status                             string           `json:"status"`
 	Entrypoint                         string           `json:"entrypoint,omitempty"`
-	Errors                             []cerrors.IError `json:"errors,omitempty"`
-	Burned                             int64            `json:"burned,omitempty"`
-	AllocatedDestinationContractBurned int64            `json:"allocated_destination_contract_burned,omitempty"`
-
-	Result *OperationResult `json:"result,omitempty"`
-
-	Parameters  interface{} `json:"parameters,omitempty"`
-	StorageDiff interface{} `json:"storage_diff,omitempty"`
-	Mempool     bool        `json:"mempool"`
-
-	IndexedTime  int64 `json:"-"`
-	ContentIndex int64 `json:"content_index"`
-
-	RawMempool interface{} `json:"rawMempool"`
+	Internal                           bool             `json:"internal"`
+	Mempool                            bool             `json:"mempool"`
 }
 
 // ParseJSON -

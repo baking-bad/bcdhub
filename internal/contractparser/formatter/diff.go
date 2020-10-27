@@ -141,6 +141,7 @@ func skipSpaces(s string, offset int) int {
 	return len(s)
 }
 
+//nolint
 func postProcessing(resA, resB [][]Item) DiffResult {
 	res := DiffResult{
 		Left:  make([][]Item, 0),

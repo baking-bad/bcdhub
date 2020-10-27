@@ -58,7 +58,7 @@ func (ctx *Context) prepareMempoolOperations(res gjson.Result, address, network 
 	}
 	for _, item := range res.Array() {
 		status := item.Get("status").String()
-		if status == "applied" {
+		if status == consts.Applied {
 			status = "pending"
 		}
 
@@ -108,7 +108,7 @@ func (ctx *Context) prepareMempoolOperations(res gjson.Result, address, network 
 					}
 				}
 			} else {
-				op.Entrypoint = "default"
+				op.Entrypoint = consts.DefaultEntrypoint
 			}
 		}
 

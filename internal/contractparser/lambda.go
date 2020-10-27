@@ -43,7 +43,7 @@ func detectLambdaByBytes(input string) bool {
 	if len(input) < 24 {
 		return false
 	}
-	re, _ := regexp.Compile("^0502[0-9a-f]{8}0[3-9]")
+	re := regexp.MustCompile("^0502[0-9a-f]{8}0[3-9]")
 	if !re.MatchString(input) {
 		return false
 	}

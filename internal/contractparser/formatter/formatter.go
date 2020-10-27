@@ -145,7 +145,8 @@ func formatPrimObject(node gjson.Result, indent string, inline, isRoot, wrapped 
 		args = rawArgs.Array()
 	}
 
-	if IsComplex(node) {
+	switch {
+	case IsComplex(node):
 		argIndent := indent + "  "
 		items := make([]string, len(args))
 		for i, a := range args {
@@ -170,14 +171,14 @@ func formatPrimObject(node gjson.Result, indent string, inline, isRoot, wrapped 
 			res = append(res, items...)
 			expr = strings.Join(res, fmt.Sprintf("\n%v", argIndent))
 		}
-	} else if len(args) == 1 {
+	case len(args) == 1:
 		argIndent := indent + strings.Repeat(" ", len(expr)+1)
 		res, err := formatNode(args[0], argIndent, inline, false, false, lineSize)
 		if err != nil {
 			return "", err
 		}
 		expr = fmt.Sprintf("%v %v", expr, res)
-	} else if len(args) > 1 {
+	case len(args) > 1:
 		argIndent := indent + "  "
 		altIndent := indent + strings.Repeat(" ", len(expr)+2)
 
@@ -208,11 +209,12 @@ func formatNonPrimObject(node gjson.Result) (string, error) {
 	}
 
 	for coreType, value := range node.Map() {
-		if coreType == "int" {
+		switch coreType {
+		case "int":
 			return value.String(), nil
-		} else if coreType == "bytes" {
+		case "bytes":
 			return fmt.Sprintf("0x%v", value.String()), nil
-		} else if coreType == "string" {
+		case "string":
 			return value.Raw, nil
 		}
 	}

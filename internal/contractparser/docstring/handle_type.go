@@ -10,7 +10,7 @@ import (
 
 func handleTupleEnumUnion(dd *dsData, bPath string, i int, md meta.Metadata) (string, error) {
 	var node = md[bPath]
-	var args []TypedefArg
+	args := make([]TypedefArg, 0)
 
 	name, err := getVarName(dd, bPath, md)
 	if err != nil {
@@ -37,7 +37,7 @@ func handleTupleEnumUnion(dd *dsData, bPath string, i int, md meta.Metadata) (st
 
 func handleNamed(dd *dsData, bPath string, i int, md meta.Metadata) (string, error) {
 	var node = md[bPath]
-	var args []TypedefArg
+	args := make([]TypedefArg, 0)
 
 	name, err := getVarName(dd, bPath, md)
 	if err != nil {

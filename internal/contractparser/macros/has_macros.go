@@ -1,12 +1,13 @@
 package macros
 
 import (
-	"github.com/tidwall/gjson"
+	"fmt"
+
 	"github.com/valyala/fastjson"
 )
 
 // HasMacros -
-func HasMacros(tree gjson.Result, families *[]Family) (bool, error) {
+func HasMacros(tree fmt.Stringer, families *[]Family) (bool, error) {
 	var p fastjson.Parser
 	val, err := p.Parse(tree.String())
 	if err != nil {

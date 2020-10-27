@@ -97,11 +97,7 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 	}
 
 	if len(op) == 0 {
-		operation, err := ctx.getOperationFromMempool(req.Hash)
-		if handleError(c, err, http.StatusNotFound) {
-			return
-		}
-
+		operation := ctx.getOperationFromMempool(req.Hash)
 		c.JSON(http.StatusOK, []Operation{operation})
 		return
 	}
@@ -148,7 +144,7 @@ func (ctx *Context) GetOperationErrorLocation(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (ctx *Context) getOperationFromMempool(hash string) (Operation, error) {
+func (ctx *Context) getOperationFromMempool(hash string) Operation {
 	var wg sync.WaitGroup
 	var opCh = make(chan Operation, len(ctx.TzKTServices))
 
@@ -161,7 +157,7 @@ func (ctx *Context) getOperationFromMempool(hash string) (Operation, error) {
 
 	wg.Wait()
 
-	return <-opCh, nil
+	return <-opCh
 }
 
 func (ctx *Context) getOperation(network, hash string, ops chan<- Operation, wg *sync.WaitGroup) {
@@ -181,10 +177,7 @@ func (ctx *Context) getOperation(network, hash string, ops chan<- Operation, wg 
 		return
 	}
 
-	operation, err := ctx.prepareMempoolOperation(res, network, hash)
-	if err != nil {
-		return
-	}
+	operation := ctx.prepareMempoolOperation(res, network)
 
 	ops <- operation
 }
@@ -237,8 +230,8 @@ func prepareOperation(es elastic.IElastic, operation models.Operation, bmd []mod
 	if err := formatErrors(operation.Errors, &op); err != nil {
 		return op, err
 	}
-	if operation.DeffatedStorage != "" && strings.HasPrefix(op.Destination, "KT") && op.Status == "applied" {
-		if err := setStorageDiff(es, op.Destination, op.Network, operation.DeffatedStorage, &op, bmd); err != nil {
+	if operation.DeffatedStorage != "" && strings.HasPrefix(op.Destination, "KT") && op.Status == consts.Applied {
+		if err := setStorageDiff(es, op.Destination, operation.DeffatedStorage, &op, bmd); err != nil {
 			return op, err
 		}
 	}
@@ -290,7 +283,7 @@ func setParameters(es elastic.IElastic, parameters string, op *Operation) error 
 	return nil
 }
 
-func setStorageDiff(es elastic.IElastic, address, network, storage string, op *Operation, bmd []models.BigMapDiff) error {
+func setStorageDiff(es elastic.IElastic, address, storage string, op *Operation, bmd []models.BigMapDiff) error {
 	metadata, err := meta.GetContractMetadata(es, address)
 	if err != nil {
 		return err
@@ -317,13 +310,11 @@ func getStorageDiff(es elastic.IElastic, bmd []models.BigMapDiff, address, stora
 		exOp, err := es.GetLastOperation(address, prev.Network, prev.IndexedTime)
 		if err == nil {
 			exDeffatedStorage = exOp.DeffatedStorage
-		} else {
-			if !elastic.IsRecordNotFound(err) {
-				return nil, err
-			}
+		} else if !elastic.IsRecordNotFound(err) {
+			return nil, err
 		}
 
-		prevStorage, err = getEnrichStorageMiguel(es, prevBmd, prev.Protocol, prev.DeffatedStorage, exDeffatedStorage, metadata, isSimulating)
+		prevStorage, err = getEnrichStorageMiguel(prevBmd, prev.Protocol, prev.DeffatedStorage, exDeffatedStorage, metadata, isSimulating)
 		if err != nil {
 			return nil, err
 		}
@@ -335,7 +326,7 @@ func getStorageDiff(es elastic.IElastic, bmd []models.BigMapDiff, address, stora
 		prevStorage = nil
 	}
 
-	currentStorage, err := getEnrichStorageMiguel(es, bmd, op.Protocol, storage, prevDeffatedStorage, metadata, isSimulating)
+	currentStorage, err := getEnrichStorageMiguel(bmd, op.Protocol, storage, prevDeffatedStorage, metadata, isSimulating)
 	if err != nil {
 		return nil, err
 	}
@@ -347,7 +338,7 @@ func getStorageDiff(es elastic.IElastic, bmd []models.BigMapDiff, address, stora
 	return currentStorage, nil
 }
 
-func getEnrichStorageMiguel(es elastic.IElastic, bmd []models.BigMapDiff, protocol, storage, prevStorage string, metadata *meta.ContractMetadata, isSimulating bool) (*newmiguel.Node, error) {
+func getEnrichStorageMiguel(bmd []models.BigMapDiff, protocol, storage, prevStorage string, metadata *meta.ContractMetadata, isSimulating bool) (*newmiguel.Node, error) {
 	store, err := enrichStorage(storage, prevStorage, bmd, protocol, false, isSimulating)
 	if err != nil {
 		return nil, err
@@ -379,11 +370,11 @@ func getPrevBmd(es elastic.IElastic, bmd []models.BigMapDiff, indexedTime int64,
 	return es.GetBigMapDiffsPrevious(bmd, indexedTime, address)
 }
 
-func (ctx *Context) prepareMempoolOperation(res gjson.Result, network, hash string) (Operation, error) {
+func (ctx *Context) prepareMempoolOperation(res gjson.Result, network string) Operation {
 	item := res.Array()[0]
 
 	status := item.Get("status").String()
-	if status == "applied" {
+	if status == consts.Applied {
 		status = "pending"
 	}
 
@@ -411,18 +402,18 @@ func (ctx *Context) prepareMempoolOperation(res gjson.Result, network, hash stri
 	op.Errors = cerrors.ParseArray(item.Get("errors"))
 
 	if op.Kind != consts.Transaction {
-		return op, nil
+		return op
 	}
 
 	if strings.HasPrefix(op.Destination, "KT") && op.Protocol != "" {
 		if params := item.Get("parameters"); params.Exists() {
 			ctx.buildOperationParameters(params, &op)
 		} else {
-			op.Entrypoint = "default"
+			op.Entrypoint = consts.DefaultEntrypoint
 		}
 	}
 
-	return op, nil
+	return op
 }
 
 func (ctx *Context) buildOperationParameters(params gjson.Result, op *Operation) {

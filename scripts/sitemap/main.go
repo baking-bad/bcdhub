@@ -95,7 +95,7 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	var aliasModels []models.TZIP
+	aliasModels := make([]models.TZIP, 0)
 
 	for _, a := range aliases {
 		if a.Slug == "" {

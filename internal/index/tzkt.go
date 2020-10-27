@@ -75,7 +75,7 @@ func (t *TzKT) GetContracts(startLevel int64) ([]Contract, error) {
 
 // GetContractOperationBlocks -
 func (t *TzKT) GetContractOperationBlocks(startBlock, endBlock int64, skipDelegatorBlocks bool) ([]int64, error) {
-	start := int64(startBlock)
+	start := startBlock
 	end := false
 
 	result := make([]int64, 0)
@@ -91,7 +91,7 @@ func (t *TzKT) GetContractOperationBlocks(startBlock, endBlock int64, skipDelega
 		}
 
 		for i := range blocks {
-			if blocks[i] <= int64(endBlock) {
+			if blocks[i] <= endBlock {
 				result = append(result, blocks[i])
 			} else {
 				return result, nil

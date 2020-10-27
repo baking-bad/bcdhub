@@ -131,23 +131,24 @@ func (c *Client) receive() {
 				continue
 			}
 
-			switch messageType {
-			case websocket.TextMessage:
-				val, err := p.ParseBytes(data)
-				if err != nil {
-					logger.Error(err)
-					continue
-				}
-				action := string(val.GetStringBytes("action"))
-				handler, ok := c.handlers[action]
-				if !ok {
-					c.sendError(fmt.Errorf("Unknown handler action: %s", action))
-					continue
-				}
-				if err := handler(c, data); err != nil {
-					c.sendError(err)
-					continue
-				}
+			if messageType != websocket.TextMessage {
+				continue
+			}
+
+			val, err := p.ParseBytes(data)
+			if err != nil {
+				logger.Error(err)
+				continue
+			}
+			action := string(val.GetStringBytes("action"))
+			handler, ok := c.handlers[action]
+			if !ok {
+				c.sendError(fmt.Errorf("Unknown handler action: %s", action))
+				continue
+			}
+			if err := handler(c, data); err != nil {
+				c.sendError(err)
+				continue
 			}
 		}
 	}

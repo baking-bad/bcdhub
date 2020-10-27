@@ -12,7 +12,7 @@ type removeCommand struct {
 var removeCmd removeCommand
 
 // Execute
-func (x *removeCommand) Execute(args []string) error {
+func (x *removeCommand) Execute(_ []string) error {
 	state, err := ctx.ES.GetLastBlock(x.Network)
 	if err != nil {
 		panic(err)
@@ -39,6 +39,6 @@ type deleteIndicesCommand struct {
 var deleteIndicesCmd deleteIndicesCommand
 
 // Execute
-func (x *deleteIndicesCommand) Execute(args []string) error {
+func (x *deleteIndicesCommand) Execute(_ []string) error {
 	return ctx.ES.DeleteIndices(mappingNames)
 }

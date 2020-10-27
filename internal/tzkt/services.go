@@ -27,12 +27,13 @@ func NewServicesTzKT(network, uri string, timeout time.Duration) *ServicesTzKT {
 		Host:    uri,
 		Network: network,
 		client: http.Client{
-			Timeout: time.Duration(timeout) * time.Second,
+			Timeout: timeout,
 		},
 		retryCount: 3,
 	}
 }
 
+//nolint
 func (t *ServicesTzKT) request(method, endpoint string, params map[string]string) (res gjson.Result, err error) {
 	uri := helpers.URLJoin(t.Host, endpoint)
 
