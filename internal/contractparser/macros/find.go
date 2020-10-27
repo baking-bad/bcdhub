@@ -7,6 +7,7 @@ import (
 )
 
 // Collapse -
+//nolint
 func Collapse(tree gjson.Result, families *[]Family) (gjson.Result, error) {
 	var p fastjson.Parser
 	val, err := p.Parse(tree.String())

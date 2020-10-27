@@ -52,11 +52,7 @@ func NewContent(params *ParseParams) Content {
 
 // Parse -
 func (content Content) Parse(data gjson.Result) ([]elastic.Model, error) {
-	need, err := content.needParse(data)
-	if err != nil {
-		return nil, err
-	}
-	if !need {
+	if !content.needParse(data) {
 		return nil, nil
 	}
 
@@ -89,14 +85,14 @@ func (content Content) Parse(data gjson.Result) ([]elastic.Model, error) {
 	return models, nil
 }
 
-func (content Content) needParse(item gjson.Result) (bool, error) {
+func (content Content) needParse(item gjson.Result) bool {
 	kind := item.Get("kind").String()
 	source := item.Get("source").String()
 	destination := item.Get("destination").String()
 	prefixCondition := strings.HasPrefix(source, "KT") || strings.HasPrefix(destination, "KT")
 	transactionCondition := kind == consts.Transaction && prefixCondition
 	originationCondition := (kind == consts.Origination || kind == consts.OriginationNew) && item.Get("script").Exists()
-	return originationCondition || transactionCondition, nil
+	return originationCondition || transactionCondition
 }
 
 func (content Content) parseInternal(data gjson.Result) ([]elastic.Model, error) {

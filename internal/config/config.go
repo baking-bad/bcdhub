@@ -48,11 +48,12 @@ type Config struct {
 	} `yaml:"compiler"`
 
 	Indexer struct {
-		ProjectName   string `yaml:"project_name"`
-		SentryEnabled bool   `yaml:"sentry_enabled"`
-		Networks      map[string]struct {
+		Networks map[string]struct {
 			Boost string `yaml:"boost"`
 		} `yaml:"networks"`
+		ProjectName   string `yaml:"project_name"`
+		SentryEnabled bool   `yaml:"sentry_enabled"`
+
 		SkipDelegatorBlocks bool     `yaml:"skip_delegator_blocks"`
 		MQ                  MQConfig `yaml:"mq"`
 	} `yaml:"indexer"`

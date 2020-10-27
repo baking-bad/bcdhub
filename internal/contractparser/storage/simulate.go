@@ -14,7 +14,7 @@ type Simulate struct {
 }
 
 // NewSimulate -
-func NewSimulate(rpc noderpc.INode, es elastic.IElastic) *Simulate {
+func NewSimulate(rpc noderpc.INode, es elastic.IBigMapDiff) *Simulate {
 	return &Simulate{
 		Babylon: NewBabylon(rpc, es),
 	}

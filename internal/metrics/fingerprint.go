@@ -55,7 +55,8 @@ func GetFingerprint(script gjson.Result) (*models.Fingerprint, error) {
 
 func fingerprint(script gjson.Result, isCode bool) (string, error) {
 	var fgpt strings.Builder
-	if script.IsObject() {
+	switch {
+	case script.IsObject():
 		prim := script.Get(consts.KeyPrim)
 		if prim.Exists() {
 			sPrim := prim.String()
@@ -98,7 +99,7 @@ func fingerprint(script gjson.Result, isCode bool) (string, error) {
 				}
 			}
 		}
-	} else if script.IsArray() {
+	case script.IsArray():
 		for _, item := range script.Array() {
 			buf, err := fingerprint(item, isCode)
 			if err != nil {
@@ -106,9 +107,10 @@ func fingerprint(script gjson.Result, isCode bool) (string, error) {
 			}
 			fgpt.WriteString(buf)
 		}
-	} else {
+	default:
 		return "", errors.Errorf("Unknown script type: %v isCode: %v", script, isCode)
 	}
+
 	return fgpt.String(), nil
 }
 

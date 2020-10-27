@@ -66,8 +66,7 @@ func (p Origination) Parse(data gjson.Result) ([]elastic.Model, error) {
 
 	originationModels := []elastic.Model{&origination}
 
-	switch origination.Status {
-	case consts.Applied:
+	if origination.Status == consts.Applied {
 		appliedModels, err := p.appliedHandler(data, &origination)
 		if err != nil {
 			return nil, err

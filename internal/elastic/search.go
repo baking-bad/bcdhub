@@ -181,7 +181,7 @@ func (e *Elastic) SearchByText(text string, offset int64, fields []string, filte
 
 	var items []SearchItem
 	if group {
-		items = parseSearchGroupingResponse(resp, defaultSize, offset)
+		items = parseSearchGroupingResponse(resp, offset)
 	} else {
 		items = parseSearchResponse(resp)
 	}
@@ -260,7 +260,7 @@ func parseSearchResponse(data gjson.Result) []SearchItem {
 	return items
 }
 
-func parseSearchGroupingResponse(data gjson.Result, size, offset int64) []SearchItem {
+func parseSearchGroupingResponse(data gjson.Result, offset int64) []SearchItem {
 	buckets := data.Get("aggregations.projects.buckets")
 	if !buckets.Exists() {
 		return nil

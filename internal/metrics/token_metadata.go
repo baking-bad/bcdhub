@@ -69,7 +69,7 @@ func (h *Handler) FixTokenMetadata(rpc noderpc.INode, sharePath string, operatio
 
 	for _, tokenMetadata := range tokenMetadatas {
 		parser := tokens.NewTokenMetadataParser(h.ES, rpc, sharePath, operation.Network)
-		metadata, err := parser.ParseWithRegistry(operation.Destination, tokenMetadata.RegistryAddress, operation.Level)
+		metadata, err := parser.ParseWithRegistry(tokenMetadata.RegistryAddress, operation.Level)
 		if err != nil {
 			return err
 		}

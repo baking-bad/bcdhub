@@ -33,6 +33,7 @@ func boolQ(items ...qItem) qItem {
 	return bq
 }
 
+//nolint
 func minimumShouldMatch(value int) qItem {
 	return qItem{
 		"minimum_should_match": value,
@@ -177,6 +178,7 @@ func composite(size int64, items ...aggItem) qItem {
 	}
 }
 
+//nolint
 func topHits(size int, sortField, order string) qItem {
 	return qItem{
 		"top_hits": qItem{

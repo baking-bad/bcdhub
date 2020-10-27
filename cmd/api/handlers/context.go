@@ -56,7 +56,7 @@ func NewContext(cfg config.Config) (*Context, error) {
 			mapTokens[tokenKey{
 				Network:  tokens[i].Network,
 				Contract: tokens[i].Address,
-				TokenID:  int64(tokens[i].TokenID),
+				TokenID:  tokens[i].TokenID,
 			}] = TokenMetadata{
 				Contract: tokens[i].Address,
 				TokenID:  tokens[i].TokenID,

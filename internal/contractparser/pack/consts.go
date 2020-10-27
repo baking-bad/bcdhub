@@ -1,19 +1,19 @@
 package pack
 
 var lenTags = []map[bool]byte{
-	map[bool]byte{
+	{
 		false: 0x03,
 		true:  0x04,
 	},
-	map[bool]byte{
+	{
 		false: 0x05,
 		true:  0x06,
 	},
-	map[bool]byte{
+	{
 		false: 0x07,
 		true:  0x08,
 	},
-	map[bool]byte{
+	{
 		false: 0x09,
 		true:  0x09,
 	},

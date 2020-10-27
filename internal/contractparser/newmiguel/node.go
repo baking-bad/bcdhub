@@ -38,14 +38,15 @@ func (node *Node) Diff(prev *Node) {
 	}
 
 	if !node.compareValue(prev) {
-		if prev.Value == nil {
+		switch {
+		case prev.Value == nil:
 			node.setDiffType(create)
 			return
-		} else if node.Value == nil {
+		case node.Value == nil:
 			node = prev
 			node.setDiffType(delete)
 			return
-		} else {
+		default:
 			node.DiffType = update
 			node.From = prev.Value
 		}
@@ -281,6 +282,7 @@ func listMerge(first, second *Node) {
 	first.Children = children
 }
 
+//nolint
 func mapMerge(node, second *Node) {
 	count := 0
 	for i := range node.Children {

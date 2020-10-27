@@ -23,6 +23,7 @@ func getBigMapDiff(data amqp.Delivery) error {
 	return nil
 }
 
+//nolint
 func parseBigMapDiff(bmd models.BigMapDiff) error {
 	switch bmd.KeyHash {
 	case tzip.EmptyStringKey:

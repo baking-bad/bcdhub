@@ -34,19 +34,20 @@ func NewNodeJSON(data gjson.Result) Node {
 		n.Annotations = append(n.Annotations, a.String())
 	}
 
-	if data.Get(consts.KeyBytes).Exists() {
+	switch {
+	case data.Get(consts.KeyBytes).Exists():
 		n.Value = data.Get(consts.KeyBytes).String()
 		n.Type = consts.KeyBytes
-	} else if data.Get(consts.KeyInt).Exists() {
+	case data.Get(consts.KeyInt).Exists():
 		n.Value = data.Get(consts.KeyInt).Int()
 		n.Type = consts.KeyInt
-	} else if data.Get(consts.KeyMutez).Exists() {
+	case data.Get(consts.KeyMutez).Exists():
 		n.Value = data.Get(consts.KeyMutez).Int()
 		n.Type = consts.KeyMutez
-	} else if data.Get(consts.KeyString).Exists() {
+	case data.Get(consts.KeyString).Exists():
 		n.Value = data.Get(consts.KeyString).String()
 		n.Type = consts.KeyString
-	} else if data.Get(consts.KeyTime).Exists() {
+	case data.Get(consts.KeyTime).Exists():
 		n.Value = data.Get(consts.KeyTime).Time()
 		n.Type = consts.KeyTime
 	}

@@ -34,7 +34,7 @@ type snapshotCommand struct{}
 var snapshotCmd snapshotCommand
 
 // Execute
-func (x *snapshotCommand) Execute(args []string) error {
+func (x *snapshotCommand) Execute(_ []string) error {
 	if err := uploadMappings(ctx.ES, creds); err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ type restoreCommand struct{}
 var restoreCmd restoreCommand
 
 // Execute
-func (x *restoreCommand) Execute(args []string) error {
+func (x *restoreCommand) Execute(_ []string) error {
 	if err := listRepositories(ctx.ES); err != nil {
 		return err
 	}
@@ -78,7 +78,7 @@ type setPolicyCommand struct{}
 var setPolicyCmd setPolicyCommand
 
 // Execute
-func (x *setPolicyCommand) Execute(args []string) error {
+func (x *setPolicyCommand) Execute(_ []string) error {
 	if err := listPolicies(ctx.ES); err != nil {
 		return err
 	}
@@ -110,7 +110,7 @@ type reloadSecureSettingsCommand struct{}
 var reloadSecureSettingsCmd reloadSecureSettingsCommand
 
 // Execute
-func (x *reloadSecureSettingsCommand) Execute(args []string) error {
+func (x *reloadSecureSettingsCommand) Execute(_ []string) error {
 	return ctx.ES.ReloadSecureSettings()
 }
 

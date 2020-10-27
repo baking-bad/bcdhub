@@ -10,7 +10,7 @@ import (
 )
 
 func compile(task compilation.Task) []database.CompilationTaskResult {
-	var result []database.CompilationTaskResult
+	result := make([]database.CompilationTaskResult, 0)
 
 	for _, filepath := range task.Files {
 		path := strings.TrimPrefix(filepath, task.Dir)

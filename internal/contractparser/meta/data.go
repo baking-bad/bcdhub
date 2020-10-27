@@ -109,7 +109,7 @@ func (nm *NodeMetadata) GetName(idx int) string {
 		if idx != -1 {
 			return fmt.Sprintf("@%s_%d", nm.Prim, idx)
 		}
-		return "default"
+		return consts.DefaultEntrypoint
 	}
 	return nm.Name
 }
@@ -120,7 +120,7 @@ func (nm *NodeMetadata) GetEntrypointName(idx int) string {
 		if idx != -1 {
 			return fmt.Sprintf("entrypoint_%d", idx)
 		}
-		return "default"
+		return consts.DefaultEntrypoint
 	}
 	return nm.Name
 }
@@ -148,18 +148,19 @@ func ParseMetadata(v gjson.Result) (Metadata, error) {
 		Path: "0",
 	}
 
-	if v.IsArray() {
+	switch {
+	case v.IsArray():
 		val := v.Array()
 		if len(val) > 0 {
 			parseNodeMetadata(val[0], parent, parent.Path, "", m)
 			return m, nil
 		}
 		return nil, errors.Errorf("[ParseMetadata] Invalid data length: %d", len(val))
-	} else if v.IsObject() {
+	case v.IsObject():
 		parseNodeMetadata(v, parent, parent.Path, "", m)
 		return m, nil
-	} else {
-		return nil, errors.Errorf("Unknown value type: %T", v.Type)
+	default:
+		return nil, errors.Errorf("[ParseMetadata] Unknown value type: %T", v.Type)
 	}
 }
 
@@ -211,7 +212,8 @@ func parseNodeMetadata(v gjson.Result, parent node.Node, path, inheritedName str
 	}
 
 	args := make([]internalNode, 0)
-	if n.Is(consts.MAP) || n.Is(consts.BIGMAP) {
+	switch {
+	case n.Is(consts.MAP) || n.Is(consts.BIGMAP):
 		if len(arr) == 2 {
 			// parse key type
 			args = append(args, parseNodeMetadata(arr[0], n, path+"/k", "", metadata))
@@ -222,7 +224,7 @@ func parseNodeMetadata(v gjson.Result, parent node.Node, path, inheritedName str
 				InternalArgs: args,
 			}
 		}
-	} else if n.Is(consts.LIST) {
+	case n.Is(consts.LIST):
 		if len(arr) == 1 {
 			args = append(args, parseNodeMetadata(arr[0], n, path+"/l", "", metadata))
 			return internalNode{
@@ -230,7 +232,7 @@ func parseNodeMetadata(v gjson.Result, parent node.Node, path, inheritedName str
 				InternalArgs: args,
 			}
 		}
-	} else if n.Is(consts.SET) {
+	case n.Is(consts.SET):
 		if len(arr) == 1 {
 			args = append(args, parseNodeMetadata(arr[0], n, path+"/s", "", metadata))
 			return internalNode{
@@ -238,7 +240,7 @@ func parseNodeMetadata(v gjson.Result, parent node.Node, path, inheritedName str
 				InternalArgs: args,
 			}
 		}
-	} else {
+	default:
 		for i := range arr {
 			argPath := fmt.Sprintf("%s/%d", path, i)
 			args = append(args, parseNodeMetadata(arr[i], n, argPath, "", metadata))
@@ -286,14 +288,16 @@ func finishParseMetadata(metadata Metadata, path string, node internalNode) {
 }
 
 func getKey(metadata *NodeMetadata) string {
-	if metadata.TypeName != "" {
+	switch {
+	case metadata.TypeName != "":
 		return metadata.TypeName
-	} else if metadata.FieldName != "" {
+	case metadata.FieldName != "":
 		return metadata.FieldName
-	} else if metadata.InheritedName != "" {
+	case metadata.InheritedName != "":
 		return metadata.InheritedName
+	default:
+		return ""
 	}
-	return ""
 }
 
 func allArgsIsUnit(n internalNode, metadata Metadata) bool {
@@ -308,13 +312,16 @@ func allArgsIsUnit(n internalNode, metadata Metadata) bool {
 
 func getEntry(metadata *NodeMetadata) string {
 	entry := ""
-	if metadata.InheritedName != "" {
+
+	switch {
+	case metadata.InheritedName != "":
 		entry = metadata.InheritedName
-	} else if metadata.FieldName != "" {
+	case metadata.FieldName != "":
 		entry = metadata.FieldName
-	} else if metadata.TypeName != "" {
+	case metadata.TypeName != "":
 		entry = metadata.TypeName
 	}
+
 	return strings.ReplaceAll(entry, "_Liq_entry_", "")
 }
 

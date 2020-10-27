@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/models"
 )
 
@@ -31,16 +32,17 @@ func (m *Fingerprint) Compute(a, b models.Contract) Feature {
 	}
 
 	var x, y []byte
-	if m.Section == "parameter" {
+	switch m.Section {
+	case consts.PARAMETER:
 		x, _ = hex.DecodeString(a.Fingerprint.Parameter)
 		y, _ = hex.DecodeString(b.Fingerprint.Parameter)
-	} else if m.Section == "storage" {
+	case consts.STORAGE:
 		x, _ = hex.DecodeString(a.Fingerprint.Storage)
 		y, _ = hex.DecodeString(b.Fingerprint.Storage)
-	} else if m.Section == "code" {
+	case consts.CODE:
 		x, _ = hex.DecodeString(a.Fingerprint.Code)
 		y, _ = hex.DecodeString(b.Fingerprint.Code)
-	} else {
+	default:
 		return f
 	}
 
@@ -138,23 +140,25 @@ func (m *FingerprintLength) Compute(a, b models.Contract) Feature {
 	if a.Fingerprint == nil || b.Fingerprint == nil {
 		return f
 	}
+
 	var x, y string
-	if m.Section == "parameter" {
+	switch m.Section {
+	case consts.PARAMETER:
 		x = a.Fingerprint.Parameter
 		y = b.Fingerprint.Parameter
-	} else if m.Section == "storage" {
+	case consts.STORAGE:
 		x = a.Fingerprint.Storage
 		y = b.Fingerprint.Storage
-	} else if m.Section == "code" {
+	case consts.CODE:
 		x = a.Fingerprint.Code
 		y = b.Fingerprint.Code
-	} else {
+	default:
 		return f
 	}
 
 	lx := float64(len(x))
 	ly := float64(len(y))
-	sum := float64(math.Min(lx, ly) / math.Max(lx, ly))
+	sum := math.Min(lx, ly) / math.Max(lx, ly)
 	f.Value = round(sum, 6)
 	return f
 }

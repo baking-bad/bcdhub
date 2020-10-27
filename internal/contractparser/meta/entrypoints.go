@@ -101,9 +101,9 @@ func (metadata Metadata) GetByPath(node gjson.Result) (string, error) {
 		return eMeta.Name, nil
 	}
 
-	if entrypoint == "" || (entrypoint == "default" && path != "0") {
+	if entrypoint == "" || (entrypoint == consts.DefaultEntrypoint && path != "0") {
 		if path == "0" {
-			return "default", nil
+			return consts.DefaultEntrypoint, nil
 		}
 
 		root := metadata["0"]
@@ -120,7 +120,7 @@ func (metadata Metadata) GetByPath(node gjson.Result) (string, error) {
 func parseEntrypointArg(metadata Metadata, nm *NodeMetadata, path string) (interface{}, error) {
 	switch nm.Type {
 	case consts.TypeNamedTuple, consts.TypeNamedUnion, consts.TypeNamedEnum:
-		return parseEntrypointNamed(metadata, nm, path)
+		return parseEntrypointNamed(metadata, nm)
 	case consts.TypeTuple, consts.TypeUnion:
 		return parseEntrypointTuple(metadata, nm, path)
 	case consts.LIST, consts.SET:
@@ -162,7 +162,7 @@ func parseEntrypointTuple(metadata Metadata, nm *NodeMetadata, path string) (int
 	}, nil
 }
 
-func parseEntrypointNamed(metadata Metadata, nm *NodeMetadata, path string) (interface{}, error) {
+func parseEntrypointNamed(metadata Metadata, nm *NodeMetadata) (interface{}, error) {
 	res := make(map[string]interface{})
 	for _, arg := range nm.Args {
 		argMeta := metadata[arg]

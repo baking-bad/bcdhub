@@ -92,25 +92,26 @@ func getSearchFilters(req searchRequest) map[string]interface{} {
 
 func postProcessing(result elastic.SearchResult) (elastic.SearchResult, error) {
 	for i := range result.Items {
-		switch result.Items[i].Type {
-		case elastic.DocBigMapDiff:
-			bmd := result.Items[i].Body.(models.BigMapDiff)
-			key, err := stringer.StringifyInterface(bmd.Key)
-			if err != nil {
-				return result, err
-			}
+		if result.Items[i].Type != elastic.DocBigMapDiff {
+			continue
+		}
 
-			result.Items[i].Body = SearchBigMapDiff{
-				Ptr:       bmd.Ptr,
-				Key:       key,
-				KeyHash:   bmd.KeyHash,
-				Value:     bmd.Value,
-				Level:     bmd.Level,
-				Address:   bmd.Address,
-				Network:   bmd.Network,
-				Timestamp: bmd.Timestamp,
-				FoundBy:   bmd.FoundBy,
-			}
+		bmd := result.Items[i].Body.(models.BigMapDiff)
+		key, err := stringer.StringifyInterface(bmd.Key)
+		if err != nil {
+			return result, err
+		}
+
+		result.Items[i].Body = SearchBigMapDiff{
+			Ptr:       bmd.Ptr,
+			Key:       key,
+			KeyHash:   bmd.KeyHash,
+			Value:     bmd.Value,
+			Level:     bmd.Level,
+			Address:   bmd.Address,
+			Network:   bmd.Network,
+			Timestamp: bmd.Timestamp,
+			FoundBy:   bmd.FoundBy,
 		}
 	}
 	return result, nil
@@ -121,10 +122,7 @@ func (ctx *Context) searchInMempool(q string) (elastic.SearchItem, error) {
 		return elastic.SearchItem{}, err
 	}
 
-	operation, err := ctx.getOperationFromMempool(q)
-	if err != nil {
-		return elastic.SearchItem{}, err
-	}
+	operation := ctx.getOperationFromMempool(q)
 
 	return elastic.SearchItem{
 		Type:  elastic.DocOperations,

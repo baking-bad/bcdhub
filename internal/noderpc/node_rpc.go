@@ -15,6 +15,8 @@ import (
 	"github.com/tidwall/gjson"
 )
 
+const headBlock = "head"
+
 // NodeRPC -
 type NodeRPC struct {
 	baseURL string
@@ -69,6 +71,7 @@ func (rpc *NodeRPC) parseResponse(resp *http.Response, checkStatusCode bool) (re
 	return
 }
 
+//nolint
 func (rpc *NodeRPC) get(uri string) (res gjson.Result, err error) {
 	url := helpers.URLJoin(rpc.baseURL, uri)
 	client := http.Client{
@@ -97,6 +100,7 @@ func (rpc *NodeRPC) get(uri string) (res gjson.Result, err error) {
 	return rpc.parseResponse(resp, true)
 }
 
+//nolint
 func (rpc *NodeRPC) post(uri string, data map[string]interface{}, checkStatusCode bool) (res gjson.Result, err error) {
 	url := helpers.URLJoin(rpc.baseURL, uri)
 	client := http.Client{
@@ -149,7 +153,7 @@ func (rpc *NodeRPC) GetLevel() (int64, error) {
 
 // GetHeader - get head for certain level
 func (rpc *NodeRPC) GetHeader(level int64) (header Header, err error) {
-	block := "head"
+	block := headBlock
 	if level > 0 {
 		block = fmt.Sprintf("%d", level)
 	}
@@ -163,7 +167,7 @@ func (rpc *NodeRPC) GetHeader(level int64) (header Header, err error) {
 
 // GetLevelTime - get level time
 func (rpc *NodeRPC) GetLevelTime(level int) (time.Time, error) {
-	block := "head"
+	block := headBlock
 	if level > 0 {
 		block = fmt.Sprintf("%d", level)
 	}
@@ -176,7 +180,7 @@ func (rpc *NodeRPC) GetLevelTime(level int) (time.Time, error) {
 
 // GetScriptJSON -
 func (rpc *NodeRPC) GetScriptJSON(address string, level int64) (gjson.Result, error) {
-	block := "head"
+	block := headBlock
 	if level > 0 {
 		block = fmt.Sprintf("%d", level)
 	}
@@ -191,7 +195,7 @@ func (rpc *NodeRPC) GetScriptJSON(address string, level int64) (gjson.Result, er
 
 // GetScriptStorageJSON -
 func (rpc *NodeRPC) GetScriptStorageJSON(address string, level int64) (gjson.Result, error) {
-	block := "head"
+	block := headBlock
 	if level > 0 {
 		block = fmt.Sprintf("%d", level)
 	}
@@ -201,7 +205,7 @@ func (rpc *NodeRPC) GetScriptStorageJSON(address string, level int64) (gjson.Res
 
 // GetContractBalance -
 func (rpc *NodeRPC) GetContractBalance(address string, level int64) (int64, error) {
-	block := "head"
+	block := headBlock
 	if level > 0 {
 		block = fmt.Sprintf("%d", level)
 	}
@@ -215,7 +219,7 @@ func (rpc *NodeRPC) GetContractBalance(address string, level int64) (int64, erro
 
 // GetContractJSON -
 func (rpc *NodeRPC) GetContractJSON(address string, level int64) (gjson.Result, error) {
-	block := "head"
+	block := headBlock
 	if level > 0 {
 		block = fmt.Sprintf("%d", level)
 	}
@@ -246,7 +250,7 @@ func (rpc *NodeRPC) GetContractsByBlock(block int64) ([]string, error) {
 
 // GetNetworkConstants -
 func (rpc *NodeRPC) GetNetworkConstants(level int64) (res gjson.Result, err error) {
-	block := "head"
+	block := headBlock
 	if level > 0 {
 		block = fmt.Sprintf("%d", level)
 	}
@@ -316,7 +320,7 @@ func (rpc *NodeRPC) GetCounter(address string) (int64, error) {
 
 // GetCode -
 func (rpc *NodeRPC) GetCode(address string, level int64) (gjson.Result, error) {
-	block := "head"
+	block := headBlock
 	if level > 0 {
 		block = fmt.Sprintf("%d", level)
 	}

@@ -21,7 +21,7 @@ func NewLinearSVC() LinearSVC {
 func (svc LinearSVC) Predict(features []float64) int {
 	var prob float64
 	for i := 0; i < len(svc.coefficients); i++ {
-		prob = prob + svc.coefficients[i]*features[i]
+		prob += svc.coefficients[i] * features[i]
 	}
 	if (prob + svc.intercepts) > 0 {
 		return 1

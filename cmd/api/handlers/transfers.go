@@ -46,14 +46,11 @@ func (ctx *Context) GetContractTransfers(c *gin.Context) {
 	if handleError(c, err, 0) {
 		return
 	}
-	response, err := ctx.transfersPostprocessing(transfers)
-	if handleError(c, err, 0) {
-		return
-	}
+	response := ctx.transfersPostprocessing(transfers)
 	c.JSON(http.StatusOK, response)
 }
 
-func (ctx *Context) transfersPostprocessing(transfers elastic.TransfersResponse) (response TransferResponse, err error) {
+func (ctx *Context) transfersPostprocessing(transfers elastic.TransfersResponse) (response TransferResponse) {
 	response.Total = transfers.Total
 	response.Transfers = make([]Transfer, len(transfers.Transfers))
 

@@ -3,15 +3,15 @@ package contractparser
 import (
 	"crypto/sha512"
 	"encoding/hex"
+	"fmt"
 	"regexp"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/tidwall/gjson"
 )
 
 // FindHardcodedAddresses -
-func FindHardcodedAddresses(script gjson.Result) (helpers.Set, error) {
+func FindHardcodedAddresses(script fmt.Stringer) (helpers.Set, error) {
 	s := script.String()
 	regexString := "(tz|KT)[0-9A-Za-z]{34}"
 	re := regexp.MustCompile(regexString)

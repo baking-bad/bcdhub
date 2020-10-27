@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/providers"
 	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/baking-bad/bcdhub/internal/providers"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 )
@@ -47,7 +47,7 @@ func (c Config) MakeJWT(userID uint) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	return token.SignedString([]byte(c.JWTKey))
+	return token.SignedString(c.JWTKey)
 }
 
 // GetIDFromToken -
@@ -55,7 +55,7 @@ func (c Config) GetIDFromToken(token string) (uint, error) {
 	claims := &jwtClaims{}
 
 	tkn, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte(c.JWTKey), nil
+		return c.JWTKey, nil
 	})
 
 	if err != nil {

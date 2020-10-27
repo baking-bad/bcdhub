@@ -72,7 +72,7 @@ func compareParserResponse(t *testing.T, got, want []elastic.Model) bool {
 				log.Printf("Differrrent types: %T != %T", one, two)
 				return false
 			}
-			if !compareTransfers(t, one, two) {
+			if !compareTransfers(one, two) {
 				return false
 			}
 		case *models.Operation:
@@ -106,7 +106,7 @@ func compareParserResponse(t *testing.T, got, want []elastic.Model) bool {
 			if !ok {
 				return false
 			}
-			if !compareContract(t, one, two) {
+			if !compareContract(one, two) {
 				return false
 			}
 		case *models.Metadata:
@@ -126,7 +126,7 @@ func compareParserResponse(t *testing.T, got, want []elastic.Model) bool {
 	return true
 }
 
-func compareTransfers(t *testing.T, one, two *models.Transfer) bool {
+func compareTransfers(one, two *models.Transfer) bool {
 	if one.Network != two.Network {
 		log.Printf("Network: %s != %s", one.Network, two.Network)
 		return false
@@ -394,7 +394,7 @@ func compareBigMapAction(one, two *models.BigMapAction) bool {
 	return true
 }
 
-func compareContract(t *testing.T, one, two *models.Contract) bool {
+func compareContract(one, two *models.Contract) bool {
 	if one.Network != two.Network {
 		log.Printf("Contract.Network: %s != %s", one.Network, two.Network)
 		return false

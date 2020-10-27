@@ -32,23 +32,21 @@ var errSameLevel = errors.New("Same level")
 
 // BoostIndexer -
 type BoostIndexer struct {
-	Network string
+	rpc             noderpc.INode
+	es              elastic.IElastic
+	externalIndexer index.Indexer
+	interfaces      map[string]kinds.ContractKind
+	messageQueue    *mq.QueueManager
+	state           models.Block
+	currentProtocol models.Protocol
+	tokenViews      transfer.TokenEvents
+	cfg             config.Config
 
-	rpc                 noderpc.INode
-	es                  elastic.IElastic
-	externalIndexer     index.Indexer
-	state               models.Block
-	currentProtocol     models.Protocol
-	messageQueue        *mq.QueueManager
+	stop                chan struct{}
+	Network             string
 	boost               bool
-	interfaces          map[string]kinds.ContractKind
-	tokenViews          transfer.TokenEvents
 	skipDelegatorBlocks bool
-
-	cfg config.Config
-
-	stop    chan struct{}
-	stopped bool
+	stopped             bool
 }
 
 func (bi *BoostIndexer) fetchExternalProtocols() error {
@@ -192,7 +190,7 @@ func (bi *BoostIndexer) init() error {
 		if err != nil {
 			return err
 		}
-		currentProtocol, err = createProtocol(bi.es, bi.Network, header.Protocol, 0)
+		currentProtocol, err = createProtocol(bi.Network, header.Protocol, 0)
 		if err != nil {
 			return err
 		}
@@ -525,7 +523,7 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) ([]elastic.Model, error) {
 	newProtocol, err := bi.es.GetProtocol(bi.Network, head.Protocol, head.Level)
 	if err != nil {
 		logger.Warning("%s", err)
-		newProtocol, err = createProtocol(bi.es, bi.Network, head.Protocol, head.Level)
+		newProtocol, err = createProtocol(bi.Network, head.Protocol, head.Level)
 		if err != nil {
 			return nil, err
 		}
@@ -567,7 +565,7 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) ([]elastic.Model, error) {
 	return newModels, nil
 }
 
-func createProtocol(es elastic.IElastic, network, hash string, level int64) (protocol models.Protocol, err error) {
+func createProtocol(network, hash string, level int64) (protocol models.Protocol, err error) {
 	logger.Info("[%s] Creating new protocol %s starting at %d", network, hash, level)
 	protocol.SymLink, err = meta.GetProtoSymLink(hash)
 	if err != nil {

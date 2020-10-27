@@ -24,7 +24,7 @@ func NewAlpha() *Alpha {
 }
 
 // ParseTransaction -
-func (a *Alpha) ParseTransaction(content gjson.Result, metadata meta.Metadata, operation models.Operation) (RichStorage, error) {
+func (a *Alpha) ParseTransaction(content gjson.Result, _ meta.Metadata, operation models.Operation) (RichStorage, error) {
 	address := content.Get("destination").String()
 
 	result, err := getResult(content)
@@ -32,12 +32,8 @@ func (a *Alpha) ParseTransaction(content gjson.Result, metadata meta.Metadata, o
 		return RichStorage{Empty: true}, err
 	}
 
-	bm, err := a.getBigMapDiff(result, address, metadata, operation)
-	if err != nil {
-		return RichStorage{Empty: true}, err
-	}
 	return RichStorage{
-		Models:          bm,
+		Models:          a.getBigMapDiff(result, address, operation),
 		DeffatedStorage: result.Get("storage").String(),
 	}, nil
 }
@@ -132,7 +128,7 @@ func (a *Alpha) Enrich(storage, sPrevStorage string, bmd []models.BigMapDiff, sk
 	return gjson.Parse(value), nil
 }
 
-func (a *Alpha) getBigMapDiff(result gjson.Result, address string, m meta.Metadata, operation models.Operation) ([]elastic.Model, error) {
+func (a *Alpha) getBigMapDiff(result gjson.Result, address string, operation models.Operation) []elastic.Model {
 	bmd := make([]elastic.Model, 0)
 	for _, item := range result.Get("big_map_diff").Array() {
 		bmd = append(bmd, &models.BigMapDiff{
@@ -151,5 +147,5 @@ func (a *Alpha) getBigMapDiff(result gjson.Result, address string, m meta.Metada
 			Ptr:         -1,
 		})
 	}
-	return bmd, nil
+	return bmd
 }

@@ -73,10 +73,7 @@ func ParameterToMiguel(data gjson.Result, metadata meta.Metadata) (*Node, error)
 	if !data.IsArray() && !data.IsObject() {
 		return nil, nil
 	}
-	node, startPath, err := getStartPath(data, metadata)
-	if err != nil {
-		return nil, err
-	}
+	node, startPath := getStartPath(data, metadata)
 	node, startPath = getGJSONParameterPath(node, startPath)
 	res, err := newMiguel().Convert(node, startPath, metadata, true)
 	if err != nil {
@@ -85,7 +82,7 @@ func ParameterToMiguel(data gjson.Result, metadata meta.Metadata) (*Node, error)
 	return res, nil
 }
 
-func getStartPath(data gjson.Result, metadata meta.Metadata) (gjson.Result, string, error) {
+func getStartPath(data gjson.Result, metadata meta.Metadata) (gjson.Result, string) {
 	var entrypoint, value gjson.Result
 	if data.IsArray() {
 		entrypoint = data.Get("0.entrypoint")
@@ -98,7 +95,7 @@ func getStartPath(data gjson.Result, metadata meta.Metadata) (gjson.Result, stri
 	if entrypoint.Exists() && value.Exists() {
 		root := metadata["0"]
 		if root.Prim != consts.OR && root.Type != consts.TypeNamedUnion && root.Type != consts.TypeNamedTuple {
-			return value, "0", nil
+			return value, "0"
 		}
 		for path, md := range metadata {
 			if md.FieldName == entrypoint.String() {
@@ -112,12 +109,12 @@ func getStartPath(data gjson.Result, metadata meta.Metadata) (gjson.Result, stri
 				if parentNode.Prim != consts.OR { // Distinct between entrypoints and field names
 					continue
 				}
-				return value, path, nil
+				return value, path
 			}
 		}
-		return value, "0", nil
+		return value, "0"
 	}
-	return data, "0", nil
+	return data, "0"
 }
 
 // GetGJSONPath -
@@ -141,7 +138,7 @@ func buildPathFromArray(parts []string) (res string) {
 		case "v":
 			res += "#.args.1."
 		case "o":
-			res += "args.0."
+			res += "args.0." //nolint
 		default:
 			res += fmt.Sprintf("args.%s.", part)
 		}

@@ -65,8 +65,7 @@ func (p Transaction) Parse(data gjson.Result) ([]elastic.Model, error) {
 	tx.SetBurned(p.constants)
 	txModels := []elastic.Model{&tx}
 
-	switch tx.Status {
-	case consts.Applied:
+	if tx.Status == consts.Applied {
 		appliedModels, err := p.appliedHandler(data, &tx)
 		if err != nil {
 			return nil, err
@@ -151,7 +150,7 @@ func (p Transaction) getEntrypoint(item gjson.Result, metadata *meta.ContractMet
 		}
 		op.Entrypoint = ep
 	} else {
-		op.Entrypoint = "default"
+		op.Entrypoint = consts.DefaultEntrypoint
 	}
 
 	return nil

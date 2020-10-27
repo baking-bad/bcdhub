@@ -13,7 +13,7 @@ type rollbackCommand struct {
 var rollbackCmd rollbackCommand
 
 // Execute
-func (x *rollbackCommand) Execute(args []string) error {
+func (x *rollbackCommand) Execute(_ []string) error {
 	state, err := ctx.ES.GetLastBlock(x.Network)
 	if err != nil {
 		panic(err)

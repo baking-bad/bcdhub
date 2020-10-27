@@ -47,19 +47,19 @@ func (t TokenMetadataParser) Parse(address string, level int64) ([]Metadata, err
 	if err != nil {
 		return nil, err
 	}
-	return t.parse(address, registryAddress, state)
+	return t.parse(registryAddress, state)
 }
 
 // ParseWithRegistry -
-func (t TokenMetadataParser) ParseWithRegistry(address, registry string, level int64) ([]Metadata, error) {
+func (t TokenMetadataParser) ParseWithRegistry(registry string, level int64) ([]Metadata, error) {
 	state, err := t.getState(level)
 	if err != nil {
 		return nil, err
 	}
-	return t.parse(address, registry, state)
+	return t.parse(registry, state)
 }
 
-func (t TokenMetadataParser) parse(address, registry string, state models.Block) ([]Metadata, error) {
+func (t TokenMetadataParser) parse(registry string, state models.Block) ([]Metadata, error) {
 	ptr, err := t.getBigMapPtr(registry, state)
 	if err != nil {
 		return nil, err

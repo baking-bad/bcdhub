@@ -68,29 +68,20 @@ func (h *Handler) SetContractProjectID(c *models.Contract) error {
 	if err != nil {
 		return err
 	}
-	projID, err := getContractProjectID(*c, buckets)
-	if err != nil {
-		return err
-	}
 
-	c.ProjectID = projID
+	c.ProjectID = getContractProjectID(*c, buckets)
 
 	return nil
 }
 
-func getContractProjectID(c models.Contract, buckets []models.Contract) (string, error) {
+func getContractProjectID(c models.Contract, buckets []models.Contract) string {
 	for i := len(buckets) - 1; i > -1; i-- {
-		ok, err := compare(c, buckets[i])
-		if err != nil {
-			return "", err
-		}
-
-		if ok {
-			return buckets[i].ProjectID, nil
+		if compare(c, buckets[i]) {
+			return buckets[i].ProjectID
 		}
 	}
 
-	return helpers.GenerateID(), nil
+	return helpers.GenerateID()
 }
 
 var model = []clmetrics.Metric{
@@ -108,7 +99,7 @@ var model = []clmetrics.Metric{
 	clmetrics.NewFingerprint("code"),
 }
 
-func compare(a, b models.Contract) (bool, error) {
+func compare(a, b models.Contract) bool {
 	features := make([]float64, len(model))
 
 	for i := range model {
@@ -119,7 +110,7 @@ func compare(a, b models.Contract) (bool, error) {
 	clf := functions.NewLinearSVC()
 	res := clf.Predict(features)
 	// log.Printf("%s -> %s [%d]", a.Address, b.Address, res)
-	return res == 1, nil
+	return res == 1
 }
 
 // SetContractVerification -

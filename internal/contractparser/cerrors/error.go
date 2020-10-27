@@ -128,13 +128,16 @@ func getErrorID(data gjson.Result) string {
 func getErrorObject(data gjson.Result) IError {
 	id := data.Get("id").String()
 	var e IError
-	if strings.Contains(id, consts.BalanceTooLowError) {
+
+	switch {
+	case strings.Contains(id, consts.BalanceTooLowError):
 		e = &BalanceTooLowError{}
-	} else if strings.Contains(id, consts.InvalidSyntacticConstantError) {
+	case strings.Contains(id, consts.InvalidSyntacticConstantError):
 		e = &InvalidSyntacticConstantError{}
-	} else {
+	default:
 		e = &DefaultError{}
 	}
+
 	e.Parse(data)
 	return e
 }

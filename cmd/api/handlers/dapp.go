@@ -90,7 +90,7 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 				tokenMetadata, err := ctx.ES.GetTokenMetadata(elastic.GetTokenMetadataContext{
 					Contract: token.Contract,
 					Network:  consts.Mainnet,
-					TokenID:  int64(token.TokenID),
+					TokenID:  token.TokenID,
 				})
 				if err != nil {
 					if elastic.IsRecordNotFound(err) {
