@@ -2,21 +2,6 @@ basePath: /v1
 definitions:
   cerrors.IError:
     type: object
-  database.Token:
-    properties:
-      contract:
-        type: string
-      decimals:
-        type: integer
-      name:
-        type: string
-      network:
-        type: string
-      symbol:
-        type: string
-      token_id:
-        type: integer
-    type: object
   docstring.Typedef:
     properties:
       args:
@@ -706,26 +691,11 @@ definitions:
         type: string
       decimals:
         type: integer
-      extras:
-        additionalProperties: true
-        type: object
-      found_by:
-        type: string
-      interface:
-        type: string
-      level:
-        type: integer
       name:
-        type: string
-      network:
-        type: string
-      registry_address:
         type: string
       supply:
         type: number
       symbol:
-        type: string
-      timestamp:
         type: string
       token_id:
         type: integer
@@ -778,6 +748,19 @@ definitions:
       type:
         type: string
     type: object
+  handlers.TokenMetadata:
+    properties:
+      contract:
+        type: string
+      decimals:
+        type: integer
+      name:
+        type: string
+      symbol:
+        type: string
+      token_id:
+        type: integer
+    type: object
   handlers.TokenMethodStats:
     properties:
       average_consumed_gas:
@@ -822,7 +805,7 @@ definitions:
       to_alias:
         type: string
       token:
-        $ref: '#/definitions/database.Token'
+        $ref: '#/definitions/handlers.TokenMetadata'
         type: object
       token_id:
         type: integer
@@ -841,6 +824,47 @@ definitions:
     type: object
   jsonschema.Schema:
     additionalProperties: true
+    type: object
+  models.TZIP:
+    properties:
+      address:
+        type: string
+      authors:
+        items:
+          type: string
+        type: array
+      dapps:
+        items:
+          $ref: '#/definitions/tzip.DApp'
+        type: array
+      description:
+        type: string
+      events:
+        items:
+          $ref: '#/definitions/tzip.Event'
+        type: array
+      homepage:
+        type: string
+      interfaces:
+        items:
+          type: string
+        type: array
+      level:
+        type: integer
+      license:
+        $ref: '#/definitions/tzip.License'
+        type: object
+      name:
+        type: string
+      network:
+        type: string
+      slug:
+        type: string
+      tokens:
+        $ref: '#/definitions/tzip.TokenMetadataType'
+        type: object
+      version:
+        type: string
     type: object
   models.Transfer:
     properties:
@@ -900,7 +924,130 @@ definitions:
       value:
         type: object
     type: object
-  postgres.Jsonb:
+  tzip.DApp:
+    properties:
+      agora_qa_post_id:
+        type: integer
+      agora_review_post_id:
+        type: integer
+      authors:
+        items:
+          type: string
+        type: array
+      categories:
+        items:
+          type: string
+        type: array
+      contracts:
+        items:
+          type: string
+        type: array
+      dex_tokens:
+        items:
+          $ref: '#/definitions/tzip.DexToken'
+        type: array
+      full_description:
+        type: string
+      interfaces:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      order:
+        type: integer
+      pictures:
+        items:
+          $ref: '#/definitions/tzip.Picture'
+        type: array
+      short_description:
+        type: string
+      slug:
+        type: string
+      social_links:
+        items:
+          type: string
+        type: array
+      soon:
+        type: boolean
+      web_site:
+        type: string
+    type: object
+  tzip.DexToken:
+    properties:
+      contract:
+        type: string
+      token_id:
+        type: integer
+    type: object
+  tzip.Event:
+    properties:
+      description:
+        type: string
+      implementations:
+        items:
+          $ref: '#/definitions/tzip.EventImplementation'
+        type: array
+      name:
+        type: string
+      pure:
+        type: string
+    type: object
+  tzip.EventImplementation:
+    properties:
+      michelson-parameter-view:
+        $ref: '#/definitions/tzip.MichelsonParameterView'
+        type: object
+    type: object
+  tzip.License:
+    properties:
+      details:
+        type: string
+      name:
+        type: string
+    type: object
+  tzip.MichelsonParameterView:
+    properties:
+      code:
+        type: object
+      entrypoints:
+        items:
+          type: string
+        type: array
+      parameter:
+        type: object
+      return-type:
+        type: object
+    type: object
+  tzip.Picture:
+    properties:
+      link:
+        type: string
+      type:
+        type: string
+    type: object
+  tzip.TokenMetadata:
+    properties:
+      decimals:
+        type: integer
+      extras:
+        additionalProperties: true
+        type: object
+      name:
+        type: string
+      registry_address:
+        type: string
+      symbol:
+        type: string
+      token_id:
+        type: integer
+    type: object
+  tzip.TokenMetadataType:
+    properties:
+      static:
+        items:
+          $ref: '#/definitions/tzip.TokenMetadata'
+        type: array
     type: object
 info:
   contact: {}
@@ -984,6 +1131,47 @@ paths:
           schema:
             $ref: '#/definitions/handlers.Error'
       summary: Get account info
+      tags:
+      - account
+  /account/{network}/{address}/tzip:
+    get:
+      consumes:
+      - application/json
+      description: Returns full metadata for account
+      operationId: get-account-tzip
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: KT or tz address
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: address
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TZIP'
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/gin.H'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Get metadata for account
       tags:
       - account
   /bigmap/{network}/{ptr}:
@@ -1093,6 +1281,10 @@ paths:
         in: query
         minimum: 1
         name: size
+        type: integer
+      - description: Level
+        in: query
+        name: level
         type: integer
       produces:
       - application/json
