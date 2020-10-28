@@ -364,18 +364,18 @@ func (mr *MockIBigMapMockRecorder) GetBigMapKey(network, keyHash, ptr interface{
 }
 
 // GetBigMapKeys mocks base method
-func (m *MockIBigMap) GetBigMapKeys(arg0 int64, arg1, arg2 string, arg3, arg4 int64) ([]BigMapDiff, error) {
+func (m *MockIBigMap) GetBigMapKeys(ctx GetBigMapKeysContext) ([]BigMapDiff, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBigMapKeys", arg0, arg1, arg2, arg3, arg4)
+	ret := m.ctrl.Call(m, "GetBigMapKeys", ctx)
 	ret0, _ := ret[0].([]BigMapDiff)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetBigMapKeys indicates an expected call of GetBigMapKeys
-func (mr *MockIBigMapMockRecorder) GetBigMapKeys(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+func (mr *MockIBigMapMockRecorder) GetBigMapKeys(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBigMapKeys", reflect.TypeOf((*MockIBigMap)(nil).GetBigMapKeys), arg0, arg1, arg2, arg3, arg4)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBigMapKeys", reflect.TypeOf((*MockIBigMap)(nil).GetBigMapKeys), ctx)
 }
 
 // GetBigMapsForAddress mocks base method
@@ -1982,18 +1982,18 @@ func (mr *MockIElasticMockRecorder) GetBigMapKey(network, keyHash, ptr interface
 }
 
 // GetBigMapKeys mocks base method
-func (m *MockIElastic) GetBigMapKeys(arg0 int64, arg1, arg2 string, arg3, arg4 int64) ([]BigMapDiff, error) {
+func (m *MockIElastic) GetBigMapKeys(ctx GetBigMapKeysContext) ([]BigMapDiff, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBigMapKeys", arg0, arg1, arg2, arg3, arg4)
+	ret := m.ctrl.Call(m, "GetBigMapKeys", ctx)
 	ret0, _ := ret[0].([]BigMapDiff)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetBigMapKeys indicates an expected call of GetBigMapKeys
-func (mr *MockIElasticMockRecorder) GetBigMapKeys(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+func (mr *MockIElasticMockRecorder) GetBigMapKeys(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBigMapKeys", reflect.TypeOf((*MockIElastic)(nil).GetBigMapKeys), arg0, arg1, arg2, arg3, arg4)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBigMapKeys", reflect.TypeOf((*MockIElastic)(nil).GetBigMapKeys), ctx)
 }
 
 // GetBigMapsForAddress mocks base method

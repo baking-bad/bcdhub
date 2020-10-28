@@ -65,7 +65,11 @@ func (t TokenMetadataParser) parse(registry string, state models.Block) ([]Metad
 		return nil, err
 	}
 
-	bmd, err := t.es.GetBigMapKeys(ptr, t.network, "", 1000, 0)
+	bmd, err := t.es.GetBigMapKeys(elastic.GetBigMapKeysContext{
+		Ptr:     &ptr,
+		Network: t.network,
+		Size:    1000,
+	})
 	if err != nil {
 		return nil, err
 	}

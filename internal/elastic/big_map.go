@@ -147,36 +147,50 @@ func (e *Elastic) GetBigMapDiffsForAddress(address string) ([]models.BigMapDiff,
 	return response, nil
 }
 
-// GetBigMapKeys -
-func (e *Elastic) GetBigMapKeys(ptr int64, network, searchText string, size, offset int64) ([]BigMapDiff, error) {
-	if ptr < 0 {
-		return nil, errors.Errorf("Invalid pointer value: %d", ptr)
+// GetBigMapKeysContext -
+type GetBigMapKeysContext struct {
+	Network string
+	Ptr     *int64
+	Query   string
+	Size    int64
+	Offset  int64
+	Level   *int64
+
+	to int64
+}
+
+func (ctx *GetBigMapKeysContext) build() base {
+	filters := make([]qItem, 0)
+
+	if ctx.Ptr != nil {
+		filters = append(filters, term("ptr", *ctx.Ptr))
+	}
+	if ctx.Network != "" {
+		filters = append(filters, matchQ("network", ctx.Network))
 	}
 
-	mustQuery := []qItem{
-		matchPhrase("network", network),
-		term("ptr", ptr),
+	if ctx.Query != "" {
+		filters = append(filters, queryString(fmt.Sprintf("*%s*", ctx.Query), []string{"key", "key_hash", "key_strings", "bin_path"}))
 	}
 
-	if searchText != "" {
-		mustQuery = append(mustQuery, queryString(fmt.Sprintf("*%s*", searchText), []string{"key", "key_hash", "key_strings", "bin_path"}))
+	if ctx.Size == 0 {
+		ctx.Size = defaultSize
 	}
 
+	if ctx.Level != nil {
+		filters = append(filters, NewLessThanEqRange(*ctx.Level).build())
+	}
+
+	ctx.to = ctx.Size + ctx.Offset
 	b := boolQ(
-		must(mustQuery...),
+		must(filters...),
 	)
-
-	if size == 0 {
-		size = defaultSize
-	}
-
-	to := size + offset
-	query := newQuery().Query(b).Add(
+	return newQuery().Query(b).Add(
 		aggs(aggItem{
 			"keys", qItem{
 				"terms": qItem{
 					"field": "key_hash.keyword",
-					"size":  to,
+					"size":  ctx.to,
 					"order": qItem{
 						"bucketsSort": "desc",
 					},
@@ -188,22 +202,30 @@ func (e *Elastic) GetBigMapKeys(ptr int64, network, searchText string, size, off
 			},
 		}),
 	).Sort("indexed_time", "desc").Zero()
-	res, err := e.query([]string{DocBigMapDiff}, query)
+}
+
+// GetBigMapKeys -
+func (e *Elastic) GetBigMapKeys(ctx GetBigMapKeysContext) ([]BigMapDiff, error) {
+	if *ctx.Ptr < 0 {
+		return nil, errors.Errorf("Invalid pointer value: %d", *ctx.Ptr)
+	}
+
+	res, err := e.query([]string{DocBigMapDiff}, ctx.build())
 	if err != nil {
 		return nil, err
 	}
 
 	result := make([]BigMapDiff, 0)
 	arr := res.Get("aggregations.keys.buckets").Array()
-	if int64(len(arr)) < offset {
+	if int64(len(arr)) < ctx.Offset {
 		return nil, nil
 	}
 
-	if int64(len(arr)) < to {
-		to = int64(len(arr))
+	if int64(len(arr)) < ctx.to {
+		ctx.to = int64(len(arr))
 	}
 
-	arr = arr[offset:to]
+	arr = arr[ctx.Offset:ctx.to]
 	for _, item := range arr {
 		bmd := item.Get("top_key.hits.hits.0")
 
