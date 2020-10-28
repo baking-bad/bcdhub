@@ -34,7 +34,11 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		return
 	}
 
-	bm, err := ctx.ES.GetBigMapKeys(req.Ptr, req.Network, "", 10000, 0) // TODO: >10k
+	bm, err := ctx.ES.GetBigMapKeys(elastic.GetBigMapKeysContext{
+		Ptr:     &req.Ptr,
+		Network: req.Network,
+		Size:    10000, // TODO: >10k
+	})
 	if handleError(c, err, 0) {
 		return
 	}
@@ -125,6 +129,7 @@ func (ctx *Context) GetBigMapHistory(c *gin.Context) {
 // @Param q query string false "Search string"
 // @Param offset query integer false "Offset"
 // @Param size query integer false "Requested count" mininum(1)
+// @Param level query integer false "Level" minimum(0)
 // @Accept  json
 // @Produce  json
 // @Success 200 {array} BigMapResponseItem
@@ -142,7 +147,14 @@ func (ctx *Context) GetBigMapKeys(c *gin.Context) {
 		return
 	}
 
-	bm, err := ctx.ES.GetBigMapKeys(req.Ptr, req.Network, pageReq.Search, pageReq.Size, pageReq.Offset)
+	bm, err := ctx.ES.GetBigMapKeys(elastic.GetBigMapKeysContext{
+		Ptr:     &req.Ptr,
+		Network: req.Network,
+		Query:   pageReq.Search,
+		Size:    pageReq.Size,
+		Offset:  pageReq.Offset,
+		Level:   pageReq.Level,
+	})
 	if handleError(c, err, 0) {
 		return
 	}

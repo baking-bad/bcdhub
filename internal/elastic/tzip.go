@@ -14,12 +14,6 @@ type GetTokenMetadataContext struct {
 	Level    Range
 }
 
-// Range -
-type Range struct {
-	Comparator string
-	Value      int64
-}
-
 func (ctx GetTokenMetadataContext) buildQuery() base {
 	filters := make([]qItem, 0)
 
@@ -29,10 +23,8 @@ func (ctx GetTokenMetadataContext) buildQuery() base {
 	if ctx.Network != "" {
 		filters = append(filters, matchQ("network", ctx.Network))
 	}
-	if ctx.Level.Comparator != "" {
-		filters = append(filters, rangeQ("level", qItem{
-			ctx.Level.Comparator: ctx.Level.Value,
-		}))
+	if ctx.Level.isFilled() {
+		filters = append(filters, ctx.Level.build())
 	}
 	if ctx.TokenID != -1 {
 		filters = append(filters, term(

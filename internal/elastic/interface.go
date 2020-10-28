@@ -41,7 +41,7 @@ type IGeneral interface {
 // IBigMap -
 type IBigMap interface {
 	GetBigMapKey(network, keyHash string, ptr int64) (BigMapDiff, error)
-	GetBigMapKeys(int64, string, string, int64, int64) ([]BigMapDiff, error)
+	GetBigMapKeys(ctx GetBigMapKeysContext) ([]BigMapDiff, error)
 	GetBigMapsForAddress(string, string) ([]models.BigMapDiff, error)
 	GetBigMapHistory(int64, string) ([]models.BigMapAction, error)
 	GetBigMapValuesByKey(string) ([]BigMapDiff, error)

@@ -188,8 +188,8 @@ type getTokensByVersion struct {
 
 type bigMapSearchRequest struct {
 	pageableRequest
-	Search      string `form:"q"`
-	SkipRemoved bool   `form:"skip_removed"`
+	Search string `form:"q"`
+	Level  *int64 `form:"level,omitempty"`
 }
 
 type getEntrypointDataRequest struct {
