@@ -59,6 +59,9 @@ clearmq:
 
 test:
 	go test ./...
+
+lint:
+	golangci-lint run
   
 docs:
 	# wget https://github.com/swaggo/swag/releases/download/v1.6.6/swag_1.6.6_Linux_x86_64.tar.gz
