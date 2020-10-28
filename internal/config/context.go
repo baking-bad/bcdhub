@@ -61,7 +61,11 @@ func (ctx *Context) LoadAliases() error {
 	}
 	aliases, err := ctx.ES.GetAliasesMap(consts.Mainnet)
 	if err != nil {
-		return err
+		if !elastic.IsRecordNotFound(err) {
+			return err
+		}
+		ctx.Aliases = make(map[string]string)
+		return nil
 	}
 	ctx.Aliases = aliases
 	return nil
