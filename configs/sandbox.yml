@@ -1,0 +1,92 @@
+rpc:
+  sandboxnet:
+    uri: http://flextesa:20000
+    timeout: 10
+
+elastic:
+  uri:
+    - http://elastic:9200
+  timeout: 10
+
+rabbitmq:
+  uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mq:5672/"
+  timeout: 10
+
+db:
+  conn_string: "host=db port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"
+  timeout: 10
+
+ipfs:
+  - https://ipfs.io
+  - https://dweb.link
+
+api:
+  project_name: api
+  bind: ":14000"
+  swagger_host: "localhost:42000"
+  cors_enabled: false
+  oauth_enabled: false
+  sentry_enabled: false
+  seed_enabled: true
+  seed:
+    user:
+      login: sandboxuser
+      name: "Default User"
+      avatar_url: "https://services.tzkt.io/v1/avatars/bcd"
+      token: ""
+    subscriptions:
+      - address: tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb
+        network: sandboxnet
+        alias: Alice
+        watch_mask: 127
+      - address: tz1aSkwEot3L2kmUvcoxzjMomb9mvBNuzFK6
+        network: sandboxnet
+        alias: Bob
+        watch_mask: 127
+    aliases:
+      - alias: Alice
+        network: sandboxnet
+        address: tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb
+      - alias: Bob
+        network: sandboxnet
+        address: tz1aSkwEot3L2kmUvcoxzjMomb9mvBNuzFK6
+    accounts:
+      - private_key: "privatekey"
+        public_key_hash: "publickeyhash"
+        network: "sandboxnet"
+  networks:
+    - sandboxnet
+  mq:
+    publisher: true
+    queues:
+      operations:
+        non_durable: true
+        auto_deleted: true
+
+indexer:
+  project_name: indexer
+  sentry_enabled: false
+  skip_delegator_blocks: false
+  mq:
+    publisher: true
+  networks:
+    sandboxnet:
+
+metrics:
+  project_name: metrics
+  sentry_enabled: false
+  mq:
+    publisher: false
+    queues:
+      operations:
+      contracts:
+      migrations:
+      recalc:
+      transfers:
+      bigmapdiffs:
+
+scripts:
+  networks:
+    - sandboxnet
+  mq:
+    publisher: true

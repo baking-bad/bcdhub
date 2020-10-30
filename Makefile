@@ -17,6 +17,9 @@ compiler:
 	docker-compose -f docker-compose.yml -f build/compiler/dev/docker-compose.yml up -d --build compiler-dev
 	docker logs -f bcd-compiler-dev
 
+sandbox:
+	docker-compose -f build/sandbox/docker-compose.yml up -d --build
+
 sitemap:
 	cd scripts/sitemap && go run .
 
@@ -80,6 +83,9 @@ stable-pull:
 
 stable:
 	TAG=$$STABLE_TAG docker-compose up -d
+
+latest:
+	docker-compose up -d
 
 upgrade:
 	$(MAKE) clearmq

@@ -14,6 +14,7 @@ const (
 	EnvironmentDev  = "development"
 	EnvironmentProd = "production"
 	EnvironmentYou  = "you"
+	EnvironmentBox  = "sandbox"
 )
 
 // Config -
@@ -181,6 +182,7 @@ func LoadDefaultConfig() (Config, error) {
 	configurations := map[string]string{
 		EnvironmentProd: "production.yml",
 		EnvironmentYou:  "you.yml",
+		EnvironmentBox:  "sandbox.yml",
 		EnvironmentDev:  "../../configs/development.yml",
 	}
 
