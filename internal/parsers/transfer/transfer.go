@@ -17,7 +17,7 @@ type Parser struct {
 }
 
 // NewParser -
-func NewParser(rpc noderpc.INode, es elastic.IElastic, opts ...ParserOption) *Parser {
+func NewParser(rpc noderpc.INode, es elastic.IElastic, opts ...ParserOption) (*Parser, error) {
 	tp := &Parser{
 		rpc: rpc,
 		es:  es,
@@ -27,7 +27,13 @@ func NewParser(rpc noderpc.INode, es elastic.IElastic, opts ...ParserOption) *Pa
 		opts[i](tp)
 	}
 
-	return tp
+	tokenEvents, err := NewTokenViews(es)
+	if err != nil {
+		return nil, err
+	}
+	tp.events = tokenEvents
+
+	return tp, nil
 }
 
 // Parse -

@@ -41,11 +41,6 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 	}
 	logger.Info("Found %d operations with transfer entrypoint", len(operations))
 
-	tokenViews, err := transfer.NewTokenViews(ctx.ES)
-	if err != nil {
-		return err
-	}
-
 	result := make([]elastic.Model, 0)
 
 	bar := progressbar.NewOptions(len(operations), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish(), progressbar.OptionShowCount())
@@ -58,7 +53,10 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 			return err
 		}
 
-		parser := transfer.NewParser(rpc, ctx.ES, transfer.WithTokenViews(tokenViews))
+		parser, err := transfer.NewParser(rpc, ctx.ES)
+		if err != nil {
+			return err
+		}
 
 		transfers, err := parser.Parse(operations[i])
 		if err != nil {

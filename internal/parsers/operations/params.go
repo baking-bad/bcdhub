@@ -26,8 +26,7 @@ type ParseParams struct {
 
 	storageParser *RichStorage
 
-	ipfs   []string
-	events transfer.TokenEvents
+	ipfs []string
 
 	network    string
 	hash       string
@@ -59,13 +58,6 @@ func WithConstants(constants models.Constants) ParseParamsOption {
 func WithInterfaces(interfaces map[string]kinds.ContractKind) ParseParamsOption {
 	return func(dp *ParseParams) {
 		dp.interfaces = interfaces
-	}
-}
-
-// WithTokenEvents -
-func WithTokenEvents(events transfer.TokenEvents) ParseParamsOption {
-	return func(dp *ParseParams) {
-		dp.events = events
 	}
 }
 
@@ -122,10 +114,14 @@ func NewParseParams(rpc noderpc.INode, es elastic.IElastic, opts ...ParseParamsO
 		opts[i](params)
 	}
 
-	params.transferParser = transfer.NewParser(
+	transferParser, err := transfer.NewParser(
 		params.rpc, params.es,
-		transfer.WithTokenViews(params.events),
 	)
+	if err != nil {
+		logger.Error(err)
+	}
+	params.transferParser = transferParser
+
 	params.contractParser = contract.NewParser(
 		params.interfaces,
 		contract.WithShareDirContractParser(params.shareDir),

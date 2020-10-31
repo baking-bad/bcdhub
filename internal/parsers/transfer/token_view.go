@@ -4,7 +4,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
-	"github.com/jinzhu/gorm"
 )
 
 // TokenKey -
@@ -19,15 +18,15 @@ type TokenEvents map[TokenKey]tzip.EventImplementation
 
 // NewTokenViews -
 func NewTokenViews(es elastic.IElastic) (TokenEvents, error) {
+	views := make(TokenEvents)
 	tokens, err := es.GetTZIPWithViews()
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return nil, nil
+		if elastic.IsRecordNotFound(err) {
+			return views, nil
 		}
 		return nil, err
 	}
 
-	views := make(TokenEvents)
 	for _, token := range tokens {
 		if len(token.Events) == 0 {
 			continue
