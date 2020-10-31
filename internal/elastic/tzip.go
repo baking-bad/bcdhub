@@ -108,7 +108,7 @@ func (e *Elastic) GetDApps() ([]tzip.DApp, error) {
 		return nil, err
 	}
 	if response.Get("hits.total.value").Int() == 0 {
-		return nil, errors.Errorf("%s: token metadata", RecordNotFound)
+		return nil, errors.Errorf("%s token metadata", RecordNotFound)
 	}
 
 	tokens := make([]tzip.DApp, 0)
@@ -136,7 +136,7 @@ func (e *Elastic) GetDAppBySlug(slug string) (*tzip.DApp, error) {
 		return nil, err
 	}
 	if response.Get("hits.total.value").Int() == 0 {
-		return nil, errors.Errorf("%s: token metadata", RecordNotFound)
+		return nil, errors.Errorf("%s token metadata", RecordNotFound)
 	}
 
 	var data tzip.DApp
@@ -159,7 +159,7 @@ func (e *Elastic) GetBySlug(slug string) (*models.TZIP, error) {
 		return nil, err
 	}
 	if response.Get("hits.total.value").Int() == 0 {
-		return nil, errors.Errorf("%s: token metadata", RecordNotFound)
+		return nil, errors.Errorf("%s token metadata", RecordNotFound)
 	}
 
 	var data models.TZIP
@@ -182,7 +182,7 @@ func (e *Elastic) GetAliasesMap(network string) (map[string]string, error) {
 		return nil, err
 	}
 	if response.Get("hits.total.value").Int() == 0 {
-		return nil, errors.Errorf("%s: token metadata", RecordNotFound)
+		return nil, errors.Errorf("%s token metadata", RecordNotFound)
 	}
 
 	aliases := make(map[string]string)
@@ -212,7 +212,7 @@ func (e *Elastic) GetAliases(network string) ([]models.TZIP, error) {
 		return nil, err
 	}
 	if response.Get("hits.total.value").Int() == 0 {
-		return nil, errors.Errorf("%s: token metadata", RecordNotFound)
+		return nil, errors.Errorf("%s token metadata", RecordNotFound)
 	}
 
 	aliases := make([]models.TZIP, 0)
@@ -264,7 +264,7 @@ func (e *Elastic) GetTZIPWithViews() ([]models.TZIP, error) {
 		return nil, err
 	}
 	if response.Get("hits.total.value").Int() == 0 {
-		return nil, errors.Errorf("%s: token metadata", RecordNotFound)
+		return nil, errors.Errorf("%s token metadata", RecordNotFound)
 	}
 
 	tokens := make([]models.TZIP, 0)

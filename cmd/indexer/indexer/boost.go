@@ -21,7 +21,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/baking-bad/bcdhub/internal/parsers/operations"
-	"github.com/baking-bad/bcdhub/internal/parsers/transfer"
 	"github.com/baking-bad/bcdhub/internal/rollback"
 	"github.com/pkg/errors"
 )
@@ -39,9 +38,9 @@ type BoostIndexer struct {
 	messageQueue    *mq.QueueManager
 	state           models.Block
 	currentProtocol models.Protocol
-	tokenViews      transfer.TokenEvents
 	cfg             config.Config
 
+	updateTicker        *time.Ticker
 	stop                chan struct{}
 	Network             string
 	boost               bool
@@ -153,17 +152,8 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 		opt(bi)
 	}
 
-	if err := bi.init(); err != nil {
-		return nil, err
-	}
-
-	tokenViews, err := transfer.NewTokenViews(es)
-	if err != nil {
-		return nil, err
-	}
-	bi.tokenViews = tokenViews
-
-	return bi, nil
+	err = bi.init()
+	return bi, err
 }
 
 func (bi *BoostIndexer) init() error {
@@ -197,7 +187,6 @@ func (bi *BoostIndexer) init() error {
 	}
 	bi.currentProtocol = currentProtocol
 	logger.Info("[%s] Current network protocol: %s", bi.Network, currentProtocol.Hash)
-	logger.Info("[%s] Data will be updated every %d seconds", bi.Network, currentProtocol.Constants.TimeBetweenBlocks)
 	return nil
 }
 
@@ -221,22 +210,21 @@ func (bi *BoostIndexer) Sync(wg *sync.WaitGroup) {
 	everySecond := false
 	duration := time.Duration(bi.currentProtocol.Constants.TimeBetweenBlocks) * time.Second
 	if duration.Microseconds() <= 0 {
-		duration = 1 * time.Second
+		duration = 10 * time.Second
 	}
-	ticker := time.NewTicker(duration)
+	bi.setUpdateTicker(0)
 	for {
 		select {
 		case <-bi.stop:
 			bi.stopped = true
 			bi.messageQueue.Close()
 			return
-		case <-ticker.C:
+		case <-bi.updateTicker.C:
 			if err := bi.process(); err != nil {
 				if errors.Is(err, errSameLevel) {
 					if !everySecond {
 						everySecond = true
-						ticker.Stop()
-						ticker = time.NewTicker(time.Duration(5) * time.Second)
+						bi.setUpdateTicker(5)
 					}
 					continue
 				}
@@ -246,11 +234,27 @@ func (bi *BoostIndexer) Sync(wg *sync.WaitGroup) {
 
 			if everySecond {
 				everySecond = false
-				ticker.Stop()
-				ticker = time.NewTicker(duration)
+				bi.setUpdateTicker(0)
 			}
 		}
 	}
+}
+
+func (bi *BoostIndexer) setUpdateTicker(seconds int) {
+	if bi.updateTicker != nil {
+		bi.updateTicker.Stop()
+	}
+	var duration time.Duration
+	if seconds == 0 {
+		duration = time.Duration(bi.currentProtocol.Constants.TimeBetweenBlocks) * time.Second
+		if duration.Microseconds() <= 0 {
+			duration = 10 * time.Second
+		}
+	} else {
+		duration = time.Duration(seconds) * time.Second
+	}
+	logger.Info("[%s] Data will be updated every %.0f seconds", bi.Network, duration.Seconds())
+	bi.updateTicker = time.NewTicker(duration)
 }
 
 // Stop -
@@ -477,16 +481,6 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 		return nil, err
 	}
 
-	// parser := parsers.NewOPGParser(
-	// 	bi.rpc,
-	// 	bi.es,
-	// 	bi.cfg.Share.Path,
-	// 	parsers.WithIPFSGateways(bi.cfg.IPFSGateways),
-	// 	parsers.WithConstants(bi.currentProtocol.Constants),
-	// 	parsers.WithInterfaces(bi.interfaces),
-	// 	parsers.WithTokenViews(bi.tokenViews),
-	// )
-
 	parsedModels := make([]elastic.Model, 0)
 	for _, opg := range data.Array() {
 		parser := operations.NewGroup(operations.NewParseParams(
@@ -497,7 +491,6 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 			operations.WithIPFSGateways(bi.cfg.IPFSGateways),
 			operations.WithInterfaces(bi.interfaces),
 			operations.WithShareDirectory(bi.cfg.SharePath),
-			operations.WithTokenEvents(bi.tokenViews),
 			operations.WithNetwork(network),
 		))
 		parsed, err := parser.Parse(opg)
@@ -561,6 +554,7 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) ([]elastic.Model, error) {
 		return nil, err
 	}
 
+	bi.setUpdateTicker(0)
 	logger.Info("[%s] Migration to %s is completed", bi.Network, bi.currentProtocol.Alias)
 	return newModels, nil
 }

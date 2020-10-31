@@ -12,7 +12,12 @@ import (
 // GetDAppList -
 func (ctx *Context) GetDAppList(c *gin.Context) {
 	dapps, err := ctx.ES.GetDApps()
-	if handleError(c, err, 0) {
+	if err != nil {
+		if elastic.IsRecordNotFound(err) {
+			c.JSON(http.StatusOK, []interface{}{})
+			return
+		}
+		handleError(c, err, 0)
 		return
 	}
 
@@ -36,7 +41,12 @@ func (ctx *Context) GetDApp(c *gin.Context) {
 	}
 
 	dapp, err := ctx.ES.GetDAppBySlug(req.Slug)
-	if handleError(c, err, 0) {
+	if err != nil {
+		if elastic.IsRecordNotFound(err) {
+			c.JSON(http.StatusOK, gin.H{})
+			return
+		}
+		handleError(c, err, 0)
 		return
 	}
 
