@@ -28,6 +28,17 @@ func TestGroup_Parse(t *testing.T) {
 	defer ctrlScriptSaver.Finish()
 	scriptSaver := contract.NewMockScriptSaver(ctrlScriptSaver)
 
+	scriptSaver.
+		EXPECT().
+		Save(gomock.Any(), gomock.Any()).
+		Return(nil).AnyTimes()
+
+	es.
+		EXPECT().
+		GetTZIPWithViews().
+		Return(make([]models.TZIP, 0), nil).
+		AnyTimes()
+
 	tests := []struct {
 		name        string
 		ParseParams *ParseParams
@@ -440,11 +451,6 @@ func TestGroup_Parse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			scriptSaver.
-				EXPECT().
-				Save(gomock.Any(), gomock.Any()).
-				Return(nil).AnyTimes()
-
 			metadata := &models.Metadata{ID: tt.address}
 			es.
 				EXPECT().
