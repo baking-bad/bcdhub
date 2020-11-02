@@ -26,7 +26,7 @@ func (e *Elastic) getContract(q map[string]interface{}) (c models.Contract, err 
 		return
 	}
 	if res.Get("hits.total.value").Int() < 1 {
-		return c, errors.Errorf("%s: %v", RecordNotFound, q)
+		return c, NewRecordNotFoundError(DocContracts, "", q)
 	}
 	hit := res.Get("hits.hits.0")
 	c.ParseElasticJSON(hit)

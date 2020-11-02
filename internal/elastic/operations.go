@@ -154,7 +154,7 @@ func (e *Elastic) GetLastOperation(address, network string, indexedTime int64) (
 	}
 
 	if res.Get("hits.total.value").Int() < 1 {
-		return op, errors.Errorf("%s %s in %s on %d", RecordNotFound, address, network, indexedTime)
+		return op, NewRecordNotFoundError(DocOperations, "", query)
 	}
 	op.ParseElasticJSON(res.Get("hits.hits.0"))
 	return

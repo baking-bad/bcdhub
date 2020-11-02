@@ -383,7 +383,7 @@ func (e *Elastic) GetBigMapKey(network, keyHash string, ptr int64) (data BigMapD
 	}
 
 	if !res.Get("hits.hits.0").Exists() {
-		return data, errors.Errorf("%s: %v", RecordNotFound, query)
+		return data, NewRecordNotFoundError(DocBigMapDiff, "", query)
 	}
 	data.ParseElasticJSON(res.Get("hits.hits.0"))
 	return

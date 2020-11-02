@@ -46,23 +46,58 @@ func (ctx *Context) GetContractTransfers(c *gin.Context) {
 	if handleError(c, err, 0) {
 		return
 	}
-	response := ctx.transfersPostprocessing(transfers)
+	response, err := ctx.transfersPostprocessing(transfers)
+	if handleError(c, err, 0) {
+		return
+	}
 	c.JSON(http.StatusOK, response)
 }
 
-func (ctx *Context) transfersPostprocessing(transfers elastic.TransfersResponse) (response TransferResponse) {
+type tokenKey struct {
+	Network  string
+	Contract string
+	TokenID  int64
+}
+
+func (ctx *Context) transfersPostprocessing(transfers elastic.TransfersResponse) (response TransferResponse, err error) {
 	response.Total = transfers.Total
 	response.Transfers = make([]Transfer, len(transfers.Transfers))
 
+	mapTokens := make(map[tokenKey]*TokenMetadata)
+	tokens, err := ctx.ES.GetTokenMetadata(elastic.GetTokenMetadataContext{
+		TokenID: -1,
+	})
+	if err != nil {
+		if !elastic.IsRecordNotFound(err) {
+			return
+		}
+	} else {
+		for i := range tokens {
+			mapTokens[tokenKey{
+				Network:  tokens[i].Network,
+				Contract: tokens[i].Address,
+				TokenID:  tokens[i].TokenID,
+			}] = &TokenMetadata{
+				Contract: tokens[i].Address,
+				TokenID:  tokens[i].TokenID,
+				Symbol:   tokens[i].Symbol,
+				Name:     tokens[i].Name,
+				Decimals: tokens[i].Decimals,
+			}
+		}
+	}
+
 	for i := range transfers.Transfers {
 		response.Transfers[i] = Transfer{&transfers.Transfers[i], nil}
-		token, ok := ctx.Tokens[tokenKey{
-			Network:  transfers.Transfers[i].Network,
-			Contract: transfers.Transfers[i].Contract,
-			TokenID:  transfers.Transfers[i].TokenID,
-		}]
-		if ok {
-			response.Transfers[i].Token = &token
+		if len(mapTokens) > 0 {
+			token, ok := mapTokens[tokenKey{
+				Network:  transfers.Transfers[i].Network,
+				Contract: transfers.Transfers[i].Contract,
+				TokenID:  transfers.Transfers[i].TokenID,
+			}]
+			if ok {
+				response.Transfers[i].Token = token
+			}
 		}
 
 	}

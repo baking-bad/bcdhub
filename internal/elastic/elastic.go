@@ -65,7 +65,7 @@ func (e *Elastic) GetAPI() *esapi.API {
 func (e *Elastic) getResponse(resp *esapi.Response) (result gjson.Result, err error) {
 	if resp.IsError() {
 		if resp.StatusCode == 404 {
-			return result, errors.Errorf("%s: %s", RecordNotFound, resp.String())
+			return result, NewRecordNotFoundErrorFromResponse(resp)
 		}
 		return result, errors.Errorf(resp.String())
 	}

@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/pkg/errors"
 )
 
 // GetBlock -
@@ -26,7 +25,7 @@ func (e *Elastic) GetBlock(network string, level int64) (block models.Block, err
 	}
 
 	if r.Get("hits.total.value").Int() == 0 {
-		return block, errors.Errorf("%s: block in %s at level %d", RecordNotFound, network, level)
+		return block, NewRecordNotFoundError(DocBlocks, "", query)
 	}
 	hit := r.Get("hits.hits.0")
 	block.ParseElasticJSON(hit)
@@ -108,7 +107,7 @@ func (e *Elastic) GetNetworkAlias(chainID string) (string, error) {
 	}
 
 	if r.Get("hits.total.value").Int() == 0 {
-		return "", errors.Errorf("%s: block in %s", RecordNotFound, chainID)
+		return "", NewRecordNotFoundError(DocBlocks, "", query)
 	}
 
 	return r.Get("hits.hits.0._source.network").String(), nil
