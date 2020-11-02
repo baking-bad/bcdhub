@@ -3,21 +3,13 @@ package handlers
 import (
 	"github.com/baking-bad/bcdhub/cmd/api/oauth"
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/gin-gonic/gin"
 )
-
-type tokenKey struct {
-	Network  string
-	Contract string
-	TokenID  int64
-}
 
 // Context -
 type Context struct {
 	*config.Context
-	OAUTH  oauth.Config
-	Tokens map[tokenKey]TokenMetadata
+	OAUTH oauth.Config
 }
 
 // NewContext -
@@ -43,34 +35,9 @@ func NewContext(cfg config.Config) (*Context, error) {
 		config.WithRabbit(cfg.RabbitMQ, cfg.API.ProjectName, cfg.API.MQ),
 	)
 
-	mapTokens := make(map[tokenKey]TokenMetadata)
-	tokens, err := ctx.ES.GetTokenMetadata(elastic.GetTokenMetadataContext{
-		TokenID: -1,
-	})
-	if err != nil {
-		if !elastic.IsRecordNotFound(err) {
-			return nil, err
-		}
-	} else {
-		for i := range tokens {
-			mapTokens[tokenKey{
-				Network:  tokens[i].Network,
-				Contract: tokens[i].Address,
-				TokenID:  tokens[i].TokenID,
-			}] = TokenMetadata{
-				Contract: tokens[i].Address,
-				TokenID:  tokens[i].TokenID,
-				Symbol:   tokens[i].Symbol,
-				Name:     tokens[i].Name,
-				Decimals: tokens[i].Decimals,
-			}
-		}
-	}
-
 	return &Context{
 		Context: ctx,
 		OAUTH:   oauthCfg,
-		Tokens:  mapTokens,
 	}, nil
 }
 
@@ -83,14 +50,4 @@ func CurrentUserID(c *gin.Context) uint {
 	}
 
 	return 0
-}
-
-// FindToken -
-func (ctx *Context) FindToken(network, address string, tokenID int64) (TokenMetadata, bool) {
-	token, ok := ctx.Tokens[tokenKey{
-		Network:  network,
-		Contract: address,
-		TokenID:  tokenID,
-	}]
-	return token, ok
 }

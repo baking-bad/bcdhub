@@ -6,7 +6,7 @@ api:
 	cd cmd/api && go run .
 
 indexer:
-	docker-compose up -d elastic mq db
+	docker-compose up -d elastic mq
 	cd cmd/indexer && go run .
 
 metrics:

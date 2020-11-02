@@ -11,7 +11,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/index"
@@ -121,12 +120,6 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 		rpcProvider.URI,
 		noderpc.WithTimeout(time.Duration(rpcProvider.Timeout)*time.Second),
 	)
-
-	db, err := database.New(cfg.DB.ConnString)
-	if err != nil {
-		return nil, err
-	}
-	defer db.Close()
 
 	messageQueue, err := mq.NewQueueManager(cfg.RabbitMQ.URI, cfg.Indexer.ProjectName, cfg.Indexer.MQ.NeedPublisher)
 	if err != nil {
