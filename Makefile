@@ -17,17 +17,15 @@ compiler:
 	docker-compose -f docker-compose.yml -f build/compiler/dev/docker-compose.yml up -d --build compiler-dev
 	docker logs -f bcd-compiler-dev
 
-sandbox:
-	COMPOSE_PROJECT_NAME=bcd-box docker-compose -f docker-compose.sandbox.yml up -d --build
-
-sandbox-down:
-	COMPOSE_PROJECT_NAME=bcd-box docker-compose -f docker-compose.sandbox.yml down
-
 sitemap:
 	cd scripts/sitemap && go run .
 
 migration:
+ifeq ($(BCD_ENV), development)
 	cd scripts/migration && go run .
+else
+	docker exec -it $$BCD_ENV-api migration
+endif
 
 rollback:
 	cd scripts/esctl && go run . rollback -n $(NETWORK) -l $(LEVEL)
@@ -38,24 +36,44 @@ remove:
 s3-creds:
 	docker exec -it $$BCD_ENV-elastic bash -c 'bin/elasticsearch-keystore add --force --stdin s3.client.default.access_key <<< "$$AWS_ACCESS_KEY_ID"'
 	docker exec -it $$BCD_ENV-elastic bash -c 'bin/elasticsearch-keystore add --force --stdin s3.client.default.secret_key <<< "$$AWS_SECRET_ACCESS_KEY"'
+ifeq ($(BCD_ENV), development)
 	cd scripts/esctl && go run . reload_secure_settings
+else
+	docker exec -it $$BCD_ENV-api esctl reload_secure_settings
+endif
 
 s3-repo:
+ifeq ($(BCD_ENV), development)
 	cd scripts/esctl && go run . create_repository
+else
+	docker exec -it $$BCD_ENV-api esctl create_repository
+endif
 
 s3-restore:
+ifeq ($(BCD_ENV), development)
 	cd scripts/esctl && go run . restore
+else
+	docker exec -it $$BCD_ENV-api esctl restore
+endif
 
 s3-snapshot:
+ifeq ($(BCD_ENV), development)
 	cd scripts/esctl && go run . snapshot
+else
+	docker exec -it $$BCD_ENV-api esctl snapshot
+endif
 
 s3-policy:
+ifeq ($(BCD_ENV), development)
 	cd scripts/esctl && go run . set_policy
+else
+	docker exec -it $$BCD_ENV-api esctl set_policy
+endif
 
 es-reset:
 	docker stop $$BCD_ENV-elastic || true
 	docker rm $$BCD_ENV-elastic || true
-	docker volume rm bcdhub_esdata || true
+	docker volume rm $$COMPOSE_PROJECT_NAME_esdata || true
 	docker-compose up -d elastic
 
 clearmq:
@@ -108,3 +126,12 @@ db-dump:
 
 db-restore:
 	docker exec -i $$BCD_ENV-db psql --username $$POSTGRES_USER -v ON_ERROR_STOP=on bcd < $(BACKUP)
+
+ps:
+	docker ps --format "table {{.Names}}\t{{.RunningFor}}\t{{.Status}}\t{{.Ports}}"
+
+sandbox:
+	COMPOSE_PROJECT_NAME=bcd-box docker-compose -f docker-compose.sandbox.yml up -d --build
+
+sandbox-down:
+	COMPOSE_PROJECT_NAME=bcd-box docker-compose -f docker-compose.sandbox.yml down
