@@ -18,7 +18,10 @@ compiler:
 	docker logs -f bcd-compiler-dev
 
 sandbox:
-	docker-compose -f build/sandbox/docker-compose.yml up -d --build
+	COMPOSE_PROJECT_NAME=bcd-box docker-compose -f docker-compose.sandbox.yml up -d --build
+
+sandbox-down:
+	COMPOSE_PROJECT_NAME=bcd-box docker-compose -f docker-compose.sandbox.yml down
 
 sitemap:
 	cd scripts/sitemap && go run .

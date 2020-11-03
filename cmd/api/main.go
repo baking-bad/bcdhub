@@ -64,7 +64,7 @@ func main() {
 		return
 	}
 
-	if cfg.API.Seed.Enabled {
+	if cfg.API.SeedEnabled {
 		if err := seed.Run(ctx, cfg.API.Seed); err != nil {
 			logger.Fatal(err)
 		}

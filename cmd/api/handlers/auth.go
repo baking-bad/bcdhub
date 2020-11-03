@@ -11,7 +11,7 @@ import (
 
 // AuthJWTRequired -
 func (ctx *Context) AuthJWTRequired() gin.HandlerFunc {
-	if ctx.Config.API.Seed.Enabled {
+	if ctx.Config.API.SeedEnabled {
 		return ctx.skipAuth()
 	}
 
@@ -29,7 +29,7 @@ func (ctx *Context) AuthJWTRequired() gin.HandlerFunc {
 
 // IsAuthenticated -
 func (ctx *Context) IsAuthenticated() gin.HandlerFunc {
-	if ctx.Config.API.Seed.Enabled {
+	if ctx.Config.API.SeedEnabled {
 		return ctx.skipAuth()
 	}
 

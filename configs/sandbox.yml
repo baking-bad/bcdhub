@@ -16,6 +16,8 @@ db:
   conn_string: "host=db port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"
   timeout: 10
 
+share_path: ${HOME}/.bcd
+
 ipfs:
   - https://ipfs.io
   - https://dweb.link
@@ -23,7 +25,7 @@ ipfs:
 api:
   project_name: api
   bind: ":14000"
-  swagger_host: "localhost:42000"
+  swagger_host: "localhost:8000"
   cors_enabled: false
   oauth_enabled: false
   sentry_enabled: false
