@@ -85,7 +85,7 @@ func WithConfigCopy(cfg Config) ContextOption {
 func WithTzKTServices(tzktConfig map[string]TzKTConfig) ContextOption {
 	return func(ctx *Context) {
 		if len(tzktConfig) == 0 {
-			panic("Please, set TzKT link in config")
+			return
 		}
 		svc := make(map[string]*tzkt.ServicesTzKT)
 		for network, tzktProvider := range tzktConfig {

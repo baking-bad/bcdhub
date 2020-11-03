@@ -36,6 +36,7 @@ type Config struct {
 		CorsEnabled   bool       `yaml:"cors_enabled"`
 		OAuthEnabled  bool       `yaml:"oauth_enabled"`
 		SentryEnabled bool       `yaml:"sentry_enabled"`
+		SeedEnabled   bool       `yaml:"seed_enabled"`
 		Seed          SeedConfig `yaml:"seed"`
 		Networks      []string   `yaml:"networks"`
 		MQ            MQConfig   `yaml:"mq"`
@@ -133,8 +134,7 @@ type OAuthConfig struct {
 
 // SeedConfig -
 type SeedConfig struct {
-	Enabled bool `yaml:"enabled"`
-	User    struct {
+	User struct {
 		Login     string `yaml:"login"`
 		Name      string `yaml:"name"`
 		AvatarURL string `yaml:"avatar_url"`

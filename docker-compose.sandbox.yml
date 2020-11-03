@@ -13,8 +13,6 @@ services:
       - bootstrap.memory_lock=true
       - discovery.type=single-node
       - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
-    env_file:
-      - .env
     logging: &my-logging
       options:
         max-size: 10m
@@ -26,16 +24,19 @@ services:
     restart: always
     volumes:
       - mqdata:/var/lib/rabbitmq
-    env_file:
-      - .env
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
     logging: *my-logging
 
   db:
     container_name: sandbox-db
     image: postgres:12
     restart: always
-    env_file:
-      - .env
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=bcd_box
     volumes:
       - db:/var/lib/postgresql/data
     logging: *my-logging
@@ -47,8 +48,14 @@ services:
     build:
       context: .
       dockerfile: build/api/Dockerfile
-    env_file:
-      - .env
+    environment:
+      - BCD_ENV=sandbox
+      - GIN_MODE=debug
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=bcd_box
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
     depends_on:
       - elastic
       - db
@@ -64,8 +71,10 @@ services:
     build:
       context: .
       dockerfile: build/indexer/Dockerfile
-    env_file:
-      - .env
+    environment:
+      - BCD_ENV=sandbox
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
     depends_on:
       - elastic
       - mq
@@ -81,8 +90,13 @@ services:
     build:
       context: .
       dockerfile: build/metrics/Dockerfile
-    env_file:
-      - .env
+    environment:
+      - BCD_ENV=sandbox
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=bcd_box
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
     depends_on:
       - elastic
       - mq
@@ -94,30 +108,23 @@ services:
   flextesa:
     container_name: sandbox-flextesa
     restart: always
-    image: registry.gitlab.com/tezos/flextesa:image-tutobox-run
+    image: tqtezos/flextesa:20200925
     command: carthagebox start
     environment:
       - block_time=4
     ports:
       - 127.0.0.1:8732:20000
-    logging: &my-logging
-      options:
-        max-size: 10m
-        max-file: "5"
+    logging: *my-logging
 
   jupyter:
     container_name: sandbox-jupyter
     restart: always
-    image: bakingbad/michelson-kernel
-    command: "--NotebookApp.allow_origin=* \
-      --NotebookApp.port=8008 \
-      --NotebookApp.default_url=/tree/notebooks \
-      --NotebookApp.disable_check_xsrf=True \
-      --NotebookApp.token="
+    image: bakingbad/bcdhub-jupyter:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: build/sandbox/jupyter/Dockerfile
     ports:
       - 127.0.0.1:8008:8008
-    volumes:
-      - ./notebooks:/home/jupyter/notebooks
     extra_hosts:
       sandbox: 172.17.0.1
     logging: *my-logging
