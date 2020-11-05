@@ -119,7 +119,7 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 				bmd = append(bmd, *diffs[j])
 			}
 		}
-		op, err := prepareOperation(ctx.ES, *operations[i], bmd)
+		op, err := prepareOperation(ctx.ES, *operations[i], bmd, true)
 		if handleError(c, err, 0) {
 			return
 		}
