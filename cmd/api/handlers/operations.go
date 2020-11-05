@@ -34,6 +34,7 @@ import (
 // @Param size query integer false "Expected OPG count" mininum(1)
 // @Param status query string false "Comma-separated operations statuses"
 // @Param entrypoints query string false "Comma-separated called entrypoints list"
+// @Param with_storage_diff query bool false "Include storage diff to operations or not"
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} OperationResponse
@@ -57,7 +58,7 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 		return
 	}
 
-	resp, err := PrepareOperations(ctx.ES, ops.Operations)
+	resp, err := PrepareOperations(ctx.ES, ops.Operations, filtersReq.WithStorageDiff)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -102,7 +103,7 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 		return
 	}
 
-	resp, err := PrepareOperations(ctx.ES, op)
+	resp, err := PrepareOperations(ctx.ES, op, true)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -219,7 +220,7 @@ func formatErrors(errs []cerrors.IError, op *Operation) error {
 	return nil
 }
 
-func prepareOperation(es elastic.IElastic, operation models.Operation, bmd []models.BigMapDiff) (Operation, error) {
+func prepareOperation(es elastic.IElastic, operation models.Operation, bmd []models.BigMapDiff, withStorageDiff bool) (Operation, error) {
 	var op Operation
 	op.FromModel(operation)
 
@@ -230,9 +231,11 @@ func prepareOperation(es elastic.IElastic, operation models.Operation, bmd []mod
 	if err := formatErrors(operation.Errors, &op); err != nil {
 		return op, err
 	}
-	if operation.DeffatedStorage != "" && strings.HasPrefix(op.Destination, "KT") && op.Status == consts.Applied {
-		if err := setStorageDiff(es, op.Destination, operation.DeffatedStorage, &op, bmd); err != nil {
-			return op, err
+	if withStorageDiff {
+		if operation.DeffatedStorage != "" && strings.HasPrefix(op.Destination, "KT") && op.Status == consts.Applied {
+			if err := setStorageDiff(es, op.Destination, operation.DeffatedStorage, &op, bmd); err != nil {
+				return op, err
+			}
 		}
 	}
 
@@ -250,14 +253,20 @@ func prepareOperation(es elastic.IElastic, operation models.Operation, bmd []mod
 }
 
 // PrepareOperations -
-func PrepareOperations(es elastic.IElastic, ops []models.Operation) ([]Operation, error) {
+func PrepareOperations(es elastic.IElastic, ops []models.Operation, withStorageDiff bool) ([]Operation, error) {
 	resp := make([]Operation, len(ops))
 	for i := 0; i < len(ops); i++ {
-		bmd, err := es.GetBigMapDiffsUniqueByOperationID(ops[i].ID)
-		if err != nil {
-			return nil, err
+		var bmd []models.BigMapDiff
+		var err error
+
+		if withStorageDiff {
+			bmd, err = es.GetBigMapDiffsUniqueByOperationID(ops[i].ID)
+			if err != nil {
+				return nil, err
+			}
 		}
-		op, err := prepareOperation(es, ops[i], bmd)
+
+		op, err := prepareOperation(es, ops[i], bmd, withStorageDiff)
 		if err != nil {
 			return nil, err
 		}
