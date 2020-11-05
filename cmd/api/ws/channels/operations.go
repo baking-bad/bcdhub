@@ -116,7 +116,7 @@ func (c *OperationsChannel) createMessage(data datasources.Data) error {
 		return err
 	}
 
-	response, err := handlers.PrepareOperations(c.es, operations)
+	response, err := handlers.PrepareOperations(c.es, operations, true)
 	if err != nil {
 		return err
 	}
