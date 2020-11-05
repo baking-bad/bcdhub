@@ -1,143 +1,143 @@
 rpc:
-    mainnet:
-        uri: https://mainnet-tezos.giganode.io
-        timeout: 20
-    delphinet:
-        uri: https://delphinet-tezos.giganode.io
-        timeout: 20
-    dalphanet:
-        uri: https://rpc.tzkt.io/dalphanet
-        timeout: 20
-    carthagenet:
-        uri: https://testnet-tezos.giganode.io
-        timeout: 20
+  mainnet:
+    uri: https://mainnet-tezos.giganode.io
+    timeout: 20
+  delphinet:
+    uri: https://delphinet-tezos.giganode.io
+    timeout: 20
+  dalphanet:
+    uri: https://rpc.tzkt.io/dalphanet
+    timeout: 20
+  carthagenet:
+    uri: https://testnet-tezos.giganode.io
+    timeout: 20
 
 tzkt:
-    mainnet:
-        uri: https://api.tzkt.io/v1/
-        services_uri: https://services.tzkt.io/v1/
-        base_uri: https://tzkt.io/
-        timeout: 20
-    delphinet:
-        uri: https://api.delphi.tzkt.io/v1/
-        services_uri: https://services.tzkt.io/delphinet/v1/
-        base_uri: https://delphi.tzkt.io/
-        timeout: 20
-    carthagenet:
-        uri: https://api.carthage.tzkt.io/v1/
-        services_uri: https://services.tzkt.io/carthagenet/v1/
-        base_uri: https://carthage.tzkt.io/
-        timeout: 20
+  mainnet:
+    uri: https://api.tzkt.io/v1/
+    services_uri: https://services.tzkt.io/v1/
+    base_uri: https://tzkt.io/
+    timeout: 20
+  delphinet:
+    uri: https://api.delphi.tzkt.io/v1/
+    services_uri: https://services.tzkt.io/delphinet/v1/
+    base_uri: https://delphi.tzkt.io/
+    timeout: 20
+  carthagenet:
+    uri: https://api.carthage.tzkt.io/v1/
+    services_uri: https://services.tzkt.io/carthagenet/v1/
+    base_uri: https://carthage.tzkt.io/
+    timeout: 20
 
 elastic:
-    uri:
-        - http://elastic:9200
-    timeout: 10
+  uri:
+    - http://elastic:9200
+  timeout: 10
 
 rabbitmq:
-    uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mq:5672/"
-    timeout: 10
+  uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mq:5672/"
+  timeout: 10
 
 db:
-    conn_string: "host=db port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"
-    timeout: 10
+  conn_string: "host=db port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"
+  timeout: 10
 
 oauth:
-    state: ${OAUTH_STATE_STRING}
-    jwt:
-        secret: ${JWT_SECRET_KEY}
-        redirect_url: https://you.better-call.dev/welcome
-    github:
-        client_id: ${GITHUB_CLIENT_ID}
-        secret: ${GITHUB_CLIENT_SECRET}
-        callback_url: https://you.better-call.dev/v1/oauth/github/callback
-    gitlab:
-        client_id: ${GITLAB_CLIENT_ID}
-        secret: ${GITLAB_CLIENT_SECRET}
-        callback_url: https://you.better-call.dev/v1/oauth/gitlab/callback
+  state: ${OAUTH_STATE_STRING}
+  jwt:
+    secret: ${JWT_SECRET_KEY}
+    redirect_url: https://you.better-call.dev/welcome
+  github:
+    client_id: ${GITHUB_CLIENT_ID}
+    secret: ${GITHUB_CLIENT_SECRET}
+    callback_url: https://you.better-call.dev/v1/oauth/github/callback
+  gitlab:
+    client_id: ${GITLAB_CLIENT_ID}
+    secret: ${GITLAB_CLIENT_SECRET}
+    callback_url: https://you.better-call.dev/v1/oauth/gitlab/callback
 
 sentry:
-    environment: staging
-    uri: ${SENTRY_DSN}
-    debug: false
+  environment: staging
+  uri: ${SENTRY_DSN}
+  debug: false
 
 share_path: /etc/bcd
 
 ipfs:
-    - https://ipfs.io
-    - https://dweb.link
+  - https://ipfs.io
+  - https://dweb.link
 
 api:
-    project_name: api
-    bind: ":14000"
-    swagger_host: "you.better-call.dev"
-    cors_enabled: true
-    oauth_enabled: true
-    sentry_enabled: true
-    seed_enabled: false
-    networks:
-        - mainnet
-        - carthagenet
-        - delphinet
-        - dalphanet
-    mq:
-        publisher: true
-        queues:
-            operations:
-                non_durable: true
-                auto_deleted: true
+  project_name: api
+  bind: ":14000"
+  swagger_host: "you.better-call.dev"
+  cors_enabled: true
+  oauth_enabled: true
+  sentry_enabled: true
+  seed_enabled: false
+  networks:
+    - mainnet
+    - carthagenet
+    - delphinet
+    - dalphanet
+  mq:
+    publisher: true
+    queues:
+      operations:
+        non_durable: true
+        auto_deleted: true
 
 compiler:
-    project_name: compiler
-    aws:
-        bucket_name: bcd-contract-sources
-        region: eu-central-1
-        access_key_id: ${AWS_ACCESS_KEY_ID}
-        secret_access_key: ${AWS_SECRET_ACCESS_KEY}
-    sentry_enabled: true
-    mq:
-        publisher: true
-        queues:
-            compilations:
+  project_name: compiler
+  aws:
+    bucket_name: bcd-contract-sources
+    region: eu-central-1
+    access_key_id: ${AWS_ACCESS_KEY_ID}
+    secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+  sentry_enabled: true
+  mq:
+    publisher: true
+    queues:
+      compilations:
 
 indexer:
-    project_name: indexer
-    sentry_enabled: true
-    skip_delegator_blocks: false
-    mq:
-        publisher: true
-    networks:
-        mainnet:
-            boost: tzkt
-        carthagenet:
-            boost: tzkt
-        delphinet:
-            boost: tzkt
-        dalphanet:
+  project_name: indexer
+  sentry_enabled: true
+  skip_delegator_blocks: false
+  mq:
+    publisher: true
+  networks:
+    mainnet:
+      boost: tzkt
+    carthagenet:
+      boost: tzkt
+    delphinet:
+      boost: tzkt
+    dalphanet:
 
 metrics:
-    project_name: metrics
-    sentry_enabled: true
-    mq:
-        publisher: false
-        queues:
-            operations:
-            contracts:
-            migrations:
-            recalc:
-            transfers:
-            bigmapdiffs:
+  project_name: metrics
+  sentry_enabled: true
+  mq:
+    publisher: false
+    queues:
+      operations:
+      contracts:
+      migrations:
+      recalc:
+      transfers:
+      bigmapdiffs:
 
 scripts:
-    aws:
-        bucket_name: bcd-elastic-snapshots
-        region: eu-central-1
-        access_key_id: ${AWS_ACCESS_KEY_ID}
-        secret_access_key: ${AWS_SECRET_ACCESS_KEY}
-    networks:
-        - mainnet
-        - carthagenet
-        - delphinet
-        - dalphanet
-    mq:
-        publisher: true
+  aws:
+    bucket_name: bcd-elastic-snapshots
+    region: eu-central-1
+    access_key_id: ${AWS_ACCESS_KEY_ID}
+    secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+  networks:
+    - mainnet
+    - carthagenet
+    - delphinet
+    - dalphanet
+  mq:
+    publisher: true
