@@ -9,20 +9,20 @@ Backend for the [Better Call Dev](https://better-call.dev) contract explorer & d
 ## Overview
 BCDHub is a set of microservices written in Golang:
 
-* `Indexer`  
+* `indexer`  
 Loads and decodes operations related to smart contracts and also keeps track of the block chain and handles protocol updates.    
-* `Metrics`  
+* `metrics`  
 Receives new contract/operation events from the indexer and calculates various metrics that are used for ranking, linking, and labelling contracts and operations.
 * `API`  
 Exposes RESTful JSON API for accessing indexed data (with on-the-fly decoding). Also provides a set of methods for authentication and managing user profiles.
-* `Compiler`  
+* `compiler`  
 Contains compilers of various high-level contract languages (LIGO, SmartPy, etc) as well as a service handling compilation tasks
 
 Those microservices are sharing access to databases and communicating via message queue:
 
 * `ElasticSearch` cluster (single node) for storing all indexed data including blocks, protocols, contracts, operations, Big_map diffs, and others.
-* `PostgreSQL` database for storing off-chain data such as contract aliases and user data.
-* `RabbitMQ` for one-way communications `indexer` -> `metrics`, `API`.
+* `PostgreSQL` database for storing compilations and user data.
+* `RabbitMQ` for communications between `API`, `indexer`, `metrics` and `compiler`.
 
 ### Third-party services
 BCDHub also depends on several API endpoints exposed by [TzKT](https://github.com/baking-bad/tzkt) although they are optional:
@@ -46,7 +46,7 @@ BCD web interface developed at https://github.com/baking-bad/bcd uses the same v
 ### Publishing releases
 Is essentially tagging commits:
 ```bash
-make latest  # forced tag update
+make release  # forced tag update
 ```
 For stable release:
 ```bash
@@ -57,13 +57,10 @@ git push --tags
 ## Docker images
 Although you can install and run each part of BCD Hub independently, as system services for instance, the simplest approach is to use dockerized versions orchestrated by _docker-compose_.  
 
-BCDHub docker images are being built on [dockerhub](https://hub.docker.com/u/bakingbad). Two types of tags are provided:
-* `latest` should be considered experimental
-* `X.Y` stable releases
+BCDHub docker images are being built on [dockerhub](https://hub.docker.com/u/bakingbad). Tags for stable releases have format `X.Y`.
 
 ### Linking with Git tags
 Docker tags are essentially produced from Git tags using the following rules:
-* `latest` → `latest`
 * `X.Y.*` → `X.Y`
 
 ### Building images
@@ -73,11 +70,11 @@ make stable-images  # requires STABLE_TAG variable in the .env file
 ```
 
 ## Configuration
-BCD configuration is stored in _yml_ files in docker-compose style: you can **merge** multiple configs and **expand** environment variables.  
+BCD configuration is stored in _yml_ files: you can **expand** environment variables.  
 
-Each service has its very own section in the config file and also they share several common sections. There are predefined configs for _dev_, _prod_, and _sandbox_ environments.
+Each service has its very own section in the config file and also they share several common sections. There are predefined configs for _production_, _development_, _sandbox_ and _staging_ environments.
 
-### Main config `config.yml`
+### Production config `./configs/production.yml`
 
 #### `rpc`
 List of RPC nodes with base urls and connection timeouts
@@ -95,33 +92,32 @@ tzkt:
     mainnet:
         uri: https://api.tzkt.io/v1/
         services_uri: https://services.tzkt.io/v1/
+        base_uri: https://tzkt.io/
         timeout: 20
 ```
 
-#### `share`
-Folder to store cached contract sources
+#### `elastic`
+Elastic Search configuration
 ```yml
-share:
-    path: /etc/bcd
+elastic:
+    uri:
+        - http://elastic:9200
+    timeout: 10
 ```
 
-#### `sentry`
-[Sentry](https://sentry.io/) configuration
+#### `rabbitmq`
+RabbitMQ settings and list of queues to subscribe
 ```yml
-sentry:
-    environment: production
-    uri: ${SENTRY_DSN}
-    debug: false
+rabbitmq:
+    uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mq:5672/"
+    publisher: true
 ```
 
-#### `aws`
-[AWS S3](https://aws.amazon.com/s3/) snapshot registry settings
+#### `db`
+PostgreSQL connection string
 ```yml
-aws:
-    bucket_name: bcd-elastic-snapshots
-    region: eu-central-1
-    access_key_id: ${AWS_ACCESS_KEY_ID}
-    secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+db:
+    conn_string: "host=db port=5432 user=${POSTGRES_USER} dbname=bcd password=${POSTGRES_PASSWORD} sslmode=disable"
 ```
 
 #### `oauth`
@@ -140,50 +136,21 @@ oauth:
         client_id: ${GITLAB_CLIENT_ID}
         secret: ${GITLAB_CLIENT_SECRET}
         callback_url: https://api.better-call.dev/v1/oauth/gitlab/callback
-
 ```
 
-#### `elastic`
-Elastic Search configuration
+#### `sentry`
+[Sentry](https://sentry.io/) configuration
 ```yml
-elastic:
-    uri: http://elastic:9200
-    timeout: 10
+sentry:
+    environment: production
+    uri: ${SENTRY_DSN}
+    debug: false
 ```
 
-#### `db`
-PostgreSQL connection string
+#### `share_path`
+Folder to store cached contract sources and share files for `compiler`
 ```yml
-db:
-    conn_string: "host=db port=5432 user=${POSTGRES_USER} dbname=bcd password=${POSTGRES_PASSWORD} sslmode=disable"
-```
-
-#### `rabbitmq`
-RabbitMQ settings and list of queues to subscribe
-```yml
-rabbitmq:
-    uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mq:5672/"
-    publisher: true
-```
-
-#### `seed`
-Prepopulated data: default user (for sandbox mode), user datam and contract aliases
-```yml
-seed:
-    user:
-        login: sandboxuser
-        name: "Default User"
-        avatar_url: "https://services.tzkt.io/v1/avatars/bcd"
-        token: ""
-    subscriptions:
-        - address: tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb
-          network: sandboxnet
-          alias: Alice
-          watch_mask: 127
-    aliases:
-        - alias: Alice
-          network: sandboxnet
-          address: tz1VSUr8wwNhLAzempoch5d6hLRiTh8Cjcjb
+share_path: /etc/bcd
 ```
 
 #### `ipfs`
@@ -195,52 +162,24 @@ ipfs:
 ```
 
 #### `api`
-API service settings: 
+API service settings
 ```yml
 api:
     project_name: api
     bind: ":14000"
     swagger_host: "api.better-call.dev"
-    oauth:
-        enabled: true
-    sentry:
-        enabled: true
+    cors_enabled: false
+    oauth_enabled: true
+    sentry_enabled: true
+    seed_enabled: false
     networks:
         - mainnet
-    seed:
-        enabled: false
-    queues:
-        operations:
-            non_durable: true
-            auto_deleted: true
-```
-
-#### `indexer`
-Indexer service settings. Note the optional _boost_ setting which tells indexer to use third-party service in order to speed up the process.
-```yml
-indexer:
-    project_name: indexer
-    sentry:
-        enabled: true
-    networks:
-        mainnet:
-          boost: tzkt
-```
-
-#### `metrics`
-Metrics service settings
-```yml
-metrics:
-    project_name: metrics
-    sentry:
-        enabled: true
-    queues:
-        operations:
-        contracts:
-        migrations:
-        recalc:
-        transfers:
-        bigmapdiffs:
+    mq:
+        publisher: true
+        queues:
+            operations:
+                non_durable: true
+                auto_deleted: true
 ```
 
 #### `compiler`
@@ -253,13 +192,61 @@ compiler:
         region: eu-central-1
         access_key_id: ${AWS_ACCESS_KEY_ID}
         secret_access_key: ${AWS_SECRET_ACCESS_KEY}
-    sentry:
-        enabled: true
-    queues:
-        compilations:
+    sentry_enabled: true
+    mq:
+        publisher: true
+        queues:
+            compilations:
 ```
 
+#### `indexer`
+Indexer service settings. Note the optional _boost_ setting which tells indexer to use third-party service in order to speed up the process.
+```yml
+indexer:
+    project_name: indexer
+    sentry_enabled: true
+    skip_delegator_blocks: false
+    mq:
+        publisher: true
+    networks:
+        mainnet:
+          boost: tzkt
+```
 
+#### `metrics`
+Metrics service settings
+```yml
+metrics:
+    project_name: metrics
+    sentry_enabled: true
+    mq:
+        publisher: false
+        queues:
+            operations:
+            contracts:
+            migrations:
+            recalc:
+            transfers:
+            bigmapdiffs:
+```
+
+#### `scripts`
+Scripts settings for data migrations and [AWS S3](https://aws.amazon.com/s3/) snapshot registry
+```yml
+scripts:
+    aws:
+        bucket_name: bcd-elastic-snapshots
+        region: eu-central-1
+        access_key_id: ${AWS_ACCESS_KEY_ID}
+        secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+    networks:
+      - mainnet
+      - carthagenet
+      - delphinet
+      - dalphanet
+    mq:
+        publisher: true
+```
 
 ### Docker settings `docker-compose.yml`
 Connects all the services together. The compose file is pretty straightforward and universal, although there are several settings you may want to change:
@@ -268,7 +255,7 @@ Connects all the services together. The compose file is pretty straightforward a
 * Ports
 * Shared paths
 
-If you are altering these settings make sure you are in sync with the `config.yml` (also keep in mind that container names are essentially hostnames in the internal docker network).
+If you are altering these settings make sure you are in sync with your `.yml` configuration file.
 
 #### Local RPC node
 A typical problem is to access service running on the host machine from inside a docker container. Currently there's no unversal (cross-platform) way to do it (should be fixed in docker 20). A suggested way is the following:
@@ -291,6 +278,8 @@ A typical problem is to access service running on the host machine from inside a
 About env files: https://docs.docker.com/compose/env-file/
 
 #### System config _required_
+* `BCD_ENV` e.g. _production_ or _sandbox_
+* `COMPOSE_PROJECT_NAME` e.g. _bcd-prod_ or _bcd-box_
 * `GIN_MODE` _release_ for production, _debug_ otherwise
 * `ES_JAVA_OPTS` _"-Xms1g -Xmx1g"_ max RAM allocation for Elastic Search (_g_ for GB, _m_ for MB)
 
@@ -301,7 +290,14 @@ About env files: https://docs.docker.com/compose/env-file/
 * `RABBITMQ_DEFAULT_USER` e.g. _guest_
 * `RABBITMQ_DEFAULT_PASS` e.g. _guest_
 
-#### OAuth creds _required if `oauth: enabled`_
+#### Services ports _required_
+* `BCD_API_PORT` e.g. _14000_
+* `ES_REQUESTS_PORT` e.g. _9200_
+* `RABBITMQ_PORT` e.g. _5672_
+* `POSTGRES_PORT` e.g. _5432_
+* `BCD_GUI_PORT` e.g. _8000_
+
+#### OAuth creds _required if `oauth_enabled: true`_
 * `GITHUB_CLIENT_ID`
 * `GITHUB_CLIENT_SECRET`
 * `GITLAB_CLIENT_ID`
@@ -309,19 +305,17 @@ About env files: https://docs.docker.com/compose/env-file/
 * `JWT_SECRET_KEY`
 * `OAUTH_STATE_STRING`
 
-#### Sentry creds _required if `sentry: enabled`_
+#### Sentry creds _required if `sentry_enabled: true`_
 * `SENTRY_DSN`
 
-#### Snapshot settings
+#### AWS settings
 * `AWS_ACCESS_KEY_ID`
 * `AWS_SECRET_ACCESS_KEY`
 
 #### Others
 * `STABLE_TAG` _required for building & running images_ e.g. _2.5_
-* `USER_ID` _required for single-user mode_ e.g. _1_
 
 ## Deploy
-If you are looking for a full-fledged BCD setup with GUI (e.g. for local development env) check out https://github.com/baking-bad/bbbox
 
 ### Requirements
 Make sure you have installed:
@@ -330,9 +324,10 @@ Make sure you have installed:
 
 You will also need several ports to be not busy:
 * `14000` API service
-* `9200, 9300` Elastic
-* `5672, 15672` RabbitMQ
+* `9200` Elastic
+* `5672` RabbitMQ
 * `5432` PostgreSQL
+* `8000` Frontend GUI
 
 ### Get ready
 1. Clone this repo
@@ -351,22 +346,24 @@ There are several predefined configurations serving different purposes.
 
 #### Production `better-call.dev`
 * Stable docker images `X.Y`
-* `/cmd/{service}/config.yml` files are used internally
+* `/configs/production.yml` file is used internally
 * Requires `STABLE_TAG` environment set
 * Deployed via `make stable`
 
 #### Staging `you.better-call.dev`
 * Latest docker images `latest`
-* Single `config.yml` file mapped through docker volumes
-* Deployed via https://github.com/baking-bad/bbbox using `make custom`
+* `/configs/you.yml` file is used internally
+* Deployed via `make latest`
 
 #### Development `localhost`
-* `config.yml` + `config.dev.yml` files are used (merged)
+* `/configs/development.yml` file is used
 * You can spawn local instances of databases and message queue or _ssh_ to staging host with port forwarding
-* Run services `make {service}` (where service is one of `api` `indexer` `metrics`)
+* Run services `make {service}` (where service is one of `api` `indexer` `metrics` `compiler`)
 
 #### Sandbox `bbbox`
-See https://github.com/baking-bad/bbbox
+* `/configs/sandbox.yml` file is used
+* Start via `COMPOSE_PROJECT_NAME=bcd-box docker-compose -f docker-compose.sandbox.yml up -d --build`
+* Stop via `COMPOSE_PROJECT_NAME=bcd-box docker-compose -f docker-compose.sandbox.yml down`
 
 
 ## Running
@@ -374,33 +371,6 @@ See https://github.com/baking-bad/bbbox
 ### Startup
 It takes around 20-30 seconds to initialize all services, API endpoints might return errors until then.  
 **NOTE** that if you specified local RPC node that's not running, BCDHub will wait for it indefinitely.
-
-### Single user mode
-If `USER_ID` variable is set all API endpoints that are hidden behind auth become accessible without JWT token.  
-This is done specifically for sandbox environment.
-
-
-## Contract aliases
-
-#### 1. Fetch from TzKT
-```bash
-make aliases
-```
-
-#### 2. Apply to indexed data
-```bash
-make migration
-```
-You'd need to run it twice:
-
-* First select _[2] contract_alias_
-* Next select _[3] operation_alias_
-
-#### 3. Refresh contexts
-Lastly you need to restart services in order to fill contexts with aliases:
-```bash
-make restart
-```
 
 ## Snapshots
 Full indexing process (mainnet + carthagenet + delphinet + dalphanet) requires about 2 hours, however there are cases when you cannot afford that.  
@@ -412,7 +382,7 @@ Alternatively, contact us for granting access
 
 ### Get ready
 * Make sure you have snapshot settings in your `.env` file
-* Elastic service `bcd-elastic` should be up and initialized
+* Elastic service should be up and initialized
 
 ### Make snapshot
 
