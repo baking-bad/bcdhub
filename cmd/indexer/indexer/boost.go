@@ -307,7 +307,7 @@ func (bi *BoostIndexer) Index(levels []int64) error {
 
 // Rollback -
 func (bi *BoostIndexer) Rollback() error {
-	logger.WithNetwork(bi.Network).Warning("Rollback from %d", bi.Network, bi.state.Level)
+	logger.WithNetwork(bi.Network).Warningf("Rollback from %d", bi.state.Level)
 
 	lastLevel, err := bi.getLastRollbackBlock()
 	if err != nil {

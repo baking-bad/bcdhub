@@ -16,8 +16,6 @@ import (
 
 var ctx *config.Context
 
-var errMetricsStopped = errors.New("METRICS_STOPPED")
-
 var handlers = map[string]BulkHandler{
 	mq.QueueContracts:   getContract,
 	mq.QueueOperations:  getOperation,
@@ -25,7 +23,7 @@ var handlers = map[string]BulkHandler{
 	mq.QueueTransfers:   getTransfer,
 	mq.QueueBigMapDiffs: getBigMapDiff,
 	mq.QueueRecalc:      recalculateAll,
-	// mq.QueueProjects:    getProject,
+	mq.QueueProjects:    getProject,
 }
 
 var managers = map[string]*BulkManager{}
