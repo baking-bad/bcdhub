@@ -167,11 +167,8 @@ func (p Transaction) tagTransaction(tx *models.Operation) error {
 		return nil
 	}
 
-	contract, err := p.es.GetContract(map[string]interface{}{
-		"network": tx.Network,
-		"address": tx.Destination,
-	})
-	if err != nil {
+	contract := models.NewEmptyContract(tx.Network, tx.Destination)
+	if err := p.es.GetByID(&contract); err != nil {
 		if elastic.IsRecordNotFound(err) {
 			return nil
 		}

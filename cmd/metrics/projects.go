@@ -32,5 +32,5 @@ func parseProject(contract models.Contract) error {
 		}
 	}
 	logger.With(&contract).Infof("Contract is pulled to project %s", contract.ProjectID)
-	return ctx.ES.UpdateFields(elastic.DocContracts, contract.ID, contract, "ProjectID")
+	return ctx.ES.UpdateFields(elastic.DocContracts, contract.GetID(), contract, "ProjectID")
 }

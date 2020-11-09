@@ -219,7 +219,7 @@ func (c *Contract) FromModel(contract models.Contract) {
 	c.FoundBy = contract.FoundBy
 	c.Hardcoded = contract.Hardcoded
 	c.Hash = contract.Hash
-	c.ID = contract.ID
+	c.ID = contract.GetID()
 	c.Language = contract.Language
 	c.TxCount = contract.TxCount
 	c.LastAction = contract.LastAction

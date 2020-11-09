@@ -29,15 +29,11 @@ func (ctx *Context) GetContract(c *gin.Context) {
 		return
 	}
 
-	by := map[string]interface{}{
-		"address": req.Address,
-		"network": req.Network,
-	}
-	cntr, err := ctx.ES.GetContract(by)
-	if handleError(c, err, 0) {
+	contract := models.NewEmptyContract(req.Network, req.Address)
+	if err := ctx.ES.GetByID(&contract); handleError(c, err, 0) {
 		return
 	}
-	res, err := ctx.contractPostprocessing(cntr, c)
+	res, err := ctx.contractPostprocessing(contract, c)
 	if handleError(c, err, 0) {
 		return
 	}

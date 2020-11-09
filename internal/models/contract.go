@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -11,7 +12,6 @@ import (
 
 // Contract - entity for contract
 type Contract struct {
-	ID        string    `json:"id"`
 	Network   string    `json:"network"`
 	Level     int64     `json:"level"`
 	Timestamp time.Time `json:"timestamp"`
@@ -40,9 +40,17 @@ type Contract struct {
 	VerificationSource string    `json:"verification_source,omitempty"`
 }
 
+// NewEmptyContract -
+func NewEmptyContract(network, address string) Contract {
+	return Contract{
+		Network: network,
+		Address: address,
+	}
+}
+
 // GetID -
 func (c *Contract) GetID() string {
-	return c.ID
+	return fmt.Sprintf("%s_%s", c.Network, c.Address)
 }
 
 // GetIndex -
@@ -66,7 +74,7 @@ func (c *Contract) LogFields() logrus.Fields {
 
 // MarshalToQueue -
 func (c *Contract) MarshalToQueue() ([]byte, error) {
-	return []byte(c.ID), nil
+	return []byte(c.GetID()), nil
 }
 
 // GetScores -

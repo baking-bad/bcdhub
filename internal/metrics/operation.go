@@ -162,13 +162,8 @@ func (h *Handler) SetOperationDeployment(op *models.Operation) error {
 		return err
 	}
 
-	by := map[string]interface{}{
-		"address": op.Destination,
-		"network": op.Network,
-	}
-
-	contract, err := h.ES.GetContract(by)
-	if err != nil {
+	contract := models.NewEmptyContract(op.Network, op.Destination)
+	if err := h.ES.GetByID(&contract); err != nil {
 		return err
 	}
 
@@ -177,7 +172,7 @@ func (h *Handler) SetOperationDeployment(op *models.Operation) error {
 			return err
 		}
 
-		return h.ES.UpdateFields(elastic.DocContracts, contract.ID, contract, "Verified", "VerificationSource")
+		return h.ES.UpdateFields(elastic.DocContracts, contract.GetID(), contract, "Verified", "VerificationSource")
 	}
 
 	return nil

@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -32,11 +33,8 @@ func (ctx *Context) GetSameContracts(c *gin.Context) {
 		return
 	}
 
-	by := map[string]interface{}{
-		"address": req.Address,
-		"network": req.Network,
-	}
-	contract, err := ctx.ES.GetContract(by)
+	contract := models.NewEmptyContract(req.Network, req.Address)
+	err := ctx.ES.GetByID(&contract)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -78,11 +76,8 @@ func (ctx *Context) GetSimilarContracts(c *gin.Context) {
 		return
 	}
 
-	by := map[string]interface{}{
-		"address": req.Address,
-		"network": req.Network,
-	}
-	contract, err := ctx.ES.GetContract(by)
+	contract := models.NewEmptyContract(req.Network, req.Address)
+	err := ctx.ES.GetByID(&contract)
 	if handleError(c, err, 0) {
 		return
 	}

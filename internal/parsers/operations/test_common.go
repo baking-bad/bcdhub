@@ -44,14 +44,12 @@ func readTestMetadataModel(address string) (*models.Metadata, error) {
 	return &metadata, err
 }
 
-func readTestContractModel(address string) (models.Contract, error) {
-	bytes, err := ioutil.ReadFile(fmt.Sprintf("./data/models/contract/%s.json", address))
+func readTestContractModel(contract *models.Contract) error {
+	bytes, err := ioutil.ReadFile(fmt.Sprintf("./data/models/contract/%s.json", contract.Address))
 	if err != nil {
-		return models.Contract{}, err
+		return err
 	}
-	var contract models.Contract
-	err = json.Unmarshal(bytes, &contract)
-	return contract, err
+	return json.Unmarshal(bytes, &contract)
 }
 
 func readStorage(address string, level int64) (gjson.Result, error) {
