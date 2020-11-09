@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	"github.com/tidwall/gjson"
+	"github.com/sirupsen/logrus"
 )
 
 // Migration -
@@ -31,27 +31,22 @@ func (m *Migration) GetIndex() string {
 	return "migration"
 }
 
-// GetQueue -
-func (m *Migration) GetQueue() string {
-	return "migrations"
+// GetQueues -
+func (m *Migration) GetQueues() []string {
+	return []string{"migrations"}
 }
 
-// Marshal -
-func (m *Migration) Marshal() ([]byte, error) {
+// MarshalToQueue -
+func (m *Migration) MarshalToQueue() ([]byte, error) {
 	return []byte(m.ID), nil
 }
 
-// ParseElasticJSON -
-func (m *Migration) ParseElasticJSON(resp gjson.Result) {
-	m.ID = resp.Get("_id").String()
-	m.IndexedTime = resp.Get("_source.indexed_time").Int()
-
-	m.Protocol = resp.Get("_source.protocol").String()
-	m.PrevProtocol = resp.Get("_source.prev_protocol").String()
-	m.Hash = resp.Get("_source.hash").String()
-	m.Network = resp.Get("_source.network").String()
-	m.Timestamp = resp.Get("_source.timestamp").Time().UTC()
-	m.Level = resp.Get("_source.level").Int()
-	m.Address = resp.Get("_source.address").String()
-	m.Kind = resp.Get("_source.kind").String()
+// LogFields -
+func (m *Migration) LogFields() logrus.Fields {
+	return logrus.Fields{
+		"network": m.Network,
+		"address": m.Address,
+		"block":   m.Level,
+		"kind":    m.Kind,
+	}
 }

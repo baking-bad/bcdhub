@@ -3,13 +3,11 @@ package elastic
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"reflect"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 )
 
 const defaultScrollSize = 1000
@@ -37,7 +35,7 @@ func newScrollContext(e *Elastic, query base, size, chunkSize int64) *scrollCont
 	}
 }
 
-func (ctx *scrollContext) createScroll(index string, query map[string]interface{}) (result gjson.Result, err error) {
+func (ctx *scrollContext) createScroll(index string, query map[string]interface{}) (response SearchResponse, err error) {
 	var buf bytes.Buffer
 	if err = json.NewEncoder(&buf).Encode(query); err != nil {
 		return
@@ -59,17 +57,19 @@ func (ctx *scrollContext) createScroll(index string, query map[string]interface{
 	}
 	defer resp.Body.Close()
 
-	return ctx.e.getResponse(resp)
+	err = ctx.e.getResponse(resp, &response)
+	return
 }
 
-func (ctx *scrollContext) queryScroll(scrollID string) (result gjson.Result, err error) {
+func (ctx *scrollContext) queryScroll(scrollID string) (response SearchResponse, err error) {
 	resp, err := ctx.e.Scroll(ctx.e.Scroll.WithScrollID(scrollID), ctx.e.Scroll.WithScroll(time.Minute))
 	if err != nil {
 		return
 	}
 	defer resp.Body.Close()
 
-	return ctx.e.getResponse(resp)
+	err = ctx.e.getResponse(resp, &response)
+	return
 }
 
 func (ctx *scrollContext) removeScroll(scrollIDs []string) error {
@@ -102,15 +102,14 @@ func (ctx *scrollContext) get(output interface{}) error {
 	}
 	el := reflect.ValueOf(output).Elem()
 	for {
-		scrollID := result.Get("_scroll_id").String()
-		ctx.scrollIds[scrollID] = struct{}{}
+		ctx.scrollIds[result.ScrollID] = struct{}{}
 
-		hits := result.Get("hits.hits")
-		if hits.Get("#").Int() < 1 {
+		hits := result.Hits.Hits
+		if len(hits) < 1 {
 			break
 		}
 
-		for _, item := range hits.Array() {
+		for _, item := range hits {
 			n, err := parseResponseItem(item, typ)
 			if err != nil {
 				return err
@@ -126,7 +125,7 @@ func (ctx *scrollContext) get(output interface{}) error {
 			}
 		}
 
-		result, err = ctx.queryScroll(scrollID)
+		result, err = ctx.queryScroll(result.ScrollID)
 		if err != nil {
 			return err
 		}
@@ -178,12 +177,15 @@ func getIndex(typ reflect.Type) (string, error) {
 	return getIndexResult[0].Interface().(string), nil
 }
 
-func parseResponseItem(item gjson.Result, typ reflect.Type) (reflect.Value, error) {
-	n := reflect.New(typ)
-	parse := n.MethodByName("ParseElasticJSON")
-	if !parse.IsValid() {
-		return n.Elem(), errors.Errorf("parse: 'output' is not implemented `Model` interface")
+func parseResponseItem(hit Hit, typ reflect.Type) (reflect.Value, error) {
+	n := reflect.New(typ).Interface()
+	if err := json.Unmarshal(hit.Source, n); err != nil {
+		return reflect.Value{}, err
 	}
-	parse.Call([]reflect.Value{reflect.ValueOf(item)})
-	return n.Elem(), nil
+	val := reflect.ValueOf(n).Elem()
+	fieldID := val.FieldByName("ID")
+	if fieldID.IsValid() && fieldID.CanSet() {
+		fieldID.SetString(hit.ID)
+	}
+	return val, nil
 }

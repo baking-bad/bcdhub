@@ -103,7 +103,7 @@ func distance(a, b []byte) int {
 			if b[i-1] == a[j-1] {
 				current = x[j-1] // match
 			} else {
-				current = min(min(x[j-1]+1, prev+1), x[j]+1)
+				current = min(x[j-1]+1, prev+1, x[j]+1)
 			}
 			x[j-1] = prev
 			prev = current
@@ -113,11 +113,13 @@ func distance(a, b []byte) int {
 	return int(x[lenA])
 }
 
-func min(a, b uint16) uint16 {
-	if a < b {
+func min(a, b, c uint16) uint16 {
+	if a < b && a < c {
 		return a
+	} else if b < c {
+		return b
 	}
-	return b
+	return c
 }
 
 // FingerprintLength -

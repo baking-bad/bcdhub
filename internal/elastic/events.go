@@ -5,7 +5,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 )
 
 // GetEvents -
@@ -49,15 +48,15 @@ func (e *Elastic) getEvents(subscriptions []SubscriptionRequest, shouldItems []q
 	}
 	query.Sort("timestamp", "desc").Size(size).From(offset)
 
-	response, err := e.query(indices, query)
-	if err != nil {
+	var response SearchResponse
+	if err := e.query(indices, query, &response); err != nil {
 		return nil, err
 	}
 
-	hits := response.Get("hits.hits").Array()
+	hits := response.Hits.Hits
 	events := make([]Event, len(hits))
-	for i, hit := range hits {
-		event, err := parseEvent(subscriptions, hit)
+	for i := range hits {
+		event, err := parseEvent(subscriptions, hits[i])
 		if err != nil {
 			return nil, err
 		}
@@ -136,23 +135,28 @@ func (c *EventContract) makeEvent(subscriptions []SubscriptionRequest) (Event, e
 	return Event{}, errors.Errorf("Couldn't find a matching subscription for %v", c)
 }
 
-func parseEvent(subscriptions []SubscriptionRequest, hit gjson.Result) (Event, error) {
-	index := hit.Get("_index").String()
-	switch index {
+func parseEvent(subscriptions []SubscriptionRequest, hit Hit) (Event, error) {
+	switch hit.Index {
 	case DocOperations:
 		var event EventOperation
-		event.ParseElasticJSON(hit)
+		if err := json.Unmarshal(hit.Source, &event); err != nil {
+			return Event{}, err
+		}
 		return event.makeEvent(subscriptions)
 	case DocMigrations:
 		var event EventMigration
-		event.ParseElasticJSON(hit)
+		if err := json.Unmarshal(hit.Source, &event); err != nil {
+			return Event{}, err
+		}
 		return event.makeEvent(subscriptions)
 	case DocContracts:
 		var event EventContract
-		event.ParseElasticJSON(hit)
+		if err := json.Unmarshal(hit.Source, &event); err != nil {
+			return Event{}, err
+		}
 		return event.makeEvent(subscriptions)
 	default:
-		return Event{}, errors.Errorf("[parseEvent] Invalid reponse type: %s", index)
+		return Event{}, errors.Errorf("[parseEvent] Invalid reponse type: %s", hit.Index)
 	}
 }
 

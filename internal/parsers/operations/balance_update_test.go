@@ -1,28 +1,38 @@
 package operations
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/models"
 )
 
 func TestBalanceUpdate_Parse(t *testing.T) {
+	operation := models.Operation{
+		Network:      "test",
+		Level:        100,
+		Hash:         "hash",
+		ContentIndex: 1,
+		Nonce:        nil,
+	}
 	tests := []struct {
 		name     string
 		root     string
 		fileName string
-		want     []models.BalanceUpdate
+		want     []*models.BalanceUpdate
 	}{
 		{
 			name:     "test 1",
 			root:     "",
 			fileName: "./data/balance_update/test1.json",
-			want: []models.BalanceUpdate{
+			want: []*models.BalanceUpdate{
 				{
-					Kind:     "contract",
-					Contract: "tz1Yshp26pvsFcjwpDQvoLdHsWEJMrvwuCpo",
-					Change:   -2655,
+					Contract:      "KT1A946hDgLGfFudWU7hzfnTdZK8TZyLRHeT",
+					Change:        -2655,
+					Network:       "test",
+					Level:         100,
+					OperationHash: "hash",
+					ContentIndex:  1,
+					Nonce:         nil,
 				},
 			},
 		},
@@ -30,15 +40,15 @@ func TestBalanceUpdate_Parse(t *testing.T) {
 			name:     "test 2",
 			root:     "operation_result",
 			fileName: "./data/balance_update/test2.json",
-			want: []models.BalanceUpdate{
+			want: []*models.BalanceUpdate{
 				{
-					Kind:     "contract",
-					Contract: "tz1XWGzpVmLV4oyGc7aM3GhjXEZQh4Qutgq3",
-					Change:   -29075891,
-				}, {
-					Kind:     "contract",
-					Contract: "tz1KvnPAoC4XTeLqtvYMGMt8BYdbkAjkbtvf",
-					Change:   29075891,
+					Contract:      "KT1A946hDgLGfFudWU7hzfnTdZK8TZyLRHeT",
+					Change:        -29075891,
+					Network:       "test",
+					Level:         100,
+					OperationHash: "hash",
+					ContentIndex:  1,
+					Nonce:         nil,
 				},
 			},
 		},
@@ -50,8 +60,17 @@ func TestBalanceUpdate_Parse(t *testing.T) {
 				t.Errorf(`readJSONFile("%s") = error %v`, tt.fileName, err)
 				return
 			}
-			if got := NewBalanceUpdate(tt.root).Parse(data); !reflect.DeepEqual(got, tt.want) {
+			got := NewBalanceUpdate(tt.root, operation).Parse(data)
+			if len(got) != len(tt.want) {
 				t.Errorf("BalanceUpdate.Parse() = %v, want %v", got, tt.want)
+				return
+			}
+
+			for i := range got {
+				if !compareBalanceUpdates(got[i], tt.want[i]) {
+					t.Errorf("BalanceUpdate.Parse() = %v, want %v", got[i], tt.want[i])
+					return
+				}
 			}
 		})
 	}

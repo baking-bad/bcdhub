@@ -210,7 +210,7 @@ func prepareFilters(req operationsRequest) map[string]interface{} {
 	return filters
 }
 
-func formatErrors(errs []cerrors.IError, op *Operation) error {
+func formatErrors(errs []*cerrors.Error, op *Operation) error {
 	for i := range errs {
 		if err := errs[i].Format(); err != nil {
 			return err
@@ -408,7 +408,11 @@ func (ctx *Context) prepareMempoolOperation(res gjson.Result, network string) Op
 
 	op.SourceAlias = ctx.Aliases[op.Source]
 	op.DestinationAlias = ctx.Aliases[op.Destination]
-	op.Errors = cerrors.ParseArray(item.Get("errors"))
+	errs, err := cerrors.ParseArray([]byte(item.Get("errors").Raw))
+	if err != nil {
+		return op
+	}
+	op.Errors = errs
 
 	if op.Kind != consts.Transaction {
 		return op
@@ -455,9 +459,9 @@ func (ctx *Context) getErrorLocation(operation models.Operation, window int) (Ge
 	}
 	opErr := cerrors.First(operation.Errors, consts.ScriptRejectedError)
 	if opErr == nil {
-		return GetErrorLocationResponse{}, errors.Errorf("Can't find script rejevted error")
+		return GetErrorLocationResponse{}, errors.Errorf("Can't find script rejected error")
 	}
-	defaultError, ok := opErr.(*cerrors.DefaultError)
+	defaultError, ok := opErr.IError.(*cerrors.DefaultError)
 	if !ok {
 		return GetErrorLocationResponse{}, errors.Errorf("Invalid error type: %T", opErr)
 	}

@@ -3,19 +3,17 @@ package elastic
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"reflect"
 	"strings"
 
 	"github.com/elastic/go-elasticsearch/v8/esapi"
-	"github.com/tidwall/gjson"
 )
 
 // UpdateDoc - updates document
-func (e *Elastic) UpdateDoc(model Model) (result gjson.Result, err error) {
+func (e *Elastic) UpdateDoc(model Model) error {
 	b, err := json.Marshal(model)
 	if err != nil {
-		return
+		return err
 	}
 	req := esapi.IndexRequest{
 		Index:      model.GetIndex(),
@@ -26,16 +24,14 @@ func (e *Elastic) UpdateDoc(model Model) (result gjson.Result, err error) {
 
 	res, err := req.Do(context.Background(), e)
 	if err != nil {
-		return
+		return err
 	}
 	defer res.Body.Close()
 
-	result, err = e.getResponse(res)
-	return
+	return e.getResponse(res, nil)
 }
 
-// UpdateFields -
-func (e *Elastic) UpdateFields(index, id string, data interface{}, fields ...string) error {
+func (e *Elastic) buildFieldsForModel(data interface{}, fields ...string) ([]byte, error) {
 	t := reflect.TypeOf(data)
 	val := reflect.ValueOf(data)
 	if val.Kind() == reflect.Ptr {
@@ -59,16 +55,21 @@ func (e *Elastic) UpdateFields(index, id string, data interface{}, fields ...str
 		updateFields[tagName] = value.Interface()
 	}
 
-	b, err := json.Marshal(map[string]interface{}{
+	return json.Marshal(map[string]interface{}{
 		"doc": updateFields,
 	})
+}
+
+// UpdateFields -
+func (e *Elastic) UpdateFields(index, id string, data interface{}, fields ...string) error {
+	updated, err := e.buildFieldsForModel(data, fields...)
 	if err != nil {
 		return err
 	}
 	req := esapi.UpdateRequest{
 		Index:      index,
 		DocumentID: id,
-		Body:       bytes.NewReader(b),
+		Body:       bytes.NewReader(updated),
 		Refresh:    "true",
 	}
 
@@ -78,6 +79,6 @@ func (e *Elastic) UpdateFields(index, id string, data interface{}, fields ...str
 	}
 	defer res.Body.Close()
 
-	_, err = e.getResponse(res)
-	return err
+	var response map[string]interface{}
+	return e.getResponse(res, &response)
 }

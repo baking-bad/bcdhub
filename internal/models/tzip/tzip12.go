@@ -2,8 +2,6 @@ package tzip
 
 import (
 	"reflect"
-
-	"github.com/tidwall/gjson"
 )
 
 // TZIP12 -
@@ -25,32 +23,6 @@ type TokenMetadata struct {
 	Name            string                 `json:"name"`
 	Decimals        int64                  `json:"decimals"`
 	Extras          map[string]interface{} `json:"extras"`
-}
-
-// ParseElasticJSON -
-func (t *TZIP12) ParseElasticJSON(resp gjson.Result) {
-	tokensJSON := resp.Get("_source.tokens.static")
-	if tokensJSON.Exists() {
-		t.Tokens = &TokenMetadataType{
-			Static: make([]TokenMetadata, 0),
-		}
-
-		for _, item := range tokensJSON.Array() {
-			extras := make(map[string]interface{})
-			for key, value := range item.Get("extras").Map() {
-				extras[key] = value.Value()
-			}
-
-			t.Tokens.Static = append(t.Tokens.Static, TokenMetadata{
-				Symbol:          item.Get("symbol").String(),
-				Decimals:        item.Get("decimals").Int(),
-				TokenID:         item.Get("token_id").Int(),
-				Name:            item.Get("name").String(),
-				RegistryAddress: item.Get("registry_address").String(),
-				Extras:          extras,
-			})
-		}
-	}
 }
 
 // Compare - full compare objects

@@ -28,18 +28,33 @@ func (e *Elastic) GetTokens(network, tokenInterface string, offset, size int64) 
 		query = query.From(offset)
 	}
 
-	result, err := e.query([]string{DocContracts}, query)
-	if err != nil {
+	var response SearchResponse
+	if err := e.query([]string{DocContracts}, query, &response); err != nil {
 		return nil, 0, err
 	}
 
-	contracts := make([]models.Contract, 0)
-	for _, hit := range result.Get("hits.hits").Array() {
-		var contract models.Contract
-		contract.ParseElasticJSON(hit)
-		contracts = append(contracts, contract)
+	contracts := make([]models.Contract, len(response.Hits.Hits))
+	for i := range response.Hits.Hits {
+		if err := json.Unmarshal(response.Hits.Hits[i].Source, &contracts[i]); err != nil {
+			return nil, 0, err
+		}
 	}
-	return contracts, result.Get("hits.total.value").Int(), nil
+	return contracts, response.Hits.Total.Value, nil
+}
+
+type getTokensStatsResponse struct {
+	Aggs struct {
+		Body struct {
+			Buckets []struct {
+				DocCount int64 `json:"doc_count"`
+				Key      struct {
+					Destination string `json:"destination"`
+					Entrypoint  string `json:"entrypoint"`
+				} `json:"key"`
+				AVG floatValue `json:"average_consumed_gas"`
+			} `json:"buckets"`
+		} `json:"body"`
+	} `json:"aggregations"`
 }
 
 // GetTokensStats -
@@ -91,28 +106,36 @@ func (e *Elastic) GetTokensStats(network string, addresses, entrypoints []string
 		),
 	).Zero()
 
-	result, err := e.query([]string{DocOperations}, query)
-	if err != nil {
+	var response getTokensStatsResponse
+	if err := e.query([]string{DocOperations}, query, &response); err != nil {
 		return nil, err
 	}
 
-	response := make(map[string]TokenUsageStats)
-	buckets := result.Get("aggregations.body.buckets").Array()
-	for _, bucket := range buckets {
-		address := bucket.Get("key.destination").String()
-		method := bucket.Get("key.entrypoint").String()
+	usageStats := make(map[string]TokenUsageStats)
+	for _, bucket := range response.Aggs.Body.Buckets {
 		usage := TokenMethodUsageStats{
-			Count:       bucket.Get("doc_count").Int(),
-			ConsumedGas: bucket.Get("average_consumed_gas.value").Int(),
+			Count:       bucket.DocCount,
+			ConsumedGas: int64(bucket.AVG.Value),
 		}
 
-		if _, ok := response[address]; !ok {
-			response[address] = make(TokenUsageStats)
+		if _, ok := usageStats[bucket.Key.Destination]; !ok {
+			usageStats[bucket.Key.Destination] = make(TokenUsageStats)
 		}
-		response[address][method] = usage
+		usageStats[bucket.Key.Destination][bucket.Key.Entrypoint] = usage
 	}
 
-	return response, nil
+	return usageStats, nil
+}
+
+type getTokenVolumeSeriesResponse struct {
+	Agg struct {
+		Hist struct {
+			Buckets []struct {
+				Key    int64      `json:"key"`
+				Result floatValue `json:"result"`
+			} `json:"buckets"`
+		} `json:"hist"`
+	} `json:"aggregations"`
 }
 
 // GetTokenVolumeSeries -
@@ -169,19 +192,18 @@ func (e *Elastic) GetTokenVolumeSeries(network, period string, contracts []strin
 		aggs(aggItem{"hist", hist}),
 	).Zero()
 
-	response, err := e.query([]string{DocTransfers}, query)
-	if err != nil {
+	var response getTokenVolumeSeriesResponse
+	if err := e.query([]string{DocTransfers}, query, &response); err != nil {
 		return nil, err
 	}
 
-	data := response.Get("aggregations.hist.buckets").Array()
-	histogram := make([][]int64, 0)
-	for _, hit := range data {
+	histogram := make([][]int64, len(response.Agg.Hist.Buckets))
+	for i := range response.Agg.Hist.Buckets {
 		item := []int64{
-			hit.Get("key").Int(),
-			hit.Get("result.value").Int(),
+			response.Agg.Hist.Buckets[i].Key,
+			int64(response.Agg.Hist.Buckets[i].Result.Value),
 		}
-		histogram = append(histogram, item)
+		histogram[i] = item
 	}
 	return histogram, nil
 }
@@ -278,14 +300,14 @@ func (e *Elastic) GetBalances(network, contract string, level int64, addresses .
 			},
 		},
 	).Zero()
-	response, err := e.query([]string{DocTransfers}, query)
-	if err != nil {
+	var response getAccountBalancesResponse
+	if err := e.query([]string{DocTransfers}, query, &response); err != nil {
 		return nil, err
 	}
 
 	balances := make(map[TokenBalance]int64)
-	for address, balance := range response.Get("aggregations.balances.value").Map() {
-		parts := strings.Split(address, "_")
+	for key, balance := range response.Agg.Balances.Value {
+		parts := strings.Split(key, "_")
 		if len(parts) != 2 {
 			return nil, errors.Errorf("Invalid addressToken key split size: %d", len(parts))
 		}
@@ -296,9 +318,17 @@ func (e *Elastic) GetBalances(network, contract string, level int64, addresses .
 		balances[TokenBalance{
 			Address: parts[0],
 			TokenID: tokenID,
-		}] = balance.Int()
+		}] = balance
 	}
 	return balances, nil
+}
+
+type getAccountBalancesResponse struct {
+	Agg struct {
+		Balances struct {
+			Value map[string]int64 `json:"value"`
+		} `json:"balances"`
+	} `json:"aggregations"`
 }
 
 // GetAccountBalances -
@@ -372,14 +402,15 @@ func (e *Elastic) GetAccountBalances(network, address string) (map[TokenBalance]
 			},
 		},
 	).Zero()
-	response, err := e.query([]string{DocTransfers}, query)
-	if err != nil {
+
+	var response getAccountBalancesResponse
+	if err := e.query([]string{DocTransfers}, query, &response); err != nil {
 		return nil, err
 	}
 
 	balances := make(map[TokenBalance]int64)
-	for address, balance := range response.Get("aggregations.balances.value").Map() {
-		parts := strings.Split(address, "_")
+	for key, balance := range response.Agg.Balances.Value {
+		parts := strings.Split(key, "_")
 		if len(parts) != 2 {
 			return nil, errors.Errorf("Invalid addressToken key split size: %d", len(parts))
 		}
@@ -390,7 +421,7 @@ func (e *Elastic) GetAccountBalances(network, address string) (map[TokenBalance]
 		balances[TokenBalance{
 			Address: parts[0],
 			TokenID: tokenID,
-		}] = balance.Int()
+		}] = balance
 	}
 	return balances, nil
 }
@@ -399,6 +430,17 @@ func (e *Elastic) GetAccountBalances(network, address string) (map[TokenBalance]
 type TokenSupply struct {
 	Supply     float64 `json:"supply"`
 	Transfered float64 `json:"transfered"`
+}
+
+type getTokenSupplyResponse struct {
+	Aggs struct {
+		Result struct {
+			Value struct {
+				Supply     float64 `json:"supply"`
+				Transfered float64 `json:"transfered"`
+			} `json:"value"`
+		} `json:"result"`
+	} `json:"aggregations"`
 }
 
 // GetTokenSupply -
@@ -440,13 +482,13 @@ func (e *Elastic) GetTokenSupply(network, address string, tokenID int64) (result
 			},
 		},
 	).Zero()
-	response, err := e.query([]string{DocTransfers}, query)
-	if err != nil {
+
+	var response getTokenSupplyResponse
+	if err = e.query([]string{DocTransfers}, query, &response); err != nil {
 		return
 	}
 
-	result.Supply = response.Get("aggregations.result.value.supply").Float()
-	result.Transfered = response.Get("aggregations.result.value.transfered").Float()
-
+	result.Supply = response.Aggs.Result.Value.Supply
+	result.Transfered = response.Aggs.Result.Value.Transfered
 	return
 }

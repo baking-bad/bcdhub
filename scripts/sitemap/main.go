@@ -121,5 +121,5 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	logger.Success("Sitemap created in sitemap.xml")
+	logger.Info("Sitemap created in sitemap.xml")
 }

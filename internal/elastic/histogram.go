@@ -112,6 +112,20 @@ func WithHistogramFilters(filters []HistogramFilter) HistogramOption {
 	}
 }
 
+type getDateHistogramResponse struct {
+	Agg struct {
+		Hist struct {
+			Buckets []struct {
+				Key      int64 `json:"key"`
+				DocCount int64 `json:"doc_count"`
+				Result   struct {
+					Value int64 `json:"value"`
+				} `json:"result,omitempty"`
+			} `json:"buckets"`
+		} `json:"hist"`
+	} `json:"aggregations"`
+}
+
 // GetDateHistogram -
 func (e *Elastic) GetDateHistogram(period string, opts ...HistogramOption) ([][]int64, error) {
 	ctx := histogramContext{
@@ -121,22 +135,21 @@ func (e *Elastic) GetDateHistogram(period string, opts ...HistogramOption) ([][]
 		opt(&ctx)
 	}
 
-	response, err := e.query(ctx.Indices, ctx.build())
-	if err != nil {
+	var response getDateHistogramResponse
+	if err := e.query(ctx.Indices, ctx.build(), &response); err != nil {
 		return nil, err
 	}
 
-	data := response.Get("aggregations.hist.buckets").Array()
 	histogram := make([][]int64, 0)
-	for _, hit := range data {
-		key := "doc_count"
+	for _, bucket := range response.Agg.Hist.Buckets {
+		val := bucket.DocCount
 		if ctx.hasFunction() {
-			key = "result.value"
+			val = bucket.Result.Value
 		}
 
 		item := []int64{
-			hit.Get("key").Int(),
-			hit.Get(key).Int(),
+			bucket.Key,
+			val,
 		}
 		histogram = append(histogram, item)
 	}

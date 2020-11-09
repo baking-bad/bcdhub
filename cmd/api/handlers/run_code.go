@@ -234,7 +234,11 @@ func (ctx *Context) parseRunCodeResponse(response gjson.Result, main *Operation)
 }
 
 func (ctx *Context) parseFailedRunCode(response gjson.Result, main *Operation) ([]Operation, error) {
-	main.Errors = cerrors.ParseArray(response)
+	errs, err := cerrors.ParseArray([]byte(response.Raw))
+	if err != nil {
+		return nil, err
+	}
+	main.Errors = errs
 	if err := formatErrors(main.Errors, main); err != nil {
 		return nil, err
 	}

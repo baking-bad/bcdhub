@@ -12,7 +12,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/getsentry/sentry-go"
 	"github.com/jinzhu/gorm"
-	"github.com/tidwall/gjson"
 )
 
 // SetOperationAliases -
@@ -39,10 +38,8 @@ func (h *Handler) SetOperationAliases(aliases map[string]string, op *models.Oper
 
 // SetOperationStrings -
 func (h *Handler) SetOperationStrings(op *models.Operation) {
-	params := gjson.Parse(op.Parameters)
-	op.ParameterStrings = stringer.Get(params)
-	storage := gjson.Parse(op.DeffatedStorage)
-	op.StorageStrings = stringer.Get(storage)
+	op.ParameterStrings = stringer.Get(op.Parameters)
+	op.StorageStrings = stringer.Get(op.DeffatedStorage)
 }
 
 // SendSentryNotifications -

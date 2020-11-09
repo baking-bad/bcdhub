@@ -20,7 +20,7 @@ func DecodeValue(value string) string {
 		return ""
 	}
 
-	values := stringer.Get(jsonValue)
+	values := stringer.Get(value)
 	if len(values) != 0 {
 		return sanitizeString(values[0])
 	}

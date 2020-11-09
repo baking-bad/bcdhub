@@ -82,7 +82,11 @@ func (ctx *Context) prepareMempoolOperations(res gjson.Result, address, network 
 
 		op.SourceAlias = ctx.Aliases[op.Source]
 		op.DestinationAlias = ctx.Aliases[op.Destination]
-		op.Errors = cerrors.ParseArray(item.Get("errors"))
+		errs, err := cerrors.ParseArray([]byte(item.Get("errors").Raw))
+		if err != nil {
+			return nil, err
+		}
+		op.Errors = errs
 
 		if op.Kind != consts.Transaction {
 			ret = append(ret, op)

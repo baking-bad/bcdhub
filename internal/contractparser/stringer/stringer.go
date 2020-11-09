@@ -2,8 +2,10 @@ package stringer
 
 import (
 	"encoding/hex"
-	"encoding/json"
 	"regexp"
+	"strings"
+
+	jsoniter "github.com/json-iterator/go"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/baking-bad/bcdhub/internal/contractparser/unpack"
@@ -11,10 +13,52 @@ import (
 	"github.com/tidwall/gjson"
 )
 
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+type arg struct {
+	Value interface{} `json:"-"`
+}
+
+type node struct {
+	Args       []arg    `json:"args,omitmempty"`
+	Prim       string   `json:"prim,omitempty"`
+	Annots     []string `json:"annots,omitempty"`
+	String     string   `json:"string,omitempty"`
+	Bytes      string   `json:"bytes,omitempty"`
+	Entrypoint string   `json:"entrypoint,omitempty"`
+	Value      *node    `json:"value,omitempty"`
+}
+
+// UnmarshalJSON -
+func (a *arg) UnmarshalJSON(data []byte) error {
+	if len(data) == 0 {
+		return nil
+	}
+
+	switch data[0] {
+	case '[':
+		var arr []node
+		if err := json.Unmarshal([]byte(data), &arr); err != nil {
+			return err
+		}
+		a.Value = arr
+	case '{':
+		var obj node
+		if err := json.Unmarshal([]byte(data), &obj); err != nil {
+			return err
+		}
+		a.Value = obj
+	}
+	return nil
+}
+
 // Get - returnes slice of unique meaningful strings from json
-func Get(node gjson.Result) []string {
+func Get(data string) []string {
 	var storage = make(map[string]struct{})
-	findStrings(node, storage)
+
+	if err := parse(data, storage); err != nil {
+		return nil
+	}
 
 	var result = make([]string, 0, len(storage))
 	for key := range storage {
@@ -22,6 +66,23 @@ func Get(node gjson.Result) []string {
 	}
 
 	return result
+}
+
+func parse(data string, storage map[string]struct{}) error {
+	if strings.HasPrefix(data, "{") {
+		var obj node
+		if err := json.Unmarshal([]byte(data), &obj); err != nil {
+			return err
+		}
+		findInObject(obj, storage)
+	} else if strings.HasPrefix(data, "[") {
+		var arr []node
+		if err := json.Unmarshal([]byte(data), &arr); err != nil {
+			return err
+		}
+		findInArray(arr, storage)
+	}
+	return nil
 }
 
 // Stringify -
@@ -66,42 +127,38 @@ func unpackBytes(bytes string) string {
 	return unpack.Bytes(bytes)
 }
 
-func findStrings(node gjson.Result, storage map[string]struct{}) {
-	if node.IsArray() {
-		findInArray(node, storage)
-	}
-
-	if node.IsObject() {
-		findInObject(node, storage)
+func findStrings(obj interface{}, storage map[string]struct{}) {
+	switch val := obj.(type) {
+	case node:
+		findInObject(val, storage)
+	case []node:
+		findInArray(val, storage)
 	}
 }
 
-func findInArray(node gjson.Result, storage map[string]struct{}) {
-	for _, n := range node.Array() {
+func findInArray(val []node, storage map[string]struct{}) {
+	for _, n := range val {
 		findStrings(n, storage)
 	}
 }
 
-func findInObject(node gjson.Result, storage map[string]struct{}) {
-	if node.Get("string").Exists() {
-		findInString(node.Get("string").String(), storage)
+func findInObject(val node, storage map[string]struct{}) {
+	if val.String != "" {
+		findInString(val.String, storage)
 		return
 	}
 
-	if node.Get("bytes").Exists() {
-		findInBytes(node.Get("bytes").String(), storage)
+	if val.Bytes != "" {
+		findInBytes(val.Bytes, storage)
 		return
 	}
 
-	if node.Get("args").Exists() {
-		for _, args := range node.Get("args").Array() {
-			findStrings(args, storage)
-		}
+	for _, arg := range val.Args {
+		findStrings(arg.Value, storage)
 	}
 
-	if node.Get("entrypoint").Exists() && node.Get("value").Exists() {
-		value := node.Get("value")
-		findStrings(value, storage)
+	if val.Entrypoint != "" && val.Value != nil {
+		findStrings(val.Value, storage)
 	}
 }
 
@@ -132,8 +189,9 @@ func findInBytes(input string, storage map[string]struct{}) {
 	if len(input) >= 1 && input[:2] == unpack.MainPrefix {
 		str, err := rawbytes.ToMicheline(input[2:])
 		if err == nil {
-			data := gjson.Parse(str)
-			findStrings(data, storage)
+			if err := parse(str, storage); err != nil {
+				return
+			}
 		}
 	}
 

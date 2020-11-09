@@ -3,35 +3,46 @@ package operations
 import (
 	"fmt"
 
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/tidwall/gjson"
 )
 
 // BalanceUpdate -
 type BalanceUpdate struct {
-	root string
+	operation models.Operation
+	root      string
 }
 
 // NewBalanceUpdate -
-func NewBalanceUpdate(root string) BalanceUpdate {
-	return BalanceUpdate{root}
+func NewBalanceUpdate(root string, operation models.Operation) BalanceUpdate {
+	return BalanceUpdate{operation, root}
 }
 
 // Parse -
-func (b BalanceUpdate) Parse(data gjson.Result) []models.BalanceUpdate {
+func (b BalanceUpdate) Parse(data gjson.Result) []*models.BalanceUpdate {
 	if b.root != "" {
 		b.root = fmt.Sprintf("%s.", b.root)
 	}
-	filter := fmt.Sprintf("%sbalance_updates.#(kind==\"contract\")#", b.root)
+	filter := fmt.Sprintf(`%sbalance_updates.#(kind="contract")#`, b.root)
 
 	contracts := data.Get(filter).Array()
-	bu := make([]models.BalanceUpdate, len(contracts))
+	bu := make([]*models.BalanceUpdate, 0)
 	for i := range contracts {
-		bu[i] = models.BalanceUpdate{
-			Kind:     contracts[i].Get("kind").String(),
-			Contract: contracts[i].Get("contract").String(),
-			Change:   contracts[i].Get("change").Int(),
+		address := contracts[i].Get("contract").String()
+		if !helpers.IsContract(address) {
+			continue
 		}
+		bu = append(bu, &models.BalanceUpdate{
+			ID:            helpers.GenerateID(),
+			Change:        contracts[i].Get("change").Int(),
+			Network:       b.operation.Network,
+			Contract:      address,
+			OperationHash: b.operation.Hash,
+			ContentIndex:  b.operation.ContentIndex,
+			Nonce:         b.operation.Nonce,
+			Level:         b.operation.Level,
+		})
 	}
 	return bu
 }

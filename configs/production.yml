@@ -117,17 +117,18 @@ indexer:
     dalphanet:
 
 metrics:
-  project_name: metrics
-  sentry_enabled: true
-  mq:
-    publisher: false
-    queues:
-      operations:
-      contracts:
-      migrations:
-      recalc:
-      transfers:
-      bigmapdiffs:
+    project_name: metrics
+    sentry_enabled: true
+    mq:
+        publisher: false
+        queues:
+            operations:
+            contracts:
+            migrations:
+            recalc:
+            transfers:
+            bigmapdiffs:
+            projects:
 
 scripts:
   aws:

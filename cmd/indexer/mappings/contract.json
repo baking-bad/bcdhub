@@ -1,1 +1,163 @@
-{"mappings":{"properties":{"address":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":36}}},"alias":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"annotations":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"balance":{"type":"long"},"delegate":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":36}}},"delegate_alias":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"entrypoints":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"fail_strings":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"fingerprint":{"properties":{"code":{"type":"text","fielddata":true},"parameter":{"type":"text","fielddata":true},"storage":{"type":"text","fielddata":true}}},"hardcoded":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":36}}},"kind":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":16}}},"language":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":16}}},"last_action":{"type":"date"},"level":{"type":"long"},"manager":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":36}}},"migrations_count":{"type":"long"},"network":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":16}}},"project_id":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":36}}},"tags":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"timestamp":{"type":"date"},"total_withdrawn":{"type":"long"},"tx_count":{"type":"long"}}}}
+{
+    "mappings": {
+        "properties": {
+            "address": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 36
+                    }
+                }
+            },
+            "alias": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "annotations": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "delegate": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 36
+                    }
+                }
+            },
+            "delegate_alias": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "entrypoints": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "fail_strings": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "fingerprint": {
+                "properties": {
+                    "code": {
+                        "type": "text",
+                        "fielddata": true
+                    },
+                    "parameter": {
+                        "type": "text",
+                        "fielddata": true
+                    },
+                    "storage": {
+                        "type": "text",
+                        "fielddata": true
+                    }
+                }
+            },
+            "hardcoded": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 36
+                    }
+                }
+            },
+            "kind": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 16
+                    }
+                }
+            },
+            "language": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 16
+                    }
+                }
+            },
+            "last_action": {
+                "type": "date"
+            },
+            "level": {
+                "type": "long"
+            },
+            "manager": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 36
+                    }
+                }
+            },
+            "migrations_count": {
+                "type": "long"
+            },
+            "network": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 16
+                    }
+                }
+            },
+            "project_id": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 36
+                    }
+                }
+            },
+            "tags": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "timestamp": {
+                "type": "date"
+            },
+            "tx_count": {
+                "type": "long"
+            }
+        }
+    }
+}

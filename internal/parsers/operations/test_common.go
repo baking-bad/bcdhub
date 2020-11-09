@@ -117,6 +117,14 @@ func compareParserResponse(t *testing.T, got, want []elastic.Model) bool {
 			if !compareMetadata(t, one, two) {
 				return false
 			}
+		case *models.BalanceUpdate:
+			two, ok := want[i].(*models.BalanceUpdate)
+			if !ok {
+				return false
+			}
+			if !compareBalanceUpdates(one, two) {
+				return false
+			}
 		default:
 			log.Printf("Unknown type: %T", one)
 			return false
@@ -419,20 +427,8 @@ func compareContract(one, two *models.Contract) bool {
 		log.Printf("Contract.Level: %d != %d", one.Level, two.Level)
 		return false
 	}
-	if one.TxCount != two.TxCount {
-		log.Printf("Contract.TxCount: %d != %d", one.TxCount, two.TxCount)
-		return false
-	}
-	if one.Balance != two.Balance {
-		log.Printf("Contract.Balance: %d != %d", one.Balance, two.Balance)
-		return false
-	}
 	if one.Timestamp != two.Timestamp {
 		log.Printf("Contract.Timestamp: %s != %s", one.Timestamp, two.Timestamp)
-		return false
-	}
-	if one.LastAction.Time != two.LastAction.Time {
-		log.Printf("Contract.LastAction: %s != %s", one.LastAction.Time, two.LastAction.Time)
 		return false
 	}
 	if !compareStringArray(one.Tags, two.Tags) {
@@ -453,6 +449,38 @@ func compareContract(one, two *models.Contract) bool {
 	}
 	if !compareStringArray(one.Entrypoints, two.Entrypoints) {
 		log.Printf("Contract.Entrypoints: %v != %v", one.Entrypoints, two.Entrypoints)
+		return false
+	}
+	return true
+}
+
+func compareBalanceUpdates(a, b *models.BalanceUpdate) bool {
+	if a.Change != b.Change {
+		log.Printf("BalanceUpdate.Change: %d != %d", a.Change, b.Change)
+		return false
+	}
+	if a.Contract != b.Contract {
+		log.Printf("BalanceUpdate.Contract: %s != %s", a.Contract, b.Contract)
+		return false
+	}
+	if a.Network != b.Network {
+		log.Printf("BalanceUpdate.Network: %s != %s", a.Network, b.Network)
+		return false
+	}
+	if a.Level != b.Level {
+		log.Printf("BalanceUpdate.Level: %d != %d", a.Level, b.Level)
+		return false
+	}
+	if a.OperationHash != b.OperationHash {
+		log.Printf("BalanceUpdate.OperationHash: %s != %s", a.OperationHash, b.OperationHash)
+		return false
+	}
+	if a.ContentIndex != b.ContentIndex {
+		log.Printf("BalanceUpdate.ContentIndex: %d != %d", a.ContentIndex, b.ContentIndex)
+		return false
+	}
+	if !compareInt64Ptr(a.Nonce, b.Nonce) {
+		log.Printf("BalanceUpdate.Nonce: %d != %d", *a.Nonce, *b.Nonce)
 		return false
 	}
 	return true

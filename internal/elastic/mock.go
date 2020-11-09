@@ -36,33 +36,33 @@ func (m *MockModel) EXPECT() *MockModelMockRecorder {
 	return m.recorder
 }
 
-// GetQueue mocks base method
-func (m *MockModel) GetQueue() string {
+// GetQueues mocks base method
+func (m *MockModel) GetQueues() []string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetQueue")
-	ret0, _ := ret[0].(string)
+	ret := m.ctrl.Call(m, "GetQueues")
+	ret0, _ := ret[0].([]string)
 	return ret0
 }
 
-// GetQueue indicates an expected call of GetQueue
-func (mr *MockModelMockRecorder) GetQueue() *gomock.Call {
+// GetQueues indicates an expected call of GetQueues
+func (mr *MockModelMockRecorder) GetQueues() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetQueue", reflect.TypeOf((*MockModel)(nil).GetQueue))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetQueues", reflect.TypeOf((*MockModel)(nil).GetQueues))
 }
 
-// Marshal mocks base method
-func (m *MockModel) Marshal() ([]byte, error) {
+// MarshalToQueue mocks base method
+func (m *MockModel) MarshalToQueue() ([]byte, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Marshal")
+	ret := m.ctrl.Call(m, "MarshalToQueue")
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Marshal indicates an expected call of Marshal
-func (mr *MockModelMockRecorder) Marshal() *gomock.Call {
+// MarshalToQueue indicates an expected call of MarshalToQueue
+func (mr *MockModelMockRecorder) MarshalToQueue() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Marshal", reflect.TypeOf((*MockModel)(nil).Marshal))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarshalToQueue", reflect.TypeOf((*MockModel)(nil).MarshalToQueue))
 }
 
 // GetID mocks base method
@@ -91,18 +91,6 @@ func (m *MockModel) GetIndex() string {
 func (mr *MockModelMockRecorder) GetIndex() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIndex", reflect.TypeOf((*MockModel)(nil).GetIndex))
-}
-
-// ParseElasticJSON mocks base method
-func (m *MockModel) ParseElasticJSON(arg0 gjson.Result) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "ParseElasticJSON", arg0)
-}
-
-// ParseElasticJSON indicates an expected call of ParseElasticJSON
-func (mr *MockModelMockRecorder) ParseElasticJSON(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ParseElasticJSON", reflect.TypeOf((*MockModel)(nil).ParseElasticJSON), arg0)
 }
 
 // MockScorable is a mock of Scorable interface
@@ -263,6 +251,25 @@ func (mr *MockIGeneralMockRecorder) GetByID(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockIGeneral)(nil).GetByID), arg0)
 }
 
+// GetByIDs mocks base method
+func (m *MockIGeneral) GetByIDs(output interface{}, ids ...string) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{output}
+	for _, a := range ids {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetByIDs", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// GetByIDs indicates an expected call of GetByIDs
+func (mr *MockIGeneralMockRecorder) GetByIDs(output interface{}, ids ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{output}, ids...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByIDs", reflect.TypeOf((*MockIGeneral)(nil).GetByIDs), varargs...)
+}
+
 // GetByNetwork mocks base method
 func (m *MockIGeneral) GetByNetwork(arg0 string, arg1 interface{}) error {
 	m.ctrl.T.Helper()
@@ -292,12 +299,11 @@ func (mr *MockIGeneralMockRecorder) GetByNetworkWithSort(arg0, arg1, arg2, arg3 
 }
 
 // UpdateDoc mocks base method
-func (m *MockIGeneral) UpdateDoc(model Model) (gjson.Result, error) {
+func (m *MockIGeneral) UpdateDoc(model Model) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateDoc", model)
-	ret0, _ := ret[0].(gjson.Result)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // UpdateDoc indicates an expected call of UpdateDoc
@@ -323,6 +329,44 @@ func (mr *MockIGeneralMockRecorder) UpdateFields(arg0, arg1, arg2 interface{}, a
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{arg0, arg1, arg2}, arg3...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFields", reflect.TypeOf((*MockIGeneral)(nil).UpdateFields), varargs...)
+}
+
+// MockIBalanceUpdate is a mock of IBalanceUpdate interface
+type MockIBalanceUpdate struct {
+	ctrl     *gomock.Controller
+	recorder *MockIBalanceUpdateMockRecorder
+}
+
+// MockIBalanceUpdateMockRecorder is the mock recorder for MockIBalanceUpdate
+type MockIBalanceUpdateMockRecorder struct {
+	mock *MockIBalanceUpdate
+}
+
+// NewMockIBalanceUpdate creates a new mock instance
+func NewMockIBalanceUpdate(ctrl *gomock.Controller) *MockIBalanceUpdate {
+	mock := &MockIBalanceUpdate{ctrl: ctrl}
+	mock.recorder = &MockIBalanceUpdateMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockIBalanceUpdate) EXPECT() *MockIBalanceUpdateMockRecorder {
+	return m.recorder
+}
+
+// GetBalance mocks base method
+func (m *MockIBalanceUpdate) GetBalance(network, address string) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBalance", network, address)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBalance indicates an expected call of GetBalance
+func (mr *MockIBalanceUpdateMockRecorder) GetBalance(network, address interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBalance", reflect.TypeOf((*MockIBalanceUpdate)(nil).GetBalance), network, address)
 }
 
 // MockIBigMap is a mock of IBigMap interface
@@ -507,19 +551,19 @@ func (mr *MockIBigMapDiffMockRecorder) GetBigMapDiffsByPtrAndKeyHash(arg0, arg1,
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBigMapDiffsByPtrAndKeyHash", reflect.TypeOf((*MockIBigMapDiff)(nil).GetBigMapDiffsByPtrAndKeyHash), arg0, arg1, arg2, arg3, arg4)
 }
 
-// GetBigMapDiffsJSONByOperationID mocks base method
-func (m *MockIBigMapDiff) GetBigMapDiffsJSONByOperationID(arg0 string) ([]gjson.Result, error) {
+// GetBigMapDiffsByOperationID mocks base method
+func (m *MockIBigMapDiff) GetBigMapDiffsByOperationID(arg0 string) ([]*models.BigMapDiff, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBigMapDiffsJSONByOperationID", arg0)
-	ret0, _ := ret[0].([]gjson.Result)
+	ret := m.ctrl.Call(m, "GetBigMapDiffsByOperationID", arg0)
+	ret0, _ := ret[0].([]*models.BigMapDiff)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetBigMapDiffsJSONByOperationID indicates an expected call of GetBigMapDiffsJSONByOperationID
-func (mr *MockIBigMapDiffMockRecorder) GetBigMapDiffsJSONByOperationID(arg0 interface{}) *gomock.Call {
+// GetBigMapDiffsByOperationID indicates an expected call of GetBigMapDiffsByOperationID
+func (mr *MockIBigMapDiffMockRecorder) GetBigMapDiffsByOperationID(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBigMapDiffsJSONByOperationID", reflect.TypeOf((*MockIBigMapDiff)(nil).GetBigMapDiffsJSONByOperationID), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBigMapDiffsByOperationID", reflect.TypeOf((*MockIBigMapDiff)(nil).GetBigMapDiffsByOperationID), arg0)
 }
 
 // GetBigMapDiffsByPtr mocks base method
@@ -699,6 +743,25 @@ func (mr *MockIBulkMockRecorder) BulkRemoveField(arg0, arg1 interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkRemoveField", reflect.TypeOf((*MockIBulk)(nil).BulkRemoveField), arg0, arg1)
 }
 
+// BulkUpdateField mocks base method
+func (m *MockIBulk) BulkUpdateField(where []models.Contract, fields ...string) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{where}
+	for _, a := range fields {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "BulkUpdateField", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkUpdateField indicates an expected call of BulkUpdateField
+func (mr *MockIBulkMockRecorder) BulkUpdateField(where interface{}, fields ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{where}, fields...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkUpdateField", reflect.TypeOf((*MockIBulk)(nil).BulkUpdateField), varargs...)
+}
+
 // MockIContract is a mock of IContract interface
 type MockIContract struct {
 	ctrl     *gomock.Controller
@@ -768,10 +831,10 @@ func (mr *MockIContractMockRecorder) GetContractMigrationStats(arg0, arg1 interf
 }
 
 // GetContractAddressesByNetworkAndLevel mocks base method
-func (m *MockIContract) GetContractAddressesByNetworkAndLevel(arg0 string, arg1 int64) (gjson.Result, error) {
+func (m *MockIContract) GetContractAddressesByNetworkAndLevel(arg0 string, arg1 int64) ([]string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetContractAddressesByNetworkAndLevel", arg0, arg1)
-	ret0, _ := ret[0].(gjson.Result)
+	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -884,6 +947,21 @@ func (m *MockIContract) GetDAppStats(arg0 string, arg1 []string, arg2 string) (D
 func (mr *MockIContractMockRecorder) GetDAppStats(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDAppStats", reflect.TypeOf((*MockIContract)(nil).GetDAppStats), arg0, arg1, arg2)
+}
+
+// GetContractsByAddresses mocks base method
+func (m *MockIContract) GetContractsByAddresses(addresses []Address) ([]models.Contract, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetContractsByAddresses", addresses)
+	ret0, _ := ret[0].([]models.Contract)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetContractsByAddresses indicates an expected call of GetContractsByAddresses
+func (mr *MockIContractMockRecorder) GetContractsByAddresses(addresses interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContractsByAddresses", reflect.TypeOf((*MockIContract)(nil).GetContractsByAddresses), addresses)
 }
 
 // MockIEvents is a mock of IEvents interface
@@ -1099,11 +1177,11 @@ func (mr *MockIProjectsMockRecorder) GetSameContracts(arg0, arg1, arg2 interface
 }
 
 // GetSimilarContracts mocks base method
-func (m *MockIProjects) GetSimilarContracts(arg0 models.Contract, arg1, arg2 int64) ([]SimilarContract, uint64, error) {
+func (m *MockIProjects) GetSimilarContracts(arg0 models.Contract, arg1, arg2 int64) ([]SimilarContract, int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSimilarContracts", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]SimilarContract)
-	ret1, _ := ret[1].(uint64)
+	ret1, _ := ret[1].(int)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -1168,10 +1246,10 @@ func (mr *MockIProtocolMockRecorder) GetProtocol(arg0, arg1, arg2 interface{}) *
 }
 
 // GetSymLinks mocks base method
-func (m *MockIProtocol) GetSymLinks(arg0 string, arg1 int64) (map[string]bool, error) {
+func (m *MockIProtocol) GetSymLinks(arg0 string, arg1 int64) (map[string]struct{}, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSymLinks", arg0, arg1)
-	ret0, _ := ret[0].(map[string]bool)
+	ret0, _ := ret[0].(map[string]struct{})
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1258,10 +1336,10 @@ func (mr *MockISnapshotMockRecorder) CreateAWSRepository(arg0, arg1, arg2 interf
 }
 
 // ListRepositories mocks base method
-func (m *MockISnapshot) ListRepositories() ([]string, error) {
+func (m *MockISnapshot) ListRepositories() ([]Repository, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListRepositories")
-	ret0, _ := ret[0].([]string)
+	ret0, _ := ret[0].([]Repository)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1411,10 +1489,10 @@ func (m *MockIStats) EXPECT() *MockIStatsMockRecorder {
 }
 
 // GetNetworkCountStats mocks base method
-func (m *MockIStats) GetNetworkCountStats(arg0 string) (NetworkCountStats, error) {
+func (m *MockIStats) GetNetworkCountStats(arg0 string) (map[string]int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetNetworkCountStats", arg0)
-	ret0, _ := ret[0].(NetworkCountStats)
+	ret0, _ := ret[0].(map[string]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1904,6 +1982,25 @@ func (mr *MockIElasticMockRecorder) GetByID(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockIElastic)(nil).GetByID), arg0)
 }
 
+// GetByIDs mocks base method
+func (m *MockIElastic) GetByIDs(output interface{}, ids ...string) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{output}
+	for _, a := range ids {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetByIDs", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// GetByIDs indicates an expected call of GetByIDs
+func (mr *MockIElasticMockRecorder) GetByIDs(output interface{}, ids ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{output}, ids...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByIDs", reflect.TypeOf((*MockIElastic)(nil).GetByIDs), varargs...)
+}
+
 // GetByNetwork mocks base method
 func (m *MockIElastic) GetByNetwork(arg0 string, arg1 interface{}) error {
 	m.ctrl.T.Helper()
@@ -1933,12 +2030,11 @@ func (mr *MockIElasticMockRecorder) GetByNetworkWithSort(arg0, arg1, arg2, arg3 
 }
 
 // UpdateDoc mocks base method
-func (m *MockIElastic) UpdateDoc(model Model) (gjson.Result, error) {
+func (m *MockIElastic) UpdateDoc(model Model) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateDoc", model)
-	ret0, _ := ret[0].(gjson.Result)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // UpdateDoc indicates an expected call of UpdateDoc
@@ -1964,6 +2060,21 @@ func (mr *MockIElasticMockRecorder) UpdateFields(arg0, arg1, arg2 interface{}, a
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{arg0, arg1, arg2}, arg3...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFields", reflect.TypeOf((*MockIElastic)(nil).UpdateFields), varargs...)
+}
+
+// GetBalance mocks base method
+func (m *MockIElastic) GetBalance(network, address string) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBalance", network, address)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBalance indicates an expected call of GetBalance
+func (mr *MockIElasticMockRecorder) GetBalance(network, address interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBalance", reflect.TypeOf((*MockIElastic)(nil).GetBalance), network, address)
 }
 
 // GetBigMapKey mocks base method
@@ -2102,19 +2213,19 @@ func (mr *MockIElasticMockRecorder) GetBigMapDiffsByPtrAndKeyHash(arg0, arg1, ar
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBigMapDiffsByPtrAndKeyHash", reflect.TypeOf((*MockIElastic)(nil).GetBigMapDiffsByPtrAndKeyHash), arg0, arg1, arg2, arg3, arg4)
 }
 
-// GetBigMapDiffsJSONByOperationID mocks base method
-func (m *MockIElastic) GetBigMapDiffsJSONByOperationID(arg0 string) ([]gjson.Result, error) {
+// GetBigMapDiffsByOperationID mocks base method
+func (m *MockIElastic) GetBigMapDiffsByOperationID(arg0 string) ([]*models.BigMapDiff, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBigMapDiffsJSONByOperationID", arg0)
-	ret0, _ := ret[0].([]gjson.Result)
+	ret := m.ctrl.Call(m, "GetBigMapDiffsByOperationID", arg0)
+	ret0, _ := ret[0].([]*models.BigMapDiff)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetBigMapDiffsJSONByOperationID indicates an expected call of GetBigMapDiffsJSONByOperationID
-func (mr *MockIElasticMockRecorder) GetBigMapDiffsJSONByOperationID(arg0 interface{}) *gomock.Call {
+// GetBigMapDiffsByOperationID indicates an expected call of GetBigMapDiffsByOperationID
+func (mr *MockIElasticMockRecorder) GetBigMapDiffsByOperationID(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBigMapDiffsJSONByOperationID", reflect.TypeOf((*MockIElastic)(nil).GetBigMapDiffsJSONByOperationID), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBigMapDiffsByOperationID", reflect.TypeOf((*MockIElastic)(nil).GetBigMapDiffsByOperationID), arg0)
 }
 
 // GetBigMapDiffsByPtr mocks base method
@@ -2248,6 +2359,25 @@ func (mr *MockIElasticMockRecorder) BulkRemoveField(arg0, arg1 interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkRemoveField", reflect.TypeOf((*MockIElastic)(nil).BulkRemoveField), arg0, arg1)
 }
 
+// BulkUpdateField mocks base method
+func (m *MockIElastic) BulkUpdateField(where []models.Contract, fields ...string) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{where}
+	for _, a := range fields {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "BulkUpdateField", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BulkUpdateField indicates an expected call of BulkUpdateField
+func (mr *MockIElasticMockRecorder) BulkUpdateField(where interface{}, fields ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{where}, fields...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkUpdateField", reflect.TypeOf((*MockIElastic)(nil).BulkUpdateField), varargs...)
+}
+
 // GetContract mocks base method
 func (m *MockIElastic) GetContract(arg0 map[string]interface{}) (models.Contract, error) {
 	m.ctrl.T.Helper()
@@ -2294,10 +2424,10 @@ func (mr *MockIElasticMockRecorder) GetContractMigrationStats(arg0, arg1 interfa
 }
 
 // GetContractAddressesByNetworkAndLevel mocks base method
-func (m *MockIElastic) GetContractAddressesByNetworkAndLevel(arg0 string, arg1 int64) (gjson.Result, error) {
+func (m *MockIElastic) GetContractAddressesByNetworkAndLevel(arg0 string, arg1 int64) ([]string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetContractAddressesByNetworkAndLevel", arg0, arg1)
-	ret0, _ := ret[0].(gjson.Result)
+	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2410,6 +2540,21 @@ func (m *MockIElastic) GetDAppStats(arg0 string, arg1 []string, arg2 string) (DA
 func (mr *MockIElasticMockRecorder) GetDAppStats(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDAppStats", reflect.TypeOf((*MockIElastic)(nil).GetDAppStats), arg0, arg1, arg2)
+}
+
+// GetContractsByAddresses mocks base method
+func (m *MockIElastic) GetContractsByAddresses(addresses []Address) ([]models.Contract, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetContractsByAddresses", addresses)
+	ret0, _ := ret[0].([]models.Contract)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetContractsByAddresses indicates an expected call of GetContractsByAddresses
+func (mr *MockIElasticMockRecorder) GetContractsByAddresses(addresses interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContractsByAddresses", reflect.TypeOf((*MockIElastic)(nil).GetContractsByAddresses), addresses)
 }
 
 // GetEvents mocks base method
@@ -2533,11 +2678,11 @@ func (mr *MockIElasticMockRecorder) GetSameContracts(arg0, arg1, arg2 interface{
 }
 
 // GetSimilarContracts mocks base method
-func (m *MockIElastic) GetSimilarContracts(arg0 models.Contract, arg1, arg2 int64) ([]SimilarContract, uint64, error) {
+func (m *MockIElastic) GetSimilarContracts(arg0 models.Contract, arg1, arg2 int64) ([]SimilarContract, int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSimilarContracts", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]SimilarContract)
-	ret1, _ := ret[1].(uint64)
+	ret1, _ := ret[1].(int)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -2579,10 +2724,10 @@ func (mr *MockIElasticMockRecorder) GetProtocol(arg0, arg1, arg2 interface{}) *g
 }
 
 // GetSymLinks mocks base method
-func (m *MockIElastic) GetSymLinks(arg0 string, arg1 int64) (map[string]bool, error) {
+func (m *MockIElastic) GetSymLinks(arg0 string, arg1 int64) (map[string]struct{}, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSymLinks", arg0, arg1)
-	ret0, _ := ret[0].(map[string]bool)
+	ret0, _ := ret[0].(map[string]struct{})
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2623,10 +2768,10 @@ func (mr *MockIElasticMockRecorder) CreateAWSRepository(arg0, arg1, arg2 interfa
 }
 
 // ListRepositories mocks base method
-func (m *MockIElastic) ListRepositories() ([]string, error) {
+func (m *MockIElastic) ListRepositories() ([]Repository, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListRepositories")
-	ret0, _ := ret[0].([]string)
+	ret0, _ := ret[0].([]Repository)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2753,10 +2898,10 @@ func (mr *MockIElasticMockRecorder) ReloadSecureSettings() *gomock.Call {
 }
 
 // GetNetworkCountStats mocks base method
-func (m *MockIElastic) GetNetworkCountStats(arg0 string) (NetworkCountStats, error) {
+func (m *MockIElastic) GetNetworkCountStats(arg0 string) (map[string]int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetNetworkCountStats", arg0)
-	ret0, _ := ret[0].(NetworkCountStats)
+	ret0, _ := ret[0].(map[string]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

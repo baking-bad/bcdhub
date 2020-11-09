@@ -21,7 +21,7 @@ func (x *rollbackCommand) Execute(_ []string) error {
 
 	logger.Warning("Do you want to rollback '%s' from %d to %d? (yes - continue. no - cancel)", state.Network, state.Level, x.Level)
 	if !yes() {
-		logger.Success("Cancelled")
+		logger.Info("Cancelled")
 		return nil
 	}
 
@@ -34,7 +34,7 @@ func (x *rollbackCommand) Execute(_ []string) error {
 	if err = manager.Rollback(state, x.Level); err != nil {
 		return err
 	}
-	logger.Success("Done")
+	logger.Info("Done")
 
 	return nil
 }

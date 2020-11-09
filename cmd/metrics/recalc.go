@@ -1,30 +1,25 @@
 package main
 
 import (
-	"strings"
-
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/pkg/errors"
-	"github.com/streadway/amqp"
 )
 
-func recalculateAll(data amqp.Delivery) error {
-	contractID := parseID(data.Body)
+func recalculateAll(ids []string) error {
+	contracts := make([]models.Contract, 0)
+	if err := ctx.ES.GetByIDs(&contracts, ids...); err != nil {
+		return errors.Errorf("[recalculateAll] Find contracts error for IDs %v: %s", ids, err)
+	}
 
-	c := models.Contract{ID: contractID}
-	if err := ctx.ES.GetByID(&c); err != nil {
-		if strings.Contains(err.Error(), "[404 Not Found]") {
-			return nil
+	for i := range contracts {
+		if err := recalc(contracts[i]); err != nil {
+			return errors.Errorf("[recalculateAll] Compute error message: %s", err)
 		}
-		return errors.Errorf("[recalculateAll] Find contract error: %s", err)
-	}
-	if err := recalc(c); err != nil {
-		return errors.Errorf("[recalculateAll] Compute error message: %s", err)
+		logger.With(&contracts[i]).Info("Contract metrics are recalculated")
 	}
 
-	logger.Info("[%s] Contract metrics are recalculated", c.Address)
 	return nil
 }
 
@@ -45,9 +40,5 @@ func recalc(contract models.Contract) error {
 		return errors.Errorf("[recalc] Compute contract stats error message: %s", err)
 	}
 
-	if _, err := ctx.ES.UpdateDoc(&contract); err != nil {
-		return err
-	}
-
-	return nil
+	return ctx.ES.UpdateDoc(&contract)
 }

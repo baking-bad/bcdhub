@@ -1,23 +1,44 @@
 package mq
 
-import "github.com/streadway/amqp"
+import (
+	"io"
+
+	"github.com/streadway/amqp"
+)
 
 // IMessage -
 type IMessage interface {
-	GetQueue() string
-	Marshal() ([]byte, error)
+	GetQueues() []string
+	MarshalToQueue() ([]byte, error)
+}
+
+// Publisher -
+type Publisher interface {
+	SendRaw(queue string, body []byte) error
+	Send(queue IMessage) error
 }
 
 // IMessagePublisher -
 type IMessagePublisher interface {
-	SendRaw(queue string, body []byte) error
-	Send(queue IMessage) error
-	Close()
+	Publisher
+	io.Closer
+}
+
+// Receiver -
+type Receiver interface {
+	Consume(queue string) (<-chan amqp.Delivery, error)
+	GetQueues() []string
 }
 
 // IMessageReceiver -
 type IMessageReceiver interface {
-	Consume(queue string) (<-chan amqp.Delivery, error)
-	GetQueues() []string
-	Close()
+	Receiver
+	io.Closer
+}
+
+// Mediator -
+type Mediator interface {
+	Publisher
+	Receiver
+	io.Closer
 }

@@ -31,11 +31,13 @@ func (opg Group) Parse(data gjson.Result) ([]elastic.Model, error) {
 	for idx, item := range data.Get("contents").Array() {
 		opg.contentIdx = int64(idx)
 
-		models, err := NewContent(opg.ParseParams).Parse(item)
+		contentParser := NewContent(opg.ParseParams)
+		models, err := contentParser.Parse(item)
 		if err != nil {
 			return nil, err
 		}
 		parsedModels = append(parsedModels, models...)
+		contentParser.clear()
 	}
 	return parsedModels, nil
 }
@@ -113,4 +115,8 @@ func (content Content) parseInternal(data gjson.Result) ([]elastic.Model, error)
 		internalModels = append(internalModels, parsedModels...)
 	}
 	return internalModels, nil
+}
+
+func (content *Content) clear() {
+	content.main = nil
 }

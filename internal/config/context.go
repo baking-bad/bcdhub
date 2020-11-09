@@ -16,10 +16,10 @@ import (
 type Context struct {
 	DB           database.DB
 	ES           elastic.IElastic
-	MQ           *mq.QueueManager
+	MQ           mq.Mediator
 	AWS          *aws.Client
 	RPC          map[string]noderpc.INode
-	TzKTServices map[string]*tzkt.ServicesTzKT
+	TzKTServices map[string]tzkt.Service
 
 	Config    Config
 	SharePath string
@@ -47,7 +47,7 @@ func (ctx *Context) GetRPC(network string) (noderpc.INode, error) {
 }
 
 // GetTzKTService -
-func (ctx *Context) GetTzKTService(network string) (*tzkt.ServicesTzKT, error) {
+func (ctx *Context) GetTzKTService(network string) (tzkt.Service, error) {
 	if rpc, ok := ctx.TzKTServices[network]; ok {
 		return rpc, nil
 	}

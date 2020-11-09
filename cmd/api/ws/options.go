@@ -18,7 +18,7 @@ func WithSource(source datasources.DataSource) HubOption {
 }
 
 // WithRabbitSource -
-func WithRabbitSource(messageQueue *mq.QueueManager) HubOption {
+func WithRabbitSource(messageQueue mq.Mediator) HubOption {
 	return func(h *Hub) {
 		rmq, err := datasources.NewRabbitMQ(messageQueue)
 		if err != nil {

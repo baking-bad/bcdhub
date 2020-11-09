@@ -1,7 +1,5 @@
 package models
 
-import "github.com/tidwall/gjson"
-
 // Protocol -
 type Protocol struct {
 	ID string `json:"-"`
@@ -33,29 +31,12 @@ func (p *Protocol) GetIndex() string {
 	return "protocol"
 }
 
-// Marshal -
-func (p *Protocol) Marshal() ([]byte, error) {
+// MarshalToQueue -
+func (p *Protocol) MarshalToQueue() ([]byte, error) {
 	return nil, nil
 }
 
-// ParseElasticJSON -
-func (p *Protocol) ParseElasticJSON(hit gjson.Result) {
-	p.ID = hit.Get("_id").String()
-	p.Hash = hit.Get("_source.hash").String()
-	p.Network = hit.Get("_source.network").String()
-	p.StartLevel = hit.Get("_source.start_level").Int()
-	p.EndLevel = hit.Get("_source.end_level").Int()
-	p.Alias = hit.Get("_source.alias").String()
-	p.SymLink = hit.Get("_source.sym_link").String()
-	p.Constants = Constants{
-		CostPerByte:                  hit.Get("_source.constants.cost_per_byte").Int(),
-		HardGasLimitPerOperation:     hit.Get("_source.constants.hard_gas_limit_per_operation").Int(),
-		HardStorageLimitPerOperation: hit.Get("_source.constants.hard_storage_limit_per_operation").Int(),
-		TimeBetweenBlocks:            hit.Get("_source.constants.time_between_blocks").Int(),
-	}
-}
-
-// GetQueue -
-func (p *Protocol) GetQueue() string {
-	return ""
+// GetQueues -
+func (p *Protocol) GetQueues() []string {
+	return nil
 }

@@ -5,7 +5,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 )
 
 func filtersToQuery(by map[string]interface{}) base {
@@ -20,16 +19,15 @@ func filtersToQuery(by map[string]interface{}) base {
 	)
 }
 
-func (e *Elastic) getContract(q map[string]interface{}) (c models.Contract, err error) {
-	res, err := e.query([]string{DocContracts}, q)
-	if err != nil {
+func (e *Elastic) getContract(q base) (c models.Contract, err error) {
+	var response SearchResponse
+	if err = e.query([]string{DocContracts}, q, &response); err != nil {
 		return
 	}
-	if res.Get("hits.total.value").Int() < 1 {
+	if response.Hits.Total.Value == 0 {
 		return c, NewRecordNotFoundError(DocContracts, "", q)
 	}
-	hit := res.Get("hits.hits.0")
-	c.ParseElasticJSON(hit)
+	err = json.Unmarshal(response.Hits.Hits[0].Source, &c)
 	return
 }
 
@@ -93,11 +91,11 @@ func (e *Elastic) IsFAContract(network, address string) (bool, error) {
 			),
 		),
 	)
-	resp, err := e.query([]string{DocContracts}, query, "address")
-	if err != nil {
+	var response SearchResponse
+	if err := e.query([]string{DocContracts}, query, &response, "address"); err != nil {
 		return false, err
 	}
-	return resp.Get("hits.total.value").Int() == 1, nil
+	return response.Hits.Total.Value == 1, nil
 }
 
 // UpdateContractMigrationsCount -
@@ -110,13 +108,11 @@ func (e *Elastic) UpdateContractMigrationsCount(address, network string) error {
 		return err
 	}
 	contract.MigrationsCount++
-
-	_, err = e.UpdateDoc(&contract)
-	return err
+	return e.UpdateDoc(&contract)
 }
 
 // GetContractAddressesByNetworkAndLevel -
-func (e *Elastic) GetContractAddressesByNetworkAndLevel(network string, maxLevel int64) (gjson.Result, error) {
+func (e *Elastic) GetContractAddressesByNetworkAndLevel(network string, maxLevel int64) ([]string, error) {
 	query := newQuery().Query(
 		boolQ(
 			filter(
@@ -127,11 +123,22 @@ func (e *Elastic) GetContractAddressesByNetworkAndLevel(network string, maxLevel
 			),
 		),
 	).All()
-	resp, err := e.query([]string{DocContracts}, query, "address")
-	if err != nil {
-		return resp, err
+
+	var response SearchResponse
+	if err := e.query([]string{DocContracts}, query, "address"); err != nil {
+		return nil, err
 	}
-	return resp.Get("hits.hits"), nil
+
+	addresses := make([]string, len(response.Hits.Hits))
+	for i := range response.Hits.Hits {
+		var c models.Contract
+		if err := json.Unmarshal(response.Hits.Hits[i].Source, &c); err != nil {
+			return nil, err
+		}
+		addresses[i] = c.Address
+	}
+
+	return addresses, nil
 }
 
 type contractIDs struct {
@@ -158,11 +165,6 @@ func (ids *contractIDs) GetIndex() string {
 	return DocContracts
 }
 
-// ParseElasticJSON -
-func (ids *contractIDs) ParseElasticJSON(hit gjson.Result) {
-	ids.IDs = append(ids.IDs, hit.Get("_id").String())
-}
-
 // GetContractsIDByAddress -
 func (e *Elastic) GetContractsIDByAddress(addresses []string, network string) ([]string, error) {
 	shouldItems := make([]qItem, len(addresses))
@@ -185,6 +187,23 @@ func (e *Elastic) GetContractsIDByAddress(addresses []string, network string) ([
 	}
 	err := e.getAllByQuery(query, &ids)
 	return ids.IDs, err
+}
+
+type recalcContractStatsResponse struct {
+	Aggs struct {
+		TxCount struct {
+			Value int64 `json:"value"`
+		} `json:"tx_count"`
+		Balance struct {
+			Value int64 `json:"value"`
+		} `json:"balance"`
+		LastAction struct {
+			Value int64 `json:"value"`
+		} `json:"last_action"`
+		TotalWithdrawn struct {
+			Value int64 `json:"value"`
+		} `json:"total_withdrawn"`
+	} `json:"aggregations"`
 }
 
 // RecalcContractStats -
@@ -230,14 +249,24 @@ func (e *Elastic) RecalcContractStats(network, address string) (stats ContractSt
 			},
 		},
 	).Zero()
-	response, err := e.query([]string{DocOperations}, query)
-	if err != nil {
+	var response recalcContractStatsResponse
+	if err = e.query([]string{DocOperations}, query, &response); err != nil {
 		return
 	}
 
-	stats.ParseElasticJSON(response.Get("aggregations"))
-
+	stats.LastAction = time.Unix(0, response.Aggs.LastAction.Value*1000000).UTC()
+	stats.Balance = response.Aggs.Balance.Value
+	stats.TotalWithdrawn = response.Aggs.TotalWithdrawn.Value
+	stats.TxCount = response.Aggs.TxCount.Value
 	return
+}
+
+type getContractMigrationStatsResponse struct {
+	Agg struct {
+		MigrationsCount struct {
+			Value int64 `json:"value"`
+		} `json:"migrations_count"`
+	} `json:"aggregations"`
 }
 
 // GetContractMigrationStats -
@@ -260,14 +289,28 @@ func (e *Elastic) GetContractMigrationStats(network, address string) (stats Cont
 			},
 		),
 	).Zero()
-	response, err := e.query([]string{DocMigrations}, query)
-	if err != nil {
+
+	var response getContractMigrationStatsResponse
+	if err = e.query([]string{DocMigrations}, query, &response); err != nil {
 		return
 	}
 
-	stats.ParseElasticJSON(response.Get("aggregations"))
-
+	stats.MigrationsCount = response.Agg.MigrationsCount.Value
 	return
+}
+
+type getDAppStatsResponse struct {
+	Aggs struct {
+		Users struct {
+			Value float64 `json:"value"`
+		} `json:"users"`
+		Calls struct {
+			Value float64 `json:"value"`
+		} `json:"calls"`
+		Volume struct {
+			Value float64 `json:"value"`
+		} `json:"volume"`
+	} `json:"aggregations"`
 }
 
 // GetDAppStats -
@@ -306,12 +349,14 @@ func (e *Elastic) GetDAppStats(network string, addresses []string, period string
 		),
 	).Zero()
 
-	response, err := e.query([]string{DocOperations}, query)
-	if err != nil {
+	var response getDAppStatsResponse
+	if err = e.query([]string{DocOperations}, query, &response); err != nil {
 		return
 	}
 
-	stats.ParseElasticJSON(response.Get("aggregations"))
+	stats.Calls = int64(response.Aggs.Calls.Value)
+	stats.Users = int64(response.Aggs.Users.Value)
+	stats.Volume = int64(response.Aggs.Volume.Value)
 	return
 }
 
@@ -338,4 +383,27 @@ func periodToRange(period string) (qItem, error) {
 			},
 		},
 	}, nil
+}
+
+// GetContractsByAddresses -
+func (e *Elastic) GetContractsByAddresses(addresses []Address) ([]models.Contract, error) {
+	items := make([]qItem, len(addresses))
+	for i := range addresses {
+		items[i] = boolQ(
+			filter(
+				matchPhrase("address", addresses[i].Address),
+				matchQ("network", addresses[i].Network),
+			),
+		)
+	}
+
+	query := newQuery().Query(
+		boolQ(
+			should(items...),
+			minimumShouldMatch(1),
+		),
+	)
+	contracts := make([]models.Contract, 0)
+	err := e.getAllByQuery(query, &contracts)
+	return contracts, err
 }

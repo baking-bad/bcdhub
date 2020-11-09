@@ -5,7 +5,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/tidwall/gjson"
 )
 
 // SearchResult -
@@ -51,14 +50,14 @@ type PageableOperations struct {
 
 // SameContractsResponse -
 type SameContractsResponse struct {
-	Count     uint64            `json:"count"`
+	Count     int64             `json:"count"`
 	Contracts []models.Contract `json:"contracts"`
 }
 
 // SimilarContract -
 type SimilarContract struct {
 	*models.Contract
-	Count uint64 `json:"count"`
+	Count int64 `json:"count"`
 }
 
 // BigMapDiff -
@@ -78,19 +77,25 @@ type BigMapDiff struct {
 	Count int64 `json:"count"`
 }
 
-// ParseElasticJSON -
-func (b *BigMapDiff) ParseElasticJSON(hit gjson.Result) {
-	b.Ptr = hit.Get("_source.ptr").Int()
-	b.BinPath = hit.Get("_source.bin_path").String()
-	b.Key = hit.Get("_source.key").String()
-	b.KeyHash = hit.Get("_source.key_hash").String()
-	b.Value = hit.Get("_source.value").String()
-	b.OperationID = hit.Get("_source.operation_id").String()
-	b.Level = hit.Get("_source.level").Int()
-	b.Address = hit.Get("_source.address").String()
-	b.Network = hit.Get("_source.network").String()
-	b.Timestamp = hit.Get("_source.timestamp").Time()
-	b.Protocol = hit.Get("_source.protocol").String()
+// FromModel -
+func (b *BigMapDiff) FromModel(bmd *models.BigMapDiff) error {
+	b.Ptr = bmd.Ptr
+	b.BinPath = bmd.BinPath
+	b.KeyHash = bmd.KeyHash
+	b.Value = bmd.Value
+	b.OperationID = bmd.OperationID
+	b.Level = bmd.Level
+	b.Address = bmd.Address
+	b.Network = bmd.Network
+	b.Timestamp = bmd.Timestamp
+	b.Protocol = bmd.Protocol
+
+	bytes, err := json.Marshal(bmd.Key)
+	if err != nil {
+		return err
+	}
+	b.Key = string(bytes)
+	return nil
 }
 
 // ContractStats -
@@ -101,28 +106,9 @@ type ContractStats struct {
 	TotalWithdrawn int64     `json:"total_withdrawn"`
 }
 
-// ParseElasticJSON -
-func (stats *ContractStats) ParseElasticJSON(hit gjson.Result) {
-	stats.TxCount = hit.Get("tx_count.value").Int()
-	stats.LastAction = time.Unix(0, hit.Get("last_action.value").Int()*1000000).UTC()
-	stats.Balance = hit.Get("balance.value").Int()
-	stats.TotalWithdrawn = hit.Get("total_withdrawn.value").Int()
-}
-
 // ContractMigrationsStats -
 type ContractMigrationsStats struct {
 	MigrationsCount int64 `json:"migrations_count"`
-}
-
-// ParseElasticJSON -
-func (stats *ContractMigrationsStats) ParseElasticJSON(hit gjson.Result) {
-	stats.MigrationsCount = hit.Get("migrations_count.value").Int()
-}
-
-// NetworkCountStats -
-type NetworkCountStats struct {
-	Contracts  int64 `json:"contracts"`
-	Operations int64 `json:"operations"`
 }
 
 // DiffTask -
@@ -166,15 +152,6 @@ type EventContract struct {
 	Timestamp time.Time `json:"timestamp"`
 }
 
-// ParseElasticJSON -
-func (m *EventContract) ParseElasticJSON(resp gjson.Result) {
-	m.Network = resp.Get("_source.network").String()
-	m.Address = resp.Get("_source.address").String()
-	m.Hash = resp.Get("_source.hash").String()
-	m.ProjectID = resp.Get("_source.project_id").String()
-	m.Timestamp = resp.Get("_source.timestamp").Time().UTC()
-}
-
 // EventType -
 const (
 	EventTypeError     = "error"
@@ -215,34 +192,8 @@ type EventOperation struct {
 	DelegateAlias    string    `json:"delegate_alias,omitempty"`
 
 	Result *models.OperationResult `json:"result,omitempty"`
-	Errors []cerrors.IError        `json:"errors,omitempty"`
+	Errors []*cerrors.Error        `json:"errors,omitempty"`
 	Burned int64                   `json:"burned,omitempty"`
-}
-
-// ParseElasticJSON -
-func (o *EventOperation) ParseElasticJSON(resp gjson.Result) {
-	o.Hash = resp.Get("_source.hash").String()
-	o.Internal = resp.Get("_source.internal").Bool()
-	o.Network = resp.Get("_source.network").String()
-	o.Timestamp = resp.Get("_source.timestamp").Time().UTC()
-	o.Status = resp.Get("_source.status").String()
-	o.Kind = resp.Get("_source.kind").String()
-	o.Source = resp.Get("_source.source").String()
-	o.Fee = resp.Get("_source.fee").Int()
-	o.Amount = resp.Get("_source.amount").Int()
-	o.Destination = resp.Get("_source.destination").String()
-	o.Delegate = resp.Get("_source.delegate").String()
-	o.Entrypoint = resp.Get("_source.entrypoint").String()
-	o.SourceAlias = resp.Get("_source.source_alias").String()
-	o.DestinationAlias = resp.Get("_source.destination_alias").String()
-	o.Burned = resp.Get("_source.burned").Int()
-
-	var opResult models.OperationResult
-	opResult.ParseElasticJSON(resp.Get("_source.result"))
-	o.Result = &opResult
-
-	err := resp.Get("_source.errors")
-	o.Errors = cerrors.ParseArray(err)
 }
 
 // EventMigration -
@@ -255,18 +206,6 @@ type EventMigration struct {
 	Level        int64     `json:"level"`
 	Address      string    `json:"address"`
 	Kind         string    `json:"kind"`
-}
-
-// ParseElasticJSON -
-func (m *EventMigration) ParseElasticJSON(resp gjson.Result) {
-	m.Protocol = resp.Get("_source.protocol").String()
-	m.PrevProtocol = resp.Get("_source.prev_protocol").String()
-	m.Hash = resp.Get("_source.hash").String()
-	m.Network = resp.Get("_source.network").String()
-	m.Timestamp = resp.Get("_source.timestamp").Time().UTC()
-	m.Level = resp.Get("_source.level").Int()
-	m.Address = resp.Get("_source.address").String()
-	m.Kind = resp.Get("_source.kind").String()
 }
 
 // TokenMethodUsageStats -
@@ -285,16 +224,15 @@ type DAppStats struct {
 	Volume int64 `json:"volume"`
 }
 
-// ParseElasticJSON -
-func (stats *DAppStats) ParseElasticJSON(hit gjson.Result) {
-	stats.Calls = hit.Get("calls.value").Int()
-	stats.Users = hit.Get("users.value").Int()
-	stats.Volume = hit.Get("volume.value").Int()
-}
-
 // TransfersResponse -
 type TransfersResponse struct {
 	Transfers []models.Transfer `json:"transfers"`
 	Total     int64             `json:"total"`
 	LastID    string            `json:"last_id"`
+}
+
+// Address -
+type Address struct {
+	Address string
+	Network string
 }

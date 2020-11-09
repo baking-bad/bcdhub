@@ -5,8 +5,20 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 )
+
+type getBigMapDiffsWithKeysResponse struct {
+	Agg struct {
+		Keys struct {
+			Buckets []struct {
+				DocCount int64 `json:"doc_count"`
+				TopKey   struct {
+					Hits HitsArray `json:"hits"`
+				} `json:"top_key"`
+			} `json:"buckets"`
+		} `json:"keys"`
+	} `json:"aggregations"`
+}
 
 // GetBigMapDiffsUniqueByOperationID -
 func (e *Elastic) GetBigMapDiffsUniqueByOperationID(operationID string) ([]models.BigMapDiff, error) {
@@ -41,18 +53,19 @@ func (e *Elastic) GetBigMapDiffsUniqueByOperationID(operationID string) ([]model
 			),
 		).Zero()
 
-	res, err := e.query([]string{DocBigMapDiff}, query)
-	if err != nil {
+	var response getBigMapDiffsWithKeysResponse
+	if err := e.query([]string{DocBigMapDiff}, query, &response); err != nil {
 		return nil, err
 	}
-	response := make([]models.BigMapDiff, 0)
-	for _, item := range res.Get("aggregations.keys.buckets").Array() {
-		bmd := item.Get("top_key.hits.hits.0")
-		var b models.BigMapDiff
-		b.ParseElasticJSON(bmd)
-		response = append(response, b)
+	arr := response.Agg.Keys.Buckets
+	diffs := make([]models.BigMapDiff, len(arr))
+	for i := range arr {
+		if err := json.Unmarshal(arr[i].TopKey.Hits.Hits[0].Source, &diffs[i]); err != nil {
+			return nil, err
+		}
+		diffs[i].ID = arr[i].TopKey.Hits.Hits[0].ID
 	}
-	return response, nil
+	return diffs, nil
 }
 
 // GetBigMapDiffsPrevious -
@@ -91,22 +104,24 @@ func (e *Elastic) GetBigMapDiffsPrevious(filters []models.BigMapDiff, indexedTim
 		).
 		Sort("indexed_time", "desc").Zero()
 
-	res, err := e.query([]string{DocBigMapDiff}, query)
-	if err != nil {
+	var response getBigMapDiffsWithKeysResponse
+	if err := e.query([]string{DocBigMapDiff}, query, &response); err != nil {
 		return nil, err
 	}
 
-	response := make([]models.BigMapDiff, 0)
-	for _, item := range res.Get("aggregations.keys.buckets").Array() {
-		bmd := item.Get("top_key.hits.hits.0")
-		if bmd.Get("_source.value").String() == "" {
-			continue
-		}
+	arr := response.Agg.Keys.Buckets
+	diffs := make([]models.BigMapDiff, 0)
+	for i := range arr {
 		var b models.BigMapDiff
-		b.ParseElasticJSON(bmd)
-		response = append(response, b)
+		if err := json.Unmarshal(arr[i].TopKey.Hits.Hits[0].Source, &b); err != nil {
+			return nil, err
+		}
+		if b.Value != "" {
+			b.ID = arr[i].TopKey.Hits.Hits[0].ID
+			diffs = append(diffs, b)
+		}
 	}
-	return response, nil
+	return diffs, nil
 }
 
 // GetBigMapDiffsForAddress -
@@ -133,18 +148,19 @@ func (e *Elastic) GetBigMapDiffsForAddress(address string) ([]models.BigMapDiff,
 		),
 	).Zero()
 
-	res, err := e.query([]string{DocBigMapDiff}, query)
-	if err != nil {
+	var response getBigMapDiffsWithKeysResponse
+	if err := e.query([]string{DocBigMapDiff}, query, &response); err != nil {
 		return nil, err
 	}
-	response := make([]models.BigMapDiff, 0)
-	for _, item := range res.Get("aggregations.keys.buckets").Array() {
-		bmd := item.Get("top_key.hits.hits.0")
-		var b models.BigMapDiff
-		b.ParseElasticJSON(bmd)
-		response = append(response, b)
+	arr := response.Agg.Keys.Buckets
+	diffs := make([]models.BigMapDiff, len(arr))
+	for i := range arr {
+		if err := json.Unmarshal(arr[i].TopKey.Hits.Hits[0].Source, &diffs[i]); err != nil {
+			return nil, err
+		}
+		diffs[i].ID = arr[i].TopKey.Hits.Hits[0].ID
 	}
-	return response, nil
+	return diffs, nil
 }
 
 // GetBigMapKeysContext -
@@ -210,13 +226,12 @@ func (e *Elastic) GetBigMapKeys(ctx GetBigMapKeysContext) ([]BigMapDiff, error) 
 		return nil, errors.Errorf("Invalid pointer value: %d", *ctx.Ptr)
 	}
 
-	res, err := e.query([]string{DocBigMapDiff}, ctx.build())
-	if err != nil {
+	var response getBigMapDiffsWithKeysResponse
+	if err := e.query([]string{DocBigMapDiff}, ctx.build(), &response); err != nil {
 		return nil, err
 	}
 
-	result := make([]BigMapDiff, 0)
-	arr := res.Get("aggregations.keys.buckets").Array()
+	arr := response.Agg.Keys.Buckets
 	if int64(len(arr)) < ctx.Offset {
 		return nil, nil
 	}
@@ -226,13 +241,17 @@ func (e *Elastic) GetBigMapKeys(ctx GetBigMapKeysContext) ([]BigMapDiff, error) 
 	}
 
 	arr = arr[ctx.Offset:ctx.to]
-	for _, item := range arr {
-		bmd := item.Get("top_key.hits.hits.0")
-
-		var b BigMapDiff
-		b.ParseElasticJSON(bmd)
-		b.Count = item.Get("doc_count").Int()
-		result = append(result, b)
+	result := make([]BigMapDiff, len(arr))
+	for i := range arr {
+		var b models.BigMapDiff
+		if err := json.Unmarshal(arr[i].TopKey.Hits.Hits[0].Source, &b); err != nil {
+			return nil, err
+		}
+		b.ID = arr[i].TopKey.Hits.Hits[0].ID
+		if err := result[i].FromModel(&b); err != nil {
+			return nil, err
+		}
+		result[i].Count = arr[i].DocCount
 	}
 	return result, nil
 }
@@ -254,24 +273,29 @@ func (e *Elastic) GetBigMapDiffsByPtrAndKeyHash(ptr int64, network, keyHash stri
 	}
 
 	query := newQuery().Query(b).Sort("level", "desc").Size(size).From(offset)
-	res, err := e.query([]string{DocBigMapDiff}, query)
-	if err != nil {
+
+	var response SearchResponse
+	if err := e.query([]string{DocBigMapDiff}, query, &response); err != nil {
 		return nil, 0, err
 	}
 
-	result := make([]BigMapDiff, 0)
-	for _, item := range res.Get("hits.hits").Array() {
-		var b BigMapDiff
-		b.ParseElasticJSON(item)
-		result = append(result, b)
+	result := make([]BigMapDiff, len(response.Hits.Hits))
+	for i := range response.Hits.Hits {
+		var b models.BigMapDiff
+		if err := json.Unmarshal(response.Hits.Hits[i].Source, &b); err != nil {
+			return nil, 0, err
+		}
+		b.ID = response.Hits.Hits[i].ID
+		if err := result[i].FromModel(&b); err != nil {
+			return nil, 0, err
+		}
 	}
 
-	total := res.Get("hits.total.value").Int()
-	return result, total, nil
+	return result, response.Hits.Total.Value, nil
 }
 
-// GetBigMapDiffsJSONByOperationID -
-func (e *Elastic) GetBigMapDiffsJSONByOperationID(operationID string) ([]gjson.Result, error) {
+// GetBigMapDiffsByOperationID -
+func (e *Elastic) GetBigMapDiffsByOperationID(operationID string) ([]*models.BigMapDiff, error) {
 	query := newQuery().
 		Query(
 			boolQ(
@@ -281,17 +305,22 @@ func (e *Elastic) GetBigMapDiffsJSONByOperationID(operationID string) ([]gjson.R
 			),
 		).All()
 
-	res, err := e.query([]string{DocBigMapDiff}, query)
-	if err != nil {
+	var response SearchResponse
+	if err := e.query([]string{DocBigMapDiff}, query, &response); err != nil {
 		return nil, err
 	}
-	return res.Get("hits.hits").Array(), nil
+	result := make([]*models.BigMapDiff, len(response.Hits.Hits))
+	for i := range response.Hits.Hits {
+		if err := json.Unmarshal(response.Hits.Hits[i].Source, &result[i]); err != nil {
+			return nil, err
+		}
+		result[i].ID = response.Hits.Hits[i].ID
+	}
+	return result, nil
 }
 
 // GetBigMapDiffsByPtr -
 func (e *Elastic) GetBigMapDiffsByPtr(address, network string, ptr int64) ([]models.BigMapDiff, error) {
-	bmd := make([]models.BigMapDiff, 0)
-
 	query := newQuery().Query(
 		boolQ(
 			filter(
@@ -314,17 +343,15 @@ func (e *Elastic) GetBigMapDiffsByPtr(address, network string, ptr int64) ([]mod
 		}),
 	).Sort("indexed_time", "desc").Zero()
 
-	result, err := e.query([]string{DocBigMapDiff}, query)
-	if err != nil {
+	var response getBigMapDiffsWithKeysResponse
+	if err := e.query([]string{DocBigMapDiff}, query, &response); err != nil {
 		return nil, err
 	}
-	buckets := result.Get("aggregations.keys.buckets").Array()
-	for _, item := range buckets {
-		hit := item.Get("top_key.hits.hits.0")
-
-		var b models.BigMapDiff
-		b.ParseElasticJSON(hit)
-		bmd = append(bmd, b)
+	bmd := make([]models.BigMapDiff, len(response.Agg.Keys.Buckets))
+	for i := range response.Agg.Keys.Buckets {
+		if err := json.Unmarshal(response.Agg.Keys.Buckets[i].TopKey.Hits.Hits[0].Source, &bmd[i]); err != nil {
+			return nil, err
+		}
 	}
 	return bmd, nil
 }
@@ -377,15 +404,16 @@ func (e *Elastic) GetBigMapKey(network, keyHash string, ptr int64) (data BigMapD
 	b := boolQ(mustQuery)
 
 	query := newQuery().Query(b).Sort("level", "desc").One()
-	res, err := e.query([]string{DocBigMapDiff}, query)
-	if err != nil {
+
+	var response SearchResponse
+	if err = e.query([]string{DocBigMapDiff}, query, &response); err != nil {
 		return
 	}
 
-	if !res.Get("hits.hits.0").Exists() {
+	if response.Hits.Total.Value == 0 {
 		return data, NewRecordNotFoundError(DocBigMapDiff, "", query)
 	}
-	data.ParseElasticJSON(res.Get("hits.hits.0"))
+	err = json.Unmarshal(response.Hits.Hits[0].Source, &data)
 	return
 }
 
@@ -399,7 +427,7 @@ func (e *Elastic) GetBigMapValuesByKey(keyHash string) ([]BigMapDiff, error) {
 	query := newQuery().Query(b).Add(
 		aggs(
 			aggItem{
-				"items", qItem{
+				"keys", qItem{
 					"terms": qItem{
 						"script": qItem{
 							"source": "doc['network.keyword'].value + doc['address.keyword'].value + String.format('%d', new def[] {doc['ptr'].value})",
@@ -413,19 +441,16 @@ func (e *Elastic) GetBigMapValuesByKey(keyHash string) ([]BigMapDiff, error) {
 		),
 	).Zero()
 
-	response, err := e.query([]string{DocBigMapDiff}, query)
-	if err != nil {
+	var response getBigMapDiffsWithKeysResponse
+	if err := e.query([]string{DocBigMapDiff}, query, &response); err != nil {
 		return nil, err
 	}
 
-	bmd := make([]BigMapDiff, 0)
-	buckets := response.Get("aggregations.items.buckets").Array()
-	for _, item := range buckets {
-		hit := item.Get("top_key.hits.hits.0")
-
-		var b BigMapDiff
-		b.ParseElasticJSON(hit)
-		bmd = append(bmd, b)
+	bmd := make([]BigMapDiff, len(response.Agg.Keys.Buckets))
+	for i, item := range response.Agg.Keys.Buckets {
+		if err := json.Unmarshal(item.TopKey.Hits.Hits[0].Source, &bmd[i]); err != nil {
+			return nil, err
+		}
 	}
 	return bmd, nil
 }

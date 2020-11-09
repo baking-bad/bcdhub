@@ -3,39 +3,65 @@ package main
 import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/parsers/tzip"
 	"github.com/pkg/errors"
-	"github.com/streadway/amqp"
 )
 
-func getBigMapDiff(data amqp.Delivery) error {
-	bmID := parseID(data.Body)
-
-	bmd := models.BigMapDiff{ID: bmID}
-	if err := ctx.ES.GetByID(&bmd); err != nil {
-		return errors.Errorf("[getBigMapDiff] Find big map diff error: %s", err)
+func getBigMapDiff(ids []string) error {
+	bmd := make([]models.BigMapDiff, 0)
+	if err := ctx.ES.GetByIDs(&bmd, ids...); err != nil {
+		return errors.Errorf("[getBigMapDiff] Find big map diff error for IDs %v: %s", ids, err)
 	}
 
-	if err := parseBigMapDiff(bmd); err != nil {
-		return errors.Errorf("[getBigMapDiff] Compute error message: %s", err)
+	r := result{
+		Updated: make([]elastic.Model, 0),
+		New:     make([]elastic.Model, 0),
+	}
+	for i := range bmd {
+		if err := parseBigMapDiff(bmd[i], &r); err != nil {
+			return errors.Errorf("[getBigMapDiff] Compute error message: %s", err)
+		}
+	}
+	if err := ctx.ES.BulkInsert(r.New); err != nil {
+		return err
+	}
+	if err := ctx.ES.BulkUpdate(r.Updated); err != nil {
+		return err
 	}
 	return nil
+}
+
+type result struct {
+	Updated []elastic.Model
+	New     []elastic.Model
 }
 
 //nolint
-func parseBigMapDiff(bmd models.BigMapDiff) error {
+func parseBigMapDiff(bmd models.BigMapDiff, r *result) error {
+	h := metrics.New(ctx.ES, ctx.DB)
+
+	if err := h.SetBigMapDiffsStrings(&bmd); err != nil {
+		return err
+	}
+	r.Updated = append(r.Updated, &bmd)
+
 	switch bmd.KeyHash {
 	case tzip.EmptyStringKey:
-		return tzipHandler(bmd)
+		newModels, err := tzipHandler(bmd)
+		if err != nil {
+			return err
+		}
+		r.New = append(r.New, newModels...)
 	}
 	return nil
 }
 
-func tzipHandler(bmd models.BigMapDiff) error {
+func tzipHandler(bmd models.BigMapDiff) ([]elastic.Model, error) {
 	rpc, err := ctx.GetRPC(bmd.Network)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	tzipParser := tzip.NewParser(ctx.ES, rpc, tzip.ParserConfig{
 		IPFSGateways: ctx.Config.IPFSGateways,
@@ -45,16 +71,12 @@ func tzipHandler(bmd models.BigMapDiff) error {
 		BigMapDiff: bmd,
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if model == nil {
-		return nil
+		return nil, nil
 	}
 
-	if err := ctx.ES.BulkInsert([]elastic.Model{model}); err != nil {
-		return err
-	}
-
-	logger.Info("Big map diff with TZIP %s processed", bmd.ID)
-	return nil
+	logger.With(&bmd).Info("Big map diff with TZIP is processed")
+	return []elastic.Model{model}, nil
 }

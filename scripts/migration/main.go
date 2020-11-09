@@ -64,7 +64,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	logger.Success("%s migration done. Spent: %v", migration.Key(), time.Since(start))
+	logger.Info("%s migration done. Spent: %v", migration.Key(), time.Since(start))
 }
 
 func chooseMigration() (migrations.Migration, error) {

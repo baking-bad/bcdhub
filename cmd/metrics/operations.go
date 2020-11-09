@@ -1,36 +1,43 @@
 package main
 
 import (
-	"strings"
+	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/pkg/errors"
 
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/streadway/amqp"
 )
 
-func getOperation(data amqp.Delivery) error {
-	operationID := parseID(data.Body)
-
-	op := models.Operation{ID: operationID}
-	if err := ctx.ES.GetByID(&op); err != nil {
-		return errors.Errorf("[getOperation] Find operation error: %s", err)
+func getOperation(ids []string) error {
+	operations := make([]models.Operation, 0)
+	if err := ctx.ES.GetByIDs(&operations, ids...); err != nil {
+		return errors.Errorf("[getOperation] Find operation error for IDs %v: %s", ids, err)
 	}
 
-	if err := parseOperation(op); err != nil {
-		return errors.Errorf("[getOperation] Compute error message: %s", err)
+	h := metrics.New(ctx.ES, ctx.DB)
+	updated := make([]elastic.Model, 0)
+	for i := range operations {
+		if err := parseOperation(h, operations[i]); err != nil {
+			return errors.Errorf("[getOperation] Compute error message: %s", err)
+		}
+
+		updated = append(updated, &operations[i])
 	}
 
-	return nil
+	if err := ctx.ES.BulkUpdate(updated); err != nil {
+		return err
+	}
+
+	logger.Info("%d operations are processed", len(operations))
+
+	return getOperationsContracts(h, operations)
 }
 
-func parseOperation(operation models.Operation) error {
-	h := metrics.New(ctx.ES, ctx.DB)
-
+func parseOperation(h *metrics.Handler, operation models.Operation) error {
 	h.SetOperationAliases(ctx.Aliases, &operation)
 	h.SetOperationStrings(&operation)
 
@@ -38,59 +45,99 @@ func parseOperation(operation models.Operation) error {
 		return err
 	}
 
-	if _, err := ctx.ES.UpdateDoc(&operation); err != nil {
-		return err
-	}
-
-	if operation.Kind != consts.Origination {
-		for _, address := range []string{operation.Source, operation.Destination} {
-			if strings.HasPrefix(address, "KT") {
-				if err := setOperationStats(h, address, operation); err != nil {
-					return errors.Errorf("[parseOperation] Compute error message: %s", err)
-				}
-			}
-		}
-
-	}
-
-	if strings.HasPrefix(operation.Destination, "KT") || operation.Kind == consts.Origination {
-		if err := h.SetBigMapDiffsStrings(operation.ID); err != nil {
-			return err
-		}
-
+	if helpers.IsContract(operation.Destination) || operation.IsOrigination() {
 		if err := h.SendSentryNotifications(operation); err != nil {
 			return err
 		}
 	}
-
-	rpc, err := ctx.GetRPC(operation.Network)
-	if err != nil {
-		return err
-	}
-	if err := h.FixTokenMetadata(rpc, ctx.SharePath, &operation); err != nil {
-		return err
-	}
-
-	logger.Info("Operation %s processed", operation.ID)
 	return nil
 }
 
-func setOperationStats(h *metrics.Handler, address string, operation models.Operation) error {
-	c, err := ctx.ES.GetContract(map[string]interface{}{
-		"network": operation.Network,
-		"address": address,
-	})
+type stats struct {
+	Count      int64
+	LastAction time.Time
+}
 
-	if err != nil {
-		if elastic.IsRecordNotFound(err) {
-			return nil
+func (s *stats) update(ts time.Time) {
+	s.Count++
+	s.LastAction = ts
+}
+
+func (s *stats) isZero() bool {
+	return s.Count == 0 && s.LastAction.IsZero()
+}
+
+func getOperationsContracts(h *metrics.Handler, operations []models.Operation) error {
+	addresses := make([]elastic.Address, 0)
+	addressesMap := make(map[elastic.Address]*stats)
+	for i := range operations {
+		if helpers.IsContract(operations[i].Destination) {
+			dest := elastic.Address{
+				Address: operations[i].Destination,
+				Network: operations[i].Network,
+			}
+			if _, ok := addressesMap[dest]; !ok {
+				addressesMap[dest] = new(stats)
+				addresses = append(addresses, dest)
+			}
+			addressesMap[dest].update(operations[i].Timestamp)
 		}
-		return errors.Errorf("[setOperationStats] Find contract error: %s", err)
+		if helpers.IsContract(operations[i].Source) {
+			src := elastic.Address{
+				Address: operations[i].Source,
+				Network: operations[i].Network,
+			}
+			if _, ok := addressesMap[src]; !ok {
+				addressesMap[src] = new(stats)
+				addresses = append(addresses, src)
+			}
+			addressesMap[src].update(operations[i].Timestamp)
+		}
 	}
 
-	if err := h.SetContractStats(operation, &c); err != nil {
-		return errors.Errorf("[setOperationStats] compute contract stats error message: %s", err)
+	contracts, err := ctx.ES.GetContractsByAddresses(addresses)
+	if err != nil {
+		return err
 	}
 
-	return ctx.ES.UpdateFields(elastic.DocContracts, c.ID, c, "TxCount", "LastAction", "Balance", "TotalWithdrawn")
+	updated := make([]models.Contract, 0)
+	contractsMap := make(map[elastic.Address]models.Contract)
+	for i := range contracts {
+		addr := elastic.Address{
+			Address: contracts[i].Address,
+			Network: contracts[i].Network,
+		}
+		if s, ok := addressesMap[addr]; ok {
+			if !s.isZero() {
+				contracts[i].TxCount += s.Count
+				contracts[i].LastAction = s.LastAction
+				updated = append(updated, contracts[i])
+			}
+			contractsMap[addr] = contracts[i]
+		}
+	}
+
+	if err := ctx.ES.BulkUpdateField(updated, "TxCount", "LastAction"); err != nil {
+		return err
+	}
+
+	for i := range operations {
+		if !operations[i].IsTransaction() || !operations[i].IsCall() {
+			continue
+		}
+		addr := elastic.Address{
+			Address: operations[i].Destination,
+			Network: operations[i].Network,
+		}
+		if cntr, ok := contractsMap[addr]; ok {
+			rpc, err := ctx.GetRPC(cntr.Network)
+			if err != nil {
+				return err
+			}
+			if err := h.FixTokenMetadata(rpc, ctx.SharePath, &cntr, &operations[i]); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }

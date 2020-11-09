@@ -58,16 +58,13 @@ func (p *Parser) Parse(operation models.Operation) ([]elastic.Model, error) {
 		return nil, errors.Errorf("Invalid operation kind in computeContractMetrics: %s", operation.Kind)
 	}
 	contract := models.Contract{
-		ID:         helpers.GenerateID(),
-		Network:    operation.Network,
-		Level:      operation.Level,
-		Timestamp:  operation.Timestamp,
-		Manager:    operation.Source,
-		Address:    operation.Destination,
-		Balance:    operation.Amount,
-		Delegate:   operation.Delegate,
-		LastAction: models.BCDTime{Time: operation.Timestamp},
-		TxCount:    1,
+		ID:        helpers.GenerateID(),
+		Network:   operation.Network,
+		Level:     operation.Level,
+		Timestamp: operation.Timestamp,
+		Manager:   operation.Source,
+		Address:   operation.Destination,
+		Delegate:  operation.Delegate,
 	}
 
 	protoSymLink, err := meta.GetProtoSymLink(operation.Protocol)

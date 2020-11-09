@@ -144,18 +144,23 @@ func (e *Elastic) GetTransfers(ctx GetTransfersContext) (TransfersResponse, erro
 	query := ctx.buildQuery()
 
 	po := TransfersResponse{}
-	result, err := e.query([]string{DocTransfers}, query)
-	if err != nil {
+
+	var response SearchResponse
+	if err := e.query([]string{DocTransfers}, query, &response); err != nil {
 		return po, err
 	}
 
-	hits := result.Get("hits.hits").Array()
+	hits := response.Hits.Hits
 	transfers := make([]models.Transfer, len(hits))
-	for i, hit := range hits {
-		transfers[i].ParseElasticJSON(hit)
-		po.LastID = fmt.Sprintf("%d", transfers[i].IndexedTime)
+	for i := range hits {
+		if err := json.Unmarshal(hits[i].Source, &transfers[i]); err != nil {
+			return po, err
+		}
 	}
 	po.Transfers = transfers
-	po.Total = result.Get("hits.total.value").Int()
+	po.Total = response.Hits.Total.Value
+	if len(transfers) > 0 {
+		po.LastID = fmt.Sprintf("%d", transfers[len(transfers)-1].IndexedTime)
+	}
 	return po, nil
 }

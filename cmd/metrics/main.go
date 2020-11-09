@@ -3,61 +3,36 @@ package main
 import (
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/pkg/errors"
-	"github.com/streadway/amqp"
 )
 
 var ctx *config.Context
 
-const metricStoppedError = "METRICS_STOPPED"
+var errMetricsStopped = errors.New("METRICS_STOPPED")
 
-func parseData(data amqp.Delivery) error {
-	switch data.RoutingKey {
-	case mq.QueueContracts:
-		return getContract(data)
-	case mq.QueueOperations:
-		return getOperation(data)
-	case mq.QueueMigrations:
-		return getMigrations(data)
-	case mq.QueueRecalc:
-		return recalculateAll(data)
-	case mq.QueueTransfers:
-		return getTransfer(data)
-	case mq.QueueBigMapDiffs:
-		return getBigMapDiff(data)
-	default:
-		if data.RoutingKey == "" {
-			return errors.Errorf(metricStoppedError)
-		}
-		return errors.Errorf("Unknown data routing key %s", data.RoutingKey)
-	}
+var handlers = map[string]BulkHandler{
+	mq.QueueContracts:   getContract,
+	mq.QueueOperations:  getOperation,
+	mq.QueueMigrations:  getMigrations,
+	mq.QueueTransfers:   getTransfer,
+	mq.QueueBigMapDiffs: getBigMapDiff,
+	mq.QueueRecalc:      recalculateAll,
+	// mq.QueueProjects:    getProject,
 }
 
-func handler(data amqp.Delivery) error {
-	if err := parseData(data); err != nil {
-		if err.Error() == metricStoppedError {
-			return err
-		}
-		if !elastic.IsRecordNotFound(err) {
-			return err
-		}
-	}
+var managers = map[string]*BulkManager{}
 
-	if err := data.Ack(false); err != nil {
-		return errors.Errorf("Error acknowledging message: %s", err)
-	}
-	return nil
-}
+func listenChannel(messageQueue mq.IMessageReceiver, queue string, closeChan chan struct{}, wg *sync.WaitGroup) {
+	defer wg.Done()
 
-func listenChannel(messageQueue mq.IMessageReceiver, queue string, closeChan chan struct{}) {
 	localSentry := helpers.GetLocalSentry()
 	helpers.SetLocalTagSentry(localSentry, "queue", queue)
 
@@ -71,16 +46,23 @@ func listenChannel(messageQueue mq.IMessageReceiver, queue string, closeChan cha
 		select {
 		case <-closeChan:
 			logger.Info("Stopped %s queue", queue)
+			if manager, ok := managers[queue]; ok {
+				manager.Stop()
+				wg.Done()
+			}
 			return
 		case msg := <-msgs:
-			if err := handler(msg); err != nil {
-				if err.Error() == metricStoppedError {
-					logger.Warning("[%s] Rabbit MQ server stopped! Metrics service need to be restarted. Closing connection...", queue)
-					return
-				}
-				logger.Errorf("[listenChannel] %s", err.Error())
-				helpers.LocalCatchErrorSentry(localSentry, errors.Errorf("[listenChannel] %s", err.Error()))
+			if manager, ok := managers[msg.RoutingKey]; ok {
+				manager.Add(msg)
+				continue
 			}
+
+			if msg.RoutingKey == "" {
+				logger.Warning("[%s] Rabbit MQ server stopped! Metrics service need to be restarted. Closing connection...", queue)
+				return
+			}
+			logger.Errorf("Unknown data routing key %s", msg.RoutingKey)
+			helpers.LocalCatchErrorSentry(localSentry, errors.Errorf("[listenChannel] %s", err.Error()))
 		}
 	}
 }
@@ -107,14 +89,34 @@ func main() {
 	)
 	defer ctx.Close()
 
+	var wg sync.WaitGroup
+
 	closeChan := make(chan struct{})
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		<-signals
+		for range ctx.MQ.GetQueues() {
+			closeChan <- struct{}{}
+		}
+	}()
+
 	for _, queue := range ctx.MQ.GetQueues() {
-		go listenChannel(ctx.MQ, queue, closeChan)
+		if handler, ok := handlers[queue]; ok {
+			managers[queue] = NewBulkManager(30, 10, handler)
+			wg.Add(1)
+			go managers[queue].Run()
+		}
+		wg.Add(1)
+		go listenChannel(ctx.MQ, queue, closeChan, &wg)
 	}
 
-	<-signals
+	wg.Wait()
+
 	close(closeChan)
+	close(signals)
 }

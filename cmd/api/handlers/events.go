@@ -134,7 +134,10 @@ func (ctx *Context) getMempoolEvents(subscriptions []database.Subscription) ([]e
 
 			op.SourceAlias = ctx.Aliases[op.Source]
 			op.DestinationAlias = ctx.Aliases[op.Destination]
-			op.Errors = cerrors.ParseArray(item.Get("errors"))
+			op.Errors, err = cerrors.ParseArray([]byte(item.Get("errors").Raw))
+			if err != nil {
+				return nil, err
+			}
 
 			protocol := item.Get("protocol").String()
 

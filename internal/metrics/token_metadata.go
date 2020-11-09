@@ -1,8 +1,6 @@
 package metrics
 
 import (
-	"strings"
-
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -26,27 +24,17 @@ func (h *Handler) CreateTokenMetadata(rpc noderpc.INode, sharePath string, c *mo
 
 	result := make([]elastic.Model, 0)
 	for i := range metadata {
-		logger.Info("Token metadata for %s with token id %d found", c.Address, metadata[i].TokenID)
-		result = append(result, metadata[i].ToModel(c.Address, c.Network))
+		tzip := metadata[i].ToModel(c.Address, c.Network)
+		logger.With(tzip).Info("Token metadata is found")
+		result = append(result, tzip)
 	}
 
 	return h.ES.BulkInsert(result)
 }
 
 // FixTokenMetadata -
-func (h *Handler) FixTokenMetadata(rpc noderpc.INode, sharePath string, operation *models.Operation) error {
-	if operation.Kind != consts.Transaction || operation.Status != consts.Applied || !strings.HasPrefix(operation.Destination, "KT") {
-		return nil
-	}
-
-	contract, err := h.ES.GetContract(map[string]interface{}{
-		"network": operation.Network,
-		"address": operation.Destination,
-	})
-	if err != nil {
-		if !elastic.IsRecordNotFound(err) {
-			return err
-		}
+func (h *Handler) FixTokenMetadata(rpc noderpc.INode, sharePath string, contract *models.Contract, operation *models.Operation) error {
+	if !operation.IsTransaction() || !operation.IsApplied() || !operation.IsCall() {
 		return nil
 	}
 
