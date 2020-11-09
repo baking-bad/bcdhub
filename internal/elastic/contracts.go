@@ -100,11 +100,9 @@ func (e *Elastic) IsFAContract(network, address string) (bool, error) {
 
 // UpdateContractMigrationsCount -
 func (e *Elastic) UpdateContractMigrationsCount(address, network string) error {
-	contract, err := e.GetContract(map[string]interface{}{
-		"address": address,
-		"network": network,
-	})
-	if err != nil {
+	// TODO: update via ID
+	contract := models.NewEmptyContract(network, address)
+	if err := e.GetByID(&contract); err != nil {
 		return err
 	}
 	contract.MigrationsCount++

@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -41,11 +42,8 @@ func (m *SetOperationTags) Do(ctx *config.Context) error {
 		}
 
 		if _, ok := tags[operations[i].Destination]; !ok {
-			contract, err := ctx.ES.GetContract(map[string]interface{}{
-				"network": operations[i].Network,
-				"address": operations[i].Destination,
-			})
-			if err != nil {
+			contract := models.NewEmptyContract(operations[i].Network, operations[i].Destination)
+			if err := ctx.ES.GetByID(&contract); err != nil {
 				if elastic.IsRecordNotFound(err) {
 					continue
 				}

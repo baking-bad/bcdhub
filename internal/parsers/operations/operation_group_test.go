@@ -465,15 +465,10 @@ func TestGroup_Parse(t *testing.T) {
 				).
 				AnyTimes()
 
-			var filters map[string]interface{}
 			es.
 				EXPECT().
-				GetContract(gomock.AssignableToTypeOf(filters)).
-				DoAndReturn(
-					func(args map[string]interface{}) (models.Contract, error) {
-						return readTestContractModel(args["address"].(string))
-					},
-				).
+				GetByID(gomock.AssignableToTypeOf(&models.Contract{})).
+				DoAndReturn(readTestContractModel).
 				AnyTimes()
 
 			es.

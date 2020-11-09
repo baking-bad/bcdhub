@@ -10,6 +10,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -77,12 +79,9 @@ func (ctx *Context) getEvents(subscriptions []database.Subscription, size, offse
 			WithErrors:      subscriptions[i].WatchMask&WatchErrors != 0,
 		}
 
-		if strings.HasPrefix(subscriptions[i].Address, "KT") {
-			contract, err := ctx.ES.GetContract(map[string]interface{}{
-				"address": subscriptions[i].Address,
-				"network": subscriptions[i].Network,
-			})
-			if err != nil {
+		if helpers.IsContract(subscriptions[i].Address) {
+			contract := models.NewEmptyContract(subscriptions[i].Network, subscriptions[i].Address)
+			if err := ctx.ES.GetByID(&contract); err != nil {
 				return []elastic.Event{}, err
 			}
 			subs[i].Hash = contract.Hash

@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/gin-gonic/gin"
 )
@@ -119,11 +120,8 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 			result.Contracts = make([]DAppContract, 0)
 
 			for _, address := range dapp.Contracts {
-				contract, err := ctx.ES.GetContract(map[string]interface{}{
-					"network": consts.Mainnet,
-					"address": address,
-				})
-				if err != nil {
+				contract := models.NewEmptyContract(consts.Mainnet, address)
+				if err := ctx.ES.GetByID(&contract); err != nil {
 					return result, err
 				}
 				result.Contracts = append(result.Contracts, DAppContract{

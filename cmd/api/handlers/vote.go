@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/database"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 )
@@ -16,19 +17,13 @@ func (ctx *Context) Vote(c *gin.Context) {
 		return
 	}
 
-	a, err := ctx.ES.GetContract(map[string]interface{}{
-		"address": req.SourceAddress,
-		"network": req.SourceNetwork,
-	})
-	if handleError(c, err, 0) {
+	a := models.NewEmptyContract(req.SourceNetwork, req.SourceAddress)
+	if err := ctx.ES.GetByID(&a); handleError(c, err, 0) {
 		return
 	}
 
-	b, err := ctx.ES.GetContract(map[string]interface{}{
-		"address": req.DestinationAddress,
-		"network": req.DestinationNetwork,
-	})
-	if handleError(c, err, 0) {
+	b := models.NewEmptyContract(req.DestinationNetwork, req.DestinationAddress)
+	if err := ctx.ES.GetByID(&b); handleError(c, err, 0) {
 		return
 	}
 

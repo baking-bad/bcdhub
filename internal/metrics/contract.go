@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/jinzhu/gorm"
 
@@ -32,6 +33,10 @@ func (h *Handler) UpdateContractStats(c *models.Contract) error {
 func (h *Handler) SetContractProjectID(c *models.Contract) error {
 	buckets, err := h.ES.GetProjectsLastContract()
 	if err != nil {
+		if elastic.IsRecordNotFound(err) {
+			c.ProjectID = helpers.GenerateID()
+			return nil
+		}
 		return err
 	}
 

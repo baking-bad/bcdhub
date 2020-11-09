@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/providers"
 	"github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/tidwall/gjson"
@@ -57,11 +58,8 @@ func (ctx *Context) verification(ct compilation.Task) error {
 		return err
 	}
 
-	contract, err := ctx.ES.GetContract(map[string]interface{}{
-		"address": task.Address,
-		"network": task.Network,
-	})
-	if err != nil {
+	contract := models.NewEmptyContract(task.Network, task.Address)
+	if err := ctx.ES.GetByID(&contract); err != nil {
 		return err
 	}
 
