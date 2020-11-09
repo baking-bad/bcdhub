@@ -15,16 +15,16 @@ func (e *Elastic) GetMigrations(network, address string) ([]models.Migration, er
 		),
 	).Sort("level", "desc").All()
 
-	data, err := e.query([]string{DocMigrations}, query)
-	if err != nil {
+	var response SearchResponse
+	if err := e.query([]string{DocMigrations}, query, &response); err != nil {
 		return nil, err
 	}
 
-	migrations := make([]models.Migration, 0)
-	for _, hit := range data.Get("hits.hits").Array() {
-		var migration models.Migration
-		migration.ParseElasticJSON(hit)
-		migrations = append(migrations, migration)
+	migrations := make([]models.Migration, len(response.Hits.Hits))
+	for i := range response.Hits.Hits {
+		if err := json.Unmarshal(response.Hits.Hits[i].Source, &migrations[i]); err != nil {
+			return nil, err
+		}
 	}
 	return migrations, nil
 }

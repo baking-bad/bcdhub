@@ -4,8 +4,6 @@ import (
 	"reflect"
 	"sort"
 	"testing"
-
-	"github.com/tidwall/gjson"
 )
 
 func TestGet(t *testing.T) {
@@ -78,8 +76,7 @@ func TestGet(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			parsedInput := gjson.Parse(tt.input)
-			result := Get(parsedInput)
+			result := Get(tt.input)
 
 			sort.Strings(result)
 			sort.Strings(tt.res)

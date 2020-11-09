@@ -14,12 +14,12 @@ type Task struct {
 	Dir   string
 }
 
-// GetQueue -
-func (t Task) GetQueue() string {
-	return mq.QueueCompilations
+// GetQueues -
+func (t Task) GetQueues() []string {
+	return []string{mq.QueueCompilations}
 }
 
-// Marshal -
-func (t Task) Marshal() ([]byte, error) {
+// MarshalToQueue -
+func (t Task) MarshalToQueue() ([]byte, error) {
 	return json.Marshal(t)
 }

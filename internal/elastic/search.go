@@ -8,7 +8,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 )
 
 const (
@@ -154,6 +153,22 @@ func getSearchIndices(filters map[string]interface{}) ([]string, error) {
 	return searchableInidices, nil
 }
 
+// searchByTextResponse -
+type searchByTextResponse struct {
+	Took int64     `json:"took"`
+	Hits HitsArray `json:"hits"`
+	Agg  struct {
+		Projects struct {
+			Buckets []struct {
+				Bucket
+				Last struct {
+					Hits HitsArray `json:"hits"`
+				} `json:"last"`
+			} `json:"buckets"`
+		} `json:"projects"`
+	} `json:"aggregations"`
+}
+
 // SearchByText -
 func (e *Elastic) SearchByText(text string, offset int64, fields []string, filters map[string]interface{}, group bool) (SearchResult, error) {
 	if text == "" {
@@ -174,167 +189,165 @@ func (e *Elastic) SearchByText(text string, offset int64, fields []string, filte
 		query = grouping(ctx, query)
 	}
 
-	resp, err := e.query(ctx.Indices, query)
-	if err != nil {
+	var response searchByTextResponse
+	if err := e.query(ctx.Indices, query, &response); err != nil {
 		return SearchResult{}, err
 	}
 
 	var items []SearchItem
 	if group {
-		items = parseSearchGroupingResponse(resp, offset)
+		items, err = parseSearchGroupingResponse(response, offset)
 	} else {
-		items = parseSearchResponse(resp)
+		items, err = parseSearchResponse(response)
+	}
+	if err != nil {
+		return SearchResult{}, nil
 	}
 
 	return SearchResult{
 		Items: items,
-		Time:  resp.Get("took").Int(),
-		Count: resp.Get("hits.total.value").Int(),
+		Time:  response.Took,
+		Count: response.Hits.Total.Value,
 	}, nil
 }
 
-func parseHighlights(hit gjson.Result) map[string][]string {
-	highlight := hit.Get("highlight").Map()
-	res := make(map[string][]string, len(highlight))
-	for k, v := range highlight {
-		items := v.Array()
-		res[k] = make([]string, len(items))
-		for i, item := range items {
-			res[k][i] = item.String()
-		}
-	}
-	return res
-}
-
-func parseSearchResponse(data gjson.Result) []SearchItem {
+func parseSearchResponse(response searchByTextResponse) ([]SearchItem, error) {
 	items := make([]SearchItem, 0)
-	arr := data.Get("hits.hits").Array()
+	arr := response.Hits.Hits
 	for i := range arr {
-		index := arr[i].Get("_index").String()
-		highlights := parseHighlights(arr[i])
-		switch index {
+		switch arr[i].Index {
 		case DocContracts:
 			var c models.Contract
-			c.ParseElasticJSON(arr[i])
+			if err := json.Unmarshal(arr[i].Source, &c); err != nil {
+				return nil, err
+			}
 			item := SearchItem{
 				Type:       DocContracts,
 				Value:      c.Address,
 				Body:       c,
-				Highlights: highlights,
+				Highlights: arr[i].Highlights,
 			}
 			items = append(items, item)
 		case DocOperations:
 			var op models.Operation
-			op.ParseElasticJSON(arr[i])
+			if err := json.Unmarshal(arr[i].Source, &op); err != nil {
+				return nil, err
+			}
 			item := SearchItem{
 				Type:       DocOperations,
 				Value:      op.Hash,
 				Body:       op,
-				Highlights: highlights,
+				Highlights: arr[i].Highlights,
 			}
 			items = append(items, item)
 		case DocBigMapDiff:
 			var b models.BigMapDiff
-			b.ParseElasticJSON(arr[i])
+			if err := json.Unmarshal(arr[i].Source, &b); err != nil {
+				return nil, err
+			}
 			item := SearchItem{
 				Type:       DocBigMapDiff,
 				Value:      b.KeyHash,
 				Body:       b,
-				Highlights: highlights,
+				Highlights: arr[i].Highlights,
 			}
 			items = append(items, item)
 		case DocTZIP:
 			var token models.TZIP
-			token.ParseElasticJSON(arr[i])
+			if err := json.Unmarshal(arr[i].Source, &token); err != nil {
+				return nil, err
+			}
 			item := SearchItem{
 				Type:       DocBigMapDiff,
 				Value:      token.Address,
 				Body:       token,
-				Highlights: highlights,
+				Highlights: arr[i].Highlights,
 			}
 			items = append(items, item)
 		default:
 		}
 
 	}
-	return items
+	return items, nil
 }
 
-func parseSearchGroupingResponse(data gjson.Result, offset int64) []SearchItem {
-	buckets := data.Get("aggregations.projects.buckets")
-	if !buckets.Exists() {
-		return nil
+func parseSearchGroupingResponse(response searchByTextResponse, offset int64) ([]SearchItem, error) {
+	if len(response.Agg.Projects.Buckets) == 0 {
+		return nil, nil
 	}
 
-	arr := buckets.Array()
+	arr := response.Agg.Projects.Buckets
 	lArr := int64(len(arr))
 	items := make([]SearchItem, 0)
 	if offset > lArr {
-		return items
+		return items, nil
 	}
 	arr = arr[offset:]
 	for i := range arr {
 		searchItem := SearchItem{}
-		count := arr[i].Get("doc_count").Int()
-		if count > 1 {
+		if arr[i].DocCount > 1 {
 			searchItem.Group = &Group{
-				Count: arr[i].Get("doc_count").Int(),
+				Count: arr[i].DocCount,
 				Top:   make([]Top, 0),
 			}
 		}
 
-		for j, item := range arr[i].Get("last.hits.hits").Array() {
-			index := item.Get("_index").String()
-			highlights := parseHighlights(item)
-			searchItem.Type = index
+		for j, item := range arr[i].Last.Hits.Hits {
+			searchItem.Type = item.Index
 
-			switch index {
+			switch item.Index {
 			case DocContracts:
+				var c models.Contract
+				if err := json.Unmarshal(item.Source, &c); err != nil {
+					return nil, err
+				}
 				if j == 0 {
-					var c models.Contract
-					c.ParseElasticJSON(item)
 					searchItem.Body = c
 					searchItem.Value = c.Address
-					searchItem.Highlights = highlights
+					searchItem.Highlights = item.Highlights
 				} else {
 					searchItem.Group.Top = append(searchItem.Group.Top, Top{
-						Key:     item.Get("_source.address").String(),
-						Network: item.Get("_source.network").String(),
+						Key:     c.Address,
+						Network: c.Network,
 					})
 				}
 			case DocOperations:
-				for j, item := range arr[i].Get("last.hits.hits").Array() {
-					if j == 0 {
-						var op models.Operation
-						op.ParseElasticJSON(item)
-						searchItem.Body = op
-						searchItem.Value = op.Hash
-						searchItem.Highlights = highlights
-					} else {
-						searchItem.Group.Top = append(searchItem.Group.Top, Top{
-							Key:     item.Get("_source.hash").String(),
-							Network: item.Get("_source.network").String(),
-						})
-					}
+				var op models.Operation
+				if err := json.Unmarshal(item.Source, &op); err != nil {
+					return nil, err
+				}
+				if j == 0 {
+					searchItem.Body = op
+					searchItem.Value = op.Hash
+					searchItem.Highlights = item.Highlights
+				} else {
+					searchItem.Group.Top = append(searchItem.Group.Top, Top{
+						Key:     op.Hash,
+						Network: op.Network,
+					})
 				}
 			case DocBigMapDiff:
 				var b models.BigMapDiff
-				b.ParseElasticJSON(arr[i].Get("last.hits.hits.0"))
+				if err := json.Unmarshal(item.Source, &b); err != nil {
+					return nil, err
+				}
 				searchItem.Body = b
 				searchItem.Value = b.KeyHash
-				searchItem.Highlights = highlights
+				searchItem.Highlights = item.Highlights
 			case DocTZIP:
 				var token models.TZIP
-				token.ParseElasticJSON(arr[i].Get("last.hits.hits.0"))
+				if err := json.Unmarshal(item.Source, &token); err != nil {
+					return nil, err
+				}
 				searchItem.Body = token
 				searchItem.Value = token.Address
-				searchItem.Highlights = highlights
+				searchItem.Highlights = item.Highlights
 			default:
 			}
 		}
 		items = append(items, searchItem)
 	}
-	return items
+	return items, nil
 }
 
 func prepare(search string, filters map[string]interface{}, fields []string) (searchContext, error) {

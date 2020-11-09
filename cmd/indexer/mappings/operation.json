@@ -7,31 +7,6 @@
             "balance": {
                 "type": "long"
             },
-            "balance_updates": {
-                "properties": {
-                    "change": {
-                        "type": "long"
-                    },
-                    "contract": {
-                        "type": "text",
-                        "fields": {
-                            "keyword": {
-                                "type": "keyword",
-                                "ignore_above": 256
-                            }
-                        }
-                    },
-                    "kind": {
-                        "type": "text",
-                        "fields": {
-                            "keyword": {
-                                "type": "keyword",
-                                "ignore_above": 256
-                            }
-                        }
-                    }
-                }
-            },
             "burned": {
                 "type": "long"
             },

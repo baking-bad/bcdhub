@@ -140,7 +140,7 @@ func listRepositories(es elastic.IElastic) error {
 	fmt.Println("Availiable repositories")
 	fmt.Println("=======================================")
 	for i := range listRepos {
-		fmt.Println(listRepos[i])
+		fmt.Print(listRepos[i].String())
 	}
 	fmt.Println("")
 	return nil

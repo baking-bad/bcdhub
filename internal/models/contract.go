@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/utils"
+	"github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 )
 
@@ -14,7 +15,6 @@ type Contract struct {
 	Network   string    `json:"network"`
 	Level     int64     `json:"level"`
 	Timestamp time.Time `json:"timestamp"`
-	Balance   int64     `json:"balance"`
 	Language  string    `json:"language,omitempty"`
 
 	Hash        string       `json:"hash"`
@@ -29,16 +29,15 @@ type Contract struct {
 	Manager  string `json:"manager,omitempty"`
 	Delegate string `json:"delegate,omitempty"`
 
-	ProjectID          string  `json:"project_id,omitempty"`
-	FoundBy            string  `json:"found_by,omitempty"`
-	LastAction         BCDTime `json:"last_action,omitempty"`
-	TxCount            int64   `json:"tx_count,omitempty"`
-	MigrationsCount    int64   `json:"migrations_count,omitempty"`
-	TotalWithdrawn     int64   `json:"total_withdrawn,omitempty"`
-	Alias              string  `json:"alias,omitempty"`
-	DelegateAlias      string  `json:"delegate_alias,omitempty"`
-	Verified           bool    `json:"verified,omitempty"`
-	VerificationSource string  `json:"verification_source,omitempty"`
+	ProjectID          string    `json:"project_id,omitempty"`
+	TxCount            int64     `json:"tx_count"`
+	LastAction         time.Time `json:"last_action"`
+	FoundBy            string    `json:"found_by,omitempty"`
+	MigrationsCount    int64     `json:"migrations_count,omitempty"`
+	Alias              string    `json:"alias,omitempty"`
+	DelegateAlias      string    `json:"delegate_alias,omitempty"`
+	Verified           bool      `json:"verified,omitempty"`
+	VerificationSource string    `json:"verification_source,omitempty"`
 }
 
 // GetID -
@@ -51,56 +50,23 @@ func (c *Contract) GetIndex() string {
 	return "contract"
 }
 
-// GetQueue -
-func (c *Contract) GetQueue() string {
-	return "contracts"
+// GetQueues -
+func (c *Contract) GetQueues() []string {
+	return []string{"contracts", "projects"}
 }
 
-// Marshal -
-func (c *Contract) Marshal() ([]byte, error) {
+// LogFields -
+func (c *Contract) LogFields() logrus.Fields {
+	return logrus.Fields{
+		"network": c.Network,
+		"address": c.Address,
+		"block":   c.Level,
+	}
+}
+
+// MarshalToQueue -
+func (c *Contract) MarshalToQueue() ([]byte, error) {
 	return []byte(c.ID), nil
-}
-
-// ParseElasticJSON -
-func (c *Contract) ParseElasticJSON(hit gjson.Result) {
-	c.ID = hit.Get("_id").String()
-	c.Network = hit.Get("_source.network").String()
-	c.Level = hit.Get("_source.level").Int()
-	c.Timestamp = hit.Get("_source.timestamp").Time().UTC()
-	c.Balance = hit.Get("_source.balance").Int()
-	c.Language = hit.Get("_source.language").String()
-
-	c.Tags = utils.StringArray(hit, "_source.tags")
-	c.Hardcoded = utils.StringArray(hit, "_source.hardcoded")
-	c.Annotations = utils.StringArray(hit, "_source.annotations")
-	c.FailStrings = utils.StringArray(hit, "_source.fail_strings")
-	c.Entrypoints = utils.StringArray(hit, "_source.entrypoints")
-
-	f := hit.Get("_source.fingerprint")
-	if f.Exists() {
-		c.Fingerprint = &Fingerprint{}
-		c.Fingerprint.ParseElasticJSON(f)
-	}
-
-	c.Hash = hit.Get("_source.hash").String()
-	c.Address = hit.Get("_source.address").String()
-	c.Manager = hit.Get("_source.manager").String()
-	c.Delegate = hit.Get("_source.delegate").String()
-
-	c.ProjectID = hit.Get("_source.project_id").String()
-
-	c.LastAction = BCDTime{
-		Time: hit.Get("_source.last_action").Time().UTC(),
-	}
-
-	c.TxCount = hit.Get("_source.tx_count").Int()
-	c.MigrationsCount = hit.Get("_source.migrations_count").Int()
-	c.TotalWithdrawn = hit.Get("_source.total_withdrawn").Int()
-	c.Alias = hit.Get("_source.alias").String()
-	c.Verified = hit.Get("_source.verified").Bool()
-	c.VerificationSource = hit.Get("_source.verification_source").String()
-
-	c.FoundBy = c.FoundByName(hit)
 }
 
 // GetScores -
@@ -167,17 +133,4 @@ func (f *Fingerprint) ParseElasticJSON(hit gjson.Result) {
 	f.Code = hit.Get("code").String()
 	f.Parameter = hit.Get("parameter").String()
 	f.Storage = hit.Get("storage").String()
-}
-
-// BCDTime -
-type BCDTime struct {
-	time.Time
-}
-
-// MarshalJSON -
-func (t BCDTime) MarshalJSON() ([]byte, error) {
-	if t.IsZero() {
-		return []byte("null"), nil
-	}
-	return t.Time.MarshalJSON()
 }

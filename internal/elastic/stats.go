@@ -1,9 +1,7 @@
 package elastic
 
-import "github.com/pkg/errors"
-
 // GetNetworkCountStats -
-func (e *Elastic) GetNetworkCountStats(network string) (stats NetworkCountStats, err error) {
+func (e *Elastic) GetNetworkCountStats(network string) (map[string]int64, error) {
 	query := newQuery().Query(
 		boolQ(
 			filter(
@@ -18,60 +16,43 @@ func (e *Elastic) GetNetworkCountStats(network string) (stats NetworkCountStats,
 	).Add(
 		aggs(
 			aggItem{
-				"by_index",
+				"body",
 				termsAgg("_index", maxQuerySize),
 			},
 		),
 	).Zero()
 
-	response, err := e.query([]string{DocContracts, DocOperations}, query)
-	if err != nil {
-		return
-	}
-
-	data := response.Get("aggregations.by_index.buckets").Array()
-	for _, item := range data {
-		key := item.Get("key").String()
-		count := item.Get("doc_count").Int()
-		switch key {
-		case DocContracts:
-			stats.Contracts = count
-		case DocOperations:
-			stats.Operations = count
-		default:
-			return stats, errors.Errorf("Unknwon index: %s", key)
-		}
-	}
-
-	return
+	return e.getCountAgg([]string{DocContracts, DocOperations}, query)
 }
 
 // GetCallsCountByNetwork -
 func (e *Elastic) GetCallsCountByNetwork() (map[string]int64, error) {
 	query := newQuery().Query(exists("entrypoint")).Add(
 		aggs(
-			aggItem{"network", qItem{
-				"terms": qItem{
-					"field": "network.keyword",
+			aggItem{
+				"body", qItem{
+					"terms": qItem{
+						"field": "network.keyword",
+					},
 				},
-			},
 			},
 		),
 	).Zero()
 
-	response, err := e.query([]string{DocOperations}, query)
-	if err != nil {
-		return nil, err
-	}
+	return e.getCountAgg([]string{DocOperations}, query)
+}
 
-	data := response.Get("aggregations.network.buckets").Array()
-	counts := make(map[string]int64)
-	for _, item := range data {
-		key := item.Get("key").String()
-		count := item.Get("doc_count").Int()
-		counts[key] = count
-	}
-	return counts, nil
+type getContractStatsByNetworkStats struct {
+	Agg struct {
+		Network struct {
+			Buckets []struct {
+				Bucket
+				Same           intValue `json:"same"`
+				Balance        intValue `json:"balance"`
+				TotalWithdrawn intValue `json:"total_withdrawn"`
+			} `json:"buckets"`
+		} `json:"network"`
+	} `json:"aggregations"`
 }
 
 // GetContractStatsByNetwork -
@@ -96,20 +77,19 @@ func (e *Elastic) GetContractStatsByNetwork() (map[string]ContractCountStats, er
 			},
 		),
 	).Zero()
-	response, err := e.query([]string{DocContracts}, query)
-	if err != nil {
+
+	var response getContractStatsByNetworkStats
+	if err := e.query([]string{DocContracts}, query, &response); err != nil {
 		return nil, err
 	}
 
-	data := response.Get("aggregations.network.buckets").Array()
 	counts := make(map[string]ContractCountStats)
-	for _, item := range data {
-		key := item.Get("key").String()
-		counts[key] = ContractCountStats{
-			Total:          item.Get("doc_count").Int(),
-			SameCount:      item.Get("same.value").Int(),
-			Balance:        item.Get("balance.value").Int(),
-			TotalWithdrawn: item.Get("total_withdrawn.value").Int(),
+	for _, item := range response.Agg.Network.Buckets {
+		counts[item.Key] = ContractCountStats{
+			Total:          item.DocCount,
+			SameCount:      item.Same.Value,
+			Balance:        item.Balance.Value,
+			TotalWithdrawn: item.TotalWithdrawn.Value,
 		}
 	}
 	return counts, nil
@@ -125,7 +105,7 @@ func (e *Elastic) GetFACountByNetwork() (map[string]int64, error) {
 	).Add(
 		aggs(
 			aggItem{
-				"network", qItem{
+				"body", qItem{
 					"terms": qItem{
 						"field": "network.keyword",
 					},
@@ -134,19 +114,7 @@ func (e *Elastic) GetFACountByNetwork() (map[string]int64, error) {
 		),
 	).Zero()
 
-	response, err := e.query([]string{DocContracts}, query)
-	if err != nil {
-		return nil, err
-	}
-
-	data := response.Get("aggregations.network.buckets").Array()
-	counts := make(map[string]int64)
-	for _, item := range data {
-		key := item.Get("key").String()
-		count := item.Get("doc_count").Int()
-		counts[key] = count
-	}
-	return counts, nil
+	return e.getCountAgg([]string{DocContracts}, query)
 }
 
 // GetLanguagesForNetwork -
@@ -160,7 +128,7 @@ func (e *Elastic) GetLanguagesForNetwork(network string) (map[string]int64, erro
 	).Add(
 		aggs(
 			aggItem{
-				"languages", qItem{
+				"body", qItem{
 					"terms": qItem{
 						"field": "language.keyword",
 					},
@@ -169,17 +137,5 @@ func (e *Elastic) GetLanguagesForNetwork(network string) (map[string]int64, erro
 		),
 	).Zero()
 
-	response, err := e.query([]string{DocContracts}, query)
-	if err != nil {
-		return nil, err
-	}
-
-	data := response.Get("aggregations.languages.buckets").Array()
-	counts := make(map[string]int64)
-	for _, item := range data {
-		key := item.Get("key").String()
-		count := item.Get("doc_count").Int()
-		counts[key] = count
-	}
-	return counts, nil
+	return e.getCountAgg([]string{DocContracts}, query)
 }

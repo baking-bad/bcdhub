@@ -20,7 +20,7 @@ func (x *removeCommand) Execute(_ []string) error {
 
 	logger.Warning("Do you want to remove data of '%s' network? (yes - continue. no - cancel)", state.Network)
 	if !yes() {
-		logger.Success("Cancelled")
+		logger.Info("Cancelled")
 		return nil
 	}
 
@@ -28,7 +28,7 @@ func (x *removeCommand) Execute(_ []string) error {
 		return err
 	}
 
-	logger.Success("Done")
+	logger.Info("Done")
 	return nil
 }
 

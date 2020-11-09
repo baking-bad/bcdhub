@@ -2,9 +2,6 @@ package models
 
 import (
 	"time"
-
-	"github.com/baking-bad/bcdhub/internal/models/utils"
-	"github.com/tidwall/gjson"
 )
 
 // BigMapAction -
@@ -31,28 +28,12 @@ func (b *BigMapAction) GetIndex() string {
 	return "bigmapaction"
 }
 
-// GetQueue -
-func (b *BigMapAction) GetQueue() string {
-	return ""
+// GetQueues -
+func (b *BigMapAction) GetQueues() []string {
+	return nil
 }
 
-// Marshal -
-func (b *BigMapAction) Marshal() ([]byte, error) {
+// MarshalToQueue -
+func (b *BigMapAction) MarshalToQueue() ([]byte, error) {
 	return nil, nil
-}
-
-// ParseElasticJSON -
-func (b *BigMapAction) ParseElasticJSON(hit gjson.Result) {
-	b.ID = hit.Get("_id").String()
-	b.Action = hit.Get("_source.action").String()
-
-	b.SourcePtr = utils.Int64Pointer(hit, "_source.source_ptr")
-	b.DestinationPtr = utils.Int64Pointer(hit, "_source.destination_ptr")
-
-	b.OperationID = hit.Get("_source.operation_id").String()
-	b.Level = hit.Get("_source.level").Int()
-	b.Address = hit.Get("_source.address").String()
-	b.Network = hit.Get("_source.network").String()
-	b.IndexedTime = hit.Get("_source.indexed_time").Int()
-	b.Timestamp = hit.Get("_source.timestamp").Time().UTC()
 }

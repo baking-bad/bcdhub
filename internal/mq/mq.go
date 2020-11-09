@@ -26,26 +26,32 @@ type MQ struct {
 }
 
 // Close -
-func (mq *MQ) Close() {
+func (mq *MQ) Close() error {
 	if mq.Conn != nil {
 		mq.Conn.Close()
 	}
 	if mq.Channel != nil {
 		mq.Channel.Close()
 	}
+	return nil
 }
 
 // Send -
-func (mq *MQ) Send(queue IMessage) error {
-	q := queue.GetQueue()
-	if q == "" {
+func (mq *MQ) Send(msg IMessage) error {
+	queues := msg.GetQueues()
+	if len(queues) == 0 {
 		return nil
 	}
-	message, err := queue.Marshal()
+	message, err := msg.MarshalToQueue()
 	if err != nil {
 		return err
 	}
-	return mq.SendRaw(q, message)
+	for _, queue := range queues {
+		if err := mq.SendRaw(queue, message); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Consume -
@@ -104,7 +110,6 @@ func WaitNew(connection, service string, needPublisher bool, timeout int, queues
 }
 
 // NewQueueManager -
-// func NewQueueManager(connection, service string, needPublisher bool, queues ...Queue) (*QueueManager, error) {
 func NewQueueManager(connection, service string, needPublisher bool, queues ...Queue) (*QueueManager, error) {
 	q := QueueManager{}
 	if service != "" && len(queues) > 0 {
@@ -158,13 +163,14 @@ func (q QueueManager) GetQueues() []string {
 }
 
 // Close -
-func (q QueueManager) Close() {
+func (q QueueManager) Close() error {
 	if q.publisher != nil {
 		q.publisher.Close()
 	}
 	if q.receiver != nil {
 		q.receiver.Close()
 	}
+	return nil
 }
 
 // NewReceiver -

@@ -54,6 +54,7 @@ func (p *VestingParser) Parse(data gjson.Result, head noderpc.Header, network, a
 		Source:      data.Get("manager").String(),
 		Destination: address,
 		Delegate:    data.Get("delegate.value").String(),
+		Level:       head.Level,
 		Timestamp:   head.Timestamp,
 		IndexedTime: time.Now().UnixNano() / 1000,
 		Script:      script,
@@ -67,6 +68,14 @@ func (p *VestingParser) Parse(data gjson.Result, head noderpc.Header, network, a
 	if len(contractModels) > 0 {
 		parsedModels = append(parsedModels, contractModels...)
 	}
+
+	parsedModels = append(parsedModels, &models.BalanceUpdate{
+		ID:       helpers.GenerateID(),
+		Change:   op.Amount,
+		Network:  op.Network,
+		Contract: address,
+		Level:    head.Level,
+	})
 
 	return parsedModels, nil
 }

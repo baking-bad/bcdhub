@@ -32,7 +32,10 @@ func (r Result) Parse(data gjson.Result) models.OperationResult {
 		Originated:                   data.Get(r.root + "originated_contracts.0").String(),
 		AllocatedDestinationContract: data.Get(r.root+"allocated_destination_contract").Bool() || data.Get("kind").String() == consts.Origination,
 	}
-	err := data.Get(r.root + "errors")
-	result.Errors = cerrors.ParseArray(err)
+	errJSON := []byte(data.Get(r.root + "errors").Raw)
+	errs, err := cerrors.ParseArray(errJSON)
+	if err == nil {
+		result.Errors = errs
+	}
 	return result
 }

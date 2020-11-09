@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/utils"
+	"github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 )
 
@@ -31,29 +32,6 @@ type Transfer struct {
 	Nonce          *int64    `json:"nonce,omitempty"`
 }
 
-// ParseElasticJSON -
-func (t *Transfer) ParseElasticJSON(resp gjson.Result) {
-	t.ID = resp.Get("_id").String()
-	t.IndexedTime = resp.Get("_source.indexed_time").Int()
-	t.Network = resp.Get("_source.network").String()
-	t.Contract = resp.Get("_source.contract").String()
-	t.Alias = resp.Get("_source.alias").String()
-	t.Initiator = resp.Get("_source.initiator").String()
-	t.InitiatorAlias = resp.Get("_source.initiator_alias").String()
-	t.Hash = resp.Get("_source.hash").String()
-	t.Status = resp.Get("_source.status").String()
-	t.Timestamp = resp.Get("_source.timestamp").Time().UTC()
-	t.Level = resp.Get("_source.level").Int()
-	t.From = resp.Get("_source.from").String()
-	t.FromAlias = resp.Get("_source.from_alias").String()
-	t.To = resp.Get("_source.to").String()
-	t.ToAlias = resp.Get("_source.to_alias").String()
-	t.TokenID = resp.Get("_source.token_id").Int()
-	t.Amount = resp.Get("_source.amount").Float()
-	t.Counter = resp.Get("_source.counter").Int()
-	t.Nonce = utils.Int64Pointer(resp, "_source.nonce")
-}
-
 // GetID -
 func (t *Transfer) GetID() string {
 	return t.ID
@@ -64,14 +42,25 @@ func (t *Transfer) GetIndex() string {
 	return "transfer"
 }
 
-// GetQueue -
-func (t *Transfer) GetQueue() string {
-	return "transfers"
+// GetQueues -
+func (t *Transfer) GetQueues() []string {
+	return []string{"transfers"}
 }
 
-// Marshal -
-func (t *Transfer) Marshal() ([]byte, error) {
+// MarshalToQueue -
+func (t *Transfer) MarshalToQueue() ([]byte, error) {
 	return []byte(t.ID), nil
+}
+
+// LogFields -
+func (t *Transfer) LogFields() logrus.Fields {
+	return logrus.Fields{
+		"network":  t.Network,
+		"contract": t.Contract,
+		"block":    t.Level,
+		"from":     t.From,
+		"to":       t.To,
+	}
 }
 
 // GetScores -

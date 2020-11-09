@@ -2,12 +2,10 @@ package elastic
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 )
 
 type opgForContract struct {
@@ -32,16 +30,16 @@ func (e *Elastic) getContractOPG(address, network string, size uint64, filters m
 		ORDER BY level DESC
 		LIMIT %d`, address, address, network, filtersString, size)
 
-	res, err := e.executeSQL(sqlString)
-	if err != nil {
+	var response sqlResponse
+	if err := e.executeSQL(sqlString, &response); err != nil {
 		return nil, err
 	}
 
 	resp := make([]opgForContract, 0)
-	for _, item := range res.Get("rows").Array() {
+	for i := range response.Rows {
 		resp = append(resp, opgForContract{
-			hash:    item.Get("0").String(),
-			counter: item.Get("1").Int(),
+			hash:    response.Rows[i][0].(string),
+			counter: int64(response.Rows[i][1].(float64)),
 		})
 	}
 
@@ -69,6 +67,13 @@ func prepareOperationFilters(filters map[string]interface{}) (s string, err erro
 		}
 	}
 	return
+}
+
+type getOperationsForContractResponse struct {
+	Hist HitsArray `json:"hits"`
+	Agg  struct {
+		LastID floatValue `json:"last_id"`
+	} `json:"aggregations"`
 }
 
 // GetOperationsForContract -
@@ -110,22 +115,21 @@ func (e *Elastic) GetOperationsForContract(network, address string, size uint64,
 			},
 		}).All()
 
-	res, err := e.query([]string{DocOperations}, query)
-	if err != nil {
+	var response getOperationsForContractResponse
+	if err = e.query([]string{DocOperations}, query, &response); err != nil {
 		return
 	}
 
-	count := res.Get("hits.hits.#").Int()
-	ops := make([]models.Operation, count)
-	for i, item := range res.Get("hits.hits").Array() {
-		var o models.Operation
-		o.ParseElasticJSON(item)
-		ops[i] = o
+	ops := make([]models.Operation, len(response.Hist.Hits))
+	for i := range response.Hist.Hits {
+		if err = json.Unmarshal(response.Hist.Hits[i].Source, &ops[i]); err != nil {
+			return
+		}
+		ops[i].ID = response.Hist.Hits[i].ID
 	}
 
 	po.Operations = ops
-	po.LastID = res.Get("aggregations.last_id.value").String()
-
+	po.LastID = fmt.Sprintf("%.0f", response.Agg.LastID.Value)
 	return
 }
 
@@ -148,15 +152,16 @@ func (e *Elastic) GetLastOperation(address, network string, indexedTime int64) (
 			),
 		).Sort("indexed_time", "desc").One()
 
-	res, err := e.query([]string{DocOperations}, query)
-	if err != nil {
+	var response SearchResponse
+	if err = e.query([]string{DocOperations}, query, &response); err != nil {
 		return
 	}
 
-	if res.Get("hits.total.value").Int() < 1 {
+	if response.Hits.Total.Value == 0 {
 		return op, NewRecordNotFoundError(DocOperations, "", query)
 	}
-	op.ParseElasticJSON(res.Get("hits.hits.0"))
+	err = json.Unmarshal(response.Hits.Hits[0].Source, &op)
+	op.ID = response.Hits.Hits[0].ID
 	return
 }
 
@@ -182,21 +187,6 @@ func (a *affected) GetID() string {
 // GetIndex -
 func (a *affected) GetIndex() string {
 	return DocOperations
-}
-
-// ParseElasticJSON -
-func (a *affected) ParseElasticJSON(hit gjson.Result) {
-	source := hit.Get("_source.source").String()
-	destination := hit.Get("_source.destination").String()
-	if a.addresses == nil {
-		a.addresses = make(map[string]struct{})
-	}
-	if strings.HasPrefix(source, "KT") {
-		a.addresses[source] = struct{}{}
-	}
-	if strings.HasPrefix(destination, "KT") {
-		a.addresses[destination] = struct{}{}
-	}
 }
 
 // GetAffectedContracts -
@@ -265,6 +255,17 @@ type OperationsStats struct {
 	LastAction time.Time
 }
 
+type getOperationsStatsResponse struct {
+	Aggs struct {
+		OPG struct {
+			Value int64 `json:"value"`
+		} `json:"opg"`
+		LastAction struct {
+			Value time.Time `json:"value_as_string"`
+		} `json:"last_action"`
+	} `json:"aggregations"`
+}
+
 // GetOperationsStats -
 func (e Elastic) GetOperationsStats(network, address string) (stats OperationsStats, err error) {
 	query := newQuery().Query(
@@ -291,12 +292,12 @@ func (e Elastic) GetOperationsStats(network, address string) (stats OperationsSt
 		),
 	).Zero()
 
-	response, err := e.query([]string{DocOperations}, query)
-	if err != nil {
+	var response getOperationsStatsResponse
+	if err = e.query([]string{DocOperations}, query, &response); err != nil {
 		return
 	}
 
-	stats.Count = response.Get("aggregations.opg.value").Int()
-	stats.LastAction = response.Get("aggregations.last_action.value_as_string").Time().UTC()
+	stats.Count = response.Aggs.OPG.Value
+	stats.LastAction = response.Aggs.LastAction.Value
 	return
 }

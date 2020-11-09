@@ -25,28 +25,27 @@ func NewTransaction(params *ParseParams) Transaction {
 // Parse -
 func (p Transaction) Parse(data gjson.Result) ([]elastic.Model, error) {
 	tx := models.Operation{
-		ID:             helpers.GenerateID(),
-		Network:        p.network,
-		Hash:           p.hash,
-		Protocol:       p.head.Protocol,
-		Level:          p.head.Level,
-		Timestamp:      p.head.Timestamp,
-		Kind:           data.Get("kind").String(),
-		Initiator:      data.Get("source").String(),
-		Source:         data.Get("source").String(),
-		Fee:            data.Get("fee").Int(),
-		Counter:        data.Get("counter").Int(),
-		GasLimit:       data.Get("gas_limit").Int(),
-		StorageLimit:   data.Get("storage_limit").Int(),
-		Amount:         data.Get("amount").Int(),
-		Destination:    data.Get("destination").String(),
-		PublicKey:      data.Get("public_key").String(),
-		ManagerPubKey:  data.Get("manager_pubkey").String(),
-		Delegate:       data.Get("delegate").String(),
-		Parameters:     data.Get("parameters").String(),
-		BalanceUpdates: NewBalanceUpdate("metadata").Parse(data),
-		IndexedTime:    time.Now().UnixNano() / 1000,
-		ContentIndex:   p.contentIdx,
+		ID:            helpers.GenerateID(),
+		Network:       p.network,
+		Hash:          p.hash,
+		Protocol:      p.head.Protocol,
+		Level:         p.head.Level,
+		Timestamp:     p.head.Timestamp,
+		Kind:          data.Get("kind").String(),
+		Initiator:     data.Get("source").String(),
+		Source:        data.Get("source").String(),
+		Fee:           data.Get("fee").Int(),
+		Counter:       data.Get("counter").Int(),
+		GasLimit:      data.Get("gas_limit").Int(),
+		StorageLimit:  data.Get("storage_limit").Int(),
+		Amount:        data.Get("amount").Int(),
+		Destination:   data.Get("destination").String(),
+		PublicKey:     data.Get("public_key").String(),
+		ManagerPubKey: data.Get("manager_pubkey").String(),
+		Delegate:      data.Get("delegate").String(),
+		Parameters:    data.Get("parameters").String(),
+		IndexedTime:   time.Now().UnixNano() / 1000,
+		ContentIndex:  p.contentIdx,
 	}
 
 	p.fillInternal(&tx)
@@ -56,16 +55,19 @@ func (p Transaction) Parse(data gjson.Result) ([]elastic.Model, error) {
 		tx.Nonce = &nonce
 	}
 
-	txMetadata := parseMetadata(data)
+	txMetadata := parseMetadata(data, tx)
 	tx.Result = &txMetadata.Result
-	tx.BalanceUpdates = append(tx.BalanceUpdates, txMetadata.BalanceUpdates...)
 	tx.Status = tx.Result.Status
 	tx.Errors = tx.Result.Errors
 
 	tx.SetBurned(p.constants)
 	txModels := []elastic.Model{&tx}
 
-	if tx.Status == consts.Applied {
+	if tx.IsApplied() {
+		for i := range txMetadata.BalanceUpdates {
+			txModels = append(txModels, txMetadata.BalanceUpdates[i])
+		}
+
 		appliedModels, err := p.appliedHandler(data, &tx)
 		if err != nil {
 			return nil, err
@@ -103,7 +105,7 @@ func (p Transaction) fillInternal(tx *models.Operation) {
 }
 
 func (p Transaction) appliedHandler(item gjson.Result, op *models.Operation) ([]elastic.Model, error) {
-	if !strings.HasPrefix(op.Destination, "KT") || op.Status != consts.Applied {
+	if !helpers.IsContract(op.Destination) || !op.IsApplied() {
 		return nil, nil
 	}
 
@@ -133,6 +135,10 @@ func (p Transaction) appliedHandler(item gjson.Result, op *models.Operation) ([]
 		resultModels = append(resultModels, migration)
 	}
 
+	bu := NewBalanceUpdate("metadata", *op).Parse(item)
+	for i := range bu {
+		resultModels = append(resultModels, bu[i])
+	}
 	return resultModels, p.getEntrypoint(item, metadata, op)
 }
 

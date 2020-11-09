@@ -19,16 +19,16 @@ func (e *Elastic) GetBlock(network string, level int64) (block models.Block, err
 		),
 	).One()
 
-	r, err := e.query([]string{DocBlocks}, query)
-	if err != nil {
+	var response SearchResponse
+	if err = e.query([]string{DocBlocks}, query, &response); err != nil {
 		return
 	}
 
-	if r.Get("hits.total.value").Int() == 0 {
+	if response.Hits.Total.Value == 0 {
 		return block, NewRecordNotFoundError(DocBlocks, "", query)
 	}
-	hit := r.Get("hits.hits.0")
-	block.ParseElasticJSON(hit)
+
+	err = json.Unmarshal(response.Hits.Hits[0].Source, &block)
 	return
 }
 
@@ -44,20 +44,31 @@ func (e *Elastic) GetLastBlock(network string) (block models.Block, err error) {
 		),
 	).Sort("level", "desc").One()
 
-	r, err := e.query([]string{DocBlocks}, query)
-	if err != nil {
+	var response SearchResponse
+	if err = e.query([]string{DocBlocks}, query, &response); err != nil {
 		if strings.Contains(err.Error(), IndexNotFoundError) {
 			return block, nil
 		}
 		return
 	}
 
-	if r.Get("hits.total.value").Int() == 0 {
+	if response.Hits.Total.Value == 0 {
 		return block, nil
 	}
-	hit := r.Get("hits.hits.0")
-	block.ParseElasticJSON(hit)
+	err = json.Unmarshal(response.Hits.Hits[0].Source, &block)
 	return
+}
+
+type getLastBlocksResponse struct {
+	Agg struct {
+		ByNetwork struct {
+			Buckets []struct {
+				Last struct {
+					Hits HitsArray `json:"hits"`
+				} `json:"last"`
+			} `json:"buckets"`
+		} `json:"by_network"`
+	} `json:"aggregations"`
 }
 
 // GetLastBlocks - return last block for all networks
@@ -78,15 +89,19 @@ func (e *Elastic) GetLastBlocks() ([]models.Block, error) {
 		),
 	).Zero()
 
-	response, err := e.query([]string{DocBlocks}, query)
-	if err != nil {
+	var response getLastBlocksResponse
+	if err := e.query([]string{DocBlocks}, query, &response); err != nil {
 		return nil, err
 	}
 
-	hits := response.Get("aggregations.by_network.buckets.#.last.hits.hits.0").Array()
-	blocks := make([]models.Block, len(hits))
-	for i, hit := range hits {
-		blocks[i].ParseElasticJSON(hit)
+	buckets := response.Agg.ByNetwork.Buckets
+	blocks := make([]models.Block, len(buckets))
+	for i := range buckets {
+		var block models.Block
+		if err := json.Unmarshal(buckets[i].Last.Hits.Hits[0].Source, &block); err != nil {
+			return nil, err
+		}
+		blocks[i] = block
 	}
 	return blocks, nil
 }
@@ -101,14 +116,16 @@ func (e *Elastic) GetNetworkAlias(chainID string) (string, error) {
 		),
 	).One()
 
-	r, err := e.query([]string{DocBlocks}, query)
-	if err != nil {
+	var response SearchResponse
+	if err := e.query([]string{DocBlocks}, query, &response); err != nil {
 		return "", err
 	}
 
-	if r.Get("hits.total.value").Int() == 0 {
+	if response.Hits.Total.Value == 0 {
 		return "", NewRecordNotFoundError(DocBlocks, "", query)
 	}
 
-	return r.Get("hits.hits.0._source.network").String(), nil
+	var block models.Block
+	err := json.Unmarshal(response.Hits.Hits[0].Source, &block)
+	return block.Network, err
 }

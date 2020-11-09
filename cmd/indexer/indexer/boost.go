@@ -2,7 +2,6 @@ package indexer
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"sync"
 	"time"
@@ -48,7 +47,7 @@ type BoostIndexer struct {
 }
 
 func (bi *BoostIndexer) fetchExternalProtocols() error {
-	logger.Info("[%s] Fetching external protocols", bi.Network)
+	logger.WithNetwork(bi.Network).Info("Fetching external protocols")
 	var existingProtocols []models.Protocol
 	if err := bi.es.GetByNetworkWithSort(bi.Network, "start_level", "desc", &existingProtocols); err != nil {
 		return err
@@ -102,7 +101,7 @@ func (bi *BoostIndexer) fetchExternalProtocols() error {
 		newProtocol.Constants = protocolConstants
 
 		protocols = append(protocols, newProtocol)
-		logger.Info("[%s] Fetched %s", bi.Network, alias)
+		logger.WithNetwork(bi.Network).Infof("Fetched %s", alias)
 	}
 
 	return bi.es.BulkInsert(protocols)
@@ -110,7 +109,7 @@ func (bi *BoostIndexer) fetchExternalProtocols() error {
 
 // NewBoostIndexer -
 func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOption) (*BoostIndexer, error) {
-	logger.Info("[%s] Creating indexer object...", network)
+	logger.WithNetwork(network).Info("Creating indexer object...")
 	es := elastic.WaitNew(cfg.Elastic.URI, cfg.Elastic.Timeout)
 	rpcProvider, ok := cfg.RPC[network]
 	if !ok {
@@ -165,7 +164,7 @@ func (bi *BoostIndexer) init() error {
 		return err
 	}
 	bi.state = currentState
-	logger.Info("[%s] Current indexer state: %d", bi.Network, currentState.Level)
+	logger.WithNetwork(bi.Network).Infof("Current indexer state: %d", currentState.Level)
 
 	currentProtocol, err := bi.es.GetProtocol(bi.Network, "", currentState.Level)
 	if err != nil {
@@ -179,7 +178,7 @@ func (bi *BoostIndexer) init() error {
 		}
 	}
 	bi.currentProtocol = currentProtocol
-	logger.Info("[%s] Current network protocol: %s", bi.Network, currentProtocol.Hash)
+	logger.WithNetwork(bi.Network).Infof("Current network protocol: %s", currentProtocol.Hash)
 	return nil
 }
 
@@ -246,7 +245,7 @@ func (bi *BoostIndexer) setUpdateTicker(seconds int) {
 	} else {
 		duration = time.Duration(seconds) * time.Second
 	}
-	logger.Info("[%s] Data will be updated every %.0f seconds", bi.Network, duration.Seconds())
+	logger.WithNetwork(bi.Network).Infof("Data will be updated every %.0f seconds", duration.Seconds())
 	bi.updateTicker = time.NewTicker(duration)
 }
 
@@ -280,10 +279,10 @@ func (bi *BoostIndexer) Index(levels []int64) error {
 			return errRollback
 		}
 
-		logger.Info("[%s] indexing %d block", bi.Network, level)
+		logger.WithNetwork(bi.Network).Infof("indexing %d block", level)
 
 		if currentHead.Protocol != bi.currentProtocol.Hash {
-			log.Printf("[%s] New protocol detected: %s -> %s", bi.Network, bi.currentProtocol.Hash, currentHead.Protocol)
+			logger.WithNetwork(bi.Network).Infof("New protocol detected: %s -> %s", bi.currentProtocol.Hash, currentHead.Protocol)
 			migrationModels, err := bi.migrate(currentHead)
 			if err != nil {
 				return err
@@ -308,7 +307,7 @@ func (bi *BoostIndexer) Index(levels []int64) error {
 
 // Rollback -
 func (bi *BoostIndexer) Rollback() error {
-	logger.Warning("[%s] Rollback from %d", bi.Network, bi.state.Level)
+	logger.WithNetwork(bi.Network).Warning("Rollback from %d", bi.Network, bi.state.Level)
 
 	lastLevel, err := bi.getLastRollbackBlock()
 	if err != nil {
@@ -327,8 +326,8 @@ func (bi *BoostIndexer) Rollback() error {
 		return err
 	}
 	bi.state = newState
-	logger.Info("[%s] New indexer state: %d", bi.Network, bi.state.Level)
-	logger.Success("[%s] Rollback finished", bi.Network)
+	logger.WithNetwork(bi.Network).Infof("New indexer state: %d", bi.state.Level)
+	logger.WithNetwork(bi.Network).Info("Rollback finished")
 	return nil
 }
 
@@ -348,7 +347,7 @@ func (bi *BoostIndexer) getLastRollbackBlock() (int64, error) {
 		}
 
 		if block.Predecessor == headAtLevel.Predecessor {
-			logger.Info("Found equal predecessors at level: %d", block.Level)
+			logger.WithNetwork(bi.Network).Warnf("Found equal predecessors at level: %d", block.Level)
 			end = true
 			lastLevel = block.Level - 1
 		}
@@ -388,8 +387,8 @@ func (bi *BoostIndexer) process() error {
 		return errors.Errorf("Invalid chain_id: %s (state) != %s (head)", bi.state.ChainID, head.ChainID)
 	}
 
-	logger.Info("[%s] Current node state: %d", bi.Network, head.Level)
-	logger.Info("[%s] Current indexer state: %d", bi.Network, bi.state.Level)
+	logger.WithNetwork(bi.Network).Infof("Current node state: %d", head.Level)
+	logger.WithNetwork(bi.Network).Infof("Current indexer state: %d", bi.state.Level)
 
 	if head.Level > bi.state.Level {
 		levels := make([]int64, 0)
@@ -404,7 +403,7 @@ func (bi *BoostIndexer) process() error {
 			}
 		}
 
-		logger.Info("[%s] Found %d new levels", bi.Network, len(levels))
+		logger.WithNetwork(bi.Network).Infof("Found %d new levels", len(levels))
 
 		if err := bi.Index(levels); err != nil {
 			if errors.Is(err, errBcdQuit) {
@@ -424,7 +423,7 @@ func (bi *BoostIndexer) process() error {
 		if bi.boost {
 			bi.boost = false
 		}
-		logger.Success("[%s] Synced", bi.Network)
+		logger.WithNetwork(bi.Network).Info("Synced")
 		return nil
 	} else if head.Level < bi.state.Level {
 		if err := bi.Rollback(); err != nil {
@@ -452,7 +451,7 @@ func (bi *BoostIndexer) createBlock(head noderpc.Header) *models.Block {
 }
 
 func (bi *BoostIndexer) saveModels(items []elastic.Model) error {
-	logger.Info("[%s] Found %d new models", bi.Network, len(items))
+	logger.WithNetwork(bi.Network).Debugf("Found %d new models", len(items))
 	if err := bi.es.BulkInsert(items); err != nil {
 		return err
 	}
@@ -501,7 +500,7 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) ([]elastic.Model, error) {
 	newModels := make([]elastic.Model, 0)
 
 	if bi.currentProtocol.EndLevel == 0 && head.Level > 1 {
-		logger.Info("[%s] Finalizing the previous protocol: %s", bi.Network, bi.currentProtocol.Alias)
+		logger.WithNetwork(bi.Network).Infof("Finalizing the previous protocol: %s", bi.currentProtocol.Alias)
 		bi.currentProtocol.EndLevel = head.Level - 1
 		updates = append(updates, &bi.currentProtocol)
 	}
@@ -535,8 +534,8 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) ([]elastic.Model, error) {
 				updates = append(updates, migrationUpdates...)
 			}
 		} else {
-			logger.Info("[%s] Same symlink %s for %s / %s",
-				bi.Network, newProtocol.SymLink, bi.currentProtocol.Alias, newProtocol.Alias)
+			logger.WithNetwork(bi.Network).Infof("Same symlink %s for %s / %s",
+				newProtocol.SymLink, bi.currentProtocol.Alias, newProtocol.Alias)
 		}
 	}
 
@@ -548,12 +547,12 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) ([]elastic.Model, error) {
 	}
 
 	bi.setUpdateTicker(0)
-	logger.Info("[%s] Migration to %s is completed", bi.Network, bi.currentProtocol.Alias)
+	logger.WithNetwork(bi.Network).Infof("Migration to %s is completed", bi.currentProtocol.Alias)
 	return newModels, nil
 }
 
 func createProtocol(network, hash string, level int64) (protocol models.Protocol, err error) {
-	logger.Info("[%s] Creating new protocol %s starting at %d", network, hash, level)
+	logger.WithNetwork(network).Infof("Creating new protocol %s starting at %d", hash, level)
 	protocol.SymLink, err = meta.GetProtoSymLink(hash)
 	if err != nil {
 		return
@@ -568,20 +567,20 @@ func createProtocol(network, hash string, level int64) (protocol models.Protocol
 }
 
 func (bi *BoostIndexer) standartMigration(newProtocol models.Protocol, head noderpc.Header) ([]elastic.Model, []elastic.Model, error) {
-	log.Printf("[%s] Try to find migrations...", bi.Network)
+	logger.WithNetwork(bi.Network).Info("Try to find migrations...")
 	contracts, err := bi.es.GetContracts(map[string]interface{}{
 		"network": bi.Network,
 	})
 	if err != nil {
 		return nil, nil, err
 	}
-	log.Printf("[%s] Now %d contracts are indexed", bi.Network, len(contracts))
+	logger.WithNetwork(bi.Network).Infof("Now %d contracts are indexed", len(contracts))
 
 	p := parsers.NewMigrationParser(bi.es, bi.cfg.SharePath)
 	newModels := make([]elastic.Model, 0)
 	newUpdates := make([]elastic.Model, 0)
 	for i := range contracts {
-		logger.Info("Migrate %s...", contracts[i].Address)
+		logger.WithNetwork(bi.Network).Infof("Migrate %s...", contracts[i].Address)
 		script, err := bi.rpc.GetScriptJSON(contracts[i].Address, newProtocol.StartLevel)
 		if err != nil {
 			return nil, nil, err

@@ -2,16 +2,17 @@ package elastic
 
 // Document names
 const (
-	DocContracts     = "contract"
-	DocBlocks        = "block"
-	DocOperations    = "operation"
-	DocBigMapDiff    = "bigmapdiff"
-	DocBigMapActions = "bigmapaction"
-	DocMetadata      = "metadata"
-	DocMigrations    = "migration"
-	DocProtocol      = "protocol"
-	DocTransfers     = "transfer"
-	DocTZIP          = "tzip"
+	DocContracts      = "contract"
+	DocBlocks         = "block"
+	DocBalanceUpdates = "balance_update"
+	DocOperations     = "operation"
+	DocBigMapDiff     = "bigmapdiff"
+	DocBigMapActions  = "bigmapaction"
+	DocMetadata       = "metadata"
+	DocMigrations     = "migration"
+	DocProtocol       = "protocol"
+	DocTransfers      = "transfer"
+	DocTZIP           = "tzip"
 )
 
 // Index names

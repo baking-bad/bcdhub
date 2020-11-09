@@ -3,7 +3,7 @@ package elastic
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -14,9 +14,11 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // Elastic -
 type Elastic struct {
@@ -33,11 +35,11 @@ func New(addresses []string) (*Elastic, error) {
 		return nil, err
 	}
 	e := &Elastic{es}
-	r, err := e.TestConnection()
+	info, err := e.TestConnection()
 	if err != nil {
 		return nil, err
 	}
-	logger.Info("Elasticsearch Server: %s", r.Get("version.number").String())
+	logger.Info("Elasticsearch Server: %s", info.Version.Number)
 
 	return e, nil
 }
@@ -62,20 +64,22 @@ func (e *Elastic) GetAPI() *esapi.API {
 	return e.API
 }
 
-func (e *Elastic) getResponse(resp *esapi.Response) (result gjson.Result, err error) {
+func (e *Elastic) getResponse(resp *esapi.Response, result interface{}) (err error) {
 	if resp.IsError() {
 		if resp.StatusCode == 404 {
-			return result, NewRecordNotFoundErrorFromResponse(resp)
+			return NewRecordNotFoundErrorFromResponse(resp)
 		}
-		return result, errors.Errorf(resp.String())
+		return errors.Errorf(resp.String())
 	}
 
-	b, err := ioutil.ReadAll(resp.Body)
+	if result == nil {
+		return nil
+	}
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return
+		return err
 	}
-
-	result = gjson.ParseBytes(b)
+	err = json.Unmarshal(body, result)
 	return
 }
 
@@ -92,7 +96,7 @@ func (e *Elastic) getTextResponse(resp *esapi.Response) (string, error) {
 	return string(b), nil
 }
 
-func (e *Elastic) query(indices []string, query map[string]interface{}, source ...string) (result gjson.Result, err error) {
+func (e *Elastic) query(indices []string, query map[string]interface{}, response interface{}, source ...string) (err error) {
 	var buf bytes.Buffer
 	if err = json.NewEncoder(&buf).Encode(query); err != nil {
 		return
@@ -101,9 +105,7 @@ func (e *Elastic) query(indices []string, query map[string]interface{}, source .
 	// logger.InterfaceToJSON(query)
 	// logger.InterfaceToJSON(indices)
 
-	// Perform the search request.
 	var resp *esapi.Response
-
 	options := []func(*esapi.SearchRequest){
 		e.Search.WithContext(context.Background()),
 		e.Search.WithIndex(indices...),
@@ -119,10 +121,10 @@ func (e *Elastic) query(indices []string, query map[string]interface{}, source .
 
 	defer resp.Body.Close()
 
-	return e.getResponse(resp)
+	return e.getResponse(resp, response)
 }
 
-func (e *Elastic) executeSQL(sqlString string) (result gjson.Result, err error) {
+func (e *Elastic) executeSQL(sqlString string, response interface{}) (err error) {
 	query := qItem{
 		"query": sqlString,
 	}
@@ -142,17 +144,18 @@ func (e *Elastic) executeSQL(sqlString string) (result gjson.Result, err error) 
 	}
 	defer resp.Body.Close()
 
-	return e.getResponse(resp)
+	return e.getResponse(resp, response)
 }
 
 // TestConnection -
-func (e *Elastic) TestConnection() (result gjson.Result, err error) {
+func (e *Elastic) TestConnection() (result TestConnectionResponse, err error) {
 	res, err := e.Info()
 	if err != nil {
 		return
 	}
 
-	return e.getResponse(res)
+	err = e.getResponse(res, &result)
+	return
 }
 
 func (e *Elastic) createIndexIfNotExists(index string) error {
@@ -213,7 +216,7 @@ func (e *Elastic) CreateIndexes() error {
 }
 
 // nolint
-func (e *Elastic) updateByQuery(indices []string, query map[string]interface{}, source ...string) (result gjson.Result, err error) {
+func (e *Elastic) updateByQuery(indices []string, query map[string]interface{}, source ...string) (err error) {
 	var buf bytes.Buffer
 	if err = json.NewEncoder(&buf).Encode(query); err != nil {
 		return
@@ -241,13 +244,14 @@ func (e *Elastic) updateByQuery(indices []string, query map[string]interface{}, 
 
 	defer resp.Body.Close()
 
-	return e.getResponse(resp)
+	var v interface{}
+	return e.getResponse(resp, &v)
 }
 
-func (e *Elastic) deleteByQuery(indices []string, query map[string]interface{}) (gjson.Result, error) {
+func (e *Elastic) deleteByQuery(indices []string, query map[string]interface{}) (result *DeleteByQueryResponse, err error) {
 	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(query); err != nil {
-		return gjson.Result{}, err
+	if err = json.NewEncoder(&buf).Encode(query); err != nil {
+		return
 	}
 
 	// logger.InterfaceToJSON(query)
@@ -263,12 +267,13 @@ func (e *Elastic) deleteByQuery(indices []string, query map[string]interface{}) 
 		options...,
 	)
 	if err != nil {
-		return gjson.Result{}, err
+		return
 	}
 
 	defer resp.Body.Close()
 
-	return e.getResponse(resp)
+	err = e.getResponse(resp, &result)
+	return
 }
 
 // DeleteByLevelAndNetwork -
@@ -289,8 +294,8 @@ func (e *Elastic) DeleteByLevelAndNetwork(indices []string, network string, maxL
 			return err
 		}
 
-		end = response.Get("version_conflicts").Int() == 0
-		log.Printf("Removed %d/%d records from %s", response.Get("deleted").Int(), response.Get("total").Int(), strings.Join(indices, ","))
+		end = response.VersionConflicts == 0
+		log.Printf("Removed %d/%d records from %s", response.Deleted, response.Total, strings.Join(indices, ","))
 	}
 	return nil
 }
@@ -354,8 +359,8 @@ func (e *Elastic) DeleteByContract(indices []string, network, address string) er
 			return err
 		}
 
-		end = response.Get("version_conflicts").Int() == 0
-		log.Printf("Removed %d/%d records from %s", response.Get("deleted").Int(), response.Get("total").Int(), strings.Join(indices, ","))
+		end = response.VersionConflicts == 0
+		log.Printf("Removed %d/%d records from %s", response.Deleted, response.Total, strings.Join(indices, ","))
 	}
 
 	return nil

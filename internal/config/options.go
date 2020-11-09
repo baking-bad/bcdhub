@@ -87,7 +87,7 @@ func WithTzKTServices(tzktConfig map[string]TzKTConfig) ContextOption {
 		if len(tzktConfig) == 0 {
 			return
 		}
-		svc := make(map[string]*tzkt.ServicesTzKT)
+		svc := make(map[string]tzkt.Service)
 		for network, tzktProvider := range tzktConfig {
 			svc[network] = tzkt.NewServicesTzKT(network, tzktProvider.ServicesURI, time.Second*time.Duration(tzktProvider.Timeout))
 		}

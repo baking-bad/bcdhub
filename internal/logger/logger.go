@@ -11,54 +11,68 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
+
+// Loggable -
+type Loggable interface {
+	LogFields() logrus.Fields
+}
+
+var logger = newBCDLogger()
+
+// BCDLogger -
+type BCDLogger struct {
+	*logrus.Logger
+}
+
+func newBCDLogger() *BCDLogger {
+	l := &BCDLogger{
+		Logger: logrus.New(),
+	}
+	l.SetFormatter(&logrus.TextFormatter{
+		FullTimestamp:   true,
+		TimestampFormat: "2006-01-02 15:04:05",
+	})
+	l.SetOutput(os.Stdout)
+	l.SetLevel(logrus.InfoLevel)
+	return l
+}
 
 // Error -
 func Error(err error) {
-	red := color.New(color.FgRed).SprintFunc()
-	log.Printf("[%s] %s", red("Error"), err)
+	logger.Error(err)
 }
 
 // Errorf -
-func Errorf(format string, v ...interface{}) {
-	red := color.New(color.FgRed).SprintFunc()
-	log.Printf("[%s] %s", red("Error"), errors.Errorf(format, v...))
+func Errorf(format string, args ...interface{}) {
+	logger.Errorf(format, args...)
 }
 
 // Info -
-func Info(format string, v ...interface{}) {
-	blue := color.New(color.FgBlue).SprintFunc()
-	log.Printf("[%s] %s", blue("Info"), fmt.Sprintf(format, v...))
-}
-
-// Success -
-func Success(format string, v ...interface{}) {
-	green := color.New(color.FgGreen).SprintFunc()
-	log.Printf("[%s] %s", green("Success"), fmt.Sprintf(format, v...))
+func Info(format string, args ...interface{}) {
+	logger.Infof(format, args...)
 }
 
 // Warning -
-func Warning(format string, v ...interface{}) {
-	yellow := color.New(color.FgYellow).SprintFunc()
-	log.Printf("[%s] %s", yellow("Warning"), fmt.Sprintf(format, v...))
+func Warning(format string, args ...interface{}) {
+	logger.Warnf(format, args...)
 }
 
 // Fatal -
 func Fatal(err error) {
-	red := color.New(color.FgRed).SprintFunc()
-	log.Printf("[%s] %s", red("FATAL"), err)
+	logger.Fatal(err)
 	os.Exit(1)
 }
 
 // Log -
 func Log(text string) {
-	log.Print(text)
+	logger.Print(text)
 }
 
 // Logf -
-func Logf(format string, v ...interface{}) {
-	log.Printf(format, v...)
+func Logf(format string, args ...interface{}) {
+	logger.Printf(format, args...)
 }
 
 // JSON - pretty json log
@@ -158,4 +172,14 @@ func Debug(values ...interface{}) {
 func Question(format string, v ...interface{}) {
 	blue := color.New(color.FgMagenta).SprintFunc()
 	log.Printf("[%s] %s", blue("?"), fmt.Sprintf(format, v...))
+}
+
+// With -
+func With(entry Loggable) *logrus.Entry {
+	return logger.WithFields(entry.LogFields())
+}
+
+// WithNetwork -
+func WithNetwork(network string) *logrus.Entry {
+	return logger.WithField("network", network)
 }

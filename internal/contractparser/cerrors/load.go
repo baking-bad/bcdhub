@@ -3,14 +3,20 @@ package cerrors
 import (
 	"io/ioutil"
 	"os"
-
-	"github.com/tidwall/gjson"
 )
 
-var errorDescriptions gjson.Result
+var errorDescriptions map[string]Description
+
+// Description -
+type Description struct {
+	Title       string `json:"title"`
+	Description string `json:"descr"`
+}
 
 // LoadErrorDescriptions -
 func LoadErrorDescriptions(filePath string) (err error) {
+	errorDescriptions = make(map[string]Description)
+
 	f, err := os.Open(filePath)
 	if err != nil {
 		return
@@ -22,6 +28,5 @@ func LoadErrorDescriptions(filePath string) (err error) {
 		return
 	}
 
-	errorDescriptions = gjson.ParseBytes(b)
-	return
+	return json.Unmarshal(b, &errorDescriptions)
 }

@@ -36,7 +36,7 @@ func (m *Aliases) Do(ctx *config.Context) error {
 	timeout := time.Duration(cfg.Timeout) * time.Second
 
 	api := tzkt.NewTzKT(cfg.URI, timeout)
-	logger.Success("TzKT API initialized")
+	logger.Info("TzKT API initialized")
 
 	aliases, err := api.GetAliases()
 	if err != nil {

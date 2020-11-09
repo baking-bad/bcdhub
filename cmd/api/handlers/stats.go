@@ -61,8 +61,8 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 	if handleError(c, err, 0) {
 		return
 	}
-	stats.ContractsCount = counts.Contracts
-	stats.OperationsCount = counts.Operations
+	stats.ContractsCount = counts[elastic.DocContracts]
+	stats.OperationsCount = counts[elastic.DocOperations]
 
 	var protocols []models.Protocol
 	if err := ctx.ES.GetByNetworkWithSort(req.Network, "start_level", "desc", &protocols); handleError(c, err, 0) {
@@ -247,7 +247,7 @@ func getHistogramOptions(name, network string, addresses ...string) ([]elastic.H
 // @Success 200 {object} elastic.DAppStats
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /contract/{network}/stats [get]
+// @Router /stats/{network}/contracts [get]
 func (ctx *Context) GetContractsStats(c *gin.Context) {
 	var req getByNetwork
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {

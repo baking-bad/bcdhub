@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/baking-bad/bcdhub/internal/models/utils"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
@@ -21,38 +20,32 @@ type TZIP16 struct {
 	Events      []Event  `json:"events,omitempty"`
 }
 
-// ParseElasticJSON -
-func (t *TZIP16) ParseElasticJSON(resp gjson.Result) {
-	t.Name = resp.Get("_source.name").String()
-	t.Description = resp.Get("_source.description").String()
-	t.Version = resp.Get("_source.version").String()
-	t.Homepage = resp.Get("_source.homepage").String()
-
-	t.Authors = utils.StringArray(resp, "_source.authors")
-	t.Interfaces = utils.StringArray(resp, "_source.interfaces")
-	t.Events = make([]Event, 0)
-	for _, hit := range resp.Get("_source.events").Array() {
-		var event Event
-		event.ParseElasticJSON(hit)
-	}
-
-	license := resp.Get("_source.license")
-	if license.Exists() {
-		t.License = &License{}
-		t.License.ParseElasticJSON(license)
-	}
-}
-
 // License -
 type License struct {
 	Name    string `json:"name"`
 	Details string `json:"details,omitempty"`
+
+	buf struct {
+		Name    string `json:"name"`
+		Details string `json:"details,omitempty"`
+	} `json:"-"`
 }
 
-// ParseElasticJSON -
-func (license *License) ParseElasticJSON(resp gjson.Result) {
-	license.Name = resp.Get("name").String()
-	license.Details = resp.Get("details").String()
+// UnmarshalJSON -
+func (license *License) UnmarshalJSON(data []byte) error {
+	switch data[0] {
+	case '"':
+		if err := json.Unmarshal(data, &license.Name); err != nil {
+			return err
+		}
+	case '{':
+		if err := json.Unmarshal(data, &license.buf); err != nil {
+			return err
+		}
+		license.Name = license.buf.Name
+		license.Details = license.buf.Details
+	}
+	return nil
 }
 
 // Event -
@@ -63,27 +56,9 @@ type Event struct {
 	Implementations []EventImplementation `json:"implementations"`
 }
 
-// ParseElasticJSON -
-func (t *Event) ParseElasticJSON(resp gjson.Result) {
-	t.Name = resp.Get("name").String()
-	t.Description = resp.Get("description").String()
-	t.Pure = resp.Get("pure").String()
-	t.Implementations = make([]EventImplementation, 0)
-	for _, hit := range resp.Get("implementations").Array() {
-		var impl EventImplementation
-		impl.ParseElasticJSON(hit)
-		t.Implementations = append(t.Implementations, impl)
-	}
-}
-
 // EventImplementation -
 type EventImplementation struct {
 	MichelsonParameterView MichelsonParameterView `json:"michelson-parameter-view"`
-}
-
-// ParseElasticJSON -
-func (t *EventImplementation) ParseElasticJSON(resp gjson.Result) {
-	t.MichelsonParameterView.ParseElasticJSON(resp.Get("michelson-parameter-view"))
 }
 
 // MichelsonParameterView -
@@ -92,14 +67,6 @@ type MichelsonParameterView struct {
 	ReturnType  interface{} `json:"return-type"`
 	Code        interface{} `json:"code"`
 	Entrypoints []string    `json:"entrypoints"`
-}
-
-// ParseElasticJSON -
-func (view *MichelsonParameterView) ParseElasticJSON(resp gjson.Result) {
-	view.Parameter = resp.Get("parameter").Value()
-	view.ReturnType = resp.Get("return-type").Value()
-	view.Code = resp.Get("code").Value()
-	view.Entrypoints = utils.StringArray(resp, "entrypoints")
 }
 
 // CodeJSON -

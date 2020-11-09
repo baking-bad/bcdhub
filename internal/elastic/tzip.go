@@ -41,6 +41,7 @@ func (ctx GetTokenMetadataContext) buildQuery() base {
 type TokenMetadata struct {
 	Address         string
 	Network         string
+	Level           int64
 	Symbol          string
 	Name            string
 	TokenID         int64
@@ -56,7 +57,7 @@ func (e *Elastic) GetTokenMetadata(ctx GetTokenMetadataContext) (tokens []TokenM
 	if err = e.getAllByQuery(query, &tzips); err != nil {
 		return
 	}
-	if len(tzips) > 0 {
+	if len(tzips) == 0 {
 		return nil, NewRecordNotFoundError(DocTZIP, "", query)
 	}
 
@@ -70,6 +71,7 @@ func (e *Elastic) GetTokenMetadata(ctx GetTokenMetadataContext) (tokens []TokenM
 			tokens = append(tokens, TokenMetadata{
 				Address:         tzip.Address,
 				Network:         tzip.Network,
+				Level:           tzip.Level,
 				RegistryAddress: tzip.Tokens.Static[i].RegistryAddress,
 				Symbol:          tzip.Tokens.Static[i].Symbol,
 				Name:            tzip.Tokens.Static[i].Name,
@@ -100,19 +102,21 @@ func (e *Elastic) GetDApps() ([]tzip.DApp, error) {
 		),
 	).All()
 
-	response, err := e.query([]string{DocTZIP}, query, "dapps")
-	if err != nil {
+	var response SearchResponse
+	if err := e.query([]string{DocTZIP}, query, &response, "dapps"); err != nil {
 		return nil, err
 	}
-	if response.Get("hits.total.value").Int() == 0 {
+	if response.Hits.Total.Value == 0 {
 		return nil, NewRecordNotFoundError(DocTZIP, "", query)
 	}
 
 	tokens := make([]tzip.DApp, 0)
-	for _, hit := range response.Get("hits.hits.#._source.dapps.0").Array() {
-		var dapp tzip.DApp
-		dapp.ParseElasticJSON(hit)
-		tokens = append(tokens, dapp)
+	for _, hit := range response.Hits.Hits {
+		var model models.TZIP
+		if err := json.Unmarshal(hit.Source, &model); err != nil {
+			return nil, err
+		}
+		tokens = append(tokens, model.DApps...)
 	}
 
 	return tokens, nil
@@ -128,17 +132,19 @@ func (e *Elastic) GetDAppBySlug(slug string) (*tzip.DApp, error) {
 		),
 	).One()
 
-	response, err := e.query([]string{DocTZIP}, query, "dapps")
-	if err != nil {
+	var response SearchResponse
+	if err := e.query([]string{DocTZIP}, query, &response, "dapps"); err != nil {
 		return nil, err
 	}
-	if response.Get("hits.total.value").Int() == 0 {
+	if response.Hits.Total.Value == 0 {
 		return nil, NewRecordNotFoundError(DocTZIP, "", query)
 	}
 
-	var data tzip.DApp
-	data.ParseElasticJSON(response.Get("hits.hits.0._source.dapps.0"))
-	return &data, nil
+	var model models.TZIP
+	if err := json.Unmarshal(response.Hits.Hits[0].Source, &model); err != nil {
+		return nil, err
+	}
+	return &model.DApps[0], nil
 }
 
 // GetBySlug -
@@ -151,17 +157,17 @@ func (e *Elastic) GetBySlug(slug string) (*models.TZIP, error) {
 		),
 	).One()
 
-	response, err := e.query([]string{DocTZIP}, query)
-	if err != nil {
+	var response SearchResponse
+	if err := e.query([]string{DocTZIP}, query, &response); err != nil {
 		return nil, err
 	}
-	if response.Get("hits.total.value").Int() == 0 {
+	if response.Hits.Total.Value == 0 {
 		return nil, NewRecordNotFoundError(DocTZIP, "", query)
 	}
 
 	var data models.TZIP
-	data.ParseElasticJSON(response.Get("hits.hits.0"))
-	return &data, nil
+	err := json.Unmarshal(response.Hits.Hits[0].Source, &data)
+	return &data, err
 }
 
 // GetAliasesMap -
@@ -174,19 +180,20 @@ func (e *Elastic) GetAliasesMap(network string) (map[string]string, error) {
 		),
 	).All()
 
-	response, err := e.query([]string{DocTZIP}, query)
-	if err != nil {
+	var response SearchResponse
+	if err := e.query([]string{DocTZIP}, query, &response); err != nil {
 		return nil, err
 	}
-	if response.Get("hits.total.value").Int() == 0 {
+	if response.Hits.Total.Value == 0 {
 		return nil, NewRecordNotFoundError(DocTZIP, "", query)
 	}
 
 	aliases := make(map[string]string)
-	for _, hit := range response.Get("hits.hits").Array() {
+	for _, hit := range response.Hits.Hits {
 		var data models.TZIP
-		data.ParseElasticJSON(hit)
-
+		if err := json.Unmarshal(hit.Source, &data); err != nil {
+			return nil, err
+		}
 		aliases[data.Address] = data.Name
 	}
 
@@ -204,21 +211,20 @@ func (e *Elastic) GetAliases(network string) ([]models.TZIP, error) {
 		),
 	).All()
 
-	response, err := e.query([]string{DocTZIP}, query)
-	if err != nil {
+	var response SearchResponse
+	if err := e.query([]string{DocTZIP}, query, &response); err != nil {
 		return nil, err
 	}
-	if response.Get("hits.total.value").Int() == 0 {
+	if response.Hits.Total.Value == 0 {
 		return nil, NewRecordNotFoundError(DocTZIP, "", query)
 	}
 
-	aliases := make([]models.TZIP, 0)
-	for _, hit := range response.Get("hits.hits").Array() {
-		var data models.TZIP
-		data.ParseElasticJSON(hit)
-		aliases = append(aliases, data)
+	aliases := make([]models.TZIP, len(response.Hits.Hits))
+	for i := range response.Hits.Hits {
+		if err := json.Unmarshal(response.Hits.Hits[i].Source, &aliases[i]); err != nil {
+			return nil, err
+		}
 	}
-
 	return aliases, nil
 }
 
@@ -233,17 +239,17 @@ func (e *Elastic) GetAlias(network, address string) (*models.TZIP, error) {
 		),
 	).One()
 
-	response, err := e.query([]string{DocTZIP}, query)
-	if err != nil {
+	var response SearchResponse
+	if err := e.query([]string{DocTZIP}, query, &response); err != nil {
 		return nil, err
 	}
-	if response.Get("hits.total.value").Int() == 0 {
+	if response.Hits.Total.Value == 0 {
 		return nil, NewRecordNotFoundError(DocTZIP, "", query)
 	}
 
 	var data models.TZIP
-	data.ParseElasticJSON(response.Get("hits.hits.0"))
-	return &data, nil
+	err := json.Unmarshal(response.Hits.Hits[0].Source, &data)
+	return &data, err
 }
 
 // GetTZIPWithViews -
@@ -256,20 +262,19 @@ func (e *Elastic) GetTZIPWithViews() ([]models.TZIP, error) {
 		),
 	).All()
 
-	response, err := e.query([]string{DocTZIP}, query)
-	if err != nil {
+	var response SearchResponse
+	if err := e.query([]string{DocTZIP}, query, &response); err != nil {
 		return nil, err
 	}
-	if response.Get("hits.total.value").Int() == 0 {
+	if response.Hits.Total.Value == 0 {
 		return nil, NewRecordNotFoundError(DocTZIP, "", query)
 	}
 
-	tokens := make([]models.TZIP, 0)
-	for _, hit := range response.Get("hits.hits.#._source").Array() {
-		var data models.TZIP
-		data.ParseElasticJSON(hit)
-		tokens = append(tokens, data)
+	tokens := make([]models.TZIP, len(response.Hits.Hits))
+	for i := range response.Hits.Hits {
+		if err := json.Unmarshal(response.Hits.Hits[i].Source, &tokens[i]); err != nil {
+			return nil, err
+		}
 	}
-
 	return tokens, nil
 }

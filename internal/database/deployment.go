@@ -44,8 +44,7 @@ func (d *db) CreateDeployment(dt *Deployment) error {
 // GetDeploymentBy -
 func (d *db) GetDeploymentBy(opHash string) (*Deployment, error) {
 	dt := new(Deployment)
-
-	return dt, d.Where("operation_hash = ?", opHash).First(dt).Error
+	return dt, d.Raw("SELECT * FROM deployments WHERE operation_hash = ?", opHash).Scan(dt).Error
 }
 
 // UpdateDeployment -

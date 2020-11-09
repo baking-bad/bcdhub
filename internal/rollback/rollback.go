@@ -110,15 +110,9 @@ func (rm Manager) getProtocolByLevel(protocols []models.Protocol, level int64) (
 
 func (rm Manager) removeMetadata(fromState models.Block, toLevel int64) error {
 	logger.Info("Preparing metadata for removing...")
-	contracts, err := rm.e.GetContractAddressesByNetworkAndLevel(fromState.Network, toLevel)
+	addresses, err := rm.e.GetContractAddressesByNetworkAndLevel(fromState.Network, toLevel)
 	if err != nil {
 		return err
-	}
-
-	addresses := make([]string, 0)
-	arr := contracts.Array()
-	for _, contract := range arr {
-		addresses = append(addresses, contract.Get("_source.address").String())
 	}
 
 	return rm.removeContractsMetadata(fromState.Network, addresses, fromState.Protocol)

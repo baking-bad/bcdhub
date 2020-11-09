@@ -1,77 +1,88 @@
 package cerrors
 
 import (
+	stdJSON "encoding/json"
 	"reflect"
 	"testing"
-
-	"github.com/tidwall/gjson"
 )
 
-func TestDefaultError_parse(t *testing.T) {
+func TestError_parse(t *testing.T) {
 	tests := []struct {
-		name string
-		args string
-		ret  DefaultError
+		name    string
+		errJSON string
+		ret     Error
 	}{
 		{
-			name: "Error 1",
-			args: "{\"kind\":\"temporary\",\"id\":\"proto.003-PsddFKi3.scriptRejectedRuntimeError\",\"location\":710,\"with\":{\"prim\":\"Unit\"}}",
-			ret: DefaultError{
+			name:    "Error 1",
+			errJSON: "{\"kind\":\"temporary\",\"id\":\"proto.003-PsddFKi3.scriptRejectedRuntimeError\",\"location\":710,\"with\":{\"prim\":\"Unit\"}}",
+			ret: Error{
 				Kind:        "temporary",
 				ID:          "proto.003-PsddFKi3.scriptRejectedRuntimeError",
 				Title:       "Script failed (runtime script error)",
 				Description: "A FAILWITH instruction was reached",
-				Location:    710,
-				With:        `{"prim":"Unit"}`,
+				IError: &DefaultError{
+					Location: 710,
+					With:     []byte(`{"prim":"Unit"}`),
+				},
 			},
 		}, {
-			name: "Error 2",
-			args: "{\"kind\":\"temporary\",\"id\":\"proto.004-Pt24m4xi.gas_exhausted.operation\"}",
-			ret: DefaultError{
+			name:    "Error 2",
+			errJSON: "{\"kind\":\"temporary\",\"id\":\"proto.004-Pt24m4xi.gas_exhausted.operation\"}",
+			ret: Error{
 				Kind:        "temporary",
 				ID:          "proto.004-Pt24m4xi.gas_exhausted.operation",
 				Title:       "Gas quota exceeded for the operation",
 				Description: "A script or one of its callee took more time than the operation said it would",
+				IError:      &DefaultError{},
 			},
 		}, {
-			name: "Error 3",
-			args: "{\"kind\":\"temporary\",\"id\":\"proto.004-Pt24m4xi.contract.balance_too_low\",\"contract\":\"KT1BvVxWM6cjFuJNet4R9m64VDCN2iMvjuGE\",\"balance\":\"5248650175\",\"amount\":\"22571025048\"}",
-			ret: DefaultError{
+			name:    "Error 3",
+			errJSON: "{\"kind\":\"temporary\",\"id\":\"proto.004-Pt24m4xi.contract.balance_too_low\",\"contract\":\"KT1BvVxWM6cjFuJNet4R9m64VDCN2iMvjuGE\",\"balance\":\"5248650175\",\"amount\":\"22571025048\"}",
+			ret: Error{
 				Kind:        "temporary",
 				ID:          "proto.004-Pt24m4xi.contract.balance_too_low",
 				Title:       "Balance too low",
 				Description: "An operation tried to spend more tokens than the contract has",
+				IError: &BalanceTooLowError{
+					Amount:  22571025048,
+					Balance: 5248650175,
+				},
 			},
 		}, {
-			name: "Error 4",
-			args: "{\"kind\":\"temporary\",\"id\":\"proto.005-PsBabyM1.michelson_v1.script_rejected\",\"location\":226,\"with\":{\"prim\":\"Unit\"}}",
-			ret: DefaultError{
+			name:    "Error 4",
+			errJSON: "{\"kind\":\"temporary\",\"id\":\"proto.005-PsBabyM1.michelson_v1.script_rejected\",\"location\":226,\"with\":{\"prim\":\"Unit\"}}",
+			ret: Error{
 				Kind:        "temporary",
 				ID:          "proto.005-PsBabyM1.michelson_v1.script_rejected",
 				Title:       "Script failed",
 				Description: "A FAILWITH instruction was reached",
-				Location:    226,
-				With:        `{"prim":"Unit"}`,
+				IError: &DefaultError{
+					Location: 226,
+					With:     []byte(`{"prim":"Unit"}`),
+				},
 			},
 		}, {
-			name: "Error 5",
-			args: `{"kind": "permanent", "id": "proto.005-PsBabyM1.contract.manager.unregistered_delegate", "hash": "tz1YB12JHVHw9GbN66wyfakGYgdTBvokmXQk"}`,
-			ret: DefaultError{
+			name:    "Error 5",
+			errJSON: `{"kind": "permanent", "id": "proto.005-PsBabyM1.contract.manager.unregistered_delegate", "hash": "tz1YB12JHVHw9GbN66wyfakGYgdTBvokmXQk"}`,
+			ret: Error{
 				Kind:        "permanent",
 				ID:          "proto.005-PsBabyM1.contract.manager.unregistered_delegate",
 				Title:       "Unregistered delegate",
 				Description: "A contract cannot be delegated to an unregistered delegate",
+				IError:      &DefaultError{},
 			},
 		}, {
-			name: "Error 6",
-			args: `{ "kind": "temporary", "id": "proto.006-PsCARTHA.michelson_v1.script_rejected", "location": 1275, "with": {"string": "Wrong token type."}}`,
-			ret: DefaultError{
+			name:    "Error 6",
+			errJSON: `{ "kind": "temporary", "id": "proto.006-PsCARTHA.michelson_v1.script_rejected", "location": 1275, "with":{"string": "Wrong token type."}}`,
+			ret: Error{
 				Kind:        "temporary",
 				ID:          "proto.006-PsCARTHA.michelson_v1.script_rejected",
 				Title:       "Script failed",
 				Description: "A FAILWITH instruction was reached",
-				Location:    1275,
-				With:        `{"string": "Wrong token type."}`,
+				IError: &DefaultError{
+					Location: 1275,
+					With:     []byte(`{"string": "Wrong token type."}`),
+				},
 			},
 		},
 	}
@@ -81,13 +92,14 @@ func TestDefaultError_parse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var e DefaultError
-
-			data := gjson.Parse(tt.args)
-			e.Parse(data)
+			var e Error
+			if err := json.Unmarshal([]byte(tt.errJSON), &e); err != nil {
+				t.Errorf("json.Unmarshal: %v", err)
+				return
+			}
 
 			if !reflect.DeepEqual(e, tt.ret) {
-				t.Errorf("Invalid parsed error: %v != %v", e, tt.ret)
+				t.Errorf("Invalid parsed error: %##v != %##v", e.IError, tt.ret.IError)
 			}
 		})
 	}
@@ -97,20 +109,20 @@ func TestBalanceTooLowError_Parse(t *testing.T) {
 	tests := []struct {
 		name string
 		args string
-		ret  BalanceTooLowError
+		ret  Error
 	}{
 		{
 			name: "Error 1",
 			args: "{\"kind\":\"temporary\",\"id\":\"proto.004-Pt24m4xi.contract.balance_too_low\",\"contract\":\"KT1BvVxWM6cjFuJNet4R9m64VDCN2iMvjuGE\",\"balance\":\"5248650175\",\"amount\":\"22571025048\"}",
-			ret: BalanceTooLowError{
-				DefaultError: DefaultError{
-					Kind:        "temporary",
-					ID:          "proto.004-Pt24m4xi.contract.balance_too_low",
-					Title:       "Balance too low",
-					Description: "An operation tried to spend more tokens than the contract has",
+			ret: Error{
+				Kind:        "temporary",
+				ID:          "proto.004-Pt24m4xi.contract.balance_too_low",
+				Title:       "Balance too low",
+				Description: "An operation tried to spend more tokens than the contract has",
+				IError: &BalanceTooLowError{
+					Balance: 5248650175,
+					Amount:  22571025048,
 				},
-				Balance: 5248650175,
-				Amount:  22571025048,
 			},
 		},
 	}
@@ -120,10 +132,11 @@ func TestBalanceTooLowError_Parse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var e BalanceTooLowError
-
-			data := gjson.Parse(tt.args)
-			e.Parse(data)
+			var e Error
+			if err := json.Unmarshal([]byte(tt.args), &e); err != nil {
+				t.Errorf("json.Unmarshal: %v", err)
+				return
+			}
 
 			if !reflect.DeepEqual(e, tt.ret) {
 				t.Errorf("Invalid parsed error: %v != %v", e, tt.ret)
@@ -132,26 +145,28 @@ func TestBalanceTooLowError_Parse(t *testing.T) {
 	}
 }
 
-func TestDefaultError_Format(t *testing.T) {
+func TestError_Format(t *testing.T) {
 	tests := []struct {
 		name        string
-		args        IError
-		compareWith string
+		args        *Error
+		compareWith stdJSON.RawMessage
 	}{
 		{
 			name: "Error 1",
-			args: &DefaultError{
+			args: &Error{
 				Kind:        "temporary",
 				ID:          "proto.003-PsddFKi3.scriptRejectedRuntimeError",
 				Title:       "Script failed (runtime script error)",
 				Description: "A FAILWITH instruction was reached",
-				Location:    710,
-				With:        `{"prim":"Unit"}`,
+				IError: &DefaultError{
+					Location: 710,
+					With:     []byte(`{"prim":"Unit"}`),
+				},
 			},
-			compareWith: "Unit",
+			compareWith: []byte("Unit"),
 		}, {
 			name: "Error 2",
-			args: &DefaultError{
+			args: &Error{
 				Kind:        "temporary",
 				ID:          "proto.004-Pt24m4xi.gas_exhausted.operation",
 				Title:       "Gas quota exceeded for the operation",
@@ -159,7 +174,7 @@ func TestDefaultError_Format(t *testing.T) {
 			},
 		}, {
 			name: "Error 3",
-			args: &DefaultError{
+			args: &Error{
 				Kind:        "temporary",
 				ID:          "proto.004-Pt24m4xi.contract.balance_too_low",
 				Title:       "Balance too low",
@@ -167,18 +182,20 @@ func TestDefaultError_Format(t *testing.T) {
 			},
 		}, {
 			name: "Error 4",
-			args: &DefaultError{
+			args: &Error{
 				Kind:        "temporary",
 				ID:          "proto.005-PsBabyM1.michelson_v1.script_rejected",
 				Title:       "Script failed",
 				Description: "A FAILWITH instruction was reached",
-				Location:    226,
-				With:        `{"prim":"Unit"}`,
+				IError: &DefaultError{
+					Location: 226,
+					With:     []byte(`{"prim":"Unit"}`),
+				},
 			},
-			compareWith: "Unit",
+			compareWith: []byte("Unit"),
 		}, {
 			name: "Error 5",
-			args: &DefaultError{
+			args: &Error{
 				Kind:        "permanent",
 				ID:          "proto.005-PsBabyM1.contract.manager.unregistered_delegate",
 				Title:       "Unregistered delegate",
@@ -186,15 +203,15 @@ func TestDefaultError_Format(t *testing.T) {
 			},
 		}, {
 			name: "Error 6",
-			args: &BalanceTooLowError{
-				DefaultError: DefaultError{
-					Kind:        "temporary",
-					ID:          "proto.004-Pt24m4xi.contract.balance_too_low",
-					Title:       "Balance too low",
-					Description: "An operation tried to spend more tokens than the contract has",
+			args: &Error{
+				Kind:        "temporary",
+				ID:          "proto.004-Pt24m4xi.contract.balance_too_low",
+				Title:       "Balance too low",
+				Description: "An operation tried to spend more tokens than the contract has",
+				IError: &BalanceTooLowError{
+					Balance: 5248650175,
+					Amount:  22571025048,
 				},
-				Balance: 5248650175,
-				Amount:  22571025048,
 			},
 		},
 	}
@@ -209,13 +226,13 @@ func TestDefaultError_Format(t *testing.T) {
 				t.Errorf("args format error %v", err)
 				return
 			}
-			switch err := tt.args.(type) {
+			switch err := tt.args.IError.(type) {
 			case *BalanceTooLowError:
-				if err.With != tt.compareWith {
+				if !reflect.DeepEqual(err.With, tt.compareWith) {
 					t.Errorf("Invalid formatted with error: %v != %v", err.With, tt.compareWith)
 				}
 			case *DefaultError:
-				if err.With != tt.compareWith {
+				if !reflect.DeepEqual(err.With, tt.compareWith) {
 					t.Errorf("Invalid formatted with error: %v != %v", err.With, tt.compareWith)
 				}
 			}
@@ -227,20 +244,20 @@ func TestInvalidSyntacticConstantError_Parse(t *testing.T) {
 	tests := []struct {
 		name string
 		args string
-		ret  InvalidSyntacticConstantError
+		ret  Error
 	}{
 		{
 			name: "Error 1",
 			args: `{ "kind": "permanent", "id": "proto.005-PsBabyM1.invalidSyntacticConstantError", "location": 0, "expectedForm":{"prim": "unit"}, "wrongExpression":{"int": "0"}}`,
-			ret: InvalidSyntacticConstantError{
-				DefaultError: DefaultError{
-					Kind:        "permanent",
-					ID:          "proto.005-PsBabyM1.invalidSyntacticConstantError",
-					Title:       "Invalid constant (parse error)",
-					Description: "A compile-time constant was invalid for its expected form.",
+			ret: Error{
+				Kind:        "permanent",
+				ID:          "proto.005-PsBabyM1.invalidSyntacticConstantError",
+				Title:       "Invalid constant (parse error)",
+				Description: "A compile-time constant was invalid for its expected form.",
+				IError: &InvalidSyntacticConstantError{
+					ExpectedFormCamel:    []byte(`{"prim": "unit"}`),
+					WrongExpressionCamel: []byte(`{"int": "0"}`),
 				},
-				ExpectedForm:    `{"prim": "unit"}`,
-				WrongExpression: `{"int": "0"}`,
 			},
 		},
 	}
@@ -250,9 +267,12 @@ func TestInvalidSyntacticConstantError_Parse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var e InvalidSyntacticConstantError
-			data := gjson.Parse(tt.args)
-			e.Parse(data)
+			var e Error
+			if err := json.Unmarshal([]byte(tt.args), &e); err != nil {
+				t.Errorf("json.Unmarshal: %v", err)
+				return
+			}
+
 			if !reflect.DeepEqual(e, tt.ret) {
 				t.Errorf("Invalid parsed error: %v != %v", e, tt.ret)
 			}

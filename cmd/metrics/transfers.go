@@ -6,21 +6,20 @@ import (
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/pkg/errors"
-	"github.com/streadway/amqp"
 )
 
-func getTransfer(data amqp.Delivery) error {
-	transferID := parseID(data.Body)
-
-	transfer := models.Transfer{ID: transferID}
-	if err := ctx.ES.GetByID(&transfer); err != nil {
-		return errors.Errorf("[getTransfer] Find transfer error: %s", err)
+func getTransfer(ids []string) error {
+	transfers := make([]models.Transfer, 0)
+	if err := ctx.ES.GetByIDs(&transfers, ids...); err != nil {
+		return errors.Errorf("[getTransfer] Find transfer error for IDs %v: %s", ids, err)
 	}
 
-	if err := parseTransfer(transfer); err != nil {
-		return errors.Errorf("[getTransfer] Compute error message: %s", err)
+	for i := range transfers {
+		if err := parseTransfer(transfers[i]); err != nil {
+			return errors.Errorf("[getTransfer] Compute error message: %s", err)
+		}
+		logger.With(&transfers[i]).Info("Transfer is processed")
 	}
-
 	return nil
 }
 
@@ -40,6 +39,5 @@ func parseTransfer(transfer models.Transfer) error {
 		}
 	}
 
-	logger.Info("Transfer %s processed", transfer.ID)
 	return nil
 }

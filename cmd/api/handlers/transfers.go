@@ -83,23 +83,18 @@ func (ctx *Context) transfersPostprocessing(transfers elastic.TransfersResponse)
 				Symbol:   tokens[i].Symbol,
 				Name:     tokens[i].Name,
 				Decimals: tokens[i].Decimals,
+				Network:  tokens[i].Network,
 			}
 		}
 	}
 
 	for i := range transfers.Transfers {
-		response.Transfers[i] = Transfer{&transfers.Transfers[i], nil}
-		if len(mapTokens) > 0 {
-			token, ok := mapTokens[tokenKey{
-				Network:  transfers.Transfers[i].Network,
-				Contract: transfers.Transfers[i].Contract,
-				TokenID:  transfers.Transfers[i].TokenID,
-			}]
-			if ok {
-				response.Transfers[i].Token = token
-			}
-		}
-
+		token := mapTokens[tokenKey{
+			Network:  transfers.Transfers[i].Network,
+			Contract: transfers.Transfers[i].Contract,
+			TokenID:  transfers.Transfers[i].TokenID,
+		}]
+		response.Transfers[i] = Transfer{&transfers.Transfers[i], token}
 	}
 	return
 }

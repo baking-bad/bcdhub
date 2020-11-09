@@ -5,22 +5,22 @@ import (
 )
 
 // HasParametersError -
-func HasParametersError(err []IError) bool {
+func HasParametersError(err []*Error) bool {
 	return HasError(err, consts.BadParameterError)
 }
 
 // HasGasExhaustedError -
-func HasGasExhaustedError(err []IError) bool {
+func HasGasExhaustedError(err []*Error) bool {
 	return HasError(err, consts.GasExhaustedError)
 }
 
 // HasScriptRejectedError -
-func HasScriptRejectedError(err []IError) bool {
+func HasScriptRejectedError(err []*Error) bool {
 	return HasError(err, consts.ScriptRejectedError)
 }
 
 // HasError -
-func HasError(err []IError, errorID string) bool {
+func HasError(err []*Error, errorID string) bool {
 	for i := range err {
 		if err[i].Is(errorID) {
 			return true
@@ -30,7 +30,7 @@ func HasError(err []IError, errorID string) bool {
 }
 
 // First -
-func First(err []IError, errorID string) IError {
+func First(err []*Error, errorID string) *Error {
 	for i := range err {
 		if err[i].Is(errorID) {
 			return err[i]

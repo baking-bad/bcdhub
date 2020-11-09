@@ -30,13 +30,16 @@ func (ctx *Context) GetInfo(c *gin.Context) {
 	if handleError(c, err, 0) {
 		return
 	}
+	block, err := ctx.ES.GetLastBlock(req.Network)
+	if handleError(c, err, 0) {
+		return
+	}
 
 	rpc, err := ctx.GetRPC(req.Network)
 	if handleError(c, err, 0) {
 		return
 	}
-
-	balance, err := rpc.GetContractBalance(req.Address, 0)
+	balance, err := rpc.GetContractBalance(req.Address, block.Level)
 	if handleError(c, err, 0) {
 		return
 	}

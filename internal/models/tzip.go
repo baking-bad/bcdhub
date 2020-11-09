@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/models/utils"
+	"github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 )
 
@@ -17,7 +18,7 @@ type TZIP struct {
 
 	tzip.TZIP12
 	tzip.TZIP16
-	tzip.DApps
+	tzip.DAppsTZIP
 }
 
 // HasToken -
@@ -30,18 +31,6 @@ func (t TZIP) HasToken(network, address string, tokenID int64) bool {
 	return false
 }
 
-// ParseElasticJSON -
-func (t *TZIP) ParseElasticJSON(resp gjson.Result) {
-	t.Level = resp.Get("_source.level").Int()
-	t.Address = resp.Get("_source.address").String()
-	t.Network = resp.Get("_source.network").String()
-	t.Slug = resp.Get("_source.slug").String()
-
-	t.TZIP12.ParseElasticJSON(resp)
-	t.TZIP16.ParseElasticJSON(resp)
-	t.DApps.ParseElasticJSON(resp)
-}
-
 // GetID -
 func (t *TZIP) GetID() string {
 	return fmt.Sprintf("%s_%s", t.Network, t.Address)
@@ -52,13 +41,13 @@ func (t *TZIP) GetIndex() string {
 	return "tzip"
 }
 
-// GetQueue -
-func (t *TZIP) GetQueue() string {
-	return ""
+// GetQueues -
+func (t *TZIP) GetQueues() []string {
+	return nil
 }
 
-// Marshal -
-func (t *TZIP) Marshal() ([]byte, error) {
+// MarshalToQueue -
+func (t *TZIP) MarshalToQueue() ([]byte, error) {
 	return nil, nil
 }
 
@@ -76,4 +65,13 @@ func (t *TZIP) FoundByName(hit gjson.Result) string {
 	keys := hit.Get("highlight").Map()
 	categories := t.GetScores("")
 	return utils.GetFoundBy(keys, categories)
+}
+
+// LogFields -
+func (t *TZIP) LogFields() logrus.Fields {
+	return logrus.Fields{
+		"network": t.Network,
+		"address": t.Address,
+		"level":   t.Level,
+	}
 }

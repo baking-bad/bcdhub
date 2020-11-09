@@ -30,7 +30,7 @@ type Operation struct {
 	AllocatedDestinationContractBurned int64            `json:"allocated_destination_contract_burned,omitempty"`
 	IndexedTime                        int64            `json:"-"`
 	ContentIndex                       int64            `json:"content_index"`
-	Errors                             []cerrors.IError `json:"errors,omitempty"`
+	Errors                             []*cerrors.Error `json:"errors,omitempty"`
 	Result                             *OperationResult `json:"result,omitempty"`
 	Parameters                         interface{}      `json:"parameters,omitempty"`
 	StorageDiff                        interface{}      `json:"storage_diff,omitempty"`
@@ -177,7 +177,6 @@ type Contract struct {
 	Network   string    `json:"network"`
 	Level     int64     `json:"level"`
 	Timestamp time.Time `json:"timestamp"`
-	Balance   int64     `json:"balance"`
 	Language  string    `json:"language,omitempty"`
 
 	Hash        string   `json:"hash"`
@@ -191,14 +190,13 @@ type Contract struct {
 	Manager  string `json:"manager,omitempty"`
 	Delegate string `json:"delegate,omitempty"`
 
-	ProjectID       string     `json:"project_id,omitempty"`
-	FoundBy         string     `json:"found_by,omitempty"`
-	LastAction      *time.Time `json:"last_action,omitempty"`
-	TxCount         int64      `json:"tx_count,omitempty"`
-	MigrationsCount int64      `json:"migrations_count,omitempty"`
-	TotalWithdrawn  int64      `json:"total_withdrawn,omitempty"`
-	Alias           string     `json:"alias,omitempty"`
-	DelegateAlias   string     `json:"delegate_alias,omitempty"`
+	ProjectID       string    `json:"project_id,omitempty"`
+	FoundBy         string    `json:"found_by,omitempty"`
+	LastAction      time.Time `json:"last_action,omitempty"`
+	TxCount         int64     `json:"tx_count,omitempty"`
+	MigrationsCount int64     `json:"migrations_count,omitempty"`
+	Alias           string    `json:"alias,omitempty"`
+	DelegateAlias   string    `json:"delegate_alias,omitempty"`
 
 	Subscription       *Subscription `json:"subscription,omitempty"`
 	TotalSubscribed    int           `json:"total_subscribed"`
@@ -214,7 +212,6 @@ func (c *Contract) FromModel(contract models.Contract) {
 	c.Address = contract.Address
 	c.Alias = contract.Alias
 	c.Annotations = contract.Annotations
-	c.Balance = contract.Balance
 	c.Delegate = contract.Delegate
 	c.DelegateAlias = contract.DelegateAlias
 	c.Entrypoints = contract.Entrypoints
@@ -224,10 +221,8 @@ func (c *Contract) FromModel(contract models.Contract) {
 	c.Hash = contract.Hash
 	c.ID = contract.ID
 	c.Language = contract.Language
-
-	if !contract.LastAction.IsZero() {
-		c.LastAction = &contract.LastAction.Time
-	}
+	c.TxCount = contract.TxCount
+	c.LastAction = contract.LastAction
 
 	c.Level = contract.Level
 	c.Manager = contract.Manager
@@ -236,8 +231,6 @@ func (c *Contract) FromModel(contract models.Contract) {
 	c.ProjectID = contract.ProjectID
 	c.Tags = contract.Tags
 	c.Timestamp = contract.Timestamp
-	c.TotalWithdrawn = contract.TotalWithdrawn
-	c.TxCount = contract.TxCount
 	c.Verified = contract.Verified
 	c.VerificationSource = contract.VerificationSource
 }
@@ -504,16 +497,16 @@ func (c *LightContract) FromModel(light elastic.LightContract) {
 
 // SimilarContractsResponse -
 type SimilarContractsResponse struct {
-	Count     uint64            `json:"count"`
+	Count     int               `json:"count"`
 	Contracts []SimilarContract `json:"contracts"`
 }
 
 // SimilarContract -
 type SimilarContract struct {
 	*Contract
-	Count   uint64 `json:"count"`
-	Added   int64  `json:"added,omitempty"`
-	Removed int64  `json:"removed,omitempty"`
+	Count   int64 `json:"count"`
+	Added   int64 `json:"added,omitempty"`
+	Removed int64 `json:"removed,omitempty"`
 }
 
 // FromModel -
@@ -529,7 +522,7 @@ func (c *SimilarContract) FromModel(similar elastic.SimilarContract, diff CodeDi
 
 // SameContractsResponse -
 type SameContractsResponse struct {
-	Count     uint64     `json:"count"`
+	Count     int64      `json:"count"`
 	Contracts []Contract `json:"contracts"`
 }
 
@@ -646,11 +639,15 @@ type TokenBalance struct {
 
 // TokenMetadata -
 type TokenMetadata struct {
-	Contract string `json:"contract"`
-	TokenID  int64  `json:"token_id"`
-	Symbol   string `json:"symbol,omitempty"`
-	Name     string `json:"name,omitempty"`
-	Decimals int64  `json:"decimals"`
+	Contract        string                 `json:"contract"`
+	Network         string                 `json:"network"`
+	RegistryAddress string                 `json:"registry_address,omitempty"`
+	Level           int64                  `json:"level,omitempty"`
+	TokenID         int64                  `json:"token_id"`
+	Symbol          string                 `json:"symbol,omitempty"`
+	Name            string                 `json:"name,omitempty"`
+	Decimals        int64                  `json:"decimals"`
+	Extras          map[string]interface{} `json:"extras,omitempty"`
 }
 
 // TokenMetadataFromElasticModel -
@@ -658,7 +655,11 @@ func TokenMetadataFromElasticModel(model elastic.TokenMetadata) (tm TokenMetadat
 	tm.TokenID = model.TokenID
 	tm.Symbol = model.Symbol
 	tm.Name = model.Name
+	tm.RegistryAddress = model.RegistryAddress
 	tm.Decimals = model.Decimals
 	tm.Contract = model.Address
+	tm.Level = model.Level
+	tm.Network = model.Network
+	tm.Extras = model.Extras
 	return
 }

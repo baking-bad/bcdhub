@@ -5,7 +5,9 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/utils"
+	"github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 )
 
@@ -43,9 +45,8 @@ type Operation struct {
 	SourceAlias      string    `json:"source_alias,omitempty"`
 	DestinationAlias string    `json:"destination_alias,omitempty"`
 
-	BalanceUpdates                     []BalanceUpdate  `json:"balance_updates,omitempty"`
 	Result                             *OperationResult `json:"result,omitempty"`
-	Errors                             []cerrors.IError `json:"errors,omitempty"`
+	Errors                             []*cerrors.Error `json:"errors,omitempty"`
 	Burned                             int64            `json:"burned,omitempty"`
 	AllocatedDestinationContractBurned int64            `json:"allocated_destination_contract_burned,omitempty"`
 
@@ -59,64 +60,6 @@ type Operation struct {
 	Tags             []string `json:"tags,omitempty"`
 }
 
-// ParseElasticJSON -
-func (o *Operation) ParseElasticJSON(resp gjson.Result) {
-	o.ID = resp.Get("_id").String()
-	o.IndexedTime = resp.Get("_source.indexed_time").Int()
-	o.ContentIndex = resp.Get("_source.content_index").Int()
-
-	o.Protocol = resp.Get("_source.protocol").String()
-	o.Hash = resp.Get("_source.hash").String()
-	o.Internal = resp.Get("_source.internal").Bool()
-	o.Network = resp.Get("_source.network").String()
-	o.Timestamp = resp.Get("_source.timestamp").Time().UTC()
-	o.Nonce = utils.Int64Pointer(resp, "_source.nonce")
-
-	o.Status = resp.Get("_source.status").String()
-	o.Level = resp.Get("_source.level").Int()
-	o.Kind = resp.Get("_source.kind").String()
-	o.Initiator = resp.Get("_source.source").String()
-	o.Source = resp.Get("_source.source").String()
-	o.Fee = resp.Get("_source.fee").Int()
-	o.Counter = resp.Get("_source.counter").Int()
-	o.GasLimit = resp.Get("_source.gas_limit").Int()
-	o.StorageLimit = resp.Get("_source.storage_limit").Int()
-	o.Amount = resp.Get("_source.amount").Int()
-	o.Destination = resp.Get("_source.destination").String()
-	o.PublicKey = resp.Get("_source.public_key").String()
-	o.ManagerPubKey = resp.Get("_source.manager_pubkey").String()
-	o.Delegate = resp.Get("_source.delegate").String()
-	o.Parameters = resp.Get("_source.parameters").String()
-	o.Entrypoint = resp.Get("_source.entrypoint").String()
-	o.SourceAlias = resp.Get("_source.source_alias").String()
-	o.DestinationAlias = resp.Get("_source.destination_alias").String()
-	o.Burned = resp.Get("_source.burned").Int()
-	o.AllocatedDestinationContractBurned = resp.Get("_source.allocated_destination_contract_burned").Int()
-
-	o.FoundBy = o.FoundByName(resp)
-
-	var opResult OperationResult
-	opResult.ParseElasticJSON(resp.Get("_source.result"))
-	o.Result = &opResult
-
-	o.DeffatedStorage = resp.Get("_source.deffated_storage").String()
-
-	count := resp.Get("_source.balance_updates.#").Int()
-	bu := make([]BalanceUpdate, count)
-	for i, hit := range resp.Get("_source.balance_updates").Array() {
-		var b BalanceUpdate
-		b.ParseElasticJSON(hit)
-		bu[i] = b
-	}
-	o.BalanceUpdates = bu
-
-	err := resp.Get("_source.errors")
-	o.Errors = cerrors.ParseArray(err)
-	o.ParameterStrings = parseStringsArray(resp.Get("_source.parameter_strings").Array())
-	o.StorageStrings = parseStringsArray(resp.Get("_source.storage_strings").Array())
-	o.Tags = parseStringsArray(resp.Get("_source.tags").Array())
-}
-
 // GetID -
 func (o *Operation) GetID() string {
 	return o.ID
@@ -127,14 +70,23 @@ func (o *Operation) GetIndex() string {
 	return "operation"
 }
 
-// GetQueue -
-func (o *Operation) GetQueue() string {
-	return "operations"
+// GetQueues -
+func (o *Operation) GetQueues() []string {
+	return []string{"operations"}
 }
 
-// Marshal -
-func (o *Operation) Marshal() ([]byte, error) {
+// MarshalToQueue -
+func (o *Operation) MarshalToQueue() ([]byte, error) {
 	return []byte(o.ID), nil
+}
+
+// LogFields -
+func (o *Operation) LogFields() logrus.Fields {
+	return logrus.Fields{
+		"network": o.Network,
+		"hash":    o.Hash,
+		"block":   o.Level,
+	}
 }
 
 // GetScores -
@@ -187,24 +139,24 @@ func (o *Operation) SetBurned(constants Constants) {
 	o.Burned = burned
 }
 
-// BalanceUpdate -
-type BalanceUpdate struct {
-	Kind     string `json:"kind"`
-	Contract string `json:"contract,omitempty"`
-	Change   int64  `json:"change"`
-	Category string `json:"category,omitempty"`
-	Delegate string `json:"delegate,omitempty"`
-	Cycle    int    `json:"cycle,omitempty"`
+// IsOrigination -
+func (o *Operation) IsOrigination() bool {
+	return o.Kind == consts.Origination || o.Kind == consts.OriginationNew
 }
 
-// ParseElasticJSON -
-func (b *BalanceUpdate) ParseElasticJSON(data gjson.Result) {
-	b.Kind = data.Get("kind").String()
-	b.Contract = data.Get("contract").String()
-	b.Change = data.Get("change").Int()
-	b.Category = data.Get("category").String()
-	b.Delegate = data.Get("delegate").String()
-	b.Cycle = int(data.Get("cycle").Int())
+// IsTransaction -
+func (o *Operation) IsTransaction() bool {
+	return o.Kind == consts.Transaction
+}
+
+// IsApplied -
+func (o *Operation) IsApplied() bool {
+	return o.Status == consts.Applied
+}
+
+// IsCall -
+func (o *Operation) IsCall() bool {
+	return helpers.IsContract(o.Destination)
 }
 
 // OperationResult -
@@ -215,31 +167,5 @@ type OperationResult struct {
 	PaidStorageSizeDiff          int64            `json:"paid_storage_size_diff,omitempty"`
 	AllocatedDestinationContract bool             `json:"allocated_destination_contract,omitempty"`
 	Originated                   string           `json:"-"`
-	Errors                       []cerrors.IError `json:"-"`
-
-	BalanceUpdates []BalanceUpdate `json:"balance_updates,omitempty"`
-}
-
-// ParseElasticJSON -
-func (o *OperationResult) ParseElasticJSON(data gjson.Result) {
-	count := data.Get("balance_updates.#").Int()
-	bu := make([]BalanceUpdate, count)
-	for i, hit := range data.Get("balance_updates").Array() {
-		var b BalanceUpdate
-		b.ParseElasticJSON(hit)
-		bu[i] = b
-	}
-	o.ConsumedGas = data.Get("consumed_gas").Int()
-	o.StorageSize = data.Get("storage_size").Int()
-	o.PaidStorageSizeDiff = data.Get("paid_storage_size_diff").Int()
-	o.AllocatedDestinationContract = data.Get("allocated_destination_contract").Bool()
-	o.BalanceUpdates = bu
-}
-
-func parseStringsArray(arr []gjson.Result) []string {
-	result := make([]string, 0)
-	for _, item := range arr {
-		result = append(result, item.String())
-	}
-	return result
+	Errors                       []*cerrors.Error `json:"-"`
 }

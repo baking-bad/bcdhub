@@ -8,6 +8,14 @@ import (
 )
 
 func Test_parseMetadata(t *testing.T) {
+	operation := models.Operation{
+		Network:      "test",
+		Level:        100,
+		Hash:         "hash",
+		ContentIndex: 1,
+		Nonce:        nil,
+	}
+
 	tests := []struct {
 		name     string
 		fileName string
@@ -17,15 +25,23 @@ func Test_parseMetadata(t *testing.T) {
 			name:     "test 1",
 			fileName: "./data/operation_metadata/test1.json",
 			want: &Metadata{
-				BalanceUpdates: []models.BalanceUpdate{
+				BalanceUpdates: []*models.BalanceUpdate{
 					{
-						Kind:     "contract",
-						Contract: "tz1TEZtYnuLiZLdA6c7JysAUJcHMrogu4Cpr",
-						Change:   -6410,
+						Contract:      "tz1TEZtYnuLiZLdA6c7JysAUJcHMrogu4Cpr",
+						Change:        -6410,
+						Network:       "test",
+						Level:         100,
+						OperationHash: "hash",
+						ContentIndex:  1,
+						Nonce:         nil,
 					}, {
-						Kind:     "contract",
-						Contract: "tz1Y8zdtVe2wWe7QdNTnAdwBceqYBCdA3Jj8",
-						Change:   6410,
+						Contract:      "tz1Y8zdtVe2wWe7QdNTnAdwBceqYBCdA3Jj8",
+						Change:        6410,
+						Network:       "test",
+						Level:         100,
+						OperationHash: "hash",
+						ContentIndex:  1,
+						Nonce:         nil,
 					},
 				},
 				Result: models.OperationResult{
@@ -37,7 +53,7 @@ func Test_parseMetadata(t *testing.T) {
 			name:     "test 2",
 			fileName: "./data/operation_metadata/test2.json",
 			want: &Metadata{
-				BalanceUpdates: []models.BalanceUpdate{},
+				BalanceUpdates: []*models.BalanceUpdate{},
 				Result: models.OperationResult{
 					Status:      "backtracked",
 					ConsumedGas: 96591,
@@ -53,8 +69,22 @@ func Test_parseMetadata(t *testing.T) {
 				t.Errorf(`readJSONFile("%s") = error %v`, tt.fileName, err)
 				return
 			}
-			if got := parseMetadata(data); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("parseMetadata() = %v, want %v", got, tt.want)
+			got := parseMetadata(data, operation)
+			if !reflect.DeepEqual(got.Result, tt.want.Result) {
+				t.Errorf("parseMetadata() Result = %v, want %v", got.Result, tt.want.Result)
+				return
+			}
+
+			if len(got.BalanceUpdates) != len(tt.want.BalanceUpdates) {
+				t.Errorf("parseMetadata() BalanceUpdates = %v, want %v", got.BalanceUpdates, tt.want.BalanceUpdates)
+				return
+			}
+
+			for i := range got.BalanceUpdates {
+				if !compareBalanceUpdates(got.BalanceUpdates[i], tt.want.BalanceUpdates[i]) {
+					t.Errorf("parseMetadata() BalanceUpdates = %v, want %v", got.BalanceUpdates[i], tt.want.BalanceUpdates[i])
+					return
+				}
 			}
 		})
 	}

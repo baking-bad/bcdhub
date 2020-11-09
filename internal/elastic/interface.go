@@ -15,7 +15,6 @@ type Model interface {
 
 	GetID() string
 	GetIndex() string
-	ParseElasticJSON(gjson.Result)
 }
 
 // Scorable -
@@ -32,10 +31,16 @@ type IGeneral interface {
 	DeleteByContract(indices []string, network, address string) error
 	GetAll(interface{}) error
 	GetByID(Model) error
+	GetByIDs(output interface{}, ids ...string) error
 	GetByNetwork(string, interface{}) error
 	GetByNetworkWithSort(string, string, string, interface{}) error
-	UpdateDoc(model Model) (result gjson.Result, err error)
+	UpdateDoc(model Model) (err error)
 	UpdateFields(string, string, interface{}, ...string) error
+}
+
+// IBalanceUpdate -
+type IBalanceUpdate interface {
+	GetBalance(network, address string) (int64, error)
 }
 
 // IBigMap -
@@ -53,7 +58,7 @@ type IBigMapDiff interface {
 	GetBigMapDiffsPrevious([]models.BigMapDiff, int64, string) ([]models.BigMapDiff, error)
 	GetBigMapDiffsUniqueByOperationID(string) ([]models.BigMapDiff, error)
 	GetBigMapDiffsByPtrAndKeyHash(int64, string, string, int64, int64) ([]BigMapDiff, int64, error)
-	GetBigMapDiffsJSONByOperationID(string) ([]gjson.Result, error)
+	GetBigMapDiffsByOperationID(string) ([]*models.BigMapDiff, error)
 	GetBigMapDiffsByPtr(string, string, int64) ([]models.BigMapDiff, error)
 }
 
@@ -71,6 +76,7 @@ type IBulk interface {
 	BulkUpdate([]Model) error
 	BulkDelete([]Model) error
 	BulkRemoveField(string, []Model) error
+	BulkUpdateField(where []models.Contract, fields ...string) error
 }
 
 // IContract -
@@ -78,7 +84,7 @@ type IContract interface {
 	GetContract(map[string]interface{}) (models.Contract, error)
 	GetContractRandom() (models.Contract, error)
 	GetContractMigrationStats(string, string) (ContractMigrationsStats, error)
-	GetContractAddressesByNetworkAndLevel(string, int64) (gjson.Result, error)
+	GetContractAddressesByNetworkAndLevel(string, int64) ([]string, error)
 	GetContracts(map[string]interface{}) ([]models.Contract, error)
 	GetContractsIDByAddress([]string, string) ([]string, error)
 	GetAffectedContracts(string, int64, int64) ([]string, error)
@@ -86,6 +92,7 @@ type IContract interface {
 	RecalcContractStats(string, string) (ContractStats, error)
 	UpdateContractMigrationsCount(string, string) error
 	GetDAppStats(string, []string, string) (DAppStats, error)
+	GetContractsByAddresses(addresses []Address) ([]models.Contract, error)
 }
 
 // IEvents -
@@ -113,14 +120,14 @@ type IOperations interface {
 type IProjects interface {
 	GetProjectsLastContract() ([]models.Contract, error)
 	GetSameContracts(models.Contract, int64, int64) (SameContractsResponse, error)
-	GetSimilarContracts(models.Contract, int64, int64) ([]SimilarContract, uint64, error)
+	GetSimilarContracts(models.Contract, int64, int64) ([]SimilarContract, int, error)
 	GetDiffTasks() ([]DiffTask, error)
 }
 
 // IProtocol -
 type IProtocol interface {
 	GetProtocol(string, string, int64) (models.Protocol, error)
-	GetSymLinks(string, int64) (map[string]bool, error)
+	GetSymLinks(string, int64) (map[string]struct{}, error)
 }
 
 // ISearch -
@@ -131,7 +138,7 @@ type ISearch interface {
 // ISnapshot -
 type ISnapshot interface {
 	CreateAWSRepository(string, string, string) error
-	ListRepositories() ([]string, error)
+	ListRepositories() ([]Repository, error)
 	CreateSnapshots(string, string, []string) error
 	RestoreSnapshots(string, string, []string) error
 	ListSnapshots(string) (string, error)
@@ -144,7 +151,7 @@ type ISnapshot interface {
 
 // IStats -
 type IStats interface {
-	GetNetworkCountStats(string) (NetworkCountStats, error)
+	GetNetworkCountStats(string) (map[string]int64, error)
 	GetDateHistogram(period string, opts ...HistogramOption) ([][]int64, error)
 	GetCallsCountByNetwork() (map[string]int64, error)
 	GetContractStatsByNetwork() (map[string]ContractCountStats, error)
@@ -179,6 +186,7 @@ type ITZIP interface {
 // IElastic -
 type IElastic interface {
 	IGeneral
+	IBalanceUpdate
 	IBigMap
 	IBigMapDiff
 	IBlock

@@ -127,6 +127,7 @@ metrics:
       recalc:
       transfers:
       bigmapdiffs:
+      projects:
 
 scripts:
   aws:

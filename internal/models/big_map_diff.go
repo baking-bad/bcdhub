@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/utils"
+	"github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 )
 
@@ -38,36 +39,25 @@ func (b *BigMapDiff) GetIndex() string {
 	return "bigmapdiff"
 }
 
-// GetQueue -
-func (b *BigMapDiff) GetQueue() string {
-	return "bigmapdiffs"
+// GetQueues -
+func (b *BigMapDiff) GetQueues() []string {
+	return []string{"bigmapdiffs"}
 }
 
-// Marshal -
-func (b *BigMapDiff) Marshal() ([]byte, error) {
+// MarshalToQueue -
+func (b *BigMapDiff) MarshalToQueue() ([]byte, error) {
 	return []byte(b.ID), nil
 }
 
-// ParseElasticJSON -
-func (b *BigMapDiff) ParseElasticJSON(hit gjson.Result) {
-	b.ID = hit.Get("_id").String()
-	b.Ptr = hit.Get("_source.ptr").Int()
-	b.BinPath = hit.Get("_source.bin_path").String()
-	b.Key = hit.Get("_source.key").Value()
-	b.KeyHash = hit.Get("_source.key_hash").String()
-	b.Value = hit.Get("_source.value").String()
-	b.OperationID = hit.Get("_source.operation_id").String()
-	b.Level = hit.Get("_source.level").Int()
-	b.Address = hit.Get("_source.address").String()
-	b.Network = hit.Get("_source.network").String()
-	b.IndexedTime = hit.Get("_source.indexed_time").Int()
-	b.Timestamp = hit.Get("_source.timestamp").Time().UTC()
-	b.Protocol = hit.Get("_source.protocol").String()
-
-	b.KeyStrings = parseStringsArray(hit.Get("_source.key_strings").Array())
-	b.ValueStrings = parseStringsArray(hit.Get("_source.value_strings").Array())
-
-	b.FoundBy = b.FoundByName(hit)
+// LogFields -
+func (b *BigMapDiff) LogFields() logrus.Fields {
+	return logrus.Fields{
+		"network":  b.Network,
+		"contract": b.Address,
+		"ptr":      b.Ptr,
+		"block":    b.Level,
+		"key_hash": b.KeyHash,
+	}
 }
 
 // GetScores -

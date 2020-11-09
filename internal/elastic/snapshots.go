@@ -3,7 +3,6 @@ package elastic
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"strings"
@@ -40,15 +39,16 @@ func (e *Elastic) CreateAWSRepository(name, awsBucketName, awsRegion string) err
 	if err != nil {
 		return err
 	}
-
 	defer resp.Body.Close()
 
-	_, err = e.getResponse(resp)
-	return err
+	if resp.IsError() {
+		return errors.Errorf(resp.String())
+	}
+	return nil
 }
 
 // ListRepositories -
-func (e *Elastic) ListRepositories() ([]string, error) {
+func (e *Elastic) ListRepositories() ([]Repository, error) {
 	options := []func(*esapi.CatRepositoriesRequest){
 		e.Cat.Repositories.WithContext(context.Background()),
 		e.Cat.Repositories.WithFormat("JSON"),
@@ -62,16 +62,11 @@ func (e *Elastic) ListRepositories() ([]string, error) {
 
 	defer resp.Body.Close()
 
-	response, err := e.getResponse(resp)
-	if err != nil {
+	var response []Repository
+	if err := e.getResponse(resp, &response); err != nil {
 		return nil, err
 	}
-
-	result := make([]string, 0)
-	for _, item := range response.Array() {
-		result = append(result, fmt.Sprintf("%s (type: %s)", item.Get("id").String(), item.Get("type").String()))
-	}
-	return result, nil
+	return response, nil
 }
 
 // CreateSnapshots -
@@ -99,11 +94,12 @@ func (e *Elastic) CreateSnapshots(repository, snapshot string, indices []string)
 	if err != nil {
 		return err
 	}
-
 	defer resp.Body.Close()
 
-	_, err = e.getResponse(resp)
-	return err
+	if resp.IsError() {
+		return errors.Errorf(resp.String())
+	}
+	return nil
 }
 
 // RestoreSnapshots -
@@ -131,11 +127,12 @@ func (e *Elastic) RestoreSnapshots(repository, snapshot string, indices []string
 	if err != nil {
 		return err
 	}
-
 	defer resp.Body.Close()
 
-	_, err = e.getResponse(resp)
-	return err
+	if resp.IsError() {
+		return errors.Errorf(resp.String())
+	}
+	return nil
 }
 
 // ListSnapshots -
@@ -193,11 +190,12 @@ func (e *Elastic) SetSnapshotPolicy(policyID, cronSchedule, name, repository str
 	if err != nil {
 		return err
 	}
-
 	defer resp.Body.Close()
 
-	_, err = e.getResponse(resp)
-	return err
+	if resp.IsError() {
+		return errors.Errorf(resp.String())
+	}
+	return nil
 }
 
 // GetAllPolicies -
@@ -214,12 +212,12 @@ func (e *Elastic) GetAllPolicies() ([]string, error) {
 
 	defer resp.Body.Close()
 
-	response, err := e.getResponse(resp)
-	if err != nil {
+	response := make(map[string]interface{})
+	if err := e.getResponse(resp, &response); err != nil {
 		return nil, err
 	}
 	policyIDs := make([]string, 0)
-	for k := range response.Map() {
+	for k := range response {
 		policyIDs = append(policyIDs, k)
 	}
 	return policyIDs, nil
@@ -240,15 +238,9 @@ func (e *Elastic) GetMappings(indices []string) (map[string]string, error) {
 
 	defer resp.Body.Close()
 
-	response, err := e.getResponse(resp)
-	if err != nil {
-		return nil, err
-	}
-	result := make(map[string]string)
-	for k, v := range response.Map() {
-		result[k] = v.String()
-	}
-	return result, nil
+	response := make(map[string]string)
+	err = e.getResponse(resp, &response)
+	return response, err
 }
 
 // CreateMapping -
@@ -270,7 +262,7 @@ func (e *Elastic) CreateMapping(index string, r io.Reader) error {
 		return err
 	}
 	if res.IsError() {
-		return errors.Errorf("%s", res)
+		return errors.Errorf(res.String())
 	}
 	return nil
 }

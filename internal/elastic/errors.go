@@ -1,7 +1,6 @@
 package elastic
 
 import (
-	"encoding/json"
 	"strings"
 
 	"github.com/elastic/go-elasticsearch/v8/esapi"

@@ -13,14 +13,14 @@ import (
 type RabbitMQ struct {
 	*DefaultSource
 
-	source *mq.QueueManager
+	source mq.Mediator
 
 	stop chan struct{}
 	wg   sync.WaitGroup
 }
 
 // NewRabbitMQ -
-func NewRabbitMQ(messageQueue *mq.QueueManager) (*RabbitMQ, error) {
+func NewRabbitMQ(messageQueue mq.Mediator) (*RabbitMQ, error) {
 	return &RabbitMQ{
 		DefaultSource: NewDefaultSource(),
 		source:        messageQueue,

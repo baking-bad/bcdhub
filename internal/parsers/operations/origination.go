@@ -1,10 +1,8 @@
 package operations
 
 import (
-	"strings"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -24,28 +22,28 @@ func NewOrigination(params *ParseParams) Origination {
 // Parse -
 func (p Origination) Parse(data gjson.Result) ([]elastic.Model, error) {
 	origination := models.Operation{
-		ID:             helpers.GenerateID(),
-		Network:        p.network,
-		Hash:           p.hash,
-		Protocol:       p.head.Protocol,
-		Level:          p.head.Level,
-		Timestamp:      p.head.Timestamp,
-		Kind:           data.Get("kind").String(),
-		Initiator:      data.Get("source").String(),
-		Source:         data.Get("source").String(),
-		Fee:            data.Get("fee").Int(),
-		Counter:        data.Get("counter").Int(),
-		GasLimit:       data.Get("gas_limit").Int(),
-		StorageLimit:   data.Get("storage_limit").Int(),
-		Amount:         data.Get("balance").Int(),
-		PublicKey:      data.Get("public_key").String(),
-		ManagerPubKey:  data.Get("manager_pubkey").String(),
-		Delegate:       data.Get("delegate").String(),
-		Parameters:     data.Get("parameters").String(),
-		Script:         data.Get("script"),
-		BalanceUpdates: NewBalanceUpdate("metadata").Parse(data),
-		IndexedTime:    time.Now().UnixNano() / 1000,
-		ContentIndex:   p.contentIdx,
+		ID:            helpers.GenerateID(),
+		Network:       p.network,
+		Hash:          p.hash,
+		Protocol:      p.head.Protocol,
+		Level:         p.head.Level,
+		Timestamp:     p.head.Timestamp,
+		Kind:          data.Get("kind").String(),
+		Initiator:     data.Get("source").String(),
+		Source:        data.Get("source").String(),
+		Fee:           data.Get("fee").Int(),
+		Counter:       data.Get("counter").Int(),
+		GasLimit:      data.Get("gas_limit").Int(),
+		StorageLimit:  data.Get("storage_limit").Int(),
+		Amount:        data.Get("balance").Int(),
+		PublicKey:     data.Get("public_key").String(),
+		ManagerPubKey: data.Get("manager_pubkey").String(),
+		Delegate:      data.Get("delegate").String(),
+		Parameters:    data.Get("parameters").String(),
+		Script:        data.Get("script"),
+		// BalanceUpdates: NewBalanceUpdate("metadata").Parse(data),
+		IndexedTime:  time.Now().UnixNano() / 1000,
+		ContentIndex: p.contentIdx,
 	}
 
 	if data.Get("nonce").Exists() {
@@ -55,9 +53,8 @@ func (p Origination) Parse(data gjson.Result) ([]elastic.Model, error) {
 
 	p.fillInternal(&origination)
 
-	operationMetadata := parseMetadata(data)
+	operationMetadata := parseMetadata(data, origination)
 	origination.Result = &operationMetadata.Result
-	origination.BalanceUpdates = append(origination.BalanceUpdates, operationMetadata.BalanceUpdates...)
 	origination.Status = origination.Result.Status
 	origination.Errors = origination.Result.Errors
 	origination.Destination = operationMetadata.Result.Originated
@@ -65,8 +62,11 @@ func (p Origination) Parse(data gjson.Result) ([]elastic.Model, error) {
 	origination.SetBurned(p.constants)
 
 	originationModels := []elastic.Model{&origination}
+	for i := range operationMetadata.BalanceUpdates {
+		originationModels = append(originationModels, operationMetadata.BalanceUpdates[i])
+	}
 
-	if origination.Status == consts.Applied {
+	if origination.IsApplied() {
 		appliedModels, err := p.appliedHandler(data, &origination)
 		if err != nil {
 			return nil, err
@@ -78,7 +78,7 @@ func (p Origination) Parse(data gjson.Result) ([]elastic.Model, error) {
 }
 
 func (p Origination) appliedHandler(item gjson.Result, origination *models.Operation) ([]elastic.Model, error) {
-	if !strings.HasPrefix(origination.Destination, "KT") || origination.Status != consts.Applied {
+	if !helpers.IsContract(origination.Destination) || !origination.IsApplied() {
 		return nil, nil
 	}
 
@@ -102,6 +102,10 @@ func (p Origination) appliedHandler(item gjson.Result, origination *models.Opera
 	if !rs.Empty {
 		origination.DeffatedStorage = rs.DeffatedStorage
 		models = append(models, rs.Models...)
+	}
+	bu := NewBalanceUpdate("metadata", *origination).Parse(item)
+	for i := range bu {
+		models = append(models, bu[i])
 	}
 	return models, nil
 }

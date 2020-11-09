@@ -7,6 +7,7 @@ const (
 
 // Queues
 const (
+	QueueProjects     = "projects"
 	QueueContracts    = "contracts"
 	QueueOperations   = "operations"
 	QueueMigrations   = "migrations"
