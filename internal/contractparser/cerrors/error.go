@@ -220,7 +220,7 @@ func (e *InvalidSyntacticConstantError) Format() error {
 		e.WrongExpressionCamel = []byte(wrongExpression)
 	}
 
-	expForm := e.getWrongExpression()
+	expForm := e.getExpectedForm()
 	if expForm != nil {
 		expectedForm, err := formatter.MichelineToMichelson(gjson.ParseBytes(expForm), false, formatter.DefLineSize)
 		if err != nil {

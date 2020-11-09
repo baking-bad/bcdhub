@@ -13,10 +13,9 @@ type BulkHandler func(ids []string) error
 
 // BulkManager -
 type BulkManager struct {
-	capacity int
-	timeout  time.Duration
-	queue    []amqp.Delivery
-	handler  BulkHandler
+	timeout time.Duration
+	queue   []amqp.Delivery
+	handler BulkHandler
 
 	ticker *time.Ticker
 	stop   chan struct{}

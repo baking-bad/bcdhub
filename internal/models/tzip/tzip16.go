@@ -24,11 +24,6 @@ type TZIP16 struct {
 type License struct {
 	Name    string `json:"name"`
 	Details string `json:"details,omitempty"`
-
-	buf struct {
-		Name    string `json:"name"`
-		Details string `json:"details,omitempty"`
-	} `json:"-"`
 }
 
 // UnmarshalJSON -
@@ -39,11 +34,15 @@ func (license *License) UnmarshalJSON(data []byte) error {
 			return err
 		}
 	case '{':
-		if err := json.Unmarshal(data, &license.buf); err != nil {
+		var buf struct {
+			Name    string `json:"name"`
+			Details string `json:"details,omitempty"`
+		}
+		if err := json.Unmarshal(data, &buf); err != nil {
 			return err
 		}
-		license.Name = license.buf.Name
-		license.Details = license.buf.Details
+		license.Name = buf.Name
+		license.Details = buf.Details
 	}
 	return nil
 }

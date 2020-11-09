@@ -114,15 +114,6 @@ func TestGroup_Parse(t *testing.T) {
 					Timestamp:    timestamp,
 					Protocol:     "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 				},
-				&models.BalanceUpdate{
-					Level:         1151495,
-					Network:       "mainnet",
-					Contract:      "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
-					OperationHash: "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
-					ContentIndex:  0,
-					Nonce:         nil,
-					Change:        -43074,
-				},
 				&models.Operation{
 					ContentIndex:     0,
 					Network:          "mainnet",
@@ -145,15 +136,6 @@ func TestGroup_Parse(t *testing.T) {
 					ParameterStrings: nil,
 					StorageStrings:   nil,
 					Tags:             []string{"fa12"},
-				},
-				&models.BalanceUpdate{
-					Level:         1151495,
-					Network:       "mainnet",
-					Contract:      "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
-					OperationHash: "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
-					ContentIndex:  0,
-					Nonce:         setInt64(0),
-					Change:        -47000,
 				},
 				&models.BigMapDiff{
 					Ptr:          31,
@@ -331,14 +313,6 @@ func TestGroup_Parse(t *testing.T) {
 					StorageStrings:   []string{},
 					Tags:             []string{},
 				},
-				&models.BalanceUpdate{
-					Level:         386026,
-					Network:       "carthagenet",
-					Contract:      "tz1djN1zPWUYpanMS1YhKJ2EmFSYs6qjf4bW",
-					OperationHash: "opQMNBmME834t76enxSBqhJcPqwV2R2BP2pTKv438bHaxRZen6x",
-					ContentIndex:  0,
-					Change:        -62628,
-				},
 				&models.Operation{
 					ContentIndex:                       0,
 					Network:                            "carthagenet",
@@ -366,15 +340,6 @@ func TestGroup_Parse(t *testing.T) {
 					ParameterStrings:                   []string{},
 					StorageStrings:                     []string{},
 					Tags:                               []string{},
-				},
-				&models.BalanceUpdate{
-					Level:         386026,
-					Network:       "carthagenet",
-					Contract:      "tz1djN1zPWUYpanMS1YhKJ2EmFSYs6qjf4bW",
-					OperationHash: "opQMNBmME834t76enxSBqhJcPqwV2R2BP2pTKv438bHaxRZen6x",
-					ContentIndex:  0,
-					Nonce:         setInt64(0),
-					Change:        -77000,
 				},
 				&models.BigMapDiff{
 					Ptr:          2416,
@@ -417,15 +382,6 @@ func TestGroup_Parse(t *testing.T) {
 					ParameterStrings:                   []string{},
 					StorageStrings:                     []string{},
 					Tags:                               []string{},
-				},
-				&models.BalanceUpdate{
-					Level:         386026,
-					Network:       "carthagenet",
-					Contract:      "tz1djN1zPWUYpanMS1YhKJ2EmFSYs6qjf4bW",
-					OperationHash: "opQMNBmME834t76enxSBqhJcPqwV2R2BP2pTKv438bHaxRZen6x",
-					ContentIndex:  0,
-					Nonce:         setInt64(1),
-					Change:        -77000,
 				},
 				&models.BigMapDiff{
 					Ptr:          2417,

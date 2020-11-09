@@ -20,7 +20,7 @@ type arg struct {
 }
 
 type node struct {
-	Args       []arg    `json:"args,omitmempty"`
+	Args       []arg    `json:"args,omitempty"`
 	Prim       string   `json:"prim,omitempty"`
 	Annots     []string `json:"annots,omitempty"`
 	String     string   `json:"string,omitempty"`
@@ -38,13 +38,13 @@ func (a *arg) UnmarshalJSON(data []byte) error {
 	switch data[0] {
 	case '[':
 		var arr []node
-		if err := json.Unmarshal([]byte(data), &arr); err != nil {
+		if err := json.Unmarshal(data, &arr); err != nil {
 			return err
 		}
 		a.Value = arr
 	case '{':
 		var obj node
-		if err := json.Unmarshal([]byte(data), &obj); err != nil {
+		if err := json.Unmarshal(data, &obj); err != nil {
 			return err
 		}
 		a.Value = obj

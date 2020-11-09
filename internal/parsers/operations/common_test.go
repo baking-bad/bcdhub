@@ -27,15 +27,7 @@ func Test_parseMetadata(t *testing.T) {
 			want: &Metadata{
 				BalanceUpdates: []*models.BalanceUpdate{
 					{
-						Contract:      "tz1TEZtYnuLiZLdA6c7JysAUJcHMrogu4Cpr",
-						Change:        -6410,
-						Network:       "test",
-						Level:         100,
-						OperationHash: "hash",
-						ContentIndex:  1,
-						Nonce:         nil,
-					}, {
-						Contract:      "tz1Y8zdtVe2wWe7QdNTnAdwBceqYBCdA3Jj8",
+						Contract:      "KT1PDAELuX7CypUHinUgFgGFskKs7ytwh5Vw",
 						Change:        6410,
 						Network:       "test",
 						Level:         100,
