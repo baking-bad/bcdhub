@@ -7,11 +7,16 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/compiler/compilation"
 	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/database"
+	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/streadway/amqp"
 )
@@ -43,16 +48,21 @@ func main() {
 		),
 	}
 
-	msgs, err := context.MQ.Consume(mq.QueueCompilations)
-	if err != nil {
-		logger.Fatal(err)
-	}
-
 	defer context.Close()
 
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
+	protocol, err := context.ES.GetProtocol(consts.Mainnet, "", -1)
+	if err != nil {
+		log.Fatal(err)
+	}
+	ticker := time.NewTicker(time.Second * time.Duration(protocol.Constants.TimeBetweenBlocks))
+
+	msgs, err := context.MQ.Consume(mq.QueueCompilations)
+	if err != nil {
+		logger.Fatal(err)
+	}
 	logger.Info("Connected to %s queue", mq.QueueCompilations)
 
 	for {
@@ -60,6 +70,10 @@ func main() {
 		case <-signals:
 			logger.Info("Stopped compiler")
 			return
+		case <-ticker.C:
+			if err := context.setDeployment(); err != nil {
+				logger.Error(err)
+			}
 		case msg := <-msgs:
 			if err := context.handleMessage(msg); err != nil {
 				logger.Error(err)
@@ -67,6 +81,80 @@ func main() {
 		}
 	}
 
+}
+
+func (ctx *Context) setDeployment() error {
+	deployments, err := ctx.DB.GetDeploymentsByAddressNetwork("", "")
+	if err != nil {
+		return err
+	}
+
+	for i, d := range deployments {
+		ops, err := ctx.ES.GetOperations(
+			map[string]interface{}{"hash": d.OperationHash},
+			0,
+			true,
+		)
+
+		if err != nil {
+			if elastic.IsRecordNotFound(err) {
+				continue
+			}
+
+			return fmt.Errorf("GetOperations %s error %w", d.OperationHash, err)
+		}
+
+		if len(ops) == 0 {
+			continue
+		}
+
+		if err := ctx.processDeployment(&deployments[i], &ops[0]); err != nil {
+			return fmt.Errorf("deployment ID %d operationHash %s processDeployment error %w", d.ID, d.OperationHash, err)
+		}
+	}
+
+	return nil
+}
+
+func (ctx *Context) processDeployment(deployment *database.Deployment, operation *models.Operation) error {
+	deployment.Address = operation.Destination
+	deployment.Network = operation.Network
+
+	if err := ctx.DB.UpdateDeployment(deployment); err != nil {
+		return fmt.Errorf("UpdateDeployment error %w", err)
+	}
+
+	task, err := ctx.DB.GetCompilationTask(deployment.CompilationTaskID)
+	if err != nil {
+		return fmt.Errorf("task ID %d GetCompilationTask error %w", deployment.CompilationTaskID, err)
+	}
+
+	var sourcePath string
+
+	for _, r := range task.Results {
+		if r.Status == compilation.StatusSuccess {
+			sourcePath = r.AWSPath
+			break
+		}
+	}
+
+	verification := database.Verification{
+		UserID:            task.UserID,
+		CompilationTaskID: deployment.CompilationTaskID,
+		Address:           operation.Destination,
+		Network:           operation.Network,
+		SourcePath:        sourcePath,
+	}
+
+	if err := ctx.DB.CreateVerification(&verification); err != nil {
+		return fmt.Errorf("CreateVerification error %w", err)
+	}
+
+	contract := models.NewEmptyContract(task.Network, task.Address)
+	contract.Verified = true
+	contract.VerificationSource = sourcePath
+
+	return ctx.ES.UpdateFields(elastic.DocContracts, contract.GetID(), contract, "Verified", "VerificationSource")
 }
 
 func (ctx *Context) handleMessage(data amqp.Delivery) error {

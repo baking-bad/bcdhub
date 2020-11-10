@@ -32,7 +32,7 @@ type IAccount interface {
 type IAssessment interface {
 	CreateAssessment(a *Assessments) error
 	CreateOrUpdateAssessment(a *Assessments) error
-	GetAssessmentsWithValue(uint, uint, uint) ([]Assessments, error)
+	GetAssessmentsWithValue(userID, assessment, size uint) ([]Assessments, error)
 	GetUserCompletedAssesments(userID uint) (count int, err error)
 }
 
@@ -52,6 +52,7 @@ type IDeployment interface {
 	ListDeployments(userID, limit, offset uint) ([]Deployment, error)
 	CreateDeployment(dt *Deployment) error
 	GetDeploymentBy(opHash string) (*Deployment, error)
+	GetDeploymentsByAddressNetwork(address, network string) ([]Deployment, error)
 	UpdateDeployment(dt *Deployment) error
 	CountDeployments(userID uint) (int64, error)
 }
@@ -61,16 +62,16 @@ type ISubscription interface {
 	GetSubscription(userID uint, address, network string) (Subscription, error)
 	GetSubscriptions(address, network string) ([]Subscription, error)
 	ListSubscriptions(userID uint) ([]Subscription, error)
-	UpsertSubscription(*Subscription) error
-	DeleteSubscription(*Subscription) error
+	UpsertSubscription(s *Subscription) error
+	DeleteSubscription(s *Subscription) error
 	GetSubscriptionsCount(address, network string) (int, error)
 }
 
 // IUser -
 type IUser interface {
-	GetOrCreateUser(*User, string) error
-	GetUser(uint) (*User, error)
-	UpdateUserMarkReadAt(uint, int64) error
+	GetOrCreateUser(u *User, token string) error
+	GetUser(userID uint) (*User, error)
+	UpdateUserMarkReadAt(userID uint, ts int64) error
 }
 
 // IVerification -

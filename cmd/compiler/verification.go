@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/compiler/compilation"
 	"github.com/baking-bad/bcdhub/internal/database"
+	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -59,11 +60,10 @@ func (ctx *Context) verification(ct compilation.Task) error {
 	}
 
 	contract := models.NewEmptyContract(task.Network, task.Address)
-	if err := ctx.ES.GetByID(&contract); err != nil {
-		return err
-	}
+	contract.Verified = true
+	contract.VerificationSource = sourcePath
 
-	return ctx.MQ.Send(&contract)
+	return ctx.ES.UpdateFields(elastic.DocContracts, contract.GetID(), contract, "Verified", "VerificationSource")
 }
 
 func (ctx *Context) verify(ct compilation.Task) (*database.CompilationTask, error) {

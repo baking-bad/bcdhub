@@ -27,13 +27,10 @@ func (d *db) ListDeployments(userID, limit, offset uint) ([]Deployment, error) {
 	req := d.Scopes(
 		userIDScope(userID),
 		pagination(limit, offset),
-		createdAtDesc)
+		createdAtDesc,
+	)
 
-	if err := req.Find(&deployments).Error; err != nil {
-		return nil, err
-	}
-
-	return deployments, nil
+	return deployments, req.Find(&deployments).Error
 }
 
 // CreateDeployment -
@@ -45,6 +42,18 @@ func (d *db) CreateDeployment(dt *Deployment) error {
 func (d *db) GetDeploymentBy(opHash string) (*Deployment, error) {
 	dt := new(Deployment)
 	return dt, d.Raw("SELECT * FROM deployments WHERE operation_hash = ?", opHash).Scan(dt).Error
+}
+
+// GetDeploymentsByAddressNetwork -
+func (d *db) GetDeploymentsByAddressNetwork(address, network string) ([]Deployment, error) {
+	var deployments []Deployment
+
+	req := d.Scopes(
+		addressScope(address),
+		networkScope(network),
+	)
+
+	return deployments, req.Find(&deployments).Error
 }
 
 // UpdateDeployment -
