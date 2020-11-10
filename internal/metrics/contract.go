@@ -3,7 +3,6 @@ package metrics
 import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/jinzhu/gorm"
 
 	"github.com/baking-bad/bcdhub/internal/classification/functions"
 	clmetrics "github.com/baking-bad/bcdhub/internal/classification/metrics"
@@ -82,24 +81,4 @@ func compare(a, b models.Contract) bool {
 	res := clf.Predict(features)
 	// log.Printf("%s -> %s [%d]", a.Address, b.Address, res)
 	return res == 1
-}
-
-// SetContractVerification -
-func (h *Handler) SetContractVerification(c *models.Contract) error {
-	if c.Verified {
-		return nil
-	}
-
-	v, err := h.DB.GetVerificationBy(c.Address, c.Network)
-	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return nil
-		}
-		return err
-	}
-
-	c.Verified = v.SourcePath != ""
-	c.VerificationSource = v.SourcePath
-
-	return nil
 }

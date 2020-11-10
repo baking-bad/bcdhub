@@ -41,10 +41,6 @@ func parseOperation(h *metrics.Handler, operation models.Operation) error {
 	h.SetOperationAliases(ctx.Aliases, &operation)
 	h.SetOperationStrings(&operation)
 
-	if err := h.SetOperationDeployment(&operation); err != nil {
-		return err
-	}
-
 	if helpers.IsContract(operation.Destination) || operation.IsOrigination() {
 		if err := h.SendSentryNotifications(operation); err != nil {
 			return err

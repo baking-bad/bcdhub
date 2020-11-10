@@ -5,13 +5,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/compiler/compilation"
 	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
-	"github.com/baking-bad/bcdhub/internal/database"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/getsentry/sentry-go"
-	"github.com/jinzhu/gorm"
 )
 
 // SetOperationAliases -
@@ -117,63 +113,4 @@ func initSentry(environment, dsn string) {
 	}); err != nil {
 		log.Printf("Sentry initialization failed: %v\n", err)
 	}
-}
-
-// SetOperationDeployment -
-func (h *Handler) SetOperationDeployment(op *models.Operation) error {
-	d, err := h.DB.GetDeploymentBy(op.Hash)
-	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return nil
-		}
-		return err
-	}
-
-	d.Address = op.Destination
-	d.Network = op.Network
-
-	if err := h.DB.UpdateDeployment(d); err != nil {
-		return err
-	}
-
-	task, err := h.DB.GetCompilationTask(d.CompilationTaskID)
-	if err != nil {
-		return err
-	}
-
-	var sourcePath string
-
-	for _, r := range task.Results {
-		if r.Status == compilation.StatusSuccess {
-			sourcePath = r.AWSPath
-			break
-		}
-	}
-
-	verification := database.Verification{
-		UserID:            task.UserID,
-		CompilationTaskID: d.CompilationTaskID,
-		Address:           op.Destination,
-		Network:           op.Network,
-		SourcePath:        sourcePath,
-	}
-
-	if err := h.DB.CreateVerification(&verification); err != nil {
-		return err
-	}
-
-	contract := models.NewEmptyContract(op.Network, op.Destination)
-	if err := h.ES.GetByID(&contract); err != nil {
-		return err
-	}
-
-	if !contract.Verified {
-		if err := h.SetContractVerification(&contract); err != nil {
-			return err
-		}
-
-		return h.ES.UpdateFields(elastic.DocContracts, contract.GetID(), contract, "Verified", "VerificationSource")
-	}
-
-	return nil
 }

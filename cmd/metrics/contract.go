@@ -31,12 +31,6 @@ func parseContract(contract *models.Contract) error {
 		h.SetContractAlias(ctx.Aliases, contract)
 	}
 
-	if !contract.Verified {
-		if err := h.SetContractVerification(contract); err != nil {
-			return errors.Errorf("[parseContract] Error during set contract verification: %s", err)
-		}
-	}
-
 	rpc, err := ctx.GetRPC(contract.Network)
 	if err != nil {
 		return err

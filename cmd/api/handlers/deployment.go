@@ -10,9 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/compiler/compilation"
 	"github.com/baking-bad/bcdhub/internal/compiler/filesgenerator"
 	"github.com/baking-bad/bcdhub/internal/database"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/gin-gonic/gin"
 )
 
@@ -149,27 +147,6 @@ func (ctx *Context) FinalizeDeployment(c *gin.Context) {
 	err = ctx.DB.CreateDeployment(&d)
 	if handleError(c, err, 0) {
 		return
-	}
-
-	op, err := ctx.ES.GetOperations(
-		map[string]interface{}{
-			"hash": req.OperationHash,
-		},
-		0,
-		true,
-	)
-
-	if !elastic.IsRecordNotFound(err) && handleError(c, err, 0) {
-		return
-	}
-
-	if len(op) != 0 {
-		h := metrics.New(ctx.ES, ctx.DB)
-
-		err := h.SetOperationDeployment(&op[0])
-		if handleError(c, err, 0) {
-			return
-		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": compilation.StatusSuccess})
