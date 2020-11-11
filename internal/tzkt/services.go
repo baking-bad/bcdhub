@@ -2,14 +2,12 @@ package tzkt
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 )
 
 // ServicesTzKT -
@@ -34,12 +32,12 @@ func NewServicesTzKT(network, uri string, timeout time.Duration) *ServicesTzKT {
 }
 
 //nolint
-func (t *ServicesTzKT) request(method, endpoint string, params map[string]string) (res gjson.Result, err error) {
+func (t *ServicesTzKT) request(method, endpoint string, params map[string]string, response interface{}) (err error) {
 	uri := helpers.URLJoin(t.Host, endpoint)
 
 	req, err := http.NewRequest(method, uri, nil)
 	if err != nil {
-		return res, errors.Errorf("[http.NewRequest] %s", err)
+		return errors.Errorf("[http.NewRequest] %s", err)
 	}
 	q := req.URL.Query()
 	for key, value := range params {
@@ -59,19 +57,16 @@ func (t *ServicesTzKT) request(method, endpoint string, params map[string]string
 	}
 
 	if count == t.retryCount {
-		return res, errors.Errorf("Max HTTP request retry exceeded")
+		return errors.Errorf("Max HTTP request retry exceeded")
 	}
 	defer resp.Body.Close()
 
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return
-	}
-	res = gjson.ParseBytes(b)
-	return
+	return json.NewDecoder(resp.Body).Decode(response)
 }
 
 // GetMempool -
-func (t *ServicesTzKT) GetMempool(address string) (gjson.Result, error) {
-	return t.request("GET", fmt.Sprintf("mempool/%s", address), nil)
+func (t *ServicesTzKT) GetMempool(address string) ([]MempoolOperation, error) {
+	operations := make([]MempoolOperation, 0)
+	err := t.request("GET", fmt.Sprintf("mempool/%s", address), nil, &operations)
+	return operations, err
 }

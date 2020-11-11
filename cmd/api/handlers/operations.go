@@ -16,6 +16,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/tzkt"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -174,11 +175,11 @@ func (ctx *Context) getOperation(network, hash string, ops chan<- Operation, wg 
 		return
 	}
 
-	if res.Get("#").Int() == 0 {
+	if len(res) == 0 {
 		return
 	}
 
-	operation := ctx.prepareMempoolOperation(res, network)
+	operation := ctx.prepareMempoolOperation(res[0], network)
 
 	ops <- operation
 }
@@ -379,36 +380,34 @@ func getPrevBmd(es elastic.IElastic, bmd []models.BigMapDiff, indexedTime int64,
 	return es.GetBigMapDiffsPrevious(bmd, indexedTime, address)
 }
 
-func (ctx *Context) prepareMempoolOperation(res gjson.Result, network string) Operation {
-	item := res.Array()[0]
-
-	status := item.Get("status").String()
+func (ctx *Context) prepareMempoolOperation(item tzkt.MempoolOperation, network string) Operation {
+	status := item.Body.Status
 	if status == consts.Applied {
 		status = "pending"
 	}
 
 	op := Operation{
-		Protocol:  item.Get("protocol").String(),
-		Hash:      item.Get("hash").String(),
+		Protocol:  item.Body.Protocol,
+		Hash:      item.Body.Hash,
 		Network:   network,
-		Timestamp: time.Unix(item.Get("timestamp").Int(), 0).UTC(),
+		Timestamp: time.Unix(item.Body.Timestamp, 0).UTC(),
 
-		Kind:         item.Get("kind").String(),
-		Source:       item.Get("source").String(),
-		Fee:          item.Get("fee").Int(),
-		Counter:      item.Get("counter").Int(),
-		GasLimit:     item.Get("gas_limit").Int(),
-		StorageLimit: item.Get("storage_limit").Int(),
-		Amount:       item.Get("amount").Int(),
-		Destination:  item.Get("destination").String(),
+		Kind:         item.Body.Kind,
+		Source:       item.Body.Source,
+		Fee:          item.Body.Fee,
+		Counter:      item.Body.Counter,
+		GasLimit:     item.Body.GasLimit,
+		StorageLimit: item.Body.StorageLimit,
+		Amount:       item.Body.Amount,
+		Destination:  item.Body.Destination,
 		Mempool:      true,
 		Status:       status,
-		RawMempool:   item.Value(),
+		RawMempool:   string(item.Raw),
 	}
 
 	op.SourceAlias = ctx.Aliases[op.Source]
 	op.DestinationAlias = ctx.Aliases[op.Destination]
-	errs, err := cerrors.ParseArray([]byte(item.Get("errors").Raw))
+	errs, err := cerrors.ParseArray(item.Body.Errors)
 	if err != nil {
 		return op
 	}
@@ -418,8 +417,8 @@ func (ctx *Context) prepareMempoolOperation(res gjson.Result, network string) Op
 		return op
 	}
 
-	if strings.HasPrefix(op.Destination, "KT") && op.Protocol != "" {
-		if params := item.Get("parameters"); params.Exists() {
+	if helpers.IsContract(op.Destination) && op.Protocol != "" {
+		if params := gjson.ParseBytes(item.Body.Parameters); params.Exists() {
 			ctx.buildOperationParameters(params, &op)
 		} else {
 			op.Entrypoint = consts.DefaultEntrypoint

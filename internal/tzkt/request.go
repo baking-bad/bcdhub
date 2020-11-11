@@ -1,15 +1,17 @@
 package tzkt
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // TzKT -
 type TzKT struct {
@@ -62,11 +64,7 @@ func (t *TzKT) request(method, endpoint string, params map[string]string, respon
 	}
 	defer resp.Body.Close()
 
-	dec := json.NewDecoder(resp.Body)
-	if err = dec.Decode(response); err != nil {
-		return errors.Errorf("[json.Decode] %s", err)
-	}
-	return nil
+	return json.NewDecoder(resp.Body).Decode(response)
 }
 
 // GetHead - return head
