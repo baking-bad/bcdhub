@@ -1,8 +1,6 @@
 package operations
 
 import (
-	"strings"
-
 	"github.com/pkg/errors"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
@@ -39,6 +37,7 @@ func (opg Group) Parse(data gjson.Result) ([]elastic.Model, error) {
 		parsedModels = append(parsedModels, models...)
 		contentParser.clear()
 	}
+
 	return parsedModels, nil
 }
 
@@ -91,7 +90,7 @@ func (content Content) needParse(item gjson.Result) bool {
 	kind := item.Get("kind").String()
 	source := item.Get("source").String()
 	destination := item.Get("destination").String()
-	prefixCondition := strings.HasPrefix(source, "KT") || strings.HasPrefix(destination, "KT")
+	prefixCondition := helpers.IsContract(source) || helpers.IsContract(destination)
 	transactionCondition := kind == consts.Transaction && prefixCondition
 	originationCondition := (kind == consts.Origination || kind == consts.OriginationNew) && item.Get("script").Exists()
 	return originationCondition || transactionCondition

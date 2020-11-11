@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/contract"
+	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
 	"github.com/baking-bad/bcdhub/internal/parsers/transfer"
 )
 
@@ -25,6 +26,8 @@ type ParseParams struct {
 	transferParser *transfer.Parser
 
 	storageParser *RichStorage
+
+	stackTrace *stacktrace.StackTrace
 
 	ipfs []string
 
@@ -106,16 +109,17 @@ func WithMainOperation(main *models.Operation) ParseParamsOption {
 // NewParseParams -
 func NewParseParams(rpc noderpc.INode, es elastic.IElastic, opts ...ParseParamsOption) *ParseParams {
 	params := &ParseParams{
-		es:   es,
-		rpc:  rpc,
-		once: &sync.Once{},
+		es:         es,
+		rpc:        rpc,
+		once:       &sync.Once{},
+		stackTrace: stacktrace.New(),
 	}
 	for i := range opts {
 		opts[i](params)
 	}
 
 	transferParser, err := transfer.NewParser(
-		params.rpc, params.es,
+		params.rpc, params.es, transfer.WithStackTrace(params.stackTrace),
 	)
 	if err != nil {
 		logger.Error(err)

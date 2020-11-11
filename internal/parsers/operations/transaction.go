@@ -79,6 +79,8 @@ func (p Transaction) Parse(data gjson.Result) ([]elastic.Model, error) {
 		return nil, err
 	}
 
+	p.stackTrace.Add(tx)
+
 	transfers, err := p.transferParser.Parse(tx)
 	if err != nil {
 		return nil, err
@@ -163,7 +165,7 @@ func (p Transaction) getEntrypoint(item gjson.Result, metadata *meta.ContractMet
 }
 
 func (p Transaction) tagTransaction(tx *models.Operation) error {
-	if !strings.HasPrefix(tx.Destination, "KT") {
+	if !helpers.IsContract(tx.Destination) {
 		return nil
 	}
 
