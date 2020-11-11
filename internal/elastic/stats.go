@@ -47,9 +47,9 @@ type getContractStatsByNetworkStats struct {
 		Network struct {
 			Buckets []struct {
 				Bucket
-				Same           intValue `json:"same"`
-				Balance        intValue `json:"balance"`
-				TotalWithdrawn intValue `json:"total_withdrawn"`
+				Same           intValue   `json:"same"`
+				Balance        floatValue `json:"balance"`
+				TotalWithdrawn floatValue `json:"total_withdrawn"`
 			} `json:"buckets"`
 		} `json:"network"`
 	} `json:"aggregations"`
@@ -88,8 +88,8 @@ func (e *Elastic) GetContractStatsByNetwork() (map[string]ContractCountStats, er
 		counts[item.Key] = ContractCountStats{
 			Total:          item.DocCount,
 			SameCount:      item.Same.Value,
-			Balance:        item.Balance.Value,
-			TotalWithdrawn: item.TotalWithdrawn.Value,
+			Balance:        int64(item.Balance.Value),
+			TotalWithdrawn: int64(item.TotalWithdrawn.Value),
 		}
 	}
 	return counts, nil

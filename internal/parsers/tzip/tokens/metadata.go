@@ -22,9 +22,10 @@ type Metadata struct {
 // ToModel -
 func (m Metadata) ToModel(address, network string) *models.TZIP {
 	return &models.TZIP{
-		Address: address,
-		Network: network,
-		Level:   m.Level,
+		Address:   address,
+		Network:   network,
+		Level:     m.Level,
+		Timestamp: m.Timestamp,
 		TZIP12: tzip.TZIP12{
 			Tokens: &tzip.TokenMetadataType{
 				Static: []tzip.TokenMetadata{

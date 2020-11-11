@@ -100,7 +100,7 @@ func (e *Elastic) IsFAContract(network, address string) (bool, error) {
 
 // UpdateContractMigrationsCount -
 func (e *Elastic) UpdateContractMigrationsCount(address, network string) error {
-	// TODO: update via ID
+	// TODO: update via ID and script
 	contract := models.NewEmptyContract(network, address)
 	if err := e.GetByID(&contract); err != nil {
 		return err
@@ -123,13 +123,15 @@ func (e *Elastic) GetContractAddressesByNetworkAndLevel(network string, maxLevel
 	).All()
 
 	var response SearchResponse
-	if err := e.query([]string{DocContracts}, query, "address"); err != nil {
+	if err := e.query([]string{DocContracts}, query, &response, "address"); err != nil {
 		return nil, err
 	}
 
 	addresses := make([]string, len(response.Hits.Hits))
 	for i := range response.Hits.Hits {
-		var c models.Contract
+		var c struct {
+			Address string `json:"address"`
+		}
 		if err := json.Unmarshal(response.Hits.Hits[i].Source, &c); err != nil {
 			return nil, err
 		}
@@ -137,30 +139,6 @@ func (e *Elastic) GetContractAddressesByNetworkAndLevel(network string, maxLevel
 	}
 
 	return addresses, nil
-}
-
-type contractIDs struct {
-	IDs []string
-}
-
-// GetQueue -
-func (ids *contractIDs) GetQueue() string {
-	return ""
-}
-
-// Marshal -
-func (ids *contractIDs) Marshal() ([]byte, error) {
-	return nil, nil
-}
-
-// GetID -
-func (ids *contractIDs) GetID() string {
-	return ""
-}
-
-// GetIndex -
-func (ids *contractIDs) GetIndex() string {
-	return DocContracts
 }
 
 // GetContractsIDByAddress -
@@ -178,13 +156,19 @@ func (e *Elastic) GetContractsIDByAddress(addresses []string, network string) ([
 			should(shouldItems...),
 			minimumShouldMatch(1),
 		),
-	)
+	).Add(qItem{
+		"_source": false,
+	})
 
-	ids := contractIDs{
-		IDs: make([]string, 0),
+	var response SearchResponse
+	if err := e.query([]string{DocContracts}, query, &response, "address"); err != nil {
+		return nil, err
 	}
-	err := e.getAllByQuery(query, &ids)
-	return ids.IDs, err
+	ids := make([]string, len(response.Hits.Hits))
+	for i := range response.Hits.Hits {
+		ids[i] = response.Hits.Hits[i].ID
+	}
+	return ids, nil
 }
 
 type recalcContractStatsResponse struct {

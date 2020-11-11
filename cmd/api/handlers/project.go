@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
 )
@@ -40,7 +41,12 @@ func (ctx *Context) GetSameContracts(c *gin.Context) {
 	}
 
 	sameContracts, err := ctx.ES.GetSameContracts(contract, pageReq.Size, pageReq.Offset)
-	if handleError(c, err, 0) {
+	if err != nil {
+		if elastic.IsRecordNotFound(err) {
+			c.JSON(http.StatusOK, []interface{}{})
+			return
+		}
+		handleError(c, err, 0)
 		return
 	}
 
