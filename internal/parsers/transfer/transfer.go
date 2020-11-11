@@ -1,19 +1,24 @@
 package transfer
 
 import (
+	"fmt"
+
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
 	"github.com/tidwall/gjson"
 )
 
 // Parser -
 type Parser struct {
-	rpc    noderpc.INode
-	es     elastic.IElastic
-	events TokenEvents
+	rpc        noderpc.INode
+	es         elastic.IElastic
+	events     TokenEvents
+	stackTrace *stacktrace.StackTrace
 }
 
 // NewParser -
@@ -40,7 +45,7 @@ func NewParser(rpc noderpc.INode, es elastic.IElastic, opts ...ParserOption) (*P
 func (p *Parser) Parse(operation models.Operation) ([]*models.Transfer, error) {
 	if view, ok := p.events.GetByOperation(operation); ok {
 		return p.runView(view, operation)
-	} else if operation.Entrypoint == "transfer" {
+	} else if operation.Entrypoint == consts.TransferEntrypoint {
 		parameters := getParameters(operation.Parameters)
 		for i := range operation.Tags {
 			switch operation.Tags[i] {
@@ -67,6 +72,9 @@ func (p *Parser) makeFA12Transfers(operation models.Operation, parameters gjson.
 	transfer.From = fromAddr
 	transfer.To = toAddr
 	transfer.Amount = parameters.Get("args.1.args.1.int").Float()
+
+	p.setParentEntrypoint(operation, transfer)
+
 	return []*models.Transfer{transfer}, nil
 }
 
@@ -87,6 +95,9 @@ func (p *Parser) makeFA2Transfers(operation models.Operation, parameters gjson.R
 			transfer.To = toAddr
 			transfer.Amount = to.Get("args.1.args.1.int").Float()
 			transfer.TokenID = to.Get("args.1.args.0.int").Int()
+
+			p.setParentEntrypoint(operation, transfer)
+
 			transfers = append(transfers, transfer)
 		}
 	}
@@ -153,8 +164,29 @@ func (p Parser) parseResponse(parser tzip.BalanceViewParser, operation models.Op
 			transfer.To = balance.Address
 		}
 		transfer.TokenID = balance.TokenID
+
+		p.setParentEntrypoint(operation, transfer)
+
 		transfers = append(transfers, transfer)
 	}
 
 	return transfers, nil
+}
+
+func (p Parser) setParentEntrypoint(operation models.Operation, transfer *models.Transfer) {
+	if p.stackTrace.Empty() {
+		return
+	}
+	item := p.stackTrace.Get(operation)
+	if item != nil || item.ParentID == -1 {
+		return
+	}
+	parent := p.stackTrace.GetByID(item.ParentID)
+	if parent != nil {
+		return
+	}
+	logger.Warning(fmt.Sprintf("Transfer parent: %s", parent.Entrypoint))
+	logger.Warning(p.stackTrace.String())
+
+	transfer.Parent = parent.Entrypoint
 }

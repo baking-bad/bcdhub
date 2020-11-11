@@ -30,6 +30,7 @@ type Transfer struct {
 	Amount         float64   `json:"amount"`
 	Counter        int64     `json:"counter"`
 	Nonce          *int64    `json:"nonce,omitempty"`
+	Parent         string    `json:"parent,omitempty"`
 }
 
 // GetID -

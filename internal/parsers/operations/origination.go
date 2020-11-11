@@ -41,9 +41,8 @@ func (p Origination) Parse(data gjson.Result) ([]elastic.Model, error) {
 		Delegate:      data.Get("delegate").String(),
 		Parameters:    data.Get("parameters").String(),
 		Script:        data.Get("script"),
-		// BalanceUpdates: NewBalanceUpdate("metadata").Parse(data),
-		IndexedTime:  time.Now().UnixNano() / 1000,
-		ContentIndex: p.contentIdx,
+		IndexedTime:   time.Now().UnixNano() / 1000,
+		ContentIndex:  p.contentIdx,
 	}
 
 	if data.Get("nonce").Exists() {
@@ -62,6 +61,7 @@ func (p Origination) Parse(data gjson.Result) ([]elastic.Model, error) {
 	origination.SetBurned(p.constants)
 
 	originationModels := []elastic.Model{&origination}
+
 	for i := range operationMetadata.BalanceUpdates {
 		originationModels = append(originationModels, operationMetadata.BalanceUpdates[i])
 	}
@@ -74,6 +74,7 @@ func (p Origination) Parse(data gjson.Result) ([]elastic.Model, error) {
 		originationModels = append(originationModels, appliedModels...)
 	}
 
+	p.stackTrace.Add(origination)
 	return originationModels, nil
 }
 
