@@ -81,5 +81,6 @@ func (p Parser) getFromStorage(ctx ParseContext, url string) (*models.TZIP, erro
 	val.Address = ctx.BigMapDiff.Address
 	val.Network = ctx.BigMapDiff.Network
 	val.Level = ctx.BigMapDiff.Level
+	val.Timestamp = ctx.BigMapDiff.Timestamp
 	return val, nil
 }

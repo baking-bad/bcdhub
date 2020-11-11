@@ -116,11 +116,9 @@ type getDateHistogramResponse struct {
 	Agg struct {
 		Hist struct {
 			Buckets []struct {
-				Key      int64 `json:"key"`
-				DocCount int64 `json:"doc_count"`
-				Result   struct {
-					Value int64 `json:"value"`
-				} `json:"result,omitempty"`
+				Key      int64      `json:"key"`
+				DocCount int64      `json:"doc_count"`
+				Result   floatValue `json:"result,omitempty"`
 			} `json:"buckets"`
 		} `json:"hist"`
 	} `json:"aggregations"`
@@ -144,7 +142,7 @@ func (e *Elastic) GetDateHistogram(period string, opts ...HistogramOption) ([][]
 	for _, bucket := range response.Agg.Hist.Buckets {
 		val := bucket.DocCount
 		if ctx.hasFunction() {
-			val = bucket.Result.Value
+			val = int64(bucket.Result.Value)
 		}
 
 		item := []int64{

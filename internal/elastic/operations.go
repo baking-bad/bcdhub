@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/pkg/errors"
 )
@@ -165,28 +166,9 @@ func (e *Elastic) GetLastOperation(address, network string, indexedTime int64) (
 	return
 }
 
-type affected struct {
-	addresses map[string]struct{}
-}
-
-// GetQueue -
-func (a *affected) GetQueue() string {
-	return ""
-}
-
-// Marshal -
-func (a *affected) Marshal() ([]byte, error) {
-	return nil, nil
-}
-
-// GetID -
-func (a *affected) GetID() string {
-	return ""
-}
-
-// GetIndex -
-func (a *affected) GetIndex() string {
-	return DocOperations
+type operationAddresses struct {
+	Source      string `json:"source"`
+	Destination string `json:"destination"`
 }
 
 // GetAffectedContracts -
@@ -203,16 +185,30 @@ func (e *Elastic) GetAffectedContracts(network string, fromLevel, toLevel int64)
 		),
 	)
 
-	affectedMap := affected{
-		addresses: make(map[string]struct{}),
-	}
-	if err := e.getAllByQuery(query, &affectedMap); err != nil {
+	var response SearchResponse
+	if err := e.query([]string{DocOperations}, query, &response); err != nil {
 		return nil, err
 	}
 
+	if response.Hits.Total.Value == 0 {
+		return nil, nil
+	}
+
+	exists := make(map[string]struct{})
 	addresses := make([]string, 0)
-	for k := range affectedMap.addresses {
-		addresses = append(addresses, k)
+	for i := range response.Hits.Hits {
+		var op operationAddresses
+		if err := json.Unmarshal(response.Hits.Hits[i].Source, &op); err != nil {
+			return nil, err
+		}
+		if _, ok := exists[op.Source]; !ok && helpers.IsContract(op.Source) {
+			addresses = append(addresses, op.Source)
+			exists[op.Source] = struct{}{}
+		}
+		if _, ok := exists[op.Destination]; !ok && helpers.IsContract(op.Destination) {
+			addresses = append(addresses, op.Destination)
+			exists[op.Destination] = struct{}{}
+		}
 	}
 
 	return addresses, nil

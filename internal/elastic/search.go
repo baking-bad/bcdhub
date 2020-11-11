@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -20,6 +21,19 @@ type searchContext struct {
 	Fields     []string
 	Highlights qItem
 	Offset     int64
+}
+
+// TokenSearchable -
+type TokenSearchable struct {
+	Name      string                 `json:"name"`
+	Symbol    string                 `json:"symbol"`
+	TokenID   int64                  `json:"token_id"`
+	Network   string                 `json:"network"`
+	Address   string                 `json:"address"`
+	Level     int64                  `json:"level"`
+	Timestamp time.Time              `json:"timestamp"`
+	Decimals  int64                  `json:"decimals"`
+	Extras    map[string]interface{} `json:"extras,omitempty"`
 }
 
 func newSearchContext() searchContext {
@@ -257,13 +271,25 @@ func parseSearchResponse(response searchByTextResponse) ([]SearchItem, error) {
 			if err := json.Unmarshal(arr[i].Source, &token); err != nil {
 				return nil, err
 			}
-			item := SearchItem{
-				Type:       DocBigMapDiff,
-				Value:      token.Address,
-				Body:       token,
-				Highlights: arr[i].Highlights,
+			for i := range token.Tokens.Static {
+				item := SearchItem{
+					Type:  DocBigMapDiff,
+					Value: token.Address,
+					Body: TokenSearchable{
+						Network:   token.Network,
+						Address:   token.Address,
+						Level:     token.Level,
+						Timestamp: token.Timestamp,
+						Name:      token.Tokens.Static[i].Name,
+						Symbol:    token.Tokens.Static[i].Symbol,
+						TokenID:   token.Tokens.Static[i].TokenID,
+						Decimals:  token.Tokens.Static[i].Decimals,
+						Extras:    token.Tokens.Static[i].Extras,
+					},
+					Highlights: arr[i].Highlights,
+				}
+				items = append(items, item)
 			}
-			items = append(items, item)
 		default:
 		}
 
@@ -339,9 +365,21 @@ func parseSearchGroupingResponse(response searchByTextResponse, offset int64) ([
 				if err := json.Unmarshal(item.Source, &token); err != nil {
 					return nil, err
 				}
-				searchItem.Body = token
 				searchItem.Value = token.Address
 				searchItem.Highlights = item.Highlights
+				for i := range token.Tokens.Static {
+					searchItem.Body = TokenSearchable{
+						Network:   token.Network,
+						Address:   token.Address,
+						Level:     token.Level,
+						Timestamp: token.Timestamp,
+						Name:      token.Tokens.Static[i].Name,
+						Symbol:    token.Tokens.Static[i].Symbol,
+						TokenID:   token.Tokens.Static[i].TokenID,
+						Decimals:  token.Tokens.Static[i].Decimals,
+						Extras:    token.Tokens.Static[i].Extras,
+					}
+				}
 			default:
 			}
 		}
@@ -414,13 +452,15 @@ func grouping(ctx searchContext, query base) base {
 				qItem{
 					"terms": qItem{
 						"script": `
-							if (doc.containsKey('fingerprint.parameter')) {
+							if (doc['_index'].value == "contract") {
 								return doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value
-							} else if (doc.containsKey('hash')) {
+							} else if (doc['_index'].value == 'operation') {
 								return doc['hash.keyword'].value
-							} else if (doc.containsKey('token_id')) {
-								return doc['contract.keyword'].value + '|' + doc['network.keyword'].value + '|' + doc['token_id'].value
-							} else return doc['key_hash.keyword'].value`,
+							} else if (doc['_index'].value == 'tzip') {
+								return doc['address.keyword'].value + '|' + doc['network.keyword'].value
+							} else if (doc['_index'].value == 'bigmapdiff') {
+								return doc['key_hash.keyword'].value
+							}`,
 						"size": defaultSize + ctx.Offset,
 						"order": qList{
 							qItem{"bucket_score": "desc"},

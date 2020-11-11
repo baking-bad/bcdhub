@@ -77,14 +77,12 @@ func (t TokenMetadataParser) parse(registry string, state models.Block) ([]Metad
 	metadata := make([]Metadata, len(bmd))
 	for i := range bmd {
 		value := gjson.Parse(bmd[i].Value)
-		m, err := t.parseMetadata(value)
-		if err != nil {
+		if err := t.parseMetadata(value, &metadata[i]); err != nil {
 			continue
 		}
-		m.RegistryAddress = registry
-		m.Timestamp = bmd[i].Timestamp
-		m.Level = bmd[i].Level
-		metadata[i] = m
+		metadata[i].RegistryAddress = registry
+		metadata[i].Timestamp = bmd[i].Timestamp
+		metadata[i].Level = bmd[i].Level
 	}
 
 	return metadata, nil
@@ -224,7 +222,7 @@ const (
 	keyExtras   = "args.1.args.1.args.1.args.1"
 )
 
-func (t TokenMetadataParser) parseMetadata(value gjson.Result) (Metadata, error) {
+func (t TokenMetadataParser) parseMetadata(value gjson.Result, m *Metadata) error {
 	extras := make(map[string]interface{})
 	for _, item := range value.Get(keyExtras).Array() {
 		k := item.Get("args.0.string").String()
@@ -236,23 +234,22 @@ func (t TokenMetadataParser) parseMetadata(value gjson.Result) (Metadata, error)
 	}
 
 	if !value.Get(keyTokenID).Exists() {
-		return Metadata{}, ErrInvalidStorageStructure
+		return ErrInvalidStorageStructure
 	}
 	if !value.Get(keySymbol).Exists() {
-		return Metadata{}, ErrInvalidStorageStructure
+		return ErrInvalidStorageStructure
 	}
 	if !value.Get(keyName).Exists() {
-		return Metadata{}, ErrInvalidStorageStructure
+		return ErrInvalidStorageStructure
 	}
 	if !value.Get(keyDecimals).Exists() {
-		return Metadata{}, ErrInvalidStorageStructure
+		return ErrInvalidStorageStructure
 	}
 
-	return Metadata{
-		TokenID:  value.Get(keyTokenID).Int(),
-		Symbol:   value.Get(keySymbol).String(),
-		Name:     value.Get(keyName).String(),
-		Decimals: value.Get(keyDecimals).Int(),
-		Extras:   extras,
-	}, nil
+	m.TokenID = value.Get(keyTokenID).Int()
+	m.Symbol = value.Get(keySymbol).String()
+	m.Name = value.Get(keyName).String()
+	m.Decimals = value.Get(keyDecimals).Int()
+	m.Extras = extras
+	return nil
 }

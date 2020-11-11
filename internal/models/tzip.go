@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/models/utils"
@@ -11,10 +12,11 @@ import (
 
 // TZIP -
 type TZIP struct {
-	Level   int64  `json:"level"`
-	Address string `json:"address"`
-	Network string `json:"network"`
-	Slug    string `json:"slug,omitempty"`
+	Level     int64     `json:"level"`
+	Timestamp time.Time `json:"timestamp"`
+	Address   string    `json:"address"`
+	Network   string    `json:"network"`
+	Slug      string    `json:"slug,omitempty"`
 
 	tzip.TZIP12
 	tzip.TZIP16
@@ -54,8 +56,8 @@ func (t *TZIP) MarshalToQueue() ([]byte, error) {
 // GetScores -
 func (t *TZIP) GetScores(search string) []string {
 	return []string{
-		"tokens.name^8",
-		"tokens.symbol^8",
+		"tokens.static.name^8",
+		"tokens.static.symbol^8",
 		"address^7",
 	}
 }
