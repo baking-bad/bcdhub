@@ -1,6 +1,9 @@
 package tzkt
 
-import "time"
+import (
+	stdJSON "encoding/json"
+	"time"
+)
 
 // Head -
 type Head struct {
@@ -96,4 +99,38 @@ type Protocol struct {
 // ProtocolMetadata -
 type ProtocolMetadata struct {
 	Alias string `json:"alias"`
+}
+
+// MempoolOperation -
+type MempoolOperation struct {
+	Raw  stdJSON.RawMessage   `json:"-"`
+	Body MempoolOperationBody `json:"-"`
+}
+
+// MempoolOperationBody -
+type MempoolOperationBody struct {
+	Amount       int64              `json:"amount,string"`
+	Branch       string             `json:"branch"`
+	Counter      int64              `json:"counter,string"`
+	CreatedAt    time.Time          `json:"created_at"`
+	Destination  string             `json:"destination"`
+	Errors       stdJSON.RawMessage `json:"errors,omitempty"`
+	Fee          int64              `json:"fee,string"`
+	GasLimit     int64              `json:"gas_limit,string"`
+	Hash         string             `json:"hash"`
+	Kind         string             `json:"kind"`
+	Node         string             `json:"node"`
+	Parameters   stdJSON.RawMessage `json:"parameters"`
+	Protocol     string             `json:"protocol"`
+	Signature    string             `json:"signature"`
+	Source       string             `json:"source"`
+	Status       string             `json:"status"`
+	StorageLimit int64              `json:"storage_limit,string"`
+	Timestamp    int64              `json:"timestamp"`
+}
+
+// UnmarshalJSON -
+func (mo *MempoolOperation) UnmarshalJSON(data []byte) error {
+	mo.Raw = data
+	return json.Unmarshal(data, &mo.Body)
 }

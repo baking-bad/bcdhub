@@ -57,14 +57,14 @@ func (bm *BulkManager) Run() {
 	defer bm.wg.Done()
 
 	bm.wg.Add(1)
-	ticker := time.NewTicker(bm.timeout)
-	defer ticker.Stop()
+	bm.ticker = time.NewTicker(bm.timeout)
+	defer bm.ticker.Stop()
 
 	for {
 		select {
 		case <-bm.stop:
 			return
-		case <-ticker.C:
+		case <-bm.ticker.C:
 			bm.lock.Lock()
 			{
 				bm.process()

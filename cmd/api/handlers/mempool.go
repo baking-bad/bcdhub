@@ -2,13 +2,14 @@ package handlers
 
 import (
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
+	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/tzkt"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 )
@@ -51,38 +52,38 @@ func (ctx *Context) GetMempool(c *gin.Context) {
 	c.JSON(http.StatusOK, ret)
 }
 
-func (ctx *Context) prepareMempoolOperations(res gjson.Result, address, network string) ([]Operation, error) {
-	ret := make([]Operation, 0)
-	if res.Get("#").Int() == 0 {
+func (ctx *Context) prepareMempoolOperations(res []tzkt.MempoolOperation, address, network string) ([]Operation, error) {
+	ret := make([]Operation, len(res))
+	if len(res) == 0 {
 		return ret, nil
 	}
-	for _, item := range res.Array() {
-		status := item.Get("status").String()
+	for i := len(res) - 1; i >= 0; i-- {
+		status := res[i].Body.Status
 		if status == consts.Applied {
 			status = "pending"
 		}
 
 		op := Operation{
-			Protocol:  item.Get("protocol").String(),
-			Hash:      item.Get("hash").String(),
+			Protocol:  res[i].Body.Protocol,
+			Hash:      res[i].Body.Hash,
 			Network:   network,
-			Timestamp: time.Unix(item.Get("timestamp").Int(), 0).UTC(),
+			Timestamp: time.Unix(res[i].Body.Timestamp, 0).UTC(),
 
-			Kind:         item.Get("kind").String(),
-			Source:       item.Get("source").String(),
-			Fee:          item.Get("fee").Int(),
-			Counter:      item.Get("counter").Int(),
-			GasLimit:     item.Get("gas_limit").Int(),
-			StorageLimit: item.Get("storage_limit").Int(),
-			Amount:       item.Get("amount").Int(),
-			Destination:  item.Get("destination").String(),
+			Kind:         res[i].Body.Kind,
+			Source:       res[i].Body.Source,
+			Fee:          res[i].Body.Fee,
+			Counter:      res[i].Body.Counter,
+			GasLimit:     res[i].Body.GasLimit,
+			StorageLimit: res[i].Body.StorageLimit,
+			Amount:       res[i].Body.Amount,
+			Destination:  res[i].Body.Destination,
 			Mempool:      true,
 			Status:       status,
 		}
 
 		op.SourceAlias = ctx.Aliases[op.Source]
 		op.DestinationAlias = ctx.Aliases[op.Destination]
-		errs, err := cerrors.ParseArray([]byte(item.Get("errors").Raw))
+		errs, err := cerrors.ParseArray(res[i].Body.Errors)
 		if err != nil {
 			return nil, err
 		}
@@ -92,8 +93,9 @@ func (ctx *Context) prepareMempoolOperations(res gjson.Result, address, network 
 			ret = append(ret, op)
 			continue
 		}
-		params := item.Get("parameters")
-		if strings.HasPrefix(op.Destination, "KT") && op.Protocol != "" {
+
+		if helpers.IsContract(op.Destination) && op.Protocol != "" {
+			params := gjson.ParseBytes(res[i].Body.Parameters)
 			if params.Exists() {
 				metadata, err := meta.GetMetadata(ctx.ES, address, consts.PARAMETER, op.Protocol)
 				if err != nil {
@@ -116,12 +118,8 @@ func (ctx *Context) prepareMempoolOperations(res gjson.Result, address, network 
 			}
 		}
 
-		ret = append(ret, op)
+		ret[i] = op
 	}
 
-	// reverse array
-	for i, j := 0, len(ret)-1; i < j; i, j = i+1, j-1 {
-		ret[i], ret[j] = ret[j], ret[i]
-	}
 	return ret, nil
 }

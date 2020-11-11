@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
@@ -13,6 +12,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
+	"github.com/tidwall/gjson"
 )
 
 // GetEvents -
@@ -109,40 +109,38 @@ func (ctx *Context) getMempoolEvents(subscriptions []database.Subscription) ([]e
 		if err != nil {
 			return events, err
 		}
-		if res.Get("#").Int() == 0 {
+		if len(res) == 0 {
 			continue
 		}
 
-		for _, item := range res.Array() {
-			status := item.Get("status").String()
+		for _, item := range res {
+			status := item.Body.Status
 			if status == consts.Applied {
 				status = "pending" //nolint
 			}
 
 			op := elastic.EventOperation{
 				Network:     sub.Network,
-				Hash:        item.Get("hash").String(),
+				Hash:        item.Body.Hash,
 				Status:      status,
-				Timestamp:   time.Unix(item.Get("timestamp").Int(), 0).UTC(),
-				Kind:        item.Get("kind").String(),
-				Fee:         item.Get("fee").Int(),
-				Amount:      item.Get("amount").Int(),
-				Source:      item.Get("source").String(),
-				Destination: item.Get("destination").String(),
+				Timestamp:   time.Unix(item.Body.Timestamp, 0).UTC(),
+				Kind:        item.Body.Kind,
+				Fee:         item.Body.Fee,
+				Amount:      item.Body.Amount,
+				Source:      item.Body.Source,
+				Destination: item.Body.Destination,
 			}
 
 			op.SourceAlias = ctx.Aliases[op.Source]
 			op.DestinationAlias = ctx.Aliases[op.Destination]
-			op.Errors, err = cerrors.ParseArray([]byte(item.Get("errors").Raw))
+			op.Errors, err = cerrors.ParseArray(item.Body.Errors)
 			if err != nil {
 				return nil, err
 			}
 
-			protocol := item.Get("protocol").String()
-
-			if strings.HasPrefix(op.Destination, "KT") && protocol != "" {
-				if params := item.Get("parameters"); params.Exists() {
-					metadata, err := meta.GetMetadata(ctx.ES, op.Destination, consts.PARAMETER, protocol)
+			if helpers.IsContract(op.Destination) && item.Body.Protocol != "" {
+				if params := gjson.ParseBytes(item.Body.Parameters); params.Exists() {
+					metadata, err := meta.GetMetadata(ctx.ES, op.Destination, consts.PARAMETER, item.Body.Protocol)
 					if err != nil {
 						return events, err
 					}
