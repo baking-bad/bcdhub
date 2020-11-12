@@ -31,12 +31,7 @@ var configEnd = `  location / {
 }`
 
 func makeNginxConfig(ctx *config.Context, dapps []tzip.DApp) error {
-	env := os.Getenv(config.EnvironmentVar)
-	if env == "" {
-		return fmt.Errorf("no %s env var", config.EnvironmentVar)
-	}
-
-	file, err := os.Create(fmt.Sprintf("../../build/nginx/%s.conf", env))
+	file, err := os.Create("../../build/nginx/default.conf")
 	if err != nil {
 		return err
 	}
@@ -48,7 +43,7 @@ func makeNginxConfig(ctx *config.Context, dapps []tzip.DApp) error {
 		return err
 	}
 
-	logger.Info("nginx default config created in build/nginx/%s.xml", env)
+	logger.Info("nginx default config created in build/nginx/default.conf")
 
 	return nil
 }
