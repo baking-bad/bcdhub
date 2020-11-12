@@ -14,7 +14,7 @@ import (
 func makeSitemap(ctx *config.Context, dapps []tzip.DApp) error {
 	aliases, err := ctx.ES.GetAliases(consts.Mainnet)
 	if err != nil {
-		logger.Fatal(err)
+		return err
 	}
 
 	aliasModels := make([]models.TZIP, 0)
@@ -40,7 +40,7 @@ func makeSitemap(ctx *config.Context, dapps []tzip.DApp) error {
 	// logger.Info("Total aliases: %d", len(aliasModels))
 
 	if err := buildXML(aliasModels, ctx.Config.Scripts.Networks, dapps); err != nil {
-		logger.Fatal(err)
+		return err
 	}
 
 	logger.Info("Sitemap created in sitemap.xml")
