@@ -27,6 +27,7 @@ type Config struct {
 	OAuth        OAuthConfig           `yaml:"oauth"`
 	Sentry       SentryConfig          `yaml:"sentry"`
 	SharePath    string                `yaml:"share_path"`
+	BaseURL      string                `yaml:"base_url"`
 	IPFSGateways []string              `yaml:"ipfs"`
 
 	API struct {
