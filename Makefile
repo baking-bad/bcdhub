@@ -20,6 +20,9 @@ compiler:
 sitemap:
 	cd scripts/sitemap && go run .
 
+nginx:
+	cd scripts/nginx && go run .
+
 migration:
 ifeq ($(BCD_ENV), development)
 	cd scripts/migration && go run .

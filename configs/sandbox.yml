@@ -18,6 +18,8 @@ db:
 
 share_path: ${HOME}/.bcd
 
+base_url: http://localhost:8000
+
 ipfs:
   - https://ipfs.io
   - https://dweb.link

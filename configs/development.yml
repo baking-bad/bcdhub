@@ -63,6 +63,8 @@ sentry:
 
 share_path: ${HOME}/.bcd
 
+base_url: http://localhost:8080
+
 ipfs:
   - https://ipfs.io
   - https://dweb.link

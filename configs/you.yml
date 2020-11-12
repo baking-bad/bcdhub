@@ -63,6 +63,8 @@ sentry:
 
 share_path: /etc/bcd
 
+base_url: https://you.better-call.dev
+
 ipfs:
   - https://ipfs.io
   - https://dweb.link
@@ -116,18 +118,18 @@ indexer:
     dalphanet:
 
 metrics:
-    project_name: metrics
-    sentry_enabled: true
-    mq:
-        publisher: false
-        queues:
-            operations:
-            contracts:
-            migrations:
-            recalc:
-            transfers:
-            bigmapdiffs:
-            projects:
+  project_name: metrics
+  sentry_enabled: true
+  mq:
+    publisher: false
+    queues:
+      operations:
+      contracts:
+      migrations:
+      recalc:
+      transfers:
+      bigmapdiffs:
+      projects:
 
 scripts:
   aws:

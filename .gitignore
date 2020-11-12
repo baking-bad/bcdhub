@@ -23,3 +23,5 @@ sitemap.xml
 scripts/migration/data/events
 scripts/migration/data/*.yml
 *.csv
+build/nginx/*.conf
+build/nginx/*.yml
