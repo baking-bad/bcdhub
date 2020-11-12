@@ -19,7 +19,7 @@ type Error struct {
 
 // Operation -
 type Operation struct {
-	Level                              int64            `json:"level"`
+	Level                              int64            `json:"level,omitempty"`
 	Fee                                int64            `json:"fee,omitempty"`
 	Counter                            int64            `json:"counter,omitempty"`
 	GasLimit                           int64            `json:"gas_limit,omitempty"`
@@ -34,7 +34,7 @@ type Operation struct {
 	Result                             *OperationResult `json:"result,omitempty"`
 	Parameters                         interface{}      `json:"parameters,omitempty"`
 	StorageDiff                        interface{}      `json:"storage_diff,omitempty"`
-	RawMempool                         interface{}      `json:"rawMempool"`
+	RawMempool                         interface{}      `json:"rawMempool,omitempty"`
 	Timestamp                          time.Time        `json:"timestamp"`
 	ID                                 string           `json:"id,omitempty"`
 	Protocol                           string           `json:"protocol"`

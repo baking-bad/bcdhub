@@ -2,8 +2,6 @@ package noderpc
 
 import (
 	"time"
-
-	"github.com/tidwall/gjson"
 )
 
 // Header is a header in a block returned by the Tezos RPC API.
@@ -16,11 +14,10 @@ type Header struct {
 	Predecessor string    `json:"predecessor"`
 }
 
-func (h *Header) parseGJSON(data gjson.Result) {
-	h.Level = data.Get("level").Int()
-	h.Protocol = data.Get("protocol").String()
-	h.ChainID = data.Get("chain_id").String()
-	h.Timestamp = data.Get("timestamp").Time().UTC()
-	h.Predecessor = data.Get("predecessor").String()
-	h.Hash = data.Get("hash").String()
+// Constants -
+type Constants struct {
+	CostPerByte                  int64   `json:"cost_per_byte"`
+	HardGasLimitPerOperation     int64   `json:"hard_gas_limit_per_operation"`
+	HardStorageLimitPerOperation int64   `json:"hard_storage_limit_per_operation"`
+	TimeBetweenBlocks            []int64 `json:"time_between_blocks"`
 }

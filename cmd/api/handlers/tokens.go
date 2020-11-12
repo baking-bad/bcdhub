@@ -200,6 +200,7 @@ func (ctx *Context) contractToTokens(contracts []models.Contract, network, versi
 			Delegate:      contracts[i].Delegate,
 			Alias:         contracts[i].Alias,
 			DelegateAlias: contracts[i].DelegateAlias,
+			LastAction:    contracts[i].LastAction,
 		}
 		for _, tag := range contracts[i].Tags {
 			if tag == consts.FA2Tag {

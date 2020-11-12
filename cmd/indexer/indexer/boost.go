@@ -93,10 +93,10 @@ func (bi *BoostIndexer) fetchExternalProtocols() error {
 			if err != nil {
 				return err
 			}
-			protocolConstants.CostPerByte = constants.Get("cost_per_byte").Int()
-			protocolConstants.HardGasLimitPerOperation = constants.Get("hard_gas_limit_per_operation").Int()
-			protocolConstants.HardStorageLimitPerOperation = constants.Get("hard_storage_limit_per_operation").Int()
-			protocolConstants.TimeBetweenBlocks = constants.Get("time_between_blocks.0").Int()
+			protocolConstants.CostPerByte = constants.CostPerByte
+			protocolConstants.HardGasLimitPerOperation = constants.HardGasLimitPerOperation
+			protocolConstants.HardStorageLimitPerOperation = constants.HardStorageLimitPerOperation
+			protocolConstants.TimeBetweenBlocks = constants.TimeBetweenBlocks[0]
 		}
 		newProtocol.Constants = protocolConstants
 
