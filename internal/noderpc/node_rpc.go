@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -387,9 +388,11 @@ func (rpc *NodeRPC) RunOperation(chainID, branch, source, destination string, fe
 
 // GetCounter -
 func (rpc *NodeRPC) GetCounter(address string) (int64, error) {
-	var counter int64
-	err := rpc.get(fmt.Sprintf("chains/main/blocks/head/context/contracts/%s/counter", address), &counter)
-	return counter, err
+	var counter string
+	if err := rpc.get(fmt.Sprintf("chains/main/blocks/head/context/contracts/%s/counter", address), &counter); err != nil {
+		return 0, err
+	}
+	return strconv.ParseInt(counter, 10, 64)
 }
 
 // GetCode -

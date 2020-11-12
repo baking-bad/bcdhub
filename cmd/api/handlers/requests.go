@@ -333,3 +333,7 @@ type getTransfersRequest struct {
 	Sort      string `form:"sort" binding:"omitempty,oneof=asc desc"`
 	TokenID   *int64 `form:"token_id" binding:"omitempty,min=0"`
 }
+
+type getTokenHolders struct {
+	TokenID *int64 `form:"token_id" binding:"min=0"`
+}

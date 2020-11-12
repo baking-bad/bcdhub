@@ -1,0 +1,39 @@
+{
+    "mappings": {
+        "properties": {
+            "address": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "ignore_above": 256.0,
+                        "type": "keyword"
+                    }
+                }
+            },
+            "balance": {
+                "type": "long"
+            },
+            "token_id": {
+                "type": "long"
+            },
+            "contract": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "ignore_above": 256.0,
+                        "type": "keyword"
+                    }
+                }
+            },
+            "network": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "ignore_above": 256.0,
+                        "type": "keyword"
+                    }
+                }
+            }
+        }
+    }
+}

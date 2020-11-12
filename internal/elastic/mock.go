@@ -1717,6 +1717,35 @@ func (mr *MockITokensMockRecorder) GetTransfers(ctx interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransfers", reflect.TypeOf((*MockITokens)(nil).GetTransfers), ctx)
 }
 
+// UpdateTokenBalances mocks base method
+func (m *MockITokens) UpdateTokenBalances(updates []*models.TokenBalance) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateTokenBalances", updates)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateTokenBalances indicates an expected call of UpdateTokenBalances
+func (mr *MockITokensMockRecorder) UpdateTokenBalances(updates interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTokenBalances", reflect.TypeOf((*MockITokens)(nil).UpdateTokenBalances), updates)
+}
+
+// GetHolders mocks base method
+func (m *MockITokens) GetHolders(network, contract string, tokenID int64) ([]models.TokenBalance, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetHolders", network, contract, tokenID)
+	ret0, _ := ret[0].([]models.TokenBalance)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetHolders indicates an expected call of GetHolders
+func (mr *MockITokensMockRecorder) GetHolders(network, contract, tokenID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHolders", reflect.TypeOf((*MockITokens)(nil).GetHolders), network, contract, tokenID)
+}
+
 // MockITZIP is a mock of ITZIP interface
 type MockITZIP struct {
 	ctrl     *gomock.Controller
@@ -3101,6 +3130,35 @@ func (m *MockIElastic) GetTransfers(ctx GetTransfersContext) (TransfersResponse,
 func (mr *MockIElasticMockRecorder) GetTransfers(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransfers", reflect.TypeOf((*MockIElastic)(nil).GetTransfers), ctx)
+}
+
+// UpdateTokenBalances mocks base method
+func (m *MockIElastic) UpdateTokenBalances(updates []*models.TokenBalance) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateTokenBalances", updates)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateTokenBalances indicates an expected call of UpdateTokenBalances
+func (mr *MockIElasticMockRecorder) UpdateTokenBalances(updates interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTokenBalances", reflect.TypeOf((*MockIElastic)(nil).UpdateTokenBalances), updates)
+}
+
+// GetHolders mocks base method
+func (m *MockIElastic) GetHolders(network, contract string, tokenID int64) ([]models.TokenBalance, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetHolders", network, contract, tokenID)
+	ret0, _ := ret[0].([]models.TokenBalance)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetHolders indicates an expected call of GetHolders
+func (mr *MockIElasticMockRecorder) GetHolders(network, contract, tokenID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHolders", reflect.TypeOf((*MockIElastic)(nil).GetHolders), network, contract, tokenID)
 }
 
 // GetTZIP mocks base method
