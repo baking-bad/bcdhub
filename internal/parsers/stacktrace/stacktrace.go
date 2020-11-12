@@ -2,8 +2,10 @@ package stacktrace
 
 import (
 	"fmt"
+	"io"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 )
 
@@ -148,16 +150,23 @@ func (st *StackTrace) String() string {
 		}
 	}
 
-	st.print(topLevel, 1, &builder)
+	if err := st.print(topLevel, 1, &builder); err != nil {
+		logger.Error(err)
+	}
 	return builder.String()
 }
 
-func (st *StackTrace) print(arr []int64, depth int, builder *strings.Builder) {
+func (st *StackTrace) print(arr []int64, depth int, builder io.StringWriter) error {
 	for i := range arr {
 		if item, ok := st.tree[arr[i]]; ok {
-			builder.WriteString(strings.Repeat("  ", depth))
-			builder.WriteString(item.String())
+			if _, err := builder.WriteString(strings.Repeat("  ", depth)); err != nil {
+				return err
+			}
+			if _, err := builder.WriteString(item.String()); err != nil {
+				return err
+			}
 			st.print(item.children, depth+1, builder)
 		}
 	}
+	return nil
 }
