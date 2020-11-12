@@ -20,6 +20,9 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // ParseArray -
 func ParseArray(data []byte) ([]*Error, error) {
+	if len(data) == 0 {
+		return nil, nil
+	}
 	ret := make([]*Error, 0)
 	err := json.Unmarshal(data, &ret)
 	return ret, err
@@ -115,16 +118,20 @@ func (e *Error) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 	data = data[:len(data)-1]
+	w := bytes.NewBuffer(data)
 
 	body, err := json.Marshal(e.IError)
 	if err != nil {
 		return nil, err
 	}
-	body = body[1:]
+	if len(body) > 2 {
+		body = body[1:]
 
-	w := bytes.NewBuffer(data)
-	w.WriteString(", ")
-	w.Write(body)
+		w.WriteString(", ")
+		w.Write(body)
+	} else {
+		w.WriteByte('}')
+	}
 
 	return w.Bytes(), nil
 }

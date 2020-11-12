@@ -1,11 +1,9 @@
 package main
 
 import (
-	"log"
 	"os"
 	"os/signal"
 	"runtime"
-	"runtime/pprof"
 	"strings"
 	"sync"
 	"syscall"
@@ -18,12 +16,6 @@ import (
 )
 
 func main() {
-	f, err := os.Create("profile.prof")
-	if err != nil {
-		log.Fatal(err)
-	}
-	pprof.StartCPUProfile(f)
-	defer pprof.StopCPUProfile()
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
 		logger.Fatal(err)

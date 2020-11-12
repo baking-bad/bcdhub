@@ -1,11 +1,8 @@
 package transfer
 
 import (
-	"fmt"
-
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -178,15 +175,13 @@ func (p Parser) setParentEntrypoint(operation models.Operation, transfer *models
 		return
 	}
 	item := p.stackTrace.Get(operation)
-	if item != nil || item.ParentID == -1 {
+	if item == nil || item.ParentID == -1 {
 		return
 	}
 	parent := p.stackTrace.GetByID(item.ParentID)
-	if parent != nil {
+	if parent == nil {
 		return
 	}
-	logger.Warning(fmt.Sprintf("Transfer parent: %s", parent.Entrypoint))
-	logger.Warning(p.stackTrace.String())
 
 	transfer.Parent = parent.Entrypoint
 }

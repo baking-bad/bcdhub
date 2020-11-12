@@ -299,7 +299,7 @@ func parseSearchResponse(response searchByTextResponse) ([]SearchItem, error) {
 
 func parseSearchGroupingResponse(response searchByTextResponse, offset int64) ([]SearchItem, error) {
 	if len(response.Agg.Projects.Buckets) == 0 {
-		return nil, nil
+		return make([]SearchItem, 0), nil
 	}
 
 	arr := response.Agg.Projects.Buckets

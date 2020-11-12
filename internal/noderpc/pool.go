@@ -201,12 +201,12 @@ func (p Pool) GetContractsByBlock(block int64) ([]string, error) {
 }
 
 // GetNetworkConstants -
-func (p Pool) GetNetworkConstants(level int64) (res gjson.Result, err error) {
+func (p Pool) GetNetworkConstants(level int64) (res Constants, err error) {
 	data, err := p.call("GetNetworkConstants", level)
 	if err != nil {
-		return gjson.Result{}, err
+		return res, err
 	}
-	return data.Interface().(gjson.Result), nil
+	return data.Interface().(Constants), nil
 }
 
 // RunCode -

@@ -48,10 +48,10 @@ func (m *SetProtocolConstants) Do(ctx *config.Context) error {
 			return err
 		}
 		protocols[i].Constants = models.Constants{
-			CostPerByte:                  constants.Get("cost_per_byte").Int(),
-			HardGasLimitPerOperation:     constants.Get("hard_gas_limit_per_operation").Int(),
-			HardStorageLimitPerOperation: constants.Get("hard_storage_limit_per_operation").Int(),
-			TimeBetweenBlocks:            constants.Get("time_between_blocks.0").Int(),
+			CostPerByte:                  constants.CostPerByte,
+			HardGasLimitPerOperation:     constants.HardGasLimitPerOperation,
+			HardStorageLimitPerOperation: constants.HardStorageLimitPerOperation,
+			TimeBetweenBlocks:            constants.TimeBetweenBlocks[0],
 		}
 
 		logger.Info("%##v", protocols[i])

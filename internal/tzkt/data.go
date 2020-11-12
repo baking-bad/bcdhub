@@ -112,7 +112,7 @@ type MempoolOperationBody struct {
 	Amount       int64              `json:"amount,string"`
 	Branch       string             `json:"branch"`
 	Counter      int64              `json:"counter,string"`
-	CreatedAt    time.Time          `json:"created_at"`
+	CreatedAt    string             `json:"created_at"`
 	Destination  string             `json:"destination"`
 	Errors       stdJSON.RawMessage `json:"errors,omitempty"`
 	Fee          int64              `json:"fee,string"`
