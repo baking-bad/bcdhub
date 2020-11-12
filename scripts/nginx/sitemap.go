@@ -32,14 +32,14 @@ func makeSitemap(ctx *config.Context, dapps []tzip.DApp) error {
 			continue
 		}
 
-		// logger.Info("%s %s", a.Address, data.Name)
+		logger.Info("%s %s", a.Address, data.Name)
 
 		aliasModels = append(aliasModels, a)
 	}
 
 	// logger.Info("Total aliases: %d", len(aliasModels))
 
-	if err := buildXML(aliasModels, ctx.Config.Scripts.Networks, dapps); err != nil {
+	if err := buildXML(aliasModels, ctx.Config, dapps); err != nil {
 		return err
 	}
 
@@ -48,25 +48,25 @@ func makeSitemap(ctx *config.Context, dapps []tzip.DApp) error {
 	return nil
 }
 
-func buildXML(aliases []models.TZIP, networks []string, dapps []tzip.DApp) error {
+func buildXML(aliases []models.TZIP, cfg config.Config, dapps []tzip.DApp) error {
 	s := sitemap.New()
 
-	s.AddLocation("https://better-call.dev")
-	s.AddLocation("https://better-call.dev/stats")
-	s.AddLocation("https://better-call.dev/search")
-	s.AddLocation("https://better-call.dev/dapps/list")
-	s.AddLocation("https://api.better-call.dev/v1/docs/index.html")
+	s.AddLocation(cfg.BaseURL)
+	s.AddLocation(fmt.Sprintf("%s/stats", cfg.BaseURL))
+	s.AddLocation(fmt.Sprintf("%s/search", cfg.BaseURL))
+	s.AddLocation(fmt.Sprintf("%s/dapps/list", cfg.BaseURL))
+	s.AddLocation(fmt.Sprintf("https://%s/v1/docs/index.html", cfg.API.SwaggerHost))
 
-	for _, network := range networks {
-		s.AddLocation(fmt.Sprintf("https://better-call.dev/stats/%s", network))
+	for _, network := range cfg.Scripts.Networks {
+		s.AddLocation(fmt.Sprintf("%s/stats/%s", cfg.BaseURL, network))
 	}
 
 	for _, a := range aliases {
-		s.AddLocation(fmt.Sprintf("https://better-call.dev/@%s", a.Slug))
+		s.AddLocation(fmt.Sprintf("%s/@%s", cfg.BaseURL, a.Slug))
 	}
 
 	for _, d := range dapps {
-		s.AddLocation(fmt.Sprintf("https://better-call.dev/dapps/%s", d.Slug))
+		s.AddLocation(fmt.Sprintf("%s/dapps/%s", cfg.BaseURL, d.Slug))
 	}
 
 	return s.SaveToFile("../../build/nginx/sitemap.xml")
