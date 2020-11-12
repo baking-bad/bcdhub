@@ -42,10 +42,7 @@ func makeNginxConfig(ctx *config.Context, dapps []tzip.DApp) error {
 	}
 	defer file.Close()
 
-	nginxConf, err := buildConfig(dapps, ctx.Config.BaseURL)
-	if err != nil {
-		return err
-	}
+	nginxConf := buildConfig(dapps, ctx.Config.BaseURL)
 
 	if _, err := file.WriteString(nginxConf); err != nil {
 		return err
@@ -56,7 +53,7 @@ func makeNginxConfig(ctx *config.Context, dapps []tzip.DApp) error {
 	return nil
 }
 
-func buildConfig(dapps []tzip.DApp, baseURL string) (string, error) {
+func buildConfig(dapps []tzip.DApp, baseURL string) string {
 	var config strings.Builder
 
 	config.WriteString(configStart)
@@ -86,5 +83,5 @@ func buildConfig(dapps []tzip.DApp, baseURL string) (string, error) {
 
 	config.WriteString(configEnd)
 
-	return config.String(), nil
+	return config.String()
 }
