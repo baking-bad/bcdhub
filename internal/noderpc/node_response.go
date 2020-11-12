@@ -1,6 +1,7 @@
 package noderpc
 
 import (
+	"strconv"
 	"time"
 )
 
@@ -14,10 +15,30 @@ type Header struct {
 	Predecessor string    `json:"predecessor"`
 }
 
+// Int64StringSlice -
+type Int64StringSlice []int64
+
+// UnmarshalJSON -
+func (slice *Int64StringSlice) UnmarshalJSON(data []byte) error {
+	s := make([]string, 0)
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+	*slice = make([]int64, len(s))
+	for i := range s {
+		value, err := strconv.ParseInt(s[i], 10, 64)
+		if err != nil {
+			return err
+		}
+		(*slice)[i] = value
+	}
+	return nil
+}
+
 // Constants -
 type Constants struct {
-	CostPerByte                  int64   `json:"cost_per_byte"`
-	HardGasLimitPerOperation     int64   `json:"hard_gas_limit_per_operation"`
-	HardStorageLimitPerOperation int64   `json:"hard_storage_limit_per_operation"`
-	TimeBetweenBlocks            []int64 `json:"time_between_blocks"`
+	CostPerByte                  int64            `json:"cost_per_byte,string"`
+	HardGasLimitPerOperation     int64            `json:"hard_gas_limit_per_operation,string"`
+	HardStorageLimitPerOperation int64            `json:"hard_storage_limit_per_operation,string"`
+	TimeBetweenBlocks            Int64StringSlice `json:"time_between_blocks"`
 }

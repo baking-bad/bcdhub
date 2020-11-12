@@ -168,6 +168,8 @@ type ITokens interface {
 	GetAccountBalances(string, string) (map[TokenBalance]int64, error)
 	GetTokenSupply(network, address string, tokenID int64) (result TokenSupply, err error)
 	GetTransfers(ctx GetTransfersContext) (TransfersResponse, error)
+	UpdateTokenBalances(updates []*models.TokenBalance) error
+	GetHolders(network, contract string, tokenID int64) ([]models.TokenBalance, error)
 }
 
 // ITZIP -

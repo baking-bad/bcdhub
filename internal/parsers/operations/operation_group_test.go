@@ -38,6 +38,11 @@ func TestGroup_Parse(t *testing.T) {
 		GetTZIPWithViews().
 		Return(make([]models.TZIP, 0), nil).
 		AnyTimes()
+	es.
+		EXPECT().
+		UpdateTokenBalances(gomock.Any()).
+		Return(nil).
+		AnyTimes()
 
 	tests := []struct {
 		name        string

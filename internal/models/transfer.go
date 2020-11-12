@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -96,5 +97,41 @@ func EmptyTransfer(o Operation) *Transfer {
 		Initiator:   o.Source,
 		Counter:     o.Counter,
 		Nonce:       o.Nonce,
+	}
+}
+
+// GetFromTokenBalanceID -
+func (t *Transfer) GetFromTokenBalanceID() string {
+	if t.From != "" {
+		return fmt.Sprintf("%s_%s_%s_%d", t.Network, t.From, t.Contract, t.TokenID)
+	}
+	return ""
+}
+
+// GetToTokenBalanceID -
+func (t *Transfer) GetToTokenBalanceID() string {
+	if t.To != "" {
+		return fmt.Sprintf("%s_%s_%s_%d", t.Network, t.To, t.Contract, t.TokenID)
+	}
+	return ""
+}
+
+// MakeTokenBalanceUpdate -
+func (t *Transfer) MakeTokenBalanceUpdate(from bool) *TokenBalance {
+	if from {
+		return &TokenBalance{
+			Network:  t.Network,
+			Address:  t.From,
+			Contract: t.Contract,
+			TokenID:  t.TokenID,
+			Balance:  -int64(t.Amount),
+		}
+	}
+	return &TokenBalance{
+		Network:  t.Network,
+		Address:  t.To,
+		Contract: t.Contract,
+		TokenID:  t.TokenID,
+		Balance:  int64(t.Amount),
 	}
 }

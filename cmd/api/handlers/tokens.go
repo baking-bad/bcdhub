@@ -312,3 +312,39 @@ func (ctx *Context) getTokens(network, address string) ([]Token, error) {
 	}
 	return tokens, nil
 }
+
+// GetTokenHolders godoc
+// @Summary List token holders
+// @Description List token holders
+// @Tags contract
+// @ID get-token-holders
+// @Param network path string true "Network"
+// @Param address path string true "KT address" minlength(36) maxlength(36)
+// @Param token_id query int true "Token ID" minimum(0)
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} gin.H
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /contract/{network}/{address}/tokens/holders [get]
+func (ctx *Context) GetTokenHolders(c *gin.Context) {
+	var req getContractRequest
+	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+	var reqArgs getTokenHolders
+	if err := c.BindQuery(&reqArgs); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
+	balances, err := ctx.ES.GetHolders(req.Network, req.Address, *reqArgs.TokenID)
+	if handleError(c, err, 0) {
+		return
+	}
+	result := make(map[string]int64)
+	for i := range balances {
+		result[balances[i].Address] = balances[i].Balance
+	}
+
+	c.JSON(http.StatusOK, result)
+}
