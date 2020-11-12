@@ -17,11 +17,9 @@ compiler:
 	docker-compose -f docker-compose.yml -f build/compiler/dev/docker-compose.yml up -d --build compiler-dev
 	docker logs -f bcd-compiler-dev
 
-sitemap:
-	cd scripts/sitemap && go run .
-
-nginx:
+seo:
 	cd scripts/nginx && go run .
+	docker restart $$BCD_ENV-gui
 
 migration:
 ifeq ($(BCD_ENV), development)
