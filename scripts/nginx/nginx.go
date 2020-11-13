@@ -3,10 +3,9 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"html"
-	"html/template"
 	"os"
 	"strings"
+	"text/template"
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -60,7 +59,7 @@ func makeDappLocation(dapp tzip.DApp, baseURL string) string {
 	}
 
 	buf := &bytes.Buffer{}
-	tmpl := template.Must(template.New("").Parse(html.EscapeString(dappLocationTemplate)))
+	tmpl := template.Must(template.New("").Parse(dappLocationTemplate))
 
 	err := tmpl.Execute(buf, map[string]interface{}{
 		"slug":             dapp.Slug,
@@ -77,7 +76,7 @@ func makeDappLocation(dapp tzip.DApp, baseURL string) string {
 		logger.Fatal(err)
 	}
 
-	return html.UnescapeString(html.UnescapeString(buf.String()))
+	return buf.String()
 }
 
 func makeNginxConfig(ctx *config.Context, dapps []tzip.DApp, outputDir string) error {
