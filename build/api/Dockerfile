@@ -28,6 +28,7 @@ RUN go build -a -installsuffix cgo -o /go/bin/api .
 WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub/scripts/
 RUN cd esctl && go build -a -installsuffix cgo -o /go/bin/esctl .
 RUN cd migration && go build -a -installsuffix cgo -o /go/bin/migration .
+RUN cd nginx && go build -a -installsuffix cgo -o /go/bin/seo .
 
 # ---------------------------------------------------------------------
 #  The second stage container, for running the application
@@ -45,5 +46,6 @@ COPY cmd/api/data/errors.json /app/api/data/errors.json
 
 COPY --from=builder /go/bin/esctl /go/bin/esctl
 COPY --from=builder /go/bin/migration /go/bin/migration
+COPY --from=builder /go/bin/seo /go/bin/seo
 
 ENTRYPOINT ["/go/bin/api"]
