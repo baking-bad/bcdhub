@@ -6,6 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
 	"github.com/baking-bad/bcdhub/internal/elastic"
+	mock_elastic "github.com/baking-bad/bcdhub/internal/elastic/mock"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/golang/mock/gomock"
@@ -17,7 +18,7 @@ func TestRichStorage_Parse(t *testing.T) {
 
 	ctrlES := gomock.NewController(t)
 	defer ctrlES.Finish()
-	es := elastic.NewMockIElastic(ctrlES)
+	es := mock_elastic.NewMockIElastic(ctrlES)
 
 	ctrlRPC := gomock.NewController(t)
 	defer ctrlRPC.Finish()

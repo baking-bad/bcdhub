@@ -2,9 +2,10 @@
 // Source: interface.go
 
 // Package mock_elastic is a generated GoMock package.
-package elastic
+package mock_elastic
 
 import (
+	elastic "github.com/baking-bad/bcdhub/internal/elastic"
 	models "github.com/baking-bad/bcdhub/internal/models"
 	tzip "github.com/baking-bad/bcdhub/internal/models/tzip"
 	gomock "github.com/golang/mock/gomock"
@@ -238,7 +239,7 @@ func (mr *MockIGeneralMockRecorder) GetAll(arg0 interface{}) *gomock.Call {
 }
 
 // GetByID mocks base method
-func (m *MockIGeneral) GetByID(arg0 Model) error {
+func (m *MockIGeneral) GetByID(arg0 elastic.Model) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByID", arg0)
 	ret0, _ := ret[0].(error)
@@ -299,7 +300,7 @@ func (mr *MockIGeneralMockRecorder) GetByNetworkWithSort(arg0, arg1, arg2, arg3 
 }
 
 // UpdateDoc mocks base method
-func (m *MockIGeneral) UpdateDoc(model Model) error {
+func (m *MockIGeneral) UpdateDoc(model elastic.Model) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateDoc", model)
 	ret0, _ := ret[0].(error)
@@ -393,10 +394,10 @@ func (m *MockIBigMap) EXPECT() *MockIBigMapMockRecorder {
 }
 
 // GetBigMapKey mocks base method
-func (m *MockIBigMap) GetBigMapKey(network, keyHash string, ptr int64) (BigMapDiff, error) {
+func (m *MockIBigMap) GetBigMapKey(network, keyHash string, ptr int64) (elastic.BigMapDiff, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBigMapKey", network, keyHash, ptr)
-	ret0, _ := ret[0].(BigMapDiff)
+	ret0, _ := ret[0].(elastic.BigMapDiff)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -408,10 +409,10 @@ func (mr *MockIBigMapMockRecorder) GetBigMapKey(network, keyHash, ptr interface{
 }
 
 // GetBigMapKeys mocks base method
-func (m *MockIBigMap) GetBigMapKeys(ctx GetBigMapKeysContext) ([]BigMapDiff, error) {
+func (m *MockIBigMap) GetBigMapKeys(ctx elastic.GetBigMapKeysContext) ([]elastic.BigMapDiff, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBigMapKeys", ctx)
-	ret0, _ := ret[0].([]BigMapDiff)
+	ret0, _ := ret[0].([]elastic.BigMapDiff)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -453,10 +454,10 @@ func (mr *MockIBigMapMockRecorder) GetBigMapHistory(arg0, arg1 interface{}) *gom
 }
 
 // GetBigMapValuesByKey mocks base method
-func (m *MockIBigMap) GetBigMapValuesByKey(arg0 string) ([]BigMapDiff, error) {
+func (m *MockIBigMap) GetBigMapValuesByKey(arg0 string) ([]elastic.BigMapDiff, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBigMapValuesByKey", arg0)
-	ret0, _ := ret[0].([]BigMapDiff)
+	ret0, _ := ret[0].([]elastic.BigMapDiff)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -536,10 +537,10 @@ func (mr *MockIBigMapDiffMockRecorder) GetBigMapDiffsUniqueByOperationID(arg0 in
 }
 
 // GetBigMapDiffsByPtrAndKeyHash mocks base method
-func (m *MockIBigMapDiff) GetBigMapDiffsByPtrAndKeyHash(arg0 int64, arg1, arg2 string, arg3, arg4 int64) ([]BigMapDiff, int64, error) {
+func (m *MockIBigMapDiff) GetBigMapDiffsByPtrAndKeyHash(arg0 int64, arg1, arg2 string, arg3, arg4 int64) ([]elastic.BigMapDiff, int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBigMapDiffsByPtrAndKeyHash", arg0, arg1, arg2, arg3, arg4)
-	ret0, _ := ret[0].([]BigMapDiff)
+	ret0, _ := ret[0].([]elastic.BigMapDiff)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -688,7 +689,7 @@ func (m *MockIBulk) EXPECT() *MockIBulkMockRecorder {
 }
 
 // BulkInsert mocks base method
-func (m *MockIBulk) BulkInsert(arg0 []Model) error {
+func (m *MockIBulk) BulkInsert(arg0 []elastic.Model) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BulkInsert", arg0)
 	ret0, _ := ret[0].(error)
@@ -702,7 +703,7 @@ func (mr *MockIBulkMockRecorder) BulkInsert(arg0 interface{}) *gomock.Call {
 }
 
 // BulkUpdate mocks base method
-func (m *MockIBulk) BulkUpdate(arg0 []Model) error {
+func (m *MockIBulk) BulkUpdate(arg0 []elastic.Model) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BulkUpdate", arg0)
 	ret0, _ := ret[0].(error)
@@ -716,7 +717,7 @@ func (mr *MockIBulkMockRecorder) BulkUpdate(arg0 interface{}) *gomock.Call {
 }
 
 // BulkDelete mocks base method
-func (m *MockIBulk) BulkDelete(arg0 []Model) error {
+func (m *MockIBulk) BulkDelete(arg0 []elastic.Model) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BulkDelete", arg0)
 	ret0, _ := ret[0].(error)
@@ -730,7 +731,7 @@ func (mr *MockIBulkMockRecorder) BulkDelete(arg0 interface{}) *gomock.Call {
 }
 
 // BulkRemoveField mocks base method
-func (m *MockIBulk) BulkRemoveField(arg0 string, arg1 []Model) error {
+func (m *MockIBulk) BulkRemoveField(arg0 string, arg1 []elastic.Model) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BulkRemoveField", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -816,10 +817,10 @@ func (mr *MockIContractMockRecorder) GetContractRandom() *gomock.Call {
 }
 
 // GetContractMigrationStats mocks base method
-func (m *MockIContract) GetContractMigrationStats(arg0, arg1 string) (ContractMigrationsStats, error) {
+func (m *MockIContract) GetContractMigrationStats(arg0, arg1 string) (elastic.ContractMigrationsStats, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetContractMigrationStats", arg0, arg1)
-	ret0, _ := ret[0].(ContractMigrationsStats)
+	ret0, _ := ret[0].(elastic.ContractMigrationsStats)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -906,10 +907,10 @@ func (mr *MockIContractMockRecorder) IsFAContract(arg0, arg1 interface{}) *gomoc
 }
 
 // RecalcContractStats mocks base method
-func (m *MockIContract) RecalcContractStats(arg0, arg1 string) (ContractStats, error) {
+func (m *MockIContract) RecalcContractStats(arg0, arg1 string) (elastic.ContractStats, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RecalcContractStats", arg0, arg1)
-	ret0, _ := ret[0].(ContractStats)
+	ret0, _ := ret[0].(elastic.ContractStats)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -935,10 +936,10 @@ func (mr *MockIContractMockRecorder) UpdateContractMigrationsCount(arg0, arg1 in
 }
 
 // GetDAppStats mocks base method
-func (m *MockIContract) GetDAppStats(arg0 string, arg1 []string, arg2 string) (DAppStats, error) {
+func (m *MockIContract) GetDAppStats(arg0 string, arg1 []string, arg2 string) (elastic.DAppStats, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDAppStats", arg0, arg1, arg2)
-	ret0, _ := ret[0].(DAppStats)
+	ret0, _ := ret[0].(elastic.DAppStats)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -950,7 +951,7 @@ func (mr *MockIContractMockRecorder) GetDAppStats(arg0, arg1, arg2 interface{}) 
 }
 
 // GetContractsByAddresses mocks base method
-func (m *MockIContract) GetContractsByAddresses(addresses []Address) ([]models.Contract, error) {
+func (m *MockIContract) GetContractsByAddresses(addresses []elastic.Address) ([]models.Contract, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetContractsByAddresses", addresses)
 	ret0, _ := ret[0].([]models.Contract)
@@ -988,10 +989,10 @@ func (m *MockIEvents) EXPECT() *MockIEventsMockRecorder {
 }
 
 // GetEvents mocks base method
-func (m *MockIEvents) GetEvents(arg0 []SubscriptionRequest, arg1, arg2 int64) ([]Event, error) {
+func (m *MockIEvents) GetEvents(arg0 []elastic.SubscriptionRequest, arg1, arg2 int64) ([]elastic.Event, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetEvents", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]Event)
+	ret0, _ := ret[0].([]elastic.Event)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1064,10 +1065,10 @@ func (m *MockIOperations) EXPECT() *MockIOperationsMockRecorder {
 }
 
 // GetOperationsForContract mocks base method
-func (m *MockIOperations) GetOperationsForContract(arg0, arg1 string, arg2 uint64, arg3 map[string]interface{}) (PageableOperations, error) {
+func (m *MockIOperations) GetOperationsForContract(arg0, arg1 string, arg2 uint64, arg3 map[string]interface{}) (elastic.PageableOperations, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetOperationsForContract", arg0, arg1, arg2, arg3)
-	ret0, _ := ret[0].(PageableOperations)
+	ret0, _ := ret[0].(elastic.PageableOperations)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1094,10 +1095,10 @@ func (mr *MockIOperationsMockRecorder) GetLastOperation(arg0, arg1, arg2 interfa
 }
 
 // GetOperationsStats mocks base method
-func (m *MockIOperations) GetOperationsStats(network, address string) (OperationsStats, error) {
+func (m *MockIOperations) GetOperationsStats(network, address string) (elastic.OperationsStats, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetOperationsStats", network, address)
-	ret0, _ := ret[0].(OperationsStats)
+	ret0, _ := ret[0].(elastic.OperationsStats)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1162,10 +1163,10 @@ func (mr *MockIProjectsMockRecorder) GetProjectsLastContract() *gomock.Call {
 }
 
 // GetSameContracts mocks base method
-func (m *MockIProjects) GetSameContracts(arg0 models.Contract, arg1, arg2 int64) (SameContractsResponse, error) {
+func (m *MockIProjects) GetSameContracts(arg0 models.Contract, arg1, arg2 int64) (elastic.SameContractsResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSameContracts", arg0, arg1, arg2)
-	ret0, _ := ret[0].(SameContractsResponse)
+	ret0, _ := ret[0].(elastic.SameContractsResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1177,10 +1178,10 @@ func (mr *MockIProjectsMockRecorder) GetSameContracts(arg0, arg1, arg2 interface
 }
 
 // GetSimilarContracts mocks base method
-func (m *MockIProjects) GetSimilarContracts(arg0 models.Contract, arg1, arg2 int64) ([]SimilarContract, int, error) {
+func (m *MockIProjects) GetSimilarContracts(arg0 models.Contract, arg1, arg2 int64) ([]elastic.SimilarContract, int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSimilarContracts", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]SimilarContract)
+	ret0, _ := ret[0].([]elastic.SimilarContract)
 	ret1, _ := ret[1].(int)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -1193,10 +1194,10 @@ func (mr *MockIProjectsMockRecorder) GetSimilarContracts(arg0, arg1, arg2 interf
 }
 
 // GetDiffTasks mocks base method
-func (m *MockIProjects) GetDiffTasks() ([]DiffTask, error) {
+func (m *MockIProjects) GetDiffTasks() ([]elastic.DiffTask, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDiffTasks")
-	ret0, _ := ret[0].([]DiffTask)
+	ret0, _ := ret[0].([]elastic.DiffTask)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1284,10 +1285,10 @@ func (m *MockISearch) EXPECT() *MockISearchMockRecorder {
 }
 
 // SearchByText mocks base method
-func (m *MockISearch) SearchByText(arg0 string, arg1 int64, arg2 []string, arg3 map[string]interface{}, arg4 bool) (SearchResult, error) {
+func (m *MockISearch) SearchByText(arg0 string, arg1 int64, arg2 []string, arg3 map[string]interface{}, arg4 bool) (elastic.SearchResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchByText", arg0, arg1, arg2, arg3, arg4)
-	ret0, _ := ret[0].(SearchResult)
+	ret0, _ := ret[0].(elastic.SearchResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1336,10 +1337,10 @@ func (mr *MockISnapshotMockRecorder) CreateAWSRepository(arg0, arg1, arg2 interf
 }
 
 // ListRepositories mocks base method
-func (m *MockISnapshot) ListRepositories() ([]Repository, error) {
+func (m *MockISnapshot) ListRepositories() ([]elastic.Repository, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListRepositories")
-	ret0, _ := ret[0].([]Repository)
+	ret0, _ := ret[0].([]elastic.Repository)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1504,7 +1505,7 @@ func (mr *MockIStatsMockRecorder) GetNetworkCountStats(arg0 interface{}) *gomock
 }
 
 // GetDateHistogram mocks base method
-func (m *MockIStats) GetDateHistogram(period string, opts ...HistogramOption) ([][]int64, error) {
+func (m *MockIStats) GetDateHistogram(period string, opts ...elastic.HistogramOption) ([][]int64, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{period}
 	for _, a := range opts {
@@ -1539,10 +1540,10 @@ func (mr *MockIStatsMockRecorder) GetCallsCountByNetwork() *gomock.Call {
 }
 
 // GetContractStatsByNetwork mocks base method
-func (m *MockIStats) GetContractStatsByNetwork() (map[string]ContractCountStats, error) {
+func (m *MockIStats) GetContractStatsByNetwork() (map[string]elastic.ContractCountStats, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetContractStatsByNetwork")
-	ret0, _ := ret[0].(map[string]ContractCountStats)
+	ret0, _ := ret[0].(map[string]elastic.ContractCountStats)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1623,10 +1624,10 @@ func (mr *MockITokensMockRecorder) GetTokens(arg0, arg1, arg2, arg3 interface{})
 }
 
 // GetTokensStats mocks base method
-func (m *MockITokens) GetTokensStats(arg0 string, arg1, arg2 []string) (map[string]TokenUsageStats, error) {
+func (m *MockITokens) GetTokensStats(arg0 string, arg1, arg2 []string) (map[string]elastic.TokenUsageStats, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTokensStats", arg0, arg1, arg2)
-	ret0, _ := ret[0].(map[string]TokenUsageStats)
+	ret0, _ := ret[0].(map[string]elastic.TokenUsageStats)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1653,14 +1654,14 @@ func (mr *MockITokensMockRecorder) GetTokenVolumeSeries(arg0, arg1, arg2, arg3, 
 }
 
 // GetBalances mocks base method
-func (m *MockITokens) GetBalances(arg0, arg1 string, arg2 int64, arg3 ...TokenBalance) (map[TokenBalance]int64, error) {
+func (m *MockITokens) GetBalances(arg0, arg1 string, arg2 int64, arg3 ...elastic.TokenBalance) (map[elastic.TokenBalance]int64, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{arg0, arg1, arg2}
 	for _, a := range arg3 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetBalances", varargs...)
-	ret0, _ := ret[0].(map[TokenBalance]int64)
+	ret0, _ := ret[0].(map[elastic.TokenBalance]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1673,10 +1674,10 @@ func (mr *MockITokensMockRecorder) GetBalances(arg0, arg1, arg2 interface{}, arg
 }
 
 // GetAccountBalances mocks base method
-func (m *MockITokens) GetAccountBalances(arg0, arg1 string) (map[TokenBalance]int64, error) {
+func (m *MockITokens) GetAccountBalances(arg0, arg1 string) ([]models.TokenBalance, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAccountBalances", arg0, arg1)
-	ret0, _ := ret[0].(map[TokenBalance]int64)
+	ret0, _ := ret[0].([]models.TokenBalance)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1688,10 +1689,10 @@ func (mr *MockITokensMockRecorder) GetAccountBalances(arg0, arg1 interface{}) *g
 }
 
 // GetTokenSupply mocks base method
-func (m *MockITokens) GetTokenSupply(network, address string, tokenID int64) (TokenSupply, error) {
+func (m *MockITokens) GetTokenSupply(network, address string, tokenID int64) (elastic.TokenSupply, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTokenSupply", network, address, tokenID)
-	ret0, _ := ret[0].(TokenSupply)
+	ret0, _ := ret[0].(elastic.TokenSupply)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1703,10 +1704,10 @@ func (mr *MockITokensMockRecorder) GetTokenSupply(network, address, tokenID inte
 }
 
 // GetTransfers mocks base method
-func (m *MockITokens) GetTransfers(ctx GetTransfersContext) (TransfersResponse, error) {
+func (m *MockITokens) GetTransfers(ctx elastic.GetTransfersContext) (elastic.TransfersResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTransfers", ctx)
-	ret0, _ := ret[0].(TransfersResponse)
+	ret0, _ := ret[0].(elastic.TransfersResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1715,6 +1716,21 @@ func (m *MockITokens) GetTransfers(ctx GetTransfersContext) (TransfersResponse, 
 func (mr *MockITokensMockRecorder) GetTransfers(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransfers", reflect.TypeOf((*MockITokens)(nil).GetTransfers), ctx)
+}
+
+// GetAllTransfers mocks base method
+func (m *MockITokens) GetAllTransfers(network string, level int64) ([]models.Transfer, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllTransfers", network, level)
+	ret0, _ := ret[0].([]models.Transfer)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllTransfers indicates an expected call of GetAllTransfers
+func (mr *MockITokensMockRecorder) GetAllTransfers(network, level interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllTransfers", reflect.TypeOf((*MockITokens)(nil).GetAllTransfers), network, level)
 }
 
 // UpdateTokenBalances mocks base method
@@ -1800,10 +1816,10 @@ func (mr *MockITZIPMockRecorder) GetTZIPWithViews() *gomock.Call {
 }
 
 // GetTokenMetadata mocks base method
-func (m *MockITZIP) GetTokenMetadata(ctx GetTokenMetadataContext) ([]TokenMetadata, error) {
+func (m *MockITZIP) GetTokenMetadata(ctx elastic.GetTokenMetadataContext) ([]elastic.TokenMetadata, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTokenMetadata", ctx)
-	ret0, _ := ret[0].([]TokenMetadata)
+	ret0, _ := ret[0].([]elastic.TokenMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1998,7 +2014,7 @@ func (mr *MockIElasticMockRecorder) GetAll(arg0 interface{}) *gomock.Call {
 }
 
 // GetByID mocks base method
-func (m *MockIElastic) GetByID(arg0 Model) error {
+func (m *MockIElastic) GetByID(arg0 elastic.Model) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByID", arg0)
 	ret0, _ := ret[0].(error)
@@ -2059,7 +2075,7 @@ func (mr *MockIElasticMockRecorder) GetByNetworkWithSort(arg0, arg1, arg2, arg3 
 }
 
 // UpdateDoc mocks base method
-func (m *MockIElastic) UpdateDoc(model Model) error {
+func (m *MockIElastic) UpdateDoc(model elastic.Model) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateDoc", model)
 	ret0, _ := ret[0].(error)
@@ -2107,10 +2123,10 @@ func (mr *MockIElasticMockRecorder) GetBalance(network, address interface{}) *go
 }
 
 // GetBigMapKey mocks base method
-func (m *MockIElastic) GetBigMapKey(network, keyHash string, ptr int64) (BigMapDiff, error) {
+func (m *MockIElastic) GetBigMapKey(network, keyHash string, ptr int64) (elastic.BigMapDiff, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBigMapKey", network, keyHash, ptr)
-	ret0, _ := ret[0].(BigMapDiff)
+	ret0, _ := ret[0].(elastic.BigMapDiff)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2122,10 +2138,10 @@ func (mr *MockIElasticMockRecorder) GetBigMapKey(network, keyHash, ptr interface
 }
 
 // GetBigMapKeys mocks base method
-func (m *MockIElastic) GetBigMapKeys(ctx GetBigMapKeysContext) ([]BigMapDiff, error) {
+func (m *MockIElastic) GetBigMapKeys(ctx elastic.GetBigMapKeysContext) ([]elastic.BigMapDiff, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBigMapKeys", ctx)
-	ret0, _ := ret[0].([]BigMapDiff)
+	ret0, _ := ret[0].([]elastic.BigMapDiff)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2167,10 +2183,10 @@ func (mr *MockIElasticMockRecorder) GetBigMapHistory(arg0, arg1 interface{}) *go
 }
 
 // GetBigMapValuesByKey mocks base method
-func (m *MockIElastic) GetBigMapValuesByKey(arg0 string) ([]BigMapDiff, error) {
+func (m *MockIElastic) GetBigMapValuesByKey(arg0 string) ([]elastic.BigMapDiff, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBigMapValuesByKey", arg0)
-	ret0, _ := ret[0].([]BigMapDiff)
+	ret0, _ := ret[0].([]elastic.BigMapDiff)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2227,10 +2243,10 @@ func (mr *MockIElasticMockRecorder) GetBigMapDiffsUniqueByOperationID(arg0 inter
 }
 
 // GetBigMapDiffsByPtrAndKeyHash mocks base method
-func (m *MockIElastic) GetBigMapDiffsByPtrAndKeyHash(arg0 int64, arg1, arg2 string, arg3, arg4 int64) ([]BigMapDiff, int64, error) {
+func (m *MockIElastic) GetBigMapDiffsByPtrAndKeyHash(arg0 int64, arg1, arg2 string, arg3, arg4 int64) ([]elastic.BigMapDiff, int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBigMapDiffsByPtrAndKeyHash", arg0, arg1, arg2, arg3, arg4)
-	ret0, _ := ret[0].([]BigMapDiff)
+	ret0, _ := ret[0].([]elastic.BigMapDiff)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -2333,7 +2349,7 @@ func (mr *MockIElasticMockRecorder) GetNetworkAlias(chainID interface{}) *gomock
 }
 
 // BulkInsert mocks base method
-func (m *MockIElastic) BulkInsert(arg0 []Model) error {
+func (m *MockIElastic) BulkInsert(arg0 []elastic.Model) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BulkInsert", arg0)
 	ret0, _ := ret[0].(error)
@@ -2347,7 +2363,7 @@ func (mr *MockIElasticMockRecorder) BulkInsert(arg0 interface{}) *gomock.Call {
 }
 
 // BulkUpdate mocks base method
-func (m *MockIElastic) BulkUpdate(arg0 []Model) error {
+func (m *MockIElastic) BulkUpdate(arg0 []elastic.Model) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BulkUpdate", arg0)
 	ret0, _ := ret[0].(error)
@@ -2361,7 +2377,7 @@ func (mr *MockIElasticMockRecorder) BulkUpdate(arg0 interface{}) *gomock.Call {
 }
 
 // BulkDelete mocks base method
-func (m *MockIElastic) BulkDelete(arg0 []Model) error {
+func (m *MockIElastic) BulkDelete(arg0 []elastic.Model) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BulkDelete", arg0)
 	ret0, _ := ret[0].(error)
@@ -2375,7 +2391,7 @@ func (mr *MockIElasticMockRecorder) BulkDelete(arg0 interface{}) *gomock.Call {
 }
 
 // BulkRemoveField mocks base method
-func (m *MockIElastic) BulkRemoveField(arg0 string, arg1 []Model) error {
+func (m *MockIElastic) BulkRemoveField(arg0 string, arg1 []elastic.Model) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BulkRemoveField", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -2438,10 +2454,10 @@ func (mr *MockIElasticMockRecorder) GetContractRandom() *gomock.Call {
 }
 
 // GetContractMigrationStats mocks base method
-func (m *MockIElastic) GetContractMigrationStats(arg0, arg1 string) (ContractMigrationsStats, error) {
+func (m *MockIElastic) GetContractMigrationStats(arg0, arg1 string) (elastic.ContractMigrationsStats, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetContractMigrationStats", arg0, arg1)
-	ret0, _ := ret[0].(ContractMigrationsStats)
+	ret0, _ := ret[0].(elastic.ContractMigrationsStats)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2528,10 +2544,10 @@ func (mr *MockIElasticMockRecorder) IsFAContract(arg0, arg1 interface{}) *gomock
 }
 
 // RecalcContractStats mocks base method
-func (m *MockIElastic) RecalcContractStats(arg0, arg1 string) (ContractStats, error) {
+func (m *MockIElastic) RecalcContractStats(arg0, arg1 string) (elastic.ContractStats, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RecalcContractStats", arg0, arg1)
-	ret0, _ := ret[0].(ContractStats)
+	ret0, _ := ret[0].(elastic.ContractStats)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2557,10 +2573,10 @@ func (mr *MockIElasticMockRecorder) UpdateContractMigrationsCount(arg0, arg1 int
 }
 
 // GetDAppStats mocks base method
-func (m *MockIElastic) GetDAppStats(arg0 string, arg1 []string, arg2 string) (DAppStats, error) {
+func (m *MockIElastic) GetDAppStats(arg0 string, arg1 []string, arg2 string) (elastic.DAppStats, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDAppStats", arg0, arg1, arg2)
-	ret0, _ := ret[0].(DAppStats)
+	ret0, _ := ret[0].(elastic.DAppStats)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2572,7 +2588,7 @@ func (mr *MockIElasticMockRecorder) GetDAppStats(arg0, arg1, arg2 interface{}) *
 }
 
 // GetContractsByAddresses mocks base method
-func (m *MockIElastic) GetContractsByAddresses(addresses []Address) ([]models.Contract, error) {
+func (m *MockIElastic) GetContractsByAddresses(addresses []elastic.Address) ([]models.Contract, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetContractsByAddresses", addresses)
 	ret0, _ := ret[0].([]models.Contract)
@@ -2587,10 +2603,10 @@ func (mr *MockIElasticMockRecorder) GetContractsByAddresses(addresses interface{
 }
 
 // GetEvents mocks base method
-func (m *MockIElastic) GetEvents(arg0 []SubscriptionRequest, arg1, arg2 int64) ([]Event, error) {
+func (m *MockIElastic) GetEvents(arg0 []elastic.SubscriptionRequest, arg1, arg2 int64) ([]elastic.Event, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetEvents", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]Event)
+	ret0, _ := ret[0].([]elastic.Event)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2617,10 +2633,10 @@ func (mr *MockIElasticMockRecorder) GetMigrations(arg0, arg1 interface{}) *gomoc
 }
 
 // GetOperationsForContract mocks base method
-func (m *MockIElastic) GetOperationsForContract(arg0, arg1 string, arg2 uint64, arg3 map[string]interface{}) (PageableOperations, error) {
+func (m *MockIElastic) GetOperationsForContract(arg0, arg1 string, arg2 uint64, arg3 map[string]interface{}) (elastic.PageableOperations, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetOperationsForContract", arg0, arg1, arg2, arg3)
-	ret0, _ := ret[0].(PageableOperations)
+	ret0, _ := ret[0].(elastic.PageableOperations)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2647,10 +2663,10 @@ func (mr *MockIElasticMockRecorder) GetLastOperation(arg0, arg1, arg2 interface{
 }
 
 // GetOperationsStats mocks base method
-func (m *MockIElastic) GetOperationsStats(network, address string) (OperationsStats, error) {
+func (m *MockIElastic) GetOperationsStats(network, address string) (elastic.OperationsStats, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetOperationsStats", network, address)
-	ret0, _ := ret[0].(OperationsStats)
+	ret0, _ := ret[0].(elastic.OperationsStats)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2692,10 +2708,10 @@ func (mr *MockIElasticMockRecorder) GetProjectsLastContract() *gomock.Call {
 }
 
 // GetSameContracts mocks base method
-func (m *MockIElastic) GetSameContracts(arg0 models.Contract, arg1, arg2 int64) (SameContractsResponse, error) {
+func (m *MockIElastic) GetSameContracts(arg0 models.Contract, arg1, arg2 int64) (elastic.SameContractsResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSameContracts", arg0, arg1, arg2)
-	ret0, _ := ret[0].(SameContractsResponse)
+	ret0, _ := ret[0].(elastic.SameContractsResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2707,10 +2723,10 @@ func (mr *MockIElasticMockRecorder) GetSameContracts(arg0, arg1, arg2 interface{
 }
 
 // GetSimilarContracts mocks base method
-func (m *MockIElastic) GetSimilarContracts(arg0 models.Contract, arg1, arg2 int64) ([]SimilarContract, int, error) {
+func (m *MockIElastic) GetSimilarContracts(arg0 models.Contract, arg1, arg2 int64) ([]elastic.SimilarContract, int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSimilarContracts", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]SimilarContract)
+	ret0, _ := ret[0].([]elastic.SimilarContract)
 	ret1, _ := ret[1].(int)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -2723,10 +2739,10 @@ func (mr *MockIElasticMockRecorder) GetSimilarContracts(arg0, arg1, arg2 interfa
 }
 
 // GetDiffTasks mocks base method
-func (m *MockIElastic) GetDiffTasks() ([]DiffTask, error) {
+func (m *MockIElastic) GetDiffTasks() ([]elastic.DiffTask, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDiffTasks")
-	ret0, _ := ret[0].([]DiffTask)
+	ret0, _ := ret[0].([]elastic.DiffTask)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2768,10 +2784,10 @@ func (mr *MockIElasticMockRecorder) GetSymLinks(arg0, arg1 interface{}) *gomock.
 }
 
 // SearchByText mocks base method
-func (m *MockIElastic) SearchByText(arg0 string, arg1 int64, arg2 []string, arg3 map[string]interface{}, arg4 bool) (SearchResult, error) {
+func (m *MockIElastic) SearchByText(arg0 string, arg1 int64, arg2 []string, arg3 map[string]interface{}, arg4 bool) (elastic.SearchResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchByText", arg0, arg1, arg2, arg3, arg4)
-	ret0, _ := ret[0].(SearchResult)
+	ret0, _ := ret[0].(elastic.SearchResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2797,10 +2813,10 @@ func (mr *MockIElasticMockRecorder) CreateAWSRepository(arg0, arg1, arg2 interfa
 }
 
 // ListRepositories mocks base method
-func (m *MockIElastic) ListRepositories() ([]Repository, error) {
+func (m *MockIElastic) ListRepositories() ([]elastic.Repository, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListRepositories")
-	ret0, _ := ret[0].([]Repository)
+	ret0, _ := ret[0].([]elastic.Repository)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2942,7 +2958,7 @@ func (mr *MockIElasticMockRecorder) GetNetworkCountStats(arg0 interface{}) *gomo
 }
 
 // GetDateHistogram mocks base method
-func (m *MockIElastic) GetDateHistogram(period string, opts ...HistogramOption) ([][]int64, error) {
+func (m *MockIElastic) GetDateHistogram(period string, opts ...elastic.HistogramOption) ([][]int64, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{period}
 	for _, a := range opts {
@@ -2977,10 +2993,10 @@ func (mr *MockIElasticMockRecorder) GetCallsCountByNetwork() *gomock.Call {
 }
 
 // GetContractStatsByNetwork mocks base method
-func (m *MockIElastic) GetContractStatsByNetwork() (map[string]ContractCountStats, error) {
+func (m *MockIElastic) GetContractStatsByNetwork() (map[string]elastic.ContractCountStats, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetContractStatsByNetwork")
-	ret0, _ := ret[0].(map[string]ContractCountStats)
+	ret0, _ := ret[0].(map[string]elastic.ContractCountStats)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3038,10 +3054,10 @@ func (mr *MockIElasticMockRecorder) GetTokens(arg0, arg1, arg2, arg3 interface{}
 }
 
 // GetTokensStats mocks base method
-func (m *MockIElastic) GetTokensStats(arg0 string, arg1, arg2 []string) (map[string]TokenUsageStats, error) {
+func (m *MockIElastic) GetTokensStats(arg0 string, arg1, arg2 []string) (map[string]elastic.TokenUsageStats, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTokensStats", arg0, arg1, arg2)
-	ret0, _ := ret[0].(map[string]TokenUsageStats)
+	ret0, _ := ret[0].(map[string]elastic.TokenUsageStats)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3068,14 +3084,14 @@ func (mr *MockIElasticMockRecorder) GetTokenVolumeSeries(arg0, arg1, arg2, arg3,
 }
 
 // GetBalances mocks base method
-func (m *MockIElastic) GetBalances(arg0, arg1 string, arg2 int64, arg3 ...TokenBalance) (map[TokenBalance]int64, error) {
+func (m *MockIElastic) GetBalances(arg0, arg1 string, arg2 int64, arg3 ...elastic.TokenBalance) (map[elastic.TokenBalance]int64, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{arg0, arg1, arg2}
 	for _, a := range arg3 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetBalances", varargs...)
-	ret0, _ := ret[0].(map[TokenBalance]int64)
+	ret0, _ := ret[0].(map[elastic.TokenBalance]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3088,10 +3104,10 @@ func (mr *MockIElasticMockRecorder) GetBalances(arg0, arg1, arg2 interface{}, ar
 }
 
 // GetAccountBalances mocks base method
-func (m *MockIElastic) GetAccountBalances(arg0, arg1 string) (map[TokenBalance]int64, error) {
+func (m *MockIElastic) GetAccountBalances(arg0, arg1 string) ([]models.TokenBalance, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAccountBalances", arg0, arg1)
-	ret0, _ := ret[0].(map[TokenBalance]int64)
+	ret0, _ := ret[0].([]models.TokenBalance)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3103,10 +3119,10 @@ func (mr *MockIElasticMockRecorder) GetAccountBalances(arg0, arg1 interface{}) *
 }
 
 // GetTokenSupply mocks base method
-func (m *MockIElastic) GetTokenSupply(network, address string, tokenID int64) (TokenSupply, error) {
+func (m *MockIElastic) GetTokenSupply(network, address string, tokenID int64) (elastic.TokenSupply, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTokenSupply", network, address, tokenID)
-	ret0, _ := ret[0].(TokenSupply)
+	ret0, _ := ret[0].(elastic.TokenSupply)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3118,10 +3134,10 @@ func (mr *MockIElasticMockRecorder) GetTokenSupply(network, address, tokenID int
 }
 
 // GetTransfers mocks base method
-func (m *MockIElastic) GetTransfers(ctx GetTransfersContext) (TransfersResponse, error) {
+func (m *MockIElastic) GetTransfers(ctx elastic.GetTransfersContext) (elastic.TransfersResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTransfers", ctx)
-	ret0, _ := ret[0].(TransfersResponse)
+	ret0, _ := ret[0].(elastic.TransfersResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3130,6 +3146,21 @@ func (m *MockIElastic) GetTransfers(ctx GetTransfersContext) (TransfersResponse,
 func (mr *MockIElasticMockRecorder) GetTransfers(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransfers", reflect.TypeOf((*MockIElastic)(nil).GetTransfers), ctx)
+}
+
+// GetAllTransfers mocks base method
+func (m *MockIElastic) GetAllTransfers(network string, level int64) ([]models.Transfer, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllTransfers", network, level)
+	ret0, _ := ret[0].([]models.Transfer)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllTransfers indicates an expected call of GetAllTransfers
+func (mr *MockIElasticMockRecorder) GetAllTransfers(network, level interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllTransfers", reflect.TypeOf((*MockIElastic)(nil).GetAllTransfers), network, level)
 }
 
 // UpdateTokenBalances mocks base method
@@ -3192,10 +3223,10 @@ func (mr *MockIElasticMockRecorder) GetTZIPWithViews() *gomock.Call {
 }
 
 // GetTokenMetadata mocks base method
-func (m *MockIElastic) GetTokenMetadata(ctx GetTokenMetadataContext) ([]TokenMetadata, error) {
+func (m *MockIElastic) GetTokenMetadata(ctx elastic.GetTokenMetadataContext) ([]elastic.TokenMetadata, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTokenMetadata", ctx)
-	ret0, _ := ret[0].([]TokenMetadata)
+	ret0, _ := ret[0].([]elastic.TokenMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

@@ -17,6 +17,8 @@ import (
 )
 
 var mappingNames = []string{
+	elastic.DocBalanceUpdates,
+	elastic.DocBigMapActions,
 	elastic.DocBigMapDiff,
 	elastic.DocBlocks,
 	elastic.DocContracts,
@@ -24,7 +26,7 @@ var mappingNames = []string{
 	elastic.DocMigrations,
 	elastic.DocOperations,
 	elastic.DocProtocol,
-	elastic.DocBigMapActions,
+	elastic.DocTokenBalances,
 	elastic.DocTransfers,
 	elastic.DocTZIP,
 }

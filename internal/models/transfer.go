@@ -117,21 +117,25 @@ func (t *Transfer) GetToTokenBalanceID() string {
 }
 
 // MakeTokenBalanceUpdate -
-func (t *Transfer) MakeTokenBalanceUpdate(from bool) *TokenBalance {
-	if from {
-		return &TokenBalance{
-			Network:  t.Network,
-			Address:  t.From,
-			Contract: t.Contract,
-			TokenID:  t.TokenID,
-			Balance:  -int64(t.Amount),
-		}
-	}
-	return &TokenBalance{
+func (t *Transfer) MakeTokenBalanceUpdate(from, rollback bool) *TokenBalance {
+	tb := &TokenBalance{
 		Network:  t.Network,
-		Address:  t.To,
 		Contract: t.Contract,
 		TokenID:  t.TokenID,
-		Balance:  int64(t.Amount),
 	}
+	switch {
+	case from && rollback:
+		tb.Address = t.From
+		tb.Balance = int64(t.Amount)
+	case !from && rollback:
+		tb.Address = t.To
+		tb.Balance = -int64(t.Amount)
+	case from && !rollback:
+		tb.Address = t.From
+		tb.Balance = -int64(t.Amount)
+	case !from && !rollback:
+		tb.Address = t.To
+		tb.Balance = int64(t.Amount)
+	}
+	return tb
 }

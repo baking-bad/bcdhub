@@ -200,7 +200,7 @@ func (p Transaction) createTokenBalanceUpdates(transfers []*models.Transfer) err
 			if update, ok := exists[idFrom]; ok {
 				update.Balance -= int64(transfers[i].Amount)
 			} else {
-				upd := transfers[i].MakeTokenBalanceUpdate(true)
+				upd := transfers[i].MakeTokenBalanceUpdate(true, false)
 				updates = append(updates, upd)
 				exists[idFrom] = upd
 			}
@@ -210,7 +210,7 @@ func (p Transaction) createTokenBalanceUpdates(transfers []*models.Transfer) err
 			if update, ok := exists[idTo]; ok {
 				update.Balance += int64(transfers[i].Amount)
 			} else {
-				upd := transfers[i].MakeTokenBalanceUpdate(false)
+				upd := transfers[i].MakeTokenBalanceUpdate(false, false)
 				updates = append(updates, upd)
 				exists[idTo] = upd
 			}

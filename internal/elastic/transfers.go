@@ -164,3 +164,19 @@ func (e *Elastic) GetTransfers(ctx GetTransfersContext) (TransfersResponse, erro
 	}
 	return po, nil
 }
+
+// GetAllTransfers -
+func (e *Elastic) GetAllTransfers(network string, level int64) ([]models.Transfer, error) {
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				matchQ("network", network),
+				rangeQ("level", qItem{"gt": level}),
+			),
+		),
+	)
+
+	transfers := make([]models.Transfer, 0)
+	err := e.getAllByQuery(query, &transfers)
+	return transfers, err
+}
