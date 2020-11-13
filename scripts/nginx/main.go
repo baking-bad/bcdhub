@@ -32,7 +32,7 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	// if err := makeSitemap(ctx, dapps, outputDir); err != nil {
-	// 	logger.Fatal(err)
-	// }
+	if err := makeSitemap(ctx, dapps, outputDir); err != nil {
+		logger.Fatal(err)
+	}
 }
