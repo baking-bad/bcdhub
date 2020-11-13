@@ -71,22 +71,23 @@ func (ctx *Context) getAccountBalances(network, address string) ([]TokenBalance,
 	}
 
 	result := make([]TokenBalance, 0)
-	for key, b := range tokenBalances {
+	for _, balance := range tokenBalances {
 		token, err := ctx.ES.GetTokenMetadata(elastic.GetTokenMetadataContext{
-			TokenID:  key.TokenID,
-			Contract: key.Address,
+			TokenID:  balance.TokenID,
+			Contract: balance.Contract,
 			Network:  network,
 		})
 		tb := TokenBalance{
-			Balance: b,
+			Balance: balance.Balance,
 		}
 		if err == nil {
 			tb.Decimals = token[0].Decimals
 			tb.Name = token[0].Name
 			tb.Symbol = token[0].Symbol
 		}
-		tb.Contract = key.Address
-		tb.TokenID = key.TokenID
+		tb.Contract = balance.Contract
+		tb.TokenID = balance.TokenID
+		tb.Network = balance.Network
 
 		result = append(result, tb)
 	}

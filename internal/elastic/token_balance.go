@@ -66,10 +66,29 @@ func (e *Elastic) GetHolders(network, contract string, tokenID int64) ([]models.
 				matchPhrase("contract", contract),
 				term("token_id", tokenID),
 			),
+			notMust(
+				term("balance", 0),
+			),
 		),
 	).All()
 
 	balances := make([]models.TokenBalance, 0)
 	err := e.getAllByQuery(query, &balances)
 	return balances, err
+}
+
+// GetAccountBalances -
+func (e *Elastic) GetAccountBalances(network, address string) ([]models.TokenBalance, error) {
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				matchPhrase("address", address),
+				matchQ("network", network),
+			),
+		),
+	).All()
+
+	tokenBalances := make([]models.TokenBalance, 0)
+	err := e.getAllByQuery(query, &tokenBalances)
+	return tokenBalances, err
 }

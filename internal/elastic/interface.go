@@ -165,9 +165,10 @@ type ITokens interface {
 	GetTokensStats(string, []string, []string) (map[string]TokenUsageStats, error)
 	GetTokenVolumeSeries(string, string, []string, []string, uint) ([][]int64, error)
 	GetBalances(string, string, int64, ...TokenBalance) (map[TokenBalance]int64, error)
-	GetAccountBalances(string, string) (map[TokenBalance]int64, error)
+	GetAccountBalances(string, string) ([]models.TokenBalance, error)
 	GetTokenSupply(network, address string, tokenID int64) (result TokenSupply, err error)
 	GetTransfers(ctx GetTransfersContext) (TransfersResponse, error)
+	GetAllTransfers(network string, level int64) ([]models.Transfer, error)
 	UpdateTokenBalances(updates []*models.TokenBalance) error
 	GetHolders(network, contract string, tokenID int64) ([]models.TokenBalance, error)
 }

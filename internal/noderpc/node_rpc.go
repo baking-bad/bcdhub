@@ -289,7 +289,7 @@ func (rpc *NodeRPC) GetContractBalance(address string, level int64) (int64, erro
 	}
 
 	var contract struct {
-		Balance int64 `json:"balance"`
+		Balance int64 `json:"balance,string"`
 	}
 	if err := rpc.get(fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s", block, address), &contract); err != nil {
 		return 0, err

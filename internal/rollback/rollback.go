@@ -2,6 +2,7 @@ package rollback
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser"
@@ -41,6 +42,9 @@ func (rm Manager) Rollback(fromState models.Block, toLevel int64) error {
 	}
 	logger.Info("Rollback will affect %d contracts", len(affectedContractIDs))
 
+	if err := rm.rollbackTokenBalances(fromState.Network, toLevel); err != nil {
+		return err
+	}
 	if err := rm.rollbackOperations(fromState.Network, toLevel); err != nil {
 		return err
 	}
@@ -60,6 +64,46 @@ func (rm Manager) Rollback(fromState models.Block, toLevel int64) error {
 	}
 
 	return nil
+}
+
+func (rm Manager) rollbackTokenBalances(network string, toLevel int64) error {
+	transfers, err := rm.e.GetAllTransfers(network, toLevel)
+	if err != nil {
+		return err
+	}
+	if len(transfers) == 0 {
+		return nil
+	}
+
+	exists := make(map[string]*models.TokenBalance)
+	updates := make([]*models.TokenBalance, 0)
+	for i := range transfers {
+
+		if id := transfers[i].GetFromTokenBalanceID(); id != "" {
+			log.Printf("FROM %s: %.0f", id, transfers[i].Amount)
+			if update, ok := exists[id]; ok {
+				update.Balance += int64(transfers[i].Amount)
+			} else {
+				upd := transfers[i].MakeTokenBalanceUpdate(true, true)
+				updates = append(updates, upd)
+				exists[id] = upd
+			}
+		}
+
+		if id := transfers[i].GetToTokenBalanceID(); id != "" {
+			log.Printf("TO %s: %.0f", id, transfers[i].Amount)
+			if update, ok := exists[id]; ok {
+				update.Balance -= int64(transfers[i].Amount)
+			} else {
+				upd := transfers[i].MakeTokenBalanceUpdate(false, true)
+				updates = append(updates, upd)
+				exists[id] = upd
+			}
+		}
+	}
+
+	log.Printf("%##v", updates[0])
+	return rm.e.UpdateTokenBalances(updates)
 }
 
 func (rm Manager) rollbackBlocks(network string, toLevel int64) error {
