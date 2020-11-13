@@ -18,8 +18,12 @@ compiler:
 	docker logs -f bcd-compiler-dev
 
 seo:
+ifeq ($(BCD_ENV), development)
 	cd scripts/nginx && go run .
-	docker restart $$BCD_ENV-gui
+else
+	docker exec -it $$BCD_ENV-api nginx
+endif
+	#docker restart $$BCD_ENV-gui
 
 migration:
 ifeq ($(BCD_ENV), development)
