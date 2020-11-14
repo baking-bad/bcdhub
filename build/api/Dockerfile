@@ -18,12 +18,14 @@ RUN go mod download
 
 COPY cmd/api cmd/api
 COPY internal internal
-COPY scripts scripts
 
 WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub/cmd/api/
 RUN go get github.com/swaggo/swag/cmd/swag@v1.6.7
 RUN swag init --parseDependency
 RUN go build -a -installsuffix cgo -o /go/bin/api .
+
+WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub
+COPY scripts scripts
 
 WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub/scripts/
 RUN cd esctl && go build -a -installsuffix cgo -o /go/bin/esctl .
