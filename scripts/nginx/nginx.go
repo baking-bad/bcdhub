@@ -98,7 +98,7 @@ func makeDappRootLocation(path, baseURL string) (string, error) {
 		"pageTitle":     pageTitle,
 		"baseUrl":       baseURL,
 		"logoURL":       ogImage,
-		"title":         ogTitle,
+		"parentName":    ogTitle,
 	})
 	if err != nil {
 		return "", err
