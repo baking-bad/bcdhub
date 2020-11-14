@@ -125,14 +125,12 @@ func makeNginxConfig(ctx *config.Context, dapps []tzip.DApp, outputDir string) e
 		dappLocations.WriteString("\n")
 	}
 
-	for _, path := range []string{"", "list"} {
-		loc, err := makeDappRootLocation(path, ctx.Config.BaseURL)
-		if err != nil {
-			return err
-		}
-		dappLocations.WriteString(loc)
-		dappLocations.WriteString("\n")
+	loc, err := makeDappRootLocation("list", ctx.Config.BaseURL)
+	if err != nil {
+		return err
 	}
+	dappLocations.WriteString(loc)
+	dappLocations.WriteString("\n")
 
 	defaultConf := fmt.Sprintf(defaultConfTemplate, dappLocations.String())
 	if _, err = file.WriteString(defaultConf); err != nil {
