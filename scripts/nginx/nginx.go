@@ -43,14 +43,14 @@ const dappLocationTemplate = `
 	location /dapps/{{.slug}} {
 		rewrite ^ /index.html break;
 		sub_filter '<meta property=og:url content=/' '<meta property=og:url content={{.baseUrl}}/dapps/{{.slug}}';
-		sub_filter '<meta property=og:title content="{{.ogTitle}}"' '<meta property=og:title content="{{.name}} | {{.parentName}}"';
+		sub_filter '<meta property=og:title content="{{.ogTitle}}"' '<meta property=og:title content="{{.title}}"';
 		sub_filter '<meta property=og:description content="{{.ogDescription}}"' '<meta property=og:description content="{{.description}}"';
 		sub_filter '<meta property=og:image content={{.ogImage}}' '<meta property=og:image content={{.logoURL}}';
 		sub_filter '<meta property=og:image:secure_url content={{.ogImage}}' '<meta property=og:image:secure_url content={{.logoURL}}';
 		sub_filter '<meta name=twitter:image content={{.ogImage}}' '<meta name=twitter:image content={{.logoURL}}';
-		sub_filter '<meta name=twitter:title content="{{.ogTitle}}"' '<meta name=twitter:title content="{{.name}} | {{.parentName}}"';
+		sub_filter '<meta name=twitter:title content="{{.ogTitle}}"' '<meta name=twitter:title content="{{.title}}"';
 		sub_filter '<meta name=twitter:description content="{{.ogDescription}}"' '<meta name=twitter:description content="{{.description}}"';
-		sub_filter '<title>{{.pageTitle}}</title>' '<title>{{.name}} | {{.parentName}}</title>';
+		sub_filter '<title>{{.pageTitle}}</title>' '<title>{{.title}}</title>';
 		sub_filter_once on;
 	}`
 
@@ -67,7 +67,7 @@ func makeDappLocation(dapp tzip.DApp, baseURL string) (string, error) {
 
 	err := tmpl.Execute(buf, map[string]interface{}{
 		"slug":          dapp.Slug,
-		"name":          dapp.Name,
+		"title":         fmt.Sprintf("%s — %s", dapp.Name, dapp.ShortDescription),
 		"description":   dapp.FullDescription,
 		"ogTitle":       ogTitle,
 		"ogDescription": ogDescription,
@@ -75,7 +75,6 @@ func makeDappLocation(dapp tzip.DApp, baseURL string) (string, error) {
 		"pageTitle":     pageTitle,
 		"baseUrl":       baseURL,
 		"logoURL":       logoURL,
-		"parentName":    dappsTitle,
 	})
 	if err != nil {
 		return "", err
@@ -90,7 +89,7 @@ func makeDappRootLocation(path, baseURL string) (string, error) {
 
 	err := tmpl.Execute(buf, map[string]interface{}{
 		"slug":          path,
-		"name":          dappsTitle,
+		"title":         dappsTitle,
 		"description":   dappsDescription,
 		"ogTitle":       ogTitle,
 		"ogDescription": ogDescription,
@@ -98,7 +97,6 @@ func makeDappRootLocation(path, baseURL string) (string, error) {
 		"pageTitle":     pageTitle,
 		"baseUrl":       baseURL,
 		"logoURL":       ogImage,
-		"parentName":    ogTitle,
 	})
 	if err != nil {
 		return "", err
