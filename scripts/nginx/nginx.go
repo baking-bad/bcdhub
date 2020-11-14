@@ -17,7 +17,7 @@ const (
 	ogDescription    = "Tezos smart contract explorer, developer dashboard, and API provider. Easy to spin up / integrate with your sandbox."
 	ogImage          = "/img/logo_og.png"
 	pageTitle        = "Better Call Dev — Tezos smart contract explorer by Baking Bad"
-	dappsTitle       = "Tezos DApps | Better Call Dev"
+	dappsTitle       = "Tezos DApps"
 	dappsDescription = "Track the Tezos ecosystem growth: aggregated DApps usage stats, DEX token turnover, affiliated smart contracts, screenshots, social links, and more."
 )
 
@@ -43,14 +43,14 @@ const dappLocationTemplate = `
 	location /dapps/{{.slug}} {
 		rewrite ^ /index.html break;
 		sub_filter '<meta property=og:url content=/' '<meta property=og:url content={{.baseUrl}}/dapps/{{.slug}}';
-		sub_filter '<meta property=og:title content="{{.ogTitle}}"' '<meta property=og:title content="{{.name}}"';
+		sub_filter '<meta property=og:title content="{{.ogTitle}}"' '<meta property=og:title content="{{.name}} | {{.parentName}}"';
 		sub_filter '<meta property=og:description content="{{.ogDescription}}"' '<meta property=og:description content="{{.description}}"';
 		sub_filter '<meta property=og:image content={{.ogImage}}' '<meta property=og:image content={{.logoURL}}';
 		sub_filter '<meta property=og:image:secure_url content={{.ogImage}}' '<meta property=og:image:secure_url content={{.logoURL}}';
 		sub_filter '<meta name=twitter:image content={{.ogImage}}' '<meta name=twitter:image content={{.logoURL}}';
-		sub_filter '<meta name=twitter:title content="{{.ogTitle}}"' '<meta name=twitter:title content="{{.name}}"';
+		sub_filter '<meta name=twitter:title content="{{.ogTitle}}"' '<meta name=twitter:title content="{{.name}} | {{.parentName}}"';
 		sub_filter '<meta name=twitter:description content="{{.ogDescription}}"' '<meta name=twitter:description content="{{.description}}"';
-		sub_filter '<title>{{.pageTitle}}</title>' '<title>{{.title}}</title>';
+		sub_filter '<title>{{.pageTitle}}</title>' '<title>{{.name}} | {{.parentName}}</title>';
 		sub_filter_once on;
 	}`
 
@@ -75,7 +75,7 @@ func makeDappLocation(dapp tzip.DApp, baseURL string) (string, error) {
 		"pageTitle":     pageTitle,
 		"baseUrl":       baseURL,
 		"logoURL":       logoURL,
-		"title":         fmt.Sprintf("%s | %s", dapp.Name, dappsTitle),
+		"parentName":    dappsTitle,
 	})
 	if err != nil {
 		return "", err
@@ -98,7 +98,7 @@ func makeDappRootLocation(path, baseURL string) (string, error) {
 		"pageTitle":     pageTitle,
 		"baseUrl":       baseURL,
 		"logoURL":       ogImage,
-		"title":         dappsTitle,
+		"title":         ogTitle,
 	})
 	if err != nil {
 		return "", err
