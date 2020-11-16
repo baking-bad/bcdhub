@@ -5,7 +5,7 @@
 package mock_elastic
 
 import (
-	elastic "github.com/baking-bad/bcdhub/internal/elastic"
+	search "github.com/baking-bad/bcdhub/internal/elastic/search"
 	models "github.com/baking-bad/bcdhub/internal/models"
 	tzip "github.com/baking-bad/bcdhub/internal/models/tzip"
 	gomock "github.com/golang/mock/gomock"
@@ -1285,10 +1285,10 @@ func (m *MockISearch) EXPECT() *MockISearchMockRecorder {
 }
 
 // SearchByText mocks base method
-func (m *MockISearch) SearchByText(arg0 string, arg1 int64, arg2 []string, arg3 map[string]interface{}, arg4 bool) (elastic.SearchResult, error) {
+func (m *MockISearch) SearchByText(arg0 string, arg1 int64, arg2 []string, arg3 map[string]interface{}, arg4 bool) (search.Result, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchByText", arg0, arg1, arg2, arg3, arg4)
-	ret0, _ := ret[0].(elastic.SearchResult)
+	ret0, _ := ret[0].(search.Result)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2784,10 +2784,10 @@ func (mr *MockIElasticMockRecorder) GetSymLinks(arg0, arg1 interface{}) *gomock.
 }
 
 // SearchByText mocks base method
-func (m *MockIElastic) SearchByText(arg0 string, arg1 int64, arg2 []string, arg3 map[string]interface{}, arg4 bool) (elastic.SearchResult, error) {
+func (m *MockIElastic) SearchByText(arg0 string, arg1 int64, arg2 []string, arg3 map[string]interface{}, arg4 bool) (search.Result, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchByText", arg0, arg1, arg2, arg3, arg4)
-	ret0, _ := ret[0].(elastic.SearchResult)
+	ret0, _ := ret[0].(search.Result)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

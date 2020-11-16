@@ -64,7 +64,7 @@ func (e *Elastic) GetAPI() *esapi.API {
 	return e.API
 }
 
-func (e *Elastic) getResponse(resp *esapi.Response, result interface{}) (err error) {
+func (e *Elastic) getResponse(resp *esapi.Response, result interface{}) error {
 	if resp.IsError() {
 		if resp.StatusCode == 404 {
 			return NewRecordNotFoundErrorFromResponse(resp)
@@ -79,8 +79,7 @@ func (e *Elastic) getResponse(resp *esapi.Response, result interface{}) (err err
 	if err != nil {
 		return err
 	}
-	err = json.Unmarshal(body, result)
-	return
+	return json.Unmarshal(body, result)
 }
 
 func (e *Elastic) getTextResponse(resp *esapi.Response) (string, error) {

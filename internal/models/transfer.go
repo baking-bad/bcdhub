@@ -5,9 +5,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/models/utils"
 	"github.com/sirupsen/logrus"
-	"github.com/tidwall/gjson"
 )
 
 // Transfer -
@@ -63,24 +61,6 @@ func (t *Transfer) LogFields() logrus.Fields {
 		"from":     t.From,
 		"to":       t.To,
 	}
-}
-
-// GetScores -
-func (t *Transfer) GetScores(search string) []string {
-	return []string{
-		"contract^8",
-		"hash^7",
-		"from^7",
-		"to^6",
-		"initiator",
-	}
-}
-
-// FoundByName -
-func (t *Transfer) FoundByName(hit gjson.Result) string {
-	keys := hit.Get("highlight").Map()
-	categories := t.GetScores("")
-	return utils.GetFoundBy(keys, categories)
 }
 
 // EmptyTransfer -

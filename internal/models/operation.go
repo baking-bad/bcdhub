@@ -6,7 +6,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/models/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 )
@@ -87,27 +86,6 @@ func (o *Operation) LogFields() logrus.Fields {
 		"hash":    o.Hash,
 		"block":   o.Level,
 	}
-}
-
-// GetScores -
-func (o *Operation) GetScores(search string) []string {
-	return []string{
-		"entrypoint^8",
-		"parameter_strings^7",
-		"storage_strings^7",
-		"errors.with^6",
-		"errors.id^5",
-		"source_alias^3",
-		"hash",
-		"source",
-	}
-}
-
-// FoundByName -
-func (o *Operation) FoundByName(hit gjson.Result) string {
-	keys := hit.Get("highlight").Map()
-	categories := o.GetScores("")
-	return utils.GetFoundBy(keys, categories)
 }
 
 // SetAllocationBurn -

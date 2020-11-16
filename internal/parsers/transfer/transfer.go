@@ -131,35 +131,16 @@ func (p Parser) runView(event tzip.EventImplementation, operation models.Operati
 
 func (p Parser) parseResponse(parser tzip.BalanceViewParser, operation models.Operation, response gjson.Result) ([]*models.Transfer, error) {
 	newBalances := parser.Parse(response)
-	addresses := make([]elastic.TokenBalance, len(newBalances))
-	for i := range newBalances {
-		addresses[i].Address = newBalances[i].Address
-		addresses[i].TokenID = newBalances[i].TokenID
-	}
-
-	oldBalances, err := p.es.GetBalances(operation.Network, operation.Destination, operation.Level, addresses...)
-	if err != nil {
-		return nil, err
-	}
 
 	transfers := make([]*models.Transfer, 0)
 	for _, balance := range newBalances {
 		transfer := models.EmptyTransfer(operation)
-		if oldBalance, ok := oldBalances[elastic.TokenBalance{
-			TokenID: balance.TokenID,
-			Address: balance.Address,
-		}]; ok {
-			delta := balance.Value - oldBalance
-			if delta > 0 {
-				transfer.To = balance.Address
-			} else {
-				transfer.From = balance.Address
-			}
-			transfer.Amount = float64(delta)
-		} else {
-			transfer.Amount = float64(balance.Value)
+		if balance.Value > 0 {
 			transfer.To = balance.Address
+		} else {
+			transfer.From = balance.Address
 		}
+		transfer.Amount = float64(balance.Value)
 		transfer.TokenID = balance.TokenID
 
 		p.setParentEntrypoint(operation, transfer)

@@ -5,15 +5,13 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
-	"github.com/baking-bad/bcdhub/internal/models/utils"
 	"github.com/sirupsen/logrus"
-	"github.com/tidwall/gjson"
 )
 
 // TZIP -
 type TZIP struct {
-	Level     int64     `json:"level"`
-	Timestamp time.Time `json:"timestamp"`
+	Level     int64     `json:"level,omitempty"`
+	Timestamp time.Time `json:"timestamp,omitempty"`
 	Address   string    `json:"address"`
 	Network   string    `json:"network"`
 	Slug      string    `json:"slug,omitempty"`
@@ -51,22 +49,6 @@ func (t *TZIP) GetQueues() []string {
 // MarshalToQueue -
 func (t *TZIP) MarshalToQueue() ([]byte, error) {
 	return nil, nil
-}
-
-// GetScores -
-func (t *TZIP) GetScores(search string) []string {
-	return []string{
-		"tokens.static.name^8",
-		"tokens.static.symbol^8",
-		"address^7",
-	}
-}
-
-// FoundByName -
-func (t *TZIP) FoundByName(hit gjson.Result) string {
-	keys := hit.Get("highlight").Map()
-	categories := t.GetScores("")
-	return utils.GetFoundBy(keys, categories)
 }
 
 // LogFields -

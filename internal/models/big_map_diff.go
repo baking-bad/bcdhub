@@ -3,9 +3,7 @@ package models
 import (
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/models/utils"
 	"github.com/sirupsen/logrus"
-	"github.com/tidwall/gjson"
 )
 
 // BigMapDiff -
@@ -58,21 +56,4 @@ func (b *BigMapDiff) LogFields() logrus.Fields {
 		"block":    b.Level,
 		"key_hash": b.KeyHash,
 	}
-}
-
-// GetScores -
-func (b *BigMapDiff) GetScores(search string) []string {
-	return []string{
-		"key_strings^8",
-		"value_strings^7",
-		"key_hash",
-		"address",
-	}
-}
-
-// FoundByName -
-func (b *BigMapDiff) FoundByName(hit gjson.Result) string {
-	keys := hit.Get("highlight").Map()
-	categories := b.GetScores("")
-	return utils.GetFoundBy(keys, categories)
 }
