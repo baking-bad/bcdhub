@@ -5,6 +5,7 @@
 package mock_elastic
 
 import (
+	elastic "github.com/baking-bad/bcdhub/internal/elastic"
 	search "github.com/baking-bad/bcdhub/internal/elastic/search"
 	models "github.com/baking-bad/bcdhub/internal/models"
 	tzip "github.com/baking-bad/bcdhub/internal/models/tzip"
