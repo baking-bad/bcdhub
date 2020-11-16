@@ -35,8 +35,8 @@ RUN wget https://ligolang.org/bin/linux/ligo && chmod +x ./ligo
 RUN cp ./ligo /usr/local/bin
 
 # smartPy
-RUN wget https://smartpy.io/dev-20200731-704c5c8a92974b5ebf83c3f7dc4642e93660e5e8/cli/SmartPy.sh
-RUN echo y | sh SmartPy.sh local-install-auto
+RUN wget https://smartpy.io/cli/install.sh
+RUN echo y | sh install.sh
 
 # tezos-client
 RUN wget https://github.com/baking-bad/tezos-client/releases/download/24.8.20/tezos-client && chmod +x ./tezos-client
