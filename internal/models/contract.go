@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/models/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 )
@@ -75,43 +73,6 @@ func (c *Contract) LogFields() logrus.Fields {
 // MarshalToQueue -
 func (c *Contract) MarshalToQueue() ([]byte, error) {
 	return []byte(c.GetID()), nil
-}
-
-// GetScores -
-func (c *Contract) GetScores(search string) []string {
-	if helpers.IsAddress(search) {
-		return []string{
-			"address^10",
-			"alias^9",
-			"tags^9",
-			"entrypoints^8",
-			"fail_strings^6",
-			"language^4",
-			"annotations^3",
-			"delegate^2",
-			"hardcoded^2",
-			"manager",
-		}
-	}
-	return []string{
-		"alias^10",
-		"tags^9",
-		"entrypoints^8",
-		"fail_strings^6",
-		"language^4",
-		"annotations^3",
-		"delegate^2",
-		"hardcoded^2",
-		"manager",
-		"address",
-	}
-}
-
-// FoundByName -
-func (c *Contract) FoundByName(hit gjson.Result) string {
-	keys := hit.Get("highlight").Map()
-	categories := c.GetScores("")
-	return utils.GetFoundBy(keys, categories)
 }
 
 // IsFA12 - checks contract realizes fa12 interface

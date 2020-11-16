@@ -9,13 +9,6 @@ const (
 	minQuerySize = 0
 )
 
-var searchableInidices = []string{
-	DocContracts,
-	DocOperations,
-	DocBigMapDiff,
-	DocTZIP,
-}
-
 type qItem map[string]interface{}
 type qList []interface{}
 

@@ -7,34 +7,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 )
 
-// SearchResult -
-type SearchResult struct {
-	Count int64        `json:"count"`
-	Time  int64        `json:"time"`
-	Items []SearchItem `json:"items"`
-}
-
-// SearchItem -
-type SearchItem struct {
-	Type       string              `json:"type"`
-	Value      string              `json:"value"`
-	Group      *Group              `json:"group,omitempty"`
-	Body       interface{}         `json:"body"`
-	Highlights map[string][]string `json:"highlights,omitempty"`
-}
-
-// Group -
-type Group struct {
-	Count int64 `json:"count"`
-	Top   []Top `json:"top"`
-}
-
-// Top -
-type Top struct {
-	Network string `json:"network"`
-	Key     string `json:"key"`
-}
-
 // LightContract -
 type LightContract struct {
 	Address  string    `json:"address"`

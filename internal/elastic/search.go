@@ -4,16 +4,17 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-	"time"
 
-	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/elastic/search"
 	"github.com/pkg/errors"
 )
 
 const (
 	defaultSize = 10
 )
+
+var ptrRegEx = regexp.MustCompile(`^ptr:\d+$`)
+var sanitizeRegEx = regexp.MustCompile(`[\+\-\=\&\|\>\<\!\(\)\{\}\[\]\^\"\~\*\?\:\\\/]`)
 
 type searchContext struct {
 	Text       string
@@ -23,34 +24,12 @@ type searchContext struct {
 	Offset     int64
 }
 
-// TokenSearchable -
-type TokenSearchable struct {
-	Name      string                 `json:"name"`
-	Symbol    string                 `json:"symbol"`
-	TokenID   int64                  `json:"token_id"`
-	Network   string                 `json:"network"`
-	Address   string                 `json:"address"`
-	Level     int64                  `json:"level"`
-	Timestamp time.Time              `json:"timestamp"`
-	Decimals  int64                  `json:"decimals"`
-	Extras    map[string]interface{} `json:"extras,omitempty"`
-}
-
 func newSearchContext() searchContext {
 	return searchContext{
 		Fields:     make([]string, 0),
 		Indices:    make([]string, 0),
 		Highlights: make(qItem),
 	}
-}
-
-func getMapFields(allFields []string) map[string]string {
-	res := make(map[string]string)
-	for _, f := range allFields {
-		str := strings.Split(f, "^")
-		res[str[0]] = f
-	}
-	return res
 }
 
 func getHighlights(allFields []string) qItem {
@@ -62,34 +41,26 @@ func getHighlights(allFields []string) qItem {
 	return res
 }
 
-func getFields(search string, fields []string) ([]string, qItem, error) {
-	if len(fields) == 0 {
-		allFields, err := GetSearchScores(search, searchableInidices)
-		if err != nil {
-			return nil, nil, err
-		}
-		highlights := getHighlights(allFields)
-		return allFields, highlights, nil
+func getFields(searchString string, filters map[string]interface{}, fields []string) ([]string, []string, qItem, error) {
+	var indices []string
+	if val, ok := filters["indices"]; ok {
+		indices = val.([]string)
+		delete(filters, "indices")
 	}
 
-	allFields, err := GetSearchScores(search, fields)
+	scores, err := search.GetScores(searchString, fields, indices...)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
-	mapFields := getMapFields(allFields)
 
 	f := make([]string, 0)
 	h := make(qItem)
-	for _, field := range fields {
-		if nf, ok := mapFields[field]; ok {
-			f = append(f, nf)
-			s := strings.Split(nf, "^")
-			h[s[0]] = qItem{}
-		} else {
-			return nil, nil, errors.Errorf("Unknown field: %s", field)
-		}
+	for _, score := range scores.Scores {
+		s := strings.Split(score, "^")
+		h[s[0]] = qItem{}
+		f = append(f, s[0])
 	}
-	return f, h, nil
+	return f, scores.Indices, h, nil
 }
 
 func prepareSearchFilters(filters map[string]interface{}) (string, error) {
@@ -150,23 +121,6 @@ func prepareSearchFilters(filters map[string]interface{}) (string, error) {
 	return builder.String(), nil
 }
 
-func getSearchIndices(filters map[string]interface{}) ([]string, error) {
-	if val, ok := filters["indices"]; ok {
-		indices, ok := val.([]string)
-		if !ok {
-			return nil, errors.Errorf("Invalid type for 'indices' filter (wait []string): %T", val)
-		}
-		for i := range indices {
-			if !helpers.StringInArray(indices[i], searchableInidices) {
-				return nil, errors.Errorf("Invalid index name: %s", indices[i])
-			}
-		}
-		delete(filters, "indices")
-		return indices, nil
-	}
-	return searchableInidices, nil
-}
-
 // searchByTextResponse -
 type searchByTextResponse struct {
 	Took int64     `json:"took"`
@@ -184,14 +138,14 @@ type searchByTextResponse struct {
 }
 
 // SearchByText -
-func (e *Elastic) SearchByText(text string, offset int64, fields []string, filters map[string]interface{}, group bool) (SearchResult, error) {
+func (e *Elastic) SearchByText(text string, offset int64, fields []string, filters map[string]interface{}, group bool) (search.Result, error) {
 	if text == "" {
-		return SearchResult{}, errors.Errorf("Empty search string. Please query something")
+		return search.Result{}, errors.Errorf("Empty search string. Please query something")
 	}
 
 	ctx, err := prepare(text, filters, fields)
 	if err != nil {
-		return SearchResult{}, err
+		return search.Result{}, err
 	}
 	ctx.Offset = offset
 
@@ -205,182 +159,111 @@ func (e *Elastic) SearchByText(text string, offset int64, fields []string, filte
 
 	var response searchByTextResponse
 	if err := e.query(ctx.Indices, query, &response); err != nil {
-		return SearchResult{}, err
+		return search.Result{}, err
 	}
 
-	var items []SearchItem
+	var items []search.Item
 	if group {
 		items, err = parseSearchGroupingResponse(response, offset)
 	} else {
 		items, err = parseSearchResponse(response)
 	}
 	if err != nil {
-		return SearchResult{}, nil
+		return search.Result{}, nil
 	}
 
-	return SearchResult{
+	return search.Result{
 		Items: items,
 		Time:  response.Took,
 		Count: response.Hits.Total.Value,
 	}, nil
 }
 
-func parseSearchResponse(response searchByTextResponse) ([]SearchItem, error) {
-	items := make([]SearchItem, 0)
+func parseSearchResponse(response searchByTextResponse) ([]search.Item, error) {
+	items := make([]search.Item, 0)
 	arr := response.Hits.Hits
 	for i := range arr {
-		switch arr[i].Index {
-		case DocContracts:
-			var c models.Contract
-			if err := json.Unmarshal(arr[i].Source, &c); err != nil {
-				return nil, err
-			}
-			item := SearchItem{
-				Type:       DocContracts,
-				Value:      c.Address,
-				Body:       c,
-				Highlights: arr[i].Highlights,
-			}
-			items = append(items, item)
-		case DocOperations:
-			var op models.Operation
-			if err := json.Unmarshal(arr[i].Source, &op); err != nil {
-				return nil, err
-			}
-			item := SearchItem{
-				Type:       DocOperations,
-				Value:      op.Hash,
-				Body:       op,
-				Highlights: arr[i].Highlights,
-			}
-			items = append(items, item)
-		case DocBigMapDiff:
-			var b models.BigMapDiff
-			if err := json.Unmarshal(arr[i].Source, &b); err != nil {
-				return nil, err
-			}
-			item := SearchItem{
-				Type:       DocBigMapDiff,
-				Value:      b.KeyHash,
-				Body:       b,
-				Highlights: arr[i].Highlights,
-			}
-			items = append(items, item)
-		case DocTZIP:
-			var token models.TZIP
-			if err := json.Unmarshal(arr[i].Source, &token); err != nil {
-				return nil, err
-			}
-			for i := range token.Tokens.Static {
-				item := SearchItem{
-					Type:  DocBigMapDiff,
-					Value: token.Address,
-					Body: TokenSearchable{
-						Network:   token.Network,
-						Address:   token.Address,
-						Level:     token.Level,
-						Timestamp: token.Timestamp,
-						Name:      token.Tokens.Static[i].Name,
-						Symbol:    token.Tokens.Static[i].Symbol,
-						TokenID:   token.Tokens.Static[i].TokenID,
-						Decimals:  token.Tokens.Static[i].Decimals,
-						Extras:    token.Tokens.Static[i].Extras,
-					},
-					Highlights: arr[i].Highlights,
-				}
-				items = append(items, item)
-			}
-		default:
+		val, err := search.Parse(arr[i].Index, arr[i].Highlight, arr[i].Source)
+		if err != nil {
+			return nil, err
+		}
+		if val == nil {
+			continue
 		}
 
+		switch t := val.(type) {
+		case search.Item:
+			items = append(items, t)
+		case []search.Item:
+			items = append(items, t...)
+		}
 	}
 	return items, nil
 }
 
-func parseSearchGroupingResponse(response searchByTextResponse, offset int64) ([]SearchItem, error) {
+func parseSearchGroupingResponse(response searchByTextResponse, offset int64) ([]search.Item, error) {
 	if len(response.Agg.Projects.Buckets) == 0 {
-		return make([]SearchItem, 0), nil
+		return make([]search.Item, 0), nil
 	}
 
 	arr := response.Agg.Projects.Buckets
 	lArr := int64(len(arr))
-	items := make([]SearchItem, 0)
+	items := make([]search.Item, 0)
 	if offset > lArr {
 		return items, nil
 	}
 	arr = arr[offset:]
 	for i := range arr {
-		searchItem := SearchItem{}
+		searchItem := search.Item{}
 		if arr[i].DocCount > 1 {
-			searchItem.Group = &Group{
-				Count: arr[i].DocCount,
-				Top:   make([]Top, 0),
-			}
+			searchItem.Group = search.NewGroup(arr[i].DocCount)
 		}
 
 		for j, item := range arr[i].Last.Hits.Hits {
-			searchItem.Type = item.Index
-
-			switch item.Index {
-			case DocContracts:
-				var c models.Contract
-				if err := json.Unmarshal(item.Source, &c); err != nil {
-					return nil, err
-				}
+			val, err := search.Parse(item.Index, item.Highlight, item.Source)
+			if err != nil {
+				return nil, err
+			}
+			if val == nil {
+				continue
+			}
+			switch t := val.(type) {
+			case search.Item:
 				if j == 0 {
-					searchItem.Body = c
-					searchItem.Value = c.Address
-					searchItem.Highlights = item.Highlights
+					searchItem.Type = t.Type
+					searchItem.Body = t.Body
+					searchItem.Value = t.Value
+					searchItem.Highlights = item.Highlight
 				} else {
-					searchItem.Group.Top = append(searchItem.Group.Top, Top{
-						Key:     c.Address,
-						Network: c.Network,
+					searchItem.Group.Top = append(searchItem.Group.Top, search.Top{
+						Key:     t.Value,
+						Network: t.Network,
 					})
 				}
-			case DocOperations:
-				var op models.Operation
-				if err := json.Unmarshal(item.Source, &op); err != nil {
-					return nil, err
-				}
+			case []search.Item:
 				if j == 0 {
-					searchItem.Body = op
-					searchItem.Value = op.Hash
-					searchItem.Highlights = item.Highlights
+					if len(t) > 0 {
+						searchItem.Type = t[0].Type
+						searchItem.Body = t[0].Body
+						searchItem.Value = t[0].Value
+						searchItem.Highlights = item.Highlight
+					}
+					if len(t) > 1 {
+						for k := range t[1:] {
+							searchItem.Group.Top = append(searchItem.Group.Top, search.Top{
+								Key:     t[k].Value,
+								Network: t[k].Network,
+							})
+						}
+					}
 				} else {
-					searchItem.Group.Top = append(searchItem.Group.Top, Top{
-						Key:     op.Hash,
-						Network: op.Network,
-					})
-				}
-			case DocBigMapDiff:
-				var b models.BigMapDiff
-				if err := json.Unmarshal(item.Source, &b); err != nil {
-					return nil, err
-				}
-				searchItem.Body = b
-				searchItem.Value = b.KeyHash
-				searchItem.Highlights = item.Highlights
-			case DocTZIP:
-				var token models.TZIP
-				if err := json.Unmarshal(item.Source, &token); err != nil {
-					return nil, err
-				}
-				searchItem.Value = token.Address
-				searchItem.Highlights = item.Highlights
-				for i := range token.Tokens.Static {
-					searchItem.Body = TokenSearchable{
-						Network:   token.Network,
-						Address:   token.Address,
-						Level:     token.Level,
-						Timestamp: token.Timestamp,
-						Name:      token.Tokens.Static[i].Name,
-						Symbol:    token.Tokens.Static[i].Symbol,
-						TokenID:   token.Tokens.Static[i].TokenID,
-						Decimals:  token.Tokens.Static[i].Decimals,
-						Extras:    token.Tokens.Static[i].Extras,
+					for k := range t {
+						searchItem.Group.Top = append(searchItem.Group.Top, search.Top{
+							Key:     t[k].Value,
+							Network: t[k].Network,
+						})
 					}
 				}
-			default:
 			}
 		}
 		items = append(items, searchItem)
@@ -392,26 +275,19 @@ func prepare(search string, filters map[string]interface{}, fields []string) (se
 	ctx := newSearchContext()
 
 	needEscape := true
-	re := regexp.MustCompile(`^ptr:\d+$`)
-	if re.MatchString(search) {
+	if ptrRegEx.MatchString(search) {
 		ctx.Text = strings.TrimPrefix(search, "ptr:")
 		ctx.Indices = []string{DocBigMapDiff}
 		ctx.Fields = []string{"ptr"}
 		needEscape = false
 	} else {
-		sanitized := `[\+\-\=\&\|\>\<\!\(\)\{\}\[\]\^\"\~\*\?\:\\\/]`
-		re = regexp.MustCompile(sanitized)
-		ctx.Text = re.ReplaceAllString(search, "\\${1}")
+		ctx.Text = sanitizeRegEx.ReplaceAllString(search, "\\${1}")
 
-		indices, err := getSearchIndices(filters)
+		internalFields, usingIndices, highlights, err := getFields(ctx.Text, filters, fields)
 		if err != nil {
 			return ctx, err
 		}
-		internalFields, highlights, err := getFields(ctx.Text, fields)
-		if err != nil {
-			return ctx, err
-		}
-		ctx.Indices = indices
+		ctx.Indices = usingIndices
 		ctx.Highlights = highlights
 		ctx.Fields = internalFields
 	}

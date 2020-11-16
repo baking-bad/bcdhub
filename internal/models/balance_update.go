@@ -1,9 +1,7 @@
 package models
 
 import (
-	"github.com/baking-bad/bcdhub/internal/models/utils"
 	"github.com/sirupsen/logrus"
-	"github.com/tidwall/gjson"
 )
 
 // BalanceUpdate -
@@ -45,16 +43,4 @@ func (b *BalanceUpdate) LogFields() logrus.Fields {
 		"contract": b.Contract,
 		"change":   b.Change,
 	}
-}
-
-// GetScores -
-func (b *BalanceUpdate) GetScores(search string) []string {
-	return []string{}
-}
-
-// FoundByName -
-func (b *BalanceUpdate) FoundByName(hit gjson.Result) string {
-	keys := hit.Get("highlight").Map()
-	categories := b.GetScores("")
-	return utils.GetFoundBy(keys, categories)
 }

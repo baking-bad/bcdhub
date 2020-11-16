@@ -30,12 +30,12 @@ type HitsArray struct {
 
 // Hit -
 type Hit struct {
-	ID         string              `json:"_id"`
-	Index      string              `json:"_index"`
-	Source     stdJSON.RawMessage  `json:"_source"`
-	Score      float64             `json:"_score"`
-	Type       string              `json:"_type"`
-	Highlights map[string][]string `json:"highlights,omitempty"`
+	ID        string              `json:"_id"`
+	Index     string              `json:"_index"`
+	Source    stdJSON.RawMessage  `json:"_source"`
+	Score     float64             `json:"_score"`
+	Type      string              `json:"_type"`
+	Highlight map[string][]string `json:"highlight,omitempty"`
 }
 
 // DeleteByQueryResponse -

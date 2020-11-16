@@ -3,10 +3,10 @@ package elastic
 import (
 	"io"
 
+	"github.com/baking-bad/bcdhub/internal/elastic/search"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/mq"
-	"github.com/tidwall/gjson"
 )
 
 // Model -
@@ -15,12 +15,6 @@ type Model interface {
 
 	GetID() string
 	GetIndex() string
-}
-
-// Scorable -
-type Scorable interface {
-	GetScores(string) []string
-	FoundByName(gjson.Result) string
 }
 
 // IGeneral -
@@ -132,7 +126,7 @@ type IProtocol interface {
 
 // ISearch -
 type ISearch interface {
-	SearchByText(string, int64, []string, map[string]interface{}, bool) (SearchResult, error)
+	SearchByText(string, int64, []string, map[string]interface{}, bool) (search.Result, error)
 }
 
 // ISnapshot -
