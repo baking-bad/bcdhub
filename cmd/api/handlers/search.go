@@ -29,7 +29,7 @@ import (
 // @Param l query string false "Comma-separated list of languages for searching. Values: smartpy, liquidity, ligo, lorentz, michelson"
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} elastic.SearchResult
+// @Success 200 {object} search.Result
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /search [get]
