@@ -32,15 +32,6 @@ func newSearchContext() searchContext {
 	}
 }
 
-func getHighlights(allFields []string) qItem {
-	res := make(qItem)
-	for _, f := range allFields {
-		str := strings.Split(f, "^")
-		res[str[0]] = qItem{}
-	}
-	return res
-}
-
 func getFields(searchString string, filters map[string]interface{}, fields []string) ([]string, []string, qItem, error) {
 	var indices []string
 	if val, ok := filters["indices"]; ok {

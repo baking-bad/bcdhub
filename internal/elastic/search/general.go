@@ -15,20 +15,29 @@ type Scorable interface {
 	Parse(highlight map[string][]string, data []byte) (interface{}, error)
 }
 
+// indices
+const (
+	contractIndex   = "contract"
+	operationIndex  = "operation"
+	bigmapdiffIndex = "bigmapdiff"
+	tzipIndex       = "tzip"
+	metadataIndex   = "metadata" // TODO: constants in separate package
+)
+
 // Indices - list of indices availiable to search
 var Indices = []string{
-	"contract",
-	"operation",
-	"bigmapdiff",
-	"tzip", // TODO: constants in separate package
+	contractIndex,
+	operationIndex,
+	bigmapdiffIndex,
+	tzipIndex,
 }
 
 var scorables = map[string]Scorable{
-	"contract":   &Contract{},
-	"operation":  &Operation{},
-	"bigmapdiff": &BigMap{},
-	"tzip":       &Token{},
-	"metadata":   &Metadata{},
+	contractIndex:   &Contract{},
+	operationIndex:  &Operation{},
+	bigmapdiffIndex: &BigMap{},
+	tzipIndex:       &Token{},
+	metadataIndex:   &Metadata{},
 }
 
 // ScoreInfo -
@@ -118,13 +127,13 @@ func Parse(index string, highlight map[string][]string, data []byte) (interface{
 	}
 
 	switch index {
-	case "contract":
+	case contractIndex:
 		return scorables[index].Parse(highlight, data)
-	case "operation":
+	case operationIndex:
 		return scorables[index].Parse(highlight, data)
-	case "bigmapdiff":
+	case bigmapdiffIndex:
 		return scorables[index].Parse(highlight, data)
-	case "tzip":
+	case tzipIndex:
 		token := scorables[index]
 
 		var found bool
@@ -142,7 +151,7 @@ func Parse(index string, highlight map[string][]string, data []byte) (interface{
 		if found {
 			return token.Parse(highlight, data)
 		}
-		return scorables["metadata"].Parse(highlight, data)
+		return scorables[metadataIndex].Parse(highlight, data)
 	default:
 		return nil, errors.Errorf("Unknown index: %s", index)
 	}
