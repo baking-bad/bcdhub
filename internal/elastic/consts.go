@@ -14,6 +14,7 @@ const (
 	DocTransfers      = "transfer"
 	DocTZIP           = "tzip"
 	DocTokenBalances  = "token_balance"
+	DocTezosDomains   = "tezos_domain"
 )
 
 // Index names

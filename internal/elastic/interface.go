@@ -89,6 +89,12 @@ type IContract interface {
 	GetContractsByAddresses(addresses []Address) ([]models.Contract, error)
 }
 
+// IDomains -
+type IDomains interface {
+	ListDomains(network string, size, offset int64) ([]models.TezosDomain, error)
+	ResolveDomainByAddress(network string, address string) (*models.TezosDomain, error)
+}
+
 // IEvents -
 type IEvents interface {
 	GetEvents([]SubscriptionRequest, int64, int64) ([]Event, error)
@@ -189,6 +195,7 @@ type IElastic interface {
 	IBlock
 	IBulk
 	IContract
+	IDomains
 	IEvents
 	IMigrations
 	IOperations

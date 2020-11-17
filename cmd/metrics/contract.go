@@ -18,9 +18,9 @@ func getContract(ids []string) error {
 		if err := parseContract(&contracts[i]); err != nil {
 			return errors.Errorf("[getContract] Compute error message: %s", err)
 		}
-
-		logger.With(&contracts[i]).Info("Contract's metrics are computed")
 	}
+
+	logger.Info("Metrics of %d contracts are computed", len(contracts))
 	return ctx.ES.BulkUpdateField(contracts, "Alias", "Verified", "VerificationSource")
 }
 

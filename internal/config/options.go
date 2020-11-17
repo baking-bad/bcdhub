@@ -142,3 +142,10 @@ func WithAWS(cfg AWSConfig) ContextOption {
 		ctx.AWS = client
 	}
 }
+
+// WithDomains -
+func WithDomains(cfg TezosDomainsConfig) ContextOption {
+	return func(ctx *Context) {
+		ctx.Domains = cfg
+	}
+}

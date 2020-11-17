@@ -197,15 +197,18 @@ func (e *Elastic) createIndexIfNotExists(index string) error {
 func (e *Elastic) CreateIndexes() error {
 	for _, index := range []string{
 		DocContracts,
-		DocMetadata,
-		DocBigMapActions,
-		DocBigMapDiff,
+		DocBlocks,
+		DocBalanceUpdates,
 		DocOperations,
+		DocBigMapDiff,
+		DocBigMapActions,
+		DocMetadata,
 		DocMigrations,
 		DocProtocol,
-		DocBlocks,
 		DocTransfers,
 		DocTZIP,
+		DocTokenBalances,
+		DocTezosDomains,
 	} {
 		if err := e.createIndexIfNotExists(index); err != nil {
 			return err

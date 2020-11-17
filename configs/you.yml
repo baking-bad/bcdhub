@@ -69,6 +69,10 @@ ipfs:
   - https://ipfs.io
   - https://dweb.link
 
+domains:
+  carthagenet: KT1SZuK6u3QgQFcoYqDwZCd2Xb9pn4HXJW56
+  delphinet: KT1CR6vXJ1qeY4ALDQfUaLFi3FcJJZ8WDygo
+
 api:
   project_name: api
   bind: ":14000"

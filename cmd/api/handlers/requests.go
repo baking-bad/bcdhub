@@ -337,3 +337,8 @@ type getTransfersRequest struct {
 type getTokenHolders struct {
 	TokenID *int64 `form:"token_id" binding:"min=0"`
 }
+
+type resolveDomainRequest struct {
+	Name    string `form:"name" binding:"omitempty"`
+	Address string `form:"address" binding:"omitempty"`
+}

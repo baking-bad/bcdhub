@@ -26,6 +26,7 @@ type Context struct {
 
 	Aliases    map[string]string
 	Interfaces map[string]kinds.ContractKind
+	Domains    map[string]string
 }
 
 // NewContext -

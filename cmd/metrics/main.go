@@ -84,6 +84,7 @@ func main() {
 		config.WithRabbit(cfg.RabbitMQ, cfg.Metrics.ProjectName, cfg.Metrics.MQ),
 		config.WithAliases(consts.Mainnet),
 		config.WithShare(cfg.SharePath),
+		config.WithDomains(cfg.Domains),
 	)
 	defer ctx.Close()
 

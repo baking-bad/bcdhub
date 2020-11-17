@@ -2,7 +2,6 @@ package rollback
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser"
@@ -80,7 +79,6 @@ func (rm Manager) rollbackTokenBalances(network string, toLevel int64) error {
 	for i := range transfers {
 
 		if id := transfers[i].GetFromTokenBalanceID(); id != "" {
-			log.Printf("FROM %s: %.0f", id, transfers[i].Amount)
 			if update, ok := exists[id]; ok {
 				update.Balance += int64(transfers[i].Amount)
 			} else {
@@ -91,7 +89,6 @@ func (rm Manager) rollbackTokenBalances(network string, toLevel int64) error {
 		}
 
 		if id := transfers[i].GetToTokenBalanceID(); id != "" {
-			log.Printf("TO %s: %.0f", id, transfers[i].Amount)
 			if update, ok := exists[id]; ok {
 				update.Balance -= int64(transfers[i].Amount)
 			} else {
@@ -102,7 +99,6 @@ func (rm Manager) rollbackTokenBalances(network string, toLevel int64) error {
 		}
 	}
 
-	log.Printf("%##v", updates[0])
 	return rm.e.UpdateTokenBalances(updates)
 }
 
