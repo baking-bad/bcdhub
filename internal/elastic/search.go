@@ -327,6 +327,8 @@ func grouping(ctx searchContext, query base) base {
 								return doc['address.keyword'].value + '|' + doc['network.keyword'].value
 							} else if (doc['_index'].value == 'bigmapdiff') {
 								return doc['key_hash.keyword'].value
+							} else if (doc['_index'].value == 'tezos_domain') {
+								return doc['name.keyword'].value + '|' + doc['network.keyword'].value
 							}`,
 						"size": defaultSize + ctx.Offset,
 						"order": qList{

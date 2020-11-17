@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -18,7 +19,7 @@ import (
 // @Param offset query integer false "Offset" mininum(1)
 // @Accept  json
 // @Produce  json
-// @Success 200 {array} models.TezosDomain
+// @Success 200 {object} DomainsResponse
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /domains/{network} [get]
@@ -38,7 +39,12 @@ func (ctx *Context) TezosDomainsList(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, domains)
+	response := DomainsResponse{
+		Domains: domains.Domains,
+		Total:   domains.Total,
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 // ResolveDomain godoc
@@ -52,6 +58,7 @@ func (ctx *Context) TezosDomainsList(c *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} models.TezosDomain
+// @Success 204 {object} gin.H
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /domains/{network}/resolve [get]
@@ -71,7 +78,12 @@ func (ctx *Context) ResolveDomain(c *gin.Context) {
 			Network: req.Network,
 			Name:    args.Name,
 		}
-		if err := ctx.ES.GetByID(&td); handleError(c, err, 0) {
+		if err := ctx.ES.GetByID(&td); err != nil {
+			if elastic.IsRecordNotFound(err) {
+				c.JSON(http.StatusNoContent, gin.H{})
+				return
+			}
+			handleError(c, err, 0)
 			return
 		}
 		if td.Address == "" {
@@ -81,7 +93,12 @@ func (ctx *Context) ResolveDomain(c *gin.Context) {
 		c.JSON(http.StatusOK, td)
 	case args.Address != "":
 		td, err := ctx.ES.ResolveDomainByAddress(req.Network, args.Address)
-		if handleError(c, err, 0) {
+		if err != nil {
+			if elastic.IsRecordNotFound(err) {
+				c.JSON(http.StatusNoContent, gin.H{})
+				return
+			}
+			handleError(c, err, 0)
 			return
 		}
 		c.JSON(http.StatusOK, td)

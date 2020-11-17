@@ -7,7 +7,7 @@ import (
 )
 
 // ListDomains -
-func (e *Elastic) ListDomains(network string, size, offset int64) ([]models.TezosDomain, error) {
+func (e *Elastic) ListDomains(network string, size, offset int64) (DomainsResponse, error) {
 	if size > defaultScrollSize {
 		size = defaultScrollSize
 	}
@@ -22,19 +22,23 @@ func (e *Elastic) ListDomains(network string, size, offset int64) ([]models.Tezo
 
 	var response SearchResponse
 	if err := e.query([]string{DocTezosDomains}, query, &response); err != nil {
-		return nil, err
+		return DomainsResponse{}, err
 	}
 	if response.Hits.Total.Value == 0 {
-		return nil, nil
+		return DomainsResponse{}, nil
 	}
 
 	domains := make([]models.TezosDomain, len(response.Hits.Hits))
 	for i := range response.Hits.Hits {
 		if err := json.Unmarshal(response.Hits.Hits[i].Source, &domains[i]); err != nil {
-			return nil, err
+			return DomainsResponse{}, err
 		}
 	}
-	return domains, nil
+	result := DomainsResponse{
+		Domains: domains,
+		Total:   response.Hits.Total.Value,
+	}
+	return result, nil
 }
 
 // ResolveDomainByAddress -

@@ -22,6 +22,7 @@ const (
 	bigmapdiffIndex = "bigmapdiff"
 	tzipIndex       = "tzip"
 	metadataIndex   = "metadata" // TODO: constants in separate package
+	domainIndex     = "tezos_domain"
 )
 
 // Indices - list of indices availiable to search
@@ -30,6 +31,7 @@ var Indices = []string{
 	operationIndex,
 	bigmapdiffIndex,
 	tzipIndex,
+	domainIndex,
 }
 
 var scorables = map[string]Scorable{
@@ -38,6 +40,7 @@ var scorables = map[string]Scorable{
 	bigmapdiffIndex: &BigMap{},
 	tzipIndex:       &Token{},
 	metadataIndex:   &Metadata{},
+	domainIndex:     &Domain{},
 }
 
 // ScoreInfo -
@@ -127,12 +130,6 @@ func Parse(index string, highlight map[string][]string, data []byte) (interface{
 	}
 
 	switch index {
-	case contractIndex:
-		return scorables[index].Parse(highlight, data)
-	case operationIndex:
-		return scorables[index].Parse(highlight, data)
-	case bigmapdiffIndex:
-		return scorables[index].Parse(highlight, data)
 	case tzipIndex:
 		token := scorables[index]
 
@@ -153,6 +150,9 @@ func Parse(index string, highlight map[string][]string, data []byte) (interface{
 		}
 		return scorables[metadataIndex].Parse(highlight, data)
 	default:
+		if s, ok := scorables[index]; ok {
+			return s.Parse(highlight, data)
+		}
 		return nil, errors.Errorf("Unknown index: %s", index)
 	}
 }
