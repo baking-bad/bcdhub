@@ -46,8 +46,8 @@ func (bm *BulkManager) Add(data amqp.Delivery) {
 		}
 		if len(bm.queue) == cap(bm.queue) {
 			bm.ticker.Stop()
-			bm.ticker = time.NewTicker(bm.timeout)
 			bm.process()
+			bm.ticker = time.NewTicker(bm.timeout)
 		}
 	}
 }

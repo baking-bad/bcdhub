@@ -72,6 +72,11 @@ func TestGet(t *testing.T) {
 			input: `{"prim": "Pair","args": [{"prim": "Pair","args": [{"prim": "Some","args": [{"prim": "Pair","args": [{"prim": "Pair","args": [{"prim": "Pair","args": [{"bytes": "54657a6f7320566f7465"},{"prim": "True"}]},{"bytes": "68747470733a2f2f74657a6f732e766f74652f62616b65722e6a736f6e"}]},{"prim": "Pair","args": [{"prim": "Pair","args": [{"int": "9400"},[{"string": "tz1ggJg924JdWdww6oLGFksRgKctfrDMUNfE"}]]},{"prim": "Pair","args": [{"prim": "Pair","args": [{"prim": "Pair","args": [{"int": "500000"},{"prim": "True"}]},{"prim": "Pair","args": [{"int": "6"},{"prim": "Pair","args": [{"int": "1"},{"int": "200"}]}]}]},{"prim": "Pair","args": [{"prim": "Pair","args": [{"prim": "False"},{"int": "15503"}]},{"prim": "Pair","args": [{"int": "100"},{"prim": "True"}]}]}]}]}]}]},{"prim": "Some","args": [{"string": "tz1ggJg924JdWdww6oLGFksRgKctfrDMUNfE"}]}]},{"string": "2020-04-03T18:17:21Z"}]}`,
 			res:   []string{"Tezos Vote", "https://tezos.vote/baker.json", "tz1ggJg924JdWdww6oLGFksRgKctfrDMUNfE"},
 		},
+		{
+			name:  "KT1CR6vXJ1qeY4ALDQfUaLFi3FcJJZ8WDygo/ok.test",
+			input: `{"bytes": "6f6b2e74657374"}`,
+			res:   []string{"ok.test"},
+		},
 	}
 
 	for _, tt := range testCases {

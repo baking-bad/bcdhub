@@ -966,6 +966,59 @@ func (mr *MockIContractMockRecorder) GetContractsByAddresses(addresses interface
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContractsByAddresses", reflect.TypeOf((*MockIContract)(nil).GetContractsByAddresses), addresses)
 }
 
+// MockIDomains is a mock of IDomains interface
+type MockIDomains struct {
+	ctrl     *gomock.Controller
+	recorder *MockIDomainsMockRecorder
+}
+
+// MockIDomainsMockRecorder is the mock recorder for MockIDomains
+type MockIDomainsMockRecorder struct {
+	mock *MockIDomains
+}
+
+// NewMockIDomains creates a new mock instance
+func NewMockIDomains(ctrl *gomock.Controller) *MockIDomains {
+	mock := &MockIDomains{ctrl: ctrl}
+	mock.recorder = &MockIDomainsMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockIDomains) EXPECT() *MockIDomainsMockRecorder {
+	return m.recorder
+}
+
+// ListDomains mocks base method
+func (m *MockIDomains) ListDomains(network string, size, offset int64) ([]models.TezosDomain, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListDomains", network, size, offset)
+	ret0, _ := ret[0].([]models.TezosDomain)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListDomains indicates an expected call of ListDomains
+func (mr *MockIDomainsMockRecorder) ListDomains(network, size, offset interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListDomains", reflect.TypeOf((*MockIDomains)(nil).ListDomains), network, size, offset)
+}
+
+// ResolveDomainByAddress mocks base method
+func (m *MockIDomains) ResolveDomainByAddress(network, address string) (*models.TezosDomain, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ResolveDomainByAddress", network, address)
+	ret0, _ := ret[0].(*models.TezosDomain)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ResolveDomainByAddress indicates an expected call of ResolveDomainByAddress
+func (mr *MockIDomainsMockRecorder) ResolveDomainByAddress(network, address interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveDomainByAddress", reflect.TypeOf((*MockIDomains)(nil).ResolveDomainByAddress), network, address)
+}
+
 // MockIEvents is a mock of IEvents interface
 type MockIEvents struct {
 	ctrl     *gomock.Controller
@@ -2601,6 +2654,36 @@ func (m *MockIElastic) GetContractsByAddresses(addresses []elastic.Address) ([]m
 func (mr *MockIElasticMockRecorder) GetContractsByAddresses(addresses interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContractsByAddresses", reflect.TypeOf((*MockIElastic)(nil).GetContractsByAddresses), addresses)
+}
+
+// ListDomains mocks base method
+func (m *MockIElastic) ListDomains(network string, size, offset int64) ([]models.TezosDomain, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListDomains", network, size, offset)
+	ret0, _ := ret[0].([]models.TezosDomain)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListDomains indicates an expected call of ListDomains
+func (mr *MockIElasticMockRecorder) ListDomains(network, size, offset interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListDomains", reflect.TypeOf((*MockIElastic)(nil).ListDomains), network, size, offset)
+}
+
+// ResolveDomainByAddress mocks base method
+func (m *MockIElastic) ResolveDomainByAddress(network, address string) (*models.TezosDomain, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ResolveDomainByAddress", network, address)
+	ret0, _ := ret[0].(*models.TezosDomain)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ResolveDomainByAddress indicates an expected call of ResolveDomainByAddress
+func (mr *MockIElasticMockRecorder) ResolveDomainByAddress(network, address interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveDomainByAddress", reflect.TypeOf((*MockIElastic)(nil).ResolveDomainByAddress), network, address)
 }
 
 // GetEvents mocks base method

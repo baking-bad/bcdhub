@@ -10,11 +10,12 @@ import (
 
 // TZIP -
 type TZIP struct {
-	Level     int64     `json:"level,omitempty"`
-	Timestamp time.Time `json:"timestamp,omitempty"`
-	Address   string    `json:"address"`
-	Network   string    `json:"network"`
-	Slug      string    `json:"slug,omitempty"`
+	Level     int64               `json:"level,omitempty"`
+	Timestamp time.Time           `json:"timestamp,omitempty"`
+	Address   string              `json:"address"`
+	Network   string              `json:"network"`
+	Slug      string              `json:"slug,omitempty"`
+	Domain    *ReverseTezosDomain `json:"domain,omitempty"`
 
 	tzip.TZIP12
 	tzip.TZIP16

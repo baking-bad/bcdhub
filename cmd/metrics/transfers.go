@@ -18,8 +18,8 @@ func getTransfer(ids []string) error {
 		if err := parseTransfer(transfers[i]); err != nil {
 			return errors.Errorf("[getTransfer] Compute error message: %s", err)
 		}
-		logger.With(&transfers[i]).Info("Transfer is processed")
 	}
+	logger.Info("%d transfers are processed", len(transfers))
 	return nil
 }
 

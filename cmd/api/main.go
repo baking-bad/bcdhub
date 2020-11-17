@@ -212,6 +212,12 @@ func (api *app) makeRouter() {
 			}
 		}
 
+		domains := v1.Group("domains/:network")
+		{
+			domains.GET("", api.Context.TezosDomainsList)
+			domains.GET("resolve", api.Context.ResolveDomain)
+		}
+
 		account := v1.Group("account/:network/:address")
 		{
 			account.GET("", api.Context.GetInfo)

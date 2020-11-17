@@ -56,7 +56,8 @@ func (e *Elastic) buildFieldsForModel(data interface{}, fields ...string) ([]byt
 	}
 
 	return json.Marshal(map[string]interface{}{
-		"doc": updateFields,
+		"doc":           updateFields,
+		"doc_as_upsert": true,
 	})
 }
 
@@ -66,6 +67,7 @@ func (e *Elastic) UpdateFields(index, id string, data interface{}, fields ...str
 	if err != nil {
 		return err
 	}
+
 	req := esapi.UpdateRequest{
 		Index:      index,
 		DocumentID: id,
@@ -79,6 +81,5 @@ func (e *Elastic) UpdateFields(index, id string, data interface{}, fields ...str
 	}
 	defer res.Body.Close()
 
-	var response map[string]interface{}
-	return e.getResponse(res, &response)
+	return e.getResponse(res, nil)
 }

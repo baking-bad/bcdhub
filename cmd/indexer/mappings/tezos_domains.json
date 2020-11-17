@@ -1,0 +1,42 @@
+{
+    "mappings": {
+        "properties": {
+            "name": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "expiration": {
+                "type": "date"
+            },
+            "timestamp": {
+                "type": "date"
+            },
+            "network": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "level": {
+                "type": "long"
+            },
+            "address": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            }
+        }
+    }
+}

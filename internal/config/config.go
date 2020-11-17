@@ -29,6 +29,7 @@ type Config struct {
 	SharePath    string                `yaml:"share_path"`
 	BaseURL      string                `yaml:"base_url"`
 	IPFSGateways []string              `yaml:"ipfs"`
+	Domains      TezosDomainsConfig    `yaml:"domains"`
 
 	API struct {
 		ProjectName   string     `yaml:"project_name"`
@@ -177,6 +178,9 @@ type QueueParams struct {
 	NonDurable  bool `yaml:"non_durable"`
 	AutoDeleted bool `yaml:"auto_deleted"`
 }
+
+// TezosDomainsConfig -
+type TezosDomainsConfig map[string]string
 
 // LoadDefaultConfig -
 func LoadDefaultConfig() (Config, error) {

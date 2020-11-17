@@ -20,6 +20,7 @@ func getProject(ids []string) error {
 			return errors.Errorf("[getContract] Compute error message: %s", err)
 		}
 	}
+	logger.Info("%d contracts are pulled to projects", len(contracts))
 	return nil
 }
 
@@ -31,6 +32,5 @@ func parseProject(contract models.Contract) error {
 			return errors.Errorf("[parseContract] Error during set contract projectID: %s", err)
 		}
 	}
-	logger.With(&contract).Infof("Contract is pulled to project %s", contract.ProjectID)
 	return ctx.ES.UpdateFields(elastic.DocContracts, contract.GetID(), contract, "ProjectID")
 }
