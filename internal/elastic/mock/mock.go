@@ -10,7 +10,6 @@ import (
 	models "github.com/baking-bad/bcdhub/internal/models"
 	tzip "github.com/baking-bad/bcdhub/internal/models/tzip"
 	gomock "github.com/golang/mock/gomock"
-	gjson "github.com/tidwall/gjson"
 	io "io"
 	reflect "reflect"
 )
@@ -93,57 +92,6 @@ func (m *MockModel) GetIndex() string {
 func (mr *MockModelMockRecorder) GetIndex() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIndex", reflect.TypeOf((*MockModel)(nil).GetIndex))
-}
-
-// MockScorable is a mock of Scorable interface
-type MockScorable struct {
-	ctrl     *gomock.Controller
-	recorder *MockScorableMockRecorder
-}
-
-// MockScorableMockRecorder is the mock recorder for MockScorable
-type MockScorableMockRecorder struct {
-	mock *MockScorable
-}
-
-// NewMockScorable creates a new mock instance
-func NewMockScorable(ctrl *gomock.Controller) *MockScorable {
-	mock := &MockScorable{ctrl: ctrl}
-	mock.recorder = &MockScorableMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockScorable) EXPECT() *MockScorableMockRecorder {
-	return m.recorder
-}
-
-// GetScores mocks base method
-func (m *MockScorable) GetScores(arg0 string) []string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetScores", arg0)
-	ret0, _ := ret[0].([]string)
-	return ret0
-}
-
-// GetScores indicates an expected call of GetScores
-func (mr *MockScorableMockRecorder) GetScores(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetScores", reflect.TypeOf((*MockScorable)(nil).GetScores), arg0)
-}
-
-// FoundByName mocks base method
-func (m *MockScorable) FoundByName(arg0 gjson.Result) string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FoundByName", arg0)
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// FoundByName indicates an expected call of FoundByName
-func (mr *MockScorableMockRecorder) FoundByName(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FoundByName", reflect.TypeOf((*MockScorable)(nil).FoundByName), arg0)
 }
 
 // MockIGeneral is a mock of IGeneral interface
@@ -990,10 +938,10 @@ func (m *MockIDomains) EXPECT() *MockIDomainsMockRecorder {
 }
 
 // ListDomains mocks base method
-func (m *MockIDomains) ListDomains(network string, size, offset int64) ([]models.TezosDomain, error) {
+func (m *MockIDomains) ListDomains(network string, size, offset int64) (elastic.DomainsResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListDomains", network, size, offset)
-	ret0, _ := ret[0].([]models.TezosDomain)
+	ret0, _ := ret[0].(elastic.DomainsResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2657,10 +2605,10 @@ func (mr *MockIElasticMockRecorder) GetContractsByAddresses(addresses interface{
 }
 
 // ListDomains mocks base method
-func (m *MockIElastic) ListDomains(network string, size, offset int64) ([]models.TezosDomain, error) {
+func (m *MockIElastic) ListDomains(network string, size, offset int64) (elastic.DomainsResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListDomains", network, size, offset)
-	ret0, _ := ret[0].([]models.TezosDomain)
+	ret0, _ := ret[0].(elastic.DomainsResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

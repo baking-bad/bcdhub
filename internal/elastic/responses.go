@@ -3,6 +3,8 @@ package elastic
 import (
 	stdJSON "encoding/json"
 	"fmt"
+
+	"github.com/baking-bad/bcdhub/internal/models"
 )
 
 // Header -
@@ -95,4 +97,10 @@ type floatValue struct {
 
 type sqlResponse struct {
 	Rows [][]interface{} `json:"rows"`
+}
+
+// DomainsResponse -
+type DomainsResponse struct {
+	Domains []models.TezosDomain `json:"domains"`
+	Total   int64                `json:"total"`
 }

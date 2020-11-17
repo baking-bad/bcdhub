@@ -663,3 +663,9 @@ func TokenMetadataFromElasticModel(model elastic.TokenMetadata) (tm TokenMetadat
 	tm.Extras = model.Extras
 	return
 }
+
+// DomainsResponse -
+type DomainsResponse struct {
+	Domains []models.TezosDomain `json:"domains"`
+	Total   int64                `json:"total"`
+}

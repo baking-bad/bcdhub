@@ -91,7 +91,7 @@ type IContract interface {
 
 // IDomains -
 type IDomains interface {
-	ListDomains(network string, size, offset int64) ([]models.TezosDomain, error)
+	ListDomains(network string, size, offset int64) (DomainsResponse, error)
 	ResolveDomainByAddress(network string, address string) (*models.TezosDomain, error)
 }
 
