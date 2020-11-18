@@ -318,7 +318,7 @@ func (e *Elastic) GetBalances(network, contract string, level int64, addresses .
 		balances[TokenBalance{
 			Address: parts[0],
 			TokenID: tokenID,
-		}] = balance
+		}] = int64(balance)
 	}
 	return balances, nil
 }
@@ -326,7 +326,7 @@ func (e *Elastic) GetBalances(network, contract string, level int64, addresses .
 type getAccountBalancesResponse struct {
 	Agg struct {
 		Balances struct {
-			Value map[string]int64 `json:"value"`
+			Value map[string]float64 `json:"value"`
 		} `json:"balances"`
 	} `json:"aggregations"`
 }
