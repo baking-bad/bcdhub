@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -114,7 +115,7 @@ func (ctx *Context) GetSeries(c *gin.Context) {
 		addresses = strings.Split(reqArgs.Address, ",")
 	}
 
-	options, err := getHistogramOptions(reqArgs.Name, req.Network, addresses...)
+	options, err := ctx.getHistogramOptions(reqArgs.Name, req.Network, reqArgs.Slug, addresses...)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -127,7 +128,7 @@ func (ctx *Context) GetSeries(c *gin.Context) {
 	c.JSON(http.StatusOK, series)
 }
 
-func getHistogramOptions(name, network string, addresses ...string) ([]elastic.HistogramOption, error) {
+func (ctx *Context) getHistogramOptions(name, network, slug string, addresses ...string) ([]elastic.HistogramOption, error) {
 	filters := []elastic.HistogramFilter{
 		{
 			Field: "network",
@@ -139,7 +140,7 @@ func getHistogramOptions(name, network string, addresses ...string) ([]elastic.H
 	switch name {
 	case "contract":
 		return []elastic.HistogramOption{
-			elastic.WithHistogramIndices("contract"),
+			elastic.WithHistogramIndices(elastic.DocContracts),
 			elastic.WithHistogramFilters(filters),
 		}, nil
 	case "operation":
@@ -151,7 +152,7 @@ func getHistogramOptions(name, network string, addresses ...string) ([]elastic.H
 
 		filters = append(filters, elastic.HistogramFilter{
 			Field: "status",
-			Value: "applied",
+			Value: consts.Applied,
 			Kind:  elastic.HistogramFilterKindMatch,
 		})
 
@@ -161,10 +162,12 @@ func getHistogramOptions(name, network string, addresses ...string) ([]elastic.H
 				Value: addresses,
 				Field: "destination",
 			})
+		} else {
+			return nil, errors.Errorf("Required 'address' field")
 		}
 
 		return []elastic.HistogramOption{
-			elastic.WithHistogramIndices("operation"),
+			elastic.WithHistogramIndices(elastic.DocOperations),
 			elastic.WithHistogramFilters(filters),
 		}, nil
 	case "paid_storage_size_diff":
@@ -177,7 +180,7 @@ func getHistogramOptions(name, network string, addresses ...string) ([]elastic.H
 		}
 
 		return []elastic.HistogramOption{
-			elastic.WithHistogramIndices("operation"),
+			elastic.WithHistogramIndices(elastic.DocOperations),
 			elastic.WithHistogramFunction("sum", "result.paid_storage_size_diff"),
 			elastic.WithHistogramFilters(filters),
 		}, nil
@@ -188,10 +191,12 @@ func getHistogramOptions(name, network string, addresses ...string) ([]elastic.H
 				Value: addresses,
 				Field: "destination",
 			})
+		} else {
+			return nil, errors.Errorf("Required 'address' field")
 		}
 
 		return []elastic.HistogramOption{
-			elastic.WithHistogramIndices("operation"),
+			elastic.WithHistogramIndices(elastic.DocOperations),
 			elastic.WithHistogramFunction("sum", "result.consumed_gas"),
 			elastic.WithHistogramFilters(filters),
 		}, nil
@@ -202,10 +207,12 @@ func getHistogramOptions(name, network string, addresses ...string) ([]elastic.H
 				Value: addresses,
 				Field: "destination",
 			})
+		} else {
+			return nil, errors.Errorf("Required 'address' field")
 		}
 
 		return []elastic.HistogramOption{
-			elastic.WithHistogramIndices("operation"),
+			elastic.WithHistogramIndices(elastic.DocOperations),
 			elastic.WithHistogramFunction("cardinality", "initiator.keyword"),
 			elastic.WithHistogramFilters(filters),
 		}, nil
@@ -216,16 +223,30 @@ func getHistogramOptions(name, network string, addresses ...string) ([]elastic.H
 				Value: addresses,
 				Field: "destination",
 			})
+		} else {
+			return nil, errors.Errorf("Required 'address' field")
 		}
 
 		return []elastic.HistogramOption{
-			elastic.WithHistogramIndices("operation"),
+			elastic.WithHistogramIndices(elastic.DocOperations),
 			elastic.WithHistogramFunction("sum", "amount"),
 			elastic.WithHistogramFilters(filters),
 		}, nil
 	case "token_volume":
+		dapp, err := ctx.ES.GetDAppBySlug(slug)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(dapp.Contracts) > 0 {
+			filters = append(filters, elastic.HistogramFilter{
+				Value: dapp.Contracts,
+				Kind:  elastic.HistogramFilterDexEnrtypoints,
+			})
+		}
+
 		return []elastic.HistogramOption{
-			elastic.WithHistogramIndices("transfer"),
+			elastic.WithHistogramIndices(elastic.DocTransfers),
 			elastic.WithHistogramFunction("sum", "amount"),
 			elastic.WithHistogramFilters(filters),
 		}, nil

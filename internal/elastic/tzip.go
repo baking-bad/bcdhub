@@ -27,7 +27,7 @@ func (ctx GetTokenMetadataContext) buildQuery() base {
 	}
 	if ctx.TokenID != -1 {
 		filters = append(filters, term(
-			"tokens.token_id", ctx.TokenID,
+			"tokens.static.token_id", ctx.TokenID,
 		))
 	}
 	return newQuery().Query(
@@ -100,7 +100,7 @@ func (e *Elastic) GetDApps() ([]tzip.DApp, error) {
 				exists("dapps"),
 			),
 		),
-	).All()
+	).Sort("dapps.order", "asc").All()
 
 	var response SearchResponse
 	if err := e.query([]string{DocTZIP}, query, &response, "dapps"); err != nil {

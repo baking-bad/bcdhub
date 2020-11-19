@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/gin-gonic/gin"
@@ -95,6 +96,7 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 	}
 
 	if withDetails {
+		logger.Debug(dapp.DexTokens)
 		if len(dapp.DexTokens) > 0 {
 			result.DexTokens = make([]TokenMetadata, 0)
 			for _, token := range dapp.DexTokens {
@@ -120,7 +122,7 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 			result.Contracts = make([]DAppContract, 0)
 
 			for _, address := range dapp.Contracts {
-				contract := models.NewEmptyContract(consts.Mainnet, address)
+				contract := models.NewEmptyContract(consts.Mainnet, address.Address)
 				if err := ctx.ES.GetByID(&contract); err != nil {
 					return result, err
 				}
@@ -131,7 +133,7 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 					ReleaseDate: contract.Timestamp.UTC(),
 				})
 
-				tokens, err := ctx.getTokens(consts.Mainnet, address)
+				tokens, err := ctx.getTokens(consts.Mainnet, address.Address)
 				if err != nil {
 					return result, err
 				}
