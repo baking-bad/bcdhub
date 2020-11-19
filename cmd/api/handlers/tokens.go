@@ -174,12 +174,17 @@ func (ctx *Context) GetTokenVolumeSeries(c *gin.Context) {
 		return
 	}
 
-	var reqArgs getTokenSeriesRequest
-	if err := c.BindQuery(&reqArgs); handleError(c, err, http.StatusBadRequest) {
+	var args getTokenSeriesRequest
+	if err := c.BindQuery(&args); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
-	series, err := ctx.ES.GetTokenVolumeSeries(req.Network, reqArgs.Period, []string{reqArgs.Contract}, reqArgs.GetAddresses(), reqArgs.TokenID)
+	dapp, err := ctx.ES.GetDAppBySlug(args.Slug)
+	if handleError(c, err, 0) {
+		return
+	}
+
+	series, err := ctx.ES.GetTokenVolumeSeries(req.Network, args.Period, []string{args.Contract}, dapp.Contracts, args.TokenID)
 	if handleError(c, err, 0) {
 		return
 	}

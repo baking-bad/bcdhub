@@ -5,7 +5,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/gin-gonic/gin"
@@ -96,7 +95,6 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 	}
 
 	if withDetails {
-		logger.Debug(dapp.DexTokens)
 		if len(dapp.DexTokens) > 0 {
 			result.DexTokens = make([]TokenMetadata, 0)
 			for _, token := range dapp.DexTokens {

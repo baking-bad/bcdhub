@@ -202,7 +202,6 @@ type getEntrypointDataRequest struct {
 type getSeriesRequest struct {
 	Name    string `form:"name" binding:"oneof=contract operation paid_storage_size_diff consumed_gas volume users token_volume" example:"contract"`
 	Period  string `form:"period" binding:"oneof=year month week day" example:"year"`
-	Slug    string `form:"slug,omitempty" binding:"omitempty"`
 	Address string `form:"address,omitempty" binding:"omitempty"`
 }
 
@@ -270,18 +269,10 @@ func (req GetTokenStatsRequest) Addresses() []string {
 }
 
 type getTokenSeriesRequest struct {
-	Contract  string `form:"contract" binding:"required,address"`
-	Addresses string `form:"addresses" binding:"required"`
-	Period    string `form:"period" binding:"oneof=year month week day" example:"year"`
-	TokenID   uint   `form:"token_id"`
-}
-
-// GetAddresses -
-func (req getTokenSeriesRequest) GetAddresses() []string {
-	if req.Addresses == "" {
-		return nil
-	}
-	return strings.Split(req.Addresses, ",")
+	Contract string `form:"contract" binding:"required,address"`
+	Period   string `form:"period" binding:"oneof=year month week day" example:"year"`
+	TokenID  uint   `form:"token_id"`
+	Slug     string `form:"slug" binding:"required"`
 }
 
 type verificationRequest struct {
