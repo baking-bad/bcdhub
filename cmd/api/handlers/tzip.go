@@ -29,7 +29,7 @@ func (ctx *Context) GetMetadata(c *gin.Context) {
 	tzip, err := ctx.ES.GetTZIP(req.Network, req.Address)
 	if err != nil {
 		if elastic.IsRecordNotFound(err) {
-			c.JSON(http.StatusOK, gin.H{})
+			c.JSON(http.StatusNoContent, gin.H{})
 		} else {
 			handleError(c, err, 0)
 		}
