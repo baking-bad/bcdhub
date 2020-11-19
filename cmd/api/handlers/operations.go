@@ -100,7 +100,12 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 
 	if len(op) == 0 {
 		operation := ctx.getOperationFromMempool(req.Hash)
-		c.JSON(http.StatusOK, []Operation{operation})
+		if operation == nil {
+			c.JSON(http.StatusOK, []Operation{})
+		} else {
+			c.JSON(http.StatusOK, []Operation{*operation})
+		}
+
 		return
 	}
 
@@ -146,9 +151,9 @@ func (ctx *Context) GetOperationErrorLocation(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (ctx *Context) getOperationFromMempool(hash string) Operation {
+func (ctx *Context) getOperationFromMempool(hash string) *Operation {
 	var wg sync.WaitGroup
-	var opCh = make(chan Operation, len(ctx.TzKTServices))
+	var opCh = make(chan *Operation, len(ctx.TzKTServices))
 
 	defer close(opCh)
 
@@ -159,29 +164,37 @@ func (ctx *Context) getOperationFromMempool(hash string) Operation {
 
 	wg.Wait()
 
-	return <-opCh
+	for i := 0; i < len(ctx.TzKTServices); i++ {
+		if op := <-opCh; op != nil {
+			return op
+		}
+	}
+
+	return nil
 }
 
-func (ctx *Context) getOperation(network, hash string, ops chan<- Operation, wg *sync.WaitGroup) {
+func (ctx *Context) getOperation(network, hash string, ops chan<- *Operation, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	api, err := ctx.GetTzKTService(network)
 	if err != nil {
+		ops <- nil
 		return
 	}
 
 	res, err := api.GetMempool(hash)
 	if err != nil {
+		ops <- nil
 		return
 	}
 
 	if len(res) == 0 {
+		ops <- nil
 		return
 	}
 
 	operation := ctx.prepareMempoolOperation(res[0], network)
-
-	ops <- operation
+	ops <- &operation
 }
 
 func prepareFilters(req operationsRequest) map[string]interface{} {
