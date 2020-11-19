@@ -115,7 +115,7 @@ func (ctx *Context) GetSeries(c *gin.Context) {
 		addresses = strings.Split(reqArgs.Address, ",")
 	}
 
-	options, err := ctx.getHistogramOptions(reqArgs.Name, req.Network, reqArgs.Slug, addresses...)
+	options, err := ctx.getHistogramOptions(reqArgs.Name, req.Network, addresses...)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -128,7 +128,7 @@ func (ctx *Context) GetSeries(c *gin.Context) {
 	c.JSON(http.StatusOK, series)
 }
 
-func (ctx *Context) getHistogramOptions(name, network, slug string, addresses ...string) ([]elastic.HistogramOption, error) {
+func (ctx *Context) getHistogramOptions(name, network string, addresses ...string) ([]elastic.HistogramOption, error) {
 	filters := []elastic.HistogramFilter{
 		{
 			Field: "network",
@@ -233,20 +233,8 @@ func (ctx *Context) getHistogramOptions(name, network, slug string, addresses ..
 			elastic.WithHistogramFilters(filters),
 		}, nil
 	case "token_volume":
-		dapp, err := ctx.ES.GetDAppBySlug(slug)
-		if err != nil {
-			return nil, err
-		}
-
-		if len(dapp.Contracts) > 0 {
-			filters = append(filters, elastic.HistogramFilter{
-				Value: dapp.Contracts,
-				Kind:  elastic.HistogramFilterDexEnrtypoints,
-			})
-		}
-
 		return []elastic.HistogramOption{
-			elastic.WithHistogramIndices(elastic.DocTransfers),
+			elastic.WithHistogramIndices("transfer"),
 			elastic.WithHistogramFunction("sum", "amount"),
 			elastic.WithHistogramFilters(filters),
 		}, nil

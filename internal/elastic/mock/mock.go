@@ -1641,7 +1641,7 @@ func (mr *MockITokensMockRecorder) GetTokensStats(arg0, arg1, arg2 interface{}) 
 }
 
 // GetTokenVolumeSeries mocks base method
-func (m *MockITokens) GetTokenVolumeSeries(arg0, arg1 string, arg2, arg3 []string, arg4 uint) ([][]int64, error) {
+func (m *MockITokens) GetTokenVolumeSeries(arg0, arg1 string, arg2 []string, arg3 []tzip.DAppContract, arg4 uint) ([][]int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTokenVolumeSeries", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].([][]int64)
@@ -3101,7 +3101,7 @@ func (mr *MockIElasticMockRecorder) GetTokensStats(arg0, arg1, arg2 interface{})
 }
 
 // GetTokenVolumeSeries mocks base method
-func (m *MockIElastic) GetTokenVolumeSeries(arg0, arg1 string, arg2, arg3 []string, arg4 uint) ([][]int64, error) {
+func (m *MockIElastic) GetTokenVolumeSeries(arg0, arg1 string, arg2 []string, arg3 []tzip.DAppContract, arg4 uint) ([][]int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTokenVolumeSeries", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].([][]int64)
