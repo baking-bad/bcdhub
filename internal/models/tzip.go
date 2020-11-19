@@ -19,6 +19,7 @@ type TZIP struct {
 
 	tzip.TZIP12
 	tzip.TZIP16
+	tzip.TZIP20
 	tzip.DAppsTZIP
 }
 
