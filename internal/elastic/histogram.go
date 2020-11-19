@@ -1,11 +1,14 @@
 package elastic
 
+import "github.com/baking-bad/bcdhub/internal/models/tzip"
+
 // Histogram filter kinds
 const (
-	HistogramFilterKindExists    = "exists"
-	HistogramFilterKindMatch     = "match"
-	HistogramFilterKindIn        = "in"
-	HistogramFilterKindAddresses = "address"
+	HistogramFilterKindExists     = "exists"
+	HistogramFilterKindMatch      = "match"
+	HistogramFilterKindIn         = "in"
+	HistogramFilterKindAddresses  = "address"
+	HistogramFilterDexEnrtypoints = "dex_entrypoints"
 )
 
 type histogramContext struct {
@@ -50,24 +53,42 @@ func (ctx histogramContext) build() base {
 	}
 
 	matches := make([]qItem, 0)
-	for _, filter := range ctx.Filters {
-		switch filter.Kind {
+	for _, fltr := range ctx.Filters {
+		switch fltr.Kind {
 		case HistogramFilterKindExists:
-			matches = append(matches, exists(filter.Field))
+			matches = append(matches, exists(fltr.Field))
 		case HistogramFilterKindMatch:
-			matches = append(matches, matchQ(filter.Field, filter.Value))
+			matches = append(matches, matchQ(fltr.Field, fltr.Value))
 		case HistogramFilterKindIn:
-			if arr, ok := filter.Value.([]string); ok {
-				matches = append(matches, in(filter.Field, arr))
+			if arr, ok := fltr.Value.([]string); ok {
+				matches = append(matches, in(fltr.Field, arr))
 			}
 		case HistogramFilterKindAddresses:
-			if value, ok := filter.Value.([]string); ok {
+			if value, ok := fltr.Value.([]string); ok {
 				addresses := make([]qItem, len(value))
 				for i := range value {
-					addresses[i] = matchPhrase(filter.Field, value[i])
+					addresses[i] = matchPhrase(fltr.Field, value[i])
 				}
 				matches = append(matches, boolQ(
 					should(addresses...),
+					minimumShouldMatch(1),
+				))
+			}
+		case HistogramFilterDexEnrtypoints:
+			if value, ok := fltr.Value.([]tzip.DAppContract); ok {
+				entrypoints := make([]qItem, 0)
+				for i := range value {
+					for j := range value[i].DexVolumeEntrypoints {
+						entrypoints = append(entrypoints, boolQ(
+							filter(
+								matchPhrase("initiator", value[i].Address),
+								matchQ("parent", value[i].DexVolumeEntrypoints[j]),
+							),
+						))
+					}
+				}
+				matches = append(matches, boolQ(
+					should(entrypoints...),
 					minimumShouldMatch(1),
 				))
 			}
