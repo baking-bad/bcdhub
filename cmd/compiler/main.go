@@ -57,7 +57,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	ticker := time.NewTicker(time.Second * time.Duration(protocol.Constants.TimeBetweenBlocks))
+
+	tickerTime := protocol.Constants.TimeBetweenBlocks
+	if tickerTime == 0 {
+		tickerTime = 30
+	}
+	ticker := time.NewTicker(time.Second * time.Duration(tickerTime))
 
 	msgs, err := context.MQ.Consume(mq.QueueCompilations)
 	if err != nil {
