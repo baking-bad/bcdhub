@@ -34,7 +34,7 @@ func NewTokenViews(es elastic.IElastic) (TokenEvents, error) {
 
 		for _, view := range token.Events {
 			for _, implementation := range view.Implementations {
-				for _, entrypoint := range implementation.MichelsonParameterView.Entrypoints {
+				for _, entrypoint := range implementation.MichelsonParameterEvent.Entrypoints {
 					views[TokenKey{
 						Address:    token.Address,
 						Network:    token.Network,

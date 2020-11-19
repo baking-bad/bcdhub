@@ -102,7 +102,7 @@ func (p *Parser) makeFA2Transfers(operation models.Operation, parameters gjson.R
 }
 
 func (p Parser) runView(event tzip.EventImplementation, operation models.Operation) ([]*models.Transfer, error) {
-	parser, err := event.MichelsonParameterView.GetParser()
+	parser, err := event.MichelsonParameterEvent.GetParser()
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func (p Parser) runView(event tzip.EventImplementation, operation models.Operati
 
 	parameter := normalizeParameter(operation.Parameters)
 	storage := gjson.Parse(`[]`)
-	code, err := event.MichelsonParameterView.CodeJSON()
+	code, err := event.MichelsonParameterEvent.CodeJSON()
 	if err != nil {
 		return nil, err
 	}
