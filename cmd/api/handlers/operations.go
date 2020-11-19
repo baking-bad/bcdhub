@@ -87,6 +87,11 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 		return
 	}
 
+	var queryReq opgRequest
+	if err := c.BindQuery(&queryReq); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
 	op, err := ctx.ES.GetOperations(
 		map[string]interface{}{
 			"hash": req.Hash,
@@ -99,13 +104,16 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 	}
 
 	if len(op) == 0 {
-		operation := ctx.getOperationFromMempool(req.Hash)
-		if operation == nil {
-			c.JSON(http.StatusOK, []Operation{})
-		} else {
-			c.JSON(http.StatusOK, []Operation{*operation})
+		opg := make([]Operation, 0)
+
+		if queryReq.WithMempool {
+			operation := ctx.getOperationFromMempool(req.Hash)
+			if operation != nil {
+				opg = append(opg, *operation)
+			}
 		}
 
+		c.JSON(http.StatusOK, opg)
 		return
 	}
 
@@ -194,7 +202,7 @@ func (ctx *Context) getOperation(network, hash string, ops chan<- *Operation, wg
 	}
 
 	operation := ctx.prepareMempoolOperation(res[0], network)
-	ops <- &operation
+	ops <- operation
 }
 
 func prepareFilters(req operationsRequest) map[string]interface{} {
@@ -393,10 +401,14 @@ func getPrevBmd(es elastic.IElastic, bmd []models.BigMapDiff, indexedTime int64,
 	return es.GetBigMapDiffsPrevious(bmd, indexedTime, address)
 }
 
-func (ctx *Context) prepareMempoolOperation(item tzkt.MempoolOperation, network string) Operation {
+func (ctx *Context) prepareMempoolOperation(item tzkt.MempoolOperation, network string) *Operation {
 	status := item.Body.Status
 	if status == consts.Applied {
 		status = "pending"
+	}
+
+	if !helpers.StringInArray(item.Body.Kind, []string{consts.Transaction, consts.Origination, consts.OriginationNew}) {
+		return nil
 	}
 
 	op := Operation{
@@ -422,12 +434,12 @@ func (ctx *Context) prepareMempoolOperation(item tzkt.MempoolOperation, network 
 	op.DestinationAlias = ctx.Aliases[op.Destination]
 	errs, err := cerrors.ParseArray(item.Body.Errors)
 	if err != nil {
-		return op
+		return nil
 	}
 	op.Errors = errs
 
 	if op.Kind != consts.Transaction {
-		return op
+		return &op
 	}
 
 	if helpers.IsContract(op.Destination) && op.Protocol != "" {
@@ -438,7 +450,7 @@ func (ctx *Context) prepareMempoolOperation(item tzkt.MempoolOperation, network 
 		}
 	}
 
-	return op
+	return &op
 }
 
 func (ctx *Context) buildOperationParameters(params gjson.Result, op *Operation) {
