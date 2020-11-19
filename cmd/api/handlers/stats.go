@@ -162,8 +162,6 @@ func (ctx *Context) getHistogramOptions(name, network string, addresses ...strin
 				Value: addresses,
 				Field: "destination",
 			})
-		} else {
-			return nil, errors.Errorf("Required 'address' field")
 		}
 
 		return []elastic.HistogramOption{
@@ -191,8 +189,6 @@ func (ctx *Context) getHistogramOptions(name, network string, addresses ...strin
 				Value: addresses,
 				Field: "destination",
 			})
-		} else {
-			return nil, errors.Errorf("Required 'address' field")
 		}
 
 		return []elastic.HistogramOption{
@@ -207,8 +203,6 @@ func (ctx *Context) getHistogramOptions(name, network string, addresses ...strin
 				Value: addresses,
 				Field: "destination",
 			})
-		} else {
-			return nil, errors.Errorf("Required 'address' field")
 		}
 
 		return []elastic.HistogramOption{
@@ -223,8 +217,6 @@ func (ctx *Context) getHistogramOptions(name, network string, addresses ...strin
 				Value: addresses,
 				Field: "destination",
 			})
-		} else {
-			return nil, errors.Errorf("Required 'address' field")
 		}
 
 		return []elastic.HistogramOption{
