@@ -193,6 +193,10 @@ type bigMapSearchRequest struct {
 	Level  *int64 `form:"level,omitempty"`
 }
 
+type opgRequest struct {
+	WithMempool bool `form:"with_mempool"`
+}
+
 type getEntrypointDataRequest struct {
 	BinPath string                 `json:"bin_path" binding:"required"`
 	Data    map[string]interface{} `json:"data" binding:"required"`
