@@ -119,7 +119,11 @@ func NewParseParams(rpc noderpc.INode, es elastic.IElastic, opts ...ParseParamsO
 	}
 
 	transferParser, err := transfer.NewParser(
-		params.rpc, params.es, transfer.WithStackTrace(params.stackTrace),
+		params.rpc, params.es,
+		transfer.WithStackTrace(params.stackTrace),
+		transfer.WithNetwork(params.network),
+		transfer.WithChainID(params.head.ChainID),
+		transfer.WithGasLimit(params.constants.HardGasLimitPerOperation),
 	)
 	if err != nil {
 		logger.Error(err)
