@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/parsers/tzip/repository"
 )
 
@@ -83,5 +84,6 @@ func (m *FillTZIP) Do(ctx *config.Context) error {
 		data = append(data, model)
 	}
 
+	logger.Debug(data)
 	return ctx.ES.BulkInsert(data)
 }

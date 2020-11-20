@@ -3,8 +3,9 @@ package transfer
 import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/events"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
 	"github.com/tidwall/gjson"
@@ -16,6 +17,10 @@ type Parser struct {
 	es         elastic.IElastic
 	events     TokenEvents
 	stackTrace *stacktrace.StackTrace
+
+	network  string
+	chainID  string
+	gasLimit int64
 }
 
 // NewParser -
@@ -35,13 +40,38 @@ func NewParser(rpc noderpc.INode, es elastic.IElastic, opts ...ParserOption) (*P
 	}
 	tp.events = tokenEvents
 
+	if tp.network != "" && tp.chainID == "" {
+		state, err := es.GetLastBlock(tp.network)
+		if err != nil {
+			return nil, err
+		}
+		tp.chainID = state.ChainID
+	}
 	return tp, nil
 }
 
 // Parse -
 func (p *Parser) Parse(operation models.Operation) ([]*models.Transfer, error) {
-	if view, ok := p.events.GetByOperation(operation); ok {
-		return p.runView(view, operation)
+	if impl, ok := p.events.GetByOperation(operation); ok {
+		logger.Debug(operation)
+		event, err := events.NewMichelsonParameterEvent(impl.Impl, impl.Name)
+		if err != nil {
+			return nil, err
+		}
+		balances, err := events.Execute(p.rpc, event, events.Context{
+			Network:                  p.network,
+			Parameters:               operation.Parameters,
+			Source:                   operation.Source,
+			Amount:                   operation.Amount,
+			Initiator:                operation.Initiator,
+			Entrypoint:               operation.Entrypoint,
+			ChainID:                  p.chainID,
+			HardGasLimitPerOperation: p.gasLimit,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return p.processBalances(operation, balances)
 	} else if operation.Entrypoint == consts.TransferEntrypoint {
 		parameters := getParameters(operation.Parameters)
 		for i := range operation.Tags {
@@ -101,39 +131,9 @@ func (p *Parser) makeFA2Transfers(operation models.Operation, parameters gjson.R
 	return transfers, nil
 }
 
-func (p Parser) runView(event tzip.EventImplementation, operation models.Operation) ([]*models.Transfer, error) {
-	parser, err := event.MichelsonParameterEvent.GetParser()
-	if err != nil {
-		return nil, err
-	}
-	state, err := p.es.GetLastBlock(operation.Network)
-	if err != nil {
-		return nil, err
-	}
-	protocol, err := p.es.GetProtocol(operation.Network, "", -1)
-	if err != nil {
-		return nil, err
-	}
-
-	parameter := normalizeParameter(operation.Parameters)
-	storage := gjson.Parse(`[]`)
-	code, err := event.MichelsonParameterEvent.CodeJSON()
-	if err != nil {
-		return nil, err
-	}
-
-	response, err := p.rpc.RunCode(code, storage, parameter, state.ChainID, operation.Source, operation.Initiator, operation.Entrypoint, operation.Amount, protocol.Constants.HardGasLimitPerOperation)
-	if err != nil {
-		return nil, err
-	}
-	return p.parseResponse(parser, operation, response)
-}
-
-func (p Parser) parseResponse(parser tzip.BalanceViewParser, operation models.Operation, response gjson.Result) ([]*models.Transfer, error) {
-	newBalances := parser.Parse(response)
-
+func (p Parser) processBalances(operation models.Operation, balances []events.TokenBalance) ([]*models.Transfer, error) {
 	transfers := make([]*models.Transfer, 0)
-	for _, balance := range newBalances {
+	for _, balance := range balances {
 		transfer := models.EmptyTransfer(operation)
 		if balance.Value > 0 {
 			transfer.To = balance.Address

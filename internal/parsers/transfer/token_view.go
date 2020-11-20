@@ -13,8 +13,14 @@ type TokenKey struct {
 	Entrypoint string
 }
 
+// EventImplementation -
+type EventImplementation struct {
+	Impl tzip.EventImplementation
+	Name string
+}
+
 // TokenEvents -
-type TokenEvents map[TokenKey]tzip.EventImplementation
+type TokenEvents map[TokenKey]EventImplementation
 
 // NewTokenViews -
 func NewTokenViews(es elastic.IElastic) (TokenEvents, error) {
@@ -39,7 +45,10 @@ func NewTokenViews(es elastic.IElastic) (TokenEvents, error) {
 						Address:    token.Address,
 						Network:    token.Network,
 						Entrypoint: entrypoint,
-					}] = implementation
+					}] = EventImplementation{
+						Impl: implementation,
+						Name: view.Name,
+					}
 				}
 			}
 		}
@@ -49,7 +58,7 @@ func NewTokenViews(es elastic.IElastic) (TokenEvents, error) {
 }
 
 // Get -
-func (events TokenEvents) Get(address, network, entrypoint string) (tzip.EventImplementation, bool) {
+func (events TokenEvents) Get(address, network, entrypoint string) (EventImplementation, bool) {
 	view, ok := events[TokenKey{
 		Address:    address,
 		Network:    network,
@@ -59,7 +68,7 @@ func (events TokenEvents) Get(address, network, entrypoint string) (tzip.EventIm
 }
 
 // GetByOperation -
-func (events TokenEvents) GetByOperation(operation models.Operation) (tzip.EventImplementation, bool) {
+func (events TokenEvents) GetByOperation(operation models.Operation) (EventImplementation, bool) {
 	event, ok := events[TokenKey{
 		Address:    operation.Destination,
 		Network:    operation.Network,

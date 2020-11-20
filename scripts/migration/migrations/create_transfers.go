@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
 	"github.com/baking-bad/bcdhub/internal/parsers/transfer"
 	"github.com/schollz/progressbar/v3"
 )
@@ -53,7 +54,16 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 			return err
 		}
 
-		parser, err := transfer.NewParser(rpc, ctx.ES)
+		protocol, err := ctx.ES.GetProtocol(operations[i].Network, "", -1)
+		if err != nil {
+			return err
+		}
+
+		parser, err := transfer.NewParser(rpc, ctx.ES,
+			transfer.WithNetwork(operations[i].Network),
+			transfer.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
+			transfer.WithStackTrace(stacktrace.New()),
+		)
 		if err != nil {
 			return err
 		}
