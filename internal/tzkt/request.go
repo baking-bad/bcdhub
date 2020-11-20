@@ -105,10 +105,44 @@ func (t *TzKT) GetContractOperationBlocks(offset, limit int64, needSmartContract
 	return
 }
 
-// GetAliases - returns address aliases
-func (t *TzKT) GetAliases() (resp []Alias, err error) {
-	err = t.request("GET", "suggest/accounts", nil, &resp)
-	return
+// GetAliases - returns aliases map in format map[address]alias
+func (t *TzKT) GetAliases() (map[string]string, error) {
+	params := map[string]string{}
+
+	params["limit"] = "10000"
+	params["kind"] = "smart_contract"
+	params["select.fields"] = "alias,address,creator,manager,delegate"
+
+	var contracts []Contract
+	if err := t.request("GET", "contracts", params, &contracts); err != nil {
+		return nil, fmt.Errorf("request error %w", err)
+	}
+
+	aliases := make(map[string]string)
+	for _, c := range contracts {
+		if c.Alias != nil {
+			aliases[c.Address] = *c.Alias
+		}
+
+		if c.Creator != nil {
+			if c.Creator.Alias != nil && c.Creator.Address != nil {
+				aliases[*c.Creator.Address] = *c.Creator.Alias
+			}
+		}
+
+		if c.Manager != nil {
+			if c.Manager.Alias != nil && c.Manager.Address != nil {
+				aliases[*c.Manager.Address] = *c.Manager.Alias
+			}
+		}
+
+		if c.Delegate != nil {
+			if c.Delegate.Alias != nil && c.Delegate.Address != nil {
+				aliases[*c.Delegate.Address] = *c.Delegate.Alias
+			}
+		}
+	}
+	return aliases, nil
 }
 
 // GetAllContractOperationBlocks -

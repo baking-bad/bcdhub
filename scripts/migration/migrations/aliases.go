@@ -47,17 +47,17 @@ func (m *Aliases) Do(ctx *config.Context) error {
 
 	newModels := make([]elastic.Model, 0)
 	bar := progressbar.NewOptions(len(aliases), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish(), progressbar.OptionShowCount())
-	for _, alias := range aliases {
+	for address, alias := range aliases {
 		if err := bar.Add(1); err != nil {
 			return err
 		}
 
 		item := models.TZIP{
 			Network: consts.Mainnet,
-			Address: alias.Address,
-			Slug:    helpers.Slug(alias.Alias),
+			Address: address,
+			Slug:    helpers.Slug(alias),
 			TZIP16: tzip.TZIP16{
-				Name: alias.Alias,
+				Name: alias,
 			},
 		}
 		if err := ctx.ES.GetByID(&item); err == nil {
