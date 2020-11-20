@@ -82,9 +82,17 @@ type Account struct {
 
 // Alias -
 type Alias struct {
-	Address string `json:"address"`
-	Alias   string `json:"alias"`
-	Logo    string `json:"logo"`
+	Alias   *string `json:"alias"`
+	Address *string `json:"address"`
+}
+
+// Contract -
+type Contract struct {
+	Alias    *string `json:"alias"`
+	Address  string  `json:"address"`
+	Creator  *Alias  `json:"creator"`
+	Manager  *Alias  `json:"manager"`
+	Delegate *Alias  `json:"delegate"`
 }
 
 // Protocol -
