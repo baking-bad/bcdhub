@@ -67,6 +67,7 @@ func TestGroup_Parse(t *testing.T) {
 					Timestamp: timestamp,
 					Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 					Level:     1151495,
+					ChainID:   "test",
 				}),
 				WithNetwork("mainnet"),
 				WithConstants(models.Constants{
@@ -214,6 +215,7 @@ func TestGroup_Parse(t *testing.T) {
 					Timestamp: timestamp,
 					Protocol:  "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
 					Level:     86142,
+					ChainID:   "test",
 				}),
 				WithNetwork("delphinet"),
 				WithConstants(models.Constants{
@@ -281,6 +283,7 @@ func TestGroup_Parse(t *testing.T) {
 					Timestamp: timestamp,
 					Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 					Level:     386026,
+					ChainID:   "test",
 				}),
 				WithNetwork("carthagenet"),
 				WithConstants(models.Constants{
