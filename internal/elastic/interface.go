@@ -176,7 +176,7 @@ type ITokens interface {
 // ITZIP -
 type ITZIP interface {
 	GetTZIP(network, address string) (models.TZIP, error)
-	GetTZIPWithViews() ([]models.TZIP, error)
+	GetTZIPWithEvents() ([]models.TZIP, error)
 	GetTokenMetadata(ctx GetTokenMetadataContext) ([]TokenMetadata, error)
 	GetDApps() ([]tzip.DApp, error)
 	GetDAppBySlug(slug string) (*tzip.DApp, error)

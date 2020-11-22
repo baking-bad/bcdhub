@@ -64,6 +64,7 @@ func (h *Hub) AddClient(client *Client) {
 	client.hub = h
 	client.AddHandler("subscribe", subscribeHandler)
 	client.AddHandler("unsubscribe", unsubscribeHandler)
+	client.AddHandler("ping", pingHandler)
 	h.clients.Store(client.id, client)
 }
 
@@ -197,6 +198,12 @@ func unsubscribeHandler(c *Client, data []byte) error {
 	}
 	c.subscriptions.Delete(channelName)
 	return c.sendOk(fmt.Sprintf("unsubscribed from %s", channelName))
+}
+
+func pingHandler(c *Client, data []byte) error {
+	return c.sendMessage(map[string]interface{}{
+		"action": "pong",
+	})
 }
 
 func parseString(val *fastjson.Value, key string) string {

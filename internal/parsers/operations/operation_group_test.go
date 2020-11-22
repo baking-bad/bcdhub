@@ -36,7 +36,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	es.
 		EXPECT().
-		GetTZIPWithViews().
+		GetTZIPWithEvents().
 		Return(make([]models.TZIP, 0), nil).
 		AnyTimes()
 	es.
