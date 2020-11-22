@@ -4,7 +4,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/events"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
@@ -53,7 +52,6 @@ func NewParser(rpc noderpc.INode, es elastic.IElastic, opts ...ParserOption) (*P
 // Parse -
 func (p *Parser) Parse(operation models.Operation) ([]*models.Transfer, error) {
 	if impl, ok := p.events.GetByOperation(operation); ok {
-		logger.Debug(operation)
 		event, err := events.NewMichelsonParameterEvent(impl.Impl, impl.Name)
 		if err != nil {
 			return nil, err

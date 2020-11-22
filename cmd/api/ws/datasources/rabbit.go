@@ -9,6 +9,8 @@ import (
 	"github.com/streadway/amqp"
 )
 
+var rabbitStopped = errors.Errorf("WS_RABBIT_STOPPED")
+
 // RabbitMQ -
 type RabbitMQ struct {
 	*DefaultSource
@@ -72,7 +74,7 @@ func (c *RabbitMQ) listenChannel(queue string) {
 			return
 		case msg := <-msgs:
 			if err := c.handler(msg); err != nil {
-				if err.Error() == "WS_RABBIT_STOPPED" {
+				if errors.Is(err, rabbitStopped) {
 					return
 				}
 				logger.Errorf("[%s data source] %s", c.GetType(), err.Error())
@@ -97,7 +99,7 @@ func (c *RabbitMQ) handler(data amqp.Delivery) error {
 	default:
 		if data.RoutingKey == "" {
 			logger.Warning("Rabbit MQ server stopped! API need to be restarted. Closing connection...")
-			return errors.Errorf("WS_RABBIT_STOPPED")
+			return rabbitStopped
 		}
 		return errors.Errorf("Unknown data routing key %s", data.RoutingKey)
 	}

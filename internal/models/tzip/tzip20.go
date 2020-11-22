@@ -17,9 +17,9 @@ type Event struct {
 
 // EventImplementation -
 type EventImplementation struct {
-	MichelsonParameterEvent       *MichelsonParameterEvent `json:"michelson-parameter-view,omitempty"`
-	MichelsonInitialStorageEvent  *Sections                `json:"michelson-initial-storage-event,omitempty"`
-	MichelsonExtendedStorageEvent *Sections                `json:"michelson-extended-storage-event,omitempty"`
+	MichelsonParameterEvent       MichelsonParameterEvent `json:"michelson-parameter-event"`
+	MichelsonInitialStorageEvent  Sections                `json:"michelson-initial-storage-event"`
+	MichelsonExtendedStorageEvent Sections                `json:"michelson-extended-storage-event"`
 }
 
 // MichelsonParameterEvent -

@@ -121,7 +121,7 @@ func (c *Client) receive() {
 		case <-c.stop:
 			return
 		default:
-			if err := c.conn.SetReadDeadline(time.Now().Add(time.Second * 10)); err != nil {
+			if err := c.conn.SetReadDeadline(time.Now().Add(time.Minute)); err != nil {
 				logger.Error(err)
 				continue
 			}

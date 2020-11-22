@@ -252,8 +252,8 @@ func (e *Elastic) GetAlias(network, address string) (*models.TZIP, error) {
 	return &data, err
 }
 
-// GetTZIPWithViews -
-func (e *Elastic) GetTZIPWithViews() ([]models.TZIP, error) {
+// GetTZIPWithEvents -
+func (e *Elastic) GetTZIPWithEvents() ([]models.TZIP, error) {
 	query := newQuery().Query(
 		boolQ(
 			filter(

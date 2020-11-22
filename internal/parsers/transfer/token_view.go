@@ -25,7 +25,7 @@ type TokenEvents map[TokenKey]EventImplementation
 // NewTokenViews -
 func NewTokenViews(es elastic.IElastic) (TokenEvents, error) {
 	views := make(TokenEvents)
-	tokens, err := es.GetTZIPWithViews()
+	tokens, err := es.GetTZIPWithEvents()
 	if err != nil {
 		if elastic.IsRecordNotFound(err) {
 			return views, nil

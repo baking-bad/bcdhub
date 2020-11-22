@@ -1802,19 +1802,19 @@ func (mr *MockITZIPMockRecorder) GetTZIP(network, address interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTZIP", reflect.TypeOf((*MockITZIP)(nil).GetTZIP), network, address)
 }
 
-// GetTZIPWithViews mocks base method
-func (m *MockITZIP) GetTZIPWithViews() ([]models.TZIP, error) {
+// GetTZIPWithEvents mocks base method
+func (m *MockITZIP) GetTZIPWithEvents() ([]models.TZIP, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTZIPWithViews")
+	ret := m.ctrl.Call(m, "GetTZIPWithEvents")
 	ret0, _ := ret[0].([]models.TZIP)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetTZIPWithViews indicates an expected call of GetTZIPWithViews
-func (mr *MockITZIPMockRecorder) GetTZIPWithViews() *gomock.Call {
+// GetTZIPWithEvents indicates an expected call of GetTZIPWithEvents
+func (mr *MockITZIPMockRecorder) GetTZIPWithEvents() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTZIPWithViews", reflect.TypeOf((*MockITZIP)(nil).GetTZIPWithViews))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTZIPWithEvents", reflect.TypeOf((*MockITZIP)(nil).GetTZIPWithEvents))
 }
 
 // GetTokenMetadata mocks base method
@@ -3239,19 +3239,19 @@ func (mr *MockIElasticMockRecorder) GetTZIP(network, address interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTZIP", reflect.TypeOf((*MockIElastic)(nil).GetTZIP), network, address)
 }
 
-// GetTZIPWithViews mocks base method
-func (m *MockIElastic) GetTZIPWithViews() ([]models.TZIP, error) {
+// GetTZIPWithEvents mocks base method
+func (m *MockIElastic) GetTZIPWithEvents() ([]models.TZIP, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTZIPWithViews")
+	ret := m.ctrl.Call(m, "GetTZIPWithEvents")
 	ret0, _ := ret[0].([]models.TZIP)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetTZIPWithViews indicates an expected call of GetTZIPWithViews
-func (mr *MockIElasticMockRecorder) GetTZIPWithViews() *gomock.Call {
+// GetTZIPWithEvents indicates an expected call of GetTZIPWithEvents
+func (mr *MockIElasticMockRecorder) GetTZIPWithEvents() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTZIPWithViews", reflect.TypeOf((*MockIElastic)(nil).GetTZIPWithViews))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTZIPWithEvents", reflect.TypeOf((*MockIElastic)(nil).GetTZIPWithEvents))
 }
 
 // GetTokenMetadata mocks base method

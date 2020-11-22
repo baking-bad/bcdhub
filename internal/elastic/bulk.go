@@ -3,6 +3,7 @@ package elastic
 import (
 	"bytes"
 	"context"
+	stdJSON "encoding/json"
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -33,18 +34,24 @@ func (e *Elastic) BulkInsert(items []Model) error {
 	}
 	bulk := bytes.NewBuffer([]byte{})
 	for i := range items {
-		meta := []byte(fmt.Sprintf(`{ "index" : { "_id": "%s", "_index": "%s"} }%s`, items[i].GetID(), items[i].GetIndex(), "\n"))
+		meta := fmt.Sprintf(`{"index":{"_id":"%s","_index":"%s"}}`, items[i].GetID(), items[i].GetIndex())
+		if _, err := bulk.WriteString(meta); err != nil {
+			return err
+		}
+
+		if err := bulk.WriteByte('\n'); err != nil {
+			return err
+		}
+
 		data, err := json.Marshal(items[i])
 		if err != nil {
 			return err
 		}
-		data = append(data, "\n"...)
 
-		bulk.Grow(len(meta) + len(data))
-		if _, err := bulk.Write(meta); err != nil {
+		if err := stdJSON.Compact(bulk, data); err != nil {
 			return err
 		}
-		if _, err := bulk.Write(data); err != nil {
+		if err := bulk.WriteByte('\n'); err != nil {
 			return err
 		}
 
@@ -65,16 +72,24 @@ func (e *Elastic) BulkUpdate(updates []Model) error {
 	}
 	bulk := bytes.NewBuffer([]byte{})
 	for i := range updates {
-		meta := []byte(fmt.Sprintf(`{ "update": { "_id": "%s", "_index": "%s"}}%s{ "doc": `, updates[i].GetID(), updates[i].GetIndex(), "\n"))
-		data, err := json.Marshal(updates[i])
+		if _, err := bulk.WriteString(fmt.Sprintf(`{"update":{"_id":"%s","_index":"%s"}}`, updates[i].GetID(), updates[i].GetIndex())); err != nil {
+			return err
+		}
+		if err := bulk.WriteByte('\n'); err != nil {
+			return err
+		}
+		data, err := json.Marshal(map[string]Model{
+			"doc": updates[i],
+		})
 		if err != nil {
 			return err
 		}
-		data = append(data, "}\n"...)
-
-		bulk.Grow(len(meta) + len(data))
-		bulk.Write(meta)
-		bulk.Write(data)
+		if err := stdJSON.Compact(bulk, data); err != nil {
+			return err
+		}
+		if err := bulk.WriteByte('\n'); err != nil {
+			return err
+		}
 
 		if (i%1000 == 0 && i > 0) || i == len(updates)-1 {
 			if err := e.bulk(bulk); err != nil {
@@ -93,7 +108,7 @@ func (e *Elastic) BulkDelete(updates []Model) error {
 	}
 	bulk := bytes.NewBuffer([]byte{})
 	for i := range updates {
-		meta := []byte(fmt.Sprintf(`{ "delete": { "_index": "%s", "_id": "%s"}}%s`, updates[i].GetIndex(), updates[i].GetID(), "\n"))
+		meta := []byte(fmt.Sprintf(`{"delete":{"_index":"%s","_id":"%s"}}%s`, updates[i].GetIndex(), updates[i].GetID(), "\n"))
 		bulk.Grow(len(meta))
 		bulk.Write(meta)
 
