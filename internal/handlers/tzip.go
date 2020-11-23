@@ -50,7 +50,8 @@ func (t *TZIP) handle(bmd *models.BigMapDiff) error {
 		BigMapDiff: *bmd,
 	})
 	if err != nil {
-		return err
+		logger.Error(err)
+		return nil
 	}
 	if model == nil {
 		return nil
