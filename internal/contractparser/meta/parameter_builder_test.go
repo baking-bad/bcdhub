@@ -458,6 +458,17 @@ func TestMetadata_BuildEntrypointMicheline(t *testing.T) {
 				},
 			},
 			want: `{"entrypoint": "default", "value": {"prim": "Pair", "args":[{"prim": "Pair", "args":[{"prim": "Pair", "args":[{"string": "tz1TAGGfYDciKRL1ceFWCNCkNmxoQMroaFcb"}, {"prim": "False"}]}, {"prim": "None"}]}, {"prim": "Pair", "args":[{"prim": "Pair", "args":[[], []]}, {"prim": "Pair", "args":[[], {"int": "0"}]}]}]}}`,
+		}, {
+			name:     "Option setDelegate: KT1BAT3Ys2EhUFigBZBodBvamM6vSHeXEJDE",
+			metadata: `{"0":{"prim":"or","args":["0/0/o","0/1"],"type":"namedunion"},"0/0":{"fieldname":"setDelegate","prim":"option","type":"option"},"0/0/o":{"prim":"key_hash","type":"key_hash","name":"setDelegate"},"0/1":{"fieldname":"vest","prim":"nat","type":"nat","name":"vest"}}`,
+			args: args{
+				binaryPath: "0/0",
+				data: map[string]interface{}{
+					"schemaKey": "some",
+					"0/0/o":     "tz1UmeeHBraPKv1ptWg3qzfDkXd6nWVGQExrs",
+				},
+			},
+			want: `{"entrypoint": "default", "value": {"prim": "Left", "args": [{"prim": "Some", "args": [{"string": "tz1UmeeHBraPKv1ptWg3qzfDkXd6nWVGQExrs"}]}]}}`,
 		},
 	}
 
