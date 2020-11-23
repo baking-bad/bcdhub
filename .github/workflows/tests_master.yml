@@ -2,7 +2,7 @@ on:
   push:
     branches:
       - master
-name: github actions build
+name: build
 jobs:
   golangci:
     name: lint

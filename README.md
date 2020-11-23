@@ -1,5 +1,5 @@
 # BCD Hub
-[![Build Status](https://github.com/baking-bad/bcdhub/workflows/github%20actions%20build/badge.svg)](https://github.com/baking-bad/bcdhub/actions?query=workflow%3A%22github+actions+build%22)
+[![Build Status](https://github.com/baking-bad/bcdhub/workflows/build/badge.svg)](https://github.com/baking-bad/bcdhub/actions?query=branch%3Amaster+workflow%3A%22build%22)
 [![Docker Build Status](https://img.shields.io/docker/cloud/build/bakingbad/bcdhub-api)](https://hub.docker.com/r/bakingbad/bcdhub-api)
 [![made_with golang](https://img.shields.io/badge/made_with-golang-blue.svg)](https://golang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
