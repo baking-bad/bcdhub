@@ -284,23 +284,33 @@ func (b optionParameterBuilder) Build(node *NodeMetadata, path string, data map[
 	if !ok {
 		return "", NewRequiredError(getName(node))
 	}
-	mapValue, ok := value.(map[string]interface{})
-	if !ok {
-		return "", NewValidationError(getName(node))
+
+	var mapValue map[string]interface{}
+	schemaKey, ok := data["schemaKey"]
+	if !ok || schemaKey != consts.SOME {
+		mapValue, ok = value.(map[string]interface{})
+		if !ok {
+			return "", NewValidationError(getName(node))
+		}
+		schemaKey, ok = mapValue["schemaKey"]
+		if !ok {
+			return "", NewValidationError(getName(node))
+		}
+	} else {
+		mapValue = data
 	}
-	schemaKey, ok := mapValue["schemaKey"]
-	if !ok {
-		return "", NewValidationError(getName(node))
-	}
+
 	switch schemaKey {
 	case consts.NONE:
 		return `{"prim": "None"}`, nil
 	default:
-		for k, v := range mapValue {
-			if k == "schemaKey" {
-				continue
+		if schemaKey != consts.SOME {
+			for k, v := range mapValue {
+				if k == "schemaKey" {
+					continue
+				}
+				data[k] = v
 			}
-			data[k] = v
 		}
 		optionStr, err := b.builder.buildParameters(path+"/o", mapValue)
 		if err != nil {
