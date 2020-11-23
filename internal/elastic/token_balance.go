@@ -28,7 +28,7 @@ func (e *Elastic) UpdateTokenBalances(updates []*models.TokenBalance) error {
 			return err
 		}
 
-		bulk.WriteString(fmt.Sprintf(`{ "script": %s, "scripted_upsert": true,  "upsert": %s }`, script, string(upsert)))
+		bulk.WriteString(fmt.Sprintf(`{ "script": %s, "upsert": %s }`, script, string(upsert)))
 		bulk.WriteByte('\n')
 		if (i%1000 == 0 && i > 0) || i == len(updates)-1 {
 			if err := e.bulkUpsertBalances(bulk); err != nil {
