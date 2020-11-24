@@ -79,6 +79,7 @@ func (ctx *Context) prepareMempoolOperations(res []tzkt.MempoolOperation, addres
 			Destination:  res[i].Body.Destination,
 			Mempool:      true,
 			Status:       status,
+			RawMempool:   res[i].Body,
 		}
 
 		op.SourceAlias = ctx.Aliases[op.Source]
