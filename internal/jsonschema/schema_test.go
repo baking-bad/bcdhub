@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 )
@@ -189,7 +190,7 @@ func TestCreate(t *testing.T) {
 						"prim":    "timestamp",
 						"title":   "refund_time",
 						"format":  "date-time",
-						"default": "",
+						"default": time.Now().UTC().Format(time.RFC3339),
 					},
 				},
 			},
