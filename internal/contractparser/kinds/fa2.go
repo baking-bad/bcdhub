@@ -155,13 +155,6 @@ func (fa2 Fa2) GetJSON() string {
 					]
 				}
 			]
-		},
-		{
-			"name": "token_metadata_registry",
-			"prim": "contract",
-			"parameter": {
-				"prim": "address"
-			}
 		}
 	]`
 }
