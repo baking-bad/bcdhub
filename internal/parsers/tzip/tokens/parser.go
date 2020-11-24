@@ -2,13 +2,13 @@ package tokens
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
 	"github.com/baking-bad/bcdhub/internal/contractparser/unpack"
 	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/tidwall/gjson"
@@ -103,6 +103,11 @@ func (t TokenMetadataParser) getTokenMetadataRegistry(address string, state mode
 		return "", ErrNoTokenMetadataRegistryMethod
 	}
 
+	source, ok := t.sources[t.network]
+	if !ok {
+		return "", ErrUnknownNetwork
+	}
+
 	result, err := t.es.SearchByText("view_address", 0, nil, map[string]interface{}{
 		"networks": []string{t.network},
 		"indices":  []string{elastic.DocContracts},
@@ -112,11 +117,6 @@ func (t TokenMetadataParser) getTokenMetadataRegistry(address string, state mode
 	}
 	if result.Count == 0 {
 		return "", ErrNoViewAddressContract
-	}
-
-	source, ok := t.sources[t.network]
-	if !ok {
-		return "", ErrUnknownNetwork
 	}
 
 	counter, err := t.rpc.GetCounter(source)
@@ -150,7 +150,7 @@ func (t TokenMetadataParser) getTokenMetadataRegistry(address string, state mode
 	if err != nil {
 		return "", err
 	}
-	if !strings.HasPrefix(address, "KT") {
+	if !helpers.IsContract(address) {
 		return "", ErrInvalidRegistryAddress
 	}
 	if registryAddress == selfAddress {
