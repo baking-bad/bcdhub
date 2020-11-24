@@ -2,6 +2,7 @@ package jsonschema
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
@@ -48,7 +49,7 @@ func (m *defaultMaker) Do(binPath string, metadata meta.Metadata) (Schema, error
 	case consts.TIMESTAMP:
 		schema["type"] = "string"
 		schema["format"] = "date-time"
-		schema["default"] = ""
+		schema["default"] = time.Now().UTC().String()
 	case consts.ADDRESS:
 		schema["type"] = "string"
 		schema["minLength"] = 36
