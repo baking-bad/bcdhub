@@ -49,7 +49,7 @@ func (m *defaultMaker) Do(binPath string, metadata meta.Metadata) (Schema, error
 	case consts.TIMESTAMP:
 		schema["type"] = "string"
 		schema["format"] = "date-time"
-		schema["default"] = time.Now().UTC().String()
+		schema["default"] = time.Now().UTC().Format(time.RFC3339)
 	case consts.ADDRESS:
 		schema["type"] = "string"
 		schema["minLength"] = 36
