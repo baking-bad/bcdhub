@@ -4,6 +4,8 @@ import (
 	stdJSON "encoding/json"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestError_parse(t *testing.T) {
@@ -84,6 +86,19 @@ func TestError_parse(t *testing.T) {
 					With:     []byte(`{"string": "Wrong token type."}`),
 				},
 			},
+		}, {
+			name:    "Error 7",
+			errJSON: `{"id":"proto.006-PsCARTHA.michelson_v1.script_rejected","kind":"temporary","location":3841,"with":{"prim":"Pair","args":[{"string":"AddrIsReg"},{"bytes":"0000e904e17b7f7f6b5456579b19b2ca0c96d9f31762"}]}}`,
+			ret: Error{
+				Kind:        "temporary",
+				ID:          "proto.006-PsCARTHA.michelson_v1.script_rejected",
+				Title:       "Script failed",
+				Description: "A FAILWITH instruction was reached",
+				IError: &DefaultError{
+					Location: 3841,
+					With:     []byte(`{"prim":"Pair","args":[{"string":"AddrIsReg"},{"bytes":"0000e904e17b7f7f6b5456579b19b2ca0c96d9f31762"}]}`),
+				},
+			},
 		},
 	}
 
@@ -92,14 +107,16 @@ func TestError_parse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			assert := assert.New(t)
+
 			var e Error
 			if err := json.Unmarshal([]byte(tt.errJSON), &e); err != nil {
 				t.Errorf("json.Unmarshal: %v", err)
 				return
 			}
 
-			if !reflect.DeepEqual(e, tt.ret) {
-				t.Errorf("Invalid parsed error: %##v != %##v", e.IError, tt.ret.IError)
+			if assert.NotNil(e) && assert.NotNil(tt.ret) {
+				assert.Equalf(e, tt.ret, "Invalid parsed error: %##v != %##v", e.IError, tt.ret.IError)
 			}
 		})
 	}
@@ -152,6 +169,7 @@ func TestError_Format(t *testing.T) {
 		compareWith stdJSON.RawMessage
 	}{
 		{
+
 			name: "Error 1",
 			args: &Error{
 				Kind:        "temporary",
@@ -221,6 +239,8 @@ func TestError_Format(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			assert := assert.New(t)
+
 			err := tt.args.Format()
 			if err != nil {
 				t.Errorf("args format error %v", err)
@@ -228,13 +248,9 @@ func TestError_Format(t *testing.T) {
 			}
 			switch err := tt.args.IError.(type) {
 			case *BalanceTooLowError:
-				if !reflect.DeepEqual(err.With, tt.compareWith) {
-					t.Errorf("Invalid formatted with error: %v != %v", err.With, tt.compareWith)
-				}
+				assert.Equalf(err.With, tt.compareWith, "Invalid formatted with error: %v != %v", err.With, tt.compareWith)
 			case *DefaultError:
-				if !reflect.DeepEqual(err.With, tt.compareWith) {
-					t.Errorf("Invalid formatted with error: %v != %v", err.With, tt.compareWith)
-				}
+				assert.Equalf(err.With, tt.compareWith, "Invalid formatted with error: %v != %v", err.With, tt.compareWith)
 			}
 		})
 	}
