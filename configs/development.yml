@@ -113,10 +113,10 @@ indexer:
   mq:
     publisher: true
   networks:
-    mainnet:
-      boost: tzkt
-    # carthagenet:
-    #     boost: tzkt
+    # mainnet:
+    #   boost: tzkt
+    carthagenet:
+        boost: tzkt
     # delphinet:
     #     boost: tzkt
     # dalphanet:

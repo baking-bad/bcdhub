@@ -117,15 +117,6 @@
                             }
                         }
                     },
-                    "with": {
-                        "type": "text",
-                        "fields": {
-                            "keyword": {
-                                "type": "keyword",
-                                "ignore_above": 256
-                            }
-                        }
-                    },
                     "wrong_expression": {
                         "type": "text"
                     }
