@@ -105,8 +105,8 @@ func makeDappRootLocation(path, baseURL string) (string, error) {
 	return buf.String(), nil
 }
 
-func makeNginxConfig(ctx *config.Context, dapps []tzip.DApp, outputDir string) error {
-	filePath := fmt.Sprintf("%s/default.conf", outputDir)
+func makeNginxConfig(ctx *config.Context, dapps []tzip.DApp, outputDir, env string) error {
+	filePath := fmt.Sprintf("%s/default.%s.conf", outputDir, env)
 	file, err := os.Create(filePath)
 	if err != nil {
 		return err
