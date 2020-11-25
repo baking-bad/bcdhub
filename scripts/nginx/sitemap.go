@@ -11,7 +11,7 @@ import (
 	"github.com/baking-bad/bcdhub/scripts/nginx/pkg/sitemap"
 )
 
-func makeSitemap(ctx *config.Context, dapps []tzip.DApp, outputDir string) error {
+func makeSitemap(ctx *config.Context, dapps []tzip.DApp, outputDir, env string) error {
 	aliases, err := ctx.ES.GetAliases(consts.Mainnet)
 	if err != nil {
 		return err
@@ -39,7 +39,8 @@ func makeSitemap(ctx *config.Context, dapps []tzip.DApp, outputDir string) error
 
 	// logger.Info("Total aliases: %d", len(aliasModels))
 
-	if err := buildXML(aliasModels, ctx.Config, dapps, outputDir); err != nil {
+	filename := fmt.Sprintf("%s/sitemap.%s.xml", outputDir, env)
+	if err := buildXML(aliasModels, ctx.Config, dapps, filename); err != nil {
 		return err
 	}
 
@@ -48,7 +49,7 @@ func makeSitemap(ctx *config.Context, dapps []tzip.DApp, outputDir string) error
 	return nil
 }
 
-func buildXML(aliases []models.TZIP, cfg config.Config, dapps []tzip.DApp, outputDir string) error {
+func buildXML(aliases []models.TZIP, cfg config.Config, dapps []tzip.DApp, filename string) error {
 	s := sitemap.New()
 
 	s.AddLocation(cfg.BaseURL)
@@ -69,5 +70,5 @@ func buildXML(aliases []models.TZIP, cfg config.Config, dapps []tzip.DApp, outpu
 		s.AddLocation(fmt.Sprintf("%s/dapps/%s", cfg.BaseURL, d.Slug))
 	}
 
-	return s.SaveToFile(fmt.Sprintf("%s/sitemap.xml", outputDir))
+	return s.SaveToFile(filename)
 }

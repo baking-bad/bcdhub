@@ -28,11 +28,16 @@ func main() {
 	outputDir := fmt.Sprintf("%s/nginx", cfg.SharePath)
 	_ = os.Mkdir(outputDir, os.ModePerm)
 
-	if err := makeNginxConfig(ctx, dapps, outputDir); err != nil {
+	env := os.Getenv("BCD_ENV")
+	if env == "" {
+		logger.Fatal(fmt.Errorf("BCD_ENV env var is empty"))
+	}
+
+	if err := makeNginxConfig(ctx, dapps, outputDir, env); err != nil {
 		logger.Fatal(err)
 	}
 
-	if err := makeSitemap(ctx, dapps, outputDir); err != nil {
+	if err := makeSitemap(ctx, dapps, outputDir, env); err != nil {
 		logger.Fatal(err)
 	}
 }
