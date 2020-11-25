@@ -669,3 +669,8 @@ type DomainsResponse struct {
 	Domains []models.TezosDomain `json:"domains"`
 	Total   int64                `json:"total"`
 }
+
+// CountResponse -
+type CountResponse struct {
+	Count int64 `json:"count"`
+}

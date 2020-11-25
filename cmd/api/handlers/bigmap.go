@@ -208,6 +208,37 @@ func (ctx *Context) GetBigMapByKeyHash(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+// GetBigMapDiffCount godoc
+// @Summary Get big map diffs count info by pointer
+// @Description Get big map diffs count info by pointer
+// @Tags bigmap
+// @ID get-bigmapdiff-count
+// @Param network path string true "Network"
+// @Param ptr path integer true "Big map pointer"
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} CountResponse
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /bigmap/{network}/{ptr}/count [get]
+func (ctx *Context) GetBigMapDiffCount(c *gin.Context) {
+	var req getBigMapRequest
+	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
+	count, err := ctx.ES.GetBigMapDiffsCount(req.Network, req.Ptr)
+	if err != nil {
+		if elastic.IsRecordNotFound(err) {
+			c.JSON(http.StatusOK, CountResponse{})
+			return
+		}
+		handleError(c, err, 0)
+		return
+	}
+	c.JSON(http.StatusOK, CountResponse{count})
+}
+
 func (ctx *Context) prepareBigMapKeys(data []elastic.BigMapDiff) ([]BigMapResponseItem, error) {
 	if len(data) == 0 {
 		return []BigMapResponseItem{}, nil
