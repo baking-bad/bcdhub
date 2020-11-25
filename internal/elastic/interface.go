@@ -44,6 +44,7 @@ type IBigMap interface {
 	GetBigMapsForAddress(string, string) ([]models.BigMapDiff, error)
 	GetBigMapHistory(int64, string) ([]models.BigMapAction, error)
 	GetBigMapValuesByKey(string) ([]BigMapDiff, error)
+	GetBigMapDiffsCount(network string, ptr int64) (int64, error)
 }
 
 // IBigMapDiff -

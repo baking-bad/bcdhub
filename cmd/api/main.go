@@ -168,6 +168,7 @@ func (api *app) makeRouter() {
 		bigmap := v1.Group("bigmap/:network/:ptr")
 		{
 			bigmap.GET("", api.Context.GetBigMap)
+			bigmap.GET("count", api.Context.GetBigMapDiffCount)
 			bigmap.GET("history", api.Context.GetBigMapHistory)
 			keys := bigmap.Group("keys")
 			{

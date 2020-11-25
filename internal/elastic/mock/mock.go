@@ -417,6 +417,21 @@ func (mr *MockIBigMapMockRecorder) GetBigMapValuesByKey(arg0 interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBigMapValuesByKey", reflect.TypeOf((*MockIBigMap)(nil).GetBigMapValuesByKey), arg0)
 }
 
+// GetBigMapDiffsCount mocks base method
+func (m *MockIBigMap) GetBigMapDiffsCount(network string, ptr int64) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBigMapDiffsCount", network, ptr)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBigMapDiffsCount indicates an expected call of GetBigMapDiffsCount
+func (mr *MockIBigMapMockRecorder) GetBigMapDiffsCount(network, ptr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBigMapDiffsCount", reflect.TypeOf((*MockIBigMap)(nil).GetBigMapDiffsCount), network, ptr)
+}
+
 // MockIBigMapDiff is a mock of IBigMapDiff interface
 type MockIBigMapDiff struct {
 	ctrl     *gomock.Controller
@@ -2197,6 +2212,21 @@ func (m *MockIElastic) GetBigMapValuesByKey(arg0 string) ([]elastic.BigMapDiff, 
 func (mr *MockIElasticMockRecorder) GetBigMapValuesByKey(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBigMapValuesByKey", reflect.TypeOf((*MockIElastic)(nil).GetBigMapValuesByKey), arg0)
+}
+
+// GetBigMapDiffsCount mocks base method
+func (m *MockIElastic) GetBigMapDiffsCount(network string, ptr int64) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBigMapDiffsCount", network, ptr)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBigMapDiffsCount indicates an expected call of GetBigMapDiffsCount
+func (mr *MockIElasticMockRecorder) GetBigMapDiffsCount(network, ptr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBigMapDiffsCount", reflect.TypeOf((*MockIElastic)(nil).GetBigMapDiffsCount), network, ptr)
 }
 
 // GetBigMapDiffsForAddress mocks base method

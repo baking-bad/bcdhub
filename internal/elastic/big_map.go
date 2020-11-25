@@ -454,3 +454,31 @@ func (e *Elastic) GetBigMapValuesByKey(keyHash string) ([]BigMapDiff, error) {
 	}
 	return bmd, nil
 }
+
+type getBigMapDiffsCountResponse struct {
+	Agg struct {
+		Count intValue `json:"count"`
+	} `json:"aggregations"`
+}
+
+// GetBigMapDiffsCount -
+func (e *Elastic) GetBigMapDiffsCount(network string, ptr int64) (int64, error) {
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				matchQ("network", network),
+				term("ptr", ptr),
+			),
+		),
+	).Add(
+		aggs(aggItem{
+			"count", cardinality("key_hash.keyword"),
+		}),
+	).Zero()
+
+	var response getBigMapDiffsCountResponse
+	if err := e.query([]string{DocBigMapDiff}, query, &response); err != nil {
+		return 0, err
+	}
+	return response.Agg.Count.Value, nil
+}
