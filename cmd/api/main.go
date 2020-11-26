@@ -236,6 +236,13 @@ func (api *app) makeRouter() {
 			}
 		}
 
+		metadata := v1.Group("metadata")
+		{
+			metadata.POST("upload", api.Context.UploadMetadata)
+			metadata.GET("list", api.Context.ListMetadata)
+			metadata.DELETE("delete", api.Context.DeleteMetadata)
+		}
+
 		oauth := v1.Group("oauth/:provider")
 		{
 			oauth.GET("login", api.Context.OauthLogin)

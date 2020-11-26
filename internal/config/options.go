@@ -11,6 +11,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/pinata"
 	"github.com/baking-bad/bcdhub/internal/tzkt"
 )
 
@@ -147,5 +148,12 @@ func WithAWS(cfg AWSConfig) ContextOption {
 func WithDomains(cfg TezosDomainsConfig) ContextOption {
 	return func(ctx *Context) {
 		ctx.Domains = cfg
+	}
+}
+
+// WithPinata -
+func WithPinata(cfg PinataConfig) ContextOption {
+	return func(ctx *Context) {
+		ctx.Pinata = pinata.New(cfg.Key, cfg.SecretKey, time.Second*time.Duration(cfg.TimeoutSeconds))
 	}
 }

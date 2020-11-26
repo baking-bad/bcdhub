@@ -32,16 +32,17 @@ type Config struct {
 	Domains      TezosDomainsConfig    `yaml:"domains"`
 
 	API struct {
-		ProjectName   string     `yaml:"project_name"`
-		Bind          string     `yaml:"bind"`
-		SwaggerHost   string     `yaml:"swagger_host"`
-		CorsEnabled   bool       `yaml:"cors_enabled"`
-		OAuthEnabled  bool       `yaml:"oauth_enabled"`
-		SentryEnabled bool       `yaml:"sentry_enabled"`
-		SeedEnabled   bool       `yaml:"seed_enabled"`
-		Seed          SeedConfig `yaml:"seed"`
-		Networks      []string   `yaml:"networks"`
-		MQ            MQConfig   `yaml:"mq"`
+		ProjectName   string       `yaml:"project_name"`
+		Bind          string       `yaml:"bind"`
+		SwaggerHost   string       `yaml:"swagger_host"`
+		CorsEnabled   bool         `yaml:"cors_enabled"`
+		OAuthEnabled  bool         `yaml:"oauth_enabled"`
+		SentryEnabled bool         `yaml:"sentry_enabled"`
+		SeedEnabled   bool         `yaml:"seed_enabled"`
+		Seed          SeedConfig   `yaml:"seed"`
+		Networks      []string     `yaml:"networks"`
+		MQ            MQConfig     `yaml:"mq"`
+		Pinata        PinataConfig `yaml:"pinata"`
 	} `yaml:"api"`
 
 	Compiler struct {
@@ -182,6 +183,13 @@ type QueueParams struct {
 
 // TezosDomainsConfig -
 type TezosDomainsConfig map[string]string
+
+// PinataConfig -
+type PinataConfig struct {
+	Key            string `yaml:"key"`
+	SecretKey      string `yaml:"secret_key"`
+	TimeoutSeconds int    `yaml:"timeout_seconds"`
+}
 
 // LoadDefaultConfig -
 func LoadDefaultConfig() (Config, error) {
