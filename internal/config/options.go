@@ -1,6 +1,7 @@
 package config
 
 import (
+	"io/ioutil"
 	"log"
 	"time"
 
@@ -155,5 +156,17 @@ func WithDomains(cfg TezosDomainsConfig) ContextOption {
 func WithPinata(cfg PinataConfig) ContextOption {
 	return func(ctx *Context) {
 		ctx.Pinata = pinata.New(cfg.Key, cfg.SecretKey, time.Second*time.Duration(cfg.TimeoutSeconds))
+	}
+}
+
+// WithTzipSchema -
+func WithTzipSchema(filePath string) ContextOption {
+	return func(ctx *Context) {
+		data, err := ioutil.ReadFile(filePath)
+		if err != nil {
+			panic(err)
+		}
+
+		ctx.TzipSchema = string(data)
 	}
 }

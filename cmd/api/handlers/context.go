@@ -34,6 +34,7 @@ func NewContext(cfg config.Config) (*Context, error) {
 		config.WithContractsInterfaces(),
 		config.WithRabbit(cfg.RabbitMQ, cfg.API.ProjectName, cfg.API.MQ),
 		config.WithPinata(cfg.API.Pinata),
+		config.WithTzipSchema("data/tzip-16-schema.json"),
 	)
 
 	return &Context{

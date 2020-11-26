@@ -35,5 +35,6 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /go/bin/api /go/bin/api
 COPY configs/*.yml /app/api/
 COPY cmd/api/data/errors.json /app/api/data/errors.json
+COPY cmd/api/data/tzip-16-schema.json /app/api/data/tzip-16-schema.json
 
 ENTRYPOINT ["/go/bin/api"]

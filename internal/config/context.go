@@ -23,8 +23,9 @@ type Context struct {
 	TzKTServices map[string]tzkt.Service
 	Pinata       pinata.Service
 
-	Config    Config
-	SharePath string
+	Config     Config
+	SharePath  string
+	TzipSchema string
 
 	Aliases    map[string]string
 	Interfaces map[string]kinds.ContractKind
