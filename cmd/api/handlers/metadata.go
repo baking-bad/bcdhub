@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/xeipuuv/gojsonschema"
 )
 
 const metadataBytesLimit = 65536
@@ -25,6 +26,18 @@ func (ctx *Context) UploadMetadata(c *gin.Context) {
 
 	if len(body) > metadataBytesLimit {
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("exceeded max upload limit of %d bytes", metadataBytesLimit)})
+		return
+	}
+
+	schemaLoader := gojsonschema.NewStringLoader(ctx.TzipSchema)
+	documentLoader := gojsonschema.NewStringLoader(string(body))
+	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
+	if handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
+	if !result.Valid() {
+		c.JSON(http.StatusBadRequest, result.Errors())
 		return
 	}
 

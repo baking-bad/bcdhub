@@ -40,6 +40,7 @@ require (
 	github.com/tidwall/sjson v1.0.4
 	github.com/valyala/fastjson v1.5.1
 	github.com/xanzy/go-gitlab v0.33.0
+	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/yhirose/go-peg v0.0.0-20190710015414-7eb2cf046928
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381 // indirect
