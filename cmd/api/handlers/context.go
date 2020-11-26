@@ -33,6 +33,7 @@ func NewContext(cfg config.Config) (*Context, error) {
 		config.WithConfigCopy(cfg),
 		config.WithContractsInterfaces(),
 		config.WithRabbit(cfg.RabbitMQ, cfg.API.ProjectName, cfg.API.MQ),
+		config.WithPinata(cfg.API.Pinata),
 	)
 
 	return &Context{

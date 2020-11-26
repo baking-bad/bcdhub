@@ -88,6 +88,10 @@ api:
       operations:
         non_durable: true
         auto_deleted: true
+  pinata:
+    key: ${PINATA_KEY}
+    secret_key: ${PINATA_SECRET_KEY}
+    timeout_seconds: 10
 
 compiler:
   project_name: compiler

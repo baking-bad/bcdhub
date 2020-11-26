@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/pinata"
 	"github.com/baking-bad/bcdhub/internal/tzkt"
 	"github.com/pkg/errors"
 )
@@ -20,6 +21,7 @@ type Context struct {
 	AWS          *aws.Client
 	RPC          map[string]noderpc.INode
 	TzKTServices map[string]tzkt.Service
+	Pinata       pinata.Service
 
 	Config    Config
 	SharePath string

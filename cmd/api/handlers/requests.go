@@ -337,3 +337,7 @@ type resolveDomainRequest struct {
 	Name    string `form:"name" binding:"omitempty"`
 	Address string `form:"address" binding:"omitempty"`
 }
+
+type metadataRequest struct {
+	Hash string `json:"hash" binding:"required"`
+}
