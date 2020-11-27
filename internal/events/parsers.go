@@ -1,15 +1,13 @@
 package events
 
 import (
-	"strings"
-
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
 var parsers = map[string]Parser{
-	"singleassetbalanceupdates": newSingleAssetBalanceParser(),
-	"multiassetbalanceupdates":  newMultiAssetBalanceParser(),
+	SingleAssetBalanceUpdates: newSingleAssetBalanceParser(),
+	MultiAssetBalanceUpdates:  newMultiAssetBalanceParser(),
 }
 
 // Parser -
@@ -20,7 +18,7 @@ type Parser interface {
 
 // GetParser -
 func GetParser(name string, returnType []byte) (Parser, error) {
-	p, ok := parsers[normalizeName(name)]
+	p, ok := parsers[name]
 	if !ok {
 		return nil, errors.Errorf("Unknown event: %s", name)
 	}
@@ -29,12 +27,6 @@ func GetParser(name string, returnType []byte) (Parser, error) {
 		return nil, errors.Errorf("Invalid parser`s return type: %s", name)
 	}
 	return p, nil
-}
-
-func normalizeName(name string) string {
-	name = strings.ToLower(name)
-	name = strings.ReplaceAll(name, "-", "")
-	return strings.ReplaceAll(name, "_", "")
 }
 
 func isType(a, b gjson.Result) bool {

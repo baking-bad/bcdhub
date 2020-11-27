@@ -1,6 +1,10 @@
 package tzip
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/baking-bad/bcdhub/internal/helpers"
+)
 
 // TZIP20 -
 type TZIP20 struct {
@@ -17,9 +21,9 @@ type Event struct {
 
 // EventImplementation -
 type EventImplementation struct {
-	MichelsonParameterEvent       MichelsonParameterEvent `json:"michelson-parameter-event"`
-	MichelsonInitialStorageEvent  Sections                `json:"michelson-initial-storage-event"`
-	MichelsonExtendedStorageEvent Sections                `json:"michelson-extended-storage-event"`
+	MichelsonParameterEvent       MichelsonParameterEvent       `json:"michelson-parameter-event"`
+	MichelsonInitialStorageEvent  Sections                      `json:"michelson-initial-storage-event"`
+	MichelsonExtendedStorageEvent MichelsonExtendedStorageEvent `json:"michelson-extended-storage-event"`
 }
 
 // MichelsonParameterEvent -
@@ -28,9 +32,40 @@ type MichelsonParameterEvent struct {
 	Entrypoints []string `json:"entrypoints"`
 }
 
+// InEntrypoints -
+func (event MichelsonParameterEvent) InEntrypoints(entrypoint string) bool {
+	return helpers.StringInArray(entrypoint, event.Entrypoints)
+}
+
+// Is -
+func (event MichelsonParameterEvent) Is(entrypoint string) bool {
+	return !event.Empty() && event.InEntrypoints(entrypoint)
+}
+
 // Sections -
 type Sections struct {
 	Parameter  json.RawMessage `json:"parameter"`
 	ReturnType json.RawMessage `json:"return-type"`
 	Code       json.RawMessage `json:"code"`
+}
+
+// Empty -
+func (s Sections) Empty() bool {
+	return s.Code == nil && s.Parameter == nil && s.ReturnType == nil
+}
+
+// MichelsonExtendedStorageEvent -
+type MichelsonExtendedStorageEvent struct {
+	Sections
+	Entrypoints []string `json:"entrypoints"`
+}
+
+// InEntrypoints -
+func (event MichelsonExtendedStorageEvent) InEntrypoints(entrypoint string) bool {
+	return helpers.StringInArray(entrypoint, event.Entrypoints)
+}
+
+// Is -
+func (event MichelsonExtendedStorageEvent) Is(entrypoint string) bool {
+	return !event.Empty() && event.InEntrypoints(entrypoint)
 }

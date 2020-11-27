@@ -3,6 +3,7 @@ package events
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/tidwall/gjson"
@@ -69,4 +70,11 @@ func Execute(rpc noderpc.INode, event Event, ctx Context) ([]TokenBalance, error
 		return nil, err
 	}
 	return event.Parse(response), nil
+}
+
+// NormalizeName -
+func NormalizeName(name string) string {
+	name = strings.ToLower(name)
+	name = strings.ReplaceAll(name, "-", "")
+	return strings.ReplaceAll(name, "_", "")
 }

@@ -2,28 +2,67 @@ package transfer
 
 import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
-// TokenKey -
-type TokenKey struct {
+// ImplementationKey -
+type ImplementationKey struct {
 	Address    string
 	Network    string
 	Entrypoint string
-}
-
-// EventImplementation -
-type EventImplementation struct {
-	Impl tzip.EventImplementation
-	Name string
+	Name       string
 }
 
 // TokenEvents -
-type TokenEvents map[TokenKey]EventImplementation
+type TokenEvents map[ImplementationKey]tzip.EventImplementation
 
-// NewTokenViews -
-func NewTokenViews(es elastic.IElastic) (TokenEvents, error) {
+// NewTokenEvents -
+func NewTokenEvents(es elastic.IElastic) (TokenEvents, error) {
+	views := make(TokenEvents)
+	tokens, err := es.GetTZIPWithEvents()
+	if err != nil {
+		if elastic.IsRecordNotFound(err) {
+			return views, nil
+		}
+		return nil, err
+	}
+
+	for _, token := range tokens {
+		if len(token.Events) == 0 {
+			continue
+		}
+
+		for _, event := range token.Events {
+			for _, implementation := range event.Implementations {
+				for _, entrypoint := range implementation.MichelsonParameterEvent.Entrypoints {
+					views[ImplementationKey{
+						Address:    token.Address,
+						Network:    token.Network,
+						Entrypoint: entrypoint,
+						Name:       events.NormalizeName(event.Name),
+					}] = implementation
+
+				}
+
+				for _, entrypoint := range implementation.MichelsonExtendedStorageEvent.Entrypoints {
+					views[ImplementationKey{
+						Address:    token.Address,
+						Network:    token.Network,
+						Entrypoint: entrypoint,
+						Name:       events.NormalizeName(event.Name),
+					}] = implementation
+				}
+			}
+		}
+	}
+
+	return views, nil
+}
+
+// NewInitialStorageEvents -
+func NewInitialStorageEvents(es elastic.IElastic) (TokenEvents, error) {
 	views := make(TokenEvents)
 	tokens, err := es.GetTZIPWithEvents()
 	if err != nil {
@@ -40,15 +79,12 @@ func NewTokenViews(es elastic.IElastic) (TokenEvents, error) {
 
 		for _, view := range token.Events {
 			for _, implementation := range view.Implementations {
-				for _, entrypoint := range implementation.MichelsonParameterEvent.Entrypoints {
-					views[TokenKey{
-						Address:    token.Address,
-						Network:    token.Network,
-						Entrypoint: entrypoint,
-					}] = EventImplementation{
-						Impl: implementation,
-						Name: view.Name,
-					}
+				if !implementation.MichelsonInitialStorageEvent.Empty() {
+					views[ImplementationKey{
+						Address: token.Address,
+						Network: token.Network,
+						Name:    events.NormalizeName(view.Name),
+					}] = implementation
 				}
 			}
 		}
@@ -57,22 +93,25 @@ func NewTokenViews(es elastic.IElastic) (TokenEvents, error) {
 	return views, nil
 }
 
-// Get -
-func (events TokenEvents) Get(address, network, entrypoint string) (EventImplementation, bool) {
-	view, ok := events[TokenKey{
-		Address:    address,
-		Network:    network,
-		Entrypoint: entrypoint,
-	}]
-	return view, ok
-}
-
 // GetByOperation -
-func (events TokenEvents) GetByOperation(operation models.Operation) (EventImplementation, bool) {
-	event, ok := events[TokenKey{
+func (tokenEvents TokenEvents) GetByOperation(operation models.Operation) (tzip.EventImplementation, string, bool) {
+	if event, ok := tokenEvents[ImplementationKey{
 		Address:    operation.Destination,
 		Network:    operation.Network,
 		Entrypoint: operation.Entrypoint,
+		Name:       events.SingleAssetBalanceUpdates,
+	}]; ok {
+		return event, events.SingleAssetBalanceUpdates, ok
+	}
+
+	event, ok := tokenEvents[ImplementationKey{
+		Address:    operation.Destination,
+		Network:    operation.Network,
+		Entrypoint: operation.Entrypoint,
+		Name:       events.MultiAssetBalanceUpdates,
 	}]
-	return event, ok
+	if ok {
+		return event, events.MultiAssetBalanceUpdates, ok
+	}
+	return event, "", ok
 }
