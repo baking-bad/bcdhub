@@ -5,6 +5,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
 	"github.com/tidwall/gjson"
@@ -33,7 +34,7 @@ func NewParser(rpc noderpc.INode, es elastic.IElastic, opts ...ParserOption) (*P
 		opts[i](tp)
 	}
 
-	tokenEvents, err := NewTokenViews(es)
+	tokenEvents, err := NewTokenEvents(es)
 	if err != nil {
 		return nil, err
 	}
@@ -51,25 +52,8 @@ func NewParser(rpc noderpc.INode, es elastic.IElastic, opts ...ParserOption) (*P
 
 // Parse -
 func (p *Parser) Parse(operation models.Operation) ([]*models.Transfer, error) {
-	if impl, ok := p.events.GetByOperation(operation); ok {
-		event, err := events.NewMichelsonParameterEvent(impl.Impl, impl.Name)
-		if err != nil {
-			return nil, err
-		}
-		balances, err := events.Execute(p.rpc, event, events.Context{
-			Network:                  p.network,
-			Parameters:               operation.Parameters,
-			Source:                   operation.Source,
-			Amount:                   operation.Amount,
-			Initiator:                operation.Initiator,
-			Entrypoint:               operation.Entrypoint,
-			ChainID:                  p.chainID,
-			HardGasLimitPerOperation: p.gasLimit,
-		})
-		if err != nil {
-			return nil, err
-		}
-		return p.processBalances(operation, balances)
+	if impl, name, ok := p.events.GetByOperation(operation); ok {
+		return p.executeEvents(impl, name, operation)
 	} else if operation.Entrypoint == consts.TransferEntrypoint {
 		parameters := getParameters(operation.Parameters)
 		for i := range operation.Tags {
@@ -82,6 +66,46 @@ func (p *Parser) Parse(operation models.Operation) ([]*models.Transfer, error) {
 		}
 	}
 	return nil, nil
+}
+
+func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, operation models.Operation) ([]*models.Transfer, error) {
+	if operation.Kind != consts.Transaction {
+		return nil, nil
+	}
+
+	var event events.Event
+	var err error
+
+	ctx := events.Context{
+		Network:                  p.network,
+		Source:                   operation.Source,
+		Amount:                   operation.Amount,
+		Initiator:                operation.Initiator,
+		Entrypoint:               operation.Entrypoint,
+		ChainID:                  p.chainID,
+		HardGasLimitPerOperation: p.gasLimit,
+	}
+
+	switch {
+	case impl.MichelsonParameterEvent.Is(operation.Entrypoint):
+		ctx.Parameters = operation.Parameters
+		event, err = events.NewMichelsonParameter(impl, name)
+	case impl.MichelsonExtendedStorageEvent.Is(operation.Entrypoint):
+		ctx.Parameters = operation.DeffatedStorage
+		event, err = events.NewMichelsonExtendedStorage(impl, name, operation.Protocol, operation.GetID(), p.es)
+	default:
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	balances, err := events.Execute(p.rpc, event, ctx)
+	if err != nil {
+		return nil, err
+	}
+	return p.processBalances(operation, balances)
 }
 
 func (p *Parser) makeFA12Transfers(operation models.Operation, parameters gjson.Result) ([]*models.Transfer, error) {
