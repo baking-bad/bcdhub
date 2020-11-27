@@ -15,22 +15,22 @@ import (
 	"github.com/schollz/progressbar/v3"
 )
 
-// Aliases -
-type Aliases struct{}
+// GetAliases -
+type GetAliases struct{}
 
 // Key -
-func (m *Aliases) Key() string {
-	return "aliases"
+func (m *GetAliases) Key() string {
+	return "get_aliases"
 }
 
 // Description -
-func (m *Aliases) Description() string {
-	return "fill aliases from TzKT"
+func (m *GetAliases) Description() string {
+	return "get aliases from TzKT"
 }
 
 // Do - migrate function
-func (m *Aliases) Do(ctx *config.Context) error {
-	logger.Info("Starting fill aliases...")
+func (m *GetAliases) Do(ctx *config.Context) error {
+	logger.Info("Starting get aliases...")
 
 	cfg := ctx.Config.TzKT[consts.Mainnet]
 	timeout := time.Duration(cfg.Timeout) * time.Second
@@ -60,8 +60,10 @@ func (m *Aliases) Do(ctx *config.Context) error {
 				Name: alias,
 			},
 		}
+
 		if err := ctx.ES.GetByID(&item); err == nil {
-			continue
+			item.Name = alias
+			item.Slug = helpers.Slug(alias)
 		} else if !elastic.IsRecordNotFound(err) {
 			log.Println(err)
 			return err
