@@ -39,8 +39,7 @@ func (m *BigRussianBoss) fillTZIP(ctx *config.Context) error {
 		return err
 	}
 	if answer == yes {
-		migration := FillTZIP{}
-		if err := migration.Do(ctx); err != nil {
+		if err := new(FillTZIP).Do(ctx); err != nil {
 			return err
 		}
 	}
@@ -53,8 +52,7 @@ func (m *BigRussianBoss) createTZIP(ctx *config.Context) error {
 		return err
 	}
 	if answer == yes {
-		migration := CreateTZIP{}
-		if err := migration.Do(ctx); err != nil {
+		if err := new(CreateTZIP).Do(ctx); err != nil {
 			return err
 		}
 	}
@@ -67,8 +65,11 @@ func (m *BigRussianBoss) fillAliases(ctx *config.Context) error {
 		return err
 	}
 	if answer == yes {
-		migration := Aliases{}
-		if err := migration.Do(ctx); err != nil {
+		if err := new(GetAliases).Do(ctx); err != nil {
+			return err
+		}
+
+		if err := new(SetAliases).Do(ctx); err != nil {
 			return err
 		}
 	}

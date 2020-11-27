@@ -18,7 +18,8 @@ import (
 
 var migrationsList = []migrations.Migration{
 	&migrations.BigRussianBoss{},
-	&migrations.Aliases{},
+	&migrations.GetAliases{},
+	&migrations.SetAliases{},
 	&migrations.RecalcContractMetrics{},
 	&migrations.SetOperationTags{},
 	&migrations.CreateTransfersTags{},

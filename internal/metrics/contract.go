@@ -10,12 +10,20 @@ import (
 )
 
 // SetContractAlias -
-func (h *Handler) SetContractAlias(aliases map[string]string, c *models.Contract) {
-	c.Alias = aliases[c.Address]
+func (h *Handler) SetContractAlias(aliases map[string]string, c *models.Contract) bool {
+	var changed bool
 
-	if c.Delegate != "" {
-		c.DelegateAlias = aliases[c.Delegate]
+	if alias, ok := aliases[c.Address]; ok {
+		c.Alias = alias
+		changed = true
 	}
+
+	if alias, ok := aliases[c.Delegate]; c.Delegate != "" && ok {
+		c.DelegateAlias = alias
+		changed = true
+	}
+
+	return changed
 }
 
 // UpdateContractStats -
