@@ -29,6 +29,7 @@ var mappingNames = []string{
 	elastic.DocTokenBalances,
 	elastic.DocTransfers,
 	elastic.DocTZIP,
+	elastic.DocTezosDomains,
 }
 
 type snapshotCommand struct{}
