@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/tidwall/gjson"
 )
@@ -69,6 +70,7 @@ func Execute(rpc noderpc.INode, event Event, ctx Context) ([]TokenBalance, error
 	if err != nil {
 		return nil, err
 	}
+	logger.Debug(response)
 	return event.Parse(response), nil
 }
 

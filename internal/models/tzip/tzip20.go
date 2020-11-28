@@ -22,7 +22,7 @@ type Event struct {
 // EventImplementation -
 type EventImplementation struct {
 	MichelsonParameterEvent       MichelsonParameterEvent       `json:"michelson-parameter-event"`
-	MichelsonInitialStorageEvent  Sections                      `json:"michelson-initial-storage-event"`
+	MichelsonInitialStorageEvent  MichelsonInitialStorageEvent  `json:"michelson-initial-storage-event"`
 	MichelsonExtendedStorageEvent MichelsonExtendedStorageEvent `json:"michelson-extended-storage-event"`
 }
 
@@ -51,7 +51,13 @@ type Sections struct {
 
 // Empty -
 func (s Sections) Empty() bool {
-	return s.Code == nil && s.Parameter == nil && s.ReturnType == nil
+	null := "null"
+	return string(s.Code) == null && string(s.Parameter) == null && string(s.ReturnType) == null
+}
+
+// MichelsonInitialStorageEvent -
+type MichelsonInitialStorageEvent struct {
+	Sections
 }
 
 // MichelsonExtendedStorageEvent -

@@ -105,7 +105,16 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 	if err != nil {
 		return nil, err
 	}
-	return p.processBalances(operation, balances)
+	transfers, err := NewDefaultBalanceParser().Parse(balances, operation)
+	if err != nil {
+		return nil, err
+	}
+	if !p.stackTrace.Empty() {
+		for i := range transfers {
+			p.setParentEntrypoint(operation, transfers[i])
+		}
+	}
+	return transfers, err
 }
 
 func (p *Parser) makeFA12Transfers(operation models.Operation, parameters gjson.Result) ([]*models.Transfer, error) {
@@ -150,26 +159,6 @@ func (p *Parser) makeFA2Transfers(operation models.Operation, parameters gjson.R
 			transfers = append(transfers, transfer)
 		}
 	}
-	return transfers, nil
-}
-
-func (p Parser) processBalances(operation models.Operation, balances []events.TokenBalance) ([]*models.Transfer, error) {
-	transfers := make([]*models.Transfer, 0)
-	for _, balance := range balances {
-		transfer := models.EmptyTransfer(operation)
-		if balance.Value > 0 {
-			transfer.To = balance.Address
-		} else {
-			transfer.From = balance.Address
-		}
-		transfer.Amount = float64(balance.Value)
-		transfer.TokenID = balance.TokenID
-
-		p.setParentEntrypoint(operation, transfer)
-
-		transfers = append(transfers, transfer)
-	}
-
 	return transfers, nil
 }
 

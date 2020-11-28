@@ -79,7 +79,6 @@ func (e *Elastic) getResponse(resp *esapi.Response, result interface{}) error {
 	if err != nil {
 		return err
 	}
-	logger.Debug(string(body))
 	return json.Unmarshal(body, result)
 }
 
