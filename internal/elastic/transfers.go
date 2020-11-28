@@ -16,6 +16,7 @@ type GetTransfersContext struct {
 	Contracts []string
 	Network   string
 	Address   string
+	Hash      string
 	Start     uint
 	End       uint
 	SortOrder string
@@ -38,6 +39,7 @@ func (ctx *GetTransfersContext) buildQuery() base {
 	ctx.filterCursor()
 	ctx.filterContracts()
 	ctx.filterTokenID()
+	ctx.filterHash()
 
 	ctx.query.Query(
 		boolQ(
@@ -55,6 +57,12 @@ func (ctx *GetTransfersContext) buildQuery() base {
 func (ctx *GetTransfersContext) filterNetwork() {
 	if ctx.Network != "" {
 		ctx.filters = append(ctx.filters, matchQ("network", ctx.Network))
+	}
+}
+
+func (ctx *GetTransfersContext) filterHash() {
+	if ctx.Hash != "" {
+		ctx.filters = append(ctx.filters, matchPhrase("hash", ctx.Hash))
 	}
 }
 

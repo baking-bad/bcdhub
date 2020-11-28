@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/parsers/transfer"
 	"github.com/baking-bad/bcdhub/internal/parsers/tzip/tokens"
 	"github.com/pkg/errors"
 )
@@ -30,11 +31,13 @@ func (h *Handler) CreateTokenMetadata(rpc noderpc.INode, sharePath string, c *mo
 		logger.With(tzip).Info("Token metadata is found")
 		result = append(result, tzip)
 
-		transfers, err := h.executeInitialStorageEvent(rpc, tzip)
+		transfers, err := h.ExecuteInitialStorageEvent(rpc, tzip)
 		if err != nil {
 			return err
 		}
-		result = append(result, transfers...)
+		for j := range transfers {
+			result = append(result, transfers[j])
+		}
 	}
 
 	return h.ES.BulkInsert(result)
@@ -85,7 +88,8 @@ func (h *Handler) FixTokenMetadata(rpc noderpc.INode, sharePath string, contract
 	return h.ES.BulkUpdate(result)
 }
 
-func (h *Handler) executeInitialStorageEvent(rpc noderpc.INode, tzip *models.TZIP) ([]elastic.Model, error) {
+// ExecuteInitialStorageEvent -
+func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, tzip *models.TZIP) ([]*models.Transfer, error) {
 	ops, err := h.ES.GetOperations(map[string]interface{}{
 		"destination": tzip.Address,
 		"network":     tzip.Network,
@@ -101,12 +105,21 @@ func (h *Handler) executeInitialStorageEvent(rpc noderpc.INode, tzip *models.TZI
 		return nil, errors.Errorf("Invalid operations count: len(ops) [%d] != 1", len(ops))
 	}
 
-	protocol, err := h.ES.GetProtocol(tzip.Network, "", -1)
+	origination := ops[0]
+
+	protocol, err := h.ES.GetProtocol(tzip.Network, origination.Protocol, origination.Level)
 	if err != nil {
 		return nil, err
 	}
 
-	origination := ops[0]
+	state, err := h.ES.GetLastBlock(tzip.Network)
+	if err != nil {
+		return nil, err
+	}
+
+	data := make([]*models.Transfer, 0)
+
+	balanceUpdates := make([]*models.TokenBalance, 0)
 	for i := range tzip.Events {
 		for j := range tzip.Events[i].Implementations {
 			if !tzip.Events[i].Implementations[j].MichelsonInitialStorageEvent.Empty() {
@@ -122,13 +135,31 @@ func (h *Handler) executeInitialStorageEvent(rpc noderpc.INode, tzip *models.TZI
 					Initiator:                origination.Initiator,
 					Amount:                   origination.Amount,
 					HardGasLimitPerOperation: protocol.Constants.HardGasLimitPerOperation,
+					ChainID:                  state.ChainID,
 				})
 				if err != nil {
 					return nil, err
+				}
+
+				res, err := transfer.NewDefaultBalanceParser().Parse(balances, origination)
+				if err != nil {
+					return nil, err
+				}
+
+				data = append(data, res...)
+
+				for i := range balances {
+					balanceUpdates = append(balanceUpdates, &models.TokenBalance{
+						Network:  tzip.Network,
+						Address:  balances[i].Address,
+						TokenID:  balances[i].TokenID,
+						Contract: tzip.Address,
+						Balance:  balances[i].Value,
+					})
 				}
 			}
 		}
 	}
 
-	return nil, nil
+	return data, h.ES.UpdateTokenBalances(balanceUpdates)
 }

@@ -18,7 +18,7 @@ type Parser interface {
 
 // GetParser -
 func GetParser(name string, returnType []byte) (Parser, error) {
-	p, ok := parsers[name]
+	p, ok := parsers[NormalizeName(name)]
 	if !ok {
 		return nil, errors.Errorf("Unknown event: %s", name)
 	}
