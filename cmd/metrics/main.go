@@ -85,6 +85,7 @@ func main() {
 		config.WithAliases(consts.Mainnet),
 		config.WithShare(cfg.SharePath),
 		config.WithDomains(cfg.Domains),
+		config.WithConfigCopy(cfg),
 	)
 	defer ctx.Close()
 
