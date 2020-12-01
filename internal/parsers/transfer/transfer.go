@@ -21,6 +21,8 @@ type Parser struct {
 	network  string
 	chainID  string
 	gasLimit int64
+
+	withoutViews bool
 }
 
 // NewParser -
@@ -34,11 +36,15 @@ func NewParser(rpc noderpc.INode, es elastic.IElastic, opts ...ParserOption) (*P
 		opts[i](tp)
 	}
 
-	tokenEvents, err := NewTokenEvents(es)
-	if err != nil {
-		return nil, err
+	if !tp.withoutViews {
+		tokenEvents, err := NewTokenEvents(es)
+		if err != nil {
+			return nil, err
+		}
+		tp.events = tokenEvents
+	} else {
+		tp.events = make(TokenEvents)
 	}
-	tp.events = tokenEvents
 
 	if tp.network != "" && tp.chainID == "" {
 		state, err := es.GetLastBlock(tp.network)
@@ -81,7 +87,6 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 		Source:                   operation.Source,
 		Amount:                   operation.Amount,
 		Initiator:                operation.Initiator,
-		Entrypoint:               operation.Entrypoint,
 		ChainID:                  p.chainID,
 		HardGasLimitPerOperation: p.gasLimit,
 	}
@@ -89,10 +94,12 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 	switch {
 	case impl.MichelsonParameterEvent.Is(operation.Entrypoint):
 		ctx.Parameters = operation.Parameters
+		ctx.Entrypoint = operation.Entrypoint
 		event, err = events.NewMichelsonParameter(impl, name)
 	case impl.MichelsonExtendedStorageEvent.Is(operation.Entrypoint):
 		ctx.Parameters = operation.DeffatedStorage
-		event, err = events.NewMichelsonExtendedStorage(impl, name, operation.Protocol, operation.GetID(), p.es)
+		ctx.Entrypoint = consts.DefaultEntrypoint
+		event, err = events.NewMichelsonExtendedStorage(impl, name, operation.Protocol, operation.GetID(), operation.Destination, p.es)
 	default:
 		return nil, nil
 	}
@@ -105,6 +112,7 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 	if err != nil {
 		return nil, err
 	}
+
 	transfers, err := NewDefaultBalanceParser().Parse(balances, operation)
 	if err != nil {
 		return nil, err

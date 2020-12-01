@@ -15,7 +15,6 @@ type TZIP20 struct {
 type Event struct {
 	Name            string                `json:"name"`
 	Description     string                `json:"description"`
-	Pure            string                `json:"pure"`
 	Implementations []EventImplementation `json:"implementations"`
 }
 

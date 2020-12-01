@@ -26,7 +26,8 @@ var migrationsList = []migrations.Migration{
 	&migrations.SetProtocolConstants{},
 	&migrations.CreateTZIP{},
 	&migrations.FillTZIP{},
-	&migrations.InitialStorage{},
+	&migrations.InitialStorageEvents{},
+	&migrations.ExtendedStorageEvents{},
 }
 
 func main() {

@@ -1,6 +1,8 @@
 package metrics
 
 import (
+	"fmt"
+
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/events"
@@ -128,9 +130,20 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, tzip *models.TZI
 					return nil, err
 				}
 
+				ops, err := rpc.GetOperations(origination.Level)
+				if err != nil {
+					return nil, err
+				}
+
+				path := fmt.Sprintf(`#(hash=="%s")#.contents.%d.script.storage`, origination.Hash, origination.ContentIndex)
+				defattedStorage := ops.Get(path).Array()
+				if len(defattedStorage) == 0 {
+					return nil, fmt.Errorf("[ExecuteInitialStorageEvent] Empty storage")
+				}
+
 				balances, err := events.Execute(rpc, event, events.Context{
 					Network:                  tzip.Network,
-					Parameters:               origination.DeffatedStorage,
+					Parameters:               defattedStorage[0].String(),
 					Source:                   origination.Source,
 					Initiator:                origination.Initiator,
 					Amount:                   origination.Amount,

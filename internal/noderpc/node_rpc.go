@@ -82,7 +82,12 @@ func (rpc *NodeRPC) getGJSONReponse(resp *http.Response, checkStatusCode bool) (
 	if err != nil {
 		return result, err
 	}
-	result = gjson.ParseBytes(b)
+
+	if gjson.ValidBytes(b) {
+		result = gjson.ParseBytes(b)
+	} else {
+		err = errors.Wrap(ErrInvalidNodeResponse, string(b))
+	}
 	return
 }
 

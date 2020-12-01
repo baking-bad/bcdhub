@@ -18,5 +18,5 @@ type RichStorage struct {
 type Parser interface {
 	ParseTransaction(content gjson.Result, metadata meta.Metadata, operation models.Operation) (RichStorage, error)
 	ParseOrigination(content gjson.Result, metadata meta.Metadata, operation models.Operation) (RichStorage, error)
-	Enrich(string, string, []models.BigMapDiff, bool) (gjson.Result, error)
+	Enrich(string, string, []models.BigMapDiff, bool, bool) (gjson.Result, error)
 }

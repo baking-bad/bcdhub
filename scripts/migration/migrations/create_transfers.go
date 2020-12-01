@@ -63,6 +63,7 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 			transfer.WithNetwork(operations[i].Network),
 			transfer.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
 			transfer.WithStackTrace(stacktrace.New()),
+			transfer.WithoutViews(),
 		)
 		if err != nil {
 			return err

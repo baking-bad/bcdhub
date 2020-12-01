@@ -89,7 +89,7 @@ func (a *Alpha) ParseOrigination(content gjson.Result, metadata meta.Metadata, o
 }
 
 // Enrich -
-func (a *Alpha) Enrich(storage, sPrevStorage string, bmd []models.BigMapDiff, skipEmpty bool) (gjson.Result, error) {
+func (a *Alpha) Enrich(storage, sPrevStorage string, bmd []models.BigMapDiff, skipEmpty, unpack bool) (gjson.Result, error) {
 	if len(bmd) == 0 {
 		return gjson.Parse(storage), nil
 	}
@@ -108,9 +108,15 @@ func (a *Alpha) Enrich(storage, sPrevStorage string, bmd []models.BigMapDiff, sk
 		args[0] = b.Key
 
 		if b.Value != "" {
-			val, err := stringer.Micheline(gjson.Parse(b.Value))
-			if err != nil {
-				return val, err
+			var val gjson.Result
+			var err error
+			if unpack {
+				val, err = stringer.Micheline(gjson.Parse(b.Value))
+				if err != nil {
+					return val, err
+				}
+			} else {
+				val = gjson.Parse(b.Value)
 			}
 			args = append(args, val.Value())
 		} else {

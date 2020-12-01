@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -70,8 +70,8 @@ func Execute(rpc noderpc.INode, event Event, ctx Context) ([]TokenBalance, error
 	if err != nil {
 		return nil, err
 	}
-	logger.Debug(response)
-	return event.Parse(response), nil
+
+	return event.Parse(response), checkResponseError(response)
 }
 
 // NormalizeName -
@@ -79,4 +79,26 @@ func NormalizeName(name string) string {
 	name = strings.ToLower(name)
 	name = strings.ReplaceAll(name, "-", "")
 	return strings.ReplaceAll(name, "_", "")
+}
+
+func checkResponseError(response gjson.Result) error {
+	if !response.IsArray() {
+		return nil
+	}
+
+	var builder strings.Builder
+	if _, err := builder.WriteString("Node return error:\n"); err != nil {
+		return err
+	}
+	for i, item := range response.Array() {
+		if i > 0 {
+			if err := builder.WriteByte('\n'); err != nil {
+				return err
+			}
+		}
+		if _, err := builder.WriteString(item.Get("id").String()); err != nil {
+			return err
+		}
+	}
+	return errors.Errorf(builder.String())
 }
