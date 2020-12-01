@@ -11,6 +11,9 @@ rpc:
   carthagenet:
     uri: https://rpc.tzkt.io/carthagenet
     timeout: 20
+  edonet:
+    uri: https://rpc.tzkt.io/edonet
+    timeout: 20
 
 tzkt:
   mainnet:
@@ -86,6 +89,7 @@ api:
     - carthagenet
     - delphinet
     - dalphanet
+    - edonet
   mq:
     publisher: true
     queues:
@@ -115,11 +119,10 @@ indexer:
   networks:
     # mainnet:
     #   boost: tzkt
-    carthagenet:
-        boost: tzkt
     # delphinet:
     #     boost: tzkt
     # dalphanet:
+    edonet:
 
 metrics:
   project_name: metrics
@@ -146,5 +149,6 @@ scripts:
     - carthagenet
     - delphinet
     - dalphanet
+    - edonet
   mq:
     publisher: true
