@@ -7,21 +7,21 @@ import (
 	"github.com/baking-bad/bcdhub/internal/metrics"
 )
 
-// InitialStorage -
-type InitialStorage struct{}
+// InitialStorageEvents -
+type InitialStorageEvents struct{}
 
 // Key -
-func (m *InitialStorage) Key() string {
+func (m *InitialStorageEvents) Key() string {
 	return "execute_initial_storage"
 }
 
 // Description -
-func (m *InitialStorage) Description() string {
+func (m *InitialStorageEvents) Description() string {
 	return "execute all initial storages"
 }
 
 // Do - migrate function
-func (m *InitialStorage) Do(ctx *config.Context) error {
+func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 	tzips, err := ctx.ES.GetTZIPWithEvents()
 	if err != nil {
 		return err

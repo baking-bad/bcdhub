@@ -2,7 +2,6 @@ package storage
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 	"time"
 
@@ -116,7 +115,7 @@ func (b *Babylon) ParseOrigination(content gjson.Result, metadata meta.Metadata,
 }
 
 // Enrich -
-func (b *Babylon) Enrich(sStorage, sPrevStorage string, bmd []models.BigMapDiff, skipEmpty bool) (gjson.Result, error) {
+func (b *Babylon) Enrich(sStorage, sPrevStorage string, bmd []models.BigMapDiff, skipEmpty, unpack bool) (gjson.Result, error) {
 	if len(bmd) == 0 {
 		return gjson.Parse(sStorage), nil
 	}
@@ -133,21 +132,26 @@ func (b *Babylon) Enrich(sStorage, sPrevStorage string, bmd []models.BigMapDiff,
 			"prim": "Elt",
 		}
 		args := make([]interface{}, 2)
-		keyBytes, err := json.Marshal(bm.Key)
-		if err != nil {
-			return storage, err
-		}
-		key, err := stringer.MichelineFromBytes(keyBytes)
-		if err != nil {
-			return storage, err
-		}
-		args[0] = key.Value()
+		if unpack {
+			keyBytes, err := json.Marshal(bm.Key)
+			if err != nil {
+				return storage, err
+			}
+			key, err := stringer.MichelineFromBytes(keyBytes)
+			if err != nil {
+				return storage, err
+			}
+			args[0] = key.Value()
 
-		val, err := stringer.Micheline(gjson.Parse(bm.Value))
-		if err != nil {
-			return storage, err
+			val, err := stringer.Micheline(gjson.Parse(bm.Value))
+			if err != nil {
+				return storage, err
+			}
+			args[1] = val.Value()
+		} else {
+			args[0] = bm.Key
+			args[1] = gjson.Parse(bm.Value).Value()
 		}
-		args[1] = val.Value()
 
 		elt["args"] = args
 
@@ -155,9 +159,9 @@ func (b *Babylon) Enrich(sStorage, sPrevStorage string, bmd []models.BigMapDiff,
 		if bm.BinPath != "0" {
 			binPath := strings.TrimPrefix(bm.BinPath, "0/")
 			p := newmiguel.GetGJSONPath(binPath)
-			jsonPath, err := b.findPtrJSONPath(bm.Ptr, p, storage)
+			jsonPath, err := findPtrJSONPath(bm.Ptr, p, storage)
 			if err != nil {
-				jsonPath, err = b.findPtrJSONPath(bm.Ptr, p, prevStorage)
+				jsonPath, err = findPtrJSONPath(bm.Ptr, p, prevStorage)
 				if err != nil {
 					return storage, err
 				}
@@ -398,82 +402,6 @@ func (b *Babylon) addToUpdates(newModel elastic.Model, ptr int64) {
 		b.updates[ptr] = append(b.updates[ptr], newModel)
 	}
 }
-
-func (b *Babylon) findPtrJSONPath(ptr int64, path string, storage gjson.Result) (string, error) {
-	val := storage
-	parts := strings.Split(path, ".")
-
-	var newPath strings.Builder
-	for i := range parts {
-		if parts[i] == "#" && val.IsArray() {
-			for idx, item := range val.Array() {
-				if i == len(parts)-1 {
-					if ptr != item.Get("int").Int() {
-						continue
-					}
-					if newPath.Len() != 0 {
-						newPath.WriteString(".")
-					}
-					fmt.Fprintf(&newPath, "%d", idx)
-					return newPath.String(), nil
-				}
-
-				p := strings.Join(parts[i+1:], ".")
-				np, err := b.findPtrJSONPath(ptr, p, item)
-				if err != nil {
-					continue
-				}
-				if np != "" {
-					fmt.Fprintf(&newPath, ".%d.%s", idx, strings.TrimPrefix(np, "."))
-					return newPath.String(), nil
-				}
-			}
-			return "", errors.Errorf("Invalid path")
-		}
-
-		buf := val.Get(parts[i])
-		if !buf.IsArray() && !buf.IsObject() {
-			return "", errors.Errorf("Invalid path")
-		}
-		if i == len(parts)-1 {
-			if buf.Get("int").Exists() {
-				if ptr != buf.Get("int").Int() {
-					return "", errors.Errorf("Invalid path")
-				}
-				if newPath.Len() != 0 {
-					newPath.WriteString(".")
-				}
-				newPath.WriteString(parts[i])
-				return newPath.String(), nil
-			}
-			for j := 0; j < int(buf.Int()); j++ {
-				var bufPath strings.Builder
-				fmt.Fprintf(&bufPath, "%d", j)
-				if i < len(parts)-1 {
-					fmt.Fprintf(&bufPath, ".%s", strings.Join(parts[i+1:], "."))
-				}
-				p, err := b.findPtrJSONPath(ptr, bufPath.String(), val)
-				if err != nil {
-					return "", err
-				}
-				if p != "" {
-					fmt.Fprintf(&newPath, ".%s", p)
-					return newPath.String(), nil
-				}
-			}
-		} else {
-			if newPath.Len() != 0 {
-				newPath.WriteString(".")
-			}
-
-			newPath.WriteString(parts[i])
-			val = buf
-		}
-
-	}
-	return newPath.String(), nil
-}
-
 func (b *Babylon) getSourcePointer(ptr int64) (int64, error) {
 	for ptr < 0 {
 		if val, ok := b.temporaryPointers[ptr]; ok {

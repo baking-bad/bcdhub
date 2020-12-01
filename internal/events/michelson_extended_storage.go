@@ -2,6 +2,9 @@ package events
 
 import (
 	"github.com/baking-bad/bcdhub/internal/contractparser"
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
@@ -17,11 +20,12 @@ type MichelsonExtendedStorage struct {
 
 	protocol    string
 	operationID string
+	contract    string
 	es          elastic.IElastic
 }
 
 // NewMichelsonExtendedStorage -
-func NewMichelsonExtendedStorage(impl tzip.EventImplementation, name, protocol, operationID string, es elastic.IElastic) (*MichelsonExtendedStorage, error) {
+func NewMichelsonExtendedStorage(impl tzip.EventImplementation, name, protocol, operationID, contract string, es elastic.IElastic) (*MichelsonExtendedStorage, error) {
 	parser, err := GetParser(name, impl.MichelsonExtendedStorageEvent.ReturnType)
 	if err != nil {
 		return nil, err
@@ -38,6 +42,7 @@ func NewMichelsonExtendedStorage(impl tzip.EventImplementation, name, protocol, 
 		protocol:    protocol,
 		operationID: operationID,
 		es:          es,
+		contract:    contract,
 	}, nil
 }
 
@@ -60,7 +65,19 @@ func (mes *MichelsonExtendedStorage) Normalize(value string) gjson.Result {
 		return gjson.Parse(value)
 	}
 
-	val, err := parser.Enrich(value, "", bmd, true)
+	val, err := parser.Enrich(value, "", bmd, true, false)
+	if err != nil {
+		logger.Error(err)
+		return gjson.Parse(value)
+	}
+
+	metadata, err := meta.GetMetadata(mes.es, mes.contract, consts.STORAGE, mes.protocol)
+	if err != nil {
+		logger.Error(err)
+		return gjson.Parse(value)
+	}
+
+	val, err = storage.EnrichEmptyPointers(metadata, val)
 	if err != nil {
 		logger.Error(err)
 		return gjson.Parse(value)
