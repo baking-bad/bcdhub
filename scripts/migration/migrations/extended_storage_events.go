@@ -71,7 +71,17 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 				}
 
 				for _, op := range operations {
-					transfers, err := parser.Parse(op)
+					bmd, err := ctx.ES.GetBigMapDiffsByOperationID(op.ID)
+					if err != nil {
+						if !elastic.IsRecordNotFound(err) {
+							return err
+						}
+					}
+					opModels := make([]elastic.Model, len(bmd))
+					for j := range bmd {
+						opModels[j] = bmd[j]
+					}
+					transfers, err := parser.Parse(op, opModels)
 					if err != nil {
 						return err
 					}

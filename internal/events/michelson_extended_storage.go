@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/tidwall/gjson"
 )
@@ -22,10 +23,11 @@ type MichelsonExtendedStorage struct {
 	operationID string
 	contract    string
 	es          elastic.IElastic
+	bmd         []models.BigMapDiff
 }
 
 // NewMichelsonExtendedStorage -
-func NewMichelsonExtendedStorage(impl tzip.EventImplementation, name, protocol, operationID, contract string, es elastic.IElastic) (*MichelsonExtendedStorage, error) {
+func NewMichelsonExtendedStorage(impl tzip.EventImplementation, name, protocol, operationID, contract string, es elastic.IElastic, bmd []models.BigMapDiff) (*MichelsonExtendedStorage, error) {
 	parser, err := GetParser(name, impl.MichelsonExtendedStorageEvent.ReturnType)
 	if err != nil {
 		return nil, err
@@ -42,6 +44,7 @@ func NewMichelsonExtendedStorage(impl tzip.EventImplementation, name, protocol, 
 		protocol:    protocol,
 		operationID: operationID,
 		es:          es,
+		bmd:         bmd,
 		contract:    contract,
 	}, nil
 }
@@ -59,13 +62,7 @@ func (mes *MichelsonExtendedStorage) Normalize(value string) gjson.Result {
 		return gjson.Parse(value)
 	}
 
-	bmd, err := mes.es.GetBigMapDiffsUniqueByOperationID(mes.operationID)
-	if err != nil {
-		logger.Error(err)
-		return gjson.Parse(value)
-	}
-
-	val, err := parser.Enrich(value, "", bmd, true, false)
+	val, err := parser.Enrich(value, "", mes.bmd, true, false)
 	if err != nil {
 		logger.Error(err)
 		return gjson.Parse(value)

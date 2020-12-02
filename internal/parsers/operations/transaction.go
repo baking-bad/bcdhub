@@ -81,7 +81,7 @@ func (p Transaction) Parse(data gjson.Result) ([]elastic.Model, error) {
 
 	p.stackTrace.Add(tx)
 
-	transfers, err := p.transferParser.Parse(tx)
+	transfers, err := p.transferParser.Parse(tx, txModels)
 	if err != nil {
 		return nil, err
 	}
