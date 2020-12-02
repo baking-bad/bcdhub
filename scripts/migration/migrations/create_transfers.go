@@ -69,7 +69,7 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 			return err
 		}
 
-		transfers, err := parser.Parse(operations[i])
+		transfers, err := parser.Parse(operations[i], nil)
 		if err != nil {
 			return err
 		}

@@ -57,9 +57,9 @@ func NewParser(rpc noderpc.INode, es elastic.IElastic, opts ...ParserOption) (*P
 }
 
 // Parse -
-func (p *Parser) Parse(operation models.Operation) ([]*models.Transfer, error) {
+func (p *Parser) Parse(operation models.Operation, operationModels []elastic.Model) ([]*models.Transfer, error) {
 	if impl, name, ok := p.events.GetByOperation(operation); ok {
-		return p.executeEvents(impl, name, operation)
+		return p.executeEvents(impl, name, operation, operationModels)
 	} else if operation.Entrypoint == consts.TransferEntrypoint {
 		parameters := getParameters(operation.Parameters)
 		for i := range operation.Tags {
@@ -74,7 +74,7 @@ func (p *Parser) Parse(operation models.Operation) ([]*models.Transfer, error) {
 	return nil, nil
 }
 
-func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, operation models.Operation) ([]*models.Transfer, error) {
+func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, operation models.Operation, operationModels []elastic.Model) ([]*models.Transfer, error) {
 	if operation.Kind != consts.Transaction {
 		return nil, nil
 	}
@@ -99,7 +99,13 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 	case impl.MichelsonExtendedStorageEvent.Is(operation.Entrypoint):
 		ctx.Parameters = operation.DeffatedStorage
 		ctx.Entrypoint = consts.DefaultEntrypoint
-		event, err = events.NewMichelsonExtendedStorage(impl, name, operation.Protocol, operation.GetID(), operation.Destination, p.es)
+		bmd := make([]models.BigMapDiff, 0)
+		for i := range operationModels {
+			if model, ok := operationModels[i].(*models.BigMapDiff); ok && model.OperationID == operation.ID {
+				bmd = append(bmd, *model)
+			}
+		}
+		event, err = events.NewMichelsonExtendedStorage(impl, name, operation.Protocol, operation.GetID(), operation.Destination, p.es, bmd)
 	default:
 		return nil, nil
 	}
