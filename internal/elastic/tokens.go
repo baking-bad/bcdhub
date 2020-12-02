@@ -405,3 +405,33 @@ func (e *Elastic) GetTokenSupply(network, address string, tokenID int64) (result
 	result.Transfered = response.Aggs.Result.Value.Transfered
 	return
 }
+
+// CreateTokenBalanceUpdates -
+func CreateTokenBalanceUpdates(es ITokens, transfers []*models.Transfer) error {
+	exists := make(map[string]*models.TokenBalance)
+	updates := make([]*models.TokenBalance, 0)
+	for i := range transfers {
+		idFrom := transfers[i].GetFromTokenBalanceID()
+		if idFrom != "" {
+			if update, ok := exists[idFrom]; ok {
+				update.Balance -= int64(transfers[i].Amount)
+			} else {
+				upd := transfers[i].MakeTokenBalanceUpdate(true, false)
+				updates = append(updates, upd)
+				exists[idFrom] = upd
+			}
+		}
+		idTo := transfers[i].GetToTokenBalanceID()
+		if idTo != "" {
+			if update, ok := exists[idTo]; ok {
+				update.Balance += int64(transfers[i].Amount)
+			} else {
+				upd := transfers[i].MakeTokenBalanceUpdate(false, false)
+				updates = append(updates, upd)
+				exists[idTo] = upd
+			}
+		}
+	}
+
+	return es.UpdateTokenBalances(updates)
+}

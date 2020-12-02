@@ -35,6 +35,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 
 	logger.Info("Execution events...")
 	updated := make([]elastic.Model, 0)
+	newTransfers := make([]*models.Transfer, 0)
 	for i := range tzips {
 		for _, event := range tzips[i].Events {
 			for _, impl := range event.Implementations {
@@ -77,6 +78,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 					}
 					for _, t := range transfers {
 						updated = append(updated, t)
+						newTransfers = append(newTransfers, t)
 					}
 				}
 			}
@@ -84,7 +86,10 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 	}
 
 	logger.Info("Found %d transfers", len(updated))
-	return ctx.ES.BulkInsert(updated)
+	if err := ctx.ES.BulkInsert(updated); err != nil {
+		return err
+	}
+	return elastic.CreateTokenBalanceUpdates(ctx.ES, newTransfers)
 }
 
 func (m *ExtendedStorageEvents) getOperations(ctx *config.Context, tzip models.TZIP, impl tzip.EventImplementation) ([]models.Operation, error) {

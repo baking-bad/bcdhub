@@ -5,6 +5,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
+	"github.com/baking-bad/bcdhub/internal/models"
 )
 
 // InitialStorageEvents -
@@ -32,7 +33,7 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 	h := metrics.New(ctx.ES, ctx.DB)
 
 	logger.Info("Execution events...")
-	updated := make([]elastic.Model, 0)
+	newTransfers := make([]*models.Transfer, 0)
 	for i := range tzips {
 		rpc, err := ctx.GetRPC(tzips[i].Network)
 		if err != nil {
@@ -56,10 +57,20 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 				continue
 			}
 
-			updated = append(updated, transfers[i])
+			newTransfers = append(newTransfers, transfers[i])
 		}
 	}
 
+	updated := make([]elastic.Model, 0)
+	if len(newTransfers) == 0 {
+		return nil
+	}
+	for i := range newTransfers {
+		updated = append(updated, newTransfers[i])
+	}
 	logger.Info("Found %d transfers", len(updated))
-	return ctx.ES.BulkInsert(updated)
+	if err := ctx.ES.BulkInsert(updated); err != nil {
+		return err
+	}
+	return elastic.CreateTokenBalanceUpdates(ctx.ES, newTransfers)
 }
