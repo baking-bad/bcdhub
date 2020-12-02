@@ -43,7 +43,7 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 	logger.Info("Found %d operations with transfer entrypoint", len(operations))
 
 	result := make([]elastic.Model, 0)
-
+	newTransfers := make([]*models.Transfer, 0)
 	bar := progressbar.NewOptions(len(operations), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish(), progressbar.OptionShowCount())
 	for i := range operations {
 		if err := bar.Add(1); err != nil {
@@ -76,8 +76,8 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 
 		for j := range transfers {
 			h.SetTransferAliases(ctx.Aliases, transfers[j])
-			// logger.Info("%s %##v", operations[i].Entrypoint, transfers[j])
 			result = append(result, transfers[j])
+			newTransfers = append(newTransfers, transfers[j])
 		}
 	}
 
@@ -88,7 +88,7 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 
 	logger.Info("Done. %d transfers were saved", len(result))
 
-	return nil
+	return elastic.CreateTokenBalanceUpdates(ctx.ES, newTransfers)
 }
 
 func (m *CreateTransfersTags) deleteTransfers(ctx *config.Context) (err error) {
