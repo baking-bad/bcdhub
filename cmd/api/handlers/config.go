@@ -27,7 +27,7 @@ func (ctx *Context) GetConfig(c *gin.Context) {
 	}
 
 	if ctx.Config.API.SentryEnabled {
-		cfg.SentryDSN = ctx.Config.Sentry.URI
+		cfg.SentryDSN = ctx.Config.Sentry.FrontURI
 	}
 
 	c.JSON(http.StatusOK, cfg)

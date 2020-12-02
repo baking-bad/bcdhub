@@ -59,6 +59,7 @@ oauth:
 sentry:
   environment: development
   uri: ${SENTRY_DSN}
+  front_uri: ${SENTRY_DSN_FRONT}
   debug: true
 
 share_path: ${HOME}/.bcd
@@ -116,7 +117,7 @@ indexer:
     # mainnet:
     #   boost: tzkt
     carthagenet:
-        boost: tzkt
+      boost: tzkt
     # delphinet:
     #     boost: tzkt
     # dalphanet:
