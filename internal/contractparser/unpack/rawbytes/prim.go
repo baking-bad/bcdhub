@@ -138,6 +138,15 @@ var primKeywords = []string{
 	"bls12_381_g1",
 	"bls12_381_g2",
 	"bls12_381_fr",
+	"sapling_state",
+	"sapling_transaction",
+	"SAPLING_EMPTY_STATE",
+	"SAPLING_VERIFY_UPDATE",
+	"ticket",
+	"TICKET",
+	"READ_TICKET",
+	"SPLIT_TICKET",
+	"JOIN_TICKETS",
 }
 
 type primDecoder struct {
