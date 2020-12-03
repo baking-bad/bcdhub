@@ -164,6 +164,7 @@ type SeedConfig struct {
 type SentryConfig struct {
 	Environment string `yaml:"environment"`
 	URI         string `yaml:"uri"`
+	FrontURI    string `yaml:"front_uri"`
 	Debug       bool   `yaml:"debug"`
 }
 

@@ -26,5 +26,9 @@ func (ctx *Context) GetConfig(c *gin.Context) {
 		TzKTEndpoints: tzktEndpoints,
 	}
 
+	if ctx.Config.API.SentryEnabled {
+		cfg.SentryDSN = ctx.Config.Sentry.FrontURI
+	}
+
 	c.JSON(http.StatusOK, cfg)
 }

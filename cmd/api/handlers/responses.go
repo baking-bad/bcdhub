@@ -575,6 +575,7 @@ type ConfigResponse struct {
 	OauthEnabled  bool              `json:"oauth_enabled"`
 	RPCEndpoints  map[string]string `json:"rpc_endpoints"`
 	TzKTEndpoints map[string]string `json:"tzkt_endpoints"`
+	SentryDSN     string            `json:"sentry_dsn"`
 }
 
 // DApp -

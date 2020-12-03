@@ -60,6 +60,7 @@ oauth:
 sentry:
   environment: production
   uri: ${SENTRY_DSN}
+  front_uri: ${SENTRY_DSN_FRONT}
   debug: false
 
 share_path: /etc/bcd
