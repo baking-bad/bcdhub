@@ -124,6 +124,20 @@ var primKeywords = []string{
 	"APPLY",
 	"chain_id",
 	"CHAIN_ID",
+	// EDO
+	"LEVEL",
+	"SELF_ADDRESS",
+	"never",
+	"NEVER",
+	"UNPAIR",
+	"VOTING_POWER",
+	"TOTAL_VOTING_POWER",
+	"KECCAK",
+	"SHA3",
+	"PAIRING_CHECK",
+	"bls12_381_g1",
+	"bls12_381_g2",
+	"bls12_381_fr",
 }
 
 type primDecoder struct {
