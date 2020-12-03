@@ -5,28 +5,26 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-// MichelsonParameterEvent -
-type MichelsonParameterEvent struct {
+// MichelsonParameter -
+type MichelsonParameter struct {
 	Sections
-	Entrypoints []string
 
 	name   string
 	parser Parser
 }
 
-// NewMichelsonParameterEvent -
-func NewMichelsonParameterEvent(event tzip.EventImplementation, name string) (*MichelsonParameterEvent, error) {
-	parser, err := GetParser(name, event.MichelsonParameterEvent.ReturnType)
+// NewMichelsonParameter -
+func NewMichelsonParameter(impl tzip.EventImplementation, name string) (*MichelsonParameter, error) {
+	parser, err := GetParser(name, impl.MichelsonParameterEvent.ReturnType)
 	if err != nil {
 		return nil, err
 	}
-	return &MichelsonParameterEvent{
+	return &MichelsonParameter{
 		Sections: Sections{
-			Parameter:  event.MichelsonParameterEvent.Parameter,
-			Code:       event.MichelsonParameterEvent.Code,
-			ReturnType: event.MichelsonParameterEvent.ReturnType,
+			Parameter:  impl.MichelsonParameterEvent.Parameter,
+			Code:       impl.MichelsonParameterEvent.Code,
+			ReturnType: impl.MichelsonParameterEvent.ReturnType,
 		},
-		Entrypoints: event.MichelsonParameterEvent.Entrypoints,
 
 		name:   name,
 		parser: parser,
@@ -34,13 +32,13 @@ func NewMichelsonParameterEvent(event tzip.EventImplementation, name string) (*M
 }
 
 // Parse -
-func (mpe *MichelsonParameterEvent) Parse(response gjson.Result) []TokenBalance {
-	return mpe.parser.Parse(response)
+func (event *MichelsonParameter) Parse(response gjson.Result) []TokenBalance {
+	return event.parser.Parse(response)
 }
 
-// Normalize -
-func (mpe *MichelsonParameterEvent) Normalize(parameters string) gjson.Result {
-	p := gjson.Parse(parameters)
+// Normalize - `value` is `Operation.Parameters`
+func (event *MichelsonParameter) Normalize(value string) gjson.Result {
+	p := gjson.Parse(value)
 	if p.Get("value").Exists() {
 		p = p.Get("value")
 	}

@@ -25,11 +25,8 @@ func getTransfer(ids []string) error {
 
 func parseTransfer(transfer models.Transfer) error {
 	h := metrics.New(ctx.ES, ctx.DB)
-	ok, err := h.SetTransferAliases(ctx.Aliases, &transfer)
-	if err != nil {
-		return err
-	}
-	if ok {
+
+	if h.SetTransferAliases(ctx.Aliases, &transfer) {
 		if err := ctx.ES.UpdateFields(
 			elastic.DocTransfers, transfer.ID,
 			transfer,

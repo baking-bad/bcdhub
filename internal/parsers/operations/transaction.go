@@ -81,7 +81,7 @@ func (p Transaction) Parse(data gjson.Result) ([]elastic.Model, error) {
 
 	p.stackTrace.Add(tx)
 
-	transfers, err := p.transferParser.Parse(tx)
+	transfers, err := p.transferParser.Parse(tx, txModels)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func (p Transaction) Parse(data gjson.Result) ([]elastic.Model, error) {
 		txModels = append(txModels, transfers[i])
 	}
 
-	if err := p.createTokenBalanceUpdates(transfers); err != nil {
+	if err := elastic.CreateTokenBalanceUpdates(p.es, transfers); err != nil {
 		return nil, err
 	}
 
@@ -189,33 +189,4 @@ func (p Transaction) tagTransaction(tx *models.Operation) error {
 		}
 	}
 	return nil
-}
-
-func (p Transaction) createTokenBalanceUpdates(transfers []*models.Transfer) error {
-	exists := make(map[string]*models.TokenBalance)
-	updates := make([]*models.TokenBalance, 0)
-	for i := range transfers {
-		idFrom := transfers[i].GetFromTokenBalanceID()
-		if idFrom != "" {
-			if update, ok := exists[idFrom]; ok {
-				update.Balance -= int64(transfers[i].Amount)
-			} else {
-				upd := transfers[i].MakeTokenBalanceUpdate(true, false)
-				updates = append(updates, upd)
-				exists[idFrom] = upd
-			}
-		}
-		idTo := transfers[i].GetToTokenBalanceID()
-		if idTo != "" {
-			if update, ok := exists[idTo]; ok {
-				update.Balance += int64(transfers[i].Amount)
-			} else {
-				upd := transfers[i].MakeTokenBalanceUpdate(false, false)
-				updates = append(updates, upd)
-				exists[idTo] = upd
-			}
-		}
-	}
-
-	return p.es.UpdateTokenBalances(updates)
 }

@@ -90,10 +90,7 @@ func (si *ScoreInfo) addScores(scores ...string) {
 func GetScores(searchString string, fields []string, indices ...string) (ScoreInfo, error) {
 	info := newScoreInfo()
 	if len(indices) == 0 {
-		for i := range Indices {
-			info.addIndex(Indices[i])
-		}
-		return info, nil
+		indices = Indices
 	}
 
 	for i := range indices {

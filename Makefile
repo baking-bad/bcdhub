@@ -22,8 +22,8 @@ ifeq ($(BCD_ENV), development)
 	cd scripts/nginx && go run .
 else
 	docker exec -it $$BCD_ENV-api seo
-endif
 	docker restart $$BCD_ENV-gui
+endif
 
 migration:
 ifeq ($(BCD_ENV), development)

@@ -1,6 +1,9 @@
 package noderpc
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 // NodeUnavailiableError -
 type NodeUnavailiableError struct {
@@ -48,3 +51,8 @@ func IsNodeUnavailiableError(err error) bool {
 	}
 	return false
 }
+
+// Errors
+var (
+	ErrInvalidNodeResponse = errors.New("Invalid node response")
+)

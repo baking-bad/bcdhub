@@ -5,7 +5,7 @@ import (
 )
 
 // SetTransferAliases -
-func (h *Handler) SetTransferAliases(aliases map[string]string, transfer *models.Transfer) (bool, error) {
+func (h *Handler) SetTransferAliases(aliases map[string]string, transfer *models.Transfer) bool {
 	var changed bool
 
 	if alias, ok := aliases[transfer.From]; ok {
@@ -28,5 +28,5 @@ func (h *Handler) SetTransferAliases(aliases map[string]string, transfer *models
 		changed = true
 	}
 
-	return changed, nil
+	return changed
 }

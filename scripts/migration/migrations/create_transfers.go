@@ -43,7 +43,7 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 	logger.Info("Found %d operations with transfer entrypoint", len(operations))
 
 	result := make([]elastic.Model, 0)
-
+	newTransfers := make([]*models.Transfer, 0)
 	bar := progressbar.NewOptions(len(operations), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish(), progressbar.OptionShowCount())
 	for i := range operations {
 		if err := bar.Add(1); err != nil {
@@ -63,22 +63,21 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 			transfer.WithNetwork(operations[i].Network),
 			transfer.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
 			transfer.WithStackTrace(stacktrace.New()),
+			transfer.WithoutViews(),
 		)
 		if err != nil {
 			return err
 		}
 
-		transfers, err := parser.Parse(operations[i])
+		transfers, err := parser.Parse(operations[i], nil)
 		if err != nil {
 			return err
 		}
 
 		for j := range transfers {
-			if _, err := h.SetTransferAliases(ctx.Aliases, transfers[j]); err != nil {
-				return err
-			}
-			// logger.Info("%s %##v", operations[i].Entrypoint, transfers[j])
+			h.SetTransferAliases(ctx.Aliases, transfers[j])
 			result = append(result, transfers[j])
+			newTransfers = append(newTransfers, transfers[j])
 		}
 	}
 
@@ -89,7 +88,7 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 
 	logger.Info("Done. %d transfers were saved", len(result))
 
-	return nil
+	return elastic.CreateTokenBalanceUpdates(ctx.ES, newTransfers)
 }
 
 func (m *CreateTransfersTags) deleteTransfers(ctx *config.Context) (err error) {

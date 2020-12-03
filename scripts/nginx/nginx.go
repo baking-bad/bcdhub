@@ -7,18 +7,19 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
 const (
-	ogTitle          = "Better Call Dev"
-	ogDescription    = "Tezos smart contract explorer, developer dashboard, and API provider. Easy to spin up / integrate with your sandbox."
-	ogImage          = "/img/logo_og.png"
-	pageTitle        = "Better Call Dev — Tezos smart contract explorer by Baking Bad"
-	dappsTitle       = "Tezos DApps"
-	dappsDescription = "Track the Tezos ecosystem growth: aggregated DApps usage stats, DEX token turnover, affiliated smart contracts, screenshots, social links, and more."
+	ogTitle             = "Better Call Dev"
+	ogDescription       = "Tezos smart contract explorer, developer dashboard, and API provider. Easy to spin up / integrate with your sandbox."
+	ogImage             = "/img/logo_og.png"
+	pageTitle           = "Better Call Dev — Tezos smart contract explorer by Baking Bad"
+	dappsTitle          = "Tezos DApps"
+	dappsDescription    = "Track the Tezos ecosystem growth: aggregated DApps usage stats, DEX token turnover, affiliated smart contracts, screenshots, social links, and more."
+	contractDescription = "Check out recent operations, inspect contract code and storage, invoke contract methods."
 )
 
 const defaultConfTemplate = `server {
@@ -39,10 +40,10 @@ const defaultConfTemplate = `server {
 	}
 }`
 
-const dappLocationTemplate = `
-	location /dapps/{{.slug}} {
+const locationTemplate = `
+	location {{.location}} {
 		rewrite ^ /index.html break;
-		sub_filter '<meta property=og:url content=/' '<meta property=og:url content={{.baseUrl}}/dapps/{{.slug}}';
+		sub_filter '<meta property=og:url content=/' '<meta property=og:url content={{.url}}';
 		sub_filter '<meta property=og:title content="{{.ogTitle}}"' '<meta property=og:title content="{{.title}}"';
 		sub_filter '<meta property=og:description content="{{.ogDescription}}"' '<meta property=og:description content="{{.description}}"';
 		sub_filter '<meta property=og:image content={{.ogImage}}' '<meta property=og:image content={{.logoURL}}';
@@ -54,26 +55,70 @@ const dappLocationTemplate = `
 		sub_filter_once on;
 	}`
 
-func makeDappLocation(dapp tzip.DApp, baseURL string) (string, error) {
-	logoURL := ""
+func makeNginxConfig(dapps []tzip.DApp, aliases []models.TZIP, filepath, baseURL string) error {
+	var locations strings.Builder
+	tmpl := template.Must(template.New("").Parse(locationTemplate))
+
+	for _, dapp := range dapps {
+		loc, err := makeDappLocation(tmpl, dapp, baseURL)
+		if err != nil {
+			return err
+		}
+		locations.WriteString(loc)
+		locations.WriteString("\n")
+	}
+
+	loc, err := makeDappRootLocation(tmpl, "list", baseURL)
+	if err != nil {
+		return err
+	}
+	locations.WriteString(loc)
+	locations.WriteString("\n")
+
+	for _, alias := range aliases {
+		loc, err := makeContractsLocation(tmpl, alias.Address, alias.Name, baseURL)
+		if err != nil {
+			return err
+		}
+
+		locations.WriteString(loc)
+		locations.WriteString("\n")
+	}
+
+	defaultConf := fmt.Sprintf(defaultConfTemplate, locations.String())
+	file, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	if _, err = file.WriteString(defaultConf); err != nil {
+		logger.Fatal(err)
+	}
+
+	logger.Info("Nginx default config created in %s", filepath)
+
+	return nil
+}
+
+func makeDappLocation(tmpl *template.Template, dapp tzip.DApp, baseURL string) (string, error) {
+	var logoURL string
 	for _, picture := range dapp.Pictures {
 		if picture.Type == "logo" {
 			logoURL = picture.Link
 		}
 	}
 
-	buf := &bytes.Buffer{}
-	tmpl := template.Must(template.New("").Parse(dappLocationTemplate))
-
+	buf := new(bytes.Buffer)
 	err := tmpl.Execute(buf, map[string]interface{}{
-		"slug":          dapp.Slug,
+		"location":      fmt.Sprintf("/dapps/%s", dapp.Slug),
+		"url":           fmt.Sprintf("%s/dapps/%s", baseURL, dapp.Slug),
 		"title":         fmt.Sprintf("%s — %s", dapp.Name, dapp.ShortDescription),
 		"description":   dapp.FullDescription,
 		"ogTitle":       ogTitle,
 		"ogDescription": ogDescription,
 		"ogImage":       ogImage,
 		"pageTitle":     pageTitle,
-		"baseUrl":       baseURL,
 		"logoURL":       logoURL,
 	})
 	if err != nil {
@@ -83,19 +128,17 @@ func makeDappLocation(dapp tzip.DApp, baseURL string) (string, error) {
 	return buf.String(), nil
 }
 
-func makeDappRootLocation(path, baseURL string) (string, error) {
-	buf := &bytes.Buffer{}
-	tmpl := template.Must(template.New("").Parse(dappLocationTemplate))
-
+func makeDappRootLocation(tmpl *template.Template, path, baseURL string) (string, error) {
+	buf := new(bytes.Buffer)
 	err := tmpl.Execute(buf, map[string]interface{}{
-		"slug":          path,
+		"location":      fmt.Sprintf("/dapps/%s", path),
+		"url":           fmt.Sprintf("%s/dapps/%s", baseURL, path),
 		"title":         dappsTitle,
 		"description":   dappsDescription,
 		"ogTitle":       ogTitle,
 		"ogDescription": ogDescription,
 		"ogImage":       ogImage,
 		"pageTitle":     pageTitle,
-		"baseUrl":       baseURL,
 		"logoURL":       ogImage,
 	})
 	if err != nil {
@@ -105,37 +148,22 @@ func makeDappRootLocation(path, baseURL string) (string, error) {
 	return buf.String(), nil
 }
 
-func makeNginxConfig(ctx *config.Context, dapps []tzip.DApp, outputDir, env string) error {
-	filePath := fmt.Sprintf("%s/default.%s.conf", outputDir, env)
-	file, err := os.Create(filePath)
+func makeContractsLocation(tmpl *template.Template, address, alias, baseURL string) (string, error) {
+	buf := new(bytes.Buffer)
+	err := tmpl.Execute(buf, map[string]interface{}{
+		"location":      fmt.Sprintf("/mainnet/%s", address),
+		"url":           fmt.Sprintf("%s/mainnet/%s", baseURL, address),
+		"title":         fmt.Sprintf("%s — %s", alias, ogTitle),
+		"description":   contractDescription,
+		"ogTitle":       ogTitle,
+		"ogDescription": ogDescription,
+		"ogImage":       ogImage,
+		"pageTitle":     pageTitle,
+		"logoURL":       ogImage,
+	})
 	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	var dappLocations strings.Builder
-	for _, dapp := range dapps {
-		loc, err := makeDappLocation(dapp, ctx.Config.BaseURL)
-		if err != nil {
-			return err
-		}
-		dappLocations.WriteString(loc)
-		dappLocations.WriteString("\n")
+		return "", err
 	}
 
-	loc, err := makeDappRootLocation("list", ctx.Config.BaseURL)
-	if err != nil {
-		return err
-	}
-	dappLocations.WriteString(loc)
-	dappLocations.WriteString("\n")
-
-	defaultConf := fmt.Sprintf(defaultConfTemplate, dappLocations.String())
-	if _, err = file.WriteString(defaultConf); err != nil {
-		logger.Fatal(err)
-	}
-
-	logger.Info("nginx default config created in %s", filePath)
-
-	return nil
+	return buf.String(), nil
 }

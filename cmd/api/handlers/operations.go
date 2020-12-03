@@ -391,7 +391,7 @@ func enrichStorage(s, prevStorage string, bmd []models.BigMapDiff, protocol stri
 		return gjson.Result{}, err
 	}
 
-	return parser.Enrich(s, prevStorage, bmd, skipEmpty)
+	return parser.Enrich(s, prevStorage, bmd, skipEmpty, true)
 }
 
 func getPrevBmd(es elastic.IElastic, bmd []models.BigMapDiff, indexedTime int64, address string) ([]models.BigMapDiff, error) {

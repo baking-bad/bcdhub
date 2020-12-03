@@ -7,6 +7,8 @@ import (
 	"io"
 	"strings"
 
+	stdJSON "encoding/json"
+
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/pkg/errors"
 )
@@ -238,9 +240,17 @@ func (e *Elastic) GetMappings(indices []string) (map[string]string, error) {
 
 	defer resp.Body.Close()
 
-	response := make(map[string]string)
-	err = e.getResponse(resp, &response)
-	return response, err
+	response := make(map[string]stdJSON.RawMessage)
+	if err = e.getResponse(resp, &response); err != nil {
+		return nil, err
+	}
+
+	mappings := make(map[string]string)
+	for k, v := range response {
+		mappings[k] = string(v)
+	}
+
+	return mappings, nil
 }
 
 // CreateMapping -
