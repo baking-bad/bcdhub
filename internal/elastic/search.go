@@ -14,7 +14,7 @@ const (
 )
 
 var ptrRegEx = regexp.MustCompile(`^ptr:\d+$`)
-var sanitizeRegEx = regexp.MustCompile(`[\+\-\=\&\|\>\<\!\(\)\{\}\[\]\^\"\~\*\?\:\\\/]`)
+var sanitizeRegEx = regexp.MustCompile(`[\:]`)
 
 type searchContext struct {
 	Text       string
@@ -265,15 +265,11 @@ func parseSearchGroupingResponse(response searchByTextResponse, offset int64) ([
 func prepare(search string, filters map[string]interface{}, fields []string) (searchContext, error) {
 	ctx := newSearchContext()
 
-	needEscape := true
 	if ptrRegEx.MatchString(search) {
 		ctx.Text = strings.TrimPrefix(search, "ptr:")
 		ctx.Indices = []string{DocBigMapDiff}
 		ctx.Fields = []string{"ptr"}
-		needEscape = false
 	} else {
-		ctx.Text = sanitizeRegEx.ReplaceAllString(search, "\\${1}")
-
 		internalFields, usingIndices, highlights, err := getFields(ctx.Text, filters, fields)
 		if err != nil {
 			return ctx, err
@@ -281,10 +277,7 @@ func prepare(search string, filters map[string]interface{}, fields []string) (se
 		ctx.Indices = usingIndices
 		ctx.Highlights = highlights
 		ctx.Fields = internalFields
-	}
-
-	if needEscape {
-		ctx.Text = fmt.Sprintf("*%s*", ctx.Text)
+		ctx.Text = fmt.Sprintf("%s*", search)
 	}
 
 	filterString, err := prepareSearchFilters(filters)
@@ -292,6 +285,7 @@ func prepare(search string, filters map[string]interface{}, fields []string) (se
 		return ctx, err
 	}
 	if filterString != "" {
+		ctx.Text = sanitizeRegEx.ReplaceAllString(ctx.Text, "\\${0}")
 		ctx.Text = fmt.Sprintf("%s AND %s", filterString, ctx.Text)
 	}
 	return ctx, nil
