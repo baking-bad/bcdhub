@@ -195,6 +195,16 @@ func TestToMicheline(t *testing.T) {
 			input:  "0a00000016000006a868bd80219eb1f6a25108d1bdaa98ae27b2d9",
 			result: `{ "string": "tz1LFEVYR7YRCxT6Nm3Zfjdnfj77xZqhbR5U" }`,
 		},
+		{
+			name:   "prim",
+			input:  "070700000000",
+			result: `{ "prim": "Pair", "args": [ { "int": "0" }, { "int": "0" } ] }`,
+		},
+		{
+			name:   "edo prim",
+			input:  "0707000007070000070700000000",
+			result: `{ "prim": "Pair", "args": [ { "int": "0" }, { "prim": "Pair", "args": [ { "int": "0" }, { "prim": "Pair", "args": [ { "int": "0" }, { "int": "0" } ] } ] } ] }`,
+		},
 	}
 
 	for _, tc := range validTestCases {

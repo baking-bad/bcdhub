@@ -11,6 +11,7 @@ import (
 )
 
 // Micheline pack micheline-json to bytes
+// TO-DO: pack Pair correctly
 func Micheline(node gjson.Result) ([]byte, error) {
 	if node.IsArray() {
 		return packArray(node)
