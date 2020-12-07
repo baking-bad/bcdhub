@@ -35,7 +35,7 @@ func (v *bytesValidator) Validate(value interface{}) bool {
 		return false
 	}
 
-	re := regexp.MustCompile(`^([a-f0-9][a-f0-9])*$`)
+	re := regexp.MustCompile(`^(0x)?([a-f0-9][a-f0-9])*$`)
 	return re.MatchString(sValue)
 }
 

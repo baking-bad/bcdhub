@@ -95,6 +95,16 @@ func Test_defaultBuilder(t *testing.T) {
 			},
 			want: `{"bytes": "0001"}`,
 		}, {
+			name: "'bytes' test with 0x",
+			args: args{
+				metadata: `{"0":{"prim":"bytes","type":"bytes"}}`,
+				path:     "0",
+				data: map[string]interface{}{
+					"0": "0x0001",
+				},
+			},
+			want: `{"bytes": "0001"}`,
+		}, {
 			name: "'bool' true test",
 			args: args{
 				metadata: `{"0":{"prim":"bool","type":"bool"}}`,
