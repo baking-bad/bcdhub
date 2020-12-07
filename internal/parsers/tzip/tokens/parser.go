@@ -249,7 +249,10 @@ func (t TokenMetadataParser) parseMetadata(value gjson.Result, m *Metadata) erro
 	m.TokenID = value.Get(keyTokenID).Int()
 	m.Symbol = value.Get(keySymbol).String()
 	m.Name = value.Get(keyName).String()
-	m.Decimals = value.Get(keyDecimals).Int()
+
+	val := value.Get(keyDecimals).Int()
+	m.Decimals = &val
+
 	m.Extras = extras
 	return nil
 }

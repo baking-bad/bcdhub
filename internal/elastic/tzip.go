@@ -45,7 +45,7 @@ type TokenMetadata struct {
 	Symbol          string
 	Name            string
 	TokenID         int64
-	Decimals        int64
+	Decimals        *int64
 	RegistryAddress string
 	Extras          map[string]interface{}
 }
