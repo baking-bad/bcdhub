@@ -15,7 +15,7 @@ type Metadata struct {
 	TokenID         int64
 	Symbol          string
 	Name            string
-	Decimals        int64
+	Decimals        *int64
 	Extras          map[string]interface{}
 }
 

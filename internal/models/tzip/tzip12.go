@@ -21,7 +21,7 @@ type TokenMetadata struct {
 	TokenID         int64                  `json:"token_id"`
 	Symbol          string                 `json:"symbol"`
 	Name            string                 `json:"name"`
-	Decimals        int64                  `json:"decimals"`
+	Decimals        *int64                 `json:"decimals,omitempty"`
 	Extras          map[string]interface{} `json:"extras"`
 }
 
@@ -31,6 +31,6 @@ func (tm TokenMetadata) Compare(other TokenMetadata) bool {
 		tm.Symbol == other.Symbol &&
 		tm.Name == other.Name &&
 		tm.TokenID == other.TokenID &&
-		tm.Decimals == other.Decimals &&
+		*tm.Decimals == *other.Decimals &&
 		reflect.DeepEqual(tm.Extras, other.Extras)
 }

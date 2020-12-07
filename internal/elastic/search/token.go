@@ -16,7 +16,7 @@ type TokenResponse struct {
 	Address   string                 `json:"address"`
 	Level     int64                  `json:"level"`
 	Timestamp time.Time              `json:"timestamp"`
-	Decimals  int64                  `json:"decimals"`
+	Decimals  *int64                 `json:"decimals,omitempty"`
 	Extras    map[string]interface{} `json:"extras,omitempty"`
 }
 

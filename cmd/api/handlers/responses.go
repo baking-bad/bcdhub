@@ -647,7 +647,7 @@ type TokenMetadata struct {
 	TokenID         int64                  `json:"token_id"`
 	Symbol          string                 `json:"symbol,omitempty"`
 	Name            string                 `json:"name,omitempty"`
-	Decimals        int64                  `json:"decimals"`
+	Decimals        *int64                 `json:"decimals,omitempty"`
 	Extras          map[string]interface{} `json:"extras,omitempty"`
 }
 
