@@ -65,12 +65,20 @@ func Test_bytesValidator_Validate(t *testing.T) {
 			value: "012q",
 			want:  false,
 		}, {
+			name:  "Invalid 0x bytes",
+			value: "0xc",
+			want:  false,
+		}, {
 			name:  "Valid",
 			value: "0123456789abcdef",
 			want:  true,
 		}, {
 			name:  "valid long",
 			value: "c51117f21919bda5ce166ddf0903b34b07c1095ff5fba19165196819cbffce13c4340d2fcdda02f2bdd04fe3b6949729a28749d1b979699be484bdead6801a20",
+			want:  true,
+		}, {
+			name:  "valid long with 0x",
+			value: "0xc51117f21919bda5ce166ddf0903b34b07c1095ff5fba19165196819cbffce13c4340d2fcdda02f2bdd04fe3b6949729a28749d1b979699be484bdead6801a20",
 			want:  true,
 		},
 	}
