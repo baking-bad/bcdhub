@@ -1,4 +1,4 @@
-include .env
+-include .env
 export $(shell sed 's/=.*//' .env)
 
 api:
@@ -135,8 +135,12 @@ db-restore:
 ps:
 	docker ps --format "table {{.Names}}\t{{.RunningFor}}\t{{.Status}}\t{{.Ports}}"
 
-sandbox:
-	COMPOSE_PROJECT_NAME=bcd-box docker-compose -f docker-compose.sandbox.yml up -d --build
+sandbox-up:
+	TAG=3.2 docker-compose -f docker-compose.sandbox.yml pull
+	TAG=3.2 COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.sandbox.yml up -d
 
 sandbox-down:
-	COMPOSE_PROJECT_NAME=bcd-box docker-compose -f docker-compose.sandbox.yml down
+	COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.sandbox.yml down
+
+sandbox-clear:
+	COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.sandbox.yml down -v
