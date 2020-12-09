@@ -3,9 +3,9 @@ services:
   elastic:
     container_name: sandbox-elastic
     image: bakingbad/bcdhub-elastic:${TAG:-latest}
-    build:
-      context: .
-      dockerfile: build/elastic/Dockerfile
+#    build:
+#      context: .
+#      dockerfile: build/elastic/Dockerfile
     restart: always
     volumes:
       - esdata:/usr/share/elasticsearch/data
@@ -45,9 +45,9 @@ services:
     container_name: sandbox-api
     restart: always
     image: bakingbad/bcdhub-api:${TAG:-latest}
-    build:
-      context: .
-      dockerfile: build/api/Dockerfile
+#    build:
+#      context: .
+#      dockerfile: build/api/Dockerfile
     environment:
       - BCD_ENV=sandbox
       - GIN_MODE=debug
@@ -68,9 +68,9 @@ services:
     container_name: sandbox-indexer
     restart: always
     image: bakingbad/bcdhub-indexer:${TAG:-latest}
-    build:
-      context: .
-      dockerfile: build/indexer/Dockerfile
+#    build:
+#      context: .
+#      dockerfile: build/indexer/Dockerfile
     environment:
       - BCD_ENV=sandbox
       - RABBITMQ_DEFAULT_USER=guest
@@ -87,9 +87,9 @@ services:
     container_name: sandbox-metrics
     restart: always
     image: bakingbad/bcdhub-metrics:${TAG:-latest}
-    build:
-      context: .
-      dockerfile: build/metrics/Dockerfile
+#    build:
+#      context: .
+#      dockerfile: build/metrics/Dockerfile
     environment:
       - BCD_ENV=sandbox
       - POSTGRES_USER=root
@@ -105,29 +105,29 @@ services:
       sandbox: 172.17.0.1
     logging: *my-logging
 
-  flextesa:
-    container_name: sandbox-flextesa
-    restart: always
-    image: tqtezos/flextesa:20200925
-    command: carthagebox start
-    environment:
-      - block_time=4
-    ports:
-      - 127.0.0.1:8732:20000
-    logging: *my-logging
+#  flextesa:
+#    container_name: sandbox-flextesa
+#    restart: always
+#    image: tqtezos/flextesa:20200925
+#    command: carthagebox start
+#    environment:
+#      - block_time=4
+#    ports:
+#      - 127.0.0.1:8732:20000
+#    logging: *my-logging
 
-  jupyter:
-    container_name: sandbox-jupyter
-    restart: always
-    image: bakingbad/bcdhub-jupyter:${TAG:-latest}
-    build:
-      context: .
-      dockerfile: build/sandbox/jupyter/Dockerfile
-    ports:
-      - 127.0.0.1:8008:8008
-    extra_hosts:
-      sandbox: 172.17.0.1
-    logging: *my-logging
+#  jupyter:
+#    container_name: sandbox-jupyter
+#    restart: always
+#    image: bakingbad/bcdhub-jupyter:${TAG:-latest}
+#    build:
+#      context: .
+#      dockerfile: build/sandbox/jupyter/Dockerfile
+#    ports:
+#      - 127.0.0.1:8008:8008
+#    extra_hosts:
+#      sandbox: 172.17.0.1
+#    logging: *my-logging
 
   gui:
     container_name: sandbox-gui
