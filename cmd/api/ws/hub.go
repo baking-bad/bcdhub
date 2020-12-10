@@ -201,8 +201,8 @@ func unsubscribeHandler(c *Client, data []byte) error {
 }
 
 func pingHandler(c *Client, data []byte) error {
-	return c.sendMessage(map[string]interface{}{
-		"action": "pong",
+	return c.sendMessage(ActionMessage{
+		Action: "pong",
 	})
 }
 

@@ -9,7 +9,6 @@ import (
 	"github.com/baking-bad/bcdhub/cmd/api/ws/channels"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/gorilla/websocket"
-	"github.com/valyala/fastjson"
 )
 
 // ClientHandler -
@@ -115,7 +114,6 @@ func (c *Client) sendOk(text string) error {
 }
 
 func (c *Client) receive() {
-	var p fastjson.Parser
 	for {
 		select {
 		case <-c.stop:
@@ -135,15 +133,15 @@ func (c *Client) receive() {
 				continue
 			}
 
-			val, err := p.ParseBytes(data)
-			if err != nil {
+			var msg ActionMessage
+			if err := json.Unmarshal(data, &msg); err != nil {
 				logger.Error(err)
 				continue
 			}
-			action := string(val.GetStringBytes("action"))
-			handler, ok := c.handlers[action]
+
+			handler, ok := c.handlers[msg.Action]
 			if !ok {
-				c.sendError(fmt.Errorf("Unknown handler action: %s", action))
+				c.sendError(fmt.Errorf("Unknown handler action: %s", msg.Action))
 				continue
 			}
 			if err := handler(c, data); err != nil {
