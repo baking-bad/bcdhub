@@ -21,6 +21,7 @@ type OperationsChannel struct {
 	messages chan Message
 	stop     chan struct{}
 	wg       sync.WaitGroup
+	hashes   map[string]struct{}
 }
 
 // NewOperationsChannel -
@@ -32,6 +33,7 @@ func NewOperationsChannel(address, network string, opts ...ChannelOption) *Opera
 
 		messages: make(chan Message, 10),
 		stop:     make(chan struct{}),
+		hashes:   make(map[string]struct{}),
 	}
 }
 
@@ -105,6 +107,9 @@ func (c *OperationsChannel) createMessage(data datasources.Data) error {
 	if op.Destination != c.Address && op.Source != c.Address {
 		return nil
 	}
+	if _, ok := c.hashes[op.Hash]; ok {
+		return nil
+	}
 	operations, err := c.es.GetOperations(
 		map[string]interface{}{
 			"hash": op.Hash,
@@ -120,6 +125,8 @@ func (c *OperationsChannel) createMessage(data datasources.Data) error {
 	if err != nil {
 		return err
 	}
+
+	c.hashes[op.Hash] = struct{}{}
 	c.messages <- Message{
 		ChannelName: c.GetName(),
 		Body:        response,
