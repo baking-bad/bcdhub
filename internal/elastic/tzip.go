@@ -152,7 +152,7 @@ func (e *Elastic) GetBySlug(slug string) (*models.TZIP, error) {
 	query := newQuery().Query(
 		boolQ(
 			filter(
-				matchPhrase("slug", slug),
+				term("slug.keyword", slug),
 			),
 		),
 	).One()
