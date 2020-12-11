@@ -76,6 +76,9 @@ func (l *mapDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetadat
 func (l *mapDecoder) getKey(key *Node) (s string, err error) {
 	switch kv := key.Value.(type) {
 	case string:
+		if kv == "" {
+			kv = `""`
+		}
 		s = kv
 	case int, int64:
 		s = fmt.Sprintf("%d", kv)
