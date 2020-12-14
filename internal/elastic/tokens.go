@@ -407,7 +407,7 @@ func (e *Elastic) GetTokenSupply(network, address string, tokenID int64) (result
 }
 
 // CreateTokenBalanceUpdates -
-func CreateTokenBalanceUpdates(es ITokens, transfers []*models.Transfer) error {
+func CreateTokenBalanceUpdates(tokensStorage ITokens, transfers []*models.Transfer) error {
 	exists := make(map[string]*models.TokenBalance)
 	updates := make([]*models.TokenBalance, 0)
 	for i := range transfers {
@@ -433,5 +433,5 @@ func CreateTokenBalanceUpdates(es ITokens, transfers []*models.Transfer) error {
 		}
 	}
 
-	return es.UpdateTokenBalances(updates)
+	return tokensStorage.UpdateTokenBalances(updates)
 }
