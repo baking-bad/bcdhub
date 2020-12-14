@@ -34,23 +34,23 @@ type SimilarContract struct {
 
 // BigMapDiff -
 type BigMapDiff struct {
-	Ptr         int64     `json:"ptr,omitempty"`
-	BinPath     string    `json:"bin_path"`
-	Key         string    `json:"key"`
-	KeyHash     string    `json:"key_hash"`
-	Value       string    `json:"value"`
-	OperationID string    `json:"operation_id"`
-	Level       int64     `json:"level"`
-	Address     string    `json:"address"`
-	Network     string    `json:"network"`
-	Timestamp   time.Time `json:"timestamp"`
-	Protocol    string    `json:"protocol"`
+	Ptr         int64       `json:"ptr,omitempty"`
+	BinPath     string      `json:"bin_path"`
+	Key         interface{} `json:"key"`
+	KeyHash     string      `json:"key_hash"`
+	Value       string      `json:"value"`
+	OperationID string      `json:"operation_id"`
+	Level       int64       `json:"level"`
+	Address     string      `json:"address"`
+	Network     string      `json:"network"`
+	Timestamp   time.Time   `json:"timestamp"`
+	Protocol    string      `json:"protocol"`
 
 	Count int64 `json:"count"`
 }
 
 // FromModel -
-func (b *BigMapDiff) FromModel(bmd *models.BigMapDiff) error {
+func (b *BigMapDiff) FromModel(bmd *models.BigMapDiff) {
 	b.Ptr = bmd.Ptr
 	b.BinPath = bmd.BinPath
 	b.KeyHash = bmd.KeyHash
@@ -61,13 +61,7 @@ func (b *BigMapDiff) FromModel(bmd *models.BigMapDiff) error {
 	b.Network = bmd.Network
 	b.Timestamp = bmd.Timestamp
 	b.Protocol = bmd.Protocol
-
-	bytes, err := json.Marshal(bmd.Key)
-	if err != nil {
-		return err
-	}
-	b.Key = string(bytes)
-	return nil
+	b.Key = bmd.Key
 }
 
 // ContractStats -

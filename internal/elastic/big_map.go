@@ -248,9 +248,7 @@ func (e *Elastic) GetBigMapKeys(ctx GetBigMapKeysContext) ([]BigMapDiff, error) 
 			return nil, err
 		}
 		b.ID = arr[i].TopKey.Hits.Hits[0].ID
-		if err := result[i].FromModel(&b); err != nil {
-			return nil, err
-		}
+		result[i].FromModel(&b)
 		result[i].Count = arr[i].DocCount
 	}
 	return result, nil
@@ -286,9 +284,7 @@ func (e *Elastic) GetBigMapDiffsByPtrAndKeyHash(ptr int64, network, keyHash stri
 			return nil, 0, err
 		}
 		b.ID = response.Hits.Hits[i].ID
-		if err := result[i].FromModel(&b); err != nil {
-			return nil, 0, err
-		}
+		result[i].FromModel(&b)
 	}
 
 	return result, response.Hits.Total.Value, nil
