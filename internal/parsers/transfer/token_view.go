@@ -19,9 +19,9 @@ type ImplementationKey struct {
 type TokenEvents map[ImplementationKey]tzip.EventImplementation
 
 // NewTokenEvents -
-func NewTokenEvents(es elastic.IElastic) (TokenEvents, error) {
+func NewTokenEvents(tzipStorage elastic.ITZIP) (TokenEvents, error) {
 	views := make(TokenEvents)
-	tokens, err := es.GetTZIPWithEvents()
+	tokens, err := tzipStorage.GetTZIPWithEvents()
 	if err != nil {
 		if elastic.IsRecordNotFound(err) {
 			return views, nil

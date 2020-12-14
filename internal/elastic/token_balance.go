@@ -9,7 +9,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
 
-const scriptUpdateBalance = `{"source": "ctx._source.balance = ctx._source.balance + params.delta", "lang": "painless", "params": { "delta": %d }}`
+const scriptUpdateBalance = `{"source": "ctx._source.balance = ctx._source.balance + (long)params.delta", "lang": "painless", "params": { "delta": %d }}`
 
 // UpdateTokenBalances -
 func (e *Elastic) UpdateTokenBalances(updates []*models.TokenBalance) error {
