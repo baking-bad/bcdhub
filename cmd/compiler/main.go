@@ -18,7 +18,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/mq"
-	"github.com/streadway/amqp"
 )
 
 // Context -
@@ -162,7 +161,7 @@ func (ctx *Context) processDeployment(deployment *database.Deployment, operation
 	return ctx.ES.UpdateFields(elastic.DocContracts, contract.GetID(), contract, "Verified", "VerificationSource")
 }
 
-func (ctx *Context) handleMessage(data amqp.Delivery) error {
+func (ctx *Context) handleMessage(data mq.Data) error {
 	if err := ctx.parseData(data); err != nil {
 		return err
 	}
@@ -170,14 +169,14 @@ func (ctx *Context) handleMessage(data amqp.Delivery) error {
 	return data.Ack(false)
 }
 
-func (ctx *Context) parseData(data amqp.Delivery) error {
-	if data.RoutingKey != mq.QueueCompilations {
-		log.Printf("[parseData] Unknown data routing key %s", data.RoutingKey)
+func (ctx *Context) parseData(data mq.Data) error {
+	if data.GetKey() != mq.QueueCompilations {
+		log.Printf("[parseData] Unknown data routing key %s", data.GetKey())
 		return data.Ack(false)
 	}
 
 	var ct compilation.Task
-	if err := json.Unmarshal(data.Body, &ct); err != nil {
+	if err := json.Unmarshal(data.GetBody(), &ct); err != nil {
 		return fmt.Errorf("[parseData] Unmarshal message body error: %s", err)
 	}
 

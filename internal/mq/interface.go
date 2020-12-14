@@ -2,8 +2,6 @@ package mq
 
 import (
 	"io"
-
-	"github.com/streadway/amqp"
 )
 
 // IMessage -
@@ -26,7 +24,7 @@ type IMessagePublisher interface {
 
 // Receiver -
 type Receiver interface {
-	Consume(queue string) (<-chan amqp.Delivery, error)
+	Consume(queue string) (<-chan Data, error)
 	GetQueues() []string
 }
 
@@ -41,4 +39,11 @@ type Mediator interface {
 	Publisher
 	Receiver
 	io.Closer
+}
+
+// Data -
+type Data interface {
+	GetBody() []byte
+	GetKey() string
+	Ack(bool) error
 }

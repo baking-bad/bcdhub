@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/streadway/amqp"
+	"github.com/baking-bad/bcdhub/internal/mq"
 )
 
 // BulkHandler -
@@ -14,7 +14,7 @@ type BulkHandler func(ids []string) error
 // BulkManager -
 type BulkManager struct {
 	timeout time.Duration
-	queue   []amqp.Delivery
+	queue   []mq.Data
 	handler BulkHandler
 
 	ticker *time.Ticker
@@ -28,7 +28,7 @@ type BulkManager struct {
 func NewBulkManager(capacity, timeout int, handler BulkHandler) *BulkManager {
 	return &BulkManager{
 		timeout: time.Duration(timeout) * time.Second,
-		queue:   make([]amqp.Delivery, 0, capacity),
+		queue:   make([]mq.Data, 0, capacity),
 		stop:    make(chan struct{}),
 		ticker:  time.NewTicker(time.Duration(timeout) * time.Second),
 		handler: handler,
@@ -36,7 +36,7 @@ func NewBulkManager(capacity, timeout int, handler BulkHandler) *BulkManager {
 }
 
 // Add -
-func (bm *BulkManager) Add(data amqp.Delivery) {
+func (bm *BulkManager) Add(data mq.Data) {
 	defer bm.lock.Unlock()
 	bm.lock.Lock()
 	{
@@ -76,7 +76,7 @@ func (bm *BulkManager) process() {
 
 	ids := make([]string, len(bm.queue))
 	for i := range bm.queue {
-		ids[i] = parseID(bm.queue[i].Body)
+		ids[i] = parseID(bm.queue[i].GetBody())
 	}
 	if err := bm.handler(ids); err != nil {
 		logger.Error(err)
@@ -88,7 +88,7 @@ func (bm *BulkManager) process() {
 			return
 		}
 	}
-	bm.queue = make([]amqp.Delivery, 0, cap(bm.queue))
+	bm.queue = make([]mq.Data, 0, cap(bm.queue))
 	bm.ticker.Stop()
 	bm.ticker = time.NewTicker(bm.timeout)
 }

@@ -62,7 +62,7 @@ func WithRabbit(rabbitConfig RabbitConfig, service string, mqConfig MQConfig) Co
 			})
 		}
 
-		ctx.MQ = mq.WaitNew(rabbitConfig.URI, service, mqConfig.NeedPublisher, rabbitConfig.Timeout, mqueues...)
+		ctx.MQ = mq.New(rabbitConfig.URI, service, mqConfig.NeedPublisher, rabbitConfig.Timeout, mqueues...)
 	}
 }
 
