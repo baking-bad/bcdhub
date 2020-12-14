@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/docstring"
@@ -330,8 +331,12 @@ func prepareItem(item elastic.BigMapDiff, contractMetadata *meta.ContractMetadat
 	}
 	var key interface{}
 	var keyString string
-	if item.Key != "" {
-		val := gjson.Parse(item.Key)
+	if item.Key != nil {
+		bKey, err := json.Marshal(item.Key)
+		if err != nil {
+			return nil, nil, "", err
+		}
+		val := gjson.ParseBytes(bKey)
 		key, err = newmiguel.BigMapToMiguel(val, binPath+"/k", metadata)
 		if err != nil {
 			return nil, nil, "", err
