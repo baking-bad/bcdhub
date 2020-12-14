@@ -50,16 +50,16 @@ func listenChannel(messageQueue mq.IMessageReceiver, queue string, closeChan cha
 			}
 			return
 		case msg := <-msgs:
-			if manager, ok := managers[msg.RoutingKey]; ok {
+			if manager, ok := managers[msg.GetKey()]; ok {
 				manager.Add(msg)
 				continue
 			}
 
-			if msg.RoutingKey == "" {
+			if msg.GetKey() == "" {
 				logger.Warning("[%s] Rabbit MQ server stopped! Metrics service need to be restarted. Closing connection...", queue)
 				return
 			}
-			logger.Errorf("Unknown data routing key %s", msg.RoutingKey)
+			logger.Errorf("Unknown data routing key %s", msg.GetKey())
 			helpers.LocalCatchErrorSentry(localSentry, errors.Errorf("[listenChannel] %s", err.Error()))
 		}
 	}

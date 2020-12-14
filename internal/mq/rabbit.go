@@ -1,8 +1,7 @@
 package mq
 
 import (
-	"errors"
-	"fmt"
+	"sync"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -16,17 +15,54 @@ type Queue struct {
 	Durable    bool
 }
 
-// MQ -
-type MQ struct {
+// RabbitMessage -
+type RabbitMessage struct {
+	msg amqp.Delivery
+}
+
+// GetBody -
+func (rm *RabbitMessage) GetBody() []byte {
+	return rm.msg.Body
+}
+
+// GetKey -
+func (rm *RabbitMessage) GetKey() string {
+	return rm.msg.RoutingKey
+}
+
+// Ack -
+func (rm *RabbitMessage) Ack(flag bool) error {
+	return rm.msg.Ack(flag)
+}
+
+// Rabbit -
+type Rabbit struct {
 	Conn    *amqp.Connection
 	Channel *amqp.Channel
 
 	service string
 	queues  []Queue
+
+	data chan Data
+	stop chan struct{}
+	wg   sync.WaitGroup
+}
+
+// NewRabbit -
+func NewRabbit() *Rabbit {
+	return &Rabbit{
+		data: make(chan Data),
+		stop: make(chan struct{}),
+	}
 }
 
 // Close -
-func (mq *MQ) Close() error {
+func (mq *Rabbit) Close() error {
+	for range mq.queues {
+		mq.stop <- struct{}{}
+	}
+	mq.wg.Wait()
+
 	if mq.Conn != nil {
 		mq.Conn.Close()
 	}
@@ -37,7 +73,7 @@ func (mq *MQ) Close() error {
 }
 
 // Send -
-func (mq *MQ) Send(msg IMessage) error {
+func (mq *Rabbit) Send(msg IMessage) error {
 	queues := msg.GetQueues()
 	if len(queues) == 0 {
 		return nil
@@ -55,17 +91,36 @@ func (mq *MQ) Send(msg IMessage) error {
 }
 
 // Consume -
-func (mq *MQ) Consume(queue string) (<-chan amqp.Delivery, error) {
-	return mq.Channel.Consume(fmt.Sprintf("%s.%s", queue, mq.service), "", false, false, false, false, nil)
+func (mq *Rabbit) Consume(queue string) (<-chan Data, error) {
+	c, err := mq.Channel.Consume(getQueueName(mq.service, queue), "", false, false, false, false, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	mq.wg.Add(1)
+	go func(c <-chan amqp.Delivery) {
+		defer mq.wg.Done()
+
+		for {
+			select {
+			case <-mq.stop:
+				return
+			case msg := <-c:
+				mq.data <- &RabbitMessage{msg}
+			}
+		}
+	}(c)
+
+	return mq.data, nil
 }
 
 // SendRaw -
-func (mq *MQ) SendRaw(queue string, body []byte) error {
+func (mq *Rabbit) SendRaw(queue string, body []byte) error {
 	if mq.Channel == nil || mq.Conn == nil {
-		return errors.New("Invaid connection or channel")
+		return ErrInvalidConnection
 	}
 	if mq.Conn.IsClosed() {
-		return errors.New("Connection is closed")
+		return ErrConnectionIsClosed
 	}
 	return mq.Channel.Publish(
 		ChannelNew,
@@ -80,7 +135,7 @@ func (mq *MQ) SendRaw(queue string, body []byte) error {
 }
 
 // GetQueues -
-func (mq *MQ) GetQueues() []string {
+func (mq *Rabbit) GetQueues() []string {
 	queues := make([]string, len(mq.queues))
 	for i := range mq.queues {
 		queues[i] = mq.queues[i].Name
@@ -147,7 +202,7 @@ func (q QueueManager) Send(message IMessage) error {
 }
 
 // Consume -
-func (q QueueManager) Consume(queue string) (<-chan amqp.Delivery, error) {
+func (q QueueManager) Consume(queue string) (<-chan Data, error) {
 	if q.receiver == nil {
 		return nil, nil
 	}
@@ -174,7 +229,7 @@ func (q QueueManager) Close() error {
 }
 
 // NewReceiver -
-func NewReceiver(connection string, service string, queues ...Queue) (*MQ, error) {
+func NewReceiver(connection string, service string, queues ...Queue) (*Rabbit, error) {
 	mq, err := NewPublisher(connection)
 	if err != nil {
 		return nil, err
@@ -183,7 +238,7 @@ func NewReceiver(connection string, service string, queues ...Queue) (*MQ, error
 	mq.service = service
 
 	for _, queue := range queues {
-		q, err := mq.Channel.QueueDeclare(fmt.Sprintf("%s.%s", queue.Name, service), queue.Durable, queue.AutoDelete, false, false, nil)
+		q, err := mq.Channel.QueueDeclare(getQueueName(service, queue.Name), queue.Durable, queue.AutoDelete, false, false, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -201,8 +256,8 @@ func NewReceiver(connection string, service string, queues ...Queue) (*MQ, error
 }
 
 // NewPublisher -
-func NewPublisher(connection string) (*MQ, error) {
-	mq := &MQ{}
+func NewPublisher(connection string) (*Rabbit, error) {
+	mq := NewRabbit()
 	conn, err := amqp.Dial(connection)
 	if err != nil {
 		return nil, err

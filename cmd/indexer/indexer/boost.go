@@ -33,7 +33,7 @@ type BoostIndexer struct {
 	es              elastic.IElastic
 	externalIndexer index.Indexer
 	interfaces      map[string]kinds.ContractKind
-	messageQueue    *mq.QueueManager
+	messageQueue    mq.Mediator
 	state           models.Block
 	currentProtocol models.Protocol
 	cfg             config.Config
@@ -120,10 +120,7 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 		noderpc.WithTimeout(time.Duration(rpcProvider.Timeout)*time.Second),
 	)
 
-	messageQueue, err := mq.NewQueueManager(cfg.RabbitMQ.URI, cfg.Indexer.ProjectName, cfg.Indexer.MQ.NeedPublisher)
-	if err != nil {
-		return nil, err
-	}
+	messageQueue := mq.New(cfg.RabbitMQ.URI, cfg.Indexer.ProjectName, cfg.Indexer.MQ.NeedPublisher, 10)
 
 	interfaces, err := kinds.Load()
 	if err != nil {

@@ -1,5 +1,7 @@
 package mq
 
+import "errors"
+
 // Channels
 const (
 	ChannelNew = "new"
@@ -15,4 +17,16 @@ const (
 	QueueTransfers    = "transfers"
 	QueueCompilations = "compilations"
 	QueueBigMapDiffs  = "bigmapdiffs"
+)
+
+// SandboxURL
+const (
+	SandboxURL = "sandbox"
+)
+
+// Errors
+var (
+	ErrUnknownQueue       = errors.New("Unknown queue name")
+	ErrConnectionIsClosed = errors.New("Connection is closed")
+	ErrInvalidConnection  = errors.New("Invalid connection or channel")
 )

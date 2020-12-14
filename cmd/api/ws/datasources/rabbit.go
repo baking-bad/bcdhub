@@ -6,7 +6,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/pkg/errors"
-	"github.com/streadway/amqp"
 )
 
 var rabbitStopped = errors.Errorf("WS_RABBIT_STOPPED")
@@ -83,12 +82,12 @@ func (c *RabbitMQ) listenChannel(queue string) {
 	}
 }
 
-func (c *RabbitMQ) handler(data amqp.Delivery) error {
-	switch data.RoutingKey {
+func (c *RabbitMQ) handler(data mq.Data) error {
+	switch data.GetKey() {
 	case mq.QueueOperations:
 		val := Data{
 			Type: c.GetType(),
-			Body: data.Body,
+			Body: data.GetBody(),
 		}
 
 		c.subscribers.Range(func(key, value interface{}) bool {
@@ -97,11 +96,11 @@ func (c *RabbitMQ) handler(data amqp.Delivery) error {
 			return true
 		})
 	default:
-		if data.RoutingKey == "" {
+		if data.GetKey() == "" {
 			logger.Warning("Rabbit MQ server stopped! API need to be restarted. Closing connection...")
 			return rabbitStopped
 		}
-		return errors.Errorf("Unknown data routing key %s", data.RoutingKey)
+		return errors.Errorf("Unknown data routing key %s", data.GetKey())
 	}
 
 	if err := data.Ack(false); err != nil {
