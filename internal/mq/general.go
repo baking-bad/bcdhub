@@ -2,6 +2,7 @@ package mq
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
 )
@@ -12,15 +13,13 @@ func getQueueName(service, queue string) string {
 
 // New -
 func New(url, service string, needPublisher bool, timeout int, queues ...Queue) Mediator {
-	switch url {
-	case SandboxURL:
-		n, err := NewNats(service, queues...)
-		if err != nil {
-			logger.Error(err)
-			return nil
-		}
-		return n
+	switch {
+	case strings.HasPrefix(url, NatsURLPrefix):
+		return WaitNewNats(service, url, timeout, queues...)
+	case strings.HasPrefix(url, RabbitURLPrefix):
+		return WaitNewRabbit(url, service, needPublisher, timeout, queues...)
 	default:
-		return WaitNew(url, service, needPublisher, timeout, queues...)
+		logger.Errorf("Unknown message queue URL: %s", url)
+		return nil
 	}
 }

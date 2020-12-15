@@ -6,7 +6,6 @@ package mq
 
 import (
 	gomock "github.com/golang/mock/gomock"
-	amqp "github.com/streadway/amqp"
 	reflect "reflect"
 )
 
@@ -202,10 +201,10 @@ func (m *MockReceiver) EXPECT() *MockReceiverMockRecorder {
 }
 
 // Consume mocks base method
-func (m *MockReceiver) Consume(queue string) (<-chan amqp.Delivery, error) {
+func (m *MockReceiver) Consume(queue string) (<-chan Data, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Consume", queue)
-	ret0, _ := ret[0].(<-chan amqp.Delivery)
+	ret0, _ := ret[0].(<-chan Data)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -254,10 +253,10 @@ func (m *MockIMessageReceiver) EXPECT() *MockIMessageReceiverMockRecorder {
 }
 
 // Consume mocks base method
-func (m *MockIMessageReceiver) Consume(queue string) (<-chan amqp.Delivery, error) {
+func (m *MockIMessageReceiver) Consume(queue string) (<-chan Data, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Consume", queue)
-	ret0, _ := ret[0].(<-chan amqp.Delivery)
+	ret0, _ := ret[0].(<-chan Data)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -348,10 +347,10 @@ func (mr *MockMediatorMockRecorder) Send(queue interface{}) *gomock.Call {
 }
 
 // Consume mocks base method
-func (m *MockMediator) Consume(queue string) (<-chan amqp.Delivery, error) {
+func (m *MockMediator) Consume(queue string) (<-chan Data, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Consume", queue)
-	ret0, _ := ret[0].(<-chan amqp.Delivery)
+	ret0, _ := ret[0].(<-chan Data)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -388,4 +387,69 @@ func (m *MockMediator) Close() error {
 func (mr *MockMediatorMockRecorder) Close() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockMediator)(nil).Close))
+}
+
+// MockData is a mock of Data interface
+type MockData struct {
+	ctrl     *gomock.Controller
+	recorder *MockDataMockRecorder
+}
+
+// MockDataMockRecorder is the mock recorder for MockData
+type MockDataMockRecorder struct {
+	mock *MockData
+}
+
+// NewMockData creates a new mock instance
+func NewMockData(ctrl *gomock.Controller) *MockData {
+	mock := &MockData{ctrl: ctrl}
+	mock.recorder = &MockDataMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockData) EXPECT() *MockDataMockRecorder {
+	return m.recorder
+}
+
+// GetBody mocks base method
+func (m *MockData) GetBody() []byte {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBody")
+	ret0, _ := ret[0].([]byte)
+	return ret0
+}
+
+// GetBody indicates an expected call of GetBody
+func (mr *MockDataMockRecorder) GetBody() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBody", reflect.TypeOf((*MockData)(nil).GetBody))
+}
+
+// GetKey mocks base method
+func (m *MockData) GetKey() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetKey")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// GetKey indicates an expected call of GetKey
+func (mr *MockDataMockRecorder) GetKey() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetKey", reflect.TypeOf((*MockData)(nil).GetKey))
+}
+
+// Ack mocks base method
+func (m *MockData) Ack(arg0 bool) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Ack", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Ack indicates an expected call of Ack
+func (mr *MockDataMockRecorder) Ack(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Ack", reflect.TypeOf((*MockData)(nil).Ack), arg0)
 }
