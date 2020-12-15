@@ -5,9 +5,6 @@ rpc:
   delphinet:
     uri: https://rpc.tzkt.io/delphinet
     timeout: 20
-  dalphanet:
-    uri: https://rpc.tzkt.io/dalphanet
-    timeout: 20
   carthagenet:
     uri: https://rpc.tzkt.io/carthagenet
     timeout: 20
@@ -86,7 +83,6 @@ api:
     - mainnet
     - carthagenet
     - delphinet
-    - dalphanet
   mq:
     publisher: true
     queues:
@@ -122,7 +118,6 @@ indexer:
       boost: tzkt
     # delphinet:
     #     boost: tzkt
-    # dalphanet:
 
 metrics:
   project_name: metrics
@@ -148,6 +143,5 @@ scripts:
     - mainnet
     - carthagenet
     - delphinet
-    - dalphanet
   mq:
     publisher: true
