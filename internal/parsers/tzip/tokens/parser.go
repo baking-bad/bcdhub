@@ -31,7 +31,6 @@ func NewTokenMetadataParser(es elastic.IElastic, rpc noderpc.INode, sharePath, n
 		sources: map[string]string{
 			"carthagenet": "tz1grSQDByRpnVs7sPtaprNZRp531ZKz6Jmm",
 			"mainnet":     "tz2FCNBrERXtaTtNX6iimR1UJ5JSDxvdHM93",
-			"dalphanet":   "tz1eTHvnf1WrEXHPhrYFY3EWcSt5XpDA1u97",
 			"delphinet":   "tz1ME9SBiGDCzLwgoShUMs2d9zRr23aJHf4w",
 		},
 	}
