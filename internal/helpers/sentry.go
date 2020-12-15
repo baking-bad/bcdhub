@@ -80,8 +80,10 @@ func CatchErrorSentry(err error) {
 		} else {
 			parts := strings.Split(line, ":")
 			frame.AbsPath = parts[0]
-			lineNo, _ := strconv.Atoi(parts[1])
-			frame.Lineno = lineNo
+			if len(parts) > 1 {
+				lineNo, _ := strconv.Atoi(parts[1])
+				frame.Lineno = lineNo
+			}
 			frames = append(frames, frame)
 		}
 	}
