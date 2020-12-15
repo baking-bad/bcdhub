@@ -3,7 +3,9 @@ package mq
 import (
 	"strings"
 	"sync"
+	"time"
 
+	"github.com/baking-bad/bcdhub/internal/logger"
 	nats "github.com/nats-io/nats.go"
 )
 
@@ -28,7 +30,7 @@ func (nm *NatsMessage) GetKey() string {
 
 // Ack -
 func (nm *NatsMessage) Ack(flag bool) error {
-	return nm.Ack(false)
+	return nil
 }
 
 // Nats -
@@ -45,8 +47,8 @@ type Nats struct {
 }
 
 // NewNats -
-func NewNats(service string, queues ...Queue) (*Nats, error) {
-	conn, err := nats.Connect(nats.DefaultURL)
+func NewNats(service, url string, queues ...Queue) (*Nats, error) {
+	conn, err := nats.Connect(url)
 	if err != nil {
 		return nil, err
 	}
@@ -59,6 +61,21 @@ func NewNats(service string, queues ...Queue) (*Nats, error) {
 		stop:          make(chan struct{}),
 		subscriptions: make([]*nats.Subscription, 0),
 	}, nil
+}
+
+// WaitNewNats -
+func WaitNewNats(service, url string, timeout int, queues ...Queue) *Nats {
+	var n *Nats
+	var err error
+
+	for n == nil {
+		n, err = NewNats(service, url, queues...)
+		if err != nil {
+			logger.Warning("Waiting mq up %d seconds...", timeout)
+			time.Sleep(time.Second * time.Duration(timeout))
+		}
+	}
+	return n
 }
 
 // SendRaw -
@@ -128,7 +145,9 @@ func (n *Nats) GetQueues() []string {
 // Close -
 func (n *Nats) Close() error {
 	for i := range n.subscriptions {
-		n.subscriptions[i].Unsubscribe()
+		if err := n.subscriptions[i].Unsubscribe(); err != nil {
+			return err
+		}
 		n.stop <- struct{}{}
 	}
 	n.wg.Wait()

@@ -143,15 +143,15 @@ func (mq *Rabbit) GetQueues() []string {
 	return queues
 }
 
-// QueueManager -
-type QueueManager struct {
+// RabbitQueueManager -
+type RabbitQueueManager struct {
 	receiver  IMessageReceiver
 	publisher IMessagePublisher
 }
 
-// WaitNew -
-func WaitNew(connection, service string, needPublisher bool, timeout int, queues ...Queue) *QueueManager {
-	var qm *QueueManager
+// WaitNewRabbit -
+func WaitNewRabbit(connection, service string, needPublisher bool, timeout int, queues ...Queue) *RabbitQueueManager {
+	var qm *RabbitQueueManager
 	var err error
 
 	for qm == nil {
@@ -165,10 +165,10 @@ func WaitNew(connection, service string, needPublisher bool, timeout int, queues
 }
 
 // NewQueueManager -
-func NewQueueManager(connection, service string, needPublisher bool, queues ...Queue) (*QueueManager, error) {
-	q := QueueManager{}
+func NewQueueManager(connection, service string, needPublisher bool, queues ...Queue) (*RabbitQueueManager, error) {
+	q := RabbitQueueManager{}
 	if service != "" && len(queues) > 0 {
-		receiver, err := NewReceiver(connection, service, queues...)
+		receiver, err := NewRabbitReceiver(connection, service, queues...)
 		if err != nil {
 			return nil, err
 		}
@@ -176,7 +176,7 @@ func NewQueueManager(connection, service string, needPublisher bool, queues ...Q
 	}
 
 	if needPublisher {
-		publisher, err := NewPublisher(connection)
+		publisher, err := NewRabbitPublisher(connection)
 		if err != nil {
 			return nil, err
 		}
@@ -186,7 +186,7 @@ func NewQueueManager(connection, service string, needPublisher bool, queues ...Q
 }
 
 // SendRaw -
-func (q QueueManager) SendRaw(queue string, body []byte) error {
+func (q RabbitQueueManager) SendRaw(queue string, body []byte) error {
 	if q.publisher == nil {
 		return nil
 	}
@@ -194,7 +194,7 @@ func (q QueueManager) SendRaw(queue string, body []byte) error {
 }
 
 // Send -
-func (q QueueManager) Send(message IMessage) error {
+func (q RabbitQueueManager) Send(message IMessage) error {
 	if q.publisher == nil {
 		return nil
 	}
@@ -202,7 +202,7 @@ func (q QueueManager) Send(message IMessage) error {
 }
 
 // Consume -
-func (q QueueManager) Consume(queue string) (<-chan Data, error) {
+func (q RabbitQueueManager) Consume(queue string) (<-chan Data, error) {
 	if q.receiver == nil {
 		return nil, nil
 	}
@@ -210,7 +210,7 @@ func (q QueueManager) Consume(queue string) (<-chan Data, error) {
 }
 
 // GetQueues -
-func (q QueueManager) GetQueues() []string {
+func (q RabbitQueueManager) GetQueues() []string {
 	if q.receiver == nil {
 		return nil
 	}
@@ -218,7 +218,7 @@ func (q QueueManager) GetQueues() []string {
 }
 
 // Close -
-func (q QueueManager) Close() error {
+func (q RabbitQueueManager) Close() error {
 	if q.publisher != nil {
 		q.publisher.Close()
 	}
@@ -228,9 +228,9 @@ func (q QueueManager) Close() error {
 	return nil
 }
 
-// NewReceiver -
-func NewReceiver(connection string, service string, queues ...Queue) (*Rabbit, error) {
-	mq, err := NewPublisher(connection)
+// NewRabbitReceiver -
+func NewRabbitReceiver(connection string, service string, queues ...Queue) (*Rabbit, error) {
+	mq, err := NewRabbitPublisher(connection)
 	if err != nil {
 		return nil, err
 	}
@@ -255,8 +255,8 @@ func NewReceiver(connection string, service string, queues ...Queue) (*Rabbit, e
 	return mq, nil
 }
 
-// NewPublisher -
-func NewPublisher(connection string) (*Rabbit, error) {
+// NewRabbitPublisher -
+func NewRabbitPublisher(connection string) (*Rabbit, error) {
 	mq := NewRabbit()
 	conn, err := amqp.Dial(connection)
 	if err != nil {

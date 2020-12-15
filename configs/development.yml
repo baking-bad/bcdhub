@@ -32,7 +32,7 @@ elastic:
   timeout: 10
 
 rabbitmq:
-  uri: "sandbox"
+  uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mq:5672/"
   timeout: 10
 
 db:

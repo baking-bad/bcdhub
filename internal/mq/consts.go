@@ -19,9 +19,10 @@ const (
 	QueueBigMapDiffs  = "bigmapdiffs"
 )
 
-// SandboxURL
+// URL Prefixes
 const (
-	SandboxURL = "sandbox"
+	RabbitURLPrefix = "amqp"
+	NatsURLPrefix   = "nats"
 )
 
 // Errors
