@@ -1,4 +1,4 @@
-include .env
+-include .env
 export $(shell sed 's/=.*//' .env)
 
 api:
@@ -123,8 +123,7 @@ restart:
 	docker-compose restart api metrics indexer compiler
 
 release:
-	BCDHUB_VERSION=$$(cat version.json | grep version | awk -F\" '{ print $$4 }')
-	git tag $$BCDHUB_VERSION && git push origin $$BCDHUB_VERSION
+	BCDHUB_VERSION=$$(cat version.json | grep version | awk -F\" '{ print $$4 }') && git tag $$BCDHUB_VERSION && git push origin $$BCDHUB_VERSION
 
 db-dump:
 	docker exec -it $$BCD_ENV-db pg_dump -c bcd > dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
