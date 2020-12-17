@@ -51,23 +51,28 @@ func (m *TokenBalanceRecalc) Do(ctx *config.Context) error {
 		return err
 	}
 
-	logger.Info("Receiving new balances....")
-	balances, err := ctx.ES.GetBalances(network, address, 0)
-	if err != nil {
-		return err
-	}
+	logger.Info("Receiving transfers....")
+	updates := make([]*models.Transfer, 0)
 
-	updates := make([]*models.TokenBalance, 0)
-	for key, balance := range balances {
-		updates = append(updates, &models.TokenBalance{
-			Network:  network,
-			Address:  key.Address,
-			Contract: address,
-			TokenID:  key.TokenID,
-			Balance:  balance,
+	var lastID string
+	for {
+		transfers, err := ctx.ES.GetTransfers(elastic.GetTransfersContext{
+			Network:   network,
+			Contracts: []string{address},
+			LastID:    lastID,
 		})
+		if err != nil {
+			return err
+		}
+		if len(transfers.Transfers) == 0 {
+			break
+		}
+		for i := range transfers.Transfers {
+			updates = append(updates, &transfers.Transfers[i])
+		}
+		lastID = transfers.LastID
 	}
 
 	logger.Info("Saving...")
-	return ctx.ES.UpdateTokenBalances(updates)
+	return elastic.CreateTokenBalanceUpdates(ctx.ES, updates)
 }
