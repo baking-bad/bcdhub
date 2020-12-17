@@ -45,8 +45,8 @@ func (p SchemaParser) getSchema(script gjson.Result, tag, address string) (map[s
 	return res, nil
 }
 
-// UpdateMetadata -
-func (p SchemaParser) UpdateMetadata(script gjson.Result, address string, s *schema.Schema) error {
+// Update -
+func (p SchemaParser) Update(script gjson.Result, address string, s *schema.Schema) error {
 	storage, err := p.createSchemaSection(script, consts.STORAGE, address)
 	if err != nil {
 		return err

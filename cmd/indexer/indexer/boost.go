@@ -10,8 +10,21 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	elasticBalanceUpdate "github.com/baking-bad/bcdhub/internal/elastic/balanceupdate"
+	elasticBigMapAction "github.com/baking-bad/bcdhub/internal/elastic/bigmapaction"
+	elasticBigMapDiff "github.com/baking-bad/bcdhub/internal/elastic/bigmapdiff"
+	elasticBlock "github.com/baking-bad/bcdhub/internal/elastic/block"
 	"github.com/baking-bad/bcdhub/internal/elastic/bulk"
+	elasticContract "github.com/baking-bad/bcdhub/internal/elastic/contract"
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
+	elasticMigration "github.com/baking-bad/bcdhub/internal/elastic/migration"
+	elasticOperation "github.com/baking-bad/bcdhub/internal/elastic/operation"
+	elasticProtocol "github.com/baking-bad/bcdhub/internal/elastic/protocol"
+	elasticSchema "github.com/baking-bad/bcdhub/internal/elastic/schema"
+	elasticTezosDomain "github.com/baking-bad/bcdhub/internal/elastic/tezosdomain"
+	elasticTokenBalance "github.com/baking-bad/bcdhub/internal/elastic/tokenbalance"
+	elasticTransfer "github.com/baking-bad/bcdhub/internal/elastic/transfer"
+	elasticTZIP "github.com/baking-bad/bcdhub/internal/elastic/tzip"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/index"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -160,22 +173,21 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 	bi := &BoostIndexer{
 		Storage:        es,
 		Bulk:           bulk.NewStorage(es),
-		BalanceUpdates: balanceupdate.NewStorage(es),
-		BigMapActions:  bigmapaction.NewStorage(es),
-		BigMapDiffs:    bigmapdiff.NewStorage(es),
-		Blocks:         block.NewStorage(es),
-		Contracts:      contract.NewStorage(es),
-		Migrations:     migration.NewStorage(es),
-		Operations:     operation.NewStorage(es),
-		Protocols:      protocol.NewStorage(es),
-		Schema:         schema.NewStorage(es),
-		TezosDomains:   tezosdomain.NewStorage(es),
-		TokenBalances:  tokenbalance.NewStorage(es),
-		Transfers:      transfer.NewStorage(es),
-		TZIP:           tzip.NewStorage(es),
+		BalanceUpdates: elasticBalanceUpdate.NewStorage(es),
+		BigMapActions:  elasticBigMapAction.NewStorage(es),
+		BigMapDiffs:    elasticBigMapDiff.NewStorage(es),
+		Blocks:         elasticBlock.NewStorage(es),
+		Contracts:      elasticContract.NewStorage(es),
+		Migrations:     elasticMigration.NewStorage(es),
+		Operations:     elasticOperation.NewStorage(es),
+		Protocols:      elasticProtocol.NewStorage(es),
+		Schema:         elasticSchema.NewStorage(es),
+		TezosDomains:   elasticTezosDomain.NewStorage(es),
+		TokenBalances:  elasticTokenBalance.NewStorage(es),
+		Transfers:      elasticTransfer.NewStorage(es),
+		TZIP:           elasticTZIP.NewStorage(es),
 		Network:        network,
 		rpc:            rpc,
-		es:             es,
 		messageQueue:   messageQueue,
 		stop:           make(chan struct{}),
 		interfaces:     interfaces,
@@ -191,7 +203,7 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 }
 
 func (bi *BoostIndexer) init() error {
-	if err := bi.es.CreateIndexes(); err != nil {
+	if err := bi.Storage.CreateIndexes(); err != nil {
 		return err
 	}
 
@@ -201,14 +213,14 @@ func (bi *BoostIndexer) init() error {
 		}
 	}
 
-	currentState, err := bi.es.GetLastBlock(bi.Network)
+	currentState, err := bi.Blocks.GetLastBlock(bi.Network)
 	if err != nil {
 		return err
 	}
 	bi.state = currentState
 	logger.WithNetwork(bi.Network).Infof("Current indexer state: %d", currentState.Level)
 
-	currentProtocol, err := bi.es.GetProtocol(bi.Network, "", currentState.Level)
+	currentProtocol, err := bi.Protocols.GetProtocol(bi.Network, "", currentState.Level)
 	if err != nil {
 		header, err := bi.rpc.GetHeader(helpers.MaxInt64(1, currentState.Level))
 		if err != nil {
@@ -356,14 +368,14 @@ func (bi *BoostIndexer) Rollback() error {
 		return err
 	}
 
-	manager := rollback.NewManager(bi.es, bi.messageQueue, bi.rpc, bi.cfg.SharePath)
+	manager := rollback.NewManager(bi.Storage, bi.Bulk, bi.Contracts, bi.Transfers, bi.TokenBalances, bi.Protocols, bi.messageQueue, bi.rpc, bi.cfg.SharePath)
 	if err := manager.Rollback(bi.state, lastLevel); err != nil {
 		return err
 	}
 
 	helpers.CatchErrorSentry(errors.Errorf("[%s] Rollback from %d to %d", bi.Network, bi.state.Level, lastLevel))
 
-	newState, err := bi.es.GetLastBlock(bi.Network)
+	newState, err := bi.Blocks.GetLastBlock(bi.Network)
 	if err != nil {
 		return err
 	}
@@ -383,7 +395,7 @@ func (bi *BoostIndexer) getLastRollbackBlock() (int64, error) {
 			return 0, err
 		}
 
-		block, err := bi.es.GetBlock(bi.Network, level)
+		block, err := bi.Blocks.GetBlock(bi.Network, level)
 		if err != nil {
 			return 0, err
 		}
@@ -494,7 +506,7 @@ func (bi *BoostIndexer) createBlock(head noderpc.Header) *block.Block {
 
 func (bi *BoostIndexer) saveModels(items []models.Model) error {
 	logger.WithNetwork(bi.Network).Debugf("Found %d new models", len(items))
-	if err := bi.es.BulkInsert(items); err != nil {
+	if err := bi.Bulk.Insert(items); err != nil {
 		return err
 	}
 
@@ -519,7 +531,6 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 	for _, opg := range data.Array() {
 		parser := operations.NewGroup(operations.NewParseParams(
 			bi.rpc,
-			bi.es,
 			operations.WithConstants(bi.currentProtocol.Constants),
 			operations.WithHead(head),
 			operations.WithIPFSGateways(bi.cfg.IPFSGateways),
@@ -547,7 +558,7 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) ([]models.Model, error) {
 		updates = append(updates, &bi.currentProtocol)
 	}
 
-	newProtocol, err := bi.es.GetProtocol(bi.Network, head.Protocol, head.Level)
+	newProtocol, err := bi.Protocols.GetProtocol(bi.Network, head.Protocol, head.Level)
 	if err != nil {
 		logger.Warning("%s", err)
 		newProtocol, err = createProtocol(bi.Network, head.Protocol, head.Level)
@@ -584,7 +595,7 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) ([]models.Model, error) {
 	bi.currentProtocol = newProtocol
 	newModels = append(newModels, &newProtocol)
 
-	if err := bi.es.BulkUpdate(updates); err != nil {
+	if err := bi.Bulk.Update(updates); err != nil {
 		return nil, err
 	}
 
@@ -610,7 +621,7 @@ func createProtocol(network, hash string, level int64) (protocol protocol.Protoc
 
 func (bi *BoostIndexer) standartMigration(newProtocol protocol.Protocol, head noderpc.Header) ([]models.Model, []models.Model, error) {
 	logger.WithNetwork(bi.Network).Info("Try to find migrations...")
-	contracts, err := bi.Contracts.Get(map[string]interface{}{
+	contracts, err := bi.Contracts.GetMany(map[string]interface{}{
 		"network": bi.Network,
 	})
 	if err != nil {
@@ -618,7 +629,7 @@ func (bi *BoostIndexer) standartMigration(newProtocol protocol.Protocol, head no
 	}
 	logger.WithNetwork(bi.Network).Infof("Now %d contracts are indexed", len(contracts))
 
-	p := parsers.NewMigrationParser(bi.es, bi.cfg.SharePath)
+	p := parsers.NewMigrationParser(bi.Storage, bi.BigMapDiffs, bi.cfg.SharePath)
 	newModels := make([]models.Model, 0)
 	newUpdates := make([]models.Model, 0)
 	for i := range contracts {

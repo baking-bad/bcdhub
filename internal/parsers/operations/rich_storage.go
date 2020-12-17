@@ -5,7 +5,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
@@ -14,20 +14,20 @@ import (
 
 // RichStorage -
 type RichStorage struct {
-	es  elastic.IElastic
-	rpc noderpc.INode
+	repo bigmapdiff.Repository
+	rpc  noderpc.INode
 
 	parser storage.Parser
 }
 
 // NewRichStorage -
-func NewRichStorage(es elastic.IElastic, rpc noderpc.INode, protocol string) (*RichStorage, error) {
-	storageParser, err := contractparser.MakeStorageParser(rpc, es, protocol, false)
+func NewRichStorage(repo bigmapdiff.Repository, rpc noderpc.INode, protocol string) (*RichStorage, error) {
+	storageParser, err := contractparser.MakeStorageParser(rpc, repo, protocol, false)
 	if err != nil {
 		return nil, err
 	}
 	return &RichStorage{
-		es:     es,
+		repo:   repo,
 		rpc:    rpc,
 		parser: storageParser,
 	}, nil

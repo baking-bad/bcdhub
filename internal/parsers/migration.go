@@ -8,9 +8,10 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	modelsContract "github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/schema"
@@ -21,32 +22,34 @@ import (
 
 // MigrationParser -
 type MigrationParser struct {
-	es             elastic.IElastic
+	storage        models.GeneralRepository
+	bmdRepo        bigmapdiff.Repository
 	filesDirectory string
 }
 
 // NewMigrationParser -
-func NewMigrationParser(es elastic.IElastic, filesDirectory string) *MigrationParser {
+func NewMigrationParser(storage models.GeneralRepository, bmdRepo bigmapdiff.Repository, filesDirectory string) *MigrationParser {
 	return &MigrationParser{
-		es:             es,
+		storage:        storage,
+		bmdRepo:        bmdRepo,
 		filesDirectory: filesDirectory,
 	}
 }
 
 // Parse -
-func (p *MigrationParser) Parse(script gjson.Result, old contract.Contract, previous, next protocol.Protocol, timestamp time.Time) ([]models.Model, []models.Model, error) {
-	metadata := schema.Schema{ID: old.Address}
-	if err := p.es.GetByID(&metadata); err != nil {
+func (p *MigrationParser) Parse(script gjson.Result, old modelsContract.Contract, previous, next protocol.Protocol, timestamp time.Time) ([]models.Model, []models.Model, error) {
+	s := schema.Schema{ID: old.Address}
+	if err := p.storage.GetByID(&s); err != nil {
 		return nil, nil, err
 	}
 
-	if err := contract.NewMetadataParser(next.SymLink).UpdateMetadata(script, old.Address, &metadata); err != nil {
+	if err := contract.NewSchemaParser(next.SymLink).Update(script, old.Address, &s); err != nil {
 		return nil, nil, err
 	}
 
 	var updates []models.Model
 	if previous.SymLink == "alpha" {
-		newUpdates, err := p.getUpdates(script, old, next, metadata)
+		newUpdates, err := p.getUpdates(script, old, next, s)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -58,7 +61,7 @@ func (p *MigrationParser) Parse(script gjson.Result, old contract.Contract, prev
 		return nil, nil, err
 	}
 	if newHash == old.Hash {
-		return []models.Model{&metadata}, updates, nil
+		return []models.Model{&s}, updates, nil
 	}
 
 	migration := migration.Migration{
@@ -74,11 +77,11 @@ func (p *MigrationParser) Parse(script gjson.Result, old contract.Contract, prev
 		Kind:         consts.MigrationUpdate,
 	}
 
-	return []models.Model{&metadata, &migration}, updates, nil
+	return []models.Model{&s, &migration}, updates, nil
 }
 
-func (p *MigrationParser) getUpdates(script gjson.Result, contract contract.Contract, protocol protocol.Protocol, metadata schema.Schema) ([]models.Model, error) {
-	stringMetadata, ok := metadata.Storage[protocol.SymLink]
+func (p *MigrationParser) getUpdates(script gjson.Result, contract modelsContract.Contract, protocol protocol.Protocol, s schema.Schema) ([]models.Model, error) {
+	stringMetadata, ok := s.Storage[protocol.SymLink]
 	if !ok {
 		return nil, errors.Errorf("[MigrationParser.getUpdates] Unknown metadata sym link: %s", protocol.SymLink)
 	}
@@ -103,7 +106,7 @@ func (p *MigrationParser) getUpdates(script gjson.Result, contract contract.Cont
 		newPtr = p
 	}
 
-	bmd, err := p.es.GetBigMapsForAddress(contract.Network, contract.Address)
+	bmd, err := p.bmdRepo.GetBigMapsForAddress(contract.Network, contract.Address)
 	if err != nil {
 		return nil, err
 	}

@@ -4,10 +4,12 @@ import (
 	"sync"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/contract"
 	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
@@ -16,8 +18,11 @@ import (
 
 // ParseParams -
 type ParseParams struct {
+	Storage     models.GeneralRepository
+	BigMapDiffs bigmapdiff.Repository
+	Schema      schema.Repository
+
 	rpc      noderpc.INode
-	es       elastic.IElastic
 	shareDir string
 
 	interfaces map[string]kinds.ContractKind
@@ -108,19 +113,21 @@ func WithMainOperation(main *operation.Operation) ParseParamsOption {
 }
 
 // NewParseParams -
-func NewParseParams(rpc noderpc.INode, es elastic.IElastic, opts ...ParseParamsOption) *ParseParams {
+func NewParseParams(rpc noderpc.INode, storage models.GeneralRepository, bmdRepo bigmapdiff.Repository, schemaRepo schema.Repository, opts ...ParseParamsOption) *ParseParams {
 	params := &ParseParams{
-		es:         es,
-		rpc:        rpc,
-		once:       &sync.Once{},
-		stackTrace: stacktrace.New(),
+		Storage:     storage,
+		BigMapDiffs: bmdRepo,
+		Schema:      schemaRepo,
+		rpc:         rpc,
+		once:        &sync.Once{},
+		stackTrace:  stacktrace.New(),
 	}
 	for i := range opts {
 		opts[i](params)
 	}
 
 	transferParser, err := transfer.NewParser(
-		params.rpc, params.es,
+		params.rpc,
 		transfer.WithStackTrace(params.stackTrace),
 		transfer.WithNetwork(params.network),
 		transfer.WithChainID(params.head.ChainID),
@@ -135,7 +142,7 @@ func NewParseParams(rpc noderpc.INode, es elastic.IElastic, opts ...ParseParamsO
 		params.interfaces,
 		contract.WithShareDirContractParser(params.shareDir),
 	)
-	storageParser, err := NewRichStorage(es, rpc, params.head.Protocol)
+	storageParser, err := NewRichStorage(bmdRepo, rpc, params.head.Protocol)
 	if err != nil {
 		logger.Error(err)
 	}
