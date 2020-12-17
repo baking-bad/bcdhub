@@ -7,8 +7,11 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
@@ -83,7 +86,10 @@ func (p Transaction) Parse(data gjson.Result) ([]elastic.Model, error) {
 
 	transfers, err := p.transferParser.Parse(tx, txModels)
 	if err != nil {
-		return nil, err
+		if !errors.Is(err, events.ErrNodeReturn) {
+			return nil, err
+		}
+		logger.Error(err)
 	}
 	for i := range transfers {
 		txModels = append(txModels, transfers[i])
