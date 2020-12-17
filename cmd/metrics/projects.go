@@ -6,11 +6,11 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 )
 
 func getProject(ids []string) error {
-	contracts := make([]models.Contract, 0)
+	contracts := make([]contract.Contract, 0)
 	if err := ctx.ES.GetByIDs(&contracts, ids...); err != nil {
 		return errors.Errorf("[getContract] Find contracts error for IDs %v: %s", ids, err)
 	}
@@ -24,7 +24,7 @@ func getProject(ids []string) error {
 	return nil
 }
 
-func parseProject(contract models.Contract) error {
+func parseProject(contract contract.Contract) error {
 	h := metrics.New(ctx.ES, ctx.DB)
 
 	if contract.ProjectID == "" {

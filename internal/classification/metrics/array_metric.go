@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/pkg/errors"
 )
 
@@ -22,7 +22,7 @@ func NewArray(field string) *Array {
 }
 
 // Compute -
-func (m *Array) Compute(a, b models.Contract) Feature {
+func (m *Array) Compute(a, b contract.Contract) Feature {
 	f := Feature{
 		Name: strings.ToLower(m.Field),
 	}
@@ -66,7 +66,7 @@ func (m *Array) Compute(a, b models.Contract) Feature {
 	return f
 }
 
-func (m *Array) getContractFieldArray(c models.Contract) ([]interface{}, error) {
+func (m *Array) getContractFieldArray(c contract.Contract) ([]interface{}, error) {
 	r := reflect.ValueOf(c)
 	f := reflect.Indirect(r).FieldByName(m.Field)
 

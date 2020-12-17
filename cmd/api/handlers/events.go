@@ -8,9 +8,10 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/database"
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 )
@@ -62,10 +63,10 @@ func (ctx *Context) GetMempoolEvents(c *gin.Context) {
 	c.JSON(http.StatusOK, events)
 }
 
-func (ctx *Context) getEvents(subscriptions []database.Subscription, size, offset int64) ([]elastic.Event, error) {
-	subs := make([]elastic.SubscriptionRequest, len(subscriptions))
+func (ctx *Context) getEvents(subscriptions []database.Subscription, size, offset int64) ([]models.Event, error) {
+	subs := make([]models.SubscriptionRequest, len(subscriptions))
 	for i := range subscriptions {
-		subs[i] = elastic.SubscriptionRequest{
+		subs[i] = models.SubscriptionRequest{
 			Address: subscriptions[i].Address,
 			Network: subscriptions[i].Network,
 			Alias:   subscriptions[i].Alias,
@@ -80,20 +81,20 @@ func (ctx *Context) getEvents(subscriptions []database.Subscription, size, offse
 		}
 
 		if helpers.IsContract(subscriptions[i].Address) {
-			contract := models.NewEmptyContract(subscriptions[i].Network, subscriptions[i].Address)
-			if err := ctx.ES.GetByID(&contract); err != nil {
-				return []elastic.Event{}, err
+			contract := contract.NewEmptyContract(subscriptions[i].Network, subscriptions[i].Address)
+			if err := ctx.Storage.GetByID(&contract); err != nil {
+				return []models.Event{}, err
 			}
 			subs[i].Hash = contract.Hash
 			subs[i].ProjectID = contract.ProjectID
 		}
 	}
 
-	return ctx.ES.GetEvents(subs, size, offset)
+	return ctx.Storage.GetEvents(subs, size, offset)
 }
 
-func (ctx *Context) getMempoolEvents(subscriptions []database.Subscription) ([]elastic.Event, error) {
-	events := make([]elastic.Event, 0)
+func (ctx *Context) getMempoolEvents(subscriptions []database.Subscription) ([]models.Event, error) {
+	events := make([]models.Event, 0)
 
 	for _, sub := range subscriptions {
 		if sub.WatchMask&WatchMempool == 0 {
@@ -127,7 +128,7 @@ func (ctx *Context) getMempoolEvents(subscriptions []database.Subscription) ([]e
 				status = "pending" //nolint
 			}
 
-			op := elastic.EventOperation{
+			op := core.EventOperation{
 				Network:     sub.Network,
 				Hash:        item.Body.Hash,
 				Status:      status,
@@ -148,7 +149,7 @@ func (ctx *Context) getMempoolEvents(subscriptions []database.Subscription) ([]e
 
 			if helpers.IsContract(op.Destination) && item.Body.Protocol != "" {
 				if params := gjson.ParseBytes(item.Body.Parameters); params.Exists() {
-					metadata, err := meta.GetMetadata(ctx.ES, op.Destination, consts.PARAMETER, item.Body.Protocol)
+					metadata, err := meta.GetMetadata(ctx.Schema, op.Destination, consts.PARAMETER, item.Body.Protocol)
 					if err != nil {
 						return events, err
 					}
@@ -162,8 +163,8 @@ func (ctx *Context) getMempoolEvents(subscriptions []database.Subscription) ([]e
 				}
 			}
 
-			event := elastic.Event{
-				Type:    elastic.EventTypeMempool,
+			event := models.Event{
+				Type:    models.EventTypeMempool,
 				Address: sub.Address,
 				Network: sub.Network,
 				Alias:   sub.Alias,

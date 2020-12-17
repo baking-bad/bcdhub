@@ -6,6 +6,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/pkg/errors"
 
 	"github.com/baking-bad/bcdhub/internal/elastic"
@@ -13,13 +15,13 @@ import (
 )
 
 func getOperation(ids []string) error {
-	operations := make([]models.Operation, 0)
+	operations := make([]operation.Operation, 0)
 	if err := ctx.ES.GetByIDs(&operations, ids...); err != nil {
 		return errors.Errorf("[getOperation] Find operation error for IDs %v: %s", ids, err)
 	}
 
 	h := metrics.New(ctx.ES, ctx.DB)
-	updated := make([]elastic.Model, 0)
+	updated := make([]models.Model, 0)
 	for i := range operations {
 		if err := parseOperation(h, operations[i]); err != nil {
 			return errors.Errorf("[getOperation] Compute error message: %s", err)
@@ -37,10 +39,8 @@ func getOperation(ids []string) error {
 	return getOperationsContracts(h, operations)
 }
 
-func parseOperation(h *metrics.Handler, operation models.Operation) error {
-	if _, err := h.SetOperationAliases(&operation); err != nil {
-		return err
-	}
+func parseOperation(h *metrics.Handler, operation operation.Operation) error {
+	h.SetOperationAliases(&operation)
 	h.SetOperationStrings(&operation)
 
 	if helpers.IsContract(operation.Destination) || operation.IsOrigination() {
@@ -65,7 +65,7 @@ func (s *stats) isZero() bool {
 	return s.Count == 0 && s.LastAction.IsZero()
 }
 
-func getOperationsContracts(h *metrics.Handler, operations []models.Operation) error {
+func getOperationsContracts(h *metrics.Handler, operations []operation.Operation) error {
 	addresses := make([]elastic.Address, 0)
 	addressesMap := make(map[elastic.Address]*stats)
 	for i := range operations {
@@ -98,8 +98,8 @@ func getOperationsContracts(h *metrics.Handler, operations []models.Operation) e
 		return err
 	}
 
-	updated := make([]models.Contract, 0)
-	contractsMap := make(map[elastic.Address]models.Contract)
+	updated := make([]contract.Contract, 0)
+	contractsMap := make(map[elastic.Address]contract.Contract)
 	for i := range contracts {
 		addr := elastic.Address{
 			Address: contracts[i].Address,

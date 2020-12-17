@@ -3,7 +3,7 @@ package storage
 import (
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
 // Sha256 storage prefix
@@ -49,7 +49,7 @@ func NewSha256Storage(opts ...Sha256StorageOption) Sha256Storage {
 }
 
 // Get -
-func (s Sha256Storage) Get(value string) (*models.TZIP, error) {
+func (s Sha256Storage) Get(value string) (*tzip.TZIP, error) {
 	var uri Sha256URI
 	if err := uri.Parse(value); err != nil {
 		return nil, err

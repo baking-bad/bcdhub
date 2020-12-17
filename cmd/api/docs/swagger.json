@@ -106,7 +106,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.TZIP"
+                            "$ref": "#/definitions/tzip.TZIP"
                         }
                     },
                     "204": {
@@ -2716,7 +2716,7 @@
                 "transfers": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.Transfer"
+                        "$ref": "#/definitions/transfer.Transfer"
                     }
                 }
             }
@@ -3863,6 +3863,7 @@
             "type": "object",
             "additionalProperties": true
         },
+<<<<<<< HEAD
         "models.ReverseTezosDomain": {
             "type": "object",
             "properties": {
@@ -3875,6 +3876,9 @@
             }
         },
         "models.TZIP": {
+=======
+        "tzip.TZIP": {
+>>>>>>> First
             "type": "object",
             "properties": {
                 "address": {
@@ -3969,6 +3973,7 @@
             }
         },
         "models.Transfer": {
+        "transfer.Transfer": {
             "type": "object",
             "properties": {
                 "alias": {

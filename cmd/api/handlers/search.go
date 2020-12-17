@@ -7,9 +7,9 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
 	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/domaintypes"
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic/search"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/gin-gonic/gin"
 )
 
@@ -45,7 +45,7 @@ func (ctx *Context) Search(c *gin.Context) {
 	}
 	filters := getSearchFilters(req)
 
-	result, err := ctx.ES.SearchByText(req.Text, int64(req.Offset), fields, filters, req.Grouping != 0)
+	result, err := ctx.Storage.SearchByText(req.Text, int64(req.Offset), fields, filters, req.Grouping != 0)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -93,11 +93,11 @@ func getSearchFilters(req searchRequest) map[string]interface{} {
 
 func postProcessing(result search.Result) (search.Result, error) {
 	for i := range result.Items {
-		if result.Items[i].Type != elastic.DocBigMapDiff {
+		if result.Items[i].Type != consts.DocBigMapDiff {
 			continue
 		}
 
-		bmd := result.Items[i].Body.(models.BigMapDiff)
+		bmd := result.Items[i].Body.(bigmapdiff.BigMapDiff)
 		key, err := stringer.StringifyInterface(bmd.Key)
 		if err != nil {
 			return result, err
@@ -126,7 +126,7 @@ func (ctx *Context) searchInMempool(q string) (search.Item, error) {
 	operation := ctx.getOperationFromMempool(q)
 
 	return search.Item{
-		Type:  elastic.DocOperations,
+		Type:  consts.DocOperations,
 		Value: operation.Hash,
 		Body:  operation,
 		Highlights: map[string][]string{

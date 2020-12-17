@@ -4,8 +4,11 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // Scorable -
 type Scorable interface {

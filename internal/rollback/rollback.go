@@ -9,6 +9,10 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/block"
+	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/schema"
+	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
@@ -31,7 +35,7 @@ func NewManager(e elastic.IElastic, messageQueue mq.IMessagePublisher, rpc noder
 }
 
 // Rollback - rollback indexer state to level
-func (rm Manager) Rollback(fromState models.Block, toLevel int64) error {
+func (rm Manager) Rollback(fromState block.Block, toLevel int64) error {
 	if toLevel >= fromState.Level {
 		return errors.Errorf("To level must be less than from level: %d >= %d", toLevel, fromState.Level)
 	}
@@ -74,8 +78,8 @@ func (rm Manager) rollbackTokenBalances(network string, toLevel int64) error {
 		return nil
 	}
 
-	exists := make(map[string]*models.TokenBalance)
-	updates := make([]*models.TokenBalance, 0)
+	exists := make(map[string]*tokenbalance.TokenBalance)
+	updates := make([]*tokenbalance.TokenBalance, 0)
 	for i := range transfers {
 
 		if id := transfers[i].GetFromTokenBalanceID(); id != "" {
@@ -112,7 +116,7 @@ func (rm Manager) rollbackOperations(network string, toLevel int64) error {
 	return rm.e.DeleteByLevelAndNetwork([]string{elastic.DocBigMapDiff, elastic.DocBigMapActions, elastic.DocTZIP, elastic.DocMigrations, elastic.DocOperations, elastic.DocTransfers}, network, toLevel)
 }
 
-func (rm Manager) rollbackContracts(fromState models.Block, toLevel int64) error {
+func (rm Manager) rollbackContracts(fromState block.Block, toLevel int64) error {
 	if err := rm.removeMetadata(fromState, toLevel); err != nil {
 		return err
 	}
@@ -136,19 +140,19 @@ func (rm Manager) getAffectedContracts(network string, fromLevel, toLevel int64)
 	return rm.e.GetContractsIDByAddress(addresses, network)
 }
 
-func (rm Manager) getProtocolByLevel(protocols []models.Protocol, level int64) (models.Protocol, error) {
+func (rm Manager) getProtocolByLevel(protocols []protocol.Protocol, level int64) (protocol.Protocol, error) {
 	for _, p := range protocols {
 		if p.StartLevel <= level {
 			return p, nil
 		}
 	}
 	if len(protocols) == 0 {
-		return models.Protocol{}, errors.Errorf("Can't find protocol for level %d", level)
+		return protocol.Protocol{}, errors.Errorf("Can't find protocol for level %d", level)
 	}
 	return protocols[0], nil
 }
 
-func (rm Manager) removeMetadata(fromState models.Block, toLevel int64) error {
+func (rm Manager) removeMetadata(fromState block.Block, toLevel int64) error {
 	logger.Info("Preparing metadata for removing...")
 	addresses, err := rm.e.GetContractAddressesByNetworkAndLevel(fromState.Network, toLevel)
 	if err != nil {
@@ -159,13 +163,13 @@ func (rm Manager) removeMetadata(fromState models.Block, toLevel int64) error {
 }
 
 func (rm Manager) removeContractsMetadata(network string, addresses []string, protocol string) error {
-	bulkDeleteMetadata := make([]elastic.Model, 0)
+	bulkDeleteMetadata := make([]models.Model, 0)
 
 	logger.Info("%d contracts will be removed", len(addresses))
 	bar := progressbar.NewOptions(len(addresses), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish(), progressbar.OptionShowCount())
 	for _, address := range addresses {
 		bar.Add(1) //nolint
-		bulkDeleteMetadata = append(bulkDeleteMetadata, &models.Metadata{
+		bulkDeleteMetadata = append(bulkDeleteMetadata, &schema.Schema{
 			ID: address,
 		})
 
@@ -185,7 +189,7 @@ func (rm Manager) removeContractsMetadata(network string, addresses []string, pr
 
 func (rm Manager) updateMetadata(network string, fromLevel, toLevel int64) error {
 	logger.Info("Preparing metadata for updating...")
-	var protocols []models.Protocol
+	var protocols []protocol.Protocol
 	if err := rm.e.GetByNetworkWithSort(network, "start_level", "desc", &protocols); err != nil {
 		return err
 	}
@@ -212,13 +216,13 @@ func (rm Manager) updateMetadata(network string, fromLevel, toLevel int64) error
 	delete(deadSymLinks, rollbackProtocol.SymLink)
 
 	logger.Info("Getting all metadata...")
-	var metadata []models.Metadata
+	var metadata []schema.Schema
 	if err := rm.e.GetAll(&metadata); err != nil {
 		return err
 	}
 
 	logger.Info("Found %d metadata, will remove %v", len(metadata), deadSymLinks)
-	bulkUpdateMetadata := make([]elastic.Model, len(metadata))
+	bulkUpdateMetadata := make([]models.Model, len(metadata))
 	for i := range metadata {
 		bulkUpdateMetadata[i] = &metadata[i]
 	}

@@ -16,7 +16,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/mq"
 )
 
@@ -120,7 +121,7 @@ func (ctx *Context) setDeployment() error {
 	return nil
 }
 
-func (ctx *Context) processDeployment(deployment *database.Deployment, operation *models.Operation) error {
+func (ctx *Context) processDeployment(deployment *database.Deployment, operation *operation.Operation) error {
 	deployment.Address = operation.Destination
 	deployment.Network = operation.Network
 
@@ -154,7 +155,7 @@ func (ctx *Context) processDeployment(deployment *database.Deployment, operation
 		return fmt.Errorf("CreateVerification error %w", err)
 	}
 
-	contract := models.NewEmptyContract(task.Network, task.Address)
+	contract := contract.NewEmptyContract(task.Network, task.Address)
 	contract.Verified = true
 	contract.VerificationSource = sourcePath
 

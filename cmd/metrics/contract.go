@@ -5,11 +5,11 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 )
 
 func getContract(ids []string) error {
-	contracts := make([]models.Contract, 0)
+	contracts := make([]contract.Contract, 0)
 	if err := ctx.ES.GetByIDs(&contracts, ids...); err != nil {
 		return errors.Errorf("[getContract] Find contracts error for IDs %v: %s", ids, err)
 	}
@@ -24,7 +24,7 @@ func getContract(ids []string) error {
 	return ctx.ES.BulkUpdateField(contracts, "Alias", "Verified", "VerificationSource")
 }
 
-func parseContract(contract *models.Contract) error {
+func parseContract(contract *contract.Contract) error {
 	h := metrics.New(ctx.ES, ctx.DB)
 
 	if _, err := h.SetContractAlias(contract); err != nil {

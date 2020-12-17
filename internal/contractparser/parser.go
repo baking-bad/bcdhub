@@ -5,7 +5,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/node"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -53,9 +53,9 @@ func (p *parser) parse(v gjson.Result) error {
 }
 
 // MakeStorageParser -
-func MakeStorageParser(rpc noderpc.INode, es elastic.IBigMapDiff, protocol string, isSimulating bool) (storage.Parser, error) {
+func MakeStorageParser(rpc noderpc.INode, repo bigmapdiff.Repository, protocol string, isSimulating bool) (storage.Parser, error) {
 	if isSimulating {
-		return storage.NewSimulate(rpc, es), nil
+		return storage.NewSimulate(rpc, repo), nil
 	}
 
 	protoSymLink, err := meta.GetProtoSymLink(protocol)
@@ -65,7 +65,7 @@ func MakeStorageParser(rpc noderpc.INode, es elastic.IBigMapDiff, protocol strin
 
 	switch protoSymLink {
 	case consts.MetadataBabylon:
-		return storage.NewBabylon(rpc, es), nil
+		return storage.NewBabylon(rpc, repo), nil
 	case consts.MetadataAlpha:
 		return storage.NewAlpha(), nil
 	default:

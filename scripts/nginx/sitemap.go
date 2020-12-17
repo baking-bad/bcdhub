@@ -5,12 +5,11 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/scripts/nginx/pkg/sitemap"
 )
 
-func makeSitemap(dapps []tzip.DApp, aliases []models.TZIP, filepath string, cfg config.Config) error {
+func makeSitemap(dapps []tzip.DApp, aliases []tzip.TZIP, filepath string, cfg config.Config) error {
 	s := sitemap.New()
 
 	s.AddLocation(cfg.BaseURL)

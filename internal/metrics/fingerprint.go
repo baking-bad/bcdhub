@@ -8,13 +8,13 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/macros"
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
 
 // SetFingerprint -
-func SetFingerprint(script gjson.Result, contract *models.Contract) error {
+func SetFingerprint(script gjson.Result, contract *contract.Contract) error {
 	fgpt, err := GetFingerprint(script)
 	if err != nil {
 		return err
@@ -24,12 +24,12 @@ func SetFingerprint(script gjson.Result, contract *models.Contract) error {
 }
 
 // GetFingerprint -
-func GetFingerprint(script gjson.Result) (*models.Fingerprint, error) {
+func GetFingerprint(script gjson.Result) (*contract.Fingerprint, error) {
 	colapsed, err := macros.Collapse(script, macros.GetAllFamilies())
 	if err != nil {
 		return nil, err
 	}
-	fgpt := models.Fingerprint{}
+	fgpt := contract.Fingerprint{}
 	code := colapsed.Get(`code.#(prim="code")`)
 	codeFgpt, err := fingerprint(code, true)
 	if err != nil {

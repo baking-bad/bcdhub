@@ -8,9 +8,10 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage/hash"
 	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 )
@@ -24,7 +25,7 @@ func NewAlpha() *Alpha {
 }
 
 // ParseTransaction -
-func (a *Alpha) ParseTransaction(content gjson.Result, _ meta.Metadata, operation models.Operation) (RichStorage, error) {
+func (a *Alpha) ParseTransaction(content gjson.Result, _ meta.Metadata, operation operation.Operation) (RichStorage, error) {
 	address := content.Get("destination").String()
 
 	result, err := getResult(content)
@@ -39,7 +40,7 @@ func (a *Alpha) ParseTransaction(content gjson.Result, _ meta.Metadata, operatio
 }
 
 // ParseOrigination -
-func (a *Alpha) ParseOrigination(content gjson.Result, metadata meta.Metadata, operation models.Operation) (RichStorage, error) {
+func (a *Alpha) ParseOrigination(content gjson.Result, metadata meta.Metadata, operation operation.Operation) (RichStorage, error) {
 	result, err := getResult(content)
 	if err != nil {
 		return RichStorage{Empty: true}, err
@@ -47,17 +48,17 @@ func (a *Alpha) ParseOrigination(content gjson.Result, metadata meta.Metadata, o
 	address := result.Get("originated_contracts.0").String()
 	storage := content.Get("script.storage")
 
-	var bmd []elastic.Model
+	var bmd []models.Model
 	if bmMeta, ok := metadata["0/0"]; ok && bmMeta.Type == consts.BIGMAP {
 		bigMapData := storage.Get("args.0")
 
-		bmd = make([]elastic.Model, 0)
+		bmd = make([]models.Model, 0)
 		for _, item := range bigMapData.Array() {
 			keyHash, err := hash.Key(item.Get("args.0"))
 			if err != nil {
 				return RichStorage{Empty: true}, err
 			}
-			bmd = append(bmd, &models.BigMapDiff{
+			bmd = append(bmd, &bigmapdiff.BigMapDiff{
 				ID:          helpers.GenerateID(),
 				BinPath:     "0/0",
 				Key:         item.Get("args.0").Value(),
@@ -89,7 +90,7 @@ func (a *Alpha) ParseOrigination(content gjson.Result, metadata meta.Metadata, o
 }
 
 // Enrich -
-func (a *Alpha) Enrich(storage, sPrevStorage string, bmd []models.BigMapDiff, skipEmpty, unpack bool) (gjson.Result, error) {
+func (a *Alpha) Enrich(storage, sPrevStorage string, bmd []bigmapdiff.BigMapDiff, skipEmpty, unpack bool) (gjson.Result, error) {
 	if len(bmd) == 0 {
 		return gjson.Parse(storage), nil
 	}
@@ -134,10 +135,10 @@ func (a *Alpha) Enrich(storage, sPrevStorage string, bmd []models.BigMapDiff, sk
 	return gjson.Parse(value), nil
 }
 
-func (a *Alpha) getBigMapDiff(result gjson.Result, address string, operation models.Operation) []elastic.Model {
-	bmd := make([]elastic.Model, 0)
+func (a *Alpha) getBigMapDiff(result gjson.Result, address string, operation operation.Operation) []models.Model {
+	bmd := make([]models.Model, 0)
 	for _, item := range result.Get("big_map_diff").Array() {
-		bmd = append(bmd, &models.BigMapDiff{
+		bmd = append(bmd, &bigmapdiff.BigMapDiff{
 			ID:          helpers.GenerateID(),
 			BinPath:     "0/0",
 			Key:         item.Get("key").Value(),

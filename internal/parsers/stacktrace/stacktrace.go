@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 )
 
 // Item -
@@ -22,7 +22,7 @@ type Item struct {
 }
 
 // NewItem -
-func NewItem(operation models.Operation, parentID int64) *Item {
+func NewItem(operation operation.Operation, parentID int64) *Item {
 	return &Item{
 		ParentID:     parentID,
 		Entrypoint:   operation.Entrypoint,
@@ -54,7 +54,7 @@ func (sti *Item) AddChild(child *Item) {
 }
 
 // IsNext -
-func (sti *Item) IsNext(operation models.Operation) bool {
+func (sti *Item) IsNext(operation operation.Operation) bool {
 	if !sti.gtNonce(operation.Nonce) {
 		return false
 	}
@@ -94,7 +94,7 @@ func New() *StackTrace {
 }
 
 // Get -
-func (st *StackTrace) Get(operation models.Operation) *Item {
+func (st *StackTrace) Get(operation operation.Operation) *Item {
 	id := computeID(operation.ContentIndex, operation.Nonce)
 	result, ok := st.tree[id]
 	if !ok {
@@ -113,7 +113,7 @@ func (st *StackTrace) GetByID(id int64) *Item {
 }
 
 // Add -
-func (st *StackTrace) Add(operation models.Operation) {
+func (st *StackTrace) Add(operation operation.Operation) {
 	var parent *Item
 	for i := len(st.order) - 1; i >= 0; i-- {
 		if st.order[i].IsNext(operation) {

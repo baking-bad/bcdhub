@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
 // IPFS storage prefix
@@ -45,7 +45,7 @@ func NewIPFSStorage(gateways []string, opts ...IPFSStorageOption) IPFSStorage {
 }
 
 // Get -
-func (s IPFSStorage) Get(value string) (data *models.TZIP, err error) {
+func (s IPFSStorage) Get(value string) (data *tzip.TZIP, err error) {
 	if len(s.gateways) == 0 {
 		return nil, ErrEmptyIPFSGatewayList
 	}

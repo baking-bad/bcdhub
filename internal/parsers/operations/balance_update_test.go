@@ -3,11 +3,12 @@ package operations
 import (
 	"testing"
 
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/balanceupdate"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 )
 
 func TestBalanceUpdate_Parse(t *testing.T) {
-	operation := models.Operation{
+	operation := operation.Operation{
 		Network:      "test",
 		Level:        100,
 		Hash:         "hash",
@@ -18,13 +19,13 @@ func TestBalanceUpdate_Parse(t *testing.T) {
 		name     string
 		root     string
 		fileName string
-		want     []*models.BalanceUpdate
+		want     []*balanceupdate.BalanceUpdate
 	}{
 		{
 			name:     "test 1",
 			root:     "",
 			fileName: "./data/balance_update/test1.json",
-			want: []*models.BalanceUpdate{
+			want: []*balanceupdate.BalanceUpdate{
 				{
 					Contract:      "KT1A946hDgLGfFudWU7hzfnTdZK8TZyLRHeT",
 					Change:        -2655,
@@ -40,7 +41,7 @@ func TestBalanceUpdate_Parse(t *testing.T) {
 			name:     "test 2",
 			root:     "operation_result",
 			fileName: "./data/balance_update/test2.json",
-			want: []*models.BalanceUpdate{
+			want: []*balanceupdate.BalanceUpdate{
 				{
 					Contract:      "KT1A946hDgLGfFudWU7hzfnTdZK8TZyLRHeT",
 					Change:        -29075891,

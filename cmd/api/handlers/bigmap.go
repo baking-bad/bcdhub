@@ -8,8 +8,10 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
-	"github.com/baking-bad/bcdhub/internal/elastic"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/elastic/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/elastic/core"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
+	bmdModels "github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -35,7 +37,7 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		return
 	}
 
-	bm, err := ctx.ES.GetBigMapKeys(elastic.GetBigMapKeysContext{
+	bm, err := ctx.BigMapDiffs.GetBigMapKeys(bigmapdiff.GetBigMapKeysContext{
 		Ptr:     &req.Ptr,
 		Network: req.Network,
 		Size:    10000, // TODO: >10k
@@ -59,7 +61,7 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 			}
 		}
 
-		metadata, err := getStorageMetadata(ctx.ES, res.Address, res.Network)
+		metadata, err := ctx.getStorageMetadata(res.Address, res.Network)
 		if handleError(c, err, 0) {
 			return
 		}
@@ -69,7 +71,7 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 			return
 		}
 	} else {
-		actions, err := ctx.ES.GetBigMapHistory(req.Ptr, req.Network)
+		actions, err := ctx.BigMapActions.Get(req.Ptr, req.Network)
 		if handleError(c, err, 0) {
 			return
 		}
@@ -114,7 +116,7 @@ func (ctx *Context) GetBigMapHistory(c *gin.Context) {
 		return
 	}
 
-	bm, err := ctx.ES.GetBigMapHistory(req.Ptr, req.Network)
+	bm, err := ctx.BigMapActions.Get(req.Ptr, req.Network)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -154,7 +156,7 @@ func (ctx *Context) GetBigMapKeys(c *gin.Context) {
 		return
 	}
 
-	bm, err := ctx.ES.GetBigMapKeys(elastic.GetBigMapKeysContext{
+	bm, err := ctx.BigMapDiffs.GetBigMapKeys(bigmapdiff.GetBigMapKeysContext{
 		Ptr:     &req.Ptr,
 		Network: req.Network,
 		Query:   pageReq.Search,
@@ -201,7 +203,7 @@ func (ctx *Context) GetBigMapByKeyHash(c *gin.Context) {
 		return
 	}
 
-	bm, total, err := ctx.ES.GetBigMapDiffsByPtrAndKeyHash(req.Ptr, req.Network, req.KeyHash, pageReq.Size, pageReq.Offset)
+	bm, total, err := ctx.BigMapDiffs.GetBigMapDiffsByPtrAndKeyHash(req.Ptr, req.Network, req.KeyHash, pageReq.Size, pageReq.Offset)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -234,9 +236,9 @@ func (ctx *Context) GetBigMapDiffCount(c *gin.Context) {
 		return
 	}
 
-	count, err := ctx.ES.GetBigMapDiffsCount(req.Network, req.Ptr)
+	count, err := ctx.BigMapDiffs.GetBigMapDiffsCount(req.Network, req.Ptr)
 	if err != nil {
-		if elastic.IsRecordNotFound(err) {
+		if core.IsRecordNotFound(err) {
 			c.JSON(http.StatusOK, CountResponse{})
 			return
 		}
@@ -246,12 +248,12 @@ func (ctx *Context) GetBigMapDiffCount(c *gin.Context) {
 	c.JSON(http.StatusOK, CountResponse{count})
 }
 
-func (ctx *Context) prepareBigMapKeys(data []elastic.BigMapDiff) ([]BigMapResponseItem, error) {
+func (ctx *Context) prepareBigMapKeys(data []bmdModels.BigMapDiff) ([]BigMapResponseItem, error) {
 	if len(data) == 0 {
 		return []BigMapResponseItem{}, nil
 	}
 
-	contractMetadata, err := meta.GetContractMetadata(ctx.ES, data[0].Address)
+	contractMetadata, err := meta.GetContractMetadata(ctx.Schema, data[0].Address)
 	if err != nil {
 		return nil, err
 	}
@@ -272,18 +274,18 @@ func (ctx *Context) prepareBigMapKeys(data []elastic.BigMapDiff) ([]BigMapRespon
 				Value:     value,
 				Timestamp: data[i].Timestamp,
 			},
-			Count: data[i].Count,
+			// Count: data[i].Count, TODO: fill count
 		}
 	}
 	return res, nil
 }
 
-func (ctx *Context) prepareBigMapItem(data []elastic.BigMapDiff, keyHash string) (res BigMapDiffByKeyResponse, err error) {
+func (ctx *Context) prepareBigMapItem(data []bmdModels.BigMapDiff, keyHash string) (res BigMapDiffByKeyResponse, err error) {
 	if len(data) == 0 {
 		return
 	}
 
-	contractMetadata, err := meta.GetContractMetadata(ctx.ES, data[0].Address)
+	contractMetadata, err := meta.GetContractMetadata(ctx.Schema, data[0].Address)
 	if err != nil {
 		return
 	}
@@ -309,7 +311,7 @@ func (ctx *Context) prepareBigMapItem(data []elastic.BigMapDiff, keyHash string)
 	return
 }
 
-func prepareItem(item elastic.BigMapDiff, contractMetadata *meta.ContractMetadata) (interface{}, interface{}, string, error) {
+func prepareItem(item bmdModels.BigMapDiff, contractMetadata *meta.ContractMetadata) (interface{}, interface{}, string, error) {
 	var protoSymLink string
 	protoSymLink, err := meta.GetProtoSymLink(item.Protocol)
 	if err != nil {
@@ -352,7 +354,7 @@ func prepareItem(item elastic.BigMapDiff, contractMetadata *meta.ContractMetadat
 	return key, value, keyString, err
 }
 
-func prepareBigMapHistory(arr []models.BigMapAction, ptr int64) BigMapHistoryResponse {
+func prepareBigMapHistory(arr []bigmapaction.BigMapAction, ptr int64) BigMapHistoryResponse {
 	if len(arr) == 0 {
 		return BigMapHistoryResponse{}
 	}

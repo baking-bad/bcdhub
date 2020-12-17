@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 )
 
 // SetBigMapDiffsStrings -
-func (h *Handler) SetBigMapDiffsStrings(bmd *models.BigMapDiff) error {
+func (h *Handler) SetBigMapDiffsStrings(bmd *bigmapdiff.BigMapDiff) error {
 	keyBytes, err := json.Marshal(bmd.Key)
 	if err != nil {
 		return err

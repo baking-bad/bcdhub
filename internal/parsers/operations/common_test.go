@@ -4,11 +4,12 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/balanceupdate"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 )
 
 func Test_parseMetadata(t *testing.T) {
-	operation := models.Operation{
+	operation := operation.Operation{
 		Network:      "test",
 		Level:        100,
 		Hash:         "hash",
@@ -25,7 +26,7 @@ func Test_parseMetadata(t *testing.T) {
 			name:     "test 1",
 			fileName: "./data/operation_metadata/test1.json",
 			want: &Metadata{
-				BalanceUpdates: []*models.BalanceUpdate{
+				BalanceUpdates: []*balanceupdate.BalanceUpdate{
 					{
 						Contract:      "KT1PDAELuX7CypUHinUgFgGFskKs7ytwh5Vw",
 						Change:        6410,
@@ -36,7 +37,7 @@ func Test_parseMetadata(t *testing.T) {
 						Nonce:         nil,
 					},
 				},
-				Result: models.OperationResult{
+				Result: operation.OperationResult{
 					Status:      "applied",
 					ConsumedGas: 10207,
 				},
@@ -45,8 +46,8 @@ func Test_parseMetadata(t *testing.T) {
 			name:     "test 2",
 			fileName: "./data/operation_metadata/test2.json",
 			want: &Metadata{
-				BalanceUpdates: []*models.BalanceUpdate{},
-				Result: models.OperationResult{
+				BalanceUpdates: []*balanceupdate.BalanceUpdate{},
+				Result: operation.OperationResult{
 					Status:      "backtracked",
 					ConsumedGas: 96591,
 					StorageSize: 196,

@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/parsers/tzip/repository"
 )
 
@@ -47,7 +47,7 @@ func (m *FillTZIP) Do(ctx *config.Context) error {
 		networks[blocks[i].Network] = struct{}{}
 	}
 
-	data := make([]elastic.Model, 0)
+	data := make([]models.Model, 0)
 	if network == "" {
 		items, err := fs.GetAll()
 		if err != nil {

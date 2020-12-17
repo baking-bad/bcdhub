@@ -4,13 +4,13 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 )
 
 func TestManager_Compute(t *testing.T) {
 	type args struct {
-		a models.Contract
-		b models.Contract
+		a contract.Contract
+		b contract.Contract
 	}
 	tests := []struct {
 		name string
@@ -20,11 +20,11 @@ func TestManager_Compute(t *testing.T) {
 		{
 			name: "Case 1",
 			args: args{
-				a: models.Contract{
+				a: contract.Contract{
 					Address: "test",
 					Network: "network",
 				},
-				b: models.Contract{
+				b: contract.Contract{
 					Address: "test",
 					Network: "network",
 				},
@@ -36,11 +36,11 @@ func TestManager_Compute(t *testing.T) {
 		}, {
 			name: "Case 2",
 			args: args{
-				a: models.Contract{
+				a: contract.Contract{
 					Address: "other",
 					Network: "network",
 				},
-				b: models.Contract{
+				b: contract.Contract{
 					Address: "test",
 					Network: "network",
 				},
@@ -52,11 +52,11 @@ func TestManager_Compute(t *testing.T) {
 		}, {
 			name: "Case 3",
 			args: args{
-				a: models.Contract{
+				a: contract.Contract{
 					Address: "test",
 					Network: "other",
 				},
-				b: models.Contract{
+				b: contract.Contract{
 					Address: "test",
 					Network: "network",
 				},
@@ -68,11 +68,11 @@ func TestManager_Compute(t *testing.T) {
 		}, {
 			name: "Case 4",
 			args: args{
-				a: models.Contract{
+				a: contract.Contract{
 					Address: "other",
 					Network: "other",
 				},
-				b: models.Contract{
+				b: contract.Contract{
 					Address: "test",
 					Network: "network",
 				},

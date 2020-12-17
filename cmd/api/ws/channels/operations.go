@@ -8,7 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/cmd/api/ws/datasources"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/pkg/errors"
 )
 
@@ -97,7 +97,7 @@ func (c *OperationsChannel) listen(source datasources.DataSource) {
 }
 
 func (c *OperationsChannel) createMessage(data datasources.Data) error {
-	op := models.Operation{ID: string(data.Body.([]byte))}
+	op := operation.Operation{ID: string(data.Body.([]byte))}
 	if err := c.es.GetByID(&op); err != nil {
 		return errors.Errorf("[OperationsChannel.createMessage] Find operation error: %s", err)
 	}

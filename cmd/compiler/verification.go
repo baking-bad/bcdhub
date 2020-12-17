@@ -8,7 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/providers"
 	"github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/tidwall/gjson"
@@ -59,7 +59,7 @@ func (ctx *Context) verification(ct compilation.Task) error {
 		return err
 	}
 
-	contract := models.NewEmptyContract(task.Network, task.Address)
+	contract := contract.NewEmptyContract(task.Network, task.Address)
 	contract.Verified = true
 	contract.VerificationSource = sourcePath
 

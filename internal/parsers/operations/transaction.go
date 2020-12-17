@@ -11,6 +11,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
@@ -26,8 +28,8 @@ func NewTransaction(params *ParseParams) Transaction {
 }
 
 // Parse -
-func (p Transaction) Parse(data gjson.Result) ([]elastic.Model, error) {
-	tx := models.Operation{
+func (p Transaction) Parse(data gjson.Result) ([]models.Model, error) {
+	tx := operation.Operation{
 		ID:            helpers.GenerateID(),
 		Network:       p.network,
 		Hash:          p.hash,
@@ -64,7 +66,7 @@ func (p Transaction) Parse(data gjson.Result) ([]elastic.Model, error) {
 	tx.Errors = tx.Result.Errors
 
 	tx.SetBurned(p.constants)
-	txModels := []elastic.Model{&tx}
+	txModels := []models.Model{&tx}
 
 	if tx.IsApplied() {
 		for i := range txMetadata.BalanceUpdates {
@@ -102,7 +104,7 @@ func (p Transaction) Parse(data gjson.Result) ([]elastic.Model, error) {
 	return txModels, nil
 }
 
-func (p Transaction) fillInternal(tx *models.Operation) {
+func (p Transaction) fillInternal(tx *operation.Operation) {
 	if p.main == nil {
 		p.main = tx
 		return
@@ -116,7 +118,7 @@ func (p Transaction) fillInternal(tx *models.Operation) {
 	tx.Initiator = p.main.Source
 }
 
-func (p Transaction) appliedHandler(item gjson.Result, op *models.Operation) ([]elastic.Model, error) {
+func (p Transaction) appliedHandler(item gjson.Result, op *operation.Operation) ([]models.Model, error) {
 	if !helpers.IsContract(op.Destination) || !op.IsApplied() {
 		return nil, nil
 	}
@@ -129,7 +131,7 @@ func (p Transaction) appliedHandler(item gjson.Result, op *models.Operation) ([]
 		return nil, err
 	}
 
-	resultModels := make([]elastic.Model, 0)
+	resultModels := make([]models.Model, 0)
 
 	rs, err := p.storageParser.Parse(item, metadata, op)
 	if err != nil {
@@ -154,7 +156,7 @@ func (p Transaction) appliedHandler(item gjson.Result, op *models.Operation) ([]
 	return resultModels, p.getEntrypoint(item, metadata, op)
 }
 
-func (p Transaction) getEntrypoint(item gjson.Result, metadata *meta.ContractMetadata, op *models.Operation) error {
+func (p Transaction) getEntrypoint(item gjson.Result, metadata *meta.ContractMetadata, op *operation.Operation) error {
 	m, err := metadata.Get(consts.PARAMETER, op.Protocol)
 	if err != nil {
 		return err
@@ -174,12 +176,12 @@ func (p Transaction) getEntrypoint(item gjson.Result, metadata *meta.ContractMet
 	return nil
 }
 
-func (p Transaction) tagTransaction(tx *models.Operation) error {
+func (p Transaction) tagTransaction(tx *operation.Operation) error {
 	if !helpers.IsContract(tx.Destination) {
 		return nil
 	}
 
-	contract := models.NewEmptyContract(tx.Network, tx.Destination)
+	contract := contract.NewEmptyContract(tx.Network, tx.Destination)
 	if err := p.es.GetByID(&contract); err != nil {
 		if elastic.IsRecordNotFound(err) {
 			return nil

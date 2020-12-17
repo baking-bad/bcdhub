@@ -2,9 +2,9 @@ package migrations
 
 import (
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/protocol"
 )
 
 // SetProtocolConstants - migration that set constants for protocol
@@ -22,15 +22,15 @@ func (m *SetProtocolConstants) Description() string {
 
 // Do - migrate function
 func (m *SetProtocolConstants) Do(ctx *config.Context) error {
-	protocols := make([]models.Protocol, 0)
+	protocols := make([]protocol.Protocol, 0)
 	if err := ctx.ES.GetAll(&protocols); err != nil {
 		return err
 	}
 
-	updatedModels := make([]elastic.Model, 0)
+	updatedModels := make([]models.Model, 0)
 	for i := range protocols {
 		if protocols[i].StartLevel == protocols[i].EndLevel && protocols[i].EndLevel == 0 {
-			protocols[i].Constants = models.Constants{}
+			protocols[i].Constants = protocol.Constants{}
 			updatedModels = append(updatedModels, &protocols[i])
 			continue
 		}
@@ -47,7 +47,7 @@ func (m *SetProtocolConstants) Do(ctx *config.Context) error {
 		if err != nil {
 			return err
 		}
-		protocols[i].Constants = models.Constants{
+		protocols[i].Constants = protocol.Constants{
 			CostPerByte:                  constants.CostPerByte,
 			HardGasLimitPerOperation:     constants.HardGasLimitPerOperation,
 			HardStorageLimitPerOperation: constants.HardStorageLimitPerOperation,

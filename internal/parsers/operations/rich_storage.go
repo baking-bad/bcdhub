@@ -6,7 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
 	"github.com/baking-bad/bcdhub/internal/elastic"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -34,7 +34,7 @@ func NewRichStorage(es elastic.IElastic, rpc noderpc.INode, protocol string) (*R
 }
 
 // Parse -
-func (p *RichStorage) Parse(data gjson.Result, metadata *meta.ContractMetadata, operation *models.Operation) (storage.RichStorage, error) {
+func (p *RichStorage) Parse(data gjson.Result, metadata *meta.ContractMetadata, operation *operation.Operation) (storage.RichStorage, error) {
 	protoSymLink, err := meta.GetProtoSymLink(operation.Protocol)
 	if err != nil {
 		return storage.RichStorage{Empty: true}, err

@@ -25,7 +25,7 @@ func (ctx *Context) GetBySlug(c *gin.Context) {
 		return
 	}
 
-	a, err := ctx.ES.GetBySlug(req.Slug)
+	a, err := ctx.TZIP.GetBySlug(req.Slug)
 	if gorm.IsRecordNotFoundError(err) {
 		handleError(c, err, http.StatusBadRequest)
 		return

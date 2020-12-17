@@ -3,7 +3,6 @@ package tokens
 import (
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
@@ -20,15 +19,15 @@ type Metadata struct {
 }
 
 // ToModel -
-func (m Metadata) ToModel(address, network string) *models.TZIP {
-	return &models.TZIP{
+func (m Metadata) ToModel(address, network string) *tzip.TZIP {
+	return &tzip.TZIP{
 		Address:   address,
 		Network:   network,
 		Level:     m.Level,
 		Timestamp: m.Timestamp,
 		TZIP12: tzip.TZIP12{
 			Tokens: &tzip.TokenMetadataType{
-				Static: []tzip.TokenMetadata{
+				Static: []tzip.TokenMetadataEntity{
 					{
 						Symbol:          m.Symbol,
 						Name:            m.Name,

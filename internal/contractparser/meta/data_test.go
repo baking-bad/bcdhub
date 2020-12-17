@@ -7,7 +7,7 @@ import (
 	"log"
 	"testing"
 
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/tidwall/gjson"
 )
 
@@ -95,7 +95,7 @@ func TestContractMetadata_IsUpgradable(t *testing.T) {
 			}
 
 			symLink := "test"
-			metadata := models.Metadata{
+			metadata := schema.Schema{
 				Parameter: map[string]string{
 					symLink: string(paramFile),
 				},

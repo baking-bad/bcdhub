@@ -6,8 +6,9 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic"
+	constants "github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )
@@ -23,7 +24,7 @@ import (
 // @Failure 500 {object} Error
 // @Router /stats [get]
 func (ctx *Context) GetStats(c *gin.Context) {
-	stats, err := ctx.ES.GetLastBlocks()
+	stats, err := ctx.Blocks.GetLastBlocks()
 	if handleError(c, err, 0) {
 		return
 	}
@@ -58,15 +59,15 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 	}
 
 	var stats NetworkStats
-	counts, err := ctx.ES.GetNetworkCountStats(req.Network)
+	counts, err := ctx.Storage.GetNetworkCountStats(req.Network)
 	if handleError(c, err, 0) {
 		return
 	}
-	stats.ContractsCount = counts[elastic.DocContracts]
-	stats.OperationsCount = counts[elastic.DocOperations]
+	stats.ContractsCount = counts[constants.DocContracts]
+	stats.OperationsCount = counts[constants.DocOperations]
 
-	var protocols []models.Protocol
-	if err := ctx.ES.GetByNetworkWithSort(req.Network, "start_level", "desc", &protocols); handleError(c, err, 0) {
+	var protocols []protocol.Protocol
+	if err := ctx.Storage.GetByNetworkWithSort(req.Network, "start_level", "desc", &protocols); handleError(c, err, 0) {
 		return
 	}
 	ps := make([]Protocol, len(protocols))
@@ -75,7 +76,7 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 	}
 	stats.Protocols = ps
 
-	languages, err := ctx.ES.GetLanguagesForNetwork(req.Network)
+	languages, err := ctx.Storage.GetLanguagesForNetwork(req.Network)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -120,7 +121,7 @@ func (ctx *Context) GetSeries(c *gin.Context) {
 		return
 	}
 
-	series, err := ctx.ES.GetDateHistogram(reqArgs.Period, options...)
+	series, err := ctx.Storage.GetDateHistogram(reqArgs.Period, options...)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -263,7 +264,7 @@ func (ctx *Context) GetContractsStats(c *gin.Context) {
 		handleError(c, errors.Errorf("Empty address list"), http.StatusBadRequest)
 		return
 	}
-	stats, err := ctx.ES.GetDAppStats(req.Network, addresses, reqStats.Period)
+	stats, err := ctx.Contracts.GetDAppStats(req.Network, addresses, reqStats.Period)
 	if handleError(c, err, 0) {
 		return
 	}

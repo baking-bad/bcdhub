@@ -7,22 +7,23 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/migration"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/tidwall/gjson"
 )
 
 // Migration -
 type Migration struct {
-	operation *models.Operation
+	operation *operation.Operation
 }
 
 // NewMigration -
-func NewMigration(operation *models.Operation) Migration {
+func NewMigration(operation *operation.Operation) Migration {
 	return Migration{operation}
 }
 
 // Parse -
-func (m Migration) Parse(data gjson.Result) *models.Migration {
+func (m Migration) Parse(data gjson.Result) *migration.Migration {
 	path := "metadata.operation_result.big_map_diff"
 	if !data.Get(path).Exists() {
 		path = "result.big_map_diff"
@@ -38,7 +39,7 @@ func (m Migration) Parse(data gjson.Result) *models.Migration {
 		value := bmd.Get("value")
 		if contractparser.HasLambda(value) {
 			logger.Info("[%s] Migration detected: %s", m.operation.Network, m.operation.Destination)
-			return &models.Migration{
+			return &migration.Migration{
 				ID:          helpers.GenerateID(),
 				IndexedTime: time.Now().UnixNano() / 1000,
 

@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 )
 
 // Bool -
@@ -20,7 +20,7 @@ func NewBool(field string) *Bool {
 }
 
 // Compute -
-func (m *Bool) Compute(a, b models.Contract) Feature {
+func (m *Bool) Compute(a, b contract.Contract) Feature {
 	f := Feature{
 		Name: strings.ToLower(m.Field),
 	}
@@ -33,7 +33,7 @@ func (m *Bool) Compute(a, b models.Contract) Feature {
 	return f
 }
 
-func (m *Bool) getContractField(c models.Contract) interface{} {
+func (m *Bool) getContractField(c contract.Contract) interface{} {
 	r := reflect.ValueOf(c)
 	return reflect.Indirect(r).FieldByName(m.Field).Interface()
 }

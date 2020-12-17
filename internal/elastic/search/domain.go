@@ -1,9 +1,7 @@
 package search
 
 import (
-	"encoding/json"
-
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
 )
 
 // Domain -
@@ -32,7 +30,7 @@ func (d Domain) GetFields() []string {
 
 // Parse  -
 func (d Domain) Parse(highlight map[string][]string, data []byte) (interface{}, error) {
-	var domain models.TezosDomain
+	var domain tezosdomain.TezosDomain
 	if err := json.Unmarshal(data, &domain); err != nil {
 		return nil, err
 	}

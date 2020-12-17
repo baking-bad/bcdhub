@@ -1,8 +1,8 @@
 package handlers
 
-import "github.com/baking-bad/bcdhub/internal/elastic"
+import "github.com/baking-bad/bcdhub/internal/models"
 
 // Handler -
 type Handler interface {
-	Do(model elastic.Model) (bool, error)
+	Do(model models.Model) (bool, error)
 }

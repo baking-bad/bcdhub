@@ -8,6 +8,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/unpack"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
@@ -40,7 +42,7 @@ func NewTezosDomains(es elastic.IElastic, contracts map[string]string) *TezosDom
 }
 
 // Do -
-func (td *TezosDomain) Do(model elastic.Model) (bool, error) {
+func (td *TezosDomain) Do(model models.Model) (bool, error) {
 	bmd, handler := td.getBigMapDiff(model)
 	if bmd == nil {
 		return false, nil
@@ -54,11 +56,11 @@ func (td *TezosDomain) Do(model elastic.Model) (bool, error) {
 	return false, nil
 }
 
-func (td *TezosDomain) getBigMapDiff(model elastic.Model) (*models.BigMapDiff, string) {
+func (td *TezosDomain) getBigMapDiff(model models.Model) (*bigmapdiff.BigMapDiff, string) {
 	if len(td.contracts) == 0 {
 		return nil, ""
 	}
-	bmd, ok := model.(*models.BigMapDiff)
+	bmd, ok := model.(*bigmapdiff.BigMapDiff)
 	if !ok {
 		return nil, ""
 	}
@@ -99,7 +101,7 @@ func (td *TezosDomain) getMetadata(address elastic.Address, protocol string) (me
 	return metadata, nil
 }
 
-func (td *TezosDomain) updateRecordsTZIP(bmd *models.BigMapDiff) error {
+func (td *TezosDomain) updateRecordsTZIP(bmd *bigmapdiff.BigMapDiff) error {
 	if len(bmd.KeyStrings) == 0 || len(bmd.ValueStrings) == 0 {
 		return errors.Errorf("Invalid tezos domains big map diff: %s", bmd.GetID())
 	}
@@ -107,7 +109,7 @@ func (td *TezosDomain) updateRecordsTZIP(bmd *models.BigMapDiff) error {
 	if err != nil {
 		return err
 	}
-	tezosDomain := models.TezosDomain{
+	tezosDomain := tezosdomain.TezosDomain{
 		Network:   bmd.Network,
 		Name:      bmd.KeyStrings[0],
 		Level:     bmd.Level,
@@ -119,13 +121,13 @@ func (td *TezosDomain) updateRecordsTZIP(bmd *models.BigMapDiff) error {
 	return td.es.UpdateFields(elastic.DocTezosDomains, tezosDomain.GetID(), tezosDomain, "Name", "Address", "Network", "Level", "Timestamp")
 }
 
-func (td *TezosDomain) updateExpirationDate(bmd *models.BigMapDiff) error {
+func (td *TezosDomain) updateExpirationDate(bmd *bigmapdiff.BigMapDiff) error {
 	if len(bmd.KeyStrings) == 0 {
 		return errors.Errorf("Invalid tezos domains big map diff: %s", bmd.GetID())
 	}
 	ts := gjson.Parse(bmd.Value).Get("int").Int()
 	date := time.Unix(ts, 0).UTC()
-	tezosDomain := models.TezosDomain{
+	tezosDomain := tezosdomain.TezosDomain{
 		Name:       bmd.KeyStrings[0],
 		Network:    bmd.Network,
 		Expiration: date,

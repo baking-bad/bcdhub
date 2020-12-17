@@ -1,12 +1,9 @@
 package metrics
 
-import (
-	"github.com/baking-bad/bcdhub/internal/elastic"
-	"github.com/baking-bad/bcdhub/internal/models"
-)
+import "github.com/baking-bad/bcdhub/internal/models/transfer"
 
 // SetTransferAliases -
-func (h *Handler) SetTransferAliases(transfer *models.Transfer) (bool, error) {
+func (h *Handler) SetTransferAliases(aliases map[string]string, transfer *transfer.Transfer) bool {
 	var changed bool
 
 	aliases, err := h.ES.GetAliasesMap(transfer.Network)

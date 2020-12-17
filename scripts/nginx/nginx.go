@@ -8,7 +8,6 @@ import (
 	"text/template"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
@@ -57,7 +56,7 @@ const locationTemplate = `
 		sub_filter_once on;
 	}`
 
-func makeNginxConfig(dapps []tzip.DApp, aliases []models.TZIP, filepath, baseURL string) error {
+func makeNginxConfig(dapps []tzip.DApp, aliases []tzip.TZIP, filepath, baseURL string) error {
 	var locations strings.Builder
 	tmpl := template.Must(template.New("").Parse(locationTemplate))
 

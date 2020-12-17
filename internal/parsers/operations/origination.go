@@ -3,9 +3,9 @@ package operations
 import (
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/tidwall/gjson"
 )
 
@@ -20,8 +20,8 @@ func NewOrigination(params *ParseParams) Origination {
 }
 
 // Parse -
-func (p Origination) Parse(data gjson.Result) ([]elastic.Model, error) {
-	origination := models.Operation{
+func (p Origination) Parse(data gjson.Result) ([]models.Model, error) {
+	origination := operation.Operation{
 		ID:            helpers.GenerateID(),
 		Network:       p.network,
 		Hash:          p.hash,
@@ -60,7 +60,7 @@ func (p Origination) Parse(data gjson.Result) ([]elastic.Model, error) {
 
 	origination.SetBurned(p.constants)
 
-	originationModels := []elastic.Model{&origination}
+	originationModels := []models.Model{&origination}
 
 	for i := range operationMetadata.BalanceUpdates {
 		originationModels = append(originationModels, operationMetadata.BalanceUpdates[i])
@@ -78,12 +78,12 @@ func (p Origination) Parse(data gjson.Result) ([]elastic.Model, error) {
 	return originationModels, nil
 }
 
-func (p Origination) appliedHandler(item gjson.Result, origination *models.Operation) ([]elastic.Model, error) {
+func (p Origination) appliedHandler(item gjson.Result, origination *operation.Operation) ([]models.Model, error) {
 	if !helpers.IsContract(origination.Destination) || !origination.IsApplied() {
 		return nil, nil
 	}
 
-	models := make([]elastic.Model, 0)
+	models := make([]models.Model, 0)
 
 	contractModels, err := p.contractParser.Parse(*origination)
 	if err != nil {
@@ -111,7 +111,7 @@ func (p Origination) appliedHandler(item gjson.Result, origination *models.Opera
 	return models, nil
 }
 
-func (p Origination) fillInternal(tx *models.Operation) {
+func (p Origination) fillInternal(tx *operation.Operation) {
 	if p.main == nil {
 		return
 	}

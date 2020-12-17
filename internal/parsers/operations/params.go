@@ -6,7 +6,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/contract"
 	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
@@ -20,7 +21,7 @@ type ParseParams struct {
 	shareDir string
 
 	interfaces map[string]kinds.ContractKind
-	constants  models.Constants
+	constants  protocol.Constants
 
 	contractParser *contract.Parser
 	transferParser *transfer.Parser
@@ -35,7 +36,7 @@ type ParseParams struct {
 	hash       string
 	head       noderpc.Header
 	contentIdx int64
-	main       *models.Operation
+	main       *operation.Operation
 
 	once *sync.Once
 }
@@ -51,7 +52,7 @@ func WithIPFSGateways(ipfs []string) ParseParamsOption {
 }
 
 // WithConstants -
-func WithConstants(constants models.Constants) ParseParamsOption {
+func WithConstants(constants protocol.Constants) ParseParamsOption {
 	return func(dp *ParseParams) {
 		dp.constants = constants
 	}
@@ -100,7 +101,7 @@ func WithContentIndex(index int64) ParseParamsOption {
 }
 
 // WithMainOperation -
-func WithMainOperation(main *models.Operation) ParseParamsOption {
+func WithMainOperation(main *operation.Operation) ParseParamsOption {
 	return func(dp *ParseParams) {
 		dp.main = main
 	}

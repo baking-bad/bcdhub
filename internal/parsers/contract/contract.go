@@ -5,10 +5,11 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/pkg/errors"
 )
 
@@ -51,13 +52,13 @@ func WithShareDirContractParser(dir string) ParserOption {
 }
 
 // Parse -
-func (p *Parser) Parse(operation models.Operation) ([]elastic.Model, error) {
+func (p *Parser) Parse(operation operation.Operation) ([]models.Model, error) {
 	if !helpers.StringInArray(operation.Kind, []string{
 		consts.Origination, consts.OriginationNew, consts.Migration,
 	}) {
 		return nil, errors.Errorf("Invalid operation kind in computeContractMetrics: %s", operation.Kind)
 	}
-	contract := models.Contract{
+	contract := contract.Contract{
 		Network:    operation.Network,
 		Level:      operation.Level,
 		Timestamp:  operation.Timestamp,
@@ -76,16 +77,16 @@ func (p *Parser) Parse(operation models.Operation) ([]elastic.Model, error) {
 		return nil, err
 	}
 
-	metadata, err := NewMetadataParser(protoSymLink).Parse(operation.Script, contract.Address)
+	schema, err := NewSchemaParser(protoSymLink).Parse(operation.Script, contract.Address)
 	if err != nil {
 		return nil, err
 	}
 
-	contractMetadata, err := meta.GetContractMetadataFromModel(metadata)
+	contractMetadata, err := meta.GetContractMetadataFromModel(schema)
 	if err != nil {
 		return nil, err
 	}
-	p.metadata[metadata.ID] = contractMetadata
+	p.metadata[schema.ID] = contractMetadata
 
 	if contractMetadata.IsUpgradable(protoSymLink) {
 		contract.Tags = append(contract.Tags, consts.UpgradableTag)
@@ -95,7 +96,7 @@ func (p *Parser) Parse(operation models.Operation) ([]elastic.Model, error) {
 		return nil, err
 	}
 
-	return []elastic.Model{&metadata, &contract}, nil
+	return []models.Model{&schema, &contract}, nil
 }
 
 // GetContractMetadata -
@@ -107,7 +108,7 @@ func (p *Parser) GetContractMetadata(address string) (*meta.ContractMetadata, er
 	return metadata, nil
 }
 
-func (p *Parser) computeMetrics(operation models.Operation, protoSymLink string, contract *models.Contract) error {
+func (p *Parser) computeMetrics(operation operation.Operation, protoSymLink string, contract *contract.Contract) error {
 	script, err := contractparser.New(operation.Script)
 	if err != nil {
 		return errors.Errorf("contractparser.New: %v", err)
@@ -139,7 +140,7 @@ func (p *Parser) computeMetrics(operation models.Operation, protoSymLink string,
 	return nil
 }
 
-func setEntrypoints(metadata *meta.ContractMetadata, symLink string, contract *models.Contract) error {
+func setEntrypoints(metadata *meta.ContractMetadata, symLink string, contract *contract.Contract) error {
 	entrypoints, err := metadata.Parameter[symLink].GetEntrypoints()
 	if err != nil {
 		return err

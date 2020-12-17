@@ -5,9 +5,11 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	mock_elastic "github.com/baking-bad/bcdhub/internal/elastic/mock"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -26,7 +28,7 @@ func TestRichStorage_Parse(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		operation *models.Operation
+		operation *operation.Operation
 		filename  string
 		sourcePtr int64
 		want      storage.RichStorage
@@ -34,7 +36,7 @@ func TestRichStorage_Parse(t *testing.T) {
 	}{
 		{
 			name: "test 1",
-			operation: &models.Operation{
+			operation: &operation.Operation{
 				ID:          "operation_id",
 				Level:       1151463,
 				Destination: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
@@ -45,8 +47,8 @@ func TestRichStorage_Parse(t *testing.T) {
 			},
 			filename: "./data/rich_storage/test1.json",
 			want: storage.RichStorage{
-				Models: []elastic.Model{
-					&models.BigMapDiff{
+				Models: []models.Model{
+					&bigmapdiff.BigMapDiff{
 						Ptr:     31,
 						KeyHash: "exprunzteC5uyXRHbKnqJd3hUMGTWE9Gv5EtovDZHnuqu6SaGViV3N",
 						Key: map[string]interface{}{
@@ -60,7 +62,7 @@ func TestRichStorage_Parse(t *testing.T) {
 						Network:     "mainnet",
 						Timestamp:   timestamp,
 						Protocol:    "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
-					}, &models.BigMapDiff{
+					}, &bigmapdiff.BigMapDiff{
 						Ptr:     31,
 						KeyHash: "exprtzVE8dHF7nePZxF6PSRf3yhfecTEKavyCZpndJGN2hz6PzQkFi",
 						Key: map[string]interface{}{
@@ -74,7 +76,7 @@ func TestRichStorage_Parse(t *testing.T) {
 						Network:     "mainnet",
 						Timestamp:   timestamp,
 						Protocol:    "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
-					}, &models.BigMapDiff{
+					}, &bigmapdiff.BigMapDiff{
 						Ptr:     31,
 						KeyHash: "expruyvqmgBYpF54i1c4p6r3oVV7FmW7ZH8EyjSjahKoQEfWPmcjGg",
 						Key: map[string]interface{}{
@@ -93,7 +95,7 @@ func TestRichStorage_Parse(t *testing.T) {
 			},
 		}, {
 			name: "test 2",
-			operation: &models.Operation{
+			operation: &operation.Operation{
 				ID:          "operation_id",
 				Level:       359942,
 				Destination: "KT1Xk1XJD2M8GYFUXRN12oMvDAysECDWwGdS",
@@ -105,8 +107,8 @@ func TestRichStorage_Parse(t *testing.T) {
 			sourcePtr: 1055,
 			filename:  "./data/rich_storage/test2.json",
 			want: storage.RichStorage{
-				Models: []elastic.Model{
-					&models.BigMapAction{
+				Models: []models.Model{
+					&bigmapaction.BigMapAction{
 						Action:         "copy",
 						SourcePtr:      setInt64(1055),
 						DestinationPtr: setInt64(1509),
@@ -138,7 +140,7 @@ func TestRichStorage_Parse(t *testing.T) {
 			es.
 				EXPECT().
 				GetBigMapDiffsByPtr(tt.operation.Destination, tt.operation.Network, tt.sourcePtr).
-				Return([]models.BigMapDiff{}, nil).
+				Return([]bigmapdiff.BigMapDiff{}, nil).
 				AnyTimes()
 
 			metadata, err := readTestMetadata(tt.operation.Destination)

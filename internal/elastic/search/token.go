@@ -1,10 +1,9 @@
 package search
 
 import (
-	"encoding/json"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
 // TokenResponse -
@@ -48,7 +47,7 @@ func (t Token) GetFields() []string {
 
 // Parse  -
 func (t Token) Parse(highlight map[string][]string, data []byte) (interface{}, error) {
-	var token models.TZIP
+	var token tzip.TZIP
 	if err := json.Unmarshal(data, &token); err != nil {
 		return nil, err
 	}

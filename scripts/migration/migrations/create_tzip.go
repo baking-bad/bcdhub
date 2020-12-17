@@ -5,7 +5,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/parsers/tzip"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
+	tzipParsers "github.com/baking-bad/bcdhub/internal/parsers/tzip"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -24,21 +26,21 @@ func (m *CreateTZIP) Description() string {
 
 // Do - migrate function
 func (m *CreateTZIP) Do(ctx *config.Context) error {
-	bmd, err := ctx.ES.GetBigMapValuesByKey(tzip.EmptyStringKey)
+	bmd, err := ctx.ES.GetBigMapValuesByKey(tzipParsers.EmptyStringKey)
 	if err != nil {
 		return err
 	}
 
 	logger.Info("Found %d big maps with empty key", len(bmd))
 
-	data := make([]elastic.Model, 0)
+	data := make([]models.Model, 0)
 	bar := progressbar.NewOptions(len(bmd), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish(), progressbar.OptionShowCount())
 	for i := range bmd {
 		if err := bar.Add(1); err != nil {
 			return err
 		}
 
-		check := models.TZIP{
+		check := tzip.TZIP{
 			Address: bmd[i].Address,
 			Network: bmd[i].Network,
 		}
@@ -54,12 +56,12 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 		if err != nil {
 			return err
 		}
-		parser := tzip.NewParser(ctx.ES, rpc, tzip.ParserConfig{
+		parser := tzipParsers.NewParser(ctx.ES, rpc, tzipParsers.ParserConfig{
 			IPFSGateways: ctx.Config.IPFSGateways,
 		})
 
-		t, err := parser.Parse(tzip.ParseContext{
-			BigMapDiff: models.BigMapDiff{
+		t, err := parser.Parse(tzipParsers.ParseContext{
+			BigMapDiff: bigmapdiff.BigMapDiff{
 				Address:  bmd[i].Address,
 				Network:  bmd[i].Network,
 				Ptr:      bmd[i].Ptr,

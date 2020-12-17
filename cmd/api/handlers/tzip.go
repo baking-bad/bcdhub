@@ -16,7 +16,7 @@ import (
 // @Param address path string true "KT or tz address" minlength(36) maxlength(36)
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} models.TZIP
+// @Success 200 {object} tzip.TZIP
 // @Success 204 {object} gin.H
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
@@ -26,7 +26,7 @@ func (ctx *Context) GetMetadata(c *gin.Context) {
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-	tzip, err := ctx.ES.GetTZIP(req.Network, req.Address)
+	tzip, err := ctx.TZIP.Get(req.Network, req.Address)
 	if err != nil {
 		if elastic.IsRecordNotFound(err) {
 			c.JSON(http.StatusNoContent, gin.H{})

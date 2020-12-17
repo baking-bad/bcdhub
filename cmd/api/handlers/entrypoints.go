@@ -7,7 +7,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/docstring"
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/jsonschema"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -31,7 +30,7 @@ func (ctx *Context) GetEntrypoints(c *gin.Context) {
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-	metadata, err := getParameterMetadata(ctx.ES, req.Address, req.Network)
+	metadata, err := ctx.getParameterMetadata(req.Address, req.Network)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -123,7 +122,7 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 		return
 	}
 
-	metadata, err := getParameterMetadata(ctx.ES, req.Address, req.Network)
+	metadata, err := ctx.getParameterMetadata(req.Address, req.Network)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -148,7 +147,7 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 			continue
 		}
 
-		op, err := ctx.ES.GetOperations(
+		op, err := ctx.Operations.Get(
 			map[string]interface{}{
 				"network":     req.Network,
 				"destination": req.Address,
@@ -178,7 +177,7 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 }
 
 func (ctx *Context) buildEntrypointMicheline(network, address, binPath string, data map[string]interface{}, needValidate bool) (gjson.Result, error) {
-	metadata, err := getParameterMetadata(ctx.ES, address, network)
+	metadata, err := ctx.getParameterMetadata(address, network)
 	if err != nil {
 		return gjson.Result{}, err
 	}
@@ -186,13 +185,13 @@ func (ctx *Context) buildEntrypointMicheline(network, address, binPath string, d
 	return metadata.BuildEntrypointMicheline(binPath, data, needValidate)
 }
 
-func getParameterMetadata(es elastic.IElastic, address, network string) (meta.Metadata, error) {
-	state, err := es.GetLastBlock(network)
+func (ctx *Context) getParameterMetadata(address, network string) (meta.Metadata, error) {
+	state, err := ctx.Blocks.GetLastBlock(network)
 	if err != nil {
 		return nil, err
 	}
 
-	metadata, err := meta.GetMetadata(es, address, consts.PARAMETER, state.Protocol)
+	metadata, err := meta.GetMetadata(ctx.Schema, address, consts.PARAMETER, state.Protocol)
 	if err != nil {
 		return nil, err
 	}
@@ -200,13 +199,13 @@ func getParameterMetadata(es elastic.IElastic, address, network string) (meta.Me
 	return metadata, nil
 }
 
-func getStorageMetadata(es elastic.IElastic, address, network string) (meta.Metadata, error) {
-	state, err := es.GetLastBlock(network)
+func (ctx *Context) getStorageMetadata(address, network string) (meta.Metadata, error) {
+	state, err := ctx.Blocks.GetLastBlock(network)
 	if err != nil {
 		return nil, err
 	}
 
-	metadata, err := meta.GetMetadata(es, address, consts.STORAGE, state.Protocol)
+	metadata, err := meta.GetMetadata(ctx.Schema, address, consts.STORAGE, state.Protocol)
 	if err != nil {
 		return nil, err
 	}
