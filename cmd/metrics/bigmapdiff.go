@@ -17,7 +17,7 @@ func getBigMapDiff(ids []string) error {
 	bigMapDiffHandlersInit.Do(initHandlers)
 
 	bmd := make([]bigmapdiff.BigMapDiff, 0)
-	if err := ctx.ES.GetByIDs(&bmd, ids...); err != nil {
+	if err := ctx.Storage.GetByIDs(&bmd, ids...); err != nil {
 		return errors.Errorf("[getBigMapDiff] Find big map diff error for IDs %v: %s", ids, err)
 	}
 
@@ -29,7 +29,7 @@ func getBigMapDiff(ids []string) error {
 			return errors.Errorf("[getBigMapDiff] Compute error message: %s", err)
 		}
 	}
-	if err := ctx.ES.BulkUpdate(r.Updated); err != nil {
+	if err := ctx.Bulk.Update(r.Updated); err != nil {
 		return err
 	}
 	return nil

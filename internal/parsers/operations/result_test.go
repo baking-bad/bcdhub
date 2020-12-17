@@ -3,6 +3,8 @@ package operations
 import (
 	"reflect"
 	"testing"
+
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 )
 
 func TestResult_Parse(t *testing.T) {
@@ -10,13 +12,13 @@ func TestResult_Parse(t *testing.T) {
 		name     string
 		root     string
 		fileName string
-		want     operation.OperationResult
+		want     operation.Result
 	}{
 		{
 			name:     "test 1",
 			root:     "",
 			fileName: "./data/result/test1.json",
-			want: operation.OperationResult{
+			want: operation.Result{
 				Status:      "applied",
 				ConsumedGas: 10207,
 			},
@@ -24,7 +26,7 @@ func TestResult_Parse(t *testing.T) {
 			name:     "test 2",
 			root:     "operation_result",
 			fileName: "./data/result/test2.json",
-			want: operation.OperationResult{
+			want: operation.Result{
 				Status:      "applied",
 				ConsumedGas: 10207,
 			},

@@ -6,7 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -123,7 +123,7 @@ func (p Transaction) appliedHandler(item gjson.Result, op *operation.Operation) 
 		return nil, nil
 	}
 
-	metadata, err := meta.GetContractMetadata(p.es, op.Destination)
+	metadata, err := meta.GetContractMetadata(p.Schema, op.Destination)
 	if err != nil {
 		if strings.Contains(err.Error(), "404 Not Found") {
 			return nil, nil
@@ -182,8 +182,8 @@ func (p Transaction) tagTransaction(tx *operation.Operation) error {
 	}
 
 	contract := contract.NewEmptyContract(tx.Network, tx.Destination)
-	if err := p.es.GetByID(&contract); err != nil {
-		if elastic.IsRecordNotFound(err) {
+	if err := p.Storage.GetByID(&contract); err != nil {
+		if core.IsRecordNotFound(err) {
 			return nil
 		}
 		return err

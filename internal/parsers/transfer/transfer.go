@@ -2,11 +2,12 @@ package transfer
 
 import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -16,8 +17,9 @@ import (
 
 // Parser -
 type Parser struct {
+	Schema schema.Repository
+
 	rpc        noderpc.INode
-	es         elastic.IElastic
 	events     TokenEvents
 	stackTrace *stacktrace.StackTrace
 
@@ -29,10 +31,10 @@ type Parser struct {
 }
 
 // NewParser -
-func NewParser(rpc noderpc.INode, es elastic.IElastic, opts ...ParserOption) (*Parser, error) {
+func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Repository, schemaRepo schema.Repository, opts ...ParserOption) (*Parser, error) {
 	tp := &Parser{
-		rpc: rpc,
-		es:  es,
+		rpc:    rpc,
+		Schema: schemaRepo,
 	}
 
 	for i := range opts {
@@ -44,7 +46,7 @@ func NewParser(rpc noderpc.INode, es elastic.IElastic, opts ...ParserOption) (*P
 	}
 
 	if !tp.withoutViews {
-		tokenEvents, err := NewTokenEvents(es)
+		tokenEvents, err := NewTokenEvents(tzipRepo)
 		if err != nil {
 			return nil, err
 		}
@@ -54,7 +56,7 @@ func NewParser(rpc noderpc.INode, es elastic.IElastic, opts ...ParserOption) (*P
 	}
 
 	if tp.network != "" && tp.chainID == "" {
-		state, err := es.GetLastBlock(tp.network)
+		state, err := blocks.GetLastBlock(tp.network)
 		if err != nil {
 			return nil, err
 		}
@@ -112,7 +114,7 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 				bmd = append(bmd, *model)
 			}
 		}
-		event, err = events.NewMichelsonExtendedStorage(impl, name, operation.Protocol, operation.GetID(), operation.Destination, p.es, bmd)
+		event, err = events.NewMichelsonExtendedStorage(impl, name, operation.Protocol, operation.GetID(), operation.Destination, p.Schema, bmd)
 	default:
 		return nil, nil
 	}

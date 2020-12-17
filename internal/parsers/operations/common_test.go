@@ -37,7 +37,7 @@ func Test_parseMetadata(t *testing.T) {
 						Nonce:         nil,
 					},
 				},
-				Result: operation.OperationResult{
+				Result: operation.Result{
 					Status:      "applied",
 					ConsumedGas: 10207,
 				},
@@ -47,7 +47,7 @@ func Test_parseMetadata(t *testing.T) {
 			fileName: "./data/operation_metadata/test2.json",
 			want: &Metadata{
 				BalanceUpdates: []*balanceupdate.BalanceUpdate{},
-				Result: operation.OperationResult{
+				Result: operation.Result{
 					Status:      "backtracked",
 					ConsumedGas: 96591,
 					StorageSize: 196,

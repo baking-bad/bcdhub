@@ -5,14 +5,16 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser"
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/block"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
+	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
@@ -21,16 +23,21 @@ import (
 
 // Manager -
 type Manager struct {
-	e            elastic.IElastic
-	messageQueue mq.IMessagePublisher
-	rpc          noderpc.INode
-	sharePath    string
+	storage       models.GeneralRepository
+	bulk          models.BulkRepository
+	contractsRepo contract.Repository
+	transfersRepo transfer.Repository
+	tbRepo        tokenbalance.Repository
+	protocolsRepo protocol.Repository
+	messageQueue  mq.IMessagePublisher
+	rpc           noderpc.INode
+	sharePath     string
 }
 
 // NewManager -
-func NewManager(e elastic.IElastic, messageQueue mq.IMessagePublisher, rpc noderpc.INode, sharePath string) Manager {
+func NewManager(storage models.GeneralRepository, bulk models.BulkRepository, contractsRepo contract.Repository, transfersRepo transfer.Repository, tbRepo tokenbalance.Repository, protocolsRepo protocol.Repository, messageQueue mq.IMessagePublisher, rpc noderpc.INode, sharePath string) Manager {
 	return Manager{
-		e, messageQueue, rpc, sharePath,
+		storage, bulk, contractsRepo, transfersRepo, tbRepo, protocolsRepo, messageQueue, rpc, sharePath,
 	}
 }
 
@@ -70,7 +77,7 @@ func (rm Manager) Rollback(fromState block.Block, toLevel int64) error {
 }
 
 func (rm Manager) rollbackTokenBalances(network string, toLevel int64) error {
-	transfers, err := rm.e.GetAllTransfers(network, toLevel)
+	transfers, err := rm.transfersRepo.GetAll(network, toLevel)
 	if err != nil {
 		return err
 	}
@@ -103,17 +110,17 @@ func (rm Manager) rollbackTokenBalances(network string, toLevel int64) error {
 		}
 	}
 
-	return rm.e.UpdateTokenBalances(updates)
+	return rm.tbRepo.UpdateTokenBalances(updates)
 }
 
 func (rm Manager) rollbackBlocks(network string, toLevel int64) error {
 	logger.Info("Deleting blocks...")
-	return rm.e.DeleteByLevelAndNetwork([]string{elastic.DocBlocks}, network, toLevel)
+	return rm.storage.DeleteByLevelAndNetwork([]string{consts.DocBlocks}, network, toLevel)
 }
 
 func (rm Manager) rollbackOperations(network string, toLevel int64) error {
 	logger.Info("Deleting operations, migrations, transfers and big map diffs...")
-	return rm.e.DeleteByLevelAndNetwork([]string{elastic.DocBigMapDiff, elastic.DocBigMapActions, elastic.DocTZIP, elastic.DocMigrations, elastic.DocOperations, elastic.DocTransfers}, network, toLevel)
+	return rm.storage.DeleteByLevelAndNetwork([]string{consts.DocBigMapDiff, consts.DocBigMapActions, consts.DocTZIP, consts.DocMigrations, consts.DocOperations, consts.DocTransfers}, network, toLevel)
 }
 
 func (rm Manager) rollbackContracts(fromState block.Block, toLevel int64) error {
@@ -128,16 +135,16 @@ func (rm Manager) rollbackContracts(fromState block.Block, toLevel int64) error 
 	if toLevel == 0 {
 		toLevel = -1
 	}
-	return rm.e.DeleteByLevelAndNetwork([]string{elastic.DocContracts}, fromState.Network, toLevel)
+	return rm.storage.DeleteByLevelAndNetwork([]string{consts.DocContracts}, fromState.Network, toLevel)
 }
 
 func (rm Manager) getAffectedContracts(network string, fromLevel, toLevel int64) ([]string, error) {
-	addresses, err := rm.e.GetAffectedContracts(network, fromLevel, toLevel)
+	addresses, err := rm.contractsRepo.GetByLevels(network, fromLevel, toLevel)
 	if err != nil {
 		return nil, err
 	}
 
-	return rm.e.GetContractsIDByAddress(addresses, network)
+	return rm.contractsRepo.GetIDsByAddresses(addresses, network)
 }
 
 func (rm Manager) getProtocolByLevel(protocols []protocol.Protocol, level int64) (protocol.Protocol, error) {
@@ -154,7 +161,7 @@ func (rm Manager) getProtocolByLevel(protocols []protocol.Protocol, level int64)
 
 func (rm Manager) removeMetadata(fromState block.Block, toLevel int64) error {
 	logger.Info("Preparing metadata for removing...")
-	addresses, err := rm.e.GetContractAddressesByNetworkAndLevel(fromState.Network, toLevel)
+	addresses, err := rm.contractsRepo.GetAddressesByNetworkAndLevel(fromState.Network, toLevel)
 	if err != nil {
 		return err
 	}
@@ -180,7 +187,7 @@ func (rm Manager) removeContractsMetadata(network string, addresses []string, pr
 
 	logger.Info("Removing metadata...")
 	if len(bulkDeleteMetadata) > 0 {
-		if err := rm.e.BulkDelete(bulkDeleteMetadata); err != nil {
+		if err := rm.bulk.Delete(bulkDeleteMetadata); err != nil {
 			return err
 		}
 	}
@@ -190,7 +197,7 @@ func (rm Manager) removeContractsMetadata(network string, addresses []string, pr
 func (rm Manager) updateMetadata(network string, fromLevel, toLevel int64) error {
 	logger.Info("Preparing metadata for updating...")
 	var protocols []protocol.Protocol
-	if err := rm.e.GetByNetworkWithSort(network, "start_level", "desc", &protocols); err != nil {
+	if err := rm.storage.GetByNetworkWithSort(network, "start_level", "desc", &protocols); err != nil {
 		return err
 	}
 	rollbackProtocol, err := rm.getProtocolByLevel(protocols, toLevel)
@@ -208,7 +215,7 @@ func (rm Manager) updateMetadata(network string, fromLevel, toLevel int64) error
 	}
 
 	logger.Info("Rollback to %s from %s", rollbackProtocol.Hash, currentProtocol.Hash)
-	deadSymLinks, err := rm.e.GetSymLinks(network, toLevel)
+	deadSymLinks, err := rm.protocolsRepo.GetSymLinks(network, toLevel)
 	if err != nil {
 		return err
 	}
@@ -217,7 +224,7 @@ func (rm Manager) updateMetadata(network string, fromLevel, toLevel int64) error
 
 	logger.Info("Getting all metadata...")
 	var metadata []schema.Schema
-	if err := rm.e.GetAll(&metadata); err != nil {
+	if err := rm.storage.GetAll(&metadata); err != nil {
 		return err
 	}
 
@@ -233,11 +240,11 @@ func (rm Manager) updateMetadata(network string, fromLevel, toLevel int64) error
 				start := i * 1000
 				end := helpers.MinInt((i+1)*1000, len(bulkUpdateMetadata))
 				parameterScript := fmt.Sprintf("ctx._source.parameter.remove('%s')", symLink)
-				if err := rm.e.BulkRemoveField(parameterScript, bulkUpdateMetadata[start:end]); err != nil {
+				if err := rm.bulk.RemoveField(parameterScript, bulkUpdateMetadata[start:end]); err != nil {
 					return err
 				}
 				storageScript := fmt.Sprintf("ctx._source.storage.remove('%s')", symLink)
-				if err := rm.e.BulkRemoveField(storageScript, bulkUpdateMetadata[start:end]); err != nil {
+				if err := rm.bulk.RemoveField(storageScript, bulkUpdateMetadata[start:end]); err != nil {
 					return err
 				}
 			}

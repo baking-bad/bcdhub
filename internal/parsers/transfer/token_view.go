@@ -1,7 +1,7 @@
 package transfer
 
 import (
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
@@ -19,11 +19,11 @@ type ImplementationKey struct {
 type TokenEvents map[ImplementationKey]tzip.EventImplementation
 
 // NewTokenEvents -
-func NewTokenEvents(tzipStorage elastic.ITZIP) (TokenEvents, error) {
+func NewTokenEvents(repo tzip.Repository) (TokenEvents, error) {
 	views := make(TokenEvents)
-	tokens, err := tzipStorage.GetTZIPWithEvents()
+	tokens, err := repo.GetWithEvents()
 	if err != nil {
-		if elastic.IsRecordNotFound(err) {
+		if core.IsRecordNotFound(err) {
 			return views, nil
 		}
 		return nil, err
@@ -62,11 +62,11 @@ func NewTokenEvents(tzipStorage elastic.ITZIP) (TokenEvents, error) {
 }
 
 // NewInitialStorageEvents -
-func NewInitialStorageEvents(es elastic.IElastic) (TokenEvents, error) {
+func NewInitialStorageEvents(repo tzip.Repository) (TokenEvents, error) {
 	views := make(TokenEvents)
-	tokens, err := es.GetTZIPWithEvents()
+	tokens, err := repo.GetWithEvents()
 	if err != nil {
-		if elastic.IsRecordNotFound(err) {
+		if core.IsRecordNotFound(err) {
 			return views, nil
 		}
 		return nil, err
