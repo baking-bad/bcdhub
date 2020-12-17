@@ -28,6 +28,7 @@ var migrationsList = []migrations.Migration{
 	&migrations.FillTZIP{},
 	&migrations.InitialStorageEvents{},
 	&migrations.ExtendedStorageEvents{},
+	&migrations.ParameterEvents{},
 }
 
 func main() {

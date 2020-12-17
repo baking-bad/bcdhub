@@ -14,21 +14,21 @@ import (
 	"github.com/baking-bad/bcdhub/internal/parsers/transfer"
 )
 
-// ExtendedStorageEvents -
-type ExtendedStorageEvents struct{}
+// ParameterEvents -
+type ParameterEvents struct{}
 
 // Key -
-func (m *ExtendedStorageEvents) Key() string {
-	return "execute_extended_storage"
+func (m *ParameterEvents) Key() string {
+	return "execute_parameter_events"
 }
 
 // Description -
-func (m *ExtendedStorageEvents) Description() string {
-	return "execute all extended storages"
+func (m *ParameterEvents) Description() string {
+	return "execute all parameter events"
 }
 
 // Do - migrate function
-func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
+func (m *ParameterEvents) Do(ctx *config.Context) error {
 	tzips, err := ctx.ES.GetTZIPWithEvents()
 	if err != nil {
 		return err
@@ -42,7 +42,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 	for i := range tzips {
 		for _, event := range tzips[i].Events {
 			for _, impl := range event.Implementations {
-				if impl.MichelsonExtendedStorageEvent.Empty() {
+				if impl.MichelsonParameterEvent.Empty() {
 					continue
 				}
 				logger.Info("Execution event for %s...", tzips[i].Address)
@@ -75,17 +75,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 				}
 
 				for _, op := range operations {
-					bmd, err := ctx.ES.GetBigMapDiffsByOperationID(op.ID)
-					if err != nil {
-						if !elastic.IsRecordNotFound(err) {
-							return err
-						}
-					}
-					opModels := make([]elastic.Model, len(bmd))
-					for j := range bmd {
-						opModels[j] = bmd[j]
-					}
-					transfers, err := parser.Parse(op, opModels)
+					transfers, err := parser.Parse(op, nil)
 					if err != nil {
 						if errors.Is(err, events.ErrNodeReturn) {
 							logger.Error(err)
@@ -109,16 +99,16 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 	return elastic.CreateTokenBalanceUpdates(ctx.ES, newTransfers)
 }
 
-func (m *ExtendedStorageEvents) getOperations(ctx *config.Context, tzip models.TZIP, impl tzip.EventImplementation) ([]models.Operation, error) {
+func (m *ParameterEvents) getOperations(ctx *config.Context, tzip models.TZIP, impl tzip.EventImplementation) ([]models.Operation, error) {
 	operations := make([]models.Operation, 0)
 
-	for i := range impl.MichelsonExtendedStorageEvent.Entrypoints {
+	for i := range impl.MichelsonParameterEvent.Entrypoints {
 		ops, err := ctx.ES.GetOperations(map[string]interface{}{
 			"network":     tzip.Network,
 			"destination": tzip.Address,
 			"kind":        consts.Transaction,
 			"status":      consts.Applied,
-			"entrypoint":  impl.MichelsonExtendedStorageEvent.Entrypoints[i],
+			"entrypoint":  impl.MichelsonParameterEvent.Entrypoints[i],
 		}, 0, false)
 		if err != nil {
 			return nil, err

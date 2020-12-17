@@ -87,9 +87,6 @@ func checkResponseError(response gjson.Result) error {
 	}
 
 	var builder strings.Builder
-	if _, err := builder.WriteString("Node return error:\n"); err != nil {
-		return err
-	}
 	for i, item := range response.Array() {
 		if i > 0 {
 			if err := builder.WriteByte('\n'); err != nil {
@@ -100,5 +97,5 @@ func checkResponseError(response gjson.Result) error {
 			return err
 		}
 	}
-	return errors.Errorf(builder.String())
+	return errors.Wrap(ErrNodeReturn, builder.String())
 }
