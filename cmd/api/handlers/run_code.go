@@ -10,7 +10,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/operations"
 	"github.com/gin-gonic/gin"
@@ -34,7 +35,7 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		return
 	}
 
-	state, err := ctx.ES.GetLastBlock(req.Network)
+	state, err := ctx.Blocks.GetLastBlock(req.Network)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -54,7 +55,7 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		return
 	}
 
-	protocol, err := ctx.ES.GetProtocol(req.Network, "", -1)
+	protocol, err := ctx.Protocols.GetProtocol(req.Network, "", -1)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -99,27 +100,27 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		return
 	}
 
-	operations := make([]*models.Operation, 0)
-	diffs := make([]*models.BigMapDiff, 0)
+	operations := make([]*operation.Operation, 0)
+	diffs := make([]*bigmapdiff.BigMapDiff, 0)
 
 	for i := range parsedModels {
 		switch val := parsedModels[i].(type) {
-		case *models.Operation:
+		case *operation.Operation:
 			operations = append(operations, val)
-		case *models.BigMapDiff:
+		case *bigmapdiff.BigMapDiff:
 			diffs = append(diffs, val)
 		}
 	}
 
 	resp := make([]Operation, len(operations))
 	for i := range operations {
-		bmd := make([]models.BigMapDiff, 0)
+		bmd := make([]bigmapdiff.BigMapDiff, 0)
 		for j := range diffs {
 			if diffs[j].OperationID == operations[i].ID {
 				bmd = append(bmd, *diffs[j])
 			}
 		}
-		op, err := prepareOperation(ctx.ES, *operations[i], bmd, true)
+		op, err := prepareOperation(ctx.BigMapDiffs, ctx.Schema, ctx.Operations, *operations[i], bmd, true)
 		if handleError(c, err, 0) {
 			return
 		}
@@ -163,7 +164,7 @@ func (ctx *Context) RunCode(c *gin.Context) {
 		return
 	}
 
-	state, err := ctx.ES.GetLastBlock(req.Network)
+	state, err := ctx.Blocks.GetLastBlock(req.Network)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -210,7 +211,7 @@ func (ctx *Context) RunCode(c *gin.Context) {
 		Entrypoint:  entrypoint,
 	}
 
-	if err := setParameters(ctx.ES, input.Raw, &main); handleError(c, err, 0) {
+	if err := setParameters(ctx.Schema, input.Raw, &main); handleError(c, err, 0) {
 		return
 	}
 	if err := ctx.setSimulateStorageDiff(response, &main); handleError(c, err, 0) {
@@ -262,7 +263,7 @@ func (ctx *Context) parseAppliedRunCode(response gjson.Result, main *Operation) 
 		op.Protocol = main.Protocol
 		op.Level = main.Level
 		op.Internal = true
-		if err := setParameters(ctx.ES, item.Get("parameters").Raw, &op); err != nil {
+		if err := setParameters(ctx.Schema, item.Get("parameters").Raw, &op); err != nil {
 			return nil, err
 		}
 		if err := ctx.setSimulateStorageDiff(item, &op); err != nil {
@@ -273,14 +274,14 @@ func (ctx *Context) parseAppliedRunCode(response gjson.Result, main *Operation) 
 	return operations, nil
 }
 
-func (ctx *Context) parseBigMapDiffs(response gjson.Result, metadata meta.Metadata, operation *Operation) ([]models.BigMapDiff, error) {
+func (ctx *Context) parseBigMapDiffs(response gjson.Result, metadata meta.Metadata, operation *Operation) ([]bigmapdiff.BigMapDiff, error) {
 	rpc, err := ctx.GetRPC(operation.Network)
 	if err != nil {
 		return nil, err
 	}
 
 	model := operation.ToModel()
-	parser := storage.NewSimulate(rpc, ctx.ES)
+	parser := storage.NewSimulate(rpc, ctx.BigMapDiffs)
 
 	rs := storage.RichStorage{Empty: true}
 	switch operation.Kind {
@@ -295,9 +296,9 @@ func (ctx *Context) parseBigMapDiffs(response gjson.Result, metadata meta.Metada
 	if rs.Empty {
 		return nil, nil
 	}
-	bmd := make([]models.BigMapDiff, len(rs.Models))
+	bmd := make([]bigmapdiff.BigMapDiff, len(rs.Models))
 	for i := range rs.Models {
-		if val, ok := rs.Models[i].(*models.BigMapDiff); ok {
+		if val, ok := rs.Models[i].(*bigmapdiff.BigMapDiff); ok {
 			bmd[i] = *val
 		}
 	}
@@ -309,7 +310,7 @@ func (ctx *Context) setSimulateStorageDiff(response gjson.Result, main *Operatio
 	if storage == "" || !strings.HasPrefix(main.Destination, "KT") || main.Status != "applied" {
 		return nil
 	}
-	metadata, err := meta.GetContractMetadata(ctx.ES, main.Destination)
+	metadata, err := meta.GetContractMetadata(ctx.Schema, main.Destination)
 	if err != nil {
 		return err
 	}
@@ -321,7 +322,7 @@ func (ctx *Context) setSimulateStorageDiff(response gjson.Result, main *Operatio
 	if err != nil {
 		return err
 	}
-	storageDiff, err := getStorageDiff(ctx.ES, bmd, main.Destination, storage, metadata, true, main)
+	storageDiff, err := getStorageDiff(ctx.BigMapDiffs, ctx.Operations, bmd, main.Destination, storage, metadata, true, main)
 	if err != nil {
 		return err
 	}

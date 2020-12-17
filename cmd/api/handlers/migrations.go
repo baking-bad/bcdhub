@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,7 +26,7 @@ func (ctx *Context) GetContractMigrations(c *gin.Context) {
 		return
 	}
 
-	migrations, err := ctx.ES.GetMigrations(req.Network, req.Address)
+	migrations, err := ctx.Migrations.GetMigrations(req.Network, req.Address)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -34,7 +34,7 @@ func (ctx *Context) GetContractMigrations(c *gin.Context) {
 	c.JSON(http.StatusOK, prepareMigrations(migrations))
 }
 
-func prepareMigrations(data []models.Migration) []Migration {
+func prepareMigrations(data []migration.Migration) []Migration {
 	result := make([]Migration, len(data))
 	for i := range data {
 		result[i] = Migration{

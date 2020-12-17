@@ -9,7 +9,21 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/database"
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/elastic/balanceupdate"
+	"github.com/baking-bad/bcdhub/internal/elastic/bigmapaction"
+	"github.com/baking-bad/bcdhub/internal/elastic/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/elastic/block"
+	"github.com/baking-bad/bcdhub/internal/elastic/bulk"
+	"github.com/baking-bad/bcdhub/internal/elastic/contract"
+	"github.com/baking-bad/bcdhub/internal/elastic/core"
+	"github.com/baking-bad/bcdhub/internal/elastic/migration"
+	"github.com/baking-bad/bcdhub/internal/elastic/operation"
+	"github.com/baking-bad/bcdhub/internal/elastic/protocol"
+	"github.com/baking-bad/bcdhub/internal/elastic/schema"
+	"github.com/baking-bad/bcdhub/internal/elastic/tezosdomain"
+	"github.com/baking-bad/bcdhub/internal/elastic/tokenbalance"
+	"github.com/baking-bad/bcdhub/internal/elastic/transfer"
+	"github.com/baking-bad/bcdhub/internal/elastic/tzip"
 	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/pinata"
@@ -39,7 +53,23 @@ func WithRPC(rpcConfig map[string]RPCConfig) ContextOption {
 // WithElasticSearch -
 func WithElasticSearch(esConfig ElasticSearchConfig) ContextOption {
 	return func(ctx *Context) {
-		ctx.ES = elastic.WaitNew(esConfig.URI, esConfig.Timeout)
+		es := core.WaitNew(esConfig.URI, esConfig.Timeout)
+
+		ctx.Storage = es
+		ctx.Bulk = bulk.NewStorage(es)
+		ctx.BalanceUpdates = balanceupdate.NewStorage(es)
+		ctx.BigMapActions = bigmapaction.NewStorage(es)
+		ctx.BigMapDiffs = bigmapdiff.NewStorage(es)
+		ctx.Blocks = block.NewStorage(es)
+		ctx.Contracts = contract.NewStorage(es)
+		ctx.Migrations = migration.NewStorage(es)
+		ctx.Operations = operation.NewStorage(es)
+		ctx.Protocols = protocol.NewStorage(es)
+		ctx.Schema = schema.NewStorage(es)
+		ctx.TezosDomains = tezosdomain.NewStorage(es)
+		ctx.TokenBalances = tokenbalance.NewStorage(es)
+		ctx.Transfers = transfer.NewStorage(es)
+		ctx.TZIP = tzip.NewStorage(es)
 	}
 }
 

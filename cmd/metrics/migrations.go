@@ -2,12 +2,12 @@ package main
 
 import (
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/pkg/errors"
 )
 
 func getMigrations(ids []string) error {
-	migrations := make([]models.Migration, 0)
+	migrations := make([]migration.Migration, 0)
 	if err := ctx.ES.GetByIDs(&migrations, ids...); err != nil {
 		return errors.Errorf("[getMigrations] Find migration error for IDs %v: %s", ids, err)
 	}
@@ -22,6 +22,6 @@ func getMigrations(ids []string) error {
 	return nil
 }
 
-func parseMigration(migration models.Migration) error {
+func parseMigration(migration migration.Migration) error {
 	return ctx.ES.UpdateContractMigrationsCount(migration.Address, migration.Network)
 }

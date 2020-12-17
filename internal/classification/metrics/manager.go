@@ -1,6 +1,6 @@
 package metrics
 
-import "github.com/baking-bad/bcdhub/internal/models"
+import "github.com/baking-bad/bcdhub/internal/models/contract"
 
 // Manager -
 type Manager struct{}
@@ -11,7 +11,7 @@ func NewManager() *Manager {
 }
 
 // Compute -
-func (m *Manager) Compute(a, b models.Contract) Feature {
+func (m *Manager) Compute(a, b contract.Contract) Feature {
 	f := Feature{
 		Name: "manager",
 	}

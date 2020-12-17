@@ -4,17 +4,18 @@ import (
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/elastic"
-	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
+	"github.com/baking-bad/bcdhub/internal/elastic/core"
+	"github.com/baking-bad/bcdhub/internal/elastic/tzip"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
+	modelsTZIP "github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/gin-gonic/gin"
 )
 
 // GetDAppList -
 func (ctx *Context) GetDAppList(c *gin.Context) {
-	dapps, err := ctx.ES.GetDApps()
+	dapps, err := ctx.TZIP.GetDApps()
 	if err != nil {
-		if elastic.IsRecordNotFound(err) {
+		if core.IsRecordNotFound(err) {
 			c.JSON(http.StatusOK, []interface{}{})
 			return
 		}
@@ -41,9 +42,9 @@ func (ctx *Context) GetDApp(c *gin.Context) {
 		return
 	}
 
-	dapp, err := ctx.ES.GetDAppBySlug(req.Slug)
+	dapp, err := ctx.TZIP.GetDAppBySlug(req.Slug)
 	if err != nil {
-		if elastic.IsRecordNotFound(err) {
+		if core.IsRecordNotFound(err) {
 			c.JSON(http.StatusOK, gin.H{})
 			return
 		}
@@ -59,7 +60,7 @@ func (ctx *Context) GetDApp(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, error) {
+func (ctx *Context) appendDAppInfo(dapp *modelsTZIP.DApp, withDetails bool) (DApp, error) {
 	result := DApp{
 		Name:              dapp.Name,
 		ShortDescription:  dapp.ShortDescription,
@@ -99,13 +100,13 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 			result.DexTokens = make([]TokenMetadata, 0)
 
 			for _, token := range dapp.DexTokens {
-				tokenMetadata, err := ctx.ES.GetTokenMetadata(elastic.GetTokenMetadataContext{
+				tokenMetadata, err := ctx.TZIP.GetTokenMetadata(tzip.GetTokenMetadataContext{
 					Contract: token.Contract,
 					Network:  consts.Mainnet,
 					TokenID:  token.TokenID,
 				})
 				if err != nil {
-					if elastic.IsRecordNotFound(err) {
+					if core.IsRecordNotFound(err) {
 						continue
 					}
 					return result, err
@@ -137,8 +138,8 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 			result.Contracts = make([]DAppContract, 0)
 
 			for _, address := range dapp.Contracts {
-				contract := models.NewEmptyContract(consts.Mainnet, address.Address)
-				if err := ctx.ES.GetByID(&contract); err != nil {
+				contract := contract.NewEmptyContract(consts.Mainnet, address.Address)
+				if err := ctx.Storage.GetByID(&contract); err != nil {
 					return result, err
 				}
 				result.Contracts = append(result.Contracts, DAppContract{

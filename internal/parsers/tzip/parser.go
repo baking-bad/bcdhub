@@ -4,7 +4,8 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/elastic"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	tzipStorage "github.com/baking-bad/bcdhub/internal/parsers/tzip/storage"
 	"github.com/pkg/errors"
@@ -17,7 +18,7 @@ const (
 
 // ParseContext -
 type ParseContext struct {
-	BigMapDiff models.BigMapDiff
+	BigMapDiff bigmapdiff.BigMapDiff
 	Hash       string
 }
 
@@ -40,7 +41,7 @@ func NewParser(es elastic.IElastic, rpc noderpc.INode, cfg ParserConfig) Parser 
 }
 
 // Parse -
-func (p *Parser) Parse(ctx ParseContext) (*models.TZIP, error) {
+func (p *Parser) Parse(ctx ParseContext) (*tzip.TZIP, error) {
 	decoded := tzipStorage.DecodeValue(ctx.BigMapDiff.Value)
 	if decoded == "" {
 		return nil, nil
@@ -49,7 +50,7 @@ func (p *Parser) Parse(ctx ParseContext) (*models.TZIP, error) {
 	return p.getFromStorage(ctx, decoded)
 }
 
-func (p Parser) getFromStorage(ctx ParseContext, url string) (*models.TZIP, error) {
+func (p Parser) getFromStorage(ctx ParseContext, url string) (*tzip.TZIP, error) {
 	var store tzipStorage.Storage
 	switch {
 	case strings.HasPrefix(url, tzipStorage.PrefixHTTPS), strings.HasPrefix(url, tzipStorage.PrefixHTTP):

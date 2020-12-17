@@ -10,13 +10,22 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/block"
+	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/tidwall/gjson"
 )
 
 // TokenMetadataParser -
 type TokenMetadataParser struct {
-	es        elastic.IElastic
+	bmdRepo      bigmapdiff.Repository
+	blocksRepo   block.Repository
+	protocolRepo protocol.Repository
+	schemaRepo   schema.Repository
+	storage      models.GeneralRepository
+
 	rpc       noderpc.INode
 	sharePath string
 	network   string
@@ -25,9 +34,10 @@ type TokenMetadataParser struct {
 }
 
 // NewTokenMetadataParser -
-func NewTokenMetadataParser(es elastic.IElastic, rpc noderpc.INode, sharePath, network string) TokenMetadataParser {
+func NewTokenMetadataParser(bmdRepo bigmapdiff.Repository, blocksRepo block.Repository, protocolRepo protocol.Repository, schemaRepo schema.Repository, storage models.GeneralRepository, rpc noderpc.INode, sharePath, network string) TokenMetadataParser {
 	return TokenMetadataParser{
-		es: es, rpc: rpc, sharePath: sharePath, network: network,
+		bmdRepo: bmdRepo, blocksRepo: blocksRepo, storage: storage, protocolRepo: protocolRepo, schemaRepo: schemaRepo,
+		rpc: rpc, sharePath: sharePath, network: network,
 		sources: map[string]string{
 			"carthagenet": "tz1grSQDByRpnVs7sPtaprNZRp531ZKz6Jmm",
 			"mainnet":     "tz2FCNBrERXtaTtNX6iimR1UJ5JSDxvdHM93",
@@ -58,13 +68,13 @@ func (t TokenMetadataParser) ParseWithRegistry(registry string, level int64) ([]
 	return t.parse(registry, state)
 }
 
-func (t TokenMetadataParser) parse(registry string, state models.Block) ([]Metadata, error) {
+func (t TokenMetadataParser) parse(registry string, state block.Block) ([]Metadata, error) {
 	ptr, err := t.getBigMapPtr(registry, state)
 	if err != nil {
 		return nil, err
 	}
 
-	bmd, err := t.es.GetBigMapKeys(elastic.GetBigMapKeysContext{
+	bmd, err := t.bmdRepo.GetBigMapKeys(bigmapdiff.GetBigMapKeysContext{
 		Ptr:     &ptr,
 		Network: t.network,
 		Size:    1000,
@@ -87,14 +97,14 @@ func (t TokenMetadataParser) parse(registry string, state models.Block) ([]Metad
 	return metadata, nil
 }
 
-func (t TokenMetadataParser) getState(level int64) (models.Block, error) {
+func (t TokenMetadataParser) getState(level int64) (block.Block, error) {
 	if level > 0 {
-		return t.es.GetBlock(t.network, level)
+		return t.blocksRepo.GetBlock(t.network, level)
 	}
-	return t.es.GetLastBlock(t.network)
+	return t.blocksRepo.GetLastBlock(t.network)
 }
 
-func (t TokenMetadataParser) getTokenMetadataRegistry(address string, state models.Block) (string, error) {
+func (t TokenMetadataParser) getTokenMetadataRegistry(address string, state block.Block) (string, error) {
 	metadata, err := t.hasTokenMetadataRegistry(address, state.Protocol)
 	if err != nil {
 		return "", err
@@ -107,7 +117,7 @@ func (t TokenMetadataParser) getTokenMetadataRegistry(address string, state mode
 		return "", ErrUnknownNetwork
 	}
 
-	result, err := t.es.SearchByText("view_address", 0, nil, map[string]interface{}{
+	result, err := t.storage.SearchByText("view_address", 0, nil, map[string]interface{}{
 		"networks": []string{t.network},
 		"indices":  []string{elastic.DocContracts},
 	}, false)
@@ -123,7 +133,7 @@ func (t TokenMetadataParser) getTokenMetadataRegistry(address string, state mode
 		return "", err
 	}
 
-	protocol, err := t.es.GetProtocol(t.network, "", state.Level)
+	protocol, err := t.protocolRepo.GetProtocol(t.network, "", state.Level)
 	if err != nil {
 		return "", err
 	}
@@ -171,7 +181,7 @@ func (t TokenMetadataParser) parseRegistryAddress(response gjson.Result) (string
 }
 
 func (t TokenMetadataParser) hasTokenMetadataRegistry(address, protocol string) (meta.Metadata, error) {
-	metadata, err := meta.GetMetadata(t.es, address, consts.PARAMETER, protocol)
+	metadata, err := meta.GetMetadata(t.schemaRepo, address, consts.PARAMETER, protocol)
 	if err != nil {
 		return nil, err
 	}
@@ -184,8 +194,8 @@ func (t TokenMetadataParser) hasTokenMetadataRegistry(address, protocol string) 
 	return nil, nil
 }
 
-func (t TokenMetadataParser) getBigMapPtr(address string, state models.Block) (int64, error) {
-	registryStorageMetadata, err := meta.GetMetadata(t.es, address, consts.STORAGE, state.Protocol)
+func (t TokenMetadataParser) getBigMapPtr(address string, state block.Block) (int64, error) {
+	registryStorageMetadata, err := meta.GetMetadata(t.schemaRepo, address, consts.STORAGE, state.Protocol)
 	if err != nil {
 		return 0, err
 	}

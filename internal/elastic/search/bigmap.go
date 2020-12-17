@@ -1,9 +1,7 @@
 package search
 
 import (
-	"encoding/json"
-
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 )
 
 // BigMap -
@@ -36,7 +34,7 @@ func (b BigMap) GetFields() []string {
 
 // Parse  -
 func (b BigMap) Parse(highlight map[string][]string, data []byte) (interface{}, error) {
-	var bmd models.BigMapDiff
+	var bmd bigmapdiff.BigMapDiff
 	if err := json.Unmarshal(data, &bmd); err != nil {
 		return nil, err
 	}

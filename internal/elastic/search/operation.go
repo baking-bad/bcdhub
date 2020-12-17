@@ -1,9 +1,7 @@
 package search
 
 import (
-	"encoding/json"
-
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 )
 
 // Operation -
@@ -44,7 +42,7 @@ func (o Operation) GetFields() []string {
 
 // Parse  -
 func (o Operation) Parse(highlight map[string][]string, data []byte) (interface{}, error) {
-	var operation models.Operation
+	var operation operation.Operation
 	if err := json.Unmarshal(data, &operation); err != nil {
 		return nil, err
 	}

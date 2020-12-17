@@ -5,9 +5,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	mock_elastic "github.com/baking-bad/bcdhub/internal/elastic/mock"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/schema"
+	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/contract"
 	"github.com/golang/mock/gomock"
@@ -37,7 +43,7 @@ func TestGroup_Parse(t *testing.T) {
 	es.
 		EXPECT().
 		GetTZIPWithEvents().
-		Return(make([]models.TZIP, 0), nil).
+		Return(make([]tzip.TZIP, 0), nil).
 		AnyTimes()
 	es.
 		EXPECT().
@@ -51,14 +57,14 @@ func TestGroup_Parse(t *testing.T) {
 		filename    string
 		address     string
 		level       int64
-		want        []elastic.Model
+		want        []models.Model
 		wantErr     bool
 	}{
 		{
 			name:        "opToHHcqFhRTQWJv2oTGAtywucj9KM1nDnk5eHsEETYJyvJLsa5",
 			ParseParams: NewParseParams(rpc, es),
 			filename:    "./data/rpc/opg/opToHHcqFhRTQWJv2oTGAtywucj9KM1nDnk5eHsEETYJyvJLsa5.json",
-			want:        []elastic.Model{},
+			want:        []models.Model{},
 		}, {
 			name: "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
 			ParseParams: NewParseParams(
@@ -70,7 +76,7 @@ func TestGroup_Parse(t *testing.T) {
 					ChainID:   "test",
 				}),
 				WithNetwork("mainnet"),
-				WithConstants(models.Constants{
+				WithConstants(protocol.Constants{
 					CostPerByte:                  1000,
 					HardGasLimitPerOperation:     1040000,
 					HardStorageLimitPerOperation: 60000,
@@ -80,8 +86,8 @@ func TestGroup_Parse(t *testing.T) {
 			address:  "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
 			level:    1151495,
 			filename: "./data/rpc/opg/opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt.json",
-			want: []elastic.Model{
-				&models.Operation{
+			want: []models.Model{
+				&operation.Operation{
 					ContentIndex:     0,
 					Network:          "mainnet",
 					Protocol:         "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
@@ -106,7 +112,7 @@ func TestGroup_Parse(t *testing.T) {
 					StorageStrings:   []string{},
 					Tags:             []string{},
 				},
-				&models.BigMapDiff{
+				&bigmapdiff.BigMapDiff{
 					Ptr:          32,
 					BinPath:      "0/0",
 					Key:          map[string]interface{}{"bytes": "80729e85e284dff3a30bb24a58b37ccdf474bbbe7794aad439ba034f48d66af3"},
@@ -121,7 +127,7 @@ func TestGroup_Parse(t *testing.T) {
 					Timestamp:    timestamp,
 					Protocol:     "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 				},
-				&models.Operation{
+				&operation.Operation{
 					ContentIndex:     0,
 					Network:          "mainnet",
 					Protocol:         "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
@@ -144,7 +150,7 @@ func TestGroup_Parse(t *testing.T) {
 					StorageStrings:   nil,
 					Tags:             []string{"fa12"},
 				},
-				&models.BigMapDiff{
+				&bigmapdiff.BigMapDiff{
 					Ptr:          31,
 					BinPath:      "0/0",
 					Key:          map[string]interface{}{"bytes": "05010000000b746f74616c537570706c79"},
@@ -160,7 +166,7 @@ func TestGroup_Parse(t *testing.T) {
 					Timestamp:    timestamp,
 					Protocol:     "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 				},
-				&models.BigMapDiff{
+				&bigmapdiff.BigMapDiff{
 					Ptr:          31,
 					BinPath:      "0/0",
 					Key:          map[string]interface{}{"bytes": "05070701000000066c65646765720a000000160000c2473c617946ce7b9f6843f193401203851cb2ec"},
@@ -175,7 +181,7 @@ func TestGroup_Parse(t *testing.T) {
 					Timestamp:   timestamp,
 					Protocol:    "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 				},
-				&models.BigMapDiff{
+				&bigmapdiff.BigMapDiff{
 					Ptr:          31,
 					BinPath:      "0/0",
 					Key:          map[string]interface{}{"bytes": "05070701000000066c65646765720a00000016011871cfab6dafee00330602b4342b6500c874c93b00"},
@@ -191,7 +197,7 @@ func TestGroup_Parse(t *testing.T) {
 					Timestamp:    timestamp,
 					Protocol:     "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 				},
-				&models.Transfer{
+				&transfer.Transfer{
 					Network:   "mainnet",
 					Contract:  "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
 					Initiator: "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
@@ -218,7 +224,7 @@ func TestGroup_Parse(t *testing.T) {
 					ChainID:   "test",
 				}),
 				WithNetwork("delphinet"),
-				WithConstants(models.Constants{
+				WithConstants(protocol.Constants{
 					CostPerByte:                  250,
 					HardGasLimitPerOperation:     1040000,
 					HardStorageLimitPerOperation: 60000,
@@ -229,8 +235,8 @@ func TestGroup_Parse(t *testing.T) {
 			address:  "KT1NppzrgyLZD3aku7fssfhYPm5QqZwyabvR",
 			level:    86142,
 			filename: "./data/rpc/opg/onzUDQhwunz2yqzfEsoURXEBz9p7Gk8DgY4QBva52Z4b3AJCZjt.json",
-			want: []elastic.Model{
-				&models.Operation{
+			want: []models.Model{
+				&operation.Operation{
 					ContentIndex:                       0,
 					Network:                            "delphinet",
 					Protocol:                           "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
@@ -255,12 +261,12 @@ func TestGroup_Parse(t *testing.T) {
 					StorageStrings:                     nil,
 					Tags:                               nil,
 				},
-				&models.Metadata{
+				&schema.Schema{
 					ID:        "KT1NppzrgyLZD3aku7fssfhYPm5QqZwyabvR",
 					Parameter: map[string]string{"babylon": "{\"0\":{\"prim\":\"or\",\"args\":[\"0/0\",\"0/1\"],\"type\":\"namedunion\"},\"0/0\":{\"fieldname\":\"decrement\",\"prim\":\"int\",\"type\":\"int\",\"name\":\"decrement\"},\"0/1\":{\"fieldname\":\"increment\",\"prim\":\"int\",\"type\":\"int\",\"name\":\"increment\"}}"},
 					Storage:   map[string]string{"babylon": "{\"0\":{\"prim\":\"int\",\"type\":\"int\"}}"},
 				},
-				&models.Contract{
+				&contract.Contract{
 					Network:     "delphinet",
 					Level:       86142,
 					Timestamp:   timestamp,
@@ -286,7 +292,7 @@ func TestGroup_Parse(t *testing.T) {
 					ChainID:   "test",
 				}),
 				WithNetwork("carthagenet"),
-				WithConstants(models.Constants{
+				WithConstants(protocol.Constants{
 					CostPerByte:                  1000,
 					HardGasLimitPerOperation:     1040000,
 					HardStorageLimitPerOperation: 60000,
@@ -296,8 +302,8 @@ func TestGroup_Parse(t *testing.T) {
 			address:  "KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ",
 			level:    386026,
 			filename: "./data/rpc/opg/opQMNBmME834t76enxSBqhJcPqwV2R2BP2pTKv438bHaxRZen6x.json",
-			want: []elastic.Model{
-				&models.Operation{
+			want: []models.Model{
+				&operation.Operation{
 					ContentIndex:     0,
 					Network:          "carthagenet",
 					Protocol:         "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
@@ -322,7 +328,7 @@ func TestGroup_Parse(t *testing.T) {
 					StorageStrings:   []string{},
 					Tags:             []string{},
 				},
-				&models.Operation{
+				&operation.Operation{
 					ContentIndex:                       0,
 					Network:                            "carthagenet",
 					Protocol:                           "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
@@ -350,7 +356,7 @@ func TestGroup_Parse(t *testing.T) {
 					StorageStrings:                     []string{},
 					Tags:                               []string{},
 				},
-				&models.BigMapDiff{
+				&bigmapdiff.BigMapDiff{
 					Ptr:          2416,
 					BinPath:      "0/0",
 					Key:          map[string]interface{}{"bytes": "000086b7990605548cb13db091c7a68a46a7aef3d0a2"},
@@ -364,7 +370,7 @@ func TestGroup_Parse(t *testing.T) {
 					Timestamp:    timestamp,
 					Protocol:     "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 				},
-				&models.Operation{
+				&operation.Operation{
 					ContentIndex:                       0,
 					Network:                            "carthagenet",
 					Protocol:                           "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
@@ -392,7 +398,7 @@ func TestGroup_Parse(t *testing.T) {
 					StorageStrings:                     []string{},
 					Tags:                               []string{},
 				},
-				&models.BigMapDiff{
+				&bigmapdiff.BigMapDiff{
 					Ptr:          2417,
 					BinPath:      "0/0/0/1/0",
 					Key:          map[string]interface{}{"bytes": "000085ef0c18b31983603d978a152de4cd61803db881"},
@@ -406,7 +412,7 @@ func TestGroup_Parse(t *testing.T) {
 					Timestamp:    timestamp,
 					Protocol:     "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 				},
-				&models.BigMapAction{
+				&bigmapaction.BigMapAction{
 					Action:         "remove",
 					SourcePtr:      setInt64(2417),
 					DestinationPtr: nil,
@@ -415,7 +421,7 @@ func TestGroup_Parse(t *testing.T) {
 					Network:        "carthagenet",
 					Timestamp:      timestamp,
 				},
-				&models.BigMapAction{
+				&bigmapaction.BigMapAction{
 					Action:         "copy",
 					SourcePtr:      setInt64(2416),
 					DestinationPtr: setInt64(2418),
@@ -424,7 +430,7 @@ func TestGroup_Parse(t *testing.T) {
 					Network:        "carthagenet",
 					Timestamp:      timestamp,
 				},
-				&models.BigMapDiff{
+				&bigmapdiff.BigMapDiff{
 					Ptr:          2418,
 					BinPath:      "0/0/0/1/0",
 					Key:          map[string]interface{}{"bytes": "000085ef0c18b31983603d978a152de4cd61803db881"},
@@ -438,7 +444,7 @@ func TestGroup_Parse(t *testing.T) {
 					Timestamp:    timestamp,
 					Protocol:     "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 				},
-				&models.BigMapDiff{
+				&bigmapdiff.BigMapDiff{
 					Ptr:          2418,
 					BinPath:      "0/0/0/1/0",
 					Key:          map[string]interface{}{"bytes": "000086b7990605548cb13db091c7a68a46a7aef3d0a2"},
@@ -457,12 +463,12 @@ func TestGroup_Parse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			metadata := &models.Metadata{ID: tt.address}
+			metadata := &schema.Schema{ID: tt.address}
 			es.
 				EXPECT().
 				GetByID(gomock.AssignableToTypeOf(metadata)).
 				DoAndReturn(
-					func(val *models.Metadata) error {
+					func(val *schema.Schema) error {
 						buf, err := readTestMetadataModel(val.GetID())
 						if err != nil {
 							return err
@@ -476,7 +482,7 @@ func TestGroup_Parse(t *testing.T) {
 
 			es.
 				EXPECT().
-				GetByID(gomock.AssignableToTypeOf(&models.Contract{})).
+				GetByID(gomock.AssignableToTypeOf(&contract.Contract{})).
 				DoAndReturn(readTestContractModel).
 				AnyTimes()
 
@@ -486,7 +492,7 @@ func TestGroup_Parse(t *testing.T) {
 					gomock.Eq("KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU"),
 					gomock.Eq("carthagenet"),
 					gomock.Eq(int64(2416))).
-				Return([]models.BigMapDiff{
+				Return([]bigmapdiff.BigMapDiff{
 					{
 						Ptr:          2416,
 						BinPath:      "0/0/0/1/0",
@@ -510,7 +516,7 @@ func TestGroup_Parse(t *testing.T) {
 					gomock.Eq("KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ"),
 					gomock.Eq("carthagenet"),
 					gomock.Eq(int64(2417))).
-				Return([]models.BigMapDiff{
+				Return([]bigmapdiff.BigMapDiff{
 					{
 						Ptr:          2417,
 						BinPath:      "0/0/0/1/0",

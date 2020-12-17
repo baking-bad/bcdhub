@@ -5,6 +5,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/schema"
 )
 
 // Remove -
@@ -41,11 +42,11 @@ func removeContracts(es elastic.IElastic, network, appDir string) error {
 }
 
 func removeNetworkMetadata(e elastic.IElastic, network string, addresses []string, appDir string) error {
-	bulkDeleteMetadata := make([]elastic.Model, len(addresses))
+	bulkDeleteMetadata := make([]models.Model, len(addresses))
 
 	logger.Info("%d contracts will be removed", len(addresses))
 	for i := range addresses {
-		bulkDeleteMetadata[i] = &models.Metadata{
+		bulkDeleteMetadata[i] = &schema.Schema{
 			ID: addresses[i],
 		}
 	}

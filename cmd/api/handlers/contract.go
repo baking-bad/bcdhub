@@ -3,9 +3,9 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 )
@@ -29,8 +29,8 @@ func (ctx *Context) GetContract(c *gin.Context) {
 		return
 	}
 
-	contract := models.NewEmptyContract(req.Network, req.Address)
-	if err := ctx.ES.GetByID(&contract); handleError(c, err, 0) {
+	contract := contract.NewEmptyContract(req.Network, req.Address)
+	if err := ctx.Storage.GetByID(&contract); handleError(c, err, 0) {
 		return
 	}
 	res, err := ctx.contractPostprocessing(contract, c)
@@ -51,10 +51,10 @@ func (ctx *Context) GetContract(c *gin.Context) {
 // @Failure 500 {object} Error
 // @Router /pick_random [get]
 func (ctx *Context) GetRandomContract(c *gin.Context) {
-	var contract models.Contract
+	var contract contract.Contract
 
 	for !helpers.StringInArray(contract.Network, ctx.Config.API.Networks) {
-		cntr, err := ctx.ES.GetContractRandom()
+		cntr, err := ctx.Contracts.GetRandom()
 		if handleError(c, err, 0) {
 			return
 		}
@@ -68,7 +68,7 @@ func (ctx *Context) GetRandomContract(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (ctx *Context) contractPostprocessing(contract models.Contract, c *gin.Context) (Contract, error) {
+func (ctx *Context) contractPostprocessing(contract contract.Contract, c *gin.Context) (Contract, error) {
 	var res Contract
 	res.FromModel(contract)
 
@@ -87,9 +87,9 @@ func (ctx *Context) contractPostprocessing(contract models.Contract, c *gin.Cont
 		return res, err
 	}
 
-	if alias, err := ctx.ES.GetAlias(contract.Network, contract.Address); err == nil {
+	if alias, err := ctx.TZIP.GetAlias(contract.Network, contract.Address); err == nil {
 		res.Slug = alias.Slug
-	} else if !elastic.IsRecordNotFound(err) {
+	} else if !core.IsRecordNotFound(err) {
 		return res, err
 	}
 

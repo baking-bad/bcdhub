@@ -3,8 +3,8 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/elastic"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/elastic/core"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/gin-gonic/gin"
 )
 
@@ -34,15 +34,15 @@ func (ctx *Context) GetSameContracts(c *gin.Context) {
 		return
 	}
 
-	contract := models.NewEmptyContract(req.Network, req.Address)
-	err := ctx.ES.GetByID(&contract)
+	contract := contract.NewEmptyContract(req.Network, req.Address)
+	err := ctx.Storage.GetByID(&contract)
 	if handleError(c, err, 0) {
 		return
 	}
 
-	sameContracts, err := ctx.ES.GetSameContracts(contract, pageReq.Size, pageReq.Offset)
+	sameContracts, err := ctx.Contracts.GetSameContracts(contract, pageReq.Size, pageReq.Offset)
 	if err != nil {
-		if elastic.IsRecordNotFound(err) {
+		if core.IsRecordNotFound(err) {
 			c.JSON(http.StatusOK, []interface{}{})
 			return
 		}
@@ -82,13 +82,13 @@ func (ctx *Context) GetSimilarContracts(c *gin.Context) {
 		return
 	}
 
-	contract := models.NewEmptyContract(req.Network, req.Address)
-	err := ctx.ES.GetByID(&contract)
+	contract := contract.NewEmptyContract(req.Network, req.Address)
+	err := ctx.Storage.GetByID(&contract)
 	if handleError(c, err, 0) {
 		return
 	}
 
-	similar, total, err := ctx.ES.GetSimilarContracts(contract, pageReq.Size, pageReq.Offset)
+	similar, total, err := ctx.Contracts.GetSimilarContracts(contract, pageReq.Size, pageReq.Offset)
 	if handleError(c, err, 0) {
 		return
 	}

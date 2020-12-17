@@ -4,36 +4,37 @@ import (
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/balanceupdate"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/tidwall/gjson"
 )
 
 // BalanceUpdate -
 type BalanceUpdate struct {
-	operation models.Operation
+	operation operation.Operation
 	root      string
 }
 
 // NewBalanceUpdate -
-func NewBalanceUpdate(root string, operation models.Operation) BalanceUpdate {
+func NewBalanceUpdate(root string, operation operation.Operation) BalanceUpdate {
 	return BalanceUpdate{operation, root}
 }
 
 // Parse -
-func (b BalanceUpdate) Parse(data gjson.Result) []*models.BalanceUpdate {
+func (b BalanceUpdate) Parse(data gjson.Result) []*balanceupdate.BalanceUpdate {
 	if b.root != "" {
 		b.root = fmt.Sprintf("%s.", b.root)
 	}
 	filter := fmt.Sprintf(`%sbalance_updates.#(kind="contract")#`, b.root)
 
 	contracts := data.Get(filter).Array()
-	bu := make([]*models.BalanceUpdate, 0)
+	bu := make([]*balanceupdate.BalanceUpdate, 0)
 	for i := range contracts {
 		address := contracts[i].Get("contract").String()
 		if !helpers.IsContract(address) {
 			continue
 		}
-		bu = append(bu, &models.BalanceUpdate{
+		bu = append(bu, &balanceupdate.BalanceUpdate{
 			ID:            helpers.GenerateID(),
 			Change:        contracts[i].Get("change").Int(),
 			Network:       b.operation.Network,

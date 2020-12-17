@@ -10,11 +10,25 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/elastic/bulk"
+	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/index"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/balanceupdate"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/block"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/migration"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/schema"
+	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
+	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
+	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
@@ -29,13 +43,28 @@ var errSameLevel = errors.New("Same level")
 
 // BoostIndexer -
 type BoostIndexer struct {
+	Storage        models.GeneralRepository
+	Bulk           models.BulkRepository
+	BalanceUpdates balanceupdate.Repository
+	BigMapActions  bigmapaction.Repository
+	BigMapDiffs    bigmapdiff.Repository
+	Blocks         block.Repository
+	Contracts      contract.Repository
+	Migrations     migration.Repository
+	Operations     operation.Repository
+	Protocols      protocol.Repository
+	Schema         schema.Repository
+	TezosDomains   tezosdomain.Repository
+	TokenBalances  tokenbalance.Repository
+	Transfers      transfer.Repository
+	TZIP           tzip.Repository
+
 	rpc             noderpc.INode
-	es              elastic.IElastic
 	externalIndexer index.Indexer
 	interfaces      map[string]kinds.ContractKind
 	messageQueue    mq.Mediator
-	state           models.Block
-	currentProtocol models.Protocol
+	state           block.Block
+	currentProtocol protocol.Protocol
 	cfg             config.Config
 
 	updateTicker        *time.Ticker
@@ -48,8 +77,8 @@ type BoostIndexer struct {
 
 func (bi *BoostIndexer) fetchExternalProtocols() error {
 	logger.WithNetwork(bi.Network).Info("Fetching external protocols")
-	var existingProtocols []models.Protocol
-	if err := bi.es.GetByNetworkWithSort(bi.Network, "start_level", "desc", &existingProtocols); err != nil {
+	var existingProtocols []protocol.Protocol
+	if err := bi.Storage.GetByNetworkWithSort(bi.Network, "start_level", "desc", &existingProtocols); err != nil {
 		return err
 	}
 
@@ -63,7 +92,7 @@ func (bi *BoostIndexer) fetchExternalProtocols() error {
 		return err
 	}
 
-	protocols := make([]elastic.Model, 0)
+	protocols := make([]models.Model, 0)
 	for i := range extProtocols {
 		if _, ok := exists[extProtocols[i].Hash]; ok {
 			continue
@@ -77,7 +106,7 @@ func (bi *BoostIndexer) fetchExternalProtocols() error {
 			alias = extProtocols[i].Hash[:8]
 		}
 
-		newProtocol := &models.Protocol{
+		newProtocol := &protocol.Protocol{
 			ID:         helpers.GenerateID(),
 			Hash:       extProtocols[i].Hash,
 			Alias:      alias,
@@ -87,7 +116,7 @@ func (bi *BoostIndexer) fetchExternalProtocols() error {
 			Network:    bi.Network,
 		}
 
-		protocolConstants := models.Constants{}
+		protocolConstants := protocol.Constants{}
 		if newProtocol.StartLevel != newProtocol.EndLevel || newProtocol.EndLevel != 0 {
 			constants, err := bi.rpc.GetNetworkConstants(extProtocols[i].StartLevel)
 			if err != nil {
@@ -104,13 +133,14 @@ func (bi *BoostIndexer) fetchExternalProtocols() error {
 		logger.WithNetwork(bi.Network).Infof("Fetched %s", alias)
 	}
 
-	return bi.es.BulkInsert(protocols)
+	return bi.Bulk.Insert(protocols)
 }
 
 // NewBoostIndexer -
 func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOption) (*BoostIndexer, error) {
 	logger.WithNetwork(network).Info("Creating indexer object...")
-	es := elastic.WaitNew(cfg.Elastic.URI, cfg.Elastic.Timeout)
+	es := core.WaitNew(cfg.Elastic.URI, cfg.Elastic.Timeout)
+
 	rpcProvider, ok := cfg.RPC[network]
 	if !ok {
 		return nil, errors.Errorf("Unknown network %s", network)
@@ -128,13 +158,28 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 	}
 
 	bi := &BoostIndexer{
-		Network:      network,
-		rpc:          rpc,
-		es:           es,
-		messageQueue: messageQueue,
-		stop:         make(chan struct{}),
-		interfaces:   interfaces,
-		cfg:          cfg,
+		Storage:        es,
+		Bulk:           bulk.NewStorage(es),
+		BalanceUpdates: balanceupdate.NewStorage(es),
+		BigMapActions:  bigmapaction.NewStorage(es),
+		BigMapDiffs:    bigmapdiff.NewStorage(es),
+		Blocks:         block.NewStorage(es),
+		Contracts:      contract.NewStorage(es),
+		Migrations:     migration.NewStorage(es),
+		Operations:     operation.NewStorage(es),
+		Protocols:      protocol.NewStorage(es),
+		Schema:         schema.NewStorage(es),
+		TezosDomains:   tezosdomain.NewStorage(es),
+		TokenBalances:  tokenbalance.NewStorage(es),
+		Transfers:      transfer.NewStorage(es),
+		TZIP:           tzip.NewStorage(es),
+		Network:        network,
+		rpc:            rpc,
+		es:             es,
+		messageQueue:   messageQueue,
+		stop:           make(chan struct{}),
+		interfaces:     interfaces,
+		cfg:            cfg,
 	}
 
 	for _, opt := range opts {
@@ -431,8 +476,8 @@ func (bi *BoostIndexer) process() error {
 	return errSameLevel
 }
 
-func (bi *BoostIndexer) createBlock(head noderpc.Header) *models.Block {
-	newBlock := models.Block{
+func (bi *BoostIndexer) createBlock(head noderpc.Header) *block.Block {
+	newBlock := block.Block{
 		ID:          helpers.GenerateID(),
 		Network:     bi.Network,
 		Hash:        head.Hash,
@@ -447,7 +492,7 @@ func (bi *BoostIndexer) createBlock(head noderpc.Header) *models.Block {
 	return &newBlock
 }
 
-func (bi *BoostIndexer) saveModels(items []elastic.Model) error {
+func (bi *BoostIndexer) saveModels(items []models.Model) error {
 	logger.WithNetwork(bi.Network).Debugf("Found %d new models", len(items))
 	if err := bi.es.BulkInsert(items); err != nil {
 		return err
@@ -461,7 +506,7 @@ func (bi *BoostIndexer) saveModels(items []elastic.Model) error {
 	return nil
 }
 
-func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([]elastic.Model, error) {
+func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([]models.Model, error) {
 	if head.Level <= 1 {
 		return nil, nil
 	}
@@ -470,7 +515,7 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 		return nil, err
 	}
 
-	parsedModels := make([]elastic.Model, 0)
+	parsedModels := make([]models.Model, 0)
 	for _, opg := range data.Array() {
 		parser := operations.NewGroup(operations.NewParseParams(
 			bi.rpc,
@@ -492,9 +537,9 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 	return parsedModels, nil
 }
 
-func (bi *BoostIndexer) migrate(head noderpc.Header) ([]elastic.Model, error) {
-	updates := make([]elastic.Model, 0)
-	newModels := make([]elastic.Model, 0)
+func (bi *BoostIndexer) migrate(head noderpc.Header) ([]models.Model, error) {
+	updates := make([]models.Model, 0)
+	newModels := make([]models.Model, 0)
 
 	if bi.currentProtocol.EndLevel == 0 && head.Level > 1 {
 		logger.WithNetwork(bi.Network).Infof("Finalizing the previous protocol: %s", bi.currentProtocol.Alias)
@@ -548,7 +593,7 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) ([]elastic.Model, error) {
 	return newModels, nil
 }
 
-func createProtocol(network, hash string, level int64) (protocol models.Protocol, err error) {
+func createProtocol(network, hash string, level int64) (protocol protocol.Protocol, err error) {
 	logger.WithNetwork(network).Infof("Creating new protocol %s starting at %d", hash, level)
 	protocol.SymLink, err = meta.GetProtoSymLink(hash)
 	if err != nil {
@@ -563,9 +608,9 @@ func createProtocol(network, hash string, level int64) (protocol models.Protocol
 	return
 }
 
-func (bi *BoostIndexer) standartMigration(newProtocol models.Protocol, head noderpc.Header) ([]elastic.Model, []elastic.Model, error) {
+func (bi *BoostIndexer) standartMigration(newProtocol protocol.Protocol, head noderpc.Header) ([]models.Model, []models.Model, error) {
 	logger.WithNetwork(bi.Network).Info("Try to find migrations...")
-	contracts, err := bi.es.GetContracts(map[string]interface{}{
+	contracts, err := bi.Contracts.Get(map[string]interface{}{
 		"network": bi.Network,
 	})
 	if err != nil {
@@ -574,8 +619,8 @@ func (bi *BoostIndexer) standartMigration(newProtocol models.Protocol, head node
 	logger.WithNetwork(bi.Network).Infof("Now %d contracts are indexed", len(contracts))
 
 	p := parsers.NewMigrationParser(bi.es, bi.cfg.SharePath)
-	newModels := make([]elastic.Model, 0)
-	newUpdates := make([]elastic.Model, 0)
+	newModels := make([]models.Model, 0)
+	newUpdates := make([]models.Model, 0)
 	for i := range contracts {
 		logger.WithNetwork(bi.Network).Infof("Migrate %s...", contracts[i].Address)
 		script, err := bi.rpc.GetScriptJSON(contracts[i].Address, newProtocol.StartLevel)
@@ -598,7 +643,7 @@ func (bi *BoostIndexer) standartMigration(newProtocol models.Protocol, head node
 	return newModels, newUpdates, nil
 }
 
-func (bi *BoostIndexer) vestingMigration(head noderpc.Header) ([]elastic.Model, error) {
+func (bi *BoostIndexer) vestingMigration(head noderpc.Header) ([]models.Model, error) {
 	addresses, err := bi.rpc.GetContractsByBlock(head.Level)
 	if err != nil {
 		return nil, err
@@ -606,7 +651,7 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header) ([]elastic.Model, 
 
 	p := parsers.NewVestingParser(bi.cfg.SharePath, bi.interfaces)
 
-	parsedModels := make([]elastic.Model, 0)
+	parsedModels := make([]models.Model, 0)
 	for _, address := range addresses {
 		if !strings.HasPrefix(address, "KT") {
 			continue

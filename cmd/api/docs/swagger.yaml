@@ -46,7 +46,7 @@ definitions:
         type: integer
       transfers:
         items:
-          $ref: '#/definitions/models.Transfer'
+          $ref: '#/definitions/transfer.Transfer'
         type: array
     type: object
   formatter.DiffResult:
@@ -808,6 +808,7 @@ definitions:
   jsonschema.Schema:
     additionalProperties: true
     type: object
+<<<<<<< HEAD
   models.ReverseTezosDomain:
     properties:
       expiration:
@@ -816,6 +817,9 @@ definitions:
         type: string
     type: object
   models.TZIP:
+=======
+  tzip.TZIP:
+>>>>>>> First
     properties:
       address:
         type: string
@@ -858,6 +862,7 @@ definitions:
       version:
         type: string
     type: object
+<<<<<<< HEAD
   models.TezosDomain:
     properties:
       address:
@@ -878,6 +883,9 @@ definitions:
         type: string
     type: object
   models.Transfer:
+=======
+  transfer.Transfer:
+>>>>>>> First
     properties:
       alias:
         type: string
@@ -1267,7 +1275,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.TZIP'
+            $ref: '#/definitions/tzip.TZIP'
         "204":
           description: No Content
           schema:

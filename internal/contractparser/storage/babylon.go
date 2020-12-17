@@ -8,9 +8,11 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -35,32 +37,32 @@ func (tpd *temporaryPointerData) updateSourcePointer(sourcePtr int64) {
 
 // Babylon -
 type Babylon struct {
-	rpc noderpc.INode
-	es  elastic.IBigMapDiff
+	rpc  noderpc.INode
+	repo bigmapdiff.Repository
 
-	updates           map[int64][]elastic.Model
+	updates           map[int64][]models.Model
 	temporaryPointers map[int64]*temporaryPointerData
 }
 
 // NewBabylon -
-func NewBabylon(rpc noderpc.INode, es elastic.IBigMapDiff) *Babylon {
+func NewBabylon(rpc noderpc.INode, repo bigmapdiff.Repository) *Babylon {
 	return &Babylon{
-		rpc: rpc,
-		es:  es,
+		rpc:  rpc,
+		repo: repo,
 
-		updates:           make(map[int64][]elastic.Model),
+		updates:           make(map[int64][]models.Model),
 		temporaryPointers: make(map[int64]*temporaryPointerData),
 	}
 }
 
 // ParseTransaction -
-func (b *Babylon) ParseTransaction(content gjson.Result, metadata meta.Metadata, operation models.Operation) (RichStorage, error) {
+func (b *Babylon) ParseTransaction(content gjson.Result, metadata meta.Metadata, operation operation.Operation) (RichStorage, error) {
 	address := content.Get("destination").String()
 	result, err := getResult(content)
 	if err != nil {
 		return RichStorage{Empty: true}, err
 	}
-	var modelUpdates []elastic.Model
+	var modelUpdates []models.Model
 	if result.Get("big_map_diff.#").Int() > 0 {
 		ptrMap, err := FindBigMapPointers(metadata, result.Get("storage"))
 		if err != nil {
@@ -78,7 +80,7 @@ func (b *Babylon) ParseTransaction(content gjson.Result, metadata meta.Metadata,
 }
 
 // ParseOrigination -
-func (b *Babylon) ParseOrigination(content gjson.Result, metadata meta.Metadata, operation models.Operation) (RichStorage, error) {
+func (b *Babylon) ParseOrigination(content gjson.Result, metadata meta.Metadata, operation operation.Operation) (RichStorage, error) {
 	result, err := getResult(content)
 	if err != nil {
 		return RichStorage{Empty: true}, err
@@ -87,7 +89,7 @@ func (b *Babylon) ParseOrigination(content gjson.Result, metadata meta.Metadata,
 	address := result.Get("originated_contracts.0").String()
 	storage := content.Get("script.storage")
 
-	var bm []elastic.Model
+	var bm []models.Model
 	if result.Get("big_map_diff.#").Int() > 0 {
 		ptrToBin, err := FindBigMapPointers(metadata, storage)
 		if err != nil || len(ptrToBin) == 0 {
@@ -115,7 +117,7 @@ func (b *Babylon) ParseOrigination(content gjson.Result, metadata meta.Metadata,
 }
 
 // Enrich -
-func (b *Babylon) Enrich(sStorage, sPrevStorage string, bmd []models.BigMapDiff, skipEmpty, unpack bool) (gjson.Result, error) {
+func (b *Babylon) Enrich(sStorage, sPrevStorage string, bmd []bigmapdiff.BigMapDiff, skipEmpty, unpack bool) (gjson.Result, error) {
 	if len(bmd) == 0 {
 		return gjson.Parse(sStorage), nil
 	}
@@ -193,10 +195,10 @@ func (b *Babylon) Enrich(sStorage, sPrevStorage string, bmd []models.BigMapDiff,
 	return storage, nil
 }
 
-func (b *Babylon) handleBigMapDiff(result gjson.Result, ptrMap map[int64]string, address string, operation models.Operation) ([]elastic.Model, error) {
-	storageModels := make([]elastic.Model, 0)
+func (b *Babylon) handleBigMapDiff(result gjson.Result, ptrMap map[int64]string, address string, op operation.Operation) ([]models.Model, error) {
+	storageModels := make([]models.Model, 0)
 
-	handlers := map[string]func(gjson.Result, map[int64]string, string, models.Operation) ([]elastic.Model, error){
+	handlers := map[string]func(gjson.Result, map[int64]string, string, operation.Operation) ([]models.Model, error){
 		"update": b.handleBigMapDiffUpdate,
 		"copy":   b.handleBigMapDiffCopy,
 		"remove": b.handleBigMapDiffRemove,
@@ -209,7 +211,7 @@ func (b *Babylon) handleBigMapDiff(result gjson.Result, ptrMap map[int64]string,
 		if !ok {
 			continue
 		}
-		data, err := handler(item, ptrMap, address, operation)
+		data, err := handler(item, ptrMap, address, op)
 		if err != nil {
 			return nil, err
 		}
@@ -220,10 +222,10 @@ func (b *Babylon) handleBigMapDiff(result gjson.Result, ptrMap map[int64]string,
 	return storageModels, nil
 }
 
-func (b *Babylon) handleBigMapDiffUpdate(item gjson.Result, ptrMap map[int64]string, address string, operation models.Operation) ([]elastic.Model, error) {
+func (b *Babylon) handleBigMapDiffUpdate(item gjson.Result, ptrMap map[int64]string, address string, operation operation.Operation) ([]models.Model, error) {
 	ptr := item.Get("big_map").Int()
 
-	bmd := &models.BigMapDiff{
+	bmd := &bigmapdiff.BigMapDiff{
 		ID:          helpers.GenerateID(),
 		Ptr:         ptr,
 		Key:         item.Get("key").Value(),
@@ -257,16 +259,16 @@ func (b *Babylon) handleBigMapDiffUpdate(item gjson.Result, ptrMap map[int64]str
 
 	b.addToUpdates(bmd, ptr)
 	if ptr > -1 {
-		return []elastic.Model{bmd}, nil
+		return []models.Model{bmd}, nil
 	}
 	return nil, nil
 }
 
-func (b *Babylon) handleBigMapDiffCopy(item gjson.Result, ptrMap map[int64]string, address string, operation models.Operation) ([]elastic.Model, error) {
+func (b *Babylon) handleBigMapDiffCopy(item gjson.Result, ptrMap map[int64]string, address string, operation operation.Operation) ([]models.Model, error) {
 	sourcePtr := item.Get("source_big_map").Int()
 	destinationPtr := item.Get("destination_big_map").Int()
 
-	newUpdates := make([]elastic.Model, 0)
+	newUpdates := make([]models.Model, 0)
 
 	if destinationPtr > -1 {
 		var srcPtr int64
@@ -314,17 +316,17 @@ func (b *Babylon) handleBigMapDiffCopy(item gjson.Result, ptrMap map[int64]strin
 	return newUpdates, nil
 }
 
-func (b *Babylon) handleBigMapDiffRemove(item gjson.Result, _ map[int64]string, address string, operation models.Operation) ([]elastic.Model, error) {
+func (b *Babylon) handleBigMapDiffRemove(item gjson.Result, _ map[int64]string, address string, operation operation.Operation) ([]models.Model, error) {
 	ptr := item.Get("big_map").Int()
 	if ptr < 0 {
 		delete(b.updates, ptr)
 		return nil, nil
 	}
-	bmd, err := b.es.GetBigMapDiffsByPtr(address, operation.Network, ptr)
+	bmd, err := b.repo.GetBigMapDiffsByPtr(address, operation.Network, ptr)
 	if err != nil {
 		return nil, err
 	}
-	newUpdates := make([]elastic.Model, len(bmd))
+	newUpdates := make([]models.Model, len(bmd))
 	for i := range bmd {
 		bmd[i].ID = helpers.GenerateID()
 		bmd[i].OperationID = operation.ID
@@ -340,14 +342,14 @@ func (b *Babylon) handleBigMapDiffRemove(item gjson.Result, _ map[int64]string, 
 	return newUpdates, nil
 }
 
-func (b *Babylon) handleBigMapDiffAlloc(item gjson.Result, _ map[int64]string, address string, operation models.Operation) ([]elastic.Model, error) {
+func (b *Babylon) handleBigMapDiffAlloc(item gjson.Result, _ map[int64]string, address string, operation operation.Operation) ([]models.Model, error) {
 	ptr := item.Get("big_map").Int()
-	b.updates[ptr] = []elastic.Model{}
+	b.updates[ptr] = []models.Model{}
 	b.temporaryPointers[ptr] = &temporaryPointerData{
 		sourcePtr: defaultPointer,
 	}
 
-	var models []elastic.Model
+	var models []models.Model
 	if ptr > -1 {
 		models = append(
 			models,
@@ -358,22 +360,22 @@ func (b *Babylon) handleBigMapDiffAlloc(item gjson.Result, _ map[int64]string, a
 	return models, nil
 }
 
-func (b *Babylon) getDiffsFromUpdates(ptr int64) ([]models.BigMapDiff, error) {
+func (b *Babylon) getDiffsFromUpdates(ptr int64) ([]bigmapdiff.BigMapDiff, error) {
 	updates, ok := b.updates[ptr]
 	if !ok {
 		return nil, errors.Errorf("[handleBigMapDiffCopy] Unknown temporary pointer: %d %v", ptr, b.updates)
 	}
-	bmd := make([]models.BigMapDiff, 0)
+	bmd := make([]bigmapdiff.BigMapDiff, 0)
 	for i := range updates {
-		if item, ok := updates[i].(*models.BigMapDiff); ok {
+		if item, ok := updates[i].(*bigmapdiff.BigMapDiff); ok {
 			bmd = append(bmd, *item)
 		}
 	}
 	return bmd, nil
 }
 
-func (b *Babylon) createBigMapDiffAction(action, address string, srcPtr, dstPtr *int64, operation models.Operation) *models.BigMapAction {
-	entity := &models.BigMapAction{
+func (b *Babylon) createBigMapDiffAction(action, address string, srcPtr, dstPtr *int64, operation operation.Operation) *bigmapaction.BigMapAction {
+	entity := &bigmapaction.BigMapAction{
 		ID:          helpers.GenerateID(),
 		Action:      action,
 		OperationID: operation.ID,
@@ -395,9 +397,9 @@ func (b *Babylon) createBigMapDiffAction(action, address string, srcPtr, dstPtr 
 	return entity
 }
 
-func (b *Babylon) addToUpdates(newModel elastic.Model, ptr int64) {
+func (b *Babylon) addToUpdates(newModel models.Model, ptr int64) {
 	if _, ok := b.updates[ptr]; !ok {
-		b.updates[ptr] = []elastic.Model{newModel}
+		b.updates[ptr] = []models.Model{newModel}
 	} else {
 		b.updates[ptr] = append(b.updates[ptr], newModel)
 	}
@@ -433,9 +435,9 @@ func (b *Babylon) updateTemporaryPointers(src, dst int64, ptrMap map[int64]strin
 	return nil
 }
 
-func (b *Babylon) getCopyBigMapDiff(src int64, address, network string) (bmd []models.BigMapDiff, err error) {
+func (b *Babylon) getCopyBigMapDiff(src int64, address, network string) (bmd []bigmapdiff.BigMapDiff, err error) {
 	if src > -1 {
-		bmd, err = b.es.GetBigMapDiffsByPtr(address, network, src)
+		bmd, err = b.repo.GetBigMapDiffsByPtr(address, network, src)
 		if err != nil {
 			return nil, err
 		}

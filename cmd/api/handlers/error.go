@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	sentrygin "github.com/getsentry/sentry-go/gin"
 	"github.com/gin-gonic/gin"
 )
@@ -32,7 +32,7 @@ func handleError(c *gin.Context, err error, code int) bool {
 }
 
 func getErrorCode(err error) int {
-	if elastic.IsRecordNotFound(err) {
+	if core.IsRecordNotFound(err) {
 		return http.StatusNotFound
 	}
 	return http.StatusInternalServerError

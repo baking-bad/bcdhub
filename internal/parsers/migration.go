@@ -11,6 +11,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/migration"
+	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/parsers/contract"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -31,8 +34,8 @@ func NewMigrationParser(es elastic.IElastic, filesDirectory string) *MigrationPa
 }
 
 // Parse -
-func (p *MigrationParser) Parse(script gjson.Result, old models.Contract, previous, next models.Protocol, timestamp time.Time) ([]elastic.Model, []elastic.Model, error) {
-	metadata := models.Metadata{ID: old.Address}
+func (p *MigrationParser) Parse(script gjson.Result, old contract.Contract, previous, next protocol.Protocol, timestamp time.Time) ([]models.Model, []models.Model, error) {
+	metadata := schema.Schema{ID: old.Address}
 	if err := p.es.GetByID(&metadata); err != nil {
 		return nil, nil, err
 	}
@@ -41,7 +44,7 @@ func (p *MigrationParser) Parse(script gjson.Result, old models.Contract, previo
 		return nil, nil, err
 	}
 
-	var updates []elastic.Model
+	var updates []models.Model
 	if previous.SymLink == "alpha" {
 		newUpdates, err := p.getUpdates(script, old, next, metadata)
 		if err != nil {
@@ -55,10 +58,10 @@ func (p *MigrationParser) Parse(script gjson.Result, old models.Contract, previo
 		return nil, nil, err
 	}
 	if newHash == old.Hash {
-		return []elastic.Model{&metadata}, updates, nil
+		return []models.Model{&metadata}, updates, nil
 	}
 
-	migration := models.Migration{
+	migration := migration.Migration{
 		ID:          helpers.GenerateID(),
 		IndexedTime: time.Now().UnixNano() / 1000,
 
@@ -71,10 +74,10 @@ func (p *MigrationParser) Parse(script gjson.Result, old models.Contract, previo
 		Kind:         consts.MigrationUpdate,
 	}
 
-	return []elastic.Model{&metadata, &migration}, updates, nil
+	return []models.Model{&metadata, &migration}, updates, nil
 }
 
-func (p *MigrationParser) getUpdates(script gjson.Result, contract models.Contract, protocol models.Protocol, metadata models.Metadata) ([]elastic.Model, error) {
+func (p *MigrationParser) getUpdates(script gjson.Result, contract contract.Contract, protocol protocol.Protocol, metadata schema.Schema) ([]models.Model, error) {
 	stringMetadata, ok := metadata.Storage[protocol.SymLink]
 	if !ok {
 		return nil, errors.Errorf("[MigrationParser.getUpdates] Unknown metadata sym link: %s", protocol.SymLink)
@@ -108,7 +111,7 @@ func (p *MigrationParser) getUpdates(script gjson.Result, contract models.Contra
 		return nil, nil
 	}
 
-	updates := make([]elastic.Model, len(bmd))
+	updates := make([]models.Model, len(bmd))
 	for i := range bmd {
 		bmd[i].BinPath = newPath
 		bmd[i].Ptr = newPtr

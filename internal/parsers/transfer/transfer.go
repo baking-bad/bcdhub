@@ -5,6 +5,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
@@ -61,7 +64,7 @@ func NewParser(rpc noderpc.INode, es elastic.IElastic, opts ...ParserOption) (*P
 }
 
 // Parse -
-func (p *Parser) Parse(operation models.Operation, operationModels []elastic.Model) ([]*models.Transfer, error) {
+func (p *Parser) Parse(operation operation.Operation, operationModels []models.Model) ([]*transfer.Transfer, error) {
 	if impl, name, ok := p.events.GetByOperation(operation); ok {
 		return p.executeEvents(impl, name, operation, operationModels)
 	} else if operation.Entrypoint == consts.TransferEntrypoint {
@@ -78,7 +81,7 @@ func (p *Parser) Parse(operation models.Operation, operationModels []elastic.Mod
 	return nil, nil
 }
 
-func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, operation models.Operation, operationModels []elastic.Model) ([]*models.Transfer, error) {
+func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, operation operation.Operation, operationModels []models.Model) ([]*transfer.Transfer, error) {
 	if operation.Kind != consts.Transaction {
 		return nil, nil
 	}
@@ -103,9 +106,9 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 	case impl.MichelsonExtendedStorageEvent.Is(operation.Entrypoint):
 		ctx.Parameters = operation.DeffatedStorage
 		ctx.Entrypoint = consts.DefaultEntrypoint
-		bmd := make([]models.BigMapDiff, 0)
+		bmd := make([]bigmapdiff.BigMapDiff, 0)
 		for i := range operationModels {
-			if model, ok := operationModels[i].(*models.BigMapDiff); ok && model.OperationID == operation.ID {
+			if model, ok := operationModels[i].(*bigmapdiff.BigMapDiff); ok && model.OperationID == operation.ID {
 				bmd = append(bmd, *model)
 			}
 		}
@@ -135,8 +138,8 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 	return transfers, err
 }
 
-func (p *Parser) makeFA12Transfers(operation models.Operation, parameters gjson.Result) ([]*models.Transfer, error) {
-	transfer := models.EmptyTransfer(operation)
+func (p *Parser) makeFA12Transfers(operation operation.Operation, parameters gjson.Result) ([]*transfer.Transfer, error) {
+	t := transfer.EmptyTransfer(operation)
 	fromAddr, err := getAddress(parameters.Get("args.0"))
 	if err != nil {
 		return nil, err
@@ -145,17 +148,17 @@ func (p *Parser) makeFA12Transfers(operation models.Operation, parameters gjson.
 	if err != nil {
 		return nil, err
 	}
-	transfer.From = fromAddr
-	transfer.To = toAddr
-	transfer.Amount = parameters.Get("args.1.args.1.int").Float()
+	t.From = fromAddr
+	t.To = toAddr
+	t.Amount = parameters.Get("args.1.args.1.int").Float()
 
-	p.setParentEntrypoint(operation, transfer)
+	p.setParentEntrypoint(operation, t)
 
-	return []*models.Transfer{transfer}, nil
+	return []*transfer.Transfer{t}, nil
 }
 
-func (p *Parser) makeFA2Transfers(operation models.Operation, parameters gjson.Result) ([]*models.Transfer, error) {
-	transfers := make([]*models.Transfer, 0)
+func (p *Parser) makeFA2Transfers(operation operation.Operation, parameters gjson.Result) ([]*transfer.Transfer, error) {
+	transfers := make([]*transfer.Transfer, 0)
 	for _, from := range parameters.Array() {
 		fromAddr, err := getAddress(from.Get("args.0"))
 		if err != nil {
@@ -166,7 +169,7 @@ func (p *Parser) makeFA2Transfers(operation models.Operation, parameters gjson.R
 			if err != nil {
 				return nil, err
 			}
-			transfer := models.EmptyTransfer(operation)
+			transfer := transfer.EmptyTransfer(operation)
 			transfer.From = fromAddr
 			transfer.To = toAddr
 			transfer.Amount = to.Get("args.1.args.1.int").Float()
@@ -180,7 +183,7 @@ func (p *Parser) makeFA2Transfers(operation models.Operation, parameters gjson.R
 	return transfers, nil
 }
 
-func (p Parser) setParentEntrypoint(operation models.Operation, transfer *models.Transfer) {
+func (p Parser) setParentEntrypoint(operation operation.Operation, transfer *transfer.Transfer) {
 	if p.stackTrace.Empty() {
 		return
 	}

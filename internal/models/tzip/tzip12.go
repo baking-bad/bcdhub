@@ -11,12 +11,12 @@ type TZIP12 struct {
 
 // TokenMetadataType -
 type TokenMetadataType struct {
-	Static []TokenMetadata `json:"static,omitempty"`
+	Static []TokenMetadataEntity `json:"static,omitempty"`
 	// Dynamic []TokenMetadata `json:"dynamic,omitempty"`
 }
 
-// TokenMetadata -
-type TokenMetadata struct {
+// TokenMetadataEntity -
+type TokenMetadataEntity struct {
 	RegistryAddress string                 `json:"registry_address"`
 	TokenID         int64                  `json:"token_id"`
 	Symbol          string                 `json:"symbol"`
@@ -26,7 +26,7 @@ type TokenMetadata struct {
 }
 
 // Compare - full compare objects
-func (tm TokenMetadata) Compare(other TokenMetadata) bool {
+func (tm TokenMetadataEntity) Compare(other TokenMetadataEntity) bool {
 	return tm.RegistryAddress == other.RegistryAddress &&
 		tm.Symbol == other.Symbol &&
 		tm.Name == other.Name &&

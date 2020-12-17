@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -31,7 +32,7 @@ func (m *SetOperationTags) Do(ctx *config.Context) error {
 	}
 	logger.Info("Found %d operations", len(operations))
 
-	result := make([]elastic.Model, 0)
+	result := make([]models.Model, 0)
 
 	bar := progressbar.NewOptions(len(operations), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish(), progressbar.OptionShowCount())
 
@@ -42,7 +43,7 @@ func (m *SetOperationTags) Do(ctx *config.Context) error {
 		}
 
 		if _, ok := tags[operations[i].Destination]; !ok {
-			contract := models.NewEmptyContract(operations[i].Network, operations[i].Destination)
+			contract := contract.NewEmptyContract(operations[i].Network, operations[i].Destination)
 			if err := ctx.ES.GetByID(&contract); err != nil {
 				if elastic.IsRecordNotFound(err) {
 					continue

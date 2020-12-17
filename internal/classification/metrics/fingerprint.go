@@ -6,7 +6,7 @@ import (
 	"math"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 )
 
 // Fingerprint -
@@ -22,7 +22,7 @@ func NewFingerprint(section string) *Fingerprint {
 }
 
 // Compute -
-func (m *Fingerprint) Compute(a, b models.Contract) Feature {
+func (m *Fingerprint) Compute(a, b contract.Contract) Feature {
 	f := Feature{
 		Name: fmt.Sprintf("fingerprint_%s", m.Section),
 	}
@@ -135,7 +135,7 @@ func NewFingerprintLength(section string) *FingerprintLength {
 }
 
 // Compute -
-func (m *FingerprintLength) Compute(a, b models.Contract) Feature {
+func (m *FingerprintLength) Compute(a, b contract.Contract) Feature {
 	f := Feature{
 		Name: fmt.Sprintf("fingerprint_length_%s", m.Section),
 	}

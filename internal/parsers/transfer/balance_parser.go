@@ -2,12 +2,13 @@ package transfer
 
 import (
 	"github.com/baking-bad/bcdhub/internal/events"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/transfer"
 )
 
 // BalanceParser -
 type BalanceParser interface {
-	Parse(balances []events.TokenBalance) ([]*models.Transfer, error)
+	Parse(balances []events.TokenBalance) ([]*transfer.Transfer, error)
 }
 
 // DefaultBalanceParser -
@@ -19,10 +20,10 @@ func NewDefaultBalanceParser() *DefaultBalanceParser {
 }
 
 // Parse -
-func (parser *DefaultBalanceParser) Parse(balances []events.TokenBalance, operation models.Operation) ([]*models.Transfer, error) {
-	transfers := make([]*models.Transfer, 0)
+func (parser *DefaultBalanceParser) Parse(balances []events.TokenBalance, operation operation.Operation) ([]*transfer.Transfer, error) {
+	transfers := make([]*transfer.Transfer, 0)
 	for _, balance := range balances {
-		transfer := models.EmptyTransfer(operation)
+		transfer := transfer.EmptyTransfer(operation)
 		if balance.Value > 0 {
 			transfer.To = balance.Address
 		} else {

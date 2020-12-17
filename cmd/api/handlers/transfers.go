@@ -36,7 +36,7 @@ func (ctx *Context) GetContractTransfers(c *gin.Context) {
 		tokenID = int64(*req.TokenID)
 	}
 
-	transfers, err := ctx.ES.GetTransfers(elastic.GetTransfersContext{
+	transfers, err := ctx.Transfers.Get(elastic.GetTransfersContext{
 		Network:   contractRequest.Network,
 		Contracts: []string{contractRequest.Address},
 		Size:      req.Size,
@@ -64,7 +64,7 @@ func (ctx *Context) transfersPostprocessing(transfers elastic.TransfersResponse)
 	response.Transfers = make([]Transfer, len(transfers.Transfers))
 
 	mapTokens := make(map[tokenKey]*TokenMetadata)
-	tokens, err := ctx.ES.GetTokenMetadata(elastic.GetTokenMetadataContext{
+	tokens, err := ctx.TZIP.GetTokenMetadata(elastic.GetTokenMetadataContext{
 		TokenID: -1,
 	})
 	if err != nil {

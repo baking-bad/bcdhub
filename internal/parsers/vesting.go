@@ -5,9 +5,11 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/balanceupdate"
+	"github.com/baking-bad/bcdhub/internal/models/migration"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/contract"
 	"github.com/tidwall/gjson"
@@ -28,8 +30,8 @@ func NewVestingParser(filesDirectory string, interfaces map[string]kinds.Contrac
 }
 
 // Parse -
-func (p *VestingParser) Parse(data gjson.Result, head noderpc.Header, network, address string) ([]elastic.Model, error) {
-	migration := &models.Migration{
+func (p *VestingParser) Parse(data gjson.Result, head noderpc.Header, network, address string) ([]models.Model, error) {
+	migration := &migration.Migration{
 		ID:          helpers.GenerateID(),
 		IndexedTime: time.Now().UnixNano() / 1000,
 
@@ -40,10 +42,10 @@ func (p *VestingParser) Parse(data gjson.Result, head noderpc.Header, network, a
 		Timestamp: head.Timestamp,
 		Kind:      consts.MigrationBootstrap,
 	}
-	parsedModels := []elastic.Model{migration}
+	parsedModels := []models.Model{migration}
 
 	script := data.Get("script")
-	op := models.Operation{
+	op := operation.Operation{
 		ID:          helpers.GenerateID(),
 		Network:     network,
 		Protocol:    head.Protocol,
@@ -69,7 +71,7 @@ func (p *VestingParser) Parse(data gjson.Result, head noderpc.Header, network, a
 		parsedModels = append(parsedModels, contractModels...)
 	}
 
-	parsedModels = append(parsedModels, &models.BalanceUpdate{
+	parsedModels = append(parsedModels, &balanceupdate.BalanceUpdate{
 		ID:       helpers.GenerateID(),
 		Change:   op.Amount,
 		Network:  op.Network,

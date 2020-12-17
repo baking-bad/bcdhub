@@ -6,7 +6,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/parsers/transfer"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -41,8 +43,8 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 	}
 	logger.Info("Found %d operations with transfer entrypoint", len(operations))
 
-	result := make([]elastic.Model, 0)
-	newTransfers := make([]*models.Transfer, 0)
+	result := make([]models.Model, 0)
+	newTransfers := make([]*transfer.Transfer, 0)
 	bar := progressbar.NewOptions(len(operations), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish(), progressbar.OptionShowCount())
 	for i := range operations {
 		if err := bar.Add(1); err != nil {
@@ -58,10 +60,10 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 			return err
 		}
 
-		parser, err := transfer.NewParser(rpc, ctx.ES,
-			transfer.WithNetwork(operations[i].Network),
-			transfer.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
-			transfer.WithoutViews(),
+		parser, err := transferParsers.NewParser(rpc, ctx.ES,
+			transferParsers.WithNetwork(operations[i].Network),
+			transferParsers.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
+			transferParsers.WithoutViews(),
 		)
 		if err != nil {
 			return err
@@ -105,7 +107,7 @@ func (m *CreateTransfersTags) deleteTransfers(ctx *config.Context) (err error) {
 	return ctx.ES.DeleteByContract([]string{elastic.DocTransfers}, m.Network, m.Address)
 }
 
-func (m *CreateTransfersTags) getOperations(ctx *config.Context) ([]models.Operation, error) {
+func (m *CreateTransfersTags) getOperations(ctx *config.Context) ([]operation.Operation, error) {
 	filters := map[string]interface{}{}
 	if m.Network != "" {
 		filters["network"] = m.Network

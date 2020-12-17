@@ -7,9 +7,8 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/node"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
@@ -373,13 +372,13 @@ func getNodeType(n internalNode, metadata Metadata) (string, []string) {
 }
 
 // GetContractMetadata -
-func GetContractMetadata(es elastic.IGeneral, address string) (*ContractMetadata, error) {
+func GetContractMetadata(schemaRepo schema.Repository, address string) (*ContractMetadata, error) {
 	if address == "" {
 		return nil, errors.Errorf("[GetContractMetadata] Empty address")
 	}
 
-	data := models.Metadata{ID: address}
-	if err := es.GetByID(&data); err != nil {
+	data, err := schemaRepo.Get(address)
+	if err != nil {
 		return nil, err
 	}
 
@@ -387,7 +386,7 @@ func GetContractMetadata(es elastic.IGeneral, address string) (*ContractMetadata
 }
 
 // GetContractMetadataFromModel -
-func GetContractMetadataFromModel(metadata models.Metadata) (*ContractMetadata, error) {
+func GetContractMetadataFromModel(metadata schema.Schema) (*ContractMetadata, error) {
 	contractMetadata := ContractMetadata{
 		Parameter: map[string]Metadata{},
 		Storage:   map[string]Metadata{},
@@ -412,13 +411,13 @@ func GetContractMetadataFromModel(metadata models.Metadata) (*ContractMetadata, 
 }
 
 // GetMetadata -
-func GetMetadata(es elastic.IElastic, address, part, protocol string) (Metadata, error) {
+func GetMetadata(schemaRepo schema.Repository, address, part, protocol string) (Metadata, error) {
 	if address == "" {
 		return nil, errors.Errorf("[GetMetadata] Empty address")
 	}
 
-	data := models.Metadata{ID: address}
-	if err := es.GetByID(&data); err != nil {
+	data, err := schemaRepo.Get(address)
+	if err != nil {
 		return nil, err
 	}
 

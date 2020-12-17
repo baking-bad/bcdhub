@@ -3,7 +3,7 @@ package transfer
 import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/events"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
@@ -94,7 +94,7 @@ func NewInitialStorageEvents(es elastic.IElastic) (TokenEvents, error) {
 }
 
 // GetByOperation -
-func (tokenEvents TokenEvents) GetByOperation(operation models.Operation) (tzip.EventImplementation, string, bool) {
+func (tokenEvents TokenEvents) GetByOperation(operation operation.Operation) (tzip.EventImplementation, string, bool) {
 	if event, ok := tokenEvents[ImplementationKey{
 		Address:    operation.Destination,
 		Network:    operation.Network,

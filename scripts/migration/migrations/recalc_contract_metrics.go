@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -51,7 +51,7 @@ func (m *RecalcContractMetrics) Do(ctx *config.Context) error {
 			}
 
 			if (i%1000 == 0 || i == len(contracts)-1) && i > 0 {
-				updates := make([]elastic.Model, len(contracts[lastIdx:i]))
+				updates := make([]models.Model, len(contracts[lastIdx:i]))
 				for j := range contracts[lastIdx:i] {
 					updates[j] = &contracts[lastIdx:i][j]
 				}

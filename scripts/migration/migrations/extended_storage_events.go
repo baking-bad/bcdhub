@@ -9,8 +9,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
-	"github.com/baking-bad/bcdhub/internal/parsers/transfer"
+	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
 )
 
 // ExtendedStorageEvents -
@@ -59,9 +60,9 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 					return err
 				}
 
-				parser, err := transfer.NewParser(rpc, ctx.ES,
-					transfer.WithNetwork(tzips[i].Network),
-					transfer.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
+				parser, err := transferParsers.NewParser(rpc, ctx.ES,
+					transferParsers.WithNetwork(tzips[i].Network),
+					transferParsers.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
 				)
 				if err != nil {
 					return err
@@ -83,7 +84,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 							return err
 						}
 					}
-					opModels := make([]elastic.Model, len(bmd))
+					opModels := make([]models.Model, len(bmd))
 					for j := range bmd {
 						opModels[j] = bmd[j]
 					}
@@ -130,8 +131,8 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 	return elastic.CreateTokenBalanceUpdates(ctx.ES, newTransfers)
 }
 
-func (m *ExtendedStorageEvents) getOperations(ctx *config.Context, tzip models.TZIP, impl tzip.EventImplementation) ([]models.Operation, error) {
-	operations := make([]models.Operation, 0)
+func (m *ExtendedStorageEvents) getOperations(ctx *config.Context, tzip tzip.TZIP, impl tzip.EventImplementation) ([]operation.Operation, error) {
+	operations := make([]operation.Operation, 0)
 
 	for i := range impl.MichelsonExtendedStorageEvent.Entrypoints {
 		ops, err := ctx.ES.GetOperations(map[string]interface{}{

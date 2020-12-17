@@ -5,7 +5,8 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/migration"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 )
 
 func TestMigration_Parse(t *testing.T) {
@@ -13,13 +14,13 @@ func TestMigration_Parse(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		operation *models.Operation
+		operation *operation.Operation
 		fileName  string
-		want      *models.Migration
+		want      *migration.Migration
 	}{
 		{
 			name: "test 1",
-			operation: &models.Operation{
+			operation: &operation.Operation{
 				Network:     "mainnet",
 				Level:       123,
 				Protocol:    "protocol",
@@ -31,7 +32,7 @@ func TestMigration_Parse(t *testing.T) {
 			want:     nil,
 		}, {
 			name: "test 2",
-			operation: &models.Operation{
+			operation: &operation.Operation{
 				Network:     "mainnet",
 				Level:       123,
 				Protocol:    "protocol",
@@ -40,7 +41,7 @@ func TestMigration_Parse(t *testing.T) {
 				Hash:        "hash",
 			},
 			fileName: "./data/migration/test2.json",
-			want: &models.Migration{
+			want: &migration.Migration{
 				Network:   "mainnet",
 				Level:     123,
 				Protocol:  "protocol",

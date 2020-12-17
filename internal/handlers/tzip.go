@@ -4,6 +4,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/tzip"
 	"github.com/pkg/errors"
@@ -29,8 +30,8 @@ func NewTZIP(es elastic.IElastic, rpcs map[string]noderpc.INode, ipfs []string) 
 }
 
 // Do -
-func (t *TZIP) Do(model elastic.Model) (bool, error) {
-	bmd, ok := model.(*models.BigMapDiff)
+func (t *TZIP) Do(model models.Model) (bool, error) {
+	bmd, ok := model.(*bigmapdiff.BigMapDiff)
 	if !ok {
 		return false, nil
 	}
@@ -40,7 +41,7 @@ func (t *TZIP) Do(model elastic.Model) (bool, error) {
 	return true, t.handle(bmd)
 }
 
-func (t *TZIP) handle(bmd *models.BigMapDiff) error {
+func (t *TZIP) handle(bmd *bigmapdiff.BigMapDiff) error {
 	tzipParser, ok := t.parsers[bmd.Network]
 	if !ok {
 		return errors.Errorf("Unknown network for tzip parser: %s", bmd.Network)
@@ -58,5 +59,5 @@ func (t *TZIP) handle(bmd *models.BigMapDiff) error {
 	}
 
 	logger.With(bmd).Info("Big map diff with TZIP is processed")
-	return t.es.BulkInsert([]elastic.Model{model})
+	return t.es.BulkInsert([]models.Model{model})
 }

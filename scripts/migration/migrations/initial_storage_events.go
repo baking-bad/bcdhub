@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/transfer"
 )
 
 // InitialStorageEvents -
@@ -36,7 +37,7 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 	h := metrics.New(ctx.ES, ctx.DB)
 
 	logger.Info("Execution events...")
-	newTransfers := make([]*models.Transfer, 0)
+	newTransfers := make([]*transfer.Transfer, 0)
 	for i := range tzips {
 		logger.Info("%s...", tzips[i].Address)
 
@@ -68,7 +69,7 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 		}
 	}
 
-	updated := make([]elastic.Model, 0)
+	updated := make([]models.Model, 0)
 	if len(newTransfers) == 0 {
 		return nil
 	}

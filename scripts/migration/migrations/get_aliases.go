@@ -45,14 +45,14 @@ func (m *GetAliases) Do(ctx *config.Context) error {
 	logger.Info("Got %d aliases from tzkt api", len(aliases))
 	logger.Info("Saving aliases to elastic...")
 
-	newModels := make([]elastic.Model, 0)
+	newModels := make([]models.Model, 0)
 	bar := progressbar.NewOptions(len(aliases), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish(), progressbar.OptionShowCount())
 	for address, alias := range aliases {
 		if err := bar.Add(1); err != nil {
 			return err
 		}
 
-		item := models.TZIP{
+		item := tzip.TZIP{
 			Network: consts.Mainnet,
 			Address: address,
 			Slug:    helpers.Slug(alias),

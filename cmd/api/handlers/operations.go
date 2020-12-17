@@ -13,9 +13,11 @@ import (
 	formattererror "github.com/baking-bad/bcdhub/internal/contractparser/formatter_error"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/tzkt"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -54,12 +56,12 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 	}
 
 	filters := prepareFilters(filtersReq)
-	ops, err := ctx.ES.GetOperationsForContract(req.Network, req.Address, filtersReq.Size, filters)
+	ops, err := ctx.Operations.GetByContract(req.Network, req.Address, filtersReq.Size, filters)
 	if handleError(c, err, 0) {
 		return
 	}
 
-	resp, err := PrepareOperations(ctx.ES, ops.Operations, filtersReq.WithStorageDiff)
+	resp, err := PrepareOperations(ctx.BigMapDiffs, ctx.Schema, ctx.Operations, ops.Operations, filtersReq.WithStorageDiff)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -92,14 +94,14 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 		return
 	}
 
-	op, err := ctx.ES.GetOperations(
+	op, err := ctx.Operations.Get(
 		map[string]interface{}{
 			"hash": req.Hash,
 		},
 		0,
 		true,
 	)
-	if !elastic.IsRecordNotFound(err) && handleError(c, err, 0) {
+	if !core.IsRecordNotFound(err) && handleError(c, err, 0) {
 		return
 	}
 
@@ -117,7 +119,7 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 		return
 	}
 
-	resp, err := PrepareOperations(ctx.ES, op, true)
+	resp, err := PrepareOperations(ctx.BigMapDiffs, ctx.Schema, ctx.Operations, op, true)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -142,8 +144,8 @@ func (ctx *Context) GetOperationErrorLocation(c *gin.Context) {
 	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-	operation := models.Operation{ID: req.ID}
-	if err := ctx.ES.GetByID(&operation); handleError(c, err, 0) {
+	operation := operation.Operation{ID: req.ID}
+	if err := ctx.Storage.GetByID(&operation); handleError(c, err, 0) {
 		return
 	}
 
@@ -242,7 +244,7 @@ func formatErrors(errs []*cerrors.Error, op *Operation) error {
 	return nil
 }
 
-func prepareOperation(es elastic.IElastic, operation models.Operation, bmd []models.BigMapDiff, withStorageDiff bool) (Operation, error) {
+func prepareOperation(bmdRepo bigmapdiff.Repository, schemaRepo schema.Repository, operationsRepo operation.Repository, operation operation.Operation, bmd []bigmapdiff.BigMapDiff, withStorageDiff bool) (Operation, error) {
 	var op Operation
 	op.FromModel(operation)
 
@@ -255,7 +257,7 @@ func prepareOperation(es elastic.IElastic, operation models.Operation, bmd []mod
 	}
 	if withStorageDiff {
 		if operation.DeffatedStorage != "" && strings.HasPrefix(op.Destination, "KT") && op.Status == consts.Applied {
-			if err := setStorageDiff(es, op.Destination, operation.DeffatedStorage, &op, bmd); err != nil {
+			if err := setStorageDiff(bmdRepo, schemaRepo, operationsRepo, op.Destination, operation.DeffatedStorage, &op, bmd); err != nil {
 				return op, err
 			}
 		}
@@ -266,7 +268,7 @@ func prepareOperation(es elastic.IElastic, operation models.Operation, bmd []mod
 	}
 
 	if strings.HasPrefix(op.Destination, "KT") && !cerrors.HasParametersError(op.Errors) {
-		if err := setParameters(es, operation.Parameters, &op); err != nil {
+		if err := setParameters(schemaRepo, operation.Parameters, &op); err != nil {
 			return op, err
 		}
 	}
@@ -275,20 +277,20 @@ func prepareOperation(es elastic.IElastic, operation models.Operation, bmd []mod
 }
 
 // PrepareOperations -
-func PrepareOperations(es elastic.IElastic, ops []models.Operation, withStorageDiff bool) ([]Operation, error) {
+func PrepareOperations(bmdRepo bigmapdiff.Repository, schemaRepo schema.Repository, operationsRepo operation.Repository, ops []operation.Operation, withStorageDiff bool) ([]Operation, error) {
 	resp := make([]Operation, len(ops))
 	for i := 0; i < len(ops); i++ {
-		var bmd []models.BigMapDiff
+		var bmd []bigmapdiff.BigMapDiff
 		var err error
 
 		if withStorageDiff {
-			bmd, err = es.GetBigMapDiffsUniqueByOperationID(ops[i].ID)
+			bmd, err = bmdRepo.GetBigMapDiffsUniqueByOperationID(ops[i].ID)
 			if err != nil {
 				return nil, err
 			}
 		}
 
-		op, err := prepareOperation(es, ops[i], bmd, withStorageDiff)
+		op, err := prepareOperation(bmdRepo, schemaRepo, operationsRepo, ops[i], bmd, withStorageDiff)
 		if err != nil {
 			return nil, err
 		}
@@ -297,8 +299,8 @@ func PrepareOperations(es elastic.IElastic, ops []models.Operation, withStorageD
 	return resp, nil
 }
 
-func setParameters(es elastic.IElastic, parameters string, op *Operation) error {
-	metadata, err := meta.GetMetadata(es, op.Destination, consts.PARAMETER, op.Protocol)
+func setParameters(schemaRepo schema.Repository, parameters string, op *Operation) error {
+	metadata, err := meta.GetMetadata(schemaRepo, op.Destination, consts.PARAMETER, op.Protocol)
 	if err != nil {
 		return nil
 	}
@@ -314,12 +316,12 @@ func setParameters(es elastic.IElastic, parameters string, op *Operation) error 
 	return nil
 }
 
-func setStorageDiff(es elastic.IElastic, address, storage string, op *Operation, bmd []models.BigMapDiff) error {
-	metadata, err := meta.GetContractMetadata(es, address)
+func setStorageDiff(bmdRepo bigmapdiff.Repository, schemaRepo schema.Repository, operationsRepo operation.Repository, address, storage string, op *Operation, bmd []bigmapdiff.BigMapDiff) error {
+	metadata, err := meta.GetContractMetadata(schemaRepo, address)
 	if err != nil {
 		return err
 	}
-	storageDiff, err := getStorageDiff(es, bmd, address, storage, metadata, false, op)
+	storageDiff, err := getStorageDiff(bmdRepo, operationsRepo, bmd, address, storage, metadata, false, op)
 	if err != nil {
 		return err
 	}
@@ -327,21 +329,21 @@ func setStorageDiff(es elastic.IElastic, address, storage string, op *Operation,
 	return nil
 }
 
-func getStorageDiff(es elastic.IElastic, bmd []models.BigMapDiff, address, storage string, metadata *meta.ContractMetadata, isSimulating bool, op *Operation) (interface{}, error) {
+func getStorageDiff(bmdRepo bigmapdiff.Repository, operationsRepo operation.Repository, bmd []bigmapdiff.BigMapDiff, address, storage string, metadata *meta.ContractMetadata, isSimulating bool, op *Operation) (interface{}, error) {
 	var prevStorage *newmiguel.Node
 	var prevDeffatedStorage string
-	prev, err := es.GetLastOperation(address, op.Network, op.IndexedTime)
+	prev, err := operationsRepo.Last(address, op.Network, op.IndexedTime)
 	if err == nil {
-		prevBmd, err := getPrevBmd(es, bmd, op.IndexedTime, op.Destination)
+		prevBmd, err := getPrevBmd(bmdRepo, bmd, op.IndexedTime, op.Destination)
 		if err != nil {
 			return nil, err
 		}
 
 		var exDeffatedStorage string
-		exOp, err := es.GetLastOperation(address, prev.Network, prev.IndexedTime)
+		exOp, err := operationsRepo.Last(address, prev.Network, prev.IndexedTime)
 		if err == nil {
 			exDeffatedStorage = exOp.DeffatedStorage
-		} else if !elastic.IsRecordNotFound(err) {
+		} else if !core.IsRecordNotFound(err) {
 			return nil, err
 		}
 
@@ -351,7 +353,7 @@ func getStorageDiff(es elastic.IElastic, bmd []models.BigMapDiff, address, stora
 		}
 		prevDeffatedStorage = prev.DeffatedStorage
 	} else {
-		if !elastic.IsRecordNotFound(err) {
+		if !core.IsRecordNotFound(err) {
 			return nil, err
 		}
 		prevStorage = nil
@@ -369,7 +371,7 @@ func getStorageDiff(es elastic.IElastic, bmd []models.BigMapDiff, address, stora
 	return currentStorage, nil
 }
 
-func getEnrichStorageMiguel(bmd []models.BigMapDiff, protocol, storage, prevStorage string, metadata *meta.ContractMetadata, isSimulating bool) (*newmiguel.Node, error) {
+func getEnrichStorageMiguel(bmd []bigmapdiff.BigMapDiff, protocol, storage, prevStorage string, metadata *meta.ContractMetadata, isSimulating bool) (*newmiguel.Node, error) {
 	store, err := enrichStorage(storage, prevStorage, bmd, protocol, false, isSimulating)
 	if err != nil {
 		return nil, err
@@ -381,7 +383,7 @@ func getEnrichStorageMiguel(bmd []models.BigMapDiff, protocol, storage, prevStor
 	return newmiguel.MichelineToMiguel(store, storageMetadata)
 }
 
-func enrichStorage(s, prevStorage string, bmd []models.BigMapDiff, protocol string, skipEmpty, isSimulating bool) (gjson.Result, error) {
+func enrichStorage(s, prevStorage string, bmd []bigmapdiff.BigMapDiff, protocol string, skipEmpty, isSimulating bool) (gjson.Result, error) {
 	if len(bmd) == 0 {
 		return gjson.Parse(s), nil
 	}
@@ -394,11 +396,11 @@ func enrichStorage(s, prevStorage string, bmd []models.BigMapDiff, protocol stri
 	return parser.Enrich(s, prevStorage, bmd, skipEmpty, true)
 }
 
-func getPrevBmd(es elastic.IElastic, bmd []models.BigMapDiff, indexedTime int64, address string) ([]models.BigMapDiff, error) {
+func getPrevBmd(repo bigmapdiff.Repository, bmd []bigmapdiff.BigMapDiff, indexedTime int64, address string) ([]bigmapdiff.BigMapDiff, error) {
 	if len(bmd) == 0 {
 		return nil, nil
 	}
-	return es.GetBigMapDiffsPrevious(bmd, indexedTime, address)
+	return repo.GetBigMapDiffsPrevious(bmd, indexedTime, address)
 }
 
 func (ctx *Context) prepareMempoolOperation(item tzkt.MempoolOperation, network string) *Operation {
@@ -461,7 +463,7 @@ func (ctx *Context) prepareMempoolOperation(item tzkt.MempoolOperation, network 
 }
 
 func (ctx *Context) buildOperationParameters(params gjson.Result, op *Operation) {
-	metadata, err := meta.GetMetadata(ctx.ES, op.Destination, consts.PARAMETER, op.Protocol)
+	metadata, err := meta.GetMetadata(ctx.Schema, op.Destination, consts.PARAMETER, op.Protocol)
 	if err != nil {
 		return
 	}
@@ -479,7 +481,7 @@ func (ctx *Context) buildOperationParameters(params gjson.Result, op *Operation)
 	}
 }
 
-func (ctx *Context) getErrorLocation(operation models.Operation, window int) (GetErrorLocationResponse, error) {
+func (ctx *Context) getErrorLocation(operation operation.Operation, window int) (GetErrorLocationResponse, error) {
 	rpc, err := ctx.GetRPC(operation.Network)
 	if err != nil {
 		return GetErrorLocationResponse{}, err

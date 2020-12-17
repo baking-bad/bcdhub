@@ -9,7 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/jsonschema"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 )
@@ -52,7 +52,7 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 		return
 	}
 
-	metadata, err := meta.GetMetadata(ctx.ES, req.Address, consts.STORAGE, header.Protocol)
+	metadata, err := meta.GetMetadata(ctx.Schema, req.Address, consts.STORAGE, header.Protocol)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -96,7 +96,7 @@ func (ctx *Context) GetContractStorageRaw(c *gin.Context) {
 		filters["level"] = sReq.Level
 	}
 
-	ops, err := ctx.ES.GetOperations(filters, 1, true)
+	ops, err := ctx.Operations.Get(filters, 1, true)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -146,7 +146,7 @@ func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 		filters["level"] = sReq.Level
 	}
 
-	ops, err := ctx.ES.GetOperations(filters, 2, true)
+	ops, err := ctx.Operations.Get(filters, 2, true)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -155,12 +155,12 @@ func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 		return
 	}
 
-	prev := models.Operation{}
+	prev := operation.Operation{}
 	if len(ops) > 1 {
 		prev = ops[1]
 	}
 
-	bmd, err := ctx.ES.GetBigMapDiffsForAddress(req.Address)
+	bmd, err := ctx.BigMapDiffs.GetBigMapDiffsForAddress(req.Address)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -197,7 +197,7 @@ func (ctx *Context) GetContractStorageSchema(c *gin.Context) {
 		return
 	}
 
-	metadata, err := getStorageMetadata(ctx.ES, req.Address, req.Network)
+	metadata, err := ctx.getStorageMetadata(req.Address, req.Network)
 	if handleError(c, err, 0) {
 		return
 	}

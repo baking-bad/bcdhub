@@ -4,8 +4,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/tidwall/gjson"
 )
 
@@ -20,8 +20,8 @@ func NewGroup(params *ParseParams) Group {
 }
 
 // Parse -
-func (opg Group) Parse(data gjson.Result) ([]elastic.Model, error) {
-	parsedModels := make([]elastic.Model, 0)
+func (opg Group) Parse(data gjson.Result) ([]models.Model, error) {
+	parsedModels := make([]models.Model, 0)
 
 	opg.hash = data.Get("hash").String()
 	helpers.SetTagSentry("hash", opg.hash)
@@ -52,12 +52,12 @@ func NewContent(params *ParseParams) Content {
 }
 
 // Parse -
-func (content Content) Parse(data gjson.Result) ([]elastic.Model, error) {
+func (content Content) Parse(data gjson.Result) ([]models.Model, error) {
 	if !content.needParse(data) {
 		return nil, nil
 	}
 
-	models := make([]elastic.Model, 0)
+	models := make([]models.Model, 0)
 
 	kind := data.Get("kind").String()
 	switch kind {
@@ -96,7 +96,7 @@ func (content Content) needParse(item gjson.Result) bool {
 	return originationCondition || transactionCondition
 }
 
-func (content Content) parseInternal(data gjson.Result) ([]elastic.Model, error) {
+func (content Content) parseInternal(data gjson.Result) ([]models.Model, error) {
 	path := "metadata.internal_operation_results"
 	if !data.Get(path).Exists() {
 		path = "metadata.internal_operations"
@@ -105,7 +105,7 @@ func (content Content) parseInternal(data gjson.Result) ([]elastic.Model, error)
 		}
 	}
 
-	internalModels := make([]elastic.Model, 0)
+	internalModels := make([]models.Model, 0)
 	for _, internal := range data.Get(path).Array() {
 		parsedModels, err := content.Parse(internal)
 		if err != nil {

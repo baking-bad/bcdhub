@@ -7,12 +7,12 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
 	"github.com/baking-bad/bcdhub/internal/elastic"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/getsentry/sentry-go"
 )
 
 // SetOperationAliases -
-func (h *Handler) SetOperationAliases(op *models.Operation) (bool, error) {
+func (h *Handler) SetOperationAliases(aliases map[string]string, op *operation.Operation) bool {
 	var changed bool
 
 	aliases, err := h.ES.GetAliasesMap(op.Network)
@@ -42,18 +42,18 @@ func (h *Handler) SetOperationAliases(op *models.Operation) (bool, error) {
 }
 
 // SetOperationStrings -
-func (h *Handler) SetOperationStrings(op *models.Operation) {
+func (h *Handler) SetOperationStrings(op *operation.Operation) {
 	op.ParameterStrings = stringer.Get(op.Parameters)
 	op.StorageStrings = stringer.Get(op.DeffatedStorage)
 }
 
 // SendSentryNotifications -
-func (h *Handler) SendSentryNotifications(operation models.Operation) error {
-	if operation.Status != "failed" {
+func (h *Handler) SendSentryNotifications(op operation.Operation) error {
+	if op.Status != "failed" {
 		return nil
 	}
 
-	subscriptions, err := h.DB.GetSubscriptions(operation.Destination, operation.Network)
+	subscriptions, err := h.DB.GetSubscriptions(op.Destination, op.Network)
 	if err != nil {
 		return err
 	}
@@ -64,44 +64,44 @@ func (h *Handler) SendSentryNotifications(operation models.Operation) error {
 	defer sentry.Flush(2 * time.Second)
 
 	for _, subscription := range subscriptions {
-		initSentry(operation.Network, subscription.SentryDSN)
+		initSentry(op.Network, subscription.SentryDSN)
 
 		hub := sentry.CurrentHub().Clone()
 		tags := map[string]string{
-			"hash":    operation.Hash,
-			"source":  operation.Source,
-			"address": operation.Destination,
-			"kind":    operation.Kind,
-			"block":   fmt.Sprintf("%d", operation.Level),
+			"hash":    op.Hash,
+			"source":  op.Source,
+			"address": op.Destination,
+			"kind":    op.Kind,
+			"block":   fmt.Sprintf("%d", op.Level),
 			"os.name": "tezos",
 		}
 
-		if operation.Entrypoint != "" {
-			tags["entrypoint"] = operation.Entrypoint
+		if op.Entrypoint != "" {
+			tags["entrypoint"] = op.Entrypoint
 		}
 
 		exceptions := make([]sentry.Exception, 0)
 		var message string
-		for i := range operation.Errors {
-			if err := operation.Errors[i].Format(); err != nil {
+		for i := range op.Errors {
+			if err := op.Errors[i].Format(); err != nil {
 				return err
 			}
 
 			if i == 0 {
-				message = operation.Errors[i].GetTitle()
+				message = op.Errors[i].GetTitle()
 			}
 
 			exceptions = append(exceptions, sentry.Exception{
-				Value: operation.Errors[i].String(),
-				Type:  operation.Errors[i].GetTitle(),
+				Value: op.Errors[i].String(),
+				Type:  op.Errors[i].GetTitle(),
 			})
 		}
 
 		hub.Client().Transport.SendEvent(&sentry.Event{
 			Tags:        tags,
-			Timestamp:   operation.Timestamp.Unix(),
+			Timestamp:   op.Timestamp.Unix(),
 			Level:       sentry.LevelError,
-			Environment: operation.Network,
+			Environment: op.Network,
 			Message:     message,
 			Exception:   exceptions,
 			Sdk: sentry.SdkInfo{

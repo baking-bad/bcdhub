@@ -4,30 +4,36 @@ import (
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/elastic/core"
+	"github.com/baking-bad/bcdhub/internal/elastic/tzip"
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
+	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	tzipModels "github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/baking-bad/bcdhub/internal/parsers/transfer"
+	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
 	"github.com/baking-bad/bcdhub/internal/parsers/tzip/tokens"
 	"github.com/pkg/errors"
 )
 
 // CreateTokenMetadata -
-func (h *Handler) CreateTokenMetadata(rpc noderpc.INode, sharePath string, c *models.Contract) error {
+func (h *Handler) CreateTokenMetadata(rpc noderpc.INode, sharePath string, c *contract.Contract) error {
 	if !helpers.StringInArray(consts.FA2Tag, c.Tags) {
 		return nil
 	}
 
-	parser := tokens.NewTokenMetadataParser(h.ES, rpc, sharePath, c.Network)
+	parser := tokens.NewTokenMetadataParser(h.BigMapDiffs, h.Blocks, h.Protocol, h.Schema, h.Storage, rpc, sharePath, c.Network)
 	metadata, err := parser.Parse(c.Address, c.Level)
 	if err != nil {
 		return err
 	}
 
-	result := make([]elastic.Model, 0)
+	result := make([]models.Model, 0)
 	for i := range metadata {
 		tzip := metadata[i].ToModel(c.Address, c.Network)
 		logger.With(tzip).Info("Token metadata is found")
@@ -42,11 +48,11 @@ func (h *Handler) CreateTokenMetadata(rpc noderpc.INode, sharePath string, c *mo
 		}
 	}
 
-	return h.ES.BulkInsert(result)
+	return h.Bulk.Insert(result)
 }
 
 // FixTokenMetadata -
-func (h *Handler) FixTokenMetadata(rpc noderpc.INode, sharePath string, contract *models.Contract, operation *models.Operation) error {
+func (h *Handler) FixTokenMetadata(rpc noderpc.INode, sharePath string, contract *contract.Contract, operation *operation.Operation) error {
 	if !operation.IsTransaction() || !operation.IsApplied() || !operation.IsCall() {
 		return nil
 	}
@@ -55,21 +61,21 @@ func (h *Handler) FixTokenMetadata(rpc noderpc.INode, sharePath string, contract
 		return nil
 	}
 
-	tokenMetadatas, err := h.ES.GetTokenMetadata(elastic.GetTokenMetadataContext{
+	tokenMetadatas, err := h.TZIP.GetTokenMetadata(tzip.GetTokenMetadataContext{
 		Contract: operation.Destination,
 		Network:  operation.Network,
 		TokenID:  -1,
 	})
 	if err != nil {
-		if !elastic.IsRecordNotFound(err) {
+		if !core.IsRecordNotFound(err) {
 			return err
 		}
 		return nil
 	}
-	result := make([]elastic.Model, 0)
+	result := make([]models.Model, 0)
 
 	for _, tokenMetadata := range tokenMetadatas {
-		parser := tokens.NewTokenMetadataParser(h.ES, rpc, sharePath, operation.Network)
+		parser := tokens.NewTokenMetadataParser(h.BigMapDiffs, h.Blocks, h.Protocol, h.Schema, h.Storage, rpc, sharePath, operation.Network)
 		metadata, err := parser.ParseWithRegistry(tokenMetadata.RegistryAddress, operation.Level)
 		if err != nil {
 			return err
@@ -87,18 +93,18 @@ func (h *Handler) FixTokenMetadata(rpc noderpc.INode, sharePath string, contract
 		return nil
 	}
 
-	return h.ES.BulkUpdate(result)
+	return h.Bulk.Update(result)
 }
 
 // ExecuteInitialStorageEvent -
-func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, tzip *models.TZIP) ([]*models.Transfer, error) {
-	ops, err := h.ES.GetOperations(map[string]interface{}{
+func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, tzip *tzipModels.TZIP) ([]*transfer.Transfer, error) {
+	ops, err := h.Operations.Get(map[string]interface{}{
 		"destination": tzip.Address,
 		"network":     tzip.Network,
 		"kind":        consts.Origination,
 	}, 1, false)
 	if err != nil {
-		if elastic.IsRecordNotFound(err) {
+		if core.IsRecordNotFound(err) {
 			return nil, nil
 		}
 		return nil, err
@@ -109,19 +115,19 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, tzip *models.TZI
 
 	origination := ops[0]
 
-	protocol, err := h.ES.GetProtocol(tzip.Network, origination.Protocol, origination.Level)
+	protocol, err := h.Protocol.GetProtocol(tzip.Network, origination.Protocol, origination.Level)
 	if err != nil {
 		return nil, err
 	}
 
-	state, err := h.ES.GetLastBlock(tzip.Network)
+	state, err := h.Blocks.GetLastBlock(tzip.Network)
 	if err != nil {
 		return nil, err
 	}
 
-	data := make([]*models.Transfer, 0)
+	data := make([]*transfer.Transfer, 0)
 
-	balanceUpdates := make([]*models.TokenBalance, 0)
+	balanceUpdates := make([]*tokenbalance.TokenBalance, 0)
 	for i := range tzip.Events {
 		for j := range tzip.Events[i].Implementations {
 			if !tzip.Events[i].Implementations[j].MichelsonInitialStorageEvent.Empty() {
@@ -154,7 +160,7 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, tzip *models.TZI
 					return nil, err
 				}
 
-				res, err := transfer.NewDefaultBalanceParser().Parse(balances, origination)
+				res, err := transferParsers.NewDefaultBalanceParser().Parse(balances, origination)
 				if err != nil {
 					return nil, err
 				}
@@ -162,7 +168,7 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, tzip *models.TZI
 				data = append(data, res...)
 
 				for i := range balances {
-					balanceUpdates = append(balanceUpdates, &models.TokenBalance{
+					balanceUpdates = append(balanceUpdates, &tokenbalance.TokenBalance{
 						Network:  tzip.Network,
 						Address:  balances[i].Address,
 						TokenID:  balances[i].TokenID,
@@ -174,5 +180,5 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, tzip *models.TZI
 		}
 	}
 
-	return data, h.ES.UpdateTokenBalances(balanceUpdates)
+	return data, h.TokenBalances.UpdateTokenBalances(balanceUpdates)
 }

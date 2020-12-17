@@ -6,9 +6,14 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser/docstring"
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/jsonschema"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/block"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
+	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/tidwall/gjson"
 )
 
@@ -71,7 +76,7 @@ func (o *Operation) ParseJSON(raw gjson.Result) {
 }
 
 // FromModel -
-func (o *Operation) FromModel(operation models.Operation) {
+func (o *Operation) FromModel(operation operation.Operation) {
 	o.ID = operation.ID
 	o.Protocol = operation.Protocol
 	o.Hash = operation.Hash
@@ -102,12 +107,12 @@ func (o *Operation) FromModel(operation models.Operation) {
 }
 
 // ToModel -
-func (o *Operation) ToModel() models.Operation {
-	var result *models.OperationResult
+func (o *Operation) ToModel() operation.Operation {
+	var result *operation.Result
 	if o.Result != nil {
 		result = o.Result.ToModel()
 	}
-	return models.Operation{
+	return operation.Operation{
 		ID:        o.ID,
 		Protocol:  o.Protocol,
 		Hash:      o.Hash,
@@ -147,7 +152,7 @@ type OperationResult struct {
 }
 
 // FromModel -
-func (r *OperationResult) FromModel(result *models.OperationResult) {
+func (r *OperationResult) FromModel(result *operation.Result) {
 	if result == nil || r == nil {
 		return
 	}
@@ -158,12 +163,12 @@ func (r *OperationResult) FromModel(result *models.OperationResult) {
 }
 
 // ToModel -
-func (r *OperationResult) ToModel() *models.OperationResult {
+func (r *OperationResult) ToModel() *operation.Result {
 	if r == nil {
 		return nil
 	}
 
-	return &models.OperationResult{
+	return &operation.Result{
 		AllocatedDestinationContract: r.AllocatedDestinationContract,
 		ConsumedGas:                  r.ConsumedGas,
 		PaidStorageSizeDiff:          r.PaidStorageSizeDiff,
@@ -208,7 +213,7 @@ type Contract struct {
 }
 
 // FromModel -
-func (c *Contract) FromModel(contract models.Contract) {
+func (c *Contract) FromModel(contract contract.Contract) {
 	c.Address = contract.Address
 	c.Alias = contract.Alias
 	c.Annotations = contract.Annotations
@@ -434,7 +439,7 @@ type Alias struct {
 }
 
 // FromModel -
-func (a *Alias) FromModel(alias *models.TZIP) {
+func (a *Alias) FromModel(alias *tzip.TZIP) {
 	a.Alias = alias.Name
 	a.Address = alias.Address
 	a.Network = alias.Network
@@ -451,7 +456,7 @@ type Protocol struct {
 }
 
 // FromModel -
-func (p *Protocol) FromModel(protocol models.Protocol) {
+func (p *Protocol) FromModel(protocol protocol.Protocol) {
 	p.Hash = protocol.Hash
 	p.Network = protocol.Network
 	p.StartLevel = protocol.StartLevel
@@ -471,7 +476,7 @@ type Block struct {
 }
 
 // FromModel -
-func (b *Block) FromModel(block models.Block) {
+func (b *Block) FromModel(block block.Block) {
 	b.Network = block.Network
 	b.Hash = block.Hash
 	b.Level = block.Level
@@ -489,7 +494,7 @@ type LightContract struct {
 }
 
 // FromModel -
-func (c *LightContract) FromModel(light elastic.LightContract) {
+func (c *LightContract) FromModel(light contract.Light) {
 	c.Address = light.Address
 	c.Network = light.Network
 	c.Deployed = light.Deployed
@@ -510,7 +515,7 @@ type SimilarContract struct {
 }
 
 // FromModel -
-func (c *SimilarContract) FromModel(similar elastic.SimilarContract, diff CodeDiffResponse) {
+func (c *SimilarContract) FromModel(similar contract.Similar, diff CodeDiffResponse) {
 	var contract Contract
 	contract.FromModel(*similar.Contract)
 	c.Contract = &contract
@@ -527,7 +532,7 @@ type SameContractsResponse struct {
 }
 
 // FromModel -
-func (c *SameContractsResponse) FromModel(same elastic.SameContractsResponse) {
+func (c *SameContractsResponse) FromModel(same contract.SameResponse) {
 	c.Count = same.Count
 
 	c.Contracts = make([]Contract, len(same.Contracts))
@@ -559,7 +564,7 @@ type BigMapHistoryItem struct {
 
 // Transfer -
 type Transfer struct {
-	*models.Transfer
+	*transfer.Transfer
 	Token *TokenMetadata `json:"token,omitempty"`
 }
 
@@ -619,7 +624,7 @@ type Screenshot struct {
 // Token -
 type Token struct {
 	TokenMetadata
-	elastic.TokenSupply
+	transfer.TokenSupply
 }
 
 // AccountInfo -
@@ -654,7 +659,7 @@ type TokenMetadata struct {
 }
 
 // TokenMetadataFromElasticModel -
-func TokenMetadataFromElasticModel(model elastic.TokenMetadata) (tm TokenMetadata) {
+func TokenMetadataFromElasticModel(model tzip.TokenMetadata) (tm TokenMetadata) {
 	tm.TokenID = model.TokenID
 	tm.Symbol = model.Symbol
 	tm.Name = model.Name
@@ -669,8 +674,8 @@ func TokenMetadataFromElasticModel(model elastic.TokenMetadata) (tm TokenMetadat
 
 // DomainsResponse -
 type DomainsResponse struct {
-	Domains []models.TezosDomain `json:"domains"`
-	Total   int64                `json:"total"`
+	Domains []tezosdomain.TezosDomain `json:"domains"`
+	Total   int64                     `json:"total"`
 }
 
 // CountResponse -

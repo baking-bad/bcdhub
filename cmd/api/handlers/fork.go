@@ -48,7 +48,7 @@ func (ctx *Context) buildStorageDataFromForkRequest(req forkRequest) (gin.H, err
 		if err != nil {
 			return nil, err
 		}
-		metadata, err = getStorageMetadata(ctx.ES, req.Address, req.Network)
+		metadata, err = ctx.getStorageMetadata(req.Address, req.Network)
 		if err != nil {
 			return nil, err
 		}

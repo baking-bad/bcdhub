@@ -1,0 +1,15 @@
+package operation
+
+// Repository -
+type Repository interface {
+	GetByContract(network string, address string, size uint64, filters map[string]interface{}) (Pageable, error)
+	GetStats(network, address string) (Stats, error)
+	// Last - returns last operation. TODO: change network and address.
+	Last(network string, address string, indexedTime int64) (Operation, error)
+
+	// GetOperations - get operation by `filter`. `Size` - if 0 - return all, else certain `size` operations.
+	// `Sort` - sort by time and content index by desc
+	Get(filter map[string]interface{}, size int64, sort bool) ([]Operation, error)
+
+	GetContract24HoursVolume(network, address string, entrypoints []string) (float64, error)
+}

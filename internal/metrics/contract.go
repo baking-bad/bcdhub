@@ -1,12 +1,12 @@
 package metrics
 
 import (
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 
 	"github.com/baking-bad/bcdhub/internal/classification/functions"
 	clmetrics "github.com/baking-bad/bcdhub/internal/classification/metrics"
-	"github.com/baking-bad/bcdhub/internal/models"
 )
 
 // SetContractAlias -
@@ -39,20 +39,20 @@ func (h *Handler) SetContractAlias(c *models.Contract) (bool, error) {
 }
 
 // UpdateContractStats -
-func (h *Handler) UpdateContractStats(c *models.Contract) error {
-	migrationsStats, err := h.ES.GetContractMigrationStats(c.Network, c.Address)
+func (h *Handler) UpdateContractStats(c *contract.Contract) error {
+	count, err := h.Contracts.GetMigrationsCount(c.Network, c.Address)
 	if err != nil {
 		return err
 	}
-	c.MigrationsCount = migrationsStats.MigrationsCount
+	c.MigrationsCount = count
 	return nil
 }
 
 // SetContractProjectID -
-func (h *Handler) SetContractProjectID(c *models.Contract) error {
-	buckets, err := h.ES.GetProjectsLastContract()
+func (h *Handler) SetContractProjectID(c *contract.Contract) error {
+	buckets, err := h.Contracts.GetProjectsLastContract()
 	if err != nil {
-		if elastic.IsRecordNotFound(err) {
+		if core.IsRecordNotFound(err) {
 			c.ProjectID = helpers.GenerateID()
 			return nil
 		}
@@ -64,7 +64,7 @@ func (h *Handler) SetContractProjectID(c *models.Contract) error {
 	return nil
 }
 
-func getContractProjectID(c models.Contract, buckets []models.Contract) string {
+func getContractProjectID(c contract.Contract, buckets []contract.Contract) string {
 	for i := len(buckets) - 1; i > -1; i-- {
 		if compare(c, buckets[i]) {
 			return buckets[i].ProjectID
@@ -89,7 +89,7 @@ var model = []clmetrics.Metric{
 	clmetrics.NewFingerprint("code"),
 }
 
-func compare(a, b models.Contract) bool {
+func compare(a, b contract.Contract) bool {
 	features := make([]float64, len(model))
 
 	for i := range model {

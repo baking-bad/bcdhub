@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/elastic/tzip"
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,11 +26,11 @@ func (ctx *Context) GetInfo(c *gin.Context) {
 		return
 	}
 
-	stats, err := ctx.ES.GetOperationsStats(req.Network, req.Address)
+	stats, err := ctx.Operations.GetStats(req.Network, req.Address)
 	if handleError(c, err, 0) {
 		return
 	}
-	block, err := ctx.ES.GetLastBlock(req.Network)
+	block, err := ctx.Blocks.GetLastBlock(req.Network)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -72,14 +72,14 @@ func (ctx *Context) GetInfo(c *gin.Context) {
 }
 
 func (ctx *Context) getAccountBalances(network, address string) ([]TokenBalance, error) {
-	tokenBalances, err := ctx.ES.GetAccountBalances(network, address)
+	tokenBalances, err := ctx.TokenBalances.GetAccountBalances(network, address)
 	if err != nil {
 		return nil, err
 	}
 
 	result := make([]TokenBalance, 0)
 	for _, balance := range tokenBalances {
-		token, err := ctx.ES.GetTokenMetadata(elastic.GetTokenMetadataContext{
+		token, err := ctx.TZIP.GetTokenMetadata(tzip.GetTokenMetadataContext{
 			TokenID:  balance.TokenID,
 			Contract: balance.Contract,
 			Network:  network,

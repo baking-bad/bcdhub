@@ -9,9 +9,15 @@ import (
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/balanceupdate"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/schema"
+	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 )
@@ -34,17 +40,17 @@ func readTestMetadata(address string) (*meta.ContractMetadata, error) {
 	return &metadata, err
 }
 
-func readTestMetadataModel(address string) (*models.Metadata, error) {
+func readTestMetadataModel(address string) (*schema.Schema, error) {
 	bytes, err := ioutil.ReadFile(fmt.Sprintf("./data/models/metadata/%s.json", address))
 	if err != nil {
 		return nil, err
 	}
-	var metadata models.Metadata
+	var metadata schema.Schema
 	err = json.Unmarshal(bytes, &metadata)
 	return &metadata, err
 }
 
-func readTestContractModel(contract *models.Contract) error {
+func readTestContractModel(contract *contract.Contract) error {
 	bytes, err := ioutil.ReadFile(fmt.Sprintf("./data/models/contract/%s.json", contract.Address))
 	if err != nil {
 		return err
@@ -57,15 +63,15 @@ func readStorage(address string, level int64) (gjson.Result, error) {
 	return readJSONFile(storageFile)
 }
 
-func compareParserResponse(t *testing.T, got, want []elastic.Model) bool {
+func compareParserResponse(t *testing.T, got, want []models.Model) bool {
 	if len(got) != len(want) {
 		log.Printf("len(got) != len(want): %d != %d", len(got), len(want))
 		return false
 	}
 	for i := range got {
 		switch one := got[i].(type) {
-		case *models.Transfer:
-			two, ok := want[i].(*models.Transfer)
+		case *transfer.Transfer:
+			two, ok := want[i].(*transfer.Transfer)
 			if !ok {
 				log.Printf("Differrrent types: %T != %T", one, two)
 				return false
@@ -73,8 +79,8 @@ func compareParserResponse(t *testing.T, got, want []elastic.Model) bool {
 			if !compareTransfers(one, two) {
 				return false
 			}
-		case *models.Operation:
-			two, ok := want[i].(*models.Operation)
+		case *operation.Operation:
+			two, ok := want[i].(*operation.Operation)
 			if !ok {
 				log.Printf("Differrrent types: %T != %T", one, two)
 				return false
@@ -82,8 +88,8 @@ func compareParserResponse(t *testing.T, got, want []elastic.Model) bool {
 			if !compareOperations(t, one, two) {
 				return false
 			}
-		case *models.BigMapDiff:
-			two, ok := want[i].(*models.BigMapDiff)
+		case *bigmapdiff.BigMapDiff:
+			two, ok := want[i].(*bigmapdiff.BigMapDiff)
 			if !ok {
 				log.Printf("Differrrent types: %T != %T", one, two)
 				return false
@@ -91,32 +97,32 @@ func compareParserResponse(t *testing.T, got, want []elastic.Model) bool {
 			if !compareBigMapDiff(t, one, two) {
 				return false
 			}
-		case *models.BigMapAction:
-			two, ok := want[i].(*models.BigMapAction)
+		case *bigmapaction.BigMapAction:
+			two, ok := want[i].(*bigmapaction.BigMapAction)
 			if !ok {
 				return false
 			}
 			if !compareBigMapAction(one, two) {
 				return false
 			}
-		case *models.Contract:
-			two, ok := want[i].(*models.Contract)
+		case *contract.Contract:
+			two, ok := want[i].(*contract.Contract)
 			if !ok {
 				return false
 			}
 			if !compareContract(one, two) {
 				return false
 			}
-		case *models.Metadata:
-			two, ok := want[i].(*models.Metadata)
+		case *schema.Schema:
+			two, ok := want[i].(*schema.Schema)
 			if !ok {
 				return false
 			}
 			if !compareMetadata(t, one, two) {
 				return false
 			}
-		case *models.BalanceUpdate:
-			two, ok := want[i].(*models.BalanceUpdate)
+		case *balanceupdate.BalanceUpdate:
+			two, ok := want[i].(*balanceupdate.BalanceUpdate)
 			if !ok {
 				return false
 			}
@@ -132,7 +138,7 @@ func compareParserResponse(t *testing.T, got, want []elastic.Model) bool {
 	return true
 }
 
-func compareTransfers(one, two *models.Transfer) bool {
+func compareTransfers(one, two *transfer.Transfer) bool {
 	if one.Network != two.Network {
 		log.Printf("Network: %s != %s", one.Network, two.Network)
 		return false
@@ -204,7 +210,7 @@ func compareTransfers(one, two *models.Transfer) bool {
 	return true
 }
 
-func compareOperations(t *testing.T, one, two *models.Operation) bool {
+func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 	if one.Internal != two.Internal {
 		log.Printf("Internal: %v != %v", one.Internal, two.Internal)
 		return false
@@ -328,7 +334,7 @@ func compareOperations(t *testing.T, one, two *models.Operation) bool {
 	return true
 }
 
-func compareBigMapDiff(t *testing.T, one, two *models.BigMapDiff) bool {
+func compareBigMapDiff(t *testing.T, one, two *bigmapdiff.BigMapDiff) bool {
 	if one.Address != two.Address {
 		log.Printf("BigMapDiff.Address: %s != %s", one.Address, two.Address)
 		return false
@@ -368,7 +374,7 @@ func compareBigMapDiff(t *testing.T, one, two *models.BigMapDiff) bool {
 	return true
 }
 
-func compareBigMapAction(one, two *models.BigMapAction) bool {
+func compareBigMapAction(one, two *bigmapaction.BigMapAction) bool {
 	if one.Action != two.Action {
 		log.Printf("Action: %s != %s", one.Action, two.Action)
 		return false
@@ -400,7 +406,7 @@ func compareBigMapAction(one, two *models.BigMapAction) bool {
 	return true
 }
 
-func compareContract(one, two *models.Contract) bool {
+func compareContract(one, two *contract.Contract) bool {
 	if one.Network != two.Network {
 		log.Printf("Contract.Network: %s != %s", one.Network, two.Network)
 		return false
@@ -452,7 +458,7 @@ func compareContract(one, two *models.Contract) bool {
 	return true
 }
 
-func compareBalanceUpdates(a, b *models.BalanceUpdate) bool {
+func compareBalanceUpdates(a, b *balanceupdate.BalanceUpdate) bool {
 	if a.Change != b.Change {
 		log.Printf("BalanceUpdate.Change: %d != %d", a.Change, b.Change)
 		return false
@@ -484,7 +490,7 @@ func compareBalanceUpdates(a, b *models.BalanceUpdate) bool {
 	return true
 }
 
-func compareMetadata(t *testing.T, one, two *models.Metadata) bool {
+func compareMetadata(t *testing.T, one, two *schema.Schema) bool {
 	if one.ID != two.ID {
 		log.Printf("Metadata.ID: %s != %s", one.ID, two.ID)
 		return false

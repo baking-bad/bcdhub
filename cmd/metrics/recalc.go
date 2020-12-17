@@ -3,12 +3,12 @@ package main
 import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/pkg/errors"
 )
 
 func recalculateAll(ids []string) error {
-	contracts := make([]models.Contract, 0)
+	contracts := make([]contract.Contract, 0)
 	if err := ctx.ES.GetByIDs(&contracts, ids...); err != nil {
 		return errors.Errorf("[recalculateAll] Find contracts error for IDs %v: %s", ids, err)
 	}
@@ -23,7 +23,7 @@ func recalculateAll(ids []string) error {
 	return nil
 }
 
-func recalc(contract models.Contract) error {
+func recalc(contract contract.Contract) error {
 	h := metrics.New(ctx.ES, ctx.DB)
 
 	if _, err := h.SetContractAlias(&contract); err != nil {

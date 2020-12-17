@@ -4,7 +4,20 @@ import (
 	"github.com/baking-bad/bcdhub/internal/aws"
 	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/database"
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/balanceupdate"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/block"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/migration"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/schema"
+	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
+	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
+	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/pinata"
@@ -15,7 +28,6 @@ import (
 // Context -
 type Context struct {
 	DB           database.DB
-	ES           elastic.IElastic
 	MQ           mq.Mediator
 	AWS          *aws.Client
 	RPC          map[string]noderpc.INode
@@ -28,6 +40,22 @@ type Context struct {
 
 	Interfaces map[string]kinds.ContractKind
 	Domains    map[string]string
+
+	Storage        models.GeneralRepository
+	Bulk           models.BulkRepository
+	BalanceUpdates balanceupdate.Repository
+	BigMapActions  bigmapaction.Repository
+	BigMapDiffs    bigmapdiff.Repository
+	Blocks         block.Repository
+	Contracts      contract.Repository
+	Migrations     migration.Repository
+	Operations     operation.Repository
+	Protocols      protocol.Repository
+	Schema         schema.Repository
+	TezosDomains   tezosdomain.Repository
+	TokenBalances  tokenbalance.Repository
+	Transfers      transfer.Repository
+	TZIP           tzip.Repository
 }
 
 // NewContext -

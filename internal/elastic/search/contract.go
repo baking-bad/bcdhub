@@ -1,10 +1,8 @@
 package search
 
 import (
-	"encoding/json"
-
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 )
 
 // Contract -
@@ -63,7 +61,7 @@ func (c Contract) GetFields() []string {
 
 // Parse  -
 func (c Contract) Parse(highlight map[string][]string, data []byte) (interface{}, error) {
-	var contract models.Contract
+	var contract contract.Contract
 	if err := json.Unmarshal(data, &contract); err != nil {
 		return nil, err
 	}

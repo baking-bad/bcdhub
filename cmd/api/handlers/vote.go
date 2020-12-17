@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/database"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 )
@@ -17,13 +17,13 @@ func (ctx *Context) Vote(c *gin.Context) {
 		return
 	}
 
-	a := models.NewEmptyContract(req.SourceNetwork, req.SourceAddress)
-	if err := ctx.ES.GetByID(&a); handleError(c, err, 0) {
+	a := contract.NewEmptyContract(req.SourceNetwork, req.SourceAddress)
+	if err := ctx.Storage.GetByID(&a); handleError(c, err, 0) {
 		return
 	}
 
-	b := models.NewEmptyContract(req.DestinationNetwork, req.DestinationAddress)
-	if err := ctx.ES.GetByID(&b); handleError(c, err, 0) {
+	b := contract.NewEmptyContract(req.DestinationNetwork, req.DestinationAddress)
+	if err := ctx.Storage.GetByID(&b); handleError(c, err, 0) {
 		return
 	}
 
@@ -63,7 +63,7 @@ func (ctx *Context) GetTasks(c *gin.Context) {
 // GenerateTasks -
 func (ctx *Context) GenerateTasks(c *gin.Context) {
 	userID := CurrentUserID(c)
-	tasks, err := ctx.ES.GetDiffTasks()
+	tasks, err := ctx.Contracts.GetDiffTasks()
 	if handleError(c, err, 0) {
 		return
 	}

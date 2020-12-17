@@ -4,12 +4,12 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/pkg/errors"
 )
 
 func getTransfer(ids []string) error {
-	transfers := make([]models.Transfer, 0)
+	transfers := make([]transfer.Transfer, 0)
 	if err := ctx.ES.GetByIDs(&transfers, ids...); err != nil {
 		return errors.Errorf("[getTransfer] Find transfer error for IDs %v: %s", ids, err)
 	}
@@ -23,7 +23,7 @@ func getTransfer(ids []string) error {
 	return nil
 }
 
-func parseTransfer(transfer models.Transfer) error {
+func parseTransfer(transfer transfer.Transfer) error {
 	h := metrics.New(ctx.ES, ctx.DB)
 
 	if flag, err := h.SetTransferAliases(&transfer); flag {

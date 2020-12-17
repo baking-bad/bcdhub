@@ -9,7 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage/hash"
 	"github.com/baking-bad/bcdhub/internal/elastic"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -45,7 +45,7 @@ func NewTezosStorage(es elastic.IElastic, rpc noderpc.INode, address, network st
 }
 
 // Get -
-func (s TezosStorage) Get(value string) (*models.TZIP, error) {
+func (s TezosStorage) Get(value string) (*tzip.TZIP, error) {
 	var uri TezosStorageURI
 	if err := uri.Parse(value); err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func (s TezosStorage) Get(value string) (*models.TZIP, error) {
 
 	decoded := DecodeValue(bmd.Value)
 
-	var data models.TZIP
+	var data tzip.TZIP
 	err = json.Unmarshal([]byte(decoded), &data)
 	return &data, err
 }
