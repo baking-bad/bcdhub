@@ -104,13 +104,13 @@ images:
 	docker-compose build
 
 stable-images:
-	TAG=$$(cat version.json | grep version | awk -F\" '{ print $$4 }' |  cut -d '.' -f1-2) && docker-compose build
+	TAG=$$(cat version.json | grep version | awk -F\" '{ print $$4 }' |  cut -d '.' -f1-2) docker-compose build
 
 stable-pull:
-	TAG=$$(cat version.json | grep version | awk -F\" '{ print $$4 }' |  cut -d '.' -f1-2) && docker-compose pull
+	TAG=$$(cat version.json | grep version | awk -F\" '{ print $$4 }' |  cut -d '.' -f1-2) docker-compose pull
 
 stable:
-	TAG=$$(cat version.json | grep version | awk -F\" '{ print $$4 }' |  cut -d '.' -f1-2) && docker-compose up -d
+	TAG=$$(cat version.json | grep version | awk -F\" '{ print $$4 }' |  cut -d '.' -f1-2) docker-compose up -d
 
 latest:
 	docker-compose up -d
