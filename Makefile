@@ -1,6 +1,8 @@
 -include .env
 export $(shell sed 's/=.*//' .env)
 
+.ONESHELL:
+
 api:
 	docker-compose up -d elastic mq db
 	cd cmd/api && go run .
@@ -91,7 +93,7 @@ test:
 
 lint:
 	golangci-lint run
-  
+
 docs:
 	# wget https://github.com/swaggo/swag/releases/download/v1.6.6/swag_1.6.6_Linux_x86_64.tar.gz
 	# tar -zxvf swag_1.6.6_Linux_x86_64.tar.gz
@@ -102,13 +104,13 @@ images:
 	docker-compose build
 
 stable-images:
-	TAG=$$STABLE_TAG docker-compose build
+	TAG=$$(cat version.json | grep version | awk -F\" '{ print $$4 }' |  cut -d '.' -f1-2) && docker-compose build
 
 stable-pull:
-	TAG=$$STABLE_TAG docker-compose pull
+	TAG=$$(cat version.json | grep version | awk -F\" '{ print $$4 }' |  cut -d '.' -f1-2) && docker-compose pull
 
 stable:
-	TAG=$$STABLE_TAG docker-compose up -d
+	TAG=$$(cat version.json | grep version | awk -F\" '{ print $$4 }' |  cut -d '.' -f1-2) && docker-compose up -d
 
 latest:
 	docker-compose up -d
@@ -116,8 +118,9 @@ latest:
 upgrade:
 	$(MAKE) clearmq
 	docker-compose down
+	STABLE_TAG=$$(cat version.json | grep version | awk -F\" '{ print $$4 }' |  cut -d '.' -f1-2)
 	TAG=$$STABLE_TAG $(MAKE) es-reset
-	docker-compose up -d db mq
+	TAG=$$STABLE_TAG docker-compose up -d db mq
 
 restart:
 	docker-compose restart api metrics indexer compiler
