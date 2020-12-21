@@ -53,12 +53,6 @@ func newApp() *app {
 		return nil
 	}
 
-	if err := ctx.LoadAliases(); err != nil {
-		logger.Error(err)
-		helpers.CatchErrorSentry(err)
-		return nil
-	}
-
 	if cfg.API.SeedEnabled {
 		if err := seed.Run(ctx, cfg.API.Seed); err != nil {
 			logger.Fatal(err)
