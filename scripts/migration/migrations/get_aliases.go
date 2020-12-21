@@ -6,7 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -61,14 +61,14 @@ func (m *GetAliases) Do(ctx *config.Context) error {
 			},
 		}
 
-		if err := ctx.ES.GetByID(&item); err == nil {
+		if err := ctx.Storage.GetByID(&item); err == nil {
 			item.Name = alias
 			item.Slug = helpers.Slug(alias)
-		} else if !elastic.IsRecordNotFound(err) {
+		} else if !core.IsRecordNotFound(err) {
 			log.Println(err)
 			return err
 		}
 		newModels = append(newModels, &item)
 	}
-	return ctx.ES.BulkInsert(newModels)
+	return ctx.Bulk.Insert(newModels)
 }

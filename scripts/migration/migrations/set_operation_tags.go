@@ -3,7 +3,7 @@ package migrations
 import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -26,7 +26,7 @@ func (m *SetOperationTags) Description() string {
 
 // Do - migrate function
 func (m *SetOperationTags) Do(ctx *config.Context) error {
-	operations, err := ctx.ES.GetOperations(nil, 0, false)
+	operations, err := ctx.Operations.Get(nil, 0, false)
 	if err != nil {
 		return err
 	}
@@ -44,8 +44,8 @@ func (m *SetOperationTags) Do(ctx *config.Context) error {
 
 		if _, ok := tags[operations[i].Destination]; !ok {
 			contract := contract.NewEmptyContract(operations[i].Network, operations[i].Destination)
-			if err := ctx.ES.GetByID(&contract); err != nil {
-				if elastic.IsRecordNotFound(err) {
+			if err := ctx.Storage.GetByID(&contract); err != nil {
+				if core.IsRecordNotFound(err) {
 					continue
 				}
 				return err
@@ -64,8 +64,8 @@ func (m *SetOperationTags) Do(ctx *config.Context) error {
 		result = append(result, &operations[i])
 	}
 
-	if err := ctx.ES.BulkUpdate(result); err != nil {
-		logger.Errorf("ctx.ES.BulkUpdate error: %v", err)
+	if err := ctx.Bulk.Update(result); err != nil {
+		logger.Errorf("ctx.Bulk.Update error: %v", err)
 		return err
 	}
 

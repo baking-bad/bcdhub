@@ -1,7 +1,6 @@
 package metrics
 
 import (
-	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 
@@ -52,7 +51,7 @@ func (h *Handler) UpdateContractStats(c *contract.Contract) error {
 func (h *Handler) SetContractProjectID(c *contract.Contract) error {
 	buckets, err := h.Contracts.GetProjectsLastContract()
 	if err != nil {
-		if core.IsRecordNotFound(err) {
+		if h.Storage.IsRecordNotFound(err) {
 			c.ProjectID = helpers.GenerateID()
 			return nil
 		}

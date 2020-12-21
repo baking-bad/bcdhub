@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/gin-gonic/gin"
@@ -89,7 +88,7 @@ func (ctx *Context) contractPostprocessing(contract contract.Contract, c *gin.Co
 
 	if alias, err := ctx.TZIP.GetAlias(contract.Network, contract.Address); err == nil {
 		res.Slug = alias.Slug
-	} else if !core.IsRecordNotFound(err) {
+	} else if !ctx.Storage.IsRecordNotFound(err) {
 		return res, err
 	}
 

@@ -531,6 +531,7 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 	for _, opg := range data.Array() {
 		parser := operations.NewGroup(operations.NewParseParams(
 			bi.rpc,
+			bi.Storage, bi.BigMapDiffs, bi.Blocks, bi.TZIP, bi.Schema,
 			operations.WithConstants(bi.currentProtocol.Constants),
 			operations.WithHead(head),
 			operations.WithIPFSGateways(bi.cfg.IPFSGateways),

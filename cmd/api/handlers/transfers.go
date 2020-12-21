@@ -3,7 +3,9 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/elastic/transfer"
+	"github.com/baking-bad/bcdhub/internal/elastic/tzip"
+	modelsTransfer "github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/gin-gonic/gin"
 )
 
@@ -36,7 +38,7 @@ func (ctx *Context) GetContractTransfers(c *gin.Context) {
 		tokenID = int64(*req.TokenID)
 	}
 
-	transfers, err := ctx.Transfers.Get(elastic.GetTransfersContext{
+	transfers, err := ctx.Transfers.Get(&transfer.GetTransfersContext{
 		Network:   contractRequest.Network,
 		Contracts: []string{contractRequest.Address},
 		Size:      req.Size,
@@ -59,16 +61,16 @@ type tokenKey struct {
 	TokenID  int64
 }
 
-func (ctx *Context) transfersPostprocessing(transfers elastic.TransfersResponse) (response TransferResponse, err error) {
+func (ctx *Context) transfersPostprocessing(transfers modelsTransfer.Pageable) (response TransferResponse, err error) {
 	response.Total = transfers.Total
 	response.Transfers = make([]Transfer, len(transfers.Transfers))
 
 	mapTokens := make(map[tokenKey]*TokenMetadata)
-	tokens, err := ctx.TZIP.GetTokenMetadata(elastic.GetTokenMetadataContext{
+	tokens, err := ctx.TZIP.GetTokenMetadata(tzip.GetTokenMetadataContext{
 		TokenID: -1,
 	})
 	if err != nil {
-		if !elastic.IsRecordNotFound(err) {
+		if !ctx.Storage.IsRecordNotFound(err) {
 			return
 		}
 	} else {

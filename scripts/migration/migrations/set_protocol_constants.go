@@ -23,7 +23,7 @@ func (m *SetProtocolConstants) Description() string {
 // Do - migrate function
 func (m *SetProtocolConstants) Do(ctx *config.Context) error {
 	protocols := make([]protocol.Protocol, 0)
-	if err := ctx.ES.GetAll(&protocols); err != nil {
+	if err := ctx.Storage.GetAll(&protocols); err != nil {
 		return err
 	}
 
@@ -57,5 +57,5 @@ func (m *SetProtocolConstants) Do(ctx *config.Context) error {
 		logger.Info("%##v", protocols[i])
 		updatedModels = append(updatedModels, &protocols[i])
 	}
-	return ctx.ES.BulkUpdate(updatedModels)
+	return ctx.Bulk.Update(updatedModels)
 }

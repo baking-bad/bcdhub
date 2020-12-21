@@ -29,5 +29,20 @@ type aggVolumeSumResponse struct {
 		Result struct {
 			Value float64 `json:"value"`
 		} `json:"volume"`
+	}
+}
+
+type getTokensStatsResponse struct {
+	Aggs struct {
+		Body struct {
+			Buckets []struct {
+				DocCount int64 `json:"doc_count"`
+				Key      struct {
+					Destination string `json:"destination"`
+					Entrypoint  string `json:"entrypoint"`
+				} `json:"key"`
+				AVG core.FloatValue `json:"average_consumed_gas"`
+			} `json:"buckets"`
+		} `json:"body"`
 	} `json:"aggregations"`
 }

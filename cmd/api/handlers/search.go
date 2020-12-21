@@ -7,8 +7,8 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
 	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/domaintypes"
-	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic/search"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/gin-gonic/gin"
 )
@@ -93,7 +93,7 @@ func getSearchFilters(req searchRequest) map[string]interface{} {
 
 func postProcessing(result search.Result) (search.Result, error) {
 	for i := range result.Items {
-		if result.Items[i].Type != consts.DocBigMapDiff {
+		if result.Items[i].Type != models.DocBigMapDiff {
 			continue
 		}
 
@@ -126,7 +126,7 @@ func (ctx *Context) searchInMempool(q string) (search.Item, error) {
 	operation := ctx.getOperationFromMempool(q)
 
 	return search.Item{
-		Type:  consts.DocOperations,
+		Type:  models.DocOperations,
 		Value: operation.Hash,
 		Body:  operation,
 		Highlights: map[string][]string{

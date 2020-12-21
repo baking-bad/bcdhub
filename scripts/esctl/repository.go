@@ -11,5 +11,5 @@ func (x *createRepoCommand) Execute(_ []string) error {
 		return err
 	}
 
-	return ctx.ES.CreateAWSRepository(name, creds.BucketName, creds.Region)
+	return ctx.Storage.CreateAWSRepository(name, creds.BucketName, creds.Region)
 }

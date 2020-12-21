@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 )
@@ -24,8 +24,8 @@ func NewStorage(es *core.Elastic) *Storage {
 
 const scriptUpdateBalance = `{"source": "ctx._source.balance = ctx._source.balance + (long)params.delta", "lang": "painless", "params": { "delta": %d }}`
 
-// UpdateTokenBalances -
-func (storage *Storage) UpdateTokenBalances(updates []*tokenbalance.TokenBalance) error {
+// Update -
+func (storage *Storage) Update(updates []*tokenbalance.TokenBalance) error {
 	if len(updates) == 0 {
 		return nil
 	}
@@ -57,7 +57,7 @@ func (storage *Storage) bulkUpsertBalances(buf *bytes.Buffer) error {
 	req := esapi.BulkRequest{
 		Body:    bytes.NewReader(buf.Bytes()),
 		Refresh: "true",
-		Index:   consts.DocTokenBalances,
+		Index:   models.DocTokenBalances,
 	}
 
 	res, err := req.Do(context.Background(), storage.es)

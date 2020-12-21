@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/gin-gonic/gin"
 )
 
@@ -28,7 +27,7 @@ func (ctx *Context) GetMetadata(c *gin.Context) {
 	}
 	tzip, err := ctx.TZIP.Get(req.Network, req.Address)
 	if err != nil {
-		if elastic.IsRecordNotFound(err) {
+		if ctx.Storage.IsRecordNotFound(err) {
 			c.JSON(http.StatusNoContent, gin.H{})
 		} else {
 			handleError(c, err, 0)

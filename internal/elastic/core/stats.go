@@ -1,7 +1,6 @@
 package core
 
 import (
-	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/models"
 )
 
@@ -27,7 +26,7 @@ func (e *Elastic) GetNetworkCountStats(network string) (map[string]int64, error)
 		),
 	).Zero()
 
-	return e.GetCountAgg([]string{consts.DocContracts, consts.DocOperations}, query)
+	return e.GetCountAgg([]string{models.DocContracts, models.DocOperations}, query)
 }
 
 // GetCallsCountByNetwork -
@@ -44,7 +43,7 @@ func (e *Elastic) GetCallsCountByNetwork() (map[string]int64, error) {
 		),
 	).Zero()
 
-	return e.GetCountAgg([]string{consts.DocOperations}, query)
+	return e.GetCountAgg([]string{models.DocOperations}, query)
 }
 
 type getContractStatsByNetworkStats struct {
@@ -84,7 +83,7 @@ func (e *Elastic) GetContractStatsByNetwork() (map[string]models.ContractCountSt
 	).Zero()
 
 	var response getContractStatsByNetworkStats
-	if err := e.Query([]string{consts.DocContracts}, query, &response); err != nil {
+	if err := e.Query([]string{models.DocContracts}, query, &response); err != nil {
 		return nil, err
 	}
 
@@ -119,7 +118,7 @@ func (e *Elastic) GetFACountByNetwork() (map[string]int64, error) {
 		),
 	).Zero()
 
-	return e.GetCountAgg([]string{consts.DocContracts}, query)
+	return e.GetCountAgg([]string{models.DocContracts}, query)
 }
 
 // GetLanguagesForNetwork -
@@ -142,5 +141,5 @@ func (e *Elastic) GetLanguagesForNetwork(network string) (map[string]int64, erro
 		),
 	).Zero()
 
-	return e.GetCountAgg([]string{consts.DocContracts}, query)
+	return e.GetCountAgg([]string{models.DocContracts}, query)
 }

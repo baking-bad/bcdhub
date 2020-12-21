@@ -9,7 +9,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
 	"github.com/baking-bad/bcdhub/internal/elastic/bigmapdiff"
-	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	bmdModels "github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/gin-gonic/gin"
@@ -37,7 +36,7 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		return
 	}
 
-	bm, err := ctx.BigMapDiffs.GetBigMapKeys(bigmapdiff.GetBigMapKeysContext{
+	bm, err := ctx.BigMapDiffs.Get(bigmapdiff.GetContext{
 		Ptr:     &req.Ptr,
 		Network: req.Network,
 		Size:    10000, // TODO: >10k
@@ -156,7 +155,7 @@ func (ctx *Context) GetBigMapKeys(c *gin.Context) {
 		return
 	}
 
-	bm, err := ctx.BigMapDiffs.GetBigMapKeys(bigmapdiff.GetBigMapKeysContext{
+	bm, err := ctx.BigMapDiffs.Get(bigmapdiff.GetContext{
 		Ptr:     &req.Ptr,
 		Network: req.Network,
 		Query:   pageReq.Search,
@@ -203,7 +202,7 @@ func (ctx *Context) GetBigMapByKeyHash(c *gin.Context) {
 		return
 	}
 
-	bm, total, err := ctx.BigMapDiffs.GetBigMapDiffsByPtrAndKeyHash(req.Ptr, req.Network, req.KeyHash, pageReq.Size, pageReq.Offset)
+	bm, total, err := ctx.BigMapDiffs.GetByPtrAndKeyHash(req.Ptr, req.Network, req.KeyHash, pageReq.Size, pageReq.Offset)
 	if handleError(c, err, 0) {
 		return
 	}
@@ -236,9 +235,9 @@ func (ctx *Context) GetBigMapDiffCount(c *gin.Context) {
 		return
 	}
 
-	count, err := ctx.BigMapDiffs.GetBigMapDiffsCount(req.Network, req.Ptr)
+	count, err := ctx.BigMapDiffs.Count(req.Network, req.Ptr)
 	if err != nil {
-		if core.IsRecordNotFound(err) {
+		if ctx.Storage.IsRecordNotFound(err) {
 			c.JSON(http.StatusOK, CountResponse{})
 			return
 		}

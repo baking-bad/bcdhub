@@ -3,8 +3,8 @@ package tzip
 import (
 	"encoding/json"
 
-	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
@@ -26,7 +26,7 @@ func (storage *Storage) GetTokenMetadata(ctx tzip.GetTokenMetadataContext) (toke
 		return
 	}
 	if len(tzips) == 0 {
-		return nil, core.NewRecordNotFoundError(consts.DocTZIP, "")
+		return nil, core.NewRecordNotFoundError(models.DocTZIP, "")
 	}
 
 	tokens = make([]tzip.TokenMetadata, 0)
@@ -71,11 +71,11 @@ func (storage *Storage) GetDApps() ([]tzip.DApp, error) {
 	).Sort("dapps.order", "asc").All()
 
 	var response core.SearchResponse
-	if err := storage.es.Query([]string{consts.DocTZIP}, query, &response, "dapps"); err != nil {
+	if err := storage.es.Query([]string{models.DocTZIP}, query, &response, "dapps"); err != nil {
 		return nil, err
 	}
 	if response.Hits.Total.Value == 0 {
-		return nil, core.NewRecordNotFoundError(consts.DocTZIP, "")
+		return nil, core.NewRecordNotFoundError(models.DocTZIP, "")
 	}
 
 	tokens := make([]tzip.DApp, 0)
@@ -101,11 +101,11 @@ func (storage *Storage) GetDAppBySlug(slug string) (*tzip.DApp, error) {
 	).One()
 
 	var response core.SearchResponse
-	if err := storage.es.Query([]string{consts.DocTZIP}, query, &response, "dapps"); err != nil {
+	if err := storage.es.Query([]string{models.DocTZIP}, query, &response, "dapps"); err != nil {
 		return nil, err
 	}
 	if response.Hits.Total.Value == 0 {
-		return nil, core.NewRecordNotFoundError(consts.DocTZIP, "")
+		return nil, core.NewRecordNotFoundError(models.DocTZIP, "")
 	}
 
 	var model tzip.TZIP
@@ -126,11 +126,11 @@ func (storage *Storage) GetBySlug(slug string) (*tzip.TZIP, error) {
 	).One()
 
 	var response core.SearchResponse
-	if err := storage.es.Query([]string{consts.DocTZIP}, query, &response); err != nil {
+	if err := storage.es.Query([]string{models.DocTZIP}, query, &response); err != nil {
 		return nil, err
 	}
 	if response.Hits.Total.Value == 0 {
-		return nil, core.NewRecordNotFoundError(consts.DocTZIP, "")
+		return nil, core.NewRecordNotFoundError(models.DocTZIP, "")
 	}
 
 	var data tzip.TZIP
@@ -149,11 +149,11 @@ func (storage *Storage) GetAliasesMap(network string) (map[string]string, error)
 	).All()
 
 	var response core.SearchResponse
-	if err := storage.es.Query([]string{consts.DocTZIP}, query, &response); err != nil {
+	if err := storage.es.Query([]string{models.DocTZIP}, query, &response); err != nil {
 		return nil, err
 	}
 	if response.Hits.Total.Value == 0 {
-		return nil, core.NewRecordNotFoundError(consts.DocTZIP, "")
+		return nil, core.NewRecordNotFoundError(models.DocTZIP, "")
 	}
 
 	aliases := make(map[string]string)
@@ -180,11 +180,11 @@ func (storage *Storage) GetAliases(network string) ([]tzip.TZIP, error) {
 	).All()
 
 	var response core.SearchResponse
-	if err := storage.es.Query([]string{consts.DocTZIP}, query, &response); err != nil {
+	if err := storage.es.Query([]string{models.DocTZIP}, query, &response); err != nil {
 		return nil, err
 	}
 	if response.Hits.Total.Value == 0 {
-		return nil, core.NewRecordNotFoundError(consts.DocTZIP, "")
+		return nil, core.NewRecordNotFoundError(models.DocTZIP, "")
 	}
 
 	aliases := make([]tzip.TZIP, len(response.Hits.Hits))
@@ -208,11 +208,11 @@ func (storage *Storage) GetAlias(network, address string) (*tzip.TZIP, error) {
 	).One()
 
 	var response core.SearchResponse
-	if err := storage.es.Query([]string{consts.DocTZIP}, query, &response); err != nil {
+	if err := storage.es.Query([]string{models.DocTZIP}, query, &response); err != nil {
 		return nil, err
 	}
 	if response.Hits.Total.Value == 0 {
-		return nil, core.NewRecordNotFoundError(consts.DocTZIP, "")
+		return nil, core.NewRecordNotFoundError(models.DocTZIP, "")
 	}
 
 	var data tzip.TZIP
@@ -231,11 +231,11 @@ func (storage *Storage) GetWithEvents() ([]tzip.TZIP, error) {
 	).All()
 
 	var response core.SearchResponse
-	if err := storage.es.Query([]string{consts.DocTZIP}, query, &response); err != nil {
+	if err := storage.es.Query([]string{models.DocTZIP}, query, &response); err != nil {
 		return nil, err
 	}
 	if response.Hits.Total.Value == 0 {
-		return nil, core.NewRecordNotFoundError(consts.DocTZIP, "")
+		return nil, core.NewRecordNotFoundError(models.DocTZIP, "")
 	}
 
 	tokens := make([]tzip.TZIP, len(response.Hits.Hits))

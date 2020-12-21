@@ -2,7 +2,6 @@ package migrations
 
 import (
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -35,7 +34,7 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 		return err
 	}
 
-	h := metrics.New(ctx.ES, ctx.DB)
+	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TZIP, ctx.Storage, ctx.Bulk, ctx.DB)
 
 	operations, err := m.getOperations(ctx)
 	if err != nil {
@@ -55,12 +54,12 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 			return err
 		}
 
-		protocol, err := ctx.ES.GetProtocol(operations[i].Network, "", -1)
+		protocol, err := ctx.Protocols.GetProtocol(operations[i].Network, "", -1)
 		if err != nil {
 			return err
 		}
 
-		parser, err := transferParsers.NewParser(rpc, ctx.ES,
+		parser, err := transferParsers.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.Schema,
 			transferParsers.WithNetwork(operations[i].Network),
 			transferParsers.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
 			transferParsers.WithoutViews(),
@@ -83,14 +82,14 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 		}
 	}
 
-	if err := ctx.ES.BulkInsert(result); err != nil {
-		logger.Errorf("ctx.ES.BulkUpdate error: %v", err)
+	if err := ctx.Bulk.Insert(result); err != nil {
+		logger.Errorf("ctx.Bulk.Insert error: %v", err)
 		return err
 	}
 
 	logger.Info("Done. %d transfers were saved", len(result))
 
-	return elastic.CreateTokenBalanceUpdates(ctx.ES, newTransfers)
+	return transferParsers.UpdateTokenBalances(ctx.TokenBalances, newTransfers)
 }
 
 func (m *CreateTransfersTags) deleteTransfers(ctx *config.Context) (err error) {
@@ -104,7 +103,7 @@ func (m *CreateTransfersTags) deleteTransfers(ctx *config.Context) (err error) {
 		}
 	}
 
-	return ctx.ES.DeleteByContract([]string{elastic.DocTransfers}, m.Network, m.Address)
+	return ctx.Storage.DeleteByContract([]string{models.DocTransfers}, m.Network, m.Address)
 }
 
 func (m *CreateTransfersTags) getOperations(ctx *config.Context) ([]operation.Operation, error) {
@@ -119,5 +118,5 @@ func (m *CreateTransfersTags) getOperations(ctx *config.Context) ([]operation.Op
 	} else {
 		filters["entrypoint"] = "transfer"
 	}
-	return ctx.ES.GetOperations(filters, 0, false)
+	return ctx.Operations.Get(filters, 0, false)
 }

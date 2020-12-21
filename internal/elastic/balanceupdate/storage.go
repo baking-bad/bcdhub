@@ -1,8 +1,8 @@
 package balanceupdate
 
 import (
-	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
+	"github.com/baking-bad/bcdhub/internal/models"
 )
 
 // Storage -
@@ -40,7 +40,7 @@ func (storage *Storage) GetBalance(network, address string) (int64, error) {
 	).Zero()
 
 	var response getBalanceResponse
-	if err := storage.es.Query([]string{consts.DocBalanceUpdates}, query, &response); err != nil {
+	if err := storage.es.Query([]string{models.DocBalanceUpdates}, query, &response); err != nil {
 		return 0, err
 	}
 	return int64(response.Agg.Balance.Value), nil

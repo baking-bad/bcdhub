@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
 	"github.com/pkg/errors"
 )
@@ -35,7 +36,7 @@ func (storage *Storage) ListDomains(network string, size, offset int64) (tezosdo
 	).Size(size).From(offset).Sort("timestamp", "desc")
 
 	var response core.SearchResponse
-	if err := storage.es.Query([]string{consts.DocTezosDomains}, query, &response); err != nil {
+	if err := storage.es.Query([]string{models.DocTezosDomains}, query, &response); err != nil {
 		return tezosdomain.DomainsResponse{}, err
 	}
 	if response.Hits.Total.Value == 0 {
@@ -69,11 +70,11 @@ func (storage *Storage) ResolveDomainByAddress(network string, address string) (
 	).One()
 
 	var response core.SearchResponse
-	if err := storage.es.Query([]string{consts.DocTezosDomains}, query, &response); err != nil {
+	if err := storage.es.Query([]string{models.DocTezosDomains}, query, &response); err != nil {
 		return nil, err
 	}
 	if response.Hits.Total.Value == 0 {
-		return nil, core.NewRecordNotFoundError(consts.DocTezosDomains, "")
+		return nil, core.NewRecordNotFoundError(models.DocTezosDomains, "")
 	}
 
 	var td tezosdomain.TezosDomain

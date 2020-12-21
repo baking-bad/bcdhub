@@ -33,11 +33,12 @@ type GeneralRepository interface {
 	CreateMapping(string, io.Reader) error
 	ReloadSecureSettings() error
 	GetNetworkCountStats(string) (map[string]int64, error)
-	// GetDateHistogram(period string, opts ...HistogramOption) ([][]int64, error)
+	GetDateHistogram(period string, opts ...HistogramOption) ([][]int64, error)
 	GetCallsCountByNetwork() (map[string]int64, error)
 	GetContractStatsByNetwork() (map[string]ContractCountStats, error)
 	GetFACountByNetwork() (map[string]int64, error)
 	GetLanguagesForNetwork(network string) (map[string]int64, error)
+	IsRecordNotFound(err error) bool
 }
 
 // BulkRepository -

@@ -2,11 +2,13 @@ package migrations
 
 import (
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/elastic/core"
+	elasticTransfers "github.com/baking-bad/bcdhub/internal/elastic/transfer"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
 )
 
 // InitialStorageEvents -
@@ -27,14 +29,14 @@ func (m *InitialStorageEvents) Description() string {
 // Do - migrate function
 func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 	m.contracts = make(map[string]string)
-	tzips, err := ctx.ES.GetTZIPWithEvents()
+	tzips, err := ctx.TZIP.GetWithEvents()
 	if err != nil {
 		return err
 	}
 
 	logger.Info("Found %d tzips", len(tzips))
 
-	h := metrics.New(ctx.ES, ctx.DB)
+	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TZIP, ctx.Storage, ctx.Bulk, ctx.DB)
 
 	logger.Info("Execution events...")
 	newTransfers := make([]*transfer.Transfer, 0)
@@ -50,13 +52,13 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 			return err
 		}
 		for i := range transfers {
-			found, err := ctx.ES.GetTransfers(elastic.GetTransfersContext{
+			found, err := ctx.Transfers.Get(&elasticTransfers.GetTransfersContext{
 				Hash:    transfers[i].Hash,
 				Network: transfers[i].Network,
 				TokenID: -1,
 			})
 			if err != nil {
-				if !elastic.IsRecordNotFound(err) {
+				if !core.IsRecordNotFound(err) {
 					return err
 				}
 			}
@@ -77,10 +79,10 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 		updated = append(updated, newTransfers[i])
 	}
 	logger.Info("Found %d transfers", len(updated))
-	if err := ctx.ES.BulkInsert(updated); err != nil {
+	if err := ctx.Bulk.Insert(updated); err != nil {
 		return err
 	}
-	return elastic.CreateTokenBalanceUpdates(ctx.ES, newTransfers)
+	return transferParsers.UpdateTokenBalances(ctx.TokenBalances, newTransfers)
 }
 
 // AffectedContracts -

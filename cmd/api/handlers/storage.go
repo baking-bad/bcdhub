@@ -160,7 +160,7 @@ func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 		prev = ops[1]
 	}
 
-	bmd, err := ctx.BigMapDiffs.GetBigMapDiffsForAddress(req.Address)
+	bmd, err := ctx.BigMapDiffs.GetForAddress(req.Address)
 	if handleError(c, err, 0) {
 		return
 	}

@@ -1,10 +1,11 @@
 package handlers
 
 import (
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/block"
+	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/tzip"
 	"github.com/pkg/errors"
@@ -12,20 +13,20 @@ import (
 
 // TZIP -
 type TZIP struct {
-	es      elastic.IElastic
+	bulk    models.BulkRepository
 	parsers map[string]tzip.Parser
 }
 
 // NewTZIP -
-func NewTZIP(es elastic.IElastic, rpcs map[string]noderpc.INode, ipfs []string) *TZIP {
+func NewTZIP(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, schemaRepo schema.Repository, bulk models.BulkRepository, rpcs map[string]noderpc.INode, ipfs []string) *TZIP {
 	parsers := make(map[string]tzip.Parser)
 	for network, rpc := range rpcs {
-		parsers[network] = tzip.NewParser(es, rpc, tzip.ParserConfig{
+		parsers[network] = tzip.NewParser(bigMapRepo, blockRepo, schemaRepo, rpc, tzip.ParserConfig{
 			IPFSGateways: ipfs,
 		})
 	}
 	return &TZIP{
-		es, parsers,
+		bulk, parsers,
 	}
 }
 
@@ -59,5 +60,5 @@ func (t *TZIP) handle(bmd *bigmapdiff.BigMapDiff) error {
 	}
 
 	logger.With(bmd).Info("Big map diff with TZIP is processed")
-	return t.es.BulkInsert([]models.Model{model})
+	return t.bulk.Insert([]models.Model{model})
 }

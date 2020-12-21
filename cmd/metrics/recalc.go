@@ -9,7 +9,7 @@ import (
 
 func recalculateAll(ids []string) error {
 	contracts := make([]contract.Contract, 0)
-	if err := ctx.ES.GetByIDs(&contracts, ids...); err != nil {
+	if err := ctx.Storage.GetByIDs(&contracts, ids...); err != nil {
 		return errors.Errorf("[recalculateAll] Find contracts error for IDs %v: %s", ids, err)
 	}
 
@@ -24,7 +24,7 @@ func recalculateAll(ids []string) error {
 }
 
 func recalc(contract contract.Contract) error {
-	h := metrics.New(ctx.ES, ctx.DB)
+	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TZIP, ctx.Storage, ctx.Bulk, ctx.DB)
 
 	if _, err := h.SetContractAlias(&contract); err != nil {
 		return err
@@ -40,5 +40,5 @@ func recalc(contract contract.Contract) error {
 		return errors.Errorf("[recalc] Compute contract stats error message: %s", err)
 	}
 
-	return ctx.ES.UpdateDoc(&contract)
+	return ctx.Storage.UpdateDoc(&contract)
 }

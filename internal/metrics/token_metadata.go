@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/elastic/tzip"
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -67,7 +66,7 @@ func (h *Handler) FixTokenMetadata(rpc noderpc.INode, sharePath string, contract
 		TokenID:  -1,
 	})
 	if err != nil {
-		if !core.IsRecordNotFound(err) {
+		if !h.Storage.IsRecordNotFound(err) {
 			return err
 		}
 		return nil
@@ -104,7 +103,7 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, tzip *tzipModels
 		"kind":        consts.Origination,
 	}, 1, false)
 	if err != nil {
-		if core.IsRecordNotFound(err) {
+		if h.Storage.IsRecordNotFound(err) {
 			return nil, nil
 		}
 		return nil, err
@@ -180,5 +179,5 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, tzip *tzipModels
 		}
 	}
 
-	return data, h.TokenBalances.UpdateTokenBalances(balanceUpdates)
+	return data, h.TokenBalances.Update(balanceUpdates)
 }

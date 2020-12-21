@@ -12,25 +12,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/pkg/errors"
 )
-
-var mappingNames = []string{
-	elastic.DocBalanceUpdates,
-	elastic.DocBigMapActions,
-	elastic.DocBigMapDiff,
-	elastic.DocBlocks,
-	elastic.DocContracts,
-	elastic.DocMetadata,
-	elastic.DocMigrations,
-	elastic.DocOperations,
-	elastic.DocProtocol,
-	elastic.DocTokenBalances,
-	elastic.DocTransfers,
-	elastic.DocTZIP,
-	elastic.DocTezosDomains,
-}
 
 type snapshotCommand struct{}
 
@@ -38,10 +22,10 @@ var snapshotCmd snapshotCommand
 
 // Execute
 func (x *snapshotCommand) Execute(_ []string) error {
-	if err := uploadMappings(ctx.ES, creds); err != nil {
+	if err := uploadMappings(ctx.Storage, creds); err != nil {
 		return err
 	}
-	if err := listRepositories(ctx.ES); err != nil {
+	if err := listRepositories(ctx.Storage); err != nil {
 		return err
 	}
 	name, err := askQuestion("Please, enter target repository name:")
@@ -49,7 +33,7 @@ func (x *snapshotCommand) Execute(_ []string) error {
 		return err
 	}
 	snapshotName := fmt.Sprintf("snapshot_%s", strings.ToLower(time.Now().UTC().Format(time.RFC3339)))
-	return ctx.ES.CreateSnapshots(name, snapshotName, mappingNames)
+	return ctx.Storage.CreateSnapshots(name, snapshotName, models.AllDocuments())
 }
 
 type restoreCommand struct{}
@@ -58,7 +42,7 @@ var restoreCmd restoreCommand
 
 // Execute
 func (x *restoreCommand) Execute(_ []string) error {
-	if err := listRepositories(ctx.ES); err != nil {
+	if err := listRepositories(ctx.Storage); err != nil {
 		return err
 	}
 	name, err := askQuestion("Please, enter target repository name:")
@@ -66,14 +50,14 @@ func (x *restoreCommand) Execute(_ []string) error {
 		return err
 	}
 
-	if err := listSnapshots(ctx.ES, name); err != nil {
+	if err := listSnapshots(ctx.Storage, name); err != nil {
 		return err
 	}
 	snapshotName, err := askQuestion("Please, enter target snapshot name:")
 	if err != nil {
 		return err
 	}
-	return ctx.ES.RestoreSnapshots(name, snapshotName, mappingNames)
+	return ctx.Storage.RestoreSnapshots(name, snapshotName, models.AllDocuments())
 }
 
 type setPolicyCommand struct{}
@@ -82,7 +66,7 @@ var setPolicyCmd setPolicyCommand
 
 // Execute
 func (x *setPolicyCommand) Execute(_ []string) error {
-	if err := listPolicies(ctx.ES); err != nil {
+	if err := listPolicies(ctx.Storage); err != nil {
 		return err
 	}
 	policyID, err := askQuestion("Please, enter target new or existing policy ID:")
@@ -105,7 +89,7 @@ func (x *setPolicyCommand) Execute(_ []string) error {
 	if err != nil {
 		return err
 	}
-	return ctx.ES.SetSnapshotPolicy(policyID, schedule, policyID, repository, iExpiredAfter)
+	return ctx.Storage.SetSnapshotPolicy(policyID, schedule, policyID, repository, iExpiredAfter)
 }
 
 type reloadSecureSettingsCommand struct{}
@@ -114,11 +98,11 @@ var reloadSecureSettingsCmd reloadSecureSettingsCommand
 
 // Execute
 func (x *reloadSecureSettingsCommand) Execute(_ []string) error {
-	return ctx.ES.ReloadSecureSettings()
+	return ctx.Storage.ReloadSecureSettings()
 }
 
-func listPolicies(es elastic.IElastic) error {
-	policies, err := es.GetAllPolicies()
+func listPolicies(storage models.GeneralRepository) error {
+	policies, err := storage.GetAllPolicies()
 	if err != nil {
 		return err
 	}
@@ -133,8 +117,8 @@ func listPolicies(es elastic.IElastic) error {
 	return nil
 }
 
-func listRepositories(es elastic.IElastic) error {
-	listRepos, err := es.ListRepositories()
+func listRepositories(storage models.GeneralRepository) error {
+	listRepos, err := storage.ListRepositories()
 	if err != nil {
 		return err
 	}
@@ -149,8 +133,8 @@ func listRepositories(es elastic.IElastic) error {
 	return nil
 }
 
-func listSnapshots(es elastic.IElastic, repository string) error {
-	listSnaps, err := es.ListSnapshots(repository)
+func listSnapshots(storage models.GeneralRepository, repository string) error {
+	listSnaps, err := storage.ListSnapshots(repository)
 	if err != nil {
 		return err
 	}
@@ -160,8 +144,8 @@ func listSnapshots(es elastic.IElastic, repository string) error {
 	return nil
 }
 
-func uploadMappings(es elastic.IElastic, creds awsData) error {
-	mappings, err := es.GetMappings(mappingNames)
+func uploadMappings(storage models.GeneralRepository, creds awsData) error {
+	mappings, err := storage.GetMappings(models.AllDocuments())
 	if err != nil {
 		return err
 	}
@@ -192,7 +176,7 @@ func uploadMappings(es elastic.IElastic, creds awsData) error {
 }
 
 // nolint
-func restoreMappings(es elastic.IElastic, creds awsData) error {
+func restoreMappings(storage models.GeneralRepository, creds awsData) error {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(creds.Region),
 		Credentials: credentials.NewEnvCredentials(),
@@ -202,7 +186,7 @@ func restoreMappings(es elastic.IElastic, creds awsData) error {
 	}
 	downloader := s3manager.NewDownloader(sess)
 
-	for _, key := range mappingNames {
+	for _, key := range models.AllDocuments() {
 		fileName := fmt.Sprintf("mappings/%s.json", key)
 		buf := aws.NewWriteAtBuffer([]byte{})
 
@@ -214,7 +198,7 @@ func restoreMappings(es elastic.IElastic, creds awsData) error {
 		}
 		data := bytes.NewReader(buf.Bytes())
 
-		if err := es.CreateMapping(key, data); err != nil {
+		if err := storage.CreateMapping(key, data); err != nil {
 			return err
 		}
 	}

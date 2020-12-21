@@ -1,5 +1,7 @@
 package models
 
+import "fmt"
+
 // SubscriptionRequest -
 type SubscriptionRequest struct {
 	Address         string
@@ -41,6 +43,11 @@ type Event struct {
 type Repository struct {
 	ID   string `json:"id"`
 	Type string `json:"type"`
+}
+
+// String -
+func (repo Repository) String() string {
+	return fmt.Sprintf("%s (type: %s)", repo.ID, repo.Type)
 }
 
 // ContractCountStats -

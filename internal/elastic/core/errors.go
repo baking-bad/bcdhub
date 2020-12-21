@@ -7,7 +7,7 @@ import (
 )
 
 // IsRecordNotFound -
-func IsRecordNotFound(err error) bool {
+func (e *Elastic) IsRecordNotFound(err error) bool {
 	_, ok := err.(*RecordNotFoundError)
 	return ok
 }

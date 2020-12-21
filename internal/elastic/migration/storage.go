@@ -3,8 +3,8 @@ package migration
 import (
 	"encoding/json"
 
-	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 )
 
@@ -30,7 +30,7 @@ func (storage *Storage) GetMigrations(network, address string) ([]migration.Migr
 	).Sort("level", "desc").All()
 
 	var response core.SearchResponse
-	if err := storage.es.Query([]string{consts.DocMigrations}, query, &response); err != nil {
+	if err := storage.es.Query([]string{models.DocMigrations}, query, &response); err != nil {
 		return nil, err
 	}
 

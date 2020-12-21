@@ -6,6 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/pkg/errors"
 )
@@ -121,7 +122,7 @@ func (storage *Storage) GetByContract(network, address string, size uint64, filt
 		}).All()
 
 	var response getByContract
-	if err = storage.es.Query([]string{consts.DocOperations}, query, &response); err != nil {
+	if err = storage.es.Query([]string{models.DocOperations}, query, &response); err != nil {
 		return
 	}
 
@@ -158,12 +159,12 @@ func (storage *Storage) Last(network, address string, indexedTime int64) (op ope
 		).Sort("indexed_time", "desc").One()
 
 	var response core.SearchResponse
-	if err = storage.es.Query([]string{consts.DocOperations}, query, &response); err != nil {
+	if err = storage.es.Query([]string{models.DocOperations}, query, &response); err != nil {
 		return
 	}
 
 	if response.Hits.Total.Value == 0 {
-		return op, core.NewRecordNotFoundError(consts.DocOperations, "")
+		return op, core.NewRecordNotFoundError(models.DocOperations, "")
 	}
 	err = json.Unmarshal(response.Hits.Hits[0].Source, &op)
 	op.ID = response.Hits.Hits[0].ID
@@ -233,7 +234,7 @@ func (storage *Storage) GetStats(network, address string) (stats operation.Stats
 	).Zero()
 
 	var response getOperationsStatsResponse
-	if err = storage.es.Query([]string{consts.DocOperations}, query, &response); err != nil {
+	if err = storage.es.Query([]string{models.DocOperations}, query, &response); err != nil {
 		return
 	}
 
@@ -275,4 +276,74 @@ func (storage *Storage) GetContract24HoursVolume(network, address string, entryp
 	}
 
 	return response.Aggs.Result.Value, nil
+}
+
+// GetTokensStats -
+func (storage *Storage) GetTokensStats(network string, addresses, entrypoints []string) (map[string]operation.TokenUsageStats, error) {
+	addressFilters := make([]core.Item, len(addresses))
+	for i := range addresses {
+		addressFilters[i] = core.MatchPhrase("destination", addresses[i])
+	}
+
+	entrypointFilters := make([]core.Item, len(entrypoints))
+	for i := range entrypoints {
+		entrypointFilters[i] = core.MatchPhrase("entrypoint", entrypoints[i])
+	}
+
+	query := core.NewQuery().Query(
+		core.Bool(
+			core.Must(
+				core.Match("network", network),
+				core.Bool(
+					core.Should(addressFilters...),
+					core.MinimumShouldMatch(1),
+				),
+				core.Bool(
+					core.Should(entrypointFilters...),
+					core.MinimumShouldMatch(1),
+				),
+			),
+		),
+	).Add(
+		core.Aggs(
+			core.AggItem{
+				Name: "body",
+				Body: core.Composite(
+					core.MaxQuerySize,
+					core.AggItem{
+						Name: "destination", Body: core.TermsAgg("destination.keyword", 0),
+					},
+					core.AggItem{
+						Name: "entrypoint", Body: core.TermsAgg("entrypoint.keyword", 0),
+					},
+				).Extend(
+					core.Aggs(
+						core.AggItem{
+							Name: "average_consumed_gas", Body: core.Avg("result.consumed_gas"),
+						},
+					),
+				),
+			},
+		),
+	).Zero()
+
+	var response getTokensStatsResponse
+	if err := storage.es.Query([]string{models.DocOperations}, query, &response); err != nil {
+		return nil, err
+	}
+
+	usageStats := make(map[string]operation.TokenUsageStats)
+	for _, bucket := range response.Aggs.Body.Buckets {
+		usage := operation.TokenMethodUsageStats{
+			Count:       bucket.DocCount,
+			ConsumedGas: int64(bucket.AVG.Value),
+		}
+
+		if _, ok := usageStats[bucket.Key.Destination]; !ok {
+			usageStats[bucket.Key.Destination] = make(operation.TokenUsageStats)
+		}
+		usageStats[bucket.Key.Destination][bucket.Key.Entrypoint] = usage
+	}
+
+	return usageStats, nil
 }

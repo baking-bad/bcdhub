@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/pkg/errors"
 )
@@ -19,8 +20,8 @@ func NewStorage(es *core.Elastic) *Storage {
 	return &Storage{es}
 }
 
-// GetBigMapKey -
-func (storage *Storage) GetBigMapKey(network, keyHash string, ptr int64) (data bigmapdiff.BigMapDiff, err error) {
+// CurrentByKey -
+func (storage *Storage) CurrentByKey(network, keyHash string, ptr int64) (data bigmapdiff.BigMapDiff, err error) {
 	if ptr < 0 {
 		err = errors.Errorf("Invalid pointer value: %d", ptr)
 		return
@@ -35,96 +36,19 @@ func (storage *Storage) GetBigMapKey(network, keyHash string, ptr int64) (data b
 	query := core.NewQuery().Query(b).Sort("level", "desc").One()
 
 	var response core.SearchResponse
-	if err = storage.es.Query([]string{consts.DocBigMapDiff}, query, &response); err != nil {
+	if err = storage.es.Query([]string{models.DocBigMapDiff}, query, &response); err != nil {
 		return
 	}
 
 	if response.Hits.Total.Value == 0 {
-		return data, core.NewRecordNotFoundError(consts.DocBigMapDiff, "")
+		return data, core.NewRecordNotFoundError(models.DocBigMapDiff, "")
 	}
 	err = json.Unmarshal(response.Hits.Hits[0].Source, &data)
 	return
 }
 
-// GetBigMapsForAddress -
-func (storage *Storage) GetBigMapsForAddress(network, address string) (response []bigmapdiff.BigMapDiff, err error) {
-	query := core.NewQuery().Query(
-		core.Bool(
-			core.Filter(
-				core.Match("network", network),
-				core.MatchPhrase("address", address),
-			),
-		),
-	).Sort("indexed_time", "desc")
-
-	err = storage.es.GetAllByQuery(query, &response)
-	return
-}
-
-// GetBigMapValuesByKey -
-func (storage *Storage) GetBigMapValuesByKey(keyHash string) ([]bigmapdiff.BigMapDiff, error) {
-	mustQuery := core.Must(
-		core.MatchPhrase("key_hash", keyHash),
-	)
-	b := core.Bool(mustQuery)
-
-	query := core.NewQuery().Query(b).Add(
-		core.Aggs(
-			core.AggItem{
-				Name: "keys",
-				Body: core.Item{
-					"terms": core.Item{
-						"script": core.Item{
-							"source": "doc['network.keyword'].value + doc['address.keyword'].value + String.format('%d', new def[] {doc['ptr'].value})",
-						},
-					},
-					"aggs": core.Item{
-						"top_key": core.TopHits(1, "indexed_time", "desc"),
-					},
-				},
-			},
-		),
-	).Zero()
-
-	var response getBigMapDiffsWithKeysResponse
-	if err := storage.es.Query([]string{consts.DocBigMapDiff}, query, &response); err != nil {
-		return nil, err
-	}
-
-	bmd := make([]bigmapdiff.BigMapDiff, len(response.Agg.Keys.Buckets))
-	for i, item := range response.Agg.Keys.Buckets {
-		if err := json.Unmarshal(item.TopKey.Hits.Hits[0].Source, &bmd[i]); err != nil {
-			return nil, err
-		}
-	}
-	return bmd, nil
-}
-
-// GetBigMapDiffsCount -
-func (storage *Storage) GetBigMapDiffsCount(network string, ptr int64) (int64, error) {
-	query := core.NewQuery().Query(
-		core.Bool(
-			core.Filter(
-				core.Match("network", network),
-				core.Term("ptr", ptr),
-			),
-		),
-	).Add(
-		core.Aggs(core.AggItem{
-			Name: "count",
-			Body: core.Cardinality("key_hash.keyword"),
-		}),
-	).Zero()
-
-	var response getBigMapDiffsCountResponse
-	if err := storage.es.Query([]string{consts.DocBigMapDiff}, query, &response); err != nil {
-		return 0, err
-	}
-	return response.Agg.Count.Value, nil
-}
-
-// GetBigMapDiffsForAddress -
-func (storage *Storage) GetBigMapDiffsForAddress(address string) ([]bigmapdiff.BigMapDiff, error) {
+// GetForAddress -
+func (storage *Storage) GetForAddress(address string) ([]bigmapdiff.BigMapDiff, error) {
 	query := core.NewQuery().Query(
 		core.Bool(
 			core.Must(
@@ -149,7 +73,7 @@ func (storage *Storage) GetBigMapDiffsForAddress(address string) ([]bigmapdiff.B
 	).Zero()
 
 	var response getBigMapDiffsWithKeysResponse
-	if err := storage.es.Query([]string{consts.DocBigMapDiff}, query, &response); err != nil {
+	if err := storage.es.Query([]string{models.DocBigMapDiff}, query, &response); err != nil {
 		return nil, err
 	}
 	arr := response.Agg.Keys.Buckets
@@ -163,8 +87,85 @@ func (storage *Storage) GetBigMapDiffsForAddress(address string) ([]bigmapdiff.B
 	return diffs, nil
 }
 
-// GetBigMapDiffsPrevious -
-func (storage *Storage) GetBigMapDiffsPrevious(filters []bigmapdiff.BigMapDiff, indexedTime int64, address string) ([]bigmapdiff.BigMapDiff, error) {
+// GetByAddress -
+func (storage *Storage) GetByAddress(network, address string) (response []bigmapdiff.BigMapDiff, err error) {
+	query := core.NewQuery().Query(
+		core.Bool(
+			core.Filter(
+				core.Match("network", network),
+				core.MatchPhrase("address", address),
+			),
+		),
+	).Sort("indexed_time", "desc")
+
+	err = storage.es.GetAllByQuery(query, &response)
+	return
+}
+
+// GetValuesByKey -
+func (storage *Storage) GetValuesByKey(keyHash string) ([]bigmapdiff.BigMapDiff, error) {
+	mustQuery := core.Must(
+		core.MatchPhrase("key_hash", keyHash),
+	)
+	b := core.Bool(mustQuery)
+
+	query := core.NewQuery().Query(b).Add(
+		core.Aggs(
+			core.AggItem{
+				Name: "keys",
+				Body: core.Item{
+					"terms": core.Item{
+						"script": core.Item{
+							"source": "doc['network.keyword'].value + doc['address.keyword'].value + String.format('%d', new def[] {doc['ptr'].value})",
+						},
+					},
+					"aggs": core.Item{
+						"top_key": core.TopHits(1, "indexed_time", "desc"),
+					},
+				},
+			},
+		),
+	).Zero()
+
+	var response getBigMapDiffsWithKeysResponse
+	if err := storage.es.Query([]string{models.DocBigMapDiff}, query, &response); err != nil {
+		return nil, err
+	}
+
+	bmd := make([]bigmapdiff.BigMapDiff, len(response.Agg.Keys.Buckets))
+	for i, item := range response.Agg.Keys.Buckets {
+		if err := json.Unmarshal(item.TopKey.Hits.Hits[0].Source, &bmd[i]); err != nil {
+			return nil, err
+		}
+	}
+	return bmd, nil
+}
+
+// Count -
+func (storage *Storage) Count(network string, ptr int64) (int64, error) {
+	query := core.NewQuery().Query(
+		core.Bool(
+			core.Filter(
+				core.Match("network", network),
+				core.Term("ptr", ptr),
+			),
+		),
+	).Add(
+		core.Aggs(core.AggItem{
+			Name: "count",
+			Body: core.Cardinality("key_hash.keyword"),
+		}),
+	).Zero()
+
+	var response getBigMapDiffsCountResponse
+	if err := storage.es.Query([]string{models.DocBigMapDiff}, query, &response); err != nil {
+		return 0, err
+	}
+	return response.Agg.Count.Value, nil
+}
+
+// Previous -
+func (storage *Storage) Previous(filters []bigmapdiff.BigMapDiff, indexedTime int64, address string) ([]bigmapdiff.BigMapDiff, error) {
 	shouldData := make([]core.Item, len(filters))
 	for i := range filters {
 		shouldData[i] = core.Bool(core.Filter(
@@ -201,7 +202,7 @@ func (storage *Storage) GetBigMapDiffsPrevious(filters []bigmapdiff.BigMapDiff, 
 		Sort("indexed_time", "desc").Zero()
 
 	var response getBigMapDiffsWithKeysResponse
-	if err := storage.es.Query([]string{consts.DocBigMapDiff}, query, &response); err != nil {
+	if err := storage.es.Query([]string{models.DocBigMapDiff}, query, &response); err != nil {
 		return nil, err
 	}
 
@@ -220,8 +221,8 @@ func (storage *Storage) GetBigMapDiffsPrevious(filters []bigmapdiff.BigMapDiff, 
 	return diffs, nil
 }
 
-// GetBigMapDiffsUniqueByOperationID -
-func (storage *Storage) GetBigMapDiffsUniqueByOperationID(operationID string) ([]bigmapdiff.BigMapDiff, error) {
+// GetUniqueByOperationID -
+func (storage *Storage) GetUniqueByOperationID(operationID string) ([]bigmapdiff.BigMapDiff, error) {
 	query := core.NewQuery().
 		Query(
 			core.Bool(
@@ -257,7 +258,7 @@ func (storage *Storage) GetBigMapDiffsUniqueByOperationID(operationID string) ([
 		).Zero()
 
 	var response getBigMapDiffsWithKeysResponse
-	if err := storage.es.Query([]string{consts.DocBigMapDiff}, query, &response); err != nil {
+	if err := storage.es.Query([]string{models.DocBigMapDiff}, query, &response); err != nil {
 		return nil, err
 	}
 	arr := response.Agg.Keys.Buckets
@@ -271,8 +272,8 @@ func (storage *Storage) GetBigMapDiffsUniqueByOperationID(operationID string) ([
 	return diffs, nil
 }
 
-// GetBigMapDiffsByPtrAndKeyHash -
-func (storage *Storage) GetBigMapDiffsByPtrAndKeyHash(ptr int64, network, keyHash string, size, offset int64) ([]bigmapdiff.BigMapDiff, int64, error) {
+// GetByPtrAndKeyHash -
+func (storage *Storage) GetByPtrAndKeyHash(ptr int64, network, keyHash string, size, offset int64) ([]bigmapdiff.BigMapDiff, int64, error) {
 	if ptr < 0 {
 		return nil, 0, errors.Errorf("Invalid pointer value: %d", ptr)
 	}
@@ -290,7 +291,7 @@ func (storage *Storage) GetBigMapDiffsByPtrAndKeyHash(ptr int64, network, keyHas
 	query := core.NewQuery().Query(b).Sort("level", "desc").Size(size).From(offset)
 
 	var response core.SearchResponse
-	if err := storage.es.Query([]string{consts.DocBigMapDiff}, query, &response); err != nil {
+	if err := storage.es.Query([]string{models.DocBigMapDiff}, query, &response); err != nil {
 		return nil, 0, err
 	}
 
@@ -305,8 +306,8 @@ func (storage *Storage) GetBigMapDiffsByPtrAndKeyHash(ptr int64, network, keyHas
 	return result, response.Hits.Total.Value, nil
 }
 
-// GetBigMapDiffsByOperationID -
-func (storage *Storage) GetBigMapDiffsByOperationID(operationID string) ([]*bigmapdiff.BigMapDiff, error) {
+// GetByOperationID -
+func (storage *Storage) GetByOperationID(operationID string) ([]*bigmapdiff.BigMapDiff, error) {
 	query := core.NewQuery().
 		Query(
 			core.Bool(
@@ -317,7 +318,7 @@ func (storage *Storage) GetBigMapDiffsByOperationID(operationID string) ([]*bigm
 		).All()
 
 	var response core.SearchResponse
-	if err := storage.es.Query([]string{consts.DocBigMapDiff}, query, &response); err != nil {
+	if err := storage.es.Query([]string{models.DocBigMapDiff}, query, &response); err != nil {
 		return nil, err
 	}
 	result := make([]*bigmapdiff.BigMapDiff, len(response.Hits.Hits))
@@ -330,8 +331,8 @@ func (storage *Storage) GetBigMapDiffsByOperationID(operationID string) ([]*bigm
 	return result, nil
 }
 
-// GetBigMapDiffsByPtr -
-func (storage *Storage) GetBigMapDiffsByPtr(address, network string, ptr int64) ([]bigmapdiff.BigMapDiff, error) {
+// GetByPtr -
+func (storage *Storage) GetByPtr(address, network string, ptr int64) ([]bigmapdiff.BigMapDiff, error) {
 	query := core.NewQuery().Query(
 		core.Bool(
 			core.Filter(
@@ -356,7 +357,7 @@ func (storage *Storage) GetBigMapDiffsByPtr(address, network string, ptr int64) 
 	).Sort("indexed_time", "desc").Zero()
 
 	var response getBigMapDiffsWithKeysResponse
-	if err := storage.es.Query([]string{consts.DocBigMapDiff}, query, &response); err != nil {
+	if err := storage.es.Query([]string{models.DocBigMapDiff}, query, &response); err != nil {
 		return nil, err
 	}
 	bmd := make([]bigmapdiff.BigMapDiff, len(response.Agg.Keys.Buckets))
@@ -366,4 +367,44 @@ func (storage *Storage) GetBigMapDiffsByPtr(address, network string, ptr int64) 
 		}
 	}
 	return bmd, nil
+}
+
+// Get -
+func (storage *Storage) Get(ctx bigmapdiff.GetContext) ([]bigmapdiff.BigMapDiff, error) {
+	context, ok := ctx.(GetContext)
+	if !ok {
+		return nil, errors.Errorf("Invalid context type")
+	}
+	query := ctx.Build()
+	q, ok := query.(core.Base)
+	if !ok {
+		return nil, errors.Errorf("Invalid query type")
+	}
+	if *context.Ptr < 0 {
+		return nil, errors.Errorf("Invalid pointer value: %d", *context.Ptr)
+	}
+
+	var response getBigMapDiffsWithKeysResponse
+	if err := storage.es.Query([]string{models.DocBigMapDiff}, q, &response); err != nil {
+		return nil, err
+	}
+
+	arr := response.Agg.Keys.Buckets
+	if int64(len(arr)) < context.Offset {
+		return nil, nil
+	}
+
+	if int64(len(arr)) < context.to {
+		context.to = int64(len(arr))
+	}
+
+	arr = arr[context.Offset:context.to]
+	result := make([]bigmapdiff.BigMapDiff, len(arr))
+	for i := range arr {
+		if err := json.Unmarshal(arr[i].TopKey.Hits.Hits[0].Source, &result[i]); err != nil {
+			return nil, err
+		}
+		result[i].ID = arr[i].TopKey.Hits.Hits[0].ID
+	}
+	return result, nil
 }

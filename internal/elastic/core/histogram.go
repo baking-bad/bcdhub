@@ -1,38 +1,11 @@
 package core
 
-import "github.com/baking-bad/bcdhub/internal/models/tzip"
-
-// Histogram filter kinds
-const (
-	HistogramFilterKindExists     = "exists"
-	HistogramFilterKindMatch      = "match"
-	HistogramFilterKindIn         = "in"
-	HistogramFilterKindAddresses  = "address"
-	HistogramFilterDexEnrtypoints = "dex_entrypoints"
+import (
+	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
-type histogramContext struct {
-	Indices  []string
-	Period   string
-	Function struct {
-		Name  string
-		Field string
-	}
-	Filters []HistogramFilter
-}
-
-// HistogramFilter -
-type HistogramFilter struct {
-	Field string
-	Value interface{}
-	Kind  string
-}
-
-func (ctx histogramContext) hasFunction() bool {
-	return ctx.Function.Name != "" && ctx.Function.Field != ""
-}
-
-func (ctx histogramContext) build() Base {
+func buildHistogramContext(ctx models.HistogramContext) Base {
 	hist := Item{
 		"date_histogram": Item{
 			"field":             "timestamp",
@@ -40,7 +13,7 @@ func (ctx histogramContext) build() Base {
 		},
 	}
 
-	if ctx.hasFunction() {
+	if ctx.HasFunction() {
 		hist.Extend(Aggs(
 			AggItem{
 				"result", Item{
@@ -55,15 +28,15 @@ func (ctx histogramContext) build() Base {
 	matches := make([]Item, 0)
 	for _, fltr := range ctx.Filters {
 		switch fltr.Kind {
-		case HistogramFilterKindExists:
+		case models.HistogramFilterKindExists:
 			matches = append(matches, Exists(fltr.Field))
-		case HistogramFilterKindMatch:
+		case models.HistogramFilterKindMatch:
 			matches = append(matches, Match(fltr.Field, fltr.Value))
-		case HistogramFilterKindIn:
+		case models.HistogramFilterKindIn:
 			if arr, ok := fltr.Value.([]string); ok {
 				matches = append(matches, In(fltr.Field, arr))
 			}
-		case HistogramFilterKindAddresses:
+		case models.HistogramFilterKindAddresses:
 			if value, ok := fltr.Value.([]string); ok {
 				addresses := make([]Item, len(value))
 				for i := range value {
@@ -74,7 +47,7 @@ func (ctx histogramContext) build() Base {
 					MinimumShouldMatch(1),
 				))
 			}
-		case HistogramFilterDexEnrtypoints:
+		case models.HistogramFilterDexEnrtypoints:
 			if value, ok := fltr.Value.([]tzip.DAppContract); ok {
 				entrypoints := make([]Item, 0)
 				for i := range value {
@@ -102,40 +75,13 @@ func (ctx histogramContext) build() Base {
 			),
 		),
 	).Add(
-		Aggs(AggItem{"hist", hist}),
+		Aggs(AggItem{Name: "hist", Body: hist}),
 	).Zero()
 }
 
-// HistogramOption -
-type HistogramOption func(*histogramContext)
-
-// WithHistogramIndices -
-func WithHistogramIndices(indices ...string) HistogramOption {
-	return func(h *histogramContext) {
-		h.Indices = indices
-	}
-}
-
-// WithHistogramFunction -
-func WithHistogramFunction(function, field string) HistogramOption {
-	return func(h *histogramContext) {
-		h.Function = struct {
-			Name  string
-			Field string
-		}{function, field}
-	}
-}
-
-// WithHistogramFilters -
-func WithHistogramFilters(filters []HistogramFilter) HistogramOption {
-	return func(h *histogramContext) {
-		h.Filters = filters
-	}
-}
-
 // GetDateHistogram -
-func (e *Elastic) GetDateHistogram(period string, opts ...HistogramOption) ([][]int64, error) {
-	ctx := histogramContext{
+func (e *Elastic) GetDateHistogram(period string, opts ...models.HistogramOption) ([][]int64, error) {
+	ctx := models.HistogramContext{
 		Period: period,
 	}
 	for _, opt := range opts {
@@ -143,14 +89,14 @@ func (e *Elastic) GetDateHistogram(period string, opts ...HistogramOption) ([][]
 	}
 
 	var response getDateHistogramResponse
-	if err := e.Query(ctx.Indices, ctx.build(), &response); err != nil {
+	if err := e.Query(ctx.Indices, buildHistogramContext(ctx), &response); err != nil {
 		return nil, err
 	}
 
 	histogram := make([][]int64, 0)
 	for _, bucket := range response.Agg.Hist.Buckets {
 		val := bucket.DocCount
-		if ctx.hasFunction() {
+		if ctx.HasFunction() {
 			val = int64(bucket.Result.Value)
 		}
 

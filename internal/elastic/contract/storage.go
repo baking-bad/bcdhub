@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/pkg/errors"
 )
@@ -24,11 +25,11 @@ func NewStorage(es *core.Elastic) *Storage {
 
 func (storage *Storage) getContract(q core.Base) (c contract.Contract, err error) {
 	var response core.SearchResponse
-	if err = storage.es.Query([]string{consts.DocContracts}, q, &response); err != nil {
+	if err = storage.es.Query([]string{models.DocContracts}, q, &response); err != nil {
 		return
 	}
 	if response.Hits.Total.Value == 0 {
-		return c, core.NewRecordNotFoundError(consts.DocContracts, "")
+		return c, core.NewRecordNotFoundError(models.DocContracts, "")
 	}
 	err = json.Unmarshal(response.Hits.Hits[0].Source, &c)
 	return
@@ -95,7 +96,7 @@ func (storage *Storage) IsFA(network, address string) (bool, error) {
 		),
 	)
 	var response core.SearchResponse
-	if err := storage.es.Query([]string{consts.DocContracts}, query, &response, "address"); err != nil {
+	if err := storage.es.Query([]string{models.DocContracts}, query, &response, "address"); err != nil {
 		return false, err
 	}
 	return response.Hits.Total.Value == 1, nil
@@ -126,7 +127,7 @@ func (storage *Storage) GetAddressesByNetworkAndLevel(network string, maxLevel i
 	).All()
 
 	var response core.SearchResponse
-	if err := storage.es.Query([]string{consts.DocContracts}, query, &response, "address"); err != nil {
+	if err := storage.es.Query([]string{models.DocContracts}, query, &response, "address"); err != nil {
 		return nil, err
 	}
 
@@ -164,7 +165,7 @@ func (storage *Storage) GetIDsByAddresses(addresses []string, network string) ([
 	})
 
 	var response core.SearchResponse
-	if err := storage.es.Query([]string{consts.DocContracts}, query, &response, "address"); err != nil {
+	if err := storage.es.Query([]string{models.DocContracts}, query, &response, "address"); err != nil {
 		return nil, err
 	}
 	ids := make([]string, len(response.Hits.Hits))
@@ -218,7 +219,7 @@ func (storage *Storage) RecalcStats(network, address string) (stats contract.Sta
 		},
 	).Zero()
 	var response recalcContractStatsResponse
-	if err = storage.es.Query([]string{consts.DocOperations}, query, &response); err != nil {
+	if err = storage.es.Query([]string{models.DocOperations}, query, &response); err != nil {
 		return
 	}
 
@@ -252,7 +253,7 @@ func (storage *Storage) GetMigrationsCount(network, address string) (int64, erro
 	).Zero()
 
 	var response getContractMigrationStatsResponse
-	err := storage.es.Query([]string{consts.DocMigrations}, query, &response)
+	err := storage.es.Query([]string{models.DocMigrations}, query, &response)
 	return response.Agg.MigrationsCount.Value, err
 }
 
@@ -293,7 +294,7 @@ func (storage *Storage) GetDAppStats(network string, addresses []string, period 
 	).Zero()
 
 	var response getDAppStatsResponse
-	if err = storage.es.Query([]string{consts.DocOperations}, query, &response); err != nil {
+	if err = storage.es.Query([]string{models.DocOperations}, query, &response); err != nil {
 		return
 	}
 
@@ -366,7 +367,7 @@ func (storage *Storage) GetByLevels(network string, fromLevel, toLevel int64) ([
 	)
 
 	var response core.SearchResponse
-	if err := storage.es.Query([]string{consts.DocOperations}, query, &response); err != nil {
+	if err := storage.es.Query([]string{models.DocOperations}, query, &response); err != nil {
 		return nil, err
 	}
 
@@ -414,12 +415,12 @@ func (storage *Storage) GetProjectsLastContract() ([]contract.Contract, error) {
 	).Sort("timestamp", "desc").Zero()
 
 	var response getProjectsResponse
-	if err := storage.es.Query([]string{consts.DocContracts}, query, &response); err != nil {
+	if err := storage.es.Query([]string{models.DocContracts}, query, &response); err != nil {
 		return nil, err
 	}
 
 	if len(response.Agg.Projects.Buckets) == 0 {
-		return nil, core.NewRecordNotFoundError(consts.DocContracts, "")
+		return nil, core.NewRecordNotFoundError(models.DocContracts, "")
 	}
 
 	contracts := make([]contract.Contract, len(response.Agg.Projects.Buckets))
@@ -455,12 +456,12 @@ func (storage *Storage) GetSameContracts(c contract.Contract, size, offset int64
 	).Sort("last_action", "desc").Size(size).From(offset)
 
 	var response core.SearchResponse
-	if err = storage.es.Query([]string{consts.DocContracts}, q, &response); err != nil {
+	if err = storage.es.Query([]string{models.DocContracts}, q, &response); err != nil {
 		return
 	}
 
 	if len(response.Hits.Hits) == 0 {
-		return pcr, core.NewRecordNotFoundError(consts.DocContracts, "")
+		return pcr, core.NewRecordNotFoundError(models.DocContracts, "")
 	}
 
 	contracts := make([]contract.Contract, len(response.Hits.Hits))
@@ -517,7 +518,7 @@ func (storage *Storage) GetSimilarContracts(c contract.Contract, size, offset in
 	).Zero()
 
 	var response getProjectsResponse
-	if err = storage.es.Query([]string{consts.DocContracts}, query, &response); err != nil {
+	if err = storage.es.Query([]string{models.DocContracts}, query, &response); err != nil {
 		return
 	}
 
@@ -570,7 +571,7 @@ func (storage *Storage) GetDiffTasks() ([]contract.DiffTask, error) {
 	).Zero()
 
 	var response getDiffTasksResponse
-	if err := storage.es.Query([]string{consts.DocContracts}, query, &response); err != nil {
+	if err := storage.es.Query([]string{models.DocContracts}, query, &response); err != nil {
 		return nil, err
 	}
 
@@ -628,7 +629,7 @@ func (storage *Storage) GetTokens(network, tokenInterface string, offset, size i
 	}
 
 	var response core.SearchResponse
-	if err := storage.es.Query([]string{consts.DocContracts}, query, &response); err != nil {
+	if err := storage.es.Query([]string{models.DocContracts}, query, &response); err != nil {
 		return nil, 0, err
 	}
 

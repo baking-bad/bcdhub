@@ -10,17 +10,16 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/pkg/errors"
 
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 )
 
 func getOperation(ids []string) error {
 	operations := make([]operation.Operation, 0)
-	if err := ctx.ES.GetByIDs(&operations, ids...); err != nil {
+	if err := ctx.Storage.GetByIDs(&operations, ids...); err != nil {
 		return errors.Errorf("[getOperation] Find operation error for IDs %v: %s", ids, err)
 	}
 
-	h := metrics.New(ctx.ES, ctx.DB)
+	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TZIP, ctx.Storage, ctx.Bulk, ctx.DB)
 	updated := make([]models.Model, 0)
 	for i := range operations {
 		if err := parseOperation(h, operations[i]); err != nil {
@@ -30,7 +29,7 @@ func getOperation(ids []string) error {
 		updated = append(updated, &operations[i])
 	}
 
-	if err := ctx.ES.BulkUpdate(updated); err != nil {
+	if err := ctx.Bulk.Update(updated); err != nil {
 		return err
 	}
 
@@ -66,11 +65,11 @@ func (s *stats) isZero() bool {
 }
 
 func getOperationsContracts(h *metrics.Handler, operations []operation.Operation) error {
-	addresses := make([]elastic.Address, 0)
-	addressesMap := make(map[elastic.Address]*stats)
+	addresses := make([]contract.Address, 0)
+	addressesMap := make(map[contract.Address]*stats)
 	for i := range operations {
 		if helpers.IsContract(operations[i].Destination) {
-			dest := elastic.Address{
+			dest := contract.Address{
 				Address: operations[i].Destination,
 				Network: operations[i].Network,
 			}
@@ -81,7 +80,7 @@ func getOperationsContracts(h *metrics.Handler, operations []operation.Operation
 			addressesMap[dest].update(operations[i].Timestamp)
 		}
 		if helpers.IsContract(operations[i].Source) {
-			src := elastic.Address{
+			src := contract.Address{
 				Address: operations[i].Source,
 				Network: operations[i].Network,
 			}
@@ -93,15 +92,15 @@ func getOperationsContracts(h *metrics.Handler, operations []operation.Operation
 		}
 	}
 
-	contracts, err := ctx.ES.GetContractsByAddresses(addresses)
+	contracts, err := ctx.Contracts.GetByAddresses(addresses)
 	if err != nil {
 		return err
 	}
 
 	updated := make([]contract.Contract, 0)
-	contractsMap := make(map[elastic.Address]contract.Contract)
+	contractsMap := make(map[contract.Address]contract.Contract)
 	for i := range contracts {
-		addr := elastic.Address{
+		addr := contract.Address{
 			Address: contracts[i].Address,
 			Network: contracts[i].Network,
 		}
@@ -115,7 +114,7 @@ func getOperationsContracts(h *metrics.Handler, operations []operation.Operation
 		}
 	}
 
-	if err := ctx.ES.BulkUpdateField(updated, "TxCount", "LastAction"); err != nil {
+	if err := ctx.Bulk.UpdateField(updated, "TxCount", "LastAction"); err != nil {
 		return err
 	}
 
@@ -123,7 +122,7 @@ func getOperationsContracts(h *metrics.Handler, operations []operation.Operation
 		if !operations[i].IsTransaction() || !operations[i].IsCall() {
 			continue
 		}
-		addr := elastic.Address{
+		addr := contract.Address{
 			Address: operations[i].Destination,
 			Network: operations[i].Network,
 		}

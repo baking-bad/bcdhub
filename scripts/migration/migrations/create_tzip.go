@@ -2,7 +2,7 @@ package migrations
 
 import (
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -26,7 +26,7 @@ func (m *CreateTZIP) Description() string {
 
 // Do - migrate function
 func (m *CreateTZIP) Do(ctx *config.Context) error {
-	bmd, err := ctx.ES.GetBigMapValuesByKey(tzipParsers.EmptyStringKey)
+	bmd, err := ctx.BigMapDiffs.GetValuesByKey(tzipParsers.EmptyStringKey)
 	if err != nil {
 		return err
 	}
@@ -44,8 +44,8 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 			Address: bmd[i].Address,
 			Network: bmd[i].Network,
 		}
-		if err := ctx.ES.GetByID(&check); err != nil {
-			if !elastic.IsRecordNotFound(err) {
+		if err := ctx.Storage.GetByID(&check); err != nil {
+			if !core.IsRecordNotFound(err) {
 				return err
 			}
 		} else {
@@ -56,7 +56,7 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 		if err != nil {
 			return err
 		}
-		parser := tzipParsers.NewParser(ctx.ES, rpc, tzipParsers.ParserConfig{
+		parser := tzipParsers.NewParser(ctx.BigMapDiffs, ctx.Blocks, ctx.Schema, rpc, tzipParsers.ParserConfig{
 			IPFSGateways: ctx.Config.IPFSGateways,
 		})
 
@@ -79,5 +79,5 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 		}
 	}
 
-	return ctx.ES.BulkInsert(data)
+	return ctx.Bulk.Insert(data)
 }

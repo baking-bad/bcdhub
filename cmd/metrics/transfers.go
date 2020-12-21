@@ -1,16 +1,16 @@
 package main
 
 import (
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/pkg/errors"
 )
 
 func getTransfer(ids []string) error {
 	transfers := make([]transfer.Transfer, 0)
-	if err := ctx.ES.GetByIDs(&transfers, ids...); err != nil {
+	if err := ctx.Storage.GetByIDs(&transfers, ids...); err != nil {
 		return errors.Errorf("[getTransfer] Find transfer error for IDs %v: %s", ids, err)
 	}
 
@@ -24,11 +24,11 @@ func getTransfer(ids []string) error {
 }
 
 func parseTransfer(transfer transfer.Transfer) error {
-	h := metrics.New(ctx.ES, ctx.DB)
+	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TZIP, ctx.Storage, ctx.Bulk, ctx.DB)
 
 	if flag, err := h.SetTransferAliases(&transfer); flag {
-		if err := ctx.ES.UpdateFields(
-			elastic.DocTransfers, transfer.ID,
+		if err := ctx.Storage.UpdateFields(
+			models.DocTransfers, transfer.ID,
 			transfer,
 			"FromAlias", "ToAlias", "Alias", "InitiatorAlias",
 		); err != nil {

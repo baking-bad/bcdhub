@@ -8,7 +8,10 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage/hash"
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/elastic/core"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/block"
+	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
@@ -26,21 +29,25 @@ const (
 
 // TezosStorage -
 type TezosStorage struct {
-	es      elastic.IElastic
-	rpc     noderpc.INode
-	network string
-	address string
-	ptr     int64
+	bigMapRepo bigmapdiff.Repository
+	blockRepo  block.Repository
+	schemaRepo schema.Repository
+	rpc        noderpc.INode
+	network    string
+	address    string
+	ptr        int64
 }
 
 // NewTezosStorage -
-func NewTezosStorage(es elastic.IElastic, rpc noderpc.INode, address, network string, ptr int64) TezosStorage {
+func NewTezosStorage(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, schemaRepo schema.Repository, rpc noderpc.INode, address, network string, ptr int64) TezosStorage {
 	return TezosStorage{
-		es:      es,
-		rpc:     rpc,
-		address: address,
-		network: network,
-		ptr:     ptr,
+		bigMapRepo: bigMapRepo,
+		blockRepo:  blockRepo,
+		schemaRepo: schemaRepo,
+		rpc:        rpc,
+		address:    address,
+		network:    network,
+		ptr:        ptr,
 	}
 }
 
@@ -51,7 +58,7 @@ func (s TezosStorage) Get(value string) (*tzip.TZIP, error) {
 		return nil, err
 	}
 
-	if err := uri.networkByChainID(s.es); err != nil {
+	if err := uri.networkByChainID(s.blockRepo); err != nil {
 		return nil, err
 	}
 
@@ -64,9 +71,9 @@ func (s TezosStorage) Get(value string) (*tzip.TZIP, error) {
 		return nil, err
 	}
 
-	bmd, err := s.es.GetBigMapKey(s.network, key, s.ptr)
+	bmd, err := s.bigMapRepo.CurrentByKey(s.network, key, s.ptr)
 	if err != nil {
-		if elastic.IsRecordNotFound(err) {
+		if core.IsRecordNotFound(err) {
 			return nil, nil
 		}
 		return nil, err
@@ -86,12 +93,12 @@ func (s *TezosStorage) fillFields(uri TezosStorageURI) error {
 	if uri.Address != "" && uri.Address != s.address {
 		s.address = uri.Address
 
-		block, err := s.es.GetLastBlock(s.network)
+		block, err := s.blockRepo.GetLastBlock(s.network)
 		if err != nil {
 			return err
 		}
 
-		bmPtr, err := FindBigMapPointer(s.es, s.rpc, s.address, s.network, block.Protocol)
+		bmPtr, err := FindBigMapPointer(s.schemaRepo, s.rpc, s.address, s.network, block.Protocol)
 		if err != nil {
 			return err
 		}
@@ -103,8 +110,8 @@ func (s *TezosStorage) fillFields(uri TezosStorageURI) error {
 }
 
 // FindBigMapPointer -
-func FindBigMapPointer(es elastic.IElastic, rpc noderpc.INode, address, network, protocol string) (int64, error) {
-	metadata, err := meta.GetMetadata(es, address, consts.STORAGE, protocol)
+func FindBigMapPointer(schemaRepo schema.Repository, rpc noderpc.INode, address, network, protocol string) (int64, error) {
+	metadata, err := meta.GetMetadata(schemaRepo, address, consts.STORAGE, protocol)
 	if err != nil {
 		return -1, err
 	}
