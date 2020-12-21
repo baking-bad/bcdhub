@@ -8,9 +8,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
-	"github.com/baking-bad/bcdhub/internal/elastic/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
-	bmdModels "github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -247,7 +246,7 @@ func (ctx *Context) GetBigMapDiffCount(c *gin.Context) {
 	c.JSON(http.StatusOK, CountResponse{count})
 }
 
-func (ctx *Context) prepareBigMapKeys(data []bmdModels.BigMapDiff) ([]BigMapResponseItem, error) {
+func (ctx *Context) prepareBigMapKeys(data []bigmapdiff.BigMapDiff) ([]BigMapResponseItem, error) {
 	if len(data) == 0 {
 		return []BigMapResponseItem{}, nil
 	}
@@ -279,7 +278,7 @@ func (ctx *Context) prepareBigMapKeys(data []bmdModels.BigMapDiff) ([]BigMapResp
 	return res, nil
 }
 
-func (ctx *Context) prepareBigMapItem(data []bmdModels.BigMapDiff, keyHash string) (res BigMapDiffByKeyResponse, err error) {
+func (ctx *Context) prepareBigMapItem(data []bigmapdiff.BigMapDiff, keyHash string) (res BigMapDiffByKeyResponse, err error) {
 	if len(data) == 0 {
 		return
 	}
@@ -310,7 +309,7 @@ func (ctx *Context) prepareBigMapItem(data []bmdModels.BigMapDiff, keyHash strin
 	return
 }
 
-func prepareItem(item bmdModels.BigMapDiff, contractMetadata *meta.ContractMetadata) (interface{}, interface{}, string, error) {
+func prepareItem(item bigmapdiff.BigMapDiff, contractMetadata *meta.ContractMetadata) (interface{}, interface{}, string, error) {
 	var protoSymLink string
 	protoSymLink, err := meta.GetProtoSymLink(item.Protocol)
 	if err != nil {

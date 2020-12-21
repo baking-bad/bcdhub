@@ -371,17 +371,13 @@ func (storage *Storage) GetByPtr(address, network string, ptr int64) ([]bigmapdi
 
 // Get -
 func (storage *Storage) Get(ctx bigmapdiff.GetContext) ([]bigmapdiff.BigMapDiff, error) {
-	context, ok := ctx.(GetContext)
-	if !ok {
-		return nil, errors.Errorf("Invalid context type")
-	}
-	query := ctx.Build()
+	query := buildGetContext(ctx)
 	q, ok := query.(core.Base)
 	if !ok {
 		return nil, errors.Errorf("Invalid query type")
 	}
-	if *context.Ptr < 0 {
-		return nil, errors.Errorf("Invalid pointer value: %d", *context.Ptr)
+	if *ctx.Ptr < 0 {
+		return nil, errors.Errorf("Invalid pointer value: %d", *ctx.Ptr)
 	}
 
 	var response getBigMapDiffsWithKeysResponse
@@ -390,15 +386,15 @@ func (storage *Storage) Get(ctx bigmapdiff.GetContext) ([]bigmapdiff.BigMapDiff,
 	}
 
 	arr := response.Agg.Keys.Buckets
-	if int64(len(arr)) < context.Offset {
+	if int64(len(arr)) < ctx.Offset {
 		return nil, nil
 	}
 
-	if int64(len(arr)) < context.to {
-		context.to = int64(len(arr))
+	if int64(len(arr)) < ctx.To {
+		ctx.To = int64(len(arr))
 	}
 
-	arr = arr[context.Offset:context.to]
+	arr = arr[ctx.Offset:ctx.To]
 	result := make([]bigmapdiff.BigMapDiff, len(arr))
 	for i := range arr {
 		if err := json.Unmarshal(arr[i].TopKey.Hits.Hits[0].Source, &result[i]); err != nil {

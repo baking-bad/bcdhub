@@ -3,7 +3,6 @@ package models
 import (
 	"io"
 
-	"github.com/baking-bad/bcdhub/internal/elastic/search"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 )
 
@@ -21,7 +20,7 @@ type GeneralRepository interface {
 	UpdateDoc(model Model) (err error)
 	UpdateFields(string, string, interface{}, ...string) error
 	GetEvents([]SubscriptionRequest, int64, int64) ([]Event, error)
-	SearchByText(string, int64, []string, map[string]interface{}, bool) (search.Result, error)
+	SearchByText(string, int64, []string, map[string]interface{}, bool) (Result, error)
 	CreateAWSRepository(string, string, string) error
 	ListRepositories() ([]Repository, error)
 	CreateSnapshots(string, string, []string) error

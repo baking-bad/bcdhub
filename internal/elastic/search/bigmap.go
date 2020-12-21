@@ -1,6 +1,7 @@
 package search
 
 import (
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 )
 
@@ -38,7 +39,7 @@ func (b BigMap) Parse(highlight map[string][]string, data []byte) (interface{}, 
 	if err := json.Unmarshal(data, &bmd); err != nil {
 		return nil, err
 	}
-	return Item{
+	return models.Item{
 		Type:       b.GetIndex(),
 		Value:      bmd.KeyHash,
 		Body:       bmd,

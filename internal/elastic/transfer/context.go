@@ -3,85 +3,84 @@ package transfer
 import (
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/models/transfer"
 )
 
-// GetTransfersContext -
-type GetTransfersContext struct {
-	Contracts []string
-	Network   string
-	Address   string
-	Hash      string
-	Start     uint
-	End       uint
-	SortOrder string
-	LastID    string
-	Size      int64
-	Offset    int64
-	TokenID   int64
+func buildGetContext(ctx transfer.GetContext) core.Base {
+	query := core.NewQuery()
+	filters := make([]core.Item, 0)
 
-	query   core.Base
-	filters []core.Item
-}
+	if f := filterNetwork(ctx); f != nil {
+		filters = append(filters, f)
+	}
+	if f := filterAddress(ctx); f != nil {
+		filters = append(filters, f)
+	}
+	if f := filterTime(ctx); f != nil {
+		filters = append(filters, f)
+	}
+	if f := filterCursor(ctx); f != nil {
+		filters = append(filters, f)
+	}
+	if f := filterContracts(ctx); f != nil {
+		filters = append(filters, f)
+	}
+	if f := filterTokenID(ctx); f != nil {
+		filters = append(filters, f)
+	}
+	if f := filterHash(ctx); f != nil {
+		filters = append(filters, f)
+	}
 
-// Build -
-func (ctx *GetTransfersContext) Build() interface{} {
-	ctx.query = core.NewQuery()
-	ctx.filters = make([]core.Item, 0)
-
-	ctx.filterNetwork()
-	ctx.filterAddress()
-	ctx.filterTime()
-	ctx.filterCursor()
-	ctx.filterContracts()
-	ctx.filterTokenID()
-	ctx.filterHash()
-
-	ctx.query.Query(
+	query.Query(
 		core.Bool(
 			core.Filter(
-				ctx.filters...,
+				filters...,
 			),
 		),
 	)
-	ctx.appendSort()
-	ctx.appendOffset()
-	ctx.appendSize()
-	return ctx.query
+	appendSort(ctx, query)
+	appendOffset(ctx, query)
+	appendSize(ctx, query)
+	return query
 }
 
-func (ctx *GetTransfersContext) filterNetwork() {
+func filterNetwork(ctx transfer.GetContext) core.Item {
 	if ctx.Network != "" {
-		ctx.filters = append(ctx.filters, core.Match("network", ctx.Network))
+		return core.Match("network", ctx.Network)
 	}
+	return nil
 }
 
-func (ctx *GetTransfersContext) filterHash() {
+func filterHash(ctx transfer.GetContext) core.Item {
 	if ctx.Hash != "" {
-		ctx.filters = append(ctx.filters, core.MatchPhrase("hash", ctx.Hash))
+		return core.MatchPhrase("hash", ctx.Hash)
 	}
+	return nil
 }
 
-func (ctx *GetTransfersContext) filterAddress() {
+func filterAddress(ctx transfer.GetContext) core.Item {
 	if ctx.Address == "" {
-		return
+		return nil
 	}
 
-	ctx.filters = append(ctx.filters, core.Bool(
+	return core.Bool(
 		core.Should(
 			core.MatchPhrase("from", ctx.Address),
 			core.MatchPhrase("to", ctx.Address),
 		),
 		core.MinimumShouldMatch(1),
-	))
+	)
 }
 
-func (ctx *GetTransfersContext) filterTokenID() {
+func filterTokenID(ctx transfer.GetContext) core.Item {
 	if ctx.TokenID >= 0 {
-		ctx.filters = append(ctx.filters, core.Term("token_id", ctx.TokenID))
+		return core.Term("token_id", ctx.TokenID)
 	}
+	return nil
 }
 
-func (ctx *GetTransfersContext) filterTime() {
+func filterTime(ctx transfer.GetContext) core.Item {
 	ts := core.Item{}
 	if ctx.Start > 0 {
 		ts["gte"] = ctx.Start
@@ -90,23 +89,25 @@ func (ctx *GetTransfersContext) filterTime() {
 		ts["lt"] = ctx.End
 	}
 	if len(ts) > 0 {
-		ctx.filters = append(ctx.filters, core.Range("timestamp", ts))
+		return core.Range("timestamp", ts)
 	}
+	return nil
 }
 
-func (ctx *GetTransfersContext) filterCursor() {
+func filterCursor(ctx transfer.GetContext) core.Item {
 	if ctx.LastID != "" {
 		eq := "lt"
 		if ctx.SortOrder == "asc" {
 			eq = "gt"
 		}
-		ctx.filters = append(ctx.filters, core.Range("indexed_time", core.Item{eq: ctx.LastID}))
+		return core.Range("indexed_time", core.Item{eq: ctx.LastID})
 	}
+	return nil
 }
 
-func (ctx *GetTransfersContext) filterContracts() {
+func filterContracts(ctx transfer.GetContext) core.Item {
 	if len(ctx.Contracts) == 0 {
-		return
+		return nil
 	}
 
 	shouldItems := make([]core.Item, len(ctx.Contracts))
@@ -114,30 +115,30 @@ func (ctx *GetTransfersContext) filterContracts() {
 		shouldItems[i] = core.MatchPhrase("contract", ctx.Contracts[i])
 	}
 
-	ctx.filters = append(ctx.filters, core.Bool(
+	return core.Bool(
 		core.Should(shouldItems...),
 		core.MinimumShouldMatch(1),
-	))
+	)
 }
 
-func (ctx *GetTransfersContext) appendSize() {
+func appendSize(ctx transfer.GetContext, query core.Base) {
 	if ctx.Size > 0 && ctx.Size <= maxTransfersSize {
-		ctx.query.Size(ctx.Size)
+		query.Size(ctx.Size)
 	} else {
-		ctx.query.Size(maxTransfersSize)
+		query.Size(maxTransfersSize)
 	}
 }
 
-func (ctx *GetTransfersContext) appendOffset() {
+func appendOffset(ctx transfer.GetContext, query core.Base) {
 	if ctx.Offset > 0 && ctx.Offset <= maxTransfersSize {
-		ctx.query.From(ctx.Offset)
+		query.From(ctx.Offset)
 	}
 }
 
-func (ctx *GetTransfersContext) appendSort() {
+func appendSort(ctx transfer.GetContext, query core.Base) {
 	if helpers.StringInArray(ctx.SortOrder, []string{"desc", "asc"}) {
-		ctx.query.Sort("timestamp", ctx.SortOrder)
+		query.Sort("timestamp", ctx.SortOrder)
 	} else {
-		ctx.query.Sort("timestamp", "desc")
+		query.Sort("timestamp", "desc")
 	}
 }

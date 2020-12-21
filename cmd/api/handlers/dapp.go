@@ -4,9 +4,8 @@ import (
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/elastic/tzip"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
-	modelsTZIP "github.com/baking-bad/bcdhub/internal/models/tzip"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/gin-gonic/gin"
 )
 
@@ -59,7 +58,7 @@ func (ctx *Context) GetDApp(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (ctx *Context) appendDAppInfo(dapp *modelsTZIP.DApp, withDetails bool) (DApp, error) {
+func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, error) {
 	result := DApp{
 		Name:              dapp.Name,
 		ShortDescription:  dapp.ShortDescription,

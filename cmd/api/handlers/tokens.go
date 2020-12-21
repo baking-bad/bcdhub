@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/elastic/transfer"
-	"github.com/baking-bad/bcdhub/internal/elastic/tzip"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )
@@ -110,7 +110,7 @@ func (ctx *Context) GetFAByVersion(c *gin.Context) {
 // @Param token_id query integer false "Token ID" mininum(0)
 // @Accept json
 // @Produce json
-// @Success 200 {object} elastic.TransfersResponse
+// @Success 200 {object} transfer.Pageable
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /tokens/{network}/transfers/{address} [get]
@@ -135,7 +135,7 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 		tokenID = *ctxReq.TokenID
 	}
 
-	transfers, err := ctx.Transfers.Get(&transfer.GetTransfersContext{
+	transfers, err := ctx.Transfers.Get(transfer.GetContext{
 		Network:   req.Network,
 		Address:   req.Address,
 		Contracts: contracts,

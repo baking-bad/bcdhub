@@ -29,9 +29,9 @@ const (
 
 // Get -
 func (storage *Storage) Get(ctx transfer.GetContext) (po transfer.Pageable, err error) {
-	query := ctx.Build()
+	query := buildGetContext(ctx)
 	var response core.SearchResponse
-	if err := storage.es.Query([]string{models.DocTransfers}, query.(core.Base), &response); err != nil {
+	if err := storage.es.Query([]string{models.DocTransfers}, query, &response); err != nil {
 		return po, err
 	}
 

@@ -1,6 +1,7 @@
 package search
 
 import (
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 )
 
@@ -46,7 +47,7 @@ func (o Operation) Parse(highlight map[string][]string, data []byte) (interface{
 	if err := json.Unmarshal(data, &operation); err != nil {
 		return nil, err
 	}
-	return Item{
+	return models.Item{
 		Type:       o.GetIndex(),
 		Value:      operation.Hash,
 		Body:       operation,

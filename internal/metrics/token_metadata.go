@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/elastic/tzip"
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -13,7 +12,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
-	tzipModels "github.com/baking-bad/bcdhub/internal/models/tzip"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
 	"github.com/baking-bad/bcdhub/internal/parsers/tzip/tokens"
@@ -96,7 +95,7 @@ func (h *Handler) FixTokenMetadata(rpc noderpc.INode, sharePath string, contract
 }
 
 // ExecuteInitialStorageEvent -
-func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, tzip *tzipModels.TZIP) ([]*transfer.Transfer, error) {
+func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, tzip *tzip.TZIP) ([]*transfer.Transfer, error) {
 	ops, err := h.Operations.Get(map[string]interface{}{
 		"destination": tzip.Address,
 		"network":     tzip.Network,
