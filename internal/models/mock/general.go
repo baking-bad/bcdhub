@@ -5,7 +5,6 @@
 package mock
 
 import (
-	search "github.com/baking-bad/bcdhub/internal/elastic/search"
 	models "github.com/baking-bad/bcdhub/internal/models"
 	contract "github.com/baking-bad/bcdhub/internal/models/contract"
 	gomock "github.com/golang/mock/gomock"
@@ -216,10 +215,10 @@ func (mr *MockGeneralRepositoryMockRecorder) GetEvents(arg0, arg1, arg2 interfac
 }
 
 // SearchByText mocks base method
-func (m *MockGeneralRepository) SearchByText(arg0 string, arg1 int64, arg2 []string, arg3 map[string]interface{}, arg4 bool) (search.Result, error) {
+func (m *MockGeneralRepository) SearchByText(arg0 string, arg1 int64, arg2 []string, arg3 map[string]interface{}, arg4 bool) (models.Result, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchByText", arg0, arg1, arg2, arg3, arg4)
-	ret0, _ := ret[0].(search.Result)
+	ret0, _ := ret[0].(models.Result)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

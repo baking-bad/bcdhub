@@ -2,7 +2,6 @@ package migrations
 
 import (
 	"github.com/baking-bad/bcdhub/internal/config"
-	elasticTransfers "github.com/baking-bad/bcdhub/internal/elastic/transfer"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -51,7 +50,7 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 			return err
 		}
 		for i := range transfers {
-			found, err := ctx.Transfers.Get(&elasticTransfers.GetTransfersContext{
+			found, err := ctx.Transfers.Get(transfer.GetContext{
 				Hash:    transfers[i].Hash,
 				Network: transfers[i].Network,
 				TokenID: -1,

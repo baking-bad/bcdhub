@@ -21,7 +21,7 @@ func NewStorage(es *core.Elastic) *Storage {
 // GetTokenMetadata -
 func (storage *Storage) GetTokenMetadata(ctx tzip.GetTokenMetadataContext) (tokens []tzip.TokenMetadata, err error) {
 	tzips := make([]tzip.TZIP, 0)
-	query := ctx.Build()
+	query := buildGetTokenMetadataContext(ctx)
 	if err = storage.es.GetAllByQuery(query.(core.Base), &tzips); err != nil {
 		return
 	}

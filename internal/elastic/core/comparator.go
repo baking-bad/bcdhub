@@ -1,47 +1,30 @@
 package core
 
-// Comparator -
-type Comparator struct {
-	Comparator string
-	Value      int64
-}
+import "github.com/baking-bad/bcdhub/internal/models/tzip"
 
-// NewRange -
-func NewRange(cmp string, value int64) Comparator {
-	return Comparator{
-		Comparator: cmp,
-		Value:      value,
-	}
-}
-
-// Build -
-func (rng Comparator) Build() Item {
+// BuildComparator -
+func BuildComparator(rng tzip.Comparator) Item {
 	return Range("level", Item{
 		rng.Comparator: rng.Value,
 	})
 }
 
-// IsFilled -
-func (rng Comparator) IsFilled() bool {
-	return rng.Comparator != "" && rng.Value > 0
-}
-
 // NewGreaterThanRange -
-func NewGreaterThanRange(value int64) Comparator {
-	return NewRange("gt", value)
+func NewGreaterThanRange(value int64) tzip.Comparator {
+	return tzip.NewRange("gt", value)
 }
 
 // NewGreaterThanEqRange -
-func NewGreaterThanEqRange(value int64) Comparator {
-	return NewRange("gte", value)
+func NewGreaterThanEqRange(value int64) tzip.Comparator {
+	return tzip.NewRange("gte", value)
 }
 
 // NewLessThanRange -
-func NewLessThanRange(value int64) Comparator {
-	return NewRange("lt", value)
+func NewLessThanRange(value int64) tzip.Comparator {
+	return tzip.NewRange("lt", value)
 }
 
 // NewLessThanEqRange -
-func NewLessThanEqRange(value int64) Comparator {
-	return NewRange("lte", value)
+func NewLessThanEqRange(value int64) tzip.Comparator {
+	return tzip.NewRange("lte", value)
 }

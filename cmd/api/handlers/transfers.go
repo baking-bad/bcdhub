@@ -3,9 +3,8 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/elastic/transfer"
-	"github.com/baking-bad/bcdhub/internal/elastic/tzip"
-	modelsTransfer "github.com/baking-bad/bcdhub/internal/models/transfer"
+	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/gin-gonic/gin"
 )
 
@@ -38,7 +37,7 @@ func (ctx *Context) GetContractTransfers(c *gin.Context) {
 		tokenID = int64(*req.TokenID)
 	}
 
-	transfers, err := ctx.Transfers.Get(&transfer.GetTransfersContext{
+	transfers, err := ctx.Transfers.Get(transfer.GetContext{
 		Network:   contractRequest.Network,
 		Contracts: []string{contractRequest.Address},
 		Size:      req.Size,
@@ -61,7 +60,7 @@ type tokenKey struct {
 	TokenID  int64
 }
 
-func (ctx *Context) transfersPostprocessing(transfers modelsTransfer.Pageable) (response TransferResponse, err error) {
+func (ctx *Context) transfersPostprocessing(transfers transfer.Pageable) (response TransferResponse, err error) {
 	response.Total = transfers.Total
 	response.Transfers = make([]Transfer, len(transfers.Transfers))
 

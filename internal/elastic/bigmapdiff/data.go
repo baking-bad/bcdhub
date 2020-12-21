@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 )
 
 type getBigMapDiffsWithKeysResponse struct {
@@ -26,20 +27,7 @@ type getBigMapDiffsCountResponse struct {
 	} `json:"aggregations"`
 }
 
-// GetContext -
-type GetContext struct {
-	Network string
-	Ptr     *int64
-	Query   string
-	Size    int64
-	Offset  int64
-	Level   *int64
-
-	to int64
-}
-
-// Build -
-func (ctx GetContext) Build() interface{} {
+func buildGetContext(ctx bigmapdiff.GetContext) interface{} {
 	filters := make([]core.Item, 0)
 
 	if ctx.Ptr != nil {
@@ -58,10 +46,10 @@ func (ctx GetContext) Build() interface{} {
 	}
 
 	if ctx.Level != nil {
-		filters = append(filters, core.NewLessThanEqRange(*ctx.Level).Build())
+		filters = append(filters, core.BuildComparator(core.NewLessThanEqRange(*ctx.Level)))
 	}
 
-	ctx.to = ctx.Size + ctx.Offset
+	ctx.To = ctx.Size + ctx.Offset
 	b := core.Bool(
 		core.Must(filters...),
 	)
@@ -71,7 +59,7 @@ func (ctx GetContext) Build() interface{} {
 			Body: core.Item{
 				"terms": core.Item{
 					"field": "key_hash.keyword",
-					"size":  ctx.to,
+					"size":  ctx.To,
 					"order": core.Item{
 						"bucketsSort": "desc",
 					},

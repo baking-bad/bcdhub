@@ -1,6 +1,7 @@
 package search
 
 import (
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
@@ -38,7 +39,7 @@ func (m Metadata) Parse(highlight map[string][]string, data []byte) (interface{}
 	if err := json.Unmarshal(data, &token); err != nil {
 		return nil, err
 	}
-	return Item{
+	return models.Item{
 		Type:       "metadata",
 		Value:      token.Address,
 		Body:       token,

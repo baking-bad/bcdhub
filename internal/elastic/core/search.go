@@ -114,14 +114,14 @@ func prepareSearchFilters(filters map[string]interface{}) (string, error) {
 }
 
 // SearchByText -
-func (e *Elastic) SearchByText(text string, offset int64, fields []string, filters map[string]interface{}, group bool) (search.Result, error) {
+func (e *Elastic) SearchByText(text string, offset int64, fields []string, filters map[string]interface{}, group bool) (models.Result, error) {
 	if text == "" {
-		return search.Result{}, errors.Errorf("Empty search string. Please query something")
+		return models.Result{}, errors.Errorf("Empty search string. Please query something")
 	}
 
 	ctx, err := prepare(text, filters, fields)
 	if err != nil {
-		return search.Result{}, err
+		return models.Result{}, err
 	}
 	ctx.Offset = offset
 
@@ -135,28 +135,28 @@ func (e *Elastic) SearchByText(text string, offset int64, fields []string, filte
 
 	var response searchByTextResponse
 	if err := e.Query(ctx.Indices, query, &response); err != nil {
-		return search.Result{}, err
+		return models.Result{}, err
 	}
 
-	var items []search.Item
+	var items []models.Item
 	if group {
 		items, err = parseSearchGroupingResponse(response, offset)
 	} else {
 		items, err = parseSearchResponse(response)
 	}
 	if err != nil {
-		return search.Result{}, nil
+		return models.Result{}, nil
 	}
 
-	return search.Result{
+	return models.Result{
 		Items: items,
 		Time:  response.Took,
 		Count: response.Hits.Total.Value,
 	}, nil
 }
 
-func parseSearchResponse(response searchByTextResponse) ([]search.Item, error) {
-	items := make([]search.Item, 0)
+func parseSearchResponse(response searchByTextResponse) ([]models.Item, error) {
+	items := make([]models.Item, 0)
 	arr := response.Hits.Hits
 	for i := range arr {
 		val, err := search.Parse(arr[i].Index, arr[i].Highlight, arr[i].Source)
@@ -168,31 +168,31 @@ func parseSearchResponse(response searchByTextResponse) ([]search.Item, error) {
 		}
 
 		switch t := val.(type) {
-		case search.Item:
+		case models.Item:
 			items = append(items, t)
-		case []search.Item:
+		case []models.Item:
 			items = append(items, t...)
 		}
 	}
 	return items, nil
 }
 
-func parseSearchGroupingResponse(response searchByTextResponse, offset int64) ([]search.Item, error) {
+func parseSearchGroupingResponse(response searchByTextResponse, offset int64) ([]models.Item, error) {
 	if len(response.Agg.Projects.Buckets) == 0 {
-		return make([]search.Item, 0), nil
+		return make([]models.Item, 0), nil
 	}
 
 	arr := response.Agg.Projects.Buckets
 	lArr := int64(len(arr))
-	items := make([]search.Item, 0)
+	items := make([]models.Item, 0)
 	if offset > lArr {
 		return items, nil
 	}
 	arr = arr[offset:]
 	for i := range arr {
-		searchItem := search.Item{}
+		searchItem := models.Item{}
 		if arr[i].DocCount > 1 {
-			searchItem.Group = search.NewGroup(arr[i].DocCount)
+			searchItem.Group = models.NewGroup(arr[i].DocCount)
 		}
 
 		for j, item := range arr[i].Last.Hits.Hits {
@@ -204,19 +204,19 @@ func parseSearchGroupingResponse(response searchByTextResponse, offset int64) ([
 				continue
 			}
 			switch t := val.(type) {
-			case search.Item:
+			case models.Item:
 				if j == 0 {
 					searchItem.Type = t.Type
 					searchItem.Body = t.Body
 					searchItem.Value = t.Value
 					searchItem.Highlights = item.Highlight
 				} else {
-					searchItem.Group.Top = append(searchItem.Group.Top, search.Top{
+					searchItem.Group.Top = append(searchItem.Group.Top, models.Top{
 						Key:     t.Value,
 						Network: t.Network,
 					})
 				}
-			case []search.Item:
+			case []models.Item:
 				if j == 0 {
 					if len(t) > 0 {
 						searchItem.Type = t[0].Type
@@ -226,7 +226,7 @@ func parseSearchGroupingResponse(response searchByTextResponse, offset int64) ([
 					}
 					if len(t) > 1 {
 						for k := range t[1:] {
-							searchItem.Group.Top = append(searchItem.Group.Top, search.Top{
+							searchItem.Group.Top = append(searchItem.Group.Top, models.Top{
 								Key:     t[k].Value,
 								Network: t[k].Network,
 							})
@@ -234,7 +234,7 @@ func parseSearchGroupingResponse(response searchByTextResponse, offset int64) ([
 					}
 				} else {
 					for k := range t {
-						searchItem.Group.Top = append(searchItem.Group.Top, search.Top{
+						searchItem.Group.Top = append(searchItem.Group.Top, models.Top{
 							Key:     t[k].Value,
 							Network: t[k].Network,
 						})

@@ -3,6 +3,7 @@ package search
 import (
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
@@ -54,9 +55,9 @@ func (t Token) Parse(highlight map[string][]string, data []byte) (interface{}, e
 	if token.Tokens == nil {
 		return nil, nil
 	}
-	items := make([]Item, len(token.Tokens.Static))
+	items := make([]models.Item, len(token.Tokens.Static))
 	for i := range token.Tokens.Static {
-		items[i] = Item{
+		items[i] = models.Item{
 			Type:  t.GetIndex(),
 			Value: token.Address,
 			Body: TokenResponse{

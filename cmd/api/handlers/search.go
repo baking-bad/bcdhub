@@ -7,7 +7,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
 	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/domaintypes"
-	"github.com/baking-bad/bcdhub/internal/elastic/search"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/gin-gonic/gin"
@@ -29,7 +28,7 @@ import (
 // @Param l query string false "Comma-separated list of languages for searching. Values: smartpy, liquidity, ligo, lorentz, michelson"
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} search.Result
+// @Success 200 {object} models.Result
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /search [get]
@@ -91,7 +90,7 @@ func getSearchFilters(req searchRequest) map[string]interface{} {
 	return filters
 }
 
-func postProcessing(result search.Result) (search.Result, error) {
+func postProcessing(result models.Result) (models.Result, error) {
 	for i := range result.Items {
 		if result.Items[i].Type != models.DocBigMapDiff {
 			continue
@@ -118,14 +117,14 @@ func postProcessing(result search.Result) (search.Result, error) {
 	return result, nil
 }
 
-func (ctx *Context) searchInMempool(q string) (search.Item, error) {
+func (ctx *Context) searchInMempool(q string) (models.Item, error) {
 	if _, err := domaintypes.DecodeOpgHash(q); err != nil {
-		return search.Item{}, err
+		return models.Item{}, err
 	}
 
 	operation := ctx.getOperationFromMempool(q)
 
-	return search.Item{
+	return models.Item{
 		Type:  models.DocOperations,
 		Value: operation.Hash,
 		Body:  operation,

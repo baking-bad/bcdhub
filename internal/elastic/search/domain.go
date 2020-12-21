@@ -1,6 +1,7 @@
 package search
 
 import (
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
 )
 
@@ -34,7 +35,7 @@ func (d Domain) Parse(highlight map[string][]string, data []byte) (interface{}, 
 	if err := json.Unmarshal(data, &domain); err != nil {
 		return nil, err
 	}
-	return Item{
+	return models.Item{
 		Type:       d.GetIndex(),
 		Value:      domain.Address,
 		Body:       domain,

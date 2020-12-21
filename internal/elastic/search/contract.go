@@ -2,6 +2,7 @@ package search
 
 import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 )
 
@@ -65,7 +66,7 @@ func (c Contract) Parse(highlight map[string][]string, data []byte) (interface{}
 	if err := json.Unmarshal(data, &contract); err != nil {
 		return nil, err
 	}
-	return Item{
+	return models.Item{
 		Type:       c.GetIndex(),
 		Value:      contract.Address,
 		Body:       contract,
