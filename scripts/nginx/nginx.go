@@ -18,6 +18,7 @@ const (
 	ogImage             = "/img/logo_og.png"
 	pageTitle           = "Better Call Dev — Tezos smart contract explorer by Baking Bad"
 	dappsTitle          = "Tezos DApps"
+	pageDescription     = "Tezos smart contract explorer & developer dashboard, simplifies perception and facilitates interaction. By Baking Bad."
 	dappsDescription    = "Track the Tezos ecosystem growth: aggregated DApps usage stats, DEX token turnover, affiliated smart contracts, screenshots, social links, and more."
 	contractDescription = "Check out recent operations, inspect contract code and storage, invoke contract methods."
 )
@@ -51,6 +52,7 @@ const locationTemplate = `
 		sub_filter '<meta name=twitter:image content={{.ogImage}}' '<meta name=twitter:image content={{.logoURL}}';
 		sub_filter '<meta name=twitter:title content="{{.ogTitle}}"' '<meta name=twitter:title content="{{.title}}"';
 		sub_filter '<meta name=twitter:description content="{{.ogDescription}}"' '<meta name=twitter:description content="{{.description}}"';
+		sub_filter '<meta name=description content="{{.pageDescription}}"' '<meta name=description content="{{.description}}"';
 		sub_filter '<title>{{.pageTitle}}</title>' '<title>{{.title}}</title>';
 		sub_filter_once on;
 	}`
@@ -111,15 +113,16 @@ func makeDappLocation(tmpl *template.Template, dapp tzip.DApp, baseURL string) (
 
 	buf := new(bytes.Buffer)
 	err := tmpl.Execute(buf, map[string]interface{}{
-		"location":      fmt.Sprintf("/dapps/%s", dapp.Slug),
-		"url":           fmt.Sprintf("%s/dapps/%s", baseURL, dapp.Slug),
-		"title":         fmt.Sprintf("%s — %s", dapp.Name, dapp.ShortDescription),
-		"description":   dapp.FullDescription,
-		"ogTitle":       ogTitle,
-		"ogDescription": ogDescription,
-		"ogImage":       ogImage,
-		"pageTitle":     pageTitle,
-		"logoURL":       logoURL,
+		"location":        fmt.Sprintf("/dapps/%s", dapp.Slug),
+		"url":             fmt.Sprintf("%s/dapps/%s", baseURL, dapp.Slug),
+		"title":           fmt.Sprintf("%s — %s", dapp.Name, dapp.ShortDescription),
+		"description":     dapp.FullDescription,
+		"ogTitle":         ogTitle,
+		"ogDescription":   ogDescription,
+		"ogImage":         ogImage,
+		"pageTitle":       pageTitle,
+		"pageDescription": pageDescription,
+		"logoURL":         logoURL,
 	})
 	if err != nil {
 		return "", err
@@ -131,15 +134,16 @@ func makeDappLocation(tmpl *template.Template, dapp tzip.DApp, baseURL string) (
 func makeDappRootLocation(tmpl *template.Template, path, baseURL string) (string, error) {
 	buf := new(bytes.Buffer)
 	err := tmpl.Execute(buf, map[string]interface{}{
-		"location":      fmt.Sprintf("/dapps/%s", path),
-		"url":           fmt.Sprintf("%s/dapps/%s", baseURL, path),
-		"title":         dappsTitle,
-		"description":   dappsDescription,
-		"ogTitle":       ogTitle,
-		"ogDescription": ogDescription,
-		"ogImage":       ogImage,
-		"pageTitle":     pageTitle,
-		"logoURL":       ogImage,
+		"location":        fmt.Sprintf("/dapps/%s", path),
+		"url":             fmt.Sprintf("%s/dapps/%s", baseURL, path),
+		"title":           dappsTitle,
+		"description":     dappsDescription,
+		"ogTitle":         ogTitle,
+		"ogDescription":   ogDescription,
+		"ogImage":         ogImage,
+		"pageTitle":       pageTitle,
+		"pageDescription": pageDescription,
+		"logoURL":         ogImage,
 	})
 	if err != nil {
 		return "", err
@@ -151,15 +155,16 @@ func makeDappRootLocation(tmpl *template.Template, path, baseURL string) (string
 func makeContractsLocation(tmpl *template.Template, address, alias, baseURL string) (string, error) {
 	buf := new(bytes.Buffer)
 	err := tmpl.Execute(buf, map[string]interface{}{
-		"location":      fmt.Sprintf("/mainnet/%s", address),
-		"url":           fmt.Sprintf("%s/mainnet/%s", baseURL, address),
-		"title":         fmt.Sprintf("%s — %s", alias, ogTitle),
-		"description":   contractDescription,
-		"ogTitle":       ogTitle,
-		"ogDescription": ogDescription,
-		"ogImage":       ogImage,
-		"pageTitle":     pageTitle,
-		"logoURL":       ogImage,
+		"location":        fmt.Sprintf("/mainnet/%s", address),
+		"url":             fmt.Sprintf("%s/mainnet/%s", baseURL, address),
+		"title":           fmt.Sprintf("%s — %s", alias, ogTitle),
+		"description":     contractDescription,
+		"ogTitle":         ogTitle,
+		"ogDescription":   ogDescription,
+		"ogImage":         ogImage,
+		"pageTitle":       pageTitle,
+		"pageDescription": pageDescription,
+		"logoURL":         ogImage,
 	})
 	if err != nil {
 		return "", err
