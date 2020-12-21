@@ -22,7 +22,7 @@ func (m *SetAliases) Description() string {
 
 // Do - migrate function
 func (m *SetAliases) Do(ctx *config.Context) error {
-	h := metrics.New(ctx.ES, ctx.DB)
+	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TZIP, ctx.Storage, ctx.Bulk, ctx.DB)
 
 	updatedModels := make([]elastic.Model, 0)
 	for i := range ctx.Config.Scripts.Networks {
@@ -43,6 +43,10 @@ func (m *SetAliases) Do(ctx *config.Context) error {
 
 		networkFilter := map[string]interface{}{
 			"network": ctx.Config.Scripts.Networks[i],
+		}
+		contracts, err := ctx.Contracts.GetMany(networkFilter)
+		if err != nil {
+			return err
 		}
 
 		operations, err := ctx.ES.GetOperations(networkFilter, 0, false)
@@ -74,7 +78,7 @@ func (m *SetAliases) Do(ctx *config.Context) error {
 			}
 		}
 
-		transfers, err := ctx.ES.GetAllTransfers(ctx.Config.Scripts.Networks[i], 0)
+		transfers, err := ctx.Transfers.GetAll(ctx.Config.Scripts.Networks[i], 0)
 		if err != nil {
 			return err
 		}
@@ -92,5 +96,5 @@ func (m *SetAliases) Do(ctx *config.Context) error {
 
 	logger.Info("Updating %d models...", len(updatedModels))
 
-	return ctx.ES.BulkUpdate(updatedModels)
+	return ctx.Bulk.Update(updatedModels)
 }

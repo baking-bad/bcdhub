@@ -6,9 +6,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/pkg/errors"
 )
 
@@ -30,7 +31,7 @@ const (
 func (storage *Storage) Get(ctx transfer.GetContext) (po transfer.Pageable, err error) {
 	query := ctx.Build()
 	var response core.SearchResponse
-	if err := storage.es.Query([]string{consts.DocTransfers}, query.(core.Base), &response); err != nil {
+	if err := storage.es.Query([]string{models.DocTransfers}, query.(core.Base), &response); err != nil {
 		return po, err
 	}
 
@@ -106,7 +107,7 @@ func (storage *Storage) GetTokenSupply(network, address string, tokenID int64) (
 	).Zero()
 
 	var response getTokenSupplyResponse
-	if err = storage.es.Query([]string{consts.DocTransfers}, query, &response); err != nil {
+	if err = storage.es.Query([]string{models.DocTransfers}, query, &response); err != nil {
 		return
 	}
 
@@ -202,7 +203,7 @@ func (storage *Storage) GetBalances(network, contract string, level int64, addre
 		},
 	).Zero()
 	var response getAccountBalancesResponse
-	if err := storage.es.Query([]string{consts.DocTransfers}, query, &response); err != nil {
+	if err := storage.es.Query([]string{models.DocTransfers}, query, &response); err != nil {
 		return nil, err
 	}
 
@@ -253,4 +254,81 @@ func (storage *Storage) GetToken24HoursVolume(network, contract string, initiato
 	}
 
 	return response.Aggs.Result.Value, nil
+}
+
+// GetTokenVolumeSeries -
+func (storage *Storage) GetTokenVolumeSeries(network, period string, contracts []string, entrypoints []tzip.DAppContract, tokenID uint) ([][]int64, error) {
+	hist := core.Item{
+		"date_histogram": core.Item{
+			"field":             "timestamp",
+			"calendar_interval": period,
+		},
+	}
+
+	hist.Append("aggs", core.Item{
+		"result": core.Item{
+			"sum": core.Item{
+				"field": "amount",
+			},
+		},
+	})
+
+	matches := []core.Item{
+		core.Match("network", network),
+		core.Match("status", "applied"),
+		core.Term("token_id", tokenID),
+	}
+	if len(contracts) > 0 {
+		addresses := make([]core.Item, len(contracts))
+		for i := range contracts {
+			addresses[i] = core.MatchPhrase("contract", contracts[i])
+		}
+		matches = append(matches, core.Bool(
+			core.Should(addresses...),
+			core.MinimumShouldMatch(1),
+		))
+	}
+
+	if len(entrypoints) > 0 {
+		addresses := make([]core.Item, 0)
+		for i := range entrypoints {
+			for j := range entrypoints[i].DexVolumeEntrypoints {
+				addresses = append(addresses, core.Bool(
+					core.Filter(
+						core.MatchPhrase("initiator", entrypoints[i].Address),
+						core.Match("parent", entrypoints[i].DexVolumeEntrypoints[j]),
+					),
+				))
+			}
+		}
+		matches = append(matches, core.Bool(
+			core.Should(addresses...),
+			core.MinimumShouldMatch(1),
+		))
+	}
+
+	query := core.NewQuery().Query(
+		core.Bool(
+			core.Filter(
+				matches...,
+			),
+		),
+	).Add(
+		core.Aggs(core.AggItem{Name: "hist", Body: hist}),
+	).Zero()
+
+	var response getTokenVolumeSeriesResponse
+	if err := storage.es.Query([]string{models.DocTransfers}, query, &response); err != nil {
+		return nil, err
+	}
+
+	histogram := make([][]int64, len(response.Agg.Hist.Buckets))
+	for i := range response.Agg.Hist.Buckets {
+		item := []int64{
+			response.Agg.Hist.Buckets[i].Key,
+			int64(response.Agg.Hist.Buckets[i].Result.Value),
+		}
+		histogram[i] = item
+	}
+	return histogram, nil
 }

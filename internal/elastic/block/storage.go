@@ -6,6 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 )
 
@@ -33,12 +34,12 @@ func (storage *Storage) GetBlock(network string, level int64) (block block.Block
 	).One()
 
 	var response core.SearchResponse
-	if err = storage.es.Query([]string{consts.DocBlocks}, query, &response); err != nil {
+	if err = storage.es.Query([]string{models.DocBlocks}, query, &response); err != nil {
 		return
 	}
 
 	if response.Hits.Total.Value == 0 {
-		return block, core.NewRecordNotFoundError(consts.DocBlocks, "")
+		return block, core.NewRecordNotFoundError(models.DocBlocks, "")
 	}
 
 	err = json.Unmarshal(response.Hits.Hits[0].Source, &block)
@@ -58,7 +59,7 @@ func (storage *Storage) GetLastBlock(network string) (block block.Block, err err
 	).Sort("level", "desc").One()
 
 	var response core.SearchResponse
-	if err = storage.es.Query([]string{consts.DocBlocks}, query, &response); err != nil {
+	if err = storage.es.Query([]string{models.DocBlocks}, query, &response); err != nil {
 		if strings.Contains(err.Error(), consts.IndexNotFoundError) {
 			return block, nil
 		}
@@ -92,7 +93,7 @@ func (storage *Storage) GetLastBlocks() ([]block.Block, error) {
 	).Zero()
 
 	var response getLastBlocksResponse
-	if err := storage.es.Query([]string{consts.DocBlocks}, query, &response); err != nil {
+	if err := storage.es.Query([]string{models.DocBlocks}, query, &response); err != nil {
 		return nil, err
 	}
 
@@ -119,12 +120,12 @@ func (storage *Storage) GetNetworkAlias(chainID string) (string, error) {
 	).One()
 
 	var response core.SearchResponse
-	if err := storage.es.Query([]string{consts.DocBlocks}, query, &response); err != nil {
+	if err := storage.es.Query([]string{models.DocBlocks}, query, &response); err != nil {
 		return "", err
 	}
 
 	if response.Hits.Total.Value == 0 {
-		return "", core.NewRecordNotFoundError(consts.DocBlocks, "")
+		return "", core.NewRecordNotFoundError(models.DocBlocks, "")
 	}
 
 	var block block.Block

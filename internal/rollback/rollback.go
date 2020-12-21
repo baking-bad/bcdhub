@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser"
-	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -110,17 +109,17 @@ func (rm Manager) rollbackTokenBalances(network string, toLevel int64) error {
 		}
 	}
 
-	return rm.tbRepo.UpdateTokenBalances(updates)
+	return rm.tbRepo.Update(updates)
 }
 
 func (rm Manager) rollbackBlocks(network string, toLevel int64) error {
 	logger.Info("Deleting blocks...")
-	return rm.storage.DeleteByLevelAndNetwork([]string{consts.DocBlocks}, network, toLevel)
+	return rm.storage.DeleteByLevelAndNetwork([]string{models.DocBlocks}, network, toLevel)
 }
 
 func (rm Manager) rollbackOperations(network string, toLevel int64) error {
 	logger.Info("Deleting operations, migrations, transfers and big map diffs...")
-	return rm.storage.DeleteByLevelAndNetwork([]string{consts.DocBigMapDiff, consts.DocBigMapActions, consts.DocTZIP, consts.DocMigrations, consts.DocOperations, consts.DocTransfers}, network, toLevel)
+	return rm.storage.DeleteByLevelAndNetwork([]string{models.DocBigMapDiff, models.DocBigMapActions, models.DocTZIP, models.DocMigrations, models.DocOperations, models.DocTransfers}, network, toLevel)
 }
 
 func (rm Manager) rollbackContracts(fromState block.Block, toLevel int64) error {
@@ -135,7 +134,7 @@ func (rm Manager) rollbackContracts(fromState block.Block, toLevel int64) error 
 	if toLevel == 0 {
 		toLevel = -1
 	}
-	return rm.storage.DeleteByLevelAndNetwork([]string{consts.DocContracts}, fromState.Network, toLevel)
+	return rm.storage.DeleteByLevelAndNetwork([]string{models.DocContracts}, fromState.Network, toLevel)
 }
 
 func (rm Manager) getAffectedContracts(network string, fromLevel, toLevel int64) ([]string, error) {

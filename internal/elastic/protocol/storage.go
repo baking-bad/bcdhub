@@ -3,8 +3,8 @@ package protocol
 import (
 	"encoding/json"
 
-	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/pkg/errors"
 )
@@ -44,7 +44,7 @@ func (storage *Storage) GetProtocol(network, hash string, level int64) (p protoc
 	).Sort("start_level", "desc").One()
 
 	var response core.SearchResponse
-	if err = storage.es.Query([]string{consts.DocProtocol}, query, &response); err != nil {
+	if err = storage.es.Query([]string{models.DocProtocol}, query, &response); err != nil {
 		return
 	}
 	if response.Hits.Total.Value == 0 {
@@ -68,7 +68,7 @@ func (storage *Storage) GetSymLinks(network string, level int64) (map[string]str
 		),
 	).Sort("start_level", "desc").All()
 	var response core.SearchResponse
-	if err := storage.es.Query([]string{consts.DocProtocol}, query, &response); err != nil {
+	if err := storage.es.Query([]string{models.DocProtocol}, query, &response); err != nil {
 		return nil, err
 	}
 

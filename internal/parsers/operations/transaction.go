@@ -13,6 +13,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
@@ -97,7 +98,7 @@ func (p Transaction) Parse(data gjson.Result) ([]models.Model, error) {
 		txModels = append(txModels, transfers[i])
 	}
 
-	if err := elastic.CreateTokenBalanceUpdates(p.es, transfers); err != nil {
+	if err := transferParsers.UpdateTokenBalances(p.TokenBalances, transfers); err != nil {
 		return nil, err
 	}
 

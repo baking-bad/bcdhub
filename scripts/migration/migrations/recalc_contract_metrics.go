@@ -28,10 +28,10 @@ func (m *RecalcContractMetrics) Description() string {
 func (m *RecalcContractMetrics) Do(ctx *config.Context) error {
 	logger.Info("Start RecalcContractMetrics migration...")
 	start := time.Now()
-	h := metrics.New(ctx.ES, ctx.DB)
+	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TZIP, ctx.Storage, ctx.Bulk, ctx.DB)
 
 	for _, network := range ctx.Config.Scripts.Networks {
-		contracts, err := ctx.ES.GetContracts(map[string]interface{}{
+		contracts, err := ctx.Contracts.GetMany(map[string]interface{}{
 			"network": network,
 		})
 		if err != nil {
@@ -55,7 +55,7 @@ func (m *RecalcContractMetrics) Do(ctx *config.Context) error {
 				for j := range contracts[lastIdx:i] {
 					updates[j] = &contracts[lastIdx:i][j]
 				}
-				if err := ctx.ES.BulkUpdate(updates); err != nil {
+				if err := ctx.Bulk.Update(updates); err != nil {
 					return err
 				}
 				lastIdx = i

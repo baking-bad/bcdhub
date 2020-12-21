@@ -8,7 +8,7 @@ import (
 
 func getMigrations(ids []string) error {
 	migrations := make([]migration.Migration, 0)
-	if err := ctx.ES.GetByIDs(&migrations, ids...); err != nil {
+	if err := ctx.Storage.GetByIDs(&migrations, ids...); err != nil {
 		return errors.Errorf("[getMigrations] Find migration error for IDs %v: %s", ids, err)
 	}
 
@@ -23,5 +23,5 @@ func getMigrations(ids []string) error {
 }
 
 func parseMigration(migration migration.Migration) error {
-	return ctx.ES.UpdateContractMigrationsCount(migration.Address, migration.Network)
+	return ctx.Contracts.UpdateMigrationsCount(migration.Address, migration.Network)
 }

@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -79,7 +78,7 @@ func (ctx *Context) ResolveDomain(c *gin.Context) {
 			Name:    args.Name,
 		}
 		if err := ctx.Storage.GetByID(&td); err != nil {
-			if core.IsRecordNotFound(err) {
+			if ctx.Storage.IsRecordNotFound(err) {
 				c.JSON(http.StatusNoContent, gin.H{})
 				return
 			}
@@ -94,7 +93,7 @@ func (ctx *Context) ResolveDomain(c *gin.Context) {
 	case args.Address != "":
 		td, err := ctx.TezosDomains.ResolveDomainByAddress(req.Network, args.Address)
 		if err != nil {
-			if core.IsRecordNotFound(err) {
+			if ctx.Storage.IsRecordNotFound(err) {
 				c.JSON(http.StatusNoContent, gin.H{})
 				return
 			}

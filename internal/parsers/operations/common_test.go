@@ -9,7 +9,7 @@ import (
 )
 
 func Test_parseMetadata(t *testing.T) {
-	operation := operation.Operation{
+	op := operation.Operation{
 		Network:      "test",
 		Level:        100,
 		Hash:         "hash",
@@ -62,7 +62,7 @@ func Test_parseMetadata(t *testing.T) {
 				t.Errorf(`readJSONFile("%s") = error %v`, tt.fileName, err)
 				return
 			}
-			got := parseMetadata(data, operation)
+			got := parseMetadata(data, op)
 			if !reflect.DeepEqual(got.Result, tt.want.Result) {
 				t.Errorf("parseMetadata() Result = %v, want %v", got.Result, tt.want.Result)
 				return

@@ -37,7 +37,7 @@ func (m *FillTZIP) Do(ctx *config.Context) error {
 		return err
 	}
 
-	blocks, err := ctx.ES.GetLastBlocks()
+	blocks, err := ctx.Blocks.GetLastBlocks()
 	if err != nil {
 		return err
 	}
@@ -82,5 +82,5 @@ func (m *FillTZIP) Do(ctx *config.Context) error {
 		}
 		data = append(data, model)
 	}
-	return ctx.ES.BulkInsert(data)
+	return ctx.Bulk.Insert(data)
 }

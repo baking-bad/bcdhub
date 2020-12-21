@@ -5,9 +5,8 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/elastic"
-	constants "github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -63,8 +62,8 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 	if handleError(c, err, 0) {
 		return
 	}
-	stats.ContractsCount = counts[constants.DocContracts]
-	stats.OperationsCount = counts[constants.DocOperations]
+	stats.ContractsCount = counts[models.DocContracts]
+	stats.OperationsCount = counts[models.DocOperations]
 
 	var protocols []protocol.Protocol
 	if err := ctx.Storage.GetByNetworkWithSort(req.Network, "start_level", "desc", &protocols); handleError(c, err, 0) {
@@ -129,107 +128,107 @@ func (ctx *Context) GetSeries(c *gin.Context) {
 	c.JSON(http.StatusOK, series)
 }
 
-func (ctx *Context) getHistogramOptions(name, network string, addresses ...string) ([]elastic.HistogramOption, error) {
-	filters := []elastic.HistogramFilter{
+func (ctx *Context) getHistogramOptions(name, network string, addresses ...string) ([]models.HistogramOption, error) {
+	filters := []models.HistogramFilter{
 		{
 			Field: "network",
 			Value: network,
-			Kind:  elastic.HistogramFilterKindMatch,
+			Kind:  models.HistogramFilterKindMatch,
 		},
 	}
 
 	switch name {
 	case "contract":
-		return []elastic.HistogramOption{
-			elastic.WithHistogramIndices(elastic.DocContracts),
-			elastic.WithHistogramFilters(filters),
+		return []models.HistogramOption{
+			models.WithHistogramIndices(models.DocContracts),
+			models.WithHistogramFilters(filters),
 		}, nil
 	case "operation":
-		filters = append(filters, elastic.HistogramFilter{
+		filters = append(filters, models.HistogramFilter{
 			Field: "entrypoint",
 			Value: "",
-			Kind:  elastic.HistogramFilterKindExists,
+			Kind:  models.HistogramFilterKindExists,
 		})
 
-		filters = append(filters, elastic.HistogramFilter{
+		filters = append(filters, models.HistogramFilter{
 			Field: "status",
 			Value: consts.Applied,
-			Kind:  elastic.HistogramFilterKindMatch,
+			Kind:  models.HistogramFilterKindMatch,
 		})
 
 		if len(addresses) > 0 {
-			filters = append(filters, elastic.HistogramFilter{
-				Kind:  elastic.HistogramFilterKindAddresses,
+			filters = append(filters, models.HistogramFilter{
+				Kind:  models.HistogramFilterKindAddresses,
 				Value: addresses,
 				Field: "destination",
 			})
 		}
 
-		return []elastic.HistogramOption{
-			elastic.WithHistogramIndices(elastic.DocOperations),
-			elastic.WithHistogramFilters(filters),
+		return []models.HistogramOption{
+			models.WithHistogramIndices(models.DocOperations),
+			models.WithHistogramFilters(filters),
 		}, nil
 	case "paid_storage_size_diff":
 		if len(addresses) > 0 {
-			filters = append(filters, elastic.HistogramFilter{
-				Kind:  elastic.HistogramFilterKindAddresses,
+			filters = append(filters, models.HistogramFilter{
+				Kind:  models.HistogramFilterKindAddresses,
 				Value: addresses,
 				Field: "destination",
 			})
 		}
 
-		return []elastic.HistogramOption{
-			elastic.WithHistogramIndices(elastic.DocOperations),
-			elastic.WithHistogramFunction("sum", "result.paid_storage_size_diff"),
-			elastic.WithHistogramFilters(filters),
+		return []models.HistogramOption{
+			models.WithHistogramIndices(models.DocOperations),
+			models.WithHistogramFunction("sum", "result.paid_storage_size_diff"),
+			models.WithHistogramFilters(filters),
 		}, nil
 	case "consumed_gas":
 		if len(addresses) > 0 {
-			filters = append(filters, elastic.HistogramFilter{
-				Kind:  elastic.HistogramFilterKindAddresses,
+			filters = append(filters, models.HistogramFilter{
+				Kind:  models.HistogramFilterKindAddresses,
 				Value: addresses,
 				Field: "destination",
 			})
 		}
 
-		return []elastic.HistogramOption{
-			elastic.WithHistogramIndices(elastic.DocOperations),
-			elastic.WithHistogramFunction("sum", "result.consumed_gas"),
-			elastic.WithHistogramFilters(filters),
+		return []models.HistogramOption{
+			models.WithHistogramIndices(models.DocOperations),
+			models.WithHistogramFunction("sum", "result.consumed_gas"),
+			models.WithHistogramFilters(filters),
 		}, nil
 	case "users":
 		if len(addresses) > 0 {
-			filters = append(filters, elastic.HistogramFilter{
-				Kind:  elastic.HistogramFilterKindAddresses,
+			filters = append(filters, models.HistogramFilter{
+				Kind:  models.HistogramFilterKindAddresses,
 				Value: addresses,
 				Field: "destination",
 			})
 		}
 
-		return []elastic.HistogramOption{
-			elastic.WithHistogramIndices(elastic.DocOperations),
-			elastic.WithHistogramFunction("cardinality", "initiator.keyword"),
-			elastic.WithHistogramFilters(filters),
+		return []models.HistogramOption{
+			models.WithHistogramIndices(models.DocOperations),
+			models.WithHistogramFunction("cardinality", "initiator.keyword"),
+			models.WithHistogramFilters(filters),
 		}, nil
 	case "volume":
 		if len(addresses) > 0 {
-			filters = append(filters, elastic.HistogramFilter{
-				Kind:  elastic.HistogramFilterKindAddresses,
+			filters = append(filters, models.HistogramFilter{
+				Kind:  models.HistogramFilterKindAddresses,
 				Value: addresses,
 				Field: "destination",
 			})
 		}
 
-		return []elastic.HistogramOption{
-			elastic.WithHistogramIndices(elastic.DocOperations),
-			elastic.WithHistogramFunction("sum", "amount"),
-			elastic.WithHistogramFilters(filters),
+		return []models.HistogramOption{
+			models.WithHistogramIndices(models.DocOperations),
+			models.WithHistogramFunction("sum", "amount"),
+			models.WithHistogramFilters(filters),
 		}, nil
 	case "token_volume":
-		return []elastic.HistogramOption{
-			elastic.WithHistogramIndices("transfer"),
-			elastic.WithHistogramFunction("sum", "amount"),
-			elastic.WithHistogramFilters(filters),
+		return []models.HistogramOption{
+			models.WithHistogramIndices("transfer"),
+			models.WithHistogramFunction("sum", "amount"),
+			models.WithHistogramFilters(filters),
 		}, nil
 	default:
 		return nil, errors.Errorf("Unknown series name: %s", name)

@@ -5,7 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -32,7 +32,7 @@ func (m *ExtendedStorageEvents) Description() string {
 // Do - migrate function
 func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 	m.contracts = make(map[string]string)
-	tzips, err := ctx.ES.GetTZIPWithEvents()
+	tzips, err := ctx.TZIP.GetWithEvents()
 	if err != nil {
 		return err
 	}
@@ -51,7 +51,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 				}
 				logger.Info("%s...", tzips[i].Address)
 
-				protocol, err := ctx.ES.GetProtocol(tzips[i].Network, "", -1)
+				protocol, err := ctx.Protocols.GetProtocol(tzips[i].Network, "", -1)
 				if err != nil {
 					return err
 				}
@@ -60,7 +60,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 					return err
 				}
 
-				parser, err := transferParsers.NewParser(rpc, ctx.ES,
+				parser, err := transferParsers.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.Schema,
 					transferParsers.WithNetwork(tzips[i].Network),
 					transferParsers.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
 				)
@@ -78,9 +78,9 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 				}
 
 				for _, op := range operations {
-					bmd, err := ctx.ES.GetBigMapDiffsByOperationID(op.ID)
+					bmd, err := ctx.BigMapDiffs.GetByOperationID(op.ID)
 					if err != nil {
-						if !elastic.IsRecordNotFound(err) {
+						if !core.IsRecordNotFound(err) {
 							return err
 						}
 					}
@@ -120,22 +120,22 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 		}
 	}
 	logger.Info("Delete %d transfers", len(deleted))
-	if err := ctx.ES.BulkDelete(deleted); err != nil {
+	if err := ctx.Bulk.Delete(deleted); err != nil {
 		return err
 	}
 
 	logger.Info("Found %d transfers", len(inserted))
-	if err := ctx.ES.BulkInsert(inserted); err != nil {
+	if err := ctx.Bulk.Insert(inserted); err != nil {
 		return err
 	}
-	return elastic.CreateTokenBalanceUpdates(ctx.ES, newTransfers)
+	return transferParsers.UpdateTokenBalances(ctx.TokenBalances, newTransfers)
 }
 
 func (m *ExtendedStorageEvents) getOperations(ctx *config.Context, tzip tzip.TZIP, impl tzip.EventImplementation) ([]operation.Operation, error) {
 	operations := make([]operation.Operation, 0)
 
 	for i := range impl.MichelsonExtendedStorageEvent.Entrypoints {
-		ops, err := ctx.ES.GetOperations(map[string]interface{}{
+		ops, err := ctx.Operations.Get(map[string]interface{}{
 			"network":     tzip.Network,
 			"destination": tzip.Address,
 			"kind":        consts.Transaction,

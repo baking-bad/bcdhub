@@ -322,7 +322,7 @@ func (b *Babylon) handleBigMapDiffRemove(item gjson.Result, _ map[int64]string, 
 		delete(b.updates, ptr)
 		return nil, nil
 	}
-	bmd, err := b.repo.GetBigMapDiffsByPtr(address, operation.Network, ptr)
+	bmd, err := b.repo.GetByPtr(address, operation.Network, ptr)
 	if err != nil {
 		return nil, err
 	}
@@ -437,7 +437,7 @@ func (b *Babylon) updateTemporaryPointers(src, dst int64, ptrMap map[int64]strin
 
 func (b *Babylon) getCopyBigMapDiff(src int64, address, network string) (bmd []bigmapdiff.BigMapDiff, err error) {
 	if src > -1 {
-		bmd, err = b.repo.GetBigMapDiffsByPtr(address, network, src)
+		bmd, err = b.repo.GetByPtr(address, network, src)
 		if err != nil {
 			return nil, err
 		}

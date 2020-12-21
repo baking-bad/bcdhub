@@ -37,10 +37,10 @@ func getBigMapDiff(ids []string) error {
 
 func initHandlers() {
 	bigMapDiffHandlers = append(bigMapDiffHandlers,
-		contractHandlers.NewTZIP(ctx.ES, ctx.RPC, ctx.Config.IPFSGateways),
+		contractHandlers.NewTZIP(ctx.BigMapDiffs, ctx.Blocks, ctx.Schema, ctx.Bulk, ctx.RPC, ctx.Config.IPFSGateways),
 	)
 	bigMapDiffHandlers = append(bigMapDiffHandlers,
-		contractHandlers.NewTezosDomains(ctx.ES, ctx.Domains),
+		contractHandlers.NewTezosDomains(ctx.Storage, ctx.Schema, ctx.Domains),
 	)
 }
 
@@ -50,7 +50,7 @@ type result struct {
 
 //nolint
 func parseBigMapDiff(bmd bigmapdiff.BigMapDiff, r *result) error {
-	h := metrics.New(ctx.ES, ctx.DB)
+	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TZIP, ctx.Storage, ctx.Bulk, ctx.DB)
 
 	if err := h.SetBigMapDiffsStrings(&bmd); err != nil {
 		return err

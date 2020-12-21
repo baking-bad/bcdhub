@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 	jsoniter "github.com/json-iterator/go"
@@ -192,21 +192,7 @@ func (e *Elastic) createIndexIfNotExists(index string) error {
 
 // CreateIndexes -
 func (e *Elastic) CreateIndexes() error {
-	for _, index := range []string{
-		consts.DocContracts,
-		consts.DocBlocks,
-		consts.DocBalanceUpdates,
-		consts.DocOperations,
-		consts.DocBigMapDiff,
-		consts.DocBigMapActions,
-		consts.DocMetadata,
-		consts.DocMigrations,
-		consts.DocProtocol,
-		consts.DocTransfers,
-		consts.DocTZIP,
-		consts.DocTokenBalances,
-		consts.DocTezosDomains,
-	} {
+	for _, index := range models.AllDocuments() {
 		if err := e.createIndexIfNotExists(index); err != nil {
 			return err
 		}

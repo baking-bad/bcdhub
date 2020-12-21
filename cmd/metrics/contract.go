@@ -10,7 +10,7 @@ import (
 
 func getContract(ids []string) error {
 	contracts := make([]contract.Contract, 0)
-	if err := ctx.ES.GetByIDs(&contracts, ids...); err != nil {
+	if err := ctx.Storage.GetByIDs(&contracts, ids...); err != nil {
 		return errors.Errorf("[getContract] Find contracts error for IDs %v: %s", ids, err)
 	}
 
@@ -21,11 +21,11 @@ func getContract(ids []string) error {
 	}
 
 	logger.Info("Metrics of %d contracts are computed", len(contracts))
-	return ctx.ES.BulkUpdateField(contracts, "Alias", "Verified", "VerificationSource")
+	return ctx.Bulk.UpdateField(contracts, "Alias", "Verified", "VerificationSource")
 }
 
 func parseContract(contract *contract.Contract) error {
-	h := metrics.New(ctx.ES, ctx.DB)
+	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TZIP, ctx.Storage, ctx.Bulk, ctx.DB)
 
 	if _, err := h.SetContractAlias(contract); err != nil {
 		return err

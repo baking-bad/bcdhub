@@ -5,10 +5,10 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/parsers/transfer"
 )
@@ -31,7 +31,7 @@ func (m *ParameterEvents) Description() string {
 // Do - migrate function
 func (m *ParameterEvents) Do(ctx *config.Context) error {
 	m.contracts = make(map[string]string)
-	tzips, err := ctx.ES.GetTZIPWithEvents()
+	tzips, err := ctx.TZIP.GetWithEvents()
 	if err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 				}
 				logger.Info("%s...", tzips[i].Address)
 
-				protocol, err := ctx.ES.GetProtocol(tzips[i].Network, "", -1)
+				protocol, err := ctx.Protocols.GetProtocol(tzips[i].Network, "", -1)
 				if err != nil {
 					return err
 				}
@@ -59,7 +59,7 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 					return err
 				}
 
-				parser, err := transfer.NewParser(rpc, ctx.ES,
+				parser, err := transfer.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.Schema,
 					transfer.WithNetwork(tzips[i].Network),
 					transfer.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
 				)
@@ -115,17 +115,17 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 	}
 
 	logger.Info("Found %d transfers", len(inserted))
-	if err := ctx.ES.BulkInsert(inserted); err != nil {
+	if err := ctx.Bulk.Insert(inserted); err != nil {
 		return err
 	}
-	return elastic.CreateTokenBalanceUpdates(ctx.ES, newTransfers)
+	return transfer.UpdateTokenBalances(ctx.TokenBalances, newTransfers)
 }
 
-func (m *ParameterEvents) getOperations(ctx *config.Context, tzip models.TZIP, impl tzip.EventImplementation) ([]models.Operation, error) {
-	operations := make([]models.Operation, 0)
+func (m *ParameterEvents) getOperations(ctx *config.Context, tzip tzip.TZIP, impl tzip.EventImplementation) ([]operation.Operation, error) {
+	operations := make([]operation.Operation, 0)
 
 	for i := range impl.MichelsonParameterEvent.Entrypoints {
-		ops, err := ctx.ES.GetOperations(map[string]interface{}{
+		ops, err := ctx.Operations.Get(map[string]interface{}{
 			"network":     tzip.Network,
 			"destination": tzip.Address,
 			"kind":        consts.Transaction,

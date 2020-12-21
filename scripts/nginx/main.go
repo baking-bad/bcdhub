@@ -21,12 +21,12 @@ func main() {
 	)
 	defer ctx.Close()
 
-	dapps, err := ctx.ES.GetDApps()
+	dapps, err := ctx.TZIP.GetDApps()
 	if err != nil {
 		logger.Fatal(err)
 	}
 
-	aliases, err := ctx.ES.GetAliases(consts.Mainnet)
+	aliases, err := ctx.TZIP.GetAliases(consts.Mainnet)
 	if err != nil {
 		logger.Fatal(err)
 	}

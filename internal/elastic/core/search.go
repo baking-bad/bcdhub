@@ -5,8 +5,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic/search"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/pkg/errors"
 )
 
@@ -252,7 +252,7 @@ func prepare(search string, filters map[string]interface{}, fields []string) (se
 
 	if ptrRegEx.MatchString(search) {
 		ctx.Text = strings.TrimPrefix(search, "ptr:")
-		ctx.Indices = []string{consts.DocBigMapDiff}
+		ctx.Indices = []string{models.DocBigMapDiff}
 		ctx.Fields = []string{"ptr"}
 	} else {
 		internalFields, usingIndices, highlights, err := getFields(ctx.Text, filters, fields)

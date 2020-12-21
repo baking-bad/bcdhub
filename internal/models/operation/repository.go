@@ -12,4 +12,5 @@ type Repository interface {
 	Get(filter map[string]interface{}, size int64, sort bool) ([]Operation, error)
 
 	GetContract24HoursVolume(network, address string, entrypoints []string) (float64, error)
+	GetTokensStats(network string, addresses, entrypoints []string) (map[string]TokenUsageStats, error)
 }

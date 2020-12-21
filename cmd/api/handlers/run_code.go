@@ -87,7 +87,7 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 
 	parser := operations.NewGroup(operations.NewParseParams(
 		rpc,
-		ctx.ES,
+		ctx.Storage, ctx.BigMapDiffs, ctx.Blocks, ctx.TZIP, ctx.Schema,
 		operations.WithConstants(protocol.Constants),
 		operations.WithHead(header),
 		operations.WithInterfaces(ctx.Interfaces),

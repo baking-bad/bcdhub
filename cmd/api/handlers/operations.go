@@ -101,7 +101,7 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 		0,
 		true,
 	)
-	if !core.IsRecordNotFound(err) && handleError(c, err, 0) {
+	if !ctx.Storage.IsRecordNotFound(err) && handleError(c, err, 0) {
 		return
 	}
 
@@ -284,7 +284,7 @@ func PrepareOperations(bmdRepo bigmapdiff.Repository, schemaRepo schema.Reposito
 		var err error
 
 		if withStorageDiff {
-			bmd, err = bmdRepo.GetBigMapDiffsUniqueByOperationID(ops[i].ID)
+			bmd, err = bmdRepo.GetUniqueByOperationID(ops[i].ID)
 			if err != nil {
 				return nil, err
 			}
@@ -400,7 +400,7 @@ func getPrevBmd(repo bigmapdiff.Repository, bmd []bigmapdiff.BigMapDiff, indexed
 	if len(bmd) == 0 {
 		return nil, nil
 	}
-	return repo.GetBigMapDiffsPrevious(bmd, indexedTime, address)
+	return repo.Previous(bmd, indexedTime, address)
 }
 
 func (ctx *Context) prepareMempoolOperation(item tzkt.MempoolOperation, network string) *Operation {

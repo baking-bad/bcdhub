@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/elastic/tzip"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	modelsTZIP "github.com/baking-bad/bcdhub/internal/models/tzip"
@@ -15,7 +14,7 @@ import (
 func (ctx *Context) GetDAppList(c *gin.Context) {
 	dapps, err := ctx.TZIP.GetDApps()
 	if err != nil {
-		if core.IsRecordNotFound(err) {
+		if ctx.Storage.IsRecordNotFound(err) {
 			c.JSON(http.StatusOK, []interface{}{})
 			return
 		}
@@ -44,7 +43,7 @@ func (ctx *Context) GetDApp(c *gin.Context) {
 
 	dapp, err := ctx.TZIP.GetDAppBySlug(req.Slug)
 	if err != nil {
-		if core.IsRecordNotFound(err) {
+		if ctx.Storage.IsRecordNotFound(err) {
 			c.JSON(http.StatusOK, gin.H{})
 			return
 		}
@@ -106,7 +105,7 @@ func (ctx *Context) appendDAppInfo(dapp *modelsTZIP.DApp, withDetails bool) (DAp
 					TokenID:  token.TokenID,
 				})
 				if err != nil {
-					if core.IsRecordNotFound(err) {
+					if ctx.Storage.IsRecordNotFound(err) {
 						continue
 					}
 					return result, err

@@ -140,19 +140,19 @@ func (c *EventContract) makeEvent(subscriptions []models.SubscriptionRequest) (m
 
 func parseEvent(subscriptions []models.SubscriptionRequest, hit Hit) (models.Event, error) {
 	switch hit.Index {
-	case consts.DocOperations:
+	case models.DocOperations:
 		var event EventOperation
 		if err := json.Unmarshal(hit.Source, &event); err != nil {
 			return models.Event{}, err
 		}
 		return event.makeEvent(subscriptions)
-	case consts.DocMigrations:
+	case models.DocMigrations:
 		var event EventMigration
 		if err := json.Unmarshal(hit.Source, &event); err != nil {
 			return models.Event{}, err
 		}
 		return event.makeEvent(subscriptions)
-	case consts.DocContracts:
+	case models.DocContracts:
 		var event EventContract
 		if err := json.Unmarshal(hit.Source, &event); err != nil {
 			return models.Event{}, err
@@ -168,29 +168,29 @@ func getEventsQuery(subscription models.SubscriptionRequest, indices map[string]
 
 	if item := getEventsWatchCalls(subscription); item != nil {
 		shouldItems = append(shouldItems, item)
-		indices[consts.DocOperations] = struct{}{}
+		indices[models.DocOperations] = struct{}{}
 	}
 	if item := getEventsWatchErrors(subscription); item != nil {
 		shouldItems = append(shouldItems, item)
-		indices[consts.DocOperations] = struct{}{}
+		indices[models.DocOperations] = struct{}{}
 	}
 	if item := getEventsWatchDeployments(subscription); item != nil {
 		shouldItems = append(shouldItems, item)
-		indices[consts.DocOperations] = struct{}{}
+		indices[models.DocOperations] = struct{}{}
 	}
 
 	if helpers.IsContract(subscription.Address) {
 		if item := getEventsWatchMigrations(subscription); item != nil {
 			shouldItems = append(shouldItems, item)
-			indices[consts.DocMigrations] = struct{}{}
+			indices[models.DocMigrations] = struct{}{}
 		}
 		if item := getSubscriptionWithSame(subscription); item != nil {
 			shouldItems = append(shouldItems, item)
-			indices[consts.DocContracts] = struct{}{}
+			indices[models.DocContracts] = struct{}{}
 		}
 		if item := getSubscriptionWithSimilar(subscription); item != nil {
 			shouldItems = append(shouldItems, item)
-			indices[consts.DocContracts] = struct{}{}
+			indices[models.DocContracts] = struct{}{}
 		}
 	}
 

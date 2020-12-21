@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/rollback"
 )
 
@@ -13,7 +14,7 @@ var removeCmd removeCommand
 
 // Execute
 func (x *removeCommand) Execute(_ []string) error {
-	state, err := ctx.ES.GetLastBlock(x.Network)
+	state, err := ctx.Blocks.GetLastBlock(x.Network)
 	if err != nil {
 		panic(err)
 	}
@@ -24,7 +25,7 @@ func (x *removeCommand) Execute(_ []string) error {
 		return nil
 	}
 
-	if err = rollback.Remove(ctx.ES, x.Network, ctx.Config.SharePath); err != nil {
+	if err = rollback.Remove(ctx.Storage, ctx.Contracts, ctx.Bulk, x.Network, ctx.Config.SharePath); err != nil {
 		return err
 	}
 
@@ -40,5 +41,5 @@ var deleteIndicesCmd deleteIndicesCommand
 
 // Execute
 func (x *deleteIndicesCommand) Execute(_ []string) error {
-	return ctx.ES.DeleteIndices(mappingNames)
+	return ctx.Storage.DeleteIndices(models.AllDocuments())
 }

@@ -2,15 +2,15 @@ package bigmapdiff
 
 // Repository -
 type Repository interface {
-	GetBigMapKey(network, keyHash string, ptr int64) (BigMapDiff, error)
-	// GetBigMapKeys(ctx GetBigMapKeysContext) ([]BigMapDiff, error)
-	GetBigMapsForAddress(string, string) ([]BigMapDiff, error)
-	GetBigMapValuesByKey(string) ([]BigMapDiff, error)
-	GetBigMapDiffsCount(network string, ptr int64) (int64, error)
-	GetBigMapDiffsForAddress(string) ([]BigMapDiff, error)
-	GetBigMapDiffsPrevious([]BigMapDiff, int64, string) ([]BigMapDiff, error)
-	GetBigMapDiffsUniqueByOperationID(string) ([]BigMapDiff, error)
-	GetBigMapDiffsByPtrAndKeyHash(int64, string, string, int64, int64) ([]BigMapDiff, int64, error)
-	GetBigMapDiffsByOperationID(string) ([]*BigMapDiff, error)
-	GetBigMapDiffsByPtr(string, string, int64) ([]BigMapDiff, error)
+	Get(ctx GetContext) ([]BigMapDiff, error)
+	GetByAddress(string, string) ([]BigMapDiff, error)
+	GetByOperationID(string) ([]*BigMapDiff, error)
+	GetByPtr(string, string, int64) ([]BigMapDiff, error)
+	GetByPtrAndKeyHash(int64, string, string, int64, int64) ([]BigMapDiff, int64, error)
+	GetForAddress(string) ([]BigMapDiff, error)
+	GetValuesByKey(string) ([]BigMapDiff, error)
+	GetUniqueByOperationID(string) ([]BigMapDiff, error)
+	Count(network string, ptr int64) (int64, error)
+	CurrentByKey(network, keyHash string, ptr int64) (BigMapDiff, error)
+	Previous([]BigMapDiff, int64, string) ([]BigMapDiff, error)
 }

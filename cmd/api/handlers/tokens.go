@@ -5,7 +5,8 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/elastic/transfer"
+	"github.com/baking-bad/bcdhub/internal/elastic/tzip"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -134,7 +135,7 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 		tokenID = *ctxReq.TokenID
 	}
 
-	transfers, err := ctx.Transfers.Get(elastic.GetTransfersContext{
+	transfers, err := ctx.Transfers.Get(&transfer.GetTransfersContext{
 		Network:   req.Network,
 		Address:   req.Address,
 		Contracts: contracts,
@@ -234,7 +235,7 @@ func (ctx *Context) contractToTokens(contracts []contract.Contract, network, ver
 			methods[i] = interfaceVersion.Entrypoints[i].Name
 		}
 
-		stats, err := ctx.Storage.GetTokensStats(network, addresses, methods)
+		stats, err := ctx.Operations.GetTokensStats(network, addresses, methods)
 		if err != nil {
 			return PageableTokenContracts{}, err
 		}
@@ -294,13 +295,13 @@ func (ctx *Context) GetContractTokens(c *gin.Context) {
 }
 
 func (ctx *Context) getTokens(network, address string) ([]Token, error) {
-	metadata, err := ctx.TZIP.GetTokenMetadata(elastic.GetTokenMetadataContext{
+	metadata, err := ctx.TZIP.GetTokenMetadata(tzip.GetTokenMetadataContext{
 		Contract: address,
 		Network:  network,
 		TokenID:  -1,
 	})
 	if err != nil {
-		if elastic.IsRecordNotFound(err) {
+		if ctx.Storage.IsRecordNotFound(err) {
 			return []Token{}, nil
 		}
 		return nil, err

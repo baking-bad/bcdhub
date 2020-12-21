@@ -106,7 +106,7 @@ func (p *MigrationParser) getUpdates(script gjson.Result, contract modelsContrac
 		newPtr = p
 	}
 
-	bmd, err := p.bmdRepo.GetBigMapsForAddress(contract.Network, contract.Address)
+	bmd, err := p.bmdRepo.GetByAddress(contract.Network, contract.Address)
 	if err != nil {
 		return nil, err
 	}

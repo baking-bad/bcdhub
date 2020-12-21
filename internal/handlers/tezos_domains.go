@@ -6,9 +6,10 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/unpack"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -21,23 +22,24 @@ const (
 
 // TezosDomain -
 type TezosDomain struct {
-	es elastic.IElastic
+	storage    models.GeneralRepository
+	schemaRepo schema.Repository
 
-	contracts map[elastic.Address]struct{}
-	metadata  map[elastic.Address]meta.Metadata
+	contracts map[contract.Address]struct{}
+	metadata  map[contract.Address]meta.Metadata
 }
 
 // NewTezosDomains -
-func NewTezosDomains(es elastic.IElastic, contracts map[string]string) *TezosDomain {
-	addresses := make(map[elastic.Address]struct{})
+func NewTezosDomains(storage models.GeneralRepository, schemaRepo schema.Repository, contracts map[string]string) *TezosDomain {
+	addresses := make(map[contract.Address]struct{})
 	for k, v := range contracts {
-		addresses[elastic.Address{
+		addresses[contract.Address{
 			Network: k,
 			Address: v,
 		}] = struct{}{}
 	}
 	return &TezosDomain{
-		es, addresses, make(map[elastic.Address]meta.Metadata),
+		storage, schemaRepo, addresses, make(map[contract.Address]meta.Metadata),
 	}
 }
 
@@ -64,7 +66,7 @@ func (td *TezosDomain) getBigMapDiff(model models.Model) (*bigmapdiff.BigMapDiff
 	if !ok {
 		return nil, ""
 	}
-	address := elastic.Address{
+	address := contract.Address{
 		Address: bmd.Address,
 		Network: bmd.Network,
 	}
@@ -88,12 +90,12 @@ func (td *TezosDomain) getBigMapDiff(model models.Model) (*bigmapdiff.BigMapDiff
 	return nil, ""
 }
 
-func (td *TezosDomain) getMetadata(address elastic.Address, protocol string) (meta.Metadata, error) {
+func (td *TezosDomain) getMetadata(address contract.Address, protocol string) (meta.Metadata, error) {
 	metadata, ok := td.metadata[address]
 	if ok {
 		return metadata, nil
 	}
-	metadata, err := meta.GetMetadata(td.es, address.Address, consts.STORAGE, protocol)
+	metadata, err := meta.GetMetadata(td.schemaRepo, address.Address, consts.STORAGE, protocol)
 	if err != nil {
 		return metadata, err
 	}
@@ -118,7 +120,7 @@ func (td *TezosDomain) updateRecordsTZIP(bmd *bigmapdiff.BigMapDiff) error {
 	if address != nil {
 		tezosDomain.Address = *address
 	}
-	return td.es.UpdateFields(elastic.DocTezosDomains, tezosDomain.GetID(), tezosDomain, "Name", "Address", "Network", "Level", "Timestamp")
+	return td.storage.UpdateFields(models.DocTezosDomains, tezosDomain.GetID(), tezosDomain, "Name", "Address", "Network", "Level", "Timestamp")
 }
 
 func (td *TezosDomain) updateExpirationDate(bmd *bigmapdiff.BigMapDiff) error {
@@ -132,7 +134,7 @@ func (td *TezosDomain) updateExpirationDate(bmd *bigmapdiff.BigMapDiff) error {
 		Network:    bmd.Network,
 		Expiration: date,
 	}
-	return td.es.UpdateFields(elastic.DocTezosDomains, tezosDomain.GetID(), tezosDomain, "Expiration")
+	return td.storage.UpdateFields(models.DocTezosDomains, tezosDomain.GetID(), tezosDomain, "Expiration")
 }
 
 func (td *TezosDomain) getAddress(value string) (*string, error) {

@@ -14,7 +14,7 @@ var rollbackCmd rollbackCommand
 
 // Execute
 func (x *rollbackCommand) Execute(_ []string) error {
-	state, err := ctx.ES.GetLastBlock(x.Network)
+	state, err := ctx.Blocks.GetLastBlock(x.Network)
 	if err != nil {
 		panic(err)
 	}
@@ -30,7 +30,7 @@ func (x *rollbackCommand) Execute(_ []string) error {
 		panic(err)
 	}
 
-	manager := rollback.NewManager(ctx.ES, ctx.MQ, rpc, ctx.SharePath)
+	manager := rollback.NewManager(ctx.Storage, ctx.Bulk, ctx.Contracts, ctx.Transfers, ctx.TokenBalances, ctx.Protocols, ctx.MQ, rpc, ctx.SharePath)
 	if err = manager.Rollback(state, x.Level); err != nil {
 		return err
 	}

@@ -4,8 +4,9 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/pkg/errors"
 )
 
@@ -56,14 +57,14 @@ func (uri *TezosStorageURI) parseHost(host string) {
 	}
 }
 
-func (uri *TezosStorageURI) networkByChainID(es elastic.IElastic) error {
+func (uri *TezosStorageURI) networkByChainID(blockRepo block.Repository) error {
 	if uri.Network == "" {
 		return nil
 	}
 
-	network, err := es.GetNetworkAlias(uri.Network)
+	network, err := blockRepo.GetNetworkAlias(uri.Network)
 	if err != nil {
-		if !elastic.IsRecordNotFound(err) {
+		if !core.IsRecordNotFound(err) {
 			return err
 		}
 		return nil

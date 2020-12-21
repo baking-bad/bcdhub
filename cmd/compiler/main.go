@@ -13,9 +13,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/database"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/mq"
@@ -53,7 +53,7 @@ func main() {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
-	protocol, err := context.ES.GetProtocol(consts.Mainnet, "", -1)
+	protocol, err := context.Protocols.GetProtocol(consts.Mainnet, "", -1)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -95,14 +95,14 @@ func (ctx *Context) setDeployment() error {
 	}
 
 	for i, d := range deployments {
-		ops, err := ctx.ES.GetOperations(
+		ops, err := ctx.Operations.Get(
 			map[string]interface{}{"hash": d.OperationHash},
 			0,
 			true,
 		)
 
 		if err != nil {
-			if elastic.IsRecordNotFound(err) {
+			if ctx.Storage.IsRecordNotFound(err) {
 				continue
 			}
 
@@ -159,7 +159,7 @@ func (ctx *Context) processDeployment(deployment *database.Deployment, operation
 	contract.Verified = true
 	contract.VerificationSource = sourcePath
 
-	return ctx.ES.UpdateFields(elastic.DocContracts, contract.GetID(), contract, "Verified", "VerificationSource")
+	return ctx.Storage.UpdateFields(models.DocContracts, contract.GetID(), contract, "Verified", "VerificationSource")
 }
 
 func (ctx *Context) handleMessage(data mq.Data) error {

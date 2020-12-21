@@ -7,7 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
 	"github.com/baking-bad/bcdhub/internal/contractparser/unpack"
-	"github.com/baking-bad/bcdhub/internal/elastic"
+	storageBmd "github.com/baking-bad/bcdhub/internal/elastic/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -74,7 +74,7 @@ func (t TokenMetadataParser) parse(registry string, state block.Block) ([]Metada
 		return nil, err
 	}
 
-	bmd, err := t.bmdRepo.GetBigMapKeys(bigmapdiff.GetBigMapKeysContext{
+	bmd, err := t.bmdRepo.Get(storageBmd.GetContext{
 		Ptr:     &ptr,
 		Network: t.network,
 		Size:    1000,
@@ -119,7 +119,7 @@ func (t TokenMetadataParser) getTokenMetadataRegistry(address string, state bloc
 
 	result, err := t.storage.SearchByText("view_address", 0, nil, map[string]interface{}{
 		"networks": []string{t.network},
-		"indices":  []string{elastic.DocContracts},
+		"indices":  []string{models.DocContracts},
 	}, false)
 	if err != nil {
 		return "", err

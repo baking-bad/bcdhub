@@ -160,3 +160,12 @@ type Pageable struct {
 	Operations []Operation `json:"operations"`
 	LastID     string      `json:"last_id"`
 }
+
+// TokenMethodUsageStats -
+type TokenMethodUsageStats struct {
+	Count       int64
+	ConsumedGas int64
+}
+
+// TokenUsageStats -
+type TokenUsageStats map[string]TokenMethodUsageStats
