@@ -24,7 +24,7 @@ import (
 // @Router /stats [get]
 func (ctx *Context) GetStats(c *gin.Context) {
 	stats, err := ctx.Blocks.GetLastBlocks()
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	blocks := make([]Block, 0)
@@ -53,20 +53,20 @@ func (ctx *Context) GetStats(c *gin.Context) {
 // @Router /stats/{network} [get]
 func (ctx *Context) GetNetworkStats(c *gin.Context) {
 	var req getByNetwork
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	var stats NetworkStats
 	counts, err := ctx.Storage.GetNetworkCountStats(req.Network)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	stats.ContractsCount = counts[models.DocContracts]
 	stats.OperationsCount = counts[models.DocOperations]
 
 	var protocols []protocol.Protocol
-	if err := ctx.Storage.GetByNetworkWithSort(req.Network, "start_level", "desc", &protocols); handleError(c, err, 0) {
+	if err := ctx.Storage.GetByNetworkWithSort(req.Network, "start_level", "desc", &protocols); ctx.handleError(c, err, 0) {
 		return
 	}
 	ps := make([]Protocol, len(protocols))
@@ -76,7 +76,7 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 	stats.Protocols = ps
 
 	languages, err := ctx.Storage.GetLanguagesForNetwork(req.Network)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	stats.Languages = languages
@@ -101,12 +101,12 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 // @Router /stats/{network}/series [get]
 func (ctx *Context) GetSeries(c *gin.Context) {
 	var req getByNetwork
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	var reqArgs getSeriesRequest
-	if err := c.BindQuery(&reqArgs); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&reqArgs); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -116,12 +116,12 @@ func (ctx *Context) GetSeries(c *gin.Context) {
 	}
 
 	options, err := ctx.getHistogramOptions(reqArgs.Name, req.Network, addresses...)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	series, err := ctx.Storage.GetDateHistogram(reqArgs.Period, options...)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -251,20 +251,20 @@ func (ctx *Context) getHistogramOptions(name, network string, addresses ...strin
 // @Router /stats/{network}/contracts [get]
 func (ctx *Context) GetContractsStats(c *gin.Context) {
 	var req getByNetwork
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 	var reqStats GetTokenStatsRequest
-	if err := c.BindQuery(&reqStats); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&reqStats); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 	addresses := reqStats.Addresses()
 	if len(addresses) == 0 {
-		handleError(c, errors.Errorf("Empty address list"), http.StatusBadRequest)
+		ctx.handleError(c, errors.Errorf("Empty address list"), http.StatusBadRequest)
 		return
 	}
 	stats, err := ctx.Contracts.GetDAppStats(req.Network, addresses, reqStats.Period)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 

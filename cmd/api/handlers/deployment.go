@@ -23,17 +23,17 @@ func (ctx *Context) ListDeployments(c *gin.Context) {
 	}
 
 	_, err := ctx.DB.GetUser(userID)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	var ctReq compilationRequest
-	if err := c.BindQuery(&ctReq); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&ctReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	deployments, err := ctx.DB.ListDeployments(userID, ctReq.Limit, ctReq.Offset)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -49,12 +49,12 @@ func (ctx *Context) CreateDeployment(c *gin.Context) {
 	}
 
 	user, err := ctx.DB.GetUser(userID)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	form, err := c.MultipartForm()
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		logger.Error(err)
 		return
 	}
@@ -65,11 +65,11 @@ func (ctx *Context) CreateDeployment(c *gin.Context) {
 		Status: compilation.StatusPending,
 	}
 
-	if err = ctx.DB.CreateCompilationTask(&task); handleError(c, err, 0) {
+	if err = ctx.DB.CreateCompilationTask(&task); ctx.handleError(c, err, 0) {
 		return
 	}
 
-	if err = ctx.runDeployment(task.ID, form); handleError(c, err, 0) {
+	if err = ctx.runDeployment(task.ID, form); ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -118,17 +118,17 @@ func (ctx *Context) FinalizeDeployment(c *gin.Context) {
 	}
 
 	var req deploymentRequest
-	if err := c.ShouldBindJSON(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.ShouldBindJSON(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	user, err := ctx.DB.GetUser(userID)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	task, err := ctx.DB.GetCompilationTask(req.TaskID)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -145,7 +145,7 @@ func (ctx *Context) FinalizeDeployment(c *gin.Context) {
 	}
 
 	err = ctx.DB.CreateDeployment(&d)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 

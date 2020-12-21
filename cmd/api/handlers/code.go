@@ -27,24 +27,24 @@ import (
 // @Router /contract/{network}/{address}/code [get]
 func (ctx *Context) GetContractCode(c *gin.Context) {
 	var req getContractCodeRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
-	if err := c.BindQuery(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	if req.Protocol == "" {
 		state, err := ctx.Blocks.GetLastBlock(req.Network)
-		if handleError(c, err, 0) {
+		if ctx.handleError(c, err, 0) {
 			return
 		}
 		req.Protocol = state.Protocol
 	}
 
 	code, err := ctx.getContractCodeJSON(req.Network, req.Address, req.Protocol, req.Level)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -55,7 +55,7 @@ func (ctx *Context) GetContractCode(c *gin.Context) {
 	}
 
 	resp, err := formatter.MichelineToMichelson(collapsed, false, formatter.DefLineSize)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -77,12 +77,12 @@ func (ctx *Context) GetContractCode(c *gin.Context) {
 // @Router /diff [post]
 func (ctx *Context) GetDiff(c *gin.Context) {
 	var req CodeDiffRequest
-	if err := c.BindJSON(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindJSON(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	resp, err := ctx.getContractCodeDiff(req.Left, req.Right)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 

@@ -8,7 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage/hash"
-	"github.com/baking-bad/bcdhub/internal/elastic/core"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/schema"
@@ -32,18 +32,21 @@ type TezosStorage struct {
 	bigMapRepo bigmapdiff.Repository
 	blockRepo  block.Repository
 	schemaRepo schema.Repository
-	rpc        noderpc.INode
-	network    string
-	address    string
-	ptr        int64
+	storage    models.GeneralRepository
+
+	rpc     noderpc.INode
+	network string
+	address string
+	ptr     int64
 }
 
 // NewTezosStorage -
-func NewTezosStorage(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, schemaRepo schema.Repository, rpc noderpc.INode, address, network string, ptr int64) TezosStorage {
+func NewTezosStorage(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, schemaRepo schema.Repository, storage models.GeneralRepository, rpc noderpc.INode, address, network string, ptr int64) TezosStorage {
 	return TezosStorage{
 		bigMapRepo: bigMapRepo,
 		blockRepo:  blockRepo,
 		schemaRepo: schemaRepo,
+		storage:    storage,
 		rpc:        rpc,
 		address:    address,
 		network:    network,
@@ -59,7 +62,10 @@ func (s TezosStorage) Get(value string) (*tzip.TZIP, error) {
 	}
 
 	if err := uri.networkByChainID(s.blockRepo); err != nil {
-		return nil, err
+		if !s.storage.IsRecordNotFound(err) {
+			return nil, err
+		}
+		return nil, nil
 	}
 
 	if err := s.fillFields(uri); err != nil {
@@ -73,7 +79,7 @@ func (s TezosStorage) Get(value string) (*tzip.TZIP, error) {
 
 	bmd, err := s.bigMapRepo.CurrentByKey(s.network, key, s.ptr)
 	if err != nil {
-		if core.IsRecordNotFound(err) {
+		if s.storage.IsRecordNotFound(err) {
 			return nil, nil
 		}
 		return nil, err

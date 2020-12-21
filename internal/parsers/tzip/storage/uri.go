@@ -4,7 +4,6 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/pkg/errors"
@@ -64,10 +63,7 @@ func (uri *TezosStorageURI) networkByChainID(blockRepo block.Repository) error {
 
 	network, err := blockRepo.GetNetworkAlias(uri.Network)
 	if err != nil {
-		if !core.IsRecordNotFound(err) {
-			return err
-		}
-		return nil
+		return err
 	}
 	uri.Network = network
 	return nil

@@ -18,7 +18,7 @@ func (ctx *Context) ListSubscriptions(c *gin.Context) {
 	}
 
 	subscriptions, err := ctx.DB.ListSubscriptions(userID)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -28,11 +28,11 @@ func (ctx *Context) ListSubscriptions(c *gin.Context) {
 // CreateSubscription -
 func (ctx *Context) CreateSubscription(c *gin.Context) {
 	var sub subRequest
-	if err := c.ShouldBindJSON(&sub); handleError(c, err, http.StatusBadRequest) {
+	if err := c.ShouldBindJSON(&sub); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 	if sub.SentryEnabled && sub.SentryDSN == "" {
-		handleError(c, fmt.Errorf("You have to set `Sentry DSN` when sentry notifications is enabled"), http.StatusBadRequest)
+		ctx.handleError(c, fmt.Errorf("You have to set `Sentry DSN` when sentry notifications is enabled"), http.StatusBadRequest)
 		return
 	}
 
@@ -51,7 +51,7 @@ func (ctx *Context) CreateSubscription(c *gin.Context) {
 		SentryDSN: sub.SentryDSN,
 	}
 
-	if err := ctx.DB.UpsertSubscription(&subscription); handleError(c, err, 0) {
+	if err := ctx.DB.UpsertSubscription(&subscription); ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -61,7 +61,7 @@ func (ctx *Context) CreateSubscription(c *gin.Context) {
 // DeleteSubscription -
 func (ctx *Context) DeleteSubscription(c *gin.Context) {
 	var sub subRequest
-	if err := c.ShouldBindJSON(&sub); handleError(c, err, http.StatusBadRequest) {
+	if err := c.ShouldBindJSON(&sub); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -77,7 +77,7 @@ func (ctx *Context) DeleteSubscription(c *gin.Context) {
 		Network: sub.Network,
 	}
 
-	if err := ctx.DB.DeleteSubscription(&subscription); handleError(c, err, 0) {
+	if err := ctx.DB.DeleteSubscription(&subscription); ctx.handleError(c, err, 0) {
 		return
 	}
 

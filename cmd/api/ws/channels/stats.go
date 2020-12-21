@@ -103,20 +103,20 @@ func (c *StatsChannel) listen(source datasources.DataSource) {
 }
 
 func (c *StatsChannel) createMessage() error {
-	states, err := c.es.GetLastBlocks()
+	states, err := c.ctx.Blocks.GetLastBlocks()
 	if err != nil {
 		return err
 	}
-	callCounts, err := c.es.GetCallsCountByNetwork()
+	callCounts, err := c.ctx.Storage.GetCallsCountByNetwork()
 	if err != nil {
 		return err
 	}
-	contractStats, err := c.es.GetContractStatsByNetwork()
+	contractStats, err := c.ctx.Storage.GetContractStatsByNetwork()
 	if err != nil {
 		return err
 	}
 
-	faCount, err := c.es.GetFACountByNetwork()
+	faCount, err := c.ctx.Storage.GetFACountByNetwork()
 	if err != nil {
 		return err
 	}

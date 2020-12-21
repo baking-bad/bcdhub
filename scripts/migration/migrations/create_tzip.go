@@ -2,7 +2,6 @@ package migrations
 
 import (
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -45,7 +44,7 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 			Network: bmd[i].Network,
 		}
 		if err := ctx.Storage.GetByID(&check); err != nil {
-			if !core.IsRecordNotFound(err) {
+			if !ctx.Storage.IsRecordNotFound(err) {
 				return err
 			}
 		} else {
@@ -56,7 +55,7 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 		if err != nil {
 			return err
 		}
-		parser := tzipParsers.NewParser(ctx.BigMapDiffs, ctx.Blocks, ctx.Schema, rpc, tzipParsers.ParserConfig{
+		parser := tzipParsers.NewParser(ctx.BigMapDiffs, ctx.Blocks, ctx.Schema, ctx.Storage, rpc, tzipParsers.ParserConfig{
 			IPFSGateways: ctx.Config.IPFSGateways,
 		})
 

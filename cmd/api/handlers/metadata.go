@@ -20,7 +20,7 @@ func (ctx *Context) UploadMetadata(c *gin.Context) {
 	}
 
 	body, err := ioutil.ReadAll(c.Request.Body)
-	if handleError(c, err, http.StatusBadRequest) {
+	if ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -32,7 +32,7 @@ func (ctx *Context) UploadMetadata(c *gin.Context) {
 	schemaLoader := gojsonschema.NewStringLoader(ctx.TzipSchema)
 	documentLoader := gojsonschema.NewStringLoader(string(body))
 	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
-	if handleError(c, err, http.StatusBadRequest) {
+	if ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -42,7 +42,7 @@ func (ctx *Context) UploadMetadata(c *gin.Context) {
 	}
 
 	response, err := ctx.Pinata.PinJSONToIPFS(bytes.NewBuffer(body))
-	if handleError(c, err, http.StatusBadRequest) {
+	if ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -52,7 +52,7 @@ func (ctx *Context) UploadMetadata(c *gin.Context) {
 // ListMetadata -
 func (ctx *Context) ListMetadata(c *gin.Context) {
 	list, err := ctx.Pinata.PinList()
-	if handleError(c, err, http.StatusInternalServerError) {
+	if ctx.handleError(c, err, http.StatusInternalServerError) {
 		return
 	}
 
@@ -62,11 +62,11 @@ func (ctx *Context) ListMetadata(c *gin.Context) {
 // DeleteMetadata -
 func (ctx *Context) DeleteMetadata(c *gin.Context) {
 	var req metadataRequest
-	if err := c.BindJSON(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindJSON(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
-	if err := ctx.Pinata.UnPin(req.Hash); handleError(c, err, http.StatusBadRequest) {
+	if err := ctx.Pinata.UnPin(req.Hash); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 

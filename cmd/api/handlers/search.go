@@ -35,7 +35,7 @@ import (
 // @Router /search [get]
 func (ctx *Context) Search(c *gin.Context) {
 	var req searchRequest
-	if err := c.BindQuery(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -46,11 +46,11 @@ func (ctx *Context) Search(c *gin.Context) {
 	filters := getSearchFilters(req)
 
 	result, err := ctx.Storage.SearchByText(req.Text, int64(req.Offset), fields, filters, req.Grouping != 0)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	result, err = postProcessing(result)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 

@@ -17,7 +17,7 @@ func (ctx *Context) AuthJWTRequired() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		userID, err := ctx.getUserFromToken(c)
-		if handleError(c, err, http.StatusUnauthorized) {
+		if ctx.handleError(c, err, http.StatusUnauthorized) {
 			return
 		}
 

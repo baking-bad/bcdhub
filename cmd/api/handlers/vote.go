@@ -12,18 +12,18 @@ import (
 // Vote -
 func (ctx *Context) Vote(c *gin.Context) {
 	var req voteRequest
-	if err := c.BindJSON(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindJSON(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		_ = c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	a := contract.NewEmptyContract(req.SourceNetwork, req.SourceAddress)
-	if err := ctx.Storage.GetByID(&a); handleError(c, err, 0) {
+	if err := ctx.Storage.GetByID(&a); ctx.handleError(c, err, 0) {
 		return
 	}
 
 	b := contract.NewEmptyContract(req.DestinationNetwork, req.DestinationAddress)
-	if err := ctx.Storage.GetByID(&b); handleError(c, err, 0) {
+	if err := ctx.Storage.GetByID(&b); ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -35,7 +35,7 @@ func (ctx *Context) Vote(c *gin.Context) {
 		UserID:     CurrentUserID(c),
 		Assessment: req.Vote,
 	}
-	if err := ctx.DB.CreateOrUpdateAssessment(&assessment); handleError(c, err, 0) {
+	if err := ctx.DB.CreateOrUpdateAssessment(&assessment); ctx.handleError(c, err, 0) {
 		return
 	}
 	c.JSON(http.StatusOK, "")
@@ -44,14 +44,14 @@ func (ctx *Context) Vote(c *gin.Context) {
 // GetTasks -
 func (ctx *Context) GetTasks(c *gin.Context) {
 	var req pageableRequest
-	if err := c.BindQuery(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 	userID := CurrentUserID(c)
 
 	assesments, err := ctx.DB.GetAssessmentsWithValue(userID, database.AssessmentUndefined, uint(req.Size))
 	if err != nil {
-		if !gorm.IsRecordNotFoundError(err) && handleError(c, err, 0) {
+		if !gorm.IsRecordNotFoundError(err) && ctx.handleError(c, err, 0) {
 			return
 		}
 		assesments = make([]database.Assessments, 0)
@@ -64,7 +64,7 @@ func (ctx *Context) GetTasks(c *gin.Context) {
 func (ctx *Context) GenerateTasks(c *gin.Context) {
 	userID := CurrentUserID(c)
 	tasks, err := ctx.Contracts.GetDiffTasks()
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	assesments := make([]database.Assessments, 0)
@@ -77,7 +77,7 @@ func (ctx *Context) GenerateTasks(c *gin.Context) {
 			UserID:     userID,
 			Assessment: database.AssessmentUndefined,
 		}
-		if err := ctx.DB.CreateAssessment(&a); handleError(c, err, 0) {
+		if err := ctx.DB.CreateAssessment(&a); ctx.handleError(c, err, 0) {
 			return
 		}
 		if a.Assessment == database.AssessmentUndefined {

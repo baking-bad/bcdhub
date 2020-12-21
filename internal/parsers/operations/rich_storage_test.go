@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
-	mock_elastic "github.com/baking-bad/bcdhub/internal/elastic/mock"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	mock_bmd "github.com/baking-bad/bcdhub/internal/models/mock/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/golang/mock/gomock"
@@ -18,9 +18,9 @@ import (
 func TestRichStorage_Parse(t *testing.T) {
 	timestamp := time.Now()
 
-	ctrlES := gomock.NewController(t)
-	defer ctrlES.Finish()
-	es := mock_elastic.NewMockIElastic(ctrlES)
+	ctrlBmdRepo := gomock.NewController(t)
+	defer ctrlBmdRepo.Finish()
+	bmdRepo := mock_bmd.NewMockRepository(ctrlBmdRepo)
 
 	ctrlRPC := gomock.NewController(t)
 	defer ctrlRPC.Finish()
@@ -137,9 +137,9 @@ func TestRichStorage_Parse(t *testing.T) {
 				DoAndReturn(readStorage).
 				AnyTimes()
 
-			es.
+			bmdRepo.
 				EXPECT().
-				GetBigMapDiffsByPtr(tt.operation.Destination, tt.operation.Network, tt.sourcePtr).
+				GetByPtr(tt.operation.Destination, tt.operation.Network, tt.sourcePtr).
 				Return([]bigmapdiff.BigMapDiff{}, nil).
 				AnyTimes()
 
@@ -154,7 +154,7 @@ func TestRichStorage_Parse(t *testing.T) {
 				return
 			}
 
-			parser, err := NewRichStorage(es, rpc, tt.operation.Protocol)
+			parser, err := NewRichStorage(bmdRepo, rpc, tt.operation.Protocol)
 			if err != nil {
 				t.Errorf(`NewRichStorage = error %v`, err)
 				return

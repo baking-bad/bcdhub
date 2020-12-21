@@ -16,32 +16,32 @@ func (ctx *Context) GetUserProfile(c *gin.Context) {
 	}
 
 	user, err := ctx.DB.GetUser(userID)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	subscriptions, err := ctx.DB.ListSubscriptions(userID)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	count, err := ctx.DB.GetUserCompletedAssesments(user.ID)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	compilationTasks, err := ctx.DB.CountCompilationTasks(user.ID)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	verifications, err := ctx.DB.CountVerifications(user.ID)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	deployments, err := ctx.DB.CountDeployments(user.ID)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -70,7 +70,7 @@ func (ctx *Context) UserMarkAllRead(c *gin.Context) {
 	}
 
 	var req markReadRequest
-	if err := c.ShouldBindJSON(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.ShouldBindJSON(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -80,7 +80,7 @@ func (ctx *Context) UserMarkAllRead(c *gin.Context) {
 	}
 
 	err := ctx.DB.UpdateUserMarkReadAt(userID, req.Timestamp)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 

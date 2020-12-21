@@ -3,7 +3,6 @@ package migrations
 import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -45,7 +44,7 @@ func (m *SetOperationTags) Do(ctx *config.Context) error {
 		if _, ok := tags[operations[i].Destination]; !ok {
 			contract := contract.NewEmptyContract(operations[i].Network, operations[i].Destination)
 			if err := ctx.Storage.GetByID(&contract); err != nil {
-				if core.IsRecordNotFound(err) {
+				if ctx.Storage.IsRecordNotFound(err) {
 					continue
 				}
 				return err

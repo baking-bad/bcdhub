@@ -22,41 +22,41 @@ import (
 // RunOperation -
 func (ctx *Context) RunOperation(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 	var reqRunOp runOperationRequest
-	if err := c.BindJSON(&reqRunOp); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindJSON(&reqRunOp); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	rpc, err := ctx.GetRPC(req.Network)
-	if handleError(c, err, http.StatusBadRequest) {
+	if ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	state, err := ctx.Blocks.GetLastBlock(req.Network)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	parameters, err := ctx.buildEntrypointMicheline(req.Network, req.Address, reqRunOp.BinPath, reqRunOp.Data, true)
-	if handleError(c, err, http.StatusBadRequest) {
+	if ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	if !parameters.Get("entrypoint").Exists() || !parameters.Get("value").Exists() {
-		handleError(c, errors.Errorf("Error occured while building parameters: %s", parameters.String()), 0)
+		ctx.handleError(c, errors.Errorf("Error occured while building parameters: %s", parameters.String()), 0)
 		return
 	}
 
 	counter, err := rpc.GetCounter(reqRunOp.Source)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	protocol, err := ctx.Protocols.GetProtocol(req.Network, "", -1)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -72,7 +72,7 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		reqRunOp.Amount,
 		parameters,
 	)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -87,7 +87,7 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 
 	parser := operations.NewGroup(operations.NewParseParams(
 		rpc,
-		ctx.Storage, ctx.BigMapDiffs, ctx.Blocks, ctx.TZIP, ctx.Schema,
+		ctx.Storage, ctx.BigMapDiffs, ctx.Blocks, ctx.TZIP, ctx.Schema, ctx.TokenBalances,
 		operations.WithConstants(protocol.Constants),
 		operations.WithHead(header),
 		operations.WithInterfaces(ctx.Interfaces),
@@ -96,7 +96,7 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 	))
 
 	parsedModels, err := parser.Parse(response)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -120,8 +120,8 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 				bmd = append(bmd, *diffs[j])
 			}
 		}
-		op, err := prepareOperation(ctx.BigMapDiffs, ctx.Schema, ctx.Operations, *operations[i], bmd, true)
-		if handleError(c, err, 0) {
+		op, err := ctx.prepareOperation(*operations[i], bmd, true)
+		if ctx.handleError(c, err, 0) {
 			return
 		}
 		resp[i] = op
@@ -151,36 +151,36 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 // @Router /contract/{network}/{address}/entrypoints/trace [post]
 func (ctx *Context) RunCode(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 	var reqRunCode runCodeRequest
-	if err := c.BindJSON(&reqRunCode); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindJSON(&reqRunCode); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	rpc, err := ctx.GetRPC(req.Network)
-	if handleError(c, err, http.StatusBadRequest) {
+	if ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	state, err := ctx.Blocks.GetLastBlock(req.Network)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	script, err := contractparser.GetContract(rpc, req.Address, req.Network, state.Protocol, ctx.SharePath, 0)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	input, err := ctx.buildEntrypointMicheline(req.Network, req.Address, reqRunCode.BinPath, reqRunCode.Data, true)
-	if handleError(c, err, http.StatusBadRequest) {
+	if ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	if !input.Get("entrypoint").Exists() || !input.Get("value").Exists() {
-		handleError(c, errors.Errorf("Error during build parameters: %s", input.String()), 0)
+		ctx.handleError(c, errors.Errorf("Error during build parameters: %s", input.String()), 0)
 		return
 	}
 
@@ -188,12 +188,12 @@ func (ctx *Context) RunCode(c *gin.Context) {
 	value := input.Get("value")
 
 	storage, err := rpc.GetScriptStorageJSON(req.Address, 0)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	response, err := rpc.RunCode(script.Get("code"), storage, value, state.ChainID, reqRunCode.Source, reqRunCode.Sender, entrypoint, reqRunCode.Amount, reqRunCode.GasLimit)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	main := Operation{
@@ -211,14 +211,14 @@ func (ctx *Context) RunCode(c *gin.Context) {
 		Entrypoint:  entrypoint,
 	}
 
-	if err := setParameters(ctx.Schema, input.Raw, &main); handleError(c, err, 0) {
+	if err := ctx.setParameters(input.Raw, &main); ctx.handleError(c, err, 0) {
 		return
 	}
-	if err := ctx.setSimulateStorageDiff(response, &main); handleError(c, err, 0) {
+	if err := ctx.setSimulateStorageDiff(response, &main); ctx.handleError(c, err, 0) {
 		return
 	}
 	operations, err := ctx.parseRunCodeResponse(response, &main)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -263,7 +263,7 @@ func (ctx *Context) parseAppliedRunCode(response gjson.Result, main *Operation) 
 		op.Protocol = main.Protocol
 		op.Level = main.Level
 		op.Internal = true
-		if err := setParameters(ctx.Schema, item.Get("parameters").Raw, &op); err != nil {
+		if err := ctx.setParameters(item.Get("parameters").Raw, &op); err != nil {
 			return nil, err
 		}
 		if err := ctx.setSimulateStorageDiff(item, &op); err != nil {
@@ -322,7 +322,7 @@ func (ctx *Context) setSimulateStorageDiff(response gjson.Result, main *Operatio
 	if err != nil {
 		return err
 	}
-	storageDiff, err := getStorageDiff(ctx.BigMapDiffs, ctx.Operations, bmd, main.Destination, storage, metadata, true, main)
+	storageDiff, err := ctx.getStorageDiff(bmd, main.Destination, storage, metadata, true, main)
 	if err != nil {
 		return err
 	}

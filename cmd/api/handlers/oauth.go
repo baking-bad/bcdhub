@@ -12,7 +12,7 @@ import (
 // OauthLogin -
 func (ctx *Context) OauthLogin(c *gin.Context) {
 	var params OauthParams
-	if err := c.BindUri(&params); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&params); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -21,7 +21,7 @@ func (ctx *Context) OauthLogin(c *gin.Context) {
 	if provider, ok := ctx.OAUTH.Providers[params.Provider]; ok {
 		redirectURL = provider.AuthCodeURL(ctx.OAUTH.State)
 	} else {
-		handleError(c, fmt.Errorf("invalid provider %v", params.Provider), http.StatusBadRequest)
+		ctx.handleError(c, fmt.Errorf("invalid provider %v", params.Provider), http.StatusBadRequest)
 		return
 	}
 
@@ -31,17 +31,17 @@ func (ctx *Context) OauthLogin(c *gin.Context) {
 // OauthCallback -
 func (ctx *Context) OauthCallback(c *gin.Context) {
 	var params OauthParams
-	if err := c.BindUri(&params); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&params); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	var req OauthRequest
-	if err := c.ShouldBind(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.ShouldBind(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	if req.State != ctx.OAUTH.State {
-		handleError(c, errors.Errorf("invalid oauth state"), http.StatusBadRequest)
+		ctx.handleError(c, errors.Errorf("invalid oauth state"), http.StatusBadRequest)
 		return
 	}
 
@@ -51,20 +51,20 @@ func (ctx *Context) OauthCallback(c *gin.Context) {
 	if provider, ok := ctx.OAUTH.Providers[params.Provider]; ok {
 		user, err = provider.AuthUser(req.Code)
 	} else {
-		handleError(c, fmt.Errorf("invalid provider %v", params.Provider), http.StatusBadRequest)
+		ctx.handleError(c, fmt.Errorf("invalid provider %v", params.Provider), http.StatusBadRequest)
 		return
 	}
 
-	if handleError(c, err, http.StatusBadRequest) {
+	if ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
-	if err := ctx.DB.GetOrCreateUser(&user, user.Token); handleError(c, err, http.StatusBadRequest) {
+	if err := ctx.DB.GetOrCreateUser(&user, user.Token); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	jwt, err := ctx.OAUTH.MakeJWT(user.ID)
-	if handleError(c, err, http.StatusBadRequest) {
+	if ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 

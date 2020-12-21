@@ -117,14 +117,15 @@ func WithMainOperation(main *operation.Operation) ParseParamsOption {
 }
 
 // NewParseParams -
-func NewParseParams(rpc noderpc.INode, storage models.GeneralRepository, bmdRepo bigmapdiff.Repository, blockRepo block.Repository, tzipRepo tzip.Repository, schemaRepo schema.Repository, opts ...ParseParamsOption) *ParseParams {
+func NewParseParams(rpc noderpc.INode, storage models.GeneralRepository, bmdRepo bigmapdiff.Repository, blockRepo block.Repository, tzipRepo tzip.Repository, schemaRepo schema.Repository, tbRepo tokenbalance.Repository, opts ...ParseParamsOption) *ParseParams {
 	params := &ParseParams{
-		Storage:     storage,
-		BigMapDiffs: bmdRepo,
-		Schema:      schemaRepo,
-		rpc:         rpc,
-		once:        &sync.Once{},
-		stackTrace:  stacktrace.New(),
+		Storage:       storage,
+		BigMapDiffs:   bmdRepo,
+		Schema:        schemaRepo,
+		TokenBalances: tbRepo,
+		rpc:           rpc,
+		once:          &sync.Once{},
+		stackTrace:    stacktrace.New(),
 	}
 	for i := range opts {
 		opts[i](params)
@@ -132,7 +133,7 @@ func NewParseParams(rpc noderpc.INode, storage models.GeneralRepository, bmdRepo
 
 	transferParser, err := transfer.NewParser(
 		params.rpc,
-		tzipRepo, blockRepo, schemaRepo,
+		tzipRepo, blockRepo, schemaRepo, storage,
 		transfer.WithStackTrace(params.stackTrace),
 		transfer.WithNetwork(params.network),
 		transfer.WithChainID(params.head.ChainID),
