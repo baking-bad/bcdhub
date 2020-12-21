@@ -75,7 +75,9 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 		}
 
 		for j := range transfers {
-			h.SetTransferAliases(ctx.Aliases, transfers[j])
+			if _, err := h.SetTransferAliases(transfers[j]); err != nil {
+				return err
+			}
 			result = append(result, transfers[j])
 			newTransfers = append(newTransfers, transfers[j])
 		}

@@ -10,20 +10,32 @@ import (
 )
 
 // SetContractAlias -
-func (h *Handler) SetContractAlias(aliases map[string]string, c *models.Contract) bool {
+func (h *Handler) SetContractAlias(c *models.Contract) (bool, error) {
 	var changed bool
 
-	if alias, ok := aliases[c.Address]; ok {
+	if c.Alias != "" && ((c.Delegate != "" && c.DelegateAlias != "") || c.Delegate == "") {
+		return false, nil
+	}
+
+	aliases, err := h.ES.GetAliasesMap(c.Network)
+	if err != nil {
+		if elastic.IsRecordNotFound(err) {
+			err = nil
+		}
+		return changed, err
+	}
+
+	if alias, ok := aliases[c.Address]; ok && c.Alias == "" {
 		c.Alias = alias
 		changed = true
 	}
 
-	if alias, ok := aliases[c.Delegate]; c.Delegate != "" && ok {
+	if alias, ok := aliases[c.Delegate]; c.Delegate != "" && c.DelegateAlias == "" && ok {
 		c.DelegateAlias = alias
 		changed = true
 	}
 
-	return changed
+	return changed, nil
 }
 
 // UpdateContractStats -

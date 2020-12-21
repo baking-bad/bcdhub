@@ -7,7 +7,6 @@ import (
 	"syscall"
 
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/mq"
@@ -82,7 +81,6 @@ func main() {
 		config.WithRPC(cfg.RPC),
 		config.WithDatabase(cfg.DB),
 		config.WithRabbit(cfg.RabbitMQ, cfg.Metrics.ProjectName, cfg.Metrics.MQ),
-		config.WithAliases(consts.Mainnet),
 		config.WithShare(cfg.SharePath),
 		config.WithDomains(cfg.Domains),
 		config.WithConfigCopy(cfg),

@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/scripts/migration/migrations"
 	"github.com/pkg/errors"
@@ -59,7 +58,6 @@ func main() {
 		config.WithConfigCopy(cfg),
 		config.WithLoadErrorDescriptions("data/errors.json"),
 		config.WithContractsInterfaces(),
-		config.WithAliases(consts.Mainnet),
 	)
 	defer ctx.Close()
 

@@ -430,8 +430,15 @@ func (ctx *Context) prepareMempoolOperation(item tzkt.MempoolOperation, network 
 		RawMempool:   string(item.Raw),
 	}
 
-	op.SourceAlias = ctx.Aliases[op.Source]
-	op.DestinationAlias = ctx.Aliases[op.Destination]
+	aliases, err := ctx.ES.GetAliasesMap(network)
+	if err != nil {
+		if !elastic.IsRecordNotFound(err) {
+			return &op
+		}
+	} else {
+		op.SourceAlias = aliases[op.Source]
+		op.DestinationAlias = aliases[op.Destination]
+	}
 	errs, err := cerrors.ParseArray(item.Body.Errors)
 	if err != nil {
 		return nil

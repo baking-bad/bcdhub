@@ -2,7 +2,6 @@ package migrations
 
 import (
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
@@ -24,56 +23,74 @@ func (m *SetAliases) Description() string {
 // Do - migrate function
 func (m *SetAliases) Do(ctx *config.Context) error {
 	h := metrics.New(ctx.ES, ctx.DB)
-	aliases, err := ctx.ES.GetAliasesMap(consts.Mainnet)
-	if err != nil {
-		return err
-	}
-	logger.Info("Got %d aliases from es", len(aliases))
 
 	updatedModels := make([]elastic.Model, 0)
-	mainnetFilter := map[string]interface{}{
-		"network": consts.Mainnet,
-	}
+	for i := range ctx.Config.Scripts.Networks {
+		logger.Info("Receiving aliases for %s...", ctx.Config.Scripts.Networks[i])
 
-	operations, err := ctx.ES.GetOperations(mainnetFilter, 0, false)
-	if err != nil {
-		return err
-	}
-	logger.Info("Got %d operations from es", len(operations))
+		aliases, err := ctx.ES.GetAliasesMap(ctx.Config.Scripts.Networks[i])
+		if err != nil {
+			if elastic.IsRecordNotFound(err) {
+				continue
+			}
+			return err
+		}
+		logger.Info("Received %d aliases", len(aliases))
 
-	for i := range operations {
-		if h.SetOperationAliases(aliases, &operations[i]) {
-			updatedModels = append(updatedModels, &operations[i])
+		if len(aliases) == 0 {
+			continue
+		}
+
+		networkFilter := map[string]interface{}{
+			"network": ctx.Config.Scripts.Networks[i],
+		}
+
+		operations, err := ctx.ES.GetOperations(networkFilter, 0, false)
+		if err != nil {
+			return err
+		}
+		logger.Info("Got %d operations", len(operations))
+
+		for i := range operations {
+			if flag, err := h.SetOperationAliases(&operations[i]); flag {
+				updatedModels = append(updatedModels, &operations[i])
+			} else if err != nil {
+				return err
+			}
+		}
+
+		contracts, err := ctx.ES.GetContracts(networkFilter)
+		if err != nil {
+			return err
+		}
+
+		logger.Info("Got %d contracts", len(contracts))
+
+		for i := range contracts {
+			if flag, err := h.SetContractAlias(&contracts[i]); flag {
+				updatedModels = append(updatedModels, &contracts[i])
+			} else if err != nil {
+				return err
+			}
+		}
+
+		transfers, err := ctx.ES.GetAllTransfers(ctx.Config.Scripts.Networks[i], 0)
+		if err != nil {
+			return err
+		}
+
+		logger.Info("Got %d transfers", len(transfers))
+
+		for i := range transfers {
+			if flag, err := h.SetTransferAliases(&transfers[i]); flag {
+				updatedModels = append(updatedModels, &transfers[i])
+			} else if err != nil {
+				return err
+			}
 		}
 	}
 
-	contracts, err := ctx.ES.GetContracts(mainnetFilter)
-	if err != nil {
-		return err
-	}
-
-	logger.Info("Got %d contracts from es", len(contracts))
-
-	for i := range contracts {
-		if h.SetContractAlias(aliases, &contracts[i]) {
-			updatedModels = append(updatedModels, &contracts[i])
-		}
-	}
-
-	transfers, err := ctx.ES.GetAllTransfers(consts.Mainnet, 0)
-	if err != nil {
-		return err
-	}
-
-	logger.Info("Got %d transfers from es", len(transfers))
-
-	for i := range transfers {
-		if h.SetTransferAliases(aliases, &transfers[i]) {
-			updatedModels = append(updatedModels, &transfers[i])
-		}
-	}
-
-	logger.Info("Ready to update %d models", len(updatedModels))
+	logger.Info("Updating %d models...", len(updatedModels))
 
 	return ctx.ES.BulkUpdate(updatedModels)
 }

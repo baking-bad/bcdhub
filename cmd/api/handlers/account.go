@@ -44,15 +44,22 @@ func (ctx *Context) GetInfo(c *gin.Context) {
 		return
 	}
 
-	alias := ctx.Aliases[req.Address]
-
 	accountInfo := AccountInfo{
 		Address:    req.Address,
 		Network:    req.Network,
-		Alias:      alias,
 		TxCount:    stats.Count,
 		Balance:    balance,
 		LastAction: stats.LastAction,
+	}
+
+	alias, err := ctx.ES.GetAlias(req.Network, req.Address)
+	if err != nil {
+		if !elastic.IsRecordNotFound(err) {
+			handleError(c, err, 0)
+			return
+		}
+	} else {
+		accountInfo.Alias = alias.Name
 	}
 
 	tokenBalances, err := ctx.getAccountBalances(req.Network, req.Address)

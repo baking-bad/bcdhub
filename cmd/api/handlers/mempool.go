@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
+	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/tzkt"
 	"github.com/gin-gonic/gin"
@@ -57,6 +58,15 @@ func (ctx *Context) prepareMempoolOperations(res []tzkt.MempoolOperation, addres
 	if len(res) == 0 {
 		return ret, nil
 	}
+
+	aliases, err := ctx.ES.GetAliasesMap(network)
+	if err != nil {
+		if !elastic.IsRecordNotFound(err) {
+			return nil, err
+		}
+		aliases = make(map[string]string)
+	}
+
 	for i := len(res) - 1; i >= 0; i-- {
 		status := res[i].Body.Status
 		if status == consts.Applied {
@@ -82,8 +92,8 @@ func (ctx *Context) prepareMempoolOperations(res []tzkt.MempoolOperation, addres
 			RawMempool:   res[i].Body,
 		}
 
-		op.SourceAlias = ctx.Aliases[op.Source]
-		op.DestinationAlias = ctx.Aliases[op.Destination]
+		op.SourceAlias = aliases[op.Source]
+		op.DestinationAlias = aliases[op.Destination]
 		errs, err := cerrors.ParseArray(res[i].Body.Errors)
 		if err != nil {
 			return nil, err
