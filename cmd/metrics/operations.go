@@ -38,7 +38,9 @@ func getOperation(ids []string) error {
 }
 
 func parseOperation(h *metrics.Handler, operation models.Operation) error {
-	h.SetOperationAliases(ctx.Aliases, &operation)
+	if _, err := h.SetOperationAliases(&operation); err != nil {
+		return err
+	}
 	h.SetOperationStrings(&operation)
 
 	if helpers.IsContract(operation.Destination) || operation.IsOrigination() {

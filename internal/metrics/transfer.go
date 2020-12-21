@@ -1,12 +1,21 @@
 package metrics
 
 import (
+	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models"
 )
 
 // SetTransferAliases -
-func (h *Handler) SetTransferAliases(aliases map[string]string, transfer *models.Transfer) bool {
+func (h *Handler) SetTransferAliases(transfer *models.Transfer) (bool, error) {
 	var changed bool
+
+	aliases, err := h.ES.GetAliasesMap(transfer.Network)
+	if err != nil {
+		if elastic.IsRecordNotFound(err) {
+			err = nil
+		}
+		return changed, err
+	}
 
 	if alias, ok := aliases[transfer.From]; ok {
 		transfer.FromAlias = alias
@@ -28,5 +37,5 @@ func (h *Handler) SetTransferAliases(aliases map[string]string, transfer *models
 		changed = true
 	}
 
-	return changed
+	return changed, nil
 }

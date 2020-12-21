@@ -113,6 +113,14 @@ func (ctx *Context) getMempoolEvents(subscriptions []database.Subscription) ([]e
 			continue
 		}
 
+		aliases, err := ctx.ES.GetAliasesMap(sub.Network)
+		if err != nil {
+			if !elastic.IsRecordNotFound(err) {
+				return nil, err
+			}
+			aliases = make(map[string]string)
+		}
+
 		for _, item := range res {
 			status := item.Body.Status
 			if status == consts.Applied {
@@ -131,8 +139,8 @@ func (ctx *Context) getMempoolEvents(subscriptions []database.Subscription) ([]e
 				Destination: item.Body.Destination,
 			}
 
-			op.SourceAlias = ctx.Aliases[op.Source]
-			op.DestinationAlias = ctx.Aliases[op.Destination]
+			op.SourceAlias = aliases[op.Source]
+			op.DestinationAlias = aliases[op.Destination]
 			op.Errors, err = cerrors.ParseArray(item.Body.Errors)
 			if err != nil {
 				return nil, err

@@ -27,8 +27,8 @@ func getContract(ids []string) error {
 func parseContract(contract *models.Contract) error {
 	h := metrics.New(ctx.ES, ctx.DB)
 
-	if contract.Alias == "" {
-		h.SetContractAlias(ctx.Aliases, contract)
+	if _, err := h.SetContractAlias(contract); err != nil {
+		return err
 	}
 
 	rpc, err := ctx.GetRPC(contract.Network)

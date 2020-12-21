@@ -2,7 +2,6 @@ package config
 
 import (
 	"github.com/baking-bad/bcdhub/internal/aws"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/elastic"
@@ -27,7 +26,6 @@ type Context struct {
 	SharePath  string
 	TzipSchema string
 
-	Aliases    map[string]string
 	Interfaces map[string]kinds.ContractKind
 	Domains    map[string]string
 }
@@ -56,23 +54,6 @@ func (ctx *Context) GetTzKTService(network string) (tzkt.Service, error) {
 		return rpc, nil
 	}
 	return nil, errors.Errorf("Unknown tzkt service network %s", network)
-}
-
-// LoadAliases -
-func (ctx *Context) LoadAliases() error {
-	if ctx.ES == nil {
-		return errors.Errorf("Connection to database is not initialized")
-	}
-	aliases, err := ctx.ES.GetAliasesMap(consts.Mainnet)
-	if err != nil {
-		if !elastic.IsRecordNotFound(err) {
-			return err
-		}
-		ctx.Aliases = make(map[string]string)
-		return nil
-	}
-	ctx.Aliases = aliases
-	return nil
 }
 
 // Close -

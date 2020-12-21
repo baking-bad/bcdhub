@@ -81,8 +81,14 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		res.Address = actions[0].Address
 	}
 
-	if alias, ok := ctx.Aliases[res.Address]; ok {
-		res.ContractAlias = alias
+	alias, err := ctx.ES.GetAlias(req.Network, res.Address)
+	if err != nil {
+		if !elastic.IsRecordNotFound(err) {
+			handleError(c, err, 0)
+			return
+		}
+	} else {
+		res.ContractAlias = alias.Name
 	}
 
 	c.JSON(http.StatusOK, res)
