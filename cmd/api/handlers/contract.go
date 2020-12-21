@@ -24,16 +24,16 @@ import (
 // @Router /contract/{network}/{address} [get]
 func (ctx *Context) GetContract(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	contract := contract.NewEmptyContract(req.Network, req.Address)
-	if err := ctx.Storage.GetByID(&contract); handleError(c, err, 0) {
+	if err := ctx.Storage.GetByID(&contract); ctx.handleError(c, err, 0) {
 		return
 	}
 	res, err := ctx.contractPostprocessing(contract, c)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	c.JSON(http.StatusOK, res)
@@ -54,14 +54,14 @@ func (ctx *Context) GetRandomContract(c *gin.Context) {
 
 	for !helpers.StringInArray(contract.Network, ctx.Config.API.Networks) {
 		cntr, err := ctx.Contracts.GetRandom()
-		if handleError(c, err, 0) {
+		if ctx.handleError(c, err, 0) {
 			return
 		}
 		contract = cntr
 	}
 
 	res, err := ctx.contractPostprocessing(contract, c)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	c.JSON(http.StatusOK, res)

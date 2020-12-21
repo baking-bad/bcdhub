@@ -31,7 +31,7 @@ type Parser struct {
 }
 
 // NewParser -
-func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Repository, schemaRepo schema.Repository, opts ...ParserOption) (*Parser, error) {
+func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Repository, schemaRepo schema.Repository, storage models.GeneralRepository, opts ...ParserOption) (*Parser, error) {
 	tp := &Parser{
 		rpc:    rpc,
 		Schema: schemaRepo,
@@ -46,7 +46,7 @@ func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Reposit
 	}
 
 	if !tp.withoutViews {
-		tokenEvents, err := NewTokenEvents(tzipRepo)
+		tokenEvents, err := NewTokenEvents(tzipRepo, storage)
 		if err != nil {
 			return nil, err
 		}

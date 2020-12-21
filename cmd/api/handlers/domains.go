@@ -24,17 +24,17 @@ import (
 // @Router /domains/{network} [get]
 func (ctx *Context) TezosDomainsList(c *gin.Context) {
 	var req getByNetwork
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	var args pageableRequest
-	if err := c.BindQuery(&args); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&args); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	domains, err := ctx.TezosDomains.ListDomains(req.Network, args.Size, args.Offset)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -63,11 +63,11 @@ func (ctx *Context) TezosDomainsList(c *gin.Context) {
 // @Router /domains/{network}/resolve [get]
 func (ctx *Context) ResolveDomain(c *gin.Context) {
 	var req getByNetwork
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 	var args resolveDomainRequest
-	if err := c.BindQuery(&args); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&args); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -82,11 +82,11 @@ func (ctx *Context) ResolveDomain(c *gin.Context) {
 				c.JSON(http.StatusNoContent, gin.H{})
 				return
 			}
-			handleError(c, err, 0)
+			ctx.handleError(c, err, 0)
 			return
 		}
 		if td.Address == "" {
-			handleError(c, errors.Errorf("Unknown domain name"), http.StatusBadRequest)
+			ctx.handleError(c, errors.Errorf("Unknown domain name"), http.StatusBadRequest)
 			return
 		}
 		c.JSON(http.StatusOK, td)
@@ -97,11 +97,11 @@ func (ctx *Context) ResolveDomain(c *gin.Context) {
 				c.JSON(http.StatusNoContent, gin.H{})
 				return
 			}
-			handleError(c, err, 0)
+			ctx.handleError(c, err, 0)
 			return
 		}
 		c.JSON(http.StatusOK, td)
 	default:
-		handleError(c, errors.Errorf("Invalid resolve request: %##v", args), http.StatusBadRequest)
+		ctx.handleError(c, errors.Errorf("Invalid resolve request: %##v", args), http.StatusBadRequest)
 	}
 }

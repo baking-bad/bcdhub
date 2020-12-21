@@ -21,16 +21,16 @@ import (
 // @Router /slug/{slug} [get]
 func (ctx *Context) GetBySlug(c *gin.Context) {
 	var req getBySlugRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	a, err := ctx.TZIP.GetBySlug(req.Slug)
 	if gorm.IsRecordNotFoundError(err) {
-		handleError(c, err, http.StatusBadRequest)
+		ctx.handleError(c, err, http.StatusBadRequest)
 		return
 	}
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	var alias Alias

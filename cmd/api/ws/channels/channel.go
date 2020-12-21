@@ -1,8 +1,8 @@
 package channels
 
 import (
+	"github.com/baking-bad/bcdhub/cmd/api/handlers"
 	"github.com/baking-bad/bcdhub/cmd/api/ws/datasources"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 )
 
 // Channel -
@@ -18,7 +18,7 @@ type Channel interface {
 type DefaultChannel struct {
 	sources []datasources.DataSource
 
-	es elastic.IElastic
+	ctx *handlers.Context
 }
 
 // NewDefaultChannel -

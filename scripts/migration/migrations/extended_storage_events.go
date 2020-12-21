@@ -5,7 +5,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -60,7 +59,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 					return err
 				}
 
-				parser, err := transferParsers.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.Schema,
+				parser, err := transferParsers.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.Schema, ctx.Storage,
 					transferParsers.WithNetwork(tzips[i].Network),
 					transferParsers.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
 				)
@@ -80,7 +79,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 				for _, op := range operations {
 					bmd, err := ctx.BigMapDiffs.GetByOperationID(op.ID)
 					if err != nil {
-						if !core.IsRecordNotFound(err) {
+						if !ctx.Storage.IsRecordNotFound(err) {
 							return err
 						}
 					}

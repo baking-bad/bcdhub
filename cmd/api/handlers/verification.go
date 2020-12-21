@@ -23,17 +23,17 @@ func (ctx *Context) ListVerifications(c *gin.Context) {
 	}
 
 	_, err := ctx.DB.GetUser(userID)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	var ctReq compilationRequest
-	if err := c.BindQuery(&ctReq); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&ctReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	verifications, err := ctx.DB.ListVerifications(userID, ctReq.Limit, ctReq.Offset)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -49,17 +49,17 @@ func (ctx *Context) CreateVerification(c *gin.Context) {
 	}
 
 	var req verificationRequest
-	if err := c.ShouldBindJSON(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.ShouldBindJSON(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	user, err := ctx.DB.GetUser(userID)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	provider, err := providers.NewPublic(user.Provider)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -75,7 +75,7 @@ func (ctx *Context) CreateVerification(c *gin.Context) {
 	}
 
 	err = ctx.DB.CreateCompilationTask(&task)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 

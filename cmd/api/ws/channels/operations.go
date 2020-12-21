@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/baking-bad/bcdhub/cmd/api/handlers"
 	"github.com/baking-bad/bcdhub/cmd/api/ws/datasources"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/pkg/errors"
@@ -98,7 +96,7 @@ func (c *OperationsChannel) listen(source datasources.DataSource) {
 
 func (c *OperationsChannel) createMessage(data datasources.Data) error {
 	op := operation.Operation{ID: string(data.Body.([]byte))}
-	if err := c.es.GetByID(&op); err != nil {
+	if err := c.ctx.Storage.GetByID(&op); err != nil {
 		return errors.Errorf("[OperationsChannel.createMessage] Find operation error: %s", err)
 	}
 	if op.Network != c.Network {
@@ -110,18 +108,18 @@ func (c *OperationsChannel) createMessage(data datasources.Data) error {
 	if _, ok := c.hashes[op.Hash]; ok {
 		return nil
 	}
-	operations, err := c.es.GetOperations(
+	operations, err := c.ctx.Operations.Get(
 		map[string]interface{}{
 			"hash": op.Hash,
 		},
 		0,
 		true,
 	)
-	if err != nil && !elastic.IsRecordNotFound(err) {
+	if err != nil && !c.ctx.Storage.IsRecordNotFound(err) {
 		return err
 	}
 
-	response, err := handlers.PrepareOperations(c.es, operations, true)
+	response, err := c.ctx.PrepareOperations(operations, true)
 	if err != nil {
 		return err
 	}

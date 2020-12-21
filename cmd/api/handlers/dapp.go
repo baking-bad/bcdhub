@@ -18,14 +18,14 @@ func (ctx *Context) GetDAppList(c *gin.Context) {
 			c.JSON(http.StatusOK, []interface{}{})
 			return
 		}
-		handleError(c, err, 0)
+		ctx.handleError(c, err, 0)
 		return
 	}
 
 	results := make([]DApp, len(dapps))
 	for i := range dapps {
 		result, err := ctx.appendDAppInfo(&dapps[i], false)
-		if handleError(c, err, 0) {
+		if ctx.handleError(c, err, 0) {
 			return
 		}
 		results[i] = result
@@ -37,7 +37,7 @@ func (ctx *Context) GetDAppList(c *gin.Context) {
 // GetDApp -
 func (ctx *Context) GetDApp(c *gin.Context) {
 	var req getDappRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -47,12 +47,12 @@ func (ctx *Context) GetDApp(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{})
 			return
 		}
-		handleError(c, err, 0)
+		ctx.handleError(c, err, 0)
 		return
 	}
 
 	response, err := ctx.appendDAppInfo(dapp, true)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 

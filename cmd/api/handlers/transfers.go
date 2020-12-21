@@ -25,11 +25,11 @@ import (
 // @Router /{network}/{address}/transfers [get]
 func (ctx *Context) GetContractTransfers(c *gin.Context) {
 	var contractRequest getContractRequest
-	if err := c.BindUri(&contractRequest); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&contractRequest); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 	var req getContractTransfers
-	if err := c.BindQuery(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -45,11 +45,11 @@ func (ctx *Context) GetContractTransfers(c *gin.Context) {
 		Offset:    req.Offset,
 		TokenID:   tokenID,
 	})
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	response, err := ctx.transfersPostprocessing(transfers)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	c.JSON(http.StatusOK, response)

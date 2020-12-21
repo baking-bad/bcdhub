@@ -4,12 +4,11 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	sentrygin "github.com/getsentry/sentry-go/gin"
 	"github.com/gin-gonic/gin"
 )
 
-func handleError(c *gin.Context, err error, code int) bool {
+func (ctx *Context) handleError(c *gin.Context, err error, code int) bool {
 	if err == nil {
 		return false
 	}
@@ -18,7 +17,7 @@ func handleError(c *gin.Context, err error, code int) bool {
 	case http.StatusUnauthorized:
 		err = errors.New("Invalid authentication")
 	case 0:
-		code = getErrorCode(err)
+		code = ctx.getErrorCode(err)
 
 		if code == http.StatusInternalServerError {
 			if hub := sentrygin.GetHubFromContext(c); hub != nil {
@@ -31,8 +30,8 @@ func handleError(c *gin.Context, err error, code int) bool {
 	return true
 }
 
-func getErrorCode(err error) int {
-	if core.IsRecordNotFound(err) {
+func (ctx *Context) getErrorCode(err error) int {
+	if ctx.Storage.IsRecordNotFound(err) {
 		return http.StatusNotFound
 	}
 	return http.StatusInternalServerError

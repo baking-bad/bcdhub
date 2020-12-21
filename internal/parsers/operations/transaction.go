@@ -6,7 +6,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -184,7 +183,7 @@ func (p Transaction) tagTransaction(tx *operation.Operation) error {
 
 	contract := contract.NewEmptyContract(tx.Network, tx.Destination)
 	if err := p.Storage.GetByID(&contract); err != nil {
-		if core.IsRecordNotFound(err) {
+		if p.Storage.IsRecordNotFound(err) {
 			return nil
 		}
 		return err

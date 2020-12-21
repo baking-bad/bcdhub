@@ -58,7 +58,7 @@ func newApp() *app {
 	}
 
 	api := &app{
-		Hub:     ws.DefaultHub(cfg.Elastic.URI, cfg.Elastic.Timeout, ctx.MQ),
+		Hub:     ws.DefaultHub(ctx),
 		Context: ctx,
 	}
 

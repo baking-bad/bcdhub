@@ -30,34 +30,34 @@ import (
 // @Router /contract/{network}/{address}/storage [get]
 func (ctx *Context) GetContractStorage(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	var sReq storageRequest
-	if err := c.BindQuery(&sReq); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&sReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 	rpc, err := ctx.GetRPC(req.Network)
-	if handleError(c, err, http.StatusBadRequest) {
+	if ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	deffatedStorage, err := rpc.GetScriptStorageJSON(req.Address, int64(sReq.Level))
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	header, err := rpc.GetHeader(int64(sReq.Level))
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	metadata, err := meta.GetMetadata(ctx.Schema, req.Address, consts.STORAGE, header.Protocol)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	resp, err := newmiguel.MichelineToMiguel(deffatedStorage, metadata)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -81,11 +81,11 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 // @Router /contract/{network}/{address}/storage/raw [get]
 func (ctx *Context) GetContractStorageRaw(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 	var sReq storageRequest
-	if err := c.BindQuery(&sReq); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&sReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 	filters := map[string]interface{}{
@@ -97,7 +97,7 @@ func (ctx *Context) GetContractStorageRaw(c *gin.Context) {
 	}
 
 	ops, err := ctx.Operations.Get(filters, 1, true)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	if len(ops) == 0 {
@@ -107,7 +107,7 @@ func (ctx *Context) GetContractStorageRaw(c *gin.Context) {
 
 	s := gjson.Parse(ops[0].DeffatedStorage)
 	resp, err := formatter.MichelineToMichelson(s, false, formatter.DefLineSize)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -131,11 +131,11 @@ func (ctx *Context) GetContractStorageRaw(c *gin.Context) {
 // @Router /contract/{network}/{address}/storage/rich [get]
 func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 	var sReq storageRequest
-	if err := c.BindQuery(&sReq); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&sReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 	filters := map[string]interface{}{
@@ -147,7 +147,7 @@ func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 	}
 
 	ops, err := ctx.Operations.Get(filters, 2, true)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	if len(ops) == 0 {
@@ -161,12 +161,12 @@ func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 	}
 
 	bmd, err := ctx.BigMapDiffs.GetForAddress(req.Address)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	resp, err := enrichStorage(ops[0].DeffatedStorage, prev.DeffatedStorage, bmd, ops[0].Protocol, true, false)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -189,44 +189,44 @@ func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 // @Router /contract/{network}/{address}/storage/schema [get]
 func (ctx *Context) GetContractStorageSchema(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 	var ssReq storageSchemaRequest
-	if err := c.BindQuery(&ssReq); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&ssReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	metadata, err := ctx.getStorageMetadata(req.Address, req.Network)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	schema := new(EntrypointSchema)
 
 	data, err := docstring.GetStorage(metadata)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	if len(data) > 0 {
 		schema.EntrypointType = data[0]
 	}
 	schema.Schema, err = jsonschema.Create("0", metadata)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	if ssReq.FillType == "current" {
 		rpc, err := ctx.GetRPC(req.Network)
-		if handleError(c, err, 0) {
+		if ctx.handleError(c, err, 0) {
 			return
 		}
 		storage, err := rpc.GetScriptStorageJSON(req.Address, 0)
-		if handleError(c, err, 0) {
+		if ctx.handleError(c, err, 0) {
 			return
 		}
 		schema.DefaultModel = make(jsonschema.DefaultModel)
-		if err := schema.DefaultModel.Fill(storage, metadata); handleError(c, err, 0) {
+		if err := schema.DefaultModel.Fill(storage, metadata); ctx.handleError(c, err, 0) {
 			return
 		}
 	}

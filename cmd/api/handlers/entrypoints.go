@@ -27,16 +27,16 @@ import (
 // @Router /contract/{network}/{address}/entrypoints [get]
 func (ctx *Context) GetEntrypoints(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 	metadata, err := ctx.getParameterMetadata(req.Address, req.Network)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	entrypoints, err := docstring.GetEntrypoints(metadata)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -44,7 +44,7 @@ func (ctx *Context) GetEntrypoints(c *gin.Context) {
 	for i, entrypoint := range entrypoints {
 		resp[i].EntrypointType = entrypoint
 		resp[i].Schema, err = jsonschema.Create(entrypoint.BinPath, metadata)
-		if handleError(c, err, 0) {
+		if ctx.handleError(c, err, 0) {
 			return
 		}
 	}
@@ -70,23 +70,23 @@ func (ctx *Context) GetEntrypoints(c *gin.Context) {
 // @Router /contract/{network}/{address}/entrypoints/data [post]
 func (ctx *Context) GetEntrypointData(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 	var reqData getEntrypointDataRequest
-	if err := c.BindJSON(&reqData); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindJSON(&reqData); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	result, err := ctx.buildEntrypointMicheline(req.Network, req.Address, reqData.BinPath, reqData.Data, false)
-	if handleError(c, err, http.StatusBadRequest) {
+	if ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	if reqData.Format == "michelson" {
 		value := result.Get("value")
 		michelson, err := formatter.MichelineToMichelson(value, false, formatter.DefLineSize)
-		if handleError(c, err, 0) {
+		if ctx.handleError(c, err, 0) {
 			return
 		}
 		c.JSON(http.StatusOK, michelson)
@@ -113,22 +113,22 @@ func (ctx *Context) GetEntrypointData(c *gin.Context) {
 // @Router /contract/{network}/{address}/entrypoints/schema [get]
 func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	var esReq entrypointSchemaRequest
-	if err := c.BindQuery(&esReq); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&esReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	metadata, err := ctx.getParameterMetadata(req.Address, req.Network)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	entrypoints, err := docstring.GetEntrypoints(metadata)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -140,7 +140,7 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 
 		schema.EntrypointType = entrypoint
 		schema.Schema, err = jsonschema.Create(entrypoint.BinPath, metadata)
-		if handleError(c, err, 0) {
+		if ctx.handleError(c, err, 0) {
 			return
 		}
 		if esReq.FillType != "latest" {
@@ -157,7 +157,7 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 			1,
 			true,
 		)
-		if handleError(c, err, 0) {
+		if ctx.handleError(c, err, 0) {
 			return
 		}
 		if len(op) != 1 {
@@ -168,7 +168,7 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 			parameters = parameters.Get("value")
 		}
 		schema.DefaultModel = make(jsonschema.DefaultModel)
-		if err := schema.DefaultModel.FillForEntrypoint(parameters, metadata, esReq.EntrypointName); handleError(c, err, 0) {
+		if err := schema.DefaultModel.FillForEntrypoint(parameters, metadata, esReq.EntrypointName); ctx.handleError(c, err, 0) {
 			return
 		}
 	}

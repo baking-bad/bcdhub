@@ -32,7 +32,7 @@ import (
 // @Router /bigmap/{network}/{ptr} [get]
 func (ctx *Context) GetBigMap(c *gin.Context) {
 	var req getBigMapRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -41,7 +41,7 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		Network: req.Network,
 		Size:    10000, // TODO: >10k
 	})
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -61,17 +61,17 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		}
 
 		metadata, err := ctx.getStorageMetadata(res.Address, res.Network)
-		if handleError(c, err, 0) {
+		if ctx.handleError(c, err, 0) {
 			return
 		}
 
 		res.Typedef, err = docstring.GetTypedef(bm[0].BinPath, metadata)
-		if handleError(c, err, 0) {
+		if ctx.handleError(c, err, 0) {
 			return
 		}
 	} else {
 		actions, err := ctx.BigMapActions.Get(req.Ptr, req.Network)
-		if handleError(c, err, 0) {
+		if ctx.handleError(c, err, 0) {
 			return
 		}
 		if len(actions) == 0 {
@@ -111,12 +111,12 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 // @Router /bigmap/{network}/{ptr}/history [get]
 func (ctx *Context) GetBigMapHistory(c *gin.Context) {
 	var req getBigMapRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	bm, err := ctx.BigMapActions.Get(req.Ptr, req.Network)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	if bm == nil {
@@ -146,12 +146,12 @@ func (ctx *Context) GetBigMapHistory(c *gin.Context) {
 // @Router /bigmap/{network}/{ptr}/keys [get]
 func (ctx *Context) GetBigMapKeys(c *gin.Context) {
 	var req getBigMapRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	var pageReq bigMapSearchRequest
-	if err := c.BindQuery(&pageReq); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&pageReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -163,12 +163,12 @@ func (ctx *Context) GetBigMapKeys(c *gin.Context) {
 		Offset:  pageReq.Offset,
 		Level:   pageReq.Level,
 	})
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	response, err := ctx.prepareBigMapKeys(bm)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -193,22 +193,22 @@ func (ctx *Context) GetBigMapKeys(c *gin.Context) {
 // @Router /bigmap/{network}/{ptr}/keys/{key_hash} [get]
 func (ctx *Context) GetBigMapByKeyHash(c *gin.Context) {
 	var req getBigMapByKeyHashRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	var pageReq pageableRequest
-	if err := c.BindQuery(&pageReq); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&pageReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	bm, total, err := ctx.BigMapDiffs.GetByPtrAndKeyHash(req.Ptr, req.Network, req.KeyHash, pageReq.Size, pageReq.Offset)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	response, err := ctx.prepareBigMapItem(bm, req.KeyHash)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -231,7 +231,7 @@ func (ctx *Context) GetBigMapByKeyHash(c *gin.Context) {
 // @Router /bigmap/{network}/{ptr}/count [get]
 func (ctx *Context) GetBigMapDiffCount(c *gin.Context) {
 	var req getBigMapRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -241,7 +241,7 @@ func (ctx *Context) GetBigMapDiffCount(c *gin.Context) {
 			c.JSON(http.StatusOK, CountResponse{})
 			return
 		}
-		handleError(c, err, 0)
+		ctx.handleError(c, err, 0)
 		return
 	}
 	c.JSON(http.StatusOK, CountResponse{count})

@@ -30,7 +30,7 @@ import (
 // @Router /contract/{network}/{address}/mempool [get]
 func (ctx *Context) GetMempool(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -41,12 +41,12 @@ func (ctx *Context) GetMempool(c *gin.Context) {
 	}
 
 	res, err := api.GetMempool(req.Address)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	ret, err := ctx.prepareMempoolOperations(res, req.Address, req.Network)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 

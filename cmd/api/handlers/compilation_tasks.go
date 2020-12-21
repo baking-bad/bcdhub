@@ -21,17 +21,17 @@ func (ctx *Context) ListCompilationTasks(c *gin.Context) {
 	}
 
 	_, err := ctx.DB.GetUser(userID)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	var ctReq compilationTasksRequest
-	if err := c.BindQuery(&ctReq); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&ctReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	tasks, err := ctx.DB.ListCompilationTasks(userID, ctReq.Limit, ctReq.Offset, ctReq.Kind)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 

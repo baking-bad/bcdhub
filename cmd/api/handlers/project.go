@@ -24,18 +24,18 @@ import (
 // @Router /contract/{network}/{address}/same [get]
 func (ctx *Context) GetSameContracts(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	var pageReq pageableRequest
-	if err := c.BindQuery(&pageReq); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&pageReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	contract := contract.NewEmptyContract(req.Network, req.Address)
 	err := ctx.Storage.GetByID(&contract)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -45,7 +45,7 @@ func (ctx *Context) GetSameContracts(c *gin.Context) {
 			c.JSON(http.StatusOK, []interface{}{})
 			return
 		}
-		handleError(c, err, 0)
+		ctx.handleError(c, err, 0)
 		return
 	}
 
@@ -72,23 +72,23 @@ func (ctx *Context) GetSameContracts(c *gin.Context) {
 // @Router /contract/{network}/{address}/similar [get]
 func (ctx *Context) GetSimilarContracts(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	var pageReq pageableRequest
-	if err := c.BindQuery(&pageReq); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&pageReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	contract := contract.NewEmptyContract(req.Network, req.Address)
 	err := ctx.Storage.GetByID(&contract)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	similar, total, err := ctx.Contracts.GetSimilarContracts(contract, pageReq.Size, pageReq.Offset)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -101,7 +101,7 @@ func (ctx *Context) GetSimilarContracts(c *gin.Context) {
 			CodeDiffLeg{Address: contract.Address, Network: contract.Network},
 			CodeDiffLeg{Address: similar[i].Address, Network: similar[i].Network},
 		)
-		if handleError(c, err, 0) {
+		if ctx.handleError(c, err, 0) {
 			return
 		}
 		response.Contracts[i].FromModel(similar[i], diff)

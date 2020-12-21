@@ -13,11 +13,9 @@ import (
 	formattererror "github.com/baking-bad/bcdhub/internal/contractparser/formatter_error"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
-	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
-	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/tzkt"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -46,23 +44,23 @@ import (
 // @Router /contract/{network}/{address}/operations [get]
 func (ctx *Context) GetContractOperations(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	var filtersReq operationsRequest
-	if err := c.BindQuery(&filtersReq); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&filtersReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	filters := prepareFilters(filtersReq)
 	ops, err := ctx.Operations.GetByContract(req.Network, req.Address, filtersReq.Size, filters)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	resp, err := PrepareOperations(ctx.BigMapDiffs, ctx.Schema, ctx.Operations, ops.Operations, filtersReq.WithStorageDiff)
-	if handleError(c, err, 0) {
+	resp, err := ctx.PrepareOperations(ops.Operations, filtersReq.WithStorageDiff)
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	c.JSON(http.StatusOK, OperationResponse{
@@ -85,12 +83,12 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 // @Router /opg/{hash} [get]
 func (ctx *Context) GetOperation(c *gin.Context) {
 	var req OPGRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	var queryReq opgRequest
-	if err := c.BindQuery(&queryReq); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&queryReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -101,7 +99,7 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 		0,
 		true,
 	)
-	if !ctx.Storage.IsRecordNotFound(err) && handleError(c, err, 0) {
+	if !ctx.Storage.IsRecordNotFound(err) && ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -119,8 +117,8 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 		return
 	}
 
-	resp, err := PrepareOperations(ctx.BigMapDiffs, ctx.Schema, ctx.Operations, op, true)
-	if handleError(c, err, 0) {
+	resp, err := ctx.PrepareOperations(op, true)
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -141,21 +139,21 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 // @Router /operation/{id}/error_location [get]
 func (ctx *Context) GetOperationErrorLocation(c *gin.Context) {
 	var req getOperationByIDRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 	operation := operation.Operation{ID: req.ID}
-	if err := ctx.Storage.GetByID(&operation); handleError(c, err, 0) {
+	if err := ctx.Storage.GetByID(&operation); ctx.handleError(c, err, 0) {
 		return
 	}
 
 	if !cerrors.HasScriptRejectedError(operation.Errors) {
-		handleError(c, errors.Errorf("No reject script error in operation"), http.StatusBadRequest)
+		ctx.handleError(c, errors.Errorf("No reject script error in operation"), http.StatusBadRequest)
 		return
 	}
 
 	response, err := ctx.getErrorLocation(operation, 2)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	c.JSON(http.StatusOK, response)
@@ -244,7 +242,7 @@ func formatErrors(errs []*cerrors.Error, op *Operation) error {
 	return nil
 }
 
-func prepareOperation(bmdRepo bigmapdiff.Repository, schemaRepo schema.Repository, operationsRepo operation.Repository, operation operation.Operation, bmd []bigmapdiff.BigMapDiff, withStorageDiff bool) (Operation, error) {
+func (ctx *Context) prepareOperation(operation operation.Operation, bmd []bigmapdiff.BigMapDiff, withStorageDiff bool) (Operation, error) {
 	var op Operation
 	op.FromModel(operation)
 
@@ -256,19 +254,19 @@ func prepareOperation(bmdRepo bigmapdiff.Repository, schemaRepo schema.Repositor
 		return op, err
 	}
 	if withStorageDiff {
-		if operation.DeffatedStorage != "" && strings.HasPrefix(op.Destination, "KT") && op.Status == consts.Applied {
-			if err := setStorageDiff(bmdRepo, schemaRepo, operationsRepo, op.Destination, operation.DeffatedStorage, &op, bmd); err != nil {
+		if operation.DeffatedStorage != "" && operation.IsCall() && operation.IsApplied() {
+			if err := ctx.setStorageDiff(op.Destination, operation.DeffatedStorage, &op, bmd); err != nil {
 				return op, err
 			}
 		}
 	}
 
-	if op.Kind != consts.Transaction {
+	if !operation.IsTransaction() {
 		return op, nil
 	}
 
-	if strings.HasPrefix(op.Destination, "KT") && !cerrors.HasParametersError(op.Errors) {
-		if err := setParameters(schemaRepo, operation.Parameters, &op); err != nil {
+	if helpers.IsContract(op.Destination) && !cerrors.HasParametersError(op.Errors) {
+		if err := ctx.setParameters(operation.Parameters, &op); err != nil {
 			return op, err
 		}
 	}
@@ -277,20 +275,20 @@ func prepareOperation(bmdRepo bigmapdiff.Repository, schemaRepo schema.Repositor
 }
 
 // PrepareOperations -
-func PrepareOperations(bmdRepo bigmapdiff.Repository, schemaRepo schema.Repository, operationsRepo operation.Repository, ops []operation.Operation, withStorageDiff bool) ([]Operation, error) {
+func (ctx *Context) PrepareOperations(ops []operation.Operation, withStorageDiff bool) ([]Operation, error) {
 	resp := make([]Operation, len(ops))
 	for i := 0; i < len(ops); i++ {
 		var bmd []bigmapdiff.BigMapDiff
 		var err error
 
 		if withStorageDiff {
-			bmd, err = bmdRepo.GetUniqueByOperationID(ops[i].ID)
+			bmd, err = ctx.BigMapDiffs.GetUniqueByOperationID(ops[i].ID)
 			if err != nil {
 				return nil, err
 			}
 		}
 
-		op, err := prepareOperation(bmdRepo, schemaRepo, operationsRepo, ops[i], bmd, withStorageDiff)
+		op, err := ctx.prepareOperation(ops[i], bmd, withStorageDiff)
 		if err != nil {
 			return nil, err
 		}
@@ -299,8 +297,8 @@ func PrepareOperations(bmdRepo bigmapdiff.Repository, schemaRepo schema.Reposito
 	return resp, nil
 }
 
-func setParameters(schemaRepo schema.Repository, parameters string, op *Operation) error {
-	metadata, err := meta.GetMetadata(schemaRepo, op.Destination, consts.PARAMETER, op.Protocol)
+func (ctx *Context) setParameters(parameters string, op *Operation) error {
+	metadata, err := meta.GetMetadata(ctx.Schema, op.Destination, consts.PARAMETER, op.Protocol)
 	if err != nil {
 		return nil
 	}
@@ -316,12 +314,12 @@ func setParameters(schemaRepo schema.Repository, parameters string, op *Operatio
 	return nil
 }
 
-func setStorageDiff(bmdRepo bigmapdiff.Repository, schemaRepo schema.Repository, operationsRepo operation.Repository, address, storage string, op *Operation, bmd []bigmapdiff.BigMapDiff) error {
-	metadata, err := meta.GetContractMetadata(schemaRepo, address)
+func (ctx *Context) setStorageDiff(address, storage string, op *Operation, bmd []bigmapdiff.BigMapDiff) error {
+	metadata, err := meta.GetContractMetadata(ctx.Schema, address)
 	if err != nil {
 		return err
 	}
-	storageDiff, err := getStorageDiff(bmdRepo, operationsRepo, bmd, address, storage, metadata, false, op)
+	storageDiff, err := ctx.getStorageDiff(bmd, address, storage, metadata, false, op)
 	if err != nil {
 		return err
 	}
@@ -329,21 +327,21 @@ func setStorageDiff(bmdRepo bigmapdiff.Repository, schemaRepo schema.Repository,
 	return nil
 }
 
-func getStorageDiff(bmdRepo bigmapdiff.Repository, operationsRepo operation.Repository, bmd []bigmapdiff.BigMapDiff, address, storage string, metadata *meta.ContractMetadata, isSimulating bool, op *Operation) (interface{}, error) {
+func (ctx *Context) getStorageDiff(bmd []bigmapdiff.BigMapDiff, address, storage string, metadata *meta.ContractMetadata, isSimulating bool, op *Operation) (interface{}, error) {
 	var prevStorage *newmiguel.Node
 	var prevDeffatedStorage string
-	prev, err := operationsRepo.Last(address, op.Network, op.IndexedTime)
+	prev, err := ctx.Operations.Last(address, op.Network, op.IndexedTime)
 	if err == nil {
-		prevBmd, err := getPrevBmd(bmdRepo, bmd, op.IndexedTime, op.Destination)
+		prevBmd, err := ctx.getPrevBmd(bmd, op.IndexedTime, op.Destination)
 		if err != nil {
 			return nil, err
 		}
 
 		var exDeffatedStorage string
-		exOp, err := operationsRepo.Last(address, prev.Network, prev.IndexedTime)
+		exOp, err := ctx.Operations.Last(address, prev.Network, prev.IndexedTime)
 		if err == nil {
 			exDeffatedStorage = exOp.DeffatedStorage
-		} else if !core.IsRecordNotFound(err) {
+		} else if !ctx.Storage.IsRecordNotFound(err) {
 			return nil, err
 		}
 
@@ -353,7 +351,7 @@ func getStorageDiff(bmdRepo bigmapdiff.Repository, operationsRepo operation.Repo
 		}
 		prevDeffatedStorage = prev.DeffatedStorage
 	} else {
-		if !core.IsRecordNotFound(err) {
+		if !ctx.Storage.IsRecordNotFound(err) {
 			return nil, err
 		}
 		prevStorage = nil
@@ -396,11 +394,11 @@ func enrichStorage(s, prevStorage string, bmd []bigmapdiff.BigMapDiff, protocol 
 	return parser.Enrich(s, prevStorage, bmd, skipEmpty, true)
 }
 
-func getPrevBmd(repo bigmapdiff.Repository, bmd []bigmapdiff.BigMapDiff, indexedTime int64, address string) ([]bigmapdiff.BigMapDiff, error) {
+func (ctx *Context) getPrevBmd(bmd []bigmapdiff.BigMapDiff, indexedTime int64, address string) ([]bigmapdiff.BigMapDiff, error) {
 	if len(bmd) == 0 {
 		return nil, nil
 	}
-	return repo.Previous(bmd, indexedTime, address)
+	return ctx.BigMapDiffs.Previous(bmd, indexedTime, address)
 }
 
 func (ctx *Context) prepareMempoolOperation(item tzkt.MempoolOperation, network string) *Operation {

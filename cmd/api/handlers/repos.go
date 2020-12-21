@@ -18,12 +18,12 @@ func (ctx *Context) ListPublicAccounts(c *gin.Context) {
 	}
 
 	user, err := ctx.DB.GetUser(userID)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	orgs, err := getPublicOrgs(user)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -57,7 +57,7 @@ func getPublicOrgs(user *database.User) ([]providers.Account, error) {
 // ListPublicRepos -
 func (ctx *Context) ListPublicRepos(c *gin.Context) {
 	var req publicReposRequest
-	if err := c.BindQuery(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -68,12 +68,12 @@ func (ctx *Context) ListPublicRepos(c *gin.Context) {
 	}
 
 	user, err := ctx.DB.GetUser(userID)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	repos, err := getPublicRepos(req.Login, user)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -106,17 +106,17 @@ func (ctx *Context) ListPublicRefs(c *gin.Context) {
 	}
 
 	user, err := ctx.DB.GetUser(userID)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	var req publicRefsRequest
-	if err := c.BindQuery(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	refs, err := getPublicRefs(user, req.Owner, req.Repo)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 

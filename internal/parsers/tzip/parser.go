@@ -3,6 +3,7 @@ package tzip
 import (
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/schema"
@@ -28,17 +29,19 @@ type Parser struct {
 	bigMapRepo bigmapdiff.Repository
 	blockRepo  block.Repository
 	schemaRepo schema.Repository
+	storage    models.GeneralRepository
 	rpc        noderpc.INode
 
 	cfg ParserConfig
 }
 
 // NewParser -
-func NewParser(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, schemaRepo schema.Repository, rpc noderpc.INode, cfg ParserConfig) Parser {
+func NewParser(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, schemaRepo schema.Repository, storage models.GeneralRepository, rpc noderpc.INode, cfg ParserConfig) Parser {
 	return Parser{
 		bigMapRepo: bigMapRepo,
 		blockRepo:  blockRepo,
 		schemaRepo: schemaRepo,
+		storage:    storage,
 		rpc:        rpc,
 
 		cfg: cfg,
@@ -73,8 +76,7 @@ func (p Parser) getFromStorage(ctx ParseContext, url string) (*tzip.TZIP, error)
 			tzipStorage.WithHashSha256(ctx.Hash),
 		)
 	case strings.HasPrefix(url, tzipStorage.PrefixTezosStorage):
-		store = tzipStorage.NewTezosStorage(p.bigMapRepo, p.blockRepo, p.schemaRepo, p.rpc, ctx.BigMapDiff.Address, ctx.BigMapDiff.Network, ctx.BigMapDiff.Ptr)
-	default:
+		store = tzipStorage.NewTezosStorage(p.bigMapRepo, p.blockRepo, p.schemaRepo, p.storage, p.rpc, ctx.BigMapDiff.Address, ctx.BigMapDiff.Network, ctx.BigMapDiff.Ptr)
 		return nil, errors.Wrap(ErrUnknownStorageType, url)
 	}
 	val, err := store.Get(url)

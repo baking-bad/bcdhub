@@ -22,12 +22,12 @@ import (
 // @Router /contract/{network}/{address}/migrations [get]
 func (ctx *Context) GetContractMigrations(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	migrations, err := ctx.Migrations.GetMigrations(req.Network, req.Address)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 

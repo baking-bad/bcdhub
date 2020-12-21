@@ -1,8 +1,8 @@
 package channels
 
 import (
+	"github.com/baking-bad/bcdhub/cmd/api/handlers"
 	"github.com/baking-bad/bcdhub/cmd/api/ws/datasources"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/pkg/errors"
 )
@@ -22,10 +22,10 @@ func WithSource(sources []datasources.DataSource, typ string) ChannelOption {
 	}
 }
 
-// WithElasticSearch -
-func WithElasticSearch(es elastic.IElastic) ChannelOption {
+// WithContext -
+func WithContext(ctx *handlers.Context) ChannelOption {
 	return func(c *DefaultChannel) {
-		c.es = es
+		c.ctx = ctx
 	}
 }
 

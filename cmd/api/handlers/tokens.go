@@ -28,24 +28,24 @@ import (
 // @Router /tokens/{network} [get]
 func (ctx *Context) GetFA(c *gin.Context) {
 	var req getByNetwork
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	var cursorReq pageableRequest
-	if err := c.BindQuery(&cursorReq); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&cursorReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 	if cursorReq.Size == 0 {
 		cursorReq.Size = 20
 	}
 	contracts, total, err := ctx.Contracts.GetTokens(req.Network, "", cursorReq.Offset, cursorReq.Size)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	tokens, err := ctx.contractToTokens(contracts, req.Network, "")
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	tokens.Total = total
@@ -70,24 +70,24 @@ func (ctx *Context) GetFA(c *gin.Context) {
 // @Router /tokens/{network}/version/{faversion} [get]
 func (ctx *Context) GetFAByVersion(c *gin.Context) {
 	var req getTokensByVersion
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	var cursorReq pageableRequest
-	if err := c.BindQuery(&cursorReq); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&cursorReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 	if cursorReq.Size == 0 {
 		cursorReq.Size = 20
 	}
 	contracts, total, err := ctx.Contracts.GetTokens(req.Network, req.Version, cursorReq.Offset, cursorReq.Size)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	tokens, err := ctx.contractToTokens(contracts, req.Network, req.Version)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	tokens.Total = total
@@ -116,12 +116,12 @@ func (ctx *Context) GetFAByVersion(c *gin.Context) {
 // @Router /tokens/{network}/transfers/{address} [get]
 func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	var ctxReq getTransfersRequest
-	if err := c.BindQuery(&ctxReq); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&ctxReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -146,7 +146,7 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 		Size:      ctxReq.Size,
 		TokenID:   tokenID,
 	})
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -171,22 +171,22 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 // @Router /tokens/{network}/series [get]
 func (ctx *Context) GetTokenVolumeSeries(c *gin.Context) {
 	var req getByNetwork
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	var args getTokenSeriesRequest
-	if err := c.BindQuery(&args); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&args); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	dapp, err := ctx.TZIP.GetDAppBySlug(args.Slug)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	series, err := ctx.Transfers.GetTokenVolumeSeries(req.Network, args.Period, []string{args.Contract}, dapp.Contracts, args.TokenID)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -284,11 +284,11 @@ func (ctx *Context) contractToTokens(contracts []contract.Contract, network, ver
 // @Router /contract/{network}/{address}/tokens [get]
 func (ctx *Context) GetContractTokens(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 	tokens, err := ctx.getTokens(req.Network, req.Address)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	c.JSON(http.StatusOK, tokens)
@@ -336,16 +336,16 @@ func (ctx *Context) getTokens(network, address string) ([]Token, error) {
 // @Router /contract/{network}/{address}/tokens/holders [get]
 func (ctx *Context) GetTokenHolders(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 	var reqArgs getTokenHolders
-	if err := c.BindQuery(&reqArgs); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&reqArgs); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	balances, err := ctx.TokenBalances.GetHolders(req.Network, req.Address, *reqArgs.TokenID)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	result := make(map[string]int64)

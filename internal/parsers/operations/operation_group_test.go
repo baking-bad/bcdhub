@@ -5,13 +5,21 @@ import (
 	"testing"
 	"time"
 
-	mock_elastic "github.com/baking-bad/bcdhub/internal/elastic/mock"
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	modelContract "github.com/baking-bad/bcdhub/internal/models/contract"
+	mock_general "github.com/baking-bad/bcdhub/internal/models/mock"
+	mock_bmd "github.com/baking-bad/bcdhub/internal/models/mock/bigmapdiff"
+	mock_block "github.com/baking-bad/bcdhub/internal/models/mock/block"
+	mock_schema "github.com/baking-bad/bcdhub/internal/models/mock/schema"
+	mock_token_balance "github.com/baking-bad/bcdhub/internal/models/mock/tokenbalance"
+	mock_tzip "github.com/baking-bad/bcdhub/internal/models/mock/tzip"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/schema"
+	modelSchema "github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -23,9 +31,29 @@ import (
 func TestGroup_Parse(t *testing.T) {
 	timestamp := time.Now()
 
-	ctrlES := gomock.NewController(t)
-	defer ctrlES.Finish()
-	es := mock_elastic.NewMockIElastic(ctrlES)
+	ctrlStorage := gomock.NewController(t)
+	defer ctrlStorage.Finish()
+	generalRepo := mock_general.NewMockGeneralRepository(ctrlStorage)
+
+	ctrlBmdRepo := gomock.NewController(t)
+	defer ctrlBmdRepo.Finish()
+	bmdRepo := mock_bmd.NewMockRepository(ctrlBmdRepo)
+
+	ctrlBlockRepo := gomock.NewController(t)
+	defer ctrlBlockRepo.Finish()
+	blockRepo := mock_block.NewMockRepository(ctrlBlockRepo)
+
+	ctrlTzipRepo := gomock.NewController(t)
+	defer ctrlTzipRepo.Finish()
+	tzipRepo := mock_tzip.NewMockRepository(ctrlTzipRepo)
+
+	ctrlSchemaRepo := gomock.NewController(t)
+	defer ctrlSchemaRepo.Finish()
+	schemaRepo := mock_schema.NewMockRepository(ctrlSchemaRepo)
+
+	ctrlTokenBalanceRepo := gomock.NewController(t)
+	defer ctrlTokenBalanceRepo.Finish()
+	tbRepo := mock_token_balance.NewMockRepository(ctrlTokenBalanceRepo)
 
 	ctrlRPC := gomock.NewController(t)
 	defer ctrlRPC.Finish()
@@ -40,15 +68,70 @@ func TestGroup_Parse(t *testing.T) {
 		Save(gomock.Any(), gomock.Any()).
 		Return(nil).AnyTimes()
 
-	es.
+	tzipRepo.
 		EXPECT().
-		GetTZIPWithEvents().
+		GetWithEvents().
 		Return(make([]tzip.TZIP, 0), nil).
 		AnyTimes()
-	es.
+
+	tbRepo.
 		EXPECT().
-		UpdateTokenBalances(gomock.Any()).
+		Update(gomock.Any()).
 		Return(nil).
+		AnyTimes()
+
+	generalRepo.
+		EXPECT().
+		GetByID(gomock.AssignableToTypeOf(&modelContract.Contract{})).
+		DoAndReturn(readTestContractModel).
+		AnyTimes()
+
+	bmdRepo.
+		EXPECT().
+		GetByPtr(
+			gomock.Eq("KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU"),
+			gomock.Eq("carthagenet"),
+			gomock.Eq(int64(2416))).
+		Return([]bigmapdiff.BigMapDiff{
+			{
+				Ptr:          2416,
+				BinPath:      "0/0/0/1/0",
+				Key:          map[string]interface{}{"bytes": "000085ef0c18b31983603d978a152de4cd61803db881"},
+				KeyHash:      "exprtfKNhZ1G8vMscchFjt1G1qww2P93VTLHMuhyThVYygZLdnRev2",
+				KeyStrings:   []string{"tz1XrCvviH8CqoHMSKpKuznLArEa1yR9U7ep"},
+				Value:        `{"prim":"Pair","args":[[],{"int":"6000"}]}`,
+				ValueStrings: []string{},
+				Level:        386026,
+				Address:      "KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU",
+				Network:      "carthagenet",
+				Timestamp:    timestamp,
+				Protocol:     "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+			},
+		}, nil).
+		AnyTimes()
+
+	bmdRepo.
+		EXPECT().
+		GetByPtr(
+			gomock.Eq("KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ"),
+			gomock.Eq("carthagenet"),
+			gomock.Eq(int64(2417))).
+		Return([]bigmapdiff.BigMapDiff{
+			{
+				Ptr:          2417,
+				BinPath:      "0/0/0/1/0",
+				Key:          map[string]interface{}{"bytes": "000085ef0c18b31983603d978a152de4cd61803db881"},
+				KeyHash:      "exprtfKNhZ1G8vMscchFjt1G1qww2P93VTLHMuhyThVYygZLdnRev2",
+				KeyStrings:   []string{"tz1XrCvviH8CqoHMSKpKuznLArEa1yR9U7ep"},
+				Value:        "",
+				ValueStrings: []string{},
+				Level:        386026,
+				Address:      "KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ",
+				Network:      "carthagenet",
+				Timestamp:    timestamp,
+				Protocol:     "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+			},
+		}, nil).
 		AnyTimes()
 
 	tests := []struct {
@@ -62,20 +145,20 @@ func TestGroup_Parse(t *testing.T) {
 	}{
 		{
 			name:        "opToHHcqFhRTQWJv2oTGAtywucj9KM1nDnk5eHsEETYJyvJLsa5",
-			ParseParams: NewParseParams(rpc, es),
+			ParseParams: NewParseParams(rpc, generalRepo, bmdRepo, blockRepo, tzipRepo, schemaRepo, tbRepo),
 			filename:    "./data/rpc/opg/opToHHcqFhRTQWJv2oTGAtywucj9KM1nDnk5eHsEETYJyvJLsa5.json",
 			want:        []models.Model{},
 		}, {
 			name: "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
 			ParseParams: NewParseParams(
-				rpc, es,
+				rpc, generalRepo, bmdRepo, blockRepo, tzipRepo, schemaRepo, tbRepo,
 				WithHead(noderpc.Header{
 					Timestamp: timestamp,
 					Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 					Level:     1151495,
 					ChainID:   "test",
 				}),
-				WithNetwork("mainnet"),
+				WithNetwork(consts.Mainnet),
 				WithConstants(protocol.Constants{
 					CostPerByte:                  1000,
 					HardGasLimitPerOperation:     1040000,
@@ -89,12 +172,12 @@ func TestGroup_Parse(t *testing.T) {
 			want: []models.Model{
 				&operation.Operation{
 					ContentIndex:     0,
-					Network:          "mainnet",
+					Network:          consts.Mainnet,
 					Protocol:         "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 					Hash:             "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
 					Internal:         false,
 					Nonce:            nil,
-					Status:           "applied",
+					Status:           consts.Applied,
 					Timestamp:        timestamp,
 					Level:            1151495,
 					Kind:             "transaction",
@@ -122,19 +205,19 @@ func TestGroup_Parse(t *testing.T) {
 					OperationID:  "f79b897e69e64aa9b6d7f0199fed08f9",
 					Level:        1151495,
 					Address:      "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
-					Network:      "mainnet",
+					Network:      consts.Mainnet,
 					IndexedTime:  1602764979843131,
 					Timestamp:    timestamp,
 					Protocol:     "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 				},
 				&operation.Operation{
 					ContentIndex:     0,
-					Network:          "mainnet",
+					Network:          consts.Mainnet,
 					Protocol:         "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 					Hash:             "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
 					Internal:         true,
 					Nonce:            setInt64(0),
-					Status:           "applied",
+					Status:           consts.Applied,
 					Timestamp:        timestamp,
 					Level:            1151495,
 					Kind:             "transaction",
@@ -161,7 +244,7 @@ func TestGroup_Parse(t *testing.T) {
 					OperationID:  "55baa67b04044639932a1bef22a2d0bc",
 					Level:        1151495,
 					Address:      "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-					Network:      "mainnet",
+					Network:      consts.Mainnet,
 					IndexedTime:  1602764979845825,
 					Timestamp:    timestamp,
 					Protocol:     "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
@@ -176,7 +259,7 @@ func TestGroup_Parse(t *testing.T) {
 					ValueStrings: nil,
 					OperationID:  "55baa67b04044639932a1bef22a2d0bc",
 					Level:        1151495, Address: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-					Network:     "mainnet",
+					Network:     consts.Mainnet,
 					IndexedTime: 1602764979845832,
 					Timestamp:   timestamp,
 					Protocol:    "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
@@ -192,17 +275,17 @@ func TestGroup_Parse(t *testing.T) {
 					OperationID:  "55baa67b04044639932a1bef22a2d0bc",
 					Level:        1151495,
 					Address:      "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-					Network:      "mainnet",
+					Network:      consts.Mainnet,
 					IndexedTime:  1602764979845839,
 					Timestamp:    timestamp,
 					Protocol:     "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 				},
 				&transfer.Transfer{
-					Network:   "mainnet",
+					Network:   consts.Mainnet,
 					Contract:  "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
 					Initiator: "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
 					Hash:      "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
-					Status:    "applied",
+					Status:    consts.Applied,
 					Timestamp: timestamp,
 					Level:     1151495,
 					From:      "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
@@ -216,7 +299,7 @@ func TestGroup_Parse(t *testing.T) {
 		}, {
 			name: "onzUDQhwunz2yqzfEsoURXEBz9p7Gk8DgY4QBva52Z4b3AJCZjt",
 			ParseParams: NewParseParams(
-				rpc, es,
+				rpc, generalRepo, bmdRepo, blockRepo, tzipRepo, schemaRepo, tbRepo,
 				WithHead(noderpc.Header{
 					Timestamp: timestamp,
 					Protocol:  "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
@@ -242,7 +325,7 @@ func TestGroup_Parse(t *testing.T) {
 					Protocol:                           "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
 					Hash:                               "onzUDQhwunz2yqzfEsoURXEBz9p7Gk8DgY4QBva52Z4b3AJCZjt",
 					Internal:                           false,
-					Status:                             "applied",
+					Status:                             consts.Applied,
 					Timestamp:                          timestamp,
 					Level:                              86142,
 					Kind:                               "origination",
@@ -266,7 +349,7 @@ func TestGroup_Parse(t *testing.T) {
 					Parameter: map[string]string{"babylon": "{\"0\":{\"prim\":\"or\",\"args\":[\"0/0\",\"0/1\"],\"type\":\"namedunion\"},\"0/0\":{\"fieldname\":\"decrement\",\"prim\":\"int\",\"type\":\"int\",\"name\":\"decrement\"},\"0/1\":{\"fieldname\":\"increment\",\"prim\":\"int\",\"type\":\"int\",\"name\":\"increment\"}}"},
 					Storage:   map[string]string{"babylon": "{\"0\":{\"prim\":\"int\",\"type\":\"int\"}}"},
 				},
-				&contract.Contract{
+				&modelContract.Contract{
 					Network:     "delphinet",
 					Level:       86142,
 					Timestamp:   timestamp,
@@ -284,7 +367,7 @@ func TestGroup_Parse(t *testing.T) {
 		}, {
 			name: "opQMNBmME834t76enxSBqhJcPqwV2R2BP2pTKv438bHaxRZen6x",
 			ParseParams: NewParseParams(
-				rpc, es,
+				rpc, generalRepo, bmdRepo, blockRepo, tzipRepo, schemaRepo, tbRepo,
 				WithHead(noderpc.Header{
 					Timestamp: timestamp,
 					Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
@@ -309,7 +392,7 @@ func TestGroup_Parse(t *testing.T) {
 					Protocol:         "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 					Hash:             "opQMNBmME834t76enxSBqhJcPqwV2R2BP2pTKv438bHaxRZen6x",
 					Internal:         false,
-					Status:           "applied",
+					Status:           consts.Applied,
 					Timestamp:        timestamp,
 					Level:            386026,
 					Kind:             "transaction",
@@ -335,7 +418,7 @@ func TestGroup_Parse(t *testing.T) {
 					Hash:                               "opQMNBmME834t76enxSBqhJcPqwV2R2BP2pTKv438bHaxRZen6x",
 					Internal:                           true,
 					Nonce:                              setInt64(0),
-					Status:                             "applied",
+					Status:                             consts.Applied,
 					Timestamp:                          timestamp,
 					Level:                              386026,
 					Kind:                               "transaction",
@@ -377,7 +460,7 @@ func TestGroup_Parse(t *testing.T) {
 					Hash:                               "opQMNBmME834t76enxSBqhJcPqwV2R2BP2pTKv438bHaxRZen6x",
 					Internal:                           true,
 					Nonce:                              setInt64(1),
-					Status:                             "applied",
+					Status:                             consts.Applied,
 					Timestamp:                          timestamp,
 					Level:                              386026,
 					Kind:                               "transaction",
@@ -463,75 +546,21 @@ func TestGroup_Parse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			metadata := &schema.Schema{ID: tt.address}
-			es.
+			schemaRepo.
 				EXPECT().
-				GetByID(gomock.AssignableToTypeOf(metadata)).
+				Get(gomock.Any()).
 				DoAndReturn(
-					func(val *schema.Schema) error {
-						buf, err := readTestMetadataModel(val.GetID())
+					func(address string) (modelSchema.Schema, error) {
+						val := modelSchema.Schema{ID: address}
+						buf, err := readTestMetadataModel(address)
 						if err != nil {
-							return err
+							return val, err
 						}
 						val.Parameter = buf.Parameter
 						val.Storage = buf.Storage
-						return nil
+						return val, nil
 					},
 				).
-				AnyTimes()
-
-			es.
-				EXPECT().
-				GetByID(gomock.AssignableToTypeOf(&contract.Contract{})).
-				DoAndReturn(readTestContractModel).
-				AnyTimes()
-
-			es.
-				EXPECT().
-				GetBigMapDiffsByPtr(
-					gomock.Eq("KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU"),
-					gomock.Eq("carthagenet"),
-					gomock.Eq(int64(2416))).
-				Return([]bigmapdiff.BigMapDiff{
-					{
-						Ptr:          2416,
-						BinPath:      "0/0/0/1/0",
-						Key:          map[string]interface{}{"bytes": "000085ef0c18b31983603d978a152de4cd61803db881"},
-						KeyHash:      "exprtfKNhZ1G8vMscchFjt1G1qww2P93VTLHMuhyThVYygZLdnRev2",
-						KeyStrings:   []string{"tz1XrCvviH8CqoHMSKpKuznLArEa1yR9U7ep"},
-						Value:        `{"prim":"Pair","args":[[],{"int":"6000"}]}`,
-						ValueStrings: []string{},
-						Level:        386026,
-						Address:      "KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU",
-						Network:      "carthagenet",
-						Timestamp:    timestamp,
-						Protocol:     "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
-					},
-				}, nil).
-				AnyTimes()
-
-			es.
-				EXPECT().
-				GetBigMapDiffsByPtr(
-					gomock.Eq("KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ"),
-					gomock.Eq("carthagenet"),
-					gomock.Eq(int64(2417))).
-				Return([]bigmapdiff.BigMapDiff{
-					{
-						Ptr:          2417,
-						BinPath:      "0/0/0/1/0",
-						Key:          map[string]interface{}{"bytes": "000085ef0c18b31983603d978a152de4cd61803db881"},
-						KeyHash:      "exprtfKNhZ1G8vMscchFjt1G1qww2P93VTLHMuhyThVYygZLdnRev2",
-						KeyStrings:   []string{"tz1XrCvviH8CqoHMSKpKuznLArEa1yR9U7ep"},
-						Value:        "",
-						ValueStrings: []string{},
-						Level:        386026,
-						Address:      "KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ",
-						Network:      "carthagenet",
-						Timestamp:    timestamp,
-						Protocol:     "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
-					},
-				}, nil).
 				AnyTimes()
 
 			rpc.

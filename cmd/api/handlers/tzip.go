@@ -22,7 +22,7 @@ import (
 // @Router /account/{network}/{address}/metadata [get]
 func (ctx *Context) GetMetadata(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 	tzip, err := ctx.TZIP.Get(req.Network, req.Address)
@@ -30,7 +30,7 @@ func (ctx *Context) GetMetadata(c *gin.Context) {
 		if ctx.Storage.IsRecordNotFound(err) {
 			c.JSON(http.StatusNoContent, gin.H{})
 		} else {
-			handleError(c, err, 0)
+			ctx.handleError(c, err, 0)
 		}
 		return
 	}

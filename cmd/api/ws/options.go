@@ -1,8 +1,8 @@
 package ws
 
 import (
+	"github.com/baking-bad/bcdhub/cmd/api/handlers"
 	"github.com/baking-bad/bcdhub/cmd/api/ws/datasources"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/mq"
 )
@@ -29,9 +29,9 @@ func WithRabbitSource(messageQueue mq.Mediator) HubOption {
 	}
 }
 
-// WithElastic -
-func WithElastic(es elastic.IElastic) HubOption {
+// WithContext -
+func WithContext(ctx *handlers.Context) HubOption {
 	return func(h *Hub) {
-		h.elastic = es
+		h.ctx = ctx
 	}
 }

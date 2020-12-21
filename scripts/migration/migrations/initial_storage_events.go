@@ -2,7 +2,6 @@ package migrations
 
 import (
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	elasticTransfers "github.com/baking-bad/bcdhub/internal/elastic/transfer"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
@@ -58,7 +57,7 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 				TokenID: -1,
 			})
 			if err != nil {
-				if !core.IsRecordNotFound(err) {
+				if !ctx.Storage.IsRecordNotFound(err) {
 					return err
 				}
 			}

@@ -12,7 +12,7 @@ import (
 // ForkContract -
 func (ctx *Context) ForkContract(c *gin.Context) {
 	var req forkRequest
-	if err := c.BindJSON(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindJSON(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 	response, err := ctx.buildStorageDataFromForkRequest(req)
@@ -21,7 +21,7 @@ func (ctx *Context) ForkContract(c *gin.Context) {
 		if errors.As(err, &meta.ValidationError{}) || errors.As(err, &meta.RequiredError{}) {
 			code = http.StatusBadRequest
 		}
-		handleError(c, err, code)
+		ctx.handleError(c, err, code)
 		return
 	}
 	c.JSON(http.StatusOK, response)

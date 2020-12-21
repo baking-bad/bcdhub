@@ -25,17 +25,17 @@ func (ctx *Context) GetEvents(c *gin.Context) {
 	}
 
 	var pageReq pageableRequest
-	if err := c.BindQuery(&pageReq); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindQuery(&pageReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	subscriptions, err := ctx.DB.ListSubscriptions(userID)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	events, err := ctx.getEvents(subscriptions, pageReq.Size, pageReq.Offset)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -51,12 +51,12 @@ func (ctx *Context) GetMempoolEvents(c *gin.Context) {
 	}
 
 	subscriptions, err := ctx.DB.ListSubscriptions(userID)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	events, err := ctx.getMempoolEvents(subscriptions)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 

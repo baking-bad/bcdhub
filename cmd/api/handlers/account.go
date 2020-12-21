@@ -22,25 +22,25 @@ import (
 // @Router /account/{network}/{address} [get]
 func (ctx *Context) GetInfo(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
 	stats, err := ctx.Operations.GetStats(req.Network, req.Address)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	block, err := ctx.Blocks.GetLastBlock(req.Network)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	rpc, err := ctx.GetRPC(req.Network)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	balance, err := rpc.GetContractBalance(req.Address, block.Level)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
@@ -63,7 +63,7 @@ func (ctx *Context) GetInfo(c *gin.Context) {
 	}
 
 	tokenBalances, err := ctx.getAccountBalances(req.Network, req.Address)
-	if handleError(c, err, 0) {
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	accountInfo.Tokens = tokenBalances

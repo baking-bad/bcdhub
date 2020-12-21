@@ -171,11 +171,6 @@ func (storage *Storage) Last(network, address string, indexedTime int64) (op ope
 	return
 }
 
-type operationAddresses struct {
-	Source      string `json:"source"`
-	Destination string `json:"destination"`
-}
-
 // Get -
 func (storage *Storage) Get(filters map[string]interface{}, size int64, sort bool) ([]operation.Operation, error) {
 	operations := make([]operation.Operation, 0)
