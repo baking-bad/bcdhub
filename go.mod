@@ -9,6 +9,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20191218082911-5398a82b748f
 	github.com/fatih/color v1.9.0
+	github.com/genjidb/genji v0.9.0
 	github.com/getsentry/sentry-go v0.5.1
 	github.com/gin-contrib/cors v1.3.0
 	github.com/gin-gonic/gin v1.5.0
