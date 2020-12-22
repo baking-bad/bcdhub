@@ -36,6 +36,10 @@ func NewParser(rpc noderpc.INode, es elastic.IElastic, opts ...ParserOption) (*P
 		opts[i](tp)
 	}
 
+	if tp.stackTrace == nil {
+		tp.stackTrace = stacktrace.New()
+	}
+
 	if !tp.withoutViews {
 		tokenEvents, err := NewTokenEvents(es)
 		if err != nil {

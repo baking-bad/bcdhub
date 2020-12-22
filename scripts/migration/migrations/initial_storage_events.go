@@ -35,6 +35,8 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 	logger.Info("Execution events...")
 	newTransfers := make([]*models.Transfer, 0)
 	for i := range tzips {
+		logger.Info("%s...", tzips[i].Address)
+
 		rpc, err := ctx.GetRPC(tzips[i].Network)
 		if err != nil {
 			return err

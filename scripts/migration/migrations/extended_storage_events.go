@@ -10,7 +10,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
-	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
 	"github.com/baking-bad/bcdhub/internal/parsers/transfer"
 )
 
@@ -45,7 +44,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 				if impl.MichelsonExtendedStorageEvent.Empty() {
 					continue
 				}
-				logger.Info("Execution event for %s...", tzips[i].Address)
+				logger.Info("%s...", tzips[i].Address)
 
 				protocol, err := ctx.ES.GetProtocol(tzips[i].Network, "", -1)
 				if err != nil {
@@ -59,7 +58,6 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 				parser, err := transfer.NewParser(rpc, ctx.ES,
 					transfer.WithNetwork(tzips[i].Network),
 					transfer.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
-					transfer.WithStackTrace(stacktrace.New()),
 				)
 				if err != nil {
 					return err
