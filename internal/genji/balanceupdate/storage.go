@@ -18,12 +18,10 @@ func NewStorage(db *core.Genji) *Storage {
 // GetBalance -
 // TODO: get balance
 func (storage *Storage) GetBalance(network, address string) (int64, error) {
-	builder := core.NewBuilder()
-
-	builder.Select(models.DocBalanceUpdates, "*").And(
+	builder := core.NewBuilder().SelectAll(models.DocBalanceUpdates).And(
 		core.NewEq("network", network),
 		core.NewEq("contract", address),
-	)
+	).End()
 	// query := core.NewQuery().Query(
 	// 	core.Bool(
 	// 		core.Filter(
