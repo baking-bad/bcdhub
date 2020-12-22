@@ -1,6 +1,6 @@
 rpc:
   sandboxnet:
-    uri: http://flextesa:20000
+    uri: ${SANDBOX_NODE_URI}
     timeout: 10
 
 elastic:

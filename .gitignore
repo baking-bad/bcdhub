@@ -22,3 +22,4 @@ scripts/esctl/esctl
 scripts/migration/data/events
 scripts/migration/data/*.yml
 *.csv
+.env*

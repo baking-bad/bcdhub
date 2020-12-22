@@ -56,6 +56,7 @@ services:
       - POSTGRES_DB=bcd_box
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
+      - SANDBOX_NODE_URI=http://sandbox:8732
     depends_on:
       - elastic
       - db
@@ -75,6 +76,7 @@ services:
       - BCD_ENV=sandbox
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
+      - SANDBOX_NODE_URI=http://sandbox:8732
     depends_on:
       - elastic
       - mq
@@ -97,6 +99,7 @@ services:
       - POSTGRES_DB=bcd_box
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
+      - SANDBOX_NODE_URI=http://sandbox:8732
     depends_on:
       - elastic
       - mq
