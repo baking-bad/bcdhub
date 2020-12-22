@@ -63,7 +63,7 @@ func (g *Genji) DeleteByLevelAndNetwork(indices []string, network string, maxLev
 		builder.Delete(indices[i]).And(
 			NewGt("level", maxLevel),
 			NewEq("network", network),
-		).Next()
+		).End()
 	}
 	return g.Exec(builder.String())
 }
@@ -72,7 +72,7 @@ func (g *Genji) DeleteByLevelAndNetwork(indices []string, network string, maxLev
 func (g *Genji) DeleteIndices(indices []string) error {
 	builder := NewBuilder()
 	for i := range indices {
-		builder.Drop(indices[i]).Next()
+		builder.Drop(indices[i]).End()
 	}
 	return g.Exec(builder.String())
 }
@@ -85,7 +85,7 @@ func (g *Genji) DeleteByContract(indices []string, network, address string) erro
 		builder.Delete(indices[i]).And(
 			NewEq("network", network),
 			NewEq("contract", address),
-		).Next()
+		).End()
 	}
 
 	return g.Exec(builder.String())

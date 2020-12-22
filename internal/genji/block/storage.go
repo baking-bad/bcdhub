@@ -18,75 +18,29 @@ func NewStorage(db *core.Genji) *Storage {
 
 // GetBlock -
 func (storage *Storage) GetBlock(network string, level int64) (block block.Block, err error) {
-	builder := core.NewBuilder()
-
-	builder.SelectAll(models.DocBlocks).And(
+	builder := core.NewBuilder().SelectAll(models.DocBlocks).And(
 		core.NewEq("network", network),
 		core.NewEq("level", level),
 	).One()
 
-	block.Network = network
-
-	// query := core.NewQuery().Query(
-	// 	core.Bool(
-	// 		core.Filter(
-	// 			core.Match("network", network),
-	// 			core.Term("level", level),
-	// 		),
-	// 	),
-	// ).One()
-
-	// var response core.SearchResponse
-	// if err = storage.es.Query([]string{models.DocBlocks}, query, &response); err != nil {
-	// 	return
-	// }
-
-	// if response.Hits.Total.Value == 0 {
-	// 	return block, core.NewRecordNotFoundError(models.DocBlocks, "")
-	// }
-
-	// err = json.Unmarshal(response.Hits.Hits[0].Source, &block)
+	err = storage.db.GetOne(builder, &block)
 	return
 }
 
 // GetLastBlock - returns current indexer state for network
 func (storage *Storage) GetLastBlock(network string) (block block.Block, err error) {
-	block.Network = network
-
-	builder := core.NewBuilder()
-
-	builder.SelectAll(models.DocBlocks).And(
+	builder := core.NewBuilder().SelectAll(models.DocBlocks).And(
 		core.NewEq("network", network),
 	).SortDesc("level").One()
 
-	// query := core.NewQuery().Query(
-	// 	core.Bool(
-	// 		core.Filter(
-	// 			core.Match("network", network),
-	// 		),
-	// 	),
-	// ).Sort("level", "desc").One()
-
-	// var response core.SearchResponse
-	// if err = storage.es.Query([]string{models.DocBlocks}, query, &response); err != nil {
-	// 	if strings.Contains(err.Error(), consts.IndexNotFoundError) {
-	// 		return block, nil
-	// 	}
-	// 	return
-	// }
-
-	// if response.Hits.Total.Value == 0 {
-	// 	return block, nil
-	// }
-	// err = json.Unmarshal(response.Hits.Hits[0].Source, &block)
+	err = storage.db.GetOne(builder, &block)
 	return
 }
 
 // GetLastBlocks - return last block for all networks
 func (storage *Storage) GetLastBlocks() ([]block.Block, error) {
-	builder := core.NewBuilder()
+	// builder := core.NewBuilder().SelectAll(models.DocBlocks).GroupBy("network")
 
-	builder.SelectAll(models.DocBlocks).GroupBy("network")
 	// query := core.NewQuery().Add(
 	// 	core.Aggs(
 	// 		core.AggItem{
@@ -123,29 +77,11 @@ func (storage *Storage) GetLastBlocks() ([]block.Block, error) {
 
 // GetNetworkAlias -
 func (storage *Storage) GetNetworkAlias(chainID string) (string, error) {
-	builder := core.NewBuilder()
-
-	builder.SelectAll(models.DocBlocks).And(
+	builder := core.NewBuilder().SelectAll(models.DocBlocks).And(
 		core.NewEq("chain_id", chainID),
 	).One()
-	// query := core.NewQuery().Query(
-	// 	core.Bool(
-	// 		core.Filter(
-	// 			core.Match("chain_id", chainID),
-	// 		),
-	// 	),
-	// ).One()
 
-	// var response core.SearchResponse
-	// if err := storage.es.Query([]string{models.DocBlocks}, query, &response); err != nil {
-	// 	return "", err
-	// }
-
-	// if response.Hits.Total.Value == 0 {
-	// 	return "", core.NewRecordNotFoundError(models.DocBlocks, "")
-	// }
-
-	// var block block.Block
-	// err := json.Unmarshal(response.Hits.Hits[0].Source, &block)
-	return "", nil
+	var block block.Block
+	err := storage.db.GetOne(builder, &block)
+	return block.Network, err
 }
