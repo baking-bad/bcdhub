@@ -186,7 +186,7 @@ func (ctx *GetBigMapKeysContext) build() base {
 	}
 
 	if ctx.Query != "" {
-		filters = append(filters, queryString(fmt.Sprintf("*%s*", ctx.Query), []string{"key", "key_hash", "key_strings", "bin_path"}))
+		filters = append(filters, queryString(fmt.Sprintf("*%s*", ctx.Query), []string{"key", "key_hash", "key_strings", "bin_path", "value", "value_strings"}))
 	}
 
 	if ctx.Size == 0 {
