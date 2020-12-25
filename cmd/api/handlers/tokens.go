@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic"
@@ -159,7 +158,7 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 // @Tags tokens
 // @ID get-token-series
 // @Param network path string true "Network"
-// @Param period query string true "One of periods"  Enums(year, month, week, day, 24hours)
+// @Param period query string true "One of periods"  Enums(year, month, week, day)
 // @Param addresses path string true "Comma-separated contract addresses"
 // @Param contract path string true "KT address" minlength(36) maxlength(36)
 // @Param token_id query int true "Token ID" minimum(0)
@@ -185,46 +184,12 @@ func (ctx *Context) GetTokenVolumeSeries(c *gin.Context) {
 		return
 	}
 
-	if args.Period == "24hours" {
-		series, err := ctx.get24HoursVolumeSeries(req.Network, args.Contract, args.TokenID)
-		if handleError(c, err, 0) {
-			return
-		}
-
-		c.JSON(http.StatusOK, series)
-		return
-	}
-
 	series, err := ctx.ES.GetTokenVolumeSeries(req.Network, args.Period, []string{args.Contract}, dapp.Contracts, args.TokenID)
 	if handleError(c, err, 0) {
 		return
 	}
 
 	c.JSON(http.StatusOK, series)
-}
-
-func (ctx *Context) get24HoursVolumeSeries(network, contract string, tokenID uint) ([][]int64, error) {
-	now := time.Now()
-	start := now.Add(time.Duration(-24)*time.Hour).Unix() * 1000
-	end := now.Unix() * 1000
-
-	response, err := ctx.ES.GetTransfers(elastic.GetTransfersContext{
-		Network:   network,
-		Contracts: []string{contract},
-		Start:     uint(start),
-		End:       uint(end),
-		TokenID:   int64(tokenID),
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	var volume float64
-	for _, t := range response.Transfers {
-		volume += t.Amount
-	}
-
-	return [][]int64{{int64(now.Day()), int64(volume)}}, nil
 }
 
 func (ctx *Context) contractToTokens(contracts []models.Contract, network, version string) (PageableTokenContracts, error) {

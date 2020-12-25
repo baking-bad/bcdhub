@@ -274,7 +274,7 @@ func (req GetTokenStatsRequest) Addresses() []string {
 
 type getTokenSeriesRequest struct {
 	Contract string `form:"contract" binding:"required,address"`
-	Period   string `form:"period" binding:"oneof=year month week day 24hours" example:"year"`
+	Period   string `form:"period" binding:"oneof=year month week day" example:"year"`
 	TokenID  uint   `form:"token_id"`
 	Slug     string `form:"slug" binding:"required"`
 }

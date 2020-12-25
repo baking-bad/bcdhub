@@ -4,7 +4,7 @@ export $(shell sed 's/=.*//' .env)
 .ONESHELL:
 
 api:
-	# docker-compose up -d elastic mq db
+	docker-compose up -d elastic mq db
 	cd cmd/api && go run .
 
 indexer:

@@ -97,6 +97,7 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 	if withDetails {
 		if len(dapp.DexTokens) > 0 {
 			result.DexTokens = make([]TokenMetadata, 0)
+
 			for _, token := range dapp.DexTokens {
 				tokenMetadata, err := ctx.ES.GetTokenMetadata(elastic.GetTokenMetadataContext{
 					Contract: token.Contract,
@@ -109,8 +110,24 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 					}
 					return result, err
 				}
+
+				var initiators, entrypoints []string
+				for _, c := range dapp.Contracts {
+					initiators = append(initiators, c.Address)
+					entrypoints = append(entrypoints, c.DexVolumeEntrypoints...)
+				}
+
+				vol, err := ctx.ES.GetToken24HoursVolume(consts.Mainnet, token.Contract, initiators, entrypoints, token.TokenID)
+				if err != nil {
+					if elastic.IsRecordNotFound(err) {
+						continue
+					}
+					return result, err
+				}
+
 				for i := range tokenMetadata {
 					tm := TokenMetadataFromElasticModel(tokenMetadata[i])
+					tm.Volume24Hours = vol
 					result.DexTokens = append(result.DexTokens, tm)
 				}
 			}
@@ -136,6 +153,13 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 					return result, err
 				}
 				result.Tokens = append(result.Tokens, tokens...)
+
+				vol, err := ctx.ES.GetContract24HoursVolume(consts.Mainnet, address.Address, address.DexVolumeEntrypoints)
+				if err != nil {
+					return result, err
+				}
+
+				result.Volume24Hours += vol
 			}
 		}
 	}

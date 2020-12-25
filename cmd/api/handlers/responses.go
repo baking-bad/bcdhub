@@ -594,6 +594,7 @@ type DApp struct {
 	Soon              bool     `json:"soon"`
 	Logo              string   `json:"logo"`
 	Cover             string   `json:"cover,omitempty"`
+	Volume24Hours     float64  `json:"volume_24_hours"`
 
 	Screenshots []Screenshot    `json:"screenshots,omitempty"`
 	Contracts   []DAppContract  `json:"contracts,omitempty"`
@@ -649,6 +650,7 @@ type TokenMetadata struct {
 	Name            string                 `json:"name,omitempty"`
 	Decimals        *int64                 `json:"decimals,omitempty"`
 	Extras          map[string]interface{} `json:"extras,omitempty"`
+	Volume24Hours   float64                `json:"volume_24_hours"`
 }
 
 // TokenMetadataFromElasticModel -

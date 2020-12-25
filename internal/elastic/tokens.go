@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/pkg/errors"
@@ -434,4 +435,43 @@ func CreateTokenBalanceUpdates(tokensStorage ITokens, transfers []*models.Transf
 	}
 
 	return tokensStorage.UpdateTokenBalances(updates)
+}
+
+type aggVolumeSumResponse struct {
+	Aggs struct {
+		Result struct {
+			Value float64 `json:"value"`
+		} `json:"volume"`
+	} `json:"aggregations"`
+}
+
+// GetToken24HoursVolume - returns token volume for last 24 hours
+func (e *Elastic) GetToken24HoursVolume(network, contract string, initiators, entrypoints []string, tokenID int64) (float64, error) {
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				term("contract.keyword", contract),
+				term("network", network),
+				term("status", consts.Applied),
+				term("token_id", tokenID),
+				rangeQ("timestamp", qItem{
+					"lte": "now",
+					"gt":  "now-24h",
+				}),
+				in("parent.keyword", entrypoints),
+				in("initiator.keyword", initiators),
+			),
+		),
+	).Add(
+		aggs(
+			aggItem{"volume", sum("amount")},
+		),
+	).Zero()
+
+	var response aggVolumeSumResponse
+	if err := e.query([]string{DocTransfers}, query, &response); err != nil {
+		return 0, err
+	}
+
+	return response.Aggs.Result.Value, nil
 }
