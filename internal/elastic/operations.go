@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/pkg/errors"
@@ -243,6 +244,41 @@ func (e *Elastic) GetOperations(filters map[string]interface{}, size int64, sort
 	ctx := newScrollContext(e, query, size, scrollSize)
 	err := ctx.get(&operations)
 	return operations, err
+}
+
+// GetContract24HoursVolume -
+func (e *Elastic) GetContract24HoursVolume(network, address string, entrypoints []string) (float64, error) {
+	query := newQuery().Query(
+		boolQ(
+			filter(
+				boolQ(
+					should(
+						matchPhrase("destination", address),
+						matchPhrase("source", address),
+					),
+					minimumShouldMatch(1),
+				),
+				term("network", network),
+				term("status", consts.Applied),
+				rangeQ("timestamp", qItem{
+					"lte": "now",
+					"gt":  "now-24h",
+				}),
+				in("entrypoint.keyword", entrypoints),
+			),
+		),
+	).Add(
+		aggs(
+			aggItem{"volume", sum("amount")},
+		),
+	).Zero()
+
+	var response aggVolumeSumResponse
+	if err := e.query([]string{DocOperations}, query, &response); err != nil {
+		return 0, err
+	}
+
+	return response.Aggs.Result.Value, nil
 }
 
 // OperationsStats -

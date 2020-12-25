@@ -115,6 +115,7 @@ type IOperations interface {
 	// GetOperations - get operation by `filter`. `Size` - if 0 - return all, else certain `size` operations.
 	// `Sort` - sort by time and content index by desc
 	GetOperations(filter map[string]interface{}, size int64, sort bool) ([]models.Operation, error)
+	GetContract24HoursVolume(network, address string, entrypoints []string) (float64, error)
 }
 
 // IProjects -
@@ -172,6 +173,7 @@ type ITokens interface {
 	GetAllTransfers(network string, level int64) ([]models.Transfer, error)
 	UpdateTokenBalances(updates []*models.TokenBalance) error
 	GetHolders(network, contract string, tokenID int64) ([]models.TokenBalance, error)
+	GetToken24HoursVolume(network, contract string, initiators, entrypoints []string, tokenID int64) (float64, error)
 }
 
 // ITZIP -

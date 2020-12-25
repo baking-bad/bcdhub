@@ -1141,6 +1141,21 @@ func (mr *MockIOperationsMockRecorder) GetOperations(filter, size, sort interfac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOperations", reflect.TypeOf((*MockIOperations)(nil).GetOperations), filter, size, sort)
 }
 
+// GetContract24HoursVolume mocks base method
+func (m *MockIOperations) GetContract24HoursVolume(network, address string, entrypoints []string) (float64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetContract24HoursVolume", network, address, entrypoints)
+	ret0, _ := ret[0].(float64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetContract24HoursVolume indicates an expected call of GetContract24HoursVolume
+func (mr *MockIOperationsMockRecorder) GetContract24HoursVolume(network, address, entrypoints interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContract24HoursVolume", reflect.TypeOf((*MockIOperations)(nil).GetContract24HoursVolume), network, address, entrypoints)
+}
+
 // MockIProjects is a mock of IProjects interface
 type MockIProjects struct {
 	ctrl     *gomock.Controller
@@ -1777,6 +1792,21 @@ func (m *MockITokens) GetHolders(network, contract string, tokenID int64) ([]mod
 func (mr *MockITokensMockRecorder) GetHolders(network, contract, tokenID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHolders", reflect.TypeOf((*MockITokens)(nil).GetHolders), network, contract, tokenID)
+}
+
+// GetToken24HoursVolume mocks base method
+func (m *MockITokens) GetToken24HoursVolume(network, contract string, initiators, entrypoints []string, tokenID int64) (float64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetToken24HoursVolume", network, contract, initiators, entrypoints, tokenID)
+	ret0, _ := ret[0].(float64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetToken24HoursVolume indicates an expected call of GetToken24HoursVolume
+func (mr *MockITokensMockRecorder) GetToken24HoursVolume(network, contract, initiators, entrypoints, tokenID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetToken24HoursVolume", reflect.TypeOf((*MockITokens)(nil).GetToken24HoursVolume), network, contract, initiators, entrypoints, tokenID)
 }
 
 // MockITZIP is a mock of ITZIP interface
@@ -2754,6 +2784,21 @@ func (mr *MockIElasticMockRecorder) GetOperations(filter, size, sort interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOperations", reflect.TypeOf((*MockIElastic)(nil).GetOperations), filter, size, sort)
 }
 
+// GetContract24HoursVolume mocks base method
+func (m *MockIElastic) GetContract24HoursVolume(network, address string, entrypoints []string) (float64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetContract24HoursVolume", network, address, entrypoints)
+	ret0, _ := ret[0].(float64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetContract24HoursVolume indicates an expected call of GetContract24HoursVolume
+func (mr *MockIElasticMockRecorder) GetContract24HoursVolume(network, address, entrypoints interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContract24HoursVolume", reflect.TypeOf((*MockIElastic)(nil).GetContract24HoursVolume), network, address, entrypoints)
+}
+
 // GetProjectsLastContract mocks base method
 func (m *MockIElastic) GetProjectsLastContract() ([]models.Contract, error) {
 	m.ctrl.T.Helper()
@@ -3252,6 +3297,21 @@ func (m *MockIElastic) GetHolders(network, contract string, tokenID int64) ([]mo
 func (mr *MockIElasticMockRecorder) GetHolders(network, contract, tokenID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHolders", reflect.TypeOf((*MockIElastic)(nil).GetHolders), network, contract, tokenID)
+}
+
+// GetToken24HoursVolume mocks base method
+func (m *MockIElastic) GetToken24HoursVolume(network, contract string, initiators, entrypoints []string, tokenID int64) (float64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetToken24HoursVolume", network, contract, initiators, entrypoints, tokenID)
+	ret0, _ := ret[0].(float64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetToken24HoursVolume indicates an expected call of GetToken24HoursVolume
+func (mr *MockIElasticMockRecorder) GetToken24HoursVolume(network, contract, initiators, entrypoints, tokenID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetToken24HoursVolume", reflect.TypeOf((*MockIElastic)(nil).GetToken24HoursVolume), network, contract, initiators, entrypoints, tokenID)
 }
 
 // GetTZIP mocks base method
