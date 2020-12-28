@@ -14,8 +14,6 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	ginSwagger "github.com/swaggo/gin-swagger"
-	"github.com/swaggo/gin-swagger/swaggerFiles"
 	"github.com/tidwall/gjson"
 	"gopkg.in/go-playground/validator.v9"
 )
@@ -131,7 +129,7 @@ func (api *app) makeRouter() {
 
 	v1 := r.Group("v1")
 	{
-		v1.GET("docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+		v1.GET("swagger.json", api.Context.GetSwaggerDoc)
 		v1.GET("ws", func(c *gin.Context) { ws.Handler(c, api.Hub) })
 
 		v1.GET("opg/:hash", api.Context.GetOperation)
@@ -306,8 +304,13 @@ func (api *app) Run() {
 }
 
 // @title Better Call Dev API
-// @version 1.0
 // @description This is API description for Better Call Dev service.
+
+// @contact.name Baking Bad Team
+// @contact.url https://baking-bad.org/docs
+// @contact.email hello@baking-bad.org
+
+// @x-logo {"url": "https://better-call.dev/img/logo_og.png", "altText": "Better Call Dev logo", "href": "https://better-call.dev"}
 
 // @BasePath /v1
 // @query.collection.format multi

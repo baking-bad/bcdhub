@@ -1,6 +1,15 @@
 basePath: /v1
 definitions:
-  cerrors.IError:
+  cerrors.Error:
+    properties:
+      descr:
+        type: string
+      id:
+        type: string
+      kind:
+        type: string
+      title:
+        type: string
     type: object
   docstring.Typedef:
     properties:
@@ -28,51 +37,6 @@ definitions:
         type: integer
       volume:
         type: integer
-    type: object
-  elastic.Group:
-    properties:
-      count:
-        type: integer
-      top:
-        items:
-          $ref: '#/definitions/elastic.Top'
-        type: array
-    type: object
-  elastic.SearchItem:
-    properties:
-      body:
-        type: object
-      group:
-        $ref: '#/definitions/elastic.Group'
-        type: object
-      highlights:
-        additionalProperties:
-          items:
-            type: string
-          type: array
-        type: object
-      type:
-        type: string
-      value:
-        type: string
-    type: object
-  elastic.SearchResult:
-    properties:
-      count:
-        type: integer
-      items:
-        items:
-          $ref: '#/definitions/elastic.SearchItem'
-        type: array
-      time:
-        type: integer
-    type: object
-  elastic.Top:
-    properties:
-      key:
-        type: string
-      network:
-        type: string
     type: object
   elastic.TransfersResponse:
     properties:
@@ -217,7 +181,6 @@ definitions:
         type: integer
       data:
         $ref: '#/definitions/handlers.BigMapItem'
-        type: object
     type: object
   handlers.Block:
     properties:
@@ -261,13 +224,10 @@ definitions:
     properties:
       diff:
         $ref: '#/definitions/formatter.DiffResult'
-        type: object
       left:
         $ref: '#/definitions/handlers.CodeDiffLeg'
-        type: object
       right:
         $ref: '#/definitions/handlers.CodeDiffLeg'
-        type: object
     type: object
   handlers.Contract:
     properties:
@@ -279,8 +239,6 @@ definitions:
         items:
           type: string
         type: array
-      balance:
-        type: integer
       delegate:
         type: string
       delegate_alias:
@@ -321,7 +279,6 @@ definitions:
         type: string
       subscription:
         $ref: '#/definitions/handlers.Subscription'
-        type: object
       tags:
         items:
           type: string
@@ -334,8 +291,6 @@ definitions:
         type: array
       total_subscribed:
         type: integer
-      total_withdrawn:
-        type: integer
       tx_count:
         type: integer
       verification_source:
@@ -343,18 +298,30 @@ definitions:
       verified:
         type: boolean
     type: object
+  handlers.CountResponse:
+    properties:
+      count:
+        type: integer
+    type: object
+  handlers.DomainsResponse:
+    properties:
+      domains:
+        items:
+          $ref: '#/definitions/models.TezosDomain'
+        type: array
+      total:
+        type: integer
+    type: object
   handlers.EntrypointSchema:
     properties:
       bin_path:
         type: string
       default_model:
         $ref: '#/definitions/jsonschema.DefaultModel'
-        type: object
       name:
         type: string
       schema:
         $ref: '#/definitions/jsonschema.Schema'
-        type: object
       typedef:
         items:
           $ref: '#/definitions/docstring.Typedef'
@@ -454,7 +421,7 @@ definitions:
         type: string
       errors:
         items:
-          $ref: '#/definitions/cerrors.IError'
+          $ref: '#/definitions/cerrors.Error'
         type: array
       fee:
         type: integer
@@ -486,7 +453,6 @@ definitions:
         type: object
       result:
         $ref: '#/definitions/handlers.OperationResult'
-        type: object
       source:
         type: string
       source_alias:
@@ -507,7 +473,7 @@ definitions:
         type: string
       operations:
         items:
-          type: integer
+          $ref: '#/definitions/handlers.Operation'
         type: array
     type: object
   handlers.OperationResult:
@@ -561,12 +527,6 @@ definitions:
       count:
         type: integer
     type: object
-  handlers.Series:
-    items:
-      items:
-        type: integer
-      type: array
-    type: array
   handlers.SimilarContract:
     properties:
       added:
@@ -579,8 +539,6 @@ definitions:
         items:
           type: string
         type: array
-      balance:
-        type: integer
       count:
         type: integer
       delegate:
@@ -625,7 +583,6 @@ definitions:
         type: string
       subscription:
         $ref: '#/definitions/handlers.Subscription'
-        type: object
       tags:
         items:
           type: string
@@ -637,8 +594,6 @@ definitions:
           $ref: '#/definitions/handlers.TokenBalance'
         type: array
       total_subscribed:
-        type: integer
-      total_withdrawn:
         type: integer
       tx_count:
         type: integer
@@ -691,7 +646,16 @@ definitions:
         type: string
       decimals:
         type: integer
+      extras:
+        additionalProperties: true
+        type: object
+      level:
+        type: integer
       name:
+        type: string
+      network:
+        type: string
+      registry_address:
         type: string
       supply:
         type: number
@@ -710,7 +674,16 @@ definitions:
         type: string
       decimals:
         type: integer
+      extras:
+        additionalProperties: true
+        type: object
+      level:
+        type: integer
       name:
+        type: string
+      network:
+        type: string
+      registry_address:
         type: string
       symbol:
         type: string
@@ -754,7 +727,16 @@ definitions:
         type: string
       decimals:
         type: integer
+      extras:
+        additionalProperties: true
+        type: object
+      level:
+        type: integer
       name:
+        type: string
+      network:
+        type: string
+      registry_address:
         type: string
       symbol:
         type: string
@@ -796,6 +778,8 @@ definitions:
         type: string
       nonce:
         type: integer
+      parent:
+        type: string
       status:
         type: string
       timestamp:
@@ -806,7 +790,6 @@ definitions:
         type: string
       token:
         $ref: '#/definitions/handlers.TokenMetadata'
-        type: object
       token_id:
         type: integer
     type: object
@@ -825,6 +808,13 @@ definitions:
   jsonschema.Schema:
     additionalProperties: true
     type: object
+  models.ReverseTezosDomain:
+    properties:
+      expiration:
+        type: string
+      name:
+        type: string
+    type: object
   models.TZIP:
     properties:
       address:
@@ -839,6 +829,8 @@ definitions:
         type: array
       description:
         type: string
+      domain:
+        $ref: '#/definitions/models.ReverseTezosDomain'
       events:
         items:
           $ref: '#/definitions/tzip.Event'
@@ -853,17 +845,36 @@ definitions:
         type: integer
       license:
         $ref: '#/definitions/tzip.License'
-        type: object
       name:
         type: string
       network:
         type: string
       slug:
         type: string
+      timestamp:
+        type: string
       tokens:
         $ref: '#/definitions/tzip.TokenMetadataType'
-        type: object
       version:
+        type: string
+    type: object
+  models.TezosDomain:
+    properties:
+      address:
+        type: string
+      data:
+        additionalProperties:
+          type: string
+        type: object
+      expiration:
+        type: string
+      level:
+        type: integer
+      name:
+        type: string
+      network:
+        type: string
+      timestamp:
         type: string
     type: object
   models.Transfer:
@@ -894,6 +905,8 @@ definitions:
         type: string
       nonce:
         type: integer
+      parent:
+        type: string
       status:
         type: string
       timestamp:
@@ -924,6 +937,50 @@ definitions:
       value:
         type: object
     type: object
+  search.Group:
+    properties:
+      count:
+        type: integer
+      top:
+        items:
+          $ref: '#/definitions/search.Top'
+        type: array
+    type: object
+  search.Item:
+    properties:
+      body:
+        type: object
+      group:
+        $ref: '#/definitions/search.Group'
+      highlights:
+        additionalProperties:
+          items:
+            type: string
+          type: array
+        type: object
+      type:
+        type: string
+      value:
+        type: string
+    type: object
+  search.Result:
+    properties:
+      count:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/search.Item'
+        type: array
+      time:
+        type: integer
+    type: object
+  search.Top:
+    properties:
+      key:
+        type: string
+      network:
+        type: string
+    type: object
   tzip.DApp:
     properties:
       agora_qa_post_id:
@@ -940,7 +997,7 @@ definitions:
         type: array
       contracts:
         items:
-          type: string
+          $ref: '#/definitions/tzip.DAppContract'
         type: array
       dex_tokens:
         items:
@@ -973,6 +1030,15 @@ definitions:
       web_site:
         type: string
     type: object
+  tzip.DAppContract:
+    properties:
+      address:
+        type: string
+      dex_volume_entrypoints:
+        items:
+          type: string
+        type: array
+    type: object
   tzip.DexToken:
     properties:
       contract:
@@ -990,14 +1056,15 @@ definitions:
         type: array
       name:
         type: string
-      pure:
-        type: string
     type: object
   tzip.EventImplementation:
     properties:
-      michelson-parameter-view:
-        $ref: '#/definitions/tzip.MichelsonParameterView'
-        type: object
+      michelson-extended-storage-event:
+        $ref: '#/definitions/tzip.MichelsonExtendedStorageEvent'
+      michelson-initial-storage-event:
+        $ref: '#/definitions/tzip.MichelsonInitialStorageEvent'
+      michelson-parameter-event:
+        $ref: '#/definitions/tzip.MichelsonParameterEvent'
     type: object
   tzip.License:
     properties:
@@ -1006,18 +1073,58 @@ definitions:
       name:
         type: string
     type: object
-  tzip.MichelsonParameterView:
+  tzip.MichelsonExtendedStorageEvent:
     properties:
       code:
-        type: object
+        items:
+          type: integer
+        type: array
       entrypoints:
         items:
           type: string
         type: array
       parameter:
-        type: object
+        items:
+          type: integer
+        type: array
       return-type:
-        type: object
+        items:
+          type: integer
+        type: array
+    type: object
+  tzip.MichelsonInitialStorageEvent:
+    properties:
+      code:
+        items:
+          type: integer
+        type: array
+      parameter:
+        items:
+          type: integer
+        type: array
+      return-type:
+        items:
+          type: integer
+        type: array
+    type: object
+  tzip.MichelsonParameterEvent:
+    properties:
+      code:
+        items:
+          type: integer
+        type: array
+      entrypoints:
+        items:
+          type: string
+        type: array
+      parameter:
+        items:
+          type: integer
+        type: array
+      return-type:
+        items:
+          type: integer
+        type: array
     type: object
   tzip.Picture:
     properties:
@@ -1050,11 +1157,16 @@ definitions:
         type: array
     type: object
 info:
-  contact: {}
+  contact:
+    email: hello@baking-bad.org
+    name: Baking Bad Team
+    url: https://baking-bad.org/docs
   description: This is API description for Better Call Dev service.
-  license: {}
   title: Better Call Dev API
-  version: "1.0"
+  x-logo:
+    altText: Better Call Dev logo
+    href: https://better-call.dev
+    url: https://better-call.dev/img/logo_og.png
 paths:
   /{network}/{address}/transfers:
     get:
@@ -1065,17 +1177,14 @@ paths:
       parameters:
       - description: Transfers count
         in: query
-        minimum: 1
         name: size
         type: integer
       - description: Offset
         in: query
-        minimum: 1
         name: offset
         type: integer
       - description: Token ID
         in: query
-        minimum: 1
         name: token_id
         type: integer
       produces:
@@ -1133,7 +1242,7 @@ paths:
       summary: Get account info
       tags:
       - account
-  /account/{network}/{address}/tzip:
+  /account/{network}/{address}/metadata:
     get:
       consumes:
       - application/json
@@ -1213,6 +1322,41 @@ paths:
       summary: Get big map info by pointer
       tags:
       - bigmap
+  /bigmap/{network}/{ptr}/count:
+    get:
+      consumes:
+      - application/json
+      description: Get big map diffs count info by pointer
+      operationId: get-bigmapdiff-count
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: Big map pointer
+        in: path
+        name: ptr
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.CountResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Get big map diffs count info by pointer
+      tags:
+      - bigmap
   /bigmap/{network}/{ptr}/history:
     get:
       consumes:
@@ -1279,11 +1423,11 @@ paths:
         type: integer
       - description: Requested count
         in: query
-        minimum: 1
         name: size
         type: integer
       - description: Level
         in: query
+        minimum: 0
         name: level
         type: integer
       produces:
@@ -1336,7 +1480,6 @@ paths:
         type: integer
       - description: Requested count
         in: query
-        minimum: 1
         name: size
         type: integer
       produces:
@@ -1759,7 +1902,6 @@ paths:
         type: integer
       - description: Expected OPG count
         in: query
-        minimum: 1
         name: size
         type: integer
       - description: Comma-separated operations statuses
@@ -1770,6 +1912,10 @@ paths:
         in: query
         name: entrypoints
         type: string
+      - description: Include storage diff to operations or not
+        in: query
+        name: with_storage_diff
+        type: boolean
       produces:
       - application/json
       responses:
@@ -1813,7 +1959,6 @@ paths:
         type: integer
       - description: Requested count
         in: query
-        minimum: 1
         name: size
         type: integer
       produces:
@@ -1859,7 +2004,6 @@ paths:
         type: integer
       - description: Requested count
         in: query
-        minimum: 1
         name: size
         type: integer
       produces:
@@ -2094,42 +2238,40 @@ paths:
       summary: List contract tokens
       tags:
       - contract
-  /contract/{network}/stats:
+  /contract/{network}/{address}/tokens/holders:
     get:
       consumes:
       - application/json
-      description: Show total volume, unique users and transactions count for period
-      operationId: get-stats-contracts
+      description: List token holders
+      operationId: get-token-holders
       parameters:
       - description: Network
         in: path
         name: network
         required: true
         type: string
-      - description: Comma-separated KT addresses
-        in: query
+      - description: KT address
+        in: path
+        maxLength: 36
         minLength: 36
-        name: contracts
+        name: address
         required: true
         type: string
-      - description: One of periods
-        enum:
-        - all
-        - year
-        - month
-        - week
-        - day
+      - description: Token ID
         in: query
-        name: period
+        minimum: 0
+        name: token_id
         required: true
-        type: string
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/elastic.DAppStats'
+            items:
+              $ref: '#/definitions/gin.H'
+            type: array
         "400":
           description: Bad Request
           schema:
@@ -2138,7 +2280,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.Error'
-      summary: Show contracts stats
+      summary: List token holders
       tags:
       - contract
   /diff:
@@ -2178,6 +2320,88 @@ paths:
       summary: Get diff between two contracts
       tags:
       - contract
+  /domains/{network}:
+    get:
+      consumes:
+      - application/json
+      description: Show all tezos domains for network
+      operationId: list-domains
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: Transfers count
+        in: query
+        name: size
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.DomainsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Show all tezos domains for network
+      tags:
+      - domains
+  /domains/{network}/resolve:
+    get:
+      consumes:
+      - application/json
+      description: Resolve domain by address and vice versa
+      operationId: resolve-domain
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: Domain name
+        in: query
+        name: name
+        type: string
+      - description: Address
+        in: query
+        maxLength: 36
+        minLength: 36
+        name: address
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TezosDomain'
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/gin.H'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Resolve domain
+      tags:
+      - domains
   /operation/{id}/error_location:
     get:
       consumes:
@@ -2265,7 +2489,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Search any data in contracts, operations and big map diff with filters
+      description: Search any data in contracts, operations and big map diff with
+        filters
       operationId: search
       parameters:
       - description: Query string
@@ -2283,17 +2508,14 @@ paths:
         type: string
       - description: Offset for pagination
         in: query
-        minimum: 0
         name: o
         type: integer
       - description: Return search result since given timestamp
         in: query
-        minimum: 0
         name: s
         type: integer
       - description: Return search result before given timestamp
         in: query
-        minimum: 0
         name: e
         type: integer
       - description: Grouping by contracts similarity. 0 - false, any others - true
@@ -2303,11 +2525,13 @@ paths:
         in: query
         name: g
         type: integer
-      - description: 'Comma-separated list of indices for searching. Values: contract, operation, bigmapdiff'
+      - description: 'Comma-separated list of indices for searching. Values: contract,
+          operation, bigmapdiff'
         in: query
         name: i
         type: string
-      - description: 'Comma-separated list of languages for searching. Values: smartpy, liquidity, ligo, lorentz, michelson'
+      - description: 'Comma-separated list of languages for searching. Values: smartpy,
+          liquidity, ligo, lorentz, michelson'
         in: query
         name: l
         type: string
@@ -2317,7 +2541,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/elastic.SearchResult'
+            $ref: '#/definitions/search.Result'
         "400":
           description: Bad Request
           schema:
@@ -2411,6 +2635,53 @@ paths:
       summary: Network statistics
       tags:
       - statistics
+  /stats/{network}/contracts:
+    get:
+      consumes:
+      - application/json
+      description: Show total volume, unique users and transactions count for period
+      operationId: get-stats-contracts
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: Comma-separated KT addresses
+        in: query
+        minLength: 36
+        name: contracts
+        required: true
+        type: string
+      - description: One of periods
+        enum:
+        - all
+        - year
+        - month
+        - week
+        - day
+        in: query
+        name: period
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/elastic.DAppStats'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Show contracts stats
+      tags:
+      - contract
   /stats/{network}/series:
     get:
       consumes:
@@ -2455,7 +2726,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.Series'
+            items:
+              items:
+                type: integer
+              type: array
+            type: array
         "400":
           description: Bad Request
           schema:
@@ -2485,6 +2760,8 @@ paths:
         type: integer
       - description: Requested count
         in: query
+        maximum: 100
+        minimum: 0
         name: size
         type: integer
       produces:
@@ -2541,6 +2818,7 @@ paths:
         type: string
       - description: Token ID
         in: query
+        minimum: 0
         name: token_id
         required: true
         type: integer
@@ -2550,7 +2828,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.Series'
+            items:
+              items:
+                type: integer
+              type: array
+            type: array
         "400":
           description: Bad Request
           schema:
@@ -2587,7 +2869,7 @@ paths:
         type: string
       - description: Requested count
         in: query
-        minimum: 1
+        maximum: 100
         name: size
         type: integer
       - description: 'Sort: one of `asc` and `desc`'
@@ -2596,12 +2878,10 @@ paths:
         type: string
       - description: Timestamp in seconds
         in: query
-        minimum: 1
         name: start
         type: integer
       - description: Timestamp in seconds
         in: query
-        minimum: 1
         name: end
         type: integer
       - description: Comma-separated list of contracts which tokens will be requested
@@ -2610,7 +2890,6 @@ paths:
         type: string
       - description: Token ID
         in: query
-        minimum: 0
         name: token_id
         type: integer
       produces:
@@ -2658,6 +2937,8 @@ paths:
         type: integer
       - description: Requested count
         in: query
+        maximum: 100
+        minimum: 0
         name: size
         type: integer
       produces:
