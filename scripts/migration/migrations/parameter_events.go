@@ -36,7 +36,8 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 	logger.Info("Found %d tzips", len(tzips))
 
 	logger.Info("Execution events...")
-	updated := make([]elastic.Model, 0)
+	inserted := make([]elastic.Model, 0)
+	deleted := make([]elastic.Model, 0)
 	newTransfers := make([]*models.Transfer, 0)
 	for i := range tzips {
 		for _, event := range tzips[i].Events {
@@ -81,17 +82,35 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 						}
 						return err
 					}
+
 					for _, t := range transfers {
-						updated = append(updated, t)
+						old, err := ctx.ES.GetTransfers(elastic.GetTransfersContext{
+							Hash:    t.Hash,
+							Network: t.Network,
+							Counter: &t.Counter,
+							Nonce:   t.Nonce,
+							TokenID: -1,
+						})
+						if err != nil {
+							return err
+						}
+						for j := range old.Transfers {
+							deleted = append(deleted, &old.Transfers[j])
+						}
+						inserted = append(inserted, t)
 						newTransfers = append(newTransfers, t)
 					}
 				}
 			}
 		}
 	}
+	logger.Info("Delete %d transfers", len(deleted))
+	if err := ctx.ES.BulkDelete(deleted); err != nil {
+		return err
+	}
 
-	logger.Info("Found %d transfers", len(updated))
-	if err := ctx.ES.BulkInsert(updated); err != nil {
+	logger.Info("Found %d transfers", len(inserted))
+	if err := ctx.ES.BulkInsert(inserted); err != nil {
 		return err
 	}
 	return elastic.CreateTokenBalanceUpdates(ctx.ES, newTransfers)
