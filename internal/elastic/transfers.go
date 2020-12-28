@@ -24,6 +24,8 @@ type GetTransfersContext struct {
 	Size      int64
 	Offset    int64
 	TokenID   int64
+	Nonce     *int64
+	Counter   *int64
 
 	query   base
 	filters []qItem
@@ -39,6 +41,8 @@ func (ctx *GetTransfersContext) buildQuery() base {
 	ctx.filterCursor()
 	ctx.filterContracts()
 	ctx.filterTokenID()
+	ctx.filterCounter()
+	ctx.filterNonce()
 	ctx.filterHash()
 
 	ctx.query.Query(
@@ -83,6 +87,18 @@ func (ctx *GetTransfersContext) filterAddress() {
 func (ctx *GetTransfersContext) filterTokenID() {
 	if ctx.TokenID >= 0 {
 		ctx.filters = append(ctx.filters, term("token_id", ctx.TokenID))
+	}
+}
+
+func (ctx *GetTransfersContext) filterCounter() {
+	if ctx.Counter != nil {
+		ctx.filters = append(ctx.filters, term("counter", *ctx.Counter))
+	}
+}
+
+func (ctx *GetTransfersContext) filterNonce() {
+	if ctx.Nonce != nil {
+		ctx.filters = append(ctx.filters, term("nonce", *ctx.Nonce))
 	}
 }
 
@@ -164,6 +180,7 @@ func (e *Elastic) GetTransfers(ctx GetTransfersContext) (TransfersResponse, erro
 		if err := json.Unmarshal(hits[i].Source, &transfers[i]); err != nil {
 			return po, err
 		}
+		transfers[i].ID = hits[i].ID
 	}
 	po.Transfers = transfers
 	po.Total = response.Hits.Total.Value
