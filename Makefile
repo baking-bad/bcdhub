@@ -95,10 +95,10 @@ lint:
 	golangci-lint run
 
 docs:
-	# wget https://github.com/swaggo/swag/releases/download/v1.6.6/swag_1.6.6_Linux_x86_64.tar.gz
-	# tar -zxvf swag_1.6.6_Linux_x86_64.tar.gz
+	# wget https://github.com/swaggo/swag/releases/download/v1.7.0/swag_1.7.0_Linux_x86_64.tar.gz
+	# tar -zxvf swag_1.7.0_Linux_x86_64.tar.gz
 	# sudo cp swag /usr/bin/swag
-	cd cmd/api && swag init --parseDependency
+	cd cmd/api && swag init --parseDependency --parseInternal
 
 images:
 	docker-compose build
