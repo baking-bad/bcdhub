@@ -49,6 +49,7 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 			found, err := ctx.ES.GetTransfers(elastic.GetTransfersContext{
 				Hash:    transfers[i].Hash,
 				Network: transfers[i].Network,
+				TokenID: -1,
 			})
 			if err != nil {
 				if !elastic.IsRecordNotFound(err) {
