@@ -141,7 +141,6 @@ func (c *StatsChannel) createMessage() error {
 		if ok {
 			body[i].Total = stats.Total
 			body[i].TotalBalance = stats.Balance
-			body[i].TotalWithdrawn = stats.TotalWithdrawn
 			body[i].UniqueContracts = stats.SameCount
 		}
 	}

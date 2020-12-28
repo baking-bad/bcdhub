@@ -22,7 +22,7 @@ func (m *SetAliases) Description() string {
 
 // Do - migrate function
 func (m *SetAliases) Do(ctx *config.Context) error {
-	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TZIP, ctx.Storage, ctx.Bulk, ctx.DB)
+	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.Bulk, ctx.DB)
 
 	updatedModels := make([]elastic.Model, 0)
 	for i := range ctx.Config.Scripts.Networks {

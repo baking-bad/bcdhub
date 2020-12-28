@@ -1,7 +1,5 @@
 package contract
 
-import "time"
-
 // SameResponse -
 type SameResponse struct {
 	Count     int64      `json:"count"`
@@ -20,21 +18,6 @@ type DiffTask struct {
 	Address1 string
 	Network2 string
 	Address2 string
-}
-
-// Stats -
-type Stats struct {
-	TxCount        int64     `json:"tx_count"`
-	LastAction     time.Time `json:"last_action"`
-	Balance        int64     `json:"balance"`
-	TotalWithdrawn int64     `json:"total_withdrawn"`
-}
-
-// DAppStats -
-type DAppStats struct {
-	Users  int64 `json:"users"`
-	Calls  int64 `json:"txs"`
-	Volume int64 `json:"volume"`
 }
 
 // Address -

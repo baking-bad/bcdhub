@@ -39,7 +39,7 @@ func (h *Handler) SetContractAlias(c *models.Contract) (bool, error) {
 
 // UpdateContractStats -
 func (h *Handler) UpdateContractStats(c *contract.Contract) error {
-	count, err := h.Contracts.GetMigrationsCount(c.Network, c.Address)
+	count, err := h.Migrations.Count(c.Network, c.Address)
 	if err != nil {
 		return err
 	}

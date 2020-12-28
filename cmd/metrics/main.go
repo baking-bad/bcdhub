@@ -77,7 +77,7 @@ func main() {
 	}
 
 	ctx = config.NewContext(
-		config.WithElasticSearch(cfg.Elastic),
+		config.WithStorage(cfg.Elastic),
 		config.WithRPC(cfg.RPC),
 		config.WithDatabase(cfg.DB),
 		config.WithRabbit(cfg.RabbitMQ, cfg.Metrics.ProjectName, cfg.Metrics.MQ),

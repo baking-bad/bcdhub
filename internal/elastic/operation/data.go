@@ -46,3 +46,30 @@ type getTokensStatsResponse struct {
 		} `json:"body"`
 	} `json:"aggregations"`
 }
+
+type operationAddresses struct {
+	Source      string `json:"source"`
+	Destination string `json:"destination"`
+}
+
+type opgForContract struct {
+	hash    string
+	counter int64
+}
+
+type recalcContractStatsResponse struct {
+	Aggs struct {
+		TxCount        core.IntValue `json:"tx_count"`
+		Balance        core.IntValue `json:"balance"`
+		LastAction     core.IntValue `json:"last_action"`
+		TotalWithdrawn core.IntValue `json:"total_withdrawn"`
+	} `json:"aggregations"`
+}
+
+type getDAppStatsResponse struct {
+	Aggs struct {
+		Users  core.FloatValue `json:"users"`
+		Calls  core.FloatValue `json:"calls"`
+		Volume core.FloatValue `json:"volume"`
+	} `json:"aggregations"`
+}

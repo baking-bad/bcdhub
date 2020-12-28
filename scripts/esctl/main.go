@@ -30,7 +30,7 @@ func main() {
 	}
 
 	ctx = config.NewContext(
-		config.WithElasticSearch(cfg.Elastic),
+		config.WithStorage(cfg.Elastic),
 		config.WithRabbit(cfg.RabbitMQ, "", cfg.Scripts.MQ),
 		config.WithConfigCopy(cfg),
 		config.WithRPC(cfg.RPC),

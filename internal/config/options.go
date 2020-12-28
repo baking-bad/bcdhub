@@ -3,6 +3,7 @@ package config
 import (
 	"io/ioutil"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/aws"
@@ -24,6 +25,23 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/elastic/transfer"
 	"github.com/baking-bad/bcdhub/internal/elastic/tzip"
+
+	reindexerBU "github.com/baking-bad/bcdhub/internal/reindexer/balanceupdate"
+	reindexerBMA "github.com/baking-bad/bcdhub/internal/reindexer/bigmapaction"
+	reindexerBMD "github.com/baking-bad/bcdhub/internal/reindexer/bigmapdiff"
+	reindexerBlock "github.com/baking-bad/bcdhub/internal/reindexer/block"
+	reindexerBulk "github.com/baking-bad/bcdhub/internal/reindexer/bulk"
+	reindexerContract "github.com/baking-bad/bcdhub/internal/reindexer/contract"
+	reindexerCore "github.com/baking-bad/bcdhub/internal/reindexer/core"
+	reindexerMigration "github.com/baking-bad/bcdhub/internal/reindexer/migration"
+	reindexerOperation "github.com/baking-bad/bcdhub/internal/reindexer/operation"
+	reindexerProtocol "github.com/baking-bad/bcdhub/internal/reindexer/protocol"
+	reindexerSchema "github.com/baking-bad/bcdhub/internal/reindexer/schema"
+	reindexerTD "github.com/baking-bad/bcdhub/internal/reindexer/tezosdomain"
+	reindexerTB "github.com/baking-bad/bcdhub/internal/reindexer/tokenbalance"
+	reindexerTransfer "github.com/baking-bad/bcdhub/internal/reindexer/transfer"
+	reindexertzip "github.com/baking-bad/bcdhub/internal/reindexer/tzip"
+
 	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/pinata"
@@ -50,26 +68,56 @@ func WithRPC(rpcConfig map[string]RPCConfig) ContextOption {
 	}
 }
 
-// WithElasticSearch -
-func WithElasticSearch(esConfig ElasticSearchConfig) ContextOption {
+// WithStorage -
+func WithStorage(cfg StorageConfig) ContextOption {
 	return func(ctx *Context) {
-		es := core.WaitNew(esConfig.URI, esConfig.Timeout)
+		if len(cfg.URI) == 0 {
+			panic("Please set connection strings to storage in config")
+		}
+		if strings.HasPrefix(cfg.URI[0], "builtin://") {
+			storage, err := reindexerCore.New(cfg.URI[0])
+			if err != nil {
+				panic(err)
+			}
 
-		ctx.Storage = es
-		ctx.Bulk = bulk.NewStorage(es)
-		ctx.BalanceUpdates = balanceupdate.NewStorage(es)
-		ctx.BigMapActions = bigmapaction.NewStorage(es)
-		ctx.BigMapDiffs = bigmapdiff.NewStorage(es)
-		ctx.Blocks = block.NewStorage(es)
-		ctx.Contracts = contract.NewStorage(es)
-		ctx.Migrations = migration.NewStorage(es)
-		ctx.Operations = operation.NewStorage(es)
-		ctx.Protocols = protocol.NewStorage(es)
-		ctx.Schema = schema.NewStorage(es)
-		ctx.TezosDomains = tezosdomain.NewStorage(es)
-		ctx.TokenBalances = tokenbalance.NewStorage(es)
-		ctx.Transfers = transfer.NewStorage(es)
-		ctx.TZIP = tzip.NewStorage(es)
+			ctx.Storage = storage
+			ctx.Bulk = reindexerBulk.NewStorage(storage)
+			ctx.BalanceUpdates = reindexerBU.NewStorage(storage)
+			ctx.BigMapActions = reindexerBMA.NewStorage(storage)
+			ctx.BigMapDiffs = reindexerBMD.NewStorage(storage)
+			ctx.Blocks = reindexerBlock.NewStorage(storage)
+			ctx.Contracts = reindexerContract.NewStorage(storage)
+			ctx.Migrations = reindexerMigration.NewStorage(storage)
+			ctx.Operations = reindexerOperation.NewStorage(storage)
+			ctx.Protocols = reindexerProtocol.NewStorage(storage)
+			ctx.Schema = reindexerSchema.NewStorage(storage)
+			ctx.TezosDomains = reindexerTD.NewStorage(storage)
+			ctx.TokenBalances = reindexerTB.NewStorage(storage)
+			ctx.Transfers = reindexerTransfer.NewStorage(storage)
+			ctx.TZIP = reindexertzip.NewStorage(storage)
+
+			if err := ctx.Storage.CreateIndexes(); err != nil {
+				panic(err)
+			}
+		} else {
+			es := core.WaitNew(cfg.URI, cfg.Timeout)
+
+			ctx.Storage = es
+			ctx.Bulk = bulk.NewStorage(es)
+			ctx.BalanceUpdates = balanceupdate.NewStorage(es)
+			ctx.BigMapActions = bigmapaction.NewStorage(es)
+			ctx.BigMapDiffs = bigmapdiff.NewStorage(es)
+			ctx.Blocks = block.NewStorage(es)
+			ctx.Contracts = contract.NewStorage(es)
+			ctx.Migrations = migration.NewStorage(es)
+			ctx.Operations = operation.NewStorage(es)
+			ctx.Protocols = protocol.NewStorage(es)
+			ctx.Schema = schema.NewStorage(es)
+			ctx.TezosDomains = tezosdomain.NewStorage(es)
+			ctx.TokenBalances = tokenbalance.NewStorage(es)
+			ctx.Transfers = transfer.NewStorage(es)
+			ctx.TZIP = tzip.NewStorage(es)
+		}
 	}
 }
 

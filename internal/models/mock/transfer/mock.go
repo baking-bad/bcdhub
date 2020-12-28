@@ -64,26 +64,6 @@ func (mr *MockRepositoryMockRecorder) GetAll(network, level interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockRepository)(nil).GetAll), network, level)
 }
 
-// GetBalances mocks base method
-func (m *MockRepository) GetBalances(arg0, arg1 string, arg2 int64, arg3 ...transfer.TokenBalance) (map[transfer.TokenBalance]int64, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{arg0, arg1, arg2}
-	for _, a := range arg3 {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "GetBalances", varargs...)
-	ret0, _ := ret[0].(map[transfer.TokenBalance]int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetBalances indicates an expected call of GetBalances
-func (mr *MockRepositoryMockRecorder) GetBalances(arg0, arg1, arg2 interface{}, arg3 ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{arg0, arg1, arg2}, arg3...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBalances", reflect.TypeOf((*MockRepository)(nil).GetBalances), varargs...)
-}
-
 // GetTokenSupply mocks base method
 func (m *MockRepository) GetTokenSupply(network, address string, tokenID int64) (transfer.TokenSupply, error) {
 	m.ctrl.T.Helper()

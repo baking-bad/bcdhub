@@ -13,4 +13,8 @@ type Repository interface {
 
 	GetContract24HoursVolume(network, address string, entrypoints []string) (float64, error)
 	GetTokensStats(network string, addresses, entrypoints []string) (map[string]TokenUsageStats, error)
+
+	GetParticipatingContracts(network string, fromLevel int64, toLevel int64) ([]string, error)
+	RecalcStats(network, address string) (ContractStats, error)
+	GetDAppStats(string, []string, string) (DAppStats, error)
 }

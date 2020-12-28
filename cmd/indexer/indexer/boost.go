@@ -368,7 +368,7 @@ func (bi *BoostIndexer) Rollback() error {
 		return err
 	}
 
-	manager := rollback.NewManager(bi.Storage, bi.Bulk, bi.Contracts, bi.Transfers, bi.TokenBalances, bi.Protocols, bi.messageQueue, bi.rpc, bi.cfg.SharePath)
+	manager := rollback.NewManager(bi.Storage, bi.Bulk, bi.Contracts, bi.Operations, bi.Transfers, bi.TokenBalances, bi.Protocols, bi.messageQueue, bi.rpc, bi.cfg.SharePath)
 	if err := manager.Rollback(bi.state, lastLevel); err != nil {
 		return err
 	}

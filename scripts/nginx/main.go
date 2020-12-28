@@ -16,7 +16,7 @@ func main() {
 	}
 
 	ctx := config.NewContext(
-		config.WithElasticSearch(cfg.Elastic),
+		config.WithStorage(cfg.Elastic),
 		config.WithConfigCopy(cfg),
 	)
 	defer ctx.Close()

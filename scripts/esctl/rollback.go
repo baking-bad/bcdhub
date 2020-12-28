@@ -30,7 +30,7 @@ func (x *rollbackCommand) Execute(_ []string) error {
 		panic(err)
 	}
 
-	manager := rollback.NewManager(ctx.Storage, ctx.Bulk, ctx.Contracts, ctx.Transfers, ctx.TokenBalances, ctx.Protocols, ctx.MQ, rpc, ctx.SharePath)
+	manager := rollback.NewManager(ctx.Storage, ctx.Bulk, ctx.Contracts, ctx.Operations, ctx.Transfers, ctx.TokenBalances, ctx.Protocols, ctx.MQ, rpc, ctx.SharePath)
 	if err = manager.Rollback(state, x.Level); err != nil {
 		return err
 	}

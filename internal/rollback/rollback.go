@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
@@ -25,6 +26,7 @@ type Manager struct {
 	storage       models.GeneralRepository
 	bulk          models.BulkRepository
 	contractsRepo contract.Repository
+	operationRepo operation.Repository
 	transfersRepo transfer.Repository
 	tbRepo        tokenbalance.Repository
 	protocolsRepo protocol.Repository
@@ -34,9 +36,9 @@ type Manager struct {
 }
 
 // NewManager -
-func NewManager(storage models.GeneralRepository, bulk models.BulkRepository, contractsRepo contract.Repository, transfersRepo transfer.Repository, tbRepo tokenbalance.Repository, protocolsRepo protocol.Repository, messageQueue mq.IMessagePublisher, rpc noderpc.INode, sharePath string) Manager {
+func NewManager(storage models.GeneralRepository, bulk models.BulkRepository, contractsRepo contract.Repository, operationRepo operation.Repository, transfersRepo transfer.Repository, tbRepo tokenbalance.Repository, protocolsRepo protocol.Repository, messageQueue mq.IMessagePublisher, rpc noderpc.INode, sharePath string) Manager {
 	return Manager{
-		storage, bulk, contractsRepo, transfersRepo, tbRepo, protocolsRepo, messageQueue, rpc, sharePath,
+		storage, bulk, contractsRepo, operationRepo, transfersRepo, tbRepo, protocolsRepo, messageQueue, rpc, sharePath,
 	}
 }
 
@@ -138,7 +140,7 @@ func (rm Manager) rollbackContracts(fromState block.Block, toLevel int64) error 
 }
 
 func (rm Manager) getAffectedContracts(network string, fromLevel, toLevel int64) ([]string, error) {
-	addresses, err := rm.contractsRepo.GetByLevels(network, fromLevel, toLevel)
+	addresses, err := rm.operationRepo.GetParticipatingContracts(network, fromLevel, toLevel)
 	if err != nil {
 		return nil, err
 	}
@@ -238,12 +240,10 @@ func (rm Manager) updateMetadata(network string, fromLevel, toLevel int64) error
 			for i := 0; i < len(bulkUpdateMetadata); i += 1000 {
 				start := i * 1000
 				end := helpers.MinInt((i+1)*1000, len(bulkUpdateMetadata))
-				parameterScript := fmt.Sprintf("ctx._source.parameter.remove('%s')", symLink)
-				if err := rm.bulk.RemoveField(parameterScript, bulkUpdateMetadata[start:end]); err != nil {
+				if err := rm.bulk.RemoveField(fmt.Sprintf("parameter.%s", symLink), bulkUpdateMetadata[start:end]); err != nil {
 					return err
 				}
-				storageScript := fmt.Sprintf("ctx._source.storage.remove('%s')", symLink)
-				if err := rm.bulk.RemoveField(storageScript, bulkUpdateMetadata[start:end]); err != nil {
+				if err := rm.bulk.RemoveField(fmt.Sprintf("storage.%s", symLink), bulkUpdateMetadata[start:end]); err != nil {
 					return err
 				}
 			}

@@ -18,8 +18,8 @@ func NewStorage(es *core.Elastic) *Storage {
 	return &Storage{es}
 }
 
-// GetMigrations -
-func (storage *Storage) GetMigrations(network, address string) ([]migration.Migration, error) {
+// Get -
+func (storage *Storage) Get(network, address string) ([]migration.Migration, error) {
 	query := core.NewQuery().Query(
 		core.Bool(
 			core.Must(
@@ -41,4 +41,31 @@ func (storage *Storage) GetMigrations(network, address string) ([]migration.Migr
 		}
 	}
 	return migrations, nil
+}
+
+// Count -
+func (storage *Storage) Count(network, address string) (int64, error) {
+	query := core.NewQuery().Query(
+		core.Bool(
+			core.Filter(
+				core.Match("network", network),
+			),
+			core.Should(
+				core.MatchPhrase("source", address),
+				core.MatchPhrase("destination", address),
+			),
+			core.MinimumShouldMatch(1),
+		),
+	).Add(
+		core.Aggs(
+			core.AggItem{
+				Name: "migrations_count",
+				Body: core.Count("indexed_time"),
+			},
+		),
+	).Zero()
+
+	var response getContractMigrationCountResponse
+	err := storage.es.Query([]string{models.DocMigrations}, query, &response)
+	return response.Agg.MigrationsCount.Value, err
 }
