@@ -51,9 +51,8 @@ type getContractStatsByNetworkStats struct {
 		Network struct {
 			Buckets []struct {
 				Bucket
-				Same           IntValue   `json:"same"`
-				Balance        FloatValue `json:"balance"`
-				TotalWithdrawn FloatValue `json:"total_withdrawn"`
+				Same    IntValue   `json:"same"`
+				Balance FloatValue `json:"balance"`
 			} `json:"buckets"`
 		} `json:"network"`
 	} `json:"aggregations"`
@@ -74,8 +73,7 @@ func (e *Elastic) GetContractStatsByNetwork() (map[string]models.ContractCountSt
 								"script": "doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value",
 							},
 						},
-						"balance":         Sum("balance"),
-						"total_withdrawn": Sum("total_withdrawn"),
+						"balance": Sum("balance"),
 					},
 				},
 			},
@@ -90,10 +88,9 @@ func (e *Elastic) GetContractStatsByNetwork() (map[string]models.ContractCountSt
 	counts := make(map[string]models.ContractCountStats)
 	for _, item := range response.Agg.Network.Buckets {
 		counts[item.Key] = models.ContractCountStats{
-			Total:          item.DocCount,
-			SameCount:      item.Same.Value,
-			Balance:        int64(item.Balance.Value),
-			TotalWithdrawn: int64(item.TotalWithdrawn.Value),
+			Total:     item.DocCount,
+			SameCount: item.Same.Value,
+			Balance:   int64(item.Balance.Value),
 		}
 	}
 	return counts, nil

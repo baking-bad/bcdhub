@@ -28,7 +28,7 @@ tzkt:
 
 elastic:
   uri:
-    - http://127.0.0.1:9200
+    - builtin:///tmp/reindex/testdb
   timeout: 10
 
 rabbitmq:

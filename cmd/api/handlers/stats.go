@@ -263,7 +263,7 @@ func (ctx *Context) GetContractsStats(c *gin.Context) {
 		ctx.handleError(c, errors.Errorf("Empty address list"), http.StatusBadRequest)
 		return
 	}
-	stats, err := ctx.Contracts.GetDAppStats(req.Network, addresses, reqStats.Period)
+	stats, err := ctx.Operations.GetDAppStats(req.Network, addresses, reqStats.Period)
 	if ctx.handleError(c, err, 0) {
 		return
 	}

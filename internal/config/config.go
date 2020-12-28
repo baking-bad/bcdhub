@@ -21,7 +21,7 @@ const (
 type Config struct {
 	RPC          map[string]RPCConfig  `yaml:"rpc"`
 	TzKT         map[string]TzKTConfig `yaml:"tzkt"`
-	Elastic      ElasticSearchConfig   `yaml:"elastic"`
+	Elastic      StorageConfig         `yaml:"elastic"`
 	RabbitMQ     RabbitConfig          `yaml:"rabbitmq"`
 	DB           DatabaseConfig        `yaml:"db"`
 	OAuth        OAuthConfig           `yaml:"oauth"`
@@ -90,8 +90,8 @@ type TzKTConfig struct {
 	Timeout     int    `yaml:"timeout"`
 }
 
-// ElasticSearchConfig -
-type ElasticSearchConfig struct {
+// StorageConfig -
+type StorageConfig struct {
 	URI     []string `yaml:"uri"`
 	Timeout int      `yaml:"timeout"`
 }

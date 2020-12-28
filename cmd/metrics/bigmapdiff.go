@@ -50,7 +50,7 @@ type result struct {
 
 //nolint
 func parseBigMapDiff(bmd bigmapdiff.BigMapDiff, r *result) error {
-	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TZIP, ctx.Storage, ctx.Bulk, ctx.DB)
+	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.Bulk, ctx.DB)
 
 	if err := h.SetBigMapDiffsStrings(&bmd); err != nil {
 		return err

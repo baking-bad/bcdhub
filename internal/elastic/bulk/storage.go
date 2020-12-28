@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	stdJSON "encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -136,13 +137,32 @@ func (storage *Storage) Delete(updates []models.Model) error {
 }
 
 // RemoveField -
-func (storage *Storage) RemoveField(script string, where []models.Model) error {
+func (storage *Storage) RemoveField(field string, where []models.Model) error {
 	if len(where) == 0 {
 		return nil
 	}
+	var sb strings.Builder
+	if _, err := sb.WriteString("ctx._source."); err != nil {
+		return err
+	}
+
+	idx := strings.LastIndex(field, ".")
+	if idx > -1 {
+		if _, err := sb.WriteString(field[:idx]); err != nil {
+			return err
+		}
+		if _, err := sb.WriteString(fmt.Sprintf(`.remove('%s')`, field[idx+1:])); err != nil {
+			return err
+		}
+	} else {
+		if _, err := sb.WriteString(fmt.Sprintf(`remove('%s')`, field)); err != nil {
+			return err
+		}
+	}
+
 	bulk := bytes.NewBuffer([]byte{})
 	for i := range where {
-		meta := fmt.Sprintf(`{ "update": { "_id": "%s", "_index": "%s"}}%s{"script" : "%s"}%s`, where[i].GetID(), where[i].GetIndex(), "\n", script, "\n")
+		meta := fmt.Sprintf(`{ "update": { "_id": "%s", "_index": "%s"}}%s{"script" : "%s"}%s`, where[i].GetID(), where[i].GetIndex(), "\n", sb.String(), "\n")
 		bulk.Grow(len(meta))
 		bulk.WriteString(meta)
 

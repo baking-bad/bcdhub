@@ -3,9 +3,11 @@ package operation
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/pkg/errors"
@@ -19,11 +21,6 @@ type Storage struct {
 // NewStorage -
 func NewStorage(es *core.Elastic) *Storage {
 	return &Storage{es}
-}
-
-type opgForContract struct {
-	hash    string
-	counter int64
 }
 
 func (storage *Storage) getContractOPG(address, network string, size uint64, filters map[string]interface{}) ([]opgForContract, error) {
@@ -341,4 +338,162 @@ func (storage *Storage) GetTokensStats(network string, addresses, entrypoints []
 	}
 
 	return usageStats, nil
+}
+
+// GetParticipatingContracts -
+func (storage *Storage) GetParticipatingContracts(network string, fromLevel, toLevel int64) ([]string, error) {
+	query := core.NewQuery().Query(
+		core.Bool(
+			core.Filter(
+				core.Match("network", network),
+				core.Range("level", core.Item{
+					"lte": fromLevel,
+					"gt":  toLevel,
+				}),
+			),
+		),
+	)
+
+	var response core.SearchResponse
+	if err := storage.es.Query([]string{models.DocOperations}, query, &response); err != nil {
+		return nil, err
+	}
+
+	if response.Hits.Total.Value == 0 {
+		return nil, nil
+	}
+
+	exists := make(map[string]struct{})
+	addresses := make([]string, 0)
+	for i := range response.Hits.Hits {
+		var op operationAddresses
+		if err := json.Unmarshal(response.Hits.Hits[i].Source, &op); err != nil {
+			return nil, err
+		}
+		if _, ok := exists[op.Source]; !ok && helpers.IsContract(op.Source) {
+			addresses = append(addresses, op.Source)
+			exists[op.Source] = struct{}{}
+		}
+		if _, ok := exists[op.Destination]; !ok && helpers.IsContract(op.Destination) {
+			addresses = append(addresses, op.Destination)
+			exists[op.Destination] = struct{}{}
+		}
+	}
+
+	return addresses, nil
+}
+
+// RecalcStats -
+func (storage *Storage) RecalcStats(network, address string) (stats operation.ContractStats, err error) {
+	query := core.NewQuery().Query(
+		core.Bool(
+			core.Filter(
+				core.Match("network", network),
+			),
+			core.Should(
+				core.MatchPhrase("source", address),
+				core.MatchPhrase("destination", address),
+			),
+			core.MinimumShouldMatch(1),
+		),
+	).Add(
+		core.Item{
+			"aggs": core.Item{
+				"tx_count":    core.Count("indexed_time"),
+				"last_action": core.Max("timestamp"),
+				"balance": core.Item{
+					"scripted_metric": core.Item{
+						"init_script":    "state.operations = []",
+						"map_script":     "if (doc['status.keyword'].value == 'applied' && doc['amount'].size() != 0) {state.operations.add(doc['destination.keyword'].value == params.address ? doc['amount'].value : -1L * doc['amount'].value)}",
+						"combine_script": "double balance = 0; for (amount in state.operations) { balance += amount } return balance",
+						"reduce_script":  "double balance = 0; for (a in states) { balance += a } return balance",
+						"params": core.Item{
+							"address": address,
+						},
+					},
+				},
+			},
+		},
+	).Zero()
+	var response recalcContractStatsResponse
+	if err = storage.es.Query([]string{models.DocOperations}, query, &response); err != nil {
+		return
+	}
+
+	stats.LastAction = time.Unix(0, response.Aggs.LastAction.Value*1000000).UTC()
+	stats.Balance = response.Aggs.Balance.Value
+	stats.TxCount = response.Aggs.TxCount.Value
+	return
+}
+
+// GetDAppStats -
+func (storage *Storage) GetDAppStats(network string, addresses []string, period string) (stats operation.DAppStats, err error) {
+	addressMatches := make([]core.Item, len(addresses))
+	for i := range addresses {
+		addressMatches[i] = core.MatchPhrase("destination", addresses[i])
+	}
+
+	matches := []core.Item{
+		core.Match("network", network),
+		core.Exists("entrypoint"),
+		core.Bool(
+			core.Should(addressMatches...),
+			core.MinimumShouldMatch(1),
+		),
+		core.Match("status", "applied"),
+	}
+	r, err := periodToRange(period)
+	if err != nil {
+		return
+	}
+	if r != nil {
+		matches = append(matches, r)
+	}
+
+	query := core.NewQuery().Query(
+		core.Bool(
+			core.Filter(matches...),
+		),
+	).Add(
+		core.Aggs(
+			core.AggItem{Name: "users", Body: core.Cardinality("source.keyword")},
+			core.AggItem{Name: "calls", Body: core.Count("indexed_time")},
+			core.AggItem{Name: "volume", Body: core.Sum("amount")},
+		),
+	).Zero()
+
+	var response getDAppStatsResponse
+	if err = storage.es.Query([]string{models.DocOperations}, query, &response); err != nil {
+		return
+	}
+
+	stats.Calls = int64(response.Aggs.Calls.Value)
+	stats.Users = int64(response.Aggs.Users.Value)
+	stats.Volume = int64(response.Aggs.Volume.Value)
+	return
+}
+
+func periodToRange(period string) (core.Item, error) {
+	var str string
+	switch period {
+	case "year":
+		str = "now-1y/d"
+	case "month":
+		str = "now-1M/d"
+	case "week":
+		str = "now-1w/d"
+	case "day":
+		str = "now-1d/d"
+	case "all":
+		return nil, nil
+	default:
+		return nil, errors.Errorf("Unknown period value: %s", period)
+	}
+	return core.Item{
+		"range": core.Item{
+			"timestamp": core.Item{
+				"gte": str,
+			},
+		},
+	}, nil
 }

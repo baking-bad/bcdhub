@@ -24,7 +24,7 @@ func NewContext(cfg config.Config) (*Context, error) {
 	}
 
 	ctx := config.NewContext(
-		config.WithElasticSearch(cfg.Elastic),
+		config.WithStorage(cfg.Elastic),
 		config.WithRPC(cfg.RPC),
 		config.WithDatabase(cfg.DB),
 		config.WithShare(cfg.SharePath),

@@ -107,3 +107,33 @@ func (mr *MockRepositoryMockRecorder) GetTokensStats(network, addresses, entrypo
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTokensStats", reflect.TypeOf((*MockRepository)(nil).GetTokensStats), network, addresses, entrypoints)
 }
+
+// RecalcStats mocks base method
+func (m *MockRepository) RecalcStats(arg0, arg1 string) (operation.ContractStats, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RecalcStats", arg0, arg1)
+	ret0, _ := ret[0].(operation.ContractStats)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RecalcStats indicates an expected call of RecalcStats
+func (mr *MockRepositoryMockRecorder) RecalcStats(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecalcStats", reflect.TypeOf((*MockRepository)(nil).RecalcStats), arg0, arg1)
+}
+
+// GetDAppStats mocks base method
+func (m *MockRepository) GetDAppStats(arg0 string, arg1 []string, arg2 string) (operation.DAppStats, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDAppStats", arg0, arg1, arg2)
+	ret0, _ := ret[0].(operation.DAppStats)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetDAppStats indicates an expected call of GetDAppStats
+func (mr *MockRepositoryMockRecorder) GetDAppStats(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDAppStats", reflect.TypeOf((*MockRepository)(nil).GetDAppStats), arg0, arg1, arg2)
+}

@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/schema"
@@ -20,6 +21,7 @@ type Handler struct {
 	Blocks        block.Repository
 	Protocol      protocol.Repository
 	Operations    operation.Repository
+	Migrations    migration.Repository
 	Schema        schema.Repository
 	TokenBalances tokenbalance.Repository
 	TZIP          tzip.Repository
@@ -39,9 +41,10 @@ func New(
 	schemaRepo schema.Repository,
 	tbRepo tokenbalance.Repository,
 	tzipRepo tzip.Repository,
+	migrationRepo migration.Repository,
 	storage models.GeneralRepository,
 	bulk models.BulkRepository,
 	db database.DB,
 ) *Handler {
-	return &Handler{contracts, bmdRepo, blocksRepo, protocolRepo, operations, schemaRepo, tbRepo, tzipRepo, storage, bulk, db}
+	return &Handler{contracts, bmdRepo, blocksRepo, protocolRepo, operations, migrationRepo, schemaRepo, tbRepo, tzipRepo, storage, bulk, db}
 }

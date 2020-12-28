@@ -153,21 +153,6 @@ func (mr *MockRepositoryMockRecorder) IsFA(arg0, arg1 interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsFA", reflect.TypeOf((*MockRepository)(nil).IsFA), arg0, arg1)
 }
 
-// RecalcStats mocks base method
-func (m *MockRepository) RecalcStats(arg0, arg1 string) (contract.Stats, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RecalcStats", arg0, arg1)
-	ret0, _ := ret[0].(contract.Stats)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// RecalcStats indicates an expected call of RecalcStats
-func (mr *MockRepositoryMockRecorder) RecalcStats(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecalcStats", reflect.TypeOf((*MockRepository)(nil).RecalcStats), arg0, arg1)
-}
-
 // UpdateMigrationsCount mocks base method
 func (m *MockRepository) UpdateMigrationsCount(arg0, arg1 string) error {
 	m.ctrl.T.Helper()
@@ -180,21 +165,6 @@ func (m *MockRepository) UpdateMigrationsCount(arg0, arg1 string) error {
 func (mr *MockRepositoryMockRecorder) UpdateMigrationsCount(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMigrationsCount", reflect.TypeOf((*MockRepository)(nil).UpdateMigrationsCount), arg0, arg1)
-}
-
-// GetDAppStats mocks base method
-func (m *MockRepository) GetDAppStats(arg0 string, arg1 []string, arg2 string) (contract.DAppStats, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetDAppStats", arg0, arg1, arg2)
-	ret0, _ := ret[0].(contract.DAppStats)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetDAppStats indicates an expected call of GetDAppStats
-func (mr *MockRepositoryMockRecorder) GetDAppStats(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDAppStats", reflect.TypeOf((*MockRepository)(nil).GetDAppStats), arg0, arg1, arg2)
 }
 
 // GetByAddresses mocks base method

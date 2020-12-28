@@ -2,5 +2,6 @@ package migration
 
 // Repository -
 type Repository interface {
-	GetMigrations(string, string) ([]Migration, error)
+	Get(string, string) ([]Migration, error)
+	Count(string, string) (int64, error)
 }

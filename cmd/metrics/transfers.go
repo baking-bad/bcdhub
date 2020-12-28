@@ -24,7 +24,7 @@ func getTransfer(ids []string) error {
 }
 
 func parseTransfer(transfer transfer.Transfer) error {
-	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TZIP, ctx.Storage, ctx.Bulk, ctx.DB)
+	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.Bulk, ctx.DB)
 
 	if flag, err := h.SetTransferAliases(&transfer); flag {
 		if err := ctx.Storage.UpdateFields(

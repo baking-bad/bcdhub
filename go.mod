@@ -9,7 +9,6 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20191218082911-5398a82b748f
 	github.com/fatih/color v1.9.0
-	github.com/genjidb/genji v0.9.0
 	github.com/getsentry/sentry-go v0.5.1
 	github.com/gin-contrib/cors v1.3.0
 	github.com/gin-gonic/gin v1.5.0
@@ -21,6 +20,7 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/websocket v1.4.2
 	github.com/hashicorp/go-retryablehttp v0.6.6 // indirect
+	github.com/iancoleman/orderedmap v0.1.0 // indirect
 	github.com/jessevdk/go-flags v0.0.0-20141203071132-1679536dcc89
 	github.com/jinzhu/gorm v1.9.11
 	github.com/json-iterator/go v1.1.10
@@ -29,6 +29,7 @@ require (
 	github.com/nats-io/nats-server/v2 v2.1.9 // indirect
 	github.com/nats-io/nats.go v1.10.0
 	github.com/pkg/errors v0.9.1
+	github.com/restream/reindexer v3.0.0+incompatible
 	github.com/schollz/progressbar/v3 v3.1.1
 	github.com/sergi/go-diff v1.1.0
 	github.com/sirupsen/logrus v1.4.2

@@ -19,7 +19,7 @@ func getOperation(ids []string) error {
 		return errors.Errorf("[getOperation] Find operation error for IDs %v: %s", ids, err)
 	}
 
-	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TZIP, ctx.Storage, ctx.Bulk, ctx.DB)
+	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.Bulk, ctx.DB)
 	updated := make([]models.Model, 0)
 	for i := range operations {
 		if err := parseOperation(h, operations[i]); err != nil {
