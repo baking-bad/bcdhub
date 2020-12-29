@@ -3,7 +3,7 @@ rpc:
     uri: ${SANDBOX_NODE_URI}
     timeout: 10
 
-elastic:
+storage:
   uri:
     - http://elastic:9200
   timeout: 10

@@ -21,7 +21,7 @@ const (
 type Config struct {
 	RPC          map[string]RPCConfig  `yaml:"rpc"`
 	TzKT         map[string]TzKTConfig `yaml:"tzkt"`
-	Elastic      StorageConfig         `yaml:"elastic"`
+	Storage      StorageConfig         `yaml:"storage"`
 	RabbitMQ     RabbitConfig          `yaml:"rabbitmq"`
 	DB           DatabaseConfig        `yaml:"db"`
 	OAuth        OAuthConfig           `yaml:"oauth"`

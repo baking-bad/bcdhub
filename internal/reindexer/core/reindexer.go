@@ -4,13 +4,10 @@ import (
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/models"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/restream/reindexer"
 
 	_ "github.com/restream/reindexer/bindings/builtin" // TODO: to main
 )
-
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // Reindexer -
 type Reindexer struct {

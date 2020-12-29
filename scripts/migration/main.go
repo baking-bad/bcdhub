@@ -52,7 +52,7 @@ func main() {
 	start := time.Now()
 
 	ctx := config.NewContext(
-		config.WithStorage(cfg.Elastic),
+		config.WithStorage(cfg.Storage),
 		config.WithDatabase(cfg.DB),
 		config.WithRPC(cfg.RPC),
 		config.WithConfigCopy(cfg),
