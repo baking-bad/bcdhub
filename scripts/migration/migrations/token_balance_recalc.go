@@ -34,14 +34,20 @@ func (m *TokenBalanceRecalc) Do(ctx *config.Context) error {
 		network = "mainnet"
 	}
 
-	if !helpers.StringInArray(network, ctx.Config.Scripts.Networks) {
-		return errors.Errorf("Invalid network: `%s`. Availiable values: %s", network, strings.Join(ctx.Config.Scripts.Networks, ","))
-	}
-
 	address, err := ask("Enter contract address (required):")
 	if err != nil {
 		return err
 	}
+
+	return m.Recalc(ctx, network, address)
+}
+
+// Recalc -
+func (m *TokenBalanceRecalc) Recalc(ctx *config.Context, network, address string) error {
+	if !helpers.StringInArray(network, ctx.Config.Scripts.Networks) {
+		return errors.Errorf("Invalid network: `%s`. Availiable values: %s", network, strings.Join(ctx.Config.Scripts.Networks, ","))
+	}
+
 	if !helpers.IsContract(address) {
 		return errors.Errorf("Invalid contract address: `%s`", address)
 	}
@@ -76,4 +82,15 @@ func (m *TokenBalanceRecalc) Do(ctx *config.Context) error {
 
 	logger.Info("Saving...")
 	return elastic.CreateTokenBalanceUpdates(ctx.ES, updates)
+}
+
+// DoBatch -
+func (m *TokenBalanceRecalc) DoBatch(ctx *config.Context, network string, contracts []string) error {
+	for _, address := range contracts {
+		if err := m.Recalc(ctx, network, address); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
