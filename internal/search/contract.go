@@ -11,7 +11,7 @@ type Contract struct{}
 
 // GetIndex -
 func (c Contract) GetIndex() string {
-	return "contract"
+	return models.DocContracts
 }
 
 // GetScores -

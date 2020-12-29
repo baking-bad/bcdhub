@@ -10,7 +10,7 @@ type BigMap struct{}
 
 // GetIndex -
 func (b BigMap) GetIndex() string {
-	return "bigmapdiff"
+	return models.DocBigMapDiff
 }
 
 // GetScores -

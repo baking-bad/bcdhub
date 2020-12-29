@@ -10,7 +10,7 @@ type Domain struct{}
 
 // GetIndex -
 func (d Domain) GetIndex() string {
-	return "tezos_domain"
+	return models.DocTezosDomains
 }
 
 // GetScores -

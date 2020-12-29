@@ -10,7 +10,7 @@ type Operation struct{}
 
 // GetIndex -
 func (o Operation) GetIndex() string {
-	return "operation"
+	return models.DocOperations
 }
 
 // GetScores -
