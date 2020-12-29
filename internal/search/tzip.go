@@ -5,12 +5,17 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
+// SearchTypes
+const (
+	MetadataSearchType = "metadata"
+)
+
 // Metadata -
 type Metadata struct{}
 
 // GetIndex -
 func (m Metadata) GetIndex() string {
-	return "tzip"
+	return models.DocTZIP
 }
 
 // GetScores -
@@ -35,15 +40,15 @@ func (m Metadata) GetFields() []string {
 
 // Parse  -
 func (m Metadata) Parse(highlight map[string][]string, data []byte) (interface{}, error) {
-	var token tzip.TZIP
-	if err := json.Unmarshal(data, &token); err != nil {
+	var metadata tzip.TZIP
+	if err := json.Unmarshal(data, &metadata); err != nil {
 		return nil, err
 	}
 	return models.Item{
-		Type:       "metadata",
-		Value:      token.Address,
-		Body:       token,
+		Type:       MetadataSearchType,
+		Value:      metadata.Address,
+		Body:       metadata,
 		Highlights: highlight,
-		Network:    token.Network,
+		Network:    metadata.Network,
 	}, nil
 }

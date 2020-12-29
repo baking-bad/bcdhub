@@ -25,7 +25,7 @@ type Token struct{}
 
 // GetIndex -
 func (t Token) GetIndex() string {
-	return "tzip"
+	return models.DocTZIP
 }
 
 // GetScores -

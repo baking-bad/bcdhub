@@ -5,8 +5,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/elastic/search"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/pkg/errors"
 )
 
@@ -14,24 +14,7 @@ const (
 	defaultSize = 10
 )
 
-var ptrRegEx = regexp.MustCompile(`^ptr:\d+$`)
 var sanitizeRegEx = regexp.MustCompile(`[\:]`)
-
-type searchContext struct {
-	Text       string
-	Indices    []string
-	Fields     []string
-	Highlights Item
-	Offset     int64
-}
-
-func newSearchContext() searchContext {
-	return searchContext{
-		Fields:     make([]string, 0),
-		Indices:    make([]string, 0),
-		Highlights: make(Item),
-	}
-}
 
 func getFields(searchString string, filters map[string]interface{}, fields []string) ([]string, []string, Item, error) {
 	var indices []string
@@ -247,11 +230,11 @@ func parseSearchGroupingResponse(response searchByTextResponse, offset int64) ([
 	return items, nil
 }
 
-func prepare(search string, filters map[string]interface{}, fields []string) (searchContext, error) {
-	ctx := newSearchContext()
+func prepare(searchString string, filters map[string]interface{}, fields []string) (search.Context, error) {
+	ctx := search.NewContext()
 
-	if ptrRegEx.MatchString(search) {
-		ctx.Text = strings.TrimPrefix(search, "ptr:")
+	if search.IsPtrSearch(searchString) {
+		ctx.Text = strings.TrimPrefix(searchString, "ptr:")
 		ctx.Indices = []string{models.DocBigMapDiff}
 		ctx.Fields = []string{"ptr"}
 	} else {
@@ -262,7 +245,7 @@ func prepare(search string, filters map[string]interface{}, fields []string) (se
 		ctx.Indices = usingIndices
 		ctx.Highlights = highlights
 		ctx.Fields = internalFields
-		ctx.Text = fmt.Sprintf("%s*", search)
+		ctx.Text = fmt.Sprintf("%s*", searchString)
 	}
 
 	filterString, err := prepareSearchFilters(filters)
@@ -276,7 +259,7 @@ func prepare(search string, filters map[string]interface{}, fields []string) (se
 	return ctx, nil
 }
 
-func grouping(ctx searchContext, query Base) Base {
+func grouping(ctx search.Context, query Base) Base {
 	topHits := Item{
 		"top_hits": Item{
 			"size": 1,
