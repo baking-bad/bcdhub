@@ -2,8 +2,6 @@ package migrations
 
 import (
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 )
 
@@ -109,19 +107,19 @@ func (m *BigRussianBoss) eventsAndTokenBalances(ctx *config.Context) error {
 		return err
 	}
 
-	uniqueContracts := make(helpers.Set)
-	for _, contracts := range [][]string{
+	uniqueContracts := make(map[string]string)
+	for _, contracts := range []map[string]string{
 		initStorageEvents.AffectedContracts(),
 		extStorageEvents.AffectedContracts(),
 		parameterEvents.AffectedContracts(),
 	} {
-		for _, address := range contracts {
-			uniqueContracts.Add(address)
+		for address, network := range contracts {
+			uniqueContracts[address] = network
 		}
 	}
 
-	logger.Info("Found %v affected contracts. Starting token balance recalculation", uniqueContracts.Len())
-	if err := new(TokenBalanceRecalc).DoBatch(ctx, consts.Mainnet, uniqueContracts.Values()); err != nil {
+	logger.Info("Found %v affected contracts. Starting token balance recalculation", len(uniqueContracts))
+	if err := new(TokenBalanceRecalc).DoBatch(ctx, uniqueContracts); err != nil {
 		return err
 	}
 
