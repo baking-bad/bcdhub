@@ -15,7 +15,7 @@ import (
 
 // ParameterEvents -
 type ParameterEvents struct {
-	contracts []string
+	contracts map[string]string
 }
 
 // Key -
@@ -30,6 +30,7 @@ func (m *ParameterEvents) Description() string {
 
 // Do - migrate function
 func (m *ParameterEvents) Do(ctx *config.Context) error {
+	m.contracts = make(map[string]string)
 	tzips, err := ctx.ES.GetTZIPWithEvents()
 	if err != nil {
 		return err
@@ -98,11 +99,11 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 						}
 						for j := range old.Transfers {
 							deleted = append(deleted, &old.Transfers[j])
-							m.contracts = append(m.contracts, old.Transfers[j].Contract)
+							m.contracts[old.Transfers[j].Contract] = old.Transfers[j].Network
 						}
 						inserted = append(inserted, t)
 						newTransfers = append(newTransfers, t)
-						m.contracts = append(m.contracts, t.Contract)
+						m.contracts[t.Contract] = t.Network
 					}
 				}
 			}
@@ -141,6 +142,6 @@ func (m *ParameterEvents) getOperations(ctx *config.Context, tzip models.TZIP, i
 }
 
 // AffectedContracts -
-func (m *ParameterEvents) AffectedContracts() []string {
+func (m *ParameterEvents) AffectedContracts() map[string]string {
 	return m.contracts
 }

@@ -10,7 +10,7 @@ import (
 
 // InitialStorageEvents -
 type InitialStorageEvents struct {
-	contracts []string
+	contracts map[string]string
 }
 
 // Key -
@@ -25,6 +25,7 @@ func (m *InitialStorageEvents) Description() string {
 
 // Do - migrate function
 func (m *InitialStorageEvents) Do(ctx *config.Context) error {
+	m.contracts = make(map[string]string)
 	tzips, err := ctx.ES.GetTZIPWithEvents()
 	if err != nil {
 		return err
@@ -63,7 +64,7 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 			}
 
 			newTransfers = append(newTransfers, transfers[i])
-			m.contracts = append(m.contracts, transfers[i].Contract)
+			m.contracts[transfers[i].Contract] = transfers[i].Network
 		}
 	}
 
@@ -82,6 +83,6 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 }
 
 // AffectedContracts -
-func (m *InitialStorageEvents) AffectedContracts() []string {
+func (m *InitialStorageEvents) AffectedContracts() map[string]string {
 	return m.contracts
 }
