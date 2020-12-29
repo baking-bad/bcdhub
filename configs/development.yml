@@ -26,9 +26,9 @@ tzkt:
     base_uri: https://carthage.tzkt.io/
     timeout: 20
 
-elastic:
+storage:
   uri:
-    - builtin:///tmp/reindex/testdb
+    - http://127.0.0.1:9200
   timeout: 10
 
 rabbitmq:
