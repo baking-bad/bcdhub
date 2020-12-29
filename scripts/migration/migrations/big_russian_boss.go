@@ -2,6 +2,9 @@ package migrations
 
 import (
 	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/logger"
 )
 
 const yes = "yes"
@@ -28,6 +31,9 @@ func (m *BigRussianBoss) Do(ctx *config.Context) error {
 		return err
 	}
 	if err := m.fillAliases(ctx); err != nil {
+		return err
+	}
+	if err := m.eventsAndTokenBalances(ctx); err != nil {
 		return err
 	}
 	return nil
@@ -73,5 +79,51 @@ func (m *BigRussianBoss) fillAliases(ctx *config.Context) error {
 			return err
 		}
 	}
+	return nil
+}
+
+func (m *BigRussianBoss) eventsAndTokenBalances(ctx *config.Context) error {
+	answer, err := ask("Do you want to execute all events (initial_storage, extended_storage, parameter_events) and recalculate token balances? (yes/no)")
+	if err != nil {
+		return err
+	}
+	if answer != yes {
+		return nil
+	}
+
+	logger.Info("executing all initial storages")
+	initStorageEvents := new(InitialStorageEvents)
+	if err := initStorageEvents.Do(ctx); err != nil {
+		return err
+	}
+
+	logger.Info("executing all extended storages")
+	extStorageEvents := new(ExtendedStorageEvents)
+	if err := extStorageEvents.Do(ctx); err != nil {
+		return err
+	}
+
+	logger.Info("executing all parameter events")
+	parameterEvents := new(ParameterEvents)
+	if err := parameterEvents.Do(ctx); err != nil {
+		return err
+	}
+
+	uniqueContracts := make(helpers.Set)
+	for _, contracts := range [][]string{
+		initStorageEvents.AffectedContracts(),
+		extStorageEvents.AffectedContracts(),
+		parameterEvents.AffectedContracts(),
+	} {
+		for _, address := range contracts {
+			uniqueContracts.Add(address)
+		}
+	}
+
+	logger.Info("Found %v affected contracts. Starting token balance recalculation", uniqueContracts.Len())
+	if err := new(TokenBalanceRecalc).DoBatch(ctx, consts.Mainnet, uniqueContracts.Values()); err != nil {
+		return err
+	}
+
 	return nil
 }

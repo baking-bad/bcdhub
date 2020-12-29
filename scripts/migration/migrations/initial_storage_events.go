@@ -9,7 +9,9 @@ import (
 )
 
 // InitialStorageEvents -
-type InitialStorageEvents struct{}
+type InitialStorageEvents struct {
+	contracts []string
+}
 
 // Key -
 func (m *InitialStorageEvents) Key() string {
@@ -61,6 +63,7 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 			}
 
 			newTransfers = append(newTransfers, transfers[i])
+			m.contracts = append(m.contracts, transfers[i].Contract)
 		}
 	}
 
@@ -76,4 +79,9 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 		return err
 	}
 	return elastic.CreateTokenBalanceUpdates(ctx.ES, newTransfers)
+}
+
+// AffectedContracts -
+func (m *InitialStorageEvents) AffectedContracts() []string {
+	return m.contracts
 }

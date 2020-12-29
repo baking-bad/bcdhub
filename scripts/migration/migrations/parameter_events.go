@@ -14,7 +14,9 @@ import (
 )
 
 // ParameterEvents -
-type ParameterEvents struct{}
+type ParameterEvents struct {
+	contracts []string
+}
 
 // Key -
 func (m *ParameterEvents) Key() string {
@@ -96,9 +98,11 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 						}
 						for j := range old.Transfers {
 							deleted = append(deleted, &old.Transfers[j])
+							m.contracts = append(m.contracts, old.Transfers[j].Contract)
 						}
 						inserted = append(inserted, t)
 						newTransfers = append(newTransfers, t)
+						m.contracts = append(m.contracts, t.Contract)
 					}
 				}
 			}
@@ -134,4 +138,9 @@ func (m *ParameterEvents) getOperations(ctx *config.Context, tzip models.TZIP, i
 	}
 
 	return operations, nil
+}
+
+// AffectedContracts -
+func (m *ParameterEvents) AffectedContracts() []string {
+	return m.contracts
 }

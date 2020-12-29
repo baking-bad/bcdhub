@@ -14,7 +14,9 @@ import (
 )
 
 // ExtendedStorageEvents -
-type ExtendedStorageEvents struct{}
+type ExtendedStorageEvents struct {
+	contracts []string
+}
 
 // Key -
 func (m *ExtendedStorageEvents) Key() string {
@@ -105,9 +107,11 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 						}
 						for j := range old.Transfers {
 							deleted = append(deleted, &old.Transfers[j])
+							m.contracts = append(m.contracts, old.Transfers[j].Contract)
 						}
 						inserted = append(inserted, t)
 						newTransfers = append(newTransfers, t)
+						m.contracts = append(m.contracts, t.Contract)
 					}
 				}
 			}
@@ -143,4 +147,9 @@ func (m *ExtendedStorageEvents) getOperations(ctx *config.Context, tzip models.T
 	}
 
 	return operations, nil
+}
+
+// AffectedContracts -
+func (m *ExtendedStorageEvents) AffectedContracts() []string {
+	return m.contracts
 }
