@@ -35,7 +35,7 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		return
 	}
 
-	state, err := ctx.Blocks.GetLastBlock(req.Network)
+	state, err := ctx.Blocks.Last(req.Network)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -164,7 +164,7 @@ func (ctx *Context) RunCode(c *gin.Context) {
 		return
 	}
 
-	state, err := ctx.Blocks.GetLastBlock(req.Network)
+	state, err := ctx.Blocks.Last(req.Network)
 	if ctx.handleError(c, err, 0) {
 		return
 	}

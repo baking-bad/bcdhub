@@ -67,7 +67,7 @@ func (e *Elastic) GetContractStatsByNetwork() (map[string]models.ContractCountSt
 					"terms": Item{
 						"field": "network.keyword",
 					},
-					"core.Aggs": Item{
+					"aggs": Item{
 						"same": Item{
 							"cardinality": Item{
 								"script": "doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value",

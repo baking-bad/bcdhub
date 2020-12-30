@@ -27,7 +27,7 @@ type getBigMapDiffsCountResponse struct {
 	} `json:"aggregations"`
 }
 
-func buildGetContext(ctx bigmapdiff.GetContext) interface{} {
+func buildGetContext(ctx *bigmapdiff.GetContext) core.Base {
 	filters := make([]core.Item, 0)
 
 	if ctx.Ptr != nil {

@@ -23,7 +23,7 @@ import (
 // @Failure 500 {object} Error
 // @Router /stats [get]
 func (ctx *Context) GetStats(c *gin.Context) {
-	stats, err := ctx.Blocks.GetLastBlocks()
+	stats, err := ctx.Blocks.LastByNetworks()
 	if ctx.handleError(c, err, 0) {
 		return
 	}

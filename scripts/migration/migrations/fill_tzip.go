@@ -37,7 +37,7 @@ func (m *FillTZIP) Do(ctx *config.Context) error {
 		return err
 	}
 
-	blocks, err := ctx.Blocks.GetLastBlocks()
+	blocks, err := ctx.Blocks.LastByNetworks()
 	if err != nil {
 		return err
 	}

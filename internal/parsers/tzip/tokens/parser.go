@@ -98,9 +98,9 @@ func (t TokenMetadataParser) parse(registry string, state block.Block) ([]Metada
 
 func (t TokenMetadataParser) getState(level int64) (block.Block, error) {
 	if level > 0 {
-		return t.blocksRepo.GetBlock(t.network, level)
+		return t.blocksRepo.Get(t.network, level)
 	}
-	return t.blocksRepo.GetLastBlock(t.network)
+	return t.blocksRepo.Last(t.network)
 }
 
 func (t TokenMetadataParser) getTokenMetadataRegistry(address string, state block.Block) (string, error) {

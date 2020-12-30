@@ -42,6 +42,13 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 	if ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
+	if sReq.Level == 0 {
+		block, err := ctx.Blocks.Last(req.Network)
+		if ctx.handleError(c, err, 0) {
+			return
+		}
+		sReq.Level = int(block.Level)
+	}
 
 	deffatedStorage, err := rpc.GetScriptStorageJSON(req.Address, int64(sReq.Level))
 	if ctx.handleError(c, err, 0) {

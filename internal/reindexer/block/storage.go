@@ -17,8 +17,8 @@ func NewStorage(db *core.Reindexer) *Storage {
 	return &Storage{db}
 }
 
-// GetBlock -
-func (storage *Storage) GetBlock(network string, level int64) (block block.Block, err error) {
+// Get -
+func (storage *Storage) Get(network string, level int64) (block block.Block, err error) {
 	query := storage.db.Query(models.DocBlocks).
 		WhereString("network", reindexer.EQ, network).
 		WhereInt64("level", reindexer.EQ, level)
@@ -27,8 +27,8 @@ func (storage *Storage) GetBlock(network string, level int64) (block block.Block
 	return
 }
 
-// GetLastBlock - returns current indexer state for network
-func (storage *Storage) GetLastBlock(network string) (block block.Block, err error) {
+// Last - returns current indexer state for network
+func (storage *Storage) Last(network string) (block block.Block, err error) {
 	query := storage.db.Query(models.DocBlocks).
 		WhereString("network", reindexer.EQ, network).
 		Sort("level", true)
@@ -37,8 +37,8 @@ func (storage *Storage) GetLastBlock(network string) (block block.Block, err err
 	return
 }
 
-// GetLastBlocks - return last block for all networks
-func (storage *Storage) GetLastBlocks() ([]block.Block, error) {
+// LastByNetworks - return last block for all networks
+func (storage *Storage) LastByNetworks() ([]block.Block, error) {
 	network, err := storage.db.GetUnique("network", storage.db.Query(models.DocBlocks))
 	if err != nil {
 		return nil, err

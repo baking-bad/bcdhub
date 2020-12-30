@@ -186,7 +186,7 @@ func (ctx *Context) buildEntrypointMicheline(network, address, binPath string, d
 }
 
 func (ctx *Context) getParameterMetadata(address, network string) (meta.Metadata, error) {
-	state, err := ctx.Blocks.GetLastBlock(network)
+	state, err := ctx.Blocks.Last(network)
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +200,7 @@ func (ctx *Context) getParameterMetadata(address, network string) (meta.Metadata
 }
 
 func (ctx *Context) getStorageMetadata(address, network string) (meta.Metadata, error) {
-	state, err := ctx.Blocks.GetLastBlock(network)
+	state, err := ctx.Blocks.Last(network)
 	if err != nil {
 		return nil, err
 	}

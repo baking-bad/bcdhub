@@ -118,7 +118,7 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, tzip *tzip.TZIP)
 		return nil, err
 	}
 
-	state, err := h.Blocks.GetLastBlock(tzip.Network)
+	state, err := h.Blocks.Last(tzip.Network)
 	if err != nil {
 		return nil, err
 	}

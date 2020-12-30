@@ -2,8 +2,8 @@ package block
 
 // Repository -
 type Repository interface {
-	GetBlock(string, int64) (Block, error)
-	GetLastBlock(string) (Block, error)
-	GetLastBlocks() ([]Block, error)
+	Get(string, int64) (Block, error)
+	Last(string) (Block, error)
+	LastByNetworks() ([]Block, error)
 	GetNetworkAlias(chainID string) (string, error)
 }

@@ -73,12 +73,9 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		if ctx.handleError(c, err, 0) {
 			return
 		}
-		if len(actions) == 0 {
-			c.JSON(http.StatusNoContent, gin.H{})
-			return
+		if len(actions) > 0 {
+			res.Address = actions[0].Address
 		}
-
-		res.Address = actions[0].Address
 	}
 
 	alias, err := ctx.ES.GetAlias(req.Network, res.Address)

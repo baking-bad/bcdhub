@@ -33,49 +33,49 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 	return m.recorder
 }
 
-// GetBlock mocks base method
-func (m *MockRepository) GetBlock(arg0 string, arg1 int64) (block.Block, error) {
+// Get mocks base method
+func (m *MockRepository) Get(arg0 string, arg1 int64) (block.Block, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBlock", arg0, arg1)
+	ret := m.ctrl.Call(m, "Get", arg0, arg1)
 	ret0, _ := ret[0].(block.Block)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetBlock indicates an expected call of GetBlock
-func (mr *MockRepositoryMockRecorder) GetBlock(arg0, arg1 interface{}) *gomock.Call {
+// Get indicates an expected call of Get
+func (mr *MockRepositoryMockRecorder) Get(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBlock", reflect.TypeOf((*MockRepository)(nil).GetBlock), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), arg0, arg1)
 }
 
-// GetLastBlock mocks base method
-func (m *MockRepository) GetLastBlock(arg0 string) (block.Block, error) {
+// Last mocks base method
+func (m *MockRepository) Last(arg0 string) (block.Block, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetLastBlock", arg0)
+	ret := m.ctrl.Call(m, "Last", arg0)
 	ret0, _ := ret[0].(block.Block)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetLastBlock indicates an expected call of GetLastBlock
-func (mr *MockRepositoryMockRecorder) GetLastBlock(arg0 interface{}) *gomock.Call {
+// Last indicates an expected call of Last
+func (mr *MockRepositoryMockRecorder) Last(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLastBlock", reflect.TypeOf((*MockRepository)(nil).GetLastBlock), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Last", reflect.TypeOf((*MockRepository)(nil).Last), arg0)
 }
 
-// GetLastBlocks mocks base method
-func (m *MockRepository) GetLastBlocks() ([]block.Block, error) {
+// LastByNetworks mocks base method
+func (m *MockRepository) LastByNetworks() ([]block.Block, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetLastBlocks")
+	ret := m.ctrl.Call(m, "LastByNetworks")
 	ret0, _ := ret[0].([]block.Block)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetLastBlocks indicates an expected call of GetLastBlocks
-func (mr *MockRepositoryMockRecorder) GetLastBlocks() *gomock.Call {
+// LastByNetworks indicates an expected call of LastByNetworks
+func (mr *MockRepositoryMockRecorder) LastByNetworks() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLastBlocks", reflect.TypeOf((*MockRepository)(nil).GetLastBlocks))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LastByNetworks", reflect.TypeOf((*MockRepository)(nil).LastByNetworks))
 }
 
 // GetNetworkAlias mocks base method
