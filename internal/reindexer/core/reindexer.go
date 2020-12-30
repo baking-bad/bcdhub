@@ -5,8 +5,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/restream/reindexer"
-
-	_ "github.com/restream/reindexer/bindings/builtin" // TODO: to main
 )
 
 // Reindexer -
