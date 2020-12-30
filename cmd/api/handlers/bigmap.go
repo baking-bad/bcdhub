@@ -78,10 +78,10 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		}
 	}
 
-	alias, err := ctx.ES.GetAlias(req.Network, res.Address)
+	alias, err := ctx.TZIP.GetAlias(req.Network, res.Address)
 	if err != nil {
-		if !elastic.IsRecordNotFound(err) {
-			handleError(c, err, 0)
+		if !ctx.Storage.IsRecordNotFound(err) {
+			ctx.handleError(c, err, 0)
 			return
 		}
 	} else {

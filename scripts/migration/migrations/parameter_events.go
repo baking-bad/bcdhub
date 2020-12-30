@@ -9,8 +9,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
-	"github.com/baking-bad/bcdhub/internal/parsers/transfer"
+	transferParser "github.com/baking-bad/bcdhub/internal/parsers/transfer"
 )
 
 // ParameterEvents -
@@ -39,9 +40,9 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 	logger.Info("Found %d tzips", len(tzips))
 
 	logger.Info("Execution events...")
-	inserted := make([]elastic.Model, 0)
-	deleted := make([]elastic.Model, 0)
-	newTransfers := make([]*models.Transfer, 0)
+	inserted := make([]models.Model, 0)
+	deleted := make([]models.Model, 0)
+	newTransfers := make([]*transfer.Transfer, 0)
 	for i := range tzips {
 		for _, event := range tzips[i].Events {
 			for _, impl := range event.Implementations {
@@ -59,9 +60,9 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 					return err
 				}
 
-				parser, err := transfer.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.Schema, ctx.Storage,
-					transfer.WithNetwork(tzips[i].Network),
-					transfer.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
+				parser, err := transferParser.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.Schema, ctx.Storage,
+					transferParser.WithNetwork(tzips[i].Network),
+					transferParser.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
 				)
 				if err != nil {
 					return err
@@ -87,7 +88,7 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 					}
 
 					for _, t := range transfers {
-						old, err := ctx.ES.GetTransfers(elastic.GetTransfersContext{
+						old, err := ctx.Transfers.Get(transfer.GetContext{
 							Hash:    t.Hash,
 							Network: t.Network,
 							Counter: &t.Counter,
@@ -110,7 +111,7 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 		}
 	}
 	logger.Info("Delete %d transfers", len(deleted))
-	if err := ctx.ES.BulkDelete(deleted); err != nil {
+	if err := ctx.Bulk.Delete(deleted); err != nil {
 		return err
 	}
 
@@ -118,7 +119,7 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 	if err := ctx.Bulk.Insert(inserted); err != nil {
 		return err
 	}
-	return transfer.UpdateTokenBalances(ctx.TokenBalances, newTransfers)
+	return transferParser.UpdateTokenBalances(ctx.TokenBalances, newTransfers)
 }
 
 func (m *ParameterEvents) getOperations(ctx *config.Context, tzip tzip.TZIP, impl tzip.EventImplementation) ([]operation.Operation, error) {

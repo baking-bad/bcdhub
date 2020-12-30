@@ -2,9 +2,9 @@ package migrations
 
 import (
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
+	"github.com/baking-bad/bcdhub/internal/models"
 )
 
 // SetAliases - migration that set aliases for operations, contracts and transfers
@@ -24,13 +24,13 @@ func (m *SetAliases) Description() string {
 func (m *SetAliases) Do(ctx *config.Context) error {
 	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.Bulk, ctx.DB)
 
-	updatedModels := make([]elastic.Model, 0)
+	updatedModels := make([]models.Model, 0)
 	for i := range ctx.Config.Scripts.Networks {
 		logger.Info("Receiving aliases for %s...", ctx.Config.Scripts.Networks[i])
 
-		aliases, err := ctx.ES.GetAliasesMap(ctx.Config.Scripts.Networks[i])
+		aliases, err := ctx.TZIP.GetAliasesMap(ctx.Config.Scripts.Networks[i])
 		if err != nil {
-			if elastic.IsRecordNotFound(err) {
+			if ctx.Storage.IsRecordNotFound(err) {
 				continue
 			}
 			return err
@@ -44,12 +44,8 @@ func (m *SetAliases) Do(ctx *config.Context) error {
 		networkFilter := map[string]interface{}{
 			"network": ctx.Config.Scripts.Networks[i],
 		}
-		contracts, err := ctx.Contracts.GetMany(networkFilter)
-		if err != nil {
-			return err
-		}
 
-		operations, err := ctx.ES.GetOperations(networkFilter, 0, false)
+		operations, err := ctx.Operations.Get(networkFilter, 0, false)
 		if err != nil {
 			return err
 		}
@@ -63,7 +59,7 @@ func (m *SetAliases) Do(ctx *config.Context) error {
 			}
 		}
 
-		contracts, err := ctx.ES.GetContracts(networkFilter)
+		contracts, err := ctx.Contracts.GetMany(networkFilter)
 		if err != nil {
 			return err
 		}

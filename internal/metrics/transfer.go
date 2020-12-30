@@ -3,12 +3,12 @@ package metrics
 import "github.com/baking-bad/bcdhub/internal/models/transfer"
 
 // SetTransferAliases -
-func (h *Handler) SetTransferAliases(aliases map[string]string, transfer *transfer.Transfer) bool {
+func (h *Handler) SetTransferAliases(transfer *transfer.Transfer) (bool, error) {
 	var changed bool
 
-	aliases, err := h.ES.GetAliasesMap(transfer.Network)
+	aliases, err := h.TZIP.GetAliasesMap(transfer.Network)
 	if err != nil {
-		if elastic.IsRecordNotFound(err) {
+		if h.Storage.IsRecordNotFound(err) {
 			err = nil
 		}
 		return changed, err

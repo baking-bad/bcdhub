@@ -38,7 +38,7 @@ func buildGetContext(ctx *bigmapdiff.GetContext) core.Base {
 	}
 
 	if ctx.Query != "" {
-		filters = append(filters, core.QueryString(fmt.Sprintf("*%s*", ctx.Query), []string{"key", "key_hash", "key_strings", "bin_path"}))
+		filters = append(filters, core.QueryString(fmt.Sprintf("*%s*", ctx.Query), []string{"key", "key_hash", "key_strings", "bin_path", "value", "value_strings"}))
 	}
 
 	if ctx.Size == 0 {

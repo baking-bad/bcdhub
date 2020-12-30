@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
 )
@@ -39,9 +40,9 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 	logger.Info("Found %d tzips", len(tzips))
 
 	logger.Info("Execution events...")
-	inserted := make([]elastic.Model, 0)
-	deleted := make([]elastic.Model, 0)
-	newTransfers := make([]*models.Transfer, 0)
+	inserted := make([]models.Model, 0)
+	deleted := make([]models.Model, 0)
+	newTransfers := make([]*transfer.Transfer, 0)
 	for i := range tzips {
 		for _, event := range tzips[i].Events {
 			for _, impl := range event.Implementations {
@@ -96,7 +97,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 						return err
 					}
 					for _, t := range transfers {
-						old, err := ctx.ES.GetTransfers(elastic.GetTransfersContext{
+						old, err := ctx.Transfers.Get(transfer.GetContext{
 							Hash:    t.Hash,
 							Network: t.Network,
 							Counter: &t.Counter,

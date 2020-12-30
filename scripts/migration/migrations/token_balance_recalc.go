@@ -4,10 +4,11 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
 	"github.com/pkg/errors"
 )
 
@@ -53,16 +54,16 @@ func (m *TokenBalanceRecalc) Recalc(ctx *config.Context, network, address string
 	}
 
 	logger.Info("Removing token balance entities....")
-	if err := ctx.ES.DeleteByContract([]string{elastic.DocTokenBalances}, network, address); err != nil {
+	if err := ctx.Storage.DeleteByContract([]string{models.DocTokenBalances}, network, address); err != nil {
 		return err
 	}
 
 	logger.Info("Receiving transfers....")
-	updates := make([]*models.Transfer, 0)
+	updates := make([]*transfer.Transfer, 0)
 
 	var lastID string
 	for {
-		transfers, err := ctx.ES.GetTransfers(elastic.GetTransfersContext{
+		transfers, err := ctx.Transfers.Get(transfer.GetContext{
 			Network:   network,
 			Contracts: []string{address},
 			LastID:    lastID,
@@ -81,7 +82,7 @@ func (m *TokenBalanceRecalc) Recalc(ctx *config.Context, network, address string
 	}
 
 	logger.Info("Saving...")
-	return elastic.CreateTokenBalanceUpdates(ctx.ES, updates)
+	return transferParsers.UpdateTokenBalances(ctx.TokenBalances, updates)
 }
 
 // DoBatch -
