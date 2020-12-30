@@ -6,19 +6,18 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
-	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/getsentry/sentry-go"
 )
 
 // SetOperationAliases -
-func (h *Handler) SetOperationAliases(aliases map[string]string, op *operation.Operation) bool {
+func (h *Handler) SetOperationAliases(op *operation.Operation) (bool, error) {
 	var changed bool
 
-	aliases, err := h.ES.GetAliasesMap(op.Network)
+	aliases, err := h.TZIP.GetAliasesMap(op.Network)
 	if err != nil {
-		if elastic.IsRecordNotFound(err) {
-			err = nil
+		if h.Storage.IsRecordNotFound(err) {
+			return changed, nil
 		}
 		return changed, err
 	}

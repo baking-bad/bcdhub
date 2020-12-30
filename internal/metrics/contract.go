@@ -9,16 +9,16 @@ import (
 )
 
 // SetContractAlias -
-func (h *Handler) SetContractAlias(c *models.Contract) (bool, error) {
+func (h *Handler) SetContractAlias(c *contract.Contract) (bool, error) {
 	var changed bool
 
 	if c.Alias != "" && ((c.Delegate != "" && c.DelegateAlias != "") || c.Delegate == "") {
 		return false, nil
 	}
 
-	aliases, err := h.ES.GetAliasesMap(c.Network)
+	aliases, err := h.TZIP.GetAliasesMap(c.Network)
 	if err != nil {
-		if elastic.IsRecordNotFound(err) {
+		if h.Storage.IsRecordNotFound(err) {
 			err = nil
 		}
 		return changed, err

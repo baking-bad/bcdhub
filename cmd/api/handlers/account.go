@@ -52,10 +52,10 @@ func (ctx *Context) GetInfo(c *gin.Context) {
 		LastAction: stats.LastAction,
 	}
 
-	alias, err := ctx.ES.GetAlias(req.Network, req.Address)
+	alias, err := ctx.TZIP.GetAlias(req.Network, req.Address)
 	if err != nil {
-		if !elastic.IsRecordNotFound(err) {
-			handleError(c, err, 0)
+		if !ctx.Storage.IsRecordNotFound(err) {
+			ctx.handleError(c, err, 0)
 			return
 		}
 	} else {

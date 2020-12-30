@@ -31,6 +31,12 @@ func buildGetContext(ctx transfer.GetContext) core.Base {
 	if f := filterHash(ctx); f != nil {
 		filters = append(filters, f)
 	}
+	if f := filterCounter(ctx); f != nil {
+		filters = append(filters, f)
+	}
+	if f := filterNonce(ctx); f != nil {
+		filters = append(filters, f)
+	}
 
 	query.Query(
 		core.Bool(
@@ -119,6 +125,20 @@ func filterContracts(ctx transfer.GetContext) core.Item {
 		core.Should(shouldItems...),
 		core.MinimumShouldMatch(1),
 	)
+}
+
+func filterCounter(ctx transfer.GetContext) core.Item {
+	if ctx.Counter != nil {
+		return core.Term("counter", *ctx.Counter)
+	}
+	return nil
+}
+
+func filterNonce(ctx transfer.GetContext) core.Item {
+	if ctx.Nonce != nil {
+		return core.Term("nonce", *ctx.Nonce)
+	}
+	return nil
 }
 
 func appendSize(ctx transfer.GetContext, query core.Base) {

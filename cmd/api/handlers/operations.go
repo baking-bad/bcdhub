@@ -430,9 +430,9 @@ func (ctx *Context) prepareMempoolOperation(item tzkt.MempoolOperation, network 
 		RawMempool:   string(item.Raw),
 	}
 
-	aliases, err := ctx.ES.GetAliasesMap(network)
+	aliases, err := ctx.TZIP.GetAliasesMap(network)
 	if err != nil {
-		if !elastic.IsRecordNotFound(err) {
+		if !ctx.Storage.IsRecordNotFound(err) {
 			return &op
 		}
 	} else {

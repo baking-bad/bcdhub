@@ -114,9 +114,9 @@ func (ctx *Context) getMempoolEvents(subscriptions []database.Subscription) ([]m
 			continue
 		}
 
-		aliases, err := ctx.ES.GetAliasesMap(sub.Network)
+		aliases, err := ctx.TZIP.GetAliasesMap(sub.Network)
 		if err != nil {
-			if !elastic.IsRecordNotFound(err) {
+			if !ctx.Storage.IsRecordNotFound(err) {
 				return nil, err
 			}
 			aliases = make(map[string]string)
