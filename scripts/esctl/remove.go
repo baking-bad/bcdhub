@@ -14,7 +14,7 @@ var removeCmd removeCommand
 
 // Execute
 func (x *removeCommand) Execute(_ []string) error {
-	state, err := ctx.Blocks.GetLastBlock(x.Network)
+	state, err := ctx.Blocks.Last(x.Network)
 	if err != nil {
 		panic(err)
 	}

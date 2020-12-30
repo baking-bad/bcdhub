@@ -103,7 +103,7 @@ func (c *StatsChannel) listen(source datasources.DataSource) {
 }
 
 func (c *StatsChannel) createMessage() error {
-	states, err := c.ctx.Blocks.GetLastBlocks()
+	states, err := c.ctx.Blocks.LastByNetworks()
 	if err != nil {
 		return err
 	}

@@ -14,7 +14,7 @@ var rollbackCmd rollbackCommand
 
 // Execute
 func (x *rollbackCommand) Execute(_ []string) error {
-	state, err := ctx.Blocks.GetLastBlock(x.Network)
+	state, err := ctx.Blocks.Last(x.Network)
 	if err != nil {
 		panic(err)
 	}

@@ -56,7 +56,7 @@ func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Reposit
 	}
 
 	if tp.network != "" && tp.chainID == "" {
-		state, err := blocks.GetLastBlock(tp.network)
+		state, err := blocks.Last(tp.network)
 		if err != nil {
 			return nil, err
 		}

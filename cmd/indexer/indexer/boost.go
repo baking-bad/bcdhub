@@ -213,7 +213,7 @@ func (bi *BoostIndexer) init() error {
 		}
 	}
 
-	currentState, err := bi.Blocks.GetLastBlock(bi.Network)
+	currentState, err := bi.Blocks.Last(bi.Network)
 	if err != nil {
 		return err
 	}
@@ -375,7 +375,7 @@ func (bi *BoostIndexer) Rollback() error {
 
 	helpers.CatchErrorSentry(errors.Errorf("[%s] Rollback from %d to %d", bi.Network, bi.state.Level, lastLevel))
 
-	newState, err := bi.Blocks.GetLastBlock(bi.Network)
+	newState, err := bi.Blocks.Last(bi.Network)
 	if err != nil {
 		return err
 	}
@@ -395,7 +395,7 @@ func (bi *BoostIndexer) getLastRollbackBlock() (int64, error) {
 			return 0, err
 		}
 
-		block, err := bi.Blocks.GetBlock(bi.Network, level)
+		block, err := bi.Blocks.Get(bi.Network, level)
 		if err != nil {
 			return 0, err
 		}

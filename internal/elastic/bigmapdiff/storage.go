@@ -371,17 +371,14 @@ func (storage *Storage) GetByPtr(address, network string, ptr int64) ([]bigmapdi
 
 // Get -
 func (storage *Storage) Get(ctx bigmapdiff.GetContext) ([]bigmapdiff.BigMapDiff, error) {
-	query := buildGetContext(ctx)
-	q, ok := query.(core.Base)
-	if !ok {
-		return nil, errors.Errorf("Invalid query type")
-	}
 	if *ctx.Ptr < 0 {
 		return nil, errors.Errorf("Invalid pointer value: %d", *ctx.Ptr)
 	}
 
+	query := buildGetContext(&ctx)
+
 	var response getBigMapDiffsWithKeysResponse
-	if err := storage.es.Query([]string{models.DocBigMapDiff}, q, &response); err != nil {
+	if err := storage.es.Query([]string{models.DocBigMapDiff}, query, &response); err != nil {
 		return nil, err
 	}
 

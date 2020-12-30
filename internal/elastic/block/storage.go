@@ -20,8 +20,8 @@ func NewStorage(es *core.Elastic) *Storage {
 	return &Storage{es}
 }
 
-// GetBlock -
-func (storage *Storage) GetBlock(network string, level int64) (block block.Block, err error) {
+// Get -
+func (storage *Storage) Get(network string, level int64) (block block.Block, err error) {
 	block.Network = network
 
 	query := core.NewQuery().Query(
@@ -46,8 +46,8 @@ func (storage *Storage) GetBlock(network string, level int64) (block block.Block
 	return
 }
 
-// GetLastBlock - returns current indexer state for network
-func (storage *Storage) GetLastBlock(network string) (block block.Block, err error) {
+// Last - returns current indexer state for network
+func (storage *Storage) Last(network string) (block block.Block, err error) {
 	block.Network = network
 
 	query := core.NewQuery().Query(
@@ -73,8 +73,8 @@ func (storage *Storage) GetLastBlock(network string) (block block.Block, err err
 	return
 }
 
-// GetLastBlocks - return last block for all networks
-func (storage *Storage) GetLastBlocks() ([]block.Block, error) {
+// LastByNetworks - return last block for all networks
+func (storage *Storage) LastByNetworks() ([]block.Block, error) {
 	query := core.NewQuery().Add(
 		core.Aggs(
 			core.AggItem{

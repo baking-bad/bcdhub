@@ -99,7 +99,7 @@ func (s *TezosStorage) fillFields(uri TezosStorageURI) error {
 	if uri.Address != "" && uri.Address != s.address {
 		s.address = uri.Address
 
-		block, err := s.blockRepo.GetLastBlock(s.network)
+		block, err := s.blockRepo.Last(s.network)
 		if err != nil {
 			return err
 		}

@@ -30,7 +30,7 @@ func (ctx *Context) GetInfo(c *gin.Context) {
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	block, err := ctx.Blocks.GetLastBlock(req.Network)
+	block, err := ctx.Blocks.Last(req.Network)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
