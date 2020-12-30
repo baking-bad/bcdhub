@@ -32,7 +32,7 @@ func buildGetContext(ctx bigmapdiff.GetContext, query *reindexer.Query) {
 		ctx.Size = consts.DefaultSize
 	}
 
-	query = query.Offset(int(ctx.Offset)).Limit(int(ctx.Size)).Sort("indexed_time", true)
+	query.Offset(int(ctx.Offset)).Limit(int(ctx.Size)).Sort("indexed_time", true)
 }
 
 // core.Aggs(core.AggItem{

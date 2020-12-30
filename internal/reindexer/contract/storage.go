@@ -166,9 +166,9 @@ func (storage *Storage) GetSameContracts(c contract.Contract, size, offset int64
 		Offset(int(offset)).
 		Sort("last_action", true)
 
-	var total int
 	contracts := make([]contract.Contract, 0)
-	if err = storage.db.GetAllByQueryWithTotal(query, &total, &contracts); err != nil {
+	total, err := storage.db.GetAllByQueryWithTotal(query, &contracts)
+	if err != nil {
 		return
 	}
 
@@ -264,9 +264,9 @@ func (storage *Storage) GetTokens(network, tokenInterface string, offset, size i
 		query = query.Offset(int(offset))
 	}
 
-	var total int
 	contracts := make([]contract.Contract, 0)
-	if err := storage.db.GetAllByQueryWithTotal(query, &total, &contracts); err != nil {
+	total, err := storage.db.GetAllByQueryWithTotal(query, &contracts)
+	if err != nil {
 		return nil, 0, err
 	}
 

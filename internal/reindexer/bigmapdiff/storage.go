@@ -136,7 +136,7 @@ func (storage *Storage) GetByPtrAndKeyHash(ptr int64, network, keyHash string, s
 
 	var total int
 	result := make([]bigmapdiff.BigMapDiff, 0)
-	err := storage.db.GetAllByQueryWithTotal(query, &total, &result)
+	total, err := storage.db.GetAllByQueryWithTotal(query, &result)
 
 	return result, int64(total), err
 }

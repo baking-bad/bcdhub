@@ -55,7 +55,7 @@ func main() {
 
 	protocol, err := context.Protocols.GetProtocol(consts.Mainnet, "", -1)
 	if err != nil {
-		log.Fatal(err)
+		log.Panic(err)
 	}
 
 	tickerTime := protocol.Constants.TimeBetweenBlocks

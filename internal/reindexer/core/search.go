@@ -35,11 +35,11 @@ func (r *Reindexer) SearchByText(text string, offset int64, fields []string, fil
 	if it.Error() != nil {
 		return result, err
 	}
-	items, err := parseSearchResponse(it, group)
+	items, err := parseSearchResponse(it)
 	if err != nil {
 		return result, err
 	}
-	result.Time = int64(time.Now().Sub(start).Milliseconds())
+	result.Time = time.Since(start).Milliseconds()
 	result.Count = int64(it.TotalCount())
 	result.Items = items
 
@@ -128,7 +128,7 @@ func prepareFilters(filters map[string]interface{}, query *reindexer.Query) erro
 	return nil
 }
 
-func parseSearchResponse(it *reindexer.Iterator, group bool) ([]models.Item, error) {
+func parseSearchResponse(it *reindexer.Iterator) ([]models.Item, error) {
 	items := make([]models.Item, 0)
 	for it.Next() {
 		searchItem := models.Item{}

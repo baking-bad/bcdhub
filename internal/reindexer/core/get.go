@@ -111,26 +111,23 @@ func (r *Reindexer) GetAllByQuery(query *reindexer.Query, output interface{}) er
 }
 
 // GetAllByQueryWithTotal -
-func (r *Reindexer) GetAllByQueryWithTotal(query *reindexer.Query, total *int, output interface{}) error {
+func (r *Reindexer) GetAllByQueryWithTotal(query *reindexer.Query, output interface{}) (int, error) {
 	if query == nil {
-		return ErrQueryPointerIsNil
+		return 0, ErrQueryPointerIsNil
 	}
 
 	it := query.ReqTotal().Exec()
 	defer it.Close()
 
 	if it.Error() != nil {
-		return it.Error()
+		return 0, it.Error()
 	}
-
-	newCount := it.TotalCount()
-	total = &newCount
 
 	if it.Count() == 0 {
-		return nil
+		return 0, nil
 	}
 
-	return parse(it, output)
+	return it.TotalCount(), parse(it, output)
 }
 
 func getElementType(output interface{}) (reflect.Type, error) {

@@ -160,7 +160,6 @@ func (r *Reindexer) getMigrationEvents(subscriptions []models.SubscriptionReques
 			return nil, it.Error()
 		}
 
-		events := make([]models.Event, 0)
 		for it.Next() {
 			var event EventOperation
 			it.NextObj(&event)
@@ -181,7 +180,7 @@ func getEventsWatchDeployments(subscription models.SubscriptionRequest, query *r
 		return
 	}
 
-	query = query.
+	query.
 		Match("kind", constants.Origination).
 		Match("network", subscription.Network).
 		Match("source", subscription.Address)
@@ -196,7 +195,7 @@ func getEventsWatchCalls(subscription models.SubscriptionRequest, query *reindex
 	if strings.HasPrefix(subscription.Address, "tz") {
 		addressKeyword = "source"
 	}
-	query = query.
+	query.
 		Match("kind", constants.Transaction).
 		Match("network", subscription.Network).
 		Match(addressKeyword, subscription.Address).
@@ -213,7 +212,7 @@ func getEventsWatchErrors(subscription models.SubscriptionRequest, query *reinde
 		addressKeyword = "source"
 	}
 
-	query = query.
+	query.
 		Match("network", subscription.Network).
 		Match(addressKeyword, subscription.Address).
 		Match("status", constants.Applied)
@@ -224,7 +223,7 @@ func getSubscriptionWithSame(subscription models.SubscriptionRequest, query *rei
 		return
 	}
 
-	query = query.
+	query.
 		Match("hash", subscription.Hash).
 		Not().
 		Match("address", subscription.Address)
@@ -235,7 +234,7 @@ func getSubscriptionWithSimilar(subscription models.SubscriptionRequest, query *
 		return
 	}
 
-	query = query.
+	query.
 		Match("project_id", subscription.ProjectID).
 		Not().
 		Match("hash", subscription.Hash).

@@ -30,9 +30,9 @@ func (storage *Storage) Get(ctx transfer.GetContext) (po transfer.Pageable, err 
 	query := storage.db.Query(models.DocTransfers)
 	buildGetContext(ctx, query)
 
-	var total int
 	transfers := make([]transfer.Transfer, 0)
-	if err = storage.db.GetAllByQueryWithTotal(query, &total, &transfers); err != nil {
+	total, err := storage.db.GetAllByQueryWithTotal(query, &transfers)
+	if err != nil {
 		return
 	}
 
@@ -72,11 +72,13 @@ func (storage *Storage) GetTokenSupply(network, address string, tokenID int64) (
 	for it.Next() {
 		var t transfer.Transfer
 		it.NextObj(&t)
-		if t.From == "" {
+
+		switch {
+		case t.From == "":
 			result.Supply += t.Amount
-		} else if t.To == "" {
+		case t.To == "":
 			result.Supply -= t.Amount
-		} else {
+		default:
 			result.Transfered += t.Amount
 		}
 	}

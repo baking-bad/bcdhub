@@ -2,14 +2,6 @@ package transfer
 
 import "github.com/baking-bad/bcdhub/internal/elastic/core"
 
-type getAccountBalancesResponse struct {
-	Agg struct {
-		Balances struct {
-			Value map[string]float64 `json:"value"`
-		} `json:"balances"`
-	} `json:"aggregations"`
-}
-
 type getTokenSupplyResponse struct {
 	Aggs struct {
 		Result struct {

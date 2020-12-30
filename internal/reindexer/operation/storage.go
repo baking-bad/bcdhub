@@ -336,13 +336,13 @@ func periodToRange(period string, query *reindexer.Query) error {
 	now := time.Now()
 	switch period {
 	case "year":
-		query = query.WhereInt64("timestamp", reindexer.GT, now.AddDate(-1, 0, 0).Unix())
+		query.WhereInt64("timestamp", reindexer.GT, now.AddDate(-1, 0, 0).Unix())
 	case "month":
-		query = query.WhereInt64("timestamp", reindexer.GT, now.AddDate(0, -1, 0).Unix())
+		query.WhereInt64("timestamp", reindexer.GT, now.AddDate(0, -1, 0).Unix())
 	case "week":
-		query = query.WhereInt64("timestamp", reindexer.GT, now.AddDate(0, 0, -7).Unix())
+		query.WhereInt64("timestamp", reindexer.GT, now.AddDate(0, 0, -7).Unix())
 	case "day":
-		query = query.WhereInt64("timestamp", reindexer.GT, now.AddDate(0, 0, -1).Unix())
+		query.WhereInt64("timestamp", reindexer.GT, now.AddDate(0, 0, -1).Unix())
 	case "all":
 		return nil
 	default:

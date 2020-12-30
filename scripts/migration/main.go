@@ -64,7 +64,7 @@ func main() {
 	logger.Info("Starting %v migration...", migration.Key())
 
 	if err := migration.Do(ctx); err != nil {
-		log.Fatal(err)
+		log.Panic(err)
 	}
 
 	logger.Info("%s migration done. Spent: %v", migration.Key(), time.Since(start))

@@ -154,10 +154,8 @@ func (storage *Storage) RemoveField(field string, where []models.Model) error {
 		if _, err := sb.WriteString(fmt.Sprintf(`.remove('%s')`, field[idx+1:])); err != nil {
 			return err
 		}
-	} else {
-		if _, err := sb.WriteString(fmt.Sprintf(`remove('%s')`, field)); err != nil {
-			return err
-		}
+	} else if _, err := sb.WriteString(fmt.Sprintf(`remove('%s')`, field)); err != nil {
+		return err
 	}
 
 	bulk := bytes.NewBuffer([]byte{})
