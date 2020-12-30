@@ -30,9 +30,9 @@ func (storage *Storage) ListDomains(network string, size, offset int64) (tezosdo
 		Limit(int(size)).
 		Offset(int(offset))
 
-	var total int
 	domains := make([]tezosdomain.TezosDomain, 0)
-	if err := storage.db.GetAllByQueryWithTotal(query, &total, &domains); err != nil {
+	total, err := storage.db.GetAllByQueryWithTotal(query, &domains)
+	if err != nil {
 		return tezosdomain.DomainsResponse{}, nil
 	}
 

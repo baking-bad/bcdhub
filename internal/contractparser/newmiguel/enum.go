@@ -47,7 +47,7 @@ func (l *enumDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetada
 	case tail == "":
 		node.Value = consts.UNIT
 	default:
-		bin := strings.Replace(tail, "/", "", -1)
+		bin := strings.ReplaceAll(tail, "/", "")
 		i, err := strconv.ParseInt(bin, 2, 64)
 		if err != nil {
 			return nil, err

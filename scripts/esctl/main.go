@@ -107,7 +107,7 @@ func yes() bool {
 	if err != nil {
 		panic(err)
 	}
-	return strings.Replace(text, "\n", "", -1) == "yes"
+	return strings.ReplaceAll(text, "\n", "") == "yes"
 }
 
 func askQuestion(question string) (string, error) {
@@ -118,5 +118,5 @@ func askQuestion(question string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return strings.Replace(text, "\n", "", -1), nil
+	return strings.ReplaceAll(text, "\n", ""), nil
 }

@@ -15,5 +15,5 @@ func ask(question string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return strings.Replace(text, "\n", "", -1), nil
+	return strings.ReplaceAll(text, "\n", ""), nil
 }

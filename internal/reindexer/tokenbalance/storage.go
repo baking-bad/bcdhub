@@ -17,7 +17,7 @@ func NewStorage(db *core.Reindexer) *Storage {
 	return &Storage{db}
 }
 
-const scriptUpdateBalance = `{"source": "ctx._source.balance = ctx._source.balance + (long)params.delta", "lang": "painless", "params": { "delta": %d }}`
+// const scriptUpdateBalance = `{"source": "ctx._source.balance = ctx._source.balance + (long)params.delta", "lang": "painless", "params": { "delta": %d }}`
 
 // Update -
 func (storage *Storage) Update(updates []*tokenbalance.TokenBalance) error {
