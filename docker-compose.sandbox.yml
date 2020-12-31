@@ -45,9 +45,9 @@ services:
     container_name: sandbox-api
     restart: always
     image: bakingbad/bcdhub-api:${TAG:-latest}
-#    build:
-#      context: .
-#      dockerfile: build/api/Dockerfile
+    build:
+      context: .
+      dockerfile: build/api/Dockerfile
     environment:
       - BCD_ENV=sandbox
       - GIN_MODE=debug
@@ -69,9 +69,9 @@ services:
     container_name: sandbox-indexer
     restart: always
     image: bakingbad/bcdhub-indexer:${TAG:-latest}
-#    build:
-#      context: .
-#      dockerfile: build/indexer/Dockerfile
+    build:
+      context: .
+      dockerfile: build/indexer/Dockerfile
     environment:
       - BCD_ENV=sandbox
       - RABBITMQ_DEFAULT_USER=guest
@@ -89,9 +89,9 @@ services:
     container_name: sandbox-metrics
     restart: always
     image: bakingbad/bcdhub-metrics:${TAG:-latest}
-#    build:
-#      context: .
-#      dockerfile: build/metrics/Dockerfile
+    build:
+      context: .
+      dockerfile: build/metrics/Dockerfile
     environment:
       - BCD_ENV=sandbox
       - POSTGRES_USER=root
