@@ -79,6 +79,21 @@ func (mr *MockRepositoryMockRecorder) GetTokenSupply(network, address, tokenID i
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTokenSupply", reflect.TypeOf((*MockRepository)(nil).GetTokenSupply), network, address, tokenID)
 }
 
+// GetToken24HoursVolume mocks base method
+func (m *MockRepository) GetToken24HoursVolume(network, contract string, initiators, entrypoints []string, tokenID int64) (float64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetToken24HoursVolume", network, contract, initiators, entrypoints, tokenID)
+	ret0, _ := ret[0].(float64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetToken24HoursVolume indicates an expected call of GetToken24HoursVolume
+func (mr *MockRepositoryMockRecorder) GetToken24HoursVolume(network, contract, initiators, entrypoints, tokenID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetToken24HoursVolume", reflect.TypeOf((*MockRepository)(nil).GetToken24HoursVolume), network, contract, initiators, entrypoints, tokenID)
+}
+
 // GetTokenVolumeSeries mocks base method
 func (m *MockRepository) GetTokenVolumeSeries(network, period string, contracts []string, entrypoints []tzip.DAppContract, tokenID uint) ([][]int64, error) {
 	m.ctrl.T.Helper()

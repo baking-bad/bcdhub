@@ -93,6 +93,21 @@ func (mr *MockRepositoryMockRecorder) Get(filter, size, sort interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), filter, size, sort)
 }
 
+// GetContract24HoursVolume mocks base method
+func (m *MockRepository) GetContract24HoursVolume(network, address string, entrypoints []string) (float64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetContract24HoursVolume", network, address, entrypoints)
+	ret0, _ := ret[0].(float64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetContract24HoursVolume indicates an expected call of GetContract24HoursVolume
+func (mr *MockRepositoryMockRecorder) GetContract24HoursVolume(network, address, entrypoints interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContract24HoursVolume", reflect.TypeOf((*MockRepository)(nil).GetContract24HoursVolume), network, address, entrypoints)
+}
+
 // GetTokensStats mocks base method
 func (m *MockRepository) GetTokensStats(network string, addresses, entrypoints []string) (map[string]operation.TokenUsageStats, error) {
 	m.ctrl.T.Helper()
@@ -108,19 +123,34 @@ func (mr *MockRepositoryMockRecorder) GetTokensStats(network, addresses, entrypo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTokensStats", reflect.TypeOf((*MockRepository)(nil).GetTokensStats), network, addresses, entrypoints)
 }
 
-// RecalcStats mocks base method
-func (m *MockRepository) RecalcStats(arg0, arg1 string) (operation.ContractStats, error) {
+// GetParticipatingContracts mocks base method
+func (m *MockRepository) GetParticipatingContracts(network string, fromLevel, toLevel int64) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RecalcStats", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetParticipatingContracts", network, fromLevel, toLevel)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetParticipatingContracts indicates an expected call of GetParticipatingContracts
+func (mr *MockRepositoryMockRecorder) GetParticipatingContracts(network, fromLevel, toLevel interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetParticipatingContracts", reflect.TypeOf((*MockRepository)(nil).GetParticipatingContracts), network, fromLevel, toLevel)
+}
+
+// RecalcStats mocks base method
+func (m *MockRepository) RecalcStats(network, address string) (operation.ContractStats, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RecalcStats", network, address)
 	ret0, _ := ret[0].(operation.ContractStats)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // RecalcStats indicates an expected call of RecalcStats
-func (mr *MockRepositoryMockRecorder) RecalcStats(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) RecalcStats(network, address interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecalcStats", reflect.TypeOf((*MockRepository)(nil).RecalcStats), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecalcStats", reflect.TypeOf((*MockRepository)(nil).RecalcStats), network, address)
 }
 
 // GetDAppStats mocks base method
