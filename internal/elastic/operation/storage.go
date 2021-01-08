@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	constants "github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -237,33 +238,33 @@ func (storage *Storage) GetStats(network, address string) (stats operation.Stats
 
 // GetContract24HoursVolume -
 func (storage *Storage) GetContract24HoursVolume(network, address string, entrypoints []string) (float64, error) {
-	query := newQuery().Query(
-		boolQ(
-			filter(
-				boolQ(
-					should(
-						matchPhrase("destination", address),
-						matchPhrase("source", address),
+	query := core.NewQuery().Query(
+		core.Bool(
+			core.Filter(
+				core.Bool(
+					core.Should(
+						core.MatchPhrase("destination", address),
+						core.MatchPhrase("source", address),
 					),
-					minimumShouldMatch(1),
+					core.MinimumShouldMatch(1),
 				),
-				term("network", network),
-				term("status", consts.Applied),
-				rangeQ("timestamp", qItem{
+				core.Term("network", network),
+				core.Term("status", constants.Applied),
+				core.Range("timestamp", core.Item{
 					"lte": "now",
 					"gt":  "now-24h",
 				}),
-				in("entrypoint.keyword", entrypoints),
+				core.In("entrypoint.keyword", entrypoints),
 			),
 		),
 	).Add(
-		aggs(
-			aggItem{"volume", sum("amount")},
+		core.Aggs(
+			core.AggItem{Name: "volume", Body: core.Sum("amount")},
 		),
 	).Zero()
 
 	var response aggVolumeSumResponse
-	if err := e.query([]string{consts.DocOperations}, query, &response); err != nil {
+	if err := storage.es.Query([]string{models.DocOperations}, query, &response); err != nil {
 		return 0, err
 	}
 

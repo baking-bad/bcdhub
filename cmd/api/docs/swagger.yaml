@@ -1,7 +1,6 @@
 basePath: /v1
 definitions:
   cerrors.Error:
-<<<<<<< HEAD
     properties:
       descr:
         type: string
@@ -12,33 +11,6 @@ definitions:
       title:
         type: string
     type: object
-  docstring.Typedef:
-=======
->>>>>>> Full abstraction storage
-    properties:
-      descr:
-        type: string
-      id:
-        type: string
-      kind:
-        type: string
-      title:
-        type: string
-    type: object
-  contract.DAppStats:
-    properties:
-      txs:
-        type: integer
-      users:
-        type: integer
-      volume:
-        type: integer
-    type: object
-<<<<<<< HEAD
-  elastic.TransfersResponse:
-    properties:
-      last_id:
-=======
   docstring.Typedef:
     properties:
       args:
@@ -55,7 +27,6 @@ definitions:
       key:
         type: string
       value:
->>>>>>> Full abstraction storage
         type: string
     type: object
   formatter.DiffResult:
@@ -316,11 +287,7 @@ definitions:
     properties:
       domains:
         items:
-<<<<<<< HEAD
-          $ref: '#/definitions/models.TezosDomain'
-=======
           $ref: '#/definitions/tezosdomain.TezosDomain'
->>>>>>> Full abstraction storage
         type: array
       total:
         type: integer
@@ -678,6 +645,8 @@ definitions:
         type: integer
       transfered:
         type: number
+      volume_24_hours:
+        type: number
     type: object
   handlers.TokenBalance:
     properties:
@@ -702,6 +671,8 @@ definitions:
         type: string
       token_id:
         type: integer
+      volume_24_hours:
+        type: number
     type: object
   handlers.TokenContract:
     properties:
@@ -755,6 +726,8 @@ definitions:
         type: string
       token_id:
         type: integer
+      volume_24_hours:
+        type: number
     type: object
   handlers.TokenMethodStats:
     properties:
@@ -821,22 +794,7 @@ definitions:
   jsonschema.Schema:
     additionalProperties: true
     type: object
-<<<<<<< HEAD
-<<<<<<< HEAD
-  models.ReverseTezosDomain:
-    properties:
-      expiration:
-        type: string
-      name:
-        type: string
-    type: object
-  models.TZIP:
-=======
-  tzip.TZIP:
->>>>>>> First
-=======
   models.Group:
->>>>>>> Full abstraction storage
     properties:
       count:
         type: integer
@@ -851,7 +809,6 @@ definitions:
         type: object
       group:
         $ref: '#/definitions/models.Group'
-        type: object
       highlights:
         additionalProperties:
           items:
@@ -878,18 +835,12 @@ definitions:
     properties:
       key:
         type: string
-<<<<<<< HEAD
-      domain:
-        $ref: '#/definitions/models.ReverseTezosDomain'
-      events:
-=======
       network:
         type: string
     type: object
   newmiguel.Node:
     properties:
       children:
->>>>>>> Full abstraction storage
         items:
           $ref: '#/definitions/newmiguel.Node'
         type: array
@@ -905,6 +856,15 @@ definitions:
         type: string
       value:
         type: object
+    type: object
+  operation.DAppStats:
+    properties:
+      txs:
+        type: integer
+      users:
+        type: integer
+      volume:
+        type: integer
     type: object
   tezosdomain.ReverseTezosDomain:
     properties:
@@ -925,29 +885,16 @@ definitions:
         type: string
       level:
         type: integer
-<<<<<<< HEAD
-      license:
-        $ref: '#/definitions/tzip.License'
-=======
->>>>>>> Full abstraction storage
       name:
         type: string
       network:
         type: string
       timestamp:
         type: string
-<<<<<<< HEAD
-      timestamp:
-        type: string
-      tokens:
-        $ref: '#/definitions/tzip.TokenMetadataType'
-      version:
-=======
     type: object
   transfer.Pageable:
     properties:
       last_id:
->>>>>>> Full abstraction storage
         type: string
       total:
         type: integer
@@ -956,30 +903,7 @@ definitions:
           $ref: '#/definitions/transfer.Transfer'
         type: array
     type: object
-<<<<<<< HEAD
-  models.TezosDomain:
-    properties:
-      address:
-        type: string
-      data:
-        additionalProperties:
-          type: string
-        type: object
-      expiration:
-        type: string
-      level:
-        type: integer
-      name:
-        type: string
-      network:
-        type: string
-      timestamp:
-        type: string
-    type: object
-  models.Transfer:
-=======
   transfer.Transfer:
->>>>>>> First
     properties:
       alias:
         type: string
@@ -1020,72 +944,6 @@ definitions:
       token_id:
         type: integer
     type: object
-<<<<<<< HEAD
-  newmiguel.Node:
-    properties:
-      children:
-        items:
-          $ref: '#/definitions/newmiguel.Node'
-        type: array
-      diff_type:
-        type: string
-      from:
-        type: object
-      name:
-        type: string
-      prim:
-        type: string
-      type:
-        type: string
-      value:
-        type: object
-    type: object
-  search.Group:
-    properties:
-      count:
-        type: integer
-      top:
-        items:
-          $ref: '#/definitions/search.Top'
-        type: array
-    type: object
-  search.Item:
-    properties:
-      body:
-        type: object
-      group:
-        $ref: '#/definitions/search.Group'
-      highlights:
-        additionalProperties:
-          items:
-            type: string
-          type: array
-        type: object
-      type:
-        type: string
-      value:
-        type: string
-    type: object
-  search.Result:
-    properties:
-      count:
-        type: integer
-      items:
-        items:
-          $ref: '#/definitions/search.Item'
-        type: array
-      time:
-        type: integer
-    type: object
-  search.Top:
-    properties:
-      key:
-        type: string
-      network:
-        type: string
-    type: object
-=======
->>>>>>> Full abstraction storage
   tzip.DApp:
     properties:
       agora_qa_post_id:
@@ -1166,20 +1024,10 @@ definitions:
     properties:
       michelson-extended-storage-event:
         $ref: '#/definitions/tzip.MichelsonExtendedStorageEvent'
-<<<<<<< HEAD
       michelson-initial-storage-event:
         $ref: '#/definitions/tzip.MichelsonInitialStorageEvent'
       michelson-parameter-event:
         $ref: '#/definitions/tzip.MichelsonParameterEvent'
-=======
-        type: object
-      michelson-initial-storage-event:
-        $ref: '#/definitions/tzip.MichelsonInitialStorageEvent'
-        type: object
-      michelson-parameter-event:
-        $ref: '#/definitions/tzip.MichelsonParameterEvent'
-        type: object
->>>>>>> Full abstraction storage
     type: object
   tzip.License:
     properties:
@@ -1191,19 +1039,14 @@ definitions:
   tzip.MichelsonExtendedStorageEvent:
     properties:
       code:
-<<<<<<< HEAD
         items:
           type: integer
         type: array
-=======
-        type: string
->>>>>>> Full abstraction storage
       entrypoints:
         items:
           type: string
         type: array
       parameter:
-<<<<<<< HEAD
         items:
           type: integer
         type: array
@@ -1211,16 +1054,10 @@ definitions:
         items:
           type: integer
         type: array
-=======
-        type: string
-      return-type:
-        type: string
->>>>>>> Full abstraction storage
     type: object
   tzip.MichelsonInitialStorageEvent:
     properties:
       code:
-<<<<<<< HEAD
         items:
           type: integer
         type: array
@@ -1232,30 +1069,18 @@ definitions:
         items:
           type: integer
         type: array
-=======
-        type: string
-      parameter:
-        type: string
-      return-type:
-        type: string
->>>>>>> Full abstraction storage
     type: object
   tzip.MichelsonParameterEvent:
     properties:
       code:
-<<<<<<< HEAD
         items:
           type: integer
         type: array
-=======
-        type: string
->>>>>>> Full abstraction storage
       entrypoints:
         items:
           type: string
         type: array
       parameter:
-<<<<<<< HEAD
         items:
           type: integer
         type: array
@@ -1263,11 +1088,6 @@ definitions:
         items:
           type: integer
         type: array
-=======
-        type: string
-      return-type:
-        type: string
->>>>>>> Full abstraction storage
     type: object
   tzip.Picture:
     properties:
@@ -1292,7 +1112,6 @@ definitions:
         type: string
       domain:
         $ref: '#/definitions/tezosdomain.ReverseTezosDomain'
-        type: object
       events:
         items:
           $ref: '#/definitions/tzip.Event'
@@ -1307,7 +1126,6 @@ definitions:
         type: integer
       license:
         $ref: '#/definitions/tzip.License'
-        type: object
       name:
         type: string
       network:
@@ -1318,7 +1136,6 @@ definitions:
         type: string
       tokens:
         $ref: '#/definitions/tzip.TokenMetadataType'
-        type: object
       version:
         type: string
     type: object
@@ -2448,10 +2265,7 @@ paths:
         type: string
       - description: Token ID
         in: query
-<<<<<<< HEAD
         minimum: 0
-=======
->>>>>>> Full abstraction storage
         name: token_id
         required: true
         type: integer
@@ -2526,18 +2340,10 @@ paths:
         type: string
       - description: Transfers count
         in: query
-<<<<<<< HEAD
-=======
-        minimum: 1
->>>>>>> Full abstraction storage
         name: size
         type: integer
       - description: Offset
         in: query
-<<<<<<< HEAD
-=======
-        minimum: 1
->>>>>>> Full abstraction storage
         name: offset
         type: integer
       produces:
@@ -2586,11 +2392,7 @@ paths:
         "200":
           description: OK
           schema:
-<<<<<<< HEAD
-            $ref: '#/definitions/models.TezosDomain'
-=======
             $ref: '#/definitions/tezosdomain.TezosDomain'
->>>>>>> Full abstraction storage
         "204":
           description: No Content
           schema:
@@ -2745,11 +2547,7 @@ paths:
         "200":
           description: OK
           schema:
-<<<<<<< HEAD
-            $ref: '#/definitions/search.Result'
-=======
             $ref: '#/definitions/models.Result'
->>>>>>> Full abstraction storage
         "400":
           description: Bad Request
           schema:
@@ -2878,11 +2676,7 @@ paths:
         "200":
           description: OK
           schema:
-<<<<<<< HEAD
-            $ref: '#/definitions/elastic.DAppStats'
-=======
-            $ref: '#/definitions/contract.DAppStats'
->>>>>>> Full abstraction storage
+            $ref: '#/definitions/operation.DAppStats'
         "400":
           description: Bad Request
           schema:
