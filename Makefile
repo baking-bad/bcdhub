@@ -137,8 +137,14 @@ db-restore:
 ps:
 	docker ps --format "table {{.Names}}\t{{.RunningFor}}\t{{.Status}}\t{{.Ports}}"
 
+sandbox-images:
+	docker-compose -f docker-compose.sandbox.yml build
+
 sandbox-up:
-	COMPOSE_PROJECT_NAME=bcdbox TAG=3.2 docker-compose -f docker-compose.sandbox.yml up -d
+	COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.sandbox.yml up -d
+
+sandbox-dev:
+	COMPOSE_PROJECT_NAME=bcdbox BCD_ENV=you docker-compose -f docker-compose.sandbox.yml up -d elastic mq db api indexer metrics
 
 sandbox-down:
 	COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.sandbox.yml down
