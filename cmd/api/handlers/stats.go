@@ -245,7 +245,7 @@ func (ctx *Context) getHistogramOptions(name, network string, addresses ...strin
 // @Param period query string true "One of periods"  Enums(all, year, month, week, day)
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} contract.DAppStats
+// @Success 200 {object} operation.DAppStats
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /stats/{network}/contracts [get]

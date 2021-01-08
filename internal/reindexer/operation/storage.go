@@ -350,3 +350,8 @@ func periodToRange(period string, query *reindexer.Query) error {
 	}
 	return nil
 }
+
+// GetContract24HoursVolume -
+func (storage *Storage) GetContract24HoursVolume(network, address string, entrypoints []string) (float64, error) {
+	return 0, nil
+}

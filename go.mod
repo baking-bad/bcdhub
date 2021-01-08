@@ -6,6 +6,7 @@ require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/aws/aws-sdk-go v1.30.10
 	github.com/btcsuite/btcutil v1.0.1
+	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20191218082911-5398a82b748f
 	github.com/fatih/color v1.9.0
@@ -30,6 +31,7 @@ require (
 	github.com/nats-io/nats.go v1.10.0
 	github.com/pkg/errors v0.9.1
 	github.com/restream/reindexer v3.0.0+incompatible
+	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/schollz/progressbar/v3 v3.1.1
 	github.com/sergi/go-diff v1.1.0
 	github.com/sirupsen/logrus v1.4.2
@@ -46,7 +48,7 @@ require (
 	golang.org/x/net v0.0.0-20201224014010-6772e930b67b // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e // indirect
-	golang.org/x/tools v0.0.0-20201226215659-b1c90890d22a // indirect
+	golang.org/x/tools v0.0.0-20210107193943-4ed967dd8eff // indirect
 	google.golang.org/appengine v1.6.6 // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0

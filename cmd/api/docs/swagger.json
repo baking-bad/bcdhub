@@ -1565,10 +1565,7 @@
                         "required": true
                     },
                     {
-<<<<<<< HEAD
                         "minimum": 0,
-=======
->>>>>>> Full abstraction storage
                         "type": "integer",
                         "description": "Token ID",
                         "name": "token_id",
@@ -1680,20 +1677,12 @@
                         "required": true
                     },
                     {
-<<<<<<< HEAD
-=======
-                        "minimum": 1,
->>>>>>> Full abstraction storage
                         "type": "integer",
                         "description": "Transfers count",
                         "name": "size",
                         "in": "query"
                     },
                     {
-<<<<<<< HEAD
-=======
-                        "minimum": 1,
->>>>>>> Full abstraction storage
                         "type": "integer",
                         "description": "Offset",
                         "name": "offset",
@@ -1763,11 +1752,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-<<<<<<< HEAD
-                            "$ref": "#/definitions/models.TezosDomain"
-=======
                             "$ref": "#/definitions/tezosdomain.TezosDomain"
->>>>>>> Full abstraction storage
                         }
                     },
                     "204": {
@@ -1822,95 +1807,6 @@
                     },
                     "400": {
                         "description": "Bad Request",
-<<<<<<< HEAD
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/opg/{hash}": {
-            "get": {
-                "description": "Get operation group by hash",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "operations"
-                ],
-                "summary": "Get operation group",
-                "operationId": "get-opg",
-                "parameters": [
-                    {
-                        "maxLength": 51,
-                        "minLength": 51,
-                        "type": "string",
-                        "description": "Operation group hash",
-                        "name": "hash",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/handlers.Operation"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/pick_random": {
-            "get": {
-                "description": "Get random contract with 2 or more operations",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "contract"
-                ],
-                "summary": "Show random contract",
-                "operationId": "get-random-contract",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Contract"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-=======
->>>>>>> Full abstraction storage
                         "schema": {
                             "$ref": "#/definitions/handlers.Error"
                         }
@@ -2083,11 +1979,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-<<<<<<< HEAD
-                            "$ref": "#/definitions/search.Result"
-=======
                             "$ref": "#/definitions/models.Result"
->>>>>>> Full abstraction storage
                         }
                     },
                     "400": {
@@ -2277,11 +2169,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-<<<<<<< HEAD
-                            "$ref": "#/definitions/elastic.DAppStats"
-=======
-                            "$ref": "#/definitions/contract.DAppStats"
->>>>>>> Full abstraction storage
+                            "$ref": "#/definitions/operation.DAppStats"
                         }
                     },
                     "400": {
@@ -2758,7 +2646,6 @@
     },
     "definitions": {
         "cerrors.Error": {
-<<<<<<< HEAD
             "type": "object",
             "properties": {
                 "descr": {
@@ -2775,45 +2662,6 @@
                 }
             }
         },
-        "docstring.Typedef": {
-=======
->>>>>>> Full abstraction storage
-            "type": "object",
-            "properties": {
-                "descr": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "kind": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
-        "contract.DAppStats": {
-            "type": "object",
-            "properties": {
-                "txs": {
-                    "type": "integer"
-                },
-                "users": {
-                    "type": "integer"
-                },
-                "volume": {
-                    "type": "integer"
-                }
-            }
-        },
-<<<<<<< HEAD
-        "elastic.TransfersResponse": {
-            "type": "object",
-            "properties": {
-                "last_id": {
-=======
         "docstring.Typedef": {
             "type": "object",
             "properties": {
@@ -2838,7 +2686,6 @@
                     "type": "string"
                 },
                 "value": {
->>>>>>> Full abstraction storage
                     "type": "string"
                 }
             }
@@ -3231,11 +3078,7 @@
                 "domains": {
                     "type": "array",
                     "items": {
-<<<<<<< HEAD
-                        "$ref": "#/definitions/models.TezosDomain"
-=======
                         "$ref": "#/definitions/tezosdomain.TezosDomain"
->>>>>>> Full abstraction storage
                     }
                 },
                 "total": {
@@ -3250,10 +3093,6 @@
                     "type": "string"
                 },
                 "default_model": {
-<<<<<<< HEAD
-=======
-                    "type": "object",
->>>>>>> Full abstraction storage
                     "$ref": "#/definitions/jsonschema.DefaultModel"
                 },
                 "name": {
@@ -3776,6 +3615,9 @@
                 },
                 "transfered": {
                     "type": "number"
+                },
+                "volume_24_hours": {
+                    "type": "number"
                 }
             }
         },
@@ -3812,6 +3654,9 @@
                 },
                 "token_id": {
                     "type": "integer"
+                },
+                "volume_24_hours": {
+                    "type": "number"
                 }
             }
         },
@@ -3892,6 +3737,9 @@
                 },
                 "token_id": {
                     "type": "integer"
+                },
+                "volume_24_hours": {
+                    "type": "number"
                 }
             }
         },
@@ -3993,26 +3841,7 @@
             "type": "object",
             "additionalProperties": true
         },
-<<<<<<< HEAD
-<<<<<<< HEAD
-        "models.ReverseTezosDomain": {
-            "type": "object",
-            "properties": {
-                "expiration": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.TZIP": {
-=======
-        "tzip.TZIP": {
->>>>>>> First
-=======
         "models.Group": {
->>>>>>> Full abstraction storage
             "type": "object",
             "properties": {
                 "count": {
@@ -4033,7 +3862,6 @@
                     "type": "object"
                 },
                 "group": {
-                    "type": "object",
                     "$ref": "#/definitions/models.Group"
                 },
                 "highlights": {
@@ -4048,12 +3876,6 @@
                 "type": {
                     "type": "string"
                 },
-<<<<<<< HEAD
-                "domain": {
-                    "$ref": "#/definitions/models.ReverseTezosDomain"
-                },
-                "events": {
-=======
                 "value": {
                     "type": "string"
                 }
@@ -4066,7 +3888,6 @@
                     "type": "integer"
                 },
                 "items": {
->>>>>>> Full abstraction storage
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.Item"
@@ -4117,6 +3938,20 @@
                 }
             }
         },
+        "operation.DAppStats": {
+            "type": "object",
+            "properties": {
+                "txs": {
+                    "type": "integer"
+                },
+                "users": {
+                    "type": "integer"
+                },
+                "volume": {
+                    "type": "integer"
+                }
+            }
+        },
         "tezosdomain.ReverseTezosDomain": {
             "type": "object",
             "properties": {
@@ -4146,12 +3981,6 @@
                 "level": {
                     "type": "integer"
                 },
-<<<<<<< HEAD
-                "license": {
-                    "$ref": "#/definitions/tzip.License"
-                },
-=======
->>>>>>> Full abstraction storage
                 "name": {
                     "type": "string"
                 },
@@ -4169,16 +3998,8 @@
                 "last_id": {
                     "type": "string"
                 },
-<<<<<<< HEAD
-                "timestamp": {
-                    "type": "string"
-                },
-                "tokens": {
-                    "$ref": "#/definitions/tzip.TokenMetadataType"
-=======
                 "total": {
                     "type": "integer"
->>>>>>> Full abstraction storage
                 },
                 "transfers": {
                     "type": "array",
@@ -4188,36 +4009,6 @@
                 }
             }
         },
-        "models.TezosDomain": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "type": "string"
-                },
-                "data": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "expiration": {
-                    "type": "string"
-                },
-                "level": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "network": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.Transfer": {
         "transfer.Transfer": {
             "type": "object",
             "properties": {
@@ -4280,106 +4071,6 @@
                 }
             }
         },
-<<<<<<< HEAD
-        "newmiguel.Node": {
-            "type": "object",
-            "properties": {
-                "children": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/newmiguel.Node"
-                    }
-                },
-                "diff_type": {
-                    "type": "string"
-                },
-                "from": {
-                    "type": "object"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "prim": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                },
-                "value": {
-                    "type": "object"
-                }
-            }
-        },
-        "search.Group": {
-            "type": "object",
-            "properties": {
-                "count": {
-                    "type": "integer"
-                },
-                "top": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/search.Top"
-                    }
-                }
-            }
-        },
-        "search.Item": {
-            "type": "object",
-            "properties": {
-                "body": {
-                    "type": "object"
-                },
-                "group": {
-                    "$ref": "#/definitions/search.Group"
-                },
-                "highlights": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    }
-                },
-                "type": {
-                    "type": "string"
-                },
-                "value": {
-                    "type": "string"
-                }
-            }
-        },
-        "search.Result": {
-            "type": "object",
-            "properties": {
-                "count": {
-                    "type": "integer"
-                },
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/search.Item"
-                    }
-                },
-                "time": {
-                    "type": "integer"
-                }
-            }
-        },
-        "search.Top": {
-            "type": "object",
-            "properties": {
-                "key": {
-                    "type": "string"
-                },
-                "network": {
-                    "type": "string"
-                }
-            }
-        },
-=======
->>>>>>> Full abstraction storage
         "tzip.DApp": {
             "type": "object",
             "properties": {
@@ -4500,24 +4191,12 @@
             "type": "object",
             "properties": {
                 "michelson-extended-storage-event": {
-<<<<<<< HEAD
                     "$ref": "#/definitions/tzip.MichelsonExtendedStorageEvent"
                 },
                 "michelson-initial-storage-event": {
                     "$ref": "#/definitions/tzip.MichelsonInitialStorageEvent"
                 },
                 "michelson-parameter-event": {
-=======
-                    "type": "object",
-                    "$ref": "#/definitions/tzip.MichelsonExtendedStorageEvent"
-                },
-                "michelson-initial-storage-event": {
-                    "type": "object",
-                    "$ref": "#/definitions/tzip.MichelsonInitialStorageEvent"
-                },
-                "michelson-parameter-event": {
-                    "type": "object",
->>>>>>> Full abstraction storage
                     "$ref": "#/definitions/tzip.MichelsonParameterEvent"
                 }
             }
@@ -4537,14 +4216,10 @@
             "type": "object",
             "properties": {
                 "code": {
-<<<<<<< HEAD
                     "type": "array",
                     "items": {
                         "type": "integer"
                     }
-=======
-                    "type": "string"
->>>>>>> Full abstraction storage
                 },
                 "entrypoints": {
                     "type": "array",
@@ -4553,7 +4228,6 @@
                     }
                 },
                 "parameter": {
-<<<<<<< HEAD
                     "type": "array",
                     "items": {
                         "type": "integer"
@@ -4564,12 +4238,6 @@
                     "items": {
                         "type": "integer"
                     }
-=======
-                    "type": "string"
-                },
-                "return-type": {
-                    "type": "string"
->>>>>>> Full abstraction storage
                 }
             }
         },
@@ -4577,7 +4245,6 @@
             "type": "object",
             "properties": {
                 "code": {
-<<<<<<< HEAD
                     "type": "array",
                     "items": {
                         "type": "integer"
@@ -4594,15 +4261,6 @@
                     "items": {
                         "type": "integer"
                     }
-=======
-                    "type": "string"
-                },
-                "parameter": {
-                    "type": "string"
-                },
-                "return-type": {
-                    "type": "string"
->>>>>>> Full abstraction storage
                 }
             }
         },
@@ -4610,14 +4268,10 @@
             "type": "object",
             "properties": {
                 "code": {
-<<<<<<< HEAD
                     "type": "array",
                     "items": {
                         "type": "integer"
                     }
-=======
-                    "type": "string"
->>>>>>> Full abstraction storage
                 },
                 "entrypoints": {
                     "type": "array",
@@ -4626,7 +4280,6 @@
                     }
                 },
                 "parameter": {
-<<<<<<< HEAD
                     "type": "array",
                     "items": {
                         "type": "integer"
@@ -4637,12 +4290,6 @@
                     "items": {
                         "type": "integer"
                     }
-=======
-                    "type": "string"
-                },
-                "return-type": {
-                    "type": "string"
->>>>>>> Full abstraction storage
                 }
             }
         },
@@ -4679,7 +4326,6 @@
                     "type": "string"
                 },
                 "domain": {
-                    "type": "object",
                     "$ref": "#/definitions/tezosdomain.ReverseTezosDomain"
                 },
                 "events": {
@@ -4701,7 +4347,6 @@
                     "type": "integer"
                 },
                 "license": {
-                    "type": "object",
                     "$ref": "#/definitions/tzip.License"
                 },
                 "name": {
@@ -4717,7 +4362,6 @@
                     "type": "string"
                 },
                 "tokens": {
-                    "type": "object",
                     "$ref": "#/definitions/tzip.TokenMetadataType"
                 },
                 "version": {

@@ -116,9 +116,9 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 					entrypoints = append(entrypoints, c.DexVolumeEntrypoints...)
 				}
 
-				vol, err := ctx.ES.GetToken24HoursVolume(consts.Mainnet, token.Contract, initiators, entrypoints, token.TokenID)
+				vol, err := ctx.Transfers.GetToken24HoursVolume(consts.Mainnet, token.Contract, initiators, entrypoints, token.TokenID)
 				if err != nil {
-					if elastic.IsRecordNotFound(err) {
+					if ctx.Storage.IsRecordNotFound(err) {
 						continue
 					}
 					return result, err
@@ -153,7 +153,7 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 				}
 				result.Tokens = append(result.Tokens, tokens...)
 
-				vol, err := ctx.ES.GetContract24HoursVolume(consts.Mainnet, address.Address, address.DexVolumeEntrypoints)
+				vol, err := ctx.Operations.GetContract24HoursVolume(consts.Mainnet, address.Address, address.DexVolumeEntrypoints)
 				if err != nil {
 					return result, err
 				}
