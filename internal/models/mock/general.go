@@ -409,48 +409,48 @@ func (mr *MockGeneralRepositoryMockRecorder) GetDateHistogram(period interface{}
 }
 
 // GetCallsCountByNetwork mocks base method
-func (m *MockGeneralRepository) GetCallsCountByNetwork() (map[string]int64, error) {
+func (m *MockGeneralRepository) GetCallsCountByNetwork(network string) (map[string]int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCallsCountByNetwork")
+	ret := m.ctrl.Call(m, "GetCallsCountByNetwork", network)
 	ret0, _ := ret[0].(map[string]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetCallsCountByNetwork indicates an expected call of GetCallsCountByNetwork
-func (mr *MockGeneralRepositoryMockRecorder) GetCallsCountByNetwork() *gomock.Call {
+func (mr *MockGeneralRepositoryMockRecorder) GetCallsCountByNetwork(network interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCallsCountByNetwork", reflect.TypeOf((*MockGeneralRepository)(nil).GetCallsCountByNetwork))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCallsCountByNetwork", reflect.TypeOf((*MockGeneralRepository)(nil).GetCallsCountByNetwork), network)
 }
 
 // GetContractStatsByNetwork mocks base method
-func (m *MockGeneralRepository) GetContractStatsByNetwork() (map[string]models.ContractCountStats, error) {
+func (m *MockGeneralRepository) GetContractStatsByNetwork(network string) (map[string]models.ContractCountStats, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetContractStatsByNetwork")
+	ret := m.ctrl.Call(m, "GetContractStatsByNetwork", network)
 	ret0, _ := ret[0].(map[string]models.ContractCountStats)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetContractStatsByNetwork indicates an expected call of GetContractStatsByNetwork
-func (mr *MockGeneralRepositoryMockRecorder) GetContractStatsByNetwork() *gomock.Call {
+func (mr *MockGeneralRepositoryMockRecorder) GetContractStatsByNetwork(network interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContractStatsByNetwork", reflect.TypeOf((*MockGeneralRepository)(nil).GetContractStatsByNetwork))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContractStatsByNetwork", reflect.TypeOf((*MockGeneralRepository)(nil).GetContractStatsByNetwork), network)
 }
 
 // GetFACountByNetwork mocks base method
-func (m *MockGeneralRepository) GetFACountByNetwork() (map[string]int64, error) {
+func (m *MockGeneralRepository) GetFACountByNetwork(network string) (map[string]int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetFACountByNetwork")
+	ret := m.ctrl.Call(m, "GetFACountByNetwork", network)
 	ret0, _ := ret[0].(map[string]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetFACountByNetwork indicates an expected call of GetFACountByNetwork
-func (mr *MockGeneralRepositoryMockRecorder) GetFACountByNetwork() *gomock.Call {
+func (mr *MockGeneralRepositoryMockRecorder) GetFACountByNetwork(network interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFACountByNetwork", reflect.TypeOf((*MockGeneralRepository)(nil).GetFACountByNetwork))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFACountByNetwork", reflect.TypeOf((*MockGeneralRepository)(nil).GetFACountByNetwork), network)
 }
 
 // GetLanguagesForNetwork mocks base method

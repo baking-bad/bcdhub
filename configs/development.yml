@@ -89,6 +89,9 @@ api:
       operations:
         non_durable: true
         auto_deleted: true
+      blocks:
+        non_durable: true
+        auto_deleted: true
   pinata:
     key: ${PINATA_KEY}
     secret_key: ${PINATA_SECRET_KEY}
@@ -117,7 +120,7 @@ indexer:
     mainnet:
       boost: tzkt
     # delphinet:
-    #     boost: tzkt
+    #   boost: tzkt
 
 metrics:
   project_name: metrics

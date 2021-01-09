@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/cmd/api/ws/datasources"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/pkg/errors"
 )
 
@@ -84,7 +85,7 @@ func (c *OperationsChannel) listen(source datasources.DataSource) {
 			source.Unsubscribe(ch)
 			return
 		case data := <-ch:
-			if data.Type != datasources.RabbitType {
+			if data.Type != datasources.RabbitType || data.Kind != mq.QueueOperations {
 				continue
 			}
 			if err := c.createMessage(data); err != nil {
