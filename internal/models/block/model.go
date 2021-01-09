@@ -2,7 +2,11 @@ package block
 
 import (
 	"time"
+
+	jsoniter "github.com/json-iterator/go"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // Block -
 type Block struct {
@@ -29,12 +33,12 @@ func (b *Block) GetIndex() string {
 
 // GetQueues -
 func (b *Block) GetQueues() []string {
-	return nil
+	return []string{"blocks"}
 }
 
 // MarshalToQueue -
 func (b *Block) MarshalToQueue() ([]byte, error) {
-	return nil, nil
+	return json.Marshal(b)
 }
 
 // ValidateChainID -

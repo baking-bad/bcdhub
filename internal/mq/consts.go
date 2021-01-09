@@ -17,6 +17,7 @@ const (
 	QueueTransfers    = "transfers"
 	QueueCompilations = "compilations"
 	QueueBigMapDiffs  = "bigmapdiffs"
+	QueueBlocks       = "blocks"
 )
 
 // URL Prefixes

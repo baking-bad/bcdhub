@@ -84,9 +84,10 @@ func (c *RabbitMQ) listenChannel(queue string) {
 
 func (c *RabbitMQ) handler(data mq.Data) error {
 	switch data.GetKey() {
-	case mq.QueueOperations:
+	case mq.QueueOperations, mq.QueueBlocks:
 		val := Data{
 			Type: c.GetType(),
+			Kind: data.GetKey(),
 			Body: data.GetBody(),
 		}
 

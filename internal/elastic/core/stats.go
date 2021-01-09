@@ -30,8 +30,17 @@ func (e *Elastic) GetNetworkCountStats(network string) (map[string]int64, error)
 }
 
 // GetCallsCountByNetwork -
-func (e *Elastic) GetCallsCountByNetwork() (map[string]int64, error) {
-	query := NewQuery().Query(Exists("entrypoint")).Add(
+func (e *Elastic) GetCallsCountByNetwork(network string) (map[string]int64, error) {
+	filters := []Item{
+		Exists("entrypoint"),
+	}
+	if network != "" {
+		filters = append(filters, Match("network", network))
+	}
+
+	query := NewQuery().Query(
+		Bool(Filter(filters...)),
+	).Add(
 		Aggs(
 			AggItem{
 				"body", Item{
@@ -59,8 +68,14 @@ type getContractStatsByNetworkStats struct {
 }
 
 // GetContractStatsByNetwork -
-func (e *Elastic) GetContractStatsByNetwork() (map[string]models.ContractCountStats, error) {
-	query := NewQuery().Add(
+func (e *Elastic) GetContractStatsByNetwork(network string) (map[string]models.ContractCountStats, error) {
+	query := NewQuery()
+
+	if network != "" {
+		query.Query(Bool(Filter(Match("network", network))))
+	}
+
+	query.Add(
 		Aggs(
 			AggItem{
 				"network", Item{
@@ -97,12 +112,19 @@ func (e *Elastic) GetContractStatsByNetwork() (map[string]models.ContractCountSt
 }
 
 // GetFACountByNetwork -
-func (e *Elastic) GetFACountByNetwork() (map[string]int64, error) {
-	query := NewQuery().Query(
+func (e *Elastic) GetFACountByNetwork(network string) (map[string]int64, error) {
+	filters := []Item{
 		In("tags", []string{
 			"fa1",
 			"fa12",
 		}),
+	}
+	if network != "" {
+		filters = append(filters, Match("network", network))
+	}
+
+	query := NewQuery().Query(
+		Bool(Filter(filters...)),
 	).Add(
 		Aggs(
 			AggItem{

@@ -1,13 +1,17 @@
 package channels
 
 import (
-	"sort"
 	"sync"
 	"time"
 
 	"github.com/baking-bad/bcdhub/cmd/api/ws/datasources"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models/block"
+	"github.com/baking-bad/bcdhub/internal/mq"
+	jsoniter "github.com/json-iterator/go"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // StatsChannel -
 type StatsChannel struct {
@@ -31,12 +35,6 @@ type StatsBody struct {
 	TotalWithdrawn  int64     `json:"total_withdrawn"`
 	FACount         int64     `json:"fa_count"`
 }
-
-type byNetwork []StatsBody
-
-func (a byNetwork) Len() int           { return len(a) }
-func (a byNetwork) Less(i, j int) bool { return a[i].Network < a[j].Network }
-func (a byNetwork) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 
 // NewStatsChannel -
 func NewStatsChannel(opts ...ChannelOption) *StatsChannel {
@@ -79,7 +77,7 @@ func (c *StatsChannel) Stop() {
 
 // Init -
 func (c *StatsChannel) Init() error {
-	return c.createMessage()
+	return c.initMessage()
 }
 
 func (c *StatsChannel) listen(source datasources.DataSource) {
@@ -92,52 +90,82 @@ func (c *StatsChannel) listen(source datasources.DataSource) {
 			source.Unsubscribe(ch)
 			return
 		case data := <-ch:
-			if data.Type != datasources.RabbitType {
+			if data.Type != datasources.RabbitType || data.Kind != mq.QueueBlocks {
 				continue
 			}
-			if err := c.createMessage(); err != nil {
+			if err := c.createMessage(data.Body.([]byte)); err != nil {
 				logger.Error(err)
 			}
 		}
 	}
 }
 
-func (c *StatsChannel) createMessage() error {
-	states, err := c.ctx.Blocks.LastByNetworks()
+func (c *StatsChannel) initMessage() error {
+	blocks, err := c.ctx.Blocks.LastByNetworks()
 	if err != nil {
 		return err
 	}
-	callCounts, err := c.ctx.Storage.GetCallsCountByNetwork()
+	stats, err := c.getStats(blocks)
 	if err != nil {
 		return err
 	}
-	contractStats, err := c.ctx.Storage.GetContractStatsByNetwork()
-	if err != nil {
-		return err
+	c.messages <- Message{
+		ChannelName: c.GetName(),
+		Body:        stats,
 	}
+	return nil
+}
 
-	faCount, err := c.ctx.Storage.GetFACountByNetwork()
+func (c *StatsChannel) createMessage(data []byte) error {
+	var b block.Block
+	if err := json.Unmarshal(data, &b); err != nil {
+		return err
+	}
+	stats, err := c.getStats([]block.Block{b})
 	if err != nil {
 		return err
 	}
+	c.messages <- Message{
+		ChannelName: c.GetName(),
+		Body:        stats,
+	}
+	return nil
+}
 
-	body := make([]StatsBody, len(states))
-	for i := range states {
+func (c *StatsChannel) getStats(blocks []block.Block) ([]StatsBody, error) {
+	var network string
+	if len(blocks) == 1 {
+		network = blocks[0].Network
+	}
+	callCounts, err := c.ctx.Storage.GetCallsCountByNetwork(network)
+	if err != nil {
+		return nil, err
+	}
+	contractStats, err := c.ctx.Storage.GetContractStatsByNetwork(network)
+	if err != nil {
+		return nil, err
+	}
+	faCount, err := c.ctx.Storage.GetFACountByNetwork(network)
+	if err != nil {
+		return nil, err
+	}
+	body := make([]StatsBody, len(blocks))
+	for i := range blocks {
 		body[i] = StatsBody{
-			Network:   states[i].Network,
-			Level:     states[i].Level,
-			Timestamp: states[i].Timestamp,
-			Protocol:  states[i].Protocol,
+			Network:   blocks[i].Network,
+			Level:     blocks[i].Level,
+			Timestamp: blocks[i].Timestamp,
+			Protocol:  blocks[i].Protocol,
 		}
-		calls, ok := callCounts[states[i].Network]
+		calls, ok := callCounts[blocks[i].Network]
 		if ok {
 			body[i].ContractCalls = calls
 		}
-		fa, ok := faCount[states[i].Network]
+		fa, ok := faCount[blocks[i].Network]
 		if ok {
 			body[i].FACount = fa
 		}
-		stats, ok := contractStats[states[i].Network]
+		stats, ok := contractStats[blocks[i].Network]
 		if ok {
 			body[i].Total = stats.Total
 			body[i].TotalBalance = stats.Balance
@@ -145,10 +173,5 @@ func (c *StatsChannel) createMessage() error {
 		}
 	}
 
-	sort.Sort(byNetwork(body))
-	c.messages <- Message{
-		ChannelName: c.GetName(),
-		Body:        body,
-	}
-	return nil
+	return body, nil
 }

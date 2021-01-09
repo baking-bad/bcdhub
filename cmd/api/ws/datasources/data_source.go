@@ -44,5 +44,6 @@ func (s *DefaultSource) Unsubscribe(ch chan Data) {
 // Data -
 type Data struct {
 	Type string
+	Kind string
 	Body interface{}
 }

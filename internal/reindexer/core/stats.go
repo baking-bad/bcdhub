@@ -40,7 +40,7 @@ func (r *Reindexer) GetNetworkCountStats(network string) (map[string]int64, erro
 }
 
 // GetCallsCountByNetwork -
-func (r *Reindexer) GetCallsCountByNetwork() (map[string]int64, error) {
+func (r *Reindexer) GetCallsCountByNetwork(network string) (map[string]int64, error) {
 	query := r.Query(models.DocContracts).
 		WhereString("entrypoint", reindexer.EMPTY, "")
 
@@ -49,7 +49,7 @@ func (r *Reindexer) GetCallsCountByNetwork() (map[string]int64, error) {
 
 // GetContractStatsByNetwork -
 // TODO: to do =)
-func (r *Reindexer) GetContractStatsByNetwork() (map[string]models.ContractCountStats, error) {
+func (r *Reindexer) GetContractStatsByNetwork(network string) (map[string]models.ContractCountStats, error) {
 	// query := NewQuery().Add(
 	// 	Aggs(
 	// 		AggItem{
@@ -89,7 +89,7 @@ func (r *Reindexer) GetContractStatsByNetwork() (map[string]models.ContractCount
 }
 
 // GetFACountByNetwork -
-func (r *Reindexer) GetFACountByNetwork() (map[string]int64, error) {
+func (r *Reindexer) GetFACountByNetwork(network string) (map[string]int64, error) {
 	query := r.Query(models.DocContracts).Match("tags", "fa1", "fa12")
 	return countByField("network", query)
 }
