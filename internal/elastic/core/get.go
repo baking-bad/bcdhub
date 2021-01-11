@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
@@ -102,8 +103,28 @@ func (e *Elastic) GetCountAgg(index []string, query Base) (map[string]int64, err
 // FiltersToQuery -
 func FiltersToQuery(by map[string]interface{}) Base {
 	matches := make([]Item, 0)
+
 	for k, v := range by {
-		matches = append(matches, MatchPhrase(k, v))
+		if strings.HasSuffix(k, ".or") {
+			field := strings.TrimSuffix(k, ".or")
+			if field == "" {
+				continue
+			}
+			shouldItems := make([]Item, 0)
+
+			if val, ok := v.([]interface{}); ok {
+				for _, v := range val {
+					shouldItems = append(shouldItems, MatchPhrase(field, v))
+				}
+			} else {
+				continue
+			}
+
+			matches = append(matches, Bool(Should(shouldItems...), MinimumShouldMatch(1)))
+		} else {
+			matches = append(matches, MatchPhrase(k, v))
+		}
+
 	}
 	return NewQuery().Query(
 		Bool(
