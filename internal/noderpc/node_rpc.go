@@ -340,13 +340,17 @@ func (rpc *NodeRPC) GetNetworkConstants(level int64) (constants Constants, err e
 }
 
 // RunCode -
-func (rpc *NodeRPC) RunCode(script, storage, input gjson.Result, chainID, source, payer, entrypoint string, amount, gas int64) (res gjson.Result, err error) {
+func (rpc *NodeRPC) RunCode(script, storage, input gjson.Result, chainID, source, payer, entrypoint, proto string, amount, gas int64) (res gjson.Result, err error) {
 	data := map[string]interface{}{
 		"script":   script.Value(),
 		"storage":  storage.Value(),
 		"input":    input.Value(),
 		"amount":   fmt.Sprintf("%d", amount),
 		"chain_id": chainID,
+	}
+
+	if proto != "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo" {
+		data["balance"] = 0
 	}
 
 	if gas != 0 {

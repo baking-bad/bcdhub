@@ -93,6 +93,7 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 
 	ctx := events.Context{
 		Network:                  p.network,
+		Protocol:                 operation.Protocol,
 		Source:                   operation.Source,
 		Amount:                   operation.Amount,
 		Initiator:                operation.Initiator,
