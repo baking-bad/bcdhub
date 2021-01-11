@@ -18,7 +18,7 @@ tzkt:
     base_uri: https://delphi.tzkt.io/
     timeout: 20
 
-elastic:
+storage:
   uri:
     - http://elastic:9200
   timeout: 10
