@@ -200,18 +200,18 @@ func (mr *MockINodeMockRecorder) GetNetworkConstants(arg0 interface{}) *gomock.C
 }
 
 // RunCode mocks base method
-func (m *MockINode) RunCode(arg0, arg1, arg2 gjson.Result, arg3, arg4, arg5, arg6 string, arg7, arg8 int64) (gjson.Result, error) {
+func (m *MockINode) RunCode(arg0, arg1, arg2 gjson.Result, arg3, arg4, arg5, arg6, arg7 string, arg8, arg9 int64) (gjson.Result, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RunCode", arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+	ret := m.ctrl.Call(m, "RunCode", arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
 	ret0, _ := ret[0].(gjson.Result)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // RunCode indicates an expected call of RunCode
-func (mr *MockINodeMockRecorder) RunCode(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 interface{}) *gomock.Call {
+func (mr *MockINodeMockRecorder) RunCode(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunCode", reflect.TypeOf((*MockINode)(nil).RunCode), arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunCode", reflect.TypeOf((*MockINode)(nil).RunCode), arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
 }
 
 // RunOperation mocks base method

@@ -192,7 +192,7 @@ func (ctx *Context) RunCode(c *gin.Context) {
 		return
 	}
 
-	response, err := rpc.RunCode(script.Get("code"), storage, value, state.ChainID, reqRunCode.Source, reqRunCode.Sender, entrypoint, reqRunCode.Amount, reqRunCode.GasLimit)
+	response, err := rpc.RunCode(script.Get("code"), storage, value, state.ChainID, reqRunCode.Source, reqRunCode.Sender, entrypoint, state.Protocol, reqRunCode.Amount, reqRunCode.GasLimit)
 	if ctx.handleError(c, err, 0) {
 		return
 	}

@@ -20,6 +20,7 @@ type Event interface {
 // Context -
 type Context struct {
 	Network                  string
+	Protocol                 string
 	Parameters               string
 	Source                   string
 	Initiator                string
@@ -66,7 +67,7 @@ func Execute(rpc noderpc.INode, event Event, ctx Context) ([]TokenBalance, error
 		return nil, err
 	}
 
-	response, err := rpc.RunCode(code, storage, parameter, ctx.ChainID, ctx.Source, ctx.Initiator, ctx.Entrypoint, ctx.Amount, ctx.HardGasLimitPerOperation)
+	response, err := rpc.RunCode(code, storage, parameter, ctx.ChainID, ctx.Source, ctx.Initiator, ctx.Entrypoint, ctx.Protocol, ctx.Amount, ctx.HardGasLimitPerOperation)
 	if err != nil {
 		return nil, err
 	}
