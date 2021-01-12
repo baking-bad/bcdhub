@@ -23,12 +23,12 @@ func (m *FillTZIP) Description() string {
 
 // Do - migrate function
 func (m *FillTZIP) Do(ctx *config.Context) error {
-	root, err := ask("Enter full path to directory with TZIP data (if empty - current directory):")
+	root, err := ask("Enter full path to directory with TZIP data (if empty - /etc/bcd/off-chain-metadata):")
 	if err != nil {
 		return err
 	}
 	if root == "" {
-		root = "."
+		root = "/etc/bcd/off-chain-metadata"
 	}
 	fs := repository.NewFileSystem(root)
 
