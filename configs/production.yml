@@ -80,6 +80,10 @@ api:
   oauth_enabled: true
   sentry_enabled: true
   seed_enabled: false
+  frontend:
+    ga_enabled: true
+    mempool_enabled: true
+    sandbox_mode: false
   networks:
     - mainnet
     - carthagenet

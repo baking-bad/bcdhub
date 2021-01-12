@@ -20,10 +20,13 @@ func (ctx *Context) GetConfig(c *gin.Context) {
 	}
 
 	cfg := ConfigResponse{
-		Networks:      ctx.Config.API.Networks,
-		OauthEnabled:  ctx.Config.API.OAuthEnabled,
-		RPCEndpoints:  rpcEndpoints,
-		TzKTEndpoints: tzktEndpoints,
+		Networks:       ctx.Config.API.Networks,
+		OauthEnabled:   ctx.Config.API.OAuthEnabled,
+		RPCEndpoints:   rpcEndpoints,
+		TzKTEndpoints:  tzktEndpoints,
+		GaEnabled:      ctx.Config.API.Frontend.GaEnabled,
+		MempoolEnabled: ctx.Config.API.Frontend.MempoolEnabled,
+		SandboxMode:    ctx.Config.API.Frontend.SandboxMode,
 	}
 
 	if ctx.Config.API.SentryEnabled {

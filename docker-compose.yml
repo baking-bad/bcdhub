@@ -113,7 +113,6 @@ services:
     command: >-
       -c "(cp /etc/bcd/nginx/default.${BCD_ENV:-production}.conf /etc/nginx/conf.d/default.conf || true)
       && (cp /etc/bcd/nginx/sitemap.${BCD_ENV:-production}.xml /usr/share/nginx/html/sitemap.xml || true)
-      && (mv config.${BCD_ENV:-production}.json config.production.json || true)
       && nginx -g 'daemon off;'"
     ports:
       - 127.0.0.1:${BCD_GUI_PORT}:80
