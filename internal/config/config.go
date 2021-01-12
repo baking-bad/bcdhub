@@ -32,17 +32,18 @@ type Config struct {
 	Domains      TezosDomainsConfig    `yaml:"domains"`
 
 	API struct {
-		ProjectName   string       `yaml:"project_name"`
-		Bind          string       `yaml:"bind"`
-		SwaggerHost   string       `yaml:"swagger_host"`
-		CorsEnabled   bool         `yaml:"cors_enabled"`
-		OAuthEnabled  bool         `yaml:"oauth_enabled"`
-		SentryEnabled bool         `yaml:"sentry_enabled"`
-		SeedEnabled   bool         `yaml:"seed_enabled"`
-		Seed          SeedConfig   `yaml:"seed"`
-		Networks      []string     `yaml:"networks"`
-		MQ            MQConfig     `yaml:"mq"`
-		Pinata        PinataConfig `yaml:"pinata"`
+		ProjectName   string         `yaml:"project_name"`
+		Bind          string         `yaml:"bind"`
+		SwaggerHost   string         `yaml:"swagger_host"`
+		CorsEnabled   bool           `yaml:"cors_enabled"`
+		OAuthEnabled  bool           `yaml:"oauth_enabled"`
+		SentryEnabled bool           `yaml:"sentry_enabled"`
+		SeedEnabled   bool           `yaml:"seed_enabled"`
+		Frontend      FrontendConfig `yaml:"frontend"`
+		Seed          SeedConfig     `yaml:"seed"`
+		Networks      []string       `yaml:"networks"`
+		MQ            MQConfig       `yaml:"mq"`
+		Pinata        PinataConfig   `yaml:"pinata"`
 	} `yaml:"api"`
 
 	Compiler struct {
@@ -133,6 +134,13 @@ type OAuthConfig struct {
 		Secret      string `yaml:"secret"`
 		CallbackURL string `yaml:"callback_url"`
 	} `yaml:"gitlab"`
+}
+
+// FrontendConfig -
+type FrontendConfig struct {
+	GaEnabled      bool `yaml:"ga_enabled"`
+	MempoolEnabled bool `yaml:"mempool_enabled"`
+	SandboxMode    bool `yaml:"sandbox_mode"`
 }
 
 // SeedConfig -

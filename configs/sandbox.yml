@@ -32,6 +32,10 @@ api:
   oauth_enabled: false
   sentry_enabled: false
   seed_enabled: true
+  frontend:
+    ga_enabled: false
+    mempool_enabled: false
+    sandbox_mode: true
   seed:
     user:
       login: sandboxuser
