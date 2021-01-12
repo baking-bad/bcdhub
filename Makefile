@@ -23,15 +23,15 @@ seo:
 ifeq ($(BCD_ENV), development)
 	cd scripts/nginx && go run .
 else
-	docker exec -it $$BCD_ENV-api seo
-	docker restart $$BCD_ENV-gui
+	docker-compose exec api seo
+	docker-compose restart gui
 endif
 
 migration:
 ifeq ($(BCD_ENV), development)
 	cd scripts/migration && go run .
 else
-	docker exec -it $$BCD_ENV-api migration
+	docker-compose exec api migration
 endif
 
 rollback:
@@ -41,52 +41,51 @@ remove:
 	cd scripts/esctl && go run . remove -n $(NETWORK) 
 
 s3-creds:
-	docker exec -it $$BCD_ENV-elastic bash -c 'bin/elasticsearch-keystore add --force --stdin s3.client.default.access_key <<< "$$AWS_ACCESS_KEY_ID"'
-	docker exec -it $$BCD_ENV-elastic bash -c 'bin/elasticsearch-keystore add --force --stdin s3.client.default.secret_key <<< "$$AWS_SECRET_ACCESS_KEY"'
+	docker-compose exec elastic bash -c 'bin/elasticsearch-keystore add --force --stdin s3.client.default.access_key <<< "$$AWS_ACCESS_KEY_ID"'
+	docker-compose exec elastic bash -c 'bin/elasticsearch-keystore add --force --stdin s3.client.default.secret_key <<< "$$AWS_SECRET_ACCESS_KEY"'
 ifeq ($(BCD_ENV), development)
 	cd scripts/esctl && go run . reload_secure_settings
 else
-	docker exec -it $$BCD_ENV-api esctl reload_secure_settings
+	docker-compose exec api esctl reload_secure_settings
 endif
 
 s3-repo:
 ifeq ($(BCD_ENV), development)
 	cd scripts/esctl && go run . create_repository
 else
-	docker exec -it $$BCD_ENV-api esctl create_repository
+	docker-compose exec api esctl create_repository
 endif
 
 s3-restore:
 ifeq ($(BCD_ENV), development)
 	cd scripts/esctl && go run . restore
 else
-	docker exec -it $$BCD_ENV-api esctl restore
+	docker-compose exec api esctl restore
 endif
 
 s3-snapshot:
 ifeq ($(BCD_ENV), development)
 	cd scripts/esctl && go run . snapshot
 else
-	docker exec -it $$BCD_ENV-api esctl snapshot
+	docker-compose exec api esctl snapshot
 endif
 
 s3-policy:
 ifeq ($(BCD_ENV), development)
 	cd scripts/esctl && go run . set_policy
 else
-	docker exec -it $$BCD_ENV-api esctl set_policy
+	docker-compose exec api esctl set_policy
 endif
 
 es-reset:
-	docker stop $$BCD_ENV-elastic || true
-	docker rm $$BCD_ENV-elastic || true
-	docker volume rm $$COMPOSE_PROJECT_NAME_esdata || true
+	docker-compose rm -s -v -f elastic || true
+	docker volume rm $$(docker volume ls -q | grep esdata | grep $$COMPOSE_PROJECT_NAME) || true
 	docker-compose up -d elastic
 
 clearmq:
-	docker exec -it $$BCD_ENV-mq rabbitmqctl stop_app
-	docker exec -it $$BCD_ENV-mq rabbitmqctl reset
-	docker exec -it $$BCD_ENV-mq rabbitmqctl start_app
+	docker-compose exec mq rabbitmqctl stop_app
+	docker-compose exec mq rabbitmqctl reset
+	docker-compose exec mq rabbitmqctl start_app
 
 test:
 	go test ./...
@@ -120,7 +119,7 @@ upgrade:
 	docker-compose down
 	STABLE_TAG=$$(cat version.json | grep version | awk -F\" '{ print $$4 }' |  cut -d '.' -f1-2)
 	TAG=$$STABLE_TAG $(MAKE) es-reset
-	TAG=$$STABLE_TAG docker-compose up -d db mq
+	TAG=$$STABLE_TAG docker-compose up -d db mq api
 
 restart:
 	docker-compose restart api metrics indexer compiler
@@ -129,10 +128,10 @@ release:
 	BCDHUB_VERSION=$$(cat version.json | grep version | awk -F\" '{ print $$4 }') && git tag $$BCDHUB_VERSION && git push origin $$BCDHUB_VERSION
 
 db-dump:
-	docker exec -it $$BCD_ENV-db pg_dump -c bcd > dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
+	docker-compose exec db pg_dump -c bcd > dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
 
 db-restore:
-	docker exec -i $$BCD_ENV-db psql --username $$POSTGRES_USER -v ON_ERROR_STOP=on bcd < $(BACKUP)
+	docker-compose exec db psql --username $$POSTGRES_USER -v ON_ERROR_STOP=on bcd < $(BACKUP)
 
 ps:
 	docker ps --format "table {{.Names}}\t{{.RunningFor}}\t{{.Status}}\t{{.Ports}}"
