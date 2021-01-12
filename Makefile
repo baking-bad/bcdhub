@@ -82,10 +82,10 @@ es-reset:
 	docker volume rm $$(docker volume ls -q | grep esdata | grep $$COMPOSE_PROJECT_NAME) || true
 	docker-compose up -d elastic
 
-clearmq:
-	docker-compose exec mq rabbitmqctl stop_app
-	docker-compose exec mq rabbitmqctl reset
-	docker-compose exec mq rabbitmqctl start_app
+mq-reset:
+	docker-compose rm -s -v -f mq || true
+	docker volume rm $$(docker volume ls -q | grep mqdata | grep $$COMPOSE_PROJECT_NAME) || true
+	docker-compose up -d mq
 
 test:
 	go test ./...
@@ -115,9 +115,9 @@ latest:
 	docker-compose up -d
 
 upgrade:
-	$(MAKE) clearmq
 	docker-compose down
 	STABLE_TAG=$$(cat version.json | grep version | awk -F\" '{ print $$4 }' |  cut -d '.' -f1-2)
+	TAG=$$STABLE_TAG $(MAKE) mq-reset
 	TAG=$$STABLE_TAG $(MAKE) es-reset
 	TAG=$$STABLE_TAG docker-compose up -d db mq api
 
