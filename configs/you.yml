@@ -5,9 +5,6 @@ rpc:
   delphinet:
     uri: https://delphinet-tezos.giganode.io
     timeout: 20
-  carthagenet:
-    uri: https://rpc.tzkt.io/carthagenet
-    timeout: 20
 
 tzkt:
   mainnet:
@@ -19,11 +16,6 @@ tzkt:
     uri: https://api.delphi.tzkt.io/v1/
     services_uri: https://services.tzkt.io/delphinet/v1/
     base_uri: https://delphi.tzkt.io/
-    timeout: 20
-  carthagenet:
-    uri: https://api.carthage.tzkt.io/v1/
-    services_uri: https://services.tzkt.io/carthagenet/v1/
-    base_uri: https://carthage.tzkt.io/
     timeout: 20
 
 storage:
@@ -68,7 +60,6 @@ ipfs:
   - https://dweb.link
 
 domains:
-  carthagenet: KT1SZuK6u3QgQFcoYqDwZCd2Xb9pn4HXJW56
   delphinet: KT1CR6vXJ1qeY4ALDQfUaLFi3FcJJZ8WDygo
 
 api:
@@ -85,7 +76,6 @@ api:
     sandbox_mode: false
   networks:
     - mainnet
-    - carthagenet
     - delphinet
   mq:
     publisher: true
@@ -123,8 +113,6 @@ indexer:
   networks:
     mainnet:
       boost: tzkt
-    carthagenet:
-      boost: tzkt
     delphinet:
       boost: tzkt
 
@@ -150,7 +138,6 @@ scripts:
     secret_access_key: ${AWS_SECRET_ACCESS_KEY}
   networks:
     - mainnet
-    - carthagenet
     - delphinet
   mq:
     publisher: true
