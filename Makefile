@@ -133,6 +133,9 @@ db-dump:
 db-restore:
 	docker-compose exec db psql --username $$POSTGRES_USER -v ON_ERROR_STOP=on bcd < $(BACKUP)
 
+mq-list:
+	docker-compose exec mq rabbitmqctl list_queues
+
 ps:
 	docker ps --format "table {{.Names}}\t{{.RunningFor}}\t{{.Status}}\t{{.Ports}}"
 
