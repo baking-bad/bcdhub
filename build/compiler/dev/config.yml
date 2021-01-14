@@ -5,9 +5,6 @@ rpc:
   delphinet:
     uri: https://rpc.tzkt.io/delphinet
     timeout: 20
-  carthagenet:
-    uri: https://rpc.tzkt.io/carthagenet
-    timeout: 20
 
 tzkt:
   mainnet:
@@ -19,11 +16,6 @@ tzkt:
     uri: https://api.delphi.tzkt.io/v1/
     services_uri: https://services.tzkt.io/delphinet/v1/
     base_uri: https://delphi.tzkt.io/
-    timeout: 20
-  carthagenet:
-    uri: https://api.carthage.tzkt.io/v1/
-    services_uri: https://services.tzkt.io/carthagenet/v1/
-    base_uri: https://carthage.tzkt.io/
     timeout: 20
 
 elastic:
@@ -76,7 +68,6 @@ api:
   seed_enabled: false
   networks:
     - mainnet
-    - carthagenet
     - delphinet
   mq:
     publisher: true
@@ -110,8 +101,6 @@ indexer:
   networks:
     mainnet:
       boost: tzkt
-    # carthagenet:
-    #     boost: tzkt
     # delphinet:
     #     boost: tzkt
 
@@ -136,7 +125,6 @@ scripts:
     secret_access_key: ${AWS_SECRET_ACCESS_KEY}
   networks:
     - mainnet
-    - carthagenet
     - delphinet
   mq:
     publisher: true
