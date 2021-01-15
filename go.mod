@@ -6,7 +6,6 @@ require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/aws/aws-sdk-go v1.30.10
 	github.com/btcsuite/btcutil v1.0.1
-	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20191218082911-5398a82b748f
 	github.com/fatih/color v1.9.0
@@ -25,13 +24,14 @@ require (
 	github.com/jessevdk/go-flags v0.0.0-20141203071132-1679536dcc89
 	github.com/jinzhu/gorm v1.9.11
 	github.com/json-iterator/go v1.1.10
+	github.com/karlseguin/ccache v2.0.3+incompatible
+	github.com/karlseguin/expect v1.0.2-0.20190806010014-778a5f0c6003 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/lib/pq v1.1.1
 	github.com/nats-io/nats-server/v2 v2.1.9 // indirect
 	github.com/nats-io/nats.go v1.10.0
 	github.com/pkg/errors v0.9.1
 	github.com/restream/reindexer v3.0.0+incompatible
-	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/schollz/progressbar/v3 v3.1.1
 	github.com/sergi/go-diff v1.1.0
 	github.com/sirupsen/logrus v1.4.2
@@ -41,6 +41,7 @@ require (
 	github.com/tidwall/gjson v1.4.0
 	github.com/tidwall/sjson v1.0.4
 	github.com/valyala/fastjson v1.5.1
+	github.com/wsxiaoys/terminal v0.0.0-20160513160801-0940f3fc43a0 // indirect
 	github.com/xanzy/go-gitlab v0.33.0
 	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/yhirose/go-peg v0.0.0-20190710015414-7eb2cf046928

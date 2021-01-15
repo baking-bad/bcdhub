@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"os/signal"
+	"runtime"
 	"sync"
 	"syscall"
 
@@ -19,7 +20,6 @@ var handlers = map[string]BulkHandler{
 	mq.QueueContracts:   getContract,
 	mq.QueueOperations:  getOperation,
 	mq.QueueMigrations:  getMigrations,
-	mq.QueueTransfers:   getTransfer,
 	mq.QueueBigMapDiffs: getBigMapDiff,
 	mq.QueueRecalc:      recalculateAll,
 	mq.QueueProjects:    getProject,
@@ -42,11 +42,11 @@ func listenChannel(messageQueue mq.IMessageReceiver, queue string, closeChan cha
 	for {
 		select {
 		case <-closeChan:
-			logger.Info("Stopped %s queue", queue)
 			if manager, ok := managers[queue]; ok {
 				manager.Stop()
 				wg.Done()
 			}
+			logger.Info("Stopped %s queue", queue)
 			return
 		case msg := <-msgs:
 			if manager, ok := managers[msg.GetKey()]; ok {
@@ -65,6 +65,9 @@ func listenChannel(messageQueue mq.IMessageReceiver, queue string, closeChan cha
 }
 
 func main() {
+	logger.Warning("Metrics started on %d CPU cores", 4)
+	runtime.GOMAXPROCS(4)
+
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
 		logger.Fatal(err)

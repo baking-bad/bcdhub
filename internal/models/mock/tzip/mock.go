@@ -2,7 +2,7 @@
 // Source: tzip/repository.go
 
 // Package mock_tzip is a generated GoMock package.
-package mock_tzip
+package tzip
 
 import (
 	tzip "github.com/baking-bad/bcdhub/internal/models/tzip"
@@ -61,21 +61,6 @@ func (m *MockRepository) GetWithEvents() ([]tzip.TZIP, error) {
 func (mr *MockRepositoryMockRecorder) GetWithEvents() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWithEvents", reflect.TypeOf((*MockRepository)(nil).GetWithEvents))
-}
-
-// GetTokenMetadata mocks base method
-func (m *MockRepository) GetTokenMetadata(ctx tzip.GetTokenMetadataContext) ([]tzip.TokenMetadata, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetTokenMetadata", ctx)
-	ret0, _ := ret[0].([]tzip.TokenMetadata)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetTokenMetadata indicates an expected call of GetTokenMetadata
-func (mr *MockRepositoryMockRecorder) GetTokenMetadata(ctx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTokenMetadata", reflect.TypeOf((*MockRepository)(nil).GetTokenMetadata), ctx)
 }
 
 // GetDApps mocks base method

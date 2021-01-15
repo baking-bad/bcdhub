@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/models"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 )
@@ -18,32 +19,23 @@ type Scorable interface {
 	Parse(highlight map[string][]string, data []byte) (interface{}, error)
 }
 
-// indices
-const (
-	contractIndex   = "contract"
-	operationIndex  = "operation"
-	bigmapdiffIndex = "bigmapdiff"
-	tzipIndex       = "tzip"
-	metadataIndex   = "metadata" // TODO: constants in separate package
-	domainIndex     = "tezos_domain"
-)
-
 // Indices - list of indices availiable to search
 var Indices = []string{
-	contractIndex,
-	operationIndex,
-	bigmapdiffIndex,
-	tzipIndex,
-	domainIndex,
+	models.DocContracts,
+	models.DocOperations,
+	models.DocBigMapDiff,
+	models.DocTokenMetadata,
+	models.DocTZIP,
+	models.DocTezosDomains,
 }
 
 var scorables = map[string]Scorable{
-	contractIndex:   &Contract{},
-	operationIndex:  &Operation{},
-	bigmapdiffIndex: &BigMap{},
-	tzipIndex:       &Token{},
-	metadataIndex:   &Metadata{},
-	domainIndex:     &Domain{},
+	models.DocContracts:     &Contract{},
+	models.DocOperations:    &Operation{},
+	models.DocBigMapDiff:    &BigMap{},
+	models.DocTokenMetadata: &Token{},
+	models.DocTZIP:          &Metadata{},
+	models.DocTezosDomains:  &Domain{},
 }
 
 // ScoreInfo -
@@ -124,35 +116,8 @@ func GetScores(searchString string, fields []string, indices ...string) (ScoreIn
 
 // Parse -
 func Parse(index string, highlight map[string][]string, data []byte) (interface{}, error) {
-	fields := make([]string, 0)
-	for key := range highlight {
-		fields = append(fields, key)
+	if s, ok := scorables[index]; ok {
+		return s.Parse(highlight, data)
 	}
-
-	switch index {
-	case tzipIndex:
-		token := scorables[index]
-
-		var found bool
-		for _, field := range token.GetFields() {
-			for _, h := range fields {
-				if field == h {
-					found = true
-					break
-				}
-			}
-			if found {
-				break
-			}
-		}
-		if found {
-			return token.Parse(highlight, data)
-		}
-		return scorables[metadataIndex].Parse(highlight, data)
-	default:
-		if s, ok := scorables[index]; ok {
-			return s.Parse(highlight, data)
-		}
-		return nil, errors.Errorf("Unknown index: %s", index)
-	}
+	return nil, errors.Errorf("Unknown index: %s", index)
 }

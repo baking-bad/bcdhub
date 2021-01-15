@@ -12,6 +12,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
+	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
@@ -29,6 +30,7 @@ const (
 	DocSchema         = "schema"
 	DocTezosDomains   = "tezos_domain"
 	DocTokenBalances  = "token_balance"
+	DocTokenMetadata  = "token_metadata"
 	DocTransfers      = "transfer"
 	DocTZIP           = "tzip"
 )
@@ -47,6 +49,7 @@ func AllDocuments() []string {
 		DocSchema,
 		DocTezosDomains,
 		DocTokenBalances,
+		DocTokenMetadata,
 		DocTransfers,
 		DocTZIP,
 	}
@@ -66,6 +69,7 @@ func AllModels() []Model {
 		&schema.Schema{},
 		&tezosdomain.TezosDomain{},
 		&tokenbalance.TokenBalance{},
+		&tokenmetadata.TokenMetadata{},
 		&transfer.Transfer{},
 		&tzip.TZIP{},
 	}

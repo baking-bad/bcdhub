@@ -156,11 +156,13 @@ func (e *DefaultError) Format() error {
 			text = gjson.Parse(decodedString)
 		}
 	}
-	errString, err := formatter.MichelineToMichelson(text, true, formatter.DefLineSize)
-	if err != nil {
-		return err
+	if text.String() != "" {
+		errString, err := formatter.MichelineToMichelson(text, true, formatter.DefLineSize)
+		if err != nil {
+			return err
+		}
+		e.With = []byte(errString)
 	}
-	e.With = []byte(errString)
 	return nil
 }
 

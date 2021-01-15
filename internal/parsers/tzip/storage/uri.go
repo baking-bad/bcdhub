@@ -29,7 +29,7 @@ func (uri *TezosStorageURI) Parse(value string) (err error) {
 
 	uri.Key = strings.TrimPrefix(value, tezosStoragePrefix)
 	if strings.HasPrefix(uri.Key, "//") {
-		uri.Key = strings.TrimPrefix(value, "//")
+		uri.Key = strings.TrimPrefix(uri.Key, "//")
 		parts := strings.Split(uri.Key, "/")
 		if len(parts) > 1 {
 			uri.parseHost(parts[0])
@@ -82,7 +82,7 @@ func (uri *Sha256URI) Parse(value string) error {
 	}
 
 	key := strings.TrimPrefix(value, sha256Prefix)
-	parts := strings.Split(key, "/")
+	parts := strings.SplitN(key, "/", 2)
 	if len(parts) != 2 {
 		return errors.Wrap(ErrInvalidURI, value)
 	}

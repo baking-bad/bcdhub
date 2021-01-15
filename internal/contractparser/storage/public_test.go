@@ -2,7 +2,6 @@ package storage
 
 import (
 	"encoding/json"
-	"log"
 	"reflect"
 	"testing"
 
@@ -76,7 +75,6 @@ func Test_findPtrJSONPath(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			data := gjson.Parse(tt.args.data)
 			got, err := findPtrJSONPath(tt.args.ptr, tt.args.path, data)
-			log.Println("--------------------")
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Babylon.findPtrJSONPath() error = %v, wantErr %v", err, tt.wantErr)
 				return

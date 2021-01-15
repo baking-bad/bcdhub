@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/parsers/tzip/tokens"
 )
 
 func getContract(ids []string) error {
@@ -25,7 +26,7 @@ func getContract(ids []string) error {
 }
 
 func parseContract(contract *contract.Contract) error {
-	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.Bulk, ctx.DB)
+	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.Bulk, ctx.DB)
 
 	if _, err := h.SetContractAlias(contract); err != nil {
 		return err
@@ -35,8 +36,10 @@ func parseContract(contract *contract.Contract) error {
 	if err != nil {
 		return err
 	}
-	if err = h.CreateTokenMetadata(rpc, ctx.SharePath, contract); err != nil {
-		logger.Error(err)
+	if err = h.CreateTokenMetadata(rpc, ctx.SharePath, contract, ctx.Config.IPFSGateways...); err != nil {
+		if !errors.Is(err, tokens.ErrNoMetadataKeyInStorage) {
+			logger.Error(err)
+		}
 	}
 
 	return nil

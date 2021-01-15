@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
+	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 )
 
 // TokenResponse -
@@ -25,55 +25,38 @@ type Token struct{}
 
 // GetIndex -
 func (t Token) GetIndex() string {
-	return models.DocTZIP
+	return models.DocTokenMetadata
 }
 
 // GetScores -
 func (t Token) GetScores(search string) []string {
 	return []string{
-		"tokens.static.name^8",
-		"tokens.static.symbol^8",
-		"address^7",
+		"name^8",
+		"symbol^8",
+		"contract^7",
 	}
 }
 
 // GetFields -
 func (t Token) GetFields() []string {
 	return []string{
-		"tokens.static.name",
-		"tokens.static.symbol",
-		"address",
+		"name",
+		"symbol",
+		"contract",
 	}
 }
 
 // Parse  -
 func (t Token) Parse(highlight map[string][]string, data []byte) (interface{}, error) {
-	var token tzip.TZIP
+	var token tokenmetadata.TokenMetadata
 	if err := json.Unmarshal(data, &token); err != nil {
 		return nil, err
 	}
-	if token.Tokens == nil {
-		return nil, nil
-	}
-	items := make([]models.Item, len(token.Tokens.Static))
-	for i := range token.Tokens.Static {
-		items[i] = models.Item{
-			Type:  t.GetIndex(),
-			Value: token.Address,
-			Body: TokenResponse{
-				Network:   token.Network,
-				Address:   token.Address,
-				Level:     token.Level,
-				Timestamp: token.Timestamp,
-				Name:      token.Tokens.Static[i].Name,
-				Symbol:    token.Tokens.Static[i].Symbol,
-				TokenID:   token.Tokens.Static[i].TokenID,
-				Decimals:  token.Tokens.Static[i].Decimals,
-				Extras:    token.Tokens.Static[i].Extras,
-			},
-			Highlights: highlight,
-			Network:    token.Network,
-		}
-	}
-	return items, nil
+	return models.Item{
+		Type:       token.GetIndex(),
+		Value:      token.Contract,
+		Body:       token,
+		Highlights: highlight,
+		Network:    token.Network,
+	}, nil
 }

@@ -6,8 +6,8 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )
@@ -150,7 +150,12 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, transfers)
+	response, err := ctx.transfersPostprocessing(transfers)
+	if ctx.handleError(c, err, 0) {
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 // GetTokenVolumeSeries godoc
@@ -295,7 +300,7 @@ func (ctx *Context) GetContractTokens(c *gin.Context) {
 }
 
 func (ctx *Context) getTokens(network, address string) ([]Token, error) {
-	metadata, err := ctx.TZIP.GetTokenMetadata(tzip.GetTokenMetadataContext{
+	metadata, err := ctx.TokenMetadata.Get(tokenmetadata.GetContext{
 		Contract: address,
 		Network:  network,
 		TokenID:  -1,

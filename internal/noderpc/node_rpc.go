@@ -5,7 +5,6 @@ import (
 	stdJSON "encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -106,7 +105,7 @@ func (rpc *NodeRPC) get(uri string, response interface{}) (err error) {
 	count := 0
 	for ; count < rpc.retryCount; count++ {
 		if resp, err = client.Do(req); err != nil {
-			log.Printf("Attempt #%d: %s", count+1, err.Error())
+			logger.Warning("Attempt #%d: %s", count+1, err.Error())
 			continue
 		}
 		break
@@ -135,7 +134,7 @@ func (rpc *NodeRPC) getGJSON(uri string) (result gjson.Result, err error) {
 	count := 0
 	for ; count < rpc.retryCount; count++ {
 		if resp, err = client.Do(req); err != nil {
-			log.Printf("Attempt #%d: %s", count+1, err.Error())
+			logger.Warning("Attempt #%d: %s", count+1, err.Error())
 			continue
 		}
 		break
@@ -170,7 +169,7 @@ func (rpc *NodeRPC) post(uri string, data map[string]interface{}, checkStatusCod
 	count := 0
 	for ; count < rpc.retryCount; count++ {
 		if resp, err = client.Do(req); err != nil {
-			log.Printf("Attempt #%d: %s", count+1, err.Error())
+			logger.Warning("Attempt #%d: %s", count+1, err.Error())
 			continue
 		}
 		break
@@ -205,7 +204,7 @@ func (rpc *NodeRPC) postGJSON(uri string, data map[string]interface{}, checkStat
 	count := 0
 	for ; count < rpc.retryCount; count++ {
 		if resp, err = client.Do(req); err != nil {
-			log.Printf("Attempt #%d: %s", count+1, err.Error())
+			logger.Warning("Attempt #%d: %s", count+1, err.Error())
 			continue
 		}
 		break

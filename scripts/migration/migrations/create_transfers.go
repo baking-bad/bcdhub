@@ -3,7 +3,6 @@ package migrations
 import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
@@ -33,8 +32,6 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 	if err := m.deleteTransfers(ctx); err != nil {
 		return err
 	}
-
-	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.Bulk, ctx.DB)
 
 	operations, err := m.getOperations(ctx)
 	if err != nil {
@@ -74,9 +71,6 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 		}
 
 		for j := range transfers {
-			if _, err := h.SetTransferAliases(transfers[j]); err != nil {
-				return err
-			}
 			result = append(result, transfers[j])
 			newTransfers = append(newTransfers, transfers[j])
 		}

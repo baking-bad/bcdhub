@@ -126,7 +126,6 @@ metrics:
       contracts:
       migrations:
       recalc:
-      transfers:
       bigmapdiffs:
       projects:
 

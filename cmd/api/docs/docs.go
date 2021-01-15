@@ -3618,9 +3618,6 @@ var doc = `{
                 "network": {
                     "type": "string"
                 },
-                "registry_address": {
-                    "type": "string"
-                },
                 "supply": {
                     "type": "number"
                 },
@@ -3661,9 +3658,6 @@ var doc = `{
                     "type": "string"
                 },
                 "network": {
-                    "type": "string"
-                },
-                "registry_address": {
                     "type": "string"
                 },
                 "symbol": {
@@ -3744,9 +3738,6 @@ var doc = `{
                     "type": "string"
                 },
                 "network": {
-                    "type": "string"
-                },
-                "registry_address": {
                     "type": "string"
                 },
                 "symbol": {
@@ -4321,6 +4312,29 @@ var doc = `{
                 }
             }
         },
+        "tzip.Sections": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "parameter": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "return-type": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
         "tzip.TZIP": {
             "type": "object",
             "properties": {
@@ -4378,46 +4392,39 @@ var doc = `{
                 "timestamp": {
                     "type": "string"
                 },
-                "tokens": {
-                    "$ref": "#/definitions/tzip.TokenMetadataType"
-                },
                 "version": {
                     "type": "string"
+                },
+                "views": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/tzip.View"
+                    }
                 }
             }
         },
-        "tzip.TokenMetadataEntity": {
+        "tzip.View": {
             "type": "object",
             "properties": {
-                "decimals": {
-                    "type": "integer"
+                "description": {
+                    "type": "string"
                 },
-                "extras": {
-                    "type": "object",
-                    "additionalProperties": true
+                "implementations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/tzip.ViewImplementation"
+                    }
                 },
                 "name": {
                     "type": "string"
-                },
-                "registry_address": {
-                    "type": "string"
-                },
-                "symbol": {
-                    "type": "string"
-                },
-                "token_id": {
-                    "type": "integer"
                 }
             }
         },
-        "tzip.TokenMetadataType": {
+        "tzip.ViewImplementation": {
             "type": "object",
             "properties": {
-                "static": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/tzip.TokenMetadataEntity"
-                    }
+                "michelson-storage-view": {
+                    "$ref": "#/definitions/tzip.Sections"
                 }
             }
         }

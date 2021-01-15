@@ -1,8 +1,9 @@
 package tzip
 
 import (
-	"strings"
+	"errors"
 
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
@@ -10,7 +11,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	tzipStorage "github.com/baking-bad/bcdhub/internal/parsers/tzip/storage"
-	"github.com/pkg/errors"
 )
 
 // Public consts
@@ -27,7 +27,7 @@ type ParseContext struct {
 // Parser -
 type Parser struct {
 	bigMapRepo bigmapdiff.Repository
-	blockRepo  block.Repository
+	blocksRepo block.Repository
 	schemaRepo schema.Repository
 	storage    models.GeneralRepository
 	rpc        noderpc.INode
@@ -36,10 +36,10 @@ type Parser struct {
 }
 
 // NewParser -
-func NewParser(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, schemaRepo schema.Repository, storage models.GeneralRepository, rpc noderpc.INode, cfg ParserConfig) Parser {
+func NewParser(bigMapRepo bigmapdiff.Repository, blocksRepo block.Repository, schemaRepo schema.Repository, storage models.GeneralRepository, rpc noderpc.INode, cfg ParserConfig) Parser {
 	return Parser{
 		bigMapRepo: bigMapRepo,
-		blockRepo:  blockRepo,
+		blocksRepo: blocksRepo,
 		schemaRepo: schemaRepo,
 		storage:    storage,
 		rpc:        rpc,
@@ -49,46 +49,29 @@ func NewParser(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, sch
 }
 
 // Parse -
-func (p *Parser) Parse(ctx ParseContext) (*tzip.TZIP, error) {
+func (p *Parser) Parse(ctx ParseContext) (data *tzip.TZIP, err error) {
 	decoded := tzipStorage.DecodeValue(ctx.BigMapDiff.Value)
 	if decoded == "" {
 		return nil, nil
 	}
 
-	return p.getFromStorage(ctx, decoded)
-}
-
-func (p Parser) getFromStorage(ctx ParseContext, url string) (*tzip.TZIP, error) {
-	var store tzipStorage.Storage
-	switch {
-	case strings.HasPrefix(url, tzipStorage.PrefixHTTPS), strings.HasPrefix(url, tzipStorage.PrefixHTTP):
-		store = tzipStorage.NewHTTPStorage(
-			tzipStorage.WithTimeoutHTTP(p.cfg.HTTPTimeout),
-		)
-	case strings.HasPrefix(url, tzipStorage.PrefixIPFS):
-		store = tzipStorage.NewIPFSStorage(
-			p.cfg.IPFSGateways,
-			tzipStorage.WithTimeoutIPFS(p.cfg.HTTPTimeout),
-		)
-	case strings.HasPrefix(url, tzipStorage.PrefixSHA256):
-		store = tzipStorage.NewSha256Storage(
-			tzipStorage.WithTimeoutSha256(p.cfg.HTTPTimeout),
-			tzipStorage.WithHashSha256(ctx.Hash),
-		)
-	case strings.HasPrefix(url, tzipStorage.PrefixTezosStorage):
-		store = tzipStorage.NewTezosStorage(p.bigMapRepo, p.blockRepo, p.schemaRepo, p.storage, p.rpc, ctx.BigMapDiff.Address, ctx.BigMapDiff.Network, ctx.BigMapDiff.Ptr)
-		return nil, errors.Wrap(ErrUnknownStorageType, url)
-	}
-	val, err := store.Get(url)
-	if err != nil {
+	data = &tzip.TZIP{}
+	s := tzipStorage.NewFull(p.bigMapRepo, p.blocksRepo, p.schemaRepo, p.storage, p.rpc, p.cfg.IPFSGateways...)
+	if err := s.Get(ctx.BigMapDiff.Network, ctx.BigMapDiff.Address, decoded, ctx.BigMapDiff.Ptr, data); err != nil {
+		if errors.Is(err, tzipStorage.ErrHTTPRequest) {
+			logger.Error(err)
+			return nil, nil
+		}
 		return nil, err
 	}
-	if val == nil {
+	if data == nil {
 		return nil, nil
 	}
-	val.Address = ctx.BigMapDiff.Address
-	val.Network = ctx.BigMapDiff.Network
-	val.Level = ctx.BigMapDiff.Level
-	val.Timestamp = ctx.BigMapDiff.Timestamp
-	return val, nil
+
+	data.Address = ctx.BigMapDiff.Address
+	data.Network = ctx.BigMapDiff.Network
+	data.Level = ctx.BigMapDiff.Level
+	data.Timestamp = ctx.BigMapDiff.Timestamp
+
+	return
 }

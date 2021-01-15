@@ -1,12 +1,12 @@
 package core
 
 import (
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
+	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/restream/reindexer"
 )
 
 // SetComaparator -
-func SetComaparator(field string, cmp tzip.Comparator, query *reindexer.Query) {
+func SetComaparator(field string, cmp tokenmetadata.Comparator, query *reindexer.Query) {
 	switch cmp.Comparator {
 	case "gt":
 		query.WhereInt64(field, reindexer.GT, cmp.Value)

@@ -1,8 +1,67 @@
 package storage
 
-import "github.com/baking-bad/bcdhub/internal/models/tzip"
+import (
+	"strings"
+	"time"
+
+	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/block"
+	"github.com/baking-bad/bcdhub/internal/models/schema"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/pkg/errors"
+)
+
+const (
+	httpTimeout = 10 * time.Second
+)
 
 // Storage -
 type Storage interface {
-	Get(value string) (*tzip.TZIP, error)
+	Get(value string, output interface{}) error
+}
+
+// Full -
+type Full struct {
+	bmdRepo    bigmapdiff.Repository
+	blockRepo  block.Repository
+	schemaRepo schema.Repository
+	storage    models.GeneralRepository
+
+	rpc  noderpc.INode
+	ipfs []string
+}
+
+// NewFull -
+func NewFull(bmdRepo bigmapdiff.Repository, blockRepo block.Repository, schemaRepo schema.Repository, storage models.GeneralRepository, rpc noderpc.INode, ipfs ...string) *Full {
+	return &Full{
+		bmdRepo, blockRepo, schemaRepo, storage, rpc, ipfs,
+	}
+}
+
+// Get -
+func (f Full) Get(network, address, url string, ptr int64, output interface{}) error {
+	var store Storage
+	switch {
+	case strings.HasPrefix(url, PrefixHTTPS), strings.HasPrefix(url, PrefixHTTP):
+		store = NewHTTPStorage(
+			WithTimeoutHTTP(httpTimeout),
+		)
+	case strings.HasPrefix(url, PrefixIPFS):
+		store = NewIPFSStorage(
+			f.ipfs,
+			WithTimeoutIPFS(httpTimeout),
+		)
+	case strings.HasPrefix(url, PrefixSHA256):
+		store = NewSha256Storage(
+			WithTimeoutSha256(httpTimeout),
+			WithHashSha256(url),
+		)
+	case strings.HasPrefix(url, PrefixTezosStorage):
+		store = NewTezosStorage(f.bmdRepo, f.blockRepo, f.schemaRepo, f.storage, f.rpc, address, network, ptr)
+	default:
+		return errors.Wrap(ErrUnknownStorageType, url)
+	}
+
+	return store.Get(url, output)
 }

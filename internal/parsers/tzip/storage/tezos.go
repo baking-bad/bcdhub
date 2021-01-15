@@ -12,7 +12,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/schema"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -55,41 +54,39 @@ func NewTezosStorage(bigMapRepo bigmapdiff.Repository, blockRepo block.Repositor
 }
 
 // Get -
-func (s TezosStorage) Get(value string) (*tzip.TZIP, error) {
+func (s TezosStorage) Get(value string, output interface{}) error {
 	var uri TezosStorageURI
 	if err := uri.Parse(value); err != nil {
-		return nil, err
+		return err
 	}
 
 	if err := uri.networkByChainID(s.blockRepo); err != nil {
 		if !s.storage.IsRecordNotFound(err) {
-			return nil, err
+			return err
 		}
-		return nil, nil
+		return nil
 	}
 
 	if err := s.fillFields(uri); err != nil {
-		return nil, err
+		return err
 	}
 
 	key, err := hash.Key(gjson.Parse(fmt.Sprintf(`{"string": "%s"}`, uri.Key)))
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	bmd, err := s.bigMapRepo.CurrentByKey(s.network, key, s.ptr)
 	if err != nil {
 		if s.storage.IsRecordNotFound(err) {
-			return nil, nil
+			return nil
 		}
-		return nil, err
+		return err
 	}
 
 	decoded := DecodeValue(bmd.Value)
 
-	var data tzip.TZIP
-	err = json.Unmarshal([]byte(decoded), &data)
-	return &data, err
+	return json.Unmarshal([]byte(decoded), output)
 }
 
 func (s *TezosStorage) fillFields(uri TezosStorageURI) error {
@@ -125,11 +122,11 @@ func FindBigMapPointer(schemaRepo schema.Repository, rpc noderpc.INode, address,
 	if binPath == "" {
 		return -1, nil
 	}
-	registryStorage, err := rpc.GetScriptStorageJSON(address, 0)
+	storageJSON, err := rpc.GetScriptStorageJSON(address, 0)
 	if err != nil {
 		return -1, err
 	}
-	ptrs, err := storage.FindBigMapPointers(metadata, registryStorage)
+	ptrs, err := storage.FindBigMapPointers(metadata, storageJSON)
 	if err != nil {
 		return -1, err
 	}

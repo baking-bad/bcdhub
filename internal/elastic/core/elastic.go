@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"strings"
 	"time"
@@ -280,7 +279,7 @@ func (e *Elastic) DeleteByLevelAndNetwork(indices []string, network string, maxL
 		}
 
 		end = response.VersionConflicts == 0
-		log.Printf("Removed %d/%d records from %s", response.Deleted, response.Total, strings.Join(indices, ","))
+		logger.Info("Removed %d/%d records from %s", response.Deleted, response.Total, strings.Join(indices, ","))
 	}
 	return nil
 }
@@ -345,7 +344,7 @@ func (e *Elastic) DeleteByContract(indices []string, network, address string) er
 		}
 
 		end = response.VersionConflicts == 0
-		log.Printf("Removed %d/%d records from %s", response.Deleted, response.Total, strings.Join(indices, ","))
+		logger.Info("Removed %d/%d records from %s", response.Deleted, response.Total, strings.Join(indices, ","))
 	}
 
 	return nil

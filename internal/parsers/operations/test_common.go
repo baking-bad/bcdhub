@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"reflect"
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/balanceupdate"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
@@ -65,7 +65,7 @@ func readStorage(address string, level int64) (gjson.Result, error) {
 
 func compareParserResponse(t *testing.T, got, want []models.Model) bool {
 	if len(got) != len(want) {
-		log.Printf("len(got) != len(want): %d != %d", len(got), len(want))
+		logger.Info("len(got) != len(want): %d != %d", len(got), len(want))
 		return false
 	}
 	for i := range got {
@@ -73,7 +73,7 @@ func compareParserResponse(t *testing.T, got, want []models.Model) bool {
 		case *transfer.Transfer:
 			two, ok := want[i].(*transfer.Transfer)
 			if !ok {
-				log.Printf("Differrrent types: %T != %T", one, two)
+				logger.Info("Differrrent types: %T != %T", one, two)
 				return false
 			}
 			if !compareTransfers(one, two) {
@@ -82,7 +82,7 @@ func compareParserResponse(t *testing.T, got, want []models.Model) bool {
 		case *operation.Operation:
 			two, ok := want[i].(*operation.Operation)
 			if !ok {
-				log.Printf("Differrrent types: %T != %T", one, two)
+				logger.Info("Differrrent types: %T != %T", one, two)
 				return false
 			}
 			if !compareOperations(t, one, two) {
@@ -91,7 +91,7 @@ func compareParserResponse(t *testing.T, got, want []models.Model) bool {
 		case *bigmapdiff.BigMapDiff:
 			two, ok := want[i].(*bigmapdiff.BigMapDiff)
 			if !ok {
-				log.Printf("Differrrent types: %T != %T", one, two)
+				logger.Info("Differrrent types: %T != %T", one, two)
 				return false
 			}
 			if !compareBigMapDiff(t, one, two) {
@@ -130,7 +130,7 @@ func compareParserResponse(t *testing.T, got, want []models.Model) bool {
 				return false
 			}
 		default:
-			log.Printf("Unknown type: %T", one)
+			logger.Info("Unknown type: %T", one)
 			return false
 		}
 	}
@@ -140,71 +140,55 @@ func compareParserResponse(t *testing.T, got, want []models.Model) bool {
 
 func compareTransfers(one, two *transfer.Transfer) bool {
 	if one.Network != two.Network {
-		log.Printf("Network: %s != %s", one.Network, two.Network)
+		logger.Info("Network: %s != %s", one.Network, two.Network)
 		return false
 	}
 	if one.Contract != two.Contract {
-		log.Printf("Contract: %s != %s", one.Contract, two.Contract)
-		return false
-	}
-	if one.Alias != two.Alias {
-		log.Printf("Alias: %s != %s", one.Alias, two.Alias)
+		logger.Info("Contract: %s != %s", one.Contract, two.Contract)
 		return false
 	}
 	if one.Initiator != two.Initiator {
-		log.Printf("Initiator: %s != %s", one.Initiator, two.Initiator)
-		return false
-	}
-	if one.InitiatorAlias != two.InitiatorAlias {
-		log.Printf("InitiatorAlias: %s != %s", one.InitiatorAlias, two.InitiatorAlias)
+		logger.Info("Initiator: %s != %s", one.Initiator, two.Initiator)
 		return false
 	}
 	if one.Hash != two.Hash {
-		log.Printf("Hash: %s != %s", one.Hash, two.Hash)
+		logger.Info("Hash: %s != %s", one.Hash, two.Hash)
 		return false
 	}
 	if one.Status != two.Status {
-		log.Printf("Status: %s != %s", one.Status, two.Status)
+		logger.Info("Status: %s != %s", one.Status, two.Status)
 		return false
 	}
 	if one.Timestamp != two.Timestamp {
-		log.Printf("Timestamp: %s != %s", one.Timestamp, two.Timestamp)
+		logger.Info("Timestamp: %s != %s", one.Timestamp, two.Timestamp)
 		return false
 	}
 	if one.Level != two.Level {
-		log.Printf("Level: %d != %d", one.Level, two.Level)
+		logger.Info("Level: %d != %d", one.Level, two.Level)
 		return false
 	}
 	if one.From != two.From {
-		log.Printf("From: %s != %s", one.From, two.From)
-		return false
-	}
-	if one.FromAlias != two.FromAlias {
-		log.Printf("FromAlias: %s != %s", one.FromAlias, two.FromAlias)
+		logger.Info("From: %s != %s", one.From, two.From)
 		return false
 	}
 	if one.To != two.To {
-		log.Printf("To: %s != %s", one.To, two.To)
-		return false
-	}
-	if one.ToAlias != two.ToAlias {
-		log.Printf("ToAlias: %s != %s", one.ToAlias, two.ToAlias)
+		logger.Info("To: %s != %s", one.To, two.To)
 		return false
 	}
 	if one.TokenID != two.TokenID {
-		log.Printf("TokenID: %d != %d", one.TokenID, two.TokenID)
+		logger.Info("TokenID: %d != %d", one.TokenID, two.TokenID)
 		return false
 	}
 	if one.Amount != two.Amount {
-		log.Printf("Amount: %f != %f", one.Amount, two.Amount)
+		logger.Info("Amount: %f != %f", one.Amount, two.Amount)
 		return false
 	}
 	if one.Counter != two.Counter {
-		log.Printf("Counter: %d != %d", one.Counter, two.Counter)
+		logger.Info("Counter: %d != %d", one.Counter, two.Counter)
 		return false
 	}
 	if !compareInt64Ptr(one.Nonce, two.Nonce) {
-		log.Printf("Transfer.Nonce: %d != %d", *one.Nonce, *two.Nonce)
+		logger.Info("Transfer.Nonce: %d != %d", *one.Nonce, *two.Nonce)
 		return false
 	}
 	return true
@@ -212,123 +196,123 @@ func compareTransfers(one, two *transfer.Transfer) bool {
 
 func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 	if one.Internal != two.Internal {
-		log.Printf("Internal: %v != %v", one.Internal, two.Internal)
+		logger.Info("Internal: %v != %v", one.Internal, two.Internal)
 		return false
 	}
 	if !compareInt64Ptr(one.Nonce, two.Nonce) {
-		log.Printf("Operation.Nonce: %d != %d", *one.Nonce, *two.Nonce)
+		logger.Info("Operation.Nonce: %d != %d", *one.Nonce, *two.Nonce)
 		return false
 	}
 	if one.Timestamp != two.Timestamp {
-		log.Printf("Timestamp: %s != %s", one.Timestamp, two.Timestamp)
+		logger.Info("Timestamp: %s != %s", one.Timestamp, two.Timestamp)
 		return false
 	}
 	if one.Level != two.Level {
-		log.Printf("Level: %d != %d", one.Level, two.Level)
+		logger.Info("Level: %d != %d", one.Level, two.Level)
 		return false
 	}
 	if one.ContentIndex != two.ContentIndex {
-		log.Printf("ContentIndex: %d != %d", one.ContentIndex, two.ContentIndex)
+		logger.Info("ContentIndex: %d != %d", one.ContentIndex, two.ContentIndex)
 		return false
 	}
 	if one.Counter != two.Counter {
-		log.Printf("Counter: %d != %d", one.Counter, two.Counter)
+		logger.Info("Counter: %d != %d", one.Counter, two.Counter)
 		return false
 	}
 	if one.GasLimit != two.GasLimit {
-		log.Printf("GasLimit: %d != %d", one.GasLimit, two.GasLimit)
+		logger.Info("GasLimit: %d != %d", one.GasLimit, two.GasLimit)
 		return false
 	}
 	if one.StorageLimit != two.StorageLimit {
-		log.Printf("StorageLimit: %d != %d", one.StorageLimit, two.StorageLimit)
+		logger.Info("StorageLimit: %d != %d", one.StorageLimit, two.StorageLimit)
 		return false
 	}
 	if one.Fee != two.Fee {
-		log.Printf("Fee: %d != %d", one.Fee, two.Fee)
+		logger.Info("Fee: %d != %d", one.Fee, two.Fee)
 		return false
 	}
 	if one.Amount != two.Amount {
-		log.Printf("Amount: %d != %d", one.Amount, two.Amount)
+		logger.Info("Amount: %d != %d", one.Amount, two.Amount)
 		return false
 	}
 	if one.Burned != two.Burned {
-		log.Printf("Burned: %d != %d", one.Burned, two.Burned)
+		logger.Info("Burned: %d != %d", one.Burned, two.Burned)
 		return false
 	}
 	if one.AllocatedDestinationContractBurned != two.AllocatedDestinationContractBurned {
-		log.Printf("AllocatedDestinationContractBurned: %d != %d", one.AllocatedDestinationContractBurned, two.AllocatedDestinationContractBurned)
+		logger.Info("AllocatedDestinationContractBurned: %d != %d", one.AllocatedDestinationContractBurned, two.AllocatedDestinationContractBurned)
 		return false
 	}
 	if one.Network != two.Network {
-		log.Printf("Network: %s != %s", one.Network, two.Network)
+		logger.Info("Network: %s != %s", one.Network, two.Network)
 		return false
 	}
 	if one.Protocol != two.Protocol {
-		log.Printf("Protocol: %s != %s", one.Protocol, two.Protocol)
+		logger.Info("Protocol: %s != %s", one.Protocol, two.Protocol)
 		return false
 	}
 	if one.Hash != two.Hash {
-		log.Printf("Hash: %s != %s", one.Hash, two.Hash)
+		logger.Info("Hash: %s != %s", one.Hash, two.Hash)
 		return false
 	}
 	if one.Status != two.Status {
-		log.Printf("Status: %s != %s", one.Status, two.Status)
+		logger.Info("Status: %s != %s", one.Status, two.Status)
 		return false
 	}
 	if one.Kind != two.Kind {
-		log.Printf("Kind: %s != %s", one.Kind, two.Kind)
+		logger.Info("Kind: %s != %s", one.Kind, two.Kind)
 		return false
 	}
 	if one.Initiator != two.Initiator {
-		log.Printf("Initiator: %s != %s", one.Initiator, two.Initiator)
+		logger.Info("Initiator: %s != %s", one.Initiator, two.Initiator)
 		return false
 	}
 	if one.Source != two.Source {
-		log.Printf("Source: %s != %s", one.Source, two.Source)
+		logger.Info("Source: %s != %s", one.Source, two.Source)
 		return false
 	}
 	if one.Destination != two.Destination {
-		log.Printf("Destination: %s != %s", one.Destination, two.Destination)
+		logger.Info("Destination: %s != %s", one.Destination, two.Destination)
 		return false
 	}
 	if one.PublicKey != two.PublicKey {
-		log.Printf("PublicKey: %s != %s", one.PublicKey, two.PublicKey)
+		logger.Info("PublicKey: %s != %s", one.PublicKey, two.PublicKey)
 		return false
 	}
 	if one.ManagerPubKey != two.ManagerPubKey {
-		log.Printf("ManagerPubKey: %s != %s", one.ManagerPubKey, two.ManagerPubKey)
+		logger.Info("ManagerPubKey: %s != %s", one.ManagerPubKey, two.ManagerPubKey)
 		return false
 	}
 	if one.Delegate != two.Delegate {
-		log.Printf("Delegate: %s != %s", one.Delegate, two.Delegate)
+		logger.Info("Delegate: %s != %s", one.Delegate, two.Delegate)
 		return false
 	}
 	if one.Entrypoint != two.Entrypoint {
-		log.Printf("Entrypoint: %s != %s", one.Entrypoint, two.Entrypoint)
+		logger.Info("Entrypoint: %s != %s", one.Entrypoint, two.Entrypoint)
 		return false
 	}
 	if one.SourceAlias != two.SourceAlias {
-		log.Printf("SourceAlias: %s != %s", one.SourceAlias, two.SourceAlias)
+		logger.Info("SourceAlias: %s != %s", one.SourceAlias, two.SourceAlias)
 		return false
 	}
 	if one.DestinationAlias != two.DestinationAlias {
-		log.Printf("DestinationAlias: %s != %s", one.DestinationAlias, two.DestinationAlias)
+		logger.Info("DestinationAlias: %s != %s", one.DestinationAlias, two.DestinationAlias)
 		return false
 	}
 	if one.DelegateAlias != two.DelegateAlias {
-		log.Printf("DelegateAlias: %s != %s", one.DelegateAlias, two.DelegateAlias)
+		logger.Info("DelegateAlias: %s != %s", one.DelegateAlias, two.DelegateAlias)
 		return false
 	}
 	if !compareJSON(t, one.Parameters, two.Parameters) {
-		log.Printf("Parameters: %s != %s", one.Parameters, two.Parameters)
+		logger.Info("Parameters: %s != %s", one.Parameters, two.Parameters)
 		return false
 	}
 	if !compareJSON(t, one.DeffatedStorage, two.DeffatedStorage) {
-		log.Printf("DeffatedStorage: %s != %s", one.DeffatedStorage, two.DeffatedStorage)
+		logger.Info("DeffatedStorage: %s != %s", one.DeffatedStorage, two.DeffatedStorage)
 		return false
 	}
 	if !reflect.DeepEqual(one.Tags, two.Tags) {
-		log.Printf("Tags: %s != %s", one.Tags, two.Tags)
+		logger.Info("Tags: %s != %s", one.Tags, two.Tags)
 		return false
 	}
 	return true
@@ -336,39 +320,39 @@ func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 
 func compareBigMapDiff(t *testing.T, one, two *bigmapdiff.BigMapDiff) bool {
 	if one.Address != two.Address {
-		log.Printf("BigMapDiff.Address: %s != %s", one.Address, two.Address)
+		logger.Info("BigMapDiff.Address: %s != %s", one.Address, two.Address)
 		return false
 	}
 	if one.KeyHash != two.KeyHash {
-		log.Printf("KeyHash: %s != %s", one.KeyHash, two.KeyHash)
+		logger.Info("KeyHash: %s != %s", one.KeyHash, two.KeyHash)
 		return false
 	}
 	if !compareJSON(t, one.Value, two.Value) {
-		log.Printf("BigMapDiff.Value: %s != %s", one.Value, two.Value)
+		logger.Info("BigMapDiff.Value: %s != %s", one.Value, two.Value)
 		return false
 	}
 	if one.BinPath != two.BinPath {
-		log.Printf("BinPath: %s != %s", one.BinPath, two.BinPath)
+		logger.Info("BinPath: %s != %s", one.BinPath, two.BinPath)
 		return false
 	}
 	if one.Level != two.Level {
-		log.Printf("Level: %d != %d", one.Level, two.Level)
+		logger.Info("Level: %d != %d", one.Level, two.Level)
 		return false
 	}
 	if one.Network != two.Network {
-		log.Printf("Network: %s != %s", one.Network, two.Network)
+		logger.Info("Network: %s != %s", one.Network, two.Network)
 		return false
 	}
 	if one.Timestamp != two.Timestamp {
-		log.Printf("Timestamp: %s != %s", one.Timestamp, two.Timestamp)
+		logger.Info("Timestamp: %s != %s", one.Timestamp, two.Timestamp)
 		return false
 	}
 	if one.Protocol != two.Protocol {
-		log.Printf("Protocol: %s != %s", one.Protocol, two.Protocol)
+		logger.Info("Protocol: %s != %s", one.Protocol, two.Protocol)
 		return false
 	}
 	if !reflect.DeepEqual(one.Key, two.Key) {
-		log.Printf("Key: %s != %s", one.Key, two.Key)
+		logger.Info("Key: %s != %s", one.Key, two.Key)
 		return false
 	}
 	return true
@@ -376,31 +360,31 @@ func compareBigMapDiff(t *testing.T, one, two *bigmapdiff.BigMapDiff) bool {
 
 func compareBigMapAction(one, two *bigmapaction.BigMapAction) bool {
 	if one.Action != two.Action {
-		log.Printf("Action: %s != %s", one.Action, two.Action)
+		logger.Info("Action: %s != %s", one.Action, two.Action)
 		return false
 	}
 	if !compareInt64Ptr(one.SourcePtr, two.SourcePtr) {
-		log.Printf("SourcePtr: %d != %d", *one.SourcePtr, *two.SourcePtr)
+		logger.Info("SourcePtr: %d != %d", *one.SourcePtr, *two.SourcePtr)
 		return false
 	}
 	if !compareInt64Ptr(one.DestinationPtr, two.DestinationPtr) {
-		log.Printf("DestinationPtr: %d != %d", *one.DestinationPtr, *two.DestinationPtr)
+		logger.Info("DestinationPtr: %d != %d", *one.DestinationPtr, *two.DestinationPtr)
 		return false
 	}
 	if one.Level != two.Level {
-		log.Printf("Level: %d != %d", one.Level, two.Level)
+		logger.Info("Level: %d != %d", one.Level, two.Level)
 		return false
 	}
 	if one.Address != two.Address {
-		log.Printf("BigMapAction.Address: %s != %s", one.Address, two.Address)
+		logger.Info("BigMapAction.Address: %s != %s", one.Address, two.Address)
 		return false
 	}
 	if one.Network != two.Network {
-		log.Printf("Network: %s != %s", one.Network, two.Network)
+		logger.Info("Network: %s != %s", one.Network, two.Network)
 		return false
 	}
 	if one.Timestamp != two.Timestamp {
-		log.Printf("Timestamp: %s != %s", one.Timestamp, two.Timestamp)
+		logger.Info("Timestamp: %s != %s", one.Timestamp, two.Timestamp)
 		return false
 	}
 	return true
@@ -408,51 +392,51 @@ func compareBigMapAction(one, two *bigmapaction.BigMapAction) bool {
 
 func compareContract(one, two *contract.Contract) bool {
 	if one.Network != two.Network {
-		log.Printf("Contract.Network: %s != %s", one.Network, two.Network)
+		logger.Info("Contract.Network: %s != %s", one.Network, two.Network)
 		return false
 	}
 	if one.Address != two.Address {
-		log.Printf("Contract.Address: %s != %s", one.Address, two.Address)
+		logger.Info("Contract.Address: %s != %s", one.Address, two.Address)
 		return false
 	}
 	if one.Language != two.Language {
-		log.Printf("Contract.Language: %s != %s", one.Language, two.Language)
+		logger.Info("Contract.Language: %s != %s", one.Language, two.Language)
 		return false
 	}
 	if one.Hash != two.Hash {
-		log.Printf("Contract.Hash: %s != %s", one.Hash, two.Hash)
+		logger.Info("Contract.Hash: %s != %s", one.Hash, two.Hash)
 		return false
 	}
 	if one.Manager != two.Manager {
-		log.Printf("Contract.Manager: %s != %s", one.Manager, two.Manager)
+		logger.Info("Contract.Manager: %s != %s", one.Manager, two.Manager)
 		return false
 	}
 	if one.Level != two.Level {
-		log.Printf("Contract.Level: %d != %d", one.Level, two.Level)
+		logger.Info("Contract.Level: %d != %d", one.Level, two.Level)
 		return false
 	}
 	if one.Timestamp != two.Timestamp {
-		log.Printf("Contract.Timestamp: %s != %s", one.Timestamp, two.Timestamp)
+		logger.Info("Contract.Timestamp: %s != %s", one.Timestamp, two.Timestamp)
 		return false
 	}
 	if !compareStringArray(one.Tags, two.Tags) {
-		log.Printf("Contract.Tags: %v != %v", one.Tags, two.Tags)
+		logger.Info("Contract.Tags: %v != %v", one.Tags, two.Tags)
 		return false
 	}
 	if !compareStringArray(one.Hardcoded, two.Hardcoded) {
-		log.Printf("Contract.Hardcoded: %v != %v", one.Hardcoded, two.Hardcoded)
+		logger.Info("Contract.Hardcoded: %v != %v", one.Hardcoded, two.Hardcoded)
 		return false
 	}
 	if !compareStringArray(one.FailStrings, two.FailStrings) {
-		log.Printf("Contract.FailStrings: %v != %v", one.FailStrings, two.FailStrings)
+		logger.Info("Contract.FailStrings: %v != %v", one.FailStrings, two.FailStrings)
 		return false
 	}
 	if !compareStringArray(one.Annotations, two.Annotations) {
-		log.Printf("Contract.Annotations: %v != %v", one.Annotations, two.Annotations)
+		logger.Info("Contract.Annotations: %v != %v", one.Annotations, two.Annotations)
 		return false
 	}
 	if !compareStringArray(one.Entrypoints, two.Entrypoints) {
-		log.Printf("Contract.Entrypoints: %v != %v", one.Entrypoints, two.Entrypoints)
+		logger.Info("Contract.Entrypoints: %v != %v", one.Entrypoints, two.Entrypoints)
 		return false
 	}
 	return true
@@ -460,31 +444,31 @@ func compareContract(one, two *contract.Contract) bool {
 
 func compareBalanceUpdates(a, b *balanceupdate.BalanceUpdate) bool {
 	if a.Change != b.Change {
-		log.Printf("BalanceUpdate.Change: %d != %d", a.Change, b.Change)
+		logger.Info("BalanceUpdate.Change: %d != %d", a.Change, b.Change)
 		return false
 	}
 	if a.Contract != b.Contract {
-		log.Printf("BalanceUpdate.Contract: %s != %s", a.Contract, b.Contract)
+		logger.Info("BalanceUpdate.Contract: %s != %s", a.Contract, b.Contract)
 		return false
 	}
 	if a.Network != b.Network {
-		log.Printf("BalanceUpdate.Network: %s != %s", a.Network, b.Network)
+		logger.Info("BalanceUpdate.Network: %s != %s", a.Network, b.Network)
 		return false
 	}
 	if a.Level != b.Level {
-		log.Printf("BalanceUpdate.Level: %d != %d", a.Level, b.Level)
+		logger.Info("BalanceUpdate.Level: %d != %d", a.Level, b.Level)
 		return false
 	}
 	if a.OperationHash != b.OperationHash {
-		log.Printf("BalanceUpdate.OperationHash: %s != %s", a.OperationHash, b.OperationHash)
+		logger.Info("BalanceUpdate.OperationHash: %s != %s", a.OperationHash, b.OperationHash)
 		return false
 	}
 	if a.ContentIndex != b.ContentIndex {
-		log.Printf("BalanceUpdate.ContentIndex: %d != %d", a.ContentIndex, b.ContentIndex)
+		logger.Info("BalanceUpdate.ContentIndex: %d != %d", a.ContentIndex, b.ContentIndex)
 		return false
 	}
 	if !compareInt64Ptr(a.Nonce, b.Nonce) {
-		log.Printf("BalanceUpdate.Nonce: %d != %d", *a.Nonce, *b.Nonce)
+		logger.Info("BalanceUpdate.Nonce: %d != %d", *a.Nonce, *b.Nonce)
 		return false
 	}
 	return true
@@ -492,18 +476,18 @@ func compareBalanceUpdates(a, b *balanceupdate.BalanceUpdate) bool {
 
 func compareMetadata(t *testing.T, one, two *schema.Schema) bool {
 	if one.ID != two.ID {
-		log.Printf("Metadata.ID: %s != %s", one.ID, two.ID)
+		logger.Info("Metadata.ID: %s != %s", one.ID, two.ID)
 		return false
 	}
 
 	for key, value := range one.Parameter {
 		if valueTwo, ok := two.Parameter[key]; ok {
 			if !compareJSON(t, value, valueTwo) {
-				log.Printf("Metadata.Parameter[%s]: %s != %s", key, value, valueTwo)
+				logger.Info("Metadata.Parameter[%s]: %s != %s", key, value, valueTwo)
 				return false
 			}
 		} else {
-			log.Printf("Metadata.Parameter[%s] is absent", key)
+			logger.Info("Metadata.Parameter[%s] is absent", key)
 			return false
 		}
 	}
@@ -511,11 +495,11 @@ func compareMetadata(t *testing.T, one, two *schema.Schema) bool {
 	for key, value := range one.Storage {
 		if valueTwo, ok := two.Storage[key]; ok {
 			if !compareJSON(t, value, valueTwo) {
-				log.Printf("Metadata.Storage[%s]: %s != %s", key, value, valueTwo)
+				logger.Info("Metadata.Storage[%s]: %s != %s", key, value, valueTwo)
 				return false
 			}
 		} else {
-			log.Printf("Metadata.Storage[%s] is absent", key)
+			logger.Info("Metadata.Storage[%s] is absent", key)
 			return false
 		}
 	}

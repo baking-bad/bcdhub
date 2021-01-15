@@ -121,7 +121,7 @@ func (rm Manager) rollbackBlocks(network string, toLevel int64) error {
 
 func (rm Manager) rollbackOperations(network string, toLevel int64) error {
 	logger.Info("Deleting operations, migrations, transfers and big map diffs...")
-	return rm.storage.DeleteByLevelAndNetwork([]string{models.DocBigMapDiff, models.DocBigMapActions, models.DocTZIP, models.DocMigrations, models.DocOperations, models.DocTransfers}, network, toLevel)
+	return rm.storage.DeleteByLevelAndNetwork([]string{models.DocBigMapDiff, models.DocBigMapActions, models.DocTZIP, models.DocMigrations, models.DocOperations, models.DocTransfers, models.DocTokenMetadata}, network, toLevel)
 }
 
 func (rm Manager) rollbackContracts(fromState block.Block, toLevel int64) error {

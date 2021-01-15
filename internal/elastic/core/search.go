@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/pkg/errors"
@@ -128,6 +129,7 @@ func (e *Elastic) SearchByText(text string, offset int64, fields []string, filte
 		items, err = parseSearchResponse(response)
 	}
 	if err != nil {
+		logger.Error(err)
 		return models.Result{}, nil
 	}
 
@@ -186,43 +188,17 @@ func parseSearchGroupingResponse(response searchByTextResponse, offset int64) ([
 			if val == nil {
 				continue
 			}
-			switch t := val.(type) {
-			case models.Item:
-				if j == 0 {
-					searchItem.Type = t.Type
-					searchItem.Body = t.Body
-					searchItem.Value = t.Value
-					searchItem.Highlights = item.Highlight
-				} else {
-					searchItem.Group.Top = append(searchItem.Group.Top, models.Top{
-						Key:     t.Value,
-						Network: t.Network,
-					})
-				}
-			case []models.Item:
-				if j == 0 {
-					if len(t) > 0 {
-						searchItem.Type = t[0].Type
-						searchItem.Body = t[0].Body
-						searchItem.Value = t[0].Value
-						searchItem.Highlights = item.Highlight
-					}
-					if len(t) > 1 {
-						for k := range t[1:] {
-							searchItem.Group.Top = append(searchItem.Group.Top, models.Top{
-								Key:     t[k].Value,
-								Network: t[k].Network,
-							})
-						}
-					}
-				} else {
-					for k := range t {
-						searchItem.Group.Top = append(searchItem.Group.Top, models.Top{
-							Key:     t[k].Value,
-							Network: t[k].Network,
-						})
-					}
-				}
+			valItem := val.(models.Item)
+			if j == 0 {
+				searchItem.Type = valItem.Type
+				searchItem.Body = valItem.Body
+				searchItem.Value = valItem.Value
+				searchItem.Highlights = item.Highlight
+			} else {
+				searchItem.Group.Top = append(searchItem.Group.Top, models.Top{
+					Key:     valItem.Value,
+					Network: valItem.Network,
+				})
 			}
 		}
 		items = append(items, searchItem)
@@ -286,11 +262,13 @@ func grouping(ctx search.Context, query Base) Base {
 							} else if (doc['_index'].value == 'operation') {
 								return doc['hash.keyword'].value
 							} else if (doc['_index'].value == 'tzip') {
-								return doc['address.keyword'].value + '|' + doc['network.keyword'].value
+								return doc['network.keyword'].value + '|' + doc['address.keyword'].value
 							} else if (doc['_index'].value == 'bigmapdiff') {
 								return doc['key_hash.keyword'].value
 							} else if (doc['_index'].value == 'tezos_domain') {
 								return doc['name.keyword'].value + '|' + doc['network.keyword'].value
+							} else if (doc['_index'].value == 'token_metadata') {
+								return doc['network.keyword'].value + doc['contract.keyword'].value + doc['token_id'].value
 							}`,
 						"size": defaultSize + ctx.Offset,
 						"order": List{

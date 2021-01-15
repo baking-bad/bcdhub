@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/gin-gonic/gin"
 )
@@ -98,7 +99,7 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 			result.DexTokens = make([]TokenMetadata, 0)
 
 			for _, token := range dapp.DexTokens {
-				tokenMetadata, err := ctx.TZIP.GetTokenMetadata(tzip.GetTokenMetadataContext{
+				tokenMetadata, err := ctx.TokenMetadata.Get(tokenmetadata.GetContext{
 					Contract: token.Contract,
 					Network:  consts.Mainnet,
 					TokenID:  token.TokenID,

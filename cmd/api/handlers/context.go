@@ -4,12 +4,14 @@ import (
 	"github.com/baking-bad/bcdhub/cmd/api/oauth"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/gin-gonic/gin"
+	"github.com/karlseguin/ccache"
 )
 
 // Context -
 type Context struct {
 	*config.Context
 	OAUTH oauth.Config
+	Cache *ccache.Cache
 }
 
 // NewContext -
@@ -40,6 +42,7 @@ func NewContext(cfg config.Config) (*Context, error) {
 	return &Context{
 		Context: ctx,
 		OAUTH:   oauthCfg,
+		Cache:   ccache.New(ccache.Configure().MaxSize(1)),
 	}, nil
 }
 

@@ -1,10 +1,11 @@
 package node
 
 import (
-	"log"
+	"fmt"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/tidwall/gjson"
 )
 
@@ -22,7 +23,7 @@ type Node struct {
 // NewNodeJSON -
 func NewNodeJSON(data gjson.Result) Node {
 	if !data.IsObject() {
-		log.Panicf("Unknown node type: %v", data)
+		logger.Fatal(fmt.Errorf("Unknown node type: %v", data))
 	}
 	n := Node{
 		Child:       make([]Node, 0),
@@ -104,5 +105,5 @@ func (n Node) HasArgs() bool {
 
 // Print -
 func (n Node) Print() {
-	log.Printf("%s: %s [%s] (args: %d)", strings.Join(n.Annotations, ","), n.Prim, n.Type, len(n.Args.Array()))
+	logger.Info("%s: %s [%s] (args: %d)", strings.Join(n.Annotations, ","), n.Prim, n.Type, len(n.Args.Array()))
 }

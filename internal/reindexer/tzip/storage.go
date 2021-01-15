@@ -17,42 +17,6 @@ func NewStorage(db *core.Reindexer) *Storage {
 	return &Storage{db}
 }
 
-// GetTokenMetadata -
-func (storage *Storage) GetTokenMetadata(ctx tzip.GetTokenMetadataContext) (tokens []tzip.TokenMetadata, err error) {
-	tzips := make([]tzip.TZIP, 0)
-
-	query := storage.db.Query(models.DocTZIP)
-	buildGetTokenMetadataContext(ctx, query)
-	if err = storage.db.GetAllByQuery(query, &tzips); err != nil {
-		return
-	}
-	if len(tzips) == 0 {
-		return nil, core.NewRecordNotFoundError(models.DocTZIP, "")
-	}
-
-	tokens = make([]tzip.TokenMetadata, 0)
-	for k := range tzips {
-		if tzips[k].Tokens == nil {
-			continue
-		}
-
-		for i := range tzips[k].Tokens.Static {
-			tokens = append(tokens, tzip.TokenMetadata{
-				Address:         tzips[k].Address,
-				Network:         tzips[k].Network,
-				Level:           tzips[k].Level,
-				RegistryAddress: tzips[k].Tokens.Static[i].RegistryAddress,
-				Symbol:          tzips[k].Tokens.Static[i].Symbol,
-				Name:            tzips[k].Tokens.Static[i].Name,
-				Decimals:        tzips[k].Tokens.Static[i].Decimals,
-				TokenID:         tzips[k].Tokens.Static[i].TokenID,
-				Extras:          tzips[k].Tokens.Static[i].Extras,
-			})
-		}
-	}
-	return
-}
-
 // Get -
 func (storage *Storage) Get(network, address string) (t tzip.TZIP, err error) {
 	t.Address = address

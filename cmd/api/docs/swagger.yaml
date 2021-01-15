@@ -635,8 +635,6 @@ definitions:
         type: string
       network:
         type: string
-      registry_address:
-        type: string
       supply:
         type: number
       symbol:
@@ -664,8 +662,6 @@ definitions:
       name:
         type: string
       network:
-        type: string
-      registry_address:
         type: string
       symbol:
         type: string
@@ -719,8 +715,6 @@ definitions:
       name:
         type: string
       network:
-        type: string
-      registry_address:
         type: string
       symbol:
         type: string
@@ -1096,6 +1090,21 @@ definitions:
       type:
         type: string
     type: object
+  tzip.Sections:
+    properties:
+      code:
+        items:
+          type: integer
+        type: array
+      parameter:
+        items:
+          type: integer
+        type: array
+      return-type:
+        items:
+          type: integer
+        type: array
+    type: object
   tzip.TZIP:
     properties:
       address:
@@ -1134,33 +1143,28 @@ definitions:
         type: string
       timestamp:
         type: string
-      tokens:
-        $ref: '#/definitions/tzip.TokenMetadataType'
       version:
         type: string
+      views:
+        items:
+          $ref: '#/definitions/tzip.View'
+        type: array
     type: object
-  tzip.TokenMetadataEntity:
+  tzip.View:
     properties:
-      decimals:
-        type: integer
-      extras:
-        additionalProperties: true
-        type: object
+      description:
+        type: string
+      implementations:
+        items:
+          $ref: '#/definitions/tzip.ViewImplementation'
+        type: array
       name:
         type: string
-      registry_address:
-        type: string
-      symbol:
-        type: string
-      token_id:
-        type: integer
     type: object
-  tzip.TokenMetadataType:
+  tzip.ViewImplementation:
     properties:
-      static:
-        items:
-          $ref: '#/definitions/tzip.TokenMetadataEntity'
-        type: array
+      michelson-storage-view:
+        $ref: '#/definitions/tzip.Sections'
     type: object
 info:
   contact:

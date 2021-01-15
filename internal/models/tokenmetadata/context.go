@@ -1,7 +1,7 @@
-package tzip
+package tokenmetadata
 
-// GetTokenMetadataContext -
-type GetTokenMetadataContext struct {
+// GetContext -
+type GetContext struct {
 	Contract string
 	Network  string
 	TokenID  int64

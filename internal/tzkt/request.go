@@ -2,11 +2,11 @@ package tzkt
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 )
@@ -48,12 +48,11 @@ func (t *TzKT) request(method, endpoint string, params map[string]string, respon
 	req.URL.RawQuery = q.Encode()
 	req.Header.Set("User-Agent", userAgent)
 
-	// log.Println(req.URL)
 	var resp *http.Response
 	count := 0
 	for ; count < t.retryCount; count++ {
 		if resp, err = t.client.Do(req); err != nil {
-			log.Printf("Attempt #%d: %s", count+1, err.Error())
+			logger.Warning("Attempt #%d: %s", count+1, err.Error())
 			continue
 		}
 		break

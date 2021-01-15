@@ -157,7 +157,7 @@ func parseSearchResponse(it *reindexer.Iterator) ([]models.Item, error) {
 		case tzip.TZIP:
 			searchItem.Value = elem.Address
 			searchItem.Network = elem.Network
-			searchItem.Type = search.MetadataSearchType
+			searchItem.Type = models.DocTokenMetadata
 		default:
 			return nil, errors.Errorf("Unknown search type")
 		}

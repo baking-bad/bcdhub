@@ -13,6 +13,7 @@ type TZIP16 struct {
 	Homepage    string   `json:"homepage,omitempty"`
 	Authors     []string `json:"authors,omitempty"`
 	Interfaces  []string `json:"interfaces,omitempty"`
+	Views       []View   `json:"views,omitempty"`
 }
 
 // License -
@@ -40,4 +41,16 @@ func (license *License) UnmarshalJSON(data []byte) error {
 		license.Details = buf.Details
 	}
 	return nil
+}
+
+// View -
+type View struct {
+	Name            string               `json:"name"`
+	Description     string               `json:"description"`
+	Implementations []ViewImplementation `json:"implementations"`
+}
+
+// ViewImplementation -
+type ViewImplementation struct {
+	MichelsonStorageView Sections `json:"michelson-storage-view"`
 }

@@ -5,14 +5,13 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/events"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
+	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
 	"github.com/baking-bad/bcdhub/internal/parsers/tzip/tokens"
@@ -20,12 +19,8 @@ import (
 )
 
 // CreateTokenMetadata -
-func (h *Handler) CreateTokenMetadata(rpc noderpc.INode, sharePath string, c *contract.Contract) error {
-	if !helpers.StringInArray(consts.FA2Tag, c.Tags) {
-		return nil
-	}
-
-	parser := tokens.NewTokenMetadataParser(h.BigMapDiffs, h.Blocks, h.Protocol, h.Schema, h.Storage, rpc, sharePath, c.Network)
+func (h *Handler) CreateTokenMetadata(rpc noderpc.INode, sharePath string, c *contract.Contract, ipfs ...string) error {
+	parser := tokens.NewParser(h.BigMapDiffs, h.Blocks, h.Protocol, h.Schema, h.Storage, rpc, sharePath, c.Network, ipfs...)
 	metadata, err := parser.Parse(c.Address, c.Level)
 	if err != nil {
 		return err
@@ -33,33 +28,28 @@ func (h *Handler) CreateTokenMetadata(rpc noderpc.INode, sharePath string, c *co
 
 	result := make([]models.Model, 0)
 	for i := range metadata {
-		tzip := metadata[i].ToModel(c.Address, c.Network)
-		logger.With(tzip).Info("Token metadata is found")
-		result = append(result, tzip)
+		logger.With(&metadata[i]).Info("Token metadata is found")
+		result = append(result, &metadata[i])
+	}
 
-		transfers, err := h.ExecuteInitialStorageEvent(rpc, tzip)
-		if err != nil {
-			return err
-		}
-		for j := range transfers {
-			result = append(result, transfers[j])
-		}
+	transfers, err := h.ExecuteInitialStorageEvent(rpc, c.Network, c.Address)
+	if err != nil {
+		return err
+	}
+	for i := range transfers {
+		result = append(result, transfers[i])
 	}
 
 	return h.Bulk.Insert(result)
 }
 
 // FixTokenMetadata -
-func (h *Handler) FixTokenMetadata(rpc noderpc.INode, sharePath string, contract *contract.Contract, operation *operation.Operation) error {
+func (h *Handler) FixTokenMetadata(rpc noderpc.INode, sharePath string, contract *contract.Contract, operation *operation.Operation, ipfs ...string) error {
 	if !operation.IsTransaction() || !operation.IsApplied() || !operation.IsCall() {
 		return nil
 	}
 
-	if !helpers.StringInArray(consts.TokenMetadataRegistryTag, contract.Tags) {
-		return nil
-	}
-
-	tokenMetadatas, err := h.TZIP.GetTokenMetadata(tzip.GetTokenMetadataContext{
+	tokenMetadatas, err := h.TokenMetadata.Get(tokenmetadata.GetContext{
 		Contract: operation.Destination,
 		Network:  operation.Network,
 		TokenID:  -1,
@@ -73,18 +63,13 @@ func (h *Handler) FixTokenMetadata(rpc noderpc.INode, sharePath string, contract
 	result := make([]models.Model, 0)
 
 	for _, tokenMetadata := range tokenMetadatas {
-		parser := tokens.NewTokenMetadataParser(h.BigMapDiffs, h.Blocks, h.Protocol, h.Schema, h.Storage, rpc, sharePath, operation.Network)
-		metadata, err := parser.ParseWithRegistry(tokenMetadata.RegistryAddress, operation.Level)
+		parser := tokens.NewParser(h.BigMapDiffs, h.Blocks, h.Protocol, h.Schema, h.Storage, rpc, sharePath, operation.Network, ipfs...)
+		metadata, err := parser.Parse(tokenMetadata.Contract, operation.Level)
 		if err != nil {
 			return err
 		}
-
-		for _, m := range metadata {
-			newMetadata := m.ToModel(tokenMetadata.Address, tokenMetadata.Network)
-			if newMetadata.HasToken(tokenMetadata.Network, tokenMetadata.Address, tokenMetadata.TokenID) {
-				result = append(result, newMetadata)
-				break
-			}
+		for i := range metadata {
+			result = append(result, &metadata[i])
 		}
 	}
 	if len(result) == 0 {
@@ -95,10 +80,17 @@ func (h *Handler) FixTokenMetadata(rpc noderpc.INode, sharePath string, contract
 }
 
 // ExecuteInitialStorageEvent -
-func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, tzip *tzip.TZIP) ([]*transfer.Transfer, error) {
+func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, network, contract string) ([]*transfer.Transfer, error) {
+	tzip, err := h.TZIP.Get(network, contract)
+	if err != nil {
+		if h.Storage.IsRecordNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
 	ops, err := h.Operations.Get(map[string]interface{}{
-		"destination": tzip.Address,
-		"network":     tzip.Network,
+		"destination": contract,
+		"network":     network,
 		"kind":        consts.Origination,
 	}, 1, false)
 	if err != nil {
@@ -113,12 +105,12 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, tzip *tzip.TZIP)
 
 	origination := ops[0]
 
-	protocol, err := h.Protocol.GetProtocol(tzip.Network, origination.Protocol, origination.Level)
+	protocol, err := h.Protocol.GetProtocol(network, origination.Protocol, origination.Level)
 	if err != nil {
 		return nil, err
 	}
 
-	state, err := h.Blocks.Last(tzip.Network)
+	state, err := h.Blocks.Last(network)
 	if err != nil {
 		return nil, err
 	}

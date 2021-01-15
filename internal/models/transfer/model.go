@@ -12,26 +12,22 @@ import (
 
 // Transfer -
 type Transfer struct {
-	ID             string    `json:"-"`
-	IndexedTime    int64     `json:"indexed_time"`
-	Network        string    `json:"network"`
-	Contract       string    `json:"contract"`
-	Alias          string    `json:"alias,omitempty"`
-	Initiator      string    `json:"initiator"`
-	InitiatorAlias string    `json:"initiator_alias,omitempty"`
-	Hash           string    `json:"hash"`
-	Status         string    `json:"status"`
-	Timestamp      time.Time `json:"timestamp"`
-	Level          int64     `json:"level"`
-	From           string    `json:"from"`
-	FromAlias      string    `json:"from_alias,omitempty"`
-	To             string    `json:"to"`
-	ToAlias        string    `json:"to_alias,omitempty"`
-	TokenID        int64     `json:"token_id"`
-	Amount         float64   `json:"amount"`
-	Counter        int64     `json:"counter"`
-	Nonce          *int64    `json:"nonce,omitempty"`
-	Parent         string    `json:"parent,omitempty"`
+	ID          string    `json:"-"`
+	IndexedTime int64     `json:"indexed_time"`
+	Network     string    `json:"network"`
+	Contract    string    `json:"contract"`
+	Initiator   string    `json:"initiator"`
+	Hash        string    `json:"hash"`
+	Status      string    `json:"status"`
+	Timestamp   time.Time `json:"timestamp"`
+	Level       int64     `json:"level"`
+	From        string    `json:"from"`
+	To          string    `json:"to"`
+	TokenID     int64     `json:"token_id"`
+	Amount      float64   `json:"amount"`
+	Counter     int64     `json:"counter"`
+	Nonce       *int64    `json:"nonce,omitempty"`
+	Parent      string    `json:"parent,omitempty"`
 }
 
 // GetID -
@@ -46,12 +42,12 @@ func (t *Transfer) GetIndex() string {
 
 // GetQueues -
 func (t *Transfer) GetQueues() []string {
-	return []string{"transfers"}
+	return nil
 }
 
 // MarshalToQueue -
 func (t *Transfer) MarshalToQueue() ([]byte, error) {
-	return []byte(t.ID), nil
+	return nil, nil
 }
 
 // LogFields -
