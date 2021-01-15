@@ -42,7 +42,7 @@ func NewContext(cfg config.Config) (*Context, error) {
 	return &Context{
 		Context: ctx,
 		OAUTH:   oauthCfg,
-		Cache:   ccache.New(ccache.Configure().MaxSize(1)),
+		Cache:   ccache.New(ccache.Configure().MaxSize(10)),
 	}, nil
 }
 
