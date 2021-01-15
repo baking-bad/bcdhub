@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
+	"github.com/pkg/errors"
 )
 
 // HTTP Storage prefixes
@@ -45,22 +45,21 @@ func NewHTTPStorage(opts ...HTTPStorageOption) HTTPStorage {
 }
 
 // Get -
-func (s HTTPStorage) Get(value string) (*tzip.TZIP, error) {
+func (s HTTPStorage) Get(value string, output interface{}) error {
 	client := http.Client{
 		Timeout: s.timeout,
 	}
 	req, err := http.NewRequest("GET", value, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, nil
+		return errors.Wrap(ErrHTTPRequest, err.Error())
 	}
 	defer resp.Body.Close()
 
-	var data tzip.TZIP
-	err = json.NewDecoder(resp.Body).Decode(&data)
-	return &data, err
+	err = json.NewDecoder(resp.Body).Decode(output)
+	return err
 }

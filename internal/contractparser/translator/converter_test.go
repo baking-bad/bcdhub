@@ -3,9 +3,9 @@ package translator
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"testing"
 
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/valyala/fastjson"
 )
@@ -13,7 +13,7 @@ import (
 func TestConverter_FromFile(t *testing.T) {
 	files, err := ioutil.ReadDir("./tests/")
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
 
 	c, err := NewConverter(

@@ -3,8 +3,8 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/gin-gonic/gin"
 )
 
@@ -65,7 +65,7 @@ func (ctx *Context) transfersPostprocessing(transfers transfer.Pageable) (respon
 	response.Transfers = make([]Transfer, len(transfers.Transfers))
 
 	mapTokens := make(map[tokenKey]*TokenMetadata)
-	tokens, err := ctx.TZIP.GetTokenMetadata(tzip.GetTokenMetadataContext{
+	tokens, err := ctx.TokenMetadata.Get(tokenmetadata.GetContext{
 		TokenID: -1,
 	})
 	if err != nil {
@@ -76,10 +76,10 @@ func (ctx *Context) transfersPostprocessing(transfers transfer.Pageable) (respon
 		for i := range tokens {
 			mapTokens[tokenKey{
 				Network:  tokens[i].Network,
-				Contract: tokens[i].Address,
+				Contract: tokens[i].Contract,
 				TokenID:  tokens[i].TokenID,
 			}] = &TokenMetadata{
-				Contract: tokens[i].Address,
+				Contract: tokens[i].Contract,
 				TokenID:  tokens[i].TokenID,
 				Symbol:   tokens[i].Symbol,
 				Name:     tokens[i].Name,
@@ -95,7 +95,14 @@ func (ctx *Context) transfersPostprocessing(transfers transfer.Pageable) (respon
 			Contract: transfers.Transfers[i].Contract,
 			TokenID:  transfers.Transfers[i].TokenID,
 		}]
-		response.Transfers[i] = Transfer{&transfers.Transfers[i], token}
+		response.Transfers[i] = Transfer{
+			Transfer:       &transfers.Transfers[i],
+			Token:          token,
+			Alias:          ctx.getAlias(transfers.Transfers[i].Network, transfers.Transfers[i].Contract),
+			InitiatorAlias: ctx.getAlias(transfers.Transfers[i].Network, transfers.Transfers[i].Initiator),
+			FromAlias:      ctx.getAlias(transfers.Transfers[i].Network, transfers.Transfers[i].From),
+			ToAlias:        ctx.getAlias(transfers.Transfers[i].Network, transfers.Transfers[i].To),
+		}
 	}
 	return
 }

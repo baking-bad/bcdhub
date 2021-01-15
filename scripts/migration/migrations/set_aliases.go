@@ -23,7 +23,7 @@ func (m *SetAliases) Description() string {
 
 // Do - migrate function
 func (m *SetAliases) Do(ctx *config.Context) error {
-	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.Bulk, ctx.DB)
+	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.Bulk, ctx.DB)
 
 	updatedModels := make([]models.Model, 0)
 	logger.Info("Receiving aliases for %s...", consts.Mainnet)
@@ -84,21 +84,6 @@ func (m *SetAliases) Do(ctx *config.Context) error {
 			} else if err != nil {
 				return err
 			}
-		}
-	}
-
-	transfers, err := ctx.Transfers.GetAll(consts.Mainnet, 0)
-	if err != nil {
-		return err
-	}
-
-	logger.Info("Got %d transfers", len(transfers))
-
-	for i := range transfers {
-		if flag, err := h.SetTransferAliases(&transfers[i]); flag {
-			updatedModels = append(updatedModels, &transfers[i])
-		} else if err != nil {
-			return err
 		}
 	}
 

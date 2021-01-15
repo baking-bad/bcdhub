@@ -1,8 +1,8 @@
 package config
 
 import (
+	"fmt"
 	"io/ioutil"
-	"log"
 	"strings"
 	"time"
 
@@ -23,6 +23,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic/schema"
 	"github.com/baking-bad/bcdhub/internal/elastic/tezosdomain"
 	"github.com/baking-bad/bcdhub/internal/elastic/tokenbalance"
+	"github.com/baking-bad/bcdhub/internal/elastic/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/elastic/transfer"
 	"github.com/baking-bad/bcdhub/internal/elastic/tzip"
 
@@ -39,6 +40,7 @@ import (
 	reindexerSchema "github.com/baking-bad/bcdhub/internal/reindexer/schema"
 	reindexerTD "github.com/baking-bad/bcdhub/internal/reindexer/tezosdomain"
 	reindexerTB "github.com/baking-bad/bcdhub/internal/reindexer/tokenbalance"
+	reindexerTM "github.com/baking-bad/bcdhub/internal/reindexer/tokenmetadata"
 	reindexerTransfer "github.com/baking-bad/bcdhub/internal/reindexer/transfer"
 	reindexertzip "github.com/baking-bad/bcdhub/internal/reindexer/tzip"
 
@@ -93,6 +95,7 @@ func WithStorage(cfg StorageConfig) ContextOption {
 			ctx.Schema = reindexerSchema.NewStorage(storage)
 			ctx.TezosDomains = reindexerTD.NewStorage(storage)
 			ctx.TokenBalances = reindexerTB.NewStorage(storage)
+			ctx.TokenMetadata = reindexerTM.NewStorage(storage)
 			ctx.Transfers = reindexerTransfer.NewStorage(storage)
 			ctx.TZIP = reindexertzip.NewStorage(storage)
 
@@ -115,6 +118,7 @@ func WithStorage(cfg StorageConfig) ContextOption {
 			ctx.Schema = schema.NewStorage(es)
 			ctx.TezosDomains = tezosdomain.NewStorage(es)
 			ctx.TokenBalances = tokenbalance.NewStorage(es)
+			ctx.TokenMetadata = tokenmetadata.NewStorage(es)
 			ctx.Transfers = transfer.NewStorage(es)
 			ctx.TZIP = tzip.NewStorage(es)
 		}
@@ -200,7 +204,7 @@ func WithAWS(cfg AWSConfig) ContextOption {
 	return func(ctx *Context) {
 		client, err := aws.New(cfg.AccessKeyID, cfg.SecretAccessKey, cfg.Region, cfg.BucketName)
 		if err != nil {
-			log.Panicf("aws client init error: %s", err)
+			panic(fmt.Errorf("aws client init error: %s", err))
 		}
 		ctx.AWS = client
 	}

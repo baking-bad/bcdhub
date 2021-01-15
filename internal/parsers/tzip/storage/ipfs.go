@@ -5,8 +5,6 @@ import (
 	"math/rand"
 	"strings"
 	"time"
-
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
 // IPFS storage prefix
@@ -45,14 +43,14 @@ func NewIPFSStorage(gateways []string, opts ...IPFSStorageOption) IPFSStorage {
 }
 
 // Get -
-func (s IPFSStorage) Get(value string) (data *tzip.TZIP, err error) {
+func (s IPFSStorage) Get(value string, output interface{}) error {
 	if len(s.gateways) == 0 {
-		return nil, ErrEmptyIPFSGatewayList
+		return ErrEmptyIPFSGatewayList
 	}
 
 	rand.Seed(time.Now().Unix())
 	gateway := s.gateways[rand.Intn(len(s.gateways))]
 
 	url := fmt.Sprintf("%s/ipfs/%s", gateway, strings.TrimPrefix(value, "ipfs://"))
-	return s.HTTPStorage.Get(url)
+	return s.HTTPStorage.Get(url, output)
 }

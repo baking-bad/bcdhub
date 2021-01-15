@@ -2,10 +2,10 @@ package metrics
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/getsentry/sentry-go"
 )
@@ -119,6 +119,6 @@ func initSentry(environment, dsn string) {
 		Debug:            false,
 		AttachStacktrace: false,
 	}); err != nil {
-		log.Printf("Sentry initialization failed: %v\n", err)
+		logger.Errorf("Sentry initialization failed: %v", err)
 	}
 }

@@ -1,7 +1,6 @@
 package migrations
 
 import (
-	"log"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/config"
@@ -28,7 +27,7 @@ func (m *RecalcContractMetrics) Description() string {
 func (m *RecalcContractMetrics) Do(ctx *config.Context) error {
 	logger.Info("Start RecalcContractMetrics migration...")
 	start := time.Now()
-	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.Bulk, ctx.DB)
+	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.Bulk, ctx.DB)
 
 	for _, network := range ctx.Config.Scripts.Networks {
 		contracts, err := ctx.Contracts.GetMany(map[string]interface{}{
@@ -64,6 +63,6 @@ func (m *RecalcContractMetrics) Do(ctx *config.Context) error {
 
 	}
 
-	log.Printf("Time spent: %v", time.Since(start))
+	logger.Info("Time spent: %v", time.Since(start))
 	return nil
 }

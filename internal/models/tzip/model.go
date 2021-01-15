@@ -17,20 +17,9 @@ type TZIP struct {
 	Slug      string                          `json:"slug,omitempty"`
 	Domain    *tezosdomain.ReverseTezosDomain `json:"domain,omitempty"`
 
-	TZIP12
 	TZIP16
 	TZIP20
 	DAppsTZIP
-}
-
-// HasToken -
-func (t TZIP) HasToken(network, address string, tokenID int64) bool {
-	for i := range t.Tokens.Static {
-		if t.Address == address && t.Network == network && t.Tokens.Static[i].TokenID == tokenID {
-			return true
-		}
-	}
-	return false
 }
 
 // GetID -
@@ -60,17 +49,4 @@ func (t *TZIP) LogFields() logrus.Fields {
 		"address": t.Address,
 		"level":   t.Level,
 	}
-}
-
-// TokenMetadata -
-type TokenMetadata struct {
-	Address         string
-	Network         string
-	Level           int64
-	Symbol          string
-	Name            string
-	TokenID         int64
-	Decimals        *int64
-	RegistryAddress string
-	Extras          map[string]interface{}
 }

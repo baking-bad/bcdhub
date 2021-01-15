@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"testing"
 
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/tidwall/gjson"
 )
@@ -40,13 +40,13 @@ func TestParseMetadata(t *testing.T) {
 			}
 			first, err := json.MarshalIndent(got, "", " ")
 			if err != nil {
-				log.Println(err)
+				logger.Error(err)
 				t.Errorf("ParseMetadata() = %v, want %v", got, metadata)
 				return
 			}
 			second, err := json.MarshalIndent(metadata, "", " ")
 			if err != nil {
-				log.Println(err)
+				logger.Error(err)
 				t.Errorf("ParseMetadata() = %v, want %v", got, metadata)
 				return
 			}

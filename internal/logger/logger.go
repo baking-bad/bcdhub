@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"runtime"
 	"strings"
@@ -171,7 +170,7 @@ func Debug(values ...interface{}) {
 // Question -
 func Question(format string, v ...interface{}) {
 	blue := color.New(color.FgMagenta).SprintFunc()
-	log.Printf("[%s] %s", blue("?"), fmt.Sprintf(format, v...))
+	fmt.Printf("[%s] %s", blue("?"), fmt.Sprintf(format, v...))
 }
 
 // With -

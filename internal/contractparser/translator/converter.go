@@ -2,9 +2,9 @@ package translator
 
 import (
 	"io/ioutil"
-	"log"
 	"os"
 
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/valyala/fastjson"
 	"github.com/yhirose/go-peg"
 )
@@ -60,19 +60,17 @@ func (c Converter) FromString(input string) (*fastjson.Value, error) {
 		return nil, err
 	}
 
-	// log.Println(ast)
-
 	return NewJSONTranslator().Translate(ast)
 }
 
 func (c Converter) trace() {
 	if c.debug {
 		c.parser.TracerEnter = func(name string, s string, v *peg.Values, d peg.Any, p int) {
-			log.Println("Enter:", name, p, len(s))
+			logger.Info("Enter: %s %d %d", name, p, len(s))
 		}
 		c.parser.TracerLeave = func(name string, s string, v *peg.Values, d peg.Any, p int, l int) {
 			if l != -1 {
-				log.Println("Leave:", name, len(s), l+p)
+				logger.Info("Leave: %s %d %d", name, len(s), l+p)
 			}
 		}
 	}

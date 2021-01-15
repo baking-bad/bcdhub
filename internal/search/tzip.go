@@ -5,11 +5,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
-// SearchTypes
-const (
-	MetadataSearchType = "metadata"
-)
-
 // Metadata -
 type Metadata struct{}
 
@@ -45,7 +40,7 @@ func (m Metadata) Parse(highlight map[string][]string, data []byte) (interface{}
 		return nil, err
 	}
 	return models.Item{
-		Type:       MetadataSearchType,
+		Type:       metadata.GetIndex(),
 		Value:      metadata.Address,
 		Body:       metadata,
 		Highlights: highlight,

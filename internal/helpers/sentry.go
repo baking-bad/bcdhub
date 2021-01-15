@@ -2,11 +2,11 @@ package helpers
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/getsentry/sentry-go"
 	sentrygin "github.com/getsentry/sentry-go/gin"
 	"github.com/gin-gonic/gin"
@@ -22,12 +22,12 @@ func InitSentry(debug bool, environment, dsn string) {
 		AttachStacktrace: true,
 		BeforeSend:       beforeSend,
 	}); err != nil {
-		log.Printf("Sentry initialization failed: %v\n", err)
+		logger.Info("Sentry initialization failed: %v\n", err)
 	}
 }
 
 func beforeSend(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
-	log.Printf("[Sentry message] %s", event.Message)
+	logger.Info("[Sentry message] %s", event.Message)
 	return event
 }
 

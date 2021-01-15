@@ -11,6 +11,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
+	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
@@ -24,6 +25,7 @@ type Handler struct {
 	Migrations    migration.Repository
 	Schema        schema.Repository
 	TokenBalances tokenbalance.Repository
+	TokenMetadata tokenmetadata.Repository
 	TZIP          tzip.Repository
 	Storage       models.GeneralRepository
 	Bulk          models.BulkRepository
@@ -40,11 +42,12 @@ func New(
 	operations operation.Repository,
 	schemaRepo schema.Repository,
 	tbRepo tokenbalance.Repository,
+	tmRepo tokenmetadata.Repository,
 	tzipRepo tzip.Repository,
 	migrationRepo migration.Repository,
 	storage models.GeneralRepository,
 	bulk models.BulkRepository,
 	db database.DB,
 ) *Handler {
-	return &Handler{contracts, bmdRepo, blocksRepo, protocolRepo, operations, migrationRepo, schemaRepo, tbRepo, tzipRepo, storage, bulk, db}
+	return &Handler{contracts, bmdRepo, blocksRepo, protocolRepo, operations, migrationRepo, schemaRepo, tbRepo, tmRepo, tzipRepo, storage, bulk, db}
 }

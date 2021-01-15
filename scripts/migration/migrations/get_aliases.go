@@ -1,7 +1,6 @@
 package migrations
 
 import (
-	"log"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/config"
@@ -64,7 +63,7 @@ func (m *GetAliases) Do(ctx *config.Context) error {
 			item.Name = alias
 			item.Slug = helpers.Slug(alias)
 		} else if !ctx.Storage.IsRecordNotFound(err) {
-			log.Println(err)
+			logger.Error(err)
 			return err
 		}
 		newModels = append(newModels, &item)

@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
+	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/gin-gonic/gin"
 )
 
@@ -79,7 +79,7 @@ func (ctx *Context) getAccountBalances(network, address string) ([]TokenBalance,
 
 	result := make([]TokenBalance, 0)
 	for _, balance := range tokenBalances {
-		token, err := ctx.TZIP.GetTokenMetadata(tzip.GetTokenMetadataContext{
+		token, err := ctx.TokenMetadata.Get(tokenmetadata.GetContext{
 			TokenID:  balance.TokenID,
 			Contract: balance.Contract,
 			Network:  network,

@@ -12,6 +12,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
+	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/tidwall/gjson"
@@ -565,7 +566,11 @@ type BigMapHistoryItem struct {
 // Transfer -
 type Transfer struct {
 	*transfer.Transfer
-	Token *TokenMetadata `json:"token,omitempty"`
+	Token          *TokenMetadata `json:"token,omitempty"`
+	Alias          string         `json:"alias,omitempty"`
+	InitiatorAlias string         `json:"initiator_alias,omitempty"`
+	FromAlias      string         `json:"from_alias,omitempty"`
+	ToAlias        string         `json:"to_alias,omitempty"`
 }
 
 // TransferResponse -
@@ -649,26 +654,24 @@ type TokenBalance struct {
 
 // TokenMetadata -
 type TokenMetadata struct {
-	Contract        string                 `json:"contract"`
-	Network         string                 `json:"network"`
-	RegistryAddress string                 `json:"registry_address,omitempty"`
-	Level           int64                  `json:"level,omitempty"`
-	TokenID         int64                  `json:"token_id"`
-	Symbol          string                 `json:"symbol,omitempty"`
-	Name            string                 `json:"name,omitempty"`
-	Decimals        *int64                 `json:"decimals,omitempty"`
-	Extras          map[string]interface{} `json:"extras,omitempty"`
-	Volume24Hours   float64                `json:"volume_24_hours"`
+	Contract      string                 `json:"contract"`
+	Network       string                 `json:"network"`
+	Level         int64                  `json:"level,omitempty"`
+	TokenID       int64                  `json:"token_id"`
+	Symbol        string                 `json:"symbol,omitempty"`
+	Name          string                 `json:"name,omitempty"`
+	Decimals      *int64                 `json:"decimals,omitempty"`
+	Extras        map[string]interface{} `json:"extras,omitempty"`
+	Volume24Hours float64                `json:"volume_24_hours"`
 }
 
 // TokenMetadataFromElasticModel -
-func TokenMetadataFromElasticModel(model tzip.TokenMetadata) (tm TokenMetadata) {
+func TokenMetadataFromElasticModel(model tokenmetadata.TokenMetadata) (tm TokenMetadata) {
 	tm.TokenID = model.TokenID
 	tm.Symbol = model.Symbol
 	tm.Name = model.Name
-	tm.RegistryAddress = model.RegistryAddress
 	tm.Decimals = model.Decimals
-	tm.Contract = model.Address
+	tm.Contract = model.Contract
 	tm.Level = model.Level
 	tm.Network = model.Network
 	tm.Extras = model.Extras

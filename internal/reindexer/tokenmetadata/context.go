@@ -1,12 +1,12 @@
-package tzip
+package tokenmetadata
 
 import (
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
+	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/reindexer/core"
 	"github.com/restream/reindexer"
 )
 
-func buildGetTokenMetadataContext(ctx tzip.GetTokenMetadataContext, query *reindexer.Query) {
+func buildGetTokenMetadataContext(ctx tokenmetadata.GetContext, query *reindexer.Query) {
 	if ctx.Contract != "" {
 		query.Match("address", ctx.Contract)
 	}

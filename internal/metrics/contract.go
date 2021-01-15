@@ -65,6 +65,11 @@ func (h *Handler) SetContractProjectID(c *contract.Contract) error {
 
 func getContractProjectID(c contract.Contract, buckets []contract.Contract) string {
 	for i := len(buckets) - 1; i > -1; i-- {
+		if c.Hash == buckets[i].Hash {
+			return buckets[i].ProjectID
+		}
+	}
+	for i := len(buckets) - 1; i > -1; i-- {
 		if compare(c, buckets[i]) {
 			return buckets[i].ProjectID
 		}

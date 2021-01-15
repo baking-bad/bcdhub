@@ -16,6 +16,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
+	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/mq"
@@ -54,6 +55,7 @@ type Context struct {
 	Schema         schema.Repository
 	TezosDomains   tezosdomain.Repository
 	TokenBalances  tokenbalance.Repository
+	TokenMetadata  tokenmetadata.Repository
 	Transfers      transfer.Repository
 	TZIP           tzip.Repository
 }

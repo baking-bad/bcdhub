@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -55,7 +54,7 @@ func main() {
 
 	protocol, err := context.Protocols.GetProtocol(consts.Mainnet, "", -1)
 	if err != nil {
-		log.Panic(err)
+		logger.Fatal(err)
 	}
 
 	tickerTime := protocol.Constants.TimeBetweenBlocks
@@ -172,7 +171,7 @@ func (ctx *Context) handleMessage(data mq.Data) error {
 
 func (ctx *Context) parseData(data mq.Data) error {
 	if data.GetKey() != mq.QueueCompilations {
-		log.Printf("[parseData] Unknown data routing key %s", data.GetKey())
+		logger.Warning("[parseData] Unknown data routing key %s", data.GetKey())
 		return data.Ack(false)
 	}
 

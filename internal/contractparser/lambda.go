@@ -2,10 +2,10 @@ package contractparser
 
 import (
 	"encoding/hex"
-	"log"
 	"regexp"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/tidwall/gjson"
 )
 
@@ -49,7 +49,7 @@ func detectLambdaByBytes(input string) bool {
 	}
 	b, err := hex.DecodeString(input[22:24])
 	if err != nil {
-		log.Println(err)
+		logger.Error(err)
 		return false
 	}
 	if len(b) != 1 {
