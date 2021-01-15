@@ -14,9 +14,5 @@ func (ctx *Context) getAlias(network, address string) string {
 		return ""
 	}
 	aliases := item.Value().(map[string]string)
-	alias, ok := aliases[address]
-	if !ok {
-		return ""
-	}
-	return alias
+	return aliases[address]
 }
