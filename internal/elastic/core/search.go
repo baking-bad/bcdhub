@@ -2,7 +2,6 @@ package core
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -14,8 +13,6 @@ import (
 const (
 	defaultSize = 10
 )
-
-var sanitizeRegEx = regexp.MustCompile(`[\:]`)
 
 func getFields(searchString string, filters map[string]interface{}, fields []string) ([]string, []string, Item, error) {
 	var indices []string
@@ -34,7 +31,7 @@ func getFields(searchString string, filters map[string]interface{}, fields []str
 	for _, score := range scores.Scores {
 		s := strings.Split(score, "^")
 		h[s[0]] = Item{}
-		f = append(f, s[0])
+		f = append(f, score)
 	}
 	return f, scores.Indices, h, nil
 }
@@ -221,7 +218,7 @@ func prepare(searchString string, filters map[string]interface{}, fields []strin
 		ctx.Indices = usingIndices
 		ctx.Highlights = highlights
 		ctx.Fields = internalFields
-		ctx.Text = fmt.Sprintf("%s*", searchString)
+		ctx.Text = fmt.Sprintf("\"%s*\"", searchString)
 	}
 
 	filterString, err := prepareSearchFilters(filters)
@@ -229,7 +226,6 @@ func prepare(searchString string, filters map[string]interface{}, fields []strin
 		return ctx, err
 	}
 	if filterString != "" {
-		ctx.Text = sanitizeRegEx.ReplaceAllString(ctx.Text, "\\${0}")
 		ctx.Text = fmt.Sprintf("%s AND %s", filterString, ctx.Text)
 	}
 	return ctx, nil
