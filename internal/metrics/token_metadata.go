@@ -165,7 +165,7 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, network, contrac
 						Contract: tzip.Address,
 					}
 					tb.Set(float64(balances[i].Value))
-					balanceUpdates = append(balanceUpdates)
+					balanceUpdates = append(balanceUpdates, tb)
 				}
 			}
 		}
