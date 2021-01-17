@@ -104,16 +104,16 @@ func (t *Transfer) MakeTokenBalanceUpdate(from, rollback bool) *tokenbalance.Tok
 	switch {
 	case from && rollback:
 		tb.Address = t.From
-		tb.Balance = int64(t.Amount)
+		tb.Set(t.Amount)
 	case !from && rollback:
 		tb.Address = t.To
-		tb.Balance = -int64(t.Amount)
+		tb.Set(-t.Amount)
 	case from && !rollback:
 		tb.Address = t.From
-		tb.Balance = -int64(t.Amount)
+		tb.Set(-t.Amount)
 	case !from && !rollback:
 		tb.Address = t.To
-		tb.Balance = int64(t.Amount)
+		tb.Set(t.Amount)
 	}
 	return tb
 }

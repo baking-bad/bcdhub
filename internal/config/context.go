@@ -43,7 +43,6 @@ type Context struct {
 	Domains    map[string]string
 
 	Storage        models.GeneralRepository
-	Bulk           models.BulkRepository
 	BalanceUpdates balanceupdate.Repository
 	BigMapActions  bigmapaction.Repository
 	BigMapDiffs    bigmapdiff.Repository

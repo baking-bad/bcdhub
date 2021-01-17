@@ -82,5 +82,5 @@ func (m *FillTZIP) Do(ctx *config.Context) error {
 		}
 		data = append(data, model)
 	}
-	return ctx.Bulk.Insert(data)
+	return ctx.Storage.BulkInsert(data)
 }

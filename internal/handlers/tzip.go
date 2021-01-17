@@ -13,12 +13,12 @@ import (
 
 // TZIP -
 type TZIP struct {
-	bulk    models.BulkRepository
+	storage models.GeneralRepository
 	parsers map[string]tzip.Parser
 }
 
 // NewTZIP -
-func NewTZIP(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, schemaRepo schema.Repository, storage models.GeneralRepository, bulk models.BulkRepository, rpcs map[string]noderpc.INode, ipfs []string) *TZIP {
+func NewTZIP(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, schemaRepo schema.Repository, storage models.GeneralRepository, rpcs map[string]noderpc.INode, ipfs []string) *TZIP {
 	parsers := make(map[string]tzip.Parser)
 	for network, rpc := range rpcs {
 		parsers[network] = tzip.NewParser(bigMapRepo, blockRepo, schemaRepo, storage, rpc, tzip.ParserConfig{
@@ -26,7 +26,7 @@ func NewTZIP(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, schem
 		})
 	}
 	return &TZIP{
-		bulk, parsers,
+		storage, parsers,
 	}
 }
 
@@ -60,5 +60,5 @@ func (t *TZIP) handle(bmd *bigmapdiff.BigMapDiff) error {
 	}
 
 	logger.With(bmd).Info("Big map diff with TZIP is processed")
-	return t.bulk.Insert([]models.Model{model})
+	return t.storage.BulkInsert([]models.Model{model})
 }

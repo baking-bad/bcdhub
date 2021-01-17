@@ -11,7 +11,13 @@
                 }
             },
             "balance": {
-                "type": "long"
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "ignore_above": 256.0,
+                        "type": "keyword"
+                    }
+                }
             },
             "token_id": {
                 "type": "long"

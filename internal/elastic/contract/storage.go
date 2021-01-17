@@ -1,7 +1,9 @@
 package contract
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"time"
 
@@ -442,4 +444,29 @@ func (storage *Storage) GetTokens(network, tokenInterface string, offset, size i
 		}
 	}
 	return contracts, response.Hits.Total.Value, nil
+}
+
+// UpdateField -
+func (storage *Storage) UpdateField(where []contract.Contract, fields ...string) error {
+	if len(where) == 0 {
+		return nil
+	}
+	bulk := bytes.NewBuffer([]byte{})
+	for i := range where {
+		updated, err := storage.es.BuildFieldsForModel(where[i], fields...)
+		if err != nil {
+			return err
+		}
+		meta := fmt.Sprintf(`{ "update": { "_id": "%s", "_index": "%s"}}%s%s%s`, where[i].GetID(), where[i].GetIndex(), "\n", string(updated), "\n")
+		bulk.Grow(len(meta))
+		bulk.WriteString(meta)
+
+		if (i%1000 == 0 && i > 0) || i == len(where)-1 {
+			if err := storage.es.Bulk(bulk); err != nil {
+				return err
+			}
+			bulk.Reset()
+		}
+	}
+	return nil
 }

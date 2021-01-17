@@ -292,3 +292,28 @@ func (storage *Storage) topContracts(query *reindexer.Query, idFunc func(c contr
 	return response, nil
 
 }
+
+// UpdateField -
+func (storage *Storage) UpdateField(where []contract.Contract, fields ...string) error {
+	if len(where) == 0 {
+		return nil
+	}
+	tx, err := storage.db.BeginTx(models.DocContracts)
+	if err != nil {
+		return err
+	}
+	for i := range where {
+		query := tx.Query().Match("id", where[i].GetID())
+		for j := range fields {
+			value := storage.db.GetFieldValue(where[i], fields[j])
+			query = query.Set(fields[j], value)
+		}
+		it := query.Update()
+		defer it.Close()
+
+		if it.Error() != nil {
+			return it.Error()
+		}
+	}
+	return tx.Commit()
+}

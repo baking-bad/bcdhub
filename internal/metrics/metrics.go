@@ -28,7 +28,6 @@ type Handler struct {
 	TokenMetadata tokenmetadata.Repository
 	TZIP          tzip.Repository
 	Storage       models.GeneralRepository
-	Bulk          models.BulkRepository
 
 	DB database.DB
 }
@@ -46,8 +45,7 @@ func New(
 	tzipRepo tzip.Repository,
 	migrationRepo migration.Repository,
 	storage models.GeneralRepository,
-	bulk models.BulkRepository,
 	db database.DB,
 ) *Handler {
-	return &Handler{contracts, bmdRepo, blocksRepo, protocolRepo, operations, migrationRepo, schemaRepo, tbRepo, tmRepo, tzipRepo, storage, bulk, db}
+	return &Handler{contracts, bmdRepo, blocksRepo, protocolRepo, operations, migrationRepo, schemaRepo, tbRepo, tmRepo, tzipRepo, storage, db}
 }

@@ -22,11 +22,11 @@ func getContract(ids []string) error {
 	}
 
 	logger.Info("Metrics of %d contracts are computed", len(contracts))
-	return ctx.Bulk.UpdateField(contracts, "Alias", "Verified", "VerificationSource")
+	return ctx.Contracts.UpdateField(contracts, "Alias", "Verified", "VerificationSource")
 }
 
 func parseContract(contract *contract.Contract) error {
-	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.Bulk, ctx.DB)
+	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.DB)
 
 	if _, err := h.SetContractAlias(contract); err != nil {
 		return err

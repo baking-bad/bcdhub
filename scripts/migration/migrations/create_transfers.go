@@ -76,8 +76,8 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 		}
 	}
 
-	if err := ctx.Bulk.Insert(result); err != nil {
-		logger.Errorf("ctx.Bulk.Insert error: %v", err)
+	if err := ctx.Storage.BulkInsert(result); err != nil {
+		logger.Errorf("ctx.Storage.BulkInsert error: %v", err)
 		return err
 	}
 

@@ -40,7 +40,7 @@ func (h *Handler) CreateTokenMetadata(rpc noderpc.INode, sharePath string, c *co
 		result = append(result, transfers[i])
 	}
 
-	return h.Bulk.Insert(result)
+	return h.Storage.BulkInsert(result)
 }
 
 // FixTokenMetadata -
@@ -76,7 +76,7 @@ func (h *Handler) FixTokenMetadata(rpc noderpc.INode, sharePath string, contract
 		return nil
 	}
 
-	return h.Bulk.Update(result)
+	return h.Storage.BulkUpdate(result)
 }
 
 // ExecuteInitialStorageEvent -
@@ -158,13 +158,14 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, network, contrac
 				data = append(data, res...)
 
 				for i := range balances {
-					balanceUpdates = append(balanceUpdates, &tokenbalance.TokenBalance{
+					tb := &tokenbalance.TokenBalance{
 						Network:  tzip.Network,
 						Address:  balances[i].Address,
 						TokenID:  balances[i].TokenID,
 						Contract: tzip.Address,
-						Balance:  balances[i].Value,
-					})
+					}
+					tb.Set(float64(balances[i].Value))
+					balanceUpdates = append(balanceUpdates)
 				}
 			}
 		}

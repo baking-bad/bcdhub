@@ -2,8 +2,6 @@ package models
 
 import (
 	"io"
-
-	"github.com/baking-bad/bcdhub/internal/models/contract"
 )
 
 // GeneralRepository -
@@ -41,13 +39,8 @@ type GeneralRepository interface {
 	GetFACountByNetwork(network string) (map[string]int64, error)
 	GetLanguagesForNetwork(network string) (map[string]int64, error)
 	IsRecordNotFound(err error) bool
-}
-
-// BulkRepository -
-type BulkRepository interface {
-	Insert([]Model) error
-	Update([]Model) error
-	Delete([]Model) error
-	RemoveField(string, []Model) error
-	UpdateField(where []contract.Contract, fields ...string) error
+	BulkInsert([]Model) error
+	BulkUpdate([]Model) error
+	BulkDelete([]Model) error
+	BulkRemoveField(string, []Model) error
 }

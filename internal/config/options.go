@@ -14,7 +14,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/elastic/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/elastic/block"
-	"github.com/baking-bad/bcdhub/internal/elastic/bulk"
 	"github.com/baking-bad/bcdhub/internal/elastic/contract"
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/elastic/migration"
@@ -31,7 +30,6 @@ import (
 	reindexerBMA "github.com/baking-bad/bcdhub/internal/reindexer/bigmapaction"
 	reindexerBMD "github.com/baking-bad/bcdhub/internal/reindexer/bigmapdiff"
 	reindexerBlock "github.com/baking-bad/bcdhub/internal/reindexer/block"
-	reindexerBulk "github.com/baking-bad/bcdhub/internal/reindexer/bulk"
 	reindexerContract "github.com/baking-bad/bcdhub/internal/reindexer/contract"
 	reindexerCore "github.com/baking-bad/bcdhub/internal/reindexer/core"
 	reindexerMigration "github.com/baking-bad/bcdhub/internal/reindexer/migration"
@@ -83,7 +81,6 @@ func WithStorage(cfg StorageConfig) ContextOption {
 			}
 
 			ctx.Storage = storage
-			ctx.Bulk = reindexerBulk.NewStorage(storage)
 			ctx.BalanceUpdates = reindexerBU.NewStorage(storage)
 			ctx.BigMapActions = reindexerBMA.NewStorage(storage)
 			ctx.BigMapDiffs = reindexerBMD.NewStorage(storage)
@@ -106,7 +103,6 @@ func WithStorage(cfg StorageConfig) ContextOption {
 			es := core.WaitNew(cfg.URI, cfg.Timeout)
 
 			ctx.Storage = es
-			ctx.Bulk = bulk.NewStorage(es)
 			ctx.BalanceUpdates = balanceupdate.NewStorage(es)
 			ctx.BigMapActions = bigmapaction.NewStorage(es)
 			ctx.BigMapDiffs = bigmapdiff.NewStorage(es)

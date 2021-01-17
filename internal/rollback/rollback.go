@@ -24,7 +24,6 @@ import (
 // Manager -
 type Manager struct {
 	storage       models.GeneralRepository
-	bulk          models.BulkRepository
 	contractsRepo contract.Repository
 	operationRepo operation.Repository
 	transfersRepo transfer.Repository
@@ -36,9 +35,9 @@ type Manager struct {
 }
 
 // NewManager -
-func NewManager(storage models.GeneralRepository, bulk models.BulkRepository, contractsRepo contract.Repository, operationRepo operation.Repository, transfersRepo transfer.Repository, tbRepo tokenbalance.Repository, protocolsRepo protocol.Repository, messageQueue mq.IMessagePublisher, rpc noderpc.INode, sharePath string) Manager {
+func NewManager(storage models.GeneralRepository, contractsRepo contract.Repository, operationRepo operation.Repository, transfersRepo transfer.Repository, tbRepo tokenbalance.Repository, protocolsRepo protocol.Repository, messageQueue mq.IMessagePublisher, rpc noderpc.INode, sharePath string) Manager {
 	return Manager{
-		storage, bulk, contractsRepo, operationRepo, transfersRepo, tbRepo, protocolsRepo, messageQueue, rpc, sharePath,
+		storage, contractsRepo, operationRepo, transfersRepo, tbRepo, protocolsRepo, messageQueue, rpc, sharePath,
 	}
 }
 
@@ -92,7 +91,7 @@ func (rm Manager) rollbackTokenBalances(network string, toLevel int64) error {
 
 		if id := transfers[i].GetFromTokenBalanceID(); id != "" {
 			if update, ok := exists[id]; ok {
-				update.Balance += int64(transfers[i].Amount)
+				update.Add(transfers[i].Amount)
 			} else {
 				upd := transfers[i].MakeTokenBalanceUpdate(true, true)
 				updates = append(updates, upd)
@@ -102,7 +101,7 @@ func (rm Manager) rollbackTokenBalances(network string, toLevel int64) error {
 
 		if id := transfers[i].GetToTokenBalanceID(); id != "" {
 			if update, ok := exists[id]; ok {
-				update.Balance -= int64(transfers[i].Amount)
+				update.Sub(transfers[i].Amount)
 			} else {
 				upd := transfers[i].MakeTokenBalanceUpdate(false, true)
 				updates = append(updates, upd)
@@ -188,7 +187,7 @@ func (rm Manager) removeContractsMetadata(network string, addresses []string, pr
 
 	logger.Info("Removing metadata...")
 	if len(bulkDeleteMetadata) > 0 {
-		if err := rm.bulk.Delete(bulkDeleteMetadata); err != nil {
+		if err := rm.storage.BulkDelete(bulkDeleteMetadata); err != nil {
 			return err
 		}
 	}
@@ -240,10 +239,10 @@ func (rm Manager) updateMetadata(network string, fromLevel, toLevel int64) error
 			for i := 0; i < len(bulkUpdateMetadata); i += 1000 {
 				start := i * 1000
 				end := helpers.MinInt((i+1)*1000, len(bulkUpdateMetadata))
-				if err := rm.bulk.RemoveField(fmt.Sprintf("parameter.%s", symLink), bulkUpdateMetadata[start:end]); err != nil {
+				if err := rm.storage.BulkRemoveField(fmt.Sprintf("parameter.%s", symLink), bulkUpdateMetadata[start:end]); err != nil {
 					return err
 				}
-				if err := rm.bulk.RemoveField(fmt.Sprintf("storage.%s", symLink), bulkUpdateMetadata[start:end]); err != nil {
+				if err := rm.storage.BulkRemoveField(fmt.Sprintf("storage.%s", symLink), bulkUpdateMetadata[start:end]); err != nil {
 					return err
 				}
 			}

@@ -49,7 +49,7 @@ func Run(ctx *handlers.Context, seed config.SeedConfig) error {
 			Address: a.Address,
 		})
 	}
-	if err := ctx.Bulk.Insert(aliasModels); err != nil {
+	if err := ctx.Storage.BulkInsert(aliasModels); err != nil {
 		return err
 	}
 

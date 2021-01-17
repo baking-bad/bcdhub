@@ -68,5 +68,5 @@ func (m *GetAliases) Do(ctx *config.Context) error {
 		}
 		newModels = append(newModels, &item)
 	}
-	return ctx.Bulk.Insert(newModels)
+	return ctx.Storage.BulkInsert(newModels)
 }

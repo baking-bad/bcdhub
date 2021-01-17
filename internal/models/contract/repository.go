@@ -15,4 +15,5 @@ type Repository interface {
 	GetSameContracts(Contract, int64, int64) (SameResponse, error)
 	GetSimilarContracts(Contract, int64, int64) ([]Similar, int, error)
 	GetDiffTasks() ([]DiffTask, error)
+	UpdateField(where []Contract, fields ...string) error
 }

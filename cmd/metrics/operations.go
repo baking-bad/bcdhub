@@ -19,7 +19,7 @@ func getOperation(ids []string) error {
 		return errors.Errorf("[getOperation] Find operation error for IDs %v: %s", ids, err)
 	}
 
-	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.Bulk, ctx.DB)
+	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.DB)
 	updated := make([]models.Model, 0)
 	for i := range operations {
 		if err := parseOperation(h, operations[i]); err != nil {
@@ -29,7 +29,7 @@ func getOperation(ids []string) error {
 		updated = append(updated, &operations[i])
 	}
 
-	if err := ctx.Bulk.Update(updated); err != nil {
+	if err := ctx.Storage.BulkUpdate(updated); err != nil {
 		return err
 	}
 
@@ -116,7 +116,7 @@ func getOperationsContracts(h *metrics.Handler, operations []operation.Operation
 		}
 	}
 
-	if err := ctx.Bulk.UpdateField(updated, "TxCount", "LastAction"); err != nil {
+	if err := ctx.Contracts.UpdateField(updated, "TxCount", "LastAction"); err != nil {
 		return err
 	}
 

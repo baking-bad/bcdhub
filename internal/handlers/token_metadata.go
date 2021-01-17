@@ -14,18 +14,18 @@ import (
 
 // TokenMetadata -
 type TokenMetadata struct {
-	bulk    models.BulkRepository
+	storage models.GeneralRepository
 	parsers map[string]tokens.Parser
 }
 
 // NewTokenMetadata -
-func NewTokenMetadata(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, protocolRepo protocol.Repository, schemaRepo schema.Repository, storage models.GeneralRepository, bulk models.BulkRepository, rpcs map[string]noderpc.INode, sharePath string, ipfs []string) *TokenMetadata {
+func NewTokenMetadata(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, protocolRepo protocol.Repository, schemaRepo schema.Repository, storage models.GeneralRepository, rpcs map[string]noderpc.INode, sharePath string, ipfs []string) *TokenMetadata {
 	parsers := make(map[string]tokens.Parser)
 	for network, rpc := range rpcs {
 		parsers[network] = tokens.NewParser(bigMapRepo, blockRepo, protocolRepo, schemaRepo, storage, rpc, sharePath, network, ipfs...)
 	}
 	return &TokenMetadata{
-		bulk, parsers,
+		storage, parsers,
 	}
 }
 
@@ -60,5 +60,5 @@ func (t *TokenMetadata) handle(bmd *bigmapdiff.BigMapDiff) error {
 		logger.With(&tokenMetadata[i]).Info("Update of token metadata is found")
 		models = append(models, &tokenMetadata[i])
 	}
-	return t.bulk.Insert(models)
+	return t.storage.BulkInsert(models)
 }
