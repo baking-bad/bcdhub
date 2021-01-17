@@ -13,7 +13,7 @@ func UpdateTokenBalances(repo tokenbalance.Repository, transfers []*transfer.Tra
 		idFrom := transfers[i].GetFromTokenBalanceID()
 		if idFrom != "" {
 			if update, ok := exists[idFrom]; ok {
-				update.Balance -= int64(transfers[i].Amount)
+				update.Sub(transfers[i].Amount)
 			} else {
 				upd := transfers[i].MakeTokenBalanceUpdate(true, false)
 				updates = append(updates, upd)
@@ -23,7 +23,7 @@ func UpdateTokenBalances(repo tokenbalance.Repository, transfers []*transfer.Tra
 		idTo := transfers[i].GetToTokenBalanceID()
 		if idTo != "" {
 			if update, ok := exists[idTo]; ok {
-				update.Balance += int64(transfers[i].Amount)
+				update.Add(transfers[i].Amount)
 			} else {
 				upd := transfers[i].MakeTokenBalanceUpdate(false, false)
 				updates = append(updates, upd)

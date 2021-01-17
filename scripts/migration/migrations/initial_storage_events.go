@@ -34,7 +34,7 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 
 	logger.Info("Found %d tzips", len(tzips))
 
-	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.Bulk, ctx.DB)
+	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.DB)
 
 	logger.Info("Execution events...")
 	newTransfers := make([]*transfer.Transfer, 0)
@@ -77,7 +77,7 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 		updated = append(updated, newTransfers[i])
 	}
 	logger.Info("Found %d transfers", len(updated))
-	if err := ctx.Bulk.Insert(updated); err != nil {
+	if err := ctx.Storage.BulkInsert(updated); err != nil {
 		return err
 	}
 	return transferParsers.UpdateTokenBalances(ctx.TokenBalances, newTransfers)

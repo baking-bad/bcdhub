@@ -649,7 +649,7 @@ type AccountInfo struct {
 // TokenBalance -
 type TokenBalance struct {
 	TokenMetadata
-	Balance int64 `json:"balance"`
+	Balance string `json:"balance"`
 }
 
 // TokenMetadata -

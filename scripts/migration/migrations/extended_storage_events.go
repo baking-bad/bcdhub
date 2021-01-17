@@ -120,12 +120,12 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 		}
 	}
 	logger.Info("Delete %d transfers", len(deleted))
-	if err := ctx.Bulk.Delete(deleted); err != nil {
+	if err := ctx.Storage.BulkDelete(deleted); err != nil {
 		return err
 	}
 
 	logger.Info("Found %d transfers", len(inserted))
-	if err := ctx.Bulk.Insert(inserted); err != nil {
+	if err := ctx.Storage.BulkInsert(inserted); err != nil {
 		return err
 	}
 	return transferParsers.UpdateTokenBalances(ctx.TokenBalances, newTransfers)

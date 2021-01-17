@@ -23,7 +23,7 @@ func (m *SetAliases) Description() string {
 
 // Do - migrate function
 func (m *SetAliases) Do(ctx *config.Context) error {
-	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.Bulk, ctx.DB)
+	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.DB)
 
 	updatedModels := make([]models.Model, 0)
 	logger.Info("Receiving aliases for %s...", consts.Mainnet)
@@ -89,5 +89,5 @@ func (m *SetAliases) Do(ctx *config.Context) error {
 
 	logger.Info("Updating %d models...", len(updatedModels))
 
-	return ctx.Bulk.Update(updatedModels)
+	return ctx.Storage.BulkUpdate(updatedModels)
 }

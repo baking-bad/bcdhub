@@ -1,7 +1,9 @@
 package tokenbalance
 
 import (
+	"encoding/json"
 	"fmt"
+	"math/big"
 
 	"github.com/sirupsen/logrus"
 )
@@ -12,7 +14,9 @@ type TokenBalance struct {
 	Address  string `json:"address"`
 	Contract string `json:"contract"`
 	TokenID  int64  `json:"token_id"`
-	Balance  int64  `json:"balance"`
+	Balance  string `json:"balance"`
+
+	Value *big.Int `json:"-"`
 }
 
 // GetID -
@@ -44,4 +48,50 @@ func (tb *TokenBalance) LogFields() logrus.Fields {
 		"token_id": tb.TokenID,
 		"balance":  tb.Balance,
 	}
+}
+
+// Set -
+func (tb *TokenBalance) Set(value float64) {
+	tb.Value = big.NewInt(int64(value))
+}
+
+// Add -
+func (tb *TokenBalance) Add(value float64) {
+	amount := big.NewInt(int64(value))
+	tb.Value.Add(tb.Value, amount)
+}
+
+// Sub -
+func (tb *TokenBalance) Sub(value float64) {
+	amount := big.NewInt(int64(value))
+	tb.Value.Sub(tb.Value, amount)
+}
+
+// Sum -
+func (tb *TokenBalance) Sum(delta *TokenBalance) {
+	tb.Value.Add(tb.Value, delta.Value)
+}
+
+// UnmarshalJSON -
+func (tb *TokenBalance) UnmarshalJSON(data []byte) error {
+	type buf TokenBalance
+	if err := json.Unmarshal(data, (*buf)(tb)); err != nil {
+		return err
+	}
+	tb.Value = big.NewInt(0)
+
+	if _, ok := tb.Value.SetString(tb.Balance, 10); !ok {
+		return fmt.Errorf("Can't set balance value: %s", tb.Balance)
+	}
+	return nil
+}
+
+// MarshalJSON -
+func (tb *TokenBalance) MarshalJSON() ([]byte, error) {
+	if tb.Value == nil {
+		return nil, fmt.Errorf("Nil balance value")
+	}
+	tb.Balance = tb.Value.String()
+	type buf TokenBalance
+	return json.Marshal((*buf)(tb))
 }

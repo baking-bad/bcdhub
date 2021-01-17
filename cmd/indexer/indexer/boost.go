@@ -14,7 +14,6 @@ import (
 	elasticBigMapAction "github.com/baking-bad/bcdhub/internal/elastic/bigmapaction"
 	elasticBigMapDiff "github.com/baking-bad/bcdhub/internal/elastic/bigmapdiff"
 	elasticBlock "github.com/baking-bad/bcdhub/internal/elastic/block"
-	"github.com/baking-bad/bcdhub/internal/elastic/bulk"
 	elasticContract "github.com/baking-bad/bcdhub/internal/elastic/contract"
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	elasticMigration "github.com/baking-bad/bcdhub/internal/elastic/migration"
@@ -57,7 +56,6 @@ var errSameLevel = errors.New("Same level")
 // BoostIndexer -
 type BoostIndexer struct {
 	Storage        models.GeneralRepository
-	Bulk           models.BulkRepository
 	BalanceUpdates balanceupdate.Repository
 	BigMapActions  bigmapaction.Repository
 	BigMapDiffs    bigmapdiff.Repository
@@ -146,7 +144,7 @@ func (bi *BoostIndexer) fetchExternalProtocols() error {
 		logger.WithNetwork(bi.Network).Infof("Fetched %s", alias)
 	}
 
-	return bi.Bulk.Insert(protocols)
+	return bi.Storage.BulkInsert(protocols)
 }
 
 // NewBoostIndexer -
@@ -172,7 +170,6 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 
 	bi := &BoostIndexer{
 		Storage:        es,
-		Bulk:           bulk.NewStorage(es),
 		BalanceUpdates: elasticBalanceUpdate.NewStorage(es),
 		BigMapActions:  elasticBigMapAction.NewStorage(es),
 		BigMapDiffs:    elasticBigMapDiff.NewStorage(es),
@@ -368,7 +365,7 @@ func (bi *BoostIndexer) Rollback() error {
 		return err
 	}
 
-	manager := rollback.NewManager(bi.Storage, bi.Bulk, bi.Contracts, bi.Operations, bi.Transfers, bi.TokenBalances, bi.Protocols, bi.messageQueue, bi.rpc, bi.cfg.SharePath)
+	manager := rollback.NewManager(bi.Storage, bi.Contracts, bi.Operations, bi.Transfers, bi.TokenBalances, bi.Protocols, bi.messageQueue, bi.rpc, bi.cfg.SharePath)
 	if err := manager.Rollback(bi.state, lastLevel); err != nil {
 		return err
 	}
@@ -506,7 +503,7 @@ func (bi *BoostIndexer) createBlock(head noderpc.Header) *block.Block {
 
 func (bi *BoostIndexer) saveModels(items []models.Model) error {
 	logger.WithNetwork(bi.Network).Debugf("Found %d new models", len(items))
-	if err := bi.Bulk.Insert(items); err != nil {
+	if err := bi.Storage.BulkInsert(items); err != nil {
 		return err
 	}
 
@@ -596,7 +593,7 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) ([]models.Model, error) {
 	bi.currentProtocol = newProtocol
 	newModels = append(newModels, &newProtocol)
 
-	if err := bi.Bulk.Update(updates); err != nil {
+	if err := bi.Storage.BulkUpdate(updates); err != nil {
 		return nil, err
 	}
 
