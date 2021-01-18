@@ -693,3 +693,13 @@ type CountResponse struct {
 type MetadataResponse struct {
 	Hash string `json:"hash"`
 }
+
+// ViewSchema ;
+type ViewSchema struct {
+	Type           []docstring.Typedef     `json:"typedef"`
+	Name           string                  `json:"name"`
+	Implementation int                     `json:"implementation"`
+	Description    string                  `json:"description"`
+	Schema         jsonschema.Schema       `json:"schema"`
+	DefaultModel   jsonschema.DefaultModel `json:"default_model,omitempty"`
+}
