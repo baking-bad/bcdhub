@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------
 #  The first stage container, for building golang application
 # ---------------------------------------------------------------------
-FROM golang:1.13-alpine as app_builder
+FROM golang:1.15-alpine as app_builder
 
 ENV CGO_ENABLED=0
 ENV GO111MODULE=on
