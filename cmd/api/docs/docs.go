@@ -2761,7 +2761,8 @@ var doc = `{
                     "type": "string"
                 },
                 "alias": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "balance": {
                     "type": "integer"
@@ -2808,7 +2809,8 @@ var doc = `{
             "type": "object",
             "properties": {
                 "key": {
-                    "type": "object"
+                    "type": "object",
+                    "x-nullable": true
                 },
                 "key_hash": {
                     "type": "string"
@@ -2820,7 +2822,8 @@ var doc = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/handlers.BigMapDiffItem"
-                    }
+                    },
+                    "x-nullable": true
                 }
             }
         },
@@ -2845,10 +2848,12 @@ var doc = `{
                     "type": "string"
                 },
                 "destination_ptr": {
-                    "type": "integer"
+                    "type": "integer",
+                    "x-nullable": true
                 },
                 "source_ptr": {
-                    "type": "integer"
+                    "type": "integer",
+                    "x-nullable": true
                 },
                 "timestamp": {
                     "type": "string"
@@ -2865,7 +2870,8 @@ var doc = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/handlers.BigMapHistoryItem"
-                    }
+                    },
+                    "x-nullable": true
                 },
                 "network": {
                     "type": "string"
@@ -2984,40 +2990,48 @@ var doc = `{
                     "type": "string"
                 },
                 "alias": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "annotations": {
                     "type": "array",
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "x-nullable": true
                 },
                 "delegate": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "delegate_alias": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "entrypoints": {
                     "type": "array",
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "x-nullable": true
                 },
                 "fail_strings": {
                     "type": "array",
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "x-nullable": true
                 },
                 "found_by": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "hardcoded": {
                     "type": "array",
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "x-nullable": true
                 },
                 "hash": {
                     "type": "string"
@@ -3026,37 +3040,45 @@ var doc = `{
                     "type": "string"
                 },
                 "language": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "last_action": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "level": {
                     "type": "integer"
                 },
                 "manager": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "migrations_count": {
-                    "type": "integer"
+                    "type": "integer",
+                    "x-nullable": true
                 },
                 "network": {
                     "type": "string"
                 },
                 "project_id": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "slug": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "subscription": {
+                    "x-nullable": true,
                     "$ref": "#/definitions/handlers.Subscription"
                 },
                 "tags": {
                     "type": "array",
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "x-nullable": true
                 },
                 "timestamp": {
                     "type": "string"
@@ -3071,13 +3093,16 @@ var doc = `{
                     "type": "integer"
                 },
                 "tx_count": {
-                    "type": "integer"
+                    "type": "integer",
+                    "x-nullable": true
                 },
                 "verification_source": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "verified": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "x-nullable": true
                 }
             }
         },
@@ -3110,6 +3135,7 @@ var doc = `{
                     "type": "string"
                 },
                 "default_model": {
+                    "x-nullable": true,
                     "$ref": "#/definitions/jsonschema.DefaultModel"
                 },
                 "name": {
@@ -3145,7 +3171,8 @@ var doc = `{
                     "type": "string"
                 },
                 "contract_alias": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "network": {
                     "type": "string"
@@ -3160,7 +3187,8 @@ var doc = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/docstring.Typedef"
-                    }
+                    },
+                    "x-nullable": true
                 }
             }
         },
@@ -3188,7 +3216,8 @@ var doc = `{
             "type": "object",
             "properties": {
                 "hash": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "kind": {
                     "type": "string"
@@ -3236,52 +3265,66 @@ var doc = `{
             "type": "object",
             "properties": {
                 "allocated_destination_contract_burned": {
-                    "type": "integer"
+                    "type": "integer",
+                    "x-nullable": true
                 },
                 "amount": {
-                    "type": "integer"
+                    "type": "integer",
+                    "x-nullable": true
                 },
                 "balance": {
-                    "type": "integer"
+                    "type": "integer",
+                    "x-nullable": true
                 },
                 "burned": {
-                    "type": "integer"
+                    "type": "integer",
+                    "x-nullable": true
                 },
                 "content_index": {
                     "type": "integer"
                 },
                 "counter": {
-                    "type": "integer"
+                    "type": "integer",
+                    "x-nullable": true
                 },
                 "delegate": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "destination": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "destination_alias": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "entrypoint": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "errors": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/cerrors.Error"
-                    }
+                    },
+                    "x-nullable": true
                 },
                 "fee": {
-                    "type": "integer"
+                    "type": "integer",
+                    "x-nullable": true
                 },
                 "gas_limit": {
-                    "type": "integer"
+                    "type": "integer",
+                    "x-nullable": true
                 },
                 "hash": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "internal": {
                     "type": "boolean"
@@ -3290,10 +3333,12 @@ var doc = `{
                     "type": "string"
                 },
                 "level": {
-                    "type": "integer"
+                    "type": "integer",
+                    "x-nullable": true
                 },
                 "manager_pubkey": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "mempool": {
                     "type": "boolean"
@@ -3302,34 +3347,42 @@ var doc = `{
                     "type": "string"
                 },
                 "parameters": {
-                    "type": "object"
+                    "type": "object",
+                    "x-nullable": true
                 },
                 "protocol": {
                     "type": "string"
                 },
                 "public_key": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "rawMempool": {
-                    "type": "object"
+                    "type": "object",
+                    "x-nullable": true
                 },
                 "result": {
+                    "x-nullable": true,
                     "$ref": "#/definitions/handlers.OperationResult"
                 },
                 "source": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "source_alias": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "status": {
                     "type": "string"
                 },
                 "storage_diff": {
-                    "type": "object"
+                    "type": "object",
+                    "x-nullable": true
                 },
                 "storage_limit": {
-                    "type": "integer"
+                    "type": "integer",
+                    "x-nullable": true
                 },
                 "timestamp": {
                     "type": "string"
@@ -3341,6 +3394,7 @@ var doc = `{
             "properties": {
                 "last_id": {
                     "type": "string",
+                    "x-nullable": true,
                     "example": "1588640276994159"
                 },
                 "operations": {
@@ -3356,18 +3410,22 @@ var doc = `{
             "properties": {
                 "allocated_destination_contract": {
                     "type": "boolean",
+                    "x-nullable": true,
                     "example": true
                 },
                 "consumed_gas": {
                     "type": "integer",
+                    "x-nullable": true,
                     "example": 100
                 },
                 "paid_storage_size_diff": {
                     "type": "integer",
+                    "x-nullable": true,
                     "example": 300
                 },
                 "storage_size": {
                     "type": "integer",
+                    "x-nullable": true,
                     "example": 200
                 }
             }
@@ -3429,49 +3487,58 @@ var doc = `{
             "type": "object",
             "properties": {
                 "added": {
-                    "type": "integer"
+                    "type": "integer",
+                    "x-nullable": true
                 },
                 "address": {
                     "type": "string"
                 },
                 "alias": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "annotations": {
                     "type": "array",
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "x-nullable": true
                 },
                 "count": {
                     "type": "integer"
                 },
                 "delegate": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "delegate_alias": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "entrypoints": {
                     "type": "array",
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "x-nullable": true
                 },
                 "fail_strings": {
                     "type": "array",
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "x-nullable": true
                 },
                 "found_by": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "hardcoded": {
                     "type": "array",
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "x-nullable": true
                 },
                 "hash": {
                     "type": "string"
@@ -3480,40 +3547,49 @@ var doc = `{
                     "type": "string"
                 },
                 "language": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "last_action": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "level": {
                     "type": "integer"
                 },
                 "manager": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "migrations_count": {
-                    "type": "integer"
+                    "type": "integer",
+                    "x-nullable": true
                 },
                 "network": {
                     "type": "string"
                 },
                 "project_id": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "removed": {
-                    "type": "integer"
+                    "type": "integer",
+                    "x-nullable": true
                 },
                 "slug": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "subscription": {
+                    "x-nullable": true,
                     "$ref": "#/definitions/handlers.Subscription"
                 },
                 "tags": {
                     "type": "array",
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "x-nullable": true
                 },
                 "timestamp": {
                     "type": "string"
@@ -3528,13 +3604,16 @@ var doc = `{
                     "type": "integer"
                 },
                 "tx_count": {
-                    "type": "integer"
+                    "type": "integer",
+                    "x-nullable": true
                 },
                 "verification_source": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "verified": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "x-nullable": true
                 }
             }
         },
@@ -3559,13 +3638,15 @@ var doc = `{
                     "type": "string"
                 },
                 "alias": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "network": {
                     "type": "string"
                 },
                 "sentry_dsn": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "sentry_enabled": {
                     "type": "boolean"
@@ -3603,17 +3684,21 @@ var doc = `{
                     "type": "string"
                 },
                 "decimals": {
-                    "type": "integer"
+                    "type": "integer",
+                    "x-nullable": true
                 },
                 "extras": {
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": true,
+                    "x-nullable": true
                 },
                 "level": {
-                    "type": "integer"
+                    "type": "integer",
+                    "x-nullable": true
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "network": {
                     "type": "string"
@@ -3622,7 +3707,8 @@ var doc = `{
                     "type": "number"
                 },
                 "symbol": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "token_id": {
                     "type": "integer"
@@ -3639,29 +3725,34 @@ var doc = `{
             "type": "object",
             "properties": {
                 "balance": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "contract": {
                     "type": "string"
                 },
                 "decimals": {
-                    "type": "integer"
+                    "type": "integer",
+                    "x-nullable": true
                 },
                 "extras": {
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": true,
+                    "x-nullable": true
                 },
                 "level": {
-                    "type": "integer"
+                    "type": "integer",
+                    "x-nullable": true
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "network": {
                     "type": "string"
                 },
                 "symbol": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "token_id": {
                     "type": "integer"
@@ -3678,16 +3769,19 @@ var doc = `{
                     "type": "string"
                 },
                 "alias": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "balance": {
                     "type": "integer"
                 },
                 "delegate": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "delegate_alias": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "last_action": {
                     "type": "string"
@@ -3696,13 +3790,15 @@ var doc = `{
                     "type": "integer"
                 },
                 "manager": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "methods": {
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/handlers.TokenMethodStats"
-                    }
+                    },
+                    "x-nullable": true
                 },
                 "network": {
                     "type": "string"
@@ -3725,23 +3821,28 @@ var doc = `{
                     "type": "string"
                 },
                 "decimals": {
-                    "type": "integer"
+                    "type": "integer",
+                    "x-nullable": true
                 },
                 "extras": {
                     "type": "object",
-                    "additionalProperties": true
+                    "additionalProperties": true,
+                    "x-nullable": true
                 },
                 "level": {
-                    "type": "integer"
+                    "type": "integer",
+                    "x-nullable": true
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "network": {
                     "type": "string"
                 },
                 "symbol": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "token_id": {
                     "type": "integer"
@@ -3766,7 +3867,8 @@ var doc = `{
             "type": "object",
             "properties": {
                 "alias": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "amount": {
                     "type": "number"
@@ -3781,7 +3883,8 @@ var doc = `{
                     "type": "string"
                 },
                 "from_alias": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "hash": {
                     "type": "string"
@@ -3793,7 +3896,8 @@ var doc = `{
                     "type": "string"
                 },
                 "initiator_alias": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "level": {
                     "type": "integer"
@@ -3817,9 +3921,11 @@ var doc = `{
                     "type": "string"
                 },
                 "to_alias": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "token": {
+                    "x-nullable": true,
                     "$ref": "#/definitions/handlers.TokenMetadata"
                 },
                 "token_id": {
@@ -4020,9 +4126,6 @@ var doc = `{
         "transfer.Transfer": {
             "type": "object",
             "properties": {
-                "alias": {
-                    "type": "string"
-                },
                 "amount": {
                     "type": "number"
                 },
@@ -4035,9 +4138,6 @@ var doc = `{
                 "from": {
                     "type": "string"
                 },
-                "from_alias": {
-                    "type": "string"
-                },
                 "hash": {
                     "type": "string"
                 },
@@ -4045,9 +4145,6 @@ var doc = `{
                     "type": "integer"
                 },
                 "initiator": {
-                    "type": "string"
-                },
-                "initiator_alias": {
                     "type": "string"
                 },
                 "level": {
@@ -4069,9 +4166,6 @@ var doc = `{
                     "type": "string"
                 },
                 "to": {
-                    "type": "string"
-                },
-                "to_alias": {
                     "type": "string"
                 },
                 "token_id": {
