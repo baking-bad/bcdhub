@@ -30,24 +30,21 @@ func (m *FillTZIP) Do(ctx *config.Context) error {
 	if root == "" {
 		root = "/etc/bcd/off-chain-metadata"
 	}
+
 	fs := repository.NewFileSystem(root)
+
+	data := make([]models.Model, 0)
+
+	networks := make(map[string]struct{})
+	for _, network := range ctx.Config.Scripts.Networks {
+		networks[network] = struct{}{}
+	}
 
 	network, err := ask("Enter network if you want certain TZIP will be added (all if empty):")
 	if err != nil {
 		return err
 	}
 
-	blocks, err := ctx.Blocks.LastByNetworks()
-	if err != nil {
-		return err
-	}
-
-	networks := make(map[string]struct{})
-	for i := range blocks {
-		networks[blocks[i].Network] = struct{}{}
-	}
-
-	data := make([]models.Model, 0)
 	if network == "" {
 		items, err := fs.GetAll()
 		if err != nil {
