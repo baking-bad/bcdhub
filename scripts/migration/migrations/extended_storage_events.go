@@ -11,6 +11,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
+	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
 	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
 )
 
@@ -60,14 +61,6 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 					return err
 				}
 
-				parser, err := transferParsers.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.Schema, ctx.Storage,
-					transferParsers.WithNetwork(tzips[i].Network),
-					transferParsers.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
-				)
-				if err != nil {
-					return err
-				}
-
 				operations, err := m.getOperations(ctx, tzips[i], impl)
 				if err != nil {
 					return err
@@ -78,6 +71,18 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 				}
 
 				for _, op := range operations {
+					st := stacktrace.New()
+					st.Fill(ctx.Operations, op)
+
+					parser, err := transferParsers.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.Schema, ctx.Storage,
+						transferParsers.WithNetwork(tzips[i].Network),
+						transferParsers.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
+						transferParsers.WithStackTrace(st),
+					)
+					if err != nil {
+						return err
+					}
+
 					bmd, err := ctx.BigMapDiffs.GetByOperationID(op.ID)
 					if err != nil {
 						if !ctx.Storage.IsRecordNotFound(err) {
@@ -102,7 +107,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 							Network: t.Network,
 							Counter: &t.Counter,
 							Nonce:   t.Nonce,
-							TokenID: -1,
+							TokenID: t.TokenID,
 						})
 						if err != nil {
 							return err
