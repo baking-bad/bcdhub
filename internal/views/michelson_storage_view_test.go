@@ -29,7 +29,7 @@ func TestMichelsonStorageView_GetCode(t *testing.T) {
 				ReturnType: []byte(`{"prim": "unit"}`),
 			},
 			storageType: gjson.Parse(`{"prim": "unit"}`),
-			want:        `[{ "prim": "parameter", "args": [{"prim": "pair", "args": [{"prim": "unit"}, {"prim": "unit"}]}]}, {"prim": "storage", "args": [{"prim": "option", "args": [{"prim": "unit"}]}]},  {"prim": "code", "args": [{"prim": "CAR"}, {"prim": "unit"}, {"prim": "SOME"}, { "prim": "NIL", "args": [{ "prim": "operation" }]}, { "prim": "PAIR" } ]}]`,
+			want:        `[{ "prim": "parameter", "args": [{"prim": "pair", "args": [{"prim": "unit"}, {"prim": "unit"}]}]}, {"prim": "storage", "args": [{"prim": "option", "args": [{"prim": "unit"}]}]},  {"prim": "code", "args": [[{"prim": "CAR"}, {"prim": "unit"}, {"prim": "SOME"}, { "prim": "NIL", "args": [{ "prim": "operation" }]}, { "prim": "PAIR" } ]]}]`,
 		},
 	}
 	for _, tt := range tests {
