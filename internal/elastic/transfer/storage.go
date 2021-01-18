@@ -39,6 +39,7 @@ func (storage *Storage) Get(ctx transfer.GetContext) (po transfer.Pageable, err 
 		if err := json.Unmarshal(hits[i].Source, &transfers[i]); err != nil {
 			return po, err
 		}
+		transfers[i].ID = hits[i].ID
 	}
 	po.Transfers = transfers
 	po.Total = response.Hits.Total.Value
