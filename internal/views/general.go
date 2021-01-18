@@ -16,6 +16,7 @@ var (
 // Context -
 type Context struct {
 	Network                  string
+	Protocol                 string
 	Contract                 string
 	Parameters               string
 	Source                   string
@@ -56,7 +57,7 @@ func Execute(rpc noderpc.INode, view View, ctx Context, output interface{}) erro
 
 	storage := gjson.Parse(`[]`)
 
-	response, err := rpc.RunCode(code, storage, parameter, ctx.ChainID, ctx.Source, ctx.Initiator, ctx.Entrypoint, ctx.Amount, ctx.HardGasLimitPerOperation)
+	response, err := rpc.RunCode(code, storage, parameter, ctx.ChainID, ctx.Source, ctx.Initiator, ctx.Entrypoint, ctx.Protocol, ctx.Amount, ctx.HardGasLimitPerOperation)
 	if err != nil {
 		return err
 	}

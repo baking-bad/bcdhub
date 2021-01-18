@@ -60,6 +60,9 @@ func (s HTTPStorage) Get(value string, output interface{}) error {
 	}
 	defer resp.Body.Close()
 
-	err = json.NewDecoder(resp.Body).Decode(output)
-	return err
+	if err := json.NewDecoder(resp.Body).Decode(output); err != nil {
+		return errors.Wrap(ErrJSONDecoding, err.Error())
+	}
+
+	return nil
 }
