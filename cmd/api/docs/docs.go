@@ -1615,6 +1615,180 @@ var doc = `{
                 }
             }
         },
+        "/contract/{network}/{address}/views/execute": {
+            "post": {
+                "description": "Execute view of contracts metadata",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contract"
+                ],
+                "summary": "Execute view of contracts metadata",
+                "operationId": "contract-execute-view",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "description": "KT address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Entrypoint` + "`" + `s arguments data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    {
+                        "description": "View name",
+                        "name": "name",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Implementation index",
+                        "name": "implementation",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Operation amount",
+                        "name": "amount",
+                        "in": "body",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Operation gas limit",
+                        "name": "gas_limit",
+                        "in": "body",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "description": "Operation sender",
+                        "name": "sender",
+                        "in": "body",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "description": "Operation source",
+                        "name": "source",
+                        "in": "body",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/contract/{network}/{address}/views/schema": {
+            "get": {
+                "description": "Get view schemas of contract metadata",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contract"
+                ],
+                "summary": "Get view schemas of contract metadata",
+                "operationId": "get-contract-tzip-views-schema",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "description": "KT address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.ViewSchema"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/diff": {
             "post": {
                 "description": "Get diff between two contracts",
@@ -3841,6 +4015,32 @@ var doc = `{
                 }
             }
         },
+        "handlers.ViewSchema": {
+            "type": "object",
+            "properties": {
+                "default_model": {
+                    "$ref": "#/definitions/jsonschema.DefaultModel"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "implementation": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "schema": {
+                    "$ref": "#/definitions/jsonschema.Schema"
+                },
+                "typedef": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/docstring.Typedef"
+                    }
+                }
+            }
+        },
         "jsonschema.DefaultModel": {
             "type": "object",
             "additionalProperties": true
@@ -4020,9 +4220,6 @@ var doc = `{
         "transfer.Transfer": {
             "type": "object",
             "properties": {
-                "alias": {
-                    "type": "string"
-                },
                 "amount": {
                     "type": "number"
                 },
@@ -4035,9 +4232,6 @@ var doc = `{
                 "from": {
                     "type": "string"
                 },
-                "from_alias": {
-                    "type": "string"
-                },
                 "hash": {
                     "type": "string"
                 },
@@ -4045,9 +4239,6 @@ var doc = `{
                     "type": "integer"
                 },
                 "initiator": {
-                    "type": "string"
-                },
-                "initiator_alias": {
                     "type": "string"
                 },
                 "level": {
@@ -4069,9 +4260,6 @@ var doc = `{
                     "type": "string"
                 },
                 "to": {
-                    "type": "string"
-                },
-                "to_alias": {
                     "type": "string"
                 },
                 "token_id": {

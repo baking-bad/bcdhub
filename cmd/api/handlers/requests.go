@@ -341,3 +341,13 @@ type resolveDomainRequest struct {
 type metadataRequest struct {
 	Hash string `json:"hash" binding:"required"`
 }
+
+type executeViewRequest struct {
+	Data           map[string]interface{} `json:"data" binding:"required"`
+	Name           string                 `json:"name" binding:"required"`
+	Implementation *int                   `json:"implementation" binding:"required"`
+	Amount         int64                  `json:"amount,omitempty"`
+	GasLimit       int64                  `json:"gas_limit,omitempty"`
+	Source         string                 `json:"source,omitempty" binding:"omitempty,address"`
+	Sender         string                 `json:"sender,omitempty" binding:"omitempty,address"`
+}

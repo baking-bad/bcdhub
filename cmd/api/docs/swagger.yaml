@@ -782,6 +782,23 @@ definitions:
           $ref: '#/definitions/handlers.Transfer'
         type: array
     type: object
+  handlers.ViewSchema:
+    properties:
+      default_model:
+        $ref: '#/definitions/jsonschema.DefaultModel'
+      description:
+        type: string
+      implementation:
+        type: integer
+      name:
+        type: string
+      schema:
+        $ref: '#/definitions/jsonschema.Schema'
+      typedef:
+        items:
+          $ref: '#/definitions/docstring.Typedef'
+        type: array
+    type: object
   jsonschema.DefaultModel:
     additionalProperties: true
     type: object
@@ -899,8 +916,6 @@ definitions:
     type: object
   transfer.Transfer:
     properties:
-      alias:
-        type: string
       amount:
         type: number
       contract:
@@ -909,15 +924,11 @@ definitions:
         type: integer
       from:
         type: string
-      from_alias:
-        type: string
       hash:
         type: string
       indexed_time:
         type: integer
       initiator:
-        type: string
-      initiator_alias:
         type: string
       level:
         type: integer
@@ -932,8 +943,6 @@ definitions:
       timestamp:
         type: string
       to:
-        type: string
-      to_alias:
         type: string
       token_id:
         type: integer
@@ -2291,6 +2300,124 @@ paths:
           schema:
             $ref: '#/definitions/handlers.Error'
       summary: List token holders
+      tags:
+      - contract
+  /contract/{network}/{address}/views/execute:
+    post:
+      consumes:
+      - application/json
+      description: Execute view of contracts metadata
+      operationId: contract-execute-view
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: KT address
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: address
+        required: true
+        type: string
+      - description: Entrypoint`s arguments data
+        in: body
+        name: data
+        required: true
+        schema:
+          type: object
+      - description: View name
+        in: body
+        name: name
+        required: true
+        schema:
+          type: string
+      - description: Implementation index
+        in: body
+        name: implementation
+        required: true
+        schema:
+          type: integer
+      - description: Operation amount
+        in: body
+        name: amount
+        schema:
+          type: integer
+      - description: Operation gas limit
+        in: body
+        name: gas_limit
+        schema:
+          type: integer
+      - description: Operation sender
+        in: body
+        maxLength: 36
+        minLength: 36
+        name: sender
+        schema:
+          type: string
+      - description: Operation source
+        in: body
+        maxLength: 36
+        minLength: 36
+        name: source
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Execute view of contracts metadata
+      tags:
+      - contract
+  /contract/{network}/{address}/views/schema:
+    get:
+      consumes:
+      - application/json
+      description: Get view schemas of contract metadata
+      operationId: get-contract-tzip-views-schema
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: KT address
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: address
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.ViewSchema'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Get view schemas of contract metadata
       tags:
       - contract
   /diff:

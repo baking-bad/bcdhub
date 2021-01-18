@@ -203,6 +203,11 @@ func (api *app) makeRouter() {
 				entrypoints.POST("trace", api.Context.RunCode)
 				entrypoints.POST("run_operation", api.Context.RunOperation)
 			}
+			views := contract.Group("views")
+			{
+				views.GET("schema", api.Context.GetViewsSchema)
+				views.POST("execute", api.Context.ExecuteView)
+			}
 		}
 
 		domains := v1.Group("domains/:network")
