@@ -11,4 +11,5 @@ var (
 	ErrUnknownBigMapPointer      = errors.New("Unknown big map pointer `metadata`")
 	ErrUnknownStorageType        = errors.New("Unknown storage type")
 	ErrHTTPRequest               = errors.New("HTTP request error")
+	ErrJSONDecoding              = errors.New("JSON decoding error")
 )
