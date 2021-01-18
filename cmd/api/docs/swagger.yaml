@@ -66,6 +66,7 @@ definitions:
         type: string
       alias:
         type: string
+        x-nullable: true
       balance:
         type: integer
       last_action:
@@ -98,6 +99,7 @@ definitions:
     properties:
       key:
         type: object
+        x-nullable: true
       key_hash:
         type: string
       total:
@@ -106,6 +108,7 @@ definitions:
         items:
           $ref: '#/definitions/handlers.BigMapDiffItem'
         type: array
+        x-nullable: true
     type: object
   handlers.BigMapDiffItem:
     properties:
@@ -122,8 +125,10 @@ definitions:
         type: string
       destination_ptr:
         type: integer
+        x-nullable: true
       source_ptr:
         type: integer
+        x-nullable: true
       timestamp:
         type: string
     type: object
@@ -135,6 +140,7 @@ definitions:
         items:
           $ref: '#/definitions/handlers.BigMapHistoryItem'
         type: array
+        x-nullable: true
       network:
         type: string
       ptr:
@@ -215,54 +221,70 @@ definitions:
         type: string
       alias:
         type: string
+        x-nullable: true
       annotations:
         items:
           type: string
         type: array
+        x-nullable: true
       delegate:
         type: string
+        x-nullable: true
       delegate_alias:
         type: string
+        x-nullable: true
       entrypoints:
         items:
           type: string
         type: array
+        x-nullable: true
       fail_strings:
         items:
           type: string
         type: array
+        x-nullable: true
       found_by:
         type: string
+        x-nullable: true
       hardcoded:
         items:
           type: string
         type: array
+        x-nullable: true
       hash:
         type: string
       id:
         type: string
       language:
         type: string
+        x-nullable: true
       last_action:
         type: string
+        x-nullable: true
       level:
         type: integer
       manager:
         type: string
+        x-nullable: true
       migrations_count:
         type: integer
+        x-nullable: true
       network:
         type: string
       project_id:
         type: string
+        x-nullable: true
       slug:
         type: string
+        x-nullable: true
       subscription:
         $ref: '#/definitions/handlers.Subscription'
+        x-nullable: true
       tags:
         items:
           type: string
         type: array
+        x-nullable: true
       timestamp:
         type: string
       tokens:
@@ -273,10 +295,13 @@ definitions:
         type: integer
       tx_count:
         type: integer
+        x-nullable: true
       verification_source:
         type: string
+        x-nullable: true
       verified:
         type: boolean
+        x-nullable: true
     type: object
   handlers.CountResponse:
     properties:
@@ -298,6 +323,7 @@ definitions:
         type: string
       default_model:
         $ref: '#/definitions/jsonschema.DefaultModel'
+        x-nullable: true
       name:
         type: string
       schema:
@@ -321,6 +347,7 @@ definitions:
         type: string
       contract_alias:
         type: string
+        x-nullable: true
       network:
         type: string
       ptr:
@@ -331,6 +358,7 @@ definitions:
         items:
           $ref: '#/definitions/docstring.Typedef'
         type: array
+        x-nullable: true
     type: object
   handlers.GetErrorLocationResponse:
     properties:
@@ -349,6 +377,7 @@ definitions:
     properties:
       hash:
         type: string
+        x-nullable: true
       kind:
         type: string
       level:
@@ -381,68 +410,92 @@ definitions:
     properties:
       allocated_destination_contract_burned:
         type: integer
+        x-nullable: true
       amount:
         type: integer
+        x-nullable: true
       balance:
         type: integer
+        x-nullable: true
       burned:
         type: integer
+        x-nullable: true
       content_index:
         type: integer
       counter:
         type: integer
+        x-nullable: true
       delegate:
         type: string
+        x-nullable: true
       destination:
         type: string
+        x-nullable: true
       destination_alias:
         type: string
+        x-nullable: true
       entrypoint:
         type: string
+        x-nullable: true
       errors:
         items:
           $ref: '#/definitions/cerrors.Error'
         type: array
+        x-nullable: true
       fee:
         type: integer
+        x-nullable: true
       gas_limit:
         type: integer
+        x-nullable: true
       hash:
         type: string
+        x-nullable: true
       id:
         type: string
+        x-nullable: true
       internal:
         type: boolean
       kind:
         type: string
       level:
         type: integer
+        x-nullable: true
       manager_pubkey:
         type: string
+        x-nullable: true
       mempool:
         type: boolean
       network:
         type: string
       parameters:
         type: object
+        x-nullable: true
       protocol:
         type: string
       public_key:
         type: string
+        x-nullable: true
       rawMempool:
         type: object
+        x-nullable: true
       result:
         $ref: '#/definitions/handlers.OperationResult'
+        x-nullable: true
       source:
         type: string
+        x-nullable: true
       source_alias:
         type: string
+        x-nullable: true
       status:
         type: string
       storage_diff:
         type: object
+        x-nullable: true
       storage_limit:
         type: integer
+        x-nullable: true
       timestamp:
         type: string
     type: object
@@ -451,6 +504,7 @@ definitions:
       last_id:
         example: "1588640276994159"
         type: string
+        x-nullable: true
       operations:
         items:
           $ref: '#/definitions/handlers.Operation'
@@ -461,15 +515,19 @@ definitions:
       allocated_destination_contract:
         example: true
         type: boolean
+        x-nullable: true
       consumed_gas:
         example: 100
         type: integer
+        x-nullable: true
       paid_storage_size_diff:
         example: 300
         type: integer
+        x-nullable: true
       storage_size:
         example: 200
         type: integer
+        x-nullable: true
     type: object
   handlers.PageableTokenContracts:
     properties:
@@ -511,62 +569,80 @@ definitions:
     properties:
       added:
         type: integer
+        x-nullable: true
       address:
         type: string
       alias:
         type: string
+        x-nullable: true
       annotations:
         items:
           type: string
         type: array
+        x-nullable: true
       count:
         type: integer
       delegate:
         type: string
+        x-nullable: true
       delegate_alias:
         type: string
+        x-nullable: true
       entrypoints:
         items:
           type: string
         type: array
+        x-nullable: true
       fail_strings:
         items:
           type: string
         type: array
+        x-nullable: true
       found_by:
         type: string
+        x-nullable: true
       hardcoded:
         items:
           type: string
         type: array
+        x-nullable: true
       hash:
         type: string
       id:
         type: string
       language:
         type: string
+        x-nullable: true
       last_action:
         type: string
+        x-nullable: true
       level:
         type: integer
       manager:
         type: string
+        x-nullable: true
       migrations_count:
         type: integer
+        x-nullable: true
       network:
         type: string
       project_id:
         type: string
+        x-nullable: true
       removed:
         type: integer
+        x-nullable: true
       slug:
         type: string
+        x-nullable: true
       subscription:
         $ref: '#/definitions/handlers.Subscription'
+        x-nullable: true
       tags:
         items:
           type: string
         type: array
+        x-nullable: true
       timestamp:
         type: string
       tokens:
@@ -577,10 +653,13 @@ definitions:
         type: integer
       tx_count:
         type: integer
+        x-nullable: true
       verification_source:
         type: string
+        x-nullable: true
       verified:
         type: boolean
+        x-nullable: true
     type: object
   handlers.SimilarContractsResponse:
     properties:
@@ -597,10 +676,12 @@ definitions:
         type: string
       alias:
         type: string
+        x-nullable: true
       network:
         type: string
       sentry_dsn:
         type: string
+        x-nullable: true
       sentry_enabled:
         type: boolean
       subscribed_at:
@@ -626,19 +707,24 @@ definitions:
         type: string
       decimals:
         type: integer
+        x-nullable: true
       extras:
         additionalProperties: true
         type: object
+        x-nullable: true
       level:
         type: integer
+        x-nullable: true
       name:
         type: string
+        x-nullable: true
       network:
         type: string
       supply:
         type: number
       symbol:
         type: string
+        x-nullable: true
       token_id:
         type: integer
       transfered:
@@ -649,22 +735,27 @@ definitions:
   handlers.TokenBalance:
     properties:
       balance:
-        type: integer
+        type: string
       contract:
         type: string
       decimals:
         type: integer
+        x-nullable: true
       extras:
         additionalProperties: true
         type: object
+        x-nullable: true
       level:
         type: integer
+        x-nullable: true
       name:
         type: string
+        x-nullable: true
       network:
         type: string
       symbol:
         type: string
+        x-nullable: true
       token_id:
         type: integer
       volume_24_hours:
@@ -676,22 +767,27 @@ definitions:
         type: string
       alias:
         type: string
+        x-nullable: true
       balance:
         type: integer
       delegate:
         type: string
+        x-nullable: true
       delegate_alias:
         type: string
+        x-nullable: true
       last_action:
         type: string
       level:
         type: integer
       manager:
         type: string
+        x-nullable: true
       methods:
         additionalProperties:
           $ref: '#/definitions/handlers.TokenMethodStats'
         type: object
+        x-nullable: true
       network:
         type: string
       timestamp:
@@ -707,17 +803,22 @@ definitions:
         type: string
       decimals:
         type: integer
+        x-nullable: true
       extras:
         additionalProperties: true
         type: object
+        x-nullable: true
       level:
         type: integer
+        x-nullable: true
       name:
         type: string
+        x-nullable: true
       network:
         type: string
       symbol:
         type: string
+        x-nullable: true
       token_id:
         type: integer
       volume_24_hours:
@@ -734,6 +835,7 @@ definitions:
     properties:
       alias:
         type: string
+        x-nullable: true
       amount:
         type: number
       contract:
@@ -744,6 +846,7 @@ definitions:
         type: string
       from_alias:
         type: string
+        x-nullable: true
       hash:
         type: string
       indexed_time:
@@ -752,6 +855,7 @@ definitions:
         type: string
       initiator_alias:
         type: string
+        x-nullable: true
       level:
         type: integer
       network:
@@ -768,8 +872,10 @@ definitions:
         type: string
       to_alias:
         type: string
+        x-nullable: true
       token:
         $ref: '#/definitions/handlers.TokenMetadata'
+        x-nullable: true
       token_id:
         type: integer
     type: object
@@ -899,8 +1005,6 @@ definitions:
     type: object
   transfer.Transfer:
     properties:
-      alias:
-        type: string
       amount:
         type: number
       contract:
@@ -909,15 +1013,11 @@ definitions:
         type: integer
       from:
         type: string
-      from_alias:
-        type: string
       hash:
         type: string
       indexed_time:
         type: integer
       initiator:
-        type: string
-      initiator_alias:
         type: string
       level:
         type: integer
@@ -932,8 +1032,6 @@ definitions:
       timestamp:
         type: string
       to:
-        type: string
-      to_alias:
         type: string
       token_id:
         type: integer
