@@ -72,7 +72,9 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 
 				for _, op := range operations {
 					st := stacktrace.New()
-					st.Fill(ctx.Operations, op)
+					if err := st.Fill(ctx.Operations, op); err != nil {
+						return err
+					}
 
 					parser, err := transferParsers.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.Schema, ctx.Storage,
 						transferParsers.WithNetwork(tzips[i].Network),
