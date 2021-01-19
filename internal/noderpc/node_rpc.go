@@ -18,7 +18,10 @@ import (
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
-const headBlock = "head"
+const (
+	headBlock   = "head"
+	protocolEdo = "PtEdoTezd3RHSC31mpxxo1npxFjoWWcFgQtxapi51Z8TLu6v6Uq"
+)
 
 // NodeRPC -
 type NodeRPC struct {
@@ -348,7 +351,8 @@ func (rpc *NodeRPC) RunCode(script, storage, input gjson.Result, chainID, source
 		"chain_id": chainID,
 	}
 
-	if proto != "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo" {
+	// TO-DO update with future protocols
+	if proto == protocolEdo {
 		data["balance"] = 0
 	}
 
