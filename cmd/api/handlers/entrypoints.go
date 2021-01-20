@@ -59,9 +59,7 @@ func (ctx *Context) GetEntrypoints(c *gin.Context) {
 // @ID get-contract-entrypoints-data
 // @Param network path string true "Network"
 // @Param address path string true "KT address" minlength(36) maxlength(36)
-// @Param bin_path body string true "Entrypoint binary path"
-// @Param data body object true "Entrypoint`s arguments data"
-// @Param format body object false "Return format (michelson | empty if micheline)"
+// @Param body body getEntrypointDataRequest true "Request body"
 // @Accept json
 // @Produce json
 // @Success 200 {object} gin.H
