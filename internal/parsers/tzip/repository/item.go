@@ -14,18 +14,32 @@ type Item struct {
 	Metadata []byte
 }
 
+// Metadata -
+type Metadata struct {
+	tzip.TZIP
+	Tokens struct {
+		Static []struct {
+			Name     string                 `json:"name"`
+			Symbol   string                 `json:"symbol,omitempty"`
+			Decimals *int64                 `json:"decimals,omitempty"`
+			TokenID  int64                  `json:"token_id"`
+			Extras   map[string]interface{} `json:"extras"`
+		} `json:"static"`
+	} `json:"tokens"`
+}
+
 // ToModel -
-func (item Item) ToModel() (*tzip.TZIP, error) {
+func (item Item) ToModel() (*Metadata, error) {
 	t, err := time.Parse("2006 01 02 15 04", "2018 06 30 00 00")
 	if err != nil {
 		return nil, err
 	}
-	model := tzip.TZIP{
-		Network:   item.Network,
-		Address:   item.Address,
-		Timestamp: t.UTC(),
-	}
+
+	model := new(Metadata)
+	model.Network = item.Network
+	model.Address = item.Address
+	model.Timestamp = t.UTC()
 
 	err = json.Unmarshal(item.Metadata, &model)
-	return &model, err
+	return model, err
 }
