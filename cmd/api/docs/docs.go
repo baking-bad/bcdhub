@@ -665,29 +665,12 @@ var doc = `{
                         "required": true
                     },
                     {
-                        "description": "Entrypoint binary path",
-                        "name": "bin_path",
+                        "description": "Request body",
+                        "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "description": "Entrypoint` + "`" + `s arguments data",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
-                    },
-                    {
-                        "description": "Return format (michelson | empty if micheline)",
-                        "name": "format",
-                        "in": "body",
-                        "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/handlers.getEntrypointDataRequest"
                         }
                     }
                 ],
@@ -816,57 +799,12 @@ var doc = `{
                         "required": true
                     },
                     {
-                        "description": "Entrypoint binary path",
-                        "name": "bin_path",
+                        "description": "Request body",
+                        "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "description": "Entrypoint` + "`" + `s arguments data",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object"
-                        }
-                    },
-                    {
-                        "description": "Operation amount",
-                        "name": "amount",
-                        "in": "body",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "description": "Operation gas limit",
-                        "name": "gas_limit",
-                        "in": "body",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "maxLength": 36,
-                        "minLength": 36,
-                        "description": "Operation sender",
-                        "name": "sender",
-                        "in": "body",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "maxLength": 36,
-                        "minLength": 36,
-                        "description": "Operation source",
-                        "name": "source",
-                        "in": "body",
-                        "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.runCodeRequest"
                         }
                     }
                 ],
@@ -1647,66 +1585,12 @@ var doc = `{
                         "required": true
                     },
                     {
-                        "description": "Entrypoint` + "`" + `s arguments data",
-                        "name": "data",
+                        "description": "Request body",
+                        "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
-                        }
-                    },
-                    {
-                        "description": "View name",
-                        "name": "name",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "description": "Implementation index",
-                        "name": "implementation",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "description": "Operation amount",
-                        "name": "amount",
-                        "in": "body",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "description": "Operation gas limit",
-                        "name": "gas_limit",
-                        "in": "body",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "maxLength": 36,
-                        "minLength": 36,
-                        "description": "Operation sender",
-                        "name": "sender",
-                        "in": "body",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "maxLength": 36,
-                        "minLength": 36,
-                        "description": "Operation source",
-                        "name": "source",
-                        "in": "body",
-                        "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/handlers.executeViewRequest"
                         }
                     }
                 ],
@@ -1805,21 +1689,12 @@ var doc = `{
                 "operationId": "get-diff",
                 "parameters": [
                     {
-                        "description": "First compared contract",
-                        "name": "left",
+                        "description": "Request body",
+                        "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.CodeDiffLeg"
-                        }
-                    },
-                    {
-                        "description": "Second compared contract",
-                        "name": "right",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.CodeDiffLeg"
+                            "$ref": "#/definitions/handlers.CodeDiffRequest"
                         }
                     }
                 ],
@@ -3143,6 +3018,21 @@ var doc = `{
                 }
             }
         },
+        "handlers.CodeDiffRequest": {
+            "type": "object",
+            "required": [
+                "left",
+                "right"
+            ],
+            "properties": {
+                "left": {
+                    "$ref": "#/definitions/handlers.CodeDiffLeg"
+                },
+                "right": {
+                    "$ref": "#/definitions/handlers.CodeDiffLeg"
+                }
+            }
+        },
         "handlers.CodeDiffResponse": {
             "type": "object",
             "properties": {
@@ -3891,7 +3781,8 @@ var doc = `{
                     "type": "number"
                 },
                 "volume_24_hours": {
-                    "type": "number"
+                    "type": "number",
+                    "x-nullable": true
                 }
             }
         },
@@ -3932,7 +3823,8 @@ var doc = `{
                     "type": "integer"
                 },
                 "volume_24_hours": {
-                    "type": "number"
+                    "type": "number",
+                    "x-nullable": true
                 }
             }
         },
@@ -4022,7 +3914,8 @@ var doc = `{
                     "type": "integer"
                 },
                 "volume_24_hours": {
-                    "type": "number"
+                    "type": "number",
+                    "x-nullable": true
                 }
             }
         },
@@ -4144,6 +4037,85 @@ var doc = `{
                     "items": {
                         "$ref": "#/definitions/docstring.Typedef"
                     }
+                }
+            }
+        },
+        "handlers.executeViewRequest": {
+            "type": "object",
+            "required": [
+                "data",
+                "implementation",
+                "name"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "data": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "gas_limit": {
+                    "type": "integer"
+                },
+                "implementation": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sender": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.getEntrypointDataRequest": {
+            "type": "object",
+            "required": [
+                "bin_path",
+                "data"
+            ],
+            "properties": {
+                "bin_path": {
+                    "type": "string"
+                },
+                "data": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "format": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.runCodeRequest": {
+            "type": "object",
+            "required": [
+                "bin_path",
+                "data"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "bin_path": {
+                    "type": "string"
+                },
+                "data": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "gas_limit": {
+                    "type": "integer"
+                },
+                "sender": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
                 }
             }
         },
