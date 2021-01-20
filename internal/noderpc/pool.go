@@ -211,7 +211,7 @@ func (p Pool) GetNetworkConstants(level int64) (res Constants, err error) {
 
 // RunCode -
 func (p Pool) RunCode(script, storage, input gjson.Result, chainID, source, payer, entrypoint, proto string, amount, gas int64) (gjson.Result, error) {
-	data, err := p.call("RunCode", script, storage, input, chainID, source, payer, entrypoint, amount, gas)
+	data, err := p.call("RunCode", script, storage, input, chainID, source, payer, entrypoint, proto, amount, gas)
 	if err != nil {
 		return gjson.Result{}, err
 	}
