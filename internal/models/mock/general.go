@@ -536,3 +536,22 @@ func (mr *MockGeneralRepositoryMockRecorder) BulkRemoveField(arg0, arg1 interfac
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkRemoveField", reflect.TypeOf((*MockGeneralRepository)(nil).BulkRemoveField), arg0, arg1)
 }
+
+// UpdateByQueryScript mocks base method
+func (m *MockGeneralRepository) UpdateByQueryScript(indices []string, query map[string]interface{}, source ...string) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{indices, query}
+	for _, a := range source {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdateByQueryScript", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateByQueryScript indicates an expected call of UpdateByQueryScript
+func (mr *MockGeneralRepositoryMockRecorder) UpdateByQueryScript(indices, query interface{}, source ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{indices, query}, source...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateByQueryScript", reflect.TypeOf((*MockGeneralRepository)(nil).UpdateByQueryScript), varargs...)
+}

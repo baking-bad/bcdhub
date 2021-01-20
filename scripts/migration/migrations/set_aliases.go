@@ -1,14 +1,17 @@
 package migrations
 
 import (
+	"fmt"
+
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/schollz/progressbar/v3"
 )
 
-// SetAliases - migration that set aliases for operations, contracts and transfers
+// SetAliases - migration that set aliases for operations (source, destination, destination) and contracts (address, delegate)
 type SetAliases struct{}
 
 // Key -
@@ -18,14 +21,11 @@ func (m *SetAliases) Key() string {
 
 // Description -
 func (m *SetAliases) Description() string {
-	return "set aliases for operations, contracts and transfers"
+	return "set aliases for operations (source, destination, delegate) and contracts (address, delegate)"
 }
 
 // Do - migrate function
 func (m *SetAliases) Do(ctx *config.Context) error {
-	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.DB)
-
-	updatedModels := make([]models.Model, 0)
 	logger.Info("Receiving aliases for %s...", consts.Mainnet)
 
 	aliases, err := ctx.TZIP.GetAliasesMap(consts.Mainnet)
@@ -38,56 +38,68 @@ func (m *SetAliases) Do(ctx *config.Context) error {
 		return nil
 	}
 
-	addresses := make([]string, 0, len(aliases))
-	for address := range aliases {
-		addresses = append(addresses, address)
-	}
-
-	for _, field := range []string{"source.or", "destination.or", "delegate.or"} {
-		filter := map[string]interface{}{
-			"network": consts.Mainnet,
-			field:     addresses,
-		}
-
-		operations, err := ctx.Operations.Get(filter, 0, false)
-		if err != nil {
+	bar := progressbar.NewOptions(len(aliases), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish(), progressbar.OptionShowCount())
+	for address, alias := range aliases {
+		if err := bar.Add(1); err != nil {
 			return err
 		}
 
-		logger.Info("Got %d operations for %s", len(operations), field)
+		query := core.NewQuery().Query(
+			core.Bool(
+				core.Filter(
+					core.Term("network", consts.Mainnet),
+					core.Bool(
+						core.Should(
+							core.MatchPhrase("address", address),
+							core.MatchPhrase("source", address),
+							core.MatchPhrase("destination", address),
+							core.MatchPhrase("delegate", address),
+						),
+						core.MinimumShouldMatch(1),
+					),
+				),
+			),
+		).Add(
+			core.Item{
+				"script": core.Item{
+					"source": `
+					if (ctx._index == "contract") {
+						if (ctx._source.address == params.address) {
+							ctx._source.alias = params.alias
+						}
 
-		for i := range operations {
-			if flag, err := h.SetOperationAliases(&operations[i]); flag {
-				updatedModels = append(updatedModels, &operations[i])
-			} else if err != nil {
-				return err
-			}
+						if (ctx._source.delegate == params.address) {
+							ctx._source.delegate_alias = params.alias
+						}
+					} else if (ctx._index == 'operation') {
+						if (ctx._source.source == params.address) {
+							ctx._source.source_alias = params.alias
+						}
+
+						if (ctx._source.destination == params.address) {
+							ctx._source.destination_alias = params.alias
+						}
+
+						if (ctx._source.delegate == params.address) {
+							ctx._source.delegate_alias = params.alias
+						}
+					}`,
+					"lang": "painless",
+					"params": core.Item{
+						"alias":   alias,
+						"address": address,
+					},
+				},
+			},
+		)
+
+		if err := ctx.Storage.UpdateByQueryScript(
+			[]string{models.DocOperations, models.DocContracts},
+			query,
+		); err != nil {
+			return fmt.Errorf("%s %s %w", address, alias, err)
 		}
 	}
 
-	for _, field := range []string{"address.or", "delegate.or"} {
-		filter := map[string]interface{}{
-			"network": consts.Mainnet,
-			field:     addresses,
-		}
-
-		contracts, err := ctx.Contracts.GetMany(filter)
-		if err != nil {
-			return err
-		}
-
-		logger.Info("Got %d contracts for %s", len(contracts), field)
-
-		for i := range contracts {
-			if flag, err := h.SetContractAlias(&contracts[i]); flag {
-				updatedModels = append(updatedModels, &contracts[i])
-			} else if err != nil {
-				return err
-			}
-		}
-	}
-
-	logger.Info("Updating %d models...", len(updatedModels))
-
-	return ctx.Storage.BulkUpdate(updatedModels)
+	return nil
 }

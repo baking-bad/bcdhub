@@ -43,4 +43,5 @@ type GeneralRepository interface {
 	BulkUpdate([]Model) error
 	BulkDelete([]Model) error
 	BulkRemoveField(string, []Model) error
+	UpdateByQueryScript(indices []string, query map[string]interface{}, source ...string) (err error)
 }

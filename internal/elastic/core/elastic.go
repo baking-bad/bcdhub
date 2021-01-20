@@ -200,8 +200,9 @@ func (e *Elastic) CreateIndexes() error {
 	return nil
 }
 
-// nolint
-func (e *Elastic) updateByQuery(indices []string, query map[string]interface{}, source ...string) (err error) {
+// UpdateByQueryScript -
+//nolint
+func (e *Elastic) UpdateByQueryScript(indices []string, query map[string]interface{}, source ...string) (err error) {
 	var buf bytes.Buffer
 	if err = json.NewEncoder(&buf).Encode(query); err != nil {
 		return
