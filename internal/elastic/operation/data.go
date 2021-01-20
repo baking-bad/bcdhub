@@ -29,7 +29,7 @@ type aggVolumeSumResponse struct {
 		Result struct {
 			Value float64 `json:"value"`
 		} `json:"volume"`
-	}
+	} `json:"aggregations"`
 }
 
 type getTokensStatsResponse struct {

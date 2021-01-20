@@ -135,3 +135,8 @@ func (r *Reindexer) GetFieldValue(data interface{}, field string) interface{} {
 	f := reflect.Indirect(val).FieldByName(field)
 	return f.Interface()
 }
+
+// UpdateByQueryScript -
+func (r *Reindexer) UpdateByQueryScript(indices []string, query map[string]interface{}, source ...string) (err error) {
+	return nil
+}
