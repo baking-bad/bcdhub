@@ -126,10 +126,8 @@ func GetScores(searchString string, fields []string, indices ...string) (ScoreIn
 						}
 					}
 				}
-			} else {
-				if err := info.addScores(modelScores...); err != nil {
-					return info, err
-				}
+			} else if err := info.addScores(modelScores...); err != nil {
+				return info, err
 			}
 		}
 	}

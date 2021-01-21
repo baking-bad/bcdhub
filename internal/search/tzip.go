@@ -16,7 +16,7 @@ func (m Metadata) GetIndex() string {
 // GetScores -
 func (m Metadata) GetScores(search string) []string {
 	return []string{
-		"name^10",
+		"name^15",
 		"authors^10",
 		"description^8",
 		"homepage^4",

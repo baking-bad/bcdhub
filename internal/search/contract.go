@@ -31,7 +31,7 @@ func (c Contract) GetScores(search string) []string {
 		}
 	}
 	return []string{
-		"alias^10",
+		"alias^20",
 		"tags^9",
 		"entrypoints^8",
 		"fail_strings^6",
