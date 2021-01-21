@@ -81,6 +81,7 @@ func (m *TokenBalanceRecalc) Recalc(ctx *config.Context, network, address string
 		lastID = transfers.LastID
 	}
 
+	logger.Info("Received %d updates", len(updates))
 	logger.Info("Saving...")
 	return transferParsers.UpdateTokenBalances(ctx.TokenBalances, updates)
 }
