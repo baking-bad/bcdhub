@@ -27,18 +27,37 @@ func (storage *Storage) Update(updates []*tokenbalance.TokenBalance) error {
 		ids[i] = updates[i].GetID()
 	}
 	if err := storage.es.GetByIDs(&buf, ids...); err != nil {
-		return err
+		if !storage.es.IsRecordNotFound(err) {
+			return err
+		}
 	}
 
 	updatedModels := make([]models.Model, 0)
+	insertedModels := make([]models.Model, 0)
+
 	for i := range updates {
+		if len(buf) == 0 {
+			insertedModels = append(insertedModels, updates[i])
+			continue
+		}
+
+		var found bool
 		for j := range buf {
 			if buf[j].GetID() == updates[i].GetID() {
+				found = true
 				updates[i].Sum(&buf[j])
 				updatedModels = append(updatedModels, updates[i])
 				break
 			}
 		}
+
+		if !found {
+			insertedModels = append(insertedModels, updates[i])
+		}
+	}
+
+	if err := storage.es.BulkInsert(insertedModels); err != nil {
+		return err
 	}
 
 	return storage.es.BulkUpdate(updatedModels)
