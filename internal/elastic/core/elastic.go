@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/elastic/go-elasticsearch/v8"
@@ -200,9 +201,8 @@ func (e *Elastic) CreateIndexes() error {
 	return nil
 }
 
-// UpdateByQueryScript -
 //nolint
-func (e *Elastic) UpdateByQueryScript(indices []string, query map[string]interface{}, source ...string) (err error) {
+func (e *Elastic) updateByQueryScript(indices []string, query map[string]interface{}, source ...string) (err error) {
 	var buf bytes.Buffer
 	if err = json.NewEncoder(&buf).Encode(query); err != nil {
 		return
@@ -499,5 +499,66 @@ func (e *Elastic) BulkRemoveField(field string, where []models.Model) error {
 			bulk.Reset()
 		}
 	}
+	return nil
+}
+
+// SetAlias -
+func (e *Elastic) SetAlias(address, alias string) error {
+	query := NewQuery().Query(
+		Bool(
+			Filter(
+				Term("network", consts.Mainnet),
+				Bool(
+					Should(
+						MatchPhrase("address", address),
+						MatchPhrase("source", address),
+						MatchPhrase("destination", address),
+						MatchPhrase("delegate", address),
+					),
+					MinimumShouldMatch(1),
+				),
+			),
+		),
+	).Add(
+		Item{
+			"script": Item{
+				"source": `
+				if (ctx._index == "contract") {
+					if (ctx._source.address == params.address) {
+						ctx._source.alias = params.alias
+					}
+
+					if (ctx._source.delegate == params.address) {
+						ctx._source.delegate_alias = params.alias
+					}
+				} else if (ctx._index == 'operation') {
+					if (ctx._source.source == params.address) {
+						ctx._source.source_alias = params.alias
+					}
+
+					if (ctx._source.destination == params.address) {
+						ctx._source.destination_alias = params.alias
+					}
+
+					if (ctx._source.delegate == params.address) {
+						ctx._source.delegate_alias = params.alias
+					}
+				}`,
+				"lang": "painless",
+				"params": Item{
+					"alias":   alias,
+					"address": address,
+				},
+			},
+		},
+	)
+
+	if err := e.updateByQueryScript(
+		[]string{models.DocOperations, models.DocContracts},
+		query,
+	); err != nil {
+		return fmt.Errorf("%s %s %w", address, alias, err)
+	}
+
 	return nil
 }
