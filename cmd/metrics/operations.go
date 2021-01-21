@@ -134,7 +134,7 @@ func getOperationsContracts(h *metrics.Handler, operations []operation.Operation
 				return err
 			}
 			if err := h.FixTokenMetadata(rpc, ctx.SharePath, &cntr, &operations[i], ctx.Config.IPFSGateways...); err != nil {
-				return err
+				logger.Error(err)
 			}
 		}
 	}
