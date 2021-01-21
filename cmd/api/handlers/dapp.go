@@ -154,12 +154,15 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 				}
 				result.Tokens = append(result.Tokens, tokens...)
 
-				vol, err := ctx.Operations.GetContract24HoursVolume(consts.Mainnet, address.Address, address.DexVolumeEntrypoints)
-				if err != nil {
-					return result, err
+				if len(address.DexVolumeEntrypoints) > 0 {
+					vol, err := ctx.Operations.GetContract24HoursVolume(consts.Mainnet, address.Address, address.DexVolumeEntrypoints)
+					if err != nil {
+						return result, err
+					}
+
+					result.Volume24Hours += vol
 				}
 
-				result.Volume24Hours += vol
 			}
 		}
 	}

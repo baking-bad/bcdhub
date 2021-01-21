@@ -607,7 +607,7 @@ type DApp struct {
 	Soon              bool     `json:"soon"`
 	Logo              string   `json:"logo"`
 	Cover             string   `json:"cover,omitempty" extensions:"x-nullable"`
-	Volume24Hours     float64  `json:"volume_24_hours"`
+	Volume24Hours     float64  `json:"volume_24_hours,omitempty" extensions:"x-nullable"`
 
 	Screenshots []Screenshot    `json:"screenshots,omitempty" extensions:"x-nullable"`
 	Contracts   []DAppContract  `json:"contracts,omitempty" extensions:"x-nullable"`
