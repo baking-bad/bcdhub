@@ -136,7 +136,7 @@ func (r *Reindexer) GetFieldValue(data interface{}, field string) interface{} {
 	return f.Interface()
 }
 
-// UpdateByQueryScript -
-func (r *Reindexer) UpdateByQueryScript(indices []string, query map[string]interface{}, source ...string) (err error) {
+// SetAlias -
+func (r *Reindexer) SetAlias(address, alias string) error {
 	return nil
 }
