@@ -137,6 +137,6 @@ func (r *Reindexer) GetFieldValue(data interface{}, field string) interface{} {
 }
 
 // SetAlias -
-func (r *Reindexer) SetAlias(address, alias string) error {
+func (r *Reindexer) SetAlias(network, address, alias string) error {
 	return nil
 }
