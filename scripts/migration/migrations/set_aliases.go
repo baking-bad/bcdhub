@@ -40,7 +40,7 @@ func (m *SetAliases) Do(ctx *config.Context) error {
 			return err
 		}
 
-		if err := ctx.Storage.SetAlias(address, alias); err != nil {
+		if err := ctx.Storage.SetAlias(consts.Mainnet, address, alias); err != nil {
 			return err
 		}
 	}

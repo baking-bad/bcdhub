@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/elastic/go-elasticsearch/v8"
@@ -503,11 +502,11 @@ func (e *Elastic) BulkRemoveField(field string, where []models.Model) error {
 }
 
 // SetAlias -
-func (e *Elastic) SetAlias(address, alias string) error {
+func (e *Elastic) SetAlias(network, address, alias string) error {
 	query := NewQuery().Query(
 		Bool(
 			Filter(
-				Term("network", consts.Mainnet),
+				Term("network", network),
 				Bool(
 					Should(
 						MatchPhrase("address", address),
@@ -557,7 +556,7 @@ func (e *Elastic) SetAlias(address, alias string) error {
 		[]string{models.DocOperations, models.DocContracts},
 		query,
 	); err != nil {
-		return fmt.Errorf("%s %s %w", address, alias, err)
+		return fmt.Errorf("%s %s %s %w", network, address, alias, err)
 	}
 
 	return nil

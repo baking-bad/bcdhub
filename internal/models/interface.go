@@ -43,5 +43,5 @@ type GeneralRepository interface {
 	BulkUpdate([]Model) error
 	BulkDelete([]Model) error
 	BulkRemoveField(string, []Model) error
-	SetAlias(address, alias string) error
+	SetAlias(network, address, alias string) error
 }
