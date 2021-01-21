@@ -42,8 +42,9 @@ func (bm *BulkManager) Add(data mq.Data) {
 	{
 		if len(bm.queue) == cap(bm.queue) {
 			bm.process()
+		} else {
+			bm.queue = append(bm.queue, data)
 		}
-		bm.queue = append(bm.queue, data)
 	}
 }
 
@@ -63,8 +64,8 @@ func (bm *BulkManager) Run() {
 			bm.lock.Lock()
 			{
 				bm.process()
-				bm.lock.Unlock()
 			}
+			bm.lock.Unlock()
 		}
 	}
 }
