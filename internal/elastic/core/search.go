@@ -26,14 +26,12 @@ func getFields(searchString string, filters map[string]interface{}, fields []str
 		return nil, nil, nil, err
 	}
 
-	f := make([]string, 0)
 	h := make(Item)
 	for _, score := range scores.Scores {
 		s := strings.Split(score, "^")
 		h[s[0]] = Item{}
-		f = append(f, score)
 	}
-	return f, scores.Indices, h, nil
+	return scores.Scores, scores.Indices, h, nil
 }
 
 func prepareSearchFilters(filters map[string]interface{}) (string, error) {
@@ -211,7 +209,7 @@ func prepare(searchString string, filters map[string]interface{}, fields []strin
 		ctx.Indices = []string{models.DocBigMapDiff}
 		ctx.Fields = []string{"ptr"}
 	} else {
-		internalFields, usingIndices, highlights, err := getFields(ctx.Text, filters, fields)
+		internalFields, usingIndices, highlights, err := getFields(searchString, filters, fields)
 		if err != nil {
 			return ctx, err
 		}
