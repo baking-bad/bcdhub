@@ -83,7 +83,11 @@ func (m *TokenMetadata) Parse(value gjson.Result, address string, ptr int64) err
 			}
 			m.Symbol = string(decoded)
 		case keyDecimals:
-			decoded, err := strconv.ParseInt(value, 10, 64)
+			b, err := hex.DecodeString(value)
+			if err != nil {
+				return err
+			}
+			decoded, err := strconv.ParseInt(string(b), 10, 64)
 			if err != nil {
 				return err
 			}

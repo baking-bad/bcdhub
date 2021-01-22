@@ -29,7 +29,7 @@ func TestTokenMetadata_Parse(t *testing.T) {
 			wantErr: false,
 			want: &TokenMetadata{
 				TokenID:  1,
-				Decimals: getIntPtr(36),
+				Decimals: getIntPtr(6),
 				Name:     "Name",
 				Symbol:   "SMB",
 				Extras:   make(map[string]interface{}),
