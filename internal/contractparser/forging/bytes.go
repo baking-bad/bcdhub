@@ -1,4 +1,4 @@
-package rawbytes
+package forging
 
 import (
 	"encoding/hex"
@@ -10,11 +10,11 @@ import (
 	"github.com/pkg/errors"
 )
 
-type bytesDecoder struct{}
+type bytesForger struct{}
 
 // Decode -
-func (d bytesDecoder) Decode(dec *decoder, code *strings.Builder) (int, error) {
-	length, err := decodeLength(dec)
+func (d bytesForger) Unforge(dec *decoder, code *strings.Builder) (int, error) {
+	length, err := unforgeLength(dec)
 	if err != nil {
 		return 4, err
 	}

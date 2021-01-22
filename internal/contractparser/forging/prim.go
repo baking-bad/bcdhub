@@ -1,4 +1,4 @@
-package rawbytes
+package forging
 
 import (
 	"fmt"
@@ -150,21 +150,21 @@ var primKeywords = []string{
 	"GET_AND_UPDATE",
 }
 
-type primDecoder struct {
+type primForger struct {
 	ArgsCount int
 	HasAnnots bool
 }
 
-func newPrimDecoder(argsCount int, hasAnnots bool) primDecoder {
-	return primDecoder{
+func newPrimForger(argsCount int, hasAnnots bool) primForger {
+	return primForger{
 		ArgsCount: argsCount,
 		HasAnnots: hasAnnots,
 	}
 }
 
 // Decode -
-func (d primDecoder) Decode(dec *decoder, code *strings.Builder) (length int, err error) {
-	prim, err := decodePrim(dec)
+func (d primForger) Unforge(dec *decoder, code *strings.Builder) (length int, err error) {
+	prim, err := unforgePrim(dec)
 	if err != nil {
 		return 1, err
 	}
@@ -174,7 +174,7 @@ func (d primDecoder) Decode(dec *decoder, code *strings.Builder) (length int, er
 	// log.Printf("[primDecoder Decode] data: %d | args count: %d | has annots: %v", length, d.ArgsCount, d.HasAnnots)
 	if d.ArgsCount > 0 {
 		fmt.Fprintf(code, `, "args": [ `)
-		n, err := decodeArgs(dec, code, d.ArgsCount)
+		n, err := unforgeArgs(dec, code, d.ArgsCount)
 		if err != nil {
 			return n + 1, err
 		}
@@ -185,7 +185,7 @@ func (d primDecoder) Decode(dec *decoder, code *strings.Builder) (length int, er
 	if d.HasAnnots {
 		fmt.Fprintf(code, `, "annots": [ "`)
 
-		annots, n, err := decodeAnnots(dec)
+		annots, n, err := unforgeAnnots(dec)
 		if err != nil {
 			return length + 1, err
 		}
@@ -199,22 +199,22 @@ func (d primDecoder) Decode(dec *decoder, code *strings.Builder) (length int, er
 type primGeneral struct{}
 
 // Decode -
-func (d primGeneral) Decode(dec *decoder, code *strings.Builder) (length int, err error) {
-	prim, err := decodePrim(dec)
+func (d primGeneral) Unforge(dec *decoder, code *strings.Builder) (length int, err error) {
+	prim, err := unforgePrim(dec)
 	if err != nil {
 		return 1, err
 	}
 	fmt.Fprintf(code, `{ "prim": "%s", "args": `, prim)
 	length++
 
-	ad := arrayDecoder{}
-	n, err := ad.Decode(dec, code)
+	ad := arrayForger{}
+	n, err := ad.Unforge(dec, code)
 	if err != nil {
 		return n + 1, err
 	}
 	length += n
 
-	annots, n, err := decodeAnnots(dec)
+	annots, n, err := unforgeAnnots(dec)
 	if err != nil {
 		return length + 1, err
 	}

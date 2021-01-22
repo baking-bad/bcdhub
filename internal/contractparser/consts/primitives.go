@@ -55,6 +55,9 @@ const (
 	Pair  = "Pair"
 	Some  = "Some"
 	None  = "None"
+	False = "False"
+	True  = "True"
+	Elt   = "Elt"
 	Left  = "Left"
 	Right = "Right"
 )

@@ -1,4 +1,4 @@
-package rawbytes
+package forging
 
 import (
 	"encoding/hex"

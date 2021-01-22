@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"unicode/utf8"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/forging"
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/domaintypes"
-	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/rawbytes"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
@@ -101,7 +101,7 @@ func Contract(input string) (string, error) {
 // Bytes - unpack bytes
 func Bytes(input string) string {
 	if len(input) >= 1 && input[:2] == MainPrefix {
-		str, err := rawbytes.ToMicheline(input[2:])
+		str, err := forging.Unforge(input[2:])
 		if err == nil {
 			data := gjson.Parse(str)
 			res, err := formatter.MichelineToMichelson(data, false, formatter.DefLineSize)

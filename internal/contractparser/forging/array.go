@@ -1,16 +1,16 @@
-package rawbytes
+package forging
 
 import (
 	"fmt"
 	"strings"
 )
 
-type arrayDecoder struct{}
+type arrayForger struct{}
 
 // Decode -
-func (d arrayDecoder) Decode(dec *decoder, code *strings.Builder) (int, error) {
+func (d arrayForger) Unforge(dec *decoder, code *strings.Builder) (int, error) {
 	code.WriteString("[")
-	length, err := decodeLength(dec)
+	length, err := unforgeLength(dec)
 	if err != nil {
 		return 4, err
 	}

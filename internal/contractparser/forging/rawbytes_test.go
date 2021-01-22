@@ -1,10 +1,10 @@
-package rawbytes
+package forging
 
 import (
 	"testing"
 )
 
-func TestToMicheline(t *testing.T) {
+func TestUnforge(t *testing.T) {
 	validTestCases := []struct {
 		name   string
 		input  string
@@ -209,7 +209,7 @@ func TestToMicheline(t *testing.T) {
 
 	for _, tc := range validTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			res, err := ToMicheline(tc.input)
+			res, err := Unforge(tc.input)
 			if err != nil {
 				t.Errorf("Input: %v. Error: %v.", tc.input, err)
 			}
@@ -240,7 +240,7 @@ func TestToMichelineErrors(t *testing.T) {
 
 	for _, tc := range errorTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			_, err := ToMicheline(tc.input)
+			_, err := Unforge(tc.input)
 			if err == nil {
 				t.Errorf("Empty error. Input: %v.", tc.input)
 				return

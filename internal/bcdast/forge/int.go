@@ -1,45 +1,39 @@
-package rawbytes
+package forge
 
 import (
 	"bytes"
 	"fmt"
 	"math/big"
-	"strings"
 
 	"github.com/pkg/errors"
 )
 
-type intDecoder struct{}
+// Int -
+type Int Node
 
-// Decode -
-func (d intDecoder) Decode(dec *decoder, code *strings.Builder) (int, error) {
-	var buffer bytes.Buffer
-
-	for {
-		buf := make([]byte, 1)
-		if _, err := dec.Read(buf); err != nil {
-			break
-		}
-		buffer.Write(buf)
-		if buf[0] < 127 {
-			break
-		}
+// NewInt -
+func NewInt() *Int {
+	return &Int{
+		IntValue: new(big.Int),
 	}
-
-	ret, err := d.DecodeSigned(buffer.Bytes())
-	if err != nil {
-		return buffer.Len(), err
-	}
-	// log.Printf("[int Decode] data: %x, value: %v\n", buffer.Bytes(), ret)
-
-	fmt.Fprintf(code, `{ "int": "%s" }`, ret)
-	return buffer.Len(), nil
 }
 
-// DecodeSigned -
-func (d intDecoder) DecodeSigned(source []byte) (string, error) {
+// Unforge -
+func (val *Int) Unforge(data []byte) (int, error) {
+	var buffer bytes.Buffer
+	for i := range data {
+		buffer.WriteByte(data[i])
+		if data[i] < 127 {
+			break
+		}
+	}
+
+	return buffer.Len(), val.decodeSigned(buffer.Bytes())
+}
+
+func (val *Int) decodeSigned(source []byte) error {
 	if len(source) == 0 {
-		return "", errors.Errorf("expected non-empty byte array")
+		return errors.Errorf("expected non-empty byte array")
 	}
 
 	// Split input into 8-bit bitstrings
@@ -77,12 +71,9 @@ func (d intDecoder) DecodeSigned(source []byte) (string, error) {
 		bitString = "-" + bitString
 	}
 
-	// Convert from base 2 to base 10
-	ret := new(big.Int)
-	_, success := ret.SetString(bitString, 2)
-	if !success {
-		return "", errors.Errorf("failed to parse bit string %s to big.Int", bitString)
+	if _, ok := val.IntValue.SetString(bitString, 2); !ok {
+		return errors.Errorf("failed to parse bit string %s to big.Int", bitString)
 	}
 
-	return fmt.Sprintf("%v", ret), nil
+	return nil
 }

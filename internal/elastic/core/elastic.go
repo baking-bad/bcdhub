@@ -32,6 +32,7 @@ func New(addresses []string) (*Elastic, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	e := &Elastic{es}
 	return e, e.TestConnection()
 }

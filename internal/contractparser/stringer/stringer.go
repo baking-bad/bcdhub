@@ -8,9 +8,9 @@ import (
 
 	jsoniter "github.com/json-iterator/go"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/forging"
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/baking-bad/bcdhub/internal/contractparser/unpack"
-	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/rawbytes"
 	"github.com/tidwall/gjson"
 )
 
@@ -190,7 +190,7 @@ func findInBytes(input string, storage map[string]struct{}) {
 	}
 
 	if len(input) >= 1 && input[:2] == unpack.MainPrefix {
-		str, err := rawbytes.ToMicheline(input[2:])
+		str, err := forging.Unforge(input[2:])
 		if err == nil {
 			if err := parse(str, storage); err != nil {
 				return

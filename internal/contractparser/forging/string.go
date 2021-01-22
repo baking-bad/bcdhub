@@ -1,4 +1,4 @@
-package rawbytes
+package forging
 
 import (
 	"fmt"
@@ -6,11 +6,11 @@ import (
 	"strings"
 )
 
-type stringDecoder struct{}
+type stringForger struct{}
 
 // Decode -
-func (d stringDecoder) Decode(dec *decoder, code *strings.Builder) (int, error) {
-	length, err := decodeLength(dec)
+func (d stringForger) Unforge(dec *decoder, code *strings.Builder) (int, error) {
+	length, err := unforgeLength(dec)
 	if err != nil {
 		return 4, err
 	}

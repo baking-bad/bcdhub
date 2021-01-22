@@ -10,9 +10,9 @@ import (
 	jsoniter "github.com/json-iterator/go"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/contractparser/forging"
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/baking-bad/bcdhub/internal/contractparser/unpack"
-	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/rawbytes"
 	"github.com/tidwall/gjson"
 )
 
@@ -151,7 +151,7 @@ func (e *DefaultError) Format() error {
 	if text.Get("bytes").Exists() {
 		data := text.Get("bytes").String()
 		data = strings.TrimPrefix(data, unpack.MainPrefix)
-		decodedString, err := rawbytes.ToMicheline(data)
+		decodedString, err := forging.Unforge(data)
 		if err == nil {
 			text = gjson.Parse(decodedString)
 		}

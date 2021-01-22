@@ -1,4 +1,4 @@
-package rawbytes
+package forging
 
 import (
 	"encoding/binary"
@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func decodeAnnots(dec *decoder) (string, int, error) {
+func unforgeAnnots(dec *decoder) (string, int, error) {
 	sb := make([]byte, 4)
 	if n, err := dec.Read(sb); err != nil {
 		return "", n, err
@@ -32,7 +32,7 @@ func decodeAnnots(dec *decoder) (string, int, error) {
 	return annots, length + 4, nil
 }
 
-func decodeLength(dec *decoder) (int, error) {
+func unforgeLength(dec *decoder) (int, error) {
 	b := make([]byte, 4)
 	if n, err := dec.Read(b); err != nil {
 		return n, err
@@ -44,7 +44,7 @@ func decodeLength(dec *decoder) (int, error) {
 	return length, nil
 }
 
-func decodePrim(dec *decoder) (string, error) {
+func unforgePrim(dec *decoder) (string, error) {
 	b := make([]byte, 1)
 	if _, err := dec.Read(b); err != nil {
 		return "", err
@@ -59,7 +59,7 @@ func decodePrim(dec *decoder) (string, error) {
 	return primKeywords[key], nil
 }
 
-func decodeArgs(dec *decoder, code *strings.Builder, count int) (length int, err error) {
+func unforgeArgs(dec *decoder, code *strings.Builder, count int) (length int, err error) {
 	for i := 0; i < count; i++ {
 		n, err := hexToMicheline(dec, code)
 		if err != nil {
