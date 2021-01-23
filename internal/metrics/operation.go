@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -14,13 +15,18 @@ import (
 func (h *Handler) SetOperationAliases(op *operation.Operation) (bool, error) {
 	var changed bool
 
-	aliases, err := h.TZIP.GetAliasesMap(op.Network)
-	if err != nil {
-		if h.Storage.IsRecordNotFound(err) {
-			return changed, nil
-		}
-		return changed, err
+	if op.Network != consts.Mainnet {
+		return false, nil
 	}
+
+	key := fmt.Sprintf("aliases:%s", op.Network)
+	item, err := h.Cache.Fetch(key, time.Second*30, func() (interface{}, error) {
+		return h.TZIP.GetAliasesMap(op.Network)
+	})
+	if err != nil {
+		return false, err
+	}
+	aliases := item.Value().(map[string]string)
 
 	if srcAlias, ok := aliases[op.Source]; ok {
 		op.SourceAlias = srcAlias

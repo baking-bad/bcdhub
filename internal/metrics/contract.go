@@ -1,6 +1,10 @@
 package metrics
 
 import (
+	"fmt"
+	"time"
+
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 
@@ -12,17 +16,22 @@ import (
 func (h *Handler) SetContractAlias(c *contract.Contract) (bool, error) {
 	var changed bool
 
+	if c.Network != consts.Mainnet {
+		return false, nil
+	}
+
 	if c.Alias != "" && ((c.Delegate != "" && c.DelegateAlias != "") || c.Delegate == "") {
 		return false, nil
 	}
 
-	aliases, err := h.TZIP.GetAliasesMap(c.Network)
+	key := fmt.Sprintf("aliases:%s", c.Network)
+	item, err := h.Cache.Fetch(key, time.Second*30, func() (interface{}, error) {
+		return h.TZIP.GetAliasesMap(c.Network)
+	})
 	if err != nil {
-		if h.Storage.IsRecordNotFound(err) {
-			err = nil
-		}
-		return changed, err
+		return false, err
 	}
+	aliases := item.Value().(map[string]string)
 
 	if alias, ok := aliases[c.Address]; ok && c.Alias == "" {
 		c.Alias = alias
