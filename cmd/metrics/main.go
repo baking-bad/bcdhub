@@ -6,15 +6,24 @@ import (
 	"runtime"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/mq"
+	"github.com/karlseguin/ccache"
 	"github.com/pkg/errors"
 )
 
-var ctx *config.Context
+// Context -
+type Context struct {
+	Cache               *ccache.Cache
+	AliasesCacheSeconds time.Duration
+	*config.Context
+}
+
+var ctx Context
 
 var handlers = map[string]BulkHandler{
 	mq.QueueContracts:   getContract,
@@ -79,7 +88,7 @@ func main() {
 		defer helpers.CatchPanicSentry()
 	}
 
-	ctx = config.NewContext(
+	configCtx := config.NewContext(
 		config.WithStorage(cfg.Storage),
 		config.WithRPC(cfg.RPC),
 		config.WithDatabase(cfg.DB),
@@ -88,7 +97,13 @@ func main() {
 		config.WithDomains(cfg.Domains),
 		config.WithConfigCopy(cfg),
 	)
-	defer ctx.Close()
+	defer configCtx.Close()
+
+	ctx = Context{
+		Cache:               ccache.New(ccache.Configure().MaxSize(10)),
+		AliasesCacheSeconds: time.Second * time.Duration(configCtx.Config.Metrics.CacheAliasesSeconds),
+		Context:             configCtx,
+	}
 
 	var wg sync.WaitGroup
 

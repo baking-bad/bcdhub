@@ -12,21 +12,12 @@ import (
 )
 
 // SetOperationAliases -
-func (h *Handler) SetOperationAliases(op *operation.Operation) (bool, error) {
+func (h *Handler) SetOperationAliases(op *operation.Operation, aliases map[string]string) (bool, error) {
 	var changed bool
 
 	if op.Network != consts.Mainnet {
 		return false, nil
 	}
-
-	key := fmt.Sprintf("aliases:%s", op.Network)
-	item, err := h.Cache.Fetch(key, time.Second*30, func() (interface{}, error) {
-		return h.TZIP.GetAliasesMap(op.Network)
-	})
-	if err != nil {
-		return false, err
-	}
-	aliases := item.Value().(map[string]string)
 
 	if srcAlias, ok := aliases[op.Source]; ok {
 		op.SourceAlias = srcAlias

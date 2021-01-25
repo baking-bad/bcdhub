@@ -65,9 +65,10 @@ type Config struct {
 	} `yaml:"indexer"`
 
 	Metrics struct {
-		ProjectName   string   `yaml:"project_name"`
-		SentryEnabled bool     `yaml:"sentry_enabled"`
-		MQ            MQConfig `yaml:"mq"`
+		ProjectName         string   `yaml:"project_name"`
+		SentryEnabled       bool     `yaml:"sentry_enabled"`
+		CacheAliasesSeconds int      `yaml:"cache_aliases_seconds"`
+		MQ                  MQConfig `yaml:"mq"`
 	} `yaml:"metrics"`
 
 	Scripts struct {

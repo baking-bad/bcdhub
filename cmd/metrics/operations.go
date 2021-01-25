@@ -39,7 +39,12 @@ func getOperation(ids []string) error {
 }
 
 func parseOperation(h *metrics.Handler, operation operation.Operation) error {
-	if _, err := h.SetOperationAliases(&operation); err != nil {
+	aliases, err := getAliases(operation.Network, h.TZIP)
+	if err != nil {
+		return err
+	}
+
+	if _, err := h.SetOperationAliases(&operation, aliases); err != nil {
 		return err
 	}
 	h.SetOperationStrings(&operation)

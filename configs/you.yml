@@ -119,6 +119,7 @@ indexer:
 metrics:
   project_name: metrics
   sentry_enabled: true
+  cache_aliases_seconds: 30
   mq:
     publisher: false
     queues:

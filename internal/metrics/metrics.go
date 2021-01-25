@@ -13,7 +13,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
-	"github.com/karlseguin/ccache"
 )
 
 // Handler -
@@ -29,9 +28,7 @@ type Handler struct {
 	TokenMetadata tokenmetadata.Repository
 	TZIP          tzip.Repository
 	Storage       models.GeneralRepository
-
-	DB    database.DB
-	Cache *ccache.Cache
+	DB            database.DB
 }
 
 // New -
@@ -49,6 +46,5 @@ func New(
 	storage models.GeneralRepository,
 	db database.DB,
 ) *Handler {
-	cache := ccache.New(ccache.Configure().MaxSize(10))
-	return &Handler{contracts, bmdRepo, blocksRepo, protocolRepo, operations, migrationRepo, schemaRepo, tbRepo, tmRepo, tzipRepo, storage, db, cache}
+	return &Handler{contracts, bmdRepo, blocksRepo, protocolRepo, operations, migrationRepo, schemaRepo, tbRepo, tmRepo, tzipRepo, storage, db}
 }
