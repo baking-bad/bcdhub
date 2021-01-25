@@ -15,7 +15,7 @@ import (
 func (h *Handler) SetOperationAliases(op *operation.Operation, aliases map[string]string) (bool, error) {
 	var changed bool
 
-	if op.Network != consts.Mainnet {
+	if op.Network != consts.Mainnet || len(aliases) == 0 {
 		return false, nil
 	}
 
