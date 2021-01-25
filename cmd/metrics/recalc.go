@@ -26,7 +26,12 @@ func recalculateAll(ids []string) error {
 func recalc(contract contract.Contract) error {
 	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.DB)
 
-	if _, err := h.SetContractAlias(&contract); err != nil {
+	aliases, err := getAliases(contract.Network, h.TZIP)
+	if err != nil {
+		return err
+	}
+
+	if _, err := h.SetContractAlias(&contract, aliases); err != nil {
 		return err
 	}
 
