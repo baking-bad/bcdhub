@@ -3,6 +3,7 @@ package tzkt
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -120,28 +121,32 @@ func (t *TzKT) GetAliases() (map[string]string, error) {
 	aliases := make(map[string]string)
 	for _, c := range contracts {
 		if c.Alias != nil {
-			aliases[c.Address] = *c.Alias
+			aliases[c.Address] = sanitize(*c.Alias)
 		}
 
 		if c.Creator != nil {
 			if c.Creator.Alias != nil && c.Creator.Address != nil {
-				aliases[*c.Creator.Address] = *c.Creator.Alias
+				aliases[*c.Creator.Address] = sanitize(*c.Creator.Alias)
 			}
 		}
 
 		if c.Manager != nil {
 			if c.Manager.Alias != nil && c.Manager.Address != nil {
-				aliases[*c.Manager.Address] = *c.Manager.Alias
+				aliases[*c.Manager.Address] = sanitize(*c.Manager.Alias)
 			}
 		}
 
 		if c.Delegate != nil {
 			if c.Delegate.Alias != nil && c.Delegate.Address != nil {
-				aliases[*c.Delegate.Address] = *c.Delegate.Alias
+				aliases[*c.Delegate.Address] = sanitize(*c.Delegate.Alias)
 			}
 		}
 	}
 	return aliases, nil
+}
+
+func sanitize(alias string) string {
+	return strings.ReplaceAll(alias, "'", "’")
 }
 
 // GetAllContractOperationBlocks -
