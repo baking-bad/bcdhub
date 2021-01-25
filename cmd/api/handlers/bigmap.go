@@ -243,7 +243,7 @@ func (ctx *Context) GetBigMapDiffCount(c *gin.Context) {
 	c.JSON(http.StatusOK, CountResponse{count})
 }
 
-func (ctx *Context) prepareBigMapKeys(data []bigmapdiff.BigMapDiff) ([]BigMapResponseItem, error) {
+func (ctx *Context) prepareBigMapKeys(data []bigmapdiff.Bucket) ([]BigMapResponseItem, error) {
 	if len(data) == 0 {
 		return []BigMapResponseItem{}, nil
 	}
@@ -255,7 +255,7 @@ func (ctx *Context) prepareBigMapKeys(data []bigmapdiff.BigMapDiff) ([]BigMapRes
 
 	res := make([]BigMapResponseItem, len(data))
 	for i := range data {
-		key, value, keyString, err := prepareItem(data[i], contractMetadata)
+		key, value, keyString, err := prepareItem(data[i].BigMapDiff, contractMetadata)
 		if err != nil {
 			return nil, err
 		}
@@ -269,7 +269,7 @@ func (ctx *Context) prepareBigMapKeys(data []bigmapdiff.BigMapDiff) ([]BigMapRes
 				Value:     value,
 				Timestamp: data[i].Timestamp,
 			},
-			// Count: data[i].Count, TODO: fill count
+			Count: data[i].Count,
 		}
 	}
 	return res, nil

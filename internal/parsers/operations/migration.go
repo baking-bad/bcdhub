@@ -38,8 +38,7 @@ func (m Migration) Parse(data gjson.Result) *migration.Migration {
 
 		value := bmd.Get("value")
 		if contractparser.HasLambda(value) {
-			logger.Info("[%s] Migration detected: %s", m.operation.Network, m.operation.Destination)
-			return &migration.Migration{
+			migration := &migration.Migration{
 				ID:          helpers.GenerateID(),
 				IndexedTime: time.Now().UnixNano() / 1000,
 
@@ -51,6 +50,8 @@ func (m Migration) Parse(data gjson.Result) *migration.Migration {
 				Hash:      m.operation.Hash,
 				Kind:      consts.MigrationLambda,
 			}
+			logger.With(migration).Info("Migration detected")
+			return migration
 		}
 	}
 	return nil

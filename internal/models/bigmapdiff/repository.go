@@ -2,7 +2,7 @@ package bigmapdiff
 
 // Repository -
 type Repository interface {
-	Get(ctx GetContext) ([]BigMapDiff, error)
+	Get(ctx GetContext) ([]Bucket, error)
 	GetByAddress(string, string) ([]BigMapDiff, error)
 	GetByOperationID(string) ([]*BigMapDiff, error)
 	GetByPtr(string, string, int64) ([]BigMapDiff, error)

@@ -177,7 +177,7 @@ func (storage *Storage) GetByPtr(address, network string, ptr int64) ([]bigmapdi
 }
 
 // Get -
-func (storage *Storage) Get(ctx bigmapdiff.GetContext) (response []bigmapdiff.BigMapDiff, err error) {
+func (storage *Storage) Get(ctx bigmapdiff.GetContext) (response []bigmapdiff.Bucket, err error) {
 	if *ctx.Ptr < 0 {
 		return nil, errors.Errorf("Invalid pointer value: %d", *ctx.Ptr)
 	}

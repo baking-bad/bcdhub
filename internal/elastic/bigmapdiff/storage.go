@@ -370,7 +370,7 @@ func (storage *Storage) GetByPtr(address, network string, ptr int64) ([]bigmapdi
 }
 
 // Get -
-func (storage *Storage) Get(ctx bigmapdiff.GetContext) ([]bigmapdiff.BigMapDiff, error) {
+func (storage *Storage) Get(ctx bigmapdiff.GetContext) ([]bigmapdiff.Bucket, error) {
 	if *ctx.Ptr < 0 {
 		return nil, errors.Errorf("Invalid pointer value: %d", *ctx.Ptr)
 	}
@@ -392,12 +392,13 @@ func (storage *Storage) Get(ctx bigmapdiff.GetContext) ([]bigmapdiff.BigMapDiff,
 	}
 
 	arr = arr[ctx.Offset:ctx.To]
-	result := make([]bigmapdiff.BigMapDiff, len(arr))
+	result := make([]bigmapdiff.Bucket, len(arr))
 	for i := range arr {
 		if err := json.Unmarshal(arr[i].TopKey.Hits.Hits[0].Source, &result[i]); err != nil {
 			return nil, err
 		}
 		result[i].ID = arr[i].TopKey.Hits.Hits[0].ID
+		result[i].Count = arr[i].DocCount
 	}
 	return result, nil
 }

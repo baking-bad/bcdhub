@@ -34,10 +34,10 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Get mocks base method
-func (m *MockRepository) Get(ctx bigmapdiff.GetContext) ([]bigmapdiff.BigMapDiff, error) {
+func (m *MockRepository) Get(ctx bigmapdiff.GetContext) ([]bigmapdiff.Bucket, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", ctx)
-	ret0, _ := ret[0].([]bigmapdiff.BigMapDiff)
+	ret0, _ := ret[0].([]bigmapdiff.Bucket)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
