@@ -7,7 +7,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/parsers/tzip/tokens"
 )
 
@@ -30,7 +29,7 @@ func getContract(ids []string) error {
 func parseContract(contract *contract.Contract) error {
 	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.DB)
 
-	aliases, err := getAliases(contract.Network, h.TZIP)
+	aliases, err := getAliases(contract.Network)
 	if err != nil {
 		return err
 	}
@@ -52,16 +51,19 @@ func parseContract(contract *contract.Contract) error {
 	return nil
 }
 
-func getAliases(network string, repo tzip.Repository) (map[string]string, error) {
+func getAliases(network string) (map[string]string, error) {
 	if network != consts.Mainnet {
 		return nil, nil
 	}
 
 	item, err := ctx.Cache.Fetch("aliases", ctx.AliasesCacheSeconds, func() (interface{}, error) {
-		return repo.GetAliasesMap(network)
+		return ctx.TZIP.GetAliasesMap(network)
 	})
 	if err != nil {
-		return nil, err
+		if !ctx.Storage.IsRecordNotFound(err) {
+			return nil, err
+		}
+		return nil, nil
 	}
 
 	return item.Value().(map[string]string), nil
