@@ -120,3 +120,23 @@ var primKeywords = []string{
 	"chain_id",
 	"CHAIN_ID",
 }
+
+// first bytes
+const (
+	ByteInt            = 0x00
+	ByteString         = 0x01
+	ByteArray          = 0x02
+	BytePrim           = 0x03
+	BytePrimAnnots     = 0x04
+	BytePrimArg        = 0x05
+	BytePrimArgAnnots  = 0x06
+	BytePrimArgs       = 0x07
+	BytePrimArgsAnnots = 0x08
+	ByteGeneralPrim    = 0x09
+	ByteBytes          = 0x0a
+)
+
+// custom prim
+const (
+	PrimArray = "_array"
+)

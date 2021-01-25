@@ -12,7 +12,7 @@ type Bytes Node
 
 // Unforge -
 func (b *Bytes) Unforge(data []byte) (int, error) {
-	l := length{}
+	l := new(length)
 	n, err := l.Unforge(data)
 	if err != nil {
 		return n, err
@@ -27,4 +27,22 @@ func (b *Bytes) Unforge(data []byte) (int, error) {
 	s := hex.EncodeToString(data[:l.Value])
 	b.BytesValue = &s
 	return n + l.Value, nil
+}
+
+// Forge -
+func (b *Bytes) Forge() ([]byte, error) {
+	body, err := hex.DecodeString(*b.BytesValue)
+	if err != nil {
+		return nil, err
+	}
+
+	l := new(length)
+	l.Value = len(body)
+	data, err := l.Forge()
+	if err != nil {
+		return nil, err
+	}
+
+	data = append(data, body...)
+	return append([]byte{ByteBytes}, data...), nil
 }

@@ -11,7 +11,7 @@ type String Node
 
 // Unforge -
 func (s *String) Unforge(data []byte) (int, error) {
-	l := length{}
+	l := new(length)
 	n, err := l.Unforge(data)
 	if err != nil {
 		return n, err
@@ -27,4 +27,19 @@ func (s *String) Unforge(data []byte) (int, error) {
 	s.StringValue = &str
 
 	return n + l.Value, nil
+}
+
+// Forge -
+func (s *String) Forge() ([]byte, error) {
+	l := new(length)
+	b := []byte(*s.StringValue)
+	l.Value = len(b)
+	data, err := l.Forge()
+	if err != nil {
+		return nil, err
+	}
+
+	data = append(data, b...)
+
+	return append([]byte{ByteString}, data...), nil
 }

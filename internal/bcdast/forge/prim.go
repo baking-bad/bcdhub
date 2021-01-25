@@ -10,6 +10,12 @@ type prim struct {
 	Value string
 }
 
+func newPrim(p string) *prim {
+	return &prim{
+		Value: p,
+	}
+}
+
 // Unforge -
 func (p *prim) Unforge(data []byte) (int, error) {
 	if len(data) == 0 {
@@ -21,4 +27,14 @@ func (p *prim) Unforge(data []byte) (int, error) {
 	}
 	p.Value = primKeywords[key]
 	return 1, nil
+}
+
+// Forge -
+func (p *prim) Forge() ([]byte, error) {
+	for i := range primKeywords {
+		if primKeywords[i] == p.Value {
+			return []byte{byte(i)}, nil
+		}
+	}
+	return nil, errors.Wrap(ErrInvalidKeyword, p.Value)
 }

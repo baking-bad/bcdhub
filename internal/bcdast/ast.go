@@ -96,6 +96,16 @@ func (a *TypedAst) GetEntrypoints() []string {
 	return entrypoints
 }
 
+// Forge -
+func (a *TypedAst) Forge() ([]byte, error) {
+	return nil, nil
+}
+
+// Unforge -
+func (a *TypedAst) Unforge(data []byte) (int, error) {
+	return 0, nil
+}
+
 func createByType(typ AstNode) (AstNode, error) {
 	obj := reflect.New(reflect.ValueOf(typ).Elem().Type()).Interface().(AstNode)
 	return obj, deepcopier.Copy(typ).To(obj)

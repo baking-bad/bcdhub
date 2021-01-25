@@ -7,19 +7,32 @@ import (
 )
 
 // Array -
-type Array struct {
-	Args []Node
+type Array Node
+
+// NewArray -
+func NewArray() *Array {
+	return &Array{
+		Args: make([]*Node, 0),
+		Prim: PrimArray,
+	}
+}
+
+func newArrayFromNodes(nodes []*Node) *Array {
+	return &Array{
+		Args: nodes,
+		Prim: PrimArray,
+	}
 }
 
 // Unforge -
 func (a *Array) Unforge(data []byte) (int, error) {
-	l := length{}
+	a.Prim = PrimArray
+
+	l := new(length)
 	n, err := l.Unforge(data)
 	if err != nil {
 		return n, err
 	}
-
-	a.Args = make([]Node, 0)
 
 	if l.Value == 0 {
 		return n, nil
@@ -32,8 +45,34 @@ func (a *Array) Unforge(data []byte) (int, error) {
 
 	var count int
 	for count < l.Value {
-		// TODO: realize
+		unforger := NewMichelson()
+		n, err := unforger.Unforge(data)
+		if err != nil {
+			return n, err
+		}
+		count += n
+		data = data[n:]
+		a.Args = append(a.Args, unforger.Nodes...)
 	}
 
-	return n + l.Value, nil
+	return 4 + l.Value, nil
+}
+
+// Forge -
+func (a *Array) Forge() ([]byte, error) {
+	forger := NewMichelson()
+	forger.Nodes = a.Args
+	args, err := forger.Forge()
+	if err != nil {
+		return nil, err
+	}
+	l := new(length)
+	l.Value = len(args)
+	data, err := l.Forge()
+	if err != nil {
+		return nil, err
+	}
+	data = append(data, args...)
+
+	return append([]byte{ByteArray}, data...), nil
 }
