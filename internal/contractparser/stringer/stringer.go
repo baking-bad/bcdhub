@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"regexp"
 	"strings"
+	"unicode/utf8"
 
 	jsoniter "github.com/json-iterator/go"
 
@@ -196,7 +197,7 @@ func findInBytes(input string, storage map[string]struct{}) {
 	}
 
 	decoded, err := hex.DecodeString(input)
-	if err == nil && unpack.IsASCII(decoded) {
+	if err == nil && utf8.Valid(decoded) {
 		storage[string(decoded)] = struct{}{}
 	}
 }

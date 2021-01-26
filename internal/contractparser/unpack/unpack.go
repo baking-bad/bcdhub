@@ -3,7 +3,7 @@ package unpack
 import (
 	"encoding/hex"
 	"fmt"
-	"unicode"
+	"unicode/utf8"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/domaintypes"
@@ -19,7 +19,6 @@ const (
 	keyHashHexLength     = 42
 	pKeyEd25519HexLength = 66
 	pKey256HexLength     = 68
-	minPrintableASCII    = 32
 	ktPrefix             = "01"
 	ktSuffix             = "00"
 
@@ -114,19 +113,9 @@ func Bytes(input string) string {
 	}
 
 	decoded, err := hex.DecodeString(input)
-	if err == nil && IsASCII(decoded) {
+	if err == nil && utf8.Valid(decoded) {
 		return string(decoded)
 	}
 
 	return input
-}
-
-// IsASCII -
-func IsASCII(input []byte) bool {
-	for _, c := range input {
-		if c < minPrintableASCII || c > unicode.MaxASCII {
-			return false
-		}
-	}
-	return true
 }
