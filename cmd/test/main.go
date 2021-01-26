@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/bcdast"
+	"github.com/baking-bad/bcdhub/internal/bcd"
 )
 
 // Data -
@@ -28,7 +28,7 @@ func main() {
 	}
 
 	ts := time.Now()
-	script, err := bcdast.NewScript(contract.Code)
+	script, err := bcd.NewScript(contract.Code)
 	if err != nil {
 		panic(err)
 	}
@@ -49,7 +49,7 @@ func main() {
 		panic(err)
 	}
 
-	storageData, err := bcdast.NewUntypedAST(contract.Storage)
+	storageData, err := bcd.NewUntypedAST(contract.Storage)
 	if err != nil {
 		panic(err)
 	}
