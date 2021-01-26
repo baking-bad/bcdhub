@@ -2,10 +2,10 @@
 // Source: contract/repository.go
 
 // Package mock_contract is a generated GoMock package.
-package mock_contract
+package contract
 
 import (
-	contract "github.com/baking-bad/bcdhub/internal/models/contract"
+	contractModel "github.com/baking-bad/bcdhub/internal/models/contract"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -34,10 +34,10 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Get mocks base method
-func (m *MockRepository) Get(arg0 map[string]interface{}) (contract.Contract, error) {
+func (m *MockRepository) Get(arg0 map[string]interface{}) (contractModel.Contract, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", arg0)
-	ret0, _ := ret[0].(contract.Contract)
+	ret0, _ := ret[0].(contractModel.Contract)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -49,10 +49,10 @@ func (mr *MockRepositoryMockRecorder) Get(arg0 interface{}) *gomock.Call {
 }
 
 // GetMany mocks base method
-func (m *MockRepository) GetMany(arg0 map[string]interface{}) ([]contract.Contract, error) {
+func (m *MockRepository) GetMany(arg0 map[string]interface{}) ([]contractModel.Contract, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMany", arg0)
-	ret0, _ := ret[0].([]contract.Contract)
+	ret0, _ := ret[0].([]contractModel.Contract)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -64,10 +64,10 @@ func (mr *MockRepositoryMockRecorder) GetMany(arg0 interface{}) *gomock.Call {
 }
 
 // GetRandom mocks base method
-func (m *MockRepository) GetRandom() (contract.Contract, error) {
+func (m *MockRepository) GetRandom() (contractModel.Contract, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRandom")
-	ret0, _ := ret[0].(contract.Contract)
+	ret0, _ := ret[0].(contractModel.Contract)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -76,21 +76,6 @@ func (m *MockRepository) GetRandom() (contract.Contract, error) {
 func (mr *MockRepositoryMockRecorder) GetRandom() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRandom", reflect.TypeOf((*MockRepository)(nil).GetRandom))
-}
-
-// GetMigrationsCount mocks base method
-func (m *MockRepository) GetMigrationsCount(arg0, arg1 string) (int64, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMigrationsCount", arg0, arg1)
-	ret0, _ := ret[0].(int64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetMigrationsCount indicates an expected call of GetMigrationsCount
-func (mr *MockRepositoryMockRecorder) GetMigrationsCount(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMigrationsCount", reflect.TypeOf((*MockRepository)(nil).GetMigrationsCount), arg0, arg1)
 }
 
 // GetAddressesByNetworkAndLevel mocks base method
@@ -123,21 +108,6 @@ func (mr *MockRepositoryMockRecorder) GetIDsByAddresses(arg0, arg1 interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIDsByAddresses", reflect.TypeOf((*MockRepository)(nil).GetIDsByAddresses), arg0, arg1)
 }
 
-// GetByLevels mocks base method
-func (m *MockRepository) GetByLevels(arg0 string, arg1, arg2 int64) ([]string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByLevels", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetByLevels indicates an expected call of GetByLevels
-func (mr *MockRepositoryMockRecorder) GetByLevels(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByLevels", reflect.TypeOf((*MockRepository)(nil).GetByLevels), arg0, arg1, arg2)
-}
-
 // IsFA mocks base method
 func (m *MockRepository) IsFA(arg0, arg1 string) (bool, error) {
 	m.ctrl.T.Helper()
@@ -168,10 +138,10 @@ func (mr *MockRepositoryMockRecorder) UpdateMigrationsCount(arg0, arg1 interface
 }
 
 // GetByAddresses mocks base method
-func (m *MockRepository) GetByAddresses(addresses []contract.Address) ([]contract.Contract, error) {
+func (m *MockRepository) GetByAddresses(addresses []contractModel.Address) ([]contractModel.Contract, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByAddresses", addresses)
-	ret0, _ := ret[0].([]contract.Contract)
+	ret0, _ := ret[0].([]contractModel.Contract)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -183,10 +153,10 @@ func (mr *MockRepositoryMockRecorder) GetByAddresses(addresses interface{}) *gom
 }
 
 // GetTokens mocks base method
-func (m *MockRepository) GetTokens(arg0, arg1 string, arg2, arg3 int64) ([]contract.Contract, int64, error) {
+func (m *MockRepository) GetTokens(arg0, arg1 string, arg2, arg3 int64) ([]contractModel.Contract, int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTokens", arg0, arg1, arg2, arg3)
-	ret0, _ := ret[0].([]contract.Contract)
+	ret0, _ := ret[0].([]contractModel.Contract)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -199,25 +169,25 @@ func (mr *MockRepositoryMockRecorder) GetTokens(arg0, arg1, arg2, arg3 interface
 }
 
 // GetProjectsLastContract mocks base method
-func (m *MockRepository) GetProjectsLastContract() ([]contract.Contract, error) {
+func (m *MockRepository) GetProjectsLastContract(contract *contractModel.Contract) ([]contractModel.Contract, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetProjectsLastContract")
-	ret0, _ := ret[0].([]contract.Contract)
+	ret := m.ctrl.Call(m, "GetProjectsLastContract", contract)
+	ret0, _ := ret[0].([]contractModel.Contract)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetProjectsLastContract indicates an expected call of GetProjectsLastContract
-func (mr *MockRepositoryMockRecorder) GetProjectsLastContract() *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetProjectsLastContract(contract interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProjectsLastContract", reflect.TypeOf((*MockRepository)(nil).GetProjectsLastContract))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProjectsLastContract", reflect.TypeOf((*MockRepository)(nil).GetProjectsLastContract), contract)
 }
 
 // GetSameContracts mocks base method
-func (m *MockRepository) GetSameContracts(arg0 contract.Contract, arg1, arg2 int64) (contract.SameResponse, error) {
+func (m *MockRepository) GetSameContracts(arg0 contractModel.Contract, arg1, arg2 int64) (contractModel.SameResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSameContracts", arg0, arg1, arg2)
-	ret0, _ := ret[0].(contract.SameResponse)
+	ret0, _ := ret[0].(contractModel.SameResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -229,10 +199,10 @@ func (mr *MockRepositoryMockRecorder) GetSameContracts(arg0, arg1, arg2 interfac
 }
 
 // GetSimilarContracts mocks base method
-func (m *MockRepository) GetSimilarContracts(arg0 contract.Contract, arg1, arg2 int64) ([]contract.Similar, int, error) {
+func (m *MockRepository) GetSimilarContracts(arg0 contractModel.Contract, arg1, arg2 int64) ([]contractModel.Similar, int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSimilarContracts", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]contract.Similar)
+	ret0, _ := ret[0].([]contractModel.Similar)
 	ret1, _ := ret[1].(int)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -245,10 +215,10 @@ func (mr *MockRepositoryMockRecorder) GetSimilarContracts(arg0, arg1, arg2 inter
 }
 
 // GetDiffTasks mocks base method
-func (m *MockRepository) GetDiffTasks() ([]contract.DiffTask, error) {
+func (m *MockRepository) GetDiffTasks() ([]contractModel.DiffTask, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDiffTasks")
-	ret0, _ := ret[0].([]contract.DiffTask)
+	ret0, _ := ret[0].([]contractModel.DiffTask)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -257,4 +227,23 @@ func (m *MockRepository) GetDiffTasks() ([]contract.DiffTask, error) {
 func (mr *MockRepositoryMockRecorder) GetDiffTasks() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDiffTasks", reflect.TypeOf((*MockRepository)(nil).GetDiffTasks))
+}
+
+// UpdateField mocks base method
+func (m *MockRepository) UpdateField(where []contractModel.Contract, fields ...string) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{where}
+	for _, a := range fields {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdateField", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateField indicates an expected call of UpdateField
+func (mr *MockRepositoryMockRecorder) UpdateField(where interface{}, fields ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{where}, fields...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateField", reflect.TypeOf((*MockRepository)(nil).UpdateField), varargs...)
 }

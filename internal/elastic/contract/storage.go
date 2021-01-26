@@ -200,8 +200,46 @@ func (storage *Storage) GetByAddresses(addresses []contract.Address) ([]contract
 }
 
 // GetProjectsLastContract -
-func (storage *Storage) GetProjectsLastContract() ([]contract.Contract, error) {
-	query := core.NewQuery().Add(
+func (storage *Storage) GetProjectsLastContract(c *contract.Contract) ([]contract.Contract, error) {
+	query := core.NewQuery()
+
+	if c != nil {
+		filters := make([]core.Item, 0)
+		if c.Manager != "" {
+			filters = append(filters, core.MatchPhrase("manager", c.Manager))
+		}
+		if c.Language != "" {
+			filters = append(filters, core.Term("language.keyword", c.Language))
+		}
+		if len(c.Tags) > 0 {
+			filters = append(filters, getArrayFilter("tags", c.Tags...))
+		}
+		if len(c.Annotations) > 0 {
+			filters = append(filters, getArrayFilter("annotations", c.Annotations...))
+		}
+		if len(c.FailStrings) > 0 {
+			filters = append(filters, getArrayFilter("fail_strings", c.FailStrings...))
+		}
+		if len(c.Entrypoints) > 0 {
+			filters = append(filters, getArrayFilter("entrypoints", c.Entrypoints...))
+		}
+		filters = append(filters, core.Bool(
+			core.Must(
+				core.Term("fingerprint.parameter.keyword", c.Fingerprint.Parameter),
+				core.Term("fingerprint.storage.keyword", c.Fingerprint.Storage),
+				core.Term("fingerprint.code.keyword", c.Fingerprint.Code),
+			),
+		))
+
+		query.Query(
+			core.Bool(
+				core.Should(filters...),
+				core.MinimumShouldMatch(1),
+			),
+		)
+	}
+
+	query.Add(
 		core.Aggs(
 			core.AggItem{
 				Name: "projects",
@@ -234,6 +272,18 @@ func (storage *Storage) GetProjectsLastContract() ([]contract.Contract, error) {
 		}
 	}
 	return contracts, nil
+}
+
+func getArrayFilter(fieldName string, arr ...string) core.Item {
+	minimumShouldMatch := len(arr) / 2
+	items := make([]core.Item, 0)
+	for i := range arr {
+		items = append(items, core.Term(fmt.Sprintf("%s.keyword", fieldName), arr[i]))
+	}
+	return core.Bool(
+		core.Should(items...),
+		core.MinimumShouldMatch(minimumShouldMatch),
+	)
 }
 
 // GetSameContracts -
@@ -457,7 +507,7 @@ func (storage *Storage) UpdateField(where []contract.Contract, fields ...string)
 		if err != nil {
 			return err
 		}
-		meta := fmt.Sprintf(`{ "update": { "_id": "%s", "_index": "%s"}}%s%s%s`, where[i].GetID(), where[i].GetIndex(), "\n", string(updated), "\n")
+		meta := fmt.Sprintf(`{ "update": { "_id": "%s", "_index": "%s", "retry_on_conflict": 2}}%s%s%s`, where[i].GetID(), where[i].GetIndex(), "\n", string(updated), "\n")
 		bulk.Grow(len(meta))
 		bulk.WriteString(meta)
 

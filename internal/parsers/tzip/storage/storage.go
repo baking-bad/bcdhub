@@ -13,7 +13,8 @@ import (
 )
 
 const (
-	httpTimeout = 10 * time.Second
+	httpTimeout = time.Second
+	ipfsTimeout = 10 * time.Second
 )
 
 // Storage -
@@ -50,7 +51,7 @@ func (f Full) Get(network, address, url string, ptr int64, output interface{}) e
 	case strings.HasPrefix(url, PrefixIPFS):
 		store = NewIPFSStorage(
 			f.ipfs,
-			WithTimeoutIPFS(httpTimeout),
+			WithTimeoutIPFS(ipfsTimeout),
 		)
 	case strings.HasPrefix(url, PrefixSHA256):
 		store = NewSha256Storage(

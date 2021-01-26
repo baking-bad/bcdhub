@@ -16,7 +16,7 @@ func (m *Manager) Compute(a, b contract.Contract) Feature {
 		Name: "manager",
 	}
 
-	if a.Address == b.Address && a.Network == b.Network {
+	if a.Manager == b.Manager && a.Network == b.Network {
 		f.Value = 1
 	}
 	return f
