@@ -87,7 +87,8 @@ func (ctx *Context) getAccountBalances(network, address string) ([]TokenBalance,
 		tb := TokenBalance{
 			Balance: balance.Balance,
 		}
-		if err == nil {
+
+		if err == nil && len(token) > 0 {
 			tb.Decimals = token[0].Decimals
 			tb.Name = token[0].Name
 			tb.Symbol = token[0].Symbol
