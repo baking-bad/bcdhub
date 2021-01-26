@@ -46,7 +46,7 @@ func (h *Handler) UpdateContractStats(c *contract.Contract) error {
 
 // SetContractProjectID -
 func (h *Handler) SetContractProjectID(c *contract.Contract) error {
-	buckets, err := h.Contracts.GetProjectsLastContract()
+	buckets, err := h.Contracts.GetProjectsLastContract(c)
 	if err != nil {
 		if h.Storage.IsRecordNotFound(err) {
 			c.ProjectID = helpers.GenerateID()
@@ -75,7 +75,7 @@ func getContractProjectID(c contract.Contract, buckets []contract.Contract) stri
 	return helpers.GenerateID()
 }
 
-var model = []clmetrics.Metric{
+var precomputedMetrics = []clmetrics.Metric{
 	clmetrics.NewManager(),
 	clmetrics.NewArray("Tags"),
 	clmetrics.NewArray("FailStrings"),
@@ -85,21 +85,34 @@ var model = []clmetrics.Metric{
 	clmetrics.NewFingerprintLength("parameter"),
 	clmetrics.NewFingerprintLength("storage"),
 	clmetrics.NewFingerprintLength("code"),
+}
+
+var fingerprintMetrics = []clmetrics.Metric{
 	clmetrics.NewFingerprint("parameter"),
 	clmetrics.NewFingerprint("storage"),
 	clmetrics.NewFingerprint("code"),
 }
 
 func compare(a, b contract.Contract) bool {
-	features := make([]float64, len(model))
+	features := make([]float64, len(precomputedMetrics))
 
-	for i := range model {
-		f := model[i].Compute(a, b)
+	for i := range precomputedMetrics {
+		f := precomputedMetrics[i].Compute(a, b)
 		features[i] = f.Value
 	}
 
-	clf := functions.NewLinearSVC()
+	clf := functions.NewPrecomputedLinearSVC()
 	res := clf.Predict(features)
-	// log.Printf("%s -> %s [%d]", a.Address, b.Address, res)
+	if res != 1 {
+		return false
+	}
+
+	for i := range fingerprintMetrics {
+		f := fingerprintMetrics[i].Compute(a, b)
+		features = append(features, f.Value)
+	}
+
+	fullClf := functions.NewLinearSVC()
+	res = fullClf.Predict(features)
 	return res == 1
 }

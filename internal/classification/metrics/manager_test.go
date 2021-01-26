@@ -21,11 +21,11 @@ func TestManager_Compute(t *testing.T) {
 			name: "Case 1",
 			args: args{
 				a: contract.Contract{
-					Address: "test",
+					Manager: "test",
 					Network: "network",
 				},
 				b: contract.Contract{
-					Address: "test",
+					Manager: "test",
 					Network: "network",
 				},
 			},
@@ -37,11 +37,11 @@ func TestManager_Compute(t *testing.T) {
 			name: "Case 2",
 			args: args{
 				a: contract.Contract{
-					Address: "other",
+					Manager: "other",
 					Network: "network",
 				},
 				b: contract.Contract{
-					Address: "test",
+					Manager: "test",
 					Network: "network",
 				},
 			},
@@ -53,11 +53,11 @@ func TestManager_Compute(t *testing.T) {
 			name: "Case 3",
 			args: args{
 				a: contract.Contract{
-					Address: "test",
+					Manager: "test",
 					Network: "other",
 				},
 				b: contract.Contract{
-					Address: "test",
+					Manager: "test",
 					Network: "network",
 				},
 			},
@@ -69,11 +69,11 @@ func TestManager_Compute(t *testing.T) {
 			name: "Case 4",
 			args: args{
 				a: contract.Contract{
-					Address: "other",
+					Manager: "other",
 					Network: "other",
 				},
 				b: contract.Contract{
-					Address: "test",
+					Manager: "test",
 					Network: "network",
 				},
 			},

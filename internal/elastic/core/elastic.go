@@ -5,7 +5,6 @@ import (
 	"context"
 	stdJSON "encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -70,11 +69,7 @@ func (e *Elastic) GetResponse(resp *esapi.Response, result interface{}) error {
 	if result == nil {
 		return nil
 	}
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(body, result)
+	return json.NewDecoder(resp.Body).Decode(result)
 }
 
 func (e *Elastic) getTextResponse(resp *esapi.Response) (string, error) {
@@ -82,12 +77,9 @@ func (e *Elastic) getTextResponse(resp *esapi.Response) (string, error) {
 		return "", errors.Errorf(resp.String())
 	}
 
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	return string(b), nil
+	buf := new(bytes.Buffer)
+	_, err := buf.ReadFrom(resp.Body)
+	return buf.String(), err
 }
 
 // Query -
@@ -229,8 +221,7 @@ func (e *Elastic) updateByQueryScript(indices []string, query map[string]interfa
 
 	defer resp.Body.Close()
 
-	var v interface{}
-	return e.GetResponse(resp, &v)
+	return e.GetResponse(resp, nil)
 }
 
 func (e *Elastic) deleteByQuery(indices []string, query map[string]interface{}) (result *DeleteByQueryResponse, err error) {
@@ -413,7 +404,7 @@ func (e *Elastic) BulkUpdate(updates []models.Model) error {
 	}
 	bulk := bytes.NewBuffer([]byte{})
 	for i := range updates {
-		if _, err := bulk.WriteString(fmt.Sprintf(`{"update":{"_id":"%s","_index":"%s"}}`, updates[i].GetID(), updates[i].GetIndex())); err != nil {
+		if _, err := bulk.WriteString(fmt.Sprintf(`{"update":{"_id":"%s","_index":"%s", "retry_on_conflict": 2}}`, updates[i].GetID(), updates[i].GetIndex())); err != nil {
 			return err
 		}
 		if err := bulk.WriteByte('\n'); err != nil {

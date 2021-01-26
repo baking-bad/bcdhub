@@ -142,7 +142,7 @@ func (storage *Storage) GetByAddresses(addresses []contract.Address) (contracts 
 }
 
 // GetProjectsLastContract -
-func (storage *Storage) GetProjectsLastContract() ([]contract.Contract, error) {
+func (storage *Storage) GetProjectsLastContract(c *contract.Contract) ([]contract.Contract, error) {
 	query := storage.db.Query(models.DocContracts).Sort("timestamp", true)
 	return storage.topContracts(query, func(c contract.Contract) string {
 		return c.ProjectID

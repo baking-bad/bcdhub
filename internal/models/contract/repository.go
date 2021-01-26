@@ -11,7 +11,7 @@ type Repository interface {
 	UpdateMigrationsCount(string, string) error
 	GetByAddresses(addresses []Address) ([]Contract, error)
 	GetTokens(string, string, int64, int64) ([]Contract, int64, error)
-	GetProjectsLastContract() ([]Contract, error)
+	GetProjectsLastContract(contract *Contract) ([]Contract, error)
 	GetSameContracts(Contract, int64, int64) (SameResponse, error)
 	GetSimilarContracts(Contract, int64, int64) ([]Similar, int, error)
 	GetDiffTasks() ([]DiffTask, error)
