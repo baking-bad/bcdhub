@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"regexp"
 	"strings"
-	"unicode/utf8"
+	"unicode"
 
 	jsoniter "github.com/json-iterator/go"
 
@@ -13,6 +13,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/rawbytes"
 	"github.com/tidwall/gjson"
 )
+
+const minPrintableASCII = 32
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
@@ -197,7 +199,16 @@ func findInBytes(input string, storage map[string]struct{}) {
 	}
 
 	decoded, err := hex.DecodeString(input)
-	if err == nil && utf8.Valid(decoded) {
+	if err == nil && isASCII(decoded) {
 		storage[string(decoded)] = struct{}{}
 	}
+}
+
+func isASCII(input []byte) bool {
+	for _, c := range input {
+		if c < minPrintableASCII || c > unicode.MaxASCII {
+			return false
+		}
+	}
+	return true
 }
