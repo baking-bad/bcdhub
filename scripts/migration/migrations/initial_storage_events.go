@@ -1,7 +1,10 @@
 package migrations
 
 import (
+	"errors"
+
 	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -47,6 +50,10 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 		}
 		transfers, err := h.ExecuteInitialStorageEvent(rpc, tzips[i].Network, tzips[i].Address)
 		if err != nil {
+			if errors.Is(err, events.ErrNodeReturn) {
+				logger.Error(err)
+				continue
+			}
 			return err
 		}
 		for i := range transfers {
