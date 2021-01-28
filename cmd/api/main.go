@@ -317,7 +317,6 @@ func (api *app) Run() {
 
 // @x-logo {"url": "https://better-call.dev/img/logo_og.png", "altText": "Better Call Dev logo", "href": "https://better-call.dev"}
 
-// @BasePath /v1
 // @query.collection.format multi
 func main() {
 	api := newApp()

@@ -28,7 +28,7 @@ import (
 // @Success 204 {object} gin.H
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /bigmap/{network}/{ptr} [get]
+// @Router /v1/bigmap/{network}/{ptr} [get]
 func (ctx *Context) GetBigMap(c *gin.Context) {
 	var req getBigMapRequest
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
@@ -104,7 +104,7 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 // @Success 204 {object} gin.H
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /bigmap/{network}/{ptr}/history [get]
+// @Router /v1/bigmap/{network}/{ptr}/history [get]
 func (ctx *Context) GetBigMapHistory(c *gin.Context) {
 	var req getBigMapRequest
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
@@ -139,7 +139,7 @@ func (ctx *Context) GetBigMapHistory(c *gin.Context) {
 // @Success 200 {array} BigMapResponseItem
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /bigmap/{network}/{ptr}/keys [get]
+// @Router /v1/bigmap/{network}/{ptr}/keys [get]
 func (ctx *Context) GetBigMapKeys(c *gin.Context) {
 	var req getBigMapRequest
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
@@ -186,7 +186,7 @@ func (ctx *Context) GetBigMapKeys(c *gin.Context) {
 // @Success 200 {object} BigMapDiffByKeyResponse
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /bigmap/{network}/{ptr}/keys/{key_hash} [get]
+// @Router /v1/bigmap/{network}/{ptr}/keys/{key_hash} [get]
 func (ctx *Context) GetBigMapByKeyHash(c *gin.Context) {
 	var req getBigMapByKeyHashRequest
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
@@ -224,7 +224,7 @@ func (ctx *Context) GetBigMapByKeyHash(c *gin.Context) {
 // @Success 200 {object} CountResponse
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /bigmap/{network}/{ptr}/count [get]
+// @Router /v1/bigmap/{network}/{ptr}/count [get]
 func (ctx *Context) GetBigMapDiffCount(c *gin.Context) {
 	var req getBigMapRequest
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {

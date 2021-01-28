@@ -18,7 +18,7 @@ import (
 // @Success 200 {object} Alias
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /slug/{slug} [get]
+// @Router /v1/slug/{slug} [get]
 func (ctx *Context) GetBySlug(c *gin.Context) {
 	var req getBySlugRequest
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {

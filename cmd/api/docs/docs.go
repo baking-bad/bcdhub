@@ -33,7 +33,7 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/account/{network}/{address}": {
+        "/v1/account/{network}/{address}": {
             "get": {
                 "description": "Get account info",
                 "consumes": [
@@ -87,7 +87,7 @@ var doc = `{
                 }
             }
         },
-        "/account/{network}/{address}/metadata": {
+        "/v1/account/{network}/{address}/metadata": {
             "get": {
                 "description": "Returns full metadata for account",
                 "consumes": [
@@ -147,7 +147,7 @@ var doc = `{
                 }
             }
         },
-        "/bigmap/{network}/{ptr}": {
+        "/v1/bigmap/{network}/{ptr}": {
             "get": {
                 "description": "Get big map info by pointer",
                 "consumes": [
@@ -205,7 +205,7 @@ var doc = `{
                 }
             }
         },
-        "/bigmap/{network}/{ptr}/count": {
+        "/v1/bigmap/{network}/{ptr}/count": {
             "get": {
                 "description": "Get big map diffs count info by pointer",
                 "consumes": [
@@ -257,7 +257,7 @@ var doc = `{
                 }
             }
         },
-        "/bigmap/{network}/{ptr}/history": {
+        "/v1/bigmap/{network}/{ptr}/history": {
             "get": {
                 "description": "Get big map actions (alloc/copy/remove)",
                 "consumes": [
@@ -315,7 +315,7 @@ var doc = `{
                 }
             }
         },
-        "/bigmap/{network}/{ptr}/keys": {
+        "/v1/bigmap/{network}/{ptr}/keys": {
             "get": {
                 "description": "Get big map keys by pointer",
                 "consumes": [
@@ -395,7 +395,7 @@ var doc = `{
                 }
             }
         },
-        "/bigmap/{network}/{ptr}/keys/{key_hash}": {
+        "/v1/bigmap/{network}/{ptr}/keys/{key_hash}": {
             "get": {
                 "description": "Get big map diffs by pointer and key hash",
                 "consumes": [
@@ -468,7 +468,7 @@ var doc = `{
                 }
             }
         },
-        "/contract/{network}/{address}": {
+        "/v1/contract/{network}/{address}": {
             "get": {
                 "description": "Get full contract info",
                 "consumes": [
@@ -522,7 +522,7 @@ var doc = `{
                 }
             }
         },
-        "/contract/{network}/{address}/code": {
+        "/v1/contract/{network}/{address}/code": {
             "get": {
                 "description": "Get contract code",
                 "consumes": [
@@ -576,7 +576,7 @@ var doc = `{
                 }
             }
         },
-        "/contract/{network}/{address}/entrypoints": {
+        "/v1/contract/{network}/{address}/entrypoints": {
             "get": {
                 "description": "Get contract entrypoints",
                 "consumes": [
@@ -633,7 +633,7 @@ var doc = `{
                 }
             }
         },
-        "/contract/{network}/{address}/entrypoints/data": {
+        "/v1/contract/{network}/{address}/entrypoints/data": {
             "post": {
                 "description": "Get entrypoint data from schema object",
                 "consumes": [
@@ -696,7 +696,7 @@ var doc = `{
                 }
             }
         },
-        "/contract/{network}/{address}/entrypoints/schema": {
+        "/v1/contract/{network}/{address}/entrypoints/schema": {
             "get": {
                 "description": "Get contract` + "`" + `s entrypoint schema",
                 "consumes": [
@@ -767,7 +767,7 @@ var doc = `{
                 }
             }
         },
-        "/contract/{network}/{address}/entrypoints/trace": {
+        "/v1/contract/{network}/{address}/entrypoints/trace": {
             "post": {
                 "description": "Execute entrypoint with passed arguments",
                 "consumes": [
@@ -833,7 +833,7 @@ var doc = `{
                 }
             }
         },
-        "/contract/{network}/{address}/mempool": {
+        "/v1/contract/{network}/{address}/mempool": {
             "get": {
                 "description": "Get contract mempool operations",
                 "consumes": [
@@ -890,7 +890,7 @@ var doc = `{
                 }
             }
         },
-        "/contract/{network}/{address}/migrations": {
+        "/v1/contract/{network}/{address}/migrations": {
             "get": {
                 "description": "Get contract migrations",
                 "consumes": [
@@ -947,7 +947,7 @@ var doc = `{
                 }
             }
         },
-        "/contract/{network}/{address}/operations": {
+        "/v1/contract/{network}/{address}/operations": {
             "get": {
                 "description": "Get contract operations",
                 "consumes": [
@@ -1043,7 +1043,7 @@ var doc = `{
                 }
             }
         },
-        "/contract/{network}/{address}/same": {
+        "/v1/contract/{network}/{address}/same": {
             "get": {
                 "description": "Get same contracts",
                 "consumes": [
@@ -1109,7 +1109,7 @@ var doc = `{
                 }
             }
         },
-        "/contract/{network}/{address}/similar": {
+        "/v1/contract/{network}/{address}/similar": {
             "get": {
                 "description": "Get similar contracts",
                 "consumes": [
@@ -1175,7 +1175,7 @@ var doc = `{
                 }
             }
         },
-        "/contract/{network}/{address}/storage": {
+        "/v1/contract/{network}/{address}/storage": {
             "get": {
                 "description": "Get contract storage",
                 "consumes": [
@@ -1235,7 +1235,7 @@ var doc = `{
                 }
             }
         },
-        "/contract/{network}/{address}/storage/raw": {
+        "/v1/contract/{network}/{address}/storage/raw": {
             "get": {
                 "description": "Get contract raw storage",
                 "consumes": [
@@ -1301,7 +1301,7 @@ var doc = `{
                 }
             }
         },
-        "/contract/{network}/{address}/storage/rich": {
+        "/v1/contract/{network}/{address}/storage/rich": {
             "get": {
                 "description": "Get contract rich storage",
                 "consumes": [
@@ -1367,7 +1367,7 @@ var doc = `{
                 }
             }
         },
-        "/contract/{network}/{address}/storage/schema": {
+        "/v1/contract/{network}/{address}/storage/schema": {
             "get": {
                 "description": "Get contract storage schema",
                 "consumes": [
@@ -1431,7 +1431,7 @@ var doc = `{
                 }
             }
         },
-        "/contract/{network}/{address}/tokens": {
+        "/v1/contract/{network}/{address}/tokens": {
             "get": {
                 "description": "List contract tokens",
                 "consumes": [
@@ -1488,7 +1488,7 @@ var doc = `{
                 }
             }
         },
-        "/contract/{network}/{address}/tokens/holders": {
+        "/v1/contract/{network}/{address}/tokens/holders": {
             "get": {
                 "description": "List token holders",
                 "consumes": [
@@ -1553,7 +1553,7 @@ var doc = `{
                 }
             }
         },
-        "/contract/{network}/{address}/views/execute": {
+        "/v1/contract/{network}/{address}/views/execute": {
             "post": {
                 "description": "Execute view of contracts metadata",
                 "consumes": [
@@ -1616,7 +1616,7 @@ var doc = `{
                 }
             }
         },
-        "/contract/{network}/{address}/views/schema": {
+        "/v1/contract/{network}/{address}/views/schema": {
             "get": {
                 "description": "Get view schemas of contract metadata",
                 "consumes": [
@@ -1673,7 +1673,7 @@ var doc = `{
                 }
             }
         },
-        "/diff": {
+        "/v1/diff": {
             "post": {
                 "description": "Get diff between two contracts",
                 "consumes": [
@@ -1720,7 +1720,7 @@ var doc = `{
                 }
             }
         },
-        "/domains/{network}": {
+        "/v1/domains/{network}": {
             "get": {
                 "description": "Show all tezos domains for network",
                 "consumes": [
@@ -1777,7 +1777,7 @@ var doc = `{
                 }
             }
         },
-        "/domains/{network}/resolve": {
+        "/v1/domains/{network}/resolve": {
             "get": {
                 "description": "Resolve domain by address and vice versa",
                 "consumes": [
@@ -1842,7 +1842,7 @@ var doc = `{
                 }
             }
         },
-        "/operation/{id}/error_location": {
+        "/v1/operation/{id}/error_location": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -1886,7 +1886,7 @@ var doc = `{
                 }
             }
         },
-        "/opg/{hash}": {
+        "/v1/opg/{hash}": {
             "get": {
                 "description": "Get operation group by hash",
                 "consumes": [
@@ -1936,7 +1936,7 @@ var doc = `{
                 }
             }
         },
-        "/pick_random": {
+        "/v1/pick_random": {
             "get": {
                 "description": "Get random contract with 2 or more operations",
                 "consumes": [
@@ -1966,7 +1966,7 @@ var doc = `{
                 }
             }
         },
-        "/search": {
+        "/v1/search": {
             "get": {
                 "description": "Search any data in contracts, operations and big map diff with filters",
                 "consumes": [
@@ -2063,7 +2063,7 @@ var doc = `{
                 }
             }
         },
-        "/slug/{slug}": {
+        "/v1/slug/{slug}": {
             "get": {
                 "description": "Get contract by slug",
                 "consumes": [
@@ -2108,7 +2108,7 @@ var doc = `{
                 }
             }
         },
-        "/stats": {
+        "/v1/stats": {
             "get": {
                 "description": "get indexer states for all networks",
                 "consumes": [
@@ -2141,7 +2141,7 @@ var doc = `{
                 }
             }
         },
-        "/stats/{network}": {
+        "/v1/stats/{network}": {
             "get": {
                 "description": "Get detailed statistics for network",
                 "consumes": [
@@ -2186,7 +2186,7 @@ var doc = `{
                 }
             }
         },
-        "/stats/{network}/contracts": {
+        "/v1/stats/{network}/contracts": {
             "get": {
                 "description": "Show total volume, unique users and transactions count for period",
                 "consumes": [
@@ -2253,7 +2253,7 @@ var doc = `{
                 }
             }
         },
-        "/stats/{network}/series": {
+        "/v1/stats/{network}/series": {
             "get": {
                 "description": "Get count series data for network",
                 "consumes": [
@@ -2338,7 +2338,7 @@ var doc = `{
                 }
             }
         },
-        "/tokens/{network}": {
+        "/v1/tokens/{network}": {
             "get": {
                 "description": "Get all contracts that implement FA1/FA1.2 standard",
                 "consumes": [
@@ -2397,7 +2397,7 @@ var doc = `{
                 }
             }
         },
-        "/tokens/{network}/series": {
+        "/v1/tokens/{network}/series": {
             "get": {
                 "description": "Get volume series for token",
                 "consumes": [
@@ -2485,7 +2485,7 @@ var doc = `{
                 }
             }
         },
-        "/tokens/{network}/transfers/{address}": {
+        "/v1/tokens/{network}/transfers/{address}": {
             "get": {
                 "description": "Get all token transfers (FA1/FA1.2) where given address is src/dst",
                 "consumes": [
@@ -2582,7 +2582,7 @@ var doc = `{
                 }
             }
         },
-        "/tokens/{network}/version/{faversion}": {
+        "/v1/tokens/{network}/version/{faversion}": {
             "get": {
                 "description": "Get all contracts that implement FA1/FA1.2 standard by version",
                 "consumes": [
@@ -2653,7 +2653,7 @@ var doc = `{
                 }
             }
         },
-        "/{network}/{address}/transfers": {
+        "/v1/{network}/{address}/transfers": {
             "get": {
                 "description": "Show contract` + "`" + `s tokens transfers.",
                 "consumes": [
@@ -4710,7 +4710,7 @@ type swaggerInfo struct {
 var SwaggerInfo = swaggerInfo{
 	Version:     "",
 	Host:        "",
-	BasePath:    "/v1",
+	BasePath:    "",
 	Schemes:     []string{},
 	Title:       "Better Call Dev API",
 	Description: "This is API description for Better Call Dev service.",

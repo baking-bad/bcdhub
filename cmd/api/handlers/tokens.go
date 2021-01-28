@@ -25,7 +25,7 @@ import (
 // @Success 200 {object} PageableTokenContracts
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /tokens/{network} [get]
+// @Router /v1/tokens/{network} [get]
 func (ctx *Context) GetFA(c *gin.Context) {
 	var req getByNetwork
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
@@ -67,7 +67,7 @@ func (ctx *Context) GetFA(c *gin.Context) {
 // @Success 200 {object} PageableTokenContracts
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /tokens/{network}/version/{faversion} [get]
+// @Router /v1/tokens/{network}/version/{faversion} [get]
 func (ctx *Context) GetFAByVersion(c *gin.Context) {
 	var req getTokensByVersion
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
@@ -113,7 +113,7 @@ func (ctx *Context) GetFAByVersion(c *gin.Context) {
 // @Success 200 {object} transfer.Pageable
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /tokens/{network}/transfers/{address} [get]
+// @Router /v1/tokens/{network}/transfers/{address} [get]
 func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
@@ -173,7 +173,7 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 // @Success 200 {object} Series
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /tokens/{network}/series [get]
+// @Router /v1/tokens/{network}/series [get]
 func (ctx *Context) GetTokenVolumeSeries(c *gin.Context) {
 	var req getByNetwork
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
@@ -286,7 +286,7 @@ func (ctx *Context) contractToTokens(contracts []contract.Contract, network, ver
 // @Success 200 {array} Token
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /contract/{network}/{address}/tokens [get]
+// @Router /v1/contract/{network}/{address}/tokens [get]
 func (ctx *Context) GetContractTokens(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
@@ -338,7 +338,7 @@ func (ctx *Context) getTokens(network, address string) ([]Token, error) {
 // @Success 200 {array} gin.H
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /contract/{network}/{address}/tokens/holders [get]
+// @Router /v1/contract/{network}/{address}/tokens/holders [get]
 func (ctx *Context) GetTokenHolders(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {

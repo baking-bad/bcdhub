@@ -24,7 +24,7 @@ import (
 // @Success 200 {array} EntrypointSchema
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /contract/{network}/{address}/entrypoints [get]
+// @Router /v1/contract/{network}/{address}/entrypoints [get]
 func (ctx *Context) GetEntrypoints(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
@@ -65,7 +65,7 @@ func (ctx *Context) GetEntrypoints(c *gin.Context) {
 // @Success 200 {object} gin.H
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /contract/{network}/{address}/entrypoints/data [post]
+// @Router /v1/contract/{network}/{address}/entrypoints/data [post]
 func (ctx *Context) GetEntrypointData(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
@@ -108,7 +108,7 @@ func (ctx *Context) GetEntrypointData(c *gin.Context) {
 // @Success 200 {object} EntrypointSchema
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /contract/{network}/{address}/entrypoints/schema [get]
+// @Router /v1/contract/{network}/{address}/entrypoints/schema [get]
 func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {

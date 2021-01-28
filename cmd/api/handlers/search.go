@@ -31,7 +31,7 @@ import (
 // @Success 200 {object} models.Result
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /search [get]
+// @Router /v1/search [get]
 func (ctx *Context) Search(c *gin.Context) {
 	var req searchRequest
 	if err := c.BindQuery(&req); ctx.handleError(c, err, http.StatusBadRequest) {

@@ -41,7 +41,7 @@ import (
 // @Success 200 {object} OperationResponse
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /contract/{network}/{address}/operations [get]
+// @Router /v1/contract/{network}/{address}/operations [get]
 func (ctx *Context) GetContractOperations(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
@@ -80,7 +80,7 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 // @Success 200 {array} Operation
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /opg/{hash} [get]
+// @Router /v1/opg/{hash} [get]
 func (ctx *Context) GetOperation(c *gin.Context) {
 	var req OPGRequest
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
@@ -136,7 +136,7 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 // @Success 200 {object} GetErrorLocationResponse
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /operation/{id}/error_location [get]
+// @Router /v1/operation/{id}/error_location [get]
 func (ctx *Context) GetOperationErrorLocation(c *gin.Context) {
 	var req getOperationByIDRequest
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
