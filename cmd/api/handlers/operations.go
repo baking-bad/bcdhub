@@ -330,7 +330,7 @@ func (ctx *Context) setStorageDiff(address, storage string, op *Operation, bmd [
 func (ctx *Context) getStorageDiff(bmd []bigmapdiff.BigMapDiff, address, storage string, metadata *meta.ContractMetadata, isSimulating bool, op *Operation) (interface{}, error) {
 	var prevStorage *newmiguel.Node
 	var prevDeffatedStorage string
-	prev, err := ctx.Operations.Last(address, op.Network, op.IndexedTime)
+	prev, err := ctx.Operations.Last(op.Network, address, op.IndexedTime)
 	if err == nil {
 		prevBmd, err := ctx.getPrevBmd(bmd, op.IndexedTime, op.Destination)
 		if err != nil {

@@ -142,12 +142,10 @@ func (storage *Storage) Last(network, address string, indexedTime int64) (op ope
 	query := core.NewQuery().
 		Query(
 			core.Bool(
-				core.Must(
-					core.MatchPhrase("destination", address),
-					core.MatchPhrase("network", network),
-				),
 				core.Filter(
+					core.MatchPhrase("destination", address),
 					core.Range("indexed_time", core.Item{"lt": indexedTime}),
+					core.Term("network", network),
 					core.Term("status", "applied"),
 				),
 				core.MustNot(
