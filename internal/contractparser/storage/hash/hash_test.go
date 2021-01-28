@@ -33,6 +33,13 @@ func TestKey(t *testing.T) {
 			}`,
 			expected: "exprufzwVGdAX7zG91UpiAkR2yVxEDE75tHD5YgSBmYMUx22teZTCM",
 		},
+		{
+			name: "string",
+			input: `{
+				"string": "metadata"
+			}`,
+			expected: "exprtuf4ctHCKfnRvAxgU8rMeqPzfb8D8e51GWR3iHkoWsFBxD8u9h",
+		},
 	}
 
 	for _, tt := range tests {
