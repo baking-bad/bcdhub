@@ -1,4 +1,3 @@
-basePath: /v1
 definitions:
   cerrors.Error:
     properties:
@@ -1360,7 +1359,7 @@ info:
     href: https://better-call.dev
     url: https://better-call.dev/img/logo_og.png
 paths:
-  /{network}/{address}/transfers:
+  /v1/{network}/{address}/transfers:
     get:
       consumes:
       - application/json
@@ -1397,7 +1396,7 @@ paths:
       summary: Show contract`s tokens transfers
       tags:
       - contract
-  /account/{network}/{address}:
+  /v1/account/{network}/{address}:
     get:
       consumes:
       - application/json
@@ -1434,7 +1433,7 @@ paths:
       summary: Get account info
       tags:
       - account
-  /account/{network}/{address}/metadata:
+  /v1/account/{network}/{address}/metadata:
     get:
       consumes:
       - application/json
@@ -1475,7 +1474,7 @@ paths:
       summary: Get metadata for account
       tags:
       - account
-  /bigmap/{network}/{ptr}:
+  /v1/bigmap/{network}/{ptr}:
     get:
       consumes:
       - application/json
@@ -1514,7 +1513,7 @@ paths:
       summary: Get big map info by pointer
       tags:
       - bigmap
-  /bigmap/{network}/{ptr}/count:
+  /v1/bigmap/{network}/{ptr}/count:
     get:
       consumes:
       - application/json
@@ -1549,7 +1548,7 @@ paths:
       summary: Get big map diffs count info by pointer
       tags:
       - bigmap
-  /bigmap/{network}/{ptr}/history:
+  /v1/bigmap/{network}/{ptr}/history:
     get:
       consumes:
       - application/json
@@ -1588,7 +1587,7 @@ paths:
       summary: Get big map actions (alloc/copy/remove)
       tags:
       - bigmap
-  /bigmap/{network}/{ptr}/keys:
+  /v1/bigmap/{network}/{ptr}/keys:
     get:
       consumes:
       - application/json
@@ -1642,7 +1641,7 @@ paths:
       summary: Get big map keys by pointer
       tags:
       - bigmap
-  /bigmap/{network}/{ptr}/keys/{key_hash}:
+  /v1/bigmap/{network}/{ptr}/keys/{key_hash}:
     get:
       consumes:
       - application/json
@@ -1692,7 +1691,7 @@ paths:
       summary: Get big map diffs by pointer and key hash
       tags:
       - bigmap
-  /contract/{network}/{address}:
+  /v1/contract/{network}/{address}:
     get:
       consumes:
       - application/json
@@ -1729,7 +1728,7 @@ paths:
       summary: Get contract info
       tags:
       - contract
-  /contract/{network}/{address}/code:
+  /v1/contract/{network}/{address}/code:
     get:
       consumes:
       - application/json
@@ -1766,7 +1765,7 @@ paths:
       summary: Get contract code
       tags:
       - contract
-  /contract/{network}/{address}/entrypoints:
+  /v1/contract/{network}/{address}/entrypoints:
     get:
       consumes:
       - application/json
@@ -1805,7 +1804,7 @@ paths:
       summary: Get contract entrypoints
       tags:
       - contract
-  /contract/{network}/{address}/entrypoints/data:
+  /v1/contract/{network}/{address}/entrypoints/data:
     post:
       consumes:
       - application/json
@@ -1848,7 +1847,7 @@ paths:
       summary: Get entrypoint data from schema object
       tags:
       - contract
-  /contract/{network}/{address}/entrypoints/schema:
+  /v1/contract/{network}/{address}/entrypoints/schema:
     get:
       consumes:
       - application/json
@@ -1897,7 +1896,7 @@ paths:
       summary: Get contract`s entrypoint schema
       tags:
       - contract
-  /contract/{network}/{address}/entrypoints/trace:
+  /v1/contract/{network}/{address}/entrypoints/trace:
     post:
       consumes:
       - application/json
@@ -1942,7 +1941,7 @@ paths:
       summary: Execute entrypoint with passed arguments
       tags:
       - contract
-  /contract/{network}/{address}/mempool:
+  /v1/contract/{network}/{address}/mempool:
     get:
       consumes:
       - application/json
@@ -1981,7 +1980,7 @@ paths:
       summary: Get contract mempool operations
       tags:
       - contract
-  /contract/{network}/{address}/migrations:
+  /v1/contract/{network}/{address}/migrations:
     get:
       consumes:
       - application/json
@@ -2020,7 +2019,7 @@ paths:
       summary: Get contract migrations
       tags:
       - contract
-  /contract/{network}/{address}/operations:
+  /v1/contract/{network}/{address}/operations:
     get:
       consumes:
       - application/json
@@ -2085,7 +2084,7 @@ paths:
       summary: Get contract operations
       tags:
       - contract
-  /contract/{network}/{address}/same:
+  /v1/contract/{network}/{address}/same:
     get:
       consumes:
       - application/json
@@ -2130,7 +2129,7 @@ paths:
       summary: Get same contracts
       tags:
       - contract
-  /contract/{network}/{address}/similar:
+  /v1/contract/{network}/{address}/similar:
     get:
       consumes:
       - application/json
@@ -2175,7 +2174,7 @@ paths:
       summary: Get similar contracts
       tags:
       - contract
-  /contract/{network}/{address}/storage:
+  /v1/contract/{network}/{address}/storage:
     get:
       consumes:
       - application/json
@@ -2216,7 +2215,7 @@ paths:
       summary: Get contract storage
       tags:
       - contract
-  /contract/{network}/{address}/storage/raw:
+  /v1/contract/{network}/{address}/storage/raw:
     get:
       consumes:
       - application/json
@@ -2261,7 +2260,7 @@ paths:
       summary: Get contract raw storage
       tags:
       - contract
-  /contract/{network}/{address}/storage/rich:
+  /v1/contract/{network}/{address}/storage/rich:
     get:
       consumes:
       - application/json
@@ -2306,7 +2305,7 @@ paths:
       summary: Get contract rich storage
       tags:
       - contract
-  /contract/{network}/{address}/storage/schema:
+  /v1/contract/{network}/{address}/storage/schema:
     get:
       consumes:
       - application/json
@@ -2350,7 +2349,7 @@ paths:
       summary: Get contract storage schema
       tags:
       - contract
-  /contract/{network}/{address}/tokens:
+  /v1/contract/{network}/{address}/tokens:
     get:
       consumes:
       - application/json
@@ -2389,7 +2388,7 @@ paths:
       summary: List contract tokens
       tags:
       - contract
-  /contract/{network}/{address}/tokens/holders:
+  /v1/contract/{network}/{address}/tokens/holders:
     get:
       consumes:
       - application/json
@@ -2434,7 +2433,7 @@ paths:
       summary: List token holders
       tags:
       - contract
-  /contract/{network}/{address}/views/execute:
+  /v1/contract/{network}/{address}/views/execute:
     post:
       consumes:
       - application/json
@@ -2477,7 +2476,7 @@ paths:
       summary: Execute view of contracts metadata
       tags:
       - contract
-  /contract/{network}/{address}/views/schema:
+  /v1/contract/{network}/{address}/views/schema:
     get:
       consumes:
       - application/json
@@ -2516,7 +2515,7 @@ paths:
       summary: Get view schemas of contract metadata
       tags:
       - contract
-  /diff:
+  /v1/diff:
     post:
       consumes:
       - application/json
@@ -2547,7 +2546,7 @@ paths:
       summary: Get diff between two contracts
       tags:
       - contract
-  /domains/{network}:
+  /v1/domains/{network}:
     get:
       consumes:
       - application/json
@@ -2585,7 +2584,7 @@ paths:
       summary: Show all tezos domains for network
       tags:
       - domains
-  /domains/{network}/resolve:
+  /v1/domains/{network}/resolve:
     get:
       consumes:
       - application/json
@@ -2629,7 +2628,7 @@ paths:
       summary: Resolve domain
       tags:
       - domains
-  /operation/{id}/error_location:
+  /v1/operation/{id}/error_location:
     get:
       consumes:
       - application/json
@@ -2658,7 +2657,7 @@ paths:
       summary: Get code line where operation failed
       tags:
       - operations
-  /opg/{hash}:
+  /v1/opg/{hash}:
     get:
       consumes:
       - application/json
@@ -2692,7 +2691,7 @@ paths:
       summary: Get operation group
       tags:
       - operations
-  /pick_random:
+  /v1/pick_random:
     get:
       consumes:
       - application/json
@@ -2712,7 +2711,7 @@ paths:
       summary: Show random contract
       tags:
       - contract
-  /search:
+  /v1/search:
     get:
       consumes:
       - application/json
@@ -2780,7 +2779,7 @@ paths:
       summary: Search in better-call
       tags:
       - search
-  /slug/{slug}:
+  /v1/slug/{slug}:
     get:
       consumes:
       - application/json
@@ -2810,7 +2809,7 @@ paths:
       summary: Get contract by slug
       tags:
       - contract
-  /stats:
+  /v1/stats:
     get:
       consumes:
       - application/json
@@ -2832,7 +2831,7 @@ paths:
       summary: Show indexer stats
       tags:
       - statistics
-  /stats/{network}:
+  /v1/stats/{network}:
     get:
       consumes:
       - application/json
@@ -2862,7 +2861,7 @@ paths:
       summary: Network statistics
       tags:
       - statistics
-  /stats/{network}/contracts:
+  /v1/stats/{network}/contracts:
     get:
       consumes:
       - application/json
@@ -2909,7 +2908,7 @@ paths:
       summary: Show contracts stats
       tags:
       - contract
-  /stats/{network}/series:
+  /v1/stats/{network}/series:
     get:
       consumes:
       - application/json
@@ -2969,7 +2968,7 @@ paths:
       summary: Get network series
       tags:
       - statistics
-  /tokens/{network}:
+  /v1/tokens/{network}:
     get:
       consumes:
       - application/json
@@ -3009,7 +3008,7 @@ paths:
       summary: Get all contracts that implement FA1/FA1.2 standard
       tags:
       - tokens
-  /tokens/{network}/series:
+  /v1/tokens/{network}/series:
     get:
       consumes:
       - application/json
@@ -3071,7 +3070,7 @@ paths:
       summary: Get volume series for token
       tags:
       - tokens
-  /tokens/{network}/transfers/{address}:
+  /v1/tokens/{network}/transfers/{address}:
     get:
       consumes:
       - application/json
@@ -3137,7 +3136,7 @@ paths:
       summary: Get all token transfers (FA1/FA1.2) where given address is src/dst
       tags:
       - tokens
-  /tokens/{network}/version/{faversion}:
+  /v1/tokens/{network}/version/{faversion}:
     get:
       consumes:
       - application/json

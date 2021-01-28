@@ -19,7 +19,7 @@ import (
 // @Success 200 {object} AccountInfo
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /account/{network}/{address} [get]
+// @Router /v1/account/{network}/{address} [get]
 func (ctx *Context) GetInfo(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {

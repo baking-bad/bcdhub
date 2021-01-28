@@ -19,7 +19,7 @@ import (
 // @Success 204 {object} gin.H
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /account/{network}/{address}/metadata [get]
+// @Router /v1/account/{network}/{address}/metadata [get]
 func (ctx *Context) GetMetadata(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {

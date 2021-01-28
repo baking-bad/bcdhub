@@ -143,7 +143,7 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 // @Success 200 {array} Operation
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /contract/{network}/{address}/entrypoints/trace [post]
+// @Router /v1/contract/{network}/{address}/entrypoints/trace [post]
 func (ctx *Context) RunCode(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {

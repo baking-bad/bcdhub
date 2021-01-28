@@ -21,7 +21,7 @@ import (
 // @Produce  json
 // @Success 200 {array} Block
 // @Failure 500 {object} Error
-// @Router /stats [get]
+// @Router /v1/stats [get]
 func (ctx *Context) GetStats(c *gin.Context) {
 	stats, err := ctx.Blocks.LastByNetworks()
 	if ctx.handleError(c, err, 0) {
@@ -50,7 +50,7 @@ func (ctx *Context) GetStats(c *gin.Context) {
 // @Success 200 {object} NetworkStats
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /stats/{network} [get]
+// @Router /v1/stats/{network} [get]
 func (ctx *Context) GetNetworkStats(c *gin.Context) {
 	var req getByNetwork
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
@@ -98,7 +98,7 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 // @Success 200 {object} Series
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /stats/{network}/series [get]
+// @Router /v1/stats/{network}/series [get]
 func (ctx *Context) GetSeries(c *gin.Context) {
 	var req getByNetwork
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
@@ -248,7 +248,7 @@ func (ctx *Context) getHistogramOptions(name, network string, addresses ...strin
 // @Success 200 {object} operation.DAppStats
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /stats/{network}/contracts [get]
+// @Router /v1/stats/{network}/contracts [get]
 func (ctx *Context) GetContractsStats(c *gin.Context) {
 	var req getByNetwork
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {

@@ -21,7 +21,7 @@ import (
 // @Success 200 {object} Contract
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /contract/{network}/{address} [get]
+// @Router /v1/contract/{network}/{address} [get]
 func (ctx *Context) GetContract(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
@@ -48,7 +48,7 @@ func (ctx *Context) GetContract(c *gin.Context) {
 // @Produce  json
 // @Success 200 {object} Contract
 // @Failure 500 {object} Error
-// @Router /pick_random [get]
+// @Router /v1/pick_random [get]
 func (ctx *Context) GetRandomContract(c *gin.Context) {
 	var contract contract.Contract
 

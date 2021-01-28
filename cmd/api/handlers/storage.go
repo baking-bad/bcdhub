@@ -27,7 +27,7 @@ import (
 // @Success 200 {object} newmiguel.Node
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /contract/{network}/{address}/storage [get]
+// @Router /v1/contract/{network}/{address}/storage [get]
 func (ctx *Context) GetContractStorage(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
@@ -85,7 +85,7 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 // @Success 204 {string} string
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /contract/{network}/{address}/storage/raw [get]
+// @Router /v1/contract/{network}/{address}/storage/raw [get]
 func (ctx *Context) GetContractStorageRaw(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
@@ -135,7 +135,7 @@ func (ctx *Context) GetContractStorageRaw(c *gin.Context) {
 // @Success 204 {object} gin.H
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /contract/{network}/{address}/storage/rich [get]
+// @Router /v1/contract/{network}/{address}/storage/rich [get]
 func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
@@ -193,7 +193,7 @@ func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 // @Success 200 {object} EntrypointSchema
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /contract/{network}/{address}/storage/schema [get]
+// @Router /v1/contract/{network}/{address}/storage/schema [get]
 func (ctx *Context) GetContractStorageSchema(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {

@@ -24,7 +24,7 @@ import (
 // @Success 200 {string} string
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /contract/{network}/{address}/code [get]
+// @Router /v1/contract/{network}/{address}/code [get]
 func (ctx *Context) GetContractCode(c *gin.Context) {
 	var req getContractCodeRequest
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
@@ -73,7 +73,7 @@ func (ctx *Context) GetContractCode(c *gin.Context) {
 // @Success 200 {object} CodeDiffResponse
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /diff [post]
+// @Router /v1/diff [post]
 func (ctx *Context) GetDiff(c *gin.Context) {
 	var req CodeDiffRequest
 	if err := c.BindJSON(&req); ctx.handleError(c, err, http.StatusBadRequest) {

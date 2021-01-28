@@ -19,7 +19,7 @@ import (
 // @Success 200 {array} Migration
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /contract/{network}/{address}/migrations [get]
+// @Router /v1/contract/{network}/{address}/migrations [get]
 func (ctx *Context) GetContractMigrations(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {

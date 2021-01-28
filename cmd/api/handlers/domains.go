@@ -21,7 +21,7 @@ import (
 // @Success 200 {object} DomainsResponse
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /domains/{network} [get]
+// @Router /v1/domains/{network} [get]
 func (ctx *Context) TezosDomainsList(c *gin.Context) {
 	var req getByNetwork
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
@@ -60,7 +60,7 @@ func (ctx *Context) TezosDomainsList(c *gin.Context) {
 // @Success 204 {object} gin.H
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /domains/{network}/resolve [get]
+// @Router /v1/domains/{network}/resolve [get]
 func (ctx *Context) ResolveDomain(c *gin.Context) {
 	var req getByNetwork
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
