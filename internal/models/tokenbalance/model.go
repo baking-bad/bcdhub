@@ -52,18 +52,32 @@ func (tb *TokenBalance) LogFields() logrus.Fields {
 
 // Set -
 func (tb *TokenBalance) Set(value float64) {
-	tb.Value = big.NewInt(int64(value))
+	f := big.NewFloat(value)
+	if tb.Value == nil {
+		tb.Value = big.NewInt(0)
+	}
+	f.Int(tb.Value)
 }
 
 // Add -
 func (tb *TokenBalance) Add(value float64) {
-	amount := big.NewInt(int64(value))
+	if tb.Value == nil {
+		tb.Value = big.NewInt(0)
+	}
+	f := big.NewFloat(value)
+	amount := big.NewInt(0)
+	f.Int(amount)
 	tb.Value.Add(tb.Value, amount)
 }
 
 // Sub -
 func (tb *TokenBalance) Sub(value float64) {
-	amount := big.NewInt(int64(value))
+	if tb.Value == nil {
+		tb.Value = big.NewInt(0)
+	}
+	f := big.NewFloat(value)
+	amount := big.NewInt(0)
+	f.Int(amount)
 	tb.Value.Sub(tb.Value, amount)
 }
 

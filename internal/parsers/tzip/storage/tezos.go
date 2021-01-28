@@ -84,9 +84,12 @@ func (s TezosStorage) Get(value string, output interface{}) error {
 		return err
 	}
 
-	decoded := DecodeValue(bmd.Value)
+	decoded, err := decodeData(bmd.Value)
+	if err != nil {
+		return err
+	}
 
-	return json.Unmarshal([]byte(decoded), output)
+	return json.Unmarshal(decoded, output)
 }
 
 func (s *TezosStorage) fillFields(uri TezosStorageURI) error {
