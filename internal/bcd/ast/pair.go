@@ -8,6 +8,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+//  TODO: pack/unpack
+
 // Pair -
 type Pair struct {
 	Default

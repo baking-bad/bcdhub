@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
+	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/pkg/errors"
 )
@@ -140,4 +141,31 @@ func (m *BigMap) ToMiguel() (*MiguelNode, error) {
 		return node, nil
 	}
 
+}
+
+// Forge -
+func (m *BigMap) Forge() ([]byte, error) {
+	if m.Ptr != nil {
+		return forgeInt(base.NewBigInt(*m.Ptr))
+	}
+
+	nodes := make([]*base.Node, 0)
+	// for key, value := range m.Data {
+	// 	nodes = append(nodes, &base.Node{
+	// 		Prim: "Elt",
+	// 		// Args: []*base.Node{
+	// 		// 	&key, &value,
+	// 		// },
+	// 	})
+	// }
+	// TODO: bigmap forge
+	forger := forge.NewMichelson()
+	forger.Nodes = nodes
+	return forger.Forge()
+}
+
+// Unforge -
+// TODO: bigmap unforge
+func (m *BigMap) Unforge(data []byte) (int, error) {
+	return 0, nil
 }

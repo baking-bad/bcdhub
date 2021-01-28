@@ -1,16 +1,17 @@
 package ast
 
 import (
+	"encoding/hex"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
+	"github.com/baking-bad/bcdhub/internal/bcd/encoding"
+	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/pkg/errors"
 )
-
-// TODO: make unique annotations
 
 // Default -
 type Default struct {
@@ -18,12 +19,14 @@ type Default struct {
 	TypeName  string
 	FieldName string
 
-	Value interface{}
+	Value        interface{}
+	UnforgeValue []*base.Node
 
 	argsCount int
 	annots    []string
 	id        int
 	depth     int
+	valueType int
 }
 
 // NewDefault -
@@ -87,11 +90,14 @@ func (d *Default) String() string {
 func (d *Default) ParseValue(node *base.Node) error {
 	switch {
 	case node.IntValue != nil:
-		d.Value = *node.IntValue
+		d.Value = node.IntValue
+		d.valueType = valueTypeInt
 	case node.StringValue != nil:
 		d.Value = *node.StringValue
+		d.valueType = valueTypeString
 	case node.BytesValue != nil:
 		d.Value = *node.BytesValue
+		d.valueType = valueTypeBytes
 	}
 	return nil
 }
@@ -136,6 +142,44 @@ func (d *Default) GetValue() interface{} {
 // GetPrim -
 func (d *Default) GetPrim() string {
 	return d.Prim
+}
+
+// Forge -
+func (d *Default) Forge(optimized bool) ([]byte, error) {
+	switch d.valueType {
+	case valueTypeString:
+		val := d.Value.(string)
+		return forgeString(val)
+	case valueTypeBytes:
+		val := d.Value.(string)
+		return forgeBytes(val)
+	case valueTypeInt:
+		val := d.Value.(*base.BigInt)
+		return forgeInt(val)
+	default:
+		forger := forge.NewMichelson()
+		node := &base.Node{
+			Prim:   d.Prim,
+			Annots: d.annots,
+			Args:   make([]*base.Node, 0),
+		}
+		forger.Nodes = []*base.Node{node}
+		return forger.Forge()
+	}
+}
+
+// Unforge -
+func (d *Default) Unforge(data []byte) (int, error) {
+	if d.valueType != valueTypeBytes {
+		return 0, nil
+	}
+	unforger := forge.NewMichelson()
+	n, err := unforger.UnforgeString(d.Value.(string))
+	if err != nil {
+		return n, err
+	}
+	d.UnforgeValue = unforger.Nodes
+	return n, err
 }
 
 //
@@ -283,6 +327,17 @@ func (t *Timestamp) ParseValue(node *base.Node) error {
 	return nil
 }
 
+// Forge -
+func (t *Timestamp) Forge(optimized bool) ([]byte, error) {
+	ts := t.Value.(time.Time)
+
+	if optimized {
+		return forgeInt(base.NewBigInt(ts.UTC().Unix()))
+	}
+	val := ts.UTC().Format(time.RFC3339)
+	return forgeString(val)
+}
+
 //
 //  BYTES
 //
@@ -347,6 +402,19 @@ func NewChainID(depth int) *ChainID {
 	}
 }
 
+// Forge -
+func (c *ChainID) Forge(optimized bool) ([]byte, error) {
+	val := c.Value.(string)
+	if optimized {
+		value, err := encoding.DecodeBase58ToString(val)
+		if err != nil {
+			return nil, err
+		}
+		return forgeBytes(value)
+	}
+	return forgeString(val)
+}
+
 //
 //  Address
 //
@@ -361,6 +429,19 @@ func NewAddress(depth int) *Address {
 	return &Address{
 		Default: NewDefault(consts.ADDRESS, 0, depth),
 	}
+}
+
+// Forge -
+func (a *Address) Forge(optimized bool) ([]byte, error) {
+	val := a.Value.(string)
+	if optimized {
+		value, err := forgeContract(val)
+		if err != nil {
+			return nil, err
+		}
+		return forgeBytes(value)
+	}
+	return forgeString(val)
 }
 
 //
@@ -379,6 +460,20 @@ func NewKey(depth int) *Key {
 	}
 }
 
+// Forge -
+func (k *Key) Forge(optimized bool) ([]byte, error) {
+	val := k.Value.(string)
+	if optimized {
+		value, err := forgePublicKey(val)
+		if err != nil {
+			return nil, err
+		}
+		s := hex.EncodeToString(value)
+		return forgeBytes(s)
+	}
+	return forgeString(val)
+}
+
 //
 //  KeyHash
 //
@@ -395,6 +490,20 @@ func NewKeyHash(depth int) *KeyHash {
 	}
 }
 
+// Forge -
+func (k *KeyHash) Forge(optimized bool) ([]byte, error) {
+	val := k.Value.(string)
+	if optimized {
+		value, err := forgeAddress(val, true)
+		if err != nil {
+			return nil, err
+		}
+		s := hex.EncodeToString(value)
+		return forgeBytes(s)
+	}
+	return forgeString(val)
+}
+
 //
 //  Signature
 //
@@ -409,6 +518,19 @@ func NewSignature(depth int) *Signature {
 	return &Signature{
 		Default: NewDefault(consts.SIGNATURE, 0, depth),
 	}
+}
+
+// Forge -
+func (s *Signature) Forge(optimized bool) ([]byte, error) {
+	val := s.Value.(string)
+	if optimized {
+		value, err := encoding.DecodeBase58ToString(val)
+		if err != nil {
+			return nil, err
+		}
+		return forgeBytes(value)
+	}
+	return forgeString(val)
 }
 
 //

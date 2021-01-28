@@ -7,6 +7,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 )
 
+//  TODO: pack/unpack
+
 // Ticket -
 type Ticket struct {
 	Default

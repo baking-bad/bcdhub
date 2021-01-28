@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
+	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/pkg/errors"
 )
@@ -72,6 +73,24 @@ func (u *UntypedAST) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 	return base.ErrInvalidJSON
+}
+
+// Forge -
+func (u UntypedAST) Forge() ([]byte, error) {
+	forger := forge.NewMichelson()
+	forger.Nodes = ([]*base.Node)(u)
+	return forger.Forge()
+}
+
+// Unforge -
+func (u *UntypedAST) Unforge(data []byte) (int, error) {
+	unforger := forge.NewMichelson()
+	n, err := unforger.Unforge(data)
+	if err != nil {
+		return n, err
+	}
+	*u = append(*u, unforger.Nodes...)
+	return n, nil
 }
 
 // ToTypedAST -

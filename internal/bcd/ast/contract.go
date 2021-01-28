@@ -9,7 +9,7 @@ import (
 
 // Contract -
 type Contract struct {
-	Default
+	Address
 
 	Type Node
 }
@@ -17,7 +17,9 @@ type Contract struct {
 // NewContract -
 func NewContract(depth int) *Contract {
 	return &Contract{
-		Default: NewDefault(consts.CONTRACT, 1, depth),
+		Address: Address{
+			Default: NewDefault(consts.CONTRACT, 1, depth),
+		},
 	}
 }
 

@@ -102,13 +102,42 @@ func (a *TypedAst) GetEntrypoints() []string {
 }
 
 // Forge -
-func (a *TypedAst) Forge() ([]byte, error) {
-	return nil, nil
+func (a *TypedAst) Forge(optimized bool) ([]byte, error) {
+	data := make([]byte, 0)
+	for i := range a.Nodes {
+		nodeData, err := a.Nodes[i].Forge(optimized)
+		if err != nil {
+			return data, err
+		}
+		data = append(data, nodeData...)
+	}
+	return data, nil
 }
 
 // Unforge -
 func (a *TypedAst) Unforge(data []byte) (int, error) {
-	return 0, nil
+	var count int
+	for i := range a.Nodes {
+		n, err := a.Nodes[i].Unforge(data[count:])
+		if err != nil {
+			return count, err
+		}
+		count += n
+	}
+	return count, nil
+}
+
+// Pack -
+func (a *TypedAst) Pack() ([]byte, error) {
+	data := make([]byte, 0)
+	for i := range a.Nodes {
+		args, err := a.Nodes[i].Pack()
+		if err != nil {
+			return nil, err
+		}
+		data = append(data, args...)
+	}
+	return data, nil
 }
 
 func createByType(typ Node) (Node, error) {

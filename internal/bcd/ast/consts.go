@@ -5,3 +5,9 @@ const (
 	update = "update"
 	delete = "delete"
 )
+
+const (
+	valueTypeString = iota
+	valueTypeBytes
+	valueTypeInt
+)
