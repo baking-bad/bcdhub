@@ -9,7 +9,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/parsers/tzip/repository"
-	"github.com/ulule/deepcopier"
 )
 
 // FillTZIP -
@@ -95,12 +94,12 @@ func processTzipItem(ctx *config.Context, item repository.Item, inserts, updates
 		return err
 	}
 
-	copyModel := new(tzip.TZIP)
-	if err := deepcopier.Copy(&model.TZIP).To(copyModel); err != nil {
-		return err
+	copyModel := tzip.TZIP{
+		Network: model.Network,
+		Address: model.Address,
 	}
 
-	if err := ctx.Storage.GetByID(copyModel); err != nil {
+	if err := ctx.Storage.GetByID(&copyModel); err != nil {
 		if !ctx.Storage.IsRecordNotFound(err) {
 			logger.Error(err)
 			return err
