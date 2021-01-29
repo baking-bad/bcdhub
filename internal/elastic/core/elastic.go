@@ -236,6 +236,7 @@ func (e *Elastic) deleteByQuery(indices []string, query map[string]interface{}) 
 	options := []func(*esapi.DeleteByQueryRequest){
 		e.DeleteByQuery.WithContext(context.Background()),
 		e.DeleteByQuery.WithConflicts("proceed"),
+		e.DeleteByQuery.WithWaitForCompletion(true),
 	}
 	resp, err := e.DeleteByQuery(
 		indices,
