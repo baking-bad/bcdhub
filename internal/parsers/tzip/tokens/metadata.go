@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/tidwall/gjson"
 )
@@ -140,8 +141,21 @@ func (m *TokenMetadata) UnmarshalJSON(data []byte) error {
 		delete(res, keySymbol)
 	}
 	if val, ok := res[keyDecimals]; ok {
-		if decimals, ok := val.(int64); ok {
+		switch decimals := val.(type) {
+		case float64:
+			int64Val := int64(decimals)
+			m.Decimals = &int64Val
+		case int64:
 			m.Decimals = &decimals
+		case string:
+			int64Val, err := strconv.ParseInt(decimals, 10, 64)
+			if err != nil {
+				logger.Errorf("TokenMetadata decimal Unmarshal error with string. Got %##v %T", res[keyDecimals], val)
+			} else {
+				m.Decimals = &int64Val
+			}
+		default:
+			logger.Errorf("TokenMetadata decimal Unmarshal error. Wanted float64, int64 or (>_<) string, got %##v %T", res[keyDecimals], val)
 		}
 		delete(res, keyDecimals)
 	}

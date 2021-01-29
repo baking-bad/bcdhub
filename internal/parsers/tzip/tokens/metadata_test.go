@@ -183,3 +183,56 @@ func TestTokenMetadata_Merge(t *testing.T) {
 		})
 	}
 }
+
+func TestTokenMetadata_UnmarshalJSON(t *testing.T) {
+	tests := []struct {
+		name string
+		tm   TokenMetadata
+		data []byte
+	}{
+		{
+			name: "test ipfs",
+			tm: TokenMetadata{
+				Symbol:   "SIMMAW",
+				Name:     "Mystery Map Award",
+				Decimals: int64Ptr(0),
+				Extras: map[string]interface{}{
+					"description":         "A most mysterious map has been discovered. Where it leads is uncertain, but an adventure lies ahead.",
+					"nonTransferable":     false,
+					"symbolPreference":    false,
+					"booleanAmount":       false,
+					"displayUri":          "https://gateway.pinata.cloud/ipfs/QmPkJBaRnb2JwqA1S2sUQayTV9xT3x8MBnsmq7ForBWKuU",
+					"defaultPresentation": "large",
+					"actionLabel":         "Send",
+				},
+			},
+			data: []byte(`{
+				"name": "Mystery Map Award",
+				"symbol": "SIMMAW",
+				"decimals": 0,
+				"description": "A most mysterious map has been discovered. Where it leads is uncertain, but an adventure lies ahead.",
+				"nonTransferable": false,
+				"symbolPreference": false,
+				"booleanAmount": false,
+				"displayUri": "https://gateway.pinata.cloud/ipfs/QmPkJBaRnb2JwqA1S2sUQayTV9xT3x8MBnsmq7ForBWKuU",
+				"defaultPresentation": "large",
+				"actionLabel": "Send"
+				}`),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m := new(TokenMetadata)
+			if err := m.UnmarshalJSON(tt.data); err != nil {
+				t.Errorf("TokenMetadata.UnmarshalJSON() error = %v", err)
+				return
+			}
+
+			assert.Equal(t, tt.tm, *m)
+		})
+	}
+}
+
+func int64Ptr(val int64) *int64 {
+	return &val
+}

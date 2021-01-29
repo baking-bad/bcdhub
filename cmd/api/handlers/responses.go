@@ -661,7 +661,7 @@ type TokenMetadata struct {
 	Symbol        string                 `json:"symbol,omitempty" extensions:"x-nullable"`
 	Name          string                 `json:"name,omitempty" extensions:"x-nullable"`
 	Decimals      *int64                 `json:"decimals,omitempty" extensions:"x-nullable"`
-	Extras        map[string]interface{} `json:"extras,omitempty" extensions:"x-nullable"`
+	TokenInfo     map[string]interface{} `json:"token_info,omitempty" extensions:"x-nullable"`
 	Volume24Hours *float64               `json:"volume_24_hours,omitempty" extensions:"x-nullable"`
 }
 
@@ -674,7 +674,7 @@ func TokenMetadataFromElasticModel(model tokenmetadata.TokenMetadata) (tm TokenM
 	tm.Contract = model.Contract
 	tm.Level = model.Level
 	tm.Network = model.Network
-	tm.Extras = model.Extras
+	tm.TokenInfo = model.Extras
 	return
 }
 

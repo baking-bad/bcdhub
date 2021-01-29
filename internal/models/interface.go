@@ -16,7 +16,7 @@ type GeneralRepository interface {
 	GetByNetwork(string, interface{}) error
 	GetByNetworkWithSort(string, string, string, interface{}) error
 	UpdateDoc(model Model) (err error)
-	UpdateFields(string, string, interface{}, ...string) error
+	UpdateFields(index, id string, data interface{}, fields ...string) error
 	GetEvents([]SubscriptionRequest, int64, int64) ([]Event, error)
 	SearchByText(string, int64, []string, map[string]interface{}, bool) (Result, error)
 	CreateAWSRepository(string, string, string) error
