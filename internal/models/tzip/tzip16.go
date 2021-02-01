@@ -52,5 +52,5 @@ type View struct {
 
 // ViewImplementation -
 type ViewImplementation struct {
-	MichelsonStorageView Sections `json:"michelson-storage-view"`
+	MichelsonStorageView Sections `json:"michelsonStorageView"`
 }

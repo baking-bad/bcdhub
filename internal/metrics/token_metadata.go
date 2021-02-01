@@ -115,7 +115,7 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, network, contrac
 		return nil, err
 	}
 
-	data := make([]*transfer.Transfer, 0)
+	transfers := make([]*transfer.Transfer, 0)
 
 	balanceUpdates := make([]*tokenbalance.TokenBalance, 0)
 	for i := range tzip.Events {
@@ -150,26 +150,25 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, network, contrac
 					return nil, err
 				}
 
-				res, err := transferParsers.NewDefaultBalanceParser().Parse(balances, origination)
+				res, err := transferParsers.NewDefaultBalanceParser(h.Storage).Parse(balances, origination)
 				if err != nil {
 					return nil, err
 				}
 
-				data = append(data, res...)
+				transfers = append(transfers, res...)
 
 				for i := range balances {
-					tb := &tokenbalance.TokenBalance{
+					balanceUpdates = append(balanceUpdates, &tokenbalance.TokenBalance{
 						Network:  tzip.Network,
 						Address:  balances[i].Address,
 						TokenID:  balances[i].TokenID,
 						Contract: tzip.Address,
-					}
-					tb.Set(float64(balances[i].Value))
-					balanceUpdates = append(balanceUpdates, tb)
+						Value:    balances[i].Value,
+					})
 				}
 			}
 		}
 	}
 
-	return data, h.TokenBalances.Update(balanceUpdates)
+	return transfers, h.TokenBalances.Update(balanceUpdates)
 }
