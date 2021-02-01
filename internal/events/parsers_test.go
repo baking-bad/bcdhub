@@ -4,8 +4,8 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
-	"gopkg.in/go-playground/assert.v1"
 )
 
 func Test_singleAssetBalanceParser_Parse(t *testing.T) {
