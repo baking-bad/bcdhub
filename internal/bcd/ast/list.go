@@ -107,3 +107,29 @@ func (list *List) ToMiguel() (*MiguelNode, error) {
 
 	return node, nil
 }
+
+// ToBaseNode -
+func (list *List) ToBaseNode(optimized bool) (*base.Node, error) {
+	return arrayToBaseNode(list.Data, optimized)
+}
+
+// ToJSONSchema -
+func (list *List) ToJSONSchema() (*JSONSchema, error) {
+	s := &JSONSchema{
+		Prim:    list.Prim,
+		Type:    JSONSchemaTypeArray,
+		Title:   list.GetName(),
+		Default: make([]interface{}, 0),
+		Items: &SchemaKey{
+			Type:       JSONSchemaTypeObject,
+			Required:   make([]string, 0),
+			Properties: make(map[string]*JSONSchema),
+		},
+	}
+
+	if err := setChildSchema(list.Type, true, s); err != nil {
+		return nil, err
+	}
+
+	return wrapObject(s), nil
+}

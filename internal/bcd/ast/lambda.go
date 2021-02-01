@@ -14,7 +14,7 @@ type Lambda struct {
 // NewLambda -
 func NewLambda(depth int) *Lambda {
 	return &Lambda{
-		Default: NewDefault(consts.LAMBDA, 0, depth),
+		Default: NewDefault(consts.LAMBDA, -1, depth),
 	}
 }
 
@@ -40,4 +40,9 @@ func (l *Lambda) ParseType(node *base.Node, id *int) error {
 // ParseValue -
 func (l *Lambda) ParseValue(node *base.Node) error {
 	return l.Default.ParseValue(node)
+}
+
+// ToJSONSchema -
+func (l *Lambda) ToJSONSchema() (*JSONSchema, error) {
+	return getStringJSONSchema(l.Default), nil
 }

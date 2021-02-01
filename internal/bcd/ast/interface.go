@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
-	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 )
 
 // Node -
@@ -12,21 +11,26 @@ type Node interface {
 	fmt.Stringer
 	Type
 	Value
+	Base
 }
 
 // Type -
 type Type interface {
 	ParseType(node *base.Node, id *int) error
 	GetPrim() string
+	GetName() string
 	GetEntrypoints() []string
+	ToJSONSchema() (*JSONSchema, error)
 }
 
 // Value -
 type Value interface {
-	forge.Unforger
-
 	ParseValue(node *base.Node) error
 	GetValue() interface{}
 	ToMiguel() (*MiguelNode, error)
-	Forge(optimized bool) ([]byte, error)
+}
+
+// Base -
+type Base interface {
+	ToBaseNode(optimized bool) (*base.Node, error)
 }

@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 )
 
 // Data -
@@ -28,7 +28,7 @@ func main() {
 	}
 
 	ts := time.Now()
-	script, err := bcd.NewScript(contract.Code)
+	script, err := ast.NewScript(contract.Code)
 	if err != nil {
 		panic(err)
 	}
@@ -49,7 +49,7 @@ func main() {
 		panic(err)
 	}
 
-	storageData, err := bcd.NewUntypedAST(contract.Storage)
+	storageData, err := ast.NewUntypedAST(contract.Storage)
 	if err != nil {
 		panic(err)
 	}
@@ -58,13 +58,24 @@ func main() {
 		panic(err)
 	}
 
-	miguel, err := storage.ToMiguel()
+	s, err := ast.Forge(storage, true)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("")
-	fmt.Println("------STORAGE MIGUEL-------")
-	fmt.Println(miguel)
+	fmt.Println(s)
+
+	ua, err := ast.Unforge(s)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(ua)
+	// miguel, err := storage.ToMiguel()
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println("")
+	// fmt.Println("------STORAGE MIGUEL-------")
+	// fmt.Println(miguel)
 
 	fmt.Printf("Spent: %d ms\n", time.Since(ts).Milliseconds())
 }

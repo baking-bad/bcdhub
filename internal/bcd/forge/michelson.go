@@ -118,3 +118,22 @@ func (m *Michelson) Forge() ([]byte, error) {
 	}
 	return data, nil
 }
+
+// Forge -
+func Forge(node *base.Node) ([]byte, error) {
+	if node == nil {
+		return nil, errors.New("[Forge] Node is nil")
+	}
+	forger := NewMichelson()
+	forger.Nodes = []*base.Node{node}
+	return forger.Forge()
+}
+
+// ToString -
+func ToString(node *base.Node) (string, error) {
+	b, err := Forge(node)
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(b), nil
+}

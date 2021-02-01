@@ -8,7 +8,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/encoding"
-	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/pkg/errors"
 )
@@ -19,8 +18,7 @@ type Default struct {
 	TypeName  string
 	FieldName string
 
-	Value        interface{}
-	UnforgeValue []*base.Node
+	Value interface{}
 
 	argsCount int
 	annots    []string
@@ -126,10 +124,10 @@ func (d *Default) GetEntrypoints() []string {
 // GetName -
 func (d *Default) GetName() string {
 	switch {
-	case d.TypeName != "":
-		return d.TypeName
 	case d.FieldName != "":
 		return d.FieldName
+	case d.TypeName != "":
+		return d.TypeName
 	}
 	return fmt.Sprintf("@%s_%d", d.Prim, d.id)
 }
@@ -144,42 +142,32 @@ func (d *Default) GetPrim() string {
 	return d.Prim
 }
 
-// Forge -
-func (d *Default) Forge(optimized bool) ([]byte, error) {
+// ToBaseNode -
+func (d *Default) ToBaseNode(optimized bool) (*base.Node, error) {
+	node := new(base.Node)
 	switch d.valueType {
 	case valueTypeString:
 		val := d.Value.(string)
-		return forgeString(val)
+		node.StringValue = &val
 	case valueTypeBytes:
 		val := d.Value.(string)
-		return forgeBytes(val)
+		node.BytesValue = &val
 	case valueTypeInt:
 		val := d.Value.(*base.BigInt)
-		return forgeInt(val)
+		node.IntValue = val
 	default:
-		forger := forge.NewMichelson()
-		node := &base.Node{
-			Prim:   d.Prim,
-			Annots: d.annots,
-			Args:   make([]*base.Node, 0),
-		}
-		forger.Nodes = []*base.Node{node}
-		return forger.Forge()
+		node.Prim = d.Prim
+		node.Annots = d.annots
+		node.Args = make([]*base.Node, 0)
 	}
+	return node, nil
 }
 
-// Unforge -
-func (d *Default) Unforge(data []byte) (int, error) {
-	if d.valueType != valueTypeBytes {
-		return 0, nil
-	}
-	unforger := forge.NewMichelson()
-	n, err := unforger.UnforgeString(d.Value.(string))
-	if err != nil {
-		return n, err
-	}
-	d.UnforgeValue = unforger.Nodes
-	return n, err
+// ToJSONSchema -
+func (d *Default) ToJSONSchema() (*JSONSchema, error) {
+	return wrapObject(&JSONSchema{
+		Prim: d.Prim,
+	}), nil
 }
 
 //
@@ -214,6 +202,11 @@ func NewString(depth int) *String {
 	}
 }
 
+// ToJSONSchema -
+func (s *String) ToJSONSchema() (*JSONSchema, error) {
+	return getStringJSONSchema(s.Default), nil
+}
+
 //
 //  INT
 //
@@ -228,6 +221,11 @@ func NewInt(depth int) *Int {
 	return &Int{
 		Default: NewDefault(consts.INT, 0, depth),
 	}
+}
+
+// ToJSONSchema -
+func (i *Int) ToJSONSchema() (*JSONSchema, error) {
+	return getIntJSONSchema(i.Default), nil
 }
 
 //
@@ -246,6 +244,11 @@ func NewNat(depth int) *Nat {
 	}
 }
 
+// ToJSONSchema -
+func (n *Nat) ToJSONSchema() (*JSONSchema, error) {
+	return getIntJSONSchema(n.Default), nil
+}
+
 //
 //  MUTEZ
 //
@@ -260,6 +263,11 @@ func NewMutez(depth int) *Mutez {
 	return &Mutez{
 		Default: NewDefault(consts.MUTEZ, 0, depth),
 	}
+}
+
+// ToJSONSchema -
+func (m *Mutez) ToJSONSchema() (*JSONSchema, error) {
+	return getIntJSONSchema(m.Default), nil
 }
 
 //
@@ -291,6 +299,25 @@ func (b *Bool) ParseValue(node *base.Node) error {
 	return nil
 }
 
+// ToBaseNode -
+func (b *Bool) ToBaseNode(optimized bool) (*base.Node, error) {
+	val := b.Value.(bool)
+	if val {
+		return &base.Node{Prim: consts.True}, nil
+	}
+	return &base.Node{Prim: consts.False}, nil
+}
+
+// ToJSONSchema -
+func (b *Bool) ToJSONSchema() (*JSONSchema, error) {
+	return wrapObject(&JSONSchema{
+		Prim:    b.Prim,
+		Type:    JSONSchemaTypeBool,
+		Default: false,
+		Title:   b.GetName(),
+	}), nil
+}
+
 //
 //  Timestamp
 //
@@ -313,7 +340,7 @@ func (t *Timestamp) ParseValue(node *base.Node) error {
 	case node.IntValue != nil:
 		i := node.IntValue.Int64()
 		if 253402300799 > i { // 31 December 9999 23:59:59 Golang time restriction
-			t.Value = time.Unix(i, 0).UTC().String()
+			t.Value = time.Unix(i, 0).UTC()
 		} else {
 			t.Value = fmt.Sprintf("%d", i)
 		}
@@ -322,20 +349,36 @@ func (t *Timestamp) ParseValue(node *base.Node) error {
 		if err != nil {
 			return err
 		}
-		t.Value = utc.UTC().String()
+		t.Value = utc.UTC()
 	}
 	return nil
 }
 
-// Forge -
-func (t *Timestamp) Forge(optimized bool) ([]byte, error) {
-	ts := t.Value.(time.Time)
-
-	if optimized {
-		return forgeInt(base.NewBigInt(ts.UTC().Unix()))
+// ToBaseNode -
+func (t *Timestamp) ToBaseNode(optimized bool) (*base.Node, error) {
+	switch ts := t.Value.(type) {
+	case time.Time:
+		if optimized {
+			val := base.NewBigInt(ts.UTC().Unix())
+			return toBaseNodeInt(val), nil
+		}
+		val := ts.UTC().Format(time.RFC3339)
+		return toBaseNodeBytes(val), nil
+	case string:
+		return toBaseNodeString(ts), nil
 	}
-	val := ts.UTC().Format(time.RFC3339)
-	return forgeString(val)
+	return nil, errors.Errorf("Invalid timestamp type")
+}
+
+// ToJSONSchema -
+func (t *Timestamp) ToJSONSchema() (*JSONSchema, error) {
+	return wrapObject(&JSONSchema{
+		Prim:    t.Prim,
+		Title:   t.GetName(),
+		Type:    JSONSchemaTypeString,
+		Format:  "date-time",
+		Default: time.Now().UTC().Format(time.RFC3339),
+	}), nil
 }
 
 //
@@ -352,6 +395,11 @@ func NewBytes(depth int) *Bytes {
 	return &Bytes{
 		Default: NewDefault(consts.BYTES, 0, depth),
 	}
+}
+
+// ToJSONSchema -
+func (b *Bytes) ToJSONSchema() (*JSONSchema, error) {
+	return getStringJSONSchema(b.Default), nil
 }
 
 //
@@ -402,17 +450,22 @@ func NewChainID(depth int) *ChainID {
 	}
 }
 
-// Forge -
-func (c *ChainID) Forge(optimized bool) ([]byte, error) {
+// ToBaseNode -
+func (c *ChainID) ToBaseNode(optimized bool) (*base.Node, error) {
 	val := c.Value.(string)
 	if optimized {
 		value, err := encoding.DecodeBase58ToString(val)
 		if err != nil {
 			return nil, err
 		}
-		return forgeBytes(value)
+		return toBaseNodeBytes(value), nil
 	}
-	return forgeString(val)
+	return toBaseNodeString(val), nil
+}
+
+// ToJSONSchema -
+func (c *ChainID) ToJSONSchema() (*JSONSchema, error) {
+	return getStringJSONSchema(c.Default), nil
 }
 
 //
@@ -431,17 +484,25 @@ func NewAddress(depth int) *Address {
 	}
 }
 
-// Forge -
-func (a *Address) Forge(optimized bool) ([]byte, error) {
+// ToBaseNode -
+func (a *Address) ToBaseNode(optimized bool) (*base.Node, error) {
 	val := a.Value.(string)
+	if a.valueType == valueTypeBytes {
+		return toBaseNodeBytes(val), nil
+	}
 	if optimized {
-		value, err := forgeContract(val)
+		value, err := getOptimizedContract(val)
 		if err != nil {
 			return nil, err
 		}
-		return forgeBytes(value)
+		return toBaseNodeBytes(value), nil
 	}
-	return forgeString(val)
+	return toBaseNodeString(val), nil
+}
+
+// ToJSONSchema -
+func (a *Address) ToJSONSchema() (*JSONSchema, error) {
+	return getAddressJSONSchema(a.Default), nil
 }
 
 //
@@ -460,18 +521,23 @@ func NewKey(depth int) *Key {
 	}
 }
 
-// Forge -
-func (k *Key) Forge(optimized bool) ([]byte, error) {
+// ToBaseNode -
+func (k *Key) ToBaseNode(optimized bool) (*base.Node, error) {
 	val := k.Value.(string)
 	if optimized {
-		value, err := forgePublicKey(val)
+		value, err := getOptimizedPublicKey(val)
 		if err != nil {
 			return nil, err
 		}
 		s := hex.EncodeToString(value)
-		return forgeBytes(s)
+		return toBaseNodeBytes(s), nil
 	}
-	return forgeString(val)
+	return toBaseNodeString(val), nil
+}
+
+// ToJSONSchema -
+func (k *Key) ToJSONSchema() (*JSONSchema, error) {
+	return getStringJSONSchema(k.Default), nil
 }
 
 //
@@ -490,18 +556,23 @@ func NewKeyHash(depth int) *KeyHash {
 	}
 }
 
-// Forge -
-func (k *KeyHash) Forge(optimized bool) ([]byte, error) {
+// ToBaseNode -
+func (k *KeyHash) ToBaseNode(optimized bool) (*base.Node, error) {
 	val := k.Value.(string)
 	if optimized {
-		value, err := forgeAddress(val, true)
+		value, err := getOptimizedAddress(val, true)
 		if err != nil {
 			return nil, err
 		}
 		s := hex.EncodeToString(value)
-		return forgeBytes(s)
+		return toBaseNodeBytes(s), nil
 	}
-	return forgeString(val)
+	return toBaseNodeString(val), nil
+}
+
+// ToJSONSchema -
+func (k *KeyHash) ToJSONSchema() (*JSONSchema, error) {
+	return getStringJSONSchema(k.Default), nil
 }
 
 //
@@ -520,17 +591,22 @@ func NewSignature(depth int) *Signature {
 	}
 }
 
-// Forge -
-func (s *Signature) Forge(optimized bool) ([]byte, error) {
+// ToBaseNode -
+func (s *Signature) ToBaseNode(optimized bool) (*base.Node, error) {
 	val := s.Value.(string)
 	if optimized {
 		value, err := encoding.DecodeBase58ToString(val)
 		if err != nil {
 			return nil, err
 		}
-		return forgeBytes(value)
+		return toBaseNodeBytes(value), nil
 	}
-	return forgeString(val)
+	return toBaseNodeString(val), nil
+}
+
+// ToJSONSchema -
+func (s *Signature) ToJSONSchema() (*JSONSchema, error) {
+	return getStringJSONSchema(s.Default), nil
 }
 
 //
@@ -549,6 +625,11 @@ func NewBLS12381fr(depth int) *BLS12381fr {
 	}
 }
 
+// ToJSONSchema -
+func (b *BLS12381fr) ToJSONSchema() (*JSONSchema, error) {
+	return getStringJSONSchema(b.Default), nil
+}
+
 //
 //  bls12_381_g1
 //
@@ -565,6 +646,11 @@ func NewBLS12381g1(depth int) *BLS12381g1 {
 	}
 }
 
+// ToJSONSchema -
+func (b *BLS12381g1) ToJSONSchema() (*JSONSchema, error) {
+	return getStringJSONSchema(b.Default), nil
+}
+
 //
 //  bls12_381_g2
 //
@@ -579,4 +665,9 @@ func NewBLS12381g2(depth int) *BLS12381g2 {
 	return &BLS12381g2{
 		Default: NewDefault(consts.BLS12381G2, 0, depth),
 	}
+}
+
+// ToJSONSchema -
+func (b *BLS12381g2) ToJSONSchema() (*JSONSchema, error) {
+	return getStringJSONSchema(b.Default), nil
 }

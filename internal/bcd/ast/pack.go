@@ -2,9 +2,9 @@ package ast
 
 import (
 	"encoding/hex"
+	"fmt"
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/encoding"
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
@@ -15,18 +15,36 @@ const (
 	packByte = 0x05
 )
 
-func pack(data []byte) []byte {
-	return append([]byte{packByte}, data...)
-}
-
-func unpack(data []byte) []byte {
-	if len(data) == 0 || data[0] != packByte {
-		return nil
+// Pack -
+func Pack(node Base) (string, error) {
+	data, err := Forge(node, true)
+	if err != nil {
+		return "", err
 	}
-	return data[1:]
+	return fmt.Sprintf("05%s", data), nil
 }
 
-func forgeAddress(val string, tzOnly bool) ([]byte, error) {
+// Unpack -
+func Unpack(data []byte) (UntypedAST, error) {
+	trimmed, err := unpack(data)
+	if err != nil {
+		return nil, err
+	}
+	unforger := forge.NewMichelson()
+	if _, err := unforger.Unforge(trimmed); err != nil {
+		return nil, err
+	}
+	return unforger.Nodes, nil
+}
+
+func unpack(data []byte) ([]byte, error) {
+	if len(data) == 0 || data[0] != packByte {
+		return nil, errors.Errorf("Invalid unpack data: %v", data)
+	}
+	return data[1:], nil
+}
+
+func getOptimizedAddress(val string, tzOnly bool) ([]byte, error) {
 	prefix := val[:3]
 	address, err := encoding.DecodeBase58(val)
 	if err != nil {
@@ -52,12 +70,12 @@ func forgeAddress(val string, tzOnly bool) ([]byte, error) {
 	return address, nil
 }
 
-func forgeContract(val string) (string, error) {
+func getOptimizedContract(val string) (string, error) {
 	parts := strings.Split(val, "%")
 	if len(parts) == 1 {
 		parts = append(parts, consts.DefaultEntrypoint)
 	}
-	res, err := forgeAddress(parts[0], false)
+	res, err := getOptimizedAddress(parts[0], false)
 	if err != nil {
 		return "", err
 	}
@@ -71,25 +89,7 @@ func forgeContract(val string) (string, error) {
 	return hex.EncodeToString(res), nil
 }
 
-func forgeString(val string) ([]byte, error) {
-	forger := new(forge.String)
-	forger.StringValue = &val
-	return forger.Forge()
-}
-
-func forgeBytes(val string) ([]byte, error) {
-	forger := new(forge.Bytes)
-	forger.BytesValue = &val
-	return forger.Forge()
-}
-
-func forgeInt(val *base.BigInt) ([]byte, error) {
-	forger := forge.NewInt()
-	forger.IntValue = val
-	return forger.Forge()
-}
-
-func forgePublicKey(val string) ([]byte, error) {
+func getOptimizedPublicKey(val string) ([]byte, error) {
 	prefix := val[4:]
 	decoded, err := encoding.DecodeBase58String(val)
 	if err != nil {

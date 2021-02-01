@@ -125,6 +125,35 @@ func (m *Map) ToMiguel() (*MiguelNode, error) {
 	return node, nil
 }
 
+// ToBaseNode -
+func (m *Map) ToBaseNode(optimized bool) (*base.Node, error) {
+	return mapToBaseNodes(m.Data, optimized)
+}
+
+// ToJSONSchema -
+func (m *Map) ToJSONSchema() (*JSONSchema, error) {
+	s := &JSONSchema{
+		Type:    JSONSchemaTypeArray,
+		Title:   m.GetName(),
+		Default: make([]interface{}, 0),
+		Items: &SchemaKey{
+			Type:       JSONSchemaTypeObject,
+			Required:   make([]string, 0),
+			Properties: make(map[string]*JSONSchema),
+		},
+	}
+
+	if err := setChildSchemaForMap(m.KeyType, true, true, s); err != nil {
+		return nil, err
+	}
+
+	if err := setChildSchemaForMap(m.ValueType, true, false, s); err != nil {
+		return nil, err
+	}
+
+	return wrapObject(s), nil
+}
+
 func createMapFromElts(args []*base.Node, keyType, valueType Node) (map[Node]Node, error) {
 	data := make(map[Node]Node)
 

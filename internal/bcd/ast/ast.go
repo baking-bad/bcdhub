@@ -101,43 +101,35 @@ func (a *TypedAst) GetEntrypoints() []string {
 	return entrypoints
 }
 
-// Forge -
-func (a *TypedAst) Forge(optimized bool) ([]byte, error) {
-	data := make([]byte, 0)
-	for i := range a.Nodes {
-		nodeData, err := a.Nodes[i].Forge(optimized)
-		if err != nil {
-			return data, err
-		}
-		data = append(data, nodeData...)
+// ToBaseNode -
+func (a *TypedAst) ToBaseNode(optimized bool) (*base.Node, error) {
+	if len(a.Nodes) == 1 {
+		return a.Nodes[0].ToBaseNode(optimized)
 	}
-	return data, nil
+	return arrayToBaseNode(a.Nodes, optimized)
 }
 
-// Unforge -
-func (a *TypedAst) Unforge(data []byte) (int, error) {
-	var count int
-	for i := range a.Nodes {
-		n, err := a.Nodes[i].Unforge(data[count:])
-		if err != nil {
-			return count, err
+// ToJSONSchema -
+func (a *TypedAst) ToJSONSchema() (*JSONSchema, error) {
+	if len(a.Nodes) == 1 {
+		if a.Nodes[0].GetPrim() == consts.UNIT {
+			return nil, nil
 		}
-		count += n
+		return a.Nodes[0].ToJSONSchema()
 	}
-	return count, nil
-}
 
-// Pack -
-func (a *TypedAst) Pack() ([]byte, error) {
-	data := make([]byte, 0)
+	s := &JSONSchema{
+		Type:       JSONSchemaTypeObject,
+		Properties: make(map[string]*JSONSchema),
+	}
+
 	for i := range a.Nodes {
-		args, err := a.Nodes[i].Pack()
-		if err != nil {
+		if err := setChildSchema(a.Nodes[i], false, s); err != nil {
 			return nil, err
 		}
-		data = append(data, args...)
 	}
-	return data, nil
+
+	return s, nil
 }
 
 func createByType(typ Node) (Node, error) {

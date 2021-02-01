@@ -124,3 +124,33 @@ func (p *Pair) ToMiguel() (*MiguelNode, error) {
 
 	return node, nil
 }
+
+// ToBaseNode -
+func (p *Pair) ToBaseNode(optimized bool) (*base.Node, error) {
+	node := new(base.Node)
+	node.Prim = p.Prim
+	node.Args = make([]*base.Node, 0)
+	for i := range p.Args {
+		arg, err := p.Args[i].ToBaseNode(optimized)
+		if err != nil {
+			return nil, err
+		}
+		node.Args = append(node.Args, arg)
+	}
+	return node, nil
+}
+
+// ToJSONSchema -
+func (p *Pair) ToJSONSchema() (*JSONSchema, error) {
+	s := &JSONSchema{
+		Type:       JSONSchemaTypeObject,
+		Properties: map[string]*JSONSchema{},
+	}
+	for _, arg := range p.Args {
+		if err := setChildSchema(arg, false, s); err != nil {
+			return nil, err
+		}
+	}
+
+	return s, nil
+}

@@ -83,3 +83,8 @@ func (ss *SaplingState) ToMiguel() (*MiguelNode, error) {
 	node.Children = append(node.Children, child)
 	return node, nil
 }
+
+// ToBaseNode -
+func (ss *SaplingState) ToBaseNode(optimized bool) (*base.Node, error) {
+	return ss.Type.ToBaseNode(optimized)
+}

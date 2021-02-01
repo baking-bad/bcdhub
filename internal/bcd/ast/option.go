@@ -86,3 +86,70 @@ func (opt *Option) ToMiguel() (*MiguelNode, error) {
 	node.IsOption = true
 	return node, nil
 }
+
+// ToBaseNode -
+func (opt *Option) ToBaseNode(optimized bool) (*base.Node, error) {
+	node := new(base.Node)
+
+	if opt.Value == nil {
+		node.Prim = consts.None
+	} else {
+		node.Prim = consts.Some
+		arg, err := opt.Child.ToBaseNode(optimized)
+		if err != nil {
+			return nil, err
+		}
+		node.Args = []*base.Node{arg}
+	}
+
+	return node, nil
+}
+
+var noneSchema = &JSONSchema{
+	Type:  JSONSchemaTypeString,
+	Const: consts.NONE,
+}
+
+// ToJSONSchema -
+func (opt *Option) ToJSONSchema() (*JSONSchema, error) {
+	someSchema := &JSONSchema{
+		Title:      consts.Some,
+		Properties: make(map[string]*JSONSchema),
+	}
+
+	someProperties := &JSONSchema{
+		Type:  JSONSchemaTypeString,
+		Const: consts.SOME,
+	}
+
+	child, err := opt.Child.ToJSONSchema()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(child.Properties) > 0 {
+		for key, value := range child.Properties {
+			someSchema.Properties[key] = value
+		}
+	}
+
+	someSchema.Properties["schemaKey"] = someProperties
+
+	return &JSONSchema{
+		Type:  JSONSchemaTypeObject,
+		Prim:  opt.Prim,
+		Title: opt.GetName(),
+		OneOf: []*JSONSchema{
+			{
+				Title: consts.None,
+				Properties: map[string]*JSONSchema{
+					"schemaKey": noneSchema,
+				},
+			},
+			someSchema,
+		},
+		Default: &JSONSchema{
+			SchemaKey: (*SchemaKey)(noneSchema),
+		},
+	}, nil
+}

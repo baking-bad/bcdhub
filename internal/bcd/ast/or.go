@@ -143,3 +143,67 @@ func (or *Or) GetEntrypoints() []string {
 	}
 	return e
 }
+
+// ToBaseNode -
+func (or *Or) ToBaseNode(optimized bool) (*base.Node, error) {
+	node := new(base.Node)
+	switch {
+	case or.Left != nil:
+		node.Prim = consts.Left
+		arg, err := or.Left.ToBaseNode(optimized)
+		if err != nil {
+			return nil, err
+		}
+		node.Args = []*base.Node{arg}
+	case or.Right != nil:
+		node.Prim = consts.Right
+		arg, err := or.Right.ToBaseNode(optimized)
+		if err != nil {
+			return nil, err
+		}
+		node.Args = []*base.Node{arg}
+	default:
+		return nil, errors.New("OR is not Left or Right")
+	}
+	return node, nil
+}
+
+// ToJSONSchema -
+func (or *Or) ToJSONSchema() (*JSONSchema, error) {
+	oneOf := make([]*JSONSchema, 0)
+	for _, arg := range or.Args {
+		child, err := arg.ToJSONSchema()
+		if err != nil {
+			return nil, err
+		}
+
+		if child.Prim == consts.OR {
+			oneOf = append(oneOf, child.OneOf...)
+		} else {
+			item := &JSONSchema{
+				Title: arg.GetName(),
+				Properties: map[string]*JSONSchema{
+					"schemaKey": {
+						Type:  JSONSchemaTypeString,
+						Const: arg.GetName(),
+					},
+				},
+			}
+
+			if child.Prim != consts.UNIT {
+				for key, value := range child.Properties {
+					item.Properties[key] = value
+				}
+			}
+
+			oneOf = append(oneOf, item)
+		}
+	}
+
+	return &JSONSchema{
+		Type:  JSONSchemaTypeObject,
+		Title: or.GetName(),
+		Prim:  or.Prim,
+		OneOf: oneOf,
+	}, nil
+}

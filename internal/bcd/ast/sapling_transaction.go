@@ -83,3 +83,8 @@ func (st *SaplingTransaction) ToMiguel() (*MiguelNode, error) {
 	node.Children = append(node.Children, child)
 	return node, nil
 }
+
+// ToBaseNode -
+func (st *SaplingTransaction) ToBaseNode(optimized bool) (*base.Node, error) {
+	return st.Type.ToBaseNode(optimized)
+}

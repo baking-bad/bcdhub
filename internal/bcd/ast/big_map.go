@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
-	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/pkg/errors"
 )
@@ -143,29 +142,18 @@ func (m *BigMap) ToMiguel() (*MiguelNode, error) {
 
 }
 
-// Forge -
-func (m *BigMap) Forge() ([]byte, error) {
+// ToBaseNode -
+func (m *BigMap) ToBaseNode(optimized bool) (*base.Node, error) {
 	if m.Ptr != nil {
-		return forgeInt(base.NewBigInt(*m.Ptr))
+		return toBaseNodeInt(base.NewBigInt(*m.Ptr)), nil
 	}
 
-	nodes := make([]*base.Node, 0)
-	// for key, value := range m.Data {
-	// 	nodes = append(nodes, &base.Node{
-	// 		Prim: "Elt",
-	// 		// Args: []*base.Node{
-	// 		// 	&key, &value,
-	// 		// },
-	// 	})
-	// }
-	// TODO: bigmap forge
-	forger := forge.NewMichelson()
-	forger.Nodes = nodes
-	return forger.Forge()
+	return mapToBaseNodes(m.Data, optimized)
 }
 
-// Unforge -
-// TODO: bigmap unforge
-func (m *BigMap) Unforge(data []byte) (int, error) {
-	return 0, nil
+// ToJSONSchema -
+func (m *BigMap) ToJSONSchema() (*JSONSchema, error) {
+	i := getIntJSONSchema(m.Default)
+	i.Title = fmt.Sprintf("%s (ptr)", m.GetName())
+	return i, nil
 }

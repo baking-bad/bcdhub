@@ -106,3 +106,34 @@ func (set *Set) ToMiguel() (*MiguelNode, error) {
 
 	return node, nil
 }
+
+// ToBaseNode -
+func (set *Set) ToBaseNode(optimized bool) (*base.Node, error) {
+	return arrayToBaseNode(set.Data, optimized)
+}
+
+// ToJSONSchema -
+func (set *Set) ToJSONSchema() (*JSONSchema, error) {
+	s := &JSONSchema{
+		Prim:    set.Prim,
+		Type:    JSONSchemaTypeArray,
+		Title:   set.GetName(),
+		Default: make([]interface{}, 0),
+		Items: &SchemaKey{
+			Type:       JSONSchemaTypeObject,
+			Required:   make([]string, 0),
+			Properties: make(map[string]*JSONSchema),
+		},
+	}
+
+	if err := setChildSchema(set.Type, true, s); err != nil {
+		return nil, err
+	}
+
+	return &JSONSchema{
+		Type: JSONSchemaTypeObject,
+		Properties: map[string]*JSONSchema{
+			set.GetName(): s,
+		},
+	}, nil
+}

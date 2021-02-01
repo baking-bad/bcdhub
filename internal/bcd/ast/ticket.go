@@ -92,3 +92,8 @@ func (t *Ticket) ToMiguel() (*MiguelNode, error) {
 	node.Children = append(node.Children, child)
 	return node, nil
 }
+
+// ToBaseNode -
+func (t *Ticket) ToBaseNode(optimized bool) (*base.Node, error) {
+	return t.Paired.ToBaseNode(optimized)
+}

@@ -51,3 +51,21 @@ func (c *Contract) ParseType(node *base.Node, id *int) error {
 	c.Type = contractType
 	return nil
 }
+
+// ToJSONSchema -
+func (c *Contract) ToJSONSchema() (*JSONSchema, error) {
+	s := &JSONSchema{
+		Prim:    c.Prim,
+		Type:    JSONSchemaTypeString,
+		Default: "",
+	}
+	// TODO: set tags
+	// tags, err := kinds.CheckParameterForTags(nm.Parameter)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// if len(tags) == 1 {
+	// 	s.Tag = tags[0]
+	// }
+	return s, nil
+}
