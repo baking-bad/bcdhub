@@ -3,6 +3,7 @@ package events
 import (
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -41,7 +42,7 @@ type Sections struct {
 type TokenBalance struct {
 	Address string
 	TokenID int64
-	Value   int64
+	Value   *big.Int
 }
 
 // GetCode -

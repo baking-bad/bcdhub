@@ -17,7 +17,8 @@ import (
 
 // Parser -
 type Parser struct {
-	Schema schema.Repository
+	Schema  schema.Repository
+	Storage models.GeneralRepository
 
 	rpc        noderpc.INode
 	events     TokenEvents
@@ -33,8 +34,9 @@ type Parser struct {
 // NewParser -
 func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Repository, schemaRepo schema.Repository, storage models.GeneralRepository, opts ...ParserOption) (*Parser, error) {
 	tp := &Parser{
-		rpc:    rpc,
-		Schema: schemaRepo,
+		rpc:     rpc,
+		Schema:  schemaRepo,
+		Storage: storage,
 	}
 
 	for i := range opts {
@@ -106,6 +108,10 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 		ctx.Parameters = operation.Parameters
 		ctx.Entrypoint = operation.Entrypoint
 		event, err = events.NewMichelsonParameter(impl, name)
+		if err != nil {
+			return nil, err
+		}
+		return p.makeTransfersFromBalanceEvents(event, ctx, operation, true)
 	case impl.MichelsonExtendedStorageEvent.Is(operation.Entrypoint):
 		ctx.Parameters = operation.DeffatedStorage
 		ctx.Entrypoint = consts.DefaultEntrypoint
@@ -116,28 +122,43 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 			}
 		}
 		event, err = events.NewMichelsonExtendedStorage(impl, name, operation.Protocol, operation.GetID(), operation.Destination, p.Schema, bmd)
+		if err != nil {
+			return nil, err
+		}
+		return p.makeTransfersFromBalanceEvents(event, ctx, operation, false)
 	default:
 		return nil, nil
 	}
+}
 
-	if err != nil {
-		return nil, err
+func (p *Parser) transferPostprocessing(transfers []*transfer.Transfer, operation operation.Operation) {
+	if p.stackTrace.Empty() {
+		return
 	}
+	for i := range transfers {
+		p.setParentEntrypoint(operation, transfers[i])
+	}
+}
 
+func (p *Parser) makeTransfersFromBalanceEvents(event events.Event, ctx events.Context, operation operation.Operation, isDelta bool) ([]*transfer.Transfer, error) {
 	balances, err := events.Execute(p.rpc, event, ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	transfers, err := NewDefaultBalanceParser().Parse(balances, operation)
+	var transfers []*transfer.Transfer
+
+	parser := NewDefaultBalanceParser(p.Storage)
+	if isDelta {
+		transfers, err = parser.Parse(balances, operation)
+	} else {
+		transfers, err = parser.ParseBalances(p.network, operation.Destination, balances, operation)
+	}
 	if err != nil {
 		return nil, err
 	}
-	if !p.stackTrace.Empty() {
-		for i := range transfers {
-			p.setParentEntrypoint(operation, transfers[i])
-		}
-	}
+	p.transferPostprocessing(transfers, operation)
+
 	return transfers, err
 }
 

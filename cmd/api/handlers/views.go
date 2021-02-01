@@ -45,14 +45,19 @@ func (ctx *Context) GetViewsSchema(c *gin.Context) {
 		return
 	}
 
+	schemas := make([]ViewSchema, 0)
+
 	if len(tzip.Views) == 0 {
-		ctx.handleError(c, errNoViews, 0)
+		c.JSON(http.StatusOK, schemas)
 		return
 	}
 
-	schemas := make([]ViewSchema, 0)
 	for _, view := range tzip.Views {
 		for i, impl := range view.Implementations {
+			if impl.MichelsonStorageView.Empty() {
+				continue
+			}
+
 			schema := ViewSchema{
 				Name:           view.Name,
 				Description:    view.Description,

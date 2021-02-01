@@ -159,7 +159,7 @@ func ParseMetadata(v gjson.Result) (Metadata, error) {
 		parseNodeMetadata(v, parent, parent.Path, "", m)
 		return m, nil
 	default:
-		return nil, errors.Errorf("[ParseMetadata] Unknown value type: %T", v.Type)
+		return nil, errors.Errorf("[ParseMetadata] Unknown value type: %v", v)
 	}
 }
 
