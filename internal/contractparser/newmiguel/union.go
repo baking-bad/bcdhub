@@ -35,11 +35,13 @@ func (l *unionDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetad
 				return nil, err
 			}
 			argMeta := metadata[arg]
-			argNode.Name = argMeta.GetName(i)
+			name := argMeta.GetName(i)
+			argNode.Name = &name
 			node.Children = append(node.Children, argNode)
 			return &node, nil
 		}
 	}
-	node.Name = metadata[path].GetName(-1)
+	name := metadata[path].GetName(-1)
+	node.Name = &name
 	return &node, nil
 }

@@ -16,7 +16,7 @@ func (l *tupleDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetad
 	node := Node{
 		Prim:     nm.Prim,
 		Type:     nm.Type,
-		Name:     nm.Name,
+		Name:     &(nm.Name),
 		Children: make([]*Node, 0),
 	}
 	if data.Value() == nil {
@@ -37,7 +37,7 @@ func (l *tupleDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetad
 			node.Children = append(node.Children, &Node{
 				Prim:     argMeta.Prim,
 				Type:     argMeta.Type,
-				Name:     argMeta.Name,
+				Name:     &(argMeta.Name),
 				Children: make([]*Node, 0),
 			})
 		}

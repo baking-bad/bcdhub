@@ -32,11 +32,11 @@ func (l *namedTupleDecoder) Decode(data gjson.Result, path string, nm *meta.Node
 			if err != nil {
 				return nil, err
 			}
-			argNode.Name = name
+			argNode.Name = &name
 			node.Children = append(node.Children, argNode)
 		} else {
 			node.Children = append(node.Children, &Node{
-				Name:  name,
+				Name:  &name,
 				Value: nil,
 			})
 		}

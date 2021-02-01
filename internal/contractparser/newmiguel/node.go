@@ -17,7 +17,7 @@ const (
 type Node struct {
 	Prim     string      `json:"prim,omitempty"`
 	Type     string      `json:"type,omitempty"`
-	Name     string      `json:"name,omitempty"`
+	Name     *string     `json:"name,omitempty"`
 	From     interface{} `json:"from,omitempty"`
 	DiffType string      `json:"diff_type,omitempty"`
 	Value    interface{} `json:"value,omitempty"`

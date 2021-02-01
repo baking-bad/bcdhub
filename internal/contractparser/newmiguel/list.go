@@ -15,7 +15,7 @@ func (l *listDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetada
 	node := Node{
 		Prim:     nm.Prim,
 		Type:     nm.Type,
-		Name:     nm.Name,
+		Name:     &(nm.Name),
 		Children: make([]*Node, 0),
 	}
 
