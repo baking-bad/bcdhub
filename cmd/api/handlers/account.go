@@ -78,38 +78,58 @@ func (ctx *Context) getAccountBalances(network, address string) ([]TokenBalance,
 		return nil, err
 	}
 
-	result := make([]TokenBalance, 0)
+	results := make([]TokenBalance, 0)
+	contextes := make([]tokenmetadata.GetContext, 0)
+	balances := make(map[tokenmetadata.GetContext]string)
+
 	for _, balance := range tokenBalances {
-		token, err := ctx.TokenMetadata.Get(tokenmetadata.GetContext{
+		c := tokenmetadata.GetContext{
 			TokenID:  balance.TokenID,
 			Contract: balance.Contract,
 			Network:  network,
-		})
-		tb := TokenBalance{
-			Balance: balance.Balance,
 		}
-
-		if err == nil && len(token) > 0 {
-			tb.Decimals = token[0].Decimals
-			tb.Name = token[0].Name
-			tb.Symbol = token[0].Symbol
-		}
-		tb.Contract = balance.Contract
-		tb.TokenID = balance.TokenID
-		tb.Network = balance.Network
-
-		result = append(result, tb)
+		balances[c] = balance.Balance
+		contextes = append(contextes, c)
 	}
 
-	sort.Slice(result, func(i, j int) bool {
-		if result[i].Name == "" {
-			return false
-		} else if result[j].Name == "" {
-			return true
+	tokens, err := ctx.TokenMetadata.Get(contextes...)
+	if err != nil {
+		return nil, err
+	}
+
+	sort.Sort(tokenmetadata.ByName(tokens))
+	for _, token := range tokens {
+		c := tokenmetadata.GetContext{
+			TokenID:  token.TokenID,
+			Contract: token.Contract,
+			Network:  network,
 		}
 
-		return result[i].Name < result[j].Name
-	})
+		balance, ok := balances[c]
+		if !ok {
+			continue
+		}
 
-	return result, nil
+		delete(balances, c)
+
+		tb := TokenBalance{
+			Balance:       balance,
+			TokenMetadata: TokenMetadataFromElasticModel(token, false),
+		}
+
+		results = append(results, tb)
+	}
+
+	for c, balance := range balances {
+		results = append(results, TokenBalance{
+			Balance: balance,
+			TokenMetadata: TokenMetadata{
+				Contract: c.Contract,
+				TokenID:  c.TokenID,
+				Network:  c.Network,
+			},
+		})
+	}
+
+	return results, nil
 }

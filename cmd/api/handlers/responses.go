@@ -666,7 +666,7 @@ type TokenMetadata struct {
 }
 
 // TokenMetadataFromElasticModel -
-func TokenMetadataFromElasticModel(model tokenmetadata.TokenMetadata) (tm TokenMetadata) {
+func TokenMetadataFromElasticModel(model tokenmetadata.TokenMetadata, withTokenInfo bool) (tm TokenMetadata) {
 	tm.TokenID = model.TokenID
 	tm.Symbol = model.Symbol
 	tm.Name = model.Name
@@ -674,7 +674,9 @@ func TokenMetadataFromElasticModel(model tokenmetadata.TokenMetadata) (tm TokenM
 	tm.Contract = model.Contract
 	tm.Level = model.Level
 	tm.Network = model.Network
-	tm.TokenInfo = model.Extras
+	if withTokenInfo {
+		tm.TokenInfo = model.Extras
+	}
 	return
 }
 

@@ -312,27 +312,19 @@ func (ctx *Context) getTokens(network, address string) ([]Token, error) {
 		}
 		return nil, err
 	}
+
+	sort.Sort(tokenmetadata.ByName(metadata))
 	tokens := make([]Token, 0)
 	for _, token := range metadata {
 		supply, err := ctx.Transfers.GetTokenSupply(network, address, token.TokenID)
 		if err != nil {
 			return nil, err
 		}
-		tokenMetadata := TokenMetadataFromElasticModel(token)
+		tokenMetadata := TokenMetadataFromElasticModel(token, true)
 		tokens = append(tokens, Token{
 			tokenMetadata, supply,
 		})
 	}
-
-	sort.Slice(tokens, func(i, j int) bool {
-		if tokens[i].Name == "" {
-			return false
-		} else if tokens[j].Name == "" {
-			return true
-		}
-
-		return tokens[i].Name < tokens[j].Name
-	})
 
 	return tokens, nil
 }

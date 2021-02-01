@@ -126,7 +126,7 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 				}
 
 				for i := range tokenMetadata {
-					tm := TokenMetadataFromElasticModel(tokenMetadata[i])
+					tm := TokenMetadataFromElasticModel(tokenMetadata[i], true)
 					tm.Volume24Hours = &vol
 					result.DexTokens = append(result.DexTokens, tm)
 				}
