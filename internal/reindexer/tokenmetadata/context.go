@@ -6,17 +6,17 @@ import (
 	"github.com/restream/reindexer"
 )
 
-func buildGetTokenMetadataContext(ctx tokenmetadata.GetContext, query *reindexer.Query) {
-	if ctx.Contract != "" {
-		query.Match("address", ctx.Contract)
+func buildGetTokenMetadataContext(query *reindexer.Query, ctx ...tokenmetadata.GetContext) {
+	if ctx[0].Contract != "" {
+		query.Match("address", ctx[0].Contract)
 	}
-	if ctx.Network != "" {
-		query.Match("network", ctx.Network)
+	if ctx[0].Network != "" {
+		query.Match("network", ctx[0].Network)
 	}
-	if ctx.Level.IsFilled() {
-		core.SetComaparator("level", ctx.Level, query)
+	if ctx[0].Level.IsFilled() {
+		core.SetComaparator("level", ctx[0].Level, query)
 	}
-	if ctx.TokenID != -1 {
-		query.WhereInt64("tokens.static.token_id", reindexer.EQ, ctx.TokenID)
+	if ctx[0].TokenID != -1 {
+		query.WhereInt64("tokens.static.token_id", reindexer.EQ, ctx[0].TokenID)
 	}
 }

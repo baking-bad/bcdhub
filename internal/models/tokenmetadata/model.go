@@ -20,6 +20,21 @@ type TokenMetadata struct {
 	Extras    map[string]interface{} `json:"extras"`
 }
 
+// ByName - TokenMetadata sorting filter by Name field
+type ByName []TokenMetadata
+
+func (tm ByName) Len() int      { return len(tm) }
+func (tm ByName) Swap(i, j int) { tm[i], tm[j] = tm[j], tm[i] }
+func (tm ByName) Less(i, j int) bool {
+	if tm[i].Name == "" {
+		return false
+	} else if tm[j].Name == "" {
+		return true
+	}
+
+	return tm[i].Name < tm[j].Name
+}
+
 // GetID -
 func (t *TokenMetadata) GetID() string {
 	return fmt.Sprintf("%s_%s_%d", t.Network, t.Contract, t.TokenID)

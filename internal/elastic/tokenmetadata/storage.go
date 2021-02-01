@@ -16,8 +16,8 @@ func NewStorage(es *core.Elastic) *Storage {
 }
 
 // Get -
-func (storage *Storage) Get(ctx tokenmetadata.GetContext) (tokens []tokenmetadata.TokenMetadata, err error) {
-	query := buildGetTokenMetadataContext(ctx)
+func (storage *Storage) Get(ctx ...tokenmetadata.GetContext) (tokens []tokenmetadata.TokenMetadata, err error) {
+	query := buildGetTokenMetadataContext(ctx...)
 	err = storage.es.GetAllByQuery(query, &tokens)
 	return
 }
