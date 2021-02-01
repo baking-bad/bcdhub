@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"sort"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
@@ -322,6 +323,17 @@ func (ctx *Context) getTokens(network, address string) ([]Token, error) {
 			tokenMetadata, supply,
 		})
 	}
+
+	sort.Slice(tokens, func(i, j int) bool {
+		if tokens[i].Name == "" {
+			return false
+		} else if tokens[j].Name == "" {
+			return true
+		}
+
+		return tokens[i].Name < tokens[j].Name
+	})
+
 	return tokens, nil
 }
 
