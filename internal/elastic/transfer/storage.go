@@ -147,7 +147,7 @@ func (storage *Storage) GetToken24HoursVolume(network, contract string, initiato
 }
 
 // GetTokenVolumeSeries -
-func (storage *Storage) GetTokenVolumeSeries(network, period string, contracts []string, entrypoints []tzip.DAppContract, tokenID uint) ([][]int64, error) {
+func (storage *Storage) GetTokenVolumeSeries(network, period string, contracts []string, entrypoints []tzip.DAppContract, tokenID uint) ([][]float64, error) {
 	hist := core.Item{
 		"date_histogram": core.Item{
 			"field":             "timestamp",
@@ -212,11 +212,11 @@ func (storage *Storage) GetTokenVolumeSeries(network, period string, contracts [
 		return nil, err
 	}
 
-	histogram := make([][]int64, len(response.Agg.Hist.Buckets))
+	histogram := make([][]float64, len(response.Agg.Hist.Buckets))
 	for i := range response.Agg.Hist.Buckets {
-		item := []int64{
-			response.Agg.Hist.Buckets[i].Key,
-			int64(response.Agg.Hist.Buckets[i].Result.Value),
+		item := []float64{
+			float64(response.Agg.Hist.Buckets[i].Key),
+			response.Agg.Hist.Buckets[i].Result.Value,
 		}
 		histogram[i] = item
 	}

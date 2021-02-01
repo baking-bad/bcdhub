@@ -86,7 +86,7 @@ func (storage *Storage) GetTokenSupply(network, address string, tokenID int64) (
 }
 
 // GetTokenVolumeSeries -
-func (storage *Storage) GetTokenVolumeSeries(network, period string, contracts []string, entrypoints []tzip.DAppContract, tokenID uint) ([][]int64, error) {
+func (storage *Storage) GetTokenVolumeSeries(network, period string, contracts []string, entrypoints []tzip.DAppContract, tokenID uint) ([][]float64, error) {
 	return nil, nil
 }
 
