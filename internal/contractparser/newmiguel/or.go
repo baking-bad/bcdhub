@@ -38,7 +38,8 @@ func (l *orDecoder) Decode(data gjson.Result, path string, nm *meta.NodeMetadata
 				return nil, err
 			}
 
-			argNode.Name = metadata.GetFieldName(arg, i)
+			name := metadata.GetFieldName(arg, i)
+			argNode.Name = &name
 			node.Children = append(node.Children, argNode)
 			return &node, nil
 		}
