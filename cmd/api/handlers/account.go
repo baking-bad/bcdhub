@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"sort"
 
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/gin-gonic/gin"
@@ -99,6 +100,16 @@ func (ctx *Context) getAccountBalances(network, address string) ([]TokenBalance,
 
 		result = append(result, tb)
 	}
+
+	sort.Slice(result, func(i, j int) bool {
+		if result[i].Name == "" {
+			return false
+		} else if result[j].Name == "" {
+			return true
+		}
+
+		return result[i].Name < result[j].Name
+	})
 
 	return result, nil
 }
