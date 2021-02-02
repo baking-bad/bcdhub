@@ -1,6 +1,7 @@
 package noderpc
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/tidwall/gjson"
@@ -11,6 +12,7 @@ type INode interface {
 	GetHead() (Header, error)
 	GetHeader(int64) (Header, error)
 	GetLevel() (int64, error)
+	GetProtocol() (string, error)
 	GetLevelTime(int) (time.Time, error)
 	GetScriptJSON(string, int64) (gjson.Result, error)
 	GetScriptStorageJSON(string, int64) (gjson.Result, error)
@@ -23,4 +25,8 @@ type INode interface {
 	RunOperation(string, string, string, string, int64, int64, int64, int64, int64, gjson.Result) (gjson.Result, error)
 	GetCounter(string) (int64, error)
 	GetCode(address string, level int64) (gjson.Result, error)
+}
+
+type client interface {
+	Do(req *http.Request) (*http.Response, error)
 }

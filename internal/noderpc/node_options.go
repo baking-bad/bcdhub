@@ -18,3 +18,10 @@ func WithRetryCount(retryCount int) NodeOption {
 		node.retryCount = retryCount
 	}
 }
+
+// WithLegacy -
+func WithLegacy() NodeOption {
+	return func(nr *NodeRPC) {
+		nr.legacy = true
+	}
+}

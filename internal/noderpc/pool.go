@@ -19,13 +19,6 @@ type poolItem struct {
 
 func newPoolItem(url string, opts ...NodeOption) *poolItem {
 	return &poolItem{
-		node:      NewNodeRPC(url, opts...),
-		blockTime: time.Now(),
-	}
-}
-
-func newWaitPoolItem(url string, opts ...NodeOption) *poolItem {
-	return &poolItem{
 		node:      NewWaitNodeRPC(url, opts...),
 		blockTime: time.Now(),
 	}
@@ -39,20 +32,11 @@ func (p *poolItem) isBlocked() bool {
 	return time.Now().After(p.blockTime)
 }
 
-// NewPool - creates `Pool` struct by `urls`
+// NewPool -
 func NewPool(urls []string, opts ...NodeOption) Pool {
 	pool := make(Pool, len(urls))
 	for i := range urls {
 		pool[i] = newPoolItem(urls[i], opts...)
-	}
-	return pool
-}
-
-// NewWaitPool -
-func NewWaitPool(urls []string, opts ...NodeOption) Pool {
-	pool := make(Pool, len(urls))
-	for i := range urls {
-		pool[i] = newWaitPoolItem(urls[i], opts...)
 	}
 	return pool
 }
@@ -135,6 +119,15 @@ func (p Pool) GetLevel() (int64, error) {
 		return 0, err
 	}
 	return data.Int(), nil
+}
+
+// GetProtocol -
+func (p Pool) GetProtocol() (string, error) {
+	data, err := p.call("GetProtocol")
+	if err != nil {
+		return "", err
+	}
+	return data.String(), nil
 }
 
 // GetLevelTime - get level time
