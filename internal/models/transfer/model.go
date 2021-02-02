@@ -71,17 +71,18 @@ func (t *Transfer) LogFields() logrus.Fields {
 // EmptyTransfer -
 func EmptyTransfer(o operation.Operation) *Transfer {
 	return &Transfer{
-		ID:          helpers.GenerateID(),
-		IndexedTime: o.IndexedTime,
-		Network:     o.Network,
-		Contract:    o.Destination,
-		Hash:        o.Hash,
-		Status:      o.Status,
-		Timestamp:   o.Timestamp,
-		Level:       o.Level,
-		Initiator:   o.Source,
-		Counter:     o.Counter,
-		Nonce:       o.Nonce,
+		ID:           helpers.GenerateID(),
+		IndexedTime:  o.IndexedTime,
+		Network:      o.Network,
+		Contract:     o.Destination,
+		Hash:         o.Hash,
+		Status:       o.Status,
+		Timestamp:    o.Timestamp,
+		Level:        o.Level,
+		Initiator:    o.Source,
+		AmountBigInt: big.NewInt(0),
+		Counter:      o.Counter,
+		Nonce:        o.Nonce,
 	}
 }
 
