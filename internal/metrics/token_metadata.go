@@ -20,17 +20,8 @@ import (
 
 // CreateTokenMetadata -
 func (h *Handler) CreateTokenMetadata(rpc noderpc.INode, sharePath string, c *contract.Contract, ipfs ...string) error {
-	parser := tokens.NewParser(h.BigMapDiffs, h.Blocks, h.Protocol, h.Schema, h.Storage, rpc, sharePath, c.Network, ipfs...)
-	metadata, err := parser.Parse(c.Address, c.Level)
-	if err != nil {
-		return err
-	}
 
 	result := make([]models.Model, 0)
-	for i := range metadata {
-		logger.With(&metadata[i]).Info("Token metadata is found")
-		result = append(result, &metadata[i])
-	}
 
 	transfers, err := h.ExecuteInitialStorageEvent(rpc, c.Network, c.Address)
 	if err != nil {
@@ -70,13 +61,14 @@ func (h *Handler) FixTokenMetadata(rpc noderpc.INode, sharePath string, contract
 		}
 		for i := range metadata {
 			result = append(result, &metadata[i])
+			logger.With(&metadata[i]).Info("Token metadata update is found")
 		}
 	}
 	if len(result) == 0 {
 		return nil
 	}
 
-	return h.Storage.BulkUpdate(result)
+	return h.Storage.BulkInsert(result)
 }
 
 // ExecuteInitialStorageEvent -

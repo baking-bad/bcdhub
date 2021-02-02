@@ -100,7 +100,11 @@ func (m *TokenMetadata) Parse(value gjson.Result, address string, ptr int64) err
 			}
 			m.Name = string(decoded)
 		default:
-			m.Extras[key] = value
+			decoded, err := hex.DecodeString(value)
+			if err != nil {
+				m.Extras[key] = value
+			}
+			m.Extras[key] = string(decoded)
 		}
 	}
 	return nil

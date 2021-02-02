@@ -41,7 +41,7 @@ func TestTokenMetadata_Parse(t *testing.T) {
 			want: &TokenMetadata{
 				TokenID: 2,
 				Extras: map[string]interface{}{
-					"content": "7b226e616d65223a20224e616d65222c202273796d626f6c223a2022534d42222c2022646563696d616c73223a20367d",
+					"content": "{\"name\": \"Name\", \"symbol\": \"SMB\", \"decimals\": 6}",
 				},
 				Link: "tezos-storage:content",
 			},
@@ -60,6 +60,20 @@ func TestTokenMetadata_Parse(t *testing.T) {
 			value:   `{"prim":"Pair","args":[{"int":"2"},{"prim":"Elt","args":[{"string":""},{"bytes":"74657a6f732d73746f726167653a636f6e74656e74"}]}]}`,
 			wantErr: true,
 			want:    &TokenMetadata{},
+		}, {
+			name:    "test 7: KT1WfbXNtvNDy7HLzPipn3x8CURTUgGYNSj9",
+			value:   `{"prim":"Pair","args":[{"int":"0"},[{"prim":"Elt","args":[{"string":"artifactUri"},{"bytes":"68747470733a2f2f636c6f7564666c6172652d697066732e636f6d2f697066732f516d53395634504b536a516838687a79517a52714b46786b4363535931794c755851594b7837596f54794a595965"}]},{"prim":"Elt","args":[{"string":"booleanAmount"},{"bytes":"74727565"}]},{"prim":"Elt","args":[{"string":"decimals"},{"bytes":"30"}]},{"prim":"Elt","args":[{"string":"displayUri"},{"bytes":"68747470733a2f2f636c6f7564666c6172652d697066732e636f6d2f697066732f516d53395634504b536a516838687a79517a52714b46786b4363535931794c755851594b7837596f54794a595965"}]},{"prim":"Elt","args":[{"string":"name"},{"bytes":"4361742044726177696e67"}]}]]}`,
+			wantErr: false,
+			want: &TokenMetadata{
+				TokenID:  0,
+				Decimals: getIntPtr(0),
+				Name:     "Cat Drawing",
+				Extras: map[string]interface{}{
+					"artifactUri":   "https://cloudflare-ipfs.com/ipfs/QmS9V4PKSjQh8hzyQzRqKFxkCcSY1yLuXQYKx7YoTyJYYe",
+					"booleanAmount": "true",
+					"displayUri":    "https://cloudflare-ipfs.com/ipfs/QmS9V4PKSjQh8hzyQzRqKFxkCcSY1yLuXQYKx7YoTyJYYe",
+				},
+			},
 		},
 	}
 	for _, tt := range tests {
@@ -216,6 +230,36 @@ func TestTokenMetadata_UnmarshalJSON(t *testing.T) {
 				"booleanAmount": false,
 				"displayUri": "https://gateway.pinata.cloud/ipfs/QmPkJBaRnb2JwqA1S2sUQayTV9xT3x8MBnsmq7ForBWKuU",
 				"defaultPresentation": "large",
+				"actionLabel": "Send"
+				}`),
+		}, {
+			name: "test ipfs 2",
+			tm: TokenMetadata{
+				Symbol:   "TZBKAB",
+				Name:     "Klassare Alpha Brain",
+				Decimals: int64Ptr(0),
+				Extras: map[string]interface{}{
+					"description":         "An upgraded unit, the great Klassare reborn.",
+					"isNft":               true,
+					"nonTransferrable":    false,
+					"symbolPrecedence":    false,
+					"binaryAmount":        true,
+					"imageUri":            "https://gateway.pinata.cloud/ipfs/QmZjeBZT5QykT4sEELYP2cYYEPTtgwx3vQhnyMzCmDKB7Q",
+					"defaultPresentation": "small",
+					"actionLabel":         "Send",
+				},
+			},
+			data: []byte(`{
+				"name": "Klassare Alpha Brain",
+				"symbol": "TZBKAB",
+				"decimals": "0",
+				"description": "An upgraded unit, the great Klassare reborn.",
+				"isNft": true,
+				"nonTransferrable": false,
+				"symbolPrecedence": false,
+				"binaryAmount": true,
+				"imageUri": "https://gateway.pinata.cloud/ipfs/QmZjeBZT5QykT4sEELYP2cYYEPTtgwx3vQhnyMzCmDKB7Q",
+				"defaultPresentation": "small",
 				"actionLabel": "Send"
 				}`),
 		},

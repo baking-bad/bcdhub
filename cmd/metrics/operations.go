@@ -19,10 +19,9 @@ func getOperation(ids []string) error {
 		return errors.Errorf("[getOperation] Find operation error for IDs %v: %s", ids, err)
 	}
 
-	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.DB)
 	updated := make([]models.Model, 0)
 	for i := range operations {
-		if err := parseOperation(h, operations[i]); err != nil {
+		if err := parseOperation(operations[i]); err != nil {
 			return errors.Errorf("[getOperation] Compute error message: %s", err)
 		}
 
@@ -35,10 +34,12 @@ func getOperation(ids []string) error {
 
 	logger.Info("%d operations are processed", len(operations))
 
-	return getOperationsContracts(h, operations)
+	return getOperationsContracts(operations)
 }
 
-func parseOperation(h *metrics.Handler, operation operation.Operation) error {
+func parseOperation(operation operation.Operation) error {
+	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.DB)
+
 	aliases, err := getAliases(operation.Network)
 	if err != nil {
 		return err
@@ -71,7 +72,7 @@ func (s *stats) isZero() bool {
 	return s.Count == 0 && s.LastAction.IsZero()
 }
 
-func getOperationsContracts(h *metrics.Handler, operations []operation.Operation) error {
+func getOperationsContracts(operations []operation.Operation) error {
 	addresses := make([]contract.Address, 0)
 	addressesMap := make(map[contract.Address]*stats)
 	for i := range operations {
@@ -105,7 +106,6 @@ func getOperationsContracts(h *metrics.Handler, operations []operation.Operation
 	}
 
 	updated := make([]contract.Contract, 0)
-	contractsMap := make(map[contract.Address]contract.Contract)
 	for i := range contracts {
 		addr := contract.Address{
 			Address: contracts[i].Address,
@@ -117,31 +117,7 @@ func getOperationsContracts(h *metrics.Handler, operations []operation.Operation
 				contracts[i].LastAction = s.LastAction
 				updated = append(updated, contracts[i])
 			}
-			contractsMap[addr] = contracts[i]
 		}
 	}
-
-	if err := ctx.Contracts.UpdateField(updated, "TxCount", "LastAction"); err != nil {
-		return err
-	}
-
-	for i := range operations {
-		if !operations[i].IsTransaction() || !operations[i].IsCall() {
-			continue
-		}
-		addr := contract.Address{
-			Address: operations[i].Destination,
-			Network: operations[i].Network,
-		}
-		if cntr, ok := contractsMap[addr]; ok {
-			rpc, err := ctx.GetRPC(cntr.Network)
-			if err != nil {
-				return err
-			}
-			if err := h.FixTokenMetadata(rpc, ctx.SharePath, &cntr, &operations[i], ctx.Config.IPFSGateways...); err != nil {
-				logger.Error(err)
-			}
-		}
-	}
-	return nil
+	return ctx.Contracts.UpdateField(updated, "TxCount", "LastAction")
 }

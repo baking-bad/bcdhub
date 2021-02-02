@@ -77,6 +77,6 @@ func (parser *DefaultBalanceParser) ParseBalances(network, contract string, bala
 
 func bigIntToFloat64(x *big.Int) float64 {
 	f := new(big.Float).SetInt(x)
-	ret, _ := f.Float64()
+	ret, _ := f.Abs(f).Float64()
 	return ret
 }
