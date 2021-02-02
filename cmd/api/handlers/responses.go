@@ -565,12 +565,46 @@ type BigMapHistoryItem struct {
 
 // Transfer -
 type Transfer struct {
-	*transfer.Transfer
+	IndexedTime    int64          `json:"indexed_time"`
+	Network        string         `json:"network"`
+	Contract       string         `json:"contract"`
+	Initiator      string         `json:"initiator"`
+	Hash           string         `json:"hash"`
+	Status         string         `json:"status"`
+	Timestamp      time.Time      `json:"timestamp"`
+	Level          int64          `json:"level"`
+	From           string         `json:"from"`
+	To             string         `json:"to"`
+	TokenID        int64          `json:"token_id"`
+	Amount         string         `json:"amount"`
+	Counter        int64          `json:"counter"`
+	Nonce          *int64         `json:"nonce,omitempty"`
+	Parent         string         `json:"parent,omitempty"`
 	Token          *TokenMetadata `json:"token,omitempty" extensions:"x-nullable"`
 	Alias          string         `json:"alias,omitempty" extensions:"x-nullable"`
 	InitiatorAlias string         `json:"initiator_alias,omitempty" extensions:"x-nullable"`
 	FromAlias      string         `json:"from_alias,omitempty" extensions:"x-nullable"`
 	ToAlias        string         `json:"to_alias,omitempty" extensions:"x-nullable"`
+}
+
+// TransferFromElasticModel -
+func TransferFromElasticModel(model transfer.Transfer) (t Transfer) {
+	t.IndexedTime = model.IndexedTime
+	t.Network = model.Network
+	t.Contract = model.Contract
+	t.Initiator = model.Initiator
+	t.Hash = model.Hash
+	t.Status = model.Status
+	t.Timestamp = model.Timestamp
+	t.Level = model.Level
+	t.From = model.From
+	t.To = model.To
+	t.TokenID = model.TokenID
+	t.Amount = model.AmountStr
+	t.Counter = model.Counter
+	t.Nonce = model.Nonce
+	t.Parent = model.Parent
+	return
 }
 
 // TransferResponse -

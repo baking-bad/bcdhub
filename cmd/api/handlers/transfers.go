@@ -95,14 +95,13 @@ func (ctx *Context) transfersPostprocessing(transfers transfer.Pageable) (respon
 			Contract: transfers.Transfers[i].Contract,
 			TokenID:  transfers.Transfers[i].TokenID,
 		}]
-		response.Transfers[i] = Transfer{
-			Transfer:       &transfers.Transfers[i],
-			Token:          token,
-			Alias:          ctx.getAlias(transfers.Transfers[i].Network, transfers.Transfers[i].Contract),
-			InitiatorAlias: ctx.getAlias(transfers.Transfers[i].Network, transfers.Transfers[i].Initiator),
-			FromAlias:      ctx.getAlias(transfers.Transfers[i].Network, transfers.Transfers[i].From),
-			ToAlias:        ctx.getAlias(transfers.Transfers[i].Network, transfers.Transfers[i].To),
-		}
+
+		response.Transfers[i] = TransferFromElasticModel(transfers.Transfers[i])
+		response.Transfers[i].Token = token
+		response.Transfers[i].Alias = ctx.getAlias(transfers.Transfers[i].Network, transfers.Transfers[i].Contract)
+		response.Transfers[i].InitiatorAlias = ctx.getAlias(transfers.Transfers[i].Network, transfers.Transfers[i].Initiator)
+		response.Transfers[i].FromAlias = ctx.getAlias(transfers.Transfers[i].Network, transfers.Transfers[i].From)
+		response.Transfers[i].ToAlias = ctx.getAlias(transfers.Transfers[i].Network, transfers.Transfers[i].To)
 	}
 	return
 }

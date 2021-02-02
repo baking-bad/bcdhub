@@ -2,6 +2,7 @@ package operations
 
 import (
 	"fmt"
+	"math/big"
 	"testing"
 	"time"
 
@@ -281,19 +282,19 @@ func TestGroup_Parse(t *testing.T) {
 					Protocol:     "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 				},
 				&transfer.Transfer{
-					Network:   consts.Mainnet,
-					Contract:  "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-					Initiator: "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
-					Hash:      "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
-					Status:    consts.Applied,
-					Timestamp: timestamp,
-					Level:     1151495,
-					From:      "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
-					To:        "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
-					TokenID:   0,
-					Amount:    7.87488e+06,
-					Counter:   6909186,
-					Nonce:     setInt64(0),
+					Network:      consts.Mainnet,
+					Contract:     "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+					Initiator:    "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
+					Hash:         "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
+					Status:       consts.Applied,
+					Timestamp:    timestamp,
+					Level:        1151495,
+					From:         "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
+					To:           "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
+					TokenID:      0,
+					AmountBigInt: big.NewInt(7.87488e+06),
+					Counter:      6909186,
+					Nonce:        setInt64(0),
 				},
 			},
 		}, {

@@ -1,12 +1,14 @@
 package tokenbalance
 
 import (
-	"encoding/json"
 	"fmt"
 	"math/big"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/sirupsen/logrus"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // TokenBalance -
 type TokenBalance struct {
@@ -48,37 +50,6 @@ func (tb *TokenBalance) LogFields() logrus.Fields {
 		"token_id": tb.TokenID,
 		"balance":  tb.Balance,
 	}
-}
-
-// Set -
-func (tb *TokenBalance) Set(value float64) {
-	f := big.NewFloat(value)
-	if tb.Value == nil {
-		tb.Value = big.NewInt(0)
-	}
-	f.Int(tb.Value)
-}
-
-// Add -
-func (tb *TokenBalance) Add(value float64) {
-	if tb.Value == nil {
-		tb.Value = big.NewInt(0)
-	}
-	f := big.NewFloat(value)
-	amount := big.NewInt(0)
-	f.Int(amount)
-	tb.Value.Add(tb.Value, amount)
-}
-
-// Sub -
-func (tb *TokenBalance) Sub(value float64) {
-	if tb.Value == nil {
-		tb.Value = big.NewInt(0)
-	}
-	f := big.NewFloat(value)
-	amount := big.NewInt(0)
-	f.Int(amount)
-	tb.Value.Sub(tb.Value, amount)
 }
 
 // Sum -
