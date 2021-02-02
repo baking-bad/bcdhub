@@ -30,7 +30,7 @@ func (parser *DefaultBalanceParser) Parse(balances []events.TokenBalance, operat
 		} else {
 			transfer.From = balance.Address
 		}
-		transfer.Amount = bigIntToFloat64(balance.Value)
+		transfer.AmountBigInt.Abs(balance.Value)
 		transfer.TokenID = balance.TokenID
 
 		transfers = append(transfers, transfer)
@@ -66,17 +66,11 @@ func (parser *DefaultBalanceParser) ParseBalances(network, contract string, bala
 			transfer.From = balance.Address
 		}
 
-		transfer.Amount = bigIntToFloat64(delta)
+		transfer.AmountBigInt.Abs(delta)
 		transfer.TokenID = balance.TokenID
 
 		transfers = append(transfers, transfer)
 	}
 
 	return transfers, nil
-}
-
-func bigIntToFloat64(x *big.Int) float64 {
-	f := new(big.Float).SetInt(x)
-	ret, _ := f.Abs(f).Float64()
-	return ret
 }

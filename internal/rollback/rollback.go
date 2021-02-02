@@ -91,7 +91,7 @@ func (rm Manager) rollbackTokenBalances(network string, toLevel int64) error {
 
 		if id := transfers[i].GetFromTokenBalanceID(); id != "" {
 			if update, ok := exists[id]; ok {
-				update.Add(transfers[i].Amount)
+				update.Value.Add(update.Value, transfers[i].AmountBigInt)
 			} else {
 				upd := transfers[i].MakeTokenBalanceUpdate(true, true)
 				updates = append(updates, upd)
@@ -101,7 +101,7 @@ func (rm Manager) rollbackTokenBalances(network string, toLevel int64) error {
 
 		if id := transfers[i].GetToTokenBalanceID(); id != "" {
 			if update, ok := exists[id]; ok {
-				update.Sub(transfers[i].Amount)
+				update.Value.Sub(update.Value, transfers[i].AmountBigInt)
 			} else {
 				upd := transfers[i].MakeTokenBalanceUpdate(false, true)
 				updates = append(updates, upd)

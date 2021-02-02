@@ -179,8 +179,8 @@ func compareTransfers(one, two *transfer.Transfer) bool {
 		logger.Info("TokenID: %d != %d", one.TokenID, two.TokenID)
 		return false
 	}
-	if one.Amount != two.Amount {
-		logger.Info("Amount: %f != %f", one.Amount, two.Amount)
+	if one.AmountBigInt.Cmp(two.AmountBigInt) != 0 {
+		logger.Info("Amount: %v != %v", one.AmountBigInt, two.AmountBigInt)
 		return false
 	}
 	if one.Counter != two.Counter {

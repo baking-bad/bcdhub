@@ -1,6 +1,8 @@
 package transfer
 
 import (
+	"fmt"
+
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -174,7 +176,10 @@ func (p *Parser) makeFA12Transfers(operation operation.Operation, parameters gjs
 	}
 	t.From = fromAddr
 	t.To = toAddr
-	t.Amount = parameters.Get("args.1.args.1.int").Float()
+
+	if err := t.SetAmountFromString(parameters.Get("args.1.args.1.int").String()); err != nil {
+		return nil, fmt.Errorf("makeFA12Transfers error: %s %s %w", operation.Hash, operation.Network, err)
+	}
 
 	p.setParentEntrypoint(operation, t)
 
@@ -196,7 +201,9 @@ func (p *Parser) makeFA2Transfers(operation operation.Operation, parameters gjso
 			transfer := transfer.EmptyTransfer(operation)
 			transfer.From = fromAddr
 			transfer.To = toAddr
-			transfer.Amount = to.Get("args.1.args.1.int").Float()
+			if err := transfer.SetAmountFromString(to.Get("args.1.args.1.int").String()); err != nil {
+				return nil, fmt.Errorf("makeFA2Transfers error: %s %s %w", operation.Hash, operation.Network, err)
+			}
 			transfer.TokenID = to.Get("args.1.args.0.int").Int()
 
 			p.setParentEntrypoint(operation, transfer)
