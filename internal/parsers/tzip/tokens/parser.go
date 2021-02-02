@@ -48,6 +48,45 @@ func (t Parser) Parse(address string, level int64) ([]tokenmetadata.TokenMetadat
 	return t.parse(address, state)
 }
 
+// ParseBigMapDiff -
+func (t Parser) ParseBigMapDiff(bmd *bigmapdiff.BigMapDiff) ([]tokenmetadata.TokenMetadata, error) {
+	state, err := t.getState(bmd.Level)
+	if err != nil {
+		return nil, err
+	}
+	return t.parseBigMapDiff(bmd, state)
+}
+
+func (t Parser) parseBigMapDiff(bmd *bigmapdiff.BigMapDiff, state block.Block) ([]tokenmetadata.TokenMetadata, error) {
+	if _, err := t.getBigMapPtr(bmd.Address, state); err != nil {
+		return nil, err
+	}
+
+	m := &TokenMetadata{}
+	value := gjson.Parse(bmd.Value)
+	if err := m.Parse(value, bmd.Address, bmd.Ptr); err != nil {
+		return nil, nil
+	}
+	m.Timestamp = bmd.Timestamp
+	m.Level = bmd.Level
+
+	if m.Link != "" {
+		s := tzipStorage.NewFull(t.bmdRepo, t.blocksRepo, t.schemaRepo, t.storage, t.rpc, t.ipfs...)
+
+		remoteMetadata := &TokenMetadata{}
+		if err := s.Get(t.network, bmd.Address, m.Link, bmd.Ptr, remoteMetadata); err != nil {
+			if errors.Is(err, tzipStorage.ErrHTTPRequest) {
+				logger.Error(err)
+				return nil, nil
+			}
+			return nil, err
+		}
+		m.Merge(remoteMetadata)
+	}
+
+	return []tokenmetadata.TokenMetadata{m.ToModel(bmd.Address, t.network)}, nil
+}
+
 func (t Parser) parse(address string, state block.Block) ([]tokenmetadata.TokenMetadata, error) {
 	ptr, err := t.getBigMapPtr(address, state)
 	if err != nil {
@@ -55,23 +94,34 @@ func (t Parser) parse(address string, state block.Block) ([]tokenmetadata.TokenM
 	}
 
 	bmd, err := t.bmdRepo.Get(bigmapdiff.GetContext{
-		Ptr:     &ptr,
-		Network: t.network,
-		Size:    1000, // TODO: max size
-		Level:   &state.Level,
+		Ptr:          &ptr,
+		Network:      t.network,
+		Size:         1000, // TODO: max size
+		CurrentLevel: &state.Level,
+		Contract:     address,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	metadata := make([]tokenmetadata.TokenMetadata, 0)
+	if len(bmd) == 0 {
+		return nil, nil
+	}
+
+	metadata := make([]*TokenMetadata, 0)
 	for i := range bmd {
 		m := &TokenMetadata{}
 		value := gjson.Parse(bmd[i].Value)
 		if err := m.Parse(value, address, ptr); err != nil {
 			continue
 		}
+		m.Timestamp = bmd[i].Timestamp
+		m.Level = bmd[i].Level
+		metadata = append(metadata, m)
+	}
 
+	result := make([]tokenmetadata.TokenMetadata, 0)
+	for _, m := range metadata {
 		if m.Link != "" {
 			s := tzipStorage.NewFull(t.bmdRepo, t.blocksRepo, t.schemaRepo, t.storage, t.rpc, t.ipfs...)
 
@@ -86,12 +136,10 @@ func (t Parser) parse(address string, state block.Block) ([]tokenmetadata.TokenM
 			m.Merge(remoteMetadata)
 		}
 
-		m.Timestamp = bmd[i].Timestamp
-		m.Level = bmd[i].Level
-		metadata = append(metadata, m.ToModel(address, t.network))
+		result = append(result, m.ToModel(address, t.network))
 	}
 
-	return metadata, nil
+	return result, nil
 }
 
 func (t Parser) getState(level int64) (block.Block, error) {

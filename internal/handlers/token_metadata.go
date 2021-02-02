@@ -44,20 +44,20 @@ func (t *TokenMetadata) handle(bmd *bigmapdiff.BigMapDiff) error {
 		return errors.Errorf("Unknown network for tzip parser: %s", bmd.Network)
 	}
 
-	tokenMetadata, err := tokenParser.Parse(bmd.Address, bmd.Level)
+	tokenMetadata, err := tokenParser.ParseBigMapDiff(bmd)
 	if err != nil {
 		if !errors.Is(err, tokens.ErrNoMetadataKeyInStorage) {
 			logger.Error(err)
 		}
 		return nil
 	}
-	if tokenMetadata == nil {
+	if len(tokenMetadata) == 0 {
 		return nil
 	}
 
 	models := make([]models.Model, 0, len(tokenMetadata))
 	for i := range tokenMetadata {
-		logger.With(&tokenMetadata[i]).Info("Update of token metadata is found")
+		logger.With(&tokenMetadata[i]).Info("Token metadata update is found")
 		models = append(models, &tokenMetadata[i])
 	}
 	return t.storage.BulkInsert(models)

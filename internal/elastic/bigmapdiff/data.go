@@ -49,6 +49,14 @@ func buildGetContext(ctx *bigmapdiff.GetContext) core.Base {
 		filters = append(filters, core.BuildComparator(core.NewLessThanEqRange(*ctx.Level)))
 	}
 
+	if ctx.CurrentLevel != nil {
+		filters = append(filters, core.Term("level", *ctx.CurrentLevel))
+	}
+
+	if ctx.Contract != "" {
+		filters = append(filters, core.MatchPhrase("address", ctx.Contract))
+	}
+
 	ctx.To = ctx.Size + ctx.Offset
 	b := core.Bool(
 		core.Must(filters...),

@@ -78,13 +78,13 @@ type singleAssetBalanceParser struct {
 
 func newSingleAssetBalanceParser() singleAssetBalanceParser {
 	return singleAssetBalanceParser{
-		ReturnType: gjson.Parse(`{ "prim": "map", "args": [ { "prim": "address"}, {"prim": "int"} ] }`),
+		ReturnType: gjson.Parse(`{ "prim": "map", "args": [ { "prim": "address"}, {"prim": "nat"} ] }`),
 	}
 }
 
 func newSingleAssetDeltaParser() singleAssetBalanceParser {
 	return singleAssetBalanceParser{
-		ReturnType: gjson.Parse(`{ "prim": "map", "args": [ { "prim": "address"}, {"prim": "nat"} ] }`),
+		ReturnType: gjson.Parse(`{ "prim": "map", "args": [ { "prim": "address"}, {"prim": "int"} ] }`),
 	}
 }
 
@@ -113,13 +113,13 @@ type multiAssetBalanceParser struct {
 
 func newMultiAssetBalanceParser() multiAssetBalanceParser {
 	return multiAssetBalanceParser{
-		ReturnType: gjson.Parse(`{ "prim": "map", "args": [ { "prim": "pair", "args": [{ "prim": "address"}, {"prim": "nat"}] }, { "prim" : "int" } ] }`),
+		ReturnType: gjson.Parse(`{ "prim": "map", "args": [ { "prim": "pair", "args": [{ "prim": "address"}, {"prim": "nat"}] }, { "prim" : "nat" } ] }`),
 	}
 }
 
 func newMultiAssetDeltaParser() multiAssetBalanceParser {
 	return multiAssetBalanceParser{
-		ReturnType: gjson.Parse(`{ "prim": "map", "args": [ { "prim": "pair", "args": [{ "prim": "address"}, {"prim": "nat"}] }, { "prim" : "nat" } ] }`),
+		ReturnType: gjson.Parse(`{ "prim": "map", "args": [ { "prim": "pair", "args": [{ "prim": "address"}, {"prim": "nat"}] }, { "prim" : "int" } ] }`),
 	}
 }
 
