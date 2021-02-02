@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -13,6 +14,8 @@ import (
 const (
 	defaultSize = 10
 )
+
+var wordRegexp = regexp.MustCompile(`^\w*$`)
 
 func getFields(searchString string, filters map[string]interface{}, fields []string) ([]string, []string, Item, error) {
 	var indices []string
@@ -216,7 +219,11 @@ func prepare(searchString string, filters map[string]interface{}, fields []strin
 		ctx.Indices = usingIndices
 		ctx.Highlights = highlights
 		ctx.Fields = internalFields
-		ctx.Text = fmt.Sprintf("\"%s*\"", searchString)
+		if wordRegexp.MatchString(searchString) {
+			ctx.Text = fmt.Sprintf("%s*", searchString)
+		} else {
+			ctx.Text = fmt.Sprintf("\"%s*\"", searchString)
+		}
 	}
 
 	filterString, err := prepareSearchFilters(filters)
