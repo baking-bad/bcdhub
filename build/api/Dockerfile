@@ -21,7 +21,7 @@ COPY internal internal
 
 WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub/cmd/api/
 RUN go get github.com/swaggo/swag/cmd/swag
-RUN swag init --parseDependency --parseInternal
+RUN swag init --parseDependency --parseInternal --parseDepth 2
 RUN go build -a -installsuffix cgo -o /go/bin/api .
 
 WORKDIR $GOPATH/src/github.com/baking-bad/bcdhub

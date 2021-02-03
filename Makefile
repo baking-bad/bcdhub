@@ -97,7 +97,7 @@ docs:
 	# wget https://github.com/swaggo/swag/releases/download/v1.7.0/swag_1.7.0_Linux_x86_64.tar.gz
 	# tar -zxvf swag_1.7.0_Linux_x86_64.tar.gz
 	# sudo cp swag /usr/bin/swag
-	cd cmd/api && swag init --parseDependency --parseInternal
+	cd cmd/api && swag init --parseDependency --parseInternal --parseDepth 2
 
 images:
 	docker-compose build
