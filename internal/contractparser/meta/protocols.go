@@ -23,6 +23,7 @@ var symLinks = map[string]string{
 	"PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb": "babylon", // Carthagenet
 	"PryLyZ8A11FXDr1tRE9zQ7Di6Y8zX48RfFCFpkjC8Pt9yCBLhtN": "babylon", // Dalphanet
 	"PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo": "babylon", // Delphinet
+	"PtEdoTezd3RHSC31mpxxo1npxFjoWWcFgQtxapi51Z8TLu6v6Uq": "babylon", // Edonet
 }
 
 // GetProtoSymLink -

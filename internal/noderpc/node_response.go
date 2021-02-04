@@ -1,8 +1,11 @@
 package noderpc
 
 import (
+	stdJSON "encoding/json"
 	"strconv"
 	"time"
+
+	"github.com/tidwall/gjson"
 )
 
 // Header is a header in a block returned by the Tezos RPC API.
@@ -41,4 +44,16 @@ type Constants struct {
 	HardGasLimitPerOperation     int64            `json:"hard_gas_limit_per_operation,string"`
 	HardStorageLimitPerOperation int64            `json:"hard_storage_limit_per_operation,string"`
 	TimeBetweenBlocks            Int64StringSlice `json:"time_between_blocks"`
+}
+
+// ContractData -
+type ContractData struct {
+	RawScript stdJSON.RawMessage `json:"script"`
+	Script    gjson.Result       `json:"-"`
+	Balance   int64              `json:"balance"`
+	Counter   int64              `json:"counter"`
+	Manager   string             `json:"manager"`
+	Delegate  struct {
+		Value string `json:"value"`
+	} `json:"delegate"`
 }

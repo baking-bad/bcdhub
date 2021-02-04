@@ -16,14 +16,14 @@ import (
 // Metadata -
 type Metadata map[string]*NodeMetadata
 
-// ContractMetadata -
-type ContractMetadata struct {
+// ContractSchema -
+type ContractSchema struct {
 	Parameter map[string]Metadata `json:"parameter"`
 	Storage   map[string]Metadata `json:"storage"`
 }
 
 // Get - returns metadata by part and protocol
-func (c *ContractMetadata) Get(part, protocol string) (Metadata, error) {
+func (c *ContractSchema) Get(part, protocol string) (Metadata, error) {
 	protoSymLink, err := GetProtoSymLink(protocol)
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func (c *ContractMetadata) Get(part, protocol string) (Metadata, error) {
 }
 
 // IsUpgradable -
-func (c *ContractMetadata) IsUpgradable(symLink string) bool {
+func (c *ContractSchema) IsUpgradable(symLink string) bool {
 	for _, p := range c.Parameter[symLink] {
 		if p.Type != consts.LAMBDA {
 			continue
@@ -371,8 +371,8 @@ func getNodeType(n internalNode, metadata Metadata) (string, []string) {
 	return "", nil
 }
 
-// GetContractMetadata -
-func GetContractMetadata(schemaRepo schema.Repository, address string) (*ContractMetadata, error) {
+// GetContractSchema -
+func GetContractSchema(schemaRepo schema.Repository, address string) (*ContractSchema, error) {
 	if address == "" {
 		return nil, errors.Errorf("[GetContractMetadata] Empty address")
 	}
@@ -382,12 +382,12 @@ func GetContractMetadata(schemaRepo schema.Repository, address string) (*Contrac
 		return nil, err
 	}
 
-	return GetContractMetadataFromModel(data)
+	return GetContractSchemaFromModel(data)
 }
 
-// GetContractMetadataFromModel -
-func GetContractMetadataFromModel(metadata schema.Schema) (*ContractMetadata, error) {
-	contractMetadata := ContractMetadata{
+// GetContractSchemaFromModel -
+func GetContractSchemaFromModel(metadata schema.Schema) (*ContractSchema, error) {
+	contractMetadata := ContractSchema{
 		Parameter: map[string]Metadata{},
 		Storage:   map[string]Metadata{},
 	}
@@ -410,8 +410,8 @@ func GetContractMetadataFromModel(metadata schema.Schema) (*ContractMetadata, er
 	return &contractMetadata, nil
 }
 
-// GetMetadata -
-func GetMetadata(schemaRepo schema.Repository, address, part, protocol string) (Metadata, error) {
+// GetSchema -
+func GetSchema(schemaRepo schema.Repository, address, part, protocol string) (Metadata, error) {
 	if address == "" {
 		return nil, errors.Errorf("[GetMetadata] Empty address")
 	}

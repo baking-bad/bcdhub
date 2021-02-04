@@ -305,7 +305,7 @@ func (ctx *Context) setSimulateStorageDiff(response gjson.Result, main *Operatio
 	if storage == "" || !strings.HasPrefix(main.Destination, "KT") || main.Status != "applied" {
 		return nil
 	}
-	metadata, err := meta.GetContractMetadata(ctx.Schema, main.Destination)
+	metadata, err := meta.GetContractSchema(ctx.Schema, main.Destination)
 	if err != nil {
 		return err
 	}

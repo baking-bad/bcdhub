@@ -1,9 +1,10 @@
 package operations
 
 import (
-	"strings"
+	"fmt"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/events"
@@ -12,9 +13,11 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/normalize"
 	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
+	"github.com/tidwall/sjson"
 )
 
 // Transaction -
@@ -29,6 +32,7 @@ func NewTransaction(params *ParseParams) Transaction {
 
 // Parse -
 func (p Transaction) Parse(data gjson.Result) ([]models.Model, error) {
+	source := data.Get("source").String()
 	tx := operation.Operation{
 		ID:            helpers.GenerateID(),
 		Network:       p.network,
@@ -37,8 +41,8 @@ func (p Transaction) Parse(data gjson.Result) ([]models.Model, error) {
 		Level:         p.head.Level,
 		Timestamp:     p.head.Timestamp,
 		Kind:          data.Get("kind").String(),
-		Initiator:     data.Get("source").String(),
-		Source:        data.Get("source").String(),
+		Initiator:     source,
+		Source:        source,
 		Fee:           data.Get("fee").Int(),
 		Counter:       data.Get("counter").Int(),
 		GasLimit:      data.Get("gas_limit").Int(),
@@ -104,6 +108,77 @@ func (p Transaction) Parse(data gjson.Result) ([]models.Model, error) {
 	return txModels, nil
 }
 
+func (p Transaction) normalizeOperationData(contract gjson.Result, operation *operation.Operation) error {
+	params := gjson.Parse(operation.Parameters)
+
+	var value gjson.Result
+	var entrypointName string
+
+	entrypoint := params.Get("entrypoint")
+	if entrypoint.Exists() {
+		value = params.Get("value")
+		entrypointName = entrypoint.String()
+	} else {
+		value = params
+		entrypointName = consts.DefaultEntrypoint
+	}
+
+	paramsType := contract.Get("code.#(prim==\"parameter\").args.0")
+	typ, err := findByFieldName(entrypointName, paramsType)
+	if err != nil && !errors.Is(err, ErrAnnotsIsNotFound) {
+		return err
+	}
+	data, err := normalize.Data(value, typ)
+	if err != nil {
+		return err
+	}
+	if entrypoint.Exists() {
+		p, err := sjson.SetRaw(params.Raw, "value", data.Raw)
+		if err != nil {
+			return err
+		}
+		operation.Parameters = p
+	} else {
+		operation.Parameters = data.String()
+	}
+	return nil
+}
+
+// errors
+var (
+	ErrInvalidJSONType  = errors.New("Invalid JSON type")
+	ErrAnnotsIsNotFound = errors.New("Annot is not found")
+)
+
+func findByFieldName(fieldName string, data gjson.Result) (gjson.Result, error) {
+	switch {
+	case data.IsArray():
+		for _, item := range data.Array() {
+			res, err := findByFieldName(fieldName, item)
+			if err != nil {
+				if errors.Is(err, ErrAnnotsIsNotFound) {
+					continue
+				}
+				return gjson.Result{}, err
+			}
+			return res, nil
+		}
+	case data.IsObject():
+		for _, item := range data.Get("annots").Array() {
+			if item.String() == fmt.Sprintf("%%%s", fieldName) {
+				return data, nil
+			}
+		}
+		args := data.Get("args")
+		if args.Exists() {
+			return findByFieldName(fieldName, args)
+		}
+	default:
+		return data, ErrInvalidJSONType
+	}
+	return data, ErrAnnotsIsNotFound
+}
+
 func (p Transaction) fillInternal(tx *operation.Operation) {
 	if p.main == nil {
 		p.main = tx
@@ -123,22 +198,27 @@ func (p Transaction) appliedHandler(item gjson.Result, op *operation.Operation) 
 		return nil, nil
 	}
 
-	metadata, err := meta.GetContractMetadata(p.Schema, op.Destination)
+	schema, err := meta.GetContractSchema(p.Schema, op.Destination)
 	if err != nil {
-		if strings.Contains(err.Error(), "404 Not Found") {
+		if p.Storage.IsRecordNotFound(err) {
 			return nil, nil
 		}
 		return nil, err
 	}
 
+	contract, err := contractparser.GetContract(p.rpc, op.Destination, op.Network, op.Protocol, p.shareDir, op.Level)
+	if err != nil {
+		return nil, err
+	}
+
 	resultModels := make([]models.Model, 0)
 
-	rs, err := p.storageParser.Parse(item, metadata, op)
+	rs, err := p.storageParser.Parse(item, contract, schema, op)
 	if err != nil {
 		return nil, err
 	}
 	if rs.Empty {
-		return nil, err
+		return nil, nil
 	}
 	op.DeffatedStorage = rs.DeffatedStorage
 
@@ -149,14 +229,18 @@ func (p Transaction) appliedHandler(item gjson.Result, op *operation.Operation) 
 		resultModels = append(resultModels, migration)
 	}
 
+	if err := p.normalizeOperationData(contract, op); err != nil {
+		return nil, err
+	}
+
 	bu := NewBalanceUpdate("metadata", *op).Parse(item)
 	for i := range bu {
 		resultModels = append(resultModels, bu[i])
 	}
-	return resultModels, p.getEntrypoint(item, metadata, op)
+	return resultModels, p.getEntrypoint(item, schema, op)
 }
 
-func (p Transaction) getEntrypoint(item gjson.Result, metadata *meta.ContractMetadata, op *operation.Operation) error {
+func (p Transaction) getEntrypoint(item gjson.Result, metadata *meta.ContractSchema, op *operation.Operation) error {
 	m, err := metadata.Get(consts.PARAMETER, op.Protocol)
 	if err != nil {
 		return err

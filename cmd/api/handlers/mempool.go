@@ -107,7 +107,7 @@ func (ctx *Context) prepareMempoolOperations(res []tzkt.MempoolOperation, addres
 		if helpers.IsContract(op.Destination) && op.Protocol != "" {
 			params := gjson.ParseBytes(res[i].Body.Parameters)
 			if params.Exists() {
-				metadata, err := meta.GetMetadata(ctx.Schema, address, consts.PARAMETER, op.Protocol)
+				metadata, err := meta.GetSchema(ctx.Schema, address, consts.PARAMETER, op.Protocol)
 				if err != nil {
 					return nil, err
 				}

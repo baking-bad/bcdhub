@@ -2,7 +2,6 @@ package indexer
 
 import (
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 
@@ -662,11 +661,11 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header) ([]models.Model, e
 
 	parsedModels := make([]models.Model, 0)
 	for _, address := range addresses {
-		if !strings.HasPrefix(address, "KT") {
+		if helpers.IsContract(address) {
 			continue
 		}
 
-		data, err := bi.rpc.GetContractJSON(address, head.Level)
+		data, err := bi.rpc.GetContractData(address, head.Level)
 		if err != nil {
 			return nil, err
 		}

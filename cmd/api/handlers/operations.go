@@ -298,7 +298,7 @@ func (ctx *Context) PrepareOperations(ops []operation.Operation, withStorageDiff
 }
 
 func (ctx *Context) setParameters(parameters string, op *Operation) error {
-	metadata, err := meta.GetMetadata(ctx.Schema, op.Destination, consts.PARAMETER, op.Protocol)
+	metadata, err := meta.GetSchema(ctx.Schema, op.Destination, consts.PARAMETER, op.Protocol)
 	if err != nil {
 		return nil
 	}
@@ -315,7 +315,7 @@ func (ctx *Context) setParameters(parameters string, op *Operation) error {
 }
 
 func (ctx *Context) setStorageDiff(address, storage string, op *Operation, bmd []bigmapdiff.BigMapDiff) error {
-	metadata, err := meta.GetContractMetadata(ctx.Schema, address)
+	metadata, err := meta.GetContractSchema(ctx.Schema, address)
 	if err != nil {
 		return err
 	}
@@ -327,7 +327,7 @@ func (ctx *Context) setStorageDiff(address, storage string, op *Operation, bmd [
 	return nil
 }
 
-func (ctx *Context) getStorageDiff(bmd []bigmapdiff.BigMapDiff, address, storage string, metadata *meta.ContractMetadata, isSimulating bool, op *Operation) (interface{}, error) {
+func (ctx *Context) getStorageDiff(bmd []bigmapdiff.BigMapDiff, address, storage string, metadata *meta.ContractSchema, isSimulating bool, op *Operation) (interface{}, error) {
 	var prevStorage *newmiguel.Node
 	var prevDeffatedStorage string
 	prev, err := ctx.Operations.Last(op.Network, address, op.IndexedTime)
@@ -369,7 +369,7 @@ func (ctx *Context) getStorageDiff(bmd []bigmapdiff.BigMapDiff, address, storage
 	return currentStorage, nil
 }
 
-func getEnrichStorageMiguel(bmd []bigmapdiff.BigMapDiff, protocol, storage, prevStorage string, metadata *meta.ContractMetadata, isSimulating bool) (*newmiguel.Node, error) {
+func getEnrichStorageMiguel(bmd []bigmapdiff.BigMapDiff, protocol, storage, prevStorage string, metadata *meta.ContractSchema, isSimulating bool) (*newmiguel.Node, error) {
 	store, err := enrichStorage(storage, prevStorage, bmd, protocol, false, isSimulating)
 	if err != nil {
 		return nil, err
@@ -461,7 +461,7 @@ func (ctx *Context) prepareMempoolOperation(item tzkt.MempoolOperation, network 
 }
 
 func (ctx *Context) buildOperationParameters(params gjson.Result, op *Operation) {
-	metadata, err := meta.GetMetadata(ctx.Schema, op.Destination, consts.PARAMETER, op.Protocol)
+	metadata, err := meta.GetSchema(ctx.Schema, op.Destination, consts.PARAMETER, op.Protocol)
 	if err != nil {
 		return
 	}

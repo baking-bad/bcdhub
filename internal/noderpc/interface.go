@@ -15,7 +15,7 @@ type INode interface {
 	GetScriptJSON(string, int64) (gjson.Result, error)
 	GetScriptStorageJSON(string, int64) (gjson.Result, error)
 	GetContractBalance(string, int64) (int64, error)
-	GetContractJSON(string, int64) (gjson.Result, error)
+	GetContractData(string, int64) (ContractData, error)
 	GetOperations(int64) (gjson.Result, error)
 	GetContractsByBlock(int64) ([]string, error)
 	GetNetworkConstants(int64) (Constants, error)

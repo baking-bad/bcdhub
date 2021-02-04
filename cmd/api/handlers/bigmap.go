@@ -248,7 +248,7 @@ func (ctx *Context) prepareBigMapKeys(data []bigmapdiff.Bucket) ([]BigMapRespons
 		return []BigMapResponseItem{}, nil
 	}
 
-	contractMetadata, err := meta.GetContractMetadata(ctx.Schema, data[0].Address)
+	contractMetadata, err := meta.GetContractSchema(ctx.Schema, data[0].Address)
 	if err != nil {
 		return nil, err
 	}
@@ -280,7 +280,7 @@ func (ctx *Context) prepareBigMapItem(data []bigmapdiff.BigMapDiff, keyHash stri
 		return
 	}
 
-	contractMetadata, err := meta.GetContractMetadata(ctx.Schema, data[0].Address)
+	contractMetadata, err := meta.GetContractSchema(ctx.Schema, data[0].Address)
 	if err != nil {
 		return
 	}
@@ -306,7 +306,7 @@ func (ctx *Context) prepareBigMapItem(data []bigmapdiff.BigMapDiff, keyHash stri
 	return
 }
 
-func prepareItem(item bigmapdiff.BigMapDiff, contractMetadata *meta.ContractMetadata) (interface{}, interface{}, string, error) {
+func prepareItem(item bigmapdiff.BigMapDiff, contractMetadata *meta.ContractSchema) (interface{}, interface{}, string, error) {
 	var protoSymLink string
 	protoSymLink, err := meta.GetProtoSymLink(item.Protocol)
 	if err != nil {

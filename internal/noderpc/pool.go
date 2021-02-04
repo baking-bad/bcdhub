@@ -173,13 +173,13 @@ func (p Pool) GetContractBalance(address string, level int64) (int64, error) {
 	return data.Int(), nil
 }
 
-// GetContractJSON -
-func (p Pool) GetContractJSON(address string, level int64) (gjson.Result, error) {
-	data, err := p.call("GetContractJSON", address, level)
+// GetContractData -
+func (p Pool) GetContractData(address string, level int64) (ContractData, error) {
+	data, err := p.call("GetContractData", address, level)
 	if err != nil {
-		return gjson.Result{}, err
+		return ContractData{}, err
 	}
-	return data.Interface().(gjson.Result), nil
+	return data.Interface().(ContractData), nil
 }
 
 // GetOperations -

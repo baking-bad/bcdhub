@@ -18,7 +18,7 @@ type Parser struct {
 	interfaces     map[string]kinds.ContractKind
 	filesDirectory string
 
-	metadata map[string]*meta.ContractMetadata
+	metadata map[string]*meta.ContractSchema
 
 	scriptSaver ScriptSaver
 }
@@ -27,7 +27,7 @@ type Parser struct {
 func NewParser(interfaces map[string]kinds.ContractKind, opts ...ParserOption) *Parser {
 	parser := &Parser{
 		interfaces: interfaces,
-		metadata:   make(map[string]*meta.ContractMetadata),
+		metadata:   make(map[string]*meta.ContractSchema),
 	}
 
 	for i := range opts {
@@ -82,7 +82,7 @@ func (p *Parser) Parse(operation operation.Operation) ([]models.Model, error) {
 		return nil, err
 	}
 
-	contractMetadata, err := meta.GetContractMetadataFromModel(schema)
+	contractMetadata, err := meta.GetContractSchemaFromModel(schema)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func (p *Parser) Parse(operation operation.Operation) ([]models.Model, error) {
 }
 
 // GetContractMetadata -
-func (p *Parser) GetContractMetadata(address string) (*meta.ContractMetadata, error) {
+func (p *Parser) GetContractMetadata(address string) (*meta.ContractSchema, error) {
 	metadata, ok := p.metadata[address]
 	if !ok {
 		return nil, errors.Errorf("Unknown parsed metadata: %s", address)
@@ -140,7 +140,7 @@ func (p *Parser) computeMetrics(operation operation.Operation, protoSymLink stri
 	return nil
 }
 
-func setEntrypoints(metadata *meta.ContractMetadata, symLink string, contract *contract.Contract) error {
+func setEntrypoints(metadata *meta.ContractSchema, symLink string, contract *contract.Contract) error {
 	entrypoints, err := metadata.Parameter[symLink].GetEntrypoints()
 	if err != nil {
 		return err

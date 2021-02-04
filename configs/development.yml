@@ -5,6 +5,9 @@ rpc:
   delphinet:
     uri: https://rpc.tzkt.io/delphinet
     timeout: 20
+  edonet:
+    uri: https://rpc.tzkt.io/clarnet
+    timeout: 20
 
 tzkt:
   mainnet:
@@ -16,6 +19,11 @@ tzkt:
     uri: https://api.delphi.tzkt.io/v1/
     services_uri: https://services.tzkt.io/delphinet/v1/
     base_uri: https://delphi.tzkt.io/
+    timeout: 20
+  edonet:
+    uri: https://api.edonet.tzkt.io/v1/
+    services_uri: https://services.tzkt.io/edonet/v1/
+    base_uri: https://edonet.tzkt.io/
     timeout: 20
 
 storage:
@@ -111,7 +119,7 @@ indexer:
   mq:
     publisher: true
   networks:
-    mainnet:
+    edonet:
       boost: tzkt
     # delphinet:
     #   boost: tzkt

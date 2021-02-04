@@ -55,4 +55,5 @@ func IsNodeUnavailiableError(err error) bool {
 // Errors
 var (
 	ErrInvalidNodeResponse = errors.New("Invalid node response")
+	ErrInvalidStatusCode   = errors.New("Invalid status code")
 )

@@ -153,6 +153,7 @@ func TestGroup_Parse(t *testing.T) {
 			name: "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
 			ParseParams: NewParseParams(
 				rpc, generalRepo, bmdRepo, blockRepo, tzipRepo, schemaRepo, tbRepo,
+				WithShareDirectory("./test"),
 				WithHead(noderpc.Header{
 					Timestamp: timestamp,
 					Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
@@ -301,6 +302,7 @@ func TestGroup_Parse(t *testing.T) {
 			name: "onzUDQhwunz2yqzfEsoURXEBz9p7Gk8DgY4QBva52Z4b3AJCZjt",
 			ParseParams: NewParseParams(
 				rpc, generalRepo, bmdRepo, blockRepo, tzipRepo, schemaRepo, tbRepo,
+				WithShareDirectory("./test"),
 				WithHead(noderpc.Header{
 					Timestamp: timestamp,
 					Protocol:  "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
@@ -369,6 +371,7 @@ func TestGroup_Parse(t *testing.T) {
 			name: "opQMNBmME834t76enxSBqhJcPqwV2R2BP2pTKv438bHaxRZen6x",
 			ParseParams: NewParseParams(
 				rpc, generalRepo, bmdRepo, blockRepo, tzipRepo, schemaRepo, tbRepo,
+				WithShareDirectory("./test"),
 				WithHead(noderpc.Header{
 					Timestamp: timestamp,
 					Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
