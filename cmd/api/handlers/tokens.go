@@ -111,7 +111,7 @@ func (ctx *Context) GetFAByVersion(c *gin.Context) {
 // @Param token_id query integer false "Token ID" mininum(0)
 // @Accept json
 // @Produce json
-// @Success 200 {object} transfer.Pageable
+// @Success 200 {object} TransferResponse
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/tokens/{network}/transfers/{address} [get]
