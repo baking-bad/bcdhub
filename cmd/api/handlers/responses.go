@@ -611,6 +611,7 @@ func TransferFromElasticModel(model transfer.Transfer) (t Transfer) {
 type TransferResponse struct {
 	Transfers []Transfer `json:"transfers"`
 	Total     int64      `json:"total"`
+	LastID    string     `json:"last_id,omitempty"`
 }
 
 // ConfigResponse -

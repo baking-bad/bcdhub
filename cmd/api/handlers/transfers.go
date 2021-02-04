@@ -47,7 +47,7 @@ func (ctx *Context) GetContractTransfers(c *gin.Context) {
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	response, err := ctx.transfersPostprocessing(transfers)
+	response, err := ctx.transfersPostprocessing(transfers, false)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -60,9 +60,12 @@ type tokenKey struct {
 	TokenID  int64
 }
 
-func (ctx *Context) transfersPostprocessing(transfers transfer.Pageable) (response TransferResponse, err error) {
+func (ctx *Context) transfersPostprocessing(transfers transfer.Pageable, withLastID bool) (response TransferResponse, err error) {
 	response.Total = transfers.Total
 	response.Transfers = make([]Transfer, len(transfers.Transfers))
+	if withLastID {
+		response.LastID = transfers.LastID
+	}
 
 	mapTokens := make(map[tokenKey]*TokenMetadata)
 	tokens, err := ctx.TokenMetadata.Get(tokenmetadata.GetContext{
