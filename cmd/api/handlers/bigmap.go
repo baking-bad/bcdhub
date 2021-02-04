@@ -25,7 +25,6 @@ import (
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} GetBigMapResponse
-// @Success 204 {object} gin.H
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/bigmap/{network}/{ptr} [get]

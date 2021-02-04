@@ -19,6 +19,8 @@ import (
 // @ID get-contract-code
 // @Param network path string true "Network"
 // @Param address path string true "KT address" minlength(36) maxlength(36)
+// @Param protocol query string false "Protocol"
+// @Param level query integer false "Level"
 // @Accept  json
 // @Produce  json
 // @Success 200 {string} string
