@@ -47,7 +47,7 @@ func (t *TokenMetadata) handle(bmd *bigmapdiff.BigMapDiff) error {
 	tokenMetadata, err := tokenParser.ParseBigMapDiff(bmd)
 	if err != nil {
 		if !errors.Is(err, tokens.ErrNoMetadataKeyInStorage) {
-			logger.Error(err)
+			logger.With(bmd).Error(err)
 		}
 		return nil
 	}

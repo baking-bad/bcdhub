@@ -108,7 +108,10 @@ func (p Transaction) Parse(data gjson.Result) ([]models.Model, error) {
 	return txModels, nil
 }
 
-func (p Transaction) normalizeOperationData(contract gjson.Result, operation *operation.Operation) error {
+func (p Transaction) normalizeOperationParameter(operation *operation.Operation) error {
+	if !operation.IsCall() || !operation.IsApplied() {
+		return nil
+	}
 	params := gjson.Parse(operation.Parameters)
 
 	var value gjson.Result
@@ -123,31 +126,33 @@ func (p Transaction) normalizeOperationData(contract gjson.Result, operation *op
 		entrypointName = consts.DefaultEntrypoint
 	}
 
-	paramsType := contract.Get("code.#(prim==\"parameter\").args.0")
+	paramsType := operation.GetScriptSection(consts.PARAMETER)
 	typ, err := findByFieldName(entrypointName, paramsType)
-	if err != nil && !errors.Is(err, ErrAnnotsIsNotFound) {
+	if err != nil && !errors.Is(err, errAnnotsIsNotFound) {
 		return err
 	}
 	data, err := normalize.Data(value, typ)
 	if err != nil {
 		return err
 	}
-	if entrypoint.Exists() {
-		p, err := sjson.SetRaw(params.Raw, "value", data.Raw)
-		if err != nil {
-			return err
+	if data.Raw != value.Raw {
+		if entrypoint.Exists() {
+			p, err := sjson.SetRaw(params.Raw, "value", data.Raw)
+			if err != nil {
+				return err
+			}
+			operation.Parameters = p
+		} else {
+			operation.Parameters = data.String()
 		}
-		operation.Parameters = p
-	} else {
-		operation.Parameters = data.String()
 	}
 	return nil
 }
 
 // errors
 var (
-	ErrInvalidJSONType  = errors.New("Invalid JSON type")
-	ErrAnnotsIsNotFound = errors.New("Annot is not found")
+	errInvalidJSONType  = errors.New("Invalid JSON type")
+	errAnnotsIsNotFound = errors.New("Annot is not found")
 )
 
 func findByFieldName(fieldName string, data gjson.Result) (gjson.Result, error) {
@@ -156,7 +161,7 @@ func findByFieldName(fieldName string, data gjson.Result) (gjson.Result, error) 
 		for _, item := range data.Array() {
 			res, err := findByFieldName(fieldName, item)
 			if err != nil {
-				if errors.Is(err, ErrAnnotsIsNotFound) {
+				if errors.Is(err, errAnnotsIsNotFound) {
 					continue
 				}
 				return gjson.Result{}, err
@@ -171,12 +176,19 @@ func findByFieldName(fieldName string, data gjson.Result) (gjson.Result, error) 
 		}
 		args := data.Get("args")
 		if args.Exists() {
-			return findByFieldName(fieldName, args)
+			res, err := findByFieldName(fieldName, args)
+			if err != nil {
+				if errors.Is(err, errAnnotsIsNotFound) {
+					return data, errAnnotsIsNotFound
+				}
+				return gjson.Result{}, err
+			}
+			return res, nil
 		}
 	default:
-		return data, ErrInvalidJSONType
+		return data, errInvalidJSONType
 	}
-	return data, ErrAnnotsIsNotFound
+	return data, errAnnotsIsNotFound
 }
 
 func (p Transaction) fillInternal(tx *operation.Operation) {
@@ -206,14 +218,14 @@ func (p Transaction) appliedHandler(item gjson.Result, op *operation.Operation) 
 		return nil, err
 	}
 
-	contract, err := contractparser.GetContract(p.rpc, op.Destination, op.Network, op.Protocol, p.shareDir, op.Level)
+	op.Script, err = contractparser.GetContract(p.rpc, op.Destination, op.Network, op.Protocol, p.shareDir, op.Level)
 	if err != nil {
 		return nil, err
 	}
 
 	resultModels := make([]models.Model, 0)
 
-	rs, err := p.storageParser.Parse(item, contract, schema, op)
+	rs, err := p.storageParser.Parse(item, schema, op)
 	if err != nil {
 		return nil, err
 	}
@@ -224,13 +236,13 @@ func (p Transaction) appliedHandler(item gjson.Result, op *operation.Operation) 
 
 	resultModels = append(resultModels, rs.Models...)
 
+	if err := p.normalizeOperationParameter(op); err != nil {
+		return nil, err
+	}
+
 	migration := NewMigration(op).Parse(item)
 	if migration != nil {
 		resultModels = append(resultModels, migration)
-	}
-
-	if err := p.normalizeOperationData(contract, op); err != nil {
-		return nil, err
 	}
 
 	bu := NewBalanceUpdate("metadata", *op).Parse(item)

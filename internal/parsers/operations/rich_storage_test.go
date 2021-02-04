@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
@@ -161,13 +160,7 @@ func TestRichStorage_Parse(t *testing.T) {
 				return
 			}
 
-			contract, err := contractparser.GetContract(rpc, tt.operation.Destination, tt.operation.Network, tt.operation.Protocol, "./test", tt.operation.Level)
-			if err != nil {
-				t.Errorf(`contractparser.GetContract = error %v`, err)
-				return
-			}
-
-			got, err := parser.Parse(data, contract, metadata, tt.operation)
+			got, err := parser.Parse(data, metadata, tt.operation)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RichStorage.Parse() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -8,7 +8,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/baking-bad/bcdhub/internal/normalize"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
@@ -35,7 +34,7 @@ func NewRichStorage(repo bigmapdiff.Repository, rpc noderpc.INode, protocol stri
 }
 
 // Parse -
-func (p *RichStorage) Parse(data, contract gjson.Result, schema *meta.ContractSchema, operation *operation.Operation) (storage.RichStorage, error) {
+func (p *RichStorage) Parse(data gjson.Result, schema *meta.ContractSchema, operation *operation.Operation) (storage.RichStorage, error) {
 	protoSymLink, err := meta.GetProtoSymLink(operation.Protocol)
 	if err != nil {
 		return storage.RichStorage{Empty: true}, err
@@ -48,17 +47,7 @@ func (p *RichStorage) Parse(data, contract gjson.Result, schema *meta.ContractSc
 
 	switch operation.Kind {
 	case consts.Transaction:
-		rs, err := p.parser.ParseTransaction(data, m, *operation)
-		if err != nil {
-			return rs, err
-		}
-		storage := contract.Get("code.#(prim==\"storage\").args.0")
-		normalizedStorage, err := normalize.Data(gjson.Parse(rs.DeffatedStorage), storage)
-		if err != nil {
-			return rs, err
-		}
-		rs.DeffatedStorage = normalizedStorage.String()
-		return rs, err
+		return p.parser.ParseTransaction(data, m, *operation)
 	case consts.Origination:
 		rs, err := p.parser.ParseOrigination(data, m, *operation)
 		if err != nil {

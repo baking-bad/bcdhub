@@ -357,7 +357,7 @@ func TestGroup_Parse(t *testing.T) {
 					Level:       86142,
 					Timestamp:   timestamp,
 					Language:    "unknown",
-					Hash:        "e4b88b53b9227b3fc4fc0dbe148f249a7a1c755cf4cbc9c8fb5b5b78395a139d3f8e0fde5c27117df30553e98ecb4e3e8ddc9740292af18fbf36326cb55cebad",
+					Hash:        "3a3cc71335057b9d59ff943178a07b0d751e4d85792bfc774437ea0227697a8201aec6db656fd092f12dbe8ec1f0f0a8cde0072cd1e72b45bc9d9f642b3ca507",
 					Tags:        []string{},
 					Hardcoded:   []string{},
 					FailStrings: []string{},

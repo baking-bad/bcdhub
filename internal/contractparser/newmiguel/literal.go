@@ -2,6 +2,7 @@ package newmiguel
 
 import (
 	"fmt"
+	"math/big"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
@@ -37,7 +38,19 @@ func (l *literalDecoder) Decode(jsonData gjson.Result, path string, nm *meta.Nod
 			return nil, err
 		}
 		node.Value = data
-	case consts.BYTES, consts.SAPLINGTRANSACTION, consts.BLS12381FR, consts.BLS12381G1, consts.BLS12381G2:
+	case consts.BLS12381FR, consts.BLS12381G1, consts.BLS12381G2:
+		if jsonData.Get(consts.BYTES).Exists() {
+			s := jsonData.Get(consts.BYTES).String()
+			b := big.NewInt(0)
+			if _, ok := b.SetString(s, 16); ok {
+				node.Value = b.String()
+			} else {
+				node.Value = s
+			}
+		} else if jsonData.Get(consts.INT).Exists() {
+			node.Value = jsonData.Get(consts.INT).String()
+		}
+	case consts.BYTES, consts.SAPLINGTRANSACTION:
 		if jsonData.Get(consts.BYTES).Exists() {
 			node.Value = unpack.Bytes(jsonData.Get(consts.BYTES).String())
 		} else if jsonData.Get(consts.STRING).Exists() {

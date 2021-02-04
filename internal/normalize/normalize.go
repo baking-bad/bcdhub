@@ -8,13 +8,14 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/tidwall/gjson"
+	"github.com/tidwall/sjson"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
-// Type -
+// Type - normalizes `typ` with combs
 func Type(typ gjson.Result) (gjson.Result, error) {
-	m := make(map[string]interface{})
+	var m interface{}
 	if err := json.Unmarshal([]byte(typ.Raw), &m); err != nil {
 		return typ, err
 	}
@@ -28,7 +29,7 @@ func Type(typ gjson.Result) (gjson.Result, error) {
 	return gjson.ParseBytes(b), nil
 }
 
-// Data -
+// Data - normalizes `data` with combs by `typ`. `typ` must be normalized.
 func Data(data, typ gjson.Result) (gjson.Result, error) {
 	var m interface{}
 	if err := json.Unmarshal([]byte(data.Raw), &m); err != nil {
@@ -45,6 +46,19 @@ func Data(data, typ gjson.Result) (gjson.Result, error) {
 	return gjson.ParseBytes(b), nil
 }
 
+// ScriptCode - gets code tag from `script` and normalize code type
+func ScriptCode(script gjson.Result) (gjson.Result, error) {
+	code, err := Type(script.Get("code"))
+	if err != nil {
+		return script, err
+	}
+	s, err := sjson.SetRaw(script.Raw, "code", code.Raw)
+	if err != nil {
+		return script, err
+	}
+	return gjson.Parse(s), nil
+}
+
 func processType(data interface{}) error {
 	if data == nil {
 		return errors.Wrap(ErrDataIsNil, "processType")
@@ -52,8 +66,13 @@ func processType(data interface{}) error {
 	switch val := data.(type) {
 	case map[string]interface{}:
 		if p, ok := val["prim"]; ok {
-			if prim, ok := p.(string); ok && prim == consts.PAIR {
-				return buildPairTree(val)
+			if prim, ok := p.(string); ok {
+				switch prim {
+				case consts.PAIR:
+					return buildPairTree(val)
+				case consts.CODE:
+					return nil
+				}
 			}
 		}
 		if args, ok := val["args"]; ok {
@@ -153,7 +172,7 @@ func buildPair(data []interface{}, prim string) (map[string]interface{}, error) 
 		return nil, err
 	}
 	res["args"] = []interface{}{
-		argsMap, arg,
+		arg, argsMap,
 	}
 	return res, nil
 }
@@ -186,6 +205,12 @@ func processValueObject(data interface{}, typ gjson.Result) (interface{}, error)
 			return processBigMapValue(data, typ)
 		case consts.OPTION:
 			return processOptionValue(data, typ)
+		case consts.OR:
+			return processOrValue(data, typ)
+		case consts.TICKET:
+			return processTicketValue(data, typ)
+		case consts.LAMBDA:
+			return data, nil
 		default:
 			newData = data
 		}
@@ -317,11 +342,93 @@ func processBigMapValue(data interface{}, typ gjson.Result) (interface{}, error)
 	if data == nil {
 		return nil, errors.Wrap(ErrDataIsNil, "processBigMapValue")
 	}
-	switch data.(type) {
+	switch val := data.(type) {
 	case []interface{}:
-		return processMapValue(data, typ)
+		newData := make([]interface{}, len(val))
+		for i := range val {
+			item, err := processMapValue(val[i], typ)
+			if err != nil {
+				return nil, err
+			}
+			newData[i] = item
+		}
+		return newData, nil
 	case map[string]interface{}:
 		return data, nil
 	}
 	return nil, errors.Wrapf(ErrInvalidDataType, "[processBigMapValue] %T", data)
+}
+
+func processTicketValue(data interface{}, typ gjson.Result) (interface{}, error) {
+	if data == nil {
+		return nil, errors.Wrap(ErrDataIsNil, "processTicketValue")
+	}
+	switch val := data.(type) {
+	case []interface{}:
+		if len(val) != 3 {
+			return nil, errors.Wrap(ErrInvalidArrayLength, consts.TICKET)
+		}
+		typArg := typ.Get("args.0")
+		arg, err := processValue(val[1], typArg)
+		if err != nil {
+			return nil, err
+		}
+		val[1] = arg
+		newData, err := buildPairTreeValue(val)
+		if err != nil {
+			return nil, err
+		}
+		return newData, nil
+	case map[string]interface{}:
+		p, ok := val["prim"]
+		if !ok || p.(string) != consts.Pair {
+			return nil, errors.Wrapf(ErrInvalidPrimitive, "[processTicketValue] %v", p)
+		}
+		argsData := val["args"]
+		args := argsData.([]interface{})
+		switch len(args) {
+		case 2:
+			return data, nil
+		case 3:
+			return processTicketValue(args, typ)
+		default:
+			return nil, errors.Wrap(ErrInvalidArrayLength, consts.TICKET)
+		}
+	}
+	return nil, errors.Wrapf(ErrInvalidDataType, "[processBigMapValue] %T", data)
+}
+
+func processOrValue(data interface{}, typ gjson.Result) (interface{}, error) {
+	if data == nil {
+		return nil, errors.Wrap(ErrDataIsNil, "processOrValue")
+	}
+
+	m, ok := data.(map[string]interface{})
+	if !ok {
+		return nil, errors.Wrap(ErrInvalidDataType, consts.OR)
+	}
+	args := m["args"]
+	a := args.([]interface{})
+	if len(a) != 1 {
+		return nil, errors.Wrap(ErrInvalidArrayLength, consts.LEFT)
+	}
+	var t gjson.Result
+
+	prim := m["prim"]
+	switch prim {
+	case consts.Left:
+		t = typ.Get("args.0")
+	case consts.Right:
+		t = typ.Get("args.1")
+	default:
+		return nil, errors.Wrapf(ErrInvalidPrimitive, "[processOrValue] %v", prim)
+	}
+
+	newArg, err := processValue(a[0], t)
+	if err != nil {
+		return nil, err
+	}
+	a[0] = newArg
+
+	return m, nil
 }

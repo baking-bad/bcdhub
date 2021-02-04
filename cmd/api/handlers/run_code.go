@@ -278,10 +278,16 @@ func (ctx *Context) parseBigMapDiffs(response gjson.Result, metadata meta.Metada
 	model := operation.ToModel()
 	parser := storage.NewSimulate(rpc, ctx.BigMapDiffs)
 
+	contract, err := contractparser.GetContract(rpc, operation.Destination, operation.Network, operation.Protocol, ctx.Config.SharePath, operation.Level)
+	if err != nil {
+		return nil, err
+	}
+
+	storageType := contract.Get("code.#(prim==\"storage\").args.0")
 	rs := storage.RichStorage{Empty: true}
 	switch operation.Kind {
 	case consts.Transaction:
-		rs, err = parser.ParseTransaction(response, metadata, model)
+		rs, err = parser.ParseTransaction(response, storageType, metadata, model)
 	case consts.Origination:
 		rs, err = parser.ParseOrigination(response, metadata, model)
 	}

@@ -1,6 +1,7 @@
 package operation
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
@@ -135,7 +136,12 @@ func (o *Operation) IsApplied() bool {
 
 // IsCall -
 func (o *Operation) IsCall() bool {
-	return helpers.IsContract(o.Destination)
+	return helpers.IsContract(o.Destination) && o.Parameters != ""
+}
+
+// GetScriptSection -
+func (o *Operation) GetScriptSection(name string) gjson.Result {
+	return o.Script.Get(fmt.Sprintf("code.#(prim==\"%s\").args.0", name))
 }
 
 // Result -

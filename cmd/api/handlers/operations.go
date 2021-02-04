@@ -254,7 +254,7 @@ func (ctx *Context) prepareOperation(operation operation.Operation, bmd []bigmap
 		return op, err
 	}
 	if withStorageDiff {
-		if operation.DeffatedStorage != "" && operation.IsCall() && operation.IsApplied() {
+		if operation.DeffatedStorage != "" && (operation.IsCall() || operation.IsOrigination()) && operation.IsApplied() {
 			if err := ctx.setStorageDiff(op.Destination, operation.DeffatedStorage, &op, bmd); err != nil {
 				return op, err
 			}
