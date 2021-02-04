@@ -547,6 +547,9 @@ func (c *SameContractsResponse) FromModel(same contract.SameResponse) {
 // Series -
 type Series [][]int64
 
+// SeriesFloat -
+type SeriesFloat [][]float64
+
 // BigMapHistoryResponse -
 type BigMapHistoryResponse struct {
 	Address string              `json:"address"`

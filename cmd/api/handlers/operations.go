@@ -75,6 +75,7 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 // @Tags operations
 // @ID get-opg
 // @Param hash path string true "Operation group hash"  minlength(51) maxlength(51)
+// @Param with_mempool query bool false "Search operation in mempool or not"
 // @Accept  json
 // @Produce  json
 // @Success 200 {array} Operation
