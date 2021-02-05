@@ -62,6 +62,4 @@ func (p *RichStorage) Parse(data gjson.Result, schema *meta.ContractSchema, oper
 	default:
 		return storage.RichStorage{Empty: true}, nil
 	}
-
-	// TODO: normalize bmd
 }
