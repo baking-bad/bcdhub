@@ -150,7 +150,7 @@ func (t Parser) getState(level int64) (block.Block, error) {
 }
 
 func (t Parser) getBigMapPtr(address string, state block.Block) (int64, error) {
-	storageMetadata, err := meta.GetMetadata(t.schemaRepo, address, consts.STORAGE, state.Protocol)
+	storageMetadata, err := meta.GetSchema(t.schemaRepo, address, consts.STORAGE, state.Protocol)
 	if err != nil {
 		return 0, err
 	}

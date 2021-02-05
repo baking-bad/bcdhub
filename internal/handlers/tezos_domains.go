@@ -95,7 +95,7 @@ func (td *TezosDomain) getMetadata(address contract.Address, protocol string) (m
 	if ok {
 		return metadata, nil
 	}
-	metadata, err := meta.GetMetadata(td.schemaRepo, address.Address, consts.STORAGE, protocol)
+	metadata, err := meta.GetSchema(td.schemaRepo, address.Address, consts.STORAGE, protocol)
 	if err != nil {
 		return metadata, err
 	}

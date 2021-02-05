@@ -34,13 +34,13 @@ func NewRichStorage(repo bigmapdiff.Repository, rpc noderpc.INode, protocol stri
 }
 
 // Parse -
-func (p *RichStorage) Parse(data gjson.Result, metadata *meta.ContractMetadata, operation *operation.Operation) (storage.RichStorage, error) {
+func (p *RichStorage) Parse(data gjson.Result, schema *meta.ContractSchema, operation *operation.Operation) (storage.RichStorage, error) {
 	protoSymLink, err := meta.GetProtoSymLink(operation.Protocol)
 	if err != nil {
 		return storage.RichStorage{Empty: true}, err
 	}
 
-	m, ok := metadata.Storage[protoSymLink]
+	m, ok := schema.Storage[protoSymLink]
 	if !ok {
 		return storage.RichStorage{Empty: true}, errors.Errorf("Unknown metadata: %s", protoSymLink)
 	}
@@ -59,6 +59,7 @@ func (p *RichStorage) Parse(data gjson.Result, metadata *meta.ContractMetadata, 
 		}
 		rs.DeffatedStorage = storage.String()
 		return rs, err
+	default:
+		return storage.RichStorage{Empty: true}, nil
 	}
-	return storage.RichStorage{Empty: true}, nil
 }

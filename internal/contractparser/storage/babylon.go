@@ -5,15 +5,18 @@ import (
 	"strings"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/normalize"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
@@ -63,8 +66,12 @@ func (b *Babylon) ParseTransaction(content gjson.Result, metadata meta.Metadata,
 		return RichStorage{Empty: true}, err
 	}
 	var modelUpdates []models.Model
+	normalizedStorage, err := normalize.Data(result.Get(consts.STORAGE), operation.GetScriptSection(consts.STORAGE))
+	if err != nil {
+		return RichStorage{Empty: true}, err
+	}
 	if result.Get("big_map_diff.#").Int() > 0 {
-		ptrMap, err := FindBigMapPointers(metadata, result.Get("storage"))
+		ptrMap, err := FindBigMapPointers(metadata, normalizedStorage)
 		if err != nil {
 			return RichStorage{Empty: true}, err
 		}
@@ -75,7 +82,7 @@ func (b *Babylon) ParseTransaction(content gjson.Result, metadata meta.Metadata,
 	}
 	return RichStorage{
 		Models:          modelUpdates,
-		DeffatedStorage: result.Get("storage").String(),
+		DeffatedStorage: normalizedStorage.String(),
 	}, nil
 }
 
@@ -225,7 +232,7 @@ func (b *Babylon) handleBigMapDiff(result gjson.Result, ptrMap map[int64]string,
 func (b *Babylon) handleBigMapDiffUpdate(item gjson.Result, ptrMap map[int64]string, address string, operation operation.Operation) ([]models.Model, error) {
 	ptr := item.Get("big_map").Int()
 
-	bmd := &bigmapdiff.BigMapDiff{
+	bmd := bigmapdiff.BigMapDiff{
 		ID:          helpers.GenerateID(),
 		Ptr:         ptr,
 		Key:         item.Get("key").Value(),
@@ -257,11 +264,43 @@ func (b *Babylon) handleBigMapDiffUpdate(item gjson.Result, ptrMap map[int64]str
 		}
 	}
 
-	b.addToUpdates(bmd, ptr)
+	storageType := operation.GetScriptSection(consts.STORAGE)
+	if err := b.normalizeBigMapDiff(storageType, item, binPath, &bmd); err != nil {
+		return nil, err
+	}
+
+	b.addToUpdates(&bmd, ptr)
 	if ptr > -1 {
-		return []models.Model{bmd}, nil
+		return []models.Model{&bmd}, nil
 	}
 	return nil, nil
+}
+
+func (b *Babylon) normalizeBigMapDiff(storageType, item gjson.Result, binPath string, bmd *bigmapdiff.BigMapDiff) error {
+	bigMapType := storageType
+	if binPath != "0" {
+		path := newmiguel.GetGJSONPath(strings.TrimPrefix(binPath, "0/"))
+		bigMapType = storageType.Get(path)
+	}
+	if bigMapType.Get("prim").String() != consts.BIGMAP {
+		logger.Debug(binPath, bigMapType, storageType)
+		return errors.New("normalizeBigMapDiff can't find big map type")
+	}
+	key, err := normalize.Data(item.Get("key"), bigMapType.Get("args.0"))
+	if err != nil {
+		return err
+	}
+	bmd.Key = key.Value()
+
+	val := item.Get("value")
+	if val.String() != "" {
+		value, err := normalize.Data(item.Get("value"), bigMapType.Get("args.1"))
+		if err != nil {
+			return err
+		}
+		bmd.Value = value.String()
+	}
+	return nil
 }
 
 func (b *Babylon) handleBigMapDiffCopy(item gjson.Result, ptrMap map[int64]string, address string, operation operation.Operation) ([]models.Model, error) {

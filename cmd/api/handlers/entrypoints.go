@@ -189,7 +189,7 @@ func (ctx *Context) getParameterMetadata(address, network string) (meta.Metadata
 		return nil, err
 	}
 
-	metadata, err := meta.GetMetadata(ctx.Schema, address, consts.PARAMETER, state.Protocol)
+	metadata, err := meta.GetSchema(ctx.Schema, address, consts.PARAMETER, state.Protocol)
 	if err != nil {
 		return nil, err
 	}
@@ -203,7 +203,7 @@ func (ctx *Context) getStorageMetadata(address, network string) (meta.Metadata, 
 		return nil, err
 	}
 
-	metadata, err := meta.GetMetadata(ctx.Schema, address, consts.STORAGE, state.Protocol)
+	metadata, err := meta.GetSchema(ctx.Schema, address, consts.STORAGE, state.Protocol)
 	if err != nil {
 		return nil, err
 	}

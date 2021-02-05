@@ -59,7 +59,7 @@ func (p *Parser) Parse(ctx ParseContext) (data *tzip.TZIP, err error) {
 	s := tzipStorage.NewFull(p.bigMapRepo, p.blocksRepo, p.schemaRepo, p.storage, p.rpc, p.cfg.IPFSGateways...)
 	if err := s.Get(ctx.BigMapDiff.Network, ctx.BigMapDiff.Address, decoded, ctx.BigMapDiff.Ptr, data); err != nil {
 		if errors.Is(err, tzipStorage.ErrHTTPRequest) || errors.Is(err, tzipStorage.ErrJSONDecoding) {
-			logger.Error(err)
+			logger.With(&ctx.BigMapDiff).Error(err)
 			return nil, nil
 		}
 		return nil, err

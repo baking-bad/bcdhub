@@ -149,7 +149,7 @@ func (ctx *Context) getMempoolEvents(subscriptions []database.Subscription) ([]m
 
 			if helpers.IsContract(op.Destination) && item.Body.Protocol != "" {
 				if params := gjson.ParseBytes(item.Body.Parameters); params.Exists() {
-					metadata, err := meta.GetMetadata(ctx.Schema, op.Destination, consts.PARAMETER, item.Body.Protocol)
+					metadata, err := meta.GetSchema(ctx.Schema, op.Destination, consts.PARAMETER, item.Body.Protocol)
 					if err != nil {
 						return events, err
 					}

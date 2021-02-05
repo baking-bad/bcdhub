@@ -47,11 +47,14 @@ const (
 	BLS12381FR         = "bls12_381_fr"
 	BLS12381G1         = "bls12_381_g1"
 	BLS12381G2         = "bls12_381_g2"
+	TICKET             = "ticket"
 )
 
 // Data instructions
 const (
-	Pair = "Pair"
-	Some = "Some"
-	None = "None"
+	Pair  = "Pair"
+	Some  = "Some"
+	None  = "None"
+	Left  = "Left"
+	Right = "Right"
 )

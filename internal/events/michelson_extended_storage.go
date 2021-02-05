@@ -68,7 +68,7 @@ func (mes *MichelsonExtendedStorage) Normalize(value string) gjson.Result {
 		return gjson.Parse(value)
 	}
 
-	metadata, err := meta.GetMetadata(mes.repo, mes.contract, consts.STORAGE, mes.protocol)
+	metadata, err := meta.GetSchema(mes.repo, mes.contract, consts.STORAGE, mes.protocol)
 	if err != nil {
 		logger.Error(err)
 		return gjson.Parse(value)

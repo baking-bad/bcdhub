@@ -30,12 +30,12 @@ func readJSONFile(name string) (gjson.Result, error) {
 	return gjson.ParseBytes(bytes), nil
 }
 
-func readTestMetadata(address string) (*meta.ContractMetadata, error) {
+func readTestMetadata(address string) (*meta.ContractSchema, error) {
 	bytes, err := ioutil.ReadFile(fmt.Sprintf("./data/metadata/%s.json", address))
 	if err != nil {
 		return nil, err
 	}
-	var metadata meta.ContractMetadata
+	var metadata meta.ContractSchema
 	err = json.Unmarshal(bytes, &metadata)
 	return &metadata, err
 }

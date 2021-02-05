@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
@@ -149,6 +150,11 @@ func TestRichStorage_Parse(t *testing.T) {
 				return
 			}
 			data, err := readJSONFile(tt.filename)
+			if err != nil {
+				t.Errorf(`readJSONFile("%s") = error %v`, tt.filename, err)
+				return
+			}
+			tt.operation.Script, err = contractparser.GetContract(rpc, tt.operation.Destination, tt.operation.Network, tt.operation.Protocol, "./test", tt.operation.Level)
 			if err != nil {
 				t.Errorf(`readJSONFile("%s") = error %v`, tt.filename, err)
 				return

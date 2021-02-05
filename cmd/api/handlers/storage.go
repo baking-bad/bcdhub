@@ -59,7 +59,7 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 		return
 	}
 
-	metadata, err := meta.GetMetadata(ctx.Schema, req.Address, consts.STORAGE, header.Protocol)
+	metadata, err := meta.GetSchema(ctx.Schema, req.Address, consts.STORAGE, header.Protocol)
 	if ctx.handleError(c, err, 0) {
 		return
 	}

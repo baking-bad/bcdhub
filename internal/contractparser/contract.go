@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
@@ -28,14 +27,9 @@ func GetContract(rpc noderpc.INode, address, network, protocol, filesDirectory s
 
 		filePath := fmt.Sprintf(contractFormatPath, filesDirectory, network, address, protoSymLink)
 		_, err = os.Stat(filePath)
-		if err == nil {
-			f, err := os.Open(filePath)
-			if err != nil {
-				return gjson.Result{}, err
-			}
-			defer f.Close()
-
-			data, err := ioutil.ReadAll(f)
+		switch {
+		case err == nil:
+			data, err := ioutil.ReadFile(filePath)
 			if err != nil {
 				return gjson.Result{}, err
 			}
@@ -44,19 +38,11 @@ func GetContract(rpc noderpc.INode, address, network, protocol, filesDirectory s
 				contract = contract.Get("script")
 			}
 			return contract, nil
-		}
-		if !strings.Contains(err.Error(), "no such file or directory") {
+		case !os.IsNotExist(err):
 			return gjson.Result{}, err
 		}
 	}
-	contract, err := rpc.GetContractJSON(address, fallbackLevel)
-	if err != nil {
-		return gjson.Result{}, err
-	}
-	if contract.Get("script").Exists() {
-		contract = contract.Get("script")
-	}
-	return contract, nil
+	return rpc.GetScriptJSON(address, fallbackLevel)
 }
 
 // RemoveContractFromFileSystem -

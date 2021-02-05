@@ -12,7 +12,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/contract"
-	"github.com/tidwall/gjson"
 )
 
 // VestingParser -
@@ -30,7 +29,7 @@ func NewVestingParser(filesDirectory string, interfaces map[string]kinds.Contrac
 }
 
 // Parse -
-func (p *VestingParser) Parse(data gjson.Result, head noderpc.Header, network, address string) ([]models.Model, error) {
+func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, network, address string) ([]models.Model, error) {
 	migration := &migration.Migration{
 		ID:          helpers.GenerateID(),
 		IndexedTime: time.Now().UnixNano() / 1000,
@@ -44,22 +43,21 @@ func (p *VestingParser) Parse(data gjson.Result, head noderpc.Header, network, a
 	}
 	parsedModels := []models.Model{migration}
 
-	script := data.Get("script")
 	op := operation.Operation{
 		ID:          helpers.GenerateID(),
 		Network:     network,
 		Protocol:    head.Protocol,
-		Status:      "applied",
+		Status:      consts.Applied,
 		Kind:        consts.Migration,
-		Amount:      data.Get("balance").Int(),
-		Counter:     data.Get("counter").Int(),
-		Source:      data.Get("manager").String(),
+		Amount:      data.Balance,
+		Counter:     data.Counter,
+		Source:      data.Manager,
 		Destination: address,
-		Delegate:    data.Get("delegate.value").String(),
+		Delegate:    data.Delegate.Value,
 		Level:       head.Level,
 		Timestamp:   head.Timestamp,
 		IndexedTime: time.Now().UnixNano() / 1000,
-		Script:      script,
+		Script:      data.Script,
 	}
 
 	parser := contract.NewParser(p.interfaces, contract.WithShareDirContractParser(p.filesDirectory))

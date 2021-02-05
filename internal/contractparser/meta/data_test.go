@@ -104,7 +104,7 @@ func TestContractMetadata_IsUpgradable(t *testing.T) {
 				},
 			}
 
-			contractMetadata, err := GetContractMetadataFromModel(metadata)
+			contractMetadata, err := GetContractSchemaFromModel(metadata)
 			if err != nil {
 				t.Errorf("GetContractMetadataFromModel error %v", err)
 				return

@@ -117,7 +117,7 @@ func (s *TezosStorage) fillFields(uri TezosStorageURI) error {
 
 // FindBigMapPointer -
 func FindBigMapPointer(schemaRepo schema.Repository, rpc noderpc.INode, address, network, protocol string) (int64, error) {
-	metadata, err := meta.GetMetadata(schemaRepo, address, consts.STORAGE, protocol)
+	metadata, err := meta.GetSchema(schemaRepo, address, consts.STORAGE, protocol)
 	if err != nil {
 		return -1, err
 	}
