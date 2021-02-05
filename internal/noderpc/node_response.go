@@ -50,7 +50,7 @@ type Constants struct {
 type ContractData struct {
 	RawScript stdJSON.RawMessage `json:"script"`
 	Script    gjson.Result       `json:"-"`
-	Balance   int64              `json:"balance"`
+	Balance   int64              `json:"balance,string"`
 	Counter   int64              `json:"counter"`
 	Manager   string             `json:"manager"`
 	Delegate  struct {
