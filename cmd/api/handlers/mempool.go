@@ -4,11 +4,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/normalize"
 	"github.com/baking-bad/bcdhub/internal/tzkt"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -44,92 +46,107 @@ func (ctx *Context) GetMempool(c *gin.Context) {
 		return
 	}
 
-	ret, err := ctx.prepareMempoolOperations(res, req.Address, req.Network)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-
-	c.JSON(http.StatusOK, ret)
+	c.JSON(http.StatusOK, ctx.mempoolPostprocessing(res, req.Network))
 }
 
-func (ctx *Context) prepareMempoolOperations(res []tzkt.MempoolOperation, address, network string) ([]Operation, error) {
+func (ctx *Context) mempoolPostprocessing(res []tzkt.MempoolOperation, network string) []Operation {
 	ret := make([]Operation, len(res))
 	if len(res) == 0 {
-		return ret, nil
-	}
-
-	aliases, err := ctx.TZIP.GetAliasesMap(network)
-	if err != nil {
-		if !ctx.Storage.IsRecordNotFound(err) {
-			return nil, err
-		}
-		aliases = make(map[string]string)
+		return ret
 	}
 
 	for i := len(res) - 1; i >= 0; i-- {
-		status := res[i].Body.Status
-		if status == consts.Applied {
-			status = "pending"
+		item := ctx.prepareMempoolOperation(res[i], network, res[i].Body)
+		if item != nil {
+			ret[i] = *item
 		}
-
-		op := Operation{
-			Protocol:  res[i].Body.Protocol,
-			Hash:      res[i].Body.Hash,
-			Network:   network,
-			Timestamp: time.Unix(res[i].Body.Timestamp, 0).UTC(),
-
-			Kind:         res[i].Body.Kind,
-			Source:       res[i].Body.Source,
-			Fee:          res[i].Body.Fee,
-			Counter:      res[i].Body.Counter,
-			GasLimit:     res[i].Body.GasLimit,
-			StorageLimit: res[i].Body.StorageLimit,
-			Amount:       res[i].Body.Amount,
-			Destination:  res[i].Body.Destination,
-			Mempool:      true,
-			Status:       status,
-			RawMempool:   res[i].Body,
-		}
-
-		op.SourceAlias = aliases[op.Source]
-		op.DestinationAlias = aliases[op.Destination]
-		errs, err := cerrors.ParseArray(res[i].Body.Errors)
-		if err != nil {
-			return nil, err
-		}
-		op.Errors = errs
-
-		if op.Kind != consts.Transaction {
-			ret = append(ret, op)
-			continue
-		}
-
-		if helpers.IsContract(op.Destination) && op.Protocol != "" {
-			params := gjson.ParseBytes(res[i].Body.Parameters)
-			if params.Exists() {
-				metadata, err := meta.GetSchema(ctx.Schema, address, consts.PARAMETER, op.Protocol)
-				if err != nil {
-					return nil, err
-				}
-
-				op.Entrypoint, err = metadata.GetByPath(params)
-				if err != nil && op.Errors == nil {
-					return nil, err
-				}
-
-				op.Parameters, err = newmiguel.ParameterToMiguel(params, metadata)
-				if err != nil {
-					if !cerrors.HasParametersError(op.Errors) {
-						return nil, err
-					}
-				}
-			} else {
-				op.Entrypoint = consts.DefaultEntrypoint
-			}
-		}
-
-		ret[i] = op
 	}
 
-	return ret, nil
+	return ret
+}
+
+func (ctx *Context) prepareMempoolOperation(item tzkt.MempoolOperation, network string, raw interface{}) *Operation {
+	status := item.Body.Status
+	if status == consts.Applied {
+		status = "pending"
+	}
+
+	if !helpers.StringInArray(item.Body.Kind, []string{consts.Transaction, consts.Origination, consts.OriginationNew}) {
+		return nil
+	}
+
+	op := Operation{
+		Protocol:  item.Body.Protocol,
+		Hash:      item.Body.Hash,
+		Network:   network,
+		Timestamp: time.Unix(item.Body.Timestamp, 0).UTC(),
+
+		SourceAlias:      ctx.getAlias(network, item.Body.Source),
+		DestinationAlias: ctx.getAlias(network, item.Body.Destination),
+		Kind:             item.Body.Kind,
+		Source:           item.Body.Source,
+		Fee:              item.Body.Fee,
+		Counter:          item.Body.Counter,
+		GasLimit:         item.Body.GasLimit,
+		StorageLimit:     item.Body.StorageLimit,
+		Amount:           item.Body.Amount,
+		Destination:      item.Body.Destination,
+		Mempool:          true,
+		Status:           status,
+		RawMempool:       raw,
+	}
+
+	errs, err := cerrors.ParseArray(item.Body.Errors)
+	if err != nil {
+		return nil
+	}
+	op.Errors = errs
+
+	if op.Kind != consts.Transaction {
+		return &op
+	}
+
+	if helpers.IsContract(op.Destination) && op.Protocol != "" {
+		if params := gjson.ParseBytes(item.Body.Parameters); params.Exists() {
+			ctx.buildOperationParameters(params, &op)
+		} else {
+			op.Entrypoint = consts.DefaultEntrypoint
+		}
+	}
+
+	return &op
+}
+
+func (ctx *Context) buildOperationParameters(params gjson.Result, op *Operation) {
+	metadata, err := meta.GetSchema(ctx.Schema, op.Destination, consts.PARAMETER, op.Protocol)
+	if err != nil {
+		return
+	}
+
+	rpc, err := ctx.GetRPC(op.Network)
+	if err != nil {
+		return
+	}
+
+	script, err := contractparser.GetContract(rpc, op.Destination, op.Network, op.Protocol, ctx.SharePath, op.Level)
+	if err != nil {
+		return
+	}
+	paramType := script.Get("code.#(prim==\"parameter\").args.0")
+	params, err = normalize.Data(params, paramType)
+	if err != nil {
+		return
+	}
+
+	op.Entrypoint, err = metadata.GetByPath(params)
+	if err != nil && op.Errors == nil {
+		return
+	}
+
+	op.Parameters, err = newmiguel.ParameterToMiguel(params, metadata)
+	if err != nil {
+		if !cerrors.HasParametersError(op.Errors) {
+			return
+		}
+	}
 }

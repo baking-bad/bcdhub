@@ -69,9 +69,11 @@ func NewWaitNodeRPC(baseURL string, opts ...NodeOption) *NodeRPC {
 
 func (rpc *NodeRPC) checkStatusCode(resp *http.Response, checkStatusCode bool) error {
 	switch {
-	case resp.StatusCode > 500:
+	case resp.StatusCode == http.StatusOK:
+		return nil
+	case resp.StatusCode > http.StatusInternalServerError:
 		return NewNodeUnavailiableError(rpc.baseURL, resp.StatusCode)
-	case checkStatusCode && resp.StatusCode != 200:
+	case checkStatusCode:
 		return errors.Wrap(ErrInvalidStatusCode, fmt.Sprintf("%d", resp.StatusCode))
 	default:
 		return nil

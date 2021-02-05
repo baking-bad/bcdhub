@@ -209,10 +209,10 @@ func (ctx *Context) RunCode(c *gin.Context) {
 	if err := ctx.setParameters(input.Raw, &main); ctx.handleError(c, err, 0) {
 		return
 	}
-	if err := ctx.setSimulateStorageDiff(response, &main); ctx.handleError(c, err, 0) {
+	if err := ctx.setSimulateStorageDiff(response, script, &main); ctx.handleError(c, err, 0) {
 		return
 	}
-	operations, err := ctx.parseRunCodeResponse(response, &main)
+	operations, err := ctx.parseRunCodeResponse(response, script, &main)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -220,11 +220,11 @@ func (ctx *Context) RunCode(c *gin.Context) {
 	c.JSON(http.StatusOK, operations)
 }
 
-func (ctx *Context) parseRunCodeResponse(response gjson.Result, main *Operation) ([]Operation, error) {
+func (ctx *Context) parseRunCodeResponse(response, script gjson.Result, main *Operation) ([]Operation, error) {
 	if response.IsArray() {
 		return ctx.parseFailedRunCode(response, main)
 	} else if response.IsObject() {
-		return ctx.parseAppliedRunCode(response, main)
+		return ctx.parseAppliedRunCode(response, script, main)
 	}
 	return nil, errors.Errorf("Unknown response: %v", response.Value())
 }
@@ -242,7 +242,7 @@ func (ctx *Context) parseFailedRunCode(response gjson.Result, main *Operation) (
 	return []Operation{*main}, nil
 }
 
-func (ctx *Context) parseAppliedRunCode(response gjson.Result, main *Operation) ([]Operation, error) {
+func (ctx *Context) parseAppliedRunCode(response, script gjson.Result, main *Operation) ([]Operation, error) {
 	operations := []Operation{*main}
 
 	operationsJSON := response.Get("operations").Array()
@@ -261,7 +261,7 @@ func (ctx *Context) parseAppliedRunCode(response gjson.Result, main *Operation) 
 		if err := ctx.setParameters(item.Get("parameters").Raw, &op); err != nil {
 			return nil, err
 		}
-		if err := ctx.setSimulateStorageDiff(item, &op); err != nil {
+		if err := ctx.setSimulateStorageDiff(item, script, &op); err != nil {
 			return nil, err
 		}
 		operations = append(operations, op)
@@ -269,25 +269,20 @@ func (ctx *Context) parseAppliedRunCode(response gjson.Result, main *Operation) 
 	return operations, nil
 }
 
-func (ctx *Context) parseBigMapDiffs(response gjson.Result, metadata meta.Metadata, operation *Operation) ([]bigmapdiff.BigMapDiff, error) {
+func (ctx *Context) parseBigMapDiffs(response, script gjson.Result, metadata meta.Metadata, operation *Operation) ([]bigmapdiff.BigMapDiff, error) {
 	rpc, err := ctx.GetRPC(operation.Network)
 	if err != nil {
 		return nil, err
 	}
 
 	model := operation.ToModel()
+	model.Script = script
 	parser := storage.NewSimulate(rpc, ctx.BigMapDiffs)
 
-	contract, err := contractparser.GetContract(rpc, operation.Destination, operation.Network, operation.Protocol, ctx.Config.SharePath, operation.Level)
-	if err != nil {
-		return nil, err
-	}
-
-	storageType := contract.Get("code.#(prim==\"storage\").args.0")
 	rs := storage.RichStorage{Empty: true}
 	switch operation.Kind {
 	case consts.Transaction:
-		rs, err = parser.ParseTransaction(response, storageType, metadata, model)
+		rs, err = parser.ParseTransaction(response, metadata, model)
 	case consts.Origination:
 		rs, err = parser.ParseOrigination(response, metadata, model)
 	}
@@ -306,7 +301,7 @@ func (ctx *Context) parseBigMapDiffs(response gjson.Result, metadata meta.Metada
 	return bmd, nil
 }
 
-func (ctx *Context) setSimulateStorageDiff(response gjson.Result, main *Operation) error {
+func (ctx *Context) setSimulateStorageDiff(response, script gjson.Result, main *Operation) error {
 	storage := response.Get("storage").String()
 	if storage == "" || !strings.HasPrefix(main.Destination, "KT") || main.Status != "applied" {
 		return nil
@@ -319,7 +314,7 @@ func (ctx *Context) setSimulateStorageDiff(response gjson.Result, main *Operatio
 	if err != nil {
 		return err
 	}
-	bmd, err := ctx.parseBigMapDiffs(response, storageMetadata, main)
+	bmd, err := ctx.parseBigMapDiffs(response, script, storageMetadata, main)
 	if err != nil {
 		return err
 	}

@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser"
 	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
@@ -16,7 +15,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
-	"github.com/baking-bad/bcdhub/internal/tzkt"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -201,8 +199,7 @@ func (ctx *Context) getOperation(network, hash string, ops chan<- *Operation, wg
 		return
 	}
 
-	operation := ctx.prepareMempoolOperation(res[0], network)
-	ops <- operation
+	ops <- ctx.prepareMempoolOperation(res[0], network, string(res[0].Raw))
 }
 
 func prepareFilters(req operationsRequest) map[string]interface{} {
@@ -399,84 +396,6 @@ func (ctx *Context) getPrevBmd(bmd []bigmapdiff.BigMapDiff, indexedTime int64, a
 		return nil, nil
 	}
 	return ctx.BigMapDiffs.Previous(bmd, indexedTime, address)
-}
-
-func (ctx *Context) prepareMempoolOperation(item tzkt.MempoolOperation, network string) *Operation {
-	status := item.Body.Status
-	if status == consts.Applied {
-		status = "pending"
-	}
-
-	if !helpers.StringInArray(item.Body.Kind, []string{consts.Transaction, consts.Origination, consts.OriginationNew}) {
-		return nil
-	}
-
-	op := Operation{
-		Protocol:  item.Body.Protocol,
-		Hash:      item.Body.Hash,
-		Network:   network,
-		Timestamp: time.Unix(item.Body.Timestamp, 0).UTC(),
-
-		Kind:         item.Body.Kind,
-		Source:       item.Body.Source,
-		Fee:          item.Body.Fee,
-		Counter:      item.Body.Counter,
-		GasLimit:     item.Body.GasLimit,
-		StorageLimit: item.Body.StorageLimit,
-		Amount:       item.Body.Amount,
-		Destination:  item.Body.Destination,
-		Mempool:      true,
-		Status:       status,
-		RawMempool:   string(item.Raw),
-	}
-
-	aliases, err := ctx.TZIP.GetAliasesMap(network)
-	if err != nil {
-		if !ctx.Storage.IsRecordNotFound(err) {
-			return &op
-		}
-	} else {
-		op.SourceAlias = aliases[op.Source]
-		op.DestinationAlias = aliases[op.Destination]
-	}
-	errs, err := cerrors.ParseArray(item.Body.Errors)
-	if err != nil {
-		return nil
-	}
-	op.Errors = errs
-
-	if op.Kind != consts.Transaction {
-		return &op
-	}
-
-	if helpers.IsContract(op.Destination) && op.Protocol != "" {
-		if params := gjson.ParseBytes(item.Body.Parameters); params.Exists() {
-			ctx.buildOperationParameters(params, &op)
-		} else {
-			op.Entrypoint = consts.DefaultEntrypoint
-		}
-	}
-
-	return &op
-}
-
-func (ctx *Context) buildOperationParameters(params gjson.Result, op *Operation) {
-	metadata, err := meta.GetSchema(ctx.Schema, op.Destination, consts.PARAMETER, op.Protocol)
-	if err != nil {
-		return
-	}
-
-	op.Entrypoint, err = metadata.GetByPath(params)
-	if err != nil && op.Errors == nil {
-		return
-	}
-
-	op.Parameters, err = newmiguel.ParameterToMiguel(params, metadata)
-	if err != nil {
-		if !cerrors.HasParametersError(op.Errors) {
-			return
-		}
-	}
 }
 
 func (ctx *Context) getErrorLocation(operation operation.Operation, window int) (GetErrorLocationResponse, error) {
