@@ -27,6 +27,8 @@ const defaultPointer = -32768
 type temporaryPointerData struct {
 	sourcePtr int64
 	binPath   string
+	keyType   gjson.Result
+	valueType gjson.Result
 }
 
 func (tpd *temporaryPointerData) updateBinPath(binPath string) {
@@ -282,11 +284,22 @@ func (b *Babylon) normalizeBigMapDiff(storageType, item gjson.Result, binPath st
 		path := newmiguel.GetGJSONPath(strings.TrimPrefix(binPath, "0/"))
 		bigMapType = storageType.Get(path)
 	}
-	if bigMapType.Get("prim").String() != consts.BIGMAP {
+
+	ptr, ok := b.temporaryPointers[bmd.Ptr]
+	var keyType, valType gjson.Result
+	switch {
+	case bigMapType.Get("prim").String() == consts.BIGMAP:
+		keyType = bigMapType.Get("args.0")
+		valType = bigMapType.Get("args.1")
+	case ok:
+		keyType = ptr.keyType
+		valType = ptr.valueType
+	default:
 		logger.Debug(binPath, bigMapType, storageType)
 		return errors.New("normalizeBigMapDiff can't find big map type")
 	}
-	key, err := normalize.Data(item.Get("key"), bigMapType.Get("args.0"))
+
+	key, err := normalize.Data(item.Get("key"), keyType)
 	if err != nil {
 		return err
 	}
@@ -294,7 +307,7 @@ func (b *Babylon) normalizeBigMapDiff(storageType, item gjson.Result, binPath st
 
 	val := item.Get("value")
 	if val.String() != "" {
-		value, err := normalize.Data(item.Get("value"), bigMapType.Get("args.1"))
+		value, err := normalize.Data(item.Get("value"), valType)
 		if err != nil {
 			return err
 		}
@@ -386,6 +399,8 @@ func (b *Babylon) handleBigMapDiffAlloc(item gjson.Result, _ map[int64]string, a
 	b.updates[ptr] = []models.Model{}
 	b.temporaryPointers[ptr] = &temporaryPointerData{
 		sourcePtr: defaultPointer,
+		keyType:   item.Get("key_type"),
+		valueType: item.Get("value_type"),
 	}
 
 	var models []models.Model
