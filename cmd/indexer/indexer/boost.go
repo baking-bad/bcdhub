@@ -309,8 +309,10 @@ func (bi *BoostIndexer) Index(levels []int64) error {
 	if len(levels) == 0 {
 		return nil
 	}
+	helpers.SetTagSentry("network", bi.Network)
+
 	for _, level := range levels {
-		helpers.SetTagSentry("level", fmt.Sprintf("%d", level))
+		helpers.SetTagSentry("block", fmt.Sprintf("%d", level))
 
 		select {
 		case <-bi.stop:
