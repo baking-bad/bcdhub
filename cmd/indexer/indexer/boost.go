@@ -661,7 +661,7 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header) ([]models.Model, e
 
 	parsedModels := make([]models.Model, 0)
 	for _, address := range addresses {
-		if helpers.IsContract(address) {
+		if !helpers.IsContract(address) {
 			continue
 		}
 
