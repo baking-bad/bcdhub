@@ -83,8 +83,8 @@ api:
     mempool_enabled: true
     sandbox_mode: false
   networks:
-    # - mainnet
-    # - delphinet
+    - mainnet
+    - delphinet
     - edonet
   mq:
     publisher: true
@@ -120,12 +120,12 @@ indexer:
   mq:
     publisher: true
   networks:
-    # mainnet:
-    #   boost: tzkt
+    mainnet:
+      boost: tzkt
     # delphinet:
     #   boost: tzkt
-    edonet:
-      boost: tzkt
+    # edonet:
+    #   boost: tzkt
 
 metrics:
   project_name: metrics
