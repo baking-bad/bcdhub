@@ -408,3 +408,40 @@ func Test_processMapValue(t *testing.T) {
 		})
 	}
 }
+
+func TestScriptCode(t *testing.T) {
+	tests := []struct {
+		name    string
+		script  string
+		want    string
+		wantErr bool
+	}{
+		{
+			name:   "KT1N6VjvuuBfXBbsyMby96zkYeaWuqCto69Q",
+			script: `{"code":[{"prim":"parameter","args":[{"prim":"or","args":[{"prim":"ticket","args":[{"prim":"unit"}],"annots":["%receive"]},{"prim":"pair","args":[{"prim":"contract","args":[{"prim":"ticket","args":[{"prim":"unit"}]}],"annots":["%destination"]},{"prim":"nat","annots":["%amount"]},{"prim":"address","annots":["%ticketer"]}],"annots":["%send"]}]}]},{"prim":"storage","args":[{"prim":"pair","args":[{"prim":"address","annots":["%manager"]},{"prim":"big_map","args":[{"prim":"address"},{"prim":"ticket","args":[{"prim":"unit"}]}],"annots":["%tickets"]}]}]},{"prim":"code","args":[[{"prim":"AMOUNT"},{"prim":"PUSH","args":[{"prim":"mutez"},{"int":"0"}]},[[{"prim":"COMPARE"},{"prim":"EQ"}],{"prim":"IF","args":[[],[[{"prim":"UNIT"},{"prim":"FAILWITH"}]]]}],{"prim":"UNPAIR","args":[{"int":"3"}]},{"prim":"IF_LEFT","args":[[{"prim":"READ_TICKET"},{"prim":"CAR","annots":["@ticketer"]},{"prim":"DUP"},{"prim":"DIG","args":[{"int":"4"}]},{"prim":"NONE","args":[{"prim":"ticket","args":[{"prim":"unit"}]}]},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"GET_AND_UPDATE"},[{"prim":"IF_NONE","args":[[{"prim":"DIG","args":[{"int":"2"}]}],[{"prim":"DIG","args":[{"int":"3"}]},{"prim":"PAIR"},{"prim":"JOIN_TICKETS"},[{"prim":"IF_NONE","args":[[[{"prim":"UNIT"},{"prim":"FAILWITH"}]],[]]}]]]}],{"prim":"SOME"},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"GET_AND_UPDATE"},[{"prim":"IF_NONE","args":[[],[[{"prim":"UNIT"},{"prim":"FAILWITH"}]]]}],{"prim":"SWAP"},{"prim":"PAIR"},{"prim":"NIL","args":[{"prim":"operation"}]}],[{"prim":"DUP","args":[{"int":"2"}],"annots":["@manager"]},{"prim":"SENDER"},[[{"prim":"COMPARE"},{"prim":"EQ"}],{"prim":"IF","args":[[],[[{"prim":"UNIT"},{"prim":"FAILWITH"}]]]}],{"prim":"UNPAIR","args":[{"int":"3"}]},{"prim":"DIG","args":[{"int":"4"}]},{"prim":"NONE","args":[{"prim":"ticket","args":[{"prim":"unit"}]}]},{"prim":"DUP","args":[{"int":"5"}],"annots":["@ticketer"]},{"prim":"GET_AND_UPDATE"},[{"prim":"IF_NONE","args":[[[{"prim":"UNIT"},{"prim":"FAILWITH"}]],[]]}],{"prim":"READ_TICKET"},{"prim":"GET","args":[{"int":"4"}],"annots":["@total_amount"]},{"prim":"DUP","args":[{"int":"5"}],"annots":["@amount"]},{"prim":"SWAP"},{"prim":"SUB"},{"prim":"ISNAT"},[{"prim":"IF_NONE","args":[[[{"prim":"UNIT"},{"prim":"FAILWITH"}]],[{"prim":"RENAME","annots":["@remaining_amount"]}]]}],{"prim":"DIG","args":[{"int":"4"}]},{"prim":"PAIR"},{"prim":"SWAP"},{"prim":"SPLIT_TICKET"},[{"prim":"IF_NONE","args":[[[{"prim":"UNIT"},{"prim":"FAILWITH"}]],[]]}],{"prim":"UNPAIR","annots":["@to_send","@to_keep"]},{"prim":"DUG","args":[{"int":"5"}]},{"prim":"SOME"},{"prim":"DIG","args":[{"int":"3"}]},{"prim":"GET_AND_UPDATE"},[{"prim":"IF_NONE","args":[[],[[{"prim":"UNIT"},{"prim":"FAILWITH"}]]]}],{"prim":"DIG","args":[{"int":"2"}]},{"prim":"PAIR"},{"prim":"SWAP"},{"prim":"PUSH","args":[{"prim":"mutez"},{"int":"0"}]},{"prim":"DIG","args":[{"int":"3"}]},{"prim":"TRANSFER_TOKENS"},{"prim":"NIL","args":[{"prim":"operation"}]},{"prim":"SWAP"},{"prim":"CONS"}]]},{"prim":"PAIR"}]]}],"storage":{"prim":"Pair","args":[{"string":"tz1VeDGbCBNECVML7s7vkTQGSUCtSE54ZGAv"},[]]}}`,
+			want:   `{"code":[{"prim":"parameter","args":[{"prim":"or","args":[{"prim":"ticket","args":[{"prim":"unit"}],"annots":["%receive"]},{"prim":"pair","args":[{"prim":"contract","args":[{"prim":"ticket","args":[{"prim":"unit"}]}],"annots":["%destination"]},{"prim":"pair","args":[{"prim":"nat","annots":["%amount"]},{"prim":"address","annots":["%ticketer"]}]}],"annots":["%send"]}]}]},{"prim":"storage","args":[{"prim":"pair","args":[{"prim":"address","annots":["%manager"]},{"prim":"big_map","args":[{"prim":"address"},{"prim":"ticket","args":[{"prim":"unit"}]}],"annots":["%tickets"]}]}]},{"prim":"code","args":[[{"prim":"AMOUNT"},{"prim":"PUSH","args":[{"prim":"mutez"},{"int":"0"}]},[[{"prim":"COMPARE"},{"prim":"EQ"}],{"prim":"IF","args":[[],[[{"prim":"UNIT"},{"prim":"FAILWITH"}]]]}],{"prim":"UNPAIR","args":[{"int":"3"}]},{"prim":"IF_LEFT","args":[[{"prim":"READ_TICKET"},{"prim":"CAR","annots":["@ticketer"]},{"prim":"DUP"},{"prim":"DIG","args":[{"int":"4"}]},{"prim":"NONE","args":[{"prim":"ticket","args":[{"prim":"unit"}]}]},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"GET_AND_UPDATE"},[{"prim":"IF_NONE","args":[[{"prim":"DIG","args":[{"int":"2"}]}],[{"prim":"DIG","args":[{"int":"3"}]},{"prim":"PAIR"},{"prim":"JOIN_TICKETS"},[{"prim":"IF_NONE","args":[[[{"prim":"UNIT"},{"prim":"FAILWITH"}]],[]]}]]]}],{"prim":"SOME"},{"prim":"DIG","args":[{"int":"2"}]},{"prim":"GET_AND_UPDATE"},[{"prim":"IF_NONE","args":[[],[[{"prim":"UNIT"},{"prim":"FAILWITH"}]]]}],{"prim":"SWAP"},{"prim":"PAIR"},{"prim":"NIL","args":[{"prim":"operation"}]}],[{"prim":"DUP","args":[{"int":"2"}],"annots":["@manager"]},{"prim":"SENDER"},[[{"prim":"COMPARE"},{"prim":"EQ"}],{"prim":"IF","args":[[],[[{"prim":"UNIT"},{"prim":"FAILWITH"}]]]}],{"prim":"UNPAIR","args":[{"int":"3"}]},{"prim":"DIG","args":[{"int":"4"}]},{"prim":"NONE","args":[{"prim":"ticket","args":[{"prim":"unit"}]}]},{"prim":"DUP","args":[{"int":"5"}],"annots":["@ticketer"]},{"prim":"GET_AND_UPDATE"},[{"prim":"IF_NONE","args":[[[{"prim":"UNIT"},{"prim":"FAILWITH"}]],[]]}],{"prim":"READ_TICKET"},{"prim":"GET","args":[{"int":"4"}],"annots":["@total_amount"]},{"prim":"DUP","args":[{"int":"5"}],"annots":["@amount"]},{"prim":"SWAP"},{"prim":"SUB"},{"prim":"ISNAT"},[{"prim":"IF_NONE","args":[[[{"prim":"UNIT"},{"prim":"FAILWITH"}]],[{"prim":"RENAME","annots":["@remaining_amount"]}]]}],{"prim":"DIG","args":[{"int":"4"}]},{"prim":"PAIR"},{"prim":"SWAP"},{"prim":"SPLIT_TICKET"},[{"prim":"IF_NONE","args":[[[{"prim":"UNIT"},{"prim":"FAILWITH"}]],[]]}],{"prim":"UNPAIR","annots":["@to_send","@to_keep"]},{"prim":"DUG","args":[{"int":"5"}]},{"prim":"SOME"},{"prim":"DIG","args":[{"int":"3"}]},{"prim":"GET_AND_UPDATE"},[{"prim":"IF_NONE","args":[[],[[{"prim":"UNIT"},{"prim":"FAILWITH"}]]]}],{"prim":"DIG","args":[{"int":"2"}]},{"prim":"PAIR"},{"prim":"SWAP"},{"prim":"PUSH","args":[{"prim":"mutez"},{"int":"0"}]},{"prim":"DIG","args":[{"int":"3"}]},{"prim":"TRANSFER_TOKENS"},{"prim":"NIL","args":[{"prim":"operation"}]},{"prim":"SWAP"},{"prim":"CONS"}]]},{"prim":"PAIR"}]]}],"storage":{"prim":"Pair","args":[{"string":"tz1VeDGbCBNECVML7s7vkTQGSUCtSE54ZGAv"},[]]}}`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			script := gjson.Parse(tt.script)
+			got, err := ScriptCode(script)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ScriptCode() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			var want interface{}
+			if err := json.Unmarshal([]byte(tt.want), &want); err != nil {
+				t.Errorf("Unmarshal(want) error = %v", err)
+				return
+			}
+			var gotMap interface{}
+			if err := json.Unmarshal([]byte(got.Raw), &gotMap); err != nil {
+				logger.Debug(got.Raw)
+				t.Errorf("Unmarshal(got) error = %v", err)
+				return
+			}
+			assert.Equal(t, want, gotMap)
+		})
+	}
+}

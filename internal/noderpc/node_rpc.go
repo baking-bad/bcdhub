@@ -230,7 +230,7 @@ func (rpc *NodeRPC) GetScriptJSON(address string, level int64) (gjson.Result, er
 	if err != nil {
 		return script, err
 	}
-	return normalize.Type(script)
+	return normalize.ScriptCode(script)
 }
 
 // GetScriptStorageJSON -
@@ -241,11 +241,7 @@ func (rpc *NodeRPC) GetScriptStorageJSON(address string, level int64) (gjson.Res
 	}
 	storageType := script.Get("code.#(prim==\"storage\").args.0")
 	storageData := script.Get("storage")
-	normalizeType, err := normalize.Type(storageType)
-	if err != nil {
-		return script, err
-	}
-	return normalize.Data(storageData, normalizeType)
+	return normalize.Data(storageData, storageType)
 }
 
 // GetContractBalance -
