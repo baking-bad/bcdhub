@@ -12,7 +12,6 @@ require (
 	github.com/getsentry/sentry-go v0.5.1
 	github.com/gin-contrib/cors v1.3.0
 	github.com/gin-gonic/gin v1.5.0
-	github.com/go-errors/errors v1.0.1
 	github.com/go-openapi/spec v0.20.0 // indirect
 	github.com/golang/mock v1.4.4
 	github.com/golang/protobuf v1.4.2 // indirect
