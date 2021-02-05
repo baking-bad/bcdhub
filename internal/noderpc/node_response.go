@@ -51,7 +51,7 @@ type ContractData struct {
 	RawScript stdJSON.RawMessage `json:"script"`
 	Script    gjson.Result       `json:"-"`
 	Balance   int64              `json:"balance,string"`
-	Counter   int64              `json:"counter"`
+	Counter   int64              `json:"counter,string"`
 	Manager   string             `json:"manager"`
 	Delegate  struct {
 		Value string `json:"value"`
