@@ -65,10 +65,7 @@ func (node *Node) compareFields(second *Node) bool {
 	if node.Type != second.Type {
 		return false
 	}
-	if node.Name != second.Name {
-		return false
-	}
-	return true
+	return isPtrStringEqual(node.Name, second.Name)
 }
 
 func (node *Node) compareValue(second *Node) bool {
@@ -155,8 +152,10 @@ func defaultMerge(node, second *Node) {
 				node.Children[i].setDiffType(create)
 				continue
 			}
-			i--
-			continue
+			if node.Children[i].Type != consts.BIGMAP || second.Children[j].Type != consts.BIGMAP {
+				i--
+				continue
+			}
 		}
 		node.Children[i].Diff(second.Children[j])
 	}
@@ -288,7 +287,7 @@ func mapMerge(node, second *Node) {
 	for i := range node.Children {
 		found := false
 		for j := range second.Children {
-			if node.Children[i].Name != second.Children[j].Name {
+			if !isPtrStringEqual(node.Children[i].Name, second.Children[j].Name) {
 				continue
 			}
 			if !node.Children[i].compareValue(second.Children[j]) {
@@ -336,4 +335,17 @@ func min(a, b int) int {
 		return a
 	}
 	return b
+}
+
+func isPtrStringEqual(x, y *string) bool {
+	switch {
+	case x == nil && y == nil:
+		return true
+	case x != nil && y == nil:
+		return false
+	case x == nil && y != nil:
+		return false
+	default:
+		return *x == *y
+	}
 }
