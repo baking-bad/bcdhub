@@ -29,6 +29,8 @@ type Value interface {
 	GetValue() interface{}
 	ToMiguel() (*MiguelNode, error)
 	FromJSONSchema(data map[string]interface{}) error
+	EnrichBigMap(bmd []*base.BigMapDiff) error
+	ToParameters() ([]byte, error)
 }
 
 // Base -

@@ -181,6 +181,25 @@ func (d *Default) FromJSONSchema(data map[string]interface{}) error {
 	return nil
 }
 
+// EnrichBigMap -
+func (d *Default) EnrichBigMap(bmd []*base.BigMapDiff) error {
+	return nil
+}
+
+// ToParameters -
+func (d *Default) ToParameters() ([]byte, error) {
+	switch d.valueType {
+	case valueTypeString:
+		return []byte(fmt.Sprintf(`{"string": "%s"}`, d.Value)), nil
+	case valueTypeBytes:
+		return []byte(fmt.Sprintf(`{"bytes": "%s"}`, d.Value)), nil
+	case valueTypeInt:
+		i := d.Value.(*base.BigInt)
+		return []byte(fmt.Sprintf(`{"int": "%d"}`, i.Int64())), nil
+	}
+	return nil, nil
+}
+
 //
 //  UNIT
 //
@@ -195,6 +214,11 @@ func NewUnit(depth int) *Unit {
 	return &Unit{
 		Default: NewDefault(consts.UNIT, 0, depth),
 	}
+}
+
+// ToParameters -
+func (u *Unit) ToParameters() ([]byte, error) {
+	return []byte(`{"prim": "Unit"}`), nil
 }
 
 //

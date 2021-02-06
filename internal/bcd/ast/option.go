@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"bytes"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
@@ -198,4 +199,37 @@ func (opt *Option) FromJSONSchema(data map[string]interface{}) error {
 		return errors.Wrap(base.ErrJSONDataIsAbsent, "Option.FromJSONSchema")
 	}
 	return nil
+}
+
+// EnrichBigMap -
+func (opt *Option) EnrichBigMap(bmd []*base.BigMapDiff) error {
+	if opt.Child != nil {
+		return opt.Child.EnrichBigMap(bmd)
+	}
+	return nil
+}
+
+// ToParameters -
+func (opt *Option) ToParameters() ([]byte, error) {
+	if opt.Value == nil {
+		return []byte(`{"prim": "None"}`), nil
+	}
+
+	var builder bytes.Buffer
+	if _, err := builder.WriteString(`{"prim":"Some","args":[`); err != nil {
+		return nil, err
+	}
+
+	b, err := opt.Child.ToParameters()
+	if err != nil {
+		return nil, err
+	}
+	if _, err := builder.Write(b); err != nil {
+		return nil, err
+	}
+
+	if _, err := builder.WriteString(`]}`); err != nil {
+		return nil, err
+	}
+	return builder.Bytes(), nil
 }

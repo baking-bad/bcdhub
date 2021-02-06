@@ -175,3 +175,18 @@ func (set *Set) FromJSONSchema(data map[string]interface{}) error {
 	}
 	return nil
 }
+
+// EnrichBigMap -
+func (set *Set) EnrichBigMap(bmd []*base.BigMapDiff) error {
+	for i := range set.Data {
+		if err := set.Data[i].EnrichBigMap(bmd); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// ToParameters -
+func (set *Set) ToParameters() ([]byte, error) {
+	return buildListParameters(set.Data)
+}

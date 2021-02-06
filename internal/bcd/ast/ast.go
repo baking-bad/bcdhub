@@ -142,6 +142,15 @@ func (a *TypedAst) FromJSONSchema(data map[string]interface{}) error {
 	return nil
 }
 
+// ToParameters -
+func (a *TypedAst) ToParameters() ([]byte, error) {
+	if len(a.Nodes) == 1 {
+		return a.Nodes[0].ToParameters()
+	}
+
+	return buildListParameters(a.Nodes)
+}
+
 func createByType(typ Node) (Node, error) {
 	obj := reflect.New(reflect.ValueOf(typ).Elem().Type()).Interface().(Node)
 	return obj, deepcopier.Copy(typ).To(obj)

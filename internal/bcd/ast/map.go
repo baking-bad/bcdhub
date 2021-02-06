@@ -198,6 +198,24 @@ func (m *Map) FromJSONSchema(data map[string]interface{}) error {
 	return nil
 }
 
+// EnrichBigMap -
+func (m *Map) EnrichBigMap(bmd []*base.BigMapDiff) error {
+	for key, value := range m.Data {
+		if err := key.EnrichBigMap(bmd); err != nil {
+			return err
+		}
+		if err := value.EnrichBigMap(bmd); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// ToParameters -
+func (m *Map) ToParameters() ([]byte, error) {
+	return buildMapParameters(m.Data)
+}
+
 func createMapFromElts(args []*base.Node, keyType, valueType Node) (map[Node]Node, error) {
 	data := make(map[Node]Node)
 

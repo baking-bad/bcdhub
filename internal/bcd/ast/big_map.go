@@ -9,6 +9,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+// TODO: temporary pointers
+
 // BigMap -
 type BigMap struct {
 	Default
@@ -168,4 +170,45 @@ func (m *BigMap) FromJSONSchema(data map[string]interface{}) error {
 		}
 	}
 	return nil
+}
+
+// EnrichBigMap -
+func (m *BigMap) EnrichBigMap(bmd []*base.BigMapDiff) error {
+	for i := range bmd {
+		if m.Ptr != nil && bmd[i].Ptr == *m.Ptr {
+			key, err := m.makeNodeFromBytes(m.KeyType, bmd[i].Key)
+			if err != nil {
+				return err
+			}
+			val, err := m.makeNodeFromBytes(m.ValueType, bmd[i].Value)
+			if err != nil {
+				return err
+			}
+			m.Data[key] = val
+		}
+	}
+	return nil
+}
+
+// ToParameters -
+func (m *BigMap) ToParameters() ([]byte, error) {
+	if m.Ptr != nil {
+		return []byte(fmt.Sprintf(`{"int": "%d"}`, *m.Ptr)), nil
+	}
+	return buildMapParameters(m.Data)
+}
+
+func (m *BigMap) makeNodeFromBytes(typ Node, data []byte) (Node, error) {
+	value, err := createByType(m.ValueType)
+	if err != nil {
+		return nil, err
+	}
+	var node base.Node
+	if err := json.Unmarshal(data, &node); err != nil {
+		return nil, err
+	}
+	if err := value.ParseValue(&node); err != nil {
+		return nil, err
+	}
+	return value, nil
 }

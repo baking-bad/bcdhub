@@ -1,8 +1,11 @@
 package ast
 
 import (
+	"fmt"
+
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/translator"
 )
 
 // Lambda -
@@ -45,4 +48,20 @@ func (l *Lambda) ParseValue(node *base.Node) error {
 // ToJSONSchema -
 func (l *Lambda) ToJSONSchema() (*JSONSchema, error) {
 	return getStringJSONSchema(l.Default), nil
+}
+
+// ToParameters -
+func (l *Lambda) ToParameters() ([]byte, error) {
+	sLambda := fmt.Sprintf("%s", l.Value)
+	t, err := translator.NewConverter(
+		translator.WithDefaultGrammar(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	jsonLambda, err := t.FromString(sLambda)
+	if err != nil {
+		return nil, err
+	}
+	return []byte(jsonLambda.String()), nil
 }

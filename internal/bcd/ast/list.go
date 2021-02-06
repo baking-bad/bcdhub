@@ -171,3 +171,18 @@ func (list *List) FromJSONSchema(data map[string]interface{}) error {
 	}
 	return nil
 }
+
+// EnrichBigMap -
+func (list *List) EnrichBigMap(bmd []*base.BigMapDiff) error {
+	for i := range list.Data {
+		if err := list.Data[i].EnrichBigMap(bmd); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// ToParameters -
+func (list *List) ToParameters() ([]byte, error) {
+	return buildListParameters(list.Data)
+}

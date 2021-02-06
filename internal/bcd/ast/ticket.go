@@ -97,3 +97,8 @@ func (t *Ticket) ToMiguel() (*MiguelNode, error) {
 func (t *Ticket) ToBaseNode(optimized bool) (*base.Node, error) {
 	return t.Paired.ToBaseNode(optimized)
 }
+
+// ToParameters -
+func (t *Ticket) ToParameters() ([]byte, error) {
+	return t.Paired.ToParameters()
+}

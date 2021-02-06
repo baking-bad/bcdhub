@@ -1,6 +1,8 @@
 package ast
 
 import (
+	"bytes"
+	"fmt"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
@@ -256,4 +258,53 @@ func (or *Or) FromJSONSchema(data map[string]interface{}) error {
 	}
 
 	return nil
+}
+
+// EnrichBigMap -
+func (or *Or) EnrichBigMap(bmd []*base.BigMapDiff) error {
+	if or.Left != nil {
+		if err := or.Left.EnrichBigMap(bmd); err != nil {
+			return err
+		}
+	}
+	if or.Right != nil {
+		if err := or.Right.EnrichBigMap(bmd); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ToParameters -
+func (or *Or) ToParameters() ([]byte, error) {
+	var builder bytes.Buffer
+
+	var prim string
+	var node Node
+	switch {
+	case or.Left != nil:
+		prim = consts.Left
+		node = or.Left
+	case or.Right != nil:
+		prim = consts.Right
+		node = or.Right
+	}
+
+	if prim != "" {
+		if _, err := builder.WriteString(fmt.Sprintf(`{"prim": "%s", "args":[`, prim)); err != nil {
+			return nil, err
+		}
+		b, err := node.ToParameters()
+		if err != nil {
+			return nil, err
+		}
+		if _, err := builder.Write(b); err != nil {
+			return nil, err
+		}
+		if _, err := builder.WriteString(`]}`); err != nil {
+			return nil, err
+		}
+	}
+	return builder.Bytes(), nil
 }
