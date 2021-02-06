@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/pkg/errors"
 )
 
@@ -136,4 +136,42 @@ func (set *Set) ToJSONSchema() (*JSONSchema, error) {
 			set.GetName(): s,
 		},
 	}, nil
+}
+
+// FromJSONSchema -
+func (set *Set) FromJSONSchema(data map[string]interface{}) error {
+	var arr []interface{}
+	for key := range data {
+		if key == set.GetName() {
+			val := data[key]
+			arrVal, ok := val.([]interface{})
+			if !ok {
+				return errors.Wrapf(base.ErrInvalidType, "Set.FromJSONSchema %T", val)
+			}
+			arr = arrVal
+			break
+		}
+	}
+	if arr == nil {
+		return errors.Wrap(base.ErrJSONDataIsAbsent, "Set.FromJSONSchema")
+	}
+
+	for i := range arr {
+		item, ok := arr[i].(map[string]interface{})
+		if !ok {
+			return errors.Wrap(base.ErrValidation, "Set.FromJSONSchema")
+		}
+		itemTree, err := createByType(set.Type)
+		if err != nil {
+			return err
+		}
+		for key := range item {
+			itemMap := item[key].(map[string]interface{})
+			if err := itemTree.FromJSONSchema(itemMap); err != nil {
+				return err
+			}
+		}
+		set.Data = append(set.Data, itemTree)
+	}
+	return nil
 }

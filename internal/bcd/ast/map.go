@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/pkg/errors"
 )
 
@@ -152,6 +152,50 @@ func (m *Map) ToJSONSchema() (*JSONSchema, error) {
 	}
 
 	return wrapObject(s), nil
+}
+
+// FromJSONSchema -
+func (m *Map) FromJSONSchema(data map[string]interface{}) error {
+	var arr []interface{}
+	for key := range data {
+		if key == m.GetName() {
+			val := data[key]
+			arrVal, ok := val.([]interface{})
+			if !ok {
+				return errors.Wrapf(base.ErrInvalidType, "Map.FromJSONSchema %T", val)
+			}
+			arr = arrVal
+			break
+		}
+	}
+	if arr == nil {
+		return errors.Wrap(base.ErrJSONDataIsAbsent, "Map.FromJSONSchema")
+	}
+
+	for i := range arr {
+		item, ok := arr[i].(map[string]interface{})
+		if !ok {
+			return errors.Wrap(base.ErrValidation, "Map.FromJSONSchema")
+		}
+		keyTree, err := createByType(m.KeyType)
+		if err != nil {
+			return err
+		}
+		valTree, err := createByType(m.ValueType)
+		if err != nil {
+			return err
+		}
+		for key := range item {
+			itemMap := item[key].(map[string]interface{})
+			if err := keyTree.FromJSONSchema(itemMap); err != nil {
+				if err := valTree.FromJSONSchema(itemMap); err != nil {
+					return err
+				}
+			}
+		}
+		m.Data[keyTree] = valTree
+	}
+	return nil
 }
 
 func createMapFromElts(args []*base.Node, keyType, valueType Node) (map[Node]Node, error) {

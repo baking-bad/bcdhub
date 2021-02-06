@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/pkg/errors"
 )
 
@@ -152,4 +152,50 @@ func (opt *Option) ToJSONSchema() (*JSONSchema, error) {
 			SchemaKey: (*SchemaKey)(noneSchema),
 		},
 	}, nil
+}
+
+// FromJSONSchema -
+func (opt *Option) FromJSONSchema(data map[string]interface{}) error {
+	var optionMap map[string]interface{}
+	for key := range data {
+		if key == opt.GetName() {
+			val := data[key]
+			arrVal, ok := val.(map[string]interface{})
+			if !ok {
+				return errors.Wrapf(base.ErrInvalidType, "Option.FromJSONSchema %T", val)
+			}
+			optionMap = arrVal
+			break
+		}
+	}
+	schemaKey, ok := optionMap["schemaKey"]
+	if !ok {
+		return errors.Wrap(base.ErrJSONDataIsAbsent, "Option.FromJSONSchema")
+	}
+	delete(optionMap, "schemaKey")
+
+	switch schemaKey {
+	case consts.NONE:
+		opt.Value = nil
+	case consts.SOME:
+		val, err := createByType(opt.Child)
+		if err != nil {
+			return err
+		}
+		var ok bool
+		for key := range optionMap {
+			if err := val.FromJSONSchema(optionMap[key].(map[string]interface{})); err == nil {
+				ok = true
+				break
+			}
+		}
+		if ok {
+			opt.Value = val
+		} else {
+			return errors.Wrap(base.ErrJSONDataIsAbsent, "Option.FromJSONSchema")
+		}
+	default:
+		return errors.Wrap(base.ErrJSONDataIsAbsent, "Option.FromJSONSchema")
+	}
+	return nil
 }

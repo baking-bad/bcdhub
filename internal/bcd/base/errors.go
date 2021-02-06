@@ -11,4 +11,7 @@ var (
 	ErrTreesAreDifferent  = errors.New("Trees of type and value are different")
 	ErrEmptyPrim          = errors.New("Empty primitive")
 	ErrEmptyUnforgingData = errors.New("Unforging data length is 0")
+	ErrInvalidType        = errors.New("Invalid type")
+	ErrJSONDataIsAbsent   = errors.New("JSON data is absent")
+	ErrValidation         = errors.New("Validation error")
 )

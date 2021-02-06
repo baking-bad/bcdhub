@@ -1,6 +1,6 @@
 package ast
 
-import "github.com/baking-bad/bcdhub/internal/contractparser/consts"
+import "github.com/baking-bad/bcdhub/internal/bcd/consts"
 
 // Storage -
 type Storage struct {

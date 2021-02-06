@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/pkg/errors"
 )
 
@@ -132,4 +132,42 @@ func (list *List) ToJSONSchema() (*JSONSchema, error) {
 	}
 
 	return wrapObject(s), nil
+}
+
+// FromJSONSchema -
+func (list *List) FromJSONSchema(data map[string]interface{}) error {
+	var arr []interface{}
+	for key := range data {
+		if key == list.GetName() {
+			val := data[key]
+			arrVal, ok := val.([]interface{})
+			if !ok {
+				return errors.Wrapf(base.ErrInvalidType, "List.FromJSONSchema %T", val)
+			}
+			arr = arrVal
+			break
+		}
+	}
+	if arr == nil {
+		return errors.Wrap(base.ErrJSONDataIsAbsent, "List.FromJSONSchema")
+	}
+
+	for i := range arr {
+		item, ok := arr[i].(map[string]interface{})
+		if !ok {
+			return errors.Wrap(base.ErrValidation, "List.FromJSONSchema")
+		}
+		itemTree, err := createByType(list.Type)
+		if err != nil {
+			return err
+		}
+		for key := range item {
+			itemMap := item[key].(map[string]interface{})
+			if err := itemTree.FromJSONSchema(itemMap); err != nil {
+				return err
+			}
+		}
+		list.Data = append(list.Data, itemTree)
+	}
+	return nil
 }

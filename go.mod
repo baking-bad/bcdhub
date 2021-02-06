@@ -41,6 +41,7 @@ require (
 	github.com/swaggo/swag v1.7.0
 	github.com/tidwall/gjson v1.4.0
 	github.com/tidwall/sjson v1.0.4
+	github.com/ulule/deepcopier v0.0.0-20200430083143-45decc6639b6
 	github.com/valyala/fastjson v1.5.1
 	github.com/wsxiaoys/terminal v0.0.0-20160513160801-0940f3fc43a0 // indirect
 	github.com/xanzy/go-gitlab v0.33.0

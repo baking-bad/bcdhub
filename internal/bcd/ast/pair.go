@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/pkg/errors"
 )
 
@@ -153,4 +153,14 @@ func (p *Pair) ToJSONSchema() (*JSONSchema, error) {
 	}
 
 	return s, nil
+}
+
+// FromJSONSchema -
+func (p *Pair) FromJSONSchema(data map[string]interface{}) error {
+	for i := range p.Args {
+		if err := p.Args[i].FromJSONSchema(data); err != nil {
+			return err
+		}
+	}
+	return nil
 }

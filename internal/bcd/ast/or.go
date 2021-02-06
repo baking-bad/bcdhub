@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/pkg/errors"
 )
 
@@ -171,7 +171,7 @@ func (or *Or) ToBaseNode(optimized bool) (*base.Node, error) {
 // ToJSONSchema -
 func (or *Or) ToJSONSchema() (*JSONSchema, error) {
 	oneOf := make([]*JSONSchema, 0)
-	for _, arg := range or.Args {
+	for i, arg := range or.Args {
 		child, err := arg.ToJSONSchema()
 		if err != nil {
 			return nil, err
@@ -180,12 +180,16 @@ func (or *Or) ToJSONSchema() (*JSONSchema, error) {
 		if child.Prim == consts.OR {
 			oneOf = append(oneOf, child.OneOf...)
 		} else {
+			key := consts.LEFT
+			if i == 1 {
+				key = consts.RIGHT
+			}
 			item := &JSONSchema{
-				Title: arg.GetName(),
+				Title: key,
 				Properties: map[string]*JSONSchema{
 					"schemaKey": {
 						Type:  JSONSchemaTypeString,
-						Const: arg.GetName(),
+						Const: key,
 					},
 				},
 			}
@@ -206,4 +210,50 @@ func (or *Or) ToJSONSchema() (*JSONSchema, error) {
 		Prim:  or.Prim,
 		OneOf: oneOf,
 	}, nil
+}
+
+// FromJSONSchema -
+func (or *Or) FromJSONSchema(data map[string]interface{}) error {
+	var orMap map[string]interface{}
+	for key := range data {
+		if key == or.GetName() {
+			val := data[key]
+			arrVal, ok := val.(map[string]interface{})
+			if !ok {
+				return errors.Wrapf(base.ErrInvalidType, "Or.FromJSONSchema %T", val)
+			}
+			orMap = arrVal
+			break
+		}
+	}
+	schemaKey, ok := orMap["schemaKey"]
+	if !ok {
+		return errors.Wrap(base.ErrJSONDataIsAbsent, "Or.FromJSONSchema")
+	}
+	delete(orMap, "schemaKey")
+
+	switch schemaKey {
+	case consts.LEFT:
+		val, err := createByType(or.Args[0])
+		if err != nil {
+			return err
+		}
+		if err := val.FromJSONSchema(orMap); err != nil {
+			return err
+		}
+		or.Left = val
+	case consts.RIGHT:
+		val, err := createByType(or.Args[1])
+		if err != nil {
+			return err
+		}
+		if err := val.FromJSONSchema(orMap); err != nil {
+			return err
+		}
+		or.Right = val
+	default:
+		return errors.Wrap(base.ErrJSONDataIsAbsent, "Or.FromJSONSchema")
+	}
+
+	return nil
 }

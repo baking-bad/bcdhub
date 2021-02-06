@@ -1,9 +1,10 @@
 package ast
 
+// Miguel kinds
 const (
-	create = "create"
-	update = "update"
-	delete = "delete"
+	MiguelKindCreate = "create"
+	MiguelKindUpdate = "update"
+	MiguelKindDelete = "delete"
 )
 
 const (

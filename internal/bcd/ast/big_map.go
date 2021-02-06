@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/pkg/errors"
 )
 
@@ -156,4 +156,16 @@ func (m *BigMap) ToJSONSchema() (*JSONSchema, error) {
 	i := getIntJSONSchema(m.Default)
 	i.Title = fmt.Sprintf("%s (ptr)", m.GetName())
 	return i, nil
+}
+
+// FromJSONSchema -
+func (m *BigMap) FromJSONSchema(data map[string]interface{}) error {
+	for key := range data {
+		if key == fmt.Sprintf("%s (ptr)", m.GetName()) {
+			i := data[key].(int64)
+			m.Ptr = &i
+			break
+		}
+	}
+	return nil
 }

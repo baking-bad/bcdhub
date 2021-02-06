@@ -28,6 +28,7 @@ type Value interface {
 	ParseValue(node *base.Node) error
 	GetValue() interface{}
 	ToMiguel() (*MiguelNode, error)
+	FromJSONSchema(data map[string]interface{}) error
 }
 
 // Base -

@@ -9,7 +9,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/pkg/errors"
 	"github.com/ulule/deepcopier"
 )
@@ -130,6 +130,16 @@ func (a *TypedAst) ToJSONSchema() (*JSONSchema, error) {
 	}
 
 	return s, nil
+}
+
+// FromJSONSchema -
+func (a *TypedAst) FromJSONSchema(data map[string]interface{}) error {
+	for i := range a.Nodes {
+		if err := a.Nodes[i].FromJSONSchema(data); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func createByType(typ Node) (Node, error) {

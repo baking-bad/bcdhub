@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/encoding"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/pkg/errors"
 )
 
@@ -168,6 +168,17 @@ func (d *Default) ToJSONSchema() (*JSONSchema, error) {
 	return wrapObject(&JSONSchema{
 		Prim: d.Prim,
 	}), nil
+}
+
+// FromJSONSchema -
+func (d *Default) FromJSONSchema(data map[string]interface{}) error {
+	for key := range data {
+		if key == d.GetName() {
+			d.Value = data[key]
+			break
+		}
+	}
+	return nil
 }
 
 //
