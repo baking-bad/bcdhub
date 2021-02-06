@@ -19,7 +19,7 @@ func newPrim(p string) *prim {
 // Unforge -
 func (p *prim) Unforge(data []byte) (int, error) {
 	if len(data) == 0 {
-		return 0, errors.Wrap(ErrTooFewBytes, fmt.Sprintf("prim.Unforge: 0"))
+		return 0, errors.Wrap(ErrTooFewBytes, "prim.Unforge: 0")
 	}
 	key := int(data[0])
 	if key > len(primKeywords) {

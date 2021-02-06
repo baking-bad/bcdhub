@@ -32,7 +32,7 @@ func unforgeAnnots(dec *decoder) (string, int, error) {
 	return annots, length + 4, nil
 }
 
-func unforgeLength(dec *decoder) (int, error) {
+func unforgeLength(dec io.Reader) (int, error) {
 	b := make([]byte, 4)
 	if n, err := dec.Read(b); err != nil {
 		return n, err
@@ -44,7 +44,7 @@ func unforgeLength(dec *decoder) (int, error) {
 	return length, nil
 }
 
-func unforgePrim(dec *decoder) (string, error) {
+func unforgePrim(dec io.Reader) (string, error) {
 	b := make([]byte, 1)
 	if _, err := dec.Read(b); err != nil {
 		return "", err

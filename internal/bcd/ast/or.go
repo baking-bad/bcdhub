@@ -185,7 +185,7 @@ func (or *Or) ToJSONSchema() (*JSONSchema, error) {
 				key = consts.RIGHT
 			}
 			item := &JSONSchema{
-				Title: key,
+				Title: arg.GetName(),
 				Properties: map[string]*JSONSchema{
 					"schemaKey": {
 						Type:  JSONSchemaTypeString,

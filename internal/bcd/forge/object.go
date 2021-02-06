@@ -58,7 +58,6 @@ func (obj *Object) Unforge(data []byte) (int, error) {
 			return n, err
 		}
 		length += n
-		data = data[n:]
 		obj.Annots = a.Value
 	}
 	return length, nil

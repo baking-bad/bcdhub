@@ -17,7 +17,7 @@ type Node struct {
 	Annots      []string `json:"annots,omitempty"`
 	StringValue *string  `json:"string,omitempty"`
 	BytesValue  *string  `json:"bytes,omitempty"`
-	IntValue    *BigInt  `json:"int,omitempty,string"`
+	IntValue    *BigInt  `json:"int,omitempty"`
 }
 
 // UnmarshalJSON -
@@ -38,7 +38,7 @@ func (node *Node) UnmarshalJSON(data []byte) error {
 
 // GetAnnotations -
 func (node *Node) GetAnnotations() map[string]struct{} {
-	annots := make(map[string]struct{}, 0)
+	annots := make(map[string]struct{})
 	for i := range node.Annots {
 		if len(node.Annots[i]) == 0 {
 			continue
@@ -61,7 +61,7 @@ func (node *Node) Hash() (string, error) {
 	var prim string
 	switch {
 	case node.Prim != "":
-		if node.Prim != consts.RENAME && node.Prim != consts.CAST {
+		if node.Prim != consts.RENAME && node.Prim != consts.CAST && node.Prim != PrimArray {
 			hashCode, err := getHashCode(node.Prim)
 			if err != nil {
 				return "", err

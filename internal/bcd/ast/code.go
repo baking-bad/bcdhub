@@ -5,8 +5,6 @@ import "github.com/baking-bad/bcdhub/internal/bcd/consts"
 // Code -
 type Code struct {
 	Default
-
-	depth int
 }
 
 // NewCode -

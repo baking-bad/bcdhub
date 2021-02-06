@@ -196,7 +196,7 @@ func TestTypedAst_ToJSONSchema(t *testing.T) {
 						Properties: map[string]*JSONSchema{
 							"schemaKey": {
 								Type:  JSONSchemaTypeString,
-								Const: "redeem",
+								Const: "left",
 							},
 							"redeem": {
 								Type:    JSONSchemaTypeString,
@@ -211,7 +211,7 @@ func TestTypedAst_ToJSONSchema(t *testing.T) {
 						Properties: map[string]*JSONSchema{
 							"schemaKey": {
 								Type:  JSONSchemaTypeString,
-								Const: "refund",
+								Const: "right",
 							},
 							"refund": {
 								Type:    JSONSchemaTypeString,
