@@ -174,8 +174,10 @@ func findByFieldName(fieldName string, data gjson.Result) (gjson.Result, error) 
 				return data, nil
 			}
 		}
+
+		prim := data.Get("prim").String()
 		args := data.Get("args")
-		if args.Exists() {
+		if args.Exists() && prim == consts.OR {
 			res, err := findByFieldName(fieldName, args)
 			if err != nil {
 				if errors.Is(err, errAnnotsIsNotFound) {
