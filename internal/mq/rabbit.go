@@ -10,9 +10,10 @@ import (
 
 // Queue -
 type Queue struct {
-	Name       string
-	AutoDelete bool
-	Durable    bool
+	Name            string
+	AutoDelete      bool
+	Durable         bool
+	TTLMilliseconds *int
 }
 
 // RabbitMessage -
@@ -238,7 +239,12 @@ func NewRabbitReceiver(connection string, service string, queues ...Queue) (*Rab
 	mq.service = service
 
 	for _, queue := range queues {
-		q, err := mq.Channel.QueueDeclare(getQueueName(service, queue.Name), queue.Durable, queue.AutoDelete, false, false, nil)
+		args := make(amqp.Table)
+		if ttl := queue.TTLMilliseconds; ttl != nil {
+			args["x-message-ttl"] = *ttl
+		}
+
+		q, err := mq.Channel.QueueDeclare(getQueueName(service, queue.Name), queue.Durable, queue.AutoDelete, false, false, args)
 		if err != nil {
 			return nil, err
 		}

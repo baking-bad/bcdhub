@@ -93,9 +93,11 @@ api:
       operations:
         non_durable: true
         auto_deleted: true
+        ttl_ms: 15000
       blocks:
         non_durable: true
         auto_deleted: true
+        ttl_ms: 15000
   pinata:
     key: ${PINATA_KEY}
     secret_key: ${PINATA_SECRET_KEY}

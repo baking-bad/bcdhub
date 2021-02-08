@@ -133,11 +133,17 @@ func WithRabbit(rabbitConfig RabbitConfig, service string, mqConfig MQConfig) Co
 	return func(ctx *Context) {
 		mqueues := make([]mq.Queue, 0)
 		for name, params := range mqConfig.Queues {
-			mqueues = append(mqueues, mq.Queue{
+			q := mq.Queue{
 				Name:       name,
 				AutoDelete: params.AutoDeleted,
 				Durable:    !params.NonDurable,
-			})
+			}
+
+			if params.TTLMilliseconds != nil {
+				q.TTLMilliseconds = params.TTLMilliseconds
+			}
+
+			mqueues = append(mqueues, q)
 		}
 
 		ctx.MQ = mq.New(rabbitConfig.URI, service, mqConfig.NeedPublisher, rabbitConfig.Timeout, mqueues...)
