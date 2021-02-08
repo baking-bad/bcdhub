@@ -88,3 +88,14 @@ func (st *SaplingTransaction) ToMiguel() (*MiguelNode, error) {
 func (st *SaplingTransaction) ToBaseNode(optimized bool) (*base.Node, error) {
 	return st.Type.ToBaseNode(optimized)
 }
+
+// Docs -
+func (st *SaplingTransaction) Docs(inferredName string) ([]Typedef, string, error) {
+	typ := fmt.Sprintf("%s(%d)", st.Prim, st.MemoSize)
+	return []Typedef{
+		{
+			Name: st.GetName(),
+			Type: typ,
+		},
+	}, typ, nil
+}

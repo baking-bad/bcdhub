@@ -2,6 +2,7 @@ package ast
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
@@ -232,4 +233,27 @@ func (opt *Option) ToParameters() ([]byte, error) {
 		return nil, err
 	}
 	return builder.Bytes(), nil
+}
+
+// FindByName -
+func (opt *Option) FindByName(name string) Node {
+	if opt.GetName() == name {
+		return opt
+	}
+	return opt.Child.FindByName(name)
+}
+
+// Docs -
+func (opt *Option) Docs(inferredName string) ([]Typedef, string, error) {
+	name := getNameDocString(opt, inferredName)
+	docs, varName, err := opt.Child.Docs(name)
+	if err != nil {
+		return nil, "", err
+	}
+
+	optName := fmt.Sprintf("option(%s)", varName)
+	if isSimpleDocType(docs[0].Type) {
+		return nil, optName, nil
+	}
+	return docs, optName, nil
 }

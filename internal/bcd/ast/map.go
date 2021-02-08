@@ -216,6 +216,50 @@ func (m *Map) ToParameters() ([]byte, error) {
 	return buildMapParameters(m.Data)
 }
 
+// FindByName -
+func (m *Map) FindByName(name string) Node {
+	if m.GetName() == name {
+		return m
+	}
+	node := m.KeyType.FindByName(name)
+	if node != nil {
+		return node
+	}
+	return m.ValueType.FindByName(name)
+}
+
+// Docs -
+func (m *Map) Docs(inferredName string) ([]Typedef, string, error) {
+	name := getNameDocString(m, inferredName)
+	typedef := Typedef{
+		Name: name,
+		Type: fmt.Sprintf("map(%s, %s)", m.KeyType.GetPrim(), m.ValueType.GetPrim()),
+		Args: make([]TypedefArg, 0),
+	}
+
+	if isSimpleDocType(m.KeyType.GetPrim()) && isSimpleDocType(m.ValueType.GetPrim()) {
+		return []Typedef{typedef}, typedef.Type, nil
+	}
+	keyDocs, keyVarName, err := m.KeyType.Docs(fmt.Sprintf("%s_key", name))
+	if err != nil {
+		return nil, "", err
+	}
+	typedef.Args = append(typedef.Args, TypedefArg{Key: keyDocs[0].Name, Value: keyVarName})
+
+	valDocs, valVarName, err := m.ValueType.Docs(fmt.Sprintf("%s_value", name))
+	if err != nil {
+		return nil, "", err
+	}
+	typedef.Args = append(typedef.Args, TypedefArg{Key: valDocs[0].Name, Value: valVarName})
+
+	typedef.Type = fmt.Sprintf("map(%s, %s)", keyVarName, valVarName)
+	result := []Typedef{typedef}
+	result = append(result, keyDocs...)
+	result = append(result, valDocs...)
+
+	return result, typedef.Type, nil
+}
+
 func createMapFromElts(args []*base.Node, keyType, valueType Node) (map[Node]Node, error) {
 	data := make(map[Node]Node)
 

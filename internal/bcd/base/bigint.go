@@ -24,10 +24,13 @@ func (b *BigInt) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON -
 func (b *BigInt) UnmarshalJSON(p []byte) error {
-	if string(p) == "null" {
+	if string(p) == `null` {
 		return nil
 	}
 	z := big.NewInt(0)
+	if len(p) > 2 && p[0] == '"' && p[len(p)-1] == '"' { // trim quotes
+		p = p[1 : len(p)-1]
+	}
 	if _, ok := z.SetString(string(p), 10); !ok {
 		return fmt.Errorf("not a valid big integer: %s", p)
 	}

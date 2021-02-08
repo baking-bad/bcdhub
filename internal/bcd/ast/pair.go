@@ -201,3 +201,75 @@ func (p *Pair) ToParameters() ([]byte, error) {
 	}
 	return builder.Bytes(), nil
 }
+
+// FindByName -
+func (p *Pair) FindByName(name string) Node {
+	if p.GetName() == name {
+		return p
+	}
+	for i := range p.Args {
+		node := p.Args[i].FindByName(name)
+		if node != nil {
+			return node
+		}
+	}
+	return nil
+}
+
+// Docs -
+func (p *Pair) Docs(inferredName string) ([]Typedef, string, error) {
+	typedef := Typedef{
+		Name: getNameDocString(p, inferredName),
+		Type: p.Prim,
+		Args: make([]TypedefArg, 0),
+	}
+	result := make([]Typedef, 0)
+	for i := range p.Args {
+		args, varName, err := p.Args[i].Docs(typedef.Name)
+		if err != nil {
+			return nil, "", err
+		}
+		argName := p.Args[i].GetName()
+		if isSimpleDocType(p.Args[i].GetPrim()) {
+			typedef.Args = append(typedef.Args, TypedefArg{
+				Key:   argName,
+				Value: args[0].Type,
+			})
+			continue
+		}
+
+		if p.Args[i].IsPrim(p.Prim) {
+			if p.Args[i].IsNamed() {
+				typedef.Args = append(typedef.Args, TypedefArg{
+					Key:   argName,
+					Value: varName,
+				})
+				result = append(result, args...)
+			} else {
+				typedef.Args = append(typedef.Args, args[0].Args...)
+				for j := range args {
+					if isFlatDocType(args[j]) || isSimpleDocType(args[j].Type) {
+						continue
+					}
+					if args[j].Type == p.Prim && args[j].Name == typedef.Name {
+						continue
+					}
+					result = append(result, args[j])
+				}
+			}
+		} else {
+			typedef.Args = append(typedef.Args, TypedefArg{
+				Key:   argName,
+				Value: varName,
+			})
+			for j := range args {
+				if !isFlatDocType(args[j]) {
+					result = append(result, args[j])
+				}
+			}
+		}
+	}
+	result = append([]Typedef{typedef}, result...)
+
+	return result, makeVarDocString(typedef.Name), nil
+}

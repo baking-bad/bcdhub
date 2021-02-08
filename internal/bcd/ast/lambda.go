@@ -6,12 +6,15 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/translator"
+	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
+	"github.com/tidwall/gjson"
 )
 
 // Lambda -
 type Lambda struct {
 	Default
-	Type Node
+	InputType  Node
+	ReturnType Node
 }
 
 // NewLambda -
@@ -23,7 +26,7 @@ func NewLambda(depth int) *Lambda {
 
 // MarshalJSON -
 func (l *Lambda) MarshalJSON() ([]byte, error) {
-	return marshalJSON(consts.LAMBDA, l.annots, l.Type)
+	return marshalJSON(consts.LAMBDA, l.annots, l.InputType, l.ReturnType)
 }
 
 // ParseType -
@@ -36,7 +39,13 @@ func (l *Lambda) ParseType(node *base.Node, id *int) error {
 	if err != nil {
 		return err
 	}
-	l.Type = typ
+	l.InputType = typ
+
+	retTyp, err := typingNode(node.Args[1], l.depth, id)
+	if err != nil {
+		return err
+	}
+	l.ReturnType = retTyp
 	return nil
 }
 
@@ -64,4 +73,40 @@ func (l *Lambda) ToParameters() ([]byte, error) {
 		return nil, err
 	}
 	return []byte(jsonLambda.String()), nil
+}
+
+// Docs -
+func (l *Lambda) Docs(inferredName string) ([]Typedef, string, error) {
+	name := getNameDocString(l, inferredName)
+	typedef := Typedef{
+		Name: name,
+		Type: fmt.Sprintf("lambda(%s, %s)", l.InputType.GetPrim(), l.ReturnType.GetPrim()),
+		Args: make([]TypedefArg, 0),
+	}
+	if isSimpleDocType(l.InputType.GetPrim()) && isSimpleDocType(l.ReturnType.GetPrim()) {
+		return []Typedef{typedef}, typedef.Type, nil
+	}
+
+	iBytes, err := json.Marshal(l.InputType)
+	if err != nil {
+		return nil, "", err
+	}
+	parameter, err := formatter.MichelineToMichelson(gjson.ParseBytes(iBytes), true, formatter.DefLineSize)
+	if err != nil {
+		return nil, "", err
+	}
+	typedef.Args = append(typedef.Args, TypedefArg{Key: "input", Value: parameter})
+
+	rBytes, err := json.Marshal(l.ReturnType)
+	if err != nil {
+		return nil, "", err
+	}
+	returnValue, err := formatter.MichelineToMichelson(gjson.ParseBytes(rBytes), true, formatter.DefLineSize)
+	if err != nil {
+		return nil, "", err
+	}
+	typedef.Args = append(typedef.Args, TypedefArg{Key: "return", Value: returnValue})
+
+	typedef.Type = consts.LAMBDA
+	return []Typedef{typedef}, makeVarDocString(name), nil
 }

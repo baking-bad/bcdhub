@@ -308,3 +308,63 @@ func (or *Or) ToParameters() ([]byte, error) {
 	}
 	return builder.Bytes(), nil
 }
+
+// FindByName -
+func (or *Or) FindByName(name string) Node {
+	if or.GetName() == name {
+		return or
+	}
+	for i := range or.Args {
+		node := or.Args[i].FindByName(name)
+		if node != nil {
+			return node
+		}
+	}
+	return nil
+}
+
+// Docs -
+func (or *Or) Docs(inferredName string) ([]Typedef, string, error) {
+	name := getNameDocString(or, inferredName)
+
+	typedef := Typedef{
+		Name: name,
+		Type: or.Prim,
+		Args: make([]TypedefArg, 0),
+	}
+	result := make([]Typedef, 0)
+	for i := range or.Args {
+		if isSimpleDocType(or.Args[i].GetPrim()) {
+			typedef.Args = append(typedef.Args, TypedefArg{
+				Key:   or.Args[i].GetName(),
+				Value: or.Args[i].GetPrim(),
+			})
+			continue
+		}
+
+		args, varName, err := or.Args[i].Docs(name)
+		if err != nil {
+			return nil, "", err
+		}
+		if or.Args[i].IsPrim(or.Prim) {
+			typedef.Args = append(typedef.Args, args[0].Args...)
+			for j := range args {
+				if args[j].Type != or.Prim {
+					result = append(result, args[j])
+				}
+			}
+		} else {
+			typedef.Args = append(typedef.Args, TypedefArg{
+				Key:   or.Args[i].GetName(),
+				Value: varName,
+			})
+			for j := range args {
+				if !isFlatDocType(args[j]) {
+					result = append(result, args[j])
+				}
+			}
+		}
+	}
+	result = append([]Typedef{typedef}, result...)
+	return result, makeVarDocString(name), nil
+}

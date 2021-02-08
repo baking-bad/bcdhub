@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
@@ -101,4 +102,19 @@ func (t *Ticket) ToBaseNode(optimized bool) (*base.Node, error) {
 // ToParameters -
 func (t *Ticket) ToParameters() ([]byte, error) {
 	return t.Paired.ToParameters()
+}
+
+// Docs -
+func (t *Ticket) Docs(inferredName string) ([]Typedef, string, error) {
+	name := getNameDocString(t, inferredName)
+	docs, varName, err := t.Type.Docs(name)
+	if err != nil {
+		return nil, "", err
+	}
+
+	optName := fmt.Sprintf("ticket(%s)", varName)
+	if isSimpleDocType(docs[0].Type) {
+		return nil, optName, nil
+	}
+	return docs, optName, nil
 }

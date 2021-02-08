@@ -142,13 +142,87 @@ func (a *TypedAst) FromJSONSchema(data map[string]interface{}) error {
 	return nil
 }
 
+// FindByName -
+func (a *TypedAst) FindByName(name string) Node {
+	for i := range a.Nodes {
+		node := a.Nodes[i].FindByName(name)
+		if node != nil {
+			return node
+		}
+	}
+	return nil
+}
+
 // ToParameters -
-func (a *TypedAst) ToParameters() ([]byte, error) {
-	if len(a.Nodes) == 1 {
-		return a.Nodes[0].ToParameters()
+func (a *TypedAst) ToParameters(entrypoint string) ([]byte, error) {
+	if entrypoint == "" {
+		if len(a.Nodes) == 1 {
+			return a.Nodes[0].ToParameters()
+		}
+
+		return buildListParameters(a.Nodes)
 	}
 
-	return buildListParameters(a.Nodes)
+	node := a.FindByName(entrypoint)
+	if node != nil {
+		return node.ToParameters()
+	}
+	return nil, nil
+}
+
+// Docs -
+func (a *TypedAst) Docs(entrypoint string) ([]Typedef, error) {
+	if entrypoint == "" {
+		if len(a.Nodes) == 1 {
+			docs, _, err := a.Nodes[0].Docs("")
+			return docs, err
+		}
+		return buildArrayDocs(a.Nodes)
+	}
+
+	node := a.FindByName(entrypoint)
+	if node != nil {
+		docs, _, err := node.Docs("")
+		return docs, err
+	}
+	return nil, nil
+}
+
+// GetEntrypointsDocs -
+func (a *TypedAst) GetEntrypointsDocs() ([]EntrypointType, error) {
+	docs, err := a.Docs(DocsFull)
+	if err != nil {
+		return nil, err
+	}
+	if len(docs) == 0 {
+		return nil, nil
+	}
+
+	if docs[0].Type == consts.OR {
+		response := make([]EntrypointType, 0)
+		for i := range docs[0].Args {
+			name := docs[0].Args[i].Key
+			if strings.HasPrefix(name, "@") {
+				name = fmt.Sprintf("entrypoint_%d", len(response))
+			}
+			entrypoint := EntrypointType{
+				Name: name,
+			}
+			eDocs, err := a.Docs(docs[0].Args[i].Key)
+			if err != nil {
+				return nil, err
+			}
+			entrypoint.Type = eDocs
+			response = append(response, entrypoint)
+		}
+
+		return response, nil
+	}
+	entrypoint := EntrypointType{
+		Name: consts.DefaultEntrypoint,
+		Type: docs,
+	}
+	return []EntrypointType{entrypoint}, nil
 }
 
 func createByType(typ Node) (Node, error) {

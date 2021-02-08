@@ -88,3 +88,13 @@ func (ss *SaplingState) ToMiguel() (*MiguelNode, error) {
 func (ss *SaplingState) ToBaseNode(optimized bool) (*base.Node, error) {
 	return ss.Type.ToBaseNode(optimized)
 }
+
+// Docs -
+func (ss *SaplingState) Docs(inferredName string) ([]Typedef, string, error) {
+	return []Typedef{
+		{
+			Name: ss.GetName(),
+			Type: fmt.Sprintf("%s(%d)", ss.Prim, ss.MemoSize),
+		},
+	}, ss.Prim, nil
+}

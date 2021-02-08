@@ -16,7 +16,7 @@ type Data struct {
 }
 
 func main() {
-	f, err := os.Open("contract1.json")
+	f, err := os.Open("contract6.json")
 	if err != nil {
 		panic(err)
 	}
@@ -44,31 +44,41 @@ func main() {
 	fmt.Println("------ENTRYPOINTS-------")
 	fmt.Println(parameter.GetEntrypoints())
 
-	storage, err := script.Storage.ToTypedAST()
+	docs, err := parameter.GetEntrypointsDocs()
 	if err != nil {
 		panic(err)
 	}
-
-	storageData, err := ast.NewUntypedAST(contract.Storage)
+	b, err := json.MarshalIndent(docs, "", " ")
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println(string(b))
 
-	if err := storage.Settle(storageData); err != nil {
-		panic(err)
-	}
+	// storage, err := script.Storage.ToTypedAST()
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	s, err := ast.Forge(storage, true)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(s)
+	// storageData, err := ast.NewUntypedAST(contract.Storage)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	ua, err := ast.Unforge(s)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(ua)
+	// if err := storage.Settle(storageData); err != nil {
+	// 	panic(err)
+	// }
+
+	// s, err := ast.Forge(storage, true)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println(s)
+
+	// ua, err := ast.Unforge(s)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println(ua)
 	// miguel, err := storage.ToMiguel()
 	// if err != nil {
 	// 	panic(err)

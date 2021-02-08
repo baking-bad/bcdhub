@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
@@ -185,4 +186,38 @@ func (list *List) EnrichBigMap(bmd []*base.BigMapDiff) error {
 // ToParameters -
 func (list *List) ToParameters() ([]byte, error) {
 	return buildListParameters(list.Data)
+}
+
+// FindByName -
+func (list *List) FindByName(name string) Node {
+	if list.GetName() == name {
+		return list
+	}
+	return list.Type.FindByName(name)
+}
+
+// Docs -
+func (list *List) Docs(inferredName string) ([]Typedef, string, error) {
+	name := getNameDocString(list, inferredName)
+	typedef := Typedef{
+		Name: name,
+		Type: fmt.Sprintf("list(%s)", list.Type.GetPrim()),
+		Args: make([]TypedefArg, 0),
+	}
+	if !isSimpleDocType(list.Type.GetPrim()) {
+		docs, varName, err := list.Type.Docs(fmt.Sprintf("%s_item", name))
+		if err != nil {
+			return nil, "", err
+		}
+
+		typedef.Type = fmt.Sprintf("list(%s)", varName)
+		result := []Typedef{typedef}
+		for i := range docs {
+			if !isFlatDocType(docs[i]) {
+				result = append(result, docs[i])
+			}
+		}
+		return result, typedef.Type, nil
+	}
+	return []Typedef{typedef}, typedef.Type, nil
 }
