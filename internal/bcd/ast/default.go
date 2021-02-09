@@ -97,9 +97,21 @@ func (d *Default) ParseValue(node *base.Node) error {
 	return nil
 }
 
+// GetTypeName -
+func (d *Default) GetTypeName() string {
+	switch {
+	case d.TypeName != "":
+		return d.TypeName
+	case d.FieldName != "":
+		return d.FieldName
+	default:
+		return fmt.Sprintf("@%s_%d", d.Prim, d.id)
+	}
+}
+
 // ToMiguel -
 func (d *Default) ToMiguel() (*MiguelNode, error) {
-	name := d.GetName()
+	name := d.GetTypeName()
 	return &MiguelNode{
 		Prim:  d.Prim,
 		Type:  strings.ToLower(d.Prim),
@@ -111,8 +123,6 @@ func (d *Default) ToMiguel() (*MiguelNode, error) {
 // GetEntrypoints -
 func (d *Default) GetEntrypoints() []string {
 	switch {
-	case d.TypeName != "":
-		return []string{d.TypeName}
 	case d.FieldName != "":
 		return []string{d.FieldName}
 	}
@@ -198,12 +208,12 @@ func (d *Default) EnrichBigMap(bmd []*base.BigMapDiff) error {
 func (d *Default) ToParameters() ([]byte, error) {
 	switch d.valueType {
 	case valueTypeString:
-		return []byte(fmt.Sprintf(`{"string": "%s"}`, d.Value)), nil
+		return []byte(fmt.Sprintf(`{"string":"%s"}`, d.Value)), nil
 	case valueTypeBytes:
-		return []byte(fmt.Sprintf(`{"bytes": "%s"}`, d.Value)), nil
+		return []byte(fmt.Sprintf(`{"bytes":"%s"}`, d.Value)), nil
 	case valueTypeInt:
 		i := d.Value.(*base.BigInt)
-		return []byte(fmt.Sprintf(`{"int": "%d"}`, i.Int64())), nil
+		return []byte(fmt.Sprintf(`{"int":"%d"}`, i.Int64())), nil
 	}
 	return nil, nil
 }

@@ -60,8 +60,16 @@ func (u *UntypedAST) UnmarshalJSON(data []byte) error {
 		return consts.ErrInvalidJSON
 	}
 	if data[0] == '[' {
-		type buf UntypedAST
-		return json.Unmarshal(data, (*buf)(u))
+		node := base.Node{
+			Prim: consts.PrimArray,
+		}
+		var args []*base.Node
+		if err := json.Unmarshal(data, &args); err != nil {
+			return err
+		}
+		node.Args = args
+		*u = append(*u, &node)
+		return nil
 	} else if data[0] == '{' {
 		var node base.Node
 		if err := json.Unmarshal(data, &node); err != nil {
@@ -78,11 +86,21 @@ func (u UntypedAST) ToTypedAST() (*TypedAst, error) {
 	ast := NewTypedAST()
 	id := 0
 	for i := range u {
-		node, err := typingNode(u[i], 0, &id)
-		if err != nil {
-			return ast, err
+		if u[i].Prim == consts.PrimArray {
+			for j := range u[i].Args {
+				node, err := typingNode(u[i].Args[j], 0, &id)
+				if err != nil {
+					return ast, err
+				}
+				ast.Nodes = append(ast.Nodes, node)
+			}
+		} else {
+			node, err := typingNode(u[i], 0, &id)
+			if err != nil {
+				return ast, err
+			}
+			ast.Nodes = append(ast.Nodes, node)
 		}
-		ast.Nodes = append(ast.Nodes, node)
 	}
 	return ast, nil
 }

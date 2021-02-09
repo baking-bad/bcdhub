@@ -101,7 +101,7 @@ func (p *Pair) ParseValue(node *base.Node) error {
 
 // ToMiguel -
 func (p *Pair) ToMiguel() (*MiguelNode, error) {
-	name := p.GetName()
+	name := p.GetTypeName()
 	node := &MiguelNode{
 		Prim:     p.Prim,
 		Type:     consts.TypeNamedTuple,
@@ -115,7 +115,7 @@ func (p *Pair) ToMiguel() (*MiguelNode, error) {
 			return nil, err
 		}
 
-		if p.Prim == p.Args[i].GetPrim() {
+		if p.Prim == p.Args[i].GetPrim() && strings.HasPrefix(*child.Name, "@") {
 			node.Children = append(node.Children, child.Children...)
 		} else {
 			node.Children = append(node.Children, child)
@@ -178,7 +178,7 @@ func (p *Pair) EnrichBigMap(bmd []*base.BigMapDiff) error {
 // ToParameters -
 func (p *Pair) ToParameters() ([]byte, error) {
 	var builder bytes.Buffer
-	if _, err := builder.WriteString(`{"prim": "Pair", "args":[`); err != nil {
+	if _, err := builder.WriteString(`{"prim":"Pair","args":[`); err != nil {
 		return nil, err
 	}
 	for i := range p.Args {

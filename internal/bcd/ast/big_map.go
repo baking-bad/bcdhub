@@ -193,7 +193,7 @@ func (m *BigMap) EnrichBigMap(bmd []*base.BigMapDiff) error {
 // ToParameters -
 func (m *BigMap) ToParameters() ([]byte, error) {
 	if m.Ptr != nil {
-		return []byte(fmt.Sprintf(`{"int": "%d"}`, *m.Ptr)), nil
+		return []byte(fmt.Sprintf(`{"int":"%d"}`, *m.Ptr)), nil
 	}
 	return buildMapParameters(m.Data)
 }

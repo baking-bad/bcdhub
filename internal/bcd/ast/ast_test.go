@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"reflect"
 	"testing"
 	"time"
 
@@ -396,10 +397,11 @@ func TestTypedAst_ToJSONSchema(t *testing.T) {
 
 func TestTypedAst_Docs(t *testing.T) {
 	tests := []struct {
-		name    string
-		data    string
-		want    string
-		wantErr bool
+		name       string
+		data       string
+		entrypoint string
+		want       string
+		wantErr    bool
 	}{
 		{
 			name: "mainnet/KT1VsSxSXUkgw6zkBGgUuDXXuJs9ToPqkrCg/VestedFunds4",
@@ -413,6 +415,11 @@ func TestTypedAst_Docs(t *testing.T) {
 			name: "mainnet/KT1U1JZaXoG4u1EPnhHL4R4otzkWc1L34q3c/Equisafe-KYC-registrar",
 			data: `[{"prim":"parameter","args":[{"prim":"or","args":[{"prim":"or","args":[{"prim":"list","args":[{"prim":"pair","args":[{"prim":"address","annots":["%0"]},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"nat","annots":["%country"]},{"prim":"timestamp","annots":["%expires"]}]},{"prim":"pair","args":[{"prim":"nat","annots":["%rating"]},{"prim":"nat","annots":["%region"]}]}]},{"prim":"bool","annots":["%restricted"]}],"annots":["%1"]}]}],"annots":["%addMembers"]},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"address","annots":["%0"]},{"prim":"map","args":[{"prim":"nat"},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"nat","annots":["%country_invest_limit"]},{"prim":"nat","annots":["%min_rating"]}]},{"prim":"pair","args":[{"prim":"map","args":[{"prim":"nat"},{"prim":"nat"}],"annots":["%rating_restrictions"]},{"prim":"timestamp","annots":["%vesting"]}]}]}],"annots":["%1"]}]},{"prim":"bool","annots":["%2"]}],"annots":["%checkMember"]}]},{"prim":"or","args":[{"prim":"pair","args":[{"prim":"address","annots":["%0"]},{"prim":"lambda","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"nat","annots":["%country"]},{"prim":"timestamp","annots":["%expires"]}]},{"prim":"pair","args":[{"prim":"nat","annots":["%rating"]},{"prim":"nat","annots":["%region"]}]}]},{"prim":"bool","annots":["%restricted"]}]},{"prim":"list","args":[{"prim":"operation"}]}],"annots":["%1"]}],"annots":["%getMember"]},{"prim":"list","args":[{"prim":"address"}],"annots":["%removeMembers"]}]}]}]}]`,
 			want: `[{"name":"@or_1","type":"or","args":[{"key":"addMembers","value":"list($addMembers_item)"},{"key":"checkMember","value":"$checkMember"},{"key":"getMember","value":"$getMember"},{"key":"removeMembers","value":"list(address)"}]},{"name":"addMembers_item","type":"pair","args":[{"key":"0","value":"address"},{"key":"1","value":"$1"}]},{"name":"1","type":"pair","args":[{"key":"country","value":"nat"},{"key":"expires","value":"timestamp"},{"key":"rating","value":"nat"},{"key":"region","value":"nat"},{"key":"restricted","value":"bool"}]},{"name":"checkMember","type":"pair","args":[{"key":"0","value":"address"},{"key":"1","value":"map(nat, $1_value)"},{"key":"2","value":"bool"}]},{"name":"1_value","type":"pair","args":[{"key":"country_invest_limit","value":"nat"},{"key":"min_rating","value":"nat"},{"key":"rating_restrictions","value":"map(nat, nat)"},{"key":"vesting","value":"timestamp"}]},{"name":"getMember","type":"pair","args":[{"key":"0","value":"address"},{"key":"1","value":"$1"}]},{"name":"1","type":"lambda","args":[{"key":"input","value":"pair (pair (pair (nat %country) (timestamp %expires)) (pair (nat %rating) (nat %region))) (bool %restricted)"},{"key":"return","value":"list operation"}]}]`,
+		}, {
+			name:       "mainnet/KT1U1JZaXoG4u1EPnhHL4R4otzkWc1L34q3c/Equisafe-KYC-registrar/addMembers",
+			data:       `[{"prim":"parameter","args":[{"prim":"or","args":[{"prim":"or","args":[{"prim":"list","args":[{"prim":"pair","args":[{"prim":"address","annots":["%0"]},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"nat","annots":["%country"]},{"prim":"timestamp","annots":["%expires"]}]},{"prim":"pair","args":[{"prim":"nat","annots":["%rating"]},{"prim":"nat","annots":["%region"]}]}]},{"prim":"bool","annots":["%restricted"]}],"annots":["%1"]}]}],"annots":["%addMembers"]},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"address","annots":["%0"]},{"prim":"map","args":[{"prim":"nat"},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"nat","annots":["%country_invest_limit"]},{"prim":"nat","annots":["%min_rating"]}]},{"prim":"pair","args":[{"prim":"map","args":[{"prim":"nat"},{"prim":"nat"}],"annots":["%rating_restrictions"]},{"prim":"timestamp","annots":["%vesting"]}]}]}],"annots":["%1"]}]},{"prim":"bool","annots":["%2"]}],"annots":["%checkMember"]}]},{"prim":"or","args":[{"prim":"pair","args":[{"prim":"address","annots":["%0"]},{"prim":"lambda","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"nat","annots":["%country"]},{"prim":"timestamp","annots":["%expires"]}]},{"prim":"pair","args":[{"prim":"nat","annots":["%rating"]},{"prim":"nat","annots":["%region"]}]}]},{"prim":"bool","annots":["%restricted"]}]},{"prim":"list","args":[{"prim":"operation"}]}],"annots":["%1"]}],"annots":["%getMember"]},{"prim":"list","args":[{"prim":"address"}],"annots":["%removeMembers"]}]}]}]}]`,
+			entrypoint: "addMembers",
+			want:       `[{"name":"addMembers","type":"list($addMembers_item)"},{"name":"addMembers_item","type":"pair","args":[{"key":"0","value":"address"},{"key":"1","value":"$1"}]},{"name":"1","type":"pair","args":[{"key":"country","value":"nat"},{"key":"expires","value":"timestamp"},{"key":"rating","value":"nat"},{"key":"region","value":"nat"},{"key":"restricted","value":"bool"}]}]`,
 		}, {
 			name: "mainnet/KT1ChNsEFxwyCbJyWGSL3KdjeXE28AY1Kaog/BakersRegistry",
 			data: `[{"prim":"parameter","args":[{"prim":"or","args":[{"prim":"pair","args":[{"prim":"key_hash","annots":["%delegate"]},{"prim":"pair","args":[{"prim":"option","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"bytes","annots":["%bakerName"]},{"prim":"bool","annots":["%openForDelegation"]}]},{"prim":"bytes","annots":["%bakerOffchainRegistryUrl"]}]},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"nat","annots":["%split"]},{"prim":"list","args":[{"prim":"address"}],"annots":["%bakerPaysFromAccounts"]}]},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"nat","annots":["%minDelegation"]},{"prim":"bool","annots":["%subtractPayoutsLessThanMin"]}]},{"prim":"pair","args":[{"prim":"int","annots":["%payoutDelay"]},{"prim":"pair","args":[{"prim":"nat","annots":["%payoutFrequency"]},{"prim":"int","annots":["%minPayout"]}]}]}]},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"bool","annots":["%bakerChargesTransactionFee"]},{"prim":"nat","annots":["%paymentConfigMask"]}]},{"prim":"pair","args":[{"prim":"nat","annots":["%overDelegationThreshold"]},{"prim":"bool","annots":["%subtractRewardsFromUninvitedDelegation"]}]}]}]}]}]}],"annots":["%data"]},{"prim":"option","args":[{"prim":"address"}],"annots":["%reporterAccount"]}]}],"annots":["%set_data"]},{"prim":"or","args":[{"prim":"pair","args":[{"prim":"mutez","annots":["%signup_fee"]},{"prim":"mutez","annots":["%update_fee"]}],"annots":["%set_fees"]},{"prim":"contract","args":[{"prim":"unit"}],"annots":["%withdraw"]}]}]}]}]`,
@@ -447,7 +454,7 @@ func TestTypedAst_Docs(t *testing.T) {
 				t.Errorf("ToTypedAST() error = %v", err)
 				return
 			}
-			got, err := a.Docs(DocsFull)
+			got, err := a.Docs(tt.entrypoint)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("TypedAst.Docs() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -566,6 +573,203 @@ func TestTypedAst_Compare(t *testing.T) {
 			if got != tt.want {
 				t.Errorf("TypedAst.Compare() = %v, want %v", got, tt.want)
 			}
+		})
+	}
+}
+
+func TestTypedAst_Settle(t *testing.T) {
+	tests := []struct {
+		name       string
+		tree       string
+		data       string
+		entrypoint string
+		wantErr    bool
+		want       string
+	}{
+		{
+			name: "string",
+			tree: `[{"prim":"string"}]`,
+			data: `{"string":"test"}`,
+			want: `{"string":"test"}`,
+		}, {
+			name:       "atomex",
+			tree:       `[{"prim":"or","args":[{"prim":"or","args":[{"prim":"pair","args":[{"prim":"address","annots":["%participant"]},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"bytes","annots":["%hashed_secret"]},{"prim":"timestamp","annots":["%refund_time"]}]},{"prim":"mutez","annots":["%payoff"]}],"annots":["%settings"]}],"annots":[":initiate","%initiate"]},{"prim":"bytes","annots":[":hashed_secret","%add"]}],"annots":["%fund"]},{"prim":"or","args":[{"prim":"bytes","annots":[":secret","%redeem"]},{"prim":"bytes","annots":[":hashed_secret","%refund"]}],"annots":["%withdraw"]}]}]`,
+			data:       `{"prim":"Right","args":[{"prim":"Left","args":[{"bytes":"8d1c54042ee5a32d3eb5732d86e32efae058d409f32dbb4859142a1589cc4a3e"}]}]}`,
+			want:       `{"bytes":"8d1c54042ee5a32d3eb5732d86e32efae058d409f32dbb4859142a1589cc4a3e"}`,
+			entrypoint: "redeem",
+		}, {
+			name: "tzbtc transfer",
+			tree: `[{"prim":"pair","args":[{"prim":"address","annots":[":from"]},{"prim":"pair","args":[{"prim":"address","annots":[":to"]},{"prim":"nat","annots":[":value"]}]}],"annots":["%transfer"]}]`,
+			data: `{"prim":"Pair","args":[{"string":"tz1QnR36rKBcMLPiTP8TTXD8HmGbXBo2HEZH"},{"prim":"Pair","args":[{"int":"2038026"},{"string":"2021-02-09T18:22:14Z"}]}]}`,
+			want: `{"prim":"Pair","args":[{"string":"tz1QnR36rKBcMLPiTP8TTXD8HmGbXBo2HEZH"},{"prim":"Pair","args":[{"int":"2038026"},{"string":"2021-02-09T18:22:14Z"}]}]}`,
+		}, {
+			name: "setList",
+			tree: `[{"prim":"list","args":[{"prim":"nat"}],"annots":["%setList"]}]`,
+			data: `[{"int":"2"}]`,
+			want: `[{"int":"2"}]`,
+		}, {
+			name: "setMap",
+			tree: `{"prim":"map","args":[{"prim":"nat"},{"prim":"mutez"}],"annots":["%setMap"]}`,
+			data: `[{"prim":"Elt","args":[{"int":"2"},{"int":"2"}]}]`,
+			want: `[{"prim":"Elt","args":[{"int":"2"},{"int":"2"}]}]`,
+		}, {
+			name: "setSet",
+			tree: `{"prim":"set","args":[{"prim":"nat"}],"annots":["%setSet"]}`,
+			data: `[{"int":"2"}]`,
+			want: `[{"int":"2"}]`,
+		}, {
+			name: "option",
+			tree: `{"prim":"pair","args":[{"prim":"string","annots":["%params"]},{"prim":"pair","args":[{"prim":"option","args":[{"prim":"key"}],"annots":["%public_key"]},{"prim":"option","args":[{"prim":"signature"}],"annots":["%sig"]}]}]}`,
+			data: `{"prim":"Pair","args":[{"string":"frfe"},{"prim":"Pair","args":[{"prim":"Some","args":[{"string":"edpktv7KGuCdHVG9Ys1uJ8my3b1HuWKzaW2A2vmJ5uSPfwjwnh81Ly"}]},{"prim":"Some","args":[{"string":"sigrTtiiUxV51dF15yhiPr36XFybypu7EUu8Lkq2qKGUDj9HxhCRRZukHGg1QEAopBvnqMjdtiejPbECm6RM8TqK8kffhtZ3"}]}]}]}`,
+			want: `{"prim":"Pair","args":[{"string":"frfe"},{"prim":"Pair","args":[{"prim":"Some","args":[{"string":"edpktv7KGuCdHVG9Ys1uJ8my3b1HuWKzaW2A2vmJ5uSPfwjwnh81Ly"}]},{"prim":"Some","args":[{"string":"sigrTtiiUxV51dF15yhiPr36XFybypu7EUu8Lkq2qKGUDj9HxhCRRZukHGg1QEAopBvnqMjdtiejPbECm6RM8TqK8kffhtZ3"}]}]}]}`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var tree UntypedAST
+			if err := json.UnmarshalFromString(tt.tree, &tree); err != nil {
+				t.Errorf("UnmarshalFromString tree error = %v", err)
+				return
+			}
+			var data UntypedAST
+			if err := json.UnmarshalFromString(tt.data, &data); err != nil {
+				t.Errorf("UnmarshalFromString data error = %v", err)
+				return
+			}
+			typ, err := tree.ToTypedAST()
+			if err != nil {
+				t.Errorf("ToTypedAST() error = %v", err)
+				return
+			}
+			if err := typ.Settle(data); (err != nil) != tt.wantErr {
+				t.Errorf("TypedAst.Settle() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !typ.IsSettled() {
+				t.Errorf("tree is not settled")
+				return
+			}
+
+			b, err := typ.ToParameters(tt.entrypoint)
+			if err != nil {
+				t.Errorf("ToParameters() error = %v", err)
+				return
+			}
+			assert.Equal(t, tt.want, string(b))
+		})
+	}
+}
+
+func TestTypedAst_GetEntrypoints(t *testing.T) {
+	tests := []struct {
+		name string
+		tree string
+		want []string
+	}{
+		{
+			name: "simple",
+			tree: `{"prim": "string"}`,
+			want: []string{"default"},
+		}, {
+			name: "mainnet/KT1RHkGHmMTvi4wimZYEbuV1gfY9MGm8meWg",
+			tree: `{"prim":"or","args":[{"prim":"or","args":[{"prim":"or","args":[{"prim":"pair","args":[{"prim":"string"},{"prim":"bytes"}]},{"prim":"pair","args":[{"prim":"nat"},{"prim":"pair","args":[{"prim":"lambda","args":[{"prim":"big_map","args":[{"prim":"bytes"},{"prim":"bytes"}]},{"prim":"big_map","args":[{"prim":"bytes"},{"prim":"bytes"}]}]},{"prim":"lambda","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"string"},{"prim":"bytes"}]},{"prim":"big_map","args":[{"prim":"bytes"},{"prim":"bytes"}]}]},{"prim":"pair","args":[{"prim":"list","args":[{"prim":"operation"}]},{"prim":"big_map","args":[{"prim":"bytes"},{"prim":"bytes"}]}]}]}]}]}]},{"prim":"or","args":[{"prim":"pair","args":[{"prim":"unit"},{"prim":"contract","args":[{"prim":"nat"}]}]},{"prim":"address"}]}]},{"prim":"or","args":[{"prim":"or","args":[{"prim":"nat"},{"prim":"lambda","args":[{"prim":"big_map","args":[{"prim":"bytes"},{"prim":"bytes"}]},{"prim":"big_map","args":[{"prim":"bytes"},{"prim":"bytes"}]}]}]},{"prim":"or","args":[{"prim":"lambda","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"string"},{"prim":"bytes"}]},{"prim":"big_map","args":[{"prim":"bytes"},{"prim":"bytes"}]}]},{"prim":"pair","args":[{"prim":"list","args":[{"prim":"operation"}]},{"prim":"big_map","args":[{"prim":"bytes"},{"prim":"bytes"}]}]}]},{"prim":"unit"}]}]}]}`,
+			want: []string{
+				"entrypoint_0",
+				"entrypoint_1",
+				"entrypoint_2",
+				"entrypoint_3",
+				"entrypoint_4",
+				"entrypoint_5",
+				"entrypoint_6",
+				"entrypoint_7",
+			},
+		}, {
+			name: "mainnet/atomex",
+			tree: `{"prim":"or","args":[{"prim":"or","args":[{"prim":"pair","args":[{"prim":"address","annots":["%participant"]},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"bytes","annots":["%hashed_secret"]},{"prim":"timestamp","annots":["%refund_time"]}]},{"prim":"mutez","annots":["%payoff"]}],"annots":["%settings"]}],"annots":[":initiate","%initiate"]},{"prim":"bytes","annots":[":hashed_secret","%add"]}],"annots":["%fund"]},{"prim":"or","args":[{"prim":"bytes","annots":[":secret","%redeem"]},{"prim":"bytes","annots":[":hashed_secret","%refund"]}],"annots":["%withdraw"]}]}`,
+			want: []string{
+				"initiate",
+				"add",
+				"redeem",
+				"refund",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var tree UntypedAST
+			if err := json.UnmarshalFromString(tt.tree, &tree); err != nil {
+				t.Errorf("UnmarshalFromString tree error = %v", err)
+				return
+			}
+			typ, err := tree.ToTypedAST()
+			if err != nil {
+				t.Errorf("ToTypedAST() error = %v", err)
+				return
+			}
+			if got := typ.GetEntrypoints(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("TypedAst.GetEntrypoints() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestTypedAst_ToMiguel(t *testing.T) {
+	tests := []struct {
+		name    string
+		tree    string
+		data    string
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "atomex storage",
+			tree: `{"prim":"pair","args":[{"prim":"big_map","args":[{"prim":"bytes"},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"address","annots":["%initiator"]},{"prim":"address","annots":["%participant"]}],"annots":["%recipients"]},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"mutez","annots":["%amount"]},{"prim":"timestamp","annots":["%refund_time"]}]},{"prim":"mutez","annots":["%payoff"]}],"annots":["%settings"]}]}]},{"prim":"unit"}]}`,
+			data: `{"prim":"Pair","args":[{"int":"4"},{"prim":"Unit"}]}`,
+			want: `[{"prim":"pair","type":"namedtuple","name":"@pair_1","children":[{"prim":"big_map","type":"big_map","name":"@big_map_2","value":4},{"prim":"unit","type":"unit","name":"@unit_13"}]}]`,
+		}, {
+			name: "atomex redeem parameters",
+			tree: `{"prim":"bytes","annots":[":secret","%redeem"]}`,
+			data: `{"bytes":"8d1c54042ee5a32d3eb5732d86e32efae058d409f32dbb4859142a1589cc4a3e"}`,
+			want: `[{"prim":"bytes","type":"bytes","name":"secret","value":"8d1c54042ee5a32d3eb5732d86e32efae058d409f32dbb4859142a1589cc4a3e"}]`,
+		}, {
+			name: "atomex initiate parameters",
+			tree: `{"prim":"pair","args":[{"prim":"address","annots":["%participant"]},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"bytes","annots":["%hashed_secret"]},{"prim":"timestamp","annots":["%refund_time"]}]},{"prim":"mutez","annots":["%payoff"]}],"annots":["%settings"]}],"annots":[":initiate","%initiate"]}`,
+			data: `{"prim":"Pair","args":[{"string":"tz1N5wUqaxLKLDMvLA1D8GJu1twPvjasMMVy"},{"prim":"Pair","args":[{"prim":"Pair","args":[{"bytes":"758af1ebc445c9561b6bf1f3de4c89c4b1b91c0ffc9d6b8325496734f09ef161"},{"int":"1612869027"}]},{"int":"0"}]}]}`,
+			want: `[{"prim":"pair","type":"namedtuple","name":"initiate","children":[{"prim":"address","type":"address","name":"participant","value":"tz1N5wUqaxLKLDMvLA1D8GJu1twPvjasMMVy"},{"prim":"pair","type":"namedtuple","name":"settings","children":[{"prim":"bytes","type":"bytes","name":"hashed_secret","value":"758af1ebc445c9561b6bf1f3de4c89c4b1b91c0ffc9d6b8325496734f09ef161"},{"prim":"timestamp","type":"timestamp","name":"refund_time","value":"2021-02-09T11:10:27Z"},{"prim":"mutez","type":"mutez","name":"payoff","value":0}]}]}]`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var tree UntypedAST
+			if err := json.UnmarshalFromString(tt.tree, &tree); err != nil {
+				t.Errorf("UnmarshalFromString tree error = %v", err)
+				return
+			}
+			typ, err := tree.ToTypedAST()
+			if err != nil {
+				t.Errorf("ToTypedAST() error = %v", err)
+				return
+			}
+			var data UntypedAST
+			if err := json.UnmarshalFromString(tt.data, &data); err != nil {
+				t.Errorf("UnmarshalFromString data error = %v", err)
+				return
+			}
+			if err := typ.Settle(data); (err != nil) != tt.wantErr {
+				t.Errorf("TypedAst.Settle() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			got, err := typ.ToMiguel()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("TypedAst.ToMiguel() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			b, err := json.Marshal(got)
+			if err != nil {
+				t.Errorf("Marshal(got) data error = %v", err)
+				return
+			}
+			assert.Equal(t, tt.want, string(b))
 		})
 	}
 }

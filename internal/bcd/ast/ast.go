@@ -66,7 +66,7 @@ func (a *TypedAst) Settle(untyped UntypedAST) error {
 		a.settled = true
 		return nil
 	}
-	return errors.Wrap(consts.ErrTreesAreDifferent, "TypedAst.MergeValue")
+	return errors.Wrap(consts.ErrTreesAreDifferent, "TypedAst.Settle")
 }
 
 // ToMiguel -
@@ -89,12 +89,12 @@ func (a *TypedAst) GetEntrypoints() []string {
 		entrypoints = append(entrypoints, a.Nodes[i].GetEntrypoints()...)
 	}
 	if len(entrypoints) == 1 && entrypoints[0] == "" {
-		entrypoints[0] = consts.DefaultEntrypoint
-	} else {
-		for i := range entrypoints {
-			if entrypoints[i] == "" {
-				entrypoints[i] = fmt.Sprintf("entrypoint_%d", i)
-			}
+		return []string{consts.DefaultEntrypoint}
+	}
+
+	for i := range entrypoints {
+		if entrypoints[i] == "" {
+			entrypoints[i] = fmt.Sprintf("entrypoint_%d", i)
 		}
 	}
 
@@ -172,9 +172,9 @@ func (a *TypedAst) ToParameters(entrypoint string) ([]byte, error) {
 
 // Docs -
 func (a *TypedAst) Docs(entrypoint string) ([]Typedef, error) {
-	if entrypoint == "" {
+	if entrypoint == DocsFull {
 		if len(a.Nodes) == 1 {
-			docs, _, err := a.Nodes[0].Docs("")
+			docs, _, err := a.Nodes[0].Docs(DocsFull)
 			return docs, err
 		}
 		return buildArrayDocs(a.Nodes)
@@ -182,7 +182,7 @@ func (a *TypedAst) Docs(entrypoint string) ([]Typedef, error) {
 
 	node := a.FindByName(entrypoint)
 	if node != nil {
-		docs, _, err := node.Docs("")
+		docs, _, err := node.Docs(DocsFull)
 		return docs, err
 	}
 	return nil, nil

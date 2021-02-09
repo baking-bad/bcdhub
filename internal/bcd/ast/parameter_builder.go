@@ -4,7 +4,7 @@ import "bytes"
 
 func buildMapItemParameters(key, value Node) ([]byte, error) {
 	var builder bytes.Buffer
-	if _, err := builder.WriteString(`{"prim": "Elt", "args":[`); err != nil {
+	if _, err := builder.WriteString(`{"prim":"Elt","args":[`); err != nil {
 		return nil, err
 	}
 

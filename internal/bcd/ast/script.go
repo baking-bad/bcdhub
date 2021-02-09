@@ -22,6 +22,10 @@ func NewScript(data []byte) (*Script, error) {
 	if err := json.Unmarshal(data, &ast); err != nil {
 		return nil, err
 	}
+
+	if len(ast) == 1 && ast[0].Prim == consts.PrimArray {
+		ast = ast[0].Args
+	}
 	var s Script
 	for i := range ast {
 		tree := UntypedAST(ast[i].Args)

@@ -29,7 +29,7 @@ func NewUnit(depth int) *Unit {
 
 // ToParameters -
 func (u *Unit) ToParameters() ([]byte, error) {
-	return []byte(`{"prim": "Unit"}`), nil
+	return []byte(`{"prim":"Unit"}`), nil
 }
 
 // Compare -

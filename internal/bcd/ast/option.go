@@ -209,7 +209,7 @@ func (opt *Option) EnrichBigMap(bmd []*base.BigMapDiff) error {
 // ToParameters -
 func (opt *Option) ToParameters() ([]byte, error) {
 	if opt.Value == nil {
-		return []byte(`{"prim": "None"}`), nil
+		return []byte(`{"prim":"None"}`), nil
 	}
 
 	var builder bytes.Buffer

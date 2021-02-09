@@ -292,7 +292,7 @@ func (or *Or) ToParameters() ([]byte, error) {
 	}
 
 	if prim != "" {
-		if _, err := builder.WriteString(fmt.Sprintf(`{"prim": "%s", "args":[`, prim)); err != nil {
+		if _, err := builder.WriteString(fmt.Sprintf(`{"prim":"%s","args":[`, prim)); err != nil {
 			return nil, err
 		}
 		b, err := node.ToParameters()

@@ -19,6 +19,7 @@ type Type interface {
 	ParseType(node *base.Node, id *int) error
 	GetPrim() string
 	GetName() string
+	GetTypeName() string
 	IsPrim(prim string) bool
 	IsNamed() bool
 	GetEntrypoints() []string
