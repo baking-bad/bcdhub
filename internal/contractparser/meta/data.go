@@ -239,6 +239,12 @@ func parseNodeMetadata(v gjson.Result, parent node.Node, path, inheritedName str
 				InternalArgs: args,
 			}
 		}
+	case n.Is(consts.SAPLINGSTATE) || n.Is(consts.SAPLINGTRANSACTION):
+		if len(arr) == 1 {
+			return internalNode{
+				Node: &n,
+			}
+		}
 	default:
 		for i := range arr {
 			argPath := fmt.Sprintf("%s/%d", path, i)

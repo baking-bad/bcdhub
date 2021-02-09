@@ -139,7 +139,7 @@ func (b defaultParameterBuilder) Build(node *NodeMetadata, path string, data map
 	switch node.Prim {
 	case consts.STRING, consts.KEYHASH, consts.KEY, consts.ADDRESS, consts.CHAINID, consts.SIGNATURE, consts.CONTRACT:
 		return fmt.Sprintf(`{"string": %s}`, strconv.Quote(value.(string))), nil
-	case consts.BYTES:
+	case consts.BYTES, consts.SAPLINGTRANSACTION:
 		return fmt.Sprintf(`{"bytes": "%s"}`, strings.TrimPrefix(value.(string), "0x")), nil
 	case consts.INT, consts.NAT, consts.MUTEZ:
 		switch t := value.(type) {
