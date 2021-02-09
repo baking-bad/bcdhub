@@ -32,8 +32,14 @@ func (l *literalDecoder) Decode(jsonData gjson.Result, path string, nm *meta.Nod
 		return &node, nil
 	}
 	switch nm.Type {
-	case consts.MUTEZ, consts.NAT, consts.STRING, consts.INT, consts.SAPLINGSTATE:
+	case consts.MUTEZ, consts.NAT, consts.STRING, consts.INT:
 		data, err := l.simple.Decode(jsonData, path, nm, metadata, false)
+		if err != nil {
+			return nil, err
+		}
+		node.Value = data
+	case consts.SAPLINGSTATE:
+		data, err := l.simple.Decode(jsonData, path+".args.0", nm, metadata, false)
 		if err != nil {
 			return nil, err
 		}
