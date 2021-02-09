@@ -186,9 +186,9 @@ type MQConfig struct {
 
 // QueueParams -
 type QueueParams struct {
-	NonDurable  bool  `yaml:"non_durable"`
-	AutoDeleted bool  `yaml:"auto_deleted"`
-	TTLSeconds  *uint `yaml:"ttl_seconds"`
+	NonDurable  bool `yaml:"non_durable"`
+	AutoDeleted bool `yaml:"auto_deleted"`
+	TTLSeconds  uint `yaml:"ttl_seconds"`
 }
 
 // TezosDomainsConfig -
