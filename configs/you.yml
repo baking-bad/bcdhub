@@ -92,9 +92,11 @@ api:
       operations:
         non_durable: true
         auto_deleted: true
+        ttl_seconds: 10
       blocks:
         non_durable: true
         auto_deleted: true
+        ttl_seconds: 10
   pinata:
     key: ${PINATA_KEY}
     secret_key: ${PINATA_SECRET_KEY}
@@ -123,7 +125,7 @@ indexer:
     mainnet:
       boost: tzkt
     delphinet:
-      boost: tzkt      
+      boost: tzkt
     edonet:
       boost: tzkt
 
