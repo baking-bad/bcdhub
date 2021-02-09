@@ -3,6 +3,7 @@ package base
 import (
 	"regexp"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/pkg/errors"
 )
 
@@ -190,7 +191,7 @@ var regCodes = map[string]string{
 
 func getHashCode(prim string) (string, error) {
 	if prim == "" {
-		return "", ErrEmptyPrim
+		return "", consts.ErrEmptyPrim
 	}
 	code, ok := codes[prim]
 	if ok {
@@ -205,5 +206,5 @@ func getHashCode(prim string) (string, error) {
 			return code, nil
 		}
 	}
-	return "", errors.Wrap(ErrUnknownPrim, prim)
+	return "", errors.Wrap(consts.ErrUnknownPrim, prim)
 }

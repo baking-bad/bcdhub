@@ -27,7 +27,7 @@ func NewOption(depth int) *Option {
 func (opt *Option) String() string {
 	var s strings.Builder
 	s.WriteString(opt.Default.String())
-	s.WriteString(strings.Repeat(base.DefaultIndent, opt.depth))
+	s.WriteString(strings.Repeat(consts.DefaultIndent, opt.depth))
 	s.WriteString(opt.Child.String())
 	return s.String()
 }
@@ -55,7 +55,7 @@ func (opt *Option) ParseType(node *base.Node, id *int) error {
 // ParseValue -
 func (opt *Option) ParseValue(node *base.Node) error {
 	if len(node.Args) > opt.argsCount {
-		return errors.Wrap(base.ErrTreesAreDifferent, "Option.ParseValue")
+		return errors.Wrap(consts.ErrTreesAreDifferent, "Option.ParseValue")
 	}
 
 	switch node.Prim {
@@ -63,10 +63,11 @@ func (opt *Option) ParseValue(node *base.Node) error {
 		opt.Value = nil
 		return nil
 	case consts.Some:
+		opt.Value = consts.Some
 		err := opt.Child.ParseValue(node.Args[0])
 		return err
 	default:
-		return base.ErrInvalidPrim
+		return consts.ErrInvalidPrim
 	}
 
 }
@@ -81,12 +82,7 @@ func (opt *Option) ToMiguel() (*MiguelNode, error) {
 		ast = opt.Child
 	}
 
-	node, err := ast.ToMiguel()
-	if err != nil {
-		return nil, err
-	}
-	node.IsOption = true
-	return node, nil
+	return ast.ToMiguel()
 }
 
 // ToBaseNode -
@@ -164,7 +160,7 @@ func (opt *Option) FromJSONSchema(data map[string]interface{}) error {
 			val := data[key]
 			arrVal, ok := val.(map[string]interface{})
 			if !ok {
-				return errors.Wrapf(base.ErrInvalidType, "Option.FromJSONSchema %T", val)
+				return errors.Wrapf(consts.ErrInvalidType, "Option.FromJSONSchema %T", val)
 			}
 			optionMap = arrVal
 			break
@@ -172,7 +168,7 @@ func (opt *Option) FromJSONSchema(data map[string]interface{}) error {
 	}
 	schemaKey, ok := optionMap["schemaKey"]
 	if !ok {
-		return errors.Wrap(base.ErrJSONDataIsAbsent, "Option.FromJSONSchema")
+		return errors.Wrap(consts.ErrJSONDataIsAbsent, "Option.FromJSONSchema")
 	}
 	delete(optionMap, "schemaKey")
 
@@ -194,10 +190,10 @@ func (opt *Option) FromJSONSchema(data map[string]interface{}) error {
 		if ok {
 			opt.Value = val
 		} else {
-			return errors.Wrap(base.ErrJSONDataIsAbsent, "Option.FromJSONSchema")
+			return errors.Wrap(consts.ErrJSONDataIsAbsent, "Option.FromJSONSchema")
 		}
 	default:
-		return errors.Wrap(base.ErrJSONDataIsAbsent, "Option.FromJSONSchema")
+		return errors.Wrap(consts.ErrJSONDataIsAbsent, "Option.FromJSONSchema")
 	}
 	return nil
 }
@@ -256,4 +252,56 @@ func (opt *Option) Docs(inferredName string) ([]Typedef, string, error) {
 		return nil, optName, nil
 	}
 	return docs, optName, nil
+}
+
+// Compare -
+func (opt *Option) Compare(second Comparable) (bool, error) {
+	secondItem, ok := second.(*Option)
+	if !ok {
+		return false, nil
+	}
+	switch {
+	case opt.Value == nil && secondItem.Value == nil:
+		return true, nil
+	case opt.Value != secondItem.Value:
+		return false, nil
+	default:
+		return opt.Child.Compare(secondItem.Child)
+	}
+}
+
+// Distinguish -
+func (opt *Option) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*Option)
+	if !ok {
+		return nil, nil
+	}
+
+	switch {
+	case opt.Value == nil && second.Value == nil:
+		return opt.ToMiguel()
+	case opt.Value == nil && second.Value != nil:
+		node, err := second.ToMiguel()
+		if err != nil {
+			return nil, err
+		}
+		node.DiffType = MiguelKindCreate
+		return node, nil
+	case opt.Value != nil && second.Value == nil:
+		node, err := opt.ToMiguel()
+		if err != nil {
+			return nil, err
+		}
+		node.DiffType = MiguelKindDelete
+		return node, nil
+	case opt.Value != nil && second.Value != nil:
+		child, err := opt.Distinguish(second.Child)
+		if err != nil {
+			return nil, err
+		}
+		child.DiffType = MiguelKindUpdate
+		return child, err
+	}
+
+	return nil, nil
 }

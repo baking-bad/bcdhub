@@ -9,8 +9,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-//  TODO: pack/unpack
-
 // Pair -
 type Pair struct {
 	Default
@@ -29,7 +27,7 @@ func (p *Pair) String() string {
 	var s strings.Builder
 	s.WriteString(p.Default.String())
 	for i := range p.Args {
-		s.WriteString(strings.Repeat(base.DefaultIndent, p.depth))
+		s.WriteString(strings.Repeat(consts.DefaultIndent, p.depth))
 		s.WriteString(p.Args[i].String())
 	}
 	return s.String()
@@ -97,16 +95,17 @@ func (p *Pair) ParseValue(node *base.Node) error {
 		}
 		return p.Args[1].ParseValue(newUntyped)
 	default:
-		return errors.Wrap(base.ErrInvalidArgsCount, "Pair.ParseValue")
+		return errors.Wrap(consts.ErrInvalidArgsCount, "Pair.ParseValue")
 	}
 }
 
 // ToMiguel -
 func (p *Pair) ToMiguel() (*MiguelNode, error) {
+	name := p.GetName()
 	node := &MiguelNode{
 		Prim:     p.Prim,
 		Type:     consts.TypeNamedTuple,
-		Name:     p.GetName(),
+		Name:     &name,
 		Children: make([]*MiguelNode, 0),
 	}
 
@@ -272,4 +271,58 @@ func (p *Pair) Docs(inferredName string) ([]Typedef, string, error) {
 	result = append([]Typedef{typedef}, result...)
 
 	return result, makeVarDocString(typedef.Name), nil
+}
+
+// Compare -
+func (p *Pair) Compare(second Comparable) (bool, error) {
+	secondItem, ok := second.(*Pair)
+	if !ok {
+		return false, nil
+	}
+	if len(secondItem.Args) != len(p.Args) {
+		return false, nil
+	}
+
+	for i := range p.Args {
+		ok, err := p.Args[i].Compare(secondItem.Args[i])
+		if err != nil {
+			if errors.Is(err, consts.ErrTypeIsNotComparable) {
+				return false, nil
+			}
+			return false, err
+		}
+		if !ok {
+			return false, nil
+		}
+	}
+
+	return true, nil
+}
+
+// Distinguish -
+func (p *Pair) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*Pair)
+	if !ok {
+		return nil, nil
+	}
+
+	node, err := p.Default.ToMiguel()
+	if err != nil {
+		return nil, err
+	}
+	node.Children = make([]*MiguelNode, 0)
+
+	for i := range p.Args {
+		child, err := p.Args[i].Distinguish(second.Args[i])
+		if err != nil {
+			return nil, err
+		}
+		if child.Prim == consts.PAIR && !p.IsNamed() {
+			node.Children = append(node.Children, child.Children...)
+		} else {
+			node.Children = append(node.Children, child)
+		}
+	}
+
+	return node, nil
 }

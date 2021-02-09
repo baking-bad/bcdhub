@@ -66,7 +66,7 @@ func (a *TypedAst) Settle(untyped UntypedAST) error {
 		a.settled = true
 		return nil
 	}
-	return errors.Wrap(base.ErrTreesAreDifferent, "TypedAst.MergeValue")
+	return errors.Wrap(consts.ErrTreesAreDifferent, "TypedAst.MergeValue")
 }
 
 // ToMiguel -
@@ -223,6 +223,26 @@ func (a *TypedAst) GetEntrypointsDocs() ([]EntrypointType, error) {
 		Type: docs,
 	}
 	return []EntrypointType{entrypoint}, nil
+}
+
+// Compare -
+func (a *TypedAst) Compare(b *TypedAst) (bool, error) {
+	if len(a.Nodes) != len(b.Nodes) {
+		return false, nil
+	}
+	for i := range a.Nodes {
+		ok, err := a.Nodes[i].Compare(b.Nodes[i])
+		if err != nil {
+			if errors.Is(err, consts.ErrTypeIsNotComparable) {
+				return false, nil
+			}
+			return false, err
+		}
+		if !ok {
+			return false, nil
+		}
+	}
+	return true, nil
 }
 
 func createByType(typ Node) (Node, error) {

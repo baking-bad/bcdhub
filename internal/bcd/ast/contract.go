@@ -36,7 +36,7 @@ func (c *Contract) String() string {
 	var s strings.Builder
 
 	s.WriteString(c.Default.String())
-	s.WriteString(strings.Repeat(base.DefaultIndent, c.depth))
+	s.WriteString(strings.Repeat(consts.DefaultIndent, c.depth))
 	s.WriteString(c.Type.String())
 
 	return s.String()

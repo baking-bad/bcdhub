@@ -32,6 +32,12 @@ func (u *Unit) ToParameters() ([]byte, error) {
 	return []byte(`{"prim": "Unit"}`), nil
 }
 
+// Compare -
+func (u *Unit) Compare(second Comparable) (bool, error) {
+	_, ok := second.(*Unit)
+	return ok, nil
+}
+
 //
 //  STRING
 //
@@ -51,6 +57,15 @@ func NewString(depth int) *String {
 // ToJSONSchema -
 func (s *String) ToJSONSchema() (*JSONSchema, error) {
 	return getStringJSONSchema(s.Default), nil
+}
+
+// Compare -
+func (s *String) Compare(second Comparable) (bool, error) {
+	secondItem, ok := second.(*String)
+	if !ok {
+		return false, nil
+	}
+	return s.Value == secondItem.Value, nil
 }
 
 //
@@ -74,6 +89,15 @@ func (i *Int) ToJSONSchema() (*JSONSchema, error) {
 	return getIntJSONSchema(i.Default), nil
 }
 
+// Compare -
+func (i *Int) Compare(second Comparable) (bool, error) {
+	secondItem, ok := second.(*Int)
+	if !ok {
+		return false, nil
+	}
+	return compareBigInt(i.Default, secondItem.Default), nil
+}
+
 //
 //  NAT
 //
@@ -95,6 +119,15 @@ func (n *Nat) ToJSONSchema() (*JSONSchema, error) {
 	return getIntJSONSchema(n.Default), nil
 }
 
+// Compare -
+func (n *Nat) Compare(second Comparable) (bool, error) {
+	secondItem, ok := second.(*Nat)
+	if !ok {
+		return false, nil
+	}
+	return compareBigInt(n.Default, secondItem.Default), nil
+}
+
 //
 //  MUTEZ
 //
@@ -114,6 +147,15 @@ func NewMutez(depth int) *Mutez {
 // ToJSONSchema -
 func (m *Mutez) ToJSONSchema() (*JSONSchema, error) {
 	return getIntJSONSchema(m.Default), nil
+}
+
+// Compare -
+func (m *Mutez) Compare(second Comparable) (bool, error) {
+	secondItem, ok := second.(*Mutez)
+	if !ok {
+		return false, nil
+	}
+	return compareBigInt(m.Default, secondItem.Default), nil
 }
 
 //
@@ -140,7 +182,7 @@ func (b *Bool) ParseValue(node *base.Node) error {
 	case consts.True:
 		b.Value = true
 	default:
-		return base.ErrInvalidPrim
+		return consts.ErrInvalidPrim
 	}
 	return nil
 }
@@ -162,6 +204,15 @@ func (b *Bool) ToJSONSchema() (*JSONSchema, error) {
 		Default: false,
 		Title:   b.GetName(),
 	}), nil
+}
+
+// Compare -
+func (b *Bool) Compare(second Comparable) (bool, error) {
+	secondItem, ok := second.(*Bool)
+	if !ok {
+		return false, nil
+	}
+	return b.Value == secondItem.Value, nil
 }
 
 //
@@ -227,6 +278,17 @@ func (t *Timestamp) ToJSONSchema() (*JSONSchema, error) {
 	}), nil
 }
 
+// Compare -
+func (t *Timestamp) Compare(second Comparable) (bool, error) {
+	secondItem, ok := second.(*Timestamp)
+	if !ok {
+		return false, nil
+	}
+	ts := t.Value.(time.Time)
+	ts2 := secondItem.Value.(time.Time)
+	return ts.Equal(ts2), nil
+}
+
 //
 //  BYTES
 //
@@ -248,6 +310,15 @@ func (b *Bytes) ToJSONSchema() (*JSONSchema, error) {
 	return getStringJSONSchema(b.Default), nil
 }
 
+// Compare -
+func (b *Bytes) Compare(second Comparable) (bool, error) {
+	secondAddress, ok := second.(*Bool)
+	if !ok {
+		return false, nil
+	}
+	return b.Value == secondAddress.Value, nil
+}
+
 //
 //  NEVER
 //
@@ -262,6 +333,12 @@ func NewNever(depth int) *Never {
 	return &Never{
 		Default: NewDefault(consts.NEVER, 0, depth),
 	}
+}
+
+// Compare -
+func (n *Never) Compare(second Comparable) (bool, error) {
+	_, ok := second.(*Never)
+	return ok, nil
 }
 
 //
@@ -314,6 +391,22 @@ func (c *ChainID) ToJSONSchema() (*JSONSchema, error) {
 	return getStringJSONSchema(c.Default), nil
 }
 
+// Compare -
+func (c *ChainID) Compare(second Comparable) (bool, error) {
+	secondItem, ok := second.(*ChainID)
+	if !ok {
+		return false, nil
+	}
+	if c.Value == secondItem.Value {
+		return true, nil
+	}
+	if c.valueType == secondItem.valueType {
+		return false, nil
+	}
+
+	return compareNotOptimizedTypes(c.Default, secondItem.Default, encoding.DecodeBase58ToString)
+}
+
 //
 //  Address
 //
@@ -351,6 +444,21 @@ func (a *Address) ToJSONSchema() (*JSONSchema, error) {
 	return getAddressJSONSchema(a.Default), nil
 }
 
+// Compare -
+func (a *Address) Compare(second Comparable) (bool, error) {
+	secondAddress, ok := second.(*Address)
+	if !ok {
+		return false, nil
+	}
+	if a.Value == secondAddress.Value {
+		return true, nil
+	}
+	if a.valueType == secondAddress.valueType {
+		return false, nil
+	}
+	return compareNotOptimizedTypes(a.Default, secondAddress.Default, getOptimizedContract)
+}
+
 //
 //  Key
 //
@@ -384,6 +492,15 @@ func (k *Key) ToBaseNode(optimized bool) (*base.Node, error) {
 // ToJSONSchema -
 func (k *Key) ToJSONSchema() (*JSONSchema, error) {
 	return getStringJSONSchema(k.Default), nil
+}
+
+// Compare -
+func (k *Key) Compare(second Comparable) (bool, error) {
+	secondItem, ok := second.(*Key)
+	if !ok {
+		return false, nil
+	}
+	return k.Value == secondItem.Value, nil
 }
 
 //
@@ -421,6 +538,15 @@ func (k *KeyHash) ToJSONSchema() (*JSONSchema, error) {
 	return getStringJSONSchema(k.Default), nil
 }
 
+// Compare -
+func (k *KeyHash) Compare(second Comparable) (bool, error) {
+	secondItem, ok := second.(*KeyHash)
+	if !ok {
+		return false, nil
+	}
+	return k.Value == secondItem.Value, nil
+}
+
 //
 //  Signature
 //
@@ -453,6 +579,15 @@ func (s *Signature) ToBaseNode(optimized bool) (*base.Node, error) {
 // ToJSONSchema -
 func (s *Signature) ToJSONSchema() (*JSONSchema, error) {
 	return getStringJSONSchema(s.Default), nil
+}
+
+// Compare -
+func (s *Signature) Compare(second Comparable) (bool, error) {
+	secondItem, ok := second.(*Signature)
+	if !ok {
+		return false, nil
+	}
+	return s.Value == secondItem.Value, nil
 }
 
 //
@@ -516,4 +651,27 @@ func NewBLS12381g2(depth int) *BLS12381g2 {
 // ToJSONSchema -
 func (b *BLS12381g2) ToJSONSchema() (*JSONSchema, error) {
 	return getStringJSONSchema(b.Default), nil
+}
+
+func compareNotOptimizedTypes(x, y Default, optimizer func(string) (string, error)) (bool, error) {
+	var a Default
+	var b Default
+	if x.valueType == valueTypeBytes {
+		a = y
+		b = x
+	} else {
+		a = x
+		b = y
+	}
+	value, err := optimizer(a.Value.(string))
+	if err != nil {
+		return false, err
+	}
+	return value == b.Value.(string), nil
+}
+
+func compareBigInt(x, y Default) bool {
+	xi := x.Value.(*base.BigInt)
+	yi := y.Value.(*base.BigInt)
+	return xi.Cmp(yi.Int) == 0
 }

@@ -50,7 +50,6 @@ func getOptimizedAddress(val string, tzOnly bool) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	address = address[3:]
 	switch prefix {
 	case "tz1":
 		address = append([]byte{0, 0}, address...)

@@ -40,7 +40,6 @@ func (u UntypedAST) Hash() (string, error) {
 		}
 		s.WriteString(h)
 	}
-
 	return s.String(), nil
 }
 
@@ -58,7 +57,7 @@ func (u UntypedAST) Annotations() []string {
 // UnmarshalJSON -
 func (u *UntypedAST) UnmarshalJSON(data []byte) error {
 	if len(data) == 0 {
-		return base.ErrInvalidJSON
+		return consts.ErrInvalidJSON
 	}
 	if data[0] == '[' {
 		type buf UntypedAST
@@ -71,7 +70,7 @@ func (u *UntypedAST) UnmarshalJSON(data []byte) error {
 		*u = append(*u, &node)
 		return nil
 	}
-	return base.ErrInvalidJSON
+	return consts.ErrInvalidJSON
 }
 
 // ToTypedAST -
@@ -158,7 +157,7 @@ func typingNode(node *base.Node, depth int, id *int) (Node, error) {
 	case consts.BLS12381G2:
 		ast = NewBLS12381g2(depth + 1)
 	default:
-		return nil, errors.Wrap(base.ErrUnknownPrim, node.Prim)
+		return nil, errors.Wrap(consts.ErrUnknownPrim, node.Prim)
 	}
 
 	return ast, ast.ParseType(node, id)

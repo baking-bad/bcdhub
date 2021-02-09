@@ -37,25 +37,25 @@ func (m *BigMap) String() string {
 	s.WriteString(m.Default.String())
 	switch {
 	case m.Ptr != nil:
-		s.WriteString(strings.Repeat(base.DefaultIndent, m.depth))
+		s.WriteString(strings.Repeat(consts.DefaultIndent, m.depth))
 		s.WriteString(fmt.Sprintf("Ptr=%d\n", *m.Ptr))
 	case len(m.Data) > 0:
 		for key, val := range m.Data {
-			s.WriteString(strings.Repeat(base.DefaultIndent, m.depth))
+			s.WriteString(strings.Repeat(consts.DefaultIndent, m.depth))
 			s.WriteByte('{')
 			s.WriteByte('\n')
-			s.WriteString(strings.Repeat(base.DefaultIndent, m.depth+1))
+			s.WriteString(strings.Repeat(consts.DefaultIndent, m.depth+1))
 			s.WriteString(key.String())
-			s.WriteString(strings.Repeat(base.DefaultIndent, m.depth+1))
+			s.WriteString(strings.Repeat(consts.DefaultIndent, m.depth+1))
 			s.WriteString(val.String())
-			s.WriteString(strings.Repeat(base.DefaultIndent, m.depth))
+			s.WriteString(strings.Repeat(consts.DefaultIndent, m.depth))
 			s.WriteByte('}')
 			s.WriteByte('\n')
 		}
 	default:
-		s.WriteString(strings.Repeat(base.DefaultIndent, m.depth))
+		s.WriteString(strings.Repeat(consts.DefaultIndent, m.depth))
 		s.WriteString(m.KeyType.String())
-		s.WriteString(strings.Repeat(base.DefaultIndent, m.depth))
+		s.WriteString(strings.Repeat(consts.DefaultIndent, m.depth))
 		s.WriteString(m.ValueType.String())
 	}
 
@@ -94,14 +94,14 @@ func (m *BigMap) ParseValue(node *base.Node) error {
 	case node.IntValue != nil:
 		ptr := node.IntValue.Int64()
 		m.Ptr = &ptr
-	case node.Prim == base.PrimArray:
+	case node.Prim == consts.PrimArray:
 		data, err := createMapFromElts(node.Args, m.KeyType, m.ValueType)
 		if err != nil {
 			return err
 		}
 		m.Data = data
 	default:
-		return errors.Wrap(base.ErrInvalidPrim, fmt.Sprintf("BigMap.ParseValue (%s)", node.Prim))
+		return errors.Wrap(consts.ErrInvalidPrim, fmt.Sprintf("BigMap.ParseValue (%s)", node.Prim))
 	}
 	return nil
 }
@@ -134,7 +134,7 @@ func (m *BigMap) ToMiguel() (*MiguelNode, error) {
 				if err != nil {
 					return nil, err
 				}
-				child.Name = name
+				child.Name = &name
 				node.Children = append(node.Children, child)
 			}
 		}
@@ -211,7 +211,7 @@ func (m *BigMap) FindByName(name string) Node {
 }
 
 func (m *BigMap) makeNodeFromBytes(typ Node, data []byte) (Node, error) {
-	value, err := createByType(m.ValueType)
+	value, err := createByType(typ)
 	if err != nil {
 		return nil, err
 	}
@@ -254,4 +254,50 @@ func (m *BigMap) Docs(inferredName string) ([]Typedef, string, error) {
 	result = append(result, valDocs...)
 
 	return result, typedef.Type, nil
+}
+
+// Distinguish -
+func (m *BigMap) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*BigMap)
+	if !ok {
+		return nil, nil
+	}
+	name := m.GetName()
+	node := new(MiguelNode)
+	node.Prim = m.Prim
+	node.Type = m.Prim
+	node.Name = &name
+	node.Children = make([]*MiguelNode, 0)
+
+	for key, value := range m.Data {
+		val, ok := getFromMapByKey(key, second.Data)
+		if !ok {
+			child, err := value.ToMiguel()
+			if err != nil {
+				return nil, err
+			}
+			child.DiffType = MiguelKindDelete
+			node.Children = append(node.Children, child)
+			continue
+		}
+
+		child, err := value.Distinguish(val)
+		if err != nil {
+			return nil, err
+		}
+		node.Children = append(node.Children, child)
+	}
+
+	for key, value := range second.Data {
+		if _, ok := getFromMapByKey(key, m.Data); !ok {
+			child, err := value.ToMiguel()
+			if err != nil {
+				return nil, err
+			}
+			child.DiffType = MiguelKindCreate
+			node.Children = append(node.Children, child)
+		}
+	}
+
+	return node, nil
 }

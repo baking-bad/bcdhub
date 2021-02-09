@@ -44,7 +44,7 @@ func (st *SaplingTransaction) String() string {
 	var s strings.Builder
 	s.WriteString(fmt.Sprintf("[%d] %s memo_size=%d\n", st.id, st.Prim, st.MemoSize))
 	if st.Type.Value != nil {
-		s.WriteString(strings.Repeat(base.DefaultIndent, st.depth))
+		s.WriteString(strings.Repeat(consts.DefaultIndent, st.depth))
 		s.WriteString(fmt.Sprintf("Int=%d", st.Type.Value))
 	}
 	return s.String()

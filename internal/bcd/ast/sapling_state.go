@@ -44,7 +44,7 @@ func (ss *SaplingState) String() string {
 	var s strings.Builder
 	s.WriteString(fmt.Sprintf("[%d] %s memo_size=%d\n", ss.id, ss.Prim, ss.MemoSize))
 	if ss.Type.Value != nil {
-		s.WriteString(strings.Repeat(base.DefaultIndent, ss.depth))
+		s.WriteString(strings.Repeat(consts.DefaultIndent, ss.depth))
 		s.WriteString(fmt.Sprintf("Int=%d", ss.Type.Value))
 	}
 	return s.String()

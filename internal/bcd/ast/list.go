@@ -37,17 +37,17 @@ func (list *List) String() string {
 	s.WriteString(list.Default.String())
 	if len(list.Data) > 0 {
 		for i := range list.Data {
-			s.WriteString(strings.Repeat(base.DefaultIndent, list.depth))
+			s.WriteString(strings.Repeat(consts.DefaultIndent, list.depth))
 			s.WriteByte('{')
 			s.WriteByte('\n')
-			s.WriteString(strings.Repeat(base.DefaultIndent, list.depth+1))
+			s.WriteString(strings.Repeat(consts.DefaultIndent, list.depth+1))
 			s.WriteString(list.Data[i].String())
-			s.WriteString(strings.Repeat(base.DefaultIndent, list.depth))
+			s.WriteString(strings.Repeat(consts.DefaultIndent, list.depth))
 			s.WriteByte('}')
 			s.WriteByte('\n')
 		}
 	} else {
-		s.WriteString(strings.Repeat(base.DefaultIndent, list.depth))
+		s.WriteString(strings.Repeat(consts.DefaultIndent, list.depth))
 		s.WriteString(list.Type.String())
 	}
 	return s.String()
@@ -70,8 +70,8 @@ func (list *List) ParseType(node *base.Node, id *int) error {
 
 // ParseValue -
 func (list *List) ParseValue(node *base.Node) error {
-	if node.Prim != base.PrimArray {
-		return errors.Wrap(base.ErrInvalidPrim, "List.ParseValue")
+	if node.Prim != consts.PrimArray {
+		return errors.Wrap(consts.ErrInvalidPrim, "List.ParseValue")
 	}
 
 	list.Data = make([]Node, 0)
@@ -143,20 +143,20 @@ func (list *List) FromJSONSchema(data map[string]interface{}) error {
 			val := data[key]
 			arrVal, ok := val.([]interface{})
 			if !ok {
-				return errors.Wrapf(base.ErrInvalidType, "List.FromJSONSchema %T", val)
+				return errors.Wrapf(consts.ErrInvalidType, "List.FromJSONSchema %T", val)
 			}
 			arr = arrVal
 			break
 		}
 	}
 	if arr == nil {
-		return errors.Wrap(base.ErrJSONDataIsAbsent, "List.FromJSONSchema")
+		return errors.Wrap(consts.ErrJSONDataIsAbsent, "List.FromJSONSchema")
 	}
 
 	for i := range arr {
 		item, ok := arr[i].(map[string]interface{})
 		if !ok {
-			return errors.Wrap(base.ErrValidation, "List.FromJSONSchema")
+			return errors.Wrap(consts.ErrValidation, "List.FromJSONSchema")
 		}
 		itemTree, err := createByType(list.Type)
 		if err != nil {
@@ -220,4 +220,144 @@ func (list *List) Docs(inferredName string) ([]Typedef, string, error) {
 		return result, typedef.Type, nil
 	}
 	return []Typedef{typedef}, typedef.Type, nil
+}
+
+// Distinguish -
+func (list *List) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*List)
+	if !ok {
+		return nil, nil
+	}
+	name := list.GetName()
+	node := new(MiguelNode)
+	node.Prim = list.Prim
+	node.Type = list.Prim
+	node.Name = &name
+
+	d := getMatrix(list.Data, second.Data)
+	children, err := mergeMatrix(d, len(list.Data), len(second.Data), list.Data, second.Data)
+	if err != nil {
+		return nil, err
+	}
+
+	node.Children = children
+
+	return node, nil
+}
+
+func mergeMatrix(d [][]int, i, j int, first, second []Node) ([]*MiguelNode, error) {
+	children := make([]*MiguelNode, 0)
+	var err error
+	if i == 0 && j == 0 {
+		return children, nil
+	}
+	if i == 0 {
+		for idx := 0; idx < j; idx++ {
+			item, err := second[idx].ToMiguel()
+			if err != nil {
+				return nil, err
+			}
+			item.DiffType = MiguelKindDelete
+			children = append(children, item)
+		}
+		return children, nil
+	}
+	if j == 0 {
+		for idx := 0; idx < i; idx++ {
+			item, err := second[idx].ToMiguel()
+			if err != nil {
+				return nil, err
+			}
+			item.DiffType = MiguelKindCreate
+			children = append(children, item)
+		}
+		return children, nil
+	}
+	left := d[i][j-1]
+	up := d[i-1][j]
+	upleft := d[i-1][j-1]
+
+	if upleft <= up && upleft <= left {
+		if upleft == d[i][j] {
+			children, err = mergeMatrix(d, i-1, j-1, first, second)
+			if err != nil {
+				return nil, err
+			}
+			item, err := first[i-1].ToMiguel()
+			if err != nil {
+				return nil, err
+			}
+			children = append(children, item)
+		} else {
+			children, err = mergeMatrix(d, i-1, j-1, first, second)
+			if err != nil {
+				return nil, err
+			}
+			item, err := first[i-1].ToMiguel()
+			if err != nil {
+				return nil, err
+			}
+			item.DiffType = MiguelKindUpdate
+			item.From = second[j-1].GetValue()
+			children = append(children, item)
+		}
+	} else {
+		if left <= upleft && left <= up {
+			children, err = mergeMatrix(d, i, j-1, first, second)
+			if err != nil {
+				return nil, err
+			}
+			item, err := second[j-1].ToMiguel()
+			if err != nil {
+				return nil, err
+			}
+			item.DiffType = MiguelKindDelete
+			children = append(children, item)
+		} else {
+			children, err = mergeMatrix(d, i-1, j, first, second)
+			if err != nil {
+				return nil, err
+			}
+			item, err := first[i-1].ToMiguel()
+			if err != nil {
+				return nil, err
+			}
+			item.DiffType = MiguelKindCreate
+			children = append(children, item)
+		}
+	}
+	return children, nil
+}
+
+func getMatrix(first, second []Node) [][]int {
+	n := len(second)
+	m := len(first)
+
+	d := make([][]int, m+1)
+	for i := 0; i < m+1; i++ {
+		d[i] = make([]int, n+1)
+		d[i][0] = i
+	}
+	for j := range d[0] {
+		d[0][j] = j
+	}
+
+	for j := 1; j < n+1; j++ {
+		for i := 1; i < m+1; i++ {
+			cost := 0
+			if !first[i-1].Equal(second[j-1]) {
+				cost = 1
+			}
+
+			d[i][j] = min(min(d[i-1][j]+1, d[i][j-1]+1), d[i-1][j-1]+cost)
+		}
+	}
+	return d
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }

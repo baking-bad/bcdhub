@@ -32,21 +32,21 @@ func (m *Map) String() string {
 	s.WriteString(m.Default.String())
 	if len(m.Data) > 0 {
 		for key, val := range m.Data {
-			s.WriteString(strings.Repeat(base.DefaultIndent, m.depth))
+			s.WriteString(strings.Repeat(consts.DefaultIndent, m.depth))
 			s.WriteByte('{')
 			s.WriteByte('\n')
-			s.WriteString(strings.Repeat(base.DefaultIndent, m.depth+1))
+			s.WriteString(strings.Repeat(consts.DefaultIndent, m.depth+1))
 			s.WriteString(key.String())
-			s.WriteString(strings.Repeat(base.DefaultIndent, m.depth+1))
+			s.WriteString(strings.Repeat(consts.DefaultIndent, m.depth+1))
 			s.WriteString(val.String())
-			s.WriteString(strings.Repeat(base.DefaultIndent, m.depth))
+			s.WriteString(strings.Repeat(consts.DefaultIndent, m.depth))
 			s.WriteByte('}')
 			s.WriteByte('\n')
 		}
 	} else {
-		s.WriteString(strings.Repeat(base.DefaultIndent, m.depth))
+		s.WriteString(strings.Repeat(consts.DefaultIndent, m.depth))
 		s.WriteString(m.KeyType.String())
-		s.WriteString(strings.Repeat(base.DefaultIndent, m.depth))
+		s.WriteString(strings.Repeat(consts.DefaultIndent, m.depth))
 		s.WriteString(m.ValueType.String())
 	}
 
@@ -81,8 +81,8 @@ func (m *Map) ParseType(node *base.Node, id *int) error {
 
 // ParseValue -
 func (m *Map) ParseValue(node *base.Node) error {
-	if node.Prim != base.PrimArray {
-		return errors.Wrap(base.ErrInvalidPrim, "Map.ParseValue")
+	if node.Prim != consts.PrimArray {
+		return errors.Wrap(consts.ErrInvalidPrim, "Map.ParseValue")
 	}
 
 	data, err := createMapFromElts(node.Args, m.KeyType, m.ValueType)
@@ -117,7 +117,7 @@ func (m *Map) ToMiguel() (*MiguelNode, error) {
 			if err != nil {
 				return nil, err
 			}
-			child.Name = name
+			child.Name = &name
 			node.Children = append(node.Children, child)
 		}
 	}
@@ -162,20 +162,20 @@ func (m *Map) FromJSONSchema(data map[string]interface{}) error {
 			val := data[key]
 			arrVal, ok := val.([]interface{})
 			if !ok {
-				return errors.Wrapf(base.ErrInvalidType, "Map.FromJSONSchema %T", val)
+				return errors.Wrapf(consts.ErrInvalidType, "Map.FromJSONSchema %T", val)
 			}
 			arr = arrVal
 			break
 		}
 	}
 	if arr == nil {
-		return errors.Wrap(base.ErrJSONDataIsAbsent, "Map.FromJSONSchema")
+		return errors.Wrap(consts.ErrJSONDataIsAbsent, "Map.FromJSONSchema")
 	}
 
 	for i := range arr {
 		item, ok := arr[i].(map[string]interface{})
 		if !ok {
-			return errors.Wrap(base.ErrValidation, "Map.FromJSONSchema")
+			return errors.Wrap(consts.ErrValidation, "Map.FromJSONSchema")
 		}
 		keyTree, err := createByType(m.KeyType)
 		if err != nil {
@@ -260,16 +260,76 @@ func (m *Map) Docs(inferredName string) ([]Typedef, string, error) {
 	return result, typedef.Type, nil
 }
 
+// Distinguish -
+func (m *Map) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*Map)
+	if !ok {
+		return nil, nil
+	}
+	name := m.GetName()
+	node := new(MiguelNode)
+	node.Prim = m.Prim
+	node.Type = m.Prim
+	node.Name = &name
+	node.Children = make([]*MiguelNode, 0)
+
+	for key, value := range m.Data {
+		val, ok := getFromMapByKey(key, second.Data)
+		if !ok {
+			child, err := value.ToMiguel()
+			if err != nil {
+				return nil, err
+			}
+			child.DiffType = MiguelKindDelete
+			node.Children = append(node.Children, child)
+			continue
+		}
+
+		child, err := value.Distinguish(val)
+		if err != nil {
+			return nil, err
+		}
+		node.Children = append(node.Children, child)
+	}
+
+	for key, value := range second.Data {
+		if _, ok := getFromMapByKey(key, m.Data); !ok {
+			child, err := value.ToMiguel()
+			if err != nil {
+				return nil, err
+			}
+			child.DiffType = MiguelKindCreate
+			node.Children = append(node.Children, child)
+		}
+	}
+
+	return node, nil
+}
+
+func getFromMapByKey(key Node, m map[Node]Node) (Node, bool) {
+	for secondKey, secondValue := range m {
+		ok, err := key.Compare(secondKey)
+		if err != nil {
+			return nil, false
+		}
+		if !ok {
+			continue
+		}
+		return secondValue, true
+	}
+	return nil, false
+}
+
 func createMapFromElts(args []*base.Node, keyType, valueType Node) (map[Node]Node, error) {
 	data := make(map[Node]Node)
 
 	for i := range args {
 		elt := args[i]
 		if elt.Prim != consts.Elt {
-			return nil, errors.Wrap(base.ErrInvalidPrim, "BigMap.ParseValue")
+			return nil, errors.Wrap(consts.ErrInvalidPrim, "BigMap.ParseValue")
 		}
 		if len(elt.Args) != 2 {
-			return nil, errors.Wrap(base.ErrInvalidArgsCount, "BigMap.ParseValue")
+			return nil, errors.Wrap(consts.ErrInvalidArgsCount, "BigMap.ParseValue")
 		}
 		key, err := createByType(keyType)
 		if err != nil {

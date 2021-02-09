@@ -34,20 +34,20 @@ func (or *Or) String() string {
 		s.WriteString(consts.Left)
 		s.WriteByte(' ')
 		s.WriteString(or.Default.String())
-		s.WriteString(strings.Repeat(base.DefaultIndent, or.depth))
+		s.WriteString(strings.Repeat(consts.DefaultIndent, or.depth))
 		s.WriteString(or.Left.String())
 		s.WriteByte(' ')
 	case or.Right != nil:
 		s.WriteString(consts.Right)
 		s.WriteByte(' ')
 		s.WriteString(or.Default.String())
-		s.WriteString(strings.Repeat(base.DefaultIndent, or.depth))
+		s.WriteString(strings.Repeat(consts.DefaultIndent, or.depth))
 		s.WriteString(or.Right.String())
 		s.WriteByte(' ')
 	default:
 		s.WriteString(or.Default.String())
 		for i := range or.Args {
-			s.WriteString(strings.Repeat(base.DefaultIndent, or.depth))
+			s.WriteString(strings.Repeat(consts.DefaultIndent, or.depth))
 			s.WriteString(or.Args[i].String())
 		}
 
@@ -67,7 +67,7 @@ func (or *Or) ParseType(node *base.Node, id *int) error {
 	}
 
 	if len(node.Args) > 2 || len(node.Args) == 0 {
-		return errors.Wrap(base.ErrInvalidArgsCount, "Or.ParseValue")
+		return errors.Wrap(consts.ErrInvalidArgsCount, "Or.ParseValue")
 	}
 
 	or.Args = make([]Node, 0, len(node.Args))
@@ -85,7 +85,7 @@ func (or *Or) ParseType(node *base.Node, id *int) error {
 // ParseValue -
 func (or *Or) ParseValue(node *base.Node) error {
 	if len(node.Args) > 2 || len(node.Args) == 0 {
-		return errors.Wrap(base.ErrInvalidArgsCount, "Or.ParseValue")
+		return errors.Wrap(consts.ErrInvalidArgsCount, "Or.ParseValue")
 	}
 
 	switch node.Prim {
@@ -100,7 +100,7 @@ func (or *Or) ParseValue(node *base.Node) error {
 		}
 		or.Right = or.Args[1]
 	default:
-		return errors.Wrap(base.ErrInvalidPrim, "Or.ParseValue")
+		return errors.Wrap(consts.ErrInvalidPrim, "Or.ParseValue")
 	}
 	return nil
 }
@@ -222,7 +222,7 @@ func (or *Or) FromJSONSchema(data map[string]interface{}) error {
 			val := data[key]
 			arrVal, ok := val.(map[string]interface{})
 			if !ok {
-				return errors.Wrapf(base.ErrInvalidType, "Or.FromJSONSchema %T", val)
+				return errors.Wrapf(consts.ErrInvalidType, "Or.FromJSONSchema %T", val)
 			}
 			orMap = arrVal
 			break
@@ -230,7 +230,7 @@ func (or *Or) FromJSONSchema(data map[string]interface{}) error {
 	}
 	schemaKey, ok := orMap["schemaKey"]
 	if !ok {
-		return errors.Wrap(base.ErrJSONDataIsAbsent, "Or.FromJSONSchema")
+		return errors.Wrap(consts.ErrJSONDataIsAbsent, "Or.FromJSONSchema")
 	}
 	delete(orMap, "schemaKey")
 
@@ -254,7 +254,7 @@ func (or *Or) FromJSONSchema(data map[string]interface{}) error {
 		}
 		or.Right = val
 	default:
-		return errors.Wrap(base.ErrJSONDataIsAbsent, "Or.FromJSONSchema")
+		return errors.Wrap(consts.ErrJSONDataIsAbsent, "Or.FromJSONSchema")
 	}
 
 	return nil
@@ -367,4 +367,77 @@ func (or *Or) Docs(inferredName string) ([]Typedef, string, error) {
 	}
 	result = append([]Typedef{typedef}, result...)
 	return result, makeVarDocString(name), nil
+}
+
+// Compare -
+func (or *Or) Compare(second Comparable) (bool, error) {
+	secondItem, ok := second.(*Or)
+	if !ok {
+		return false, nil
+	}
+	var err error
+	switch {
+	case or.Left != nil && secondItem.Left != nil:
+		ok, err = or.Left.Compare(secondItem.Left)
+	case or.Right != nil && secondItem.Right != nil:
+		ok, err = or.Right.Compare(secondItem.Right)
+	default:
+		return false, nil
+	}
+	if err != nil {
+		if errors.Is(err, consts.ErrTypeIsNotComparable) {
+			return false, nil
+		}
+		return false, err
+	}
+	return ok, nil
+}
+
+// Distinguish -
+func (or *Or) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*Or)
+	if !ok {
+		return nil, nil
+	}
+
+	node, err := or.Default.ToMiguel()
+	if err != nil {
+		return nil, err
+	}
+	node.Children = make([]*MiguelNode, 0)
+
+	switch {
+	case second.Left != nil && or.Left != nil:
+		child, err := or.Left.Distinguish(second.Left)
+		if err != nil {
+			return nil, err
+		}
+		node.Children = append(node.Children, child)
+	case second.Right != nil && or.Right != nil:
+		child, err := or.Right.Distinguish(second.Right)
+		if err != nil {
+			return nil, err
+		}
+		node.Children = append(node.Children, child)
+	case second.Right == nil && or.Right == nil && second.Left == nil && or.Left == nil:
+	default:
+		if second.Right != nil {
+			child, err := second.Right.ToMiguel()
+			if err != nil {
+				return nil, err
+			}
+			node.DiffType = MiguelKindUpdate
+			node.Children = append(node.Children, child)
+		}
+		if second.Left != nil {
+			child, err := second.Left.ToMiguel()
+			if err != nil {
+				return nil, err
+			}
+			node.DiffType = MiguelKindUpdate
+			node.Children = append(node.Children, child)
+		}
+	}
+
+	return node, nil
 }

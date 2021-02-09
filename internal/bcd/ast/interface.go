@@ -35,9 +35,23 @@ type Value interface {
 	FromJSONSchema(data map[string]interface{}) error
 	EnrichBigMap(bmd []*base.BigMapDiff) error
 	ToParameters() ([]byte, error)
+	Equal(second Node) bool
+
+	Comparable
+	Distinguishable
 }
 
 // Base -
 type Base interface {
 	ToBaseNode(optimized bool) (*base.Node, error)
+}
+
+// Distinguishable -
+type Distinguishable interface {
+	Distinguish(second Distinguishable) (*MiguelNode, error)
+}
+
+// Comparable -
+type Comparable interface {
+	Compare(second Comparable) (bool, error)
 }

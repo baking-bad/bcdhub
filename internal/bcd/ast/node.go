@@ -25,7 +25,7 @@ func toBaseNodeBytes(val string) *base.Node {
 
 func mapToBaseNodes(data map[Node]Node, optimized bool) (*base.Node, error) {
 	node := new(base.Node)
-	node.Prim = base.PrimArray
+	node.Prim = consts.PrimArray
 	node.Args = make([]*base.Node, 0)
 	for key, value := range data {
 		keyNode, err := key.ToBaseNode(optimized)
@@ -48,7 +48,7 @@ func mapToBaseNodes(data map[Node]Node, optimized bool) (*base.Node, error) {
 
 func arrayToBaseNode(data []Node, optimized bool) (*base.Node, error) {
 	node := new(base.Node)
-	node.Prim = base.PrimArray
+	node.Prim = consts.PrimArray
 	node.Args = make([]*base.Node, 0)
 	for i := range data {
 		arg, err := data[i].ToBaseNode(optimized)

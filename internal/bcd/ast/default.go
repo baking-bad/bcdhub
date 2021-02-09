@@ -43,17 +43,17 @@ func (d *Default) ParseType(node *base.Node, id *int) error {
 	(*id)++
 	d.id = *id
 	d.annots = node.Annots
-	d.FieldName = getAnnotation(node.Annots, base.AnnotPrefixFieldName)
-	d.TypeName = getAnnotation(node.Annots, base.AnnotPrefixrefixTypeName)
+	d.FieldName = getAnnotation(node.Annots, consts.AnnotPrefixFieldName)
+	d.TypeName = getAnnotation(node.Annots, consts.AnnotPrefixrefixTypeName)
 
 	prim := strings.ToLower(node.Prim)
 
 	if prim != d.Prim {
-		return errors.Wrap(base.ErrInvalidPrim, fmt.Sprintf("expected %s got %s", d.Prim, node.Prim))
+		return errors.Wrap(consts.ErrInvalidPrim, fmt.Sprintf("expected %s got %s", d.Prim, node.Prim))
 	}
 
 	if len(node.Args) != d.argsCount && d.argsCount >= 0 {
-		return errors.Wrap(base.ErrInvalidArgsCount, fmt.Sprintf("expected %d got %d", d.argsCount, len(node.Args)))
+		return errors.Wrap(consts.ErrInvalidArgsCount, fmt.Sprintf("expected %d got %d", d.argsCount, len(node.Args)))
 	}
 
 	switch {
@@ -99,11 +99,12 @@ func (d *Default) ParseValue(node *base.Node) error {
 
 // ToMiguel -
 func (d *Default) ToMiguel() (*MiguelNode, error) {
+	name := d.GetName()
 	return &MiguelNode{
 		Prim:  d.Prim,
 		Type:  strings.ToLower(d.Prim),
 		Value: d.Value,
-		Name:  d.GetName(),
+		Name:  &name,
 	}, nil
 }
 
@@ -223,4 +224,42 @@ func (d *Default) FindByName(name string) Node {
 		return d
 	}
 	return nil
+}
+
+// Distinguish -
+func (d *Default) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*Default)
+	if !ok {
+		return nil, nil
+	}
+	if d.Prim != second.Prim {
+		return nil, errors.Wrapf(consts.ErrInvalidPrim, "%s != %s", d.Prim, second.Prim)
+	}
+	name := d.GetName()
+	node := new(MiguelNode)
+	node.Prim = d.Prim
+	node.Type = d.Prim
+	node.Name = &name
+	node.Value = second.Value
+	switch {
+	case d.Value != nil && second.Value == nil:
+		node.DiffType = MiguelKindDelete
+		node.From = d.Value
+	case d.Value == nil && second.Value != nil:
+		node.DiffType = MiguelKindCreate
+		node.From = d.Value
+	case d.Value != nil && second.Value != nil && d.Value != second.Value:
+		node.DiffType = MiguelKindUpdate
+	}
+	return node, nil
+}
+
+// Compare -
+func (d *Default) Compare(second Comparable) (bool, error) {
+	return false, consts.ErrTypeIsNotComparable
+}
+
+// Equal -
+func (d *Default) Equal(second Node) bool {
+	return d.Prim == second.GetPrim() && d.GetName() == second.GetName() && d.GetValue() == second.GetValue()
 }

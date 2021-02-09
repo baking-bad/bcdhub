@@ -320,10 +320,10 @@ func TestTypedAst_ToJSONSchema(t *testing.T) {
 										Type:  JSONSchemaTypeString,
 										Const: "some",
 									},
-									"@lambda_21": {
+									"@lambda_30": {
 										Type:    JSONSchemaTypeString,
 										Prim:    "lambda",
-										Title:   "@lambda_21",
+										Title:   "@lambda_30",
 										Default: "",
 									},
 								},
@@ -357,10 +357,10 @@ func TestTypedAst_ToJSONSchema(t *testing.T) {
 										Type:  JSONSchemaTypeString,
 										Const: "some",
 									},
-									"@lambda_12": {
+									"@lambda_15": {
 										Type:    JSONSchemaTypeString,
 										Prim:    "lambda",
-										Title:   "@lambda_12",
+										Title:   "@lambda_15",
 										Default: "",
 									},
 								},
@@ -459,6 +459,112 @@ func TestTypedAst_Docs(t *testing.T) {
 			}
 			if gotStr != tt.want {
 				t.Errorf("TypedAst.Docs() = %v, want %v", gotStr, tt.want)
+			}
+		})
+	}
+}
+
+func TestTypedAst_Compare(t *testing.T) {
+	tests := []struct {
+		name    string
+		typ     string
+		a       string
+		b       string
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "simple true",
+			typ:  `[{"prim": "string"}]`,
+			a:    `{"string": "test"}`,
+			b:    `{"string": "test"}`,
+			want: true,
+		}, {
+			name: "simple false",
+			typ:  `[{"prim": "string"}]`,
+			a:    `{"string": "test"}`,
+			b:    `{"string": "another"}`,
+			want: false,
+		}, {
+			name: "pair with option None true",
+			typ:  `[{"prim": "pair", "args":[{"prim": "int"}, {"prim": "option", "args":[{"prim": "address"}]}]}]`,
+			a:    `{"prim": "Pair", "args":[{"int": "100"}, {"prim": "None"}]}`,
+			b:    `{"prim": "Pair", "args":[{"int": "100"}, {"prim": "None"}]}`,
+			want: true,
+		}, {
+			name: "pair with option Some true",
+			typ:  `[{"prim": "pair", "args":[{"prim": "int"}, {"prim": "option", "args":[{"prim": "address"}]}]}]`,
+			a:    `{"prim": "Pair", "args":[{"int": "100"}, {"prim": "Some", "args":[{"string": "tz1eLWfccL46VAUjtyz9kEKgzuKnwyZH4rTA"}]}]}`,
+			b:    `{"prim": "Pair", "args":[{"int": "100"}, {"prim": "Some", "args":[{"bytes": "0000cd1a410ffd5315ded34337f5f76edff48a13999a"}]}]}`,
+			want: true,
+		}, {
+			name: "pair with option false",
+			typ:  `[{"prim": "pair", "args":[{"prim": "int"}, {"prim": "option", "args":[{"prim": "address"}]}]}]`,
+			a:    `{"prim": "Pair", "args":[{"int": "100"}, {"prim": "Some", "args":[{"string": "tz1eLWfccL46VAUjtyz9kEKgzuKnwyZH4rTA"}]}]}`,
+			b:    `{"prim": "Pair", "args":[{"int": "100"}, {"prim": "None"}]}`,
+			want: false,
+		}, {
+			name: "pair with option Some false",
+			typ:  `[{"prim": "pair", "args":[{"prim": "int"}, {"prim": "option", "args":[{"prim": "address"}]}]}]`,
+			a:    `{"prim": "Pair", "args":[{"int": "100"}, {"prim": "Some", "args":[{"string": "tz1eLWfccL46VAUjtyz9kEKgzuKnwyZH4rTA"}]}]}`,
+			b:    `{"prim": "Pair", "args":[{"int": "100"}, {"prim": "Some", "args":[{"string": "KT1BUKeJTemAaVBfRz6cqxeUBQGQqMxfG19A"}]}]}`,
+			want: false,
+		}, {
+			name: "pair with option uncomparable false",
+			typ:  `[{"prim": "pair", "args":[{"prim": "int"}, {"prim": "option", "args":[{"prim": "set", "args":[{"prim": "unit"}]}]}]}]`,
+			a:    `{"prim": "Pair", "args":[{"int": "100"}, {"prim": "Some", "args":[[]]}]}`,
+			b:    `{"prim": "Pair", "args":[{"int": "100"}, {"prim": "Some", "args":[[]]}]}`,
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var typ UntypedAST
+			if err := json.Unmarshal([]byte(tt.typ), &typ); err != nil {
+				t.Errorf("Unmarshal(typA) error = %v", err)
+				return
+
+			}
+			typA, err := typ.ToTypedAST()
+			if err != nil {
+				t.Errorf("ToTypedAST() error = %v", err)
+				return
+			}
+			typB, err := typ.ToTypedAST()
+			if err != nil {
+				t.Errorf("ToTypedAST() error = %v", err)
+				return
+			}
+			var aTree UntypedAST
+			if err := json.Unmarshal([]byte(tt.a), &aTree); err != nil {
+				t.Errorf("Unmarshal(a) error = %v", err)
+				return
+
+			}
+			var bTree UntypedAST
+			if err := json.Unmarshal([]byte(tt.b), &bTree); err != nil {
+				t.Errorf("Unmarshal(b) error = %v", err)
+				return
+
+			}
+			if err := typA.Settle(aTree); err != nil {
+				t.Errorf("typA.Settle error = %v", err)
+				return
+
+			}
+			if err := typB.Settle(bTree); err != nil {
+				t.Errorf("typA.Settle error = %v", err)
+				return
+
+			}
+
+			got, err := typA.Compare(typB)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("TypedAst.Compare() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("TypedAst.Compare() = %v, want %v", got, tt.want)
 			}
 		})
 	}

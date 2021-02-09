@@ -8,8 +8,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 )
 
-//  TODO: pack/unpack
-
 // Ticket -
 type Ticket struct {
 	Default
@@ -35,7 +33,7 @@ func NewTicket(depth int) *Ticket {
 func (t *Ticket) String() string {
 	var s strings.Builder
 	s.WriteString(t.Default.String())
-	s.WriteString(strings.Repeat(base.DefaultIndent, t.depth))
+	s.WriteString(strings.Repeat(consts.DefaultIndent, t.depth))
 	s.WriteString(t.Type.String())
 	return s.String()
 }
@@ -117,4 +115,13 @@ func (t *Ticket) Docs(inferredName string) ([]Typedef, string, error) {
 		return nil, optName, nil
 	}
 	return docs, optName, nil
+}
+
+// Distinguish -
+func (t *Ticket) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*Ticket)
+	if !ok {
+		return nil, nil
+	}
+	return t.Paired.Distinguish(second.Paired)
 }

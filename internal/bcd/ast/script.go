@@ -33,7 +33,7 @@ func NewScript(data []byte) (*Script, error) {
 		case consts.CODE:
 			s.Code = tree
 		default:
-			return nil, errors.Wrap(base.ErrUnknownPrim, fmt.Sprintf("NewScript : %s", ast[i].Prim))
+			return nil, errors.Wrap(consts.ErrUnknownPrim, fmt.Sprintf("NewScript : %s", ast[i].Prim))
 		}
 	}
 	return &s, nil
@@ -60,7 +60,7 @@ func (st *SectionType) String() string {
 	var s strings.Builder
 	s.WriteString(st.Default.String())
 	for i := range st.Args {
-		s.WriteString(strings.Repeat(base.DefaultIndent, st.depth))
+		s.WriteString(strings.Repeat(consts.DefaultIndent, st.depth))
 		s.WriteString(st.Args[i].String())
 	}
 	return s.String()

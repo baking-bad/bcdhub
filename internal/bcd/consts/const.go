@@ -57,3 +57,19 @@ const (
 	DefaultEntrypoint  = "default"
 	TransferEntrypoint = "transfer"
 )
+
+// custom prim
+const (
+	PrimArray = "_array"
+)
+
+// annotations prefix
+const (
+	AnnotPrefixFieldName     = '%'
+	AnnotPrefixrefixTypeName = ':'
+)
+
+// indent for printing
+const (
+	DefaultIndent = "  "
+)

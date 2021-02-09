@@ -31,17 +31,17 @@ func (set *Set) String() string {
 	s.WriteString(set.Default.String())
 	if len(set.Data) > 0 {
 		for i := range set.Data {
-			s.WriteString(strings.Repeat(base.DefaultIndent, set.depth))
+			s.WriteString(strings.Repeat(consts.DefaultIndent, set.depth))
 			s.WriteByte('{')
 			s.WriteByte('\n')
-			s.WriteString(strings.Repeat(base.DefaultIndent, set.depth+1))
+			s.WriteString(strings.Repeat(consts.DefaultIndent, set.depth+1))
 			s.WriteString(set.Data[i].String())
-			s.WriteString(strings.Repeat(base.DefaultIndent, set.depth))
+			s.WriteString(strings.Repeat(consts.DefaultIndent, set.depth))
 			s.WriteByte('}')
 			s.WriteByte('\n')
 		}
 	} else {
-		s.WriteString(strings.Repeat(base.DefaultIndent, set.depth))
+		s.WriteString(strings.Repeat(consts.DefaultIndent, set.depth))
 		s.WriteString(set.Type.String())
 	}
 	return s.String()
@@ -69,8 +69,8 @@ func (set *Set) ParseType(node *base.Node, id *int) error {
 
 // ParseValue -
 func (set *Set) ParseValue(node *base.Node) error {
-	if node.Prim != base.PrimArray {
-		return errors.Wrap(base.ErrInvalidPrim, "List.ParseValue")
+	if node.Prim != consts.PrimArray {
+		return errors.Wrap(consts.ErrInvalidPrim, "List.ParseValue")
 	}
 
 	set.Data = make([]Node, 0)
@@ -147,20 +147,20 @@ func (set *Set) FromJSONSchema(data map[string]interface{}) error {
 			val := data[key]
 			arrVal, ok := val.([]interface{})
 			if !ok {
-				return errors.Wrapf(base.ErrInvalidType, "Set.FromJSONSchema %T", val)
+				return errors.Wrapf(consts.ErrInvalidType, "Set.FromJSONSchema %T", val)
 			}
 			arr = arrVal
 			break
 		}
 	}
 	if arr == nil {
-		return errors.Wrap(base.ErrJSONDataIsAbsent, "Set.FromJSONSchema")
+		return errors.Wrap(consts.ErrJSONDataIsAbsent, "Set.FromJSONSchema")
 	}
 
 	for i := range arr {
 		item, ok := arr[i].(map[string]interface{})
 		if !ok {
-			return errors.Wrap(base.ErrValidation, "Set.FromJSONSchema")
+			return errors.Wrap(consts.ErrValidation, "Set.FromJSONSchema")
 		}
 		itemTree, err := createByType(set.Type)
 		if err != nil {
@@ -224,4 +224,27 @@ func (set *Set) Docs(inferredName string) ([]Typedef, string, error) {
 		return result, typedef.Type, nil
 	}
 	return []Typedef{typedef}, typedef.Type, nil
+}
+
+// Distinguish -
+func (set *Set) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*List)
+	if !ok {
+		return nil, nil
+	}
+	name := set.GetName()
+	node := new(MiguelNode)
+	node.Prim = set.Prim
+	node.Type = set.Prim
+	node.Name = &name
+
+	d := getMatrix(set.Data, second.Data)
+	children, err := mergeMatrix(d, len(set.Data), len(second.Data), set.Data, second.Data)
+	if err != nil {
+		return nil, err
+	}
+
+	node.Children = children
+
+	return node, nil
 }

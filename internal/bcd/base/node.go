@@ -23,17 +23,17 @@ type Node struct {
 // UnmarshalJSON -
 func (node *Node) UnmarshalJSON(data []byte) error {
 	if len(data) == 0 {
-		return ErrInvalidJSON
+		return consts.ErrInvalidJSON
 	}
 	if data[0] == '[' {
-		node.Prim = PrimArray
+		node.Prim = consts.PrimArray
 		node.Args = make([]*Node, 0)
 		return json.Unmarshal(data, &node.Args)
 	} else if data[0] == '{' {
 		type buf Node
 		return json.Unmarshal(data, (*buf)(node))
 	}
-	return ErrInvalidJSON
+	return consts.ErrInvalidJSON
 }
 
 // GetAnnotations -
@@ -43,7 +43,7 @@ func (node *Node) GetAnnotations() map[string]struct{} {
 		if len(node.Annots[i]) == 0 {
 			continue
 		}
-		if node.Annots[i][0] == AnnotPrefixFieldName || node.Annots[i][0] == AnnotPrefixrefixTypeName {
+		if node.Annots[i][0] == consts.AnnotPrefixFieldName || node.Annots[i][0] == consts.AnnotPrefixrefixTypeName {
 			annots[node.Annots[i][1:]] = struct{}{}
 		}
 	}
@@ -61,7 +61,7 @@ func (node *Node) Hash() (string, error) {
 	var prim string
 	switch {
 	case node.Prim != "":
-		if node.Prim != consts.RENAME && node.Prim != consts.CAST && node.Prim != PrimArray {
+		if node.Prim != consts.RENAME && node.Prim != consts.CAST && node.Prim != consts.PrimArray {
 			hashCode, err := getHashCode(node.Prim)
 			if err != nil {
 				return "", err
@@ -100,7 +100,7 @@ func (node *Node) String() string {
 func (node *Node) print(depth int) string {
 	var s strings.Builder
 	s.WriteByte('\n')
-	s.WriteString(strings.Repeat(DefaultIndent, depth))
+	s.WriteString(strings.Repeat(consts.DefaultIndent, depth))
 	switch {
 	case node.Prim != "":
 		s.WriteString(node.Prim)
