@@ -139,8 +139,8 @@ func WithRabbit(rabbitConfig RabbitConfig, service string, mqConfig MQConfig) Co
 				Durable:    !params.NonDurable,
 			}
 
-			if params.TTLMilliseconds != nil {
-				q.TTLMilliseconds = params.TTLMilliseconds
+			if ttl := params.TTLSeconds; ttl != nil && *ttl > 0 {
+				q.TTLSeconds = ttl
 			}
 
 			mqueues = append(mqueues, q)
