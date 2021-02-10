@@ -110,6 +110,13 @@ func isCompactType(bPath string, md meta.Metadata) bool {
 		}
 	}
 
+	if node.Prim == consts.TICKET {
+		arg := md[bPath+"/0"]
+		if isSimpleType(arg.Prim) {
+			return true
+		}
+	}
+
 	return false
 }
 
@@ -146,6 +153,13 @@ func isComplexType(bPath string, md meta.Metadata) bool {
 
 	if node.Prim == consts.LAMBDA {
 		if !isSimpleType(node.Parameter) || !isSimpleType(node.ReturnValue) {
+			return true
+		}
+	}
+
+	if node.Prim == consts.TICKET {
+		arg := md[bPath+"/0"]
+		if !isSimpleType(arg.Prim) {
 			return true
 		}
 	}

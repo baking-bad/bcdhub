@@ -49,6 +49,15 @@ func getCompactExpr(dd *dsData, bPath string, md meta.Metadata) (string, error) 
 		}
 
 		return expr, nil
+	case consts.TICKET:
+		path := fmt.Sprintf("%s/0", bPath)
+		varName, err := getTypeExpr(dd, path, md)
+		if err != nil {
+			return "", err
+		}
+
+		expr := fmt.Sprintf("%s(%s)", node.Prim, varName)
+		return expr, nil
 	case consts.OPTION:
 		path := fmt.Sprintf("%s/%s", bPath, typePrefix[node.Prim])
 		return getTypeExpr(dd, path, md)

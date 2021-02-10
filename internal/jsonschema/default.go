@@ -55,6 +55,8 @@ func (m *defaultMaker) Do(binPath string, metadata meta.Metadata) (Schema, error
 		schema["minLength"] = 36
 		schema["maxLength"] = 36
 		schema["default"] = ""
+	case consts.TICKET:
+		return Create(binPath+"/0", metadata)
 	case consts.OPTION:
 		return Create(binPath+"/o", metadata)
 	default:
