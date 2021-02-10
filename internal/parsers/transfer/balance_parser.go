@@ -55,6 +55,8 @@ func (parser *DefaultBalanceParser) ParseBalances(network, contract string, bala
 			if !parser.repo.IsRecordNotFound(err) {
 				return nil, err
 			}
+
+			tb.Value = big.NewInt(0)
 		}
 
 		delta := big.NewInt(0)
