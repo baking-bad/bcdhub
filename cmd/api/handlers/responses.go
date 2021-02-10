@@ -581,8 +581,8 @@ type Transfer struct {
 	TokenID        int64          `json:"token_id"`
 	Amount         string         `json:"amount"`
 	Counter        int64          `json:"counter"`
-	Nonce          *int64         `json:"nonce,omitempty"`
-	Parent         string         `json:"parent,omitempty"`
+	Nonce          *int64         `json:"nonce,omitempty" extensions:"x-nullable"`
+	Parent         string         `json:"parent,omitempty" extensions:"x-nullable"`
 	Token          *TokenMetadata `json:"token,omitempty" extensions:"x-nullable"`
 	Alias          string         `json:"alias,omitempty" extensions:"x-nullable"`
 	InitiatorAlias string         `json:"initiator_alias,omitempty" extensions:"x-nullable"`
@@ -614,7 +614,7 @@ func TransferFromElasticModel(model transfer.Transfer) (t Transfer) {
 type TransferResponse struct {
 	Transfers []Transfer `json:"transfers"`
 	Total     int64      `json:"total"`
-	LastID    string     `json:"last_id,omitempty"`
+	LastID    string     `json:"last_id,omitempty" extensions:"x-nullable"`
 }
 
 // ConfigResponse -
@@ -741,5 +741,5 @@ type ViewSchema struct {
 	Implementation int                     `json:"implementation"`
 	Description    string                  `json:"description"`
 	Schema         jsonschema.Schema       `json:"schema"`
-	DefaultModel   jsonschema.DefaultModel `json:"default_model,omitempty"`
+	DefaultModel   jsonschema.DefaultModel `json:"default_model,omitempty" extensions:"x-nullable"`
 }
