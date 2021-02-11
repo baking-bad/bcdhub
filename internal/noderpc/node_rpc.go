@@ -19,8 +19,9 @@ import (
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 const (
-	headBlock   = "head"
-	protocolEdo = "PtEdoTezd3RHSC31mpxxo1npxFjoWWcFgQtxapi51Z8TLu6v6Uq"
+	headBlock    = "head"
+	protocolEdo1 = "PtEdoTezd3RHSC31mpxxo1npxFjoWWcFgQtxapi51Z8TLu6v6Uq"
+	protocolEdo2 = "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA"
 )
 
 func getBlockString(level int64) string {
@@ -305,7 +306,7 @@ func (rpc *NodeRPC) RunCode(script, storage, input gjson.Result, chainID, source
 	}
 
 	// TO-DO update with future protocols
-	if proto == protocolEdo {
+	if proto == protocolEdo1 || proto == protocolEdo2 {
 		data["balance"] = 0
 	}
 
