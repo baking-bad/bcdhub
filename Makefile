@@ -93,6 +93,11 @@ test:
 lint:
 	golangci-lint run
 
+test-api:
+	# to install newman:
+	# npm install -g newman
+	newman run ./scripts/newman/tests.json -e ./scripts/newman/env.json --bail
+
 docs:
 	# wget https://github.com/swaggo/swag/releases/download/v1.7.0/swag_1.7.0_Linux_x86_64.tar.gz
 	# tar -zxvf swag_1.7.0_Linux_x86_64.tar.gz
