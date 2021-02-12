@@ -158,6 +158,11 @@ func (s subRequest) getMask() uint {
 	return b
 }
 
+type sameContractRequest struct {
+	pageableRequest
+	Manager string `form:"manager,omitempty"`
+}
+
 type voteRequest struct {
 	SourceAddress      string `json:"src" binding:"required,address"`
 	SourceNetwork      string `json:"src_network" binding:"required,network"`

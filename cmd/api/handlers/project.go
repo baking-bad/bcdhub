@@ -14,6 +14,7 @@ import (
 // @ID get-contract-same
 // @Param network path string true "Network"
 // @Param address path string true "KT address" minlength(36) maxlength(36)
+// @Param manager query string false "Manager"
 // @Param offset query integer false "Offset"
 // @Param size query integer false "Requested count" mininum(1)
 // @Accept json
@@ -28,8 +29,8 @@ func (ctx *Context) GetSameContracts(c *gin.Context) {
 		return
 	}
 
-	var pageReq pageableRequest
-	if err := c.BindQuery(&pageReq); ctx.handleError(c, err, http.StatusBadRequest) {
+	var query sameContractRequest
+	if err := c.BindQuery(&query); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -39,7 +40,7 @@ func (ctx *Context) GetSameContracts(c *gin.Context) {
 		return
 	}
 
-	sameContracts, err := ctx.Contracts.GetSameContracts(contract, pageReq.Size, pageReq.Offset)
+	sameContracts, err := ctx.Contracts.GetSameContracts(contract, query.Manager, query.Size, query.Offset)
 	if err != nil {
 		if ctx.Storage.IsRecordNotFound(err) {
 			c.JSON(http.StatusOK, []interface{}{})

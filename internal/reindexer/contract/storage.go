@@ -150,7 +150,7 @@ func (storage *Storage) GetProjectsLastContract(c *contract.Contract) ([]contrac
 }
 
 // GetSameContracts -
-func (storage *Storage) GetSameContracts(c contract.Contract, size, offset int64) (pcr contract.SameResponse, err error) {
+func (storage *Storage) GetSameContracts(c contract.Contract, manager string, size, offset int64) (pcr contract.SameResponse, err error) {
 	if c.Fingerprint == nil {
 		return pcr, errors.Errorf("Invalid contract data")
 	}
