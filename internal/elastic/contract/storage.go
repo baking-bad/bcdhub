@@ -287,7 +287,7 @@ func getArrayFilter(fieldName string, arr ...string) core.Item {
 }
 
 // GetSameContracts -
-func (storage *Storage) GetSameContracts(c contract.Contract, size, offset int64) (pcr contract.SameResponse, err error) {
+func (storage *Storage) GetSameContracts(c contract.Contract, manager string, size, offset int64) (pcr contract.SameResponse, err error) {
 	if c.Fingerprint == nil {
 		return pcr, errors.Errorf("Invalid contract data")
 	}
@@ -298,11 +298,19 @@ func (storage *Storage) GetSameContracts(c contract.Contract, size, offset int64
 		size = core.MaxQuerySize - offset
 	}
 
+	var filter core.Item
+	if manager == "" {
+		filter = core.Filter(core.MatchPhrase("hash", c.Hash))
+	} else {
+		filter = core.Filter(
+			core.MatchPhrase("hash", c.Hash),
+			core.MatchPhrase("manager", manager),
+		)
+	}
+
 	q := core.NewQuery().Query(
 		core.Bool(
-			core.Filter(
-				core.MatchPhrase("hash", c.Hash),
-			),
+			filter,
 			core.MustNot(
 				core.MatchPhrase("address", c.Address),
 			),
