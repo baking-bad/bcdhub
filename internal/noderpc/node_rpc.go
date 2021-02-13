@@ -303,11 +303,7 @@ func (rpc *NodeRPC) RunCode(script, storage, input gjson.Result, chainID, source
 		"input":    input.Value(),
 		"amount":   fmt.Sprintf("%d", amount),
 		"chain_id": chainID,
-	}
-
-	// TO-DO update with future protocols
-	if proto == protocolEdo1 || proto == protocolEdo2 {
-		data["balance"] = 0
+		"balance":  "0",
 	}
 
 	if gas != 0 {
