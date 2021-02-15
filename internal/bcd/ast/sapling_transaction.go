@@ -13,7 +13,7 @@ import (
 type SaplingTransaction struct {
 	Default
 
-	Type     Int
+	Data     *Bytes
 	MemoSize int64
 }
 
@@ -30,8 +30,8 @@ func (st *SaplingTransaction) MarshalJSON() ([]byte, error) {
 	builder.WriteString(`{"prim": "sapling_transaction", "args":[`)
 	builder.WriteString(fmt.Sprintf(`{"int": "%d"}`, st.MemoSize))
 	builder.WriteByte(']')
-	if len(st.annots) > 0 {
-		if _, err := builder.WriteString(fmt.Sprintf(`, "annots": ["%s"]`, strings.Join(st.annots, `","`))); err != nil {
+	if len(st.Annots) > 0 {
+		if _, err := builder.WriteString(fmt.Sprintf(`, "annots": ["%s"]`, strings.Join(st.Annots, `","`))); err != nil {
 			return nil, err
 		}
 	}
@@ -42,10 +42,10 @@ func (st *SaplingTransaction) MarshalJSON() ([]byte, error) {
 // String -
 func (st *SaplingTransaction) String() string {
 	var s strings.Builder
-	s.WriteString(fmt.Sprintf("[%d] %s memo_size=%d\n", st.id, st.Prim, st.MemoSize))
-	if st.Type.Value != nil {
-		s.WriteString(strings.Repeat(consts.DefaultIndent, st.depth))
-		s.WriteString(fmt.Sprintf("Int=%d", st.Type.Value))
+	s.WriteString(fmt.Sprintf("[%d] %s memo_size=%d\n", st.ID, st.Prim, st.MemoSize))
+	if st.Data.Value != nil {
+		s.WriteString(strings.Repeat(consts.DefaultIndent, st.Depth))
+		s.WriteString(fmt.Sprintf("Int=%d", st.Data.Value))
 	}
 	return s.String()
 }
@@ -56,9 +56,7 @@ func (st *SaplingTransaction) ParseType(node *base.Node, id *int) error {
 		return err
 	}
 
-	if err := st.Type.ParseType(node.Args[0], id); err != nil {
-		return err
-	}
+	st.Data = NewBytes(st.Depth)
 	st.MemoSize = node.Args[0].IntValue.Int64()
 
 	return nil
@@ -66,7 +64,7 @@ func (st *SaplingTransaction) ParseType(node *base.Node, id *int) error {
 
 // ParseValue -
 func (st *SaplingTransaction) ParseValue(node *base.Node) error {
-	return st.Type.ParseValue(node)
+	return st.Data.ParseValue(node)
 }
 
 // ToMiguel -
@@ -75,18 +73,13 @@ func (st *SaplingTransaction) ToMiguel() (*MiguelNode, error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Children = make([]*MiguelNode, 0)
-	child, err := st.Type.ToMiguel()
-	if err != nil {
-		return nil, err
-	}
-	node.Children = append(node.Children, child)
+	node.Value = st.Data.miguelValue()
 	return node, nil
 }
 
 // ToBaseNode -
 func (st *SaplingTransaction) ToBaseNode(optimized bool) (*base.Node, error) {
-	return st.Type.ToBaseNode(optimized)
+	return st.Data.ToBaseNode(optimized)
 }
 
 // Docs -
@@ -98,4 +91,44 @@ func (st *SaplingTransaction) Docs(inferredName string) ([]Typedef, string, erro
 			Type: typ,
 		},
 	}, typ, nil
+}
+
+// Distinguish -
+func (st *SaplingTransaction) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*SaplingTransaction)
+	if !ok {
+		return nil, nil
+	}
+
+	node, err := st.ToMiguel()
+	if err != nil {
+		return nil, err
+	}
+	switch {
+	case st.Data.Value == nil && second.Data.Value == nil:
+	case st.Data.Value != nil && second.Data.Value == nil:
+		node.setDiffType(MiguelKindCreate)
+	case st.Data.Value == nil && second.Data.Value != nil:
+		node.setDiffType(MiguelKindDelete)
+	case st.Data.Value != nil && second.Data.Value != nil:
+		node.From = second.Data.Value
+		node.setDiffType(MiguelKindUpdate)
+	}
+	return node, nil
+}
+
+// ToParameters -
+func (st *SaplingTransaction) ToParameters() ([]byte, error) {
+	return st.Data.ToParameters()
+}
+
+// FromJSONSchema -
+func (st *SaplingTransaction) FromJSONSchema(data map[string]interface{}) error {
+	for key := range data {
+		if key == st.GetName() {
+			st.Data.Value = data[key]
+			st.Data.ValueKind = valueKindBytes
+		}
+	}
+	return nil
 }

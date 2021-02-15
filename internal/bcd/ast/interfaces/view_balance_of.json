@@ -1,0 +1,29 @@
+{
+    "entrypoints": {
+        "default": {
+            "prim": "list",
+            "args": [
+                {
+                    "prim": "pair",
+                    "args": [
+                        {
+                            "prim": "pair",
+                            "args": [
+                                {
+                                    "prim": "address"
+                                },
+                                {
+                                    "prim": "nat"
+                                }
+                            ]
+                        },
+                        {
+                            "prim": "nat"
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "is_root": true
+}

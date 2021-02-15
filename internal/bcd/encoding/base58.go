@@ -17,43 +17,76 @@ type base58Encoding struct {
 	DataType      string
 }
 
+// Bytes prefixes
+const (
+	PrefixBlockHash                   = "B"
+	PrefixOperationHash               = "o"
+	PrefixOperationListHash           = "Lo"
+	PrefixOperationListListHash       = "LLo"
+	PrefixProtocolHash                = "P"
+	PrefixContextHash                 = "Co"
+	PrefixPublicKeyTZ1                = "tz1"
+	PrefixPublicKeyTZ2                = "tz2"
+	PrefixPublicKeyTZ3                = "tz3"
+	PrefixPublicKeyKT1                = "KT1"
+	PrefixScriptExpr                  = "expr"
+	PrefixED25519Seed                 = "edsk"
+	PrefixED25519PublicKey            = "edpk"
+	PrefixSecp256k1SecretKey          = "spsk"
+	PrefixP256SecretKey               = "p2sk"
+	PrefixSecp256k1PublicKey          = "sppk"
+	PrefixP256PublicKey               = "p2pk"
+	PrefixSecp256k1Scalar             = "SSp"
+	PrefixSecp256k1Element            = "GSp"
+	PrefixED25519SecretKey            = "edsk"
+	PrefixED25519Signature            = "edsig"
+	PrefixSecp256k1Signature          = "spsig"
+	PrefixP256Signature               = "p2sig"
+	PrefixGenericSignature            = "sig"
+	PrefixChainID                     = "Net"
+	PrefixCryptoBoxPublicKeyHash      = "id"
+	PrefixED25519EncryptedSeed        = "edesk"
+	PrefixSecp256k1EncryptedSecretKey = "spesk"
+	PrefixP256EncryptedSecretKey      = "p2esk"
+)
+
 var base58Encodings = []base58Encoding{
-	{[]byte("B"), 51, []byte{1, 52}, 32, "block hash"},
-	{[]byte("o"), 51, []byte{5, 116}, 32, "operation hash"},
-	{[]byte("Lo"), 52, []byte{133, 233}, 32, "operation list hash"},
-	{[]byte("LLo"), 53, []byte{29, 159, 109}, 32, "operation list list hash"},
-	{[]byte("P"), 51, []byte{2, 170}, 32, "protocol hash"},
-	{[]byte("Co"), 52, []byte{79, 199}, 32, "context hash"},
+	{[]byte(PrefixBlockHash), 51, []byte{1, 52}, 32, "block hash"},
+	{[]byte(PrefixOperationHash), 51, []byte{5, 116}, 32, "operation hash"},
+	{[]byte(PrefixOperationListHash), 52, []byte{133, 233}, 32, "operation list hash"},
+	{[]byte(PrefixOperationListListHash), 53, []byte{29, 159, 109}, 32, "operation list list hash"},
+	{[]byte(PrefixProtocolHash), 51, []byte{2, 170}, 32, "protocol hash"},
+	{[]byte(PrefixContextHash), 52, []byte{79, 199}, 32, "context hash"},
 
-	{[]byte("tz1"), 36, []byte{6, 161, 159}, 20, "ed25519 public key hash"},
-	{[]byte("tz2"), 36, []byte{6, 161, 161}, 20, "secp256k1 public key hash"},
-	{[]byte("tz3"), 36, []byte{6, 161, 164}, 20, "p256 public key hash"},
-	{[]byte("KT1"), 36, []byte{2, 90, 121}, 20, "Originated address"},
+	{[]byte(PrefixPublicKeyTZ1), 36, []byte{6, 161, 159}, 20, "ed25519 public key hash"},
+	{[]byte(PrefixPublicKeyTZ2), 36, []byte{6, 161, 161}, 20, "secp256k1 public key hash"},
+	{[]byte(PrefixPublicKeyTZ3), 36, []byte{6, 161, 164}, 20, "p256 public key hash"},
+	{[]byte(PrefixPublicKeyKT1), 36, []byte{2, 90, 121}, 20, "Originated address"},
 
-	{[]byte("expr"), 54, []byte{13, 44, 64, 27}, 32, "script expression"},
-	{[]byte("edsk"), 54, []byte{13, 15, 58, 7}, 32, "ed25519 seed"},
-	{[]byte("edpk"), 54, []byte{13, 15, 37, 217}, 32, "ed25519 public key"},
-	{[]byte("spsk"), 54, []byte{17, 162, 224, 201}, 32, "secp256k1 secret key"},
-	{[]byte("p2sk"), 54, []byte{16, 81, 238, 189}, 32, "p256 secret key"},
+	{[]byte(PrefixScriptExpr), 54, []byte{13, 44, 64, 27}, 32, "script expression"},
+	{[]byte(PrefixED25519Seed), 54, []byte{13, 15, 58, 7}, 32, "ed25519 seed"},
+	{[]byte(PrefixED25519PublicKey), 54, []byte{13, 15, 37, 217}, 32, "ed25519 public key"},
+	{[]byte(PrefixSecp256k1SecretKey), 54, []byte{17, 162, 224, 201}, 32, "secp256k1 secret key"},
+	{[]byte(PrefixP256SecretKey), 54, []byte{16, 81, 238, 189}, 32, "p256 secret key"},
 
-	{[]byte("sppk"), 55, []byte{3, 254, 226, 86}, 33, "secp256k1 public key"},
-	{[]byte("p2pk"), 55, []byte{3, 178, 139, 127}, 33, "p256 public key"},
-	{[]byte("SSp"), 53, []byte{38, 248, 136}, 33, "secp256k1 scalar"},
-	{[]byte("GSp"), 53, []byte{5, 92, 0}, 33, "secp256k1 element"},
+	{[]byte(PrefixSecp256k1PublicKey), 55, []byte{3, 254, 226, 86}, 33, "secp256k1 public key"},
+	{[]byte(PrefixP256PublicKey), 55, []byte{3, 178, 139, 127}, 33, "p256 public key"},
+	{[]byte(PrefixSecp256k1Scalar), 53, []byte{38, 248, 136}, 33, "secp256k1 scalar"},
+	{[]byte(PrefixSecp256k1Element), 53, []byte{5, 92, 0}, 33, "secp256k1 element"},
 
-	{[]byte("edsk"), 98, []byte{43, 246, 78, 7}, 64, "ed25519 secret key"},
-	{[]byte("edsig"), 99, []byte{9, 245, 205, 134, 18}, 64, "ed25519 signature"},
-	{[]byte("spsig"), 99, []byte{13, 115, 101, 19, 63}, 64, "secp256k1 signature"},
-	{[]byte("p2sig"), 98, []byte{54, 240, 44, 52}, 64, "p256 signature"},
-	{[]byte("sig"), 96, []byte{4, 130, 43}, 64, "generic signature"},
+	{[]byte(PrefixED25519SecretKey), 98, []byte{43, 246, 78, 7}, 64, "ed25519 secret key"},
+	{[]byte(PrefixED25519Signature), 99, []byte{9, 245, 205, 134, 18}, 64, "ed25519 signature"},
+	{[]byte(PrefixSecp256k1Signature), 99, []byte{13, 115, 101, 19, 63}, 64, "secp256k1 signature"},
+	{[]byte(PrefixP256Signature), 98, []byte{54, 240, 44, 52}, 64, "p256 signature"},
+	{[]byte(PrefixGenericSignature), 96, []byte{4, 130, 43}, 64, "generic signature"},
 
-	{[]byte("Net"), 15, []byte{87, 82, 0}, 4, "chain id"},
+	{[]byte(PrefixChainID), 15, []byte{87, 82, 0}, 4, "chain id"},
 
-	{[]byte("id"), 30, []byte{153, 103}, 16, "cryptobox public key hash"},
+	{[]byte(PrefixCryptoBoxPublicKeyHash), 30, []byte{153, 103}, 16, "cryptobox public key hash"},
 
-	{[]byte("edesk"), 88, []byte{7, 90, 60, 179, 41}, 56, "ed25519 encrypted seed"},
-	{[]byte("spesk"), 88, []byte{9, 237, 241, 174, 150}, 56, "secp256k1 encrypted secret key"},
-	{[]byte("p2esk"), 88, []byte{9, 48, 57, 115, 171}, 56, "p256_encrypted_secret_key"},
+	{[]byte(PrefixED25519EncryptedSeed), 88, []byte{7, 90, 60, 179, 41}, 56, "ed25519 encrypted seed"},
+	{[]byte(PrefixSecp256k1EncryptedSecretKey), 88, []byte{9, 237, 241, 174, 150}, 56, "secp256k1 encrypted secret key"},
+	{[]byte(PrefixP256EncryptedSecretKey), 88, []byte{9, 48, 57, 115, 171}, 56, "p256_encrypted_secret_key"},
 }
 
 func getBase58EncodingForDecode(data []byte) (base58Encoding, error) {
@@ -82,7 +115,7 @@ func getBase58EncodingForEncode(data, prefix []byte) (base58Encoding, error) {
 		}
 		found := true
 		for i := range prefix {
-			if e.DecodedPrefix[i] != prefix[i] {
+			if e.EncodedPrefix[i] != prefix[i] {
 				found = false
 				break
 			}

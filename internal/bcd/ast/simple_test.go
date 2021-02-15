@@ -9,62 +9,62 @@ func TestAddress_Compare(t *testing.T) {
 		firstType  int
 		second     string
 		secondType int
-		want       bool
+		want       int
 		wantErr    bool
 	}{
 		{
 			name:       "equal",
 			first:      "KT1Hbwyp8D39d3681bG4FtZ1rE1uopVmU4wK",
-			firstType:  valueTypeString,
+			firstType:  valueKindString,
 			second:     "KT1Hbwyp8D39d3681bG4FtZ1rE1uopVmU4wK",
-			secondType: valueTypeString,
-			want:       true,
+			secondType: valueKindString,
+			want:       0,
 		}, {
 			name:       "unequal",
 			first:      "KT1Hbwyp8D39d3681bG4FtZ1rE1uopVmU4wK",
-			firstType:  valueTypeString,
+			firstType:  valueKindString,
 			second:     "KT1MjT5jseoujXvy1w2PjdaFXYo8jeh8k5S2",
-			secondType: valueTypeString,
-			want:       false,
+			secondType: valueKindString,
+			want:       -1,
 		}, {
 			name:       "equal",
 			first:      "tz1eLWfccL46VAUjtyz9kEKgzuKnwyZH4rTA",
-			firstType:  valueTypeString,
+			firstType:  valueKindString,
 			second:     "0000cd1a410ffd5315ded34337f5f76edff48a13999a",
-			secondType: valueTypeBytes,
-			want:       true,
+			secondType: valueKindBytes,
+			want:       0,
 		}, {
 			name:       "equal",
 			first:      "0000cd1a410ffd5315ded34337f5f76edff48a13999a",
-			firstType:  valueTypeBytes,
+			firstType:  valueKindBytes,
 			second:     "tz1eLWfccL46VAUjtyz9kEKgzuKnwyZH4rTA",
-			secondType: valueTypeString,
-			want:       true,
+			secondType: valueKindString,
+			want:       0,
 		}, {
 			name:       "equal",
 			first:      "0000cd1a410ffd5315ded34337f5f76edff48a13999a",
-			firstType:  valueTypeBytes,
+			firstType:  valueKindBytes,
 			second:     "tz1eLWfccL46VAUjtyz9kEKgzuKnwyZH4rTA",
-			secondType: valueTypeString,
-			want:       true,
+			secondType: valueKindString,
+			want:       0,
 		}, {
 			name:       "unequal",
 			first:      "0000cd1a410ffd5315ded34337f5f76edff48a13999a",
-			firstType:  valueTypeBytes,
+			firstType:  valueKindBytes,
 			second:     "KT1DEkR3cErDAn6oH4jK8Z7n9a4oCXRZZwYa",
-			secondType: valueTypeString,
-			want:       false,
+			secondType: valueKindString,
+			want:       -1,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			first := NewAddress(0)
 			first.Value = tt.first
-			first.valueType = tt.firstType
+			first.ValueKind = tt.firstType
 
 			second := NewAddress(0)
 			second.Value = tt.second
-			second.valueType = tt.secondType
+			second.ValueKind = tt.secondType
 
 			got, err := first.Compare(second)
 			if (err != nil) != tt.wantErr {

@@ -27,7 +27,7 @@ func NewList(depth int) *List {
 
 // MarshalJSON -
 func (list *List) MarshalJSON() ([]byte, error) {
-	return marshalJSON(consts.LIST, list.annots, list.Type)
+	return marshalJSON(consts.LIST, list.Annots, list.Type)
 }
 
 // String -
@@ -37,17 +37,17 @@ func (list *List) String() string {
 	s.WriteString(list.Default.String())
 	if len(list.Data) > 0 {
 		for i := range list.Data {
-			s.WriteString(strings.Repeat(consts.DefaultIndent, list.depth))
+			s.WriteString(strings.Repeat(consts.DefaultIndent, list.Depth))
 			s.WriteByte('{')
 			s.WriteByte('\n')
-			s.WriteString(strings.Repeat(consts.DefaultIndent, list.depth+1))
+			s.WriteString(strings.Repeat(consts.DefaultIndent, list.Depth+1))
 			s.WriteString(list.Data[i].String())
-			s.WriteString(strings.Repeat(consts.DefaultIndent, list.depth))
+			s.WriteString(strings.Repeat(consts.DefaultIndent, list.Depth))
 			s.WriteByte('}')
 			s.WriteByte('\n')
 		}
 	} else {
-		s.WriteString(strings.Repeat(consts.DefaultIndent, list.depth))
+		s.WriteString(strings.Repeat(consts.DefaultIndent, list.Depth))
 		s.WriteString(list.Type.String())
 	}
 	return s.String()
@@ -59,7 +59,7 @@ func (list *List) ParseType(node *base.Node, id *int) error {
 		return err
 	}
 
-	typ, err := typingNode(node.Args[0], list.depth, id)
+	typ, err := typingNode(node.Args[0], list.Depth, id)
 	if err != nil {
 		return err
 	}
@@ -77,10 +77,7 @@ func (list *List) ParseValue(node *base.Node) error {
 	list.Data = make([]Node, 0)
 
 	for i := range node.Args {
-		item, err := createByType(list.Type)
-		if err != nil {
-			return err
-		}
+		item := Copy(list.Type)
 		if err := item.ParseValue(node.Args[i]); err != nil {
 			return err
 		}
@@ -158,16 +155,11 @@ func (list *List) FromJSONSchema(data map[string]interface{}) error {
 		if !ok {
 			return errors.Wrap(consts.ErrValidation, "List.FromJSONSchema")
 		}
-		itemTree, err := createByType(list.Type)
-		if err != nil {
+		itemTree := Copy(list.Type)
+		if err := itemTree.FromJSONSchema(item); err != nil {
 			return err
 		}
-		for key := range item {
-			itemMap := item[key].(map[string]interface{})
-			if err := itemTree.FromJSONSchema(itemMap); err != nil {
-				return err
-			}
-		}
+
 		list.Data = append(list.Data, itemTree)
 	}
 	return nil
@@ -245,6 +237,18 @@ func (list *List) Distinguish(x Distinguishable) (*MiguelNode, error) {
 	return node, nil
 }
 
+// EqualType -
+func (list *List) EqualType(node Node) bool {
+	if !list.Default.EqualType(node) {
+		return false
+	}
+	second, ok := node.(*List)
+	if !ok {
+		return false
+	}
+	return list.Type.EqualType(second.Type)
+}
+
 func mergeMatrix(d [][]int, i, j int, first, second []Node) ([]*MiguelNode, error) {
 	children := make([]*MiguelNode, 0)
 	var err error
@@ -257,18 +261,18 @@ func mergeMatrix(d [][]int, i, j int, first, second []Node) ([]*MiguelNode, erro
 			if err != nil {
 				return nil, err
 			}
-			item.DiffType = MiguelKindDelete
+			item.setDiffType(MiguelKindDelete)
 			children = append(children, item)
 		}
 		return children, nil
 	}
 	if j == 0 {
 		for idx := 0; idx < i; idx++ {
-			item, err := second[idx].ToMiguel()
+			item, err := first[idx].ToMiguel()
 			if err != nil {
 				return nil, err
 			}
-			item.DiffType = MiguelKindCreate
+			item.setDiffType(MiguelKindCreate)
 			children = append(children, item)
 		}
 		return children, nil
@@ -283,7 +287,7 @@ func mergeMatrix(d [][]int, i, j int, first, second []Node) ([]*MiguelNode, erro
 			if err != nil {
 				return nil, err
 			}
-			item, err := first[i-1].ToMiguel()
+			item, err := first[i-1].Distinguish(second[j-1])
 			if err != nil {
 				return nil, err
 			}
@@ -293,12 +297,12 @@ func mergeMatrix(d [][]int, i, j int, first, second []Node) ([]*MiguelNode, erro
 			if err != nil {
 				return nil, err
 			}
-			item, err := first[i-1].ToMiguel()
+			item, err := first[i-1].Distinguish(second[j-1])
 			if err != nil {
 				return nil, err
 			}
-			item.DiffType = MiguelKindUpdate
-			item.From = second[j-1].GetValue()
+			item.setDiffType(MiguelKindUpdate)
+			item.From = fmt.Sprintf("%v", second[j-1].GetValue())
 			children = append(children, item)
 		}
 	} else {
@@ -311,7 +315,7 @@ func mergeMatrix(d [][]int, i, j int, first, second []Node) ([]*MiguelNode, erro
 			if err != nil {
 				return nil, err
 			}
-			item.DiffType = MiguelKindDelete
+			item.setDiffType(MiguelKindDelete)
 			children = append(children, item)
 		} else {
 			children, err = mergeMatrix(d, i-1, j, first, second)
@@ -322,7 +326,7 @@ func mergeMatrix(d [][]int, i, j int, first, second []Node) ([]*MiguelNode, erro
 			if err != nil {
 				return nil, err
 			}
-			item.DiffType = MiguelKindCreate
+			item.setDiffType(MiguelKindCreate)
 			children = append(children, item)
 		}
 	}

@@ -72,7 +72,7 @@ func (st *SectionType) String() string {
 
 // MarshalJSON -
 func (st *SectionType) MarshalJSON() ([]byte, error) {
-	return marshalJSON(st.Prim, st.annots, st.Args...)
+	return marshalJSON(st.Prim, st.Annots, st.Args...)
 }
 
 // ParseType -
@@ -101,4 +101,27 @@ func (st *SectionType) ParseValue(node *base.Node) error {
 		}
 	}
 	return nil
+}
+
+// EqualType -
+func (st *SectionType) EqualType(node Node) bool {
+	if !st.Default.EqualType(node) {
+		return false
+	}
+	second, ok := node.(*Parameter)
+	if !ok {
+		return false
+	}
+
+	if len(st.Args) != len(second.Args) {
+		return false
+	}
+
+	for i := range st.Args {
+		if !st.Args[i].EqualType(second.Args[i]) {
+			return false
+		}
+	}
+
+	return true
 }

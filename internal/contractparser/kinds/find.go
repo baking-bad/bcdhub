@@ -1,7 +1,6 @@
 package kinds
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"

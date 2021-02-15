@@ -7,7 +7,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
-	"github.com/tidwall/gjson"
 )
 
 // Contract -
@@ -28,7 +27,7 @@ func NewContract(depth int) *Contract {
 
 // MarshalJSON -
 func (c *Contract) MarshalJSON() ([]byte, error) {
-	return marshalJSON(consts.CONTRACT, c.annots, c.Type)
+	return marshalJSON(consts.CONTRACT, c.Annots, c.Type)
 }
 
 // String -
@@ -36,7 +35,7 @@ func (c *Contract) String() string {
 	var s strings.Builder
 
 	s.WriteString(c.Default.String())
-	s.WriteString(strings.Repeat(consts.DefaultIndent, c.depth))
+	s.WriteString(strings.Repeat(consts.DefaultIndent, c.Depth))
 	s.WriteString(c.Type.String())
 
 	return s.String()
@@ -47,12 +46,31 @@ func (c *Contract) ParseType(node *base.Node, id *int) error {
 	if err := c.Default.ParseType(node, id); err != nil {
 		return err
 	}
-	contractType, err := typingNode(node.Args[0], c.depth, id)
+	contractType, err := typingNode(node.Args[0], c.Depth, id)
 	if err != nil {
 		return err
 	}
 	c.Type = contractType
 	return nil
+}
+
+// ToMiguel -
+func (c *Contract) ToMiguel() (*MiguelNode, error) {
+	name := c.GetTypeName()
+	value := c.Value.(string)
+	if c.ValueKind == valueKindBytes {
+		v, err := fromOptimizedContract(value)
+		if err != nil {
+			return nil, err
+		}
+		value = v
+	}
+	return &MiguelNode{
+		Prim:  c.Prim,
+		Type:  strings.ToLower(c.Prim),
+		Value: value,
+		Name:  &name,
+	}, nil
 }
 
 // ToJSONSchema -
@@ -61,15 +79,14 @@ func (c *Contract) ToJSONSchema() (*JSONSchema, error) {
 		Prim:    c.Prim,
 		Type:    JSONSchemaTypeString,
 		Default: "",
+		Title:   c.GetTypeName(),
 	}
-	// TODO: set tags
-	// tags, err := kinds.CheckParameterForTags(nm.Parameter)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// if len(tags) == 1 {
-	// 	s.Tag = tags[0]
-	// }
+
+	tree := &TypedAst{Nodes: []Node{c.Type}}
+	tags := findViewContractInterfaces(tree)
+	if len(tags) == 1 {
+		s.Tag = tags[0]
+	}
 	return s, nil
 }
 
@@ -82,12 +99,12 @@ func (c *Contract) Docs(inferredName string) ([]Typedef, string, error) {
 		Args: make([]TypedefArg, 0),
 	}
 	if !isSimpleDocType(c.Type.GetPrim()) {
-		b, err := json.Marshal(c.Type)
+		str, err := json.MarshalToString(c.Type)
 		if err != nil {
 			return nil, "", err
 		}
 		paramName := fmt.Sprintf("%s_param", c.GetName())
-		parameter, err := formatter.MichelineToMichelson(gjson.ParseBytes(b), true, formatter.DefLineSize)
+		parameter, err := formatter.MichelineStringToMichelson(str, true, formatter.DefLineSize)
 		if err != nil {
 			return nil, "", err
 		}
@@ -101,4 +118,25 @@ func (c *Contract) Docs(inferredName string) ([]Typedef, string, error) {
 	}
 
 	return nil, typedef.Type, nil
+}
+
+// Distinguish -
+func (c *Contract) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*Contract)
+	if !ok {
+		return nil, nil
+	}
+	return c.Default.Distinguish(&second.Default)
+}
+
+// EqualType -
+func (c *Contract) EqualType(node Node) bool {
+	if !c.Default.EqualType(node) {
+		return false
+	}
+	second, ok := node.(*Contract)
+	if !ok {
+		return false
+	}
+	return c.Type.EqualType(second.Type)
 }

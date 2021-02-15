@@ -16,27 +16,28 @@ type Node interface {
 
 // Type -
 type Type interface {
-	ParseType(node *base.Node, id *int) error
-	GetPrim() string
-	GetName() string
-	GetTypeName() string
-	IsPrim(prim string) bool
-	IsNamed() bool
-	GetEntrypoints() []string
-	ToJSONSchema() (*JSONSchema, error)
 	Docs(inferredName string) ([]Typedef, string, error)
+	EqualType(node Node) bool
 	FindByName(name string) Node
+	GetEntrypoints() []string
+	GetName() string
+	GetPrim() string
+	GetTypeName() string
+	IsNamed() bool
+	IsPrim(prim string) bool
+	ParseType(node *base.Node, id *int) error
+	ToJSONSchema() (*JSONSchema, error)
 }
 
 // Value -
 type Value interface {
-	ParseValue(node *base.Node) error
-	GetValue() interface{}
-	ToMiguel() (*MiguelNode, error)
-	FromJSONSchema(data map[string]interface{}) error
 	EnrichBigMap(bmd []*base.BigMapDiff) error
-	ToParameters() ([]byte, error)
 	Equal(second Node) bool
+	FromJSONSchema(data map[string]interface{}) error
+	GetValue() interface{}
+	ParseValue(node *base.Node) error
+	ToMiguel() (*MiguelNode, error)
+	ToParameters() ([]byte, error)
 
 	Comparable
 	Distinguishable
@@ -54,5 +55,5 @@ type Distinguishable interface {
 
 // Comparable -
 type Comparable interface {
-	Compare(second Comparable) (bool, error)
+	Compare(second Comparable) (int, error)
 }

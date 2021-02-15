@@ -1,10 +1,12 @@
 package kinds
 
 import (
-	"encoding/json"
+	jsoniter "github.com/json-iterator/go"
 
 	"github.com/pkg/errors"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // ContractKind -
 type ContractKind struct {
@@ -37,7 +39,7 @@ func Load(names ...string) (map[string]ContractKind, error) {
 			return nil, errors.Errorf("Invalid interface name: %s", name)
 		}
 		var e []Entrypoint
-		if err := json.Unmarshal([]byte(i.GetJSON()), &e); err != nil {
+		if err := json.UnmarshalFromString(i.GetJSON(), &e); err != nil {
 			return nil, err
 		}
 		interfaces[i.GetName()] = ContractKind{

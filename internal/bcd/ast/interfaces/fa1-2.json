@@ -1,0 +1,90 @@
+{
+    "entrypoints": {
+        "approve": {
+            "prim": "pair",
+            "args": [
+                {
+                    "prim": "address"
+                },
+                {
+                    "prim": "nat"
+                }
+            ]
+        },
+        "getAllowance": {
+            "prim": "pair",
+            "args": [
+                {
+                    "args": [
+                        {
+                            "prim": "address"
+                        },
+                        {
+                            "prim": "address"
+                        }
+                    ],
+                    "prim": "pair"
+                },
+                {
+                    "args": [
+                        {
+                            "prim": "nat"
+                        }
+                    ],
+                    "prim": "contract"
+                }
+            ]
+        },
+        "getBalance": {
+            "prim": "pair",
+            "args": [
+                {
+                    "prim": "address"
+                },
+                {
+                    "args": [
+                        {
+                            "prim": "nat"
+                        }
+                    ],
+                    "prim": "contract"
+                }
+            ]
+        },
+        "getTotalSupply": {
+            "prim": "pair",
+            "args": [
+                {
+                    "prim": "unit"
+                },
+                {
+                    "args": [
+                        {
+                            "prim": "nat"
+                        }
+                    ],
+                    "prim": "contract"
+                }
+            ]
+        },
+        "transfer": {
+            "prim": "pair",
+            "args": [
+                {
+                    "prim": "address"
+                },
+                {
+                    "args": [
+                        {
+                            "prim": "address"
+                        },
+                        {
+                            "prim": "nat"
+                        }
+                    ],
+                    "prim": "pair"
+                }
+            ]
+        }
+    }
+}

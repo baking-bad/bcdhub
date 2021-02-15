@@ -1,9 +1,85 @@
 package ast
 
 import (
+	"reflect"
+	"strings"
+
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 )
+
+type nodeByName []Node
+
+func (n nodeByName) Len() int           { return len(n) }
+func (n nodeByName) Less(i, j int) bool { return n[i].GetName() < n[j].GetName() }
+func (n nodeByName) Swap(i, j int)      { n[i], n[j] = n[j], n[i] }
+
+// Copy -
+func Copy(node Node) Node {
+	el := reflect.ValueOf(node).Elem()
+	t := el.Type()
+
+	obj := reflect.New(t)
+	if obj.Kind() == reflect.Ptr {
+		obj = obj.Elem()
+	}
+	for i := 0; i < t.NumField(); i++ {
+		f := t.Field(i)
+		if !strings.HasSuffix(f.Name, "Type") {
+			fv := obj.FieldByName(f.Name)
+			if fv.CanSet() {
+				val := el.FieldByName(f.Name)
+				switch val.Kind() {
+				case reflect.Slice:
+					sl := reflect.MakeSlice(val.Type(), 0, 0)
+					for i := 0; i < val.Len(); i++ {
+						item := val.Index(i).Interface()
+						if n, ok := item.(Node); ok {
+							sl = reflect.Append(sl, reflect.ValueOf(Copy(n)))
+						} else {
+							sl = reflect.Append(sl, val.Index(i))
+						}
+					}
+					fv.Set(sl)
+				case reflect.Map:
+					fv.Set(reflect.MakeMap(val.Type()))
+				case reflect.Ptr:
+					if i, ok := val.Interface().(Node); ok {
+						fv.Set(reflect.ValueOf(Copy(i)))
+					} else if _, ok := val.Interface().(*OrderedMap); ok {
+						fv.Set(reflect.ValueOf(NewOrderedMap()))
+					} else {
+						fv.Set(val)
+					}
+				case reflect.Struct:
+					s := reflect.New(val.Type()).Elem()
+					for i := 0; i < val.NumField(); i++ {
+						sf := s.Field(i)
+						if sf.CanSet() {
+							sf.Set(val.Field(i))
+						}
+					}
+					fv.Set(s)
+				case reflect.Interface:
+					if i, ok := val.Interface().(Node); ok {
+						fv.Set(reflect.ValueOf(Copy(i)))
+					} else {
+						fv.Set(val)
+					}
+				default:
+					fv.Set(reflect.New(val.Type()).Elem())
+				}
+			}
+			continue
+		}
+		val := el.FieldByName(f.Name)
+		copyVal := Copy(val.Interface().(Node))
+		fv := obj.FieldByName(f.Name)
+		fv.Set(reflect.ValueOf(copyVal))
+	}
+
+	return obj.Addr().Interface().(Node)
+}
 
 func toBaseNodeInt(val *base.BigInt) *base.Node {
 	return &base.Node{
@@ -23,18 +99,25 @@ func toBaseNodeBytes(val string) *base.Node {
 	}
 }
 
-func mapToBaseNodes(data map[Node]Node, optimized bool) (*base.Node, error) {
+func mapToBaseNodes(data *OrderedMap, optimized bool) (*base.Node, error) {
+	if data == nil {
+		return nil, nil
+	}
 	node := new(base.Node)
 	node.Prim = consts.PrimArray
 	node.Args = make([]*base.Node, 0)
-	for key, value := range data {
+
+	err := data.Range(func(key, value Node) (bool, error) {
 		keyNode, err := key.ToBaseNode(optimized)
 		if err != nil {
-			return nil, err
+			return true, err
 		}
-		valueNode, err := value.ToBaseNode(optimized)
-		if err != nil {
-			return nil, err
+		var valueNode *base.Node
+		if value != nil {
+			valueNode, err = value.ToBaseNode(optimized)
+			if err != nil {
+				return true, err
+			}
 		}
 		node.Args = append(node.Args, &base.Node{
 			Prim: consts.Elt,
@@ -42,8 +125,9 @@ func mapToBaseNodes(data map[Node]Node, optimized bool) (*base.Node, error) {
 				keyNode, valueNode,
 			},
 		})
-	}
-	return node, nil
+		return false, nil
+	})
+	return node, err
 }
 
 func arrayToBaseNode(data []Node, optimized bool) (*base.Node, error) {

@@ -1,0 +1,8 @@
+{
+    "entrypoints": {
+        "default": {
+            "prim": "address"
+        }
+    },
+    "is_root": true
+}

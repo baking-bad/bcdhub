@@ -8,7 +8,7 @@ const (
 )
 
 const (
-	valueTypeString = iota
-	valueTypeBytes
-	valueTypeInt
+	valueKindString = iota + 1
+	valueKindBytes
+	valueKindInt
 )

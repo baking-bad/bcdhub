@@ -9,8 +9,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// TODO: temporary pointers
-
 // BigMap -
 type BigMap struct {
 	Default
@@ -18,7 +16,7 @@ type BigMap struct {
 	KeyType   Node
 	ValueType Node
 
-	Data map[Node]Node
+	Data *OrderedMap
 	Ptr  *int64
 }
 
@@ -26,7 +24,7 @@ type BigMap struct {
 func NewBigMap(depth int) *BigMap {
 	return &BigMap{
 		Default: NewDefault(consts.BIGMAP, 2, depth),
-		Data:    make(map[Node]Node),
+		Data:    NewOrderedMap(),
 	}
 }
 
@@ -37,25 +35,26 @@ func (m *BigMap) String() string {
 	s.WriteString(m.Default.String())
 	switch {
 	case m.Ptr != nil:
-		s.WriteString(strings.Repeat(consts.DefaultIndent, m.depth))
+		s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth))
 		s.WriteString(fmt.Sprintf("Ptr=%d\n", *m.Ptr))
-	case len(m.Data) > 0:
-		for key, val := range m.Data {
-			s.WriteString(strings.Repeat(consts.DefaultIndent, m.depth))
+	case m.Data.Len() > 0:
+		m.Data.Range(func(key, val Node) (bool, error) {
+			s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth))
 			s.WriteByte('{')
 			s.WriteByte('\n')
-			s.WriteString(strings.Repeat(consts.DefaultIndent, m.depth+1))
+			s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth+1))
 			s.WriteString(key.String())
-			s.WriteString(strings.Repeat(consts.DefaultIndent, m.depth+1))
+			s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth+1))
 			s.WriteString(val.String())
-			s.WriteString(strings.Repeat(consts.DefaultIndent, m.depth))
+			s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth))
 			s.WriteByte('}')
 			s.WriteByte('\n')
-		}
+			return false, nil
+		})
 	default:
-		s.WriteString(strings.Repeat(consts.DefaultIndent, m.depth))
+		s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth))
 		s.WriteString(m.KeyType.String())
-		s.WriteString(strings.Repeat(consts.DefaultIndent, m.depth))
+		s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth))
 		s.WriteString(m.ValueType.String())
 	}
 
@@ -64,7 +63,7 @@ func (m *BigMap) String() string {
 
 // MarshalJSON -
 func (m *BigMap) MarshalJSON() ([]byte, error) {
-	return marshalJSON(consts.BIGMAP, m.annots, m.KeyType, m.ValueType)
+	return marshalJSON(consts.BIGMAP, m.Annots, m.KeyType, m.ValueType)
 }
 
 // ParseType -
@@ -73,13 +72,13 @@ func (m *BigMap) ParseType(node *base.Node, id *int) error {
 		return err
 	}
 
-	keyType, err := typingNode(node.Args[0], m.depth, id)
+	keyType, err := typingNode(node.Args[0], m.Depth, id)
 	if err != nil {
 		return err
 	}
 	m.KeyType = keyType
 
-	valType, err := typingNode(node.Args[1], m.depth, id)
+	valType, err := typingNode(node.Args[1], m.Depth, id)
 	if err != nil {
 		return err
 	}
@@ -91,15 +90,16 @@ func (m *BigMap) ParseType(node *base.Node, id *int) error {
 // ParseValue -
 func (m *BigMap) ParseValue(node *base.Node) error {
 	switch {
-	case node.IntValue != nil:
-		ptr := node.IntValue.Int64()
-		m.Ptr = &ptr
 	case node.Prim == consts.PrimArray:
 		data, err := createMapFromElts(node.Args, m.KeyType, m.ValueType)
 		if err != nil {
 			return err
 		}
-		m.Data = data
+		return m.Data.fillFromMap(data)
+	case node.IntValue != nil:
+		ptr := node.IntValue.Int64()
+		// m.Data = make(map[Node]Node)
+		m.Ptr = &ptr
 	default:
 		return errors.Wrap(consts.ErrInvalidPrim, fmt.Sprintf("BigMap.ParseValue (%s)", node.Prim))
 	}
@@ -119,54 +119,102 @@ func (m *BigMap) ToMiguel() (*MiguelNode, error) {
 		return node, nil
 	default:
 		node.Children = make([]*MiguelNode, 0)
-		for key, value := range m.Data {
+		handler := func(key, value Node) (bool, error) {
 			keyChild, err := key.ToMiguel()
 			if err != nil {
-				return nil, err
+				return true, err
 			}
-			if keyChild != nil {
+			if value != nil {
 				child, err := value.ToMiguel()
 				if err != nil {
-					return nil, err
+					return true, err
 				}
 
 				name, err := getMapKeyName(keyChild)
 				if err != nil {
-					return nil, err
+					return true, err
 				}
 				child.Name = &name
 				node.Children = append(node.Children, child)
 			}
+			return false, nil
 		}
 
-		return node, nil
+		err = m.Data.Range(handler)
+		return node, err
 	}
 
 }
 
 // ToBaseNode -
 func (m *BigMap) ToBaseNode(optimized bool) (*base.Node, error) {
+	if m.Data.Len() > 0 {
+		return mapToBaseNodes(m.Data, optimized)
+	}
 	if m.Ptr != nil {
 		return toBaseNodeInt(base.NewBigInt(*m.Ptr)), nil
 	}
-
-	return mapToBaseNodes(m.Data, optimized)
+	return nil, nil
 }
 
 // ToJSONSchema -
 func (m *BigMap) ToJSONSchema() (*JSONSchema, error) {
-	i := getIntJSONSchema(m.Default)
-	i.Title = fmt.Sprintf("%s (ptr)", m.GetName())
-	return i, nil
+	s := &JSONSchema{
+		Type:    JSONSchemaTypeArray,
+		Title:   m.GetName(),
+		Default: make([]interface{}, 0),
+		Items: &SchemaKey{
+			Type:       JSONSchemaTypeObject,
+			Required:   make([]string, 0),
+			Properties: make(map[string]*JSONSchema),
+		},
+	}
+
+	if err := setChildSchemaForMap(m.KeyType, true, true, s); err != nil {
+		return nil, err
+	}
+
+	if err := setChildSchemaForMap(m.ValueType, true, false, s); err != nil {
+		return nil, err
+	}
+
+	return wrapObject(s), nil
 }
 
 // FromJSONSchema -
 func (m *BigMap) FromJSONSchema(data map[string]interface{}) error {
+	m.Data = NewOrderedMap()
+	var arr []interface{}
 	for key := range data {
-		if key == fmt.Sprintf("%s (ptr)", m.GetName()) {
-			i := data[key].(int64)
-			m.Ptr = &i
+		if key == m.GetName() {
+			val := data[key]
+			arrVal, ok := val.([]interface{})
+			if !ok {
+				return errors.Wrapf(consts.ErrInvalidType, "BigMap.FromJSONSchema %T", val)
+			}
+			arr = arrVal
 			break
+		}
+	}
+	if arr == nil {
+		return errors.Wrap(consts.ErrJSONDataIsAbsent, "BigMap.FromJSONSchema")
+	}
+
+	for i := range arr {
+		item, ok := arr[i].(map[string]interface{})
+		if !ok {
+			return errors.Wrap(consts.ErrValidation, "BigMap.FromJSONSchema")
+		}
+		keyTree := Copy(m.KeyType)
+		if err := keyTree.FromJSONSchema(item); err != nil {
+			return err
+		}
+		valTree := Copy(m.ValueType)
+		if err := valTree.FromJSONSchema(item); err != nil {
+			return err
+		}
+		if err := m.Data.Add(keyTree, valTree); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -184,7 +232,9 @@ func (m *BigMap) EnrichBigMap(bmd []*base.BigMapDiff) error {
 			if err != nil {
 				return err
 			}
-			m.Data[key] = val
+			if err := m.Data.Add(key, val); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -192,10 +242,13 @@ func (m *BigMap) EnrichBigMap(bmd []*base.BigMapDiff) error {
 
 // ToParameters -
 func (m *BigMap) ToParameters() ([]byte, error) {
+	if m.Data.Len() > 0 {
+		return buildMapParameters(m.Data)
+	}
 	if m.Ptr != nil {
 		return []byte(fmt.Sprintf(`{"int":"%d"}`, *m.Ptr)), nil
 	}
-	return buildMapParameters(m.Data)
+	return nil, nil
 }
 
 // FindByName -
@@ -211,10 +264,7 @@ func (m *BigMap) FindByName(name string) Node {
 }
 
 func (m *BigMap) makeNodeFromBytes(typ Node, data []byte) (Node, error) {
-	value, err := createByType(typ)
-	if err != nil {
-		return nil, err
-	}
+	value := Copy(typ)
 	var node base.Node
 	if err := json.Unmarshal(data, &node); err != nil {
 		return nil, err
@@ -240,18 +290,22 @@ func (m *BigMap) Docs(inferredName string) ([]Typedef, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	typedef.Args = append(typedef.Args, TypedefArg{Key: keyDocs[0].Name, Value: keyVarName})
 
 	valDocs, valVarName, err := m.ValueType.Docs(fmt.Sprintf("%s_value", typedef.Name))
 	if err != nil {
 		return nil, "", err
 	}
-	typedef.Args = append(typedef.Args, TypedefArg{Key: valDocs[0].Name, Value: valVarName})
 
 	typedef.Type = fmt.Sprintf("big_map(%s, %s)", keyVarName, valVarName)
 	result := []Typedef{typedef}
-	result = append(result, keyDocs...)
-	result = append(result, valDocs...)
+	if strings.HasPrefix(keyVarName, "$") {
+		typedef.Args = append(typedef.Args, TypedefArg{Key: keyDocs[0].Name, Value: keyVarName})
+		result = append(result, keyDocs...)
+	}
+	if strings.HasPrefix(valVarName, "$") {
+		typedef.Args = append(typedef.Args, TypedefArg{Key: valDocs[0].Name, Value: valVarName})
+		result = append(result, valDocs...)
+	}
 
 	return result, typedef.Type, nil
 }
@@ -267,37 +321,85 @@ func (m *BigMap) Distinguish(x Distinguishable) (*MiguelNode, error) {
 	node.Prim = m.Prim
 	node.Type = m.Prim
 	node.Name = &name
+	if m.Ptr != nil {
+		node.Value = m.Ptr
+	}
 	node.Children = make([]*MiguelNode, 0)
 
-	for key, value := range m.Data {
-		val, ok := getFromMapByKey(key, second.Data)
+	err := m.Data.Range(func(key, value Node) (bool, error) {
+		keyChild, err := key.ToMiguel()
+		if err != nil {
+			return true, err
+		}
+		name, err := getMapKeyName(keyChild)
+		if err != nil {
+			return true, err
+		}
+
+		val, ok := second.Data.Get(key)
 		if !ok {
 			child, err := value.ToMiguel()
 			if err != nil {
-				return nil, err
+				return true, err
 			}
-			child.DiffType = MiguelKindDelete
+			child.setDiffType(MiguelKindCreate)
+			child.Name = &name
 			node.Children = append(node.Children, child)
-			continue
+			return false, nil
 		}
 
 		child, err := value.Distinguish(val)
 		if err != nil {
-			return nil, err
+			return true, err
 		}
+		child.Name = &name
 		node.Children = append(node.Children, child)
+		return false, nil
+	})
+	if err != nil {
+		return nil, err
 	}
 
-	for key, value := range second.Data {
-		if _, ok := getFromMapByKey(key, m.Data); !ok {
+	err = second.Data.Range(func(key, value Node) (bool, error) {
+		if _, ok := m.Data.Get(key); !ok {
 			child, err := value.ToMiguel()
 			if err != nil {
-				return nil, err
+				return true, err
 			}
-			child.DiffType = MiguelKindCreate
+			keyChild, err := key.ToMiguel()
+			if err != nil {
+				return true, err
+			}
+			name, err := getMapKeyName(keyChild)
+			if err != nil {
+				return true, err
+			}
+			child.setDiffType(MiguelKindDelete)
+			child.Name = &name
 			node.Children = append(node.Children, child)
 		}
+		return false, nil
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return node, nil
+}
+
+// EqualType -
+func (m *BigMap) EqualType(node Node) bool {
+	if !m.Default.EqualType(node) {
+		return false
+	}
+	second, ok := node.(*BigMap)
+	if !ok {
+		return false
+	}
+
+	if !m.KeyType.EqualType(second.KeyType) {
+		return false
+	}
+
+	return m.ValueType.EqualType(second.ValueType)
 }

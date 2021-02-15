@@ -30,8 +30,8 @@ func (ss *SaplingState) MarshalJSON() ([]byte, error) {
 	builder.WriteString(`{"prim": "sapling_state", "args":[`)
 	builder.WriteString(fmt.Sprintf(`{"int": "%d"}`, ss.MemoSize))
 	builder.WriteByte(']')
-	if len(ss.annots) > 0 {
-		if _, err := builder.WriteString(fmt.Sprintf(`, "annots": ["%s"]`, strings.Join(ss.annots, `","`))); err != nil {
+	if len(ss.Annots) > 0 {
+		if _, err := builder.WriteString(fmt.Sprintf(`, "annots": ["%s"]`, strings.Join(ss.Annots, `","`))); err != nil {
 			return nil, err
 		}
 	}
@@ -42,9 +42,9 @@ func (ss *SaplingState) MarshalJSON() ([]byte, error) {
 // String -
 func (ss *SaplingState) String() string {
 	var s strings.Builder
-	s.WriteString(fmt.Sprintf("[%d] %s memo_size=%d\n", ss.id, ss.Prim, ss.MemoSize))
+	s.WriteString(fmt.Sprintf("[%d] %s memo_size=%d\n", ss.ID, ss.Prim, ss.MemoSize))
 	if ss.Type.Value != nil {
-		s.WriteString(strings.Repeat(consts.DefaultIndent, ss.depth))
+		s.WriteString(strings.Repeat(consts.DefaultIndent, ss.Depth))
 		s.WriteString(fmt.Sprintf("Int=%d", ss.Type.Value))
 	}
 	return s.String()
@@ -97,4 +97,26 @@ func (ss *SaplingState) Docs(inferredName string) ([]Typedef, string, error) {
 			Type: fmt.Sprintf("%s(%d)", ss.Prim, ss.MemoSize),
 		},
 	}, ss.Prim, nil
+}
+
+// Distinguish -
+func (ss *SaplingState) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*SaplingState)
+	if !ok {
+		return nil, nil
+	}
+	return ss.Default.Distinguish(&second.Default)
+}
+
+// EqualType -
+func (ss *SaplingState) EqualType(node Node) bool {
+	if !ss.Default.EqualType(node) {
+		return false
+	}
+	second, ok := node.(*SaplingState)
+	if !ok {
+		return false
+	}
+
+	return ss.Type.EqualType(&second.Type)
 }

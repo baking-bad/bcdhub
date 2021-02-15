@@ -1,5 +1,7 @@
 package ast
 
+import "github.com/baking-bad/bcdhub/internal/bcd/base"
+
 // Schema types
 const (
 	JSONSchemaTypeInt    = "integer"
@@ -58,6 +60,51 @@ func getAddressJSONSchema(d Default) *JSONSchema {
 		Default:   "",
 		Title:     d.GetName(),
 	})
+}
+
+func setIntJSONSchema(d *Default, data map[string]interface{}) {
+	for key := range data {
+		if key == d.GetName() {
+			f := data[key].(float64)
+			d.Value = base.NewBigInt(int64(f))
+			d.ValueKind = valueKindInt
+			break
+		}
+	}
+}
+
+func setStringJSONSchema(d *Default, data map[string]interface{}) {
+	for key := range data {
+		if key == d.GetName() {
+			d.Value = data[key]
+			d.ValueKind = valueKindString
+			break
+		}
+	}
+}
+
+func setBytesJSONSchema(d *Default, data map[string]interface{}) {
+	for key := range data {
+		if key == d.GetName() {
+			d.Value = data[key]
+			d.ValueKind = valueKindBytes
+			break
+		}
+	}
+}
+
+func setOptimizedJSONSchema(d *Default, data map[string]interface{}, optimizer func(string) (string, error)) {
+	for key, value := range data {
+		if key == d.GetName() {
+			val, err := optimizer(value.(string))
+			if err != nil {
+				val = value.(string)
+			}
+			d.ValueKind = valueKindString
+			d.Value = val
+			break
+		}
+	}
 }
 
 type mergeFields struct {

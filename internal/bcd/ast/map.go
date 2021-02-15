@@ -15,13 +15,14 @@ type Map struct {
 	KeyType   Node
 	ValueType Node
 
-	Data map[Node]Node
+	Data *OrderedMap
 }
 
 // NewMap -
 func NewMap(depth int) *Map {
 	return &Map{
 		Default: NewDefault(consts.MAP, 2, depth),
+		Data:    NewOrderedMap(),
 	}
 }
 
@@ -30,23 +31,24 @@ func (m *Map) String() string {
 	var s strings.Builder
 
 	s.WriteString(m.Default.String())
-	if len(m.Data) > 0 {
-		for key, val := range m.Data {
-			s.WriteString(strings.Repeat(consts.DefaultIndent, m.depth))
+	if m.Data.Len() > 0 {
+		m.Data.Range(func(key, val Node) (bool, error) {
+			s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth))
 			s.WriteByte('{')
 			s.WriteByte('\n')
-			s.WriteString(strings.Repeat(consts.DefaultIndent, m.depth+1))
+			s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth+1))
 			s.WriteString(key.String())
-			s.WriteString(strings.Repeat(consts.DefaultIndent, m.depth+1))
+			s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth+1))
 			s.WriteString(val.String())
-			s.WriteString(strings.Repeat(consts.DefaultIndent, m.depth))
+			s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth))
 			s.WriteByte('}')
 			s.WriteByte('\n')
-		}
+			return false, nil
+		})
 	} else {
-		s.WriteString(strings.Repeat(consts.DefaultIndent, m.depth))
+		s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth))
 		s.WriteString(m.KeyType.String())
-		s.WriteString(strings.Repeat(consts.DefaultIndent, m.depth))
+		s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth))
 		s.WriteString(m.ValueType.String())
 	}
 
@@ -55,7 +57,7 @@ func (m *Map) String() string {
 
 // MarshalJSON -
 func (m *Map) MarshalJSON() ([]byte, error) {
-	return marshalJSON(consts.MAP, m.annots, m.KeyType, m.ValueType)
+	return marshalJSON(consts.MAP, m.Annots, m.KeyType, m.ValueType)
 }
 
 // ParseType -
@@ -64,13 +66,13 @@ func (m *Map) ParseType(node *base.Node, id *int) error {
 		return err
 	}
 
-	keyType, err := typingNode(node.Args[0], m.depth, id)
+	keyType, err := typingNode(node.Args[0], m.Depth, id)
 	if err != nil {
 		return err
 	}
 	m.KeyType = keyType
 
-	valType, err := typingNode(node.Args[1], m.depth, id)
+	valType, err := typingNode(node.Args[1], m.Depth, id)
 	if err != nil {
 		return err
 	}
@@ -89,9 +91,7 @@ func (m *Map) ParseValue(node *base.Node) error {
 	if err != nil {
 		return err
 	}
-	m.Data = data
-
-	return nil
+	return m.Data.fillFromMap(data)
 }
 
 // ToMiguel -
@@ -102,27 +102,30 @@ func (m *Map) ToMiguel() (*MiguelNode, error) {
 	}
 
 	node.Children = make([]*MiguelNode, 0)
-	for key, value := range m.Data {
+
+	handler := func(key, value Node) (bool, error) {
 		keyChild, err := key.ToMiguel()
 		if err != nil {
-			return nil, err
+			return true, err
 		}
-		if keyChild != nil {
+		if value != nil {
 			child, err := value.ToMiguel()
 			if err != nil {
-				return nil, err
+				return true, err
 			}
 
 			name, err := getMapKeyName(keyChild)
 			if err != nil {
-				return nil, err
+				return true, err
 			}
 			child.Name = &name
 			node.Children = append(node.Children, child)
 		}
+		return false, nil
 	}
 
-	return node, nil
+	err = m.Data.Range(handler)
+	return node, err
 }
 
 // ToBaseNode -
@@ -156,6 +159,7 @@ func (m *Map) ToJSONSchema() (*JSONSchema, error) {
 
 // FromJSONSchema -
 func (m *Map) FromJSONSchema(data map[string]interface{}) error {
+	m.Data = NewOrderedMap()
 	var arr []interface{}
 	for key := range data {
 		if key == m.GetName() {
@@ -177,38 +181,32 @@ func (m *Map) FromJSONSchema(data map[string]interface{}) error {
 		if !ok {
 			return errors.Wrap(consts.ErrValidation, "Map.FromJSONSchema")
 		}
-		keyTree, err := createByType(m.KeyType)
-		if err != nil {
+		keyTree := Copy(m.KeyType)
+		if err := keyTree.FromJSONSchema(item); err != nil {
 			return err
 		}
-		valTree, err := createByType(m.ValueType)
-		if err != nil {
+		valTree := Copy(m.ValueType)
+		if err := valTree.FromJSONSchema(item); err != nil {
 			return err
 		}
-		for key := range item {
-			itemMap := item[key].(map[string]interface{})
-			if err := keyTree.FromJSONSchema(itemMap); err != nil {
-				if err := valTree.FromJSONSchema(itemMap); err != nil {
-					return err
-				}
-			}
+		if err := m.Data.Add(keyTree, valTree); err != nil {
+			return err
 		}
-		m.Data[keyTree] = valTree
 	}
 	return nil
 }
 
 // EnrichBigMap -
 func (m *Map) EnrichBigMap(bmd []*base.BigMapDiff) error {
-	for key, value := range m.Data {
+	return m.Data.Range(func(key, value Node) (bool, error) {
 		if err := key.EnrichBigMap(bmd); err != nil {
-			return err
+			return true, err
 		}
 		if err := value.EnrichBigMap(bmd); err != nil {
-			return err
+			return true, err
 		}
-	}
-	return nil
+		return false, nil
+	})
 }
 
 // ToParameters -
@@ -273,37 +271,82 @@ func (m *Map) Distinguish(x Distinguishable) (*MiguelNode, error) {
 	node.Name = &name
 	node.Children = make([]*MiguelNode, 0)
 
-	for key, value := range m.Data {
-		val, ok := getFromMapByKey(key, second.Data)
+	err := m.Data.Range(func(key, value Node) (bool, error) {
+		keyChild, err := key.ToMiguel()
+		if err != nil {
+			return true, err
+		}
+		name, err := getMapKeyName(keyChild)
+		if err != nil {
+			return true, err
+		}
+
+		val, ok := second.Data.Get(key)
 		if !ok {
 			child, err := value.ToMiguel()
 			if err != nil {
-				return nil, err
+				return true, err
 			}
-			child.DiffType = MiguelKindDelete
+			child.setDiffType(MiguelKindCreate)
+			child.Name = &name
 			node.Children = append(node.Children, child)
-			continue
+			return false, nil
 		}
 
 		child, err := value.Distinguish(val)
 		if err != nil {
-			return nil, err
+			return true, err
 		}
+		child.Name = &name
 		node.Children = append(node.Children, child)
+		return false, nil
+	})
+	if err != nil {
+		return nil, err
 	}
 
-	for key, value := range second.Data {
-		if _, ok := getFromMapByKey(key, m.Data); !ok {
+	err = second.Data.Range(func(key, value Node) (bool, error) {
+		if _, ok := m.Data.Get(key); !ok {
 			child, err := value.ToMiguel()
 			if err != nil {
-				return nil, err
+				return true, err
 			}
-			child.DiffType = MiguelKindCreate
+			keyChild, err := key.ToMiguel()
+			if err != nil {
+				return true, err
+			}
+			name, err := getMapKeyName(keyChild)
+			if err != nil {
+				return true, err
+			}
+			child.setDiffType(MiguelKindDelete)
+			child.Name = &name
 			node.Children = append(node.Children, child)
 		}
+		return false, nil
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return node, nil
+}
+
+// EqualType -
+func (m *Map) EqualType(node Node) bool {
+	if !m.Default.EqualType(node) {
+		return false
+	}
+	second, ok := node.(*Map)
+	if !ok {
+		return false
+	}
+
+	if !m.KeyType.EqualType(second.KeyType) {
+		return false
+	}
+
+	return m.ValueType.EqualType(second.ValueType)
 }
 
 func getFromMapByKey(key Node, m map[Node]Node) (Node, bool) {
@@ -312,7 +355,7 @@ func getFromMapByKey(key Node, m map[Node]Node) (Node, bool) {
 		if err != nil {
 			return nil, false
 		}
-		if !ok {
+		if ok != 0 {
 			continue
 		}
 		return secondValue, true
@@ -326,27 +369,23 @@ func createMapFromElts(args []*base.Node, keyType, valueType Node) (map[Node]Nod
 	for i := range args {
 		elt := args[i]
 		if elt.Prim != consts.Elt {
-			return nil, errors.Wrap(consts.ErrInvalidPrim, "BigMap.ParseValue")
+			return nil, errors.Wrap(consts.ErrInvalidPrim, "createMapFromElts")
 		}
 		if len(elt.Args) != 2 {
-			return nil, errors.Wrap(consts.ErrInvalidArgsCount, "BigMap.ParseValue")
-		}
-		key, err := createByType(keyType)
-		if err != nil {
-			return nil, err
-		}
-		if err := key.ParseValue(elt.Args[0]); err != nil {
-			return nil, err
-		}
-		val, err := createByType(valueType)
-		if err != nil {
-			return nil, err
-		}
-		if err := val.ParseValue(elt.Args[1]); err != nil {
-			return nil, err
+			return nil, errors.Wrap(consts.ErrInvalidArgsCount, "createMapFromElts")
 		}
 
-		data[key] = val
+		if elt.Args[1] != nil {
+			key := Copy(keyType)
+			if err := key.ParseValue(elt.Args[0]); err != nil {
+				return nil, err
+			}
+			val := Copy(valueType)
+			if err := val.ParseValue(elt.Args[1]); err != nil {
+				return nil, err
+			}
+			data[key] = val
+		}
 	}
 	return data, nil
 }

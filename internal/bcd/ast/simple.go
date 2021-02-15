@@ -3,6 +3,7 @@ package ast
 import (
 	"encoding/hex"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
@@ -27,15 +28,33 @@ func NewUnit(depth int) *Unit {
 	}
 }
 
+// ToBaseNode -
+func (u *Unit) ToBaseNode(optimized bool) (*base.Node, error) {
+	return &base.Node{
+		Prim: consts.Unit,
+	}, nil
+}
+
 // ToParameters -
 func (u *Unit) ToParameters() ([]byte, error) {
 	return []byte(`{"prim":"Unit"}`), nil
 }
 
 // Compare -
-func (u *Unit) Compare(second Comparable) (bool, error) {
-	_, ok := second.(*Unit)
-	return ok, nil
+func (u *Unit) Compare(second Comparable) (int, error) {
+	if _, ok := second.(*Unit); !ok {
+		return 0, consts.ErrTypeIsNotComparable
+	}
+	return 0, nil
+}
+
+// Distinguish -
+func (u *Unit) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	s, ok := x.(*Unit)
+	if !ok {
+		return nil, nil
+	}
+	return s.Default.Distinguish(&s.Default)
 }
 
 //
@@ -60,12 +79,21 @@ func (s *String) ToJSONSchema() (*JSONSchema, error) {
 }
 
 // Compare -
-func (s *String) Compare(second Comparable) (bool, error) {
+func (s *String) Compare(second Comparable) (int, error) {
 	secondItem, ok := second.(*String)
 	if !ok {
-		return false, nil
+		return 0, consts.ErrTypeIsNotComparable
 	}
-	return s.Value == secondItem.Value, nil
+	return strings.Compare(s.Value.(string), secondItem.Value.(string)), nil
+}
+
+// Distinguish -
+func (s *String) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*String)
+	if !ok {
+		return nil, nil
+	}
+	return s.Default.Distinguish(&second.Default)
 }
 
 //
@@ -90,12 +118,27 @@ func (i *Int) ToJSONSchema() (*JSONSchema, error) {
 }
 
 // Compare -
-func (i *Int) Compare(second Comparable) (bool, error) {
+func (i *Int) Compare(second Comparable) (int, error) {
 	secondItem, ok := second.(*Int)
 	if !ok {
-		return false, nil
+		return 0, consts.ErrTypeIsNotComparable
 	}
 	return compareBigInt(i.Default, secondItem.Default), nil
+}
+
+// Distinguish -
+func (i *Int) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*Int)
+	if !ok {
+		return nil, nil
+	}
+	return i.Default.Distinguish(&second.Default)
+}
+
+// FromJSONSchema -
+func (i *Int) FromJSONSchema(data map[string]interface{}) error {
+	setIntJSONSchema(&i.Default, data)
+	return nil
 }
 
 //
@@ -120,12 +163,27 @@ func (n *Nat) ToJSONSchema() (*JSONSchema, error) {
 }
 
 // Compare -
-func (n *Nat) Compare(second Comparable) (bool, error) {
+func (n *Nat) Compare(second Comparable) (int, error) {
 	secondItem, ok := second.(*Nat)
 	if !ok {
-		return false, nil
+		return 0, consts.ErrTypeIsNotComparable
 	}
 	return compareBigInt(n.Default, secondItem.Default), nil
+}
+
+// Distinguish -
+func (n *Nat) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*Nat)
+	if !ok {
+		return nil, nil
+	}
+	return n.Default.Distinguish(&second.Default)
+}
+
+// FromJSONSchema -
+func (n *Nat) FromJSONSchema(data map[string]interface{}) error {
+	setIntJSONSchema(&n.Default, data)
+	return nil
 }
 
 //
@@ -150,12 +208,27 @@ func (m *Mutez) ToJSONSchema() (*JSONSchema, error) {
 }
 
 // Compare -
-func (m *Mutez) Compare(second Comparable) (bool, error) {
+func (m *Mutez) Compare(second Comparable) (int, error) {
 	secondItem, ok := second.(*Mutez)
 	if !ok {
-		return false, nil
+		return 0, consts.ErrTypeIsNotComparable
 	}
 	return compareBigInt(m.Default, secondItem.Default), nil
+}
+
+// Distinguish -
+func (m *Mutez) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*Mutez)
+	if !ok {
+		return nil, nil
+	}
+	return m.Default.Distinguish(&second.Default)
+}
+
+// FromJSONSchema -
+func (m *Mutez) FromJSONSchema(data map[string]interface{}) error {
+	setIntJSONSchema(&m.Default, data)
+	return nil
 }
 
 //
@@ -207,12 +280,36 @@ func (b *Bool) ToJSONSchema() (*JSONSchema, error) {
 }
 
 // Compare -
-func (b *Bool) Compare(second Comparable) (bool, error) {
+func (b *Bool) Compare(second Comparable) (int, error) {
 	secondItem, ok := second.(*Bool)
 	if !ok {
-		return false, nil
+		return 0, consts.ErrTypeIsNotComparable
 	}
-	return b.Value == secondItem.Value, nil
+	switch {
+	case b.Value == secondItem.Value:
+		return 0, nil
+	case b.Value:
+		return 1, nil
+	default:
+		return -1, nil
+	}
+}
+
+// Distinguish -
+func (b *Bool) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*Bool)
+	if !ok {
+		return nil, nil
+	}
+	return b.Default.Distinguish(&second.Default)
+}
+
+// ToParameters -
+func (b *Bool) ToParameters() ([]byte, error) {
+	if v, ok := b.Value.(bool); ok && v {
+		return []byte(`{"prim":"True"}`), nil
+	}
+	return []byte(`{"prim":"False"}`), nil
 }
 
 //
@@ -260,11 +357,44 @@ func (t *Timestamp) ToBaseNode(optimized bool) (*base.Node, error) {
 			return toBaseNodeInt(val), nil
 		}
 		val := ts.UTC().Format(time.RFC3339)
-		return toBaseNodeBytes(val), nil
+		return toBaseNodeString(val), nil
 	case string:
 		return toBaseNodeString(ts), nil
 	}
 	return nil, errors.Errorf("Invalid timestamp type")
+}
+
+// FromJSONSchema -
+func (t *Timestamp) FromJSONSchema(data map[string]interface{}) error {
+	for key := range data {
+		if key == t.GetName() {
+			t.ValueKind = valueKindInt
+			switch val := data[key].(type) {
+			case string:
+				ts, err := time.Parse(time.RFC3339, val)
+				if err != nil {
+					return err
+				}
+				t.Value = base.NewBigInt(ts.UTC().Unix())
+			case float64:
+				t.Value = base.NewBigInt(int64(val))
+			}
+			break
+		}
+	}
+	return nil
+}
+
+// ToParameters -
+func (t *Timestamp) ToParameters() ([]byte, error) {
+	switch ts := t.Value.(type) {
+	case time.Time:
+		return []byte(fmt.Sprintf(`{"int":"%d"}`, ts.UTC().Unix())), nil
+	case *base.BigInt:
+		return []byte(fmt.Sprintf(`{"int":"%d"}`, ts.Int64())), nil
+	default:
+		return nil, errors.Wrapf(base.ErrInvalidType, "Timestamp.ToParameters: %T", t.Value)
+	}
 }
 
 // ToJSONSchema -
@@ -279,17 +409,32 @@ func (t *Timestamp) ToJSONSchema() (*JSONSchema, error) {
 }
 
 // Compare -
-func (t *Timestamp) Compare(second Comparable) (bool, error) {
+func (t *Timestamp) Compare(second Comparable) (int, error) {
 	secondItem, ok := second.(*Timestamp)
 	if !ok {
-		return false, nil
+		return 0, consts.ErrTypeIsNotComparable
 	}
 	ts := t.Value.(time.Time)
 	ts2 := secondItem.Value.(time.Time)
-	return ts.Equal(ts2), nil
+	switch {
+	case ts.Equal(ts2):
+		return 0, nil
+	case ts.Before(ts2):
+		return -1, nil
+	default:
+		return 1, nil
+	}
 }
 
-//
+// Distinguish -
+func (t *Timestamp) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*Timestamp)
+	if !ok {
+		return nil, nil
+	}
+	return t.Default.Distinguish(&second.Default)
+}
+
 //  BYTES
 //
 
@@ -311,12 +456,27 @@ func (b *Bytes) ToJSONSchema() (*JSONSchema, error) {
 }
 
 // Compare -
-func (b *Bytes) Compare(second Comparable) (bool, error) {
-	secondAddress, ok := second.(*Bool)
+func (b *Bytes) Compare(second Comparable) (int, error) {
+	s, ok := second.(*Bytes)
 	if !ok {
-		return false, nil
+		return 0, consts.ErrTypeIsNotComparable
 	}
-	return b.Value == secondAddress.Value, nil
+	return strings.Compare(b.Value.(string), s.Value.(string)), nil
+}
+
+// Distinguish -
+func (b *Bytes) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*Bytes)
+	if !ok {
+		return nil, nil
+	}
+	return b.Default.Distinguish(&second.Default)
+}
+
+// FromJSONSchema -
+func (b *Bytes) FromJSONSchema(data map[string]interface{}) error {
+	setBytesJSONSchema(&b.Default, data)
+	return nil
 }
 
 //
@@ -336,9 +496,20 @@ func NewNever(depth int) *Never {
 }
 
 // Compare -
-func (n *Never) Compare(second Comparable) (bool, error) {
-	_, ok := second.(*Never)
-	return ok, nil
+func (n *Never) Compare(second Comparable) (int, error) {
+	if _, ok := second.(*Never); !ok {
+		return 0, consts.ErrTypeIsNotComparable
+	}
+	return 0, nil
+}
+
+// Distinguish -
+func (n *Never) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*Never)
+	if !ok {
+		return nil, nil
+	}
+	return n.Default.Distinguish(&second.Default)
 }
 
 //
@@ -357,6 +528,15 @@ func NewOperation(depth int) *Operation {
 	}
 }
 
+// Distinguish -
+func (o *Operation) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*Operation)
+	if !ok {
+		return nil, nil
+	}
+	return o.Default.Distinguish(&second.Default)
+}
+
 //
 //  ChainID
 //
@@ -371,6 +551,25 @@ func NewChainID(depth int) *ChainID {
 	return &ChainID{
 		Default: NewDefault(consts.CHAINID, 0, depth),
 	}
+}
+
+// ToMiguel -
+func (c *ChainID) ToMiguel() (*MiguelNode, error) {
+	name := c.GetTypeName()
+	value := c.Value.(string)
+	if c.ValueKind == valueKindBytes {
+		v, err := encoding.EncodeBase58String(value, []byte(encoding.PrefixChainID))
+		if err != nil {
+			return nil, err
+		}
+		value = v
+	}
+	return &MiguelNode{
+		Prim:  c.Prim,
+		Type:  strings.ToLower(c.Prim),
+		Value: value,
+		Name:  &name,
+	}, nil
 }
 
 // ToBaseNode -
@@ -392,19 +591,34 @@ func (c *ChainID) ToJSONSchema() (*JSONSchema, error) {
 }
 
 // Compare -
-func (c *ChainID) Compare(second Comparable) (bool, error) {
+func (c *ChainID) Compare(second Comparable) (int, error) {
 	secondItem, ok := second.(*ChainID)
 	if !ok {
-		return false, nil
+		return 0, consts.ErrTypeIsNotComparable
 	}
 	if c.Value == secondItem.Value {
-		return true, nil
+		return 0, nil
 	}
-	if c.valueType == secondItem.valueType {
-		return false, nil
+	if c.ValueKind == secondItem.ValueKind {
+		return strings.Compare(c.Value.(string), secondItem.Value.(string)), nil
 	}
 
 	return compareNotOptimizedTypes(c.Default, secondItem.Default, encoding.DecodeBase58ToString)
+}
+
+// Distinguish -
+func (c *ChainID) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*ChainID)
+	if !ok {
+		return nil, nil
+	}
+	return c.Default.Distinguish(&second.Default)
+}
+
+// FromJSONSchema -
+func (c *ChainID) FromJSONSchema(data map[string]interface{}) error {
+	setOptimizedJSONSchema(&c.Default, data, fromOptimizedChainID)
+	return nil
 }
 
 //
@@ -426,7 +640,7 @@ func NewAddress(depth int) *Address {
 // ToBaseNode -
 func (a *Address) ToBaseNode(optimized bool) (*base.Node, error) {
 	val := a.Value.(string)
-	if a.valueType == valueTypeBytes {
+	if a.ValueKind == valueKindBytes {
 		return toBaseNodeBytes(val), nil
 	}
 	if optimized {
@@ -439,24 +653,64 @@ func (a *Address) ToBaseNode(optimized bool) (*base.Node, error) {
 	return toBaseNodeString(val), nil
 }
 
+// ToMiguel -
+func (a *Address) ToMiguel() (*MiguelNode, error) {
+	name := a.GetTypeName()
+	value := a.Value.(string)
+	if a.ValueKind == valueKindBytes {
+		v, err := fromOptimizedAddress(value)
+		if err != nil {
+			return nil, err
+		}
+		value = v
+	}
+	return &MiguelNode{
+		Prim:  a.Prim,
+		Type:  strings.ToLower(a.Prim),
+		Value: value,
+		Name:  &name,
+	}, nil
+}
+
 // ToJSONSchema -
 func (a *Address) ToJSONSchema() (*JSONSchema, error) {
 	return getAddressJSONSchema(a.Default), nil
 }
 
 // Compare -
-func (a *Address) Compare(second Comparable) (bool, error) {
+func (a *Address) Compare(second Comparable) (int, error) {
 	secondAddress, ok := second.(*Address)
 	if !ok {
-		return false, nil
+		return 0, consts.ErrTypeIsNotComparable
 	}
 	if a.Value == secondAddress.Value {
-		return true, nil
+		return 0, nil
 	}
-	if a.valueType == secondAddress.valueType {
-		return false, nil
+	if a.ValueKind == secondAddress.ValueKind {
+		return strings.Compare(a.Value.(string), secondAddress.Value.(string)), nil
 	}
 	return compareNotOptimizedTypes(a.Default, secondAddress.Default, getOptimizedContract)
+}
+
+// Distinguish -
+func (a *Address) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*Address)
+	if !ok {
+		return nil, nil
+	}
+	if err := a.optimizeStringValue(fromOptimizedContract); err != nil {
+		return nil, err
+	}
+	if err := second.optimizeStringValue(fromOptimizedContract); err != nil {
+		return nil, err
+	}
+	return a.Default.Distinguish(&second.Default)
+}
+
+// FromJSONSchema -
+func (a *Address) FromJSONSchema(data map[string]interface{}) error {
+	setOptimizedJSONSchema(&a.Default, data, fromOptimizedContract)
+	return nil
 }
 
 //
@@ -473,6 +727,25 @@ func NewKey(depth int) *Key {
 	return &Key{
 		Default: NewDefault(consts.KEY, 0, depth),
 	}
+}
+
+// ToMiguel -
+func (k *Key) ToMiguel() (*MiguelNode, error) {
+	name := k.GetTypeName()
+	value := k.Value.(string)
+	if k.ValueKind == valueKindBytes {
+		v, err := fromOptimizedPublicKey(value)
+		if err != nil {
+			return nil, err
+		}
+		value = v
+	}
+	return &MiguelNode{
+		Prim:  k.Prim,
+		Type:  strings.ToLower(k.Prim),
+		Value: value,
+		Name:  &name,
+	}, nil
 }
 
 // ToBaseNode -
@@ -495,12 +768,27 @@ func (k *Key) ToJSONSchema() (*JSONSchema, error) {
 }
 
 // Compare -
-func (k *Key) Compare(second Comparable) (bool, error) {
+func (k *Key) Compare(second Comparable) (int, error) {
 	secondItem, ok := second.(*Key)
 	if !ok {
-		return false, nil
+		return 0, consts.ErrTypeIsNotComparable
 	}
-	return k.Value == secondItem.Value, nil
+	return strings.Compare(k.Value.(string), secondItem.Value.(string)), nil
+}
+
+// Distinguish -
+func (k *Key) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*Key)
+	if !ok {
+		return nil, nil
+	}
+	return k.Default.Distinguish(&second.Default)
+}
+
+// FromJSONSchema -
+func (k *Key) FromJSONSchema(data map[string]interface{}) error {
+	setOptimizedJSONSchema(&k.Default, data, fromOptimizedPublicKey)
+	return nil
 }
 
 //
@@ -517,6 +805,25 @@ func NewKeyHash(depth int) *KeyHash {
 	return &KeyHash{
 		Default: NewDefault(consts.KEYHASH, 0, depth),
 	}
+}
+
+// ToMiguel -
+func (k *KeyHash) ToMiguel() (*MiguelNode, error) {
+	name := k.GetTypeName()
+	value := k.Value.(string)
+	if k.ValueKind == valueKindBytes {
+		v, err := fromOptimizedAddress(value)
+		if err != nil {
+			return nil, err
+		}
+		value = v
+	}
+	return &MiguelNode{
+		Prim:  k.Prim,
+		Type:  strings.ToLower(k.Prim),
+		Value: value,
+		Name:  &name,
+	}, nil
 }
 
 // ToBaseNode -
@@ -539,12 +846,27 @@ func (k *KeyHash) ToJSONSchema() (*JSONSchema, error) {
 }
 
 // Compare -
-func (k *KeyHash) Compare(second Comparable) (bool, error) {
+func (k *KeyHash) Compare(second Comparable) (int, error) {
 	secondItem, ok := second.(*KeyHash)
 	if !ok {
-		return false, nil
+		return 0, consts.ErrTypeIsNotComparable
 	}
-	return k.Value == secondItem.Value, nil
+	return strings.Compare(k.Value.(string), secondItem.Value.(string)), nil
+}
+
+// Distinguish -
+func (k *KeyHash) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*KeyHash)
+	if !ok {
+		return nil, nil
+	}
+	return k.Default.Distinguish(&second.Default)
+}
+
+// FromJSONSchema -
+func (k *KeyHash) FromJSONSchema(data map[string]interface{}) error {
+	setOptimizedJSONSchema(&k.Default, data, fromOptimizedAddress)
+	return nil
 }
 
 //
@@ -561,6 +883,25 @@ func NewSignature(depth int) *Signature {
 	return &Signature{
 		Default: NewDefault(consts.SIGNATURE, 0, depth),
 	}
+}
+
+// ToMiguel -
+func (s *Signature) ToMiguel() (*MiguelNode, error) {
+	name := s.GetTypeName()
+	value := s.Value.(string)
+	if s.ValueKind == valueKindBytes {
+		v, err := encoding.EncodeBase58String(value, []byte(encoding.PrefixGenericSignature))
+		if err != nil {
+			return nil, err
+		}
+		value = v
+	}
+	return &MiguelNode{
+		Prim:  s.Prim,
+		Type:  strings.ToLower(s.Prim),
+		Value: value,
+		Name:  &name,
+	}, nil
 }
 
 // ToBaseNode -
@@ -582,12 +923,27 @@ func (s *Signature) ToJSONSchema() (*JSONSchema, error) {
 }
 
 // Compare -
-func (s *Signature) Compare(second Comparable) (bool, error) {
+func (s *Signature) Compare(second Comparable) (int, error) {
 	secondItem, ok := second.(*Signature)
 	if !ok {
-		return false, nil
+		return 0, consts.ErrTypeIsNotComparable
 	}
-	return s.Value == secondItem.Value, nil
+	return strings.Compare(s.Value.(string), secondItem.Value.(string)), nil
+}
+
+// Distinguish -
+func (s *Signature) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*Signature)
+	if !ok {
+		return nil, nil
+	}
+	return s.Default.Distinguish(&second.Default)
+}
+
+// FromJSONSchema -
+func (s *Signature) FromJSONSchema(data map[string]interface{}) error {
+	setOptimizedJSONSchema(&s.Default, data, fromOptimizedSignature)
+	return nil
 }
 
 //
@@ -611,6 +967,15 @@ func (b *BLS12381fr) ToJSONSchema() (*JSONSchema, error) {
 	return getStringJSONSchema(b.Default), nil
 }
 
+// Distinguish -
+func (b *BLS12381fr) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*BLS12381fr)
+	if !ok {
+		return nil, nil
+	}
+	return b.Default.Distinguish(&second.Default)
+}
+
 //
 //  bls12_381_g1
 //
@@ -630,6 +995,15 @@ func NewBLS12381g1(depth int) *BLS12381g1 {
 // ToJSONSchema -
 func (b *BLS12381g1) ToJSONSchema() (*JSONSchema, error) {
 	return getStringJSONSchema(b.Default), nil
+}
+
+// Distinguish -
+func (b *BLS12381g1) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*BLS12381g1)
+	if !ok {
+		return nil, nil
+	}
+	return b.Default.Distinguish(&second.Default)
 }
 
 //
@@ -653,25 +1027,38 @@ func (b *BLS12381g2) ToJSONSchema() (*JSONSchema, error) {
 	return getStringJSONSchema(b.Default), nil
 }
 
-func compareNotOptimizedTypes(x, y Default, optimizer func(string) (string, error)) (bool, error) {
-	var a Default
-	var b Default
-	if x.valueType == valueTypeBytes {
-		a = y
-		b = x
-	} else {
-		a = x
-		b = y
+// Distinguish -
+func (b *BLS12381g2) Distinguish(x Distinguishable) (*MiguelNode, error) {
+	second, ok := x.(*BLS12381g2)
+	if !ok {
+		return nil, nil
 	}
-	value, err := optimizer(a.Value.(string))
-	if err != nil {
-		return false, err
-	}
-	return value == b.Value.(string), nil
+	return b.Default.Distinguish(&second.Default)
 }
 
-func compareBigInt(x, y Default) bool {
+func compareNotOptimizedTypes(x, y Default, optimizer func(string) (string, error)) (int, error) {
+	if x.ValueKind != valueKindBytes {
+		value, err := optimizer(x.Value.(string))
+		if err != nil {
+			return 0, err
+		}
+		x.ValueKind = valueKindBytes
+		x.Value = value
+	}
+	if y.ValueKind != valueKindBytes {
+		value, err := optimizer(y.Value.(string))
+		if err != nil {
+			return 0, err
+		}
+		y.ValueKind = valueKindBytes
+		y.Value = value
+	}
+
+	return strings.Compare(x.Value.(string), y.Value.(string)), nil
+}
+
+func compareBigInt(x, y Default) int {
 	xi := x.Value.(*base.BigInt)
 	yi := y.Value.(*base.BigInt)
-	return xi.Cmp(yi.Int) == 0
+	return xi.Cmp(yi.Int)
 }

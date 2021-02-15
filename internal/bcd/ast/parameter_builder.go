@@ -1,6 +1,8 @@
 package ast
 
-import "bytes"
+import (
+	"bytes"
+)
 
 func buildMapItemParameters(key, value Node) ([]byte, error) {
 	var builder bytes.Buffer
@@ -33,24 +35,32 @@ func buildMapItemParameters(key, value Node) ([]byte, error) {
 	return builder.Bytes(), nil
 }
 
-func buildMapParameters(data map[Node]Node) ([]byte, error) {
+func buildMapParameters(data *OrderedMap) ([]byte, error) {
+	if data == nil {
+		return nil, nil
+	}
 	var builder bytes.Buffer
 	if err := builder.WriteByte('['); err != nil {
 		return nil, err
 	}
-	for key, value := range data {
+
+	err := data.Range(func(key, value Node) (bool, error) {
 		if builder.Len() != 1 {
 			if err := builder.WriteByte(','); err != nil {
-				return nil, err
+				return true, err
 			}
 		}
 		b, err := buildMapItemParameters(key, value)
 		if err != nil {
-			return nil, err
+			return true, err
 		}
 		if _, err := builder.Write(b); err != nil {
-			return nil, err
+			return true, err
 		}
+		return false, nil
+	})
+	if err != nil {
+		return nil, err
 	}
 	if err := builder.WriteByte(']'); err != nil {
 		return nil, err

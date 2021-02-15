@@ -19,7 +19,7 @@ func NewBigInt(val int64) *BigInt {
 
 // MarshalJSON -
 func (b *BigInt) MarshalJSON() ([]byte, error) {
-	return []byte(b.String()), nil
+	return []byte(fmt.Sprintf(`"%s"`, b.String())), nil
 }
 
 // UnmarshalJSON -

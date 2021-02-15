@@ -13,7 +13,7 @@ import (
 // Option -
 type Option struct {
 	Default
-	Child Node
+	Type Node
 }
 
 // NewOption -
@@ -27,14 +27,14 @@ func NewOption(depth int) *Option {
 func (opt *Option) String() string {
 	var s strings.Builder
 	s.WriteString(opt.Default.String())
-	s.WriteString(strings.Repeat(consts.DefaultIndent, opt.depth))
-	s.WriteString(opt.Child.String())
+	s.WriteString(strings.Repeat(consts.DefaultIndent, opt.Depth))
+	s.WriteString(opt.Type.String())
 	return s.String()
 }
 
 // MarshalJSON -
 func (opt *Option) MarshalJSON() ([]byte, error) {
-	return marshalJSON(consts.OPTION, opt.annots, opt.Child)
+	return marshalJSON(consts.OPTION, opt.Annots, opt.Type)
 }
 
 // ParseType -
@@ -43,28 +43,28 @@ func (opt *Option) ParseType(node *base.Node, id *int) error {
 		return err
 	}
 
-	child, err := typingNode(node.Args[0], opt.depth, id)
+	child, err := typingNode(node.Args[0], opt.Depth, id)
 	if err != nil {
 		return err
 	}
-	opt.Child = child
+	opt.Type = child
 
 	return nil
 }
 
 // ParseValue -
 func (opt *Option) ParseValue(node *base.Node) error {
-	if len(node.Args) > opt.argsCount {
+	if len(node.Args) > opt.ArgsCount {
 		return errors.Wrap(consts.ErrTreesAreDifferent, "Option.ParseValue")
 	}
 
 	switch node.Prim {
 	case consts.None:
-		opt.Value = nil
+		opt.Value = consts.None
 		return nil
 	case consts.Some:
 		opt.Value = consts.Some
-		err := opt.Child.ParseValue(node.Args[0])
+		err := opt.Type.ParseValue(node.Args[0])
 		return err
 	default:
 		return consts.ErrInvalidPrim
@@ -76,24 +76,34 @@ func (opt *Option) ParseValue(node *base.Node) error {
 func (opt *Option) ToMiguel() (*MiguelNode, error) {
 	var ast Node
 
-	if opt.Value == nil {
+	if opt.Value == consts.None {
 		ast = &opt.Default
 	} else {
-		ast = opt.Child
+		ast = opt.Type
 	}
 
-	return ast.ToMiguel()
+	node, err := ast.ToMiguel()
+	if err != nil {
+		return nil, err
+	}
+	if strings.HasPrefix(*node.Name, "@") {
+		name := opt.GetTypeName()
+		if !strings.HasPrefix(name, "@") {
+			node.Name = &name
+		}
+	}
+	return node, nil
 }
 
 // ToBaseNode -
 func (opt *Option) ToBaseNode(optimized bool) (*base.Node, error) {
 	node := new(base.Node)
 
-	if opt.Value == nil {
+	if opt.Value == consts.None {
 		node.Prim = consts.None
 	} else {
 		node.Prim = consts.Some
-		arg, err := opt.Child.ToBaseNode(optimized)
+		arg, err := opt.Type.ToBaseNode(optimized)
 		if err != nil {
 			return nil, err
 		}
@@ -120,7 +130,7 @@ func (opt *Option) ToJSONSchema() (*JSONSchema, error) {
 		Const: consts.SOME,
 	}
 
-	child, err := opt.Child.ToJSONSchema()
+	child, err := opt.Type.ToJSONSchema()
 	if err != nil {
 		return nil, err
 	}
@@ -174,24 +184,9 @@ func (opt *Option) FromJSONSchema(data map[string]interface{}) error {
 
 	switch schemaKey {
 	case consts.NONE:
-		opt.Value = nil
+		opt.Value = consts.None
 	case consts.SOME:
-		val, err := createByType(opt.Child)
-		if err != nil {
-			return err
-		}
-		var ok bool
-		for key := range optionMap {
-			if err := val.FromJSONSchema(optionMap[key].(map[string]interface{})); err == nil {
-				ok = true
-				break
-			}
-		}
-		if ok {
-			opt.Value = val
-		} else {
-			return errors.Wrap(consts.ErrJSONDataIsAbsent, "Option.FromJSONSchema")
-		}
+		return opt.Type.FromJSONSchema(optionMap)
 	default:
 		return errors.Wrap(consts.ErrJSONDataIsAbsent, "Option.FromJSONSchema")
 	}
@@ -200,15 +195,15 @@ func (opt *Option) FromJSONSchema(data map[string]interface{}) error {
 
 // EnrichBigMap -
 func (opt *Option) EnrichBigMap(bmd []*base.BigMapDiff) error {
-	if opt.Child != nil {
-		return opt.Child.EnrichBigMap(bmd)
+	if opt.Type != nil {
+		return opt.Type.EnrichBigMap(bmd)
 	}
 	return nil
 }
 
 // ToParameters -
 func (opt *Option) ToParameters() ([]byte, error) {
-	if opt.Value == nil {
+	if opt.Value == consts.None {
 		return []byte(`{"prim":"None"}`), nil
 	}
 
@@ -217,7 +212,7 @@ func (opt *Option) ToParameters() ([]byte, error) {
 		return nil, err
 	}
 
-	b, err := opt.Child.ToParameters()
+	b, err := opt.Type.ToParameters()
 	if err != nil {
 		return nil, err
 	}
@@ -236,13 +231,13 @@ func (opt *Option) FindByName(name string) Node {
 	if opt.GetName() == name {
 		return opt
 	}
-	return opt.Child.FindByName(name)
+	return opt.Type.FindByName(name)
 }
 
 // Docs -
 func (opt *Option) Docs(inferredName string) ([]Typedef, string, error) {
 	name := getNameDocString(opt, inferredName)
-	docs, varName, err := opt.Child.Docs(name)
+	docs, varName, err := opt.Type.Docs(name)
 	if err != nil {
 		return nil, "", err
 	}
@@ -255,18 +250,21 @@ func (opt *Option) Docs(inferredName string) ([]Typedef, string, error) {
 }
 
 // Compare -
-func (opt *Option) Compare(second Comparable) (bool, error) {
+func (opt *Option) Compare(second Comparable) (int, error) {
 	secondItem, ok := second.(*Option)
 	if !ok {
-		return false, nil
+		return 0, consts.ErrTypeIsNotComparable
 	}
 	switch {
-	case opt.Value == nil && secondItem.Value == nil:
-		return true, nil
+	case opt.Value == consts.None && secondItem.Value == consts.None:
+		return 0, nil
 	case opt.Value != secondItem.Value:
-		return false, nil
+		if opt.Value == consts.Some {
+			return 1, nil
+		}
+		return -1, nil
 	default:
-		return opt.Child.Compare(secondItem.Child)
+		return opt.Type.Compare(secondItem.Type)
 	}
 }
 
@@ -278,30 +276,62 @@ func (opt *Option) Distinguish(x Distinguishable) (*MiguelNode, error) {
 	}
 
 	switch {
-	case opt.Value == nil && second.Value == nil:
-		return opt.ToMiguel()
-	case opt.Value == nil && second.Value != nil:
-		node, err := second.ToMiguel()
+	case opt.Value == consts.None && second.Value == consts.None:
+		name := opt.getTypeName()
+		return &MiguelNode{
+			Name:  &name,
+			Value: opt.Value,
+		}, nil
+	case opt.Value == consts.None && second.Value == consts.Some:
+		name := opt.getTypeName()
+		node, err := second.Type.ToMiguel()
 		if err != nil {
 			return nil, err
 		}
-		node.DiffType = MiguelKindCreate
+		node.Name = &name
+		node.setDiffType(MiguelKindDelete)
 		return node, nil
-	case opt.Value != nil && second.Value == nil:
-		node, err := opt.ToMiguel()
+	case opt.Value == consts.Some && second.Value == consts.None:
+		name := opt.getTypeName()
+		node, err := opt.Type.ToMiguel()
 		if err != nil {
 			return nil, err
 		}
-		node.DiffType = MiguelKindDelete
+		node.Name = &name
+		node.setDiffType(MiguelKindCreate)
 		return node, nil
-	case opt.Value != nil && second.Value != nil:
-		child, err := opt.Distinguish(second.Child)
+	case opt.Value == consts.Some && second.Value == consts.Some:
+		child, err := opt.Type.Distinguish(second.Type)
 		if err != nil {
 			return nil, err
 		}
-		child.DiffType = MiguelKindUpdate
 		return child, err
 	}
 
 	return nil, nil
+}
+
+// EqualType -
+func (opt *Option) EqualType(node Node) bool {
+	if !opt.Default.EqualType(node) {
+		return false
+	}
+	second, ok := node.(*Option)
+	if !ok {
+		return false
+	}
+
+	return opt.Type.EqualType(second.Type)
+}
+
+func (opt *Option) getTypeName() string {
+	name := opt.Type.GetTypeName()
+	if !strings.HasPrefix(name, "@") {
+		return name
+	}
+	optName := opt.GetTypeName()
+	if !strings.HasPrefix(optName, "@") {
+		return optName
+	}
+	return name
 }

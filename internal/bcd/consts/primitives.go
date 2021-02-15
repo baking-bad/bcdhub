@@ -60,4 +60,5 @@ const (
 	Elt   = "Elt"
 	Left  = "Left"
 	Right = "Right"
+	Unit  = "Unit"
 )

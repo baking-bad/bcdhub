@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"encoding/json"
+	"log"
 	"net/http"
 	"strings"
 	"sync"
@@ -13,6 +15,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/gin-gonic/gin"
@@ -241,6 +244,8 @@ func formatErrors(errs []*cerrors.Error, op *Operation) error {
 }
 
 func (ctx *Context) prepareOperation(operation operation.Operation, bmd []bigmapdiff.BigMapDiff, withStorageDiff bool) (Operation, error) {
+	log.Println("-----------------------------------------------")
+	log.Println(operation.Destination)
 	var op Operation
 	op.FromModel(operation)
 
@@ -364,6 +369,8 @@ func (ctx *Context) getStorageDiff(bmd []bigmapdiff.BigMapDiff, address, storage
 	}
 
 	currentStorage.Diff(prevStorage)
+	b, _ := json.Marshal(currentStorage)
+	logger.Debug(string(b))
 	return currentStorage, nil
 }
 
@@ -372,6 +379,7 @@ func getEnrichStorageMiguel(bmd []bigmapdiff.BigMapDiff, protocol, storage, prev
 	if err != nil {
 		return nil, err
 	}
+	logger.Debug(store.Raw)
 	storageMetadata, err := metadata.Get(consts.STORAGE, protocol)
 	if err != nil {
 		return nil, err

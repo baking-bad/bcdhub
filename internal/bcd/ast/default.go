@@ -15,34 +15,34 @@ type Default struct {
 	TypeName  string
 	FieldName string
 
-	Value interface{}
+	Value     interface{}
+	ValueKind int
+	ID        int
 
-	argsCount int
-	annots    []string
-	id        int
-	depth     int
-	valueType int
+	ArgsCount int
+	Depth     int
+	Annots    []string
 }
 
 // NewDefault -
 func NewDefault(prim string, argsCount, depth int) Default {
 	return Default{
 		Prim:      prim,
-		argsCount: argsCount,
-		depth:     depth,
+		ArgsCount: argsCount,
+		Depth:     depth,
 	}
 }
 
 // MarshalJSON -
 func (d Default) MarshalJSON() ([]byte, error) {
-	return marshalJSON(d.Prim, d.annots)
+	return marshalJSON(d.Prim, d.Annots)
 }
 
 // ParseType -
 func (d *Default) ParseType(node *base.Node, id *int) error {
 	(*id)++
-	d.id = *id
-	d.annots = node.Annots
+	d.ID = *id
+	d.Annots = node.Annots
 	d.FieldName = getAnnotation(node.Annots, consts.AnnotPrefixFieldName)
 	d.TypeName = getAnnotation(node.Annots, consts.AnnotPrefixrefixTypeName)
 
@@ -52,8 +52,8 @@ func (d *Default) ParseType(node *base.Node, id *int) error {
 		return errors.Wrap(consts.ErrInvalidPrim, fmt.Sprintf("expected %s got %s", d.Prim, node.Prim))
 	}
 
-	if len(node.Args) != d.argsCount && d.argsCount >= 0 {
-		return errors.Wrap(consts.ErrInvalidArgsCount, fmt.Sprintf("expected %d got %d", d.argsCount, len(node.Args)))
+	if len(node.Args) != d.ArgsCount && d.ArgsCount >= 0 {
+		return errors.Wrap(consts.ErrInvalidArgsCount, fmt.Sprintf("expected %d got %d", d.ArgsCount, len(node.Args)))
 	}
 
 	switch {
@@ -76,9 +76,9 @@ func (d *Default) String() string {
 		typ = d.TypeName
 	}
 	if d.Value != nil {
-		return fmt.Sprintf("[%d] %s=%v %s\n", d.id, d.Prim, d.Value, typ)
+		return fmt.Sprintf("[%d] %s=%v %s\n", d.ID, d.Prim, d.Value, typ)
 	}
-	return fmt.Sprintf("[%d] %s %s\n", d.id, d.Prim, typ)
+	return fmt.Sprintf("[%d] %s %s\n", d.ID, d.Prim, typ)
 }
 
 // ParseValue -
@@ -86,13 +86,13 @@ func (d *Default) ParseValue(node *base.Node) error {
 	switch {
 	case node.IntValue != nil:
 		d.Value = node.IntValue
-		d.valueType = valueTypeInt
+		d.ValueKind = valueKindInt
 	case node.StringValue != nil:
 		d.Value = *node.StringValue
-		d.valueType = valueTypeString
+		d.ValueKind = valueKindString
 	case node.BytesValue != nil:
 		d.Value = *node.BytesValue
-		d.valueType = valueTypeBytes
+		d.ValueKind = valueKindBytes
 	}
 	return nil
 }
@@ -105,19 +105,21 @@ func (d *Default) GetTypeName() string {
 	case d.FieldName != "":
 		return d.FieldName
 	default:
-		return fmt.Sprintf("@%s_%d", d.Prim, d.id)
+		return fmt.Sprintf("@%s_%d", d.Prim, d.ID)
 	}
 }
 
 // ToMiguel -
 func (d *Default) ToMiguel() (*MiguelNode, error) {
 	name := d.GetTypeName()
-	return &MiguelNode{
-		Prim:  d.Prim,
-		Type:  strings.ToLower(d.Prim),
-		Value: d.Value,
-		Name:  &name,
-	}, nil
+	node := &MiguelNode{
+		Prim: d.Prim,
+		Type: strings.ToLower(d.Prim),
+		Name: &name,
+	}
+	node.Value = d.miguelValue()
+
+	return node, nil
 }
 
 // GetEntrypoints -
@@ -142,7 +144,7 @@ func (d *Default) GetName() string {
 	case d.TypeName != "":
 		return d.TypeName
 	}
-	return fmt.Sprintf("@%s_%d", d.Prim, d.id)
+	return fmt.Sprintf("@%s_%d", d.Prim, d.ID)
 }
 
 // GetValue -
@@ -163,19 +165,19 @@ func (d *Default) IsPrim(prim string) bool {
 // ToBaseNode -
 func (d *Default) ToBaseNode(optimized bool) (*base.Node, error) {
 	node := new(base.Node)
-	switch d.valueType {
-	case valueTypeString:
+	switch d.ValueKind {
+	case valueKindString:
 		val := d.Value.(string)
 		node.StringValue = &val
-	case valueTypeBytes:
+	case valueKindBytes:
 		val := d.Value.(string)
 		node.BytesValue = &val
-	case valueTypeInt:
+	case valueKindInt:
 		val := d.Value.(*base.BigInt)
 		node.IntValue = val
 	default:
 		node.Prim = d.Prim
-		node.Annots = d.annots
+		node.Annots = d.Annots
 		node.Args = make([]*base.Node, 0)
 	}
 	return node, nil
@@ -193,6 +195,7 @@ func (d *Default) FromJSONSchema(data map[string]interface{}) error {
 	for key := range data {
 		if key == d.GetName() {
 			d.Value = data[key]
+			d.ValueKind = valueKindString
 			break
 		}
 	}
@@ -206,12 +209,12 @@ func (d *Default) EnrichBigMap(bmd []*base.BigMapDiff) error {
 
 // ToParameters -
 func (d *Default) ToParameters() ([]byte, error) {
-	switch d.valueType {
-	case valueTypeString:
+	switch d.ValueKind {
+	case valueKindString:
 		return []byte(fmt.Sprintf(`{"string":"%s"}`, d.Value)), nil
-	case valueTypeBytes:
+	case valueKindBytes:
 		return []byte(fmt.Sprintf(`{"bytes":"%s"}`, d.Value)), nil
-	case valueTypeInt:
+	case valueKindInt:
 		i := d.Value.(*base.BigInt)
 		return []byte(fmt.Sprintf(`{"int":"%d"}`, i.Int64())), nil
 	}
@@ -250,26 +253,89 @@ func (d *Default) Distinguish(x Distinguishable) (*MiguelNode, error) {
 	node.Prim = d.Prim
 	node.Type = d.Prim
 	node.Name = &name
-	node.Value = second.Value
+	node.Value = d.miguelValue()
+
 	switch {
 	case d.Value != nil && second.Value == nil:
 		node.DiffType = MiguelKindDelete
-		node.From = d.Value
 	case d.Value == nil && second.Value != nil:
 		node.DiffType = MiguelKindCreate
-		node.From = d.Value
-	case d.Value != nil && second.Value != nil && d.Value != second.Value:
+	case d.Value != nil && second.Value != nil:
+		switch v := d.Value.(type) {
+		case *base.BigInt:
+			sv := second.Value.(*base.BigInt)
+			if sv.Cmp(v.Int) == 0 {
+				return node, nil
+			}
+			node.From = sv.String()
+		default:
+			if d.Value == second.Value {
+				return node, nil
+			}
+			node.From = second.miguelValue()
+		}
 		node.DiffType = MiguelKindUpdate
 	}
 	return node, nil
 }
 
 // Compare -
-func (d *Default) Compare(second Comparable) (bool, error) {
-	return false, consts.ErrTypeIsNotComparable
+func (d *Default) Compare(second Comparable) (int, error) {
+	return 0, consts.ErrTypeIsNotComparable
+}
+
+// EqualType -
+func (d *Default) EqualType(node Node) bool {
+	return d.Prim == node.GetPrim()
 }
 
 // Equal -
-func (d *Default) Equal(second Node) bool {
-	return d.Prim == second.GetPrim() && d.GetName() == second.GetName() && d.GetValue() == second.GetValue()
+func (d *Default) Equal(node Node) bool {
+	return d.EqualType(node) && d.GetName() == node.GetName() && d.equalValue(node.GetValue())
+}
+
+func (d *Default) equalValue(value interface{}) bool {
+	switch {
+	case d.Value == nil && value == nil:
+		return true
+	case d.Value == nil && value != nil:
+		return false
+	case d.Value != nil && value == nil:
+		return false
+	default:
+		switch val := d.Value.(type) {
+		case *base.BigInt:
+			if sv, ok := value.(*base.BigInt); ok {
+				return val.Cmp(sv.Int) == 0
+			}
+			return false
+		default:
+			return val == value
+		}
+	}
+}
+
+func (d *Default) miguelValue() interface{} {
+	if d.Value == nil {
+		return nil
+	}
+	switch v := d.Value.(type) {
+	case *base.BigInt:
+		return v.String()
+	default:
+		return d.Value
+	}
+}
+
+func (d *Default) optimizeStringValue(optimizer func(string) (string, error)) error {
+	if d.ValueKind != valueKindBytes {
+		return nil
+	}
+	sv := d.Value.(string)
+	newValue, err := optimizer(sv)
+	if err != nil {
+		return err
+	}
+	d.Value = newValue
+	return nil
 }

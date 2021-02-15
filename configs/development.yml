@@ -28,7 +28,7 @@ tzkt:
 
 storage:
   uri:
-    - http://127.0.0.1:9200
+    - http://127.0.0.1:9203
   timeout: 10
 
 rabbitmq:

@@ -36,6 +36,16 @@ func (node *Node) UnmarshalJSON(data []byte) error {
 	return consts.ErrInvalidJSON
 }
 
+// MarshalJSON -
+func (node *Node) MarshalJSON() ([]byte, error) {
+	if node.Prim == consts.PrimArray {
+		return json.Marshal(node.Args)
+	} else {
+		type buf Node
+		return json.Marshal((*buf)(node))
+	}
+}
+
 // GetAnnotations -
 func (node *Node) GetAnnotations() map[string]struct{} {
 	annots := make(map[string]struct{})

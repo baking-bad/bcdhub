@@ -27,7 +27,7 @@ func (p *Pair) String() string {
 	var s strings.Builder
 	s.WriteString(p.Default.String())
 	for i := range p.Args {
-		s.WriteString(strings.Repeat(consts.DefaultIndent, p.depth))
+		s.WriteString(strings.Repeat(consts.DefaultIndent, p.Depth))
 		s.WriteString(p.Args[i].String())
 	}
 	return s.String()
@@ -35,7 +35,7 @@ func (p *Pair) String() string {
 
 // MarshalJSON -
 func (p *Pair) MarshalJSON() ([]byte, error) {
-	return marshalJSON(consts.PAIR, p.annots, p.Args...)
+	return marshalJSON(consts.PAIR, p.Annots, p.Args...)
 }
 
 // ParseType -
@@ -47,14 +47,14 @@ func (p *Pair) ParseType(node *base.Node, id *int) error {
 	p.Args = make([]Node, 0)
 	if len(node.Args) == 2 {
 		for _, arg := range node.Args {
-			child, err := typingNode(arg, p.depth, id)
+			child, err := typingNode(arg, p.Depth, id)
 			if err != nil {
 				return err
 			}
 			p.Args = append(p.Args, child)
 		}
 	} else if len(node.Args) > 2 {
-		child, err := typingNode(node.Args[0], p.depth, id)
+		child, err := typingNode(node.Args[0], p.Depth, id)
 		if err != nil {
 			return err
 		}
@@ -64,7 +64,7 @@ func (p *Pair) ParseType(node *base.Node, id *int) error {
 			Prim: consts.PAIR,
 			Args: node.Args[1:],
 		}
-		pairChild, err := typingNode(newUntyped, p.depth+1, id)
+		pairChild, err := typingNode(newUntyped, p.Depth+1, id)
 		if err != nil {
 			return err
 		}
@@ -128,7 +128,7 @@ func (p *Pair) ToMiguel() (*MiguelNode, error) {
 // ToBaseNode -
 func (p *Pair) ToBaseNode(optimized bool) (*base.Node, error) {
 	node := new(base.Node)
-	node.Prim = p.Prim
+	node.Prim = consts.Pair
 	node.Args = make([]*base.Node, 0)
 	for i := range p.Args {
 		arg, err := p.Args[i].ToBaseNode(optimized)
@@ -207,8 +207,7 @@ func (p *Pair) FindByName(name string) Node {
 		return p
 	}
 	for i := range p.Args {
-		node := p.Args[i].FindByName(name)
-		if node != nil {
+		if node := p.Args[i].FindByName(name); node != nil {
 			return node
 		}
 	}
@@ -274,29 +273,26 @@ func (p *Pair) Docs(inferredName string) ([]Typedef, string, error) {
 }
 
 // Compare -
-func (p *Pair) Compare(second Comparable) (bool, error) {
+func (p *Pair) Compare(second Comparable) (int, error) {
 	secondItem, ok := second.(*Pair)
 	if !ok {
-		return false, nil
+		return 0, consts.ErrTypeIsNotComparable
 	}
 	if len(secondItem.Args) != len(p.Args) {
-		return false, nil
+		return 0, consts.ErrTypeIsNotComparable
 	}
 
 	for i := range p.Args {
-		ok, err := p.Args[i].Compare(secondItem.Args[i])
+		res, err := p.Args[i].Compare(secondItem.Args[i])
 		if err != nil {
-			if errors.Is(err, consts.ErrTypeIsNotComparable) {
-				return false, nil
-			}
-			return false, err
+			return 0, err
 		}
-		if !ok {
-			return false, nil
+		if res != 0 {
+			return res, nil
 		}
 	}
 
-	return true, nil
+	return 0, nil
 }
 
 // Distinguish -
@@ -310,6 +306,7 @@ func (p *Pair) Distinguish(x Distinguishable) (*MiguelNode, error) {
 	if err != nil {
 		return nil, err
 	}
+	node.Type = consts.TypeNamedTuple
 	node.Children = make([]*MiguelNode, 0)
 
 	for i := range p.Args {
@@ -317,12 +314,35 @@ func (p *Pair) Distinguish(x Distinguishable) (*MiguelNode, error) {
 		if err != nil {
 			return nil, err
 		}
-		if child.Prim == consts.PAIR && !p.IsNamed() {
-			node.Children = append(node.Children, child.Children...)
-		} else {
+		if (child.Prim != p.Prim) || (child.Prim == p.Prim && p.Args[i].IsNamed()) {
 			node.Children = append(node.Children, child)
+		} else {
+			node.Children = append(node.Children, child.Children...)
 		}
 	}
 
 	return node, nil
+}
+
+// EqualType -
+func (p *Pair) EqualType(node Node) bool {
+	if !p.Default.EqualType(node) {
+		return false
+	}
+	second, ok := node.(*Pair)
+	if !ok {
+		return false
+	}
+
+	if len(p.Args) != len(second.Args) {
+		return false
+	}
+
+	for i := range p.Args {
+		if !p.Args[i].EqualType(second.Args[i]) {
+			return false
+		}
+	}
+
+	return true
 }

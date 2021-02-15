@@ -3,7 +3,6 @@ package ast
 import (
 	"bytes"
 	"fmt"
-	"reflect"
 	"strings"
 
 	jsoniter "github.com/json-iterator/go"
@@ -11,7 +10,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/pkg/errors"
-	"github.com/ulule/deepcopier"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -145,8 +143,7 @@ func (a *TypedAst) FromJSONSchema(data map[string]interface{}) error {
 // FindByName -
 func (a *TypedAst) FindByName(name string) Node {
 	for i := range a.Nodes {
-		node := a.Nodes[i].FindByName(name)
-		if node != nil {
+		if node := a.Nodes[i].FindByName(name); node != nil {
 			return node
 		}
 	}
@@ -226,28 +223,69 @@ func (a *TypedAst) GetEntrypointsDocs() ([]EntrypointType, error) {
 }
 
 // Compare -
-func (a *TypedAst) Compare(b *TypedAst) (bool, error) {
+func (a *TypedAst) Compare(b *TypedAst) (int, error) {
 	if len(a.Nodes) != len(b.Nodes) {
-		return false, nil
+		return 0, consts.ErrTypeIsNotComparable
 	}
 	for i := range a.Nodes {
-		ok, err := a.Nodes[i].Compare(b.Nodes[i])
+		res, err := a.Nodes[i].Compare(b.Nodes[i])
 		if err != nil {
-			if errors.Is(err, consts.ErrTypeIsNotComparable) {
-				return false, nil
-			}
-			return false, err
+			return res, err
 		}
-		if !ok {
-			return false, nil
+		if res != 0 {
+			return res, nil
 		}
 	}
-	return true, nil
+	return 0, nil
 }
 
-func createByType(typ Node) (Node, error) {
-	obj := reflect.New(reflect.ValueOf(typ).Elem().Type()).Interface().(Node)
-	return obj, deepcopier.Copy(typ).To(obj)
+// Diff -
+func (a *TypedAst) Diff(b *TypedAst) (*MiguelNode, error) {
+	if len(a.Nodes) == len(b.Nodes) && len(a.Nodes) == 1 {
+		return a.Nodes[0].Distinguish(b.Nodes[0])
+	}
+	return nil, nil
+}
+
+// FromParameters - fill(settle) subtree in `a` with `data` for `entrypoint`. Returned settled subtree and error if occured. If `entrypoint` is empty string it will try to settle main tree.
+func (a *TypedAst) FromParameters(entrypoint string, data UntypedAST) (*TypedAst, error) {
+	if entrypoint != "" {
+		subTree := a.FindByName(entrypoint)
+		if subTree != nil {
+			err := subTree.ParseValue(data[0])
+			return &TypedAst{
+				Nodes:   []Node{subTree},
+				settled: true,
+			}, err
+		}
+	}
+	err := a.Settle(data)
+	return a, err
+}
+
+// EnrichBigMap -
+func (a *TypedAst) EnrichBigMap(bmd []*base.BigMapDiff) error {
+	for i := range a.Nodes {
+		if err := a.Nodes[i].EnrichBigMap(bmd); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// EqualType -
+func (a *TypedAst) EqualType(b *TypedAst) bool {
+	if len(a.Nodes) != len(b.Nodes) {
+		return false
+	}
+
+	for i := range a.Nodes {
+		if !a.Nodes[i].EqualType(b.Nodes[i]) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func marshalJSON(prim string, annots []string, args ...Node) ([]byte, error) {

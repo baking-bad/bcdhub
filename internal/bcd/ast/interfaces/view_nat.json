@@ -1,0 +1,8 @@
+{
+    "entrypoints": {
+        "default": {
+            "prim": "nat"
+        }
+    },
+    "is_root": true
+}

@@ -31,17 +31,17 @@ func (set *Set) String() string {
 	s.WriteString(set.Default.String())
 	if len(set.Data) > 0 {
 		for i := range set.Data {
-			s.WriteString(strings.Repeat(consts.DefaultIndent, set.depth))
+			s.WriteString(strings.Repeat(consts.DefaultIndent, set.Depth))
 			s.WriteByte('{')
 			s.WriteByte('\n')
-			s.WriteString(strings.Repeat(consts.DefaultIndent, set.depth+1))
+			s.WriteString(strings.Repeat(consts.DefaultIndent, set.Depth+1))
 			s.WriteString(set.Data[i].String())
-			s.WriteString(strings.Repeat(consts.DefaultIndent, set.depth))
+			s.WriteString(strings.Repeat(consts.DefaultIndent, set.Depth))
 			s.WriteByte('}')
 			s.WriteByte('\n')
 		}
 	} else {
-		s.WriteString(strings.Repeat(consts.DefaultIndent, set.depth))
+		s.WriteString(strings.Repeat(consts.DefaultIndent, set.Depth))
 		s.WriteString(set.Type.String())
 	}
 	return s.String()
@@ -49,7 +49,7 @@ func (set *Set) String() string {
 
 // MarshalJSON -
 func (set *Set) MarshalJSON() ([]byte, error) {
-	return marshalJSON(consts.SET, set.annots, set.Type)
+	return marshalJSON(consts.SET, set.Annots, set.Type)
 }
 
 // ParseType -
@@ -58,7 +58,7 @@ func (set *Set) ParseType(node *base.Node, id *int) error {
 		return err
 	}
 
-	typ, err := typingNode(node.Args[0], set.depth, id)
+	typ, err := typingNode(node.Args[0], set.Depth, id)
 	if err != nil {
 		return err
 	}
@@ -76,10 +76,7 @@ func (set *Set) ParseValue(node *base.Node) error {
 	set.Data = make([]Node, 0)
 
 	for i := range node.Args {
-		item, err := createByType(set.Type)
-		if err != nil {
-			return err
-		}
+		item := Copy(set.Type)
 		if err := item.ParseValue(node.Args[i]); err != nil {
 			return err
 		}
@@ -162,16 +159,11 @@ func (set *Set) FromJSONSchema(data map[string]interface{}) error {
 		if !ok {
 			return errors.Wrap(consts.ErrValidation, "Set.FromJSONSchema")
 		}
-		itemTree, err := createByType(set.Type)
-		if err != nil {
+		itemTree := Copy(set.Type)
+		if err := itemTree.FromJSONSchema(item); err != nil {
 			return err
 		}
-		for key := range item {
-			itemMap := item[key].(map[string]interface{})
-			if err := itemTree.FromJSONSchema(itemMap); err != nil {
-				return err
-			}
-		}
+
 		set.Data = append(set.Data, itemTree)
 	}
 	return nil
@@ -228,7 +220,7 @@ func (set *Set) Docs(inferredName string) ([]Typedef, string, error) {
 
 // Distinguish -
 func (set *Set) Distinguish(x Distinguishable) (*MiguelNode, error) {
-	second, ok := x.(*List)
+	second, ok := x.(*Set)
 	if !ok {
 		return nil, nil
 	}
@@ -247,4 +239,16 @@ func (set *Set) Distinguish(x Distinguishable) (*MiguelNode, error) {
 	node.Children = children
 
 	return node, nil
+}
+
+// EqualType -
+func (set *Set) EqualType(node Node) bool {
+	if !set.Default.EqualType(node) {
+		return false
+	}
+	second, ok := node.(*Set)
+	if !ok {
+		return false
+	}
+	return set.Type.EqualType(second.Type)
 }

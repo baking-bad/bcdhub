@@ -12,8 +12,8 @@ import (
 type Ticket struct {
 	Default
 
-	Type   Node
-	Paired Node
+	Type       Node
+	PairedType Node
 
 	depth int
 }
@@ -24,7 +24,7 @@ func NewTicket(depth int) *Ticket {
 		depth: depth,
 		Default: Default{
 			Prim:      consts.TICKET,
-			argsCount: 1,
+			ArgsCount: 1,
 		},
 	}
 }
@@ -40,7 +40,7 @@ func (t *Ticket) String() string {
 
 // MarshalJSON -
 func (t *Ticket) MarshalJSON() ([]byte, error) {
-	return marshalJSON(consts.TICKET, t.annots, t.Type)
+	return marshalJSON(consts.TICKET, t.Annots, t.Type)
 }
 
 // ParseType -
@@ -54,26 +54,39 @@ func (t *Ticket) ParseType(node *base.Node, id *int) error {
 		return err
 	}
 	t.Type = typ
-	t.Paired = &Pair{
-		Default: NewDefault(consts.PAIR, -1, t.depth+1),
-		Args: []Node{
-			NewAddress(t.depth + 2),
-			&Pair{
-				Default: NewDefault(consts.PAIR, -1, t.depth+2),
-				Args: []Node{
-					typ,
-					NewNat(t.depth + 3),
-				},
-			},
-		},
+
+	pair := NewPair(t.depth)
+	(*id)++
+	pair.ID = *id
+
+	address := NewAddress(t.depth + 2)
+	(*id)++
+	address.ID = *id
+
+	internalPair := NewPair(t.depth)
+	(*id)++
+	internalPair.ID = *id
+
+	nat := NewNat(t.depth)
+	(*id)++
+	nat.ID = *id
+
+	internalPair.Args = []Node{
+		Copy(typ),
+		nat,
 	}
+	pair.Args = []Node{
+		address,
+		internalPair,
+	}
+	t.PairedType = pair
 
 	return nil
 }
 
 // ParseValue -
 func (t *Ticket) ParseValue(node *base.Node) error {
-	return t.Type.ParseValue(node)
+	return t.PairedType.ParseValue(node)
 }
 
 // ToMiguel -
@@ -84,7 +97,7 @@ func (t *Ticket) ToMiguel() (*MiguelNode, error) {
 	}
 
 	node.Children = make([]*MiguelNode, 0)
-	child, err := t.Paired.ToMiguel()
+	child, err := t.PairedType.ToMiguel()
 	if err != nil {
 		return nil, err
 	}
@@ -94,12 +107,12 @@ func (t *Ticket) ToMiguel() (*MiguelNode, error) {
 
 // ToBaseNode -
 func (t *Ticket) ToBaseNode(optimized bool) (*base.Node, error) {
-	return t.Paired.ToBaseNode(optimized)
+	return t.PairedType.ToBaseNode(optimized)
 }
 
 // ToParameters -
 func (t *Ticket) ToParameters() ([]byte, error) {
-	return t.Paired.ToParameters()
+	return t.PairedType.ToParameters()
 }
 
 // Docs -
@@ -123,5 +136,23 @@ func (t *Ticket) Distinguish(x Distinguishable) (*MiguelNode, error) {
 	if !ok {
 		return nil, nil
 	}
-	return t.Paired.Distinguish(second.Paired)
+	return t.PairedType.Distinguish(second.PairedType)
+}
+
+// FromJSONSchema -
+func (t *Ticket) FromJSONSchema(data map[string]interface{}) error {
+	return nil
+}
+
+// EqualType -
+func (t *Ticket) EqualType(node Node) bool {
+	if !t.Default.EqualType(node) {
+		return false
+	}
+	second, ok := node.(*Ticket)
+	if !ok {
+		return false
+	}
+
+	return t.Type.EqualType(second.Type)
 }

@@ -20,6 +20,23 @@ type MiguelNode struct {
 	Children []*MiguelNode `json:"children,omitempty"`
 }
 
+type byName []*MiguelNode
+
+func (n byName) Len() int { return len(n) }
+func (n byName) Less(i, j int) bool {
+	if n[i].Name == nil && n[j].Name == nil {
+		return false
+	}
+	if n[i].Name == nil {
+		return false
+	}
+	if n[j].Name == nil {
+		return true
+	}
+	return *n[i].Name < *n[j].Name
+}
+func (n byName) Swap(i, j int) { n[i], n[j] = n[j], n[i] }
+
 // String -
 func (node *MiguelNode) String() string {
 	return node.print(0)
@@ -72,6 +89,13 @@ func (node *MiguelNode) Compare(second *MiguelNode) bool {
 		}
 	}
 	return true
+}
+
+func (node *MiguelNode) setDiffType(typ string) {
+	node.DiffType = typ
+	for i := range node.Children {
+		node.Children[i].setDiffType(typ)
+	}
 }
 
 func isInterfaceEqual(x, y interface{}) bool {

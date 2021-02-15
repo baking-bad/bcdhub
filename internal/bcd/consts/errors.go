@@ -16,4 +16,5 @@ var (
 	ErrValidation          = errors.New("Validation error")
 	ErrTypeIsNotComparable = errors.New("Type is not comparable")
 	ErrTreeIsNotSettled    = errors.New("Tree is not settled")
+	ErrInvalidAddress      = errors.New("Invalid address")
 )

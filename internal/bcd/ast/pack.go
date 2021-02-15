@@ -51,13 +51,13 @@ func getOptimizedAddress(val string, tzOnly bool) ([]byte, error) {
 		return nil, err
 	}
 	switch prefix {
-	case "tz1":
+	case encoding.PrefixPublicKeyTZ1:
 		address = append([]byte{0, 0}, address...)
-	case "tz2":
+	case encoding.PrefixPublicKeyTZ2:
 		address = append([]byte{0, 1}, address...)
-	case "tz3":
+	case encoding.PrefixPublicKeyTZ3:
 		address = append([]byte{0, 2}, address...)
-	case "KT1":
+	case encoding.PrefixPublicKeyKT1:
 		address = append([]byte{1}, address...)
 		address = append(address, byte(0))
 	default:
@@ -67,6 +67,26 @@ func getOptimizedAddress(val string, tzOnly bool) ([]byte, error) {
 		return address[1:], nil
 	}
 	return address, nil
+}
+
+func fromOptimizedAddress(str string) (string, error) {
+	if len(str) != 44 && len(str) != 42 {
+		return "", errors.Wrapf(consts.ErrInvalidAddress, "fromOptimizedAddress: %s", str)
+	}
+	switch {
+	case strings.HasPrefix(str, "0000"):
+		return encoding.EncodeBase58String(str[4:], []byte(encoding.PrefixPublicKeyTZ1))
+	case strings.HasPrefix(str, "0001"):
+		return encoding.EncodeBase58String(str[4:], []byte(encoding.PrefixPublicKeyTZ2))
+	case strings.HasPrefix(str, "0002"):
+		return encoding.EncodeBase58String(str[4:], []byte(encoding.PrefixPublicKeyTZ3))
+	case strings.HasPrefix(str, "01") && strings.HasSuffix(str, "00"):
+		return encoding.EncodeBase58String(str[2:len(str)-2], []byte(encoding.PrefixPublicKeyKT1))
+	case len(str) == 42:
+		return fromOptimizedAddress("00" + str)
+	default:
+		return str, nil
+	}
 }
 
 func getOptimizedContract(val string) (string, error) {
@@ -88,6 +108,20 @@ func getOptimizedContract(val string) (string, error) {
 	return hex.EncodeToString(res), nil
 }
 
+func fromOptimizedContract(str string) (string, error) {
+	if len(str) != 44 && len(str) != 42 {
+		return "", errors.Wrapf(consts.ErrInvalidAddress, "fromOptimizedContract: %s", str)
+	}
+	res, err := fromOptimizedAddress(str[:44])
+	if err != nil {
+		return "", err
+	}
+	if len(str) > 44 {
+		return fmt.Sprintf("%s%%%s", res, str[44:]), nil
+	}
+	return res, nil
+}
+
 func getOptimizedPublicKey(val string) ([]byte, error) {
 	prefix := val[4:]
 	decoded, err := encoding.DecodeBase58String(val)
@@ -95,13 +129,37 @@ func getOptimizedPublicKey(val string) ([]byte, error) {
 		return nil, err
 	}
 	switch prefix {
-	case "edpk":
+	case encoding.PrefixED25519PublicKey:
 		return append([]byte{0}, decoded...), nil
-	case "sppk":
+	case encoding.PrefixSecp256k1PublicKey:
 		return append([]byte{1}, decoded...), nil
-	case "p2pk":
+	case encoding.PrefixP256PublicKey:
 		return append([]byte{2}, decoded...), nil
 	default:
 		return nil, errors.Errorf("Invalid public key prefix: %s", prefix)
 	}
+}
+
+func fromOptimizedPublicKey(str string) (string, error) {
+	if len(str) != 66 {
+		return "", errors.Wrapf(consts.ErrInvalidAddress, "fromOptimizedPublicKey: %s", str)
+	}
+	switch {
+	case strings.HasPrefix(str, "00"):
+		return encoding.EncodeBase58String(str[2:], []byte(encoding.PrefixED25519PublicKey))
+	case strings.HasPrefix(str, "01"):
+		return encoding.EncodeBase58String(str[2:], []byte(encoding.PrefixSecp256k1PublicKey))
+	case strings.HasPrefix(str, "02"):
+		return encoding.EncodeBase58String(str[2:], []byte(encoding.PrefixP256PublicKey))
+	default:
+		return str, nil
+	}
+}
+
+func fromOptimizedChainID(str string) (string, error) {
+	return encoding.EncodeBase58String(str, []byte(encoding.PrefixChainID))
+}
+
+func fromOptimizedSignature(str string) (string, error) {
+	return encoding.EncodeBase58String(str, []byte(encoding.PrefixGenericSignature))
 }
