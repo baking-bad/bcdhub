@@ -6,7 +6,7 @@ rpc:
     uri: https://rpc.tzkt.io/delphinet
     timeout: 20
   edonet:
-    uri: https://rpc.tzkt.io/clarnet
+    uri: https://rpc.tzkt.io/edo2net
     timeout: 20
 
 tzkt:
@@ -21,9 +21,9 @@ tzkt:
     base_uri: https://delphi.tzkt.io/
     timeout: 20
   edonet:
-    uri: https://api.edonet.tzkt.io/v1/
-    services_uri: https://services.tzkt.io/edonet/v1/
-    base_uri: https://edonet.tzkt.io/
+    uri: https://api.edo2net.tzkt.io/v1/
+    services_uri: https://services.tzkt.io/edo2net/v1/
+    base_uri: https://edo2net.tzkt.io/
     timeout: 20
 
 storage:

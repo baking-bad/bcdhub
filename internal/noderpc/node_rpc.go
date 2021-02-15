@@ -19,9 +19,7 @@ import (
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 const (
-	headBlock    = "head"
-	protocolEdo1 = "PtEdoTezd3RHSC31mpxxo1npxFjoWWcFgQtxapi51Z8TLu6v6Uq"
-	protocolEdo2 = "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA"
+	headBlock = "head"
 )
 
 func getBlockString(level int64) string {
@@ -303,9 +301,11 @@ func (rpc *NodeRPC) RunCode(script, storage, input gjson.Result, chainID, source
 		"input":    input.Value(),
 		"amount":   fmt.Sprintf("%d", amount),
 		"chain_id": chainID,
-		"balance":  "0",
 	}
 
+	if proto != "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo" {
+		data["balance"] = "0"
+	}
 	if gas != 0 {
 		data["gas"] = fmt.Sprintf("%d", gas)
 	}
