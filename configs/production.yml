@@ -5,7 +5,7 @@ rpc:
   delphinet:
     uri: https://rpc.tzkt.io/delphinet
     timeout: 20
-  edonet:
+  edo2net:
     uri: https://rpc.tzkt.io/edo2net
     timeout: 20
 
@@ -20,7 +20,7 @@ tzkt:
     services_uri: https://services.tzkt.io/delphinet/v1/
     base_uri: https://delphi.tzkt.io/
     timeout: 20
-  edonet:
+  edo2net:
     uri: https://api.edo2net.tzkt.io/v1/
     services_uri: https://services.tzkt.io/edo2net/v1/
     base_uri: https://edo2net.tzkt.io/
@@ -86,7 +86,7 @@ api:
   networks:
     - mainnet
     - delphinet
-    - edonet
+    - edo2net
   mq:
     publisher: true
     queues:
@@ -127,8 +127,7 @@ indexer:
       boost: tzkt
     delphinet:
       boost: tzkt
-    edonet:
-      boost: tzkt
+    edo2net:
 
 metrics:
   project_name: metrics
@@ -153,6 +152,6 @@ scripts:
   networks:
     - mainnet
     - delphinet
-    - edonet
+    - edo2net
   mq:
     publisher: true
