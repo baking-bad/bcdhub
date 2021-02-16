@@ -102,7 +102,7 @@ func TestOrderedMap_Add(t *testing.T) {
 				return
 			}
 
-			m.Range(func(key, value Node) (bool, error) {
+			_ = m.Range(func(key, value Comparable) (bool, error) {
 				return false, nil
 			})
 		})

@@ -90,9 +90,7 @@ func (l *Lambda) ToMiguel() (*MiguelNode, error) {
 func (l *Lambda) FromJSONSchema(data map[string]interface{}) error {
 	for key := range data {
 		if l.GetTypeName() == key {
-			t, err := translator.NewConverter(
-				translator.WithDefaultGrammar(),
-			)
+			t, err := translator.NewConverter()
 			if err != nil {
 				return err
 			}
@@ -100,7 +98,7 @@ func (l *Lambda) FromJSONSchema(data map[string]interface{}) error {
 			if err != nil {
 				return err
 			}
-			l.Value = jsonLambda.String()
+			l.Value = jsonLambda
 			l.ValueKind = valueKindString
 		}
 	}
@@ -133,7 +131,7 @@ func (l *Lambda) Docs(inferredName string) ([]Typedef, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	parameter, err := formatter.MichelineStringToMichelson(string(iStr), true, formatter.DefLineSize)
+	parameter, err := formatter.MichelineStringToMichelson(iStr, true, formatter.DefLineSize)
 	if err != nil {
 		return nil, "", err
 	}

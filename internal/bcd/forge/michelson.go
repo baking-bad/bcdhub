@@ -8,6 +8,12 @@ import (
 	"github.com/pkg/errors"
 )
 
+// pack prefix
+const (
+	PackPrefix     = "05"
+	PackPrefixByte = 0x05
+)
+
 // Michelson -
 type Michelson struct {
 	Nodes []*base.Node
@@ -136,4 +142,12 @@ func ToString(node *base.Node) (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(b), nil
+}
+
+// TrimPackByte -
+func TrimPackByte(data []byte) ([]byte, error) {
+	if len(data) == 0 || data[0] != PackPrefixByte {
+		return nil, errors.Errorf("Invalid unpack data: %v", data)
+	}
+	return data[1:], nil
 }

@@ -8,12 +8,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 )
 
-type nodeByName []Node
-
-func (n nodeByName) Len() int           { return len(n) }
-func (n nodeByName) Less(i, j int) bool { return n[i].GetName() < n[j].GetName() }
-func (n nodeByName) Swap(i, j int)      { n[i], n[j] = n[j], n[i] }
-
 // Copy -
 func Copy(node Node) Node {
 	el := reflect.ValueOf(node).Elem()
@@ -107,14 +101,14 @@ func mapToBaseNodes(data *OrderedMap, optimized bool) (*base.Node, error) {
 	node.Prim = consts.PrimArray
 	node.Args = make([]*base.Node, 0)
 
-	err := data.Range(func(key, value Node) (bool, error) {
-		keyNode, err := key.ToBaseNode(optimized)
+	err := data.Range(func(key, value Comparable) (bool, error) {
+		keyNode, err := key.(Node).ToBaseNode(optimized)
 		if err != nil {
 			return true, err
 		}
 		var valueNode *base.Node
 		if value != nil {
-			valueNode, err = value.ToBaseNode(optimized)
+			valueNode, err = value.(Node).ToBaseNode(optimized)
 			if err != nil {
 				return true, err
 			}

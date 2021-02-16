@@ -38,14 +38,14 @@ func (m *BigMap) String() string {
 		s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth))
 		s.WriteString(fmt.Sprintf("Ptr=%d\n", *m.Ptr))
 	case m.Data.Len() > 0:
-		m.Data.Range(func(key, val Node) (bool, error) {
+		_ = m.Data.Range(func(key, val Comparable) (bool, error) {
 			s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth))
 			s.WriteByte('{')
 			s.WriteByte('\n')
 			s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth+1))
-			s.WriteString(key.String())
+			s.WriteString(key.(Node).String())
 			s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth+1))
-			s.WriteString(val.String())
+			s.WriteString(val.(Node).String())
 			s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth))
 			s.WriteByte('}')
 			s.WriteByte('\n')
@@ -91,14 +91,9 @@ func (m *BigMap) ParseType(node *base.Node, id *int) error {
 func (m *BigMap) ParseValue(node *base.Node) error {
 	switch {
 	case node.Prim == consts.PrimArray:
-		data, err := createMapFromElts(node.Args, m.KeyType, m.ValueType)
-		if err != nil {
-			return err
-		}
-		return m.Data.fillFromMap(data)
+		return createMapFromElts(node.Args, m.KeyType, m.ValueType, m.Data)
 	case node.IntValue != nil:
 		ptr := node.IntValue.Int64()
-		// m.Data = make(map[Node]Node)
 		m.Ptr = &ptr
 	default:
 		return errors.Wrap(consts.ErrInvalidPrim, fmt.Sprintf("BigMap.ParseValue (%s)", node.Prim))
@@ -119,13 +114,13 @@ func (m *BigMap) ToMiguel() (*MiguelNode, error) {
 		return node, nil
 	default:
 		node.Children = make([]*MiguelNode, 0)
-		handler := func(key, value Node) (bool, error) {
-			keyChild, err := key.ToMiguel()
+		handler := func(key, value Comparable) (bool, error) {
+			keyChild, err := key.(Node).ToMiguel()
 			if err != nil {
 				return true, err
 			}
 			if value != nil {
-				child, err := value.ToMiguel()
+				child, err := value.(Node).ToMiguel()
 				if err != nil {
 					return true, err
 				}
@@ -170,11 +165,11 @@ func (m *BigMap) ToJSONSchema() (*JSONSchema, error) {
 		},
 	}
 
-	if err := setChildSchemaForMap(m.KeyType, true, true, s); err != nil {
+	if err := setChildSchemaForMap(m.KeyType, true, s); err != nil {
 		return nil, err
 	}
 
-	if err := setChildSchemaForMap(m.ValueType, true, false, s); err != nil {
+	if err := setChildSchemaForMap(m.ValueType, false, s); err != nil {
 		return nil, err
 	}
 
@@ -326,8 +321,8 @@ func (m *BigMap) Distinguish(x Distinguishable) (*MiguelNode, error) {
 	}
 	node.Children = make([]*MiguelNode, 0)
 
-	err := m.Data.Range(func(key, value Node) (bool, error) {
-		keyChild, err := key.ToMiguel()
+	err := m.Data.Range(func(key, value Comparable) (bool, error) {
+		keyChild, err := key.(Node).ToMiguel()
 		if err != nil {
 			return true, err
 		}
@@ -338,7 +333,7 @@ func (m *BigMap) Distinguish(x Distinguishable) (*MiguelNode, error) {
 
 		val, ok := second.Data.Get(key)
 		if !ok {
-			child, err := value.ToMiguel()
+			child, err := value.(Node).ToMiguel()
 			if err != nil {
 				return true, err
 			}
@@ -348,7 +343,7 @@ func (m *BigMap) Distinguish(x Distinguishable) (*MiguelNode, error) {
 			return false, nil
 		}
 
-		child, err := value.Distinguish(val)
+		child, err := value.(Node).Distinguish(val.(Node))
 		if err != nil {
 			return true, err
 		}
@@ -360,13 +355,13 @@ func (m *BigMap) Distinguish(x Distinguishable) (*MiguelNode, error) {
 		return nil, err
 	}
 
-	err = second.Data.Range(func(key, value Node) (bool, error) {
+	err = second.Data.Range(func(key, value Comparable) (bool, error) {
 		if _, ok := m.Data.Get(key); !ok {
-			child, err := value.ToMiguel()
+			child, err := value.(Node).ToMiguel()
 			if err != nil {
 				return true, err
 			}
-			keyChild, err := key.ToMiguel()
+			keyChild, err := key.(Node).ToMiguel()
 			if err != nil {
 				return true, err
 			}

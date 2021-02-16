@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/valyala/fastjson"
 	"github.com/yhirose/go-peg"
 )
 
@@ -27,6 +26,10 @@ func NewConverter(opts ...ConverterOption) (Converter, error) {
 		return c, c.err
 	}
 
+	if c.grammar == "" {
+		c.grammar = defaultGrammar
+	}
+
 	parser, err := peg.NewParser(c.grammar)
 	if err != nil {
 		return c, err
@@ -40,24 +43,24 @@ func NewConverter(opts ...ConverterOption) (Converter, error) {
 }
 
 // FromFile -
-func (c Converter) FromFile(filename string) (*fastjson.Value, error) {
+func (c Converter) FromFile(filename string) (string, error) {
 	c.trace()
 
 	michelson, err := readFileToString(filename)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	return c.FromString(michelson)
 }
 
 // FromString -
-func (c Converter) FromString(input string) (*fastjson.Value, error) {
+func (c Converter) FromString(input string) (string, error) {
 	c.trace()
 
 	ast, err := c.parser.ParseAndGetAst(input, nil)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	return NewJSONTranslator().Translate(ast)

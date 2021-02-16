@@ -32,14 +32,14 @@ func (m *Map) String() string {
 
 	s.WriteString(m.Default.String())
 	if m.Data.Len() > 0 {
-		m.Data.Range(func(key, val Node) (bool, error) {
+		_ = m.Data.Range(func(key, val Comparable) (bool, error) {
 			s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth))
 			s.WriteByte('{')
 			s.WriteByte('\n')
 			s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth+1))
-			s.WriteString(key.String())
+			s.WriteString(key.(Node).String())
 			s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth+1))
-			s.WriteString(val.String())
+			s.WriteString(val.(Node).String())
 			s.WriteString(strings.Repeat(consts.DefaultIndent, m.Depth))
 			s.WriteByte('}')
 			s.WriteByte('\n')
@@ -87,11 +87,7 @@ func (m *Map) ParseValue(node *base.Node) error {
 		return errors.Wrap(consts.ErrInvalidPrim, "Map.ParseValue")
 	}
 
-	data, err := createMapFromElts(node.Args, m.KeyType, m.ValueType)
-	if err != nil {
-		return err
-	}
-	return m.Data.fillFromMap(data)
+	return createMapFromElts(node.Args, m.KeyType, m.ValueType, m.Data)
 }
 
 // ToMiguel -
@@ -103,13 +99,13 @@ func (m *Map) ToMiguel() (*MiguelNode, error) {
 
 	node.Children = make([]*MiguelNode, 0)
 
-	handler := func(key, value Node) (bool, error) {
-		keyChild, err := key.ToMiguel()
+	handler := func(key, value Comparable) (bool, error) {
+		keyChild, err := key.(Node).ToMiguel()
 		if err != nil {
 			return true, err
 		}
 		if value != nil {
-			child, err := value.ToMiguel()
+			child, err := value.(Node).ToMiguel()
 			if err != nil {
 				return true, err
 			}
@@ -146,11 +142,11 @@ func (m *Map) ToJSONSchema() (*JSONSchema, error) {
 		},
 	}
 
-	if err := setChildSchemaForMap(m.KeyType, true, true, s); err != nil {
+	if err := setChildSchemaForMap(m.KeyType, true, s); err != nil {
 		return nil, err
 	}
 
-	if err := setChildSchemaForMap(m.ValueType, true, false, s); err != nil {
+	if err := setChildSchemaForMap(m.ValueType, false, s); err != nil {
 		return nil, err
 	}
 
@@ -198,11 +194,11 @@ func (m *Map) FromJSONSchema(data map[string]interface{}) error {
 
 // EnrichBigMap -
 func (m *Map) EnrichBigMap(bmd []*base.BigMapDiff) error {
-	return m.Data.Range(func(key, value Node) (bool, error) {
-		if err := key.EnrichBigMap(bmd); err != nil {
+	return m.Data.Range(func(key, value Comparable) (bool, error) {
+		if err := key.(Node).EnrichBigMap(bmd); err != nil {
 			return true, err
 		}
-		if err := value.EnrichBigMap(bmd); err != nil {
+		if err := value.(Node).EnrichBigMap(bmd); err != nil {
 			return true, err
 		}
 		return false, nil
@@ -271,8 +267,8 @@ func (m *Map) Distinguish(x Distinguishable) (*MiguelNode, error) {
 	node.Name = &name
 	node.Children = make([]*MiguelNode, 0)
 
-	err := m.Data.Range(func(key, value Node) (bool, error) {
-		keyChild, err := key.ToMiguel()
+	err := m.Data.Range(func(key, value Comparable) (bool, error) {
+		keyChild, err := key.(Node).ToMiguel()
 		if err != nil {
 			return true, err
 		}
@@ -283,7 +279,7 @@ func (m *Map) Distinguish(x Distinguishable) (*MiguelNode, error) {
 
 		val, ok := second.Data.Get(key)
 		if !ok {
-			child, err := value.ToMiguel()
+			child, err := value.(Node).ToMiguel()
 			if err != nil {
 				return true, err
 			}
@@ -293,7 +289,7 @@ func (m *Map) Distinguish(x Distinguishable) (*MiguelNode, error) {
 			return false, nil
 		}
 
-		child, err := value.Distinguish(val)
+		child, err := value.(Node).Distinguish(val.(Node))
 		if err != nil {
 			return true, err
 		}
@@ -305,13 +301,13 @@ func (m *Map) Distinguish(x Distinguishable) (*MiguelNode, error) {
 		return nil, err
 	}
 
-	err = second.Data.Range(func(key, value Node) (bool, error) {
+	err = second.Data.Range(func(key, value Comparable) (bool, error) {
 		if _, ok := m.Data.Get(key); !ok {
-			child, err := value.ToMiguel()
+			child, err := value.(Node).ToMiguel()
 			if err != nil {
 				return true, err
 			}
-			keyChild, err := key.ToMiguel()
+			keyChild, err := key.(Node).ToMiguel()
 			if err != nil {
 				return true, err
 			}
@@ -349,45 +345,35 @@ func (m *Map) EqualType(node Node) bool {
 	return m.ValueType.EqualType(second.ValueType)
 }
 
-func getFromMapByKey(key Node, m map[Node]Node) (Node, bool) {
-	for secondKey, secondValue := range m {
-		ok, err := key.Compare(secondKey)
-		if err != nil {
-			return nil, false
-		}
-		if ok != 0 {
-			continue
-		}
-		return secondValue, true
+func createMapFromElts(args []*base.Node, keyType, valueType Node, data *OrderedMap) error {
+	if data == nil {
+		data = NewOrderedMap()
 	}
-	return nil, false
-}
-
-func createMapFromElts(args []*base.Node, keyType, valueType Node) (map[Node]Node, error) {
-	data := make(map[Node]Node)
 
 	for i := range args {
 		elt := args[i]
 		if elt.Prim != consts.Elt {
-			return nil, errors.Wrap(consts.ErrInvalidPrim, "createMapFromElts")
+			return errors.Wrap(consts.ErrInvalidPrim, "createMapFromElts")
 		}
 		if len(elt.Args) != 2 {
-			return nil, errors.Wrap(consts.ErrInvalidArgsCount, "createMapFromElts")
+			return errors.Wrap(consts.ErrInvalidArgsCount, "createMapFromElts")
 		}
 
 		if elt.Args[1] != nil {
 			key := Copy(keyType)
 			if err := key.ParseValue(elt.Args[0]); err != nil {
-				return nil, err
+				return err
 			}
 			val := Copy(valueType)
 			if err := val.ParseValue(elt.Args[1]); err != nil {
-				return nil, err
+				return err
 			}
-			data[key] = val
+			if err := data.Add(key, val); err != nil {
+				return err
+			}
 		}
 	}
-	return data, nil
+	return nil
 }
 
 func getMapKeyName(node *MiguelNode) (s string, err error) {

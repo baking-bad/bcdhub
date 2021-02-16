@@ -10,12 +10,3 @@ func Forge(node Base, optimized bool) (string, error) {
 	}
 	return forge.ToString(baseAST)
 }
-
-// Unforge -
-func Unforge(data string) (UntypedAST, error) {
-	unforger := forge.NewMichelson()
-	if _, err := unforger.UnforgeString(data); err != nil {
-		return nil, err
-	}
-	return unforger.Nodes, nil
-}

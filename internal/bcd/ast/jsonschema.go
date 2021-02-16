@@ -73,16 +73,6 @@ func setIntJSONSchema(d *Default, data map[string]interface{}) {
 	}
 }
 
-func setStringJSONSchema(d *Default, data map[string]interface{}) {
-	for key := range data {
-		if key == d.GetName() {
-			d.Value = data[key]
-			d.ValueKind = valueKindString
-			break
-		}
-	}
-}
-
 func setBytesJSONSchema(d *Default, data map[string]interface{}) {
 	for key := range data {
 		if key == d.GetName() {
@@ -156,7 +146,7 @@ func setChildSchema(child Node, required bool, parent *JSONSchema) error {
 	return nil
 }
 
-func setChildSchemaForMap(child Node, required, needXTitle bool, parent *JSONSchema) error {
+func setChildSchemaForMap(child Node, needXTitle bool, parent *JSONSchema) error {
 	s, err := child.ToJSONSchema()
 	if err != nil {
 		return err
@@ -169,7 +159,7 @@ func setChildSchemaForMap(child Node, required, needXTitle bool, parent *JSONSch
 		if parent.Items.Required == nil {
 			parent.Items.Required = make([]string, 0)
 		}
-		fields := mergePropertiesMap(s.Properties, parent.Items.Properties, required, needXTitle)
+		fields := mergePropertiesMap(s.Properties, parent.Items.Properties, true, needXTitle)
 		parent.Items.Required = append(parent.Items.Required, fields.reqs...)
 		if fields.xTitle != "" {
 			parent.XItemTitle = fields.xTitle

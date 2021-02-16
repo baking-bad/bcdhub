@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/encoding"
+	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/pkg/errors"
 )
 
@@ -393,7 +394,7 @@ func (t *Timestamp) ToParameters() ([]byte, error) {
 	case *base.BigInt:
 		return []byte(fmt.Sprintf(`{"int":"%d"}`, ts.Int64())), nil
 	default:
-		return nil, errors.Wrapf(base.ErrInvalidType, "Timestamp.ToParameters: %T", t.Value)
+		return nil, errors.Wrapf(consts.ErrInvalidType, "Timestamp.ToParameters: %T", t.Value)
 	}
 }
 
@@ -617,7 +618,7 @@ func (c *ChainID) Distinguish(x Distinguishable) (*MiguelNode, error) {
 
 // FromJSONSchema -
 func (c *ChainID) FromJSONSchema(data map[string]interface{}) error {
-	setOptimizedJSONSchema(&c.Default, data, fromOptimizedChainID)
+	setOptimizedJSONSchema(&c.Default, data, forge.UnforgeChainID)
 	return nil
 }
 
@@ -644,7 +645,7 @@ func (a *Address) ToBaseNode(optimized bool) (*base.Node, error) {
 		return toBaseNodeBytes(val), nil
 	}
 	if optimized {
-		value, err := getOptimizedContract(val)
+		value, err := forge.Contract(val)
 		if err != nil {
 			return nil, err
 		}
@@ -658,7 +659,7 @@ func (a *Address) ToMiguel() (*MiguelNode, error) {
 	name := a.GetTypeName()
 	value := a.Value.(string)
 	if a.ValueKind == valueKindBytes {
-		v, err := fromOptimizedAddress(value)
+		v, err := forge.UnforgeAddress(value)
 		if err != nil {
 			return nil, err
 		}
@@ -689,7 +690,7 @@ func (a *Address) Compare(second Comparable) (int, error) {
 	if a.ValueKind == secondAddress.ValueKind {
 		return strings.Compare(a.Value.(string), secondAddress.Value.(string)), nil
 	}
-	return compareNotOptimizedTypes(a.Default, secondAddress.Default, getOptimizedContract)
+	return compareNotOptimizedTypes(a.Default, secondAddress.Default, forge.Contract)
 }
 
 // Distinguish -
@@ -698,10 +699,10 @@ func (a *Address) Distinguish(x Distinguishable) (*MiguelNode, error) {
 	if !ok {
 		return nil, nil
 	}
-	if err := a.optimizeStringValue(fromOptimizedContract); err != nil {
+	if err := a.optimizeStringValue(forge.UnforgeContract); err != nil {
 		return nil, err
 	}
-	if err := second.optimizeStringValue(fromOptimizedContract); err != nil {
+	if err := second.optimizeStringValue(forge.UnforgeContract); err != nil {
 		return nil, err
 	}
 	return a.Default.Distinguish(&second.Default)
@@ -709,7 +710,7 @@ func (a *Address) Distinguish(x Distinguishable) (*MiguelNode, error) {
 
 // FromJSONSchema -
 func (a *Address) FromJSONSchema(data map[string]interface{}) error {
-	setOptimizedJSONSchema(&a.Default, data, fromOptimizedContract)
+	setOptimizedJSONSchema(&a.Default, data, forge.UnforgeContract)
 	return nil
 }
 
@@ -734,7 +735,7 @@ func (k *Key) ToMiguel() (*MiguelNode, error) {
 	name := k.GetTypeName()
 	value := k.Value.(string)
 	if k.ValueKind == valueKindBytes {
-		v, err := fromOptimizedPublicKey(value)
+		v, err := forge.UnforgePublicKey(value)
 		if err != nil {
 			return nil, err
 		}
@@ -752,7 +753,7 @@ func (k *Key) ToMiguel() (*MiguelNode, error) {
 func (k *Key) ToBaseNode(optimized bool) (*base.Node, error) {
 	val := k.Value.(string)
 	if optimized {
-		value, err := getOptimizedPublicKey(val)
+		value, err := forge.PublicKey(val)
 		if err != nil {
 			return nil, err
 		}
@@ -787,7 +788,7 @@ func (k *Key) Distinguish(x Distinguishable) (*MiguelNode, error) {
 
 // FromJSONSchema -
 func (k *Key) FromJSONSchema(data map[string]interface{}) error {
-	setOptimizedJSONSchema(&k.Default, data, fromOptimizedPublicKey)
+	setOptimizedJSONSchema(&k.Default, data, forge.UnforgePublicKey)
 	return nil
 }
 
@@ -812,7 +813,7 @@ func (k *KeyHash) ToMiguel() (*MiguelNode, error) {
 	name := k.GetTypeName()
 	value := k.Value.(string)
 	if k.ValueKind == valueKindBytes {
-		v, err := fromOptimizedAddress(value)
+		v, err := forge.UnforgeAddress(value)
 		if err != nil {
 			return nil, err
 		}
@@ -830,7 +831,7 @@ func (k *KeyHash) ToMiguel() (*MiguelNode, error) {
 func (k *KeyHash) ToBaseNode(optimized bool) (*base.Node, error) {
 	val := k.Value.(string)
 	if optimized {
-		value, err := getOptimizedAddress(val, true)
+		value, err := forge.Address(val, true)
 		if err != nil {
 			return nil, err
 		}
@@ -865,7 +866,7 @@ func (k *KeyHash) Distinguish(x Distinguishable) (*MiguelNode, error) {
 
 // FromJSONSchema -
 func (k *KeyHash) FromJSONSchema(data map[string]interface{}) error {
-	setOptimizedJSONSchema(&k.Default, data, fromOptimizedAddress)
+	setOptimizedJSONSchema(&k.Default, data, forge.UnforgeAddress)
 	return nil
 }
 
@@ -942,7 +943,7 @@ func (s *Signature) Distinguish(x Distinguishable) (*MiguelNode, error) {
 
 // FromJSONSchema -
 func (s *Signature) FromJSONSchema(data map[string]interface{}) error {
-	setOptimizedJSONSchema(&s.Default, data, fromOptimizedSignature)
+	setOptimizedJSONSchema(&s.Default, data, forge.UnforgeSignature)
 	return nil
 }
 

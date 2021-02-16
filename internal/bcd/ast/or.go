@@ -15,15 +15,6 @@ const (
 	rightKey = 'R'
 )
 
-func isOrPath(s string) bool {
-	for _, chr := range s {
-		if chr != leftKey && chr != rightKey {
-			return false
-		}
-	}
-	return true
-}
-
 // Or -
 type Or struct {
 	Default

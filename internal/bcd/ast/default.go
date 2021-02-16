@@ -124,8 +124,7 @@ func (d *Default) ToMiguel() (*MiguelNode, error) {
 
 // GetEntrypoints -
 func (d *Default) GetEntrypoints() []string {
-	switch {
-	case d.FieldName != "":
+	if d.FieldName != "" {
 		return []string{d.FieldName}
 	}
 	return []string{""}

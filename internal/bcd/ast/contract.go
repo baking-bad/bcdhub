@@ -6,6 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 )
 
@@ -59,7 +60,7 @@ func (c *Contract) ToMiguel() (*MiguelNode, error) {
 	name := c.GetTypeName()
 	value := c.Value.(string)
 	if c.ValueKind == valueKindBytes {
-		v, err := fromOptimizedContract(value)
+		v, err := forge.UnforgeContract(value)
 		if err != nil {
 			return nil, err
 		}

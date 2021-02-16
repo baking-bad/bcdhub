@@ -538,11 +538,12 @@ func TestTypedAst_Docs(t *testing.T) {
 				return
 			}
 			var a *TypedAst
-			if len(untyped.Parameter) > 0 {
+			switch {
+			case len(untyped.Parameter) > 0:
 				a, err = untyped.Parameter.ToTypedAST()
-			} else if len(untyped.Storage) > 0 {
+			case len(untyped.Storage) > 0:
 				a, err = untyped.Storage.ToTypedAST()
-			} else {
+			default:
 				t.Errorf("Need to set parameter or storage")
 				return
 			}

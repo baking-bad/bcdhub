@@ -1,10 +1,10 @@
-package ast
+package forge
 
 import (
 	"testing"
 )
 
-func Test_getOptimizedContract(t *testing.T) {
+func Test_Contract(t *testing.T) {
 	tests := []struct {
 		name    string
 		val     string
@@ -93,13 +93,13 @@ func Test_getOptimizedContract(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := getOptimizedContract(tt.val)
+			got, err := Contract(tt.val)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("getOptimizedContract() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Contract() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("getOptimizedContract() = %v, want %v", got, tt.want)
+				t.Errorf("Contract() = %v, want %v", got, tt.want)
 			}
 		})
 	}

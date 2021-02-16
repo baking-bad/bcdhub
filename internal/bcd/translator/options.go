@@ -22,13 +22,6 @@ func WithGrammar(grammar string) ConverterOption {
 	}
 }
 
-// WithDefaultGrammar -
-func WithDefaultGrammar() ConverterOption {
-	return func(c *Converter) {
-		c.grammar = defaultGrammar
-	}
-}
-
 // WithDebug -
 func WithDebug() ConverterOption {
 	return func(c *Converter) {

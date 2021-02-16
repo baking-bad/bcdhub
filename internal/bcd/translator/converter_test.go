@@ -7,7 +7,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/stretchr/testify/assert"
-	"github.com/valyala/fastjson"
 )
 
 func TestConverter_FromFile(t *testing.T) {
@@ -16,9 +15,7 @@ func TestConverter_FromFile(t *testing.T) {
 		logger.Fatal(err)
 	}
 
-	c, err := NewConverter(
-		WithDefaultGrammar(),
-	)
+	c, err := NewConverter()
 	if err != nil {
 		t.Errorf("Converter.NewConverter() error = %v", err)
 		return
@@ -35,11 +32,6 @@ func TestConverter_FromFile(t *testing.T) {
 				t.Errorf("ioutil.ReadFile() error = %v", err)
 				return
 			}
-			want, err := fastjson.ParseBytes(resultBytes)
-			if err != nil {
-				t.Errorf("fastjson.ParseBytes() error = %v", err)
-				return
-			}
 
 			filename := fmt.Sprintf("tests/%s/code.tz", file.Name())
 			got, err := c.FromFile(filename)
@@ -48,7 +40,7 @@ func TestConverter_FromFile(t *testing.T) {
 				return
 			}
 
-			assert.JSONEq(t, got.String(), want.String())
+			assert.JSONEq(t, string(resultBytes), got)
 		})
 	}
 }

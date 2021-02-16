@@ -1,23 +1,23 @@
 package translator
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/valyala/fastjson"
 	"github.com/yhirose/go-peg"
 )
 
 // MichelineTranslator -
 type MichelineTranslator struct {
-	handlers map[string]func(ast *peg.Ast) (*fastjson.Value, error)
+	handlers map[string]func(ast *peg.Ast) (string, error)
 }
 
 // NewJSONTranslator -
 func NewJSONTranslator() *MichelineTranslator {
 	t := MichelineTranslator{}
-	t.handlers = map[string]func(ast *peg.Ast) (*fastjson.Value, error){
+	t.handlers = map[string]func(ast *peg.Ast) (string, error){
 		"instrs":        t.arrayTranslate,
 		"instr":         t.pass,
 		"expr":          t.exprTranslate,
@@ -36,7 +36,7 @@ func NewJSONTranslator() *MichelineTranslator {
 }
 
 // Translate -
-func (t *MichelineTranslator) Translate(ast *peg.Ast) (*fastjson.Value, error) {
+func (t *MichelineTranslator) Translate(ast *peg.Ast) (string, error) {
 	handler, ok := t.handlers[ast.Name]
 	if ok {
 		return handler(ast)
@@ -44,67 +44,79 @@ func (t *MichelineTranslator) Translate(ast *peg.Ast) (*fastjson.Value, error) {
 	return t.pass(ast)
 }
 
-func (t *MichelineTranslator) pass(ast *peg.Ast) (*fastjson.Value, error) {
+func (t *MichelineTranslator) pass(ast *peg.Ast) (string, error) {
 	if len(ast.Nodes) > 0 {
 		return t.Translate(ast.Nodes[0])
 	}
-	return nil, nil
+	return "", nil
 }
 
-func (t *MichelineTranslator) exprTranslate(ast *peg.Ast) (*fastjson.Value, error) {
-	arena := fastjson.Arena{}
-	expr := arena.NewObject()
+func (t *MichelineTranslator) exprTranslate(ast *peg.Ast) (string, error) {
+	var s strings.Builder
+	s.WriteByte('{')
 	for i := range ast.Nodes {
 		data, err := t.Translate(ast.Nodes[i])
 		if err != nil {
-			return nil, err
+			return "", err
 		}
-		if data != nil {
-			expr.Set(ast.Nodes[i].Name, data)
+		if data != "" {
+			if s.Len() > 1 {
+				s.WriteByte(',')
+			}
+			if strings.HasPrefix(data, "[") || strings.HasPrefix(data, "{") {
+				s.WriteString(fmt.Sprintf(`"%s":%s`, ast.Nodes[i].Name, data))
+			} else {
+				s.WriteString(fmt.Sprintf(`"%s":"%s"`, ast.Nodes[i].Name, data))
+			}
 		}
 	}
-	return expr, nil
+	s.WriteByte('}')
+	return s.String(), nil
 }
 
-func (t *MichelineTranslator) tokenTranslate(ast *peg.Ast) (*fastjson.Value, error) {
+func (t *MichelineTranslator) tokenTranslate(ast *peg.Ast) (string, error) {
 	if ast.Name == "prim" {
 		if err := validatePrimitive(ast.Token); err != nil {
-			return nil, err
+			return "", err
 		}
 	}
-	arena := fastjson.Arena{}
-	return arena.NewString(ast.Token), nil
+	return ast.Token, nil
 }
 
-func (t *MichelineTranslator) arrayTranslate(ast *peg.Ast) (*fastjson.Value, error) {
-	arena := fastjson.Arena{}
-	args := arena.NewArray()
+func (t *MichelineTranslator) arrayTranslate(ast *peg.Ast) (string, error) {
+	var s strings.Builder
+	s.WriteByte('[')
 
 	var count int
 	for i := range ast.Nodes {
 		arg, err := t.Translate(ast.Nodes[i])
 		if err != nil {
-			return nil, err
+			return "", err
 		}
-		if arg != nil {
-			args.SetArrayItem(count, arg)
+		if arg != "" {
+			if s.Len() > 1 {
+				s.WriteByte(',')
+			}
+			if ast.Nodes[i].Name == "annot" {
+				s.WriteString(fmt.Sprintf(`"%s"`, arg))
+			} else {
+				s.WriteString(arg)
+			}
 			count++
 		}
 	}
-	return args, nil
+	s.WriteByte(']')
+	return s.String(), nil
 }
 
-func (t *MichelineTranslator) argTranslate(ast *peg.Ast) (*fastjson.Value, error) {
+func (t *MichelineTranslator) argTranslate(ast *peg.Ast) (string, error) {
 	for i := range ast.Nodes {
 		if ast.Nodes[i].Name == "prim" {
 			prim, err := t.Translate(ast.Nodes[i])
 			if err != nil {
-				return nil, err
+				return "", err
 			}
-			arena := fastjson.Arena{}
-			obj := arena.NewObject()
-			obj.Set("prim", prim)
-			return obj, nil
+			return fmt.Sprintf(`{"prim":"%s"}`, prim), nil
 		}
 		if ast.Nodes[i].Name != "expr" &&
 			ast.Nodes[i].Name != "instrs" &&
@@ -117,33 +129,22 @@ func (t *MichelineTranslator) argTranslate(ast *peg.Ast) (*fastjson.Value, error
 
 		return t.Translate(ast.Nodes[i])
 	}
-	return nil, nil
+	return "", nil
 }
 
-func (t *MichelineTranslator) intTranslate(ast *peg.Ast) (*fastjson.Value, error) {
-	arena := fastjson.Arena{}
-	obj := arena.NewObject()
-	obj.Set("int", arena.NewString(ast.Token))
-	return obj, nil
+func (t *MichelineTranslator) intTranslate(ast *peg.Ast) (string, error) {
+	return fmt.Sprintf(`{"int":"%s"}`, ast.Token), nil
 }
 
-func (t *MichelineTranslator) stringTranslate(ast *peg.Ast) (*fastjson.Value, error) {
-	arena := fastjson.Arena{}
-	obj := arena.NewObject()
-	token := sanitizeString(ast.Token)
-	obj.Set("string", arena.NewString(token))
-	return obj, nil
+func (t *MichelineTranslator) stringTranslate(ast *peg.Ast) (string, error) {
+	return fmt.Sprintf(`{"string":"%s"}`, sanitizeString(ast.Token)), nil
 }
 
-func (t *MichelineTranslator) bytesTranslate(ast *peg.Ast) (*fastjson.Value, error) {
-	arena := fastjson.Arena{}
-	obj := arena.NewObject()
-	token := strings.TrimPrefix(ast.Token, "0x")
-	obj.Set("bytes", arena.NewString(token))
-	return obj, nil
+func (t *MichelineTranslator) bytesTranslate(ast *peg.Ast) (string, error) {
+	return fmt.Sprintf(`{"bytes":"%s"}`, strings.TrimPrefix(ast.Token, "0x")), nil
 }
 
-func (t *MichelineTranslator) complexInstrTranslate(ast *peg.Ast) (*fastjson.Value, error) {
+func (t *MichelineTranslator) complexInstrTranslate(ast *peg.Ast) (string, error) {
 	for i := range ast.Nodes {
 		if ast.Nodes[i].Name != "instrs" {
 			continue
@@ -151,14 +152,13 @@ func (t *MichelineTranslator) complexInstrTranslate(ast *peg.Ast) (*fastjson.Val
 
 		return t.Translate(ast.Nodes[i])
 	}
-	arena := fastjson.Arena{}
-	return arena.NewArray(), nil
+	return "[]", nil
 }
 
 func sanitizeString(token string) string {
 	for from, to := range map[string]string{
-		"\\n": "\n",
-		"\"":  "",
+		// "\\n": "\n",
+		"\"": "",
 	} {
 		token = strings.ReplaceAll(token, from, to)
 	}

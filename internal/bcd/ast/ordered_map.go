@@ -4,8 +4,8 @@ import "sync"
 
 // OrderedMap -
 type OrderedMap struct {
-	keys   []Node
-	values map[Node]Node
+	keys   []Comparable
+	values map[Comparable]Comparable
 
 	lock sync.Mutex
 }
@@ -13,13 +13,13 @@ type OrderedMap struct {
 // NewOrderedMap -
 func NewOrderedMap() *OrderedMap {
 	return &OrderedMap{
-		keys:   make([]Node, 0),
-		values: make(map[Node]Node),
+		keys:   make([]Comparable, 0),
+		values: make(map[Comparable]Comparable),
 	}
 }
 
 // Get -
-func (m *OrderedMap) Get(key Node) (Node, bool) {
+func (m *OrderedMap) Get(key Comparable) (Comparable, bool) {
 	defer m.lock.Unlock()
 	m.lock.Lock()
 
@@ -36,7 +36,7 @@ func (m *OrderedMap) Get(key Node) (Node, bool) {
 	return nil, false
 }
 
-func (m *OrderedMap) set(key, value Node) bool {
+func (m *OrderedMap) set(key, value Comparable) bool {
 	defer m.lock.Unlock()
 	m.lock.Lock()
 
@@ -55,7 +55,7 @@ func (m *OrderedMap) set(key, value Node) bool {
 }
 
 // Add -
-func (m *OrderedMap) Add(key, value Node) error {
+func (m *OrderedMap) Add(key, value Comparable) error {
 	if ok := m.set(key, value); ok {
 		return nil
 	}
@@ -85,7 +85,7 @@ func (m *OrderedMap) Add(key, value Node) error {
 }
 
 // Remove -
-func (m *OrderedMap) Remove(key Node) (Node, bool) {
+func (m *OrderedMap) Remove(key Comparable) (Comparable, bool) {
 	val, ok := m.Get(key)
 	if !ok {
 		return nil, false
@@ -109,7 +109,7 @@ func (m *OrderedMap) Remove(key Node) (Node, bool) {
 }
 
 // Range -
-func (m *OrderedMap) Range(handler func(key, value Node) (bool, error)) error {
+func (m *OrderedMap) Range(handler func(key, value Comparable) (bool, error)) error {
 	defer m.lock.Unlock()
 	m.lock.Lock()
 
@@ -125,13 +125,4 @@ func (m *OrderedMap) Range(handler func(key, value Node) (bool, error)) error {
 // Len -
 func (m *OrderedMap) Len() int {
 	return len(m.keys)
-}
-
-func (m *OrderedMap) fillFromMap(data map[Node]Node) error {
-	for k, v := range data {
-		if err := m.Add(k, v); err != nil {
-			return err
-		}
-	}
-	return nil
 }

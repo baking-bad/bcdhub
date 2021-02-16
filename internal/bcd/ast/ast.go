@@ -241,7 +241,7 @@ func (a *TypedAst) Compare(b *TypedAst) (int, error) {
 
 // Diff -
 func (a *TypedAst) Diff(b *TypedAst) (*MiguelNode, error) {
-	if len(a.Nodes) == len(b.Nodes) && len(a.Nodes) == 1 {
+	if len(b.Nodes) == 1 && len(a.Nodes) == 1 {
 		return a.Nodes[0].Distinguish(b.Nodes[0])
 	}
 	return nil, nil

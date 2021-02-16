@@ -19,11 +19,13 @@ func IsFramed(n gjson.Result) bool {
 	if helpers.StringInArray(prim, []string{
 		"Pair", "Left", "Right", "Some",
 		"pair", "or", "option", "map", "big_map", "list", "set", "contract", "lambda",
+		"ticket", "sapling_state", "sapling_transaction",
 	}) {
 		return true
 	} else if helpers.StringInArray(prim, []string{
 		"key", "unit", "signature", "operation",
 		"int", "nat", "string", "bytes", "mutez", "bool", "key_hash", "timestamp", "address",
+		"bls12_381_g1", "bls12_381_g2", "bls12_381_fr", "chain_id", "never",
 	}) {
 		return n.Get("annots").Exists()
 	}

@@ -10,7 +10,7 @@ import (
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
-// Node -
+// Node - struct for parsing micheline
 type Node struct {
 	Prim        string   `json:"prim,omitempty"`
 	Args        []*Node  `json:"args,omitempty"`
@@ -40,13 +40,13 @@ func (node *Node) UnmarshalJSON(data []byte) error {
 func (node *Node) MarshalJSON() ([]byte, error) {
 	if node.Prim == consts.PrimArray {
 		return json.Marshal(node.Args)
-	} else {
-		type buf Node
-		return json.Marshal((*buf)(node))
 	}
+
+	type buf Node
+	return json.Marshal((*buf)(node))
 }
 
-// GetAnnotations -
+// GetAnnotations - returns all node`s annotations recursively
 func (node *Node) GetAnnotations() map[string]struct{} {
 	annots := make(map[string]struct{})
 	for i := range node.Annots {
@@ -102,7 +102,7 @@ func (node *Node) Hash() (string, error) {
 	return s.String(), nil
 }
 
-// String -
+// String - converts node info to string
 func (node *Node) String() string {
 	return node.print(0) + "\n"
 }

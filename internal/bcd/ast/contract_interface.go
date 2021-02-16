@@ -152,6 +152,8 @@ func initInterfaceTrees() error {
 				ci.Entrypoints[key] = t.Nodes[0]
 			}
 			interfaceTrees[parts[0]] = ci
+		default:
+			continue
 		}
 	}
 	return nil

@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/pkg/errors"
 )
 
@@ -103,6 +104,19 @@ func (u UntypedAST) ToTypedAST() (*TypedAst, error) {
 		}
 	}
 	return ast, nil
+}
+
+// GetStrings -
+func (u UntypedAST) GetStrings(tryUnpack bool) ([]string, error) {
+	s := make([]string, 0)
+	for i := range u {
+		arr, err := forge.CollectStrings(u[i], tryUnpack)
+		if err != nil {
+			return nil, err
+		}
+		s = append(s, arr...)
+	}
+	return s, nil
 }
 
 func typingNode(node *base.Node, depth int, id *int) (Node, error) {
