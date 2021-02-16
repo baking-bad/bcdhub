@@ -64,8 +64,7 @@ func (ctx *Context) GetViewsSchema(c *gin.Context) {
 				Implementation: i,
 			}
 
-			params := gjson.ParseBytes(impl.MichelsonStorageView.Parameter)
-			metadata, err := meta.ParseMetadata(params)
+			metadata, err := getViewMetadata(impl)
 			if ctx.handleError(c, err, 0) {
 				return
 			}
@@ -151,8 +150,7 @@ func (ctx *Context) ExecuteView(c *gin.Context) {
 		return
 	}
 
-	params := gjson.ParseBytes(impl.MichelsonStorageView.Parameter)
-	metadata, err := meta.ParseMetadata(params)
+	metadata, err := getViewMetadata(impl)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -170,6 +168,7 @@ func (ctx *Context) ExecuteView(c *gin.Context) {
 		ChainID:                  state.ChainID,
 		HardGasLimitPerOperation: execView.GasLimit,
 		Amount:                   execView.Amount,
+		Protocol:                 state.Protocol,
 		Parameters:               parameters.Get("value").String(),
 	})
 	if ctx.handleError(c, err, 0) {
@@ -191,4 +190,14 @@ func (ctx *Context) ExecuteView(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, data)
+}
+
+func getViewMetadata(impl tzip.ViewImplementation) (meta.Metadata, error) {
+	var params gjson.Result
+	if !impl.MichelsonStorageView.IsParameterEmpty() {
+		params = gjson.ParseBytes(impl.MichelsonStorageView.Parameter)
+	} else {
+		params = gjson.Parse(`{"prim":"unit"}`)
+	}
+	return meta.ParseMetadata(params)
 }

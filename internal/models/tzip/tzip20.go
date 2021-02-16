@@ -48,10 +48,16 @@ type Sections struct {
 	Code       json.RawMessage `json:"code"`
 }
 
+var null = "null"
+
 // Empty -
 func (s Sections) Empty() bool {
-	null := "null"
 	return string(s.Code) == null && string(s.Parameter) == null && string(s.ReturnType) == null
+}
+
+// IsParameterEmpty -
+func (s Sections) IsParameterEmpty() bool {
+	return string(s.Parameter) == null
 }
 
 // MichelsonInitialStorageEvent -
