@@ -24,12 +24,20 @@ func TestMichelsonStorageView_GetCode(t *testing.T) {
 		{
 			name: "test 1",
 			fields: fields{
-				Parameter:  []byte(`{"prim": "unit"}`),
-				Code:       []byte(`{"prim": "unit"}`),
-				ReturnType: []byte(`{"prim": "unit"}`),
+				Parameter:  []byte(`{"prim":"unit"}`),
+				Code:       []byte(`{"prim":"unit"}`),
+				ReturnType: []byte(`{"prim":"unit"}`),
 			},
-			storageType: gjson.Parse(`{"prim": "unit"}`),
-			want:        `[{ "prim": "parameter", "args": [{"prim": "pair", "args": [{"prim": "unit"}, {"prim": "unit"}]}]}, {"prim": "storage", "args": [{"prim": "option", "args": [{"prim": "unit"}]}]},  {"prim": "code", "args": [[{"prim": "CAR"}, {"prim": "unit"}, {"prim": "SOME"}, { "prim": "NIL", "args": [{ "prim": "operation" }]}, { "prim": "PAIR" } ]]}]`,
+			storageType: gjson.Parse(`{"prim":"unit"}`),
+			want:        `[{"prim":"parameter","args":[{"prim":"pair","args":[{"prim":"unit"},{"prim":"unit"}]}]},{"prim":"storage","args":[{"prim":"option","args":[{"prim":"unit"}]}]},{"prim":"code","args":[[{"prim":"CAR"},{"prim":"unit"},{"prim":"SOME"},{"prim":"NIL","args":[{"prim":"operation"}]},{"prim":"PAIR"}]]}]`,
+		}, {
+			name: "test 2: parameter is nil",
+			fields: fields{
+				Code:       []byte(`{"prim":"unit"}`),
+				ReturnType: []byte(`{"prim":"unit"}`),
+			},
+			storageType: gjson.Parse(`{"prim":"unit"}`),
+			want:        `[{"prim":"parameter","args":[{"prim":"unit"}]},{"prim":"storage","args":[{"prim":"option","args":[{"prim":"unit"}]}]},{"prim":"code","args":[[{"prim":"CAR"},{"prim":"unit"},{"prim":"SOME"},{"prim":"NIL","args":[{"prim":"operation"}]},{"prim":"PAIR"}]]}]`,
 		},
 	}
 	for _, tt := range tests {
