@@ -2,6 +2,7 @@ package tzip
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -58,11 +59,16 @@ func (p *Parser) Parse(ctx ParseContext) (data *tzip.TZIP, err error) {
 	data = &tzip.TZIP{}
 	s := tzipStorage.NewFull(p.bigMapRepo, p.blocksRepo, p.schemaRepo, p.storage, p.rpc, p.cfg.IPFSGateways...)
 	if err := s.Get(ctx.BigMapDiff.Network, ctx.BigMapDiff.Address, decoded, ctx.BigMapDiff.Ptr, data); err != nil {
-		if errors.Is(err, tzipStorage.ErrHTTPRequest) || errors.Is(err, tzipStorage.ErrJSONDecoding) {
+		switch {
+		case errors.Is(err, tzipStorage.ErrHTTPRequest) || errors.Is(err, tzipStorage.ErrJSONDecoding):
 			logger.With(&ctx.BigMapDiff).Error(err)
 			return nil, nil
+		case errors.Is(err, tzipStorage.ErrNoIPFSResponse):
+			data.Description = fmt.Sprintf("Failed to fetch metadata %s", decoded)
+			data.Name = "Unknown"
+		default:
+			return nil, err
 		}
-		return nil, err
 	}
 	if data == nil {
 		return nil, nil

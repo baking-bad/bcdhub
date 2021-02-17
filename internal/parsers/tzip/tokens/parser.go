@@ -75,11 +75,15 @@ func (t Parser) parseBigMapDiff(bmd *bigmapdiff.BigMapDiff, state block.Block) (
 
 		remoteMetadata := &TokenMetadata{}
 		if err := s.Get(t.network, bmd.Address, m.Link, bmd.Ptr, remoteMetadata); err != nil {
-			if errors.Is(err, tzipStorage.ErrHTTPRequest) {
+			switch {
+			case errors.Is(err, tzipStorage.ErrHTTPRequest):
 				logger.Error(err)
 				return nil, nil
+			case errors.Is(err, tzipStorage.ErrNoIPFSResponse):
+				remoteMetadata.Name = "Unknown"
+			default:
+				return nil, err
 			}
-			return nil, err
 		}
 		m.Merge(remoteMetadata)
 	}

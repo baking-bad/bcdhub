@@ -2,9 +2,10 @@ package storage
 
 import (
 	"fmt"
-	"math/rand"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 // IPFS storage prefix
@@ -48,9 +49,12 @@ func (s IPFSStorage) Get(value string, output interface{}) error {
 		return ErrEmptyIPFSGatewayList
 	}
 
-	rand.Seed(time.Now().Unix())
-	gateway := s.gateways[rand.Intn(len(s.gateways))]
+	for i := range s.gateways {
+		url := fmt.Sprintf("%s/ipfs/%s", s.gateways[i], strings.TrimPrefix(value, "ipfs://"))
+		if err := s.HTTPStorage.Get(url, output); err == nil {
+			return nil
+		}
+	}
 
-	url := fmt.Sprintf("%s/ipfs/%s", gateway, strings.TrimPrefix(value, "ipfs://"))
-	return s.HTTPStorage.Get(url, output)
+	return errors.Wrap(ErrNoIPFSResponse, value)
 }
