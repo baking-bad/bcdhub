@@ -142,7 +142,7 @@ func handleType(dd *dsData, bPath string, md meta.Metadata) (string, error) {
 	i := len(dd.typedef)
 
 	switch md[bPath].Type {
-	case consts.TypeTuple, consts.TypeEnum, consts.TypeUnion:
+	case consts.TypeTuple, consts.TypeEnum, consts.TypeUnion, consts.TICKET:
 		return handleTupleEnumUnion(dd, bPath, i, md)
 	case consts.TypeNamedTuple, consts.TypeNamedEnum, consts.TypeNamedUnion:
 		return handleNamed(dd, bPath, i, md)
@@ -204,6 +204,8 @@ func getSuffix(dd *dsData, bPath string, md meta.Metadata) (string, error) {
 		return "_item", nil
 	case consts.PAIR:
 		return fmt.Sprintf("_arg%d", dd.arg), nil
+	case consts.TICKET:
+		return fmt.Sprintf("_typ%d", dd.arg), nil
 	case consts.OR:
 		return fmt.Sprintf("_var%d", dd.arg), nil
 	case consts.OPTION:
