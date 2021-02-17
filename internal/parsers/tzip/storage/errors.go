@@ -12,4 +12,5 @@ var (
 	ErrUnknownStorageType        = errors.New("Unknown storage type")
 	ErrHTTPRequest               = errors.New("HTTP request error")
 	ErrJSONDecoding              = errors.New("JSON decoding error")
+	ErrNoIPFSResponse            = errors.New("Can't load document from IPFS")
 )
