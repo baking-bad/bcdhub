@@ -56,6 +56,10 @@ func TestType(t *testing.T) {
 			name: "big_map",
 			typ:  `{"prim": "big_map", "args": [{"prim": "pair", "args": [{"prim": "int"}, {"prim": "int"}, {"prim": "int"}]}, {"prim": "pair", "args": [{"prim": "int"}, {"prim": "int"}, {"prim": "int"}, {"prim": "int"}]}]}`,
 			want: `{"prim": "big_map", "args": [{"prim": "pair", "args": [{"prim": "int"}, {"prim": "pair", "args": [{"prim": "int"}, {"prim": "int"}]}]}, {"prim": "pair", "args": [{"prim": "int"}, {"prim": "pair", "args": [{"prim": "int"}, {"prim": "pair", "args": [{"prim": "int"}, {"prim": "int"}]}]}]}]}`,
+		}, {
+			name: "KT1KFEBxN7NxYp1TaCGF2zAUaGKRQyjKvrru storage",
+			typ:  `{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"nat","annots":["%asset_id"]},{"prim":"mutez","annots":["%current_bid"]}]},{"prim":"bool","annots":["%ended"]},{"prim":"bool","annots":["%first_bid_placed"]},{"prim":"address","annots":["%highest_bidder"]}]},{"prim":"pair","args":[{"prim":"address","annots":["%master_auction_contract"]},{"prim":"nat","annots":["%min_increase"]},{"prim":"address","annots":["%owner"]}]},{"prim":"int","annots":["%round_time"]},{"prim":"timestamp","annots":["%start_time"]},{"prim":"bool","annots":["%started"]}]}`,
+			want: `{"args":[{"args":[{"args":[{"annots":["%asset_id"],"prim":"nat"},{"annots":["%current_bid"],"prim":"mutez"}],"prim":"pair"},{"args":[{"annots":["%ended"],"prim":"bool"},{"args":[{"annots":["%first_bid_placed"],"prim":"bool"},{"annots":["%highest_bidder"],"prim":"address"}],"prim":"pair"}],"prim":"pair"}],"prim":"pair"},{"args":[{"args":[{"annots":["%master_auction_contract"],"prim":"address"},{"args":[{"annots":["%min_increase"],"prim":"nat"},{"annots":["%owner"],"prim":"address"}],"prim":"pair"}],"prim":"pair"},{"args":[{"annots":["%round_time"],"prim":"int"},{"args":[{"annots":["%start_time"],"prim":"timestamp"},{"annots":["%started"],"prim":"bool"}],"prim":"pair"}],"prim":"pair"}],"prim":"pair"}],"prim":"pair"}`,
 		},
 	}
 	for _, tt := range tests {
@@ -69,19 +73,7 @@ func TestType(t *testing.T) {
 			if err != nil {
 				return
 			}
-			want := make(map[string]interface{})
-			if err := json.Unmarshal([]byte(tt.want), &want); err != nil {
-				t.Errorf("Unmarshal(want) error = %v", err)
-				return
-			}
-			gotMap := make(map[string]interface{})
-			if err := json.Unmarshal([]byte(got.Raw), &gotMap); err != nil {
-				t.Errorf("Unmarshal(got) error = %v", err)
-				return
-			}
-			if !reflect.DeepEqual(gotMap, want) {
-				t.Errorf("Type() = %v, want %v", gotMap, want)
-			}
+			assert.JSONEq(t, tt.want, got.Raw)
 		})
 	}
 }
@@ -104,23 +96,23 @@ func TestData(t *testing.T) {
 			typ:  `{"prim": "map", "args": [{"prim": "pair", "args": [{"prim": "int"}, {"prim": "int"}, {"prim": "int"}]}, {"prim": "pair", "args": [{"prim": "int"}, {"prim": "int"}, {"prim": "int"}, {"prim": "int"}]}]}`,
 			data: `[{"prim": "Elt", "args": [[{"int": "0"}, {"int": "1"}, {"int": "2"}], [{"int": "0"}, {"int": "1"}, {"int": "2"}, {"int": "3"}]]},{"prim": "Elt", "args": [{"prim": "Pair", "args": [{"int": "4"}, {"int": "5"}, {"int": "6"}]}, [{"int": "0"}, {"int": "1"}, {"int": "2"}, {"int": "3"}]]}]`,
 			want: `[{"args": [{"args": [{"int": "0"},
-										{"args": [{"int": "1"}, {"int": "2"}], "prim": "Pair"}],
-									"prim": "Pair"},
-									{"args": [{"int": "0"},
-										{"args": [{"int": "1"},
-										{"args": [{"int": "2"}, {"int": "3"}], "prim": "Pair"}],
+											{"args": [{"int": "1"}, {"int": "2"}], "prim": "Pair"}],
+										"prim": "Pair"},
+										{"args": [{"int": "0"},
+											{"args": [{"int": "1"},
+											{"args": [{"int": "2"}, {"int": "3"}], "prim": "Pair"}],
+											"prim": "Pair"}],
 										"prim": "Pair"}],
-									"prim": "Pair"}],
-									"prim": "Elt"},
-									{"args": [{"args": [{"int": "4"},
-										{"args": [{"int": "5"}, {"int": "6"}], "prim": "Pair"}],
-									"prim": "Pair"},
-									{"args": [{"int": "0"},
-										{"args": [{"int": "1"},
-										{"args": [{"int": "2"}, {"int": "3"}], "prim": "Pair"}],
+										"prim": "Elt"},
+										{"args": [{"args": [{"int": "4"},
+											{"args": [{"int": "5"}, {"int": "6"}], "prim": "Pair"}],
+										"prim": "Pair"},
+										{"args": [{"int": "0"},
+											{"args": [{"int": "1"},
+											{"args": [{"int": "2"}, {"int": "3"}], "prim": "Pair"}],
+											"prim": "Pair"}],
 										"prim": "Pair"}],
-									"prim": "Pair"}],
-									"prim": "Elt"}]`,
+										"prim": "Elt"}]`,
 		}, {
 			name: "list",
 			typ:  `{"prim": "list", "args": [{"prim": "pair", "args": [{"prim": "int"}, {"prim": "int"}, {"prim": "int"}]}]}`,
@@ -141,23 +133,23 @@ func TestData(t *testing.T) {
 			typ:  `{"prim": "big_map", "args": [{"prim": "pair", "args": [{"prim": "int"}, {"prim": "int"}, {"prim": "int"}]}, {"prim": "pair", "args": [{"prim": "int"}, {"prim": "int"}, {"prim": "int"}, {"prim": "int"}]}]}`,
 			data: `[{"prim": "Elt", "args": [[{"int": "0"}, {"int": "1"}, {"int": "2"}], [{"int": "0"}, {"int": "1"}, {"int": "2"}, {"int": "3"}]]},{"prim": "Elt", "args": [{"prim": "Pair", "args": [{"int": "4"}, {"int": "5"}, {"int": "6"}]}, [{"int": "0"}, {"int": "1"}, {"int": "2"}, {"int": "3"}]]}]`,
 			want: `[{"args": [{"args": [{"int": "0"},
-										{"args": [{"int": "1"}, {"int": "2"}], "prim": "Pair"}],
-									"prim": "Pair"},
-									{"args": [{"int": "0"},
-										{"args": [{"int": "1"},
-										{"args": [{"int": "2"}, {"int": "3"}], "prim": "Pair"}],
+											{"args": [{"int": "1"}, {"int": "2"}], "prim": "Pair"}],
+										"prim": "Pair"},
+										{"args": [{"int": "0"},
+											{"args": [{"int": "1"},
+											{"args": [{"int": "2"}, {"int": "3"}], "prim": "Pair"}],
+											"prim": "Pair"}],
 										"prim": "Pair"}],
-									"prim": "Pair"}],
-									"prim": "Elt"},
-									{"args": [{"args": [{"int": "4"},
-										{"args": [{"int": "5"}, {"int": "6"}], "prim": "Pair"}],
-									"prim": "Pair"},
-									{"args": [{"int": "0"},
-										{"args": [{"int": "1"},
-										{"args": [{"int": "2"}, {"int": "3"}], "prim": "Pair"}],
+										"prim": "Elt"},
+										{"args": [{"args": [{"int": "4"},
+											{"args": [{"int": "5"}, {"int": "6"}], "prim": "Pair"}],
+										"prim": "Pair"},
+										{"args": [{"int": "0"},
+											{"args": [{"int": "1"},
+											{"args": [{"int": "2"}, {"int": "3"}], "prim": "Pair"}],
+											"prim": "Pair"}],
 										"prim": "Pair"}],
-									"prim": "Pair"}],
-									"prim": "Elt"}]`,
+										"prim": "Elt"}]`,
 		}, {
 			name: "KT1GjKvUhpJLDaAHifnohmLjEfvn4fCkhKbs",
 			typ:  `{"args":[{"args":[{"prim":"address"},{"args":[{"prim":"nat"},{"args":[{"prim":"address"},{"prim":"nat"}],"prim":"map"}],"prim":"pair"}],"prim":"big_map"},{"args":[{"args":[{"prim":"address"},{"prim":"bool"}],"prim":"pair"},{"args":[{"prim":"nat"},{"args":[{"prim":"address"},{"prim":"address"}],"prim":"or"}],"prim":"pair"}],"prim":"pair"}],"prim":"pair"}`,
@@ -183,6 +175,11 @@ func TestData(t *testing.T) {
 			typ:  `{"annots":["%send"],"args":[{"annots":["%destination"],"args":[{"args":[{"prim":"unit"}],"prim":"ticket"}],"prim":"contract"},{"annots":["%amount"],"prim":"nat"},{"annots":["%ticketer"],"prim":"address"}],"prim":"pair"}`,
 			data: `{"prim":"Pair","args":[{"string":"KT1AqgENraEg8oro9gJ61mocjRLGBBkya4DQ%receive"},{"prim":"Pair","args":[{"int":"1"},{"string":"KT1Q9438XGRGQmWFEuoi5heQiASA5eszRi2x"}]}]}`,
 			want: `{"prim":"Pair","args":[{"string":"KT1AqgENraEg8oro9gJ61mocjRLGBBkya4DQ%receive"},{"prim":"Pair","args":[{"int":"1"},{"string":"KT1Q9438XGRGQmWFEuoi5heQiASA5eszRi2x"}]}]}`,
+		}, {
+			name: "KT1KFEBxN7NxYp1TaCGF2zAUaGKRQyjKvrru storage",
+			typ:  `{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"nat","annots":["%asset_id"]},{"prim":"mutez","annots":["%current_bid"]}]},{"prim":"bool","annots":["%ended"]},{"prim":"bool","annots":["%first_bid_placed"]},{"prim":"address","annots":["%highest_bidder"]}]},{"prim":"pair","args":[{"prim":"address","annots":["%master_auction_contract"]},{"prim":"nat","annots":["%min_increase"]},{"prim":"address","annots":["%owner"]}]},{"prim":"int","annots":["%round_time"]},{"prim":"timestamp","annots":["%start_time"]},{"prim":"bool","annots":["%started"]}]}`,
+			data: `[[{"prim":"Pair","args":[{"int":"4"},{"int":"5000000"}]},{"prim":"False"},{"prim":"False"},{"bytes":"01295e928275ec50e7aec5798d4d59ff2b3fac47ef00"}],{"prim":"Pair","args":[{"bytes":"01aa5839d0887e88c12c9821bc07bcfad17c47b41c00"},{"prim":"Pair","args":[{"int":"1000000"},{"bytes":"00004230de22d9fd4f5ebcff39ea73a5fb04b622428f"}]}]},{"int":"172800"},{"int":"1613505941"},{"prim":"True"}]`,
+			want: `{"args":[{"args":[{"args":[{"int":"4"},{"int":"5000000"}],"prim":"Pair"},{"args":[{"prim":"False"},{"args":[{"prim":"False"},{"bytes":"01295e928275ec50e7aec5798d4d59ff2b3fac47ef00"}],"prim":"Pair"}],"prim":"Pair"}],"prim":"Pair"},{"args":[{"args":[{"bytes":"01aa5839d0887e88c12c9821bc07bcfad17c47b41c00"},{"args":[{"int":"1000000"},{"bytes":"00004230de22d9fd4f5ebcff39ea73a5fb04b622428f"}],"prim":"Pair"}],"prim":"Pair"},{"args":[{"int":"172800"},{"args":[{"int":"1613505941"},{"prim":"True"}],"prim":"Pair"}],"prim":"Pair"}],"prim":"Pair"}],"prim":"Pair"}`,
 		},
 	}
 	for _, tt := range tests {
@@ -203,18 +200,8 @@ func TestData(t *testing.T) {
 			if err != nil {
 				return
 			}
-			var want interface{}
-			if err := json.Unmarshal([]byte(tt.want), &want); err != nil {
-				t.Errorf("Unmarshal(want) error = %v", err)
-				return
-			}
-			var gotMap interface{}
-			if err := json.Unmarshal([]byte(got.Raw), &gotMap); err != nil {
-				logger.Debug(got.Raw)
-				t.Errorf("Unmarshal(got) error = %v", err)
-				return
-			}
-			assert.Equal(t, want, gotMap)
+			logger.Debug(got.Raw)
+			assert.JSONEq(t, tt.want, got.Raw)
 		})
 	}
 }
