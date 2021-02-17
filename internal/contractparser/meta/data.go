@@ -251,7 +251,8 @@ func parseNodeMetadata(v gjson.Result, parent node.Node, path, inheritedName str
 			args = append(args, parseNodeMetadata(arr[i], n, argPath, "", metadata))
 		}
 
-		if n.Is(consts.PAIR) || n.Is(consts.OR) {
+		switch {
+		case n.Is(consts.PAIR) || n.Is(consts.OR):
 			res := internalNode{
 				Node:         &n,
 				InternalArgs: args,
@@ -264,6 +265,15 @@ func parseNodeMetadata(v gjson.Result, parent node.Node, path, inheritedName str
 			} else {
 				finishParseMetadata(metadata, path, res)
 				return res
+			}
+		case n.Is(consts.TICKET):
+			m := metadata[path]
+			for _, a := range args {
+				m.Args = append(m.Args, a.Node.Path)
+			}
+			return internalNode{
+				Node:         &n,
+				InternalArgs: args,
 			}
 		}
 	}

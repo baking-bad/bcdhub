@@ -78,7 +78,7 @@ func getComplexExpr(dd *dsData, bPath string, md meta.Metadata) (string, error) 
 	node := md[bPath]
 
 	switch node.Prim {
-	case consts.PAIR, consts.OR, consts.LAMBDA, consts.MAP, consts.BIGMAP:
+	case consts.PAIR, consts.OR, consts.LAMBDA, consts.MAP, consts.BIGMAP, consts.TICKET:
 		varName, err := handleType(dd, bPath, md)
 		if err != nil {
 			return "", err
