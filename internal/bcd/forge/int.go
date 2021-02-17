@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
+	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/pkg/errors"
 )
 
@@ -16,7 +17,7 @@ type Int base.Node
 // NewInt -
 func NewInt() *Int {
 	return &Int{
-		IntValue: base.NewBigInt(0),
+		IntValue: types.NewBigInt(0),
 	}
 }
 

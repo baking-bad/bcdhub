@@ -1,0 +1,10 @@
+{
+  "id": "proto.005-PsBabyM1.michelson_v1.script_rejected",
+  "with": {
+    "prim": "Unit"
+  },
+  "location": 63,
+  "row": 22,
+  "colStart": 36,
+  "colEnd": 44
+}

@@ -6,6 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/pkg/errors"
 )
 
@@ -172,7 +173,7 @@ func (d *Default) ToBaseNode(optimized bool) (*base.Node, error) {
 		val := d.Value.(string)
 		node.BytesValue = &val
 	case valueKindInt:
-		val := d.Value.(*base.BigInt)
+		val := d.Value.(*types.BigInt)
 		node.IntValue = val
 	default:
 		node.Prim = d.Prim
@@ -202,7 +203,7 @@ func (d *Default) FromJSONSchema(data map[string]interface{}) error {
 }
 
 // EnrichBigMap -
-func (d *Default) EnrichBigMap(bmd []*base.BigMapDiff) error {
+func (d *Default) EnrichBigMap(bmd []*types.BigMapDiff) error {
 	return nil
 }
 
@@ -214,7 +215,7 @@ func (d *Default) ToParameters() ([]byte, error) {
 	case valueKindBytes:
 		return []byte(fmt.Sprintf(`{"bytes":"%s"}`, d.Value)), nil
 	case valueKindInt:
-		i := d.Value.(*base.BigInt)
+		i := d.Value.(*types.BigInt)
 		return []byte(fmt.Sprintf(`{"int":"%d"}`, i.Int64())), nil
 	}
 	return nil, nil
@@ -261,8 +262,8 @@ func (d *Default) Distinguish(x Distinguishable) (*MiguelNode, error) {
 		node.DiffType = MiguelKindCreate
 	case d.Value != nil && second.Value != nil:
 		switch v := d.Value.(type) {
-		case *base.BigInt:
-			sv := second.Value.(*base.BigInt)
+		case *types.BigInt:
+			sv := second.Value.(*types.BigInt)
 			if sv.Cmp(v.Int) == 0 {
 				return node, nil
 			}
@@ -303,8 +304,8 @@ func (d *Default) equalValue(value interface{}) bool {
 		return false
 	default:
 		switch val := d.Value.(type) {
-		case *base.BigInt:
-			if sv, ok := value.(*base.BigInt); ok {
+		case *types.BigInt:
+			if sv, ok := value.(*types.BigInt); ok {
 				return val.Cmp(sv.Int) == 0
 			}
 			return false
@@ -319,7 +320,7 @@ func (d *Default) miguelValue() interface{} {
 		return nil
 	}
 	switch v := d.Value.(type) {
-	case *base.BigInt:
+	case *types.BigInt:
 		return v.String()
 	default:
 		return d.Value

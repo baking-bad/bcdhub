@@ -1,0 +1,10 @@
+{
+  "id": "proto.005-PsBabyM1.michelson_v1.script_rejected",
+  "with": {
+    "string": "wrong refund_time"
+  },
+  "location": 117,
+  "row": 36,
+  "colStart": 65,
+  "colEnd": 73
+}

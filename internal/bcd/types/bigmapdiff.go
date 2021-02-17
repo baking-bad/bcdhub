@@ -1,4 +1,4 @@
-package base
+package types
 
 // BigMapDiff -
 type BigMapDiff struct {

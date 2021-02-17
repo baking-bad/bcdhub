@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -12,12 +13,12 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // Node - struct for parsing micheline
 type Node struct {
-	Prim        string   `json:"prim,omitempty"`
-	Args        []*Node  `json:"args,omitempty"`
-	Annots      []string `json:"annots,omitempty"`
-	StringValue *string  `json:"string,omitempty"`
-	BytesValue  *string  `json:"bytes,omitempty"`
-	IntValue    *BigInt  `json:"int,omitempty"`
+	Prim        string        `json:"prim,omitempty"`
+	Args        []*Node       `json:"args,omitempty"`
+	Annots      []string      `json:"annots,omitempty"`
+	StringValue *string       `json:"string,omitempty"`
+	BytesValue  *string       `json:"bytes,omitempty"`
+	IntValue    *types.BigInt `json:"int,omitempty"`
 }
 
 // UnmarshalJSON -

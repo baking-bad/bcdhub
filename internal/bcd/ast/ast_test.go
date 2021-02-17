@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/base"
+	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -1104,7 +1104,7 @@ func TestTypedAst_EnrichBigMap(t *testing.T) {
 		name    string
 		tree    string
 		data    string
-		bmd     []*base.BigMapDiff
+		bmd     []*types.BigMapDiff
 		want    string
 		wantErr bool
 	}{
@@ -1112,7 +1112,7 @@ func TestTypedAst_EnrichBigMap(t *testing.T) {
 			name: "simple",
 			tree: `{"prim": "big_map","args":[{"prim":"int"},{"prim":"string"}]}`,
 			data: `{"int": "100"}`,
-			bmd: []*base.BigMapDiff{
+			bmd: []*types.BigMapDiff{
 				{
 					Ptr:   100,
 					Key:   []byte(`{"int":"10"}`),
@@ -1132,7 +1132,7 @@ func TestTypedAst_EnrichBigMap(t *testing.T) {
 			name: "big_map in list",
 			tree: `{"prim":"list","args":[{"prim": "big_map","args":[{"prim":"int"},{"prim":"string"}]}]}`,
 			data: `[{"int":"100"},{"int":"200"}]`,
-			bmd: []*base.BigMapDiff{
+			bmd: []*types.BigMapDiff{
 				{
 					Ptr:   100,
 					Key:   []byte(`{"int":"10"}`),

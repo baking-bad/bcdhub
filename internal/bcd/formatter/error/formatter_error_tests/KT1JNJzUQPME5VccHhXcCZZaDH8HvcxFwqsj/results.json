@@ -1,0 +1,10 @@
+{
+  "id": "proto.005-PsBabyM1.michelson_v1.runtime_error",
+  "with": {
+    "string": "WrongCondition: self.data.balances.contains(sp.sender)"
+  },
+  "location": 601,
+  "row": 346,
+  "colStart": 23,
+  "colEnd": 31
+}

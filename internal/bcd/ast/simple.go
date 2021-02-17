@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/encoding"
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
+	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/pkg/errors"
 )
 
@@ -354,7 +355,7 @@ func (t *Timestamp) ToBaseNode(optimized bool) (*base.Node, error) {
 	switch ts := t.Value.(type) {
 	case time.Time:
 		if optimized {
-			val := base.NewBigInt(ts.UTC().Unix())
+			val := types.NewBigInt(ts.UTC().Unix())
 			return toBaseNodeInt(val), nil
 		}
 		val := ts.UTC().Format(time.RFC3339)
@@ -376,9 +377,9 @@ func (t *Timestamp) FromJSONSchema(data map[string]interface{}) error {
 				if err != nil {
 					return err
 				}
-				t.Value = base.NewBigInt(ts.UTC().Unix())
+				t.Value = types.NewBigInt(ts.UTC().Unix())
 			case float64:
-				t.Value = base.NewBigInt(int64(val))
+				t.Value = types.NewBigInt(int64(val))
 			}
 			break
 		}
@@ -391,7 +392,7 @@ func (t *Timestamp) ToParameters() ([]byte, error) {
 	switch ts := t.Value.(type) {
 	case time.Time:
 		return []byte(fmt.Sprintf(`{"int":"%d"}`, ts.UTC().Unix())), nil
-	case *base.BigInt:
+	case *types.BigInt:
 		return []byte(fmt.Sprintf(`{"int":"%d"}`, ts.Int64())), nil
 	default:
 		return nil, errors.Wrapf(consts.ErrInvalidType, "Timestamp.ToParameters: %T", t.Value)
@@ -1059,7 +1060,7 @@ func compareNotOptimizedTypes(x, y Default, optimizer func(string) (string, erro
 }
 
 func compareBigInt(x, y Default) int {
-	xi := x.Value.(*base.BigInt)
-	yi := y.Value.(*base.BigInt)
+	xi := x.Value.(*types.BigInt)
+	yi := y.Value.(*types.BigInt)
 	return xi.Cmp(yi.Int)
 }

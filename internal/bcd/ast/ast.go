@@ -9,6 +9,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/pkg/errors"
 )
 
@@ -264,7 +265,7 @@ func (a *TypedAst) FromParameters(entrypoint string, data UntypedAST) (*TypedAst
 }
 
 // EnrichBigMap -
-func (a *TypedAst) EnrichBigMap(bmd []*base.BigMapDiff) error {
+func (a *TypedAst) EnrichBigMap(bmd []*types.BigMapDiff) error {
 	for i := range a.Nodes {
 		if err := a.Nodes[i].EnrichBigMap(bmd); err != nil {
 			return err

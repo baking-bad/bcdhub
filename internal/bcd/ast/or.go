@@ -7,6 +7,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/pkg/errors"
 )
 
@@ -260,7 +261,7 @@ func (or *Or) FromJSONSchema(data map[string]interface{}) error {
 }
 
 // EnrichBigMap -
-func (or *Or) EnrichBigMap(bmd []*base.BigMapDiff) error {
+func (or *Or) EnrichBigMap(bmd []*types.BigMapDiff) error {
 	switch or.key {
 	case leftKey:
 		return or.LeftType.EnrichBigMap(bmd)

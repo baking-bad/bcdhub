@@ -5,8 +5,8 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/bcd/translator"
-	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 )
 
 // Lambda -

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
+	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,7 +25,7 @@ func TestMichelson_Unforge(t *testing.T) {
 			data: "0006",
 			want: []*base.Node{
 				{
-					IntValue: base.NewBigInt(6),
+					IntValue: types.NewBigInt(6),
 				},
 			},
 		},
@@ -33,7 +34,7 @@ func TestMichelson_Unforge(t *testing.T) {
 			data: "0046",
 			want: []*base.Node{
 				{
-					IntValue: base.NewBigInt(-6),
+					IntValue: types.NewBigInt(-6),
 				},
 			},
 		},
@@ -42,7 +43,7 @@ func TestMichelson_Unforge(t *testing.T) {
 			data: "00840e",
 			want: []*base.Node{
 				{
-					IntValue: base.NewBigInt(900),
+					IntValue: types.NewBigInt(900),
 				},
 			},
 		},
@@ -51,7 +52,7 @@ func TestMichelson_Unforge(t *testing.T) {
 			data: "00c40e",
 			want: []*base.Node{
 				{
-					IntValue: base.NewBigInt(-900),
+					IntValue: types.NewBigInt(-900),
 				},
 			},
 		},
@@ -60,7 +61,7 @@ func TestMichelson_Unforge(t *testing.T) {
 			data: "00ba9af7ea06",
 			want: []*base.Node{
 				{
-					IntValue: base.NewBigInt(917431994),
+					IntValue: types.NewBigInt(917431994),
 				},
 			},
 		},
@@ -69,7 +70,7 @@ func TestMichelson_Unforge(t *testing.T) {
 			data: "00c0f9b9d4c723",
 			want: []*base.Node{
 				{
-					IntValue: base.NewBigInt(-610913435200),
+					IntValue: types.NewBigInt(-610913435200),
 				},
 			},
 		},
@@ -108,7 +109,7 @@ func TestMichelson_Unforge(t *testing.T) {
 					Prim: PrimArray,
 					Args: []*base.Node{
 						{
-							IntValue: base.NewBigInt(-33),
+							IntValue: types.NewBigInt(-33),
 						}, {
 							StringValue: getStringPtr("tezos"),
 						}, {
@@ -383,7 +384,7 @@ func TestMichelson_Unforge(t *testing.T) {
 			data: "0000",
 			want: []*base.Node{
 				{
-					IntValue: base.NewBigInt(0),
+					IntValue: types.NewBigInt(0),
 				},
 			},
 		},
@@ -462,7 +463,7 @@ func TestMichelson_Forge(t *testing.T) {
 			want: "0006",
 			nodes: []*base.Node{
 				{
-					IntValue: base.NewBigInt(6),
+					IntValue: types.NewBigInt(6),
 				},
 			},
 		},
@@ -471,7 +472,7 @@ func TestMichelson_Forge(t *testing.T) {
 			want: "0046",
 			nodes: []*base.Node{
 				{
-					IntValue: base.NewBigInt(-6),
+					IntValue: types.NewBigInt(-6),
 				},
 			},
 		},
@@ -480,7 +481,7 @@ func TestMichelson_Forge(t *testing.T) {
 			want: "00840e",
 			nodes: []*base.Node{
 				{
-					IntValue: base.NewBigInt(900),
+					IntValue: types.NewBigInt(900),
 				},
 			},
 		},
@@ -489,7 +490,7 @@ func TestMichelson_Forge(t *testing.T) {
 			want: "00c40e",
 			nodes: []*base.Node{
 				{
-					IntValue: base.NewBigInt(-900),
+					IntValue: types.NewBigInt(-900),
 				},
 			},
 		},
@@ -498,7 +499,7 @@ func TestMichelson_Forge(t *testing.T) {
 			want: "00ba9af7ea06",
 			nodes: []*base.Node{
 				{
-					IntValue: base.NewBigInt(917431994),
+					IntValue: types.NewBigInt(917431994),
 				},
 			},
 		},
@@ -507,7 +508,7 @@ func TestMichelson_Forge(t *testing.T) {
 			want: "00c0f9b9d4c723",
 			nodes: []*base.Node{
 				{
-					IntValue: base.NewBigInt(-610913435200),
+					IntValue: types.NewBigInt(-610913435200),
 				},
 			},
 		},
@@ -546,7 +547,7 @@ func TestMichelson_Forge(t *testing.T) {
 					Prim: PrimArray,
 					Args: []*base.Node{
 						{
-							IntValue: base.NewBigInt(-33),
+							IntValue: types.NewBigInt(-33),
 						}, {
 							StringValue: getStringPtr("tezos"),
 						}, {
@@ -804,7 +805,7 @@ func TestMichelson_Forge(t *testing.T) {
 			want: "0000",
 			nodes: []*base.Node{
 				{
-					IntValue: base.NewBigInt(0),
+					IntValue: types.NewBigInt(0),
 				},
 			},
 		},

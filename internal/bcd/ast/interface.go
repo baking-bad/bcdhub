@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
+	"github.com/baking-bad/bcdhub/internal/bcd/types"
 )
 
 // Node -
@@ -31,7 +32,7 @@ type Type interface {
 
 // Value -
 type Value interface {
-	EnrichBigMap(bmd []*base.BigMapDiff) error
+	EnrichBigMap(bmd []*types.BigMapDiff) error
 	Equal(second Node) bool
 	FromJSONSchema(data map[string]interface{}) error
 	GetValue() interface{}

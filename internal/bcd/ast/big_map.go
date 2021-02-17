@@ -6,6 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/pkg/errors"
 )
 
@@ -147,7 +148,7 @@ func (m *BigMap) ToBaseNode(optimized bool) (*base.Node, error) {
 		return mapToBaseNodes(m.Data, optimized)
 	}
 	if m.Ptr != nil {
-		return toBaseNodeInt(base.NewBigInt(*m.Ptr)), nil
+		return toBaseNodeInt(types.NewBigInt(*m.Ptr)), nil
 	}
 	return nil, nil
 }
@@ -216,7 +217,7 @@ func (m *BigMap) FromJSONSchema(data map[string]interface{}) error {
 }
 
 // EnrichBigMap -
-func (m *BigMap) EnrichBigMap(bmd []*base.BigMapDiff) error {
+func (m *BigMap) EnrichBigMap(bmd []*types.BigMapDiff) error {
 	for i := range bmd {
 		if m.Ptr != nil && bmd[i].Ptr == *m.Ptr {
 			key, err := m.makeNodeFromBytes(m.KeyType, bmd[i].Key)

@@ -6,6 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/pkg/errors"
 )
 
@@ -193,7 +194,7 @@ func (m *Map) FromJSONSchema(data map[string]interface{}) error {
 }
 
 // EnrichBigMap -
-func (m *Map) EnrichBigMap(bmd []*base.BigMapDiff) error {
+func (m *Map) EnrichBigMap(bmd []*types.BigMapDiff) error {
 	return m.Data.Range(func(key, value Comparable) (bool, error) {
 		if err := key.(Node).EnrichBigMap(bmd); err != nil {
 			return true, err

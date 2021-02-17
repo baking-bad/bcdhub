@@ -6,6 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/types"
 )
 
 // Copy -
@@ -75,7 +76,7 @@ func Copy(node Node) Node {
 	return obj.Addr().Interface().(Node)
 }
 
-func toBaseNodeInt(val *base.BigInt) *base.Node {
+func toBaseNodeInt(val *types.BigInt) *base.Node {
 	return &base.Node{
 		IntValue: val,
 	}
