@@ -166,13 +166,15 @@ func buildPair(data []interface{}, prim string) (map[string]interface{}, error) 
 		res["args"] = data
 		return res, nil
 	}
-	arg := data[0]
+	if err := processType(data[0]); err != nil {
+		return nil, err
+	}
 	argsMap, err := buildPair(data[1:], prim)
 	if err != nil {
 		return nil, err
 	}
 	res["args"] = []interface{}{
-		arg, argsMap,
+		data[0], argsMap,
 	}
 	return res, nil
 }
