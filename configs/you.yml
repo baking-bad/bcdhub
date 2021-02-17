@@ -66,6 +66,7 @@ base_url: https://you.better-call.dev
 ipfs:
   - https://ipfs.io
   - https://dweb.link
+  - https://ipfs.baking-bad.org
 
 domains:
   delphinet: KT1CR6vXJ1qeY4ALDQfUaLFi3FcJJZ8WDygo
