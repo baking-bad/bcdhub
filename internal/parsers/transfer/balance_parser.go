@@ -3,11 +3,11 @@ package transfer
 import (
 	"math/big"
 
-	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	tbParser "github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
 )
 
 // DefaultBalanceParser -
@@ -21,7 +21,7 @@ func NewDefaultBalanceParser(repo models.GeneralRepository) *DefaultBalanceParse
 }
 
 // Parse -
-func (parser *DefaultBalanceParser) Parse(balances []events.TokenBalance, operation operation.Operation) ([]*transfer.Transfer, error) {
+func (parser *DefaultBalanceParser) Parse(balances []tbParser.TokenBalance, operation operation.Operation) ([]*transfer.Transfer, error) {
 	transfers := make([]*transfer.Transfer, 0)
 	for _, balance := range balances {
 		transfer := transfer.EmptyTransfer(operation)
@@ -40,7 +40,7 @@ func (parser *DefaultBalanceParser) Parse(balances []events.TokenBalance, operat
 }
 
 // ParseBalances -
-func (parser *DefaultBalanceParser) ParseBalances(network, contract string, balances []events.TokenBalance, operation operation.Operation) ([]*transfer.Transfer, error) {
+func (parser *DefaultBalanceParser) ParseBalances(network, contract string, balances []tbParser.TokenBalance, operation operation.Operation) ([]*transfer.Transfer, error) {
 	transfers := make([]*transfer.Transfer, 0)
 	for _, balance := range balances {
 		transfer := transfer.EmptyTransfer(operation)

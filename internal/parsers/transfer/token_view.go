@@ -5,6 +5,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
+	"github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
 )
 
 // ImplementationKey -
@@ -99,19 +100,19 @@ func (tokenEvents TokenEvents) GetByOperation(operation operation.Operation) (tz
 		Address:    operation.Destination,
 		Network:    operation.Network,
 		Entrypoint: operation.Entrypoint,
-		Name:       events.SingleAssetBalanceUpdates,
+		Name:       tokenbalance.SingleAssetBalanceUpdates,
 	}]; ok {
-		return event, events.SingleAssetBalanceUpdates, ok
+		return event, tokenbalance.SingleAssetBalanceUpdates, ok
 	}
 
 	event, ok := tokenEvents[ImplementationKey{
 		Address:    operation.Destination,
 		Network:    operation.Network,
 		Entrypoint: operation.Entrypoint,
-		Name:       events.MultiAssetBalanceUpdates,
+		Name:       tokenbalance.MultiAssetBalanceUpdates,
 	}]
 	if ok {
-		return event, events.MultiAssetBalanceUpdates, ok
+		return event, tokenbalance.MultiAssetBalanceUpdates, ok
 	}
 	return event, "", ok
 }

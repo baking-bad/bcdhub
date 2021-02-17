@@ -45,6 +45,9 @@ func initHandlers() {
 	bigMapDiffHandlers = append(bigMapDiffHandlers,
 		contractHandlers.NewTokenMetadata(ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Schema, ctx.Storage, ctx.RPC, ctx.SharePath, ctx.Config.IPFSGateways),
 	)
+	bigMapDiffHandlers = append(bigMapDiffHandlers,
+		contractHandlers.NewLedger(ctx.Storage, ctx.Schema, ctx.RPC),
+	)
 }
 
 type result struct {
