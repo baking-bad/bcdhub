@@ -2,6 +2,7 @@ package events
 
 import (
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
+	"github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
 	"github.com/tidwall/gjson"
 )
 
@@ -10,12 +11,12 @@ type MichelsonParameter struct {
 	Sections
 
 	name   string
-	parser Parser
+	parser tokenbalance.Parser
 }
 
 // NewMichelsonParameter -
 func NewMichelsonParameter(impl tzip.EventImplementation, name string) (*MichelsonParameter, error) {
-	parser, err := GetParser(name, impl.MichelsonParameterEvent.ReturnType)
+	parser, err := tokenbalance.GetParser(name, impl.MichelsonParameterEvent.ReturnType)
 	if err != nil {
 		return nil, err
 	}
@@ -32,8 +33,16 @@ func NewMichelsonParameter(impl tzip.EventImplementation, name string) (*Michels
 }
 
 // Parse -
-func (event *MichelsonParameter) Parse(response gjson.Result) []TokenBalance {
-	return event.parser.Parse(response)
+func (event *MichelsonParameter) Parse(response gjson.Result) []tokenbalance.TokenBalance {
+	balances := make([]tokenbalance.TokenBalance, 0)
+	for _, item := range response.Get("storage").Array() {
+		balance, err := event.parser.Parse(item)
+		if err != nil {
+			continue
+		}
+		balances = append(balances, balance)
+	}
+	return balances
 }
 
 // Normalize - `value` is `Operation.Parameters`

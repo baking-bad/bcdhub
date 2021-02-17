@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
+	"github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
 	"github.com/tidwall/gjson"
 )
 
@@ -17,7 +18,7 @@ type MichelsonExtendedStorage struct {
 	Sections
 
 	name   string
-	parser Parser
+	parser tokenbalance.Parser
 
 	protocol    string
 	operationID string
@@ -28,7 +29,7 @@ type MichelsonExtendedStorage struct {
 
 // NewMichelsonExtendedStorage -
 func NewMichelsonExtendedStorage(impl tzip.EventImplementation, name, protocol, operationID, contract string, repo schema.Repository, bmd []bigmapdiff.BigMapDiff) (*MichelsonExtendedStorage, error) {
-	parser, err := GetParser(name, impl.MichelsonExtendedStorageEvent.ReturnType)
+	parser, err := tokenbalance.GetParser(name, impl.MichelsonExtendedStorageEvent.ReturnType)
 	if err != nil {
 		return nil, err
 	}
@@ -50,8 +51,16 @@ func NewMichelsonExtendedStorage(impl tzip.EventImplementation, name, protocol, 
 }
 
 // Parse -
-func (mes *MichelsonExtendedStorage) Parse(response gjson.Result) []TokenBalance {
-	return mes.parser.Parse(response)
+func (mes *MichelsonExtendedStorage) Parse(response gjson.Result) []tokenbalance.TokenBalance {
+	balances := make([]tokenbalance.TokenBalance, 0)
+	for _, item := range response.Get("storage").Array() {
+		balance, err := mes.parser.Parse(item)
+		if err != nil {
+			continue
+		}
+		balances = append(balances, balance)
+	}
+	return balances
 }
 
 // Normalize - `value` is `Operation.DeffatedStorage`

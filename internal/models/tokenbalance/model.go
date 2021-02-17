@@ -48,7 +48,7 @@ func (tb *TokenBalance) LogFields() logrus.Fields {
 		"address":  tb.Address,
 		"contract": tb.Contract,
 		"token_id": tb.TokenID,
-		"balance":  tb.Balance,
+		"balance":  tb.Value.String(),
 	}
 }
 

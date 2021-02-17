@@ -1,12 +1,12 @@
 package events
 
 import (
-	"encoding/json"
+	stdJSON "encoding/json"
 	"fmt"
-	"math/big"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
@@ -14,7 +14,7 @@ import (
 // Event -
 type Event interface {
 	GetCode() (gjson.Result, error)
-	Parse(response gjson.Result) []TokenBalance
+	Parse(response gjson.Result) []tokenbalance.TokenBalance
 	Normalize(parameter string) gjson.Result
 }
 
@@ -33,16 +33,9 @@ type Context struct {
 
 // Sections -
 type Sections struct {
-	Parameter  json.RawMessage
-	ReturnType json.RawMessage
-	Code       json.RawMessage
-}
-
-// TokenBalance -
-type TokenBalance struct {
-	Address string
-	TokenID int64
-	Value   *big.Int
+	Parameter  stdJSON.RawMessage
+	ReturnType stdJSON.RawMessage
+	Code       stdJSON.RawMessage
 }
 
 // GetCode -
@@ -60,7 +53,7 @@ func (sections Sections) GetCode() (gjson.Result, error) {
 }
 
 // Execute -
-func Execute(rpc noderpc.INode, event Event, ctx Context) ([]TokenBalance, error) {
+func Execute(rpc noderpc.INode, event Event, ctx Context) ([]tokenbalance.TokenBalance, error) {
 	parameter := event.Normalize(ctx.Parameters)
 	storage := gjson.Parse(`[]`)
 	code, err := event.GetCode()
