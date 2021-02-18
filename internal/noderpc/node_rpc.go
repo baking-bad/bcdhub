@@ -303,7 +303,7 @@ func (rpc *NodeRPC) RunCode(script, storage, input gjson.Result, chainID, source
 		"chain_id": chainID,
 	}
 
-	if proto != "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo" {
+	if chainID != "NetXm8tYqnMWky1" {
 		data["balance"] = "0"
 	}
 	if gas != 0 {
