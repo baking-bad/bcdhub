@@ -29,13 +29,17 @@ func Type(typ gjson.Result) (gjson.Result, error) {
 	return gjson.ParseBytes(b), nil
 }
 
-// Data - normalizes `data` with combs by `typ`. `typ` must be normalized.
+// Data - normalizes `data` with combs by `typ`
 func Data(data, typ gjson.Result) (gjson.Result, error) {
+	normalizedTyp, err := Type(typ)
+	if err != nil {
+		return typ, err
+	}
 	var m interface{}
 	if err := json.Unmarshal([]byte(data.Raw), &m); err != nil {
 		return typ, err
 	}
-	newData, err := processValue(m, typ)
+	newData, err := processValue(m, normalizedTyp)
 	if err != nil {
 		return data, err
 	}
@@ -69,7 +73,16 @@ func processType(data interface{}) error {
 			if prim, ok := p.(string); ok {
 				switch prim {
 				case consts.PAIR:
-					return buildPairTree(val)
+					if err := buildPairTree(val); err != nil {
+						return err
+					}
+					args := val["args"].([]interface{})
+					for i := range args {
+						if err := processType(args[i]); err != nil {
+							return err
+						}
+					}
+					return nil
 				case consts.CODE:
 					return nil
 				}
@@ -103,7 +116,7 @@ func processValue(data interface{}, typ gjson.Result) (interface{}, error) {
 	return nil, errors.Wrapf(ErrInvalidJSON, "[processValue] %s", typ.String())
 }
 
-func buildPairTreeValue(data interface{}) (interface{}, error) {
+func buildPairTreeValue(data interface{}) (map[string]interface{}, error) {
 	if data == nil {
 		return nil, errors.Wrap(ErrDataIsNil, "buildPairTreeValue")
 	}
@@ -124,16 +137,14 @@ func buildPairTreeValue(data interface{}) (interface{}, error) {
 			return nil, errors.Wrapf(ErrArgsAreAbsent, consts.Pair)
 		}
 		argsArr := args.([]interface{})
-		if len(argsArr) == 2 {
-			return data, nil
-		}
 		resp, err := buildPair(argsArr, consts.Pair)
 		if err != nil {
 			return nil, err
 		}
 		merge(val, resp)
+		return val, nil
 	}
-	return data, nil
+	return nil, errors.Wrapf(ErrInvalidDataType, "buildPairTreeValue: %T", data)
 }
 
 func buildPairTree(data map[string]interface{}) error {
@@ -165,9 +176,6 @@ func buildPair(data []interface{}, prim string) (map[string]interface{}, error) 
 	if len(data) == 2 {
 		res["args"] = data
 		return res, nil
-	}
-	if err := processType(data[0]); err != nil {
-		return nil, err
 	}
 	argsMap, err := buildPair(data[1:], prim)
 	if err != nil {
@@ -225,13 +233,20 @@ func processValueObject(data interface{}, typ gjson.Result) (interface{}, error)
 		return nil, errors.Wrapf(ErrInvalidDataType, "[processValueObject] %T", newData)
 	}
 	if args, ok := m["args"]; ok {
-		newArgs, err := processValue(args, typ.Get("args"))
-		if err != nil {
-			return nil, err
+		arrArgs := args.([]interface{})
+		newArgs := make([]interface{}, len(arrArgs))
+		for i := range arrArgs {
+			path := fmt.Sprintf("args.%d", i)
+			arg, err := processValue(arrArgs[i], typ.Get(path))
+			if err != nil {
+				return nil, err
+			}
+			newArgs[i] = arg
 		}
+
 		m["args"] = newArgs
 	}
-	return newData, nil
+	return m, nil
 }
 
 func processValueArray(data interface{}, typ gjson.Result) (interface{}, error) {
