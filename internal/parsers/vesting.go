@@ -3,8 +3,7 @@ package parsers
 import (
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/balanceupdate"
@@ -18,15 +17,13 @@ import (
 type VestingParser struct {
 	storage        models.GeneralRepository
 	filesDirectory string
-	interfaces     map[string]kinds.ContractKind
 }
 
 // NewVestingParser -
-func NewVestingParser(storage models.GeneralRepository, filesDirectory string, interfaces map[string]kinds.ContractKind) *VestingParser {
+func NewVestingParser(filesDirectory string) *VestingParser {
 	return &VestingParser{
 		storage:        storage,
 		filesDirectory: filesDirectory,
-		interfaces:     interfaces,
 	}
 }
 
@@ -62,7 +59,7 @@ func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, ne
 		Script:      data.Script,
 	}
 
-	parser := contract.NewParser(p.storage, p.interfaces, contract.WithShareDirContractParser(p.filesDirectory))
+	parser := contract.NewParser(contract.WithShareDir(p.filesDirectory))
 	contractModels, err := parser.Parse(op)
 	if err != nil {
 		return nil, err

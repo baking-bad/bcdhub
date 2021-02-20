@@ -28,6 +28,40 @@ func NewTypedAST() *TypedAst {
 	}
 }
 
+// NewTypedAstFromBytes -
+func NewTypedAstFromBytes(data []byte) (*TypedAst, error) {
+	var tree UntypedAST
+	if err := json.Unmarshal(data, &tree); err != nil {
+		return nil, err
+	}
+	return tree.ToTypedAST()
+}
+
+// NewTypedAstFromString -
+func NewTypedAstFromString(data string) (*TypedAst, error) {
+	var tree UntypedAST
+	if err := json.UnmarshalFromString(data, &tree); err != nil {
+		return nil, err
+	}
+	return tree.ToTypedAST()
+}
+
+// NewSettledTypedAst -
+func NewSettledTypedAst(tree, data string) (*TypedAst, error) {
+	typ, err := NewTypedAstFromString(tree)
+	if err != nil {
+		return nil, err
+	}
+
+	var treeData UntypedAST
+	if err := json.UnmarshalFromString(data, &treeData); err != nil {
+		return nil, err
+	}
+
+	err = typ.Settle(treeData)
+	return typ, err
+}
+
 // IsSettled -
 func (a *TypedAst) IsSettled() bool {
 	return a.settled
@@ -248,19 +282,24 @@ func (a *TypedAst) Diff(b *TypedAst) (*MiguelNode, error) {
 	return nil, nil
 }
 
-// FromParameters - fill(settle) subtree in `a` with `data` for `entrypoint`. Returned settled subtree and error if occured. If `entrypoint` is empty string it will try to settle main tree.
-func (a *TypedAst) FromParameters(entrypoint string, data UntypedAST) (*TypedAst, error) {
-	if entrypoint != "" {
-		subTree := a.FindByName(entrypoint)
+// FromParameters - fill(settle) subtree in `a` with `data`. Returned settled subtree and error if occured. If `entrypoint` is empty string it will try to settle main tree.
+func (a *TypedAst) FromParameters(data *types.Parameters) (*TypedAst, error) {
+	var tree UntypedAST
+	if err := json.Unmarshal(data.Value, &tree); err != nil {
+		return nil, err
+	}
+
+	if data.Entrypoint != "" {
+		subTree := a.FindByName(data.Entrypoint)
 		if subTree != nil {
-			err := subTree.ParseValue(data[0])
+			err := subTree.ParseValue(tree[0])
 			return &TypedAst{
 				Nodes:   []Node{subTree},
 				settled: true,
 			}, err
 		}
 	}
-	err := a.Settle(data)
+	err := a.Settle(tree)
 	return a, err
 }
 
@@ -287,6 +326,19 @@ func (a *TypedAst) EqualType(b *TypedAst) bool {
 	}
 
 	return true
+}
+
+// FindBigMapByPtr -
+func (a *TypedAst) FindBigMapByPtr() map[int64]*BigMap {
+	res := make(map[int64]*BigMap)
+	for i := range a.Nodes {
+		if m := a.Nodes[i].FindPointers(); m != nil {
+			for p, bm := range m {
+				res[p] = bm
+			}
+		}
+	}
+	return res
 }
 
 func marshalJSON(prim string, annots []string, args ...Node) ([]byte, error) {

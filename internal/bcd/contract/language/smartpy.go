@@ -4,19 +4,17 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/node"
-	"github.com/tidwall/gjson"
+	"github.com/baking-bad/bcdhub/internal/bcd/base"
 )
 
 type smartpy struct{}
 
-func (l smartpy) DetectInCode(n node.Node) bool {
-	str := n.GetString()
-
-	if str == "" {
+func (l smartpy) DetectInCode(node *base.Node) bool {
+	if node.StringValue == nil {
 		return false
 	}
 
+	str := *node.StringValue
 	if strings.HasPrefix(str, "Get-item:") {
 		re := regexp.MustCompile(`^Get-item:\d+$`)
 		return re.MatchString(str)
@@ -28,10 +26,10 @@ func (l smartpy) DetectInCode(n node.Node) bool {
 		strings.Contains(str, "WrongCondition")
 }
 
-func (l smartpy) DetectInParameter(n node.Node) bool {
+func (l smartpy) DetectInParameter(node *base.Node) bool {
 	return false
 }
 
-func (l smartpy) DetectInFirstPrim(val gjson.Result) bool {
+func (l smartpy) DetectInFirstPrim(node *base.Node) bool {
 	return false
 }

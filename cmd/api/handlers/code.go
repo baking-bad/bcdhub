@@ -3,9 +3,9 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser"
-	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
-	"github.com/baking-bad/bcdhub/internal/contractparser/macros"
+	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
+	"github.com/baking-bad/bcdhub/internal/bcd/macros"
+	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -45,7 +45,7 @@ func (ctx *Context) GetContractCode(c *gin.Context) {
 		req.Protocol = state.Protocol
 	}
 
-	code, err := ctx.getContractCodeJSON(req.Network, req.Address, req.Protocol, req.Level)
+	code, err := ctx.getContractCodeJSON(req.Network, req.Address, req.Protocol)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -90,16 +90,12 @@ func (ctx *Context) GetDiff(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func (ctx *Context) getContractCodeJSON(network, address, protocol string, fallbackLevel int64) (res gjson.Result, err error) {
-	rpc, err := ctx.GetRPC(network)
-	if err != nil {
-		return res, err
-	}
-
-	contract, err := contractparser.GetContract(rpc, address, network, protocol, ctx.SharePath, fallbackLevel)
+func (ctx *Context) getContractCodeJSON(network, address, protocol string) (res gjson.Result, err error) {
+	data, err := fetch.Contract(address, network, protocol, ctx.SharePath)
 	if err != nil {
 		return
 	}
+	contract := gjson.ParseBytes(data)
 	if !contract.IsArray() && !contract.IsObject() {
 		return res, errors.Errorf("Unknown contract: %s", address)
 	}
@@ -126,7 +122,7 @@ func (ctx *Context) getContractCodeDiff(left, right CodeDiffLeg) (res CodeDiffRe
 				leg.Protocol = protocol
 			}
 		}
-		code, err := ctx.getContractCodeJSON(leg.Network, leg.Address, leg.Protocol, leg.Level)
+		code, err := ctx.getContractCodeJSON(leg.Network, leg.Address, leg.Protocol)
 		if err != nil {
 			return res, err
 		}

@@ -3,6 +3,7 @@ package migrations
 import (
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -57,7 +58,7 @@ func (m *TokenBalanceRecalc) Recalc(ctx *config.Context, network, address string
 		return errors.Errorf("Invalid network: `%s`. Availiable values: %s", network, strings.Join(ctx.Config.Scripts.Networks, ","))
 	}
 
-	if !helpers.IsContract(address) {
+	if !bcd.IsContract(address) {
 		return errors.Errorf("Invalid contract address: `%s`", address)
 	}
 

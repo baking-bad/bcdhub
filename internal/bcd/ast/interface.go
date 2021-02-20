@@ -28,6 +28,7 @@ type Type interface {
 	IsPrim(prim string) bool
 	ParseType(node *base.Node, id *int) error
 	ToJSONSchema() (*JSONSchema, error)
+	Range(handler func(node Node) error) error
 }
 
 // Value -
@@ -39,6 +40,7 @@ type Value interface {
 	ParseValue(node *base.Node) error
 	ToMiguel() (*MiguelNode, error)
 	ToParameters() ([]byte, error)
+	FindPointers() map[int64]*BigMap
 
 	Comparable
 	Distinguishable

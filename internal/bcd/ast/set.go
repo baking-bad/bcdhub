@@ -253,3 +253,24 @@ func (set *Set) EqualType(node Node) bool {
 	}
 	return set.Type.EqualType(second.Type)
 }
+
+// FindPointers -
+func (set *Set) FindPointers() map[int64]*BigMap {
+	res := make(map[int64]*BigMap)
+	for i := range set.Data {
+		if b := set.Data[i].FindPointers(); b != nil {
+			for k, v := range b {
+				res[k] = v
+			}
+		}
+	}
+	return res
+}
+
+// Range -
+func (set *Set) Range(handler func(node Node) error) error {
+	if err := handler(set); err != nil {
+		return err
+	}
+	return set.Type.Range(handler)
+}

@@ -1,8 +1,9 @@
 package ast
 
 import (
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestFindContractInterface(t *testing.T) {
@@ -120,9 +121,8 @@ func TestFindContractInterfaces(t *testing.T) {
 				t.Errorf("ToTypedAST() error = %v", err)
 				return
 			}
-			if got := FindContractInterfaces(typedTree); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("FindContractInterfaces() = %v, want %v", got, tt.want)
-			}
+			got := FindContractInterfaces(typedTree)
+			assert.ElementsMatch(t, tt.want, got)
 		})
 	}
 }

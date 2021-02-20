@@ -8,7 +8,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
-	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	tzipStorage "github.com/baking-bad/bcdhub/internal/parsers/tzip/storage"
@@ -29,7 +28,6 @@ type ParseContext struct {
 type Parser struct {
 	bigMapRepo bigmapdiff.Repository
 	blocksRepo block.Repository
-	schemaRepo schema.Repository
 	storage    models.GeneralRepository
 	rpc        noderpc.INode
 
@@ -37,11 +35,10 @@ type Parser struct {
 }
 
 // NewParser -
-func NewParser(bigMapRepo bigmapdiff.Repository, blocksRepo block.Repository, schemaRepo schema.Repository, storage models.GeneralRepository, rpc noderpc.INode, cfg ParserConfig) Parser {
+func NewParser(bigMapRepo bigmapdiff.Repository, blocksRepo block.Repository, storage models.GeneralRepository, rpc noderpc.INode, cfg ParserConfig) Parser {
 	return Parser{
 		bigMapRepo: bigMapRepo,
 		blocksRepo: blocksRepo,
-		schemaRepo: schemaRepo,
 		storage:    storage,
 		rpc:        rpc,
 
@@ -57,7 +54,7 @@ func (p *Parser) Parse(ctx ParseContext) (data *tzip.TZIP, err error) {
 	}
 
 	data = &tzip.TZIP{}
-	s := tzipStorage.NewFull(p.bigMapRepo, p.blocksRepo, p.schemaRepo, p.storage, p.rpc, p.cfg.IPFSGateways...)
+	s := tzipStorage.NewFull(p.bigMapRepo, p.blocksRepo, p.storage, p.rpc, p.cfg.IPFSGateways...)
 	if err := s.Get(ctx.BigMapDiff.Network, ctx.BigMapDiff.Address, decoded, ctx.BigMapDiff.Ptr, data); err != nil {
 		switch {
 		case errors.Is(err, tzipStorage.ErrHTTPRequest) || errors.Is(err, tzipStorage.ErrJSONDecoding):

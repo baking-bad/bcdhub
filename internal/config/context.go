@@ -2,7 +2,6 @@ package config
 
 import (
 	"github.com/baking-bad/bcdhub/internal/aws"
-	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/balanceupdate"
@@ -39,8 +38,7 @@ type Context struct {
 	SharePath  string
 	TzipSchema string
 
-	Interfaces map[string]kinds.ContractKind
-	Domains    map[string]string
+	Domains map[string]string
 
 	Storage        models.GeneralRepository
 	BalanceUpdates balanceupdate.Repository

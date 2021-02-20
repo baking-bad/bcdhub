@@ -1,20 +1,14 @@
 package storage
 
 import (
-	"encoding/json"
 	"fmt"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
-	"github.com/baking-bad/bcdhub/internal/contractparser/storage/hash"
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
-	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
+	"github.com/baking-bad/bcdhub/internal/parsers/storage"
 )
 
 const (
@@ -30,7 +24,6 @@ const (
 type TezosStorage struct {
 	bigMapRepo bigmapdiff.Repository
 	blockRepo  block.Repository
-	schemaRepo schema.Repository
 	storage    models.GeneralRepository
 
 	rpc     noderpc.INode
@@ -40,11 +33,10 @@ type TezosStorage struct {
 }
 
 // NewTezosStorage -
-func NewTezosStorage(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, schemaRepo schema.Repository, storage models.GeneralRepository, rpc noderpc.INode, address, network string, ptr int64) TezosStorage {
+func NewTezosStorage(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, storage models.GeneralRepository, rpc noderpc.INode, address, network string, ptr int64) TezosStorage {
 	return TezosStorage{
 		bigMapRepo: bigMapRepo,
 		blockRepo:  blockRepo,
-		schemaRepo: schemaRepo,
 		storage:    storage,
 		rpc:        rpc,
 		address:    address,
@@ -71,7 +63,7 @@ func (s TezosStorage) Get(value string, output interface{}) error {
 		return err
 	}
 
-	key, err := hash.Key(gjson.Parse(fmt.Sprintf(`{"string": "%s"}`, uri.Key)))
+	key, err := ast.BigMapKeyHashFromString(fmt.Sprintf(`{"string": "%s"}`, uri.Key))
 	if err != nil {
 		return err
 	}
@@ -104,7 +96,7 @@ func (s *TezosStorage) fillFields(uri TezosStorageURI) error {
 			return err
 		}
 
-		bmPtr, err := FindBigMapPointer(s.schemaRepo, s.rpc, s.address, s.network, block.Protocol)
+		bmPtr, err := storage.GetBigMapPtr(s.rpc, s.address, metadataAnnot, s.network, block.Protocol, "", 0)
 		if err != nil {
 			return err
 		}
@@ -113,34 +105,4 @@ func (s *TezosStorage) fillFields(uri TezosStorageURI) error {
 	}
 
 	return nil
-}
-
-// FindBigMapPointer -
-func FindBigMapPointer(schemaRepo schema.Repository, rpc noderpc.INode, address, network, protocol string) (int64, error) {
-	metadata, err := meta.GetSchema(schemaRepo, address, consts.STORAGE, protocol)
-	if err != nil {
-		return -1, err
-	}
-	binPath := metadata.Find(metadataAnnot)
-	if binPath == "" {
-		return -1, nil
-	}
-	storageJSON, err := rpc.GetScriptStorageJSON(address, 0)
-	if err != nil {
-		return -1, err
-	}
-	ptrs, err := storage.FindBigMapPointers(metadata, storageJSON)
-	if err != nil {
-		return -1, err
-	}
-	bmPtr := int64(-1)
-	for ptr, path := range ptrs {
-		if path == binPath {
-			bmPtr = ptr
-		}
-	}
-	if bmPtr == -1 {
-		err = errors.Wrap(ErrUnknownBigMapPointer, fmt.Sprintf("%s %s", network, address))
-	}
-	return bmPtr, err
 }

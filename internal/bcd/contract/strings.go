@@ -8,7 +8,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 )
 
-func computeHash(data []byte) (string, error) {
+// ComputeHash -
+func ComputeHash(data []byte) (string, error) {
 	sha := sha512.New()
 	if _, err := sha.Write(data); err != nil {
 		return "", err

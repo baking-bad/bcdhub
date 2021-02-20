@@ -3,21 +3,25 @@ package language
 import (
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/node"
-	"github.com/tidwall/gjson"
+	"github.com/baking-bad/bcdhub/internal/bcd/base"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 )
 
 type scaml struct{}
 
-func (l scaml) DetectInCode(n node.Node) bool {
-	str := n.GetString()
+func (l scaml) DetectInCode(node *base.Node) bool {
+	if node.StringValue == nil {
+		return false
+	}
+
+	str := *node.StringValue
 	return strings.Contains(str, "Option.get") || strings.Contains(str, "Sum.get-left")
 }
 
-func (l scaml) DetectInParameter(n node.Node) bool {
+func (l scaml) DetectInParameter(node *base.Node) bool {
 	return false
 }
 
-func (l scaml) DetectInFirstPrim(val gjson.Result) bool {
-	return val.IsArray() && len(val.Array()) == 0
+func (l scaml) DetectInFirstPrim(node *base.Node) bool {
+	return node.Prim == consts.PrimArray && len(node.Args) == 0
 }

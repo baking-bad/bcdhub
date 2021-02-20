@@ -3,7 +3,7 @@ package main
 import (
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
@@ -50,7 +50,7 @@ func parseOperation(operation operation.Operation) error {
 	}
 	h.SetOperationStrings(&operation)
 
-	if helpers.IsContract(operation.Destination) || operation.IsOrigination() {
+	if bcd.IsContract(operation.Destination) || operation.IsOrigination() {
 		if err := h.SendSentryNotifications(operation); err != nil {
 			return err
 		}
@@ -76,7 +76,7 @@ func getOperationsContracts(operations []operation.Operation) error {
 	addresses := make([]contract.Address, 0)
 	addressesMap := make(map[contract.Address]*stats)
 	for i := range operations {
-		if helpers.IsContract(operations[i].Destination) {
+		if bcd.IsContract(operations[i].Destination) {
 			dest := contract.Address{
 				Address: operations[i].Destination,
 				Network: operations[i].Network,
@@ -87,7 +87,7 @@ func getOperationsContracts(operations []operation.Operation) error {
 			}
 			addressesMap[dest].update(operations[i].Timestamp)
 		}
-		if helpers.IsContract(operations[i].Source) {
+		if bcd.IsContract(operations[i].Source) {
 			src := contract.Address{
 				Address: operations[i].Source,
 				Network: operations[i].Network,

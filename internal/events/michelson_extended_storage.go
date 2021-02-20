@@ -1,14 +1,12 @@
 package events
 
 import (
-	"github.com/baking-bad/bcdhub/internal/contractparser"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
+	"github.com/baking-bad/bcdhub/internal/parsers/storage"
 	"github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
 	"github.com/tidwall/gjson"
 )
@@ -65,28 +63,26 @@ func (mes *MichelsonExtendedStorage) Parse(response gjson.Result) []tokenbalance
 
 // Normalize - `value` is `Operation.DeffatedStorage`
 func (mes *MichelsonExtendedStorage) Normalize(value string) gjson.Result {
-	parser, err := contractparser.MakeStorageParser(nil, nil, mes.protocol, false)
+	tree, err := ast.NewTypedAstFromString(value)
 	if err != nil {
 		logger.Error(err)
 		return gjson.Parse(value)
 	}
 
-	val, err := parser.Enrich(value, "", mes.bmd, true, false)
-	if err != nil {
+	if err := storage.Enrich(tree, mes.bmd, true, false); err != nil {
 		logger.Error(err)
 		return gjson.Parse(value)
 	}
 
-	metadata, err := meta.GetSchema(mes.repo, mes.contract, consts.STORAGE, mes.protocol)
+	// val, err = storage.EnrichEmptyPointers(metadata, val)
+	// if err != nil {
+	// 	logger.Error(err)
+	// 	return gjson.Parse(value)
+	// }
+	b, err := tree.ToParameters("")
 	if err != nil {
 		logger.Error(err)
 		return gjson.Parse(value)
 	}
-
-	val, err = storage.EnrichEmptyPointers(metadata, val)
-	if err != nil {
-		logger.Error(err)
-		return gjson.Parse(value)
-	}
-	return val
+	return gjson.ParseBytes(b)
 }

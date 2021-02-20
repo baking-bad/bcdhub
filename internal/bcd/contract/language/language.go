@@ -1,8 +1,7 @@
 package language
 
 import (
-	"github.com/baking-bad/bcdhub/internal/contractparser/node"
-	"github.com/tidwall/gjson"
+	"github.com/baking-bad/bcdhub/internal/bcd/base"
 )
 
 // Languages
@@ -16,23 +15,28 @@ const (
 	LangUnknown   = "unknown"
 )
 
-// Priorities -
-func Priorities() []string {
-	return []string{
-		LangSmartPy,
-		LangLiquidity,
-		LangLigo,
-		LangLorentz,
-		LangMichelson,
-		LangSCaml,
-		LangUnknown,
+var priorities = map[string]int{
+	LangSmartPy:   6,
+	LangLiquidity: 5,
+	LangLigo:      4,
+	LangLorentz:   3,
+	LangMichelson: 2,
+	LangSCaml:     1,
+	LangUnknown:   0,
+}
+
+// GetPriority -
+func GetPriority(lang string) int {
+	if p, ok := priorities[lang]; ok {
+		return p
 	}
+	return -1
 }
 
 type language interface {
-	DetectInCode(node.Node) bool
-	DetectInParameter(node.Node) bool
-	DetectInFirstPrim(gjson.Result) bool
+	DetectInCode(node *base.Node) bool
+	DetectInParameter(node *base.Node) bool
+	DetectInFirstPrim(node *base.Node) bool
 }
 
 var languages = map[string]language{
@@ -45,9 +49,9 @@ var languages = map[string]language{
 }
 
 // GetFromCode -
-func GetFromCode(n node.Node) string {
+func GetFromCode(node *base.Node) string {
 	for lang, detector := range languages {
-		if detector.DetectInCode(n) {
+		if detector.DetectInCode(node) {
 			return lang
 		}
 	}
@@ -55,9 +59,9 @@ func GetFromCode(n node.Node) string {
 }
 
 // GetFromParameter -
-func GetFromParameter(n node.Node) string {
+func GetFromParameter(node *base.Node) string {
 	for lang, detector := range languages {
-		if detector.DetectInParameter(n) {
+		if detector.DetectInParameter(node) {
 			return lang
 		}
 	}
@@ -65,9 +69,9 @@ func GetFromParameter(n node.Node) string {
 }
 
 // GetFromFirstPrim -
-func GetFromFirstPrim(n gjson.Result) string {
+func GetFromFirstPrim(node *base.Node) string {
 	for lang, detector := range languages {
-		if detector.DetectInFirstPrim(n) {
+		if detector.DetectInFirstPrim(node) {
 			return lang
 		}
 	}

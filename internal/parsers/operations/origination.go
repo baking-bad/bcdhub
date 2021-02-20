@@ -3,10 +3,10 @@ package operations
 import (
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
-	"github.com/baking-bad/bcdhub/internal/normalize"
 	"github.com/tidwall/gjson"
 )
 
@@ -79,21 +79,12 @@ func (p Origination) Parse(data gjson.Result) ([]models.Model, error) {
 	return originationModels, nil
 }
 
-func (p Origination) normalizeOperationData(operation *operation.Operation) (err error) {
-	operation.Script, err = normalize.ScriptCode(operation.Script)
-	return
-}
-
 func (p Origination) appliedHandler(item gjson.Result, origination *operation.Operation) ([]models.Model, error) {
-	if !helpers.IsContract(origination.Destination) || !origination.IsApplied() {
+	if !bcd.IsContract(origination.Destination) || !origination.IsApplied() {
 		return nil, nil
 	}
 
 	models := make([]models.Model, 0)
-
-	if err := p.normalizeOperationData(origination); err != nil {
-		return nil, err
-	}
 
 	contractModels, err := p.contractParser.Parse(*origination)
 	if err != nil {
@@ -101,12 +92,7 @@ func (p Origination) appliedHandler(item gjson.Result, origination *operation.Op
 	}
 	models = append(models, contractModels...)
 
-	metadata, err := p.contractParser.GetContractMetadata(origination.Destination)
-	if err != nil {
-		return nil, err
-	}
-
-	rs, err := p.storageParser.Parse(item, metadata, origination)
+	rs, err := p.storageParser.Parse(item, origination)
 	if err != nil {
 		return nil, err
 	}

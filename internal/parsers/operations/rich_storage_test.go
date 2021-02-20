@@ -4,14 +4,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser"
-	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
+	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	mock_bmd "github.com/baking-bad/bcdhub/internal/models/mock/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/parsers/storage"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -50,13 +50,10 @@ func TestRichStorage_Parse(t *testing.T) {
 			want: storage.RichStorage{
 				Models: []models.Model{
 					&bigmapdiff.BigMapDiff{
-						Ptr:     31,
-						KeyHash: "exprunzteC5uyXRHbKnqJd3hUMGTWE9Gv5EtovDZHnuqu6SaGViV3N",
-						Key: map[string]interface{}{
-							"bytes": "05010000000b746f74616c537570706c79",
-						},
-						Value:       `{"bytes": "050098e1e8d78a02"}`,
-						BinPath:     "0/0",
+						Ptr:         31,
+						KeyHash:     "exprunzteC5uyXRHbKnqJd3hUMGTWE9Gv5EtovDZHnuqu6SaGViV3N",
+						Key:         []byte(`{"bytes": "05010000000b746f74616c537570706c79"}`),
+						Value:       []byte(`{"bytes": "050098e1e8d78a02"}`),
 						OperationID: "operation_id",
 						Level:       1151463,
 						Address:     "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
@@ -64,13 +61,10 @@ func TestRichStorage_Parse(t *testing.T) {
 						Timestamp:   timestamp,
 						Protocol:    "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 					}, &bigmapdiff.BigMapDiff{
-						Ptr:     31,
-						KeyHash: "exprtzVE8dHF7nePZxF6PSRf3yhfecTEKavyCZpndJGN2hz6PzQkFi",
-						Key: map[string]interface{}{
-							"bytes": "05070701000000066c65646765720a00000016000093e93e23e5d157a80852297eccc7a42d7080ddd3",
-						},
-						Value:       `{"bytes": "05070700bdf4160200000000"}`,
-						BinPath:     "0/0",
+						Ptr:         31,
+						KeyHash:     "exprtzVE8dHF7nePZxF6PSRf3yhfecTEKavyCZpndJGN2hz6PzQkFi",
+						Key:         []byte(`{"bytes": "05070701000000066c65646765720a00000016000093e93e23e5d157a80852297eccc7a42d7080ddd3"}`),
+						Value:       []byte(`{"bytes": "05070700bdf4160200000000"}`),
 						OperationID: "operation_id",
 						Level:       1151463,
 						Address:     "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
@@ -78,13 +72,10 @@ func TestRichStorage_Parse(t *testing.T) {
 						Timestamp:   timestamp,
 						Protocol:    "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 					}, &bigmapdiff.BigMapDiff{
-						Ptr:     31,
-						KeyHash: "expruyvqmgBYpF54i1c4p6r3oVV7FmW7ZH8EyjSjahKoQEfWPmcjGg",
-						Key: map[string]interface{}{
-							"bytes": "05070701000000066c65646765720a000000160139c8ade2617663981fa2b87592c9ad92714d14c200",
-						},
-						Value:       `{"bytes": "0507070084a99c750200000000"}`,
-						BinPath:     "0/0",
+						Ptr:         31,
+						KeyHash:     "expruyvqmgBYpF54i1c4p6r3oVV7FmW7ZH8EyjSjahKoQEfWPmcjGg",
+						Key:         []byte(`{"bytes": "05070701000000066c65646765720a000000160139c8ade2617663981fa2b87592c9ad92714d14c200"}`),
+						Value:       []byte(`{"bytes": "0507070084a99c750200000000"}`),
 						OperationID: "operation_id",
 						Level:       1151463,
 						Address:     "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
@@ -144,17 +135,12 @@ func TestRichStorage_Parse(t *testing.T) {
 				Return([]bigmapdiff.BigMapDiff{}, nil).
 				AnyTimes()
 
-			metadata, err := readTestMetadata(tt.operation.Destination)
-			if err != nil {
-				t.Errorf(`readTestMetadata("%s") = error %v`, tt.operation.Destination, err)
-				return
-			}
 			data, err := readJSONFile(tt.filename)
 			if err != nil {
 				t.Errorf(`readJSONFile("%s") = error %v`, tt.filename, err)
 				return
 			}
-			tt.operation.Script, err = contractparser.GetContract(rpc, tt.operation.Destination, tt.operation.Network, tt.operation.Protocol, "./test", tt.operation.Level)
+			tt.operation.Script, err = fetch.ContractWithRPC(rpc, tt.operation.Destination, tt.operation.Network, tt.operation.Protocol, "./test", tt.operation.Level)
 			if err != nil {
 				t.Errorf(`readJSONFile("%s") = error %v`, tt.filename, err)
 				return
@@ -166,7 +152,7 @@ func TestRichStorage_Parse(t *testing.T) {
 				return
 			}
 
-			got, err := parser.Parse(data, metadata, tt.operation)
+			got, err := parser.Parse(data, tt.operation)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RichStorage.Parse() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser"
+	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -180,7 +180,7 @@ func (rm Manager) removeContractsMetadata(network string, addresses []string, pr
 			ID: address,
 		})
 
-		if err := contractparser.RemoveContractFromFileSystem(address, network, protocol, rm.sharePath); err != nil {
+		if err := fetch.RemoveContractFromFileSystem(address, network, protocol, rm.sharePath); err != nil {
 			return err
 		}
 	}

@@ -4,9 +4,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/contractparser/macros"
+	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/macros"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/pkg/errors"
@@ -57,7 +57,7 @@ func fingerprint(script gjson.Result, isCode bool) (string, error) {
 	var fgpt strings.Builder
 	switch {
 	case script.IsObject():
-		prim := script.Get(consts.KeyPrim)
+		prim := script.Get("prim")
 		if prim.Exists() {
 			sPrim := prim.String()
 
@@ -73,7 +73,7 @@ func fingerprint(script gjson.Result, isCode bool) (string, error) {
 				fgpt.WriteString(code)
 			}
 
-			args := script.Get(consts.KeyArgs)
+			args := script.Get("args")
 			if args.Exists() {
 				itemFgpt, err := fingerprint(args, isCode)
 				if err != nil {
@@ -90,7 +90,7 @@ func fingerprint(script gjson.Result, isCode bool) (string, error) {
 				}
 				fgpt.WriteString(code)
 
-				if !contractparser.IsLiteral(k) {
+				if !bcd.IsLiteral(k) {
 					itemFgpt, err := fingerprint(v, isCode)
 					if err != nil {
 						return "", err

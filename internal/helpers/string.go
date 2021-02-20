@@ -51,8 +51,3 @@ func SpaceStringsBuilder(str string) string {
 func Slug(alias string) string {
 	return strings.ReplaceAll(strings.ToLower(alias), " ", "-")
 }
-
-// IsContract -
-func IsContract(address string) bool {
-	return strings.HasPrefix(address, "KT")
-}

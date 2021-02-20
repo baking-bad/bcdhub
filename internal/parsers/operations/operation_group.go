@@ -3,7 +3,8 @@ package operations
 import (
 	"github.com/pkg/errors"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/tidwall/gjson"
@@ -90,7 +91,7 @@ func (content Content) needParse(item gjson.Result) bool {
 	kind := item.Get("kind").String()
 	source := item.Get("source").String()
 	destination := item.Get("destination").String()
-	prefixCondition := helpers.IsContract(source) || helpers.IsContract(destination)
+	prefixCondition := bcd.IsContract(source) || bcd.IsContract(destination)
 	transactionCondition := kind == consts.Transaction && prefixCondition
 	originationCondition := (kind == consts.Origination || kind == consts.OriginationNew) && item.Get("script").Exists()
 	return originationCondition || transactionCondition

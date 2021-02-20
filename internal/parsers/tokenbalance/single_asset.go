@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/unpack"
+	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/tidwall/gjson"
 )
 
@@ -43,7 +43,7 @@ func (p SingleAsset) Parse(item gjson.Result) (TokenBalance, error) {
 	case item.Get("args.0.string").Exists():
 		address = item.Get("args.0.string").String()
 	case item.Get("args.0.bytes").Exists():
-		val, err := unpack.Address(item.Get("args.0.bytes").String())
+		val, err := forge.UnforgeAddress(item.Get("args.0.bytes").String())
 		if err != nil {
 			return TokenBalance{}, err
 		}

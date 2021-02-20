@@ -457,3 +457,22 @@ func (or *Or) EqualType(node Node) bool {
 
 	return or.RightType.EqualType(second.RightType)
 }
+
+// FindPointers -
+func (or *Or) FindPointers() map[int64]*BigMap {
+	switch or.key {
+	case leftKey:
+		return or.LeftType.FindPointers()
+	case rightKey:
+		return or.RightType.FindPointers()
+	}
+	return nil
+}
+
+// Range -
+func (or *Or) Range(handler func(node Node) error) error {
+	if err := or.LeftType.Range(handler); err != nil {
+		return err
+	}
+	return or.RightType.Range(handler)
+}

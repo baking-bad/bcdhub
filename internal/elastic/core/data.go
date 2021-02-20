@@ -4,7 +4,7 @@ import (
 	stdJSON "encoding/json"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
+	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 )
 
@@ -110,9 +110,9 @@ type EventOperation struct {
 	Delegate         string    `json:"delegate,omitempty"`
 	DelegateAlias    string    `json:"delegate_alias,omitempty"`
 
-	Result *operation.Result `json:"result,omitempty"`
-	Errors []*cerrors.Error  `json:"errors,omitempty"`
-	Burned int64             `json:"burned,omitempty"`
+	Result *operation.Result  `json:"result,omitempty"`
+	Errors []*tezerrors.Error `json:"errors,omitempty"`
+	Burned int64              `json:"burned,omitempty"`
 }
 
 // EventMigration -

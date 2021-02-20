@@ -5,10 +5,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
-	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	elasticBalanceUpdate "github.com/baking-bad/bcdhub/internal/elastic/balanceupdate"
 	elasticBigMapAction "github.com/baking-bad/bcdhub/internal/elastic/bigmapaction"
 	elasticBigMapDiff "github.com/baking-bad/bcdhub/internal/elastic/bigmapdiff"
@@ -71,7 +70,6 @@ type BoostIndexer struct {
 
 	rpc             noderpc.INode
 	externalIndexer index.Indexer
-	interfaces      map[string]kinds.ContractKind
 	messageQueue    mq.Mediator
 	state           block.Block
 	currentProtocol protocol.Protocol
@@ -107,7 +105,7 @@ func (bi *BoostIndexer) fetchExternalProtocols() error {
 		if _, ok := exists[extProtocols[i].Hash]; ok {
 			continue
 		}
-		symLink, err := meta.GetProtoSymLink(extProtocols[i].Hash)
+		symLink, err := bcd.GetProtoSymLink(extProtocols[i].Hash)
 		if err != nil {
 			return err
 		}
@@ -153,11 +151,6 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 
 	messageQueue := mq.New(cfg.RabbitMQ.URI, cfg.Indexer.ProjectName, cfg.Indexer.MQ.NeedPublisher, 10)
 
-	interfaces, err := kinds.Load()
-	if err != nil {
-		return nil, err
-	}
-
 	bi := &BoostIndexer{
 		Storage:        es,
 		BalanceUpdates: elasticBalanceUpdate.NewStorage(es),
@@ -177,7 +170,6 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 		rpc:            rpc,
 		messageQueue:   messageQueue,
 		stop:           make(chan struct{}),
-		interfaces:     interfaces,
 		cfg:            cfg,
 	}
 
@@ -185,8 +177,7 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 		opt(bi)
 	}
 
-	err = bi.init()
-	return bi, err
+	return bi, bi.init()
 }
 
 func (bi *BoostIndexer) init() error {
@@ -533,7 +524,6 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 			operations.WithConstants(bi.currentProtocol.Constants),
 			operations.WithHead(head),
 			operations.WithIPFSGateways(bi.cfg.IPFSGateways),
-			operations.WithInterfaces(bi.interfaces),
 			operations.WithShareDirectory(bi.cfg.SharePath),
 			operations.WithNetwork(network),
 		))
@@ -644,11 +634,11 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header) ([]models.Model, e
 		return nil, err
 	}
 
-	p := parsers.NewVestingParser(bi.Storage, bi.cfg.SharePath, bi.interfaces)
+	p := parsers.NewVestingParser(bi.cfg.SharePath)
 
 	parsedModels := make([]models.Model, 0)
 	for _, address := range addresses {
-		if !helpers.IsContract(address) {
+		if !bcd.IsContract(address) {
 			continue
 		}
 

@@ -3,6 +3,7 @@ package operations
 import (
 	"fmt"
 
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/balanceupdate"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -31,7 +32,7 @@ func (b BalanceUpdate) Parse(data gjson.Result) []*balanceupdate.BalanceUpdate {
 	bu := make([]*balanceupdate.BalanceUpdate, 0)
 	for i := range contracts {
 		address := contracts[i].Get("contract").String()
-		if !helpers.IsContract(address) {
+		if !bcd.IsContract(address) {
 			continue
 		}
 		bu = append(bu, &balanceupdate.BalanceUpdate{

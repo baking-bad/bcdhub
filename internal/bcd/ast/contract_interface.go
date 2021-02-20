@@ -1,11 +1,7 @@
 package ast
 
 import (
-	"fmt"
-	"io/ioutil"
-	"os"
-	"strings"
-
+	"github.com/baking-bad/bcdhub/internal/bcd/ast/interfaces"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 )
 
@@ -108,53 +104,28 @@ func initInterfaceTrees() error {
 		return nil
 	}
 
-	files, err := ioutil.ReadDir("./interfaces")
+	all, err := interfaces.GetAll()
 	if err != nil {
 		return err
 	}
-
-	for i := range files {
-		if files[i].IsDir() {
-			continue
-		}
-		name := files[i].Name()
-		parts := strings.Split(name, ".")
-		if len(parts) != 2 {
-			continue
+	for name, data := range all {
+		ci := contractInterface{
+			Entrypoints: make(map[string]Node),
+			IsRoot:      data.IsRoot,
 		}
 
-		f, err := os.Open(fmt.Sprintf("./interfaces/%s", name))
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-
-		switch parts[1] {
-		case "json":
-			var ast struct {
-				Entrypoints map[string]*UntypedAST `json:"entrypoints"`
-				IsRoot      bool                   `json:"is_root,omitempty"`
-			}
-			if err := json.NewDecoder(f).Decode(&ast); err != nil {
+		for key, str := range data.Entrypoints {
+			var tree UntypedAST
+			if err := json.Unmarshal(str, &tree); err != nil {
 				return err
 			}
-
-			ci := contractInterface{
-				Entrypoints: make(map[string]Node),
-				IsRoot:      ast.IsRoot,
+			t, err := tree.ToTypedAST()
+			if err != nil {
+				return err
 			}
-
-			for key, tree := range ast.Entrypoints {
-				t, err := tree.ToTypedAST()
-				if err != nil {
-					return err
-				}
-				ci.Entrypoints[key] = t.Nodes[0]
-			}
-			interfaceTrees[parts[0]] = ci
-		default:
-			continue
+			ci.Entrypoints[key] = t.Nodes[0]
 		}
+		interfaceTrees[name] = ci
 	}
 	return nil
 }

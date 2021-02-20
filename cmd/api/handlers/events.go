@@ -4,12 +4,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/gin-gonic/gin"
@@ -80,7 +80,7 @@ func (ctx *Context) getEvents(subscriptions []database.Subscription, size, offse
 			WithErrors:      subscriptions[i].WatchMask&WatchErrors != 0,
 		}
 
-		if helpers.IsContract(subscriptions[i].Address) {
+		if bcd.IsContract(subscriptions[i].Address) {
 			contract := contract.NewEmptyContract(subscriptions[i].Network, subscriptions[i].Address)
 			if err := ctx.Storage.GetByID(&contract); err != nil {
 				return []models.Event{}, err
@@ -142,12 +142,12 @@ func (ctx *Context) getMempoolEvents(subscriptions []database.Subscription) ([]m
 
 			op.SourceAlias = aliases[op.Source]
 			op.DestinationAlias = aliases[op.Destination]
-			op.Errors, err = cerrors.ParseArray(item.Body.Errors)
+			op.Errors, err = tezerrors.ParseArray(item.Body.Errors)
 			if err != nil {
 				return nil, err
 			}
 
-			if helpers.IsContract(op.Destination) && item.Body.Protocol != "" {
+			if bcd.IsContract(op.Destination) && item.Body.Protocol != "" {
 				if params := gjson.ParseBytes(item.Body.Parameters); params.Exists() {
 					metadata, err := meta.GetSchema(ctx.Schema, op.Destination, consts.PARAMETER, item.Body.Protocol)
 					if err != nil {

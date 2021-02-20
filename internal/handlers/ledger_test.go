@@ -20,7 +20,7 @@ func TestLedger_getTokenBalance(t *testing.T) {
 	}{
 		{
 			name:       "test 1",
-			bmd:        `{"ptr":257,"bin_path":"0/1/0/1/0","key":{"bytes":"0000c67788ea8ada32b2426e1b02b9ebebdc2dc51007"},"key_hash":"expruCQuxuWpbLgZ5a4AhQ9nmdLVssrFZXmzTe8jFB5LMKvX6XPXVf","key_strings":["tz1djRgXXWWJiY1rpMECCxr5d9ZBqWewuiU1"],"value":"{\"int\":\"1000000\"}","value_strings":[],"operation_id":"4784c35cc6444b8ca0eb9b7b4698e6cb","level":1269694,"address":"KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH","network":"mainnet","indexed_time":1612996343064065,"timestamp":"2020-12-22T19:19:49Z","protocol":"PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo"}`,
+			bmd:        `{"ptr":257,"key":{"bytes":"0000c67788ea8ada32b2426e1b02b9ebebdc2dc51007"},"key_hash":"expruCQuxuWpbLgZ5a4AhQ9nmdLVssrFZXmzTe8jFB5LMKvX6XPXVf","key_strings":["tz1djRgXXWWJiY1rpMECCxr5d9ZBqWewuiU1"],"value":{"int":"1000000"},"value_strings":[],"operation_id":"4784c35cc6444b8ca0eb9b7b4698e6cb","level":1269694,"address":"KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH","network":"mainnet","indexed_time":1612996343064065,"timestamp":"2020-12-22T19:19:49Z","protocol":"PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo"}`,
 			bigMapType: `{"prim":"big_map","args":[{"prim":"address"},{"prim":"nat"}],"annots":["%ledger"]}`,
 			want: &tbModel.TokenBalance{
 				Address:  "tz1djRgXXWWJiY1rpMECCxr5d9ZBqWewuiU1",
@@ -31,7 +31,7 @@ func TestLedger_getTokenBalance(t *testing.T) {
 			},
 		}, {
 			name:       "test 2",
-			bmd:        `{"ptr":257,"bin_path":"0/1/0/1/0","key":{"bytes":"0000c67788ea8ada32b2426e1b02b9ebebdc2dc51007"},"key_hash":"expruCQuxuWpbLgZ5a4AhQ9nmdLVssrFZXmzTe8jFB5LMKvX6XPXVf","key_strings":["tz1djRgXXWWJiY1rpMECCxr5d9ZBqWewuiU1"],"value":"","value_strings":[],"operation_id":"4784c35cc6444b8ca0eb9b7b4698e6cb","level":1269694,"address":"KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH","network":"mainnet","indexed_time":1612996343064065,"timestamp":"2020-12-22T19:19:49Z","protocol":"PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo"}`,
+			bmd:        `{"ptr":257,"key":{"bytes":"0000c67788ea8ada32b2426e1b02b9ebebdc2dc51007"},"key_hash":"expruCQuxuWpbLgZ5a4AhQ9nmdLVssrFZXmzTe8jFB5LMKvX6XPXVf","key_strings":["tz1djRgXXWWJiY1rpMECCxr5d9ZBqWewuiU1"],"value":"","value_strings":[],"operation_id":"4784c35cc6444b8ca0eb9b7b4698e6cb","level":1269694,"address":"KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH","network":"mainnet","indexed_time":1612996343064065,"timestamp":"2020-12-22T19:19:49Z","protocol":"PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo"}`,
 			bigMapType: `{"prim":"big_map","args":[{"prim":"address"},{"prim":"nat"}],"annots":["%ledger"]}`,
 			want: &tbModel.TokenBalance{
 				Address:  "tz1djRgXXWWJiY1rpMECCxr5d9ZBqWewuiU1",

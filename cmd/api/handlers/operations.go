@@ -7,17 +7,19 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
+	formattererror "github.com/baking-bad/bcdhub/internal/bcd/formatter/error"
+	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser"
-	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
-	formattererror "github.com/baking-bad/bcdhub/internal/contractparser/formatter_error"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/parsers/storage"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -149,7 +151,7 @@ func (ctx *Context) GetOperationErrorLocation(c *gin.Context) {
 		return
 	}
 
-	if !cerrors.HasScriptRejectedError(operation.Errors) {
+	if !tezerrors.HasScriptRejectedError(operation.Errors) {
 		ctx.handleError(c, errors.Errorf("No reject script error in operation"), http.StatusBadRequest)
 		return
 	}
@@ -233,7 +235,7 @@ func prepareFilters(req operationsRequest) map[string]interface{} {
 	return filters
 }
 
-func formatErrors(errs []*cerrors.Error, op *Operation) error {
+func formatErrors(errs []*tezerrors.Error, op *Operation) error {
 	for i := range errs {
 		if err := errs[i].Format(); err != nil {
 			return err
@@ -268,7 +270,7 @@ func (ctx *Context) prepareOperation(operation operation.Operation, bmd []bigmap
 		return op, nil
 	}
 
-	if helpers.IsContract(op.Destination) && !cerrors.HasParametersError(op.Errors) {
+	if bcd.IsContract(op.Destination) && !tezerrors.HasParametersError(op.Errors) {
 		if err := ctx.setParameters(operation.Parameters, &op); err != nil {
 			return op, err
 		}
@@ -309,7 +311,7 @@ func (ctx *Context) setParameters(parameters string, op *Operation) error {
 	params := gjson.Parse(parameters)
 	op.Parameters, err = newmiguel.ParameterToMiguel(params, metadata)
 	if err != nil {
-		if !cerrors.HasGasExhaustedError(op.Errors) {
+		if !tezerrors.HasGasExhaustedError(op.Errors) {
 			helpers.CatchErrorSentry(err)
 			return err
 		}
@@ -392,12 +394,7 @@ func enrichStorage(s, prevStorage string, bmd []bigmapdiff.BigMapDiff, protocol 
 		return gjson.Parse(s), nil
 	}
 
-	parser, err := contractparser.MakeStorageParser(nil, nil, protocol, isSimulating)
-	if err != nil {
-		return gjson.Result{}, err
-	}
-
-	return parser.Enrich(s, prevStorage, bmd, skipEmpty, true)
+	return storage.Enrich(s, bmd, skipEmpty, true)
 }
 
 func (ctx *Context) getPrevBmd(bmd []bigmapdiff.BigMapDiff, indexedTime int64, address string) ([]bigmapdiff.BigMapDiff, error) {
@@ -416,11 +413,11 @@ func (ctx *Context) getErrorLocation(operation operation.Operation, window int) 
 	if err != nil {
 		return GetErrorLocationResponse{}, err
 	}
-	opErr := cerrors.First(operation.Errors, consts.ScriptRejectedError)
+	opErr := tezerrors.First(operation.Errors, consts.ScriptRejectedError)
 	if opErr == nil {
 		return GetErrorLocationResponse{}, errors.Errorf("Can't find script rejected error")
 	}
-	defaultError, ok := opErr.IError.(*cerrors.DefaultError)
+	defaultError, ok := opErr.IError.(*tezerrors.DefaultError)
 	if !ok {
 		return GetErrorLocationResponse{}, errors.Errorf("Invalid error type: %T", opErr)
 	}

@@ -4,15 +4,14 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/node"
-	"github.com/tidwall/gjson"
+	"github.com/baking-bad/bcdhub/internal/bcd/base"
 )
 
 type ligo struct{}
 
-func (l ligo) DetectInCode(n node.Node) bool {
-	if n.HasAnnots() {
-		for _, a := range n.Annotations {
+func (l ligo) DetectInCode(node *base.Node) bool {
+	if len(node.Annots) > 0 {
+		for _, a := range node.Annots {
 			if len(a) < 2 {
 				continue
 			}
@@ -21,16 +20,18 @@ func (l ligo) DetectInCode(n node.Node) bool {
 			}
 		}
 	}
-	str := n.GetString()
-	return hasLIGOKeywords(str)
+	if node.StringValue == nil {
+		return false
+	}
+	return hasLIGOKeywords(*node.StringValue)
 }
 
-func (l ligo) DetectInParameter(n node.Node) bool {
+func (l ligo) DetectInParameter(node *base.Node) bool {
 	return false
 }
 
 // DetectInFirstPrim -
-func (l ligo) DetectInFirstPrim(val gjson.Result) bool {
+func (l ligo) DetectInFirstPrim(node *base.Node) bool {
 	return false
 }
 

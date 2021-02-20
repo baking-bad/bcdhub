@@ -3,8 +3,8 @@ package operations
 import (
 	"fmt"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/tidwall/gjson"
 )
@@ -33,7 +33,7 @@ func (r Result) Parse(data gjson.Result) operation.Result {
 		AllocatedDestinationContract: data.Get(r.root+"allocated_destination_contract").Bool() || data.Get("kind").String() == consts.Origination,
 	}
 	errJSON := []byte(data.Get(r.root + "errors").Raw)
-	errs, err := cerrors.ParseArray(errJSON)
+	errs, err := tezerrors.ParseArray(errJSON)
 	if err == nil {
 		result.Errors = errs
 	}

@@ -1,8 +1,8 @@
 package transfer
 
 import (
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/contractparser/unpack"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
@@ -41,7 +41,7 @@ func getAddress(data gjson.Result) (string, error) {
 	}
 
 	if data.Get("bytes").Exists() {
-		return unpack.Address(data.Get("bytes").String())
+		return forge.UnforgeAddress(data.Get("bytes").String())
 	}
 	return "", errors.Errorf("Unknown address data: %s", data.Raw)
 }

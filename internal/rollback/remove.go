@@ -1,7 +1,7 @@
 package rollback
 
 import (
-	"github.com/baking-bad/bcdhub/internal/contractparser"
+	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
@@ -59,7 +59,7 @@ func removeNetworkMetadata(storage models.GeneralRepository, network string, add
 	}
 
 	logger.Info("Removing contracts from file system...")
-	if err := contractparser.RemoveAllContracts(network, appDir); err != nil {
+	if err := fetch.RemoveAllContracts(network, appDir); err != nil {
 		return err
 	}
 	return nil

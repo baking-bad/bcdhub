@@ -1,11 +1,12 @@
 package handlers
 
 import (
+	"encoding/json"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
+	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
+	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser/docstring"
-	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
 	"github.com/baking-bad/bcdhub/internal/jsonschema"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
@@ -25,39 +26,39 @@ type Error struct {
 
 // Operation -
 type Operation struct {
-	Level                              int64            `json:"level,omitempty" extensions:"x-nullable"`
-	Fee                                int64            `json:"fee,omitempty" extensions:"x-nullable"`
-	Counter                            int64            `json:"counter,omitempty" extensions:"x-nullable"`
-	GasLimit                           int64            `json:"gas_limit,omitempty" extensions:"x-nullable"`
-	StorageLimit                       int64            `json:"storage_limit,omitempty" extensions:"x-nullable"`
-	Amount                             int64            `json:"amount,omitempty" extensions:"x-nullable"`
-	Balance                            int64            `json:"balance,omitempty" extensions:"x-nullable"`
-	Burned                             int64            `json:"burned,omitempty" extensions:"x-nullable"`
-	AllocatedDestinationContractBurned int64            `json:"allocated_destination_contract_burned,omitempty" extensions:"x-nullable"`
-	IndexedTime                        int64            `json:"-"`
-	ContentIndex                       int64            `json:"content_index"`
-	Errors                             []*cerrors.Error `json:"errors,omitempty" extensions:"x-nullable"`
-	Result                             *OperationResult `json:"result,omitempty" extensions:"x-nullable"`
-	Parameters                         interface{}      `json:"parameters,omitempty" extensions:"x-nullable"`
-	StorageDiff                        interface{}      `json:"storage_diff,omitempty" extensions:"x-nullable"`
-	RawMempool                         interface{}      `json:"rawMempool,omitempty" extensions:"x-nullable"`
-	Timestamp                          time.Time        `json:"timestamp"`
-	ID                                 string           `json:"id,omitempty" extensions:"x-nullable"`
-	Protocol                           string           `json:"protocol"`
-	Hash                               string           `json:"hash,omitempty" extensions:"x-nullable"`
-	Network                            string           `json:"network"`
-	Kind                               string           `json:"kind"`
-	Source                             string           `json:"source,omitempty" extensions:"x-nullable"`
-	SourceAlias                        string           `json:"source_alias,omitempty" extensions:"x-nullable"`
-	Destination                        string           `json:"destination,omitempty" extensions:"x-nullable"`
-	DestinationAlias                   string           `json:"destination_alias,omitempty" extensions:"x-nullable"`
-	PublicKey                          string           `json:"public_key,omitempty" extensions:"x-nullable"`
-	ManagerPubKey                      string           `json:"manager_pubkey,omitempty" extensions:"x-nullable"`
-	Delegate                           string           `json:"delegate,omitempty" extensions:"x-nullable"`
-	Status                             string           `json:"status"`
-	Entrypoint                         string           `json:"entrypoint,omitempty" extensions:"x-nullable"`
-	Internal                           bool             `json:"internal"`
-	Mempool                            bool             `json:"mempool"`
+	Level                              int64              `json:"level,omitempty" extensions:"x-nullable"`
+	Fee                                int64              `json:"fee,omitempty" extensions:"x-nullable"`
+	Counter                            int64              `json:"counter,omitempty" extensions:"x-nullable"`
+	GasLimit                           int64              `json:"gas_limit,omitempty" extensions:"x-nullable"`
+	StorageLimit                       int64              `json:"storage_limit,omitempty" extensions:"x-nullable"`
+	Amount                             int64              `json:"amount,omitempty" extensions:"x-nullable"`
+	Balance                            int64              `json:"balance,omitempty" extensions:"x-nullable"`
+	Burned                             int64              `json:"burned,omitempty" extensions:"x-nullable"`
+	AllocatedDestinationContractBurned int64              `json:"allocated_destination_contract_burned,omitempty" extensions:"x-nullable"`
+	IndexedTime                        int64              `json:"-"`
+	ContentIndex                       int64              `json:"content_index"`
+	Errors                             []*tezerrors.Error `json:"errors,omitempty" extensions:"x-nullable"`
+	Result                             *OperationResult   `json:"result,omitempty" extensions:"x-nullable"`
+	Parameters                         interface{}        `json:"parameters,omitempty" extensions:"x-nullable"`
+	StorageDiff                        interface{}        `json:"storage_diff,omitempty" extensions:"x-nullable"`
+	RawMempool                         interface{}        `json:"rawMempool,omitempty" extensions:"x-nullable"`
+	Timestamp                          time.Time          `json:"timestamp"`
+	ID                                 string             `json:"id,omitempty" extensions:"x-nullable"`
+	Protocol                           string             `json:"protocol"`
+	Hash                               string             `json:"hash,omitempty" extensions:"x-nullable"`
+	Network                            string             `json:"network"`
+	Kind                               string             `json:"kind"`
+	Source                             string             `json:"source,omitempty" extensions:"x-nullable"`
+	SourceAlias                        string             `json:"source_alias,omitempty" extensions:"x-nullable"`
+	Destination                        string             `json:"destination,omitempty" extensions:"x-nullable"`
+	DestinationAlias                   string             `json:"destination_alias,omitempty" extensions:"x-nullable"`
+	PublicKey                          string             `json:"public_key,omitempty" extensions:"x-nullable"`
+	ManagerPubKey                      string             `json:"manager_pubkey,omitempty" extensions:"x-nullable"`
+	Delegate                           string             `json:"delegate,omitempty" extensions:"x-nullable"`
+	Status                             string             `json:"status"`
+	Entrypoint                         string             `json:"entrypoint,omitempty" extensions:"x-nullable"`
+	Internal                           bool               `json:"internal"`
+	Mempool                            bool               `json:"mempool"`
 }
 
 // ParseJSON -
@@ -404,15 +405,15 @@ type NetworkStats struct {
 
 // SearchBigMapDiff -
 type SearchBigMapDiff struct {
-	Ptr       int64     `json:"ptr"`
-	Key       string    `json:"key"`
-	KeyHash   string    `json:"key_hash"`
-	Value     string    `json:"value"`
-	Level     int64     `json:"level"`
-	Address   string    `json:"address"`
-	Network   string    `json:"network"`
-	Timestamp time.Time `json:"timestamp"`
-	FoundBy   string    `json:"found_by"`
+	Ptr       int64           `json:"ptr"`
+	Key       string          `json:"key"`
+	KeyHash   string          `json:"key_hash"`
+	Value     json.RawMessage `json:"value"`
+	Level     int64           `json:"level"`
+	Address   string          `json:"address"`
+	Network   string          `json:"network"`
+	Timestamp time.Time       `json:"timestamp"`
+	FoundBy   string          `json:"found_by"`
 }
 
 // EntrypointSchema ;

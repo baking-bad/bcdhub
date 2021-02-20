@@ -7,8 +7,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/aws"
-	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
-	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
+	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/elastic/balanceupdate"
 	"github.com/baking-bad/bcdhub/internal/elastic/bigmapaction"
@@ -182,22 +181,11 @@ func WithTzKTServices(tzktConfig map[string]TzKTConfig) ContextOption {
 }
 
 // WithLoadErrorDescriptions -
-func WithLoadErrorDescriptions(filePath string) ContextOption {
+func WithLoadErrorDescriptions() ContextOption {
 	return func(ctx *Context) {
-		if err := cerrors.LoadErrorDescriptions(filePath); err != nil {
+		if err := tezerrors.LoadErrorDescriptions(); err != nil {
 			panic(err)
 		}
-	}
-}
-
-// WithContractsInterfaces -
-func WithContractsInterfaces() ContextOption {
-	return func(ctx *Context) {
-		result, err := kinds.Load()
-		if err != nil {
-			panic(err)
-		}
-		ctx.Interfaces = result
 	}
 }
 

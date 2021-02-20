@@ -17,6 +17,15 @@ func Unpack(data []byte) ([]*base.Node, error) {
 	return unforger.Nodes, err
 }
 
+// UnpackString -
+func UnpackString(str string) ([]*base.Node, error) {
+	data, err := hex.DecodeString(str)
+	if err != nil {
+		return nil, err
+	}
+	return Unpack(data)
+}
+
 // CollectStrings - returns strings contained in tree. If `tryUnpack` is true, it tries to unpack bytes value.
 func CollectStrings(node *base.Node, tryUnpack bool) ([]string, error) {
 	res := make([]string, 0)

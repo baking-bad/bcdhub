@@ -336,3 +336,19 @@ func (opt *Option) getTypeName() string {
 	}
 	return name
 }
+
+// FindPointers -
+func (opt *Option) FindPointers() map[int64]*BigMap {
+	if opt.Value == consts.SOME {
+		return opt.Type.FindPointers()
+	}
+	return nil
+}
+
+// Range -
+func (opt *Option) Range(handler func(node Node) error) error {
+	if opt.Value == consts.SOME {
+		return opt.Type.Range(handler)
+	}
+	return nil
+}

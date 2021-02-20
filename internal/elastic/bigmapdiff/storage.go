@@ -170,7 +170,6 @@ func (storage *Storage) Previous(filters []bigmapdiff.BigMapDiff, indexedTime in
 	for i := range filters {
 		shouldData[i] = core.Bool(core.Filter(
 			core.MatchPhrase("key_hash", filters[i].KeyHash),
-			core.MatchPhrase("bin_path", filters[i].BinPath),
 		))
 	}
 	b := core.Bool(
@@ -213,7 +212,7 @@ func (storage *Storage) Previous(filters []bigmapdiff.BigMapDiff, indexedTime in
 		if err := json.Unmarshal(arr[i].TopKey.Hits.Hits[0].Source, &b); err != nil {
 			return nil, err
 		}
-		if b.Value != "" {
+		if b.Value != nil {
 			b.ID = arr[i].TopKey.Hits.Hits[0].ID
 			diffs = append(diffs, b)
 		}

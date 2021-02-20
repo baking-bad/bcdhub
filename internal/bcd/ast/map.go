@@ -404,3 +404,31 @@ func getMapKeyName(node *MiguelNode) (s string, err error) {
 	}
 	return
 }
+
+// FindPointers -
+func (m *Map) FindPointers() map[int64]*BigMap {
+	res := make(map[int64]*BigMap)
+	if err := m.Data.Range(func(_, value Comparable) (bool, error) {
+		node := value.(Node)
+		if m := node.FindPointers(); m != nil {
+			for k, v := range m {
+				res[k] = v
+			}
+		}
+		return false, nil
+	}); err != nil {
+		return nil
+	}
+	return res
+}
+
+// Range -
+func (m *Map) Range(handler func(node Node) error) error {
+	if err := handler(m); err != nil {
+		return err
+	}
+	if err := m.KeyType.Range(handler); err != nil {
+		return err
+	}
+	return m.ValueType.Range(handler)
+}

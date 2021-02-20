@@ -37,16 +37,16 @@ func getBigMapDiff(ids []string) error {
 
 func initHandlers() {
 	bigMapDiffHandlers = append(bigMapDiffHandlers,
-		contractHandlers.NewTZIP(ctx.BigMapDiffs, ctx.Blocks, ctx.Schema, ctx.Storage, ctx.RPC, ctx.Config.IPFSGateways),
+		contractHandlers.NewTZIP(ctx.BigMapDiffs, ctx.Blocks, ctx.Storage, ctx.RPC, ctx.Config.IPFSGateways),
 	)
 	bigMapDiffHandlers = append(bigMapDiffHandlers,
-		contractHandlers.NewTezosDomains(ctx.Storage, ctx.Schema, ctx.Domains),
+		contractHandlers.NewTezosDomains(ctx.Storage, ctx.Domains, ctx.SharePath),
 	)
 	bigMapDiffHandlers = append(bigMapDiffHandlers,
 		contractHandlers.NewTokenMetadata(ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Schema, ctx.Storage, ctx.RPC, ctx.SharePath, ctx.Config.IPFSGateways),
 	)
 	bigMapDiffHandlers = append(bigMapDiffHandlers,
-		contractHandlers.NewLedger(ctx.Storage, ctx.Schema, ctx.RPC),
+		contractHandlers.NewLedger(ctx.Storage, ctx.RPC),
 	)
 }
 

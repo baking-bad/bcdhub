@@ -339,3 +339,13 @@ func (d *Default) optimizeStringValue(optimizer func(string) (string, error)) er
 	d.Value = newValue
 	return nil
 }
+
+// FindPointers -
+func (d *Default) FindPointers() map[int64]*BigMap {
+	return nil
+}
+
+// Range -
+func (d *Default) Range(handler func(node Node) error) error {
+	return handler(d)
+}

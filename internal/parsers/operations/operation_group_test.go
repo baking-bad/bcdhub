@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -19,7 +19,6 @@ import (
 	mock_tzip "github.com/baking-bad/bcdhub/internal/models/mock/tzip"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
-	modelSchema "github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -101,11 +100,10 @@ func TestGroup_Parse(t *testing.T) {
 		Return([]bigmapdiff.BigMapDiff{
 			{
 				Ptr:          2416,
-				BinPath:      "0/0/0/1/0",
-				Key:          map[string]interface{}{"bytes": "000085ef0c18b31983603d978a152de4cd61803db881"},
+				Key:          []byte(`{"bytes": "000085ef0c18b31983603d978a152de4cd61803db881"}`),
 				KeyHash:      "exprtfKNhZ1G8vMscchFjt1G1qww2P93VTLHMuhyThVYygZLdnRev2",
 				KeyStrings:   []string{"tz1XrCvviH8CqoHMSKpKuznLArEa1yR9U7ep"},
-				Value:        `{"prim":"Pair","args":[[],{"int":"6000"}]}`,
+				Value:        []byte(`{"prim":"Pair","args":[[],{"int":"6000"}]}`),
 				ValueStrings: []string{},
 				Level:        386026,
 				Address:      "KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU",
@@ -125,11 +123,10 @@ func TestGroup_Parse(t *testing.T) {
 		Return([]bigmapdiff.BigMapDiff{
 			{
 				Ptr:          2417,
-				BinPath:      "0/0/0/1/0",
-				Key:          map[string]interface{}{"bytes": "000085ef0c18b31983603d978a152de4cd61803db881"},
+				Key:          []byte(`{"bytes": "000085ef0c18b31983603d978a152de4cd61803db881"}`),
 				KeyHash:      "exprtfKNhZ1G8vMscchFjt1G1qww2P93VTLHMuhyThVYygZLdnRev2",
 				KeyStrings:   []string{"tz1XrCvviH8CqoHMSKpKuznLArEa1yR9U7ep"},
-				Value:        "",
+				Value:        nil,
 				ValueStrings: []string{},
 				Level:        386026,
 				Address:      "KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ",
@@ -204,8 +201,7 @@ func TestGroup_Parse(t *testing.T) {
 				},
 				&bigmapdiff.BigMapDiff{
 					Ptr:          32,
-					BinPath:      "0/0",
-					Key:          map[string]interface{}{"bytes": "80729e85e284dff3a30bb24a58b37ccdf474bbbe7794aad439ba034f48d66af3"},
+					Key:          []byte(`{"bytes": "80729e85e284dff3a30bb24a58b37ccdf474bbbe7794aad439ba034f48d66af3"}`),
 					KeyHash:      "exprvJp4s8RJpoXMwD9aQujxWQUiojrkeubesi3X9LDcU3taDfahYR",
 					KeyStrings:   nil,
 					ValueStrings: nil,
@@ -242,11 +238,10 @@ func TestGroup_Parse(t *testing.T) {
 				},
 				&bigmapdiff.BigMapDiff{
 					Ptr:          31,
-					BinPath:      "0/0",
-					Key:          map[string]interface{}{"bytes": "05010000000b746f74616c537570706c79"},
+					Key:          []byte(`{"bytes": "05010000000b746f74616c537570706c79"}`),
 					KeyHash:      "exprunzteC5uyXRHbKnqJd3hUMGTWE9Gv5EtovDZHnuqu6SaGViV3N",
 					KeyStrings:   nil,
-					Value:        `{"bytes":"050098e1e8d78a02"}`,
+					Value:        []byte(`{"bytes":"050098e1e8d78a02"}`),
 					ValueStrings: nil,
 					OperationID:  "55baa67b04044639932a1bef22a2d0bc",
 					Level:        1151495,
@@ -258,11 +253,10 @@ func TestGroup_Parse(t *testing.T) {
 				},
 				&bigmapdiff.BigMapDiff{
 					Ptr:          31,
-					BinPath:      "0/0",
-					Key:          map[string]interface{}{"bytes": "05070701000000066c65646765720a000000160000c2473c617946ce7b9f6843f193401203851cb2ec"},
+					Key:          []byte(`{"bytes": "05070701000000066c65646765720a000000160000c2473c617946ce7b9f6843f193401203851cb2ec"}`),
 					KeyHash:      "exprv9xaiXBb9KBi67dQoP1SchDyZeKEz3XHiFwBCtHadiKS8wkX7w",
 					KeyStrings:   nil,
-					Value:        `{"bytes":"0507070080a5c1070200000000"}`,
+					Value:        []byte(`{"bytes":"0507070080a5c1070200000000"}`),
 					ValueStrings: nil,
 					OperationID:  "55baa67b04044639932a1bef22a2d0bc",
 					Level:        1151495, Address: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
@@ -273,11 +267,10 @@ func TestGroup_Parse(t *testing.T) {
 				},
 				&bigmapdiff.BigMapDiff{
 					Ptr:          31,
-					BinPath:      "0/0",
-					Key:          map[string]interface{}{"bytes": "05070701000000066c65646765720a00000016011871cfab6dafee00330602b4342b6500c874c93b00"},
+					Key:          []byte(`{"bytes": "05070701000000066c65646765720a00000016011871cfab6dafee00330602b4342b6500c874c93b00"}`),
 					KeyHash:      "expruiWsykU9wjNb4aV7eJULLBpGLhy1EuzgD8zB8k7eUTaCk16fyV",
 					KeyStrings:   nil,
-					Value:        `{"bytes":"05070700ba81bb090200000000"}`,
+					Value:        []byte(`{"bytes":"05070700ba81bb090200000000"}`),
 					ValueStrings: nil,
 					OperationID:  "55baa67b04044639932a1bef22a2d0bc",
 					Level:        1151495,
@@ -357,7 +350,7 @@ func TestGroup_Parse(t *testing.T) {
 					Level:       86142,
 					Timestamp:   timestamp,
 					Language:    "unknown",
-					Hash:        "3a3cc71335057b9d59ff943178a07b0d751e4d85792bfc774437ea0227697a8201aec6db656fd092f12dbe8ec1f0f0a8cde0072cd1e72b45bc9d9f642b3ca507",
+					Hash:        "e4b88b53b9227b3fc4fc0dbe148f249a7a1c755cf4cbc9c8fb5b5b78395a139d3f8e0fde5c27117df30553e98ecb4e3e8ddc9740292af18fbf36326cb55cebad",
 					Tags:        []string{},
 					Hardcoded:   []string{},
 					FailStrings: []string{},
@@ -445,11 +438,10 @@ func TestGroup_Parse(t *testing.T) {
 				},
 				&bigmapdiff.BigMapDiff{
 					Ptr:          2416,
-					BinPath:      "0/0",
-					Key:          map[string]interface{}{"bytes": "000086b7990605548cb13db091c7a68a46a7aef3d0a2"},
+					Key:          []byte(`{"bytes": "000086b7990605548cb13db091c7a68a46a7aef3d0a2"}`),
 					KeyHash:      "expruMJ3MpDTTKCd3jWWGN1ubrFT3y3qbZRQ8QyfAa1X2JWQPS6knk",
 					KeyStrings:   []string{},
-					Value:        "{\"prim\":\"Pair\",\"args\":[[],{\"int\":\"8500\"}]}",
+					Value:        []byte(`"{"prim":"Pair","args":[[],{"int":"8500"}]}"`),
 					ValueStrings: []string{},
 					Level:        386026,
 					Address:      "KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU",
@@ -487,11 +479,10 @@ func TestGroup_Parse(t *testing.T) {
 				},
 				&bigmapdiff.BigMapDiff{
 					Ptr:          2417,
-					BinPath:      "0/0/0/1/0",
-					Key:          map[string]interface{}{"bytes": "000085ef0c18b31983603d978a152de4cd61803db881"},
+					Key:          []byte(`{"bytes": "000085ef0c18b31983603d978a152de4cd61803db881"}`),
 					KeyHash:      "exprtfKNhZ1G8vMscchFjt1G1qww2P93VTLHMuhyThVYygZLdnRev2",
 					KeyStrings:   []string{"tz1XrCvviH8CqoHMSKpKuznLArEa1yR9U7ep"},
-					Value:        "",
+					Value:        nil,
 					ValueStrings: []string{},
 					Level:        386026,
 					Address:      "KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ",
@@ -519,11 +510,10 @@ func TestGroup_Parse(t *testing.T) {
 				},
 				&bigmapdiff.BigMapDiff{
 					Ptr:          2418,
-					BinPath:      "0/0/0/1/0",
-					Key:          map[string]interface{}{"bytes": "000085ef0c18b31983603d978a152de4cd61803db881"},
+					Key:          []byte(`{"bytes": "000085ef0c18b31983603d978a152de4cd61803db881"}`),
 					KeyHash:      "exprtfKNhZ1G8vMscchFjt1G1qww2P93VTLHMuhyThVYygZLdnRev2",
 					KeyStrings:   []string{"tz1XrCvviH8CqoHMSKpKuznLArEa1yR9U7ep"},
-					Value:        "{\"prim\":\"Pair\",\"args\":[[],{\"int\":\"6000\"}]}",
+					Value:        []byte(`{"prim":"Pair","args":[[],{"int":"6000"}]}"`),
 					ValueStrings: []string{},
 					Level:        386026,
 					Address:      "KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ",
@@ -533,11 +523,10 @@ func TestGroup_Parse(t *testing.T) {
 				},
 				&bigmapdiff.BigMapDiff{
 					Ptr:          2418,
-					BinPath:      "0/0/0/1/0",
-					Key:          map[string]interface{}{"bytes": "000086b7990605548cb13db091c7a68a46a7aef3d0a2"},
+					Key:          []byte(`{"bytes": "000086b7990605548cb13db091c7a68a46a7aef3d0a2"}`),
 					KeyHash:      "expruMJ3MpDTTKCd3jWWGN1ubrFT3y3qbZRQ8QyfAa1X2JWQPS6knk",
 					KeyStrings:   []string{},
-					Value:        "{\"prim\":\"Pair\",\"args\":[[],{\"int\":\"8500\"}]}",
+					Value:        []byte(`"{"prim":"Pair","args":[[],{"int":"8500"}]}"`),
 					ValueStrings: []string{},
 					Level:        386026,
 					Address:      "KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ",
@@ -550,23 +539,6 @@ func TestGroup_Parse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			schemaRepo.
-				EXPECT().
-				Get(gomock.Any()).
-				DoAndReturn(
-					func(address string) (modelSchema.Schema, error) {
-						val := modelSchema.Schema{ID: address}
-						buf, err := readTestMetadataModel(address)
-						if err != nil {
-							return val, err
-						}
-						val.Parameter = buf.Parameter
-						val.Storage = buf.Storage
-						return val, nil
-					},
-				).
-				AnyTimes()
-
 			rpc.
 				EXPECT().
 				GetScriptStorageJSON(tt.address, tt.level).

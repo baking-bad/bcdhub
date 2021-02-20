@@ -3,70 +3,55 @@ package language
 import (
 	"testing"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/contractparser/node"
-	"github.com/tidwall/gjson"
+	jsoniter "github.com/json-iterator/go"
+
+	"github.com/baking-bad/bcdhub/internal/bcd/base"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 func TestDetectSmartPy(t *testing.T) {
 	testCases := []struct {
-		name string
-		n    node.Node
-		res  string
+		name  string
+		value string
+		res   string
 	}{
 		{
-			name: "SmartPy Value",
-			n: node.Node{
-				Value: interface{}("SmartPy is awesome"),
-				Type:  consts.KeyString,
-			},
-			res: LangSmartPy,
+			name:  "SmartPy Value",
+			value: "SmartPy is awesome",
+			res:   LangSmartPy,
 		},
 		{
-			name: "SmartPy Value",
-			n: node.Node{
-				Value: interface{}("start self. end"),
-				Type:  consts.KeyString,
-			},
-			res: LangSmartPy,
+			name:  "SmartPy Value",
+			value: "start self. end",
+			res:   LangSmartPy,
 		},
 		{
-			name: "SmartPy Value",
-			n: node.Node{
-				Value: interface{}("start sp. end"),
-				Type:  consts.KeyString,
-			},
-			res: LangSmartPy,
+			name:  "SmartPy Value",
+			value: "start sp. end",
+			res:   LangSmartPy,
 		},
 		{
-			name: "SmartPy Value",
-			n: node.Node{
-				Value: interface{}("WrongCondition"),
-				Type:  consts.KeyString,
-			},
-			res: LangSmartPy,
+			name:  "SmartPy Value",
+			value: "WrongCondition",
+			res:   LangSmartPy,
 		},
 		{
-			name: "SmartPy Value",
-			n: node.Node{
-				Value: interface{}(`Get-item:123`),
-				Type:  consts.KeyString,
-			},
-			res: LangSmartPy,
+			name:  "SmartPy Value",
+			value: `Get-item:123`,
+			res:   LangSmartPy,
 		},
 		{
-			name: "SmartPy Value",
-			n: node.Node{
-				Value: interface{}(`Get-item:123a`),
-				Type:  consts.KeyString,
-			},
-			res: LangUnknown,
+			name:  "SmartPy Value",
+			value: `Get-item:123a`,
+			res:   LangUnknown,
 		},
 	}
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			if result := GetFromCode(tt.n); result != tt.res {
+			node := &base.Node{StringValue: &tt.value}
+			if result := GetFromCode(node); result != tt.res {
 				t.Errorf("Invalid result.\nGot: %v\nExpected: %v", result, tt.res)
 			}
 		})
@@ -76,46 +61,46 @@ func TestDetectSmartPy(t *testing.T) {
 func TestDetectLiquidity(t *testing.T) {
 	testCases := []struct {
 		name string
-		n    node.Node
+		n    *base.Node
 		res  string
 	}{
 		{
 			name: "Liquidity Annotation",
-			n: node.Node{
-				Prim:        "address",
-				Annotations: []string{"%0 _slash_"},
+			n: &base.Node{
+				Prim:   "address",
+				Annots: []string{"%0 _slash_"},
 			},
 			res: LangLiquidity,
 		},
 		{
 			name: "Liquidity Annotation",
-			n: node.Node{
-				Prim:        "address",
-				Annotations: []string{"_slash_"},
+			n: &base.Node{
+				Prim:   "address",
+				Annots: []string{"_slash_"},
 			},
 			res: LangLiquidity,
 		},
 		{
 			name: "Liquidity Annotation",
-			n: node.Node{
-				Prim:        "address",
-				Annotations: []string{":_entries"},
+			n: &base.Node{
+				Prim:   "address",
+				Annots: []string{":_entries"},
 			},
 			res: LangLiquidity,
 		},
 		{
 			name: "Liquidity Annotation",
-			n: node.Node{
-				Prim:        "address",
-				Annotations: []string{`@\w+_slash_1`},
+			n: &base.Node{
+				Prim:   "address",
+				Annots: []string{`@\w+_slash_1`},
 			},
 			res: LangLiquidity,
 		},
 		{
 			name: "Not Liquidity Annotation",
-			n: node.Node{
-				Prim:        "address",
-				Annotations: []string{"123"},
+			n: &base.Node{
+				Prim:   "address",
+				Annots: []string{"123"},
 			},
 			res: LangUnknown,
 		},
@@ -132,200 +117,147 @@ func TestDetectLiquidity(t *testing.T) {
 
 func TestDetectLIGO(t *testing.T) {
 	testCases := []struct {
-		name string
-		n    node.Node
-		res  string
+		name  string
+		value string
+		res   string
 	}{
 		{
-			name: "Ligo Annotation",
-			n: node.Node{
-				Prim:        "address",
-				Annotations: []string{"%0"},
-			},
-			res: LangLigo,
+			name:  "Ligo Annotation",
+			value: `{"prim":"address","annots":["%0"]}`,
+			res:   LangLigo,
 		},
 		{
-			name: "Ligo Annotation",
-			n: node.Node{
-				Prim:        "address",
-				Annotations: []string{"%1"},
-			},
-			res: LangLigo,
+			name:  "Ligo Annotation",
+			value: `{"prim":"address","annots":["%1"]}`,
+			res:   LangLigo,
 		},
 		{
-			name: "Ligo Annotation",
-			n: node.Node{
-				Prim:        "nat",
-				Annotations: []string{"%3"},
-			},
-			res: LangLigo,
+			name:  "Ligo Annotation",
+			value: `{"prim":"address","annots":["%3"]}`,
+			res:   LangLigo,
 		},
 		{
-			name: "Not Ligo",
-			n: node.Node{
-				Prim:        "address",
-				Annotations: []string{"%3s"},
-			},
-			res: LangUnknown,
+			name:  "Not Ligo",
+			value: `{"prim":"address","annots":["%3s"]}`,
+			res:   LangUnknown,
 		},
 		{
-			name: "Not Ligo",
-			n: node.Node{
-				Prim:        "address",
-				Annotations: []string{"%%3"},
-			},
-			res: LangUnknown,
+			name:  "Not Ligo",
+			value: `{"prim":"address","annots":["%%3"]}`,
+			res:   LangUnknown,
 		},
 		{
-			name: "Not Ligo",
-			n: node.Node{
-				Prim:        "address",
-				Annotations: []string{"%abc"},
-			},
-			res: LangUnknown,
+			name:  "Not Ligo",
+			value: `{"prim":"address","annots":["%abc"]}`,
+			res:   LangUnknown,
 		},
 		{
-			name: "Not Ligo",
-			n: node.Node{
-				Prim:        "address",
-				Annotations: []string{"%-42"},
-			},
-			res: LangUnknown,
+			name:  "Not Ligo",
+			value: `{"prim":"address","annots":["%-42"]}`,
+			res:   LangUnknown,
 		},
 		{
-			name: "Not Ligo",
-			n: node.Node{
-				Prim:        "address",
-				Annotations: []string{"abc"},
-			},
-			res: LangUnknown,
+			name:  "Not Ligo",
+			value: `{"prim":"address","annots":["abc"]}`,
+			res:   LangUnknown,
 		},
 		{
-			name: "Not Ligo",
-			n: node.Node{
-				Prim:        "address",
-				Annotations: []string{"0"},
-			},
-			res: LangUnknown,
+			name:  "Not Ligo",
+			value: `{"prim":"address","annots":["0"]}`,
+			res:   LangUnknown,
 		},
 		{
-			name: "Ligo Value",
-			n: node.Node{
-				Value: interface{}("GET_FORCE"),
-				Type:  consts.KeyString,
-			},
-			res: LangLigo,
+			name:  "Ligo Value",
+			value: `{"string":"GET_FORCE"}`,
+			res:   LangLigo,
 		},
 		{
-			name: "Ligo Value",
-			n: node.Node{
-				Value: interface{}("get_force"),
-				Type:  consts.KeyString,
-			},
-			res: LangLigo,
+			name:  "Ligo Value",
+			value: `{"string":"get_force"}`,
+			res:   LangLigo,
 		},
 		{
-			name: "Ligo Value",
-			n: node.Node{
-				Value: interface{}("MAP FIND"),
-				Type:  consts.KeyString,
-			},
-			res: LangLigo,
+			name:  "Ligo Value",
+			value: `{"string":"MAP FIND"}`,
+			res:   LangLigo,
 		},
 		{
-			name: "Ligo Value",
-			n: node.Node{
-				Value: interface{}("start get_entrypoint end"),
-				Type:  consts.KeyString,
-			},
-			res: LangLigo,
+			name:  "Ligo Value",
+			value: `{"string":"start get_entrypoint end"}`,
+			res:   LangLigo,
 		},
 		{
-			name: "Ligo Value",
-			n: node.Node{
-				Value: interface{}("get_contract end"),
-				Type:  consts.KeyString,
-			},
-			res: LangLigo,
+			name:  "Ligo Value",
+			value: `{"string":"get_contract end"}`,
+			res:   LangLigo,
 		},
 		{
-			name: "Ligo Value",
-			n: node.Node{
-				Value: interface{}("failed assertion"),
-				Type:  consts.KeyString,
-			},
-			res: LangLigo,
+			name:  "Ligo Value",
+			value: `{"string":"failed assertion"}`,
+			res:   LangLigo,
 		},
 	}
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			if result := GetFromCode(tt.n); result != tt.res {
+			var node base.Node
+			if err := json.UnmarshalFromString(tt.value, &node); err != nil {
+				t.Errorf("UnmarshalFromString error=%s", err)
+				return
+			}
+			if result := GetFromCode(&node); result != tt.res {
 				t.Errorf("Invalid result.\nGot: %v\nExpected: %v", result, tt.res)
 			}
 		})
 	}
 }
 
+func getStringPtr(val string) *string {
+	return &val
+}
+
 func TestDetectLorentz(t *testing.T) {
 	testCases := []struct {
-		name string
-		n    node.Node
-		res  string
+		name  string
+		value string
+		res   string
 	}{
 		{
-			name: "Lorentz Value",
-			n: node.Node{
-				Value: interface{}("UStore"),
-				Type:  consts.KeyString,
-			},
-			res: LangLorentz,
+			name:  "Lorentz Value",
+			value: "UStore",
+			res:   LangLorentz,
 		},
 		{
-			name: "Lorentz Value",
-			n: node.Node{
-				Value: interface{}("something UStore strange"),
-				Type:  consts.KeyString,
-			},
-			res: LangLorentz,
+			name:  "Lorentz Value",
+			value: "something UStore strange",
+			res:   LangLorentz,
 		},
 		{
-			name: "Lorentz Value",
-			n: node.Node{
-				Value: interface{}("123 UStore"),
-				Type:  consts.KeyString,
-			},
-			res: LangLorentz,
+			name:  "Lorentz Value",
+			value: "123 UStore",
+			res:   LangLorentz,
 		},
 		{
-			name: "Not Lorentz Value",
-			n: node.Node{
-				Value: interface{}("start end"),
-				Type:  consts.KeyString,
-			},
-			res: LangUnknown,
+			name:  "Not Lorentz Value",
+			value: "start end",
+			res:   LangUnknown,
 		},
 		{
-			name: "Not Lorentz Value",
-			n: node.Node{
-				Value: interface{}("ustore"),
-				Type:  consts.KeyString,
-			},
-			res: LangUnknown,
+			name:  "Not Lorentz Value",
+			value: "ustore",
+			res:   LangUnknown,
 		},
 		{
-			name: "Not Lorentz Value",
-			n: node.Node{
-				Value: interface{}("Ustore"),
-				Type:  consts.KeyString,
-			},
-			res: LangUnknown,
+			name:  "Not Lorentz Value",
+			value: "Ustore",
+			res:   LangUnknown,
 		},
 	}
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			if result := GetFromCode(tt.n); result != tt.res {
+			node := &base.Node{StringValue: &tt.value}
+			if result := GetFromCode(node); result != tt.res {
 				t.Errorf("Invalid result.\nGot: %v\nExpected: %v", result, tt.res)
 			}
 		})
@@ -335,41 +267,41 @@ func TestDetectLorentz(t *testing.T) {
 func TestGetFromParameter(t *testing.T) {
 	testCases := []struct {
 		name string
-		n    node.Node
+		n    *base.Node
 		res  string
 	}{
 		{
 			name: "liquidity entrypoints",
-			n: node.Node{
-				Annotations: []string{"%_Liq_entry"},
+			n: &base.Node{
+				Annots: []string{"%_Liq_entry"},
 			},
 			res: LangLiquidity,
 		},
 		{
 			name: "lorentz entrypoints",
-			n: node.Node{
-				Annotations: []string{"%epwBeginUpgrade"},
+			n: &base.Node{
+				Annots: []string{"%epwBeginUpgrade"},
 			},
 			res: LangLorentz,
 		},
 		{
 			name: "lorentz entrypoints",
-			n: node.Node{
-				Annotations: []string{"%epwApplyMigration"},
+			n: &base.Node{
+				Annots: []string{"%epwApplyMigration"},
 			},
 			res: LangLorentz,
 		},
 		{
 			name: "lorentz entrypoints",
-			n: node.Node{
-				Annotations: []string{"%epwSetCode"},
+			n: &base.Node{
+				Annots: []string{"%epwSetCode"},
 			},
 			res: LangLorentz,
 		},
 		{
 			name: "random entrypoints",
-			n: node.Node{
-				Annotations: []string{"%setCode"},
+			n: &base.Node{
+				Annots: []string{"%setCode"},
 			},
 			res: LangUnknown,
 		},
@@ -419,8 +351,12 @@ func TestGetFromFirstPrim(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			parsed := gjson.Parse(tt.input)
-			if got := GetFromFirstPrim(parsed); got != tt.want {
+			var node base.Node
+			if err := json.UnmarshalFromString(tt.input, &node); err != nil {
+				t.Errorf("UnmarshalFromString error=%s", err)
+				return
+			}
+			if got := GetFromFirstPrim(&node); got != tt.want {
 				t.Errorf("GetFromFirstPrim invalid. expected: %v, got: %v", tt.want, got)
 			}
 		})

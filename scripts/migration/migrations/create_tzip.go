@@ -55,7 +55,7 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 		if err != nil {
 			return err
 		}
-		parser := tzipParsers.NewParser(ctx.BigMapDiffs, ctx.Blocks, ctx.Schema, ctx.Storage, rpc, tzipParsers.ParserConfig{
+		parser := tzipParsers.NewParser(ctx.BigMapDiffs, ctx.Blocks, ctx.Storage, rpc, tzipParsers.ParserConfig{
 			IPFSGateways: ctx.Config.IPFSGateways,
 		})
 
@@ -67,7 +67,6 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 				Value:    bmd[i].Value,
 				KeyHash:  bmd[i].KeyHash,
 				Protocol: bmd[i].Protocol,
-				BinPath:  bmd[i].BinPath,
 			},
 		})
 		if err != nil {

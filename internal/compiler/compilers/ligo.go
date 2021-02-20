@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/language"
+	"github.com/baking-bad/bcdhub/internal/bcd/contract/language"
 )
 
 type ligo struct{}

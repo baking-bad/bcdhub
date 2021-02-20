@@ -1,10 +1,9 @@
 package contract
 
 import (
-	"github.com/baking-bad/bcdhub/internal/contractparser"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
-	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	astContract "github.com/baking-bad/bcdhub/internal/bcd/contract"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -15,23 +14,12 @@ import (
 
 // Parser -
 type Parser struct {
-	storage        models.GeneralRepository
-	interfaces     map[string]kinds.ContractKind
-	filesDirectory string
-
-	metadata map[string]*meta.ContractSchema
-
 	scriptSaver ScriptSaver
 }
 
 // NewParser -
-func NewParser(storage models.GeneralRepository, interfaces map[string]kinds.ContractKind, opts ...ParserOption) *Parser {
-	parser := &Parser{
-		storage:    storage,
-		interfaces: interfaces,
-		metadata:   make(map[string]*meta.ContractSchema),
-	}
-
+func NewParser(opts ...ParserOption) *Parser {
+	parser := &Parser{}
 	for i := range opts {
 		opts[i](parser)
 	}
@@ -42,13 +30,12 @@ func NewParser(storage models.GeneralRepository, interfaces map[string]kinds.Con
 // ParserOption -
 type ParserOption func(p *Parser)
 
-// WithShareDirContractParser -
-func WithShareDirContractParser(dir string) ParserOption {
+// WithShareDir -
+func WithShareDir(dir string) ParserOption {
 	return func(p *Parser) {
 		if dir == "" {
 			return
 		}
-		p.filesDirectory = dir
 		p.scriptSaver = NewFileScriptSaver(dir)
 	}
 }
@@ -70,90 +57,54 @@ func (p *Parser) Parse(operation operation.Operation) ([]models.Model, error) {
 		LastAction: operation.Timestamp,
 	}
 
-	protoSymLink, err := meta.GetProtoSymLink(operation.Protocol)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := p.computeMetrics(operation, protoSymLink, &contract); err != nil {
-		return nil, err
-	}
-
-	schema, err := NewSchemaParser(protoSymLink).Parse(operation.Script, contract.Address)
-	if err != nil {
-		return nil, err
-	}
-
-	contractMetadata, err := meta.GetContractSchemaFromModel(schema)
-	if err != nil {
-		return nil, err
-	}
-	p.metadata[schema.ID] = contractMetadata
-
-	if contractMetadata.IsUpgradable(protoSymLink) {
-		contract.Tags = append(contract.Tags, consts.UpgradableTag)
-	}
-
-	if err := setEntrypoints(contractMetadata, protoSymLink, &contract); err != nil {
-		return nil, err
-	}
-
-	if err := p.storage.BulkInsert([]models.Model{&schema}); err != nil {
+	if err := p.computeMetrics(operation, &contract); err != nil {
 		return nil, err
 	}
 
 	return []models.Model{&contract}, nil
 }
 
-// GetContractMetadata -
-func (p *Parser) GetContractMetadata(address string) (*meta.ContractSchema, error) {
-	metadata, ok := p.metadata[address]
-	if !ok {
-		return nil, errors.Errorf("Unknown parsed metadata: %s", address)
-	}
-	return metadata, nil
-}
-
-func (p *Parser) computeMetrics(operation operation.Operation, protoSymLink string, contract *contract.Contract) error {
-	script, err := contractparser.New(operation.Script)
+func (p *Parser) computeMetrics(operation operation.Operation, contract *contract.Contract) error {
+	script, err := astContract.NewParser([]byte(operation.Script.Raw))
 	if err != nil {
-		return errors.Errorf("contractparser.New: %v", err)
+		return errors.Errorf("ast.NewScript: %v", err)
 	}
-	script.Parse(p.interfaces)
-
-	lang, err := script.Language()
-	if err != nil {
-		return errors.Errorf("script.Language: %v", err)
+	if err := script.Parse(); err != nil {
+		return err
 	}
 
-	contract.Language = lang
-	contract.Hash = script.Code.Hash
-	contract.FailStrings = script.Code.FailStrings.Values()
+	contract.Language = script.Language
+	contract.Hash = script.Hash
+	contract.FailStrings = script.FailStrings.Values()
 	contract.Annotations = script.Annotations.Values()
 	contract.Tags = script.Tags.Values()
 	contract.Hardcoded = script.HardcodedAddresses.Values()
 
+	params, err := script.Code.Parameter.ToTypedAST()
+	if err != nil {
+		return err
+	}
+	contract.Entrypoints = params.GetEntrypoints()
+
+	if script.IsUpgradable() {
+		contract.Tags = append(contract.Tags, consts.UpgradableTag)
+	}
+
 	if err := metrics.SetFingerprint(operation.Script, contract); err != nil {
 		return err
 	}
+
+	protoSymLink, err := bcd.GetProtoSymLink(operation.Protocol)
+	if err != nil {
+		return err
+	}
+
 	if p.scriptSaver != nil {
 		return p.scriptSaver.Save(operation.Script, scriptSaveContext{
 			Network: contract.Network,
 			Address: contract.Address,
 			SymLink: protoSymLink,
 		})
-	}
-	return nil
-}
-
-func setEntrypoints(metadata *meta.ContractSchema, symLink string, contract *contract.Contract) error {
-	entrypoints, err := metadata.Parameter[symLink].GetEntrypoints()
-	if err != nil {
-		return err
-	}
-	contract.Entrypoints = make([]string, len(entrypoints))
-	for i := range entrypoints {
-		contract.Entrypoints[i] = entrypoints[i].Name
 	}
 	return nil
 }

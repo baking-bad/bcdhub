@@ -1,17 +1,5 @@
 package consts
 
-// Keys
-const (
-	KeyPrim   = "prim"
-	KeyArgs   = "args"
-	KeyAnnots = "annots"
-	KeyString = "string"
-	KeyMutez  = "mutez"
-	KeyBytes  = "bytes"
-	KeyInt    = "int"
-	KeyTime   = "timestamp"
-)
-
 // Kind
 const (
 	Transaction    = "transaction"

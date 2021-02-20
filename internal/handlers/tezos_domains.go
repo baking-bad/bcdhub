@@ -3,13 +3,13 @@ package handlers
 import (
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/contractparser/unpack"
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/forge"
+	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
-	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -22,15 +22,15 @@ const (
 
 // TezosDomain -
 type TezosDomain struct {
-	storage    models.GeneralRepository
-	schemaRepo schema.Repository
+	storage  models.GeneralRepository
+	shareDir string
 
 	contracts map[contract.Address]struct{}
-	metadata  map[contract.Address]meta.Metadata
+	trees     map[contract.Address]*ast.TypedAst
 }
 
 // NewTezosDomains -
-func NewTezosDomains(storage models.GeneralRepository, schemaRepo schema.Repository, contracts map[string]string) *TezosDomain {
+func NewTezosDomains(storage models.GeneralRepository, contracts map[string]string, shareDir string) *TezosDomain {
 	addresses := make(map[contract.Address]struct{})
 	for k, v := range contracts {
 		addresses[contract.Address{
@@ -39,7 +39,7 @@ func NewTezosDomains(storage models.GeneralRepository, schemaRepo schema.Reposit
 		}] = struct{}{}
 	}
 	return &TezosDomain{
-		storage, schemaRepo, addresses, make(map[contract.Address]meta.Metadata),
+		storage, shareDir, addresses, make(map[contract.Address]*ast.TypedAst),
 	}
 }
 
@@ -73,34 +73,42 @@ func (td *TezosDomain) getBigMapDiff(model models.Model) (*bigmapdiff.BigMapDiff
 	if _, ok := td.contracts[address]; !ok {
 		return nil, ""
 	}
-	metadata, err := td.getMetadata(address, bmd.Protocol)
+	tree, err := td.getTree(address, bmd.Protocol)
 	if err != nil {
 		return nil, ""
 	}
 
-	binPath := metadata.Find(recordsAnnot)
-	if binPath == bmd.BinPath {
-		return bmd, recordsAnnot
+	if node := tree.FindByName(recordsAnnot); node != nil {
+		bigMap, ok := node.(*ast.BigMap)
+		if ok && *bigMap.Ptr == bmd.Ptr {
+			return bmd, recordsAnnot
+		}
 	}
 
-	binPath = metadata.Find(expiryMapAnnot)
-	if binPath == bmd.BinPath {
-		return bmd, expiryMapAnnot
+	if node := tree.FindByName(expiryMapAnnot); node != nil {
+		bigMap, ok := node.(*ast.BigMap)
+		if ok && *bigMap.Ptr == bmd.Ptr {
+			return bmd, expiryMapAnnot
+		}
 	}
 	return nil, ""
 }
 
-func (td *TezosDomain) getMetadata(address contract.Address, protocol string) (meta.Metadata, error) {
-	metadata, ok := td.metadata[address]
+func (td *TezosDomain) getTree(address contract.Address, protocol string) (*ast.TypedAst, error) {
+	tree, ok := td.trees[address]
 	if ok {
-		return metadata, nil
+		return tree, nil
 	}
-	metadata, err := meta.GetSchema(td.schemaRepo, address.Address, consts.STORAGE, protocol)
+	data, err := fetch.Contract(address.Address, address.Network, protocol, td.shareDir)
 	if err != nil {
-		return metadata, err
+		return nil, err
 	}
-	td.metadata[address] = metadata
-	return metadata, nil
+	tree, err = ast.NewTypedAstFromBytes(data)
+	if err != nil {
+		return nil, err
+	}
+	td.trees[address] = tree
+	return tree, nil
 }
 
 func (td *TezosDomain) updateRecordsTZIP(bmd *bigmapdiff.BigMapDiff) error {
@@ -127,7 +135,7 @@ func (td *TezosDomain) updateExpirationDate(bmd *bigmapdiff.BigMapDiff) error {
 	if len(bmd.KeyStrings) == 0 {
 		return errors.Errorf("Invalid tezos domains big map diff: %s", bmd.GetID())
 	}
-	ts := gjson.Parse(bmd.Value).Get("int").Int()
+	ts := gjson.ParseBytes(bmd.Value).Get("int").Int()
 	date := time.Unix(ts, 0).UTC()
 	tezosDomain := tezosdomain.TezosDomain{
 		Name:       bmd.KeyStrings[0],
@@ -137,8 +145,8 @@ func (td *TezosDomain) updateExpirationDate(bmd *bigmapdiff.BigMapDiff) error {
 	return td.storage.UpdateFields(models.DocTezosDomains, tezosDomain.GetID(), tezosDomain, "Expiration")
 }
 
-func (td *TezosDomain) getAddress(value string) (*string, error) {
-	val := gjson.Parse(value)
+func (td *TezosDomain) getAddress(value []byte) (*string, error) {
+	val := gjson.ParseBytes(value)
 	s := val.Get("args.0.args.0.args.0.args.0.bytes").String()
 	if s == "" {
 		if val.Get("args.0.args.0.args.0.prim").String() == consts.None {
@@ -146,7 +154,7 @@ func (td *TezosDomain) getAddress(value string) (*string, error) {
 		}
 		return nil, errors.Errorf("Can't parse tezos domain address in big map value: %s", value)
 	}
-	address, err := unpack.Address(s)
+	address, err := forge.UnforgeAddress(s)
 	if err != nil {
 		return nil, err
 	}

@@ -4,11 +4,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser"
-	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
+	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/normalize"
 	"github.com/baking-bad/bcdhub/internal/tzkt"
@@ -96,7 +97,7 @@ func (ctx *Context) prepareMempoolOperation(item tzkt.MempoolOperation, network 
 		RawMempool:       raw,
 	}
 
-	errs, err := cerrors.ParseArray(item.Body.Errors)
+	errs, err := tezerrors.ParseArray(item.Body.Errors)
 	if err != nil {
 		return nil
 	}
@@ -106,7 +107,7 @@ func (ctx *Context) prepareMempoolOperation(item tzkt.MempoolOperation, network 
 		return &op
 	}
 
-	if helpers.IsContract(op.Destination) && op.Protocol != "" {
+	if bcd.IsContract(op.Destination) && op.Protocol != "" {
 		if params := gjson.ParseBytes(item.Body.Parameters); params.Exists() {
 			ctx.buildOperationParameters(params, &op)
 		} else {
@@ -123,15 +124,11 @@ func (ctx *Context) buildOperationParameters(params gjson.Result, op *Operation)
 		return
 	}
 
-	rpc, err := ctx.GetRPC(op.Network)
+	data, err := fetch.Contract(op.Destination, op.Network, op.Protocol, ctx.SharePath)
 	if err != nil {
 		return
 	}
-
-	script, err := contractparser.GetContract(rpc, op.Destination, op.Network, op.Protocol, ctx.SharePath, op.Level)
-	if err != nil {
-		return
-	}
+	script := gjson.ParseBytes(data)
 	paramType := script.Get("code.#(prim==\"parameter\").args.0")
 	params, err = normalize.Data(params, paramType)
 	if err != nil {
@@ -145,7 +142,7 @@ func (ctx *Context) buildOperationParameters(params gjson.Result, op *Operation)
 
 	op.Parameters, err = newmiguel.ParameterToMiguel(params, metadata)
 	if err != nil {
-		if !cerrors.HasParametersError(op.Errors) {
+		if !tezerrors.HasParametersError(op.Errors) {
 			return
 		}
 	}

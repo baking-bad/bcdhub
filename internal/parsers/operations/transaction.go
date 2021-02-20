@@ -1,24 +1,27 @@
 package operations
 
 import (
-	"fmt"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/events"
+	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
-	"github.com/baking-bad/bcdhub/internal/normalize"
 	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
-	"github.com/tidwall/sjson"
+
+	jsoniter "github.com/json-iterator/go"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // Transaction -
 type Transaction struct {
@@ -108,91 +111,6 @@ func (p Transaction) Parse(data gjson.Result) ([]models.Model, error) {
 	return txModels, nil
 }
 
-func (p Transaction) normalizeOperationParameter(operation *operation.Operation) error {
-	if !operation.IsCall() || !operation.IsApplied() {
-		return nil
-	}
-	params := gjson.Parse(operation.Parameters)
-
-	var value gjson.Result
-	var entrypointName string
-
-	entrypoint := params.Get("entrypoint")
-	if entrypoint.Exists() {
-		value = params.Get("value")
-		entrypointName = entrypoint.String()
-	} else {
-		value = params
-		entrypointName = consts.DefaultEntrypoint
-	}
-
-	paramsType := operation.GetScriptSection(consts.PARAMETER)
-	typ, err := findByFieldName(entrypointName, paramsType)
-	if err != nil && !errors.Is(err, errAnnotsIsNotFound) {
-		return err
-	}
-	data, err := normalize.Data(value, typ)
-	if err != nil {
-		return err
-	}
-	if data.Raw != value.Raw {
-		if entrypoint.Exists() {
-			p, err := sjson.SetRaw(params.Raw, "value", data.Raw)
-			if err != nil {
-				return err
-			}
-			operation.Parameters = p
-		} else {
-			operation.Parameters = data.String()
-		}
-	}
-	return nil
-}
-
-// errors
-var (
-	errInvalidJSONType  = errors.New("Invalid JSON type")
-	errAnnotsIsNotFound = errors.New("Annot is not found")
-)
-
-func findByFieldName(fieldName string, data gjson.Result) (gjson.Result, error) {
-	switch {
-	case data.IsArray():
-		for _, item := range data.Array() {
-			res, err := findByFieldName(fieldName, item)
-			if err != nil {
-				if errors.Is(err, errAnnotsIsNotFound) {
-					continue
-				}
-				return gjson.Result{}, err
-			}
-			return res, nil
-		}
-	case data.IsObject():
-		for _, item := range data.Get("annots").Array() {
-			if item.String() == fmt.Sprintf("%%%s", fieldName) {
-				return data, nil
-			}
-		}
-
-		prim := data.Get("prim").String()
-		args := data.Get("args")
-		if args.Exists() && prim == consts.OR {
-			res, err := findByFieldName(fieldName, args)
-			if err != nil {
-				if errors.Is(err, errAnnotsIsNotFound) {
-					return data, errAnnotsIsNotFound
-				}
-				return gjson.Result{}, err
-			}
-			return res, nil
-		}
-	default:
-		return data, errInvalidJSONType
-	}
-	return data, errAnnotsIsNotFound
-}
-
 func (p Transaction) fillInternal(tx *operation.Operation) {
 	if p.main == nil {
 		p.main = tx
@@ -208,26 +126,19 @@ func (p Transaction) fillInternal(tx *operation.Operation) {
 }
 
 func (p Transaction) appliedHandler(item gjson.Result, op *operation.Operation) ([]models.Model, error) {
-	if !helpers.IsContract(op.Destination) || !op.IsApplied() {
+	if !bcd.IsContract(op.Destination) || !op.IsApplied() {
 		return nil, nil
 	}
 
-	schema, err := meta.GetContractSchema(p.Schema, op.Destination)
-	if err != nil {
-		if p.Storage.IsRecordNotFound(err) {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	op.Script, err = contractparser.GetContract(p.rpc, op.Destination, op.Network, op.Protocol, p.shareDir, op.Level)
+	script, err := fetch.Contract(op.Destination, op.Network, op.Protocol, p.shareDir)
 	if err != nil {
 		return nil, err
 	}
+	op.Script = gjson.ParseBytes(script)
 
 	resultModels := make([]models.Model, 0)
 
-	rs, err := p.storageParser.Parse(item, schema, op)
+	rs, err := p.storageParser.Parse(item, op)
 	if err != nil {
 		return nil, err
 	}
@@ -238,11 +149,10 @@ func (p Transaction) appliedHandler(item gjson.Result, op *operation.Operation) 
 
 	resultModels = append(resultModels, rs.Models...)
 
-	if err := p.normalizeOperationParameter(op); err != nil {
+	migration, err := NewMigration(op, p.shareDir).Parse(item)
+	if err != nil {
 		return nil, err
 	}
-
-	migration := NewMigration(op).Parse(item)
 	if migration != nil {
 		resultModels = append(resultModels, migration)
 	}
@@ -251,43 +161,47 @@ func (p Transaction) appliedHandler(item gjson.Result, op *operation.Operation) 
 	for i := range bu {
 		resultModels = append(resultModels, bu[i])
 	}
-	return resultModels, p.getEntrypoint(item, schema, op)
+	return resultModels, p.getEntrypoint(op)
 }
 
-func (p Transaction) getEntrypoint(item gjson.Result, metadata *meta.ContractSchema, op *operation.Operation) error {
-	m, err := metadata.Get(consts.PARAMETER, op.Protocol)
+func (p Transaction) getEntrypoint(op *operation.Operation) error {
+	parameter := op.Script.Get("code.#(prim==\"parameter\").args")
+	param, err := ast.NewTypedAstFromString(parameter.Raw)
 	if err != nil {
 		return err
 	}
 
-	params := item.Get("parameters")
-	if params.Exists() {
-		ep, err := m.GetByPath(params)
-		if err != nil && op.Errors == nil {
-			return err
-		}
-		op.Entrypoint = ep
-	} else {
-		op.Entrypoint = consts.DefaultEntrypoint
+	params := types.NewParameters([]byte(op.Parameters))
+
+	subTree, err := param.FromParameters(params)
+	if err != nil {
+		return err
 	}
+	op.Entrypoint = params.Entrypoint
+
+	if len(subTree.Nodes) == 0 {
+		return nil
+	}
+
+	op.Entrypoint = subTree.Nodes[0].GetName()
 
 	return nil
 }
 
 func (p Transaction) tagTransaction(tx *operation.Operation) error {
-	if !helpers.IsContract(tx.Destination) {
+	if !bcd.IsContract(tx.Destination) {
 		return nil
 	}
 
-	contract := contract.NewEmptyContract(tx.Network, tx.Destination)
-	if err := p.Storage.GetByID(&contract); err != nil {
+	c := contract.NewEmptyContract(tx.Network, tx.Destination)
+	if err := p.Storage.GetByID(&c); err != nil {
 		if p.Storage.IsRecordNotFound(err) {
 			return nil
 		}
 		return err
 	}
 	tx.Tags = make([]string, 0)
-	for _, tag := range contract.Tags {
+	for _, tag := range c.Tags {
 		if helpers.StringInArray(tag, []string{
 			consts.FA12Tag, consts.FA2Tag,
 		}) {

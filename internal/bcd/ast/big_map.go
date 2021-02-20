@@ -19,6 +19,8 @@ type BigMap struct {
 
 	Data *OrderedMap
 	Ptr  *int64
+
+	diffs []*types.BigMapDiff
 }
 
 // NewBigMap -
@@ -26,6 +28,7 @@ func NewBigMap(depth int) *BigMap {
 	return &BigMap{
 		Default: NewDefault(consts.BIGMAP, 2, depth),
 		Data:    NewOrderedMap(),
+		diffs:   make([]*types.BigMapDiff, 0),
 	}
 }
 
@@ -238,13 +241,10 @@ func (m *BigMap) EnrichBigMap(bmd []*types.BigMapDiff) error {
 
 // ToParameters -
 func (m *BigMap) ToParameters() ([]byte, error) {
-	if m.Data.Len() > 0 {
-		return buildMapParameters(m.Data)
-	}
-	if m.Ptr != nil {
+	if m.Ptr != nil && m.Data.Len() == 0 {
 		return []byte(fmt.Sprintf(`{"int":"%d"}`, *m.Ptr)), nil
 	}
-	return nil, nil
+	return buildMapParameters(m.Data)
 }
 
 // FindByName -
@@ -398,4 +398,74 @@ func (m *BigMap) EqualType(node Node) bool {
 	}
 
 	return m.ValueType.EqualType(second.ValueType)
+}
+
+// SetKeyType -
+func (m *BigMap) SetKeyType(data []byte) error {
+	var node UntypedAST
+	if err := json.Unmarshal(data, &node); err != nil {
+		return err
+	}
+	typ, err := node.ToTypedAST()
+	if err != nil {
+		return err
+	}
+	m.KeyType = typ.Nodes[0]
+	return nil
+}
+
+// SetValueType -
+func (m *BigMap) SetValueType(data []byte) error {
+	var node UntypedAST
+	if err := json.Unmarshal(data, &node); err != nil {
+		return err
+	}
+	typ, err := node.ToTypedAST()
+	if err != nil {
+		return err
+	}
+	m.ValueType = typ.Nodes[0]
+	return nil
+}
+
+// AddDiffs -
+func (m *BigMap) AddDiffs(diffs ...*types.BigMapDiff) {
+	m.diffs = append(m.diffs, diffs...)
+}
+
+// GetDiffs -
+func (m *BigMap) GetDiffs() []*types.BigMapDiff {
+	return m.diffs
+}
+
+// FindPointers -
+func (m *BigMap) FindPointers() map[int64]*BigMap {
+	res := make(map[int64]*BigMap)
+	if m.Ptr != nil {
+		res[*m.Ptr] = m
+	}
+
+	if err := m.Data.Range(func(_, value Comparable) (bool, error) {
+		node := value.(Node)
+		if m := node.FindPointers(); m != nil {
+			for k, v := range m {
+				res[k] = v
+			}
+		}
+		return false, nil
+	}); err != nil {
+		return nil
+	}
+	return res
+}
+
+// Range -
+func (m *BigMap) Range(handler func(node Node) error) error {
+	if err := handler(m); err != nil {
+		return err
+	}
+	if err := m.KeyType.Range(handler); err != nil {
+		return err
+	}
+	return m.ValueType.Range(handler)
 }

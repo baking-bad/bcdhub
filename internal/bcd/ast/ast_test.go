@@ -446,14 +446,9 @@ func TestTypedAst_ToJSONSchema(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var a UntypedAST
-			if err := json.UnmarshalFromString(tt.data, &a); err != nil {
-				t.Errorf("TypedAst.ToJSONSchema() UnmarshalFromString error = %v", err)
-				return
-			}
-			ta, err := a.ToTypedAST()
+			ta, err := NewTypedAstFromString(tt.data)
 			if err != nil {
-				t.Errorf("TypedAst.ToJSONSchema() ToTypedAST error = %v", err)
+				t.Errorf("NewTypedAstFromString error = %v", err)
 				return
 			}
 
@@ -740,23 +735,9 @@ func TestTypedAst_Settle(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var tree UntypedAST
-			if err := json.UnmarshalFromString(tt.tree, &tree); err != nil {
-				t.Errorf("UnmarshalFromString tree error = %v", err)
-				return
-			}
-			var data UntypedAST
-			if err := json.UnmarshalFromString(tt.data, &data); err != nil {
-				t.Errorf("UnmarshalFromString data error = %v", err)
-				return
-			}
-			typ, err := tree.ToTypedAST()
+			typ, err := NewSettledTypedAst(tt.tree, tt.data)
 			if err != nil {
-				t.Errorf("ToTypedAST() error = %v", err)
-				return
-			}
-			if err := typ.Settle(data); (err != nil) != tt.wantErr {
-				t.Errorf("TypedAst.Settle() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("NewSettledTypedAstFromString() error = %v", err)
 				return
 			}
 			if !typ.IsSettled() {
@@ -1482,22 +1463,16 @@ func TestTypedAst_FromParameters(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var tree UntypedAST
-			if err := json.UnmarshalFromString(tt.tree, &tree); err != nil {
-				t.Errorf("UnmarshalFromString tree error = %v", err)
-				return
-			}
-			a, err := tree.ToTypedAST()
+			a, err := NewTypedAstFromString(tt.tree)
 			if err != nil {
-				t.Errorf("ToTypedAST(a) error = %v", err)
+				t.Errorf("NewTypedAstFromString error = %v", err)
 				return
 			}
-			var data UntypedAST
-			if err := json.UnmarshalFromString(tt.data, &data); err != nil {
-				t.Errorf("UnmarshalFromString data error = %v", err)
-				return
+			p := &types.Parameters{
+				Entrypoint: tt.entrypoint,
+				Value:      []byte(tt.data),
 			}
-			got, err := a.FromParameters(tt.entrypoint, data)
+			got, err := a.FromParameters(p)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("TypedAst.FromParameters() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
@@ -46,10 +46,10 @@ type Operation struct {
 	SourceAlias      string    `json:"source_alias,omitempty"`
 	DestinationAlias string    `json:"destination_alias,omitempty"`
 
-	Result                             *Result          `json:"result,omitempty"`
-	Errors                             []*cerrors.Error `json:"errors,omitempty"`
-	Burned                             int64            `json:"burned,omitempty"`
-	AllocatedDestinationContractBurned int64            `json:"allocated_destination_contract_burned,omitempty"`
+	Result                             *Result            `json:"result,omitempty"`
+	Errors                             []*tezerrors.Error `json:"errors,omitempty"`
+	Burned                             int64              `json:"burned,omitempty"`
+	AllocatedDestinationContractBurned int64              `json:"allocated_destination_contract_burned,omitempty"`
 
 	DeffatedStorage string       `json:"deffated_storage"`
 	Script          gjson.Result `json:"-"`
@@ -136,7 +136,7 @@ func (o *Operation) IsApplied() bool {
 
 // IsCall -
 func (o *Operation) IsCall() bool {
-	return helpers.IsContract(o.Destination) && o.Parameters != ""
+	return bcd.IsContract(o.Destination) && o.Parameters != ""
 }
 
 // GetScriptSection -
@@ -146,13 +146,13 @@ func (o *Operation) GetScriptSection(name string) gjson.Result {
 
 // Result -
 type Result struct {
-	Status                       string           `json:"-"`
-	ConsumedGas                  int64            `json:"consumed_gas,omitempty"`
-	StorageSize                  int64            `json:"storage_size,omitempty"`
-	PaidStorageSizeDiff          int64            `json:"paid_storage_size_diff,omitempty"`
-	AllocatedDestinationContract bool             `json:"allocated_destination_contract,omitempty"`
-	Originated                   string           `json:"-"`
-	Errors                       []*cerrors.Error `json:"-"`
+	Status                       string             `json:"-"`
+	ConsumedGas                  int64              `json:"consumed_gas,omitempty"`
+	StorageSize                  int64              `json:"storage_size,omitempty"`
+	PaidStorageSizeDiff          int64              `json:"paid_storage_size_diff,omitempty"`
+	AllocatedDestinationContract bool               `json:"allocated_destination_contract,omitempty"`
+	Originated                   string             `json:"-"`
+	Errors                       []*tezerrors.Error `json:"-"`
 }
 
 // Stats -

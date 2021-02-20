@@ -7,17 +7,12 @@ import (
 
 	jsoniter "github.com/json-iterator/go"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
-	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
-	"github.com/baking-bad/bcdhub/internal/models/schema"
 	tbModel "github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/baking-bad/bcdhub/internal/normalize"
 	"github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
 	"github.com/karlseguin/ccache"
 	"github.com/pkg/errors"
@@ -39,17 +34,15 @@ var (
 // Ledger -
 type Ledger struct {
 	storage models.GeneralRepository
-	schema  schema.Repository
 	rpcs    map[string]noderpc.INode
 
 	cache *ccache.Cache
 }
 
 // NewLedger -
-func NewLedger(storage models.GeneralRepository, schema schema.Repository, rpcs map[string]noderpc.INode) *Ledger {
+func NewLedger(storage models.GeneralRepository, rpcs map[string]noderpc.INode) *Ledger {
 	return &Ledger{
 		storage: storage,
-		schema:  schema,
 		cache:   ccache.New(ccache.Configure().MaxSize(100)),
 		rpcs:    rpcs,
 	}
@@ -133,8 +126,10 @@ func (ledger *Ledger) buildElt(bmd *bigmapdiff.BigMapDiff) (gjson.Result, error)
 		return gjson.Result{}, err
 	}
 	s.WriteByte(',')
-	if bmd.Value != "" {
-		s.WriteString(bmd.Value)
+	if len(bmd.ValueBytes()) != 0 {
+		if _, err := s.Write(bmd.ValueBytes()); err != nil {
+			return gjson.Result{}, err
+		}
 	} else {
 		s.WriteString(`{"int":"0"}`)
 	}
@@ -143,16 +138,6 @@ func (ledger *Ledger) buildElt(bmd *bigmapdiff.BigMapDiff) (gjson.Result, error)
 }
 
 func (ledger *Ledger) findLedgerBigMap(bmd *bigmapdiff.BigMapDiff) ([]byte, error) {
-	storageSchema, err := meta.GetSchema(ledger.schema, bmd.Address, consts.STORAGE, bmd.Protocol)
-	if err != nil {
-		return nil, err
-	}
-
-	binPath := storageSchema.Find(ledgerStorageKey)
-	if binPath == "" {
-		return nil, ErrNoLedgerKeyInStorage
-	}
-
 	rpc, ok := ledger.rpcs[bmd.Network]
 	if !ok {
 		return nil, errors.Wrap(ErrNoRPCNetwork, bmd.Network)
@@ -161,26 +146,23 @@ func (ledger *Ledger) findLedgerBigMap(bmd *bigmapdiff.BigMapDiff) ([]byte, erro
 	if err != nil {
 		return nil, err
 	}
+
 	storageJSON := script.Get(`storage`)
-
-	st := script.Get(`code.#(prim=="storage").args.0`)
-	storageJSON, err = normalize.Data(storageJSON, st)
+	storageType := script.Get(`code.#(prim=="storage").args.0`)
+	tree, err := ast.NewSettledTypedAst(storageType.Raw, storageJSON.Raw)
 	if err != nil {
 		return nil, err
 	}
-	ptrs, err := storage.FindBigMapPointers(storageSchema, storageJSON)
+	node := tree.FindByName(ledgerStorageKey)
 	if err != nil {
-		logger.Debug(bmd.Address, bmd.Network)
-		return nil, err
+		return nil, ErrNoLedgerKeyInStorage
 	}
-	for ptr, path := range ptrs {
-		if path == binPath && bmd.Ptr == ptr {
-			storageType := script.Get(`code.#(prim=="storage")`)
-			jsonPath := newmiguel.GetGJSONPath(binPath)
-			bigMapType := storageType.Get(jsonPath)
-			return []byte(bigMapType.Raw), nil
-		}
+	bigMap, ok := node.(*ast.BigMap)
+	if !ok {
+		return nil, ErrNoLedgerKeyInStorage
 	}
-
-	return nil, ErrNoLedgerKeyInStorage
+	if *bigMap.Ptr != bmd.Ptr {
+		return nil, ErrNoLedgerKeyInStorage
+	}
+	return json.Marshal(bigMap)
 }

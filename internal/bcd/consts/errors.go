@@ -17,4 +17,5 @@ var (
 	ErrTypeIsNotComparable = errors.New("Type is not comparable")
 	ErrTreeIsNotSettled    = errors.New("Tree is not settled")
 	ErrInvalidAddress      = errors.New("Invalid address")
+	ErrUnknownPointer      = errors.New("Can't find ptr")
 )

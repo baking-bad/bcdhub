@@ -3,7 +3,6 @@ package operations
 import (
 	"sync"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -23,14 +22,12 @@ import (
 type ParseParams struct {
 	Storage       models.GeneralRepository
 	BigMapDiffs   bigmapdiff.Repository
-	Schema        schema.Repository
 	TokenBalances tokenbalance.Repository
 
 	rpc      noderpc.INode
 	shareDir string
 
-	interfaces map[string]kinds.ContractKind
-	constants  protocol.Constants
+	constants protocol.Constants
 
 	contractParser *contract.Parser
 	transferParser *transfer.Parser
@@ -64,13 +61,6 @@ func WithIPFSGateways(ipfs []string) ParseParamsOption {
 func WithConstants(constants protocol.Constants) ParseParamsOption {
 	return func(dp *ParseParams) {
 		dp.constants = constants
-	}
-}
-
-// WithInterfaces -
-func WithInterfaces(interfaces map[string]kinds.ContractKind) ParseParamsOption {
-	return func(dp *ParseParams) {
-		dp.interfaces = interfaces
 	}
 }
 
@@ -121,7 +111,6 @@ func NewParseParams(rpc noderpc.INode, storage models.GeneralRepository, bmdRepo
 	params := &ParseParams{
 		Storage:       storage,
 		BigMapDiffs:   bmdRepo,
-		Schema:        schemaRepo,
 		TokenBalances: tbRepo,
 		rpc:           rpc,
 		once:          &sync.Once{},
@@ -145,9 +134,7 @@ func NewParseParams(rpc noderpc.INode, storage models.GeneralRepository, bmdRepo
 	params.transferParser = transferParser
 
 	params.contractParser = contract.NewParser(
-		storage,
-		params.interfaces,
-		contract.WithShareDirContractParser(params.shareDir),
+		contract.WithShareDir(params.shareDir),
 	)
 	storageParser, err := NewRichStorage(bmdRepo, rpc, params.head.Protocol)
 	if err != nil {

@@ -7,7 +7,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
-	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
 )
@@ -24,19 +23,18 @@ type Storage interface {
 
 // Full -
 type Full struct {
-	bmdRepo    bigmapdiff.Repository
-	blockRepo  block.Repository
-	schemaRepo schema.Repository
-	storage    models.GeneralRepository
+	bmdRepo   bigmapdiff.Repository
+	blockRepo block.Repository
+	storage   models.GeneralRepository
 
 	rpc  noderpc.INode
 	ipfs []string
 }
 
 // NewFull -
-func NewFull(bmdRepo bigmapdiff.Repository, blockRepo block.Repository, schemaRepo schema.Repository, storage models.GeneralRepository, rpc noderpc.INode, ipfs ...string) *Full {
+func NewFull(bmdRepo bigmapdiff.Repository, blockRepo block.Repository, storage models.GeneralRepository, rpc noderpc.INode, ipfs ...string) *Full {
 	return &Full{
-		bmdRepo, blockRepo, schemaRepo, storage, rpc, ipfs,
+		bmdRepo, blockRepo, storage, rpc, ipfs,
 	}
 }
 
@@ -59,7 +57,7 @@ func (f Full) Get(network, address, url string, ptr int64, output interface{}) e
 			WithHashSha256(url),
 		)
 	case strings.HasPrefix(url, PrefixTezosStorage):
-		store = NewTezosStorage(f.bmdRepo, f.blockRepo, f.schemaRepo, f.storage, f.rpc, address, network, ptr)
+		store = NewTezosStorage(f.bmdRepo, f.blockRepo, f.storage, f.rpc, address, network, ptr)
 	default:
 		return errors.Wrap(ErrUnknownStorageType, url)
 	}

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
+
 	jsoniter "github.com/json-iterator/go"
 )
 

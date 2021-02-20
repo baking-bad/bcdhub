@@ -53,7 +53,7 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		res.TotalKeys = uint(len(bm))
 
 		for i := range bm {
-			if bm[i].Value != "" {
+			if bm[i].Value != nil {
 				res.ActiveKeys++
 			}
 		}
@@ -326,8 +326,8 @@ func prepareItem(item bigmapdiff.BigMapDiff, contractMetadata *meta.ContractSche
 	}
 
 	var value interface{}
-	if item.Value != "" {
-		val := gjson.Parse(item.Value)
+	if item.Value != nil {
+		val := gjson.ParseBytes(item.Value)
 		value, err = newmiguel.BigMapToMiguel(val, binPath+"/v", metadata)
 		if err != nil {
 			return nil, nil, "", err

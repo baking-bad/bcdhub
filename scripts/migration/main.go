@@ -56,8 +56,7 @@ func main() {
 		config.WithDatabase(cfg.DB),
 		config.WithRPC(cfg.RPC),
 		config.WithConfigCopy(cfg),
-		config.WithLoadErrorDescriptions("data/errors.json"),
-		config.WithContractsInterfaces(),
+		config.WithLoadErrorDescriptions(),
 	)
 	defer ctx.Close()
 

@@ -10,7 +10,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/normalize"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -225,22 +224,12 @@ func (rpc *NodeRPC) GetLevelTime(level int) (time.Time, error) {
 
 // GetScriptJSON -
 func (rpc *NodeRPC) GetScriptJSON(address string, level int64) (gjson.Result, error) {
-	script, err := rpc.getGJSON(fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s/script", getBlockString(level), address))
-	if err != nil {
-		return script, err
-	}
-	return normalize.ScriptCode(script)
+	return rpc.getGJSON(fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s/script", getBlockString(level), address))
 }
 
 // GetScriptStorageJSON -
 func (rpc *NodeRPC) GetScriptStorageJSON(address string, level int64) (gjson.Result, error) {
-	script, err := rpc.GetScriptJSON(address, level)
-	if err != nil {
-		return script, err
-	}
-	storageType := script.Get("code.#(prim==\"storage\").args.0")
-	storageData := script.Get("storage")
-	return normalize.Data(storageData, storageType)
+	return rpc.GetScriptJSON(address, level)
 }
 
 // GetContractBalance -
@@ -255,19 +244,8 @@ func (rpc *NodeRPC) GetContractBalance(address string, level int64) (int64, erro
 // GetContractData -
 func (rpc *NodeRPC) GetContractData(address string, level int64) (ContractData, error) {
 	var response ContractData
-	if err := rpc.get(fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s", getBlockString(level), address), &response); err != nil {
-		return response, err
-	}
-	if !gjson.ValidBytes(response.RawScript) {
-		return response, errors.New(fmt.Sprintf("Invalid script JSON: url=%s address=%s level=%d", rpc.baseURL, address, level))
-	}
-	script := gjson.ParseBytes(response.RawScript)
-	normalizedScript, err := normalize.ScriptCode(script)
-	if err != nil {
-		return response, err
-	}
-	response.Script = normalizedScript
-	return response, nil
+	err := rpc.get(fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s", getBlockString(level), address), &response)
+	return response, err
 }
 
 // GetOperations -
