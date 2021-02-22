@@ -3,13 +3,8 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
-	"github.com/baking-bad/bcdhub/internal/contractparser/docstring"
-	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
-	"github.com/baking-bad/bcdhub/internal/jsonschema"
-	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
 )
@@ -58,12 +53,20 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-
-	metadata, err := meta.GetSchema(ctx.Schema, req.Address, consts.STORAGE, header.Protocol)
+	storageType, err := ctx.getStorageType(req.Address, req.Network, header.Protocol)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	resp, err := newmiguel.MichelineToMiguel(deffatedStorage, metadata)
+
+	var data ast.UntypedAST
+	if err := json.UnmarshalFromString(deffatedStorage.Raw, &data); ctx.handleError(c, err, 0) {
+		return
+	}
+	if err := storageType.Settle(data); ctx.handleError(c, err, 0) {
+		return
+	}
+
+	resp, err := storageType.ToMiguel()
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -162,22 +165,21 @@ func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 		return
 	}
 
-	prev := operation.Operation{}
-	if len(ops) > 1 {
-		prev = ops[1]
-	}
-
 	bmd, err := ctx.BigMapDiffs.GetForAddress(req.Address)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	resp, err := enrichStorage(ops[0].DeffatedStorage, prev.DeffatedStorage, bmd, ops[0].Protocol, true, false)
+	storageType, err := ctx.getStorageType(req.Address, req.Network, ops[0].Protocol)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	c.JSON(http.StatusOK, resp.Value())
+	if err := prepareStorage(storageType, ops[0].DeffatedStorage, bmd); ctx.handleError(c, err, 0) {
+		return
+	}
+
+	c.JSON(http.StatusOK, storageType)
 }
 
 // GetContractStorageSchema godoc
@@ -204,39 +206,40 @@ func (ctx *Context) GetContractStorageSchema(c *gin.Context) {
 		return
 	}
 
-	metadata, err := ctx.getStorageMetadata(req.Address, req.Network)
+	storageType, err := ctx.getStorageType(req.Address, req.Network, "")
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	schema := new(EntrypointSchema)
 
-	data, err := docstring.GetStorage(metadata)
+	data, err := storageType.GetEntrypointsDocs()
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 	if len(data) > 0 {
 		schema.EntrypointType = data[0]
 	}
-	schema.Schema, err = jsonschema.Create("0", metadata)
+	schema.Schema, err = storageType.ToJSONSchema()
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	if ssReq.FillType == "current" {
-		rpc, err := ctx.GetRPC(req.Network)
-		if ctx.handleError(c, err, 0) {
-			return
-		}
-		storage, err := rpc.GetScriptStorageJSON(req.Address, 0)
-		if ctx.handleError(c, err, 0) {
-			return
-		}
-		schema.DefaultModel = make(jsonschema.DefaultModel)
-		if err := schema.DefaultModel.Fill(storage, metadata); ctx.handleError(c, err, 0) {
-			return
-		}
-	}
+	// if ssReq.FillType == "current" {
+	// 	rpc, err := ctx.GetRPC(req.Network)
+	// 	if ctx.handleError(c, err, 0) {
+	// 		return
+	// 	}
+	// 	storage, err := rpc.GetScriptStorageJSON(req.Address, 0)
+	// 	if ctx.handleError(c, err, 0) {
+	// 		return
+	// 	}
+	// TODO: default models
+	// schema.DefaultModel = make(jsonschema.DefaultModel)
+	// if err := schema.DefaultModel.Fill(storage, metadata); ctx.handleError(c, err, 0) {
+	// 	return
+	// }
+	// }
 
 	c.JSON(http.StatusOK, schema)
 }

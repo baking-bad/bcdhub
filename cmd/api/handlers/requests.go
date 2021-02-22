@@ -208,9 +208,9 @@ type opgRequest struct {
 }
 
 type getEntrypointDataRequest struct {
-	BinPath string                 `json:"bin_path" binding:"required"`
-	Data    map[string]interface{} `json:"data" binding:"required"`
-	Format  string                 `json:"format"`
+	Name   string                 `json:"name" binding:"required"`
+	Data   map[string]interface{} `json:"data" binding:"required"`
+	Format string                 `json:"format"`
 }
 
 type getSeriesRequest struct {
@@ -228,15 +228,15 @@ type getOperationByIDRequest struct {
 }
 
 type runOperationRequest struct {
-	Data    map[string]interface{} `json:"data" binding:"required"`
-	BinPath string                 `json:"bin_path" binding:"required"`
-	Amount  int64                  `json:"amount,omitempty"`
-	Source  string                 `json:"source,omitempty" binding:"omitempty,address"`
+	Data   map[string]interface{} `json:"data" binding:"required"`
+	Name   string                 `json:"name" binding:"required"`
+	Amount int64                  `json:"amount,omitempty"`
+	Source string                 `json:"source,omitempty" binding:"omitempty,address"`
 }
 
 type runCodeRequest struct {
 	Data     map[string]interface{} `json:"data" binding:"required"`
-	BinPath  string                 `json:"bin_path" binding:"required"`
+	Name     string                 `json:"name" binding:"required"`
 	Amount   int64                  `json:"amount,omitempty"`
 	GasLimit int64                  `json:"gas_limit,omitempty"`
 	Source   string                 `json:"source,omitempty" binding:"omitempty,address"`

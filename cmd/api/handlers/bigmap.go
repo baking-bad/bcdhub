@@ -1,18 +1,14 @@
 package handlers
 
 import (
-	"encoding/json"
+	"fmt"
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/docstring"
-	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
-	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 )
 
 // GetBigMap godoc
@@ -58,14 +54,23 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 			}
 		}
 
-		metadata, err := ctx.getStorageMetadata(res.Address, res.Network)
+		script, err := ctx.getScript(bm[0].Address, req.Network, bm[0].Protocol)
 		if ctx.handleError(c, err, 0) {
 			return
 		}
-
-		res.Typedef, err = docstring.GetTypedef(bm[0].BinPath, metadata)
+		storage, err := script.StorageType()
 		if ctx.handleError(c, err, 0) {
 			return
+		}
+		bigMap := storage.FindBigMapByPtr()
+		for p, b := range bigMap {
+			if p == req.Ptr {
+				res.Typedef, _, err = b.Docs(ast.DocsFull)
+				if ctx.handleError(c, err, 0) {
+					return
+				}
+				break
+			}
 		}
 	} else {
 		actions, err := ctx.BigMapActions.Get(req.Ptr, req.Network)
@@ -249,14 +254,14 @@ func (ctx *Context) prepareBigMapKeys(data []bigmapdiff.Bucket) ([]BigMapRespons
 		return []BigMapResponseItem{}, nil
 	}
 
-	contractMetadata, err := meta.GetContractSchema(ctx.Schema, data[0].Address)
+	bigMapType, err := ctx.getBigMapType(data[0].Network, data[0].Address, data[0].Protocol, data[0].Ptr)
 	if err != nil {
 		return nil, err
 	}
 
 	res := make([]BigMapResponseItem, len(data))
 	for i := range data {
-		key, value, keyString, err := prepareItem(data[i].BigMapDiff, contractMetadata)
+		key, value, keyString, err := prepareItem(data[i].BigMapDiff, bigMapType)
 		if err != nil {
 			return nil, err
 		}
@@ -281,7 +286,7 @@ func (ctx *Context) prepareBigMapItem(data []bigmapdiff.BigMapDiff, keyHash stri
 		return
 	}
 
-	contractMetadata, err := meta.GetContractSchema(ctx.Schema, data[0].Address)
+	bigMapType, err := ctx.getBigMapType(data[0].Network, data[0].Address, data[0].Protocol, data[0].Ptr)
 	if err != nil {
 		return
 	}
@@ -289,7 +294,7 @@ func (ctx *Context) prepareBigMapItem(data []bigmapdiff.BigMapDiff, keyHash stri
 	var key, value interface{}
 	values := make([]BigMapDiffItem, len(data))
 	for i := range data {
-		key, value, _, err = prepareItem(data[i], contractMetadata)
+		key, value, _, err = prepareItem(data[i], bigMapType)
 		if err != nil {
 			return
 		}
@@ -307,47 +312,43 @@ func (ctx *Context) prepareBigMapItem(data []bigmapdiff.BigMapDiff, keyHash stri
 	return
 }
 
-func prepareItem(item bigmapdiff.BigMapDiff, contractMetadata *meta.ContractSchema) (interface{}, interface{}, string, error) {
-	var protoSymLink string
-	protoSymLink, err := meta.GetProtoSymLink(item.Protocol)
-	if err != nil {
-		return nil, nil, "", err
-	}
-
-	metadata, ok := contractMetadata.Storage[protoSymLink]
-	if !ok {
-		err = errors.Errorf("Unknown metadata: %s", protoSymLink)
-		return nil, nil, "", err
-	}
-
-	binPath := item.BinPath
-	if protoSymLink == "alpha" {
-		binPath = "0/0"
-	}
-
-	var value interface{}
-	if item.Value != nil {
-		val := gjson.ParseBytes(item.Value)
-		value, err = newmiguel.BigMapToMiguel(val, binPath+"/v", metadata)
-		if err != nil {
-			return nil, nil, "", err
-		}
-	}
-	var key interface{}
-	var keyString string
+func prepareItem(item bigmapdiff.BigMapDiff, bigMapType *ast.BigMap) (key, value interface{}, keyString string, err error) {
 	if item.Key != nil {
-		bKey, err := json.Marshal(item.Key)
+		keyType := ast.Copy(bigMapType.KeyType)
+		keyMiguel, err := createMiguelForType(keyType, item.Key)
 		if err != nil {
 			return nil, nil, "", err
 		}
-		val := gjson.ParseBytes(bKey)
-		key, err = newmiguel.BigMapToMiguel(val, binPath+"/k", metadata)
+		key = keyMiguel
+
+		// TODO: unpack
+		keyString, err = formatter.MichelineStringToMichelson(string(item.Key), true, formatter.DefLineSize)
 		if err != nil {
 			return nil, nil, "", err
 		}
-		keyString = stringer.Stringify(val)
 	}
-	return key, value, keyString, err
+
+	if item.Value != nil {
+		valueType := ast.Copy(bigMapType.ValueType)
+		valueMiguel, err := createMiguelForType(valueType, item.Value)
+		if err != nil {
+			return nil, nil, "", err
+		}
+		value = valueMiguel
+	}
+
+	return
+}
+
+func createMiguelForType(typ ast.Node, raw []byte) (interface{}, error) {
+	var data ast.UntypedAST
+	if err := json.Unmarshal(raw, &data); err != nil {
+		return nil, err
+	}
+	if err := typ.ParseValue(data[0]); err != nil {
+		return nil, err
+	}
+	return typ.ToMiguel()
 }
 
 func prepareBigMapHistory(arr []bigmapaction.BigMapAction, ptr int64) BigMapHistoryResponse {
@@ -374,4 +375,28 @@ func prepareBigMapHistory(arr []bigmapaction.BigMapAction, ptr int64) BigMapHist
 	}
 
 	return response
+}
+
+func findBigMapType(storage *ast.TypedAst, ptr int64) *ast.BigMap {
+	var bigMapType *ast.BigMap
+	ptrs := storage.FindBigMapByPtr()
+	for p, bigMap := range ptrs {
+		if ptr == p {
+			bigMapType = bigMap
+			break
+		}
+	}
+	return bigMapType
+}
+
+func (ctx *Context) getBigMapType(network, address, protocol string, ptr int64) (*ast.BigMap, error) {
+	storage, err := ctx.getStorageType(address, network, protocol)
+	if err != nil {
+		return nil, err
+	}
+	bigMapType := findBigMapType(storage, ptr)
+	if bigMapType == nil {
+		return nil, fmt.Errorf("Unknown pointer: %d", ptr)
+	}
+	return bigMapType, nil
 }

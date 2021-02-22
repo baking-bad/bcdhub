@@ -2,18 +2,17 @@ package handlers
 
 import (
 	"net/http"
-	"strings"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser"
-	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
+	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/operations"
+	"github.com/baking-bad/bcdhub/internal/parsers/storage"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -30,23 +29,18 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		return
 	}
 
-	rpc, err := ctx.GetRPC(req.Network)
-	if ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
-
 	state, err := ctx.Blocks.Last(req.Network)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	parameters, err := ctx.buildEntrypointMicheline(req.Network, req.Address, reqRunOp.BinPath, reqRunOp.Data, true)
-	if ctx.handleError(c, err, http.StatusBadRequest) {
+	parameters, err := ctx.buildParametersForExecution(req.Network, req.Address, state.Protocol, reqRunOp.Name, reqRunOp.Data)
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	if !parameters.Get("entrypoint").Exists() || !parameters.Get("value").Exists() {
-		ctx.handleError(c, errors.Errorf("Error occured while building parameters: %s", parameters.String()), 0)
+	rpc, err := ctx.GetRPC(req.Network)
+	if ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
@@ -70,7 +64,7 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		protocol.Constants.HardStorageLimitPerOperation,
 		counter+1,
 		reqRunOp.Amount,
-		parameters,
+		gjson.ParseBytes(parameters),
 	)
 	if ctx.handleError(c, err, 0) {
 		return
@@ -87,10 +81,9 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 
 	parser := operations.NewGroup(operations.NewParseParams(
 		rpc,
-		ctx.Storage, ctx.BigMapDiffs, ctx.Blocks, ctx.TZIP, ctx.Schema, ctx.TokenBalances,
+		ctx.Storage, ctx.BigMapDiffs, ctx.Blocks, ctx.TZIP, ctx.TokenBalances,
 		operations.WithConstants(protocol.Constants),
 		operations.WithHead(header),
-		operations.WithInterfaces(ctx.Interfaces),
 		operations.WithShareDirectory(ctx.SharePath),
 		operations.WithNetwork(req.Network),
 	))
@@ -154,40 +147,32 @@ func (ctx *Context) RunCode(c *gin.Context) {
 		return
 	}
 
-	rpc, err := ctx.GetRPC(req.Network)
-	if ctx.handleError(c, err, http.StatusBadRequest) {
-		return
-	}
-
 	state, err := ctx.Blocks.Last(req.Network)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	script, err := contractparser.GetContract(rpc, req.Address, req.Network, state.Protocol, ctx.SharePath, 0)
+	scriptBytes, err := ctx.getScriptBytes(req.Address, req.Network, state.Protocol)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	input, err := ctx.buildEntrypointMicheline(req.Network, req.Address, reqRunCode.BinPath, reqRunCode.Data, true)
+	input, err := ctx.buildParametersForExecution(req.Network, req.Address, state.Protocol, reqRunCode.Name, reqRunCode.Data)
+	if ctx.handleError(c, err, 0) {
+		return
+	}
+
+	rpc, err := ctx.GetRPC(req.Network)
 	if ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-
-	if !input.Get("entrypoint").Exists() || !input.Get("value").Exists() {
-		ctx.handleError(c, errors.Errorf("Error during build parameters: %s", input.String()), 0)
-		return
-	}
-
-	entrypoint := input.Get("entrypoint").String()
-	value := input.Get("value")
 
 	storage, err := rpc.GetScriptStorageJSON(req.Address, 0)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	response, err := rpc.RunCode(script.Get("code"), storage, value, state.ChainID, reqRunCode.Source, reqRunCode.Sender, entrypoint, state.Protocol, reqRunCode.Amount, reqRunCode.GasLimit)
+	response, err := rpc.RunCode(gjson.ParseBytes(scriptBytes), storage, gjson.ParseBytes(input), state.ChainID, reqRunCode.Source, reqRunCode.Sender, reqRunCode.Name, state.Protocol, reqRunCode.Amount, reqRunCode.GasLimit)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -202,11 +187,15 @@ func (ctx *Context) RunCode(c *gin.Context) {
 		Amount:      reqRunCode.Amount,
 		Kind:        consts.Transaction,
 		Level:       state.Level,
-		Status:      "applied",
-		Entrypoint:  entrypoint,
+		Status:      consts.Applied,
+		Entrypoint:  reqRunCode.Name,
 	}
 
-	if err := ctx.setParameters(input.Raw, &main); ctx.handleError(c, err, 0) {
+	script, err := ast.NewScript(scriptBytes)
+	if ctx.handleError(c, err, 0) {
+		return
+	}
+	if err := ctx.setParameters(string(input), script, &main); ctx.handleError(c, err, 0) {
 		return
 	}
 	if err := ctx.setSimulateStorageDiff(response, script, &main); ctx.handleError(c, err, 0) {
@@ -220,7 +209,7 @@ func (ctx *Context) RunCode(c *gin.Context) {
 	c.JSON(http.StatusOK, operations)
 }
 
-func (ctx *Context) parseRunCodeResponse(response, script gjson.Result, main *Operation) ([]Operation, error) {
+func (ctx *Context) parseRunCodeResponse(response gjson.Result, script *ast.Script, main *Operation) ([]Operation, error) {
 	if response.IsArray() {
 		return ctx.parseFailedRunCode(response, main)
 	} else if response.IsObject() {
@@ -230,7 +219,7 @@ func (ctx *Context) parseRunCodeResponse(response, script gjson.Result, main *Op
 }
 
 func (ctx *Context) parseFailedRunCode(response gjson.Result, main *Operation) ([]Operation, error) {
-	errs, err := cerrors.ParseArray([]byte(response.Raw))
+	errs, err := tezerrors.ParseArray([]byte(response.Raw))
 	if err != nil {
 		return nil, err
 	}
@@ -242,7 +231,7 @@ func (ctx *Context) parseFailedRunCode(response gjson.Result, main *Operation) (
 	return []Operation{*main}, nil
 }
 
-func (ctx *Context) parseAppliedRunCode(response, script gjson.Result, main *Operation) ([]Operation, error) {
+func (ctx *Context) parseAppliedRunCode(response gjson.Result, script *ast.Script, main *Operation) ([]Operation, error) {
 	operations := []Operation{*main}
 
 	operationsJSON := response.Get("operations").Array()
@@ -258,7 +247,7 @@ func (ctx *Context) parseAppliedRunCode(response, script gjson.Result, main *Ope
 		op.Protocol = main.Protocol
 		op.Level = main.Level
 		op.Internal = true
-		if err := ctx.setParameters(item.Get("parameters").Raw, &op); err != nil {
+		if err := ctx.setParameters(item.Get("parameters").Raw, script, &op); err != nil {
 			return nil, err
 		}
 		if err := ctx.setSimulateStorageDiff(item, script, &op); err != nil {
@@ -269,22 +258,21 @@ func (ctx *Context) parseAppliedRunCode(response, script gjson.Result, main *Ope
 	return operations, nil
 }
 
-func (ctx *Context) parseBigMapDiffs(response, script gjson.Result, metadata meta.Metadata, operation *Operation) ([]bigmapdiff.BigMapDiff, error) {
-	rpc, err := ctx.GetRPC(operation.Network)
+func (ctx *Context) parseBigMapDiffs(response gjson.Result, script *ast.Script, operation *Operation) ([]bigmapdiff.BigMapDiff, error) {
+	model := operation.ToModel()
+	b, err := json.Marshal(script)
 	if err != nil {
 		return nil, err
 	}
-
-	model := operation.ToModel()
-	model.Script = script
-	parser := storage.NewSimulate(rpc, ctx.BigMapDiffs)
+	model.Script = gjson.ParseBytes(b)
+	parser := storage.NewSimulate(ctx.BigMapDiffs)
 
 	rs := storage.RichStorage{Empty: true}
 	switch operation.Kind {
 	case consts.Transaction:
-		rs, err = parser.ParseTransaction(response, metadata, model)
+		rs, err = parser.ParseTransaction(response, model)
 	case consts.Origination:
-		rs, err = parser.ParseOrigination(response, metadata, model)
+		rs, err = parser.ParseOrigination(response, model)
 	}
 	if err != nil {
 		return nil, err
@@ -301,24 +289,20 @@ func (ctx *Context) parseBigMapDiffs(response, script gjson.Result, metadata met
 	return bmd, nil
 }
 
-func (ctx *Context) setSimulateStorageDiff(response, script gjson.Result, main *Operation) error {
+func (ctx *Context) setSimulateStorageDiff(response gjson.Result, script *ast.Script, main *Operation) error {
 	storage := response.Get("storage").String()
-	if storage == "" || !strings.HasPrefix(main.Destination, "KT") || main.Status != "applied" {
+	if storage == "" || !bcd.IsContract(main.Destination) || main.Status != consts.Applied {
 		return nil
 	}
-	metadata, err := meta.GetContractSchema(ctx.Schema, main.Destination)
+	bmd, err := ctx.parseBigMapDiffs(response, script, main)
 	if err != nil {
 		return err
 	}
-	storageMetadata, err := metadata.Get(consts.STORAGE, main.Protocol)
+	storageType, err := script.StorageType()
 	if err != nil {
 		return err
 	}
-	bmd, err := ctx.parseBigMapDiffs(response, script, storageMetadata, main)
-	if err != nil {
-		return err
-	}
-	storageDiff, err := ctx.getStorageDiff(bmd, main.Destination, storage, metadata, true, main)
+	storageDiff, err := ctx.getStorageDiff(bmd, main.Destination, storage, storageType, main)
 	if err != nil {
 		return err
 	}

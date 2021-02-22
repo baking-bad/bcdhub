@@ -1,12 +1,10 @@
 package handlers
 
 import (
-	"errors"
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/gin-gonic/gin"
-	"github.com/tidwall/gjson"
 )
 
 // ForkContract -
@@ -17,11 +15,8 @@ func (ctx *Context) ForkContract(c *gin.Context) {
 	}
 	response, err := ctx.buildStorageDataFromForkRequest(req)
 	if err != nil {
-		var code int
-		if errors.As(err, &meta.ValidationError{}) || errors.As(err, &meta.RequiredError{}) {
-			code = http.StatusBadRequest
-		}
-		ctx.handleError(c, err, code)
+		// TODO: validation
+		ctx.handleError(c, err, 0)
 		return
 	}
 	c.JSON(http.StatusOK, response)
@@ -29,39 +24,36 @@ func (ctx *Context) ForkContract(c *gin.Context) {
 
 func (ctx *Context) buildStorageDataFromForkRequest(req forkRequest) (gin.H, error) {
 	var err error
-	var script gjson.Result
-	var metadata meta.Metadata
+	var scriptData []byte
 
 	if req.Script != "" {
-		script = gjson.Parse(req.Script)
-		metadata, err = meta.ParseMetadata(script.Get("#(prim==\"storage\").args"))
-		if err != nil {
-			return nil, err
-		}
-
+		scriptData = []byte(req.Script)
 	} else {
-		rpc, err := ctx.GetRPC(req.Network)
+		scriptData, err = ctx.getScriptBytes(req.Address, req.Network, "")
 		if err != nil {
 			return nil, err
 		}
-		script, err = rpc.GetScriptJSON(req.Address, 0)
-		if err != nil {
-			return nil, err
-		}
-		metadata, err = ctx.getStorageMetadata(req.Address, req.Network)
-		if err != nil {
-			return nil, err
-		}
-		script = script.Get("code")
+	}
+	script, err := ast.NewScript(scriptData)
+	if err != nil {
+		return nil, err
 	}
 
-	storage, err := metadata.BuildEntrypointMicheline("0", req.Storage, false)
+	storageType, err := script.StorageType()
+	if err != nil {
+		return nil, err
+	}
+	if err = storageType.FromJSONSchema(req.Storage); err != nil {
+		return nil, err
+	}
+
+	storage, err := storageType.ToParameters("")
 	if err != nil {
 		return nil, err
 	}
 
 	return gin.H{
-		"code":    script.Value(),
-		"storage": storage.Get("value").Value(),
+		"code":    scriptData,
+		"storage": storage,
 	}, nil
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
-	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -107,7 +106,7 @@ func WithMainOperation(main *operation.Operation) ParseParamsOption {
 }
 
 // NewParseParams -
-func NewParseParams(rpc noderpc.INode, storage models.GeneralRepository, bmdRepo bigmapdiff.Repository, blockRepo block.Repository, tzipRepo tzip.Repository, schemaRepo schema.Repository, tbRepo tokenbalance.Repository, opts ...ParseParamsOption) *ParseParams {
+func NewParseParams(rpc noderpc.INode, storage models.GeneralRepository, bmdRepo bigmapdiff.Repository, blockRepo block.Repository, tzipRepo tzip.Repository, tbRepo tokenbalance.Repository, opts ...ParseParamsOption) *ParseParams {
 	params := &ParseParams{
 		Storage:       storage,
 		BigMapDiffs:   bmdRepo,
@@ -122,7 +121,7 @@ func NewParseParams(rpc noderpc.INode, storage models.GeneralRepository, bmdRepo
 
 	transferParser, err := transfer.NewParser(
 		params.rpc,
-		tzipRepo, blockRepo, schemaRepo, storage,
+		tzipRepo, blockRepo, storage,
 		transfer.WithStackTrace(params.stackTrace),
 		transfer.WithNetwork(params.network),
 		transfer.WithChainID(params.head.ChainID),

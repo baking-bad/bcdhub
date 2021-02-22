@@ -14,7 +14,6 @@ import (
 	mock_general "github.com/baking-bad/bcdhub/internal/models/mock"
 	mock_bmd "github.com/baking-bad/bcdhub/internal/models/mock/bigmapdiff"
 	mock_block "github.com/baking-bad/bcdhub/internal/models/mock/block"
-	mock_schema "github.com/baking-bad/bcdhub/internal/models/mock/schema"
 	mock_token_balance "github.com/baking-bad/bcdhub/internal/models/mock/tokenbalance"
 	mock_tzip "github.com/baking-bad/bcdhub/internal/models/mock/tzip"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -45,10 +44,6 @@ func TestGroup_Parse(t *testing.T) {
 	ctrlTzipRepo := gomock.NewController(t)
 	defer ctrlTzipRepo.Finish()
 	tzipRepo := mock_tzip.NewMockRepository(ctrlTzipRepo)
-
-	ctrlSchemaRepo := gomock.NewController(t)
-	defer ctrlSchemaRepo.Finish()
-	schemaRepo := mock_schema.NewMockRepository(ctrlSchemaRepo)
 
 	ctrlTokenBalanceRepo := gomock.NewController(t)
 	defer ctrlTokenBalanceRepo.Finish()
@@ -148,13 +143,13 @@ func TestGroup_Parse(t *testing.T) {
 	}{
 		{
 			name:        "opToHHcqFhRTQWJv2oTGAtywucj9KM1nDnk5eHsEETYJyvJLsa5",
-			ParseParams: NewParseParams(rpc, generalRepo, bmdRepo, blockRepo, tzipRepo, schemaRepo, tbRepo),
+			ParseParams: NewParseParams(rpc, generalRepo, bmdRepo, blockRepo, tzipRepo, tbRepo),
 			filename:    "./data/rpc/opg/opToHHcqFhRTQWJv2oTGAtywucj9KM1nDnk5eHsEETYJyvJLsa5.json",
 			want:        []models.Model{},
 		}, {
 			name: "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
 			ParseParams: NewParseParams(
-				rpc, generalRepo, bmdRepo, blockRepo, tzipRepo, schemaRepo, tbRepo,
+				rpc, generalRepo, bmdRepo, blockRepo, tzipRepo, tbRepo,
 				WithShareDirectory("./test"),
 				WithHead(noderpc.Header{
 					Timestamp: timestamp,
@@ -299,7 +294,7 @@ func TestGroup_Parse(t *testing.T) {
 		}, {
 			name: "onzUDQhwunz2yqzfEsoURXEBz9p7Gk8DgY4QBva52Z4b3AJCZjt",
 			ParseParams: NewParseParams(
-				rpc, generalRepo, bmdRepo, blockRepo, tzipRepo, schemaRepo, tbRepo,
+				rpc, generalRepo, bmdRepo, blockRepo, tzipRepo, tbRepo,
 				WithShareDirectory("./test"),
 				WithHead(noderpc.Header{
 					Timestamp: timestamp,
@@ -363,7 +358,7 @@ func TestGroup_Parse(t *testing.T) {
 		}, {
 			name: "opQMNBmME834t76enxSBqhJcPqwV2R2BP2pTKv438bHaxRZen6x",
 			ParseParams: NewParseParams(
-				rpc, generalRepo, bmdRepo, blockRepo, tzipRepo, schemaRepo, tbRepo,
+				rpc, generalRepo, bmdRepo, blockRepo, tzipRepo, tbRepo,
 				WithShareDirectory("./test"),
 				WithHead(noderpc.Header{
 					Timestamp: timestamp,

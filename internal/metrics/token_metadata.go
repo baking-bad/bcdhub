@@ -54,7 +54,7 @@ func (h *Handler) FixTokenMetadata(rpc noderpc.INode, sharePath string, contract
 	result := make([]models.Model, 0)
 
 	for _, tokenMetadata := range tokenMetadatas {
-		parser := tokens.NewParser(h.BigMapDiffs, h.Blocks, h.Protocol, h.Schema, h.Storage, rpc, sharePath, operation.Network, ipfs...)
+		parser := tokens.NewParser(h.BigMapDiffs, h.Blocks, h.Protocol, h.Storage, rpc, sharePath, operation.Network, ipfs...)
 		metadata, err := parser.Parse(tokenMetadata.Contract, operation.Level)
 		if err != nil {
 			return err

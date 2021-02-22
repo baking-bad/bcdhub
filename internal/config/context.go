@@ -12,7 +12,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
-	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
@@ -49,7 +48,6 @@ type Context struct {
 	Migrations     migration.Repository
 	Operations     operation.Repository
 	Protocols      protocol.Repository
-	Schema         schema.Repository
 	TezosDomains   tezosdomain.Repository
 	TokenBalances  tokenbalance.Repository
 	TokenMetadata  tokenmetadata.Repository

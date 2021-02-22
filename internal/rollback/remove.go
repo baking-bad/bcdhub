@@ -5,7 +5,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
-	"github.com/baking-bad/bcdhub/internal/models/schema"
 )
 
 // Remove -
@@ -42,22 +41,6 @@ func removeContracts(storage models.GeneralRepository, contractsRepo contract.Re
 }
 
 func removeNetworkMetadata(storage models.GeneralRepository, network string, addresses []string, appDir string) error {
-	bulkDeleteMetadata := make([]models.Model, len(addresses))
-
-	logger.Info("%d contracts will be removed", len(addresses))
-	for i := range addresses {
-		bulkDeleteMetadata[i] = &schema.Schema{
-			ID: addresses[i],
-		}
-	}
-
-	logger.Info("Removing metadata...")
-	if len(bulkDeleteMetadata) > 0 {
-		if err := storage.BulkDelete(bulkDeleteMetadata); err != nil {
-			return err
-		}
-	}
-
 	logger.Info("Removing contracts from file system...")
 	if err := fetch.RemoveAllContracts(network, appDir); err != nil {
 		return err

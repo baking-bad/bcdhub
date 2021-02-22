@@ -128,7 +128,7 @@ func (b *Babylon) handleBigMapDiff(result gjson.Result, storage *ast.TypedAst, a
 	return storageModels, nil
 }
 
-func (b *Babylon) handleBigMapDiffUpdate(item gjson.Result, storage *ast.TypedAst, address string, operation operation.Operation) ([]models.Model, error) {
+func (b *Babylon) handleBigMapDiffUpdate(item gjson.Result, _ *ast.TypedAst, address string, operation operation.Operation) ([]models.Model, error) {
 	ptr := item.Get("big_map").Int()
 
 	bmd := bigmapdiff.BigMapDiff{
@@ -146,7 +146,9 @@ func (b *Babylon) handleBigMapDiffUpdate(item gjson.Result, storage *ast.TypedAs
 		Protocol:    operation.Protocol,
 	}
 
-	b.addDiff(&bmd, ptr)
+	if err := b.addDiff(&bmd, ptr); err != nil {
+		return nil, err
+	}
 	if ptr > -1 {
 		return []models.Model{&bmd}, nil
 	}
@@ -178,9 +180,7 @@ func (b *Babylon) handleBigMapDiffCopy(item gjson.Result, storage *ast.TypedAst,
 		return nil, err
 	}
 
-	if err := b.updateTemporaryPointers(storage, sourcePtr, destinationPtr); err != nil {
-		return nil, err
-	}
+	b.updateTemporaryPointers(storage, sourcePtr, destinationPtr)
 
 	if len(bmd) != 0 {
 		for i := range bmd {
@@ -191,7 +191,10 @@ func (b *Babylon) handleBigMapDiffCopy(item gjson.Result, storage *ast.TypedAst,
 			bmd[i].IndexedTime = time.Now().UnixNano() / 1000
 			bmd[i].Timestamp = operation.Timestamp
 			bmd[i].OperationID = operation.ID
-			b.addDiff(&bmd[i], destinationPtr)
+
+			if err := b.addDiff(&bmd[i], destinationPtr); err != nil {
+				return nil, err
+			}
 
 			if destinationPtr > -1 {
 				newUpdates = append(newUpdates, &bmd[i])
@@ -201,7 +204,7 @@ func (b *Babylon) handleBigMapDiffCopy(item gjson.Result, storage *ast.TypedAst,
 	return newUpdates, nil
 }
 
-func (b *Babylon) handleBigMapDiffRemove(item gjson.Result, storage *ast.TypedAst, address string, operation operation.Operation) ([]models.Model, error) {
+func (b *Babylon) handleBigMapDiffRemove(item gjson.Result, _ *ast.TypedAst, address string, operation operation.Operation) ([]models.Model, error) {
 	ptr := item.Get("big_map").Int()
 	if ptr < 0 {
 		return nil, nil
@@ -220,13 +223,15 @@ func (b *Babylon) handleBigMapDiffRemove(item gjson.Result, storage *ast.TypedAs
 		bmd[i].Value = nil
 		bmd[i].ValueStrings = []string{}
 		newUpdates[i] = &bmd[i]
-		b.addDiff(&bmd[i], ptr)
+		if err := b.addDiff(&bmd[i], ptr); err != nil {
+			return nil, err
+		}
 	}
 	newUpdates = append(newUpdates, b.createBigMapDiffAction("remove", address, &ptr, nil, operation))
 	return newUpdates, nil
 }
 
-func (b *Babylon) handleBigMapDiffAlloc(item gjson.Result, storage *ast.TypedAst, address string, operation operation.Operation) ([]models.Model, error) {
+func (b *Babylon) handleBigMapDiffAlloc(item gjson.Result, _ *ast.TypedAst, address string, operation operation.Operation) ([]models.Model, error) {
 	ptr := item.Get("big_map").Int()
 	key := []byte(item.Get("key_type").String())
 	value := []byte(item.Get("value_type").String())
@@ -302,7 +307,7 @@ func (b *Babylon) getSourcePtr(ptr int64) (int64, error) {
 	return ptr, errors.Wrapf(ErrUnknownTemporaryPointer, "%d", ptr)
 }
 
-func (b *Babylon) updateTemporaryPointers(storage *ast.TypedAst, src, dst int64) error {
+func (b *Babylon) updateTemporaryPointers(storage *ast.TypedAst, src, dst int64) {
 	bigMap, ok := b.temporaryPointers[src]
 	if !ok {
 		bm := storage.FindBigMapByPtr()
@@ -317,7 +322,6 @@ func (b *Babylon) updateTemporaryPointers(storage *ast.TypedAst, src, dst int64)
 	dstBigMap := ast.Copy(bigMap).(*ast.BigMap)
 	dstBigMap.Ptr = &dst
 	b.temporaryPointers[dst] = dstBigMap
-	return nil
 }
 
 func (b *Babylon) getCopyBigMapDiff(src int64, address, network string) (bmd []bigmapdiff.BigMapDiff, err error) {

@@ -5,12 +5,12 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/ast/interfaces"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 )
 
 // GetFA godoc
@@ -231,13 +231,9 @@ func (ctx *Context) contractToTokens(contracts []contract.Contract, network, ver
 	}
 
 	if version != "" {
-		interfaceVersion, ok := ctx.Interfaces[version]
-		if !ok {
-			return PageableTokenContracts{}, errors.Errorf("Unknown interface version: %s", version)
-		}
-		methods := make([]string, len(interfaceVersion.Entrypoints))
-		for i := range interfaceVersion.Entrypoints {
-			methods[i] = interfaceVersion.Entrypoints[i].Name
+		methods, err := interfaces.GetMethods(version)
+		if err != nil {
+			return PageableTokenContracts{}, err
 		}
 
 		stats, err := ctx.Operations.GetTokensStats(network, addresses, methods)

@@ -71,7 +71,7 @@ func compareParserResponse(t *testing.T, got, want []models.Model) bool {
 				logger.Info("Differrrent types: %T != %T", one, two)
 				return false
 			}
-			if !compareBigMapDiff(t, one, two) {
+			if !compareBigMapDiff(one, two) {
 				return false
 			}
 		case *bigmapaction.BigMapAction:
@@ -287,7 +287,7 @@ func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 	return true
 }
 
-func compareBigMapDiff(t *testing.T, one, two *bigmapdiff.BigMapDiff) bool {
+func compareBigMapDiff(one, two *bigmapdiff.BigMapDiff) bool {
 	if one.Address != two.Address {
 		logger.Info("BigMapDiff.Address: %s != %s", one.Address, two.Address)
 		return false

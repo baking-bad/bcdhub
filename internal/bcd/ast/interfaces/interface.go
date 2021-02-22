@@ -3,10 +3,21 @@ package interfaces
 import (
 	stdJSON "encoding/json"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/pkg/errors"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+var all = map[string]Contract{
+	consts.ViewAddressTag:   &ViewAddress{},
+	consts.ViewBalanceOfTag: &ViewBalanceOf{},
+	consts.ViewNatTag:       &ViewNat{},
+	consts.FA1Tag:           &Fa1{},
+	consts.FA12Tag:          &Fa1_2{},
+	consts.FA2Tag:           &Fa2{},
+}
 
 // Contract -
 type Contract interface {
@@ -22,19 +33,10 @@ type ContractInterface struct {
 
 // GetAll - receives all contract interfaces
 func GetAll() (map[string]ContractInterface, error) {
-	all := []Contract{
-		&ViewAddress{},
-		&ViewBalanceOf{},
-		&ViewNat{},
-		&Fa1{},
-		&Fa1_2{},
-		&Fa2{},
-	}
-
 	res := make(map[string]ContractInterface)
-	for i := range all {
-		name := all[i].GetName()
-		str := all[i].GetContractInterface()
+	for _, i := range all {
+		name := i.GetName()
+		str := i.GetContractInterface()
 		var ci ContractInterface
 		if err := json.UnmarshalFromString(str, &ci); err != nil {
 			return nil, err
@@ -42,4 +44,21 @@ func GetAll() (map[string]ContractInterface, error) {
 		res[name] = ci
 	}
 	return res, nil
+}
+
+// GetMethods - returns list of interface methods
+func GetMethods(name string) ([]string, error) {
+	i, ok := all[name]
+	if !ok {
+		return nil, errors.Errorf("Unknwon interface name: %s", name)
+	}
+	var ci ContractInterface
+	if err := json.UnmarshalFromString(i.GetContractInterface(), &ci); err != nil {
+		return nil, err
+	}
+	methods := make([]string, len(ci.Entrypoints))
+	for entrypoint := range ci.Entrypoints {
+		methods = append(methods, entrypoint)
+	}
+	return methods, nil
 }

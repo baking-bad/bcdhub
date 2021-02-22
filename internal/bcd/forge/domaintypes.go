@@ -137,3 +137,12 @@ func UnforgeChainID(str string) (string, error) {
 func UnforgeSignature(str string) (string, error) {
 	return encoding.EncodeBase58String(str, []byte(encoding.PrefixGenericSignature))
 }
+
+// UnforgeOpgHash -
+func UnforgeOpgHash(input string) (string, error) {
+	if len(input) != 51 {
+		return "", errors.Wrapf(consts.ErrInvalidOPGHash, "UnforgeOpgHash: %s", input)
+	}
+
+	return encoding.EncodeBase58String(input, []byte(encoding.PrefixOperationHash))
+}

@@ -44,6 +44,7 @@ func (m Migration) Parse(data gjson.Result) (*migration.Migration, error) {
 			return nil, err
 		}
 
+		// TODO: lambda check
 		// if ast.HasPrimitive(tree, consts.LAMBDA) {
 		// 	migration := &migration.Migration{
 		// 		ID:          helpers.GenerateID(),

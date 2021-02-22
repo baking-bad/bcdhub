@@ -4,15 +4,11 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/contractparser/docstring"
-	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
-	"github.com/baking-bad/bcdhub/internal/jsonschema"
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/views"
 	"github.com/gin-gonic/gin"
-	"github.com/tidwall/gjson"
 )
 
 var (
@@ -64,11 +60,11 @@ func (ctx *Context) GetViewsSchema(c *gin.Context) {
 				Implementation: i,
 			}
 
-			metadata, err := getViewMetadata(impl)
+			tree, err := getViewTree(impl)
 			if ctx.handleError(c, err, 0) {
 				return
 			}
-			entrypoints, err := docstring.GetEntrypoints(metadata)
+			entrypoints, err := tree.GetEntrypointsDocs()
 			if ctx.handleError(c, err, 0) {
 				return
 			}
@@ -76,7 +72,7 @@ func (ctx *Context) GetViewsSchema(c *gin.Context) {
 				continue
 			}
 			schema.Type = entrypoints[0].Type
-			schema.Schema, err = jsonschema.Create(entrypoints[0].BinPath, metadata)
+			schema.Schema, err = tree.ToJSONSchema()
 			if ctx.handleError(c, err, 0) {
 				return
 			}
@@ -150,11 +146,14 @@ func (ctx *Context) ExecuteView(c *gin.Context) {
 		return
 	}
 
-	metadata, err := getViewMetadata(impl)
+	tree, err := getViewTree(impl)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	parameters, err := metadata.BuildEntrypointMicheline("0", execView.Data, false)
+	if err := tree.FromJSONSchema(execView.Data); ctx.handleError(c, err, 0) {
+		return
+	}
+	parameters, err := tree.ToParameters("")
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -169,14 +168,13 @@ func (ctx *Context) ExecuteView(c *gin.Context) {
 		HardGasLimitPerOperation: execView.GasLimit,
 		Amount:                   execView.Amount,
 		Protocol:                 state.Protocol,
-		Parameters:               parameters.Get("value").String(),
+		Parameters:               string(parameters),
 	})
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	storage := gjson.ParseBytes(impl.MichelsonStorageView.ReturnType)
-	storageMetadata, err := meta.ParseMetadata(storage)
+	storage, err := ast.NewTypedAstFromBytes(impl.MichelsonStorageView.ReturnType)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -184,20 +182,26 @@ func (ctx *Context) ExecuteView(c *gin.Context) {
 		c.JSON(http.StatusOK, nil)
 		return
 	}
-	data, err := newmiguel.MichelineToMiguel(response.Get("args.0"), storageMetadata)
+	var data ast.UntypedAST
+	if err := json.UnmarshalFromString(response.Get("args.0").Raw, &data); ctx.handleError(c, err, 0) {
+		return
+	}
+
+	if err := storage.Settle(data); ctx.handleError(c, err, 0) {
+		return
+	}
+
+	miguel, err := storage.ToMiguel()
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	c.JSON(http.StatusOK, data)
+	c.JSON(http.StatusOK, miguel)
 }
 
-func getViewMetadata(impl tzip.ViewImplementation) (meta.Metadata, error) {
-	var params gjson.Result
+func getViewTree(impl tzip.ViewImplementation) (*ast.TypedAst, error) {
 	if !impl.MichelsonStorageView.IsParameterEmpty() {
-		params = gjson.ParseBytes(impl.MichelsonStorageView.Parameter)
-	} else {
-		params = gjson.Parse(`{"prim":"unit"}`)
+		return ast.NewTypedAstFromBytes(impl.MichelsonStorageView.Parameter)
 	}
-	return meta.ParseMetadata(params)
+	return ast.NewTypedAstFromString(`{"prim":"unit"}`)
 }

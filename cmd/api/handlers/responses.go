@@ -1,13 +1,12 @@
 package handlers
 
 import (
-	"encoding/json"
+	stdJSON "encoding/json"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
-	"github.com/baking-bad/bcdhub/internal/contractparser/docstring"
-	"github.com/baking-bad/bcdhub/internal/jsonschema"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -302,13 +301,13 @@ type BigMapResponseItem struct {
 
 // GetBigMapResponse -
 type GetBigMapResponse struct {
-	Address       string              `json:"address"`
-	Network       string              `json:"network"`
-	Ptr           int64               `json:"ptr"`
-	ActiveKeys    uint                `json:"active_keys"`
-	TotalKeys     uint                `json:"total_keys"`
-	ContractAlias string              `json:"contract_alias,omitempty" extensions:"x-nullable"`
-	Typedef       []docstring.Typedef `json:"typedef,omitempty" extensions:"x-nullable"`
+	Address       string        `json:"address"`
+	Network       string        `json:"network"`
+	Ptr           int64         `json:"ptr"`
+	ActiveKeys    uint          `json:"active_keys"`
+	TotalKeys     uint          `json:"total_keys"`
+	ContractAlias string        `json:"contract_alias,omitempty" extensions:"x-nullable"`
+	Typedef       []ast.Typedef `json:"typedef,omitempty" extensions:"x-nullable"`
 }
 
 // Migration -
@@ -405,22 +404,23 @@ type NetworkStats struct {
 
 // SearchBigMapDiff -
 type SearchBigMapDiff struct {
-	Ptr       int64           `json:"ptr"`
-	Key       string          `json:"key"`
-	KeyHash   string          `json:"key_hash"`
-	Value     json.RawMessage `json:"value"`
-	Level     int64           `json:"level"`
-	Address   string          `json:"address"`
-	Network   string          `json:"network"`
-	Timestamp time.Time       `json:"timestamp"`
-	FoundBy   string          `json:"found_by"`
+	Ptr       int64              `json:"ptr"`
+	Key       string             `json:"key"`
+	KeyHash   string             `json:"key_hash"`
+	Value     stdJSON.RawMessage `json:"value"`
+	Level     int64              `json:"level"`
+	Address   string             `json:"address"`
+	Network   string             `json:"network"`
+	Timestamp time.Time          `json:"timestamp"`
+	FoundBy   string             `json:"found_by"`
 }
 
 // EntrypointSchema ;
 type EntrypointSchema struct {
-	docstring.EntrypointType
-	Schema       jsonschema.Schema       `json:"schema"`
-	DefaultModel jsonschema.DefaultModel `json:"default_model,omitempty" extensions:"x-nullable"`
+	ast.EntrypointType
+	Schema *ast.JSONSchema `json:"schema"`
+	// TODO: default model
+	// DefaultModel jsonschema.DefaultModel `json:"default_model,omitempty" extensions:"x-nullable"`
 }
 
 // GetErrorLocationResponse -
@@ -737,10 +737,10 @@ type MetadataResponse struct {
 
 // ViewSchema ;
 type ViewSchema struct {
-	Type           []docstring.Typedef     `json:"typedef"`
-	Name           string                  `json:"name"`
-	Implementation int                     `json:"implementation"`
-	Description    string                  `json:"description"`
-	Schema         jsonschema.Schema       `json:"schema"`
-	DefaultModel   jsonschema.DefaultModel `json:"default_model,omitempty" extensions:"x-nullable"`
+	Type           []ast.Typedef   `json:"typedef"`
+	Name           string          `json:"name"`
+	Implementation int             `json:"implementation"`
+	Description    string          `json:"description"`
+	Schema         *ast.JSONSchema `json:"schema"`
+	DefaultModel   interface{}     `json:"default_model,omitempty" extensions:"x-nullable"`
 }

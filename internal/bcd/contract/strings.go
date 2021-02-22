@@ -17,13 +17,13 @@ func ComputeHash(data []byte) (string, error) {
 	return hex.EncodeToString(sha.Sum(nil)), nil
 }
 
-func findHardcodedAddresses(code []byte) (types.Set, error) {
+func findHardcodedAddresses(code []byte) types.Set {
 	regexString := "(tz|KT)[0-9A-Za-z]{34}"
 	re := regexp.MustCompile(regexString)
 	res := re.FindAllString(string(code), -1)
 	resp := make(types.Set)
 	resp.Append(res...)
-	return resp, nil
+	return resp
 }
 
 // IsAddress -

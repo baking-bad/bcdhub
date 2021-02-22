@@ -50,11 +50,7 @@ func NewParser(data []byte) (*Parser, error) {
 		return nil, err
 	}
 
-	hardcoded, err := findHardcodedAddresses(cd.Code)
-	if err != nil {
-		return nil, err
-	}
-
+	hardcoded := findHardcodedAddresses(cd.Code)
 	hash, err := ComputeHash(cd.Code)
 	if err != nil {
 		return nil, err
@@ -184,10 +180,7 @@ func (p *Parser) handleStorageNode(node *base.Node) error {
 }
 
 func (p *Parser) handleCodeNode(node *base.Node) error {
-	failString, err := parseFail(node)
-	if err != nil {
-		return err
-	}
+	failString := parseFail(node)
 	if failString != "" {
 		p.FailStrings.Add(failString)
 	}
@@ -215,9 +208,9 @@ func (p *Parser) setLanguage(lang string) {
 	}
 }
 
-func parseFail(node *base.Node) (string, error) {
+func parseFail(node *base.Node) string {
 	if node.Prim != consts.PrimArray || len(node.Args) < 2 {
-		return "", nil
+		return ""
 	}
 
 	var pushArgs []*base.Node
@@ -234,10 +227,10 @@ func parseFail(node *base.Node) (string, error) {
 	if hasFailWith {
 		for i := range pushArgs {
 			if pushArgs[i].StringValue != nil {
-				return *pushArgs[i].StringValue, nil
+				return *pushArgs[i].StringValue
 			}
 		}
 	}
 
-	return "", nil
+	return ""
 }

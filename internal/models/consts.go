@@ -9,7 +9,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
-	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
@@ -27,7 +26,6 @@ const (
 	DocMigrations     = "migration"
 	DocOperations     = "operation"
 	DocProtocol       = "protocol"
-	DocSchema         = "schema"
 	DocTezosDomains   = "tezos_domain"
 	DocTokenBalances  = "token_balance"
 	DocTokenMetadata  = "token_metadata"
@@ -46,7 +44,6 @@ func AllDocuments() []string {
 		DocMigrations,
 		DocOperations,
 		DocProtocol,
-		DocSchema,
 		DocTezosDomains,
 		DocTokenBalances,
 		DocTokenMetadata,
@@ -66,7 +63,6 @@ func AllModels() []Model {
 		&migration.Migration{},
 		&operation.Operation{},
 		&protocol.Protocol{},
-		&schema.Schema{},
 		&tezosdomain.TezosDomain{},
 		&tokenbalance.TokenBalance{},
 		&tokenmetadata.TokenMetadata{},

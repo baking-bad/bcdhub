@@ -18,7 +18,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic/migration"
 	"github.com/baking-bad/bcdhub/internal/elastic/operation"
 	"github.com/baking-bad/bcdhub/internal/elastic/protocol"
-	"github.com/baking-bad/bcdhub/internal/elastic/schema"
 	"github.com/baking-bad/bcdhub/internal/elastic/tezosdomain"
 	"github.com/baking-bad/bcdhub/internal/elastic/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/elastic/tokenmetadata"
@@ -34,7 +33,6 @@ import (
 	reindexerMigration "github.com/baking-bad/bcdhub/internal/reindexer/migration"
 	reindexerOperation "github.com/baking-bad/bcdhub/internal/reindexer/operation"
 	reindexerProtocol "github.com/baking-bad/bcdhub/internal/reindexer/protocol"
-	reindexerSchema "github.com/baking-bad/bcdhub/internal/reindexer/schema"
 	reindexerTD "github.com/baking-bad/bcdhub/internal/reindexer/tezosdomain"
 	reindexerTB "github.com/baking-bad/bcdhub/internal/reindexer/tokenbalance"
 	reindexerTM "github.com/baking-bad/bcdhub/internal/reindexer/tokenmetadata"
@@ -88,7 +86,6 @@ func WithStorage(cfg StorageConfig) ContextOption {
 			ctx.Migrations = reindexerMigration.NewStorage(storage)
 			ctx.Operations = reindexerOperation.NewStorage(storage)
 			ctx.Protocols = reindexerProtocol.NewStorage(storage)
-			ctx.Schema = reindexerSchema.NewStorage(storage)
 			ctx.TezosDomains = reindexerTD.NewStorage(storage)
 			ctx.TokenBalances = reindexerTB.NewStorage(storage)
 			ctx.TokenMetadata = reindexerTM.NewStorage(storage)
@@ -110,7 +107,6 @@ func WithStorage(cfg StorageConfig) ContextOption {
 			ctx.Migrations = migration.NewStorage(es)
 			ctx.Operations = operation.NewStorage(es)
 			ctx.Protocols = protocol.NewStorage(es)
-			ctx.Schema = schema.NewStorage(es)
 			ctx.TezosDomains = tezosdomain.NewStorage(es)
 			ctx.TokenBalances = tokenbalance.NewStorage(es)
 			ctx.TokenMetadata = tokenmetadata.NewStorage(es)

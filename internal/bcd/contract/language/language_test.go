@@ -212,10 +212,6 @@ func TestDetectLIGO(t *testing.T) {
 	}
 }
 
-func getStringPtr(val string) *string {
-	return &val
-}
-
 func TestDetectLorentz(t *testing.T) {
 	testCases := []struct {
 		name  string

@@ -16,7 +16,7 @@ type Script struct {
 	Storage   UntypedAST
 }
 
-// NewScript -
+// NewScript - creates `Script` object: untyped trees of code, storage and parameter
 func NewScript(data []byte) (*Script, error) {
 	var ast UntypedAST
 	if err := json.Unmarshal(data, &ast); err != nil {
@@ -41,6 +41,16 @@ func NewScript(data []byte) (*Script, error) {
 		}
 	}
 	return &s, nil
+}
+
+// StorageType - returns storage`s typed tree
+func (s *Script) StorageType() (*TypedAst, error) {
+	return s.Storage.ToTypedAST()
+}
+
+// ParameterType - returns parameter`s typed tree
+func (s *Script) ParameterType() (*TypedAst, error) {
+	return s.Parameter.ToTypedAST()
 }
 
 // SectionType -

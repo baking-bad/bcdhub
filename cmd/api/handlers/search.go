@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
-	"github.com/baking-bad/bcdhub/internal/contractparser/unpack/domaintypes"
+	"github.com/baking-bad/bcdhub/internal/bcd/forge"
+	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/gin-gonic/gin"
@@ -98,7 +98,9 @@ func postProcessing(result models.Result) (models.Result, error) {
 		}
 
 		bmd := result.Items[i].Body.(bigmapdiff.BigMapDiff)
-		key, err := stringer.StringifyInterface(bmd.Key)
+
+		// TODO: unpack
+		key, err := formatter.MichelineStringToMichelson(string(bmd.Key), true, formatter.DefLineSize)
 		if err != nil {
 			return result, err
 		}
@@ -119,7 +121,7 @@ func postProcessing(result models.Result) (models.Result, error) {
 }
 
 func (ctx *Context) searchInMempool(q string) (models.Item, error) {
-	if _, err := domaintypes.DecodeOpgHash(q); err != nil {
+	if _, err := forge.UnforgeOpgHash(q); err != nil {
 		return models.Item{}, err
 	}
 

@@ -4,8 +4,11 @@ import (
 	"github.com/baking-bad/bcdhub/cmd/api/oauth"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/gin-gonic/gin"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/karlseguin/ccache"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // Context -
 type Context struct {

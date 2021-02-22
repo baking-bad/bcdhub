@@ -4,7 +4,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
-	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/parsers/storage"
 	"github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
@@ -21,12 +20,11 @@ type MichelsonExtendedStorage struct {
 	protocol    string
 	operationID string
 	contract    string
-	repo        schema.Repository
 	bmd         []bigmapdiff.BigMapDiff
 }
 
 // NewMichelsonExtendedStorage -
-func NewMichelsonExtendedStorage(impl tzip.EventImplementation, name, protocol, operationID, contract string, repo schema.Repository, bmd []bigmapdiff.BigMapDiff) (*MichelsonExtendedStorage, error) {
+func NewMichelsonExtendedStorage(impl tzip.EventImplementation, name, protocol, operationID, contract string, bmd []bigmapdiff.BigMapDiff) (*MichelsonExtendedStorage, error) {
 	parser, err := tokenbalance.GetParser(name, impl.MichelsonExtendedStorageEvent.ReturnType)
 	if err != nil {
 		return nil, err
@@ -42,7 +40,6 @@ func NewMichelsonExtendedStorage(impl tzip.EventImplementation, name, protocol, 
 		parser:      parser,
 		protocol:    protocol,
 		operationID: operationID,
-		repo:        repo,
 		bmd:         bmd,
 		contract:    contract,
 	}, nil

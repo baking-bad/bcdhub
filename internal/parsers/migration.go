@@ -35,7 +35,7 @@ func NewMigrationParser(storage models.GeneralRepository, bmdRepo bigmapdiff.Rep
 func (p *MigrationParser) Parse(script gjson.Result, old modelsContract.Contract, previous, next protocol.Protocol, timestamp time.Time) ([]models.Model, []models.Model, error) {
 	var updates []models.Model
 	if previous.SymLink == consts.MetadataAlpha {
-		newUpdates, err := p.getUpdates(script, old, next)
+		newUpdates, err := p.getUpdates(script, old)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -66,7 +66,7 @@ func (p *MigrationParser) Parse(script gjson.Result, old modelsContract.Contract
 	return []models.Model{&migration}, updates, nil
 }
 
-func (p *MigrationParser) getUpdates(script gjson.Result, contract modelsContract.Contract, protocol protocol.Protocol) ([]models.Model, error) {
+func (p *MigrationParser) getUpdates(script gjson.Result, contract modelsContract.Contract) ([]models.Model, error) {
 	storage, err := ast.NewSettledTypedAst(script.Get("code.#(prim==\"storage\").args").Raw, script.Get("storage").Raw)
 	if err != nil {
 		return nil, err

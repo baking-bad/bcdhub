@@ -22,6 +22,7 @@ const (
 const (
 	Applied     = "applied"
 	Backtracked = "backtracked"
+	Pending     = "pending"
 	Failed      = "failed"
 	Skipped     = "skipped"
 )

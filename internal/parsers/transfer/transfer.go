@@ -9,7 +9,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
-	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -19,7 +18,6 @@ import (
 
 // Parser -
 type Parser struct {
-	Schema  schema.Repository
 	Storage models.GeneralRepository
 
 	rpc        noderpc.INode
@@ -34,10 +32,9 @@ type Parser struct {
 }
 
 // NewParser -
-func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Repository, schemaRepo schema.Repository, storage models.GeneralRepository, opts ...ParserOption) (*Parser, error) {
+func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Repository, storage models.GeneralRepository, opts ...ParserOption) (*Parser, error) {
 	tp := &Parser{
 		rpc:     rpc,
-		Schema:  schemaRepo,
 		Storage: storage,
 	}
 
@@ -123,7 +120,7 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 				bmd = append(bmd, *model)
 			}
 		}
-		event, err = events.NewMichelsonExtendedStorage(impl, name, operation.Protocol, operation.GetID(), operation.Destination, p.Schema, bmd)
+		event, err = events.NewMichelsonExtendedStorage(impl, name, operation.Protocol, operation.GetID(), operation.Destination, bmd)
 		if err != nil {
 			return nil, err
 		}

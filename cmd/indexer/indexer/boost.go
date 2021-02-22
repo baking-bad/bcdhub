@@ -17,7 +17,6 @@ import (
 	elasticMigration "github.com/baking-bad/bcdhub/internal/elastic/migration"
 	elasticOperation "github.com/baking-bad/bcdhub/internal/elastic/operation"
 	elasticProtocol "github.com/baking-bad/bcdhub/internal/elastic/protocol"
-	elasticSchema "github.com/baking-bad/bcdhub/internal/elastic/schema"
 	elasticTezosDomain "github.com/baking-bad/bcdhub/internal/elastic/tezosdomain"
 	elasticTokenBalance "github.com/baking-bad/bcdhub/internal/elastic/tokenbalance"
 	elasticTransfer "github.com/baking-bad/bcdhub/internal/elastic/transfer"
@@ -34,7 +33,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
-	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
@@ -62,7 +60,6 @@ type BoostIndexer struct {
 	Migrations     migration.Repository
 	Operations     operation.Repository
 	Protocols      protocol.Repository
-	Schema         schema.Repository
 	TezosDomains   tezosdomain.Repository
 	TokenBalances  tokenbalance.Repository
 	Transfers      transfer.Repository
@@ -161,7 +158,6 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 		Migrations:     elasticMigration.NewStorage(es),
 		Operations:     elasticOperation.NewStorage(es),
 		Protocols:      elasticProtocol.NewStorage(es),
-		Schema:         elasticSchema.NewStorage(es),
 		TezosDomains:   elasticTezosDomain.NewStorage(es),
 		TokenBalances:  elasticTokenBalance.NewStorage(es),
 		Transfers:      elasticTransfer.NewStorage(es),
@@ -520,7 +516,7 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 	for _, opg := range data.Array() {
 		parser := operations.NewGroup(operations.NewParseParams(
 			bi.rpc,
-			bi.Storage, bi.BigMapDiffs, bi.Blocks, bi.TZIP, bi.Schema, bi.TokenBalances,
+			bi.Storage, bi.BigMapDiffs, bi.Blocks, bi.TZIP, bi.TokenBalances,
 			operations.WithConstants(bi.currentProtocol.Constants),
 			operations.WithHead(head),
 			operations.WithIPFSGateways(bi.cfg.IPFSGateways),

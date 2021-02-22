@@ -56,7 +56,7 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 			return err
 		}
 
-		parser, err := transferParsers.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.Schema, ctx.Storage,
+		parser, err := transferParsers.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.Storage,
 			transferParsers.WithNetwork(operations[i].Network),
 			transferParsers.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
 			transferParsers.WithoutViews(),
