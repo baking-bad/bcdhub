@@ -29,10 +29,17 @@ func newBCDLogger() *BCDLogger {
 	l := &BCDLogger{
 		Logger: logrus.New(),
 	}
-	l.SetFormatter(&logrus.TextFormatter{
-		FullTimestamp:   true,
-		TimestampFormat: "2006-01-02 15:04:05",
-	})
+
+	formatter := new(logrus.TextFormatter)
+	switch os.Getenv("BCD_ENV") {
+	case "development":
+		formatter.FullTimestamp = true
+		formatter.TimestampFormat = "2006-01-02 15:04:05"
+	default:
+		formatter.DisableTimestamp = true
+	}
+
+	l.SetFormatter(formatter)
 	l.SetOutput(os.Stdout)
 	l.SetLevel(logrus.InfoLevel)
 	return l
