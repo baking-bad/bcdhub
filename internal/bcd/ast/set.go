@@ -274,3 +274,15 @@ func (set *Set) Range(handler func(node Node) error) error {
 	}
 	return set.Type.Range(handler)
 }
+
+// GetJSONModel -
+func (set *Set) GetJSONModel(model JSONModel) {
+	if model == nil {
+		return
+	}
+	arr := make([]JSONModel, len(set.Data))
+	for i := range set.Data {
+		set.Data[i].GetJSONModel(arr[i])
+	}
+	model[set.GetName()] = arr
+}

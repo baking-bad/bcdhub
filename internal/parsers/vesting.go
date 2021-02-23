@@ -60,7 +60,7 @@ func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, ne
 	}
 
 	parser := contract.NewParser(contract.WithShareDir(p.filesDirectory))
-	contractModels, err := parser.Parse(op)
+	contractModels, err := parser.Parse(&op)
 	if err != nil {
 		return nil, err
 	}

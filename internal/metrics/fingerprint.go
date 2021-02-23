@@ -30,21 +30,21 @@ func GetFingerprint(script gjson.Result) (*contract.Fingerprint, error) {
 		return nil, err
 	}
 	fgpt := contract.Fingerprint{}
-	code := colapsed.Get(`code.#(prim="code")`)
+	code := colapsed.Get(`#(prim="code")`)
 	codeFgpt, err := fingerprint(code, true)
 	if err != nil {
 		return nil, err
 	}
 	fgpt.Code = codeFgpt
 
-	params := colapsed.Get(`code.#(prim="parameter")`)
+	params := colapsed.Get(`#(prim="parameter")`)
 	paramFgpt, err := fingerprint(params, false)
 	if err != nil {
 		return nil, err
 	}
 	fgpt.Parameter = paramFgpt
 
-	storage := colapsed.Get(`code.#(prim="storage")`)
+	storage := colapsed.Get(`#(prim="storage")`)
 	storageFgpt, err := fingerprint(storage, false)
 	if err != nil {
 		return nil, err

@@ -21,29 +21,30 @@ type Type interface {
 	EqualType(node Node) bool
 	FindByName(name string) Node
 	GetEntrypoints() []string
+	GetJSONModel(JSONModel)
 	GetName() string
 	GetPrim() string
 	GetTypeName() string
 	IsNamed() bool
 	IsPrim(prim string) bool
 	ParseType(node *base.Node, id *int) error
-	ToJSONSchema() (*JSONSchema, error)
 	Range(handler func(node Node) error) error
+	ToJSONSchema() (*JSONSchema, error)
 }
 
 // Value -
 type Value interface {
+	Comparable
+	Distinguishable
+
 	EnrichBigMap(bmd []*types.BigMapDiff) error
 	Equal(second Node) bool
+	FindPointers() map[int64]*BigMap
 	FromJSONSchema(data map[string]interface{}) error
 	GetValue() interface{}
 	ParseValue(node *base.Node) error
 	ToMiguel() (*MiguelNode, error)
 	ToParameters() ([]byte, error)
-	FindPointers() map[int64]*BigMap
-
-	Comparable
-	Distinguishable
 }
 
 // Base -

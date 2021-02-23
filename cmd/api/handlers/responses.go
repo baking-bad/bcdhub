@@ -418,9 +418,8 @@ type SearchBigMapDiff struct {
 // EntrypointSchema ;
 type EntrypointSchema struct {
 	ast.EntrypointType
-	Schema *ast.JSONSchema `json:"schema"`
-	// TODO: default model
-	// DefaultModel jsonschema.DefaultModel `json:"default_model,omitempty" extensions:"x-nullable"`
+	Schema       *ast.JSONSchema `json:"schema"`
+	DefaultModel ast.JSONModel   `json:"default_model,omitempty" extensions:"x-nullable"`
 }
 
 // GetErrorLocationResponse -

@@ -41,7 +41,7 @@ func WithShareDir(dir string) ParserOption {
 }
 
 // Parse -
-func (p *Parser) Parse(operation operation.Operation) ([]models.Model, error) {
+func (p *Parser) Parse(operation *operation.Operation) ([]models.Model, error) {
 	if !helpers.StringInArray(operation.Kind, []string{
 		consts.Origination, consts.OriginationNew, consts.Migration,
 	}) {
@@ -64,7 +64,7 @@ func (p *Parser) Parse(operation operation.Operation) ([]models.Model, error) {
 	return []models.Model{&contract}, nil
 }
 
-func (p *Parser) computeMetrics(operation operation.Operation, contract *contract.Contract) error {
+func (p *Parser) computeMetrics(operation *operation.Operation, contract *contract.Contract) error {
 	script, err := astContract.NewParser([]byte(operation.Script.Raw))
 	if err != nil {
 		return errors.Errorf("ast.NewScript: %v", err)
@@ -72,6 +72,7 @@ func (p *Parser) computeMetrics(operation operation.Operation, contract *contrac
 	if err := script.Parse(); err != nil {
 		return err
 	}
+	operation.Script = operation.Script.Get("code")
 
 	contract.Language = script.Language
 	contract.Hash = script.Hash

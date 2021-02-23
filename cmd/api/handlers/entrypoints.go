@@ -3,11 +3,12 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
+	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 )
 
 // GetEntrypoints godoc
@@ -174,16 +175,18 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 		if len(op) != 1 {
 			break
 		}
-		parameters := gjson.Parse(op[0].Parameters)
-		if parameters.Get("value").Exists() && parameters.Get("entrypoint").Exists() {
-			parameters = parameters.Get("value")
+
+		parameters := types.NewParameters([]byte(op[0].Parameters))
+		var data ast.UntypedAST
+		if err := json.Unmarshal(parameters.Value, &data); ctx.handleError(c, err, 0) {
+			return
+		}
+		if err := e.ParseValue(data[0]); ctx.handleError(c, err, 0) {
+			return
 		}
 
-		// TODO: DefaultModel
-		// schema.DefaultModel = make(jsonschema.DefaultModel)
-		// if err := schema.DefaultModel.FillForEntrypoint(parameters, metadata, esReq.EntrypointName); ctx.handleError(c, err, 0) {
-		// 	return
-		// }
+		schema.DefaultModel = make(ast.JSONModel)
+		e.GetJSONModel(schema.DefaultModel)
 	}
 
 	c.JSON(http.StatusOK, schema)

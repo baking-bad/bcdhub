@@ -476,3 +476,42 @@ func (or *Or) Range(handler func(node Node) error) error {
 	}
 	return or.RightType.Range(handler)
 }
+
+// GetJSONModel -
+func (or *Or) GetJSONModel(model JSONModel) {
+	if model == nil {
+		return
+	}
+
+	var node Node
+	switch or.key {
+	case leftKey:
+		node = or.LeftType
+	case rightKey:
+		node = or.RightType
+	default:
+		return
+	}
+
+	item := make(JSONModel)
+	node.GetJSONModel(item)
+
+	if node.IsPrim(or.Prim) {
+		val, ok := model[node.GetName()]
+		if !ok {
+			return
+		}
+		child := val.(JSONModel)
+		child["schemaKey"] = fmt.Sprintf("%s%v", string(or.key), child["schemaKey"])
+		delete(model, node.GetName())
+		model[or.GetName()] = child
+	} else {
+		newModel := JSONModel{
+			"schemaKey": string(or.key),
+		}
+		for key := range item {
+			newModel[key] = item[key]
+		}
+		model[or.GetName()] = newModel
+	}
+}

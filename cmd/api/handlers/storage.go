@@ -225,21 +225,27 @@ func (ctx *Context) GetContractStorageSchema(c *gin.Context) {
 		return
 	}
 
-	// if ssReq.FillType == "current" {
-	// 	rpc, err := ctx.GetRPC(req.Network)
-	// 	if ctx.handleError(c, err, 0) {
-	// 		return
-	// 	}
-	// 	storage, err := rpc.GetScriptStorageJSON(req.Address, 0)
-	// 	if ctx.handleError(c, err, 0) {
-	// 		return
-	// 	}
-	// TODO: default models
-	// schema.DefaultModel = make(jsonschema.DefaultModel)
-	// if err := schema.DefaultModel.Fill(storage, metadata); ctx.handleError(c, err, 0) {
-	// 	return
-	// }
-	// }
+	if ssReq.FillType == "current" {
+		rpc, err := ctx.GetRPC(req.Network)
+		if ctx.handleError(c, err, 0) {
+			return
+		}
+		storage, err := rpc.GetScriptStorageJSON(req.Address, 0)
+		if ctx.handleError(c, err, 0) {
+			return
+		}
+
+		var storageData ast.UntypedAST
+		if err := json.UnmarshalFromString(storage.Raw, &storageData); ctx.handleError(c, err, 0) {
+			return
+		}
+		if err := storageType.Settle(storageData); ctx.handleError(c, err, 0) {
+			return
+		}
+
+		schema.DefaultModel = make(ast.JSONModel)
+		storageType.GetJSONModel(schema.DefaultModel)
+	}
 
 	c.JSON(http.StatusOK, schema)
 }

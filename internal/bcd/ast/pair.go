@@ -373,3 +373,13 @@ func (p *Pair) Range(handler func(node Node) error) error {
 	}
 	return nil
 }
+
+// GetJSONModel -
+func (p *Pair) GetJSONModel(model JSONModel) {
+	if model == nil {
+		return
+	}
+	for i := range p.Args {
+		p.Args[i].GetJSONModel(model)
+	}
+}

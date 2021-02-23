@@ -432,3 +432,19 @@ func (m *Map) Range(handler func(node Node) error) error {
 	}
 	return m.ValueType.Range(handler)
 }
+
+// GetDefaultJSONModel -
+func (m *Map) GetDefaultJSONModel(model JSONModel) {
+	if model == nil {
+		return
+	}
+	arr := make([]JSONModel, 0)
+	_ = m.Data.Range(func(key, value Comparable) (bool, error) {
+		item := make(JSONModel)
+		key.(Node).GetJSONModel(item)
+		value.(Node).GetJSONModel(item)
+		arr = append(arr, item)
+		return false, nil
+	})
+	model[m.GetName()] = arr
+}

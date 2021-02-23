@@ -134,15 +134,3 @@ func (rm Manager) getAffectedContracts(network string, fromLevel, toLevel int64)
 
 	return rm.contractsRepo.GetIDsByAddresses(addresses, network)
 }
-
-func (rm Manager) getProtocolByLevel(protocols []protocol.Protocol, level int64) (protocol.Protocol, error) {
-	for _, p := range protocols {
-		if p.StartLevel <= level {
-			return p, nil
-		}
-	}
-	if len(protocols) == 0 {
-		return protocol.Protocol{}, errors.Errorf("Can't find protocol for level %d", level)
-	}
-	return protocols[0], nil
-}

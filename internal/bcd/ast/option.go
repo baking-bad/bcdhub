@@ -352,3 +352,18 @@ func (opt *Option) Range(handler func(node Node) error) error {
 	}
 	return nil
 }
+
+// GetJSONModel -
+func (opt *Option) GetJSONModel(model JSONModel) {
+	if model == nil {
+		return
+	}
+	item := JSONModel{
+		"schemaKey": opt.Value,
+	}
+	if opt.Value == consts.SOME {
+		opt.Type.GetJSONModel(item)
+	}
+
+	model[opt.GetName()] = item
+}

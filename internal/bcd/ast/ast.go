@@ -341,6 +341,17 @@ func (a *TypedAst) FindBigMapByPtr() map[int64]*BigMap {
 	return res
 }
 
+// GetJSONModel -
+func (a *TypedAst) GetJSONModel(model JSONModel) {
+	if model == nil {
+		model = make(JSONModel)
+	}
+
+	for i := range a.Nodes {
+		a.Nodes[i].GetJSONModel(model)
+	}
+}
+
 func marshalJSON(prim string, annots []string, args ...Node) ([]byte, error) {
 	var builder bytes.Buffer
 	builder.WriteByte('{')

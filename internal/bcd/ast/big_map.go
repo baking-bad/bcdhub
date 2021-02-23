@@ -234,6 +234,7 @@ func (m *BigMap) EnrichBigMap(bmd []*types.BigMapDiff) error {
 			if err := m.Data.Add(key, val); err != nil {
 				return err
 			}
+			m.diffs = append(m.diffs, bmd[i])
 		}
 	}
 	return nil
@@ -468,4 +469,20 @@ func (m *BigMap) Range(handler func(node Node) error) error {
 		return err
 	}
 	return m.ValueType.Range(handler)
+}
+
+// GetJSONModel -
+func (m *BigMap) GetJSONModel(model JSONModel) {
+	if model == nil {
+		return
+	}
+	arr := make([]JSONModel, 0)
+	_ = m.Data.Range(func(key, value Comparable) (bool, error) {
+		item := make(JSONModel)
+		key.(Node).GetJSONModel(item)
+		value.(Node).GetJSONModel(item)
+		arr = append(arr, item)
+		return false, nil
+	})
+	model[m.GetName()] = arr
 }

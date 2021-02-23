@@ -271,6 +271,18 @@ func (list *List) Range(handler func(node Node) error) error {
 	return list.Type.Range(handler)
 }
 
+// GetJSONModel -
+func (list *List) GetJSONModel(model JSONModel) {
+	if model == nil {
+		return
+	}
+	arr := make([]JSONModel, len(list.Data))
+	for i := range list.Data {
+		list.Data[i].GetJSONModel(arr[i])
+	}
+	model[list.GetName()] = arr
+}
+
 func mergeMatrix(d [][]int, i, j int, first, second []Node) ([]*MiguelNode, error) {
 	children := make([]*MiguelNode, 0)
 	var err error

@@ -11,6 +11,9 @@ const (
 	JSONSchemaTypeObject = "object"
 )
 
+// JSONModel -
+type JSONModel map[string]interface{}
+
 // JSONSchema -
 type JSONSchema struct {
 	Type       string                 `json:"type"`

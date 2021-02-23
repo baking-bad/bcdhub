@@ -29,8 +29,8 @@ func ContractWithRPC(rpc noderpc.INode, address, network, protocol, filesDirecto
 	return rpc.GetScriptJSON(address, fallbackLevel)
 }
 
-// RemoveContractFromFileSystem -
-func RemoveContractFromFileSystem(address, network, protocol, filesDirectory string) error {
+// RemoveContract -
+func RemoveContract(address, network, protocol, filesDirectory string) error {
 	if filesDirectory == "" {
 		return errors.Errorf("Invalid filesDirectory: %s", filesDirectory)
 	}

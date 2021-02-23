@@ -141,7 +141,7 @@ func (o *Operation) IsCall() bool {
 
 // GetScriptSection -
 func (o *Operation) GetScriptSection(name string) gjson.Result {
-	return o.Script.Get(fmt.Sprintf("code.#(prim==\"%s\").args.0", name))
+	return o.Script.Get(fmt.Sprintf("#(prim==\"%s\").args.0", name))
 }
 
 // Result -

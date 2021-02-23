@@ -86,7 +86,7 @@ func (p Origination) appliedHandler(item gjson.Result, origination *operation.Op
 
 	models := make([]models.Model, 0)
 
-	contractModels, err := p.contractParser.Parse(*origination)
+	contractModels, err := p.contractParser.Parse(origination)
 	if err != nil {
 		return nil, err
 	}

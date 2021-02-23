@@ -36,7 +36,7 @@ func (a *Alpha) ParseTransaction(content gjson.Result, operation operation.Opera
 
 // ParseOrigination -
 func (a *Alpha) ParseOrigination(content gjson.Result, operation operation.Operation) (RichStorage, error) {
-	storage, err := getStorage(operation.Script)
+	storage, err := getStorage(operation)
 	if err != nil {
 		return RichStorage{Empty: true}, err
 	}

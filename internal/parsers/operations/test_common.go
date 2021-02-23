@@ -71,7 +71,7 @@ func compareParserResponse(t *testing.T, got, want []models.Model) bool {
 				logger.Info("Differrrent types: %T != %T", one, two)
 				return false
 			}
-			if !compareBigMapDiff(one, two) {
+			if !compareBigMapDiff(t, one, two) {
 				return false
 			}
 		case *bigmapaction.BigMapAction:
@@ -287,7 +287,7 @@ func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 	return true
 }
 
-func compareBigMapDiff(one, two *bigmapdiff.BigMapDiff) bool {
+func compareBigMapDiff(t *testing.T, one, two *bigmapdiff.BigMapDiff) bool {
 	if one.Address != two.Address {
 		logger.Info("BigMapDiff.Address: %s != %s", one.Address, two.Address)
 		return false
@@ -296,9 +296,10 @@ func compareBigMapDiff(one, two *bigmapdiff.BigMapDiff) bool {
 		logger.Info("KeyHash: %s != %s", one.KeyHash, two.KeyHash)
 		return false
 	}
-	if !reflect.DeepEqual(one.Value, two.Value) {
-		logger.Info("BigMapDiff.Value: %s != %s", one.Value, two.Value)
-		return false
+	if len(one.Value) > 0 || len(two.Value) > 0 {
+		if !assert.JSONEq(t, string(one.ValueBytes()), string(two.ValueBytes())) {
+			return false
+		}
 	}
 	if one.Level != two.Level {
 		logger.Info("Level: %d != %d", one.Level, two.Level)
@@ -316,8 +317,7 @@ func compareBigMapDiff(one, two *bigmapdiff.BigMapDiff) bool {
 		logger.Info("Protocol: %s != %s", one.Protocol, two.Protocol)
 		return false
 	}
-	if !reflect.DeepEqual(one.Key, two.Key) {
-		logger.Info("Key: %s != %s", one.Key, two.Key)
+	if !assert.JSONEq(t, string(one.KeyBytes()), string(two.KeyBytes())) {
 		return false
 	}
 	return true

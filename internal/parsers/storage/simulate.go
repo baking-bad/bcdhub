@@ -22,7 +22,7 @@ func NewSimulate(repo bigmapdiff.Repository) *Simulate {
 
 // ParseTransaction -
 func (b *Simulate) ParseTransaction(content gjson.Result, operation operation.Operation) (RichStorage, error) {
-	storage, err := getStorage(operation.Script)
+	storage, err := getStorage(operation)
 	if err != nil {
 		return RichStorage{Empty: true}, err
 	}
@@ -51,7 +51,7 @@ func (b *Simulate) ParseTransaction(content gjson.Result, operation operation.Op
 
 // ParseOrigination -
 func (b *Simulate) ParseOrigination(content gjson.Result, operation operation.Operation) (RichStorage, error) {
-	storage, err := getStorage(operation.Script)
+	storage, err := getStorage(operation)
 	if err != nil {
 		return RichStorage{Empty: true}, err
 	}

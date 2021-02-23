@@ -59,6 +59,9 @@ func (u *Unit) Distinguish(x Distinguishable) (*MiguelNode, error) {
 	return s.Default.Distinguish(&s.Default)
 }
 
+// GetJSONModel -
+func (u *Unit) GetJSONModel(model JSONModel) {}
+
 //
 //  STRING
 //
@@ -437,6 +440,15 @@ func (t *Timestamp) Distinguish(x Distinguishable) (*MiguelNode, error) {
 	return t.Default.Distinguish(&second.Default)
 }
 
+// GetJSONModel -
+func (t *Timestamp) GetJSONModel(model JSONModel) {
+	if model == nil {
+		return
+	}
+	ts := t.Value.(time.Time)
+	model[t.GetName()] = ts.Format(time.RFC3339)
+}
+
 //  BYTES
 //
 
@@ -513,6 +525,9 @@ func (n *Never) Distinguish(x Distinguishable) (*MiguelNode, error) {
 	}
 	return n.Default.Distinguish(&second.Default)
 }
+
+// GetJSONModel -
+func (n *Never) GetJSONModel(model JSONModel) {}
 
 //
 //  Operation

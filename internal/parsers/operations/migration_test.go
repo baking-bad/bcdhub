@@ -60,7 +60,7 @@ func TestMigration_Parse(t *testing.T) {
 				t.Errorf(`readJSONFile("%s") = error %v`, tt.fileName, err)
 				return
 			}
-			got, err := NewMigration(tt.operation, "").Parse(data)
+			got, err := NewMigration().Parse(data, tt.operation)
 			if err != nil {
 				t.Errorf("Migration.Parse() = %s", err)
 				return

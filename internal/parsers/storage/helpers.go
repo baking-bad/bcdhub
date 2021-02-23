@@ -2,8 +2,10 @@ package storage
 
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
@@ -77,8 +79,11 @@ func createBigMapAst(key, value []byte, ptr int64) (*ast.BigMap, error) {
 	return bigMap, nil
 }
 
-func getStorage(script gjson.Result) (*ast.TypedAst, error) {
-	storageJSON := script.Get("code.#(prim==\"storage\").args")
+func getStorage(operation operation.Operation) (*ast.TypedAst, error) {
+	storageJSON := operation.GetScriptSection(consts.STORAGE)
+	if !storageJSON.Exists() {
+		return nil, errors.New("Can't find contract`s storage section")
+	}
 	var tree ast.UntypedAST
 	if err := json.UnmarshalFromString(storageJSON.Raw, &tree); err != nil {
 		return nil, err

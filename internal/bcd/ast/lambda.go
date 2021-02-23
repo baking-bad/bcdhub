@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/bcd/translator"
 )
@@ -50,7 +51,15 @@ func (l *Lambda) ParseType(node *base.Node, id *int) error {
 
 // ParseValue -
 func (l *Lambda) ParseValue(node *base.Node) error {
-	str, err := json.MarshalToString(node.Args)
+	tree := node.Args
+	if node.BytesValue != nil {
+		t, err := forge.UnpackString(*node.BytesValue)
+		if err != nil {
+			return err
+		}
+		tree = t
+	}
+	str, err := json.MarshalToString(tree)
 	if err != nil {
 		return err
 	}
@@ -131,7 +140,7 @@ func (l *Lambda) Docs(inferredName string) ([]Typedef, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	parameter, err := formatter.MichelineStringToMichelson(iStr, true, formatter.DefLineSize)
+	parameter, err := formatter.MichelineToMichelsonInline(iStr)
 	if err != nil {
 		return nil, "", err
 	}
@@ -141,7 +150,7 @@ func (l *Lambda) Docs(inferredName string) ([]Typedef, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	returnValue, err := formatter.MichelineStringToMichelson(rStr, true, formatter.DefLineSize)
+	returnValue, err := formatter.MichelineToMichelsonInline(rStr)
 	if err != nil {
 		return nil, "", err
 	}
@@ -196,4 +205,16 @@ func (l *Lambda) EqualType(node Node) bool {
 	}
 
 	return l.ReturnType.EqualType(second.ReturnType)
+}
+
+// GetJSONModel -
+func (l *Lambda) GetJSONModel(model JSONModel) {
+	if model == nil {
+		return
+	}
+	s, err := formatter.MichelineToMichelsonInline(l.Value.(string))
+	if err != nil {
+		return
+	}
+	model[l.GetName()] = s
 }

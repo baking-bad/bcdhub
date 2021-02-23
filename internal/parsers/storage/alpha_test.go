@@ -31,7 +31,7 @@ func TestAlpha_ParseOrigination(t *testing.T) {
 					Protocol:  "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
 					Timestamp: time.Date(2018, 06, 30, 0, 0, 0, 0, time.Local),
 					Network:   "mainnet",
-					Script:    gjson.Parse(`{"code":[{"prim":"storage","args":[{"prim":"pair","args":[{"prim":"big_map","args":[{"prim":"address"},{"prim":"pair","args":[{"prim":"map","args":[{"prim":"address"},{"prim":"nat"}],"annots":["%allowances"]},{"prim":"nat","annots":["%balance"]}]}],"annots":["%ledger"]},{"prim":"nat","annots":["%totalSupply"]}]}]}`),
+					Script:    gjson.Parse(`[{"prim":"storage","args":[{"prim":"pair","args":[{"prim":"big_map","args":[{"prim":"address"},{"prim":"pair","args":[{"prim":"map","args":[{"prim":"address"},{"prim":"nat"}],"annots":["%allowances"]},{"prim":"nat","annots":["%balance"]}]}],"annots":["%ledger"]},{"prim":"nat","annots":["%totalSupply"]}]}]`),
 				},
 			},
 			want: RichStorage{

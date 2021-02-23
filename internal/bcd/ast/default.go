@@ -349,3 +349,11 @@ func (d *Default) FindPointers() map[int64]*BigMap {
 func (d *Default) Range(handler func(node Node) error) error {
 	return handler(d)
 }
+
+// GetJSONModel -
+func (d *Default) GetJSONModel(model JSONModel) {
+	if model == nil {
+		return
+	}
+	model[d.GetName()] = d.Value
+}

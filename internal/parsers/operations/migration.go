@@ -1,27 +1,28 @@
 package operations
 
 import (
+	"time"
+
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/tidwall/gjson"
 )
 
-// TODO: relocate to storage? or metrics?
-
 // Migration -
 type Migration struct {
-	operation *operation.Operation
-	shareDir  string
 }
 
 // NewMigration -
-func NewMigration(operation *operation.Operation, shareDir string) Migration {
-	return Migration{operation, shareDir}
+func NewMigration() Migration {
+	return Migration{}
 }
 
 // Parse -
-func (m Migration) Parse(data gjson.Result) (*migration.Migration, error) {
+func (m Migration) Parse(data gjson.Result, operation *operation.Operation) (*migration.Migration, error) {
 	path := "metadata.operation_result.big_map_diff"
 	if !data.Get(path).Exists() {
 		path = "result.big_map_diff"
@@ -29,38 +30,35 @@ func (m Migration) Parse(data gjson.Result) (*migration.Migration, error) {
 			return nil, nil
 		}
 	}
-	for _, bmd := range data.Get(path).Array() {
-		if bmd.Get("action").String() != "update" {
-			continue
-		}
 
-		value := bmd.Get("value")
-		if value.Raw == "" {
+	for _, bmd := range data.Get(path).Array() {
+		if bmd.Get("action").String() != "update" || bmd.Get("value").String() == "" {
 			continue
 		}
 
 		var tree ast.UntypedAST
-		if err := json.UnmarshalFromString(value.String(), &tree); err != nil {
+		if err := json.UnmarshalFromString(bmd.Get("value").String(), &tree); err != nil {
 			return nil, err
 		}
+		if len(tree) == 0 {
+			continue
+		}
+		if tree[0].IsLambda() {
+			migration := &migration.Migration{
+				ID:          helpers.GenerateID(),
+				IndexedTime: time.Now().UnixNano() / 1000,
 
-		// TODO: lambda check
-		// if ast.HasPrimitive(tree, consts.LAMBDA) {
-		// 	migration := &migration.Migration{
-		// 		ID:          helpers.GenerateID(),
-		// 		IndexedTime: time.Now().UnixNano() / 1000,
-
-		// 		Network:   m.operation.Network,
-		// 		Level:     m.operation.Level,
-		// 		Protocol:  m.operation.Protocol,
-		// 		Address:   m.operation.Destination,
-		// 		Timestamp: m.operation.Timestamp,
-		// 		Hash:      m.operation.Hash,
-		// 		Kind:      consts.MigrationLambda,
-		// 	}
-		// 	logger.With(migration).Info("Migration detected")
-		// 	return migration, nil
-		// }
+				Network:   operation.Network,
+				Level:     operation.Level,
+				Protocol:  operation.Protocol,
+				Address:   operation.Destination,
+				Timestamp: operation.Timestamp,
+				Hash:      operation.Hash,
+				Kind:      consts.MigrationLambda,
+			}
+			logger.With(migration).Info("Migration detected")
+			return migration, nil
+		}
 	}
 	return nil, nil
 }

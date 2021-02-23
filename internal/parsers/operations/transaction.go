@@ -149,7 +149,7 @@ func (p Transaction) appliedHandler(item gjson.Result, op *operation.Operation) 
 
 	resultModels = append(resultModels, rs.Models...)
 
-	migration, err := NewMigration(op, p.shareDir).Parse(item)
+	migration, err := NewMigration().Parse(item, op)
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +165,7 @@ func (p Transaction) appliedHandler(item gjson.Result, op *operation.Operation) 
 }
 
 func (p Transaction) getEntrypoint(op *operation.Operation) error {
-	parameter := op.Script.Get("code.#(prim==\"parameter\").args")
+	parameter := op.GetScriptSection(consts.PARAMETER)
 	param, err := ast.NewTypedAstFromString(parameter.Raw)
 	if err != nil {
 		return err

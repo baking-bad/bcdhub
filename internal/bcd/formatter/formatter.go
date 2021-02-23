@@ -60,6 +60,11 @@ func IsScript(n gjson.Result) bool {
 	return true
 }
 
+// MichelineToMichelsonInline -
+func MichelineToMichelsonInline(str string) (string, error) {
+	return MichelineToMichelson(gjson.Parse(str), true, DefLineSize)
+}
+
 // MichelineStringToMichelson -
 func MichelineStringToMichelson(str string, inline bool, lineSize int) (string, error) {
 	return MichelineToMichelson(gjson.Parse(str), inline, lineSize)
