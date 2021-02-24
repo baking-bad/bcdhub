@@ -145,13 +145,16 @@ ps:
 	docker ps --format "table {{.Names}}\t{{.RunningFor}}\t{{.Status}}\t{{.Ports}}"
 
 sandbox-images:
-	docker-compose -f docker-compose.sandbox.yml build
+	$(MAKE) stable-images
+
+sandbox:
+	TAG=$$(cat version.json | grep version | awk -F\" '{ print $$4 }' |  cut -d '.' -f1-2) COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.sandbox.yml up -d
 
 sandbox-up:
-	COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.sandbox.yml up -d
+	TAG=$$(cat version.json | grep version | awk -F\" '{ print $$4 }' |  cut -d '.' -f1-2) COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.sandbox.yml up -d elastic mq db api indexer metrics gui
 
 sandbox-dev:
-	COMPOSE_PROJECT_NAME=bcdbox BCD_ENV=you docker-compose -f docker-compose.sandbox.yml up -d elastic mq db api indexer metrics
+	TAG=$$(cat version.json | grep version | awk -F\" '{ print $$4 }' |  cut -d '.' -f1-2) COMPOSE_PROJECT_NAME=bcdbox BCD_ENV=you docker-compose -f docker-compose.sandbox.yml up -d elastic mq db api indexer metrics gui
 
 sandbox-down:
 	COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.sandbox.yml down

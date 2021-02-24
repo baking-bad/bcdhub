@@ -21,14 +21,13 @@ share_path: ${HOME}/.bcd
 base_url: http://localhost:8000
 
 ipfs:
-  - https://ipfs.io
-  - https://dweb.link
+  - ${SANDBOX_IPFS_GATEWAY}
 
 api:
   project_name: api
   bind: ":14000"
   swagger_host: "localhost:8000"
-  cors_enabled: false
+  cors_enabled: true
   oauth_enabled: false
   sentry_enabled: false
   seed_enabled: true

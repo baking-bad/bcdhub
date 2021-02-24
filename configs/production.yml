@@ -65,9 +65,9 @@ share_path: /etc/bcd
 base_url: https://better-call.dev
 
 ipfs:
+  - https://ipfs.baking-bad.org
   - https://ipfs.io
   - https://dweb.link
-  - https://ipfs.baking-bad.org
 
 domains:
   delphinet: KT1CR6vXJ1qeY4ALDQfUaLFi3FcJJZ8WDygo
