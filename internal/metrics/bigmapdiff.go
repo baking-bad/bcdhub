@@ -11,17 +11,19 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // SetBigMapDiffsStrings -
 func (h *Handler) SetBigMapDiffsStrings(bmd *bigmapdiff.BigMapDiff) error {
-	keyStrings, err := getStrings(bmd.Key)
+	keyStrings, err := getStrings(bmd.KeyBytes())
 	if err != nil {
 		return err
 	}
 	bmd.KeyStrings = keyStrings
 
-	valStrings, err := getStrings(bmd.Value)
-	if err != nil {
-		return err
+	if bmd.Value != nil {
+		valStrings, err := getStrings(bmd.ValueBytes())
+		if err != nil {
+			return err
+		}
+		bmd.ValueStrings = valStrings
 	}
-	bmd.ValueStrings = valStrings
 	return nil
 }
 

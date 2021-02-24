@@ -1,1 +1,90 @@
-{"mappings":{"properties":{"address":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"bin_path":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"indexed_time":{"type":"long"},"key":{"properties":{"args":{"properties":{"bytes":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"int":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"string":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}}}},"bytes":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"int":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"prim":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"string":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}}}},"key_hash":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"key_strings":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"level":{"type":"long"},"network":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"operation_id":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"protocol":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"ptr":{"type":"long"},"timestamp":{"type":"date"},"value":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}},"value_strings":{"type":"text","fields":{"keyword":{"type":"keyword","ignore_above":256}}}}}}
+{
+    "mappings": {
+        "properties": {
+            "address": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "bin_path": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "indexed_time": {
+                "type": "long"
+            },
+            "key_hash": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "key_strings": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "level": {
+                "type": "long"
+            },
+            "network": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "operation_id": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "protocol": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "ptr": {
+                "type": "long"
+            },
+            "timestamp": {
+                "type": "date"
+            },
+            "value_strings": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            }
+        }
+    }
+}

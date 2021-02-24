@@ -54,11 +54,11 @@ func (p *Parser) Parse(ctx ParseContext) (data *tzip.TZIP, err error) {
 	}
 
 	data = &tzip.TZIP{}
-	s := tzipStorage.NewFull(p.bigMapRepo, p.blocksRepo, p.storage, p.rpc, p.cfg.IPFSGateways...)
+	s := tzipStorage.NewFull(p.bigMapRepo, p.blocksRepo, p.storage, p.rpc, p.cfg.SharePath, p.cfg.IPFSGateways...)
 	if err := s.Get(ctx.BigMapDiff.Network, ctx.BigMapDiff.Address, decoded, ctx.BigMapDiff.Ptr, data); err != nil {
 		switch {
 		case errors.Is(err, tzipStorage.ErrHTTPRequest) || errors.Is(err, tzipStorage.ErrJSONDecoding):
-			logger.With(&ctx.BigMapDiff).Error(err)
+			logger.With(&ctx.BigMapDiff).Warning(err)
 			return nil, nil
 		case errors.Is(err, tzipStorage.ErrNoIPFSResponse):
 			data.Description = fmt.Sprintf("Failed to fetch metadata %s", decoded)

@@ -229,7 +229,8 @@ func (rpc *NodeRPC) GetScriptJSON(address string, level int64) (gjson.Result, er
 
 // GetScriptStorageJSON -
 func (rpc *NodeRPC) GetScriptStorageJSON(address string, level int64) (gjson.Result, error) {
-	return rpc.GetScriptJSON(address, level)
+	response, err := rpc.getGJSON(fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s/script", getBlockString(level), address))
+	return response.Get("storage"), err
 }
 
 // GetContractBalance -
@@ -244,8 +245,11 @@ func (rpc *NodeRPC) GetContractBalance(address string, level int64) (int64, erro
 // GetContractData -
 func (rpc *NodeRPC) GetContractData(address string, level int64) (ContractData, error) {
 	var response ContractData
-	err := rpc.get(fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s", getBlockString(level), address), &response)
-	return response, err
+	if err := rpc.get(fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s", getBlockString(level), address), &response); err != nil {
+		return response, err
+	}
+	response.Script = gjson.ParseBytes(response.RawScript)
+	return response, nil
 }
 
 // GetOperations -

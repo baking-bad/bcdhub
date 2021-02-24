@@ -134,9 +134,8 @@ func (b *Babylon) handleBigMapDiffUpdate(item gjson.Result, storage *ast.TypedAs
 	bmd := bigmapdiff.BigMapDiff{
 		ID:          helpers.GenerateID(),
 		Ptr:         ptr,
-		Key:         []byte(item.Get("key").String()),
+		Key:         []byte(item.Get("key").Raw),
 		KeyHash:     item.Get("key_hash").String(),
-		Value:       []byte(item.Get("value").String()),
 		OperationID: operation.ID,
 		Level:       operation.Level,
 		Address:     address,
@@ -144,6 +143,10 @@ func (b *Babylon) handleBigMapDiffUpdate(item gjson.Result, storage *ast.TypedAs
 		Network:     operation.Network,
 		Timestamp:   operation.Timestamp,
 		Protocol:    operation.Protocol,
+	}
+
+	if item.Get("value").Exists() {
+		bmd.Value = []byte(item.Get("value").Raw)
 	}
 
 	if err := b.addDiff(&bmd, storage, ptr); err != nil {

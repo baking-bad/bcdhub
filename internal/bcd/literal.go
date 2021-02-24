@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
-	"github.com/baking-bad/bcdhub/internal/bcd/encoding"
 )
 
 // IsLiteral -
@@ -23,9 +22,5 @@ func IsLiteral(prim string) bool {
 
 // IsContract -
 func IsContract(address string) bool {
-	if len(address) != 36 || !strings.HasPrefix(address, "KT") {
-		return false
-	}
-	_, err := encoding.DecodeBase58String(address)
-	return err == nil
+	return len(address) == 36 && strings.HasPrefix(address, "KT")
 }

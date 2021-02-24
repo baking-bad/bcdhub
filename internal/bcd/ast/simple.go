@@ -3,6 +3,7 @@ package ast
 import (
 	"encoding/hex"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -346,9 +347,18 @@ func (t *Timestamp) ParseValue(node *base.Node) error {
 	case node.StringValue != nil:
 		utc, err := time.Parse(time.RFC3339, *node.StringValue)
 		if err != nil {
-			return err
+			i, err := strconv.ParseInt(*node.StringValue, 10, 64)
+			if err != nil {
+				return err
+			}
+			if 253402300799 > i { // 31 December 9999 23:59:59 Golang time restriction
+				t.Value = time.Unix(i, 0).UTC()
+			} else {
+				t.Value = fmt.Sprintf("%d", i)
+			}
+		} else {
+			t.Value = utc.UTC()
 		}
-		t.Value = utc.UTC()
 	}
 	return nil
 }

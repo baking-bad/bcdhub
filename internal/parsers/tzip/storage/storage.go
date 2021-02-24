@@ -27,14 +27,15 @@ type Full struct {
 	blockRepo block.Repository
 	storage   models.GeneralRepository
 
-	rpc  noderpc.INode
-	ipfs []string
+	rpc       noderpc.INode
+	sharePath string
+	ipfs      []string
 }
 
 // NewFull -
-func NewFull(bmdRepo bigmapdiff.Repository, blockRepo block.Repository, storage models.GeneralRepository, rpc noderpc.INode, ipfs ...string) *Full {
+func NewFull(bmdRepo bigmapdiff.Repository, blockRepo block.Repository, storage models.GeneralRepository, rpc noderpc.INode, sharePath string, ipfs ...string) *Full {
 	return &Full{
-		bmdRepo, blockRepo, storage, rpc, ipfs,
+		bmdRepo, blockRepo, storage, rpc, sharePath, ipfs,
 	}
 }
 
@@ -57,7 +58,7 @@ func (f Full) Get(network, address, url string, ptr int64, output interface{}) e
 			WithHashSha256(url),
 		)
 	case strings.HasPrefix(url, PrefixTezosStorage):
-		store = NewTezosStorage(f.bmdRepo, f.blockRepo, f.storage, f.rpc, address, network, ptr)
+		store = NewTezosStorage(f.bmdRepo, f.blockRepo, f.storage, f.rpc, address, network, f.sharePath, ptr)
 	default:
 		return errors.Wrap(ErrUnknownStorageType, url)
 	}

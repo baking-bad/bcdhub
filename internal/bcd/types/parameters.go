@@ -11,14 +11,14 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // Parameters -
 type Parameters struct {
-	Entrypoint string             `json:"entrypoint,omitempty"`
-	Value      stdJSON.RawMessage `json:"value,omitempty"`
+	Entrypoint string             `json:"entrypoint"`
+	Value      stdJSON.RawMessage `json:"value"`
 }
 
 // NewParameters -
 func NewParameters(data []byte) *Parameters {
 	var p Parameters
-	if err := json.Unmarshal(data, &p); err != nil {
+	if err := json.Unmarshal(data, &p); err != nil || p.Entrypoint == "" {
 		p.Entrypoint = consts.DefaultEntrypoint
 		p.Value = data
 	}

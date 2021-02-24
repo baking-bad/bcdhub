@@ -50,9 +50,7 @@ func (storage *Storage) GetProtocol(network, hash string, level int64) (p protoc
 		err = core.NewRecordNotFoundError(models.DocProtocol, "")
 		return
 	}
-
 	p.ID = response.Hits.Hits[0].ID
-
 	err = json.Unmarshal(response.Hits.Hits[0].Source, &p)
 	return
 }

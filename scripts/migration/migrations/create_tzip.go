@@ -57,6 +57,7 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 		}
 		parser := tzipParsers.NewParser(ctx.BigMapDiffs, ctx.Blocks, ctx.Storage, rpc, tzipParsers.ParserConfig{
 			IPFSGateways: ctx.Config.IPFSGateways,
+			SharePath:    ctx.SharePath,
 		})
 
 		t, err := parser.Parse(tzipParsers.ParseContext{

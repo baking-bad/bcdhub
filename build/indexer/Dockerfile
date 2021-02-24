@@ -33,6 +33,5 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /go/bin/indexer /go/bin/indexer
 COPY cmd/indexer/mappings /app/indexer/mappings
 COPY configs/*.yml /app/indexer/
-COPY cmd/indexer/data/errors.json /app/indexer/data/errors.json
 
 ENTRYPOINT ["/go/bin/indexer"]

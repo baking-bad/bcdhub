@@ -26,14 +26,15 @@ type TezosStorage struct {
 	blockRepo  block.Repository
 	storage    models.GeneralRepository
 
-	rpc     noderpc.INode
-	network string
-	address string
-	ptr     int64
+	rpc       noderpc.INode
+	network   string
+	address   string
+	ptr       int64
+	sharePath string
 }
 
 // NewTezosStorage -
-func NewTezosStorage(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, storage models.GeneralRepository, rpc noderpc.INode, address, network string, ptr int64) TezosStorage {
+func NewTezosStorage(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, storage models.GeneralRepository, rpc noderpc.INode, address, network, sharePath string, ptr int64) TezosStorage {
 	return TezosStorage{
 		bigMapRepo: bigMapRepo,
 		blockRepo:  blockRepo,
@@ -42,6 +43,7 @@ func NewTezosStorage(bigMapRepo bigmapdiff.Repository, blockRepo block.Repositor
 		address:    address,
 		network:    network,
 		ptr:        ptr,
+		sharePath:  sharePath,
 	}
 }
 
@@ -96,7 +98,7 @@ func (s *TezosStorage) fillFields(uri TezosStorageURI) error {
 			return err
 		}
 
-		bmPtr, err := storage.GetBigMapPtr(s.rpc, s.address, metadataAnnot, s.network, block.Protocol, "", 0)
+		bmPtr, err := storage.GetBigMapPtr(s.rpc, s.address, metadataAnnot, s.network, block.Protocol, s.sharePath, 0)
 		if err != nil {
 			return err
 		}

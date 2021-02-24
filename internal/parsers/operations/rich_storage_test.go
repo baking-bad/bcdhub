@@ -14,6 +14,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/parsers/storage"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"github.com/tidwall/gjson"
 )
 
 func TestRichStorage_Parse(t *testing.T) {
@@ -112,13 +113,51 @@ func TestRichStorage_Parse(t *testing.T) {
 					},
 				},
 			},
+		}, {
+			name: "test 3",
+			operation: &operation.Operation{
+				ID:          "operation_id",
+				Level:       220,
+				Destination: "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
+				Network:     "edo2net",
+				Timestamp:   timestamp,
+				Protocol:    "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA",
+				Kind:        "origination",
+			},
+			sourcePtr: 17,
+			filename:  "./data/rich_storage/test3.json",
+			want: storage.RichStorage{
+				Models: []models.Model{
+					&bigmapaction.BigMapAction{
+						Action:      "alloc",
+						SourcePtr:   setInt64(17),
+						OperationID: "operation_id",
+						Level:       220,
+						Address:     "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
+						Network:     "edo2net",
+						Timestamp:   timestamp,
+					},
+					&bigmapdiff.BigMapDiff{
+						Ptr:         17,
+						KeyHash:     "expru5X1yxJG6ezR2uHMotwMLNmSzQyh5t1vUnhjx4cS6Pv9qE1Sdo",
+						Key:         []byte(`{"string": ""}`),
+						Value:       []byte(`{"bytes": "68747470733a2f2f73746f726167652e676f6f676c65617069732e636f6d2f747a69702d31362f656d6f6a692d696e2d6d657461646174612e6a736f6e"}`),
+						OperationID: "operation_id",
+						Level:       220,
+						Address:     "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
+						Network:     "edo2net",
+						Timestamp:   timestamp,
+						Protocol:    "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA",
+					},
+				},
+			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			storageJSON, err := readStorage(tt.operation.Destination, tt.operation.Level)
 			if err != nil {
-				t.Errorf(`readStorage("%s"m %d) = error %v`, tt.operation.Destination, tt.operation.Level, err)
+				t.Errorf(`readStorage("%s", %d) = error %v`, tt.operation.Destination, tt.operation.Level, err)
 				return
 			}
 			tt.want.DeffatedStorage = storageJSON.String()
@@ -140,11 +179,12 @@ func TestRichStorage_Parse(t *testing.T) {
 				t.Errorf(`readJSONFile("%s") = error %v`, tt.filename, err)
 				return
 			}
-			tt.operation.Script, err = fetch.ContractWithRPC(rpc, tt.operation.Destination, tt.operation.Network, tt.operation.Protocol, "./test", tt.operation.Level)
+			script, err := fetch.Contract(tt.operation.Destination, tt.operation.Network, tt.operation.Protocol, "./test")
 			if err != nil {
 				t.Errorf(`readJSONFile("%s") = error %v`, tt.filename, err)
 				return
 			}
+			tt.operation.Script = gjson.ParseBytes(script)
 
 			parser, err := NewRichStorage(bmdRepo, rpc, tt.operation.Protocol)
 			if err != nil {

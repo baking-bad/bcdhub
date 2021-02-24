@@ -6,28 +6,13 @@ import (
 	"os"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
-	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 )
 
 const (
-	contractFormatPath = "%s/contracts/%s/%s_%s.json"
+	contractFormatPath    = "%s/contracts/%s/%s_%s.json"
+	delegatorContractPath = "%s/contracts/scripts/b5d01d3bf75d0cc4b88e5f881074084c5e76a0b1f8bdab6249c591a6f45a314283d32fe01c7300563e82866ef1f0c34d401b9e00cba6d2018fe56595f06b5f02.json"
 )
-
-// ContractWithRPC -
-func ContractWithRPC(rpc noderpc.INode, address, network, protocol, filesDirectory string, fallbackLevel int64) (gjson.Result, error) {
-	if filesDirectory != "" {
-		data, err := Contract(address, network, protocol, filesDirectory)
-		switch {
-		case err == nil:
-			return gjson.ParseBytes(data), nil
-		case !os.IsNotExist(err):
-			return gjson.Result{}, err
-		}
-	}
-	return rpc.GetScriptJSON(address, fallbackLevel)
-}
 
 // RemoveContract -
 func RemoveContract(address, network, protocol, filesDirectory string) error {
@@ -75,7 +60,11 @@ func Contract(address, network, protocol, filesDirectory string) ([]byte, error)
 
 	filePath := fmt.Sprintf(contractFormatPath, filesDirectory, network, address, protoSymLink)
 	if _, err = os.Stat(filePath); err != nil {
-		return nil, err
+		if os.IsNotExist(err) {
+			filePath = fmt.Sprintf(delegatorContractPath, filesDirectory)
+		} else {
+			return nil, err
+		}
 	}
 	return ioutil.ReadFile(filePath)
 }

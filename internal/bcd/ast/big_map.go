@@ -227,9 +227,12 @@ func (m *BigMap) EnrichBigMap(bmd []*types.BigMapDiff) error {
 			if err != nil {
 				return err
 			}
-			val, err := m.makeNodeFromBytes(m.ValueType, bmd[i].Value)
-			if err != nil {
-				return err
+			var val Node
+			if bmd[i].Value != nil {
+				val, err = m.makeNodeFromBytes(m.ValueType, bmd[i].Value)
+				if err != nil {
+					return err
+				}
 			}
 			if err := m.Data.Add(key, val); err != nil {
 				return err

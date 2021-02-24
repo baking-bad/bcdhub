@@ -178,6 +178,8 @@ var codes = map[string]string{
 	"SPLIT_TICKET":          "b3",
 	"JOIN_TICKETS":          "b4",
 	"GET_AND_UPDATE":        "b5",
+	"MAP_CDR":               "b6",
+	"MAP_CAR":               "b7",
 }
 
 var regCodes = map[string]string{

@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
+	"github.com/pkg/errors"
 )
 
 // Bulk -
@@ -25,7 +27,15 @@ func (e *Elastic) Bulk(buf *bytes.Buffer) error {
 	defer res.Body.Close()
 
 	var response BulkResponse
-	return e.GetResponse(res, &response)
+	if err := e.GetResponse(res, &response); err != nil {
+		return err
+	}
+	if response.Errors {
+
+		logger.Debug(buf.String())
+		return errors.Errorf("Bulk error: %s", string(response.Items))
+	}
+	return nil
 }
 
 // BulkInsert -

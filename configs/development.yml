@@ -28,7 +28,7 @@ tzkt:
 
 storage:
   uri:
-    - http://127.0.0.1:9203
+    - http://127.0.0.1:9200
   timeout: 10
 
 rabbitmq:
@@ -119,15 +119,16 @@ compiler:
 indexer:
   project_name: indexer
   sentry_enabled: false
-  skip_delegator_blocks: true
+  skip_delegator_blocks: false
   mq:
     publisher: true
   networks:
     mainnet:
       boost: tzkt
-    # delphinet:
-    #   boost: tzkt
-    # edo2net:
+    delphinet:
+      boost: tzkt
+    edo2net:
+      boost: tzkt
 
 metrics:
   project_name: metrics

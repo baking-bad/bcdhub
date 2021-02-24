@@ -104,6 +104,7 @@ func (p *Parser) computeMetrics(operation *operation.Operation, contract *contra
 		return p.scriptSaver.Save(operation.Script, scriptSaveContext{
 			Network: contract.Network,
 			Address: contract.Address,
+			Hash:    contract.Hash,
 			SymLink: protoSymLink,
 		})
 	}

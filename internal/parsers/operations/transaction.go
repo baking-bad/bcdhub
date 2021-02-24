@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/fetch"
@@ -87,6 +88,12 @@ func (p Transaction) Parse(data gjson.Result) ([]models.Model, error) {
 		txModels = append(txModels, appliedModels...)
 	}
 
+	if len(tx.Parameters) > 0 && !tezerrors.HasParametersError(tx.Errors) {
+		if err := p.getEntrypoint(&tx); err != nil {
+			return nil, err
+		}
+	}
+
 	if err := p.tagTransaction(&tx); err != nil {
 		return nil, err
 	}
@@ -161,10 +168,18 @@ func (p Transaction) appliedHandler(item gjson.Result, op *operation.Operation) 
 	for i := range bu {
 		resultModels = append(resultModels, bu[i])
 	}
-	return resultModels, p.getEntrypoint(op)
+	return resultModels, nil
 }
 
 func (p Transaction) getEntrypoint(op *operation.Operation) error {
+	if op.Script.Raw == "" {
+		script, err := fetch.Contract(op.Destination, op.Network, op.Protocol, p.shareDir)
+		if err != nil {
+			return err
+		}
+		op.Script = gjson.ParseBytes(script)
+	}
+
 	parameter := op.GetScriptSection(consts.PARAMETER)
 	param, err := ast.NewTypedAstFromString(parameter.Raw)
 	if err != nil {

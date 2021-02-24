@@ -55,7 +55,10 @@ func (t Parser) ParseBigMapDiff(bmd *bigmapdiff.BigMapDiff) ([]tokenmetadata.Tok
 
 func (t Parser) parseBigMapDiff(bmd *bigmapdiff.BigMapDiff, state block.Block) ([]tokenmetadata.TokenMetadata, error) {
 	if _, err := storage.GetBigMapPtr(t.rpc, bmd.Address, TokenMetadataStorageKey, state.Network, state.Protocol, t.sharePath, bmd.Level); err != nil {
-		return nil, err
+		if !errors.Is(err, storage.ErrBigMapNotFound) {
+			return nil, err
+		}
+		return nil, nil
 	}
 
 	m := &TokenMetadata{}
@@ -65,9 +68,12 @@ func (t Parser) parseBigMapDiff(bmd *bigmapdiff.BigMapDiff, state block.Block) (
 	}
 	m.Timestamp = bmd.Timestamp
 	m.Level = bmd.Level
+	if _, ok := m.Extras[EmptyStringKey]; len(bmd.ValueStrings) > 0 && ok {
+		m.Link = bmd.ValueStrings[0]
+	}
 
 	if m.Link != "" {
-		s := tzipStorage.NewFull(t.bmdRepo, t.blocksRepo, t.storage, t.rpc, t.ipfs...)
+		s := tzipStorage.NewFull(t.bmdRepo, t.blocksRepo, t.storage, t.rpc, t.sharePath, t.ipfs...)
 
 		remoteMetadata := &TokenMetadata{}
 		if err := s.Get(t.network, bmd.Address, m.Link, bmd.Ptr, remoteMetadata); err != nil {
@@ -123,7 +129,7 @@ func (t Parser) parse(address string, state block.Block) ([]tokenmetadata.TokenM
 	result := make([]tokenmetadata.TokenMetadata, 0)
 	for _, m := range metadata {
 		if m.Link != "" {
-			s := tzipStorage.NewFull(t.bmdRepo, t.blocksRepo, t.storage, t.rpc, t.ipfs...)
+			s := tzipStorage.NewFull(t.bmdRepo, t.blocksRepo, t.storage, t.rpc, t.sharePath, t.ipfs...)
 
 			remoteMetadata := &TokenMetadata{}
 			if err := s.Get(t.network, address, m.Link, ptr, remoteMetadata); err != nil {

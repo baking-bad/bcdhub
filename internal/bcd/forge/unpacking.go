@@ -2,6 +2,7 @@ package forge
 
 import (
 	"encoding/hex"
+	"unicode"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 )
@@ -43,12 +44,17 @@ func CollectStrings(node *base.Node, tryUnpack bool) ([]string, error) {
 			res = append(res, s)
 			return res, nil
 		}
+
 		data, err := hex.DecodeString(val)
 		if err != nil {
 			return nil, err
 		}
 		tree, err := Unpack(data)
 		if err != nil {
+			b, err := hex.DecodeString(val)
+			if err == nil && isASCII(string(b)) {
+				res = append(res, string(b))
+			}
 			return res, nil
 		}
 		for i := range tree {
@@ -68,4 +74,13 @@ func CollectStrings(node *base.Node, tryUnpack bool) ([]string, error) {
 		}
 	}
 	return res, nil
+}
+
+func isASCII(s string) bool {
+	for i := 0; i < len(s); i++ {
+		if s[i] > unicode.MaxASCII || !unicode.IsPrint(rune(s[i])) {
+			return false
+		}
+	}
+	return true
 }

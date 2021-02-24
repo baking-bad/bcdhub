@@ -74,8 +74,9 @@ type GetResponse struct {
 
 // BulkResponse -
 type BulkResponse struct {
-	Took   int64 `json:"took"`
-	Errors bool  `json:"errors"`
+	Took   int64              `json:"took"`
+	Errors bool               `json:"errors"`
+	Items  stdJSON.RawMessage `json:"items,omitempty"`
 }
 
 // Header -

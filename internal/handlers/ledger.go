@@ -8,11 +8,12 @@ import (
 	jsoniter "github.com/json-iterator/go"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	tbModel "github.com/baking-bad/bcdhub/internal/models/tokenbalance"
-	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
 	"github.com/karlseguin/ccache"
 	"github.com/pkg/errors"
@@ -33,18 +34,18 @@ var (
 
 // Ledger -
 type Ledger struct {
-	storage models.GeneralRepository
-	rpcs    map[string]noderpc.INode
+	storage   models.GeneralRepository
+	sharePath string
 
 	cache *ccache.Cache
 }
 
 // NewLedger -
-func NewLedger(storage models.GeneralRepository, rpcs map[string]noderpc.INode) *Ledger {
+func NewLedger(storage models.GeneralRepository, sharePath string) *Ledger {
 	return &Ledger{
-		storage: storage,
-		cache:   ccache.New(ccache.Configure().MaxSize(100)),
-		rpcs:    rpcs,
+		storage:   storage,
+		cache:     ccache.New(ccache.Configure().MaxSize(100)),
+		sharePath: sharePath,
 	}
 }
 
@@ -138,25 +139,36 @@ func (ledger *Ledger) buildElt(bmd *bigmapdiff.BigMapDiff) (gjson.Result, error)
 }
 
 func (ledger *Ledger) findLedgerBigMap(bmd *bigmapdiff.BigMapDiff) ([]byte, error) {
-	rpc, ok := ledger.rpcs[bmd.Network]
-	if !ok {
-		return nil, errors.Wrap(ErrNoRPCNetwork, bmd.Network)
+	data, err := fetch.Contract(bmd.Address, bmd.Network, bmd.Protocol, ledger.sharePath)
+	if err != nil {
+		return nil, err
 	}
-	script, err := rpc.GetScriptJSON(bmd.Address, bmd.Level)
+	script := gjson.ParseBytes(data)
+
+	storageType := script.Get(`#(prim=="storage").args.0`)
+	tree, err := ast.NewTypedAstFromString(storageType.Raw)
 	if err != nil {
 		return nil, err
 	}
 
-	storageJSON := script.Get(`storage`)
-	storageType := script.Get(`code.#(prim=="storage").args.0`)
-	tree, err := ast.NewSettledTypedAst(storageType.Raw, storageJSON.Raw)
-	if err != nil {
-		return nil, err
-	}
 	node := tree.FindByName(ledgerStorageKey)
 	if err != nil {
 		return nil, ErrNoLedgerKeyInStorage
 	}
+
+	op := operation.Operation{ID: bmd.OperationID}
+	if err := ledger.storage.GetByID(&op); err != nil {
+		return nil, err
+	}
+
+	var storageData ast.UntypedAST
+	if err := json.UnmarshalFromString(op.DeffatedStorage, &storageData); err != nil {
+		return nil, err
+	}
+	if err := tree.Settle(storageData); err != nil {
+		return nil, err
+	}
+
 	bigMap, ok := node.(*ast.BigMap)
 	if !ok {
 		return nil, ErrNoLedgerKeyInStorage

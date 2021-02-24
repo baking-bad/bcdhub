@@ -39,7 +39,7 @@ func Address(val string, tzOnly bool) ([]byte, error) {
 // UnforgeAddress -
 func UnforgeAddress(str string) (string, error) {
 	if len(str) != 44 && len(str) != 42 {
-		return "", errors.Wrapf(consts.ErrInvalidAddress, "UnforgeAddress: %s", str)
+		return str, errors.Wrapf(consts.ErrInvalidAddress, "UnforgeAddress: %s", str)
 	}
 	switch {
 	case strings.HasPrefix(str, "0000"):
@@ -53,7 +53,7 @@ func UnforgeAddress(str string) (string, error) {
 	case len(str) == 42:
 		return UnforgeAddress("00" + str)
 	default:
-		return str, nil
+		return str, errors.Wrapf(consts.ErrInvalidAddress, "UnforgeAddress: %s", str)
 	}
 }
 
@@ -79,7 +79,7 @@ func Contract(val string) (string, error) {
 
 // UnforgeContract -
 func UnforgeContract(str string) (string, error) {
-	if len(str) != 44 && len(str) != 42 {
+	if len(str) < 44 {
 		return "", errors.Wrapf(consts.ErrInvalidAddress, "UnforgeContract: %s", str)
 	}
 	res, err := UnforgeAddress(str[:44])

@@ -20,13 +20,7 @@ func GetBigMapPtr(rpc noderpc.INode, address, key, network, protocol, sharePath 
 		return 0, err
 	}
 	script := gjson.ParseBytes(data)
-
-	storageJSON, err := rpc.GetScriptStorageJSON(address, level)
-	if err != nil {
-		return 0, err
-	}
-
-	storage, err := ast.NewSettledTypedAst(script.Get("code.#(prim==\"storage\").args").Raw, storageJSON.Raw)
+	storage, err := ast.NewTypedAstFromString(script.Get("#(prim==\"storage\").args").Raw)
 	if err != nil {
 		return 0, err
 	}
@@ -34,6 +28,18 @@ func GetBigMapPtr(rpc noderpc.INode, address, key, network, protocol, sharePath 
 	node := storage.FindByName(key)
 	if node == nil {
 		return 0, errors.Wrap(ErrBigMapNotFound, key)
+	}
+
+	storageJSON, err := rpc.GetScriptStorageJSON(address, level)
+	if err != nil {
+		return 0, err
+	}
+	var storageData ast.UntypedAST
+	if err := json.UnmarshalFromString(storageJSON.Raw, &storageData); err != nil {
+		return 0, err
+	}
+	if err := storage.Settle(storageData); err != nil {
+		return 0, err
 	}
 
 	if bm, ok := node.(*ast.BigMap); ok {

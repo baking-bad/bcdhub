@@ -18,11 +18,12 @@ type TZIP struct {
 }
 
 // NewTZIP -
-func NewTZIP(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, storage models.GeneralRepository, rpcs map[string]noderpc.INode, ipfs []string) *TZIP {
+func NewTZIP(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, storage models.GeneralRepository, rpcs map[string]noderpc.INode, sharePath string, ipfs []string) *TZIP {
 	parsers := make(map[string]tzip.Parser)
 	for network, rpc := range rpcs {
 		parsers[network] = tzip.NewParser(bigMapRepo, blockRepo, storage, rpc, tzip.ParserConfig{
 			IPFSGateways: ipfs,
+			SharePath:    sharePath,
 		})
 	}
 	return &TZIP{

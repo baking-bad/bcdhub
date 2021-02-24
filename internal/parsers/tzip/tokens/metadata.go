@@ -21,6 +21,11 @@ const (
 	keyDecimals = "decimals"
 )
 
+// Empty key name
+const (
+	EmptyStringKey = "@@empty"
+)
+
 // TokenMetadata -
 type TokenMetadata struct {
 	Level     int64
@@ -71,12 +76,6 @@ func (m *TokenMetadata) Parse(value gjson.Result, address string, ptr int64) err
 		value := item.Get("1.bytes").String()
 
 		switch key {
-		case "":
-			decoded, err := hex.DecodeString(value)
-			if err != nil {
-				return err
-			}
-			m.Link = string(decoded)
 		case keySymbol:
 			decoded, err := hex.DecodeString(value)
 			if err != nil {
@@ -100,11 +99,10 @@ func (m *TokenMetadata) Parse(value gjson.Result, address string, ptr int64) err
 			}
 			m.Name = string(decoded)
 		default:
-			decoded, err := hex.DecodeString(value)
-			if err != nil {
-				m.Extras[key] = value
+			if key == "" {
+				key = EmptyStringKey
 			}
-			m.Extras[key] = string(decoded)
+			m.Extras[key] = value
 		}
 	}
 	return nil

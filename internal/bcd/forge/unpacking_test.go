@@ -1,13 +1,13 @@
 package forge
 
 import (
+	"encoding/hex"
 	"reflect"
-	"strings"
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
-
 	jsoniter "github.com/json-iterator/go"
+	"github.com/stretchr/testify/assert"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -106,6 +106,16 @@ func TestCollectStrings(t *testing.T) {
 			want: []string{
 				"BAL-USDT",
 			},
+		}, {
+			name:      "simple bytes",
+			tree:      `{"bytes":"74657a6f732d73746f726167653a636f6e74656e74"}`,
+			tryUnpack: true,
+			want:      []string{"tezos-storage:content"},
+		}, {
+			name:      "ipfs test",
+			tree:      `{"bytes":"050100000035697066733a2f2f516d585a4846695a5a35566747794c634b514c4d6b5032314e733855394e47316d6f707945777348446663575835"}`,
+			tryUnpack: true,
+			want:      []string{"ipfs://QmXZHFiZZ5VgGyLcKQLMkP21Ns8U9NG1mopyEwsHDfcWX5"},
 		},
 	}
 	for _, tt := range tests {
@@ -120,8 +130,42 @@ func TestCollectStrings(t *testing.T) {
 				t.Errorf("CollectStrings() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestUnpack(t *testing.T) {
+	tests := []struct {
+		name    string
+		data    string
+		want    []*base.Node
+		wantErr bool
+	}{
+		{
+			name: "test 1",
+			data: "050100000035697066733a2f2f516d585a4846695a5a35566747794c634b514c4d6b5032314e733855394e47316d6f707945777348446663575835",
+			want: []*base.Node{
+				{
+					StringValue: getStringPtr("ipfs://QmXZHFiZZ5VgGyLcKQLMkP21Ns8U9NG1mopyEwsHDfcWX5"),
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b, err := hex.DecodeString(tt.data)
+			if err != nil {
+				t.Errorf("DecodeString error = %v", err)
+				return
+			}
+			got, err := Unpack(b)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Unpack() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("CollectStrings() = %v, want %v", strings.Join(got, "|"), tt.want)
+				t.Errorf("Unpack() = %v, want %v", got, tt.want)
 			}
 		})
 	}
