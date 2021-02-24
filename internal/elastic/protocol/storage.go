@@ -6,7 +6,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
-	"github.com/pkg/errors"
 )
 
 // Storage -
@@ -48,9 +47,12 @@ func (storage *Storage) GetProtocol(network, hash string, level int64) (p protoc
 		return
 	}
 	if response.Hits.Total.Value == 0 {
-		err = errors.Errorf("Couldn't find a protocol for %s (hash = %s) at level %d", network, hash, level)
+		err = core.NewRecordNotFoundError(models.DocProtocol, "")
 		return
 	}
+
+	p.ID = response.Hits.Hits[0].ID
+
 	err = json.Unmarshal(response.Hits.Hits[0].Source, &p)
 	return
 }
