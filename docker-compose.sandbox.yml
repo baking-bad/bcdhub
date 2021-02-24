@@ -101,16 +101,16 @@ services:
       sandbox: 172.17.0.1
     logging: *my-logging
 
-  #  flextesa:
-  #    container_name: sandbox-flextesa
-  #    restart: always
-  #    image: tqtezos/flextesa:20200925
-  #    command: carthagebox start
-  #    environment:
-  #      - block_time=4
-  #    ports:
-  #      - 127.0.0.1:8732:20000
-  #    logging: *my-logging
+  flextesa:
+    restart: always
+    image: trufflesuite/flextesa-mini-archive
+    command: edobox start
+    environment:
+      - block_time=4
+    ports:
+      - 127.0.0.1:8732:20000
+      - 172.17.0.1:8732:20000
+    logging: *my-logging
 
   #  jupyter:
   #    container_name: sandbox-jupyter
