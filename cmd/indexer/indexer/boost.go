@@ -126,18 +126,9 @@ func (bi *BoostIndexer) fetchExternalProtocols() error {
 			Network:    bi.Network,
 		}
 
-		protocolConstants := protocol.Constants{}
-		if newProtocol.StartLevel != newProtocol.EndLevel || newProtocol.EndLevel != 0 {
-			constants, err := bi.rpc.GetNetworkConstants(extProtocols[i].StartLevel)
-			if err != nil {
-				return err
-			}
-			protocolConstants.CostPerByte = constants.CostPerByte
-			protocolConstants.HardGasLimitPerOperation = constants.HardGasLimitPerOperation
-			protocolConstants.HardStorageLimitPerOperation = constants.HardStorageLimitPerOperation
-			protocolConstants.TimeBetweenBlocks = constants.TimeBetweenBlocks[0]
+		if err := setProtocolConstants(bi.rpc, newProtocol); err != nil {
+			return err
 		}
-		newProtocol.Constants = protocolConstants
 
 		protocols = append(protocols, newProtocol)
 		logger.WithNetwork(bi.Network).Infof("Fetched %s", alias)
@@ -218,15 +209,24 @@ func (bi *BoostIndexer) init() error {
 
 	currentProtocol, err := bi.Protocols.GetProtocol(bi.Network, "", currentState.Level)
 	if err != nil {
+		if !bi.Storage.IsRecordNotFound(err) {
+			return err
+		}
+
 		header, err := bi.rpc.GetHeader(helpers.MaxInt64(1, currentState.Level))
 		if err != nil {
 			return err
 		}
-		currentProtocol, err = createProtocol(bi.Network, header.Protocol, 0)
+		currentProtocol, err = createProtocol(bi.rpc, bi.Network, header.Protocol, header.Level)
 		if err != nil {
 			return err
 		}
+
+		if err := bi.Storage.BulkInsert([]models.Model{&currentProtocol}); err != nil {
+			return err
+		}
 	}
+
 	bi.currentProtocol = currentProtocol
 	logger.WithNetwork(bi.Network).Infof("Current network protocol: %s", currentProtocol.Hash)
 	return nil
@@ -560,7 +560,7 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) ([]models.Model, error) {
 	newProtocol, err := bi.Protocols.GetProtocol(bi.Network, head.Protocol, head.Level)
 	if err != nil {
 		logger.Warning("%s", err)
-		newProtocol, err = createProtocol(bi.Network, head.Protocol, head.Level)
+		newProtocol, err = createProtocol(bi.rpc, bi.Network, head.Protocol, head.Level)
 		if err != nil {
 			return nil, err
 		}
@@ -601,21 +601,6 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) ([]models.Model, error) {
 	bi.setUpdateTicker(0)
 	logger.WithNetwork(bi.Network).Infof("Migration to %s is completed", bi.currentProtocol.Alias)
 	return newModels, nil
-}
-
-func createProtocol(network, hash string, level int64) (protocol protocol.Protocol, err error) {
-	logger.WithNetwork(network).Infof("Creating new protocol %s starting at %d", hash, level)
-	protocol.SymLink, err = meta.GetProtoSymLink(hash)
-	if err != nil {
-		return
-	}
-
-	protocol.Alias = hash[:8]
-	protocol.Network = network
-	protocol.Hash = hash
-	protocol.StartLevel = level
-	protocol.ID = helpers.GenerateID()
-	return
 }
 
 func (bi *BoostIndexer) standartMigration(newProtocol protocol.Protocol, head noderpc.Header) ([]models.Model, []models.Model, error) {
