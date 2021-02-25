@@ -13,6 +13,10 @@ type getContractCodeRequest struct {
 	Level    int64  `form:"level,omitempty"`
 }
 
+type networkQueryRequest struct {
+	Network string `form:"network,omitempty" binding:"omitempty,network"`
+}
+
 // CodeDiffLeg -
 type CodeDiffLeg struct {
 	Address  string `json:"address" binding:"required,address"`
