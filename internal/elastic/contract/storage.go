@@ -58,7 +58,7 @@ func (storage *Storage) GetMany(by map[string]interface{}) ([]contract.Contract,
 }
 
 // GetRandom -
-func (storage *Storage) GetRandom() (contract.Contract, error) {
+func (storage *Storage) GetRandom(network string) (contract.Contract, error) {
 	random := core.Item{
 		"function_score": core.Item{
 			"functions": []core.Item{
@@ -74,8 +74,14 @@ func (storage *Storage) GetRandom() (contract.Contract, error) {
 	txRange := core.Range("tx_count", core.Item{
 		"gte": 2,
 	})
-	b := core.Bool(core.Must(txRange, random))
-	query := core.NewQuery().Query(b).One()
+
+	must := []core.Item{txRange, random}
+	if network != "" {
+		must = append(must, core.Term("network", network))
+	}
+
+	query := core.NewQuery().Query(core.Bool(core.Must(must...))).One()
+
 	return storage.getContract(query)
 }
 

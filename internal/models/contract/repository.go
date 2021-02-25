@@ -4,7 +4,7 @@ package contract
 type Repository interface {
 	Get(by map[string]interface{}) (Contract, error)
 	GetMany(by map[string]interface{}) ([]Contract, error)
-	GetRandom() (Contract, error)
+	GetRandom(network string) (Contract, error)
 	GetAddressesByNetworkAndLevel(network string, maxLevel int64) ([]string, error)
 	GetIDsByAddresses(addresses []string, network string) ([]string, error)
 	IsFA(network, address string) (bool, error)

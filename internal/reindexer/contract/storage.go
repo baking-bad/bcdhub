@@ -45,7 +45,7 @@ func (storage *Storage) GetMany(by map[string]interface{}) (contracts []contract
 }
 
 // GetRandom -
-func (storage *Storage) GetRandom() (c contract.Contract, err error) {
+func (storage *Storage) GetRandom(network string) (c contract.Contract, err error) {
 	query := storage.db.Query(models.DocContracts).WhereInt("tx_count", reindexer.GE, 2)
 	count, err := storage.db.Count(query)
 	if err != nil {
