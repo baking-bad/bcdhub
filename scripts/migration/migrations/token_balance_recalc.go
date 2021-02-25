@@ -27,6 +27,14 @@ func (m *TokenBalanceRecalc) Description() string {
 
 // Do - migrate function
 func (m *TokenBalanceRecalc) Do(ctx *config.Context) error {
+	recalcAllEvents, err := ask("Recalc all contract with events (if empty - yes):")
+	if err != nil {
+		return err
+	}
+	if recalcAllEvents == "" {
+		return m.RecalcAllContractEvents(ctx)
+	}
+
 	network, err := ask("Enter network (if empty - mainnet):")
 	if err != nil {
 		return err
@@ -90,6 +98,23 @@ func (m *TokenBalanceRecalc) Recalc(ctx *config.Context, network, address string
 func (m *TokenBalanceRecalc) DoBatch(ctx *config.Context, contracts map[string]string) error {
 	for address, network := range contracts {
 		if err := m.Recalc(ctx, network, address); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// RecalcAllContractEvents -
+func (m *TokenBalanceRecalc) RecalcAllContractEvents(ctx *config.Context) error {
+	tzips, err := ctx.TZIP.GetWithEvents()
+	if err != nil {
+		return err
+	}
+
+	for _, tzip := range tzips {
+		logger.Info("Starting %s %s", tzip.Network, tzip.Address)
+		if err := m.Recalc(ctx, tzip.Network, tzip.Address); err != nil {
 			return err
 		}
 	}
