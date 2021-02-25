@@ -64,6 +64,10 @@ func (t *TzKT) request(method, endpoint string, params map[string]string, respon
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("got error response %v with code %d", resp, resp.StatusCode)
+	}
+
 	return json.NewDecoder(resp.Body).Decode(response)
 }
 
