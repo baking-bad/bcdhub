@@ -6,7 +6,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/balanceupdate"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -67,14 +66,6 @@ func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, ne
 	if len(contractModels) > 0 {
 		parsedModels = append(parsedModels, contractModels...)
 	}
-
-	parsedModels = append(parsedModels, &balanceupdate.BalanceUpdate{
-		ID:       helpers.GenerateID(),
-		Change:   op.Amount,
-		Network:  op.Network,
-		Contract: address,
-		Level:    head.Level,
-	})
 
 	return parsedModels, nil
 }

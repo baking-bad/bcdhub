@@ -1,6 +1,7 @@
 package tzip
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -17,6 +18,26 @@ import (
 const (
 	EmptyStringKey = "expru5X1yxJG6ezR2uHMotwMLNmSzQyh5t1vUnhjx4cS6Pv9qE1Sdo"
 )
+
+type bufTzip tzip.TZIP
+
+// UnmarshalJSON -
+func (t *bufTzip) UnmarshalJSON(data []byte) error {
+	if err := json.Unmarshal(data, (*tzip.TZIP)(t)); err != nil {
+		return err
+	}
+	t.Extras = make(map[string]interface{})
+	if err := json.Unmarshal(data, &t.Extras); err != nil {
+		return err
+	}
+	for _, field := range []string{
+		"name", "description", "version", "license", "homepage",
+		"authors", "interfaces", "views", "events", "dapps",
+	} {
+		delete(t.Extras, field)
+	}
+	return nil
+}
 
 // ParseContext -
 type ParseContext struct {
@@ -47,13 +68,13 @@ func NewParser(bigMapRepo bigmapdiff.Repository, blocksRepo block.Repository, st
 }
 
 // Parse -
-func (p *Parser) Parse(ctx ParseContext) (data *tzip.TZIP, err error) {
+func (p *Parser) Parse(ctx ParseContext) (*tzip.TZIP, error) {
 	decoded := tzipStorage.DecodeValue(ctx.BigMapDiff.Value)
 	if decoded == "" {
 		return nil, nil
 	}
 
-	data = &tzip.TZIP{}
+	data := new(bufTzip)
 	s := tzipStorage.NewFull(p.bigMapRepo, p.blocksRepo, p.storage, p.rpc, p.cfg.SharePath, p.cfg.IPFSGateways...)
 	if err := s.Get(ctx.BigMapDiff.Network, ctx.BigMapDiff.Address, decoded, ctx.BigMapDiff.Ptr, data); err != nil {
 		switch {
@@ -76,5 +97,5 @@ func (p *Parser) Parse(ctx ParseContext) (data *tzip.TZIP, err error) {
 	data.Level = ctx.BigMapDiff.Level
 	data.Timestamp = ctx.BigMapDiff.Timestamp
 
-	return
+	return (*tzip.TZIP)(data), nil
 }

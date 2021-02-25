@@ -5,7 +5,11 @@ import (
 	"unicode"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
+	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
+	jsoniter "github.com/json-iterator/go"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // Unpack -
 func Unpack(data []byte) ([]*base.Node, error) {
@@ -52,7 +56,7 @@ func CollectStrings(node *base.Node, tryUnpack bool) ([]string, error) {
 		tree, err := Unpack(data)
 		if err != nil {
 			b, err := hex.DecodeString(val)
-			if err == nil && isASCII(string(b)) {
+			if err == nil && isPrintableASCII(string(b)) {
 				res = append(res, string(b))
 			}
 			return res, nil
@@ -76,7 +80,37 @@ func CollectStrings(node *base.Node, tryUnpack bool) ([]string, error) {
 	return res, nil
 }
 
-func isASCII(s string) bool {
+// DecodeString -
+func DecodeString(str string) string {
+	if s, err := UnforgeAddress(str); err == nil {
+		return s
+	}
+	if s, err := UnforgeContract(str); err == nil {
+		return s
+	}
+	data, err := hex.DecodeString(str)
+	if err != nil {
+		return str
+	}
+	if isPrintableASCII(str) {
+		return string(data)
+	}
+	tree, err := Unpack(data)
+	if err != nil {
+		return str
+	}
+	b, err := json.Marshal(tree)
+	if err != nil {
+		return str
+	}
+	s, err := formatter.MichelineToMichelsonInline(string(b))
+	if err != nil {
+		return str
+	}
+	return s
+}
+
+func isPrintableASCII(s string) bool {
 	for i := 0; i < len(s); i++ {
 		if s[i] > unicode.MaxASCII || !unicode.IsPrint(rune(s[i])) {
 			return false

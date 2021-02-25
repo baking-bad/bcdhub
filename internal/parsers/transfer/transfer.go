@@ -1,9 +1,8 @@
 package transfer
 
 import (
-	"fmt"
-
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -13,7 +12,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
-	"github.com/tidwall/gjson"
+	"github.com/baking-bad/bcdhub/internal/parsers/transfer/trees"
 )
 
 // Parser -
@@ -71,13 +70,12 @@ func (p *Parser) Parse(operation operation.Operation, operationModels []models.M
 	if impl, name, ok := p.events.GetByOperation(operation); ok {
 		return p.executeEvents(impl, name, operation, operationModels)
 	} else if operation.Entrypoint == consts.TransferEntrypoint {
-		parameters := getParameters(operation.Parameters)
 		for i := range operation.Tags {
 			switch operation.Tags[i] {
 			case consts.FA12Tag:
-				return p.makeFA12Transfers(operation, parameters)
+				return p.makeFA12Transfers(operation)
 			case consts.FA2Tag:
-				return p.makeFA2Transfers(operation, parameters)
+				return p.makeFA2Transfers(operation)
 			}
 		}
 	}
@@ -161,52 +159,34 @@ func (p *Parser) makeTransfersFromBalanceEvents(event events.Event, ctx events.C
 	return transfers, err
 }
 
-func (p *Parser) makeFA12Transfers(operation operation.Operation, parameters gjson.Result) ([]*transfer.Transfer, error) {
-	t := transfer.EmptyTransfer(operation)
-	fromAddr, err := getAddress(parameters.Get("args.0"))
+func (p *Parser) makeFA12Transfers(operation operation.Operation) ([]*transfer.Transfer, error) {
+	tree := trees.GetFA1_2Transfer()
+	parameter := types.NewParameters([]byte(operation.Parameters))
+	if _, err := tree.FromParameters(parameter); err != nil {
+		return nil, err
+	}
+	transfers, err := trees.MakeFa1_2Transfers(tree, operation)
 	if err != nil {
 		return nil, err
 	}
-	toAddr, err := getAddress(parameters.Get("args.1.args.0"))
-	if err != nil {
-		return nil, err
+	for i := range transfers {
+		p.setParentEntrypoint(operation, transfers[i])
 	}
-	t.From = fromAddr
-	t.To = toAddr
-
-	if err := t.SetAmountFromString(parameters.Get("args.1.args.1.int").String()); err != nil {
-		return nil, fmt.Errorf("makeFA12Transfers error: %s %s %w", operation.Hash, operation.Network, err)
-	}
-
-	p.setParentEntrypoint(operation, t)
-
-	return []*transfer.Transfer{t}, nil
+	return transfers, nil
 }
 
-func (p *Parser) makeFA2Transfers(operation operation.Operation, parameters gjson.Result) ([]*transfer.Transfer, error) {
-	transfers := make([]*transfer.Transfer, 0)
-	for _, from := range parameters.Array() {
-		fromAddr, err := getAddress(from.Get("args.0"))
-		if err != nil {
-			return nil, err
-		}
-		for _, to := range from.Get("args.1").Array() {
-			toAddr, err := getAddress(to.Get("args.0"))
-			if err != nil {
-				return nil, err
-			}
-			transfer := transfer.EmptyTransfer(operation)
-			transfer.From = fromAddr
-			transfer.To = toAddr
-			if err := transfer.SetAmountFromString(to.Get("args.1.args.1.int").String()); err != nil {
-				return nil, fmt.Errorf("makeFA2Transfers error: %s %s %w", operation.Hash, operation.Network, err)
-			}
-			transfer.TokenID = to.Get("args.1.args.0.int").Int()
-
-			p.setParentEntrypoint(operation, transfer)
-
-			transfers = append(transfers, transfer)
-		}
+func (p *Parser) makeFA2Transfers(operation operation.Operation) ([]*transfer.Transfer, error) {
+	tree := trees.GetFA2Transfer()
+	parameter := types.NewParameters([]byte(operation.Parameters))
+	if _, err := tree.FromParameters(parameter); err != nil {
+		return nil, err
+	}
+	transfers, err := trees.MakeFa2Transfers(tree, operation)
+	if err != nil {
+		return nil, err
+	}
+	for i := range transfers {
+		p.setParentEntrypoint(operation, transfers[i])
 	}
 	return transfers, nil
 }

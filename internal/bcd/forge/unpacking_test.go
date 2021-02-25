@@ -6,11 +6,8 @@ import (
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/stretchr/testify/assert"
 )
-
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 func TestCollectStrings(t *testing.T) {
 	tests := []struct {

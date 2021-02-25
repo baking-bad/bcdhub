@@ -9,7 +9,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/balanceupdate"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
@@ -88,14 +87,6 @@ func compareParserResponse(t *testing.T, got, want []models.Model) bool {
 				return false
 			}
 			if !compareContract(one, two) {
-				return false
-			}
-		case *balanceupdate.BalanceUpdate:
-			two, ok := want[i].(*balanceupdate.BalanceUpdate)
-			if !ok {
-				return false
-			}
-			if !compareBalanceUpdates(one, two) {
 				return false
 			}
 		default:
@@ -402,38 +393,6 @@ func compareContract(one, two *contract.Contract) bool {
 	}
 	if !compareStringArray(one.Entrypoints, two.Entrypoints) {
 		logger.Info("Contract.Entrypoints: %v != %v", one.Entrypoints, two.Entrypoints)
-		return false
-	}
-	return true
-}
-
-func compareBalanceUpdates(a, b *balanceupdate.BalanceUpdate) bool {
-	if a.Change != b.Change {
-		logger.Info("BalanceUpdate.Change: %d != %d", a.Change, b.Change)
-		return false
-	}
-	if a.Contract != b.Contract {
-		logger.Info("BalanceUpdate.Contract: %s != %s", a.Contract, b.Contract)
-		return false
-	}
-	if a.Network != b.Network {
-		logger.Info("BalanceUpdate.Network: %s != %s", a.Network, b.Network)
-		return false
-	}
-	if a.Level != b.Level {
-		logger.Info("BalanceUpdate.Level: %d != %d", a.Level, b.Level)
-		return false
-	}
-	if a.OperationHash != b.OperationHash {
-		logger.Info("BalanceUpdate.OperationHash: %s != %s", a.OperationHash, b.OperationHash)
-		return false
-	}
-	if a.ContentIndex != b.ContentIndex {
-		logger.Info("BalanceUpdate.ContentIndex: %d != %d", a.ContentIndex, b.ContentIndex)
-		return false
-	}
-	if !compareInt64Ptr(a.Nonce, b.Nonce) {
-		logger.Info("BalanceUpdate.Nonce: %d != %d", *a.Nonce, *b.Nonce)
 		return false
 	}
 	return true

@@ -53,7 +53,7 @@ func (p Origination) Parse(data gjson.Result) ([]models.Model, error) {
 
 	p.fillInternal(&origination)
 
-	operationMetadata := parseMetadata(data, origination)
+	operationMetadata := parseMetadata(data)
 	origination.Result = &operationMetadata.Result
 	origination.Status = origination.Result.Status
 	origination.Errors = origination.Result.Errors
@@ -62,10 +62,6 @@ func (p Origination) Parse(data gjson.Result) ([]models.Model, error) {
 	origination.SetBurned(p.constants)
 
 	originationModels := []models.Model{&origination}
-
-	for i := range operationMetadata.BalanceUpdates {
-		originationModels = append(originationModels, operationMetadata.BalanceUpdates[i])
-	}
 
 	if origination.IsApplied() {
 		appliedModels, err := p.appliedHandler(data, &origination)
@@ -100,10 +96,7 @@ func (p Origination) appliedHandler(item gjson.Result, origination *operation.Op
 		origination.DeffatedStorage = rs.DeffatedStorage
 		models = append(models, rs.Models...)
 	}
-	bu := NewBalanceUpdate("metadata", *origination).Parse(item)
-	for i := range bu {
-		models = append(models, bu[i])
-	}
+
 	return models, nil
 }
 

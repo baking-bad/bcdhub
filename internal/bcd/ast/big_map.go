@@ -450,6 +450,9 @@ func (m *BigMap) FindPointers() map[int64]*BigMap {
 	}
 
 	if err := m.Data.Range(func(_, value Comparable) (bool, error) {
+		if value == nil {
+			return false, nil
+		}
 		node := value.(Node)
 		if m := node.FindPointers(); m != nil {
 			for k, v := range m {

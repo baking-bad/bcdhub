@@ -32,32 +32,33 @@ func NewTZIP(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, stora
 }
 
 // Do -
-func (t *TZIP) Do(model models.Model) (bool, error) {
+func (t *TZIP) Do(model models.Model) (bool, []models.Model, error) {
 	bmd, ok := model.(*bigmapdiff.BigMapDiff)
 	if !ok {
-		return false, nil
+		return false, nil, nil
 	}
 	if bmd.KeyHash != tzip.EmptyStringKey {
-		return false, nil
+		return false, nil, nil
 	}
-	return true, t.handle(bmd)
+	res, err := t.handle(bmd)
+	return true, res, err
 }
 
-func (t *TZIP) handle(bmd *bigmapdiff.BigMapDiff) error {
+func (t *TZIP) handle(bmd *bigmapdiff.BigMapDiff) ([]models.Model, error) {
 	tzipParser, ok := t.parsers[bmd.Network]
 	if !ok {
-		return errors.Errorf("Unknown network for tzip parser: %s", bmd.Network)
+		return nil, errors.Errorf("Unknown network for tzip parser: %s", bmd.Network)
 	}
 
 	model, err := tzipParser.Parse(tzip.ParseContext{
 		BigMapDiff: *bmd,
 	})
 	if err != nil {
-		logger.With(bmd).Error(err)
-		return nil
+		logger.With(bmd).Warn(err)
+		return nil, nil
 	}
 	if model == nil {
-		return nil
+		return nil, nil
 	}
 
 	m := tzipModel.TZIP{
@@ -65,9 +66,8 @@ func (t *TZIP) handle(bmd *bigmapdiff.BigMapDiff) error {
 		Network: model.Network,
 	}
 	if err := t.storage.GetByID(&m); err == nil && m.OffChain {
-		return nil
+		return nil, nil
 	}
 
-	logger.With(bmd).Info("Big map diff with TZIP is processed")
-	return t.storage.BulkInsert([]models.Model{model})
+	return []models.Model{model}, nil
 }

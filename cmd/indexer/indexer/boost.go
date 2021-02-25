@@ -8,7 +8,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
-	elasticBalanceUpdate "github.com/baking-bad/bcdhub/internal/elastic/balanceupdate"
 	elasticBigMapAction "github.com/baking-bad/bcdhub/internal/elastic/bigmapaction"
 	elasticBigMapDiff "github.com/baking-bad/bcdhub/internal/elastic/bigmapdiff"
 	elasticBlock "github.com/baking-bad/bcdhub/internal/elastic/block"
@@ -25,7 +24,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/index"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/balanceupdate"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
@@ -51,19 +49,18 @@ var errSameLevel = errors.New("Same level")
 
 // BoostIndexer -
 type BoostIndexer struct {
-	Storage        models.GeneralRepository
-	BalanceUpdates balanceupdate.Repository
-	BigMapActions  bigmapaction.Repository
-	BigMapDiffs    bigmapdiff.Repository
-	Blocks         block.Repository
-	Contracts      contract.Repository
-	Migrations     migration.Repository
-	Operations     operation.Repository
-	Protocols      protocol.Repository
-	TezosDomains   tezosdomain.Repository
-	TokenBalances  tokenbalance.Repository
-	Transfers      transfer.Repository
-	TZIP           tzip.Repository
+	Storage       models.GeneralRepository
+	BigMapActions bigmapaction.Repository
+	BigMapDiffs   bigmapdiff.Repository
+	Blocks        block.Repository
+	Contracts     contract.Repository
+	Migrations    migration.Repository
+	Operations    operation.Repository
+	Protocols     protocol.Repository
+	TezosDomains  tezosdomain.Repository
+	TokenBalances tokenbalance.Repository
+	Transfers     transfer.Repository
+	TZIP          tzip.Repository
 
 	rpc             noderpc.INode
 	externalIndexer index.Indexer
@@ -149,24 +146,23 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 	messageQueue := mq.New(cfg.RabbitMQ.URI, cfg.Indexer.ProjectName, cfg.Indexer.MQ.NeedPublisher, 10)
 
 	bi := &BoostIndexer{
-		Storage:        es,
-		BalanceUpdates: elasticBalanceUpdate.NewStorage(es),
-		BigMapActions:  elasticBigMapAction.NewStorage(es),
-		BigMapDiffs:    elasticBigMapDiff.NewStorage(es),
-		Blocks:         elasticBlock.NewStorage(es),
-		Contracts:      elasticContract.NewStorage(es),
-		Migrations:     elasticMigration.NewStorage(es),
-		Operations:     elasticOperation.NewStorage(es),
-		Protocols:      elasticProtocol.NewStorage(es),
-		TezosDomains:   elasticTezosDomain.NewStorage(es),
-		TokenBalances:  elasticTokenBalance.NewStorage(es),
-		Transfers:      elasticTransfer.NewStorage(es),
-		TZIP:           elasticTZIP.NewStorage(es),
-		Network:        network,
-		rpc:            rpc,
-		messageQueue:   messageQueue,
-		stop:           make(chan struct{}),
-		cfg:            cfg,
+		Storage:       es,
+		BigMapActions: elasticBigMapAction.NewStorage(es),
+		BigMapDiffs:   elasticBigMapDiff.NewStorage(es),
+		Blocks:        elasticBlock.NewStorage(es),
+		Contracts:     elasticContract.NewStorage(es),
+		Migrations:    elasticMigration.NewStorage(es),
+		Operations:    elasticOperation.NewStorage(es),
+		Protocols:     elasticProtocol.NewStorage(es),
+		TezosDomains:  elasticTezosDomain.NewStorage(es),
+		TokenBalances: elasticTokenBalance.NewStorage(es),
+		Transfers:     elasticTransfer.NewStorage(es),
+		TZIP:          elasticTZIP.NewStorage(es),
+		Network:       network,
+		rpc:           rpc,
+		messageQueue:  messageQueue,
+		stop:          make(chan struct{}),
+		cfg:           cfg,
 	}
 
 	for _, opt := range opts {

@@ -24,3 +24,8 @@ func IsLiteral(prim string) bool {
 func IsContract(address string) bool {
 	return len(address) == 36 && strings.HasPrefix(address, "KT")
 }
+
+// IsAddress -
+func IsAddress(address string) bool {
+	return len(address) == 36 && (strings.HasPrefix(address, "KT") || strings.HasPrefix(address, "tz"))
+}

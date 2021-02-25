@@ -315,6 +315,9 @@ func (b *Babylon) getSourcePtr(ptr int64) (int64, error) {
 	if src, ok := b.ptrMap[ptr]; ok {
 		return src, nil
 	}
+	if _, ok := b.temporaryPointers[ptr]; ok {
+		return ptr, nil
+	}
 	return ptr, errors.Wrapf(ErrUnknownTemporaryPointer, "%d", ptr)
 }
 

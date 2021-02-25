@@ -68,7 +68,7 @@ func (p Transaction) Parse(data gjson.Result) ([]models.Model, error) {
 		tx.Nonce = &nonce
 	}
 
-	txMetadata := parseMetadata(data, tx)
+	txMetadata := parseMetadata(data)
 	tx.Result = &txMetadata.Result
 	tx.Status = tx.Result.Status
 	tx.Errors = tx.Result.Errors
@@ -77,10 +77,6 @@ func (p Transaction) Parse(data gjson.Result) ([]models.Model, error) {
 	txModels := []models.Model{&tx}
 
 	if tx.IsApplied() {
-		for i := range txMetadata.BalanceUpdates {
-			txModels = append(txModels, txMetadata.BalanceUpdates[i])
-		}
-
 		appliedModels, err := p.appliedHandler(data, &tx)
 		if err != nil {
 			return nil, err
@@ -164,10 +160,6 @@ func (p Transaction) appliedHandler(item gjson.Result, op *operation.Operation) 
 		resultModels = append(resultModels, migration)
 	}
 
-	bu := NewBalanceUpdate("metadata", *op).Parse(item)
-	for i := range bu {
-		resultModels = append(resultModels, bu[i])
-	}
 	return resultModels, nil
 }
 

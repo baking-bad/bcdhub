@@ -12,28 +12,30 @@ import (
 	modelsContract "github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	contractParser "github.com/baking-bad/bcdhub/internal/parsers/contract"
 	"github.com/tidwall/gjson"
 )
 
 // MigrationParser -
 type MigrationParser struct {
-	storage        models.GeneralRepository
-	bmdRepo        bigmapdiff.Repository
-	filesDirectory string
+	storage     models.GeneralRepository
+	bmdRepo     bigmapdiff.Repository
+	scriptSaver contractParser.ScriptSaver
 }
 
 // NewMigrationParser -
 func NewMigrationParser(storage models.GeneralRepository, bmdRepo bigmapdiff.Repository, filesDirectory string) *MigrationParser {
 	return &MigrationParser{
-		storage:        storage,
-		bmdRepo:        bmdRepo,
-		filesDirectory: filesDirectory,
+		storage:     storage,
+		bmdRepo:     bmdRepo,
+		scriptSaver: contractParser.NewFileScriptSaver(filesDirectory),
 	}
 }
 
 // Parse -
 func (p *MigrationParser) Parse(script gjson.Result, old modelsContract.Contract, previous, next protocol.Protocol, timestamp time.Time) ([]models.Model, []models.Model, error) {
 	var updates []models.Model
+
 	if previous.SymLink == consts.MetadataAlpha {
 		newUpdates, err := p.getUpdates(script, old)
 		if err != nil {
@@ -46,6 +48,16 @@ func (p *MigrationParser) Parse(script gjson.Result, old modelsContract.Contract
 	if err != nil {
 		return nil, nil, err
 	}
+
+	if err := p.scriptSaver.Save(script.Get("code"), contractParser.ScriptSaveContext{
+		Hash:    newHash,
+		Address: old.Address,
+		Network: old.Network,
+		SymLink: next.SymLink,
+	}); err != nil {
+		return nil, nil, err
+	}
+
 	if newHash == old.Hash {
 		return nil, updates, nil
 	}

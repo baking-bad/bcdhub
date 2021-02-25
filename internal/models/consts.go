@@ -1,7 +1,6 @@
 package models
 
 import (
-	"github.com/baking-bad/bcdhub/internal/models/balanceupdate"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
@@ -18,25 +17,23 @@ import (
 
 // Document names
 const (
-	DocBalanceUpdates = "balance_update"
-	DocBigMapActions  = "bigmapaction"
-	DocBigMapDiff     = "bigmapdiff"
-	DocBlocks         = "block"
-	DocContracts      = "contract"
-	DocMigrations     = "migration"
-	DocOperations     = "operation"
-	DocProtocol       = "protocol"
-	DocTezosDomains   = "tezos_domain"
-	DocTokenBalances  = "token_balance"
-	DocTokenMetadata  = "token_metadata"
-	DocTransfers      = "transfer"
-	DocTZIP           = "tzip"
+	DocBigMapActions = "bigmapaction"
+	DocBigMapDiff    = "bigmapdiff"
+	DocBlocks        = "block"
+	DocContracts     = "contract"
+	DocMigrations    = "migration"
+	DocOperations    = "operation"
+	DocProtocol      = "protocol"
+	DocTezosDomains  = "tezos_domain"
+	DocTokenBalances = "token_balance"
+	DocTokenMetadata = "token_metadata"
+	DocTransfers     = "transfer"
+	DocTZIP          = "tzip"
 )
 
 // AllDocuments - returns all document names
 func AllDocuments() []string {
 	return []string{
-		DocBalanceUpdates,
 		DocBigMapActions,
 		DocBigMapDiff,
 		DocBlocks,
@@ -55,7 +52,6 @@ func AllDocuments() []string {
 // AllModels -
 func AllModels() []Model {
 	return []Model{
-		&balanceupdate.BalanceUpdate{},
 		&bigmapaction.BigMapAction{},
 		&bigmapdiff.BigMapDiff{},
 		&block.Block{},

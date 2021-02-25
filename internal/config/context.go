@@ -4,7 +4,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/aws"
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/balanceupdate"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
@@ -39,20 +38,19 @@ type Context struct {
 
 	Domains map[string]string
 
-	Storage        models.GeneralRepository
-	BalanceUpdates balanceupdate.Repository
-	BigMapActions  bigmapaction.Repository
-	BigMapDiffs    bigmapdiff.Repository
-	Blocks         block.Repository
-	Contracts      contract.Repository
-	Migrations     migration.Repository
-	Operations     operation.Repository
-	Protocols      protocol.Repository
-	TezosDomains   tezosdomain.Repository
-	TokenBalances  tokenbalance.Repository
-	TokenMetadata  tokenmetadata.Repository
-	Transfers      transfer.Repository
-	TZIP           tzip.Repository
+	Storage       models.GeneralRepository
+	BigMapActions bigmapaction.Repository
+	BigMapDiffs   bigmapdiff.Repository
+	Blocks        block.Repository
+	Contracts     contract.Repository
+	Migrations    migration.Repository
+	Operations    operation.Repository
+	Protocols     protocol.Repository
+	TezosDomains  tezosdomain.Repository
+	TokenBalances tokenbalance.Repository
+	TokenMetadata tokenmetadata.Repository
+	Transfers     transfer.Repository
+	TZIP          tzip.Repository
 }
 
 // NewContext -

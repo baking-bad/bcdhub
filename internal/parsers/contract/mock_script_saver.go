@@ -34,7 +34,7 @@ func (m *MockScriptSaver) EXPECT() *MockScriptSaverMockRecorder {
 }
 
 // Save mocks base method
-func (m *MockScriptSaver) Save(script gjson.Result, ctx scriptSaveContext) error {
+func (m *MockScriptSaver) Save(script gjson.Result, ctx ScriptSaveContext) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Save", script, ctx)
 	ret0, _ := ret[0].(error)

@@ -29,18 +29,18 @@ func NewTokenMetadata(bigMapRepo bigmapdiff.Repository, blockRepo block.Reposito
 }
 
 // Do -
-func (t *TokenMetadata) Do(model models.Model) (bool, error) {
+func (t *TokenMetadata) Do(model models.Model) (bool, []models.Model, error) {
 	bmd, ok := model.(*bigmapdiff.BigMapDiff)
 	if !ok {
-		return false, nil
+		return false, nil, nil
 	}
 	return t.handle(bmd)
 }
 
-func (t *TokenMetadata) handle(bmd *bigmapdiff.BigMapDiff) (bool, error) {
+func (t *TokenMetadata) handle(bmd *bigmapdiff.BigMapDiff) (bool, []models.Model, error) {
 	tokenParser, ok := t.parsers[bmd.Network]
 	if !ok {
-		return false, errors.Errorf("Unknown network for tzip parser: %s", bmd.Network)
+		return false, nil, errors.Errorf("Unknown network for tzip parser: %s", bmd.Network)
 	}
 
 	tokenMetadata, err := tokenParser.ParseBigMapDiff(bmd)
@@ -48,16 +48,15 @@ func (t *TokenMetadata) handle(bmd *bigmapdiff.BigMapDiff) (bool, error) {
 		if !errors.Is(err, tokens.ErrNoMetadataKeyInStorage) {
 			logger.With(bmd).Error(err)
 		}
-		return false, nil
+		return false, nil, nil
 	}
 	if len(tokenMetadata) == 0 {
-		return false, nil
+		return false, nil, nil
 	}
 
 	models := make([]models.Model, 0, len(tokenMetadata))
 	for i := range tokenMetadata {
-		logger.With(&tokenMetadata[i]).Info("Token metadata update is found")
 		models = append(models, &tokenMetadata[i])
 	}
-	return true, t.storage.BulkInsert(models)
+	return true, models, nil
 }

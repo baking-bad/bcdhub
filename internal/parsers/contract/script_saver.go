@@ -17,7 +17,7 @@ const (
 
 // ScriptSaver -
 type ScriptSaver interface {
-	Save(script gjson.Result, ctx scriptSaveContext) error
+	Save(script gjson.Result, ctx ScriptSaveContext) error
 }
 
 // FileScriptSaver -
@@ -32,7 +32,8 @@ func NewFileScriptSaver(shareDir string) FileScriptSaver {
 	}
 }
 
-type scriptSaveContext struct {
+// ScriptSaveContext -
+type ScriptSaveContext struct {
 	Network string
 	Address string
 	Hash    string
@@ -45,7 +46,7 @@ var (
 )
 
 // Save -
-func (ss FileScriptSaver) Save(script gjson.Result, ctx scriptSaveContext) error {
+func (ss FileScriptSaver) Save(script gjson.Result, ctx ScriptSaveContext) error {
 	if ss.shareDir == "" {
 		return ErrEmptyShareFolder
 	}

@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	contractHandlers "github.com/baking-bad/bcdhub/internal/handlers"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -22,17 +23,19 @@ func getBigMapDiff(ids []string) error {
 	}
 
 	r := result{
-		Updated: make([]models.Model, 0),
+		Updated:  make([]models.Model, 0),
+		Inserted: make([]models.Model, 0),
 	}
 	for i := range bmd {
 		if err := parseBigMapDiff(bmd[i], &r); err != nil {
 			return errors.Errorf("[getBigMapDiff] Compute error message: %s", err)
 		}
 	}
+	logger.Info("%d big map diff processed\t\tnew=%d updated=%d", len(bmd), len(r.Inserted), len(r.Updated))
 	if err := ctx.Storage.BulkUpdate(r.Updated); err != nil {
 		return err
 	}
-	return nil
+	return ctx.Storage.BulkInsert(r.Inserted)
 }
 
 func initHandlers() {
@@ -51,7 +54,8 @@ func initHandlers() {
 }
 
 type result struct {
-	Updated []models.Model
+	Updated  []models.Model
+	Inserted []models.Model
 }
 
 //nolint
@@ -64,11 +68,13 @@ func parseBigMapDiff(bmd bigmapdiff.BigMapDiff, r *result) error {
 	r.Updated = append(r.Updated, &bmd)
 
 	for i := range bigMapDiffHandlers {
-		if ok, err := bigMapDiffHandlers[i].Do(&bmd); err != nil {
+		if ok, res, err := bigMapDiffHandlers[i].Do(&bmd); err != nil {
 			return err
 		} else if ok {
+			r.Inserted = append(r.Inserted, res...)
 			break
 		}
 	}
+
 	return nil
 }

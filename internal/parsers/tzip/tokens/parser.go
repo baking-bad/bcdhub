@@ -61,16 +61,13 @@ func (t Parser) parseBigMapDiff(bmd *bigmapdiff.BigMapDiff, state block.Block) (
 		return nil, nil
 	}
 
-	m := &TokenMetadata{}
+	m := new(TokenMetadata)
 	value := gjson.ParseBytes(bmd.Value)
 	if err := m.Parse(value, bmd.Address, bmd.Ptr); err != nil {
 		return nil, nil
 	}
 	m.Timestamp = bmd.Timestamp
 	m.Level = bmd.Level
-	if _, ok := m.Extras[EmptyStringKey]; len(bmd.ValueStrings) > 0 && ok {
-		m.Link = bmd.ValueStrings[0]
-	}
 
 	if m.Link != "" {
 		s := tzipStorage.NewFull(t.bmdRepo, t.blocksRepo, t.storage, t.rpc, t.sharePath, t.ipfs...)
@@ -116,7 +113,7 @@ func (t Parser) parse(address string, state block.Block) ([]tokenmetadata.TokenM
 
 	metadata := make([]*TokenMetadata, 0)
 	for i := range bmd {
-		m := &TokenMetadata{}
+		m := new(TokenMetadata)
 		value := gjson.ParseBytes(bmd[i].Value)
 		if err := m.Parse(value, address, ptr); err != nil {
 			continue

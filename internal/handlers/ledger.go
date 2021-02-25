@@ -9,7 +9,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/fetch"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -50,18 +49,18 @@ func NewLedger(storage models.GeneralRepository, sharePath string) *Ledger {
 }
 
 // Do -
-func (ledger *Ledger) Do(model models.Model) (bool, error) {
+func (ledger *Ledger) Do(model models.Model) (bool, []models.Model, error) {
 	bmd, ok := model.(*bigmapdiff.BigMapDiff)
 	if !ok {
-		return false, nil
+		return false, nil, nil
 	}
 
 	bigMapType, err := ledger.getCachedBigMapType(bmd)
 	if err != nil {
-		return false, err
+		return false, nil, err
 	}
 	if bigMapType == nil {
-		return false, nil
+		return false, nil, nil
 	}
 
 	return ledger.handle(bmd, bigMapType)
@@ -80,16 +79,15 @@ func (ledger *Ledger) getCachedBigMapType(bmd *bigmapdiff.BigMapDiff) ([]byte, e
 	return item.Value().([]byte), nil
 }
 
-func (ledger *Ledger) handle(bmd *bigmapdiff.BigMapDiff, bigMapType []byte) (bool, error) {
+func (ledger *Ledger) handle(bmd *bigmapdiff.BigMapDiff, bigMapType []byte) (bool, []models.Model, error) {
 	balance, err := ledger.getTokenBalance(bmd, bigMapType)
 	if err != nil {
 		if errors.Is(err, tokenbalance.ErrUnknownParser) {
-			return false, nil
+			return false, nil, nil
 		}
-		return false, err
+		return false, nil, err
 	}
-	logger.With(balance).Info("Update token balance")
-	return true, ledger.storage.BulkInsert([]models.Model{balance})
+	return true, []models.Model{balance}, nil
 }
 
 func (ledger *Ledger) getTokenBalance(bmd *bigmapdiff.BigMapDiff, bigMapType []byte) (*tbModel.TokenBalance, error) {

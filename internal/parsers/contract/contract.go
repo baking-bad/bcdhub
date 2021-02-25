@@ -101,7 +101,7 @@ func (p *Parser) computeMetrics(operation *operation.Operation, contract *contra
 	}
 
 	if p.scriptSaver != nil {
-		return p.scriptSaver.Save(operation.Script, scriptSaveContext{
+		return p.scriptSaver.Save(operation.Script, ScriptSaveContext{
 			Network: contract.Network,
 			Address: contract.Address,
 			Hash:    contract.Hash,
