@@ -312,7 +312,7 @@ func (ctx *Context) getTokens(network, address string) ([]Token, error) {
 		return nil, err
 	}
 
-	sort.Sort(tokenmetadata.ByName(metadata))
+	sort.Sort(tokenmetadata.ByTokenID(metadata))
 	tokens := make([]Token, 0)
 	for _, token := range metadata {
 		supply, err := ctx.Transfers.GetTokenSupply(network, address, token.TokenID)

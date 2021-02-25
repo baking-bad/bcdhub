@@ -35,6 +35,13 @@ func (tm ByName) Less(i, j int) bool {
 	return tm[i].Name < tm[j].Name
 }
 
+// ByTokenID - TokenMetadata sorting filter by TokenID field
+type ByTokenID []TokenMetadata
+
+func (tm ByTokenID) Len() int           { return len(tm) }
+func (tm ByTokenID) Swap(i, j int)      { tm[i], tm[j] = tm[j], tm[i] }
+func (tm ByTokenID) Less(i, j int) bool { return tm[i].TokenID < tm[j].TokenID }
+
 // GetID -
 func (t *TokenMetadata) GetID() string {
 	return fmt.Sprintf("%s_%s_%d", t.Network, t.Contract, t.TokenID)
