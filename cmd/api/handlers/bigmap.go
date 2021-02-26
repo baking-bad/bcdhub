@@ -132,7 +132,8 @@ func (ctx *Context) GetBigMapHistory(c *gin.Context) {
 // @Param q query string false "Search string"
 // @Param offset query integer false "Offset"
 // @Param size query integer false "Requested count" mininum(1)
-// @Param level query integer false "Level" minimum(0)
+// @Param max_level query integer false "Max level filter" minimum(0)
+// @Param min_level query integer false "Min level filter" minimum(0)
 // @Accept  json
 // @Produce  json
 // @Success 200 {array} BigMapResponseItem
@@ -151,12 +152,13 @@ func (ctx *Context) GetBigMapKeys(c *gin.Context) {
 	}
 
 	bm, err := ctx.BigMapDiffs.Get(bigmapdiff.GetContext{
-		Ptr:     &req.Ptr,
-		Network: req.Network,
-		Query:   pageReq.Search,
-		Size:    pageReq.Size,
-		Offset:  pageReq.Offset,
-		Level:   pageReq.Level,
+		Ptr:      &req.Ptr,
+		Network:  req.Network,
+		Query:    pageReq.Search,
+		Size:     pageReq.Size,
+		Offset:   pageReq.Offset,
+		MaxLevel: pageReq.MaxLevel,
+		MinLevel: pageReq.MinLevel,
 	})
 	if ctx.handleError(c, err, 0) {
 		return

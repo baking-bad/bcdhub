@@ -45,8 +45,12 @@ func buildGetContext(ctx *bigmapdiff.GetContext) core.Base {
 		ctx.Size = consts.DefaultSize
 	}
 
-	if ctx.Level != nil {
-		filters = append(filters, core.BuildComparator(core.NewLessThanEqRange(*ctx.Level)))
+	if ctx.MaxLevel != nil {
+		filters = append(filters, core.BuildComparator(core.NewLessThanEqRange(*ctx.MaxLevel)))
+	}
+
+	if ctx.MinLevel != nil {
+		filters = append(filters, core.BuildComparator(core.NewGreaterThanEqRange(*ctx.MinLevel)))
 	}
 
 	if ctx.CurrentLevel != nil {

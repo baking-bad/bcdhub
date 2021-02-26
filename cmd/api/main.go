@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/cmd/api/docs"
 	"github.com/baking-bad/bcdhub/cmd/api/handlers"
 	"github.com/baking-bad/bcdhub/cmd/api/seed"
+	"github.com/baking-bad/bcdhub/cmd/api/validations"
 	"github.com/baking-bad/bcdhub/cmd/api/ws"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -72,49 +73,7 @@ func (api *app) makeRouter() {
 	r.MaxMultipartMemory = 4 << 20 // max upload size 4 MiB
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		if err := v.RegisterValidation("address", handlers.AddressValidator); err != nil {
-			logger.Fatal(err)
-		}
-	}
-
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		if err := v.RegisterValidation("opg", handlers.OPGValidator); err != nil {
-			logger.Fatal(err)
-		}
-	}
-
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		if err := v.RegisterValidation("network", handlers.MakeNetworkValidator(api.Context.Config.API.Networks)); err != nil {
-			logger.Fatal(err)
-		}
-	}
-
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		if err := v.RegisterValidation("status", handlers.StatusValidator); err != nil {
-			logger.Fatal(err)
-		}
-	}
-
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		if err := v.RegisterValidation("faversion", handlers.FAVersionValidator); err != nil {
-			logger.Fatal(err)
-		}
-	}
-
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		if err := v.RegisterValidation("fill_type", handlers.FillTypeValidator); err != nil {
-			logger.Fatal(err)
-		}
-	}
-
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		if err := v.RegisterValidation("compilation_kind", handlers.CompilationKindValidator); err != nil {
-			logger.Fatal(err)
-		}
-	}
-
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		if err := v.RegisterValidation("search", handlers.SearchStringValidator); err != nil {
+		if err := validations.Register(v, api.Context.Config.API.Networks); err != nil {
 			logger.Fatal(err)
 		}
 	}

@@ -24,8 +24,8 @@ func buildGetContext(ctx bigmapdiff.GetContext, query *reindexer.Query) {
 			CloseBracket()
 	}
 
-	if ctx.Level != nil {
-		query = query.WhereInt64("level", reindexer.LE, *ctx.Level)
+	if ctx.MaxLevel != nil {
+		query = query.WhereInt64("level", reindexer.LE, *ctx.MaxLevel)
 	}
 
 	if ctx.Size == 0 {

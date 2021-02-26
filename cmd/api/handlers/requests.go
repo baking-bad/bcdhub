@@ -198,8 +198,9 @@ type getTokensByVersion struct {
 
 type bigMapSearchRequest struct {
 	pageableRequest
-	Search string `form:"q"`
-	Level  *int64 `form:"level,omitempty"`
+	Search   string `form:"q"`
+	MaxLevel *int64 `form:"max_level,omitempty" binding:"omitempty,gt_int64_ptr=MinLevel"`
+	MinLevel *int64 `form:"min_level,omitempty" binding:"omitempty"`
 }
 
 type opgRequest struct {
