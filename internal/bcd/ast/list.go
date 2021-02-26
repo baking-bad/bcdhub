@@ -182,11 +182,15 @@ func (list *List) ToParameters() ([]byte, error) {
 }
 
 // FindByName -
-func (list *List) FindByName(name string) Node {
+func (list *List) FindByName(name string, isEntrypoint bool) Node {
 	if list.GetName() == name {
 		return list
 	}
-	return list.Type.FindByName(name)
+
+	if isEntrypoint {
+		return nil
+	}
+	return list.Type.FindByName(name, isEntrypoint)
 }
 
 // Docs -

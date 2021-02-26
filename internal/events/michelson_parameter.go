@@ -1,10 +1,17 @@
 package events
 
 import (
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/types"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
-	"github.com/tidwall/gjson"
+
+	jsoniter "github.com/json-iterator/go"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // MichelsonParameter -
 type MichelsonParameter struct {
@@ -16,7 +23,11 @@ type MichelsonParameter struct {
 
 // NewMichelsonParameter -
 func NewMichelsonParameter(impl tzip.EventImplementation, name string) (*MichelsonParameter, error) {
-	parser, err := tokenbalance.GetParser(name, impl.MichelsonParameterEvent.ReturnType)
+	retType, err := ast.NewTypedAstFromBytes(impl.MichelsonParameterEvent.ReturnType)
+	if err != nil {
+		return nil, err
+	}
+	parser, err := tokenbalance.GetParser(name, retType)
 	if err != nil {
 		return nil, err
 	}
@@ -33,27 +44,38 @@ func NewMichelsonParameter(impl tzip.EventImplementation, name string) (*Michels
 }
 
 // Parse -
-func (event *MichelsonParameter) Parse(response gjson.Result) []tokenbalance.TokenBalance {
-	balances := make([]tokenbalance.TokenBalance, 0)
-	for _, item := range response.Get("storage").Array() {
-		balance, err := event.parser.Parse(item)
-		if err != nil {
-			continue
-		}
-		balances = append(balances, balance)
+func (event *MichelsonParameter) Parse(response noderpc.RunCodeResponse) []tokenbalance.TokenBalance {
+	balances, err := event.parser.Parse(response.Storage)
+	if err != nil {
+		return nil
 	}
 	return balances
 }
 
 // Normalize - `value` is `Operation.Parameters`
-func (event *MichelsonParameter) Normalize(value string) gjson.Result {
-	p := gjson.Parse(value)
-	if p.Get("value").Exists() {
-		p = p.Get("value")
+func (event *MichelsonParameter) Normalize(value string) []byte {
+	params := types.NewParameters([]byte(value))
+
+	var data ast.UntypedAST
+	if err := json.UnmarshalFromString(string(params.Value), &data); err != nil {
+		logger.Error(err)
+		return []byte(value)
 	}
 
-	for prim := p.Get("prim").String(); prim == "Right" || prim == "Left"; prim = p.Get("prim").String() {
-		p = p.Get("args.0")
+	if len(data) == 0 {
+		return []byte(value)
 	}
-	return p
+
+	for prim := data[0].Prim; prim == "Right" || prim == "Left"; prim = data[0].Prim {
+		data = data[0].Args
+	}
+	if len(data) == 0 {
+		return []byte(value)
+	}
+	b, err := json.Marshal(data[0])
+	if err != nil {
+		logger.Error(err)
+		return []byte(value)
+	}
+	return b
 }

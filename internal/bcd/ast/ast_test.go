@@ -1359,10 +1359,11 @@ func TestTypedAst_FromJSONSchema(t *testing.T) {
 
 func TestTypedAst_FindByName(t *testing.T) {
 	tests := []struct {
-		name      string
-		tree      string
-		fieldName string
-		want      string
+		name         string
+		tree         string
+		fieldName    string
+		isEntrypoint bool
+		want         string
 	}{
 		{
 			name:      "atomex/redeem",
@@ -1404,6 +1405,12 @@ func TestTypedAst_FindByName(t *testing.T) {
 			tree:      `{"prim":"pair","args":[{"prim":"map","args":[{"prim":"bytes"},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"address","annots":["%initiator"]},{"prim":"address","annots":["%participant"]}],"annots":["%recipients"]},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"mutez","annots":["%amount"]},{"prim":"timestamp","annots":["%refund_time"]}]},{"prim":"mutez","annots":["%payoff"]}],"annots":["%settings"]}]}]},{"prim":"unit"}]}`,
 			fieldName: "unknown",
 			want:      "null",
+		}, {
+			name:         "mainnet/KT1TnwBxgK4ayHuxrti6KKkJpWBHXBYRCX6H",
+			tree:         `{"prim":"or","args":[{"prim":"or","args":[{"prim":"or","args":[{"prim":"unit","annots":["%deposit"]},{"prim":"mutez","annots":["%reRoll"]}]},{"prim":"or","args":[{"prim":"pair","args":[{"prim":"address","annots":["%investor"]},{"prim":"address","annots":["%referrar"]}],"annots":["%register"]},{"prim":"or","args":[{"prim":"key_hash","annots":["%updateBaker"]},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"nat","annots":["%devFee"]},{"prim":"nat","annots":["%distributionPoolFee"]}]},{"prim":"pair","args":[{"prim":"nat","annots":["%referralFee"]},{"prim":"nat","annots":["%rewardPoolFee"]}]}],"annots":["%deposit"]},{"prim":"pair","args":[{"prim":"pair","args":[{"prim":"nat","annots":["%devFee"]},{"prim":"nat","annots":["%distributionPoolFee"]}]},{"prim":"pair","args":[{"prim":"nat","annots":["%referralFee"]},{"prim":"nat","annots":["%rewardPoolFee"]}]}],"annots":["%withdraw"]}],"annots":["%updateConfig"]}]}]}]},{"prim":"or","args":[{"prim":"or","args":[{"prim":"address","annots":["%updateInvestorBaker"]},{"prim":"address","annots":["%updateOwner"]}]},{"prim":"or","args":[{"prim":"int","annots":["%updateRewardPoolReleaseDayCount"]},{"prim":"or","args":[{"prim":"mutez","annots":["%withdraw"]},{"prim":"unit","annots":["%withdrawDevFee"]}]}]}]}]}`,
+			fieldName:    "withdraw",
+			isEntrypoint: true,
+			want:         `{"prim":"mutez","annots":["%withdraw"]}`,
 		},
 	}
 	for _, tt := range tests {
@@ -1418,7 +1425,7 @@ func TestTypedAst_FindByName(t *testing.T) {
 				t.Errorf("ToTypedAST(a) error = %v", err)
 				return
 			}
-			got := a.FindByName(tt.fieldName)
+			got := a.FindByName(tt.fieldName, tt.isEntrypoint)
 			s, err := json.MarshalToString(got)
 			if err != nil {
 				t.Errorf("ToParameters(a) error = %v", err)

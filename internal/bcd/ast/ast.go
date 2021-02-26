@@ -176,9 +176,9 @@ func (a *TypedAst) FromJSONSchema(data map[string]interface{}) error {
 }
 
 // FindByName -
-func (a *TypedAst) FindByName(name string) Node {
+func (a *TypedAst) FindByName(name string, isEntrypoint bool) Node {
 	for i := range a.Nodes {
-		if node := a.Nodes[i].FindByName(name); node != nil {
+		if node := a.Nodes[i].FindByName(name, isEntrypoint); node != nil {
 			return node
 		}
 	}
@@ -195,7 +195,7 @@ func (a *TypedAst) ToParameters(entrypoint string) ([]byte, error) {
 		return buildListParameters(a.Nodes)
 	}
 
-	node := a.FindByName(entrypoint)
+	node := a.FindByName(entrypoint, true)
 	if node != nil {
 		return node.ToParameters()
 	}
@@ -212,7 +212,7 @@ func (a *TypedAst) Docs(entrypoint string) ([]Typedef, error) {
 		return buildArrayDocs(a.Nodes)
 	}
 
-	node := a.FindByName(entrypoint)
+	node := a.FindByName(entrypoint, true)
 	if node != nil {
 		docs, _, err := node.Docs(DocsFull)
 		return docs, err
@@ -290,7 +290,7 @@ func (a *TypedAst) FromParameters(data *types.Parameters) (*TypedAst, error) {
 	}
 
 	if data.Entrypoint != "" {
-		subTree := a.FindByName(data.Entrypoint)
+		subTree := a.FindByName(data.Entrypoint, true)
 		if subTree != nil {
 			err := subTree.ParseValue(tree[0])
 			return &TypedAst{

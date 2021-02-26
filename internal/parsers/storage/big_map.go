@@ -25,17 +25,17 @@ func GetBigMapPtr(rpc noderpc.INode, address, key, network, protocol, sharePath 
 		return 0, err
 	}
 
-	node := storage.FindByName(key)
+	node := storage.FindByName(key, false)
 	if node == nil {
 		return 0, errors.Wrap(ErrBigMapNotFound, key)
 	}
 
-	storageJSON, err := rpc.GetScriptStorageJSON(address, level)
+	storageJSON, err := rpc.GetScriptStorageRaw(address, level)
 	if err != nil {
 		return 0, err
 	}
 	var storageData ast.UntypedAST
-	if err := json.UnmarshalFromString(storageJSON.Raw, &storageData); err != nil {
+	if err := json.Unmarshal(storageJSON, &storageData); err != nil {
 		return 0, err
 	}
 	if err := storage.Settle(storageData); err != nil {

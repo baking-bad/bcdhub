@@ -116,7 +116,7 @@ func (td *TezosDomain) getPointers(address contract.Address, protocol, operation
 	}
 
 	for _, annot := range []string{recordsAnnot, expiryMapAnnot} {
-		if node := tree.FindByName(annot); node != nil {
+		if node := tree.FindByName(annot, false); node != nil {
 			if b, ok := node.(*ast.BigMap); ok && b.Ptr != nil {
 				switch annot {
 				case recordsAnnot:

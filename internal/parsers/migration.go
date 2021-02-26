@@ -1,6 +1,7 @@
 package parsers
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
@@ -12,8 +13,8 @@ import (
 	modelsContract "github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
 	contractParser "github.com/baking-bad/bcdhub/internal/parsers/contract"
-	"github.com/tidwall/gjson"
 )
 
 // MigrationParser -
@@ -33,7 +34,7 @@ func NewMigrationParser(storage models.GeneralRepository, bmdRepo bigmapdiff.Rep
 }
 
 // Parse -
-func (p *MigrationParser) Parse(script gjson.Result, old modelsContract.Contract, previous, next protocol.Protocol, timestamp time.Time) ([]models.Model, []models.Model, error) {
+func (p *MigrationParser) Parse(script noderpc.Script, old modelsContract.Contract, previous, next protocol.Protocol, timestamp time.Time) ([]models.Model, []models.Model, error) {
 	var updates []models.Model
 
 	if previous.SymLink == consts.MetadataAlpha {
@@ -44,12 +45,17 @@ func (p *MigrationParser) Parse(script gjson.Result, old modelsContract.Contract
 		updates = newUpdates
 	}
 
-	newHash, err := contract.ComputeHash([]byte(script.Get("code").Raw))
+	codeBytes, err := json.Marshal(script.Code)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	if err := p.scriptSaver.Save(script.Get("code"), contractParser.ScriptSaveContext{
+	newHash, err := contract.ComputeHash(codeBytes)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if err := p.scriptSaver.Save(codeBytes, contractParser.ScriptSaveContext{
 		Hash:    newHash,
 		Address: old.Address,
 		Network: old.Network,
@@ -78,8 +84,12 @@ func (p *MigrationParser) Parse(script gjson.Result, old modelsContract.Contract
 	return []models.Model{&migration}, updates, nil
 }
 
-func (p *MigrationParser) getUpdates(script gjson.Result, contract modelsContract.Contract) ([]models.Model, error) {
-	storage, err := ast.NewSettledTypedAst(script.Get("code.#(prim==\"storage\").args").Raw, script.Get("storage").Raw)
+func (p *MigrationParser) getUpdates(script noderpc.Script, contract modelsContract.Contract) ([]models.Model, error) {
+	storageType, err := json.Marshal(script.Code.Storage)
+	if err != nil {
+		return nil, err
+	}
+	storage, err := ast.NewSettledTypedAst(string(storageType), string(script.Storage))
 	if err != nil {
 		return nil, err
 	}

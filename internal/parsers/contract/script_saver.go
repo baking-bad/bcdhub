@@ -6,8 +6,6 @@ import (
 	"path"
 
 	"github.com/pkg/errors"
-
-	"github.com/tidwall/gjson"
 )
 
 const (
@@ -17,7 +15,7 @@ const (
 
 // ScriptSaver -
 type ScriptSaver interface {
-	Save(script gjson.Result, ctx ScriptSaveContext) error
+	Save(code []byte, ctx ScriptSaveContext) error
 }
 
 // FileScriptSaver -
@@ -46,7 +44,7 @@ var (
 )
 
 // Save -
-func (ss FileScriptSaver) Save(script gjson.Result, ctx ScriptSaveContext) error {
+func (ss FileScriptSaver) Save(code []byte, ctx ScriptSaveContext) error {
 	if ss.shareDir == "" {
 		return ErrEmptyShareFolder
 	}
@@ -66,7 +64,7 @@ func (ss FileScriptSaver) Save(script gjson.Result, ctx ScriptSaveContext) error
 		}
 		defer f.Close()
 
-		if _, err := f.WriteString(script.String()); err != nil {
+		if _, err := f.Write(code); err != nil {
 			return err
 		}
 	} else if err != nil {

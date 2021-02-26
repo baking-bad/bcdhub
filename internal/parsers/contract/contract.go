@@ -5,7 +5,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	astContract "github.com/baking-bad/bcdhub/internal/bcd/contract"
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -64,35 +63,35 @@ func (p *Parser) Parse(operation *operation.Operation) ([]models.Model, error) {
 	return []models.Model{&contract}, nil
 }
 
-func (p *Parser) computeMetrics(operation *operation.Operation, contract *contract.Contract) error {
-	script, err := astContract.NewParser([]byte(operation.Script.Raw))
+func (p *Parser) computeMetrics(operation *operation.Operation, c *contract.Contract) error {
+	script, err := astContract.NewParser(operation.Script)
 	if err != nil {
 		return errors.Errorf("ast.NewScript: %v", err)
 	}
 	if err := script.Parse(); err != nil {
 		return err
 	}
-	operation.Script = operation.Script.Get("code")
+	operation.Script = script.CodeRaw
 
-	contract.Language = script.Language
-	contract.Hash = script.Hash
-	contract.FailStrings = script.FailStrings.Values()
-	contract.Annotations = script.Annotations.Values()
-	contract.Tags = script.Tags.Values()
-	contract.Hardcoded = script.HardcodedAddresses.Values()
+	c.Language = script.Language
+	c.Hash = script.Hash
+	c.FailStrings = script.FailStrings.Values()
+	c.Annotations = script.Annotations.Values()
+	c.Tags = script.Tags.Values()
+	c.Hardcoded = script.HardcodedAddresses.Values()
+	c.Fingerprint = new(contract.Fingerprint)
+	c.Fingerprint.Code = script.Fingerprint.Code
+	c.Fingerprint.Parameter = script.Fingerprint.Parameter
+	c.Fingerprint.Storage = script.Fingerprint.Storage
 
 	params, err := script.Code.Parameter.ToTypedAST()
 	if err != nil {
 		return err
 	}
-	contract.Entrypoints = params.GetEntrypoints()
+	c.Entrypoints = params.GetEntrypoints()
 
 	if script.IsUpgradable() {
-		contract.Tags = append(contract.Tags, consts.UpgradableTag)
-	}
-
-	if err := metrics.SetFingerprint(operation.Script, contract); err != nil {
-		return err
+		c.Tags = append(c.Tags, consts.UpgradableTag)
 	}
 
 	protoSymLink, err := bcd.GetProtoSymLink(operation.Protocol)
@@ -102,9 +101,9 @@ func (p *Parser) computeMetrics(operation *operation.Operation, contract *contra
 
 	if p.scriptSaver != nil {
 		return p.scriptSaver.Save(operation.Script, ScriptSaveContext{
-			Network: contract.Network,
-			Address: contract.Address,
-			Hash:    contract.Hash,
+			Network: c.Network,
+			Address: c.Address,
+			Hash:    c.Hash,
 			SymLink: protoSymLink,
 		})
 	}

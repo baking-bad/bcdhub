@@ -1,10 +1,9 @@
 package views
 
 import (
-	"strings"
+	"bytes"
 
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
-	"github.com/tidwall/gjson"
 )
 
 // MichelsonStorageView -
@@ -30,42 +29,46 @@ func NewMichelsonStorageView(impl tzip.ViewImplementation, name string) *Michels
 }
 
 // GetCode -
-func (msv *MichelsonStorageView) GetCode(storageType gjson.Result) (gjson.Result, error) {
-	var script strings.Builder
+func (msv *MichelsonStorageView) GetCode(storageType []byte) ([]byte, error) {
+	var script bytes.Buffer
 	script.WriteString(`[{"prim":"parameter","args":[`)
 	if msv.Parameter != nil {
 		script.WriteString(`{"prim":"pair","args":[`)
 		script.Write(msv.Parameter)
 		script.WriteString(",")
-		script.WriteString(storageType.String())
+		if _, err := script.Write(storageType); err != nil {
+			return nil, err
+		}
 		script.WriteString("]}")
-	} else {
-		script.WriteString(storageType.String())
+	} else if _, err := script.Write(storageType); err != nil {
+		return nil, err
 	}
 	script.WriteString(`]},{"prim":"storage","args":[{"prim":"option","args":[`)
 	script.Write(msv.ReturnType)
 	script.WriteString(`]}]},{"prim":"code","args":[[{"prim":"CAR"},`)
 	script.Write(msv.Code)
 	script.WriteString(`,{"prim":"SOME"},{"prim":"NIL","args":[{"prim":"operation"}]},{"prim":"PAIR"}]]}]`)
-	return gjson.Parse(script.String()), nil
+	return script.Bytes(), nil
 }
 
 // Parse -
-func (msv *MichelsonStorageView) Parse(response gjson.Result, output interface{}) error {
+func (msv *MichelsonStorageView) Parse(response []byte, output interface{}) error {
 	return nil
 }
 
 // GetParameter -
-func (msv *MichelsonStorageView) GetParameter(parameter string, storageValue gjson.Result) (gjson.Result, error) {
-	var script strings.Builder
+func (msv *MichelsonStorageView) GetParameter(parameter string, storageValue []byte) ([]byte, error) {
+	var script bytes.Buffer
 	if msv.Parameter != nil {
 		script.WriteString(`{"prim":"Pair","args":[`)
 		script.WriteString(parameter)
 		script.WriteString(",")
-		script.WriteString(storageValue.String())
+		if _, err := script.Write(storageValue); err != nil {
+			return nil, err
+		}
 		script.WriteString(`]}`)
-	} else {
-		script.WriteString(storageValue.String())
+	} else if _, err := script.Write(storageValue); err != nil {
+		return nil, err
 	}
-	return gjson.Parse(script.String()), nil
+	return script.Bytes(), nil
 }

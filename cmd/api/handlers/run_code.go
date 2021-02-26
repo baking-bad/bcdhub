@@ -7,7 +7,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
-	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -15,7 +14,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/parsers/storage"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 )
 
 // RunOperation -
@@ -64,7 +62,7 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		protocol.Constants.HardStorageLimitPerOperation,
 		counter+1,
 		reqRunOp.Amount,
-		gjson.ParseBytes(parameters),
+		parameters,
 	)
 	if ctx.handleError(c, err, 0) {
 		return
@@ -167,15 +165,11 @@ func (ctx *Context) RunCode(c *gin.Context) {
 		return
 	}
 
-	storage, err := rpc.GetScriptStorageJSON(req.Address, 0)
+	storage, err := rpc.GetScriptStorageRaw(req.Address, 0)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	response, err := rpc.RunCode(gjson.ParseBytes(scriptBytes), storage, gjson.ParseBytes(input), state.ChainID, reqRunCode.Source, reqRunCode.Sender, reqRunCode.Name, state.Protocol, reqRunCode.Amount, reqRunCode.GasLimit)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
 	main := Operation{
 		IndexedTime: time.Now().UTC().UnixNano(),
 		Protocol:    state.Protocol,
@@ -191,6 +185,25 @@ func (ctx *Context) RunCode(c *gin.Context) {
 		Entrypoint:  reqRunCode.Name,
 	}
 
+	response, err := rpc.RunCode(scriptBytes, storage, input, state.ChainID, reqRunCode.Source, reqRunCode.Sender, reqRunCode.Name, state.Protocol, reqRunCode.Amount, reqRunCode.GasLimit)
+	if err != nil {
+		if !errors.Is(err, noderpc.ErrInvalidNodeResponse) {
+			ctx.handleError(c, err, 0)
+			return
+		}
+		main.Status = "failed"
+		// errs, err := tezerrors.ParseArray([]byte(response.Raw))
+		// if err != nil {
+		// 	return nil, err
+		// }
+		// main.Errors = errs
+		// if err := formatErrors(main.Errors, main); err != nil {
+		// 	return nil, err
+		// }
+		c.JSON(http.StatusOK, []Operation{main})
+		return
+	}
+
 	script, err := ast.NewScript(scriptBytes)
 	if ctx.handleError(c, err, 0) {
 		return
@@ -201,7 +214,7 @@ func (ctx *Context) RunCode(c *gin.Context) {
 	if err := ctx.setSimulateStorageDiff(response, script, &main); ctx.handleError(c, err, 0) {
 		return
 	}
-	operations, err := ctx.parseRunCodeResponse(response, script, &main)
+	operations, err := ctx.parseAppliedRunCode(response, script, &main)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -209,48 +222,25 @@ func (ctx *Context) RunCode(c *gin.Context) {
 	c.JSON(http.StatusOK, operations)
 }
 
-func (ctx *Context) parseRunCodeResponse(response gjson.Result, script *ast.Script, main *Operation) ([]Operation, error) {
-	if response.IsArray() {
-		return ctx.parseFailedRunCode(response, main)
-	} else if response.IsObject() {
-		return ctx.parseAppliedRunCode(response, script, main)
-	}
-	return nil, errors.Errorf("Unknown response: %v", response.Value())
-}
-
-func (ctx *Context) parseFailedRunCode(response gjson.Result, main *Operation) ([]Operation, error) {
-	errs, err := tezerrors.ParseArray([]byte(response.Raw))
-	if err != nil {
-		return nil, err
-	}
-	main.Errors = errs
-	if err := formatErrors(main.Errors, main); err != nil {
-		return nil, err
-	}
-	main.Status = "failed"
-	return []Operation{*main}, nil
-}
-
-func (ctx *Context) parseAppliedRunCode(response gjson.Result, script *ast.Script, main *Operation) ([]Operation, error) {
+func (ctx *Context) parseAppliedRunCode(response noderpc.RunCodeResponse, script *ast.Script, main *Operation) ([]Operation, error) {
 	operations := []Operation{*main}
 
-	operationsJSON := response.Get("operations").Array()
-	for _, item := range operationsJSON {
+	for i := range response.Operations {
 		var op Operation
-		op.Kind = item.Get("kind").String()
-		op.Amount = item.Get("amount").Int()
-		op.Source = item.Get("source").String()
-		op.Destination = item.Get("destination").String()
-		op.Status = "applied"
+		op.Kind = response.Operations[i].Kind
+		op.Amount = *response.Operations[i].Amount
+		op.Source = response.Operations[i].Source
+		op.Destination = *response.Operations[i].Destination
+		op.Status = consts.Applied
 		op.Network = main.Network
 		op.Timestamp = main.Timestamp
 		op.Protocol = main.Protocol
 		op.Level = main.Level
 		op.Internal = true
-		if err := ctx.setParameters(item.Get("parameters").Raw, script, &op); err != nil {
+		if err := ctx.setParameters(string(response.Operations[i].Parameters), script, &op); err != nil {
 			return nil, err
 		}
-		if err := ctx.setSimulateStorageDiff(item, script, &op); err != nil {
+		if err := ctx.setSimulateStorageDiff(response, script, &op); err != nil {
 			return nil, err
 		}
 		operations = append(operations, op)
@@ -258,21 +248,44 @@ func (ctx *Context) parseAppliedRunCode(response gjson.Result, script *ast.Scrip
 	return operations, nil
 }
 
-func (ctx *Context) parseBigMapDiffs(response gjson.Result, script *ast.Script, operation *Operation) ([]bigmapdiff.BigMapDiff, error) {
+func (ctx *Context) parseBigMapDiffs(response noderpc.RunCodeResponse, script *ast.Script, operation *Operation) ([]bigmapdiff.BigMapDiff, error) {
 	model := operation.ToModel()
 	b, err := json.Marshal(script)
 	if err != nil {
 		return nil, err
 	}
-	model.Script = gjson.ParseBytes(b)
-	parser := storage.NewSimulate(ctx.BigMapDiffs)
+	model.Script = b
+	parser, err := storage.MakeStorageParser(ctx.BigMapDiffs, operation.Protocol)
+	if err != nil {
+		return nil, err
+	}
+
+	nodeOperation := noderpc.Operation{
+		Kind:          operation.Kind,
+		Source:        operation.Source,
+		Fee:           operation.Fee,
+		Counter:       operation.Counter,
+		GasLimit:      operation.GasLimit,
+		StorageLimit:  operation.StorageLimit,
+		Amount:        &operation.Amount,
+		Destination:   &operation.Destination,
+		PublicKey:     operation.PublicKey,
+		ManagerPubKey: operation.ManagerPubKey,
+		Delegate:      operation.Delegate,
+
+		Result: &noderpc.OperationResult{
+			Status:      consts.Applied,
+			Storage:     response.Storage,
+			BigMapDiffs: response.BigMapDiffs,
+		},
+	}
 
 	rs := storage.RichStorage{Empty: true}
 	switch operation.Kind {
 	case consts.Transaction:
-		rs, err = parser.ParseTransaction(response, model)
+		rs, err = parser.ParseTransaction(nodeOperation, model)
 	case consts.Origination:
-		rs, err = parser.ParseOrigination(response, model)
+		rs, err = parser.ParseOrigination(nodeOperation, model)
 	}
 	if err != nil {
 		return nil, err
@@ -289,9 +302,8 @@ func (ctx *Context) parseBigMapDiffs(response gjson.Result, script *ast.Script, 
 	return bmd, nil
 }
 
-func (ctx *Context) setSimulateStorageDiff(response gjson.Result, script *ast.Script, main *Operation) error {
-	storage := response.Get("storage").String()
-	if storage == "" || !bcd.IsContract(main.Destination) || main.Status != consts.Applied {
+func (ctx *Context) setSimulateStorageDiff(response noderpc.RunCodeResponse, script *ast.Script, main *Operation) error {
+	if len(response.Storage) == 0 || !bcd.IsContract(main.Destination) || main.Status != consts.Applied {
 		return nil
 	}
 	bmd, err := ctx.parseBigMapDiffs(response, script, main)
@@ -302,7 +314,7 @@ func (ctx *Context) setSimulateStorageDiff(response gjson.Result, script *ast.Sc
 	if err != nil {
 		return err
 	}
-	storageDiff, err := ctx.getStorageDiff(bmd, main.Destination, storage, storageType, main)
+	storageDiff, err := ctx.getStorageDiff(bmd, main.Destination, string(response.Storage), storageType, main)
 	if err != nil {
 		return err
 	}

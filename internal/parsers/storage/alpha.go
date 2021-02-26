@@ -8,7 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
-	"github.com/tidwall/gjson"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
 )
 
 // Alpha -
@@ -20,22 +20,20 @@ func NewAlpha() *Alpha {
 }
 
 // ParseTransaction -
-func (a *Alpha) ParseTransaction(content gjson.Result, operation operation.Operation) (RichStorage, error) {
-	address := content.Get("destination").String()
-
-	result, err := getResult(content)
-	if err != nil {
-		return RichStorage{Empty: true}, err
+func (a *Alpha) ParseTransaction(content noderpc.Operation, operation operation.Operation) (RichStorage, error) {
+	result := content.GetResult()
+	if result == nil {
+		return RichStorage{Empty: true}, nil
 	}
 
 	return RichStorage{
-		Models:          a.getBigMapDiff(result, address, operation),
-		DeffatedStorage: result.Get("storage").String(),
+		Models:          a.getBigMapDiff(result.BigMapDiffs, *content.Destination, operation),
+		DeffatedStorage: string(result.Storage),
 	}, nil
 }
 
 // ParseOrigination -
-func (a *Alpha) ParseOrigination(content gjson.Result, operation operation.Operation) (RichStorage, error) {
+func (a *Alpha) ParseOrigination(content noderpc.Operation, operation operation.Operation) (RichStorage, error) {
 	storage, err := getStorage(operation)
 	if err != nil {
 		return RichStorage{Empty: true}, err
@@ -49,17 +47,20 @@ func (a *Alpha) ParseOrigination(content gjson.Result, operation operation.Opera
 		return RichStorage{Empty: true}, nil
 	}
 
-	result, err := getResult(content)
-	if err != nil {
-		return RichStorage{Empty: true}, err
+	result := content.GetResult()
+	if result == nil {
+		return RichStorage{Empty: true}, nil
 	}
-	address := result.Get("originated_contracts.0").String()
 
-	var data ast.UntypedAST
-	if err := json.UnmarshalFromString(content.Get("script.storage").String(), &data); err != nil {
+	var storageData struct {
+		Storage ast.UntypedAST `json:"storage"`
+	}
+
+	if err := json.Unmarshal(content.Script, &storageData); err != nil {
 		return RichStorage{Empty: true}, err
 	}
-	if err := storage.Settle(data); err != nil {
+
+	if err := storage.Settle(storageData.Storage); err != nil {
 		return RichStorage{Empty: true}, err
 	}
 
@@ -90,7 +91,7 @@ func (a *Alpha) ParseOrigination(content gjson.Result, operation operation.Opera
 			Value:       valBytes,
 			OperationID: operation.ID,
 			Level:       operation.Level,
-			Address:     address,
+			Address:     result.Originated[0],
 			IndexedTime: time.Now().UnixNano() / 1000,
 			Network:     operation.Network,
 			Timestamp:   operation.Timestamp,
@@ -116,14 +117,14 @@ func (a *Alpha) ParseOrigination(content gjson.Result, operation operation.Opera
 	}, nil
 }
 
-func (a *Alpha) getBigMapDiff(result gjson.Result, address string, operation operation.Operation) []models.Model {
+func (a *Alpha) getBigMapDiff(diffs []noderpc.BigMapDiff, address string, operation operation.Operation) []models.Model {
 	bmd := make([]models.Model, 0)
-	for _, item := range result.Get("big_map_diff").Array() {
+	for i := range diffs {
 		bmd = append(bmd, &bigmapdiff.BigMapDiff{
 			ID:          helpers.GenerateID(),
-			Key:         []byte(item.Get("key").String()),
-			KeyHash:     item.Get("key_hash").String(),
-			Value:       []byte(item.Get("value").String()),
+			Key:         diffs[i].Key,
+			KeyHash:     diffs[i].KeyHash,
+			Value:       diffs[i].Value,
 			OperationID: operation.ID,
 			Level:       operation.Level,
 			Address:     address,

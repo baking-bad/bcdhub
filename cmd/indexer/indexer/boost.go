@@ -503,13 +503,13 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 	if head.Level <= 1 {
 		return nil, nil
 	}
-	data, err := bi.rpc.GetOperations(head.Level)
+	opg, err := bi.rpc.GetOPG(head.Level)
 	if err != nil {
 		return nil, err
 	}
 
 	parsedModels := make([]models.Model, 0)
-	for _, opg := range data.Array() {
+	for i := range opg {
 		parser := operations.NewGroup(operations.NewParseParams(
 			bi.rpc,
 			bi.Storage, bi.BigMapDiffs, bi.Blocks, bi.TZIP, bi.TokenBalances,
@@ -519,7 +519,7 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 			operations.WithShareDirectory(bi.cfg.SharePath),
 			operations.WithNetwork(network),
 		))
-		parsed, err := parser.Parse(opg)
+		parsed, err := parser.Parse(opg[i])
 		if err != nil {
 			return nil, err
 		}

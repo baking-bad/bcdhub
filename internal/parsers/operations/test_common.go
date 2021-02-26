@@ -15,15 +15,14 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/stretchr/testify/assert"
-	"github.com/tidwall/gjson"
 )
 
-func readJSONFile(name string) (gjson.Result, error) {
+func readJSONFile(name string, response interface{}) error {
 	bytes, err := ioutil.ReadFile(name)
 	if err != nil {
-		return gjson.Result{}, err
+		return err
 	}
-	return gjson.ParseBytes(bytes), nil
+	return json.Unmarshal(bytes, response)
 }
 
 func readTestContractModel(contract *contract.Contract) error {
@@ -34,9 +33,9 @@ func readTestContractModel(contract *contract.Contract) error {
 	return json.Unmarshal(bytes, &contract)
 }
 
-func readStorage(address string, level int64) (gjson.Result, error) {
+func readStorage(address string, level int64) ([]byte, error) {
 	storageFile := fmt.Sprintf("./data/rpc/script/storage/%s_%d.json", address, level)
-	return readJSONFile(storageFile)
+	return ioutil.ReadFile(storageFile)
 }
 
 func compareParserResponse(t *testing.T, got, want []models.Model) bool {

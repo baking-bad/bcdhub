@@ -19,6 +19,13 @@ type contractData struct {
 	Storage stdJSON.RawMessage `json:"storage"`
 }
 
+// Fingerprint -
+type Fingerprint struct {
+	Parameter string
+	Storage   string
+	Code      string
+}
+
 // Parser -
 type Parser struct {
 	Code    *ast.Script
@@ -29,8 +36,12 @@ type Parser struct {
 	Annotations        types.Set
 	HardcodedAddresses types.Set
 
+	Fingerprint Fingerprint
+
 	Hash     string
 	Language string
+
+	CodeRaw []byte
 }
 
 // NewParser -
@@ -75,6 +86,8 @@ func NewParser(data []byte) (*Parser, error) {
 		HardcodedAddresses: hardcoded,
 		Hash:               hash,
 		Language:           language.LangUnknown,
+		Fingerprint:        Fingerprint{},
+		CodeRaw:            cd.Code,
 	}, nil
 }
 
@@ -127,6 +140,11 @@ func (p *Parser) parseCode() error {
 	if len(p.Code.Code) == 0 {
 		return nil
 	}
+	f, err := p.Code.Code.Fingerprint(true)
+	if err != nil {
+		return err
+	}
+	p.Fingerprint.Code = f
 	if p.Code.Code[0].Prim == consts.PrimArray && len(p.Code.Code[0].Args) > 0 {
 		lang := language.GetFromFirstPrim(p.Code.Code[0].Args[0])
 		p.setLanguage(lang)
@@ -139,6 +157,12 @@ func (p *Parser) parseParameter() error {
 	if len(p.Code.Parameter) == 0 {
 		return nil
 	}
+
+	f, err := p.Code.Parameter.Fingerprint(false)
+	if err != nil {
+		return err
+	}
+	p.Fingerprint.Parameter = f
 
 	typedParamTree, err := p.Code.Parameter.ToTypedAST()
 	if err != nil {
@@ -154,6 +178,13 @@ func (p *Parser) parseStorage() error {
 	if len(p.Code.Storage) == 0 {
 		return nil
 	}
+
+	f, err := p.Code.Storage.Fingerprint(false)
+	if err != nil {
+		return err
+	}
+	p.Fingerprint.Storage = f
+
 	lang := language.DetectMichelsonInStorage(p.Code.Storage[0])
 	p.setLanguage(lang)
 

@@ -6,7 +6,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
-	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/fetch"
@@ -15,9 +14,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
 	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
 	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 
 	jsoniter "github.com/json-iterator/go"
 )
@@ -35,8 +34,7 @@ func NewTransaction(params *ParseParams) Transaction {
 }
 
 // Parse -
-func (p Transaction) Parse(data gjson.Result) ([]models.Model, error) {
-	source := data.Get("source").String()
+func (p Transaction) Parse(data noderpc.Operation) ([]models.Model, error) {
 	tx := operation.Operation{
 		ID:            helpers.GenerateID(),
 		Network:       p.network,
@@ -44,32 +42,28 @@ func (p Transaction) Parse(data gjson.Result) ([]models.Model, error) {
 		Protocol:      p.head.Protocol,
 		Level:         p.head.Level,
 		Timestamp:     p.head.Timestamp,
-		Kind:          data.Get("kind").String(),
-		Initiator:     source,
-		Source:        source,
-		Fee:           data.Get("fee").Int(),
-		Counter:       data.Get("counter").Int(),
-		GasLimit:      data.Get("gas_limit").Int(),
-		StorageLimit:  data.Get("storage_limit").Int(),
-		Amount:        data.Get("amount").Int(),
-		Destination:   data.Get("destination").String(),
-		PublicKey:     data.Get("public_key").String(),
-		ManagerPubKey: data.Get("manager_pubkey").String(),
-		Delegate:      data.Get("delegate").String(),
-		Parameters:    data.Get("parameters").String(),
+		Kind:          data.Kind,
+		Initiator:     data.Source,
+		Source:        data.Source,
+		Fee:           data.Fee,
+		Counter:       data.Counter,
+		GasLimit:      data.GasLimit,
+		StorageLimit:  data.StorageLimit,
+		Amount:        *data.Amount,
+		Destination:   *data.Destination,
+		PublicKey:     data.PublicKey,
+		ManagerPubKey: data.ManagerPubKey,
+		Delegate:      data.Delegate,
+		Nonce:         data.Nonce,
+		Parameters:    string(data.Parameters),
 		IndexedTime:   time.Now().UnixNano() / 1000,
 		ContentIndex:  p.contentIdx,
 	}
 
 	p.fillInternal(&tx)
 
-	if data.Get("nonce").Exists() {
-		nonce := data.Get("nonce").Int()
-		tx.Nonce = &nonce
-	}
-
-	txMetadata := parseMetadata(data)
-	tx.Result = &txMetadata.Result
+	result := parseOperationResult(&data)
+	tx.Result = result
 	tx.Status = tx.Result.Status
 	tx.Errors = tx.Result.Errors
 
@@ -84,9 +78,14 @@ func (p Transaction) Parse(data gjson.Result) ([]models.Model, error) {
 		txModels = append(txModels, appliedModels...)
 	}
 
-	if len(tx.Parameters) > 0 && !tezerrors.HasParametersError(tx.Errors) {
-		if err := p.getEntrypoint(&tx); err != nil {
-			return nil, err
+	if len(tx.Parameters) > 0 {
+		if tx.IsApplied() {
+			if err := p.getEntrypoint(&tx); err != nil {
+				return nil, err
+			}
+		} else {
+			params := types.NewParameters([]byte(tx.Parameters))
+			tx.Entrypoint = params.Entrypoint
 		}
 	}
 
@@ -128,7 +127,7 @@ func (p Transaction) fillInternal(tx *operation.Operation) {
 	tx.Initiator = p.main.Source
 }
 
-func (p Transaction) appliedHandler(item gjson.Result, op *operation.Operation) ([]models.Model, error) {
+func (p Transaction) appliedHandler(item noderpc.Operation, op *operation.Operation) ([]models.Model, error) {
 	if !bcd.IsContract(op.Destination) || !op.IsApplied() {
 		return nil, nil
 	}
@@ -137,7 +136,7 @@ func (p Transaction) appliedHandler(item gjson.Result, op *operation.Operation) 
 	if err != nil {
 		return nil, err
 	}
-	op.Script = gjson.ParseBytes(script)
+	op.Script = script
 
 	resultModels := make([]models.Model, 0)
 
@@ -164,16 +163,20 @@ func (p Transaction) appliedHandler(item gjson.Result, op *operation.Operation) 
 }
 
 func (p Transaction) getEntrypoint(op *operation.Operation) error {
-	if op.Script.Raw == "" {
+	if op.Script == nil {
 		script, err := fetch.Contract(op.Destination, op.Network, op.Protocol, p.shareDir)
 		if err != nil {
 			return err
 		}
-		op.Script = gjson.ParseBytes(script)
+		op.Script = script
 	}
 
-	parameter := op.GetScriptSection(consts.PARAMETER)
-	param, err := ast.NewTypedAstFromString(parameter.Raw)
+	var s ast.Script
+	if err := json.Unmarshal(op.Script, &s); err != nil {
+		return err
+	}
+
+	param, err := s.ParameterType()
 	if err != nil {
 		return err
 	}

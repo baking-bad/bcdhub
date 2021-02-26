@@ -1,9 +1,10 @@
 package events
 
 import (
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
-	"github.com/tidwall/gjson"
 )
 
 // MichelsonInitialStorage -
@@ -16,7 +17,11 @@ type MichelsonInitialStorage struct {
 
 // NewMichelsonInitialStorage -
 func NewMichelsonInitialStorage(impl tzip.EventImplementation, name string) (*MichelsonInitialStorage, error) {
-	parser, err := tokenbalance.GetParser(name, impl.MichelsonInitialStorageEvent.ReturnType)
+	retType, err := ast.NewTypedAstFromBytes(impl.MichelsonInitialStorageEvent.ReturnType)
+	if err != nil {
+		return nil, err
+	}
+	parser, err := tokenbalance.GetParser(name, retType)
 	if err != nil {
 		return nil, err
 	}
@@ -33,19 +38,15 @@ func NewMichelsonInitialStorage(impl tzip.EventImplementation, name string) (*Mi
 }
 
 // Parse -
-func (event *MichelsonInitialStorage) Parse(response gjson.Result) []tokenbalance.TokenBalance {
-	balances := make([]tokenbalance.TokenBalance, 0)
-	for _, item := range response.Get("storage").Array() {
-		balance, err := event.parser.Parse(item)
-		if err != nil {
-			continue
-		}
-		balances = append(balances, balance)
+func (event *MichelsonInitialStorage) Parse(response noderpc.RunCodeResponse) []tokenbalance.TokenBalance {
+	balances, err := event.parser.Parse(response.Storage)
+	if err != nil {
+		return nil
 	}
 	return balances
 }
 
 // Normalize - `value` is `Operation.DeffatedStorage`
-func (event *MichelsonInitialStorage) Normalize(value string) gjson.Result {
-	return gjson.Parse(value)
+func (event *MichelsonInitialStorage) Normalize(value string) []byte {
+	return []byte(value)
 }

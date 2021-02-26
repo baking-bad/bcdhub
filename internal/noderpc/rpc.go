@@ -2,17 +2,18 @@ package noderpc
 
 import (
 	"bytes"
+	stdJSON "encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -69,6 +70,19 @@ func (rpc *NodeRPC) checkStatusCode(resp *http.Response, checkStatusCode bool) e
 	switch {
 	case resp.StatusCode == http.StatusOK:
 		return nil
+	case resp.StatusCode == http.StatusInternalServerError:
+		var errs []RunCodeError
+		if err := json.NewDecoder(resp.Body).Decode(&errs); err != nil {
+			return errors.Wrap(ErrInvalidNodeResponse, err.Error())
+		}
+		var s strings.Builder
+		for i := range errs {
+			if i > 0 {
+				s.WriteByte('\n')
+			}
+			s.WriteString(errs[i].ID)
+		}
+		return errors.Wrap(ErrInvalidNodeResponse, s.String())
 	case resp.StatusCode > http.StatusInternalServerError:
 		return NewNodeUnavailiableError(rpc.baseURL, resp.StatusCode)
 	case checkStatusCode:
@@ -83,24 +97,6 @@ func (rpc *NodeRPC) parseResponse(resp *http.Response, checkStatusCode bool, res
 		return err
 	}
 	return json.NewDecoder(resp.Body).Decode(response)
-}
-
-func (rpc *NodeRPC) getGJSONReponse(resp *http.Response, checkStatusCode bool) (result gjson.Result, err error) {
-	if err := rpc.checkStatusCode(resp, checkStatusCode); err != nil {
-		return result, err
-	}
-
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return result, err
-	}
-
-	if gjson.ValidBytes(b) {
-		result = gjson.ParseBytes(b)
-	} else {
-		err = errors.Wrap(ErrInvalidNodeResponse, string(b))
-	}
-	return
 }
 
 func (rpc *NodeRPC) makeRequest(req *http.Request) (*http.Response, error) {
@@ -130,7 +126,7 @@ func (rpc *NodeRPC) makeGetRequest(uri string) (*http.Response, error) {
 	return rpc.makeRequest(req)
 }
 
-func (rpc *NodeRPC) makePostRequest(uri string, data map[string]interface{}) (*http.Response, error) {
+func (rpc *NodeRPC) makePostRequest(uri string, data interface{}) (*http.Response, error) {
 	url := helpers.URLJoin(rpc.baseURL, uri)
 
 	bData, err := json.Marshal(data)
@@ -157,18 +153,7 @@ func (rpc *NodeRPC) get(uri string, response interface{}) error {
 }
 
 //nolint
-func (rpc *NodeRPC) getGJSON(uri string) (gjson.Result, error) {
-	resp, err := rpc.makeGetRequest(uri)
-	if err != nil {
-		return gjson.Result{}, err
-	}
-	defer resp.Body.Close()
-
-	return rpc.getGJSONReponse(resp, true)
-}
-
-//nolint
-func (rpc *NodeRPC) post(uri string, data map[string]interface{}, checkStatusCode bool, response interface{}) error {
+func (rpc *NodeRPC) post(uri string, data interface{}, checkStatusCode bool, response interface{}) error {
 	resp, err := rpc.makePostRequest(uri, data)
 	if err != nil {
 		return NewMaxRetryExceededError(rpc.baseURL)
@@ -176,17 +161,6 @@ func (rpc *NodeRPC) post(uri string, data map[string]interface{}, checkStatusCod
 	defer resp.Body.Close()
 
 	return rpc.parseResponse(resp, checkStatusCode, response)
-}
-
-//nolint
-func (rpc *NodeRPC) postGJSON(uri string, data map[string]interface{}, checkStatusCode bool) (gjson.Result, error) {
-	resp, err := rpc.makePostRequest(uri, data)
-	if err != nil {
-		return gjson.Result{}, NewMaxRetryExceededError(rpc.baseURL)
-	}
-	defer resp.Body.Close()
-
-	return rpc.getGJSONReponse(resp, checkStatusCode)
 }
 
 // GetHead - get head
@@ -223,14 +197,18 @@ func (rpc *NodeRPC) GetLevelTime(level int) (time.Time, error) {
 }
 
 // GetScriptJSON -
-func (rpc *NodeRPC) GetScriptJSON(address string, level int64) (gjson.Result, error) {
-	return rpc.getGJSON(fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s/script", getBlockString(level), address))
+func (rpc *NodeRPC) GetScriptJSON(address string, level int64) (script Script, err error) {
+	err = rpc.get(fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s/script", getBlockString(level), address), &script)
+	return
 }
 
-// GetScriptStorageJSON -
-func (rpc *NodeRPC) GetScriptStorageJSON(address string, level int64) (gjson.Result, error) {
-	response, err := rpc.getGJSON(fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s/script", getBlockString(level), address))
-	return response.Get("storage"), err
+// GetScriptStorageRaw -
+func (rpc *NodeRPC) GetScriptStorageRaw(address string, level int64) ([]byte, error) {
+	var response struct {
+		Storage stdJSON.RawMessage `json:"storage"`
+	}
+	err := rpc.get(fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s/script", getBlockString(level), address), &response)
+	return response.Storage, err
 }
 
 // GetContractBalance -
@@ -245,16 +223,14 @@ func (rpc *NodeRPC) GetContractBalance(address string, level int64) (int64, erro
 // GetContractData -
 func (rpc *NodeRPC) GetContractData(address string, level int64) (ContractData, error) {
 	var response ContractData
-	if err := rpc.get(fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s", getBlockString(level), address), &response); err != nil {
-		return response, err
-	}
-	response.Script = gjson.ParseBytes(response.RawScript)
-	return response, nil
+	err := rpc.get(fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s", getBlockString(level), address), &response)
+	return response, err
 }
 
-// GetOperations -
-func (rpc *NodeRPC) GetOperations(block int64) (gjson.Result, error) {
-	return rpc.getGJSON(fmt.Sprintf("chains/main/blocks/%d/operations/3", block))
+// GetOPG -
+func (rpc *NodeRPC) GetOPG(block int64) (group []OperationGroup, err error) {
+	err = rpc.get(fmt.Sprintf("chains/main/blocks/%s/operations/3", getBlockString(block)), &group)
+	return
 }
 
 // GetContractsByBlock -
@@ -276,58 +252,60 @@ func (rpc *NodeRPC) GetNetworkConstants(level int64) (constants Constants, err e
 }
 
 // RunCode -
-func (rpc *NodeRPC) RunCode(script, storage, input gjson.Result, chainID, source, payer, entrypoint, proto string, amount, gas int64) (gjson.Result, error) {
-	data := map[string]interface{}{
-		"script":   script.Value(),
-		"storage":  storage.Value(),
-		"input":    input.Value(),
-		"amount":   fmt.Sprintf("%d", amount),
-		"chain_id": chainID,
+func (rpc *NodeRPC) RunCode(script, storage, input []byte, chainID, source, payer, entrypoint, proto string, amount, gas int64) (response RunCodeResponse, err error) {
+	request := runCodeRequest{
+		Script:  script,
+		Storage: storage,
+		Input:   input,
+		Amount:  amount,
+		ChainID: chainID,
 	}
 
 	if chainID != "NetXm8tYqnMWky1" {
-		data["balance"] = "0"
+		request.Balance = "0"
 	}
 	if gas != 0 {
-		data["gas"] = fmt.Sprintf("%d", gas)
+		request.Gas = gas
 	}
 	if source != "" {
-		data["source"] = source
+		request.Source = source
 	}
 	if payer != "" {
-		data["payer"] = payer
+		request.Payer = payer
 	}
 	if entrypoint != "" {
-		data["entrypoint"] = entrypoint
+		request.Entrypoint = entrypoint
 	}
 
-	return rpc.postGJSON("chains/main/blocks/head/helpers/scripts/run_code", data, false)
+	err = rpc.post("chains/main/blocks/head/helpers/scripts/run_code", request, true, &response)
+	return
 }
 
 // RunOperation -
-func (rpc *NodeRPC) RunOperation(chainID, branch, source, destination string, fee, gasLimit, storageLimit, counter, amount int64, parameters gjson.Result) (gjson.Result, error) {
-	data := map[string]interface{}{
-		"operation": map[string]interface{}{
-			"branch":    branch,
-			"signature": "sigUHx32f9wesZ1n2BWpixXz4AQaZggEtchaQNHYGRCoWNAXx45WGW2ua3apUUUAGMLPwAU41QoaFCzVSL61VaessLg4YbbP", // base58_encode(b'0' * 64, b'sig').decode()
-			"contents": []interface{}{
-				map[string]interface{}{
-					"kind":          "transaction",
-					"fee":           fmt.Sprintf("%d", fee),
-					"counter":       fmt.Sprintf("%d", counter),
-					"gas_limit":     fmt.Sprintf("%d", gasLimit),
-					"storage_limit": fmt.Sprintf("%d", storageLimit),
-					"source":        source,
-					"destination":   destination,
-					"amount":        fmt.Sprintf("%d", amount),
-					"parameters":    parameters.Value(),
+func (rpc *NodeRPC) RunOperation(chainID, branch, source, destination string, fee, gasLimit, storageLimit, counter, amount int64, parameters []byte) (group OperationGroup, err error) {
+	request := runOperationRequest{
+		ChainID: chainID,
+		Operation: runOperationItem{
+			Branch:    branch,
+			Signature: "sigUHx32f9wesZ1n2BWpixXz4AQaZggEtchaQNHYGRCoWNAXx45WGW2ua3apUUUAGMLPwAU41QoaFCzVSL61VaessLg4YbbP", // base58_encode(b'0' * 64, b'sig').decode()
+			Contents: []runOperationItemContent{
+				{
+					Kind:         "transaction",
+					Fee:          fee,
+					Counter:      counter,
+					GasLimit:     gasLimit,
+					StorageLimit: storageLimit,
+					Source:       source,
+					Destination:  destination,
+					Amount:       amount,
+					Parameters:   parameters,
 				},
 			},
 		},
-		"chain_id": chainID,
 	}
 
-	return rpc.postGJSON("chains/main/blocks/head/helpers/scripts/run_operation", data, false)
+	err = rpc.post("chains/main/blocks/head/helpers/scripts/run_operation", request, true, &group)
+	return
 }
 
 // GetCounter -
@@ -340,11 +318,11 @@ func (rpc *NodeRPC) GetCounter(address string) (int64, error) {
 }
 
 // GetCode -
-func (rpc *NodeRPC) GetCode(address string, level int64) (gjson.Result, error) {
+func (rpc *NodeRPC) GetCode(address string, level int64) (*ast.Script, error) {
 	contract, err := rpc.GetScriptJSON(address, level)
 	if err != nil {
-		return gjson.Result{}, err
+		return nil, err
 	}
 
-	return contract.Get("code"), nil
+	return contract.Code, nil
 }

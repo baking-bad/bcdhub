@@ -1,17 +1,17 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/compiler/compilation"
 	"github.com/baking-bad/bcdhub/internal/database"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/providers"
 	"github.com/jinzhu/gorm/dialects/postgres"
-	"github.com/tidwall/gjson"
 )
 
 func (ctx *Context) verification(ct compilation.Task) error {
@@ -102,7 +102,7 @@ func (ctx *Context) verify(ct compilation.Task) (*database.CompilationTask, erro
 	return task, nil
 }
 
-func compareCode(original gjson.Result, results []database.CompilationTaskResult) (string, []database.CompilationTaskResult) {
+func compareCode(original *ast.Script, results []database.CompilationTaskResult) (string, []database.CompilationTaskResult) {
 	status := compilation.StatusFailed
 
 	for i, r := range results {
@@ -111,19 +111,18 @@ func compareCode(original gjson.Result, results []database.CompilationTaskResult
 			continue
 		}
 
-		script, err := r.Script.Value()
+		val, err := r.Script.Value()
 		if err != nil {
 			finalizeResult(compilation.StatusError, err, &results[i])
 			continue
 		}
 
-		eq, err := helpers.AreEqualJSON(original.Raw, string(script.([]byte)))
-		if err != nil {
-			finalizeResult(compilation.StatusError, err, &results[i])
+		var s ast.Script
+		if err := json.Unmarshal(val.([]byte), &s); err != nil {
 			continue
 		}
 
-		if !eq {
+		if !s.Compare(original) {
 			finalizeResult(compilation.StatusMismatch, nil, &results[i])
 			continue
 		}

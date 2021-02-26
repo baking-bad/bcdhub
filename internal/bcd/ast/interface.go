@@ -19,7 +19,7 @@ type Node interface {
 type Type interface {
 	Docs(inferredName string) ([]Typedef, string, error)
 	EqualType(node Node) bool
-	FindByName(name string) Node
+	FindByName(name string, isEntrypoint bool) Node
 	GetEntrypoints() []string
 	GetJSONModel(JSONModel)
 	GetName() string

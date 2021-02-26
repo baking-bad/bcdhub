@@ -252,15 +252,18 @@ func (m *BigMap) ToParameters() ([]byte, error) {
 }
 
 // FindByName -
-func (m *BigMap) FindByName(name string) Node {
+func (m *BigMap) FindByName(name string, isEntrypoint bool) Node {
 	if m.GetName() == name {
 		return m
 	}
-	node := m.KeyType.FindByName(name)
+	if isEntrypoint {
+		return nil
+	}
+	node := m.KeyType.FindByName(name, isEntrypoint)
 	if node != nil {
 		return node
 	}
-	return m.ValueType.FindByName(name)
+	return m.ValueType.FindByName(name, isEntrypoint)
 }
 
 func (m *BigMap) makeNodeFromBytes(typ Node, data []byte) (Node, error) {

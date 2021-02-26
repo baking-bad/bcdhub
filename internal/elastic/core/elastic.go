@@ -403,3 +403,30 @@ func (e *Elastic) SetAlias(network, address, alias string) error {
 
 	return nil
 }
+
+// CountItems -
+func (e *Elastic) CountItems(indices []string, query map[string]interface{}) (int64, error) {
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(query); err != nil {
+		return 0, err
+	}
+
+	// logger.InterfaceToJSON(query)
+	// logger.InterfaceToJSON(indices)
+
+	resp, err := e.Count(
+		e.Count.WithIndex(indices...),
+		e.Count.WithContext(context.Background()),
+		e.Count.WithBody(&buf),
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	defer resp.Body.Close()
+
+	var response struct {
+		Count int64 `json:"count"`
+	}
+	return response.Count, e.GetResponse(resp, &response)
+}

@@ -2,24 +2,10 @@ package storage
 
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
-	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 )
-
-func getResult(op gjson.Result) (gjson.Result, error) {
-	result := op.Get("metadata.operation_result")
-	if !result.Exists() {
-		result = op.Get("result")
-		if !result.Exists() {
-			return gjson.Result{}, errors.Errorf("[storage.getResult] Can not find 'result'")
-		}
-	}
-	return result, nil
-}
 
 func prepareBigMapDiffsToEnrich(bmd []bigmapdiff.BigMapDiff, skipEmpty bool) []*types.BigMapDiff {
 	res := make([]*types.BigMapDiff, 0)
@@ -80,13 +66,9 @@ func createBigMapAst(key, value []byte, ptr int64) (*ast.BigMap, error) {
 }
 
 func getStorage(operation operation.Operation) (*ast.TypedAst, error) {
-	storageJSON := operation.GetScriptSection(consts.STORAGE)
-	if !storageJSON.Exists() {
-		return nil, errors.New("Can't find contract`s storage section")
-	}
-	var tree ast.UntypedAST
-	if err := json.UnmarshalFromString(storageJSON.Raw, &tree); err != nil {
+	var s ast.Script
+	if err := json.Unmarshal(operation.Script, &s); err != nil {
 		return nil, err
 	}
-	return tree.ToTypedAST()
+	return s.StorageType()
 }

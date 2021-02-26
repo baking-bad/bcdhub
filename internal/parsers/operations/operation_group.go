@@ -7,7 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/tidwall/gjson"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
 )
 
 // Group -
@@ -21,13 +21,13 @@ func NewGroup(params *ParseParams) Group {
 }
 
 // Parse -
-func (opg Group) Parse(data gjson.Result) ([]models.Model, error) {
+func (opg Group) Parse(data noderpc.OperationGroup) ([]models.Model, error) {
 	parsedModels := make([]models.Model, 0)
 
-	opg.hash = data.Get("hash").String()
+	opg.hash = data.Hash
 	helpers.SetTagSentry("hash", opg.hash)
 
-	for idx, item := range data.Get("contents").Array() {
+	for idx, item := range data.Contents {
 		opg.contentIdx = int64(idx)
 
 		contentParser := NewContent(opg.ParseParams)
@@ -53,15 +53,14 @@ func NewContent(params *ParseParams) Content {
 }
 
 // Parse -
-func (content Content) Parse(data gjson.Result) ([]models.Model, error) {
+func (content Content) Parse(data noderpc.Operation) ([]models.Model, error) {
 	if !content.needParse(data) {
 		return nil, nil
 	}
 
 	models := make([]models.Model, 0)
 
-	kind := data.Get("kind").String()
-	switch kind {
+	switch data.Kind {
 	case consts.Origination, consts.OriginationNew:
 		originationModels, err := NewOrigination(content.ParseParams).Parse(data)
 		if err != nil {
@@ -75,7 +74,7 @@ func (content Content) Parse(data gjson.Result) ([]models.Model, error) {
 		}
 		models = append(models, txModels...)
 	default:
-		return nil, errors.Errorf("Invalid operation kind: %s", kind)
+		return nil, errors.Errorf("Invalid operation kind: %s", data.Kind)
 	}
 
 	internalModels, err := content.parseInternal(data)
@@ -87,28 +86,32 @@ func (content Content) Parse(data gjson.Result) ([]models.Model, error) {
 	return models, nil
 }
 
-func (content Content) needParse(item gjson.Result) bool {
-	kind := item.Get("kind").String()
-	source := item.Get("source").String()
-	destination := item.Get("destination").String()
-	prefixCondition := bcd.IsContract(source) || bcd.IsContract(destination)
-	transactionCondition := kind == consts.Transaction && prefixCondition
-	originationCondition := (kind == consts.Origination || kind == consts.OriginationNew) && item.Get("script").Exists()
+func (content Content) needParse(item noderpc.Operation) bool {
+	var destination string
+	if item.Destination != nil {
+		destination = *item.Destination
+	}
+	prefixCondition := bcd.IsContract(item.Source) || bcd.IsContract(destination)
+	transactionCondition := item.Kind == consts.Transaction && prefixCondition
+	originationCondition := (item.Kind == consts.Origination || item.Kind == consts.OriginationNew) && item.Script != nil
 	return originationCondition || transactionCondition
 }
 
-func (content Content) parseInternal(data gjson.Result) ([]models.Model, error) {
-	path := "metadata.internal_operation_results"
-	if !data.Get(path).Exists() {
-		path = "metadata.internal_operations"
-		if !data.Get(path).Exists() {
+func (content Content) parseInternal(data noderpc.Operation) ([]models.Model, error) {
+	if data.Metadata == nil {
+		return nil, nil
+	}
+	internals := data.Metadata.Internal
+	if internals == nil {
+		internals = data.Metadata.InternalOperations
+		if internals == nil {
 			return nil, nil
 		}
 	}
 
 	internalModels := make([]models.Model, 0)
-	for _, internal := range data.Get(path).Array() {
-		parsedModels, err := content.Parse(internal)
+	for i := range internals {
+		parsedModels, err := content.Parse(internals[i])
 		if err != nil {
 			return nil, err
 		}

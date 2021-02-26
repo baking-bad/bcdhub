@@ -46,7 +46,7 @@ func (ctx *Context) GetEntrypoints(c *gin.Context) {
 	resp := make([]EntrypointSchema, len(entrypoints))
 	for i, entrypoint := range entrypoints {
 		resp[i].EntrypointType = entrypoint
-		e := parameter.FindByName(entrypoint.Name)
+		e := parameter.FindByName(entrypoint.Name, true)
 		if e == nil {
 			continue
 		}
@@ -147,7 +147,7 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 		}
 
 		schema.EntrypointType = entrypoint
-		e := parameter.FindByName(esReq.EntrypointName)
+		e := parameter.FindByName(esReq.EntrypointName, true)
 		if e == nil {
 			continue
 		}
@@ -197,7 +197,7 @@ func (ctx *Context) buildParametersForExecution(network, address, protocol, entr
 	if err != nil {
 		return nil, err
 	}
-	e := parameterType.FindByName(entrypoint)
+	e := parameterType.FindByName(entrypoint, true)
 	if e == nil {
 		return nil, errors.Errorf("Unknown entrypoint name %s", entrypoint)
 	}

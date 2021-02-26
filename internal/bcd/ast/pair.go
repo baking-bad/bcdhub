@@ -203,12 +203,15 @@ func (p *Pair) ToParameters() ([]byte, error) {
 }
 
 // FindByName -
-func (p *Pair) FindByName(name string) Node {
+func (p *Pair) FindByName(name string, isEntrypoint bool) Node {
 	if p.GetName() == name {
 		return p
 	}
+	if isEntrypoint {
+		return nil
+	}
 	for i := range p.Args {
-		if node := p.Args[i].FindByName(name); node != nil {
+		if node := p.Args[i].FindByName(name, isEntrypoint); node != nil {
 			return node
 		}
 	}

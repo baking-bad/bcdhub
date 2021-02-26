@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/views"
@@ -178,16 +179,19 @@ func (ctx *Context) ExecuteView(c *gin.Context) {
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	if response.Get("prim").String() == consts.None {
-		c.JSON(http.StatusOK, nil)
-		return
-	}
-	var data ast.UntypedAST
-	if err := json.UnmarshalFromString(response.Get("args.0").Raw, &data); ctx.handleError(c, err, 0) {
+
+	var responseTree ast.UntypedAST
+	if err := json.Unmarshal(response, &responseTree); ctx.handleError(c, err, 0) {
 		return
 	}
 
-	if err := storage.Settle(data); ctx.handleError(c, err, 0) {
+	if responseTree[0].Prim == consts.None {
+		c.JSON(http.StatusOK, nil)
+		return
+	}
+
+	settleData := []*base.Node{responseTree[0].Args[0]}
+	if err := storage.Settle(settleData); ctx.handleError(c, err, 0) {
 		return
 	}
 

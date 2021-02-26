@@ -6,7 +6,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/gin-gonic/gin"
-	"github.com/tidwall/gjson"
 )
 
 // GetContractStorage godoc
@@ -45,7 +44,7 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 		sReq.Level = int(block.Level)
 	}
 
-	deffatedStorage, err := rpc.GetScriptStorageJSON(req.Address, int64(sReq.Level))
+	deffatedStorage, err := rpc.GetScriptStorageRaw(req.Address, int64(sReq.Level))
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -59,7 +58,7 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 	}
 
 	var data ast.UntypedAST
-	if err := json.UnmarshalFromString(deffatedStorage.Raw, &data); ctx.handleError(c, err, 0) {
+	if err := json.Unmarshal(deffatedStorage, &data); ctx.handleError(c, err, 0) {
 		return
 	}
 	if err := storageType.Settle(data); ctx.handleError(c, err, 0) {
@@ -115,8 +114,7 @@ func (ctx *Context) GetContractStorageRaw(c *gin.Context) {
 		return
 	}
 
-	s := gjson.Parse(ops[0].DeffatedStorage)
-	resp, err := formatter.MichelineToMichelson(s, false, formatter.DefLineSize)
+	resp, err := formatter.MichelineStringToMichelson(ops[0].DeffatedStorage, false, formatter.DefLineSize)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -230,13 +228,13 @@ func (ctx *Context) GetContractStorageSchema(c *gin.Context) {
 		if ctx.handleError(c, err, 0) {
 			return
 		}
-		storage, err := rpc.GetScriptStorageJSON(req.Address, 0)
+		storage, err := rpc.GetScriptStorageRaw(req.Address, 0)
 		if ctx.handleError(c, err, 0) {
 			return
 		}
 
 		var storageData ast.UntypedAST
-		if err := json.UnmarshalFromString(storage.Raw, &storageData); ctx.handleError(c, err, 0) {
+		if err := json.Unmarshal(storage, &storageData); ctx.handleError(c, err, 0) {
 			return
 		}
 		if err := storageType.Settle(storageData); ctx.handleError(c, err, 0) {

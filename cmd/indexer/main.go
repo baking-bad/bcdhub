@@ -1,28 +1,19 @@
 package main
 
 import (
-	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"runtime"
-	"strings"
 	"sync"
 	"syscall"
-
-	_ "net/http/pprof"
 
 	"github.com/baking-bad/bcdhub/cmd/indexer/indexer"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/tidwall/gjson"
 )
 
 func main() {
-	go func() {
-		log.Println(http.ListenAndServe("localhost:6060", nil))
-	}()
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
 		logger.Fatal(err)
@@ -33,13 +24,6 @@ func main() {
 		helpers.SetTagSentry("project", cfg.Indexer.ProjectName)
 		defer helpers.CatchPanicSentry()
 	}
-
-	gjson.AddModifier("upper", func(json, arg string) string {
-		return strings.ToUpper(json)
-	})
-	gjson.AddModifier("lower", func(json, arg string) string {
-		return strings.ToLower(json)
-	})
 
 	indexers, err := indexer.CreateIndexers(cfg)
 	if err != nil {

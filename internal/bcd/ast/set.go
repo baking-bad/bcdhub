@@ -186,11 +186,14 @@ func (set *Set) ToParameters() ([]byte, error) {
 }
 
 // FindByName -
-func (set *Set) FindByName(name string) Node {
+func (set *Set) FindByName(name string, isEntrypoint bool) Node {
 	if set.GetName() == name {
 		return set
 	}
-	return set.Type.FindByName(name)
+	if isEntrypoint {
+		return nil
+	}
+	return set.Type.FindByName(name, isEntrypoint)
 }
 
 // Docs -

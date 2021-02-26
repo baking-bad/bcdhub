@@ -7,15 +7,13 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
-	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 )
 
 // Event -
 type Event interface {
-	GetCode() (gjson.Result, error)
-	Parse(response gjson.Result) []tokenbalance.TokenBalance
-	Normalize(parameter string) gjson.Result
+	GetCode() ([]byte, error)
+	Parse(response noderpc.RunCodeResponse) []tokenbalance.TokenBalance
+	Normalize(parameter string) []byte
 }
 
 // Context -
@@ -39,8 +37,8 @@ type Sections struct {
 }
 
 // GetCode -
-func (sections Sections) GetCode() (gjson.Result, error) {
-	return gjson.Parse(fmt.Sprintf(`[{
+func (sections Sections) GetCode() ([]byte, error) {
+	return []byte(fmt.Sprintf(`[{
 		"prim": "parameter",
 		"args": [%s]
 	},{
@@ -55,7 +53,7 @@ func (sections Sections) GetCode() (gjson.Result, error) {
 // Execute -
 func Execute(rpc noderpc.INode, event Event, ctx Context) ([]tokenbalance.TokenBalance, error) {
 	parameter := event.Normalize(ctx.Parameters)
-	storage := gjson.Parse(`[]`)
+	storage := []byte(`[]`)
 	code, err := event.GetCode()
 	if err != nil {
 		return nil, err
@@ -66,7 +64,7 @@ func Execute(rpc noderpc.INode, event Event, ctx Context) ([]tokenbalance.TokenB
 		return nil, err
 	}
 
-	return event.Parse(response), checkResponseError(response)
+	return event.Parse(response), nil
 }
 
 // NormalizeName -
@@ -74,23 +72,4 @@ func NormalizeName(name string) string {
 	name = strings.ToLower(name)
 	name = strings.ReplaceAll(name, "-", "")
 	return strings.ReplaceAll(name, "_", "")
-}
-
-func checkResponseError(response gjson.Result) error {
-	if !response.IsArray() {
-		return nil
-	}
-
-	var builder strings.Builder
-	for i, item := range response.Array() {
-		if i > 0 {
-			if err := builder.WriteByte('\n'); err != nil {
-				return err
-			}
-		}
-		if _, err := builder.WriteString(item.Get("id").String()); err != nil {
-			return err
-		}
-	}
-	return errors.Wrap(ErrNodeReturn, builder.String())
 }

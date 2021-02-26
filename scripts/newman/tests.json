@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "info": {
     "_postman_id": "8ef19349-565b-4fbd-b686-76ca48d013eb",
     "name": "BCDhub Tests",
@@ -4086,3 +4087,3788 @@
     }
   ]
 }
+=======
+	"info": {
+		"_postman_id": "f73e59c6-5ccb-482b-822e-65b020c45377",
+		"name": "BCDhub Tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "swagger",
+			"item": [
+				{
+					"name": "swagger.json",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const responseJson = pm.response.json();",
+									"",
+									"    pm.expect(responseJson.info.description).to.eql(\"This is API description for Better Call Dev service.\");",
+									"    pm.expect(responseJson.info.title).to.eql(\"Better Call Dev API\");",
+									"    pm.expect(responseJson.info.contact).to.eql({",
+									"        \"name\": \"Baking Bad Team\",",
+									"        \"url\": \"https://baking-bad.org/docs\",",
+									"        \"email\": \"hello@baking-bad.org\"",
+									"    })",
+									"    pm.expect(responseJson.info[\"x-logo\"]).to.eql({",
+									"        \"altText\": \"Better Call Dev logo\",",
+									"        \"href\": \"https://better-call.dev\",",
+									"        \"url\": \"https://better-call.dev/img/logo_og.png\"",
+									"    })",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/swagger.json",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"swagger.json"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "opg/:hash",
+			"item": [
+				{
+					"name": "opg#transaction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const responseJson = pm.response.json();",
+									"",
+									"    pm.expect(responseJson).to.not.eql(0)",
+									"",
+									"    for (const operation of responseJson) {",
+									"        pm.expect(operation.kind).to.eql(\"transaction\");",
+									"        pm.expect(operation).to.have.property('timestamp');",
+									"        pm.expect(operation).to.have.property('protocol');",
+									"        pm.expect(operation).to.have.property('network');",
+									"        pm.expect(operation).to.have.property('kind');",
+									"        pm.expect(operation).to.have.property('status');",
+									"        pm.expect(operation).to.have.property('internal');",
+									"        pm.expect(operation).to.have.property('mempool');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/opg/oovLj4iHWwW3Sffq8dBB9caFw4SW7UNgeiJ7ZaNfXGn5MZueKkK",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"opg",
+								"oovLj4iHWwW3Sffq8dBB9caFw4SW7UNgeiJ7ZaNfXGn5MZueKkK"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "opg#origination",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const responseJson = pm.response.json();",
+									"",
+									"    pm.expect(responseJson).to.not.eql(0)",
+									"",
+									"    for (const operation of responseJson) {",
+									"        pm.expect(operation.kind).to.eql(\"origination\");",
+									"        pm.expect(operation).to.have.property('timestamp');",
+									"        pm.expect(operation).to.have.property('protocol');",
+									"        pm.expect(operation).to.have.property('network');",
+									"        pm.expect(operation).to.have.property('kind');",
+									"        pm.expect(operation).to.have.property('status');",
+									"        pm.expect(operation).to.have.property('internal');",
+									"        pm.expect(operation).to.have.property('mempool');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/opg/ooZcoRrKQMfeZh6poP2mG3C7bvHiFuyjzuzfkSRKPiDxsoFHPAS",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"opg",
+								"ooZcoRrKQMfeZh6poP2mG3C7bvHiFuyjzuzfkSRKPiDxsoFHPAS"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "pick_random",
+			"item": [
+				{
+					"name": "pick_random",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const contract = pm.response.json();",
+									"",
+									"    pm.expect(contract).to.have.property('id');",
+									"    pm.expect(contract).to.have.property('network');",
+									"    pm.expect(contract).to.have.property('level');",
+									"    pm.expect(contract).to.have.property('timestamp');",
+									"    pm.expect(contract).to.have.property('hash');",
+									"    pm.expect(contract).to.have.property('address');",
+									"    pm.expect(contract).to.have.property('total_subscribed');",
+									"    pm.expect(contract).to.have.property('tokens');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/pick_random",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"pick_random"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "config",
+			"item": [
+				{
+					"name": "config",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const contract = pm.response.json();",
+									"",
+									"    pm.expect(contract).to.have.property('networks');",
+									"    pm.expect(contract).to.have.property('rpc_endpoints');",
+									"    pm.expect(contract).to.have.property('tzkt_endpoints');",
+									"    pm.expect(contract).to.have.property('sentry_dsn');",
+									"    pm.expect(contract).to.have.property('oauth_enabled');",
+									"    pm.expect(contract).to.have.property('ga_enabled');",
+									"    pm.expect(contract).to.have.property('mempool_enabled');",
+									"    pm.expect(contract).to.have.property('sandbox_mode');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/config",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"config"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "stats",
+			"item": [
+				{
+					"name": "stats",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const stats = pm.response.json();",
+									"",
+									"    pm.expect(stats.length).to.not.eql(0)",
+									"",
+									"    for (const stat of stats) {",
+									"        pm.expect(stat).to.have.property('network');",
+									"        pm.expect(stat).to.have.property('hash');",
+									"        pm.expect(stat).to.have.property('level');",
+									"        pm.expect(stat).to.have.property('predecessor');",
+									"        pm.expect(stat).to.have.property('chain_id');",
+									"        pm.expect(stat).to.have.property('protocol');",
+									"        pm.expect(stat).to.have.property('timestamp');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/stats",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"stats"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "stats/mainnet",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const stats = pm.response.json();",
+									"",
+									"    pm.expect(stats).to.have.property('contracts_count');",
+									"    pm.expect(stats).to.have.property('operations_count');",
+									"    pm.expect(stats).to.have.property('languages');",
+									"",
+									"    pm.expect(stats.protocols).to.not.eql(0);",
+									"",
+									"    for (const proto of stats.protocols) {",
+									"        pm.expect(proto).to.have.property('hash');",
+									"        pm.expect(proto).to.have.property('network');",
+									"        pm.expect(proto).to.have.property('start_level');",
+									"        pm.expect(proto).to.have.property('end_level');",
+									"        pm.expect(proto).to.have.property('alias');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/stats/mainnet",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"stats",
+								"mainnet"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "stats/mainnet/series?name=contract",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const series = pm.response.json();",
+									"",
+									"    pm.expect(series.length).to.not.eql(0);",
+									"",
+									"    for (const part of series) {",
+									"        pm.expect(part.length).to.eql(2);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/stats/mainnet/series?period=month&name=contract",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"stats",
+								"mainnet",
+								"series"
+							],
+							"query": [
+								{
+									"key": "period",
+									"value": "month"
+								},
+								{
+									"key": "name",
+									"value": "contract"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "stats/mainnet/series?name=operation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const series = pm.response.json();",
+									"",
+									"    pm.expect(series.length).to.not.eql(0);",
+									"",
+									"    for (const part of series) {",
+									"        pm.expect(part.length).to.eql(2);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/stats/mainnet/series?period=month&name=operation",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"stats",
+								"mainnet",
+								"series"
+							],
+							"query": [
+								{
+									"key": "period",
+									"value": "month"
+								},
+								{
+									"key": "name",
+									"value": "operation"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "stats/mainnet/series?name=paid_storage_size_diff",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const series = pm.response.json();",
+									"",
+									"    pm.expect(series.length).to.not.eql(0);",
+									"",
+									"    for (const part of series) {",
+									"        pm.expect(part.length).to.eql(2);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/stats/mainnet/series?period=month&name=paid_storage_size_diff",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"stats",
+								"mainnet",
+								"series"
+							],
+							"query": [
+								{
+									"key": "period",
+									"value": "month"
+								},
+								{
+									"key": "name",
+									"value": "paid_storage_size_diff"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "stats/mainnet/series?name=consumed_gas",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const series = pm.response.json();",
+									"",
+									"    pm.expect(series.length).to.not.eql(0);",
+									"",
+									"    for (const part of series) {",
+									"        pm.expect(part.length).to.eql(2);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/stats/mainnet/series?period=month&name=consumed_gas",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"stats",
+								"mainnet",
+								"series"
+							],
+							"query": [
+								{
+									"key": "period",
+									"value": "month"
+								},
+								{
+									"key": "name",
+									"value": "consumed_gas"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "slug",
+			"item": [
+				{
+					"name": "slug/atomex",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const slug = pm.response.json();",
+									"",
+									"    pm.expect(slug).to.eql({",
+									"        \"alias\": \"Atomex\",",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1VG2WtYdSWz5E7chTeAdDPZNy2MpP8pTfL\",",
+									"        \"slug\": \"atomex\"",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/slug/atomex",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"slug",
+								"atomex"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "slug/tzbtc",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const slug = pm.response.json();",
+									"",
+									"    pm.expect(slug).to.eql({",
+									"        \"alias\": \"tzBTC\",",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn\",",
+									"        \"slug\": \"tzbtc\"",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/slug/tzbtc",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"slug",
+								"tzbtc"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "slug/usdtz",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const slug = pm.response.json();",
+									"",
+									"    pm.expect(slug).to.eql({",
+									"        \"alias\": \"USDtz\",",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9\",",
+									"        \"slug\": \"usdtz\"",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/slug/usdtz",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"slug",
+								"usdtz"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "bigmap",
+			"item": [
+				{
+					"name": "bigmap/mainnet/31",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const bigmap = pm.response.json();",
+									"",
+									"    pm.expect(bigmap.network).to.be.eql('mainnet');",
+									"    pm.expect(bigmap.ptr).to.be.eql(31);",
+									"",
+									"    pm.expect(bigmap).to.have.property('address');",
+									"    pm.expect(bigmap).to.have.property('active_keys');",
+									"    pm.expect(bigmap).to.have.property('total_keys');",
+									"",
+									"    for (const typdef of bigmap.typedef) {",
+									"        pm.expect(typdef).to.have.property('name');",
+									"        pm.expect(typdef).to.have.property('type');",
+									"",
+									"        if (typdef.args !== undefined) {",
+									"            for (const arg of typdef.args) {",
+									"                pm.expect(arg).to.have.property('value');",
+									"            }",
+									"        }",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/bigmap/mainnet/31",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"bigmap",
+								"mainnet",
+								"31"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "bigmap/mainnet/31/count",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(response).to.have.property('count');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/bigmap/mainnet/31/count",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"bigmap",
+								"mainnet",
+								"31",
+								"count"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "bigmap/mainnet/31/history",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(response.ptr).to.be.eql(31);",
+									"",
+									"    pm.expect(response).to.have.property('address');",
+									"    pm.expect(response).to.have.property('network');",
+									"",
+									"    for (item of response.items) {",
+									"        pm.expect(item).to.have.property('action');",
+									"        pm.expect(item).to.have.property('timestamp');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/bigmap/mainnet/31/history",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"bigmap",
+								"mainnet",
+								"31",
+								"history"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "bigmap/mainnet/31/keys",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    for (item of response) {",
+									"        pm.expect(item).to.have.property('count');",
+									"        pm.expect(item).to.have.property('data');",
+									"        pm.expect(item.data).to.have.property('key');",
+									"        pm.expect(item.data).to.have.property('value');",
+									"        pm.expect(item.data).to.have.property('key_hash');",
+									"        pm.expect(item.data).to.have.property('key_string');",
+									"        pm.expect(item.data).to.have.property('level');",
+									"        pm.expect(item.data).to.have.property('timestamp');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/bigmap/mainnet/31/keys",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"bigmap",
+								"mainnet",
+								"31",
+								"keys"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "bigmap/mainnet/31/keys/:hash",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(response.key_hash).to.be.eql('expruyvqmgBYpF54i1c4p6r3oVV7FmW7ZH8EyjSjahKoQEfWPmcjGg');",
+									"    pm.expect(response.total).to.be.greaterThan(0);",
+									"",
+									"    pm.expect(response).to.have.property('key');",
+									"    pm.expect(response).to.have.property('values');",
+									"",
+									"    for (const item of response.values) {",
+									"        pm.expect(item).to.have.property('value');",
+									"        pm.expect(item).to.have.property('level');",
+									"        pm.expect(item).to.have.property('timestamp');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/bigmap/mainnet/31/keys/expruyvqmgBYpF54i1c4p6r3oVV7FmW7ZH8EyjSjahKoQEfWPmcjGg",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"bigmap",
+								"mainnet",
+								"31",
+								"keys",
+								"expruyvqmgBYpF54i1c4p6r3oVV7FmW7ZH8EyjSjahKoQEfWPmcjGg"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "bigmap/mainnet/32",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const bigmap = pm.response.json();",
+									"",
+									"    pm.expect(bigmap.network).to.be.eql('mainnet');",
+									"    pm.expect(bigmap.ptr).to.be.eql(32);",
+									"",
+									"    pm.expect(bigmap).to.have.property('address');",
+									"    pm.expect(bigmap).to.have.property('active_keys');",
+									"    pm.expect(bigmap).to.have.property('total_keys');",
+									"",
+									"    if (bigmap.typedef !== undefined) {",
+									"        for (const typdef of bigmap.typedef) {",
+									"            pm.expect(typdef).to.have.property('name');",
+									"            pm.expect(typdef).to.have.property('type');",
+									"",
+									"            if (typdef.args !== undefined) {",
+									"                for (const arg of typdef.args) {",
+									"                    pm.expect(arg).to.have.property('value');",
+									"                }",
+									"            }",
+									"        }",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/bigmap/mainnet/32",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"bigmap",
+								"mainnet",
+								"32"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "bigmap/mainnet/32/count",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(response).to.have.property('count');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/bigmap/mainnet/32/count",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"bigmap",
+								"mainnet",
+								"32",
+								"count"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "bigmap/mainnet/32/history",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(response.ptr).to.be.eql(32);",
+									"",
+									"    pm.expect(response).to.have.property('address');",
+									"    pm.expect(response).to.have.property('network');",
+									"",
+									"    if (response.items !== undefined) {",
+									"        for (item of response.items) {",
+									"            pm.expect(item).to.have.property('action');",
+									"            pm.expect(item).to.have.property('timestamp');",
+									"        }",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/bigmap/mainnet/32/history",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"bigmap",
+								"mainnet",
+								"32",
+								"history"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "bigmap/mainnet/32/keys",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    if (response.length > 0) {",
+									"        for (item of response) {",
+									"            pm.expect(item).to.have.property('count');",
+									"            pm.expect(item).to.have.property('data');",
+									"            pm.expect(item.data).to.have.property('key');",
+									"            pm.expect(item.data).to.have.property('value');",
+									"            pm.expect(item.data).to.have.property('key_hash');",
+									"            pm.expect(item.data).to.have.property('key_string');",
+									"            pm.expect(item.data).to.have.property('level');",
+									"            pm.expect(item.data).to.have.property('timestamp');",
+									"        }",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/bigmap/mainnet/32/keys",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"bigmap",
+								"mainnet",
+								"32",
+								"keys"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "bigmap/mainnet/32/keys/:hash",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(response.key_hash).to.be.eql('expruwxH85ahw97FKmWVLvKY3ahRjQDZvEcqeBi8aygbNobaFkAybe');",
+									"    pm.expect(response.total).to.be.greaterThan(0);",
+									"",
+									"    pm.expect(response).to.have.property('key');",
+									"    pm.expect(response).to.have.property('values');",
+									"",
+									"    for (const item of response.values) {",
+									"        pm.expect(item).to.have.property('value');",
+									"        pm.expect(item).to.have.property('level');",
+									"        pm.expect(item).to.have.property('timestamp');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/bigmap/mainnet/32/keys/expruwxH85ahw97FKmWVLvKY3ahRjQDZvEcqeBi8aygbNobaFkAybe",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"bigmap",
+								"mainnet",
+								"32",
+								"keys",
+								"expruwxH85ahw97FKmWVLvKY3ahRjQDZvEcqeBi8aygbNobaFkAybe"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "contracts",
+			"item": [
+				{
+					"name": "contract/mainnet/tzbtc",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(response.network).to.be.eql('mainnet');",
+									"    pm.expect(response.address).to.be.eql('KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn');",
+									"    pm.expect(response.alias).to.be.eql('tzBTC');",
+									"    pm.expect(response.slug).to.be.eql('tzbtc');",
+									"",
+									"    pm.expect(response).to.have.property('id');",
+									"    pm.expect(response).to.have.property('level');",
+									"    pm.expect(response).to.have.property('timestamp');",
+									"    pm.expect(response).to.have.property('hash');",
+									"    pm.expect(response).to.have.property('total_subscribed');",
+									"    pm.expect(response).to.have.property('tokens');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/contract/mainnet/KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"contract",
+								"mainnet",
+								"KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "contract/mainnet/tzbtc/code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(response.length).to.be.greaterThan(0);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/contract/mainnet/KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn/code",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"contract",
+								"mainnet",
+								"KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+								"code"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "contract/mainnet/tzbtc/operations",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(response).to.have.property('operations');",
+									"",
+									"    for (const operation of response.operations) {",
+									"        pm.expect(operation.network).to.be.eql('mainnet');",
+									"        ",
+									"        pm.expect(operation).to.have.property('content_index');",
+									"        pm.expect(operation).to.have.property('timestamp');",
+									"        pm.expect(operation).to.have.property('protocol');",
+									"        pm.expect(operation).to.have.property('kind');",
+									"        pm.expect(operation).to.have.property('status');",
+									"        pm.expect(operation).to.have.property('internal');",
+									"        pm.expect(operation).to.have.property('mempool');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/contract/mainnet/KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn/operations",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"contract",
+								"mainnet",
+								"KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+								"operations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "contract/mainnet/tzbtc/migrations",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    for (const migration of response) {        ",
+									"        pm.expect(migration).to.have.property('level');",
+									"        pm.expect(migration).to.have.property('timestamp');",
+									"        pm.expect(migration).to.have.property('protocol');",
+									"        pm.expect(migration).to.have.property('prev_protocol');",
+									"        pm.expect(migration).to.have.property('kind');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/contract/mainnet/KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn/migrations",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"contract",
+								"mainnet",
+								"KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+								"migrations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "contract/mainnet/tzbtc/transfers",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(response).to.have.property('total');",
+									"    pm.expect(response.transfers.length).to.be.eql(10);",
+									"",
+									"    for (const transfer of response.transfers) {        ",
+									"        pm.expect(transfer).to.have.property('indexed_time');",
+									"        pm.expect(transfer).to.have.property('network');",
+									"        pm.expect(transfer).to.have.property('contract');",
+									"        pm.expect(transfer).to.have.property('initiator');",
+									"        pm.expect(transfer).to.have.property('hash');",
+									"        pm.expect(transfer).to.have.property('status');",
+									"        pm.expect(transfer).to.have.property('timestamp');",
+									"        pm.expect(transfer).to.have.property('level');",
+									"        pm.expect(transfer).to.have.property('from');",
+									"        pm.expect(transfer).to.have.property('to');",
+									"        pm.expect(transfer).to.have.property('token_id');",
+									"        pm.expect(transfer).to.have.property('amount');",
+									"        pm.expect(transfer).to.have.property('counter');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/contract/mainnet/KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn/transfers?size=10",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"contract",
+								"mainnet",
+								"KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+								"transfers"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "contract/mainnet/tzbtc/tokens",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    for (const token of response) {        ",
+									"        pm.expect(token.network).to.be.eql('mainnet');",
+									"",
+									"        pm.expect(token).to.have.property('contract');",
+									"        pm.expect(token).to.have.property('token_id');",
+									"        pm.expect(token).to.have.property('supply');",
+									"        pm.expect(token).to.have.property('transfered');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/contract/mainnet/KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn/tokens",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"contract",
+								"mainnet",
+								"KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+								"tokens"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "contract/mainnet/tzbtc/tokens/holders",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    for (const address in response) {        ",
+									"        pm.expect(address.length).to.be.eql(36);",
+									"        pm.expect(response[address].startsWith(\"-\")).to.be.eql(false);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/contract/mainnet/KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn/tokens/holders?token_id=0",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"contract",
+								"mainnet",
+								"KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+								"tokens",
+								"holders"
+							],
+							"query": [
+								{
+									"key": "token_id",
+									"value": "0"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "contract/mainnet/tzbtc/similar",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(response).to.have.property('count');",
+									"",
+									"    for (const contract of response.contracts) {        ",
+									"        pm.expect(contract.network).to.be.eql('mainnet');",
+									"",
+									"        pm.expect(contract).to.have.property('id');",
+									"        pm.expect(contract).to.have.property('level');",
+									"        pm.expect(contract).to.have.property('timestamp');",
+									"        pm.expect(contract).to.have.property('hash');",
+									"        pm.expect(contract).to.have.property('address');",
+									"        pm.expect(contract).to.have.property('total_subscribed');",
+									"        pm.expect(contract).to.have.property('tokens');",
+									"        pm.expect(contract).to.have.property('count');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/contract/mainnet/KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn/similar",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"contract",
+								"mainnet",
+								"KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+								"similar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "contract/mainnet/tzbtc/entrypoints",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(response.length).to.be.greaterThan(0);",
+									"",
+									"    for (const entrypoint of response) {        ",
+									"        pm.expect(entrypoint).to.have.property('schema');",
+									"        pm.expect(entrypoint).to.have.property('name');",
+									"        pm.expect(entrypoint).to.have.property('typedef');",
+									"",
+									"        for (const typedef of entrypoint.typedef) {",
+									"            pm.expect(typedef).to.have.property('name');",
+									"            pm.expect(typedef).to.have.property('type');",
+									"        }",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/contract/mainnet/KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn/entrypoints",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"contract",
+								"mainnet",
+								"KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+								"entrypoints"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "contract/mainnet/tzbtc/entrypoints/schema",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(response).to.have.property('schema');",
+									"    pm.expect(response).to.have.property('name');",
+									"    pm.expect(response).to.have.property('typedef');",
+									"",
+									"    for (const typedef of response.typedef) {",
+									"        pm.expect(typedef).to.have.property('name');",
+									"        pm.expect(typedef).to.have.property('type');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/contract/mainnet/KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn/entrypoints/schema?entrypoint=getVersion",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"contract",
+								"mainnet",
+								"KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+								"entrypoints",
+								"schema"
+							],
+							"query": [
+								{
+									"key": "entrypoint",
+									"value": "getVersion"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "domains",
+			"item": [
+				{
+					"name": "domains/delphinet",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(response).to.have.property('total');",
+									"",
+									"    if (response.domains !== null && response.domains.lenght > 0) {",
+									"        for (const domain of response.domains) {",
+									"            pm.expect(domain.network).to.eql('delphinet');",
+									"            pm.expect(domain).to.have.property('address');",
+									"            pm.expect(domain).to.have.property('expiration');",
+									"            pm.expect(domain).to.have.property('name');",
+									"            pm.expect(domain).to.have.property('timestamp');",
+									"        }",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/domains/delphinet",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"domains",
+								"delphinet"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "domains/mainnet",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(response).to.have.property('total');",
+									"",
+									"    if (response.domains !== null && response.domains.lenght > 0) {",
+									"        for (const domain of response.domains) {",
+									"            pm.expect(domain.network).to.eql('mainnet');",
+									"            pm.expect(domain).to.have.property('address');",
+									"            pm.expect(domain).to.have.property('expiration');",
+									"            pm.expect(domain).to.have.property('name');",
+									"            pm.expect(domain).to.have.property('timestamp');",
+									"        }",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/domains/mainnet",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"domains",
+								"mainnet"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "account",
+			"item": [
+				{
+					"name": "account/mainnet/tzbtc",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const account = pm.response.json();",
+									"",
+									"    pm.expect(account.address).to.eql('KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn');",
+									"    pm.expect(account.network).to.eql('mainnet');",
+									"    pm.expect(account.alias).to.eql('tzBTC');",
+									"",
+									"    pm.expect(account).to.have.property('balance');",
+									"    pm.expect(account).to.have.property('tx_count');",
+									"    pm.expect(account).to.have.property('last_action');",
+									"    pm.expect(account).to.have.property('tokens');",
+									"",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/account/mainnet/KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"account",
+								"mainnet",
+								"KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "account/mainnet/usdtz",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const account = pm.response.json();",
+									"",
+									"    pm.expect(account.address).to.eql('KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9');",
+									"    pm.expect(account.network).to.eql('mainnet');",
+									"    pm.expect(account.alias).to.eql('USDtz');",
+									"",
+									"    pm.expect(account).to.have.property('balance');",
+									"    pm.expect(account).to.have.property('tx_count');",
+									"    pm.expect(account).to.have.property('last_action');",
+									"    pm.expect(account).to.have.property('tokens');",
+									"",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/account/mainnet/KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"account",
+								"mainnet",
+								"KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "account/mainnet/tzbtc/metadata",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const metadata = pm.response.json();",
+									"",
+									"    pm.expect(metadata.address).to.eql('KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn');",
+									"    pm.expect(metadata.network).to.eql('mainnet');",
+									"    pm.expect(metadata.slug).to.eql('tzbtc');",
+									"    pm.expect(metadata.name).to.eql('tzBTC');",
+									"",
+									"    pm.expect(metadata).to.have.property('description');",
+									"    pm.expect(metadata).to.have.property('version');",
+									"    pm.expect(metadata).to.have.property('license');",
+									"    pm.expect(metadata).to.have.property('interfaces');",
+									"    pm.expect(metadata).to.have.property('events');",
+									"    pm.expect(metadata).to.have.property('dapps');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/account/mainnet/KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn/metadata",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"account",
+								"mainnet",
+								"KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+								"metadata"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "account/mainnet/usdtz/metadata",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const metadata = pm.response.json();",
+									"",
+									"    pm.expect(metadata.address).to.eql('KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9');",
+									"    pm.expect(metadata.network).to.eql('mainnet');",
+									"    pm.expect(metadata.slug).to.eql('usdtz');",
+									"    pm.expect(metadata.name).to.eql('USDtz');",
+									"",
+									"    pm.expect(metadata).to.have.property('description');",
+									"    pm.expect(metadata).to.have.property('version');",
+									"    pm.expect(metadata).to.have.property('license');",
+									"    pm.expect(metadata).to.have.property('interfaces');",
+									"    pm.expect(metadata).to.have.property('events');",
+									"    pm.expect(metadata).to.have.property('dapps');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/account/mainnet/KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9/metadata",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"account",
+								"mainnet",
+								"KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9",
+								"metadata"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "tokens",
+			"item": [
+				{
+					"name": "tokens/mainnet",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(response.total).to.be.greaterThan(0);",
+									"    pm.expect(response.tokens.length).to.be.greaterThan(0);",
+									"",
+									"    for (const token of response.tokens) {",
+									"        pm.expect(token).to.have.property('network');",
+									"        pm.expect(token).to.have.property('level');",
+									"        pm.expect(token).to.have.property('timestamp');",
+									"        pm.expect(token).to.have.property('last_action');",
+									"        pm.expect(token).to.have.property('address');",
+									"        pm.expect(token).to.have.property('type');",
+									"        pm.expect(token).to.have.property('balance');",
+									"        pm.expect(token).to.have.property('tx_count');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/tokens/mainnet",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"tokens",
+								"mainnet"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "tokens/mainnet/version/fa12",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(response.total).to.be.greaterThan(0);",
+									"    pm.expect(response.tokens.length).to.be.eql(10);",
+									"",
+									"    for (const token of response.tokens) {",
+									"        pm.expect(token).to.have.property('network');",
+									"        pm.expect(token).to.have.property('level');",
+									"        pm.expect(token).to.have.property('timestamp');",
+									"        pm.expect(token).to.have.property('last_action');",
+									"        pm.expect(token).to.have.property('address');",
+									"        pm.expect(token).to.have.property('type');",
+									"        pm.expect(token).to.have.property('balance');",
+									"        pm.expect(token).to.have.property('tx_count');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/tokens/mainnet/version/fa12?size=10",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"tokens",
+								"mainnet",
+								"version",
+								"fa12"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "tokens/mainnet/version/fa2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(response.total).to.be.greaterThan(0);",
+									"    pm.expect(response.tokens.length).to.be.eql(10);",
+									"",
+									"    for (const token of response.tokens) {",
+									"        pm.expect(token).to.have.property('network');",
+									"        pm.expect(token).to.have.property('level');",
+									"        pm.expect(token).to.have.property('timestamp');",
+									"        pm.expect(token).to.have.property('last_action');",
+									"        pm.expect(token).to.have.property('address');",
+									"        pm.expect(token).to.have.property('type');",
+									"        pm.expect(token).to.have.property('balance');",
+									"        pm.expect(token).to.have.property('tx_count');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/tokens/mainnet/version/fa2?size=10",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"tokens",
+								"mainnet",
+								"version",
+								"fa2"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "tokens/delphinet",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(response.total).to.be.greaterThan(0);",
+									"    pm.expect(response.tokens.length).to.be.greaterThan(0);",
+									"",
+									"    for (const token of response.tokens) {",
+									"        pm.expect(token).to.have.property('network');",
+									"        pm.expect(token).to.have.property('level');",
+									"        pm.expect(token).to.have.property('timestamp');",
+									"        pm.expect(token).to.have.property('last_action');",
+									"        pm.expect(token).to.have.property('address');",
+									"        pm.expect(token).to.have.property('type');",
+									"        pm.expect(token).to.have.property('balance');",
+									"        pm.expect(token).to.have.property('tx_count');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/tokens/delphinet",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"tokens",
+								"delphinet"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "tokens/delphinet/version/fa12",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(response.total).to.be.greaterThan(0);",
+									"    pm.expect(response.tokens.length).to.be.eql(10);",
+									"",
+									"    for (const token of response.tokens) {",
+									"        pm.expect(token).to.have.property('network');",
+									"        pm.expect(token).to.have.property('level');",
+									"        pm.expect(token).to.have.property('timestamp');",
+									"        pm.expect(token).to.have.property('last_action');",
+									"        pm.expect(token).to.have.property('address');",
+									"        pm.expect(token).to.have.property('type');",
+									"        pm.expect(token).to.have.property('balance');",
+									"        pm.expect(token).to.have.property('tx_count');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/tokens/delphinet/version/fa12?size=10",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"tokens",
+								"delphinet",
+								"version",
+								"fa12"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "tokens/delphinet/version/fa2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(response.total).to.be.greaterThan(0);",
+									"    pm.expect(response.tokens.length).to.be.eql(10);",
+									"",
+									"    for (const token of response.tokens) {",
+									"        pm.expect(token).to.have.property('network');",
+									"        pm.expect(token).to.have.property('level');",
+									"        pm.expect(token).to.have.property('timestamp');",
+									"        pm.expect(token).to.have.property('last_action');",
+									"        pm.expect(token).to.have.property('address');",
+									"        pm.expect(token).to.have.property('type');",
+									"        pm.expect(token).to.have.property('balance');",
+									"        pm.expect(token).to.have.property('tx_count');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/tokens/delphinet/version/fa2?size=10",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"tokens",
+								"delphinet",
+								"version",
+								"fa2"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "tokens/mainnet/transfers/tzbtc",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(response.total).to.be.greaterThan(0);",
+									"    pm.expect(response.transfers.length).to.be.eql(20);",
+									"",
+									"    for (const transfer of response.transfers) {",
+									"        pm.expect(transfer.network).to.be.eql('mainnet');",
+									"        pm.expect(transfer.alias).to.be.eql('tzBTC');",
+									"        pm.expect(transfer.token_id).to.be.eql(0);",
+									"",
+									"        pm.expect(transfer).to.have.property('indexed_time');",
+									"        pm.expect(transfer).to.have.property('network');",
+									"        pm.expect(transfer).to.have.property('contract');",
+									"        pm.expect(transfer).to.have.property('initiator');",
+									"        pm.expect(transfer).to.have.property('hash');",
+									"        pm.expect(transfer).to.have.property('status');",
+									"        pm.expect(transfer).to.have.property('timestamp');",
+									"        pm.expect(transfer).to.have.property('level');",
+									"        pm.expect(transfer).to.have.property('from');",
+									"        pm.expect(transfer).to.have.property('to');",
+									"        pm.expect(transfer).to.have.property('token_id');",
+									"        pm.expect(transfer).to.have.property('amount');",
+									"        pm.expect(transfer).to.have.property('counter');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/tokens/mainnet/transfers/KT1DrJV8vhkdLEj76h1H9Q4irZDqAkMPo1Qf?token_id=0&size=20&contracts=KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"tokens",
+								"mainnet",
+								"transfers",
+								"KT1DrJV8vhkdLEj76h1H9Q4irZDqAkMPo1Qf"
+							],
+							"query": [
+								{
+									"key": "token_id",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								},
+								{
+									"key": "contracts",
+									"value": "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "tokens/mainnet/transfers/usdtz",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(response.total).to.be.greaterThan(0);",
+									"    pm.expect(response.transfers.length).to.be.eql(20);",
+									"",
+									"    for (const transfer of response.transfers) {",
+									"        pm.expect(transfer.network).to.be.eql('mainnet');",
+									"        pm.expect(transfer.alias).to.be.eql('USDtz');",
+									"        pm.expect(transfer.token_id).to.be.eql(0);",
+									"",
+									"        pm.expect(transfer).to.have.property('indexed_time');",
+									"        pm.expect(transfer).to.have.property('network');",
+									"        pm.expect(transfer).to.have.property('contract');",
+									"        pm.expect(transfer).to.have.property('initiator');",
+									"        pm.expect(transfer).to.have.property('hash');",
+									"        pm.expect(transfer).to.have.property('status');",
+									"        pm.expect(transfer).to.have.property('timestamp');",
+									"        pm.expect(transfer).to.have.property('level');",
+									"        pm.expect(transfer).to.have.property('from');",
+									"        pm.expect(transfer).to.have.property('to');",
+									"        pm.expect(transfer).to.have.property('token_id');",
+									"        pm.expect(transfer).to.have.property('amount');",
+									"        pm.expect(transfer).to.have.property('counter');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/tokens/mainnet/transfers/KT1Puc9St8wdNoGtLiD2WXaHbWU7styaxYhD?token_id=0&size=20&contracts=KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"tokens",
+								"mainnet",
+								"transfers",
+								"KT1Puc9St8wdNoGtLiD2WXaHbWU7styaxYhD"
+							],
+							"query": [
+								{
+									"key": "token_id",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								},
+								{
+									"key": "contracts",
+									"value": "KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "tokens/mainnet/series/tzbtc?period=month",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const series = pm.response.json();",
+									"",
+									"    pm.expect(series.length).to.be.greaterThan(0);",
+									"    for (const part of series) {",
+									"        pm.expect(part.length).to.eql(2);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/tokens/mainnet/series?contract=KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn&period=month&token_id=0&slug=dexter",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"tokens",
+								"mainnet",
+								"series"
+							],
+							"query": [
+								{
+									"key": "contract",
+									"value": "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn"
+								},
+								{
+									"key": "period",
+									"value": "month"
+								},
+								{
+									"key": "token_id",
+									"value": "0"
+								},
+								{
+									"key": "slug",
+									"value": "dexter"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "tokens/mainnet/series/usdtz?period=month",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const series = pm.response.json();",
+									"",
+									"    pm.expect(series.length).to.be.greaterThan(0);",
+									"    for (const part of series) {",
+									"        pm.expect(part.length).to.eql(2);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/tokens/mainnet/series?contract=KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9&period=month&token_id=0&slug=dexter",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"tokens",
+								"mainnet",
+								"series"
+							],
+							"query": [
+								{
+									"key": "contract",
+									"value": "KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9"
+								},
+								{
+									"key": "period",
+									"value": "month"
+								},
+								{
+									"key": "token_id",
+									"value": "0"
+								},
+								{
+									"key": "slug",
+									"value": "dexter"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "tokens/mainnet/series/ethtz?period=month",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const series = pm.response.json();",
+									"",
+									"    pm.expect(series.length).to.be.greaterThan(0);",
+									"    for (const part of series) {",
+									"        pm.expect(part.length).to.eql(2);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/tokens/mainnet/series?contract=KT19at7rQUvyjxnZ2fBv7D9zc8rkyG7gAoU8&period=month&token_id=0&slug=dexter",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"tokens",
+								"mainnet",
+								"series"
+							],
+							"query": [
+								{
+									"key": "contract",
+									"value": "KT19at7rQUvyjxnZ2fBv7D9zc8rkyG7gAoU8"
+								},
+								{
+									"key": "period",
+									"value": "month"
+								},
+								{
+									"key": "token_id",
+									"value": "0"
+								},
+								{
+									"key": "slug",
+									"value": "dexter"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "tokens/mainnet/series/wxtz?period=month",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const series = pm.response.json();",
+									"",
+									"    pm.expect(series.length).to.be.greaterThan(0);",
+									"    for (const part of series) {",
+									"        pm.expect(part.length).to.eql(2);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/tokens/mainnet/series?contract=KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH&period=month&token_id=0&slug=dexter",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"tokens",
+								"mainnet",
+								"series"
+							],
+							"query": [
+								{
+									"key": "contract",
+									"value": "KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH"
+								},
+								{
+									"key": "period",
+									"value": "month"
+								},
+								{
+									"key": "token_id",
+									"value": "0"
+								},
+								{
+									"key": "slug",
+									"value": "dexter"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "dapps",
+			"item": [
+				{
+					"name": "dapps/trianon",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const dapp = pm.response.json();",
+									"",
+									"    pm.expect(dapp).to.eql({",
+									"        \"name\": \"Trianon Royal\",",
+									"        \"short_description\": \"The Music Pavilion of Versailles, tokenized\",",
+									"        \"full_description\": \"The Music Pavilion of Versailles was built in 1784 for the Countess of Provence, sister-in-law of Louis XVI and Marie-Antoinette, by the first architect of Monsieur, the King’s brother, Jean-François Chalgrin (1739-1811). The building is in neoclassical style, directly inspired by the Villa Rotonda in Veneto, built by the architect Andrea Palladio between 1566 and 1571.\",",
+									"        \"website\": \"https://trianonroyal.com/\",",
+									"        \"slug\": \"trianon\",",
+									"        \"authors\": [",
+									"            \"Equisafe Inc\"",
+									"        ],",
+									"        \"social_links\": [",
+									"            \"https://www.youtube.com/channel/UCxTV7vZs0ZmNVNXAnhiL5Zg\",",
+									"            \"https://www.instagram.com/equisafe_io/\",",
+									"            \"https://medium.com/@Equisafe\",",
+									"            \"https://twitter.com/Equisafe_io\",",
+									"            \"https://www.linkedin.com/company/13045333\",",
+									"            \"https://gitlab.com/equisafe\"",
+									"        ],",
+									"        \"interfaces\": [",
+									"            \"NYX\"",
+									"        ],",
+									"        \"categories\": [",
+									"            \"Token\",",
+									"            \"STO\"",
+									"        ],",
+									"        \"soon\": false,",
+									"        \"logo\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/trianon/trianon_logo.jpg\",",
+									"        \"cover\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/trianon/trianon_cover.png\",",
+									"        \"contracts\": [",
+									"            {",
+									"            \"network\": \"mainnet\",",
+									"            \"address\": \"KT1XHAmdRKugP1Q38CxDmpcRSxq143KpEiYx\",",
+									"            \"alias\": \"Trianon security token\",",
+									"            \"release_date\": \"2020-03-03T21:16:22Z\"",
+									"            }",
+									"        ],",
+									"        \"tokens\": [",
+									"            {",
+									"            \"contract\": \"KT1XHAmdRKugP1Q38CxDmpcRSxq143KpEiYx\",",
+									"            \"network\": \"mainnet\",",
+									"            \"token_id\": 0,",
+									"            \"symbol\": \"TRIANON\",",
+									"            \"name\": \"Trianon Royal\",",
+									"            \"decimals\": 8,",
+									"            \"supply\": 0,",
+									"            \"transfered\": 0",
+									"            }",
+									"        ]",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/dapps/trianon",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"dapps",
+								"trianon"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "dapps/aspencoin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const dapp = pm.response.json();",
+									"",
+									"    pm.expect(dapp).to.eql({",
+									"        \"name\": \"Aspen Coin\",",
+									"        \"short_description\": \"St. Regis Aspen Resort Luxury Real-estate STO\",",
+									"        \"full_description\": \"Aspen Digital Token, an asset backed coin, distributed to investors through a private Reg D 506 (c) offering, that is compliant with the laws of the jurisdictions in which it is sold.\",",
+									"        \"website\": \"https://www.aspencoin.io/\",",
+									"        \"slug\": \"aspencoin\",",
+									"        \"authors\": [",
+									"        \"Elevated Returns LLC\"",
+									"        ],",
+									"        \"social_links\": [",
+									"        \"https://twitter.com/aspen_digital\",",
+									"        \"https://www.instagram.com/aspencoin/\"",
+									"        ],",
+									"        \"interfaces\": [",
+									"        \"FA1.2\"",
+									"        ],",
+									"        \"categories\": [",
+									"        \"Token\",",
+									"        \"STO\"",
+									"        ],",
+									"        \"soon\": false,",
+									"        \"logo\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/aspencoin/aspen_logo.jpg\",",
+									"        \"cover\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/aspencoin/aspen_cover.png\",",
+									"        \"contracts\": [",
+									"        {",
+									"            \"network\": \"mainnet\",",
+									"            \"address\": \"KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM\",",
+									"            \"alias\": \"Aspen Digital\",",
+									"            \"release_date\": \"2020-08-03T20:49:40Z\"",
+									"        }",
+									"        ],",
+									"        \"tokens\": [",
+									"        {",
+									"            \"contract\": \"KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM\",",
+									"            \"network\": \"mainnet\",",
+									"            \"token_id\": 0,",
+									"            \"symbol\": \"ASPEN\",",
+									"            \"name\": \"Aspen Digital\",",
+									"            \"decimals\": 8,",
+									"            \"supply\": 18000000,",
+									"            \"transfered\": 23645000",
+									"        }",
+									"        ]",
+									"  });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/dapps/aspencoin",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"dapps",
+								"aspencoin"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "dapps/equisafe",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const dapp = pm.response.json();",
+									"",
+									"    pm.expect(dapp).to.eql({",
+									"    \"name\": \"Equisafe\",",
+									"    \"short_description\": \"Digital Securities Platform\",",
+									"    \"full_description\": \"Equisafe helps you to fully digitise your corporate processes, free yourself from paper and enhance the way you interact with your shareholders, future investors and any professionals you are used to working with.\",",
+									"    \"website\": \"https://www.equisafe.io/\",",
+									"    \"slug\": \"equisafe\",",
+									"    \"authors\": [",
+									"    \"Equisafe Inc\"",
+									"    ],",
+									"    \"social_links\": [",
+									"    \"https://www.youtube.com/channel/UCxTV7vZs0ZmNVNXAnhiL5Zg\",",
+									"    \"https://www.instagram.com/equisafe_io/\",",
+									"    \"https://medium.com/@Equisafe\",",
+									"    \"https://twitter.com/Equisafe_io\",",
+									"    \"https://www.linkedin.com/company/13045333\",",
+									"    \"https://gitlab.com/equisafe\"",
+									"    ],",
+									"    \"interfaces\": null,",
+									"    \"categories\": [",
+									"    \"Platform\",",
+									"    \"STO\"",
+									"    ],",
+									"    \"soon\": false,",
+									"    \"logo\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/equisafe/equisafe_logo.jpg\",",
+									"    \"cover\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/equisafe/equisafe_cover.jpg\",",
+									"    \"contracts\": [",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1RM4Nzwe9kgyiF3WpqPdUezJ2SS7ixUdHX\",",
+									"        \"alias\": \"Trianon STO issuer\",",
+									"        \"release_date\": \"2020-03-03T21:06:22Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1LedJHptp1wzu1GCbsu5RttCEBkk7pw7vu\",",
+									"        \"release_date\": \"2020-03-03T20:18:22Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1EoSo36L6bARcGaCMLU95wE9sm7Puy51zz\",",
+									"        \"release_date\": \"2020-10-07T08:58:18Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1XHAmdRKugP1Q38CxDmpcRSxq143KpEiYx\",",
+									"        \"alias\": \"Trianon security token\",",
+									"        \"release_date\": \"2020-03-03T21:16:22Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT19t1Ac1Ja815tY7WU2GKVqm4r8keva1MBt\",",
+									"        \"release_date\": \"2020-09-15T15:26:58Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1RWeADMyow5Z3sMCkGCQHaB9MpP7z6PRUd\",",
+									"        \"release_date\": \"2020-10-07T09:33:58Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1RJpnMc83ybukSC8E9MKxKzH2wyxabMGnj\",",
+									"        \"release_date\": \"2020-10-16T12:17:23Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1BaPPNgqNBv5PkN4sWWiKAP7afzGAv3Exj\",",
+									"        \"release_date\": \"2020-03-03T20:25:22Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1PeP7xW8GWNRXHMgqfXjYniXp6RJjrmmtc\",",
+									"        \"release_date\": \"2020-09-22T08:12:42Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1W35uQXpgoVxNejn7FYL7Em9kktrSAk3yM\",",
+									"        \"release_date\": \"2020-09-01T14:38:22Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1Xp1vSWarB9hB5UvFWyAqyxk867dvTFxQ1\",",
+									"        \"release_date\": \"2020-09-16T10:03:18Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1ANCsYr8Gv9Amjx92LiFFFskNRVQN2Tg4C\",",
+									"        \"release_date\": \"2020-09-17T07:44:18Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT18hbep6w7ynhk6FiXkqVyCqTXSL6gCJv8s\",",
+									"        \"release_date\": \"2020-09-15T10:33:58Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1JRWc6ZUVHNr5m3EEyPP4yxmHuipRv1zAv\",",
+									"        \"release_date\": \"2020-09-16T08:54:38Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1MKX3GiQJ4opk7ZQ5ScPSauBcgh5KgjC8J\",",
+									"        \"release_date\": \"2020-10-01T08:15:13Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1TzD3LQUa9XdWWFFveXBbXV5mm13GK8GJd\",",
+									"        \"release_date\": \"2020-12-03T15:12:02Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1ACMUWqzNdxFxkwNsovSnTyXXJfntg4AQy\",",
+									"        \"release_date\": \"2020-09-16T08:51:38Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1LBA8th4NXfjethYCPmSw9xse4B1gcr3dB\",",
+									"        \"release_date\": \"2020-10-07T09:30:58Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1Qgx4xsqe8cWxurGiVbjBJczQcQoZqq5oy\",",
+									"        \"release_date\": \"2020-09-16T09:56:18Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1BVmgRzpCpJsN42t4XHBK4p6AkR8Jh998b\",",
+									"        \"release_date\": \"2020-09-22T08:09:42Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1ReP1tXdKMwMDvpB8bmfnCaXyKf3jFcYhR\",",
+									"        \"release_date\": \"2020-10-16T11:03:43Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1KcHS5JMTjdadyD1zqzKWYnkfHLemGgzZR\",",
+									"        \"release_date\": \"2020-12-03T09:01:02Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1EA1qz2KDXqMz58CUCgH2R1PwmB4PUiWh1\",",
+									"        \"release_date\": \"2020-12-03T15:10:02Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1AurqozW6oGfSXfddGVFcDi3PQYLSomymB\",",
+									"        \"release_date\": \"2020-09-01T14:59:22Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1AibwutnrWe5zWkbbbrCoxfUkZgfpi2Tgs\",",
+									"        \"release_date\": \"2020-09-01T14:35:22Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1S4zXjWPvXZv7eufEJxZMuYrxFyzdiPobP\",",
+									"        \"release_date\": \"2020-03-03T20:15:22Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT19J3jUH1pUk9bNkvxRXWaW5FjNfqRi6XvM\",",
+									"        \"release_date\": \"2020-10-01T08:18:21Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1NYqJMeLbUKuNaRrXyePrCZ4Uth2HU3173\",",
+									"        \"release_date\": \"2020-10-16T11:00:43Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1LixcSiiBN8gCLshb24P8m9TqDXthwWJPy\",",
+									"        \"release_date\": \"2020-09-17T07:47:18Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1GXte9UNEuzVAi5EajXxuQt1iornm46yo8\",",
+									"        \"release_date\": \"2020-10-07T08:55:18Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1SE5x7QrXTma3MHjsuNWtfmf6Asnxo9fqV\",",
+									"        \"release_date\": \"2020-09-15T10:30:58Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1QfQkoxR1JL9d79DxQ3AqNLt1kwSmJgrRz\",",
+									"        \"release_date\": \"2020-09-16T10:06:18Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1U1JZaXoG4u1EPnhHL4R4otzkWc1L34q3c\",",
+									"        \"alias\": \"Equisafe KYC registrar\",",
+									"        \"release_date\": \"2020-03-03T21:08:22Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1KHu4DASppcFVjrLyFHamu9X7ENdVdmev7\",",
+									"        \"release_date\": \"2020-12-03T15:16:42Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1MaD47dCPTQS6Q3JdJfTHZx4w3gstUvvfD\",",
+									"        \"release_date\": \"2020-09-16T10:39:58Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1WXF1XU9UQADDU1f2yqEbCxi89hW9JeSHd\",",
+									"        \"release_date\": \"2020-12-03T16:42:47Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1DD8xRayF66USRxJdi7YkfavmiC5Ggx3Ki\",",
+									"        \"release_date\": \"2020-12-13T10:45:53Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1UMWs4LbBSgdCv1f7kAmmYkjbea43ruhit\",",
+									"        \"release_date\": \"2020-12-13T10:49:53Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1JnU6thJd5A1hW5mGaCa2sWBuSkriTKbqq\",",
+									"        \"release_date\": \"2020-12-13T15:37:19Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1Mq9mPHSgrotWmoWnyMw11cRmAsvNn1yXf\",",
+									"        \"release_date\": \"2020-12-13T10:48:53Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1GzcnQ7cSbSGiDexB4DUEPMSXL293wkgV6\",",
+									"        \"release_date\": \"2020-12-13T15:36:19Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1XCkUbuKiRdwqcdpTh4N6UbQaN6sLmsH2Q\",",
+									"        \"release_date\": \"2020-12-13T10:47:53Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1XPTwSXDbnPZ5RJwrsKCFia9DYczWELVzq\",",
+									"        \"release_date\": \"2020-12-13T15:35:19Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1Mayi4QR51NBEM9avRp2e3L58dkY1PEz36\",",
+									"        \"release_date\": \"2020-12-14T09:17:19Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT18uXch4CaGX4ZyQPwPmoVCZNq7HRWqPV4m\",",
+									"        \"release_date\": \"2020-12-14T09:37:39Z\"",
+									"    },",
+									"    {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT19E6SEB26EYgSqft6PfcP86yUReqdE8fNu\",",
+									"        \"release_date\": \"2020-12-14T09:14:19Z\"",
+									"    }",
+									"    ],",
+									"    \"tokens\": [",
+									"    {",
+									"        \"contract\": \"KT1XHAmdRKugP1Q38CxDmpcRSxq143KpEiYx\",",
+									"        \"network\": \"mainnet\",",
+									"        \"token_id\": 0,",
+									"        \"symbol\": \"TRIANON\",",
+									"        \"name\": \"Trianon Royal\",",
+									"        \"decimals\": 8,",
+									"        \"supply\": 0,",
+									"        \"transfered\": 0",
+									"    }",
+									"    ]",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/dapps/equisafe",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"dapps",
+								"equisafe"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "dapps/tzero",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const dapp = pm.response.json();",
+									"",
+									"    pm.expect(dapp).to.eql({",
+									"  \"name\": \"tZERO\",",
+									"  \"short_description\": \"Crypto wallet and exchange service\",",
+									"  \"full_description\": \"Digital securities are traditional types of securities such as equities or bonds, enhanced using the benefits of blockchain and smart contract technology without compromising traditional regulatory compliance and investor protections. The alternative trading system, operated by tZERO ATS, is the premier market for trading these digital securities.\",",
+									"  \"website\": \"https://www.tzero.com/\",",
+									"  \"slug\": \"tzero\",",
+									"  \"authors\": [",
+									"    \"tZERO Crypto Inc\"",
+									"  ],",
+									"  \"social_links\": [",
+									"    \"https://twitter.com/tZERO\",",
+									"    \"https://www.facebook.com/tZEROblockchain/\",",
+									"    \"https://www.instagram.com/tzeroblockchain\"",
+									"  ],",
+									"  \"interfaces\": null,",
+									"  \"categories\": [",
+									"    \"Platform\",",
+									"    \"STO\"",
+									"  ],",
+									"  \"soon\": false,",
+									"  \"logo\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/tzero/tzero_logo.jpg\",",
+									"  \"cover\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/tzero/tzero_cover.png\",",
+									"  \"screenshots\": [",
+									"    {",
+									"      \"type\": \"desktop\",",
+									"      \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/tzero/tzero_screen_1.png\"",
+									"    }",
+									"  ],",
+									"  \"contracts\": [",
+									"    {",
+									"      \"network\": \"mainnet\",",
+									"      \"address\": \"KT1KemKUx79keZgFW756jQrqKcZJ21y4SPdS\",",
+									"      \"alias\": \"tZERO Compliance\",",
+									"      \"release_date\": \"2020-08-03T20:46:40Z\"",
+									"    },",
+									"    {",
+									"      \"network\": \"mainnet\",",
+									"      \"address\": \"KT19nHqEWZxFFbbDL1b7Y86escgEN7qUShGo\",",
+									"      \"alias\": \"tZERO Registry\",",
+									"      \"release_date\": \"2020-08-03T20:44:40Z\"",
+									"    }",
+									"  ]",
+									"}",
+									");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/dapps/tzero",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"dapps",
+								"tzero"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "dapps/tzbutton",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const dapp = pm.response.json();",
+									"",
+									"    pm.expect(dapp).to.eql({",
+									"  \"name\": \"TzButton\",",
+									"  \"short_description\": \"Tezos-blockchain based game\",",
+									"  \"full_description\": \"The TzButton experiment is controlled by a smart contract deployed on the Tezos blockchain. Whenever anyone presses the button three things will happen:\\n1. You will add 0.2 tez to the smart contract’s balance\\n2. The address of the sender will become the leader\\n3. The countdown is reset\\n\\nThe address that is the leader after the countdown expired will be eligible to withdraw the total balance on the smart contract.\",",
+									"  \"website\": \"https://tzbutton.io/\",",
+									"  \"slug\": \"tzbutton\",",
+									"  \"authors\": [",
+									"    \"AirGap\"",
+									"  ],",
+									"  \"social_links\": [",
+									"    \"https://t.me/AirGap\",",
+									"    \"https://www.instagram.com/airgap.it/\",",
+									"    \"https://twitter.com/AirGap_it\",",
+									"    \"https://www.youtube.com/channel/UCV2_m3sCXtxLeRWrQo8uvxg\",",
+									"    \"https://github.com/airgap-it/airgap-wallet\",",
+									"    \"https://www.reddit.com/r/AirGap\"",
+									"  ],",
+									"  \"interfaces\": [],",
+									"  \"categories\": [",
+									"    \"Game\",",
+									"    \"Social\"",
+									"  ],",
+									"  \"soon\": false,",
+									"  \"logo\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/tzbutton/tzbutton_logo.png\",",
+									"  \"cover\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/tzbutton/tzbutton_cover.png\",",
+									"  \"screenshots\": [",
+									"    {",
+									"      \"type\": \"desktop\",",
+									"      \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/tzbutton/tzbutton_screen_1.png\"",
+									"    },",
+									"    {",
+									"      \"type\": \"desktop\",",
+									"      \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/tzbutton/tzbutton_screen_2.png\"",
+									"    }",
+									"  ],",
+									"  \"contracts\": [",
+									"    {",
+									"      \"network\": \"mainnet\",",
+									"      \"address\": \"KT1H28iie4mW9LmmJeYLjH6zkC8wwSmfHf5P\",",
+									"      \"alias\": \"TzButton\",",
+									"      \"release_date\": \"2020-12-17T11:56:00Z\"",
+									"    }",
+									"  ]",
+									"});",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/dapps/tzbutton",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"dapps",
+								"tzbutton"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "dapps/stakerdao",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const dapp = pm.response.json();",
+									"",
+									"    pm.expect(dapp).to.eql({",
+									"  \"name\": \"StakerDAO\",",
+									"  \"short_description\": \"A platform for governing financial assets\",",
+									"  \"full_description\": \"The StakerDAO community builds and manages products for on-chain governance, cross-chain synthetics, and tokenized real-world assets. StakerDAO is a new kind of organization: it is both a corporation – Staker Services Ltd based in the Cayman Islands – and a decentralized autonomous organization (DAO). The STKR equity token is built on the FA 1.x token standard on Tezos. Actions taken by StakerDAO are transparent and managed on the Tezos blockchain. Everyone can see the results of every proposal that is submitted and every vote the StakerDAO Council makes. The five members of the StakerDAO Council are elected annually through a Tezos on-chain vote of STKR token holders.\",",
+									"  \"website\": \"https://stakerdao.com/\",",
+									"  \"slug\": \"stakerdao\",",
+									"  \"authors\": [",
+									"    \"Staker Services Ltd\"",
+									"  ],",
+									"  \"social_links\": [",
+									"    \"https://twitter.com/stakerdao\",",
+									"    \"https://t.me/stakercommunity\",",
+									"    \"https://linkedin.com/company/stakerdao\"",
+									"  ],",
+									"  \"interfaces\": [",
+									"    \"FA1\"",
+									"  ],",
+									"  \"categories\": [",
+									"    \"DAO\",",
+									"    \"Token\"",
+									"  ],",
+									"  \"soon\": false,",
+									"  \"logo\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/stakerdao/stakerdao_logo.jpg\",",
+									"  \"cover\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/stakerdao/stakerdao_cover.png\",",
+									"  \"screenshots\": [",
+									"    {",
+									"      \"type\": \"desktop\",",
+									"      \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/stakerdao/stakerdao_screen_1.png\"",
+									"    }",
+									"  ],",
+									"  \"contracts\": [",
+									"    {",
+									"      \"network\": \"mainnet\",",
+									"      \"address\": \"KT1EctCuorV2NfVb1XTQgvzJ88MQtWP8cMMv\",",
+									"      \"alias\": \"StakerDAO\",",
+									"      \"release_date\": \"2020-01-06T03:46:32Z\"",
+									"    }",
+									"  ]",
+									"});",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/dapps/stakerdao",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"dapps",
+								"stakerdao"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "dapps/token/ethtz",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const dapp = pm.response.json();",
+									"",
+									"    pm.expect(dapp.name).to.eql(\"ETHtez\");",
+									"    pm.expect(dapp.short_description).to.eql(\"ETH-wrapped token\");",
+									"    pm.expect(dapp.full_description).to.eql(\"ETHtez (ETHtz) is Ethereum's currency, Ether (ETH), wrapped in a Tezos FA-standard token, enabling users to interact with a Tezos token that's priced to the value as ETH, yet without its high gas prices. Unlike interacting directly with ETH, which can incur massive gas fees, ETHtz users can enjoy the low-cost gas-efficiency of the Tezos network.\");",
+									"    pm.expect(dapp.website).to.eql(\"https://ethtz.io\");",
+									"    pm.expect(dapp.slug).to.eql(\"ethtz\");",
+									"    pm.expect(dapp.authors).to.eql([\"Tezos Stable Technologies Ltd\"]);",
+									"    pm.expect(dapp.social_links).to.eql([",
+									"        \"https://twitter.com/ETH_Tez\",",
+									"        \"https://github.com/StableTechnologies/ETHtz\",",
+									"        \"https://www.reddit.com/r/ETHtz/\",",
+									"        \"https://t.me/ETHtz\"",
+									"    ]);",
+									"    pm.expect(dapp.interfaces).to.eql([\"FA1.2\"]);",
+									"    pm.expect(dapp.categories).to.eql([\"Token\", \"Stable\"]);",
+									"    pm.expect(dapp.soon).to.eql(false);",
+									"    pm.expect(dapp.logo).to.eql(\"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/ethtz/ethtz_logo.png\");",
+									"    pm.expect(dapp.cover).to.eql(\"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/ethtz/ethtz_cover.png\");",
+									"    pm.expect(dapp.contracts).to.eql([",
+									"        {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT19at7rQUvyjxnZ2fBv7D9zc8rkyG7gAoU8\",",
+									"        \"alias\": \"ETHtz\",",
+									"        \"release_date\": \"2020-12-13T02:33:53Z\"",
+									"        }",
+									"    ]);",
+									"",
+									"    pm.expect(dapp.tokens.length).to.eql(1);",
+									"    for (const token of dapp.tokens) {",
+									"        pm.expect(token).to.have.property('contract');",
+									"        pm.expect(token).to.have.property('network');",
+									"        pm.expect(token).to.have.property('token_id');",
+									"        pm.expect(token).to.have.property('supply');",
+									"        pm.expect(token).to.have.property('transfered');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/dapps/ethtz",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"dapps",
+								"ethtz"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "dapps/token/usdtz",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const dapp = pm.response.json();",
+									"",
+									"    pm.expect(dapp.name).to.eql(\"USDtz\");",
+									"    pm.expect(dapp.short_description).to.eql(\"USD-pegged stablecoin\");",
+									"    pm.expect(dapp.full_description).to.eql(\"USDtz is a USD-pegged stablecoin based on a fungible Tezos community standard — the FA token standard. USDtez is pegged to a formally-verifiable measure of (1:1 parity) value between itself and the United States Dollar (USD) providing a solvent, and scalable source of liquidity that is the ideal solution for low-fee Tezos-based asset trading.\");",
+									"    pm.expect(dapp.website).to.eql(\"https://usdtz.com/\");",
+									"    pm.expect(dapp.slug).to.eql(\"usdtz\");",
+									"    pm.expect(dapp.authors).to.eql([\"Tezos Stable Technologies Ltd\"]);",
+									"    pm.expect(dapp.social_links).to.eql([",
+									"        \"https://twitter.com/usdtz\",",
+									"        \"https://github.com/usdtz\",",
+									"        \"https://www.reddit.com/r/USDTZ/\",",
+									"        \"https://t.me/USDtez\"",
+									"    ]);",
+									"    pm.expect(dapp.interfaces).to.eql([\"FA1.2\"]);",
+									"    pm.expect(dapp.categories).to.eql([\"Token\", \"Stable\"]);",
+									"    pm.expect(dapp.soon).to.eql(false);",
+									"    pm.expect(dapp.logo).to.eql(\"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/usdtz/usdtz_logo.jpg\");",
+									"    pm.expect(dapp.cover).to.eql(\"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/usdtz/usdtz_cover.png\");",
+									"    pm.expect(dapp.contracts).to.eql([",
+									"        {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9\",",
+									"        \"alias\": \"USDtz\",",
+									"        \"release_date\": \"2020-05-04T19:55:48Z\"",
+									"        }",
+									"    ]);",
+									"",
+									"    pm.expect(dapp.tokens.length).to.eql(1);",
+									"    for (const token of dapp.tokens) {",
+									"        pm.expect(token).to.have.property('contract');",
+									"        pm.expect(token).to.have.property('network');",
+									"        pm.expect(token).to.have.property('token_id');",
+									"        pm.expect(token).to.have.property('supply');",
+									"        pm.expect(token).to.have.property('transfered');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/dapps/usdtz",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"dapps",
+								"usdtz"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "dapps/token/tzbtc",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const dapp = pm.response.json();",
+									"",
+									"    pm.expect(dapp.name).to.eql(\"tzBTC\");",
+									"    pm.expect(dapp.short_description).to.eql(\"Wrapped Bitcoin\");",
+									"    pm.expect(dapp.full_description).to.eql(\"tzBTC brings the liquidity and battle-tested brand of Bitcoin (BTC) into the Tezos ecosystem, enabling BTC-backed use-cases on Tezos. Developers on Tezos can use tzBTC to enable novel financial applications on the Tezos blockchain. Usable In Tezos Smart Contracts As an asset on Tezos, tzBTC enables Tezos-based applications to use BTC with the full expressivity of Tezos smart contracts. tzBTC is implemented using the FA 1.2 asset standard on Tezos. No single-point-of-failure. The tzBTC system divides governance among a group of Keyholders. Keyholders can access via multi-signature wallets the underlying Bitcoin and oversee supply management by minting and burning the corresponding tzBTC. Gatekeepers interact directly with End-Users and ensure compliance with KYC \\u0026 AML documentation.\");",
+									"    pm.expect(dapp.website).to.eql(\"https://tzbtc.io/\");",
+									"    pm.expect(dapp.slug).to.eql(\"tzbtc\");",
+									"    pm.expect(dapp.authors).to.eql([\"Bitcoin Association Switzerland\"]);",
+									"    pm.expect(dapp.social_links).to.eql(null);",
+									"    pm.expect(dapp.interfaces).to.eql([\"FA1.2\"]);",
+									"    pm.expect(dapp.categories).to.eql([\"Token\", \"Wrapped\"]);",
+									"    pm.expect(dapp.soon).to.eql(false);",
+									"    pm.expect(dapp.logo).to.eql(\"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/tzbtc/tzbtc_logo.jpg\");",
+									"    pm.expect(dapp.cover).to.eql(\"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/tzbtc/tzbtc_cover.jpg\");",
+									"    pm.expect(dapp.contracts).to.eql([",
+									"        {",
+									"        \"network\": \"mainnet\",",
+									"        \"address\": \"KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn\",",
+									"        \"alias\": \"tzBTC\",",
+									"        \"release_date\": \"2020-03-31T12:53:51Z\"",
+									"        }",
+									"    ]);",
+									"",
+									"    pm.expect(dapp.tokens.length).to.eql(1);",
+									"    for (const token of dapp.tokens) {",
+									"        pm.expect(token).to.have.property('contract');",
+									"        pm.expect(token).to.have.property('network');",
+									"        pm.expect(token).to.have.property('token_id');",
+									"        pm.expect(token).to.have.property('supply');",
+									"        pm.expect(token).to.have.property('transfered');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/dapps/tzbtc",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"dapps",
+								"tzbtc"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "dapps/dex/atomex",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const dapp = pm.response.json();",
+									"",
+									"    pm.expect(dapp.name).to.eql(\"Atomex\");",
+									"    pm.expect(dapp.short_description).to.eql(\"Hybrid cross-chain exchange\");",
+									"    pm.expect(dapp.full_description).to.eql(\"Atomex — is a non-custodial crypto wallet with a built in Atomic swap decentralized exchange (DEX). You can store, use and swap cryptocurrencies from a different blockchain like Bitcoin (BTC), Ethereum (ETH), Litecoin (LTC), Tezos (XTZ), USDT (ERC20 token), tzBTC (Tezos wrapped Bitcoin token), TBTC and WBTC (Ethereum wrapped Bitcoin token) and other coins without intermediaries from your own HD wallet.\");",
+									"    pm.expect(dapp.website).to.eql(\"https://atomex.me\");",
+									"    pm.expect(dapp.slug).to.eql(\"atomex\");",
+									"    pm.expect(dapp.authors).to.eql([\"Baking Bad\"]);",
+									"    pm.expect(dapp.social_links).to.eql([",
+									"        \"https://twitter.com/atomex_official\",",
+									"        \"https://medium.com/@_MisterWalker_\",",
+									"        \"https://www.youtube.com/channel/UCg-jUk-6MVEMSZ4Qhfrt40Q\",",
+									"        \"https://t.me/atomex_official\"",
+									"    ]);",
+									"    pm.expect(dapp.interfaces).to.eql(null);",
+									"    pm.expect(dapp.categories).to.eql([\"DEX\", \"Cross-chain\"]);",
+									"    pm.expect(dapp.soon).to.eql(false);",
+									"    pm.expect(dapp.logo).to.eql(\"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/atomex/atomex_logo.jpg\");",
+									"    pm.expect(dapp.cover).to.eql(\"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/atomex/atomex_cover.jpg\");",
+									"    pm.expect(dapp.screenshots).to.eql([",
+									"        {",
+									"            \"type\": \"desktop\",",
+									"            \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/atomex/atomex_screen_1.png\"",
+									"        },",
+									"        {",
+									"            \"type\": \"desktop\",",
+									"            \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/atomex/atomex_screen_2.png\"",
+									"        },",
+									"        {",
+									"            \"type\": \"desktop\",",
+									"            \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/atomex/atomex_screen_3.png\"",
+									"        },",
+									"        {",
+									"            \"type\": \"mobile\",",
+									"            \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/atomex/atomex_mobile_1.jpg\"",
+									"        },",
+									"        {",
+									"            \"type\": \"mobile\",",
+									"            \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/atomex/atomex_mobile_2.jpg\"",
+									"        },",
+									"        {",
+									"            \"type\": \"mobile\",",
+									"            \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/atomex/atomex_mobile_3.jpg\"",
+									"        },",
+									"        {",
+									"            \"type\": \"mobile\",",
+									"            \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/atomex/atomex_mobile_4.jpg\"",
+									"        },",
+									"        {",
+									"            \"type\": \"mobile\",",
+									"            \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/atomex/atomex_mobile_5.jpg\"",
+									"        },",
+									"        {",
+									"            \"type\": \"mobile\",",
+									"            \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/atomex/atomex_mobile_6.jpg\"",
+									"        }",
+									"    ]);",
+									"    pm.expect(dapp.contracts).to.eql([",
+									"        {",
+									"            \"network\": \"mainnet\",",
+									"            \"address\": \"KT1VG2WtYdSWz5E7chTeAdDPZNy2MpP8pTfL\",",
+									"            \"alias\": \"Atomex\",",
+									"            \"release_date\": \"2019-07-08T12:54:52Z\"",
+									"        },",
+									"        {",
+									"            \"network\": \"mainnet\",",
+									"            \"address\": \"KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr\",",
+									"            \"alias\": \"Atomex FA1.2\",",
+									"            \"release_date\": \"2020-04-08T11:37:32Z\"",
+									"        }",
+									"    ]);",
+									"",
+									"    pm.expect(dapp.dex_tokens.length).to.eql(1);",
+									"    for (const token of dapp.dex_tokens) {",
+									"        pm.expect(token).to.have.property('contract');",
+									"        pm.expect(token).to.have.property('network');",
+									"        pm.expect(token).to.have.property('token_id');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/dapps/atomex",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"dapps",
+								"atomex"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "dapps/dex/dexter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const dapp = pm.response.json();",
+									"",
+									"    pm.expect(dapp.name).to.eql(\"Dexter\");",
+									"    pm.expect(dapp.short_description).to.eql(\"A decentralized exchange for Tezos\");",
+									"    pm.expect(dapp.full_description).to.eql(\"Dexter is a decentralized, non-custodial exchange on the Tezos blockchain that enables users to exchange their XTZ - the native currency of Tezos - with other tokens built on the Tezos FA1.2 token standard. Dexter also allows anyone to trade directly between two types of FA1.2 tokens. Any holder of XTZ and FA1.2 tokens can also be a liquidity provider. Such participation helps power the Dexter Exchange and also provides those users with a proportional share of exchange fees (0.3%). Liquidity providers can easily remove liquidity they’ve provided at any time.\");",
+									"    pm.expect(dapp.website).to.eql(\"https://dexter.exchange/\");",
+									"    pm.expect(dapp.slug).to.eql(\"dexter\");",
+									"    pm.expect(dapp.authors).to.eql([\"CamlCase\"]);",
+									"    pm.expect(dapp.social_links).to.eql([",
+									"        \"https://gitlab.com/camlcase-dev\",",
+									"        \"https://twitter.com/camlCaseTech\"",
+									"    ]);",
+									"    pm.expect(dapp.interfaces).to.eql(null);",
+									"    pm.expect(dapp.categories).to.eql([\"DEX\"]);",
+									"    pm.expect(dapp.soon).to.eql(false);",
+									"    pm.expect(dapp.logo).to.eql(\"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/dexter/dexter_logo.jpg\");",
+									"    pm.expect(dapp.cover).to.eql(\"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/dexter/dexter_cover.png\");",
+									"    pm.expect(dapp.screenshots).to.eql([",
+									"        {",
+									"            \"type\": \"desktop\",",
+									"            \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/dexter/dexter_screen_1.png\"",
+									"        },",
+									"        {",
+									"            \"type\": \"desktop\",",
+									"            \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/dexter/dexter_screen_2.png\"",
+									"        },",
+									"        {",
+									"            \"type\": \"desktop\",",
+									"            \"link\": \"https://bcd-static-assets.s3.eu-central-1.amazonaws.com/dapps/dexter/dexter_screen_3.png\"",
+									"        }",
+									"    ]);",
+									"    pm.expect(dapp.contracts).to.eql([",
+									"        {",
+									"            \"network\": \"mainnet\",",
+									"            \"address\": \"KT1DrJV8vhkdLEj76h1H9Q4irZDqAkMPo1Qf\",",
+									"            \"alias\": \"Dexter tzBTC/XTZ\",",
+									"            \"release_date\": \"2020-09-29T16:12:45Z\"",
+									"        },",
+									"        {",
+									"            \"network\": \"mainnet\",",
+									"            \"address\": \"KT1Puc9St8wdNoGtLiD2WXaHbWU7styaxYhD\",",
+									"            \"alias\": \"Dexter USDtz/XTZ\",",
+									"            \"release_date\": \"2020-09-29T16:18:45Z\"",
+									"        },",
+									"        {",
+									"            \"network\": \"mainnet\",",
+									"            \"address\": \"KT19c8n5mWrqpxMcR3J687yssHxotj88nGhZ\",",
+									"            \"alias\": \"Dexter ETHtz/XTZ\",",
+									"            \"release_date\": \"2021-01-05T10:44:09Z\"",
+									"        },",
+									"        {",
+									"            \"network\": \"mainnet\",",
+									"            \"address\": \"KT1XTXBsEauzcv3uPvVXW92mVqrx99UGsb9T\",",
+									"            \"alias\": \"Dexter wXTZ/XTZ\",",
+									"            \"release_date\": \"2020-12-23T19:00:13Z\"",
+									"        }",
+									"    ]);",
+									"",
+									"    pm.expect(dapp.dex_tokens.length).to.eql(4);",
+									"    for (const token of dapp.dex_tokens) {",
+									"        pm.expect(token).to.have.property('contract');",
+									"        pm.expect(token).to.have.property('network');",
+									"        pm.expect(token).to.have.property('token_id');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/dapps/dexter",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"dapps",
+								"dexter"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"pm.test(\"Response have no error\", function () {",
+					"    pm.response.to.not.be.error;",
+					"});",
+					"",
+					"pm.test(\"Response must be valid and have a body\", function () {",
+					"    pm.response.to.be.ok;",
+					"    pm.response.to.be.withBody;",
+					"    pm.response.to.be.json;",
+					"});",
+					"",
+					"pm.test(\"Status code is 200\", function () {",
+					"    pm.response.to.have.status(200);",
+					"});",
+					""
+				]
+			}
+		}
+	]
+}
+>>>>>>> Remove GJSON

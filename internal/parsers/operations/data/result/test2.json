@@ -13,7 +13,7 @@
             "change": "1282"
         }
     ],
-    "operation_result": {
+    "result": {
         "status": "applied",
         "balance_updates": [
             {

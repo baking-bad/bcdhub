@@ -15,7 +15,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
-	"github.com/tidwall/gjson"
 )
 
 // Error -
@@ -58,22 +57,6 @@ type Operation struct {
 	Entrypoint                         string             `json:"entrypoint,omitempty" extensions:"x-nullable"`
 	Internal                           bool               `json:"internal"`
 	Mempool                            bool               `json:"mempool"`
-}
-
-// ParseJSON -
-func (o *Operation) ParseJSON(raw gjson.Result) {
-	o.Status = raw.Get("status").String()
-	o.Kind = raw.Get("kind").String()
-	o.Source = raw.Get("source").String()
-	o.Fee = raw.Get("fee").Int()
-	o.Counter = raw.Get("counter").Int()
-	o.GasLimit = raw.Get("gas_limit").Int()
-	o.StorageLimit = raw.Get("storage_limit").Int()
-	o.Amount = raw.Get("amount").Int()
-	o.Destination = raw.Get("destination").String()
-	o.PublicKey = raw.Get("public_key").String()
-	o.ManagerPubKey = raw.Get("manager_pubkey").String()
-	o.Delegate = raw.Get("delegate").String()
 }
 
 // FromModel -

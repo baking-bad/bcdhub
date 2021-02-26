@@ -3,8 +3,8 @@ package storage
 import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
 	jsoniter "github.com/json-iterator/go"
-	"github.com/tidwall/gjson"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -18,6 +18,6 @@ type RichStorage struct {
 
 // Parser -
 type Parser interface {
-	ParseTransaction(content gjson.Result, operation operation.Operation) (RichStorage, error)
-	ParseOrigination(content gjson.Result, operation operation.Operation) (RichStorage, error)
+	ParseTransaction(content noderpc.Operation, operation operation.Operation) (RichStorage, error)
+	ParseOrigination(content noderpc.Operation, operation operation.Operation) (RichStorage, error)
 }

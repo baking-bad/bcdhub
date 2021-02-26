@@ -11,22 +11,20 @@ import (
 
 // Script -
 type Script struct {
-	Code      UntypedAST
-	Parameter UntypedAST
-	Storage   UntypedAST
+	Code      UntypedAST `json:"code"`
+	Parameter UntypedAST `json:"parameter"`
+	Storage   UntypedAST `json:"storage"`
 }
 
-// NewScript - creates `Script` object: untyped trees of code, storage and parameter
-func NewScript(data []byte) (*Script, error) {
+// UnmarshalJSON -
+func (s *Script) UnmarshalJSON(data []byte) error {
 	var ast UntypedAST
 	if err := json.Unmarshal(data, &ast); err != nil {
-		return nil, err
+		return err
 	}
-
 	if len(ast) == 1 && ast[0].Prim == consts.PrimArray {
 		ast = ast[0].Args
 	}
-	var s Script
 	for i := range ast {
 		tree := UntypedAST(ast[i].Args)
 		switch ast[i].Prim {
@@ -37,10 +35,47 @@ func NewScript(data []byte) (*Script, error) {
 		case consts.CODE:
 			s.Code = tree
 		default:
-			return nil, errors.Wrap(consts.ErrUnknownPrim, fmt.Sprintf("NewScript : %s", ast[i].Prim))
+			return errors.Wrap(consts.ErrUnknownPrim, fmt.Sprintf("NewScript : %s", ast[i].Prim))
 		}
 	}
-	return &s, nil
+	return nil
+}
+
+// NewScript - creates `Script` object: untyped trees of code, storage and parameter
+func NewScript(data []byte) (*Script, error) {
+	var s Script
+	err := json.Unmarshal(data, &s)
+	return &s, err
+}
+
+// Compare - compares two scripts
+func (s *Script) Compare(another *Script) bool {
+	if len(s.Parameter) != len(another.Parameter) {
+		return false
+	}
+	for i := range s.Parameter {
+		if !s.Parameter[i].Compare(another.Parameter[i]) {
+			return false
+		}
+	}
+	if len(s.Storage) != len(another.Storage) {
+		return false
+	}
+	for i := range s.Storage {
+		if !s.Storage[i].Compare(another.Storage[i]) {
+			return false
+		}
+	}
+
+	if len(s.Code) != len(another.Code) {
+		return false
+	}
+	for i := range s.Code {
+		if !s.Code[i].Compare(another.Code[i]) {
+			return false
+		}
+	}
+	return true
 }
 
 // StorageType - returns storage`s typed tree

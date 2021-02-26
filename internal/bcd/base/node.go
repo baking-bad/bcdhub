@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/pkg/errors"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -173,4 +174,89 @@ func (node *Node) IsLambda() bool {
 	}
 	return 0x58 >= b[0] || 0x6f <= b[0]
 
+}
+
+// Fingerprint -
+func (node *Node) Fingerprint(isCode bool) (string, error) {
+	var fgpt strings.Builder
+	switch node.Prim {
+	case consts.PrimArray:
+		for i := range node.Args {
+			buf, err := node.Args[i].Fingerprint(isCode)
+			if err != nil {
+				return "", err
+			}
+			fgpt.WriteString(buf)
+		}
+	default:
+		if node.Prim != "" {
+			if skip(node.Prim, isCode) {
+				return "", nil
+			}
+
+			if !pass(node.Prim, isCode) {
+				code, err := getCode(node.Prim)
+				if err != nil {
+					return "", err
+				}
+				fgpt.WriteString(code)
+			}
+
+			for i := range node.Args {
+				itemFgpt, err := node.Args[i].Fingerprint(isCode)
+				if err != nil {
+					return "", err
+				}
+				fgpt.WriteString(itemFgpt)
+			}
+
+		} else {
+			var prim string
+			switch {
+			case node.StringValue != nil:
+				prim = consts.STRING
+			case node.BytesValue != nil:
+				prim = consts.BYTES
+			case node.IntValue != nil:
+				prim = consts.INT
+			}
+			if prim != "" {
+				code, err := getCode(prim)
+				if err != nil {
+					return "", err
+				}
+				fgpt.WriteString(code)
+			}
+		}
+	}
+
+	return fgpt.String(), nil
+}
+
+func skip(prim string, isCode bool) bool {
+	p := strings.ToLower(prim)
+	return isCode && (p == consts.CAST || p == consts.RENAME)
+}
+
+func pass(prim string, isCode bool) bool {
+	p := strings.ToLower(prim)
+	return !isCode && (p == consts.PAIR || p == consts.OR)
+}
+
+func getCode(prim string) (string, error) {
+	code, ok := codes[prim]
+	if ok {
+		return code, nil
+	}
+
+	for template, code := range regCodes {
+		if template[0] != prim[0] {
+			continue
+		}
+		re := regexp.MustCompile(template)
+		if re.MatchString(prim) {
+			return code, nil
+		}
+	}
+	return "00", errors.Errorf("Unknown primitive: %s", prim)
 }

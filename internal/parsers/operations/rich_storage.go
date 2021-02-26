@@ -6,7 +6,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/storage"
-	"github.com/tidwall/gjson"
 )
 
 // RichStorage -
@@ -19,7 +18,7 @@ type RichStorage struct {
 
 // NewRichStorage -
 func NewRichStorage(repo bigmapdiff.Repository, rpc noderpc.INode, protocol string) (*RichStorage, error) {
-	storageParser, err := storage.MakeStorageParser(repo, protocol, false)
+	storageParser, err := storage.MakeStorageParser(repo, protocol)
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +30,7 @@ func NewRichStorage(repo bigmapdiff.Repository, rpc noderpc.INode, protocol stri
 }
 
 // Parse -
-func (p *RichStorage) Parse(data gjson.Result, operation *operation.Operation) (storage.RichStorage, error) {
+func (p *RichStorage) Parse(data noderpc.Operation, operation *operation.Operation) (storage.RichStorage, error) {
 	switch operation.Kind {
 	case consts.Transaction:
 		return p.parser.ParseTransaction(data, *operation)
@@ -40,11 +39,11 @@ func (p *RichStorage) Parse(data gjson.Result, operation *operation.Operation) (
 		if err != nil {
 			return rs, err
 		}
-		storage, err := p.rpc.GetScriptStorageJSON(operation.Destination, operation.Level)
+		storage, err := p.rpc.GetScriptStorageRaw(operation.Destination, operation.Level)
 		if err != nil {
 			return rs, err
 		}
-		rs.DeffatedStorage = storage.String()
+		rs.DeffatedStorage = string(storage)
 		return rs, err
 	default:
 		return storage.RichStorage{Empty: true}, nil

@@ -1,8 +1,8 @@
 package handlers
 
 import (
+	"bytes"
 	"fmt"
-	"strings"
 	"time"
 
 	jsoniter "github.com/json-iterator/go"
@@ -16,7 +16,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
 	"github.com/karlseguin/ccache"
 	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -91,7 +90,11 @@ func (ledger *Ledger) handle(bmd *bigmapdiff.BigMapDiff, bigMapType []byte) (boo
 }
 
 func (ledger *Ledger) getTokenBalance(bmd *bigmapdiff.BigMapDiff, bigMapType []byte) (*tbModel.TokenBalance, error) {
-	parser, err := tokenbalance.GetParserForBigMap(bigMapType)
+	typ, err := ast.NewTypedAstFromBytes(bigMapType)
+	if err != nil {
+		return nil, err
+	}
+	parser, err := tokenbalance.GetParserForBigMap(typ)
 	if err != nil {
 		return nil, err
 	}
@@ -103,37 +106,40 @@ func (ledger *Ledger) getTokenBalance(bmd *bigmapdiff.BigMapDiff, bigMapType []b
 	if err != nil {
 		return nil, err
 	}
+	if len(balance) == 0 {
+		return nil, nil
+	}
 
 	return &tbModel.TokenBalance{
 		Network:  bmd.Network,
-		Address:  balance.Address,
-		TokenID:  balance.TokenID,
+		Address:  balance[0].Address,
+		TokenID:  balance[0].TokenID,
 		Contract: bmd.Address,
-		Value:    balance.Value,
+		Value:    balance[0].Value,
 	}, nil
 }
 
-func (ledger *Ledger) buildElt(bmd *bigmapdiff.BigMapDiff) (gjson.Result, error) {
+func (ledger *Ledger) buildElt(bmd *bigmapdiff.BigMapDiff) ([]byte, error) {
 	b, err := json.Marshal(bmd.Key)
 	if err != nil {
-		return gjson.Result{}, err
+		return nil, err
 	}
 
-	var s strings.Builder
-	s.WriteString(`{"prim":"Elt","args":[`)
+	var s bytes.Buffer
+	s.WriteString(`[{"prim":"Elt","args":[`)
 	if _, err := s.Write(b); err != nil {
-		return gjson.Result{}, err
+		return nil, err
 	}
 	s.WriteByte(',')
 	if len(bmd.ValueBytes()) != 0 {
 		if _, err := s.Write(bmd.ValueBytes()); err != nil {
-			return gjson.Result{}, err
+			return nil, err
 		}
 	} else {
 		s.WriteString(`{"int":"0"}`)
 	}
-	s.WriteString(`]}`)
-	return gjson.Parse(s.String()), nil
+	s.WriteString(`]}]`)
+	return s.Bytes(), nil
 }
 
 func (ledger *Ledger) findLedgerBigMap(bmd *bigmapdiff.BigMapDiff) ([]byte, error) {
@@ -141,15 +147,16 @@ func (ledger *Ledger) findLedgerBigMap(bmd *bigmapdiff.BigMapDiff) ([]byte, erro
 	if err != nil {
 		return nil, err
 	}
-	script := gjson.ParseBytes(data)
-
-	storageType := script.Get(`#(prim=="storage").args.0`)
-	tree, err := ast.NewTypedAstFromString(storageType.Raw)
+	var script ast.Script
+	if err := json.Unmarshal(data, &script); err != nil {
+		return nil, err
+	}
+	tree, err := script.StorageType()
 	if err != nil {
 		return nil, err
 	}
 
-	node := tree.FindByName(ledgerStorageKey)
+	node := tree.FindByName(ledgerStorageKey, false)
 	if err != nil {
 		return nil, ErrNoLedgerKeyInStorage
 	}

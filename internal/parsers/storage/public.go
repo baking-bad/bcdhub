@@ -29,11 +29,7 @@ func Enrich(storage *ast.TypedAst, bmd []bigmapdiff.BigMapDiff, skipEmpty, unpac
 }
 
 // MakeStorageParser -
-func MakeStorageParser(repo bigmapdiff.Repository, protocol string, isSimulating bool) (Parser, error) {
-	if isSimulating {
-		return NewSimulate(repo), nil
-	}
-
+func MakeStorageParser(repo bigmapdiff.Repository, protocol string) (Parser, error) {
 	protoSymLink, err := bcd.GetProtoSymLink(protocol)
 	if err != nil {
 		return nil, err

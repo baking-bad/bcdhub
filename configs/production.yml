@@ -60,7 +60,7 @@ sentry:
   front_uri: ${SENTRY_DSN_FRONT}
   debug: false
 
-share_path: /etc/bcd
+share_path: /etc/bcd_share
 
 base_url: https://better-call.dev
 

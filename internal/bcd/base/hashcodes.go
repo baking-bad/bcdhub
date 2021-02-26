@@ -178,7 +178,15 @@ var codes = map[string]string{
 	"bls12_381_fr":          "ac",
 	"bls12_381_g1":          "ad",
 	"bls12_381_g2":          "ae",
-	"ticket":                "af",
+	"SAPLING_EMPTY_STATE":   "af",
+	"ticket":                "b0",
+	"TICKET":                "b1",
+	"READ_TICKET":           "b2",
+	"SPLIT_TICKET":          "b3",
+	"JOIN_TICKETS":          "b4",
+	"GET_AND_UPDATE":        "b5",
+	"MAP_CDR":               "b6",
+	"MAP_CAR":               "b7",
 }
 
 var regCodes = map[string]string{

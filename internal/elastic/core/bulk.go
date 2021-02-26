@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/pkg/errors"
@@ -31,8 +30,6 @@ func (e *Elastic) Bulk(buf *bytes.Buffer) error {
 		return err
 	}
 	if response.Errors {
-
-		logger.Debug(buf.String())
 		return errors.Errorf("Bulk error: %s", string(response.Items))
 	}
 	return nil

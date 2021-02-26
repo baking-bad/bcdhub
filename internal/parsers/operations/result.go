@@ -1,41 +1,39 @@
 package operations
 
 import (
-	"fmt"
-
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
-	"github.com/tidwall/gjson"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
 )
 
-// Result -
-type Result struct {
-	root string
-}
-
-// NewResult -
-func NewResult(root string) Result {
-	return Result{root}
-}
-
-// Parse -
-func (r Result) Parse(data gjson.Result) operation.Result {
-	if r.root != "" {
-		r.root = fmt.Sprintf("%s.", r.root)
+func parseOperationResult(data *noderpc.Operation) *operation.Result {
+	result := data.GetResult()
+	if result == nil {
+		return &operation.Result{}
 	}
-	result := operation.Result{
-		Status:                       data.Get(r.root + "status").String(),
-		ConsumedGas:                  data.Get(r.root + "consumed_gas").Int(),
-		StorageSize:                  data.Get(r.root + "storage_size").Int(),
-		PaidStorageSizeDiff:          data.Get(r.root + "paid_storage_size_diff").Int(),
-		Originated:                   data.Get(r.root + "originated_contracts.0").String(),
-		AllocatedDestinationContract: data.Get(r.root+"allocated_destination_contract").Bool() || data.Get("kind").String() == consts.Origination,
+
+	operationResult := operation.Result{
+		Status:      result.Status,
+		ConsumedGas: result.ConsumedGas,
 	}
-	errJSON := []byte(data.Get(r.root + "errors").Raw)
-	errs, err := tezerrors.ParseArray(errJSON)
+	if result.StorageSize != nil {
+		operationResult.StorageSize = *result.StorageSize
+	}
+	if result.PaidStorageSizeDiff != nil {
+		operationResult.PaidStorageSizeDiff = *result.PaidStorageSizeDiff
+	}
+	if len(result.Originated) > 0 {
+		operationResult.Originated = result.Originated[0]
+	}
+
+	operationResult.AllocatedDestinationContract = data.Kind == consts.Origination
+	if !operationResult.AllocatedDestinationContract && result.AllocatedDestinationContract != nil {
+		operationResult.AllocatedDestinationContract = *result.AllocatedDestinationContract
+	}
+	errs, err := tezerrors.ParseArray(result.Errors)
 	if err == nil {
-		result.Errors = errs
+		operationResult.Errors = errs
 	}
-	return result
+	return &operationResult
 }

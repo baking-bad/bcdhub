@@ -9,7 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
-	"github.com/tidwall/gjson"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
 )
 
 // Migration -
@@ -22,27 +22,31 @@ func NewMigration() Migration {
 }
 
 // Parse -
-func (m Migration) Parse(data gjson.Result, operation *operation.Operation) (*migration.Migration, error) {
-	path := "metadata.operation_result.big_map_diff"
-	if !data.Get(path).Exists() {
-		path = "result.big_map_diff"
-		if !data.Get(path).Exists() {
-			return nil, nil
-		}
+func (m Migration) Parse(data noderpc.Operation, operation *operation.Operation) (*migration.Migration, error) {
+	var bmd []noderpc.BigMapDiff
+	switch {
+	case data.Result != nil && data.Result.BigMapDiffs != nil:
+		bmd = data.Result.BigMapDiffs
+	case data.Metadata != nil && data.Metadata.OperationResult != nil && data.Metadata.OperationResult.BigMapDiffs != nil:
+		bmd = data.Metadata.OperationResult.BigMapDiffs
+	default:
+		return nil, nil
 	}
 
-	for _, bmd := range data.Get(path).Array() {
-		if bmd.Get("action").String() != "update" || bmd.Get("value").String() == "" {
+	for i := range bmd {
+		if bmd[i].Action != "update" || len(bmd[i].Value) == 0 {
 			continue
 		}
 
 		var tree ast.UntypedAST
-		if err := json.UnmarshalFromString(bmd.Get("value").String(), &tree); err != nil {
+		if err := json.Unmarshal(bmd[i].Value, &tree); err != nil {
 			return nil, err
 		}
+
 		if len(tree) == 0 {
 			continue
 		}
+
 		if tree[0].IsLambda() {
 			migration := &migration.Migration{
 				ID:          helpers.GenerateID(),

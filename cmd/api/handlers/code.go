@@ -101,7 +101,7 @@ func (ctx *Context) getContractCodeJSON(network, address, protocol string) (res 
 	}
 
 	// return macros.FindMacros(contractJSON)
-	return contract.Get("code"), nil
+	return contract, nil
 }
 
 func (ctx *Context) getContractCodeDiff(left, right CodeDiffLeg) (res CodeDiffResponse, err error) {

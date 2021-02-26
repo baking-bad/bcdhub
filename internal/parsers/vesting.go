@@ -55,7 +55,7 @@ func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, ne
 		Level:       head.Level,
 		Timestamp:   head.Timestamp,
 		IndexedTime: time.Now().UnixNano() / 1000,
-		Script:      data.Script,
+		Script:      data.RawScript,
 	}
 
 	parser := contract.NewParser(contract.WithShareDir(p.filesDirectory))

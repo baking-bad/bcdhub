@@ -1,57 +1,69 @@
 package tokenbalance
 
 import (
-	"fmt"
-	"math/big"
-
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
-	"github.com/tidwall/gjson"
+	"github.com/baking-bad/bcdhub/internal/bcd/types"
 )
 
 // MultiAsset -
 type MultiAsset struct {
-	ReturnType gjson.Result
+	ReturnType *ast.TypedAst
 }
 
 // NewMultiAssetBalance -
 func NewMultiAssetBalance() MultiAsset {
+	node, _ := ast.NewTypedAstFromString(`{ "prim": "map", "args": [ { "prim": "pair", "args": [{ "prim": "address"}, {"prim": "nat"}] }, { "prim" : "nat" } ] }`)
 	return MultiAsset{
-		ReturnType: gjson.Parse(`{ "prim": "map", "args": [ { "prim": "pair", "args": [{ "prim": "address"}, {"prim": "nat"}] }, { "prim" : "nat" } ] }`),
+		ReturnType: node,
 	}
 }
 
 // NewMultiAssetUpdate -
 func NewMultiAssetUpdate() MultiAsset {
+	node, _ := ast.NewTypedAstFromString(`{ "prim": "map", "args": [ { "prim": "pair", "args": [{ "prim": "address"}, {"prim": "nat"}] }, { "prim" : "int" } ] }`)
 	return MultiAsset{
-		ReturnType: gjson.Parse(`{ "prim": "map", "args": [ { "prim": "pair", "args": [{ "prim": "address"}, {"prim": "nat"}] }, { "prim" : "int" } ] }`),
+		ReturnType: node,
 	}
 }
 
 // GetReturnType -
-func (p MultiAsset) GetReturnType() gjson.Result {
+func (p MultiAsset) GetReturnType() *ast.TypedAst {
 	return p.ReturnType
 }
 
 // Parse -
-func (p MultiAsset) Parse(item gjson.Result) (TokenBalance, error) {
-	balance := big.NewInt(0)
-	if _, ok := balance.SetString(item.Get("args.1.int").String(), 10); !ok {
-		return TokenBalance{}, fmt.Errorf("Invalid int in parsing multi-asset balance: %s", item.Raw)
+func (p MultiAsset) Parse(data []byte) ([]TokenBalance, error) {
+	var node ast.UntypedAST
+	if err := json.Unmarshal(data, &node); err != nil {
+		return nil, err
 	}
-	var address string
-	switch {
-	case item.Get("args.0.args.0.string").Exists():
-		address = item.Get("args.0.args.0.string").String()
-	case item.Get("args.0.args.0.bytes").Exists():
-		val, err := forge.UnforgeAddress(item.Get("args.0.args.0.bytes").String())
-		if err != nil {
-			return TokenBalance{}, err
-		}
-		address = val
+
+	if err := p.ReturnType.Settle(node); err != nil {
+		return nil, err
 	}
-	return TokenBalance{
-		Value:   balance,
-		Address: address,
-		TokenID: item.Get("args.0.args.1.int").Int(),
-	}, nil
+
+	balances := make([]TokenBalance, 0)
+
+	m := p.ReturnType.Nodes[0].(*ast.Map)
+	err := m.Data.Range(func(key, value ast.Comparable) (bool, error) {
+		val := value.(ast.Node)
+		pair := key.(*ast.Pair)
+
+		balance := val.GetValue().(*types.BigInt)
+		tokenID := pair.Args[1].GetValue().(*types.BigInt)
+		address := forge.DecodeString(pair.Args[0].GetValue().(string))
+
+		balances = append(balances, TokenBalance{
+			Value:   balance.Int,
+			Address: address,
+			TokenID: tokenID.Int64(),
+		})
+		return false, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return balances, nil
 }

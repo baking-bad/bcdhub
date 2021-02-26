@@ -306,16 +306,16 @@ func (or *Or) ToParameters() ([]byte, error) {
 }
 
 // FindByName -
-func (or *Or) FindByName(name string) Node {
+func (or *Or) FindByName(name string, isEntrypoint bool) Node {
 	if or.GetName() == name {
 		return or
 	}
 
-	if node := or.LeftType.FindByName(name); node != nil {
+	if node := or.LeftType.FindByName(name, isEntrypoint); node != nil {
 		return node
 	}
 
-	if node := or.RightType.FindByName(name); node != nil {
+	if node := or.RightType.FindByName(name, isEntrypoint); node != nil {
 		return node
 	}
 

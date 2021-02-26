@@ -4,6 +4,7 @@ package tzip
 type Repository interface {
 	Get(network, address string) (TZIP, error)
 	GetWithEvents() ([]TZIP, error)
+	GetWithEventsCounts() (int64, error)
 	GetDApps() ([]DApp, error)
 	GetDAppBySlug(slug string) (*DApp, error)
 	GetBySlug(slug string) (*TZIP, error)

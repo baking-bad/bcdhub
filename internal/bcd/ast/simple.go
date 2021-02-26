@@ -687,13 +687,16 @@ func (a *Address) ToBaseNode(optimized bool) (*base.Node, error) {
 // ToMiguel -
 func (a *Address) ToMiguel() (*MiguelNode, error) {
 	name := a.GetTypeName()
-	value := a.Value.(string)
-	if a.ValueKind == valueKindBytes {
-		v, err := forge.UnforgeAddress(value)
-		if err != nil {
-			return nil, err
+	var value string
+	if a.Value != nil {
+		value = a.Value.(string)
+		if a.ValueKind == valueKindBytes {
+			v, err := forge.UnforgeAddress(value)
+			if err != nil {
+				return nil, err
+			}
+			value = v
 		}
-		value = v
 	}
 	return &MiguelNode{
 		Prim:  a.Prim,

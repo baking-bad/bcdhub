@@ -1,6 +1,7 @@
 package storage
 
 import (
+	stdJSON "encoding/json"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
@@ -9,8 +10,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 )
 
 // Babylon -
@@ -32,92 +33,95 @@ func NewBabylon(repo bigmapdiff.Repository) *Babylon {
 }
 
 // ParseTransaction -
-func (b *Babylon) ParseTransaction(content gjson.Result, operation operation.Operation) (RichStorage, error) {
+func (b *Babylon) ParseTransaction(content noderpc.Operation, operation operation.Operation) (RichStorage, error) {
 	storage, err := getStorage(operation)
 	if err != nil {
 		return RichStorage{Empty: true}, err
 	}
-	address := content.Get("destination").String()
-	result, err := getResult(content)
-	if err != nil {
-		return RichStorage{Empty: true}, err
+	result := content.GetResult()
+	if result == nil {
+		return RichStorage{Empty: true}, nil
 	}
-	storageData := result.Get("storage")
 
-	var data ast.UntypedAST
-	if err := json.UnmarshalFromString(storageData.String(), &data); err != nil {
+	var storageData ast.UntypedAST
+	if err := json.Unmarshal(result.Storage, &storageData); err != nil {
 		return RichStorage{Empty: true}, err
 	}
-	if err := storage.Settle(data); err != nil {
+
+	if err := storage.Settle(storageData); err != nil {
 		return RichStorage{Empty: true}, err
 	}
 
 	var modelUpdates []models.Model
-	if result.Get("big_map_diff.#").Int() > 0 {
-		if modelUpdates, err = b.handleBigMapDiff(result, storage, address, operation); err != nil {
+	if len(result.BigMapDiffs) > 0 {
+		if modelUpdates, err = b.handleBigMapDiff(result, storage, *content.Destination, operation); err != nil {
 			return RichStorage{Empty: true}, err
 		}
 	}
 	return RichStorage{
 		Models:          modelUpdates,
-		DeffatedStorage: storageData.String(),
+		DeffatedStorage: string(result.Storage),
 	}, nil
 }
 
 // ParseOrigination -
-func (b *Babylon) ParseOrigination(content gjson.Result, operation operation.Operation) (RichStorage, error) {
+func (b *Babylon) ParseOrigination(content noderpc.Operation, operation operation.Operation) (RichStorage, error) {
 	storage, err := getStorage(operation)
 	if err != nil {
 		return RichStorage{Empty: true}, err
 	}
-	result, err := getResult(content)
-	if err != nil {
+	result := content.GetResult()
+	if result == nil {
+		return RichStorage{Empty: true}, nil
+	}
+
+	var scriptData struct {
+		Storage stdJSON.RawMessage `json:"storage"`
+	}
+
+	if err := json.Unmarshal(content.Script, &scriptData); err != nil {
+		return RichStorage{Empty: true}, err
+	}
+	var storageData ast.UntypedAST
+	if err := json.Unmarshal(scriptData.Storage, &storageData); err != nil {
 		return RichStorage{Empty: true}, err
 	}
 
-	address := result.Get("originated_contracts.0").String()
-	storageData := content.Get("script.storage")
-
-	var data ast.UntypedAST
-	if err := json.UnmarshalFromString(storageData.String(), &data); err != nil {
+	if err := storage.Settle(storageData); err != nil {
 		return RichStorage{Empty: true}, err
 	}
 
-	if err := storage.Settle(data); err != nil {
-		return RichStorage{Empty: true}, err
-	}
-
-	bm, err := b.handleBigMapDiff(result, storage, address, operation)
+	bm, err := b.handleBigMapDiff(result, storage, result.Originated[0], operation)
 	if err != nil {
 		return RichStorage{Empty: true}, err
 	}
 
 	return RichStorage{
 		Models:          bm,
-		DeffatedStorage: storageData.String(),
+		DeffatedStorage: string(scriptData.Storage),
 	}, nil
 }
 
-func (b *Babylon) handleBigMapDiff(result gjson.Result, storage *ast.TypedAst, address string, op operation.Operation) ([]models.Model, error) {
-	if result.Get("big_map_diff.#").Int() == 0 {
+func (b *Babylon) handleBigMapDiff(result *noderpc.OperationResult, storage *ast.TypedAst, address string, op operation.Operation) ([]models.Model, error) {
+	if len(result.BigMapDiffs) == 0 {
 		return []models.Model{}, nil
 	}
 	storageModels := make([]models.Model, 0)
 
-	handlers := map[string]func(gjson.Result, *ast.TypedAst, string, operation.Operation) ([]models.Model, error){
+	handlers := map[string]func(noderpc.BigMapDiff, *ast.TypedAst, string, operation.Operation) ([]models.Model, error){
 		"update": b.handleBigMapDiffUpdate,
 		"copy":   b.handleBigMapDiffCopy,
 		"remove": b.handleBigMapDiffRemove,
 		"alloc":  b.handleBigMapDiffAlloc,
 	}
 
-	for _, item := range result.Get("big_map_diff").Array() {
-		action := item.Get("action").String()
+	for i := range result.BigMapDiffs {
+		action := result.BigMapDiffs[i].Action
 		handler, ok := handlers[action]
 		if !ok {
 			continue
 		}
-		data, err := handler(item, storage, address, op)
+		data, err := handler(result.BigMapDiffs[i], storage, address, op)
 		if err != nil {
 			return nil, err
 		}
@@ -128,14 +132,14 @@ func (b *Babylon) handleBigMapDiff(result gjson.Result, storage *ast.TypedAst, a
 	return storageModels, nil
 }
 
-func (b *Babylon) handleBigMapDiffUpdate(item gjson.Result, storage *ast.TypedAst, address string, operation operation.Operation) ([]models.Model, error) {
-	ptr := item.Get("big_map").Int()
+func (b *Babylon) handleBigMapDiffUpdate(item noderpc.BigMapDiff, storage *ast.TypedAst, address string, operation operation.Operation) ([]models.Model, error) {
+	ptr := *item.BigMap
 
 	bmd := bigmapdiff.BigMapDiff{
 		ID:          helpers.GenerateID(),
 		Ptr:         ptr,
-		Key:         []byte(item.Get("key").Raw),
-		KeyHash:     item.Get("key_hash").String(),
+		Key:         item.Key,
+		KeyHash:     item.KeyHash,
 		OperationID: operation.ID,
 		Level:       operation.Level,
 		Address:     address,
@@ -143,10 +147,7 @@ func (b *Babylon) handleBigMapDiffUpdate(item gjson.Result, storage *ast.TypedAs
 		Network:     operation.Network,
 		Timestamp:   operation.Timestamp,
 		Protocol:    operation.Protocol,
-	}
-
-	if item.Get("value").Exists() {
-		bmd.Value = []byte(item.Get("value").Raw)
+		Value:       item.Value,
 	}
 
 	if err := b.addDiff(&bmd, storage, ptr); err != nil {
@@ -158,9 +159,9 @@ func (b *Babylon) handleBigMapDiffUpdate(item gjson.Result, storage *ast.TypedAs
 	return nil, nil
 }
 
-func (b *Babylon) handleBigMapDiffCopy(item gjson.Result, storage *ast.TypedAst, address string, operation operation.Operation) ([]models.Model, error) {
-	sourcePtr := item.Get("source_big_map").Int()
-	destinationPtr := item.Get("destination_big_map").Int()
+func (b *Babylon) handleBigMapDiffCopy(item noderpc.BigMapDiff, storage *ast.TypedAst, address string, operation operation.Operation) ([]models.Model, error) {
+	sourcePtr := *item.SourceBigMap
+	destinationPtr := *item.DestBigMap
 
 	newUpdates := make([]models.Model, 0)
 
@@ -209,8 +210,8 @@ func (b *Babylon) handleBigMapDiffCopy(item gjson.Result, storage *ast.TypedAst,
 	return newUpdates, nil
 }
 
-func (b *Babylon) handleBigMapDiffRemove(item gjson.Result, _ *ast.TypedAst, address string, operation operation.Operation) ([]models.Model, error) {
-	ptr := item.Get("big_map").Int()
+func (b *Babylon) handleBigMapDiffRemove(item noderpc.BigMapDiff, _ *ast.TypedAst, address string, operation operation.Operation) ([]models.Model, error) {
+	ptr := *item.BigMap
 	if ptr < 0 {
 		return nil, nil
 	}
@@ -233,12 +234,10 @@ func (b *Babylon) handleBigMapDiffRemove(item gjson.Result, _ *ast.TypedAst, add
 	return newUpdates, nil
 }
 
-func (b *Babylon) handleBigMapDiffAlloc(item gjson.Result, _ *ast.TypedAst, address string, operation operation.Operation) ([]models.Model, error) {
-	ptr := item.Get("big_map").Int()
-	key := []byte(item.Get("key_type").String())
-	value := []byte(item.Get("value_type").String())
+func (b *Babylon) handleBigMapDiffAlloc(item noderpc.BigMapDiff, _ *ast.TypedAst, address string, operation operation.Operation) ([]models.Model, error) {
+	ptr := *item.BigMap
 
-	bigMap, err := createBigMapAst(key, value, ptr)
+	bigMap, err := createBigMapAst(item.KeyType, item.ValueType, ptr)
 	if err != nil {
 		return nil, err
 	}

@@ -14,7 +14,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/parsers/storage"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"github.com/tidwall/gjson"
 )
 
 func TestRichStorage_Parse(t *testing.T) {
@@ -160,11 +159,11 @@ func TestRichStorage_Parse(t *testing.T) {
 				t.Errorf(`readStorage("%s", %d) = error %v`, tt.operation.Destination, tt.operation.Level, err)
 				return
 			}
-			tt.want.DeffatedStorage = storageJSON.String()
+			tt.want.DeffatedStorage = string(storageJSON)
 
 			rpc.
 				EXPECT().
-				GetScriptStorageJSON(tt.operation.Destination, tt.operation.Level).
+				GetScriptStorageRaw(tt.operation.Destination, tt.operation.Level).
 				DoAndReturn(readStorage).
 				AnyTimes()
 
@@ -174,8 +173,8 @@ func TestRichStorage_Parse(t *testing.T) {
 				Return([]bigmapdiff.BigMapDiff{}, nil).
 				AnyTimes()
 
-			data, err := readJSONFile(tt.filename)
-			if err != nil {
+			var op noderpc.Operation
+			if err := readJSONFile(tt.filename, &op); err != nil {
 				t.Errorf(`readJSONFile("%s") = error %v`, tt.filename, err)
 				return
 			}
@@ -184,7 +183,7 @@ func TestRichStorage_Parse(t *testing.T) {
 				t.Errorf(`readJSONFile("%s") = error %v`, tt.filename, err)
 				return
 			}
-			tt.operation.Script = gjson.ParseBytes(script)
+			tt.operation.Script = script
 
 			parser, err := NewRichStorage(bmdRepo, rpc, tt.operation.Protocol)
 			if err != nil {
@@ -192,7 +191,7 @@ func TestRichStorage_Parse(t *testing.T) {
 				return
 			}
 
-			got, err := parser.Parse(data, tt.operation)
+			got, err := parser.Parse(op, tt.operation)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RichStorage.Parse() error = %v, wantErr %v", err, tt.wantErr)
 				return

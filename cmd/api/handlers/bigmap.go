@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -62,14 +63,31 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		if ctx.handleError(c, err, 0) {
 			return
 		}
-		bigMap := storage.FindBigMapByPtr()
-		for p, b := range bigMap {
-			if p == req.Ptr {
-				res.Typedef, _, err = b.Docs(ast.DocsFull)
-				if ctx.handleError(c, err, 0) {
-					return
+		ops, err := ctx.Operations.Get(map[string]interface{}{
+			"network":     req.Network,
+			"destination": res.Address,
+			"status":      consts.Applied,
+		}, 1, true)
+		if ctx.handleError(c, err, 0) {
+			return
+		}
+		if len(ops) == 1 {
+			var data ast.UntypedAST
+			if err := json.UnmarshalFromString(ops[0].DeffatedStorage, &data); ctx.handleError(c, err, 0) {
+				return
+			}
+			if err := storage.Settle(data); ctx.handleError(c, err, 0) {
+				return
+			}
+			bigMap := storage.FindBigMapByPtr()
+			for p, b := range bigMap {
+				if p == req.Ptr {
+					res.Typedef, _, err = b.Docs(ast.DocsFull)
+					if ctx.handleError(c, err, 0) {
+						return
+					}
+					break
 				}
-				break
 			}
 		}
 	} else {
@@ -392,6 +410,25 @@ func findBigMapType(storage *ast.TypedAst, ptr int64) *ast.BigMap {
 func (ctx *Context) getBigMapType(network, address, protocol string, ptr int64) (*ast.BigMap, error) {
 	storage, err := ctx.getStorageType(address, network, protocol)
 	if err != nil {
+		return nil, err
+	}
+	ops, err := ctx.Operations.Get(map[string]interface{}{
+		"network":     network,
+		"destination": address,
+		"protocol":    protocol,
+		"status":      consts.Applied,
+	}, 1, true)
+	if err != nil {
+		return nil, err
+	}
+	if len(ops) != 1 {
+		return nil, fmt.Errorf("Can't get contract storage: %s", address)
+	}
+	var data ast.UntypedAST
+	if err := json.UnmarshalFromString(ops[0].DeffatedStorage, &data); err != nil {
+		return nil, err
+	}
+	if err := storage.Settle(data); err != nil {
 		return nil, err
 	}
 	bigMapType := findBigMapType(storage, ptr)

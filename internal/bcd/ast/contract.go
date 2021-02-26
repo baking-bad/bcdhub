@@ -58,13 +58,16 @@ func (c *Contract) ParseType(node *base.Node, id *int) error {
 // ToMiguel -
 func (c *Contract) ToMiguel() (*MiguelNode, error) {
 	name := c.GetTypeName()
-	value := c.Value.(string)
-	if c.ValueKind == valueKindBytes {
-		v, err := forge.UnforgeContract(value)
-		if err != nil {
-			return nil, err
+	var value string
+	if c.Value != nil {
+		value = c.Value.(string)
+		if c.ValueKind == valueKindBytes {
+			v, err := forge.UnforgeContract(value)
+			if err != nil {
+				return nil, err
+			}
+			value = v
 		}
-		value = v
 	}
 	return &MiguelNode{
 		Prim:  c.Prim,

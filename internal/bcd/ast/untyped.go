@@ -119,6 +119,21 @@ func (u UntypedAST) GetStrings(tryUnpack bool) ([]string, error) {
 	return s, nil
 }
 
+// Fingerprint -
+func (u UntypedAST) Fingerprint(isCode bool) (string, error) {
+	var s strings.Builder
+	for i := range u {
+		f, err := u[i].Fingerprint(isCode)
+		if err != nil {
+			return "", err
+		}
+		if _, err := s.WriteString(f); err != nil {
+			return "", err
+		}
+	}
+	return s.String(), nil
+}
+
 func typingNode(node *base.Node, depth int, id *int) (Node, error) {
 	var ast Node
 	switch strings.ToLower(node.Prim) {

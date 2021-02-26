@@ -19,15 +19,24 @@ type ImplementationKey struct {
 // TokenEvents -
 type TokenEvents map[ImplementationKey]tzip.EventImplementation
 
+var tokens []tzip.TZIP
+
 // NewTokenEvents -
 func NewTokenEvents(repo tzip.Repository, storage models.GeneralRepository) (TokenEvents, error) {
 	views := make(TokenEvents)
-	tokens, err := repo.GetWithEvents()
+
+	count, err := repo.GetWithEventsCounts()
 	if err != nil {
-		if storage.IsRecordNotFound(err) {
-			return views, nil
-		}
 		return nil, err
+	}
+	if int(count) != len(tokens) {
+		tokens, err = repo.GetWithEvents()
+		if err != nil {
+			if storage.IsRecordNotFound(err) {
+				return views, nil
+			}
+			return nil, err
+		}
 	}
 
 	for _, token := range tokens {
@@ -53,38 +62,6 @@ func NewTokenEvents(repo tzip.Repository, storage models.GeneralRepository) (Tok
 						Network:    token.Network,
 						Entrypoint: entrypoint,
 						Name:       events.NormalizeName(event.Name),
-					}] = implementation
-				}
-			}
-		}
-	}
-
-	return views, nil
-}
-
-// NewInitialStorageEvents -
-func NewInitialStorageEvents(repo tzip.Repository, storage models.GeneralRepository) (TokenEvents, error) {
-	views := make(TokenEvents)
-	tokens, err := repo.GetWithEvents()
-	if err != nil {
-		if storage.IsRecordNotFound(err) {
-			return views, nil
-		}
-		return nil, err
-	}
-
-	for _, token := range tokens {
-		if len(token.Events) == 0 {
-			continue
-		}
-
-		for _, view := range token.Events {
-			for _, implementation := range view.Implementations {
-				if !implementation.MichelsonInitialStorageEvent.Empty() {
-					views[ImplementationKey{
-						Address: token.Address,
-						Network: token.Network,
-						Name:    events.NormalizeName(view.Name),
 					}] = implementation
 				}
 			}

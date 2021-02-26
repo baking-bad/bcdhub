@@ -4,9 +4,12 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 var parsers = map[string][]Parser{
 	SingleAssetBalanceUpdates: {
@@ -21,8 +24,8 @@ var parsers = map[string][]Parser{
 
 // Parser -
 type Parser interface {
-	GetReturnType() gjson.Result
-	Parse(item gjson.Result) (TokenBalance, error)
+	GetReturnType() *ast.TypedAst
+	Parse(item []byte) ([]TokenBalance, error)
 }
 
 // TokenBalance -
@@ -33,7 +36,7 @@ type TokenBalance struct {
 }
 
 // GetParser -
-func GetParser(name string, returnType []byte) (Parser, error) {
+func GetParser(name string, returnType *ast.TypedAst) (Parser, error) {
 	p, ok := parsers[NormalizeName(name)]
 	if !ok {
 		for _, ps := range parsers {
@@ -49,56 +52,44 @@ func GetParser(name string, returnType []byte) (Parser, error) {
 }
 
 // GetParserForBigMap -
-func GetParserForBigMap(returnType []byte) (Parser, error) {
+func GetParserForBigMap(returnType *ast.TypedAst) (Parser, error) {
+	if returnType == nil {
+		return nil, nil
+	}
+	bm := returnType.Nodes[0].(*ast.BigMap)
 	var s strings.Builder
-	s.WriteString(`{"prim":"map","args":`)
-	typ := gjson.ParseBytes(returnType)
-	s.WriteString(typ.Get("args").Raw)
-	s.WriteByte('}')
-	return GetParser("", []byte(s.String()))
+	s.WriteString(`{"prim":"map","args":[`)
+	b, err := json.Marshal(bm.KeyType)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := s.Write(b); err != nil {
+		return nil, err
+	}
+	s.WriteByte(',')
+	bValue, err := json.Marshal(bm.ValueType)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := s.Write(bValue); err != nil {
+		return nil, err
+	}
+	s.WriteString(`]}`)
+
+	node, err := ast.NewTypedAstFromString(s.String())
+	if err != nil {
+		return nil, err
+	}
+	return GetParser("", node)
 }
 
-func findParser(p []Parser, returnType []byte) (Parser, error) {
-	typ := gjson.ParseBytes(returnType)
+func findParser(p []Parser, returnType *ast.TypedAst) (Parser, error) {
 	for i := range p {
-		if isType(typ, p[i].GetReturnType()) {
+		if returnType.EqualType(p[i].GetReturnType()) {
 			return p[i], nil
 		}
 	}
-	return nil, errors.Errorf("Invalid parser`s return type: %s", string(returnType))
-}
-
-func getKey(a, b gjson.Result, key string) (gjson.Result, gjson.Result, bool) {
-	keyA := a.Get(key)
-	keyB := b.Get(key)
-
-	if keyA.Exists() != keyB.Exists() {
-		return a, b, false
-	}
-	return keyA, keyB, keyA.Exists()
-}
-
-func isType(a, b gjson.Result) bool {
-	primA, primB, ok := getKey(a, b, "prim")
-	if !ok || primA.String() != primB.String() {
-		return false
-	}
-
-	if argsA, argsB, argOk := getKey(a, b, "args"); argOk {
-		arrA := argsA.Array()
-		arrB := argsB.Array()
-		if len(arrA) != len(arrB) {
-			return false
-		}
-
-		for i := range arrA {
-			if !isType(arrA[i], arrB[i]) {
-				return false
-			}
-		}
-	}
-
-	return true
+	return nil, errors.Errorf("Invalid parser`s return type: %s", returnType)
 }
 
 // NormalizeName -

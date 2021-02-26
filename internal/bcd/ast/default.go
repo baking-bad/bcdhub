@@ -232,7 +232,7 @@ func (d *Default) Docs(inferredName string) ([]Typedef, string, error) {
 }
 
 // FindByName -
-func (d *Default) FindByName(name string) Node {
+func (d *Default) FindByName(name string, isEntrypoint bool) Node {
 	if d.GetName() == name {
 		return d
 	}

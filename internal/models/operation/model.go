@@ -1,7 +1,6 @@
 package operation
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
@@ -9,7 +8,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/sirupsen/logrus"
-	"github.com/tidwall/gjson"
 )
 
 // Operation -
@@ -51,8 +49,8 @@ type Operation struct {
 	Burned                             int64              `json:"burned,omitempty"`
 	AllocatedDestinationContractBurned int64              `json:"allocated_destination_contract_burned,omitempty"`
 
-	DeffatedStorage string       `json:"deffated_storage"`
-	Script          gjson.Result `json:"-"`
+	DeffatedStorage string `json:"deffated_storage"`
+	Script          []byte `json:"-"`
 
 	DelegateAlias string `json:"delegate_alias,omitempty"`
 
@@ -137,11 +135,6 @@ func (o *Operation) IsApplied() bool {
 // IsCall -
 func (o *Operation) IsCall() bool {
 	return bcd.IsContract(o.Destination) && o.Parameters != ""
-}
-
-// GetScriptSection -
-func (o *Operation) GetScriptSection(name string) gjson.Result {
-	return o.Script.Get(fmt.Sprintf("#(prim==\"%s\").args.0", name))
 }
 
 // Result -

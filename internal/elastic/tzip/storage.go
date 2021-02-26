@@ -212,3 +212,16 @@ func (storage *Storage) GetWithEvents() ([]tzip.TZIP, error) {
 	}
 	return tokens, nil
 }
+
+// GetWithEventsCounts -
+func (storage *Storage) GetWithEventsCounts() (int64, error) {
+	query := core.NewQuery().Query(
+		core.Bool(
+			core.Filter(
+				core.Exists("events"),
+			),
+		),
+	)
+
+	return storage.es.CountItems([]string{models.DocTZIP}, query)
+}

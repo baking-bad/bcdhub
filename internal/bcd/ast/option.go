@@ -228,11 +228,14 @@ func (opt *Option) ToParameters() ([]byte, error) {
 }
 
 // FindByName -
-func (opt *Option) FindByName(name string) Node {
+func (opt *Option) FindByName(name string, isEntrypoint bool) Node {
 	if opt.GetName() == name {
 		return opt
 	}
-	return opt.Type.FindByName(name)
+	if isEntrypoint {
+		return nil
+	}
+	return opt.Type.FindByName(name, isEntrypoint)
 }
 
 // Docs -
