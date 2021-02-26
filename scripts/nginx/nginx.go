@@ -112,10 +112,10 @@ func makeDappLocation(tmpl *template.Template, dapp tzip.DApp, baseURL string) (
 
 	buf := new(bytes.Buffer)
 	err := tmpl.Execute(buf, map[string]interface{}{
-		"location":        fmt.Sprintf("/dapps/%s", dapp.Slug),
-		"url":             fmt.Sprintf("%s/dapps/%s", baseURL, dapp.Slug),
-		"title":           fmt.Sprintf("%s — %s", dapp.Name, dapp.ShortDescription),
-		"description":     dapp.FullDescription,
+		"location":        fmt.Sprintf("/dapps/%s", sanitizeQuotes(dapp.Slug)),
+		"url":             fmt.Sprintf("%s/dapps/%s", baseURL, sanitizeQuotes(dapp.Slug)),
+		"title":           fmt.Sprintf("%s — %s", sanitizeQuotes(dapp.Name), sanitizeQuotes(dapp.ShortDescription)),
+		"description":     sanitizeQuotes(dapp.FullDescription),
 		"ogTitle":         ogTitle,
 		"ogDescription":   ogDescription,
 		"ogImage":         ogImage,
@@ -156,7 +156,7 @@ func makeContractsLocation(tmpl *template.Template, address, alias, baseURL stri
 	err := tmpl.Execute(buf, map[string]interface{}{
 		"location":        fmt.Sprintf("/mainnet/%s", address),
 		"url":             fmt.Sprintf("%s/mainnet/%s", baseURL, address),
-		"title":           fmt.Sprintf("%s — %s", alias, ogTitle),
+		"title":           fmt.Sprintf("%s — %s", sanitizeQuotes(alias), ogTitle),
 		"description":     contractDescription,
 		"ogTitle":         ogTitle,
 		"ogDescription":   ogDescription,
@@ -170,4 +170,8 @@ func makeContractsLocation(tmpl *template.Template, address, alias, baseURL stri
 	}
 
 	return buf.String(), nil
+}
+
+func sanitizeQuotes(str string) string {
+	return strings.ReplaceAll(str, "'", "’")
 }
