@@ -19,7 +19,6 @@ import (
 	mock_tzip "github.com/baking-bad/bcdhub/internal/models/mock/tzip"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
-	"github.com/baking-bad/bcdhub/internal/models/schema"
 	modelSchema "github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
@@ -85,6 +84,12 @@ func TestGroup_Parse(t *testing.T) {
 		EXPECT().
 		GetByID(gomock.AssignableToTypeOf(&modelContract.Contract{})).
 		DoAndReturn(readTestContractModel).
+		AnyTimes()
+
+	generalRepo.
+		EXPECT().
+		BulkInsert(gomock.AssignableToTypeOf([]models.Model{})).
+		Return(nil).
 		AnyTimes()
 
 	bmdRepo.
@@ -346,11 +351,6 @@ func TestGroup_Parse(t *testing.T) {
 					ParameterStrings:                   nil,
 					StorageStrings:                     nil,
 					Tags:                               nil,
-				},
-				&schema.Schema{
-					ID:        "KT1NppzrgyLZD3aku7fssfhYPm5QqZwyabvR",
-					Parameter: map[string]string{"babylon": "{\"0\":{\"prim\":\"or\",\"args\":[\"0/0\",\"0/1\"],\"type\":\"namedunion\"},\"0/0\":{\"fieldname\":\"decrement\",\"prim\":\"int\",\"type\":\"int\",\"name\":\"decrement\"},\"0/1\":{\"fieldname\":\"increment\",\"prim\":\"int\",\"type\":\"int\",\"name\":\"increment\"}}"},
-					Storage:   map[string]string{"babylon": "{\"0\":{\"prim\":\"int\",\"type\":\"int\"}}"},
 				},
 				&modelContract.Contract{
 					Network:     "delphinet",
