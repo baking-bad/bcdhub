@@ -15,6 +15,7 @@ import (
 
 // Parser -
 type Parser struct {
+	storage        models.GeneralRepository
 	interfaces     map[string]kinds.ContractKind
 	filesDirectory string
 
@@ -24,8 +25,9 @@ type Parser struct {
 }
 
 // NewParser -
-func NewParser(interfaces map[string]kinds.ContractKind, opts ...ParserOption) *Parser {
+func NewParser(storage models.GeneralRepository, interfaces map[string]kinds.ContractKind, opts ...ParserOption) *Parser {
 	parser := &Parser{
+		storage:    storage,
 		interfaces: interfaces,
 		metadata:   make(map[string]*meta.ContractSchema),
 	}
@@ -96,7 +98,11 @@ func (p *Parser) Parse(operation operation.Operation) ([]models.Model, error) {
 		return nil, err
 	}
 
-	return []models.Model{&schema, &contract}, nil
+	if err := p.storage.BulkInsert([]models.Model{&schema}); err != nil {
+		return nil, err
+	}
+
+	return []models.Model{&contract}, nil
 }
 
 // GetContractMetadata -

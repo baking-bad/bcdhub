@@ -145,6 +145,7 @@ func NewParseParams(rpc noderpc.INode, storage models.GeneralRepository, bmdRepo
 	params.transferParser = transferParser
 
 	params.contractParser = contract.NewParser(
+		storage,
 		params.interfaces,
 		contract.WithShareDirContractParser(params.shareDir),
 	)

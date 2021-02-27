@@ -16,13 +16,15 @@ import (
 
 // VestingParser -
 type VestingParser struct {
+	storage        models.GeneralRepository
 	filesDirectory string
 	interfaces     map[string]kinds.ContractKind
 }
 
 // NewVestingParser -
-func NewVestingParser(filesDirectory string, interfaces map[string]kinds.ContractKind) *VestingParser {
+func NewVestingParser(storage models.GeneralRepository, filesDirectory string, interfaces map[string]kinds.ContractKind) *VestingParser {
 	return &VestingParser{
+		storage:        storage,
 		filesDirectory: filesDirectory,
 		interfaces:     interfaces,
 	}
@@ -60,7 +62,7 @@ func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, ne
 		Script:      data.Script,
 	}
 
-	parser := contract.NewParser(p.interfaces, contract.WithShareDirContractParser(p.filesDirectory))
+	parser := contract.NewParser(p.storage, p.interfaces, contract.WithShareDirContractParser(p.filesDirectory))
 	contractModels, err := parser.Parse(op)
 	if err != nil {
 		return nil, err

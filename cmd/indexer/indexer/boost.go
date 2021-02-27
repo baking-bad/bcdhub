@@ -644,7 +644,7 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header) ([]models.Model, e
 		return nil, err
 	}
 
-	p := parsers.NewVestingParser(bi.cfg.SharePath, bi.interfaces)
+	p := parsers.NewVestingParser(bi.Storage, bi.cfg.SharePath, bi.interfaces)
 
 	parsedModels := make([]models.Model, 0)
 	for _, address := range addresses {
