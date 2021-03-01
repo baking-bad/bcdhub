@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -122,14 +123,16 @@ func (ctx *Context) searchInMempool(q string) (models.Item, error) {
 		return models.Item{}, err
 	}
 
-	operation := ctx.getOperationFromMempool(q)
+	if operation := ctx.getOperationFromMempool(q); operation != nil {
+		return models.Item{
+			Type:  models.DocOperations,
+			Value: operation.Hash,
+			Body:  operation,
+			Highlights: map[string][]string{
+				"hash": {operation.Hash},
+			},
+		}, nil
+	}
 
-	return models.Item{
-		Type:  models.DocOperations,
-		Value: operation.Hash,
-		Body:  operation,
-		Highlights: map[string][]string{
-			"hash": {operation.Hash},
-		},
-	}, nil
+	return models.Item{}, fmt.Errorf("Operation not found")
 }
