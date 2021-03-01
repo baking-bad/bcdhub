@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -69,7 +71,8 @@ func newApp() *app {
 }
 
 func (api *app) makeRouter() {
-	r := gin.Default()
+	r := gin.New()
+
 	r.MaxMultipartMemory = 4 << 20 // max upload size 4 MiB
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
@@ -84,6 +87,14 @@ func (api *app) makeRouter() {
 
 	if api.Context.Config.API.SentryEnabled {
 		r.Use(helpers.SentryMiddleware())
+	}
+
+	r.Use(gin.Recovery())
+
+	if env := os.Getenv(config.EnvironmentVar); env == config.EnvironmentProd {
+		r.Use(loggerFormat())
+	} else {
+		r.Use(gin.Logger())
 	}
 
 	v1 := r.Group("v1")
@@ -288,8 +299,22 @@ func corsSettings() gin.HandlerFunc {
 	return cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "PATCH"},
-		AllowHeaders:     []string{"X-Requested-With", "Authorization", "Origin", "Content-Length", "Content-Type", "Referer", "Cache-Control"},
+		AllowHeaders:     []string{"X-Requested-With", "Authorization", "Origin", "Content-Length", "Content-Type", "Referer", "Cache-Control", "User-Agent"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
+	})
+}
+
+func loggerFormat() gin.HandlerFunc {
+	return gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
+		return fmt.Sprintf("%15s | %3d | %13v | %-7s %s | %s\n%s",
+			param.ClientIP,
+			param.StatusCode,
+			param.Latency,
+			param.Method,
+			param.Path,
+			param.Request.UserAgent(),
+			param.ErrorMessage,
+		)
 	})
 }
