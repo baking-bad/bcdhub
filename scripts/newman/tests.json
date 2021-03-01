@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "9156bf9f-2ece-492e-862e-78acf97d2034",
+    "_postman_id": "8ef19349-565b-4fbd-b686-76ca48d013eb",
     "name": "BCDhub Tests",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -1371,11 +1371,17 @@
                   "",
                   "    for (const token of response) {        ",
                   "        pm.expect(token.network).to.be.eql('mainnet');",
+                  "        pm.expect(token.symbol).to.be.eql('TZBTC');",
+                  "        pm.expect(token.name).to.be.eql('tzBTC');",
+                  "        pm.expect(token.decimals).to.be.eql(8);",
                   "",
                   "        pm.expect(token).to.have.property('contract');",
                   "        pm.expect(token).to.have.property('token_id');",
                   "        pm.expect(token).to.have.property('supply');",
                   "        pm.expect(token).to.have.property('transfered');",
+                  "",
+                  "        pm.expect(token.supply).to.be.greaterThan(0);",
+                  "        pm.expect(token.transfered).to.be.greaterThan(0);",
                   "    }",
                   "});"
                 ],
@@ -1590,6 +1596,101 @@
                 {
                   "key": "entrypoint",
                   "value": "getVersion"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "contract/mainnet/kusd/tokens",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"The response has all properties\", () => {",
+                  "    const response = pm.response.json();",
+                  "",
+                  "    for (const token of response) {        ",
+                  "        pm.expect(token.network).to.be.eql('mainnet');",
+                  "        pm.expect(token.symbol).to.be.eql('kUSD');",
+                  "        pm.expect(token.name).to.be.eql('Kolibri USD');",
+                  "        pm.expect(token.decimals).to.be.eql(18);",
+                  "",
+                  "        pm.expect(token).to.have.property('contract');",
+                  "        pm.expect(token).to.have.property('token_id');",
+                  "        pm.expect(token).to.have.property('supply');",
+                  "        pm.expect(token).to.have.property('transfered');",
+                  "",
+                  "        pm.expect(token.supply).to.be.greaterThan(0);",
+                  "        pm.expect(token.transfered).to.be.greaterThan(0);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/v1/contract/mainnet/KT1K9gCRgaLRFKTErYt1wVxA3Frb9FjasjTV/tokens",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "v1",
+                "contract",
+                "mainnet",
+                "KT1K9gCRgaLRFKTErYt1wVxA3Frb9FjasjTV",
+                "tokens"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "contract/mainnet/kusd/tokens/holders",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"The response has all properties\", () => {",
+                  "    const response = pm.response.json();",
+                  "",
+                  "    for (const address in response) {        ",
+                  "        pm.expect(address.length).to.be.eql(36);",
+                  "        pm.expect(response[address].startsWith(\"-\")).to.be.eql(false);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/v1/contract/mainnet/KT1K9gCRgaLRFKTErYt1wVxA3Frb9FjasjTV/tokens/holders?token_id=0",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "v1",
+                "contract",
+                "mainnet",
+                "KT1K9gCRgaLRFKTErYt1wVxA3Frb9FjasjTV",
+                "tokens",
+                "holders"
+              ],
+              "query": [
+                {
+                  "key": "token_id",
+                  "value": "0"
                 }
               ]
             }
