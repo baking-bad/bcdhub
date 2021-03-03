@@ -132,10 +132,22 @@ func (model DefaultModel) fill(data gjson.Result, metadata meta.Metadata, node *
 	case consts.INT, consts.NAT, consts.MUTEZ:
 		jsonPath := getGJSONPath(path, binPath, indices...)
 		i := getDataByPath(jsonPath, consts.INT, data)
-		model[path] = i.Int()
-	case consts.STRING, consts.KEY, consts.KEYHASH, consts.CONTRACT, consts.ADDRESS, consts.SIGNATURE:
+		model[path] = i.Value()
+	case consts.ADDRESS:
 		jsonPath := getGJSONPath(path, binPath, indices...)
+		str := getDataByPath(jsonPath, consts.STRING, data)
+		if !str.Exists() {
+			str = getDataByPath(jsonPath, consts.BYTES, data)
+		}
 
+		address, err := unpack.Address(str.String())
+		if err != nil {
+			model[path] = str.Value()
+		} else {
+			model[path] = address
+		}
+	case consts.STRING, consts.KEY, consts.KEYHASH, consts.CONTRACT, consts.SIGNATURE:
+		jsonPath := getGJSONPath(path, binPath, indices...)
 		str := getDataByPath(jsonPath, consts.STRING, data)
 		s := str.String()
 		if !str.Exists() {
