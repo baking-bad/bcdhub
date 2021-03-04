@@ -164,6 +164,13 @@ func (storage *Storage) GetTokenVolumeSeries(network, period string, contracts [
 	})
 
 	matches := []core.Item{
+		{
+			"script": core.Item{
+				"script": core.Item{
+					"source": "doc['from.keyword'].value !=  doc['to.keyword'].value",
+				},
+			},
+		},
 		core.Match("network", network),
 		core.Match("status", "applied"),
 		core.Term("token_id", tokenID),

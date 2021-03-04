@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
@@ -154,7 +155,7 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 				}
 				result.Tokens = append(result.Tokens, tokens...)
 
-				if len(address.DexVolumeEntrypoints) > 0 {
+				if helpers.StringInArray("DEX", dapp.Categories) {
 					vol, err := ctx.Operations.GetContract24HoursVolume(consts.Mainnet, address.Address, address.DexVolumeEntrypoints)
 					if err != nil {
 						return result, err
@@ -162,7 +163,6 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 
 					result.Volume24Hours += vol
 				}
-
 			}
 		}
 	}
