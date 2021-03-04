@@ -236,24 +236,29 @@ func (storage *Storage) GetStats(network, address string) (stats operation.Stats
 
 // GetContract24HoursVolume -
 func (storage *Storage) GetContract24HoursVolume(network, address string, entrypoints []string) (float64, error) {
+	filter := []core.Item{
+		core.Bool(
+			core.Should(
+				core.MatchPhrase("destination", address),
+				core.MatchPhrase("source", address),
+			),
+			core.MinimumShouldMatch(1),
+		),
+		core.Term("network", network),
+		core.Term("status", constants.Applied),
+		core.Range("timestamp", core.Item{
+			"lte": "now",
+			"gt":  "now-24h",
+		}),
+	}
+
+	if len(entrypoints) > 0 {
+		filter = append(filter, core.In("entrypoint.keyword", entrypoints))
+	}
+
 	query := core.NewQuery().Query(
 		core.Bool(
-			core.Filter(
-				core.Bool(
-					core.Should(
-						core.MatchPhrase("destination", address),
-						core.MatchPhrase("source", address),
-					),
-					core.MinimumShouldMatch(1),
-				),
-				core.Term("network", network),
-				core.Term("status", constants.Applied),
-				core.Range("timestamp", core.Item{
-					"lte": "now",
-					"gt":  "now-24h",
-				}),
-				core.In("entrypoint.keyword", entrypoints),
-			),
+			core.Filter(filter...),
 		),
 	).Add(
 		core.Aggs(
