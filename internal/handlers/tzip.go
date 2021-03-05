@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/schema"
+	tzipModel "github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/tzip"
 	"github.com/pkg/errors"
@@ -56,6 +57,14 @@ func (t *TZIP) handle(bmd *bigmapdiff.BigMapDiff) error {
 		return nil
 	}
 	if model == nil {
+		return nil
+	}
+
+	m := tzipModel.TZIP{
+		Address: model.Address,
+		Network: model.Network,
+	}
+	if err := t.storage.GetByID(&m); err == nil && m.OffChain {
 		return nil
 	}
 
