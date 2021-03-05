@@ -16,6 +16,7 @@ type TZIP struct {
 	Network   string                          `json:"network"`
 	Slug      string                          `json:"slug,omitempty"`
 	Domain    *tezosdomain.ReverseTezosDomain `json:"domain,omitempty"`
+	OffChain  bool                            `json:"offchain,omitempty"`
 
 	TZIP16
 	TZIP20

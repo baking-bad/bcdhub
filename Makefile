@@ -35,10 +35,18 @@ else
 endif
 
 rollback:
+ifeq ($(BCD_ENV), development)
 	cd scripts/esctl && go run . rollback -n $(NETWORK) -l $(LEVEL)
+else
+	docker-compose exec api esctl rollback -n $(NETWORK) -l $(LEVEL)
+endif
 
 remove:
+ifeq ($(BCD_ENV), development)
 	cd scripts/esctl && go run . remove -n $(NETWORK) 
+else
+	docker-compose exec api esctl remove -n $(NETWORK)
+endif
 
 s3-creds:
 	docker-compose exec elastic bash -c 'bin/elasticsearch-keystore add --force --stdin s3.client.default.access_key <<< "$$AWS_ACCESS_KEY_ID"'

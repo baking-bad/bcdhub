@@ -39,6 +39,7 @@ func (item Item) ToModel() (*Metadata, error) {
 	model.Network = item.Network
 	model.Address = item.Address
 	model.Timestamp = t.UTC()
+	model.OffChain = true
 
 	err = json.Unmarshal(item.Metadata, &model)
 	return model, err
