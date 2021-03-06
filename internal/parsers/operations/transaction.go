@@ -104,10 +104,10 @@ func (p Transaction) Parse(data noderpc.Operation) ([]models.Model, error) {
 	if !tezerrors.HasParametersError(tx.Errors) {
 		transfers, err := p.transferParser.Parse(tx, txModels)
 		if err != nil {
-			if !errors.Is(err, noderpc.ErrInvalidNodeResponse) {
+			if !errors.Is(err, noderpc.InvalidNodeResponse{}) {
 				return nil, err
 			}
-			logger.With(&tx).Warning("%s", err.Error())
+			logger.With(&tx).Warning(err.Error())
 		}
 		for i := range transfers {
 			txModels = append(txModels, transfers[i])

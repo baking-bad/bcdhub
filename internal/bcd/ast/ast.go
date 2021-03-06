@@ -276,6 +276,19 @@ func (a *TypedAst) Compare(b *TypedAst) (int, error) {
 
 // Diff -
 func (a *TypedAst) Diff(b *TypedAst) (*MiguelNode, error) {
+	if b == nil {
+		tree, err := a.ToMiguel()
+		if err != nil {
+			return nil, err
+		}
+		if len(tree) == 0 {
+			return nil, nil
+		}
+		for i := range tree {
+			tree[i].setDiffType(MiguelKindCreate)
+		}
+		return tree[0], nil
+	}
 	if len(b.Nodes) == 1 && len(a.Nodes) == 1 {
 		return a.Nodes[0].Distinguish(b.Nodes[0])
 	}

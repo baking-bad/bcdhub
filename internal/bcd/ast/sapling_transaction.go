@@ -132,3 +132,11 @@ func (st *SaplingTransaction) FromJSONSchema(data map[string]interface{}) error 
 	}
 	return nil
 }
+
+// FindByName -
+func (st *SaplingTransaction) FindByName(name string, isEntrypoint bool) Node {
+	if st.GetName() == name {
+		return st
+	}
+	return nil
+}

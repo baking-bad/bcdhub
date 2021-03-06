@@ -95,7 +95,7 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 
 					transfers, err := parser.Parse(op, nil)
 					if err != nil {
-						if errors.Is(err, noderpc.ErrInvalidNodeResponse) {
+						if errors.Is(err, noderpc.InvalidNodeResponse{}) {
 							logger.Error(err)
 							continue
 						}

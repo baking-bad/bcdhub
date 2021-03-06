@@ -726,3 +726,9 @@ type ViewSchema struct {
 	Schema         *ast.JSONSchema `json:"schema"`
 	DefaultModel   interface{}     `json:"default_model,omitempty" extensions:"x-nullable"`
 }
+
+// ForkResponse -
+type ForkResponse struct {
+	Script  stdJSON.RawMessage `json:"code"`
+	Storage stdJSON.RawMessage `json:"storage"`
+}

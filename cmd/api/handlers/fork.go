@@ -22,7 +22,7 @@ func (ctx *Context) ForkContract(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (ctx *Context) buildStorageDataFromForkRequest(req forkRequest) (gin.H, error) {
+func (ctx *Context) buildStorageDataFromForkRequest(req forkRequest) (*ForkResponse, error) {
 	var err error
 	var scriptData []byte
 
@@ -52,8 +52,8 @@ func (ctx *Context) buildStorageDataFromForkRequest(req forkRequest) (gin.H, err
 		return nil, err
 	}
 
-	return gin.H{
-		"code":    scriptData,
-		"storage": storage,
+	return &ForkResponse{
+		Script:  scriptData,
+		Storage: storage,
 	}, nil
 }

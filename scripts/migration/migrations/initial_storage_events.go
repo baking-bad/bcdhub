@@ -50,7 +50,7 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 		}
 		transfers, err := h.ExecuteInitialStorageEvent(rpc, tzips[i].Network, tzips[i].Address)
 		if err != nil {
-			if errors.Is(err, noderpc.ErrInvalidNodeResponse) {
+			if errors.Is(err, noderpc.InvalidNodeResponse{}) {
 				logger.Error(err)
 				continue
 			}

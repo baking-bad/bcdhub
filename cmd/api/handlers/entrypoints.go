@@ -97,7 +97,7 @@ func (ctx *Context) GetEntrypointData(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, result)
+	c.Data(http.StatusOK, gin.MIMEJSON, result)
 }
 
 // GetEntrypointSchema godoc

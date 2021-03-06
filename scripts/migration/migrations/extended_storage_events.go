@@ -98,7 +98,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 					}
 					transfers, err := parser.Parse(op, opModels)
 					if err != nil {
-						if errors.Is(err, noderpc.ErrInvalidNodeResponse) {
+						if errors.Is(err, noderpc.InvalidNodeResponse{}) {
 							logger.Error(err)
 							continue
 						}

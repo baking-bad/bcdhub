@@ -17,6 +17,15 @@ func NewBigInt(val int64) *BigInt {
 	}
 }
 
+// NewBigIntFromString -
+func NewBigIntFromString(val string) *BigInt {
+	b := big.NewInt(0)
+	b, _ = b.SetString(val, 10)
+	return &BigInt{
+		Int: b,
+	}
+}
+
 // MarshalJSON -
 func (b *BigInt) MarshalJSON() ([]byte, error) {
 	return []byte(fmt.Sprintf(`"%s"`, b.String())), nil

@@ -156,3 +156,11 @@ func (t *Ticket) EqualType(node Node) bool {
 
 	return t.Type.EqualType(second.Type)
 }
+
+// FindByName -
+func (t *Ticket) FindByName(name string, isEntrypoint bool) Node {
+	if t.GetName() == name {
+		return t
+	}
+	return nil
+}

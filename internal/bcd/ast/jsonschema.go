@@ -68,8 +68,12 @@ func getAddressJSONSchema(d Default) *JSONSchema {
 func setIntJSONSchema(d *Default, data map[string]interface{}) {
 	for key := range data {
 		if key == d.GetName() {
-			f := data[key].(float64)
-			d.Value = types.NewBigInt(int64(f))
+			switch v := data[key].(type) {
+			case float64:
+				d.Value = types.NewBigInt(int64(v))
+			case string:
+				d.Value = types.NewBigIntFromString(v)
+			}
 			d.ValueKind = valueKindInt
 			break
 		}

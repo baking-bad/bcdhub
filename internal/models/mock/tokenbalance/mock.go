@@ -2,10 +2,10 @@
 // Source: tokenbalance/repository.go
 
 // Package mock_tokenbalance is a generated GoMock package.
-package mock_tokenbalance
+package tokenbalance
 
 import (
-	tokenbalance "github.com/baking-bad/bcdhub/internal/models/tokenbalance"
+	tb "github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -34,10 +34,10 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // GetAccountBalances mocks base method
-func (m *MockRepository) GetAccountBalances(arg0, arg1 string) ([]tokenbalance.TokenBalance, error) {
+func (m *MockRepository) GetAccountBalances(arg0, arg1 string) ([]tb.TokenBalance, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAccountBalances", arg0, arg1)
-	ret0, _ := ret[0].([]tokenbalance.TokenBalance)
+	ret0, _ := ret[0].([]tb.TokenBalance)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -49,7 +49,7 @@ func (mr *MockRepositoryMockRecorder) GetAccountBalances(arg0, arg1 interface{})
 }
 
 // Update mocks base method
-func (m *MockRepository) Update(updates []*tokenbalance.TokenBalance) error {
+func (m *MockRepository) Update(updates []*tb.TokenBalance) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", updates)
 	ret0, _ := ret[0].(error)
@@ -63,10 +63,10 @@ func (mr *MockRepositoryMockRecorder) Update(updates interface{}) *gomock.Call {
 }
 
 // GetHolders mocks base method
-func (m *MockRepository) GetHolders(network, contract string, tokenID int64) ([]tokenbalance.TokenBalance, error) {
+func (m *MockRepository) GetHolders(network, contract string, tokenID int64) ([]tb.TokenBalance, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetHolders", network, contract, tokenID)
-	ret0, _ := ret[0].([]tokenbalance.TokenBalance)
+	ret0, _ := ret[0].([]tb.TokenBalance)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -75,4 +75,18 @@ func (m *MockRepository) GetHolders(network, contract string, tokenID int64) ([]
 func (mr *MockRepositoryMockRecorder) GetHolders(network, contract, tokenID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHolders", reflect.TypeOf((*MockRepository)(nil).GetHolders), network, contract, tokenID)
+}
+
+// BurnNft mocks base method
+func (m *MockRepository) BurnNft(network, contract string, tokenID int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BurnNft", network, contract, tokenID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BurnNft indicates an expected call of BurnNft
+func (mr *MockRepositoryMockRecorder) BurnNft(network, contract, tokenID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BurnNft", reflect.TypeOf((*MockRepository)(nil).BurnNft), network, contract, tokenID)
 }

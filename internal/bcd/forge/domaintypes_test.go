@@ -131,3 +131,30 @@ func TestUnforgeBakerHash(t *testing.T) {
 		})
 	}
 }
+
+func TestUnforgeAddress(t *testing.T) {
+	tests := []struct {
+		name    string
+		str     string
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "test 1",
+			str:  "016e4943f7a23ab9cbe56f48ff72f6c27e8956762400",
+			want: "KT1JdufSdfg3WyxWJcCRNsBFV9V3x9TQBkJ2",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := UnforgeAddress(tt.str)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UnforgeAddress() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UnforgeAddress() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

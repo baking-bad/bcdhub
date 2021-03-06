@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -187,20 +188,23 @@ func (ctx *Context) RunCode(c *gin.Context) {
 
 	response, err := rpc.RunCode(scriptBytes, storage, input, state.ChainID, reqRunCode.Source, reqRunCode.Sender, reqRunCode.Name, state.Protocol, reqRunCode.Amount, reqRunCode.GasLimit)
 	if err != nil {
-		if !errors.Is(err, noderpc.ErrInvalidNodeResponse) {
-			ctx.handleError(c, err, 0)
+		var e noderpc.InvalidNodeResponse
+		if errors.As(err, &e) {
+			main.Status = consts.Failed
+			errs, err := tezerrors.ParseArray(e.Raw)
+			if err != nil {
+				ctx.handleError(c, err, 0)
+				return
+			}
+			main.Errors = errs
+			if err := formatErrors(main.Errors, &main); err != nil {
+				ctx.handleError(c, err, 0)
+				return
+			}
+			c.JSON(http.StatusOK, []Operation{main})
 			return
 		}
-		main.Status = "failed"
-		// errs, err := tezerrors.ParseArray([]byte(response.Raw))
-		// if err != nil {
-		// 	return nil, err
-		// }
-		// main.Errors = errs
-		// if err := formatErrors(main.Errors, main); err != nil {
-		// 	return nil, err
-		// }
-		c.JSON(http.StatusOK, []Operation{main})
+		ctx.handleError(c, err, 0)
 		return
 	}
 

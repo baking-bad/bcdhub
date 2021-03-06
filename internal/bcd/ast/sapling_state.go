@@ -120,3 +120,11 @@ func (ss *SaplingState) EqualType(node Node) bool {
 
 	return ss.Type.EqualType(&second.Type)
 }
+
+// FindByName -
+func (ss *SaplingState) FindByName(name string, isEntrypoint bool) Node {
+	if ss.GetName() == name {
+		return ss
+	}
+	return nil
+}

@@ -4,9 +4,9 @@ import (
 	"bytes"
 	stdJSON "encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
@@ -71,18 +71,16 @@ func (rpc *NodeRPC) checkStatusCode(resp *http.Response, checkStatusCode bool) e
 	case resp.StatusCode == http.StatusOK:
 		return nil
 	case resp.StatusCode == http.StatusInternalServerError:
-		var errs []RunCodeError
-		if err := json.NewDecoder(resp.Body).Decode(&errs); err != nil {
-			return errors.Wrap(ErrInvalidNodeResponse, err.Error())
+		invalidResponseErr := newInvalidNodeResponse()
+		data, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return errors.Wrap(invalidResponseErr, err.Error())
 		}
-		var s strings.Builder
-		for i := range errs {
-			if i > 0 {
-				s.WriteByte('\n')
-			}
-			s.WriteString(errs[i].ID)
+		invalidResponseErr.Raw = data
+		if err := json.Unmarshal(data, &invalidResponseErr.Errors); err != nil {
+			return errors.Wrap(invalidResponseErr, err.Error())
 		}
-		return errors.Wrap(ErrInvalidNodeResponse, s.String())
+		return invalidResponseErr
 	case resp.StatusCode > http.StatusInternalServerError:
 		return NewNodeUnavailiableError(rpc.baseURL, resp.StatusCode)
 	case checkStatusCode:

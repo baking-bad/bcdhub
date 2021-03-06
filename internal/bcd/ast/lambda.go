@@ -218,3 +218,11 @@ func (l *Lambda) GetJSONModel(model JSONModel) {
 	}
 	model[l.GetName()] = s
 }
+
+// FindByName -
+func (l *Lambda) FindByName(name string, isEntrypoint bool) Node {
+	if l.GetName() == name {
+		return l
+	}
+	return nil
+}

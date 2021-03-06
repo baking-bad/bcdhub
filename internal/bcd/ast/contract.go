@@ -144,3 +144,11 @@ func (c *Contract) EqualType(node Node) bool {
 	}
 	return c.Type.EqualType(second.Type)
 }
+
+// FindByName -
+func (c *Contract) FindByName(name string, isEntrypoint bool) Node {
+	if c.GetName() == name {
+		return c
+	}
+	return nil
+}

@@ -371,10 +371,6 @@ func (ctx *Context) getStorageDiff(bmd []bigmapdiff.BigMapDiff, address, storage
 	if !currentStorage.IsSettled() {
 		return nil, nil
 	}
-	if prevStorage == nil {
-		return currentStorage.ToMiguel()
-	}
-
 	return currentStorage.Diff(prevStorage)
 }
 
