@@ -82,6 +82,9 @@ func (ctx *Context) GetFAByVersion(c *gin.Context) {
 	if cursorReq.Size == 0 {
 		cursorReq.Size = 20
 	}
+	if req.Version == "fa12" {
+		req.Version = consts.FA12Tag
+	}
 	contracts, total, err := ctx.Contracts.GetTokens(req.Network, req.Version, cursorReq.Offset, cursorReq.Size)
 	if ctx.handleError(c, err, 0) {
 		return

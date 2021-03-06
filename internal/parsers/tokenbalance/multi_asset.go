@@ -53,6 +53,9 @@ func (p MultiAsset) Parse(data []byte) ([]TokenBalance, error) {
 		balance := val.GetValue().(*types.BigInt)
 		tokenID := pair.Args[1].GetValue().(*types.BigInt)
 		address := forge.DecodeString(pair.Args[0].GetValue().(string))
+		if address == "" {
+			return false, nil
+		}
 
 		balances = append(balances, TokenBalance{
 			Value:   balance.Int,

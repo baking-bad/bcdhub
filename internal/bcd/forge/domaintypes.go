@@ -138,6 +138,11 @@ func UnforgeSignature(str string) (string, error) {
 	return encoding.EncodeBase58String(str, []byte(encoding.PrefixGenericSignature))
 }
 
+// UnforgeBakerHash -
+func UnforgeBakerHash(str string) (string, error) {
+	return encoding.EncodeBase58String(str, []byte(encoding.PrefixBakerHash))
+}
+
 // UnforgeOpgHash -
 func UnforgeOpgHash(input string) (string, error) {
 	if len(input) != 51 {

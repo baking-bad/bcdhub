@@ -14,14 +14,12 @@ import (
 
 // VestingParser -
 type VestingParser struct {
-	storage        models.GeneralRepository
 	filesDirectory string
 }
 
 // NewVestingParser -
 func NewVestingParser(filesDirectory string) *VestingParser {
 	return &VestingParser{
-		storage:        storage,
 		filesDirectory: filesDirectory,
 	}
 }

@@ -1,10 +1,12 @@
 package trees
 
 import (
+	"encoding/json"
 	"math/big"
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
@@ -14,7 +16,7 @@ import (
 func TestMakeFa2Transfers(t *testing.T) {
 	tests := []struct {
 		name      string
-		tree      *ast.TypedAst
+		tree      ast.Node
 		operation operation.Operation
 		want      []*transfer.Transfer
 		wantErr   bool
@@ -39,8 +41,14 @@ func TestMakeFa2Transfers(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			params := types.NewParameters([]byte(tt.operation.Parameters))
-			if _, err := tt.tree.FromParameters(params); err != nil {
-				t.Errorf("FromParameters() error = %v", err)
+			node := new(base.Node)
+			if err := json.Unmarshal(params.Value, node); err != nil {
+				t.Errorf("Unmarshal() error = %v", err)
+				return
+			}
+
+			if err := tt.tree.ParseValue(node); err != nil {
+				t.Errorf("ParseValue() error = %v", err)
 				return
 			}
 			got, err := MakeFa2Transfers(tt.tree, tt.operation)

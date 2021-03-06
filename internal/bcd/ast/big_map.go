@@ -245,9 +245,6 @@ func (m *BigMap) EnrichBigMap(bmd []*types.BigMapDiff) error {
 
 // ToParameters -
 func (m *BigMap) ToParameters() ([]byte, error) {
-	if m.Ptr != nil && m.Data.Len() == 0 {
-		return []byte(fmt.Sprintf(`{"int":"%d"}`, *m.Ptr)), nil
-	}
 	return buildMapParameters(m.Data)
 }
 

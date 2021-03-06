@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -140,11 +141,23 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, network, contrac
 					return nil, err
 				}
 
-				defattedStorage := script.Storage
+				storageType, err := script.Code.Storage.ToTypedAST()
+				if err != nil {
+					return nil, err
+				}
+
+				var storageData ast.UntypedAST
+				if err := json.Unmarshal(script.Storage, &storageData); err != nil {
+					return nil, err
+				}
+
+				if err := storageType.Settle(storageData); err != nil {
+					return nil, err
+				}
 
 				balances, err := events.Execute(rpc, event, events.Context{
 					Network:                  tzip.Network,
-					Parameters:               string(defattedStorage),
+					Parameters:               storageType,
 					Source:                   origination.Source,
 					Initiator:                origination.Initiator,
 					Amount:                   origination.Amount,

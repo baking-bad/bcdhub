@@ -53,7 +53,9 @@ func (p SingleAsset) Parse(data []byte) ([]TokenBalance, error) {
 		balance := val.GetValue().(*types.BigInt)
 
 		address := forge.DecodeString(k.GetValue().(string))
-
+		if address == "" {
+			return false, nil
+		}
 		balances = append(balances, TokenBalance{
 			Value:   balance.Int,
 			Address: address,

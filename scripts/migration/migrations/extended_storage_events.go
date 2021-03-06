@@ -5,12 +5,12 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
 	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
 )
@@ -77,6 +77,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 					}
 
 					parser, err := transferParsers.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.Storage,
+						ctx.SharePath,
 						transferParsers.WithNetwork(tzips[i].Network),
 						transferParsers.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
 						transferParsers.WithStackTrace(st),
@@ -97,7 +98,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 					}
 					transfers, err := parser.Parse(op, opModels)
 					if err != nil {
-						if errors.Is(err, events.ErrNodeReturn) {
+						if errors.Is(err, noderpc.ErrInvalidNodeResponse) {
 							logger.Error(err)
 							continue
 						}

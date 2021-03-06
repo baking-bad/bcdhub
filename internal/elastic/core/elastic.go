@@ -224,7 +224,8 @@ func (e *Elastic) updateByQueryScript(indices []string, query map[string]interfa
 	return e.GetResponse(resp, nil)
 }
 
-func (e *Elastic) deleteByQuery(indices []string, query map[string]interface{}) (result *DeleteByQueryResponse, err error) {
+// DeleteWithQuery -
+func (e *Elastic) DeleteWithQuery(indices []string, query map[string]interface{}) (result *DeleteByQueryResponse, err error) {
 	var buf bytes.Buffer
 	if err = json.NewEncoder(&buf).Encode(query); err != nil {
 		return
@@ -237,6 +238,7 @@ func (e *Elastic) deleteByQuery(indices []string, query map[string]interface{}) 
 		e.DeleteByQuery.WithContext(context.Background()),
 		e.DeleteByQuery.WithConflicts("proceed"),
 		e.DeleteByQuery.WithWaitForCompletion(true),
+		e.DeleteByQuery.WithRefresh(true),
 	}
 	resp, err := e.DeleteByQuery(
 		indices,
@@ -266,7 +268,7 @@ func (e *Elastic) DeleteByLevelAndNetwork(indices []string, network string, maxL
 	end := false
 
 	for !end {
-		response, err := e.deleteByQuery(indices, query)
+		response, err := e.DeleteWithQuery(indices, query)
 		if err != nil {
 			return err
 		}
@@ -331,7 +333,7 @@ func (e *Elastic) DeleteByContract(indices []string, network, address string) er
 	end := false
 
 	for !end {
-		response, err := e.deleteByQuery(indices, query)
+		response, err := e.DeleteWithQuery(indices, query)
 		if err != nil {
 			return err
 		}

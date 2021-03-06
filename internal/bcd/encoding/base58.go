@@ -48,6 +48,7 @@ const (
 	PrefixED25519EncryptedSeed        = "edesk"
 	PrefixSecp256k1EncryptedSecretKey = "spesk"
 	PrefixP256EncryptedSecretKey      = "p2esk"
+	PrefixBakerHash                   = "SG1"
 )
 
 var base58Encodings = []base58Encoding{
@@ -87,6 +88,8 @@ var base58Encodings = []base58Encoding{
 	{[]byte(PrefixED25519EncryptedSeed), 88, []byte{7, 90, 60, 179, 41}, 56, "ed25519 encrypted seed"},
 	{[]byte(PrefixSecp256k1EncryptedSecretKey), 88, []byte{9, 237, 241, 174, 150}, 56, "secp256k1 encrypted secret key"},
 	{[]byte(PrefixP256EncryptedSecretKey), 88, []byte{9, 48, 57, 115, 171}, 56, "p256_encrypted_secret_key"},
+
+	{[]byte(PrefixBakerHash), 36, []byte{3, 56, 226}, 20, "baker hash"},
 }
 
 func getBase58EncodingForDecode(data []byte) (base58Encoding, error) {

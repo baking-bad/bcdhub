@@ -104,3 +104,30 @@ func Test_Contract(t *testing.T) {
 		})
 	}
 }
+
+func TestUnforgeBakerHash(t *testing.T) {
+	tests := []struct {
+		name    string
+		str     string
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "test 1",
+			str:  "94697e9229c88fac7d19d62e139ca6735f9569dd",
+			want: "SG1d1wsgMKvSstzZQ8L4WoskCesdWGzVt5k4",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := UnforgeBakerHash(tt.str)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UnforgeBakerHash() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UnforgeBakerHash() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

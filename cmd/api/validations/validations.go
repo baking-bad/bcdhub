@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/compiler/compilation"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/btcsuite/btcutil/base58"
 	"gopkg.in/go-playground/validator.v9"
@@ -104,7 +104,7 @@ func faVersionValidator() validator.Func {
 		version := fl.Field().String()
 		return helpers.StringInArray(version, []string{
 			consts.FA1Tag,
-			consts.FA12Tag,
+			"fa12",
 			consts.FA2Tag,
 		})
 	}

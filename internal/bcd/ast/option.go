@@ -38,6 +38,16 @@ func (opt *Option) MarshalJSON() ([]byte, error) {
 	return marshalJSON(consts.OPTION, opt.Annots, opt.Type)
 }
 
+// IsSome - return true if value is Some
+func (opt *Option) IsSome() bool {
+	return opt.Value == consts.Some
+}
+
+// IsNone - return true if value is None
+func (opt *Option) IsNone() bool {
+	return opt.Value == consts.None
+}
+
 // ParseType -
 func (opt *Option) ParseType(node *base.Node, id *int) error {
 	if err := opt.Default.ParseType(node, id); err != nil {

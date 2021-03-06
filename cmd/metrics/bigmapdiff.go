@@ -49,7 +49,7 @@ func initHandlers() {
 		contractHandlers.NewTokenMetadata(ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Storage, ctx.RPC, ctx.SharePath, ctx.Config.IPFSGateways),
 	)
 	bigMapDiffHandlers = append(bigMapDiffHandlers,
-		contractHandlers.NewLedger(ctx.Storage, ctx.SharePath),
+		contractHandlers.NewLedger(ctx.Storage, ctx.TokenBalances, ctx.SharePath),
 	)
 }
 

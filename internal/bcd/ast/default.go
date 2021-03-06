@@ -216,7 +216,7 @@ func (d *Default) ToParameters() ([]byte, error) {
 		return []byte(fmt.Sprintf(`{"bytes":"%s"}`, d.Value)), nil
 	case valueKindInt:
 		i := d.Value.(*types.BigInt)
-		return []byte(fmt.Sprintf(`{"int":"%d"}`, i.Int64())), nil
+		return []byte(fmt.Sprintf(`{"int":"%s"}`, i.String())), nil
 	}
 	return nil, nil
 }

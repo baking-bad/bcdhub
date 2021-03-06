@@ -2,16 +2,11 @@ package events
 
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
-
-	jsoniter "github.com/json-iterator/go"
 )
-
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // MichelsonParameter -
 type MichelsonParameter struct {
@@ -53,29 +48,20 @@ func (event *MichelsonParameter) Parse(response noderpc.RunCodeResponse) []token
 }
 
 // Normalize - `value` is `Operation.Parameters`
-func (event *MichelsonParameter) Normalize(value string) []byte {
-	params := types.NewParameters([]byte(value))
-
-	var data ast.UntypedAST
-	if err := json.UnmarshalFromString(string(params.Value), &data); err != nil {
-		logger.Error(err)
-		return []byte(value)
+func (event *MichelsonParameter) Normalize(value *ast.TypedAst) []byte {
+	if !value.IsSettled() {
+		return nil
 	}
 
-	if len(data) == 0 {
-		return []byte(value)
+	result := value.Unwrap()
+	if result == nil {
+		logger.Warning("MichelsonParameter.Normalize: can't unwrap")
+		return nil
 	}
-
-	for prim := data[0].Prim; prim == "Right" || prim == "Left"; prim = data[0].Prim {
-		data = data[0].Args
-	}
-	if len(data) == 0 {
-		return []byte(value)
-	}
-	b, err := json.Marshal(data[0])
+	b, err := result.ToParameters()
 	if err != nil {
-		logger.Error(err)
-		return []byte(value)
+		logger.Warning("MichelsonParameter.Normalize %s", err.Error())
+		return nil
 	}
 	return b
 }

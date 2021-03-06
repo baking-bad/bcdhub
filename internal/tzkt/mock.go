@@ -6,7 +6,6 @@ package tzkt
 
 import (
 	gomock "github.com/golang/mock/gomock"
-	gjson "github.com/tidwall/gjson"
 	reflect "reflect"
 )
 
@@ -34,10 +33,10 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // GetMempool mocks base method
-func (m *MockService) GetMempool(address string) (gjson.Result, error) {
+func (m *MockService) GetMempool(address string) ([]MempoolOperation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMempool", address)
-	ret0, _ := ret[0].(gjson.Result)
+	ret0, _ := ret[0].([]MempoolOperation)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

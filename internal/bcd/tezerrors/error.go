@@ -8,7 +8,6 @@ import (
 	stdJSON "encoding/json"
 
 	jsoniter "github.com/json-iterator/go"
-	"github.com/tidwall/gjson"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
@@ -229,7 +228,7 @@ func (e *InvalidSyntacticConstantError) String() string {
 func (e *InvalidSyntacticConstantError) Format() error {
 	wrongExpr := e.getWrongExpression()
 	if wrongExpr != nil {
-		wrongExpression, err := formatter.MichelineToMichelson(gjson.ParseBytes(wrongExpr), false, formatter.DefLineSize)
+		wrongExpression, err := formatter.MichelineStringToMichelson(string(wrongExpr), false, formatter.DefLineSize)
 		if err != nil {
 			return err
 		}
@@ -238,7 +237,7 @@ func (e *InvalidSyntacticConstantError) Format() error {
 
 	expForm := e.getExpectedForm()
 	if expForm != nil {
-		expectedForm, err := formatter.MichelineToMichelson(gjson.ParseBytes(expForm), false, formatter.DefLineSize)
+		expectedForm, err := formatter.MichelineStringToMichelson(string(expForm), false, formatter.DefLineSize)
 		if err != nil {
 			return err
 		}

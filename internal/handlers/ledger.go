@@ -32,18 +32,20 @@ var (
 
 // Ledger -
 type Ledger struct {
-	storage   models.GeneralRepository
-	sharePath string
+	storage       models.GeneralRepository
+	tokenBalances tbModel.Repository
+	sharePath     string
 
 	cache *ccache.Cache
 }
 
 // NewLedger -
-func NewLedger(storage models.GeneralRepository, sharePath string) *Ledger {
+func NewLedger(storage models.GeneralRepository, tokenBalanceRepo tbModel.Repository, sharePath string) *Ledger {
 	return &Ledger{
-		storage:   storage,
-		cache:     ccache.New(ccache.Configure().MaxSize(100)),
-		sharePath: sharePath,
+		storage:       storage,
+		tokenBalances: tokenBalanceRepo,
+		cache:         ccache.New(ccache.Configure().MaxSize(100)),
+		sharePath:     sharePath,
 	}
 }
 
@@ -79,17 +81,17 @@ func (ledger *Ledger) getCachedBigMapType(bmd *bigmapdiff.BigMapDiff) ([]byte, e
 }
 
 func (ledger *Ledger) handle(bmd *bigmapdiff.BigMapDiff, bigMapType []byte) (bool, []models.Model, error) {
-	balance, err := ledger.getTokenBalance(bmd, bigMapType)
+	balances, err := ledger.getResultModels(bmd, bigMapType)
 	if err != nil {
 		if errors.Is(err, tokenbalance.ErrUnknownParser) {
 			return false, nil, nil
 		}
 		return false, nil, err
 	}
-	return true, []models.Model{balance}, nil
+	return true, balances, nil
 }
 
-func (ledger *Ledger) getTokenBalance(bmd *bigmapdiff.BigMapDiff, bigMapType []byte) (*tbModel.TokenBalance, error) {
+func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType []byte) ([]models.Model, error) {
 	typ, err := ast.NewTypedAstFromBytes(bigMapType)
 	if err != nil {
 		return nil, err
@@ -109,14 +111,22 @@ func (ledger *Ledger) getTokenBalance(bmd *bigmapdiff.BigMapDiff, bigMapType []b
 	if len(balance) == 0 {
 		return nil, nil
 	}
+	if balance[0].IsNFT {
+		if err := ledger.tokenBalances.BurnNft(bmd.Network, bmd.Address, balance[0].TokenID); err != nil {
+			return nil, err
+		}
+		if balance[0].Address == "" { // Burn NFT token
+			return nil, nil
+		}
+	}
 
-	return &tbModel.TokenBalance{
+	return []models.Model{&tbModel.TokenBalance{
 		Network:  bmd.Network,
 		Address:  balance[0].Address,
 		TokenID:  balance[0].TokenID,
 		Contract: bmd.Address,
 		Value:    balance[0].Value,
-	}, nil
+	}}, nil
 }
 
 func (ledger *Ledger) buildElt(bmd *bigmapdiff.BigMapDiff) ([]byte, error) {

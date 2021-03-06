@@ -90,3 +90,76 @@ func Test_multiAssetBalanceParser_Parse(t *testing.T) {
 		})
 	}
 }
+
+func Test_nftParser_Parse(t *testing.T) {
+	tests := []struct {
+		name string
+		args string
+		want []TokenBalance
+	}{
+		{
+			name: "test 1",
+			args: `[{"prim":"Elt","args": [{"int": "1"},{"string": "KT1BYYLfMjufYwqFtTSYJND7bzKNyK7mjrjM"}]}]`,
+			want: []TokenBalance{
+				{
+					Address: "KT1BYYLfMjufYwqFtTSYJND7bzKNyK7mjrjM",
+					TokenID: 1,
+					Value:   newBigIntFromString("1"),
+					IsNFT:   true,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := NewNftAsset().Parse([]byte(tt.args))
+			if err != nil {
+				t.Errorf("Parse error=%w", err)
+				return
+			}
+			assert.Equal(t, got, tt.want)
+		})
+	}
+}
+
+func Test_nftOptionParser_Parse(t *testing.T) {
+	tests := []struct {
+		name string
+		args string
+		want []TokenBalance
+	}{
+		{
+			name: "test 1",
+			args: `[{"prim":"Elt","args": [{"int": "1"},{"prim": "Some", "args":[{"string": "KT1BYYLfMjufYwqFtTSYJND7bzKNyK7mjrjM"}]}]}]`,
+			want: []TokenBalance{
+				{
+					Address: "KT1BYYLfMjufYwqFtTSYJND7bzKNyK7mjrjM",
+					TokenID: 1,
+					Value:   newBigIntFromString("1"),
+					IsNFT:   true,
+				},
+			},
+		}, {
+			name: "test 2",
+			args: `[{"prim":"Elt","args": [{"int": "1"},{"prim": "None"}]}]`,
+			want: []TokenBalance{
+				{
+					Address: "",
+					TokenID: 1,
+					Value:   newBigIntFromString("0"),
+					IsNFT:   true,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := NewNftAssetOption().Parse([]byte(tt.args))
+			if err != nil {
+				t.Errorf("Parse error=%w", err)
+				return
+			}
+			assert.Equal(t, got, tt.want)
+		})
+	}
+}

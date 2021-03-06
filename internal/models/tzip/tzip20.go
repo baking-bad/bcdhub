@@ -20,15 +20,15 @@ type Event struct {
 
 // EventImplementation -
 type EventImplementation struct {
-	MichelsonParameterEvent       MichelsonParameterEvent       `json:"michelsonParameterEvent"`
-	MichelsonInitialStorageEvent  MichelsonInitialStorageEvent  `json:"michelsonInitialStorageEvent"`
-	MichelsonExtendedStorageEvent MichelsonExtendedStorageEvent `json:"michelsonExtendedStorageEvent"`
+	MichelsonParameterEvent       MichelsonParameterEvent       `json:"michelsonParameterEvent,omitempty"`
+	MichelsonInitialStorageEvent  MichelsonInitialStorageEvent  `json:"michelsonInitialStorageEvent,omitempty"`
+	MichelsonExtendedStorageEvent MichelsonExtendedStorageEvent `json:"michelsonExtendedStorageEvent,omitempty"`
 }
 
 // MichelsonParameterEvent -
 type MichelsonParameterEvent struct {
 	Sections
-	Entrypoints []string `json:"entrypoints"`
+	Entrypoints []string `json:"entrypoints,omitempty"`
 }
 
 // InEntrypoints -
@@ -68,7 +68,7 @@ type MichelsonInitialStorageEvent struct {
 // MichelsonExtendedStorageEvent -
 type MichelsonExtendedStorageEvent struct {
 	Sections
-	Entrypoints []string `json:"entrypoints"`
+	Entrypoints []string `json:"entrypoints,omitempty"`
 }
 
 // InEntrypoints -

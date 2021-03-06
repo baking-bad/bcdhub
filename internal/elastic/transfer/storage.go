@@ -73,7 +73,7 @@ func (storage *Storage) GetTokenSupply(network, address string, tokenID int64) (
 				core.Match("network", network),
 				core.MatchPhrase("contract", address),
 				core.Term("token_id", tokenID),
-				core.Match("status", "applied"),
+				core.Match("status", consts.Applied),
 			),
 		),
 	).Add(
@@ -172,7 +172,7 @@ func (storage *Storage) GetTokenVolumeSeries(network, period string, contracts [
 			},
 		},
 		core.Match("network", network),
-		core.Match("status", "applied"),
+		core.Match("status", consts.Applied),
 		core.Term("token_id", tokenID),
 	}
 	if len(contracts) > 0 {

@@ -30,6 +30,10 @@
                         "ignore_above": 256
                     }
                 }
+            },
+            "extras":{
+                "type": "object",
+                "enabled": false
             }
         }
     }

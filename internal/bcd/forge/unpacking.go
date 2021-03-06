@@ -48,6 +48,10 @@ func CollectStrings(node *base.Node, tryUnpack bool) ([]string, error) {
 			res = append(res, s)
 			return res, nil
 		}
+		if s, err := UnforgeBakerHash(val); err == nil {
+			res = append(res, s)
+			return res, nil
+		}
 
 		data, err := hex.DecodeString(val)
 		if err != nil {
@@ -86,6 +90,9 @@ func DecodeString(str string) string {
 		return s
 	}
 	if s, err := UnforgeContract(str); err == nil {
+		return s
+	}
+	if s, err := UnforgeBakerHash(str); err == nil {
 		return s
 	}
 	data, err := hex.DecodeString(str)

@@ -6,8 +6,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
-	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -70,6 +70,12 @@ func (p Transaction) Parse(data noderpc.Operation) ([]models.Model, error) {
 	tx.SetBurned(p.constants)
 	txModels := []models.Model{&tx}
 
+	script, err := fetch.Contract(tx.Destination, tx.Network, tx.Protocol, p.shareDir)
+	if err != nil {
+		return nil, err
+	}
+	tx.Script = script
+
 	if tx.IsApplied() {
 		appliedModels, err := p.appliedHandler(data, &tx)
 		if err != nil {
@@ -95,21 +101,23 @@ func (p Transaction) Parse(data noderpc.Operation) ([]models.Model, error) {
 
 	p.stackTrace.Add(tx)
 
-	transfers, err := p.transferParser.Parse(tx, txModels)
-	if err != nil {
-		if !errors.Is(err, events.ErrNodeReturn) {
+	if !tezerrors.HasParametersError(tx.Errors) {
+		transfers, err := p.transferParser.Parse(tx, txModels)
+		if err != nil {
+			if !errors.Is(err, noderpc.ErrInvalidNodeResponse) {
+				return nil, err
+			}
+			logger.With(&tx).Warning("%s", err.Error())
+		}
+		for i := range transfers {
+			txModels = append(txModels, transfers[i])
+		}
+
+		if err := transferParsers.UpdateTokenBalances(p.TokenBalances, transfers); err != nil {
 			return nil, err
 		}
-		logger.Error(err)
-	}
-	for i := range transfers {
-		txModels = append(txModels, transfers[i])
-	}
 
-	if err := transferParsers.UpdateTokenBalances(p.TokenBalances, transfers); err != nil {
-		return nil, err
 	}
-
 	return txModels, nil
 }
 
@@ -131,12 +139,6 @@ func (p Transaction) appliedHandler(item noderpc.Operation, op *operation.Operat
 	if !bcd.IsContract(op.Destination) || !op.IsApplied() {
 		return nil, nil
 	}
-
-	script, err := fetch.Contract(op.Destination, op.Network, op.Protocol, p.shareDir)
-	if err != nil {
-		return nil, err
-	}
-	op.Script = script
 
 	resultModels := make([]models.Model, 0)
 
@@ -187,13 +189,14 @@ func (p Transaction) getEntrypoint(op *operation.Operation) error {
 	if err != nil {
 		return err
 	}
+
 	op.Entrypoint = params.Entrypoint
 
-	if len(subTree.Nodes) == 0 {
+	node := subTree.Unwrap()
+	if node == nil {
 		return nil
 	}
-
-	op.Entrypoint = subTree.Nodes[0].GetName()
+	op.Entrypoint = node.GetName()
 
 	return nil
 }

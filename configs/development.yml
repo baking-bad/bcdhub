@@ -8,6 +8,9 @@ rpc:
   edo2net:
     uri: https://rpc.tzkt.io/edo2net
     timeout: 20
+  falphanet:
+    uri: https://rpc.tzkt.io/falphanet
+    timeout: 20
 
 tzkt:
   mainnet:
@@ -87,6 +90,7 @@ api:
     - mainnet
     - delphinet
     - edo2net
+    - falphanet
   mq:
     publisher: true
     queues:
@@ -129,6 +133,7 @@ indexer:
       boost: tzkt
     edo2net:
       boost: tzkt
+    falphanet:
 
 metrics:
   project_name: metrics
@@ -154,5 +159,6 @@ scripts:
     - mainnet
     - delphinet
     - edo2net
+    - falphanet
   mq:
     publisher: true

@@ -203,6 +203,8 @@ func typingNode(node *base.Node, depth int, id *int) (Node, error) {
 		ast = NewBLS12381g1(depth + 1)
 	case consts.BLS12381G2:
 		ast = NewBLS12381g2(depth + 1)
+	case consts.BAKERHASH:
+		ast = NewBakerHash(depth + 1)
 	default:
 		return nil, errors.Wrap(consts.ErrUnknownPrim, node.Prim)
 	}

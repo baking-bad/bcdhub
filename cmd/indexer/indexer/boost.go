@@ -546,6 +546,9 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) ([]models.Model, error) {
 		if err != nil {
 			return nil, err
 		}
+		if err := bi.Storage.BulkInsert([]models.Model{&newProtocol}); err != nil {
+			return nil, err
+		}
 	}
 
 	if bi.Network == consts.Mainnet && head.Level == 1 {

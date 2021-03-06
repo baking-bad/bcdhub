@@ -44,6 +44,7 @@ func main() {
 	start := time.Now()
 
 	ctx := config.NewContext(
+		config.WithShare(cfg.SharePath),
 		config.WithStorage(cfg.Storage),
 		config.WithDatabase(cfg.DB),
 		config.WithRPC(cfg.RPC),

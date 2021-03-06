@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
 )
@@ -13,14 +15,14 @@ import (
 type Event interface {
 	GetCode() ([]byte, error)
 	Parse(response noderpc.RunCodeResponse) []tokenbalance.TokenBalance
-	Normalize(parameter string) []byte
+	Normalize(parameter *ast.TypedAst) []byte
 }
 
 // Context -
 type Context struct {
 	Network                  string
 	Protocol                 string
-	Parameters               string
+	Parameters               *ast.TypedAst
 	Source                   string
 	Initiator                string
 	Entrypoint               string
@@ -53,6 +55,10 @@ func (sections Sections) GetCode() ([]byte, error) {
 // Execute -
 func Execute(rpc noderpc.INode, event Event, ctx Context) ([]tokenbalance.TokenBalance, error) {
 	parameter := event.Normalize(ctx.Parameters)
+	if parameter == nil {
+		logger.Warning("%s event failed", ctx.Network)
+		return nil, nil
+	}
 	storage := []byte(`[]`)
 	code, err := event.GetCode()
 	if err != nil {

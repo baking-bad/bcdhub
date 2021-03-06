@@ -47,6 +47,10 @@ func (event *MichelsonInitialStorage) Parse(response noderpc.RunCodeResponse) []
 }
 
 // Normalize - `value` is `Operation.DeffatedStorage`
-func (event *MichelsonInitialStorage) Normalize(value string) []byte {
-	return []byte(value)
+func (event *MichelsonInitialStorage) Normalize(value *ast.TypedAst) []byte {
+	b, err := value.ToParameters("")
+	if err != nil {
+		return nil
+	}
+	return b
 }

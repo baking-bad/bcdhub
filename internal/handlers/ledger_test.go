@@ -10,7 +10,7 @@ import (
 	tbModel "github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 )
 
-func TestLedger_getTokenBalance(t *testing.T) {
+func TestLedger_getResultModels(t *testing.T) {
 	tests := []struct {
 		name       string
 		bmd        string
@@ -52,7 +52,7 @@ func TestLedger_getTokenBalance(t *testing.T) {
 				t.Errorf("UnmarshalFromString error=%s", err)
 				return
 			}
-			got, err := ledger.getTokenBalance(&bmd, typ)
+			got, err := ledger.getResultModels(&bmd, typ)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Ledger.getTokenBalance() error = %v, wantErr %v", err, tt.wantErr)
 				return

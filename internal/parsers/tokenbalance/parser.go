@@ -20,6 +20,10 @@ var parsers = map[string][]Parser{
 		NewMultiAssetBalance(),
 		NewMultiAssetUpdate(),
 	},
+	NftAssetBalanceUpdates: {
+		NewNftAsset(),
+		NewNftAssetOption(),
+	},
 }
 
 // Parser -
@@ -33,6 +37,7 @@ type TokenBalance struct {
 	Address string
 	TokenID int64
 	Value   *big.Int
+	IsNFT   bool
 }
 
 // GetParser -

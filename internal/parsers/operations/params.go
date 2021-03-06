@@ -121,7 +121,7 @@ func NewParseParams(rpc noderpc.INode, storage models.GeneralRepository, bmdRepo
 
 	transferParser, err := transfer.NewParser(
 		params.rpc,
-		tzipRepo, blockRepo, storage,
+		tzipRepo, blockRepo, storage, params.shareDir,
 		transfer.WithStackTrace(params.stackTrace),
 		transfer.WithNetwork(params.network),
 		transfer.WithChainID(params.head.ChainID),

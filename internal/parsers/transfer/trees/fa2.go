@@ -2,53 +2,18 @@ package trees
 
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 )
 
-var fa2Transfer = &ast.List{
-	Default: ast.NewDefault(consts.LIST, 0, 0),
-	Type: &ast.Pair{
-		Default: ast.NewDefault(consts.PAIR, 2, 1),
-		Args: []ast.Node{
-			&ast.Address{
-				Default: ast.NewDefault(consts.ADDRESS, 0, 2),
-			},
-			&ast.List{
-				Default: ast.NewDefault(consts.LIST, 0, 2),
-				Type: &ast.Pair{
-					Default: ast.NewDefault(consts.PAIR, 2, 3),
-					Args: []ast.Node{
-						&ast.Address{
-							Default: ast.NewDefault(consts.ADDRESS, 0, 4),
-						},
-						&ast.Pair{
-							Default: ast.NewDefault(consts.PAIR, 2, 4),
-							Args: []ast.Node{
-								&ast.Nat{
-									Default: ast.NewDefault(consts.NAT, 0, 5),
-								},
-								&ast.Nat{
-									Default: ast.NewDefault(consts.NAT, 0, 5),
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	},
-}
-
 // MakeFa2Transfers -
-func MakeFa2Transfers(tree *ast.TypedAst, operation operation.Operation) ([]*transfer.Transfer, error) {
-	if tree == nil || !tree.IsSettled() {
+func MakeFa2Transfers(tree ast.Node, operation operation.Operation) ([]*transfer.Transfer, error) {
+	if tree == nil {
 		return nil, nil
 	}
 	transfers := make([]*transfer.Transfer, 0)
-	list := tree.Nodes[0].(*ast.List)
+	list := tree.(*ast.List)
 	for i := range list.Data {
 		pair := list.Data[i].(*ast.Pair)
 		from := pair.Args[0].GetValue().(string)

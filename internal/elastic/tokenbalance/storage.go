@@ -98,3 +98,28 @@ func (storage *Storage) GetAccountBalances(network, address string) ([]tokenbala
 	err := storage.es.GetAllByQuery(query, &tokenBalances)
 	return tokenBalances, err
 }
+
+// BurnNft -
+func (storage *Storage) BurnNft(network, contract string, tokenID int64) error {
+	query := core.NewQuery().Query(
+		core.Bool(
+			core.Filter(
+				core.Term("network", network),
+				core.MatchPhrase("contract", contract),
+				core.Term("token_id", tokenID),
+			),
+		),
+	)
+
+	// 10 attempts in case of conflicts
+	for i := 0; i < 10; i++ {
+		response, err := storage.es.DeleteWithQuery([]string{models.DocTokenBalances}, query)
+		if err != nil {
+			return err
+		}
+		if response.VersionConflicts == 0 {
+			break
+		}
+	}
+	return nil
+}

@@ -352,6 +352,30 @@ func (a *TypedAst) GetJSONModel(model JSONModel) {
 	}
 }
 
+// Unwrap - clear paramaters from Left/Right. Tree must be settled.
+func (a *TypedAst) Unwrap() Node {
+	if !a.IsSettled() || len(a.Nodes) != 1 {
+		return nil
+	}
+
+	return unwrap(a.Nodes[0])
+}
+
+func unwrap(node Node) Node {
+	or, ok := node.(*Or)
+	if !ok {
+		return node
+	}
+
+	switch or.key {
+	case leftKey:
+		return unwrap(or.LeftType)
+	case rightKey:
+		return unwrap(or.RightType)
+	}
+	return node
+}
+
 func marshalJSON(prim string, annots []string, args ...Node) ([]byte, error) {
 	var builder bytes.Buffer
 	builder.WriteByte('{')

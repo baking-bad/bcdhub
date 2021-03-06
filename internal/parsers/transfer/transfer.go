@@ -1,9 +1,11 @@
 package transfer
 
 import (
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/events"
+	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
@@ -13,13 +15,18 @@ import (
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
 	"github.com/baking-bad/bcdhub/internal/parsers/transfer/trees"
+
+	jsoniter "github.com/json-iterator/go"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // Parser -
 type Parser struct {
 	Storage models.GeneralRepository
 
 	rpc        noderpc.INode
+	shareDir   string
 	events     TokenEvents
 	stackTrace *stacktrace.StackTrace
 
@@ -31,10 +38,11 @@ type Parser struct {
 }
 
 // NewParser -
-func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Repository, storage models.GeneralRepository, opts ...ParserOption) (*Parser, error) {
+func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Repository, storage models.GeneralRepository, shareDir string, opts ...ParserOption) (*Parser, error) {
 	tp := &Parser{
-		rpc:     rpc,
-		Storage: storage,
+		rpc:      rpc,
+		Storage:  storage,
+		shareDir: shareDir,
 	}
 
 	for i := range opts {
@@ -83,12 +91,11 @@ func (p *Parser) Parse(operation operation.Operation, operationModels []models.M
 }
 
 func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, operation operation.Operation, operationModels []models.Model) ([]*transfer.Transfer, error) {
-	if operation.Kind != consts.Transaction {
+	if operation.Kind != consts.Transaction || !operation.IsApplied() {
 		return nil, nil
 	}
 
 	var event events.Event
-	var err error
 
 	ctx := events.Context{
 		Network:                  p.network,
@@ -102,7 +109,24 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 
 	switch {
 	case impl.MichelsonParameterEvent.Is(operation.Entrypoint):
-		ctx.Parameters = operation.Parameters
+		data, err := fetch.Contract(operation.Destination, operation.Network, operation.Protocol, p.shareDir)
+		if err != nil {
+			return nil, err
+		}
+		script, err := ast.NewScript(data)
+		if err != nil {
+			return nil, err
+		}
+		parameter, err := script.ParameterType()
+		if err != nil {
+			return nil, err
+		}
+		param := types.NewParameters([]byte(operation.Parameters))
+		subTree, err := parameter.FromParameters(param)
+		if err != nil {
+			return nil, err
+		}
+		ctx.Parameters = subTree
 		ctx.Entrypoint = operation.Entrypoint
 		event, err = events.NewMichelsonParameter(impl, name)
 		if err != nil {
@@ -110,7 +134,26 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 		}
 		return p.makeTransfersFromBalanceEvents(event, ctx, operation, true)
 	case impl.MichelsonExtendedStorageEvent.Is(operation.Entrypoint):
-		ctx.Parameters = operation.DeffatedStorage
+		data, err := fetch.Contract(operation.Destination, operation.Network, operation.Protocol, p.shareDir)
+		if err != nil {
+			return nil, err
+		}
+		script, err := ast.NewScript(data)
+		if err != nil {
+			return nil, err
+		}
+		storage, err := script.StorageType()
+		if err != nil {
+			return nil, err
+		}
+		var deffattedStorage ast.UntypedAST
+		if err := json.UnmarshalFromString(operation.DeffatedStorage, &deffattedStorage); err != nil {
+			return nil, err
+		}
+		if err := storage.Settle(deffattedStorage); err != nil {
+			return nil, err
+		}
+		ctx.Parameters = storage
 		ctx.Entrypoint = consts.DefaultEntrypoint
 		bmd := make([]bigmapdiff.BigMapDiff, 0)
 		for i := range operationModels {
@@ -125,15 +168,6 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 		return p.makeTransfersFromBalanceEvents(event, ctx, operation, false)
 	default:
 		return nil, nil
-	}
-}
-
-func (p *Parser) transferPostprocessing(transfers []*transfer.Transfer, operation operation.Operation) {
-	if p.stackTrace.Empty() {
-		return
-	}
-	for i := range transfers {
-		p.setParentEntrypoint(operation, transfers[i])
 	}
 }
 
@@ -159,13 +193,25 @@ func (p *Parser) makeTransfersFromBalanceEvents(event events.Event, ctx events.C
 	return transfers, err
 }
 
+func (p *Parser) transferPostprocessing(transfers []*transfer.Transfer, operation operation.Operation) {
+	if p.stackTrace.Empty() {
+		return
+	}
+	for i := range transfers {
+		p.setParentEntrypoint(operation, transfers[i])
+	}
+}
+
 func (p *Parser) makeFA12Transfers(operation operation.Operation) ([]*transfer.Transfer, error) {
-	tree := trees.GetFA1_2Transfer()
-	parameter := types.NewParameters([]byte(operation.Parameters))
-	if _, err := tree.FromParameters(parameter); err != nil {
+	node, err := getNode(operation)
+	if err != nil {
 		return nil, err
 	}
-	transfers, err := trees.MakeFa1_2Transfers(tree, operation)
+	if node == nil {
+		return nil, nil
+	}
+
+	transfers, err := trees.MakeFa1_2Transfers(node, operation)
 	if err != nil {
 		return nil, err
 	}
@@ -176,12 +222,14 @@ func (p *Parser) makeFA12Transfers(operation operation.Operation) ([]*transfer.T
 }
 
 func (p *Parser) makeFA2Transfers(operation operation.Operation) ([]*transfer.Transfer, error) {
-	tree := trees.GetFA2Transfer()
-	parameter := types.NewParameters([]byte(operation.Parameters))
-	if _, err := tree.FromParameters(parameter); err != nil {
+	node, err := getNode(operation)
+	if err != nil {
 		return nil, err
 	}
-	transfers, err := trees.MakeFa2Transfers(tree, operation)
+	if node == nil {
+		return nil, nil
+	}
+	transfers, err := trees.MakeFa2Transfers(node, operation)
 	if err != nil {
 		return nil, err
 	}
@@ -189,6 +237,26 @@ func (p *Parser) makeFA2Transfers(operation operation.Operation) ([]*transfer.Tr
 		p.setParentEntrypoint(operation, transfers[i])
 	}
 	return transfers, nil
+}
+
+func getNode(operation operation.Operation) (ast.Node, error) {
+	var s ast.Script
+	if err := json.Unmarshal(operation.Script, &s); err != nil {
+		return nil, err
+	}
+
+	param, err := s.ParameterType()
+	if err != nil {
+		return nil, err
+	}
+	params := types.NewParameters([]byte(operation.Parameters))
+
+	subTree, err := param.FromParameters(params)
+	if err != nil {
+		return nil, err
+	}
+
+	return subTree.Unwrap(), nil
 }
 
 func (p Parser) setParentEntrypoint(operation operation.Operation, transfer *transfer.Transfer) {

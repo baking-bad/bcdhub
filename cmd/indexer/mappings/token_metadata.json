@@ -25,6 +25,9 @@
                     }
                 }
             },
+            "decimals": {
+                "type": "long"
+            },
             "name": {
                 "type": "text",
                 "fields": {
@@ -35,7 +38,8 @@
                 }
             },
             "extras": {
-                "type": "object"
+                "type": "object",
+                "enabled": false
             },
             "network": {
                 "type": "text",

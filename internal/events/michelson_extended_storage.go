@@ -59,22 +59,20 @@ func (mes *MichelsonExtendedStorage) Parse(response noderpc.RunCodeResponse) []t
 }
 
 // Normalize - `value` is `Operation.DeffatedStorage`
-func (mes *MichelsonExtendedStorage) Normalize(value string) []byte {
-	tree, err := ast.NewTypedAstFromString(value)
-	if err != nil {
-		logger.Error(err)
-		return []byte(value)
+func (mes *MichelsonExtendedStorage) Normalize(value *ast.TypedAst) []byte {
+	if !value.IsSettled() {
+		return nil
 	}
 
-	if err := storage.Enrich(tree, mes.bmd, true, false); err != nil {
-		logger.Error(err)
-		return []byte(value)
+	if err := storage.Enrich(value, mes.bmd, true, false); err != nil {
+		logger.Warning("MichelsonExtendedStorage.Normalize %s", err.Error())
+		return nil
 	}
 
-	b, err := tree.ToParameters("")
+	b, err := value.ToParameters("")
 	if err != nil {
-		logger.Error(err)
-		return []byte(value)
+		logger.Warning("MichelsonExtendedStorage.Normalize %s", err.Error())
+		return nil
 	}
 	return b
 }
