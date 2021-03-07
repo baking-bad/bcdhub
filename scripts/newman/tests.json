@@ -1899,7 +1899,6 @@
 									"",
 									"    pm.expect(metadata.address).to.eql('KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn');",
 									"    pm.expect(metadata.network).to.eql('mainnet');",
-									"    pm.expect(metadata.slug).to.eql('tzbtc');",
 									"    pm.expect(metadata.name).to.eql('tzBTC');",
 									"",
 									"    pm.expect(metadata).to.have.property('description');",
@@ -1907,7 +1906,6 @@
 									"    pm.expect(metadata).to.have.property('license');",
 									"    pm.expect(metadata).to.have.property('interfaces');",
 									"    pm.expect(metadata).to.have.property('events');",
-									"    pm.expect(metadata).to.have.property('dapps');",
 									"});"
 								],
 								"type": "text/javascript"
@@ -1945,7 +1943,6 @@
 									"",
 									"    pm.expect(metadata.address).to.eql('KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9');",
 									"    pm.expect(metadata.network).to.eql('mainnet');",
-									"    pm.expect(metadata.slug).to.eql('usdtz');",
 									"    pm.expect(metadata.name).to.eql('USDtz');",
 									"",
 									"    pm.expect(metadata).to.have.property('description');",
@@ -1953,7 +1950,6 @@
 									"    pm.expect(metadata).to.have.property('license');",
 									"    pm.expect(metadata).to.have.property('interfaces');",
 									"    pm.expect(metadata).to.have.property('events');",
-									"    pm.expect(metadata).to.have.property('dapps');",
 									"});"
 								],
 								"type": "text/javascript"

@@ -34,5 +34,14 @@ func (ctx *Context) GetMetadata(c *gin.Context) {
 		}
 		return
 	}
-	c.JSON(http.StatusOK, tzip)
+
+	c.JSON(http.StatusOK, TZIPResponse{
+		TZIP16:  tzip.TZIP16,
+		TZIP20:  tzip.TZIP20,
+		Domain:  tzip.Domain,
+		Extras:  tzip.Extras,
+		Address: tzip.Address,
+		Network: tzip.Network,
+		Name:    tzip.Name,
+	})
 }

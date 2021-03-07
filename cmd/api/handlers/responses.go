@@ -732,3 +732,14 @@ type ForkResponse struct {
 	Script  stdJSON.RawMessage `json:"code"`
 	Storage stdJSON.RawMessage `json:"storage"`
 }
+
+// TZIPResponse -
+type TZIPResponse struct {
+	Address string                          `json:"address,omitempty"`
+	Network string                          `json:"network,omitempty"`
+	Domain  *tezosdomain.ReverseTezosDomain `json:"domain,omitempty"`
+	Extras  map[string]interface{}          `json:"extras,omitempty"`
+	Name    string                          `json:"name,omitempty"`
+	tzip.TZIP16
+	tzip.TZIP20
+}
