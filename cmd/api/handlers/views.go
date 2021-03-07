@@ -95,7 +95,7 @@ func (ctx *Context) GetViewsSchema(c *gin.Context) {
 // @Param body body executeViewRequest true "Request body"
 // @Accept json
 // @Produce json
-// @Success 200 {object} newmiguel.Node
+// @Success 200 {array} ast.MiguelNode
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/views/execute [post]

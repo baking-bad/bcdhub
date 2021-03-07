@@ -15,7 +15,7 @@ import (
 // @Param address path string true "KT or tz address" minlength(36) maxlength(36)
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} tzip.TZIP
+// @Success 200 {object} TZIPResponse
 // @Success 204 {object} gin.H
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
