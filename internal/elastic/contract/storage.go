@@ -490,24 +490,29 @@ func (storage *Storage) GetTokens(network, tokenInterface string, offset, size i
 				core.In("tags", tags),
 			),
 		),
-	).Sort("timestamp", "desc").Size(size)
+	).Sort("timestamp", "desc")
 
-	if offset != 0 {
-		query = query.From(offset)
-	}
-
-	var response core.SearchResponse
-	if err := storage.es.Query([]string{models.DocContracts}, query, &response); err != nil {
+	contracts := make([]contract.Contract, 0)
+	ctx := core.NewScrollContext(storage.es, query, size, consts.DefaultScrollSize)
+	ctx.Offset = offset
+	if err := ctx.Get(&contracts); err != nil {
 		return nil, 0, err
 	}
 
-	contracts := make([]contract.Contract, len(response.Hits.Hits))
-	for i := range response.Hits.Hits {
-		if err := json.Unmarshal(response.Hits.Hits[i].Source, &contracts[i]); err != nil {
-			return nil, 0, err
-		}
+	countQuery := core.NewQuery().Query(
+		core.Bool(
+			core.Filter(
+				core.Match("network", network),
+				core.In("tags", tags),
+			),
+		),
+	)
+	count, err := storage.es.CountItems([]string{models.DocContracts}, countQuery)
+	if err != nil {
+		return nil, 0, err
 	}
-	return contracts, response.Hits.Total.Value, nil
+
+	return contracts, count, nil
 }
 
 // UpdateField -
