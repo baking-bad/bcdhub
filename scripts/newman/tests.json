@@ -2360,6 +2360,70 @@
 					"response": []
 				},
 				{
+					"name": "tokens/mainnet/tz1fCCyqjcmwNw5Vv1b7yVXPvJzL42KqxWxd/transfers",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The response has all properties\", () => {",
+									"    const response = pm.response.json();",
+									"",
+									"    pm.expect(response.total).to.be.greaterThan(0);",
+									"    pm.expect(response.transfers.length).to.be.eql(response.total);",
+									"    pm.expect(response).to.have.property(\"last_id\");",
+									"",
+									"    for (const transfer of response.transfers) {",
+									"        pm.expect(transfer.network).to.be.eql('mainnet');",
+									"        pm.expect(transfer.token_id).to.be.eql(0);",
+									"",
+									"        pm.expect(transfer).to.have.property('alias');",
+									"        pm.expect(transfer).to.have.property('indexed_time');",
+									"        pm.expect(transfer).to.have.property('network');",
+									"        pm.expect(transfer).to.have.property('contract');",
+									"        pm.expect(transfer).to.have.property('initiator');",
+									"        pm.expect(transfer).to.have.property('hash');",
+									"        pm.expect(transfer).to.have.property('status');",
+									"        pm.expect(transfer).to.have.property('timestamp');",
+									"        pm.expect(transfer).to.have.property('level');",
+									"        pm.expect(transfer).to.have.property('from');",
+									"        pm.expect(transfer).to.have.property('to');",
+									"        pm.expect(transfer).to.have.property('token_id');",
+									"        pm.expect(transfer).to.have.property('amount');",
+									"        pm.expect(transfer).to.have.property('counter');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/v1/tokens/mainnet/transfers/tz1fCCyqjcmwNw5Vv1b7yVXPvJzL42KqxWxd?size=10000",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"v1",
+								"tokens",
+								"mainnet",
+								"transfers",
+								"tz1fCCyqjcmwNw5Vv1b7yVXPvJzL42KqxWxd"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "10000"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "tokens/mainnet/transfers/usdtz",
 					"event": [
 						{
