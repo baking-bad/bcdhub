@@ -59,7 +59,7 @@ func (set *Set) ParseType(node *base.Node, id *int) error {
 		return err
 	}
 
-	typ, err := typingNode(node.Args[0], set.Depth, id)
+	typ, err := typeNode(node.Args[0], set.Depth, id)
 	if err != nil {
 		return err
 	}

@@ -47,14 +47,14 @@ func (s *BakerHash) ToMiguel() (*MiguelNode, error) {
 // ToBaseNode -
 func (s *BakerHash) ToBaseNode(optimized bool) (*base.Node, error) {
 	val := s.Value.(string)
-	if optimized {
-		value, err := encoding.DecodeBase58ToString(val)
-		if err != nil {
-			return nil, err
-		}
-		return toBaseNodeBytes(value), nil
+	if !optimized {
+		return toBaseNodeString(val), nil
 	}
-	return toBaseNodeString(val), nil
+	value, err := encoding.DecodeBase58ToString(val)
+	if err != nil {
+		return nil, err
+	}
+	return toBaseNodeBytes(value), nil
 }
 
 // ToJSONSchema -

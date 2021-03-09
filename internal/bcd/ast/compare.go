@@ -28,7 +28,13 @@ func compareNotOptimizedTypes(x, y Default, optimizer func(string) (string, erro
 }
 
 func compareBigInt(x, y Default) int {
-	xi := x.Value.(*types.BigInt)
-	yi := y.Value.(*types.BigInt)
+	xi, ok := x.Value.(*types.BigInt)
+	if !ok {
+		return -1
+	}
+	yi, ok := y.Value.(*types.BigInt)
+	if !ok {
+		return 1
+	}
 	return xi.Cmp(yi.Int)
 }

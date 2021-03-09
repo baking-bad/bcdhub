@@ -128,7 +128,7 @@ func (st *SectionType) ParseType(node *base.Node, id *int) error {
 
 	st.Args = make([]Node, 0, len(node.Args))
 	for _, arg := range node.Args {
-		child, err := typingNode(arg, st.depth, id)
+		child, err := typeNode(arg, st.depth, id)
 		if err != nil {
 			return err
 		}

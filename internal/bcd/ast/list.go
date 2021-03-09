@@ -60,7 +60,7 @@ func (list *List) ParseType(node *base.Node, id *int) error {
 		return err
 	}
 
-	typ, err := typingNode(node.Args[0], list.Depth, id)
+	typ, err := typeNode(node.Args[0], list.Depth, id)
 	if err != nil {
 		return err
 	}

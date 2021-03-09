@@ -67,13 +67,13 @@ func (m *Map) ParseType(node *base.Node, id *int) error {
 		return err
 	}
 
-	keyType, err := typingNode(node.Args[0], m.Depth, id)
+	keyType, err := typeNode(node.Args[0], m.Depth, id)
 	if err != nil {
 		return err
 	}
 	m.KeyType = keyType
 
-	valType, err := typingNode(node.Args[1], m.Depth, id)
+	valType, err := typeNode(node.Args[1], m.Depth, id)
 	if err != nil {
 		return err
 	}

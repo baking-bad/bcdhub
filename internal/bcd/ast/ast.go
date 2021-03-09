@@ -78,7 +78,15 @@ func (a *TypedAst) String() string {
 
 // Settle -
 func (a *TypedAst) Settle(untyped UntypedAST) error {
-	if len(untyped) != len(a.Nodes) && len(a.Nodes) == 1 {
+	if len(untyped) == len(a.Nodes) {
+		for i := range untyped {
+			if err := a.Nodes[i].ParseValue(untyped[i]); err != nil {
+				return err
+			}
+		}
+		a.settled = true
+		return nil
+	} else if len(a.Nodes) == 1 {
 		if _, ok := a.Nodes[0].(*Pair); ok {
 			newUntyped := &base.Node{
 				Prim: consts.Pair,
@@ -90,14 +98,6 @@ func (a *TypedAst) Settle(untyped UntypedAST) error {
 			a.settled = true
 			return nil
 		}
-	} else if len(untyped) == len(a.Nodes) {
-		for i := range untyped {
-			if err := a.Nodes[i].ParseValue(untyped[i]); err != nil {
-				return err
-			}
-		}
-		a.settled = true
-		return nil
 	}
 	return errors.Wrap(consts.ErrTreesAreDifferent, "TypedAst.Settle")
 }

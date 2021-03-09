@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
-	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/gin-gonic/gin"
@@ -99,8 +99,12 @@ func postProcessing(result models.Result) (models.Result, error) {
 
 		bmd := result.Items[i].Body.(bigmapdiff.BigMapDiff)
 
-		// TODO: unpack
-		key, err := formatter.MichelineStringToMichelson(string(bmd.Key), true, formatter.DefLineSize)
+		var data ast.UntypedAST
+		if err := json.Unmarshal(bmd.Key, &data); err != nil {
+			return result, err
+		}
+
+		key, err := data.Stringify()
 		if err != nil {
 			return result, err
 		}

@@ -15,7 +15,6 @@ func (ctx *Context) ForkContract(c *gin.Context) {
 	}
 	response, err := ctx.buildStorageDataFromForkRequest(req)
 	if err != nil {
-		// TODO: validation
 		ctx.handleError(c, err, 0)
 		return
 	}

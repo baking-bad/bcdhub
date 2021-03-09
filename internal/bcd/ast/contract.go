@@ -47,7 +47,7 @@ func (c *Contract) ParseType(node *base.Node, id *int) error {
 	if err := c.Default.ParseType(node, id); err != nil {
 		return err
 	}
-	contractType, err := typingNode(node.Args[0], c.Depth, id)
+	contractType, err := typeNode(node.Args[0], c.Depth, id)
 	if err != nil {
 		return err
 	}
@@ -102,26 +102,27 @@ func (c *Contract) Docs(inferredName string) ([]Typedef, string, error) {
 		Type: fmt.Sprintf("contract(%s)", c.Type.GetPrim()),
 		Args: make([]TypedefArg, 0),
 	}
-	if !isSimpleDocType(c.Type.GetPrim()) {
-		str, err := json.MarshalToString(c.Type)
-		if err != nil {
-			return nil, "", err
-		}
-		paramName := fmt.Sprintf("%s_param", c.GetName())
-		parameter, err := formatter.MichelineStringToMichelson(str, true, formatter.DefLineSize)
-		if err != nil {
-			return nil, "", err
-		}
 
-		typedef.Type = fmt.Sprintf("contract(%s)", makeVarDocString(paramName))
-		paramTypedef := Typedef{
-			Name: paramName,
-			Type: parameter,
-		}
-		return []Typedef{typedef, paramTypedef}, typedef.Type, nil
+	if isSimpleDocType(c.Type.GetPrim()) {
+		return nil, typedef.Type, nil
 	}
 
-	return nil, typedef.Type, nil
+	str, err := json.MarshalToString(c.Type)
+	if err != nil {
+		return nil, "", err
+	}
+	paramName := fmt.Sprintf("%s_param", c.GetName())
+	parameter, err := formatter.MichelineStringToMichelson(str, true, formatter.DefLineSize)
+	if err != nil {
+		return nil, "", err
+	}
+
+	typedef.Type = fmt.Sprintf("contract(%s)", makeVarDocString(paramName))
+	paramTypedef := Typedef{
+		Name: paramName,
+		Type: parameter,
+	}
+	return []Typedef{typedef, paramTypedef}, typedef.Type, nil
 }
 
 // Distinguish -

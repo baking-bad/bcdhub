@@ -2,6 +2,7 @@ package forge
 
 import (
 	"encoding/hex"
+	"strings"
 	"unicode"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
@@ -31,6 +32,41 @@ func UnpackString(str string) ([]*base.Node, error) {
 	return Unpack(data)
 }
 
+// TryUnpackString - try unpack `str` to tree. If try failed returns `nil`
+func TryUnpackString(str string) []*base.Node {
+	tree, err := UnpackString(str)
+	if err == nil {
+		for i := range tree {
+			tree[i] = tryUnpackNode(tree[i])
+		}
+		return tree
+	}
+	return nil
+}
+
+func tryUnpackNode(node *base.Node) *base.Node {
+	if node.BytesValue == nil {
+		for i := range node.Args {
+			node.Args[i] = tryUnpackNode(node.Args[i])
+		}
+		return node
+	}
+
+	value := *node.BytesValue
+	decoded := tryDecode(value)
+	if decoded != "" {
+		node.StringValue = &decoded
+		node.BytesValue = nil
+		return node
+	}
+
+	unpacked := TryUnpackString(value)
+	if len(unpacked) > 0 {
+		node = unpacked[0]
+	}
+	return node
+}
+
 // CollectStrings - returns strings contained in tree. If `tryUnpack` is true, it tries to unpack bytes value.
 func CollectStrings(node *base.Node, tryUnpack bool) ([]string, error) {
 	res := make([]string, 0)
@@ -40,16 +76,9 @@ func CollectStrings(node *base.Node, tryUnpack bool) ([]string, error) {
 		res = append(res, *node.StringValue)
 	case tryUnpack && node.BytesValue != nil:
 		val := *node.BytesValue
-		if s, err := UnforgeAddress(val); err == nil {
-			res = append(res, s)
-			return res, nil
-		}
-		if s, err := UnforgeContract(val); err == nil {
-			res = append(res, s)
-			return res, nil
-		}
-		if s, err := UnforgeBakerHash(val); err == nil {
-			res = append(res, s)
+		decoded := tryDecode(val)
+		if decoded != "" {
+			res = append(res, decoded)
 			return res, nil
 		}
 
@@ -59,10 +88,6 @@ func CollectStrings(node *base.Node, tryUnpack bool) ([]string, error) {
 		}
 		tree, err := Unpack(data)
 		if err != nil {
-			b, err := hex.DecodeString(val)
-			if err == nil && isPrintableASCII(string(b)) {
-				res = append(res, string(b))
-			}
 			return res, nil
 		}
 		for i := range tree {
@@ -84,23 +109,33 @@ func CollectStrings(node *base.Node, tryUnpack bool) ([]string, error) {
 	return res, nil
 }
 
+func tryDecode(val string) string {
+	buf := strings.TrimPrefix(val, "0x")
+	if s, err := UnforgeAddress(buf); err == nil {
+		return s
+	}
+	if s, err := UnforgeContract(buf); err == nil {
+		return s
+	}
+	if s, err := UnforgeBakerHash(buf); err == nil {
+		return s
+	}
+
+	b, err := hex.DecodeString(val)
+	if err == nil && isPrintableASCII(string(b)) {
+		return string(b)
+	}
+	return ""
+}
+
 // DecodeString -
 func DecodeString(str string) string {
-	if s, err := UnforgeAddress(str); err == nil {
-		return s
-	}
-	if s, err := UnforgeContract(str); err == nil {
-		return s
-	}
-	if s, err := UnforgeBakerHash(str); err == nil {
+	if s := tryDecode(str); s != "" {
 		return s
 	}
 	data, err := hex.DecodeString(str)
 	if err != nil {
 		return str
-	}
-	if isPrintableASCII(str) {
-		return string(data)
 	}
 	tree, err := Unpack(data)
 	if err != nil {

@@ -76,13 +76,13 @@ func (m *BigMap) ParseType(node *base.Node, id *int) error {
 		return err
 	}
 
-	keyType, err := typingNode(node.Args[0], m.Depth, id)
+	keyType, err := typeNode(node.Args[0], m.Depth, id)
 	if err != nil {
 		return err
 	}
 	m.KeyType = keyType
 
-	valType, err := typingNode(node.Args[1], m.Depth, id)
+	valType, err := typeNode(node.Args[1], m.Depth, id)
 	if err != nil {
 		return err
 	}
@@ -112,37 +112,33 @@ func (m *BigMap) ToMiguel() (*MiguelNode, error) {
 		return nil, err
 	}
 
-	switch {
-	case m.Ptr != nil:
+	if m.Ptr != nil {
 		node.Value = *m.Ptr
 		return node, nil
-	default:
-		node.Children = make([]*MiguelNode, 0)
-		handler := func(key, value Comparable) (bool, error) {
-			keyChild, err := key.(Node).ToMiguel()
+	}
+	node.Children = make([]*MiguelNode, 0)
+	handler := func(key, value Comparable) (bool, error) {
+		keyChild, err := key.(Node).ToMiguel()
+		if err != nil {
+			return true, err
+		}
+		if value != nil {
+			child, err := value.(Node).ToMiguel()
 			if err != nil {
 				return true, err
 			}
-			if value != nil {
-				child, err := value.(Node).ToMiguel()
-				if err != nil {
-					return true, err
-				}
 
-				name, err := getMapKeyName(keyChild)
-				if err != nil {
-					return true, err
-				}
-				child.Name = &name
-				node.Children = append(node.Children, child)
+			name, err := getMapKeyName(keyChild)
+			if err != nil {
+				return true, err
 			}
-			return false, nil
+			child.Name = &name
+			node.Children = append(node.Children, child)
 		}
-
-		err = m.Data.Range(handler)
-		return node, err
+		return false, nil
 	}
 
+	return node, m.Data.Range(handler)
 }
 
 // ToBaseNode -

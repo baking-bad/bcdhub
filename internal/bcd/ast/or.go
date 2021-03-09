@@ -64,7 +64,7 @@ func (or *Or) ParseType(node *base.Node, id *int) error {
 	}
 
 	for i := range node.Args {
-		child, err := typingNode(node.Args[i], or.Depth, id)
+		child, err := typeNode(node.Args[i], or.Depth, id)
 		if err != nil {
 			return err
 		}

@@ -6,7 +6,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
-	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/gin-gonic/gin"
@@ -330,7 +329,7 @@ func (ctx *Context) prepareBigMapItem(data []bigmapdiff.BigMapDiff, keyHash stri
 	return
 }
 
-func prepareItem(item bigmapdiff.BigMapDiff, bigMapType *ast.BigMap) (key, value interface{}, keyString string, err error) {
+func prepareItem(item bigmapdiff.BigMapDiff, bigMapType *ast.BigMap) (key, value *ast.MiguelNode, keyString string, err error) {
 	if item.Key != nil {
 		keyType := ast.Copy(bigMapType.KeyType)
 		keyMiguel, err := createMiguelForType(keyType, item.Key)
@@ -339,10 +338,15 @@ func prepareItem(item bigmapdiff.BigMapDiff, bigMapType *ast.BigMap) (key, value
 		}
 		key = keyMiguel
 
-		// TODO: unpack
-		keyString, err = formatter.MichelineStringToMichelson(string(item.Key), true, formatter.DefLineSize)
-		if err != nil {
-			return nil, nil, "", err
+		if key.Value != nil {
+			switch t := key.Value.(type) {
+			case string:
+				keyString = t
+			case int64:
+				keyString = fmt.Sprintf("%d", t)
+			default:
+				keyString = fmt.Sprintf("%v", t)
+			}
 		}
 	}
 
@@ -358,7 +362,7 @@ func prepareItem(item bigmapdiff.BigMapDiff, bigMapType *ast.BigMap) (key, value
 	return
 }
 
-func createMiguelForType(typ ast.Node, raw []byte) (interface{}, error) {
+func createMiguelForType(typ ast.Node, raw []byte) (*ast.MiguelNode, error) {
 	var data ast.UntypedAST
 	if err := json.Unmarshal(raw, &data); err != nil {
 		return nil, err

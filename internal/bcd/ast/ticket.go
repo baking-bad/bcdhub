@@ -49,7 +49,7 @@ func (t *Ticket) ParseType(node *base.Node, id *int) error {
 		return err
 	}
 
-	typ, err := typingNode(node.Args[0], t.depth, id)
+	typ, err := typeNode(node.Args[0], t.depth, id)
 	if err != nil {
 		return err
 	}

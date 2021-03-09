@@ -35,13 +35,13 @@ func (l *Lambda) ParseType(node *base.Node, id *int) error {
 		return err
 	}
 
-	typ, err := typingNode(node.Args[0], l.Depth, id)
+	typ, err := typeNode(node.Args[0], l.Depth, id)
 	if err != nil {
 		return err
 	}
 	l.InputType = typ
 
-	retTyp, err := typingNode(node.Args[1], l.Depth, id)
+	retTyp, err := typeNode(node.Args[1], l.Depth, id)
 	if err != nil {
 		return err
 	}

@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
+	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/pkg/errors"
 )
 
@@ -89,14 +90,14 @@ func (u UntypedAST) ToTypedAST() (*TypedAst, error) {
 	for i := range u {
 		if u[i].Prim == consts.PrimArray {
 			for j := range u[i].Args {
-				node, err := typingNode(u[i].Args[j], 0, &id)
+				node, err := typeNode(u[i].Args[j], 0, &id)
 				if err != nil {
 					return ast, err
 				}
 				ast.Nodes = append(ast.Nodes, node)
 			}
 		} else {
-			node, err := typingNode(u[i], 0, &id)
+			node, err := typeNode(u[i], 0, &id)
 			if err != nil {
 				return ast, err
 			}
@@ -134,7 +135,54 @@ func (u UntypedAST) Fingerprint(isCode bool) (string, error) {
 	return s.String(), nil
 }
 
-func typingNode(node *base.Node, depth int, id *int) (Node, error) {
+// Unpack - unpack all bytes and store data in the tree.
+func (u UntypedAST) Unpack() {
+	for i := range u {
+		if u[i].BytesValue == nil {
+			continue
+		}
+
+		value := *u[i].BytesValue
+		tree := forge.TryUnpackString(value)
+		if len(tree) > 0 {
+			u[i] = tree[0]
+		}
+	}
+}
+
+// Stringify - make readable string
+func (u UntypedAST) Stringify() (string, error) {
+	switch {
+	case len(u) == 1 && len(u[0].Args) > 0:
+		str, err := json.MarshalToString(u[0])
+		if err != nil {
+			return "", err
+		}
+		return formatter.MichelineToMichelsonInline(str)
+	case len(u) == 1 && u[0].StringValue != nil:
+		return *u[0].StringValue, nil
+	case len(u) == 1 && u[0].IntValue != nil:
+		return u[0].IntValue.String(), nil
+	case len(u) == 1 && u[0].BytesValue != nil:
+		tree := forge.TryUnpackString(*u[0].BytesValue)
+		if tree == nil {
+			return *u[0].BytesValue, nil
+		}
+		treeJSON, err := json.MarshalToString(tree)
+		if err != nil {
+			return "", err
+		}
+		return formatter.MichelineToMichelsonInline(treeJSON)
+	default:
+		str, err := json.MarshalToString(u)
+		if err != nil {
+			return "", err
+		}
+		return formatter.MichelineToMichelsonInline(str)
+	}
+}
+
+func typeNode(node *base.Node, depth int, id *int) (Node, error) {
 	var ast Node
 	switch strings.ToLower(node.Prim) {
 	case consts.UNIT:
@@ -193,10 +241,6 @@ func typingNode(node *base.Node, depth int, id *int) (Node, error) {
 		ast = NewTicket(depth + 1)
 	case consts.PARAMETER:
 		ast = NewParameter(depth + 1)
-	case consts.STORAGE:
-		ast = NewStorage(depth + 1)
-	case consts.CODE:
-		ast = NewCode(depth + 1)
 	case consts.BLS12381FR:
 		ast = NewBLS12381fr(depth + 1)
 	case consts.BLS12381G1:

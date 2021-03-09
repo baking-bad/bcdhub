@@ -4,6 +4,8 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/forge"
+	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 )
 
 //  BYTES
@@ -41,6 +43,7 @@ func (b *Bytes) Distinguish(x Distinguishable) (*MiguelNode, error) {
 	if !ok {
 		return nil, nil
 	}
+
 	return b.Default.Distinguish(&second.Default)
 }
 
@@ -56,4 +59,24 @@ func (b *Bytes) FindByName(name string, isEntrypoint bool) Node {
 		return b
 	}
 	return nil
+}
+
+// ToMiguel -
+func (b *Bytes) ToMiguel() (*MiguelNode, error) {
+	node, err := b.Default.ToMiguel()
+	if err != nil {
+		return nil, err
+	}
+
+	if str, ok := node.Value.(string); ok {
+		tree := forge.TryUnpackString(str)
+		if tree != nil {
+			treeJSON, err := json.MarshalToString(tree)
+			if err == nil {
+				node.Value, _ = formatter.MichelineToMichelsonInline(treeJSON)
+			}
+		}
+	}
+
+	return node, nil
 }

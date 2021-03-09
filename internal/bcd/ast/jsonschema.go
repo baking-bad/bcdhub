@@ -133,23 +133,26 @@ func setChildSchema(child Node, required bool, parent *JSONSchema) error {
 		return err
 	}
 
-	if len(s.Properties) > 0 {
-		if parent.Items == nil {
-			fields := mergePropertiesMap(s.Properties, parent.Properties, required, false)
-			parent.Required = append(parent.Required, fields.reqs...)
-		} else {
-			if parent.Items.Properties == nil {
-				parent.Items.Properties = make(map[string]*JSONSchema)
-			}
-			if parent.Items.Required == nil {
-				parent.Items.Required = make([]string, 0)
-			}
-			fields := mergePropertiesMap(s.Properties, parent.Items.Properties, required, false)
-			parent.Items.Required = append(parent.Items.Required, fields.reqs...)
-		}
-	} else {
+	if len(s.Properties) == 0 {
 		parent.Properties[child.GetName()] = s
+		return nil
 	}
+
+	if parent.Items == nil {
+		fields := mergePropertiesMap(s.Properties, parent.Properties, required, false)
+		parent.Required = append(parent.Required, fields.reqs...)
+		return nil
+	}
+
+	if parent.Items.Properties == nil {
+		parent.Items.Properties = make(map[string]*JSONSchema)
+	}
+	if parent.Items.Required == nil {
+		parent.Items.Required = make([]string, 0)
+	}
+	fields := mergePropertiesMap(s.Properties, parent.Items.Properties, required, false)
+	parent.Items.Required = append(parent.Items.Required, fields.reqs...)
+
 	return nil
 }
 

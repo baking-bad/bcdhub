@@ -54,7 +54,7 @@ func (opt *Option) ParseType(node *base.Node, id *int) error {
 		return err
 	}
 
-	child, err := typingNode(node.Args[0], opt.Depth, id)
+	child, err := typeNode(node.Args[0], opt.Depth, id)
 	if err != nil {
 		return err
 	}

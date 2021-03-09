@@ -46,16 +46,17 @@ func (p *Pair) ParseType(node *base.Node, id *int) error {
 	}
 
 	p.Args = make([]Node, 0)
-	if len(node.Args) == 2 {
+	switch {
+	case len(node.Args) == 2:
 		for _, arg := range node.Args {
-			child, err := typingNode(arg, p.Depth, id)
+			child, err := typeNode(arg, p.Depth, id)
 			if err != nil {
 				return err
 			}
 			p.Args = append(p.Args, child)
 		}
-	} else if len(node.Args) > 2 {
-		child, err := typingNode(node.Args[0], p.Depth, id)
+	case len(node.Args) > 2:
+		child, err := typeNode(node.Args[0], p.Depth, id)
 		if err != nil {
 			return err
 		}
@@ -65,11 +66,13 @@ func (p *Pair) ParseType(node *base.Node, id *int) error {
 			Prim: consts.PAIR,
 			Args: node.Args[1:],
 		}
-		pairChild, err := typingNode(newUntyped, p.Depth+1, id)
+		pairChild, err := typeNode(newUntyped, p.Depth+1, id)
 		if err != nil {
 			return err
 		}
 		p.Args = append(p.Args, pairChild)
+	default:
+		return errors.Wrap(consts.ErrInvalidArgsCount, "Pair.ParseType")
 	}
 
 	return nil

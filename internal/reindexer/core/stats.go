@@ -48,7 +48,6 @@ func (r *Reindexer) GetCallsCountByNetwork(network string) (map[string]int64, er
 }
 
 // GetContractStatsByNetwork -
-// TODO: to do =)
 func (r *Reindexer) GetContractStatsByNetwork(network string) (map[string]models.ContractCountStats, error) {
 	// query := NewQuery().Add(
 	// 	Aggs(

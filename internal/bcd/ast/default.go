@@ -6,6 +6,8 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/forge"
+	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/pkg/errors"
 )
@@ -319,12 +321,42 @@ func (d *Default) miguelValue() interface{} {
 	if d.Value == nil {
 		return nil
 	}
-	switch v := d.Value.(type) {
-	case *types.BigInt:
+
+	if v, ok := d.Value.(*types.BigInt); ok {
 		return v.String()
-	default:
+	}
+
+	stringValue, ok := d.Value.(string)
+	if !ok {
 		return d.Value
 	}
+
+	if d.ValueKind == valueKindString {
+		return d.Value
+	}
+
+	unpacked := forge.TryUnpackString(stringValue)
+	if len(unpacked) == 0 {
+		return d.Value
+	}
+
+	if unpacked[0].StringValue != nil {
+		return *unpacked[0].StringValue
+	}
+	if unpacked[0].IntValue != nil {
+		return unpacked[0].IntValue.String()
+	}
+
+	marshaled, err := json.MarshalToString(unpacked)
+	if err != nil {
+		return d.Value
+	}
+
+	formatted, err := formatter.MichelineToMichelsonInline(marshaled)
+	if err != nil {
+		return d.Value
+	}
+	return formatted
 }
 
 func (d *Default) optimizeStringValue(optimizer func(string) (string, error)) error {
