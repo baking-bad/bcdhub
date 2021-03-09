@@ -693,7 +693,7 @@ type TokenBalance struct {
 // TokenMetadata -
 type TokenMetadata struct {
 	Contract      string                 `json:"contract"`
-	Network       string                 `json:"network"`
+	Network       string                 `json:"network,omitempty"`
 	Level         int64                  `json:"level,omitempty" extensions:"x-nullable"`
 	TokenID       int64                  `json:"token_id"`
 	Symbol        string                 `json:"symbol,omitempty" extensions:"x-nullable"`
