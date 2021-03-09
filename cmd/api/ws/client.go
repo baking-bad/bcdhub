@@ -33,6 +33,8 @@ type Client struct {
 	onSubscribe   ClientEvent //nolint
 	onUnsubscribe ClientEvent //nolint
 
+	isClosed bool
+
 	hub *Hub
 }
 
@@ -61,7 +63,7 @@ func (c *Client) GetSubscription(name string) (channels.Channel, bool) {
 
 // Send -
 func (c *Client) Send(msg channels.Message) {
-	if _, ok := c.subscriptions.Load(msg.ChannelName); ok {
+	if _, ok := c.subscriptions.Load(msg.ChannelName); ok && !c.isClosed {
 		c.sender <- msg
 	}
 }
@@ -74,6 +76,7 @@ func (c *Client) Run() {
 
 // Close -
 func (c *Client) Close() {
+	c.isClosed = true
 	close(c.stop)
 	close(c.sender)
 	c.conn.Close()
