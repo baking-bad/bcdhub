@@ -10,6 +10,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/cenkalti/backoff"
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 	jsoniter "github.com/json-iterator/go"
@@ -25,8 +26,17 @@ type Elastic struct {
 
 // New -
 func New(addresses []string) (*Elastic, error) {
+	retryBackoff := backoff.NewExponentialBackOff()
 	elasticConfig := elasticsearch.Config{
-		Addresses: addresses,
+		Addresses:     addresses,
+		RetryOnStatus: []int{502, 503, 504, 429},
+		RetryBackoff: func(i int) time.Duration {
+			if i == 1 {
+				retryBackoff.Reset()
+			}
+			return retryBackoff.NextBackOff()
+		},
+		MaxRetries: 5,
 	}
 	es, err := elasticsearch.NewClient(elasticConfig)
 	if err != nil {

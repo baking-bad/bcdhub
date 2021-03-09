@@ -42,7 +42,27 @@ func (storage *Storage) Get(ctx transfer.GetContext) (po transfer.Pageable, err 
 		transfers[i].ID = hits[i].ID
 	}
 	po.Transfers = transfers
-	po.Total = response.Hits.Total.Value
+	if response.Hits.Total.Relation == "eq" {
+		po.Total = response.Hits.Total.Value
+	} else {
+		countQuery := buildGetContext(transfer.GetContext{
+			Contracts: ctx.Contracts,
+			Network:   ctx.Network,
+			Address:   ctx.Address,
+			Hash:      ctx.Hash,
+			Start:     ctx.Start,
+			End:       ctx.End,
+			SortOrder: ctx.SortOrder,
+			LastID:    ctx.LastID,
+			TokenID:   ctx.TokenID,
+			Nonce:     ctx.Nonce,
+			Counter:   ctx.Counter,
+		})
+		po.Total, err = storage.es.CountItems([]string{models.DocContracts}, countQuery)
+		if err != nil {
+			return
+		}
+	}
 	if len(transfers) > 0 {
 		po.LastID = fmt.Sprintf("%d", transfers[len(transfers)-1].IndexedTime)
 	}

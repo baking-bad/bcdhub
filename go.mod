@@ -6,6 +6,7 @@ require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/aws/aws-sdk-go v1.30.10
 	github.com/btcsuite/btcutil v1.0.1
+	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/ebellocchia/go-base58 v0.1.0
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20191218082911-5398a82b748f

@@ -339,7 +339,22 @@ func (storage *Storage) GetSameContracts(c contract.Contract, manager string, si
 		}
 	}
 	pcr.Contracts = contracts
-	pcr.Count = response.Hits.Total.Value
+	if response.Hits.Total.Relation == "eq" {
+		pcr.Count = response.Hits.Total.Value
+	} else {
+		countQuery := core.NewQuery().Query(
+			core.Bool(
+				filter,
+				core.MustNot(
+					core.MatchPhrase("address", c.Address),
+				),
+			),
+		).Sort("last_action", "desc")
+		pcr.Count, err = storage.es.CountItems([]string{models.DocContracts}, countQuery)
+		if err != nil {
+			return
+		}
+	}
 	return
 }
 
