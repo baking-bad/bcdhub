@@ -129,11 +129,11 @@ indexer:
   networks:
     mainnet:
       boost: tzkt
-    delphinet:
-      boost: tzkt
-    edo2net:
-      boost: tzkt
-    falphanet:
+    # delphinet:
+    #   boost: tzkt
+    # edo2net:
+    #   boost: tzkt
+    # falphanet:
 
 metrics:
   project_name: metrics

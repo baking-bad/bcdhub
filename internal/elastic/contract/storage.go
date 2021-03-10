@@ -349,7 +349,7 @@ func (storage *Storage) GetSameContracts(c contract.Contract, manager string, si
 					core.MatchPhrase("address", c.Address),
 				),
 			),
-		).Sort("last_action", "desc")
+		)
 		pcr.Count, err = storage.es.CountItems([]string{models.DocContracts}, countQuery)
 		if err != nil {
 			return

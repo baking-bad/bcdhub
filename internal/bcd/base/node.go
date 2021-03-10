@@ -148,6 +148,8 @@ func (node *Node) print(depth int) string {
 	return s.String()
 }
 
+var lambdaPackedReg = regexp.MustCompile("^0502[0-9a-f]{8}0[3-9]")
+
 // IsLambda -
 func (node *Node) IsLambda() bool {
 	if node.BytesValue == nil {
@@ -157,8 +159,7 @@ func (node *Node) IsLambda() bool {
 	if len(input) < 24 {
 		return false
 	}
-	re := regexp.MustCompile("^0502[0-9a-f]{8}0[3-9]")
-	if !re.MatchString(input) {
+	if !lambdaPackedReg.MatchString(input) {
 		return false
 	}
 	b, err := hex.DecodeString(input[22:24])
@@ -250,11 +251,11 @@ func getCode(prim string) (string, error) {
 	}
 
 	for template, code := range regCodes {
-		if template[0] != prim[0] {
+		str := template.String()
+		if str[0] != prim[0] {
 			continue
 		}
-		re := regexp.MustCompile(template)
-		if re.MatchString(prim) {
+		if template.MatchString(prim) {
 			return code, nil
 		}
 	}

@@ -109,18 +109,19 @@ func (or *Or) ToMiguel() (*MiguelNode, error) {
 	}
 
 	node.Children = make([]*MiguelNode, 0)
-	types := []Node{or.LeftType, or.RightType}
-	for i := range types {
-		child, err := types[i].ToMiguel()
-		if err != nil {
-			return nil, err
-		}
+	typ := or.LeftType
+	if or.key == rightKey {
+		typ = or.RightType
+	}
+	child, err := typ.ToMiguel()
+	if err != nil {
+		return nil, err
+	}
 
-		if or.Prim == types[i].GetPrim() {
-			node.Children = append(node.Children, child.Children...)
-		} else {
-			node.Children = append(node.Children, child)
-		}
+	if or.Prim == typ.GetPrim() {
+		node.Children = append(node.Children, child.Children...)
+	} else {
+		node.Children = append(node.Children, child)
 	}
 
 	node.Type = consts.TypeNamedEnum

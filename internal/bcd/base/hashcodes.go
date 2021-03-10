@@ -189,12 +189,12 @@ var codes = map[string]string{
 	"MAP_CAR":               "b7",
 }
 
-var regCodes = map[string]string{
-	"DUU+P":        "8c",
-	"DII+P":        "8d",
-	"UN[PAI]{3,}R": "8e",
-	"P[PAI]{3,}R":  "8f",
-	"C[AD]{2,}R":   "90",
+var regCodes = map[*regexp.Regexp]string{
+	regexp.MustCompile("DUU+P"):        "8c",
+	regexp.MustCompile("DII+P"):        "8d",
+	regexp.MustCompile("UN[PAI]{3,}R"): "8e",
+	regexp.MustCompile("P[PAI]{3,}R"):  "8f",
+	regexp.MustCompile("C[AD]{2,}R"):   "90",
 }
 
 func getHashCode(prim string) (string, error) {
@@ -207,10 +207,11 @@ func getHashCode(prim string) (string, error) {
 	}
 
 	for template, code := range regCodes {
-		if template[0] != prim[0] || template[len(template)-1] != prim[len(prim)-1] {
+		str := template.String()
+		if str[0] != prim[0] || str[len(str)-1] != prim[len(prim)-1] {
 			continue
 		}
-		if regexp.MustCompile(template).MatchString(prim) {
+		if template.MatchString(prim) {
 			return code, nil
 		}
 	}

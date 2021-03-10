@@ -123,6 +123,7 @@ func (set *Set) ToJSONSchema() (*JSONSchema, error) {
 			Required:   make([]string, 0),
 			Properties: make(map[string]*JSONSchema),
 		},
+		Properties: make(map[string]*JSONSchema),
 	}
 
 	if err := setChildSchema(set.Type, true, s); err != nil {

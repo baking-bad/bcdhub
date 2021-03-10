@@ -158,3 +158,34 @@ func TestUnforgeAddress(t *testing.T) {
 		})
 	}
 }
+
+func TestUnforgePublicKey(t *testing.T) {
+	tests := []struct {
+		name    string
+		str     string
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "test 1",
+			str:  "0103682c3aaa998fd9adfe8111cd42cc0daedb5d97647e6020eb629fbc91b613f721",
+			want: "sppk7c3Fz7QqhZqY2FZUWWAnDuqTwx4KwDjgFA4VeLPiV8n4tnbsVzG",
+		}, {
+			name: "test 2",
+			str:  "0028fc6875ca69a6f5bde4f377bfcde72fd618bcfa52e7272c7b788d1165449eb4",
+			want: "edpktxGsKjnk43ZZ7v6gJe6PFV85peHvoWqVUzDQjTfN8idYwVkBwN",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := UnforgePublicKey(tt.str)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UnforgePublicKey() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UnforgePublicKey() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

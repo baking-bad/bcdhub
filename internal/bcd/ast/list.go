@@ -124,6 +124,7 @@ func (list *List) ToJSONSchema() (*JSONSchema, error) {
 			Required:   make([]string, 0),
 			Properties: make(map[string]*JSONSchema),
 		},
+		Properties: make(map[string]*JSONSchema),
 	}
 
 	if err := setChildSchema(list.Type, true, s); err != nil {

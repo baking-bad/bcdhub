@@ -113,7 +113,7 @@ func PublicKey(val string) ([]byte, error) {
 
 // UnforgePublicKey -
 func UnforgePublicKey(str string) (string, error) {
-	if len(str) != 66 {
+	if len(str) != 68 && len(str) != 66 {
 		return "", errors.Wrapf(consts.ErrInvalidAddress, "UnforgePublicKey: %s", str)
 	}
 	switch {

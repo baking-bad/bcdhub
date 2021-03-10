@@ -3,6 +3,7 @@ package ast
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
@@ -403,6 +404,8 @@ func getMapKeyName(node *MiguelNode, keyNode Node) (s string, err error) {
 		s = fmt.Sprintf("%d", kv)
 	case bool:
 		s = fmt.Sprintf("%t", kv)
+	case time.Time:
+		s = kv.Format(time.RFC3339)
 	case map[string]interface{}:
 		s = fmt.Sprintf("%v", kv["miguel_value"])
 	case []interface{}:
@@ -415,7 +418,7 @@ func getMapKeyName(node *MiguelNode, keyNode Node) (s string, err error) {
 			s += fmt.Sprintf("%v", val["miguel_value"])
 		}
 	default:
-		err = errors.Errorf("Invalid map key type: %v %T", node, node)
+		err = errors.Errorf("Invalid map key type: %v %T", node.Value, node.Value)
 	}
 	return
 }

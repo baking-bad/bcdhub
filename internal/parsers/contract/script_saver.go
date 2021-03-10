@@ -79,7 +79,9 @@ func (ss FileScriptSaver) Save(code []byte, ctx ScriptSaveContext) error {
 				return err
 			}
 		}
-		return os.Symlink(filePath, symLink)
+		if err := os.Symlink(filePath, symLink); err != nil && !os.IsExist(err) {
+			return err
+		}
 	}
 	return nil
 }

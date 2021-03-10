@@ -38,73 +38,71 @@ func (a *Alpha) ParseOrigination(content noderpc.Operation, operation operation.
 	if err != nil {
 		return RichStorage{Empty: true}, err
 	}
-	pair, ok := storage.Nodes[0].(*ast.Pair)
-	if !ok {
-		return RichStorage{Empty: true}, nil
-	}
-	bigMap, ok := pair.Args[0].(*ast.BigMap)
-	if !ok {
-		return RichStorage{Empty: true}, nil
-	}
-
-	result := content.GetResult()
-	if result == nil {
-		return RichStorage{Empty: true}, nil
-	}
-
-	var storageData struct {
-		Storage ast.UntypedAST `json:"storage"`
-	}
-
-	if err := json.Unmarshal(content.Script, &storageData); err != nil {
-		return RichStorage{Empty: true}, err
-	}
-
-	if err := storage.Settle(storageData.Storage); err != nil {
-		return RichStorage{Empty: true}, err
-	}
-
 	bmd := make([]models.Model, 0)
-	if err := bigMap.Data.Range(func(key, value ast.Comparable) (bool, error) {
-		k := key.(ast.Node)
-		keyHash, err := ast.BigMapKeyHashFromNode(k)
-		if err != nil {
-			return false, err
-		}
-		keyBytes, err := k.ToParameters()
-		if err != nil {
-			return false, err
-		}
 
-		var valBytes []byte
-		if value != nil {
-			v := value.(ast.Node)
-			valBytes, err = v.ToParameters()
-			if err != nil {
-				return false, err
+	pair, ok := storage.Nodes[0].(*ast.Pair)
+	if ok {
+		bigMap, ok := pair.Args[0].(*ast.BigMap)
+		if ok {
+			result := content.GetResult()
+			if result == nil {
+				return RichStorage{Empty: true}, nil
+			}
+
+			var storageData struct {
+				Storage ast.UntypedAST `json:"storage"`
+			}
+
+			if err := json.Unmarshal(content.Script, &storageData); err != nil {
+				return RichStorage{Empty: true}, err
+			}
+
+			if err := storage.Settle(storageData.Storage); err != nil {
+				return RichStorage{Empty: true}, err
+			}
+
+			if err := bigMap.Data.Range(func(key, value ast.Comparable) (bool, error) {
+				k := key.(ast.Node)
+				keyHash, err := ast.BigMapKeyHashFromNode(k)
+				if err != nil {
+					return false, err
+				}
+				keyBytes, err := k.ToParameters()
+				if err != nil {
+					return false, err
+				}
+
+				var valBytes []byte
+				if value != nil {
+					v := value.(ast.Node)
+					valBytes, err = v.ToParameters()
+					if err != nil {
+						return false, err
+					}
+				}
+				bmd = append(bmd, &bigmapdiff.BigMapDiff{
+					ID:          helpers.GenerateID(),
+					Key:         keyBytes,
+					KeyHash:     keyHash,
+					Value:       valBytes,
+					OperationID: operation.ID,
+					Level:       operation.Level,
+					Address:     result.Originated[0],
+					IndexedTime: time.Now().UnixNano() / 1000,
+					Network:     operation.Network,
+					Timestamp:   operation.Timestamp,
+					Protocol:    operation.Protocol,
+					Ptr:         -1,
+				})
+				return false, nil
+			}); err != nil {
+				return RichStorage{Empty: true}, err
+			}
+
+			if len(bmd) > 0 {
+				bigMap.Data = ast.NewOrderedMap()
 			}
 		}
-		bmd = append(bmd, &bigmapdiff.BigMapDiff{
-			ID:          helpers.GenerateID(),
-			Key:         keyBytes,
-			KeyHash:     keyHash,
-			Value:       valBytes,
-			OperationID: operation.ID,
-			Level:       operation.Level,
-			Address:     result.Originated[0],
-			IndexedTime: time.Now().UnixNano() / 1000,
-			Network:     operation.Network,
-			Timestamp:   operation.Timestamp,
-			Protocol:    operation.Protocol,
-			Ptr:         -1,
-		})
-		return false, nil
-	}); err != nil {
-		return RichStorage{Empty: true}, err
-	}
-
-	if len(bmd) > 0 {
-		bigMap.Data = ast.NewOrderedMap()
 	}
 
 	b, err := storage.ToParameters(ast.DocsFull)

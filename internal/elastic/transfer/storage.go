@@ -27,7 +27,7 @@ const (
 
 // Get -
 func (storage *Storage) Get(ctx transfer.GetContext) (po transfer.Pageable, err error) {
-	query := buildGetContext(ctx)
+	query := buildGetContext(ctx, true)
 	var response core.SearchResponse
 	if err := storage.es.Query([]string{models.DocTransfers}, query, &response); err != nil {
 		return po, err
@@ -57,7 +57,7 @@ func (storage *Storage) Get(ctx transfer.GetContext) (po transfer.Pageable, err 
 			TokenID:   ctx.TokenID,
 			Nonce:     ctx.Nonce,
 			Counter:   ctx.Counter,
-		})
+		}, false)
 		po.Total, err = storage.es.CountItems([]string{models.DocContracts}, countQuery)
 		if err != nil {
 			return
