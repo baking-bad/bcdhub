@@ -271,7 +271,7 @@ func (ctx *Context) prepareOperation(operation operation.Operation, bmd []bigmap
 		return op, nil
 	}
 
-	if bcd.IsContract(op.Destination) && !tezerrors.HasParametersError(op.Errors) {
+	if bcd.IsContract(op.Destination) && !tezerrors.HasParametersError(op.Errors) && operation.IsCall() {
 		if err := ctx.setParameters(operation.Parameters, script, &op); err != nil {
 			return op, err
 		}

@@ -54,6 +54,7 @@ func (ctx *Context) GetEntrypoints(c *gin.Context) {
 		if ctx.handleError(c, err, 0) {
 			return
 		}
+		resp[i].Schema = ast.WrapEntrypointJSONSchema(resp[i].Schema)
 	}
 
 	c.JSON(http.StatusOK, resp)

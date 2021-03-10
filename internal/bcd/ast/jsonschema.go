@@ -188,3 +188,11 @@ func wrapObject(schema *JSONSchema) *JSONSchema {
 		},
 	}
 }
+
+// WrapEntrypointJSONSchema -
+func WrapEntrypointJSONSchema(schema *JSONSchema) *JSONSchema {
+	if schema == nil || schema.Type != JSONSchemaTypeObject {
+		return wrapObject(schema)
+	}
+	return schema
+}

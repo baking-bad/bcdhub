@@ -6,6 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/pkg/errors"
 )
@@ -101,7 +102,8 @@ func (m *Map) ToMiguel() (*MiguelNode, error) {
 	node.Children = make([]*MiguelNode, 0)
 
 	handler := func(key, value Comparable) (bool, error) {
-		keyChild, err := key.(Node).ToMiguel()
+		keyNode := key.(Node)
+		keyChild, err := keyNode.ToMiguel()
 		if err != nil {
 			return true, err
 		}
@@ -111,7 +113,7 @@ func (m *Map) ToMiguel() (*MiguelNode, error) {
 				return true, err
 			}
 
-			name, err := getMapKeyName(keyChild)
+			name, err := getMapKeyName(keyChild, keyNode)
 			if err != nil {
 				return true, err
 			}
@@ -272,11 +274,12 @@ func (m *Map) Distinguish(x Distinguishable) (*MiguelNode, error) {
 	node.Children = make([]*MiguelNode, 0)
 
 	err := m.Data.Range(func(key, value Comparable) (bool, error) {
-		keyChild, err := key.(Node).ToMiguel()
+		keyNode := key.(Node)
+		keyChild, err := keyNode.ToMiguel()
 		if err != nil {
 			return true, err
 		}
-		name, err := getMapKeyName(keyChild)
+		name, err := getMapKeyName(keyChild, keyNode)
 		if err != nil {
 			return true, err
 		}
@@ -311,11 +314,12 @@ func (m *Map) Distinguish(x Distinguishable) (*MiguelNode, error) {
 			if err != nil {
 				return true, err
 			}
-			keyChild, err := key.(Node).ToMiguel()
+			keyNode := key.(Node)
+			keyChild, err := keyNode.ToMiguel()
 			if err != nil {
 				return true, err
 			}
-			name, err := getMapKeyName(keyChild)
+			name, err := getMapKeyName(keyChild, keyNode)
 			if err != nil {
 				return true, err
 			}
@@ -380,7 +384,15 @@ func createMapFromElts(args []*base.Node, keyType, valueType Node, data *Ordered
 	return nil
 }
 
-func getMapKeyName(node *MiguelNode) (s string, err error) {
+func getMapKeyName(node *MiguelNode, keyNode Node) (s string, err error) {
+	if node.Value == nil && len(node.Children) > 0 {
+		keyBytes, err := keyNode.ToParameters()
+		if err != nil {
+			return "", err
+		}
+		return formatter.MichelineToMichelsonInline(string(keyBytes))
+	}
+
 	switch kv := node.Value.(type) {
 	case string:
 		if kv == "" {

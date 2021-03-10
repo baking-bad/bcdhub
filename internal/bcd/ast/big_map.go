@@ -118,23 +118,27 @@ func (m *BigMap) ToMiguel() (*MiguelNode, error) {
 	}
 	node.Children = make([]*MiguelNode, 0)
 	handler := func(key, value Comparable) (bool, error) {
-		keyChild, err := key.(Node).ToMiguel()
+		keyNode := key.(Node)
+		keyChild, err := keyNode.ToMiguel()
 		if err != nil {
 			return true, err
 		}
-		if value != nil {
-			child, err := value.(Node).ToMiguel()
-			if err != nil {
-				return true, err
-			}
-
-			name, err := getMapKeyName(keyChild)
-			if err != nil {
-				return true, err
-			}
-			child.Name = &name
-			node.Children = append(node.Children, child)
+		if value == nil {
+			return false, nil
 		}
+
+		child, err := value.(Node).ToMiguel()
+		if err != nil {
+			return true, err
+		}
+
+		name, err := getMapKeyName(keyChild, keyNode)
+		if err != nil {
+			return true, err
+		}
+		child.Name = &name
+		node.Children = append(node.Children, child)
+
 		return false, nil
 	}
 
@@ -323,11 +327,12 @@ func (m *BigMap) Distinguish(x Distinguishable) (*MiguelNode, error) {
 	node.Children = make([]*MiguelNode, 0)
 
 	err := m.Data.Range(func(key, value Comparable) (bool, error) {
-		keyChild, err := key.(Node).ToMiguel()
+		keyNode := key.(Node)
+		keyChild, err := keyNode.ToMiguel()
 		if err != nil {
 			return true, err
 		}
-		name, err := getMapKeyName(keyChild)
+		name, err := getMapKeyName(keyChild, keyNode)
 		if err != nil {
 			return true, err
 		}
@@ -374,15 +379,16 @@ func (m *BigMap) Distinguish(x Distinguishable) (*MiguelNode, error) {
 			if err != nil {
 				return true, err
 			}
-			keyChild, err := key.(Node).ToMiguel()
-			if err != nil {
-				return true, err
-			}
-			name, err := getMapKeyName(keyChild)
+			keyNode := key.(Node)
+			keyChild, err := keyNode.ToMiguel()
 			if err != nil {
 				return true, err
 			}
 			child.setDiffType(MiguelKindDelete)
+			name, err := getMapKeyName(keyChild, keyNode)
+			if err != nil {
+				return true, err
+			}
 			child.Name = &name
 			node.Children = append(node.Children, child)
 		}

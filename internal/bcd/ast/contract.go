@@ -104,7 +104,7 @@ func (c *Contract) Docs(inferredName string) ([]Typedef, string, error) {
 	}
 
 	if isSimpleDocType(c.Type.GetPrim()) {
-		return nil, typedef.Type, nil
+		return []Typedef{typedef}, typedef.Type, nil
 	}
 
 	str, err := json.MarshalToString(c.Type)
