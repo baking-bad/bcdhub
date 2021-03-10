@@ -34,6 +34,8 @@ func FindBigMapPointers(m meta.Metadata, storage gjson.Result) (map[int64]string
 			continue
 		}
 
+		k := checkOnOr(k, m)
+
 		if err := setMapPtr(storage, k, key); err != nil {
 			return nil, err
 		}
@@ -41,7 +43,34 @@ func FindBigMapPointers(m meta.Metadata, storage gjson.Result) (map[int64]string
 	return key, nil
 }
 
-func setMapPtr(storage gjson.Result, path string, m map[int64]string) error {
+func checkOnOr(path string, m meta.Metadata) string {
+	var buf strings.Builder
+	parts := strings.Split(path, "/")
+
+	var nextOr bool
+	for i := 0; i < len(parts); i++ {
+		if i > 0 {
+			buf.WriteByte('/')
+		}
+		subPath := strings.Join(parts[:i+1], "/")
+		node, ok := m[subPath]
+		if !ok {
+			return path
+		}
+
+		if nextOr {
+			buf.WriteString("0")
+		} else {
+			buf.WriteString(parts[i])
+		}
+
+		nextOr = node.Prim == consts.OR
+	}
+
+	return buf.String()
+}
+
+func getJSONPath(path string) string {
 	var buf strings.Builder
 
 	trimmed := strings.TrimPrefix(path, "0/")
@@ -61,11 +90,16 @@ func setMapPtr(storage gjson.Result, path string, m map[int64]string) error {
 			buf.WriteString(".")
 		}
 	}
-	buf.WriteString("int")
+	resp := buf.String()
+	return strings.TrimSuffix(resp, ".")
+}
 
-	ptr := storage.Get(buf.String())
+func setMapPtr(storage gjson.Result, path string, m map[int64]string) error {
+	pathJSON := getJSONPath(path) + ".int"
+
+	ptr := storage.Get(pathJSON)
 	if !ptr.Exists() {
-		return errors.Wrapf(ErrPathIsNotPointer, "path=%s buf=%s", path, buf.String())
+		return errors.Wrapf(ErrPathIsNotPointer, "path=%s buf=%s", path, pathJSON)
 	}
 
 	for _, p := range ptr.Array() {

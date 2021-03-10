@@ -73,7 +73,7 @@ func (b *Babylon) ParseTransaction(content gjson.Result, metadata meta.Metadata,
 		return RichStorage{Empty: true}, err
 	}
 	if result.Get("big_map_diff.#").Int() > 0 {
-		ptrMap, err := FindBigMapPointers(metadata, normalizedStorage)
+		ptrMap, err := b.findPointers(metadata, normalizedStorage, operation)
 		if err != nil {
 			return RichStorage{Empty: true}, err
 		}
@@ -100,18 +100,9 @@ func (b *Babylon) ParseOrigination(content gjson.Result, metadata meta.Metadata,
 
 	var bm []models.Model
 	if result.Get("big_map_diff.#").Int() > 0 {
-		ptrToBin, err := FindBigMapPointers(metadata, storage)
-		if err != nil || len(ptrToBin) == 0 {
-			// If pointers are not found into script`s storage we try to receive storage from node and find pointers there
-			// If pointers are not found after that -> throw error
-			storage, err = b.rpc.GetScriptStorageJSON(address, operation.Level)
-			if err != nil {
-				return RichStorage{Empty: true}, err
-			}
-			ptrToBin, err = FindBigMapPointers(metadata, storage)
-			if err != nil {
-				return RichStorage{Empty: true}, err
-			}
+		ptrToBin, err := b.findPointers(metadata, storage, operation)
+		if err != nil {
+			return RichStorage{Empty: true}, err
 		}
 
 		if bm, err = b.handleBigMapDiff(result, ptrToBin, address, operation); err != nil {
@@ -202,6 +193,28 @@ func (b *Babylon) Enrich(sStorage, sPrevStorage string, bmd []bigmapdiff.BigMapD
 		}
 	}
 	return storage, nil
+}
+
+func (b *Babylon) findPointers(metadata meta.Metadata, storage gjson.Result, operation operation.Operation) (map[int64]string, error) {
+	// If pointers are not found into script`s storage we try to receive storage from node by current level and find pointers there
+	// If pointers are not found after that -> we try to receive storage from node by previous level and find pointers there
+	// If pointers are not found after that -> throw error
+	ptrToBin, err := FindBigMapPointers(metadata, storage)
+	if err == nil && len(ptrToBin) > 0 {
+		return ptrToBin, err
+	}
+
+	for i := int64(0); i < 2; i++ {
+		storage, err = b.rpc.GetScriptStorageJSON(operation.Destination, operation.Level-i)
+		if err != nil {
+			return nil, err
+		}
+		ptrToBin, err = FindBigMapPointers(metadata, storage)
+		if err == nil && len(ptrToBin) > 0 {
+			break
+		}
+	}
+	return ptrToBin, err
 }
 
 func (b *Babylon) handleBigMapDiff(result gjson.Result, ptrMap map[int64]string, address string, op operation.Operation) ([]models.Model, error) {
