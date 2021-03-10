@@ -119,7 +119,7 @@ func stopThread(threads, total int, counter *int64, stop chan struct{}, wg *sync
 		}
 	}
 
-	for i := 0; i < int(threads); i++ {
+	for i := 0; i < threads; i++ {
 		stop <- struct{}{}
 	}
 }
