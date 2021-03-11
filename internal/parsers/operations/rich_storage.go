@@ -18,7 +18,7 @@ type RichStorage struct {
 
 // NewRichStorage -
 func NewRichStorage(repo bigmapdiff.Repository, rpc noderpc.INode, protocol string) (*RichStorage, error) {
-	storageParser, err := storage.MakeStorageParser(repo, protocol)
+	storageParser, err := storage.MakeStorageParser(repo, rpc, protocol)
 	if err != nil {
 		return nil, err
 	}

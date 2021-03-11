@@ -270,9 +270,11 @@ func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 		logger.Info("DeffatedStorage: %s != %s", one.DeffatedStorage, two.DeffatedStorage)
 		return false
 	}
-	if !reflect.DeepEqual(one.Tags, two.Tags) {
-		logger.Info("Tags: %s != %s", one.Tags, two.Tags)
-		return false
+	if len(one.Tags) == len(two.Tags) && len(one.Tags) > 0 {
+		if !reflect.DeepEqual(one.Tags, two.Tags) {
+			logger.Info("Tags: %s != %s", one.Tags, two.Tags)
+			return false
+		}
 	}
 	return true
 }

@@ -8,6 +8,10 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 )
 
+var (
+	regAddress = regexp.MustCompile("(tz|KT)[0-9A-Za-z]{34}")
+)
+
 // ComputeHash -
 func ComputeHash(data []byte) (string, error) {
 	sha := sha512.New()
@@ -18,9 +22,7 @@ func ComputeHash(data []byte) (string, error) {
 }
 
 func findHardcodedAddresses(code []byte) types.Set {
-	regexString := "(tz|KT)[0-9A-Za-z]{34}"
-	re := regexp.MustCompile(regexString)
-	res := re.FindAllString(string(code), -1)
+	res := regAddress.FindAllString(string(code), -1)
 	resp := make(types.Set)
 	resp.Append(res...)
 	return resp
@@ -28,7 +30,5 @@ func findHardcodedAddresses(code []byte) types.Set {
 
 // IsAddress -
 func IsAddress(str string) bool {
-	regexString := "(tz|KT)[0-9A-Za-z]{34}"
-	re := regexp.MustCompile(regexString)
-	return re.MatchString(str)
+	return len(str) == 36 && regAddress.MatchString(str)
 }

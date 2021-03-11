@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -10,65 +9,14 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
-	"github.com/pkg/errors"
 	"github.com/schollz/progressbar/v3"
 )
 
-var (
-	baseURL = "http://localhost:14000/v1"
-)
-
-func main() {
-	cfg, err := config.LoadDefaultConfig()
-	if err != nil {
-		logger.Fatal(err)
-	}
-
-	ctx := config.NewContext(
-		config.WithStorage(cfg.Storage),
-		config.WithRPC(cfg.RPC),
-		config.WithShare(cfg.SharePath),
-		config.WithTzKTServices(cfg.TzKT),
-		config.WithLoadErrorDescriptions(),
-		config.WithConfigCopy(cfg),
-	)
-	defer ctx.Close()
-
-	baseURL = fmt.Sprintf("http://%s/v1", ctx.Config.API.Bind)
-
-	testContracts(ctx)
-}
-
-func request(uri string) error {
-	url := fmt.Sprintf("%s/%s", baseURL, uri)
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return errors.Errorf("NewRequest: %v", err)
-	}
-	client := http.Client{
-		Timeout: 10 * time.Second,
-	}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Invalid status code: [%d] %s", resp.StatusCode, url)
-	}
-	return nil
-}
-
 func testContracts(ctx *config.Context) {
 	threads := 6
-	offset := int64(41138)
+	offset := int64(0)
 
 	for _, network := range ctx.Config.API.Networks {
-		if network != "edo2net" {
-			continue
-		}
 		logger.Info("testing %s contract endpoints...", network)
 
 		contracts, err := ctx.Contracts.GetMany(map[string]interface{}{
@@ -116,6 +64,10 @@ func stopThread(threads, total int, counter *int64, stop chan struct{}, wg *sync
 			}
 
 			time.Sleep(100 * time.Millisecond)
+		}
+
+		if err := bar.Set(total); err != nil {
+			return
 		}
 	}
 

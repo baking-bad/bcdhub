@@ -5,6 +5,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
 )
 
@@ -29,7 +30,7 @@ func Enrich(storage *ast.TypedAst, bmd []bigmapdiff.BigMapDiff, skipEmpty, unpac
 }
 
 // MakeStorageParser -
-func MakeStorageParser(repo bigmapdiff.Repository, protocol string) (Parser, error) {
+func MakeStorageParser(repo bigmapdiff.Repository, rpc noderpc.INode, protocol string) (Parser, error) {
 	protoSymLink, err := bcd.GetProtoSymLink(protocol)
 	if err != nil {
 		return nil, err
@@ -37,7 +38,7 @@ func MakeStorageParser(repo bigmapdiff.Repository, protocol string) (Parser, err
 
 	switch protoSymLink {
 	case consts.MetadataBabylon:
-		return NewBabylon(repo), nil
+		return NewBabylon(repo, rpc), nil
 	case consts.MetadataAlpha:
 		return NewAlpha(), nil
 	default:

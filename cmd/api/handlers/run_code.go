@@ -259,7 +259,13 @@ func (ctx *Context) parseBigMapDiffs(response noderpc.RunCodeResponse, script *a
 		return nil, err
 	}
 	model.Script = b
-	parser, err := storage.MakeStorageParser(ctx.BigMapDiffs, operation.Protocol)
+
+	rpc, err := ctx.GetRPC(operation.Network)
+	if err != nil {
+		return nil, err
+	}
+
+	parser, err := storage.MakeStorageParser(ctx.BigMapDiffs, rpc, operation.Protocol)
 	if err != nil {
 		return nil, err
 	}

@@ -163,7 +163,7 @@ func TestRichStorage_Parse(t *testing.T) {
 
 			rpc.
 				EXPECT().
-				GetScriptStorageRaw(tt.operation.Destination, tt.operation.Level).
+				GetScriptStorageRaw(gomock.Any(), gomock.Any()).
 				DoAndReturn(readStorage).
 				AnyTimes()
 
