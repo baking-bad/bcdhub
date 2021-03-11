@@ -2636,6 +2636,10 @@ paths:
             items:
               $ref: '#/definitions/handlers.Operation'
             type: array
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/gin.H'
         "400":
           description: Bad Request
           schema:

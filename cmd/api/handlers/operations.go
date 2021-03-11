@@ -79,6 +79,7 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Success 200 {array} Operation
+// @Success 204 {object} gin.H
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/opg/{hash} [get]
@@ -112,6 +113,11 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 			if operation != nil {
 				opg = append(opg, *operation)
 			}
+		}
+
+		if len(op) == 0 {
+			c.JSON(http.StatusNoContent, gin.H{})
+			return
 		}
 
 		c.JSON(http.StatusOK, opg)
