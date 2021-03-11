@@ -2,9 +2,6 @@ rpc:
   mainnet:
     uri: https://rpc.tzkt.io/mainnet
     timeout: 20
-  delphinet:
-    uri: https://rpc.tzkt.io/delphinet
-    timeout: 20
   edo2net:
     uri: https://rpc.tzkt.io/edo2net
     timeout: 20
@@ -17,11 +14,6 @@ tzkt:
     uri: https://api.tzkt.io/v1/
     services_uri: https://services.tzkt.io/v1/
     base_uri: https://tzkt.io/
-    timeout: 20
-  delphinet:
-    uri: https://api.delphi.tzkt.io/v1/
-    services_uri: https://services.tzkt.io/delphinet/v1/
-    base_uri: https://delphi.tzkt.io/
     timeout: 20
   edo2net:
     uri: https://api.edo2net.tzkt.io/v1/
@@ -72,7 +64,7 @@ ipfs:
   - https://dweb.link
 
 domains:
-  delphinet: KT1CR6vXJ1qeY4ALDQfUaLFi3FcJJZ8WDygo
+  edo2net: KT1KP2Yy6MNkYKkHqroGBZ7KFN5NdNfnUHHv
 
 api:
   project_name: api
@@ -88,7 +80,6 @@ api:
     sandbox_mode: false
   networks:
     - mainnet
-    - delphinet
     - edo2net
     - florencenet
   mq:
@@ -129,8 +120,6 @@ indexer:
   networks:
     mainnet:
       boost: tzkt
-    delphinet:
-      boost: tzkt
     edo2net:
     florencenet:
 
@@ -156,7 +145,6 @@ scripts:
     secret_access_key: ${AWS_SECRET_ACCESS_KEY}
   networks:
     - mainnet
-    - delphinet
     - edo2net
     - florencenet
   mq:

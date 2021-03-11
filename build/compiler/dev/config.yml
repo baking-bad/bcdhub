@@ -2,20 +2,12 @@ rpc:
   mainnet:
     uri: https://rpc.tzkt.io/mainnet
     timeout: 20
-  delphinet:
-    uri: https://rpc.tzkt.io/delphinet
-    timeout: 20
 
 tzkt:
   mainnet:
     uri: https://api.tzkt.io/v1/
     services_uri: https://services.tzkt.io/v1/
     base_uri: https://tzkt.io/
-    timeout: 20
-  delphinet:
-    uri: https://api.delphi.tzkt.io/v1/
-    services_uri: https://services.tzkt.io/delphinet/v1/
-    base_uri: https://delphi.tzkt.io/
     timeout: 20
 
 storage:
@@ -68,7 +60,6 @@ api:
   seed_enabled: false
   networks:
     - mainnet
-    - delphinet
   mq:
     publisher: true
     queues:
@@ -101,8 +92,6 @@ indexer:
   networks:
     mainnet:
       boost: tzkt
-    # delphinet:
-    #     boost: tzkt
 
 metrics:
   project_name: metrics
@@ -124,6 +113,5 @@ scripts:
     secret_access_key: ${AWS_SECRET_ACCESS_KEY}
   networks:
     - mainnet
-    - delphinet
   mq:
     publisher: true

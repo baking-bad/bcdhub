@@ -242,7 +242,8 @@ scripts:
     networks:
       - mainnet
       - carthagenet
-      - delphinet
+      - edo2net
+      - florencenet
     mq:
         publisher: true
 ```
@@ -372,7 +373,7 @@ It takes around 20-30 seconds to initialize all services, API endpoints might re
 **NOTE** that if you specified local RPC node that's not running, BCDHub will wait for it indefinitely.
 
 ## Snapshots
-Full indexing process (mainnet + carthagenet + delphinet) requires about 2 hours, however there are cases when you cannot afford that.  
+Full indexing process requires about 2 hours, however there are cases when you cannot afford that.  
 Elastic Search has a built-in incremental snapshotting mechanism which we use together with the AWS S3 plugin.
 
 **NOTE:** currently we don't provide public snapshots.  
