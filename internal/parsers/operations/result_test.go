@@ -5,20 +5,21 @@ import (
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
 )
 
-func TestResult_Parse(t *testing.T) {
+func Test_parseOperationResult(t *testing.T) {
 	tests := []struct {
 		name     string
 		root     string
 		fileName string
-		want     operation.Result
+		want     *operation.Result
 	}{
 		{
 			name:     "test 1",
 			root:     "",
 			fileName: "./data/result/test1.json",
-			want: operation.Result{
+			want: &operation.Result{
 				Status:      "applied",
 				ConsumedGas: 10207,
 			},
@@ -26,7 +27,7 @@ func TestResult_Parse(t *testing.T) {
 			name:     "test 2",
 			root:     "operation_result",
 			fileName: "./data/result/test2.json",
-			want: operation.Result{
+			want: &operation.Result{
 				Status:      "applied",
 				ConsumedGas: 10207,
 			},
@@ -34,13 +35,13 @@ func TestResult_Parse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			data, err := readJSONFile(tt.fileName)
-			if err != nil {
+			var op noderpc.Operation
+			if err := readJSONFile(tt.fileName, &op); err != nil {
 				t.Errorf(`readJSONFile("%s") = error %v`, tt.fileName, err)
 				return
 			}
 
-			if got := NewResult(tt.root).Parse(data); !reflect.DeepEqual(got, tt.want) {
+			if got := parseOperationResult(&op); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Result.Parse() = %v, want %v", got, tt.want)
 			}
 		})

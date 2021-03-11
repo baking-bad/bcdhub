@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 )
 

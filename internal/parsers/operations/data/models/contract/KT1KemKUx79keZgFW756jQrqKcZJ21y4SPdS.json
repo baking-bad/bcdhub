@@ -1,0 +1,48 @@
+{
+    "network": "mainnet",
+    "level": 1068629,
+    "timestamp": "2020-08-03T20:46:40Z",
+    "language": "unknown",
+    "hash": "b21bb51177301b561c64bae56b0026dd7f6f37a9b23c1ca92d082a6a0adacd6b68fc2a9d033eafe541a069dbe0d7dea4cdceb853cab8bdaaa6f78a378fb1f16b",
+    "fingerprint": {
+        "code": "022117975b21995b162e975b21995b161647193c2c43686827975b21995b975b21995b4c16423d6d421f20975b21995b161748193c2c436868272116161617161716975b21995b16161616161716412c43686827211617172c975b21995b3d6d42975b21995b975b21995b1738975b21995b975b21995b422116556565656565656563626865596e6265656563626865596e62656e6e6565626259656e6562622f43686827211f2021436a5b975b21995b174d1f205b421f201f205b",
+        "storage": "016e6e5f6e",
+        "parameter": "005f6e636268596e62636268596e626e6e6262596e6262"
+    },
+    "fail_strings": [
+        "NotAllowed",
+        "InvalidSender",
+        "FrozenAccount",
+        "InvalidRule"
+    ],
+    "annotations": [
+        "%accounts",
+        "%parent",
+        "%issuance",
+        "%accreditation",
+        "%balances",
+        "%values",
+        "%admin",
+        "%frozen",
+        "%sender",
+        "%setRules",
+        "%validateRules",
+        "%domicile",
+        "%role",
+        "%addresses",
+        "%registry",
+        "%rules"
+    ],
+    "entrypoints": [
+        "setRules",
+        "validateRules"
+    ],
+    "address": "KT1KemKUx79keZgFW756jQrqKcZJ21y4SPdS",
+    "manager": "tz1TZERoLXqCytrJBmjdzNrAYie1TQ1c2cHN",
+    "tx_count": 30,
+    "last_action": "2020-09-21T19:50:22Z",
+    "project_id": "5ef14846cecd45aaa3dda95e884e6b79",
+    "verification_source": "",
+    "verified": false,
+    "alias": "tZERO Compliance"
+}

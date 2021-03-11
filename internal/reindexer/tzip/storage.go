@@ -110,3 +110,8 @@ func (storage *Storage) GetWithEvents() (tzips []tzip.TZIP, err error) {
 	err = storage.db.GetAllByQuery(query, &tzips)
 	return
 }
+
+// GetWithEventsCounts -
+func (storage *Storage) GetWithEventsCounts() (int64, error) {
+	return 0, nil
+}

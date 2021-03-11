@@ -5,16 +5,18 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser"
-	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
-	formattererror "github.com/baking-bad/bcdhub/internal/contractparser/formatter_error"
-	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
+	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
+	formattererror "github.com/baking-bad/bcdhub/internal/bcd/formatter/error"
+	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
+	"github.com/baking-bad/bcdhub/internal/bcd/types"
+	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/parsers/storage"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -146,7 +148,7 @@ func (ctx *Context) GetOperationErrorLocation(c *gin.Context) {
 		return
 	}
 
-	if !cerrors.HasScriptRejectedError(operation.Errors) {
+	if !tezerrors.HasScriptRejectedError(operation.Errors) {
 		ctx.handleError(c, errors.Errorf("No reject script error in operation"), http.StatusBadRequest)
 		return
 	}
@@ -230,7 +232,7 @@ func prepareFilters(req operationsRequest) map[string]interface{} {
 	return filters
 }
 
-func formatErrors(errs []*cerrors.Error, op *Operation) error {
+func formatErrors(errs []*tezerrors.Error, op *Operation) error {
 	for i := range errs {
 		if err := errs[i].Format(); err != nil {
 			return err
@@ -251,9 +253,15 @@ func (ctx *Context) prepareOperation(operation operation.Operation, bmd []bigmap
 	if err := formatErrors(operation.Errors, &op); err != nil {
 		return op, err
 	}
+
+	script, err := ctx.getScript(op.Destination, op.Network, op.Protocol)
+	if err != nil {
+		return op, err
+	}
+
 	if withStorageDiff {
 		if operation.DeffatedStorage != "" && (operation.IsCall() || operation.IsOrigination()) && operation.IsApplied() {
-			if err := ctx.setStorageDiff(op.Destination, operation.DeffatedStorage, &op, bmd); err != nil {
+			if err := ctx.setStorageDiff(op.Destination, operation.DeffatedStorage, &op, bmd, script); err != nil {
 				return op, err
 			}
 		}
@@ -263,8 +271,8 @@ func (ctx *Context) prepareOperation(operation operation.Operation, bmd []bigmap
 		return op, nil
 	}
 
-	if helpers.IsContract(op.Destination) && !cerrors.HasParametersError(op.Errors) {
-		if err := ctx.setParameters(operation.Parameters, &op); err != nil {
+	if bcd.IsContract(op.Destination) && operation.IsCall() && !tezerrors.HasParametersError(op.Errors) {
+		if err := ctx.setParameters(operation.Parameters, script, &op); err != nil {
 			return op, err
 		}
 	}
@@ -295,16 +303,25 @@ func (ctx *Context) PrepareOperations(ops []operation.Operation, withStorageDiff
 	return resp, nil
 }
 
-func (ctx *Context) setParameters(parameters string, op *Operation) error {
-	metadata, err := meta.GetSchema(ctx.Schema, op.Destination, consts.PARAMETER, op.Protocol)
+func (ctx *Context) setParameters(data string, script *ast.Script, op *Operation) error {
+	parameter, err := script.ParameterType()
 	if err != nil {
-		return nil
+		return err
+	}
+	params := types.NewParameters([]byte(data))
+	op.Entrypoint = params.Entrypoint
+
+	tree, err := parameter.FromParameters(params)
+	if err != nil {
+		if tezerrors.HasGasExhaustedError(op.Errors) {
+			return nil
+		}
+		return err
 	}
 
-	params := gjson.Parse(parameters)
-	op.Parameters, err = newmiguel.ParameterToMiguel(params, metadata)
+	op.Parameters, err = tree.ToMiguel()
 	if err != nil {
-		if !cerrors.HasGasExhaustedError(op.Errors) {
+		if !tezerrors.HasGasExhaustedError(op.Errors) {
 			helpers.CatchErrorSentry(err)
 			return err
 		}
@@ -312,12 +329,12 @@ func (ctx *Context) setParameters(parameters string, op *Operation) error {
 	return nil
 }
 
-func (ctx *Context) setStorageDiff(address, storage string, op *Operation, bmd []bigmapdiff.BigMapDiff) error {
-	metadata, err := meta.GetContractSchema(ctx.Schema, address)
+func (ctx *Context) setStorageDiff(address, storage string, op *Operation, bmd []bigmapdiff.BigMapDiff, script *ast.Script) error {
+	storageType, err := script.StorageType()
 	if err != nil {
 		return err
 	}
-	storageDiff, err := ctx.getStorageDiff(bmd, address, storage, metadata, false, op)
+	storageDiff, err := ctx.getStorageDiff(bmd, address, storage, storageType, op)
 	if err != nil {
 		return err
 	}
@@ -325,71 +342,60 @@ func (ctx *Context) setStorageDiff(address, storage string, op *Operation, bmd [
 	return nil
 }
 
-func (ctx *Context) getStorageDiff(bmd []bigmapdiff.BigMapDiff, address, storage string, metadata *meta.ContractSchema, isSimulating bool, op *Operation) (interface{}, error) {
-	var prevStorage *newmiguel.Node
-	var prevDeffatedStorage string
+func (ctx *Context) getStorageDiff(bmd []bigmapdiff.BigMapDiff, address, storage string, storageType *ast.TypedAst, op *Operation) (interface{}, error) {
+	currentStorage := &ast.TypedAst{
+		Nodes: []ast.Node{ast.Copy(storageType.Nodes[0])},
+	}
+	var prevStorage *ast.TypedAst
+
 	prev, err := ctx.Operations.Last(op.Network, address, op.IndexedTime)
 	if err == nil {
+		prevStorage = &ast.TypedAst{
+			Nodes: []ast.Node{ast.Copy(storageType.Nodes[0])},
+		}
+
 		prevBmd, err := ctx.getPrevBmd(bmd, op.IndexedTime, op.Destination)
 		if err != nil {
 			return nil, err
 		}
 
-		var exDeffatedStorage string
-		exOp, err := ctx.Operations.Last(address, prev.Network, prev.IndexedTime)
-		if err == nil {
-			exDeffatedStorage = exOp.DeffatedStorage
-		} else if !ctx.Storage.IsRecordNotFound(err) {
-			return nil, err
+		if prev.DeffatedStorage != "" {
+			if err := prepareStorage(prevStorage, prev.DeffatedStorage, prevBmd); err != nil {
+				return nil, err
+			}
 		}
-
-		prevStorage, err = getEnrichStorageMiguel(prevBmd, prev.Protocol, prev.DeffatedStorage, exDeffatedStorage, metadata, isSimulating)
-		if err != nil {
-			return nil, err
-		}
-		prevDeffatedStorage = prev.DeffatedStorage
-	} else {
-		if !ctx.Storage.IsRecordNotFound(err) {
-			return nil, err
-		}
-		prevStorage = nil
-	}
-
-	currentStorage, err := getEnrichStorageMiguel(bmd, op.Protocol, storage, prevDeffatedStorage, metadata, isSimulating)
-	if err != nil {
+	} else if !ctx.Storage.IsRecordNotFound(err) {
 		return nil, err
 	}
-	if currentStorage == nil {
+
+	if err := prepareStorage(currentStorage, storage, bmd); err != nil {
+		return nil, err
+	}
+	if !currentStorage.IsSettled() {
 		return nil, nil
 	}
-
-	currentStorage.Diff(prevStorage)
-	return currentStorage, nil
+	return currentStorage.Diff(prevStorage)
 }
 
-func getEnrichStorageMiguel(bmd []bigmapdiff.BigMapDiff, protocol, storage, prevStorage string, metadata *meta.ContractSchema, isSimulating bool) (*newmiguel.Node, error) {
-	store, err := enrichStorage(storage, prevStorage, bmd, protocol, false, isSimulating)
-	if err != nil {
-		return nil, err
+func prepareStorage(storageType *ast.TypedAst, deffatedStorage string, bmd []bigmapdiff.BigMapDiff) error {
+	var data ast.UntypedAST
+	if err := json.UnmarshalFromString(deffatedStorage, &data); err != nil {
+		return err
 	}
-	storageMetadata, err := metadata.Get(consts.STORAGE, protocol)
-	if err != nil {
-		return nil, err
+
+	if err := storageType.Settle(data); err != nil {
+		return err
 	}
-	return newmiguel.MichelineToMiguel(store, storageMetadata)
+
+	return getEnrichStorage(storageType, bmd)
 }
 
-func enrichStorage(s, prevStorage string, bmd []bigmapdiff.BigMapDiff, protocol string, skipEmpty, isSimulating bool) (gjson.Result, error) {
+func getEnrichStorage(storageType *ast.TypedAst, bmd []bigmapdiff.BigMapDiff) error {
 	if len(bmd) == 0 {
-		return gjson.Parse(s), nil
+		return nil
 	}
 
-	parser, err := contractparser.MakeStorageParser(nil, nil, protocol, isSimulating)
-	if err != nil {
-		return gjson.Result{}, err
-	}
-
-	return parser.Enrich(s, prevStorage, bmd, skipEmpty, true)
+	return storage.Enrich(storageType, bmd, false, true)
 }
 
 func (ctx *Context) getPrevBmd(bmd []bigmapdiff.BigMapDiff, indexedTime int64, address string) ([]bigmapdiff.BigMapDiff, error) {
@@ -400,25 +406,21 @@ func (ctx *Context) getPrevBmd(bmd []bigmapdiff.BigMapDiff, indexedTime int64, a
 }
 
 func (ctx *Context) getErrorLocation(operation operation.Operation, window int) (GetErrorLocationResponse, error) {
-	rpc, err := ctx.GetRPC(operation.Network)
+	code, err := fetch.Contract(operation.Destination, operation.Network, operation.Protocol, ctx.SharePath)
 	if err != nil {
 		return GetErrorLocationResponse{}, err
 	}
-	code, err := contractparser.GetContract(rpc, operation.Destination, operation.Network, operation.Protocol, ctx.SharePath, 0)
-	if err != nil {
-		return GetErrorLocationResponse{}, err
-	}
-	opErr := cerrors.First(operation.Errors, consts.ScriptRejectedError)
+	opErr := tezerrors.First(operation.Errors, consts.ScriptRejectedError)
 	if opErr == nil {
 		return GetErrorLocationResponse{}, errors.Errorf("Can't find script rejected error")
 	}
-	defaultError, ok := opErr.IError.(*cerrors.DefaultError)
+	defaultError, ok := opErr.IError.(*tezerrors.DefaultError)
 	if !ok {
 		return GetErrorLocationResponse{}, errors.Errorf("Invalid error type: %T", opErr)
 	}
 
 	location := int(defaultError.Location)
-	sections := code.Get("code")
+	sections := gjson.ParseBytes(code)
 	row, sCol, eCol, err := formattererror.LocateContractError(sections, location)
 	if err != nil {
 		return GetErrorLocationResponse{}, err

@@ -1,16 +1,18 @@
 {
-    "status": "applied",
-    "balance_updates": [
-        {
-            "kind": "contract",
-            "contract": "tz1TEZtYnuLiZLdA6c7JysAUJcHMrogu4Cpr",
-            "change": "-6410"
-        },
-        {
-            "kind": "contract",
-            "contract": "tz1Y8zdtVe2wWe7QdNTnAdwBceqYBCdA3Jj8",
-            "change": "6410"
-        }
-    ],
-    "consumed_gas": "10207"
+    "result": {
+        "status": "applied",
+        "balance_updates": [
+            {
+                "kind": "contract",
+                "contract": "tz1TEZtYnuLiZLdA6c7JysAUJcHMrogu4Cpr",
+                "change": "-6410"
+            },
+            {
+                "kind": "contract",
+                "contract": "tz1Y8zdtVe2wWe7QdNTnAdwBceqYBCdA3Jj8",
+                "change": "6410"
+            }
+        ],
+        "consumed_gas": "10207"
+    }
 }

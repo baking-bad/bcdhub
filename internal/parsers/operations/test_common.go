@@ -1,53 +1,28 @@
 package operations
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"reflect"
 	"testing"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/balanceupdate"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
-	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/stretchr/testify/assert"
-	"github.com/tidwall/gjson"
 )
 
-func readJSONFile(name string) (gjson.Result, error) {
+func readJSONFile(name string, response interface{}) error {
 	bytes, err := ioutil.ReadFile(name)
 	if err != nil {
-		return gjson.Result{}, err
+		return err
 	}
-	return gjson.ParseBytes(bytes), nil
-}
-
-func readTestMetadata(address string) (*meta.ContractSchema, error) {
-	bytes, err := ioutil.ReadFile(fmt.Sprintf("./data/metadata/%s.json", address))
-	if err != nil {
-		return nil, err
-	}
-	var metadata meta.ContractSchema
-	err = json.Unmarshal(bytes, &metadata)
-	return &metadata, err
-}
-
-func readTestMetadataModel(address string) (*schema.Schema, error) {
-	bytes, err := ioutil.ReadFile(fmt.Sprintf("./data/models/metadata/%s.json", address))
-	if err != nil {
-		return nil, err
-	}
-	var metadata schema.Schema
-	err = json.Unmarshal(bytes, &metadata)
-	return &metadata, err
+	return json.Unmarshal(bytes, response)
 }
 
 func readTestContractModel(contract *contract.Contract) error {
@@ -58,9 +33,9 @@ func readTestContractModel(contract *contract.Contract) error {
 	return json.Unmarshal(bytes, &contract)
 }
 
-func readStorage(address string, level int64) (gjson.Result, error) {
+func readStorage(address string, level int64) ([]byte, error) {
 	storageFile := fmt.Sprintf("./data/rpc/script/storage/%s_%d.json", address, level)
-	return readJSONFile(storageFile)
+	return ioutil.ReadFile(storageFile)
 }
 
 func compareParserResponse(t *testing.T, got, want []models.Model) bool {
@@ -111,22 +86,6 @@ func compareParserResponse(t *testing.T, got, want []models.Model) bool {
 				return false
 			}
 			if !compareContract(one, two) {
-				return false
-			}
-		case *schema.Schema:
-			two, ok := want[i].(*schema.Schema)
-			if !ok {
-				return false
-			}
-			if !compareMetadata(t, one, two) {
-				return false
-			}
-		case *balanceupdate.BalanceUpdate:
-			two, ok := want[i].(*balanceupdate.BalanceUpdate)
-			if !ok {
-				return false
-			}
-			if !compareBalanceUpdates(one, two) {
 				return false
 			}
 		default:
@@ -311,9 +270,11 @@ func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 		logger.Info("DeffatedStorage: %s != %s", one.DeffatedStorage, two.DeffatedStorage)
 		return false
 	}
-	if !reflect.DeepEqual(one.Tags, two.Tags) {
-		logger.Info("Tags: %s != %s", one.Tags, two.Tags)
-		return false
+	if len(one.Tags) == len(two.Tags) && len(one.Tags) > 0 {
+		if !reflect.DeepEqual(one.Tags, two.Tags) {
+			logger.Info("Tags: %s != %s", one.Tags, two.Tags)
+			return false
+		}
 	}
 	return true
 }
@@ -327,13 +288,10 @@ func compareBigMapDiff(t *testing.T, one, two *bigmapdiff.BigMapDiff) bool {
 		logger.Info("KeyHash: %s != %s", one.KeyHash, two.KeyHash)
 		return false
 	}
-	if !compareJSON(t, one.Value, two.Value) {
-		logger.Info("BigMapDiff.Value: %s != %s", one.Value, two.Value)
-		return false
-	}
-	if one.BinPath != two.BinPath {
-		logger.Info("BinPath: %s != %s", one.BinPath, two.BinPath)
-		return false
+	if len(one.Value) > 0 || len(two.Value) > 0 {
+		if !assert.JSONEq(t, string(one.ValueBytes()), string(two.ValueBytes())) {
+			return false
+		}
 	}
 	if one.Level != two.Level {
 		logger.Info("Level: %d != %d", one.Level, two.Level)
@@ -351,8 +309,7 @@ func compareBigMapDiff(t *testing.T, one, two *bigmapdiff.BigMapDiff) bool {
 		logger.Info("Protocol: %s != %s", one.Protocol, two.Protocol)
 		return false
 	}
-	if !reflect.DeepEqual(one.Key, two.Key) {
-		logger.Info("Key: %s != %s", one.Key, two.Key)
+	if !assert.JSONEq(t, string(one.KeyBytes()), string(two.KeyBytes())) {
 		return false
 	}
 	return true
@@ -438,70 +395,6 @@ func compareContract(one, two *contract.Contract) bool {
 	if !compareStringArray(one.Entrypoints, two.Entrypoints) {
 		logger.Info("Contract.Entrypoints: %v != %v", one.Entrypoints, two.Entrypoints)
 		return false
-	}
-	return true
-}
-
-func compareBalanceUpdates(a, b *balanceupdate.BalanceUpdate) bool {
-	if a.Change != b.Change {
-		logger.Info("BalanceUpdate.Change: %d != %d", a.Change, b.Change)
-		return false
-	}
-	if a.Contract != b.Contract {
-		logger.Info("BalanceUpdate.Contract: %s != %s", a.Contract, b.Contract)
-		return false
-	}
-	if a.Network != b.Network {
-		logger.Info("BalanceUpdate.Network: %s != %s", a.Network, b.Network)
-		return false
-	}
-	if a.Level != b.Level {
-		logger.Info("BalanceUpdate.Level: %d != %d", a.Level, b.Level)
-		return false
-	}
-	if a.OperationHash != b.OperationHash {
-		logger.Info("BalanceUpdate.OperationHash: %s != %s", a.OperationHash, b.OperationHash)
-		return false
-	}
-	if a.ContentIndex != b.ContentIndex {
-		logger.Info("BalanceUpdate.ContentIndex: %d != %d", a.ContentIndex, b.ContentIndex)
-		return false
-	}
-	if !compareInt64Ptr(a.Nonce, b.Nonce) {
-		logger.Info("BalanceUpdate.Nonce: %d != %d", *a.Nonce, *b.Nonce)
-		return false
-	}
-	return true
-}
-
-func compareMetadata(t *testing.T, one, two *schema.Schema) bool {
-	if one.ID != two.ID {
-		logger.Info("Metadata.ID: %s != %s", one.ID, two.ID)
-		return false
-	}
-
-	for key, value := range one.Parameter {
-		if valueTwo, ok := two.Parameter[key]; ok {
-			if !compareJSON(t, value, valueTwo) {
-				logger.Info("Metadata.Parameter[%s]: %s != %s", key, value, valueTwo)
-				return false
-			}
-		} else {
-			logger.Info("Metadata.Parameter[%s] is absent", key)
-			return false
-		}
-	}
-
-	for key, value := range one.Storage {
-		if valueTwo, ok := two.Storage[key]; ok {
-			if !compareJSON(t, value, valueTwo) {
-				logger.Info("Metadata.Storage[%s]: %s != %s", key, value, valueTwo)
-				return false
-			}
-		} else {
-			logger.Info("Metadata.Storage[%s] is absent", key)
-			return false
-		}
 	}
 	return true
 }

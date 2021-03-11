@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 )
 
 // Pool - node pool
@@ -147,21 +147,21 @@ func (p Pool) GetLevelTime(level int) (time.Time, error) {
 }
 
 // GetScriptJSON -
-func (p Pool) GetScriptJSON(address string, level int64) (gjson.Result, error) {
+func (p Pool) GetScriptJSON(address string, level int64) (Script, error) {
 	data, err := p.call("GetScriptJSON", address, level)
 	if err != nil {
-		return gjson.Result{}, err
+		return Script{}, err
 	}
-	return data.Interface().(gjson.Result), nil
+	return data.Interface().(Script), nil
 }
 
-// GetScriptStorageJSON -
-func (p Pool) GetScriptStorageJSON(address string, level int64) (gjson.Result, error) {
-	data, err := p.call("GetScriptStorageJSON", address, level)
+// GetScriptStorageRaw -
+func (p Pool) GetScriptStorageRaw(address string, level int64) ([]byte, error) {
+	data, err := p.call("GetScriptStorageRaw", address, level)
 	if err != nil {
-		return gjson.Result{}, err
+		return nil, err
 	}
-	return data.Interface().(gjson.Result), nil
+	return data.Interface().([]byte), nil
 }
 
 // GetContractBalance -
@@ -182,13 +182,13 @@ func (p Pool) GetContractData(address string, level int64) (ContractData, error)
 	return data.Interface().(ContractData), nil
 }
 
-// GetOperations -
-func (p Pool) GetOperations(block int64) (res gjson.Result, err error) {
-	data, err := p.call("GetOperations", block)
+// GetOPG -
+func (p Pool) GetOPG(block int64) ([]OperationGroup, error) {
+	data, err := p.call("GetOPG", block)
 	if err != nil {
-		return
+		return nil, err
 	}
-	return data.Interface().(gjson.Result), nil
+	return data.Interface().([]OperationGroup), nil
 }
 
 // GetContractsByBlock -
@@ -210,21 +210,21 @@ func (p Pool) GetNetworkConstants(level int64) (res Constants, err error) {
 }
 
 // RunCode -
-func (p Pool) RunCode(script, storage, input gjson.Result, chainID, source, payer, entrypoint, proto string, amount, gas int64) (gjson.Result, error) {
+func (p Pool) RunCode(script, storage, input []byte, chainID, source, payer, entrypoint, proto string, amount, gas int64) (RunCodeResponse, error) {
 	data, err := p.call("RunCode", script, storage, input, chainID, source, payer, entrypoint, proto, amount, gas)
 	if err != nil {
-		return gjson.Result{}, err
+		return RunCodeResponse{}, err
 	}
-	return data.Interface().(gjson.Result), nil
+	return data.Interface().(RunCodeResponse), nil
 }
 
 // RunOperation -
-func (p Pool) RunOperation(chainID, branch, source, destination string, fee, gasLimit, storageLimit, counter, amount int64, parameters gjson.Result) (gjson.Result, error) {
+func (p Pool) RunOperation(chainID, branch, source, destination string, fee, gasLimit, storageLimit, counter, amount int64, parameters []byte) (OperationGroup, error) {
 	data, err := p.call("RunOperation", chainID, branch, source, destination, fee, gasLimit, storageLimit, counter, amount, parameters)
 	if err != nil {
-		return gjson.Result{}, err
+		return OperationGroup{}, err
 	}
-	return data.Interface().(gjson.Result), nil
+	return data.Interface().(OperationGroup), nil
 }
 
 // GetCounter -
@@ -237,10 +237,10 @@ func (p Pool) GetCounter(address string) (int64, error) {
 }
 
 // GetCode -
-func (p Pool) GetCode(address string, level int64) (gjson.Result, error) {
+func (p Pool) GetCode(address string, level int64) (*ast.Script, error) {
 	data, err := p.call("GetCode", address, level)
 	if err != nil {
-		return gjson.Result{}, err
+		return nil, err
 	}
-	return data.Interface().(gjson.Result), nil
+	return data.Interface().(*ast.Script), nil
 }

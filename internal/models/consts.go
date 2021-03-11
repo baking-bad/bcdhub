@@ -1,7 +1,6 @@
 package models
 
 import (
-	"github.com/baking-bad/bcdhub/internal/models/balanceupdate"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
@@ -9,7 +8,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
-	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
@@ -19,26 +17,23 @@ import (
 
 // Document names
 const (
-	DocBalanceUpdates = "balance_update"
-	DocBigMapActions  = "bigmapaction"
-	DocBigMapDiff     = "bigmapdiff"
-	DocBlocks         = "block"
-	DocContracts      = "contract"
-	DocMigrations     = "migration"
-	DocOperations     = "operation"
-	DocProtocol       = "protocol"
-	DocSchema         = "schema"
-	DocTezosDomains   = "tezos_domain"
-	DocTokenBalances  = "token_balance"
-	DocTokenMetadata  = "token_metadata"
-	DocTransfers      = "transfer"
-	DocTZIP           = "tzip"
+	DocBigMapActions = "bigmapaction"
+	DocBigMapDiff    = "bigmapdiff"
+	DocBlocks        = "block"
+	DocContracts     = "contract"
+	DocMigrations    = "migration"
+	DocOperations    = "operation"
+	DocProtocol      = "protocol"
+	DocTezosDomains  = "tezos_domain"
+	DocTokenBalances = "token_balance"
+	DocTokenMetadata = "token_metadata"
+	DocTransfers     = "transfer"
+	DocTZIP          = "tzip"
 )
 
 // AllDocuments - returns all document names
 func AllDocuments() []string {
 	return []string{
-		DocBalanceUpdates,
 		DocBigMapActions,
 		DocBigMapDiff,
 		DocBlocks,
@@ -46,7 +41,6 @@ func AllDocuments() []string {
 		DocMigrations,
 		DocOperations,
 		DocProtocol,
-		DocSchema,
 		DocTezosDomains,
 		DocTokenBalances,
 		DocTokenMetadata,
@@ -58,7 +52,6 @@ func AllDocuments() []string {
 // AllModels -
 func AllModels() []Model {
 	return []Model{
-		&balanceupdate.BalanceUpdate{},
 		&bigmapaction.BigMapAction{},
 		&bigmapdiff.BigMapDiff{},
 		&block.Block{},
@@ -66,7 +59,6 @@ func AllModels() []Model {
 		&migration.Migration{},
 		&operation.Operation{},
 		&protocol.Protocol{},
-		&schema.Schema{},
 		&tezosdomain.TezosDomain{},
 		&tokenbalance.TokenBalance{},
 		&tokenmetadata.TokenMetadata{},

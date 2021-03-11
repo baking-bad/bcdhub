@@ -5,11 +5,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
-	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	elasticBalanceUpdate "github.com/baking-bad/bcdhub/internal/elastic/balanceupdate"
 	elasticBigMapAction "github.com/baking-bad/bcdhub/internal/elastic/bigmapaction"
 	elasticBigMapDiff "github.com/baking-bad/bcdhub/internal/elastic/bigmapdiff"
 	elasticBlock "github.com/baking-bad/bcdhub/internal/elastic/block"
@@ -18,7 +16,6 @@ import (
 	elasticMigration "github.com/baking-bad/bcdhub/internal/elastic/migration"
 	elasticOperation "github.com/baking-bad/bcdhub/internal/elastic/operation"
 	elasticProtocol "github.com/baking-bad/bcdhub/internal/elastic/protocol"
-	elasticSchema "github.com/baking-bad/bcdhub/internal/elastic/schema"
 	elasticTezosDomain "github.com/baking-bad/bcdhub/internal/elastic/tezosdomain"
 	elasticTokenBalance "github.com/baking-bad/bcdhub/internal/elastic/tokenbalance"
 	elasticTransfer "github.com/baking-bad/bcdhub/internal/elastic/transfer"
@@ -27,7 +24,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/index"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/balanceupdate"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
@@ -35,7 +31,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
-	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
@@ -54,24 +49,21 @@ var errSameLevel = errors.New("Same level")
 
 // BoostIndexer -
 type BoostIndexer struct {
-	Storage        models.GeneralRepository
-	BalanceUpdates balanceupdate.Repository
-	BigMapActions  bigmapaction.Repository
-	BigMapDiffs    bigmapdiff.Repository
-	Blocks         block.Repository
-	Contracts      contract.Repository
-	Migrations     migration.Repository
-	Operations     operation.Repository
-	Protocols      protocol.Repository
-	Schema         schema.Repository
-	TezosDomains   tezosdomain.Repository
-	TokenBalances  tokenbalance.Repository
-	Transfers      transfer.Repository
-	TZIP           tzip.Repository
+	Storage       models.GeneralRepository
+	BigMapActions bigmapaction.Repository
+	BigMapDiffs   bigmapdiff.Repository
+	Blocks        block.Repository
+	Contracts     contract.Repository
+	Migrations    migration.Repository
+	Operations    operation.Repository
+	Protocols     protocol.Repository
+	TezosDomains  tezosdomain.Repository
+	TokenBalances tokenbalance.Repository
+	Transfers     transfer.Repository
+	TZIP          tzip.Repository
 
 	rpc             noderpc.INode
 	externalIndexer index.Indexer
-	interfaces      map[string]kinds.ContractKind
 	messageQueue    mq.Mediator
 	state           block.Block
 	currentProtocol protocol.Protocol
@@ -107,7 +99,7 @@ func (bi *BoostIndexer) fetchExternalProtocols() error {
 		if _, ok := exists[extProtocols[i].Hash]; ok {
 			continue
 		}
-		symLink, err := meta.GetProtoSymLink(extProtocols[i].Hash)
+		symLink, err := bcd.GetProtoSymLink(extProtocols[i].Hash)
 		if err != nil {
 			return err
 		}
@@ -153,40 +145,31 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 
 	messageQueue := mq.New(cfg.RabbitMQ.URI, cfg.Indexer.ProjectName, cfg.Indexer.MQ.NeedPublisher, 10)
 
-	interfaces, err := kinds.Load()
-	if err != nil {
-		return nil, err
-	}
-
 	bi := &BoostIndexer{
-		Storage:        es,
-		BalanceUpdates: elasticBalanceUpdate.NewStorage(es),
-		BigMapActions:  elasticBigMapAction.NewStorage(es),
-		BigMapDiffs:    elasticBigMapDiff.NewStorage(es),
-		Blocks:         elasticBlock.NewStorage(es),
-		Contracts:      elasticContract.NewStorage(es),
-		Migrations:     elasticMigration.NewStorage(es),
-		Operations:     elasticOperation.NewStorage(es),
-		Protocols:      elasticProtocol.NewStorage(es),
-		Schema:         elasticSchema.NewStorage(es),
-		TezosDomains:   elasticTezosDomain.NewStorage(es),
-		TokenBalances:  elasticTokenBalance.NewStorage(es),
-		Transfers:      elasticTransfer.NewStorage(es),
-		TZIP:           elasticTZIP.NewStorage(es),
-		Network:        network,
-		rpc:            rpc,
-		messageQueue:   messageQueue,
-		stop:           make(chan struct{}),
-		interfaces:     interfaces,
-		cfg:            cfg,
+		Storage:       es,
+		BigMapActions: elasticBigMapAction.NewStorage(es),
+		BigMapDiffs:   elasticBigMapDiff.NewStorage(es),
+		Blocks:        elasticBlock.NewStorage(es),
+		Contracts:     elasticContract.NewStorage(es),
+		Migrations:    elasticMigration.NewStorage(es),
+		Operations:    elasticOperation.NewStorage(es),
+		Protocols:     elasticProtocol.NewStorage(es),
+		TezosDomains:  elasticTezosDomain.NewStorage(es),
+		TokenBalances: elasticTokenBalance.NewStorage(es),
+		Transfers:     elasticTransfer.NewStorage(es),
+		TZIP:          elasticTZIP.NewStorage(es),
+		Network:       network,
+		rpc:           rpc,
+		messageQueue:  messageQueue,
+		stop:          make(chan struct{}),
+		cfg:           cfg,
 	}
 
 	for _, opt := range opts {
 		opt(bi)
 	}
 
-	err = bi.init()
-	return bi, err
+	return bi, bi.init()
 }
 
 func (bi *BoostIndexer) init() error {
@@ -520,24 +503,23 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 	if head.Level <= 1 {
 		return nil, nil
 	}
-	data, err := bi.rpc.GetOperations(head.Level)
+	opg, err := bi.rpc.GetOPG(head.Level)
 	if err != nil {
 		return nil, err
 	}
 
 	parsedModels := make([]models.Model, 0)
-	for _, opg := range data.Array() {
+	for i := range opg {
 		parser := operations.NewGroup(operations.NewParseParams(
 			bi.rpc,
-			bi.Storage, bi.BigMapDiffs, bi.Blocks, bi.TZIP, bi.Schema, bi.TokenBalances,
+			bi.Storage, bi.BigMapDiffs, bi.Blocks, bi.TZIP, bi.TokenBalances,
 			operations.WithConstants(bi.currentProtocol.Constants),
 			operations.WithHead(head),
 			operations.WithIPFSGateways(bi.cfg.IPFSGateways),
-			operations.WithInterfaces(bi.interfaces),
 			operations.WithShareDirectory(bi.cfg.SharePath),
 			operations.WithNetwork(network),
 		))
-		parsed, err := parser.Parse(opg)
+		parsed, err := parser.Parse(opg[i])
 		if err != nil {
 			return nil, err
 		}
@@ -562,6 +544,9 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) ([]models.Model, error) {
 		logger.Warning("%s", err)
 		newProtocol, err = createProtocol(bi.rpc, bi.Network, head.Protocol, head.Level)
 		if err != nil {
+			return nil, err
+		}
+		if err := bi.Storage.BulkInsert([]models.Model{&newProtocol}); err != nil {
 			return nil, err
 		}
 	}
@@ -644,11 +629,11 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header) ([]models.Model, e
 		return nil, err
 	}
 
-	p := parsers.NewVestingParser(bi.Storage, bi.cfg.SharePath, bi.interfaces)
+	p := parsers.NewVestingParser(bi.cfg.SharePath)
 
 	parsedModels := make([]models.Model, 0)
 	for _, address := range addresses {
-		if !helpers.IsContract(address) {
+		if !bcd.IsContract(address) {
 			continue
 		}
 

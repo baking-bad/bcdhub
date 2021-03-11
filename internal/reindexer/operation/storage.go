@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/reindexer/core"
@@ -254,11 +254,11 @@ func (storage *Storage) GetParticipatingContracts(network string, fromLevel, toL
 	for it.Next() {
 		var item response
 		it.NextObj(&item)
-		if _, ok := exists[item.Destination]; helpers.IsContract(item.Destination) && !ok {
+		if _, ok := exists[item.Destination]; bcd.IsContract(item.Destination) && !ok {
 			exists[item.Destination] = struct{}{}
 			addresses = append(addresses, item.Destination)
 		}
-		if _, ok := exists[item.Source]; helpers.IsContract(item.Source) && !ok {
+		if _, ok := exists[item.Source]; bcd.IsContract(item.Source) && !ok {
 			exists[item.Source] = struct{}{}
 			addresses = append(addresses, item.Source)
 		}

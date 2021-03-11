@@ -5,8 +5,8 @@
 package noderpc
 
 import (
+	ast "github.com/baking-bad/bcdhub/internal/bcd/ast"
 	gomock "github.com/golang/mock/gomock"
-	gjson "github.com/tidwall/gjson"
 	reflect "reflect"
 	time "time"
 )
@@ -95,10 +95,10 @@ func (mr *MockINodeMockRecorder) GetLevelTime(arg0 interface{}) *gomock.Call {
 }
 
 // GetScriptJSON mocks base method
-func (m *MockINode) GetScriptJSON(arg0 string, arg1 int64) (gjson.Result, error) {
+func (m *MockINode) GetScriptJSON(arg0 string, arg1 int64) (Script, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetScriptJSON", arg0, arg1)
-	ret0, _ := ret[0].(gjson.Result)
+	ret0, _ := ret[0].(Script)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -109,19 +109,19 @@ func (mr *MockINodeMockRecorder) GetScriptJSON(arg0, arg1 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetScriptJSON", reflect.TypeOf((*MockINode)(nil).GetScriptJSON), arg0, arg1)
 }
 
-// GetScriptStorageJSON mocks base method
-func (m *MockINode) GetScriptStorageJSON(arg0 string, arg1 int64) (gjson.Result, error) {
+// GetScriptStorageRaw mocks base method
+func (m *MockINode) GetScriptStorageRaw(arg0 string, arg1 int64) ([]byte, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetScriptStorageJSON", arg0, arg1)
-	ret0, _ := ret[0].(gjson.Result)
+	ret := m.ctrl.Call(m, "GetScriptStorageRaw", arg0, arg1)
+	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetScriptStorageJSON indicates an expected call of GetScriptStorageJSON
-func (mr *MockINodeMockRecorder) GetScriptStorageJSON(arg0, arg1 interface{}) *gomock.Call {
+// GetScriptStorageRaw indicates an expected call of GetScriptStorageRaw
+func (mr *MockINodeMockRecorder) GetScriptStorageRaw(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetScriptStorageJSON", reflect.TypeOf((*MockINode)(nil).GetScriptStorageJSON), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetScriptStorageRaw", reflect.TypeOf((*MockINode)(nil).GetScriptStorageRaw), arg0, arg1)
 }
 
 // GetContractBalance mocks base method
@@ -154,19 +154,19 @@ func (mr *MockINodeMockRecorder) GetContractData(arg0, arg1 interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetContractData", reflect.TypeOf((*MockINode)(nil).GetContractData), arg0, arg1)
 }
 
-// GetOperations mocks base method
-func (m *MockINode) GetOperations(arg0 int64) (gjson.Result, error) {
+// GetOPG mocks base method
+func (m *MockINode) GetOPG(block int64) ([]OperationGroup, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetOperations", arg0)
-	ret0, _ := ret[0].(gjson.Result)
+	ret := m.ctrl.Call(m, "GetOPG", block)
+	ret0, _ := ret[0].([]OperationGroup)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetOperations indicates an expected call of GetOperations
-func (mr *MockINodeMockRecorder) GetOperations(arg0 interface{}) *gomock.Call {
+// GetOPG indicates an expected call of GetOPG
+func (mr *MockINodeMockRecorder) GetOPG(block interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOperations", reflect.TypeOf((*MockINode)(nil).GetOperations), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOPG", reflect.TypeOf((*MockINode)(nil).GetOPG), block)
 }
 
 // GetContractsByBlock mocks base method
@@ -200,10 +200,10 @@ func (mr *MockINodeMockRecorder) GetNetworkConstants(arg0 interface{}) *gomock.C
 }
 
 // RunCode mocks base method
-func (m *MockINode) RunCode(arg0, arg1, arg2 gjson.Result, arg3, arg4, arg5, arg6, arg7 string, arg8, arg9 int64) (gjson.Result, error) {
+func (m *MockINode) RunCode(arg0, arg1, arg2 []byte, arg3, arg4, arg5, arg6, arg7 string, arg8, arg9 int64) (RunCodeResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RunCode", arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
-	ret0, _ := ret[0].(gjson.Result)
+	ret0, _ := ret[0].(RunCodeResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -215,10 +215,10 @@ func (mr *MockINodeMockRecorder) RunCode(arg0, arg1, arg2, arg3, arg4, arg5, arg
 }
 
 // RunOperation mocks base method
-func (m *MockINode) RunOperation(arg0, arg1, arg2, arg3 string, arg4, arg5, arg6, arg7, arg8 int64, arg9 gjson.Result) (gjson.Result, error) {
+func (m *MockINode) RunOperation(arg0, arg1, arg2, arg3 string, arg4, arg5, arg6, arg7, arg8 int64, arg9 []byte) (OperationGroup, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RunOperation", arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
-	ret0, _ := ret[0].(gjson.Result)
+	ret0, _ := ret[0].(OperationGroup)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -245,10 +245,10 @@ func (mr *MockINodeMockRecorder) GetCounter(arg0 interface{}) *gomock.Call {
 }
 
 // GetCode mocks base method
-func (m *MockINode) GetCode(address string, level int64) (gjson.Result, error) {
+func (m *MockINode) GetCode(address string, level int64) (*ast.Script, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetCode", address, level)
-	ret0, _ := ret[0].(gjson.Result)
+	ret0, _ := ret[0].(*ast.Script)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

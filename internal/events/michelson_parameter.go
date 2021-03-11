@@ -1,9 +1,11 @@
 package events
 
 import (
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
-	"github.com/tidwall/gjson"
 )
 
 // MichelsonParameter -
@@ -16,7 +18,11 @@ type MichelsonParameter struct {
 
 // NewMichelsonParameter -
 func NewMichelsonParameter(impl tzip.EventImplementation, name string) (*MichelsonParameter, error) {
-	parser, err := tokenbalance.GetParser(name, impl.MichelsonParameterEvent.ReturnType)
+	retType, err := ast.NewTypedAstFromBytes(impl.MichelsonParameterEvent.ReturnType)
+	if err != nil {
+		return nil, err
+	}
+	parser, err := tokenbalance.GetParser(name, retType)
 	if err != nil {
 		return nil, err
 	}
@@ -33,27 +39,29 @@ func NewMichelsonParameter(impl tzip.EventImplementation, name string) (*Michels
 }
 
 // Parse -
-func (event *MichelsonParameter) Parse(response gjson.Result) []tokenbalance.TokenBalance {
-	balances := make([]tokenbalance.TokenBalance, 0)
-	for _, item := range response.Get("storage").Array() {
-		balance, err := event.parser.Parse(item)
-		if err != nil {
-			continue
-		}
-		balances = append(balances, balance)
+func (event *MichelsonParameter) Parse(response noderpc.RunCodeResponse) []tokenbalance.TokenBalance {
+	balances, err := event.parser.Parse(response.Storage)
+	if err != nil {
+		return nil
 	}
 	return balances
 }
 
 // Normalize - `value` is `Operation.Parameters`
-func (event *MichelsonParameter) Normalize(value string) gjson.Result {
-	p := gjson.Parse(value)
-	if p.Get("value").Exists() {
-		p = p.Get("value")
+func (event *MichelsonParameter) Normalize(value *ast.TypedAst) []byte {
+	if !value.IsSettled() {
+		return nil
 	}
 
-	for prim := p.Get("prim").String(); prim == "Right" || prim == "Left"; prim = p.Get("prim").String() {
-		p = p.Get("args.0")
+	result := value.Unwrap()
+	if result == nil {
+		logger.Warning("MichelsonParameter.Normalize: can't unwrap")
+		return nil
 	}
-	return p
+	b, err := result.ToParameters()
+	if err != nil {
+		logger.Warning("MichelsonParameter.Normalize %s", err.Error())
+		return nil
+	}
+	return b
 }

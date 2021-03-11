@@ -3,13 +3,10 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/compiler/compilation"
-	"github.com/baking-bad/bcdhub/internal/contractparser/docstring"
-	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
 	"github.com/baking-bad/bcdhub/internal/database"
-	"github.com/baking-bad/bcdhub/internal/jsonschema"
 	"github.com/gin-gonic/gin"
-	"github.com/tidwall/gjson"
 )
 
 // ListCompilationTasks -
@@ -56,18 +53,22 @@ func addSchemaToResults(tasks []database.CompilationTask) {
 				continue
 			}
 
-			res := gjson.ParseBytes(data)
-			metadata, err := meta.ParseMetadata(res.Get("#(prim==\"storage\").args"))
+			script, err := ast.NewScript(data)
 			if err != nil {
 				continue
 			}
 
-			schema, err := jsonschema.Create("0", metadata)
+			storage, err := script.StorageType()
 			if err != nil {
 				continue
 			}
 
-			typedef, err := docstring.GetStorage(metadata)
+			schema, err := storage.ToJSONSchema()
+			if err != nil {
+				continue
+			}
+
+			typedef, err := storage.Docs(ast.DocsFull)
 			if err != nil {
 				continue
 			}

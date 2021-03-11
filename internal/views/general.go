@@ -3,10 +3,13 @@ package views
 import (
 	"strings"
 
+	jsoniter "github.com/json-iterator/go"
+
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // errors
 var (
@@ -29,9 +32,9 @@ type Context struct {
 
 // View -
 type View interface {
-	GetCode(storageType gjson.Result) (gjson.Result, error)
-	GetParameter(parameter string, storageType gjson.Result) (gjson.Result, error)
-	Parse(response gjson.Result, output interface{}) error
+	GetCode(storageType []byte) ([]byte, error)
+	GetParameter(parameter string, storageType []byte) ([]byte, error)
+	Parse(response []byte, output interface{}) error
 }
 
 // NormalizeName -
@@ -52,52 +55,32 @@ func Execute(rpc noderpc.INode, view View, ctx Context, output interface{}) erro
 }
 
 // ExecuteWithoutParsing -
-func ExecuteWithoutParsing(rpc noderpc.INode, view View, ctx Context) (gjson.Result, error) {
+func ExecuteWithoutParsing(rpc noderpc.INode, view View, ctx Context) ([]byte, error) {
 	script, err := rpc.GetScriptJSON(ctx.Contract, 0)
 	if err != nil {
-		return gjson.Result{}, err
+		return nil, err
 	}
 
-	storageValue := script.Get(`storage`)
-	parameter, err := view.GetParameter(ctx.Parameters, storageValue)
+	parameter, err := view.GetParameter(ctx.Parameters, script.Storage)
 	if err != nil {
-		return gjson.Result{}, err
+		return nil, err
 	}
 
-	storageType := script.Get(`code.#(prim=="storage").args.0`)
+	storageType, err := json.Marshal(script.Code.Storage[0])
+	if err != nil {
+		return nil, err
+	}
 	code, err := view.GetCode(storageType)
 	if err != nil {
-		return gjson.Result{}, err
+		return nil, err
 	}
 
-	storage := gjson.Parse(`{"prim": "None"}`)
+	storage := []byte(`{"prim": "None"}`)
 
 	response, err := rpc.RunCode(code, storage, parameter, ctx.ChainID, ctx.Source, ctx.Initiator, ctx.Entrypoint, ctx.Protocol, ctx.Amount, ctx.HardGasLimitPerOperation)
 	if err != nil {
-		return gjson.Result{}, err
-	}
-	if err := checkResponseError(response); err != nil {
-		return gjson.Result{}, err
+		return nil, err
 	}
 
-	return response.Get("storage"), nil
-}
-
-func checkResponseError(response gjson.Result) error {
-	if !response.IsArray() {
-		return nil
-	}
-
-	var builder strings.Builder
-	for i, item := range response.Array() {
-		if i > 0 {
-			if err := builder.WriteByte('\n'); err != nil {
-				return err
-			}
-		}
-		if _, err := builder.WriteString(item.Get("id").String()); err != nil {
-			return err
-		}
-	}
-	return errors.Wrap(ErrNodeReturn, builder.String())
+	return response.Storage, nil
 }

@@ -25,7 +25,7 @@ func (x *removeCommand) Execute(_ []string) error {
 		return nil
 	}
 
-	if err = rollback.Remove(ctx.Storage, ctx.Contracts, x.Network, ctx.Config.SharePath); err != nil {
+	if err = rollback.Remove(ctx.Storage, ctx.Contracts, x.Network); err != nil {
 		return err
 	}
 

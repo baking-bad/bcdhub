@@ -1,27 +1,83 @@
 definitions:
-  cerrors.Error:
+  ast.JSONModel:
+    additionalProperties: true
+    type: object
+  ast.JSONSchema:
     properties:
-      descr:
+      const:
         type: string
-      id:
+      default:
+        type: object
+      format:
         type: string
-      kind:
+      items:
+        $ref: '#/definitions/ast.SchemaKey'
+      maxLength:
+        type: integer
+      minLength:
+        type: integer
+      oneOf:
+        items:
+          $ref: '#/definitions/ast.JSONSchema'
+        type: array
+      prim:
+        type: string
+      properties:
+        additionalProperties:
+          $ref: '#/definitions/ast.JSONSchema'
+        type: object
+      required:
+        items:
+          type: string
+        type: array
+      schemaKey:
+        $ref: '#/definitions/ast.SchemaKey'
+      tag:
         type: string
       title:
         type: string
+      type:
+        type: string
+      x-itemTitle:
+        type: string
     type: object
-  docstring.Typedef:
+  ast.MiguelNode:
+    properties:
+      children:
+        items:
+          $ref: '#/definitions/ast.MiguelNode'
+        type: array
+      diff_type:
+        type: string
+      from:
+        type: object
+      name:
+        type: string
+      prim:
+        type: string
+      type:
+        type: string
+      value:
+        type: object
+    type: object
+  ast.SchemaKey:
+    type: object
+  ast.Typedef:
     properties:
       args:
         items:
-          $ref: '#/definitions/docstring.TypedefArg'
+          $ref: '#/definitions/ast.TypedefArg'
         type: array
       name:
         type: string
       type:
         type: string
+      typedef:
+        items:
+          $ref: '#/definitions/ast.Typedef'
+        type: array
     type: object
-  docstring.TypedefArg:
+  ast.TypedefArg:
     properties:
       key:
         type: string
@@ -328,18 +384,16 @@ definitions:
     type: object
   handlers.EntrypointSchema:
     properties:
-      bin_path:
-        type: string
       default_model:
-        $ref: '#/definitions/jsonschema.DefaultModel'
+        $ref: '#/definitions/ast.JSONModel'
         x-nullable: true
       name:
         type: string
       schema:
-        $ref: '#/definitions/jsonschema.Schema'
+        $ref: '#/definitions/ast.JSONSchema'
       typedef:
         items:
-          $ref: '#/definitions/docstring.Typedef'
+          $ref: '#/definitions/ast.Typedef'
         type: array
     type: object
   handlers.Error:
@@ -365,7 +419,7 @@ definitions:
         type: integer
       typedef:
         items:
-          $ref: '#/definitions/docstring.Typedef'
+          $ref: '#/definitions/ast.Typedef'
         type: array
         x-nullable: true
     type: object
@@ -448,7 +502,7 @@ definitions:
         x-nullable: true
       errors:
         items:
-          $ref: '#/definitions/cerrors.Error'
+          $ref: '#/definitions/tezerrors.Error'
         type: array
         x-nullable: true
       fee:
@@ -710,16 +764,50 @@ definitions:
       watch_similar:
         type: boolean
     type: object
+  handlers.TZIPResponse:
+    properties:
+      address:
+        type: string
+      authors:
+        items:
+          type: string
+        type: array
+      description:
+        type: string
+      domain:
+        $ref: '#/definitions/tezosdomain.ReverseTezosDomain'
+      events:
+        items:
+          $ref: '#/definitions/tzip.Event'
+        type: array
+      extras:
+        additionalProperties: true
+        type: object
+      homepage:
+        type: string
+      interfaces:
+        items:
+          type: string
+        type: array
+      license:
+        $ref: '#/definitions/tzip.License'
+      name:
+        type: string
+      network:
+        type: string
+      version:
+        type: string
+      views:
+        items:
+          $ref: '#/definitions/tzip.View'
+        type: array
+    type: object
   handlers.Token:
     properties:
       contract:
         type: string
       decimals:
         type: integer
-        x-nullable: true
-      extras:
-        additionalProperties: true
-        type: object
         x-nullable: true
       level:
         type: integer
@@ -736,6 +824,10 @@ definitions:
         x-nullable: true
       token_id:
         type: integer
+      token_info:
+        additionalProperties: true
+        type: object
+        x-nullable: true
       transfered:
         type: number
       volume_24_hours:
@@ -751,10 +843,6 @@ definitions:
       decimals:
         type: integer
         x-nullable: true
-      extras:
-        additionalProperties: true
-        type: object
-        x-nullable: true
       level:
         type: integer
         x-nullable: true
@@ -768,6 +856,10 @@ definitions:
         x-nullable: true
       token_id:
         type: integer
+      token_info:
+        additionalProperties: true
+        type: object
+        x-nullable: true
       volume_24_hours:
         type: number
         x-nullable: true
@@ -815,10 +907,6 @@ definitions:
       decimals:
         type: integer
         x-nullable: true
-      extras:
-        additionalProperties: true
-        type: object
-        x-nullable: true
       level:
         type: integer
         x-nullable: true
@@ -832,6 +920,10 @@ definitions:
         x-nullable: true
       token_id:
         type: integer
+      token_info:
+        additionalProperties: true
+        type: object
+        x-nullable: true
       volume_24_hours:
         type: number
         x-nullable: true
@@ -849,7 +941,7 @@ definitions:
         type: string
         x-nullable: true
       amount:
-        type: number
+        type: string
       contract:
         type: string
       counter:
@@ -874,8 +966,10 @@ definitions:
         type: string
       nonce:
         type: integer
+        x-nullable: true
       parent:
         type: string
+        x-nullable: true
       status:
         type: string
       timestamp:
@@ -893,6 +987,9 @@ definitions:
     type: object
   handlers.TransferResponse:
     properties:
+      last_id:
+        type: string
+        x-nullable: true
       total:
         type: integer
       transfers:
@@ -903,7 +1000,8 @@ definitions:
   handlers.ViewSchema:
     properties:
       default_model:
-        $ref: '#/definitions/jsonschema.DefaultModel'
+        type: object
+        x-nullable: true
       description:
         type: string
       implementation:
@@ -911,10 +1009,10 @@ definitions:
       name:
         type: string
       schema:
-        $ref: '#/definitions/jsonschema.Schema'
+        $ref: '#/definitions/ast.JSONSchema'
       typedef:
         items:
-          $ref: '#/definitions/docstring.Typedef'
+          $ref: '#/definitions/ast.Typedef'
         type: array
     type: object
   handlers.executeViewRequest:
@@ -941,41 +1039,35 @@ definitions:
     type: object
   handlers.getEntrypointDataRequest:
     properties:
-      bin_path:
-        type: string
       data:
         additionalProperties: true
         type: object
       format:
         type: string
+      name:
+        type: string
     required:
-    - bin_path
     - data
+    - name
     type: object
   handlers.runCodeRequest:
     properties:
       amount:
         type: integer
-      bin_path:
-        type: string
       data:
         additionalProperties: true
         type: object
       gas_limit:
         type: integer
+      name:
+        type: string
       sender:
         type: string
       source:
         type: string
     required:
-    - bin_path
     - data
-    type: object
-  jsonschema.DefaultModel:
-    additionalProperties: true
-    type: object
-  jsonschema.Schema:
-    additionalProperties: true
+    - name
     type: object
   models.Group:
     properties:
@@ -1021,25 +1113,6 @@ definitions:
       network:
         type: string
     type: object
-  newmiguel.Node:
-    properties:
-      children:
-        items:
-          $ref: '#/definitions/newmiguel.Node'
-        type: array
-      diff_type:
-        type: string
-      from:
-        type: object
-      name:
-        type: string
-      prim:
-        type: string
-      type:
-        type: string
-      value:
-        type: object
-    type: object
   operation.DAppStats:
     properties:
       txs:
@@ -1048,6 +1121,17 @@ definitions:
         type: integer
       volume:
         type: integer
+    type: object
+  tezerrors.Error:
+    properties:
+      descr:
+        type: string
+      id:
+        type: string
+      kind:
+        type: string
+      title:
+        type: string
     type: object
   tezosdomain.ReverseTezosDomain:
     properties:
@@ -1075,115 +1159,6 @@ definitions:
       timestamp:
         type: string
     type: object
-  transfer.Pageable:
-    properties:
-      last_id:
-        type: string
-      total:
-        type: integer
-      transfers:
-        items:
-          $ref: '#/definitions/transfer.Transfer'
-        type: array
-    type: object
-  transfer.Transfer:
-    properties:
-      amount:
-        type: number
-      contract:
-        type: string
-      counter:
-        type: integer
-      from:
-        type: string
-      hash:
-        type: string
-      indexed_time:
-        type: integer
-      initiator:
-        type: string
-      level:
-        type: integer
-      network:
-        type: string
-      nonce:
-        type: integer
-      parent:
-        type: string
-      status:
-        type: string
-      timestamp:
-        type: string
-      to:
-        type: string
-      token_id:
-        type: integer
-    type: object
-  tzip.DApp:
-    properties:
-      agora_qa_post_id:
-        type: integer
-      agora_review_post_id:
-        type: integer
-      authors:
-        items:
-          type: string
-        type: array
-      categories:
-        items:
-          type: string
-        type: array
-      contracts:
-        items:
-          $ref: '#/definitions/tzip.DAppContract'
-        type: array
-      dex_tokens:
-        items:
-          $ref: '#/definitions/tzip.DexToken'
-        type: array
-      full_description:
-        type: string
-      interfaces:
-        items:
-          type: string
-        type: array
-      name:
-        type: string
-      order:
-        type: integer
-      pictures:
-        items:
-          $ref: '#/definitions/tzip.Picture'
-        type: array
-      short_description:
-        type: string
-      slug:
-        type: string
-      social_links:
-        items:
-          type: string
-        type: array
-      soon:
-        type: boolean
-      web_site:
-        type: string
-    type: object
-  tzip.DAppContract:
-    properties:
-      address:
-        type: string
-      dex_volume_entrypoints:
-        items:
-          type: string
-        type: array
-    type: object
-  tzip.DexToken:
-    properties:
-      contract:
-        type: string
-      token_id:
-        type: integer
-    type: object
   tzip.Event:
     properties:
       description:
@@ -1197,11 +1172,11 @@ definitions:
     type: object
   tzip.EventImplementation:
     properties:
-      michelson-extended-storage-event:
+      michelsonExtendedStorageEvent:
         $ref: '#/definitions/tzip.MichelsonExtendedStorageEvent'
-      michelson-initial-storage-event:
+      michelsonInitialStorageEvent:
         $ref: '#/definitions/tzip.MichelsonInitialStorageEvent'
-      michelson-parameter-event:
+      michelsonParameterEvent:
         $ref: '#/definitions/tzip.MichelsonParameterEvent'
     type: object
   tzip.License:
@@ -1225,7 +1200,7 @@ definitions:
         items:
           type: integer
         type: array
-      return-type:
+      returnType:
         items:
           type: integer
         type: array
@@ -1240,7 +1215,7 @@ definitions:
         items:
           type: integer
         type: array
-      return-type:
+      returnType:
         items:
           type: integer
         type: array
@@ -1259,17 +1234,10 @@ definitions:
         items:
           type: integer
         type: array
-      return-type:
+      returnType:
         items:
           type: integer
         type: array
-    type: object
-  tzip.Picture:
-    properties:
-      link:
-        type: string
-      type:
-        type: string
     type: object
   tzip.Sections:
     properties:
@@ -1281,54 +1249,9 @@ definitions:
         items:
           type: integer
         type: array
-      return-type:
+      returnType:
         items:
           type: integer
-        type: array
-    type: object
-  tzip.TZIP:
-    properties:
-      address:
-        type: string
-      authors:
-        items:
-          type: string
-        type: array
-      dapps:
-        items:
-          $ref: '#/definitions/tzip.DApp'
-        type: array
-      description:
-        type: string
-      domain:
-        $ref: '#/definitions/tezosdomain.ReverseTezosDomain'
-      events:
-        items:
-          $ref: '#/definitions/tzip.Event'
-        type: array
-      homepage:
-        type: string
-      interfaces:
-        items:
-          type: string
-        type: array
-      level:
-        type: integer
-      license:
-        $ref: '#/definitions/tzip.License'
-      name:
-        type: string
-      network:
-        type: string
-      slug:
-        type: string
-      timestamp:
-        type: string
-      version:
-        type: string
-      views:
-        items:
-          $ref: '#/definitions/tzip.View'
         type: array
     type: object
   tzip.View:
@@ -1344,7 +1267,7 @@ definitions:
     type: object
   tzip.ViewImplementation:
     properties:
-      michelson-storage-view:
+      michelsonStorageView:
         $ref: '#/definitions/tzip.Sections'
     type: object
 info:
@@ -1366,6 +1289,18 @@ paths:
       description: Show contract`s tokens transfers.
       operationId: get-contract-transfers
       parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: KT address
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: address
+        required: true
+        type: string
       - description: Transfers count
         in: query
         name: size
@@ -1458,7 +1393,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/tzip.TZIP'
+            $ref: '#/definitions/handlers.TZIPResponse'
         "204":
           description: No Content
           schema:
@@ -1498,10 +1433,6 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/handlers.GetBigMapResponse'
-        "204":
-          description: No Content
-          schema:
-            $ref: '#/definitions/gin.H'
         "400":
           description: Bad Request
           schema:
@@ -1616,10 +1547,15 @@ paths:
         in: query
         name: size
         type: integer
-      - description: Level
+      - description: Max level filter
         in: query
         minimum: 0
-        name: level
+        name: max_level
+        type: integer
+      - description: Min level filter
+        in: query
+        minimum: 0
+        name: min_level
         type: integer
       produces:
       - application/json
@@ -1747,6 +1683,14 @@ paths:
         name: address
         required: true
         type: string
+      - description: Protocol
+        in: query
+        name: protocol
+        type: string
+      - description: Level
+        in: query
+        name: level
+        type: integer
       produces:
       - application/json
       responses:
@@ -2103,6 +2047,10 @@ paths:
         name: address
         required: true
         type: string
+      - description: Manager
+        in: query
+        name: manager
+        type: string
       - description: Offset
         in: query
         name: offset
@@ -2203,7 +2151,9 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/newmiguel.Node'
+            items:
+              $ref: '#/definitions/ast.MiguelNode'
+            type: array
         "400":
           description: Bad Request
           schema:
@@ -2464,7 +2414,9 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/gin.H'
+            items:
+              $ref: '#/definitions/ast.MiguelNode'
+            type: array
         "400":
           description: Bad Request
           schema:
@@ -2671,6 +2623,10 @@ paths:
         name: hash
         required: true
         type: string
+      - description: Search operation in mempool or not
+        in: query
+        name: with_mempool
+        type: boolean
       produces:
       - application/json
       responses:
@@ -2697,6 +2653,11 @@ paths:
       - application/json
       description: Get random contract with 2 or more operations
       operationId: get-random-contract
+      parameters:
+      - description: Network
+        in: query
+        name: network
+        type: string
       produces:
       - application/json
       responses:
@@ -3030,11 +2991,6 @@ paths:
         name: period
         required: true
         type: string
-      - description: Comma-separated contract addresses
-        in: path
-        name: addresses
-        required: true
-        type: string
       - description: KT address
         in: path
         maxLength: 36
@@ -3056,7 +3012,7 @@ paths:
           schema:
             items:
               items:
-                type: integer
+                type: number
               type: array
             type: array
         "400":
@@ -3124,7 +3080,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/transfer.Pageable'
+            $ref: '#/definitions/handlers.TransferResponse'
         "400":
           description: Bad Request
           schema:

@@ -6,7 +6,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/tidwall/gjson"
@@ -19,6 +20,11 @@ const (
 	keySymbol   = "symbol"
 	keyName     = "name"
 	keyDecimals = "decimals"
+)
+
+// Empty key name
+const (
+	EmptyStringKey = "@@empty"
 )
 
 // TokenMetadata -
@@ -72,11 +78,8 @@ func (m *TokenMetadata) Parse(value gjson.Result, address string, ptr int64) err
 
 		switch key {
 		case "":
-			decoded, err := hex.DecodeString(value)
-			if err != nil {
-				return err
-			}
-			m.Link = string(decoded)
+			m.Link = forge.DecodeString(value)
+			m.Extras[EmptyStringKey] = m.Link
 		case keySymbol:
 			decoded, err := hex.DecodeString(value)
 			if err != nil {
@@ -100,11 +103,7 @@ func (m *TokenMetadata) Parse(value gjson.Result, address string, ptr int64) err
 			}
 			m.Name = string(decoded)
 		default:
-			decoded, err := hex.DecodeString(value)
-			if err != nil {
-				m.Extras[key] = value
-			}
-			m.Extras[key] = string(decoded)
+			m.Extras[key] = forge.DecodeString(value)
 		}
 	}
 	return nil

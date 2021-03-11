@@ -21,7 +21,9 @@ func TestTokenMetadata_Parse(t *testing.T) {
 			want: &TokenMetadata{
 				Link:    "ipfs://QmT63cK5XJiCdPGCjXjRabcAgdjxxuqMMgU6yAmLnaxEZ5",
 				TokenID: 0,
-				Extras:  make(map[string]interface{}),
+				Extras: map[string]interface{}{
+					"@@empty": "ipfs://QmT63cK5XJiCdPGCjXjRabcAgdjxxuqMMgU6yAmLnaxEZ5",
+				},
 			},
 		}, {
 			name:    "test 2",
@@ -41,6 +43,7 @@ func TestTokenMetadata_Parse(t *testing.T) {
 			want: &TokenMetadata{
 				TokenID: 2,
 				Extras: map[string]interface{}{
+					"@@empty": "tezos-storage:content",
 					"content": "{\"name\": \"Name\", \"symbol\": \"SMB\", \"decimals\": 6}",
 				},
 				Link: "tezos-storage:content",

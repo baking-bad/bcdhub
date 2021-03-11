@@ -123,7 +123,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/tzip.TZIP"
+                            "$ref": "#/definitions/handlers.TZIPResponse"
                         }
                     },
                     "204": {
@@ -182,12 +182,6 @@ var doc = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/handlers.GetBigMapResponse"
-                        }
-                    },
-                    "204": {
-                        "description": "No Content",
-                        "schema": {
-                            "$ref": "#/definitions/gin.H"
                         }
                     },
                     "400": {
@@ -365,8 +359,15 @@ var doc = `{
                     {
                         "minimum": 0,
                         "type": "integer",
-                        "description": "Level",
-                        "name": "level",
+                        "description": "Max level filter",
+                        "name": "max_level",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "description": "Min level filter",
+                        "name": "min_level",
                         "in": "query"
                     }
                 ],
@@ -552,6 +553,18 @@ var doc = `{
                         "name": "address",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Protocol",
+                        "name": "protocol",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Level",
+                        "name": "level",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1075,6 +1088,12 @@ var doc = `{
                         "required": true
                     },
                     {
+                        "type": "string",
+                        "description": "Manager",
+                        "name": "manager",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
                         "description": "Offset",
                         "name": "offset",
@@ -1217,7 +1236,10 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/newmiguel.Node"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/ast.MiguelNode"
+                            }
                         }
                     },
                     "400": {
@@ -1598,7 +1620,10 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/ast.MiguelNode"
+                            }
                         }
                     },
                     "400": {
@@ -1909,6 +1934,12 @@ var doc = `{
                         "name": "hash",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Search operation in mempool or not",
+                        "name": "with_mempool",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1950,6 +1981,14 @@ var doc = `{
                 ],
                 "summary": "Show random contract",
                 "operationId": "get-random-contract",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -2433,13 +2472,6 @@ var doc = `{
                         "required": true
                     },
                     {
-                        "type": "string",
-                        "description": "Comma-separated contract addresses",
-                        "name": "addresses",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
                         "maxLength": 36,
                         "minLength": 36,
                         "type": "string",
@@ -2465,7 +2497,7 @@ var doc = `{
                             "items": {
                                 "type": "array",
                                 "items": {
-                                    "type": "integer"
+                                    "type": "number"
                                 }
                             }
                         }
@@ -2564,7 +2596,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/transfer.Pageable"
+                            "$ref": "#/definitions/handlers.TransferResponse"
                         }
                     },
                     "400": {
@@ -2669,6 +2701,22 @@ var doc = `{
                 "operationId": "get-contract-transfers",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "description": "KT address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "type": "integer",
                         "description": "Transfers count",
                         "name": "size",
@@ -2711,30 +2759,108 @@ var doc = `{
         }
     },
     "definitions": {
-        "cerrors.Error": {
+        "ast.JSONModel": {
+            "type": "object",
+            "additionalProperties": true
+        },
+        "ast.JSONSchema": {
             "type": "object",
             "properties": {
-                "descr": {
+                "const": {
                     "type": "string"
                 },
-                "id": {
+                "default": {
+                    "type": "object"
+                },
+                "format": {
                     "type": "string"
                 },
-                "kind": {
+                "items": {
+                    "$ref": "#/definitions/ast.SchemaKey"
+                },
+                "maxLength": {
+                    "type": "integer"
+                },
+                "minLength": {
+                    "type": "integer"
+                },
+                "oneOf": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ast.JSONSchema"
+                    }
+                },
+                "prim": {
+                    "type": "string"
+                },
+                "properties": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/ast.JSONSchema"
+                    }
+                },
+                "required": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "schemaKey": {
+                    "$ref": "#/definitions/ast.SchemaKey"
+                },
+                "tag": {
                     "type": "string"
                 },
                 "title": {
                     "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "x-itemTitle": {
+                    "type": "string"
                 }
             }
         },
-        "docstring.Typedef": {
+        "ast.MiguelNode": {
+            "type": "object",
+            "properties": {
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ast.MiguelNode"
+                    }
+                },
+                "diff_type": {
+                    "type": "string"
+                },
+                "from": {
+                    "type": "object"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "prim": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "object"
+                }
+            }
+        },
+        "ast.SchemaKey": {
+            "type": "object"
+        },
+        "ast.Typedef": {
             "type": "object",
             "properties": {
                 "args": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/docstring.TypedefArg"
+                        "$ref": "#/definitions/ast.TypedefArg"
                     }
                 },
                 "name": {
@@ -2742,10 +2868,16 @@ var doc = `{
                 },
                 "type": {
                     "type": "string"
+                },
+                "typedef": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ast.Typedef"
+                    }
                 }
             }
         },
-        "docstring.TypedefArg": {
+        "ast.TypedefArg": {
             "type": "object",
             "properties": {
                 "key": {
@@ -3195,23 +3327,20 @@ var doc = `{
         "handlers.EntrypointSchema": {
             "type": "object",
             "properties": {
-                "bin_path": {
-                    "type": "string"
-                },
                 "default_model": {
                     "x-nullable": true,
-                    "$ref": "#/definitions/jsonschema.DefaultModel"
+                    "$ref": "#/definitions/ast.JSONModel"
                 },
                 "name": {
                     "type": "string"
                 },
                 "schema": {
-                    "$ref": "#/definitions/jsonschema.Schema"
+                    "$ref": "#/definitions/ast.JSONSchema"
                 },
                 "typedef": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/docstring.Typedef"
+                        "$ref": "#/definitions/ast.Typedef"
                     }
                 }
             }
@@ -3250,7 +3379,7 @@ var doc = `{
                 "typedef": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/docstring.Typedef"
+                        "$ref": "#/definitions/ast.Typedef"
                     },
                     "x-nullable": true
                 }
@@ -3370,7 +3499,7 @@ var doc = `{
                 "errors": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/cerrors.Error"
+                        "$ref": "#/definitions/tezerrors.Error"
                     },
                     "x-nullable": true
                 },
@@ -3741,6 +3870,63 @@ var doc = `{
                 }
             }
         },
+        "handlers.TZIPResponse": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "authors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "domain": {
+                    "$ref": "#/definitions/tezosdomain.ReverseTezosDomain"
+                },
+                "events": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/tzip.Event"
+                    }
+                },
+                "extras": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "homepage": {
+                    "type": "string"
+                },
+                "interfaces": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "license": {
+                    "$ref": "#/definitions/tzip.License"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "network": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                },
+                "views": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/tzip.View"
+                    }
+                }
+            }
+        },
         "handlers.Token": {
             "type": "object",
             "properties": {
@@ -3749,11 +3935,6 @@ var doc = `{
                 },
                 "decimals": {
                     "type": "integer",
-                    "x-nullable": true
-                },
-                "extras": {
-                    "type": "object",
-                    "additionalProperties": true,
                     "x-nullable": true
                 },
                 "level": {
@@ -3777,6 +3958,11 @@ var doc = `{
                 "token_id": {
                     "type": "integer"
                 },
+                "token_info": {
+                    "type": "object",
+                    "additionalProperties": true,
+                    "x-nullable": true
+                },
                 "transfered": {
                     "type": "number"
                 },
@@ -3799,11 +3985,6 @@ var doc = `{
                     "type": "integer",
                     "x-nullable": true
                 },
-                "extras": {
-                    "type": "object",
-                    "additionalProperties": true,
-                    "x-nullable": true
-                },
                 "level": {
                     "type": "integer",
                     "x-nullable": true
@@ -3821,6 +4002,11 @@ var doc = `{
                 },
                 "token_id": {
                     "type": "integer"
+                },
+                "token_info": {
+                    "type": "object",
+                    "additionalProperties": true,
+                    "x-nullable": true
                 },
                 "volume_24_hours": {
                     "type": "number",
@@ -3890,11 +4076,6 @@ var doc = `{
                     "type": "integer",
                     "x-nullable": true
                 },
-                "extras": {
-                    "type": "object",
-                    "additionalProperties": true,
-                    "x-nullable": true
-                },
                 "level": {
                     "type": "integer",
                     "x-nullable": true
@@ -3912,6 +4093,11 @@ var doc = `{
                 },
                 "token_id": {
                     "type": "integer"
+                },
+                "token_info": {
+                    "type": "object",
+                    "additionalProperties": true,
+                    "x-nullable": true
                 },
                 "volume_24_hours": {
                     "type": "number",
@@ -3938,7 +4124,7 @@ var doc = `{
                     "x-nullable": true
                 },
                 "amount": {
-                    "type": "number"
+                    "type": "string"
                 },
                 "contract": {
                     "type": "string"
@@ -3973,10 +4159,12 @@ var doc = `{
                     "type": "string"
                 },
                 "nonce": {
-                    "type": "integer"
+                    "type": "integer",
+                    "x-nullable": true
                 },
                 "parent": {
-                    "type": "string"
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "status": {
                     "type": "string"
@@ -4003,6 +4191,10 @@ var doc = `{
         "handlers.TransferResponse": {
             "type": "object",
             "properties": {
+                "last_id": {
+                    "type": "string",
+                    "x-nullable": true
+                },
                 "total": {
                     "type": "integer"
                 },
@@ -4018,7 +4210,8 @@ var doc = `{
             "type": "object",
             "properties": {
                 "default_model": {
-                    "$ref": "#/definitions/jsonschema.DefaultModel"
+                    "type": "object",
+                    "x-nullable": true
                 },
                 "description": {
                     "type": "string"
@@ -4030,12 +4223,12 @@ var doc = `{
                     "type": "string"
                 },
                 "schema": {
-                    "$ref": "#/definitions/jsonschema.Schema"
+                    "$ref": "#/definitions/ast.JSONSchema"
                 },
                 "typedef": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/docstring.Typedef"
+                        "$ref": "#/definitions/ast.Typedef"
                     }
                 }
             }
@@ -4075,18 +4268,18 @@ var doc = `{
         "handlers.getEntrypointDataRequest": {
             "type": "object",
             "required": [
-                "bin_path",
-                "data"
+                "data",
+                "name"
             ],
             "properties": {
-                "bin_path": {
-                    "type": "string"
-                },
                 "data": {
                     "type": "object",
                     "additionalProperties": true
                 },
                 "format": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }
@@ -4094,15 +4287,12 @@ var doc = `{
         "handlers.runCodeRequest": {
             "type": "object",
             "required": [
-                "bin_path",
-                "data"
+                "data",
+                "name"
             ],
             "properties": {
                 "amount": {
                     "type": "integer"
-                },
-                "bin_path": {
-                    "type": "string"
                 },
                 "data": {
                     "type": "object",
@@ -4111,6 +4301,9 @@ var doc = `{
                 "gas_limit": {
                     "type": "integer"
                 },
+                "name": {
+                    "type": "string"
+                },
                 "sender": {
                     "type": "string"
                 },
@@ -4118,14 +4311,6 @@ var doc = `{
                     "type": "string"
                 }
             }
-        },
-        "jsonschema.DefaultModel": {
-            "type": "object",
-            "additionalProperties": true
-        },
-        "jsonschema.Schema": {
-            "type": "object",
-            "additionalProperties": true
         },
         "models.Group": {
             "type": "object",
@@ -4195,35 +4380,6 @@ var doc = `{
                 }
             }
         },
-        "newmiguel.Node": {
-            "type": "object",
-            "properties": {
-                "children": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/newmiguel.Node"
-                    }
-                },
-                "diff_type": {
-                    "type": "string"
-                },
-                "from": {
-                    "type": "object"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "prim": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                },
-                "value": {
-                    "type": "object"
-                }
-            }
-        },
         "operation.DAppStats": {
             "type": "object",
             "properties": {
@@ -4235,6 +4391,23 @@ var doc = `{
                 },
                 "volume": {
                     "type": "integer"
+                }
+            }
+        },
+        "tezerrors.Error": {
+            "type": "object",
+            "properties": {
+                "descr": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
                 }
             }
         },
@@ -4278,172 +4451,6 @@ var doc = `{
                 }
             }
         },
-        "transfer.Pageable": {
-            "type": "object",
-            "properties": {
-                "last_id": {
-                    "type": "string"
-                },
-                "total": {
-                    "type": "integer"
-                },
-                "transfers": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/transfer.Transfer"
-                    }
-                }
-            }
-        },
-        "transfer.Transfer": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "type": "number"
-                },
-                "contract": {
-                    "type": "string"
-                },
-                "counter": {
-                    "type": "integer"
-                },
-                "from": {
-                    "type": "string"
-                },
-                "hash": {
-                    "type": "string"
-                },
-                "indexed_time": {
-                    "type": "integer"
-                },
-                "initiator": {
-                    "type": "string"
-                },
-                "level": {
-                    "type": "integer"
-                },
-                "network": {
-                    "type": "string"
-                },
-                "nonce": {
-                    "type": "integer"
-                },
-                "parent": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "string"
-                },
-                "to": {
-                    "type": "string"
-                },
-                "token_id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "tzip.DApp": {
-            "type": "object",
-            "properties": {
-                "agora_qa_post_id": {
-                    "type": "integer"
-                },
-                "agora_review_post_id": {
-                    "type": "integer"
-                },
-                "authors": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "categories": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "contracts": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/tzip.DAppContract"
-                    }
-                },
-                "dex_tokens": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/tzip.DexToken"
-                    }
-                },
-                "full_description": {
-                    "type": "string"
-                },
-                "interfaces": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "name": {
-                    "type": "string"
-                },
-                "order": {
-                    "type": "integer"
-                },
-                "pictures": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/tzip.Picture"
-                    }
-                },
-                "short_description": {
-                    "type": "string"
-                },
-                "slug": {
-                    "type": "string"
-                },
-                "social_links": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "soon": {
-                    "type": "boolean"
-                },
-                "web_site": {
-                    "type": "string"
-                }
-            }
-        },
-        "tzip.DAppContract": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "type": "string"
-                },
-                "dex_volume_entrypoints": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "tzip.DexToken": {
-            "type": "object",
-            "properties": {
-                "contract": {
-                    "type": "string"
-                },
-                "token_id": {
-                    "type": "integer"
-                }
-            }
-        },
         "tzip.Event": {
             "type": "object",
             "properties": {
@@ -4464,13 +4471,13 @@ var doc = `{
         "tzip.EventImplementation": {
             "type": "object",
             "properties": {
-                "michelson-extended-storage-event": {
+                "michelsonExtendedStorageEvent": {
                     "$ref": "#/definitions/tzip.MichelsonExtendedStorageEvent"
                 },
-                "michelson-initial-storage-event": {
+                "michelsonInitialStorageEvent": {
                     "$ref": "#/definitions/tzip.MichelsonInitialStorageEvent"
                 },
-                "michelson-parameter-event": {
+                "michelsonParameterEvent": {
                     "$ref": "#/definitions/tzip.MichelsonParameterEvent"
                 }
             }
@@ -4507,7 +4514,7 @@ var doc = `{
                         "type": "integer"
                     }
                 },
-                "return-type": {
+                "returnType": {
                     "type": "array",
                     "items": {
                         "type": "integer"
@@ -4530,7 +4537,7 @@ var doc = `{
                         "type": "integer"
                     }
                 },
-                "return-type": {
+                "returnType": {
                     "type": "array",
                     "items": {
                         "type": "integer"
@@ -4559,22 +4566,11 @@ var doc = `{
                         "type": "integer"
                     }
                 },
-                "return-type": {
+                "returnType": {
                     "type": "array",
                     "items": {
                         "type": "integer"
                     }
-                }
-            }
-        },
-        "tzip.Picture": {
-            "type": "object",
-            "properties": {
-                "link": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
                 }
             }
         },
@@ -4593,78 +4589,10 @@ var doc = `{
                         "type": "integer"
                     }
                 },
-                "return-type": {
+                "returnType": {
                     "type": "array",
                     "items": {
                         "type": "integer"
-                    }
-                }
-            }
-        },
-        "tzip.TZIP": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "type": "string"
-                },
-                "authors": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "dapps": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/tzip.DApp"
-                    }
-                },
-                "description": {
-                    "type": "string"
-                },
-                "domain": {
-                    "$ref": "#/definitions/tezosdomain.ReverseTezosDomain"
-                },
-                "events": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/tzip.Event"
-                    }
-                },
-                "homepage": {
-                    "type": "string"
-                },
-                "interfaces": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "level": {
-                    "type": "integer"
-                },
-                "license": {
-                    "$ref": "#/definitions/tzip.License"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "network": {
-                    "type": "string"
-                },
-                "slug": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "string"
-                },
-                "version": {
-                    "type": "string"
-                },
-                "views": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/tzip.View"
                     }
                 }
             }
@@ -4689,7 +4617,7 @@ var doc = `{
         "tzip.ViewImplementation": {
             "type": "object",
             "properties": {
-                "michelson-storage-view": {
+                "michelsonStorageView": {
                     "$ref": "#/definitions/tzip.Sections"
                 }
             }

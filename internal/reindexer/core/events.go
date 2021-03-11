@@ -3,7 +3,7 @@ package core
 import (
 	"strings"
 
-	constants "github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	constants "github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/restream/reindexer"
 )

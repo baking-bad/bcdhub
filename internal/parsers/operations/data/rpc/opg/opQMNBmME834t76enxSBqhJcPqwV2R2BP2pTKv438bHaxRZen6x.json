@@ -1,1 +1,400 @@
-{"protocol":"PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb","chain_id":"NetXjD3HPJJjmcd","hash":"opQMNBmME834t76enxSBqhJcPqwV2R2BP2pTKv438bHaxRZen6x","branch":"BLYntWHzaTZFq2JS7ZoSsGB5sSK34ETXsjuVLrHPR23qu1g8XJu","contents":[{"kind":"transaction","source":"tz1djN1zPWUYpanMS1YhKJ2EmFSYs6qjf4bW","fee":"62628","counter":"554732","gas_limit":"622830","storage_limit":"154","amount":"0","destination":"KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ","parameters":{"entrypoint":"mint","value":{"prim":"Pair","args":[{"string":"tz1XvMBRHwmXtXS2K6XYZdmcc5kdwB9STFJu"},{"int":"8500"}]}},"metadata":{"balance_updates":[{"kind":"contract","contract":"tz1djN1zPWUYpanMS1YhKJ2EmFSYs6qjf4bW","change":"-62628"},{"kind":"freezer","category":"fees","delegate":"tz1RomaiWJV3NFDZWTMVR2aEeHknsn3iF5Gi","cycle":188,"change":"62628"}],"operation_result":{"status":"applied","storage":{"prim":"Pair","args":[{"prim":"Pair","args":[{"prim":"Pair","args":[{"bytes":"0000c67479d5c0961a0fcac5c13a1a94b56a37236e98"},{"prim":"Pair","args":[{"int":"2417"},{"int":"2"}]}]},{"prim":"Pair","args":[{"prim":"None"},{"prim":"Pair","args":[{"prim":"Some","args":[{"bytes":"015e691d7d78f7738e78e92379b54979738846e2ea00"}]},{"bytes":"01440ed695906addcb6aa4681c816824db9562475700"}]}]}]},{"prim":"Pair","args":[{"prim":"Pair","args":[{"string":"TezosTkNext"},{"prim":"Pair","args":[{"int":"2415"},{"prim":"False"}]}]},{"prim":"Pair","args":[{"prim":"Pair","args":[[],{"string":"euroTz"}]},{"prim":"Pair","args":[{"int":"6000"},[]]}]}]}]},"consumed_gas":"237947","storage_size":"9011"},"internal_operation_results":[{"kind":"transaction","source":"KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ","nonce":0,"amount":"0","destination":"KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU","parameters":{"entrypoint":"mint","value":{"prim":"Pair","args":[{"bytes":"000086b7990605548cb13db091c7a68a46a7aef3d0a2"},{"int":"8500"}]}},"result":{"status":"applied","storage":{"prim":"Pair","args":[{"int":"2416"},{"prim":"Pair","args":[{"prim":"Some","args":[{"bytes":"013718908e90796befd5f7e1fa7312e6acc12314e500"}]},{"int":"14500"}]}]},"big_map_diff":[{"action":"copy","source_big_map":"2416","destination_big_map":"-1"},{"action":"update","big_map":"-1","key_hash":"expruMJ3MpDTTKCd3jWWGN1ubrFT3y3qbZRQ8QyfAa1X2JWQPS6knk","key":{"bytes":"000086b7990605548cb13db091c7a68a46a7aef3d0a2"},"value":{"prim":"Pair","args":[[],{"int":"8500"}]}},{"action":"update","big_map":"2416","key_hash":"expruMJ3MpDTTKCd3jWWGN1ubrFT3y3qbZRQ8QyfAa1X2JWQPS6knk","key":{"bytes":"000086b7990605548cb13db091c7a68a46a7aef3d0a2"},"value":{"prim":"Pair","args":[[],{"int":"8500"}]}}],"balance_updates":[{"kind":"contract","contract":"tz1djN1zPWUYpanMS1YhKJ2EmFSYs6qjf4bW","change":"-77000"}],"consumed_gas":"169674","storage_size":"1113","paid_storage_size_diff":"77"}},{"kind":"transaction","source":"KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU","nonce":1,"amount":"0","destination":"KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ","parameters":{"entrypoint":"receiveDataFromStandardSC","value":{"prim":"Pair","args":[{"int":"-1"},{"int":"14500"}]}},"result":{"status":"applied","storage":{"prim":"Pair","args":[{"prim":"Pair","args":[{"prim":"Pair","args":[{"bytes":"0000c67479d5c0961a0fcac5c13a1a94b56a37236e98"},{"prim":"Pair","args":[{"int":"2418"},{"int":"2"}]}]},{"prim":"Pair","args":[{"prim":"None"},{"prim":"Pair","args":[{"prim":"Some","args":[{"bytes":"015e691d7d78f7738e78e92379b54979738846e2ea00"}]},{"bytes":"01440ed695906addcb6aa4681c816824db9562475700"}]}]}]},{"prim":"Pair","args":[{"prim":"Pair","args":[{"string":"TezosTkNext"},{"prim":"Pair","args":[{"int":"2415"},{"prim":"False"}]}]},{"prim":"Pair","args":[{"prim":"Pair","args":[[],{"string":"euroTz"}]},{"prim":"Pair","args":[{"int":"14500"},[]]}]}]}]},"big_map_diff":[{"action":"remove","big_map":"2417"},{"action":"copy","source_big_map":"-1","destination_big_map":"2418"}],"balance_updates":[{"kind":"contract","contract":"tz1djN1zPWUYpanMS1YhKJ2EmFSYs6qjf4bW","change":"-77000"}],"consumed_gas":"215109","storage_size":"9088","paid_storage_size_diff":"77"}}]}}],"signature":"sigYspLPxHhnLhmspGWrGdStkoUgmbT7P3UcEaygLddWdTTAFg19EMrxmsw5Y7jt89SyoA45zdKuD8S3NAtTRviniQ5xF2iT"}
+{
+    "protocol": "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+    "chain_id": "NetXjD3HPJJjmcd",
+    "hash": "opQMNBmME834t76enxSBqhJcPqwV2R2BP2pTKv438bHaxRZen6x",
+    "branch": "BLYntWHzaTZFq2JS7ZoSsGB5sSK34ETXsjuVLrHPR23qu1g8XJu",
+    "contents": [
+        {
+            "kind": "transaction",
+            "source": "tz1djN1zPWUYpanMS1YhKJ2EmFSYs6qjf4bW",
+            "fee": "62628",
+            "counter": "554732",
+            "gas_limit": "622830",
+            "storage_limit": "154",
+            "amount": "0",
+            "destination": "KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ",
+            "parameters": {
+                "entrypoint": "mint",
+                "value": {
+                    "prim": "Pair",
+                    "args": [
+                        {
+                            "string": "tz1XvMBRHwmXtXS2K6XYZdmcc5kdwB9STFJu"
+                        },
+                        {
+                            "int": "8500"
+                        }
+                    ]
+                }
+            },
+            "metadata": {
+                "balance_updates": [
+                    {
+                        "kind": "contract",
+                        "contract": "tz1djN1zPWUYpanMS1YhKJ2EmFSYs6qjf4bW",
+                        "change": "-62628"
+                    },
+                    {
+                        "kind": "freezer",
+                        "category": "fees",
+                        "delegate": "tz1RomaiWJV3NFDZWTMVR2aEeHknsn3iF5Gi",
+                        "cycle": 188,
+                        "change": "62628"
+                    }
+                ],
+                "operation_result": {
+                    "status": "applied",
+                    "storage": {
+                        "prim": "Pair",
+                        "args": [
+                            {
+                                "prim": "Pair",
+                                "args": [
+                                    {
+                                        "prim": "Pair",
+                                        "args": [
+                                            {
+                                                "bytes": "0000c67479d5c0961a0fcac5c13a1a94b56a37236e98"
+                                            },
+                                            {
+                                                "prim": "Pair",
+                                                "args": [
+                                                    {
+                                                        "int": "2417"
+                                                    },
+                                                    {
+                                                        "int": "2"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "prim": "Pair",
+                                        "args": [
+                                            {
+                                                "prim": "None"
+                                            },
+                                            {
+                                                "prim": "Pair",
+                                                "args": [
+                                                    {
+                                                        "prim": "Some",
+                                                        "args": [
+                                                            {
+                                                                "bytes": "015e691d7d78f7738e78e92379b54979738846e2ea00"
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "bytes": "01440ed695906addcb6aa4681c816824db9562475700"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "prim": "Pair",
+                                "args": [
+                                    {
+                                        "prim": "Pair",
+                                        "args": [
+                                            {
+                                                "string": "TezosTkNext"
+                                            },
+                                            {
+                                                "prim": "Pair",
+                                                "args": [
+                                                    {
+                                                        "int": "2415"
+                                                    },
+                                                    {
+                                                        "prim": "False"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "prim": "Pair",
+                                        "args": [
+                                            {
+                                                "prim": "Pair",
+                                                "args": [
+                                                    [],
+                                                    {
+                                                        "string": "euroTz"
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "prim": "Pair",
+                                                "args": [
+                                                    {
+                                                        "int": "6000"
+                                                    },
+                                                    []
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "consumed_gas": "237947",
+                    "storage_size": "9011"
+                },
+                "internal_operation_results": [
+                    {
+                        "kind": "transaction",
+                        "source": "KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ",
+                        "nonce": 0,
+                        "amount": "0",
+                        "destination": "KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU",
+                        "parameters": {
+                            "entrypoint": "mint",
+                            "value": {
+                                "prim": "Pair",
+                                "args": [
+                                    {
+                                        "bytes": "000086b7990605548cb13db091c7a68a46a7aef3d0a2"
+                                    },
+                                    {
+                                        "int": "8500"
+                                    }
+                                ]
+                            }
+                        },
+                        "result": {
+                            "status": "applied",
+                            "storage": {
+                                "prim": "Pair",
+                                "args": [
+                                    {
+                                        "int": "2416"
+                                    },
+                                    {
+                                        "prim": "Pair",
+                                        "args": [
+                                            {
+                                                "prim": "Some",
+                                                "args": [
+                                                    {
+                                                        "bytes": "013718908e90796befd5f7e1fa7312e6acc12314e500"
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "int": "14500"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            "big_map_diff": [
+                                {
+                                    "action": "copy",
+                                    "source_big_map": "2416",
+                                    "destination_big_map": "-1"
+                                },
+                                {
+                                    "action": "update",
+                                    "big_map": "-1",
+                                    "key_hash": "expruMJ3MpDTTKCd3jWWGN1ubrFT3y3qbZRQ8QyfAa1X2JWQPS6knk",
+                                    "key": {
+                                        "bytes": "000086b7990605548cb13db091c7a68a46a7aef3d0a2"
+                                    },
+                                    "value": {
+                                        "prim": "Pair",
+                                        "args": [
+                                            [],
+                                            {
+                                                "int": "8500"
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "action": "update",
+                                    "big_map": "2416",
+                                    "key_hash": "expruMJ3MpDTTKCd3jWWGN1ubrFT3y3qbZRQ8QyfAa1X2JWQPS6knk",
+                                    "key": {
+                                        "bytes": "000086b7990605548cb13db091c7a68a46a7aef3d0a2"
+                                    },
+                                    "value": {
+                                        "prim": "Pair",
+                                        "args": [
+                                            [],
+                                            {
+                                                "int": "8500"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ],
+                            "balance_updates": [
+                                {
+                                    "kind": "contract",
+                                    "contract": "tz1djN1zPWUYpanMS1YhKJ2EmFSYs6qjf4bW",
+                                    "change": "-77000"
+                                }
+                            ],
+                            "consumed_gas": "169674",
+                            "storage_size": "1113",
+                            "paid_storage_size_diff": "77"
+                        }
+                    },
+                    {
+                        "kind": "transaction",
+                        "source": "KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU",
+                        "nonce": 1,
+                        "amount": "0",
+                        "destination": "KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ",
+                        "parameters": {
+                            "entrypoint": "receiveDataFromStandardSC",
+                            "value": {
+                                "prim": "Pair",
+                                "args": [
+                                    {
+                                        "int": "-1"
+                                    },
+                                    {
+                                        "int": "14500"
+                                    }
+                                ]
+                            }
+                        },
+                        "result": {
+                            "status": "applied",
+                            "storage": {
+                                "prim": "Pair",
+                                "args": [
+                                    {
+                                        "prim": "Pair",
+                                        "args": [
+                                            {
+                                                "prim": "Pair",
+                                                "args": [
+                                                    {
+                                                        "bytes": "0000c67479d5c0961a0fcac5c13a1a94b56a37236e98"
+                                                    },
+                                                    {
+                                                        "prim": "Pair",
+                                                        "args": [
+                                                            {
+                                                                "int": "2418"
+                                                            },
+                                                            {
+                                                                "int": "2"
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "prim": "Pair",
+                                                "args": [
+                                                    {
+                                                        "prim": "None"
+                                                    },
+                                                    {
+                                                        "prim": "Pair",
+                                                        "args": [
+                                                            {
+                                                                "prim": "Some",
+                                                                "args": [
+                                                                    {
+                                                                        "bytes": "015e691d7d78f7738e78e92379b54979738846e2ea00"
+                                                                    }
+                                                                ]
+                                                            },
+                                                            {
+                                                                "bytes": "01440ed695906addcb6aa4681c816824db9562475700"
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "prim": "Pair",
+                                        "args": [
+                                            {
+                                                "prim": "Pair",
+                                                "args": [
+                                                    {
+                                                        "string": "TezosTkNext"
+                                                    },
+                                                    {
+                                                        "prim": "Pair",
+                                                        "args": [
+                                                            {
+                                                                "int": "2415"
+                                                            },
+                                                            {
+                                                                "prim": "False"
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "prim": "Pair",
+                                                "args": [
+                                                    {
+                                                        "prim": "Pair",
+                                                        "args": [
+                                                            [],
+                                                            {
+                                                                "string": "euroTz"
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "prim": "Pair",
+                                                        "args": [
+                                                            {
+                                                                "int": "14500"
+                                                            },
+                                                            []
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            "big_map_diff": [
+                                {
+                                    "action": "remove",
+                                    "big_map": "2417"
+                                },
+                                {
+                                    "action": "copy",
+                                    "source_big_map": "-1",
+                                    "destination_big_map": "2418"
+                                }
+                            ],
+                            "balance_updates": [
+                                {
+                                    "kind": "contract",
+                                    "contract": "tz1djN1zPWUYpanMS1YhKJ2EmFSYs6qjf4bW",
+                                    "change": "-77000"
+                                }
+                            ],
+                            "consumed_gas": "215109",
+                            "storage_size": "9088",
+                            "paid_storage_size_diff": "77"
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "signature": "sigYspLPxHhnLhmspGWrGdStkoUgmbT7P3UcEaygLddWdTTAFg19EMrxmsw5Y7jt89SyoA45zdKuD8S3NAtTRviniQ5xF2iT"
+}

@@ -4,4 +4,5 @@ package tokenbalance
 const (
 	SingleAssetBalanceUpdates = "singleassetbalanceupdates"
 	MultiAssetBalanceUpdates  = "multiassetbalanceupdates"
+	NftAssetBalanceUpdates    = "nftassetbalanceupdates"
 )

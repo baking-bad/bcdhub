@@ -1,6 +1,7 @@
 package transfer
 
 import (
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 )
@@ -10,6 +11,9 @@ func UpdateTokenBalances(repo tokenbalance.Repository, transfers []*transfer.Tra
 	exists := make(map[string]*tokenbalance.TokenBalance)
 	updates := make([]*tokenbalance.TokenBalance, 0)
 	for i := range transfers {
+		if transfers[i].Status != consts.Applied {
+			continue
+		}
 		idFrom := transfers[i].GetFromTokenBalanceID()
 		if idFrom != "" {
 			if update, ok := exists[idFrom]; ok {

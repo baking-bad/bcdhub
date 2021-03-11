@@ -1,12 +1,12 @@
 package handlers
 
 import (
+	stdJSON "encoding/json"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
-	"github.com/baking-bad/bcdhub/internal/contractparser/docstring"
-	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
-	"github.com/baking-bad/bcdhub/internal/jsonschema"
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
+	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -15,7 +15,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
-	"github.com/tidwall/gjson"
 )
 
 // Error -
@@ -25,55 +24,39 @@ type Error struct {
 
 // Operation -
 type Operation struct {
-	Level                              int64            `json:"level,omitempty" extensions:"x-nullable"`
-	Fee                                int64            `json:"fee,omitempty" extensions:"x-nullable"`
-	Counter                            int64            `json:"counter,omitempty" extensions:"x-nullable"`
-	GasLimit                           int64            `json:"gas_limit,omitempty" extensions:"x-nullable"`
-	StorageLimit                       int64            `json:"storage_limit,omitempty" extensions:"x-nullable"`
-	Amount                             int64            `json:"amount,omitempty" extensions:"x-nullable"`
-	Balance                            int64            `json:"balance,omitempty" extensions:"x-nullable"`
-	Burned                             int64            `json:"burned,omitempty" extensions:"x-nullable"`
-	AllocatedDestinationContractBurned int64            `json:"allocated_destination_contract_burned,omitempty" extensions:"x-nullable"`
-	IndexedTime                        int64            `json:"-"`
-	ContentIndex                       int64            `json:"content_index"`
-	Errors                             []*cerrors.Error `json:"errors,omitempty" extensions:"x-nullable"`
-	Result                             *OperationResult `json:"result,omitempty" extensions:"x-nullable"`
-	Parameters                         interface{}      `json:"parameters,omitempty" extensions:"x-nullable"`
-	StorageDiff                        interface{}      `json:"storage_diff,omitempty" extensions:"x-nullable"`
-	RawMempool                         interface{}      `json:"rawMempool,omitempty" extensions:"x-nullable"`
-	Timestamp                          time.Time        `json:"timestamp"`
-	ID                                 string           `json:"id,omitempty" extensions:"x-nullable"`
-	Protocol                           string           `json:"protocol"`
-	Hash                               string           `json:"hash,omitempty" extensions:"x-nullable"`
-	Network                            string           `json:"network"`
-	Kind                               string           `json:"kind"`
-	Source                             string           `json:"source,omitempty" extensions:"x-nullable"`
-	SourceAlias                        string           `json:"source_alias,omitempty" extensions:"x-nullable"`
-	Destination                        string           `json:"destination,omitempty" extensions:"x-nullable"`
-	DestinationAlias                   string           `json:"destination_alias,omitempty" extensions:"x-nullable"`
-	PublicKey                          string           `json:"public_key,omitempty" extensions:"x-nullable"`
-	ManagerPubKey                      string           `json:"manager_pubkey,omitempty" extensions:"x-nullable"`
-	Delegate                           string           `json:"delegate,omitempty" extensions:"x-nullable"`
-	Status                             string           `json:"status"`
-	Entrypoint                         string           `json:"entrypoint,omitempty" extensions:"x-nullable"`
-	Internal                           bool             `json:"internal"`
-	Mempool                            bool             `json:"mempool"`
-}
-
-// ParseJSON -
-func (o *Operation) ParseJSON(raw gjson.Result) {
-	o.Status = raw.Get("status").String()
-	o.Kind = raw.Get("kind").String()
-	o.Source = raw.Get("source").String()
-	o.Fee = raw.Get("fee").Int()
-	o.Counter = raw.Get("counter").Int()
-	o.GasLimit = raw.Get("gas_limit").Int()
-	o.StorageLimit = raw.Get("storage_limit").Int()
-	o.Amount = raw.Get("amount").Int()
-	o.Destination = raw.Get("destination").String()
-	o.PublicKey = raw.Get("public_key").String()
-	o.ManagerPubKey = raw.Get("manager_pubkey").String()
-	o.Delegate = raw.Get("delegate").String()
+	Level                              int64              `json:"level,omitempty" extensions:"x-nullable"`
+	Fee                                int64              `json:"fee,omitempty" extensions:"x-nullable"`
+	Counter                            int64              `json:"counter,omitempty" extensions:"x-nullable"`
+	GasLimit                           int64              `json:"gas_limit,omitempty" extensions:"x-nullable"`
+	StorageLimit                       int64              `json:"storage_limit,omitempty" extensions:"x-nullable"`
+	Amount                             int64              `json:"amount,omitempty" extensions:"x-nullable"`
+	Balance                            int64              `json:"balance,omitempty" extensions:"x-nullable"`
+	Burned                             int64              `json:"burned,omitempty" extensions:"x-nullable"`
+	AllocatedDestinationContractBurned int64              `json:"allocated_destination_contract_burned,omitempty" extensions:"x-nullable"`
+	IndexedTime                        int64              `json:"-"`
+	ContentIndex                       int64              `json:"content_index"`
+	Errors                             []*tezerrors.Error `json:"errors,omitempty" extensions:"x-nullable"`
+	Result                             *OperationResult   `json:"result,omitempty" extensions:"x-nullable"`
+	Parameters                         interface{}        `json:"parameters,omitempty" extensions:"x-nullable"`
+	StorageDiff                        interface{}        `json:"storage_diff,omitempty" extensions:"x-nullable"`
+	RawMempool                         interface{}        `json:"rawMempool,omitempty" extensions:"x-nullable"`
+	Timestamp                          time.Time          `json:"timestamp"`
+	ID                                 string             `json:"id,omitempty" extensions:"x-nullable"`
+	Protocol                           string             `json:"protocol"`
+	Hash                               string             `json:"hash,omitempty" extensions:"x-nullable"`
+	Network                            string             `json:"network"`
+	Kind                               string             `json:"kind"`
+	Source                             string             `json:"source,omitempty" extensions:"x-nullable"`
+	SourceAlias                        string             `json:"source_alias,omitempty" extensions:"x-nullable"`
+	Destination                        string             `json:"destination,omitempty" extensions:"x-nullable"`
+	DestinationAlias                   string             `json:"destination_alias,omitempty" extensions:"x-nullable"`
+	PublicKey                          string             `json:"public_key,omitempty" extensions:"x-nullable"`
+	ManagerPubKey                      string             `json:"manager_pubkey,omitempty" extensions:"x-nullable"`
+	Delegate                           string             `json:"delegate,omitempty" extensions:"x-nullable"`
+	Status                             string             `json:"status"`
+	Entrypoint                         string             `json:"entrypoint,omitempty" extensions:"x-nullable"`
+	Internal                           bool               `json:"internal"`
+	Mempool                            bool               `json:"mempool"`
 }
 
 // FromModel -
@@ -301,13 +284,13 @@ type BigMapResponseItem struct {
 
 // GetBigMapResponse -
 type GetBigMapResponse struct {
-	Address       string              `json:"address"`
-	Network       string              `json:"network"`
-	Ptr           int64               `json:"ptr"`
-	ActiveKeys    uint                `json:"active_keys"`
-	TotalKeys     uint                `json:"total_keys"`
-	ContractAlias string              `json:"contract_alias,omitempty" extensions:"x-nullable"`
-	Typedef       []docstring.Typedef `json:"typedef,omitempty" extensions:"x-nullable"`
+	Address       string        `json:"address"`
+	Network       string        `json:"network"`
+	Ptr           int64         `json:"ptr"`
+	ActiveKeys    uint          `json:"active_keys"`
+	TotalKeys     uint          `json:"total_keys"`
+	ContractAlias string        `json:"contract_alias,omitempty" extensions:"x-nullable"`
+	Typedef       []ast.Typedef `json:"typedef,omitempty" extensions:"x-nullable"`
 }
 
 // Migration -
@@ -404,22 +387,22 @@ type NetworkStats struct {
 
 // SearchBigMapDiff -
 type SearchBigMapDiff struct {
-	Ptr       int64     `json:"ptr"`
-	Key       string    `json:"key"`
-	KeyHash   string    `json:"key_hash"`
-	Value     string    `json:"value"`
-	Level     int64     `json:"level"`
-	Address   string    `json:"address"`
-	Network   string    `json:"network"`
-	Timestamp time.Time `json:"timestamp"`
-	FoundBy   string    `json:"found_by"`
+	Ptr       int64              `json:"ptr"`
+	Key       string             `json:"key"`
+	KeyHash   string             `json:"key_hash"`
+	Value     stdJSON.RawMessage `json:"value"`
+	Level     int64              `json:"level"`
+	Address   string             `json:"address"`
+	Network   string             `json:"network"`
+	Timestamp time.Time          `json:"timestamp"`
+	FoundBy   string             `json:"found_by"`
 }
 
 // EntrypointSchema ;
 type EntrypointSchema struct {
-	docstring.EntrypointType
-	Schema       jsonschema.Schema       `json:"schema"`
-	DefaultModel jsonschema.DefaultModel `json:"default_model,omitempty" extensions:"x-nullable"`
+	ast.EntrypointType
+	Schema       *ast.JSONSchema `json:"schema"`
+	DefaultModel ast.JSONModel   `json:"default_model,omitempty" extensions:"x-nullable"`
 }
 
 // GetErrorLocationResponse -
@@ -736,10 +719,27 @@ type MetadataResponse struct {
 
 // ViewSchema ;
 type ViewSchema struct {
-	Type           []docstring.Typedef     `json:"typedef"`
-	Name           string                  `json:"name"`
-	Implementation int                     `json:"implementation"`
-	Description    string                  `json:"description"`
-	Schema         jsonschema.Schema       `json:"schema"`
-	DefaultModel   jsonschema.DefaultModel `json:"default_model,omitempty" extensions:"x-nullable"`
+	Type           []ast.Typedef   `json:"typedef"`
+	Name           string          `json:"name"`
+	Implementation int             `json:"implementation"`
+	Description    string          `json:"description"`
+	Schema         *ast.JSONSchema `json:"schema"`
+	DefaultModel   interface{}     `json:"default_model,omitempty" extensions:"x-nullable"`
+}
+
+// ForkResponse -
+type ForkResponse struct {
+	Script  stdJSON.RawMessage `json:"code"`
+	Storage stdJSON.RawMessage `json:"storage"`
+}
+
+// TZIPResponse -
+type TZIPResponse struct {
+	Address string                          `json:"address,omitempty"`
+	Network string                          `json:"network,omitempty"`
+	Domain  *tezosdomain.ReverseTezosDomain `json:"domain,omitempty"`
+	Extras  map[string]interface{}          `json:"extras,omitempty"`
+	Name    string                          `json:"name,omitempty"`
+	tzip.TZIP16
+	tzip.TZIP20
 }

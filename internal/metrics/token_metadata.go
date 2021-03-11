@@ -1,9 +1,8 @@
 package metrics
 
 import (
-	"fmt"
-
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -15,7 +14,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
 	"github.com/baking-bad/bcdhub/internal/parsers/tzip/tokens"
-	"github.com/pkg/errors"
 )
 
 // CreateTokenMetadata -
@@ -54,7 +52,7 @@ func (h *Handler) FixTokenMetadata(rpc noderpc.INode, sharePath string, contract
 	result := make([]models.Model, 0)
 
 	for _, tokenMetadata := range tokenMetadatas {
-		parser := tokens.NewParser(h.BigMapDiffs, h.Blocks, h.Protocol, h.Schema, h.Storage, rpc, sharePath, operation.Network, ipfs...)
+		parser := tokens.NewParser(h.BigMapDiffs, h.Blocks, h.Protocol, h.Storage, rpc, sharePath, operation.Network, ipfs...)
 		metadata, err := parser.Parse(tokenMetadata.Contract, operation.Level)
 		if err != nil {
 			return err
@@ -92,7 +90,7 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, network, contrac
 		return nil, err
 	}
 	if len(ops) != 1 {
-		return nil, errors.Errorf("Invalid operations count: len(ops) [%d] != 1", len(ops))
+		return nil, nil
 	}
 
 	origination := ops[0]
@@ -118,20 +116,48 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, network, contrac
 					return nil, err
 				}
 
-				ops, err := rpc.GetOperations(origination.Level)
+				ops, err := rpc.GetOPG(origination.Level)
 				if err != nil {
 					return nil, err
 				}
 
-				path := fmt.Sprintf(`#(hash=="%s")#.contents.%d.script.storage`, origination.Hash, origination.ContentIndex)
-				defattedStorage := ops.Get(path).Array()
-				if len(defattedStorage) == 0 {
-					return nil, fmt.Errorf("[ExecuteInitialStorageEvent] Empty storage")
+				var opg noderpc.OperationGroup
+				for k := range ops {
+					if ops[k].Hash == origination.Hash {
+						opg = ops[k]
+						break
+					}
+				}
+				if opg.Hash == "" {
+					continue
+				}
+
+				if len(opg.Contents) < int(origination.ContentIndex) {
+					continue
+				}
+
+				var script noderpc.Script
+				if err := json.Unmarshal(opg.Contents[origination.ContentIndex].Script, &script); err != nil {
+					return nil, err
+				}
+
+				storageType, err := script.Code.Storage.ToTypedAST()
+				if err != nil {
+					return nil, err
+				}
+
+				var storageData ast.UntypedAST
+				if err := json.Unmarshal(script.Storage, &storageData); err != nil {
+					return nil, err
+				}
+
+				if err := storageType.Settle(storageData); err != nil {
+					return nil, err
 				}
 
 				balances, err := events.Execute(rpc, event, events.Context{
 					Network:                  tzip.Network,
-					Parameters:               defattedStorage[0].String(),
+					Parameters:               storageType,
 					Source:                   origination.Source,
 					Initiator:                origination.Initiator,
 					Amount:                   origination.Amount,

@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/cmd/api/docs"
@@ -17,7 +16,6 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	"github.com/tidwall/gjson"
 	"gopkg.in/go-playground/validator.v9"
 )
 
@@ -34,12 +32,6 @@ func newApp() *app {
 	}
 
 	docs.SwaggerInfo.Host = cfg.API.SwaggerHost
-	gjson.AddModifier("upper", func(json, arg string) string {
-		return strings.ToUpper(json)
-	})
-	gjson.AddModifier("lower", func(json, arg string) string {
-		return strings.ToLower(json)
-	})
 
 	if cfg.API.SentryEnabled {
 		helpers.InitSentry(cfg.Sentry.Debug, cfg.Sentry.Environment, cfg.Sentry.URI)

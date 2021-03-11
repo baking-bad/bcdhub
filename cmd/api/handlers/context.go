@@ -4,8 +4,11 @@ import (
 	"github.com/baking-bad/bcdhub/cmd/api/oauth"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/gin-gonic/gin"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/karlseguin/ccache"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // Context -
 type Context struct {
@@ -31,9 +34,8 @@ func NewContext(cfg config.Config) (*Context, error) {
 		config.WithDatabase(cfg.DB),
 		config.WithShare(cfg.SharePath),
 		config.WithTzKTServices(cfg.TzKT),
-		config.WithLoadErrorDescriptions("data/errors.json"),
+		config.WithLoadErrorDescriptions(),
 		config.WithConfigCopy(cfg),
-		config.WithContractsInterfaces(),
 		config.WithRabbit(cfg.RabbitMQ, cfg.API.ProjectName, cfg.API.MQ),
 		config.WithPinata(cfg.API.Pinata),
 		config.WithTzipSchema("data/tzip-16-schema.json"),
