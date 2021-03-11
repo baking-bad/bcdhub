@@ -40,6 +40,18 @@ func (a *Alpha) ParseOrigination(content noderpc.Operation, operation operation.
 	}
 	bmd := make([]models.Model, 0)
 
+	var storageData struct {
+		Storage ast.UntypedAST `json:"storage"`
+	}
+
+	if err := json.Unmarshal(content.Script, &storageData); err != nil {
+		return RichStorage{Empty: true}, err
+	}
+
+	if err := storage.Settle(storageData.Storage); err != nil {
+		return RichStorage{Empty: true}, err
+	}
+
 	pair, ok := storage.Nodes[0].(*ast.Pair)
 	if ok {
 		bigMap, ok := pair.Args[0].(*ast.BigMap)
@@ -47,18 +59,6 @@ func (a *Alpha) ParseOrigination(content noderpc.Operation, operation operation.
 			result := content.GetResult()
 			if result == nil {
 				return RichStorage{Empty: true}, nil
-			}
-
-			var storageData struct {
-				Storage ast.UntypedAST `json:"storage"`
-			}
-
-			if err := json.Unmarshal(content.Script, &storageData); err != nil {
-				return RichStorage{Empty: true}, err
-			}
-
-			if err := storage.Settle(storageData.Storage); err != nil {
-				return RichStorage{Empty: true}, err
 			}
 
 			if err := bigMap.Data.Range(func(key, value ast.Comparable) (bool, error) {
