@@ -7,6 +7,7 @@ const (
 	DelegatorTag       = "delegator"
 	ChainAwareTag      = "CHAIN_ID"
 	CheckSigTag        = "CHECK_SIGNATURE"
+	SaplingTag         = "sapling"
 	FA1Tag             = "fa1"
 	FA12Tag            = "fa1-2"
 	FA2Tag             = "fa2"
