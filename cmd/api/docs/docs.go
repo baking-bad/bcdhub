@@ -1952,6 +1952,12 @@ var doc = `{
                             }
                         }
                     },
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
