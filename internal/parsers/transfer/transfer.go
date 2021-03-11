@@ -1,28 +1,32 @@
 package transfer
 
 import (
-	"fmt"
-
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/events"
+	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
-	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
-	"github.com/tidwall/gjson"
+	"github.com/baking-bad/bcdhub/internal/parsers/transfer/trees"
+
+	jsoniter "github.com/json-iterator/go"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // Parser -
 type Parser struct {
-	Schema  schema.Repository
 	Storage models.GeneralRepository
 
 	rpc        noderpc.INode
+	shareDir   string
 	events     TokenEvents
 	stackTrace *stacktrace.StackTrace
 
@@ -34,11 +38,11 @@ type Parser struct {
 }
 
 // NewParser -
-func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Repository, schemaRepo schema.Repository, storage models.GeneralRepository, opts ...ParserOption) (*Parser, error) {
+func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Repository, storage models.GeneralRepository, shareDir string, opts ...ParserOption) (*Parser, error) {
 	tp := &Parser{
-		rpc:     rpc,
-		Schema:  schemaRepo,
-		Storage: storage,
+		rpc:      rpc,
+		Storage:  storage,
+		shareDir: shareDir,
 	}
 
 	for i := range opts {
@@ -74,13 +78,12 @@ func (p *Parser) Parse(operation operation.Operation, operationModels []models.M
 	if impl, name, ok := p.events.GetByOperation(operation); ok {
 		return p.executeEvents(impl, name, operation, operationModels)
 	} else if operation.Entrypoint == consts.TransferEntrypoint {
-		parameters := getParameters(operation.Parameters)
 		for i := range operation.Tags {
 			switch operation.Tags[i] {
 			case consts.FA12Tag:
-				return p.makeFA12Transfers(operation, parameters)
+				return p.makeFA12Transfers(operation)
 			case consts.FA2Tag:
-				return p.makeFA2Transfers(operation, parameters)
+				return p.makeFA2Transfers(operation)
 			}
 		}
 	}
@@ -88,12 +91,11 @@ func (p *Parser) Parse(operation operation.Operation, operationModels []models.M
 }
 
 func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, operation operation.Operation, operationModels []models.Model) ([]*transfer.Transfer, error) {
-	if operation.Kind != consts.Transaction {
+	if operation.Kind != consts.Transaction || !operation.IsApplied() {
 		return nil, nil
 	}
 
 	var event events.Event
-	var err error
 
 	ctx := events.Context{
 		Network:                  p.network,
@@ -107,7 +109,24 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 
 	switch {
 	case impl.MichelsonParameterEvent.Is(operation.Entrypoint):
-		ctx.Parameters = operation.Parameters
+		data, err := fetch.Contract(operation.Destination, operation.Network, operation.Protocol, p.shareDir)
+		if err != nil {
+			return nil, err
+		}
+		script, err := ast.NewScript(data)
+		if err != nil {
+			return nil, err
+		}
+		parameter, err := script.ParameterType()
+		if err != nil {
+			return nil, err
+		}
+		param := types.NewParameters([]byte(operation.Parameters))
+		subTree, err := parameter.FromParameters(param)
+		if err != nil {
+			return nil, err
+		}
+		ctx.Parameters = subTree
 		ctx.Entrypoint = operation.Entrypoint
 		event, err = events.NewMichelsonParameter(impl, name)
 		if err != nil {
@@ -115,7 +134,26 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 		}
 		return p.makeTransfersFromBalanceEvents(event, ctx, operation, true)
 	case impl.MichelsonExtendedStorageEvent.Is(operation.Entrypoint):
-		ctx.Parameters = operation.DeffatedStorage
+		data, err := fetch.Contract(operation.Destination, operation.Network, operation.Protocol, p.shareDir)
+		if err != nil {
+			return nil, err
+		}
+		script, err := ast.NewScript(data)
+		if err != nil {
+			return nil, err
+		}
+		storage, err := script.StorageType()
+		if err != nil {
+			return nil, err
+		}
+		var deffattedStorage ast.UntypedAST
+		if err := json.UnmarshalFromString(operation.DeffatedStorage, &deffattedStorage); err != nil {
+			return nil, err
+		}
+		if err := storage.Settle(deffattedStorage); err != nil {
+			return nil, err
+		}
+		ctx.Parameters = storage
 		ctx.Entrypoint = consts.DefaultEntrypoint
 		bmd := make([]bigmapdiff.BigMapDiff, 0)
 		for i := range operationModels {
@@ -123,22 +161,13 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 				bmd = append(bmd, *model)
 			}
 		}
-		event, err = events.NewMichelsonExtendedStorage(impl, name, operation.Protocol, operation.GetID(), operation.Destination, p.Schema, bmd)
+		event, err = events.NewMichelsonExtendedStorage(impl, name, operation.Protocol, operation.GetID(), operation.Destination, bmd)
 		if err != nil {
 			return nil, err
 		}
 		return p.makeTransfersFromBalanceEvents(event, ctx, operation, false)
 	default:
 		return nil, nil
-	}
-}
-
-func (p *Parser) transferPostprocessing(transfers []*transfer.Transfer, operation operation.Operation) {
-	if p.stackTrace.Empty() {
-		return
-	}
-	for i := range transfers {
-		p.setParentEntrypoint(operation, transfers[i])
 	}
 }
 
@@ -164,54 +193,70 @@ func (p *Parser) makeTransfersFromBalanceEvents(event events.Event, ctx events.C
 	return transfers, err
 }
 
-func (p *Parser) makeFA12Transfers(operation operation.Operation, parameters gjson.Result) ([]*transfer.Transfer, error) {
-	t := transfer.EmptyTransfer(operation)
-	fromAddr, err := getAddress(parameters.Get("args.0"))
-	if err != nil {
-		return nil, err
+func (p *Parser) transferPostprocessing(transfers []*transfer.Transfer, operation operation.Operation) {
+	if p.stackTrace.Empty() {
+		return
 	}
-	toAddr, err := getAddress(parameters.Get("args.1.args.0"))
-	if err != nil {
-		return nil, err
+	for i := range transfers {
+		p.setParentEntrypoint(operation, transfers[i])
 	}
-	t.From = fromAddr
-	t.To = toAddr
-
-	if err := t.SetAmountFromString(parameters.Get("args.1.args.1.int").String()); err != nil {
-		return nil, fmt.Errorf("makeFA12Transfers error: %s %s %w", operation.Hash, operation.Network, err)
-	}
-
-	p.setParentEntrypoint(operation, t)
-
-	return []*transfer.Transfer{t}, nil
 }
 
-func (p *Parser) makeFA2Transfers(operation operation.Operation, parameters gjson.Result) ([]*transfer.Transfer, error) {
-	transfers := make([]*transfer.Transfer, 0)
-	for _, from := range parameters.Array() {
-		fromAddr, err := getAddress(from.Get("args.0"))
-		if err != nil {
-			return nil, err
-		}
-		for _, to := range from.Get("args.1").Array() {
-			toAddr, err := getAddress(to.Get("args.0"))
-			if err != nil {
-				return nil, err
-			}
-			transfer := transfer.EmptyTransfer(operation)
-			transfer.From = fromAddr
-			transfer.To = toAddr
-			if err := transfer.SetAmountFromString(to.Get("args.1.args.1.int").String()); err != nil {
-				return nil, fmt.Errorf("makeFA2Transfers error: %s %s %w", operation.Hash, operation.Network, err)
-			}
-			transfer.TokenID = to.Get("args.1.args.0.int").Int()
+func (p *Parser) makeFA12Transfers(operation operation.Operation) ([]*transfer.Transfer, error) {
+	node, err := getNode(operation)
+	if err != nil {
+		return nil, err
+	}
+	if node == nil {
+		return nil, nil
+	}
 
-			p.setParentEntrypoint(operation, transfer)
-
-			transfers = append(transfers, transfer)
-		}
+	transfers, err := trees.MakeFa1_2Transfers(node, operation)
+	if err != nil {
+		return nil, err
+	}
+	for i := range transfers {
+		p.setParentEntrypoint(operation, transfers[i])
 	}
 	return transfers, nil
+}
+
+func (p *Parser) makeFA2Transfers(operation operation.Operation) ([]*transfer.Transfer, error) {
+	node, err := getNode(operation)
+	if err != nil {
+		return nil, err
+	}
+	if node == nil {
+		return nil, nil
+	}
+	transfers, err := trees.MakeFa2Transfers(node, operation)
+	if err != nil {
+		return nil, err
+	}
+	for i := range transfers {
+		p.setParentEntrypoint(operation, transfers[i])
+	}
+	return transfers, nil
+}
+
+func getNode(operation operation.Operation) (ast.Node, error) {
+	var s ast.Script
+	if err := json.Unmarshal(operation.Script, &s); err != nil {
+		return nil, err
+	}
+
+	param, err := s.ParameterType()
+	if err != nil {
+		return nil, err
+	}
+	params := types.NewParameters([]byte(operation.Parameters))
+
+	subTree, err := param.FromParameters(params)
+	if err != nil {
+		return nil, err
+	}
+
+	return subTree.Unwrap(), nil
 }
 
 func (p Parser) setParentEntrypoint(operation operation.Operation, transfer *transfer.Transfer) {

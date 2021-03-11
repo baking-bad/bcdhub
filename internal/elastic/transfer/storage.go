@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
@@ -27,7 +27,7 @@ const (
 
 // Get -
 func (storage *Storage) Get(ctx transfer.GetContext) (po transfer.Pageable, err error) {
-	query := buildGetContext(ctx)
+	query := buildGetContext(ctx, true)
 	var response core.SearchResponse
 	if err := storage.es.Query([]string{models.DocTransfers}, query, &response); err != nil {
 		return po, err
@@ -42,7 +42,27 @@ func (storage *Storage) Get(ctx transfer.GetContext) (po transfer.Pageable, err 
 		transfers[i].ID = hits[i].ID
 	}
 	po.Transfers = transfers
-	po.Total = response.Hits.Total.Value
+	if response.Hits.Total.Relation == "eq" {
+		po.Total = response.Hits.Total.Value
+	} else {
+		countQuery := buildGetContext(transfer.GetContext{
+			Contracts: ctx.Contracts,
+			Network:   ctx.Network,
+			Address:   ctx.Address,
+			Hash:      ctx.Hash,
+			Start:     ctx.Start,
+			End:       ctx.End,
+			SortOrder: ctx.SortOrder,
+			LastID:    ctx.LastID,
+			TokenID:   ctx.TokenID,
+			Nonce:     ctx.Nonce,
+			Counter:   ctx.Counter,
+		}, false)
+		po.Total, err = storage.es.CountItems([]string{models.DocContracts}, countQuery)
+		if err != nil {
+			return
+		}
+	}
 	if len(transfers) > 0 {
 		po.LastID = fmt.Sprintf("%d", transfers[len(transfers)-1].IndexedTime)
 	}
@@ -73,7 +93,7 @@ func (storage *Storage) GetTokenSupply(network, address string, tokenID int64) (
 				core.Match("network", network),
 				core.MatchPhrase("contract", address),
 				core.Term("token_id", tokenID),
-				core.Match("status", "applied"),
+				core.Match("status", consts.Applied),
 			),
 		),
 	).Add(
@@ -172,7 +192,7 @@ func (storage *Storage) GetTokenVolumeSeries(network, period string, contracts [
 			},
 		},
 		core.Match("network", network),
-		core.Match("status", "applied"),
+		core.Match("status", consts.Applied),
 		core.Term("token_id", tokenID),
 	}
 	if len(contracts) > 0 {

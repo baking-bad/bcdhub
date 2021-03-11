@@ -2,10 +2,8 @@ package config
 
 import (
 	"github.com/baking-bad/bcdhub/internal/aws"
-	"github.com/baking-bad/bcdhub/internal/contractparser/kinds"
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/balanceupdate"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
@@ -13,7 +11,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
-	"github.com/baking-bad/bcdhub/internal/models/schema"
 	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
@@ -39,24 +36,21 @@ type Context struct {
 	SharePath  string
 	TzipSchema string
 
-	Interfaces map[string]kinds.ContractKind
-	Domains    map[string]string
+	Domains map[string]string
 
-	Storage        models.GeneralRepository
-	BalanceUpdates balanceupdate.Repository
-	BigMapActions  bigmapaction.Repository
-	BigMapDiffs    bigmapdiff.Repository
-	Blocks         block.Repository
-	Contracts      contract.Repository
-	Migrations     migration.Repository
-	Operations     operation.Repository
-	Protocols      protocol.Repository
-	Schema         schema.Repository
-	TezosDomains   tezosdomain.Repository
-	TokenBalances  tokenbalance.Repository
-	TokenMetadata  tokenmetadata.Repository
-	Transfers      transfer.Repository
-	TZIP           tzip.Repository
+	Storage       models.GeneralRepository
+	BigMapActions bigmapaction.Repository
+	BigMapDiffs   bigmapdiff.Repository
+	Blocks        block.Repository
+	Contracts     contract.Repository
+	Migrations    migration.Repository
+	Operations    operation.Repository
+	Protocols     protocol.Repository
+	TezosDomains  tezosdomain.Repository
+	TokenBalances tokenbalance.Repository
+	TokenMetadata tokenmetadata.Repository
+	Transfers     transfer.Repository
+	TZIP          tzip.Repository
 }
 
 // NewContext -

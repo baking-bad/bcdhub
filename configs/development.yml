@@ -8,8 +8,13 @@ rpc:
   edo2net:
     uri: https://rpc.tzkt.io/edo2net
     timeout: 20
+<<<<<<< HEAD
   florencenet:
     uri: https://rpc.tzkt.io/florencenobanet
+=======
+  falphanet:
+    uri: https://rpc.tzkt.io/falphanet
+>>>>>>> master
     timeout: 20
 
 tzkt:
@@ -90,7 +95,11 @@ api:
     - mainnet
     - delphinet
     - edo2net
+<<<<<<< HEAD
     - florencenet
+=======
+    - falphanet
+>>>>>>> master
   mq:
     publisher: true
     queues:
@@ -132,7 +141,12 @@ indexer:
     # delphinet:
     #   boost: tzkt
     # edo2net:
+<<<<<<< HEAD
     # florencenet
+=======
+    #   boost: tzkt
+    # falphanet:
+>>>>>>> master
 
 metrics:
   project_name: metrics
@@ -158,6 +172,10 @@ scripts:
     - mainnet
     - delphinet
     - edo2net
+<<<<<<< HEAD
     - florencenet
+=======
+    - falphanet
+>>>>>>> master
   mq:
     publisher: true

@@ -20,7 +20,7 @@ func Test_decodeData(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := decodeData(tt.value)
+			got, err := decodeData([]byte(tt.value))
 			if (err != nil) != tt.wantErr {
 				t.Errorf("decodeData() error = %v, wantErr %v", err, tt.wantErr)
 				return

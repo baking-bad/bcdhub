@@ -2,6 +2,7 @@ package migrations
 
 import (
 	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -56,7 +57,8 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 			return err
 		}
 
-		parser, err := transferParsers.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.Schema, ctx.Storage,
+		parser, err := transferParsers.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.Storage,
+			ctx.SharePath,
 			transferParsers.WithNetwork(operations[i].Network),
 			transferParsers.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
 			transferParsers.WithoutViews(),
@@ -64,7 +66,10 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 		if err != nil {
 			return err
 		}
-
+		operations[i].Script, err = fetch.Contract(operations[i].Destination, operations[i].Network, operations[i].Protocol, ctx.SharePath)
+		if err != nil {
+			return err
+		}
 		transfers, err := parser.Parse(operations[i], nil)
 		if err != nil {
 			return err

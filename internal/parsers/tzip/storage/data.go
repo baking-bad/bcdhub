@@ -5,28 +5,28 @@ import (
 	"strings"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/tidwall/gjson"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 var (
 	defaultTimeout = time.Second * 10
 )
 
 // DecodeValue -
-func DecodeValue(value string) string {
-	jsonValue := gjson.Parse(value)
-	if !jsonValue.Get("bytes").Exists() {
+func DecodeValue(value []byte) string {
+	var tree ast.UntypedAST
+	if err := json.Unmarshal(value, &tree); err != nil {
 		return ""
 	}
-
-	values := stringer.Get(value)
-	if len(values) != 0 {
-		return sanitizeString(values[0])
+	s, err := tree.GetStrings(true)
+	if err != nil || len(s) == 0 {
+		return ""
 	}
-
-	decoded, _ := hex.DecodeString(jsonValue.Get("bytes").String())
-	return sanitizeString(string(decoded))
+	return sanitizeString(s[0])
 }
 
 func sanitizeString(s string) string {
@@ -36,8 +36,8 @@ func sanitizeString(s string) string {
 	return s
 }
 
-func decodeData(value string) ([]byte, error) {
-	jsonValue := gjson.Parse(value)
+func decodeData(value []byte) ([]byte, error) {
+	jsonValue := gjson.ParseBytes(value)
 	if !jsonValue.Get("bytes").Exists() {
 		return nil, nil
 	}

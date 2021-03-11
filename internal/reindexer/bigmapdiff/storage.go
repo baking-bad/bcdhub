@@ -91,7 +91,6 @@ func (storage *Storage) Previous(filters []bigmapdiff.BigMapDiff, indexedTime in
 		for i := range filters {
 			query = query.OpenBracket().
 				Match("key_hash", filters[i].KeyHash).
-				Match("bin_path", filters[i].BinPath).
 				CloseBracket()
 			if len(filters)-1 > i {
 				query = query.Or()
@@ -102,7 +101,7 @@ func (storage *Storage) Previous(filters []bigmapdiff.BigMapDiff, indexedTime in
 	query = query.Sort("indexed_time", true)
 
 	return storage.getTop(query, func(bmd bigmapdiff.BigMapDiff) string {
-		return fmt.Sprintf("%s_%s", bmd.KeyHash, bmd.BinPath)
+		return fmt.Sprintf("%s_%d", bmd.KeyHash, bmd.Ptr)
 	})
 }
 

@@ -5,7 +5,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/language"
+	"github.com/baking-bad/bcdhub/internal/bcd/contract/language"
 )
 
 type michelson struct{}

@@ -19,6 +19,8 @@ type ScrollContext struct {
 	Size      int64
 	ChunkSize int64
 
+	Offset int64
+
 	e         *Elastic
 	scrollIds map[string]struct{}
 }
@@ -105,12 +107,35 @@ func (ctx *ScrollContext) Get(output interface{}) error {
 		return err
 	}
 	el := reflect.ValueOf(output).Elem()
+	var count int64
 	for {
 		ctx.scrollIds[result.ScrollID] = struct{}{}
 
 		hits := result.Hits.Hits
 		if len(hits) < 1 {
 			break
+		}
+
+		if ctx.Offset > 0 {
+			if count+ctx.Size < ctx.Offset {
+				count += int64(len(hits))
+				result, err = ctx.queryScroll(result.ScrollID)
+				if err != nil {
+					return err
+				}
+				continue
+			}
+
+			length := int64(len(hits))
+			offset := ctx.Offset - count
+			if offset > 0 {
+				hits = hits[offset:]
+			}
+			count += length
+
+			if length < offset {
+				break
+			}
 		}
 
 		for _, item := range hits {

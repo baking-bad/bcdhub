@@ -25,3 +25,9 @@ type Address struct {
 	Address string
 	Network string
 }
+
+// Stats -
+type Stats struct {
+	SameCount     int64
+	SimialarCount int64
+}

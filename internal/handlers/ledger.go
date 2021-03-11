@@ -1,27 +1,21 @@
 package handlers
 
 import (
+	"bytes"
 	"fmt"
-	"strings"
 	"time"
 
 	jsoniter "github.com/json-iterator/go"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/contractparser/newmiguel"
-	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
-	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
-	"github.com/baking-bad/bcdhub/internal/models/schema"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	tbModel "github.com/baking-bad/bcdhub/internal/models/tokenbalance"
-	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/baking-bad/bcdhub/internal/normalize"
 	"github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
 	"github.com/karlseguin/ccache"
 	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -38,36 +32,36 @@ var (
 
 // Ledger -
 type Ledger struct {
-	storage models.GeneralRepository
-	schema  schema.Repository
-	rpcs    map[string]noderpc.INode
+	storage       models.GeneralRepository
+	tokenBalances tbModel.Repository
+	sharePath     string
 
 	cache *ccache.Cache
 }
 
 // NewLedger -
-func NewLedger(storage models.GeneralRepository, schema schema.Repository, rpcs map[string]noderpc.INode) *Ledger {
+func NewLedger(storage models.GeneralRepository, tokenBalanceRepo tbModel.Repository, sharePath string) *Ledger {
 	return &Ledger{
-		storage: storage,
-		schema:  schema,
-		cache:   ccache.New(ccache.Configure().MaxSize(100)),
-		rpcs:    rpcs,
+		storage:       storage,
+		tokenBalances: tokenBalanceRepo,
+		cache:         ccache.New(ccache.Configure().MaxSize(100)),
+		sharePath:     sharePath,
 	}
 }
 
 // Do -
-func (ledger *Ledger) Do(model models.Model) (bool, error) {
+func (ledger *Ledger) Do(model models.Model) (bool, []models.Model, error) {
 	bmd, ok := model.(*bigmapdiff.BigMapDiff)
 	if !ok {
-		return false, nil
+		return false, nil, nil
 	}
 
 	bigMapType, err := ledger.getCachedBigMapType(bmd)
 	if err != nil {
-		return false, err
+		return false, nil, err
 	}
 	if bigMapType == nil {
-		return false, nil
+		return false, nil, nil
 	}
 
 	return ledger.handle(bmd, bigMapType)
@@ -86,20 +80,23 @@ func (ledger *Ledger) getCachedBigMapType(bmd *bigmapdiff.BigMapDiff) ([]byte, e
 	return item.Value().([]byte), nil
 }
 
-func (ledger *Ledger) handle(bmd *bigmapdiff.BigMapDiff, bigMapType []byte) (bool, error) {
-	balance, err := ledger.getTokenBalance(bmd, bigMapType)
+func (ledger *Ledger) handle(bmd *bigmapdiff.BigMapDiff, bigMapType []byte) (bool, []models.Model, error) {
+	balances, err := ledger.getResultModels(bmd, bigMapType)
 	if err != nil {
 		if errors.Is(err, tokenbalance.ErrUnknownParser) {
-			return false, nil
+			return false, nil, nil
 		}
-		return false, err
+		return false, nil, err
 	}
-	logger.With(balance).Info("Update token balance")
-	return true, ledger.storage.BulkInsert([]models.Model{balance})
+	return true, balances, nil
 }
 
-func (ledger *Ledger) getTokenBalance(bmd *bigmapdiff.BigMapDiff, bigMapType []byte) (*tbModel.TokenBalance, error) {
-	parser, err := tokenbalance.GetParserForBigMap(bigMapType)
+func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType []byte) ([]models.Model, error) {
+	typ, err := ast.NewTypedAstFromBytes(bigMapType)
+	if err != nil {
+		return nil, err
+	}
+	parser, err := tokenbalance.GetParserForBigMap(typ)
 	if err != nil {
 		return nil, err
 	}
@@ -111,76 +108,88 @@ func (ledger *Ledger) getTokenBalance(bmd *bigmapdiff.BigMapDiff, bigMapType []b
 	if err != nil {
 		return nil, err
 	}
-
-	return &tbModel.TokenBalance{
-		Network:  bmd.Network,
-		Address:  balance.Address,
-		TokenID:  balance.TokenID,
-		Contract: bmd.Address,
-		Value:    balance.Value,
-	}, nil
-}
-
-func (ledger *Ledger) buildElt(bmd *bigmapdiff.BigMapDiff) (gjson.Result, error) {
-	b, err := json.Marshal(bmd.Key)
-	if err != nil {
-		return gjson.Result{}, err
+	if len(balance) == 0 {
+		return nil, nil
 	}
-
-	var s strings.Builder
-	s.WriteString(`{"prim":"Elt","args":[`)
-	if _, err := s.Write(b); err != nil {
-		return gjson.Result{}, err
-	}
-	s.WriteByte(',')
-	if bmd.Value != "" {
-		s.WriteString(bmd.Value)
-	} else {
-		s.WriteString(`{"int":"0"}`)
-	}
-	s.WriteString(`]}`)
-	return gjson.Parse(s.String()), nil
-}
-
-func (ledger *Ledger) findLedgerBigMap(bmd *bigmapdiff.BigMapDiff) ([]byte, error) {
-	storageSchema, err := meta.GetSchema(ledger.schema, bmd.Address, consts.STORAGE, bmd.Protocol)
-	if err != nil {
-		return nil, err
-	}
-
-	binPath := storageSchema.Find(ledgerStorageKey)
-	if binPath == "" {
-		return nil, ErrNoLedgerKeyInStorage
-	}
-
-	rpc, ok := ledger.rpcs[bmd.Network]
-	if !ok {
-		return nil, errors.Wrap(ErrNoRPCNetwork, bmd.Network)
-	}
-	script, err := rpc.GetScriptJSON(bmd.Address, bmd.Level)
-	if err != nil {
-		return nil, err
-	}
-	storageJSON := script.Get(`storage`)
-
-	st := script.Get(`code.#(prim=="storage").args.0`)
-	storageJSON, err = normalize.Data(storageJSON, st)
-	if err != nil {
-		return nil, err
-	}
-	ptrs, err := storage.FindBigMapPointers(storageSchema, storageJSON)
-	if err != nil {
-		logger.Debug(bmd.Address, bmd.Network)
-		return nil, err
-	}
-	for ptr, path := range ptrs {
-		if path == binPath && bmd.Ptr == ptr {
-			storageType := script.Get(`code.#(prim=="storage")`)
-			jsonPath := newmiguel.GetGJSONPath(binPath)
-			bigMapType := storageType.Get(jsonPath)
-			return []byte(bigMapType.Raw), nil
+	if balance[0].IsNFT {
+		if err := ledger.tokenBalances.BurnNft(bmd.Network, bmd.Address, balance[0].TokenID); err != nil {
+			return nil, err
+		}
+		if balance[0].Address == "" { // Burn NFT token
+			return nil, nil
 		}
 	}
 
-	return nil, ErrNoLedgerKeyInStorage
+	return []models.Model{&tbModel.TokenBalance{
+		Network:  bmd.Network,
+		Address:  balance[0].Address,
+		TokenID:  balance[0].TokenID,
+		Contract: bmd.Address,
+		Value:    balance[0].Value,
+	}}, nil
+}
+
+func (ledger *Ledger) buildElt(bmd *bigmapdiff.BigMapDiff) ([]byte, error) {
+	b, err := json.Marshal(bmd.Key)
+	if err != nil {
+		return nil, err
+	}
+
+	var s bytes.Buffer
+	s.WriteString(`[{"prim":"Elt","args":[`)
+	if _, err := s.Write(b); err != nil {
+		return nil, err
+	}
+	s.WriteByte(',')
+	if len(bmd.ValueBytes()) != 0 {
+		if _, err := s.Write(bmd.ValueBytes()); err != nil {
+			return nil, err
+		}
+	} else {
+		s.WriteString(`{"int":"0"}`)
+	}
+	s.WriteString(`]}]`)
+	return s.Bytes(), nil
+}
+
+func (ledger *Ledger) findLedgerBigMap(bmd *bigmapdiff.BigMapDiff) ([]byte, error) {
+	data, err := fetch.Contract(bmd.Address, bmd.Network, bmd.Protocol, ledger.sharePath)
+	if err != nil {
+		return nil, err
+	}
+	var script ast.Script
+	if err := json.Unmarshal(data, &script); err != nil {
+		return nil, err
+	}
+	tree, err := script.StorageType()
+	if err != nil {
+		return nil, err
+	}
+
+	node := tree.FindByName(ledgerStorageKey, false)
+	if err != nil {
+		return nil, ErrNoLedgerKeyInStorage
+	}
+
+	op := operation.Operation{ID: bmd.OperationID}
+	if err := ledger.storage.GetByID(&op); err != nil {
+		return nil, err
+	}
+
+	var storageData ast.UntypedAST
+	if err := json.UnmarshalFromString(op.DeffatedStorage, &storageData); err != nil {
+		return nil, err
+	}
+	if err := tree.Settle(storageData); err != nil {
+		return nil, err
+	}
+
+	bigMap, ok := node.(*ast.BigMap)
+	if !ok {
+		return nil, ErrNoLedgerKeyInStorage
+	}
+	if *bigMap.Ptr != bmd.Ptr {
+		return nil, ErrNoLedgerKeyInStorage
+	}
+	return json.Marshal(bigMap)
 }

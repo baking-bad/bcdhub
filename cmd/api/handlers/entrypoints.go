@@ -3,13 +3,12 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/contractparser/docstring"
-	"github.com/baking-bad/bcdhub/internal/contractparser/formatter"
-	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/jsonschema"
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
+	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/gin-gonic/gin"
-	"github.com/tidwall/gjson"
+	"github.com/pkg/errors"
 )
 
 // GetEntrypoints godoc
@@ -30,12 +29,16 @@ func (ctx *Context) GetEntrypoints(c *gin.Context) {
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-	metadata, err := ctx.getParameterMetadata(req.Address, req.Network)
+	script, err := ctx.getScript(req.Address, req.Network, "")
+	if ctx.handleError(c, err, 0) {
+		return
+	}
+	parameter, err := script.ParameterType()
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	entrypoints, err := docstring.GetEntrypoints(metadata)
+	entrypoints, err := parameter.GetEntrypointsDocs()
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -43,10 +46,15 @@ func (ctx *Context) GetEntrypoints(c *gin.Context) {
 	resp := make([]EntrypointSchema, len(entrypoints))
 	for i, entrypoint := range entrypoints {
 		resp[i].EntrypointType = entrypoint
-		resp[i].Schema, err = jsonschema.Create(entrypoint.BinPath, metadata)
+		e := parameter.FindByName(entrypoint.Name, true)
+		if e == nil {
+			continue
+		}
+		resp[i].Schema, err = e.ToJSONSchema()
 		if ctx.handleError(c, err, 0) {
 			return
 		}
+		resp[i].Schema = ast.WrapEntrypointJSONSchema(resp[i].Schema)
 	}
 
 	c.JSON(http.StatusOK, resp)
@@ -76,14 +84,13 @@ func (ctx *Context) GetEntrypointData(c *gin.Context) {
 		return
 	}
 
-	result, err := ctx.buildEntrypointMicheline(req.Network, req.Address, reqData.BinPath, reqData.Data, false)
-	if ctx.handleError(c, err, http.StatusBadRequest) {
+	result, err := ctx.buildParametersForExecution(req.Network, req.Address, "", reqData.Name, reqData.Data)
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	if reqData.Format == "michelson" {
-		value := result.Get("value")
-		michelson, err := formatter.MichelineToMichelson(value, false, formatter.DefLineSize)
+		michelson, err := formatter.MichelineStringToMichelson(string(result), false, formatter.DefLineSize)
 		if ctx.handleError(c, err, 0) {
 			return
 		}
@@ -91,7 +98,7 @@ func (ctx *Context) GetEntrypointData(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, result.Value())
+	c.Data(http.StatusOK, gin.MIMEJSON, result)
 }
 
 // GetEntrypointSchema godoc
@@ -120,12 +127,16 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 		return
 	}
 
-	metadata, err := ctx.getParameterMetadata(req.Address, req.Network)
+	script, err := ctx.getScript(req.Address, req.Network, "")
+	if ctx.handleError(c, err, 0) {
+		return
+	}
+	parameter, err := script.ParameterType()
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	entrypoints, err := docstring.GetEntrypoints(metadata)
+	entrypoints, err := parameter.GetEntrypointsDocs()
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -137,7 +148,11 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 		}
 
 		schema.EntrypointType = entrypoint
-		schema.Schema, err = jsonschema.Create(entrypoint.BinPath, metadata)
+		e := parameter.FindByName(esReq.EntrypointName, true)
+		if e == nil {
+			continue
+		}
+		schema.Schema, err = e.ToJSONSchema()
 		if ctx.handleError(c, err, 0) {
 			return
 		}
@@ -161,52 +176,36 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 		if len(op) != 1 {
 			break
 		}
-		parameters := gjson.Parse(op[0].Parameters)
-		if parameters.Get("value").Exists() && parameters.Get("entrypoint").Exists() {
-			parameters = parameters.Get("value")
-		}
-		schema.DefaultModel = make(jsonschema.DefaultModel)
-		if err := schema.DefaultModel.FillForEntrypoint(parameters, metadata, esReq.EntrypointName); ctx.handleError(c, err, 0) {
+
+		parameters := types.NewParameters([]byte(op[0].Parameters))
+		var data ast.UntypedAST
+		if err := json.Unmarshal(parameters.Value, &data); ctx.handleError(c, err, 0) {
 			return
 		}
+		if err := e.ParseValue(data[0]); ctx.handleError(c, err, 0) {
+			return
+		}
+
+		schema.DefaultModel = make(ast.JSONModel)
+		e.GetJSONModel(schema.DefaultModel)
 	}
 
 	c.JSON(http.StatusOK, schema)
 }
 
-func (ctx *Context) buildEntrypointMicheline(network, address, binPath string, data map[string]interface{}, needValidate bool) (gjson.Result, error) {
-	metadata, err := ctx.getParameterMetadata(address, network)
-	if err != nil {
-		return gjson.Result{}, err
-	}
-
-	return metadata.BuildEntrypointMicheline(binPath, data, needValidate)
-}
-
-func (ctx *Context) getParameterMetadata(address, network string) (meta.Metadata, error) {
-	state, err := ctx.Blocks.Last(network)
+func (ctx *Context) buildParametersForExecution(network, address, protocol, entrypoint string, data map[string]interface{}) ([]byte, error) {
+	parameterType, err := ctx.getParameterType(address, network, protocol)
 	if err != nil {
 		return nil, err
 	}
+	e := parameterType.FindByName(entrypoint, true)
+	if e == nil {
+		return nil, errors.Errorf("Unknown entrypoint name %s", entrypoint)
+	}
 
-	metadata, err := meta.GetSchema(ctx.Schema, address, consts.PARAMETER, state.Protocol)
-	if err != nil {
+	if err := e.FromJSONSchema(data); err != nil {
 		return nil, err
 	}
 
-	return metadata, nil
-}
-
-func (ctx *Context) getStorageMetadata(address, network string) (meta.Metadata, error) {
-	state, err := ctx.Blocks.Last(network)
-	if err != nil {
-		return nil, err
-	}
-
-	metadata, err := meta.GetSchema(ctx.Schema, address, consts.STORAGE, state.Protocol)
-	if err != nil {
-		return nil, err
-	}
-
-	return metadata, nil
+	return e.ToParameters()
 }

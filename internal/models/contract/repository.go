@@ -16,4 +16,5 @@ type Repository interface {
 	GetSimilarContracts(Contract, int64, int64) ([]Similar, int, error)
 	GetDiffTasks() ([]DiffTask, error)
 	UpdateField(where []Contract, fields ...string) error
+	Stats(contract Contract) (Stats, error)
 }

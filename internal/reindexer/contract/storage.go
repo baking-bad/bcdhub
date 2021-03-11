@@ -317,3 +317,8 @@ func (storage *Storage) UpdateField(where []contract.Contract, fields ...string)
 	}
 	return tx.Commit()
 }
+
+// Stats -
+func (storage *Storage) Stats(contract contract.Contract) (stats contract.Stats, err error) {
+	return
+}

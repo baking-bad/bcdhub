@@ -62,7 +62,6 @@ func (e *Elastic) ListRepositories() ([]models.Repository, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	defer resp.Body.Close()
 
 	var response []models.Repository
@@ -152,7 +151,6 @@ func (e *Elastic) ListSnapshots(repository string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	defer resp.Body.Close()
 
 	response, err := e.getTextResponse(resp)
@@ -212,7 +210,6 @@ func (e *Elastic) GetAllPolicies() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	defer resp.Body.Close()
 
 	response := make(map[string]interface{})
@@ -238,7 +235,6 @@ func (e *Elastic) GetMappings(indices []string) (map[string]string, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	defer resp.Body.Close()
 
 	response := make(map[string]stdJSON.RawMessage)
@@ -263,6 +259,7 @@ func (e *Elastic) CreateMapping(index string, r io.Reader) error {
 	if err != nil {
 		return err
 	}
+	defer res.Body.Close()
 
 	if !res.IsError() {
 		return nil
@@ -272,6 +269,8 @@ func (e *Elastic) CreateMapping(index string, r io.Reader) error {
 	if err != nil {
 		return err
 	}
+	defer res.Body.Close()
+
 	if res.IsError() {
 		return errors.Errorf(res.String())
 	}

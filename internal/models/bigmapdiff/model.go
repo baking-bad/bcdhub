@@ -1,6 +1,7 @@
 package bigmapdiff
 
 import (
+	stdJSON "encoding/json"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -8,21 +9,20 @@ import (
 
 // BigMapDiff -
 type BigMapDiff struct {
-	ID           string      `json:"-"`
-	Ptr          int64       `json:"ptr"`
-	BinPath      string      `json:"bin_path"`
-	Key          interface{} `json:"key"`
-	KeyHash      string      `json:"key_hash"`
-	KeyStrings   []string    `json:"key_strings"`
-	Value        string      `json:"value"`
-	ValueStrings []string    `json:"value_strings"`
-	OperationID  string      `json:"operation_id"`
-	Level        int64       `json:"level"`
-	Address      string      `json:"address"`
-	Network      string      `json:"network"`
-	IndexedTime  int64       `json:"indexed_time"`
-	Timestamp    time.Time   `json:"timestamp"`
-	Protocol     string      `json:"protocol"`
+	ID           string             `json:"-"`
+	Ptr          int64              `json:"ptr"`
+	Key          stdJSON.RawMessage `json:"key"`
+	KeyHash      string             `json:"key_hash"`
+	KeyStrings   []string           `json:"key_strings"`
+	Value        stdJSON.RawMessage `json:"value,omitempty"`
+	ValueStrings []string           `json:"value_strings"`
+	OperationID  string             `json:"operation_id"`
+	Level        int64              `json:"level"`
+	Address      string             `json:"address"`
+	Network      string             `json:"network"`
+	IndexedTime  int64              `json:"indexed_time"`
+	Timestamp    time.Time          `json:"timestamp"`
+	Protocol     string             `json:"protocol"`
 
 	FoundBy string `json:"found_by,omitempty"`
 }
@@ -56,4 +56,24 @@ func (b *BigMapDiff) LogFields() logrus.Fields {
 		"block":    b.Level,
 		"key_hash": b.KeyHash,
 	}
+}
+
+// KeyBytes -
+func (b *BigMapDiff) KeyBytes() []byte {
+	if len(b.Key) >= 2 {
+		if b.Key[0] == 34 && b.Key[len(b.Key)-1] == 34 {
+			return b.Key[1 : len(b.Key)-1]
+		}
+	}
+	return b.Key
+}
+
+// ValueBytes -
+func (b *BigMapDiff) ValueBytes() []byte {
+	if len(b.Value) >= 2 {
+		if b.Value[0] == 34 && b.Value[len(b.Value)-1] == 34 {
+			return b.Value[1 : len(b.Value)-1]
+		}
+	}
+	return b.Value
 }

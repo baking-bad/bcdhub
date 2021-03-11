@@ -1,15 +1,11 @@
 package operations
 
 import (
-	"github.com/baking-bad/bcdhub/internal/contractparser"
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/contractparser/meta"
-	"github.com/baking-bad/bcdhub/internal/contractparser/storage"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
+	"github.com/baking-bad/bcdhub/internal/parsers/storage"
 )
 
 // RichStorage -
@@ -22,7 +18,7 @@ type RichStorage struct {
 
 // NewRichStorage -
 func NewRichStorage(repo bigmapdiff.Repository, rpc noderpc.INode, protocol string) (*RichStorage, error) {
-	storageParser, err := contractparser.MakeStorageParser(rpc, repo, protocol, false)
+	storageParser, err := storage.MakeStorageParser(repo, rpc, protocol)
 	if err != nil {
 		return nil, err
 	}
@@ -34,30 +30,20 @@ func NewRichStorage(repo bigmapdiff.Repository, rpc noderpc.INode, protocol stri
 }
 
 // Parse -
-func (p *RichStorage) Parse(data gjson.Result, schema *meta.ContractSchema, operation *operation.Operation) (storage.RichStorage, error) {
-	protoSymLink, err := meta.GetProtoSymLink(operation.Protocol)
-	if err != nil {
-		return storage.RichStorage{Empty: true}, err
-	}
-
-	m, ok := schema.Storage[protoSymLink]
-	if !ok {
-		return storage.RichStorage{Empty: true}, errors.Errorf("Unknown metadata: %s", protoSymLink)
-	}
-
+func (p *RichStorage) Parse(data noderpc.Operation, operation *operation.Operation) (storage.RichStorage, error) {
 	switch operation.Kind {
 	case consts.Transaction:
-		return p.parser.ParseTransaction(data, m, *operation)
+		return p.parser.ParseTransaction(data, *operation)
 	case consts.Origination:
-		rs, err := p.parser.ParseOrigination(data, m, *operation)
+		rs, err := p.parser.ParseOrigination(data, *operation)
 		if err != nil {
 			return rs, err
 		}
-		storage, err := p.rpc.GetScriptStorageJSON(operation.Destination, operation.Level)
+		storage, err := p.rpc.GetScriptStorageRaw(operation.Destination, operation.Level)
 		if err != nil {
 			return rs, err
 		}
-		rs.DeffatedStorage = storage.String()
+		rs.DeffatedStorage = string(storage)
 		return rs, err
 	default:
 		return storage.RichStorage{Empty: true}, nil

@@ -25,7 +25,7 @@ func getProject(ids []string) error {
 }
 
 func parseProject(contract contract.Contract) error {
-	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.DB)
+	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.DB)
 
 	if contract.ProjectID == "" {
 		if err := h.SetContractProjectID(&contract); err != nil {

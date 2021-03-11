@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/language"
+	"github.com/baking-bad/bcdhub/internal/bcd/contract/language"
 )
 
 type smartpy struct{}

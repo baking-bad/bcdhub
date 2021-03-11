@@ -3,9 +3,9 @@ package core
 import (
 	"strings"
 
-	constants "github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd"
+	constants "github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic/consts"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/pkg/errors"
 )
@@ -179,7 +179,7 @@ func getEventsQuery(subscription models.SubscriptionRequest, indices map[string]
 		indices[models.DocOperations] = struct{}{}
 	}
 
-	if helpers.IsContract(subscription.Address) {
+	if bcd.IsContract(subscription.Address) {
 		if item := getEventsWatchMigrations(subscription); item != nil {
 			shouldItems = append(shouldItems, item)
 			indices[models.DocMigrations] = struct{}{}

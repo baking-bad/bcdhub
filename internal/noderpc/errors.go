@@ -3,6 +3,7 @@ package noderpc
 import (
 	"errors"
 	"fmt"
+	"strings"
 )
 
 // NodeUnavailiableError -
@@ -52,8 +53,30 @@ func IsNodeUnavailiableError(err error) bool {
 	return false
 }
 
+// InvalidNodeResponse -
+type InvalidNodeResponse struct {
+	Errors []RunCodeError
+	Raw    []byte
+}
+
+func newInvalidNodeResponse() InvalidNodeResponse {
+	return InvalidNodeResponse{
+		Errors: make([]RunCodeError, 0),
+	}
+}
+
+func (e InvalidNodeResponse) Error() string {
+	var s strings.Builder
+	for i := range e.Errors {
+		if i > 0 {
+			s.WriteByte('\n')
+		}
+		s.WriteString(e.Errors[i].ID)
+	}
+	return s.String()
+}
+
 // Errors
 var (
-	ErrInvalidNodeResponse = errors.New("Invalid node response")
-	ErrInvalidStatusCode   = errors.New("Invalid status code")
+	ErrInvalidStatusCode = errors.New("Invalid status code")
 )

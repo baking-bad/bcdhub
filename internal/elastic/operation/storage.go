@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	constants "github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd"
+	constants "github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/pkg/errors"
@@ -368,11 +368,11 @@ func (storage *Storage) GetParticipatingContracts(network string, fromLevel, toL
 		if err := json.Unmarshal(response.Hits.Hits[i].Source, &op); err != nil {
 			return nil, err
 		}
-		if _, ok := exists[op.Source]; !ok && helpers.IsContract(op.Source) {
+		if _, ok := exists[op.Source]; !ok && bcd.IsContract(op.Source) {
 			addresses = append(addresses, op.Source)
 			exists[op.Source] = struct{}{}
 		}
-		if _, ok := exists[op.Destination]; !ok && helpers.IsContract(op.Destination) {
+		if _, ok := exists[op.Destination]; !ok && bcd.IsContract(op.Destination) {
 			addresses = append(addresses, op.Destination)
 			exists[op.Destination] = struct{}{}
 		}

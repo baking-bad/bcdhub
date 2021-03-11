@@ -98,5 +98,12 @@ func (ctx *Context) contractPostprocessing(contract contract.Contract, c *gin.Co
 	}
 	res.Tokens = tokenBalances
 
+	stats, err := ctx.Contracts.Stats(contract)
+	if err != nil {
+		return res, err
+	}
+	res.SameCount = stats.SameCount
+	res.SimilarCount = stats.SimialarCount
+
 	return res, nil
 }

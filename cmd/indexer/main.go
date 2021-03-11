@@ -4,7 +4,6 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
-	"strings"
 	"sync"
 	"syscall"
 
@@ -12,7 +11,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/tidwall/gjson"
 )
 
 func main() {
@@ -26,13 +24,6 @@ func main() {
 		helpers.SetTagSentry("project", cfg.Indexer.ProjectName)
 		defer helpers.CatchPanicSentry()
 	}
-
-	gjson.AddModifier("upper", func(json, arg string) string {
-		return strings.ToUpper(json)
-	})
-	gjson.AddModifier("lower", func(json, arg string) string {
-		return strings.ToLower(json)
-	})
 
 	indexers, err := indexer.CreateIndexers(cfg)
 	if err != nil {

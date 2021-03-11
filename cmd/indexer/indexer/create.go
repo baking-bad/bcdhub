@@ -1,13 +1,13 @@
 package indexer
 
 import (
+	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/contractparser/cerrors"
 )
 
 // CreateIndexers -
 func CreateIndexers(cfg config.Config) ([]Indexer, error) {
-	if err := cerrors.LoadErrorDescriptions("data/errors.json"); err != nil {
+	if err := tezerrors.LoadErrorDescriptions(); err != nil {
 		return nil, err
 	}
 

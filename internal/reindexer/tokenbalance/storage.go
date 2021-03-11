@@ -92,3 +92,8 @@ func (storage *Storage) GetAccountBalances(network, address string) (tokenBalanc
 	err = storage.db.GetAllByQuery(query, &tokenBalances)
 	return
 }
+
+// BurnNft -
+func (storage *Storage) BurnNft(network, contract string, tokenID int64) error {
+	return nil
+}

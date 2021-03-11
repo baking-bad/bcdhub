@@ -4,9 +4,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMigration_Parse(t *testing.T) {
@@ -54,46 +56,21 @@ func TestMigration_Parse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			data, err := readJSONFile(tt.fileName)
-			if err != nil {
+			var op noderpc.Operation
+			if err := readJSONFile(tt.fileName, &op); err != nil {
 				t.Errorf(`readJSONFile("%s") = error %v`, tt.fileName, err)
 				return
 			}
-			got := NewMigration(tt.operation).Parse(data)
-			if got == nil {
-				if got != tt.want {
-					t.Errorf("Migration.Parse() = %v, want %v", got, tt.want)
-				}
+			got, err := NewMigration().Parse(op, tt.operation)
+			if err != nil {
+				t.Errorf("Migration.Parse() = %s", err)
 				return
 			}
-			if got.Network != tt.want.Network {
-				t.Errorf("Migration.Parse() = %v, want %v", got, tt.want)
-				return
+			if tt.want != nil {
+				tt.want.ID = got.ID
+				tt.want.IndexedTime = got.IndexedTime
 			}
-			if got.Level != tt.want.Level {
-				t.Errorf("Migration.Parse() = %v, want %v", got, tt.want)
-				return
-			}
-			if got.Protocol != tt.want.Protocol {
-				t.Errorf("Migration.Parse() = %v, want %v", got, tt.want)
-				return
-			}
-			if got.Address != tt.want.Address {
-				t.Errorf("Migration.Parse() = %v, want %v", got, tt.want)
-				return
-			}
-			if got.Timestamp != tt.want.Timestamp {
-				t.Errorf("Migration.Parse() = %v, want %v", got, tt.want)
-				return
-			}
-			if got.Hash != tt.want.Hash {
-				t.Errorf("Migration.Parse() = %v, want %v", got, tt.want)
-				return
-			}
-			if got.Kind != tt.want.Kind {
-				t.Errorf("Migration.Parse() = %v, want %v", got, tt.want)
-				return
-			}
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

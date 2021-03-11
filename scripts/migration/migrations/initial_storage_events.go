@@ -4,11 +4,11 @@ import (
 	"errors"
 
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	"github.com/baking-bad/bcdhub/internal/noderpc"
 	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
 )
 
@@ -37,7 +37,7 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 
 	logger.Info("Found %d tzips", len(tzips))
 
-	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.DB)
+	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.DB)
 
 	logger.Info("Execution events...")
 	newTransfers := make([]*transfer.Transfer, 0)
@@ -50,7 +50,7 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 		}
 		transfers, err := h.ExecuteInitialStorageEvent(rpc, tzips[i].Network, tzips[i].Address)
 		if err != nil {
-			if errors.Is(err, events.ErrNodeReturn) {
+			if errors.Is(err, noderpc.InvalidNodeResponse{}) {
 				logger.Error(err)
 				continue
 			}

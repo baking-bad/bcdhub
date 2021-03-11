@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tidwall/gjson"
 )
 
 func TestMichelsonStorageView_GetCode(t *testing.T) {
@@ -17,7 +16,7 @@ func TestMichelsonStorageView_GetCode(t *testing.T) {
 	tests := []struct {
 		name        string
 		fields      fields
-		storageType gjson.Result
+		storageType []byte
 		want        string
 		wantErr     bool
 	}{
@@ -28,7 +27,7 @@ func TestMichelsonStorageView_GetCode(t *testing.T) {
 				Code:       []byte(`{"prim":"unit"}`),
 				ReturnType: []byte(`{"prim":"unit"}`),
 			},
-			storageType: gjson.Parse(`{"prim":"unit"}`),
+			storageType: []byte(`{"prim":"unit"}`),
 			want:        `[{"prim":"parameter","args":[{"prim":"pair","args":[{"prim":"unit"},{"prim":"unit"}]}]},{"prim":"storage","args":[{"prim":"option","args":[{"prim":"unit"}]}]},{"prim":"code","args":[[{"prim":"CAR"},{"prim":"unit"},{"prim":"SOME"},{"prim":"NIL","args":[{"prim":"operation"}]},{"prim":"PAIR"}]]}]`,
 		}, {
 			name: "test 2: parameter is nil",
@@ -36,7 +35,7 @@ func TestMichelsonStorageView_GetCode(t *testing.T) {
 				Code:       []byte(`{"prim":"unit"}`),
 				ReturnType: []byte(`{"prim":"unit"}`),
 			},
-			storageType: gjson.Parse(`{"prim":"unit"}`),
+			storageType: []byte(`{"prim":"unit"}`),
 			want:        `[{"prim":"parameter","args":[{"prim":"unit"}]},{"prim":"storage","args":[{"prim":"option","args":[{"prim":"unit"}]}]},{"prim":"code","args":[[{"prim":"CAR"},{"prim":"unit"},{"prim":"SOME"},{"prim":"NIL","args":[{"prim":"operation"}]},{"prim":"PAIR"}]]}]`,
 		},
 	}
@@ -53,7 +52,7 @@ func TestMichelsonStorageView_GetCode(t *testing.T) {
 				t.Errorf("MichelsonStorageView.GetCode() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !assert.Equal(t, got.String(), tt.want) {
+			if !assert.Equal(t, string(got), tt.want) {
 				t.Errorf("Invalid result")
 				return
 			}

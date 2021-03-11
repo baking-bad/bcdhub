@@ -11,7 +11,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/scripts/migration/migrations"
 	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 )
 
 var migrationsList = []migrations.Migration{
@@ -42,22 +41,15 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	gjson.AddModifier("upper", func(json, arg string) string {
-		return strings.ToUpper(json)
-	})
-	gjson.AddModifier("lower", func(json, arg string) string {
-		return strings.ToLower(json)
-	})
-
 	start := time.Now()
 
 	ctx := config.NewContext(
+		config.WithShare(cfg.SharePath),
 		config.WithStorage(cfg.Storage),
 		config.WithDatabase(cfg.DB),
 		config.WithRPC(cfg.RPC),
 		config.WithConfigCopy(cfg),
-		config.WithLoadErrorDescriptions("data/errors.json"),
-		config.WithContractsInterfaces(),
+		config.WithLoadErrorDescriptions(),
 	)
 	defer ctx.Close()
 

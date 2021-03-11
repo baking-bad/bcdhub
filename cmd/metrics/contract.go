@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/pkg/errors"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
@@ -27,7 +27,7 @@ func getContract(ids []string) error {
 }
 
 func parseContract(contract *contract.Contract) error {
-	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.Schema, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.DB)
+	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.DB)
 
 	aliases, err := getAliases(contract.Network)
 	if err != nil {

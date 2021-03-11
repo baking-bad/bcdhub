@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/contractparser/consts"
-	"github.com/baking-bad/bcdhub/internal/contractparser/stringer"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/getsentry/sentry-go"
@@ -39,8 +38,14 @@ func (h *Handler) SetOperationAliases(op *operation.Operation, aliases map[strin
 
 // SetOperationStrings -
 func (h *Handler) SetOperationStrings(op *operation.Operation) {
-	op.ParameterStrings = stringer.Get(op.Parameters)
-	op.StorageStrings = stringer.Get(op.DeffatedStorage)
+	ps, err := getStrings([]byte(op.Parameters))
+	if err == nil {
+		op.ParameterStrings = ps
+	}
+	ss, err := getStrings([]byte(op.DeffatedStorage))
+	if err == nil {
+		op.StorageStrings = ss
+	}
 }
 
 // SendSentryNotifications -

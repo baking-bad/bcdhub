@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
-	"github.com/tidwall/gjson"
 )
 
 // Contract - entity for contract
@@ -95,13 +94,6 @@ type Fingerprint struct {
 // Compare -
 func (f *Fingerprint) Compare(second *Fingerprint) bool {
 	return f.Code == second.Code && f.Parameter == second.Parameter && f.Storage == second.Storage
-}
-
-// ParseElasticJSON -
-func (f *Fingerprint) ParseElasticJSON(hit gjson.Result) {
-	f.Code = hit.Get("code").String()
-	f.Parameter = hit.Get("parameter").String()
-	f.Storage = hit.Get("storage").String()
 }
 
 // Light -

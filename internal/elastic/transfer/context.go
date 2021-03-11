@@ -6,7 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 )
 
-func buildGetContext(ctx transfer.GetContext) core.Base {
+func buildGetContext(ctx transfer.GetContext, withSize bool) core.Base {
 	query := core.NewQuery()
 	filters := make([]core.Item, 0)
 
@@ -45,9 +45,11 @@ func buildGetContext(ctx transfer.GetContext) core.Base {
 			),
 		),
 	)
-	appendSort(ctx, query)
-	appendOffset(ctx, query)
-	appendSize(ctx, query)
+	if withSize {
+		appendSort(ctx, query)
+		appendOffset(ctx, query)
+		appendSize(ctx, query)
+	}
 	return query
 }
 
