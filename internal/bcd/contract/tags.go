@@ -64,6 +64,8 @@ func primTags(node *base.Node) string {
 		return consts.CheckSigTag
 	case consts.CHAINID:
 		return consts.ChainAwareTag
+	case consts.SAPLINGSTATE, consts.SAPLINGTRANSACTION:
+		return consts.SaplingTag
 	}
 	return ""
 }
