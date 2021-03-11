@@ -554,3 +554,51 @@ func (storage *Storage) UpdateField(where []contract.Contract, fields ...string)
 	}
 	return nil
 }
+
+type similarCountResponse struct {
+	Agg struct {
+		SimilarCount core.IntValue `json:"projects"`
+	} `json:"aggregations"`
+}
+
+// Stats -
+func (storage *Storage) Stats(contract contract.Contract) (stats contract.Stats, err error) {
+	sameCountQuery := core.NewQuery().Query(
+		core.Bool(
+			core.Filter(
+				core.MatchPhrase("hash", contract.Hash),
+			),
+			core.MustNot(
+				core.MatchPhrase("address", contract.Address),
+			),
+		),
+	)
+	stats.SameCount, err = storage.es.CountItems([]string{models.DocContracts}, sameCountQuery)
+	if err != nil {
+		return
+	}
+
+	similarCountQuery := core.NewQuery().Query(
+		core.Bool(
+			core.Filter(
+				core.MatchPhrase("project_id", contract.ProjectID),
+			),
+			core.MustNot(
+				core.Match("hash.keyword", contract.Hash),
+			),
+		),
+	).Add(
+		core.Aggs(
+			core.AggItem{
+				Name: "projects",
+				Body: core.Cardinality("hash.keyword"),
+			},
+		),
+	).Zero()
+	var response similarCountResponse
+	if err = storage.es.Query([]string{models.DocContracts}, similarCountQuery, &response); err != nil {
+		return
+	}
+	stats.SimialarCount = response.Agg.SimilarCount.Value
+	return
+}

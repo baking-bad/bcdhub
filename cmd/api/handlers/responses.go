@@ -194,6 +194,9 @@ type Contract struct {
 	VerificationSource string        `json:"verification_source,omitempty" extensions:"x-nullable"`
 
 	Tokens []TokenBalance `json:"tokens"`
+
+	SameCount    int64 `json:"same_count"`
+	SimilarCount int64 `json:"similar_count"`
 }
 
 // FromModel -
