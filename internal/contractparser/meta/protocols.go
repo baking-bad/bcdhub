@@ -25,6 +25,9 @@ var symLinks = map[string]string{
 	"PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo": "babylon", // Delphinet
 	"PtEdoTezd3RHSC31mpxxo1npxFjoWWcFgQtxapi51Z8TLu6v6Uq": "babylon", // Edonet 8.1
 	"PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA": "babylon", // Edonet 8.2
+	"PrrUA9dCzbqBzugjQyw65HLHKjhH3HMFSLLHLZjj5rkmkG13Fej": "babylon", // Falphanet
+	"PsrsRVg1Gycjn5LvMtoYSQah1znvYmGp8bHLxwYLBZaYFf2CEkV": "babylon", // Falphanet
+	"PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i": "babylon", // Florencenet (no baking accounts)
 }
 
 // GetProtoSymLink -
