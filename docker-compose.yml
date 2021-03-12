@@ -57,7 +57,7 @@ services:
     ports:
       - 127.0.0.1:${BCD_API_PORT}:14000
     volumes:
-      - /etc/bcd:/etc/bcd
+      - ${SHARE_PATH}:/etc/bcd
     logging: *my-logging
 
   indexer:
@@ -73,7 +73,7 @@ services:
       - mq
       - metrics
     volumes:
-      - /etc/bcd:/etc/bcd
+      - ${SHARE_PATH}:/etc/bcd
     logging: *my-logging
 
   metrics:
@@ -103,7 +103,7 @@ services:
       - mq
       - db
     volumes:
-      - /etc/bcd:/etc/bcd
+      - ${SHARE_PATH}:/etc/bcd
     logging: *my-logging
 
   gui:
@@ -117,7 +117,7 @@ services:
     ports:
       - 127.0.0.1:${BCD_GUI_PORT}:80
     volumes:
-      - /etc/bcd:/etc/bcd
+      - ${SHARE_PATH}:/etc/bcd
     logging: *my-logging
 
 volumes:
