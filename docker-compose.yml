@@ -88,6 +88,8 @@ services:
       - elastic
       - mq
       - db
+    volumes:
+      - ${SHARE_PATH}:/etc/bcd
     logging: *my-logging
 
   compiler:
