@@ -53,7 +53,7 @@ func (event *MichelsonParameter) Normalize(value *ast.TypedAst) []byte {
 		return nil
 	}
 
-	result := value.Unwrap()
+	result, _ := value.UnwrapAndGetEntrypointName()
 	if result == nil {
 		logger.Warning("MichelsonParameter.Normalize: can't unwrap")
 		return nil

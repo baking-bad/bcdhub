@@ -3,6 +3,7 @@ package ast
 import (
 	"bytes"
 	"fmt"
+	"strconv"
 	"strings"
 
 	jsoniter "github.com/json-iterator/go"
@@ -366,27 +367,34 @@ func (a *TypedAst) GetJSONModel(model JSONModel) {
 }
 
 // Unwrap - clear paramaters from Left/Right. Tree must be settled.
-func (a *TypedAst) Unwrap() Node {
+func (a *TypedAst) UnwrapAndGetEntrypointName() (Node, string) {
 	if !a.IsSettled() || len(a.Nodes) != 1 {
-		return nil
+		return nil, ""
 	}
 
-	return unwrap(a.Nodes[0])
+	return unwrap(a.Nodes[0], "0")
 }
 
-func unwrap(node Node) Node {
+func unwrap(node Node, path string) (Node, string) {
 	or, ok := node.(*Or)
 	if !ok {
-		return node
+		name := node.GetName()
+		if strings.HasPrefix(name, "@") {
+			i, err := strconv.ParseInt(path, 2, 64)
+			if err == nil {
+				name = fmt.Sprintf("@entrypoint_%d", i)
+			}
+		}
+		return node, name
 	}
 
 	switch or.key {
 	case leftKey:
-		return unwrap(or.LeftType)
+		return unwrap(or.LeftType, path+"0")
 	case rightKey:
-		return unwrap(or.RightType)
+		return unwrap(or.RightType, path+"1")
 	}
-	return node
+	return node, node.GetName()
 }
 
 func marshalJSON(prim string, annots []string, args ...Node) ([]byte, error) {

@@ -588,7 +588,7 @@ func TestGroup_Parse(t *testing.T) {
 					Network:         "edo2net",
 					Hash:            "op4fFMvYsxvSUKZmLWC7aUf25VMYqigaDwTZCAoBBi8zACbHTNg",
 					Timestamp:       timestamp,
-					Entrypoint:      "@unit_3",
+					Entrypoint:      "@entrypoint_1",
 					Initiator:       "tz1gXhGAXgKvrXjn4t16rYUXocqbch1XXJFN",
 					Parameters:      "{\"entrypoint\":\"default\",\"value\":{\"prim\":\"Right\",\"args\":[{\"prim\":\"Unit\"}]}}",
 					Protocol:        "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA",
