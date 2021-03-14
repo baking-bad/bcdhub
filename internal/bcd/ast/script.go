@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 
@@ -39,6 +40,35 @@ func (s *Script) UnmarshalJSON(data []byte) error {
 		}
 	}
 	return nil
+}
+
+// MarshalJSON -
+func (s *Script) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	buf.WriteString(`[{"prim":"parameter","args":`)
+
+	parameter, err := json.Marshal(s.Parameter)
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(parameter)
+
+	buf.WriteString(`},{"prim":"storage","args":`)
+	storage, err := json.Marshal(s.Storage)
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(storage)
+
+	buf.WriteString(`},{"prim":"code","args":`)
+	code, err := json.Marshal(s.Code)
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(code)
+	buf.WriteString("}]")
+
+	return buf.Bytes(), nil
 }
 
 // NewScript - creates `Script` object: untyped trees of code, storage and parameter

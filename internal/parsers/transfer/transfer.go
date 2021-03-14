@@ -256,7 +256,9 @@ func getNode(operation operation.Operation) (ast.Node, error) {
 		return nil, err
 	}
 
-	return subTree.Unwrap(), nil
+	node, _ := subTree.UnwrapAndGetEntrypointName()
+
+	return node, nil
 }
 
 func (p Parser) setParentEntrypoint(operation operation.Operation, transfer *transfer.Transfer) {

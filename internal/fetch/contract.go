@@ -10,8 +10,11 @@ import (
 )
 
 const (
-	contractFormatPath    = "%s/contracts/%s/%s_%s.json"
-	delegatorContractPath = "%s/contracts/scripts/b5d01d3bf75d0cc4b88e5f881074084c5e76a0b1f8bdab6249c591a6f45a314283d32fe01c7300563e82866ef1f0c34d401b9e00cba6d2018fe56595f06b5f02.json"
+	contractFormatPath = "%s/contracts/%s/%s_%s.json"
+)
+
+var (
+	delegatorContract = []byte(`[{"prim":"parameter","args":[{"prim":"or","args":[{"prim":"lambda","args":[{"prim":"unit"},{"prim":"list","args":[{"prim":"operation"}]}],"annots":["%do"]},{"prim":"unit","annots":["%default"]}]}]},{"prim":"storage","args":[{"prim":"key_hash"}]},{"prim":"code","args":[[[[{"prim":"DUP"},{"prim":"CAR"},{"prim":"DIP","args":[[{"prim":"CDR"}]]}]],{"prim":"IF_LEFT","args":[[{"prim":"PUSH","args":[{"prim":"mutez"},{"int":"0"}]},{"prim":"AMOUNT"},[[{"prim":"COMPARE"},{"prim":"EQ"}],{"prim":"IF","args":[[],[[{"prim":"UNIT"},{"prim":"FAILWITH"}]]]}],[{"prim":"DIP","args":[[{"prim":"DUP"}]]},{"prim":"SWAP"}],{"prim":"IMPLICIT_ACCOUNT"},{"prim":"ADDRESS"},{"prim":"SENDER"},[[{"prim":"COMPARE"},{"prim":"EQ"}],{"prim":"IF","args":[[],[[{"prim":"UNIT"},{"prim":"FAILWITH"}]]]}],{"prim":"UNIT"},{"prim":"EXEC"},{"prim":"PAIR"}],[{"prim":"DROP"},{"prim":"NIL","args":[{"prim":"operation"}]},{"prim":"PAIR"}]]}]]}]`)
 )
 
 // RemoveContract -
@@ -61,7 +64,7 @@ func Contract(address, network, protocol, filesDirectory string) ([]byte, error)
 	filePath := fmt.Sprintf(contractFormatPath, filesDirectory, network, address, protoSymLink)
 	if _, err = os.Stat(filePath); err != nil {
 		if os.IsNotExist(err) {
-			filePath = fmt.Sprintf(delegatorContractPath, filesDirectory)
+			return delegatorContract, nil
 		} else {
 			return nil, err
 		}

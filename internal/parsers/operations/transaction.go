@@ -84,15 +84,8 @@ func (p Transaction) Parse(data noderpc.Operation) ([]models.Model, error) {
 		txModels = append(txModels, appliedModels...)
 	}
 
-	if len(tx.Parameters) > 0 {
-		if tx.IsApplied() {
-			if err := p.getEntrypoint(&tx); err != nil {
-				return nil, err
-			}
-		} else {
-			params := types.NewParameters([]byte(tx.Parameters))
-			tx.Entrypoint = params.Entrypoint
-		}
+	if err := p.getEntrypoint(&tx); err != nil {
+		return nil, err
 	}
 
 	if err := p.tagTransaction(&tx); err != nil {
@@ -164,17 +157,27 @@ func (p Transaction) appliedHandler(item noderpc.Operation, op *operation.Operat
 	return resultModels, nil
 }
 
-func (p Transaction) getEntrypoint(op *operation.Operation) error {
-	if op.Script == nil {
-		script, err := fetch.Contract(op.Destination, op.Network, op.Protocol, p.shareDir)
+func (p Transaction) getEntrypoint(tx *operation.Operation) error {
+	if !tx.IsCall() {
+		return nil
+	}
+
+	if !tx.IsApplied() {
+		params := types.NewParameters([]byte(tx.Parameters))
+		tx.Entrypoint = params.Entrypoint
+		return nil
+	}
+
+	if tx.Script == nil {
+		script, err := fetch.Contract(tx.Destination, tx.Network, tx.Protocol, p.shareDir)
 		if err != nil {
 			return err
 		}
-		op.Script = script
+		tx.Script = script
 	}
 
 	var s ast.Script
-	if err := json.Unmarshal(op.Script, &s); err != nil {
+	if err := json.Unmarshal(tx.Script, &s); err != nil {
 		return err
 	}
 
@@ -183,20 +186,20 @@ func (p Transaction) getEntrypoint(op *operation.Operation) error {
 		return err
 	}
 
-	params := types.NewParameters([]byte(op.Parameters))
+	params := types.NewParameters([]byte(tx.Parameters))
 
 	subTree, err := param.FromParameters(params)
 	if err != nil {
 		return err
 	}
 
-	op.Entrypoint = params.Entrypoint
+	tx.Entrypoint = params.Entrypoint
 
-	node := subTree.Unwrap()
+	node, entrypointName := subTree.UnwrapAndGetEntrypointName()
 	if node == nil {
 		return nil
 	}
-	op.Entrypoint = node.GetName()
+	tx.Entrypoint = entrypointName
 
 	return nil
 }
