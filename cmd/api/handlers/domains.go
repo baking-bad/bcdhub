@@ -14,7 +14,7 @@ import (
 // @Tags domains
 // @ID list-domains
 // @Param network path string true "Network"
-// @Param size query integer false "Transfers count" mininum(1)
+// @Param size query integer false "Transfers count" mininum(1) maximum(10)
 // @Param offset query integer false "Offset" mininum(1)
 // @Accept  json
 // @Produce  json

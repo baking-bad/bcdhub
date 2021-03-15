@@ -153,7 +153,7 @@ func (ctx *Context) GetBigMapHistory(c *gin.Context) {
 // @Param ptr path integer true "Big map pointer"
 // @Param q query string false "Search string"
 // @Param offset query integer false "Offset"
-// @Param size query integer false "Requested count" mininum(1)
+// @Param size query integer false "Requested count" mininum(1) maximum(10)
 // @Param max_level query integer false "Max level filter" minimum(0)
 // @Param min_level query integer false "Min level filter" minimum(0)
 // @Accept  json
@@ -203,7 +203,7 @@ func (ctx *Context) GetBigMapKeys(c *gin.Context) {
 // @Param ptr path integer true "Big map pointer"
 // @Param key_hash path string true "Key hash in big map" minlength(54) maxlength(54)
 // @Param offset query integer false "Offset"
-// @Param size query integer false "Requested count" mininum(1)
+// @Param size query integer false "Requested count" mininum(1) maximum(10)
 // @Accept json
 // @Produce json
 // @Success 200 {object} BigMapDiffByKeyResponse
