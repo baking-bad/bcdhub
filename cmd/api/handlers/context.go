@@ -36,7 +36,6 @@ func NewContext(cfg config.Config) (*Context, error) {
 		config.WithTzKTServices(cfg.TzKT),
 		config.WithLoadErrorDescriptions(),
 		config.WithConfigCopy(cfg),
-		config.WithRabbit(cfg.RabbitMQ, cfg.API.ProjectName, cfg.API.MQ),
 		config.WithPinata(cfg.API.Pinata),
 		config.WithTzipSchema("data/tzip-16-schema.json"),
 	)

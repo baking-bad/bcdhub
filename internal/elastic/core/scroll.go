@@ -46,7 +46,7 @@ func (ctx *ScrollContext) createScroll(index string, query map[string]interface{
 		return
 	}
 
-	if ctx.Size < ctx.ChunkSize {
+	if ctx.Size < ctx.ChunkSize && ctx.Size > 0 {
 		ctx.ChunkSize = ctx.Size
 	}
 
