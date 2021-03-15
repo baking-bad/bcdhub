@@ -288,7 +288,14 @@ func (d *Default) Compare(second Comparable) (int, error) {
 
 // EqualType -
 func (d *Default) EqualType(node Node) bool {
-	return d.Prim == node.GetPrim()
+	if d.Prim == node.GetPrim() {
+		return true
+	}
+	second, ok := node.(*Default)
+	if !ok {
+		return false
+	}
+	return d.ValueKind == second.ValueKind
 }
 
 // Equal -

@@ -103,7 +103,7 @@ func (ctx *Context) prepareMempoolOperation(item tzkt.MempoolOperation, network 
 		return &op
 	}
 
-	if bcd.IsContract(op.Destination) && op.Protocol != "" {
+	if bcd.IsContract(op.Destination) && op.Protocol != "" && op.Status == consts.Pending {
 		if len(item.Body.Parameters) > 0 {
 			_ = ctx.buildOperationParameters(item.Body.Parameters, &op)
 		} else {

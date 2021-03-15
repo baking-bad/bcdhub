@@ -1551,3 +1551,36 @@ func TestTypedAst_GetEntrypointsDocs(t *testing.T) {
 		})
 	}
 }
+
+func TestTypedAst_EqualType(t *testing.T) {
+	tests := []struct {
+		name string
+		typ1 string
+		typ2 string
+		want bool
+	}{
+		{
+			name: "NFT",
+			typ1: `{"prim":"map","args":[{"prim":"nat"},{"prim":"address"}]}`,
+			typ2: `{"prim":"map","args":[{"prim":"nat"},{"prim":"int"}]}`,
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			a, err := NewTypedAstFromString(tt.typ1)
+			if err != nil {
+				t.Errorf("NewTypedAstFromString(a) = %v", err)
+				return
+			}
+			b, err := NewTypedAstFromString(tt.typ2)
+			if err != nil {
+				t.Errorf("NewTypedAstFromString(b) = %v", err)
+				return
+			}
+			if got := a.EqualType(b); got != tt.want {
+				t.Errorf("TypedAst.EqualType() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
