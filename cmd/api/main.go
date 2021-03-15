@@ -9,7 +9,6 @@ import (
 	"github.com/baking-bad/bcdhub/cmd/api/handlers"
 	"github.com/baking-bad/bcdhub/cmd/api/seed"
 	"github.com/baking-bad/bcdhub/cmd/api/validations"
-	"github.com/baking-bad/bcdhub/cmd/api/ws"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -21,7 +20,6 @@ import (
 
 type app struct {
 	Router  *gin.Engine
-	Hub     *ws.Hub
 	Context *handlers.Context
 }
 
@@ -53,7 +51,6 @@ func newApp() *app {
 	}
 
 	api := &app{
-		Hub:     ws.DefaultHub(ctx),
 		Context: ctx,
 	}
 
@@ -92,8 +89,8 @@ func (api *app) makeRouter() {
 	v1 := r.Group("v1")
 	{
 		v1.GET("swagger.json", api.Context.GetSwaggerDoc)
-		v1.GET("ws", func(c *gin.Context) { ws.Handler(c, api.Hub) })
 
+		v1.GET("head", api.Context.GetHead)
 		v1.GET("opg/:hash", api.Context.GetOperation)
 		v1.GET("operation/:id/error_location", api.Context.GetOperationErrorLocation)
 		v1.GET("pick_random", api.Context.GetRandomContract)
@@ -258,11 +255,9 @@ func (api *app) makeRouter() {
 
 func (api *app) Close() {
 	api.Context.Close()
-	api.Hub.Stop()
 }
 
 func (api *app) Run() {
-	api.Hub.Run()
 	if err := api.Router.Run(api.Context.Config.API.Bind); err != nil {
 		logger.Error(err)
 		helpers.CatchErrorSentry(err)
