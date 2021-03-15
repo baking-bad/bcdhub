@@ -15,7 +15,7 @@ import (
 // @ID get-contract-transfers
 // @Param network path string true "Network"
 // @Param address path string true "KT address" minlength(36) maxlength(36)
-// @Param size query integer false "Transfers count" mininum(1)
+// @Param size query integer false "Transfers count" mininum(1) maximum(10)
 // @Param offset query integer false "Offset" mininum(1)
 // @Param token_id query integer false "Token ID" mininum(1)
 // @Accept  json

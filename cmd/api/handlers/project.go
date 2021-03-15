@@ -16,7 +16,7 @@ import (
 // @Param address path string true "KT address" minlength(36) maxlength(36)
 // @Param manager query string false "Manager"
 // @Param offset query integer false "Offset"
-// @Param size query integer false "Requested count" mininum(1)
+// @Param size query integer false "Requested count" mininum(1) maximum(10)
 // @Accept json
 // @Produce json
 // @Success 200 {object} SameContractsResponse
@@ -64,7 +64,7 @@ func (ctx *Context) GetSameContracts(c *gin.Context) {
 // @Param network path string true "Network"
 // @Param address path string true "KT address" minlength(36) maxlength(36)
 // @Param offset query integer false "Offset"
-// @Param size query integer false "Requested count" mininum(1)
+// @Param size query integer false "Requested count" mininum(1) maximum(10)
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} SimilarContractsResponse

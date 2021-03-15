@@ -20,7 +20,7 @@ import (
 // @ID get-fa-all
 // @Param network path string true "Network"
 // @Param offset query integer false "Offset"
-// @Param size query integer false "Requested count" minimum(0) maximum(100)
+// @Param size query integer false "Requested count" minimum(0) maximum(10)
 // @Accept json
 // @Produce json
 // @Success 200 {object} PageableTokenContracts
@@ -62,7 +62,7 @@ func (ctx *Context) GetFA(c *gin.Context) {
 // @Param network path string true "Network"
 // @Param faversion path string true "FA token version" Enums(fa1, fa12, fa2)
 // @Param offset query integer false "Offset"
-// @Param size query integer false "Requested count" minimum(0) maximum(100)
+// @Param size query integer false "Requested count" minimum(0) maximum(10)
 // @Accept json
 // @Produce json
 // @Success 200 {object} PageableTokenContracts
