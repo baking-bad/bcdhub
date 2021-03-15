@@ -106,7 +106,7 @@ func (ctx *Context) prepareMempoolOperation(item tzkt.MempoolOperation, network 
 		return &op
 	}
 
-	if helpers.IsContract(op.Destination) && op.Protocol != "" {
+	if helpers.IsContract(op.Destination) && op.Protocol != "" && op.Status == "pending" {
 		if params := gjson.ParseBytes(item.Body.Parameters); params.Exists() {
 			ctx.buildOperationParameters(params, &op)
 		} else {
