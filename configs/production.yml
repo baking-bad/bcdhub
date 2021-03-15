@@ -83,17 +83,6 @@ api:
     - mainnet
     - edo2net
     - florencenet
-  mq:
-    publisher: true
-    queues:
-      operations:
-        non_durable: true
-        auto_deleted: true
-        ttl_seconds: 15
-      blocks:
-        non_durable: true
-        auto_deleted: true
-        ttl_seconds: 15
   pinata:
     key: ${PINATA_KEY}
     secret_key: ${PINATA_SECRET_KEY}
