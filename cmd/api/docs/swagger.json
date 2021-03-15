@@ -333,6 +333,7 @@
                         "in": "query"
                     },
                     {
+                        "maximum": 10,
                         "type": "integer",
                         "description": "Requested count",
                         "name": "size",
@@ -423,6 +424,7 @@
                         "in": "query"
                     },
                     {
+                        "maximum": 10,
                         "type": "integer",
                         "description": "Requested count",
                         "name": "size",
@@ -1082,6 +1084,7 @@
                         "in": "query"
                     },
                     {
+                        "maximum": 10,
                         "type": "integer",
                         "description": "Requested count",
                         "name": "size",
@@ -1148,6 +1151,7 @@
                         "in": "query"
                     },
                     {
+                        "maximum": 10,
                         "type": "integer",
                         "description": "Requested count",
                         "name": "size",
@@ -1465,6 +1469,32 @@
                         "name": "address",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "maximum": 10,
+                        "type": "integer",
+                        "description": "Requested count",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 10,
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum token`s creation level (less than or equal)",
+                        "name": "max_level",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Minimum token`s creation level (greater than)",
+                        "name": "min_level",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1750,6 +1780,7 @@
                         "required": true
                     },
                     {
+                        "maximum": 10,
                         "type": "integer",
                         "description": "Transfers count",
                         "name": "size",
@@ -2394,7 +2425,7 @@
                         "in": "query"
                     },
                     {
-                        "maximum": 100,
+                        "maximum": 10,
                         "minimum": 0,
                         "type": "integer",
                         "description": "Requested count",
@@ -2643,7 +2674,7 @@
                         "in": "query"
                     },
                     {
-                        "maximum": 100,
+                        "maximum": 10,
                         "minimum": 0,
                         "type": "integer",
                         "description": "Requested count",
@@ -2705,6 +2736,7 @@
                         "required": true
                     },
                     {
+                        "maximum": 10,
                         "type": "integer",
                         "description": "Transfers count",
                         "name": "size",
@@ -3249,6 +3281,12 @@
                     "type": "string",
                     "x-nullable": true
                 },
+                "same_count": {
+                    "type": "integer"
+                },
+                "similar_count": {
+                    "type": "integer"
+                },
                 "slug": {
                     "type": "string",
                     "x-nullable": true
@@ -3756,6 +3794,12 @@
                 "removed": {
                     "type": "integer",
                     "x-nullable": true
+                },
+                "same_count": {
+                    "type": "integer"
+                },
+                "similar_count": {
+                    "type": "integer"
                 },
                 "slug": {
                     "type": "string",

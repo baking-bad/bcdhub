@@ -339,6 +339,10 @@ definitions:
       project_id:
         type: string
         x-nullable: true
+      same_count:
+        type: integer
+      similar_count:
+        type: integer
       slug:
         type: string
         x-nullable: true
@@ -695,6 +699,10 @@ definitions:
       removed:
         type: integer
         x-nullable: true
+      same_count:
+        type: integer
+      similar_count:
+        type: integer
       slug:
         type: string
         x-nullable: true
@@ -1303,6 +1311,7 @@ paths:
         type: string
       - description: Transfers count
         in: query
+        maximum: 10
         name: size
         type: integer
       - description: Offset
@@ -1545,6 +1554,7 @@ paths:
         type: integer
       - description: Requested count
         in: query
+        maximum: 10
         name: size
         type: integer
       - description: Max level filter
@@ -1607,6 +1617,7 @@ paths:
         type: integer
       - description: Requested count
         in: query
+        maximum: 10
         name: size
         type: integer
       produces:
@@ -2057,6 +2068,7 @@ paths:
         type: integer
       - description: Requested count
         in: query
+        maximum: 10
         name: size
         type: integer
       produces:
@@ -2102,6 +2114,7 @@ paths:
         type: integer
       - description: Requested count
         in: query
+        maximum: 10
         name: size
         type: integer
       produces:
@@ -2318,6 +2331,24 @@ paths:
         name: address
         required: true
         type: string
+      - description: Requested count
+        in: query
+        maximum: 10
+        name: size
+        type: integer
+      - description: Offset
+        in: query
+        maximum: 10
+        name: offset
+        type: integer
+      - description: Maximum token`s creation level (less than or equal)
+        in: query
+        name: max_level
+        type: integer
+      - description: Minimum token`s creation level (greater than)
+        in: query
+        name: min_level
+        type: integer
       produces:
       - application/json
       responses:
@@ -2512,6 +2543,7 @@ paths:
         type: string
       - description: Transfers count
         in: query
+        maximum: 10
         name: size
         type: integer
       - description: Offset
@@ -2951,7 +2983,7 @@ paths:
         type: integer
       - description: Requested count
         in: query
-        maximum: 100
+        maximum: 10
         minimum: 0
         name: size
         type: integer
@@ -3123,7 +3155,7 @@ paths:
         type: integer
       - description: Requested count
         in: query
-        maximum: 100
+        maximum: 10
         minimum: 0
         name: size
         type: integer

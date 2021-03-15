@@ -35,7 +35,7 @@ func (m *TokenMetadataSetDecimals) Do(ctx *config.Context) error {
 		parser := tokens.NewParser(ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Storage, rpc, ctx.SharePath, network, ctx.Config.IPFSGateways...)
 
 		logger.Info("Receiving token metadata....")
-		tokenMetadata, err := ctx.TokenMetadata.Get(tokenmetadata.GetContext{
+		tokenMetadata, err := ctx.TokenMetadata.GetAll(tokenmetadata.GetContext{
 			TokenID: -1,
 			Network: network,
 		})

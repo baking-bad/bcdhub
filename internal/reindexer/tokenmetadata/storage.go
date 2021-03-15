@@ -17,7 +17,15 @@ func NewStorage(db *core.Reindexer) *Storage {
 }
 
 // Get -
-func (storage *Storage) Get(ctx ...tokenmetadata.GetContext) (tokens []tokenmetadata.TokenMetadata, err error) {
+func (storage *Storage) Get(ctx []tokenmetadata.GetContext, size, offset int64) (tokens []tokenmetadata.TokenMetadata, err error) {
+	query := storage.db.Query(models.DocTokenMetadata)
+	buildGetTokenMetadataContext(query, ctx...)
+	err = storage.db.GetAllByQuery(query, &tokens)
+	return
+}
+
+// Get -
+func (storage *Storage) GetAll(ctx ...tokenmetadata.GetContext) (tokens []tokenmetadata.TokenMetadata, err error) {
 	query := storage.db.Query(models.DocTokenMetadata)
 	buildGetTokenMetadataContext(query, ctx...)
 	err = storage.db.GetAllByQuery(query, &tokens)

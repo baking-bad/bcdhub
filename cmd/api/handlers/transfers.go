@@ -70,7 +70,7 @@ func (ctx *Context) transfersPostprocessing(transfers transfer.Pageable, withLas
 	}
 
 	mapTokens := make(map[tokenKey]*TokenMetadata)
-	tokens, err := ctx.TokenMetadata.Get(tokenmetadata.GetContext{
+	tokens, err := ctx.TokenMetadata.GetAll(tokenmetadata.GetContext{
 		TokenID: -1,
 	})
 	if err != nil {
