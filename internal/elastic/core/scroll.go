@@ -132,6 +132,9 @@ func (ctx *ScrollContext) Get(output interface{}) error {
 
 			length := int64(len(hits))
 			offset := ctx.Offset - count
+			if offset > length && length < ctx.ChunkSize {
+				break
+			}
 			if offset > 0 {
 				hits = hits[offset:]
 			}
