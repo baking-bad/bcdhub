@@ -100,7 +100,7 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 			result.DexTokens = make([]TokenMetadata, 0)
 
 			for _, token := range dapp.DexTokens {
-				tokenMetadata, err := ctx.TokenMetadata.Get(tokenmetadata.GetContext{
+				tokenMetadata, err := ctx.TokenMetadata.GetAll(tokenmetadata.GetContext{
 					Contract: token.Contract,
 					Network:  consts.Mainnet,
 					TokenID:  token.TokenID,
@@ -149,7 +149,7 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 					ReleaseDate: contract.Timestamp.UTC(),
 				})
 
-				tokens, err := ctx.getTokens(consts.Mainnet, address.Address)
+				tokens, err := ctx.getTokens(consts.Mainnet, address.Address, 0, 0, 0, 0)
 				if err != nil {
 					return result, err
 				}

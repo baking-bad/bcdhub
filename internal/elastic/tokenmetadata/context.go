@@ -16,8 +16,11 @@ func buildGetTokenMetadataContext(ctx ...tokenmetadata.GetContext) core.Base {
 		if c.Network != "" {
 			filter = append(filter, core.Match("network", c.Network))
 		}
-		if c.Level.IsFilled() {
-			filter = append(filter, core.BuildComparator(c.Level))
+		if c.MaxLevel > 0 {
+			filter = append(filter, core.Range("level", core.Item{"lte": c.MaxLevel}))
+		}
+		if c.MinLevel > 0 {
+			filter = append(filter, core.Range("level", core.Item{"gt": c.MinLevel}))
 		}
 		if c.TokenID != -1 {
 			filter = append(filter, core.Term("token_id", c.TokenID))
@@ -33,5 +36,5 @@ func buildGetTokenMetadataContext(ctx ...tokenmetadata.GetContext) core.Base {
 			core.Should(filters...),
 			core.MinimumShouldMatch(1),
 		),
-	).All()
+	).Sort("level", "desc").All()
 }

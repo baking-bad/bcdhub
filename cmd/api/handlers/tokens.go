@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"sort"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast/interfaces"
@@ -280,6 +279,10 @@ func (ctx *Context) contractToTokens(contracts []contract.Contract, network, ver
 // @ID get-contract-token
 // @Param network path string true "Network"
 // @Param address path string true "KT address" minlength(36) maxlength(36)
+// @Param size query integer false "Requested count" mininum(1) maximum(10)
+// @Param offset query integer false "Offset" mininum(1) maximum(10)
+// @Param max_level query integer false "Maximum token`s creation level (less than or equal)" mininum(1)
+// @Param min_level query integer false "Minimum token`s creation level (greater than)" mininum(1)
 // @Accept  json
 // @Produce  json
 // @Success 200 {array} Token
@@ -291,19 +294,30 @@ func (ctx *Context) GetContractTokens(c *gin.Context) {
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-	tokens, err := ctx.getTokens(req.Network, req.Address)
+	var pageReq tokenRequest
+	if err := c.BindQuery(&pageReq); ctx.handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+	if pageReq.Size == 0 {
+		pageReq.Size = 10
+	}
+	tokens, err := ctx.getTokens(req.Network, req.Address, pageReq.Size, pageReq.Offset, pageReq.MinLevel, pageReq.MaxLevel)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 	c.JSON(http.StatusOK, tokens)
 }
 
-func (ctx *Context) getTokens(network, address string) ([]Token, error) {
-	metadata, err := ctx.TokenMetadata.Get(tokenmetadata.GetContext{
-		Contract: address,
-		Network:  network,
-		TokenID:  -1,
-	})
+func (ctx *Context) getTokens(network, address string, size, offset, minLevel, maxLevel int64) ([]Token, error) {
+	metadata, err := ctx.TokenMetadata.Get([]tokenmetadata.GetContext{
+		{
+			Contract: address,
+			Network:  network,
+			TokenID:  -1,
+			MinLevel: minLevel,
+			MaxLevel: maxLevel,
+		},
+	}, size, offset)
 	if err != nil {
 		if ctx.Storage.IsRecordNotFound(err) {
 			return []Token{}, nil
@@ -311,7 +325,6 @@ func (ctx *Context) getTokens(network, address string) ([]Token, error) {
 		return nil, err
 	}
 
-	sort.Sort(tokenmetadata.ByTokenID(metadata))
 	tokens := make([]Token, 0)
 	for _, token := range metadata {
 		supply, err := ctx.Transfers.GetTokenSupply(network, address, token.TokenID)

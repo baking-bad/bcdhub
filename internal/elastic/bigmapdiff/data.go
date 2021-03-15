@@ -46,11 +46,11 @@ func buildGetContext(ctx *bigmapdiff.GetContext) core.Base {
 	}
 
 	if ctx.MaxLevel != nil {
-		filters = append(filters, core.BuildComparator(core.NewLessThanEqRange(*ctx.MaxLevel)))
+		filters = append(filters, core.Range("level", core.Item{"lte": *ctx.MaxLevel}))
 	}
 
 	if ctx.MinLevel != nil {
-		filters = append(filters, core.BuildComparator(core.NewGreaterThanEqRange(*ctx.MinLevel)))
+		filters = append(filters, core.Range("level", core.Item{"gt": *ctx.MinLevel}))
 	}
 
 	if ctx.CurrentLevel != nil {

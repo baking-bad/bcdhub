@@ -361,3 +361,9 @@ type executeViewRequest struct {
 	Source         string                 `json:"source,omitempty" binding:"omitempty,address"`
 	Sender         string                 `json:"sender,omitempty" binding:"omitempty,address"`
 }
+
+type tokenRequest struct {
+	pageableRequest
+	MaxLevel int64 `form:"max_level,omitempty" binding:"omitempty,gt_int64_ptr=MinLevel"`
+	MinLevel int64 `form:"min_level,omitempty" binding:"omitempty"`
+}

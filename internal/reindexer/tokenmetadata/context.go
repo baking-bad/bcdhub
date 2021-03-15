@@ -2,7 +2,6 @@ package tokenmetadata
 
 import (
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
-	"github.com/baking-bad/bcdhub/internal/reindexer/core"
 	"github.com/restream/reindexer"
 )
 
@@ -12,9 +11,6 @@ func buildGetTokenMetadataContext(query *reindexer.Query, ctx ...tokenmetadata.G
 	}
 	if ctx[0].Network != "" {
 		query.Match("network", ctx[0].Network)
-	}
-	if ctx[0].Level.IsFilled() {
-		core.SetComaparator("level", ctx[0].Level, query)
 	}
 	if ctx[0].TokenID != -1 {
 		query.WhereInt64("tokens.static.token_id", reindexer.EQ, ctx[0].TokenID)

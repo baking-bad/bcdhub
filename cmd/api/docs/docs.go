@@ -351,6 +351,7 @@ var doc = `{
                         "in": "query"
                     },
                     {
+                        "maximum": 10,
                         "type": "integer",
                         "description": "Requested count",
                         "name": "size",
@@ -441,6 +442,7 @@ var doc = `{
                         "in": "query"
                     },
                     {
+                        "maximum": 10,
                         "type": "integer",
                         "description": "Requested count",
                         "name": "size",
@@ -1100,6 +1102,7 @@ var doc = `{
                         "in": "query"
                     },
                     {
+                        "maximum": 10,
                         "type": "integer",
                         "description": "Requested count",
                         "name": "size",
@@ -1166,6 +1169,7 @@ var doc = `{
                         "in": "query"
                     },
                     {
+                        "maximum": 10,
                         "type": "integer",
                         "description": "Requested count",
                         "name": "size",
@@ -1483,6 +1487,32 @@ var doc = `{
                         "name": "address",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "maximum": 10,
+                        "type": "integer",
+                        "description": "Requested count",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 10,
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum token` + "`" + `s creation level (less than or equal)",
+                        "name": "max_level",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Minimum token` + "`" + `s creation level (greater than)",
+                        "name": "min_level",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1768,6 +1798,7 @@ var doc = `{
                         "required": true
                     },
                     {
+                        "maximum": 10,
                         "type": "integer",
                         "description": "Transfers count",
                         "name": "size",
@@ -2412,7 +2443,7 @@ var doc = `{
                         "in": "query"
                     },
                     {
-                        "maximum": 100,
+                        "maximum": 10,
                         "minimum": 0,
                         "type": "integer",
                         "description": "Requested count",
@@ -2661,7 +2692,7 @@ var doc = `{
                         "in": "query"
                     },
                     {
-                        "maximum": 100,
+                        "maximum": 10,
                         "minimum": 0,
                         "type": "integer",
                         "description": "Requested count",
@@ -2723,6 +2754,7 @@ var doc = `{
                         "required": true
                     },
                     {
+                        "maximum": 10,
                         "type": "integer",
                         "description": "Transfers count",
                         "name": "size",
@@ -3267,6 +3299,12 @@ var doc = `{
                     "type": "string",
                     "x-nullable": true
                 },
+                "same_count": {
+                    "type": "integer"
+                },
+                "similar_count": {
+                    "type": "integer"
+                },
                 "slug": {
                     "type": "string",
                     "x-nullable": true
@@ -3774,6 +3812,12 @@ var doc = `{
                 "removed": {
                     "type": "integer",
                     "x-nullable": true
+                },
+                "same_count": {
+                    "type": "integer"
+                },
+                "similar_count": {
+                    "type": "integer"
                 },
                 "slug": {
                     "type": "string",

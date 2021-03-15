@@ -38,7 +38,7 @@ func (h *Handler) FixTokenMetadata(rpc noderpc.INode, sharePath string, contract
 		return nil
 	}
 
-	tokenMetadatas, err := h.TokenMetadata.Get(tokenmetadata.GetContext{
+	tokenMetadatas, err := h.TokenMetadata.GetAll(tokenmetadata.GetContext{
 		Contract: operation.Destination,
 		Network:  operation.Network,
 		TokenID:  -1,

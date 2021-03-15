@@ -92,7 +92,7 @@ func (ctx *Context) getAccountBalances(network, address string) ([]TokenBalance,
 		contextes = append(contextes, c)
 	}
 
-	tokens, err := ctx.TokenMetadata.Get(contextes...)
+	tokens, err := ctx.TokenMetadata.GetAll(contextes...)
 	if err != nil {
 		return nil, err
 	}

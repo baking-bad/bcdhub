@@ -46,6 +46,10 @@ func (ctx *ScrollContext) createScroll(index string, query map[string]interface{
 		return
 	}
 
+	if ctx.Size < ctx.ChunkSize {
+		ctx.ChunkSize = ctx.Size
+	}
+
 	var resp *esapi.Response
 	options := []func(*esapi.SearchRequest){
 		ctx.e.Search.WithContext(context.Background()),
