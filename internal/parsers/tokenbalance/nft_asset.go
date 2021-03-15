@@ -56,13 +56,21 @@ func (p NftAsset) Parse(data []byte) ([]TokenBalance, error) {
 		var address string
 		switch t := value.(type) {
 		case *ast.Address:
-			address = forge.DecodeString(t.Value.(string))
-			balance.SetInt64(1)
+			if s, ok := t.Value.(string); ok {
+				address = forge.DecodeString(s)
+				balance.SetInt64(1)
+			} else {
+				return false, nil
+			}
 		case *ast.Option:
 			if t.IsSome() {
 				val := t.Type.(*ast.Address)
-				address = forge.DecodeString(val.Value.(string))
-				balance.SetInt64(1)
+				if s, ok := val.Value.(string); ok {
+					address = forge.DecodeString(s)
+					balance.SetInt64(1)
+				} else {
+					return false, nil
+				}
 			}
 		default:
 			return false, nil
