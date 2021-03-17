@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
@@ -400,36 +401,53 @@ func prepareBigMapHistory(arr []bigmapaction.BigMapAction, ptr int64) BigMapHist
 }
 
 func findBigMapType(storage *ast.TypedAst, ptr int64) *ast.BigMap {
-	var bigMapType *ast.BigMap
 	ptrs := storage.FindBigMapByPtr()
 	for p, bigMap := range ptrs {
 		if ptr == p {
-			bigMapType = bigMap
-			break
+			return bigMap
 		}
 	}
-	return bigMapType
+	return nil
 }
 
 func (ctx *Context) getBigMapType(network, address, protocol string, ptr int64) (*ast.BigMap, error) {
-	storage, err := ctx.getStorageType(address, network, protocol)
+	storage, err := ctx.getStorageType(address, network, bcd.GetCurrentProtocol())
 	if err != nil {
 		return nil, err
 	}
-	ops, err := ctx.Operations.Get(map[string]interface{}{
-		"network":     network,
-		"destination": address,
-		"protocol":    protocol,
-		"status":      consts.Applied,
-	}, 1, true)
+
+	symLink, err := bcd.GetProtoSymLink(protocol)
 	if err != nil {
 		return nil, err
 	}
-	if len(ops) != 1 {
-		return nil, fmt.Errorf("Can't get contract storage: %s", address)
+
+	var storageRaw []byte
+	if symLink == consts.MetadataAlpha {
+		rpc, err := ctx.GetRPC(network)
+		if err != nil {
+			return nil, err
+		}
+		storageRaw, err = rpc.GetScriptStorageRaw(address, 0)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		ops, err := ctx.Operations.Get(map[string]interface{}{
+			"network":     network,
+			"destination": address,
+			"protocol":    protocol,
+			"status":      consts.Applied,
+		}, 1, true)
+		if err != nil {
+			return nil, err
+		}
+		if len(ops) != 1 {
+			return nil, fmt.Errorf("Can't get contract storage: %s", address)
+		}
+		storageRaw = []byte(ops[0].DeffatedStorage)
 	}
 	var data ast.UntypedAST
-	if err := json.UnmarshalFromString(ops[0].DeffatedStorage, &data); err != nil {
+	if err := json.Unmarshal(storageRaw, &data); err != nil {
 		return nil, err
 	}
 	if err := storage.Settle(data); err != nil {
