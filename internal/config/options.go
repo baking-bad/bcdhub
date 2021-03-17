@@ -9,33 +9,22 @@ import (
 	"github.com/baking-bad/bcdhub/internal/aws"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/database"
-	"github.com/baking-bad/bcdhub/internal/elastic/bigmapaction"
-	"github.com/baking-bad/bcdhub/internal/elastic/bigmapdiff"
-	"github.com/baking-bad/bcdhub/internal/elastic/block"
-	"github.com/baking-bad/bcdhub/internal/elastic/contract"
-	"github.com/baking-bad/bcdhub/internal/elastic/core"
-	"github.com/baking-bad/bcdhub/internal/elastic/migration"
-	"github.com/baking-bad/bcdhub/internal/elastic/operation"
-	"github.com/baking-bad/bcdhub/internal/elastic/protocol"
-	"github.com/baking-bad/bcdhub/internal/elastic/tezosdomain"
-	"github.com/baking-bad/bcdhub/internal/elastic/tokenbalance"
-	"github.com/baking-bad/bcdhub/internal/elastic/tokenmetadata"
-	"github.com/baking-bad/bcdhub/internal/elastic/transfer"
-	"github.com/baking-bad/bcdhub/internal/elastic/tzip"
+	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/postgres/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/postgres/contract"
+	"github.com/baking-bad/bcdhub/internal/postgres/migration"
+	"github.com/baking-bad/bcdhub/internal/postgres/operation"
+	"github.com/baking-bad/bcdhub/internal/postgres/protocol"
+	"github.com/baking-bad/bcdhub/internal/postgres/tezosdomain"
+	"github.com/baking-bad/bcdhub/internal/postgres/tokenbalance"
+	"github.com/baking-bad/bcdhub/internal/postgres/tokenmetadata"
+	"github.com/baking-bad/bcdhub/internal/postgres/transfer"
+	"github.com/baking-bad/bcdhub/internal/postgres/tzip"
+	"github.com/baking-bad/bcdhub/internal/reindexer"
 
-	reindexerBMA "github.com/baking-bad/bcdhub/internal/reindexer/bigmapaction"
-	reindexerBMD "github.com/baking-bad/bcdhub/internal/reindexer/bigmapdiff"
-	reindexerBlock "github.com/baking-bad/bcdhub/internal/reindexer/block"
-	reindexerContract "github.com/baking-bad/bcdhub/internal/reindexer/contract"
-	reindexerCore "github.com/baking-bad/bcdhub/internal/reindexer/core"
-	reindexerMigration "github.com/baking-bad/bcdhub/internal/reindexer/migration"
-	reindexerOperation "github.com/baking-bad/bcdhub/internal/reindexer/operation"
-	reindexerProtocol "github.com/baking-bad/bcdhub/internal/reindexer/protocol"
-	reindexerTD "github.com/baking-bad/bcdhub/internal/reindexer/tezosdomain"
-	reindexerTB "github.com/baking-bad/bcdhub/internal/reindexer/tokenbalance"
-	reindexerTM "github.com/baking-bad/bcdhub/internal/reindexer/tokenmetadata"
-	reindexerTransfer "github.com/baking-bad/bcdhub/internal/reindexer/transfer"
-	reindexertzip "github.com/baking-bad/bcdhub/internal/reindexer/tzip"
+	"github.com/baking-bad/bcdhub/internal/postgres/bigmapaction"
+	"github.com/baking-bad/bcdhub/internal/postgres/block"
+	pgCore "github.com/baking-bad/bcdhub/internal/postgres/core"
 
 	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -66,49 +55,27 @@ func WithRPC(rpcConfig map[string]RPCConfig) ContextOption {
 // WithStorage -
 func WithStorage(cfg StorageConfig, maxPageSize int64) ContextOption {
 	return func(ctx *Context) {
-		if len(cfg.URI) == 0 {
+		if len(cfg.Elastic) == 0 {
 			panic("Please set connection strings to storage in config")
 		}
-		if strings.HasPrefix(cfg.URI[0], "builtin://") {
-			storage, err := reindexerCore.New(cfg.URI[0])
-			if err != nil {
-				panic(err)
-			}
 
-			ctx.Storage = storage
-			ctx.BigMapActions = reindexerBMA.NewStorage(storage)
-			ctx.BigMapDiffs = reindexerBMD.NewStorage(storage)
-			ctx.Blocks = reindexerBlock.NewStorage(storage)
-			ctx.Contracts = reindexerContract.NewStorage(storage)
-			ctx.Migrations = reindexerMigration.NewStorage(storage)
-			ctx.Operations = reindexerOperation.NewStorage(storage)
-			ctx.Protocols = reindexerProtocol.NewStorage(storage)
-			ctx.TezosDomains = reindexerTD.NewStorage(storage)
-			ctx.TokenBalances = reindexerTB.NewStorage(storage)
-			ctx.TokenMetadata = reindexerTM.NewStorage(storage)
-			ctx.Transfers = reindexerTransfer.NewStorage(storage)
-			ctx.TZIP = reindexertzip.NewStorage(storage)
-
-			if err := ctx.Storage.CreateIndexes(); err != nil {
-				panic(err)
-			}
-		} else {
-			es := core.WaitNew(cfg.URI, cfg.Timeout, maxPageSize)
-
-			ctx.Storage = es
-			ctx.BigMapActions = bigmapaction.NewStorage(es)
-			ctx.BigMapDiffs = bigmapdiff.NewStorage(es)
-			ctx.Blocks = block.NewStorage(es)
-			ctx.Contracts = contract.NewStorage(es)
-			ctx.Migrations = migration.NewStorage(es)
-			ctx.Operations = operation.NewStorage(es)
-			ctx.Protocols = protocol.NewStorage(es)
-			ctx.TezosDomains = tezosdomain.NewStorage(es)
-			ctx.TokenBalances = tokenbalance.NewStorage(es)
-			ctx.TokenMetadata = tokenmetadata.NewStorage(es)
-			ctx.Transfers = transfer.NewStorage(es)
-			ctx.TZIP = tzip.NewStorage(es)
+		pg, err := pgCore.NewPostgres(cfg.Postgres)
+		if err != nil {
+			panic(err)
 		}
+		ctx.Storage = pg
+		ctx.BigMapActions = bigmapaction.NewStorage(pg)
+		ctx.Blocks = block.NewStorage(pg)
+		ctx.BigMapDiffs = bigmapdiff.NewStorage(pg)
+		ctx.Contracts = contract.NewStorage(pg)
+		ctx.Migrations = migration.NewStorage(pg)
+		ctx.Operations = operation.NewStorage(pg)
+		ctx.Protocols = protocol.NewStorage(pg)
+		ctx.TezosDomains = tezosdomain.NewStorage(pg)
+		ctx.TokenBalances = tokenbalance.NewStorage(pg)
+		ctx.TokenMetadata = tokenmetadata.NewStorage(pg)
+		ctx.Transfers = transfer.NewStorage(pg)
+		ctx.TZIP = tzip.NewStorage(pg)
 	}
 }
 
@@ -117,6 +84,27 @@ func WithDatabase(dbConfig DatabaseConfig) ContextOption {
 	return func(ctx *Context) {
 		ctx.DB = database.WaitNew(dbConfig.ConnString, dbConfig.Timeout)
 	}
+}
+
+// WithSearch -
+func WithSearch(cfg StorageConfig) ContextOption {
+	return func(ctx *Context) {
+		if strings.HasPrefix(cfg.Elastic[0], "builtin://") {
+			storage, err := reindexer.New(cfg.Elastic[0])
+			if err != nil {
+				panic(err)
+			}
+			ctx.Searcher = storage
+
+			if err := ctx.Storage.CreateIndexes(); err != nil {
+				panic(err)
+			}
+		} else {
+			ctx.Searcher = elastic.WaitNew(cfg.Elastic, cfg.Timeout, 0)
+
+		}
+	}
+
 }
 
 // WithRabbit -

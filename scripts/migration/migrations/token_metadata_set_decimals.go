@@ -36,7 +36,6 @@ func (m *TokenMetadataSetDecimals) Do(ctx *config.Context) error {
 
 		logger.Info("Receiving token metadata....")
 		tokenMetadata, err := ctx.TokenMetadata.GetAll(tokenmetadata.GetContext{
-			TokenID: -1,
 			Network: network,
 		})
 		if err != nil {

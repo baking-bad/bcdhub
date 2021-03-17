@@ -6,7 +6,7 @@ import (
 
 // DAppsTZIP -
 type DAppsTZIP struct {
-	DApps []DApp `json:"dapps,omitempty"`
+	DApps []DApp `json:"dapps,omitempty"  gorm:"-"`
 }
 
 // DApp -
@@ -44,7 +44,7 @@ func (t *Picture) ParseElasticJSON(resp gjson.Result) {
 
 // DexToken -
 type DexToken struct {
-	TokenID  int64  `json:"token_id"`
+	TokenID  uint64 `json:"token_id"`
 	Contract string `json:"contract"`
 }
 

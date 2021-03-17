@@ -7,6 +7,10 @@ api:
 	docker-compose up -d elastic mq db
 	cd cmd/api && go run .
 
+api-tester:
+	docker-compose up -d elastic mq db
+	cd scripts/api_tester && go run .
+
 indexer:
 	docker-compose up -d elastic mq
 	cd cmd/indexer && go run .

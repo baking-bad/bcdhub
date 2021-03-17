@@ -5,11 +5,11 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
 )
@@ -61,7 +61,7 @@ func (b *Babylon) ParseTransaction(content noderpc.Operation, operation operatio
 
 	return RichStorage{
 		Models:          modelUpdates,
-		DeffatedStorage: string(result.Storage),
+		DeffatedStorage: result.Storage,
 	}, nil
 }
 
@@ -94,7 +94,7 @@ func (b *Babylon) ParseOrigination(content noderpc.Operation, operation operatio
 
 	return RichStorage{
 		Models:          modelUpdates,
-		DeffatedStorage: string(scriptData.Storage),
+		DeffatedStorage: scriptData.Storage,
 	}, nil
 }
 
@@ -197,18 +197,19 @@ func (b *Babylon) handleBigMapDiffUpdate(item noderpc.BigMapDiff, address string
 	ptr := *item.BigMap
 
 	bmd := bigmapdiff.BigMapDiff{
-		ID:          helpers.GenerateID(),
-		Ptr:         ptr,
-		Key:         item.Key,
-		KeyHash:     item.KeyHash,
-		OperationID: operation.ID,
-		Level:       operation.Level,
-		Address:     address,
-		IndexedTime: time.Now().UnixNano() / 1000,
-		Network:     operation.Network,
-		Timestamp:   operation.Timestamp,
-		Protocol:    operation.Protocol,
-		Value:       item.Value,
+		Ptr:              ptr,
+		Key:              types.Bytes(item.Key),
+		KeyHash:          item.KeyHash,
+		OperationHash:    operation.Hash,
+		OperationCounter: operation.Counter,
+		OperationNonce:   operation.Nonce,
+		Level:            operation.Level,
+		Address:          address,
+		IndexedTime:      time.Now().UnixNano() / 1000,
+		Network:          operation.Network,
+		Timestamp:        operation.Timestamp,
+		Protocol:         operation.Protocol,
+		Value:            types.Bytes(item.Value),
 	}
 
 	if err := b.addDiff(&bmd, ptr); err != nil {
@@ -251,13 +252,14 @@ func (b *Babylon) handleBigMapDiffCopy(item noderpc.BigMapDiff, address string, 
 
 	if len(bmd) > 0 {
 		for i := range bmd {
-			bmd[i].ID = helpers.GenerateID()
 			bmd[i].Ptr = destinationPtr
 			bmd[i].Address = address
 			bmd[i].Level = operation.Level
 			bmd[i].IndexedTime = time.Now().UnixNano() / 1000
 			bmd[i].Timestamp = operation.Timestamp
-			bmd[i].OperationID = operation.ID
+			bmd[i].OperationHash = operation.Hash
+			bmd[i].OperationCounter = operation.Counter
+			bmd[i].OperationNonce = operation.Nonce
 
 			if err := b.addDiff(&bmd[i], destinationPtr); err != nil {
 				return nil, err
@@ -282,13 +284,13 @@ func (b *Babylon) handleBigMapDiffRemove(item noderpc.BigMapDiff, address string
 	}
 	newUpdates := make([]models.Model, len(bmd))
 	for i := range bmd {
-		bmd[i].ID = helpers.GenerateID()
-		bmd[i].OperationID = operation.ID
+		bmd[i].OperationHash = operation.Hash
+		bmd[i].OperationCounter = operation.Counter
+		bmd[i].OperationNonce = operation.Nonce
 		bmd[i].Level = operation.Level
 		bmd[i].IndexedTime = time.Now().UnixNano() / 1000
 		bmd[i].Timestamp = operation.Timestamp
 		bmd[i].Value = nil
-		bmd[i].ValueStrings = []string{}
 		newUpdates[i] = &bmd[i]
 	}
 	newUpdates = append(newUpdates, b.createBigMapDiffAction("remove", address, &ptr, nil, operation))
@@ -327,7 +329,6 @@ func (b *Babylon) getDiffsFromUpdates(ptr int64) ([]bigmapdiff.BigMapDiff, error
 
 func (b *Babylon) createBigMapDiffAction(action, address string, srcPtr, dstPtr *int64, operation operation.Operation) *bigmapaction.BigMapAction {
 	entity := &bigmapaction.BigMapAction{
-		ID:          helpers.GenerateID(),
 		Action:      action,
 		OperationID: operation.ID,
 		Level:       operation.Level,

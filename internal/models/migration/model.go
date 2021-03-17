@@ -1,6 +1,7 @@
 package migration
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -8,8 +9,8 @@ import (
 
 // Migration -
 type Migration struct {
-	ID          string `json:"-"`
-	IndexedTime int64  `json:"indexed_time"`
+	ID          int64 `json:"-"`
+	IndexedTime int64 `json:"indexed_time"`
 
 	Network      string    `json:"network"`
 	Protocol     string    `json:"protocol"`
@@ -22,13 +23,13 @@ type Migration struct {
 }
 
 // GetID -
-func (m *Migration) GetID() string {
+func (m *Migration) GetID() int64 {
 	return m.ID
 }
 
 // GetIndex -
 func (m *Migration) GetIndex() string {
-	return "migration"
+	return "migrations"
 }
 
 // GetQueues -
@@ -38,7 +39,7 @@ func (m *Migration) GetQueues() []string {
 
 // MarshalToQueue -
 func (m *Migration) MarshalToQueue() ([]byte, error) {
-	return []byte(m.ID), nil
+	return []byte(fmt.Sprintf("%d", m.ID)), nil
 }
 
 // LogFields -

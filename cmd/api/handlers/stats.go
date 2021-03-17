@@ -7,7 +7,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )
@@ -65,8 +64,8 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 	stats.ContractsCount = counts[models.DocContracts]
 	stats.OperationsCount = counts[models.DocOperations]
 
-	var protocols []protocol.Protocol
-	if err := ctx.Storage.GetByNetworkWithSort(req.Network, "start_level", "desc", &protocols); ctx.handleError(c, err, 0) {
+	protocols, err := ctx.Protocols.GetByNetworkWithSort(req.Network, "start_level", "desc")
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	ps := make([]Protocol, len(protocols))

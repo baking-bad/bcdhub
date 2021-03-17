@@ -5,7 +5,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -49,7 +48,6 @@ func (m Migration) Parse(data noderpc.Operation, operation *operation.Operation)
 
 		if tree[0].IsLambda() {
 			migration := &migration.Migration{
-				ID:          helpers.GenerateID(),
 				IndexedTime: time.Now().UnixNano() / 1000,
 
 				Network:   operation.Network,

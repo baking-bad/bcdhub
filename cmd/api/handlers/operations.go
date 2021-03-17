@@ -137,7 +137,7 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 // @DescriptionGet code line where operation failed
 // @Tags operations
 // @ID get-operation-error-location
-// @Param id path string true "Internal BCD operation ID"
+// @Param id path integer true "Internal BCD operation ID"
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} GetErrorLocationResponse
@@ -252,10 +252,6 @@ func (ctx *Context) prepareOperation(operation operation.Operation, bmd []bigmap
 	var op Operation
 	op.FromModel(operation)
 
-	var result OperationResult
-	result.FromModel(operation.Result)
-	op.Result = &result
-
 	if err := formatErrors(operation.Errors, &op); err != nil {
 		return op, err
 	}
@@ -266,7 +262,7 @@ func (ctx *Context) prepareOperation(operation operation.Operation, bmd []bigmap
 	}
 
 	if withStorageDiff {
-		if operation.DeffatedStorage != "" && (operation.IsCall() || operation.IsOrigination()) && operation.IsApplied() {
+		if len(operation.DeffatedStorage) > 0 && (operation.IsCall() || operation.IsOrigination()) && operation.IsApplied() {
 			if err := ctx.setStorageDiff(op.Destination, operation.DeffatedStorage, &op, bmd, script); err != nil {
 				return op, err
 			}
@@ -294,7 +290,7 @@ func (ctx *Context) PrepareOperations(ops []operation.Operation, withStorageDiff
 		var err error
 
 		if withStorageDiff {
-			bmd, err = ctx.BigMapDiffs.GetUniqueByOperationID(ops[i].ID)
+			bmd, err = ctx.BigMapDiffs.GetUniqueForOperation(ops[i].Hash, ops[i].Counter, ops[i].Nonce)
 			if err != nil {
 				return nil, err
 			}
@@ -309,12 +305,12 @@ func (ctx *Context) PrepareOperations(ops []operation.Operation, withStorageDiff
 	return resp, nil
 }
 
-func (ctx *Context) setParameters(data string, script *ast.Script, op *Operation) error {
+func (ctx *Context) setParameters(data []byte, script *ast.Script, op *Operation) error {
 	parameter, err := script.ParameterType()
 	if err != nil {
 		return err
 	}
-	params := types.NewParameters([]byte(data))
+	params := types.NewParameters(data)
 	op.Entrypoint = params.Entrypoint
 
 	tree, err := parameter.FromParameters(params)
@@ -335,7 +331,7 @@ func (ctx *Context) setParameters(data string, script *ast.Script, op *Operation
 	return nil
 }
 
-func (ctx *Context) setStorageDiff(address, storage string, op *Operation, bmd []bigmapdiff.BigMapDiff, script *ast.Script) error {
+func (ctx *Context) setStorageDiff(address string, storage []byte, op *Operation, bmd []bigmapdiff.BigMapDiff, script *ast.Script) error {
 	storageType, err := script.StorageType()
 	if err != nil {
 		return err
@@ -348,7 +344,7 @@ func (ctx *Context) setStorageDiff(address, storage string, op *Operation, bmd [
 	return nil
 }
 
-func (ctx *Context) getStorageDiff(bmd []bigmapdiff.BigMapDiff, address, storage string, storageType *ast.TypedAst, op *Operation) (interface{}, error) {
+func (ctx *Context) getStorageDiff(bmd []bigmapdiff.BigMapDiff, address string, storage []byte, storageType *ast.TypedAst, op *Operation) (interface{}, error) {
 	currentStorage := &ast.TypedAst{
 		Nodes: []ast.Node{ast.Copy(storageType.Nodes[0])},
 	}
@@ -365,7 +361,7 @@ func (ctx *Context) getStorageDiff(bmd []bigmapdiff.BigMapDiff, address, storage
 			return nil, err
 		}
 
-		if prev.DeffatedStorage != "" {
+		if len(prev.DeffatedStorage) > 0 {
 			if err := prepareStorage(prevStorage, prev.DeffatedStorage, prevBmd); err != nil {
 				return nil, err
 			}
@@ -383,9 +379,9 @@ func (ctx *Context) getStorageDiff(bmd []bigmapdiff.BigMapDiff, address, storage
 	return currentStorage.Diff(prevStorage)
 }
 
-func prepareStorage(storageType *ast.TypedAst, deffatedStorage string, bmd []bigmapdiff.BigMapDiff) error {
+func prepareStorage(storageType *ast.TypedAst, deffatedStorage []byte, bmd []bigmapdiff.BigMapDiff) error {
 	var data ast.UntypedAST
-	if err := json.UnmarshalFromString(deffatedStorage, &data); err != nil {
+	if err := json.Unmarshal(deffatedStorage, &data); err != nil {
 		return err
 	}
 

@@ -2,10 +2,10 @@
 // Source: operation/repository.go
 
 // Package mock_operation is a generated GoMock package.
-package mock_operation
+package operation
 
 import (
-	operation "github.com/baking-bad/bcdhub/internal/models/operation"
+	opModel "github.com/baking-bad/bcdhub/internal/models/operation"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -34,10 +34,10 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // GetByContract mocks base method
-func (m *MockRepository) GetByContract(network, address string, size uint64, filters map[string]interface{}) (operation.Pageable, error) {
+func (m *MockRepository) GetByContract(network, address string, size uint64, filters map[string]interface{}) (opModel.Pageable, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByContract", network, address, size, filters)
-	ret0, _ := ret[0].(operation.Pageable)
+	ret0, _ := ret[0].(opModel.Pageable)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -49,10 +49,10 @@ func (mr *MockRepositoryMockRecorder) GetByContract(network, address, size, filt
 }
 
 // GetStats mocks base method
-func (m *MockRepository) GetStats(network, address string) (operation.Stats, error) {
+func (m *MockRepository) GetStats(network, address string) (opModel.Stats, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetStats", network, address)
-	ret0, _ := ret[0].(operation.Stats)
+	ret0, _ := ret[0].(opModel.Stats)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -64,10 +64,10 @@ func (mr *MockRepositoryMockRecorder) GetStats(network, address interface{}) *go
 }
 
 // Last mocks base method
-func (m *MockRepository) Last(network, address string, indexedTime int64) (operation.Operation, error) {
+func (m *MockRepository) Last(network, address string, indexedTime int64) (opModel.Operation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Last", network, address, indexedTime)
-	ret0, _ := ret[0].(operation.Operation)
+	ret0, _ := ret[0].(opModel.Operation)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -79,10 +79,10 @@ func (mr *MockRepositoryMockRecorder) Last(network, address, indexedTime interfa
 }
 
 // Get mocks base method
-func (m *MockRepository) Get(filter map[string]interface{}, size int64, sort bool) ([]operation.Operation, error) {
+func (m *MockRepository) Get(filter map[string]interface{}, size int64, sort bool) ([]opModel.Operation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", filter, size, sort)
-	ret0, _ := ret[0].([]operation.Operation)
+	ret0, _ := ret[0].([]opModel.Operation)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -91,6 +91,21 @@ func (m *MockRepository) Get(filter map[string]interface{}, size int64, sort boo
 func (mr *MockRepositoryMockRecorder) Get(filter, size, sort interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), filter, size, sort)
+}
+
+// GetOne mocks base method
+func (m *MockRepository) GetOne(hash string, counter int64, nonce *int64) (opModel.Operation, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOne", hash, counter, nonce)
+	ret0, _ := ret[0].(opModel.Operation)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOne indicates an expected call of GetOne
+func (mr *MockRepositoryMockRecorder) GetOne(hash, counter, nonce interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOne", reflect.TypeOf((*MockRepository)(nil).GetOne), hash, counter, nonce)
 }
 
 // GetContract24HoursVolume mocks base method
@@ -109,10 +124,10 @@ func (mr *MockRepositoryMockRecorder) GetContract24HoursVolume(network, address,
 }
 
 // GetTokensStats mocks base method
-func (m *MockRepository) GetTokensStats(network string, addresses, entrypoints []string) (map[string]operation.TokenUsageStats, error) {
+func (m *MockRepository) GetTokensStats(network string, addresses, entrypoints []string) (map[string]opModel.TokenUsageStats, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTokensStats", network, addresses, entrypoints)
-	ret0, _ := ret[0].(map[string]operation.TokenUsageStats)
+	ret0, _ := ret[0].(map[string]opModel.TokenUsageStats)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -138,26 +153,11 @@ func (mr *MockRepositoryMockRecorder) GetParticipatingContracts(network, fromLev
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetParticipatingContracts", reflect.TypeOf((*MockRepository)(nil).GetParticipatingContracts), network, fromLevel, toLevel)
 }
 
-// RecalcStats mocks base method
-func (m *MockRepository) RecalcStats(network, address string) (operation.ContractStats, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RecalcStats", network, address)
-	ret0, _ := ret[0].(operation.ContractStats)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// RecalcStats indicates an expected call of RecalcStats
-func (mr *MockRepositoryMockRecorder) RecalcStats(network, address interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecalcStats", reflect.TypeOf((*MockRepository)(nil).RecalcStats), network, address)
-}
-
 // GetDAppStats mocks base method
-func (m *MockRepository) GetDAppStats(arg0 string, arg1 []string, arg2 string) (operation.DAppStats, error) {
+func (m *MockRepository) GetDAppStats(arg0 string, arg1 []string, arg2 string) (opModel.DAppStats, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDAppStats", arg0, arg1, arg2)
-	ret0, _ := ret[0].(operation.DAppStats)
+	ret0, _ := ret[0].(opModel.DAppStats)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -166,4 +166,23 @@ func (m *MockRepository) GetDAppStats(arg0 string, arg1 []string, arg2 string) (
 func (mr *MockRepositoryMockRecorder) GetDAppStats(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDAppStats", reflect.TypeOf((*MockRepository)(nil).GetDAppStats), arg0, arg1, arg2)
+}
+
+// GetByIDs mocks base method
+func (m *MockRepository) GetByIDs(ids ...int64) ([]opModel.Operation, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range ids {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetByIDs", varargs...)
+	ret0, _ := ret[0].([]opModel.Operation)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByIDs indicates an expected call of GetByIDs
+func (mr *MockRepositoryMockRecorder) GetByIDs(ids ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByIDs", reflect.TypeOf((*MockRepository)(nil).GetByIDs), ids...)
 }

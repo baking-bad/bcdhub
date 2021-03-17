@@ -2,10 +2,10 @@
 // Source: migration/repository.go
 
 // Package mock_migration is a generated GoMock package.
-package mock_migration
+package migration
 
 import (
-	migration "github.com/baking-bad/bcdhub/internal/models/migration"
+	migrate "github.com/baking-bad/bcdhub/internal/models/migration"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -33,17 +33,51 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 	return m.recorder
 }
 
-// GetMigrations mocks base method
-func (m *MockRepository) GetMigrations(arg0, arg1 string) ([]migration.Migration, error) {
+// Get mocks base method
+func (m *MockRepository) Get(arg0, arg1 string) ([]migrate.Migration, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMigrations", arg0, arg1)
-	ret0, _ := ret[0].([]migration.Migration)
+	ret := m.ctrl.Call(m, "Get", arg0, arg1)
+	ret0, _ := ret[0].([]migrate.Migration)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetMigrations indicates an expected call of GetMigrations
-func (mr *MockRepositoryMockRecorder) GetMigrations(arg0, arg1 interface{}) *gomock.Call {
+// Get indicates an expected call of Get
+func (mr *MockRepositoryMockRecorder) Get(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMigrations", reflect.TypeOf((*MockRepository)(nil).GetMigrations), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), arg0, arg1)
+}
+
+// Count mocks base method
+func (m *MockRepository) Count(arg0, arg1 string) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Count", arg0, arg1)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Count indicates an expected call of Count
+func (mr *MockRepositoryMockRecorder) Count(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Count", reflect.TypeOf((*MockRepository)(nil).Count), arg0, arg1)
+}
+
+// GetByIDs mocks base method
+func (m *MockRepository) GetByIDs(ids ...int64) ([]migrate.Migration, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range ids {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetByIDs", varargs...)
+	ret0, _ := ret[0].([]migrate.Migration)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByIDs indicates an expected call of GetByIDs
+func (mr *MockRepositoryMockRecorder) GetByIDs(ids ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByIDs", reflect.TypeOf((*MockRepository)(nil).GetByIDs), ids...)
 }

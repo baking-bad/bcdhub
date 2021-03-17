@@ -1,23 +1,23 @@
 package tzip
 
 import (
-	"fmt"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/sirupsen/logrus"
 )
 
 // TZIP -
 type TZIP struct {
-	Level     int64                           `json:"level,omitempty"`
-	Timestamp time.Time                       `json:"timestamp,omitempty"`
-	Address   string                          `json:"address"`
-	Network   string                          `json:"network"`
-	Slug      string                          `json:"slug,omitempty"`
-	Domain    *tezosdomain.ReverseTezosDomain `json:"domain,omitempty"`
-	OffChain  bool                            `json:"offchain,omitempty"`
-	Extras    map[string]interface{}          `json:"extras,omitempty"`
+	ID         int64       `json:"-"`
+	Level      int64       `json:"level,omitempty"`
+	Timestamp  time.Time   `json:"timestamp,omitempty"`
+	Address    string      `json:"address"`
+	Network    string      `json:"network"`
+	Slug       string      `json:"slug,omitempty"`
+	DomainName string      `json:"domain_name,omitempty"`
+	OffChain   bool        `json:"offchain,omitempty" gorm:",default:false"`
+	Extras     types.JSONB `json:"extras,omitempty" sql:"type:jsonb"`
 
 	TZIP16
 	TZIP20
@@ -25,13 +25,13 @@ type TZIP struct {
 }
 
 // GetID -
-func (t *TZIP) GetID() string {
-	return fmt.Sprintf("%s_%s", t.Network, t.Address)
+func (t *TZIP) GetID() int64 {
+	return t.ID
 }
 
 // GetIndex -
 func (t *TZIP) GetIndex() string {
-	return "tzip"
+	return "tzips"
 }
 
 // GetQueues -
@@ -51,4 +51,9 @@ func (t *TZIP) LogFields() logrus.Fields {
 		"address": t.Address,
 		"level":   t.Level,
 	}
+}
+
+// TableName -
+func (t *TZIP) TableName() string {
+	return "tzips"
 }

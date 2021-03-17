@@ -10,15 +10,11 @@ type GeneralRepository interface {
 	DeleteIndices(indices []string) error
 	DeleteByLevelAndNetwork([]string, string, int64) error
 	DeleteByContract(indices []string, network, address string) error
-	GetAll(interface{}) error
-	GetByID(Model) error
-	GetByIDs(output interface{}, ids ...string) error
-	GetByNetwork(string, interface{}) error
-	GetByNetworkWithSort(string, string, string, interface{}) error
+	GetByID(output Model) error
+	GetByNetwork(network, index string) ([]Model, error)
 	UpdateDoc(model Model) (err error)
-	UpdateFields(index, id string, data interface{}, fields ...string) error
+	UpdateFields(index string, id int64, data interface{}, fields ...string) error
 	GetEvents([]SubscriptionRequest, int64, int64) ([]Event, error)
-	SearchByText(string, int64, []string, map[string]interface{}, bool) (Result, error)
 	CreateAWSRepository(string, string, string) error
 	ListRepositories() ([]Repository, error)
 	CreateSnapshots(string, string, []string) error
@@ -42,6 +38,5 @@ type GeneralRepository interface {
 	BulkInsert([]Model) error
 	BulkUpdate([]Model) error
 	BulkDelete([]Model) error
-	BulkRemoveField(string, []Model) error
 	SetAlias(network, address, alias string) error
 }

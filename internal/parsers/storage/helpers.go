@@ -14,18 +14,20 @@ func prepareBigMapDiffsToEnrich(bmd []bigmapdiff.BigMapDiff, skipEmpty bool) []*
 			continue
 		}
 		res = append(res, &types.BigMapDiff{
-			Ptr:         bmd[i].Ptr,
-			Key:         bmd[i].Key,
-			Value:       bmd[i].Value,
-			ID:          bmd[i].ID,
-			KeyHash:     bmd[i].KeyHash,
-			OperationID: bmd[i].OperationID,
-			Level:       bmd[i].Level,
-			Address:     bmd[i].Address,
-			Network:     bmd[i].Network,
-			Timestamp:   bmd[i].Timestamp,
-			IndexedTime: bmd[i].IndexedTime,
-			Protocol:    bmd[i].Protocol,
+			Ptr:              bmd[i].Ptr,
+			Key:              bmd[i].Key,
+			Value:            bmd[i].Value,
+			ID:               bmd[i].ID,
+			KeyHash:          bmd[i].KeyHash,
+			OperationHash:    bmd[i].OperationHash,
+			OperationCounter: bmd[i].OperationCounter,
+			OperationNonce:   bmd[i].OperationNonce,
+			Level:            bmd[i].Level,
+			Address:          bmd[i].Address,
+			Network:          bmd[i].Network,
+			Timestamp:        bmd[i].Timestamp,
+			IndexedTime:      bmd[i].IndexedTime,
+			Protocol:         bmd[i].Protocol,
 		})
 	}
 	return res
@@ -35,18 +37,20 @@ func getBigMapDiffModels(bmd []*types.BigMapDiff) []bigmapdiff.BigMapDiff {
 	res := make([]bigmapdiff.BigMapDiff, 0)
 	for i := range bmd {
 		res = append(res, bigmapdiff.BigMapDiff{
-			Ptr:         bmd[i].Ptr,
-			Key:         bmd[i].Key,
-			Value:       bmd[i].Value,
-			ID:          bmd[i].ID,
-			KeyHash:     bmd[i].KeyHash,
-			OperationID: bmd[i].OperationID,
-			Level:       bmd[i].Level,
-			Address:     bmd[i].Address,
-			Network:     bmd[i].Network,
-			Timestamp:   bmd[i].Timestamp,
-			IndexedTime: bmd[i].IndexedTime,
-			Protocol:    bmd[i].Protocol,
+			Ptr:              bmd[i].Ptr,
+			Key:              bmd[i].Key,
+			Value:            bmd[i].Value,
+			ID:               bmd[i].ID,
+			KeyHash:          bmd[i].KeyHash,
+			OperationHash:    bmd[i].OperationHash,
+			OperationCounter: bmd[i].OperationCounter,
+			OperationNonce:   bmd[i].OperationNonce,
+			Level:            bmd[i].Level,
+			Address:          bmd[i].Address,
+			Network:          bmd[i].Network,
+			Timestamp:        bmd[i].Timestamp,
+			IndexedTime:      bmd[i].IndexedTime,
+			Protocol:         bmd[i].Protocol,
 		})
 	}
 	return res

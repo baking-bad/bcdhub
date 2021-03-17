@@ -52,7 +52,7 @@ func main() {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
-	protocol, err := context.Protocols.GetProtocol(consts.Mainnet, "", -1)
+	protocol, err := context.Protocols.Get(consts.Mainnet, "", -1)
 	if err != nil {
 		logger.Fatal(err)
 	}

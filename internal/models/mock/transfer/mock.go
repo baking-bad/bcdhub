@@ -65,7 +65,7 @@ func (mr *MockRepositoryMockRecorder) GetAll(network, level interface{}) *gomock
 }
 
 // GetTokenSupply mocks base method
-func (m *MockRepository) GetTokenSupply(network, address string, tokenID int64) (transfer.TokenSupply, error) {
+func (m *MockRepository) GetTokenSupply(network, address string, tokenID uint64) (transfer.TokenSupply, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTokenSupply", network, address, tokenID)
 	ret0, _ := ret[0].(transfer.TokenSupply)
@@ -80,7 +80,7 @@ func (mr *MockRepositoryMockRecorder) GetTokenSupply(network, address, tokenID i
 }
 
 // GetToken24HoursVolume mocks base method
-func (m *MockRepository) GetToken24HoursVolume(network, contract string, initiators, entrypoints []string, tokenID int64) (float64, error) {
+func (m *MockRepository) GetToken24HoursVolume(network, contract string, initiators, entrypoints []string, tokenID uint64) (float64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetToken24HoursVolume", network, contract, initiators, entrypoints, tokenID)
 	ret0, _ := ret[0].(float64)
@@ -95,7 +95,7 @@ func (mr *MockRepositoryMockRecorder) GetToken24HoursVolume(network, contract, i
 }
 
 // GetTokenVolumeSeries mocks base method
-func (m *MockRepository) GetTokenVolumeSeries(network, period string, contracts []string, entrypoints []tzip.DAppContract, tokenID uint) ([][]int64, error) {
+func (m *MockRepository) GetTokenVolumeSeries(network, period string, contracts []string, entrypoints []tzip.DAppContract, tokenID uint64) ([][]int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTokenVolumeSeries", network, period, contracts, entrypoints, tokenID)
 	ret0, _ := ret[0].([][]int64)

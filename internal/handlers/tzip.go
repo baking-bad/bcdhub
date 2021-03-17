@@ -13,12 +13,12 @@ import (
 
 // TZIP -
 type TZIP struct {
-	storage models.GeneralRepository
+	repo    tzipModel.Repository
 	parsers map[string]tzip.Parser
 }
 
 // NewTZIP -
-func NewTZIP(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, storage models.GeneralRepository, rpcs map[string]noderpc.INode, sharePath string, ipfs []string) *TZIP {
+func NewTZIP(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, storage models.GeneralRepository, repo tzipModel.Repository, rpcs map[string]noderpc.INode, sharePath string, ipfs []string) *TZIP {
 	parsers := make(map[string]tzip.Parser)
 	for network, rpc := range rpcs {
 		parsers[network] = tzip.NewParser(bigMapRepo, blockRepo, storage, rpc, tzip.ParserConfig{
@@ -27,7 +27,7 @@ func NewTZIP(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, stora
 		})
 	}
 	return &TZIP{
-		storage, parsers,
+		repo, parsers,
 	}
 }
 
@@ -57,11 +57,8 @@ func (t *TZIP) handle(bmd *bigmapdiff.BigMapDiff) ([]models.Model, error) {
 		return nil, nil
 	}
 
-	m := tzipModel.TZIP{
-		Address: model.Address,
-		Network: model.Network,
-	}
-	if err := t.storage.GetByID(&m); err == nil && m.OffChain {
+	m, err := t.repo.Get(model.Network, model.Address)
+	if err == nil && m.OffChain {
 		return nil, nil
 	}
 

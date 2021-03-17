@@ -23,8 +23,9 @@ const (
 
 // TezosDomain -
 type TezosDomain struct {
-	storage  models.GeneralRepository
-	shareDir string
+	storage    models.GeneralRepository
+	operations operation.Repository
+	shareDir   string
 
 	contracts map[contract.Address]struct{}
 	ptrs      map[contract.Address]ptrs
@@ -36,7 +37,7 @@ type ptrs struct {
 }
 
 // NewTezosDomains -
-func NewTezosDomains(storage models.GeneralRepository, contracts map[string]string, shareDir string) *TezosDomain {
+func NewTezosDomains(storage models.GeneralRepository, operations operation.Repository, contracts map[string]string, shareDir string) *TezosDomain {
 	addresses := make(map[contract.Address]struct{})
 	for k, v := range contracts {
 		addresses[contract.Address{
@@ -45,7 +46,7 @@ func NewTezosDomains(storage models.GeneralRepository, contracts map[string]stri
 		}] = struct{}{}
 	}
 	return &TezosDomain{
-		storage, shareDir, addresses, make(map[contract.Address]ptrs),
+		storage, operations, shareDir, addresses, make(map[contract.Address]ptrs),
 	}
 }
 
@@ -77,7 +78,7 @@ func (td *TezosDomain) getBigMapDiff(bmd *bigmapdiff.BigMapDiff) (*bigmapdiff.Bi
 	}
 	ptr, ok := td.ptrs[address]
 	if !ok {
-		if err := td.getPointers(address, bmd.Protocol, bmd.OperationID); err != nil {
+		if err := td.getPointers(address, bmd.Protocol, bmd); err != nil {
 			return nil, nil
 		}
 		ptr = td.ptrs[address]
@@ -86,7 +87,7 @@ func (td *TezosDomain) getBigMapDiff(bmd *bigmapdiff.BigMapDiff) (*bigmapdiff.Bi
 	return bmd, &ptr
 }
 
-func (td *TezosDomain) getPointers(address contract.Address, protocol, operationID string) error {
+func (td *TezosDomain) getPointers(address contract.Address, protocol string, bmd *bigmapdiff.BigMapDiff) error {
 	var res ptrs
 	data, err := fetch.Contract(address.Address, address.Network, protocol, td.shareDir)
 	if err != nil {
@@ -98,13 +99,16 @@ func (td *TezosDomain) getPointers(address contract.Address, protocol, operation
 		return err
 	}
 
-	op := operation.Operation{ID: operationID}
-	if err := td.storage.GetByID(&op); err != nil {
+	op, err := td.operations.GetOne(bmd.OperationHash, bmd.OperationCounter, bmd.OperationNonce)
+	if err != nil {
+		if td.storage.IsRecordNotFound(err) {
+			return nil
+		}
 		return err
 	}
 
 	var storageData ast.UntypedAST
-	if err := json.UnmarshalFromString(op.DeffatedStorage, &storageData); err != nil {
+	if err := json.Unmarshal(op.DeffatedStorage, &storageData); err != nil {
 		return err
 	}
 	if err := tree.Settle(storageData); err != nil {

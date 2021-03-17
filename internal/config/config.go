@@ -82,8 +82,9 @@ type TzKTConfig struct {
 
 // StorageConfig -
 type StorageConfig struct {
-	URI     []string `yaml:"uri"`
-	Timeout int      `yaml:"timeout"`
+	Postgres string   `yaml:"pg"`
+	Elastic  []string `yaml:"elastic"`
+	Timeout  int      `yaml:"timeout"`
 }
 
 // RabbitConfig -

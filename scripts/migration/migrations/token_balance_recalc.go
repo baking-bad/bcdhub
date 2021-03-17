@@ -76,7 +76,6 @@ func (m *TokenBalanceRecalc) Recalc(ctx *config.Context, network, address string
 			Network:   network,
 			Contracts: []string{address},
 			LastID:    lastID,
-			TokenID:   -1,
 		})
 		if err != nil {
 			return err

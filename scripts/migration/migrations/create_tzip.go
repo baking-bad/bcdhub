@@ -5,7 +5,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	tzipParsers "github.com/baking-bad/bcdhub/internal/parsers/tzip"
 	"github.com/schollz/progressbar/v3"
 )
@@ -39,11 +38,7 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 			return err
 		}
 
-		check := tzip.TZIP{
-			Address: bmd[i].Address,
-			Network: bmd[i].Network,
-		}
-		if err := ctx.Storage.GetByID(&check); err != nil {
+		if _, err := ctx.TZIP.Get(bmd[i].Network, bmd[i].Address); err != nil {
 			if !ctx.Storage.IsRecordNotFound(err) {
 				return err
 			}

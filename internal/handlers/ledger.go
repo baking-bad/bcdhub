@@ -31,13 +31,15 @@ var (
 type Ledger struct {
 	storage       models.GeneralRepository
 	tokenBalances tbModel.Repository
+	operations    operation.Repository
 	sharePath     string
 }
 
 // NewLedger -
-func NewLedger(storage models.GeneralRepository, tokenBalanceRepo tbModel.Repository, sharePath string) *Ledger {
+func NewLedger(storage models.GeneralRepository, opRepo operation.Repository, tokenBalanceRepo tbModel.Repository, sharePath string) *Ledger {
 	return &Ledger{
 		storage:       storage,
+		operations:    opRepo,
 		tokenBalances: tokenBalanceRepo,
 		sharePath:     sharePath,
 	}
@@ -56,10 +58,17 @@ func (ledger *Ledger) Do(bmd *bigmapdiff.BigMapDiff) (bool, []models.Model, erro
 		return false, nil, nil
 	}
 
-	return ledger.handle(bmd, bigMapType)
+	success, models, err := ledger.handle(bmd, bigMapType)
+	if err != nil {
+		return false, nil, err
+	}
+	if success {
+		return success, nil, ledger.tokenBalances.Update(models)
+	}
+	return success, nil, nil
 }
 
-func (ledger *Ledger) handle(bmd *bigmapdiff.BigMapDiff, bigMapType *ast.BigMap) (bool, []models.Model, error) {
+func (ledger *Ledger) handle(bmd *bigmapdiff.BigMapDiff, bigMapType *ast.BigMap) (bool, []*tbModel.TokenBalance, error) {
 	balances, err := ledger.getResultModels(bmd, bigMapType)
 	if err != nil {
 		if errors.Is(err, tokenbalance.ErrUnknownParser) {
@@ -70,7 +79,7 @@ func (ledger *Ledger) handle(bmd *bigmapdiff.BigMapDiff, bigMapType *ast.BigMap)
 	return true, balances, nil
 }
 
-func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *ast.BigMap) ([]models.Model, error) {
+func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *ast.BigMap) ([]*tbModel.TokenBalance, error) {
 	parser, err := tokenbalance.GetParserForBigMap(bigMapType)
 	if err != nil {
 		return nil, err
@@ -112,14 +121,9 @@ func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *as
 }
 
 func (ledger *Ledger) buildElt(bmd *bigmapdiff.BigMapDiff) ([]byte, error) {
-	b, err := json.Marshal(bmd.Key)
-	if err != nil {
-		return nil, err
-	}
-
 	var s bytes.Buffer
 	s.WriteString(`[{"prim":"Elt","args":[`)
-	if _, err := s.Write(b); err != nil {
+	if _, err := s.Write(bmd.Key); err != nil {
 		return nil, err
 	}
 	s.WriteByte(',')
@@ -153,13 +157,16 @@ func (ledger *Ledger) findLedgerBigMap(bmd *bigmapdiff.BigMapDiff) (*ast.BigMap,
 		return nil, ErrNoLedgerKeyInStorage
 	}
 
-	op := operation.Operation{ID: bmd.OperationID}
-	if err := ledger.storage.GetByID(&op); err != nil {
+	op, err := ledger.operations.GetOne(bmd.OperationHash, bmd.OperationCounter, bmd.OperationNonce)
+	if err != nil {
+		if ledger.storage.IsRecordNotFound(err) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
 	var storageData ast.UntypedAST
-	if err := json.UnmarshalFromString(op.DeffatedStorage, &storageData); err != nil {
+	if err := json.Unmarshal(op.DeffatedStorage, &storageData); err != nil {
 		return nil, err
 	}
 	if err := tree.Settle(storageData); err != nil {

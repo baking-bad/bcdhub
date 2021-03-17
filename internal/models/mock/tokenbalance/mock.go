@@ -64,7 +64,7 @@ func (mr *MockRepositoryMockRecorder) Update(updates interface{}) *gomock.Call {
 }
 
 // GetHolders mocks base method
-func (m *MockRepository) GetHolders(network, contract string, tokenID int64) ([]tb.TokenBalance, error) {
+func (m *MockRepository) GetHolders(network, contract string, tokenID uint64) ([]tb.TokenBalance, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetHolders", network, contract, tokenID)
 	ret0, _ := ret[0].([]tb.TokenBalance)

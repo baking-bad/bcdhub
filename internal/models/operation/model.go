@@ -1,26 +1,28 @@
 package operation
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 )
 
 // Operation -
 type Operation struct {
-	ID string `json:"-"`
+	ID int64 `json:"-"`
 
 	IndexedTime  int64 `json:"indexed_time"`
-	ContentIndex int64 `json:"content_index,omitempty"`
+	ContentIndex int64 `json:"content_index,omitempty" gorm:",default:0"`
 
 	Network  string `json:"network"`
 	Protocol string `json:"protocol"`
 	Hash     string `json:"hash"`
-	Internal bool   `json:"internal"`
+	Internal bool   `json:"internal" gorm:",default:false"`
 	Nonce    *int64 `json:"nonce,omitempty"`
 
 	Status           string    `json:"status"`
@@ -35,38 +37,38 @@ type Operation struct {
 	StorageLimit     int64     `json:"storage_limit,omitempty"`
 	Amount           int64     `json:"amount,omitempty"`
 	Destination      string    `json:"destination,omitempty"`
-	PublicKey        string    `json:"public_key,omitempty"`
-	ManagerPubKey    string    `json:"manager_pubkey,omitempty"`
 	Delegate         string    `json:"delegate,omitempty"`
-	Parameters       string    `json:"parameters,omitempty"`
-	FoundBy          string    `json:"found_by,omitempty"`
 	Entrypoint       string    `json:"entrypoint,omitempty"`
 	SourceAlias      string    `json:"source_alias,omitempty"`
 	DestinationAlias string    `json:"destination_alias,omitempty"`
+	Parameters       []byte    `json:"parameters,omitempty"`
+	DeffatedStorage  []byte    `json:"deffated_storage"`
+	DelegateAlias    string    `json:"delegate_alias,omitempty"`
 
-	Result                             *Result            `json:"result,omitempty"`
-	Errors                             []*tezerrors.Error `json:"errors,omitempty"`
-	Burned                             int64              `json:"burned,omitempty"`
-	AllocatedDestinationContractBurned int64              `json:"allocated_destination_contract_burned,omitempty"`
+	ConsumedGas                        int64            `json:"consumed_gas,omitempty"`
+	StorageSize                        int64            `json:"storage_size,omitempty"`
+	PaidStorageSizeDiff                int64            `json:"paid_storage_size_diff,omitempty"`
+	AllocatedDestinationContract       bool             `json:"allocated_destination_contract,omitempty"`
+	Errors                             tezerrors.Errors `json:"errors,omitempty" gorm:"type:bytes"`
+	Burned                             int64            `json:"burned,omitempty"`
+	AllocatedDestinationContractBurned int64            `json:"allocated_destination_contract_burned,omitempty"`
 
-	DeffatedStorage string `json:"deffated_storage"`
-	Script          []byte `json:"-"`
+	Tags pq.StringArray `json:"tags,omitempty" gorm:"type:text[]"`
 
-	DelegateAlias string `json:"delegate_alias,omitempty"`
+	Script []byte `json:"-"  gorm:"-"`
 
-	ParameterStrings []string `json:"parameter_strings,omitempty"`
-	StorageStrings   []string `json:"storage_strings,omitempty"`
-	Tags             []string `json:"tags,omitempty"`
+	ParameterStrings pq.StringArray `json:"parameter_strings,omitempty" gorm:"type:text[]"`
+	StorageStrings   pq.StringArray `json:"storage_strings,omitempty" gorm:"type:text[]"`
 }
 
 // GetID -
-func (o *Operation) GetID() string {
+func (o *Operation) GetID() int64 {
 	return o.ID
 }
 
 // GetIndex -
 func (o *Operation) GetIndex() string {
-	return "operation"
+	return "operations"
 }
 
 // GetQueues -
@@ -76,7 +78,7 @@ func (o *Operation) GetQueues() []string {
 
 // MarshalToQueue -
 func (o *Operation) MarshalToQueue() ([]byte, error) {
-	return []byte(o.ID), nil
+	return []byte(fmt.Sprintf("%d", o.ID)), nil
 }
 
 // LogFields -
@@ -98,18 +100,13 @@ func (o *Operation) SetBurned(constants protocol.Constants) {
 	if o.Status != consts.Applied {
 		return
 	}
-
-	if o.Result == nil {
-		return
-	}
-
 	var burned int64
 
-	if o.Result.PaidStorageSizeDiff != 0 {
-		burned += o.Result.PaidStorageSizeDiff * constants.CostPerByte
+	if o.PaidStorageSizeDiff != 0 {
+		burned += o.PaidStorageSizeDiff * constants.CostPerByte
 	}
 
-	if o.Result.AllocatedDestinationContract {
+	if o.AllocatedDestinationContract {
 		o.SetAllocationBurn(constants)
 		burned += o.AllocatedDestinationContractBurned
 	}
@@ -134,7 +131,7 @@ func (o *Operation) IsApplied() bool {
 
 // IsCall -
 func (o *Operation) IsCall() bool {
-	return bcd.IsContract(o.Destination) && o.Parameters != ""
+	return bcd.IsContract(o.Destination) && len(o.Parameters) > 0
 }
 
 // HasTag -

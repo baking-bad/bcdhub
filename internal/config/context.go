@@ -19,6 +19,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/pinata"
+	"github.com/baking-bad/bcdhub/internal/postgres/core"
+	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/baking-bad/bcdhub/internal/tzkt"
 	"github.com/pkg/errors"
 )
@@ -31,6 +33,8 @@ type Context struct {
 	RPC          map[string]noderpc.INode
 	TzKTServices map[string]tzkt.Service
 	Pinata       pinata.Service
+
+	StorageDB *core.Postgres
 
 	Config     Config
 	SharePath  string
@@ -51,6 +55,8 @@ type Context struct {
 	TokenMetadata tokenmetadata.Repository
 	Transfers     transfer.Repository
 	TZIP          tzip.Repository
+
+	Searcher search.Searcher
 }
 
 // NewContext -
@@ -86,5 +92,8 @@ func (ctx *Context) Close() {
 	}
 	if ctx.DB != nil {
 		ctx.DB.Close()
+	}
+	if ctx.StorageDB != nil {
+		ctx.StorageDB.Close()
 	}
 }

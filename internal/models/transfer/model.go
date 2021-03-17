@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	jsoniter "github.com/json-iterator/go"
@@ -17,7 +16,7 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // Transfer -
 type Transfer struct {
-	ID           string    `json:"-"`
+	ID           int64     `json:"-"`
 	IndexedTime  int64     `json:"indexed_time"`
 	Network      string    `json:"network"`
 	Contract     string    `json:"contract"`
@@ -28,23 +27,23 @@ type Transfer struct {
 	Level        int64     `json:"level"`
 	From         string    `json:"from"`
 	To           string    `json:"to"`
-	TokenID      int64     `json:"token_id"`
+	TokenID      uint64    `json:"token_id"`
 	Amount       float64   `json:"amount"`
 	AmountStr    string    `json:"amount_str"`
-	AmountBigInt *big.Int  `json:"-"`
+	AmountBigInt *big.Int  `json:"-" gorm:"-"`
 	Counter      int64     `json:"counter"`
 	Nonce        *int64    `json:"nonce,omitempty"`
 	Parent       string    `json:"parent,omitempty"`
 }
 
 // GetID -
-func (t *Transfer) GetID() string {
+func (t *Transfer) GetID() int64 {
 	return t.ID
 }
 
 // GetIndex -
 func (t *Transfer) GetIndex() string {
-	return "transfer"
+	return "transfers"
 }
 
 // GetQueues -
@@ -71,7 +70,6 @@ func (t *Transfer) LogFields() logrus.Fields {
 // EmptyTransfer -
 func EmptyTransfer(o operation.Operation) *Transfer {
 	return &Transfer{
-		ID:           helpers.GenerateID(),
 		IndexedTime:  o.IndexedTime,
 		Network:      o.Network,
 		Contract:     o.Destination,
@@ -125,12 +123,6 @@ func (t *Transfer) MakeTokenBalanceUpdate(from, rollback bool) *tokenbalance.Tok
 		tb.Value.Set(t.AmountBigInt)
 	}
 	return tb
-}
-
-// TokenBalance -
-type TokenBalance struct {
-	Address string
-	TokenID int64
 }
 
 // TokenSupply -

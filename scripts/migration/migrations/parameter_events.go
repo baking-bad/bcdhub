@@ -50,7 +50,7 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 				}
 				logger.Info("%s...", tzips[i].Address)
 
-				protocol, err := ctx.Protocols.GetProtocol(tzips[i].Network, "", -1)
+				protocol, err := ctx.Protocols.Get(tzips[i].Network, "", -1)
 				if err != nil {
 					return err
 				}
@@ -108,7 +108,7 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 							Network: t.Network,
 							Counter: &t.Counter,
 							Nonce:   t.Nonce,
-							TokenID: t.TokenID,
+							TokenID: &t.TokenID,
 						})
 						if err != nil {
 							return err

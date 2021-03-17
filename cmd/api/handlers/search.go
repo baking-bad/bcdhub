@@ -9,7 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/gin-gonic/gin"
 )
 
@@ -45,7 +45,7 @@ func (ctx *Context) Search(c *gin.Context) {
 	}
 	filters := getSearchFilters(req)
 
-	result, err := ctx.Storage.SearchByText(req.Text, int64(req.Offset), fields, filters, req.Grouping != 0)
+	result, err := ctx.Searcher.ByText(req.Text, int64(req.Offset), fields, filters, req.Grouping != 0)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -91,13 +91,13 @@ func getSearchFilters(req searchRequest) map[string]interface{} {
 	return filters
 }
 
-func postProcessing(result models.Result) (models.Result, error) {
+func postProcessing(result search.Result) (search.Result, error) {
 	for i := range result.Items {
 		if result.Items[i].Type != models.DocBigMapDiff {
 			continue
 		}
 
-		bmd := result.Items[i].Body.(bigmapdiff.BigMapDiff)
+		bmd := result.Items[i].Body.(search.BigMapDiff)
 
 		var data ast.UntypedAST
 		if err := json.Unmarshal(bmd.Key, &data); err != nil {
@@ -124,13 +124,13 @@ func postProcessing(result models.Result) (models.Result, error) {
 	return result, nil
 }
 
-func (ctx *Context) searchInMempool(q string) (models.Item, error) {
+func (ctx *Context) searchInMempool(q string) (search.Item, error) {
 	if _, err := forge.UnforgeOpgHash(q); err != nil {
-		return models.Item{}, err
+		return search.Item{}, err
 	}
 
 	if operation := ctx.getOperationFromMempool(q); operation != nil {
-		return models.Item{
+		return search.Item{
 			Type:  models.DocOperations,
 			Value: operation.Hash,
 			Body:  operation,
@@ -140,5 +140,5 @@ func (ctx *Context) searchInMempool(q string) (models.Item, error) {
 		}, nil
 	}
 
-	return models.Item{}, fmt.Errorf("Operation not found")
+	return search.Item{}, fmt.Errorf("Operation not found")
 }

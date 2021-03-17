@@ -26,7 +26,7 @@ func TestMakeFa2Transfers(t *testing.T) {
 			tree: GetFA2Transfer(),
 			operation: operation.Operation{
 				Network:    "mainnet",
-				Parameters: `{"entrypoint":"transfer","value":[{"prim":"Pair","args":[{"string":"tz1gHJt7J1aEtW2wpCR5RJd3CpnbVxUTaEXS"},[{"prim":"Pair","args":[{"string":"tz1gsJENNUwg7fQiRwQi5zJYaj7YtwwsE3y2"},{"prim":"Pair","args":[{"int":"0"},{"int":"1000000000"}]}]}]]}]}`,
+				Parameters: []byte(`{"entrypoint":"transfer","value":[{"prim":"Pair","args":[{"string":"tz1gHJt7J1aEtW2wpCR5RJd3CpnbVxUTaEXS"},[{"prim":"Pair","args":[{"string":"tz1gsJENNUwg7fQiRwQi5zJYaj7YtwwsE3y2"},{"prim":"Pair","args":[{"int":"0"},{"int":"1000000000"}]}]}]]}]}`),
 			},
 			want: []*transfer.Transfer{
 				{

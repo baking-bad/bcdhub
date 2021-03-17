@@ -7,9 +7,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-func recalculateAll(ids []string) error {
-	contracts := make([]contract.Contract, 0)
-	if err := ctx.Storage.GetByIDs(&contracts, ids...); err != nil {
+func recalculateAll(ids []int64) error {
+	contracts, err := ctx.Contracts.GetByIDs(ids...)
+	if err != nil {
 		return errors.Errorf("[recalculateAll] Find contracts error for IDs %v: %s", ids, err)
 	}
 

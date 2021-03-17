@@ -14,11 +14,11 @@ import (
 var bigMapDiffHandlers = []contractHandlers.Handler{}
 var bigMapDiffHandlersInit = sync.Once{}
 
-func getBigMapDiff(ids []string) error {
+func getBigMapDiff(ids []int64) error {
 	bigMapDiffHandlersInit.Do(initHandlers)
 
-	bmd := make([]bigmapdiff.BigMapDiff, 0)
-	if err := ctx.Storage.GetByIDs(&bmd, ids...); err != nil {
+	bmd, err := ctx.BigMapDiffs.GetByIDs(ids...)
+	if err != nil {
 		return errors.Errorf("[getBigMapDiff] Find big map diff error for IDs %v: %s", ids, err)
 	}
 
@@ -36,16 +36,16 @@ func getBigMapDiff(ids []string) error {
 
 func initHandlers() {
 	bigMapDiffHandlers = append(bigMapDiffHandlers,
-		contractHandlers.NewTZIP(ctx.BigMapDiffs, ctx.Blocks, ctx.Storage, ctx.RPC, ctx.SharePath, ctx.Config.IPFSGateways),
+		contractHandlers.NewTZIP(ctx.BigMapDiffs, ctx.Blocks, ctx.Storage, ctx.TZIP, ctx.RPC, ctx.SharePath, ctx.Config.IPFSGateways),
 	)
 	bigMapDiffHandlers = append(bigMapDiffHandlers,
-		contractHandlers.NewTezosDomains(ctx.Storage, ctx.Domains, ctx.SharePath),
+		contractHandlers.NewTezosDomains(ctx.Storage, ctx.Operations, ctx.Domains, ctx.SharePath),
 	)
 	bigMapDiffHandlers = append(bigMapDiffHandlers,
 		contractHandlers.NewTokenMetadata(ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Storage, ctx.RPC, ctx.SharePath, ctx.Config.IPFSGateways),
 	)
 	bigMapDiffHandlers = append(bigMapDiffHandlers,
-		contractHandlers.NewLedger(ctx.Storage, ctx.TokenBalances, ctx.SharePath),
+		contractHandlers.NewLedger(ctx.Storage, ctx.Operations, ctx.TokenBalances, ctx.SharePath),
 	)
 }
 

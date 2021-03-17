@@ -36,12 +36,11 @@ type Operation struct {
 	IndexedTime                        int64              `json:"-"`
 	ContentIndex                       int64              `json:"content_index"`
 	Errors                             []*tezerrors.Error `json:"errors,omitempty" extensions:"x-nullable"`
-	Result                             *OperationResult   `json:"result,omitempty" extensions:"x-nullable"`
 	Parameters                         interface{}        `json:"parameters,omitempty" extensions:"x-nullable"`
 	StorageDiff                        interface{}        `json:"storage_diff,omitempty" extensions:"x-nullable"`
 	RawMempool                         interface{}        `json:"rawMempool,omitempty" extensions:"x-nullable"`
 	Timestamp                          time.Time          `json:"timestamp"`
-	ID                                 string             `json:"id,omitempty" extensions:"x-nullable"`
+	ID                                 int64              `json:"id,omitempty" extensions:"x-nullable"`
 	Protocol                           string             `json:"protocol"`
 	Hash                               string             `json:"hash,omitempty" extensions:"x-nullable"`
 	Network                            string             `json:"network"`
@@ -57,6 +56,10 @@ type Operation struct {
 	Entrypoint                         string             `json:"entrypoint,omitempty" extensions:"x-nullable"`
 	Internal                           bool               `json:"internal"`
 	Mempool                            bool               `json:"mempool"`
+	ConsumedGas                        int64              `json:"consumed_gas,omitempty" extensions:"x-nullable" example:"100"`
+	StorageSize                        int64              `json:"storage_size,omitempty" extensions:"x-nullable" example:"200"`
+	PaidStorageSizeDiff                int64              `json:"paid_storage_size_diff,omitempty" extensions:"x-nullable" example:"300"`
+	AllocatedDestinationContract       bool               `json:"allocated_destination_contract,omitempty" extensions:"x-nullable" example:"true"`
 }
 
 // FromModel -
@@ -79,8 +82,6 @@ func (o *Operation) FromModel(operation operation.Operation) {
 	o.Amount = operation.Amount
 	o.Destination = operation.Destination
 	o.DestinationAlias = operation.DestinationAlias
-	o.PublicKey = operation.PublicKey
-	o.ManagerPubKey = operation.ManagerPubKey
 	o.Delegate = operation.Delegate
 	o.Status = operation.Status
 	o.Burned = operation.Burned
@@ -88,14 +89,14 @@ func (o *Operation) FromModel(operation operation.Operation) {
 	o.IndexedTime = operation.IndexedTime
 	o.ContentIndex = operation.ContentIndex
 	o.AllocatedDestinationContractBurned = operation.AllocatedDestinationContractBurned
+	o.ConsumedGas = operation.ConsumedGas
+	o.StorageSize = operation.StorageSize
+	o.PaidStorageSizeDiff = operation.PaidStorageSizeDiff
+	o.AllocatedDestinationContract = operation.AllocatedDestinationContract
 }
 
 // ToModel -
 func (o *Operation) ToModel() operation.Operation {
-	var result *operation.Result
-	if o.Result != nil {
-		result = o.Result.ToModel()
-	}
 	return operation.Operation{
 		ID:        o.ID,
 		Protocol:  o.Protocol,
@@ -115,54 +116,21 @@ func (o *Operation) ToModel() operation.Operation {
 		Amount:           o.Amount,
 		Destination:      o.Destination,
 		DestinationAlias: o.DestinationAlias,
-		PublicKey:        o.PublicKey,
-		ManagerPubKey:    o.ManagerPubKey,
 		Delegate:         o.Delegate,
 		Status:           o.Status,
 		Burned:           o.Burned,
 		Entrypoint:       o.Entrypoint,
 		IndexedTime:      o.IndexedTime,
 
-		Result: result,
-	}
-}
-
-// OperationResult -
-type OperationResult struct {
-	ConsumedGas                  int64 `json:"consumed_gas,omitempty" extensions:"x-nullable" example:"100"`
-	StorageSize                  int64 `json:"storage_size,omitempty" extensions:"x-nullable" example:"200"`
-	PaidStorageSizeDiff          int64 `json:"paid_storage_size_diff,omitempty" extensions:"x-nullable" example:"300"`
-	AllocatedDestinationContract bool  `json:"allocated_destination_contract,omitempty" extensions:"x-nullable" example:"true"`
-}
-
-// FromModel -
-func (r *OperationResult) FromModel(result *operation.Result) {
-	if result == nil || r == nil {
-		return
-	}
-	r.AllocatedDestinationContract = result.AllocatedDestinationContract
-	r.ConsumedGas = result.ConsumedGas
-	r.PaidStorageSizeDiff = result.PaidStorageSizeDiff
-	r.StorageSize = result.StorageSize
-}
-
-// ToModel -
-func (r *OperationResult) ToModel() *operation.Result {
-	if r == nil {
-		return nil
-	}
-
-	return &operation.Result{
-		AllocatedDestinationContract: r.AllocatedDestinationContract,
-		ConsumedGas:                  r.ConsumedGas,
-		PaidStorageSizeDiff:          r.PaidStorageSizeDiff,
-		StorageSize:                  r.StorageSize,
+		AllocatedDestinationContract: o.AllocatedDestinationContract,
+		ConsumedGas:                  o.ConsumedGas,
+		StorageSize:                  o.StorageSize,
+		PaidStorageSizeDiff:          o.PaidStorageSizeDiff,
 	}
 }
 
 // Contract -
 type Contract struct {
-	ID        string    `json:"id"`
 	Network   string    `json:"network"`
 	Level     int64     `json:"level"`
 	Timestamp time.Time `json:"timestamp"`
@@ -201,15 +169,10 @@ type Contract struct {
 func (c *Contract) FromModel(contract contract.Contract) {
 	c.Address = contract.Address
 	c.Alias = contract.Alias
-	c.Annotations = contract.Annotations
 	c.Delegate = contract.Delegate
 	c.DelegateAlias = contract.DelegateAlias
 	c.Entrypoints = contract.Entrypoints
-	c.FailStrings = contract.FailStrings
-	c.FoundBy = contract.FoundBy
-	c.Hardcoded = contract.Hardcoded
 	c.Hash = contract.Hash
-	c.ID = contract.GetID()
 	c.Language = contract.Language
 	c.TxCount = contract.TxCount
 	c.LastAction = contract.LastAction
@@ -562,7 +525,7 @@ type Transfer struct {
 	Level          int64          `json:"level"`
 	From           string         `json:"from"`
 	To             string         `json:"to"`
-	TokenID        int64          `json:"token_id"`
+	TokenID        uint64         `json:"token_id"`
 	Amount         string         `json:"amount"`
 	Counter        int64          `json:"counter"`
 	Nonce          *int64         `json:"nonce,omitempty" extensions:"x-nullable"`
@@ -685,7 +648,7 @@ type TokenMetadata struct {
 	Contract           string                 `json:"contract"`
 	Network            string                 `json:"network,omitempty"`
 	Level              int64                  `json:"level,omitempty" extensions:"x-nullable"`
-	TokenID            int64                  `json:"token_id"`
+	TokenID            uint64                 `json:"token_id"`
 	Symbol             string                 `json:"symbol,omitempty" extensions:"x-nullable"`
 	Name               string                 `json:"name,omitempty" extensions:"x-nullable"`
 	Decimals           *int64                 `json:"decimals,omitempty" extensions:"x-nullable"`
@@ -765,11 +728,11 @@ type ForkResponse struct {
 
 // TZIPResponse -
 type TZIPResponse struct {
-	Address string                          `json:"address,omitempty"`
-	Network string                          `json:"network,omitempty"`
-	Domain  *tezosdomain.ReverseTezosDomain `json:"domain,omitempty"`
-	Extras  map[string]interface{}          `json:"extras,omitempty"`
-	Name    string                          `json:"name,omitempty"`
+	Address    string                 `json:"address,omitempty"`
+	Network    string                 `json:"network,omitempty"`
+	DomainName string                 `json:"domain,omitempty"`
+	Extras     map[string]interface{} `json:"extras,omitempty"`
+	Name       string                 `json:"name,omitempty"`
 	tzip.TZIP16
 	tzip.TZIP20
 }

@@ -43,7 +43,7 @@ func (p *RichStorage) Parse(data noderpc.Operation, operation *operation.Operati
 		if err != nil {
 			return rs, err
 		}
-		rs.DeffatedStorage = string(storage)
+		rs.DeffatedStorage = storage
 		return rs, err
 	default:
 		return storage.RichStorage{Empty: true}, nil

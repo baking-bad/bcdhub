@@ -22,7 +22,7 @@ type Metadata struct {
 			Name     string                 `json:"name"`
 			Symbol   string                 `json:"symbol,omitempty"`
 			Decimals *int64                 `json:"decimals,omitempty"`
-			TokenID  int64                  `json:"token_id"`
+			TokenID  uint64                 `json:"token_id"`
 			Extras   map[string]interface{} `json:"extras"`
 		} `json:"static"`
 	} `json:"tokens"`

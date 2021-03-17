@@ -1,13 +1,36 @@
 package search
 
 import (
+	"time"
+
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/contract"
 )
 
 // Contract -
-type Contract struct{}
+type Contract struct {
+	Network   string    `json:"network"`
+	Level     int64     `json:"level"`
+	Timestamp time.Time `json:"timestamp"`
+	Language  string    `json:"language,omitempty"`
+
+	Hash        string   `json:"hash"`
+	Tags        []string `json:"tags,omitempty"`
+	Hardcoded   []string `json:"hardcoded,omitempty"`
+	FailStrings []string `json:"fail_strings,omitempty"`
+	Annotations []string `json:"annotations,omitempty"`
+	Entrypoints []string `json:"entrypoints,omitempty"`
+
+	Address  string `json:"address"`
+	Manager  string `json:"manager,omitempty"`
+	Delegate string `json:"delegate,omitempty"`
+
+	TxCount       int64     `json:"tx_count"`
+	LastAction    time.Time `json:"last_action"`
+	FoundBy       string    `json:"found_by,omitempty"`
+	Alias         string    `json:"alias,omitempty"`
+	DelegateAlias string    `json:"delegate_alias,omitempty"`
+}
 
 // GetIndex -
 func (c Contract) GetIndex() string {
@@ -62,15 +85,14 @@ func (c Contract) GetFields() []string {
 
 // Parse  -
 func (c Contract) Parse(highlight map[string][]string, data []byte) (interface{}, error) {
-	var contract contract.Contract
-	if err := json.Unmarshal(data, &contract); err != nil {
+	if err := json.Unmarshal(data, &c); err != nil {
 		return nil, err
 	}
-	return models.Item{
+	return Item{
 		Type:       c.GetIndex(),
-		Value:      contract.Address,
-		Body:       contract,
+		Value:      c.Address,
+		Body:       c,
 		Highlights: highlight,
-		Network:    contract.Network,
+		Network:    c.Network,
 	}, nil
 }

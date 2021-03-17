@@ -224,7 +224,7 @@ type getBySlugRequest struct {
 }
 
 type getOperationByIDRequest struct {
-	ID string `uri:"id" binding:"required"`
+	ID int64 `uri:"id" binding:"required"`
 }
 
 type runOperationRequest struct {
@@ -285,7 +285,7 @@ func (req GetTokenStatsRequest) Addresses() []string {
 type getTokenSeriesRequest struct {
 	Contract string `form:"contract" binding:"required,address"`
 	Period   string `form:"period" binding:"oneof=year month week day" example:"year"`
-	TokenID  uint   `form:"token_id"`
+	TokenID  uint64 `form:"token_id"`
 	Slug     string `form:"slug" binding:"required"`
 }
 
@@ -327,20 +327,20 @@ type getDappRequest struct {
 
 type getContractTransfers struct {
 	pageableRequest
-	TokenID *uint `form:"token_id"  binding:"omitempty,min=0"`
+	TokenID *uint64 `form:"token_id"  binding:"omitempty,min=0"`
 }
 
 type getTransfersRequest struct {
 	cursorRequest
-	Start     uint   `form:"start"  binding:"omitempty,min=1"`
-	End       uint   `form:"end"  binding:"omitempty,min=1,gtfield=Start"`
-	Contracts string `form:"contracts"  binding:"omitempty"`
-	Sort      string `form:"sort" binding:"omitempty,oneof=asc desc"`
-	TokenID   *int64 `form:"token_id" binding:"omitempty,min=0"`
+	Start     uint    `form:"start"  binding:"omitempty,min=1"`
+	End       uint    `form:"end"  binding:"omitempty,min=1,gtfield=Start"`
+	Contracts string  `form:"contracts"  binding:"omitempty"`
+	Sort      string  `form:"sort" binding:"omitempty,oneof=asc desc"`
+	TokenID   *uint64 `form:"token_id" binding:"omitempty,min=0"`
 }
 
 type byTokenIDRequest struct {
-	TokenID *int64 `form:"token_id" binding:"min=0"`
+	TokenID *uint64 `form:"token_id" binding:"min=0"`
 }
 
 type resolveDomainRequest struct {
@@ -370,7 +370,7 @@ type minMaxLevel struct {
 type tokenRequest struct {
 	pageableRequest
 	minMaxLevel
-	TokenID *int64 `form:"token_id" binding:"omitempty"`
+	TokenID *uint64 `form:"token_id" binding:"omitempty"`
 }
 
 type tokenBalanceRequest struct {

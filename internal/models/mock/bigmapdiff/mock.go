@@ -2,10 +2,10 @@
 // Source: bigmapdiff/repository.go
 
 // Package mock_bigmapdiff is a generated GoMock package.
-package mock_bigmapdiff
+package bigmapdiff
 
 import (
-	bigmapdiff "github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	bmd "github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -34,10 +34,10 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Get mocks base method
-func (m *MockRepository) Get(ctx bigmapdiff.GetContext) ([]bigmapdiff.Bucket, error) {
+func (m *MockRepository) Get(ctx bmd.GetContext) ([]bmd.Bucket, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", ctx)
-	ret0, _ := ret[0].([]bigmapdiff.Bucket)
+	ret0, _ := ret[0].([]bmd.Bucket)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -49,10 +49,10 @@ func (mr *MockRepositoryMockRecorder) Get(ctx interface{}) *gomock.Call {
 }
 
 // GetByAddress mocks base method
-func (m *MockRepository) GetByAddress(arg0, arg1 string) ([]bigmapdiff.BigMapDiff, error) {
+func (m *MockRepository) GetByAddress(arg0, arg1 string) ([]bmd.BigMapDiff, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByAddress", arg0, arg1)
-	ret0, _ := ret[0].([]bigmapdiff.BigMapDiff)
+	ret0, _ := ret[0].([]bmd.BigMapDiff)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -63,26 +63,41 @@ func (mr *MockRepositoryMockRecorder) GetByAddress(arg0, arg1 interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByAddress", reflect.TypeOf((*MockRepository)(nil).GetByAddress), arg0, arg1)
 }
 
-// GetByOperationID mocks base method
-func (m *MockRepository) GetByOperationID(arg0 string) ([]*bigmapdiff.BigMapDiff, error) {
+// GetForOperation mocks base method
+func (m *MockRepository) GetForOperation(hash string, counter int64, nonce *int64) ([]*bmd.BigMapDiff, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByOperationID", arg0)
-	ret0, _ := ret[0].([]*bigmapdiff.BigMapDiff)
+	ret := m.ctrl.Call(m, "GetForOperation", hash, counter, nonce)
+	ret0, _ := ret[0].([]*bmd.BigMapDiff)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetByOperationID indicates an expected call of GetByOperationID
-func (mr *MockRepositoryMockRecorder) GetByOperationID(arg0 interface{}) *gomock.Call {
+// GetForOperation indicates an expected call of GetForOperation
+func (mr *MockRepositoryMockRecorder) GetForOperation(hash, counter, nonce interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByOperationID", reflect.TypeOf((*MockRepository)(nil).GetByOperationID), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForOperation", reflect.TypeOf((*MockRepository)(nil).GetForOperation), hash, counter, nonce)
+}
+
+// GetUniqueForOperation mocks base method
+func (m *MockRepository) GetUniqueForOperation(hash string, counter int64, nonce *int64) ([]bmd.BigMapDiff, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUniqueForOperation", hash, counter, nonce)
+	ret0, _ := ret[0].([]bmd.BigMapDiff)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUniqueForOperation indicates an expected call of GetUniqueForOperation
+func (mr *MockRepositoryMockRecorder) GetUniqueForOperation(hash, counter, nonce interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUniqueForOperation", reflect.TypeOf((*MockRepository)(nil).GetUniqueForOperation), hash, counter, nonce)
 }
 
 // GetByPtr mocks base method
-func (m *MockRepository) GetByPtr(arg0, arg1 string, arg2 int64) ([]bigmapdiff.BigMapDiff, error) {
+func (m *MockRepository) GetByPtr(arg0, arg1 string, arg2 int64) ([]bmd.BigMapDiff, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByPtr", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]bigmapdiff.BigMapDiff)
+	ret0, _ := ret[0].([]bmd.BigMapDiff)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -94,10 +109,10 @@ func (mr *MockRepositoryMockRecorder) GetByPtr(arg0, arg1, arg2 interface{}) *go
 }
 
 // GetByPtrAndKeyHash mocks base method
-func (m *MockRepository) GetByPtrAndKeyHash(arg0 int64, arg1, arg2 string, arg3, arg4 int64) ([]bigmapdiff.BigMapDiff, int64, error) {
+func (m *MockRepository) GetByPtrAndKeyHash(arg0 int64, arg1, arg2 string, arg3, arg4 int64) ([]bmd.BigMapDiff, int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByPtrAndKeyHash", arg0, arg1, arg2, arg3, arg4)
-	ret0, _ := ret[0].([]bigmapdiff.BigMapDiff)
+	ret0, _ := ret[0].([]bmd.BigMapDiff)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -110,10 +125,10 @@ func (mr *MockRepositoryMockRecorder) GetByPtrAndKeyHash(arg0, arg1, arg2, arg3,
 }
 
 // GetForAddress mocks base method
-func (m *MockRepository) GetForAddress(arg0 string) ([]bigmapdiff.BigMapDiff, error) {
+func (m *MockRepository) GetForAddress(arg0 string) ([]bmd.BigMapDiff, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetForAddress", arg0)
-	ret0, _ := ret[0].([]bigmapdiff.BigMapDiff)
+	ret0, _ := ret[0].([]bmd.BigMapDiff)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -124,11 +139,30 @@ func (mr *MockRepositoryMockRecorder) GetForAddress(arg0 interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForAddress", reflect.TypeOf((*MockRepository)(nil).GetForAddress), arg0)
 }
 
+// GetByIDs mocks base method
+func (m *MockRepository) GetByIDs(ids ...int64) ([]bmd.BigMapDiff, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range ids {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetByIDs", varargs...)
+	ret0, _ := ret[0].([]bmd.BigMapDiff)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByIDs indicates an expected call of GetByIDs
+func (mr *MockRepositoryMockRecorder) GetByIDs(ids ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByIDs", reflect.TypeOf((*MockRepository)(nil).GetByIDs), ids...)
+}
+
 // GetValuesByKey mocks base method
-func (m *MockRepository) GetValuesByKey(arg0 string) ([]bigmapdiff.BigMapDiff, error) {
+func (m *MockRepository) GetValuesByKey(arg0 string) ([]bmd.BigMapDiff, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetValuesByKey", arg0)
-	ret0, _ := ret[0].([]bigmapdiff.BigMapDiff)
+	ret0, _ := ret[0].([]bmd.BigMapDiff)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -137,21 +171,6 @@ func (m *MockRepository) GetValuesByKey(arg0 string) ([]bigmapdiff.BigMapDiff, e
 func (mr *MockRepositoryMockRecorder) GetValuesByKey(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValuesByKey", reflect.TypeOf((*MockRepository)(nil).GetValuesByKey), arg0)
-}
-
-// GetUniqueByOperationID mocks base method
-func (m *MockRepository) GetUniqueByOperationID(arg0 string) ([]bigmapdiff.BigMapDiff, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUniqueByOperationID", arg0)
-	ret0, _ := ret[0].([]bigmapdiff.BigMapDiff)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetUniqueByOperationID indicates an expected call of GetUniqueByOperationID
-func (mr *MockRepositoryMockRecorder) GetUniqueByOperationID(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUniqueByOperationID", reflect.TypeOf((*MockRepository)(nil).GetUniqueByOperationID), arg0)
 }
 
 // Count mocks base method
@@ -170,10 +189,10 @@ func (mr *MockRepositoryMockRecorder) Count(network, ptr interface{}) *gomock.Ca
 }
 
 // CurrentByKey mocks base method
-func (m *MockRepository) CurrentByKey(network, keyHash string, ptr int64) (bigmapdiff.BigMapDiff, error) {
+func (m *MockRepository) CurrentByKey(network, keyHash string, ptr int64) (bmd.BigMapDiff, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CurrentByKey", network, keyHash, ptr)
-	ret0, _ := ret[0].(bigmapdiff.BigMapDiff)
+	ret0, _ := ret[0].(bmd.BigMapDiff)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -185,10 +204,10 @@ func (mr *MockRepositoryMockRecorder) CurrentByKey(network, keyHash, ptr interfa
 }
 
 // Previous mocks base method
-func (m *MockRepository) Previous(arg0 []bigmapdiff.BigMapDiff, arg1 int64, arg2 string) ([]bigmapdiff.BigMapDiff, error) {
+func (m *MockRepository) Previous(arg0 []bmd.BigMapDiff, arg1 int64, arg2 string) ([]bmd.BigMapDiff, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Previous", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]bigmapdiff.BigMapDiff)
+	ret0, _ := ret[0].([]bmd.BigMapDiff)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

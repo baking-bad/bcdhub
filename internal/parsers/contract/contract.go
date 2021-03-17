@@ -78,11 +78,10 @@ func (p *Parser) computeMetrics(operation *operation.Operation, c *contract.Cont
 	c.FailStrings = script.FailStrings.Values()
 	c.Annotations = script.Annotations.Values()
 	c.Tags = script.Tags.Values()
-	c.Hardcoded = script.HardcodedAddresses.Values()
-	c.Fingerprint = new(contract.Fingerprint)
-	c.Fingerprint.Code = script.Fingerprint.Code
-	c.Fingerprint.Parameter = script.Fingerprint.Parameter
-	c.Fingerprint.Storage = script.Fingerprint.Storage
+	// c.Hardcoded = script.HardcodedAddresses.Values()
+	c.FingerprintCode = script.Fingerprint.Code
+	c.FingerprintParameter = script.Fingerprint.Parameter
+	c.FingerprintStorage = script.Fingerprint.Storage
 
 	params, err := script.Code.Parameter.ToTypedAST()
 	if err != nil {

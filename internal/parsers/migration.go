@@ -4,10 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/contract"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	modelsContract "github.com/baking-bad/bcdhub/internal/models/contract"
@@ -69,7 +67,6 @@ func (p *MigrationParser) Parse(script noderpc.Script, old modelsContract.Contra
 	}
 
 	migration := migration.Migration{
-		ID:          helpers.GenerateID(),
 		IndexedTime: time.Now().UnixNano() / 1000,
 
 		Network:      old.Network,
@@ -85,11 +82,7 @@ func (p *MigrationParser) Parse(script noderpc.Script, old modelsContract.Contra
 }
 
 func (p *MigrationParser) getUpdates(script noderpc.Script, contract modelsContract.Contract) ([]models.Model, error) {
-	storageType, err := json.Marshal(script.Code.Storage)
-	if err != nil {
-		return nil, err
-	}
-	storage, err := ast.NewSettledTypedAst(string(storageType), string(script.Storage))
+	storage, err := script.GetSettledStorage()
 	if err != nil {
 		return nil, err
 	}

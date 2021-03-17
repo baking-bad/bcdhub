@@ -9,7 +9,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/fetch"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -35,36 +34,31 @@ func NewTransaction(params *ParseParams) Transaction {
 // Parse -
 func (p Transaction) Parse(data noderpc.Operation) ([]models.Model, error) {
 	tx := operation.Operation{
-		ID:            helpers.GenerateID(),
-		Network:       p.network,
-		Hash:          p.hash,
-		Protocol:      p.head.Protocol,
-		Level:         p.head.Level,
-		Timestamp:     p.head.Timestamp,
-		Kind:          data.Kind,
-		Initiator:     data.Source,
-		Source:        data.Source,
-		Fee:           data.Fee,
-		Counter:       data.Counter,
-		GasLimit:      data.GasLimit,
-		StorageLimit:  data.StorageLimit,
-		Amount:        *data.Amount,
-		Destination:   *data.Destination,
-		PublicKey:     data.PublicKey,
-		ManagerPubKey: data.ManagerPubKey,
-		Delegate:      data.Delegate,
-		Nonce:         data.Nonce,
-		Parameters:    string(data.Parameters),
-		IndexedTime:   time.Now().UnixNano() / 1000,
-		ContentIndex:  p.contentIdx,
+		Network:      p.network,
+		Hash:         p.hash,
+		Protocol:     p.head.Protocol,
+		Level:        p.head.Level,
+		Timestamp:    p.head.Timestamp,
+		Kind:         data.Kind,
+		Initiator:    data.Source,
+		Source:       data.Source,
+		Fee:          data.Fee,
+		Counter:      data.Counter,
+		GasLimit:     data.GasLimit,
+		StorageLimit: data.StorageLimit,
+		Amount:       *data.Amount,
+		Destination:  *data.Destination,
+		Delegate:     data.Delegate,
+		Nonce:        data.Nonce,
+		Parameters:   data.Parameters,
+		IndexedTime:  time.Now().UnixNano() / 1000,
+		ContentIndex: p.contentIdx,
+		Tags:         make([]string, 0),
 	}
 
 	p.fillInternal(&tx)
 
-	result := parseOperationResult(&data)
-	tx.Result = result
-	tx.Status = tx.Result.Status
-	tx.Errors = tx.Result.Errors
+	parseOperationResult(data, &tx)
 
 	tx.SetBurned(p.constants)
 	txModels := []models.Model{&tx}

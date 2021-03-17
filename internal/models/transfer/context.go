@@ -12,7 +12,7 @@ type GetContext struct {
 	LastID    string
 	Size      int64
 	Offset    int64
-	TokenID   int64
+	TokenID   *uint64
 	Nonce     *int64
 	Counter   *int64
 }

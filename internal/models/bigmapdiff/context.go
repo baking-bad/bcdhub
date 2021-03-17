@@ -11,6 +11,4 @@ type GetContext struct {
 	MinLevel     *int64
 	CurrentLevel *int64
 	Contract     string
-
-	To int64
 }

@@ -106,6 +106,20 @@ type Script struct {
 	Storage stdJSON.RawMessage `json:"storage"`
 }
 
+// GetSettledStorage -
+func (s *Script) GetSettledStorage() (*ast.TypedAst, error) {
+	typ, err := s.Code.StorageType()
+	if err != nil {
+		return nil, err
+	}
+	var data ast.UntypedAST
+	if err := json.Unmarshal(s.Storage, &data); err != nil {
+		return nil, err
+	}
+	err = typ.Settle(data)
+	return typ, err
+}
+
 // OperationMetadata -
 type OperationMetadata struct {
 	OperationResult    *OperationResult `json:"operation_result,omitempty"`

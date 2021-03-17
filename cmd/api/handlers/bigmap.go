@@ -74,7 +74,7 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		}
 		if len(ops) == 1 {
 			var data ast.UntypedAST
-			if err := json.UnmarshalFromString(ops[0].DeffatedStorage, &data); ctx.handleError(c, err, 0) {
+			if err := json.Unmarshal(ops[0].DeffatedStorage, &data); ctx.handleError(c, err, 0) {
 				return
 			}
 			if err := storage.Settle(data); ctx.handleError(c, err, 0) {
@@ -101,7 +101,7 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		}
 	}
 
-	alias, err := ctx.TZIP.GetAlias(req.Network, res.Address)
+	alias, err := ctx.TZIP.Get(req.Network, res.Address)
 	if err != nil {
 		if !ctx.Storage.IsRecordNotFound(err) {
 			ctx.handleError(c, err, 0)

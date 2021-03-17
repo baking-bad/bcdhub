@@ -42,7 +42,7 @@ const (
 type TokenMetadata struct {
 	Level              int64                  `json:"-"`
 	Timestamp          time.Time              `json:"-"`
-	TokenID            int64                  `json:"-"`
+	TokenID            uint64                 `json:"-"`
 	Symbol             string                 `json:"symbol"`
 	Name               string                 `json:"name"`
 	Decimals           *int64                 `json:"decimals"`
@@ -102,7 +102,7 @@ func (m *TokenMetadata) Parse(value gjson.Result, address string, ptr int64) err
 		return ErrInvalidStorageStructure
 	}
 
-	m.TokenID = tokenID.Int()
+	m.TokenID = tokenID.Uint()
 
 	m.Extras = make(map[string]interface{})
 	for _, item := range arr.Array() {

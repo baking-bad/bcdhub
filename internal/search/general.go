@@ -34,7 +34,7 @@ var Indices = []string{
 var scorables = map[string]Scorable{
 	models.DocContracts:     &Contract{},
 	models.DocOperations:    &Operation{},
-	models.DocBigMapDiff:    &BigMap{},
+	models.DocBigMapDiff:    &BigMapDiff{},
 	models.DocTokenMetadata: &Token{},
 	models.DocTZIP:          &Metadata{},
 	models.DocTezosDomains:  &Domain{},

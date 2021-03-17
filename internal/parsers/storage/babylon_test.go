@@ -63,7 +63,7 @@ func TestBabylon_ParseTransaction(t *testing.T) {
 				},
 			},
 			want: RichStorage{
-				DeffatedStorage: `{"prim":"Pair","args":[{"prim":"Pair","args":[{"int":"10416"},{"int":"10417"}]},{"prim":"Pair","args":[[{"bytes":"0177a057dafeab5f829e044dc0e52047e01283d6d500"}],{"int":"10418"}]}]}`,
+				DeffatedStorage: []byte(`{"prim":"Pair","args":[{"prim":"Pair","args":[{"int":"10416"},{"int":"10417"}]},{"prim":"Pair","args":[[{"bytes":"0177a057dafeab5f829e044dc0e52047e01283d6d500"}],{"int":"10418"}]}]}`),
 				Models: []models.Model{
 					&bigmapdiff.BigMapDiff{
 						Ptr:      10418,

@@ -9,9 +9,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 )
 
-func getProject(ids []string) error {
-	contracts := make([]contract.Contract, 0)
-	if err := ctx.Storage.GetByIDs(&contracts, ids...); err != nil {
+func getProject(ids []int64) error {
+	contracts, err := ctx.Contracts.GetByIDs(ids...)
+	if err != nil {
 		return errors.Errorf("[getContract] Find contracts error for IDs %v: %s", ids, err)
 	}
 

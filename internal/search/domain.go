@@ -1,12 +1,20 @@
 package search
 
 import (
+	"time"
+
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
 )
 
 // Domain -
-type Domain struct{}
+type Domain struct {
+	Name       string            `json:"name"`
+	Expiration time.Time         `json:"expiration"`
+	Network    string            `json:"network"`
+	Address    string            `json:"address"`
+	Level      int64             `json:"level"`
+	Data       map[string]string `json:"data,omitempty"`
+}
 
 // GetIndex -
 func (d Domain) GetIndex() string {
@@ -31,15 +39,14 @@ func (d Domain) GetFields() []string {
 
 // Parse  -
 func (d Domain) Parse(highlight map[string][]string, data []byte) (interface{}, error) {
-	var domain tezosdomain.TezosDomain
-	if err := json.Unmarshal(data, &domain); err != nil {
+	if err := json.Unmarshal(data, &d); err != nil {
 		return nil, err
 	}
-	return models.Item{
+	return Item{
 		Type:       d.GetIndex(),
-		Value:      domain.Address,
-		Body:       domain,
+		Value:      d.Address,
+		Body:       d,
 		Highlights: highlight,
-		Network:    domain.Network,
+		Network:    d.Network,
 	}, nil
 }

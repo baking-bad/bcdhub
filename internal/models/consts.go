@@ -17,18 +17,18 @@ import (
 
 // Document names
 const (
-	DocBigMapActions = "bigmapaction"
-	DocBigMapDiff    = "bigmapdiff"
-	DocBlocks        = "block"
-	DocContracts     = "contract"
-	DocMigrations    = "migration"
-	DocOperations    = "operation"
-	DocProtocol      = "protocol"
-	DocTezosDomains  = "tezos_domain"
-	DocTokenBalances = "token_balance"
+	DocBigMapActions = "big_map_actions"
+	DocBigMapDiff    = "big_map_diffs"
+	DocBlocks        = "blocks"
+	DocContracts     = "contracts"
+	DocMigrations    = "migrations"
+	DocOperations    = "operations"
+	DocProtocol      = "protocols"
+	DocTezosDomains  = "tezos_domains"
+	DocTokenBalances = "token_balances"
 	DocTokenMetadata = "token_metadata"
-	DocTransfers     = "transfer"
-	DocTZIP          = "tzip"
+	DocTransfers     = "transfers"
+	DocTZIP          = "tzips"
 )
 
 // AllDocuments - returns all document names

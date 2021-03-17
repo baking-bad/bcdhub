@@ -35,7 +35,7 @@ func TestAlpha_ParseOrigination(t *testing.T) {
 				},
 			},
 			want: RichStorage{
-				DeffatedStorage: `{"prim":"Pair","args":[[],{"int":"1000000000000"}]}`,
+				DeffatedStorage: []byte(`{"prim":"Pair","args":[[],{"int":"1000000000000"}]}`),
 				Models: []models.Model{
 					&bigmapdiff.BigMapDiff{
 						Ptr:       -1,

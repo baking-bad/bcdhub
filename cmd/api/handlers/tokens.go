@@ -129,9 +129,9 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 		contracts = strings.Split(ctxReq.Contracts, ",")
 	}
 
-	tokenID := int64(-1)
+	tokenID := new(uint64)
 	if ctxReq.TokenID != nil {
-		tokenID = *ctxReq.TokenID
+		tokenID = ctxReq.TokenID
 	}
 
 	transfers, err := ctx.Transfers.Get(transfer.GetContext{
@@ -295,15 +295,11 @@ func (ctx *Context) GetContractTokens(c *gin.Context) {
 	if err := c.BindQuery(&pageReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-	if pageReq.TokenID == nil {
-		pageReq.TokenID = new(int64)
-		*pageReq.TokenID = -1
-	}
 
 	metadata, err := ctx.TokenMetadata.Get([]tokenmetadata.GetContext{{
 		Contract: req.Address,
 		Network:  req.Network,
-		TokenID:  *pageReq.TokenID,
+		TokenID:  pageReq.TokenID,
 		MinLevel: pageReq.MinLevel,
 		MaxLevel: pageReq.MaxLevel,
 	}}, pageReq.Size, pageReq.Offset)
@@ -339,7 +335,6 @@ func (ctx *Context) GetContractTokensCount(c *gin.Context) {
 	count, err := ctx.TokenMetadata.Count([]tokenmetadata.GetContext{{
 		Contract: req.Address,
 		Network:  req.Network,
-		TokenID:  -1,
 	}})
 	if ctx.handleError(c, err, 0) {
 		return
@@ -441,18 +436,13 @@ func (ctx *Context) GetTokenMetadata(c *gin.Context) {
 	if err := c.BindQuery(&queryParams); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-	if queryParams.TokenID == nil {
-		queryParams.TokenID = new(int64)
-		*queryParams.TokenID = -1
-	}
-
 	tokens, err := ctx.getTokensWithSupply(tokenmetadata.GetContext{
 		Contract: queryParams.Contract,
 		Network:  req.Network,
 		MinLevel: queryParams.MinLevel,
 		MaxLevel: queryParams.MaxLevel,
 		Creator:  queryParams.Creator,
-		TokenID:  *queryParams.TokenID,
+		TokenID:  queryParams.TokenID,
 	}, queryParams.Size, queryParams.Offset)
 	if ctx.handleError(c, err, 0) {
 		return

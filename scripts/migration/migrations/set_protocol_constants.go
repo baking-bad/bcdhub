@@ -22,15 +22,15 @@ func (m *SetProtocolConstants) Description() string {
 
 // Do - migrate function
 func (m *SetProtocolConstants) Do(ctx *config.Context) error {
-	protocols := make([]protocol.Protocol, 0)
-	if err := ctx.Storage.GetAll(&protocols); err != nil {
+	protocols, err := ctx.Protocols.GetAll()
+	if err != nil {
 		return err
 	}
 
 	updatedModels := make([]models.Model, 0)
 	for i := range protocols {
 		if protocols[i].StartLevel == protocols[i].EndLevel && protocols[i].EndLevel == 0 {
-			protocols[i].Constants = protocol.Constants{}
+			protocols[i].Constants = &protocol.Constants{}
 			updatedModels = append(updatedModels, &protocols[i])
 			continue
 		}
@@ -47,7 +47,7 @@ func (m *SetProtocolConstants) Do(ctx *config.Context) error {
 		if err != nil {
 			return err
 		}
-		protocols[i].Constants = protocol.Constants{
+		protocols[i].Constants = &protocol.Constants{
 			CostPerByte:                  constants.CostPerByte,
 			HardGasLimitPerOperation:     constants.HardGasLimitPerOperation,
 			HardStorageLimitPerOperation: constants.HardStorageLimitPerOperation,

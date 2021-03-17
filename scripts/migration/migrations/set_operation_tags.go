@@ -6,7 +6,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -42,8 +41,8 @@ func (m *SetOperationTags) Do(ctx *config.Context) error {
 		}
 
 		if _, ok := tags[operations[i].Destination]; !ok {
-			contract := contract.NewEmptyContract(operations[i].Network, operations[i].Destination)
-			if err := ctx.Storage.GetByID(&contract); err != nil {
+			contract, err := ctx.Contracts.Get(operations[i].Network, operations[i].Destination)
+			if err != nil {
 				if ctx.Storage.IsRecordNotFound(err) {
 					continue
 				}

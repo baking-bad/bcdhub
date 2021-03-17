@@ -62,7 +62,7 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 				Network: transfers[i].Network,
 				Counter: &transfers[i].Counter,
 				Nonce:   transfers[i].Nonce,
-				TokenID: transfers[i].TokenID,
+				TokenID: &transfers[i].TokenID,
 			})
 			if err != nil {
 				if !ctx.Storage.IsRecordNotFound(err) {

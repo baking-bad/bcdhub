@@ -26,7 +26,7 @@ func TestMakeFa1_2Transfers(t *testing.T) {
 			tree: GetFA1_2Transfer(),
 			operation: operation.Operation{
 				Network:    "edo2net",
-				Parameters: `{"entrypoint":"transfer","value":{"prim":"Pair","args":[{"string":"tz1grSQDByRpnVs7sPtaprNZRp531ZKz6Jmm"},{"string":"tz1TGu6TN5GSez2ndXXeDX6LgUDvLzPLqgYV"},{"int":"100"}]}}`,
+				Parameters: []byte(`{"entrypoint":"transfer","value":{"prim":"Pair","args":[{"string":"tz1grSQDByRpnVs7sPtaprNZRp531ZKz6Jmm"},{"string":"tz1TGu6TN5GSez2ndXXeDX6LgUDvLzPLqgYV"},{"int":"100"}]}}`),
 			},
 			want: []*transfer.Transfer{
 				{
@@ -41,7 +41,7 @@ func TestMakeFa1_2Transfers(t *testing.T) {
 			tree: GetFA1_2Transfer(),
 			operation: operation.Operation{
 				Network:    "mainnet",
-				Parameters: "{\"entrypoint\":\"transfer\",\"value\":{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"011871cfab6dafee00330602b4342b6500c874c93b00\"},{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"0000c2473c617946ce7b9f6843f193401203851cb2ec\"},{\"int\":\"7874880\"}]}]}}",
+				Parameters: []byte("{\"entrypoint\":\"transfer\",\"value\":{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"011871cfab6dafee00330602b4342b6500c874c93b00\"},{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"0000c2473c617946ce7b9f6843f193401203851cb2ec\"},{\"int\":\"7874880\"}]}]}}"),
 			},
 			want: []*transfer.Transfer{
 				{

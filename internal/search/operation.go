@@ -1,12 +1,36 @@
 package search
 
 import (
+	"time"
+
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/operation"
 )
 
 // Operation -
-type Operation struct{}
+type Operation struct {
+	Network  string `json:"network"`
+	Protocol string `json:"protocol"`
+	Hash     string `json:"hash"`
+	Internal bool   `json:"internal"`
+
+	Status           string    `json:"status"`
+	Timestamp        time.Time `json:"timestamp"`
+	Level            int64     `json:"level"`
+	Kind             string    `json:"kind"`
+	Initiator        string    `json:"initiator"`
+	Source           string    `json:"source"`
+	Destination      string    `json:"destination,omitempty"`
+	FoundBy          string    `json:"found_by,omitempty"`
+	Entrypoint       string    `json:"entrypoint,omitempty"`
+	SourceAlias      string    `json:"source_alias,omitempty"`
+	DestinationAlias string    `json:"destination_alias,omitempty"`
+
+	DelegateAlias string `json:"delegate_alias,omitempty"`
+
+	ParameterStrings []string `json:"parameter_strings,omitempty"`
+	StorageStrings   []string `json:"storage_strings,omitempty"`
+	Tags             []string `json:"tags,omitempty"`
+}
 
 // GetIndex -
 func (o Operation) GetIndex() string {
@@ -43,15 +67,14 @@ func (o Operation) GetFields() []string {
 
 // Parse  -
 func (o Operation) Parse(highlight map[string][]string, data []byte) (interface{}, error) {
-	var operation operation.Operation
-	if err := json.Unmarshal(data, &operation); err != nil {
+	if err := json.Unmarshal(data, &o); err != nil {
 		return nil, err
 	}
-	return models.Item{
+	return Item{
 		Type:       o.GetIndex(),
-		Value:      operation.Hash,
-		Body:       operation,
+		Value:      o.Hash,
+		Body:       o,
 		Highlights: highlight,
-		Network:    operation.Network,
+		Network:    o.Network,
 	}, nil
 }

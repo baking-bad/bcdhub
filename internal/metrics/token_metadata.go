@@ -41,7 +41,6 @@ func (h *Handler) FixTokenMetadata(rpc noderpc.INode, sharePath string, contract
 	tokenMetadatas, err := h.TokenMetadata.GetAll(tokenmetadata.GetContext{
 		Contract: operation.Destination,
 		Network:  operation.Network,
-		TokenID:  -1,
 	})
 	if err != nil {
 		if !h.Storage.IsRecordNotFound(err) {
@@ -95,7 +94,7 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, network, contrac
 
 	origination := ops[0]
 
-	protocol, err := h.Protocol.GetProtocol(network, origination.Protocol, origination.Level)
+	protocol, err := h.Protocol.Get(network, origination.Protocol, origination.Level)
 	if err != nil {
 		return nil, err
 	}

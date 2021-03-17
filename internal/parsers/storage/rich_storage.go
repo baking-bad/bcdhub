@@ -11,7 +11,7 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // RichStorage -
 type RichStorage struct {
-	DeffatedStorage string
+	DeffatedStorage []byte
 	Models          []models.Model
 	Empty           bool
 }

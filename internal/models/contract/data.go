@@ -28,6 +28,6 @@ type Address struct {
 
 // Stats -
 type Stats struct {
-	SameCount     int64
-	SimialarCount int64
+	SameCount    int64
+	SimilarCount int64
 }

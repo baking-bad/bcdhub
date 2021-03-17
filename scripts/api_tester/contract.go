@@ -30,6 +30,11 @@ func testContracts(ctx *config.Context) {
 		total := len(contracts)
 		contracts = contracts[offset:]
 
+		logger.Info("testing %d contracts...", len(contracts))
+		if len(contracts) == 0 {
+			return
+		}
+
 		tasks := make(chan contract.Contract, len(contracts))
 		for i := range contracts {
 			tasks <- contracts[i]

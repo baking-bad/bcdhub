@@ -13,9 +13,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 )
 
-func getOperation(ids []string) error {
-	operations := make([]operation.Operation, 0)
-	if err := ctx.Storage.GetByIDs(&operations, ids...); err != nil {
+func getOperation(ids []int64) error {
+	operations, err := ctx.Operations.GetByIDs(ids...)
+	if err != nil {
 		return errors.Errorf("[getOperation] Find operation error for IDs %v: %s", ids, err)
 	}
 

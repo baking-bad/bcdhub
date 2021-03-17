@@ -10,9 +10,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/parsers/tzip/tokens"
 )
 
-func getContract(ids []string) error {
-	contracts := make([]contract.Contract, 0)
-	if err := ctx.Storage.GetByIDs(&contracts, ids...); err != nil {
+func getContract(ids []int64) error {
+	contracts, err := ctx.Contracts.GetByIDs(ids...)
+	if err != nil {
 		return errors.Errorf("[getContract] Find contracts error for IDs %v: %s", ids, err)
 	}
 
@@ -23,7 +23,14 @@ func getContract(ids []string) error {
 	}
 
 	logger.Info("Metrics of %d contracts are computed", len(contracts))
-	return ctx.Contracts.UpdateField(contracts, "Alias", "Verified", "VerificationSource")
+	updates := make([]contract.Contract, 0)
+	for _, c := range contracts {
+		if c.Alias == "" && !c.Verified && c.VerificationSource == "" {
+			continue
+		}
+		updates = append(updates, c)
+	}
+	return ctx.Contracts.UpdateField(updates, "Alias", "Verified", "VerificationSource")
 }
 
 func parseContract(contract *contract.Contract) error {

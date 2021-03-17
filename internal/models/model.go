@@ -6,6 +6,6 @@ import "github.com/baking-bad/bcdhub/internal/mq"
 type Model interface {
 	mq.IMessage
 
-	GetID() string
+	GetID() int64
 	GetIndex() string
 }

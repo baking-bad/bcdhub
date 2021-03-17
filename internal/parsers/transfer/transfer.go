@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/fetch"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -151,7 +152,7 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 			return nil, err
 		}
 		var deffattedStorage ast.UntypedAST
-		if err := json.UnmarshalFromString(operation.DeffatedStorage, &deffattedStorage); err != nil {
+		if err := json.Unmarshal(operation.DeffatedStorage, &deffattedStorage); err != nil {
 			return nil, err
 		}
 		if err := storage.Settle(deffattedStorage); err != nil {
@@ -161,11 +162,14 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 		ctx.Entrypoint = consts.DefaultEntrypoint
 		bmd := make([]bigmapdiff.BigMapDiff, 0)
 		for i := range operationModels {
-			if model, ok := operationModels[i].(*bigmapdiff.BigMapDiff); ok && model.OperationID == operation.ID {
+			if model, ok := operationModels[i].(*bigmapdiff.BigMapDiff); ok &&
+				model.OperationHash == operation.Hash &&
+				model.OperationCounter == model.OperationCounter &&
+				helpers.IsInt64PointersEqual(model.OperationNonce, model.OperationNonce) {
 				bmd = append(bmd, *model)
 			}
 		}
-		event, err = events.NewMichelsonExtendedStorage(impl, name, operation.Protocol, operation.GetID(), operation.Destination, bmd)
+		event, err = events.NewMichelsonExtendedStorage(impl, name, operation.Protocol, operation.Destination, operation.GetID(), bmd)
 		if err != nil {
 			logger.Errorf("MichelsonParameterEvent of %s %s: %s", operation.Network, operation.Destination, err.Error())
 			return nil, nil

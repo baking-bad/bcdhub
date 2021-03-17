@@ -22,7 +22,8 @@ tzkt:
     timeout: 20
 
 storage:
-  uri:
+  pg: "host=${DB_HOSTNAME:-127.0.0.1} port=5432 user=${POSTGRES_USER} dbname=indexer password=${POSTGRES_PASSWORD} sslmode=disable"
+  elastic:
     - http://${ELASTIC_HOSTNAME:-127.0.0.1}:9200
   timeout: 10
 
@@ -110,8 +111,11 @@ indexer:
   networks:
     mainnet:
       boost: tzkt
-    # edo2net:
-    # florencenet
+    # delphinet:
+    #   boost: tzkt
+    edo2net:
+      boost: tzkt
+    # florencenet:
 
 metrics:
   project_name: metrics

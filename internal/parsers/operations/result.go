@@ -7,33 +7,31 @@ import (
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 )
 
-func parseOperationResult(data *noderpc.Operation) *operation.Result {
+func parseOperationResult(data noderpc.Operation, tx *operation.Operation) {
 	result := data.GetResult()
 	if result == nil {
-		return &operation.Result{}
+		return
 	}
 
-	operationResult := operation.Result{
-		Status:      result.Status,
-		ConsumedGas: result.ConsumedGas,
-	}
+	tx.Status = result.Status
+	tx.ConsumedGas = result.ConsumedGas
 	if result.StorageSize != nil {
-		operationResult.StorageSize = *result.StorageSize
+		tx.StorageSize = *result.StorageSize
 	}
 	if result.PaidStorageSizeDiff != nil {
-		operationResult.PaidStorageSizeDiff = *result.PaidStorageSizeDiff
+		tx.PaidStorageSizeDiff = *result.PaidStorageSizeDiff
 	}
 	if len(result.Originated) > 0 {
-		operationResult.Originated = result.Originated[0]
+		tx.Destination = result.Originated[0]
 	}
 
-	operationResult.AllocatedDestinationContract = data.Kind == consts.Origination
-	if !operationResult.AllocatedDestinationContract && result.AllocatedDestinationContract != nil {
-		operationResult.AllocatedDestinationContract = *result.AllocatedDestinationContract
+	tx.AllocatedDestinationContract = data.Kind == consts.Origination
+	if result.AllocatedDestinationContract != nil {
+		tx.AllocatedDestinationContract = *result.AllocatedDestinationContract
 	}
 	errs, err := tezerrors.ParseArray(result.Errors)
 	if err == nil {
-		operationResult.Errors = errs
+		tx.Errors = errs
 	}
-	return &operationResult
+	return
 }

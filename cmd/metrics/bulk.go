@@ -9,7 +9,7 @@ import (
 )
 
 // BulkHandler -
-type BulkHandler func(ids []string) error
+type BulkHandler func(ids []int64) error
 
 // BulkManager -
 type BulkManager struct {
@@ -70,9 +70,14 @@ func (bm *BulkManager) process(force bool) bool {
 	}
 	bm.ticker.stop()
 
-	ids := make([]string, len(bm.queue))
+	ids := make([]int64, len(bm.queue))
 	for i := range bm.queue {
-		ids[i] = parseID(bm.queue[i].GetBody())
+		id, err := parseID(bm.queue[i].GetBody())
+		if err != nil {
+			logger.Error(err)
+			continue
+		}
+		ids[i] = id
 	}
 	if err := bm.handler(ids); err != nil {
 		logger.Error(err)

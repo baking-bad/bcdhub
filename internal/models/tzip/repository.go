@@ -10,5 +10,4 @@ type Repository interface {
 	GetBySlug(slug string) (*TZIP, error)
 	GetAliases(network string) ([]TZIP, error)
 	GetAliasesMap(network string) (map[string]string, error)
-	GetAlias(network, address string) (*TZIP, error)
 }

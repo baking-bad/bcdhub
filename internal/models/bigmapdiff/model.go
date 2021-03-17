@@ -1,40 +1,43 @@
 package bigmapdiff
 
 import (
-	stdJSON "encoding/json"
+	"fmt"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 )
 
 // BigMapDiff -
 type BigMapDiff struct {
-	ID           string             `json:"-"`
-	Ptr          int64              `json:"ptr"`
-	Key          stdJSON.RawMessage `json:"key"`
-	KeyHash      string             `json:"key_hash"`
-	KeyStrings   []string           `json:"key_strings"`
-	Value        stdJSON.RawMessage `json:"value,omitempty"`
-	ValueStrings []string           `json:"value_strings"`
-	OperationID  string             `json:"operation_id"`
-	Level        int64              `json:"level"`
-	Address      string             `json:"address"`
-	Network      string             `json:"network"`
-	IndexedTime  int64              `json:"indexed_time"`
-	Timestamp    time.Time          `json:"timestamp"`
-	Protocol     string             `json:"protocol"`
+	ID               int64       `json:"-"`
+	Ptr              int64       `json:"ptr"`
+	Key              types.Bytes `json:"key" gorm:"type:bytes;not null"`
+	KeyHash          string      `json:"key_hash"`
+	Value            types.Bytes `json:"value,omitempty" gorm:"type:bytes"`
+	Level            int64       `json:"level"`
+	Address          string      `json:"address"`
+	Network          string      `json:"network"`
+	IndexedTime      int64       `json:"indexed_time"`
+	Timestamp        time.Time   `json:"timestamp"`
+	Protocol         string      `json:"protocol"`
+	OperationHash    string      `json:"op_hash"`
+	OperationCounter int64       `json:"op_counter"`
+	OperationNonce   *int64      `json:"op_nonce"`
 
-	FoundBy string `json:"found_by,omitempty"`
+	KeyStrings   pq.StringArray `json:"key_strings,omitempty" gorm:"type:text[]"`
+	ValueStrings pq.StringArray `json:"value_strings,omitempty" gorm:"type:text[]"`
 }
 
 // GetID -
-func (b *BigMapDiff) GetID() string {
+func (b *BigMapDiff) GetID() int64 {
 	return b.ID
 }
 
 // GetIndex -
 func (b *BigMapDiff) GetIndex() string {
-	return "bigmapdiff"
+	return "big_map_diffs"
 }
 
 // GetQueues -
@@ -44,7 +47,7 @@ func (b *BigMapDiff) GetQueues() []string {
 
 // MarshalToQueue -
 func (b *BigMapDiff) MarshalToQueue() ([]byte, error) {
-	return []byte(b.ID), nil
+	return []byte(fmt.Sprintf("%d", b.ID)), nil
 }
 
 // LogFields -

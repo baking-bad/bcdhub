@@ -234,14 +234,6 @@ func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 		logger.Info("Destination: %s != %s", one.Destination, two.Destination)
 		return false
 	}
-	if one.PublicKey != two.PublicKey {
-		logger.Info("PublicKey: %s != %s", one.PublicKey, two.PublicKey)
-		return false
-	}
-	if one.ManagerPubKey != two.ManagerPubKey {
-		logger.Info("ManagerPubKey: %s != %s", one.ManagerPubKey, two.ManagerPubKey)
-		return false
-	}
 	if one.Delegate != two.Delegate {
 		logger.Info("Delegate: %s != %s", one.Delegate, two.Delegate)
 		return false
@@ -262,11 +254,11 @@ func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 		logger.Info("DelegateAlias: %s != %s", one.DelegateAlias, two.DelegateAlias)
 		return false
 	}
-	if !compareJSON(t, one.Parameters, two.Parameters) {
+	if !assert.JSONEq(t, string(one.Parameters), string(two.Parameters)) {
 		logger.Info("Parameters: %s != %s", one.Parameters, two.Parameters)
 		return false
 	}
-	if !compareJSON(t, one.DeffatedStorage, two.DeffatedStorage) {
+	if !assert.JSONEq(t, string(one.DeffatedStorage), string(two.DeffatedStorage)) {
 		logger.Info("DeffatedStorage: %s != %s", one.DeffatedStorage, two.DeffatedStorage)
 		return false
 	}
@@ -378,18 +370,6 @@ func compareContract(one, two *contract.Contract) bool {
 	}
 	if !compareStringArray(one.Tags, two.Tags) {
 		logger.Info("Contract.Tags: %v != %v", one.Tags, two.Tags)
-		return false
-	}
-	if !compareStringArray(one.Hardcoded, two.Hardcoded) {
-		logger.Info("Contract.Hardcoded: %v != %v", one.Hardcoded, two.Hardcoded)
-		return false
-	}
-	if !compareStringArray(one.FailStrings, two.FailStrings) {
-		logger.Info("Contract.FailStrings: %v != %v", one.FailStrings, two.FailStrings)
-		return false
-	}
-	if !compareStringArray(one.Annotations, two.Annotations) {
-		logger.Info("Contract.Annotations: %v != %v", one.Annotations, two.Annotations)
 		return false
 	}
 	if !compareStringArray(one.Entrypoints, two.Entrypoints) {

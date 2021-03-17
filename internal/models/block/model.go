@@ -10,7 +10,7 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // Block -
 type Block struct {
-	ID string `json:"-"`
+	ID int64 `json:"-"`
 
 	Network     string    `json:"network"`
 	Hash        string    `json:"hash"`
@@ -22,13 +22,13 @@ type Block struct {
 }
 
 // GetID -
-func (b *Block) GetID() string {
+func (b *Block) GetID() int64 {
 	return b.ID
 }
 
 // GetIndex -
 func (b *Block) GetIndex() string {
-	return "block"
+	return "blocks"
 }
 
 // GetQueues -

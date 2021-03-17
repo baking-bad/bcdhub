@@ -48,7 +48,7 @@ type Parser interface {
 // TokenBalance -
 type TokenBalance struct {
 	Address string
-	TokenID int64
+	TokenID uint64
 	Value   *big.Int
 
 	IsExclusiveNFT bool

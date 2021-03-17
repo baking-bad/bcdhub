@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
+	modelContract "github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
@@ -22,6 +23,7 @@ type ParseParams struct {
 	Storage       models.GeneralRepository
 	BigMapDiffs   bigmapdiff.Repository
 	TokenBalances tokenbalance.Repository
+	Contracts     modelContract.Repository
 
 	rpc      noderpc.INode
 	shareDir string
@@ -106,11 +108,12 @@ func WithMainOperation(main *operation.Operation) ParseParamsOption {
 }
 
 // NewParseParams -
-func NewParseParams(rpc noderpc.INode, storage models.GeneralRepository, bmdRepo bigmapdiff.Repository, blockRepo block.Repository, tzipRepo tzip.Repository, tbRepo tokenbalance.Repository, opts ...ParseParamsOption) *ParseParams {
+func NewParseParams(rpc noderpc.INode, storage models.GeneralRepository, contractRepo modelContract.Repository, bmdRepo bigmapdiff.Repository, blockRepo block.Repository, tzipRepo tzip.Repository, tbRepo tokenbalance.Repository, opts ...ParseParamsOption) *ParseParams {
 	params := &ParseParams{
 		Storage:       storage,
 		BigMapDiffs:   bmdRepo,
 		TokenBalances: tbRepo,
+		Contracts:     contractRepo,
 		rpc:           rpc,
 		once:          &sync.Once{},
 		stackTrace:    stacktrace.New(),

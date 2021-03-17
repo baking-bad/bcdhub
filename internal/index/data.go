@@ -27,4 +27,13 @@ type Protocol struct {
 	StartLevel int64
 	LastLevel  int64
 	Alias      string
+	Constants  Constants
+}
+
+// Constants -
+type Constants struct {
+	CostPerByte                  int64
+	HardGasLimitPerOperation     int64
+	HardStorageLimitPerOperation int64
+	TimeBetweenBlocks            int64
 }

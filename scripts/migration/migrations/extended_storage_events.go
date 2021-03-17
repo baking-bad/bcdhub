@@ -52,7 +52,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 				}
 				logger.Info("%s...", tzips[i].Address)
 
-				protocol, err := ctx.Protocols.GetProtocol(tzips[i].Network, "", -1)
+				protocol, err := ctx.Protocols.Get(tzips[i].Network, "", -1)
 				if err != nil {
 					return err
 				}
@@ -86,7 +86,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 						return err
 					}
 
-					bmd, err := ctx.BigMapDiffs.GetByOperationID(op.ID)
+					bmd, err := ctx.BigMapDiffs.GetForOperation(op.Hash, op.Counter, op.Nonce)
 					if err != nil {
 						if !ctx.Storage.IsRecordNotFound(err) {
 							return err
@@ -110,7 +110,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 							Network: t.Network,
 							Counter: &t.Counter,
 							Nonce:   t.Nonce,
-							TokenID: t.TokenID,
+							TokenID: &t.TokenID,
 						})
 						if err != nil {
 							return err

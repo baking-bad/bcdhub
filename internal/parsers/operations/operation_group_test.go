@@ -15,6 +15,7 @@ import (
 	mock_general "github.com/baking-bad/bcdhub/internal/models/mock"
 	mock_bmd "github.com/baking-bad/bcdhub/internal/models/mock/bigmapdiff"
 	mock_block "github.com/baking-bad/bcdhub/internal/models/mock/block"
+	mock_contract "github.com/baking-bad/bcdhub/internal/models/mock/contract"
 	mock_token_balance "github.com/baking-bad/bcdhub/internal/models/mock/tokenbalance"
 	mock_tzip "github.com/baking-bad/bcdhub/internal/models/mock/tzip"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -44,6 +45,10 @@ func TestGroup_Parse(t *testing.T) {
 	ctrlTzipRepo := gomock.NewController(t)
 	defer ctrlTzipRepo.Finish()
 	tzipRepo := mock_tzip.NewMockRepository(ctrlTzipRepo)
+
+	ctrlContractRepo := gomock.NewController(t)
+	defer ctrlContractRepo.Finish()
+	contractRepo := mock_contract.NewMockRepository(ctrlContractRepo)
 
 	ctrlTokenBalanceRepo := gomock.NewController(t)
 	defer ctrlTokenBalanceRepo.Finish()
@@ -82,12 +87,6 @@ func TestGroup_Parse(t *testing.T) {
 
 	generalRepo.
 		EXPECT().
-		GetByID(gomock.AssignableToTypeOf(&modelContract.Contract{})).
-		DoAndReturn(readTestContractModel).
-		AnyTimes()
-
-	generalRepo.
-		EXPECT().
 		BulkInsert(gomock.AssignableToTypeOf([]models.Model{})).
 		Return(nil).
 		AnyTimes()
@@ -106,17 +105,15 @@ func TestGroup_Parse(t *testing.T) {
 			gomock.Eq(int64(2416))).
 		Return([]bigmapdiff.BigMapDiff{
 			{
-				Ptr:          2416,
-				Key:          []byte(`{"bytes": "000085ef0c18b31983603d978a152de4cd61803db881"}`),
-				KeyHash:      "exprtfKNhZ1G8vMscchFjt1G1qww2P93VTLHMuhyThVYygZLdnRev2",
-				KeyStrings:   []string{"tz1XrCvviH8CqoHMSKpKuznLArEa1yR9U7ep"},
-				Value:        []byte(`{"prim":"Pair","args":[[],{"int":"6000"}]}`),
-				ValueStrings: []string{},
-				Level:        386026,
-				Address:      "KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU",
-				Network:      "carthagenet",
-				Timestamp:    timestamp,
-				Protocol:     "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+				Ptr:       2416,
+				Key:       []byte(`{"bytes": "000085ef0c18b31983603d978a152de4cd61803db881"}`),
+				KeyHash:   "exprtfKNhZ1G8vMscchFjt1G1qww2P93VTLHMuhyThVYygZLdnRev2",
+				Value:     []byte(`{"prim":"Pair","args":[[],{"int":"6000"}]}`),
+				Level:     386026,
+				Address:   "KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU",
+				Network:   "carthagenet",
+				Timestamp: timestamp,
+				Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 			},
 		}, nil).
 		AnyTimes()
@@ -140,17 +137,15 @@ func TestGroup_Parse(t *testing.T) {
 			gomock.Eq(int64(2417))).
 		Return([]bigmapdiff.BigMapDiff{
 			{
-				Ptr:          2417,
-				Key:          []byte(`{"bytes": "000085ef0c18b31983603d978a152de4cd61803db881"}`),
-				KeyHash:      "exprtfKNhZ1G8vMscchFjt1G1qww2P93VTLHMuhyThVYygZLdnRev2",
-				KeyStrings:   []string{"tz1XrCvviH8CqoHMSKpKuznLArEa1yR9U7ep"},
-				Value:        nil,
-				ValueStrings: []string{},
-				Level:        386026,
-				Address:      "KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ",
-				Network:      "carthagenet",
-				Timestamp:    timestamp,
-				Protocol:     "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+				Ptr:       2417,
+				Key:       []byte(`{"bytes": "000085ef0c18b31983603d978a152de4cd61803db881"}`),
+				KeyHash:   "exprtfKNhZ1G8vMscchFjt1G1qww2P93VTLHMuhyThVYygZLdnRev2",
+				Value:     nil,
+				Level:     386026,
+				Address:   "KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ",
+				Network:   "carthagenet",
+				Timestamp: timestamp,
+				Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 			},
 		}, nil).
 		AnyTimes()
@@ -165,12 +160,12 @@ func TestGroup_Parse(t *testing.T) {
 	}{
 		{
 			name:        "opToHHcqFhRTQWJv2oTGAtywucj9KM1nDnk5eHsEETYJyvJLsa5",
-			ParseParams: NewParseParams(rpc, generalRepo, bmdRepo, blockRepo, tzipRepo, tbRepo),
+			ParseParams: NewParseParams(rpc, generalRepo, contractRepo, bmdRepo, blockRepo, tzipRepo, tbRepo),
 			filename:    "./data/rpc/opg/opToHHcqFhRTQWJv2oTGAtywucj9KM1nDnk5eHsEETYJyvJLsa5.json",
 			want:        []models.Model{},
 		}, {
 			name: "opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9",
-			ParseParams: NewParseParams(rpc, generalRepo, bmdRepo, blockRepo, tzipRepo, tbRepo,
+			ParseParams: NewParseParams(rpc, generalRepo, contractRepo, bmdRepo, blockRepo, tzipRepo, tbRepo,
 				WithHead(noderpc.Header{
 					Timestamp: timestamp,
 					Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
@@ -210,8 +205,8 @@ func TestGroup_Parse(t *testing.T) {
 					Burned:          70000,
 					Initiator:       "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
 					Protocol:        "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
-					Parameters:      "{\"entrypoint\":\"default\",\"value\":{\"prim\":\"Right\",\"args\":[{\"prim\":\"Left\",\"args\":[{\"prim\":\"Right\",\"args\":[{\"prim\":\"Right\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"string\":\"tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq\"},{\"prim\":\"Pair\",\"args\":[{\"string\":\"tz1invbJv3AEm55ct7QF2dVbWZuaDekssYkV\"},{\"int\":\"8010000\"}]}]}]}]}]}]}}",
-					DeffatedStorage: "{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[[{\"bytes\":\"000056d8b91b541c9d20d51f929dcccca2f14928f1dc\"}],{\"int\":\"62\"}]},{\"prim\":\"Pair\",\"args\":[{\"int\":\"63\"},{\"string\":\"Aspen Digital Token\"}]}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"False\"},{\"bytes\":\"0000a2560a416161def96031630886abe950c4baf036\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"False\"},{\"bytes\":\"010d25f77b84dc2164a5d1ce5e8a5d3ca2b1d0cbf900\"}]}]}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"01796ad78734892d5ae4186e84a30290040732ada700\"},{\"string\":\"ASPD\"}]},{\"int\":\"18000000\"}]}]}",
+					Parameters:      []byte("{\"entrypoint\":\"default\",\"value\":{\"prim\":\"Right\",\"args\":[{\"prim\":\"Left\",\"args\":[{\"prim\":\"Right\",\"args\":[{\"prim\":\"Right\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"string\":\"tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq\"},{\"prim\":\"Pair\",\"args\":[{\"string\":\"tz1invbJv3AEm55ct7QF2dVbWZuaDekssYkV\"},{\"int\":\"8010000\"}]}]}]}]}]}]}}"),
+					DeffatedStorage: []byte("{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[[{\"bytes\":\"000056d8b91b541c9d20d51f929dcccca2f14928f1dc\"}],{\"int\":\"62\"}]},{\"prim\":\"Pair\",\"args\":[{\"int\":\"63\"},{\"string\":\"Aspen Digital Token\"}]}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"False\"},{\"bytes\":\"0000a2560a416161def96031630886abe950c4baf036\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"False\"},{\"bytes\":\"010d25f77b84dc2164a5d1ce5e8a5d3ca2b1d0cbf900\"}]}]}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"01796ad78734892d5ae4186e84a30290040732ada700\"},{\"string\":\"ASPD\"}]},{\"int\":\"18000000\"}]}]}"),
 					Tags:            []string{"fa1-2"},
 				},
 				&bigmapdiff.BigMapDiff{
@@ -265,8 +260,8 @@ func TestGroup_Parse(t *testing.T) {
 					Timestamp:       timestamp,
 					Protocol:        "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 					Initiator:       "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
-					Parameters:      "{\"entrypoint\":\"validateAccounts\",\"value\":{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"0000a2560a416161def96031630886abe950c4baf036\"},{\"bytes\":\"0000fdf98b65d53a9661e07f41093dcb6f3d931736ba\"}]},{\"prim\":\"Pair\",\"args\":[{\"int\":\"14151000\"},{\"int\":\"0\"}]}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"True\"},{\"prim\":\"Pair\",\"args\":[{\"int\":\"8010000\"},{\"int\":\"18000000\"}]}]}]},{\"bytes\":\"01796ad78734892d5ae4186e84a30290040732ada70076616c696461746552756c6573\"}]}}",
-					DeffatedStorage: "{\"int\":\"61\"}",
+					Parameters:      []byte("{\"entrypoint\":\"validateAccounts\",\"value\":{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"0000a2560a416161def96031630886abe950c4baf036\"},{\"bytes\":\"0000fdf98b65d53a9661e07f41093dcb6f3d931736ba\"}]},{\"prim\":\"Pair\",\"args\":[{\"int\":\"14151000\"},{\"int\":\"0\"}]}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"True\"},{\"prim\":\"Pair\",\"args\":[{\"int\":\"8010000\"},{\"int\":\"18000000\"}]}]}]},{\"bytes\":\"01796ad78734892d5ae4186e84a30290040732ada70076616c696461746552756c6573\"}]}}"),
+					DeffatedStorage: []byte("{\"int\":\"61\"}"),
 					Tags:            []string{},
 				},
 				&operation.Operation{
@@ -284,15 +279,15 @@ func TestGroup_Parse(t *testing.T) {
 					Timestamp:       timestamp,
 					Protocol:        "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 					Initiator:       "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
-					Parameters:      "{\"entrypoint\":\"validateRules\",\"value\":{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"None\"},{\"string\":\"US\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"False\"},{\"bytes\":\"000056d8b91b541c9d20d51f929dcccca2f14928f1dc\"}]}]},{\"int\":\"2\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"None\"},{\"string\":\"US\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"False\"},{\"bytes\":\"0000c644b537bdb0dac40fe742010106546effd69395\"}]}]},{\"int\":\"6\"}]}]},{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"0000a2560a416161def96031630886abe950c4baf036\"},{\"bytes\":\"0000fdf98b65d53a9661e07f41093dcb6f3d931736ba\"}]}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"int\":\"14151000\"},{\"int\":\"0\"}]},{\"prim\":\"True\"}]}]},{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"01bff38c4e363eacef338f7b2e15f00ca42fafa1ce00\"},{\"prim\":\"Pair\",\"args\":[{\"int\":\"8010000\"},{\"int\":\"18000000\"}]}]}]}}",
-					DeffatedStorage: "{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"000056d8b91b541c9d20d51f929dcccca2f14928f1dc\"},{\"bytes\":\"010d25f77b84dc2164a5d1ce5e8a5d3ca2b1d0cbf900\"}]},[]]}",
+					Parameters:      []byte("{\"entrypoint\":\"validateRules\",\"value\":{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"None\"},{\"string\":\"US\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"False\"},{\"bytes\":\"000056d8b91b541c9d20d51f929dcccca2f14928f1dc\"}]}]},{\"int\":\"2\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"None\"},{\"string\":\"US\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"False\"},{\"bytes\":\"0000c644b537bdb0dac40fe742010106546effd69395\"}]}]},{\"int\":\"6\"}]}]},{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"0000a2560a416161def96031630886abe950c4baf036\"},{\"bytes\":\"0000fdf98b65d53a9661e07f41093dcb6f3d931736ba\"}]}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"int\":\"14151000\"},{\"int\":\"0\"}]},{\"prim\":\"True\"}]}]},{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"01bff38c4e363eacef338f7b2e15f00ca42fafa1ce00\"},{\"prim\":\"Pair\",\"args\":[{\"int\":\"8010000\"},{\"int\":\"18000000\"}]}]}]}}"),
+					DeffatedStorage: []byte("{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"000056d8b91b541c9d20d51f929dcccca2f14928f1dc\"},{\"bytes\":\"010d25f77b84dc2164a5d1ce5e8a5d3ca2b1d0cbf900\"}]},[]]}"),
 					Tags:            []string{},
 				},
 			},
 		}, {
 			name: "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
 			ParseParams: NewParseParams(
-				rpc, generalRepo, bmdRepo, blockRepo, tzipRepo, tbRepo,
+				rpc, generalRepo, contractRepo, bmdRepo, blockRepo, tzipRepo, tbRepo,
 				WithShareDirectory("./test"),
 				WithHead(noderpc.Header{
 					Timestamp: timestamp,
@@ -315,110 +310,94 @@ func TestGroup_Parse(t *testing.T) {
 			filename: "./data/rpc/opg/opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt.json",
 			want: []models.Model{
 				&operation.Operation{
-					ContentIndex:     0,
-					Network:          consts.Mainnet,
-					Protocol:         "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
-					Hash:             "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
-					Internal:         false,
-					Nonce:            nil,
-					Status:           consts.Applied,
-					Timestamp:        timestamp,
-					Level:            1151495,
-					Kind:             "transaction",
-					Initiator:        "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
-					Source:           "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
-					Fee:              43074,
-					Counter:          6909186,
-					GasLimit:         427673,
-					StorageLimit:     47,
-					Destination:      "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
-					Parameters:       "{\"entrypoint\":\"redeem\",\"value\":{\"bytes\":\"a874aac22777351417c9bde0920cc7ed33e54453e1dd149a1f3a60521358d19a\"}}",
-					Entrypoint:       "redeem",
-					DeffatedStorage:  "{\"prim\":\"Pair\",\"args\":[{\"int\":\"32\"},{\"prim\":\"Unit\"}]}",
-					ParameterStrings: []string{},
-					StorageStrings:   []string{},
-					Tags:             []string{},
+					ContentIndex:    0,
+					Network:         consts.Mainnet,
+					Protocol:        "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+					Hash:            "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
+					Internal:        false,
+					Nonce:           nil,
+					Status:          consts.Applied,
+					Timestamp:       timestamp,
+					Level:           1151495,
+					Kind:            "transaction",
+					Initiator:       "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
+					Source:          "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
+					Fee:             43074,
+					Counter:         6909186,
+					GasLimit:        427673,
+					StorageLimit:    47,
+					Destination:     "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
+					Parameters:      []byte("{\"entrypoint\":\"redeem\",\"value\":{\"bytes\":\"a874aac22777351417c9bde0920cc7ed33e54453e1dd149a1f3a60521358d19a\"}}"),
+					Entrypoint:      "redeem",
+					DeffatedStorage: []byte("{\"prim\":\"Pair\",\"args\":[{\"int\":\"32\"},{\"prim\":\"Unit\"}]}"),
+					Tags:            []string{},
 				},
 				&bigmapdiff.BigMapDiff{
-					Ptr:          32,
-					Key:          []byte(`{"bytes": "80729e85e284dff3a30bb24a58b37ccdf474bbbe7794aad439ba034f48d66af3"}`),
-					KeyHash:      "exprvJp4s8RJpoXMwD9aQujxWQUiojrkeubesi3X9LDcU3taDfahYR",
-					KeyStrings:   nil,
-					ValueStrings: nil,
-					OperationID:  "f79b897e69e64aa9b6d7f0199fed08f9",
-					Level:        1151495,
-					Address:      "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
-					Network:      consts.Mainnet,
-					IndexedTime:  1602764979843131,
-					Timestamp:    timestamp,
-					Protocol:     "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+					Ptr:         32,
+					Key:         []byte(`{"bytes": "80729e85e284dff3a30bb24a58b37ccdf474bbbe7794aad439ba034f48d66af3"}`),
+					KeyHash:     "exprvJp4s8RJpoXMwD9aQujxWQUiojrkeubesi3X9LDcU3taDfahYR",
+					Level:       1151495,
+					Address:     "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
+					Network:     consts.Mainnet,
+					IndexedTime: 1602764979843131,
+					Timestamp:   timestamp,
+					Protocol:    "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 				},
 				&operation.Operation{
-					ContentIndex:     0,
-					Network:          consts.Mainnet,
-					Protocol:         "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
-					Hash:             "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
-					Internal:         true,
-					Nonce:            setInt64(0),
-					Status:           consts.Applied,
-					Timestamp:        timestamp,
-					Level:            1151495,
-					Kind:             "transaction",
-					Initiator:        "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
-					Source:           "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
-					Counter:          6909186,
-					Destination:      "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-					Parameters:       "{\"entrypoint\":\"transfer\",\"value\":{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"011871cfab6dafee00330602b4342b6500c874c93b00\"},{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"0000c2473c617946ce7b9f6843f193401203851cb2ec\"},{\"int\":\"7874880\"}]}]}}",
-					Entrypoint:       "transfer",
-					Burned:           47000,
-					DeffatedStorage:  "{\"prim\":\"Pair\",\"args\":[{\"int\":\"31\"},{\"prim\":\"Pair\",\"args\":[[{\"prim\":\"DUP\"},{\"prim\":\"CAR\"},{\"prim\":\"DIP\",\"args\":[[{\"prim\":\"CDR\"}]]},{\"prim\":\"DUP\"},{\"prim\":\"DUP\"},{\"prim\":\"CAR\"},{\"prim\":\"DIP\",\"args\":[[{\"prim\":\"CDR\"}]]},{\"prim\":\"DIP\",\"args\":[[{\"prim\":\"DIP\",\"args\":[{\"int\":\"2\"},[{\"prim\":\"DUP\"}]]},{\"prim\":\"DIG\",\"args\":[{\"int\":\"2\"}]}]]},{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"string\"},{\"string\":\"code\"}]},{\"prim\":\"PAIR\"},{\"prim\":\"PACK\"},{\"prim\":\"GET\"},{\"prim\":\"IF_NONE\",\"args\":[[{\"prim\":\"NONE\",\"args\":[{\"prim\":\"lambda\",\"args\":[{\"prim\":\"pair\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"big_map\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"bytes\"}]}]},{\"prim\":\"pair\",\"args\":[{\"prim\":\"list\",\"args\":[{\"prim\":\"operation\"}]},{\"prim\":\"big_map\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"bytes\"}]}]}]}]}],[{\"prim\":\"UNPACK\",\"args\":[{\"prim\":\"lambda\",\"args\":[{\"prim\":\"pair\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"big_map\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"bytes\"}]}]},{\"prim\":\"pair\",\"args\":[{\"prim\":\"list\",\"args\":[{\"prim\":\"operation\"}]},{\"prim\":\"big_map\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"bytes\"}]}]}]}]},{\"prim\":\"IF_NONE\",\"args\":[[{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"string\"},{\"string\":\"UStore: failed to unpack code\"}]},{\"prim\":\"FAILWITH\"}],[]]},{\"prim\":\"SOME\"}]]},{\"prim\":\"IF_NONE\",\"args\":[[{\"prim\":\"DROP\"},{\"prim\":\"DIP\",\"args\":[[{\"prim\":\"DUP\"},{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"bytes\"},{\"bytes\":\"05010000000866616c6c6261636b\"}]},{\"prim\":\"GET\"},{\"prim\":\"IF_NONE\",\"args\":[[{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"string\"},{\"string\":\"UStore: no field fallback\"}]},{\"prim\":\"FAILWITH\"}],[]]},{\"prim\":\"UNPACK\",\"args\":[{\"prim\":\"lambda\",\"args\":[{\"prim\":\"pair\",\"args\":[{\"prim\":\"pair\",\"args\":[{\"prim\":\"string\"},{\"prim\":\"bytes\"}]},{\"prim\":\"big_map\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"bytes\"}]}]},{\"prim\":\"pair\",\"args\":[{\"prim\":\"list\",\"args\":[{\"prim\":\"operation\"}]},{\"prim\":\"big_map\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"bytes\"}]}]}]}]},{\"prim\":\"IF_NONE\",\"args\":[[{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"string\"},{\"string\":\"UStore: failed to unpack fallback\"}]},{\"prim\":\"FAILWITH\"}],[]]},{\"prim\":\"SWAP\"}]]},{\"prim\":\"PAIR\"},{\"prim\":\"EXEC\"}],[{\"prim\":\"DIP\",\"args\":[[{\"prim\":\"SWAP\"},{\"prim\":\"DROP\"},{\"prim\":\"PAIR\"}]]},{\"prim\":\"SWAP\"},{\"prim\":\"EXEC\"}]]}],{\"prim\":\"Pair\",\"args\":[{\"int\":\"1\"},{\"prim\":\"False\"}]}]}]}",
-					ParameterStrings: nil,
-					StorageStrings:   nil,
-					Tags:             []string{"fa1-2"},
+					ContentIndex:    0,
+					Network:         consts.Mainnet,
+					Protocol:        "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+					Hash:            "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
+					Internal:        true,
+					Nonce:           setInt64(0),
+					Status:          consts.Applied,
+					Timestamp:       timestamp,
+					Level:           1151495,
+					Kind:            "transaction",
+					Initiator:       "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
+					Source:          "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
+					Counter:         6909186,
+					Destination:     "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+					Parameters:      []byte("{\"entrypoint\":\"transfer\",\"value\":{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"011871cfab6dafee00330602b4342b6500c874c93b00\"},{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"0000c2473c617946ce7b9f6843f193401203851cb2ec\"},{\"int\":\"7874880\"}]}]}}"),
+					Entrypoint:      "transfer",
+					Burned:          47000,
+					DeffatedStorage: []byte("{\"prim\":\"Pair\",\"args\":[{\"int\":\"31\"},{\"prim\":\"Pair\",\"args\":[[{\"prim\":\"DUP\"},{\"prim\":\"CAR\"},{\"prim\":\"DIP\",\"args\":[[{\"prim\":\"CDR\"}]]},{\"prim\":\"DUP\"},{\"prim\":\"DUP\"},{\"prim\":\"CAR\"},{\"prim\":\"DIP\",\"args\":[[{\"prim\":\"CDR\"}]]},{\"prim\":\"DIP\",\"args\":[[{\"prim\":\"DIP\",\"args\":[{\"int\":\"2\"},[{\"prim\":\"DUP\"}]]},{\"prim\":\"DIG\",\"args\":[{\"int\":\"2\"}]}]]},{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"string\"},{\"string\":\"code\"}]},{\"prim\":\"PAIR\"},{\"prim\":\"PACK\"},{\"prim\":\"GET\"},{\"prim\":\"IF_NONE\",\"args\":[[{\"prim\":\"NONE\",\"args\":[{\"prim\":\"lambda\",\"args\":[{\"prim\":\"pair\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"big_map\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"bytes\"}]}]},{\"prim\":\"pair\",\"args\":[{\"prim\":\"list\",\"args\":[{\"prim\":\"operation\"}]},{\"prim\":\"big_map\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"bytes\"}]}]}]}]}],[{\"prim\":\"UNPACK\",\"args\":[{\"prim\":\"lambda\",\"args\":[{\"prim\":\"pair\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"big_map\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"bytes\"}]}]},{\"prim\":\"pair\",\"args\":[{\"prim\":\"list\",\"args\":[{\"prim\":\"operation\"}]},{\"prim\":\"big_map\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"bytes\"}]}]}]}]},{\"prim\":\"IF_NONE\",\"args\":[[{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"string\"},{\"string\":\"UStore: failed to unpack code\"}]},{\"prim\":\"FAILWITH\"}],[]]},{\"prim\":\"SOME\"}]]},{\"prim\":\"IF_NONE\",\"args\":[[{\"prim\":\"DROP\"},{\"prim\":\"DIP\",\"args\":[[{\"prim\":\"DUP\"},{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"bytes\"},{\"bytes\":\"05010000000866616c6c6261636b\"}]},{\"prim\":\"GET\"},{\"prim\":\"IF_NONE\",\"args\":[[{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"string\"},{\"string\":\"UStore: no field fallback\"}]},{\"prim\":\"FAILWITH\"}],[]]},{\"prim\":\"UNPACK\",\"args\":[{\"prim\":\"lambda\",\"args\":[{\"prim\":\"pair\",\"args\":[{\"prim\":\"pair\",\"args\":[{\"prim\":\"string\"},{\"prim\":\"bytes\"}]},{\"prim\":\"big_map\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"bytes\"}]}]},{\"prim\":\"pair\",\"args\":[{\"prim\":\"list\",\"args\":[{\"prim\":\"operation\"}]},{\"prim\":\"big_map\",\"args\":[{\"prim\":\"bytes\"},{\"prim\":\"bytes\"}]}]}]}]},{\"prim\":\"IF_NONE\",\"args\":[[{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"string\"},{\"string\":\"UStore: failed to unpack fallback\"}]},{\"prim\":\"FAILWITH\"}],[]]},{\"prim\":\"SWAP\"}]]},{\"prim\":\"PAIR\"},{\"prim\":\"EXEC\"}],[{\"prim\":\"DIP\",\"args\":[[{\"prim\":\"SWAP\"},{\"prim\":\"DROP\"},{\"prim\":\"PAIR\"}]]},{\"prim\":\"SWAP\"},{\"prim\":\"EXEC\"}]]}],{\"prim\":\"Pair\",\"args\":[{\"int\":\"1\"},{\"prim\":\"False\"}]}]}]}"),
+					Tags:            []string{"fa1-2"},
 				},
 				&bigmapdiff.BigMapDiff{
-					Ptr:          31,
-					Key:          []byte(`{"bytes": "05010000000b746f74616c537570706c79"}`),
-					KeyHash:      "exprunzteC5uyXRHbKnqJd3hUMGTWE9Gv5EtovDZHnuqu6SaGViV3N",
-					KeyStrings:   nil,
-					Value:        []byte(`{"bytes":"050098e1e8d78a02"}`),
-					ValueStrings: nil,
-					OperationID:  "55baa67b04044639932a1bef22a2d0bc",
-					Level:        1151495,
-					Address:      "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-					Network:      consts.Mainnet,
-					IndexedTime:  1602764979845825,
-					Timestamp:    timestamp,
-					Protocol:     "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+					Ptr:         31,
+					Key:         []byte(`{"bytes": "05010000000b746f74616c537570706c79"}`),
+					KeyHash:     "exprunzteC5uyXRHbKnqJd3hUMGTWE9Gv5EtovDZHnuqu6SaGViV3N",
+					Value:       []byte(`{"bytes":"050098e1e8d78a02"}`),
+					Level:       1151495,
+					Address:     "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+					Network:     consts.Mainnet,
+					IndexedTime: 1602764979845825,
+					Timestamp:   timestamp,
+					Protocol:    "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 				},
 				&bigmapdiff.BigMapDiff{
-					Ptr:          31,
-					Key:          []byte(`{"bytes": "05070701000000066c65646765720a000000160000c2473c617946ce7b9f6843f193401203851cb2ec"}`),
-					KeyHash:      "exprv9xaiXBb9KBi67dQoP1SchDyZeKEz3XHiFwBCtHadiKS8wkX7w",
-					KeyStrings:   nil,
-					Value:        []byte(`{"bytes":"0507070080a5c1070200000000"}`),
-					ValueStrings: nil,
-					OperationID:  "55baa67b04044639932a1bef22a2d0bc",
-					Level:        1151495, Address: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+					Ptr:     31,
+					Key:     []byte(`{"bytes": "05070701000000066c65646765720a000000160000c2473c617946ce7b9f6843f193401203851cb2ec"}`),
+					KeyHash: "exprv9xaiXBb9KBi67dQoP1SchDyZeKEz3XHiFwBCtHadiKS8wkX7w",
+					Value:   []byte(`{"bytes":"0507070080a5c1070200000000"}`),
+					Level:   1151495, Address: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
 					Network:     consts.Mainnet,
 					IndexedTime: 1602764979845832,
 					Timestamp:   timestamp,
 					Protocol:    "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 				},
 				&bigmapdiff.BigMapDiff{
-					Ptr:          31,
-					Key:          []byte(`{"bytes": "05070701000000066c65646765720a00000016011871cfab6dafee00330602b4342b6500c874c93b00"}`),
-					KeyHash:      "expruiWsykU9wjNb4aV7eJULLBpGLhy1EuzgD8zB8k7eUTaCk16fyV",
-					KeyStrings:   nil,
-					Value:        []byte(`{"bytes":"05070700ba81bb090200000000"}`),
-					ValueStrings: nil,
-					OperationID:  "55baa67b04044639932a1bef22a2d0bc",
-					Level:        1151495,
-					Address:      "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-					Network:      consts.Mainnet,
-					IndexedTime:  1602764979845839,
-					Timestamp:    timestamp,
-					Protocol:     "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+					Ptr:         31,
+					Key:         []byte(`{"bytes": "05070701000000066c65646765720a00000016011871cfab6dafee00330602b4342b6500c874c93b00"}`),
+					KeyHash:     "expruiWsykU9wjNb4aV7eJULLBpGLhy1EuzgD8zB8k7eUTaCk16fyV",
+					Value:       []byte(`{"bytes":"05070700ba81bb090200000000"}`),
+					Level:       1151495,
+					Address:     "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+					Network:     consts.Mainnet,
+					IndexedTime: 1602764979845839,
+					Timestamp:   timestamp,
+					Protocol:    "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 				},
 				&transfer.Transfer{
 					Network:      consts.Mainnet,
@@ -439,7 +418,7 @@ func TestGroup_Parse(t *testing.T) {
 		}, {
 			name: "onzUDQhwunz2yqzfEsoURXEBz9p7Gk8DgY4QBva52Z4b3AJCZjt",
 			ParseParams: NewParseParams(
-				rpc, generalRepo, bmdRepo, blockRepo, tzipRepo, tbRepo,
+				rpc, generalRepo, contractRepo, bmdRepo, blockRepo, tzipRepo, tbRepo,
 				WithShareDirectory("./test"),
 				WithHead(noderpc.Header{
 					Timestamp: timestamp,
@@ -481,9 +460,7 @@ func TestGroup_Parse(t *testing.T) {
 					Destination:                        "KT1NppzrgyLZD3aku7fssfhYPm5QqZwyabvR",
 					Burned:                             87750,
 					AllocatedDestinationContractBurned: 64250,
-					DeffatedStorage:                    "{\"int\":\"0\"}\n",
-					ParameterStrings:                   nil,
-					StorageStrings:                     nil,
+					DeffatedStorage:                    []byte("{\"int\":\"0\"}\n"),
 					Tags:                               nil,
 				},
 				&modelContract.Contract{
@@ -493,9 +470,6 @@ func TestGroup_Parse(t *testing.T) {
 					Language:    "unknown",
 					Hash:        "e4b88b53b9227b3fc4fc0dbe148f249a7a1c755cf4cbc9c8fb5b5b78395a139d3f8e0fde5c27117df30553e98ecb4e3e8ddc9740292af18fbf36326cb55cebad",
 					Tags:        []string{},
-					Hardcoded:   []string{},
-					FailStrings: []string{},
-					Annotations: []string{"%decrement", "%increment"},
 					Entrypoints: []string{"decrement", "increment"},
 					Address:     "KT1NppzrgyLZD3aku7fssfhYPm5QqZwyabvR",
 					Manager:     "tz1SX7SPdx4ZJb6uP5Hh5XBVZhh9wTfFaud3",
@@ -504,7 +478,7 @@ func TestGroup_Parse(t *testing.T) {
 		}, {
 			name: "onv6Q1dNejAGEJeQzwRannWsDSGw85FuFdhLnBrY18TBcC9p8kC",
 			ParseParams: NewParseParams(
-				rpc, generalRepo, bmdRepo, blockRepo, tzipRepo, tbRepo,
+				rpc, generalRepo, contractRepo, bmdRepo, blockRepo, tzipRepo, tbRepo,
 				WithShareDirectory("./test"),
 				WithHead(noderpc.Header{
 					Timestamp: timestamp,
@@ -541,7 +515,7 @@ func TestGroup_Parse(t *testing.T) {
 					Burned:                             331000,
 					Initiator:                          "tz1MXrEgDNnR8PDryN8sq4B2m9Pqcf57wBqM",
 					Protocol:                           "PsddFKi32cMJ2qPjf43Qv5GDWLDPZb3T3bF6fLKiF5HtvHNU7aP",
-					DeffatedStorage:                    "[]",
+					DeffatedStorage:                    []byte("[]"),
 					AllocatedDestinationContractBurned: 257000,
 				},
 				&modelContract.Contract{
@@ -551,9 +525,6 @@ func TestGroup_Parse(t *testing.T) {
 					Language:    "unknown",
 					Hash:        "0569cf67a58ae603cbfa740c3181b588608f8967e8a7d1ea49e00c9325e9e1b67dc32cd1ec1f9cdc73699dd793ded16ac6f14511b61b63240e8f647b3aed17a3",
 					Tags:        []string{},
-					Hardcoded:   []string{},
-					FailStrings: []string{},
-					Annotations: []string{},
 					Entrypoints: []string{"default"},
 					Address:     "KT1AbjG7vtpV8osdoJXcMRck8eTwst8dWoz4",
 					Manager:     "tz1MXrEgDNnR8PDryN8sq4B2m9Pqcf57wBqM",
@@ -562,7 +533,7 @@ func TestGroup_Parse(t *testing.T) {
 		}, {
 			name: "op4fFMvYsxvSUKZmLWC7aUf25VMYqigaDwTZCAoBBi8zACbHTNg",
 			ParseParams: NewParseParams(
-				rpc, generalRepo, bmdRepo, blockRepo, tzipRepo, tbRepo,
+				rpc, generalRepo, contractRepo, bmdRepo, blockRepo, tzipRepo, tbRepo,
 				WithShareDirectory("./test"),
 				WithHead(noderpc.Header{
 					Timestamp: timestamp,
@@ -599,9 +570,9 @@ func TestGroup_Parse(t *testing.T) {
 					Timestamp:       timestamp,
 					Entrypoint:      "@entrypoint_1",
 					Initiator:       "tz1gXhGAXgKvrXjn4t16rYUXocqbch1XXJFN",
-					Parameters:      "{\"entrypoint\":\"default\",\"value\":{\"prim\":\"Right\",\"args\":[{\"prim\":\"Unit\"}]}}",
+					Parameters:      []byte("{\"entrypoint\":\"default\",\"value\":{\"prim\":\"Right\",\"args\":[{\"prim\":\"Unit\"}]}}"),
 					Protocol:        "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA",
-					DeffatedStorage: "{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"0000e527ed176ccf8f8297f674a9886a2ba8a55818d9\"},{\"prim\":\"Left\",\"args\":[{\"bytes\":\"016ebc941b2ae4e305470f392fa050e41ca1e52b4500\"}]}]}",
+					DeffatedStorage: []byte("{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"0000e527ed176ccf8f8297f674a9886a2ba8a55818d9\"},{\"prim\":\"Left\",\"args\":[{\"bytes\":\"016ebc941b2ae4e305470f392fa050e41ca1e52b4500\"}]}]}"),
 				},
 				&bigmapaction.BigMapAction{
 					Action:    "remove",
@@ -651,7 +622,7 @@ func TestGroup_Parse(t *testing.T) {
 					Initiator:                          "tz1gXhGAXgKvrXjn4t16rYUXocqbch1XXJFN",
 					Protocol:                           "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA",
 					AllocatedDestinationContractBurned: 257000,
-					DeffatedStorage:                    "{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"string\":\"tz1QozfhaUW4wLnohDo6yiBUmh7cPCSXE9Af\"},[]]},{\"int\":\"25168\"},{\"int\":\"25169\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Left\",\"args\":[{\"prim\":\"Unit\"}]},{\"int\":\"25170\"}]},{\"string\":\"tz1QozfhaUW4wLnohDo6yiBUmh7cPCSXE9Af\"},{\"int\":\"0\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[[],{\"int\":\"25171\"}]},{\"int\":\"2\"},{\"string\":\"tz1QozfhaUW4wLnohDo6yiBUmh7cPCSXE9Af\"}]},{\"int\":\"11\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[[],[[{\"prim\":\"DUP\"},{\"prim\":\"CAR\"},{\"prim\":\"DIP\",\"args\":[[{\"prim\":\"CDR\"}]]}],{\"prim\":\"DROP\"},{\"prim\":\"NIL\",\"args\":[{\"prim\":\"operation\"}]},{\"prim\":\"PAIR\"}]]},{\"int\":\"500\"},{\"int\":\"1000\"}]},{\"prim\":\"Pair\",\"args\":[{\"int\":\"1000\"},{\"int\":\"2592000\"}]},{\"int\":\"1\"},{\"int\":\"1\"}]},[{\"prim\":\"DROP\"},{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"bool\"},{\"prim\":\"True\"}]}],[{\"prim\":\"DROP\"},{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"nat\"},{\"int\":\"0\"}]}]]}",
+					DeffatedStorage:                    []byte("{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"string\":\"tz1QozfhaUW4wLnohDo6yiBUmh7cPCSXE9Af\"},[]]},{\"int\":\"25168\"},{\"int\":\"25169\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Left\",\"args\":[{\"prim\":\"Unit\"}]},{\"int\":\"25170\"}]},{\"string\":\"tz1QozfhaUW4wLnohDo6yiBUmh7cPCSXE9Af\"},{\"int\":\"0\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[[],{\"int\":\"25171\"}]},{\"int\":\"2\"},{\"string\":\"tz1QozfhaUW4wLnohDo6yiBUmh7cPCSXE9Af\"}]},{\"int\":\"11\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[[],[[{\"prim\":\"DUP\"},{\"prim\":\"CAR\"},{\"prim\":\"DIP\",\"args\":[[{\"prim\":\"CDR\"}]]}],{\"prim\":\"DROP\"},{\"prim\":\"NIL\",\"args\":[{\"prim\":\"operation\"}]},{\"prim\":\"PAIR\"}]]},{\"int\":\"500\"},{\"int\":\"1000\"}]},{\"prim\":\"Pair\",\"args\":[{\"int\":\"1000\"},{\"int\":\"2592000\"}]},{\"int\":\"1\"},{\"int\":\"1\"}]},[{\"prim\":\"DROP\"},{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"bool\"},{\"prim\":\"True\"}]}],[{\"prim\":\"DROP\"},{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"nat\"},{\"int\":\"0\"}]}]]}"),
 				},
 				&modelContract.Contract{
 					Network:     "edo2net",
@@ -660,7 +631,6 @@ func TestGroup_Parse(t *testing.T) {
 					Language:    "unknown",
 					Hash:        "d3bfdacb039f6e8added88c45046b7a8f6a2b91744859ace29f4c19294c9a394857598e2b331394cac91a7a2c543cadaa60282c5eb2c87f83f001f5e563cea36",
 					Tags:        []string{"nft_ledger", "fa2"},
-					Hardcoded:   []string{},
 					FailStrings: []string{"FA2_INSUFFICIENT_BALANCE"},
 					Annotations: []string{"%token_address", "%drop_proposal", "%transfer_contract_tokens", "%permits_counter", "%remove_operator", "%mint", "%ledger", "%voters", "%owner", "%balance", "%transfer", "%from_", "%max_voting_period", "%not_in_migration", "%start_date", "%custom_entrypoints", "%proposal_check", "%accept_ownership", "%migrate", "%set_quorum_threshold", "%amount", "%proposals", "%min_voting_period", "%rejected_proposal_return_value", "%burn", "%flush", "%max_quorum_threshold", "%migratingTo", "%operators", "%proposer", "%call_FA2", "%argument", "%params", "%transfer_ownership", "%voting_period", "%request", "%confirm_migration", "%frozen_token", "%param", "%admin", "%migration_status", "%proposal_key_list_sort_by_date", "%requests", "%update_operators", "%add_operator", "%getVotePermitCounter", "%propose", "%vote", "%vote_amount", "%proposer_frozen_token", "%callCustom", "%txs", "%operator", "%quorum_threshold", "%to_", "%set_voting_period", "%callback", "%contract_address", "%downvotes", "%max_votes", "%balance_of", "%proposal_key", "%vote_type", "%signature", "%decision_lambda", "%token_id", "%permit", "%key", "%extra", "%pending_owner", "%upvotes", "%max_proposals", "%min_quorum_threshold", "%proposal_metadata", "%metadata", "%migratedTo"},
 					Entrypoints: []string{"callCustom", "accept_ownership", "burn", "balance_of", "transfer", "update_operators", "confirm_migration", "drop_proposal", "flush", "getVotePermitCounter", "migrate", "mint", "propose", "set_quorum_threshold", "set_voting_period", "transfer_ownership", "vote", "transfer_contract_tokens"},
@@ -720,6 +690,7 @@ func TestGroup_Parse(t *testing.T) {
 					).
 					AnyTimes()
 			}
+
 			var op noderpc.OperationGroup
 			if err := readJSONFile(tt.filename, &op); err != nil {
 				t.Errorf(`readJSONFile("%s") = error %v`, tt.filename, err)

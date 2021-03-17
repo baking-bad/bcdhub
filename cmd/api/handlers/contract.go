@@ -27,8 +27,8 @@ func (ctx *Context) GetContract(c *gin.Context) {
 		return
 	}
 
-	contract := contract.NewEmptyContract(req.Network, req.Address)
-	if err := ctx.Storage.GetByID(&contract); ctx.handleError(c, err, 0) {
+	contract, err := ctx.Contracts.Get(req.Network, req.Address)
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	res, err := ctx.contractPostprocessing(contract, c)
@@ -86,7 +86,7 @@ func (ctx *Context) contractPostprocessing(contract contract.Contract, c *gin.Co
 		return res, err
 	}
 
-	if alias, err := ctx.TZIP.GetAlias(contract.Network, contract.Address); err == nil {
+	if alias, err := ctx.TZIP.Get(contract.Network, contract.Address); err == nil {
 		res.Slug = alias.Slug
 	} else if !ctx.Storage.IsRecordNotFound(err) {
 		return res, err
@@ -97,7 +97,7 @@ func (ctx *Context) contractPostprocessing(contract contract.Contract, c *gin.Co
 		return res, err
 	}
 	res.SameCount = stats.SameCount
-	res.SimilarCount = stats.SimialarCount
+	res.SimilarCount = stats.SimilarCount
 
 	return res, nil
 }

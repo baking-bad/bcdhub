@@ -103,7 +103,7 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 				tokenMetadata, err := ctx.TokenMetadata.GetAll(tokenmetadata.GetContext{
 					Contract: token.Contract,
 					Network:  consts.Mainnet,
-					TokenID:  token.TokenID,
+					TokenID:  &token.TokenID,
 				})
 				if err != nil {
 					if ctx.Storage.IsRecordNotFound(err) {

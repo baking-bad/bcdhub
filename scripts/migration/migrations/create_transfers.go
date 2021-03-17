@@ -52,7 +52,7 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 			return err
 		}
 
-		protocol, err := ctx.Protocols.GetProtocol(operations[i].Network, "", -1)
+		protocol, err := ctx.Protocols.Get(operations[i].Network, "", -1)
 		if err != nil {
 			return err
 		}

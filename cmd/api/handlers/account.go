@@ -55,7 +55,7 @@ func (ctx *Context) GetInfo(c *gin.Context) {
 		LastAction: stats.LastAction,
 	}
 
-	alias, err := ctx.TZIP.GetAlias(req.Network, req.Address)
+	alias, err := ctx.TZIP.Get(req.Network, req.Address)
 	if err != nil {
 		if !ctx.Storage.IsRecordNotFound(err) {
 			ctx.handleError(c, err, 0)
@@ -170,7 +170,7 @@ func (ctx *Context) getAccountBalances(network, address string, req tokenBalance
 
 	for _, balance := range tokenBalances {
 		c := tokenmetadata.GetContext{
-			TokenID:  balance.TokenID,
+			TokenID:  &balance.TokenID,
 			Contract: balance.Contract,
 			Network:  network,
 		}
@@ -185,7 +185,7 @@ func (ctx *Context) getAccountBalances(network, address string, req tokenBalance
 
 	for _, token := range tokens {
 		c := tokenmetadata.GetContext{
-			TokenID:  token.TokenID,
+			TokenID:  &token.TokenID,
 			Contract: token.Contract,
 			Network:  network,
 		}
@@ -210,7 +210,7 @@ func (ctx *Context) getAccountBalances(network, address string, req tokenBalance
 			Balance: balance,
 			TokenMetadata: TokenMetadata{
 				Contract: c.Contract,
-				TokenID:  c.TokenID,
+				TokenID:  *c.TokenID,
 				Network:  c.Network,
 			},
 		})

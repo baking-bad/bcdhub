@@ -8,7 +8,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/tzkt"
 	"github.com/schollz/progressbar/v3"
 )
@@ -50,19 +49,11 @@ func (m *GetAliases) Do(ctx *config.Context) error {
 			return err
 		}
 
-		item := tzip.TZIP{
-			Network: consts.Mainnet,
-			Address: address,
-			Slug:    helpers.Slug(alias),
-			TZIP16: tzip.TZIP16{
-				Name: alias,
-			},
-		}
-
-		if err := ctx.Storage.GetByID(&item); err == nil {
+		item, err := ctx.TZIP.Get(consts.Mainnet, address)
+		if err == nil || ctx.Storage.IsRecordNotFound(err) {
 			item.Name = alias
 			item.Slug = helpers.Slug(alias)
-		} else if !ctx.Storage.IsRecordNotFound(err) {
+		} else {
 			logger.Error(err)
 			return err
 		}

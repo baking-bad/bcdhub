@@ -6,9 +6,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-func getMigrations(ids []string) error {
-	migrations := make([]migration.Migration, 0)
-	if err := ctx.Storage.GetByIDs(&migrations, ids...); err != nil {
+func getMigrations(ids []int64) error {
+	migrations, err := ctx.Migrations.GetByIDs(ids...)
+	if err != nil {
 		return errors.Errorf("[getMigrations] Find migration error for IDs %v: %s", ids, err)
 	}
 

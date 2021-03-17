@@ -4,11 +4,13 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 )
 
 // TokenResponse -
-type TokenResponse struct {
+type TokenResponse struct{}
+
+// Token -
+type Token struct {
 	Name      string                 `json:"name"`
 	Symbol    string                 `json:"symbol"`
 	TokenID   int64                  `json:"token_id"`
@@ -19,9 +21,6 @@ type TokenResponse struct {
 	Decimals  *int64                 `json:"decimals,omitempty"`
 	Extras    map[string]interface{} `json:"extras,omitempty"`
 }
-
-// Token -
-type Token struct{}
 
 // GetIndex -
 func (t Token) GetIndex() string {
@@ -48,15 +47,14 @@ func (t Token) GetFields() []string {
 
 // Parse  -
 func (t Token) Parse(highlight map[string][]string, data []byte) (interface{}, error) {
-	var token tokenmetadata.TokenMetadata
-	if err := json.Unmarshal(data, &token); err != nil {
+	if err := json.Unmarshal(data, &t); err != nil {
 		return nil, err
 	}
-	return models.Item{
-		Type:       token.GetIndex(),
-		Value:      token.Contract,
-		Body:       token,
+	return Item{
+		Type:       t.GetIndex(),
+		Value:      t.Address,
+		Body:       t,
 		Highlights: highlight,
-		Network:    token.Network,
+		Network:    t.Network,
 	}, nil
 }
