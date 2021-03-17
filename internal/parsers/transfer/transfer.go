@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/fetch"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
@@ -130,7 +131,8 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 		ctx.Entrypoint = operation.Entrypoint
 		event, err = events.NewMichelsonParameter(impl, name)
 		if err != nil {
-			return nil, err
+			logger.Errorf("MichelsonParameterEvent of %s %s: %s", operation.Network, operation.Destination, err.Error())
+			return nil, nil
 		}
 		return p.makeTransfersFromBalanceEvents(event, ctx, operation, true)
 	case impl.MichelsonExtendedStorageEvent.Is(operation.Entrypoint):
@@ -163,7 +165,8 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 		}
 		event, err = events.NewMichelsonExtendedStorage(impl, name, operation.Protocol, operation.GetID(), operation.Destination, bmd)
 		if err != nil {
-			return nil, err
+			logger.Errorf("MichelsonParameterEvent of %s %s: %s", operation.Network, operation.Destination, err.Error())
+			return nil, nil
 		}
 		return p.makeTransfersFromBalanceEvents(event, ctx, operation, false)
 	default:
