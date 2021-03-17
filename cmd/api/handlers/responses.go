@@ -678,15 +678,23 @@ type TokenBalance struct {
 
 // TokenMetadata -
 type TokenMetadata struct {
-	Contract      string                 `json:"contract"`
-	Network       string                 `json:"network,omitempty"`
-	Level         int64                  `json:"level,omitempty" extensions:"x-nullable"`
-	TokenID       int64                  `json:"token_id"`
-	Symbol        string                 `json:"symbol,omitempty" extensions:"x-nullable"`
-	Name          string                 `json:"name,omitempty" extensions:"x-nullable"`
-	Decimals      *int64                 `json:"decimals,omitempty" extensions:"x-nullable"`
-	TokenInfo     map[string]interface{} `json:"token_info,omitempty" extensions:"x-nullable"`
-	Volume24Hours *float64               `json:"volume_24_hours,omitempty" extensions:"x-nullable"`
+	Contract           string                 `json:"contract"`
+	Network            string                 `json:"network,omitempty"`
+	Level              int64                  `json:"level,omitempty" extensions:"x-nullable"`
+	TokenID            int64                  `json:"token_id"`
+	Symbol             string                 `json:"symbol,omitempty" extensions:"x-nullable"`
+	Name               string                 `json:"name,omitempty" extensions:"x-nullable"`
+	Decimals           *int64                 `json:"decimals,omitempty" extensions:"x-nullable"`
+	Description        string                 `json:"description,omitempty" extensions:"x-nullable"`
+	ArtifactURI        string                 `json:"artifact_uri,omitempty" extensions:"x-nullable"`
+	DisplayURI         string                 `json:"display_uri,omitempty" extensions:"x-nullable"`
+	ThumbnailURI       string                 `json:"thumbnail_uri,omitempty" extensions:"x-nullable"`
+	ExternalURI        string                 `json:"external_uri,omitempty" extensions:"x-nullable"`
+	IsTransferable     bool                   `json:"is_transferable,omitempty" extensions:"x-nullable"`
+	IsBooleanAmount    bool                   `json:"is_boolean_amount,omitempty" extensions:"x-nullable"`
+	ShouldPreferSymbol bool                   `json:"should_prefer_symbol,omitempty" extensions:"x-nullable"`
+	TokenInfo          map[string]interface{} `json:"token_info,omitempty" extensions:"x-nullable"`
+	Volume24Hours      *float64               `json:"volume_24_hours,omitempty" extensions:"x-nullable"`
 }
 
 // TokenMetadataFromElasticModel -
@@ -698,6 +706,15 @@ func TokenMetadataFromElasticModel(model tokenmetadata.TokenMetadata, withTokenI
 	tm.Contract = model.Contract
 	tm.Level = model.Level
 	tm.Network = model.Network
+	tm.Description = model.Description
+	tm.ArtifactURI = model.ArtifactURI
+	tm.DisplayURI = model.DisplayURI
+	tm.ThumbnailURI = model.ThumbnailURI
+	tm.ExternalURI = model.ExternalURI
+	tm.IsTransferable = model.IsTransferable
+	tm.IsBooleanAmount = model.IsBooleanAmount
+	tm.ShouldPreferSymbol = model.ShouldPreferSymbol
+
 	if withTokenInfo {
 		tm.TokenInfo = model.Extras
 	}

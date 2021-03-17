@@ -66,3 +66,18 @@ func (mr *MockRepositoryMockRecorder) GetAll(ctx ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockRepository)(nil).GetAll), ctx...)
 }
+
+// GetWithExtras mocks base method
+func (m *MockRepository) GetWithExtras() ([]tm.TokenMetadata, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetWithExtras")
+	ret0, _ := ret[0].([]tm.TokenMetadata)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetWithExtras indicates an expected call of GetWithExtras
+func (mr *MockRepositoryMockRecorder) GetWithExtras() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWithExtras", reflect.TypeOf((*MockRepository)(nil).GetWithExtras))
+}

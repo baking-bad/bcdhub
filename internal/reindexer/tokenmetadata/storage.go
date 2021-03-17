@@ -31,3 +31,8 @@ func (storage *Storage) GetAll(ctx ...tokenmetadata.GetContext) (tokens []tokenm
 	err = storage.db.GetAllByQuery(query, &tokens)
 	return
 }
+
+// GetWithExtras -
+func (storage *Storage) GetWithExtras() ([]tokenmetadata.TokenMetadata, error) {
+	return nil, nil
+}

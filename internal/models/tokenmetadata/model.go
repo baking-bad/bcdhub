@@ -9,15 +9,23 @@ import (
 
 // TokenMetadata -
 type TokenMetadata struct {
-	Network   string                 `json:"network"`
-	Contract  string                 `json:"contract"`
-	Level     int64                  `json:"level"`
-	Timestamp time.Time              `json:"timestamp"`
-	TokenID   int64                  `json:"token_id"`
-	Symbol    string                 `json:"symbol"`
-	Name      string                 `json:"name"`
-	Decimals  *int64                 `json:"decimals,omitempty"`
-	Extras    map[string]interface{} `json:"extras"`
+	Network            string                 `json:"network"`
+	Contract           string                 `json:"contract"`
+	Level              int64                  `json:"level"`
+	Timestamp          time.Time              `json:"timestamp"`
+	TokenID            int64                  `json:"token_id"`
+	Symbol             string                 `json:"symbol"`
+	Name               string                 `json:"name"`
+	Decimals           *int64                 `json:"decimals,omitempty"`
+	Description        string                 `json:"description,omitempty"`
+	ArtifactURI        string                 `json:"artifact_uri,omitempty"`
+	DisplayURI         string                 `json:"display_uri,omitempty"`
+	ThumbnailURI       string                 `json:"thumbnail_uri,omitempty"`
+	ExternalURI        string                 `json:"external_uri,omitempty"`
+	IsTransferable     bool                   `json:"is_transferable"`
+	IsBooleanAmount    bool                   `json:"is_boolean_amount"`
+	ShouldPreferSymbol bool                   `json:"should_prefer_symbol"`
+	Extras             map[string]interface{} `json:"extras"`
 }
 
 // ByName - TokenMetadata sorting filter by Name field
