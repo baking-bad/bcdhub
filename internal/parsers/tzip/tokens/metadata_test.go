@@ -65,13 +65,13 @@ func TestTokenMetadata_Parse(t *testing.T) {
 			value:   `{"prim":"Pair","args":[{"int":"0"},[{"prim":"Elt","args":[{"string":"artifactUri"},{"bytes":"68747470733a2f2f636c6f7564666c6172652d697066732e636f6d2f697066732f516d53395634504b536a516838687a79517a52714b46786b4363535931794c755851594b7837596f54794a595965"}]},{"prim":"Elt","args":[{"string":"booleanAmount"},{"bytes":"74727565"}]},{"prim":"Elt","args":[{"string":"decimals"},{"bytes":"30"}]},{"prim":"Elt","args":[{"string":"displayUri"},{"bytes":"68747470733a2f2f636c6f7564666c6172652d697066732e636f6d2f697066732f516d53395634504b536a516838687a79517a52714b46786b4363535931794c755851594b7837596f54794a595965"}]},{"prim":"Elt","args":[{"string":"name"},{"bytes":"4361742044726177696e67"}]}]]}`,
 			wantErr: false,
 			want: &TokenMetadata{
-				TokenID:  0,
-				Decimals: getIntPtr(0),
-				Name:     "Cat Drawing",
+				TokenID:     0,
+				Decimals:    getIntPtr(0),
+				Name:        "Cat Drawing",
+				ArtifactURI: "https://cloudflare-ipfs.com/ipfs/QmS9V4PKSjQh8hzyQzRqKFxkCcSY1yLuXQYKx7YoTyJYYe",
+				DisplayURI:  "https://cloudflare-ipfs.com/ipfs/QmS9V4PKSjQh8hzyQzRqKFxkCcSY1yLuXQYKx7YoTyJYYe",
 				Extras: map[string]interface{}{
-					"artifactUri":   "https://cloudflare-ipfs.com/ipfs/QmS9V4PKSjQh8hzyQzRqKFxkCcSY1yLuXQYKx7YoTyJYYe",
 					"booleanAmount": "true",
-					"displayUri":    "https://cloudflare-ipfs.com/ipfs/QmS9V4PKSjQh8hzyQzRqKFxkCcSY1yLuXQYKx7YoTyJYYe",
 				},
 			},
 		},
@@ -207,15 +207,15 @@ func TestTokenMetadata_UnmarshalJSON(t *testing.T) {
 		{
 			name: "test ipfs",
 			tm: TokenMetadata{
-				Symbol:   "SIMMAW",
-				Name:     "Mystery Map Award",
-				Decimals: int64Ptr(0),
+				Symbol:      "SIMMAW",
+				Name:        "Mystery Map Award",
+				Decimals:    int64Ptr(0),
+				Description: "A most mysterious map has been discovered. Where it leads is uncertain, but an adventure lies ahead.",
+				DisplayURI:  "https://gateway.pinata.cloud/ipfs/QmPkJBaRnb2JwqA1S2sUQayTV9xT3x8MBnsmq7ForBWKuU",
 				Extras: map[string]interface{}{
-					"description":         "A most mysterious map has been discovered. Where it leads is uncertain, but an adventure lies ahead.",
 					"nonTransferable":     false,
 					"symbolPreference":    false,
 					"booleanAmount":       false,
-					"displayUri":          "https://gateway.pinata.cloud/ipfs/QmPkJBaRnb2JwqA1S2sUQayTV9xT3x8MBnsmq7ForBWKuU",
 					"defaultPresentation": "large",
 					"actionLabel":         "Send",
 				},
@@ -235,11 +235,11 @@ func TestTokenMetadata_UnmarshalJSON(t *testing.T) {
 		}, {
 			name: "test ipfs 2",
 			tm: TokenMetadata{
-				Symbol:   "TZBKAB",
-				Name:     "Klassare Alpha Brain",
-				Decimals: int64Ptr(0),
+				Symbol:      "TZBKAB",
+				Name:        "Klassare Alpha Brain",
+				Decimals:    int64Ptr(0),
+				Description: "An upgraded unit, the great Klassare reborn.",
 				Extras: map[string]interface{}{
-					"description":         "An upgraded unit, the great Klassare reborn.",
 					"isNft":               true,
 					"nonTransferrable":    false,
 					"symbolPrecedence":    false,
