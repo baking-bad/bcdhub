@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/fetch"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
@@ -174,7 +175,8 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 func (p *Parser) makeTransfersFromBalanceEvents(event events.Event, ctx events.Context, operation operation.Operation, isDelta bool) ([]*transfer.Transfer, error) {
 	balances, err := events.Execute(p.rpc, event, ctx)
 	if err != nil {
-		return nil, err
+		logger.Errorf("Event of %s %s: %s", operation.Network, operation.Destination, err.Error())
+		return nil, nil
 	}
 
 	var transfers []*transfer.Transfer
