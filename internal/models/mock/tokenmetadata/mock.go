@@ -5,7 +5,7 @@
 package tokenmetadata
 
 import (
-	tokenmetadata "github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
+	tm "github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -34,16 +34,35 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Get mocks base method
-func (m *MockRepository) Get(ctx tokenmetadata.GetContext) ([]tokenmetadata.TokenMetadata, error) {
+func (m *MockRepository) Get(ctx ...tm.GetContext) ([]tm.TokenMetadata, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx)
-	ret0, _ := ret[0].([]tokenmetadata.TokenMetadata)
+	varargs := []interface{}{}
+	for _, a := range ctx {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Get", varargs...)
+	ret0, _ := ret[0].([]tm.TokenMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get
-func (mr *MockRepositoryMockRecorder) Get(ctx interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Get(ctx ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), ctx...)
+}
+
+// GetWithExtras mocks base method
+func (m *MockRepository) GetWithExtras() ([]tm.TokenMetadata, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetWithExtras")
+	ret0, _ := ret[0].([]tm.TokenMetadata)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetWithExtras indicates an expected call of GetWithExtras
+func (mr *MockRepositoryMockRecorder) GetWithExtras() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWithExtras", reflect.TypeOf((*MockRepository)(nil).GetWithExtras))
 }
