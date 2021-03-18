@@ -2,8 +2,6 @@ package handlers
 
 import (
 	"bytes"
-	"fmt"
-	"time"
 
 	jsoniter "github.com/json-iterator/go"
 
@@ -14,7 +12,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	tbModel "github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
-	"github.com/karlseguin/ccache"
 	"github.com/pkg/errors"
 )
 
@@ -35,8 +32,6 @@ type Ledger struct {
 	storage       models.GeneralRepository
 	tokenBalances tbModel.Repository
 	sharePath     string
-
-	cache *ccache.Cache
 }
 
 // NewLedger -
@@ -44,20 +39,17 @@ func NewLedger(storage models.GeneralRepository, tokenBalanceRepo tbModel.Reposi
 	return &Ledger{
 		storage:       storage,
 		tokenBalances: tokenBalanceRepo,
-		cache:         ccache.New(ccache.Configure().MaxSize(100)),
 		sharePath:     sharePath,
 	}
 }
 
 // Do -
-func (ledger *Ledger) Do(model models.Model) (bool, []models.Model, error) {
-	bmd, ok := model.(*bigmapdiff.BigMapDiff)
-	if !ok {
-		return false, nil, nil
-	}
-
-	bigMapType, err := ledger.getCachedBigMapType(bmd)
+func (ledger *Ledger) Do(bmd *bigmapdiff.BigMapDiff) (bool, []models.Model, error) {
+	bigMapType, err := ledger.findLedgerBigMap(bmd)
 	if err != nil {
+		if errors.Is(err, ErrNoLedgerKeyInStorage) {
+			return false, nil, nil
+		}
 		return false, nil, err
 	}
 	if bigMapType == nil {
@@ -67,20 +59,7 @@ func (ledger *Ledger) Do(model models.Model) (bool, []models.Model, error) {
 	return ledger.handle(bmd, bigMapType)
 }
 
-func (ledger *Ledger) getCachedBigMapType(bmd *bigmapdiff.BigMapDiff) ([]byte, error) {
-	item, err := ledger.cache.Fetch(fmt.Sprintf("%s:%d", bmd.Network, bmd.Ptr), time.Minute*10, func() (interface{}, error) {
-		return ledger.findLedgerBigMap(bmd)
-	})
-	if err != nil {
-		if errors.Is(err, ErrNoLedgerKeyInStorage) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return item.Value().([]byte), nil
-}
-
-func (ledger *Ledger) handle(bmd *bigmapdiff.BigMapDiff, bigMapType []byte) (bool, []models.Model, error) {
+func (ledger *Ledger) handle(bmd *bigmapdiff.BigMapDiff, bigMapType *ast.BigMap) (bool, []models.Model, error) {
 	balances, err := ledger.getResultModels(bmd, bigMapType)
 	if err != nil {
 		if errors.Is(err, tokenbalance.ErrUnknownParser) {
@@ -91,12 +70,8 @@ func (ledger *Ledger) handle(bmd *bigmapdiff.BigMapDiff, bigMapType []byte) (boo
 	return true, balances, nil
 }
 
-func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType []byte) ([]models.Model, error) {
-	typ, err := ast.NewTypedAstFromBytes(bigMapType)
-	if err != nil {
-		return nil, err
-	}
-	parser, err := tokenbalance.GetParserForBigMap(typ)
+func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *ast.BigMap) ([]models.Model, error) {
+	parser, err := tokenbalance.GetParserForBigMap(bigMapType)
 	if err != nil {
 		return nil, err
 	}
@@ -120,13 +95,15 @@ func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType []b
 		}
 	}
 
-	return []models.Model{&tbModel.TokenBalance{
+	tb := &tbModel.TokenBalance{
 		Network:  bmd.Network,
 		Address:  balance[0].Address,
 		TokenID:  balance[0].TokenID,
 		Contract: bmd.Address,
 		Value:    balance[0].Value,
-	}}, nil
+	}
+
+	return []models.Model{tb}, nil
 }
 
 func (ledger *Ledger) buildElt(bmd *bigmapdiff.BigMapDiff) ([]byte, error) {
@@ -152,7 +129,7 @@ func (ledger *Ledger) buildElt(bmd *bigmapdiff.BigMapDiff) ([]byte, error) {
 	return s.Bytes(), nil
 }
 
-func (ledger *Ledger) findLedgerBigMap(bmd *bigmapdiff.BigMapDiff) ([]byte, error) {
+func (ledger *Ledger) findLedgerBigMap(bmd *bigmapdiff.BigMapDiff) (*ast.BigMap, error) {
 	data, err := fetch.Contract(bmd.Address, bmd.Network, bmd.Protocol, ledger.sharePath)
 	if err != nil {
 		return nil, err
@@ -191,5 +168,5 @@ func (ledger *Ledger) findLedgerBigMap(bmd *bigmapdiff.BigMapDiff) ([]byte, erro
 	if *bigMap.Ptr != bmd.Ptr {
 		return nil, ErrNoLedgerKeyInStorage
 	}
-	return json.Marshal(bigMap)
+	return bigMap, nil
 }

@@ -32,11 +32,7 @@ func NewTZIP(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, stora
 }
 
 // Do -
-func (t *TZIP) Do(model models.Model) (bool, []models.Model, error) {
-	bmd, ok := model.(*bigmapdiff.BigMapDiff)
-	if !ok {
-		return false, nil, nil
-	}
+func (t *TZIP) Do(bmd *bigmapdiff.BigMapDiff) (bool, []models.Model, error) {
 	if bmd.KeyHash != tzip.EmptyStringKey {
 		return false, nil, nil
 	}

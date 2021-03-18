@@ -68,6 +68,7 @@ func (bm *BulkManager) process(force bool) bool {
 	if len(bm.queue) != cap(bm.queue) && !(force && len(bm.queue) > 0) {
 		return true
 	}
+	bm.ticker.stop()
 
 	ids := make([]string, len(bm.queue))
 	for i := range bm.queue {
@@ -84,7 +85,7 @@ func (bm *BulkManager) process(force bool) bool {
 		}
 	}
 	bm.queue = make([]mq.Data, 0, cap(bm.queue))
-	bm.ticker.reset()
+	bm.ticker.start()
 	return true
 }
 
@@ -107,8 +108,7 @@ func newTicker(timeout int) *ticker {
 	return &ticker{period, *time.NewTicker(period)}
 }
 
-func (t *ticker) reset() {
-	t.ticker.Stop()
+func (t *ticker) start() {
 	t.ticker = *time.NewTicker(t.period)
 }
 

@@ -137,6 +137,16 @@ func (o *Operation) IsCall() bool {
 	return bcd.IsContract(o.Destination) && o.Parameters != ""
 }
 
+// HasTag -
+func (o *Operation) HasTag(tag string) bool {
+	for i := range o.Tags {
+		if o.Tags[i] == tag {
+			return true
+		}
+	}
+	return false
+}
+
 // Result -
 type Result struct {
 	Status                       string             `json:"-"`

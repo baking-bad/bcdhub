@@ -16,6 +16,7 @@ const (
 	ViewAddressTag     = "view_address"
 	ViewBalanceOfTag   = "view_balance_of"
 	ViewNatTag         = "view_nat"
+	NFTLedgerTag       = "nft_ledger"
 )
 
 // Types

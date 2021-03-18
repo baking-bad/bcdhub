@@ -21,7 +21,7 @@ func NewMichelsonInitialStorage(impl tzip.EventImplementation, name string) (*Mi
 	if err != nil {
 		return nil, err
 	}
-	parser, err := tokenbalance.GetParser(name, retType)
+	parser, err := tokenbalance.GetParserForEvents(name, retType)
 	if err != nil {
 		return nil, err
 	}

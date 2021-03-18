@@ -5,14 +5,12 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
@@ -88,7 +86,7 @@ func (p Transaction) Parse(data noderpc.Operation) ([]models.Model, error) {
 		return nil, err
 	}
 
-	if err := p.tagTransaction(&tx); err != nil {
+	if err := setTags(p.Storage, &tx); err != nil {
 		return nil, err
 	}
 
@@ -201,28 +199,5 @@ func (p Transaction) getEntrypoint(tx *operation.Operation) error {
 	}
 	tx.Entrypoint = entrypointName
 
-	return nil
-}
-
-func (p Transaction) tagTransaction(tx *operation.Operation) error {
-	if !bcd.IsContract(tx.Destination) {
-		return nil
-	}
-
-	c := contract.NewEmptyContract(tx.Network, tx.Destination)
-	if err := p.Storage.GetByID(&c); err != nil {
-		if p.Storage.IsRecordNotFound(err) {
-			return nil
-		}
-		return err
-	}
-	tx.Tags = make([]string, 0)
-	for _, tag := range c.Tags {
-		if helpers.StringInArray(tag, []string{
-			consts.FA12Tag, consts.FA2Tag,
-		}) {
-			tx.Tags = append(tx.Tags, tag)
-		}
-	}
 	return nil
 }

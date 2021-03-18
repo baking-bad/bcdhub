@@ -11,7 +11,22 @@ import (
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
-var parsers = map[string][]Parser{
+var parsersEvents = map[string][]Parser{
+	SingleAssetBalanceUpdates: {
+		NewSingleAssetBalance(),
+		NewSingleAssetUpdate(),
+	},
+	MultiAssetBalanceUpdates: {
+		NewMultiAssetBalance(),
+		NewMultiAssetUpdate(),
+	},
+	NftAssetBalanceUpdates: {
+		NewNftAssetOption(),
+		NewNftSingleAssetOption(),
+	},
+}
+
+var parsersBigMap = map[string][]Parser{
 	SingleAssetBalanceUpdates: {
 		NewSingleAssetBalance(),
 		NewSingleAssetUpdate(),
@@ -22,7 +37,7 @@ var parsers = map[string][]Parser{
 	},
 	NftAssetBalanceUpdates: {
 		NewNftAsset(),
-		NewNftAssetOption(),
+		NewNftSingleAsset(),
 	},
 }
 
@@ -40,8 +55,16 @@ type TokenBalance struct {
 	IsNFT   bool
 }
 
-// GetParser -
-func GetParser(name string, returnType *ast.TypedAst) (Parser, error) {
+// GetParserForEvents -
+func GetParserForEvents(name string, returnType *ast.TypedAst) (Parser, error) {
+	return getParser(parsersEvents, name, returnType)
+}
+
+func getParser(parsers map[string][]Parser, name string, returnType *ast.TypedAst) (Parser, error) {
+	if parsers == nil {
+		return nil, errors.Wrap(ErrUnknownParser, name)
+	}
+
 	p, ok := parsers[NormalizeName(name)]
 	if !ok {
 		for _, ps := range parsers {
@@ -57,14 +80,13 @@ func GetParser(name string, returnType *ast.TypedAst) (Parser, error) {
 }
 
 // GetParserForBigMap -
-func GetParserForBigMap(returnType *ast.TypedAst) (Parser, error) {
+func GetParserForBigMap(returnType *ast.BigMap) (Parser, error) {
 	if returnType == nil {
 		return nil, nil
 	}
-	bm := returnType.Nodes[0].(*ast.BigMap)
 	var s strings.Builder
 	s.WriteString(`{"prim":"map","args":[`)
-	b, err := json.Marshal(bm.KeyType)
+	b, err := json.Marshal(returnType.KeyType)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +94,7 @@ func GetParserForBigMap(returnType *ast.TypedAst) (Parser, error) {
 		return nil, err
 	}
 	s.WriteByte(',')
-	bValue, err := json.Marshal(bm.ValueType)
+	bValue, err := json.Marshal(returnType.ValueType)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +107,7 @@ func GetParserForBigMap(returnType *ast.TypedAst) (Parser, error) {
 	if err != nil {
 		return nil, err
 	}
-	return GetParser("", node)
+	return getParser(parsersBigMap, "", node)
 }
 
 func findParser(p []Parser, returnType *ast.TypedAst) (Parser, error) {
@@ -102,4 +124,18 @@ func NormalizeName(name string) string {
 	name = strings.ToLower(name)
 	name = strings.ReplaceAll(name, "-", "")
 	return strings.ReplaceAll(name, "_", "")
+}
+
+func getMap(retType *ast.TypedAst, data []byte) (*ast.Map, error) {
+	var node ast.UntypedAST
+	if err := json.Unmarshal(data, &node); err != nil {
+		return nil, err
+	}
+
+	newNode := ast.Copy(retType.Nodes[0])
+	if err := newNode.ParseValue(node[0]); err != nil {
+		return nil, err
+	}
+
+	return newNode.(*ast.Map), nil
 }

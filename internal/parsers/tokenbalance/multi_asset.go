@@ -34,19 +34,13 @@ func (p MultiAsset) GetReturnType() *ast.TypedAst {
 
 // Parse -
 func (p MultiAsset) Parse(data []byte) ([]TokenBalance, error) {
-	var node ast.UntypedAST
-	if err := json.Unmarshal(data, &node); err != nil {
-		return nil, err
-	}
-
-	if err := p.ReturnType.Settle(node); err != nil {
+	m, err := getMap(p.ReturnType, data)
+	if err != nil {
 		return nil, err
 	}
 
 	balances := make([]TokenBalance, 0)
-
-	m := p.ReturnType.Nodes[0].(*ast.Map)
-	err := m.Data.Range(func(key, value ast.Comparable) (bool, error) {
+	err = m.Data.Range(func(key, value ast.Comparable) (bool, error) {
 		val := value.(ast.Node)
 		pair := key.(*ast.Pair)
 
