@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"sort"
 
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/gin-gonic/gin"
@@ -63,22 +62,51 @@ func (ctx *Context) GetInfo(c *gin.Context) {
 		accountInfo.Alias = alias.Name
 	}
 
-	tokenBalances, err := ctx.getAccountBalances(req.Network, req.Address)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-	accountInfo.Tokens = tokenBalances
-
 	c.JSON(http.StatusOK, accountInfo)
 }
 
-func (ctx *Context) getAccountBalances(network, address string) ([]TokenBalance, error) {
-	tokenBalances, err := ctx.TokenBalances.GetAccountBalances(network, address)
+// GetAccountTokenBalances godoc
+// @Summary Get account token balances
+// @Description Get account token balances
+// @Tags account
+// @ID get-account-token-balances
+// @Param network path string true "Network"
+// @Param address path string true "Address" minlength(36) maxlength(36)
+// @Param offset query integer false "Offset"
+// @Param size query integer false "Requested count" minimum(0) maximum(10)
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} TokenBalances
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /v1/account/{network}/{address}/token_balances [get]
+func (ctx *Context) GetAccountTokenBalances(c *gin.Context) {
+	var req getContractRequest
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+	var pageReq pageableRequest
+	if err := c.BindQuery(&pageReq); ctx.handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+	balances, err := ctx.getAccountBalances(req.Network, req.Address, pageReq.Size, pageReq.Offset)
+	if ctx.handleError(c, err, 0) {
+		return
+	}
+	c.JSON(http.StatusOK, balances)
+}
+
+func (ctx *Context) getAccountBalances(network, address string, size, offset int64) (*TokenBalances, error) {
+	tokenBalances, total, err := ctx.TokenBalances.GetAccountBalances(network, address, size, offset)
 	if err != nil {
 		return nil, err
 	}
 
-	results := make([]TokenBalance, 0)
+	response := TokenBalances{
+		Balances: make([]TokenBalance, 0),
+		Total:    total,
+	}
+
 	contextes := make([]tokenmetadata.GetContext, 0)
 	balances := make(map[tokenmetadata.GetContext]string)
 
@@ -97,7 +125,6 @@ func (ctx *Context) getAccountBalances(network, address string) ([]TokenBalance,
 		return nil, err
 	}
 
-	sort.Sort(tokenmetadata.ByName(tokens))
 	for _, token := range tokens {
 		c := tokenmetadata.GetContext{
 			TokenID:  token.TokenID,
@@ -124,11 +151,11 @@ func (ctx *Context) getAccountBalances(network, address string) ([]TokenBalance,
 			},
 		}
 
-		results = append(results, tb)
+		response.Balances = append(response.Balances, tb)
 	}
 
 	for c, balance := range balances {
-		results = append(results, TokenBalance{
+		response.Balances = append(response.Balances, TokenBalance{
 			Balance: balance,
 			TokenMetadata: TokenMetadata{
 				Contract: c.Contract,
@@ -138,5 +165,5 @@ func (ctx *Context) getAccountBalances(network, address string) ([]TokenBalance,
 		})
 	}
 
-	return results, nil
+	return &response, nil
 }

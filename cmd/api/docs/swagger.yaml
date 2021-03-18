@@ -128,10 +128,6 @@ definitions:
         type: string
       network:
         type: string
-      tokens:
-        items:
-          $ref: '#/definitions/handlers.TokenBalance'
-        type: array
       tx_count:
         type: integer
     type: object
@@ -356,10 +352,6 @@ definitions:
         x-nullable: true
       timestamp:
         type: string
-      tokens:
-        items:
-          $ref: '#/definitions/handlers.TokenBalance'
-        type: array
       total_subscribed:
         type: integer
       tx_count:
@@ -439,6 +431,29 @@ definitions:
         type: integer
       text:
         type: string
+    type: object
+  handlers.HeadResponse:
+    properties:
+      contract_calls:
+        type: integer
+      fa_count:
+        type: integer
+      level:
+        type: integer
+      network:
+        type: string
+      protocol:
+        type: string
+      time:
+        type: string
+      total:
+        type: integer
+      total_balance:
+        type: integer
+      total_withdrawn:
+        type: integer
+      unique_contracts:
+        type: integer
     type: object
   handlers.Migration:
     properties:
@@ -716,10 +731,6 @@ definitions:
         x-nullable: true
       timestamp:
         type: string
-      tokens:
-        items:
-          $ref: '#/definitions/handlers.TokenBalance'
-        type: array
       total_subscribed:
         type: integer
       tx_count:
@@ -812,10 +823,28 @@ definitions:
     type: object
   handlers.Token:
     properties:
+      artifact_uri:
+        type: string
+        x-nullable: true
       contract:
         type: string
       decimals:
         type: integer
+        x-nullable: true
+      description:
+        type: string
+        x-nullable: true
+      display_uri:
+        type: string
+        x-nullable: true
+      external_uri:
+        type: string
+        x-nullable: true
+      is_boolean_amount:
+        type: boolean
+        x-nullable: true
+      is_transferable:
+        type: boolean
         x-nullable: true
       level:
         type: integer
@@ -825,9 +854,15 @@ definitions:
         x-nullable: true
       network:
         type: string
+      should_prefer_symbol:
+        type: boolean
+        x-nullable: true
       supply:
         type: number
       symbol:
+        type: string
+        x-nullable: true
+      thumbnail_uri:
         type: string
         x-nullable: true
       token_id:
@@ -844,12 +879,30 @@ definitions:
     type: object
   handlers.TokenBalance:
     properties:
+      artifact_uri:
+        type: string
+        x-nullable: true
       balance:
         type: string
       contract:
         type: string
       decimals:
         type: integer
+        x-nullable: true
+      description:
+        type: string
+        x-nullable: true
+      display_uri:
+        type: string
+        x-nullable: true
+      external_uri:
+        type: string
+        x-nullable: true
+      is_boolean_amount:
+        type: boolean
+        x-nullable: true
+      is_transferable:
+        type: boolean
         x-nullable: true
       level:
         type: integer
@@ -859,7 +912,13 @@ definitions:
         x-nullable: true
       network:
         type: string
+      should_prefer_symbol:
+        type: boolean
+        x-nullable: true
       symbol:
+        type: string
+        x-nullable: true
+      thumbnail_uri:
         type: string
         x-nullable: true
       token_id:
@@ -871,6 +930,15 @@ definitions:
       volume_24_hours:
         type: number
         x-nullable: true
+    type: object
+  handlers.TokenBalances:
+    properties:
+      balances:
+        items:
+          $ref: '#/definitions/handlers.TokenBalance'
+        type: array
+      total:
+        type: integer
     type: object
   handlers.TokenContract:
     properties:
@@ -910,10 +978,28 @@ definitions:
     type: object
   handlers.TokenMetadata:
     properties:
+      artifact_uri:
+        type: string
+        x-nullable: true
       contract:
         type: string
       decimals:
         type: integer
+        x-nullable: true
+      description:
+        type: string
+        x-nullable: true
+      display_uri:
+        type: string
+        x-nullable: true
+      external_uri:
+        type: string
+        x-nullable: true
+      is_boolean_amount:
+        type: boolean
+        x-nullable: true
+      is_transferable:
+        type: boolean
         x-nullable: true
       level:
         type: integer
@@ -923,7 +1009,13 @@ definitions:
         x-nullable: true
       network:
         type: string
+      should_prefer_symbol:
+        type: boolean
+        x-nullable: true
       symbol:
+        type: string
+        x-nullable: true
+      thumbnail_uri:
         type: string
         x-nullable: true
       token_id:
@@ -1416,6 +1508,53 @@ paths:
           schema:
             $ref: '#/definitions/handlers.Error'
       summary: Get metadata for account
+      tags:
+      - account
+  /v1/account/{network}/{address}/token_balances:
+    get:
+      consumes:
+      - application/json
+      description: Get account token balances
+      operationId: get-account-token-balances
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: Address
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: address
+        required: true
+        type: string
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      - description: Requested count
+        in: query
+        maximum: 10
+        minimum: 0
+        name: size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.TokenBalances'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Get account token balances
       tags:
       - account
   /v1/bigmap/{network}/{ptr}:
@@ -2612,6 +2751,28 @@ paths:
       summary: Resolve domain
       tags:
       - domains
+  /v1/head:
+    get:
+      consumes:
+      - application/json
+      description: Get indexer head for each network
+      operationId: get-indexer-head
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.HeadResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Show indexer head
+      tags:
+      - head
   /v1/operation/{id}/error_location:
     get:
       consumes:

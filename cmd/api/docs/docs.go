@@ -147,6 +147,74 @@ var doc = `{
                 }
             }
         },
+        "/v1/account/{network}/{address}/token_balances": {
+            "get": {
+                "description": "Get account token balances",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "account"
+                ],
+                "summary": "Get account token balances",
+                "operationId": "get-account-token-balances",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "description": "Address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 10,
+                        "minimum": 0,
+                        "type": "integer",
+                        "description": "Requested count",
+                        "name": "size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.TokenBalances"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/bigmap/{network}/{ptr}": {
             "get": {
                 "description": "Get big map info by pointer",
@@ -1898,6 +1966,39 @@ var doc = `{
                 }
             }
         },
+        "/v1/head": {
+            "get": {
+                "description": "Get indexer head for each network",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "head"
+                ],
+                "summary": "Show indexer head",
+                "operationId": "get-indexer-head",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.HeadResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/operation/{id}/error_location": {
             "get": {
                 "consumes": [
@@ -2992,12 +3093,6 @@ var doc = `{
                 "network": {
                     "type": "string"
                 },
-                "tokens": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handlers.TokenBalance"
-                    }
-                },
                 "tx_count": {
                     "type": "integer"
                 }
@@ -3323,12 +3418,6 @@ var doc = `{
                 "timestamp": {
                     "type": "string"
                 },
-                "tokens": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handlers.TokenBalance"
-                    }
-                },
                 "total_subscribed": {
                     "type": "integer"
                 },
@@ -3446,6 +3535,41 @@ var doc = `{
                 },
                 "text": {
                     "type": "string"
+                }
+            }
+        },
+        "handlers.HeadResponse": {
+            "type": "object",
+            "properties": {
+                "contract_calls": {
+                    "type": "integer"
+                },
+                "fa_count": {
+                    "type": "integer"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "network": {
+                    "type": "string"
+                },
+                "protocol": {
+                    "type": "string"
+                },
+                "time": {
+                    "type": "string"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "total_balance": {
+                    "type": "integer"
+                },
+                "total_withdrawn": {
+                    "type": "integer"
+                },
+                "unique_contracts": {
+                    "type": "integer"
                 }
             }
         },
@@ -3837,12 +3961,6 @@ var doc = `{
                 "timestamp": {
                     "type": "string"
                 },
-                "tokens": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handlers.TokenBalance"
-                    }
-                },
                 "total_subscribed": {
                     "type": "integer"
                 },
@@ -3980,11 +4098,35 @@ var doc = `{
         "handlers.Token": {
             "type": "object",
             "properties": {
+                "artifact_uri": {
+                    "type": "string",
+                    "x-nullable": true
+                },
                 "contract": {
                     "type": "string"
                 },
                 "decimals": {
                     "type": "integer",
+                    "x-nullable": true
+                },
+                "description": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "display_uri": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "external_uri": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "is_boolean_amount": {
+                    "type": "boolean",
+                    "x-nullable": true
+                },
+                "is_transferable": {
+                    "type": "boolean",
                     "x-nullable": true
                 },
                 "level": {
@@ -3998,10 +4140,18 @@ var doc = `{
                 "network": {
                     "type": "string"
                 },
+                "should_prefer_symbol": {
+                    "type": "boolean",
+                    "x-nullable": true
+                },
                 "supply": {
                     "type": "number"
                 },
                 "symbol": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "thumbnail_uri": {
                     "type": "string",
                     "x-nullable": true
                 },
@@ -4025,6 +4175,10 @@ var doc = `{
         "handlers.TokenBalance": {
             "type": "object",
             "properties": {
+                "artifact_uri": {
+                    "type": "string",
+                    "x-nullable": true
+                },
                 "balance": {
                     "type": "string"
                 },
@@ -4033,6 +4187,26 @@ var doc = `{
                 },
                 "decimals": {
                     "type": "integer",
+                    "x-nullable": true
+                },
+                "description": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "display_uri": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "external_uri": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "is_boolean_amount": {
+                    "type": "boolean",
+                    "x-nullable": true
+                },
+                "is_transferable": {
+                    "type": "boolean",
                     "x-nullable": true
                 },
                 "level": {
@@ -4046,7 +4220,15 @@ var doc = `{
                 "network": {
                     "type": "string"
                 },
+                "should_prefer_symbol": {
+                    "type": "boolean",
+                    "x-nullable": true
+                },
                 "symbol": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "thumbnail_uri": {
                     "type": "string",
                     "x-nullable": true
                 },
@@ -4061,6 +4243,20 @@ var doc = `{
                 "volume_24_hours": {
                     "type": "number",
                     "x-nullable": true
+                }
+            }
+        },
+        "handlers.TokenBalances": {
+            "type": "object",
+            "properties": {
+                "balances": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.TokenBalance"
+                    }
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },
@@ -4119,11 +4315,35 @@ var doc = `{
         "handlers.TokenMetadata": {
             "type": "object",
             "properties": {
+                "artifact_uri": {
+                    "type": "string",
+                    "x-nullable": true
+                },
                 "contract": {
                     "type": "string"
                 },
                 "decimals": {
                     "type": "integer",
+                    "x-nullable": true
+                },
+                "description": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "display_uri": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "external_uri": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "is_boolean_amount": {
+                    "type": "boolean",
+                    "x-nullable": true
+                },
+                "is_transferable": {
+                    "type": "boolean",
                     "x-nullable": true
                 },
                 "level": {
@@ -4137,7 +4357,15 @@ var doc = `{
                 "network": {
                     "type": "string"
                 },
+                "should_prefer_symbol": {
+                    "type": "boolean",
+                    "x-nullable": true
+                },
                 "symbol": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "thumbnail_uri": {
                     "type": "string",
                     "x-nullable": true
                 },

@@ -1,6 +1,7 @@
 package tokenbalance
 
 import (
+	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
@@ -84,19 +85,47 @@ func (storage *Storage) GetHolders(network, contract string, tokenID int64) ([]t
 }
 
 // GetAccountBalances -
-func (storage *Storage) GetAccountBalances(network, address string) ([]tokenbalance.TokenBalance, error) {
+func (storage *Storage) GetAccountBalances(network, address string, size, offset int64) ([]tokenbalance.TokenBalance, int64, error) {
 	query := core.NewQuery().Query(
 		core.Bool(
 			core.Filter(
 				core.MatchPhrase("address", address),
 				core.Match("network", network),
 			),
+			core.MustNot(
+				core.Term("balance", "0"),
+			),
 		),
-	).All()
+	).Sort("token_id", "desc").All()
+
+	if size == 0 {
+		size = consts.DefaultSize
+	}
 
 	tokenBalances := make([]tokenbalance.TokenBalance, 0)
-	err := storage.es.GetAllByQuery(query, &tokenBalances)
-	return tokenBalances, err
+	ctx := core.NewScrollContext(storage.es, query, size, consts.DefaultScrollSize)
+	ctx.Offset = offset
+	if err := ctx.Get(&tokenBalances); err != nil {
+		return nil, 0, err
+	}
+
+	countQuery := core.NewQuery().Query(
+		core.Bool(
+			core.Filter(
+				core.MatchPhrase("address", address),
+				core.Match("network", network),
+			),
+			core.MustNot(
+				core.Term("balance", "0"),
+			),
+		),
+	)
+	count, err := storage.es.CountItems([]string{models.DocTokenBalances}, countQuery)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return tokenBalances, count, err
 }
 
 // BurnNft -

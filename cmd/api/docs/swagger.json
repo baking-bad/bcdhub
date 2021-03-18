@@ -129,6 +129,74 @@
                 }
             }
         },
+        "/v1/account/{network}/{address}/token_balances": {
+            "get": {
+                "description": "Get account token balances",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "account"
+                ],
+                "summary": "Get account token balances",
+                "operationId": "get-account-token-balances",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "description": "Address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 10,
+                        "minimum": 0,
+                        "type": "integer",
+                        "description": "Requested count",
+                        "name": "size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.TokenBalances"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/bigmap/{network}/{ptr}": {
             "get": {
                 "description": "Get big map info by pointer",
@@ -1880,6 +1948,39 @@
                 }
             }
         },
+        "/v1/head": {
+            "get": {
+                "description": "Get indexer head for each network",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "head"
+                ],
+                "summary": "Show indexer head",
+                "operationId": "get-indexer-head",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.HeadResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/operation/{id}/error_location": {
             "get": {
                 "consumes": [
@@ -2974,12 +3075,6 @@
                 "network": {
                     "type": "string"
                 },
-                "tokens": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handlers.TokenBalance"
-                    }
-                },
                 "tx_count": {
                     "type": "integer"
                 }
@@ -3305,12 +3400,6 @@
                 "timestamp": {
                     "type": "string"
                 },
-                "tokens": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handlers.TokenBalance"
-                    }
-                },
                 "total_subscribed": {
                     "type": "integer"
                 },
@@ -3428,6 +3517,41 @@
                 },
                 "text": {
                     "type": "string"
+                }
+            }
+        },
+        "handlers.HeadResponse": {
+            "type": "object",
+            "properties": {
+                "contract_calls": {
+                    "type": "integer"
+                },
+                "fa_count": {
+                    "type": "integer"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "network": {
+                    "type": "string"
+                },
+                "protocol": {
+                    "type": "string"
+                },
+                "time": {
+                    "type": "string"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "total_balance": {
+                    "type": "integer"
+                },
+                "total_withdrawn": {
+                    "type": "integer"
+                },
+                "unique_contracts": {
+                    "type": "integer"
                 }
             }
         },
@@ -3819,12 +3943,6 @@
                 "timestamp": {
                     "type": "string"
                 },
-                "tokens": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/handlers.TokenBalance"
-                    }
-                },
                 "total_subscribed": {
                     "type": "integer"
                 },
@@ -3962,11 +4080,35 @@
         "handlers.Token": {
             "type": "object",
             "properties": {
+                "artifact_uri": {
+                    "type": "string",
+                    "x-nullable": true
+                },
                 "contract": {
                     "type": "string"
                 },
                 "decimals": {
                     "type": "integer",
+                    "x-nullable": true
+                },
+                "description": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "display_uri": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "external_uri": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "is_boolean_amount": {
+                    "type": "boolean",
+                    "x-nullable": true
+                },
+                "is_transferable": {
+                    "type": "boolean",
                     "x-nullable": true
                 },
                 "level": {
@@ -3980,10 +4122,18 @@
                 "network": {
                     "type": "string"
                 },
+                "should_prefer_symbol": {
+                    "type": "boolean",
+                    "x-nullable": true
+                },
                 "supply": {
                     "type": "number"
                 },
                 "symbol": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "thumbnail_uri": {
                     "type": "string",
                     "x-nullable": true
                 },
@@ -4007,6 +4157,10 @@
         "handlers.TokenBalance": {
             "type": "object",
             "properties": {
+                "artifact_uri": {
+                    "type": "string",
+                    "x-nullable": true
+                },
                 "balance": {
                     "type": "string"
                 },
@@ -4015,6 +4169,26 @@
                 },
                 "decimals": {
                     "type": "integer",
+                    "x-nullable": true
+                },
+                "description": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "display_uri": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "external_uri": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "is_boolean_amount": {
+                    "type": "boolean",
+                    "x-nullable": true
+                },
+                "is_transferable": {
+                    "type": "boolean",
                     "x-nullable": true
                 },
                 "level": {
@@ -4028,7 +4202,15 @@
                 "network": {
                     "type": "string"
                 },
+                "should_prefer_symbol": {
+                    "type": "boolean",
+                    "x-nullable": true
+                },
                 "symbol": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "thumbnail_uri": {
                     "type": "string",
                     "x-nullable": true
                 },
@@ -4043,6 +4225,20 @@
                 "volume_24_hours": {
                     "type": "number",
                     "x-nullable": true
+                }
+            }
+        },
+        "handlers.TokenBalances": {
+            "type": "object",
+            "properties": {
+                "balances": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.TokenBalance"
+                    }
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },
@@ -4101,11 +4297,35 @@
         "handlers.TokenMetadata": {
             "type": "object",
             "properties": {
+                "artifact_uri": {
+                    "type": "string",
+                    "x-nullable": true
+                },
                 "contract": {
                     "type": "string"
                 },
                 "decimals": {
                     "type": "integer",
+                    "x-nullable": true
+                },
+                "description": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "display_uri": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "external_uri": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "is_boolean_amount": {
+                    "type": "boolean",
+                    "x-nullable": true
+                },
+                "is_transferable": {
+                    "type": "boolean",
                     "x-nullable": true
                 },
                 "level": {
@@ -4119,7 +4339,15 @@
                 "network": {
                     "type": "string"
                 },
+                "should_prefer_symbol": {
+                    "type": "boolean",
+                    "x-nullable": true
+                },
                 "symbol": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "thumbnail_uri": {
                     "type": "string",
                     "x-nullable": true
                 },
