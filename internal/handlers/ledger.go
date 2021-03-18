@@ -86,14 +86,6 @@ func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *as
 	if len(balance) == 0 {
 		return nil, nil
 	}
-	if balance[0].IsNFT {
-		if err := ledger.tokenBalances.BurnNft(bmd.Network, bmd.Address, balance[0].TokenID); err != nil {
-			return nil, err
-		}
-		if balance[0].Address == "" { // Burn NFT token
-			return nil, nil
-		}
-	}
 
 	tb := &tbModel.TokenBalance{
 		Network:  bmd.Network,
