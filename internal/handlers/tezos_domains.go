@@ -50,8 +50,8 @@ func NewTezosDomains(storage models.GeneralRepository, contracts map[string]stri
 }
 
 // Do -
-func (td *TezosDomain) Do(model models.Model) (bool, []models.Model, error) {
-	bmd, ptr := td.getBigMapDiff(model)
+func (td *TezosDomain) Do(bmd *bigmapdiff.BigMapDiff) (bool, []models.Model, error) {
+	bmd, ptr := td.getBigMapDiff(bmd)
 	if bmd == nil {
 		return false, nil, nil
 	}
@@ -64,12 +64,8 @@ func (td *TezosDomain) Do(model models.Model) (bool, []models.Model, error) {
 	return false, nil, nil
 }
 
-func (td *TezosDomain) getBigMapDiff(model models.Model) (*bigmapdiff.BigMapDiff, *ptrs) {
+func (td *TezosDomain) getBigMapDiff(bmd *bigmapdiff.BigMapDiff) (*bigmapdiff.BigMapDiff, *ptrs) {
 	if len(td.contracts) == 0 {
-		return nil, nil
-	}
-	bmd, ok := model.(*bigmapdiff.BigMapDiff)
-	if !ok {
 		return nil, nil
 	}
 	address := contract.Address{

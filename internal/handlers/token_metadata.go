@@ -29,15 +29,7 @@ func NewTokenMetadata(bigMapRepo bigmapdiff.Repository, blockRepo block.Reposito
 }
 
 // Do -
-func (t *TokenMetadata) Do(model models.Model) (bool, []models.Model, error) {
-	bmd, ok := model.(*bigmapdiff.BigMapDiff)
-	if !ok {
-		return false, nil, nil
-	}
-	return t.handle(bmd)
-}
-
-func (t *TokenMetadata) handle(bmd *bigmapdiff.BigMapDiff) (bool, []models.Model, error) {
+func (t *TokenMetadata) Do(bmd *bigmapdiff.BigMapDiff) (bool, []models.Model, error) {
 	tokenParser, ok := t.parsers[bmd.Network]
 	if !ok {
 		return false, nil, errors.Errorf("Unknown network for tzip parser: %s", bmd.Network)

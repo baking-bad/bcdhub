@@ -8,34 +8,34 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 )
 
-// NftAsset -
-type NftAsset struct {
+// NftSingleAsset -
+type NftSingleAsset struct {
 	ReturnType *ast.TypedAst
 }
 
-// NewNftAsset -
-func NewNftAsset() NftAsset {
-	node, _ := ast.NewTypedAstFromString(`{"prim":"map","args":[{"prim":"nat"},{"prim":"address"}]}`)
-	return NftAsset{
+// NewNftSingleAsset -
+func NewNftSingleAsset() NftSingleAsset {
+	node, _ := ast.NewTypedAstFromString(`{"prim":"map","args":[{"prim":"address"},{"prim":"nat"}]}`)
+	return NftSingleAsset{
 		ReturnType: node,
 	}
 }
 
-// NewNftAssetOption -
-func NewNftAssetOption() NftAsset {
-	node, _ := ast.NewTypedAstFromString(`{"prim":"map","args":[{"prim":"nat"},{"prim":"option","args":[{"prim":"address"}]}]}`)
-	return NftAsset{
+// NewNftSingleAssetOption -
+func NewNftSingleAssetOption() NftSingleAsset {
+	node, _ := ast.NewTypedAstFromString(`{"prim":"map","args":[{"prim":"address"},{"prim":"option","args":[{"prim":"nat"}]}]}`)
+	return NftSingleAsset{
 		ReturnType: node,
 	}
 }
 
 // GetReturnType -
-func (p NftAsset) GetReturnType() *ast.TypedAst {
+func (p NftSingleAsset) GetReturnType() *ast.TypedAst {
 	return p.ReturnType
 }
 
 // Parse -
-func (p NftAsset) Parse(data []byte) ([]TokenBalance, error) {
+func (p NftSingleAsset) Parse(data []byte) ([]TokenBalance, error) {
 	m, err := getMap(p.ReturnType, data)
 	if err != nil {
 		return nil, err
@@ -43,25 +43,28 @@ func (p NftAsset) Parse(data []byte) ([]TokenBalance, error) {
 
 	balances := make([]TokenBalance, 0)
 	err = m.Data.Range(func(key, value ast.Comparable) (bool, error) {
-		k := key.(*ast.Nat)
-		tokenID := k.GetValue().(*types.BigInt)
+		k := key.(*ast.Address)
+		var address string
+		if s, ok := k.Value.(string); ok {
+			address = forge.DecodeString(s)
+		} else {
+			return false, nil
+		}
+
 		balance := big.NewInt(0)
 
-		var address string
 		switch t := value.(type) {
-		case *ast.Address:
-			if s, ok := t.Value.(string); ok {
-				address = forge.DecodeString(s)
-				balance.SetInt64(1)
+		case *ast.Nat:
+			if s, ok := t.GetValue().(*types.BigInt); ok {
+				balance.Set(s.Int)
 			} else {
 				return false, nil
 			}
 		case *ast.Option:
 			if t.IsSome() {
 				val := t.Type.(*ast.Address)
-				if s, ok := val.Value.(string); ok {
-					address = forge.DecodeString(s)
-					balance.SetInt64(1)
+				if s, ok := val.GetValue().(*types.BigInt); ok {
+					balance.Set(s.Int)
 				} else {
 					return false, nil
 				}
@@ -73,7 +76,6 @@ func (p NftAsset) Parse(data []byte) ([]TokenBalance, error) {
 		balances = append(balances, TokenBalance{
 			Value:   balance,
 			Address: address,
-			TokenID: tokenID.Int64(),
 			IsNFT:   true,
 		})
 		return false, nil

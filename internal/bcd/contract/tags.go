@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/contract/trees"
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 )
 
@@ -68,4 +69,25 @@ func primTags(node *base.Node) string {
 		return consts.SaplingTag
 	}
 	return ""
+}
+
+func isNftLedger(storage *ast.TypedAst) bool {
+	node := storage.FindByName("ledger", false)
+	if node == nil {
+		return false
+	}
+
+	if node.EqualType(trees.NewNftLedgerSingleAsset.Nodes[0]) {
+		return true
+	}
+
+	if node.EqualType(trees.NewNftLedgerAsset.Nodes[0]) {
+		return true
+	}
+
+	if node.EqualType(trees.NewNftLedgerMultiAsset.Nodes[0]) {
+		return true
+	}
+
+	return false
 }

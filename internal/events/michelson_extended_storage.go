@@ -29,7 +29,7 @@ func NewMichelsonExtendedStorage(impl tzip.EventImplementation, name, protocol, 
 	if err != nil {
 		return nil, err
 	}
-	parser, err := tokenbalance.GetParser(name, retType)
+	parser, err := tokenbalance.GetParserForEvents(name, retType)
 	if err != nil {
 		return nil, err
 	}

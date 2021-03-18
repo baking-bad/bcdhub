@@ -78,7 +78,9 @@ func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Reposit
 func (p *Parser) Parse(operation operation.Operation, operationModels []models.Model) ([]*transfer.Transfer, error) {
 	if impl, name, ok := p.events.GetByOperation(operation); ok {
 		return p.executeEvents(impl, name, operation, operationModels)
-	} else if operation.Entrypoint == consts.TransferEntrypoint {
+	}
+
+	if operation.Entrypoint == consts.TransferEntrypoint && !operation.HasTag(consts.NFTLedgerTag) {
 		for i := range operation.Tags {
 			switch operation.Tags[i] {
 			case consts.FA12Tag:

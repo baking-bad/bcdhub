@@ -77,6 +77,14 @@ func NewParser(data []byte) (*Parser, error) {
 		tags.Add(consts.MultisigTag)
 	}
 
+	storageTyp, err := script.StorageType()
+	if err != nil {
+		return nil, err
+	}
+	if isNftLedger(storageTyp) {
+		tags.Add(consts.NFTLedgerTag)
+	}
+
 	return &Parser{
 		Code:               script,
 		Storage:            storage,

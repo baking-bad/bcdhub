@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	tbModel "github.com/baking-bad/bcdhub/internal/models/tokenbalance"
@@ -50,14 +51,20 @@ func TestLedger_getResultModels(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ledger := &Ledger{}
-			typ := []byte(tt.bigMapType)
 
 			var bmd bigmapdiff.BigMapDiff
 			if err := json.UnmarshalFromString(tt.bmd, &bmd); err != nil {
 				t.Errorf("UnmarshalFromString error=%s", err)
 				return
 			}
-			got, err := ledger.getResultModels(&bmd, typ)
+
+			typ, err := ast.NewTypedAstFromString(tt.bigMapType)
+			if err != nil {
+				t.Errorf("NewTypedAstFromString error=%s", err)
+				return
+			}
+
+			got, err := ledger.getResultModels(&bmd, typ.Nodes[0].(*ast.BigMap))
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Ledger.getTokenBalance() error = %v, wantErr %v", err, tt.wantErr)
 				return

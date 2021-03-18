@@ -67,6 +67,10 @@ func (p Origination) Parse(data noderpc.Operation) ([]models.Model, error) {
 		originationModels = append(originationModels, appliedModels...)
 	}
 
+	if err := setTags(p.Storage, &origination); err != nil {
+		return nil, err
+	}
+
 	p.stackTrace.Add(origination)
 	return originationModels, nil
 }

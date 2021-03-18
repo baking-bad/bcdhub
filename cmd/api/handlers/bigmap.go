@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/gin-gonic/gin"
@@ -347,6 +348,11 @@ func prepareItem(item bigmapdiff.BigMapDiff, bigMapType *ast.BigMap) (key, value
 				keyString = fmt.Sprintf("%d", t)
 			default:
 				keyString = fmt.Sprintf("%v", t)
+			}
+		} else {
+			keyString, err = formatter.MichelineToMichelsonInline(string(item.Key))
+			if err != nil {
+				return nil, nil, "", err
 			}
 		}
 	}

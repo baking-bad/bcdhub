@@ -23,19 +23,15 @@ func getBigMapDiff(ids []string) error {
 	}
 
 	r := result{
-		Updated:  make([]models.Model, 0),
-		Inserted: make([]models.Model, 0),
+		Models: make([]models.Model, 0),
 	}
 	for i := range bmd {
 		if err := parseBigMapDiff(bmd[i], &r); err != nil {
 			return errors.Errorf("[getBigMapDiff] Compute error message: %s", err)
 		}
 	}
-	logger.Info("%d big map diff processed\t\tnew=%d updated=%d", len(bmd), len(r.Inserted), len(r.Updated))
-	if err := ctx.Storage.BulkUpdate(r.Updated); err != nil {
-		return err
-	}
-	return ctx.Storage.BulkInsert(r.Inserted)
+	logger.Info("%d big map diff processed        models=%d", len(bmd), len(r.Models))
+	return ctx.Storage.BulkInsert(r.Models)
 }
 
 func initHandlers() {
@@ -54,8 +50,7 @@ func initHandlers() {
 }
 
 type result struct {
-	Updated  []models.Model
-	Inserted []models.Model
+	Models []models.Model
 }
 
 //nolint
@@ -65,13 +60,13 @@ func parseBigMapDiff(bmd bigmapdiff.BigMapDiff, r *result) error {
 	if err := h.SetBigMapDiffsStrings(&bmd); err != nil {
 		return err
 	}
-	r.Updated = append(r.Updated, &bmd)
+	r.Models = append(r.Models, &bmd)
 
 	for i := range bigMapDiffHandlers {
 		if ok, res, err := bigMapDiffHandlers[i].Do(&bmd); err != nil {
 			return err
 		} else if ok {
-			r.Inserted = append(r.Inserted, res...)
+			r.Models = append(r.Models, res...)
 			break
 		}
 	}
