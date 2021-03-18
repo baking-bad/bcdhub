@@ -105,7 +105,6 @@ func Test_nftParser_Parse(t *testing.T) {
 					Address: "KT1BYYLfMjufYwqFtTSYJND7bzKNyK7mjrjM",
 					TokenID: 1,
 					Value:   newBigIntFromString("1"),
-					IsNFT:   true,
 				},
 			},
 		},
@@ -136,7 +135,6 @@ func Test_nftOptionParser_Parse(t *testing.T) {
 					Address: "KT1BYYLfMjufYwqFtTSYJND7bzKNyK7mjrjM",
 					TokenID: 1,
 					Value:   newBigIntFromString("1"),
-					IsNFT:   true,
 				},
 			},
 		}, {
@@ -147,7 +145,6 @@ func Test_nftOptionParser_Parse(t *testing.T) {
 					Address: "",
 					TokenID: 1,
 					Value:   newBigIntFromString("0"),
-					IsNFT:   true,
 				},
 			},
 		},

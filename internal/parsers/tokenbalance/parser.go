@@ -22,7 +22,6 @@ var parsersEvents = map[string][]Parser{
 	},
 	NftAssetBalanceUpdates: {
 		NewNftAssetOption(),
-		NewNftSingleAssetOption(),
 	},
 }
 
@@ -37,7 +36,6 @@ var parsersBigMap = map[string][]Parser{
 	},
 	NftAssetBalanceUpdates: {
 		NewNftAsset(),
-		NewNftSingleAsset(),
 	},
 }
 
@@ -52,7 +50,6 @@ type TokenBalance struct {
 	Address string
 	TokenID int64
 	Value   *big.Int
-	IsNFT   bool
 }
 
 // GetParserForEvents -

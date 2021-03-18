@@ -74,7 +74,6 @@ func (p NftAsset) Parse(data []byte) ([]TokenBalance, error) {
 			Value:   balance,
 			Address: address,
 			TokenID: tokenID.Int64(),
-			IsNFT:   true,
 		})
 		return false, nil
 	})
