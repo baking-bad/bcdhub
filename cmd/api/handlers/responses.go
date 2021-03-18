@@ -193,8 +193,6 @@ type Contract struct {
 	Verified           bool          `json:"verified,omitempty" extensions:"x-nullable"`
 	VerificationSource string        `json:"verification_source,omitempty" extensions:"x-nullable"`
 
-	Tokens []TokenBalance `json:"tokens"`
-
 	SameCount    int64 `json:"same_count"`
 	SimilarCount int64 `json:"similar_count"`
 }
@@ -661,19 +659,24 @@ type Token struct {
 
 // AccountInfo -
 type AccountInfo struct {
-	Address    string         `json:"address"`
-	Network    string         `json:"network"`
-	Alias      string         `json:"alias,omitempty" extensions:"x-nullable"`
-	Balance    int64          `json:"balance"`
-	TxCount    int64          `json:"tx_count"`
-	LastAction time.Time      `json:"last_action"`
-	Tokens     []TokenBalance `json:"tokens"`
+	Address    string    `json:"address"`
+	Network    string    `json:"network"`
+	Alias      string    `json:"alias,omitempty" extensions:"x-nullable"`
+	Balance    int64     `json:"balance"`
+	TxCount    int64     `json:"tx_count"`
+	LastAction time.Time `json:"last_action"`
 }
 
 // TokenBalance -
 type TokenBalance struct {
 	TokenMetadata
 	Balance string `json:"balance"`
+}
+
+// TokenBalances -
+type TokenBalances struct {
+	Balances []TokenBalance `json:"balances"`
+	Total    int64          `json:"total"`
 }
 
 // TokenMetadata -

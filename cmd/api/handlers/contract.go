@@ -92,12 +92,6 @@ func (ctx *Context) contractPostprocessing(contract contract.Contract, c *gin.Co
 		return res, err
 	}
 
-	tokenBalances, err := ctx.getAccountBalances(contract.Network, contract.Address)
-	if err != nil {
-		return res, err
-	}
-	res.Tokens = tokenBalances
-
 	stats, err := ctx.Contracts.Stats(contract)
 	if err != nil {
 		return res, err

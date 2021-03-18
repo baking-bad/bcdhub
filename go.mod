@@ -20,7 +20,6 @@ require (
 	github.com/google/go-cmp v0.5.2 // indirect
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/uuid v1.1.1
-	github.com/gorilla/websocket v1.4.2
 	github.com/hashicorp/go-retryablehttp v0.6.6 // indirect
 	github.com/iancoleman/orderedmap v0.1.0 // indirect
 	github.com/jessevdk/go-flags v0.0.0-20141203071132-1679536dcc89

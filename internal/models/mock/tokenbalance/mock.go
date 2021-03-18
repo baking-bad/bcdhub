@@ -34,18 +34,19 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // GetAccountBalances mocks base method
-func (m *MockRepository) GetAccountBalances(arg0, arg1 string) ([]tb.TokenBalance, error) {
+func (m *MockRepository) GetAccountBalances(network, address string, size, offset int64) ([]tb.TokenBalance, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAccountBalances", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetAccountBalances", network, address, size, offset)
 	ret0, _ := ret[0].([]tb.TokenBalance)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(int64)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetAccountBalances indicates an expected call of GetAccountBalances
-func (mr *MockRepositoryMockRecorder) GetAccountBalances(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetAccountBalances(network, address, size, offset interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountBalances", reflect.TypeOf((*MockRepository)(nil).GetAccountBalances), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountBalances", reflect.TypeOf((*MockRepository)(nil).GetAccountBalances), network, address, size, offset)
 }
 
 // Update mocks base method
