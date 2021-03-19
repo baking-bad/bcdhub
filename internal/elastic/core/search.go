@@ -113,6 +113,8 @@ func (e *Elastic) SearchByText(text string, offset int64, fields []string, filte
 
 	if group {
 		query = grouping(ctx, query)
+	} else {
+		query.From(offset)
 	}
 
 	var response searchByTextResponse
