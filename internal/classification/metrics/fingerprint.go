@@ -1,7 +1,6 @@
 package metrics
 
 import (
-	"encoding/hex"
 	"fmt"
 	"math"
 
@@ -29,14 +28,14 @@ func (m *Fingerprint) Compute(a, b contract.Contract) Feature {
 	var x, y []byte
 	switch m.Section {
 	case consts.PARAMETER:
-		x, _ = hex.DecodeString(a.FingerprintParameter)
-		y, _ = hex.DecodeString(b.FingerprintParameter)
+		x = a.FingerprintParameter
+		y = b.FingerprintParameter
 	case consts.STORAGE:
-		x, _ = hex.DecodeString(a.FingerprintStorage)
-		y, _ = hex.DecodeString(b.FingerprintStorage)
+		x = a.FingerprintStorage
+		y = b.FingerprintStorage
 	case consts.CODE:
-		x, _ = hex.DecodeString(a.FingerprintCode)
-		y, _ = hex.DecodeString(b.FingerprintCode)
+		x = a.FingerprintCode
+		y = b.FingerprintCode
 	default:
 		return f
 	}
@@ -135,7 +134,7 @@ func (m *FingerprintLength) Compute(a, b contract.Contract) Feature {
 		Name: fmt.Sprintf("fingerprint_length_%s", m.Section),
 	}
 
-	var x, y string
+	var x, y []byte
 	switch m.Section {
 	case consts.PARAMETER:
 		x = a.FingerprintParameter

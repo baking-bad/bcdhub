@@ -53,12 +53,25 @@ func (storage *Storage) GetHolders(network, contract string, tokenID uint64) ([]
 }
 
 // GetAccountBalances -
-func (storage *Storage) GetAccountBalances(network, address string) ([]tokenbalance.TokenBalance, error) {
+func (storage *Storage) GetAccountBalances(network, address string, size, offset int64) ([]tokenbalance.TokenBalance, int64, error) {
 	var balances []tokenbalance.TokenBalance
-	err := storage.DB.Table(models.DocTokenBalances).
-		Scopes(core.NetworkAndAddress(network, address)).
-		Find(&balances).Error
-	return balances, err
+
+	query := storage.DB.Table(models.DocTokenBalances).Scopes(core.NetworkAndAddress(network, address))
+
+	limit := core.GetPageSize(size)
+	if err := query.
+		Limit(limit).
+		Offset(int(offset)).
+		Find(&balances).Error; err != nil {
+		return nil, 0, err
+	}
+
+	var count int64
+	if err := query.Count(&count).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return balances, count, nil
 }
 
 // NFTHolders -

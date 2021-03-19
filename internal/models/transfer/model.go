@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -27,8 +28,8 @@ type Transfer struct {
 	Level        int64     `json:"level"`
 	From         string    `json:"from"`
 	To           string    `json:"to"`
-	TokenID      uint64    `json:"token_id"`
-	Amount       float64   `json:"amount"`
+	TokenID      uint64    `json:"token_id" gorm:"type:numeric(50,0)"`
+	Amount       float64   `json:"amount" gorm:"type:numeric(100,0)"`
 	AmountStr    string    `json:"amount_str"`
 	AmountBigInt *big.Int  `json:"-" gorm:"-"`
 	Counter      int64     `json:"counter"`
@@ -138,12 +139,22 @@ type Pageable struct {
 	LastID    string     `json:"last_id"`
 }
 
-// UnmarshalJSON -
-func (t *Transfer) UnmarshalJSON(data []byte) error {
-	type buf Transfer
-	if err := json.Unmarshal(data, (*buf)(t)); err != nil {
-		return err
-	}
+// BeforeScan -
+func (t *Transfer) AfterFind(tx *gorm.DB) error {
+	return t.unmarshal()
+}
+
+// BeforeInsert -
+func (t *Transfer) BeforeCreate(tx *gorm.DB) error {
+	return t.marshal()
+}
+
+// BeforeUpdate -
+func (t *Transfer) BeforeUpdate(tx *gorm.DB) error {
+	return t.marshal()
+}
+
+func (t *Transfer) unmarshal() error {
 	t.AmountBigInt = big.NewInt(0)
 
 	if _, ok := t.AmountBigInt.SetString(t.AmountStr, 10); !ok {
@@ -152,18 +163,33 @@ func (t *Transfer) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// MarshalJSON -
-func (t *Transfer) MarshalJSON() ([]byte, error) {
+func (t *Transfer) marshal() error {
 	if t.AmountBigInt == nil {
-		return nil, fmt.Errorf("Nil balance value")
+		return fmt.Errorf("Nil balance value")
 	}
 	t.AmountStr = t.AmountBigInt.String()
-
-	amount, err := strconv.ParseFloat(t.AmountStr, 64)
+	val, err := strconv.ParseFloat(t.AmountStr, 64)
 	if err != nil {
-		return nil, fmt.Errorf("ParseFloat Transfer err %w", err)
+		return err
 	}
-	t.Amount = amount
+	t.Amount = val
+	return nil
+}
+
+// UnmarshalJSON -
+func (t *Transfer) UnmarshalJSON(data []byte) error {
+	type buf Transfer
+	if err := json.Unmarshal(data, (*buf)(t)); err != nil {
+		return err
+	}
+	return t.unmarshal()
+}
+
+// MarshalJSON -
+func (t *Transfer) MarshalJSON() ([]byte, error) {
+	if err := t.marshal(); err != nil {
+		return nil, err
+	}
 	type buf Transfer
 	return json.Marshal((*buf)(t))
 }

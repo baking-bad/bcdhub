@@ -134,8 +134,7 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 		ctx.Entrypoint = operation.Entrypoint
 		event, err = events.NewMichelsonParameter(impl, name)
 		if err != nil {
-			logger.Errorf("MichelsonParameterEvent of %s %s: %s", operation.Network, operation.Destination, err.Error())
-			return nil, nil
+			return nil, err
 		}
 		return p.makeTransfersFromBalanceEvents(event, ctx, operation, true)
 	case impl.MichelsonExtendedStorageEvent.Is(operation.Entrypoint):
@@ -171,8 +170,7 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 		}
 		event, err = events.NewMichelsonExtendedStorage(impl, name, operation.Protocol, operation.Destination, operation.GetID(), bmd)
 		if err != nil {
-			logger.Errorf("MichelsonParameterEvent of %s %s: %s", operation.Network, operation.Destination, err.Error())
-			return nil, nil
+			return nil, err
 		}
 		return p.makeTransfersFromBalanceEvents(event, ctx, operation, false)
 	default:

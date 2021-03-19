@@ -25,12 +25,9 @@ func getContract(ids []int64) error {
 	logger.Info("Metrics of %d contracts are computed", len(contracts))
 	updates := make([]contract.Contract, 0)
 	for _, c := range contracts {
-		if c.Alias == "" && !c.Verified && c.VerificationSource == "" {
-			continue
-		}
 		updates = append(updates, c)
 	}
-	return ctx.Contracts.UpdateField(updates, "Alias", "Verified", "VerificationSource")
+	return ctx.Contracts.UpdateField(updates, "Alias", "Verified", "VerificationSource", "ProjectID")
 }
 
 func parseContract(contract *contract.Contract) error {
@@ -45,10 +42,17 @@ func parseContract(contract *contract.Contract) error {
 		return err
 	}
 
+	if contract.ProjectID == "" {
+		if err := h.SetContractProjectID(contract); err != nil {
+			return errors.Errorf("[parseContract] Error during set contract projectID: %s", err)
+		}
+	}
+
 	rpc, err := ctx.GetRPC(contract.Network)
 	if err != nil {
 		return err
 	}
+
 	if err = h.CreateTokenMetadata(rpc, ctx.SharePath, contract, ctx.Config.IPFSGateways...); err != nil {
 		if !errors.Is(err, tokens.ErrNoMetadataKeyInStorage) {
 			logger.Error(err)

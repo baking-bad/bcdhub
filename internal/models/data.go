@@ -54,5 +54,4 @@ func (repo Repository) String() string {
 type ContractCountStats struct {
 	Total     int64
 	SameCount int64
-	Balance   int64
 }

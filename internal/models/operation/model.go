@@ -21,9 +21,10 @@ type Operation struct {
 
 	Network  string `json:"network"`
 	Protocol string `json:"protocol"`
-	Hash     string `json:"hash"`
+	Hash     string `json:"hash" gorm:"index:idx_hash_counter_nonce"`
+	Counter  int64  `json:"counter,omitempty"  gorm:"index:idx_hash_counter_nonce"`
+	Nonce    *int64 `json:"nonce,omitempty" gorm:"index:idx_hash_counter_nonce"`
 	Internal bool   `json:"internal" gorm:",default:false"`
-	Nonce    *int64 `json:"nonce,omitempty"`
 
 	Status           string    `json:"status"`
 	Timestamp        time.Time `json:"timestamp"`
@@ -32,7 +33,6 @@ type Operation struct {
 	Initiator        string    `json:"initiator"`
 	Source           string    `json:"source"`
 	Fee              int64     `json:"fee,omitempty"`
-	Counter          int64     `json:"counter,omitempty"`
 	GasLimit         int64     `json:"gas_limit,omitempty"`
 	StorageLimit     int64     `json:"storage_limit,omitempty"`
 	Amount           int64     `json:"amount,omitempty"`

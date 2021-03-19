@@ -35,7 +35,8 @@ func (storage *Storage) Last(network string) (block block.Block, err error) {
 
 // LastByNetworks - return last block for all networks
 func (storage *Storage) LastByNetworks() (response []block.Block, err error) {
-	err = storage.DB.Table(models.DocBlocks).Group("network").Find(&response).Error
+	subQuery := storage.DB.Table(models.DocBlocks).Select("MAX(id) as id").Group("network")
+	err = storage.DB.Table(models.DocBlocks).Where("id IN (?)", subQuery).Find(&response).Error
 	return
 }
 

@@ -746,7 +746,5 @@ type HeadResponse struct {
 	Total           int64     `json:"total"`
 	ContractCalls   int64     `json:"contract_calls"`
 	UniqueContracts int64     `json:"unique_contracts"`
-	TotalBalance    int64     `json:"total_balance"`
-	TotalWithdrawn  int64     `json:"total_withdrawn"`
 	FACount         int64     `json:"fa_count"`
 }

@@ -17,9 +17,9 @@ type Contract struct {
 	Language  string    `json:"language,omitempty"`
 
 	Hash                 string         `json:"hash"`
-	FingerprintCode      string         `json:"fgpt_code,omitempty"`
-	FingerprintParameter string         `json:"fgpt_parameter,omitempty"`
-	FingerprintStorage   string         `json:"fgpt_storage,omitempty"`
+	FingerprintCode      []byte         `json:"fgpt_code,omitempty"`
+	FingerprintParameter []byte         `json:"fgpt_parameter,omitempty"`
+	FingerprintStorage   []byte         `json:"fgpt_storage,omitempty"`
 	Tags                 pq.StringArray `json:"tags,omitempty" gorm:"type:text[]"`
 	Entrypoints          pq.StringArray `json:"entrypoints,omitempty" gorm:"type:text[]"`
 	FailStrings          pq.StringArray `json:"fail_strings,omitempty" gorm:"type:text[]"`

@@ -14,7 +14,7 @@ type TokenMetadata struct {
 	Contract           string        `json:"contract"`
 	Level              int64         `json:"level"`
 	Timestamp          time.Time     `json:"timestamp"`
-	TokenID            uint64        `json:"token_id"`
+	TokenID            uint64        `json:"token_id" gorm:"type:numeric(50,0)"`
 	Symbol             string        `json:"symbol"`
 	Name               string        `json:"name"`
 	Decimals           *int64        `json:"decimals,omitempty"`

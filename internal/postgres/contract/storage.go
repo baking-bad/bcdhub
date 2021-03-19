@@ -1,6 +1,7 @@
 package contract
 
 import (
+	"encoding/hex"
 	"math/rand"
 	"time"
 
@@ -121,9 +122,9 @@ func (storage *Storage) GetByAddresses(addresses []contract.Address) (response [
 // GetProjectsLastContract -
 func (storage *Storage) GetProjectsLastContract(c *contract.Contract) (response []contract.Contract, err error) {
 	subQuery := storage.DB.Table(models.DocContracts).Where(
-		storage.DB.Where("fingerprint_code = ?", c.FingerprintCode).
-			Where("fingerprint_parameter = ?", c.FingerprintParameter).
-			Where("fingerprint_storage = ?", c.FingerprintStorage),
+		storage.DB.Where("encode(fingerprint_code, 'hex') = ?", hex.EncodeToString(c.FingerprintCode)).
+			Where("encode(fingerprint_parameter, 'hex') = ?", hex.EncodeToString(c.FingerprintParameter)).
+			Where("encode(fingerprint_storage, 'hex') = ?", hex.EncodeToString(c.FingerprintStorage)),
 	)
 	if c != nil {
 		if c.Manager != "" {
@@ -146,7 +147,7 @@ func (storage *Storage) GetProjectsLastContract(c *contract.Contract) (response 
 
 // GetSameContracts -
 func (storage *Storage) GetSameContracts(c contract.Contract, manager string, size, offset int64) (pcr contract.SameResponse, err error) {
-	if c.FingerprintCode == "" || c.FingerprintParameter == "" || c.FingerprintStorage == "" {
+	if c.FingerprintCode == nil || c.FingerprintParameter == nil || c.FingerprintStorage == nil {
 		return pcr, errors.Wrap(consts.ErrInvalidFingerprint, c.Address)
 	}
 
@@ -171,7 +172,7 @@ func (storage *Storage) GetSameContracts(c contract.Contract, manager string, si
 
 // GetSimilarContracts -
 func (storage *Storage) GetSimilarContracts(c contract.Contract, size, offset int64) ([]contract.Similar, int, error) {
-	if c.FingerprintCode == "" || c.FingerprintParameter == "" || c.FingerprintStorage == "" {
+	if c.FingerprintCode == nil || c.FingerprintParameter == nil || c.FingerprintStorage == nil {
 		return nil, 0, errors.Wrap(consts.ErrInvalidFingerprint, c.Address)
 	}
 

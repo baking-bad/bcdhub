@@ -1,8 +1,6 @@
 package rollback
 
 import (
-	"time"
-
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/block"
@@ -11,7 +9,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
-	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
 )
@@ -24,15 +21,14 @@ type Manager struct {
 	transfersRepo transfer.Repository
 	tbRepo        tokenbalance.Repository
 	protocolsRepo protocol.Repository
-	messageQueue  mq.IMessagePublisher
 	rpc           noderpc.INode
 	sharePath     string
 }
 
 // NewManager -
-func NewManager(storage models.GeneralRepository, contractsRepo contract.Repository, operationRepo operation.Repository, transfersRepo transfer.Repository, tbRepo tokenbalance.Repository, protocolsRepo protocol.Repository, messageQueue mq.IMessagePublisher, rpc noderpc.INode, sharePath string) Manager {
+func NewManager(storage models.GeneralRepository, contractsRepo contract.Repository, operationRepo operation.Repository, transfersRepo transfer.Repository, tbRepo tokenbalance.Repository, protocolsRepo protocol.Repository, rpc noderpc.INode, sharePath string) Manager {
 	return Manager{
-		storage, contractsRepo, operationRepo, transfersRepo, tbRepo, protocolsRepo, messageQueue, rpc, sharePath,
+		storage, contractsRepo, operationRepo, transfersRepo, tbRepo, protocolsRepo, rpc, sharePath,
 	}
 }
 
@@ -58,14 +54,6 @@ func (rm Manager) Rollback(fromState block.Block, toLevel int64) error {
 	}
 	if err := rm.rollbackBlocks(fromState.Network, toLevel); err != nil {
 		return err
-	}
-
-	time.Sleep(time.Second) // Golden hack: Waiting while elastic remove records
-	logger.Info("Sending to queue affected contract ids...")
-	for i := range affectedContractIDs {
-		if err := rm.messageQueue.SendRaw(mq.QueueRecalc, []byte(affectedContractIDs[i])); err != nil {
-			return err
-		}
 	}
 
 	return nil

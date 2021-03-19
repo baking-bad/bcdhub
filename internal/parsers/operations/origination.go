@@ -49,7 +49,7 @@ func (p Origination) Parse(data noderpc.Operation) ([]models.Model, error) {
 
 	origination.SetBurned(p.constants)
 
-	originationModels := []models.Model{&origination}
+	originationModels := []models.Model{}
 
 	if origination.IsApplied() {
 		appliedModels, err := p.appliedHandler(data, &origination)
@@ -64,6 +64,7 @@ func (p Origination) Parse(data noderpc.Operation) ([]models.Model, error) {
 	}
 
 	p.stackTrace.Add(origination)
+	originationModels = append(originationModels, &origination)
 	return originationModels, nil
 }
 

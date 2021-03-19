@@ -21,9 +21,9 @@ type contractData struct {
 
 // Fingerprint -
 type Fingerprint struct {
-	Parameter string
-	Storage   string
-	Code      string
+	Parameter []byte
+	Storage   []byte
+	Code      []byte
 }
 
 // Parser -

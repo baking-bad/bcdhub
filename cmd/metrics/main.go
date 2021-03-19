@@ -28,10 +28,7 @@ var ctx Context
 var handlers = map[string]BulkHandler{
 	mq.QueueContracts:   getContract,
 	mq.QueueOperations:  getOperation,
-	mq.QueueMigrations:  getMigrations,
 	mq.QueueBigMapDiffs: getBigMapDiff,
-	mq.QueueRecalc:      recalculateAll,
-	mq.QueueProjects:    getProject,
 }
 
 var managers = map[string]*BulkManager{}

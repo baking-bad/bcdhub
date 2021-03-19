@@ -6,7 +6,6 @@ import (
 
 	"gorm.io/driver/postgres"
 
-	"github.com/baking-bad/bcdhub/internal/models"
 	"gorm.io/gorm"
 )
 
@@ -51,12 +50,6 @@ func (p *Postgres) IsRecordNotFound(err error) bool {
 	return errors.Is(err, gorm.ErrRecordNotFound)
 }
 
-// GetEvents -
-// TODO: realize GetEvents
-func (p *Postgres) GetEvents([]models.SubscriptionRequest, int64, int64) ([]models.Event, error) {
-	return nil, nil
-}
-
 // OrStringArray
 func OrStringArray(db *gorm.DB, arr []string, fieldName string) *gorm.DB {
 	if len(arr) == 0 {
@@ -69,4 +62,9 @@ func OrStringArray(db *gorm.DB, arr []string, fieldName string) *gorm.DB {
 		subQuery.Or(str, arr[i])
 	}
 	return subQuery
+}
+
+// AddTrigger -
+func (p *Postgres) AddTrigger(rawSQL string) error {
+	return p.DB.Exec(rawSQL).Error
 }

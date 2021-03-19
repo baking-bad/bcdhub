@@ -110,10 +110,7 @@ metrics:
     queues:
       operations:
       contracts:
-      migrations:
-      recalc:
       bigmapdiffs:
-      projects:
 
 scripts:
   aws:

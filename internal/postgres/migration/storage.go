@@ -33,16 +33,8 @@ func (storage *Storage) Count(network, address string) (int64, error) {
 	var count int64
 	err := storage.DB.Table(models.DocMigrations).
 		Where("network = ?", network).
-		Where(
-			storage.DB.Where("source = ?", address).Or("destination = ?", address),
-		).
+		Where("address = ?", address).
 		Count(&count).
 		Error
 	return count, err
-}
-
-// GetByIDs -
-func (storage *Storage) GetByIDs(ids ...int64) (result []migration.Migration, err error) {
-	err = storage.DB.Table(models.DocMigrations).Order("id asc").Find(&result, ids).Error
-	return
 }

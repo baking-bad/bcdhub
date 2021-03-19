@@ -2,6 +2,7 @@ package indexer
 
 import (
 	"fmt"
+	"io/ioutil"
 	"sync"
 	"time"
 
@@ -173,11 +174,33 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 		opt(bi)
 	}
 
-	return bi, bi.init()
+	return bi, bi.init(pg)
 }
 
-func (bi *BoostIndexer) init() error {
+func addTriggers(db *core.Postgres) error {
+	files, err := ioutil.ReadDir("triggers")
+	if err != nil {
+		return err
+	}
+	for i := range files {
+		path := fmt.Sprintf("triggers/%s", files[i].Name())
+		raw, err := ioutil.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		if err := db.AddTrigger(string(raw)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (bi *BoostIndexer) init(db *core.Postgres) error {
 	if err := bi.Storage.CreateIndexes(); err != nil {
+		return err
+	}
+
+	if err := addTriggers(db); err != nil {
 		return err
 	}
 
@@ -353,7 +376,7 @@ func (bi *BoostIndexer) Rollback() error {
 		return err
 	}
 
-	manager := rollback.NewManager(bi.Storage, bi.Contracts, bi.Operations, bi.Transfers, bi.TokenBalances, bi.Protocols, bi.messageQueue, bi.rpc, bi.cfg.SharePath)
+	manager := rollback.NewManager(bi.Storage, bi.Contracts, bi.Operations, bi.Transfers, bi.TokenBalances, bi.Protocols, bi.rpc, bi.cfg.SharePath)
 	if err := manager.Rollback(bi.state, lastLevel); err != nil {
 		return err
 	}

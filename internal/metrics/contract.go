@@ -34,16 +34,6 @@ func (h *Handler) SetContractAlias(c *contract.Contract, aliases map[string]stri
 	return changed, nil
 }
 
-// UpdateContractStats -
-func (h *Handler) UpdateContractStats(c *contract.Contract) error {
-	count, err := h.Migrations.Count(c.Network, c.Address)
-	if err != nil {
-		return err
-	}
-	c.MigrationsCount = count
-	return nil
-}
-
 // SetContractProjectID -
 func (h *Handler) SetContractProjectID(c *contract.Contract) error {
 	buckets, err := h.Contracts.GetProjectsLastContract(c)

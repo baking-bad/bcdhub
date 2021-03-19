@@ -11,7 +11,7 @@ const (
 
 // HistogramContext -
 type HistogramContext struct {
-	Indices  []string
+	Index    string
 	Period   string
 	Function struct {
 		Name  string
@@ -35,10 +35,10 @@ type HistogramFilter struct {
 // HistogramOption -
 type HistogramOption func(*HistogramContext)
 
-// WithHistogramIndices -
-func WithHistogramIndices(indices ...string) HistogramOption {
+// WithHistogramIndex -
+func WithHistogramIndex(index string) HistogramOption {
 	return func(h *HistogramContext) {
-		h.Indices = indices
+		h.Index = index
 	}
 }
 

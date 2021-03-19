@@ -2,6 +2,7 @@ package transfer
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
@@ -45,7 +46,7 @@ func (storage *Storage) Get(ctx transfer.GetContext) (po transfer.Pageable, err 
 // GetAll -
 func (storage *Storage) GetAll(network string, level int64) ([]transfer.Transfer, error) {
 	var transfers []transfer.Transfer
-	err := storage.DB.
+	err := storage.DB.Table(models.DocTransfers).
 		Where("network = ?", network).
 		Where("level > ?", level).
 		Find(&transfers).Error
@@ -93,88 +94,70 @@ func (storage *Storage) GetToken24HoursVolume(network, contract string, initiato
 	return volume, err
 }
 
+const (
+	tokenVolumeSeriesRequestTemplate = `
+		with f as (
+			select generate_series(
+			date_trunc('%s', date '2018-06-25'),
+			date_trunc('%s', now()),
+			'1 %s'::interval
+			) as val
+		)
+		select
+			extract(epoch from f.val),
+			sum(amount) as value
+		from f
+		left join transfers on date_trunc('%s', transfers.timestamp) = f.val where (from != to) and (status = 'applied') %s
+		group by 1
+		order by date_part
+	`
+)
+
 // GetTokenVolumeSeries -
-// TODO: realize GetTokenVolumeSeries
 func (storage *Storage) GetTokenVolumeSeries(network, period string, contracts []string, entrypoints []tzip.DAppContract, tokenID uint64) ([][]float64, error) {
-	// hist := core.Item{
-	// 	"date_histogram": core.Item{
-	// 		"field":             "timestamp",
-	// 		"calendar_interval": period,
-	// 	},
-	// }
+	if err := core.ValidateHistogramPeriod(period); err != nil {
+		return nil, err
+	}
 
-	// hist.Append("aggs", core.Item{
-	// 	"result": core.Item{
-	// 		"sum": core.Item{
-	// 			"field": "amount",
-	// 		},
-	// 	},
-	// })
+	conditions := make([]string, 0)
+	conditions = append(conditions, fmt.Sprintf("(token_id = %d)", tokenID))
+	if network != "" {
+		conditions = append(conditions, fmt.Sprintf("(network = '%s')", network))
+	}
 
-	// matches := []core.Item{
-	// 	{
-	// 		"script": core.Item{
-	// 			"script": core.Item{
-	// 				"source": "doc['from.keyword'].value !=  doc['to.keyword'].value",
-	// 			},
-	// 		},
-	// 	},
-	// 	core.Match("network", network),
-	// 	core.Match("status", consts.Applied),
-	// 	core.Term("token_id", tokenID),
-	// }
-	// if len(contracts) > 0 {
-	// 	addresses := make([]core.Item, len(contracts))
-	// 	for i := range contracts {
-	// 		addresses[i] = core.MatchPhrase("contract", contracts[i])
-	// 	}
-	// 	matches = append(matches, core.Bool(
-	// 		core.Should(addresses...),
-	// 		core.MinimumShouldMatch(1),
-	// 	))
-	// }
+	if len(contracts) > 0 {
+		addresses := make([]string, 0)
+		for i := range contracts {
+			addresses = append(addresses, fmt.Sprintf("(contract = '%s')", contracts[i]))
+		}
+		conditions = append(conditions, fmt.Sprintf("(%s)", strings.Join(addresses, " or ")))
+	}
 
-	// if len(entrypoints) > 0 {
-	// 	addresses := make([]core.Item, 0)
-	// 	for i := range entrypoints {
-	// 		for j := range entrypoints[i].DexVolumeEntrypoints {
-	// 			addresses = append(addresses, core.Bool(
-	// 				core.Filter(
-	// 					core.MatchPhrase("initiator", entrypoints[i].Address),
-	// 					core.Match("parent", entrypoints[i].DexVolumeEntrypoints[j]),
-	// 				),
-	// 			))
-	// 		}
-	// 	}
-	// 	matches = append(matches, core.Bool(
-	// 		core.Should(addresses...),
-	// 		core.MinimumShouldMatch(1),
-	// 	))
-	// }
+	if len(entrypoints) > 0 {
+		addresses := make([]string, 0)
+		for i := range entrypoints {
+			for j := range entrypoints[i].DexVolumeEntrypoints {
+				addresses = append(addresses, fmt.Sprintf("(initiator = '%s' and parent = '%s')", entrypoints[i].Address, entrypoints[i].DexVolumeEntrypoints[j]))
+			}
+		}
+		conditions = append(conditions, fmt.Sprintf("(%s)", strings.Join(addresses, " or ")))
+	}
 
-	// query := core.NewQuery().Query(
-	// 	core.Bool(
-	// 		core.Filter(
-	// 			matches...,
-	// 		),
-	// 	),
-	// ).Add(
-	// 	core.Aggs(core.AggItem{Name: "hist", Body: hist}),
-	// ).Zero()
+	var cond string
+	if len(conditions) > 0 {
+		cond = fmt.Sprintf(" and %s", strings.Join(conditions, " and "))
+	}
 
-	// var response getTokenVolumeSeriesResponse
-	// if err := storage.es.Query([]string{models.DocTransfers}, query, &response); err != nil {
-	// 	return nil, err
-	// }
+	req := fmt.Sprintf(tokenVolumeSeriesRequestTemplate, period, period, period, period, cond)
 
-	// histogram := make([][]float64, len(response.Agg.Hist.Buckets))
-	// for i := range response.Agg.Hist.Buckets {
-	// 	item := []float64{
-	// 		float64(response.Agg.Hist.Buckets[i].Key),
-	// 		response.Agg.Hist.Buckets[i].Result.Value,
-	// 	}
-	// 	histogram[i] = item
-	// }
-	// return histogram, nil
-	return nil, nil
+	var resp []core.HistogramResponse
+	if err := storage.DB.Raw(req).Scan(&resp).Error; err != nil {
+		return nil, err
+	}
+
+	histogram := make([][]float64, 0, len(resp))
+	for i := range resp {
+		histogram = append(histogram, []float64{resp[i].DatePart, float64(resp[i].Value)})
+	}
+	return histogram, nil
 }

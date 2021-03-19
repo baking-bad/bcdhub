@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"encoding/hex"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
@@ -121,18 +122,18 @@ func (u UntypedAST) GetStrings(tryUnpack bool) ([]string, error) {
 }
 
 // Fingerprint -
-func (u UntypedAST) Fingerprint(isCode bool) (string, error) {
+func (u UntypedAST) Fingerprint(isCode bool) ([]byte, error) {
 	var s strings.Builder
 	for i := range u {
 		f, err := u[i].Fingerprint(isCode)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		if _, err := s.WriteString(f); err != nil {
-			return "", err
+			return nil, err
 		}
 	}
-	return s.String(), nil
+	return hex.DecodeString(s.String())
 }
 
 // Unpack - unpack all bytes and store data in the tree.

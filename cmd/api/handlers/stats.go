@@ -139,7 +139,7 @@ func (ctx *Context) getHistogramOptions(name, network string, addresses ...strin
 	switch name {
 	case "contract":
 		return []models.HistogramOption{
-			models.WithHistogramIndices(models.DocContracts),
+			models.WithHistogramIndex(models.DocContracts),
 			models.WithHistogramFilters(filters),
 		}, nil
 	case "operation":
@@ -164,7 +164,7 @@ func (ctx *Context) getHistogramOptions(name, network string, addresses ...strin
 		}
 
 		return []models.HistogramOption{
-			models.WithHistogramIndices(models.DocOperations),
+			models.WithHistogramIndex(models.DocOperations),
 			models.WithHistogramFilters(filters),
 		}, nil
 	case "paid_storage_size_diff":
@@ -177,8 +177,8 @@ func (ctx *Context) getHistogramOptions(name, network string, addresses ...strin
 		}
 
 		return []models.HistogramOption{
-			models.WithHistogramIndices(models.DocOperations),
-			models.WithHistogramFunction("sum", "result.paid_storage_size_diff"),
+			models.WithHistogramIndex(models.DocOperations),
+			models.WithHistogramFunction("sum", "paid_storage_size_diff"),
 			models.WithHistogramFilters(filters),
 		}, nil
 	case "consumed_gas":
@@ -191,8 +191,8 @@ func (ctx *Context) getHistogramOptions(name, network string, addresses ...strin
 		}
 
 		return []models.HistogramOption{
-			models.WithHistogramIndices(models.DocOperations),
-			models.WithHistogramFunction("sum", "result.consumed_gas"),
+			models.WithHistogramIndex(models.DocOperations),
+			models.WithHistogramFunction("sum", "consumed_gas"),
 			models.WithHistogramFilters(filters),
 		}, nil
 	case "users":
@@ -205,8 +205,8 @@ func (ctx *Context) getHistogramOptions(name, network string, addresses ...strin
 		}
 
 		return []models.HistogramOption{
-			models.WithHistogramIndices(models.DocOperations),
-			models.WithHistogramFunction("cardinality", "initiator.keyword"),
+			models.WithHistogramIndex(models.DocOperations),
+			models.WithHistogramFunction("cardinality", "initiator"),
 			models.WithHistogramFilters(filters),
 		}, nil
 	case "volume":
@@ -219,13 +219,13 @@ func (ctx *Context) getHistogramOptions(name, network string, addresses ...strin
 		}
 
 		return []models.HistogramOption{
-			models.WithHistogramIndices(models.DocOperations),
+			models.WithHistogramIndex(models.DocOperations),
 			models.WithHistogramFunction("sum", "amount"),
 			models.WithHistogramFilters(filters),
 		}, nil
 	case "token_volume":
 		return []models.HistogramOption{
-			models.WithHistogramIndices("transfer"),
+			models.WithHistogramIndex(models.DocTransfers),
 			models.WithHistogramFunction("sum", "amount"),
 			models.WithHistogramFilters(filters),
 		}, nil

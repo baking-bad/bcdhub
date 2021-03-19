@@ -134,7 +134,7 @@ func (td *TezosDomain) getPointers(address contract.Address, protocol string, bm
 
 func (td *TezosDomain) updateRecordsTZIP(bmd *bigmapdiff.BigMapDiff) error {
 	if len(bmd.KeyStrings) == 0 || len(bmd.ValueStrings) == 0 {
-		return errors.Errorf("Invalid tezos domains big map diff: %s", bmd.GetID())
+		return errors.Errorf("Invalid tezos domains big map diff: %d", bmd.GetID())
 	}
 	address, err := td.getAddress(bmd.Value)
 	if err != nil {
@@ -154,7 +154,7 @@ func (td *TezosDomain) updateRecordsTZIP(bmd *bigmapdiff.BigMapDiff) error {
 
 func (td *TezosDomain) updateExpirationDate(bmd *bigmapdiff.BigMapDiff) error {
 	if len(bmd.KeyStrings) == 0 {
-		return errors.Errorf("Invalid tezos domains big map diff: %s", bmd.GetID())
+		return errors.Errorf("Invalid tezos domains big map diff: %d", bmd.GetID())
 	}
 	ts := gjson.ParseBytes(bmd.Value).Get("int").Int()
 	date := time.Unix(ts, 0).UTC()

@@ -17,7 +17,7 @@ type TokenBalance struct {
 	Network  string `json:"network" gorm:"not null;primaryKey"`
 	Address  string `json:"address" gorm:"not null;primaryKey"`
 	Contract string `json:"contract" gorm:"not null;primaryKey"`
-	TokenID  uint64 `json:"token_id" gorm:"default:0;primaryKey;autoIncrement:false"`
+	TokenID  uint64 `json:"token_id" gorm:"type:numeric(50,0);default:0;primaryKey;autoIncrement:false"`
 	Balance  string `json:"balance" gorm:"balance,default:0"`
 
 	Value *big.Int `json:"-" gorm:"-"`

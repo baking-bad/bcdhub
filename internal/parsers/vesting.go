@@ -35,7 +35,6 @@ func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, ne
 		Timestamp: head.Timestamp,
 		Kind:      consts.MigrationBootstrap,
 	}
-	parsedModels := []models.Model{migration}
 
 	op := operation.Operation{
 		Network:     network,
@@ -58,9 +57,12 @@ func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, ne
 	if err != nil {
 		return nil, err
 	}
+
+	parsedModels := []models.Model{}
 	if len(contractModels) > 0 {
 		parsedModels = append(parsedModels, contractModels...)
 	}
+	parsedModels = append(parsedModels, migration)
 
 	return parsedModels, nil
 }

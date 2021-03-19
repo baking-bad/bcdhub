@@ -17,7 +17,6 @@ var migrationsList = []migrations.Migration{
 	&migrations.BigRussianBoss{},
 	&migrations.GetAliases{},
 	&migrations.SetAliases{},
-	&migrations.RecalcContractMetrics{},
 	&migrations.SetOperationTags{},
 	&migrations.CreateTransfersTags{},
 	&migrations.SetProtocolConstants{},
