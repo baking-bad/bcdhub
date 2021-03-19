@@ -5,6 +5,9 @@ rpc:
   edo2net:
     uri: https://rpc.tzkt.io/edo2net
     timeout: 20
+  delphinet:
+    uri: https://rpc.tzkt.io/delphinet
+    timeout: 20
   florencenet:
     uri: https://rpc.tzkt.io/florencenobanet
     timeout: 20
@@ -19,6 +22,11 @@ tzkt:
     uri: https://api.edo2net.tzkt.io/v1/
     services_uri: https://services.tzkt.io/edo2net/v1/
     base_uri: https://edo2net.tzkt.io/
+    timeout: 20
+  delphinet:
+    uri: https://api.delphinet.tzkt.io/v1/
+    services_uri: https://services.tzkt.io/delphinet/v1/
+    base_uri: https://delphinet.tzkt.io/
     timeout: 20
 
 storage:
@@ -111,8 +119,8 @@ indexer:
   networks:
     mainnet:
       boost: tzkt
-    # delphinet:
-    #   boost: tzkt
+    delphinet:
+      boost: tzkt
     edo2net:
       boost: tzkt
     # florencenet:

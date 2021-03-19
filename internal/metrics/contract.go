@@ -36,21 +36,28 @@ func (h *Handler) SetContractAlias(c *contract.Contract, aliases map[string]stri
 
 // SetContractProjectID -
 func (h *Handler) SetContractProjectID(c *contract.Contract) error {
-	buckets, err := h.Contracts.GetProjectsLastContract(c)
-	if err != nil {
-		if h.Storage.IsRecordNotFound(err) {
-			c.ProjectID = helpers.GenerateID()
-			return nil
+	var offset int64
+
+	size := int64(25)
+
+	var end bool
+	for !end {
+		buckets, err := h.Contracts.GetProjectsLastContract(c, size, offset)
+		if err != nil {
+			return err
 		}
-		return err
-	}
-	if len(buckets) == 0 {
-		c.ProjectID = helpers.GenerateID()
-		return nil
-	}
+		end = len(buckets) == 0
 
-	c.ProjectID = getContractProjectID(*c, buckets)
+		if !end {
+			c.ProjectID = getContractProjectID(*c, buckets)
+			if c.ProjectID != "" {
+				return nil
+			}
+		}
 
+		offset += size
+	}
+	c.ProjectID = helpers.GenerateID()
 	return nil
 }
 

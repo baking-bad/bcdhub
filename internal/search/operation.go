@@ -3,13 +3,15 @@ package search
 import (
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 )
 
 // Operation -
 type Operation struct {
+	ID       string `json:"-"`
 	Network  string `json:"network"`
-	Protocol string `json:"protocol"`
 	Hash     string `json:"hash"`
 	Internal bool   `json:"internal"`
 
@@ -29,11 +31,15 @@ type Operation struct {
 
 	ParameterStrings []string `json:"parameter_strings,omitempty"`
 	StorageStrings   []string `json:"storage_strings,omitempty"`
-	Tags             []string `json:"tags,omitempty"`
+}
+
+// GetID -
+func (o *Operation) GetID() string {
+	return o.ID
 }
 
 // GetIndex -
-func (o Operation) GetIndex() string {
+func (o *Operation) GetIndex() string {
 	return models.DocOperations
 }
 
@@ -77,4 +83,30 @@ func (o Operation) Parse(highlight map[string][]string, data []byte) (interface{
 		Highlights: highlight,
 		Network:    o.Network,
 	}, nil
+}
+
+// Prepare -
+func (o *Operation) Prepare(model models.Model) {
+	op, ok := model.(*operation.Operation)
+	if !ok {
+		return
+	}
+
+	o.ID = helpers.GenerateID()
+	o.DelegateAlias = op.DelegateAlias
+	o.Destination = op.Destination
+	o.DestinationAlias = op.Destination
+	o.Entrypoint = op.Entrypoint
+	o.Hash = op.Hash
+	o.Initiator = op.Initiator
+	o.Internal = op.Internal
+	o.Kind = op.Kind
+	o.Level = op.Level
+	o.Network = op.Network
+	o.ParameterStrings = op.ParameterStrings
+	o.Source = op.Source
+	o.SourceAlias = op.SourceAlias
+	o.Status = op.Status
+	o.StorageStrings = op.StorageStrings
+	o.Timestamp = op.Timestamp
 }

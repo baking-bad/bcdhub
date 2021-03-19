@@ -26,6 +26,10 @@ func getOperation(ids []int64) error {
 	}
 	logger.Info("%d operations are processed", len(operations))
 
+	if err := saveSearchModels(ctx.Searcher, updated); err != nil {
+		return err
+	}
+
 	return ctx.Storage.BulkUpdate(updated)
 }
 

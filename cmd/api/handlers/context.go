@@ -32,6 +32,7 @@ func NewContext(cfg config.Config) (*Context, error) {
 		config.WithStorage(cfg.Storage, int64(cfg.API.PageSize)),
 		config.WithRPC(cfg.RPC),
 		config.WithDatabase(cfg.DB),
+		config.WithSearch(cfg.Storage),
 		config.WithShare(cfg.SharePath),
 		config.WithTzKTServices(cfg.TzKT),
 		config.WithLoadErrorDescriptions(),

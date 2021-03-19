@@ -190,7 +190,7 @@ func parseSearchGroupingResponse(response searchByTextResponse, offset int64) ([
 			}
 			valItem := val.(search.Item)
 			if j == 0 {
-				searchItem.Type = valItem.Type
+				searchItem.Type = typeMap[valItem.Type]
 				searchItem.Body = valItem.Body
 				searchItem.Value = valItem.Value
 				searchItem.Highlights = item.Highlight
@@ -204,6 +204,15 @@ func parseSearchGroupingResponse(response searchByTextResponse, offset int64) ([
 		items = append(items, searchItem)
 	}
 	return items, nil
+}
+
+var typeMap = map[string]string{
+	models.DocContracts:     "contract",
+	models.DocOperations:    "operation",
+	models.DocBigMapDiff:    "bigmapdiff",
+	models.DocTokenMetadata: "token_metadata",
+	models.DocTezosDomains:  "tezos_domain",
+	models.DocTZIP:          "tzip",
 }
 
 func prepare(searchString string, filters map[string]interface{}, fields []string) (search.Context, error) {
@@ -260,15 +269,15 @@ func grouping(ctx search.Context, query Base) Base {
 				Body: Item{
 					"terms": Item{
 						"script": `
-							if (doc['_index'].value == "contract") {
-								return doc['fingerprint.parameter'].value + '|' + doc['fingerprint.storage'].value + '|' + doc['fingerprint.code'].value
-							} else if (doc['_index'].value == 'operation') {
+							if (doc['_index'].value == "contracts") {
 								return doc['hash.keyword'].value
-							} else if (doc['_index'].value == 'tzip') {
+							} else if (doc['_index'].value == 'operations') {
+								return doc['hash.keyword'].value
+							} else if (doc['_index'].value == 'tzips') {
 								return doc['network.keyword'].value + '|' + doc['address.keyword'].value
-							} else if (doc['_index'].value == 'bigmapdiff') {
+							} else if (doc['_index'].value == 'big_map_diffs') {
 								return doc['key_hash.keyword'].value
-							} else if (doc['_index'].value == 'tezos_domain') {
+							} else if (doc['_index'].value == 'tezos_domains') {
 								return doc['name.keyword'].value + '|' + doc['network.keyword'].value
 							} else if (doc['_index'].value == 'token_metadata') {
 								return doc['network.keyword'].value + doc['contract.keyword'].value + doc['token_id'].value

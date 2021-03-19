@@ -24,6 +24,12 @@ type Errors []*Error
 
 // Scan scan value into Jsonb, implements sql.Scanner interface
 func (e *Errors) Scan(value interface{}) error {
+	if value == nil {
+		arr := make([]*Error, 0)
+		*e = Errors(arr)
+		return nil
+	}
+
 	bytes, ok := value.([]byte)
 	if !ok {
 		return errors.New(fmt.Sprint("Failed to unmarshal JSONB value:", value))
@@ -35,7 +41,7 @@ func (e *Errors) Scan(value interface{}) error {
 // Value return json value, implement driver.Valuer interface
 func (e Errors) Value() (driver.Value, error) {
 	if e == nil {
-		return []byte(`[]`), nil
+		return nil, nil
 	}
 	return json.Marshal(e)
 }

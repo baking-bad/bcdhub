@@ -32,11 +32,7 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		return
 	}
 
-	bm, err := ctx.BigMapDiffs.Get(bigmapdiff.GetContext{
-		Ptr:     &req.Ptr,
-		Network: req.Network,
-		Size:    10000, // TODO: >10k
-	})
+	stats, err := ctx.BigMapDiffs.GetStats(req.Network, req.Ptr)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -46,17 +42,12 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		Ptr:     req.Ptr,
 	}
 
-	if len(bm) > 0 {
-		res.Address = bm[0].Address
-		res.TotalKeys = uint(len(bm))
+	if stats.Total > 0 {
+		res.Address = stats.Address
+		res.TotalKeys = uint(stats.Total)
+		res.ActiveKeys = uint(stats.Active)
 
-		for i := range bm {
-			if bm[i].Value != nil {
-				res.ActiveKeys++
-			}
-		}
-
-		script, err := ctx.getScript(bm[0].Address, req.Network, bm[0].Protocol)
+		script, err := ctx.getScript(stats.Address, req.Network, stats.Protocol)
 		if ctx.handleError(c, err, 0) {
 			return
 		}

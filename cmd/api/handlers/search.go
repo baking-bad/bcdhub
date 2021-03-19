@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/search"
@@ -49,10 +48,6 @@ func (ctx *Context) Search(c *gin.Context) {
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	result, err = postProcessing(result)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
 
 	if result.Count == 0 {
 		item, err := ctx.searchInMempool(req.Text)
@@ -81,7 +76,14 @@ func getSearchFilters(req searchRequest) map[string]interface{} {
 	}
 
 	if req.Indices != "" {
-		filters["indices"] = strings.Split(req.Indices, ",")
+		indices := strings.Split(req.Indices, ",")
+		arr := make([]string, 0)
+		for i := range indices {
+			if val, ok := indicesMap[indices[i]]; ok {
+				arr = append(arr, val)
+			}
+		}
+		filters["indices"] = arr
 	}
 
 	if req.Languages != "" {
@@ -91,37 +93,13 @@ func getSearchFilters(req searchRequest) map[string]interface{} {
 	return filters
 }
 
-func postProcessing(result search.Result) (search.Result, error) {
-	for i := range result.Items {
-		if result.Items[i].Type != models.DocBigMapDiff {
-			continue
-		}
-
-		bmd := result.Items[i].Body.(search.BigMapDiff)
-
-		var data ast.UntypedAST
-		if err := json.Unmarshal(bmd.Key, &data); err != nil {
-			return result, err
-		}
-
-		key, err := data.Stringify()
-		if err != nil {
-			return result, err
-		}
-
-		result.Items[i].Body = SearchBigMapDiff{
-			Ptr:       bmd.Ptr,
-			Key:       key,
-			KeyHash:   bmd.KeyHash,
-			Value:     bmd.Value,
-			Level:     bmd.Level,
-			Address:   bmd.Address,
-			Network:   bmd.Network,
-			Timestamp: bmd.Timestamp,
-			FoundBy:   bmd.FoundBy,
-		}
-	}
-	return result, nil
+var indicesMap = map[string]string{
+	"contract":       models.DocContracts,
+	"operation":      models.DocOperations,
+	"bigmapdiff":     models.DocBigMapDiff,
+	"tzip":           models.DocTZIP,
+	"token_metadata": models.DocTokenMetadata,
+	"tezos_domain":   models.DocTezosDomains,
 }
 
 func (ctx *Context) searchInMempool(q string) (search.Item, error) {

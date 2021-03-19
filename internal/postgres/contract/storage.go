@@ -120,7 +120,7 @@ func (storage *Storage) GetByAddresses(addresses []contract.Address) (response [
 }
 
 // GetProjectsLastContract -
-func (storage *Storage) GetProjectsLastContract(c *contract.Contract) (response []contract.Contract, err error) {
+func (storage *Storage) GetProjectsLastContract(c *contract.Contract, size, offset int64) (response []contract.Contract, err error) {
 	subQuery := storage.DB.Table(models.DocContracts).Where(
 		storage.DB.Where("encode(fingerprint_code, 'hex') = ?", hex.EncodeToString(c.FingerprintCode)).
 			Where("encode(fingerprint_parameter, 'hex') = ?", hex.EncodeToString(c.FingerprintParameter)).
@@ -135,11 +135,15 @@ func (storage *Storage) GetProjectsLastContract(c *contract.Contract) (response 
 		}
 	}
 
+	limit := core.GetPageSize(size)
+
 	query := storage.DB.Table(models.DocContracts).
 		Select("MAX(id) as id").
 		Where("project_id != ''").
 		Where(subQuery).
-		Group("project_id")
+		Group("project_id").
+		Limit(limit).
+		Offset(int(offset))
 
 	err = storage.DB.Table(models.DocContracts).Where("id IN (?)", query).Find(&response).Error
 	return
@@ -272,6 +276,19 @@ func (storage *Storage) UpdateField(where []contract.Contract, fields ...string)
 	// For a deadlock reason don't wrap the requests to transaction
 	for i := range where {
 		updates := core.GetFieldsForModel(where[i], fields...)
+
+		for key, value := range updates {
+			switch v := value.(type) {
+			case string:
+				if v == "" {
+					delete(updates, key)
+				}
+			case bool:
+				if !v {
+					delete(updates, key)
+				}
+			}
+		}
 
 		if err := storage.DB.Table(models.DocContracts).
 			Where("id = ?", where[i].ID).

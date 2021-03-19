@@ -90,6 +90,7 @@ func main() {
 		config.WithRPC(cfg.RPC),
 		config.WithDatabase(cfg.DB),
 		config.WithRabbit(cfg.RabbitMQ, cfg.Metrics.ProjectName, cfg.Metrics.MQ),
+		config.WithSearch(cfg.Storage),
 		config.WithShare(cfg.SharePath),
 		config.WithDomains(cfg.Domains),
 		config.WithConfigCopy(cfg),
@@ -100,6 +101,10 @@ func main() {
 		Cache:               ccache.New(ccache.Configure().MaxSize(10)),
 		AliasesCacheSeconds: time.Second * time.Duration(configCtx.Config.Metrics.CacheAliasesSeconds),
 		Context:             configCtx,
+	}
+
+	if err := ctx.Searcher.CreateIndexes(); err != nil {
+		logger.Fatal(err)
 	}
 
 	var wg sync.WaitGroup

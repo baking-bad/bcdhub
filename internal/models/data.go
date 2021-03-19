@@ -1,6 +1,9 @@
 package models
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 // SubscriptionRequest -
 type SubscriptionRequest struct {
@@ -32,12 +35,20 @@ const (
 
 // Event -
 type Event struct {
-	Type    string      `json:"type"`
-	Address string      `json:"address"`
-	Network string      `json:"network"`
-	Alias   string      `json:"alias"`
-	Body    interface{} `json:"body,omitempty"`
+	Type      string      `json:"type"`
+	Address   string      `json:"address"`
+	Network   string      `json:"network"`
+	Alias     string      `json:"alias"`
+	Timestamp time.Time   `json:"-"`
+	Body      interface{} `json:"body,omitempty"`
 }
+
+// ByTimestamp - sorting events by timestamp
+type ByTimestamp []Event
+
+func (a ByTimestamp) Len() int           { return len(a) }
+func (a ByTimestamp) Less(i, j int) bool { return a[i].Timestamp.Before(a[j].Timestamp) }
+func (a ByTimestamp) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 
 // Repository -
 type Repository struct {

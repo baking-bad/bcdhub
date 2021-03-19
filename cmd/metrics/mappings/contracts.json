@@ -6,11 +6,11 @@
                 "fields": {
                     "keyword": {
                         "type": "keyword",
-                        "ignore_above": 256
+                        "ignore_above": 36
                     }
                 }
             },
-            "bin_path": {
+            "alias": {
                 "type": "text",
                 "fields": {
                     "keyword": {
@@ -19,10 +19,7 @@
                     }
                 }
             },
-            "indexed_time": {
-                "type": "long"
-            },
-            "key_hash": {
+            "annotations": {
                 "type": "text",
                 "fields": {
                     "keyword": {
@@ -31,28 +28,91 @@
                     }
                 }
             },
-            "key_strings": {
+            "delegate": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 36
+                    }
+                }
+            },
+            "delegate_alias": {
                 "type": "text",
                 "fields": {
                     "keyword": {
                         "type": "keyword",
                         "ignore_above": 256
+                    }
+                }
+            },
+            "entrypoints": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "fail_strings": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "hardcoded": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 36
+                    }
+                }
+            },
+            "language": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 16
                     }
                 }
             },
             "level": {
                 "type": "long"
             },
+            "manager": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 36
+                    }
+                }
+            },
             "network": {
                 "type": "text",
                 "fields": {
                     "keyword": {
                         "type": "keyword",
-                        "ignore_above": 256
+                        "ignore_above": 16
                     }
                 }
             },
-            "operation_id": {
+            "project_id": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 36
+                    }
+                }
+            },
+            "tags": {
                 "type": "text",
                 "fields": {
                     "keyword": {
@@ -60,30 +120,9 @@
                         "ignore_above": 256
                     }
                 }
-            },
-            "protocol": {
-                "type": "text",
-                "fields": {
-                    "keyword": {
-                        "type": "keyword",
-                        "ignore_above": 256
-                    }
-                }
-            },
-            "ptr": {
-                "type": "long"
             },
             "timestamp": {
                 "type": "date"
-            },
-            "value_strings": {
-                "type": "text",
-                "fields": {
-                    "keyword": {
-                        "type": "keyword",
-                        "ignore_above": 256
-                    }
-                }
             }
         }
     }

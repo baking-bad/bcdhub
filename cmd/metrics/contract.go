@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/parsers/tzip/tokens"
 )
@@ -27,6 +28,15 @@ func getContract(ids []int64) error {
 	for _, c := range contracts {
 		updates = append(updates, c)
 	}
+
+	items := make([]models.Model, len(updates))
+	for i := range updates {
+		items[i] = &updates[i]
+	}
+	if err := saveSearchModels(ctx.Searcher, items); err != nil {
+		return err
+	}
+
 	return ctx.Contracts.UpdateField(updates, "Alias", "Verified", "VerificationSource", "ProjectID")
 }
 

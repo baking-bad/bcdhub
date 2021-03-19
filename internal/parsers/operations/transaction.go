@@ -53,7 +53,6 @@ func (p Transaction) Parse(data noderpc.Operation) ([]models.Model, error) {
 		Parameters:   data.Parameters,
 		IndexedTime:  time.Now().UnixNano() / 1000,
 		ContentIndex: p.contentIdx,
-		Tags:         make([]string, 0),
 	}
 
 	p.fillInternal(&tx)

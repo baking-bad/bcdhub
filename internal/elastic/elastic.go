@@ -11,6 +11,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/cenkalti/backoff"
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
@@ -208,7 +209,7 @@ func (e *Elastic) createIndexIfNotExists(index string) error {
 
 // CreateIndexes -
 func (e *Elastic) CreateIndexes() error {
-	for _, index := range models.AllDocuments() {
+	for _, index := range search.Indices {
 		if err := e.createIndexIfNotExists(index); err != nil {
 			return err
 		}
@@ -308,21 +309,6 @@ func (e *Elastic) DeleteIndices(indices []string) error {
 	}
 
 	resp, err := e.Indices.Delete(indices, options...)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.IsError() {
-		return errors.Errorf(resp.Status())
-	}
-
-	return nil
-}
-
-// ReloadSecureSettings -
-func (e *Elastic) ReloadSecureSettings() error {
-	resp, err := e.Nodes.ReloadSecureSettings()
 	if err != nil {
 		return err
 	}

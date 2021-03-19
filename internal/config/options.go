@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"io/ioutil"
-	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/aws"
@@ -20,7 +19,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/postgres/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/postgres/transfer"
 	"github.com/baking-bad/bcdhub/internal/postgres/tzip"
-	"github.com/baking-bad/bcdhub/internal/reindexer"
 
 	"github.com/baking-bad/bcdhub/internal/postgres/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/postgres/block"
@@ -89,20 +87,7 @@ func WithDatabase(dbConfig DatabaseConfig) ContextOption {
 // WithSearch -
 func WithSearch(cfg StorageConfig) ContextOption {
 	return func(ctx *Context) {
-		if strings.HasPrefix(cfg.Elastic[0], "builtin://") {
-			storage, err := reindexer.New(cfg.Elastic[0])
-			if err != nil {
-				panic(err)
-			}
-			ctx.Searcher = storage
-
-			if err := ctx.Storage.CreateIndexes(); err != nil {
-				panic(err)
-			}
-		} else {
-			ctx.Searcher = elastic.WaitNew(cfg.Elastic, cfg.Timeout, 0)
-
-		}
+		ctx.Searcher = elastic.WaitNew(cfg.Elastic, cfg.Timeout)
 	}
 
 }

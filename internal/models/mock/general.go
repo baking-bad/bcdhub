@@ -2,7 +2,7 @@
 // Source: interface.go
 
 // Package mock_models is a generated GoMock package.
-package mock
+package mock_models
 
 import (
 	models "github.com/baking-bad/bcdhub/internal/models"
@@ -102,26 +102,6 @@ func (m *MockGeneralRepository) GetByID(output models.Model) error {
 func (mr *MockGeneralRepositoryMockRecorder) GetByID(output interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockGeneralRepository)(nil).GetByID), output)
-}
-
-// GetByIDs mocks base method
-func (m *MockGeneralRepository) GetByIDs(index string, ids ...int64) ([]models.Model, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{index}
-	for _, a := range ids {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "GetByIDs", varargs...)
-	ret0, _ := ret[0].([]models.Model)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetByIDs indicates an expected call of GetByIDs
-func (mr *MockGeneralRepositoryMockRecorder) GetByIDs(index interface{}, ids ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{index}, ids...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByIDs", reflect.TypeOf((*MockGeneralRepository)(nil).GetByIDs), varargs...)
 }
 
 // GetByNetwork mocks base method

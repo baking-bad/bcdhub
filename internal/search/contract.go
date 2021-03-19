@@ -1,10 +1,12 @@
 package search
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
 )
 
 // Contract -
@@ -13,8 +15,8 @@ type Contract struct {
 	Level     int64     `json:"level"`
 	Timestamp time.Time `json:"timestamp"`
 	Language  string    `json:"language,omitempty"`
+	Hash      string    `json:"hash"`
 
-	Hash        string   `json:"hash"`
 	Tags        []string `json:"tags,omitempty"`
 	Hardcoded   []string `json:"hardcoded,omitempty"`
 	FailStrings []string `json:"fail_strings,omitempty"`
@@ -25,11 +27,15 @@ type Contract struct {
 	Manager  string `json:"manager,omitempty"`
 	Delegate string `json:"delegate,omitempty"`
 
-	TxCount       int64     `json:"tx_count"`
-	LastAction    time.Time `json:"last_action"`
-	FoundBy       string    `json:"found_by,omitempty"`
-	Alias         string    `json:"alias,omitempty"`
-	DelegateAlias string    `json:"delegate_alias,omitempty"`
+	ProjectID     string `json:"project_id"`
+	FoundBy       string `json:"found_by,omitempty"`
+	Alias         string `json:"alias,omitempty"`
+	DelegateAlias string `json:"delegate_alias,omitempty"`
+}
+
+// GetID -
+func (c *Contract) GetID() string {
+	return fmt.Sprintf("%s_%s", c.Network, c.Address)
 }
 
 // GetIndex -
@@ -95,4 +101,28 @@ func (c Contract) Parse(highlight map[string][]string, data []byte) (interface{}
 		Highlights: highlight,
 		Network:    c.Network,
 	}, nil
+}
+
+// Prepare -
+func (c *Contract) Prepare(model models.Model) {
+	cont, ok := model.(*contract.Contract)
+	if !ok {
+		return
+	}
+
+	c.Address = cont.Address
+	c.Alias = cont.Alias
+	c.Annotations = cont.Annotations
+	c.Delegate = cont.Delegate
+	c.DelegateAlias = cont.DelegateAlias
+	c.Entrypoints = cont.Entrypoints
+	c.FailStrings = cont.FailStrings
+	c.Hash = cont.Hash
+	c.Language = cont.Language
+	c.Level = cont.Level
+	c.Manager = cont.Manager
+	c.Network = cont.Network
+	c.ProjectID = cont.ProjectID
+	c.Tags = cont.Tags
+	c.Timestamp = cont.Timestamp
 }

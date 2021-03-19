@@ -14,4 +14,5 @@ type Repository interface {
 	Count(network string, ptr int64) (int64, error)
 	CurrentByKey(network, keyHash string, ptr int64) (BigMapDiff, error)
 	Previous([]BigMapDiff, int64, string) ([]BigMapDiff, error)
+	GetStats(network string, ptr int64) (Stats, error)
 }

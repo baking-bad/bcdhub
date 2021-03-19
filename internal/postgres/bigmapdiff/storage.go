@@ -215,3 +215,37 @@ func (storage *Storage) GetByIDs(ids ...int64) (result []bigmapdiff.BigMapDiff, 
 	err = storage.DB.Table(models.DocBigMapDiff).Order("id asc").Find(&result, ids).Error
 	return
 }
+
+// GetStats -
+func (storage *Storage) GetStats(network string, ptr int64) (stats bigmapdiff.Stats, err error) {
+	subQuery := storage.DB.Table(models.DocBigMapDiff).
+		Select("max(id) as id").
+		Where("network = ?").
+		Where("ptr = ?", ptr).
+		Group("hash")
+
+	err = storage.DB.Table(models.DocBigMapDiff).
+		Where("id IN (?)", subQuery).
+		Count(&stats.Total).Error
+	if err != nil {
+		return
+	}
+
+	err = storage.DB.Table(models.DocBigMapDiff).
+		Where("id IN (?)", subQuery).
+		Where("value is not null").
+		Count(&stats.Active).Error
+
+	if err != nil {
+		return
+	}
+
+	err = storage.DB.Table(models.DocBigMapDiff).
+		Select("address, network").
+		Where("network = ?").
+		Where("ptr = ?", ptr).
+		Limit(1).
+		Scan(&stats).Error
+
+	return
+}

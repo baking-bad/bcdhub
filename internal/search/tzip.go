@@ -1,9 +1,11 @@
 package search
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
 // Metadata -
@@ -18,8 +20,13 @@ type Metadata struct {
 	Authors     []string  `json:"authors,omitempty"`
 }
 
+// GetID -
+func (m *Metadata) GetID() string {
+	return fmt.Sprintf("%s_%s", m.Network, m.Address)
+}
+
 // GetIndex -
-func (m Metadata) GetIndex() string {
+func (m *Metadata) GetIndex() string {
 	return models.DocTZIP
 }
 
@@ -55,4 +62,21 @@ func (m Metadata) Parse(highlight map[string][]string, data []byte) (interface{}
 		Highlights: highlight,
 		Network:    m.Network,
 	}, nil
+}
+
+// Prepare -
+func (m *Metadata) Prepare(model models.Model) {
+	t, ok := model.(*tzip.TZIP)
+	if !ok {
+		return
+	}
+
+	m.Address = t.Address
+	m.Authors = t.Authors
+	m.Description = t.Description
+	m.Homepage = t.Homepage
+	m.Level = t.Level
+	m.Name = t.Name
+	m.Network = t.Network
+	m.Timestamp = t.Timestamp
 }
