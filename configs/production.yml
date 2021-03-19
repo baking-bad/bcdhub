@@ -32,7 +32,7 @@ rabbitmq:
   timeout: 10
 
 db:
-  conn_string: "host=${DB_HOSTNAME:-postgres} port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"
+  conn_string: "host=${DB_HOSTNAME:-db} port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"
   timeout: 10
 
 oauth:
