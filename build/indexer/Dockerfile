@@ -34,8 +34,4 @@ COPY --from=builder /go/bin/indexer /go/bin/indexer
 COPY cmd/indexer/mappings /app/indexer/mappings
 COPY configs/*.yml /app/indexer/
 
-ENV DB_HOSTNAME=db
-ENV RABBITMQ_HOSTNAME=mq
-ENV ELASTIC_HOSTNAME=elastic
-
 ENTRYPOINT ["/go/bin/indexer"]

@@ -50,7 +50,4 @@ COPY --from=builder /go/bin/esctl /go/bin/esctl
 COPY --from=builder /go/bin/migration /go/bin/migration
 COPY --from=builder /go/bin/seo /go/bin/seo
 
-ENV DB_HOSTNAME=db
-ENV RABBITMQ_HOSTNAME=mq
-ENV ELASTIC_HOSTNAME=elastic
 ENTRYPOINT ["/go/bin/api"]
