@@ -1,4 +1,7 @@
 {
+    "settings": {
+        "index.mapping.total_fields.limit": 100000
+    },
     "mappings": {
         "properties": {
             "symbol": {
