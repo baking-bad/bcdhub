@@ -7,6 +7,10 @@ api:
 	docker-compose up -d elastic mq db
 	cd cmd/api && go run .
 
+graphql:
+	docker-compose up -d elastic mq db
+	cd cmd/graphql && go run .
+
 api-tester:
 	docker-compose up -d elastic mq db
 	cd scripts/api_tester && go run .

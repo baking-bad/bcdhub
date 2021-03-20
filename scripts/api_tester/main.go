@@ -25,6 +25,7 @@ func main() {
 		config.WithRPC(cfg.RPC),
 		config.WithShare(cfg.SharePath),
 		config.WithTzKTServices(cfg.TzKT),
+		config.WithSearch(cfg.Storage),
 		config.WithLoadErrorDescriptions(),
 		config.WithConfigCopy(cfg),
 	)

@@ -9,12 +9,15 @@ require (
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/denisenkom/go-mssqldb v0.9.0 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/dosco/graphjin v0.16.16
 	github.com/ebellocchia/go-base58 v0.1.0
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20191218082911-5398a82b748f
 	github.com/fatih/color v1.10.0
 	github.com/getsentry/sentry-go v0.5.1
 	github.com/gin-contrib/cors v1.3.0
 	github.com/gin-gonic/gin v1.6.3
+	github.com/go-chi/chi v1.5.4
+	github.com/go-chi/render v1.0.1
 	github.com/go-openapi/spec v0.20.0 // indirect
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
@@ -28,6 +31,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/iancoleman/orderedmap v0.1.0 // indirect
 	github.com/iancoleman/strcase v0.1.3
+	github.com/jackc/pgx/v4 v4.10.1
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/jinzhu/gorm v1.9.11
 	github.com/json-iterator/go v1.1.10
