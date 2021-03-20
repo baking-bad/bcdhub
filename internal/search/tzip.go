@@ -51,14 +51,14 @@ func (m Metadata) GetFields() []string {
 }
 
 // Parse  -
-func (m Metadata) Parse(highlight map[string][]string, data []byte) (interface{}, error) {
+func (m Metadata) Parse(highlight map[string][]string, data []byte) (*Item, error) {
 	if err := json.Unmarshal(data, &m); err != nil {
 		return nil, err
 	}
-	return Item{
+	return &Item{
 		Type:       m.GetIndex(),
 		Value:      m.Address,
-		Body:       m,
+		Body:       &m,
 		Highlights: highlight,
 		Network:    m.Network,
 	}, nil

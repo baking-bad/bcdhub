@@ -14,7 +14,7 @@ import (
 func newLogger() gl.Interface {
 	writer := log.New(os.Stdout, "\r\n", log.LstdFlags)
 	cfg := gl.Config{
-		SlowThreshold: 200 * time.Millisecond,
+		SlowThreshold: time.Second,
 		LogLevel:      gl.Warn,
 		Colorful:      true,
 	}

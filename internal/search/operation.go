@@ -72,14 +72,14 @@ func (o Operation) GetFields() []string {
 }
 
 // Parse  -
-func (o Operation) Parse(highlight map[string][]string, data []byte) (interface{}, error) {
+func (o Operation) Parse(highlight map[string][]string, data []byte) (*Item, error) {
 	if err := json.Unmarshal(data, &o); err != nil {
 		return nil, err
 	}
-	return Item{
+	return &Item{
 		Type:       o.GetIndex(),
 		Value:      o.Hash,
-		Body:       o,
+		Body:       &o,
 		Highlights: highlight,
 		Network:    o.Network,
 	}, nil

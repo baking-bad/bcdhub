@@ -14,7 +14,8 @@
                 }
             },
             "token_id": {
-                "type": "long"
+                "type": "long",
+                "ignore_malformed": true
             },
             "level": {
                 "type": "long"

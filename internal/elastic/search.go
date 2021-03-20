@@ -122,7 +122,7 @@ func (e *Elastic) ByText(text string, offset int64, fields []string, filters map
 		return search.Result{}, err
 	}
 
-	var items []search.Item
+	var items []*search.Item
 	if group {
 		items, err = parseSearchGroupingResponse(response, offset)
 	} else {
@@ -140,8 +140,8 @@ func (e *Elastic) ByText(text string, offset int64, fields []string, filters map
 	}, nil
 }
 
-func parseSearchResponse(response searchByTextResponse) ([]search.Item, error) {
-	items := make([]search.Item, 0)
+func parseSearchResponse(response searchByTextResponse) ([]*search.Item, error) {
+	items := make([]*search.Item, 0)
 	arr := response.Hits.Hits
 	for i := range arr {
 		val, err := search.Parse(arr[i].Index, arr[i].Highlight, arr[i].Source)
@@ -153,29 +153,29 @@ func parseSearchResponse(response searchByTextResponse) ([]search.Item, error) {
 		}
 
 		switch t := val.(type) {
-		case search.Item:
+		case *search.Item:
 			items = append(items, t)
-		case []search.Item:
+		case []*search.Item:
 			items = append(items, t...)
 		}
 	}
 	return items, nil
 }
 
-func parseSearchGroupingResponse(response searchByTextResponse, offset int64) ([]search.Item, error) {
+func parseSearchGroupingResponse(response searchByTextResponse, offset int64) ([]*search.Item, error) {
 	if len(response.Agg.Projects.Buckets) == 0 {
-		return make([]search.Item, 0), nil
+		return make([]*search.Item, 0), nil
 	}
 
 	arr := response.Agg.Projects.Buckets
 	lArr := int64(len(arr))
-	items := make([]search.Item, 0)
+	items := make([]*search.Item, 0)
 	if offset > lArr {
 		return items, nil
 	}
 	arr = arr[offset:]
 	for i := range arr {
-		searchItem := search.Item{}
+		searchItem := &search.Item{}
 		if arr[i].DocCount > 1 {
 			searchItem.Group = search.NewGroup(arr[i].DocCount)
 		}
@@ -188,7 +188,7 @@ func parseSearchGroupingResponse(response searchByTextResponse, offset int64) ([
 			if val == nil {
 				continue
 			}
-			valItem := val.(search.Item)
+			valItem := val.(*search.Item)
 			if j == 0 {
 				searchItem.Type = typeMap[valItem.Type]
 				searchItem.Body = valItem.Body

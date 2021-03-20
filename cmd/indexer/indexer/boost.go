@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/index"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -41,6 +42,7 @@ import (
 	pgTransfer "github.com/baking-bad/bcdhub/internal/postgres/transfer"
 	pgTZIP "github.com/baking-bad/bcdhub/internal/postgres/tzip"
 	"github.com/baking-bad/bcdhub/internal/rollback"
+	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/pkg/errors"
 )
 
@@ -50,6 +52,7 @@ var errSameLevel = errors.New("Same level")
 
 // BoostIndexer -
 type BoostIndexer struct {
+	Searcher      search.Searcher
 	Storage       models.GeneralRepository
 	BigMapActions bigmapaction.Repository
 	BigMapDiffs   bigmapdiff.Repository
@@ -148,9 +151,8 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 		noderpc.WithTimeout(time.Duration(rpcProvider.Timeout)*time.Second),
 	)
 
-	messageQueue := mq.New(cfg.RabbitMQ.URI, cfg.Indexer.ProjectName, cfg.Indexer.MQ.NeedPublisher, 10)
-
 	bi := &BoostIndexer{
+		Searcher:      elastic.WaitNew(cfg.Storage.Elastic, 10),
 		Storage:       pg,
 		BigMapActions: pgBigMapAction.NewStorage(pg),
 		BigMapDiffs:   pgBigMapDiff.NewStorage(pg),
@@ -165,7 +167,7 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 		TZIP:          pgTZIP.NewStorage(pg),
 		Network:       network,
 		rpc:           rpc,
-		messageQueue:  messageQueue,
+		messageQueue:  mq.New(cfg.RabbitMQ.URI, cfg.Indexer.ProjectName, cfg.Indexer.MQ.NeedPublisher, 10),
 		stop:          make(chan struct{}),
 		cfg:           cfg,
 	}
@@ -376,7 +378,7 @@ func (bi *BoostIndexer) Rollback() error {
 		return err
 	}
 
-	manager := rollback.NewManager(bi.Storage, bi.Contracts, bi.Operations, bi.Transfers, bi.TokenBalances, bi.Protocols, bi.rpc, bi.cfg.SharePath)
+	manager := rollback.NewManager(bi.Searcher, bi.Storage, bi.Contracts, bi.Operations, bi.Transfers, bi.TokenBalances, bi.Protocols, bi.rpc, bi.cfg.SharePath)
 	if err := manager.Rollback(bi.state, lastLevel); err != nil {
 		return err
 	}

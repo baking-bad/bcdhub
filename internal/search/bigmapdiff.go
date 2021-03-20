@@ -56,14 +56,14 @@ func (b BigMapDiff) GetFields() []string {
 }
 
 // Parse  -
-func (b BigMapDiff) Parse(highlight map[string][]string, data []byte) (interface{}, error) {
+func (b BigMapDiff) Parse(highlight map[string][]string, data []byte) (*Item, error) {
 	if err := json.Unmarshal(data, &b); err != nil {
 		return nil, err
 	}
-	return Item{
+	return &Item{
 		Type:       b.GetIndex(),
 		Value:      b.KeyHash,
-		Body:       b,
+		Body:       &b,
 		Highlights: highlight,
 		Network:    b.Network,
 	}, nil

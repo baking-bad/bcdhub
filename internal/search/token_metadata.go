@@ -54,14 +54,14 @@ func (t Token) GetFields() []string {
 }
 
 // Parse  -
-func (t Token) Parse(highlight map[string][]string, data []byte) (interface{}, error) {
+func (t Token) Parse(highlight map[string][]string, data []byte) (*Item, error) {
 	if err := json.Unmarshal(data, &t); err != nil {
 		return nil, err
 	}
-	return Item{
+	return &Item{
 		Type:       t.GetIndex(),
 		Value:      t.Contract,
-		Body:       t,
+		Body:       &t,
 		Highlights: highlight,
 		Network:    t.Network,
 	}, nil

@@ -31,6 +31,9 @@ type Contract struct {
 	FoundBy       string `json:"found_by,omitempty"`
 	Alias         string `json:"alias,omitempty"`
 	DelegateAlias string `json:"delegate_alias,omitempty"`
+
+	TxCount    *int64     `json:"tx_count,omitempty"`
+	LastAction *time.Time `json:"last_action,omitempty"`
 }
 
 // GetID -
@@ -90,14 +93,14 @@ func (c Contract) GetFields() []string {
 }
 
 // Parse  -
-func (c Contract) Parse(highlight map[string][]string, data []byte) (interface{}, error) {
+func (c Contract) Parse(highlight map[string][]string, data []byte) (*Item, error) {
 	if err := json.Unmarshal(data, &c); err != nil {
 		return nil, err
 	}
-	return Item{
+	return &Item{
 		Type:       c.GetIndex(),
 		Value:      c.Address,
-		Body:       c,
+		Body:       &c,
 		Highlights: highlight,
 		Network:    c.Network,
 	}, nil

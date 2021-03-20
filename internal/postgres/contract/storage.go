@@ -143,7 +143,8 @@ func (storage *Storage) GetProjectsLastContract(c *contract.Contract, size, offs
 		Where(subQuery).
 		Group("project_id").
 		Limit(limit).
-		Offset(int(offset))
+		Offset(int(offset)).
+		Order("id desc")
 
 	err = storage.DB.Table(models.DocContracts).Where("id IN (?)", query).Find(&response).Error
 	return

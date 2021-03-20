@@ -46,7 +46,7 @@ func (h *Handler) SetContractProjectID(c *contract.Contract) error {
 		if err != nil {
 			return err
 		}
-		end = len(buckets) == 0
+		end = len(buckets) < int(size)
 
 		if !end {
 			c.ProjectID = getContractProjectID(*c, buckets)

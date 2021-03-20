@@ -2,9 +2,9 @@ package search
 
 // Result -
 type Result struct {
-	Count int64  `json:"count"`
-	Time  int64  `json:"time"`
-	Items []Item `json:"items"`
+	Count int64   `json:"count"`
+	Time  int64   `json:"time"`
+	Items []*Item `json:"items"`
 }
 
 // Item -

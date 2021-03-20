@@ -38,11 +38,11 @@ func (h *Handler) SetOperationAliases(op *operation.Operation, aliases map[strin
 
 // SetOperationStrings -
 func (h *Handler) SetOperationStrings(op *operation.Operation) {
-	ps, err := getStrings([]byte(op.Parameters))
+	ps, err := getStrings(op.Parameters)
 	if err == nil {
 		op.ParameterStrings = ps
 	}
-	ss, err := getStrings([]byte(op.DeffatedStorage))
+	ss, err := getStrings(op.DeffatedStorage)
 	if err == nil {
 		op.StorageStrings = ss
 	}

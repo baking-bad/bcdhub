@@ -44,14 +44,14 @@ func (d Domain) GetFields() []string {
 }
 
 // Parse  -
-func (d Domain) Parse(highlight map[string][]string, data []byte) (interface{}, error) {
+func (d Domain) Parse(highlight map[string][]string, data []byte) (*Item, error) {
 	if err := json.Unmarshal(data, &d); err != nil {
 		return nil, err
 	}
-	return Item{
+	return &Item{
 		Type:       d.GetIndex(),
 		Value:      d.Address,
-		Body:       d,
+		Body:       &d,
 		Highlights: highlight,
 		Network:    d.Network,
 	}, nil

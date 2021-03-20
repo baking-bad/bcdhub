@@ -21,9 +21,9 @@ type Operation struct {
 
 	Network  string `json:"network"`
 	Protocol string `json:"protocol"`
-	Hash     string `json:"hash" gorm:"index:idx_hash_counter_nonce"`
-	Counter  int64  `json:"counter,omitempty"  gorm:"index:idx_hash_counter_nonce"`
-	Nonce    *int64 `json:"nonce,omitempty" gorm:"index:idx_hash_counter_nonce"`
+	Hash     string `json:"hash"`
+	Counter  int64  `json:"counter,omitempty"`
+	Nonce    *int64 `json:"nonce,omitempty"`
 	Internal bool   `json:"internal" gorm:",default:false"`
 
 	Status           string    `json:"status"`

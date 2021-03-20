@@ -128,8 +128,8 @@ func prepareFilters(filters map[string]interface{}, query *reindexer.Query) erro
 	return nil
 }
 
-func parseSearchResponse(it *reindexer.Iterator) ([]search.Item, error) {
-	items := make([]search.Item, 0)
+func parseSearchResponse(it *reindexer.Iterator) ([]*search.Item, error) {
+	items := make([]*search.Item, 0)
 	for it.Next() {
 		searchItem := search.Item{}
 
@@ -162,7 +162,7 @@ func parseSearchResponse(it *reindexer.Iterator) ([]search.Item, error) {
 			return nil, errors.Errorf("Unknown search type")
 		}
 
-		items = append(items, searchItem)
+		items = append(items, &searchItem)
 	}
 	return items, nil
 }

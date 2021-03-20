@@ -18,7 +18,7 @@ type Scorable interface {
 	GetFields() []string
 	GetIndex() string
 	GetScores(string) []string
-	Parse(highlight map[string][]string, data []byte) (interface{}, error)
+	Parse(highlight map[string][]string, data []byte) (*Item, error)
 }
 
 // Indices - list of indices availiable to search

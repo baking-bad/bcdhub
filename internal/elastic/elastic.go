@@ -322,7 +322,6 @@ func (e *Elastic) DeleteIndices(indices []string) error {
 }
 
 // DeleteByContract -
-// TODO - delete context
 func (e *Elastic) DeleteByContract(indices []string, network, address string) error {
 	filters := make([]Item, 0)
 	if network != "" {

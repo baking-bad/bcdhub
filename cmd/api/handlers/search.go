@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -50,11 +49,13 @@ func (ctx *Context) Search(c *gin.Context) {
 	}
 
 	if result.Count == 0 {
-		item, err := ctx.searchInMempool(req.Text)
-		if err == nil {
+		item := ctx.searchInMempool(req.Text)
+		if item != nil {
 			result.Items = append(result.Items, item)
 			result.Count++
 		}
+	} else {
+		ctx.searchPostprocessing(&result)
 	}
 
 	c.JSON(http.StatusOK, result)
@@ -102,21 +103,38 @@ var indicesMap = map[string]string{
 	"tezos_domain":   models.DocTezosDomains,
 }
 
-func (ctx *Context) searchInMempool(q string) (search.Item, error) {
+func (ctx *Context) searchInMempool(q string) *search.Item {
 	if _, err := forge.UnforgeOpgHash(q); err != nil {
-		return search.Item{}, err
+		return nil
 	}
 
 	if operation := ctx.getOperationFromMempool(q); operation != nil {
-		return search.Item{
+		return &search.Item{
 			Type:  models.DocOperations,
 			Value: operation.Hash,
 			Body:  operation,
 			Highlights: map[string][]string{
 				"hash": {operation.Hash},
 			},
-		}, nil
+		}
 	}
 
-	return search.Item{}, fmt.Errorf("Operation not found")
+	return nil
+}
+
+func (ctx *Context) searchPostprocessing(result *search.Result) {
+	for i := range result.Items {
+		cont, ok := result.Items[i].Body.(*search.Contract)
+		if !ok {
+			continue
+		}
+		enity, err := ctx.Contracts.Get(cont.Network, cont.Address)
+		if err != nil {
+			continue
+		}
+
+		ts := enity.LastAction.UTC()
+		cont.TxCount = &enity.TxCount
+		cont.LastAction = &ts
+	}
 }

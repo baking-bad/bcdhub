@@ -10,11 +10,13 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/pkg/errors"
 )
 
 // Manager -
 type Manager struct {
+	searcher      search.Searcher
 	storage       models.GeneralRepository
 	contractsRepo contract.Repository
 	operationRepo operation.Repository
@@ -26,9 +28,9 @@ type Manager struct {
 }
 
 // NewManager -
-func NewManager(storage models.GeneralRepository, contractsRepo contract.Repository, operationRepo operation.Repository, transfersRepo transfer.Repository, tbRepo tokenbalance.Repository, protocolsRepo protocol.Repository, rpc noderpc.INode, sharePath string) Manager {
+func NewManager(searcher search.Searcher, storage models.GeneralRepository, contractsRepo contract.Repository, operationRepo operation.Repository, transfersRepo transfer.Repository, tbRepo tokenbalance.Repository, protocolsRepo protocol.Repository, rpc noderpc.INode, sharePath string) Manager {
 	return Manager{
-		storage, contractsRepo, operationRepo, transfersRepo, tbRepo, protocolsRepo, rpc, sharePath,
+		searcher, storage, contractsRepo, operationRepo, transfersRepo, tbRepo, protocolsRepo, rpc, sharePath,
 	}
 }
 
@@ -56,7 +58,7 @@ func (rm Manager) Rollback(fromState block.Block, toLevel int64) error {
 		return err
 	}
 
-	return nil
+	return rm.searcher.Rollback(fromState.Network, toLevel)
 }
 
 func (rm Manager) rollbackTokenBalances(network string, toLevel int64) error {
