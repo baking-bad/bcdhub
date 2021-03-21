@@ -4,37 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/getsentry/sentry-go"
 )
-
-// SetOperationAliases -
-func (h *Handler) SetOperationAliases(op *operation.Operation, aliases map[string]string) (bool, error) {
-	var changed bool
-
-	if op.Network != consts.Mainnet || len(aliases) == 0 {
-		return false, nil
-	}
-
-	if srcAlias, ok := aliases[op.Source]; ok {
-		op.SourceAlias = srcAlias
-		changed = true
-	}
-
-	if dstAlias, ok := aliases[op.Destination]; ok {
-		op.DestinationAlias = dstAlias
-		changed = true
-	}
-
-	if dlgtAlias, ok := aliases[op.Delegate]; ok {
-		op.DelegateAlias = dlgtAlias
-		changed = true
-	}
-
-	return changed, nil
-}
 
 // SetOperationStrings -
 func (h *Handler) SetOperationStrings(op *operation.Operation) {

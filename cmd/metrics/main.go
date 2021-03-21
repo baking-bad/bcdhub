@@ -6,20 +6,16 @@ import (
 	"runtime"
 	"sync"
 	"syscall"
-	"time"
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/mq"
-	"github.com/karlseguin/ccache"
 	"github.com/pkg/errors"
 )
 
 // Context -
 type Context struct {
-	Cache               *ccache.Cache
-	AliasesCacheSeconds time.Duration
 	*config.Context
 }
 
@@ -41,38 +37,35 @@ func listenChannel(messageQueue mq.IMessageReceiver, queue string, closeChan cha
 
 	msgs, err := messageQueue.Consume(queue)
 	if err != nil {
-		panic(err)
+		logger.Error(err)
+		return
 	}
 
 	logger.Info("Connected to %s queue", queue)
 	for {
 		select {
 		case <-closeChan:
-			if manager, ok := managers[queue]; ok {
-				manager.Stop()
-				wg.Done()
-			}
 			logger.Info("Stopped %s queue", queue)
 			return
 		case msg := <-msgs:
-			if manager, ok := managers[msg.GetKey()]; ok {
+			if manager, ok := managers[msg.RoutingKey]; ok {
 				manager.Add(msg)
 				continue
 			}
 
-			if msg.GetKey() == "" {
+			if msg.RoutingKey == "" {
 				logger.Warning("[%s] Rabbit MQ server stopped! Metrics service need to be restarted. Closing connection...", queue)
 				return
 			}
-			logger.Errorf("Unknown data routing key %s", msg.GetKey())
+			logger.Errorf("Unknown data routing key %s", msg.RoutingKey)
 			helpers.LocalCatchErrorSentry(localSentry, errors.Errorf("[listenChannel] %s", err.Error()))
 		}
 	}
 }
 
 func main() {
-	logger.Warning("Metrics started on 5 CPU cores")
-	runtime.GOMAXPROCS(5)
+	logger.Warning("Metrics started on 3 CPU cores")
+	runtime.GOMAXPROCS(3)
 
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
@@ -98,9 +91,7 @@ func main() {
 	defer configCtx.Close()
 
 	ctx = Context{
-		Cache:               ccache.New(ccache.Configure().MaxSize(10)),
-		AliasesCacheSeconds: time.Second * time.Duration(configCtx.Config.Metrics.CacheAliasesSeconds),
-		Context:             configCtx,
+		Context: configCtx,
 	}
 
 	if err := ctx.Searcher.CreateIndexes(); err != nil {
@@ -113,24 +104,17 @@ func main() {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
-		<-signals
-		for range ctx.MQ.GetQueues() {
-			closeChan <- struct{}{}
-		}
-	}()
-
 	for _, queue := range ctx.MQ.GetQueues() {
 		if handler, ok := handlers[queue]; ok {
-			managers[queue] = NewBulkManager(30, 10, handler)
-			wg.Add(1)
-			go managers[queue].Run()
+			managers[queue] = NewBulkManager(50, 10, handler)
 		}
 		wg.Add(1)
 		go listenChannel(ctx.MQ, queue, closeChan, &wg)
+	}
+
+	<-signals
+	for range ctx.MQ.GetQueues() {
+		closeChan <- struct{}{}
 	}
 
 	wg.Wait()

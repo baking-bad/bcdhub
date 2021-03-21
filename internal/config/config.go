@@ -64,6 +64,10 @@ type Config struct {
 		Networks []string  `yaml:"networks"`
 		MQ       MQConfig  `yaml:"mq"`
 	} `yaml:"scripts"`
+
+	GraphQL struct {
+		DB string `yaml:"db"`
+	} `yaml:"graphql"`
 }
 
 // RPCConfig -
@@ -194,6 +198,7 @@ type QueueParams struct {
 	NonDurable  bool `yaml:"non_durable"`
 	AutoDeleted bool `yaml:"auto_deleted"`
 	TTLSeconds  uint `yaml:"ttl_seconds"`
+	Lazy        bool `yaml:"lazy"`
 }
 
 // TezosDomainsConfig -

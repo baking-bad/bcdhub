@@ -29,7 +29,8 @@ func (storage *Storage) CurrentByKey(network, keyHash string, ptr int64) (data b
 		Scopes(core.Network(network), core.OrderByLevelDesc).
 		Where("key_hash = ?", keyHash).
 		Where("ptr = ?", ptr).
-		First(&data).
+		Limit(1).
+		Scan(&data).
 		Error
 
 	return

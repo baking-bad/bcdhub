@@ -42,6 +42,7 @@ require (
 	github.com/nats-io/nats-server/v2 v2.1.9 // indirect
 	github.com/nats-io/nats.go v1.10.0
 	github.com/pkg/errors v0.9.1
+	github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7
 	github.com/restream/reindexer v3.0.0+incompatible
 	github.com/schollz/progressbar/v3 v3.1.1
 	github.com/sergi/go-diff v1.1.0

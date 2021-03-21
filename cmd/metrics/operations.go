@@ -36,14 +36,6 @@ func getOperation(ids []int64) error {
 func parseOperation(operation operation.Operation) error {
 	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.DB)
 
-	aliases, err := getAliases(operation.Network)
-	if err != nil {
-		return err
-	}
-
-	if _, err := h.SetOperationAliases(&operation, aliases); err != nil {
-		return err
-	}
 	h.SetOperationStrings(&operation)
 
 	if bcd.IsContract(operation.Destination) || operation.IsOrigination() {

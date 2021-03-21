@@ -123,8 +123,11 @@ metrics:
     publisher: false
     queues:
       operations:
+        lazy: true
       contracts:
+        lazy: true
       bigmapdiffs:
+        lazy: true
 
 scripts:
   aws:
@@ -138,3 +141,6 @@ scripts:
     - florencenet
   mq:
     publisher: true
+
+graphql:
+  db: "host=db port=5432 user=graphql dbname=indexer password=${POSTGRES_GRAPHQL} sslmode=disable"

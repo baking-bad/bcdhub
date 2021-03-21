@@ -1,38 +1,12 @@
 package metrics
 
 import (
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 
 	"github.com/baking-bad/bcdhub/internal/classification/functions"
 	clmetrics "github.com/baking-bad/bcdhub/internal/classification/metrics"
 )
-
-// SetContractAlias -
-func (h *Handler) SetContractAlias(c *contract.Contract, aliases map[string]string) (bool, error) {
-	var changed bool
-
-	if c.Network != consts.Mainnet || len(aliases) == 0 {
-		return false, nil
-	}
-
-	if c.Alias != "" && (c.Delegate != "" || c.DelegateAlias != "") {
-		return false, nil
-	}
-
-	if alias, ok := aliases[c.Address]; ok && c.Alias == "" {
-		c.Alias = alias
-		changed = true
-	}
-
-	if alias, ok := aliases[c.Delegate]; c.Delegate != "" && c.DelegateAlias == "" && ok {
-		c.DelegateAlias = alias
-		changed = true
-	}
-
-	return changed, nil
-}
 
 // SetContractProjectID -
 func (h *Handler) SetContractProjectID(c *contract.Contract) error {

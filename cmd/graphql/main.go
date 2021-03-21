@@ -6,13 +6,14 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"os"
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/dosco/graphjin/core"
-	"github.com/go-chi/chi"
-	"github.com/go-chi/render"
+	"github.com/gin-gonic/gin"
 	_ "github.com/jackc/pgx/v4/stdlib"
+	"github.com/jinzhu/gorm"
 )
 
 type request struct {
@@ -20,30 +21,50 @@ type request struct {
 	Variables json.RawMessage `json:"variables,omitempty"`
 }
 
-func graphqlHandler(graphjinn *core.GraphJin) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		body, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		var req request
-		if err := json.Unmarshal(body, &req); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		ctx := context.WithValue(r.Context(), core.UserIDKey, 0)
-
-		res, err := graphjinn.GraphQL(ctx, req.Query, req.Variables, nil)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		render.JSON(w, r, res)
+func (ctx *apiContext) graphqlHandler(c *gin.Context) {
+	var req request
+	if err := c.BindJSON(&req); handleError(c, err) {
+		return
 	}
+
+	res, err := ctx.graphjin.GraphQL(context.Background(), req.Query, req.Variables, nil)
+	if handleError(c, err) {
+		return
+	}
+
+	c.JSON(http.StatusOK, res)
+}
+
+func handleError(c *gin.Context, err error) bool {
+	if err == nil {
+		return false
+	}
+
+	c.JSON(http.StatusBadRequest, gin.H{
+		"message": err.Error(),
+	})
+
+	return true
+}
+
+type apiContext struct {
+	graphjin *core.GraphJin
+}
+
+func initUser(connection string) error {
+	data, err := ioutil.ReadFile("init.sql")
+	if err != nil {
+		return err
+	}
+
+	expanded := os.ExpandEnv(string(data))
+	root, err := gorm.Open("postgres", connection)
+	if err != nil {
+		return err
+	}
+	defer root.Close()
+
+	return root.Raw(expanded).Error
 }
 
 func main() {
@@ -52,21 +73,38 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	db, err := sql.Open("pgx", cfg.Storage.Postgres)
+	if err := initUser(cfg.Storage.Postgres); err != nil {
+		logger.Fatal(err)
+	}
+
+	db, err := sql.Open("pgx", cfg.GraphQL.DB)
 	if err != nil {
-		panic(err)
+		logger.Fatal(err)
+	}
+	defer db.Close()
+
+	var production bool
+	if env := os.Getenv(config.EnvironmentVar); env == config.EnvironmentProd {
+		production = true
 	}
 
 	graphjin, err := core.NewGraphJin(&core.Config{
-		Debug: true,
+		Production: production,
+		Debug:      true,
 	}, db)
 	if err != nil {
-		panic(err)
+		logger.Fatal(err)
 	}
 
-	r := chi.NewRouter()
+	ctx := apiContext{
+		graphjin,
+	}
+	r := gin.New()
 
-	r.Post("/api", graphqlHandler(graphjin))
+	r.Use(gin.Recovery())
+	r.Use(gin.Logger())
+
+	r.POST("/api", ctx.graphqlHandler)
 
 	http.ListenAndServe(":3000", r)
 }

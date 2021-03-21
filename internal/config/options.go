@@ -101,6 +101,7 @@ func WithRabbit(rabbitConfig RabbitConfig, service string, mqConfig MQConfig) Co
 				Name:       name,
 				AutoDelete: params.AutoDeleted,
 				Durable:    !params.NonDurable,
+				Lazy:       params.Lazy,
 			}
 
 			if params.TTLSeconds > 0 {

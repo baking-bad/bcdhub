@@ -18,7 +18,6 @@ import (
 
 // CreateTokenMetadata -
 func (h *Handler) CreateTokenMetadata(rpc noderpc.INode, sharePath string, c *contract.Contract, ipfs ...string) error {
-
 	result := make([]models.Model, 0)
 
 	transfers, err := h.ExecuteInitialStorageEvent(rpc, c.Network, c.Address)
@@ -77,6 +76,10 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, network, contrac
 		}
 		return nil, err
 	}
+	if len(tzip.Events) == 0 {
+		return nil, nil
+	}
+
 	ops, err := h.Operations.Get(map[string]interface{}{
 		"destination": contract,
 		"network":     network,
