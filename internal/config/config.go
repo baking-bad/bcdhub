@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"regexp"
 
 	"gopkg.in/yaml.v2"
 )
@@ -232,11 +233,27 @@ func LoadConfig(filename string) (Config, error) {
 		return config, fmt.Errorf("reading file %s error: %w", filename, err)
 	}
 
-	expanded := os.ExpandEnv(string(src))
+	expanded := expandEnv(string(src))
 
 	if err := yaml.Unmarshal([]byte(expanded), &config); err != nil {
 		return config, fmt.Errorf("unmarshaling configuration file %s error: %w", filename, err)
 	}
 
 	return config, nil
+}
+
+var defaultEnv = regexp.MustCompile(`\${(?P<name>[\w\.]{1,}):-(?P<value>[\w\.]*)}`)
+
+func expandEnv(data string) string {
+	vars := defaultEnv.FindAllStringSubmatch(data, -1)
+	data = defaultEnv.ReplaceAllString(data, `${$name}`)
+
+	for i := range vars {
+		if _, ok := os.LookupEnv(vars[i][1]); !ok {
+			os.Setenv(vars[i][1], vars[i][2])
+		}
+	}
+
+	data = os.ExpandEnv(data)
+	return data
 }

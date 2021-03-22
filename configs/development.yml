@@ -23,7 +23,7 @@ tzkt:
 
 storage:
   uri:
-    - http://127.0.0.1:9200
+    - http://${ELASTIC_HOSTNAME:-127.0.0.1}:9200
   timeout: 10
 
 rabbitmq:
@@ -31,7 +31,7 @@ rabbitmq:
   timeout: 10
 
 db:
-  conn_string: "host=127.0.0.1 port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"
+  conn_string: "host=${DB_HOSTNAME:-127.0.0.1} port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"
   timeout: 10
 
 oauth:
