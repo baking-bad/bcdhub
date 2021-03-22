@@ -611,6 +611,7 @@ type ConfigResponse struct {
 	GaEnabled      bool              `json:"ga_enabled"`
 	MempoolEnabled bool              `json:"mempool_enabled"`
 	SandboxMode    bool              `json:"sandbox_mode"`
+	MaxPageSize    int64             `json:"max_page_size"`
 }
 
 // DApp -

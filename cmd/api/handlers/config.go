@@ -27,6 +27,7 @@ func (ctx *Context) GetConfig(c *gin.Context) {
 		GaEnabled:      ctx.Config.API.Frontend.GaEnabled,
 		MempoolEnabled: ctx.Config.API.Frontend.MempoolEnabled,
 		SandboxMode:    ctx.Config.API.Frontend.SandboxMode,
+		MaxPageSize:    10,
 	}
 
 	if ctx.Config.API.SentryEnabled {
