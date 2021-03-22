@@ -1,8 +1,6 @@
 package operations
 
 import (
-	"time"
-
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
@@ -51,7 +49,6 @@ func (p Transaction) Parse(data noderpc.Operation) ([]models.Model, error) {
 		Delegate:     data.Delegate,
 		Nonce:        data.Nonce,
 		Parameters:   data.Parameters,
-		IndexedTime:  time.Now().UnixNano() / 1000,
 		ContentIndex: p.contentIdx,
 	}
 

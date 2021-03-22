@@ -68,7 +68,6 @@ func TestMigration_Parse(t *testing.T) {
 			}
 			if tt.want != nil {
 				tt.want.ID = got.ID
-				tt.want.IndexedTime = got.IndexedTime
 			}
 			assert.Equal(t, tt.want, got)
 		})

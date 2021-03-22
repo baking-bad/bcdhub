@@ -70,7 +70,7 @@ func (td *TezosDomain) getBigMapDiff(bmd *bigmapdiff.BigMapDiff) (*bigmapdiff.Bi
 		return nil, nil
 	}
 	address := contract.Address{
-		Address: bmd.Address,
+		Address: bmd.Contract,
 		Network: bmd.Network,
 	}
 	if _, ok := td.contracts[address]; !ok {

@@ -77,7 +77,7 @@ func (b *BigMapDiff) Prepare(model models.Model) {
 	}
 
 	b.ID = helpers.GenerateID()
-	b.Address = bmd.Address
+	b.Address = bmd.Contract
 
 	var data ast.UntypedAST
 	if err := json.Unmarshal(bmd.Key, &data); err != nil {

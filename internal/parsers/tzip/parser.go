@@ -76,7 +76,7 @@ func (p *Parser) Parse(ctx ParseContext) (*tzip.TZIP, error) {
 
 	data := new(bufTzip)
 	s := tzipStorage.NewFull(p.bigMapRepo, p.blocksRepo, p.storage, p.rpc, p.cfg.SharePath, p.cfg.IPFSGateways...)
-	if err := s.Get(ctx.BigMapDiff.Network, ctx.BigMapDiff.Address, decoded, ctx.BigMapDiff.Ptr, data); err != nil {
+	if err := s.Get(ctx.BigMapDiff.Network, ctx.BigMapDiff.Contract, decoded, ctx.BigMapDiff.Ptr, data); err != nil {
 		switch {
 		case errors.Is(err, tzipStorage.ErrHTTPRequest) || errors.Is(err, tzipStorage.ErrJSONDecoding) || errors.Is(err, tzipStorage.ErrUnknownStorageType):
 			logger.With(&ctx.BigMapDiff).Warning(err)
@@ -92,7 +92,7 @@ func (p *Parser) Parse(ctx ParseContext) (*tzip.TZIP, error) {
 		return nil, nil
 	}
 
-	data.Address = ctx.BigMapDiff.Address
+	data.Address = ctx.BigMapDiff.Contract
 	data.Network = ctx.BigMapDiff.Network
 	data.Level = ctx.BigMapDiff.Level
 	data.Timestamp = ctx.BigMapDiff.Timestamp

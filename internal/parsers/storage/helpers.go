@@ -23,10 +23,9 @@ func prepareBigMapDiffsToEnrich(bmd []bigmapdiff.BigMapDiff, skipEmpty bool) []*
 			OperationCounter: bmd[i].OperationCounter,
 			OperationNonce:   bmd[i].OperationNonce,
 			Level:            bmd[i].Level,
-			Address:          bmd[i].Address,
+			Address:          bmd[i].Contract,
 			Network:          bmd[i].Network,
 			Timestamp:        bmd[i].Timestamp,
-			IndexedTime:      bmd[i].IndexedTime,
 			Protocol:         bmd[i].Protocol,
 		})
 	}
@@ -46,10 +45,9 @@ func getBigMapDiffModels(bmd []*types.BigMapDiff) []bigmapdiff.BigMapDiff {
 			OperationCounter: bmd[i].OperationCounter,
 			OperationNonce:   bmd[i].OperationNonce,
 			Level:            bmd[i].Level,
-			Address:          bmd[i].Address,
+			Contract:         bmd[i].Address,
 			Network:          bmd[i].Network,
 			Timestamp:        bmd[i].Timestamp,
-			IndexedTime:      bmd[i].IndexedTime,
 			Protocol:         bmd[i].Protocol,
 		})
 	}

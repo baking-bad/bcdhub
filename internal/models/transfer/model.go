@@ -18,7 +18,6 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 // Transfer -
 type Transfer struct {
 	ID           int64     `json:"-"`
-	IndexedTime  int64     `json:"indexed_time"`
 	Network      string    `json:"network"`
 	Contract     string    `json:"contract"`
 	Initiator    string    `json:"initiator"`
@@ -71,7 +70,6 @@ func (t *Transfer) LogFields() logrus.Fields {
 // EmptyTransfer -
 func EmptyTransfer(o operation.Operation) *Transfer {
 	return &Transfer{
-		IndexedTime:  o.IndexedTime,
 		Network:      o.Network,
 		Contract:     o.Destination,
 		Hash:         o.Hash,

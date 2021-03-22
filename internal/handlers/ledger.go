@@ -100,7 +100,7 @@ func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *as
 		Network:  bmd.Network,
 		Address:  balance[0].Address,
 		TokenID:  balance[0].TokenID,
-		Contract: bmd.Address,
+		Contract: bmd.Contract,
 		Value:    balance[0].Value,
 	}
 
@@ -139,7 +139,7 @@ func (ledger *Ledger) buildElt(bmd *bigmapdiff.BigMapDiff) ([]byte, error) {
 }
 
 func (ledger *Ledger) findLedgerBigMap(bmd *bigmapdiff.BigMapDiff) (*ast.BigMap, error) {
-	data, err := fetch.Contract(bmd.Address, bmd.Network, bmd.Protocol, ledger.sharePath)
+	data, err := fetch.Contract(bmd.Contract, bmd.Network, bmd.Protocol, ledger.sharePath)
 	if err != nil {
 		return nil, err
 	}

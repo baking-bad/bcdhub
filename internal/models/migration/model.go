@@ -9,9 +9,7 @@ import (
 
 // Migration -
 type Migration struct {
-	ID          int64 `json:"-"`
-	IndexedTime int64 `json:"indexed_time"`
-
+	ID           int64     `json:"-"`
 	Network      string    `json:"network"`
 	Protocol     string    `json:"protocol"`
 	PrevProtocol string    `json:"prev_protocol,omitempty"`

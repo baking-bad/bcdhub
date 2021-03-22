@@ -16,10 +16,24 @@ func Address(address string) func(db *gorm.DB) *gorm.DB {
 	}
 }
 
+// Contract -
+func Contract(address string) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("contract = ?", address)
+	}
+}
+
 // NetworkAndAddress -
 func NetworkAndAddress(network, address string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("network = ?", network).Where("address = ?", address)
+	}
+}
+
+// NetworkAndContract -
+func NetworkAndContract(network, address string) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("network = ?", network).Where("contract = ?", address)
 	}
 }
 

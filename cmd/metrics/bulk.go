@@ -36,6 +36,15 @@ func (bm *BulkManager) Add(data amqp.Delivery) {
 	}
 }
 
+// Exec -
+func (bm *BulkManager) Exec() {
+	if len(bm.queue) == 0 {
+		return
+	}
+	force := bm.lastAction.IsZero() || time.Since(bm.lastAction) > bm.timeout
+	bm.process(force)
+}
+
 func (bm *BulkManager) process(force bool) bool {
 	execute := len(bm.queue) == cap(bm.queue) || (force && len(bm.queue) > 0)
 	if !execute {

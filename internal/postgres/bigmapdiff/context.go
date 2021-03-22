@@ -1,21 +1,20 @@
 package bigmapdiff
 
 import (
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"gorm.io/gorm"
 )
 
-func buildGetContext(query *gorm.DB, ctx bigmapdiff.GetContext, withGroup bool) {
-	if query == nil {
-		return
-	}
+func (storage *Storage) buildGetContext(ctx bigmapdiff.GetContext) *gorm.DB {
+	query := storage.DB.Table(models.DocBigMapDiff).Select("max(id) as id, count(id) as keys_count")
 
 	if ctx.Network != "" {
 		query.Where("network = ?", ctx.Network)
 	}
 	if ctx.Contract != "" {
-		query.Where("address = ?", ctx.Contract)
+		query.Where("contract = ?", ctx.Contract)
 	}
 	if ctx.Ptr != nil {
 		query.Where("ptr = ?", *ctx.Ptr)
@@ -33,17 +32,12 @@ func buildGetContext(query *gorm.DB, ctx bigmapdiff.GetContext, withGroup bool) 
 		query.Where("key_hash LIKE %?%", ctx.Query)
 	}
 
-	if ctx.Size > 0 {
-		size := core.GetPageSize(ctx.Size)
-		query.Limit(int(size))
-	}
+	size := core.GetPageSize(ctx.Size)
+	query.Limit(int(size))
 
 	if ctx.Offset > 0 {
 		query.Offset(int(ctx.Offset))
 	}
 
-	if withGroup {
-		query.Group("key_hash")
-	}
-	query.Order("indexed_time desc")
+	return query.Group("key_hash").Order("id desc")
 }

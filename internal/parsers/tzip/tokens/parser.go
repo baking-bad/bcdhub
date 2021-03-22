@@ -54,7 +54,7 @@ func (t Parser) ParseBigMapDiff(bmd *bigmapdiff.BigMapDiff) ([]tokenmetadata.Tok
 }
 
 func (t Parser) parseBigMapDiff(bmd *bigmapdiff.BigMapDiff, state block.Block) ([]tokenmetadata.TokenMetadata, error) {
-	if _, err := storage.GetBigMapPtr(t.rpc, bmd.Address, TokenMetadataStorageKey, state.Network, state.Protocol, t.sharePath, bmd.Level); err != nil {
+	if _, err := storage.GetBigMapPtr(t.rpc, bmd.Contract, TokenMetadataStorageKey, state.Network, state.Protocol, t.sharePath, bmd.Level); err != nil {
 		if !errors.Is(err, storage.ErrBigMapNotFound) {
 			return nil, err
 		}
@@ -63,7 +63,7 @@ func (t Parser) parseBigMapDiff(bmd *bigmapdiff.BigMapDiff, state block.Block) (
 
 	m := new(TokenMetadata)
 	value := gjson.ParseBytes(bmd.Value)
-	if err := m.Parse(value, bmd.Address, bmd.Ptr); err != nil {
+	if err := m.Parse(value, bmd.Contract, bmd.Ptr); err != nil {
 		return nil, nil
 	}
 	m.Timestamp = bmd.Timestamp
@@ -73,7 +73,7 @@ func (t Parser) parseBigMapDiff(bmd *bigmapdiff.BigMapDiff, state block.Block) (
 		s := tzipStorage.NewFull(t.bmdRepo, t.blocksRepo, t.storage, t.rpc, t.sharePath, t.ipfs...)
 
 		remoteMetadata := &TokenMetadata{}
-		if err := s.Get(t.network, bmd.Address, m.Link, bmd.Ptr, remoteMetadata); err != nil {
+		if err := s.Get(t.network, bmd.Contract, m.Link, bmd.Ptr, remoteMetadata); err != nil {
 			switch {
 			case errors.Is(err, tzipStorage.ErrHTTPRequest):
 				logger.Error(err)
@@ -88,7 +88,7 @@ func (t Parser) parseBigMapDiff(bmd *bigmapdiff.BigMapDiff, state block.Block) (
 		m.Merge(remoteMetadata)
 	}
 
-	return []tokenmetadata.TokenMetadata{m.ToModel(bmd.Address, t.network)}, nil
+	return []tokenmetadata.TokenMetadata{m.ToModel(bmd.Contract, t.network)}, nil
 }
 
 func (t Parser) parse(address string, state block.Block) ([]tokenmetadata.TokenMetadata, error) {

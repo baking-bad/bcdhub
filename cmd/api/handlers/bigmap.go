@@ -38,57 +38,66 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 	}
 
 	res := GetBigMapResponse{
-		Network: req.Network,
-		Ptr:     req.Ptr,
+		Network:    req.Network,
+		Ptr:        req.Ptr,
+		Address:    stats.Contract,
+		TotalKeys:  uint(stats.Total),
+		ActiveKeys: uint(stats.Active),
 	}
 
-	if stats.Total > 0 {
-		res.Address = stats.Address
-		res.TotalKeys = uint(stats.Total)
-		res.ActiveKeys = uint(stats.Active)
+	script, err := ctx.getScript(res.Address, res.Network, "")
+	if ctx.handleError(c, err, 0) {
+		return
+	}
+	storage, err := script.StorageType()
+	if ctx.handleError(c, err, 0) {
+		return
+	}
+	ops, err := ctx.Operations.Get(map[string]interface{}{
+		"network":     res.Network,
+		"destination": res.Address,
+		"status":      consts.Applied,
+	}, 1, true)
+	if ctx.handleError(c, err, 0) {
+		return
+	}
+	if len(ops) == 1 {
+		symLink, err := bcd.GetProtoSymLink(ops[0].Protocol)
+		if ctx.handleError(c, err, 0) {
+			return
+		}
 
-		script, err := ctx.getScript(stats.Address, req.Network, stats.Protocol)
-		if ctx.handleError(c, err, 0) {
-			return
-		}
-		storage, err := script.StorageType()
-		if ctx.handleError(c, err, 0) {
-			return
-		}
-		ops, err := ctx.Operations.Get(map[string]interface{}{
-			"network":     req.Network,
-			"destination": res.Address,
-			"status":      consts.Applied,
-		}, 1, true)
-		if ctx.handleError(c, err, 0) {
-			return
-		}
-		if len(ops) == 1 {
-			var data ast.UntypedAST
-			if err := json.Unmarshal(ops[0].DeffatedStorage, &data); ctx.handleError(c, err, 0) {
+		var deffatedStorage []byte
+		if symLink == consts.MetadataAlpha {
+			rpc, err := ctx.GetRPC(res.Network)
+			if ctx.handleError(c, err, 0) {
 				return
 			}
-			if err := storage.Settle(data); ctx.handleError(c, err, 0) {
+			deffatedStorage, err = rpc.GetScriptStorageRaw(res.Address, 0)
+			if ctx.handleError(c, err, 0) {
 				return
 			}
-			bigMap := storage.FindBigMapByPtr()
-			for p, b := range bigMap {
-				if p == req.Ptr {
-					res.Typedef, _, err = b.Docs(ast.DocsFull)
-					if ctx.handleError(c, err, 0) {
-						return
-					}
-					break
+		} else {
+			deffatedStorage = ops[0].DeffatedStorage
+		}
+
+		var data ast.UntypedAST
+		if err := json.Unmarshal(deffatedStorage, &data); ctx.handleError(c, err, 0) {
+			return
+		}
+		if err := storage.Settle(data); ctx.handleError(c, err, 0) {
+			return
+		}
+
+		bigMap := storage.FindBigMapByPtr()
+		for p, b := range bigMap {
+			if p == req.Ptr {
+				res.Typedef, _, err = b.Docs(ast.DocsFull)
+				if ctx.handleError(c, err, 0) {
+					return
 				}
+				break
 			}
-		}
-	} else {
-		actions, err := ctx.BigMapActions.Get(req.Ptr, req.Network)
-		if ctx.handleError(c, err, 0) {
-			return
-		}
-		if len(actions) > 0 {
-			res.Address = actions[0].Address
 		}
 	}
 
@@ -264,7 +273,7 @@ func (ctx *Context) prepareBigMapKeys(data []bigmapdiff.Bucket) ([]BigMapRespons
 		return []BigMapResponseItem{}, nil
 	}
 
-	bigMapType, err := ctx.getBigMapType(data[0].Network, data[0].Address, data[0].Protocol, data[0].Ptr)
+	bigMapType, err := ctx.getBigMapType(data[0].Network, data[0].Contract, data[0].Protocol, data[0].Ptr)
 	if err != nil {
 		return nil, err
 	}
@@ -285,7 +294,7 @@ func (ctx *Context) prepareBigMapKeys(data []bigmapdiff.Bucket) ([]BigMapRespons
 				Value:     value,
 				Timestamp: data[i].Timestamp,
 			},
-			Count: data[i].Count,
+			Count: data[i].KeysCount,
 		}
 	}
 	return res, nil
@@ -296,7 +305,7 @@ func (ctx *Context) prepareBigMapItem(data []bigmapdiff.BigMapDiff, keyHash stri
 		return
 	}
 
-	bigMapType, err := ctx.getBigMapType(data[0].Network, data[0].Address, data[0].Protocol, data[0].Ptr)
+	bigMapType, err := ctx.getBigMapType(data[0].Network, data[0].Contract, data[0].Protocol, data[0].Ptr)
 	if err != nil {
 		return
 	}

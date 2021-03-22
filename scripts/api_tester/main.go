@@ -21,7 +21,7 @@ func main() {
 	}
 
 	ctx := config.NewContext(
-		config.WithStorage(cfg.Storage, 0),
+		config.WithStorage(cfg.Storage, "api_tester", 0),
 		config.WithRPC(cfg.RPC),
 		config.WithShare(cfg.SharePath),
 		config.WithTzKTServices(cfg.TzKT),
@@ -31,7 +31,10 @@ func main() {
 	)
 	defer ctx.Close()
 
+	testGeneral(ctx)
 	testContracts(ctx)
+	testBigMapDiff(ctx)
+	testAccounts(ctx)
 }
 
 func request(uri string) error {

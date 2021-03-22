@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -41,9 +42,16 @@ func listenChannel(messageQueue mq.IMessageReceiver, queue string, closeChan cha
 		return
 	}
 
+	ticker := time.NewTicker(time.Second * time.Duration(15))
+	defer ticker.Stop()
+
 	logger.Info("Connected to %s queue", queue)
 	for {
 		select {
+		case <-ticker.C:
+			if manager, ok := managers[queue]; ok {
+				manager.Exec()
+			}
 		case <-closeChan:
 			logger.Info("Stopped %s queue", queue)
 			return
@@ -79,7 +87,7 @@ func main() {
 	}
 
 	configCtx := config.NewContext(
-		config.WithStorage(cfg.Storage, 0),
+		config.WithStorage(cfg.Storage, "metrics"),
 		config.WithRPC(cfg.RPC),
 		config.WithDatabase(cfg.DB),
 		config.WithRabbit(cfg.RabbitMQ, cfg.Metrics.ProjectName, cfg.Metrics.MQ),

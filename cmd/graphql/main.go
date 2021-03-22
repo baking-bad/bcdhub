@@ -7,13 +7,13 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/dosco/graphjin/core"
 	"github.com/gin-gonic/gin"
 	_ "github.com/jackc/pgx/v4/stdlib"
-	"github.com/jinzhu/gorm"
 )
 
 type request struct {
@@ -51,20 +51,25 @@ type apiContext struct {
 	graphjin *core.GraphJin
 }
 
-func initUser(connection string) error {
+func initUser() error {
+	connection := os.ExpandEnv("host=$DB_HOSTNAME port=5432 user=$POSTGRES_USER dbname=indexer password=$POSTGRES_PASSWORD sslmode=disable")
+
 	data, err := ioutil.ReadFile("init.sql")
 	if err != nil {
 		return err
 	}
 
 	expanded := os.ExpandEnv(string(data))
-	root, err := gorm.Open("postgres", connection)
+	expanded = strings.ReplaceAll(expanded, "{dlr}", "$") // dirty hack for escaping dollar sign
+
+	root, err := sql.Open("pgx", connection)
 	if err != nil {
 		return err
 	}
 	defer root.Close()
 
-	return root.Raw(expanded).Error
+	_, err = root.Exec(expanded)
+	return err
 }
 
 func main() {
@@ -73,7 +78,7 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	if err := initUser(cfg.Storage.Postgres); err != nil {
+	if err := initUser(); err != nil {
 		logger.Fatal(err)
 	}
 

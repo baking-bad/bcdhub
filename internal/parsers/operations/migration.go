@@ -1,8 +1,6 @@
 package operations
 
 import (
-	"time"
-
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -48,8 +46,6 @@ func (m Migration) Parse(data noderpc.Operation, operation *operation.Operation)
 
 		if tree[0].IsLambda() {
 			migration := &migration.Migration{
-				IndexedTime: time.Now().UnixNano() / 1000,
-
 				Network:   operation.Network,
 				Level:     operation.Level,
 				Protocol:  operation.Protocol,

@@ -14,7 +14,6 @@ type BigMapAction struct {
 	Level          int64     `json:"level"`
 	Address        string    `json:"address"`
 	Network        string    `json:"network"`
-	IndexedTime    int64     `json:"indexed_time"`
 	Timestamp      time.Time `json:"timestamp"`
 }
 

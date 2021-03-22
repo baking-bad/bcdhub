@@ -15,7 +15,10 @@ type Postgres struct {
 }
 
 // NewPostgres -
-func NewPostgres(connection string) (*Postgres, error) {
+func NewPostgres(connection, appName string) (*Postgres, error) {
+	if appName != "" {
+		connection = fmt.Sprintf("%s application_name=%s", connection, appName)
+	}
 	db, err := gorm.Open(postgres.Open(connection), &gorm.Config{
 		Logger: newLogger(),
 	})

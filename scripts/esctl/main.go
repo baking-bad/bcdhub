@@ -30,12 +30,13 @@ func main() {
 	}
 
 	ctx = config.NewContext(
-		config.WithStorage(cfg.Storage, 0),
+		config.WithStorage(cfg.Storage, "esctl", 0),
 		config.WithRabbit(cfg.RabbitMQ, "", cfg.Scripts.MQ),
 		config.WithConfigCopy(cfg),
 		config.WithRPC(cfg.RPC),
 		config.WithShare(cfg.SharePath),
 	)
+	defer ctx.Close()
 
 	parser := flags.NewParser(nil, flags.Default)
 

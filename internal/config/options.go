@@ -51,13 +51,13 @@ func WithRPC(rpcConfig map[string]RPCConfig) ContextOption {
 }
 
 // WithStorage -
-func WithStorage(cfg StorageConfig, maxPageSize int64) ContextOption {
+func WithStorage(cfg StorageConfig, appName string, maxPageSize int64) ContextOption {
 	return func(ctx *Context) {
 		if len(cfg.Elastic) == 0 {
 			panic("Please set connection strings to storage in config")
 		}
 
-		pg, err := pgCore.NewPostgres(cfg.Postgres)
+		pg, err := pgCore.NewPostgres(cfg.Postgres, appName)
 		if err != nil {
 			panic(err)
 		}

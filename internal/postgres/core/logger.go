@@ -2,11 +2,13 @@ package core
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"time"
 
+	"gorm.io/gorm"
 	gl "gorm.io/gorm/logger"
 	"gorm.io/gorm/utils"
 )
@@ -92,7 +94,7 @@ func (l logger) Trace(ctx context.Context, begin time.Time, fc func() (string, i
 			sql, rows := fc()
 			if rows == -1 {
 				l.Printf(l.traceErrStr, utils.FileWithLineNum(), err, float64(elapsed.Nanoseconds())/1e6, "-", sql)
-			} else if rows > 0 {
+			} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 				l.Printf(l.traceErrStr, utils.FileWithLineNum(), err, float64(elapsed.Nanoseconds())/1e6, rows, sql)
 			}
 		case elapsed > l.SlowThreshold && l.SlowThreshold != 0 && l.LogLevel >= gl.Warn:

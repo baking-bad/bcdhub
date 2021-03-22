@@ -137,13 +137,14 @@ func (bi *BoostIndexer) fetchExternalProtocols() error {
 // NewBoostIndexer -
 func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOption) (*BoostIndexer, error) {
 	logger.WithNetwork(network).Info("Creating indexer object...")
-	pg, err := core.NewPostgres(cfg.Storage.Postgres)
+	pg, err := core.NewPostgres(cfg.Storage.Postgres, "indexer")
 	if err != nil {
 		return nil, err
 	}
 
 	rpcProvider, ok := cfg.RPC[network]
 	if !ok {
+		pg.Close()
 		return nil, errors.Errorf("Unknown network %s", network)
 	}
 	rpc := noderpc.NewWaitNodeRPC(
@@ -176,7 +177,13 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 		opt(bi)
 	}
 
-	return bi, bi.init(pg)
+	if err := bi.init(pg); err != nil {
+		bi.messageQueue.Close()
+		pg.Close()
+		return nil, err
+	}
+
+	return bi, nil
 }
 
 func addTriggers(db *core.Postgres) error {
@@ -272,6 +279,7 @@ func (bi *BoostIndexer) Sync(wg *sync.WaitGroup) {
 		case <-bi.stop:
 			bi.stopped = true
 			bi.messageQueue.Close()
+			bi.Storage.(*core.Postgres).Close()
 			return
 		case <-bi.updateTicker.C:
 			if err := bi.process(); err != nil {
@@ -330,6 +338,7 @@ func (bi *BoostIndexer) Index(levels []int64) error {
 		case <-bi.stop:
 			bi.stopped = true
 			bi.messageQueue.Close()
+			bi.Storage.(*core.Postgres).Close()
 			return errBcdQuit
 		default:
 		}

@@ -39,7 +39,7 @@ func TestAlpha_ParseOrigination(t *testing.T) {
 				Models: []models.Model{
 					&bigmapdiff.BigMapDiff{
 						Ptr:       -1,
-						Address:   "KT1Fv5xCoUqEeb2TycB7ijXdAXUFH4uPnRNN",
+						Contract:  "KT1Fv5xCoUqEeb2TycB7ijXdAXUFH4uPnRNN",
 						Protocol:  "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
 						Timestamp: time.Date(2018, 06, 30, 0, 0, 0, 0, time.Local),
 						Level:     1311215,
@@ -74,7 +74,6 @@ func TestAlpha_ParseOrigination(t *testing.T) {
 				bmd := got.Models[i].(*bigmapdiff.BigMapDiff)
 				newBmd := tt.want.Models[i].(*bigmapdiff.BigMapDiff)
 				newBmd.ID = bmd.ID
-				newBmd.IndexedTime = bmd.IndexedTime
 			}
 			assert.Equal(t, tt.want.Models, got.Models)
 		})

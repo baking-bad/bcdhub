@@ -1,8 +1,6 @@
 package storage
 
 import (
-	"time"
-
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -88,8 +86,7 @@ func (a *Alpha) ParseOrigination(content noderpc.Operation, operation operation.
 					OperationCounter: operation.Counter,
 					OperationNonce:   operation.Nonce,
 					Level:            operation.Level,
-					Address:          result.Originated[0],
-					IndexedTime:      time.Now().UnixNano() / 1000,
+					Contract:         result.Originated[0],
 					Network:          operation.Network,
 					Timestamp:        operation.Timestamp,
 					Protocol:         operation.Protocol,
@@ -127,8 +124,7 @@ func (a *Alpha) getBigMapDiff(diffs []noderpc.BigMapDiff, address string, operat
 			OperationCounter: operation.Counter,
 			OperationNonce:   operation.Nonce,
 			Level:            operation.Level,
-			Address:          address,
-			IndexedTime:      time.Now().UnixNano() / 1000,
+			Contract:         address,
 			Network:          operation.Network,
 			Timestamp:        operation.Timestamp,
 			Protocol:         operation.Protocol,

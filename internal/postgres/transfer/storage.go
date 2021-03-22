@@ -38,7 +38,7 @@ func (storage *Storage) Get(ctx transfer.GetContext) (po transfer.Pageable, err 
 	}
 
 	if len(po.Transfers) > 0 {
-		po.LastID = fmt.Sprintf("%d", po.Transfers[len(po.Transfers)-1].IndexedTime)
+		po.LastID = fmt.Sprintf("%d", po.Transfers[len(po.Transfers)-1].ID)
 	}
 	return po, nil
 }

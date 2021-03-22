@@ -86,7 +86,6 @@ func (o *Operation) FromModel(operation operation.Operation) {
 	o.Status = operation.Status
 	o.Burned = operation.Burned
 	o.Entrypoint = operation.Entrypoint
-	o.IndexedTime = operation.IndexedTime
 	o.ContentIndex = operation.ContentIndex
 	o.AllocatedDestinationContractBurned = operation.AllocatedDestinationContractBurned
 	o.ConsumedGas = operation.ConsumedGas
@@ -120,7 +119,6 @@ func (o *Operation) ToModel() operation.Operation {
 		Status:           o.Status,
 		Burned:           o.Burned,
 		Entrypoint:       o.Entrypoint,
-		IndexedTime:      o.IndexedTime,
 
 		AllocatedDestinationContract: o.AllocatedDestinationContract,
 		ConsumedGas:                  o.ConsumedGas,
@@ -539,7 +537,7 @@ type Transfer struct {
 
 // TransferFromElasticModel -
 func TransferFromElasticModel(model transfer.Transfer) (t Transfer) {
-	t.IndexedTime = model.IndexedTime
+	t.IndexedTime = model.ID
 	t.Network = model.Network
 	t.Contract = model.Contract
 	t.Initiator = model.Initiator

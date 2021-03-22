@@ -272,8 +272,8 @@ func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 }
 
 func compareBigMapDiff(t *testing.T, one, two *bigmapdiff.BigMapDiff) bool {
-	if one.Address != two.Address {
-		logger.Info("BigMapDiff.Address: %s != %s", one.Address, two.Address)
+	if one.Contract != two.Contract {
+		logger.Info("BigMapDiff.Address: %s != %s", one.Contract, two.Contract)
 		return false
 	}
 	if one.KeyHash != two.KeyHash {

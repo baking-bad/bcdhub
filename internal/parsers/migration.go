@@ -67,8 +67,6 @@ func (p *MigrationParser) Parse(script noderpc.Script, old modelsContract.Contra
 	}
 
 	migration := migration.Migration{
-		IndexedTime: time.Now().UnixNano() / 1000,
-
 		Network:      old.Network,
 		Level:        previous.EndLevel,
 		Protocol:     next.Hash,

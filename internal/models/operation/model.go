@@ -16,7 +16,6 @@ import (
 type Operation struct {
 	ID int64 `json:"-"`
 
-	IndexedTime  int64 `json:"indexed_time"`
 	ContentIndex int64 `json:"content_index,omitempty" gorm:",default:0"`
 
 	Network  string `json:"network"`

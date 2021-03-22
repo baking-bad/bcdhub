@@ -17,9 +17,8 @@ type BigMapDiff struct {
 	KeyHash          string      `json:"key_hash"`
 	Value            types.Bytes `json:"value,omitempty" gorm:"type:bytes"`
 	Level            int64       `json:"level"`
-	Address          string      `json:"address"`
+	Contract         string      `json:"contract"`
 	Network          string      `json:"network"`
-	IndexedTime      int64       `json:"indexed_time"`
 	Timestamp        time.Time   `json:"timestamp"`
 	Protocol         string      `json:"protocol"`
 	OperationHash    string      `json:"op_hash"`
@@ -54,7 +53,7 @@ func (b *BigMapDiff) MarshalToQueue() ([]byte, error) {
 func (b *BigMapDiff) LogFields() logrus.Fields {
 	return logrus.Fields{
 		"network":  b.Network,
-		"contract": b.Address,
+		"contract": b.Contract,
 		"ptr":      b.Ptr,
 		"block":    b.Level,
 		"key_hash": b.KeyHash,

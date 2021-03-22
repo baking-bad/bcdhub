@@ -2,7 +2,6 @@ package storage
 
 import (
 	stdJSON "encoding/json"
-	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -204,8 +203,7 @@ func (b *Babylon) handleBigMapDiffUpdate(item noderpc.BigMapDiff, address string
 		OperationCounter: operation.Counter,
 		OperationNonce:   operation.Nonce,
 		Level:            operation.Level,
-		Address:          address,
-		IndexedTime:      time.Now().UnixNano() / 1000,
+		Contract:         address,
 		Network:          operation.Network,
 		Timestamp:        operation.Timestamp,
 		Protocol:         operation.Protocol,
@@ -253,9 +251,8 @@ func (b *Babylon) handleBigMapDiffCopy(item noderpc.BigMapDiff, address string, 
 	if len(bmd) > 0 {
 		for i := range bmd {
 			bmd[i].Ptr = destinationPtr
-			bmd[i].Address = address
+			bmd[i].Contract = address
 			bmd[i].Level = operation.Level
-			bmd[i].IndexedTime = time.Now().UnixNano() / 1000
 			bmd[i].Timestamp = operation.Timestamp
 			bmd[i].OperationHash = operation.Hash
 			bmd[i].OperationCounter = operation.Counter
@@ -288,7 +285,6 @@ func (b *Babylon) handleBigMapDiffRemove(item noderpc.BigMapDiff, address string
 		bmd[i].OperationCounter = operation.Counter
 		bmd[i].OperationNonce = operation.Nonce
 		bmd[i].Level = operation.Level
-		bmd[i].IndexedTime = time.Now().UnixNano() / 1000
 		bmd[i].Timestamp = operation.Timestamp
 		bmd[i].Value = nil
 		newUpdates[i] = &bmd[i]
@@ -334,7 +330,6 @@ func (b *Babylon) createBigMapDiffAction(action, address string, srcPtr, dstPtr 
 		Level:       operation.Level,
 		Address:     address,
 		Network:     operation.Network,
-		IndexedTime: time.Now().UnixNano() / 1000,
 		Timestamp:   operation.Timestamp,
 	}
 

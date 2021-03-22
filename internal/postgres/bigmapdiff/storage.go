@@ -39,7 +39,7 @@ func (storage *Storage) CurrentByKey(network, keyHash string, ptr int64) (data b
 // GetForAddress -
 func (storage *Storage) GetForAddress(address string) (response []bigmapdiff.BigMapDiff, err error) {
 	err = storage.DB.Table(models.DocBigMapDiff).
-		Scopes(core.Address(address)).
+		Scopes(core.Contract(address)).
 		Group("key_hash").
 		Order("level desc").
 		Find(&response).
@@ -50,7 +50,7 @@ func (storage *Storage) GetForAddress(address string) (response []bigmapdiff.Big
 // GetByAddress -
 func (storage *Storage) GetByAddress(network, address string) (response []bigmapdiff.BigMapDiff, err error) {
 	err = storage.DB.Table(models.DocBigMapDiff).
-		Scopes(core.NetworkAndAddress(network, address)).
+		Scopes(core.NetworkAndContract(network, address)).
 		Order("level desc").
 		Find(&response).
 		Error
@@ -61,7 +61,7 @@ func (storage *Storage) GetByAddress(network, address string) (response []bigmap
 func (storage *Storage) GetValuesByKey(keyHash string) (response []bigmapdiff.BigMapDiff, err error) {
 	err = storage.DB.Table(models.DocBigMapDiff).
 		Where("key_hash = ?", keyHash).
-		Group("network, address, ptr").
+		Group("network, contract, ptr").
 		Order("level desc").
 		Find(&response).
 		Error
@@ -80,10 +80,10 @@ func (storage *Storage) Count(network string, ptr int64) (count int64, err error
 }
 
 // Previous -
-func (storage *Storage) Previous(filters []bigmapdiff.BigMapDiff, indexedTime int64, address string) (response []bigmapdiff.BigMapDiff, err error) {
+func (storage *Storage) Previous(filters []bigmapdiff.BigMapDiff, lastID int64, address string) (response []bigmapdiff.BigMapDiff, err error) {
 	query := storage.DB.Table(models.DocBigMapDiff).
-		Scopes(core.Address(address)).
-		Where("indexed_time < ?", indexedTime)
+		Scopes(core.Contract(address)).
+		Where("id < ?", lastID)
 
 	if len(filters) > 0 {
 		tx := storage.DB.Where("key_hash = ?", filters[0].KeyHash)
@@ -93,7 +93,7 @@ func (storage *Storage) Previous(filters []bigmapdiff.BigMapDiff, indexedTime in
 		query.Where(tx)
 	}
 
-	err = query.Group("key_hash").Order("indexed_time desc").Find(&response).Error
+	err = query.Group("key_hash").Order("id desc").Find(&response).Error
 	return response, err
 }
 
@@ -124,7 +124,7 @@ func (storage *Storage) GetUniqueForOperation(hash string, counter int64, nonce 
 		query.Where("operation_nonce = ?", *nonce)
 	}
 
-	query.Group("key_hash, ptr").Order("indexed_time desc")
+	query.Group("key_hash, ptr").Order("id desc")
 
 	return response, query.Find(&response).Error
 }
@@ -159,15 +159,15 @@ func (storage *Storage) GetByPtrAndKeyHash(ptr int64, network, keyHash string, s
 
 // GetByPtr -
 func (storage *Storage) GetByPtr(address, network string, ptr int64) (response []bigmapdiff.BigMapDiff, err error) {
-	err = storage.DB.Table(models.DocBigMapDiff).
-		Scopes(core.NetworkAndAddress(network, address)).
+	subQuery := storage.DB.Table(models.DocBigMapDiff).
+		Select("max(id) as id").
+		Scopes(core.NetworkAndContract(network, address)).
 		Where("ptr = ?", ptr).
-		Group("key_hash, ptr").
-		Order("indexed_time desc").
-		Find(&response).
-		Error
+		Group("key_hash").
+		Order("id desc")
 
-	return response, nil
+	query := storage.DB.Table(models.DocBigMapDiff).Joins("inner join (?) as bmd on bmd.id = big_map_diffs.id", subQuery)
+	return response, query.Find(&response).Error
 }
 
 type countResp struct {
@@ -181,34 +181,12 @@ func (storage *Storage) Get(ctx bigmapdiff.GetContext) ([]bigmapdiff.Bucket, err
 		return nil, errors.Errorf("Invalid pointer value: %d", *ctx.Ptr)
 	}
 
-	var bmd []bigmapdiff.BigMapDiff
-	query := storage.DB.Table(models.DocBigMapDiff)
-	buildGetContext(query, ctx, true)
+	var bmd []bigmapdiff.Bucket
+	subQuery := storage.buildGetContext(ctx)
 
-	if err := query.Find(&bmd).Error; err != nil {
-		return nil, err
-	}
-
-	var counts []countResp
-	countQuery := storage.DB.Table(models.DocBigMapDiff).Select("count(distinct(key_hash)) AS keys_count, key_hash")
-	buildGetContext(countQuery, ctx, false)
-	if err := countQuery.Select(&counts).Error; err != nil {
-		return nil, err
-	}
-
-	result := make([]bigmapdiff.Bucket, 0)
-	for i := range bmd {
-		for j := range counts {
-			if bmd[i].KeyHash != counts[j].KeyHash {
-				continue
-			}
-			result = append(result, bigmapdiff.Bucket{
-				BigMapDiff: bmd[i],
-				Count:      counts[j].KeysCount,
-			})
-		}
-	}
-	return result, nil
+	query := storage.DB.Table(models.DocBigMapDiff).Select("*, bmd.keys_count").Joins("inner join (?) as bmd on bmd.id = big_map_diffs.id", subQuery)
+	err := query.Find(&bmd).Error
+	return bmd, err
 }
 
 // GetByIDs -
@@ -221,13 +199,15 @@ func (storage *Storage) GetByIDs(ids ...int64) (result []bigmapdiff.BigMapDiff, 
 func (storage *Storage) GetStats(network string, ptr int64) (stats bigmapdiff.Stats, err error) {
 	subQuery := storage.DB.Table(models.DocBigMapDiff).
 		Select("max(id) as id").
-		Where("network = ?").
+		Where("network = ?", network).
 		Where("ptr = ?", ptr).
-		Group("hash")
+		Group("key_hash")
 
 	err = storage.DB.Table(models.DocBigMapDiff).
+		Select("count(*) as total, contract").
 		Where("id IN (?)", subQuery).
-		Count(&stats.Total).Error
+		Group("contract").
+		Scan(&stats).Error
 	if err != nil {
 		return
 	}
@@ -236,17 +216,6 @@ func (storage *Storage) GetStats(network string, ptr int64) (stats bigmapdiff.St
 		Where("id IN (?)", subQuery).
 		Where("value is not null").
 		Count(&stats.Active).Error
-
-	if err != nil {
-		return
-	}
-
-	err = storage.DB.Table(models.DocBigMapDiff).
-		Select("address, network").
-		Where("network = ?").
-		Where("ptr = ?", ptr).
-		Limit(1).
-		Scan(&stats).Error
 
 	return
 }

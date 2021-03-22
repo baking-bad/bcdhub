@@ -25,7 +25,7 @@ func (storage *Storage) Get(ptr int64, network string) (actions []bigmapaction.B
 					storage.DB.Where("source_ptr = ?", ptr).Or("destination_ptr = ?", ptr),
 				),
 		).
-		Order("indexed_time DESC").
+		Order("id DESC").
 		Find(&actions).Error
 	return
 }

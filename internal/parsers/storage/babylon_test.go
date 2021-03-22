@@ -71,7 +71,7 @@ func TestBabylon_ParseTransaction(t *testing.T) {
 						KeyHash:  "exprvDFsAkF12eo7cP1EtDk52Ef72CzDhxuJmwXCqbqSWq6CrJ3ziX",
 						Value:    []byte(`{"bytes":"0117f1f0e206ba4c32f1f43de336b0ef2785f4014500"}`),
 						Level:    186900,
-						Address:  "KT1HHsW85jrLrHdAy9DwScqiM1RERkTT9Q6e",
+						Contract: "KT1HHsW85jrLrHdAy9DwScqiM1RERkTT9Q6e",
 						Network:  "delphinet",
 						Protocol: "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
 					},
@@ -114,7 +114,6 @@ func TestBabylon_ParseTransaction(t *testing.T) {
 				bmd := got.Models[i].(*bigmapdiff.BigMapDiff)
 				newBmd := tt.want.Models[i].(*bigmapdiff.BigMapDiff)
 				newBmd.ID = bmd.ID
-				newBmd.IndexedTime = bmd.IndexedTime
 			}
 			assert.Equal(t, tt.want.Models, got.Models)
 		})

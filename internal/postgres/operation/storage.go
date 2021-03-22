@@ -73,7 +73,7 @@ func prepareOperationFilters(query *gorm.DB, filters map[string]interface{}) err
 			case "entrypoints":
 				query.Where("entrypoint IN ?", v)
 			case "last_id":
-				query.Where("indexed_time < ?", v)
+				query.Where("id < ?", v)
 			case "status":
 				query.Where("status IN ?", v)
 			default:
@@ -116,12 +116,12 @@ func (storage *Storage) GetByContract(network, address string, size uint64, filt
 		return
 	}
 
-	lastID := po.Operations[0].IndexedTime
+	lastID := po.Operations[0].ID
 	for _, op := range po.Operations[1:] {
-		if op.IndexedTime > lastID {
+		if op.ID > lastID {
 			continue
 		}
-		lastID = op.IndexedTime
+		lastID = op.ID
 	}
 	po.LastID = fmt.Sprintf("%d", lastID)
 	return
@@ -132,10 +132,10 @@ func (storage *Storage) Last(network, address string, indexedTime int64) (op ope
 	err = storage.DB.Table(models.DocOperations).
 		Where("network = ?", network).
 		Where("destination = ?", address).
-		Where("indexed_time < ?", indexedTime).
+		Where("id < ?", indexedTime).
 		Where("status = ?", constants.Applied).
 		Where("deffated_storage != ''").
-		Order("indexed_time desc").
+		Order("id desc").
 		First(&op).
 		Error
 	return

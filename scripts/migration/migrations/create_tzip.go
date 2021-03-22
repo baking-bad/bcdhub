@@ -38,7 +38,7 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 			return err
 		}
 
-		if _, err := ctx.TZIP.Get(bmd[i].Network, bmd[i].Address); err != nil {
+		if _, err := ctx.TZIP.Get(bmd[i].Network, bmd[i].Contract); err != nil {
 			if !ctx.Storage.IsRecordNotFound(err) {
 				return err
 			}
@@ -57,7 +57,7 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 
 		t, err := parser.Parse(tzipParsers.ParseContext{
 			BigMapDiff: bigmapdiff.BigMapDiff{
-				Address:  bmd[i].Address,
+				Contract: bmd[i].Contract,
 				Network:  bmd[i].Network,
 				Ptr:      bmd[i].Ptr,
 				Value:    bmd[i].Value,

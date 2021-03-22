@@ -119,11 +119,11 @@ indexer:
   networks:
     mainnet:
       boost: tzkt
-    delphinet:
-      boost: tzkt
+    # delphinet:
+    #   boost: tzkt
     edo2net:
       boost: tzkt
-    # florencenet:
+    florencenet:
 
 metrics:
   project_name: metrics
