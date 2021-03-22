@@ -87,6 +87,63 @@ var doc = `{
                 }
             }
         },
+        "/v1/account/{network}/{address}/count": {
+            "get": {
+                "description": "Get account token balances count grouped by count",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "account"
+                ],
+                "summary": "Get account token balances count grouped by count",
+                "operationId": "get-account-token-balances-count",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "description": "Address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/account/{network}/{address}/metadata": {
             "get": {
                 "description": "Returns full metadata for account",
@@ -4105,6 +4162,12 @@ var doc = `{
                 "contract": {
                     "type": "string"
                 },
+                "creators": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "decimals": {
                     "type": "integer",
                     "x-nullable": true
@@ -4120,6 +4183,12 @@ var doc = `{
                 "external_uri": {
                     "type": "string",
                     "x-nullable": true
+                },
+                "formats": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    }
                 },
                 "is_boolean_amount": {
                     "type": "boolean",
@@ -4150,6 +4219,12 @@ var doc = `{
                 "symbol": {
                     "type": "string",
                     "x-nullable": true
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "thumbnail_uri": {
                     "type": "string",
@@ -4185,6 +4260,12 @@ var doc = `{
                 "contract": {
                     "type": "string"
                 },
+                "creators": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "decimals": {
                     "type": "integer",
                     "x-nullable": true
@@ -4200,6 +4281,12 @@ var doc = `{
                 "external_uri": {
                     "type": "string",
                     "x-nullable": true
+                },
+                "formats": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    }
                 },
                 "is_boolean_amount": {
                     "type": "boolean",
@@ -4227,6 +4314,12 @@ var doc = `{
                 "symbol": {
                     "type": "string",
                     "x-nullable": true
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "thumbnail_uri": {
                     "type": "string",
@@ -4322,6 +4415,12 @@ var doc = `{
                 "contract": {
                     "type": "string"
                 },
+                "creators": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "decimals": {
                     "type": "integer",
                     "x-nullable": true
@@ -4337,6 +4436,12 @@ var doc = `{
                 "external_uri": {
                     "type": "string",
                     "x-nullable": true
+                },
+                "formats": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    }
                 },
                 "is_boolean_amount": {
                     "type": "boolean",
@@ -4364,6 +4469,12 @@ var doc = `{
                 "symbol": {
                     "type": "string",
                     "x-nullable": true
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "thumbnail_uri": {
                     "type": "string",

@@ -152,3 +152,43 @@ func (storage *Storage) BurnNft(network, contract string, tokenID int64) error {
 	}
 	return nil
 }
+
+type countByContractAgg struct {
+	Aggs struct {
+		Count struct {
+			Buckets []core.Bucket `json:"buckets"`
+		} `json:"count"`
+	} `json:"aggregations"`
+}
+
+// CountByContract -
+func (storage *Storage) CountByContract(network, address string) (map[string]int64, error) {
+	query := core.NewQuery().Query(
+		core.Bool(
+			core.Filter(
+				core.Term("network", network),
+				core.MatchPhrase("address", address),
+			),
+			core.MustNot(
+				core.Term("balance", "0"),
+			),
+		),
+	).Add(
+		core.Aggs(
+			core.AggItem{
+				Name: "count",
+				Body: core.TermsAgg("contract.keyword", core.MaxQuerySize),
+			},
+		),
+	).Zero()
+
+	var resp countByContractAgg
+	if err := storage.es.Query([]string{models.DocTokenBalances}, query, &resp); err != nil {
+		return nil, err
+	}
+	result := make(map[string]int64)
+	for _, b := range resp.Aggs.Count.Buckets {
+		result[b.Key] = b.DocCount
+	}
+	return result, nil
+}

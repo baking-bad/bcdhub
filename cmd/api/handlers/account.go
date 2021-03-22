@@ -160,3 +160,28 @@ func (ctx *Context) getAccountBalances(network, address string, size, offset int
 
 	return &response, nil
 }
+
+// GetAccountTokenBalancesGroupedCount godoc
+// @Summary Get account token balances count grouped by count
+// @Description Get account token balances count grouped by count
+// @Tags account
+// @ID get-account-token-balances-count
+// @Param network path string true "Network"
+// @Param address path string true "Address" minlength(36) maxlength(36)
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} map[string]int64
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /v1/account/{network}/{address}/count [get]
+func (ctx *Context) GetAccountTokenBalancesGroupedCount(c *gin.Context) {
+	var req getContractRequest
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+	res, err := ctx.TokenBalances.CountByContract(req.Network, req.Address)
+	if ctx.handleError(c, err, 0) {
+		return
+	}
+	c.JSON(http.StatusOK, res)
+}

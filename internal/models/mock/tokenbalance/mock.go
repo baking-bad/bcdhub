@@ -91,3 +91,18 @@ func (mr *MockRepositoryMockRecorder) BurnNft(network, contract, tokenID interfa
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BurnNft", reflect.TypeOf((*MockRepository)(nil).BurnNft), network, contract, tokenID)
 }
+
+// CountByContract mocks base method
+func (m *MockRepository) CountByContract(network, address string) (map[string]int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountByContract", network, address)
+	ret0, _ := ret[0].(map[string]int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountByContract indicates an expected call of CountByContract
+func (mr *MockRepositoryMockRecorder) CountByContract(network, address interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByContract", reflect.TypeOf((*MockRepository)(nil).CountByContract), network, address)
+}
