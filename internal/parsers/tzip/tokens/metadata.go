@@ -28,6 +28,9 @@ const (
 	keyIsTransferable     = "isTransferable"
 	keyIsBooleanAmount    = "isBooleanAmount"
 	keyShouldPreferSymbol = "shouldPreferSymbol"
+	keyCreators           = "creators"
+	keyTags               = "tags"
+	keyFormats            = "formats"
 )
 
 // Empty key name
@@ -51,6 +54,9 @@ type TokenMetadata struct {
 	IsTransferable     bool                   `json:"isTransferable"`
 	IsBooleanAmount    bool                   `json:"isBooleanAmount"`
 	ShouldPreferSymbol bool                   `json:"shouldPreferSymbol"`
+	Creators           []string               `json:"creators"`
+	Tags               []string               `json:"tags"`
+	Formats            []interface{}          `json:"formats"`
 	Extras             map[string]interface{} `json:"-"`
 
 	Link string `json:"-"`
@@ -75,6 +81,9 @@ func (m *TokenMetadata) ToModel(address, network string) tokenmetadata.TokenMeta
 		IsTransferable:     m.IsTransferable,
 		IsBooleanAmount:    m.IsBooleanAmount,
 		ShouldPreferSymbol: m.ShouldPreferSymbol,
+		Creators:           m.Creators,
+		Tags:               m.Tags,
+		Formats:            m.Formats,
 		Extras:             m.Extras,
 	}
 }
@@ -198,9 +207,29 @@ func (m *TokenMetadata) Merge(second *TokenMetadata) {
 	if second.ShouldPreferSymbol != m.ShouldPreferSymbol {
 		m.ShouldPreferSymbol = second.ShouldPreferSymbol
 	}
+	if second.Creators != nil {
+		m.Creators = second.Creators
+	}
+	if second.Tags != nil {
+		m.Tags = second.Tags
+	}
+	if second.Formats != nil {
+		m.Formats = second.Formats
+	}
+
 	for k, v := range second.Extras {
 		m.Extras[k] = v
 	}
+}
+
+func getStringArrayKey(data map[string]interface{}, keyName string) []string {
+	if val, ok := data[keyName]; ok {
+		delete(data, keyName)
+		if s, ok := val.([]string); ok {
+			return s
+		}
+	}
+	return nil
 }
 
 func getStringKey(data map[string]interface{}, keyName string) string {
@@ -223,6 +252,16 @@ func getBoolKey(data map[string]interface{}, keyName string) bool {
 	return false
 }
 
+func getInterfaceArrayKey(data map[string]interface{}, keyName string) []interface{} {
+	if val, ok := data[keyName]; ok {
+		delete(data, keyName)
+		if b, ok := val.([]interface{}); ok {
+			return b
+		}
+	}
+	return nil
+}
+
 // UnmarshalJSON -
 func (m *TokenMetadata) UnmarshalJSON(data []byte) error {
 	res := make(map[string]interface{})
@@ -241,6 +280,11 @@ func (m *TokenMetadata) UnmarshalJSON(data []byte) error {
 	m.IsBooleanAmount = getBoolKey(res, keyIsBooleanAmount)
 	m.IsTransferable = getBoolKey(res, keyIsTransferable)
 	m.ShouldPreferSymbol = getBoolKey(res, keyShouldPreferSymbol)
+
+	m.Creators = getStringArrayKey(res, keyCreators)
+	m.Tags = getStringArrayKey(res, keyTags)
+
+	m.Formats = getInterfaceArrayKey(res, keyFormats)
 
 	if val, ok := res[keyDecimals]; ok {
 		switch decimals := val.(type) {

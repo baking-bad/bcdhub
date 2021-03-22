@@ -140,15 +140,8 @@ func (ctx *Context) getAccountBalances(network, address string, size, offset int
 		delete(balances, c)
 
 		tb := TokenBalance{
-			Balance: balance,
-			TokenMetadata: TokenMetadata{
-				TokenID:  token.TokenID,
-				Symbol:   token.Symbol,
-				Name:     token.Name,
-				Decimals: token.Decimals,
-				Contract: token.Contract,
-				Level:    token.Level,
-			},
+			Balance:       balance,
+			TokenMetadata: TokenMetadataFromElasticModel(token, false),
 		}
 
 		response.Balances = append(response.Balances, tb)
