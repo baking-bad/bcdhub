@@ -78,6 +78,21 @@ func (mr *MockRepositoryMockRecorder) GetHolders(network, contract, tokenID inte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHolders", reflect.TypeOf((*MockRepository)(nil).GetHolders), network, contract, tokenID)
 }
 
+// Batch mocks base method
+func (m *MockRepository) Batch(network string, addresses []string) (map[string][]tb.TokenBalance, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Batch", network, addresses)
+	ret0, _ := ret[0].(map[string][]tb.TokenBalance)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Batch indicates an expected call of Batch
+func (mr *MockRepositoryMockRecorder) Batch(network, addresses interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Batch", reflect.TypeOf((*MockRepository)(nil).Batch), network, addresses)
+}
+
 // BurnNft mocks base method
 func (m *MockRepository) BurnNft(network, contract string, tokenID int64) error {
 	m.ctrl.T.Helper()

@@ -175,12 +175,16 @@ func (api *app) makeRouter() {
 			domains.GET("resolve", api.Context.ResolveDomain)
 		}
 
-		account := v1.Group("account/:network/:address")
+		account := v1.Group("account/:network")
 		{
-			account.GET("", api.Context.GetInfo)
-			account.GET("metadata", api.Context.GetMetadata)
-			account.GET("token_balances", api.Context.GetAccountTokenBalances)
-			account.GET("count", api.Context.GetAccountTokenBalancesGroupedCount)
+			account.GET("", api.Context.GetBatchTokenBalances)
+			acc := account.Group(":account")
+			{
+				acc.GET("", api.Context.GetInfo)
+				acc.GET("metadata", api.Context.GetMetadata)
+				acc.GET("token_balances", api.Context.GetAccountTokenBalances)
+				acc.GET("count", api.Context.GetAccountTokenBalancesGroupedCount)
+			}
 		}
 
 		fa12 := v1.Group("tokens/:network")

@@ -372,3 +372,7 @@ type tokenBalanceRequest struct {
 	pageableRequest
 	Contract string `form:"contract" binding:"omitempty,address"`
 }
+
+type batchAddressRequest struct {
+	Address string `form:"address" binding:"required"`
+}
