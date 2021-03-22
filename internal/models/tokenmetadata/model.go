@@ -25,6 +25,9 @@ type TokenMetadata struct {
 	IsTransferable     bool                   `json:"is_transferable"`
 	IsBooleanAmount    bool                   `json:"is_boolean_amount"`
 	ShouldPreferSymbol bool                   `json:"should_prefer_symbol"`
+	Tags               []string               `json:"tags,omitempty"`
+	Creators           []string               `json:"creators,omitempty"`
+	Formats            []interface{}          `json:"formats,omitempty"`
 	Extras             map[string]interface{} `json:"extras"`
 }
 

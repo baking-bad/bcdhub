@@ -1,9 +1,12 @@
 package migrations
 
 import (
+	"encoding/json"
+
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/pkg/errors"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -79,6 +82,39 @@ func (m *NFTMetadata) Do(ctx *config.Context) error {
 			case "shouldPreferSymbol":
 				if b, ok := value.(bool); ok {
 					metadata[i].ShouldPreferSymbol = b
+					delete(metadata[i].Extras, key)
+				}
+			case "formats":
+				switch val := value.(type) {
+				case []interface{}:
+					metadata[i].Formats = val
+					delete(metadata[i].Extras, key)
+				case string:
+					if err := json.Unmarshal([]byte(val), &metadata[i].Formats); err != nil {
+						return err
+					}
+					delete(metadata[i].Extras, key)
+				default:
+					return errors.Errorf("Unknown formats type: %T", value)
+				}
+			case "tags":
+				if tags, ok := value.([]interface{}); ok {
+					metadata[i].Tags = make([]string, 0)
+					for _, tag := range tags {
+						if t, ok := tag.(string); ok {
+							metadata[i].Tags = append(metadata[i].Tags, t)
+						}
+					}
+					delete(metadata[i].Extras, key)
+				}
+			case "creators":
+				if creators, ok := value.([]interface{}); ok {
+					metadata[i].Creators = make([]string, 0)
+					for _, creator := range creators {
+						if c, ok := creator.(string); ok {
+							metadata[i].Creators = append(metadata[i].Creators, c)
+						}
+					}
 					delete(metadata[i].Extras, key)
 				}
 			}

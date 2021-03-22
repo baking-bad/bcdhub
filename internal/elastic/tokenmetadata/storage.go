@@ -1,12 +1,9 @@
 package tokenmetadata
 
 import (
-	"encoding/json"
-
 	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 )
 
@@ -38,35 +35,17 @@ func (storage *Storage) GetAll(ctx ...tokenmetadata.GetContext) (tokens []tokenm
 
 // GetWithExtras -
 func (storage *Storage) GetWithExtras() ([]tokenmetadata.TokenMetadata, error) {
-	query := core.NewQuery().Query(
-		core.Bool(
-			core.Should(
-				core.Exists("extras.description"),
-				core.Exists("extras.artifactUri"),
-				core.Exists("extras.displayUri"),
-				core.Exists("extras.thumbnailUri"),
-				core.Exists("extras.externalUri"),
-				core.Exists("extras.isTransferable"),
-				core.Exists("extras.isBooleanAmount"),
-				core.Exists("extras.shouldPreferSymbol"),
-			),
-			core.MinimumShouldMatch(1),
-		),
-	).All()
-
-	var response core.SearchResponse
-	if err := storage.es.Query([]string{models.DocTokenMetadata}, query, &response); err != nil {
+	var tokens []tokenmetadata.TokenMetadata
+	if err := storage.es.GetAll(&tokens); err != nil {
 		return nil, err
 	}
-	if response.Hits.Total.Value == 0 {
-		return nil, core.NewRecordNotFoundError(models.DocTokenMetadata, "")
-	}
 
-	tokens := make([]tokenmetadata.TokenMetadata, len(response.Hits.Hits))
-	for i := range response.Hits.Hits {
-		if err := json.Unmarshal(response.Hits.Hits[i].Source, &tokens[i]); err != nil {
-			return nil, err
+	withExtras := make([]tokenmetadata.TokenMetadata, 0)
+	for i := range tokens {
+		if len(tokens[i].Extras) > 0 {
+			withExtras = append(withExtras, tokens[i])
 		}
 	}
-	return tokens, nil
+
+	return withExtras, nil
 }

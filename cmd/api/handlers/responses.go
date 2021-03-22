@@ -696,6 +696,9 @@ type TokenMetadata struct {
 	IsTransferable     bool                   `json:"is_transferable,omitempty" extensions:"x-nullable"`
 	IsBooleanAmount    bool                   `json:"is_boolean_amount,omitempty" extensions:"x-nullable"`
 	ShouldPreferSymbol bool                   `json:"should_prefer_symbol,omitempty" extensions:"x-nullable"`
+	Creators           []string               `json:"creators,omitempty"`
+	Tags               []string               `json:"tags,omitempty"`
+	Formats            []interface{}          `json:"formats,omitempty"`
 	TokenInfo          map[string]interface{} `json:"token_info,omitempty" extensions:"x-nullable"`
 	Volume24Hours      *float64               `json:"volume_24_hours,omitempty" extensions:"x-nullable"`
 }
@@ -717,6 +720,9 @@ func TokenMetadataFromElasticModel(model tokenmetadata.TokenMetadata, withTokenI
 	tm.IsTransferable = model.IsTransferable
 	tm.IsBooleanAmount = model.IsBooleanAmount
 	tm.ShouldPreferSymbol = model.ShouldPreferSymbol
+	tm.Creators = model.Creators
+	tm.Tags = model.Tags
+	tm.Formats = model.Formats
 
 	if withTokenInfo {
 		tm.TokenInfo = model.Extras
