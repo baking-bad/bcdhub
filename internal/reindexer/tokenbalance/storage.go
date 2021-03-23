@@ -93,6 +93,11 @@ func (storage *Storage) GetAccountBalances(network, address, contract string, si
 	return
 }
 
+// Batch -
+func (storage *Storage) Batch(network string, addresses []string) (map[string][]tokenbalance.TokenBalance, error) {
+	return nil, nil
+}
+
 // BurnNft -
 func (storage *Storage) BurnNft(network, contract string, tokenID int64) error {
 	return nil

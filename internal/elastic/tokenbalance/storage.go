@@ -5,6 +5,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
+	"github.com/pkg/errors"
 )
 
 // Storage -
@@ -132,6 +133,40 @@ func (storage *Storage) GetAccountBalances(network, address, contract string, si
 	}
 
 	return tokenBalances, count, err
+}
+
+// Batch -
+func (storage *Storage) Batch(network string, addresses []string) (map[string][]tokenbalance.TokenBalance, error) {
+	if len(addresses) == 0 && len(addresses) > consts.DefaultSize {
+		return nil, errors.Errorf("Invalid addresses count. Must be 0 < count < 10")
+	}
+
+	should := make([]core.Item, len(addresses))
+	for i := range addresses {
+		should[i] = core.MatchPhrase("address", addresses[i])
+	}
+
+	query := core.NewQuery().Query(
+		core.Bool(
+			core.Filter(core.Term("network", network)),
+			core.Should(should...),
+			core.MinimumShouldMatch(1),
+		),
+	)
+	var tokens []tokenbalance.TokenBalance
+	if err := storage.es.GetAllByQuery(query, &tokens); err != nil {
+		return nil, err
+	}
+
+	result := make(map[string][]tokenbalance.TokenBalance)
+	for _, t := range tokens {
+		if _, ok := result[t.Address]; !ok {
+			result[t.Address] = []tokenbalance.TokenBalance{}
+		}
+		result[t.Address] = append(result[t.Address], t)
+	}
+
+	return result, nil
 }
 
 // BurnNft -

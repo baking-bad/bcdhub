@@ -2,9 +2,12 @@ package handlers
 
 import (
 	"net/http"
+	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 )
 
 // GetInfo godoc
@@ -65,6 +68,59 @@ func (ctx *Context) GetInfo(c *gin.Context) {
 	c.JSON(http.StatusOK, accountInfo)
 }
 
+// GetBatchTokenBalances godoc
+// @Summary Batch account token balances
+// @Description Batch account token balances
+// @Tags account
+// @ID get-batch-token-balances
+// @Param network path string true "Network"
+// @Param address query string false "Comma-separated list of addresses (e.g. addr1,addr2,addr3)"
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} map[string]TokenBalance
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /v1/account/{network} [get]
+func (ctx *Context) GetBatchTokenBalances(c *gin.Context) {
+	var req getByNetwork
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+	var queryParams batchAddressRequest
+	if err := c.BindQuery(&queryParams); ctx.handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+	address := strings.Split(queryParams.Address, ",")
+	for i := range address {
+		if !bcd.IsAddress(address[i]) {
+			ctx.handleError(c, errors.Errorf("Invalid address: %s", address[i]), http.StatusBadRequest)
+			return
+		}
+	}
+
+	balances, err := ctx.TokenBalances.Batch(req.Network, address)
+	if ctx.handleError(c, err, 0) {
+		return
+	}
+
+	result := make(map[string][]TokenBalance)
+	for a, b := range balances {
+		result[a] = make([]TokenBalance, len(b))
+		for i := range b {
+			result[a][i] = TokenBalance{
+				Balance: b[i].Balance,
+				TokenMetadata: TokenMetadata{
+					TokenID:  b[i].TokenID,
+					Contract: b[i].Contract,
+					Network:  b[i].Network,
+				},
+			}
+		}
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
 // GetAccountTokenBalances godoc
 // @Summary Get account token balances
 // @Description Get account token balances
@@ -94,6 +150,7 @@ func (ctx *Context) GetAccountTokenBalances(c *gin.Context) {
 	if ctx.handleError(c, err, 0) {
 		return
 	}
+
 	c.JSON(http.StatusOK, balances)
 }
 
