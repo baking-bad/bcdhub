@@ -97,3 +97,8 @@ func (storage *Storage) GetAccountBalances(network, address, contract string, si
 func (storage *Storage) BurnNft(network, contract string, tokenID int64) error {
 	return nil
 }
+
+// CountByContract -
+func (storage *Storage) CountByContract(network, address string) (map[string]int64, error) {
+	return nil, nil
+}

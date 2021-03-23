@@ -828,6 +828,10 @@ definitions:
         x-nullable: true
       contract:
         type: string
+      creators:
+        items:
+          type: string
+        type: array
       decimals:
         type: integer
         x-nullable: true
@@ -840,6 +844,10 @@ definitions:
       external_uri:
         type: string
         x-nullable: true
+      formats:
+        items:
+          type: object
+        type: array
       is_boolean_amount:
         type: boolean
         x-nullable: true
@@ -862,6 +870,10 @@ definitions:
       symbol:
         type: string
         x-nullable: true
+      tags:
+        items:
+          type: string
+        type: array
       thumbnail_uri:
         type: string
         x-nullable: true
@@ -886,6 +898,10 @@ definitions:
         type: string
       contract:
         type: string
+      creators:
+        items:
+          type: string
+        type: array
       decimals:
         type: integer
         x-nullable: true
@@ -898,6 +914,10 @@ definitions:
       external_uri:
         type: string
         x-nullable: true
+      formats:
+        items:
+          type: object
+        type: array
       is_boolean_amount:
         type: boolean
         x-nullable: true
@@ -918,6 +938,10 @@ definitions:
       symbol:
         type: string
         x-nullable: true
+      tags:
+        items:
+          type: string
+        type: array
       thumbnail_uri:
         type: string
         x-nullable: true
@@ -983,6 +1007,10 @@ definitions:
         x-nullable: true
       contract:
         type: string
+      creators:
+        items:
+          type: string
+        type: array
       decimals:
         type: integer
         x-nullable: true
@@ -995,6 +1023,10 @@ definitions:
       external_uri:
         type: string
         x-nullable: true
+      formats:
+        items:
+          type: object
+        type: array
       is_boolean_amount:
         type: boolean
         x-nullable: true
@@ -1015,6 +1047,10 @@ definitions:
       symbol:
         type: string
         x-nullable: true
+      tags:
+        items:
+          type: string
+        type: array
       thumbnail_uri:
         type: string
         x-nullable: true
@@ -1467,6 +1503,45 @@ paths:
           schema:
             $ref: '#/definitions/handlers.Error'
       summary: Get account info
+      tags:
+      - account
+  /v1/account/{network}/{address}/count:
+    get:
+      consumes:
+      - application/json
+      description: Get account token balances count grouped by count
+      operationId: get-account-token-balances-count
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: Address
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: address
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: integer
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Get account token balances count grouped by count
       tags:
       - account
   /v1/account/{network}/{address}/metadata:

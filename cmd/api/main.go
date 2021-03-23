@@ -180,6 +180,7 @@ func (api *app) makeRouter() {
 			account.GET("", api.Context.GetInfo)
 			account.GET("metadata", api.Context.GetMetadata)
 			account.GET("token_balances", api.Context.GetAccountTokenBalances)
+			account.GET("count", api.Context.GetAccountTokenBalancesGroupedCount)
 		}
 
 		fa12 := v1.Group("tokens/:network")
