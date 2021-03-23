@@ -80,7 +80,7 @@ func (p *Parser) Parse(operation operation.Operation, operationModels []models.M
 		return p.executeEvents(impl, name, operation, operationModels)
 	}
 
-	if operation.Entrypoint == consts.TransferEntrypoint && !operation.HasTag(consts.NFTLedgerTag) {
+	if operation.Entrypoint == consts.TransferEntrypoint {
 		for i := range operation.Tags {
 			switch operation.Tags[i] {
 			case consts.FA12Tag:

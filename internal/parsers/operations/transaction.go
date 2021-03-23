@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/fetch"
@@ -104,10 +105,11 @@ func (p Transaction) Parse(data noderpc.Operation) ([]models.Model, error) {
 			txModels = append(txModels, transfers[i])
 		}
 
-		if err := transferParsers.UpdateTokenBalances(p.TokenBalances, transfers); err != nil {
-			return nil, err
+		if !tx.HasTag(consts.NFTLedgerTag) {
+			if err := transferParsers.UpdateTokenBalances(p.TokenBalances, transfers); err != nil {
+				return nil, err
+			}
 		}
-
 	}
 	return txModels, nil
 }
