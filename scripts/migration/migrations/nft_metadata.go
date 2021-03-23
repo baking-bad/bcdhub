@@ -6,6 +6,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
+	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/pkg/errors"
 	"github.com/schollz/progressbar/v3"
 )
@@ -26,6 +28,10 @@ func (m *NFTMetadata) Description() string {
 // Do - migrate function
 func (m *NFTMetadata) Do(ctx *config.Context) error {
 	logger.Info("Getting all token metadata...")
+
+	if err := ctx.Storage.(*core.Postgres).DB.AutoMigrate(&tokenmetadata.TokenMetadata{}); err != nil {
+		return err
+	}
 
 	metadata, err := ctx.TokenMetadata.GetWithExtras()
 	if err != nil {
@@ -87,12 +93,13 @@ func (m *NFTMetadata) Do(ctx *config.Context) error {
 			case "formats":
 				switch val := value.(type) {
 				case []interface{}:
-					metadata[i].Formats = val
+					metadata[i].Formats, err = json.Marshal(val)
+					if err == nil {
+						continue
+					}
 					delete(metadata[i].Extras, key)
 				case string:
-					if err := json.Unmarshal([]byte(val), &metadata[i].Formats); err != nil {
-						return err
-					}
+					metadata[i].Formats = []byte(val)
 					delete(metadata[i].Extras, key)
 				default:
 					return errors.Errorf("Unknown formats type: %T", value)
@@ -123,5 +130,5 @@ func (m *NFTMetadata) Do(ctx *config.Context) error {
 		updated[i] = &metadata[i]
 	}
 
-	return ctx.Storage.BulkInsert(updated)
+	return ctx.Storage.BulkUpdate(updated)
 }

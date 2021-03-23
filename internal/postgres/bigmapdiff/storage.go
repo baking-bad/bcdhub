@@ -170,11 +170,6 @@ func (storage *Storage) GetByPtr(address, network string, ptr int64) (response [
 	return response, query.Find(&response).Error
 }
 
-type countResp struct {
-	KeyHash   string
-	KeysCount int64
-}
-
 // Get -
 func (storage *Storage) Get(ctx bigmapdiff.GetContext) ([]bigmapdiff.Bucket, error) {
 	if *ctx.Ptr < 0 {

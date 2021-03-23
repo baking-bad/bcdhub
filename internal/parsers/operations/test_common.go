@@ -254,13 +254,17 @@ func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 		logger.Info("DelegateAlias: %s != %s", one.DelegateAlias, two.DelegateAlias)
 		return false
 	}
-	if !assert.JSONEq(t, string(one.Parameters), string(two.Parameters)) {
-		logger.Info("Parameters: %s != %s", one.Parameters, two.Parameters)
-		return false
+	if len(one.Parameters) > 0 && len(two.Parameters) > 0 {
+		if !assert.JSONEq(t, string(one.Parameters), string(two.Parameters)) {
+			logger.Info("Parameters: %s != %s", one.Parameters, two.Parameters)
+			return false
+		}
 	}
-	if !assert.JSONEq(t, string(one.DeffatedStorage), string(two.DeffatedStorage)) {
-		logger.Info("DeffatedStorage: %s != %s", one.DeffatedStorage, two.DeffatedStorage)
-		return false
+	if len(one.DeffatedStorage) > 0 && len(two.DeffatedStorage) > 0 {
+		if !assert.JSONEq(t, string(one.DeffatedStorage), string(two.DeffatedStorage)) {
+			logger.Info("DeffatedStorage: %s != %s", one.DeffatedStorage, two.DeffatedStorage)
+			return false
+		}
 	}
 	if len(one.Tags) == len(two.Tags) && len(one.Tags) > 0 {
 		if !reflect.DeepEqual(one.Tags, two.Tags) {
@@ -377,13 +381,6 @@ func compareContract(one, two *contract.Contract) bool {
 		return false
 	}
 	return true
-}
-
-func compareJSON(t *testing.T, one, two string) bool {
-	if one == "" {
-		return one == two
-	}
-	return assert.JSONEq(t, one, two)
 }
 
 func compareInt64Ptr(one, two *int64) bool {

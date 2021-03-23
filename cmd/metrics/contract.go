@@ -23,20 +23,16 @@ func getContract(ids []int64) error {
 	}
 
 	logger.Info("Metrics of %d contracts are computed", len(contracts))
-	updates := make([]contract.Contract, 0)
-	for _, c := range contracts {
-		updates = append(updates, c)
-	}
 
-	items := make([]models.Model, len(updates))
-	for i := range updates {
-		items[i] = &updates[i]
+	items := make([]models.Model, len(contracts))
+	for i := range contracts {
+		items[i] = &contracts[i]
 	}
 	if err := saveSearchModels(ctx.Searcher, items); err != nil {
 		return err
 	}
 
-	return ctx.Contracts.UpdateField(updates, "Alias", "Verified", "VerificationSource", "ProjectID")
+	return ctx.Contracts.UpdateField(contracts, "Alias", "Verified", "VerificationSource", "ProjectID")
 }
 
 func parseContract(contract *contract.Contract) error {

@@ -4,32 +4,33 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 )
 
 // TokenMetadata -
 type TokenMetadata struct {
-	ID                 int64         `json:"-"`
-	Network            string        `json:"network"`
-	Contract           string        `json:"contract"`
-	Level              int64         `json:"level"`
-	Timestamp          time.Time     `json:"timestamp"`
-	TokenID            uint64        `json:"token_id" gorm:"type:numeric(50,0)"`
-	Symbol             string        `json:"symbol"`
-	Name               string        `json:"name"`
-	Decimals           *int64        `json:"decimals,omitempty"`
-	Description        string        `json:"description,omitempty"`
-	ArtifactURI        string        `json:"artifact_uri,omitempty"`
-	DisplayURI         string        `json:"display_uri,omitempty"`
-	ThumbnailURI       string        `json:"thumbnail_uri,omitempty"`
-	ExternalURI        string        `json:"external_uri,omitempty"`
-	IsTransferable     bool          `json:"is_transferable"`
-	IsBooleanAmount    bool          `json:"is_boolean_amount"`
-	ShouldPreferSymbol bool          `json:"should_prefer_symbol"`
-	Tags               []string      `json:"tags,omitempty"`
-	Creators           []string      `json:"creators,omitempty"`
-	Formats            []interface{} `json:"formats,omitempty"`
-	Extras             types.JSONB   `json:"extras" gorm:"type:jsonb"`
+	ID                 int64          `json:"-"`
+	Network            string         `json:"network"`
+	Contract           string         `json:"contract"`
+	Level              int64          `json:"level"`
+	Timestamp          time.Time      `json:"timestamp"`
+	TokenID            uint64         `json:"token_id" gorm:"type:numeric(50,0)"`
+	Symbol             string         `json:"symbol"`
+	Name               string         `json:"name"`
+	Decimals           *int64         `json:"decimals,omitempty"`
+	Description        string         `json:"description,omitempty"`
+	ArtifactURI        string         `json:"artifact_uri,omitempty"`
+	DisplayURI         string         `json:"display_uri,omitempty"`
+	ThumbnailURI       string         `json:"thumbnail_uri,omitempty"`
+	ExternalURI        string         `json:"external_uri,omitempty"`
+	IsTransferable     bool           `json:"is_transferable"`
+	IsBooleanAmount    bool           `json:"is_boolean_amount"`
+	ShouldPreferSymbol bool           `json:"should_prefer_symbol"`
+	Tags               pq.StringArray `json:"tags,omitempty" gorm:"type:text[]"`
+	Creators           pq.StringArray `json:"creators,omitempty" gorm:"type:text[]"`
+	Formats            types.Bytes    `json:"formats,omitempty" gorm:"type:bytes"`
+	Extras             types.JSONB    `json:"extras" gorm:"type:jsonb"`
 }
 
 // ByName - TokenMetadata sorting filter by Name field

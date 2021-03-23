@@ -24,6 +24,7 @@ type Error struct {
 
 // Operation -
 type Operation struct {
+	ID                                 int64              `json:"id,omitempty" extensions:"x-nullable"`
 	Level                              int64              `json:"level,omitempty" extensions:"x-nullable"`
 	Fee                                int64              `json:"fee,omitempty" extensions:"x-nullable"`
 	Counter                            int64              `json:"counter,omitempty" extensions:"x-nullable"`
@@ -35,12 +36,14 @@ type Operation struct {
 	AllocatedDestinationContractBurned int64              `json:"allocated_destination_contract_burned,omitempty" extensions:"x-nullable"`
 	IndexedTime                        int64              `json:"-"`
 	ContentIndex                       int64              `json:"content_index"`
+	ConsumedGas                        int64              `json:"consumed_gas,omitempty" extensions:"x-nullable" example:"100"`
+	StorageSize                        int64              `json:"storage_size,omitempty" extensions:"x-nullable" example:"200"`
+	PaidStorageSizeDiff                int64              `json:"paid_storage_size_diff,omitempty" extensions:"x-nullable" example:"300"`
 	Errors                             []*tezerrors.Error `json:"errors,omitempty" extensions:"x-nullable"`
 	Parameters                         interface{}        `json:"parameters,omitempty" extensions:"x-nullable"`
 	StorageDiff                        interface{}        `json:"storage_diff,omitempty" extensions:"x-nullable"`
 	RawMempool                         interface{}        `json:"rawMempool,omitempty" extensions:"x-nullable"`
 	Timestamp                          time.Time          `json:"timestamp"`
-	ID                                 int64              `json:"id,omitempty" extensions:"x-nullable"`
 	Protocol                           string             `json:"protocol"`
 	Hash                               string             `json:"hash,omitempty" extensions:"x-nullable"`
 	Network                            string             `json:"network"`
@@ -54,12 +57,9 @@ type Operation struct {
 	Delegate                           string             `json:"delegate,omitempty" extensions:"x-nullable"`
 	Status                             string             `json:"status"`
 	Entrypoint                         string             `json:"entrypoint,omitempty" extensions:"x-nullable"`
+	AllocatedDestinationContract       bool               `json:"allocated_destination_contract,omitempty" extensions:"x-nullable" example:"true"`
 	Internal                           bool               `json:"internal"`
 	Mempool                            bool               `json:"mempool"`
-	ConsumedGas                        int64              `json:"consumed_gas,omitempty" extensions:"x-nullable" example:"100"`
-	StorageSize                        int64              `json:"storage_size,omitempty" extensions:"x-nullable" example:"200"`
-	PaidStorageSizeDiff                int64              `json:"paid_storage_size_diff,omitempty" extensions:"x-nullable" example:"300"`
-	AllocatedDestinationContract       bool               `json:"allocated_destination_contract,omitempty" extensions:"x-nullable" example:"true"`
 }
 
 // FromModel -
@@ -660,7 +660,7 @@ type TokenMetadata struct {
 	ShouldPreferSymbol bool                   `json:"should_prefer_symbol,omitempty" extensions:"x-nullable"`
 	Creators           []string               `json:"creators,omitempty"`
 	Tags               []string               `json:"tags,omitempty"`
-	Formats            []interface{}          `json:"formats,omitempty"`
+	Formats            stdJSON.RawMessage     `json:"formats,omitempty"`
 	TokenInfo          map[string]interface{} `json:"token_info,omitempty" extensions:"x-nullable"`
 	Volume24Hours      *float64               `json:"volume_24_hours,omitempty" extensions:"x-nullable"`
 }
@@ -684,7 +684,7 @@ func TokenMetadataFromElasticModel(model tokenmetadata.TokenMetadata, withTokenI
 	tm.ShouldPreferSymbol = model.ShouldPreferSymbol
 	tm.Creators = model.Creators
 	tm.Tags = model.Tags
-	tm.Formats = model.Formats
+	tm.Formats = stdJSON.RawMessage(model.Formats)
 
 	if withTokenInfo {
 		tm.TokenInfo = model.Extras

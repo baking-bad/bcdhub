@@ -10,9 +10,9 @@ import (
 // Queue -
 type Queue struct {
 	Name       string
+	TTLSeconds uint
 	AutoDelete bool
 	Durable    bool
-	TTLSeconds uint
 	Lazy       bool
 }
 

@@ -450,7 +450,7 @@ func (ctx *Context) getBigMapType(network, address, protocol string, ptr int64) 
 		if len(ops) != 1 {
 			return nil, fmt.Errorf("Can't get contract storage: %s", address)
 		}
-		storageRaw = []byte(ops[0].DeffatedStorage)
+		storageRaw = ops[0].DeffatedStorage
 	}
 	var data ast.UntypedAST
 	if err := json.Unmarshal(storageRaw, &data); err != nil {

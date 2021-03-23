@@ -33,5 +33,4 @@ func parseOperationResult(data noderpc.Operation, tx *operation.Operation) {
 	if err == nil {
 		tx.Errors = errs
 	}
-	return
 }

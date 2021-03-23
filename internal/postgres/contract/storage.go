@@ -120,19 +120,25 @@ func (storage *Storage) GetByAddresses(addresses []contract.Address) (response [
 }
 
 // GetProjectsLastContract -
-func (storage *Storage) GetProjectsLastContract(c *contract.Contract, size, offset int64) (response []contract.Contract, err error) {
+func (storage *Storage) GetProjectsLastContract(c contract.Contract, size, offset int64) (response []contract.Contract, err error) {
+	if c.FingerprintCode == nil || c.FingerprintParameter == nil || c.FingerprintStorage == nil {
+		return nil, nil
+	}
+
+	code := hex.EncodeToString(c.FingerprintCode)
+	params := hex.EncodeToString(c.FingerprintParameter)
+	s := hex.EncodeToString(c.FingerprintStorage)
+
 	subQuery := storage.DB.Table(models.DocContracts).Where(
-		storage.DB.Where("encode(fingerprint_code, 'hex') = ?", hex.EncodeToString(c.FingerprintCode)).
-			Where("encode(fingerprint_parameter, 'hex') = ?", hex.EncodeToString(c.FingerprintParameter)).
-			Where("encode(fingerprint_storage, 'hex') = ?", hex.EncodeToString(c.FingerprintStorage)),
+		storage.DB.Where("encode(fingerprint_code, 'hex') = ?", code).
+			Where("encode(fingerprint_parameter, 'hex') = ?", params).
+			Where("encode(fingerprint_storage, 'hex') = ?", s),
 	)
-	if c != nil {
-		if c.Manager != "" {
-			subQuery.Or("manager = ?", c.Manager)
-		}
-		if c.Language != "" {
-			subQuery.Or("language = ?", c.Language)
-		}
+	if c.Manager != "" {
+		subQuery.Or("manager = ?", c.Manager)
+	}
+	if c.Language != "" {
+		subQuery.Or("language = ?", c.Language)
 	}
 
 	limit := core.GetPageSize(size)

@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/tidwall/gjson"
 )
 
@@ -56,7 +57,7 @@ type TokenMetadata struct {
 	ShouldPreferSymbol bool                   `json:"shouldPreferSymbol"`
 	Creators           []string               `json:"creators"`
 	Tags               []string               `json:"tags"`
-	Formats            []interface{}          `json:"formats"`
+	Formats            json.RawMessage        `json:"formats"`
 	Extras             map[string]interface{} `json:"-"`
 
 	Link string `json:"-"`
@@ -83,7 +84,7 @@ func (m *TokenMetadata) ToModel(address, network string) tokenmetadata.TokenMeta
 		ShouldPreferSymbol: m.ShouldPreferSymbol,
 		Creators:           m.Creators,
 		Tags:               m.Tags,
-		Formats:            m.Formats,
+		Formats:            types.Bytes(m.Formats),
 		Extras:             m.Extras,
 	}
 }
@@ -252,10 +253,10 @@ func getBoolKey(data map[string]interface{}, keyName string) bool {
 	return false
 }
 
-func getInterfaceArrayKey(data map[string]interface{}, keyName string) []interface{} {
+func getBytesKey(data map[string]interface{}, keyName string) json.RawMessage {
 	if val, ok := data[keyName]; ok {
 		delete(data, keyName)
-		if b, ok := val.([]interface{}); ok {
+		if b, ok := val.(json.RawMessage); ok {
 			return b
 		}
 	}
@@ -284,7 +285,7 @@ func (m *TokenMetadata) UnmarshalJSON(data []byte) error {
 	m.Creators = getStringArrayKey(res, keyCreators)
 	m.Tags = getStringArrayKey(res, keyTags)
 
-	m.Formats = getInterfaceArrayKey(res, keyFormats)
+	m.Formats = getBytesKey(res, keyFormats)
 
 	if val, ok := res[keyDecimals]; ok {
 		switch decimals := val.(type) {

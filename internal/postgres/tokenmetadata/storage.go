@@ -41,14 +41,9 @@ func (storage *Storage) GetAll(ctx ...tokenmetadata.GetContext) (tokens []tokenm
 // GetWithExtras -
 func (storage *Storage) GetWithExtras() (tokens []tokenmetadata.TokenMetadata, err error) {
 	err = storage.DB.Table(models.DocTokenMetadata).
-		Where("(json->'description') is not null").
-		Or("(json->'artifactUri') is not null").
-		Or("(json->'displayUri') is not null").
-		Or("(json->'thumbnailUri') is not null").
-		Or("(json->'externalUri') is not null").
-		Or("(json->'isTransferable') is not null").
-		Or("(json->'isBooleanAmount') is not null").
-		Or("(json->'shouldPreferSymbol') is not null").
+		Where("extras->'tags' is not null").
+		Or("extras->'formats' is not null").
+		Or("extras->'creators' is not null").
 		Find(&tokens).Error
 	return
 }

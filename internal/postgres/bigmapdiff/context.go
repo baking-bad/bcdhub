@@ -32,8 +32,7 @@ func (storage *Storage) buildGetContext(ctx bigmapdiff.GetContext) *gorm.DB {
 		query.Where("key_hash LIKE %?%", ctx.Query)
 	}
 
-	size := core.GetPageSize(ctx.Size)
-	query.Limit(int(size))
+	query.Limit(core.GetPageSize(ctx.Size))
 
 	if ctx.Offset > 0 {
 		query.Offset(int(ctx.Offset))

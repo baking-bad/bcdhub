@@ -48,8 +48,7 @@ func buildGetContext(db *gorm.DB, query *gorm.DB, ctx transfer.GetContext, withS
 	}
 
 	if withSize {
-		size := core.GetPageSize(ctx.Size)
-		query.Limit(int(size))
+		query.Limit(core.GetPageSize(ctx.Size))
 
 		if ctx.Offset > 0 {
 			query.Offset(int(ctx.Offset))

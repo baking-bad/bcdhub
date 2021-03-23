@@ -125,7 +125,7 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 		if err != nil {
 			return nil, err
 		}
-		param := types.NewParameters([]byte(operation.Parameters))
+		param := types.NewParameters(operation.Parameters)
 		subTree, err := parameter.FromParameters(param)
 		if err != nil {
 			return nil, err
@@ -163,8 +163,8 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 		for i := range operationModels {
 			if model, ok := operationModels[i].(*bigmapdiff.BigMapDiff); ok &&
 				model.OperationHash == operation.Hash &&
-				model.OperationCounter == model.OperationCounter &&
-				helpers.IsInt64PointersEqual(model.OperationNonce, model.OperationNonce) {
+				model.OperationCounter == operation.Counter &&
+				helpers.IsInt64PointersEqual(model.OperationNonce, operation.Nonce) {
 				bmd = append(bmd, *model)
 			}
 		}
@@ -257,7 +257,7 @@ func getNode(operation operation.Operation) (ast.Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	params := types.NewParameters([]byte(operation.Parameters))
+	params := types.NewParameters(operation.Parameters)
 
 	subTree, err := param.FromParameters(params)
 	if err != nil {

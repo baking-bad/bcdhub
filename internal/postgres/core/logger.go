@@ -115,21 +115,3 @@ func (l logger) Trace(ctx context.Context, begin time.Time, fc func() (string, i
 		}
 	}
 }
-
-type traceRecorder struct {
-	gl.Interface
-	BeginAt      time.Time
-	SQL          string
-	RowsAffected int64
-	Err          error
-}
-
-func (l traceRecorder) New() *traceRecorder {
-	return &traceRecorder{Interface: l.Interface, BeginAt: time.Now()}
-}
-
-func (l *traceRecorder) Trace(ctx context.Context, begin time.Time, fc func() (string, int64), err error) {
-	l.BeginAt = begin
-	l.SQL, l.RowsAffected = fc()
-	l.Err = err
-}

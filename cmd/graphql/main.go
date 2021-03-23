@@ -111,5 +111,7 @@ func main() {
 
 	r.POST("/api", ctx.graphqlHandler)
 
-	http.ListenAndServe(":3000", r)
+	if err := http.ListenAndServe(":3000", r); err != nil {
+		panic(err)
+	}
 }

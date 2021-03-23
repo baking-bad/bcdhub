@@ -169,18 +169,18 @@ func (mr *MockRepositoryMockRecorder) GetTokens(network, tokenInterface, offset,
 }
 
 // GetProjectsLastContract mocks base method
-func (m *MockRepository) GetProjectsLastContract(contract *cntr.Contract, size, offset int64) ([]cntr.Contract, error) {
+func (m *MockRepository) GetProjectsLastContract(c cntr.Contract, size, offset int64) ([]cntr.Contract, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetProjectsLastContract", contract, size, offset)
+	ret := m.ctrl.Call(m, "GetProjectsLastContract", c, size, offset)
 	ret0, _ := ret[0].([]cntr.Contract)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetProjectsLastContract indicates an expected call of GetProjectsLastContract
-func (mr *MockRepositoryMockRecorder) GetProjectsLastContract(contract, size, offset interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetProjectsLastContract(c, size, offset interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProjectsLastContract", reflect.TypeOf((*MockRepository)(nil).GetProjectsLastContract), contract, size, offset)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProjectsLastContract", reflect.TypeOf((*MockRepository)(nil).GetProjectsLastContract), c, size, offset)
 }
 
 // GetSameContracts mocks base method
@@ -268,16 +268,16 @@ func (mr *MockRepositoryMockRecorder) UpdateField(where interface{}, fields ...i
 }
 
 // Stats mocks base method
-func (m *MockRepository) Stats(contract cntr.Contract) (cntr.Stats, error) {
+func (m *MockRepository) Stats(c cntr.Contract) (cntr.Stats, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Stats", contract)
+	ret := m.ctrl.Call(m, "Stats", c)
 	ret0, _ := ret[0].(cntr.Stats)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Stats indicates an expected call of Stats
-func (mr *MockRepositoryMockRecorder) Stats(contract interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Stats(c interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stats", reflect.TypeOf((*MockRepository)(nil).Stats), contract)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stats", reflect.TypeOf((*MockRepository)(nil).Stats), c)
 }

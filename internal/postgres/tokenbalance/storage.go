@@ -53,10 +53,14 @@ func (storage *Storage) GetHolders(network, contract string, tokenID uint64) ([]
 }
 
 // GetAccountBalances -
-func (storage *Storage) GetAccountBalances(network, address string, size, offset int64) ([]tokenbalance.TokenBalance, int64, error) {
+func (storage *Storage) GetAccountBalances(network, address, contract string, size, offset int64) ([]tokenbalance.TokenBalance, int64, error) {
 	var balances []tokenbalance.TokenBalance
 
 	query := storage.DB.Table(models.DocTokenBalances).Scopes(core.NetworkAndAddress(network, address))
+
+	if contract != "" {
+		query.Where("contract = ?", contract)
+	}
 
 	limit := core.GetPageSize(size)
 	if err := query.
@@ -81,4 +85,59 @@ func (storage *Storage) NFTHolders(network, contract string, tokenID uint64) (to
 		Where("balance != '0'").
 		Find(&tokens).Error
 	return
+}
+
+// Batch -
+func (storage *Storage) Batch(network string, addresses []string) (map[string][]tokenbalance.TokenBalance, error) {
+	var balances []tokenbalance.TokenBalance
+
+	query := storage.DB.Table(models.DocTokenBalances).Scopes(core.Network(network)).Where("balance != '0'")
+
+	for i := range addresses {
+		if i == 0 {
+			query.Where("address = ?", addresses[i])
+		} else {
+			query.Or("address = ?", addresses[i])
+		}
+	}
+
+	if err := query.Find(&balances).Error; err != nil {
+		return nil, err
+	}
+
+	result := make(map[string][]tokenbalance.TokenBalance)
+
+	for _, b := range balances {
+		if _, ok := result[b.Address]; !ok {
+			result[b.Address] = make([]tokenbalance.TokenBalance, 0)
+		}
+		result[b.Address] = append(result[b.Address], b)
+	}
+
+	return result, nil
+}
+
+type tokensByContract struct {
+	Contract    string
+	TokensCount int64
+}
+
+// CountByContract -
+func (storage *Storage) CountByContract(network, address string) (map[string]int64, error) {
+	var resp []tokensByContract
+	query := storage.DB.Table(models.DocTokenBalances).
+		Select("contract, count(*) as tokens_count").
+		Scopes(core.NetworkAndAddress(network, address)).
+		Group("contract").
+		Scan(&resp)
+
+	if query.Error != nil {
+		return nil, query.Error
+	}
+
+	result := make(map[string]int64)
+	for i := range resp {
+		result[resp[i].Contract] = resp[i].TokensCount
+	}
+	return result, nil
 }

@@ -10,7 +10,6 @@ import (
 type EventOperation struct {
 	Network                            string             `json:"network"`
 	Hash                               string             `json:"hash"`
-	Internal                           bool               `json:"internal"`
 	Status                             string             `json:"status"`
 	Timestamp                          time.Time          `json:"timestamp"`
 	Kind                               string             `json:"kind"`
@@ -26,10 +25,11 @@ type EventOperation struct {
 	ConsumedGas                        int64              `json:"consumed_gas,omitempty"`
 	StorageSize                        int64              `json:"storage_size,omitempty"`
 	PaidStorageSizeDiff                int64              `json:"paid_storage_size_diff,omitempty"`
-	AllocatedDestinationContract       bool               `json:"allocated_destination_contract,omitempty"`
 	Errors                             []*tezerrors.Error `json:"errors,omitempty"`
 	Burned                             int64              `json:"burned,omitempty"`
 	AllocatedDestinationContractBurned int64              `json:"allocated_destination_contract_burned,omitempty"`
+	AllocatedDestinationContract       bool               `json:"allocated_destination_contract,omitempty"`
+	Internal                           bool               `json:"internal"`
 }
 
 // EventMigration -

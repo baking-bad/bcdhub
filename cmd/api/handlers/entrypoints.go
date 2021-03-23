@@ -177,7 +177,7 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 			break
 		}
 
-		parameters := types.NewParameters([]byte(op[0].Parameters))
+		parameters := types.NewParameters(op[0].Parameters)
 		var data ast.UntypedAST
 		if err := json.Unmarshal(parameters.Value, &data); ctx.handleError(c, err, 0) {
 			return

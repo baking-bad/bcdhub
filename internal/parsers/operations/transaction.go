@@ -153,7 +153,7 @@ func (p Transaction) getEntrypoint(tx *operation.Operation) error {
 	}
 
 	if !tx.IsApplied() {
-		params := types.NewParameters([]byte(tx.Parameters))
+		params := types.NewParameters(tx.Parameters)
 		tx.Entrypoint = params.Entrypoint
 		return nil
 	}
@@ -176,7 +176,7 @@ func (p Transaction) getEntrypoint(tx *operation.Operation) error {
 		return err
 	}
 
-	params := types.NewParameters([]byte(tx.Parameters))
+	params := types.NewParameters(tx.Parameters)
 
 	subTree, err := param.FromParameters(params)
 	if err != nil {

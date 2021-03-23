@@ -87,6 +87,12 @@ func TestGroup_Parse(t *testing.T) {
 
 	generalRepo.
 		EXPECT().
+		GetByID(gomock.AssignableToTypeOf(&modelContract.Contract{})).
+		DoAndReturn(readTestContractModel).
+		AnyTimes()
+
+	generalRepo.
+		EXPECT().
 		BulkInsert(gomock.AssignableToTypeOf([]models.Model{})).
 		Return(nil).
 		AnyTimes()
@@ -436,6 +442,17 @@ func TestGroup_Parse(t *testing.T) {
 			},
 			filename: "./data/rpc/opg/onzUDQhwunz2yqzfEsoURXEBz9p7Gk8DgY4QBva52Z4b3AJCZjt.json",
 			want: []models.Model{
+				&modelContract.Contract{
+					Network:     "delphinet",
+					Level:       86142,
+					Timestamp:   timestamp,
+					Language:    "unknown",
+					Hash:        "e4b88b53b9227b3fc4fc0dbe148f249a7a1c755cf4cbc9c8fb5b5b78395a139d3f8e0fde5c27117df30553e98ecb4e3e8ddc9740292af18fbf36326cb55cebad",
+					Tags:        []string{},
+					Entrypoints: []string{"decrement", "increment"},
+					Address:     "KT1NppzrgyLZD3aku7fssfhYPm5QqZwyabvR",
+					Manager:     "tz1SX7SPdx4ZJb6uP5Hh5XBVZhh9wTfFaud3",
+				},
 				&operation.Operation{
 					ContentIndex:                       0,
 					Network:                            "delphinet",
@@ -458,17 +475,6 @@ func TestGroup_Parse(t *testing.T) {
 					AllocatedDestinationContractBurned: 64250,
 					DeffatedStorage:                    []byte("{\"int\":\"0\"}\n"),
 					Tags:                               nil,
-				},
-				&modelContract.Contract{
-					Network:     "delphinet",
-					Level:       86142,
-					Timestamp:   timestamp,
-					Language:    "unknown",
-					Hash:        "e4b88b53b9227b3fc4fc0dbe148f249a7a1c755cf4cbc9c8fb5b5b78395a139d3f8e0fde5c27117df30553e98ecb4e3e8ddc9740292af18fbf36326cb55cebad",
-					Tags:        []string{},
-					Entrypoints: []string{"decrement", "increment"},
-					Address:     "KT1NppzrgyLZD3aku7fssfhYPm5QqZwyabvR",
-					Manager:     "tz1SX7SPdx4ZJb6uP5Hh5XBVZhh9wTfFaud3",
 				},
 			},
 		}, {
@@ -495,6 +501,17 @@ func TestGroup_Parse(t *testing.T) {
 			},
 			filename: "./data/rpc/opg/onv6Q1dNejAGEJeQzwRannWsDSGw85FuFdhLnBrY18TBcC9p8kC.json",
 			want: []models.Model{
+				&modelContract.Contract{
+					Network:     "mainnet",
+					Level:       301436,
+					Timestamp:   timestamp,
+					Language:    "unknown",
+					Hash:        "0569cf67a58ae603cbfa740c3181b588608f8967e8a7d1ea49e00c9325e9e1b67dc32cd1ec1f9cdc73699dd793ded16ac6f14511b61b63240e8f647b3aed17a3",
+					Tags:        []string{},
+					Entrypoints: []string{"default"},
+					Address:     "KT1AbjG7vtpV8osdoJXcMRck8eTwst8dWoz4",
+					Manager:     "tz1MXrEgDNnR8PDryN8sq4B2m9Pqcf57wBqM",
+				},
 				&operation.Operation{
 					Kind:                               "origination",
 					Source:                             "tz1MXrEgDNnR8PDryN8sq4B2m9Pqcf57wBqM",
@@ -513,17 +530,6 @@ func TestGroup_Parse(t *testing.T) {
 					Protocol:                           "PsddFKi32cMJ2qPjf43Qv5GDWLDPZb3T3bF6fLKiF5HtvHNU7aP",
 					DeffatedStorage:                    []byte("[]"),
 					AllocatedDestinationContractBurned: 257000,
-				},
-				&modelContract.Contract{
-					Network:     "mainnet",
-					Level:       301436,
-					Timestamp:   timestamp,
-					Language:    "unknown",
-					Hash:        "0569cf67a58ae603cbfa740c3181b588608f8967e8a7d1ea49e00c9325e9e1b67dc32cd1ec1f9cdc73699dd793ded16ac6f14511b61b63240e8f647b3aed17a3",
-					Tags:        []string{},
-					Entrypoints: []string{"default"},
-					Address:     "KT1AbjG7vtpV8osdoJXcMRck8eTwst8dWoz4",
-					Manager:     "tz1MXrEgDNnR8PDryN8sq4B2m9Pqcf57wBqM",
 				},
 			},
 		}, {
@@ -602,24 +608,6 @@ func TestGroup_Parse(t *testing.T) {
 					Network:   "edo2net",
 					Timestamp: timestamp,
 				},
-				&operation.Operation{
-					Kind:                               "origination",
-					Source:                             "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
-					Nonce:                              setInt64(0),
-					Destination:                        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
-					Status:                             "applied",
-					Level:                              72207,
-					Network:                            "edo2net",
-					Hash:                               "op4fFMvYsxvSUKZmLWC7aUf25VMYqigaDwTZCAoBBi8zACbHTNg",
-					Timestamp:                          timestamp,
-					Burned:                             5245000,
-					Counter:                            155670,
-					Internal:                           true,
-					Initiator:                          "tz1gXhGAXgKvrXjn4t16rYUXocqbch1XXJFN",
-					Protocol:                           "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA",
-					AllocatedDestinationContractBurned: 257000,
-					DeffatedStorage:                    []byte("{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"string\":\"tz1QozfhaUW4wLnohDo6yiBUmh7cPCSXE9Af\"},[]]},{\"int\":\"25168\"},{\"int\":\"25169\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Left\",\"args\":[{\"prim\":\"Unit\"}]},{\"int\":\"25170\"}]},{\"string\":\"tz1QozfhaUW4wLnohDo6yiBUmh7cPCSXE9Af\"},{\"int\":\"0\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[[],{\"int\":\"25171\"}]},{\"int\":\"2\"},{\"string\":\"tz1QozfhaUW4wLnohDo6yiBUmh7cPCSXE9Af\"}]},{\"int\":\"11\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[[],[[{\"prim\":\"DUP\"},{\"prim\":\"CAR\"},{\"prim\":\"DIP\",\"args\":[[{\"prim\":\"CDR\"}]]}],{\"prim\":\"DROP\"},{\"prim\":\"NIL\",\"args\":[{\"prim\":\"operation\"}]},{\"prim\":\"PAIR\"}]]},{\"int\":\"500\"},{\"int\":\"1000\"}]},{\"prim\":\"Pair\",\"args\":[{\"int\":\"1000\"},{\"int\":\"2592000\"}]},{\"int\":\"1\"},{\"int\":\"1\"}]},[{\"prim\":\"DROP\"},{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"bool\"},{\"prim\":\"True\"}]}],[{\"prim\":\"DROP\"},{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"nat\"},{\"int\":\"0\"}]}]]}"),
-				},
 				&modelContract.Contract{
 					Network:     "edo2net",
 					Level:       72207,
@@ -668,6 +656,24 @@ func TestGroup_Parse(t *testing.T) {
 					Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
 					Network:        "edo2net",
 					Timestamp:      timestamp,
+				},
+				&operation.Operation{
+					Kind:                               "origination",
+					Source:                             "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
+					Nonce:                              setInt64(0),
+					Destination:                        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
+					Status:                             "applied",
+					Level:                              72207,
+					Network:                            "edo2net",
+					Hash:                               "op4fFMvYsxvSUKZmLWC7aUf25VMYqigaDwTZCAoBBi8zACbHTNg",
+					Timestamp:                          timestamp,
+					Burned:                             5245000,
+					Counter:                            155670,
+					Internal:                           true,
+					Initiator:                          "tz1gXhGAXgKvrXjn4t16rYUXocqbch1XXJFN",
+					Protocol:                           "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA",
+					AllocatedDestinationContractBurned: 257000,
+					DeffatedStorage:                    []byte("{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"string\":\"tz1QozfhaUW4wLnohDo6yiBUmh7cPCSXE9Af\"},[]]},{\"int\":\"25168\"},{\"int\":\"25169\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Left\",\"args\":[{\"prim\":\"Unit\"}]},{\"int\":\"25170\"}]},{\"string\":\"tz1QozfhaUW4wLnohDo6yiBUmh7cPCSXE9Af\"},{\"int\":\"0\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[[],{\"int\":\"25171\"}]},{\"int\":\"2\"},{\"string\":\"tz1QozfhaUW4wLnohDo6yiBUmh7cPCSXE9Af\"}]},{\"int\":\"11\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[[],[[{\"prim\":\"DUP\"},{\"prim\":\"CAR\"},{\"prim\":\"DIP\",\"args\":[[{\"prim\":\"CDR\"}]]}],{\"prim\":\"DROP\"},{\"prim\":\"NIL\",\"args\":[{\"prim\":\"operation\"}]},{\"prim\":\"PAIR\"}]]},{\"int\":\"500\"},{\"int\":\"1000\"}]},{\"prim\":\"Pair\",\"args\":[{\"int\":\"1000\"},{\"int\":\"2592000\"}]},{\"int\":\"1\"},{\"int\":\"1\"}]},[{\"prim\":\"DROP\"},{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"bool\"},{\"prim\":\"True\"}]}],[{\"prim\":\"DROP\"},{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"nat\"},{\"int\":\"0\"}]}]]}"),
 				},
 			},
 		},

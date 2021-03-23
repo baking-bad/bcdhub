@@ -16,7 +16,7 @@ func (h *Handler) SetContractProjectID(c *contract.Contract) error {
 
 	var end bool
 	for !end {
-		buckets, err := h.Contracts.GetProjectsLastContract(c, size, offset)
+		buckets, err := h.Contracts.GetProjectsLastContract(*c, size, offset)
 		if err != nil {
 			return err
 		}

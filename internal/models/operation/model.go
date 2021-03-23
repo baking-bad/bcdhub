@@ -17,47 +17,48 @@ type Operation struct {
 	ID int64 `json:"-"`
 
 	ContentIndex int64 `json:"content_index,omitempty" gorm:",default:0"`
+	Level        int64 `json:"level"`
+	Counter      int64 `json:"counter,omitempty"`
+	Fee          int64 `json:"fee,omitempty"`
+	GasLimit     int64 `json:"gas_limit,omitempty"`
+	StorageLimit int64 `json:"storage_limit,omitempty"`
+	Amount       int64 `json:"amount,omitempty"`
 
+	ConsumedGas                        int64 `json:"consumed_gas,omitempty"`
+	StorageSize                        int64 `json:"storage_size,omitempty"`
+	PaidStorageSizeDiff                int64 `json:"paid_storage_size_diff,omitempty"`
+	Burned                             int64 `json:"burned,omitempty"`
+	AllocatedDestinationContractBurned int64 `json:"allocated_destination_contract_burned,omitempty"`
+
+	Nonce    *int64 `json:"nonce,omitempty"`
 	Network  string `json:"network"`
 	Protocol string `json:"protocol"`
 	Hash     string `json:"hash"`
-	Counter  int64  `json:"counter,omitempty"`
-	Nonce    *int64 `json:"nonce,omitempty"`
-	Internal bool   `json:"internal" gorm:",default:false"`
 
-	Status           string    `json:"status"`
 	Timestamp        time.Time `json:"timestamp"`
-	Level            int64     `json:"level"`
+	Status           string    `json:"status"`
 	Kind             string    `json:"kind"`
 	Initiator        string    `json:"initiator"`
 	Source           string    `json:"source"`
-	Fee              int64     `json:"fee,omitempty"`
-	GasLimit         int64     `json:"gas_limit,omitempty"`
-	StorageLimit     int64     `json:"storage_limit,omitempty"`
-	Amount           int64     `json:"amount,omitempty"`
 	Destination      string    `json:"destination,omitempty"`
 	Delegate         string    `json:"delegate,omitempty"`
 	Entrypoint       string    `json:"entrypoint,omitempty"`
 	SourceAlias      string    `json:"source_alias,omitempty"`
 	DestinationAlias string    `json:"destination_alias,omitempty"`
+	DelegateAlias    string    `json:"delegate_alias,omitempty"`
 	Parameters       []byte    `json:"parameters,omitempty"`
 	DeffatedStorage  []byte    `json:"deffated_storage"`
-	DelegateAlias    string    `json:"delegate_alias,omitempty"`
-
-	ConsumedGas                        int64            `json:"consumed_gas,omitempty"`
-	StorageSize                        int64            `json:"storage_size,omitempty"`
-	PaidStorageSizeDiff                int64            `json:"paid_storage_size_diff,omitempty"`
-	AllocatedDestinationContract       bool             `json:"allocated_destination_contract,omitempty"`
-	Errors                             tezerrors.Errors `json:"errors,omitempty" gorm:"type:bytes"`
-	Burned                             int64            `json:"burned,omitempty"`
-	AllocatedDestinationContractBurned int64            `json:"allocated_destination_contract_burned,omitempty"`
 
 	Tags pq.StringArray `json:"tags,omitempty" gorm:"type:text[]"`
 
 	Script []byte `json:"-"  gorm:"-"`
 
-	ParameterStrings pq.StringArray `json:"parameter_strings,omitempty" gorm:"type:text[]"`
-	StorageStrings   pq.StringArray `json:"storage_strings,omitempty" gorm:"type:text[]"`
+	Errors           tezerrors.Errors `json:"errors,omitempty" gorm:"type:bytes"`
+	ParameterStrings pq.StringArray   `json:"parameter_strings,omitempty" gorm:"type:text[]"`
+	StorageStrings   pq.StringArray   `json:"storage_strings,omitempty" gorm:"type:text[]"`
+
+	AllocatedDestinationContract bool `json:"allocated_destination_contract,omitempty"`
+	Internal                     bool `json:"internal" gorm:",default:false"`
 }
 
 // GetID -

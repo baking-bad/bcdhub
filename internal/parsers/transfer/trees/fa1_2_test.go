@@ -55,7 +55,7 @@ func TestMakeFa1_2Transfers(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			params := types.NewParameters([]byte(tt.operation.Parameters))
+			params := types.NewParameters(tt.operation.Parameters)
 			node := new(base.Node)
 			if err := json.Unmarshal(params.Value, node); err != nil {
 				t.Errorf("Unmarshal() error = %v", err)
