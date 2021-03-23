@@ -85,12 +85,19 @@ func (storage *Storage) GetHolders(network, contract string, tokenID int64) ([]t
 }
 
 // GetAccountBalances -
-func (storage *Storage) GetAccountBalances(network, address string, size, offset int64) ([]tokenbalance.TokenBalance, int64, error) {
+func (storage *Storage) GetAccountBalances(network, address, contract string, size, offset int64) ([]tokenbalance.TokenBalance, int64, error) {
+	filters := []core.Item{
+		core.MatchPhrase("address", address),
+		core.Match("network", network),
+	}
+
+	if contract != "" {
+		filters = append(filters, core.MatchPhrase("contract", contract))
+	}
 	query := core.NewQuery().Query(
 		core.Bool(
 			core.Filter(
-				core.MatchPhrase("address", address),
-				core.Match("network", network),
+				filters...,
 			),
 			core.MustNot(
 				core.Term("balance", "0"),
@@ -112,8 +119,7 @@ func (storage *Storage) GetAccountBalances(network, address string, size, offset
 	countQuery := core.NewQuery().Query(
 		core.Bool(
 			core.Filter(
-				core.MatchPhrase("address", address),
-				core.Match("network", network),
+				filters...,
 			),
 			core.MustNot(
 				core.Term("balance", "0"),

@@ -367,3 +367,8 @@ type tokenRequest struct {
 	MaxLevel int64 `form:"max_level,omitempty" binding:"omitempty,gt_int64_ptr=MinLevel"`
 	MinLevel int64 `form:"min_level,omitempty" binding:"omitempty"`
 }
+
+type tokenBalanceRequest struct {
+	pageableRequest
+	Contract string `form:"contract" binding:"omitempty,address"`
+}

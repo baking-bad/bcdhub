@@ -74,6 +74,7 @@ func (ctx *Context) GetInfo(c *gin.Context) {
 // @Param address path string true "Address" minlength(36) maxlength(36)
 // @Param offset query integer false "Offset"
 // @Param size query integer false "Requested count" minimum(0) maximum(10)
+// @Param contract query string false "Contract address"
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} TokenBalances
@@ -85,19 +86,19 @@ func (ctx *Context) GetAccountTokenBalances(c *gin.Context) {
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-	var pageReq pageableRequest
-	if err := c.BindQuery(&pageReq); ctx.handleError(c, err, http.StatusBadRequest) {
+	var queryParams tokenBalanceRequest
+	if err := c.BindQuery(&queryParams); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-	balances, err := ctx.getAccountBalances(req.Network, req.Address, pageReq.Size, pageReq.Offset)
+	balances, err := ctx.getAccountBalances(req.Network, req.Address, queryParams)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 	c.JSON(http.StatusOK, balances)
 }
 
-func (ctx *Context) getAccountBalances(network, address string, size, offset int64) (*TokenBalances, error) {
-	tokenBalances, total, err := ctx.TokenBalances.GetAccountBalances(network, address, size, offset)
+func (ctx *Context) getAccountBalances(network, address string, req tokenBalanceRequest) (*TokenBalances, error) {
+	tokenBalances, total, err := ctx.TokenBalances.GetAccountBalances(network, address, req.Contract, req.Size, req.Offset)
 	if err != nil {
 		return nil, err
 	}
