@@ -62,8 +62,13 @@ func parseBigMapDiff(bmd bigmapdiff.BigMapDiff) ([]models.Model, error) {
 		items = append(items, &bmd)
 	}
 
+	storageType, err := getStorageType(bmd)
+	if err != nil {
+		return nil, err
+	}
+
 	for i := range bigMapDiffHandlers {
-		if ok, res, err := bigMapDiffHandlers[i].Do(&bmd); err != nil {
+		if ok, res, err := bigMapDiffHandlers[i].Do(&bmd, storageType); err != nil {
 			return nil, err
 		} else if ok {
 			items = append(items, res...)

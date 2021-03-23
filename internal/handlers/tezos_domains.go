@@ -6,7 +6,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
-	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
@@ -51,8 +50,8 @@ func NewTezosDomains(storage models.GeneralRepository, operations operation.Repo
 }
 
 // Do -
-func (td *TezosDomain) Do(bmd *bigmapdiff.BigMapDiff) (bool, []models.Model, error) {
-	bmd, ptr := td.getBigMapDiff(bmd)
+func (td *TezosDomain) Do(bmd *bigmapdiff.BigMapDiff, storage *ast.TypedAst) (bool, []models.Model, error) {
+	bmd, ptr := td.getBigMapDiff(bmd, storage)
 	if bmd == nil {
 		return false, nil, nil
 	}
@@ -65,7 +64,7 @@ func (td *TezosDomain) Do(bmd *bigmapdiff.BigMapDiff) (bool, []models.Model, err
 	return false, nil, nil
 }
 
-func (td *TezosDomain) getBigMapDiff(bmd *bigmapdiff.BigMapDiff) (*bigmapdiff.BigMapDiff, *ptrs) {
+func (td *TezosDomain) getBigMapDiff(bmd *bigmapdiff.BigMapDiff, storage *ast.TypedAst) (*bigmapdiff.BigMapDiff, *ptrs) {
 	if len(td.contracts) == 0 {
 		return nil, nil
 	}
@@ -78,7 +77,7 @@ func (td *TezosDomain) getBigMapDiff(bmd *bigmapdiff.BigMapDiff) (*bigmapdiff.Bi
 	}
 	ptr, ok := td.ptrs[address]
 	if !ok {
-		if err := td.getPointers(address, bmd.Protocol, bmd); err != nil {
+		if err := td.getPointers(address, bmd.Protocol, bmd, storage); err != nil {
 			return nil, nil
 		}
 		ptr = td.ptrs[address]
@@ -87,17 +86,8 @@ func (td *TezosDomain) getBigMapDiff(bmd *bigmapdiff.BigMapDiff) (*bigmapdiff.Bi
 	return bmd, &ptr
 }
 
-func (td *TezosDomain) getPointers(address contract.Address, protocol string, bmd *bigmapdiff.BigMapDiff) error {
+func (td *TezosDomain) getPointers(address contract.Address, protocol string, bmd *bigmapdiff.BigMapDiff, storage *ast.TypedAst) error {
 	var res ptrs
-	data, err := fetch.Contract(address.Address, address.Network, protocol, td.shareDir)
-	if err != nil {
-		return err
-	}
-
-	tree, err := ast.NewTypedAstFromString(gjson.ParseBytes(data).Get("#(prim=\"storage\").args.0").Raw)
-	if err != nil {
-		return err
-	}
 
 	op, err := td.operations.GetOne(bmd.OperationHash, bmd.OperationCounter, bmd.OperationNonce)
 	if err != nil {
@@ -111,12 +101,17 @@ func (td *TezosDomain) getPointers(address contract.Address, protocol string, bm
 	if err := json.Unmarshal(op.DeffatedStorage, &storageData); err != nil {
 		return err
 	}
-	if err := tree.Settle(storageData); err != nil {
+
+	storageTree := ast.TypedAst{
+		Nodes: []ast.Node{ast.Copy(storage.Nodes[0])},
+	}
+
+	if err := storageTree.Settle(storageData); err != nil {
 		return err
 	}
 
 	for _, annot := range []string{recordsAnnot, expiryMapAnnot} {
-		if node := tree.FindByName(annot, false); node != nil {
+		if node := storageTree.FindByName(annot, false); node != nil {
 			if b, ok := node.(*ast.BigMap); ok && b.Ptr != nil {
 				switch annot {
 				case recordsAnnot:

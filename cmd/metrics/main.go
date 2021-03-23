@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 	"os/signal"
 	"runtime"
@@ -12,12 +13,18 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/mq"
+	"github.com/karlseguin/ccache"
 	"github.com/pkg/errors"
+
+	"net/http"
+	_ "net/http/pprof"
 )
 
 // Context -
 type Context struct {
 	*config.Context
+
+	cache *ccache.Cache
 }
 
 var ctx Context
@@ -72,8 +79,12 @@ func listenChannel(messageQueue mq.IMessageReceiver, queue string, closeChan cha
 }
 
 func main() {
-	logger.Warning("Metrics started on 3 CPU cores")
-	runtime.GOMAXPROCS(3)
+	logger.Warning("Metrics started on 4 CPU cores")
+	runtime.GOMAXPROCS(4)
+
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
@@ -100,6 +111,7 @@ func main() {
 
 	ctx = Context{
 		Context: configCtx,
+		cache:   ccache.New(ccache.Configure().MaxSize(100)),
 	}
 
 	if err := ctx.Searcher.CreateIndexes(); err != nil {

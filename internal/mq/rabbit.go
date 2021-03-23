@@ -16,26 +16,6 @@ type Queue struct {
 	Lazy       bool
 }
 
-// RabbitMessage -
-type RabbitMessage struct {
-	msg amqp.Delivery
-}
-
-// GetBody -
-func (rm *RabbitMessage) GetBody() []byte {
-	return rm.msg.Body
-}
-
-// GetKey -
-func (rm *RabbitMessage) GetKey() string {
-	return rm.msg.RoutingKey
-}
-
-// Ack -
-func (rm *RabbitMessage) Ack(flag bool) error {
-	return rm.msg.Ack(flag)
-}
-
 // Rabbit -
 type Rabbit struct {
 	Conn    *amqp.Connection

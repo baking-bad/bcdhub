@@ -13,7 +13,6 @@ const (
 	QueueOperations   = "operations"
 	QueueCompilations = "compilations"
 	QueueBigMapDiffs  = "bigmapdiffs"
-	QueueBlocks       = "blocks"
 )
 
 // URL Prefixes

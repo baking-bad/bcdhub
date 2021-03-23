@@ -1,6 +1,7 @@
 package tokens
 
 import (
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -45,19 +46,8 @@ func (t Parser) Parse(address string, level int64) ([]tokenmetadata.TokenMetadat
 }
 
 // ParseBigMapDiff -
-func (t Parser) ParseBigMapDiff(bmd *bigmapdiff.BigMapDiff) ([]tokenmetadata.TokenMetadata, error) {
-	state, err := t.getState(bmd.Level)
-	if err != nil {
-		return nil, err
-	}
-	return t.parseBigMapDiff(bmd, state)
-}
-
-func (t Parser) parseBigMapDiff(bmd *bigmapdiff.BigMapDiff, state block.Block) ([]tokenmetadata.TokenMetadata, error) {
-	if _, err := storage.GetBigMapPtr(t.rpc, bmd.Contract, TokenMetadataStorageKey, state.Network, state.Protocol, t.sharePath, bmd.Level); err != nil {
-		if !errors.Is(err, storage.ErrBigMapNotFound) {
-			return nil, err
-		}
+func (t Parser) ParseBigMapDiff(bmd *bigmapdiff.BigMapDiff, storage *ast.TypedAst) ([]tokenmetadata.TokenMetadata, error) {
+	if bm := storage.FindByName(TokenMetadataStorageKey, false); bm == nil {
 		return nil, nil
 	}
 

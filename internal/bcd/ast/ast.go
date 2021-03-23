@@ -103,6 +103,15 @@ func (a *TypedAst) Settle(untyped UntypedAST) error {
 	return errors.Wrap(consts.ErrTreesAreDifferent, "TypedAst.Settle")
 }
 
+// SettleFromBytes -
+func (a *TypedAst) SettleFromBytes(data []byte) error {
+	var tree UntypedAST
+	if err := json.Unmarshal(data, &tree); err != nil {
+		return err
+	}
+	return a.Settle(tree)
+}
+
 // ToMiguel -
 func (a *TypedAst) ToMiguel() ([]*MiguelNode, error) {
 	nodes := make([]*MiguelNode, 0)

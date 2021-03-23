@@ -77,7 +77,7 @@ func (p Transaction) Parse(data noderpc.Operation) ([]models.Model, error) {
 		return nil, err
 	}
 
-	if err := setTags(p.Storage, &tx); err != nil {
+	if err := setTags(p.Contracts, p.Storage, &tx); err != nil {
 		return nil, err
 	}
 

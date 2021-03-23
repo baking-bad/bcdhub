@@ -56,7 +56,7 @@ func (p Origination) Parse(data noderpc.Operation) ([]models.Model, error) {
 		originationModels = append(originationModels, appliedModels...)
 	}
 
-	if err := setTags(p.Storage, &origination); err != nil {
+	if err := setTags(p.Contracts, p.Storage, &origination); err != nil {
 		return nil, err
 	}
 

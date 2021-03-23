@@ -4,9 +4,9 @@ import (
 	"bytes"
 
 	jsoniter "github.com/json-iterator/go"
+	"github.com/karlseguin/ccache"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -33,6 +33,8 @@ type Ledger struct {
 	tokenBalances tbModel.Repository
 	operations    operation.Repository
 	sharePath     string
+
+	cache *ccache.Cache
 }
 
 // NewLedger -
@@ -42,12 +44,14 @@ func NewLedger(storage models.GeneralRepository, opRepo operation.Repository, to
 		operations:    opRepo,
 		tokenBalances: tokenBalanceRepo,
 		sharePath:     sharePath,
+
+		cache: ccache.New(ccache.Configure().MaxSize(100)),
 	}
 }
 
 // Do -
-func (ledger *Ledger) Do(bmd *bigmapdiff.BigMapDiff) (bool, []models.Model, error) {
-	bigMapType, err := ledger.findLedgerBigMap(bmd)
+func (ledger *Ledger) Do(bmd *bigmapdiff.BigMapDiff, storage *ast.TypedAst) (bool, []models.Model, error) {
+	bigMapType, err := ledger.findLedgerBigMap(bmd, storage)
 	if err != nil {
 		if errors.Is(err, ErrNoLedgerKeyInStorage) {
 			return false, nil, nil
@@ -138,22 +142,13 @@ func (ledger *Ledger) buildElt(bmd *bigmapdiff.BigMapDiff) ([]byte, error) {
 	return s.Bytes(), nil
 }
 
-func (ledger *Ledger) findLedgerBigMap(bmd *bigmapdiff.BigMapDiff) (*ast.BigMap, error) {
-	data, err := fetch.Contract(bmd.Contract, bmd.Network, bmd.Protocol, ledger.sharePath)
-	if err != nil {
-		return nil, err
-	}
-	var script ast.Script
-	if err := json.Unmarshal(data, &script); err != nil {
-		return nil, err
-	}
-	tree, err := script.StorageType()
-	if err != nil {
-		return nil, err
+func (ledger *Ledger) findLedgerBigMap(bmd *bigmapdiff.BigMapDiff, storage *ast.TypedAst) (*ast.BigMap, error) {
+	storageTree := ast.TypedAst{
+		Nodes: []ast.Node{ast.Copy(storage.Nodes[0])},
 	}
 
-	node := tree.FindByName(ledgerStorageKey, false)
-	if err != nil {
+	node := storageTree.FindByName(ledgerStorageKey, false)
+	if node == nil {
 		return nil, ErrNoLedgerKeyInStorage
 	}
 
@@ -165,11 +160,7 @@ func (ledger *Ledger) findLedgerBigMap(bmd *bigmapdiff.BigMapDiff) (*ast.BigMap,
 		return nil, err
 	}
 
-	var storageData ast.UntypedAST
-	if err := json.Unmarshal(op.DeffatedStorage, &storageData); err != nil {
-		return nil, err
-	}
-	if err := tree.Settle(storageData); err != nil {
+	if err := storageTree.SettleFromBytes(op.DeffatedStorage); err != nil {
 		return nil, err
 	}
 
