@@ -301,21 +301,22 @@ func (ctx *Context) GetContractTokens(c *gin.Context) {
 	if pageReq.Size == 0 {
 		pageReq.Size = 10
 	}
-	tokens, err := ctx.getTokens(req.Network, req.Address, pageReq.Size, pageReq.Offset, pageReq.MinLevel, pageReq.MaxLevel)
+	tokens, err := ctx.getTokens(req.Network, req.Address, pageReq.Size, pageReq.Offset, pageReq.MinLevel, pageReq.MaxLevel, "")
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 	c.JSON(http.StatusOK, tokens)
 }
 
-func (ctx *Context) getTokens(network, address string, size, offset, minLevel, maxLevel int64) ([]Token, error) {
+func (ctx *Context) getTokens(network, contract string, size, offset, minLevel, maxLevel int64, creator string) ([]Token, error) {
 	metadata, err := ctx.TokenMetadata.Get([]tokenmetadata.GetContext{
 		{
-			Contract: address,
+			Contract: contract,
 			Network:  network,
 			TokenID:  -1,
 			MinLevel: minLevel,
 			MaxLevel: maxLevel,
+			Creator:  creator,
 		},
 	}, size, offset)
 	if err != nil {
@@ -327,7 +328,7 @@ func (ctx *Context) getTokens(network, address string, size, offset, minLevel, m
 
 	tokens := make([]Token, 0)
 	for _, token := range metadata {
-		supply, err := ctx.Transfers.GetTokenSupply(network, address, token.TokenID)
+		supply, err := ctx.Transfers.GetTokenSupply(network, contract, token.TokenID)
 		if err != nil {
 			return nil, err
 		}
@@ -374,4 +375,41 @@ func (ctx *Context) GetTokenHolders(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, result)
+}
+
+// GetTokenMetadata godoc
+// @Summary List token metadata
+// @Description List token metadata
+// @Tags tokens
+// @ID list-token-metadata
+// @Param network path string true "Network"
+// @Param size query integer false "Requested count" mininum(1) maximum(10)
+// @Param offset query integer false "Offset" mininum(1) maximum(10)
+// @Param max_level query integer false "Maximum token`s creation level (less than or equal)" mininum(1)
+// @Param min_level query integer false "Minimum token`s creation level (greater than)" mininum(1)
+// @Param creator query string false "Creator name" maxlength(25)
+// @Param contract path string false "KT address" minlength(36) maxlength(36)
+// @Accept  json
+// @Produce  json
+// @Success 200 {array} Token
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /v1/tokens/{network}/metadata [get]
+func (ctx *Context) GetTokenMetadata(c *gin.Context) {
+	var req getByNetwork
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+	var queryParams tokenMetadataRequest
+	if err := c.BindQuery(&queryParams); ctx.handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+	if queryParams.Size == 0 {
+		queryParams.Size = 10
+	}
+	tokens, err := ctx.getTokens(req.Network, queryParams.Contract, queryParams.Size, queryParams.Offset, queryParams.MinLevel, queryParams.MaxLevel, queryParams.Creator)
+	if ctx.handleError(c, err, 0) {
+		return
+	}
+	c.JSON(http.StatusOK, tokens)
 }

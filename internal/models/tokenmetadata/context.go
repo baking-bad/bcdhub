@@ -7,4 +7,5 @@ type GetContext struct {
 	TokenID  int64
 	MaxLevel int64
 	MinLevel int64
+	Creator  string
 }

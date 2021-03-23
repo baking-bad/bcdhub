@@ -362,10 +362,14 @@ type executeViewRequest struct {
 	Sender         string                 `json:"sender,omitempty" binding:"omitempty,address"`
 }
 
-type tokenRequest struct {
-	pageableRequest
+type minMaxLevel struct {
 	MaxLevel int64 `form:"max_level,omitempty" binding:"omitempty,gt_int64_ptr=MinLevel"`
 	MinLevel int64 `form:"min_level,omitempty" binding:"omitempty"`
+}
+
+type tokenRequest struct {
+	pageableRequest
+	minMaxLevel
 }
 
 type tokenBalanceRequest struct {
@@ -375,4 +379,10 @@ type tokenBalanceRequest struct {
 
 type batchAddressRequest struct {
 	Address string `form:"address" binding:"required"`
+}
+
+type tokenMetadataRequest struct {
+	tokenRequest
+	Creator  string `form:"creator" binding:"omitempty"`
+	Contract string `form:"contract" binding:"omitempty,address"`
 }

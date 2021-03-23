@@ -192,6 +192,7 @@ func (api *app) makeRouter() {
 			fa12.GET("", api.Context.GetFA)
 			fa12.GET("series", api.Context.GetTokenVolumeSeries)
 			fa12.GET("version/:faversion", api.Context.GetFAByVersion)
+			fa12.GET("metadata", api.Context.GetTokenMetadata)
 			transfers := fa12.Group("transfers")
 			{
 				transfers.GET(":address", api.Context.GetFA12OperationsForAddress)
