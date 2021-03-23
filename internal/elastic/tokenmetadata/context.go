@@ -25,6 +25,9 @@ func buildGetTokenMetadataContext(ctx ...tokenmetadata.GetContext) core.Base {
 		if c.TokenID != -1 {
 			filter = append(filter, core.Term("token_id", c.TokenID))
 		}
+		if c.Creator != "" {
+			filter = append(filter, core.MatchPhrase("creators", c.Creator))
+		}
 
 		filters = append(filters, core.Bool(
 			core.Filter(filter...),

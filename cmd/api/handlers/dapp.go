@@ -149,7 +149,7 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 					ReleaseDate: contract.Timestamp.UTC(),
 				})
 
-				tokens, err := ctx.getTokens(consts.Mainnet, address.Address, 0, 0, 0, 0)
+				tokens, err := ctx.getTokens(consts.Mainnet, address.Address, 0, 0, 0, 0, "")
 				if err != nil {
 					return result, err
 				}
