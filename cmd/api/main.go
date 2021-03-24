@@ -178,7 +178,7 @@ func (api *app) makeRouter() {
 		account := v1.Group("account/:network")
 		{
 			account.GET("", api.Context.GetBatchTokenBalances)
-			acc := account.Group(":account")
+			acc := account.Group(":address")
 			{
 				acc.GET("", api.Context.GetInfo)
 				acc.GET("metadata", api.Context.GetMetadata)
