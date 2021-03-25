@@ -94,6 +94,20 @@ func processTzipItem(ctx *config.Context, item repository.Item, inserts, updates
 		return err
 	}
 
+	for _, token := range model.Tokens.Static {
+		*inserts = append(*inserts, &tokenmetadata.TokenMetadata{
+			Network:   model.Network,
+			Contract:  model.Address,
+			Level:     0,
+			Timestamp: model.Timestamp,
+			TokenID:   token.TokenID,
+			Symbol:    token.Symbol,
+			Name:      token.Name,
+			Decimals:  token.Decimals,
+			Extras:    token.Extras,
+		})
+	}
+
 	copyModel := tzip.TZIP{
 		Network: model.Network,
 		Address: model.Address,
@@ -118,20 +132,6 @@ func processTzipItem(ctx *config.Context, item repository.Item, inserts, updates
 	}
 
 	*updates = append(*updates, &model.TZIP)
-
-	for _, token := range model.Tokens.Static {
-		*inserts = append(*inserts, &tokenmetadata.TokenMetadata{
-			Network:   model.Network,
-			Contract:  model.Address,
-			Level:     0,
-			Timestamp: model.Timestamp,
-			TokenID:   token.TokenID,
-			Symbol:    token.Symbol,
-			Name:      token.Name,
-			Decimals:  token.Decimals,
-			Extras:    token.Extras,
-		})
-	}
 
 	return nil
 }
