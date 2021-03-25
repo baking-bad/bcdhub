@@ -156,13 +156,10 @@ sandbox-images:
 	$(MAKE) stable-images
 
 sandbox:
-	TAG=$$(cat version.json | grep version | awk -F\" '{ print $$4 }' |  cut -d '.' -f1-2) COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.sandbox.yml up -d
-
-sandbox-up:
 	TAG=$$(cat version.json | grep version | awk -F\" '{ print $$4 }' |  cut -d '.' -f1-2) COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.sandbox.yml up -d elastic mq db api indexer metrics gui
 
-sandbox-dev:
-	TAG=$$(cat version.json | grep version | awk -F\" '{ print $$4 }' |  cut -d '.' -f1-2) COMPOSE_PROJECT_NAME=bcdbox BCD_ENV=you docker-compose -f docker-compose.sandbox.yml up -d elastic mq db api indexer metrics gui
+flextesa-sandbox:
+	TAG=$$(cat version.json | grep version | awk -F\" '{ print $$4 }' |  cut -d '.' -f1-2) COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.sandbox.yml up -d
 
 sandbox-down:
 	COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.sandbox.yml down
@@ -175,6 +172,9 @@ gateway-images:
 
 gateway:
 	COMPOSE_PROJECT_NAME=bcdhub docker-compose -f docker-compose.gateway.yml up -d
+
+stable-gateway:
+	TAG=$$(cat version.json | grep version | awk -F\" '{ print $$4 }' |  cut -d '.' -f1-2) COMPOSE_PROJECT_NAME=bcdhub docker-compose -f docker-compose.gateway.yml up -d
 
 gateway-down:
 	COMPOSE_PROJECT_NAME=bcdhub docker-compose -f docker-compose.gateway.yml down
