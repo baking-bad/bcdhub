@@ -36,7 +36,6 @@ func (ctx *Context) GetFA(c *gin.Context) {
 	if err := c.BindQuery(&cursorReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-
 	contracts, total, err := ctx.Contracts.GetTokens(req.Network, "", cursorReq.Offset, cursorReq.Size)
 	if ctx.handleError(c, err, 0) {
 		return
@@ -76,7 +75,6 @@ func (ctx *Context) GetFAByVersion(c *gin.Context) {
 	if err := c.BindQuery(&cursorReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-
 	if req.Version == "fa12" {
 		req.Version = consts.FA12Tag
 	}
@@ -183,7 +181,7 @@ func (ctx *Context) GetTokenVolumeSeries(c *gin.Context) {
 		return
 	}
 
-	dapp, err := ctx.TZIP.GetDAppBySlug(args.Slug)
+	dapp, err := ctx.DApps.Get(args.Slug)
 	if ctx.handleError(c, err, 0) {
 		return
 	}

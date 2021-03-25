@@ -29,8 +29,7 @@ func (storage *Storage) CurrentByKey(network, keyHash string, ptr int64) (data b
 		Scopes(core.Network(network), core.OrderByLevelDesc).
 		Where("key_hash = ?", keyHash).
 		Where("ptr = ?", ptr).
-		Limit(1).
-		Scan(&data).
+		First(&data).
 		Error
 
 	return
@@ -114,19 +113,24 @@ func (storage *Storage) GetForOperation(hash string, counter int64, nonce *int64
 
 // GetUniqueForOperation -
 func (storage *Storage) GetUniqueForOperation(hash string, counter int64, nonce *int64) (response []bigmapdiff.BigMapDiff, err error) {
-	query := storage.DB.Table(models.DocBigMapDiff).
+	subQuery := storage.DB.Table(models.DocBigMapDiff).
+		Select("MAX(id) as id").
 		Where("operation_hash = ?", hash).
 		Where("operation_counter = ?", counter)
 
 	if nonce == nil {
-		query.Where("operation_nonce IS NULL")
+		subQuery.Where("operation_nonce IS NULL")
 	} else {
-		query.Where("operation_nonce = ?", *nonce)
+		subQuery.Where("operation_nonce = ?", *nonce)
 	}
 
-	query.Group("key_hash, ptr").Order("id desc")
+	subQuery.Group("key_hash, ptr")
 
-	return response, query.Find(&response).Error
+	err = storage.DB.Table(models.DocBigMapDiff).
+		Where("id IN (?)", subQuery).
+		Find(&response).Error
+
+	return
 }
 
 // GetByPtrAndKeyHash -

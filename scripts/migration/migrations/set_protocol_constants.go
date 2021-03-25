@@ -57,5 +57,5 @@ func (m *SetProtocolConstants) Do(ctx *config.Context) error {
 		logger.Info("%##v", protocols[i])
 		updatedModels = append(updatedModels, &protocols[i])
 	}
-	return ctx.Storage.BulkUpdate(updatedModels)
+	return ctx.Storage.Save(updatedModels)
 }

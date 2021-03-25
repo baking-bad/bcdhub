@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 )
 
 // GetBySlug godoc
@@ -16,6 +15,7 @@ import (
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} Alias
+// @Success 204 {object} gin.H
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/slug/{slug} [get]
@@ -26,11 +26,11 @@ func (ctx *Context) GetBySlug(c *gin.Context) {
 	}
 
 	a, err := ctx.TZIP.GetBySlug(req.Slug)
-	if gorm.IsRecordNotFoundError(err) {
-		ctx.handleError(c, err, http.StatusBadRequest)
+	if ctx.handleError(c, err, 0) {
 		return
 	}
-	if ctx.handleError(c, err, 0) {
+	if a == nil {
+		c.JSON(http.StatusNoContent, gin.H{})
 		return
 	}
 	var alias Alias

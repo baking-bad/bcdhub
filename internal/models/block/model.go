@@ -4,6 +4,8 @@ import (
 	"time"
 
 	jsoniter "github.com/json-iterator/go"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -47,4 +49,11 @@ func (b Block) ValidateChainID(chainID string) bool {
 		return b.Level == 0
 	}
 	return b.ChainID == chainID
+}
+
+// Save -
+func (b *Block) Save(tx *gorm.DB) error {
+	return tx.Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Save(b).Error
 }

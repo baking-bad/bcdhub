@@ -3,6 +3,7 @@ package contract
 import (
 	"encoding/hex"
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -248,16 +249,18 @@ func (storage *Storage) GetDiffTasks() ([]contract.DiffTask, error) {
 
 // GetTokens -
 func (storage *Storage) GetTokens(network, tokenInterface string, offset, size int64) ([]contract.Contract, int64, error) {
-	tags := []string{"fa12", "fa1", "fa2"}
-	if tokenInterface == "fa12" || tokenInterface == "fa1" || tokenInterface == "fa2" {
+	tags := []string{"fa1-2", "fa1", "fa2"}
+	if tokenInterface == "fa1-2" || tokenInterface == "fa1" || tokenInterface == "fa2" {
 		tags = []string{tokenInterface}
 	}
 
 	var contracts []contract.Contract
 	err := storage.DB.Table(models.DocContracts).
 		Scopes(core.Network(network)).
-		Where("tags IN ?", tags).
+		Where("tags <@ array[?]", strings.Join(tags, ",")).
 		Order("timestamp desc").
+		Limit(core.GetPageSize(size)).
+		Offset(int(offset)).
 		Find(&contracts).
 		Error
 	if err != nil {
@@ -267,44 +270,11 @@ func (storage *Storage) GetTokens(network, tokenInterface string, offset, size i
 	var count int64
 	err = storage.DB.Table(models.DocContracts).
 		Scopes(core.Network(network)).
-		Where("tags IN ?", tags).
+		Where("tags <@ array[?]", strings.Join(tags, ",")).
 		Count(&count).
 		Error
 
 	return contracts, count, err
-}
-
-// UpdateField -
-func (storage *Storage) UpdateField(where []contract.Contract, fields ...string) error {
-	if len(where) == 0 {
-		return nil
-	}
-
-	// For a deadlock reason don't wrap the requests to transaction
-	for i := range where {
-		updates := core.GetFieldsForModel(where[i], fields...)
-
-		for key, value := range updates {
-			switch v := value.(type) {
-			case string:
-				if v == "" {
-					delete(updates, key)
-				}
-			case bool:
-				if !v {
-					delete(updates, key)
-				}
-			}
-		}
-
-		if err := storage.DB.Table(models.DocContracts).
-			Where("id = ?", where[i].ID).
-			Updates(updates).Error; err != nil {
-			return err
-		}
-	}
-	return nil
-
 }
 
 // Stats -

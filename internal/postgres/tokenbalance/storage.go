@@ -4,8 +4,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 // Storage -
@@ -16,30 +14,6 @@ type Storage struct {
 // NewStorage -
 func NewStorage(pg *core.Postgres) *Storage {
 	return &Storage{pg}
-}
-
-// Update -
-func (storage *Storage) Update(updates []*tokenbalance.TokenBalance) error {
-	if len(updates) == 0 {
-		return nil
-	}
-
-	return storage.DB.Transaction(func(tx *gorm.DB) error {
-		for i := range updates {
-			if err := tx.Table(models.DocTokenBalances).Clauses(clause.OnConflict{
-				Columns: []clause.Column{
-					{Name: "network"},
-					{Name: "contract"},
-					{Name: "address"},
-					{Name: "token_id"},
-				},
-				DoUpdates: clause.AssignmentColumns([]string{"balance"}),
-			}).Create(&updates[i]).Error; err != nil {
-				return err
-			}
-		}
-		return nil
-	})
 }
 
 // GetHolders -
@@ -91,7 +65,7 @@ func (storage *Storage) NFTHolders(network, contract string, tokenID uint64) (to
 func (storage *Storage) Batch(network string, addresses []string) (map[string][]tokenbalance.TokenBalance, error) {
 	var balances []tokenbalance.TokenBalance
 
-	query := storage.DB.Table(models.DocTokenBalances).Scopes(core.Network(network)).Where("balance != '0'")
+	query := storage.DB.Table(models.DocTokenBalances).Scopes(core.Network(network))
 
 	for i := range addresses {
 		if i == 0 {

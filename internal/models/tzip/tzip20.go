@@ -18,13 +18,13 @@ type TZIP20 struct {
 type Events []Event
 
 // Scan scan value into Jsonb, implements sql.Scanner interface
-func (events Events) Scan(value interface{}) error {
+func (events *Events) Scan(value interface{}) error {
 	bytes, ok := value.([]byte)
 	if !ok {
 		return errors.New(fmt.Sprint("Failed to unmarshal JSONB value:", value))
 	}
 
-	return json.Unmarshal(bytes, &events)
+	return json.Unmarshal(bytes, events)
 }
 
 // Value return json value, implement driver.Valuer interface

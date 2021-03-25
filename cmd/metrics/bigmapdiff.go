@@ -22,16 +22,21 @@ func getBigMapDiff(ids []int64) error {
 		return errors.Errorf("[getBigMapDiff] Find big map diff error for IDs %v: %s", ids, err)
 	}
 
-	res := make([]models.Model, 0)
+	items := make([]models.Model, 0)
 	for i := range bmd {
-		items, err := parseBigMapDiff(bmd[i])
+		res, err := parseBigMapDiff(bmd[i])
 		if err != nil {
 			return errors.Errorf("[getBigMapDiff] Compute error message: %s", err)
 		}
-		res = append(res, items...)
+		items = append(items, res...)
 	}
-	logger.Info("%d big map diff processed        models=%d", len(bmd), len(res))
-	return ctx.Storage.BulkInsert(res)
+	logger.Info("%d big map diff processed        models=%d", len(bmd), len(items))
+
+	if err := saveSearchModels(ctx.Searcher, items); err != nil {
+		return err
+	}
+
+	return ctx.Storage.Save(items)
 }
 
 func initHandlers() {

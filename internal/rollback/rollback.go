@@ -71,7 +71,7 @@ func (rm Manager) rollbackTokenBalances(network string, toLevel int64) error {
 	}
 
 	exists := make(map[string]*tokenbalance.TokenBalance)
-	updates := make([]*tokenbalance.TokenBalance, 0)
+	updates := make([]models.Model, 0)
 	for i := range transfers {
 
 		if id := transfers[i].GetFromTokenBalanceID(); id != "" {
@@ -95,7 +95,7 @@ func (rm Manager) rollbackTokenBalances(network string, toLevel int64) error {
 		}
 	}
 
-	return rm.tbRepo.Update(updates)
+	return rm.storage.Save(updates)
 }
 
 func (rm Manager) rollbackBlocks(network string, toLevel int64) error {

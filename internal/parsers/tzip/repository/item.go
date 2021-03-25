@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
@@ -26,6 +27,7 @@ type Metadata struct {
 			Extras   map[string]interface{} `json:"extras"`
 		} `json:"static"`
 	} `json:"tokens"`
+	DApps []dapp.DApp `json:"dapps"`
 }
 
 // ToModel -

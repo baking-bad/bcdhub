@@ -6,6 +6,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // TokenMetadata -
@@ -63,6 +65,13 @@ func (t *TokenMetadata) GetID() int64 {
 // GetIndex -
 func (t *TokenMetadata) GetIndex() string {
 	return "token_metadata"
+}
+
+// Save -
+func (t *TokenMetadata) Save(tx *gorm.DB) error {
+	return tx.Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Save(t).Error
 }
 
 // GetQueues -

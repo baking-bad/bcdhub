@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/tzkt"
 	"github.com/schollz/progressbar/v3"
 )
@@ -40,9 +41,11 @@ func (m *GetAliases) Do(ctx *config.Context) error {
 		logger.Fatal(err)
 	}
 	logger.Info("Got %d aliases from tzkt api", len(aliases))
-	logger.Info("Saving aliases to elastic...")
+	logger.Info("Saving aliases...")
 
 	newModels := make([]models.Model, 0)
+	updated := make([]models.Model, 0)
+
 	bar := progressbar.NewOptions(len(aliases), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish(), progressbar.OptionShowCount())
 	for address, alias := range aliases {
 		if err := bar.Add(1); err != nil {
@@ -50,14 +53,29 @@ func (m *GetAliases) Do(ctx *config.Context) error {
 		}
 
 		item, err := ctx.TZIP.Get(consts.Mainnet, address)
-		if err == nil || ctx.Storage.IsRecordNotFound(err) {
+		switch {
+		case err == nil:
 			item.Name = alias
 			item.Slug = helpers.Slug(alias)
-		} else {
+
+			updated = append(updated, item)
+		case ctx.Storage.IsRecordNotFound(err):
+			newModels = append(newModels, &tzip.TZIP{
+				Network: consts.Mainnet,
+				Address: address,
+				Slug:    helpers.Slug(alias),
+				TZIP16: tzip.TZIP16{
+					Name: alias,
+				},
+			})
+		default:
 			logger.Error(err)
 			return err
 		}
-		newModels = append(newModels, &item)
 	}
-	return ctx.Storage.BulkInsert(newModels)
+	if err := ctx.Storage.Save(updated); err != nil {
+		return err
+	}
+
+	return ctx.Storage.Save(newModels)
 }

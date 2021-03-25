@@ -77,7 +77,7 @@ func (td *TezosDomain) getBigMapDiff(bmd *bigmapdiff.BigMapDiff, storage *ast.Ty
 	}
 	ptr, ok := td.ptrs[address]
 	if !ok {
-		if err := td.getPointers(address, bmd.Protocol, bmd, storage); err != nil {
+		if err := td.getPointers(address, bmd, storage); err != nil {
 			return nil, nil
 		}
 		ptr = td.ptrs[address]
@@ -86,7 +86,7 @@ func (td *TezosDomain) getBigMapDiff(bmd *bigmapdiff.BigMapDiff, storage *ast.Ty
 	return bmd, &ptr
 }
 
-func (td *TezosDomain) getPointers(address contract.Address, protocol string, bmd *bigmapdiff.BigMapDiff, storage *ast.TypedAst) error {
+func (td *TezosDomain) getPointers(address contract.Address, bmd *bigmapdiff.BigMapDiff, storage *ast.TypedAst) error {
 	var res ptrs
 
 	op, err := td.operations.GetOne(bmd.OperationHash, bmd.OperationCounter, bmd.OperationNonce)

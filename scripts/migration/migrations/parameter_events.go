@@ -13,6 +13,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
 	transferParser "github.com/baking-bad/bcdhub/internal/parsers/transfer"
+	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -129,10 +130,12 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 				}
 
 				logger.Info("Found %d transfers", len(inserted))
-				if err := ctx.Storage.BulkInsert(inserted); err != nil {
-					return err
+				bu := transferParsers.UpdateTokenBalances(newTransfers)
+				for i := range bu {
+					inserted = append(inserted, bu[i])
 				}
-				if err := transferParser.UpdateTokenBalances(ctx.TokenBalances, newTransfers); err != nil {
+
+				if err := ctx.Storage.Save(inserted); err != nil {
 					return err
 				}
 			}

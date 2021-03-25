@@ -10,6 +10,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // Operation -
@@ -69,6 +71,13 @@ func (o *Operation) GetID() int64 {
 // GetIndex -
 func (o *Operation) GetIndex() string {
 	return "operations"
+}
+
+// Save -
+func (o *Operation) Save(tx *gorm.DB) error {
+	return tx.Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Save(o).Error
 }
 
 // GetQueues -

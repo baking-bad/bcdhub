@@ -85,15 +85,15 @@ func TestGroup_Parse(t *testing.T) {
 		Return(nil).
 		AnyTimes()
 
-	generalRepo.
+	contractRepo.
 		EXPECT().
-		GetByID(gomock.AssignableToTypeOf(&modelContract.Contract{})).
+		Get(gomock.Any(), gomock.Any()).
 		DoAndReturn(readTestContractModel).
 		AnyTimes()
 
 	generalRepo.
 		EXPECT().
-		BulkInsert(gomock.AssignableToTypeOf([]models.Model{})).
+		Save(gomock.AssignableToTypeOf([]models.Model{})).
 		Return(nil).
 		AnyTimes()
 

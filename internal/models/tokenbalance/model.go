@@ -7,6 +7,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -20,7 +21,8 @@ type TokenBalance struct {
 	TokenID  uint64 `json:"token_id" gorm:"type:numeric(50,0);default:0;primaryKey;autoIncrement:false"`
 	Balance  string `json:"balance" gorm:"balance,default:0"`
 
-	Value *big.Int `json:"-" gorm:"-"`
+	Value    *big.Int `json:"-" gorm:"-"`
+	IsLedger bool
 }
 
 // GetID -
@@ -31,6 +33,28 @@ func (tb *TokenBalance) GetID() int64 {
 // GetIndex -
 func (tb *TokenBalance) GetIndex() string {
 	return "token_balances"
+}
+
+// Constraint -
+func (tb *TokenBalance) Save(tx *gorm.DB) error {
+	var s clause.Set
+	if tb.IsLedger {
+		s = clause.Assignments(map[string]interface{}{"balance": tb.Value.String()})
+	} else {
+		s = clause.Assignments(map[string]interface{}{
+			"balance": gorm.Expr("(token_balances.balance::bigint + ?::bigint)::text", tb.Value.String()),
+		})
+	}
+
+	return tx.Clauses(clause.OnConflict{
+		Columns: []clause.Column{
+			{Name: "network"},
+			{Name: "contract"},
+			{Name: "address"},
+			{Name: "token_id"},
+		},
+		DoUpdates: s,
+	}).Save(tb).Error
 }
 
 // GetQueues -

@@ -7,25 +7,16 @@ import (
 	"gorm.io/gorm"
 )
 
-// BulkInsert -
-func (p *Postgres) BulkInsert(items []models.Model) error {
-	return p.DB.Transaction(func(tx *gorm.DB) error {
-		for i := range items {
-			el := reflect.ValueOf(items[i]).Interface()
-			if err := tx.Create(el).Error; err != nil {
-				return err
-			}
-		}
+// Save - perform insert or update items
+func (p *Postgres) Save(items []models.Model) error {
+	if len(items) == 0 {
 		return nil
-	})
-}
+	}
 
-// BulkUpdate -
-func (p *Postgres) BulkUpdate(items []models.Model) error {
 	return p.DB.Transaction(func(tx *gorm.DB) error {
 		for i := range items {
-			el := reflect.ValueOf(items[i]).Interface()
-			if err := tx.Save(el).Error; err != nil {
+			if err := items[i].Save(tx); err != nil {
+				tx.Rollback()
 				return err
 			}
 		}
@@ -35,10 +26,15 @@ func (p *Postgres) BulkUpdate(items []models.Model) error {
 
 // BulkDelete -
 func (p *Postgres) BulkDelete(items []models.Model) error {
+	if len(items) == 0 {
+		return nil
+	}
+
 	return p.DB.Transaction(func(tx *gorm.DB) error {
 		for i := range items {
 			el := reflect.ValueOf(items[i]).Interface()
 			if err := tx.Delete(el).Error; err != nil {
+				tx.Rollback()
 				return err
 			}
 		}

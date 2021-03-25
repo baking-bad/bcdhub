@@ -70,5 +70,5 @@ func (m *TokenMetadataSetDecimals) Do(ctx *config.Context) error {
 
 	logger.Info("Total updates: %d", len(updates))
 
-	return ctx.Storage.BulkUpdate(updates)
+	return ctx.Storage.Save(updates)
 }

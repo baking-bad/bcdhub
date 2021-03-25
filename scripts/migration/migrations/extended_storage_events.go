@@ -133,10 +133,13 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 	}
 
 	logger.Info("Found %d transfers", len(inserted))
-	if err := ctx.Storage.BulkInsert(inserted); err != nil {
-		return err
+
+	bu := transferParsers.UpdateTokenBalances(newTransfers)
+	for i := range bu {
+		inserted = append(inserted, bu[i])
 	}
-	return transferParsers.UpdateTokenBalances(ctx.TokenBalances, newTransfers)
+
+	return ctx.Storage.Save(inserted)
 }
 
 func (m *ExtendedStorageEvents) getOperations(ctx *config.Context, tzip tzip.TZIP, impl tzip.EventImplementation) ([]operation.Operation, error) {

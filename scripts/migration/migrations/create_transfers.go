@@ -81,14 +81,12 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 		}
 	}
 
-	if err := ctx.Storage.BulkInsert(result); err != nil {
-		logger.Errorf("ctx.Storage.BulkInsert error: %v", err)
-		return err
+	balanceUpdates := transferParsers.UpdateTokenBalances(newTransfers)
+	for i := range balanceUpdates {
+		result = append(result, balanceUpdates[i])
 	}
 
-	logger.Info("Done. %d transfers were saved", len(result))
-
-	return transferParsers.UpdateTokenBalances(ctx.TokenBalances, newTransfers)
+	return ctx.Storage.Save(result)
 }
 
 func (m *CreateTransfersTags) deleteTransfers(ctx *config.Context) (err error) {

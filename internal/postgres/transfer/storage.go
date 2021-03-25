@@ -7,8 +7,8 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 )
 
@@ -79,11 +79,11 @@ func (storage *Storage) GetTokenSupply(network, contract string, tokenID uint64)
 
 // GetToken24HoursVolume - returns token volume for last 24 hours
 func (storage *Storage) GetToken24HoursVolume(network, contract string, initiators, entrypoints []string, tokenID uint64) (float64, error) {
-	aDayAgo := time.Now().UTC().AddDate(0, 0, -1).Unix()
+	aDayAgo := time.Now().UTC().AddDate(0, 0, -1)
 
 	var volume float64
 	err := storage.DB.Table(models.DocTransfers).
-		Table("SUM(amount) AS volume").
+		Select("COALESCE(SUM(amount), 0)").
 		Scopes(core.Token(network, contract, tokenID)).
 		Where("status = ?", consts.Applied).
 		Where("parent IN ?", entrypoints).
@@ -107,14 +107,14 @@ const (
 			extract(epoch from f.val),
 			sum(amount) as value
 		from f
-		left join transfers on date_trunc('%s', transfers.timestamp) = f.val where (from != to) and (status = 'applied') %s
+		left join transfers on date_trunc('%s', transfers.timestamp) = f.val where (transfers.from != transfers.to) and (status = 'applied') %s
 		group by 1
 		order by date_part
 	`
 )
 
 // GetTokenVolumeSeries -
-func (storage *Storage) GetTokenVolumeSeries(network, period string, contracts []string, entrypoints []tzip.DAppContract, tokenID uint64) ([][]float64, error) {
+func (storage *Storage) GetTokenVolumeSeries(network, period string, contracts []string, entrypoints []dapp.DAppContract, tokenID uint64) ([][]float64, error) {
 	if err := core.ValidateHistogramPeriod(period); err != nil {
 		return nil, err
 	}
@@ -136,8 +136,8 @@ func (storage *Storage) GetTokenVolumeSeries(network, period string, contracts [
 	if len(entrypoints) > 0 {
 		addresses := make([]string, 0)
 		for i := range entrypoints {
-			for j := range entrypoints[i].DexVolumeEntrypoints {
-				addresses = append(addresses, fmt.Sprintf("(initiator = '%s' and parent = '%s')", entrypoints[i].Address, entrypoints[i].DexVolumeEntrypoints[j]))
+			for j := range entrypoints[i].Entrypoint {
+				addresses = append(addresses, fmt.Sprintf("(initiator = '%s' and parent = '%s')", entrypoints[i].Address, entrypoints[i].Entrypoint[j]))
 			}
 		}
 		conditions = append(conditions, fmt.Sprintf("(%s)", strings.Join(addresses, " or ")))
@@ -160,4 +160,21 @@ func (storage *Storage) GetTokenVolumeSeries(network, period string, contracts [
 		histogram = append(histogram, []float64{resp[i].DatePart, float64(resp[i].Value)})
 	}
 	return histogram, nil
+}
+
+const (
+	calcBalanceRequest = `
+	select (coalesce(value_to, 0) - coalesce(value_from, 0))::varchar(255) as balance, coalesce(t1.address, t2.address) as address, coalesce(t1.token_id, t2.token_id) as token_id from 
+		(select sum(amount) as value_from, "from" as address, token_id from transfers where "from" is not null and contract = '%s' and network = '%s' group by "from", token_id) t1
+	full outer join 
+		(select sum(amount) as value_to, "to" as address, token_id from transfers where "to" is not null and contract = '%s' and network = '%s' group by "to", token_id) t2
+		on t1.address = t2.address and t1.token_id = t2.token_id;`
+)
+
+// CalcBalances -
+func (storage *Storage) CalcBalances(network, contract string) ([]transfer.Balance, error) {
+	request := fmt.Sprintf(calcBalanceRequest, contract, network, contract, network)
+	var balances []transfer.Balance
+	err := storage.DB.Raw(request).Scan(&balances).Error
+	return balances, err
 }

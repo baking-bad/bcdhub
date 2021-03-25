@@ -6,6 +6,8 @@ import (
 
 	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // Contract - entity for contract
@@ -55,6 +57,16 @@ func (c *Contract) GetID() int64 {
 // GetIndex -
 func (c *Contract) GetIndex() string {
 	return "contracts"
+}
+
+// Save -
+func (t *Contract) Save(tx *gorm.DB) error {
+	return tx.Clauses(clause.OnConflict{
+		Columns: []clause.Column{
+			{Name: "id"},
+		},
+		DoUpdates: clause.AssignmentColumns([]string{"project_id", "alias", "delegate_alias", "verified", "verification_source"}),
+	}).Save(t).Error
 }
 
 // GetQueues -

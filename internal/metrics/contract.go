@@ -9,7 +9,7 @@ import (
 )
 
 // SetContractProjectID -
-func (h *Handler) SetContractProjectID(c *contract.Contract) error {
+func (h *Handler) SetContractProjectID(c *contract.Contract, chunk []contract.Contract) error {
 	var offset int64
 
 	size := int64(25)
@@ -30,6 +30,11 @@ func (h *Handler) SetContractProjectID(c *contract.Contract) error {
 		}
 
 		offset += size
+	}
+
+	c.ProjectID = getContractProjectID(*c, chunk)
+	if c.ProjectID != "" {
+		return nil
 	}
 	c.ProjectID = helpers.GenerateID()
 	return nil

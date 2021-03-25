@@ -17,44 +17,25 @@ func NewStorage(pg *core.Postgres) *Storage {
 }
 
 // Get -
-func (storage *Storage) Get(network, address string) (t tzip.TZIP, err error) {
-	err = storage.DB.
+func (storage *Storage) Get(network, address string) (*tzip.TZIP, error) {
+	var t tzip.TZIP
+	err := storage.DB.
 		Table(models.DocTZIP).
 		Scopes(core.NetworkAndAddress(network, address)).
 		First(&t).
 		Error
-	return
-}
-
-// GetDApps -
-func (storage *Storage) GetDApps() (response []tzip.DApp, err error) {
-	err = storage.DB.
-		Table(models.DocTZIP).
-		Where("dapps IS NOT NULL").
-		Order("dapps.order asc").
-		Find(&response).
-		Error
-	return
-}
-
-// GetDAppBySlug -
-func (storage *Storage) GetDAppBySlug(slug string) (t *tzip.DApp, err error) {
-	err = storage.DB.
-		Table(models.DocTZIP).
-		Where("dapps.slug = ?", slug).
-		First(&t).
-		Error
-	return
+	return &t, err
 }
 
 // GetBySlug -
-func (storage *Storage) GetBySlug(slug string) (t *tzip.TZIP, err error) {
-	err = storage.DB.
+func (storage *Storage) GetBySlug(slug string) (*tzip.TZIP, error) {
+	var t tzip.TZIP
+	err := storage.DB.
 		Table(models.DocTZIP).
 		Where("slug = ?", slug).
 		First(&t).
 		Error
-	return
+	return &t, err
 }
 
 // GetAliasesMap -

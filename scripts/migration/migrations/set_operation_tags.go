@@ -62,8 +62,8 @@ func (m *SetOperationTags) Do(ctx *config.Context) error {
 		result = append(result, &operations[i])
 	}
 
-	if err := ctx.Storage.BulkUpdate(result); err != nil {
-		logger.Errorf("ctx.Storage.BulkUpdate error: %v", err)
+	if err := ctx.Storage.Save(result); err != nil {
+		logger.Errorf("ctx.Storage.Save error: %v", err)
 		return err
 	}
 

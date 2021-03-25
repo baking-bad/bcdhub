@@ -209,6 +209,7 @@ func (ctx *Context) GetBigMapKeys(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Success 200 {object} BigMapDiffByKeyResponse
+// @Success 204 {object} gin.H
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/bigmap/{network}/{ptr}/keys/{key_hash} [get]
@@ -225,6 +226,11 @@ func (ctx *Context) GetBigMapByKeyHash(c *gin.Context) {
 
 	bm, total, err := ctx.BigMapDiffs.GetByPtrAndKeyHash(req.Ptr, req.Network, req.KeyHash, pageReq.Size, pageReq.Offset)
 	if ctx.handleError(c, err, 0) {
+		return
+	}
+
+	if total == 0 {
+		c.JSON(http.StatusNoContent, gin.H{})
 		return
 	}
 

@@ -62,17 +62,14 @@ func (ledger *Ledger) Do(bmd *bigmapdiff.BigMapDiff, storage *ast.TypedAst) (boo
 		return false, nil, nil
 	}
 
-	success, models, err := ledger.handle(bmd, bigMapType)
+	success, newModels, err := ledger.handle(bmd, bigMapType)
 	if err != nil {
 		return false, nil, err
 	}
-	if success {
-		return success, nil, ledger.tokenBalances.Update(models)
-	}
-	return success, nil, nil
+	return success, newModels, nil
 }
 
-func (ledger *Ledger) handle(bmd *bigmapdiff.BigMapDiff, bigMapType *ast.BigMap) (bool, []*tbModel.TokenBalance, error) {
+func (ledger *Ledger) handle(bmd *bigmapdiff.BigMapDiff, bigMapType *ast.BigMap) (bool, []models.Model, error) {
 	balances, err := ledger.getResultModels(bmd, bigMapType)
 	if err != nil {
 		if errors.Is(err, tokenbalance.ErrUnknownParser) {
@@ -83,7 +80,7 @@ func (ledger *Ledger) handle(bmd *bigmapdiff.BigMapDiff, bigMapType *ast.BigMap)
 	return true, balances, nil
 }
 
-func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *ast.BigMap) ([]*tbModel.TokenBalance, error) {
+func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *ast.BigMap) ([]models.Model, error) {
 	parser, err := tokenbalance.GetParserForBigMap(bigMapType)
 	if err != nil {
 		return nil, err
@@ -106,6 +103,7 @@ func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *as
 		TokenID:  balance[0].TokenID,
 		Contract: bmd.Contract,
 		Value:    balance[0].Value,
+		IsLedger: true,
 	}
 
 	items := []models.Model{tb}

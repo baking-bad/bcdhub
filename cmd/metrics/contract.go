@@ -16,44 +16,47 @@ func getContract(ids []int64) error {
 		return errors.Errorf("[getContract] Find contracts error for IDs %v: %s", ids, err)
 	}
 
+	updates := make([]models.Model, 0)
 	for i := range contracts {
-		if err := parseContract(&contracts[i]); err != nil {
+		res, err := parseContract(&contracts[i], contracts[:i])
+		if err != nil {
 			return errors.Errorf("[getContract] Compute error message: %s", err)
 		}
+
+		updates = append(updates, res...)
 	}
 
 	logger.Info("Metrics of %d contracts are computed", len(contracts))
 
-	items := make([]models.Model, len(contracts))
-	for i := range contracts {
-		items[i] = &contracts[i]
-	}
-	if err := saveSearchModels(ctx.Searcher, items); err != nil {
+	if err := saveSearchModels(ctx.Searcher, updates); err != nil {
 		return err
 	}
 
-	return ctx.Contracts.UpdateField(contracts, "Alias", "Verified", "VerificationSource", "ProjectID")
+	return ctx.Storage.Save(updates)
 }
 
-func parseContract(contract *contract.Contract) error {
+func parseContract(contract *contract.Contract, chunk []contract.Contract) ([]models.Model, error) {
 	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.DB)
 
 	if contract.ProjectID == "" {
-		if err := h.SetContractProjectID(contract); err != nil {
-			return errors.Errorf("[parseContract] Error during set contract projectID: %s", err)
+		if err := h.SetContractProjectID(contract, chunk); err != nil {
+			return nil, errors.Errorf("[parseContract] Error during set contract projectID: %s", err)
 		}
 	}
 
 	rpc, err := ctx.GetRPC(contract.Network)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if err = h.CreateTokenMetadata(rpc, ctx.SharePath, contract, ctx.Config.IPFSGateways...); err != nil {
+	newModels, err := h.CreateTokenMetadata(rpc, ctx.SharePath, contract, ctx.Config.IPFSGateways...)
+	if err != nil {
 		if !errors.Is(err, tokens.ErrNoMetadataKeyInStorage) {
 			logger.Error(err)
 		}
 	}
 
-	return nil
+	items := []models.Model{contract}
+
+	return append(items, newModels...), nil
 }

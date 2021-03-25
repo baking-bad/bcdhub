@@ -7,6 +7,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // BigMapDiff -
@@ -78,4 +80,11 @@ func (b *BigMapDiff) ValueBytes() []byte {
 		}
 	}
 	return b.Value
+}
+
+// Save -
+func (b *BigMapDiff) Save(tx *gorm.DB) error {
+	return tx.Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Save(b).Error
 }

@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // TezosDomain -
@@ -26,6 +28,13 @@ func (t *TezosDomain) GetID() int64 {
 // GetIndex -
 func (t *TezosDomain) GetIndex() string {
 	return "tezos_domains"
+}
+
+// Save -
+func (t *TezosDomain) Save(tx *gorm.DB) error {
+	return tx.Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Save(t).Error
 }
 
 // GetQueues -

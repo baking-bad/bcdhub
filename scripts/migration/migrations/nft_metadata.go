@@ -130,5 +130,5 @@ func (m *NFTMetadata) Do(ctx *config.Context) error {
 		updated[i] = &metadata[i]
 	}
 
-	return ctx.Storage.BulkUpdate(updated)
+	return ctx.Storage.Save(updated)
 }

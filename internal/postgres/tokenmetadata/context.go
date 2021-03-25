@@ -25,6 +25,9 @@ func buildGetTokenMetadataContext(db *gorm.DB, query *gorm.DB, ctx ...tokenmetad
 		if ctx[i].MinLevel > 0 {
 			subQuery.Where(fmt.Sprintf("level > %d", ctx[i].MinLevel))
 		}
+		if ctx[i].Creator != "" {
+			subQuery.Where("creators <@ ?", ctx[i].Creator)
+		}
 		if fullQuery.Statement == nil {
 			fullQuery = db.Where(subQuery)
 		} else {

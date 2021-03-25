@@ -2,10 +2,10 @@
 // Source: tzip/repository.go
 
 // Package mock_tzip is a generated GoMock package.
-package mock_tzip
+package tzip
 
 import (
-	tzip "github.com/baking-bad/bcdhub/internal/models/tzip"
+	t "github.com/baking-bad/bcdhub/internal/models/tzip"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -34,10 +34,10 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Get mocks base method
-func (m *MockRepository) Get(network, address string) (tzip.TZIP, error) {
+func (m *MockRepository) Get(network, address string) (*t.TZIP, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", network, address)
-	ret0, _ := ret[0].(tzip.TZIP)
+	ret0, _ := ret[0].(*t.TZIP)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -49,10 +49,10 @@ func (mr *MockRepositoryMockRecorder) Get(network, address interface{}) *gomock.
 }
 
 // GetWithEvents mocks base method
-func (m *MockRepository) GetWithEvents() ([]tzip.TZIP, error) {
+func (m *MockRepository) GetWithEvents() ([]t.TZIP, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetWithEvents")
-	ret0, _ := ret[0].([]tzip.TZIP)
+	ret0, _ := ret[0].([]t.TZIP)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -78,41 +78,11 @@ func (mr *MockRepositoryMockRecorder) GetWithEventsCounts() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWithEventsCounts", reflect.TypeOf((*MockRepository)(nil).GetWithEventsCounts))
 }
 
-// GetDApps mocks base method
-func (m *MockRepository) GetDApps() ([]tzip.DApp, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetDApps")
-	ret0, _ := ret[0].([]tzip.DApp)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetDApps indicates an expected call of GetDApps
-func (mr *MockRepositoryMockRecorder) GetDApps() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDApps", reflect.TypeOf((*MockRepository)(nil).GetDApps))
-}
-
-// GetDAppBySlug mocks base method
-func (m *MockRepository) GetDAppBySlug(slug string) (*tzip.DApp, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetDAppBySlug", slug)
-	ret0, _ := ret[0].(*tzip.DApp)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetDAppBySlug indicates an expected call of GetDAppBySlug
-func (mr *MockRepositoryMockRecorder) GetDAppBySlug(slug interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDAppBySlug", reflect.TypeOf((*MockRepository)(nil).GetDAppBySlug), slug)
-}
-
 // GetBySlug mocks base method
-func (m *MockRepository) GetBySlug(slug string) (*tzip.TZIP, error) {
+func (m *MockRepository) GetBySlug(slug string) (*t.TZIP, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBySlug", slug)
-	ret0, _ := ret[0].(*tzip.TZIP)
+	ret0, _ := ret[0].(*t.TZIP)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -124,10 +94,10 @@ func (mr *MockRepositoryMockRecorder) GetBySlug(slug interface{}) *gomock.Call {
 }
 
 // GetAliases mocks base method
-func (m *MockRepository) GetAliases(network string) ([]tzip.TZIP, error) {
+func (m *MockRepository) GetAliases(network string) ([]t.TZIP, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAliases", network)
-	ret0, _ := ret[0].([]tzip.TZIP)
+	ret0, _ := ret[0].([]t.TZIP)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -151,19 +121,4 @@ func (m *MockRepository) GetAliasesMap(network string) (map[string]string, error
 func (mr *MockRepositoryMockRecorder) GetAliasesMap(network interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAliasesMap", reflect.TypeOf((*MockRepository)(nil).GetAliasesMap), network)
-}
-
-// GetAlias mocks base method
-func (m *MockRepository) GetAlias(network, address string) (*tzip.TZIP, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAlias", network, address)
-	ret0, _ := ret[0].(*tzip.TZIP)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetAlias indicates an expected call of GetAlias
-func (mr *MockRepositoryMockRecorder) GetAlias(network, address interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAlias", reflect.TypeOf((*MockRepository)(nil).GetAlias), network, address)
 }

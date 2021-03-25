@@ -1,5 +1,10 @@
 package protocol
 
+import (
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+)
+
 // Protocol -
 type Protocol struct {
 	ID int64 `json:"-"`
@@ -29,6 +34,13 @@ func (p *Protocol) GetID() int64 {
 // GetIndex -
 func (p *Protocol) GetIndex() string {
 	return "protocols"
+}
+
+// Save -
+func (p *Protocol) Save(tx *gorm.DB) error {
+	return tx.Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Save(p).Error
 }
 
 // MarshalToQueue -

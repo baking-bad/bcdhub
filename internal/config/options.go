@@ -11,6 +11,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/postgres/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/postgres/contract"
+	"github.com/baking-bad/bcdhub/internal/postgres/dapp"
 	"github.com/baking-bad/bcdhub/internal/postgres/migration"
 	"github.com/baking-bad/bcdhub/internal/postgres/operation"
 	"github.com/baking-bad/bcdhub/internal/postgres/protocol"
@@ -65,6 +66,7 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64) ContextOp
 		ctx.BigMapActions = bigmapaction.NewStorage(pg)
 		ctx.Blocks = block.NewStorage(pg)
 		ctx.BigMapDiffs = bigmapdiff.NewStorage(pg)
+		ctx.DApps = dapp.NewStorage(pg)
 		ctx.Contracts = contract.NewStorage(pg)
 		ctx.Migrations = migration.NewStorage(pg)
 		ctx.Operations = operation.NewStorage(pg)

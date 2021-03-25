@@ -7,7 +7,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/parsers/tzip/repository"
 )
 
@@ -49,6 +48,10 @@ func (m *FillTZIP) Do(ctx *config.Context) error {
 		return err
 	}
 
+	if err := ctx.Storage.CreateIndexes(); err != nil {
+		return err
+	}
+
 	if network == "" {
 		items, err := fs.GetAll()
 		if err != nil {
@@ -80,12 +83,11 @@ func (m *FillTZIP) Do(ctx *config.Context) error {
 			return err
 		}
 	}
-
-	if err := ctx.Storage.BulkInsert(inserts); err != nil {
+	if err := ctx.Storage.Save(inserts); err != nil {
 		return err
 	}
 
-	return ctx.Storage.BulkUpdate(updates)
+	return ctx.Storage.Save(updates)
 }
 
 func processTzipItem(ctx *config.Context, item repository.Item, inserts, updates *[]models.Model) error {
@@ -108,27 +110,40 @@ func processTzipItem(ctx *config.Context, item repository.Item, inserts, updates
 		})
 	}
 
-	copyModel := tzip.TZIP{
-		Network: model.Network,
-		Address: model.Address,
-	}
-
-	if err := ctx.Storage.GetByID(&copyModel); err != nil {
-		if !ctx.Storage.IsRecordNotFound(err) {
-			logger.Error(err)
-			return err
+	copyModel, err := ctx.TZIP.Get(model.Network, model.Address)
+	switch {
+	case err == nil:
+		model.ID = copyModel.ID
+		if copyModel.Name != "" {
+			model.Name = copyModel.Name
 		}
 
+		if copyModel.Slug != "" {
+			model.Slug = copyModel.Slug
+		}
+		*updates = append(*updates, &model.TZIP)
+
+		for i := range model.DApps {
+			d, err := ctx.DApps.Get(model.DApps[i].Slug)
+			switch {
+			case err == nil:
+				*updates = append(*updates, &d)
+			case ctx.Storage.IsRecordNotFound(err):
+				*inserts = append(*inserts, &model.DApps[i])
+			default:
+				logger.Error(err)
+				return err
+			}
+		}
+	case ctx.Storage.IsRecordNotFound(err):
 		*inserts = append(*inserts, &model.TZIP)
-		return nil
-	}
 
-	if copyModel.Name != "" {
-		model.Name = copyModel.Name
-	}
-
-	if copyModel.Slug != "" {
-		model.Slug = copyModel.Slug
+		for i := range model.DApps {
+			*inserts = append(*inserts, &model.DApps[i])
+		}
+	default:
+		logger.Error(err)
+		return err
 	}
 
 	*updates = append(*updates, &model.TZIP)

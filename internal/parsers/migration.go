@@ -32,25 +32,25 @@ func NewMigrationParser(storage models.GeneralRepository, bmdRepo bigmapdiff.Rep
 }
 
 // Parse -
-func (p *MigrationParser) Parse(script noderpc.Script, old modelsContract.Contract, previous, next protocol.Protocol, timestamp time.Time) ([]models.Model, []models.Model, error) {
-	var updates []models.Model
+func (p *MigrationParser) Parse(script noderpc.Script, old modelsContract.Contract, previous, next protocol.Protocol, timestamp time.Time) ([]models.Model, error) {
+	updates := make([]models.Model, 0)
 
 	if previous.SymLink == consts.MetadataAlpha {
 		newUpdates, err := p.getUpdates(script, old)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
-		updates = newUpdates
+		updates = append(updates, newUpdates...)
 	}
 
 	codeBytes, err := json.Marshal(script.Code)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	newHash, err := contract.ComputeHash(codeBytes)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	if err := p.scriptSaver.Save(codeBytes, contractParser.ScriptSaveContext{
@@ -59,14 +59,14 @@ func (p *MigrationParser) Parse(script noderpc.Script, old modelsContract.Contra
 		Network: old.Network,
 		SymLink: next.SymLink,
 	}); err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	if newHash == old.Hash {
-		return nil, updates, nil
+		return updates, nil
 	}
 
-	migration := migration.Migration{
+	updates = append(updates, &migration.Migration{
 		Network:      old.Network,
 		Level:        previous.EndLevel,
 		Protocol:     next.Hash,
@@ -74,9 +74,9 @@ func (p *MigrationParser) Parse(script noderpc.Script, old modelsContract.Contra
 		Address:      old.Address,
 		Timestamp:    timestamp,
 		Kind:         consts.MigrationUpdate,
-	}
+	})
 
-	return []models.Model{&migration}, updates, nil
+	return updates, nil
 }
 
 func (p *MigrationParser) getUpdates(script noderpc.Script, contract modelsContract.Contract) ([]models.Model, error) {

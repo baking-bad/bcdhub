@@ -21,7 +21,7 @@ func main() {
 	)
 	defer ctx.Close()
 
-	dapps, err := ctx.TZIP.GetDApps()
+	dapps, err := ctx.DApps.All()
 	if err != nil {
 		logger.Fatal(err)
 	}

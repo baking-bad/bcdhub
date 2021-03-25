@@ -2,6 +2,9 @@ package bigmapaction
 
 import (
 	"time"
+
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // BigMapAction -
@@ -35,4 +38,11 @@ func (b *BigMapAction) GetQueues() []string {
 // MarshalToQueue -
 func (b *BigMapAction) MarshalToQueue() ([]byte, error) {
 	return nil, nil
+}
+
+// Save -
+func (b *BigMapAction) Save(tx *gorm.DB) error {
+	return tx.Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Save(b).Error
 }

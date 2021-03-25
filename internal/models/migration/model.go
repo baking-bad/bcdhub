@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // Migration -
@@ -28,6 +30,13 @@ func (m *Migration) GetID() int64 {
 // GetIndex -
 func (m *Migration) GetIndex() string {
 	return "migrations"
+}
+
+// Save -
+func (m *Migration) Save(tx *gorm.DB) error {
+	return tx.Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Save(m).Error
 }
 
 // GetQueues -

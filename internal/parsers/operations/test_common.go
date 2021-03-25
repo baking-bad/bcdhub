@@ -25,12 +25,14 @@ func readJSONFile(name string, response interface{}) error {
 	return json.Unmarshal(bytes, response)
 }
 
-func readTestContractModel(contract *contract.Contract) error {
-	bytes, err := ioutil.ReadFile(fmt.Sprintf("./data/models/contract/%s.json", contract.Address))
+func readTestContractModel(network, address string) (contract.Contract, error) {
+	var c contract.Contract
+	bytes, err := ioutil.ReadFile(fmt.Sprintf("./data/models/contract/%s.json", address))
 	if err != nil {
-		return err
+		return c, err
 	}
-	return json.Unmarshal(bytes, &contract)
+	err = json.Unmarshal(bytes, &c)
+	return c, err
 }
 
 func readStorage(address string, level int64) ([]byte, error) {

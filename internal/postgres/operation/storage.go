@@ -160,33 +160,23 @@ func (storage *Storage) Get(filters map[string]interface{}, size int64, sort boo
 // GetStats -
 func (storage *Storage) GetStats(network, address string) (stats operation.Stats, err error) {
 	query := storage.DB.Table(models.DocOperations).
-		Select("MAX(timestamp) AS last_action").
+		Select("MAX(timestamp) AS last_action, COUNT(*) as count").
 		Where("network = ?", network).
 		Where(
 			storage.DB.Where("source = ?", address).Or("destination = ?", address),
 		)
 
-	if err = query.First(&stats.LastAction).Error; err != nil {
-		return
-	}
-
-	queryCount := storage.DB.Table(models.DocOperations).
-		Where("network = ?", network).
-		Where(
-			storage.DB.Where("source = ?", address).Or("destination = ?", address),
-		)
-
-	err = queryCount.Count(&stats.Count).Error
+	err = query.Scan(&stats).Error
 	return
 }
 
 // GetContract24HoursVolume -
 func (storage *Storage) GetContract24HoursVolume(network, address string, entrypoints []string) (float64, error) {
-	aDayAgo := time.Now().UTC().AddDate(0, 0, -1).Unix()
+	aDayAgo := time.Now().UTC().AddDate(0, 0, -1)
 
 	var volume float64
 	query := storage.DB.Table(models.DocOperations).
-		Select("SUM(amount) as volume").
+		Select("COALESCE(SUM(amount), 0)").
 		Where("destination = ?", address).
 		Where("network = ?", network).
 		Where("status = ?", constants.Applied).
@@ -196,22 +186,22 @@ func (storage *Storage) GetContract24HoursVolume(network, address string, entryp
 		query.Where("entrypoint IN ?", entrypoints)
 	}
 
-	err := query.First(&volume).Error
+	err := query.Scan(&volume).Error
 	return volume, err
 }
 
 type tokenStats struct {
-	Destination    string
-	Entrypoint     string
-	Gas            int64
-	OperationCount int64
+	Destination string
+	Entrypoint  string
+	Gas         int64
+	Count       int64
 }
 
 // GetTokensStats -
 func (storage *Storage) GetTokensStats(network string, addresses, entrypoints []string) (map[string]operation.TokenUsageStats, error) {
 	var stats []tokenStats
 	query := storage.DB.Table(models.DocOperations).
-		Select("destination, enrtypoint, COUNT(*) as operations_count, SUM(average_consumed_gas) AS gas").
+		Select("destination, entrypoint, COUNT(*) as count, SUM(consumed_gas) AS gas").
 		Where("network = ?", network)
 
 	if len(addresses) > 0 {
@@ -239,7 +229,7 @@ func (storage *Storage) GetTokensStats(network string, addresses, entrypoints []
 	usageStats := make(map[string]operation.TokenUsageStats)
 	for i := range stats {
 		usage := operation.TokenMethodUsageStats{
-			Count:       stats[i].OperationCount,
+			Count:       stats[i].Count,
 			ConsumedGas: stats[i].Gas,
 		}
 		if _, ok := usageStats[stats[i].Destination]; !ok {

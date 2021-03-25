@@ -8,6 +8,7 @@ import (
 	"text/template"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
@@ -56,7 +57,7 @@ const locationTemplate = `
 		sub_filter_once on;
 	}`
 
-func makeNginxConfig(dapps []tzip.DApp, aliases []tzip.TZIP, filepath, baseURL string) error {
+func makeNginxConfig(dapps []dapp.DApp, aliases []tzip.TZIP, filepath, baseURL string) error {
 	var locations strings.Builder
 	tmpl := template.Must(template.New("").Parse(locationTemplate))
 
@@ -102,7 +103,7 @@ func makeNginxConfig(dapps []tzip.DApp, aliases []tzip.TZIP, filepath, baseURL s
 	return nil
 }
 
-func makeDappLocation(tmpl *template.Template, dapp tzip.DApp, baseURL string) (string, error) {
+func makeDappLocation(tmpl *template.Template, dapp dapp.DApp, baseURL string) (string, error) {
 	var logoURL string
 	for _, picture := range dapp.Pictures {
 		if picture.Type == "logo" {

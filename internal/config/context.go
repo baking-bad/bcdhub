@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
@@ -47,6 +48,7 @@ type Context struct {
 	BigMapDiffs   bigmapdiff.Repository
 	Blocks        block.Repository
 	Contracts     contract.Repository
+	DApps         dapp.Repository
 	Migrations    migration.Repository
 	Operations    operation.Repository
 	Protocols     protocol.Repository

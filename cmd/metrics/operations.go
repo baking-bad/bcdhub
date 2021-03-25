@@ -30,7 +30,7 @@ func getOperation(ids []int64) error {
 		return err
 	}
 
-	return ctx.Storage.BulkUpdate(updated)
+	return ctx.Storage.Save(updated)
 }
 
 func parseOperation(operation operation.Operation) error {

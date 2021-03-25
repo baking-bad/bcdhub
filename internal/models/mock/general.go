@@ -420,32 +420,18 @@ func (mr *MockGeneralRepositoryMockRecorder) IsRecordNotFound(err interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsRecordNotFound", reflect.TypeOf((*MockGeneralRepository)(nil).IsRecordNotFound), err)
 }
 
-// BulkInsert mocks base method
-func (m *MockGeneralRepository) BulkInsert(arg0 []models.Model) error {
+// Save mocks base method
+func (m *MockGeneralRepository) Save(items []models.Model) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkInsert", arg0)
+	ret := m.ctrl.Call(m, "Save", items)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// BulkInsert indicates an expected call of BulkInsert
-func (mr *MockGeneralRepositoryMockRecorder) BulkInsert(arg0 interface{}) *gomock.Call {
+// Save indicates an expected call of Save
+func (mr *MockGeneralRepositoryMockRecorder) Save(items interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkInsert", reflect.TypeOf((*MockGeneralRepository)(nil).BulkInsert), arg0)
-}
-
-// BulkUpdate mocks base method
-func (m *MockGeneralRepository) BulkUpdate(arg0 []models.Model) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BulkUpdate", arg0)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// BulkUpdate indicates an expected call of BulkUpdate
-func (mr *MockGeneralRepositoryMockRecorder) BulkUpdate(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkUpdate", reflect.TypeOf((*MockGeneralRepository)(nil).BulkUpdate), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockGeneralRepository)(nil).Save), items)
 }
 
 // BulkDelete mocks base method

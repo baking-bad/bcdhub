@@ -32,6 +32,9 @@ type License struct {
 
 // UnmarshalJSON -
 func (license *License) UnmarshalJSON(data []byte) error {
+	if len(data) == 0 {
+		return nil
+	}
 	switch data[0] {
 	case '"':
 		if err := json.Unmarshal(data, &license.Name); err != nil {
@@ -73,13 +76,13 @@ func (license *License) Value() (driver.Value, error) {
 type Views []View
 
 // Scan scan value into Jsonb, implements sql.Scanner interface
-func (views Views) Scan(value interface{}) error {
+func (views *Views) Scan(value interface{}) error {
 	bytes, ok := value.([]byte)
 	if !ok {
 		return errors.New(fmt.Sprint("Failed to unmarshal JSONB value:", value))
 	}
 
-	return json.Unmarshal(bytes, &views)
+	return json.Unmarshal(bytes, views)
 }
 
 // Value return json value, implement driver.Valuer interface

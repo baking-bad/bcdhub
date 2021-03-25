@@ -32,6 +32,31 @@ func prepareBigMapDiffsToEnrich(bmd []bigmapdiff.BigMapDiff, skipEmpty bool) []*
 	return res
 }
 
+func prepareBigMapStatesToEnrich(bmd []bigmapdiff.BigMapState, skipEmpty bool) []*types.BigMapDiff {
+	res := make([]*types.BigMapDiff, 0)
+	for i := range bmd {
+		if bmd[i].Removed && skipEmpty {
+			continue
+		}
+
+		item := &types.BigMapDiff{
+			Ptr:     bmd[i].Ptr,
+			Key:     bmd[i].Key,
+			ID:      bmd[i].ID,
+			KeyHash: bmd[i].KeyHash,
+			Address: bmd[i].Contract,
+			Network: bmd[i].Network,
+		}
+
+		if !bmd[i].Removed {
+			item.Value = bmd[i].Value
+		}
+
+		res = append(res, item)
+	}
+	return res
+}
+
 func getBigMapDiffModels(bmd []*types.BigMapDiff) []bigmapdiff.BigMapDiff {
 	res := make([]bigmapdiff.BigMapDiff, 0)
 	for i := range bmd {

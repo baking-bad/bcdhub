@@ -5,6 +5,8 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // TZIP -
@@ -21,7 +23,6 @@ type TZIP struct {
 
 	TZIP16
 	TZIP20
-	DAppsTZIP
 }
 
 // GetID -
@@ -32,6 +33,13 @@ func (t *TZIP) GetID() int64 {
 // GetIndex -
 func (t *TZIP) GetIndex() string {
 	return "tzips"
+}
+
+// Save -
+func (t *TZIP) Save(tx *gorm.DB) error {
+	return tx.Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Save(t).Error
 }
 
 // GetQueues -

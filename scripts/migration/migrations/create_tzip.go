@@ -73,5 +73,5 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 		}
 	}
 
-	return ctx.Storage.BulkInsert(data)
+	return ctx.Storage.Save(data)
 }

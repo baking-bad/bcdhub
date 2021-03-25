@@ -6,7 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
+	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/pkg/errors"
 )
 
@@ -70,11 +70,11 @@ func buildHistogramContext(ctx models.HistogramContext) (string, error) {
 					conds = append(conds, fmt.Sprintf("(%s)", strings.Join(addresses, " or ")))
 				}
 			case models.HistogramFilterDexEnrtypoints:
-				if value, ok := fltr.Value.([]tzip.DAppContract); ok {
+				if value, ok := fltr.Value.([]dapp.DAppContract); ok {
 					entrypoints := make([]string, 0)
 					for _, val := range value {
-						for j := range value[i].DexVolumeEntrypoints {
-							s := fmt.Sprintf("(intiator = '%s' and parent = '%s')", val.Address, val.DexVolumeEntrypoints[j])
+						for j := range value[i].Entrypoint {
+							s := fmt.Sprintf("(intiator = '%s' and parent = '%s')", val.Address, val.Entrypoint[j])
 							entrypoints = append(entrypoints, s)
 						}
 					}

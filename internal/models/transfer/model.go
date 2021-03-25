@@ -11,6 +11,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -44,6 +45,13 @@ func (t *Transfer) GetID() int64 {
 // GetIndex -
 func (t *Transfer) GetIndex() string {
 	return "transfers"
+}
+
+// Save -
+func (t *Transfer) Save(tx *gorm.DB) error {
+	return tx.Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Save(t).Error
 }
 
 // GetQueues -
@@ -200,4 +208,11 @@ func (t *Transfer) SetAmountFromString(val string) error {
 	}
 	t.AmountBigInt = amount
 	return nil
+}
+
+// Balance -
+type Balance struct {
+	Balance string
+	Address string
+	TokenID uint64
 }

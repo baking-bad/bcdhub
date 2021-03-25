@@ -27,16 +27,20 @@ type GeneralRepository interface {
 	ReloadSecureSettings() error
 	GetNetworkCountStats(string) (map[string]int64, error)
 	GetDateHistogram(period string, opts ...HistogramOption) ([][]int64, error)
+
 	// GetCallsCountByNetwork - returns contract calls splitted by network. If `network` is not empty returns stats only for that network.
 	GetCallsCountByNetwork(network string) (map[string]int64, error)
+
 	// GetContractStatsByNetwork - returns contract stats splitted by network. If `network` is not empty returns stats only for that network.
 	GetContractStatsByNetwork(network string) (map[string]ContractCountStats, error)
+
 	// GetFACountByNetwork - returns FA contracts count splitted by network. If `network` is not empty returns stats only for that network.
 	GetFACountByNetwork(network string) (map[string]int64, error)
 	GetLanguagesForNetwork(network string) (map[string]int64, error)
 	IsRecordNotFound(err error) bool
-	BulkInsert([]Model) error
-	BulkUpdate([]Model) error
+
+	// Save - performs insert or update items.
+	Save(items []Model) error
 	BulkDelete([]Model) error
 	SetAlias(network, address, alias string) error
 }

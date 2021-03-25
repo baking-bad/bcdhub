@@ -2,6 +2,7 @@ package transfer
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
@@ -18,7 +19,7 @@ func buildGetContext(db *gorm.DB, query *gorm.DB, ctx transfer.GetContext, withS
 	}
 	if ctx.Address != "" {
 		query.Where(
-			db.Where("from = ?", ctx.Address).Or("to = ?", ctx.Address),
+			db.Where("transfers.from = ?", ctx.Address).Or("transfers.to = ?", ctx.Address),
 		)
 	}
 	if ctx.Start > 0 {
@@ -28,7 +29,9 @@ func buildGetContext(db *gorm.DB, query *gorm.DB, ctx transfer.GetContext, withS
 		query.Where("timestamp < ?", ctx.End)
 	}
 	if ctx.LastID != "" {
-		query.Where("last_id < ?", ctx.LastID)
+		if id, err := strconv.ParseInt(ctx.LastID, 10, 64); err == nil {
+			query.Where("id < ?", id)
+		}
 	}
 	subQuery := core.OrStringArray(db, ctx.Contracts, "contract")
 	if subQuery != nil {
