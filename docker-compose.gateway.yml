@@ -1,0 +1,112 @@
+version: "3.6"
+services:
+  elastic:
+    image: bakingbad/bcdhub-elastic:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: build/elastic/Dockerfile
+    restart: always
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    environment:
+      - bootstrap.memory_lock=true
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"  # CHANGEME: ElasticSearch RAM comsumption
+    logging: &my-logging
+      options:
+        max-size: 10m
+        max-file: "5"
+
+  mq:
+    image: rabbitmq:latest
+    restart: always
+    volumes:
+      - mqdata:/var/lib/rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    logging: *my-logging
+
+  db:
+    image: postgres:12
+    restart: always
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=bcd
+    volumes:
+      - db:/var/lib/postgresql/data
+    logging: *my-logging
+
+  api:
+    restart: always
+    image: bakingbad/bcdhub-api:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: build/api/Dockerfile
+    environment:
+      - BCD_ENV=production
+      - GIN_MODE=release
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=bcd
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    depends_on:
+      - elastic
+      - db
+      - mq
+    ports:
+      - 127.0.0.1:14000:14000
+    volumes:
+      - bcdshare:/etc/bcd
+    logging: *my-logging
+
+  indexer:
+    restart: always
+    image: bakingbad/bcdhub-indexer:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: build/indexer/Dockerfile
+    environment:
+      - BCD_ENV=production
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=bcd
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    depends_on:
+      - elastic
+      - mq
+      - metrics
+    volumes:
+      - bcdshare:/etc/bcd
+    logging: *my-logging
+
+  metrics:
+    restart: always
+    image: bakingbad/bcdhub-metrics:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: build/metrics/Dockerfile
+    environment:
+      - BCD_ENV=production
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=bcd
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    depends_on:
+      - elastic
+      - mq
+      - db
+    volumes:
+      - bcdshare:/etc/bcd
+    logging: *my-logging
+
+volumes:
+  esdata:
+  mqdata:
+  bcdshare:
+  db:
+    driver: local

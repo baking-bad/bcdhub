@@ -169,3 +169,15 @@ sandbox-down:
 
 sandbox-clear:
 	COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.sandbox.yml down -v
+
+gateway-images:
+	docker-compose -f docker-compose.gateway.yml build
+
+gateway:
+	COMPOSE_PROJECT_NAME=bcdhub docker-compose -f docker-compose.gateway.yml up -d
+
+gateway-down:
+	COMPOSE_PROJECT_NAME=bcdhub docker-compose -f docker-compose.gateway.yml down
+
+gateway-clear:
+	COMPOSE_PROJECT_NAME=bcdhub docker-compose -f docker-compose.gateway.yml down -v
