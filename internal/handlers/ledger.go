@@ -95,7 +95,20 @@ func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *as
 		Value:    balance[0].Value,
 	}
 
-	return []models.Model{tb}, nil
+	items := []models.Model{tb}
+
+	if balance[0].IsExclusiveNFT {
+		holders, err := ledger.tokenBalances.NFTHolders(tb.Network, tb.Contract, tb.TokenID)
+		if err != nil {
+			return nil, err
+		}
+		for i := range holders {
+			holders[i].Value.SetInt64(0)
+			items = append(items, &holders[i])
+		}
+	}
+
+	return items, nil
 }
 
 func (ledger *Ledger) buildElt(bmd *bigmapdiff.BigMapDiff) ([]byte, error) {
