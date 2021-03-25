@@ -100,9 +100,6 @@ func (storage *Storage) GetAccountBalances(network, address, contract string, si
 			core.Filter(
 				filters...,
 			),
-			core.MustNot(
-				core.Term("balance", "0"),
-			),
 		),
 	).Sort("token_id", "desc").All()
 
@@ -121,9 +118,6 @@ func (storage *Storage) GetAccountBalances(network, address, contract string, si
 		core.Bool(
 			core.Filter(
 				filters...,
-			),
-			core.MustNot(
-				core.Term("balance", "0"),
 			),
 		),
 	)
@@ -209,9 +203,6 @@ func (storage *Storage) CountByContract(network, address string) (map[string]int
 			core.Filter(
 				core.Term("network", network),
 				core.MatchPhrase("address", address),
-			),
-			core.MustNot(
-				core.Term("balance", "0"),
 			),
 		),
 	).Add(
