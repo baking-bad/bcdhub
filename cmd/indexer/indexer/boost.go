@@ -659,15 +659,8 @@ func (bi *BoostIndexer) standartMigration(newProtocol protocol.Protocol, head no
 			return err
 		}
 
-		updates, err := p.Parse(script, contracts[i], bi.currentProtocol, newProtocol, head.Timestamp)
-		if err != nil {
+		if err := p.Parse(script, contracts[i], bi.currentProtocol, newProtocol, head.Timestamp, tx); err != nil {
 			return err
-		}
-
-		for i := range updates {
-			if err := updates[i].Save(tx); err != nil {
-				return err
-			}
 		}
 	}
 	return nil

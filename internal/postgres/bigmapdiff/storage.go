@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/postgres/consts"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 // Storage -
@@ -18,17 +19,23 @@ func NewStorage(pg *core.Postgres) *Storage {
 	return &Storage{pg}
 }
 
+func bigMapKey(network, keyHash string, ptr int64) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("network = ?", network).
+			Where("key_hash = ?", keyHash).
+			Where("ptr = ?", ptr)
+	}
+}
+
 // CurrentByKey -
-func (storage *Storage) CurrentByKey(network, keyHash string, ptr int64) (data bigmapdiff.BigMapDiff, err error) {
+func (storage *Storage) Current(network, keyHash string, ptr int64) (data bigmapdiff.BigMapState, err error) {
 	if ptr < 0 {
 		err = errors.Wrapf(consts.ErrInvalidPointer, "%d", ptr)
 		return
 	}
 
-	err = storage.DB.Table(models.DocBigMapDiff).
-		Scopes(core.Network(network), core.OrderByLevelDesc).
-		Where("key_hash = ?", keyHash).
-		Where("ptr = ?", ptr).
+	err = storage.DB.Table(models.DocBigMapState).
+		Scopes(bigMapKey(network, keyHash, ptr)).
 		First(&data).
 		Error
 
@@ -69,10 +76,9 @@ func (storage *Storage) GetValuesByKey(keyHash string) (response []bigmapdiff.Bi
 
 // Count -
 func (storage *Storage) Count(network string, ptr int64) (count int64, err error) {
-	err = storage.DB.Table(models.DocBigMapDiff).
-		Scopes(core.Network(network)).
+	err = storage.DB.Table(models.DocBigMapState).
+		Where("network = ?", network).
 		Where("ptr = ?", ptr).
-		Group("key_hash").
 		Count(&count).
 		Error
 	return
@@ -196,25 +202,34 @@ func (storage *Storage) GetByIDs(ids ...int64) (result []bigmapdiff.BigMapDiff, 
 
 // GetStats -
 func (storage *Storage) GetStats(network string, ptr int64) (stats bigmapdiff.Stats, err error) {
-	subQuery := storage.DB.Table(models.DocBigMapDiff).
-		Select("max(id) as id").
+	totalQuery := storage.DB.Table(models.DocBigMapState).
+		Select("count(contract) as total, contract").
 		Where("network = ?", network).
 		Where("ptr = ?", ptr).
-		Group("key_hash")
+		Group("contract")
 
-	err = storage.DB.Table(models.DocBigMapDiff).
-		Select("count(*) as total, contract").
-		Where("id IN (?)", subQuery).
-		Group("contract").
-		Scan(&stats).Error
-	if err != nil {
-		return
-	}
+	activeQuery := storage.DB.Table(models.DocBigMapState).
+		Select("count(contract) as active, contract").
+		Where("network = ?", network).
+		Where("ptr = ?", ptr).
+		Where("removed = false").
+		Group("contract")
 
-	err = storage.DB.Table(models.DocBigMapDiff).
-		Where("id IN (?)", subQuery).
-		Where("value is not null").
-		Count(&stats.Active).Error
+	err = storage.DB.
+		Raw("select q1.total as total, q1.contract as contract, q2.active as active from ((?) q1 join (?) q2 on q1.contract = q2.contract)", totalQuery, activeQuery).
+		Scan(&stats).
+		Error
+
+	return
+}
+
+// CurrentByContract -
+func (storage *Storage) CurrentByContract(network, contract string) (keys []bigmapdiff.BigMapState, err error) {
+	err = storage.DB.Table(models.DocBigMapState).
+		Where("network = ?", network).
+		Where("contract = ?", contract).
+		Find(&keys).
+		Error
 
 	return
 }

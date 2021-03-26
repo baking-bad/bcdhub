@@ -188,19 +188,34 @@ func (mr *MockRepositoryMockRecorder) Count(network, ptr interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Count", reflect.TypeOf((*MockRepository)(nil).Count), network, ptr)
 }
 
-// CurrentByKey mocks base method
-func (m *MockRepository) CurrentByKey(network, keyHash string, ptr int64) (bmd.BigMapDiff, error) {
+// Current mocks base method
+func (m *MockRepository) Current(network, keyHash string, ptr int64) (bmd.BigMapState, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CurrentByKey", network, keyHash, ptr)
-	ret0, _ := ret[0].(bmd.BigMapDiff)
+	ret := m.ctrl.Call(m, "Current", network, keyHash, ptr)
+	ret0, _ := ret[0].(bmd.BigMapState)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CurrentByKey indicates an expected call of CurrentByKey
-func (mr *MockRepositoryMockRecorder) CurrentByKey(network, keyHash, ptr interface{}) *gomock.Call {
+// Current indicates an expected call of Current
+func (mr *MockRepositoryMockRecorder) Current(network, keyHash, ptr interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CurrentByKey", reflect.TypeOf((*MockRepository)(nil).CurrentByKey), network, keyHash, ptr)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Current", reflect.TypeOf((*MockRepository)(nil).Current), network, keyHash, ptr)
+}
+
+// CurrentByContract mocks base method
+func (m *MockRepository) CurrentByContract(network, contract string) ([]bmd.BigMapState, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CurrentByContract", network, contract)
+	ret0, _ := ret[0].([]bmd.BigMapState)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CurrentByContract indicates an expected call of CurrentByContract
+func (mr *MockRepositoryMockRecorder) CurrentByContract(network, contract interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CurrentByContract", reflect.TypeOf((*MockRepository)(nil).CurrentByContract), network, contract)
 }
 
 // Previous mocks base method

@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
@@ -56,19 +55,35 @@ func (storage *Storage) GetAll(network string, level int64) ([]transfer.Transfer
 // GetTokenSupply -
 func (storage *Storage) GetTokenSupply(network, contract string, tokenID uint64) (result transfer.TokenSupply, err error) {
 	var supplied, burned float64
-	query := storage.DB.Table(models.DocTransfers).
+
+	if err = storage.DB.Table(models.DocTransfers).
 		Scopes(
 			core.Token(network, contract, tokenID),
 			core.IsApplied,
-		).Select("COALESCE(SUM(amount), 0)")
-
-	if err = query.Where("transfers.from = ''").Scan(&supplied).Error; err != nil {
+		).
+		Select("COALESCE(SUM(amount), 0)").
+		Where("transfers.from = ''").
+		Scan(&supplied).Error; err != nil {
 		return
 	}
-	if err = query.Where("transfers.to = ''").Scan(&burned).Error; err != nil {
+	if err = storage.DB.Table(models.DocTransfers).
+		Scopes(
+			core.Token(network, contract, tokenID),
+			core.IsApplied,
+		).
+		Select("COALESCE(SUM(amount), 0)").
+		Where("transfers.to = ''").
+		Scan(&burned).Error; err != nil {
 		return
 	}
-	if err = query.Where("transfers.to != '' AND transfers.from != ''").Scan(&result.Transfered).Error; err != nil {
+	if err = storage.DB.Table(models.DocTransfers).
+		Scopes(
+			core.Token(network, contract, tokenID),
+			core.IsApplied,
+		).
+		Select("COALESCE(SUM(amount), 0)").
+		Where("transfers.to != '' AND transfers.from != ''").
+		Scan(&result.Transfered).Error; err != nil {
 		return
 	}
 
@@ -84,8 +99,7 @@ func (storage *Storage) GetToken24HoursVolume(network, contract string, initiato
 	var volume float64
 	err := storage.DB.Table(models.DocTransfers).
 		Select("COALESCE(SUM(amount), 0)").
-		Scopes(core.Token(network, contract, tokenID)).
-		Where("status = ?", consts.Applied).
+		Scopes(core.Token(network, contract, tokenID), core.IsApplied).
 		Where("parent IN ?", entrypoints).
 		Where("initiator IN ?", initiators).
 		Where("timestamp > ?", aDayAgo).
