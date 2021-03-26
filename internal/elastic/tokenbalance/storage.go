@@ -163,8 +163,8 @@ func (storage *Storage) Batch(network string, addresses []string) (map[string][]
 	return result, nil
 }
 
-// BurnNft -
-func (storage *Storage) BurnNft(network, contract string, tokenID int64) error {
+// NFTHolders -
+func (storage *Storage) NFTHolders(network, contract string, tokenID int64) (tokens []tokenbalance.TokenBalance, err error) {
 	query := core.NewQuery().Query(
 		core.Bool(
 			core.Filter(
@@ -172,20 +172,14 @@ func (storage *Storage) BurnNft(network, contract string, tokenID int64) error {
 				core.MatchPhrase("contract", contract),
 				core.Term("token_id", tokenID),
 			),
+			core.MustNot(
+				core.Term("balance", "0"),
+			),
 		),
 	)
 
-	// 10 attempts in case of conflicts
-	for i := 0; i < 10; i++ {
-		response, err := storage.es.DeleteWithQuery([]string{models.DocTokenBalances}, query)
-		if err != nil {
-			return err
-		}
-		if response.VersionConflicts == 0 {
-			break
-		}
-	}
-	return nil
+	err = storage.es.GetAllByQuery(query, &tokens)
+	return
 }
 
 type countByContractAgg struct {

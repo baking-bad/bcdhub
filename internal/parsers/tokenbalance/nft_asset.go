@@ -71,9 +71,10 @@ func (p NftAsset) Parse(data []byte) ([]TokenBalance, error) {
 		}
 
 		balances = append(balances, TokenBalance{
-			Value:   balance,
-			Address: address,
-			TokenID: tokenID.Int64(),
+			Value:          balance,
+			Address:        address,
+			TokenID:        tokenID.Int64(),
+			IsExclusiveNFT: true,
 		})
 		return false, nil
 	})

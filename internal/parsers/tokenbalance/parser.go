@@ -50,6 +50,8 @@ type TokenBalance struct {
 	Address string
 	TokenID int64
 	Value   *big.Int
+
+	IsExclusiveNFT bool
 }
 
 // GetParserForEvents -

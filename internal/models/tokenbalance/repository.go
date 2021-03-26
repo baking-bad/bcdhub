@@ -6,6 +6,6 @@ type Repository interface {
 	Update(updates []*TokenBalance) error
 	GetHolders(network, contract string, tokenID int64) ([]TokenBalance, error)
 	Batch(network string, addresses []string) (map[string][]TokenBalance, error)
-	BurnNft(network, contract string, tokenID int64) error
+	NFTHolders(network, contract string, tokenID int64) ([]TokenBalance, error)
 	CountByContract(network, address string) (map[string]int64, error)
 }

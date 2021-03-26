@@ -93,18 +93,19 @@ func (mr *MockRepositoryMockRecorder) Batch(network, addresses interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Batch", reflect.TypeOf((*MockRepository)(nil).Batch), network, addresses)
 }
 
-// BurnNft mocks base method
-func (m *MockRepository) BurnNft(network, contract string, tokenID int64) error {
+// NFTHolders mocks base method
+func (m *MockRepository) NFTHolders(network, contract string, tokenID int64) ([]tb.TokenBalance, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BurnNft", network, contract, tokenID)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "NFTHolders", network, contract, tokenID)
+	ret0, _ := ret[0].([]tb.TokenBalance)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// BurnNft indicates an expected call of BurnNft
-func (mr *MockRepositoryMockRecorder) BurnNft(network, contract, tokenID interface{}) *gomock.Call {
+// NFTHolders indicates an expected call of NFTHolders
+func (mr *MockRepositoryMockRecorder) NFTHolders(network, contract, tokenID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BurnNft", reflect.TypeOf((*MockRepository)(nil).BurnNft), network, contract, tokenID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NFTHolders", reflect.TypeOf((*MockRepository)(nil).NFTHolders), network, contract, tokenID)
 }
 
 // CountByContract mocks base method

@@ -98,9 +98,9 @@ func (storage *Storage) Batch(network string, addresses []string) (map[string][]
 	return nil, nil
 }
 
-// BurnNft -
-func (storage *Storage) BurnNft(network, contract string, tokenID int64) error {
-	return nil
+// NFTHolders -
+func (storage *Storage) NFTHolders(network, contract string, tokenID int64) ([]tokenbalance.TokenBalance, error) {
+	return nil, nil
 }
 
 // CountByContract -

@@ -102,9 +102,10 @@ func Test_nftParser_Parse(t *testing.T) {
 			args: `[{"prim":"Elt","args": [{"int": "1"},{"string": "KT1BYYLfMjufYwqFtTSYJND7bzKNyK7mjrjM"}]}]`,
 			want: []TokenBalance{
 				{
-					Address: "KT1BYYLfMjufYwqFtTSYJND7bzKNyK7mjrjM",
-					TokenID: 1,
-					Value:   newBigIntFromString("1"),
+					Address:        "KT1BYYLfMjufYwqFtTSYJND7bzKNyK7mjrjM",
+					TokenID:        1,
+					Value:          newBigIntFromString("1"),
+					IsExclusiveNFT: true,
 				},
 			},
 		},
@@ -132,9 +133,10 @@ func Test_nftOptionParser_Parse(t *testing.T) {
 			args: `[{"prim":"Elt","args": [{"int": "1"},{"prim": "Some", "args":[{"string": "KT1BYYLfMjufYwqFtTSYJND7bzKNyK7mjrjM"}]}]}]`,
 			want: []TokenBalance{
 				{
-					Address: "KT1BYYLfMjufYwqFtTSYJND7bzKNyK7mjrjM",
-					TokenID: 1,
-					Value:   newBigIntFromString("1"),
+					Address:        "KT1BYYLfMjufYwqFtTSYJND7bzKNyK7mjrjM",
+					TokenID:        1,
+					Value:          newBigIntFromString("1"),
+					IsExclusiveNFT: true,
 				},
 			},
 		}, {
@@ -142,9 +144,10 @@ func Test_nftOptionParser_Parse(t *testing.T) {
 			args: `[{"prim":"Elt","args": [{"int": "1"},{"prim": "None"}]}]`,
 			want: []TokenBalance{
 				{
-					Address: "",
-					TokenID: 1,
-					Value:   newBigIntFromString("0"),
+					Address:        "",
+					TokenID:        1,
+					Value:          newBigIntFromString("0"),
+					IsExclusiveNFT: true,
 				},
 			},
 		},
