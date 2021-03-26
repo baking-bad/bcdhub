@@ -299,6 +299,7 @@ func (ctx *Context) GetContractTokens(c *gin.Context) {
 		return
 	}
 	if pageReq.TokenID == nil {
+		pageReq.TokenID := new(int64)
 		*pageReq.TokenID = -1
 	}
 	if pageReq.Size == 0 {
