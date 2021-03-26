@@ -78,7 +78,7 @@ func (p *Parser) computeMetrics(operation *operation.Operation, c *contract.Cont
 	c.FailStrings = script.FailStrings.Values()
 	c.Annotations = script.Annotations.Values()
 	c.Tags = script.Tags.Values()
-	// c.Hardcoded = script.HardcodedAddresses.Values()
+	c.Hardcoded = script.HardcodedAddresses.Values()
 	c.FingerprintCode = script.Fingerprint.Code
 	c.FingerprintParameter = script.Fingerprint.Parameter
 	c.FingerprintStorage = script.Fingerprint.Storage

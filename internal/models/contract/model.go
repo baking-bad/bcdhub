@@ -26,6 +26,7 @@ type Contract struct {
 	Entrypoints          pq.StringArray `json:"entrypoints,omitempty" gorm:"type:text[]"`
 	FailStrings          pq.StringArray `json:"fail_strings,omitempty" gorm:"type:text[]"`
 	Annotations          pq.StringArray `json:"annotations,omitempty" gorm:"type:text[]"`
+	Hardcoded            pq.StringArray `json:"hardcoded,omitempty" gorm:"type:text[]"`
 
 	Address  string `json:"address"`
 	Manager  string `json:"manager,omitempty"`

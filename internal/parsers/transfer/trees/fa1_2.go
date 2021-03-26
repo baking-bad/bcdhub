@@ -1,6 +1,8 @@
 package trees
 
 import (
+	"math/big"
+
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
@@ -30,7 +32,7 @@ func MakeFa1_2Transfers(tree ast.Node, operation operation.Operation) ([]*transf
 		return nil, err
 	}
 	i := toPair.Args[1].GetValue().(*types.BigInt)
-	t.AmountBigInt.Set(i.Int)
+	t.Amount, _ = new(big.Float).SetInt(i.Int).Float64()
 	return []*transfer.Transfer{t}, nil
 }
 

@@ -1,7 +1,6 @@
 package migrations
 
 import (
-	"math/big"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
@@ -76,16 +75,12 @@ func (m *TokenBalanceRecalc) Recalc(ctx *config.Context, network, address string
 
 	updates := make([]models.Model, 0)
 	for _, balance := range balances {
-		b := big.NewInt(0)
-		if _, ok := b.SetString(balance.Balance, 10); !ok {
-			continue
-		}
 		updates = append(updates, &tokenbalance.TokenBalance{
 			Network:  network,
 			Address:  balance.Address,
 			Contract: address,
 			TokenID:  balance.TokenID,
-			Value:    b,
+			Balance:  balance.Balance,
 		})
 	}
 

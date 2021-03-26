@@ -77,14 +77,6 @@ func NewParser(data []byte) (*Parser, error) {
 		tags.Add(consts.MultisigTag)
 	}
 
-	storageTyp, err := script.StorageType()
-	if err != nil {
-		return nil, err
-	}
-	if isNftLedger(storageTyp) {
-		tags.Add(consts.NFTLedgerTag)
-	}
-
 	return &Parser{
 		Code:               script,
 		Storage:            storage,
@@ -107,7 +99,11 @@ func (p *Parser) Parse() error {
 	if err := p.parseParameter(); err != nil {
 		return err
 	}
-	return p.parseStorage()
+	if err := p.parseStorage(); err != nil {
+		return err
+	}
+
+	return p.setStorageTypeTags()
 }
 
 // IsUpgradable -
@@ -128,6 +124,21 @@ func (p *Parser) IsUpgradable() bool {
 		}
 	}
 	return false
+}
+
+func (p *Parser) setStorageTypeTags() error {
+	storageTyp, err := p.Code.StorageType()
+	if err != nil {
+		return err
+	}
+
+	if p.Annotations.Has("%ledger") {
+		if isNftLedger(storageTyp) {
+			p.Tags.Add(consts.LedgerTag)
+		}
+	}
+
+	return nil
 }
 
 func (p *Parser) parse(tree ast.UntypedAST, handler func(node *base.Node) error) error {

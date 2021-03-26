@@ -1,6 +1,8 @@
 package tokenbalance
 
 import (
+	"math/big"
+
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
@@ -51,8 +53,9 @@ func (p MultiAsset) Parse(data []byte) ([]TokenBalance, error) {
 			return false, nil
 		}
 
+		amount, _ := new(big.Float).SetInt(balance.Int).Float64()
 		balances = append(balances, TokenBalance{
-			Value:   balance.Int,
+			Value:   amount,
 			Address: address,
 			TokenID: tokenID.Uint64(),
 		})

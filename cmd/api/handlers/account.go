@@ -166,7 +166,7 @@ func (ctx *Context) getAccountBalances(network, address string, req tokenBalance
 	}
 
 	contextes := make([]tokenmetadata.GetContext, 0)
-	balances := make(map[tokenmetadata.GetContext]string)
+	balances := make(map[tokenmetadata.GetContext]float64)
 
 	for _, balance := range tokenBalances {
 		c := tokenmetadata.GetContext{

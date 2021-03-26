@@ -398,7 +398,7 @@ func (ctx *Context) GetTokenHolders(c *gin.Context) {
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	result := make(map[string]string)
+	result := make(map[string]float64)
 	for i := range balances {
 		result[balances[i].Address] = balances[i].Balance
 	}

@@ -25,12 +25,7 @@ func (x *rollbackCommand) Execute(_ []string) error {
 		return nil
 	}
 
-	rpc, err := ctx.GetRPC(state.Network)
-	if err != nil {
-		panic(err)
-	}
-
-	manager := rollback.NewManager(ctx.Searcher, ctx.Storage, ctx.Contracts, ctx.Operations, ctx.Transfers, ctx.TokenBalances, ctx.Protocols, rpc, ctx.SharePath)
+	manager := rollback.NewManager(ctx.Searcher, ctx.Storage, ctx.Transfers, ctx.Protocols)
 	if err = manager.Rollback(state, x.Level); err != nil {
 		return err
 	}

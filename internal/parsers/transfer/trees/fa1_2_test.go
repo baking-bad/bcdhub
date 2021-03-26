@@ -2,7 +2,6 @@ package trees
 
 import (
 	"encoding/json"
-	"math/big"
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
@@ -30,10 +29,10 @@ func TestMakeFa1_2Transfers(t *testing.T) {
 			},
 			want: []*transfer.Transfer{
 				{
-					Network:      "edo2net",
-					From:         "tz1grSQDByRpnVs7sPtaprNZRp531ZKz6Jmm",
-					To:           "tz1TGu6TN5GSez2ndXXeDX6LgUDvLzPLqgYV",
-					AmountBigInt: big.NewInt(100),
+					Network: "edo2net",
+					From:    "tz1grSQDByRpnVs7sPtaprNZRp531ZKz6Jmm",
+					To:      "tz1TGu6TN5GSez2ndXXeDX6LgUDvLzPLqgYV",
+					Amount:  100,
 				},
 			},
 		}, {
@@ -45,10 +44,10 @@ func TestMakeFa1_2Transfers(t *testing.T) {
 			},
 			want: []*transfer.Transfer{
 				{
-					Network:      "mainnet",
-					From:         "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
-					To:           "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
-					AmountBigInt: big.NewInt(7.87488e+06),
+					Network: "mainnet",
+					From:    "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
+					To:      "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
+					Amount:  7.87488e+06,
 				},
 			},
 		},

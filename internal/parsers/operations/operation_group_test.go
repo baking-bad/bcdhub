@@ -3,7 +3,6 @@ package operations
 import (
 	"fmt"
 	"io/ioutil"
-	"math/big"
 	"testing"
 	"time"
 
@@ -20,6 +19,7 @@ import (
 	mock_tzip "github.com/baking-bad/bcdhub/internal/models/mock/tzip"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -77,12 +77,6 @@ func TestGroup_Parse(t *testing.T) {
 		EXPECT().
 		GetWithEventsCounts().
 		Return(int64(0), nil).
-		AnyTimes()
-
-	tbRepo.
-		EXPECT().
-		Update(gomock.Any()).
-		Return(nil).
 		AnyTimes()
 
 	contractRepo.
@@ -226,6 +220,15 @@ func TestGroup_Parse(t *testing.T) {
 					Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 					Timestamp: timestamp,
 				},
+				&bigmapdiff.BigMapState{
+					Ptr:             63,
+					KeyHash:         "exprum2qtFLPHdeLWVasKCDw7YD5MrdiD4ra52PY2AUazaNGKyv6tx",
+					Key:             []byte(`{"bytes":"0000a2560a416161def96031630886abe950c4baf036"}`),
+					Value:           []byte(`{"int":"6141000"}`),
+					Network:         "mainnet",
+					Contract:        "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
+					LastUpdateLevel: 1068669,
+				},
 				&bigmapdiff.BigMapDiff{
 					Ptr:       63,
 					KeyHash:   "exprv2snyFbF6EDZd2YAHnnmNBoFt7bbaXhGSWGXHv4a4wnxS359ob",
@@ -237,19 +240,42 @@ func TestGroup_Parse(t *testing.T) {
 					Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 					Timestamp: timestamp,
 				},
+				&bigmapdiff.BigMapState{
+					Ptr:             63,
+					KeyHash:         "exprv2snyFbF6EDZd2YAHnnmNBoFt7bbaXhGSWGXHv4a4wnxS359ob",
+					Key:             []byte(`{"bytes":"0000fdf98b65d53a9661e07f41093dcb6f3d931736ba"}`),
+					Value:           []byte(`{"int":"8010000"}`),
+					Network:         "mainnet",
+					Contract:        "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
+					LastUpdateLevel: 1068669,
+				},
 				&transfer.Transfer{
-					Network:      consts.Mainnet,
-					Contract:     "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
-					Initiator:    "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
-					Hash:         "opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9",
-					Status:       consts.Applied,
-					Timestamp:    timestamp,
-					Level:        1068669,
-					From:         "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
-					To:           "tz1invbJv3AEm55ct7QF2dVbWZuaDekssYkV",
-					TokenID:      0,
-					AmountBigInt: big.NewInt(8010000),
-					Counter:      5791164,
+					Network:   consts.Mainnet,
+					Contract:  "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
+					Initiator: "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
+					Hash:      "opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9",
+					Status:    consts.Applied,
+					Timestamp: timestamp,
+					Level:     1068669,
+					From:      "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
+					To:        "tz1invbJv3AEm55ct7QF2dVbWZuaDekssYkV",
+					TokenID:   0,
+					Amount:    8010000,
+					Counter:   5791164,
+				},
+				&tokenbalance.TokenBalance{
+					Network:  consts.Mainnet,
+					Contract: "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
+					Address:  "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
+					TokenID:  0,
+					Balance:  -8010000,
+				},
+				&tokenbalance.TokenBalance{
+					Network:  consts.Mainnet,
+					Contract: "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
+					Address:  "tz1invbJv3AEm55ct7QF2dVbWZuaDekssYkV",
+					TokenID:  0,
+					Balance:  8010000,
 				},
 				&operation.Operation{
 					Kind:            "transaction",
@@ -348,6 +374,15 @@ func TestGroup_Parse(t *testing.T) {
 					Timestamp: timestamp,
 					Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 				},
+				&bigmapdiff.BigMapState{
+					Ptr:             32,
+					Key:             []byte(`{"bytes":"80729e85e284dff3a30bb24a58b37ccdf474bbbe7794aad439ba034f48d66af3"}`),
+					KeyHash:         "exprvJp4s8RJpoXMwD9aQujxWQUiojrkeubesi3X9LDcU3taDfahYR",
+					Contract:        "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
+					Network:         consts.Mainnet,
+					Removed:         true,
+					LastUpdateLevel: 1151495,
+				},
 				&operation.Operation{
 					ContentIndex:    0,
 					Network:         consts.Mainnet,
@@ -371,7 +406,7 @@ func TestGroup_Parse(t *testing.T) {
 				},
 				&bigmapdiff.BigMapDiff{
 					Ptr:       31,
-					Key:       []byte(`{"bytes": "05010000000b746f74616c537570706c79"}`),
+					Key:       []byte(`{"bytes":"05010000000b746f74616c537570706c79"}`),
 					KeyHash:   "exprunzteC5uyXRHbKnqJd3hUMGTWE9Gv5EtovDZHnuqu6SaGViV3N",
 					Value:     []byte(`{"bytes":"050098e1e8d78a02"}`),
 					Level:     1151495,
@@ -380,19 +415,38 @@ func TestGroup_Parse(t *testing.T) {
 					Timestamp: timestamp,
 					Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 				},
+				&bigmapdiff.BigMapState{
+					Ptr:             31,
+					Key:             []byte(`{"bytes":"05010000000b746f74616c537570706c79"}`),
+					KeyHash:         "exprunzteC5uyXRHbKnqJd3hUMGTWE9Gv5EtovDZHnuqu6SaGViV3N",
+					Value:           []byte(`{"bytes":"050098e1e8d78a02"}`),
+					Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+					Network:         consts.Mainnet,
+					LastUpdateLevel: 1151495,
+				},
 				&bigmapdiff.BigMapDiff{
-					Ptr:     31,
-					Key:     []byte(`{"bytes": "05070701000000066c65646765720a000000160000c2473c617946ce7b9f6843f193401203851cb2ec"}`),
-					KeyHash: "exprv9xaiXBb9KBi67dQoP1SchDyZeKEz3XHiFwBCtHadiKS8wkX7w",
-					Value:   []byte(`{"bytes":"0507070080a5c1070200000000"}`),
-					Level:   1151495, Contract: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+					Ptr:       31,
+					Key:       []byte(`{"bytes":"05070701000000066c65646765720a000000160000c2473c617946ce7b9f6843f193401203851cb2ec"}`),
+					KeyHash:   "exprv9xaiXBb9KBi67dQoP1SchDyZeKEz3XHiFwBCtHadiKS8wkX7w",
+					Value:     []byte(`{"bytes":"0507070080a5c1070200000000"}`),
+					Level:     1151495,
+					Contract:  "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
 					Network:   consts.Mainnet,
 					Timestamp: timestamp,
 					Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 				},
+				&bigmapdiff.BigMapState{
+					Ptr:             31,
+					Key:             []byte(`{"bytes":"05070701000000066c65646765720a000000160000c2473c617946ce7b9f6843f193401203851cb2ec"}`),
+					KeyHash:         "exprv9xaiXBb9KBi67dQoP1SchDyZeKEz3XHiFwBCtHadiKS8wkX7w",
+					Value:           []byte(`{"bytes":"0507070080a5c1070200000000"}`),
+					Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+					Network:         consts.Mainnet,
+					LastUpdateLevel: 1151495,
+				},
 				&bigmapdiff.BigMapDiff{
 					Ptr:       31,
-					Key:       []byte(`{"bytes": "05070701000000066c65646765720a00000016011871cfab6dafee00330602b4342b6500c874c93b00"}`),
+					Key:       []byte(`{"bytes":"05070701000000066c65646765720a00000016011871cfab6dafee00330602b4342b6500c874c93b00"}`),
 					KeyHash:   "expruiWsykU9wjNb4aV7eJULLBpGLhy1EuzgD8zB8k7eUTaCk16fyV",
 					Value:     []byte(`{"bytes":"05070700ba81bb090200000000"}`),
 					Level:     1151495,
@@ -401,20 +455,43 @@ func TestGroup_Parse(t *testing.T) {
 					Timestamp: timestamp,
 					Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 				},
+				&bigmapdiff.BigMapState{
+					Ptr:             31,
+					Key:             []byte(`{"bytes":"05070701000000066c65646765720a00000016011871cfab6dafee00330602b4342b6500c874c93b00"}`),
+					KeyHash:         "expruiWsykU9wjNb4aV7eJULLBpGLhy1EuzgD8zB8k7eUTaCk16fyV",
+					Value:           []byte(`{"bytes":"05070700ba81bb090200000000"}`),
+					Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+					Network:         consts.Mainnet,
+					LastUpdateLevel: 1151495,
+				},
 				&transfer.Transfer{
-					Network:      consts.Mainnet,
-					Contract:     "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-					Initiator:    "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
-					Hash:         "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
-					Status:       consts.Applied,
-					Timestamp:    timestamp,
-					Level:        1151495,
-					From:         "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
-					To:           "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
-					TokenID:      0,
-					AmountBigInt: big.NewInt(7.87488e+06),
-					Counter:      6909186,
-					Nonce:        setInt64(0),
+					Network:   consts.Mainnet,
+					Contract:  "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+					Initiator: "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
+					Hash:      "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
+					Status:    consts.Applied,
+					Timestamp: timestamp,
+					Level:     1151495,
+					From:      "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
+					To:        "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
+					TokenID:   0,
+					Amount:    7.87488e+06,
+					Counter:   6909186,
+					Nonce:     setInt64(0),
+				},
+				&tokenbalance.TokenBalance{
+					Network:  consts.Mainnet,
+					Contract: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+					Address:  "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
+					TokenID:  0,
+					Balance:  -7.87488e+06,
+				},
+				&tokenbalance.TokenBalance{
+					Network:  consts.Mainnet,
+					Contract: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+					Address:  "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
+					TokenID:  0,
+					Balance:  7.87488e+06,
 				},
 			},
 		}, {

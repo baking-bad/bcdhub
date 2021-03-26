@@ -70,8 +70,9 @@ func (p NftAsset) Parse(data []byte) ([]TokenBalance, error) {
 			return false, nil
 		}
 
+		amount, _ := new(big.Float).SetInt(balance).Float64()
 		balances = append(balances, TokenBalance{
-			Value:          balance,
+			Value:          amount,
 			Address:        address,
 			TokenID:        tokenID.Uint64(),
 			IsExclusiveNFT: true,

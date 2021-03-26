@@ -41,6 +41,13 @@ func (b *BigMapDiff) GetIndex() string {
 	return "big_map_diffs"
 }
 
+// Save -
+func (b *BigMapDiff) Save(tx *gorm.DB) error {
+	return tx.Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Save(b).Error
+}
+
 // GetQueues -
 func (b *BigMapDiff) GetQueues() []string {
 	return []string{"bigmapdiffs"}
@@ -82,9 +89,23 @@ func (b *BigMapDiff) ValueBytes() []byte {
 	return b.Value
 }
 
-// Save -
-func (b *BigMapDiff) Save(tx *gorm.DB) error {
-	return tx.Clauses(clause.OnConflict{
-		UpdateAll: true,
-	}).Save(b).Error
+// ToState -
+func (b *BigMapDiff) ToState() *BigMapState {
+	state := &BigMapState{
+		Network:         b.Network,
+		Contract:        b.Contract,
+		Ptr:             b.Ptr,
+		LastUpdateLevel: b.Level,
+		KeyHash:         b.KeyHash,
+		Key:             b.KeyBytes(),
+	}
+
+	val := b.ValueBytes()
+	if len(val) == 0 {
+		state.Removed = true
+	} else {
+		state.Value = val
+	}
+
+	return state
 }

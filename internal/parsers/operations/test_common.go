@@ -13,6 +13,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/stretchr/testify/assert"
 )
@@ -90,6 +91,22 @@ func compareParserResponse(t *testing.T, got, want []models.Model) bool {
 			if !compareContract(one, two) {
 				return false
 			}
+		case *bigmapdiff.BigMapState:
+			two, ok := want[i].(*bigmapdiff.BigMapState)
+			if !ok {
+				return false
+			}
+			if !reflect.DeepEqual(one, two) {
+				return false
+			}
+		case *tokenbalance.TokenBalance:
+			two, ok := want[i].(*tokenbalance.TokenBalance)
+			if !ok {
+				return false
+			}
+			if !reflect.DeepEqual(one, two) {
+				return false
+			}
 		default:
 			logger.Info("Unknown type: %T", one)
 			return false
@@ -140,8 +157,8 @@ func compareTransfers(one, two *transfer.Transfer) bool {
 		logger.Info("TokenID: %d != %d", one.TokenID, two.TokenID)
 		return false
 	}
-	if one.AmountBigInt.Cmp(two.AmountBigInt) != 0 {
-		logger.Info("Amount: %v != %v", one.AmountBigInt, two.AmountBigInt)
+	if one.Amount != two.Amount {
+		logger.Info("Amount: %v != %v", one.Amount, two.Amount)
 		return false
 	}
 	if one.Counter != two.Counter {

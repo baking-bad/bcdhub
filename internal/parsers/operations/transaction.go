@@ -95,7 +95,7 @@ func (p Transaction) Parse(data noderpc.Operation) ([]models.Model, error) {
 			txModels = append(txModels, transfers[i])
 		}
 
-		if !tx.HasTag(consts.NFTLedgerTag) {
+		if !tx.HasTag(consts.LedgerTag) {
 			balanceUpdates := transferParsers.UpdateTokenBalances(transfers)
 			txModels = append(txModels, balanceUpdates...)
 		}

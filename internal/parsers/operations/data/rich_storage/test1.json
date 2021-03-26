@@ -454,34 +454,22 @@
                 "action": "update",
                 "big_map": "31",
                 "key_hash": "exprunzteC5uyXRHbKnqJd3hUMGTWE9Gv5EtovDZHnuqu6SaGViV3N",
-                "key": {
-                    "bytes": "05010000000b746f74616c537570706c79"
-                },
-                "value": {
-                    "bytes": "050098e1e8d78a02"
-                }
+                "key":{"bytes":"05010000000b746f74616c537570706c79"},
+                "value":{"bytes":"050098e1e8d78a02"}
             },
             {
                 "action": "update",
                 "big_map": "31",
                 "key_hash": "exprtzVE8dHF7nePZxF6PSRf3yhfecTEKavyCZpndJGN2hz6PzQkFi",
-                "key": {
-                    "bytes": "05070701000000066c65646765720a00000016000093e93e23e5d157a80852297eccc7a42d7080ddd3"
-                },
-                "value": {
-                    "bytes": "05070700bdf4160200000000"
-                }
+                "key":{"bytes":"05070701000000066c65646765720a00000016000093e93e23e5d157a80852297eccc7a42d7080ddd3"},
+                "value":{"bytes":"05070700bdf4160200000000"}
             },
             {
                 "action": "update",
                 "big_map": "31",
                 "key_hash": "expruyvqmgBYpF54i1c4p6r3oVV7FmW7ZH8EyjSjahKoQEfWPmcjGg",
-                "key": {
-                    "bytes": "05070701000000066c65646765720a000000160139c8ade2617663981fa2b87592c9ad92714d14c200"
-                },
-                "value": {
-                    "bytes": "0507070084a99c750200000000"
-                }
+                "key":{"bytes":"05070701000000066c65646765720a000000160139c8ade2617663981fa2b87592c9ad92714d14c200"},
+                "value":{"bytes":"0507070084a99c750200000000"}
             }
         ],
         "consumed_gas": "235275",

@@ -18,7 +18,7 @@ func UpdateTokenBalances(transfers []*transfer.Transfer) []models.Model {
 		idFrom := transfers[i].GetFromTokenBalanceID()
 		if idFrom != "" {
 			if update, ok := exists[idFrom]; ok {
-				update.Value.Sub(update.Value, transfers[i].AmountBigInt)
+				update.Balance -= transfers[i].Amount
 			} else {
 				upd := transfers[i].MakeTokenBalanceUpdate(true, false)
 				updates = append(updates, upd)
@@ -28,7 +28,7 @@ func UpdateTokenBalances(transfers []*transfer.Transfer) []models.Model {
 		idTo := transfers[i].GetToTokenBalanceID()
 		if idTo != "" {
 			if update, ok := exists[idTo]; ok {
-				update.Value.Add(update.Value, transfers[i].AmountBigInt)
+				update.Balance += transfers[i].Amount
 			} else {
 				upd := transfers[i].MakeTokenBalanceUpdate(false, false)
 				updates = append(updates, upd)

@@ -16,6 +16,24 @@ func NewStorage(pg *core.Postgres) *Storage {
 	return &Storage{pg}
 }
 
+func (storage *Storage) Get(network, contract, address string, tokenID uint64) (t tokenbalance.TokenBalance, err error) {
+	err = storage.DB.Table(models.DocTokenBalances).
+		Scopes(core.Token(network, contract, tokenID)).
+		Where("address = ?", address).
+		First(&t).Error
+
+	if storage.IsRecordNotFound(err) {
+		t.Network = network
+		t.Contract = contract
+		t.Address = address
+		t.TokenID = tokenID
+		t.Balance = 0
+		err = nil
+	}
+
+	return
+}
+
 // GetHolders -
 func (storage *Storage) GetHolders(network, contract string, tokenID uint64) ([]tokenbalance.TokenBalance, error) {
 	var balances []tokenbalance.TokenBalance

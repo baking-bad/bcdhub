@@ -120,6 +120,7 @@ func (c *Contract) Prepare(model models.Model) {
 	c.DelegateAlias = cont.DelegateAlias
 	c.Entrypoints = cont.Entrypoints
 	c.FailStrings = cont.FailStrings
+	c.Hardcoded = cont.Hardcoded
 	c.Hash = cont.Hash
 	c.Language = cont.Language
 	c.Level = cont.Level

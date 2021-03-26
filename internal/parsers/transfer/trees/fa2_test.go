@@ -2,7 +2,6 @@ package trees
 
 import (
 	"encoding/json"
-	"math/big"
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
@@ -30,10 +29,10 @@ func TestMakeFa2Transfers(t *testing.T) {
 			},
 			want: []*transfer.Transfer{
 				{
-					Network:      "mainnet",
-					From:         "tz1gHJt7J1aEtW2wpCR5RJd3CpnbVxUTaEXS",
-					To:           "tz1gsJENNUwg7fQiRwQi5zJYaj7YtwwsE3y2",
-					AmountBigInt: big.NewInt(1000000000),
+					Network: "mainnet",
+					From:    "tz1gHJt7J1aEtW2wpCR5RJd3CpnbVxUTaEXS",
+					To:      "tz1gsJENNUwg7fQiRwQi5zJYaj7YtwwsE3y2",
+					Amount:  1000000000,
 				},
 			},
 		},

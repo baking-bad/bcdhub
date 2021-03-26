@@ -379,7 +379,7 @@ func (bi *BoostIndexer) handleBlock(head noderpc.Header) error {
 				parsed = append(parsed, migrations...)
 			}
 
-			res, err := bi.getDataFromBlock(bi.Network, head, tx)
+			res, err := bi.getDataFromBlock(bi.Network, head)
 			if err != nil {
 				return err
 			}
@@ -414,7 +414,7 @@ func (bi *BoostIndexer) Rollback() error {
 		return err
 	}
 
-	manager := rollback.NewManager(bi.Searcher, bi.Storage, bi.Contracts, bi.Operations, bi.Transfers, bi.TokenBalances, bi.Protocols, bi.rpc, bi.cfg.SharePath)
+	manager := rollback.NewManager(bi.Searcher, bi.Storage, bi.Transfers, bi.Protocols)
 	if err := manager.Rollback(bi.state, lastLevel); err != nil {
 		return err
 	}
@@ -561,7 +561,7 @@ func (bi *BoostIndexer) sendToQueue(items []models.Model) error {
 	return nil
 }
 
-func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header, tx *gorm.DB) ([]models.Model, error) {
+func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([]models.Model, error) {
 	if head.Level <= 1 {
 		return nil, nil
 	}

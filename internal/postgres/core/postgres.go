@@ -50,7 +50,7 @@ func (p *Postgres) Close() error {
 
 // IsRecordNotFound -
 func (p *Postgres) IsRecordNotFound(err error) bool {
-	return errors.Is(err, gorm.ErrRecordNotFound)
+	return err != nil && errors.Is(err, gorm.ErrRecordNotFound)
 }
 
 // OrStringArray

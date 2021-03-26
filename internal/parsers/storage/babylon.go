@@ -214,7 +214,7 @@ func (b *Babylon) handleBigMapDiffUpdate(item noderpc.BigMapDiff, address string
 		return nil, err
 	}
 	if ptr > -1 {
-		return []models.Model{&bmd}, nil
+		return []models.Model{&bmd, bmd.ToState()}, nil
 	}
 	return nil, nil
 }
@@ -263,7 +263,7 @@ func (b *Babylon) handleBigMapDiffCopy(item noderpc.BigMapDiff, address string, 
 			}
 
 			if destinationPtr > -1 {
-				newUpdates = append(newUpdates, &bmd[i])
+				newUpdates = append(newUpdates, &bmd[i], bmd[i].ToState())
 			}
 		}
 	}
@@ -279,7 +279,7 @@ func (b *Babylon) handleBigMapDiffRemove(item noderpc.BigMapDiff, address string
 	if err != nil {
 		return nil, err
 	}
-	newUpdates := make([]models.Model, len(bmd))
+	newUpdates := make([]models.Model, 0)
 	for i := range bmd {
 		bmd[i].OperationHash = operation.Hash
 		bmd[i].OperationCounter = operation.Counter
@@ -287,7 +287,7 @@ func (b *Babylon) handleBigMapDiffRemove(item noderpc.BigMapDiff, address string
 		bmd[i].Level = operation.Level
 		bmd[i].Timestamp = operation.Timestamp
 		bmd[i].Value = nil
-		newUpdates[i] = &bmd[i]
+		newUpdates = append(newUpdates, &bmd[i], bmd[i].ToState())
 	}
 	newUpdates = append(newUpdates, b.createBigMapDiffAction("remove", address, &ptr, nil, operation))
 	return newUpdates, nil

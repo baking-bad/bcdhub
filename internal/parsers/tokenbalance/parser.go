@@ -1,7 +1,6 @@
 package tokenbalance
 
 import (
-	"math/big"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
@@ -49,7 +48,7 @@ type Parser interface {
 type TokenBalance struct {
 	Address string
 	TokenID uint64
-	Value   *big.Int
+	Value   float64
 
 	IsExclusiveNFT bool
 }

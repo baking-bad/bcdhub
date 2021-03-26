@@ -48,6 +48,15 @@ func TestAlpha_ParseOrigination(t *testing.T) {
 						Key:       []byte(`{"string":"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6"}`),
 						Value:     []byte(`{"prim":"Pair","args":[[{"prim":"Elt","args":[{"string":"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6"},{"int":"1000000"}]}],{"int":"1000000"}]}`),
 					},
+					&bigmapdiff.BigMapState{
+						Ptr:             -1,
+						Contract:        "KT1Fv5xCoUqEeb2TycB7ijXdAXUFH4uPnRNN",
+						KeyHash:         "exprudn2kdsp9N7P4ZP6wu22AACpnLE5N1YdDW5zSCqb55fTwSnsdz",
+						Network:         "mainnet",
+						Key:             []byte(`{"string":"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6"}`),
+						Value:           []byte(`{"prim":"Pair","args":[[{"prim":"Elt","args":[{"string":"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6"},{"int":"1000000"}]}],{"int":"1000000"}]}`),
+						LastUpdateLevel: 1311215,
+					},
 				},
 			},
 		},
@@ -71,9 +80,12 @@ func TestAlpha_ParseOrigination(t *testing.T) {
 			assert.Len(t, got.Models, len(tt.want.Models))
 
 			for i := range tt.want.Models {
-				bmd := got.Models[i].(*bigmapdiff.BigMapDiff)
-				newBmd := tt.want.Models[i].(*bigmapdiff.BigMapDiff)
-				newBmd.ID = bmd.ID
+				switch val := tt.want.Models[i].(type) {
+				case *bigmapdiff.BigMapDiff:
+					val.ID = got.Models[i].GetID()
+				case *bigmapdiff.BigMapState:
+					val.ID = got.Models[i].GetID()
+				}
 			}
 			assert.Equal(t, tt.want.Models, got.Models)
 		})

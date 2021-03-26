@@ -1,7 +1,6 @@
 package tokenbalance
 
 import (
-	"math/big"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -19,7 +18,7 @@ func Test_singleAssetBalanceParser_Parse(t *testing.T) {
 			want: []TokenBalance{
 				{
 					Address: "test",
-					Value:   newBigIntFromString("100000000000000"),
+					Value:   100000000000000,
 				},
 			},
 		}, {
@@ -28,7 +27,7 @@ func Test_singleAssetBalanceParser_Parse(t *testing.T) {
 			want: []TokenBalance{
 				{
 					Address: "tz1djRgXXWWJiY1rpMECCxr5d9ZBqWewuiU1",
-					Value:   newBigIntFromString("1000000000000000"),
+					Value:   1000000000000000,
 				},
 			},
 		},
@@ -45,12 +44,6 @@ func Test_singleAssetBalanceParser_Parse(t *testing.T) {
 	}
 }
 
-func newBigIntFromString(val string) *big.Int {
-	i := big.NewInt(0)
-	i, _ = i.SetString(val, 10)
-	return i
-}
-
 func Test_multiAssetBalanceParser_Parse(t *testing.T) {
 	tests := []struct {
 		name string
@@ -64,7 +57,7 @@ func Test_multiAssetBalanceParser_Parse(t *testing.T) {
 				{
 					Address: "test",
 					TokenID: 1,
-					Value:   newBigIntFromString("1000000000000000"),
+					Value:   1000000000000000,
 				},
 			},
 		}, {
@@ -74,7 +67,7 @@ func Test_multiAssetBalanceParser_Parse(t *testing.T) {
 				{
 					Address: "tz1djRgXXWWJiY1rpMECCxr5d9ZBqWewuiU1",
 					TokenID: 1,
-					Value:   newBigIntFromString("1000000000000000"),
+					Value:   1000000000000000,
 				},
 			},
 		},
@@ -104,7 +97,7 @@ func Test_nftParser_Parse(t *testing.T) {
 				{
 					Address:        "KT1BYYLfMjufYwqFtTSYJND7bzKNyK7mjrjM",
 					TokenID:        1,
-					Value:          newBigIntFromString("1"),
+					Value:          1,
 					IsExclusiveNFT: true,
 				},
 			},
@@ -135,7 +128,7 @@ func Test_nftOptionParser_Parse(t *testing.T) {
 				{
 					Address:        "KT1BYYLfMjufYwqFtTSYJND7bzKNyK7mjrjM",
 					TokenID:        1,
-					Value:          newBigIntFromString("1"),
+					Value:          1,
 					IsExclusiveNFT: true,
 				},
 			},
@@ -146,7 +139,7 @@ func Test_nftOptionParser_Parse(t *testing.T) {
 				{
 					Address:        "",
 					TokenID:        1,
-					Value:          newBigIntFromString("0"),
+					Value:          0,
 					IsExclusiveNFT: true,
 				},
 			},

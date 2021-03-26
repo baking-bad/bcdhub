@@ -4,12 +4,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/block"
-	"github.com/baking-bad/bcdhub/internal/models/contract"
-	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
-	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/pkg/errors"
 )
@@ -18,19 +15,14 @@ import (
 type Manager struct {
 	searcher      search.Searcher
 	storage       models.GeneralRepository
-	contractsRepo contract.Repository
-	operationRepo operation.Repository
 	transfersRepo transfer.Repository
-	tbRepo        tokenbalance.Repository
 	protocolsRepo protocol.Repository
-	rpc           noderpc.INode
-	sharePath     string
 }
 
 // NewManager -
-func NewManager(searcher search.Searcher, storage models.GeneralRepository, contractsRepo contract.Repository, operationRepo operation.Repository, transfersRepo transfer.Repository, tbRepo tokenbalance.Repository, protocolsRepo protocol.Repository, rpc noderpc.INode, sharePath string) Manager {
+func NewManager(searcher search.Searcher, storage models.GeneralRepository, transfersRepo transfer.Repository, protocolsRepo protocol.Repository) Manager {
 	return Manager{
-		searcher, storage, contractsRepo, operationRepo, transfersRepo, tbRepo, protocolsRepo, rpc, sharePath,
+		searcher, storage, transfersRepo, protocolsRepo,
 	}
 }
 
@@ -39,11 +31,6 @@ func (rm Manager) Rollback(fromState block.Block, toLevel int64) error {
 	if toLevel >= fromState.Level {
 		return errors.Errorf("To level must be less than from level: %d >= %d", toLevel, fromState.Level)
 	}
-	affectedContractIDs, err := rm.getAffectedContracts(fromState.Network, fromState.Level, toLevel)
-	if err != nil {
-		return err
-	}
-	logger.Info("Rollback will affect %d contracts", len(affectedContractIDs))
 
 	if err := rm.rollbackTokenBalances(fromState.Network, toLevel); err != nil {
 		return err
@@ -73,10 +60,9 @@ func (rm Manager) rollbackTokenBalances(network string, toLevel int64) error {
 	exists := make(map[string]*tokenbalance.TokenBalance)
 	updates := make([]models.Model, 0)
 	for i := range transfers {
-
 		if id := transfers[i].GetFromTokenBalanceID(); id != "" {
 			if update, ok := exists[id]; ok {
-				update.Value.Add(update.Value, transfers[i].AmountBigInt)
+				update.Balance += transfers[i].Amount
 			} else {
 				upd := transfers[i].MakeTokenBalanceUpdate(true, true)
 				updates = append(updates, upd)
@@ -86,7 +72,7 @@ func (rm Manager) rollbackTokenBalances(network string, toLevel int64) error {
 
 		if id := transfers[i].GetToTokenBalanceID(); id != "" {
 			if update, ok := exists[id]; ok {
-				update.Value.Sub(update.Value, transfers[i].AmountBigInt)
+				update.Balance -= transfers[i].Amount
 			} else {
 				upd := transfers[i].MakeTokenBalanceUpdate(false, true)
 				updates = append(updates, upd)
@@ -114,13 +100,4 @@ func (rm Manager) rollbackContracts(fromState block.Block, toLevel int64) error 
 		toLevel = -1
 	}
 	return rm.storage.DeleteByLevelAndNetwork([]string{models.DocContracts}, fromState.Network, toLevel)
-}
-
-func (rm Manager) getAffectedContracts(network string, fromLevel, toLevel int64) ([]string, error) {
-	addresses, err := rm.operationRepo.GetParticipatingContracts(network, fromLevel, toLevel)
-	if err != nil {
-		return nil, err
-	}
-
-	return rm.contractsRepo.GetIDsByAddresses(addresses, network)
 }

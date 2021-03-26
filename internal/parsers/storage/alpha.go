@@ -78,7 +78,8 @@ func (a *Alpha) ParseOrigination(content noderpc.Operation, operation operation.
 						return false, err
 					}
 				}
-				bmd = append(bmd, &bigmapdiff.BigMapDiff{
+
+				b := &bigmapdiff.BigMapDiff{
 					Key:              keyBytes,
 					KeyHash:          keyHash,
 					Value:            valBytes,
@@ -91,7 +92,9 @@ func (a *Alpha) ParseOrigination(content noderpc.Operation, operation operation.
 					Timestamp:        operation.Timestamp,
 					Protocol:         operation.Protocol,
 					Ptr:              -1,
-				})
+				}
+
+				bmd = append(bmd, b, b.ToState())
 				return false, nil
 			}); err != nil {
 				return RichStorage{Empty: true}, err
@@ -116,7 +119,7 @@ func (a *Alpha) ParseOrigination(content noderpc.Operation, operation operation.
 func (a *Alpha) getBigMapDiff(diffs []noderpc.BigMapDiff, address string, operation operation.Operation) []models.Model {
 	bmd := make([]models.Model, 0)
 	for i := range diffs {
-		bmd = append(bmd, &bigmapdiff.BigMapDiff{
+		b := &bigmapdiff.BigMapDiff{
 			Key:              types.Bytes(diffs[i].Key),
 			KeyHash:          diffs[i].KeyHash,
 			Value:            types.Bytes(diffs[i].Value),
@@ -129,7 +132,8 @@ func (a *Alpha) getBigMapDiff(diffs []noderpc.BigMapDiff, address string, operat
 			Timestamp:        operation.Timestamp,
 			Protocol:         operation.Protocol,
 			Ptr:              -1,
-		})
+		}
+		bmd = append(bmd, b, b.ToState())
 	}
 	return bmd
 }

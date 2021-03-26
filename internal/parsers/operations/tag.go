@@ -27,7 +27,7 @@ func setTags(contractRepo contract.Repository, generalRepo models.GeneralReposit
 				op.Tags = make([]string, 0)
 			}
 			op.Tags = append(op.Tags, tag)
-		case consts.NFTLedgerTag:
+		case consts.LedgerTag:
 			if op.Tags == nil {
 				op.Tags = make([]string, 0)
 			}
