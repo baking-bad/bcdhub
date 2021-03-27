@@ -370,6 +370,7 @@ type minMaxLevel struct {
 type tokenRequest struct {
 	pageableRequest
 	minMaxLevel
+	TokenID *int64 `form:"token_id" binding:"omitempty"`
 }
 
 type tokenBalanceRequest struct {

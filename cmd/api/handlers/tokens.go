@@ -298,22 +298,26 @@ func (ctx *Context) GetContractTokens(c *gin.Context) {
 	if err := c.BindQuery(&pageReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
+	if pageReq.TokenID == nil {
+		pageReq.TokenID = new(int64)
+		*pageReq.TokenID = -1
+	}
 	if pageReq.Size == 0 {
 		pageReq.Size = 10
 	}
-	tokens, err := ctx.getTokens(req.Network, req.Address, pageReq.Size, pageReq.Offset, pageReq.MinLevel, pageReq.MaxLevel, "")
+	tokens, err := ctx.getTokens(req.Network, req.Address, pageReq.Size, pageReq.Offset, pageReq.MinLevel, pageReq.MaxLevel, "", *pageReq.TokenID)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 	c.JSON(http.StatusOK, tokens)
 }
 
-func (ctx *Context) getTokens(network, contract string, size, offset, minLevel, maxLevel int64, creator string) ([]Token, error) {
+func (ctx *Context) getTokens(network, contract string, size, offset, minLevel, maxLevel int64, creator string, tokenId int64) ([]Token, error) {
 	metadata, err := ctx.TokenMetadata.Get([]tokenmetadata.GetContext{
 		{
 			Contract: contract,
 			Network:  network,
-			TokenID:  -1,
+			TokenID:  tokenId,
 			MinLevel: minLevel,
 			MaxLevel: maxLevel,
 			Creator:  creator,
@@ -407,7 +411,7 @@ func (ctx *Context) GetTokenMetadata(c *gin.Context) {
 	if queryParams.Size == 0 {
 		queryParams.Size = 10
 	}
-	tokens, err := ctx.getTokens(req.Network, queryParams.Contract, queryParams.Size, queryParams.Offset, queryParams.MinLevel, queryParams.MaxLevel, queryParams.Creator)
+	tokens, err := ctx.getTokens(req.Network, queryParams.Contract, queryParams.Size, queryParams.Offset, queryParams.MinLevel, queryParams.MaxLevel, queryParams.Creator, -1)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
