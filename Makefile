@@ -44,53 +44,53 @@ endif
 
 rollback:
 ifeq ($(BCD_ENV), development)
-	cd scripts/esctl && go run . rollback -n $(NETWORK) -l $(LEVEL)
+	cd scripts/bcdctl && go run . rollback -n $(NETWORK) -l $(LEVEL)
 else
-	docker-compose exec api esctl rollback -n $(NETWORK) -l $(LEVEL)
+	docker-compose exec api bcdctl rollback -n $(NETWORK) -l $(LEVEL)
 endif
 
 remove:
 ifeq ($(BCD_ENV), development)
-	cd scripts/esctl && go run . remove -n $(NETWORK) 
+	cd scripts/bcdctl && go run . remove -n $(NETWORK) 
 else
-	docker-compose exec api esctl remove -n $(NETWORK)
+	docker-compose exec api bcdctl remove -n $(NETWORK)
 endif
 
 s3-creds:
 	docker-compose exec elastic bash -c 'bin/elasticsearch-keystore add --force --stdin s3.client.default.access_key <<< "$$AWS_ACCESS_KEY_ID"'
 	docker-compose exec elastic bash -c 'bin/elasticsearch-keystore add --force --stdin s3.client.default.secret_key <<< "$$AWS_SECRET_ACCESS_KEY"'
 ifeq ($(BCD_ENV), development)
-	cd scripts/esctl && go run . reload_secure_settings
+	cd scripts/bcdctl && go run . reload_secure_settings
 else
-	docker-compose exec api esctl reload_secure_settings
+	docker-compose exec api bcdctl reload_secure_settings
 endif
 
 s3-repo:
 ifeq ($(BCD_ENV), development)
-	cd scripts/esctl && go run . create_repository
+	cd scripts/bcdctl && go run . create_repository
 else
-	docker-compose exec api esctl create_repository
+	docker-compose exec api bcdctl create_repository
 endif
 
 s3-restore:
 ifeq ($(BCD_ENV), development)
-	cd scripts/esctl && go run . restore
+	cd scripts/bcdctl && go run . restore
 else
-	docker-compose exec api esctl restore
+	docker-compose exec api bcdctl restore
 endif
 
 s3-snapshot:
 ifeq ($(BCD_ENV), development)
-	cd scripts/esctl && go run . snapshot
+	cd scripts/bcdctl && go run . snapshot
 else
-	docker-compose exec api esctl snapshot
+	docker-compose exec api bcdctl snapshot
 endif
 
 s3-policy:
 ifeq ($(BCD_ENV), development)
-	cd scripts/esctl && go run . set_policy
+	cd scripts/bcdctl && go run . set_policy
 else
-	docker-compose exec api esctl set_policy
+	docker-compose exec api bcdctl set_policy
 endif
 
 es-reset:

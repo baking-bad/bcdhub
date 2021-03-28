@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -49,17 +48,6 @@ type ByTimestamp []Event
 func (a ByTimestamp) Len() int           { return len(a) }
 func (a ByTimestamp) Less(i, j int) bool { return a[i].Timestamp.Before(a[j].Timestamp) }
 func (a ByTimestamp) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-
-// Repository -
-type Repository struct {
-	ID   string `json:"id"`
-	Type string `json:"type"`
-}
-
-// String -
-func (repo Repository) String() string {
-	return fmt.Sprintf("%s (type: %s)", repo.ID, repo.Type)
-}
 
 // ContractCountStats -
 type ContractCountStats struct {

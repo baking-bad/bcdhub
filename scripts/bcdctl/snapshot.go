@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/pkg/errors"
 )
 
@@ -22,10 +23,10 @@ var snapshotCmd snapshotCommand
 
 // Execute
 func (x *snapshotCommand) Execute(_ []string) error {
-	if err := uploadMappings(ctx.Storage, creds); err != nil {
+	if err := uploadMappings(ctx.Searcher, creds); err != nil {
 		return err
 	}
-	if err := listRepositories(ctx.Storage); err != nil {
+	if err := listRepositories(ctx.Searcher); err != nil {
 		return err
 	}
 	name, err := askQuestion("Please, enter target repository name:")
@@ -33,7 +34,7 @@ func (x *snapshotCommand) Execute(_ []string) error {
 		return err
 	}
 	snapshotName := fmt.Sprintf("snapshot_%s", strings.ToLower(time.Now().UTC().Format(time.RFC3339)))
-	return ctx.Storage.CreateSnapshots(name, snapshotName, models.AllDocuments())
+	return ctx.Searcher.CreateSnapshots(name, snapshotName, models.AllDocuments())
 }
 
 type restoreCommand struct{}
@@ -42,7 +43,7 @@ var restoreCmd restoreCommand
 
 // Execute
 func (x *restoreCommand) Execute(_ []string) error {
-	if err := listRepositories(ctx.Storage); err != nil {
+	if err := listRepositories(ctx.Searcher); err != nil {
 		return err
 	}
 	name, err := askQuestion("Please, enter target repository name:")
@@ -50,14 +51,14 @@ func (x *restoreCommand) Execute(_ []string) error {
 		return err
 	}
 
-	if err := listSnapshots(ctx.Storage, name); err != nil {
+	if err := listSnapshots(ctx.Searcher, name); err != nil {
 		return err
 	}
 	snapshotName, err := askQuestion("Please, enter target snapshot name:")
 	if err != nil {
 		return err
 	}
-	return ctx.Storage.RestoreSnapshots(name, snapshotName, models.AllDocuments())
+	return ctx.Searcher.RestoreSnapshots(name, snapshotName, models.AllDocuments())
 }
 
 type setPolicyCommand struct{}
@@ -66,7 +67,7 @@ var setPolicyCmd setPolicyCommand
 
 // Execute
 func (x *setPolicyCommand) Execute(_ []string) error {
-	if err := listPolicies(ctx.Storage); err != nil {
+	if err := listPolicies(ctx.Searcher); err != nil {
 		return err
 	}
 	policyID, err := askQuestion("Please, enter target new or existing policy ID:")
@@ -89,7 +90,7 @@ func (x *setPolicyCommand) Execute(_ []string) error {
 	if err != nil {
 		return err
 	}
-	return ctx.Storage.SetSnapshotPolicy(policyID, schedule, policyID, repository, iExpiredAfter)
+	return ctx.Searcher.SetSnapshotPolicy(policyID, schedule, policyID, repository, iExpiredAfter)
 }
 
 type reloadSecureSettingsCommand struct{}
@@ -98,10 +99,10 @@ var reloadSecureSettingsCmd reloadSecureSettingsCommand
 
 // Execute
 func (x *reloadSecureSettingsCommand) Execute(_ []string) error {
-	return ctx.Storage.ReloadSecureSettings()
+	return ctx.Searcher.ReloadSecureSettings()
 }
 
-func listPolicies(storage models.GeneralRepository) error {
+func listPolicies(storage search.Searcher) error {
 	policies, err := storage.GetAllPolicies()
 	if err != nil {
 		return err
@@ -117,7 +118,7 @@ func listPolicies(storage models.GeneralRepository) error {
 	return nil
 }
 
-func listRepositories(storage models.GeneralRepository) error {
+func listRepositories(storage search.Searcher) error {
 	listRepos, err := storage.ListRepositories()
 	if err != nil {
 		return err
@@ -133,7 +134,7 @@ func listRepositories(storage models.GeneralRepository) error {
 	return nil
 }
 
-func listSnapshots(storage models.GeneralRepository, repository string) error {
+func listSnapshots(storage search.Searcher, repository string) error {
 	listSnaps, err := storage.ListSnapshots(repository)
 	if err != nil {
 		return err
@@ -144,7 +145,7 @@ func listSnapshots(storage models.GeneralRepository, repository string) error {
 	return nil
 }
 
-func uploadMappings(storage models.GeneralRepository, creds awsData) error {
+func uploadMappings(storage search.Searcher, creds awsData) error {
 	mappings, err := storage.GetMappings(models.AllDocuments())
 	if err != nil {
 		return err
@@ -176,7 +177,7 @@ func uploadMappings(storage models.GeneralRepository, creds awsData) error {
 }
 
 // nolint
-func restoreMappings(storage models.GeneralRepository, creds awsData) error {
+func restoreMappings(storage search.Searcher, creds awsData) error {
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String(creds.Region),
 		Credentials: credentials.NewEnvCredentials(),

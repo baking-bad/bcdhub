@@ -24,7 +24,7 @@ func (e *Elastic) bulk(buf *bytes.Buffer) error {
 	defer res.Body.Close()
 
 	var response BulkResponse
-	if err := e.GetResponse(res, &response); err != nil {
+	if err := e.getResponse(res, &response); err != nil {
 		return err
 	}
 	if response.Errors {

@@ -50,29 +50,6 @@ func (r *Reindexer) DeleteIndices(indices []string) error {
 	return nil
 }
 
-// DeleteByContract -
-func (r *Reindexer) DeleteByContract(indices []string, network, address string) error {
-	for i := range indices {
-		val := r.ExecSQL(fmt.Sprintf("DELETE FROM %s WHERE network = '%s' AND contract = '%s'", indices[i], network, address))
-		if val.Error() != nil {
-			return val.Error()
-		}
-	}
-	return nil
-}
-
-// GetUnique -
-func (r *Reindexer) GetUnique(field string, query *reindexer.Query) ([]string, error) {
-	it := query.Distinct(field).Exec()
-	defer it.Close()
-
-	if it.Error() != nil {
-		return nil, it.Error()
-	}
-
-	return it.AggResults()[0].Distincts, nil
-}
-
 // BulkInsert -
 func (r *Reindexer) BulkInsert(items []models.Model) error {
 	if len(items) == 0 {
@@ -118,9 +95,4 @@ func (r *Reindexer) GetFieldValue(data interface{}, field string) interface{} {
 	val := reflect.ValueOf(data)
 	f := reflect.Indirect(val).FieldByName(field)
 	return f.Interface()
-}
-
-// SetAlias -
-func (r *Reindexer) SetAlias(network, address, alias string) error {
-	return nil
 }

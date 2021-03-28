@@ -3,7 +3,7 @@ package reindexer
 import (
 	"io"
 
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/search"
 )
 
 // CreateAWSRepository -
@@ -12,7 +12,7 @@ func (r *Reindexer) CreateAWSRepository(name, awsBucketName, awsRegion string) e
 }
 
 // ListRepositories -
-func (r *Reindexer) ListRepositories() ([]models.Repository, error) {
+func (r *Reindexer) ListRepositories() ([]search.Repository, error) {
 	return nil, nil
 }
 

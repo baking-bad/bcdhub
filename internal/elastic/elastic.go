@@ -5,12 +5,10 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/cenkalti/backoff"
 	"github.com/elastic/go-elasticsearch/v8"
@@ -52,7 +50,7 @@ func New(addresses []string, maxPageSize int64) (*Elastic, error) {
 	}
 
 	e := &Elastic{es, maxPageSize}
-	return e, e.TestConnection()
+	return e, e.ping()
 }
 
 // WaitNew -
@@ -70,13 +68,7 @@ func WaitNew(addresses []string, timeout int, maxPageSize int64) *Elastic {
 	return es
 }
 
-// GetAPI -
-func (e *Elastic) GetAPI() *esapi.API {
-	return e.API
-}
-
-// GetResponse -
-func (e *Elastic) GetResponse(resp *esapi.Response, result interface{}) error {
+func (e *Elastic) getResponse(resp *esapi.Response, result interface{}) error {
 	if resp.IsError() {
 		if resp.StatusCode == 404 {
 			return NewRecordNotFoundErrorFromResponse(resp)
@@ -100,8 +92,7 @@ func (e *Elastic) getTextResponse(resp *esapi.Response) (string, error) {
 	return buf.String(), err
 }
 
-// Query -
-func (e *Elastic) Query(indices []string, query map[string]interface{}, response interface{}, source ...string) (err error) {
+func (e *Elastic) query(indices []string, query map[string]interface{}, response interface{}, source ...string) (err error) {
 	var buf bytes.Buffer
 	if err = json.NewEncoder(&buf).Encode(query); err != nil {
 		return
@@ -126,36 +117,10 @@ func (e *Elastic) Query(indices []string, query map[string]interface{}, response
 	}
 	defer resp.Body.Close()
 
-	return e.GetResponse(resp, response)
+	return e.getResponse(resp, response)
 }
 
-// ExecuteSQL -
-func (e *Elastic) ExecuteSQL(sqlString string, response interface{}) (err error) {
-	query := Item{
-		"query": sqlString,
-	}
-
-	var buf bytes.Buffer
-	if err = json.NewEncoder(&buf).Encode(query); err != nil {
-		return
-	}
-
-	options := []func(*esapi.SQLQueryRequest){
-		e.SQL.Query.WithContext(context.Background()),
-	}
-
-	var resp *esapi.Response
-	resp, err = e.SQL.Query(&buf, options...)
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
-
-	return e.GetResponse(resp, response)
-}
-
-// TestConnection -
-func (e *Elastic) TestConnection() (err error) {
+func (e *Elastic) ping() (err error) {
 	res, err := e.Info()
 	if err != nil {
 		return
@@ -163,7 +128,7 @@ func (e *Elastic) TestConnection() (err error) {
 	defer res.Body.Close()
 
 	var result TestConnectionResponse
-	return e.GetResponse(res, &result)
+	return e.getResponse(res, &result)
 }
 
 func (e *Elastic) createIndexIfNotExists(index string) error {
@@ -217,39 +182,7 @@ func (e *Elastic) CreateIndexes() error {
 	return nil
 }
 
-//nolint
-func (e *Elastic) updateByQueryScript(indices []string, query map[string]interface{}, source ...string) (err error) {
-	var buf bytes.Buffer
-	if err = json.NewEncoder(&buf).Encode(query); err != nil {
-		return
-	}
-
-	// logger.InterfaceToJSON(query)
-	// logger.InterfaceToJSON(indices)
-
-	// Perform the update by query request.
-	var resp *esapi.Response
-
-	options := []func(*esapi.UpdateByQueryRequest){
-		e.UpdateByQuery.WithContext(context.Background()),
-		e.UpdateByQuery.WithBody(&buf),
-		e.UpdateByQuery.WithSource(source...),
-		e.UpdateByQuery.WithConflicts("proceed"),
-	}
-	resp, err = e.UpdateByQuery(
-		indices,
-		options...,
-	)
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
-
-	return e.GetResponse(resp, nil)
-}
-
-// DeleteWithQuery -
-func (e *Elastic) DeleteWithQuery(indices []string, query map[string]interface{}) (result *DeleteByQueryResponse, err error) {
+func (e *Elastic) deleteWithQuery(indices []string, query map[string]interface{}) (result *DeleteByQueryResponse, err error) {
 	var buf bytes.Buffer
 	if err = json.NewEncoder(&buf).Encode(query); err != nil {
 		return
@@ -274,40 +207,13 @@ func (e *Elastic) DeleteWithQuery(indices []string, query map[string]interface{}
 	}
 	defer resp.Body.Close()
 
-	err = e.GetResponse(resp, &result)
+	err = e.getResponse(resp, &result)
 	return
 }
 
-// DeleteByLevelAndNetwork -
-func (e *Elastic) DeleteByLevelAndNetwork(indices []string, network string, maxLevel int64) error {
-	query := NewQuery().Query(
-		Bool(
-			Filter(
-				Match("network", network),
-				Range("level", Item{"gt": maxLevel}),
-			),
-		),
-	)
-	end := false
-
-	for !end {
-		response, err := e.DeleteWithQuery(indices, query)
-		if err != nil {
-			return err
-		}
-
-		end = response.VersionConflicts == 0
-	}
-	return nil
-}
-
-// DeleteIndices -
-func (e *Elastic) DeleteIndices(indices []string) error {
-	options := []func(*esapi.IndicesDeleteRequest){
-		e.Indices.Delete.WithAllowNoIndices(true),
-	}
-
-	resp, err := e.Indices.Delete(indices, options...)
+// ReloadSecureSettings -
+func (e *Elastic) ReloadSecureSettings() error {
+	resp, err := e.Nodes.ReloadSecureSettings()
 	if err != nil {
 		return err
 	}
@@ -318,120 +224,4 @@ func (e *Elastic) DeleteIndices(indices []string) error {
 	}
 
 	return nil
-}
-
-// DeleteByContract -
-func (e *Elastic) DeleteByContract(indices []string, network, address string) error {
-	filters := make([]Item, 0)
-	if network != "" {
-		filters = append(filters, Match("network", network))
-	}
-	if address != "" {
-		filters = append(filters, MatchPhrase("contract", address))
-	}
-	query := NewQuery().Query(
-		Bool(
-			Filter(filters...),
-		),
-	)
-	end := false
-
-	for !end {
-		response, err := e.DeleteWithQuery(indices, query)
-		if err != nil {
-			return err
-		}
-
-		end = response.VersionConflicts == 0
-		logger.Info("Removed %d/%d records from %s", response.Deleted, response.Total, strings.Join(indices, ","))
-	}
-
-	return nil
-}
-
-// SetAlias -
-func (e *Elastic) SetAlias(network, address, alias string) error {
-	query := NewQuery().Query(
-		Bool(
-			Filter(
-				Term("network", network),
-				Bool(
-					Should(
-						MatchPhrase("address", address),
-						MatchPhrase("source", address),
-						MatchPhrase("destination", address),
-						MatchPhrase("delegate", address),
-					),
-					MinimumShouldMatch(1),
-				),
-			),
-		),
-	).Add(
-		Item{
-			"script": Item{
-				"source": `
-				if (ctx._index == "contract") {
-					if (ctx._source.address == params.address) {
-						ctx._source.alias = params.alias
-					}
-
-					if (ctx._source.delegate == params.address) {
-						ctx._source.delegate_alias = params.alias
-					}
-				} else if (ctx._index == 'operation') {
-					if (ctx._source.source == params.address) {
-						ctx._source.source_alias = params.alias
-					}
-
-					if (ctx._source.destination == params.address) {
-						ctx._source.destination_alias = params.alias
-					}
-
-					if (ctx._source.delegate == params.address) {
-						ctx._source.delegate_alias = params.alias
-					}
-				}`,
-				"lang": "painless",
-				"params": Item{
-					"alias":   alias,
-					"address": address,
-				},
-			},
-		},
-	)
-
-	if err := e.updateByQueryScript(
-		[]string{models.DocOperations, models.DocContracts},
-		query,
-	); err != nil {
-		return fmt.Errorf("%s %s %s %w", network, address, alias, err)
-	}
-
-	return nil
-}
-
-// CountItems -
-func (e *Elastic) CountItems(indices []string, query map[string]interface{}) (int64, error) {
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(query); err != nil {
-		return 0, err
-	}
-
-	// logger.InterfaceToJSON(query)
-	// logger.InterfaceToJSON(indices)
-
-	resp, err := e.Count(
-		e.Count.WithIndex(indices...),
-		e.Count.WithContext(context.Background()),
-		e.Count.WithBody(&buf),
-	)
-	if err != nil {
-		return 0, err
-	}
-	defer resp.Body.Close()
-
-	var response struct {
-		Count int64 `json:"count"`
-	}
-	return response.Count, e.GetResponse(resp, &response)
 }

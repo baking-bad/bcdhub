@@ -1,9 +1,5 @@
 package models
 
-import (
-	"io"
-)
-
 // GeneralRepository -
 type GeneralRepository interface {
 	CreateIndexes() error
@@ -14,16 +10,7 @@ type GeneralRepository interface {
 	UpdateDoc(model Model) (err error)
 	UpdateFields(index string, id int64, data interface{}, fields ...string) error
 	GetEvents([]SubscriptionRequest, int64, int64) ([]Event, error)
-	CreateAWSRepository(string, string, string) error
-	ListRepositories() ([]Repository, error)
-	CreateSnapshots(string, string, []string) error
-	RestoreSnapshots(string, string, []string) error
-	ListSnapshots(string) (string, error)
-	SetSnapshotPolicy(string, string, string, string, int64) error
-	GetAllPolicies() ([]string, error)
-	GetMappings([]string) (map[string]string, error)
-	CreateMapping(string, io.Reader) error
-	ReloadSecureSettings() error
+
 	GetNetworkCountStats(string) (map[string]int64, error)
 	GetDateHistogram(period string, opts ...HistogramOption) ([][]int64, error)
 

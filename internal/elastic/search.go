@@ -118,7 +118,7 @@ func (e *Elastic) ByText(text string, offset int64, fields []string, filters map
 	}
 
 	var response searchByTextResponse
-	if err := e.Query(ctx.Indices, query, &response); err != nil {
+	if err := e.query(ctx.Indices, query, &response); err != nil {
 		return search.Result{}, err
 	}
 

@@ -9,7 +9,7 @@ import (
 
 	stdJSON "encoding/json"
 
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/pkg/errors"
 )
@@ -51,7 +51,7 @@ func (e *Elastic) CreateAWSRepository(name, awsBucketName, awsRegion string) err
 }
 
 // ListRepositories -
-func (e *Elastic) ListRepositories() ([]models.Repository, error) {
+func (e *Elastic) ListRepositories() ([]search.Repository, error) {
 	options := []func(*esapi.CatRepositoriesRequest){
 		e.Cat.Repositories.WithContext(context.Background()),
 		e.Cat.Repositories.WithFormat("JSON"),
@@ -64,8 +64,8 @@ func (e *Elastic) ListRepositories() ([]models.Repository, error) {
 	}
 	defer resp.Body.Close()
 
-	var response []models.Repository
-	if err := e.GetResponse(resp, &response); err != nil {
+	var response []search.Repository
+	if err := e.getResponse(resp, &response); err != nil {
 		return nil, err
 	}
 	return response, nil
@@ -213,7 +213,7 @@ func (e *Elastic) GetAllPolicies() ([]string, error) {
 	defer resp.Body.Close()
 
 	response := make(map[string]interface{})
-	if err := e.GetResponse(resp, &response); err != nil {
+	if err := e.getResponse(resp, &response); err != nil {
 		return nil, err
 	}
 	policyIDs := make([]string, 0)
@@ -238,7 +238,7 @@ func (e *Elastic) GetMappings(indices []string) (map[string]string, error) {
 	defer resp.Body.Close()
 
 	response := make(map[string]stdJSON.RawMessage)
-	if err = e.GetResponse(resp, &response); err != nil {
+	if err = e.getResponse(resp, &response); err != nil {
 		return nil, err
 	}
 

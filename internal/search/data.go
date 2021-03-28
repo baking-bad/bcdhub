@@ -1,5 +1,7 @@
 package search
 
+import "fmt"
+
 // Result -
 type Result struct {
 	Count int64   `json:"count"`
@@ -36,4 +38,15 @@ func NewGroup(docCount int64) *Group {
 type Top struct {
 	Network string `json:"network"`
 	Key     string `json:"key"`
+}
+
+// Repository -
+type Repository struct {
+	ID   string `json:"id"`
+	Type string `json:"type"`
+}
+
+// String -
+func (repo Repository) String() string {
+	return fmt.Sprintf("%s (type: %s)", repo.ID, repo.Type)
 }
