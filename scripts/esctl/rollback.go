@@ -25,8 +25,8 @@ func (x *rollbackCommand) Execute(_ []string) error {
 		return nil
 	}
 
-	manager := rollback.NewManager(ctx.Searcher, ctx.Storage, ctx.Transfers, ctx.Protocols)
-	if err = manager.Rollback(state, x.Level); err != nil {
+	manager := rollback.NewManager(ctx.Searcher, ctx.Storage, ctx.BigMapDiffs, ctx.Transfers)
+	if err = manager.Rollback(ctx.StorageDB.DB, state, x.Level); err != nil {
 		return err
 	}
 	logger.Info("Done")

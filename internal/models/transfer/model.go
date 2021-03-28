@@ -13,21 +13,22 @@ import (
 
 // Transfer -
 type Transfer struct {
-	ID        int64     `json:"-"`
-	Network   string    `json:"network"`
-	Contract  string    `json:"contract"`
-	Initiator string    `json:"initiator"`
-	Hash      string    `json:"hash"`
-	Status    string    `json:"status"`
-	Timestamp time.Time `json:"timestamp"`
-	Level     int64     `json:"level"`
-	From      string    `json:"from"`
-	To        string    `json:"to"`
-	TokenID   uint64    `json:"token_id" gorm:"type:numeric(50,0)"`
-	Amount    float64   `json:"amount,string" gorm:"type:numeric(100,0)"`
-	Counter   int64     `json:"counter"`
-	Nonce     *int64    `json:"nonce,omitempty"`
-	Parent    string    `json:"parent,omitempty"`
+	ID         int64     `json:"-"`
+	Network    string    `json:"network"`
+	Contract   string    `json:"contract"`
+	Initiator  string    `json:"initiator"`
+	Hash       string    `json:"hash"`
+	Status     string    `json:"status"`
+	Timestamp  time.Time `json:"timestamp"`
+	Level      int64     `json:"level"`
+	From       string    `json:"from"`
+	To         string    `json:"to"`
+	TokenID    uint64    `json:"token_id" gorm:"type:numeric(50,0)"`
+	Amount     float64   `json:"amount,string" gorm:"type:numeric(100,0)"`
+	Counter    int64     `json:"counter"`
+	Nonce      *int64    `json:"nonce,omitempty"`
+	Parent     string    `json:"parent,omitempty"`
+	Entrypoint string    `json:"entrypoint,omitempty"`
 }
 
 // GetID -
@@ -71,15 +72,16 @@ func (t *Transfer) LogFields() logrus.Fields {
 // EmptyTransfer -
 func EmptyTransfer(o operation.Operation) *Transfer {
 	return &Transfer{
-		Network:   o.Network,
-		Contract:  o.Destination,
-		Hash:      o.Hash,
-		Status:    o.Status,
-		Timestamp: o.Timestamp,
-		Level:     o.Level,
-		Initiator: o.Source,
-		Counter:   o.Counter,
-		Nonce:     o.Nonce,
+		Network:    o.Network,
+		Contract:   o.Destination,
+		Hash:       o.Hash,
+		Status:     o.Status,
+		Timestamp:  o.Timestamp,
+		Level:      o.Level,
+		Initiator:  o.Source,
+		Counter:    o.Counter,
+		Nonce:      o.Nonce,
+		Entrypoint: o.Entrypoint,
 	}
 }
 

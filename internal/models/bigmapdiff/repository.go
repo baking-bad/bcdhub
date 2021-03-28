@@ -16,4 +16,6 @@ type Repository interface {
 	CurrentByContract(network, contract string) ([]BigMapState, error)
 	Previous([]BigMapDiff, int64, string) ([]BigMapDiff, error)
 	GetStats(network string, ptr int64) (Stats, error)
+	StatesChangedAfter(network string, level int64) ([]BigMapState, error)
+	LastDiff(network string, ptr int64, keyHash string, skipRemoved bool) (BigMapDiff, error)
 }

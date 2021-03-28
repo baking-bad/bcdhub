@@ -62,20 +62,6 @@ func (mr *MockGeneralRepositoryMockRecorder) DeleteIndices(indices interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteIndices", reflect.TypeOf((*MockGeneralRepository)(nil).DeleteIndices), indices)
 }
 
-// DeleteByLevelAndNetwork mocks base method
-func (m *MockGeneralRepository) DeleteByLevelAndNetwork(arg0 []string, arg1 string, arg2 int64) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteByLevelAndNetwork", arg0, arg1, arg2)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteByLevelAndNetwork indicates an expected call of DeleteByLevelAndNetwork
-func (mr *MockGeneralRepositoryMockRecorder) DeleteByLevelAndNetwork(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByLevelAndNetwork", reflect.TypeOf((*MockGeneralRepository)(nil).DeleteByLevelAndNetwork), arg0, arg1, arg2)
-}
-
 // DeleteByContract mocks base method
 func (m *MockGeneralRepository) DeleteByContract(indices []string, network, address string) error {
 	m.ctrl.T.Helper()

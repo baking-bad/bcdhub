@@ -247,3 +247,33 @@ func (mr *MockRepositoryMockRecorder) GetStats(network, ptr interface{}) *gomock
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStats", reflect.TypeOf((*MockRepository)(nil).GetStats), network, ptr)
 }
+
+// StatesChangedAfter mocks base method
+func (m *MockRepository) StatesChangedAfter(network string, level int64) ([]bmd.BigMapState, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StatesChangedAfter", network, level)
+	ret0, _ := ret[0].([]bmd.BigMapState)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// StatesChangedAfter indicates an expected call of StatesChangedAfter
+func (mr *MockRepositoryMockRecorder) StatesChangedAfter(network, level interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StatesChangedAfter", reflect.TypeOf((*MockRepository)(nil).StatesChangedAfter), network, level)
+}
+
+// LastDiff mocks base method
+func (m *MockRepository) LastDiff(network string, ptr int64, keyHash string, skipRemoved bool) (bmd.BigMapDiff, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LastDiff", network, ptr, keyHash, skipRemoved)
+	ret0, _ := ret[0].(bmd.BigMapDiff)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LastDiff indicates an expected call of LastDiff
+func (mr *MockRepositoryMockRecorder) LastDiff(network, ptr, keyHash, skipRemoved interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LastDiff", reflect.TypeOf((*MockRepository)(nil).LastDiff), network, ptr, keyHash, skipRemoved)
+}

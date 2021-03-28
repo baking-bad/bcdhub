@@ -5,7 +5,7 @@ create or replace
    		ts timestamp;
 	begin
 		if exists (select id from contracts c2 where address = old.destination and network = old.network) THEN
-			select 'timestamp' into ts from operations 
+			select "timestamp" into ts from operations 
 				where (destination = old.destination or source = old.destination) and network = old.network 
 				order by level limit 1;
 

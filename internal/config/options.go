@@ -62,6 +62,7 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64) ContextOp
 		if err != nil {
 			panic(err)
 		}
+		ctx.StorageDB = pg
 		ctx.Storage = pg
 		ctx.BigMapActions = bigmapaction.NewStorage(pg)
 		ctx.Blocks = block.NewStorage(pg)

@@ -297,7 +297,6 @@ func (e *Elastic) DeleteByLevelAndNetwork(indices []string, network string, maxL
 		}
 
 		end = response.VersionConflicts == 0
-		logger.Info("Removed %d/%d records from %s", response.Deleted, response.Total, strings.Join(indices, ","))
 	}
 	return nil
 }

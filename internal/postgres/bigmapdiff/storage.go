@@ -87,9 +87,11 @@ func (storage *Storage) Count(network string, ptr int64) (count int64, err error
 // Previous -
 func (storage *Storage) Previous(filters []bigmapdiff.BigMapDiff, lastID int64, address string) (response []bigmapdiff.BigMapDiff, err error) {
 	query := storage.DB.Table(models.DocBigMapDiff).
-		Scopes(core.Contract(address)).
-		Where("id < ?", lastID)
+		Scopes(core.Contract(address))
 
+	if lastID > 0 {
+		query.Where("id < ?", lastID)
+	}
 	if len(filters) > 0 {
 		tx := storage.DB.Where("key_hash = ?", filters[0].KeyHash)
 		for i := 1; i < len(filters); i++ {
@@ -231,5 +233,28 @@ func (storage *Storage) CurrentByContract(network, contract string) (keys []bigm
 		Find(&keys).
 		Error
 
+	return
+}
+
+// StatesChangedAfter -
+func (storage *Storage) StatesChangedAfter(network string, level int64) (states []bigmapdiff.BigMapState, err error) {
+	err = storage.DB.Table(models.DocBigMapState).
+		Where("network = ?", network).
+		Where("last_update_level > ?", level).
+		Find(&states).
+		Error
+	return
+}
+
+// LastDiff -
+func (storage *Storage) LastDiff(network string, ptr int64, keyHash string, skipRemoved bool) (diff bigmapdiff.BigMapDiff, err error) {
+	query := storage.DB.Table(models.DocBigMapDiff).
+		Scopes(bigMapKey(network, keyHash, ptr))
+
+	if skipRemoved {
+		query.Where("value is not null")
+	}
+
+	err = query.Order("id desc").Scan(&diff).Error
 	return
 }

@@ -11,13 +11,15 @@ import (
 type BigMapState struct {
 	ID              int64       `json:"-" gorm:"autoIncrement:true"`
 	Ptr             int64       `json:"ptr" gorm:"not null;primaryKey;autoIncrement:false"`
+	LastUpdateLevel int64       `json:"last_update_level" gorm:"last_update_level"`
 	Network         string      `json:"network" gorm:"not null;primaryKey"`
 	KeyHash         string      `json:"key_hash" gorm:"not null;primaryKey"`
 	Contract        string      `json:"contract" gorm:"not null;primaryKey"` // contract is in primary key for supporting alpha protocol (mainnet before babylon)
 	Key             types.Bytes `json:"key" gorm:"type:bytes;not null"`
 	Value           types.Bytes `json:"value,omitempty" gorm:"type:bytes"`
 	Removed         bool        `json:"removed"`
-	LastUpdateLevel int64       `json:"last_update_level" gorm:"last_update_level"`
+
+	IsRollback bool `json:"-" gorm:"-"`
 }
 
 // GetID -
@@ -33,11 +35,16 @@ func (b *BigMapState) GetIndex() string {
 // Save -
 func (b *BigMapState) Save(tx *gorm.DB) error {
 	assign := []string{"last_update_level"}
-	if b.Removed {
+
+	switch {
+	case b.IsRollback:
+		assign = append(assign, "removed", "value")
+	case b.Removed:
 		assign = append(assign, "removed")
-	} else {
+	default:
 		assign = append(assign, "value")
 	}
+
 	return tx.Clauses(clause.OnConflict{
 		Columns: []clause.Column{
 			{Name: "network"},

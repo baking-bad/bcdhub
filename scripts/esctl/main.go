@@ -35,6 +35,7 @@ func main() {
 		config.WithConfigCopy(cfg),
 		config.WithRPC(cfg.RPC),
 		config.WithShare(cfg.SharePath),
+		config.WithSearch(cfg.Storage),
 	)
 	defer ctx.Close()
 
@@ -44,13 +45,6 @@ func main() {
 		"Rollback state",
 		"Rollback network state to certain level",
 		&rollbackCmd); err != nil {
-		logger.Fatal(err)
-	}
-
-	if _, err := parser.AddCommand("remove",
-		"Remove network data",
-		"Remove full network data from BCD",
-		&removeCmd); err != nil {
 		logger.Fatal(err)
 	}
 
@@ -86,13 +80,6 @@ func main() {
 		"Reload secure settings",
 		"Reload secure settings",
 		&reloadSecureSettingsCmd); err != nil {
-		logger.Fatal(err)
-	}
-
-	if _, err := parser.AddCommand("delete_indices",
-		"Delete indices",
-		"Delete indices",
-		&deleteIndicesCmd); err != nil {
 		logger.Fatal(err)
 	}
 

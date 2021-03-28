@@ -414,8 +414,8 @@ func (bi *BoostIndexer) Rollback() error {
 		return err
 	}
 
-	manager := rollback.NewManager(bi.Searcher, bi.Storage, bi.Transfers, bi.Protocols)
-	if err := manager.Rollback(bi.state, lastLevel); err != nil {
+	manager := rollback.NewManager(bi.Searcher, bi.Storage, bi.BigMapDiffs, bi.Transfers)
+	if err := manager.Rollback(bi.pg.DB, bi.state, lastLevel); err != nil {
 		return err
 	}
 

@@ -8,7 +8,6 @@ import (
 type GeneralRepository interface {
 	CreateIndexes() error
 	DeleteIndices(indices []string) error
-	DeleteByLevelAndNetwork([]string, string, int64) error
 	DeleteByContract(indices []string, network, address string) error
 	GetByID(output Model) error
 	GetByNetwork(network, index string) ([]Model, error)
