@@ -283,9 +283,10 @@ func (ctx *Context) contractToTokens(contracts []contract.Contract, network, ver
 // @Param offset query integer false "Offset" mininum(1) maximum(10)
 // @Param max_level query integer false "Maximum token`s creation level (less than or equal)" mininum(1)
 // @Param min_level query integer false "Minimum token`s creation level (greater than)" mininum(1)
+// @Param token_id query integer false "Token ID" mininum(0)
 // @Accept  json
 // @Produce  json
-// @Success 200 {array} Token
+// @Success 200 {array} TokenMetadata
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/tokens [get]
@@ -305,24 +306,27 @@ func (ctx *Context) GetContractTokens(c *gin.Context) {
 	if pageReq.Size == 0 {
 		pageReq.Size = 10
 	}
-	tokens, err := ctx.getTokens(req.Network, req.Address, pageReq.Size, pageReq.Offset, pageReq.MinLevel, pageReq.MaxLevel, "", *pageReq.TokenID)
-	if ctx.handleError(c, err, 0) {
+
+	metadata, err := ctx.TokenMetadata.Get([]tokenmetadata.GetContext{{
+		Contract: req.Address,
+		Network:  req.Network,
+		TokenID:  *pageReq.TokenID,
+		MinLevel: pageReq.MinLevel,
+		MaxLevel: pageReq.MaxLevel,
+	}}, pageReq.Size, pageReq.Offset)
+	if err != nil {
+		if ctx.Storage.IsRecordNotFound(err) {
+			c.JSON(http.StatusOK, []TokenMetadata{})
+		} else {
+			ctx.handleError(c, err, 0)
+		}
 		return
 	}
-	c.JSON(http.StatusOK, tokens)
+	c.JSON(http.StatusOK, metadata)
 }
 
-func (ctx *Context) getTokens(network, contract string, size, offset, minLevel, maxLevel int64, creator string, tokenId int64) ([]Token, error) {
-	metadata, err := ctx.TokenMetadata.Get([]tokenmetadata.GetContext{
-		{
-			Contract: contract,
-			Network:  network,
-			TokenID:  tokenId,
-			MinLevel: minLevel,
-			MaxLevel: maxLevel,
-			Creator:  creator,
-		},
-	}, size, offset)
+func (ctx *Context) getTokensWithSupply(getCtx tokenmetadata.GetContext, size, offset int64) ([]Token, error) {
+	metadata, err := ctx.TokenMetadata.Get([]tokenmetadata.GetContext{getCtx}, size, offset)
 	if err != nil {
 		if ctx.Storage.IsRecordNotFound(err) {
 			return []Token{}, nil
@@ -332,14 +336,18 @@ func (ctx *Context) getTokens(network, contract string, size, offset, minLevel, 
 
 	tokens := make([]Token, 0)
 	for _, token := range metadata {
-		supply, err := ctx.Transfers.GetTokenSupply(network, contract, token.TokenID)
+		t := Token{
+			TokenMetadata: TokenMetadataFromElasticModel(token, true),
+		}
+
+		supply, err := ctx.Transfers.GetTokenSupply(getCtx.Network, getCtx.Contract, token.TokenID)
 		if err != nil {
 			return nil, err
 		}
-		tokenMetadata := TokenMetadataFromElasticModel(token, true)
-		tokens = append(tokens, Token{
-			tokenMetadata, supply,
-		})
+		t.Supply = supply.Supply
+		t.Transfered = supply.Transfered
+
+		tokens = append(tokens, t)
 	}
 
 	return tokens, nil
@@ -392,7 +400,8 @@ func (ctx *Context) GetTokenHolders(c *gin.Context) {
 // @Param max_level query integer false "Maximum token`s creation level (less than or equal)" mininum(1)
 // @Param min_level query integer false "Minimum token`s creation level (greater than)" mininum(1)
 // @Param creator query string false "Creator name" maxlength(25)
-// @Param contract path string false "KT address" minlength(36) maxlength(36)
+// @Param contract query string false "KT address" minlength(36) maxlength(36)
+// @Param token_id query integer false "Token ID" mininum(0)
 // @Accept  json
 // @Produce  json
 // @Success 200 {array} Token
@@ -408,10 +417,21 @@ func (ctx *Context) GetTokenMetadata(c *gin.Context) {
 	if err := c.BindQuery(&queryParams); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
+	if queryParams.TokenID == nil {
+		queryParams.TokenID = new(int64)
+		*queryParams.TokenID = -1
+	}
 	if queryParams.Size == 0 {
 		queryParams.Size = 10
 	}
-	tokens, err := ctx.getTokens(req.Network, queryParams.Contract, queryParams.Size, queryParams.Offset, queryParams.MinLevel, queryParams.MaxLevel, queryParams.Creator, -1)
+	tokens, err := ctx.getTokensWithSupply(tokenmetadata.GetContext{
+		Contract: queryParams.Contract,
+		Network:  req.Network,
+		MinLevel: queryParams.MinLevel,
+		MaxLevel: queryParams.MaxLevel,
+		Creator:  queryParams.Creator,
+		TokenID:  *queryParams.TokenID,
+	}, queryParams.Size, queryParams.Offset)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
