@@ -1,6 +1,9 @@
 -include .env
 export $(shell sed 's/=.*//' .env)
 
+LATEST_DUMP=/tmp/dump_latest.gz
+BACKUP?=dump_latest
+
 .ONESHELL:
 
 api:
@@ -49,13 +52,6 @@ else
 	docker-compose exec api bcdctl rollback -n $(NETWORK) -l $(LEVEL)
 endif
 
-remove:
-ifeq ($(BCD_ENV), development)
-	cd scripts/bcdctl && go run . remove -n $(NETWORK) 
-else
-	docker-compose exec api bcdctl remove -n $(NETWORK)
-endif
-
 s3-creds:
 	docker-compose exec elastic bash -c 'bin/elasticsearch-keystore add --force --stdin s3.client.default.access_key <<< "$$AWS_ACCESS_KEY_ID"'
 	docker-compose exec elastic bash -c 'bin/elasticsearch-keystore add --force --stdin s3.client.default.secret_key <<< "$$AWS_SECRET_ACCESS_KEY"'
@@ -73,6 +69,14 @@ else
 endif
 
 s3-restore:
+ifeq (,$(wildcard $(LATEST_DUMP)))
+	aws s3 cp --profile bcd s3://bcd-db-snaps/$(BACKUP) $(LATEST_DUMP)
+endif
+
+	docker-compose exec -T db dropdb -U $(POSTGRES_USER) --if-exists indexer
+	gunzip -dc $(LATEST_DUMP) | docker-compose exec -T db psql -U $(POSTGRES_USER) -v ON_ERROR_STOP=on bcd
+	rm $(LATEST_DUMP)
+
 ifeq ($(BCD_ENV), development)
 	cd scripts/bcdctl && go run . restore
 else
@@ -80,18 +84,21 @@ else
 endif
 
 s3-snapshot:
+	docker-compose exec db pg_dump indexer --create -U $(POSTGRES_USER) | gzip -c > $(LATEST_DUMP)	
+	aws s3 mv --profile bcd $(LATEST_DUMP) s3://bcd-db-snaps/dump_latest.gz
+
 ifeq ($(BCD_ENV), development)
 	cd scripts/bcdctl && go run . snapshot
 else
 	docker-compose exec api bcdctl snapshot
 endif
 
-s3-policy:
-ifeq ($(BCD_ENV), development)
-	cd scripts/bcdctl && go run . set_policy
-else
-	docker-compose exec api bcdctl set_policy
-endif
+s3-list:
+	echo "Database snapshots"
+	aws s3 ls --profile bcd s3://bcd-db-snaps
+
+	echo "Elasticsearch snapshots"
+	aws s3 ls --profile bcd s3://bcd-elastic-snapshots
 
 es-reset:
 	docker-compose rm -s -v -f elastic || true

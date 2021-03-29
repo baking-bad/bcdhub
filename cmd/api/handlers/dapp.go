@@ -151,7 +151,7 @@ func (ctx *Context) appendDAppInfo(dapp dapp.DApp, withDetails bool) (DApp, erro
 				tokens, err := ctx.getTokensWithSupply(tokenmetadata.GetContext{
 					Contract: address.Address,
 					Network:  consts.Mainnet,
-					TokenID:  -1,
+					TokenID:  nil,
 				}, 0, 0)
 				if err != nil {
 					return result, err
