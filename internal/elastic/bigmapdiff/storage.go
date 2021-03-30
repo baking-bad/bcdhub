@@ -167,9 +167,12 @@ func (storage *Storage) Count(network string, ptr int64) (int64, error) {
 func (storage *Storage) Previous(filters []bigmapdiff.BigMapDiff, indexedTime int64, address string) ([]bigmapdiff.BigMapDiff, error) {
 	shouldData := make([]core.Item, len(filters))
 	for i := range filters {
-		shouldData[i] = core.Bool(core.Filter(
-			core.MatchPhrase("key_hash", filters[i].KeyHash),
-		))
+		shouldData[i] = core.Bool(
+			core.Filter(
+				core.MatchPhrase("key_hash", filters[i].KeyHash),
+				core.Term("ptr", filters[i].Ptr),
+			),
+		)
 	}
 	b := core.Bool(
 		core.Should(shouldData...),
