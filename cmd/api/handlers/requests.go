@@ -339,7 +339,7 @@ type getTransfersRequest struct {
 	TokenID   *int64 `form:"token_id" binding:"omitempty,min=0"`
 }
 
-type getTokenHolders struct {
+type byTokenIDRequest struct {
 	TokenID *int64 `form:"token_id" binding:"min=0"`
 }
 
