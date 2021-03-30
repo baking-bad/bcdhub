@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"math/big"
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/karlseguin/ccache"
@@ -106,7 +107,7 @@ func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *as
 		Address:  balance[0].Address,
 		TokenID:  balance[0].TokenID,
 		Contract: bmd.Contract,
-		Balance:  balance[0].Value,
+		Value:    balance[0].Value,
 		IsLedger: true,
 	}
 
@@ -115,18 +116,18 @@ func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *as
 	t := ledger.makeTransfer(balance[0], op)
 	if t != nil {
 		items = append(items, t)
-	}
 
-	if balance[0].IsExclusiveNFT {
-		holders, err := ledger.tokenBalances.GetHolders(tb.Network, tb.Contract, tb.TokenID)
-		if err != nil {
-			return nil, err
-		}
-		for i := range holders {
-			holders[i].Balance = 0
-			holders[i].IsLedger = true
-			t.From = holders[i].Address
-			items = append(items, &holders[i])
+		if balance[0].IsExclusiveNFT {
+			holders, err := ledger.tokenBalances.GetHolders(tb.Network, tb.Contract, tb.TokenID)
+			if err != nil {
+				return nil, err
+			}
+			for i := range holders {
+				holders[i].Value = big.NewInt(0)
+				holders[i].IsLedger = true
+				t.From = holders[i].Address
+				items = append(items, &holders[i])
+			}
 		}
 	}
 
@@ -147,17 +148,17 @@ func (ledger *Ledger) makeTransfer(tb tokenbalance.TokenBalance, op *operation.O
 
 	t := transfer.EmptyTransfer(*op)
 
-	switch {
-	case balance.Balance > tb.Value:
+	switch balance.Value.Cmp(tb.Value) {
+	case 1:
 		t.From = tb.Address
-	case balance.Balance < tb.Value:
+	case -1:
 		t.To = tb.Address
 	default:
 		return nil
 	}
 
 	t.TokenID = tb.TokenID
-	t.Amount = tb.Value
+	t.Value.Set(tb.Value)
 
 	if op.Nonce != nil {
 		st := stacktrace.New()

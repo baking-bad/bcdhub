@@ -2,10 +2,12 @@ package transfer
 
 import (
 	"fmt"
+	"math/big"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -13,22 +15,25 @@ import (
 
 // Transfer -
 type Transfer struct {
-	ID         int64     `json:"-"`
-	Network    string    `json:"network"`
-	Contract   string    `json:"contract"`
-	Initiator  string    `json:"initiator"`
-	Hash       string    `json:"hash"`
-	Status     string    `json:"status"`
-	Timestamp  time.Time `json:"timestamp"`
-	Level      int64     `json:"level"`
-	From       string    `json:"from"`
-	To         string    `json:"to"`
-	TokenID    uint64    `json:"token_id" gorm:"type:numeric(50,0)"`
-	Amount     float64   `json:"amount,string" gorm:"type:numeric(100,0)"`
-	Counter    int64     `json:"counter"`
-	Nonce      *int64    `json:"nonce,omitempty"`
-	Parent     string    `json:"parent,omitempty"`
-	Entrypoint string    `json:"entrypoint,omitempty"`
+	ID           int64     `json:"-"`
+	Network      string    `json:"network"`
+	Contract     string    `json:"contract"`
+	Initiator    string    `json:"initiator"`
+	Hash         string    `json:"hash"`
+	Status       string    `json:"status"`
+	Timestamp    time.Time `json:"timestamp"`
+	Level        int64     `json:"level"`
+	From         string    `json:"from"`
+	To           string    `json:"to"`
+	TokenID      uint64    `json:"token_id" gorm:"type:numeric(50,0)"`
+	Amount       float64   `json:"amount" gorm:"type:numeric(100,0)"`
+	AmountString string    `json:"amount_string"`
+	Counter      int64     `json:"counter"`
+	Nonce        *int64    `json:"nonce,omitempty"`
+	Parent       string    `json:"parent,omitempty"`
+	Entrypoint   string    `json:"entrypoint,omitempty"`
+
+	Value *big.Int `json:"-" gorm:"-"`
 }
 
 // GetID -
@@ -69,6 +74,42 @@ func (t *Transfer) LogFields() logrus.Fields {
 	}
 }
 
+// AfterFind -
+func (t *Transfer) AfterFind(tx *gorm.DB) (err error) {
+	return t.unmarshal()
+}
+
+// BeforeCreate -
+func (t *Transfer) BeforeCreate(tx *gorm.DB) (err error) {
+	return t.marshal()
+}
+
+// BeforeUpdate -
+func (t *Transfer) BeforeUpdate(tx *gorm.DB) (err error) {
+	return t.marshal()
+}
+
+func (t *Transfer) marshal() error {
+	if t.Value == nil {
+		return errors.New("Nil amount in transfer")
+	}
+	t.AmountString = t.Value.String()
+	t.Amount, _ = new(big.Float).SetInt(t.Value).Float64()
+	return nil
+}
+
+func (t *Transfer) unmarshal() error {
+	if t.Value == nil {
+		t.Value = big.NewInt(0)
+	}
+
+	if _, ok := t.Value.SetString(t.AmountString, 10); !ok {
+		return errors.Errorf("Invalid amount in transfer: %s", t.AmountString)
+	}
+
+	return nil
+}
+
 // EmptyTransfer -
 func EmptyTransfer(o operation.Operation) *Transfer {
 	return &Transfer{
@@ -82,6 +123,7 @@ func EmptyTransfer(o operation.Operation) *Transfer {
 		Counter:    o.Counter,
 		Nonce:      o.Nonce,
 		Entrypoint: o.Entrypoint,
+		Value:      new(big.Int),
 	}
 }
 
@@ -107,21 +149,21 @@ func (t *Transfer) MakeTokenBalanceUpdate(from, rollback bool) *tokenbalance.Tok
 		Network:  t.Network,
 		Contract: t.Contract,
 		TokenID:  t.TokenID,
-		Balance:  0,
+		Value:    big.NewInt(0),
 	}
 	switch {
 	case from && rollback:
 		tb.Address = t.From
-		tb.Balance = t.Amount
+		tb.Value.Set(t.Value)
 	case !from && rollback:
 		tb.Address = t.To
-		tb.Balance = -t.Amount
+		tb.Value.Neg(t.Value)
 	case from && !rollback:
 		tb.Address = t.From
-		tb.Balance = -t.Amount
+		tb.Value.Neg(t.Value)
 	case !from && !rollback:
 		tb.Address = t.To
-		tb.Balance = t.Amount
+		tb.Value.Set(t.Value)
 	}
 	return tb
 }
@@ -141,7 +183,7 @@ type Pageable struct {
 
 // Balance -
 type Balance struct {
-	Balance float64
+	Balance *big.Int
 	Address string
 	TokenID uint64
 }

@@ -1,7 +1,7 @@
 package transfer
 
 import (
-	"math"
+	"math/big"
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -25,12 +25,12 @@ func (parser *DefaultBalanceParser) Parse(balances []tbParser.TokenBalance, oper
 	transfers := make([]*transfer.Transfer, 0)
 	for _, balance := range balances {
 		transfer := transfer.EmptyTransfer(operation)
-		if balance.Value > 0 {
+		if balance.Value.Cmp(big.NewInt(0)) > 0 {
 			transfer.To = balance.Address
 		} else {
 			transfer.From = balance.Address
 		}
-		transfer.Amount = math.Abs(balance.Value)
+		transfer.Value.Abs(balance.Value)
 		transfer.TokenID = balance.TokenID
 
 		transfers = append(transfers, transfer)
@@ -56,18 +56,19 @@ func (parser *DefaultBalanceParser) ParseBalances(network, contract string, bala
 				return nil, err
 			}
 
-			tb.Balance = 0
+			tb.Value = big.NewInt(0)
 		}
 
-		delta := balance.Value - tb.Balance
+		delta := new(big.Int)
+		delta.Sub(balance.Value, tb.Value)
 
-		if delta > 0 {
+		if delta.Cmp(big.NewInt(0)) > 0 {
 			transfer.To = balance.Address
 		} else {
 			transfer.From = balance.Address
 		}
 
-		transfer.Amount = math.Abs(delta)
+		transfer.Value.Abs(delta)
 		transfer.TokenID = balance.TokenID
 
 		transfers = append(transfers, transfer)

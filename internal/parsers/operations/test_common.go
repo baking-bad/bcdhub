@@ -3,6 +3,7 @@ package operations
 import (
 	"fmt"
 	"io/ioutil"
+	"math/big"
 	"reflect"
 	"testing"
 
@@ -17,6 +18,11 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/stretchr/testify/assert"
 )
+
+func newBigInt(val string) *big.Int {
+	i, _ := new(big.Int).SetString(val, 10)
+	return i
+}
 
 func readJSONFile(name string, response interface{}) error {
 	bytes, err := ioutil.ReadFile(name)
@@ -157,8 +163,8 @@ func compareTransfers(one, two *transfer.Transfer) bool {
 		logger.Info("TokenID: %d != %d", one.TokenID, two.TokenID)
 		return false
 	}
-	if one.Amount != two.Amount {
-		logger.Info("Amount: %v != %v", one.Amount, two.Amount)
+	if one.Value.Cmp(two.Value) != 0 {
+		logger.Info("Amount: %s != %s", one.Value.String(), two.Value.String())
 		return false
 	}
 	if one.Counter != two.Counter {

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"math/big"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,6 +13,11 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	tbModel "github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 )
+
+func newBigInt(val string) *big.Int {
+	i, _ := new(big.Int).SetString(val, 10)
+	return i
+}
 
 func TestLedger_getResultModels(t *testing.T) {
 	tests := []struct {
@@ -34,7 +40,7 @@ func TestLedger_getResultModels(t *testing.T) {
 					Address:  "tz1djRgXXWWJiY1rpMECCxr5d9ZBqWewuiU1",
 					Contract: "KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH",
 					Network:  "mainnet",
-					Balance:  1000000,
+					Value:    newBigInt("1000000"),
 					TokenID:  0,
 					IsLedger: true,
 				},
@@ -51,7 +57,7 @@ func TestLedger_getResultModels(t *testing.T) {
 					Address:  "tz1djRgXXWWJiY1rpMECCxr5d9ZBqWewuiU1",
 					Contract: "KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH",
 					Network:  "mainnet",
-					Balance:  0,
+					Value:    newBigInt("0"),
 					TokenID:  0,
 					IsLedger: true,
 				},

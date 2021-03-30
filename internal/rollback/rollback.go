@@ -75,7 +75,7 @@ func (rm Manager) rollbackTokenBalances(tx *gorm.DB, network string, toLevel int
 	for i := range transfers {
 		if id := transfers[i].GetFromTokenBalanceID(); id != "" {
 			if update, ok := balances[id]; ok {
-				update.Balance += transfers[i].Amount
+				update.Value.Add(update.Value, transfers[i].Value)
 			} else {
 				upd := transfers[i].MakeTokenBalanceUpdate(true, true)
 				balances[id] = upd
@@ -84,7 +84,7 @@ func (rm Manager) rollbackTokenBalances(tx *gorm.DB, network string, toLevel int
 
 		if id := transfers[i].GetToTokenBalanceID(); id != "" {
 			if update, ok := balances[id]; ok {
-				update.Balance -= transfers[i].Amount
+				update.Value.Sub(update.Value, transfers[i].Value)
 			} else {
 				upd := transfers[i].MakeTokenBalanceUpdate(false, true)
 				balances[id] = upd

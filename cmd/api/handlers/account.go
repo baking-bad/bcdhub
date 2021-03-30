@@ -108,7 +108,7 @@ func (ctx *Context) GetBatchTokenBalances(c *gin.Context) {
 		result[a] = make([]TokenBalance, len(b))
 		for i := range b {
 			result[a][i] = TokenBalance{
-				Balance: b[i].Balance,
+				Balance: b[i].BalanceString,
 				TokenMetadata: TokenMetadata{
 					TokenID:  b[i].TokenID,
 					Contract: b[i].Contract,
@@ -166,7 +166,7 @@ func (ctx *Context) getAccountBalances(network, address string, req tokenBalance
 	}
 
 	contextes := make([]tokenmetadata.GetContext, 0)
-	balances := make(map[tokenmetadata.GetContext]float64)
+	balances := make(map[tokenmetadata.GetContext]string)
 
 	for _, balance := range tokenBalances {
 		c := tokenmetadata.GetContext{
@@ -174,7 +174,7 @@ func (ctx *Context) getAccountBalances(network, address string, req tokenBalance
 			Contract: balance.Contract,
 			Network:  network,
 		}
-		balances[c] = balance.Balance
+		balances[c] = balance.BalanceString
 		contextes = append(contextes, c)
 	}
 

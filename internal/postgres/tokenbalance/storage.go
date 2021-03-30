@@ -1,6 +1,8 @@
 package tokenbalance
 
 import (
+	"math/big"
+
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
@@ -28,6 +30,8 @@ func (storage *Storage) Get(network, contract, address string, tokenID uint64) (
 		t.Address = address
 		t.TokenID = tokenID
 		t.Balance = 0
+		t.Value = big.NewInt(0)
+		t.BalanceString = "0"
 		err = nil
 	}
 

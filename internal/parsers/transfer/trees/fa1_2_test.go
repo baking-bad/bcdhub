@@ -2,6 +2,7 @@ package trees
 
 import (
 	"encoding/json"
+	"math/big"
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
@@ -11,6 +12,11 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/stretchr/testify/assert"
 )
+
+func newBigInt(val string) *big.Int {
+	i, _ := new(big.Int).SetString(val, 10)
+	return i
+}
 
 func TestMakeFa1_2Transfers(t *testing.T) {
 	tests := []struct {
@@ -32,7 +38,7 @@ func TestMakeFa1_2Transfers(t *testing.T) {
 					Network: "edo2net",
 					From:    "tz1grSQDByRpnVs7sPtaprNZRp531ZKz6Jmm",
 					To:      "tz1TGu6TN5GSez2ndXXeDX6LgUDvLzPLqgYV",
-					Amount:  100,
+					Value:   newBigInt("100"),
 				},
 			},
 		}, {
@@ -47,7 +53,7 @@ func TestMakeFa1_2Transfers(t *testing.T) {
 					Network: "mainnet",
 					From:    "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
 					To:      "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
-					Amount:  7.87488e+06,
+					Value:   newBigInt("7874880"),
 				},
 			},
 		},

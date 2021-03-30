@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"os"
 	"os/signal"
 	"runtime"
@@ -15,9 +14,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/karlseguin/ccache"
 	"github.com/pkg/errors"
-
-	"net/http"
-	_ "net/http/pprof"
 )
 
 // Context -
@@ -81,10 +77,6 @@ func listenChannel(messageQueue mq.IMessageReceiver, queue string, closeChan cha
 func main() {
 	logger.Warning("Metrics started on 4 CPU cores")
 	runtime.GOMAXPROCS(4)
-
-	go func() {
-		log.Println(http.ListenAndServe("localhost:6060", nil))
-	}()
 
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {

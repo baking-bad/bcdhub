@@ -143,7 +143,7 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, network, contrac
 						Address:  balances[i].Address,
 						TokenID:  balances[i].TokenID,
 						Contract: tzip.Address,
-						Balance:  balances[i].Value,
+						Value:    balances[i].Value,
 					})
 				}
 			}

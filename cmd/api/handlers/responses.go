@@ -524,7 +524,7 @@ type Transfer struct {
 	From           string         `json:"from"`
 	To             string         `json:"to"`
 	TokenID        uint64         `json:"token_id"`
-	Amount         float64        `json:"amount,string"`
+	Amount         string         `json:"amount"`
 	Counter        int64          `json:"counter"`
 	Nonce          *int64         `json:"nonce,omitempty" extensions:"x-nullable"`
 	Parent         string         `json:"parent,omitempty" extensions:"x-nullable"`
@@ -548,7 +548,7 @@ func TransferFromElasticModel(model transfer.Transfer) (t Transfer) {
 	t.From = model.From
 	t.To = model.To
 	t.TokenID = model.TokenID
-	t.Amount = model.Amount
+	t.Amount = model.AmountString
 	t.Counter = model.Counter
 	t.Nonce = model.Nonce
 	t.Parent = model.Parent
@@ -632,7 +632,7 @@ type AccountInfo struct {
 // TokenBalance -
 type TokenBalance struct {
 	TokenMetadata
-	Balance float64 `json:"balance,string"`
+	Balance string `json:"balance"`
 }
 
 // TokenBalances -

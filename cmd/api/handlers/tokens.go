@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -401,7 +400,7 @@ func (ctx *Context) GetTokenHolders(c *gin.Context) {
 	}
 	result := make(map[string]string)
 	for i := range balances {
-		result[balances[i].Address] = fmt.Sprintf("%.0f", balances[i].Balance)
+		result[balances[i].Address] = balances[i].BalanceString
 	}
 
 	c.JSON(http.StatusOK, result)

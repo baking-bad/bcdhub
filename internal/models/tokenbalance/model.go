@@ -1,6 +1,9 @@
 package tokenbalance
 
 import (
+	"math/big"
+
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -8,14 +11,16 @@ import (
 
 // TokenBalance -
 type TokenBalance struct {
-	ID       int64   `json:"-" gorm:"autoIncrement:true"`
-	Network  string  `json:"network" gorm:"not null;primaryKey"`
-	Address  string  `json:"address" gorm:"not null;primaryKey"`
-	Contract string  `json:"contract" gorm:"not null;primaryKey"`
-	TokenID  uint64  `json:"token_id" gorm:"type:numeric(50,0);default:0;primaryKey;autoIncrement:false"`
-	Balance  float64 `json:"balance,string" gorm:"type:numeric(100,0);default:0"`
+	ID            int64   `json:"-" gorm:"autoIncrement:true"`
+	Network       string  `json:"network" gorm:"not null;primaryKey"`
+	Address       string  `json:"address" gorm:"not null;primaryKey"`
+	Contract      string  `json:"contract" gorm:"not null;primaryKey"`
+	TokenID       uint64  `json:"token_id" gorm:"type:numeric(50,0);default:0;primaryKey;autoIncrement:false"`
+	Balance       float64 `json:"balance" gorm:"type:numeric(100,0);default:0"`
+	BalanceString string  `json:"balance_string"`
 
-	IsLedger bool `json:"-" gorm:"-"`
+	IsLedger bool     `json:"-" gorm:"-"`
+	Value    *big.Int `json:"-" gorm:"-"`
 }
 
 // GetID -
@@ -31,11 +36,17 @@ func (tb *TokenBalance) GetIndex() string {
 // Constraint -
 func (tb *TokenBalance) Save(tx *gorm.DB) error {
 	var s clause.Set
+
+	f, _ := new(big.Float).SetInt(tb.Value).Float64()
 	if tb.IsLedger {
-		s = clause.Assignments(map[string]interface{}{"balance": tb.Balance})
+		s = clause.Assignments(map[string]interface{}{
+			"balance":        f,
+			"balance_string": tb.Value.String(),
+		})
 	} else {
 		s = clause.Assignments(map[string]interface{}{
-			"balance": gorm.Expr("token_balances.balance + ?", tb.Balance),
+			"balance":        gorm.Expr("token_balances.balance + ?", f),
+			"balance_string": gorm.Expr("(token_balances.balance + ?)::text", f),
 		})
 	}
 
@@ -68,4 +79,40 @@ func (tb *TokenBalance) LogFields() logrus.Fields {
 		"contract": tb.Contract,
 		"token_id": tb.TokenID,
 	}
+}
+
+// AfterFind -
+func (tb *TokenBalance) AfterFind(tx *gorm.DB) (err error) {
+	return tb.unmarshal()
+}
+
+// BeforeCreate -
+func (tb *TokenBalance) BeforeCreate(tx *gorm.DB) (err error) {
+	return tb.marshal()
+}
+
+// BeforeUpdate -
+func (tb *TokenBalance) BeforeUpdate(tx *gorm.DB) (err error) {
+	return tb.marshal()
+}
+
+func (tb *TokenBalance) marshal() error {
+	if tb.Value == nil {
+		return errors.New("Nil amount in transfer")
+	}
+	tb.BalanceString = tb.Value.String()
+	tb.Balance, _ = new(big.Float).SetInt(tb.Value).Float64()
+	return nil
+}
+
+func (tb *TokenBalance) unmarshal() error {
+	if tb.Value == nil {
+		tb.Value = big.NewInt(0)
+	}
+
+	if _, ok := tb.Value.SetString(tb.BalanceString, 10); !ok {
+		return errors.Errorf("Invalid amount in transfer: %s", tb.BalanceString)
+	}
+
+	return nil
 }
