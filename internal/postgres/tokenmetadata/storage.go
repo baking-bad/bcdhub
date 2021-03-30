@@ -47,3 +47,11 @@ func (storage *Storage) GetWithExtras() (tokens []tokenmetadata.TokenMetadata, e
 		Find(&tokens).Error
 	return
 }
+
+// Count -
+func (storage *Storage) Count(ctx []tokenmetadata.GetContext) (count int64, err error) {
+	query := storage.DB.Table(models.DocTokenMetadata)
+	buildGetTokenMetadataContext(storage.DB, query, ctx...)
+	err = query.Count(&count).Error
+	return
+}

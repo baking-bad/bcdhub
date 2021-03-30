@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strings"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 // IPFS storage prefix
@@ -56,5 +54,5 @@ func (s IPFSStorage) Get(value string, output interface{}) error {
 		}
 	}
 
-	return errors.Wrap(ErrNoIPFSResponse, value)
+	return ErrNoIPFSResponse
 }

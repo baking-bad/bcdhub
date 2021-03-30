@@ -189,3 +189,10 @@ func With(entry Loggable) *logrus.Entry {
 func WithNetwork(network string) *logrus.Entry {
 	return logger.WithField("network", network)
 }
+
+// WithField -
+func WithField(name string, value interface{}) *logrus.Entry {
+	return logger.WithFields(logrus.Fields{
+		name: value,
+	})
+}

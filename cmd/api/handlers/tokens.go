@@ -293,7 +293,6 @@ func (ctx *Context) GetContractTokens(c *gin.Context) {
 	if err := c.BindQuery(&pageReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-
 	metadata, err := ctx.TokenMetadata.Get([]tokenmetadata.GetContext{{
 		Contract: req.Address,
 		Network:  req.Network,

@@ -18,6 +18,11 @@ const (
 	InvalidSyntacticConstantError = "invalidSyntacticConstantError"
 )
 
+// General
+const (
+	Unknown = "Unknown"
+)
+
 // Statuses
 const (
 	Applied     = "applied"

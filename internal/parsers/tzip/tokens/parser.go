@@ -2,6 +2,7 @@ package tokens
 
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -66,11 +67,11 @@ func (t Parser) ParseBigMapDiff(bmd *bigmapdiff.BigMapDiff, storage *ast.TypedAs
 		if err := s.Get(t.network, bmd.Contract, m.Link, bmd.Ptr, remoteMetadata); err != nil {
 			switch {
 			case errors.Is(err, tzipStorage.ErrHTTPRequest):
-				logger.Error(err)
+				logger.WithField("url", m.Link).WithField("kind", "token_metadata").Warning(err)
 				return nil, nil
 			case errors.Is(err, tzipStorage.ErrNoIPFSResponse):
-				remoteMetadata.Name = TokenMetadataUnknown
-				logger.Error(err)
+				remoteMetadata.Name = consts.Unknown
+				logger.WithField("url", m.Link).WithField("kind", "token_metadata").Warning(err)
 			default:
 				return nil, err
 			}
