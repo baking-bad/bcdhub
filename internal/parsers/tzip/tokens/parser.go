@@ -80,6 +80,7 @@ func (t Parser) parseBigMapDiff(bmd *bigmapdiff.BigMapDiff, state block.Block) (
 				return nil, nil
 			case errors.Is(err, tzipStorage.ErrNoIPFSResponse):
 				remoteMetadata.Name = TokenMetadataUnknown
+				logger.Error(err)
 			default:
 				return nil, err
 			}
