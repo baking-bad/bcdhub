@@ -5,7 +5,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 )
 
-func buildGetTokenMetadataContext(ctx ...tokenmetadata.GetContext) core.Base {
+func buildGetTokenMetadataContext(ctx []tokenmetadata.GetContext, withSize bool) core.Base {
 	filters := make([]core.Item, 0)
 
 	for _, c := range ctx {
@@ -34,10 +34,16 @@ func buildGetTokenMetadataContext(ctx ...tokenmetadata.GetContext) core.Base {
 		))
 	}
 
-	return core.NewQuery().Query(
+	query := core.NewQuery().Query(
 		core.Bool(
 			core.Should(filters...),
 			core.MinimumShouldMatch(1),
 		),
-	).Sort("level", "desc").All()
+	)
+
+	if withSize {
+		query.Sort("level", "desc").All()
+	}
+
+	return query
 }

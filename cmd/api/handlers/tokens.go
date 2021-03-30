@@ -325,6 +325,37 @@ func (ctx *Context) GetContractTokens(c *gin.Context) {
 	c.JSON(http.StatusOK, metadata)
 }
 
+// GetContractTokensCount godoc
+// @Summary Get contract`s tokens count
+// @Description Get contract`s tokens count
+// @Tags contract
+// @ID get-contract-token-count
+// @Param network path string true "Network"
+// @Param address path string true "KT address" minlength(36) maxlength(36)
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} CountResponse
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /v1/contract/{network}/{address}/tokens/count [get]
+func (ctx *Context) GetContractTokensCount(c *gin.Context) {
+	var req getContractRequest
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+	count, err := ctx.TokenMetadata.Count([]tokenmetadata.GetContext{{
+		Contract: req.Address,
+		Network:  req.Network,
+		TokenID:  -1,
+	}})
+	if ctx.handleError(c, err, 0) {
+		return
+	}
+	c.JSON(http.StatusOK, CountResponse{
+		count,
+	})
+}
+
 func (ctx *Context) getTokensWithSupply(getCtx tokenmetadata.GetContext, size, offset int64) ([]Token, error) {
 	metadata, err := ctx.TokenMetadata.Get([]tokenmetadata.GetContext{getCtx}, size, offset)
 	if err != nil {
@@ -372,7 +403,7 @@ func (ctx *Context) GetTokenHolders(c *gin.Context) {
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-	var reqArgs getTokenHolders
+	var reqArgs byTokenIDRequest
 	if err := c.BindQuery(&reqArgs); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}

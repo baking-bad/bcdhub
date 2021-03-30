@@ -140,6 +140,7 @@ func (api *app) makeRouter() {
 			tokens := contract.Group("tokens")
 			{
 				tokens.GET("", api.Context.GetContractTokens)
+				tokens.GET("count", api.Context.GetContractTokensCount)
 				tokens.GET("holders", api.Context.GetTokenHolders)
 			}
 

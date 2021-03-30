@@ -36,3 +36,8 @@ func (storage *Storage) GetAll(ctx ...tokenmetadata.GetContext) (tokens []tokenm
 func (storage *Storage) GetWithExtras() ([]tokenmetadata.TokenMetadata, error) {
 	return nil, nil
 }
+
+// Count -
+func (storage *Storage) Count(ctx []tokenmetadata.GetContext) (int64, error) {
+	return 0, nil
+}
