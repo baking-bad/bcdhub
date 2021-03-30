@@ -59,7 +59,7 @@ share_path: ${HOME}/.bcd
 base_url: http://localhost:8080
 
 ipfs:
-  - https://ipfs.baking-bad.org
+  - https://cloudflare-ipfs.com
   - https://ipfs.io
   - https://dweb.link
 
@@ -74,7 +74,7 @@ api:
   oauth_enabled: true
   sentry_enabled: false
   seed_enabled: false
-  page_size: 10
+  page_size: ${PAGE_SIZE:-10}
   frontend:
     ga_enabled: false
     mempool_enabled: true
