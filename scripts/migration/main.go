@@ -46,7 +46,7 @@ func main() {
 
 	ctx := config.NewContext(
 		config.WithShare(cfg.SharePath),
-		config.WithStorage(cfg.Storage),
+		config.WithStorage(cfg.Storage, 0),
 		config.WithDatabase(cfg.DB),
 		config.WithRPC(cfg.RPC),
 		config.WithConfigCopy(cfg),

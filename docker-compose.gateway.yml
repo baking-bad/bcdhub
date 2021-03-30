@@ -45,13 +45,15 @@ services:
       context: .
       dockerfile: build/api/Dockerfile
     environment:
-      - BCD_ENV=production
+      - BCD_ENV=you
       - GIN_MODE=release
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
       - POSTGRES_DB=bcd
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
+      - PAGE_SIZE=100
+      - SANDBOX_IPFS_GATEWAY=https://cloudflare-ipfs.com
     depends_on:
       - elastic
       - db
@@ -69,12 +71,13 @@ services:
       context: .
       dockerfile: build/indexer/Dockerfile
     environment:
-      - BCD_ENV=production
+      - BCD_ENV=you
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
       - POSTGRES_DB=bcd
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
+      - SANDBOX_IPFS_GATEWAY=https://cloudflare-ipfs.com
     depends_on:
       - elastic
       - mq
@@ -90,12 +93,13 @@ services:
       context: .
       dockerfile: build/metrics/Dockerfile
     environment:
-      - BCD_ENV=production
+      - BCD_ENV=you
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
       - POSTGRES_DB=bcd
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
+      - SANDBOX_IPFS_GATEWAY=https://cloudflare-ipfs.com
     depends_on:
       - elastic
       - mq

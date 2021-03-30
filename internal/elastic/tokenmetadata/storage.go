@@ -21,6 +21,7 @@ func NewStorage(es *core.Elastic) *Storage {
 // Get -
 func (storage *Storage) Get(ctx []tokenmetadata.GetContext, size, offset int64) (tokens []tokenmetadata.TokenMetadata, err error) {
 	query := buildGetTokenMetadataContext(ctx, true)
+	size = core.GetSize(size, storage.es.MaxPageSize)
 	scrollCtx := core.NewScrollContext(storage.es, query, size, consts.DefaultScrollSize)
 	scrollCtx.Offset = offset
 	err = scrollCtx.Get(&tokens)

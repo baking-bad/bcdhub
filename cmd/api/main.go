@@ -65,7 +65,7 @@ func (api *app) makeRouter() {
 	r.MaxMultipartMemory = 4 << 20 // max upload size 4 MiB
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		if err := validations.Register(v, api.Context.Config.API.Networks); err != nil {
+		if err := validations.Register(v, api.Context.Config.API); err != nil {
 			logger.Fatal(err)
 		}
 	}

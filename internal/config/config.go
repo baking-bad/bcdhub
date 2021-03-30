@@ -32,20 +32,7 @@ type Config struct {
 	IPFSGateways []string              `yaml:"ipfs"`
 	Domains      TezosDomainsConfig    `yaml:"domains"`
 
-	API struct {
-		ProjectName   string         `yaml:"project_name"`
-		Bind          string         `yaml:"bind"`
-		SwaggerHost   string         `yaml:"swagger_host"`
-		CorsEnabled   bool           `yaml:"cors_enabled"`
-		OAuthEnabled  bool           `yaml:"oauth_enabled"`
-		SentryEnabled bool           `yaml:"sentry_enabled"`
-		SeedEnabled   bool           `yaml:"seed_enabled"`
-		Frontend      FrontendConfig `yaml:"frontend"`
-		Seed          SeedConfig     `yaml:"seed"`
-		Networks      []string       `yaml:"networks"`
-		MQ            MQConfig       `yaml:"mq"`
-		Pinata        PinataConfig   `yaml:"pinata"`
-	} `yaml:"api"`
+	API APIConfig `yaml:"api"`
 
 	Compiler struct {
 		ProjectName   string    `yaml:"project_name"`
@@ -169,6 +156,22 @@ type SeedConfig struct {
 		PublicKeyHash string `yaml:"public_key_hash"`
 		Network       string `yaml:"network"`
 	} `yaml:"accounts"`
+}
+
+type APIConfig struct {
+	ProjectName   string         `yaml:"project_name"`
+	Bind          string         `yaml:"bind"`
+	SwaggerHost   string         `yaml:"swagger_host"`
+	CorsEnabled   bool           `yaml:"cors_enabled"`
+	OAuthEnabled  bool           `yaml:"oauth_enabled"`
+	SentryEnabled bool           `yaml:"sentry_enabled"`
+	SeedEnabled   bool           `yaml:"seed_enabled"`
+	Frontend      FrontendConfig `yaml:"frontend"`
+	Seed          SeedConfig     `yaml:"seed"`
+	Networks      []string       `yaml:"networks"`
+	MQ            MQConfig       `yaml:"mq"`
+	Pinata        PinataConfig   `yaml:"pinata"`
+	PageSize      uint64         `yaml:"page_size"`
 }
 
 // SentryConfig -

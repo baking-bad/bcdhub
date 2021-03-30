@@ -1,24 +1,12 @@
 rpc:
   mainnet:
-    uri: https://rpc.tzkt.io/mainnet
+    uri: https://mainnet-tezos.giganode.io
     timeout: 20
   edo2net:
     uri: https://rpc.tzkt.io/edo2net
     timeout: 20
   florencenet:
     uri: https://rpc.tzkt.io/florencenobanet
-    timeout: 20
-
-tzkt:
-  mainnet:
-    uri: https://api.tzkt.io/v1/
-    services_uri: https://services.tzkt.io/v1/
-    base_uri: https://tzkt.io/
-    timeout: 20
-  edo2net:
-    uri: https://api.edo2net.tzkt.io/v1/
-    services_uri: https://services.tzkt.io/edo2net/v1/
-    base_uri: https://edo2net.tzkt.io/
     timeout: 20
 
 storage:
@@ -59,7 +47,8 @@ share_path: /etc/bcd
 base_url: https://you.better-call.dev
 
 ipfs:
-  - https://ipfs.baking-bad.org
+  - ${SANDBOX_IPFS_GATEWAY:-https://ipfs.baking-bad.org}
+  - https://cloudflare-ipfs.com
   - https://ipfs.io
   - https://dweb.link
 
@@ -74,6 +63,7 @@ api:
   oauth_enabled: true
   sentry_enabled: true
   seed_enabled: false
+  page_size: ${PAGE_SIZE:-10}
   frontend:
     ga_enabled: false
     mempool_enabled: true
@@ -108,7 +98,6 @@ indexer:
     publisher: true
   networks:
     mainnet:
-      boost: tzkt
     edo2net:
     florencenet:
 

@@ -3,7 +3,6 @@ package bigmapdiff
 import (
 	"fmt"
 
-	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 )
@@ -27,7 +26,7 @@ type getBigMapDiffsCountResponse struct {
 	} `json:"aggregations"`
 }
 
-func buildGetContext(ctx *bigmapdiff.GetContext) core.Base {
+func buildGetContext(ctx *bigmapdiff.GetContext, maxPageSize int64) core.Base {
 	filters := make([]core.Item, 0)
 
 	if ctx.Ptr != nil {
@@ -41,9 +40,7 @@ func buildGetContext(ctx *bigmapdiff.GetContext) core.Base {
 		filters = append(filters, core.QueryString(fmt.Sprintf("*%s*", ctx.Query), []string{"key", "key_hash", "key_strings", "bin_path", "value", "value_strings"}))
 	}
 
-	if ctx.Size == 0 {
-		ctx.Size = consts.DefaultSize
-	}
+	ctx.Size = core.GetSize(ctx.Size, maxPageSize)
 
 	if ctx.MaxLevel != nil {
 		filters = append(filters, core.Range("level", core.Item{"lte": *ctx.MaxLevel}))

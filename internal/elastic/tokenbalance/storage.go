@@ -103,9 +103,7 @@ func (storage *Storage) GetAccountBalances(network, address, contract string, si
 		),
 	).Sort("token_id", "desc").All()
 
-	if size == 0 {
-		size = consts.DefaultSize
-	}
+	size = core.GetSize(size, storage.es.MaxPageSize)
 
 	tokenBalances := make([]tokenbalance.TokenBalance, 0)
 	ctx := core.NewScrollContext(storage.es, query, size, consts.DefaultScrollSize)

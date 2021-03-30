@@ -132,7 +132,7 @@ func (bi *BoostIndexer) fetchExternalProtocols() error {
 // NewBoostIndexer -
 func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOption) (*BoostIndexer, error) {
 	logger.WithNetwork(network).Info("Creating indexer object...")
-	es := core.WaitNew(cfg.Storage.URI, cfg.Storage.Timeout)
+	es := core.WaitNew(cfg.Storage.URI, cfg.Storage.Timeout, 0)
 
 	rpcProvider, ok := cfg.RPC[network]
 	if !ok {

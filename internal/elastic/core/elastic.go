@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/cenkalti/backoff"
@@ -22,10 +23,12 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 // Elastic -
 type Elastic struct {
 	*elasticsearch.Client
+
+	MaxPageSize int64
 }
 
 // New -
-func New(addresses []string) (*Elastic, error) {
+func New(addresses []string, maxPageSize int64) (*Elastic, error) {
 	retryBackoff := backoff.NewExponentialBackOff()
 	elasticConfig := elasticsearch.Config{
 		Addresses:     addresses,
@@ -43,17 +46,21 @@ func New(addresses []string) (*Elastic, error) {
 		return nil, err
 	}
 
-	e := &Elastic{es}
+	if maxPageSize <= 0 {
+		maxPageSize = consts.DefaultSize
+	}
+
+	e := &Elastic{es, maxPageSize}
 	return e, e.TestConnection()
 }
 
 // WaitNew -
-func WaitNew(addresses []string, timeout int) *Elastic {
+func WaitNew(addresses []string, timeout int, maxPageSize int64) *Elastic {
 	var es *Elastic
 	var err error
 
 	for es == nil {
-		es, err = New(addresses)
+		es, err = New(addresses, maxPageSize)
 		if err != nil {
 			logger.Warning("Waiting elastic up %d seconds...", timeout)
 			time.Sleep(time.Second * time.Duration(timeout))
