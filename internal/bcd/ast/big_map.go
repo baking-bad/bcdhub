@@ -338,7 +338,10 @@ func (m *BigMap) Distinguish(x Distinguishable) (*MiguelNode, error) {
 		}
 
 		val, ok := second.Data.Get(key)
-		if val == nil || !ok {
+		switch {
+		case val == nil && value == nil:
+			return false, nil
+		case val == nil || !ok:
 			child, err := value.(Node).ToMiguel()
 			if err != nil {
 				return true, err
@@ -347,9 +350,7 @@ func (m *BigMap) Distinguish(x Distinguishable) (*MiguelNode, error) {
 			child.Name = &name
 			node.Children = append(node.Children, child)
 			return false, nil
-		}
-
-		if value == nil && val != nil {
+		case value == nil && val != nil:
 			child, err := val.(Node).ToMiguel()
 			if err != nil {
 				return true, err
@@ -358,16 +359,17 @@ func (m *BigMap) Distinguish(x Distinguishable) (*MiguelNode, error) {
 			child.Name = &name
 			node.Children = append(node.Children, child)
 			return false, nil
+		default:
+			child, err := value.(Node).Distinguish(val.(Node))
+			if err != nil {
+				return true, err
+			}
+
+			child.Name = &name
+			node.Children = append(node.Children, child)
+			return false, nil
 		}
 
-		child, err := value.(Node).Distinguish(val.(Node))
-		if err != nil {
-			return true, err
-		}
-
-		child.Name = &name
-		node.Children = append(node.Children, child)
-		return false, nil
 	})
 	if err != nil {
 		return nil, err
