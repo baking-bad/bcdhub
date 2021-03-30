@@ -54,6 +54,8 @@ services:
       - mq
     ports:
       - 127.0.0.1:14000:14000
+    volumes:
+      - bcdshare:/etc/bcd
     extra_hosts:
       sandbox: 172.17.0.1
     logging: *my-logging
@@ -73,6 +75,8 @@ services:
       - metrics
     extra_hosts:
       sandbox: 172.17.0.1
+    volumes:
+      - bcdshare:/etc/bcd
     logging: *my-logging
 
   metrics:
@@ -93,6 +97,8 @@ services:
       - db
     extra_hosts:
       sandbox: 172.17.0.1
+    volumes:
+      - bcdshare:/etc/bcd
     logging: *my-logging
 
   flextesa:
@@ -132,5 +138,6 @@ services:
 volumes:
   esdata:
   mqdata:
+  bcdshare:
   db:
     driver: local
