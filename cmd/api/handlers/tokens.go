@@ -36,9 +36,7 @@ func (ctx *Context) GetFA(c *gin.Context) {
 	if err := c.BindQuery(&cursorReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-	if cursorReq.Size == 0 {
-		cursorReq.Size = 20
-	}
+
 	contracts, total, err := ctx.Contracts.GetTokens(req.Network, "", cursorReq.Offset, cursorReq.Size)
 	if ctx.handleError(c, err, 0) {
 		return
@@ -78,9 +76,7 @@ func (ctx *Context) GetFAByVersion(c *gin.Context) {
 	if err := c.BindQuery(&cursorReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-	if cursorReq.Size == 0 {
-		cursorReq.Size = 20
-	}
+
 	if req.Version == "fa12" {
 		req.Version = consts.FA12Tag
 	}
@@ -303,9 +299,6 @@ func (ctx *Context) GetContractTokens(c *gin.Context) {
 		pageReq.TokenID = new(int64)
 		*pageReq.TokenID = -1
 	}
-	if pageReq.Size == 0 {
-		pageReq.Size = 10
-	}
 
 	metadata, err := ctx.TokenMetadata.Get([]tokenmetadata.GetContext{{
 		Contract: req.Address,
@@ -452,9 +445,7 @@ func (ctx *Context) GetTokenMetadata(c *gin.Context) {
 		queryParams.TokenID = new(int64)
 		*queryParams.TokenID = -1
 	}
-	if queryParams.Size == 0 {
-		queryParams.Size = 10
-	}
+
 	tokens, err := ctx.getTokensWithSupply(tokenmetadata.GetContext{
 		Contract: queryParams.Contract,
 		Network:  req.Network,

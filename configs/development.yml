@@ -74,6 +74,7 @@ api:
   oauth_enabled: true
   sentry_enabled: false
   seed_enabled: false
+  page_size: 10
   frontend:
     ga_enabled: false
     mempool_enabled: true

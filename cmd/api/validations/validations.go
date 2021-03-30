@@ -6,13 +6,18 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/compiler/compilation"
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/btcsuite/btcutil/base58"
 	"gopkg.in/go-playground/validator.v9"
 )
 
+const (
+	defaultMaxSize = 10
+)
+
 // Register -
-func Register(v *validator.Validate, networks []string) error {
+func Register(v *validator.Validate, cfg config.APIConfig) error {
 	if err := v.RegisterValidation("address", addressValidator()); err != nil {
 		return err
 	}
@@ -21,7 +26,7 @@ func Register(v *validator.Validate, networks []string) error {
 		return err
 	}
 
-	if err := v.RegisterValidation("network", networkValidator(networks)); err != nil {
+	if err := v.RegisterValidation("network", networkValidator(cfg.Networks)); err != nil {
 		return err
 	}
 
@@ -46,6 +51,10 @@ func Register(v *validator.Validate, networks []string) error {
 	}
 
 	if err := v.RegisterValidation("gt_int64_ptr", greatThanInt64PtrValidator()); err != nil {
+		return err
+	}
+
+	if err := v.RegisterValidation("bcd_max_size", maxSizeValidator(cfg.PageSize)); err != nil {
 		return err
 	}
 
@@ -133,6 +142,19 @@ func compilationKindValidator() validator.Func {
 func searchStringValidator() validator.Func {
 	return func(fl validator.FieldLevel) bool {
 		return len(fl.Field().String()) > 2
+	}
+}
+
+func maxSizeValidator(maxSize uint64) validator.Func {
+	return func(fl validator.FieldLevel) bool {
+		if maxSize == 0 {
+			maxSize = defaultMaxSize
+		}
+		fieldValue := fl.Field().Int()
+		if fieldValue < 0 {
+			return false
+		}
+		return uint64(fieldValue) <= maxSize
 	}
 }
 

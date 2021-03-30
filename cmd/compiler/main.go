@@ -42,7 +42,7 @@ func main() {
 			config.WithRPC(cfg.RPC),
 			config.WithDatabase(cfg.DB),
 			config.WithRabbit(cfg.RabbitMQ, cfg.Compiler.ProjectName, cfg.Compiler.MQ),
-			config.WithStorage(cfg.Storage),
+			config.WithStorage(cfg.Storage, 0),
 			config.WithAWS(cfg.Compiler.AWS),
 		),
 	}

@@ -65,12 +65,12 @@ type operationsRequest struct {
 
 type pageableRequest struct {
 	Offset int64 `form:"offset" binding:"min=0"`
-	Size   int64 `form:"size" binding:"min=0,max=10"`
+	Size   int64 `form:"size" binding:"min=0,bcd_max_size=10"`
 }
 
 type cursorRequest struct {
 	LastID string `form:"last_id" binding:"omitempty,numeric"`
-	Size   int64  `form:"size" binding:"min=0,max=10"`
+	Size   int64  `form:"size" binding:"min=0,bcd_max_size=10"`
 }
 
 type searchRequest struct {

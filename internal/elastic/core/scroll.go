@@ -13,6 +13,18 @@ import (
 
 const defaultScrollSize = 1000
 
+// GetSize -
+func GetSize(size int64, defaultMaxSize int64) int64 {
+	switch {
+	case size <= 0:
+		return defaultMaxSize
+	case size > MaxQuerySize:
+		return MaxQuerySize
+	default:
+		return size
+	}
+}
+
 // ScrollContext -
 type ScrollContext struct {
 	Query     Base

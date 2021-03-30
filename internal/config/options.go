@@ -64,7 +64,7 @@ func WithRPC(rpcConfig map[string]RPCConfig) ContextOption {
 }
 
 // WithStorage -
-func WithStorage(cfg StorageConfig) ContextOption {
+func WithStorage(cfg StorageConfig, maxPageSize int64) ContextOption {
 	return func(ctx *Context) {
 		if len(cfg.URI) == 0 {
 			panic("Please set connection strings to storage in config")
@@ -93,7 +93,7 @@ func WithStorage(cfg StorageConfig) ContextOption {
 				panic(err)
 			}
 		} else {
-			es := core.WaitNew(cfg.URI, cfg.Timeout)
+			es := core.WaitNew(cfg.URI, cfg.Timeout, maxPageSize)
 
 			ctx.Storage = es
 			ctx.BigMapActions = bigmapaction.NewStorage(es)

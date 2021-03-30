@@ -5,7 +5,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	constants "github.com/baking-bad/bcdhub/internal/bcd/consts"
-	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/pkg/errors"
 )
@@ -16,9 +15,7 @@ func (e *Elastic) GetEvents(subscriptions []models.SubscriptionRequest, size, of
 		return []models.Event{}, nil
 	}
 
-	if size == 0 || size > 50 { // TODO: ???
-		size = consts.DefaultSize
-	}
+	size = GetSize(size, e.MaxPageSize)
 
 	shouldItems := make([]Item, 0)
 	indicesMap := make(map[string]struct{})

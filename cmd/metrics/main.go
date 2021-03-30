@@ -89,7 +89,7 @@ func main() {
 	}
 
 	configCtx := config.NewContext(
-		config.WithStorage(cfg.Storage),
+		config.WithStorage(cfg.Storage, 0),
 		config.WithRPC(cfg.RPC),
 		config.WithDatabase(cfg.DB),
 		config.WithRabbit(cfg.RabbitMQ, cfg.Metrics.ProjectName, cfg.Metrics.MQ),

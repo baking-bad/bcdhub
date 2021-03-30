@@ -298,7 +298,7 @@ func (storage *Storage) GetSameContracts(c contract.Contract, manager string, si
 		return pcr, errors.Errorf("Invalid contract data")
 	}
 
-	if size == 0 {
+	if size <= 0 {
 		size = consts.DefaultSize
 	} else if size+offset > core.MaxQuerySize {
 		size = core.MaxQuerySize - offset
@@ -364,7 +364,7 @@ func (storage *Storage) GetSimilarContracts(c contract.Contract, size, offset in
 		return
 	}
 
-	if size == 0 {
+	if size <= 0 {
 		size = consts.DefaultSize
 	} else if size+offset > core.MaxQuerySize {
 		size = core.MaxQuerySize - offset
@@ -508,6 +508,8 @@ func (storage *Storage) GetTokens(network, tokenInterface string, offset, size i
 	).Sort("timestamp", "desc")
 
 	contracts := make([]contract.Contract, 0)
+
+	size = core.GetSize(size, storage.es.MaxPageSize)
 	ctx := core.NewScrollContext(storage.es, query, size, consts.DefaultScrollSize)
 	ctx.Offset = offset
 	if err := ctx.Get(&contracts); err != nil {

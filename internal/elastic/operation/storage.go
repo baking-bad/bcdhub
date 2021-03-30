@@ -24,11 +24,7 @@ func NewStorage(es *core.Elastic) *Storage {
 	return &Storage{es}
 }
 
-func (storage *Storage) getContractOPG(address, network string, size uint64, filters map[string]interface{}) ([]opgForContract, error) {
-	if size == 0 || size > core.MaxQuerySize {
-		size = consts.DefaultSize
-	}
-
+func (storage *Storage) getContractOPG(address, network string, size int64, filters map[string]interface{}) ([]opgForContract, error) {
 	filtersString, err := prepareOperationFilters(filters)
 	if err != nil {
 		return nil, err
@@ -82,7 +78,8 @@ func prepareOperationFilters(filters map[string]interface{}) (s string, err erro
 
 // GetByContract -
 func (storage *Storage) GetByContract(network, address string, size uint64, filters map[string]interface{}) (po operation.Pageable, err error) {
-	opg, err := storage.getContractOPG(address, network, size, filters)
+	limit := core.GetSize(int64(size), storage.es.MaxPageSize)
+	opg, err := storage.getContractOPG(address, network, limit, filters)
 	if err != nil {
 		return
 	}

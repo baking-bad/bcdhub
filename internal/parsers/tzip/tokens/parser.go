@@ -100,7 +100,7 @@ func (t Parser) parse(address string, state block.Block) ([]tokenmetadata.TokenM
 	bmd, err := t.bmdRepo.Get(bigmapdiff.GetContext{
 		Ptr:          &ptr,
 		Network:      t.network,
-		Size:         1000, // TODO: max size
+		Size:         10000,
 		CurrentLevel: &state.Level,
 		Contract:     address,
 	})

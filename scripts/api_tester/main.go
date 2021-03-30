@@ -21,7 +21,7 @@ func main() {
 	}
 
 	ctx := config.NewContext(
-		config.WithStorage(cfg.Storage),
+		config.WithStorage(cfg.Storage, 0),
 		config.WithRPC(cfg.RPC),
 		config.WithShare(cfg.SharePath),
 		config.WithTzKTServices(cfg.TzKT),

@@ -3,7 +3,6 @@ package bigmapdiff
 import (
 	"encoding/json"
 
-	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -283,9 +282,7 @@ func (storage *Storage) GetByPtrAndKeyHash(ptr int64, network, keyHash string, s
 	)
 	b := core.Bool(mustQuery)
 
-	if size == 0 {
-		size = consts.DefaultSize
-	}
+	size = core.GetSize(size, storage.es.MaxPageSize)
 
 	query := core.NewQuery().Query(b).Sort("level", "desc").Size(size).From(offset)
 
@@ -374,7 +371,7 @@ func (storage *Storage) Get(ctx bigmapdiff.GetContext) ([]bigmapdiff.Bucket, err
 		return nil, errors.Errorf("Invalid pointer value: %d", *ctx.Ptr)
 	}
 
-	query := buildGetContext(&ctx)
+	query := buildGetContext(&ctx, storage.es.MaxPageSize)
 
 	var response getBigMapDiffsWithKeysResponse
 	if err := storage.es.Query([]string{models.DocBigMapDiff}, query, &response); err != nil {
