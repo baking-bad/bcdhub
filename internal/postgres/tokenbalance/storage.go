@@ -58,7 +58,7 @@ func (storage *Storage) GetAccountBalances(network, address, contract string, si
 		query.Where("contract = ?", contract)
 	}
 
-	limit := core.GetPageSize(size)
+	limit := storage.GetPageSize(size)
 	if err := query.
 		Limit(limit).
 		Offset(int(offset)).

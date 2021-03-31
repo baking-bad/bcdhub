@@ -142,7 +142,7 @@ func (storage *Storage) GetProjectsLastContract(c contract.Contract, size, offse
 		subQuery.Or("language = ?", c.Language)
 	}
 
-	limit := core.GetPageSize(size)
+	limit := storage.GetPageSize(size)
 
 	query := storage.DB.Table(models.DocContracts).
 		Select("MAX(id) as id").
@@ -163,7 +163,7 @@ func (storage *Storage) GetSameContracts(c contract.Contract, manager string, si
 		return pcr, errors.Wrap(consts.ErrInvalidFingerprint, c.Address)
 	}
 
-	limit := core.GetPageSize(size)
+	limit := storage.GetPageSize(size)
 
 	query := storage.DB.Table(models.DocContracts).Where("hash = ?", c.Hash).Where("address != ?", c.Address)
 	if manager != "" {
@@ -188,7 +188,7 @@ func (storage *Storage) GetSimilarContracts(c contract.Contract, size, offset in
 		return nil, 0, errors.Wrap(consts.ErrInvalidFingerprint, c.Address)
 	}
 
-	limit := core.GetPageSize(size)
+	limit := storage.GetPageSize(size)
 
 	subQuery := storage.DB.Table(models.DocContracts).
 		Select("MAX(id) as id").
@@ -259,7 +259,7 @@ func (storage *Storage) GetTokens(network, tokenInterface string, offset, size i
 		Scopes(core.Network(network)).
 		Where("tags <@ array[?]", strings.Join(tags, ",")).
 		Order("timestamp desc").
-		Limit(core.GetPageSize(size)).
+		Limit(storage.GetPageSize(size)).
 		Offset(int(offset)).
 		Find(&contracts).
 		Error

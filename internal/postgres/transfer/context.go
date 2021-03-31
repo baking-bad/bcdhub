@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func buildGetContext(db *gorm.DB, query *gorm.DB, ctx transfer.GetContext, withSize bool) {
+func (storage *Storage) buildGetContext(query *gorm.DB, ctx transfer.GetContext, withSize bool) {
 	if query == nil {
 		return
 	}
@@ -19,7 +19,7 @@ func buildGetContext(db *gorm.DB, query *gorm.DB, ctx transfer.GetContext, withS
 	}
 	if ctx.Address != "" {
 		query.Where(
-			db.Where("transfers.from = ?", ctx.Address).Or("transfers.to = ?", ctx.Address),
+			storage.DB.Where("transfers.from = ?", ctx.Address).Or("transfers.to = ?", ctx.Address),
 		)
 	}
 	if ctx.Start > 0 {
@@ -33,7 +33,7 @@ func buildGetContext(db *gorm.DB, query *gorm.DB, ctx transfer.GetContext, withS
 			query.Where("id < ?", id)
 		}
 	}
-	subQuery := core.OrStringArray(db, ctx.Contracts, "contract")
+	subQuery := core.OrStringArray(storage.DB, ctx.Contracts, "contract")
 	if subQuery != nil {
 		query.Where(subQuery)
 	}
@@ -51,7 +51,7 @@ func buildGetContext(db *gorm.DB, query *gorm.DB, ctx transfer.GetContext, withS
 	}
 
 	if withSize {
-		query.Limit(core.GetPageSize(ctx.Size))
+		query.Limit(storage.GetPageSize(ctx.Size))
 
 		if ctx.Offset > 0 {
 			query.Offset(int(ctx.Offset))

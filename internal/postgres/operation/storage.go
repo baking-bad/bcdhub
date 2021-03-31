@@ -55,7 +55,7 @@ func (storage *Storage) getContractOPG(address, network string, size uint64, fil
 		return nil, err
 	}
 
-	limit := core.GetPageSize(int64(size))
+	limit := storage.GetPageSize(int64(size))
 	query.Group("hash, counter, level").Order("level DESC").Limit(limit)
 
 	err = query.Find(&response).Error
@@ -150,7 +150,7 @@ func (storage *Storage) Get(filters map[string]interface{}, size int64, sort boo
 	}
 
 	if size > 0 {
-		query.Limit(core.GetPageSize(size))
+		query.Limit(storage.GetPageSize(size))
 	}
 
 	err = query.Find(&operations).Error

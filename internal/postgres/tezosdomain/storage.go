@@ -21,7 +21,7 @@ func NewStorage(pg *core.Postgres) *Storage {
 
 // ListDomains -
 func (storage *Storage) ListDomains(network string, size, offset int64) (tezosdomain.DomainsResponse, error) {
-	limit := core.GetPageSize(size)
+	limit := storage.GetPageSize(size)
 
 	response := tezosdomain.DomainsResponse{
 		Domains: make([]tezosdomain.TezosDomain, 0),

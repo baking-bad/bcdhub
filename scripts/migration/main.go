@@ -17,16 +17,13 @@ var migrationsList = []migrations.Migration{
 	&migrations.BigRussianBoss{},
 	&migrations.GetAliases{},
 	&migrations.SetAliases{},
-	&migrations.SetOperationTags{},
 	&migrations.CreateTransfersTags{},
-	&migrations.SetProtocolConstants{},
 	&migrations.CreateTZIP{},
 	&migrations.FillTZIP{},
 	&migrations.InitialStorageEvents{},
 	&migrations.ExtendedStorageEvents{},
 	&migrations.ParameterEvents{},
 	&migrations.TokenBalanceRecalc{},
-	&migrations.TokenMetadataSetDecimals{},
 	&migrations.NFTMetadata{},
 }
 

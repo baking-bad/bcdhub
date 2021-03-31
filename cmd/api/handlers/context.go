@@ -29,7 +29,7 @@ func NewContext(cfg config.Config) (*Context, error) {
 	}
 
 	ctx := config.NewContext(
-		config.WithStorage(cfg.Storage, int64(cfg.API.PageSize)),
+		config.WithStorage(cfg.Storage, cfg.API.ProjectName, int64(cfg.API.PageSize)),
 		config.WithRPC(cfg.RPC),
 		config.WithDatabase(cfg.DB),
 		config.WithSearch(cfg.Storage),

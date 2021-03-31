@@ -12,5 +12,5 @@ var (
 // default
 const (
 	DefaultSize = 10
-	MaxSize     = 100
+	MaxSize     = 1000
 )

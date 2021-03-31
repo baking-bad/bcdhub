@@ -29,7 +29,7 @@ func (p *Postgres) GetEvents(subscriptions []models.SubscriptionRequest, size, o
 	}
 
 	events := make([]models.Event, 0)
-	limit := GetPageSize(size)
+	limit := p.GetPageSize(size)
 	for table, q := range queries {
 		q.Limit(limit).Offset(int(offset)).Order("timestamp desc")
 

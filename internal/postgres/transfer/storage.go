@@ -25,13 +25,13 @@ func NewStorage(es *core.Postgres) *Storage {
 func (storage *Storage) Get(ctx transfer.GetContext) (po transfer.Pageable, err error) {
 	po.Transfers = make([]transfer.Transfer, 0)
 	query := storage.DB.Table(models.DocTransfers)
-	buildGetContext(storage.DB, query, ctx, true)
+	storage.buildGetContext(query, ctx, true)
 
 	if err = query.Find(&po.Transfers).Error; err != nil {
 		return
 	}
 	countQuery := storage.DB.Table(models.DocTransfers)
-	buildGetContext(storage.DB, countQuery, ctx, false)
+	storage.buildGetContext(countQuery, ctx, false)
 	if err = query.Count(&po.Total).Error; err != nil {
 		return
 	}

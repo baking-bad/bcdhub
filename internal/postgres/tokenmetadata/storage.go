@@ -21,7 +21,7 @@ func (storage *Storage) Get(ctx []tokenmetadata.GetContext, size, offset int64) 
 	query := storage.DB.Table(models.DocTokenMetadata)
 	buildGetTokenMetadataContext(storage.DB, query, ctx...)
 
-	query.Limit(core.GetPageSize(size))
+	query.Limit(storage.GetPageSize(size))
 	if offset > 0 {
 		query.Offset(int(offset))
 	}

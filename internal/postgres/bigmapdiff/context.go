@@ -3,7 +3,6 @@ package bigmapdiff
 import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
-	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"gorm.io/gorm"
 )
 
@@ -32,7 +31,7 @@ func (storage *Storage) buildGetContext(ctx bigmapdiff.GetContext) *gorm.DB {
 		query.Where("key_hash LIKE %?%", ctx.Query)
 	}
 
-	query.Limit(core.GetPageSize(ctx.Size))
+	query.Limit(storage.GetPageSize(ctx.Size))
 
 	if ctx.Offset > 0 {
 		query.Offset(int(ctx.Offset))

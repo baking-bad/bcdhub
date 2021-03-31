@@ -146,7 +146,7 @@ func (storage *Storage) GetByPtrAndKeyHash(ptr int64, network, keyHash string, s
 	if ptr < 0 {
 		return nil, 0, errors.Wrapf(consts.ErrInvalidPointer, "%d", ptr)
 	}
-	limit := core.GetPageSize(size)
+	limit := storage.GetPageSize(size)
 
 	var response []bigmapdiff.BigMapDiff
 	if err := storage.DB.

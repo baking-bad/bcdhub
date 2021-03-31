@@ -12,13 +12,17 @@ import (
 // Postgres -
 type Postgres struct {
 	DB *gorm.DB
+
+	PageSize int64
 }
 
 // NewPostgres -
-func NewPostgres(connection, appName string) (*Postgres, error) {
+func NewPostgres(connection, appName string, opts ...PostgresOption) (*Postgres, error) {
+	pg := Postgres{}
 	if appName != "" {
 		connection = fmt.Sprintf("%s application_name=%s", connection, appName)
 	}
+
 	db, err := gorm.Open(postgres.Open(connection), &gorm.Config{
 		Logger: newLogger(),
 	})
@@ -34,9 +38,13 @@ func NewPostgres(connection, appName string) (*Postgres, error) {
 		return nil, err
 	}
 
-	return &Postgres{
-		DB: db,
-	}, nil
+	pg.DB = db
+
+	for _, opt := range opts {
+		opt(&pg)
+	}
+
+	return &pg, nil
 }
 
 // Close -
