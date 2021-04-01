@@ -16,12 +16,12 @@ func main() {
 	}
 
 	ctx := config.NewContext(
-		config.WithStorage(cfg.Storage, 0),
+		config.WithStorage(cfg.Storage, "nginx", 0),
 		config.WithConfigCopy(cfg),
 	)
 	defer ctx.Close()
 
-	dapps, err := ctx.TZIP.GetDApps()
+	dapps, err := ctx.DApps.All()
 	if err != nil {
 		logger.Fatal(err)
 	}

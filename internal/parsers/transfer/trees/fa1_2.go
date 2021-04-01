@@ -30,7 +30,7 @@ func MakeFa1_2Transfers(tree ast.Node, operation operation.Operation) ([]*transf
 		return nil, err
 	}
 	i := toPair.Args[1].GetValue().(*types.BigInt)
-	t.AmountBigInt.Set(i.Int)
+	t.Value.Set(i.Int)
 	return []*transfer.Transfer{t}, nil
 }
 

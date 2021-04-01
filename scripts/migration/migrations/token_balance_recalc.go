@@ -8,8 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/transfer"
-	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
+	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/pkg/errors"
 )
 
@@ -59,7 +58,8 @@ func (m *TokenBalanceRecalc) Recalc(ctx *config.Context, network, address string
 	}
 
 	if !bcd.IsContract(address) {
-		return errors.Errorf("Invalid contract address: `%s`", address)
+		logger.Errorf("Invalid contract address: `%s`", address)
+		return nil
 	}
 
 	logger.Info("Removing token balance entities....")
@@ -67,32 +67,25 @@ func (m *TokenBalanceRecalc) Recalc(ctx *config.Context, network, address string
 		return err
 	}
 
-	logger.Info("Receiving transfers....")
-	updates := make([]*transfer.Transfer, 0)
+	balances, err := ctx.Transfers.CalcBalances(network, address)
+	if err != nil {
+		return err
+	}
+	logger.Info("Received %d balances", len(balances))
 
-	var lastID string
-	for {
-		transfers, err := ctx.Transfers.Get(transfer.GetContext{
-			Network:   network,
-			Contracts: []string{address},
-			LastID:    lastID,
-			TokenID:   -1,
+	updates := make([]models.Model, 0)
+	for _, balance := range balances {
+		updates = append(updates, &tokenbalance.TokenBalance{
+			Network:  network,
+			Address:  balance.Address,
+			Contract: address,
+			TokenID:  balance.TokenID,
+			Value:    balance.Balance,
 		})
-		if err != nil {
-			return err
-		}
-		if len(transfers.Transfers) == 0 {
-			break
-		}
-		for i := range transfers.Transfers {
-			updates = append(updates, &transfers.Transfers[i])
-		}
-		lastID = transfers.LastID
 	}
 
-	logger.Info("Received %d updates", len(updates))
 	logger.Info("Saving...")
-	return transferParsers.UpdateTokenBalances(ctx.TokenBalances, updates)
+	return ctx.Storage.Save(updates)
 }
 
 // DoBatch -

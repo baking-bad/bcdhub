@@ -1,15 +1,29 @@
 package search
 
 import (
+	"time"
+
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
 )
 
 // Domain -
-type Domain struct{}
+type Domain struct {
+	Name       string    `json:"name"`
+	Expiration time.Time `json:"expiration"`
+	Network    string    `json:"network"`
+	Address    string    `json:"address"`
+	Level      int64     `json:"level"`
+	Timestamp  time.Time `json:"timestamp"`
+}
+
+// GetID -
+func (d *Domain) GetID() string {
+	return d.Name
+}
 
 // GetIndex -
-func (d Domain) GetIndex() string {
+func (d *Domain) GetIndex() string {
 	return models.DocTezosDomains
 }
 
@@ -30,16 +44,30 @@ func (d Domain) GetFields() []string {
 }
 
 // Parse  -
-func (d Domain) Parse(highlight map[string][]string, data []byte) (interface{}, error) {
-	var domain tezosdomain.TezosDomain
-	if err := json.Unmarshal(data, &domain); err != nil {
+func (d Domain) Parse(highlight map[string][]string, data []byte) (*Item, error) {
+	if err := json.Unmarshal(data, &d); err != nil {
 		return nil, err
 	}
-	return models.Item{
+	return &Item{
 		Type:       d.GetIndex(),
-		Value:      domain.Address,
-		Body:       domain,
+		Value:      d.Address,
+		Body:       &d,
 		Highlights: highlight,
-		Network:    domain.Network,
+		Network:    d.Network,
 	}, nil
+}
+
+// Prepare -
+func (d *Domain) Prepare(model models.Model) {
+	td, ok := model.(*tezosdomain.TezosDomain)
+	if !ok {
+		return
+	}
+
+	d.Address = td.Address
+	d.Expiration = td.Expiration
+	d.Level = td.Level
+	d.Name = td.Name
+	d.Network = td.Network
+	d.Timestamp = td.Timestamp
 }

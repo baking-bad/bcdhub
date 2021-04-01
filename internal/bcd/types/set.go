@@ -42,6 +42,12 @@ func (s Set) Merge(m Set) {
 	}
 }
 
+// Has -
+func (s Set) Has(key string) bool {
+	_, ok := s[key]
+	return ok
+}
+
 // ArrayUniqueLen -
 func ArrayUniqueLen(arr []string) int {
 	buf := make(map[string]struct{})

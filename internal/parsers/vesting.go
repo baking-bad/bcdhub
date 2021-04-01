@@ -1,10 +1,7 @@
 package parsers
 
 import (
-	"time"
-
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -27,9 +24,6 @@ func NewVestingParser(filesDirectory string) *VestingParser {
 // Parse -
 func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, network, address string) ([]models.Model, error) {
 	migration := &migration.Migration{
-		ID:          helpers.GenerateID(),
-		IndexedTime: time.Now().UnixNano() / 1000,
-
 		Level:     head.Level,
 		Network:   network,
 		Protocol:  head.Protocol,
@@ -37,10 +31,8 @@ func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, ne
 		Timestamp: head.Timestamp,
 		Kind:      consts.MigrationBootstrap,
 	}
-	parsedModels := []models.Model{migration}
 
 	op := operation.Operation{
-		ID:          helpers.GenerateID(),
 		Network:     network,
 		Protocol:    head.Protocol,
 		Status:      consts.Applied,
@@ -52,7 +44,6 @@ func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, ne
 		Delegate:    data.Delegate.Value,
 		Level:       head.Level,
 		Timestamp:   head.Timestamp,
-		IndexedTime: time.Now().UnixNano() / 1000,
 		Script:      data.RawScript,
 	}
 
@@ -61,9 +52,12 @@ func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, ne
 	if err != nil {
 		return nil, err
 	}
+
+	parsedModels := []models.Model{}
 	if len(contractModels) > 0 {
 		parsedModels = append(parsedModels, contractModels...)
 	}
+	parsedModels = append(parsedModels, migration)
 
 	return parsedModels, nil
 }

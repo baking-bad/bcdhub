@@ -1,15 +1,13 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/gin-gonic/gin"
 )
 
@@ -45,21 +43,19 @@ func (ctx *Context) Search(c *gin.Context) {
 	}
 	filters := getSearchFilters(req)
 
-	result, err := ctx.Storage.SearchByText(req.Text, int64(req.Offset), fields, filters, req.Grouping != 0)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-	result, err = postProcessing(result)
+	result, err := ctx.Searcher.ByText(req.Text, int64(req.Offset), fields, filters, req.Grouping != 0)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	if result.Count == 0 {
-		item, err := ctx.searchInMempool(req.Text)
-		if err == nil {
+		item := ctx.searchInMempool(req.Text)
+		if item != nil {
 			result.Items = append(result.Items, item)
 			result.Count++
 		}
+	} else {
+		ctx.searchPostprocessing(&result)
 	}
 
 	c.JSON(http.StatusOK, result)
@@ -81,7 +77,14 @@ func getSearchFilters(req searchRequest) map[string]interface{} {
 	}
 
 	if req.Indices != "" {
-		filters["indices"] = strings.Split(req.Indices, ",")
+		indices := strings.Split(req.Indices, ",")
+		arr := make([]string, 0)
+		for i := range indices {
+			if val, ok := indicesMap[indices[i]]; ok {
+				arr = append(arr, val)
+			}
+		}
+		filters["indices"] = arr
 	}
 
 	if req.Languages != "" {
@@ -91,54 +94,47 @@ func getSearchFilters(req searchRequest) map[string]interface{} {
 	return filters
 }
 
-func postProcessing(result models.Result) (models.Result, error) {
-	for i := range result.Items {
-		if result.Items[i].Type != models.DocBigMapDiff {
-			continue
-		}
-
-		bmd := result.Items[i].Body.(bigmapdiff.BigMapDiff)
-
-		var data ast.UntypedAST
-		if err := json.Unmarshal(bmd.Key, &data); err != nil {
-			return result, err
-		}
-
-		key, err := data.Stringify()
-		if err != nil {
-			return result, err
-		}
-
-		result.Items[i].Body = SearchBigMapDiff{
-			Ptr:       bmd.Ptr,
-			Key:       key,
-			KeyHash:   bmd.KeyHash,
-			Value:     bmd.Value,
-			Level:     bmd.Level,
-			Address:   bmd.Address,
-			Network:   bmd.Network,
-			Timestamp: bmd.Timestamp,
-			FoundBy:   bmd.FoundBy,
-		}
-	}
-	return result, nil
+var indicesMap = map[string]string{
+	"contract":       models.DocContracts,
+	"operation":      models.DocOperations,
+	"bigmapdiff":     models.DocBigMapDiff,
+	"tzip":           models.DocTZIP,
+	"token_metadata": models.DocTokenMetadata,
+	"tezos_domain":   models.DocTezosDomains,
 }
 
-func (ctx *Context) searchInMempool(q string) (models.Item, error) {
+func (ctx *Context) searchInMempool(q string) *search.Item {
 	if _, err := forge.UnforgeOpgHash(q); err != nil {
-		return models.Item{}, err
+		return nil
 	}
 
 	if operation := ctx.getOperationFromMempool(q); operation != nil {
-		return models.Item{
+		return &search.Item{
 			Type:  models.DocOperations,
 			Value: operation.Hash,
 			Body:  operation,
 			Highlights: map[string][]string{
 				"hash": {operation.Hash},
 			},
-		}, nil
+		}
 	}
 
-	return models.Item{}, fmt.Errorf("Operation not found")
+	return nil
+}
+
+func (ctx *Context) searchPostprocessing(result *search.Result) {
+	for i := range result.Items {
+		cont, ok := result.Items[i].Body.(*search.Contract)
+		if !ok {
+			continue
+		}
+		enity, err := ctx.Contracts.Get(cont.Network, cont.Address)
+		if err != nil {
+			continue
+		}
+
+		ts := enity.LastAction.UTC()
+		cont.TxCount = &enity.TxCount
+		cont.LastAction = &ts
+	}
 }

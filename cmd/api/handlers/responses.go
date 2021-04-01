@@ -24,6 +24,7 @@ type Error struct {
 
 // Operation -
 type Operation struct {
+	ID                                 int64              `json:"id,omitempty" extensions:"x-nullable"`
 	Level                              int64              `json:"level,omitempty" extensions:"x-nullable"`
 	Fee                                int64              `json:"fee,omitempty" extensions:"x-nullable"`
 	Counter                            int64              `json:"counter,omitempty" extensions:"x-nullable"`
@@ -35,13 +36,14 @@ type Operation struct {
 	AllocatedDestinationContractBurned int64              `json:"allocated_destination_contract_burned,omitempty" extensions:"x-nullable"`
 	IndexedTime                        int64              `json:"-"`
 	ContentIndex                       int64              `json:"content_index"`
+	ConsumedGas                        int64              `json:"consumed_gas,omitempty" extensions:"x-nullable" example:"100"`
+	StorageSize                        int64              `json:"storage_size,omitempty" extensions:"x-nullable" example:"200"`
+	PaidStorageSizeDiff                int64              `json:"paid_storage_size_diff,omitempty" extensions:"x-nullable" example:"300"`
 	Errors                             []*tezerrors.Error `json:"errors,omitempty" extensions:"x-nullable"`
-	Result                             *OperationResult   `json:"result,omitempty" extensions:"x-nullable"`
 	Parameters                         interface{}        `json:"parameters,omitempty" extensions:"x-nullable"`
 	StorageDiff                        interface{}        `json:"storage_diff,omitempty" extensions:"x-nullable"`
 	RawMempool                         interface{}        `json:"rawMempool,omitempty" extensions:"x-nullable"`
 	Timestamp                          time.Time          `json:"timestamp"`
-	ID                                 string             `json:"id,omitempty" extensions:"x-nullable"`
 	Protocol                           string             `json:"protocol"`
 	Hash                               string             `json:"hash,omitempty" extensions:"x-nullable"`
 	Network                            string             `json:"network"`
@@ -55,6 +57,7 @@ type Operation struct {
 	Delegate                           string             `json:"delegate,omitempty" extensions:"x-nullable"`
 	Status                             string             `json:"status"`
 	Entrypoint                         string             `json:"entrypoint,omitempty" extensions:"x-nullable"`
+	AllocatedDestinationContract       bool               `json:"allocated_destination_contract,omitempty" extensions:"x-nullable" example:"true"`
 	Internal                           bool               `json:"internal"`
 	Mempool                            bool               `json:"mempool"`
 }
@@ -79,23 +82,20 @@ func (o *Operation) FromModel(operation operation.Operation) {
 	o.Amount = operation.Amount
 	o.Destination = operation.Destination
 	o.DestinationAlias = operation.DestinationAlias
-	o.PublicKey = operation.PublicKey
-	o.ManagerPubKey = operation.ManagerPubKey
 	o.Delegate = operation.Delegate
 	o.Status = operation.Status
 	o.Burned = operation.Burned
 	o.Entrypoint = operation.Entrypoint
-	o.IndexedTime = operation.IndexedTime
 	o.ContentIndex = operation.ContentIndex
 	o.AllocatedDestinationContractBurned = operation.AllocatedDestinationContractBurned
+	o.ConsumedGas = operation.ConsumedGas
+	o.StorageSize = operation.StorageSize
+	o.PaidStorageSizeDiff = operation.PaidStorageSizeDiff
+	o.AllocatedDestinationContract = operation.AllocatedDestinationContract
 }
 
 // ToModel -
 func (o *Operation) ToModel() operation.Operation {
-	var result *operation.Result
-	if o.Result != nil {
-		result = o.Result.ToModel()
-	}
 	return operation.Operation{
 		ID:        o.ID,
 		Protocol:  o.Protocol,
@@ -115,54 +115,20 @@ func (o *Operation) ToModel() operation.Operation {
 		Amount:           o.Amount,
 		Destination:      o.Destination,
 		DestinationAlias: o.DestinationAlias,
-		PublicKey:        o.PublicKey,
-		ManagerPubKey:    o.ManagerPubKey,
 		Delegate:         o.Delegate,
 		Status:           o.Status,
 		Burned:           o.Burned,
 		Entrypoint:       o.Entrypoint,
-		IndexedTime:      o.IndexedTime,
 
-		Result: result,
-	}
-}
-
-// OperationResult -
-type OperationResult struct {
-	ConsumedGas                  int64 `json:"consumed_gas,omitempty" extensions:"x-nullable" example:"100"`
-	StorageSize                  int64 `json:"storage_size,omitempty" extensions:"x-nullable" example:"200"`
-	PaidStorageSizeDiff          int64 `json:"paid_storage_size_diff,omitempty" extensions:"x-nullable" example:"300"`
-	AllocatedDestinationContract bool  `json:"allocated_destination_contract,omitempty" extensions:"x-nullable" example:"true"`
-}
-
-// FromModel -
-func (r *OperationResult) FromModel(result *operation.Result) {
-	if result == nil || r == nil {
-		return
-	}
-	r.AllocatedDestinationContract = result.AllocatedDestinationContract
-	r.ConsumedGas = result.ConsumedGas
-	r.PaidStorageSizeDiff = result.PaidStorageSizeDiff
-	r.StorageSize = result.StorageSize
-}
-
-// ToModel -
-func (r *OperationResult) ToModel() *operation.Result {
-	if r == nil {
-		return nil
-	}
-
-	return &operation.Result{
-		AllocatedDestinationContract: r.AllocatedDestinationContract,
-		ConsumedGas:                  r.ConsumedGas,
-		PaidStorageSizeDiff:          r.PaidStorageSizeDiff,
-		StorageSize:                  r.StorageSize,
+		AllocatedDestinationContract: o.AllocatedDestinationContract,
+		ConsumedGas:                  o.ConsumedGas,
+		StorageSize:                  o.StorageSize,
+		PaidStorageSizeDiff:          o.PaidStorageSizeDiff,
 	}
 }
 
 // Contract -
 type Contract struct {
-	ID        string    `json:"id"`
 	Network   string    `json:"network"`
 	Level     int64     `json:"level"`
 	Timestamp time.Time `json:"timestamp"`
@@ -201,15 +167,10 @@ type Contract struct {
 func (c *Contract) FromModel(contract contract.Contract) {
 	c.Address = contract.Address
 	c.Alias = contract.Alias
-	c.Annotations = contract.Annotations
 	c.Delegate = contract.Delegate
 	c.DelegateAlias = contract.DelegateAlias
 	c.Entrypoints = contract.Entrypoints
-	c.FailStrings = contract.FailStrings
-	c.FoundBy = contract.FoundBy
-	c.Hardcoded = contract.Hardcoded
 	c.Hash = contract.Hash
-	c.ID = contract.GetID()
 	c.Language = contract.Language
 	c.TxCount = contract.TxCount
 	c.LastAction = contract.LastAction
@@ -562,7 +523,7 @@ type Transfer struct {
 	Level          int64          `json:"level"`
 	From           string         `json:"from"`
 	To             string         `json:"to"`
-	TokenID        int64          `json:"token_id"`
+	TokenID        uint64         `json:"token_id"`
 	Amount         string         `json:"amount"`
 	Counter        int64          `json:"counter"`
 	Nonce          *int64         `json:"nonce,omitempty" extensions:"x-nullable"`
@@ -576,7 +537,7 @@ type Transfer struct {
 
 // TransferFromElasticModel -
 func TransferFromElasticModel(model transfer.Transfer) (t Transfer) {
-	t.IndexedTime = model.IndexedTime
+	t.IndexedTime = model.ID
 	t.Network = model.Network
 	t.Contract = model.Contract
 	t.Initiator = model.Initiator
@@ -587,7 +548,7 @@ func TransferFromElasticModel(model transfer.Transfer) (t Transfer) {
 	t.From = model.From
 	t.To = model.To
 	t.TokenID = model.TokenID
-	t.Amount = model.AmountStr
+	t.Amount = model.AmountString
 	t.Counter = model.Counter
 	t.Nonce = model.Nonce
 	t.Parent = model.Parent
@@ -685,7 +646,7 @@ type TokenMetadata struct {
 	Contract           string                 `json:"contract"`
 	Network            string                 `json:"network,omitempty"`
 	Level              int64                  `json:"level,omitempty" extensions:"x-nullable"`
-	TokenID            int64                  `json:"token_id"`
+	TokenID            uint64                 `json:"token_id"`
 	Symbol             string                 `json:"symbol,omitempty" extensions:"x-nullable"`
 	Name               string                 `json:"name,omitempty" extensions:"x-nullable"`
 	Decimals           *int64                 `json:"decimals,omitempty" extensions:"x-nullable"`
@@ -699,7 +660,7 @@ type TokenMetadata struct {
 	ShouldPreferSymbol bool                   `json:"should_prefer_symbol,omitempty" extensions:"x-nullable"`
 	Creators           []string               `json:"creators,omitempty"`
 	Tags               []string               `json:"tags,omitempty"`
-	Formats            []interface{}          `json:"formats,omitempty"`
+	Formats            stdJSON.RawMessage     `json:"formats,omitempty"`
 	TokenInfo          map[string]interface{} `json:"token_info,omitempty" extensions:"x-nullable"`
 	Volume24Hours      *float64               `json:"volume_24_hours,omitempty" extensions:"x-nullable"`
 }
@@ -723,7 +684,7 @@ func TokenMetadataFromElasticModel(model tokenmetadata.TokenMetadata, withTokenI
 	tm.ShouldPreferSymbol = model.ShouldPreferSymbol
 	tm.Creators = model.Creators
 	tm.Tags = model.Tags
-	tm.Formats = model.Formats
+	tm.Formats = stdJSON.RawMessage(model.Formats)
 
 	if withTokenInfo {
 		tm.TokenInfo = model.Extras
@@ -765,11 +726,11 @@ type ForkResponse struct {
 
 // TZIPResponse -
 type TZIPResponse struct {
-	Address string                          `json:"address,omitempty"`
-	Network string                          `json:"network,omitempty"`
-	Domain  *tezosdomain.ReverseTezosDomain `json:"domain,omitempty"`
-	Extras  map[string]interface{}          `json:"extras,omitempty"`
-	Name    string                          `json:"name,omitempty"`
+	Address    string                 `json:"address,omitempty"`
+	Network    string                 `json:"network,omitempty"`
+	DomainName string                 `json:"domain,omitempty"`
+	Extras     map[string]interface{} `json:"extras,omitempty"`
+	Name       string                 `json:"name,omitempty"`
 	tzip.TZIP16
 	tzip.TZIP20
 }
@@ -783,7 +744,5 @@ type HeadResponse struct {
 	Total           int64     `json:"total"`
 	ContractCalls   int64     `json:"contract_calls"`
 	UniqueContracts int64     `json:"unique_contracts"`
-	TotalBalance    int64     `json:"total_balance"`
-	TotalWithdrawn  int64     `json:"total_withdrawn"`
 	FACount         int64     `json:"fa_count"`
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -52,7 +53,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 				}
 				logger.Info("%s...", tzips[i].Address)
 
-				protocol, err := ctx.Protocols.GetProtocol(tzips[i].Network, "", -1)
+				protocol, err := ctx.Protocols.Get(tzips[i].Network, "", -1)
 				if err != nil {
 					return err
 				}
@@ -70,7 +71,16 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 					continue
 				}
 
+				script, err := fetch.Contract(tzips[i].Address, tzips[i].Network, protocol.Hash, ctx.SharePath)
+				if err != nil {
+					return err
+				}
+
 				for _, op := range operations {
+					op.Script = script
+					if err := op.InitScript(); err != nil {
+						return err
+					}
 					st := stacktrace.New()
 					if err := st.Fill(ctx.Operations, op); err != nil {
 						return err
@@ -86,7 +96,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 						return err
 					}
 
-					bmd, err := ctx.BigMapDiffs.GetByOperationID(op.ID)
+					bmd, err := ctx.BigMapDiffs.GetForOperation(op.Hash, op.Counter, op.Nonce)
 					if err != nil {
 						if !ctx.Storage.IsRecordNotFound(err) {
 							return err
@@ -110,7 +120,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 							Network: t.Network,
 							Counter: &t.Counter,
 							Nonce:   t.Nonce,
-							TokenID: t.TokenID,
+							TokenID: &t.TokenID,
 						})
 						if err != nil {
 							return err
@@ -133,10 +143,13 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 	}
 
 	logger.Info("Found %d transfers", len(inserted))
-	if err := ctx.Storage.BulkInsert(inserted); err != nil {
-		return err
+
+	bu := transferParsers.UpdateTokenBalances(newTransfers)
+	for i := range bu {
+		inserted = append(inserted, bu[i])
 	}
-	return transferParsers.UpdateTokenBalances(ctx.TokenBalances, newTransfers)
+
+	return ctx.Storage.Save(inserted)
 }
 
 func (m *ExtendedStorageEvents) getOperations(ctx *config.Context, tzip tzip.TZIP, impl tzip.EventImplementation) ([]operation.Operation, error) {

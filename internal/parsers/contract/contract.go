@@ -66,12 +66,13 @@ func (p *Parser) Parse(operation *operation.Operation) ([]models.Model, error) {
 func (p *Parser) computeMetrics(operation *operation.Operation, c *contract.Contract) error {
 	script, err := astContract.NewParser(operation.Script)
 	if err != nil {
-		return errors.Errorf("ast.NewScript: %v", err)
+		return errors.Errorf("astContract.NewParser: %v", err)
 	}
 	if err := script.Parse(); err != nil {
 		return err
 	}
 	operation.Script = script.CodeRaw
+	operation.AST = script.Code
 
 	c.Language = script.Language
 	c.Hash = script.Hash
@@ -79,10 +80,9 @@ func (p *Parser) computeMetrics(operation *operation.Operation, c *contract.Cont
 	c.Annotations = script.Annotations.Values()
 	c.Tags = script.Tags.Values()
 	c.Hardcoded = script.HardcodedAddresses.Values()
-	c.Fingerprint = new(contract.Fingerprint)
-	c.Fingerprint.Code = script.Fingerprint.Code
-	c.Fingerprint.Parameter = script.Fingerprint.Parameter
-	c.Fingerprint.Storage = script.Fingerprint.Storage
+	c.FingerprintCode = script.Fingerprint.Code
+	c.FingerprintParameter = script.Fingerprint.Parameter
+	c.FingerprintStorage = script.Fingerprint.Storage
 
 	params, err := script.Code.Parameter.ToTypedAST()
 	if err != nil {

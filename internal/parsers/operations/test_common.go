@@ -3,6 +3,7 @@ package operations
 import (
 	"fmt"
 	"io/ioutil"
+	"math/big"
 	"reflect"
 	"testing"
 
@@ -13,9 +14,15 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/stretchr/testify/assert"
 )
+
+func newBigInt(val string) *big.Int {
+	i, _ := new(big.Int).SetString(val, 10)
+	return i
+}
 
 func readJSONFile(name string, response interface{}) error {
 	bytes, err := ioutil.ReadFile(name)
@@ -25,12 +32,14 @@ func readJSONFile(name string, response interface{}) error {
 	return json.Unmarshal(bytes, response)
 }
 
-func readTestContractModel(contract *contract.Contract) error {
-	bytes, err := ioutil.ReadFile(fmt.Sprintf("./data/models/contract/%s.json", contract.Address))
+func readTestContractModel(network, address string) (contract.Contract, error) {
+	var c contract.Contract
+	bytes, err := ioutil.ReadFile(fmt.Sprintf("./data/models/contract/%s.json", address))
 	if err != nil {
-		return err
+		return c, err
 	}
-	return json.Unmarshal(bytes, &contract)
+	err = json.Unmarshal(bytes, &c)
+	return c, err
 }
 
 func readStorage(address string, level int64) ([]byte, error) {
@@ -88,6 +97,22 @@ func compareParserResponse(t *testing.T, got, want []models.Model) bool {
 			if !compareContract(one, two) {
 				return false
 			}
+		case *bigmapdiff.BigMapState:
+			two, ok := want[i].(*bigmapdiff.BigMapState)
+			if !ok {
+				return false
+			}
+			if !reflect.DeepEqual(one, two) {
+				return false
+			}
+		case *tokenbalance.TokenBalance:
+			two, ok := want[i].(*tokenbalance.TokenBalance)
+			if !ok {
+				return false
+			}
+			if !reflect.DeepEqual(one, two) {
+				return false
+			}
 		default:
 			logger.Info("Unknown type: %T", one)
 			return false
@@ -138,8 +163,8 @@ func compareTransfers(one, two *transfer.Transfer) bool {
 		logger.Info("TokenID: %d != %d", one.TokenID, two.TokenID)
 		return false
 	}
-	if one.AmountBigInt.Cmp(two.AmountBigInt) != 0 {
-		logger.Info("Amount: %v != %v", one.AmountBigInt, two.AmountBigInt)
+	if one.Value.Cmp(two.Value) != 0 {
+		logger.Info("Amount: %s != %s", one.Value.String(), two.Value.String())
 		return false
 	}
 	if one.Counter != two.Counter {
@@ -234,14 +259,6 @@ func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 		logger.Info("Destination: %s != %s", one.Destination, two.Destination)
 		return false
 	}
-	if one.PublicKey != two.PublicKey {
-		logger.Info("PublicKey: %s != %s", one.PublicKey, two.PublicKey)
-		return false
-	}
-	if one.ManagerPubKey != two.ManagerPubKey {
-		logger.Info("ManagerPubKey: %s != %s", one.ManagerPubKey, two.ManagerPubKey)
-		return false
-	}
 	if one.Delegate != two.Delegate {
 		logger.Info("Delegate: %s != %s", one.Delegate, two.Delegate)
 		return false
@@ -262,13 +279,17 @@ func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 		logger.Info("DelegateAlias: %s != %s", one.DelegateAlias, two.DelegateAlias)
 		return false
 	}
-	if !compareJSON(t, one.Parameters, two.Parameters) {
-		logger.Info("Parameters: %s != %s", one.Parameters, two.Parameters)
-		return false
+	if len(one.Parameters) > 0 && len(two.Parameters) > 0 {
+		if !assert.JSONEq(t, string(one.Parameters), string(two.Parameters)) {
+			logger.Info("Parameters: %s != %s", one.Parameters, two.Parameters)
+			return false
+		}
 	}
-	if !compareJSON(t, one.DeffatedStorage, two.DeffatedStorage) {
-		logger.Info("DeffatedStorage: %s != %s", one.DeffatedStorage, two.DeffatedStorage)
-		return false
+	if len(one.DeffatedStorage) > 0 && len(two.DeffatedStorage) > 0 {
+		if !assert.JSONEq(t, string(one.DeffatedStorage), string(two.DeffatedStorage)) {
+			logger.Info("DeffatedStorage: %s != %s", one.DeffatedStorage, two.DeffatedStorage)
+			return false
+		}
 	}
 	if len(one.Tags) == len(two.Tags) && len(one.Tags) > 0 {
 		if !reflect.DeepEqual(one.Tags, two.Tags) {
@@ -280,8 +301,8 @@ func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 }
 
 func compareBigMapDiff(t *testing.T, one, two *bigmapdiff.BigMapDiff) bool {
-	if one.Address != two.Address {
-		logger.Info("BigMapDiff.Address: %s != %s", one.Address, two.Address)
+	if one.Contract != two.Contract {
+		logger.Info("BigMapDiff.Address: %s != %s", one.Contract, two.Contract)
 		return false
 	}
 	if one.KeyHash != two.KeyHash {
@@ -380,30 +401,11 @@ func compareContract(one, two *contract.Contract) bool {
 		logger.Info("Contract.Tags: %v != %v", one.Tags, two.Tags)
 		return false
 	}
-	if !compareStringArray(one.Hardcoded, two.Hardcoded) {
-		logger.Info("Contract.Hardcoded: %v != %v", one.Hardcoded, two.Hardcoded)
-		return false
-	}
-	if !compareStringArray(one.FailStrings, two.FailStrings) {
-		logger.Info("Contract.FailStrings: %v != %v", one.FailStrings, two.FailStrings)
-		return false
-	}
-	if !compareStringArray(one.Annotations, two.Annotations) {
-		logger.Info("Contract.Annotations: %v != %v", one.Annotations, two.Annotations)
-		return false
-	}
 	if !compareStringArray(one.Entrypoints, two.Entrypoints) {
 		logger.Info("Contract.Entrypoints: %v != %v", one.Entrypoints, two.Entrypoints)
 		return false
 	}
 	return true
-}
-
-func compareJSON(t *testing.T, one, two string) bool {
-	if one == "" {
-		return one == two
-	}
-	return assert.JSONEq(t, one, two)
 }
 
 func compareInt64Ptr(one, two *int64) bool {

@@ -1,6 +1,8 @@
 package models
 
-import "fmt"
+import (
+	"time"
+)
 
 // SubscriptionRequest -
 type SubscriptionRequest struct {
@@ -32,65 +34,23 @@ const (
 
 // Event -
 type Event struct {
-	Type    string      `json:"type"`
-	Address string      `json:"address"`
-	Network string      `json:"network"`
-	Alias   string      `json:"alias"`
-	Body    interface{} `json:"body,omitempty"`
+	Type      string      `json:"type"`
+	Address   string      `json:"address"`
+	Network   string      `json:"network"`
+	Alias     string      `json:"alias"`
+	Timestamp time.Time   `json:"-"`
+	Body      interface{} `json:"body,omitempty"`
 }
 
-// Repository -
-type Repository struct {
-	ID   string `json:"id"`
-	Type string `json:"type"`
-}
+// ByTimestamp - sorting events by timestamp
+type ByTimestamp []Event
 
-// String -
-func (repo Repository) String() string {
-	return fmt.Sprintf("%s (type: %s)", repo.ID, repo.Type)
-}
+func (a ByTimestamp) Len() int           { return len(a) }
+func (a ByTimestamp) Less(i, j int) bool { return a[i].Timestamp.Before(a[j].Timestamp) }
+func (a ByTimestamp) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 
 // ContractCountStats -
 type ContractCountStats struct {
 	Total     int64
 	SameCount int64
-	Balance   int64
-}
-
-// Result -
-type Result struct {
-	Count int64  `json:"count"`
-	Time  int64  `json:"time"`
-	Items []Item `json:"items"`
-}
-
-// Item -
-type Item struct {
-	Type       string              `json:"type"`
-	Value      string              `json:"value"`
-	Group      *Group              `json:"group,omitempty"`
-	Body       interface{}         `json:"body"`
-	Highlights map[string][]string `json:"highlights,omitempty"`
-
-	Network string `json:"-"`
-}
-
-// Group -
-type Group struct {
-	Count int64 `json:"count"`
-	Top   []Top `json:"top"`
-}
-
-// NewGroup -
-func NewGroup(docCount int64) *Group {
-	return &Group{
-		Count: docCount,
-		Top:   make([]Top, 0),
-	}
-}
-
-// Top -
-type Top struct {
-	Network string `json:"network"`
-	Key     string `json:"key"`
 }

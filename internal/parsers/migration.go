@@ -4,10 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/contract"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	modelsContract "github.com/baking-bad/bcdhub/internal/models/contract"
@@ -15,6 +13,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	contractParser "github.com/baking-bad/bcdhub/internal/parsers/contract"
+	"gorm.io/gorm"
 )
 
 // MigrationParser -
@@ -34,25 +33,21 @@ func NewMigrationParser(storage models.GeneralRepository, bmdRepo bigmapdiff.Rep
 }
 
 // Parse -
-func (p *MigrationParser) Parse(script noderpc.Script, old modelsContract.Contract, previous, next protocol.Protocol, timestamp time.Time) ([]models.Model, []models.Model, error) {
-	var updates []models.Model
-
+func (p *MigrationParser) Parse(script noderpc.Script, old modelsContract.Contract, previous, next protocol.Protocol, timestamp time.Time, tx *gorm.DB) error {
 	if previous.SymLink == consts.MetadataAlpha {
-		newUpdates, err := p.getUpdates(script, old)
-		if err != nil {
-			return nil, nil, err
+		if err := p.getUpdates(script, old, tx); err != nil {
+			return err
 		}
-		updates = newUpdates
 	}
 
 	codeBytes, err := json.Marshal(script.Code)
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
 
 	newHash, err := contract.ComputeHash(codeBytes)
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
 
 	if err := p.scriptSaver.Save(codeBytes, contractParser.ScriptSaveContext{
@@ -61,17 +56,14 @@ func (p *MigrationParser) Parse(script noderpc.Script, old modelsContract.Contra
 		Network: old.Network,
 		SymLink: next.SymLink,
 	}); err != nil {
-		return nil, nil, err
+		return err
 	}
 
 	if newHash == old.Hash {
-		return nil, updates, nil
+		return nil
 	}
 
-	migration := migration.Migration{
-		ID:          helpers.GenerateID(),
-		IndexedTime: time.Now().UnixNano() / 1000,
-
+	m := &migration.Migration{
 		Network:      old.Network,
 		Level:        previous.EndLevel,
 		Protocol:     next.Hash,
@@ -81,22 +73,18 @@ func (p *MigrationParser) Parse(script noderpc.Script, old modelsContract.Contra
 		Kind:         consts.MigrationUpdate,
 	}
 
-	return []models.Model{&migration}, updates, nil
+	return m.Save(tx)
 }
 
-func (p *MigrationParser) getUpdates(script noderpc.Script, contract modelsContract.Contract) ([]models.Model, error) {
-	storageType, err := json.Marshal(script.Code.Storage)
+func (p *MigrationParser) getUpdates(script noderpc.Script, contract modelsContract.Contract, tx *gorm.DB) error {
+	storage, err := script.GetSettledStorage()
 	if err != nil {
-		return nil, err
-	}
-	storage, err := ast.NewSettledTypedAst(string(storageType), string(script.Storage))
-	if err != nil {
-		return nil, err
+		return err
 	}
 
 	ptrs := storage.FindBigMapByPtr()
 	if len(ptrs) != 1 {
-		return nil, nil
+		return nil
 	}
 	var newPtr int64
 	for p := range ptrs {
@@ -105,16 +93,37 @@ func (p *MigrationParser) getUpdates(script noderpc.Script, contract modelsContr
 
 	bmd, err := p.bmdRepo.GetByAddress(contract.Network, contract.Address)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if len(bmd) == 0 {
-		return nil, nil
+		return nil
 	}
 
-	updates := make([]models.Model, len(bmd))
 	for i := range bmd {
 		bmd[i].Ptr = newPtr
-		updates[i] = &bmd[i]
+		if err := bmd[i].Save(tx); err != nil {
+			return err
+		}
 	}
-	return updates, nil
+
+	keys, err := p.bmdRepo.CurrentByContract(contract.Network, contract.Address)
+	if err != nil {
+		return err
+	}
+	if len(keys) == 0 {
+		return nil
+	}
+
+	for i := range keys {
+		if err := tx.Delete(&keys[i]).Error; err != nil {
+			return err
+		}
+
+		keys[i].Ptr = newPtr
+		if err := keys[i].Save(tx); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

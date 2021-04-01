@@ -1,0 +1,43 @@
+{
+    "mappings": {
+        "properties": {
+            "address": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "level": {
+                "type": "long"
+            },
+            "network": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "slug": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                    }
+                }
+            },
+            "extras":{
+                "type": "object",
+                "enabled": false
+            },
+            "timestamp": {
+                "type": "date"
+            }
+        }
+    }
+}

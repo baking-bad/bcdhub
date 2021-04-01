@@ -1,7 +1,6 @@
 package metrics
 
 import (
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 
@@ -9,54 +8,35 @@ import (
 	clmetrics "github.com/baking-bad/bcdhub/internal/classification/metrics"
 )
 
-// SetContractAlias -
-func (h *Handler) SetContractAlias(c *contract.Contract, aliases map[string]string) (bool, error) {
-	var changed bool
-
-	if c.Network != consts.Mainnet || len(aliases) == 0 {
-		return false, nil
-	}
-
-	if c.Alias != "" && (c.Delegate != "" || c.DelegateAlias != "") {
-		return false, nil
-	}
-
-	if alias, ok := aliases[c.Address]; ok && c.Alias == "" {
-		c.Alias = alias
-		changed = true
-	}
-
-	if alias, ok := aliases[c.Delegate]; c.Delegate != "" && c.DelegateAlias == "" && ok {
-		c.DelegateAlias = alias
-		changed = true
-	}
-
-	return changed, nil
-}
-
-// UpdateContractStats -
-func (h *Handler) UpdateContractStats(c *contract.Contract) error {
-	count, err := h.Migrations.Count(c.Network, c.Address)
-	if err != nil {
-		return err
-	}
-	c.MigrationsCount = count
-	return nil
-}
-
 // SetContractProjectID -
-func (h *Handler) SetContractProjectID(c *contract.Contract) error {
-	buckets, err := h.Contracts.GetProjectsLastContract(c)
-	if err != nil {
-		if h.Storage.IsRecordNotFound(err) {
-			c.ProjectID = helpers.GenerateID()
-			return nil
+func (h *Handler) SetContractProjectID(c *contract.Contract, chunk []contract.Contract) error {
+	var offset int64
+
+	size := int64(25)
+
+	var end bool
+	for !end {
+		buckets, err := h.Contracts.GetProjectsLastContract(*c, size, offset)
+		if err != nil {
+			return err
 		}
-		return err
+		end = len(buckets) < int(size)
+
+		if !end {
+			c.ProjectID = getContractProjectID(*c, buckets)
+			if c.ProjectID != "" {
+				return nil
+			}
+		}
+
+		offset += size
 	}
 
-	c.ProjectID = getContractProjectID(*c, buckets)
-
+	c.ProjectID = getContractProjectID(*c, chunk)
+	if c.ProjectID != "" {
+		return nil
+	}
+	c.ProjectID = helpers.GenerateID()
 	return nil
 }
 

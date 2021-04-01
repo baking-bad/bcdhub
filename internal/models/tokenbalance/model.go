@@ -1,34 +1,64 @@
 package tokenbalance
 
 import (
-	"fmt"
 	"math/big"
 
-	jsoniter "github.com/json-iterator/go"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
-
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // TokenBalance -
 type TokenBalance struct {
-	Network  string `json:"network"`
-	Address  string `json:"address"`
-	Contract string `json:"contract"`
-	TokenID  int64  `json:"token_id"`
-	Balance  string `json:"balance"`
+	ID            int64   `json:"-" gorm:"autoIncrement:true"`
+	Network       string  `json:"network" gorm:"not null;primaryKey"`
+	Address       string  `json:"address" gorm:"not null;primaryKey"`
+	Contract      string  `json:"contract" gorm:"not null;primaryKey"`
+	TokenID       uint64  `json:"token_id" gorm:"type:numeric(50,0);default:0;primaryKey;autoIncrement:false"`
+	Balance       float64 `json:"balance" gorm:"type:numeric(100,0);default:0"`
+	BalanceString string  `json:"balance_string"`
 
-	Value *big.Int `json:"-"`
+	IsLedger bool     `json:"-" gorm:"-"`
+	Value    *big.Int `json:"-" gorm:"-"`
 }
 
 // GetID -
-func (tb *TokenBalance) GetID() string {
-	return fmt.Sprintf("%s_%s_%s_%d", tb.Network, tb.Address, tb.Contract, tb.TokenID)
+func (tb *TokenBalance) GetID() int64 {
+	return tb.ID
 }
 
 // GetIndex -
 func (tb *TokenBalance) GetIndex() string {
-	return "token_balance"
+	return "token_balances"
+}
+
+// Constraint -
+func (tb *TokenBalance) Save(tx *gorm.DB) error {
+	var s clause.Set
+
+	f, _ := new(big.Float).SetInt(tb.Value).Float64()
+	if tb.IsLedger {
+		s = clause.Assignments(map[string]interface{}{
+			"balance":        f,
+			"balance_string": tb.Value.String(),
+		})
+	} else {
+		s = clause.Assignments(map[string]interface{}{
+			"balance":        gorm.Expr("token_balances.balance + ?", f),
+			"balance_string": gorm.Expr("(token_balances.balance + ?)::text", f),
+		})
+	}
+
+	return tx.Clauses(clause.OnConflict{
+		Columns: []clause.Column{
+			{Name: "network"},
+			{Name: "contract"},
+			{Name: "address"},
+			{Name: "token_id"},
+		},
+		DoUpdates: s,
+	}).Save(tb).Error
 }
 
 // GetQueues -
@@ -48,35 +78,41 @@ func (tb *TokenBalance) LogFields() logrus.Fields {
 		"address":  tb.Address,
 		"contract": tb.Contract,
 		"token_id": tb.TokenID,
-		"balance":  tb.Value.String(),
 	}
 }
 
-// Sum -
-func (tb *TokenBalance) Sum(delta *TokenBalance) {
-	tb.Value.Add(tb.Value, delta.Value)
+// AfterFind -
+func (tb *TokenBalance) AfterFind(tx *gorm.DB) (err error) {
+	return tb.unmarshal()
 }
 
-// UnmarshalJSON -
-func (tb *TokenBalance) UnmarshalJSON(data []byte) error {
-	type buf TokenBalance
-	if err := json.Unmarshal(data, (*buf)(tb)); err != nil {
-		return err
-	}
-	tb.Value = big.NewInt(0)
+// BeforeCreate -
+func (tb *TokenBalance) BeforeCreate(tx *gorm.DB) (err error) {
+	return tb.marshal()
+}
 
-	if _, ok := tb.Value.SetString(tb.Balance, 10); !ok {
-		return fmt.Errorf("Can't set balance value: %s", tb.Balance)
+// BeforeUpdate -
+func (tb *TokenBalance) BeforeUpdate(tx *gorm.DB) (err error) {
+	return tb.marshal()
+}
+
+func (tb *TokenBalance) marshal() error {
+	if tb.Value == nil {
+		return errors.New("Nil amount in transfer")
 	}
+	tb.BalanceString = tb.Value.String()
+	tb.Balance, _ = new(big.Float).SetInt(tb.Value).Float64()
 	return nil
 }
 
-// MarshalJSON -
-func (tb *TokenBalance) MarshalJSON() ([]byte, error) {
+func (tb *TokenBalance) unmarshal() error {
 	if tb.Value == nil {
-		return nil, fmt.Errorf("Nil balance value")
+		tb.Value = big.NewInt(0)
 	}
-	tb.Balance = tb.Value.String()
-	type buf TokenBalance
-	return json.Marshal((*buf)(tb))
+
+	if _, ok := tb.Value.SetString(tb.BalanceString, 10); !ok {
+		return errors.Errorf("Invalid amount in transfer: %s", tb.BalanceString)
+	}
+
+	return nil
 }

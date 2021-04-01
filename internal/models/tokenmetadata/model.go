@@ -1,34 +1,38 @@
 package tokenmetadata
 
 import (
-	"fmt"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // TokenMetadata -
 type TokenMetadata struct {
-	Network            string                 `json:"network"`
-	Contract           string                 `json:"contract"`
-	Level              int64                  `json:"level"`
-	Timestamp          time.Time              `json:"timestamp"`
-	TokenID            int64                  `json:"token_id"`
-	Symbol             string                 `json:"symbol"`
-	Name               string                 `json:"name"`
-	Decimals           *int64                 `json:"decimals,omitempty"`
-	Description        string                 `json:"description,omitempty"`
-	ArtifactURI        string                 `json:"artifact_uri,omitempty"`
-	DisplayURI         string                 `json:"display_uri,omitempty"`
-	ThumbnailURI       string                 `json:"thumbnail_uri,omitempty"`
-	ExternalURI        string                 `json:"external_uri,omitempty"`
-	IsTransferable     bool                   `json:"is_transferable"`
-	IsBooleanAmount    bool                   `json:"is_boolean_amount"`
-	ShouldPreferSymbol bool                   `json:"should_prefer_symbol"`
-	Tags               []string               `json:"tags,omitempty"`
-	Creators           []string               `json:"creators,omitempty"`
-	Formats            []interface{}          `json:"formats,omitempty"`
-	Extras             map[string]interface{} `json:"extras"`
+	ID                 int64          `json:"-"`
+	Network            string         `json:"network"`
+	Contract           string         `json:"contract"`
+	Level              int64          `json:"level"`
+	Timestamp          time.Time      `json:"timestamp"`
+	TokenID            uint64         `json:"token_id" gorm:"type:numeric(50,0)"`
+	Symbol             string         `json:"symbol"`
+	Name               string         `json:"name"`
+	Decimals           *int64         `json:"decimals,omitempty"`
+	Description        string         `json:"description,omitempty"`
+	ArtifactURI        string         `json:"artifact_uri,omitempty"`
+	DisplayURI         string         `json:"display_uri,omitempty"`
+	ThumbnailURI       string         `json:"thumbnail_uri,omitempty"`
+	ExternalURI        string         `json:"external_uri,omitempty"`
+	IsTransferable     bool           `json:"is_transferable"`
+	IsBooleanAmount    bool           `json:"is_boolean_amount"`
+	ShouldPreferSymbol bool           `json:"should_prefer_symbol"`
+	Tags               pq.StringArray `json:"tags,omitempty" gorm:"type:text[]"`
+	Creators           pq.StringArray `json:"creators,omitempty" gorm:"type:text[]"`
+	Formats            types.Bytes    `json:"formats,omitempty" gorm:"type:bytes"`
+	Extras             types.JSONB    `json:"extras" gorm:"type:jsonb"`
 }
 
 // ByName - TokenMetadata sorting filter by Name field
@@ -54,13 +58,20 @@ func (tm ByTokenID) Swap(i, j int)      { tm[i], tm[j] = tm[j], tm[i] }
 func (tm ByTokenID) Less(i, j int) bool { return tm[i].TokenID < tm[j].TokenID }
 
 // GetID -
-func (t *TokenMetadata) GetID() string {
-	return fmt.Sprintf("%s_%s_%d", t.Network, t.Contract, t.TokenID)
+func (t *TokenMetadata) GetID() int64 {
+	return t.ID
 }
 
 // GetIndex -
 func (t *TokenMetadata) GetIndex() string {
 	return "token_metadata"
+}
+
+// Save -
+func (t *TokenMetadata) Save(tx *gorm.DB) error {
+	return tx.Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Save(t).Error
 }
 
 // GetQueues -

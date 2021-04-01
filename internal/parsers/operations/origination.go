@@ -1,10 +1,7 @@
 package operations
 
 import (
-	"time"
-
 	"github.com/baking-bad/bcdhub/internal/bcd"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -23,41 +20,33 @@ func NewOrigination(params *ParseParams) Origination {
 // Parse -
 func (p Origination) Parse(data noderpc.Operation) ([]models.Model, error) {
 	origination := operation.Operation{
-		ID:            helpers.GenerateID(),
-		Network:       p.network,
-		Hash:          p.hash,
-		Protocol:      p.head.Protocol,
-		Level:         p.head.Level,
-		Timestamp:     p.head.Timestamp,
-		Kind:          data.Kind,
-		Initiator:     data.Source,
-		Source:        data.Source,
-		Fee:           data.Fee,
-		Counter:       data.Counter,
-		GasLimit:      data.GasLimit,
-		StorageLimit:  data.StorageLimit,
-		Amount:        *data.Balance,
-		PublicKey:     data.PublicKey,
-		ManagerPubKey: data.ManagerPubKey,
-		Delegate:      data.Delegate,
-		Parameters:    string(data.Parameters),
-		Nonce:         data.Nonce,
-		IndexedTime:   time.Now().UnixNano() / 1000,
-		ContentIndex:  p.contentIdx,
-		Script:        data.Script,
+		Network:      p.network,
+		Hash:         p.hash,
+		Protocol:     p.head.Protocol,
+		Level:        p.head.Level,
+		Timestamp:    p.head.Timestamp,
+		Kind:         data.Kind,
+		Initiator:    data.Source,
+		Source:       data.Source,
+		Fee:          data.Fee,
+		Counter:      data.Counter,
+		GasLimit:     data.GasLimit,
+		StorageLimit: data.StorageLimit,
+		Amount:       *data.Balance,
+		Delegate:     data.Delegate,
+		Parameters:   data.Parameters,
+		Nonce:        data.Nonce,
+		ContentIndex: p.contentIdx,
+		Script:       data.Script,
 	}
 
 	p.fillInternal(&origination)
 
-	result := parseOperationResult(&data)
-	origination.Result = result
-	origination.Status = origination.Result.Status
-	origination.Errors = origination.Result.Errors
-	origination.Destination = result.Originated
+	parseOperationResult(data, &origination)
 
 	origination.SetBurned(p.constants)
 
-	originationModels := []models.Model{&origination}
+	originationModels := []models.Model{}
 
 	if origination.IsApplied() {
 		appliedModels, err := p.appliedHandler(data, &origination)
@@ -67,11 +56,12 @@ func (p Origination) Parse(data noderpc.Operation) ([]models.Model, error) {
 		originationModels = append(originationModels, appliedModels...)
 	}
 
-	if err := setTags(p.Storage, &origination); err != nil {
+	if err := setTags(p.Contracts, p.Storage, &origination); err != nil {
 		return nil, err
 	}
 
 	p.stackTrace.Add(origination)
+	originationModels = append(originationModels, &origination)
 	return originationModels, nil
 }
 

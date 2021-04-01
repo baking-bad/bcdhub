@@ -117,6 +117,12 @@ func (t *TzKT) GetProtocols() ([]Protocol, error) {
 			StartLevel: protocols[i].StartLevel,
 			LastLevel:  protocols[i].LastLevel,
 			Alias:      protocols[i].Metadata.Alias,
+			Constants: Constants{
+				CostPerByte:                  protocols[i].Constants.CostPerByte,
+				HardGasLimitPerOperation:     protocols[i].Constants.HardGasLimitPerOperation,
+				HardStorageLimitPerOperation: protocols[i].Constants.HardStorageLimitPerOperation,
+				TimeBetweenBlocks:            protocols[i].Constants.TimeBetweenBlocks,
+			},
 		}
 	}
 	return res, nil

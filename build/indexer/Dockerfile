@@ -31,7 +31,7 @@ WORKDIR /app/indexer
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /go/bin/indexer /go/bin/indexer
-COPY cmd/indexer/mappings /app/indexer/mappings
+COPY cmd/indexer/triggers /app/indexer/triggers
 COPY configs/*.yml /app/indexer/
 
 ENTRYPOINT ["/go/bin/indexer"]

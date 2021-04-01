@@ -76,3 +76,15 @@ func MinInt(a, b int) int {
 	}
 	return a
 }
+
+// IsInt64PointersEqual -
+func IsInt64PointersEqual(a, b *int64) bool {
+	switch {
+	case a == nil && b == nil:
+		return true
+	case a != nil && b != nil:
+		return *a == *b
+	default:
+		return false
+	}
+}

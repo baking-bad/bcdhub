@@ -17,17 +17,13 @@ var migrationsList = []migrations.Migration{
 	&migrations.BigRussianBoss{},
 	&migrations.GetAliases{},
 	&migrations.SetAliases{},
-	&migrations.RecalcContractMetrics{},
-	&migrations.SetOperationTags{},
 	&migrations.CreateTransfersTags{},
-	&migrations.SetProtocolConstants{},
 	&migrations.CreateTZIP{},
 	&migrations.FillTZIP{},
 	&migrations.InitialStorageEvents{},
 	&migrations.ExtendedStorageEvents{},
 	&migrations.ParameterEvents{},
 	&migrations.TokenBalanceRecalc{},
-	&migrations.TokenMetadataSetDecimals{},
 	&migrations.NFTMetadata{},
 }
 
@@ -46,7 +42,7 @@ func main() {
 
 	ctx := config.NewContext(
 		config.WithShare(cfg.SharePath),
-		config.WithStorage(cfg.Storage, 0),
+		config.WithStorage(cfg.Storage, "migrations", 0),
 		config.WithDatabase(cfg.DB),
 		config.WithRPC(cfg.RPC),
 		config.WithConfigCopy(cfg),

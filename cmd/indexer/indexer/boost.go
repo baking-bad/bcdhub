@@ -2,24 +2,14 @@ package indexer
 
 import (
 	"fmt"
+	"io/ioutil"
 	"sync"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
-	elasticBigMapAction "github.com/baking-bad/bcdhub/internal/elastic/bigmapaction"
-	elasticBigMapDiff "github.com/baking-bad/bcdhub/internal/elastic/bigmapdiff"
-	elasticBlock "github.com/baking-bad/bcdhub/internal/elastic/block"
-	elasticContract "github.com/baking-bad/bcdhub/internal/elastic/contract"
-	"github.com/baking-bad/bcdhub/internal/elastic/core"
-	elasticMigration "github.com/baking-bad/bcdhub/internal/elastic/migration"
-	elasticOperation "github.com/baking-bad/bcdhub/internal/elastic/operation"
-	elasticProtocol "github.com/baking-bad/bcdhub/internal/elastic/protocol"
-	elasticTezosDomain "github.com/baking-bad/bcdhub/internal/elastic/tezosdomain"
-	elasticTokenBalance "github.com/baking-bad/bcdhub/internal/elastic/tokenbalance"
-	elasticTransfer "github.com/baking-bad/bcdhub/internal/elastic/transfer"
-	elasticTZIP "github.com/baking-bad/bcdhub/internal/elastic/tzip"
+	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/index"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -39,8 +29,22 @@ import (
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/baking-bad/bcdhub/internal/parsers/operations"
+	pgBigMapAction "github.com/baking-bad/bcdhub/internal/postgres/bigmapaction"
+	pgBigMapDiff "github.com/baking-bad/bcdhub/internal/postgres/bigmapdiff"
+	pgBlock "github.com/baking-bad/bcdhub/internal/postgres/block"
+	pgContract "github.com/baking-bad/bcdhub/internal/postgres/contract"
+	"github.com/baking-bad/bcdhub/internal/postgres/core"
+	pgMigration "github.com/baking-bad/bcdhub/internal/postgres/migration"
+	pgOperation "github.com/baking-bad/bcdhub/internal/postgres/operation"
+	pgProtocol "github.com/baking-bad/bcdhub/internal/postgres/protocol"
+	pgTezosDomain "github.com/baking-bad/bcdhub/internal/postgres/tezosdomain"
+	pgTokenBalance "github.com/baking-bad/bcdhub/internal/postgres/tokenbalance"
+	pgTransfer "github.com/baking-bad/bcdhub/internal/postgres/transfer"
+	pgTZIP "github.com/baking-bad/bcdhub/internal/postgres/tzip"
 	"github.com/baking-bad/bcdhub/internal/rollback"
+	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 var errBcdQuit = errors.New("bcd-quit")
@@ -49,6 +53,7 @@ var errSameLevel = errors.New("Same level")
 
 // BoostIndexer -
 type BoostIndexer struct {
+	Searcher      search.Searcher
 	Storage       models.GeneralRepository
 	BigMapActions bigmapaction.Repository
 	BigMapDiffs   bigmapdiff.Repository
@@ -68,6 +73,7 @@ type BoostIndexer struct {
 	state           block.Block
 	currentProtocol protocol.Protocol
 	cfg             config.Config
+	pg              *core.Postgres
 
 	updateTicker        *time.Ticker
 	stop                chan struct{}
@@ -79,8 +85,8 @@ type BoostIndexer struct {
 
 func (bi *BoostIndexer) fetchExternalProtocols() error {
 	logger.WithNetwork(bi.Network).Info("Fetching external protocols")
-	var existingProtocols []protocol.Protocol
-	if err := bi.Storage.GetByNetworkWithSort(bi.Network, "start_level", "desc", &existingProtocols); err != nil {
+	existingProtocols, err := bi.Protocols.GetByNetworkWithSort(bi.Network, "start_level", "desc")
+	if err != nil {
 		return err
 	}
 
@@ -109,33 +115,38 @@ func (bi *BoostIndexer) fetchExternalProtocols() error {
 		}
 
 		newProtocol := &protocol.Protocol{
-			ID:         helpers.GenerateID(),
 			Hash:       extProtocols[i].Hash,
 			Alias:      alias,
 			StartLevel: extProtocols[i].StartLevel,
 			EndLevel:   extProtocols[i].LastLevel,
 			SymLink:    symLink,
 			Network:    bi.Network,
-		}
-
-		if err := setProtocolConstants(bi.rpc, newProtocol); err != nil {
-			return err
+			Constants: &protocol.Constants{
+				CostPerByte:                  extProtocols[i].Constants.CostPerByte,
+				HardStorageLimitPerOperation: extProtocols[i].Constants.HardStorageLimitPerOperation,
+				HardGasLimitPerOperation:     extProtocols[i].Constants.HardGasLimitPerOperation,
+				TimeBetweenBlocks:            extProtocols[i].Constants.TimeBetweenBlocks,
+			},
 		}
 
 		protocols = append(protocols, newProtocol)
 		logger.WithNetwork(bi.Network).Infof("Fetched %s", alias)
 	}
 
-	return bi.Storage.BulkInsert(protocols)
+	return bi.Storage.Save(protocols)
 }
 
 // NewBoostIndexer -
 func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOption) (*BoostIndexer, error) {
 	logger.WithNetwork(network).Info("Creating indexer object...")
-	es := core.WaitNew(cfg.Storage.URI, cfg.Storage.Timeout, 0)
+	pg, err := core.NewPostgres(cfg.Storage.Postgres, "indexer")
+	if err != nil {
+		return nil, err
+	}
 
 	rpcProvider, ok := cfg.RPC[network]
 	if !ok {
+		pg.Close()
 		return nil, errors.Errorf("Unknown network %s", network)
 	}
 	rpc := noderpc.NewWaitNodeRPC(
@@ -143,37 +154,65 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 		noderpc.WithTimeout(time.Duration(rpcProvider.Timeout)*time.Second),
 	)
 
-	messageQueue := mq.New(cfg.RabbitMQ.URI, cfg.Indexer.ProjectName, cfg.Indexer.MQ.NeedPublisher, 10)
-
 	bi := &BoostIndexer{
-		Storage:       es,
-		BigMapActions: elasticBigMapAction.NewStorage(es),
-		BigMapDiffs:   elasticBigMapDiff.NewStorage(es),
-		Blocks:        elasticBlock.NewStorage(es),
-		Contracts:     elasticContract.NewStorage(es),
-		Migrations:    elasticMigration.NewStorage(es),
-		Operations:    elasticOperation.NewStorage(es),
-		Protocols:     elasticProtocol.NewStorage(es),
-		TezosDomains:  elasticTezosDomain.NewStorage(es),
-		TokenBalances: elasticTokenBalance.NewStorage(es),
-		Transfers:     elasticTransfer.NewStorage(es),
-		TZIP:          elasticTZIP.NewStorage(es),
+		Searcher:      elastic.WaitNew(cfg.Storage.Elastic, 10),
+		Storage:       pg,
+		BigMapActions: pgBigMapAction.NewStorage(pg),
+		BigMapDiffs:   pgBigMapDiff.NewStorage(pg),
+		Blocks:        pgBlock.NewStorage(pg),
+		Contracts:     pgContract.NewStorage(pg),
+		Migrations:    pgMigration.NewStorage(pg),
+		Operations:    pgOperation.NewStorage(pg),
+		Protocols:     pgProtocol.NewStorage(pg),
+		TezosDomains:  pgTezosDomain.NewStorage(pg),
+		TokenBalances: pgTokenBalance.NewStorage(pg),
+		Transfers:     pgTransfer.NewStorage(pg),
+		TZIP:          pgTZIP.NewStorage(pg),
 		Network:       network,
 		rpc:           rpc,
-		messageQueue:  messageQueue,
+		messageQueue:  mq.New(cfg.RabbitMQ.URI, cfg.Indexer.ProjectName, cfg.Indexer.MQ.NeedPublisher, 10),
 		stop:          make(chan struct{}),
 		cfg:           cfg,
+		pg:            pg,
 	}
 
 	for _, opt := range opts {
 		opt(bi)
 	}
 
-	return bi, bi.init()
+	if err := bi.init(pg); err != nil {
+		bi.messageQueue.Close()
+		pg.Close()
+		return nil, err
+	}
+
+	return bi, nil
 }
 
-func (bi *BoostIndexer) init() error {
+func addTriggers(db *core.Postgres) error {
+	files, err := ioutil.ReadDir("triggers")
+	if err != nil {
+		return err
+	}
+	for i := range files {
+		path := fmt.Sprintf("triggers/%s", files[i].Name())
+		raw, err := ioutil.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		if err := db.AddTrigger(string(raw)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (bi *BoostIndexer) init(db *core.Postgres) error {
 	if err := bi.Storage.CreateIndexes(); err != nil {
+		return err
+	}
+
+	if err := addTriggers(db); err != nil {
 		return err
 	}
 
@@ -190,7 +229,7 @@ func (bi *BoostIndexer) init() error {
 	bi.state = currentState
 	logger.WithNetwork(bi.Network).Infof("Current indexer state: %d", currentState.Level)
 
-	currentProtocol, err := bi.Protocols.GetProtocol(bi.Network, "", currentState.Level)
+	currentProtocol, err := bi.Protocols.Get(bi.Network, "", currentState.Level)
 	if err != nil {
 		if !bi.Storage.IsRecordNotFound(err) {
 			return err
@@ -205,7 +244,7 @@ func (bi *BoostIndexer) init() error {
 			return err
 		}
 
-		if err := bi.Storage.BulkInsert([]models.Model{&currentProtocol}); err != nil {
+		if err := bi.Storage.Save([]models.Model{&currentProtocol}); err != nil {
 			return err
 		}
 	}
@@ -243,6 +282,7 @@ func (bi *BoostIndexer) Sync(wg *sync.WaitGroup) {
 		case <-bi.stop:
 			bi.stopped = true
 			bi.messageQueue.Close()
+			bi.Storage.(*core.Postgres).Close()
 			return
 		case <-bi.updateTicker.C:
 			if err := bi.process(); err != nil {
@@ -301,43 +341,68 @@ func (bi *BoostIndexer) Index(levels []int64) error {
 		case <-bi.stop:
 			bi.stopped = true
 			bi.messageQueue.Close()
+			bi.Storage.(*core.Postgres).Close()
 			return errBcdQuit
 		default:
 		}
 
-		currentHead, err := bi.rpc.GetHeader(level)
+		head, err := bi.rpc.GetHeader(level)
 		if err != nil {
 			return err
 		}
 
-		if bi.state.Level > 0 && currentHead.Predecessor != bi.state.Hash && !bi.boost {
+		if bi.state.Level > 0 && head.Predecessor != bi.state.Hash && !bi.boost {
 			return errRollback
 		}
 
-		logger.WithNetwork(bi.Network).Infof("indexing %d block", level)
+		if err := bi.handleBlock(head); err != nil {
+			return err
+		}
 
-		if currentHead.Protocol != bi.currentProtocol.Hash {
-			logger.WithNetwork(bi.Network).Infof("New protocol detected: %s -> %s", bi.currentProtocol.Hash, currentHead.Protocol)
-			migrationModels, err := bi.migrate(currentHead)
+	}
+	return nil
+}
+
+func (bi *BoostIndexer) handleBlock(head noderpc.Header) error {
+	parsed := make([]models.Model, 0)
+	err := bi.pg.DB.Transaction(
+		func(tx *gorm.DB) error {
+			logger.WithNetwork(bi.Network).Infof("indexing %d block", head.Level)
+
+			if head.Protocol != bi.currentProtocol.Hash {
+				logger.WithNetwork(bi.Network).Infof("New protocol detected: %s -> %s", bi.currentProtocol.Hash, head.Protocol)
+
+				migrations, err := bi.migrate(head, tx)
+				if err != nil {
+					return err
+				}
+				parsed = append(parsed, migrations...)
+			}
+
+			res, err := bi.getDataFromBlock(bi.Network, head)
 			if err != nil {
 				return err
 			}
-			if err := bi.saveModels(migrationModels); err != nil {
+
+			for i := range res {
+				if err := res[i].Save(tx); err != nil {
+					return err
+				}
+			}
+
+			parsed = append(parsed, res...)
+			if err := bi.createBlock(head, tx); err != nil {
 				return err
 			}
-		}
+			return nil
+		},
+	)
 
-		parsedModels, err := bi.getDataFromBlock(bi.Network, currentHead)
-		if err != nil {
-			return err
-		}
-		parsedModels = append(parsedModels, bi.createBlock(currentHead))
-
-		if err := bi.saveModels(parsedModels); err != nil {
-			return err
-		}
+	if err != nil {
+		return err
 	}
-	return nil
+
+	return bi.sendToQueue(parsed)
 }
 
 // Rollback -
@@ -349,8 +414,8 @@ func (bi *BoostIndexer) Rollback() error {
 		return err
 	}
 
-	manager := rollback.NewManager(bi.Storage, bi.Contracts, bi.Operations, bi.Transfers, bi.TokenBalances, bi.Protocols, bi.messageQueue, bi.rpc, bi.cfg.SharePath)
-	if err := manager.Rollback(bi.state, lastLevel); err != nil {
+	manager := rollback.NewManager(bi.Searcher, bi.Storage, bi.BigMapDiffs, bi.Transfers)
+	if err := manager.Rollback(bi.pg.DB, bi.state, lastLevel); err != nil {
 		return err
 	}
 
@@ -469,9 +534,8 @@ func (bi *BoostIndexer) process() error {
 	return errSameLevel
 }
 
-func (bi *BoostIndexer) createBlock(head noderpc.Header) *block.Block {
+func (bi *BoostIndexer) createBlock(head noderpc.Header, tx *gorm.DB) error {
 	newBlock := block.Block{
-		ID:          helpers.GenerateID(),
 		Network:     bi.Network,
 		Hash:        head.Hash,
 		Predecessor: head.Predecessor,
@@ -480,17 +544,15 @@ func (bi *BoostIndexer) createBlock(head noderpc.Header) *block.Block {
 		Level:       head.Level,
 		Timestamp:   head.Timestamp,
 	}
-
-	bi.state = newBlock
-	return &newBlock
-}
-
-func (bi *BoostIndexer) saveModels(items []models.Model) error {
-	logger.WithNetwork(bi.Network).Debugf("Found %d new models", len(items))
-	if err := bi.Storage.BulkInsert(items); err != nil {
+	if err := newBlock.Save(tx); err != nil {
 		return err
 	}
 
+	bi.state = newBlock
+	return nil
+}
+
+func (bi *BoostIndexer) sendToQueue(items []models.Model) error {
 	for i := range items {
 		if err := bi.messageQueue.Send(items[i]); err != nil {
 			return err
@@ -508,12 +570,12 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 		return nil, err
 	}
 
-	parsedModels := make([]models.Model, 0)
+	result := make([]models.Model, 0)
 	for i := range opg {
 		parser := operations.NewGroup(operations.NewParseParams(
 			bi.rpc,
-			bi.Storage, bi.BigMapDiffs, bi.Blocks, bi.TZIP, bi.TokenBalances,
-			operations.WithConstants(bi.currentProtocol.Constants),
+			bi.Storage, bi.Contracts, bi.BigMapDiffs, bi.Blocks, bi.TZIP, bi.TokenBalances,
+			operations.WithConstants(*bi.currentProtocol.Constants),
 			operations.WithHead(head),
 			operations.WithIPFSGateways(bi.cfg.IPFSGateways),
 			operations.WithShareDirectory(bi.cfg.SharePath),
@@ -523,52 +585,47 @@ func (bi *BoostIndexer) getDataFromBlock(network string, head noderpc.Header) ([
 		if err != nil {
 			return nil, err
 		}
-		parsedModels = append(parsedModels, parsed...)
+		result = append(result, parsed...)
 	}
 
-	return parsedModels, nil
+	return result, nil
 }
 
-func (bi *BoostIndexer) migrate(head noderpc.Header) ([]models.Model, error) {
-	updates := make([]models.Model, 0)
-	newModels := make([]models.Model, 0)
-
+func (bi *BoostIndexer) migrate(head noderpc.Header, tx *gorm.DB) ([]models.Model, error) {
 	if bi.currentProtocol.EndLevel == 0 && head.Level > 1 {
 		logger.WithNetwork(bi.Network).Infof("Finalizing the previous protocol: %s", bi.currentProtocol.Alias)
 		bi.currentProtocol.EndLevel = head.Level - 1
-		updates = append(updates, &bi.currentProtocol)
+		if err := bi.currentProtocol.Save(tx); err != nil {
+			return nil, err
+		}
 	}
 
-	newProtocol, err := bi.Protocols.GetProtocol(bi.Network, head.Protocol, head.Level)
+	newProtocol, err := bi.Protocols.Get(bi.Network, head.Protocol, head.Level)
 	if err != nil {
 		logger.Warning("%s", err)
 		newProtocol, err = createProtocol(bi.rpc, bi.Network, head.Protocol, head.Level)
 		if err != nil {
 			return nil, err
 		}
-		if err := bi.Storage.BulkInsert([]models.Model{&newProtocol}); err != nil {
+		if err := newProtocol.Save(tx); err != nil {
 			return nil, err
 		}
 	}
 
+	result := make([]models.Model, 0)
 	if bi.Network == consts.Mainnet && head.Level == 1 {
-		vestingMigrations, err := bi.vestingMigration(head)
+		items, err := bi.vestingMigration(head, tx)
 		if err != nil {
 			return nil, err
 		}
-		newModels = append(newModels, vestingMigrations...)
+		result = append(result, items...)
 	} else {
 		if bi.currentProtocol.SymLink == "" {
 			return nil, errors.Errorf("[%s] Protocol should be initialized", bi.Network)
 		}
 		if newProtocol.SymLink != bi.currentProtocol.SymLink {
-			migrations, migrationUpdates, err := bi.standartMigration(newProtocol, head)
-			if err != nil {
+			if err := bi.standartMigration(newProtocol, head, tx); err != nil {
 				return nil, err
-			}
-			newModels = append(newModels, migrations...)
-			if len(migrationUpdates) > 0 {
-				updates = append(updates, migrationUpdates...)
 			}
 		} else {
 			logger.WithNetwork(bi.Network).Infof("Same symlink %s for %s / %s",
@@ -577,53 +634,39 @@ func (bi *BoostIndexer) migrate(head noderpc.Header) ([]models.Model, error) {
 	}
 
 	bi.currentProtocol = newProtocol
-	newModels = append(newModels, &newProtocol)
-
-	if err := bi.Storage.BulkUpdate(updates); err != nil {
-		return nil, err
-	}
 
 	bi.setUpdateTicker(0)
 	logger.WithNetwork(bi.Network).Infof("Migration to %s is completed", bi.currentProtocol.Alias)
-	return newModels, nil
+	return result, nil
 }
 
-func (bi *BoostIndexer) standartMigration(newProtocol protocol.Protocol, head noderpc.Header) ([]models.Model, []models.Model, error) {
+func (bi *BoostIndexer) standartMigration(newProtocol protocol.Protocol, head noderpc.Header, tx *gorm.DB) error {
 	logger.WithNetwork(bi.Network).Info("Try to find migrations...")
 	contracts, err := bi.Contracts.GetMany(map[string]interface{}{
 		"network": bi.Network,
 	})
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
 	logger.WithNetwork(bi.Network).Infof("Now %d contracts are indexed", len(contracts))
 
 	p := parsers.NewMigrationParser(bi.Storage, bi.BigMapDiffs, bi.cfg.SharePath)
-	newModels := make([]models.Model, 0)
-	newUpdates := make([]models.Model, 0)
+
 	for i := range contracts {
 		logger.WithNetwork(bi.Network).Infof("Migrate %s...", contracts[i].Address)
 		script, err := bi.rpc.GetScriptJSON(contracts[i].Address, newProtocol.StartLevel)
 		if err != nil {
-			return nil, nil, err
+			return err
 		}
 
-		createdModels, updates, err := p.Parse(script, contracts[i], bi.currentProtocol, newProtocol, head.Timestamp)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		if len(createdModels) > 0 {
-			newModels = append(newModels, createdModels...)
-		}
-		if len(updates) > 0 {
-			newUpdates = append(newUpdates, updates...)
+		if err := p.Parse(script, contracts[i], bi.currentProtocol, newProtocol, head.Timestamp, tx); err != nil {
+			return err
 		}
 	}
-	return newModels, newUpdates, nil
+	return nil
 }
 
-func (bi *BoostIndexer) vestingMigration(head noderpc.Header) ([]models.Model, error) {
+func (bi *BoostIndexer) vestingMigration(head noderpc.Header, tx *gorm.DB) ([]models.Model, error) {
 	addresses, err := bi.rpc.GetContractsByBlock(head.Level)
 	if err != nil {
 		return nil, err
@@ -631,7 +674,7 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header) ([]models.Model, e
 
 	p := parsers.NewVestingParser(bi.cfg.SharePath)
 
-	parsedModels := make([]models.Model, 0)
+	items := make([]models.Model, 0)
 	for _, address := range addresses {
 		if !bcd.IsContract(address) {
 			continue
@@ -646,8 +689,13 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header) ([]models.Model, e
 		if err != nil {
 			return nil, err
 		}
-		parsedModels = append(parsedModels, parsed...)
+		for i := range parsed {
+			if err := parsed[i].Save(tx); err != nil {
+				return nil, err
+			}
+		}
+		items = append(items, parsed...)
 	}
 
-	return parsedModels, nil
+	return items, nil
 }

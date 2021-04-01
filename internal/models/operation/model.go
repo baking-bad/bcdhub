@@ -1,72 +1,87 @@
 package operation
 
 import (
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // Operation -
 type Operation struct {
-	ID string `json:"-"`
+	ID int64 `json:"-"`
 
-	IndexedTime  int64 `json:"indexed_time"`
-	ContentIndex int64 `json:"content_index,omitempty"`
+	ContentIndex int64 `json:"content_index,omitempty" gorm:",default:0"`
+	Level        int64 `json:"level"`
+	Counter      int64 `json:"counter,omitempty" gorm:"index:opg_idx"`
+	Fee          int64 `json:"fee,omitempty"`
+	GasLimit     int64 `json:"gas_limit,omitempty"`
+	StorageLimit int64 `json:"storage_limit,omitempty"`
+	Amount       int64 `json:"amount,omitempty"`
 
+	ConsumedGas                        int64 `json:"consumed_gas,omitempty"`
+	StorageSize                        int64 `json:"storage_size,omitempty"`
+	PaidStorageSizeDiff                int64 `json:"paid_storage_size_diff,omitempty"`
+	Burned                             int64 `json:"burned,omitempty"`
+	AllocatedDestinationContractBurned int64 `json:"allocated_destination_contract_burned,omitempty"`
+
+	Nonce    *int64 `json:"nonce,omitempty" gorm:"index:opg_idx"`
 	Network  string `json:"network"`
 	Protocol string `json:"protocol"`
-	Hash     string `json:"hash"`
-	Internal bool   `json:"internal"`
-	Nonce    *int64 `json:"nonce,omitempty"`
+	Hash     string `json:"hash" gorm:"index:opg_idx"`
 
-	Status           string    `json:"status"`
 	Timestamp        time.Time `json:"timestamp"`
-	Level            int64     `json:"level"`
+	Status           string    `json:"status"`
 	Kind             string    `json:"kind"`
 	Initiator        string    `json:"initiator"`
-	Source           string    `json:"source"`
-	Fee              int64     `json:"fee,omitempty"`
-	Counter          int64     `json:"counter,omitempty"`
-	GasLimit         int64     `json:"gas_limit,omitempty"`
-	StorageLimit     int64     `json:"storage_limit,omitempty"`
-	Amount           int64     `json:"amount,omitempty"`
-	Destination      string    `json:"destination,omitempty"`
-	PublicKey        string    `json:"public_key,omitempty"`
-	ManagerPubKey    string    `json:"manager_pubkey,omitempty"`
+	Source           string    `json:"source" gorm:"index:source_idx"`
+	Destination      string    `json:"destination,omitempty" gorm:"index:destination_idx"`
 	Delegate         string    `json:"delegate,omitempty"`
-	Parameters       string    `json:"parameters,omitempty"`
-	FoundBy          string    `json:"found_by,omitempty"`
 	Entrypoint       string    `json:"entrypoint,omitempty"`
 	SourceAlias      string    `json:"source_alias,omitempty"`
 	DestinationAlias string    `json:"destination_alias,omitempty"`
+	DelegateAlias    string    `json:"delegate_alias,omitempty"`
+	Parameters       []byte    `json:"parameters,omitempty"`
+	DeffatedStorage  []byte    `json:"deffated_storage"`
 
-	Result                             *Result            `json:"result,omitempty"`
-	Errors                             []*tezerrors.Error `json:"errors,omitempty"`
-	Burned                             int64              `json:"burned,omitempty"`
-	AllocatedDestinationContractBurned int64              `json:"allocated_destination_contract_burned,omitempty"`
+	Tags pq.StringArray `json:"tags,omitempty" gorm:"type:text[]"`
 
-	DeffatedStorage string `json:"deffated_storage"`
-	Script          []byte `json:"-"`
+	Script []byte `json:"-"  gorm:"-"`
 
-	DelegateAlias string `json:"delegate_alias,omitempty"`
+	Errors           tezerrors.Errors `json:"errors,omitempty" gorm:"type:bytes"`
+	ParameterStrings pq.StringArray   `json:"parameter_strings,omitempty" gorm:"type:text[]"`
+	StorageStrings   pq.StringArray   `json:"storage_strings,omitempty" gorm:"type:text[]"`
 
-	ParameterStrings []string `json:"parameter_strings,omitempty"`
-	StorageStrings   []string `json:"storage_strings,omitempty"`
-	Tags             []string `json:"tags,omitempty"`
+	AllocatedDestinationContract bool `json:"allocated_destination_contract,omitempty"`
+	Internal                     bool `json:"internal" gorm:",default:false"`
+
+	AST *ast.Script `json:"-" gorm:"-"`
 }
 
 // GetID -
-func (o *Operation) GetID() string {
+func (o *Operation) GetID() int64 {
 	return o.ID
 }
 
 // GetIndex -
 func (o *Operation) GetIndex() string {
-	return "operation"
+	return "operations"
+}
+
+// Save -
+func (o *Operation) Save(tx *gorm.DB) error {
+	return tx.Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Save(o).Error
 }
 
 // GetQueues -
@@ -76,7 +91,7 @@ func (o *Operation) GetQueues() []string {
 
 // MarshalToQueue -
 func (o *Operation) MarshalToQueue() ([]byte, error) {
-	return []byte(o.ID), nil
+	return []byte(fmt.Sprintf("%d", o.ID)), nil
 }
 
 // LogFields -
@@ -98,23 +113,23 @@ func (o *Operation) SetBurned(constants protocol.Constants) {
 	if o.Status != consts.Applied {
 		return
 	}
-
-	if o.Result == nil {
-		return
-	}
-
 	var burned int64
 
-	if o.Result.PaidStorageSizeDiff != 0 {
-		burned += o.Result.PaidStorageSizeDiff * constants.CostPerByte
+	if o.PaidStorageSizeDiff != 0 {
+		burned += o.PaidStorageSizeDiff * constants.CostPerByte
 	}
 
-	if o.Result.AllocatedDestinationContract {
+	if o.AllocatedDestinationContract {
 		o.SetAllocationBurn(constants)
 		burned += o.AllocatedDestinationContractBurned
 	}
 
 	o.Burned = burned
+}
+
+// IsEntrypoint -
+func (o *Operation) IsEntrypoint(entrypoint string) bool {
+	return o.Entrypoint == entrypoint
 }
 
 // IsOrigination -
@@ -134,7 +149,7 @@ func (o *Operation) IsApplied() bool {
 
 // IsCall -
 func (o *Operation) IsCall() bool {
-	return bcd.IsContract(o.Destination) && o.Parameters != ""
+	return bcd.IsContract(o.Destination) && len(o.Parameters) > 0
 }
 
 // HasTag -
@@ -145,6 +160,15 @@ func (o *Operation) HasTag(tag string) bool {
 		}
 	}
 	return false
+}
+
+// InitScript -
+func (o *Operation) InitScript() (err error) {
+	if o.Script == nil {
+		return errors.New("Uninitialized script")
+	}
+	o.AST, err = ast.NewScript(o.Script)
+	return err
 }
 
 // Result -

@@ -3,22 +3,19 @@ package transfer
 import (
 	"fmt"
 	"math/big"
-	"strconv"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
-	jsoniter "github.com/json-iterator/go"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
-
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // Transfer -
 type Transfer struct {
-	ID           string    `json:"-"`
-	IndexedTime  int64     `json:"indexed_time"`
+	ID           int64     `json:"-"`
 	Network      string    `json:"network"`
 	Contract     string    `json:"contract"`
 	Initiator    string    `json:"initiator"`
@@ -28,23 +25,32 @@ type Transfer struct {
 	Level        int64     `json:"level"`
 	From         string    `json:"from"`
 	To           string    `json:"to"`
-	TokenID      int64     `json:"token_id"`
-	Amount       float64   `json:"amount"`
-	AmountStr    string    `json:"amount_str"`
-	AmountBigInt *big.Int  `json:"-"`
+	TokenID      uint64    `json:"token_id" gorm:"type:numeric(50,0)"`
+	Amount       float64   `json:"amount" gorm:"type:numeric(100,0)"`
+	AmountString string    `json:"amount_string"`
 	Counter      int64     `json:"counter"`
 	Nonce        *int64    `json:"nonce,omitempty"`
 	Parent       string    `json:"parent,omitempty"`
+	Entrypoint   string    `json:"entrypoint,omitempty"`
+
+	Value *big.Int `json:"-" gorm:"-"`
 }
 
 // GetID -
-func (t *Transfer) GetID() string {
+func (t *Transfer) GetID() int64 {
 	return t.ID
 }
 
 // GetIndex -
 func (t *Transfer) GetIndex() string {
-	return "transfer"
+	return "transfers"
+}
+
+// Save -
+func (t *Transfer) Save(tx *gorm.DB) error {
+	return tx.Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Save(t).Error
 }
 
 // GetQueues -
@@ -68,21 +74,56 @@ func (t *Transfer) LogFields() logrus.Fields {
 	}
 }
 
+// AfterFind -
+func (t *Transfer) AfterFind(tx *gorm.DB) (err error) {
+	return t.unmarshal()
+}
+
+// BeforeCreate -
+func (t *Transfer) BeforeCreate(tx *gorm.DB) (err error) {
+	return t.marshal()
+}
+
+// BeforeUpdate -
+func (t *Transfer) BeforeUpdate(tx *gorm.DB) (err error) {
+	return t.marshal()
+}
+
+func (t *Transfer) marshal() error {
+	if t.Value == nil {
+		return errors.New("Nil amount in transfer")
+	}
+	t.AmountString = t.Value.String()
+	t.Amount, _ = new(big.Float).SetInt(t.Value).Float64()
+	return nil
+}
+
+func (t *Transfer) unmarshal() error {
+	if t.Value == nil {
+		t.Value = big.NewInt(0)
+	}
+
+	if _, ok := t.Value.SetString(t.AmountString, 10); !ok {
+		return errors.Errorf("Invalid amount in transfer: %s", t.AmountString)
+	}
+
+	return nil
+}
+
 // EmptyTransfer -
 func EmptyTransfer(o operation.Operation) *Transfer {
 	return &Transfer{
-		ID:           helpers.GenerateID(),
-		IndexedTime:  o.IndexedTime,
-		Network:      o.Network,
-		Contract:     o.Destination,
-		Hash:         o.Hash,
-		Status:       o.Status,
-		Timestamp:    o.Timestamp,
-		Level:        o.Level,
-		Initiator:    o.Source,
-		AmountBigInt: big.NewInt(0),
-		Counter:      o.Counter,
-		Nonce:        o.Nonce,
+		Network:    o.Network,
+		Contract:   o.Destination,
+		Hash:       o.Hash,
+		Status:     o.Status,
+		Timestamp:  o.Timestamp,
+		Level:      o.Level,
+		Initiator:  o.Source,
+		Counter:    o.Counter,
+		Nonce:      o.Nonce,
+		Entrypoint: o.Entrypoint,
+		Value:      new(big.Int),
 	}
 }
 
@@ -113,24 +154,18 @@ func (t *Transfer) MakeTokenBalanceUpdate(from, rollback bool) *tokenbalance.Tok
 	switch {
 	case from && rollback:
 		tb.Address = t.From
-		tb.Value.Set(t.AmountBigInt)
+		tb.Value.Set(t.Value)
 	case !from && rollback:
 		tb.Address = t.To
-		tb.Value.Neg(t.AmountBigInt)
+		tb.Value.Neg(t.Value)
 	case from && !rollback:
 		tb.Address = t.From
-		tb.Value.Neg(t.AmountBigInt)
+		tb.Value.Neg(t.Value)
 	case !from && !rollback:
 		tb.Address = t.To
-		tb.Value.Set(t.AmountBigInt)
+		tb.Value.Set(t.Value)
 	}
 	return tb
-}
-
-// TokenBalance -
-type TokenBalance struct {
-	Address string
-	TokenID int64
 }
 
 // TokenSupply -
@@ -146,42 +181,9 @@ type Pageable struct {
 	LastID    string     `json:"last_id"`
 }
 
-// UnmarshalJSON -
-func (t *Transfer) UnmarshalJSON(data []byte) error {
-	type buf Transfer
-	if err := json.Unmarshal(data, (*buf)(t)); err != nil {
-		return err
-	}
-	t.AmountBigInt = big.NewInt(0)
-
-	if _, ok := t.AmountBigInt.SetString(t.AmountStr, 10); !ok {
-		return fmt.Errorf("Can't set balance value: %s", t.AmountStr)
-	}
-	return nil
-}
-
-// MarshalJSON -
-func (t *Transfer) MarshalJSON() ([]byte, error) {
-	if t.AmountBigInt == nil {
-		return nil, fmt.Errorf("Nil balance value")
-	}
-	t.AmountStr = t.AmountBigInt.String()
-
-	amount, err := strconv.ParseFloat(t.AmountStr, 64)
-	if err != nil {
-		return nil, fmt.Errorf("ParseFloat Transfer err %w", err)
-	}
-	t.Amount = amount
-	type buf Transfer
-	return json.Marshal((*buf)(t))
-}
-
-// SetAmountFromString -
-func (t *Transfer) SetAmountFromString(val string) error {
-	amount, ok := big.NewInt(0).SetString(val, 10)
-	if !ok {
-		return fmt.Errorf("cant create fa2 transfer amount for %s", val)
-	}
-	t.AmountBigInt = amount
-	return nil
+// Balance -
+type Balance struct {
+	Balance *big.Int
+	Address string
+	TokenID uint64
 }

@@ -70,7 +70,7 @@ func (s TezosStorage) Get(value string, output interface{}) error {
 		return err
 	}
 
-	bmd, err := s.bigMapRepo.CurrentByKey(s.network, key, s.ptr)
+	bmd, err := s.bigMapRepo.Current(s.network, key, s.ptr)
 	if err != nil {
 		if s.storage.IsRecordNotFound(err) {
 			return nil

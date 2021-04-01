@@ -1,15 +1,11 @@
 package operations
 
 import (
-	"time"
-
 	"github.com/baking-bad/bcdhub/internal/bcd"
-	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/fetch"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -35,36 +31,29 @@ func NewTransaction(params *ParseParams) Transaction {
 // Parse -
 func (p Transaction) Parse(data noderpc.Operation) ([]models.Model, error) {
 	tx := operation.Operation{
-		ID:            helpers.GenerateID(),
-		Network:       p.network,
-		Hash:          p.hash,
-		Protocol:      p.head.Protocol,
-		Level:         p.head.Level,
-		Timestamp:     p.head.Timestamp,
-		Kind:          data.Kind,
-		Initiator:     data.Source,
-		Source:        data.Source,
-		Fee:           data.Fee,
-		Counter:       data.Counter,
-		GasLimit:      data.GasLimit,
-		StorageLimit:  data.StorageLimit,
-		Amount:        *data.Amount,
-		Destination:   *data.Destination,
-		PublicKey:     data.PublicKey,
-		ManagerPubKey: data.ManagerPubKey,
-		Delegate:      data.Delegate,
-		Nonce:         data.Nonce,
-		Parameters:    string(data.Parameters),
-		IndexedTime:   time.Now().UnixNano() / 1000,
-		ContentIndex:  p.contentIdx,
+		Network:      p.network,
+		Hash:         p.hash,
+		Protocol:     p.head.Protocol,
+		Level:        p.head.Level,
+		Timestamp:    p.head.Timestamp,
+		Kind:         data.Kind,
+		Initiator:    data.Source,
+		Source:       data.Source,
+		Fee:          data.Fee,
+		Counter:      data.Counter,
+		GasLimit:     data.GasLimit,
+		StorageLimit: data.StorageLimit,
+		Amount:       *data.Amount,
+		Destination:  *data.Destination,
+		Delegate:     data.Delegate,
+		Nonce:        data.Nonce,
+		Parameters:   data.Parameters,
+		ContentIndex: p.contentIdx,
 	}
 
 	p.fillInternal(&tx)
 
-	result := parseOperationResult(&data)
-	tx.Result = result
-	tx.Status = tx.Result.Status
-	tx.Errors = tx.Result.Errors
+	parseOperationResult(data, &tx)
 
 	tx.SetBurned(p.constants)
 	txModels := []models.Model{&tx}
@@ -74,6 +63,10 @@ func (p Transaction) Parse(data noderpc.Operation) ([]models.Model, error) {
 		return nil, err
 	}
 	tx.Script = script
+
+	if err := tx.InitScript(); err != nil {
+		return nil, err
+	}
 
 	if tx.IsApplied() {
 		appliedModels, err := p.appliedHandler(data, &tx)
@@ -87,7 +80,7 @@ func (p Transaction) Parse(data noderpc.Operation) ([]models.Model, error) {
 		return nil, err
 	}
 
-	if err := setTags(p.Storage, &tx); err != nil {
+	if err := setTags(p.Contracts, p.Storage, &tx); err != nil {
 		return nil, err
 	}
 
@@ -105,10 +98,9 @@ func (p Transaction) Parse(data noderpc.Operation) ([]models.Model, error) {
 			txModels = append(txModels, transfers[i])
 		}
 
-		if !tx.HasTag(consts.NFTLedgerTag) {
-			if err := transferParsers.UpdateTokenBalances(p.TokenBalances, transfers); err != nil {
-				return nil, err
-			}
+		if !tx.HasTag(consts.LedgerTag) {
+			balanceUpdates := transferParsers.UpdateTokenBalances(transfers)
+			txModels = append(txModels, balanceUpdates...)
 		}
 	}
 	return txModels, nil
@@ -162,38 +154,22 @@ func (p Transaction) getEntrypoint(tx *operation.Operation) error {
 		return nil
 	}
 
+	params := types.NewParameters(tx.Parameters)
+	tx.Entrypoint = params.Entrypoint
+
 	if !tx.IsApplied() {
-		params := types.NewParameters([]byte(tx.Parameters))
-		tx.Entrypoint = params.Entrypoint
 		return nil
 	}
 
-	if tx.Script == nil {
-		script, err := fetch.Contract(tx.Destination, tx.Network, tx.Protocol, p.shareDir)
-		if err != nil {
-			return err
-		}
-		tx.Script = script
-	}
-
-	var s ast.Script
-	if err := json.Unmarshal(tx.Script, &s); err != nil {
-		return err
-	}
-
-	param, err := s.ParameterType()
+	param, err := tx.AST.ParameterType()
 	if err != nil {
 		return err
 	}
-
-	params := types.NewParameters([]byte(tx.Parameters))
 
 	subTree, err := param.FromParameters(params)
 	if err != nil {
 		return err
 	}
-
-	tx.Entrypoint = params.Entrypoint
 
 	node, entrypointName := subTree.UnwrapAndGetEntrypointName()
 	if node == nil {

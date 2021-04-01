@@ -69,23 +69,21 @@ type OperationGroup struct {
 
 // Operation -
 type Operation struct {
-	Kind          string             `json:"kind"`
-	Source        string             `json:"source"`
-	Destination   *string            `json:"destination,omitempty"`
-	PublicKey     string             `json:"public_key,omitempty"`
-	ManagerPubKey string             `json:"manager_pubkey,omitempty"`
-	Delegate      string             `json:"delegate,omitempty"`
-	Fee           int64              `json:"fee,string"`
-	Counter       int64              `json:"counter,string"`
-	Balance       *int64             `json:"balance,omitempty,string"`
-	GasLimit      int64              `json:"gas_limit,string"`
-	StorageLimit  int64              `json:"storage_limit,string"`
-	Amount        *int64             `json:"amount,omitempty,string"`
-	Nonce         *int64             `json:"nonce,omitempty"`
-	Parameters    stdJSON.RawMessage `json:"parameters,omitempty"`
-	Metadata      *OperationMetadata `json:"metadata,omitempty"`
-	Result        *OperationResult   `json:"result,omitempty"`
-	Script        stdJSON.RawMessage `json:"script,omitempty"`
+	Kind         string             `json:"kind"`
+	Source       string             `json:"source"`
+	Destination  *string            `json:"destination,omitempty"`
+	Delegate     string             `json:"delegate,omitempty"`
+	Fee          int64              `json:"fee,string"`
+	Counter      int64              `json:"counter,string"`
+	Balance      *int64             `json:"balance,omitempty,string"`
+	GasLimit     int64              `json:"gas_limit,string"`
+	StorageLimit int64              `json:"storage_limit,string"`
+	Amount       *int64             `json:"amount,omitempty,string"`
+	Nonce        *int64             `json:"nonce,omitempty"`
+	Parameters   stdJSON.RawMessage `json:"parameters,omitempty"`
+	Metadata     *OperationMetadata `json:"metadata,omitempty"`
+	Result       *OperationResult   `json:"result,omitempty"`
+	Script       stdJSON.RawMessage `json:"script,omitempty"`
 }
 
 // GetResult -
@@ -104,6 +102,20 @@ func (op Operation) GetResult() *OperationResult {
 type Script struct {
 	Code    *ast.Script        `json:"code"`
 	Storage stdJSON.RawMessage `json:"storage"`
+}
+
+// GetSettledStorage -
+func (s *Script) GetSettledStorage() (*ast.TypedAst, error) {
+	typ, err := s.Code.StorageType()
+	if err != nil {
+		return nil, err
+	}
+	var data ast.UntypedAST
+	if err := json.Unmarshal(s.Storage, &data); err != nil {
+		return nil, err
+	}
+	err = typ.Settle(data)
+	return typ, err
 }
 
 // OperationMetadata -

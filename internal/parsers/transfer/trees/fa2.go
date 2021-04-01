@@ -32,9 +32,9 @@ func MakeFa2Transfers(tree ast.Node, operation operation.Operation) ([]*transfer
 				return nil, err
 			}
 			tokenPair := toPair.Args[1].(*ast.Pair)
-			t.TokenID = tokenPair.Args[0].GetValue().(*types.BigInt).Int64()
+			t.TokenID = tokenPair.Args[0].GetValue().(*types.BigInt).Uint64()
 			i := tokenPair.Args[1].GetValue().(*types.BigInt)
-			t.AmountBigInt.Set(i.Int)
+			t.Value.Set(i.Int)
 			transfers = append(transfers, t)
 		}
 	}

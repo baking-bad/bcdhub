@@ -63,7 +63,7 @@ func TestBabylon_ParseTransaction(t *testing.T) {
 				},
 			},
 			want: RichStorage{
-				DeffatedStorage: `{"prim":"Pair","args":[{"prim":"Pair","args":[{"int":"10416"},{"int":"10417"}]},{"prim":"Pair","args":[[{"bytes":"0177a057dafeab5f829e044dc0e52047e01283d6d500"}],{"int":"10418"}]}]}`,
+				DeffatedStorage: []byte(`{"prim":"Pair","args":[{"prim":"Pair","args":[{"int":"10416"},{"int":"10417"}]},{"prim":"Pair","args":[[{"bytes":"0177a057dafeab5f829e044dc0e52047e01283d6d500"}],{"int":"10418"}]}]}`),
 				Models: []models.Model{
 					&bigmapdiff.BigMapDiff{
 						Ptr:      10418,
@@ -71,9 +71,18 @@ func TestBabylon_ParseTransaction(t *testing.T) {
 						KeyHash:  "exprvDFsAkF12eo7cP1EtDk52Ef72CzDhxuJmwXCqbqSWq6CrJ3ziX",
 						Value:    []byte(`{"bytes":"0117f1f0e206ba4c32f1f43de336b0ef2785f4014500"}`),
 						Level:    186900,
-						Address:  "KT1HHsW85jrLrHdAy9DwScqiM1RERkTT9Q6e",
+						Contract: "KT1HHsW85jrLrHdAy9DwScqiM1RERkTT9Q6e",
 						Network:  "delphinet",
 						Protocol: "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
+					},
+					&bigmapdiff.BigMapState{
+						Ptr:             10418,
+						Key:             []byte(`{"bytes":"0177a057dafeab5f829e044dc0e52047e01283d6d500"}`),
+						KeyHash:         "exprvDFsAkF12eo7cP1EtDk52Ef72CzDhxuJmwXCqbqSWq6CrJ3ziX",
+						Value:           []byte(`{"bytes":"0117f1f0e206ba4c32f1f43de336b0ef2785f4014500"}`),
+						Contract:        "KT1HHsW85jrLrHdAy9DwScqiM1RERkTT9Q6e",
+						Network:         "delphinet",
+						LastUpdateLevel: 186900,
 					},
 				},
 			},
@@ -101,6 +110,11 @@ func TestBabylon_ParseTransaction(t *testing.T) {
 				return
 			}
 
+			if err := tt.args.operation.InitScript(); err != nil {
+				t.Errorf("InitScript() error = %v", err)
+				return
+			}
+
 			got, err := b.ParseTransaction(content, tt.args.operation)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Babylon.ParseTransaction() error = %v, wantErr %v", err, tt.wantErr)
@@ -111,10 +125,12 @@ func TestBabylon_ParseTransaction(t *testing.T) {
 			assert.Len(t, got.Models, len(tt.want.Models))
 
 			for i := range tt.want.Models {
-				bmd := got.Models[i].(*bigmapdiff.BigMapDiff)
-				newBmd := tt.want.Models[i].(*bigmapdiff.BigMapDiff)
-				newBmd.ID = bmd.ID
-				newBmd.IndexedTime = bmd.IndexedTime
+				switch val := tt.want.Models[i].(type) {
+				case *bigmapdiff.BigMapDiff:
+					val.ID = got.Models[i].GetID()
+				case *bigmapdiff.BigMapState:
+					val.ID = got.Models[i].GetID()
+				}
 			}
 			assert.Equal(t, tt.want.Models, got.Models)
 		})

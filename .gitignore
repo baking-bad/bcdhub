@@ -5,7 +5,6 @@
 *.so
 *.dylib
 .env
-*.sql
 
 # Test binary, built with `go test -c`
 *.test
@@ -18,7 +17,7 @@
 
 cmd/api/train.csv
 docker-compose.local.yml
-scripts/esctl/esctl
+scripts/bcdctl/bcdctl
 scripts/migration/data/events
 scripts/migration/data/*.yml
 *.csv

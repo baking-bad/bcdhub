@@ -28,6 +28,9 @@ func (h *Handler) SetBigMapDiffsStrings(bmd *bigmapdiff.BigMapDiff) error {
 }
 
 func getStrings(data []byte) ([]string, error) {
+	if len(data) == 0 {
+		return nil, nil
+	}
 	var tree ast.UntypedAST
 	if err := json.Unmarshal(data, &tree); err != nil {
 		return nil, err

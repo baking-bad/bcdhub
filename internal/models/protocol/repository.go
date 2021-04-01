@@ -2,6 +2,7 @@ package protocol
 
 // Repository -
 type Repository interface {
-	GetProtocol(string, string, int64) (Protocol, error)
-	GetSymLinks(string, int64) (map[string]struct{}, error)
+	Get(string, string, int64) (Protocol, error)
+	GetAll() (response []Protocol, err error)
+	GetByNetworkWithSort(network, sortField, order string) (response []Protocol, err error)
 }

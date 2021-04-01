@@ -1,7 +1,6 @@
 package mq
 
 import (
-	"sync"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -11,29 +10,10 @@ import (
 // Queue -
 type Queue struct {
 	Name       string
+	TTLSeconds uint
 	AutoDelete bool
 	Durable    bool
-	TTLSeconds uint
-}
-
-// RabbitMessage -
-type RabbitMessage struct {
-	msg amqp.Delivery
-}
-
-// GetBody -
-func (rm *RabbitMessage) GetBody() []byte {
-	return rm.msg.Body
-}
-
-// GetKey -
-func (rm *RabbitMessage) GetKey() string {
-	return rm.msg.RoutingKey
-}
-
-// Ack -
-func (rm *RabbitMessage) Ack(flag bool) error {
-	return rm.msg.Ack(flag)
+	Lazy       bool
 }
 
 // Rabbit -
@@ -43,32 +23,20 @@ type Rabbit struct {
 
 	service string
 	queues  []Queue
-
-	data chan Data
-	stop chan struct{}
-	wg   sync.WaitGroup
 }
 
 // NewRabbit -
 func NewRabbit() *Rabbit {
-	return &Rabbit{
-		data: make(chan Data),
-		stop: make(chan struct{}),
-	}
+	return &Rabbit{}
 }
 
 // Close -
 func (mq *Rabbit) Close() error {
-	for range mq.queues {
-		mq.stop <- struct{}{}
-	}
-	mq.wg.Wait()
-
-	if mq.Conn != nil {
-		mq.Conn.Close()
-	}
 	if mq.Channel != nil {
 		mq.Channel.Close()
+	}
+	if mq.Conn != nil {
+		mq.Conn.Close()
 	}
 	return nil
 }
@@ -92,27 +60,8 @@ func (mq *Rabbit) Send(msg IMessage) error {
 }
 
 // Consume -
-func (mq *Rabbit) Consume(queue string) (<-chan Data, error) {
-	c, err := mq.Channel.Consume(getQueueName(mq.service, queue), "", false, false, false, false, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	mq.wg.Add(1)
-	go func(c <-chan amqp.Delivery) {
-		defer mq.wg.Done()
-
-		for {
-			select {
-			case <-mq.stop:
-				return
-			case msg := <-c:
-				mq.data <- &RabbitMessage{msg}
-			}
-		}
-	}(c)
-
-	return mq.data, nil
+func (mq *Rabbit) Consume(queue string) (<-chan amqp.Delivery, error) {
+	return mq.Channel.Consume(getQueueName(mq.service, queue), "", false, false, false, false, nil)
 }
 
 // SendRaw -
@@ -203,7 +152,7 @@ func (q RabbitQueueManager) Send(message IMessage) error {
 }
 
 // Consume -
-func (q RabbitQueueManager) Consume(queue string) (<-chan Data, error) {
+func (q RabbitQueueManager) Consume(queue string) (<-chan amqp.Delivery, error) {
 	if q.receiver == nil {
 		return nil, nil
 	}
@@ -242,6 +191,9 @@ func NewRabbitReceiver(connection string, service string, queues ...Queue) (*Rab
 		args := make(amqp.Table)
 		if queue.TTLSeconds > 0 {
 			args["x-message-ttl"] = int(queue.TTLSeconds * 1000)
+		}
+		if queue.Lazy {
+			args["x-queue-mode"] = "lazy"
 		}
 
 		q, err := mq.Channel.QueueDeclare(getQueueName(service, queue.Name), queue.Durable, queue.AutoDelete, false, false, args)

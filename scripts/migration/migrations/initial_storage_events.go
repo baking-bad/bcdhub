@@ -1,15 +1,11 @@
 package migrations
 
 import (
-	"errors"
-
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
-	"github.com/baking-bad/bcdhub/internal/noderpc"
-	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
 )
 
 // InitialStorageEvents -
@@ -40,7 +36,7 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.DB)
 
 	logger.Info("Execution events...")
-	newTransfers := make([]*transfer.Transfer, 0)
+	items := make([]models.Model, 0)
 	for i := range tzips {
 		logger.Info("%s...", tzips[i].Address)
 
@@ -48,21 +44,23 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 		if err != nil {
 			return err
 		}
-		transfers, err := h.ExecuteInitialStorageEvent(rpc, tzips[i].Network, tzips[i].Address)
+		newModels, err := h.ExecuteInitialStorageEvent(rpc, tzips[i].Network, tzips[i].Address)
 		if err != nil {
-			if errors.Is(err, noderpc.InvalidNodeResponse{}) {
-				logger.Error(err)
+			logger.Error(err)
+			continue
+		}
+		for i := range newModels {
+			t, ok := newModels[i].(*transfer.Transfer)
+			if !ok {
+				items = append(items, newModels[i])
 				continue
 			}
-			return err
-		}
-		for i := range transfers {
 			found, err := ctx.Transfers.Get(transfer.GetContext{
-				Hash:    transfers[i].Hash,
-				Network: transfers[i].Network,
-				Counter: &transfers[i].Counter,
-				Nonce:   transfers[i].Nonce,
-				TokenID: transfers[i].TokenID,
+				Hash:    t.Hash,
+				Network: t.Network,
+				Counter: &t.Counter,
+				Nonce:   t.Nonce,
+				TokenID: &t.TokenID,
 			})
 			if err != nil {
 				if !ctx.Storage.IsRecordNotFound(err) {
@@ -73,23 +71,17 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 				continue
 			}
 
-			newTransfers = append(newTransfers, transfers[i])
-			m.contracts[transfers[i].Contract] = transfers[i].Network
+			items = append(items, newModels[i])
+			m.contracts[t.Contract] = t.Network
 		}
 	}
 
-	updated := make([]models.Model, 0)
-	if len(newTransfers) == 0 {
+	if len(items) == 0 {
 		return nil
 	}
-	for i := range newTransfers {
-		updated = append(updated, newTransfers[i])
-	}
-	logger.Info("Found %d transfers", len(updated))
-	if err := ctx.Storage.BulkInsert(updated); err != nil {
-		return err
-	}
-	return transferParsers.UpdateTokenBalances(ctx.TokenBalances, newTransfers)
+
+	logger.Info("Found %d models", len(items))
+	return ctx.Storage.Save(items)
 }
 
 // AffectedContracts -

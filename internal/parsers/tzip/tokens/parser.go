@@ -1,6 +1,8 @@
 package tokens
 
 import (
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -45,25 +47,14 @@ func (t Parser) Parse(address string, level int64) ([]tokenmetadata.TokenMetadat
 }
 
 // ParseBigMapDiff -
-func (t Parser) ParseBigMapDiff(bmd *bigmapdiff.BigMapDiff) ([]tokenmetadata.TokenMetadata, error) {
-	state, err := t.getState(bmd.Level)
-	if err != nil {
-		return nil, err
-	}
-	return t.parseBigMapDiff(bmd, state)
-}
-
-func (t Parser) parseBigMapDiff(bmd *bigmapdiff.BigMapDiff, state block.Block) ([]tokenmetadata.TokenMetadata, error) {
-	if _, err := storage.GetBigMapPtr(t.rpc, bmd.Address, TokenMetadataStorageKey, state.Network, state.Protocol, t.sharePath, bmd.Level); err != nil {
-		if !errors.Is(err, storage.ErrBigMapNotFound) {
-			return nil, err
-		}
+func (t Parser) ParseBigMapDiff(bmd *bigmapdiff.BigMapDiff, storage *ast.TypedAst) ([]tokenmetadata.TokenMetadata, error) {
+	if bm := storage.FindByName(TokenMetadataStorageKey, false); bm == nil {
 		return nil, nil
 	}
 
 	m := new(TokenMetadata)
 	value := gjson.ParseBytes(bmd.Value)
-	if err := m.Parse(value, bmd.Address, bmd.Ptr); err != nil {
+	if err := m.Parse(value, bmd.Contract, bmd.Ptr); err != nil {
 		return nil, nil
 	}
 	m.Timestamp = bmd.Timestamp
@@ -73,14 +64,14 @@ func (t Parser) parseBigMapDiff(bmd *bigmapdiff.BigMapDiff, state block.Block) (
 		s := tzipStorage.NewFull(t.bmdRepo, t.blocksRepo, t.storage, t.rpc, t.sharePath, t.ipfs...)
 
 		remoteMetadata := &TokenMetadata{}
-		if err := s.Get(t.network, bmd.Address, m.Link, bmd.Ptr, remoteMetadata); err != nil {
+		if err := s.Get(t.network, bmd.Contract, m.Link, bmd.Ptr, remoteMetadata); err != nil {
 			switch {
 			case errors.Is(err, tzipStorage.ErrHTTPRequest):
-				logger.Error(err)
+				logger.WithField("url", m.Link).WithField("kind", "token_metadata").Warning(err)
 				return nil, nil
 			case errors.Is(err, tzipStorage.ErrNoIPFSResponse):
-				remoteMetadata.Name = TokenMetadataUnknown
-				logger.Error(err)
+				remoteMetadata.Name = consts.Unknown
+				logger.WithField("url", m.Link).WithField("kind", "token_metadata").Warning(err)
 			default:
 				return nil, err
 			}
@@ -88,7 +79,7 @@ func (t Parser) parseBigMapDiff(bmd *bigmapdiff.BigMapDiff, state block.Block) (
 		m.Merge(remoteMetadata)
 	}
 
-	return []tokenmetadata.TokenMetadata{m.ToModel(bmd.Address, t.network)}, nil
+	return []tokenmetadata.TokenMetadata{m.ToModel(bmd.Contract, t.network)}, nil
 }
 
 func (t Parser) parse(address string, state block.Block) ([]tokenmetadata.TokenMetadata, error) {
@@ -100,7 +91,6 @@ func (t Parser) parse(address string, state block.Block) ([]tokenmetadata.TokenM
 	bmd, err := t.bmdRepo.Get(bigmapdiff.GetContext{
 		Ptr:          &ptr,
 		Network:      t.network,
-		Size:         10000,
 		CurrentLevel: &state.Level,
 		Contract:     address,
 	})

@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -13,6 +14,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
 	transferParser "github.com/baking-bad/bcdhub/internal/parsers/transfer"
+	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -50,7 +52,7 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 				}
 				logger.Info("%s...", tzips[i].Address)
 
-				protocol, err := ctx.Protocols.GetProtocol(tzips[i].Network, "", -1)
+				protocol, err := ctx.Protocols.Get(tzips[i].Network, "", -1)
 				if err != nil {
 					return err
 				}
@@ -68,6 +70,11 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 					continue
 				}
 
+				script, err := fetch.Contract(tzips[i].Address, tzips[i].Network, protocol.Hash, ctx.SharePath)
+				if err != nil {
+					return err
+				}
+
 				inserted := make([]models.Model, 0)
 				deleted := make([]models.Model, 0)
 				newTransfers := make([]*transfer.Transfer, 0)
@@ -75,6 +82,10 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 				bar := progressbar.NewOptions(len(operations), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish(), progressbar.OptionShowCount())
 				for _, op := range operations {
 					if err := bar.Add(1); err != nil {
+						return err
+					}
+					op.Script = script
+					if err := op.InitScript(); err != nil {
 						return err
 					}
 
@@ -108,7 +119,7 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 							Network: t.Network,
 							Counter: &t.Counter,
 							Nonce:   t.Nonce,
-							TokenID: t.TokenID,
+							TokenID: &t.TokenID,
 						})
 						if err != nil {
 							return err
@@ -129,10 +140,12 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 				}
 
 				logger.Info("Found %d transfers", len(inserted))
-				if err := ctx.Storage.BulkInsert(inserted); err != nil {
-					return err
+				bu := transferParsers.UpdateTokenBalances(newTransfers)
+				for i := range bu {
+					inserted = append(inserted, bu[i])
 				}
-				if err := transferParser.UpdateTokenBalances(ctx.TokenBalances, newTransfers); err != nil {
+
+				if err := ctx.Storage.Save(inserted); err != nil {
 					return err
 				}
 			}

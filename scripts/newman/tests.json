@@ -162,14 +162,16 @@
 									"pm.test(\"The response has all properties\", () => {",
 									"    const contract = pm.response.json();",
 									"",
-									"    pm.expect(contract).to.have.property('id');",
 									"    pm.expect(contract).to.have.property('network');",
 									"    pm.expect(contract).to.have.property('level');",
 									"    pm.expect(contract).to.have.property('timestamp');",
 									"    pm.expect(contract).to.have.property('hash');",
 									"    pm.expect(contract).to.have.property('address');",
 									"    pm.expect(contract).to.have.property('total_subscribed');",
-									"    pm.expect(contract).to.have.property('tokens');",
+									"    pm.expect(contract).to.have.property('same_count');",
+									"    pm.expect(contract).to.have.property('similar_count');",
+									"    pm.expect(contract).to.have.property('tx_count');",
+									"    pm.expect(contract).to.have.property('last_action');",
 									"});"
 								],
 								"type": "text/javascript"
@@ -1144,12 +1146,10 @@
 									"    pm.expect(response.alias).to.be.eql('tzBTC');",
 									"    pm.expect(response.slug).to.be.eql('tzbtc');",
 									"",
-									"    pm.expect(response).to.have.property('id');",
 									"    pm.expect(response).to.have.property('level');",
 									"    pm.expect(response).to.have.property('timestamp');",
 									"    pm.expect(response).to.have.property('hash');",
 									"    pm.expect(response).to.have.property('total_subscribed');",
-									"    pm.expect(response).to.have.property('tokens');",
 									"});"
 								],
 								"type": "text/javascript"
@@ -1374,8 +1374,6 @@
 									"",
 									"        pm.expect(token).to.have.property('contract');",
 									"        pm.expect(token).to.have.property('token_id');",
-									"        pm.expect(token).to.have.property('supply');",
-									"        pm.expect(token).to.have.property('transfered');",
 									"    }",
 									"});"
 								],
@@ -1463,8 +1461,6 @@
 									"",
 									"        pm.expect(token).to.have.property('contract');",
 									"        pm.expect(token).to.have.property('token_id');",
-									"        pm.expect(token).to.have.property('supply');",
-									"        pm.expect(token).to.have.property('transfered');",
 									"    }",
 									"});"
 								],
@@ -1552,13 +1548,11 @@
 									"    for (const contract of response.contracts) {        ",
 									"        pm.expect(contract.network).to.be.eql('mainnet');",
 									"",
-									"        pm.expect(contract).to.have.property('id');",
 									"        pm.expect(contract).to.have.property('level');",
 									"        pm.expect(contract).to.have.property('timestamp');",
 									"        pm.expect(contract).to.have.property('hash');",
 									"        pm.expect(contract).to.have.property('address');",
 									"        pm.expect(contract).to.have.property('total_subscribed');",
-									"        pm.expect(contract).to.have.property('tokens');",
 									"        pm.expect(contract).to.have.property('count');",
 									"    }",
 									"});"
@@ -1709,50 +1703,6 @@
 			"name": "domains",
 			"item": [
 				{
-					"name": "domains/delphinet",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"The response has all properties\", () => {",
-									"    const response = pm.response.json();",
-									"",
-									"    pm.expect(response).to.have.property('total');",
-									"",
-									"    if (response.domains !== null && response.domains.lenght > 0) {",
-									"        for (const domain of response.domains) {",
-									"            pm.expect(domain.network).to.eql('delphinet');",
-									"            pm.expect(domain).to.have.property('address');",
-									"            pm.expect(domain).to.have.property('expiration');",
-									"            pm.expect(domain).to.have.property('name');",
-									"            pm.expect(domain).to.have.property('timestamp');",
-									"        }",
-									"    }",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseURL}}/v1/domains/delphinet",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"v1",
-								"domains",
-								"delphinet"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "domains/mainnet",
 					"event": [
 						{
@@ -1818,7 +1768,6 @@
 									"    pm.expect(account).to.have.property('balance');",
 									"    pm.expect(account).to.have.property('tx_count');",
 									"    pm.expect(account).to.have.property('last_action');",
-									"    pm.expect(account).to.have.property('tokens');",
 									"",
 									"});"
 								],
@@ -1861,7 +1810,6 @@
 									"    pm.expect(account).to.have.property('balance');",
 									"    pm.expect(account).to.have.property('tx_count');",
 									"    pm.expect(account).to.have.property('last_action');",
-									"    pm.expect(account).to.have.property('tokens');",
 									"",
 									"});"
 								],
@@ -2135,160 +2083,6 @@
 					"response": []
 				},
 				{
-					"name": "tokens/delphinet",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"The response has all properties\", () => {",
-									"    const response = pm.response.json();",
-									"",
-									"    pm.expect(response.total).to.be.greaterThan(0);",
-									"    pm.expect(response.tokens.length).to.be.greaterThan(0);",
-									"",
-									"    for (const token of response.tokens) {",
-									"        pm.expect(token).to.have.property('network');",
-									"        pm.expect(token).to.have.property('level');",
-									"        pm.expect(token).to.have.property('timestamp');",
-									"        pm.expect(token).to.have.property('last_action');",
-									"        pm.expect(token).to.have.property('address');",
-									"        pm.expect(token).to.have.property('type');",
-									"        pm.expect(token).to.have.property('balance');",
-									"        pm.expect(token).to.have.property('tx_count');",
-									"    }",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseURL}}/v1/tokens/delphinet",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"v1",
-								"tokens",
-								"delphinet"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "tokens/delphinet/version/fa12",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"The response has all properties\", () => {",
-									"    const response = pm.response.json();",
-									"",
-									"    pm.expect(response.total).to.be.greaterThan(0);",
-									"    pm.expect(response.tokens.length).to.be.eql(10);",
-									"",
-									"    for (const token of response.tokens) {",
-									"        pm.expect(token).to.have.property('network');",
-									"        pm.expect(token).to.have.property('level');",
-									"        pm.expect(token).to.have.property('timestamp');",
-									"        pm.expect(token).to.have.property('last_action');",
-									"        pm.expect(token).to.have.property('address');",
-									"        pm.expect(token).to.have.property('type');",
-									"        pm.expect(token).to.have.property('balance');",
-									"        pm.expect(token).to.have.property('tx_count');",
-									"    }",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseURL}}/v1/tokens/delphinet/version/fa12?size=10",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"v1",
-								"tokens",
-								"delphinet",
-								"version",
-								"fa12"
-							],
-							"query": [
-								{
-									"key": "size",
-									"value": "10"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "tokens/delphinet/version/fa2",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"The response has all properties\", () => {",
-									"    const response = pm.response.json();",
-									"",
-									"    pm.expect(response.total).to.be.greaterThan(0);",
-									"    pm.expect(response.tokens.length).to.be.eql(10);",
-									"",
-									"    for (const token of response.tokens) {",
-									"        pm.expect(token).to.have.property('network');",
-									"        pm.expect(token).to.have.property('level');",
-									"        pm.expect(token).to.have.property('timestamp');",
-									"        pm.expect(token).to.have.property('last_action');",
-									"        pm.expect(token).to.have.property('address');",
-									"        pm.expect(token).to.have.property('type');",
-									"        pm.expect(token).to.have.property('balance');",
-									"        pm.expect(token).to.have.property('tx_count');",
-									"    }",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseURL}}/v1/tokens/delphinet/version/fa2?size=10",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"v1",
-								"tokens",
-								"delphinet",
-								"version",
-								"fa2"
-							],
-							"query": [
-								{
-									"key": "size",
-									"value": "10"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "tokens/mainnet/transfers/tzbtc",
 					"event": [
 						{
@@ -2299,7 +2093,7 @@
 									"    const response = pm.response.json();",
 									"",
 									"    pm.expect(response.total).to.be.greaterThan(0);",
-									"    pm.expect(response.transfers.length).to.be.eql(20);",
+									"    pm.expect(response.transfers.length).to.be.eql(10);",
 									"",
 									"    for (const transfer of response.transfers) {",
 									"        pm.expect(transfer.network).to.be.eql('mainnet');",
@@ -2330,7 +2124,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}/v1/tokens/mainnet/transfers/KT1DrJV8vhkdLEj76h1H9Q4irZDqAkMPo1Qf?token_id=0&size=20&contracts=KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+							"raw": "{{baseURL}}/v1/tokens/mainnet/transfers/KT1DrJV8vhkdLEj76h1H9Q4irZDqAkMPo1Qf?token_id=0&size=10&contracts=KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
 							"host": [
 								"{{baseURL}}"
 							],
@@ -2348,7 +2142,7 @@
 								},
 								{
 									"key": "size",
-									"value": "20"
+									"value": "10"
 								},
 								{
 									"key": "contracts",
@@ -2370,7 +2164,6 @@
 									"    const response = pm.response.json();",
 									"",
 									"    pm.expect(response.total).to.be.greaterThan(0);",
-									"    pm.expect(response.transfers.length).to.be.eql(response.total);",
 									"    pm.expect(response).to.have.property(\"last_id\");",
 									"",
 									"    for (const transfer of response.transfers) {",
@@ -2402,7 +2195,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}/v1/tokens/mainnet/transfers/tz1fCCyqjcmwNw5Vv1b7yVXPvJzL42KqxWxd?size=10000",
+							"raw": "{{baseURL}}/v1/tokens/mainnet/transfers/tz1fCCyqjcmwNw5Vv1b7yVXPvJzL42KqxWxd?size=10",
 							"host": [
 								"{{baseURL}}"
 							],
@@ -2416,7 +2209,7 @@
 							"query": [
 								{
 									"key": "size",
-									"value": "10000"
+									"value": "10"
 								}
 							]
 						}
@@ -2434,7 +2227,7 @@
 									"    const response = pm.response.json();",
 									"",
 									"    pm.expect(response.total).to.be.greaterThan(0);",
-									"    pm.expect(response.transfers.length).to.be.eql(20);",
+									"    pm.expect(response.transfers.length).to.be.eql(10);",
 									"",
 									"    for (const transfer of response.transfers) {",
 									"        pm.expect(transfer.network).to.be.eql('mainnet');",
@@ -2465,7 +2258,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}/v1/tokens/mainnet/transfers/KT1Puc9St8wdNoGtLiD2WXaHbWU7styaxYhD?token_id=0&size=20&contracts=KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9",
+							"raw": "{{baseURL}}/v1/tokens/mainnet/transfers/KT1Puc9St8wdNoGtLiD2WXaHbWU7styaxYhD?token_id=0&size=10&contracts=KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9",
 							"host": [
 								"{{baseURL}}"
 							],
@@ -2483,7 +2276,7 @@
 								},
 								{
 									"key": "size",
-									"value": "20"
+									"value": "10"
 								},
 								{
 									"key": "contracts",
@@ -3518,8 +3311,8 @@
 									"    const dapp = pm.response.json();",
 									"",
 									"    pm.expect(dapp.name).to.eql(\"USDtz\");",
-									"    pm.expect(dapp.short_description).to.eql(\"USD-pegged stablecoin\");",
-									"    pm.expect(dapp.full_description).to.eql(\"USDtz is a USD-pegged stablecoin based on a fungible Tezos community standard — the FA token standard. USDtez is pegged to a formally-verifiable measure of (1:1 parity) value between itself and the United States Dollar (USD) providing a solvent, and scalable source of liquidity that is the ideal solution for low-fee Tezos-based asset trading.\");",
+									"    pm.expect(dapp.short_description).to.eql(\"Hard-backed USD stablecoin\");",
+									"    pm.expect(dapp.full_description).to.eql(\"USDtez (USDtz) is the first USD stablecoin on Tezos. USDtez is fully-backed 1-1 by FIAT,  and built to the Tezos FA token standard, providing a solvent, scalable, and financial DApp programmable source of liquidity for low-fee Tezos-based asset trading. The USDtez Reserve is regularly audited but also viewable in real time by users. Its collateral is diversified amongst multiple and strictly regulated FIAT-backed assets, further strengthening its 1-1 parity with the United States Dollar (USD).\");",
 									"    pm.expect(dapp.website).to.eql(\"https://usdtz.com/\");",
 									"    pm.expect(dapp.slug).to.eql(\"usdtz\");",
 									"    pm.expect(dapp.authors).to.eql([\"Tezos Stable Technologies Ltd\"]);",
@@ -3527,7 +3320,7 @@
 									"        \"https://twitter.com/usdtz\",",
 									"        \"https://github.com/usdtz\",",
 									"        \"https://www.reddit.com/r/USDTZ/\",",
-									"        \"https://t.me/USDtez\"",
+									"        \"https://t.me/USDtezos\"",
 									"    ]);",
 									"    pm.expect(dapp.interfaces).to.eql([\"FA1.2\"]);",
 									"    pm.expect(dapp.categories).to.eql([\"Token\", \"Stable\"]);",
@@ -3548,6 +3341,9 @@
 									"        pm.expect(token).to.have.property('contract');",
 									"        pm.expect(token).to.have.property('network');",
 									"        pm.expect(token).to.have.property('token_id');",
+									"        pm.expect(token).to.have.property('name');",
+									"        pm.expect(token).to.have.property('symbol');",
+									"        pm.expect(token).to.have.property('decimals');",
 									"        pm.expect(token).to.have.property('supply');",
 									"        pm.expect(token).to.have.property('transfered');",
 									"    }",
@@ -3735,11 +3531,12 @@
 									"        {",
 									"            \"network\": \"mainnet\",",
 									"            \"address\": \"KT1EpQVwqLGSH7vMCWKJnq6Uxi851sEDbhWL\",",
+									"            \"alias\": \"Atomex FA1.2 New\",",
 									"            \"release_date\": \"2021-02-24T16:28:18Z\"",
 									"        }",
 									"    ]);",
 									"",
-									"    pm.expect(dapp.dex_tokens.length).to.eql(2);",
+									"    pm.expect(dapp.dex_tokens.length).to.eql(4);",
 									"    for (const token of dapp.dex_tokens) {",
 									"        pm.expect(token).to.have.property('contract');",
 									"        pm.expect(token).to.have.property('network');",
@@ -3820,55 +3617,60 @@
 									"        {",
 									"            \"network\": \"mainnet\",",
 									"            \"address\": \"KT1BGQR7t4izzKZ7eRodKWTodAsM23P38v7N\",",
+									"            \"alias\": \"Dexter tzBTC/XTZ\",",
 									"            \"release_date\": \"2021-03-01T09:15:07Z\"",
 									"        },",
 									"        {",
 									"            \"network\": \"mainnet\",",
 									"            \"address\": \"KT1PDrBE59Zmxnb8vXRgRAG1XmvTMTs5EDHU\",",
+									"            \"alias\": \"Dexter ETHtz/XTZ\",",
 									"            \"release_date\": \"2021-03-01T09:23:07Z\"",
 									"        },",
 									"        {",
 									"            \"network\": \"mainnet\",",
 									"            \"address\": \"KT1Tr2eG3eVmPRbymrbU2UppUmKjFPXomGG9\",",
+									"            \"alias\": \"Dexter USDtz/XTZ\",",
 									"            \"release_date\": \"2021-03-01T09:25:07Z\"",
 									"        },",
 									"        {",
 									"            \"network\": \"mainnet\",",
 									"            \"address\": \"KT1D56HQfMmwdopmFLTwNHFJSs6Dsg2didFo\",",
+									"            \"alias\": \"Dexter wXTZ/XTZ\",",
 									"            \"release_date\": \"2021-03-01T09:30:07Z\"",
 									"        },",
 									"        {",
 									"            \"network\": \"mainnet\",",
 									"            \"address\": \"KT1AbYeDbjjcAnV1QK7EZUUdqku77CdkTuv6\",",
+									"            \"alias\": \"Dexter kUSD/XTZ\",",
 									"            \"release_date\": \"2021-03-01T08:58:11Z\"",
 									"        },",
 									"        {",
 									"            \"network\": \"mainnet\",",
 									"            \"address\": \"KT1DrJV8vhkdLEj76h1H9Q4irZDqAkMPo1Qf\",",
-									"            \"alias\": \"Dexter tzBTC/XTZ\",",
+									"            \"alias\": \"Dexter tzBTC/XTZ Old\",",
 									"            \"release_date\": \"2020-09-29T16:12:45Z\"",
 									"        },",
 									"        {",
 									"            \"network\": \"mainnet\",",
 									"            \"address\": \"KT1Puc9St8wdNoGtLiD2WXaHbWU7styaxYhD\",",
-									"            \"alias\": \"Dexter USDtz/XTZ\",",
+									"            \"alias\": \"Dexter USDtz/XTZ Old\",",
 									"            \"release_date\": \"2020-09-29T16:18:45Z\"",
 									"        },",
 									"        {",
 									"            \"network\": \"mainnet\",",
 									"            \"address\": \"KT19c8n5mWrqpxMcR3J687yssHxotj88nGhZ\",",
-									"            \"alias\": \"Dexter ETHtz/XTZ\",",
+									"            \"alias\": \"Dexter ETHtz/XTZ Old\",",
 									"            \"release_date\": \"2021-01-05T10:44:09Z\"",
 									"        },",
 									"        {",
 									"            \"network\": \"mainnet\",",
 									"            \"address\": \"KT1XTXBsEauzcv3uPvVXW92mVqrx99UGsb9T\",",
-									"            \"alias\": \"Dexter wXTZ/XTZ\",",
+									"            \"alias\": \"Dexter wXTZ/XTZ Old\",",
 									"            \"release_date\": \"2020-12-23T19:00:13Z\"",
 									"        }",
 									"    ]);",
 									"",
-									"    pm.expect(dapp.dex_tokens.length).to.eql(5);",
+									"    pm.expect(dapp.dex_tokens.length).to.eql(7);",
 									"    for (const token of dapp.dex_tokens) {",
 									"        pm.expect(token).to.have.property('contract');",
 									"        pm.expect(token).to.have.property('network');",

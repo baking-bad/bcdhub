@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -48,7 +49,7 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		return
 	}
 
-	protocol, err := ctx.Protocols.GetProtocol(req.Network, "", -1)
+	protocol, err := ctx.Protocols.Get(req.Network, "", -1)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -80,8 +81,8 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 
 	parser := operations.NewGroup(operations.NewParseParams(
 		rpc,
-		ctx.Storage, ctx.BigMapDiffs, ctx.Blocks, ctx.TZIP, ctx.TokenBalances,
-		operations.WithConstants(protocol.Constants),
+		ctx.Storage, ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.TZIP, ctx.TokenBalances,
+		operations.WithConstants(*protocol.Constants),
 		operations.WithHead(header),
 		operations.WithShareDirectory(ctx.SharePath),
 		operations.WithNetwork(req.Network),
@@ -108,7 +109,7 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 	for i := range operations {
 		bmd := make([]bigmapdiff.BigMapDiff, 0)
 		for j := range diffs {
-			if diffs[j].OperationID == operations[i].ID {
+			if diffs[j].OperationHash == operations[i].Hash && diffs[j].OperationCounter == operations[i].Counter && helpers.IsInt64PointersEqual(diffs[j].OperationNonce, operations[i].Nonce) {
 				bmd = append(bmd, *diffs[j])
 			}
 		}
@@ -212,7 +213,7 @@ func (ctx *Context) RunCode(c *gin.Context) {
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	if err := ctx.setParameters(string(input), script, &main); ctx.handleError(c, err, 0) {
+	if err := ctx.setParameters(input, script, &main); ctx.handleError(c, err, 0) {
 		return
 	}
 	if err := ctx.setSimulateStorageDiff(response, script, &main); ctx.handleError(c, err, 0) {
@@ -241,7 +242,7 @@ func (ctx *Context) parseAppliedRunCode(response noderpc.RunCodeResponse, script
 		op.Protocol = main.Protocol
 		op.Level = main.Level
 		op.Internal = true
-		if err := ctx.setParameters(string(response.Operations[i].Parameters), script, &op); err != nil {
+		if err := ctx.setParameters(response.Operations[i].Parameters, script, &op); err != nil {
 			return nil, err
 		}
 		if err := ctx.setSimulateStorageDiff(response, script, &op); err != nil {
@@ -271,17 +272,15 @@ func (ctx *Context) parseBigMapDiffs(response noderpc.RunCodeResponse, script *a
 	}
 
 	nodeOperation := noderpc.Operation{
-		Kind:          operation.Kind,
-		Source:        operation.Source,
-		Fee:           operation.Fee,
-		Counter:       operation.Counter,
-		GasLimit:      operation.GasLimit,
-		StorageLimit:  operation.StorageLimit,
-		Amount:        &operation.Amount,
-		Destination:   &operation.Destination,
-		PublicKey:     operation.PublicKey,
-		ManagerPubKey: operation.ManagerPubKey,
-		Delegate:      operation.Delegate,
+		Kind:         operation.Kind,
+		Source:       operation.Source,
+		Fee:          operation.Fee,
+		Counter:      operation.Counter,
+		GasLimit:     operation.GasLimit,
+		StorageLimit: operation.StorageLimit,
+		Amount:       &operation.Amount,
+		Destination:  &operation.Destination,
+		Delegate:     operation.Delegate,
 
 		Result: &noderpc.OperationResult{
 			Status:      consts.Applied,
@@ -324,7 +323,7 @@ func (ctx *Context) setSimulateStorageDiff(response noderpc.RunCodeResponse, scr
 	if err != nil {
 		return err
 	}
-	storageDiff, err := ctx.getStorageDiff(bmd, main.Destination, string(response.Storage), storageType, main)
+	storageDiff, err := ctx.getStorageDiff(bmd, main.Destination, response.Storage, storageType, main)
 	if err != nil {
 		return err
 	}

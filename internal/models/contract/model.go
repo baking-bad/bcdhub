@@ -4,36 +4,41 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // Contract - entity for contract
 type Contract struct {
+	ID        int64     `json:"-"`
 	Network   string    `json:"network"`
 	Level     int64     `json:"level"`
 	Timestamp time.Time `json:"timestamp"`
 	Language  string    `json:"language,omitempty"`
 
-	Hash        string       `json:"hash"`
-	Fingerprint *Fingerprint `json:"fingerprint,omitempty"`
-	Tags        []string     `json:"tags,omitempty"`
-	Hardcoded   []string     `json:"hardcoded,omitempty"`
-	FailStrings []string     `json:"fail_strings,omitempty"`
-	Annotations []string     `json:"annotations,omitempty"`
-	Entrypoints []string     `json:"entrypoints,omitempty"`
+	Hash                 string         `json:"hash"`
+	FingerprintCode      []byte         `json:"fgpt_code,omitempty"`
+	FingerprintParameter []byte         `json:"fgpt_parameter,omitempty"`
+	FingerprintStorage   []byte         `json:"fgpt_storage,omitempty"`
+	Tags                 pq.StringArray `json:"tags,omitempty" gorm:"type:text[]"`
+	Entrypoints          pq.StringArray `json:"entrypoints,omitempty" gorm:"type:text[]"`
+	FailStrings          pq.StringArray `json:"fail_strings,omitempty" gorm:"type:text[]"`
+	Annotations          pq.StringArray `json:"annotations,omitempty" gorm:"type:text[]"`
+	Hardcoded            pq.StringArray `json:"hardcoded,omitempty" gorm:"type:text[]"`
 
 	Address  string `json:"address"`
 	Manager  string `json:"manager,omitempty"`
 	Delegate string `json:"delegate,omitempty"`
 
 	ProjectID          string    `json:"project_id,omitempty"`
-	TxCount            int64     `json:"tx_count"`
+	TxCount            int64     `json:"tx_count" gorm:",default:0"`
 	LastAction         time.Time `json:"last_action"`
-	FoundBy            string    `json:"found_by,omitempty"`
-	MigrationsCount    int64     `json:"migrations_count,omitempty"`
+	MigrationsCount    int64     `json:"migrations_count,omitempty" gorm:",default:0"`
 	Alias              string    `json:"alias,omitempty"`
 	DelegateAlias      string    `json:"delegate_alias,omitempty"`
-	Verified           bool      `json:"verified,omitempty"`
+	Verified           bool      `json:"verified,omitempty" gorm:",default:false"`
 	VerificationSource string    `json:"verification_source,omitempty"`
 }
 
@@ -46,13 +51,23 @@ func NewEmptyContract(network, address string) Contract {
 }
 
 // GetID -
-func (c *Contract) GetID() string {
-	return fmt.Sprintf("%s_%s", c.Network, c.Address)
+func (c *Contract) GetID() int64 {
+	return c.ID
 }
 
 // GetIndex -
 func (c *Contract) GetIndex() string {
-	return "contract"
+	return "contracts"
+}
+
+// Save -
+func (t *Contract) Save(tx *gorm.DB) error {
+	return tx.Clauses(clause.OnConflict{
+		Columns: []clause.Column{
+			{Name: "id"},
+		},
+		DoUpdates: clause.AssignmentColumns([]string{"project_id", "alias", "delegate_alias", "verified", "verification_source"}),
+	}).Save(t).Error
 }
 
 // GetQueues -
@@ -71,7 +86,7 @@ func (c *Contract) LogFields() logrus.Fields {
 
 // MarshalToQueue -
 func (c *Contract) MarshalToQueue() ([]byte, error) {
-	return []byte(c.GetID()), nil
+	return []byte(fmt.Sprintf("%d", c.ID)), nil
 }
 
 // IsFA12 - checks contract realizes fa12 interface

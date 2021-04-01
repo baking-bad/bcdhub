@@ -36,7 +36,6 @@ func (ctx *Context) GetFA(c *gin.Context) {
 	if err := c.BindQuery(&cursorReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-
 	contracts, total, err := ctx.Contracts.GetTokens(req.Network, "", cursorReq.Offset, cursorReq.Size)
 	if ctx.handleError(c, err, 0) {
 		return
@@ -76,7 +75,6 @@ func (ctx *Context) GetFAByVersion(c *gin.Context) {
 	if err := c.BindQuery(&cursorReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-
 	if req.Version == "fa12" {
 		req.Version = consts.FA12Tag
 	}
@@ -129,9 +127,9 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 		contracts = strings.Split(ctxReq.Contracts, ",")
 	}
 
-	tokenID := int64(-1)
+	tokenID := new(uint64)
 	if ctxReq.TokenID != nil {
-		tokenID = *ctxReq.TokenID
+		tokenID = ctxReq.TokenID
 	}
 
 	transfers, err := ctx.Transfers.Get(transfer.GetContext{
@@ -183,7 +181,7 @@ func (ctx *Context) GetTokenVolumeSeries(c *gin.Context) {
 		return
 	}
 
-	dapp, err := ctx.TZIP.GetDAppBySlug(args.Slug)
+	dapp, err := ctx.DApps.Get(args.Slug)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -295,15 +293,10 @@ func (ctx *Context) GetContractTokens(c *gin.Context) {
 	if err := c.BindQuery(&pageReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-	if pageReq.TokenID == nil {
-		pageReq.TokenID = new(int64)
-		*pageReq.TokenID = -1
-	}
-
 	metadata, err := ctx.TokenMetadata.Get([]tokenmetadata.GetContext{{
 		Contract: req.Address,
 		Network:  req.Network,
-		TokenID:  *pageReq.TokenID,
+		TokenID:  pageReq.TokenID,
 		MinLevel: pageReq.MinLevel,
 		MaxLevel: pageReq.MaxLevel,
 	}}, pageReq.Size, pageReq.Offset)
@@ -339,7 +332,6 @@ func (ctx *Context) GetContractTokensCount(c *gin.Context) {
 	count, err := ctx.TokenMetadata.Count([]tokenmetadata.GetContext{{
 		Contract: req.Address,
 		Network:  req.Network,
-		TokenID:  -1,
 	}})
 	if ctx.handleError(c, err, 0) {
 		return
@@ -407,7 +399,7 @@ func (ctx *Context) GetTokenHolders(c *gin.Context) {
 	}
 	result := make(map[string]string)
 	for i := range balances {
-		result[balances[i].Address] = balances[i].Balance
+		result[balances[i].Address] = balances[i].BalanceString
 	}
 
 	c.JSON(http.StatusOK, result)
@@ -441,18 +433,13 @@ func (ctx *Context) GetTokenMetadata(c *gin.Context) {
 	if err := c.BindQuery(&queryParams); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-	if queryParams.TokenID == nil {
-		queryParams.TokenID = new(int64)
-		*queryParams.TokenID = -1
-	}
-
 	tokens, err := ctx.getTokensWithSupply(tokenmetadata.GetContext{
 		Contract: queryParams.Contract,
 		Network:  req.Network,
 		MinLevel: queryParams.MinLevel,
 		MaxLevel: queryParams.MaxLevel,
 		Creator:  queryParams.Creator,
-		TokenID:  *queryParams.TokenID,
+		TokenID:  queryParams.TokenID,
 	}, queryParams.Size, queryParams.Offset)
 	if ctx.handleError(c, err, 0) {
 		return

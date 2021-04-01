@@ -2,11 +2,11 @@
 // Source: transfer/repository.go
 
 // Package mock_transfer is a generated GoMock package.
-package mock_transfer
+package transfer
 
 import (
-	transfer "github.com/baking-bad/bcdhub/internal/models/transfer"
-	tzip "github.com/baking-bad/bcdhub/internal/models/tzip"
+	dapp "github.com/baking-bad/bcdhub/internal/models/dapp"
+	t "github.com/baking-bad/bcdhub/internal/models/transfer"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -35,10 +35,10 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Get mocks base method
-func (m *MockRepository) Get(ctx transfer.GetContext) (transfer.Pageable, error) {
+func (m *MockRepository) Get(ctx t.GetContext) (t.Pageable, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", ctx)
-	ret0, _ := ret[0].(transfer.Pageable)
+	ret0, _ := ret[0].(t.Pageable)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -50,10 +50,10 @@ func (mr *MockRepositoryMockRecorder) Get(ctx interface{}) *gomock.Call {
 }
 
 // GetAll mocks base method
-func (m *MockRepository) GetAll(network string, level int64) ([]transfer.Transfer, error) {
+func (m *MockRepository) GetAll(network string, level int64) ([]t.Transfer, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAll", network, level)
-	ret0, _ := ret[0].([]transfer.Transfer)
+	ret0, _ := ret[0].([]t.Transfer)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -65,10 +65,10 @@ func (mr *MockRepositoryMockRecorder) GetAll(network, level interface{}) *gomock
 }
 
 // GetTokenSupply mocks base method
-func (m *MockRepository) GetTokenSupply(network, address string, tokenID int64) (transfer.TokenSupply, error) {
+func (m *MockRepository) GetTokenSupply(network, address string, tokenID uint64) (t.TokenSupply, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTokenSupply", network, address, tokenID)
-	ret0, _ := ret[0].(transfer.TokenSupply)
+	ret0, _ := ret[0].(t.TokenSupply)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -80,7 +80,7 @@ func (mr *MockRepositoryMockRecorder) GetTokenSupply(network, address, tokenID i
 }
 
 // GetToken24HoursVolume mocks base method
-func (m *MockRepository) GetToken24HoursVolume(network, contract string, initiators, entrypoints []string, tokenID int64) (float64, error) {
+func (m *MockRepository) GetToken24HoursVolume(network, contract string, initiators, entrypoints []string, tokenID uint64) (float64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetToken24HoursVolume", network, contract, initiators, entrypoints, tokenID)
 	ret0, _ := ret[0].(float64)
@@ -95,10 +95,10 @@ func (mr *MockRepositoryMockRecorder) GetToken24HoursVolume(network, contract, i
 }
 
 // GetTokenVolumeSeries mocks base method
-func (m *MockRepository) GetTokenVolumeSeries(network, period string, contracts []string, entrypoints []tzip.DAppContract, tokenID uint) ([][]int64, error) {
+func (m *MockRepository) GetTokenVolumeSeries(network, period string, contracts []string, entrypoints []dapp.DAppContract, tokenID uint64) ([][]float64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTokenVolumeSeries", network, period, contracts, entrypoints, tokenID)
-	ret0, _ := ret[0].([][]int64)
+	ret0, _ := ret[0].([][]float64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -107,4 +107,19 @@ func (m *MockRepository) GetTokenVolumeSeries(network, period string, contracts 
 func (mr *MockRepositoryMockRecorder) GetTokenVolumeSeries(network, period, contracts, entrypoints, tokenID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTokenVolumeSeries", reflect.TypeOf((*MockRepository)(nil).GetTokenVolumeSeries), network, period, contracts, entrypoints, tokenID)
+}
+
+// CalcBalances mocks base method
+func (m *MockRepository) CalcBalances(network, contract string) ([]t.Balance, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CalcBalances", network, contract)
+	ret0, _ := ret[0].([]t.Balance)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CalcBalances indicates an expected call of CalcBalances
+func (mr *MockRepositoryMockRecorder) CalcBalances(network, contract interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalcBalances", reflect.TypeOf((*MockRepository)(nil).CalcBalances), network, contract)
 }

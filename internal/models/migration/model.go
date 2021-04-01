@@ -1,16 +1,17 @@
 package migration
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // Migration -
 type Migration struct {
-	ID          string `json:"-"`
-	IndexedTime int64  `json:"indexed_time"`
-
+	ID           int64     `json:"-"`
 	Network      string    `json:"network"`
 	Protocol     string    `json:"protocol"`
 	PrevProtocol string    `json:"prev_protocol,omitempty"`
@@ -22,13 +23,20 @@ type Migration struct {
 }
 
 // GetID -
-func (m *Migration) GetID() string {
+func (m *Migration) GetID() int64 {
 	return m.ID
 }
 
 // GetIndex -
 func (m *Migration) GetIndex() string {
-	return "migration"
+	return "migrations"
+}
+
+// Save -
+func (m *Migration) Save(tx *gorm.DB) error {
+	return tx.Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Save(m).Error
 }
 
 // GetQueues -
@@ -38,7 +46,7 @@ func (m *Migration) GetQueues() []string {
 
 // MarshalToQueue -
 func (m *Migration) MarshalToQueue() ([]byte, error) {
-	return []byte(m.ID), nil
+	return []byte(fmt.Sprintf("%d", m.ID)), nil
 }
 
 // LogFields -

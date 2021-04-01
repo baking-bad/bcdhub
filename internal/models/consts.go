@@ -5,6 +5,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
@@ -17,18 +18,20 @@ import (
 
 // Document names
 const (
-	DocBigMapActions = "bigmapaction"
-	DocBigMapDiff    = "bigmapdiff"
-	DocBlocks        = "block"
-	DocContracts     = "contract"
-	DocMigrations    = "migration"
-	DocOperations    = "operation"
-	DocProtocol      = "protocol"
-	DocTezosDomains  = "tezos_domain"
-	DocTokenBalances = "token_balance"
+	DocBigMapActions = "big_map_actions"
+	DocBigMapDiff    = "big_map_diffs"
+	DocBigMapState   = "big_map_states"
+	DocBlocks        = "blocks"
+	DocContracts     = "contracts"
+	DocDApps         = "dapps"
+	DocMigrations    = "migrations"
+	DocOperations    = "operations"
+	DocProtocol      = "protocols"
+	DocTezosDomains  = "tezos_domains"
+	DocTokenBalances = "token_balances"
 	DocTokenMetadata = "token_metadata"
-	DocTransfers     = "transfer"
-	DocTZIP          = "tzip"
+	DocTransfers     = "transfers"
+	DocTZIP          = "tzips"
 )
 
 // AllDocuments - returns all document names
@@ -36,8 +39,10 @@ func AllDocuments() []string {
 	return []string{
 		DocBigMapActions,
 		DocBigMapDiff,
+		DocBigMapState,
 		DocBlocks,
 		DocContracts,
+		DocDApps,
 		DocMigrations,
 		DocOperations,
 		DocProtocol,
@@ -54,8 +59,10 @@ func AllModels() []Model {
 	return []Model{
 		&bigmapaction.BigMapAction{},
 		&bigmapdiff.BigMapDiff{},
+		&bigmapdiff.BigMapState{},
 		&block.Block{},
 		&contract.Contract{},
+		&dapp.DApp{},
 		&migration.Migration{},
 		&operation.Operation{},
 		&protocol.Protocol{},

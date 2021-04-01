@@ -18,7 +18,7 @@ type Scorable interface {
 	GetFields() []string
 	GetIndex() string
 	GetScores(string) []string
-	Parse(highlight map[string][]string, data []byte) (interface{}, error)
+	Parse(highlight map[string][]string, data []byte) (*Item, error)
 }
 
 // Indices - list of indices availiable to search
@@ -34,7 +34,7 @@ var Indices = []string{
 var scorables = map[string]Scorable{
 	models.DocContracts:     &Contract{},
 	models.DocOperations:    &Operation{},
-	models.DocBigMapDiff:    &BigMap{},
+	models.DocBigMapDiff:    &BigMapDiff{},
 	models.DocTokenMetadata: &Token{},
 	models.DocTZIP:          &Metadata{},
 	models.DocTezosDomains:  &Domain{},

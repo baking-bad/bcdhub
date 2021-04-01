@@ -392,12 +392,8 @@
                     "action": "update",
                     "big_map": "17",
                     "key_hash": "expru5X1yxJG6ezR2uHMotwMLNmSzQyh5t1vUnhjx4cS6Pv9qE1Sdo",
-                    "key": {
-                        "string": ""
-                    },
-                    "value": {
-                        "bytes": "68747470733a2f2f73746f726167652e676f6f676c65617069732e636f6d2f747a69702d31362f656d6f6a692d696e2d6d657461646174612e6a736f6e"
-                    }
+                    "key":{"string":""},
+                    "value":{"bytes":"68747470733a2f2f73746f726167652e676f6f676c65617069732e636f6d2f747a69702d31362f656d6f6a692d696e2d6d657461646174612e6a736f6e"}
                 }
             ],
             "balance_updates": [
@@ -428,12 +424,8 @@
                         "updates": [
                             {
                                 "key_hash": "expru5X1yxJG6ezR2uHMotwMLNmSzQyh5t1vUnhjx4cS6Pv9qE1Sdo",
-                                "key": {
-                                    "string": ""
-                                },
-                                "value": {
-                                    "bytes": "68747470733a2f2f73746f726167652e676f6f676c65617069732e636f6d2f747a69702d31362f656d6f6a692d696e2d6d657461646174612e6a736f6e"
-                                }
+                                "key":{"string":""},
+                                "value":{"bytes":"68747470733a2f2f73746f726167652e676f6f676c65617069732e636f6d2f747a69702d31362f656d6f6a692d696e2d6d657461646174612e6a736f6e"}
                             }
                         ],
                         "key_type": {

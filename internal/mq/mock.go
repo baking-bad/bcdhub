@@ -6,6 +6,7 @@ package mq
 
 import (
 	gomock "github.com/golang/mock/gomock"
+	amqp "github.com/streadway/amqp"
 	reflect "reflect"
 )
 
@@ -201,10 +202,10 @@ func (m *MockReceiver) EXPECT() *MockReceiverMockRecorder {
 }
 
 // Consume mocks base method
-func (m *MockReceiver) Consume(queue string) (<-chan Data, error) {
+func (m *MockReceiver) Consume(queue string) (<-chan amqp.Delivery, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Consume", queue)
-	ret0, _ := ret[0].(<-chan Data)
+	ret0, _ := ret[0].(<-chan amqp.Delivery)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -253,10 +254,10 @@ func (m *MockIMessageReceiver) EXPECT() *MockIMessageReceiverMockRecorder {
 }
 
 // Consume mocks base method
-func (m *MockIMessageReceiver) Consume(queue string) (<-chan Data, error) {
+func (m *MockIMessageReceiver) Consume(queue string) (<-chan amqp.Delivery, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Consume", queue)
-	ret0, _ := ret[0].(<-chan Data)
+	ret0, _ := ret[0].(<-chan amqp.Delivery)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -347,10 +348,10 @@ func (mr *MockMediatorMockRecorder) Send(queue interface{}) *gomock.Call {
 }
 
 // Consume mocks base method
-func (m *MockMediator) Consume(queue string) (<-chan Data, error) {
+func (m *MockMediator) Consume(queue string) (<-chan amqp.Delivery, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Consume", queue)
-	ret0, _ := ret[0].(<-chan Data)
+	ret0, _ := ret[0].(<-chan amqp.Delivery)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

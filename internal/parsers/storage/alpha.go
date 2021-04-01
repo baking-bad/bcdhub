@@ -1,13 +1,11 @@
 package storage
 
 import (
-	"time"
-
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 )
 
@@ -28,13 +26,13 @@ func (a *Alpha) ParseTransaction(content noderpc.Operation, operation operation.
 
 	return RichStorage{
 		Models:          a.getBigMapDiff(result.BigMapDiffs, *content.Destination, operation),
-		DeffatedStorage: string(result.Storage),
+		DeffatedStorage: result.Storage,
 	}, nil
 }
 
 // ParseOrigination -
 func (a *Alpha) ParseOrigination(content noderpc.Operation, operation operation.Operation) (RichStorage, error) {
-	storage, err := getStorage(operation)
+	storage, err := operation.AST.StorageType()
 	if err != nil {
 		return RichStorage{Empty: true}, err
 	}
@@ -80,20 +78,23 @@ func (a *Alpha) ParseOrigination(content noderpc.Operation, operation operation.
 						return false, err
 					}
 				}
-				bmd = append(bmd, &bigmapdiff.BigMapDiff{
-					ID:          helpers.GenerateID(),
-					Key:         keyBytes,
-					KeyHash:     keyHash,
-					Value:       valBytes,
-					OperationID: operation.ID,
-					Level:       operation.Level,
-					Address:     result.Originated[0],
-					IndexedTime: time.Now().UnixNano() / 1000,
-					Network:     operation.Network,
-					Timestamp:   operation.Timestamp,
-					Protocol:    operation.Protocol,
-					Ptr:         -1,
-				})
+
+				b := &bigmapdiff.BigMapDiff{
+					Key:              keyBytes,
+					KeyHash:          keyHash,
+					Value:            valBytes,
+					OperationHash:    operation.Hash,
+					OperationCounter: operation.Counter,
+					OperationNonce:   operation.Nonce,
+					Level:            operation.Level,
+					Contract:         result.Originated[0],
+					Network:          operation.Network,
+					Timestamp:        operation.Timestamp,
+					Protocol:         operation.Protocol,
+					Ptr:              -1,
+				}
+
+				bmd = append(bmd, b, b.ToState())
 				return false, nil
 			}); err != nil {
 				return RichStorage{Empty: true}, err
@@ -111,27 +112,28 @@ func (a *Alpha) ParseOrigination(content noderpc.Operation, operation operation.
 	}
 	return RichStorage{
 		Models:          bmd,
-		DeffatedStorage: string(b),
+		DeffatedStorage: b,
 	}, nil
 }
 
 func (a *Alpha) getBigMapDiff(diffs []noderpc.BigMapDiff, address string, operation operation.Operation) []models.Model {
 	bmd := make([]models.Model, 0)
 	for i := range diffs {
-		bmd = append(bmd, &bigmapdiff.BigMapDiff{
-			ID:          helpers.GenerateID(),
-			Key:         diffs[i].Key,
-			KeyHash:     diffs[i].KeyHash,
-			Value:       diffs[i].Value,
-			OperationID: operation.ID,
-			Level:       operation.Level,
-			Address:     address,
-			IndexedTime: time.Now().UnixNano() / 1000,
-			Network:     operation.Network,
-			Timestamp:   operation.Timestamp,
-			Protocol:    operation.Protocol,
-			Ptr:         -1,
-		})
+		b := &bigmapdiff.BigMapDiff{
+			Key:              types.Bytes(diffs[i].Key),
+			KeyHash:          diffs[i].KeyHash,
+			Value:            types.Bytes(diffs[i].Value),
+			OperationHash:    operation.Hash,
+			OperationCounter: operation.Counter,
+			OperationNonce:   operation.Nonce,
+			Level:            operation.Level,
+			Contract:         address,
+			Network:          operation.Network,
+			Timestamp:        operation.Timestamp,
+			Protocol:         operation.Protocol,
+			Ptr:              -1,
+		}
+		bmd = append(bmd, b, b.ToState())
 	}
 	return bmd
 }

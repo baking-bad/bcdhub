@@ -67,7 +67,6 @@ func (ctx *Context) getHead() (interface{}, error) {
 		stats, ok := contractStats[blocks[i].Network]
 		if ok {
 			body[i].Total = stats.Total
-			body[i].TotalBalance = stats.Balance
 			body[i].UniqueContracts = stats.SameCount
 		}
 	}

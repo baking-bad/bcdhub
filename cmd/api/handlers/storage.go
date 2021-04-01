@@ -114,7 +114,7 @@ func (ctx *Context) GetContractStorageRaw(c *gin.Context) {
 		return
 	}
 
-	resp, err := formatter.MichelineStringToMichelson(ops[0].DeffatedStorage, false, formatter.DefLineSize)
+	resp, err := formatter.MichelineStringToMichelson(string(ops[0].DeffatedStorage), false, formatter.DefLineSize)
 	if ctx.handleError(c, err, 0) {
 		return
 	}

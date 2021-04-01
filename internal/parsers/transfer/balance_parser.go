@@ -25,12 +25,12 @@ func (parser *DefaultBalanceParser) Parse(balances []tbParser.TokenBalance, oper
 	transfers := make([]*transfer.Transfer, 0)
 	for _, balance := range balances {
 		transfer := transfer.EmptyTransfer(operation)
-		if balance.Value.Cmp(big.NewInt(0)) == 1 {
+		if balance.Value.Cmp(big.NewInt(0)) > 0 {
 			transfer.To = balance.Address
 		} else {
 			transfer.From = balance.Address
 		}
-		transfer.AmountBigInt.Abs(balance.Value)
+		transfer.Value.Abs(balance.Value)
 		transfer.TokenID = balance.TokenID
 
 		transfers = append(transfers, transfer)
@@ -59,16 +59,16 @@ func (parser *DefaultBalanceParser) ParseBalances(network, contract string, bala
 			tb.Value = big.NewInt(0)
 		}
 
-		delta := big.NewInt(0)
+		delta := new(big.Int)
 		delta.Sub(balance.Value, tb.Value)
 
-		if delta.Cmp(big.NewInt(0)) == 1 {
+		if delta.Cmp(big.NewInt(0)) > 0 {
 			transfer.To = balance.Address
 		} else {
 			transfer.From = balance.Address
 		}
 
-		transfer.AmountBigInt.Abs(delta)
+		transfer.Value.Abs(delta)
 		transfer.TokenID = balance.TokenID
 
 		transfers = append(transfers, transfer)

@@ -1,0 +1,62 @@
+{
+    "settings": {
+        "index.mapping.total_fields.limit": 100000
+    },
+    "mappings": {
+        "properties": {
+            "symbol": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "ignore_above": 256.0,
+                        "type": "keyword"
+                    }
+                }
+            },
+            "token_id": {
+                "type": "long",
+                "ignore_malformed": true
+            },
+            "level": {
+                "type": "long"
+            },
+            "contract": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "ignore_above": 256.0,
+                        "type": "keyword"
+                    }
+                }
+            },
+            "decimals": {
+                "type": "long"
+            },
+            "name": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "ignore_above": 256.0,
+                        "type": "keyword"
+                    }
+                }
+            },
+            "extras": {
+                "type": "object",
+                "enabled": false
+            },
+            "network": {
+                "type": "text",
+                "fields": {
+                    "keyword": {
+                        "ignore_above": 256.0,
+                        "type": "keyword"
+                    }
+                }
+            },
+            "timestamp": {
+                "type": "date"
+            }
+        }
+    }
+}

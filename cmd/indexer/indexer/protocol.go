@@ -2,7 +2,6 @@ package indexer
 
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -19,7 +18,6 @@ func createProtocol(rpc noderpc.INode, network, hash string, level int64) (proto
 	protocol.Network = network
 	protocol.Hash = hash
 	protocol.StartLevel = level
-	protocol.ID = helpers.GenerateID()
 
 	err = setProtocolConstants(rpc, &protocol)
 
@@ -32,7 +30,7 @@ func setProtocolConstants(rpc noderpc.INode, proto *protocol.Protocol) error {
 		if err != nil {
 			return err
 		}
-
+		proto.Constants = new(protocol.Constants)
 		proto.Constants.CostPerByte = resp.CostPerByte
 		proto.Constants.HardGasLimitPerOperation = resp.HardGasLimitPerOperation
 		proto.Constants.HardStorageLimitPerOperation = resp.HardStorageLimitPerOperation

@@ -1,0 +1,24 @@
+{
+    "result": {
+        "status": "applied",
+        "big_map_diff": [],
+        "balance_updates": [
+            {
+                "kind": "contract",
+                "contract": "tz1fTD47hHfH6gWuWZXMmZ7QQAG8aS2zwLiV",
+                "change": "-232000"
+            },
+            {
+                "kind": "contract",
+                "contract": "tz1fTD47hHfH6gWuWZXMmZ7QQAG8aS2zwLiV",
+                "change": "-257000"
+            }
+        ],
+        "originated_contracts": [
+            "KT1FVhijNC7ZBL5EjcetiKddDQ2n98t8w4jo"
+        ],
+        "consumed_gas": "15555",
+        "storage_size": "232",
+        "paid_storage_size_diff": "232"
+    }
+}

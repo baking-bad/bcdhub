@@ -18,6 +18,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/mq"
+	"github.com/streadway/amqp"
 )
 
 // Context -
@@ -42,7 +43,7 @@ func main() {
 			config.WithRPC(cfg.RPC),
 			config.WithDatabase(cfg.DB),
 			config.WithRabbit(cfg.RabbitMQ, cfg.Compiler.ProjectName, cfg.Compiler.MQ),
-			config.WithStorage(cfg.Storage, 0),
+			config.WithStorage(cfg.Storage, cfg.Compiler.ProjectName, 0),
 			config.WithAWS(cfg.Compiler.AWS),
 		),
 	}
@@ -52,7 +53,7 @@ func main() {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
-	protocol, err := context.Protocols.GetProtocol(consts.Mainnet, "", -1)
+	protocol, err := context.Protocols.Get(consts.Mainnet, "", -1)
 	if err != nil {
 		logger.Fatal(err)
 	}
@@ -161,7 +162,7 @@ func (ctx *Context) processDeployment(deployment *database.Deployment, operation
 	return ctx.Storage.UpdateFields(models.DocContracts, contract.GetID(), contract, "Verified", "VerificationSource")
 }
 
-func (ctx *Context) handleMessage(data mq.Data) error {
+func (ctx *Context) handleMessage(data amqp.Delivery) error {
 	if err := ctx.parseData(data); err != nil {
 		return err
 	}
@@ -169,14 +170,14 @@ func (ctx *Context) handleMessage(data mq.Data) error {
 	return data.Ack(false)
 }
 
-func (ctx *Context) parseData(data mq.Data) error {
-	if data.GetKey() != mq.QueueCompilations {
-		logger.Warning("[parseData] Unknown data routing key %s", data.GetKey())
+func (ctx *Context) parseData(data amqp.Delivery) error {
+	if data.RoutingKey != mq.QueueCompilations {
+		logger.Warning("[parseData] Unknown data routing key %s", data.RoutingKey)
 		return data.Ack(false)
 	}
 
 	var ct compilation.Task
-	if err := json.Unmarshal(data.GetBody(), &ct); err != nil {
+	if err := json.Unmarshal(data.Body, &ct); err != nil {
 		return fmt.Errorf("[parseData] Unmarshal message body error: %s", err)
 	}
 

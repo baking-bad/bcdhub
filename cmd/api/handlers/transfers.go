@@ -3,7 +3,6 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/gin-gonic/gin"
 )
@@ -34,9 +33,9 @@ func (ctx *Context) GetContractTransfers(c *gin.Context) {
 		return
 	}
 
-	tokenID := int64(-1)
+	tokenID := new(uint64)
 	if req.TokenID != nil {
-		tokenID = int64(*req.TokenID)
+		tokenID = req.TokenID
 	}
 
 	transfers, err := ctx.Transfers.Get(transfer.GetContext{
@@ -59,7 +58,7 @@ func (ctx *Context) GetContractTransfers(c *gin.Context) {
 type tokenKey struct {
 	Network  string
 	Contract string
-	TokenID  int64
+	TokenID  uint64
 }
 
 func (ctx *Context) transfersPostprocessing(transfers transfer.Pageable, withLastID bool) (response TransferResponse, err error) {
@@ -70,9 +69,7 @@ func (ctx *Context) transfersPostprocessing(transfers transfer.Pageable, withLas
 	}
 
 	mapTokens := make(map[tokenKey]*TokenMetadata)
-	tokens, err := ctx.TokenMetadata.GetAll(tokenmetadata.GetContext{
-		TokenID: -1,
-	})
+	tokens, err := ctx.TokenMetadata.GetAll()
 	if err != nil {
 		if !ctx.Storage.IsRecordNotFound(err) {
 			return

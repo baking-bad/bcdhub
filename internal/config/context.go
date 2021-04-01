@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
@@ -19,6 +20,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/pinata"
+	"github.com/baking-bad/bcdhub/internal/postgres/core"
+	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/baking-bad/bcdhub/internal/tzkt"
 	"github.com/pkg/errors"
 )
@@ -32,6 +35,8 @@ type Context struct {
 	TzKTServices map[string]tzkt.Service
 	Pinata       pinata.Service
 
+	StorageDB *core.Postgres
+
 	Config     Config
 	SharePath  string
 	TzipSchema string
@@ -43,6 +48,7 @@ type Context struct {
 	BigMapDiffs   bigmapdiff.Repository
 	Blocks        block.Repository
 	Contracts     contract.Repository
+	DApps         dapp.Repository
 	Migrations    migration.Repository
 	Operations    operation.Repository
 	Protocols     protocol.Repository
@@ -51,6 +57,8 @@ type Context struct {
 	TokenMetadata tokenmetadata.Repository
 	Transfers     transfer.Repository
 	TZIP          tzip.Repository
+
+	Searcher search.Searcher
 }
 
 // NewContext -
@@ -86,5 +94,8 @@ func (ctx *Context) Close() {
 	}
 	if ctx.DB != nil {
 		ctx.DB.Close()
+	}
+	if ctx.StorageDB != nil {
+		ctx.StorageDB.Close()
 	}
 }

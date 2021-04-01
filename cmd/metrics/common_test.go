@@ -6,29 +6,26 @@ func Test_parseID(t *testing.T) {
 	tests := []struct {
 		name string
 		data []byte
-		want string
+		want int64
 	}{
 		{
 			name: "Without quotes",
-			data: []byte("test"),
-			want: "test",
+			data: []byte("1"),
+			want: 1,
 		}, {
 			name: "With quotes",
-			data: []byte(`"test"`),
-			want: "test",
-		}, {
-			name: "Empty string",
-			data: []byte(``),
-			want: "",
-		}, {
-			name: "Empty quoted string",
-			data: []byte(`""`),
-			want: "",
+			data: []byte(`"2"`),
+			want: 2,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := parseID(tt.data); got != tt.want {
+			got, err := parseID(tt.data)
+			if err != nil {
+				t.Errorf("parseID() error = %s", err.Error())
+				return
+			}
+			if got != tt.want {
 				t.Errorf("parseID() = %v, want %v", got, tt.want)
 			}
 		})

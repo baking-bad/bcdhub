@@ -1,14 +1,38 @@
 package tzip
 
 import (
-	"encoding/json"
+	"database/sql/driver"
+	stdJSON "encoding/json"
+	"errors"
+	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
 )
 
 // TZIP20 -
 type TZIP20 struct {
-	Events []Event `json:"events,omitempty"`
+	Events Events `json:"events,omitempty" gorm:"type:jsonb"`
+}
+
+// Events -
+type Events []Event
+
+// Scan scan value into Jsonb, implements sql.Scanner interface
+func (events *Events) Scan(value interface{}) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New(fmt.Sprint("Failed to unmarshal JSONB value:", value))
+	}
+
+	return json.Unmarshal(bytes, events)
+}
+
+// Value return json value, implement driver.Valuer interface
+func (events Events) Value() (driver.Value, error) {
+	if events == nil {
+		return []byte(`[]`), nil
+	}
+	return json.Marshal(events)
 }
 
 // Event -
@@ -20,9 +44,9 @@ type Event struct {
 
 // EventImplementation -
 type EventImplementation struct {
-	MichelsonParameterEvent       MichelsonParameterEvent       `json:"michelsonParameterEvent,omitempty"`
-	MichelsonInitialStorageEvent  MichelsonInitialStorageEvent  `json:"michelsonInitialStorageEvent,omitempty"`
-	MichelsonExtendedStorageEvent MichelsonExtendedStorageEvent `json:"michelsonExtendedStorageEvent,omitempty"`
+	MichelsonParameterEvent       *MichelsonParameterEvent       `json:"michelsonParameterEvent,omitempty"`
+	MichelsonInitialStorageEvent  *MichelsonInitialStorageEvent  `json:"michelsonInitialStorageEvent,omitempty"`
+	MichelsonExtendedStorageEvent *MichelsonExtendedStorageEvent `json:"michelsonExtendedStorageEvent,omitempty"`
 }
 
 // MichelsonParameterEvent -
@@ -43,12 +67,12 @@ func (event MichelsonParameterEvent) Is(entrypoint string) bool {
 
 // Sections -
 type Sections struct {
-	Parameter  json.RawMessage `json:"parameter"`
-	ReturnType json.RawMessage `json:"returnType"`
-	Code       json.RawMessage `json:"code"`
+	Parameter  stdJSON.RawMessage `json:"parameter"`
+	ReturnType stdJSON.RawMessage `json:"returnType"`
+	Code       stdJSON.RawMessage `json:"code"`
 }
 
-var null = "null"
+var null = " null"
 
 // Empty -
 func (s Sections) Empty() bool {

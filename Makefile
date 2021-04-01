@@ -1,11 +1,22 @@
 -include .env
 export $(shell sed 's/=.*//' .env)
 
+LATEST_DUMP=/tmp/dump_latest.gz
+BACKUP?=dump_latest
+
 .ONESHELL:
 
 api:
 	docker-compose up -d elastic mq db
 	cd cmd/api && go run .
+
+graphql:
+	docker-compose up -d elastic mq db
+	cd cmd/graphql && go run .
+
+api-tester:
+	docker-compose up -d elastic mq db
+	cd scripts/api_tester && go run .
 
 indexer:
 	docker-compose up -d elastic mq
@@ -36,54 +47,58 @@ endif
 
 rollback:
 ifeq ($(BCD_ENV), development)
-	cd scripts/esctl && go run . rollback -n $(NETWORK) -l $(LEVEL)
+	cd scripts/bcdctl && go run . rollback -n $(NETWORK) -l $(LEVEL)
 else
-	docker-compose exec api esctl rollback -n $(NETWORK) -l $(LEVEL)
-endif
-
-remove:
-ifeq ($(BCD_ENV), development)
-	cd scripts/esctl && go run . remove -n $(NETWORK) 
-else
-	docker-compose exec api esctl remove -n $(NETWORK)
+	docker-compose exec api bcdctl rollback -n $(NETWORK) -l $(LEVEL)
 endif
 
 s3-creds:
 	docker-compose exec elastic bash -c 'bin/elasticsearch-keystore add --force --stdin s3.client.default.access_key <<< "$$AWS_ACCESS_KEY_ID"'
 	docker-compose exec elastic bash -c 'bin/elasticsearch-keystore add --force --stdin s3.client.default.secret_key <<< "$$AWS_SECRET_ACCESS_KEY"'
 ifeq ($(BCD_ENV), development)
-	cd scripts/esctl && go run . reload_secure_settings
+	cd scripts/bcdctl && go run . reload_secure_settings
 else
-	docker-compose exec api esctl reload_secure_settings
+	docker-compose exec api bcdctl reload_secure_settings
 endif
 
 s3-repo:
 ifeq ($(BCD_ENV), development)
-	cd scripts/esctl && go run . create_repository
+	cd scripts/bcdctl && go run . create_repository
 else
-	docker-compose exec api esctl create_repository
+	docker-compose exec api bcdctl create_repository
 endif
 
 s3-restore:
+ifeq (,$(wildcard $(LATEST_DUMP)))
+	aws s3 cp --profile bcd s3://bcd-db-snaps/$(BACKUP) $(LATEST_DUMP)
+endif
+
+	docker-compose exec -T db dropdb -U $(POSTGRES_USER) --if-exists indexer
+	gunzip -dc $(LATEST_DUMP) | docker-compose exec -T db psql -U $(POSTGRES_USER) -v ON_ERROR_STOP=on bcd
+	rm $(LATEST_DUMP)
+
 ifeq ($(BCD_ENV), development)
-	cd scripts/esctl && go run . restore
+	cd scripts/bcdctl && go run . restore
 else
-	docker-compose exec api esctl restore
+	docker-compose exec api bcdctl restore
 endif
 
 s3-snapshot:
+	docker-compose exec db pg_dump indexer --create -U $(POSTGRES_USER) | gzip -c > $(LATEST_DUMP)	
+	aws s3 mv --profile bcd $(LATEST_DUMP) s3://bcd-db-snaps/dump_latest.gz
+
 ifeq ($(BCD_ENV), development)
-	cd scripts/esctl && go run . snapshot
+	cd scripts/bcdctl && go run . snapshot
 else
-	docker-compose exec api esctl snapshot
+	docker-compose exec api bcdctl snapshot
 endif
 
-s3-policy:
-ifeq ($(BCD_ENV), development)
-	cd scripts/esctl && go run . set_policy
-else
-	docker-compose exec api esctl set_policy
-endif
+s3-list:
+	echo "Database snapshots"
+	aws s3 ls --profile bcd s3://bcd-db-snaps
+
+	echo "Elasticsearch snapshots"
+	aws s3 ls --profile bcd s3://bcd-elastic-snapshots
 
 es-reset:
 	docker-compose rm -s -v -f elastic || true
@@ -104,7 +119,7 @@ lint:
 test-api:
 	# to install newman:
 	# npm install -g newman
-	newman run ./scripts/newman/tests.json -e ./scripts/newman/env.json --bail
+	newman run ./scripts/newman/tests.json -e ./scripts/newman/env.json
 
 docs:
 	# wget https://github.com/swaggo/swag/releases/download/v1.7.0/swag_1.7.0_Linux_x86_64.tar.gz

@@ -102,6 +102,15 @@ type Protocol struct {
 	StartLevel int64            `json:"firstLevel"`
 	LastLevel  int64            `json:"lastLevel"`
 	Metadata   ProtocolMetadata `json:"metadata"`
+	Constants  Constants        `json:"constants"`
+}
+
+// Constants -
+type Constants struct {
+	CostPerByte                  int64 `json:"byteCost"`
+	HardGasLimitPerOperation     int64 `json:"hardOperationGasLimit"`
+	HardStorageLimitPerOperation int64 `json:"hardOperationStorageLimit"`
+	TimeBetweenBlocks            int64 `json:"timeBetweenBlocks"`
 }
 
 // ProtocolMetadata -

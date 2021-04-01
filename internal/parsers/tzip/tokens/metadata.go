@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"strconv"
 	"time"
+	"unicode/utf8"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/tidwall/gjson"
 )
 
@@ -42,7 +44,7 @@ const (
 type TokenMetadata struct {
 	Level              int64                  `json:"-"`
 	Timestamp          time.Time              `json:"-"`
-	TokenID            int64                  `json:"-"`
+	TokenID            uint64                 `json:"-"`
 	Symbol             string                 `json:"symbol"`
 	Name               string                 `json:"name"`
 	Decimals           *int64                 `json:"decimals"`
@@ -56,7 +58,7 @@ type TokenMetadata struct {
 	ShouldPreferSymbol bool                   `json:"shouldPreferSymbol"`
 	Creators           []string               `json:"creators"`
 	Tags               []string               `json:"tags"`
-	Formats            []interface{}          `json:"formats"`
+	Formats            json.RawMessage        `json:"formats"`
 	Extras             map[string]interface{} `json:"-"`
 
 	Link string `json:"-"`
@@ -83,9 +85,21 @@ func (m *TokenMetadata) ToModel(address, network string) tokenmetadata.TokenMeta
 		ShouldPreferSymbol: m.ShouldPreferSymbol,
 		Creators:           m.Creators,
 		Tags:               m.Tags,
-		Formats:            m.Formats,
+		Formats:            types.Bytes(m.Formats),
 		Extras:             m.Extras,
 	}
+}
+
+func parseString(hexValue string) (string, error) {
+	decoded, err := hex.DecodeString(hexValue)
+	if err != nil {
+		return "", err
+	}
+
+	if utf8.Valid(decoded) {
+		return string(decoded), nil
+	}
+	return "", nil
 }
 
 // Parse -
@@ -102,8 +116,9 @@ func (m *TokenMetadata) Parse(value gjson.Result, address string, ptr int64) err
 		return ErrInvalidStorageStructure
 	}
 
-	m.TokenID = tokenID.Int()
+	m.TokenID = tokenID.Uint()
 
+	var err error
 	m.Extras = make(map[string]interface{})
 	for _, item := range arr.Array() {
 		key := item.Get("0.string").String()
@@ -114,11 +129,10 @@ func (m *TokenMetadata) Parse(value gjson.Result, address string, ptr int64) err
 			m.Link = forge.DecodeString(value)
 			m.Extras[EmptyStringKey] = m.Link
 		case keySymbol:
-			decoded, err := hex.DecodeString(value)
+			m.Symbol, err = parseString(value)
 			if err != nil {
 				return err
 			}
-			m.Symbol = string(decoded)
 		case keyDecimals:
 			b, err := hex.DecodeString(value)
 			if err != nil {
@@ -130,41 +144,35 @@ func (m *TokenMetadata) Parse(value gjson.Result, address string, ptr int64) err
 			}
 			m.Decimals = &decoded
 		case keyName:
-			decoded, err := hex.DecodeString(value)
+			m.Name, err = parseString(value)
 			if err != nil {
 				return err
 			}
-			m.Name = string(decoded)
 		case keyArtifactURI:
-			decoded, err := hex.DecodeString(value)
+			m.ArtifactURI, err = parseString(value)
 			if err != nil {
 				return err
 			}
-			m.ArtifactURI = string(decoded)
 		case keyDescr:
-			decoded, err := hex.DecodeString(value)
+			m.Description, err = parseString(value)
 			if err != nil {
 				return err
 			}
-			m.Description = string(decoded)
 		case keyDisplayURI:
-			decoded, err := hex.DecodeString(value)
+			m.DisplayURI, err = parseString(value)
 			if err != nil {
 				return err
 			}
-			m.DisplayURI = string(decoded)
 		case keyThumbnailURI:
-			decoded, err := hex.DecodeString(value)
+			m.ThumbnailURI, err = parseString(value)
 			if err != nil {
 				return err
 			}
-			m.ThumbnailURI = string(decoded)
 		case keyExternalURI:
-			decoded, err := hex.DecodeString(value)
+			m.ExternalURI, err = parseString(value)
 			if err != nil {
 				return err
 			}
-			m.ExternalURI = string(decoded)
 		default:
 			m.Extras[key] = forge.DecodeString(value)
 		}
@@ -252,10 +260,10 @@ func getBoolKey(data map[string]interface{}, keyName string) bool {
 	return false
 }
 
-func getInterfaceArrayKey(data map[string]interface{}, keyName string) []interface{} {
+func getBytesKey(data map[string]interface{}, keyName string) json.RawMessage {
 	if val, ok := data[keyName]; ok {
 		delete(data, keyName)
-		if b, ok := val.([]interface{}); ok {
+		if b, ok := val.(json.RawMessage); ok {
 			return b
 		}
 	}
@@ -284,7 +292,7 @@ func (m *TokenMetadata) UnmarshalJSON(data []byte) error {
 	m.Creators = getStringArrayKey(res, keyCreators)
 	m.Tags = getStringArrayKey(res, keyTags)
 
-	m.Formats = getInterfaceArrayKey(res, keyFormats)
+	m.Formats = getBytesKey(res, keyFormats)
 
 	if val, ok := res[keyDecimals]; ok {
 		switch decimals := val.(type) {

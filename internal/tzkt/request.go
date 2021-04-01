@@ -114,7 +114,7 @@ func (t *TzKT) GetAliases() (map[string]string, error) {
 	params := map[string]string{}
 
 	params["limit"] = "10000"
-	params["kind"] = "smart_contract"
+	params["kind.in"] = "smart_contract,asset"
 	params["select.fields"] = "alias,address,creator,manager,delegate"
 
 	var contracts []Contract

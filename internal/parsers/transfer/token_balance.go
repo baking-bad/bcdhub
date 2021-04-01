@@ -2,14 +2,15 @@ package transfer
 
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 )
 
 // UpdateTokenBalances -
-func UpdateTokenBalances(repo tokenbalance.Repository, transfers []*transfer.Transfer) error {
+func UpdateTokenBalances(transfers []*transfer.Transfer) []models.Model {
 	exists := make(map[string]*tokenbalance.TokenBalance)
-	updates := make([]*tokenbalance.TokenBalance, 0)
+	updates := make([]models.Model, 0)
 	for i := range transfers {
 		if transfers[i].Status != consts.Applied {
 			continue
@@ -17,7 +18,7 @@ func UpdateTokenBalances(repo tokenbalance.Repository, transfers []*transfer.Tra
 		idFrom := transfers[i].GetFromTokenBalanceID()
 		if idFrom != "" {
 			if update, ok := exists[idFrom]; ok {
-				update.Value.Sub(update.Value, transfers[i].AmountBigInt)
+				update.Value.Sub(update.Value, transfers[i].Value)
 			} else {
 				upd := transfers[i].MakeTokenBalanceUpdate(true, false)
 				updates = append(updates, upd)
@@ -27,7 +28,7 @@ func UpdateTokenBalances(repo tokenbalance.Repository, transfers []*transfer.Tra
 		idTo := transfers[i].GetToTokenBalanceID()
 		if idTo != "" {
 			if update, ok := exists[idTo]; ok {
-				update.Value.Add(update.Value, transfers[i].AmountBigInt)
+				update.Value.Add(update.Value, transfers[i].Value)
 			} else {
 				upd := transfers[i].MakeTokenBalanceUpdate(false, false)
 				updates = append(updates, upd)
@@ -36,5 +37,5 @@ func UpdateTokenBalances(repo tokenbalance.Repository, transfers []*transfer.Tra
 		}
 	}
 
-	return repo.Update(updates)
+	return updates
 }

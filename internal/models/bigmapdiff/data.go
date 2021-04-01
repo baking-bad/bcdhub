@@ -4,5 +4,12 @@ package bigmapdiff
 type Bucket struct {
 	BigMapDiff
 
-	Count int64
+	KeysCount int64
+}
+
+// Stats -
+type Stats struct {
+	Total    int64
+	Active   int64
+	Contract string
 }

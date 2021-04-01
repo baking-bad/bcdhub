@@ -11,25 +11,32 @@ import (
 func Test_parseOperationResult(t *testing.T) {
 	tests := []struct {
 		name     string
-		root     string
 		fileName string
-		want     *operation.Result
+		want     operation.Operation
 	}{
 		{
 			name:     "test 1",
-			root:     "",
 			fileName: "./data/result/test1.json",
-			want: &operation.Result{
+			want: operation.Operation{
 				Status:      "applied",
 				ConsumedGas: 10207,
 			},
 		}, {
 			name:     "test 2",
-			root:     "operation_result",
 			fileName: "./data/result/test2.json",
-			want: &operation.Result{
+			want: operation.Operation{
 				Status:      "applied",
 				ConsumedGas: 10207,
+			},
+		}, {
+			name:     "test 3",
+			fileName: "./data/result/test3.json",
+			want: operation.Operation{
+				Status:              "applied",
+				ConsumedGas:         15555,
+				StorageSize:         232,
+				PaidStorageSizeDiff: 232,
+				Destination:         "KT1FVhijNC7ZBL5EjcetiKddDQ2n98t8w4jo",
 			},
 		},
 	}
@@ -41,8 +48,10 @@ func Test_parseOperationResult(t *testing.T) {
 				return
 			}
 
-			if got := parseOperationResult(&op); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Result.Parse() = %v, want %v", got, tt.want)
+			var res operation.Operation
+			parseOperationResult(op, &res)
+			if !reflect.DeepEqual(res, tt.want) {
+				t.Errorf("Result.Parse() = %v, want %v", res, tt.want)
 			}
 		})
 	}

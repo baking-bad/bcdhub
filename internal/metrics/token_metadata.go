@@ -4,73 +4,30 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/events"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
-	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
-	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
-	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
-	"github.com/baking-bad/bcdhub/internal/parsers/tzip/tokens"
 )
 
 // CreateTokenMetadata -
-func (h *Handler) CreateTokenMetadata(rpc noderpc.INode, sharePath string, c *contract.Contract, ipfs ...string) error {
-
+func (h *Handler) CreateTokenMetadata(rpc noderpc.INode, sharePath string, c *contract.Contract, ipfs ...string) ([]models.Model, error) {
 	result := make([]models.Model, 0)
 
 	transfers, err := h.ExecuteInitialStorageEvent(rpc, c.Network, c.Address)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	for i := range transfers {
 		result = append(result, transfers[i])
 	}
 
-	return h.Storage.BulkInsert(result)
-}
-
-// FixTokenMetadata -
-func (h *Handler) FixTokenMetadata(rpc noderpc.INode, sharePath string, contract *contract.Contract, operation *operation.Operation, ipfs ...string) error {
-	if !operation.IsTransaction() || !operation.IsApplied() || !operation.IsCall() {
-		return nil
-	}
-
-	tokenMetadatas, err := h.TokenMetadata.GetAll(tokenmetadata.GetContext{
-		Contract: operation.Destination,
-		Network:  operation.Network,
-		TokenID:  -1,
-	})
-	if err != nil {
-		if !h.Storage.IsRecordNotFound(err) {
-			return err
-		}
-		return nil
-	}
-	result := make([]models.Model, 0)
-
-	for _, tokenMetadata := range tokenMetadatas {
-		parser := tokens.NewParser(h.BigMapDiffs, h.Blocks, h.Protocol, h.Storage, rpc, sharePath, operation.Network, ipfs...)
-		metadata, err := parser.Parse(tokenMetadata.Contract, operation.Level)
-		if err != nil {
-			return err
-		}
-		for i := range metadata {
-			result = append(result, &metadata[i])
-			logger.With(&metadata[i]).Info("Token metadata update is found")
-		}
-	}
-	if len(result) == 0 {
-		return nil
-	}
-
-	return h.Storage.BulkInsert(result)
+	return result, nil
 }
 
 // ExecuteInitialStorageEvent -
-func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, network, contract string) ([]*transfer.Transfer, error) {
+func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, network, contract string) ([]models.Model, error) {
 	tzip, err := h.TZIP.Get(network, contract)
 	if err != nil {
 		if h.Storage.IsRecordNotFound(err) {
@@ -78,6 +35,10 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, network, contrac
 		}
 		return nil, err
 	}
+	if len(tzip.Events) == 0 {
+		return nil, nil
+	}
+
 	ops, err := h.Operations.Get(map[string]interface{}{
 		"destination": contract,
 		"network":     network,
@@ -95,7 +56,7 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, network, contrac
 
 	origination := ops[0]
 
-	protocol, err := h.Protocol.GetProtocol(network, origination.Protocol, origination.Level)
+	protocol, err := h.Protocol.Get(network, origination.Protocol, origination.Level)
 	if err != nil {
 		return nil, err
 	}
@@ -105,13 +66,13 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, network, contrac
 		return nil, err
 	}
 
-	transfers := make([]*transfer.Transfer, 0)
+	newModels := make([]models.Model, 0)
 
-	balanceUpdates := make([]*tokenbalance.TokenBalance, 0)
 	for i := range tzip.Events {
 		for j := range tzip.Events[i].Implementations {
-			if !tzip.Events[i].Implementations[j].MichelsonInitialStorageEvent.Empty() {
-				event, err := events.NewMichelsonInitialStorage(tzip.Events[i].Implementations[j], tzip.Events[i].Name)
+			impl := tzip.Events[i].Implementations[j]
+			if impl.MichelsonInitialStorageEvent != nil && !impl.MichelsonInitialStorageEvent.Empty() {
+				event, err := events.NewMichelsonInitialStorage(impl, tzip.Events[i].Name)
 				if err != nil {
 					return nil, err
 				}
@@ -173,10 +134,12 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, network, contrac
 					return nil, err
 				}
 
-				transfers = append(transfers, res...)
+				for i := range res {
+					newModels = append(newModels, res[i])
+				}
 
 				for i := range balances {
-					balanceUpdates = append(balanceUpdates, &tokenbalance.TokenBalance{
+					newModels = append(newModels, &tokenbalance.TokenBalance{
 						Network:  tzip.Network,
 						Address:  balances[i].Address,
 						TokenID:  balances[i].TokenID,
@@ -188,5 +151,5 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, network, contrac
 		}
 	}
 
-	return transfers, h.TokenBalances.Update(balanceUpdates)
+	return newModels, nil
 }

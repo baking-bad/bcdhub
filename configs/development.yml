@@ -5,6 +5,9 @@ rpc:
   edo2net:
     uri: https://rpc.tzkt.io/edo2net
     timeout: 20
+  delphinet:
+    uri: https://rpc.tzkt.io/delphinet
+    timeout: 20
   florencenet:
     uri: https://rpc.tzkt.io/florencenobanet
     timeout: 20
@@ -20,9 +23,15 @@ tzkt:
     services_uri: https://services.tzkt.io/edo2net/v1/
     base_uri: https://edo2net.tzkt.io/
     timeout: 20
+  delphinet:
+    uri: https://api.delphinet.tzkt.io/v1/
+    services_uri: https://services.tzkt.io/delphinet/v1/
+    base_uri: https://delphinet.tzkt.io/
+    timeout: 20
 
 storage:
-  uri:
+  pg: "host=${DB_HOSTNAME:-127.0.0.1} port=5432 user=${POSTGRES_USER} dbname=indexer password=${POSTGRES_PASSWORD} sslmode=disable"
+  elastic:
     - http://${ELASTIC_HOSTNAME:-127.0.0.1}:9200
   timeout: 10
 
@@ -110,8 +119,11 @@ indexer:
   networks:
     mainnet:
       boost: tzkt
-    # edo2net:
-    # florencenet
+    # delphinet:
+    #   boost: tzkt
+    edo2net:
+      boost: tzkt
+    florencenet:
 
 metrics:
   project_name: metrics
@@ -121,11 +133,11 @@ metrics:
     publisher: false
     queues:
       operations:
+        lazy: true
       contracts:
-      migrations:
-      recalc:
+        lazy: true
       bigmapdiffs:
-      projects:
+        lazy: true
 
 scripts:
   aws:
@@ -139,3 +151,6 @@ scripts:
     - florencenet
   mq:
     publisher: true
+
+graphql:
+  db: "host=127.0.0.1 port=5432 user=graphql dbname=indexer password=${POSTGRES_GRAPHQL} sslmode=disable"

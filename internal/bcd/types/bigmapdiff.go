@@ -8,13 +8,15 @@ type BigMapDiff struct {
 	Key   []byte
 	Value []byte
 
-	ID          string
-	KeyHash     string
-	OperationID string
-	Level       int64
-	Address     string
-	Network     string
-	IndexedTime int64
-	Timestamp   time.Time
-	Protocol    string
+	ID               int64
+	KeyHash          string
+	OperationHash    string
+	OperationCounter int64
+	OperationNonce   *int64
+	Level            int64
+	Address          string
+	Network          string
+	IndexedTime      int64
+	Timestamp        time.Time
+	Protocol         string
 }

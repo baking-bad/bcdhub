@@ -1,7 +1,6 @@
 package metrics
 
 import (
-	"encoding/hex"
 	"fmt"
 	"math"
 
@@ -26,22 +25,17 @@ func (m *Fingerprint) Compute(a, b contract.Contract) Feature {
 	f := Feature{
 		Name: fmt.Sprintf("fingerprint_%s", m.Section),
 	}
-
-	if a.Fingerprint == nil || b.Fingerprint == nil {
-		return f
-	}
-
 	var x, y []byte
 	switch m.Section {
 	case consts.PARAMETER:
-		x, _ = hex.DecodeString(a.Fingerprint.Parameter)
-		y, _ = hex.DecodeString(b.Fingerprint.Parameter)
+		x = a.FingerprintParameter
+		y = b.FingerprintParameter
 	case consts.STORAGE:
-		x, _ = hex.DecodeString(a.Fingerprint.Storage)
-		y, _ = hex.DecodeString(b.Fingerprint.Storage)
+		x = a.FingerprintStorage
+		y = b.FingerprintStorage
 	case consts.CODE:
-		x, _ = hex.DecodeString(a.Fingerprint.Code)
-		y, _ = hex.DecodeString(b.Fingerprint.Code)
+		x = a.FingerprintCode
+		y = b.FingerprintCode
 	default:
 		return f
 	}
@@ -139,21 +133,18 @@ func (m *FingerprintLength) Compute(a, b contract.Contract) Feature {
 	f := Feature{
 		Name: fmt.Sprintf("fingerprint_length_%s", m.Section),
 	}
-	if a.Fingerprint == nil || b.Fingerprint == nil {
-		return f
-	}
 
-	var x, y string
+	var x, y []byte
 	switch m.Section {
 	case consts.PARAMETER:
-		x = a.Fingerprint.Parameter
-		y = b.Fingerprint.Parameter
+		x = a.FingerprintParameter
+		y = b.FingerprintParameter
 	case consts.STORAGE:
-		x = a.Fingerprint.Storage
-		y = b.Fingerprint.Storage
+		x = a.FingerprintStorage
+		y = b.FingerprintStorage
 	case consts.CODE:
-		x = a.Fingerprint.Code
-		y = b.Fingerprint.Code
+		x = a.FingerprintCode
+		y = b.FingerprintCode
 	default:
 		return f
 	}

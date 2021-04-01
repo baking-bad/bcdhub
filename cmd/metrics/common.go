@@ -1,12 +1,20 @@
 package main
 
-import "strings"
+import (
+	"strconv"
+	"strings"
+)
 
-func parseID(data []byte) string {
-	id := string(data)
-	if strings.HasPrefix(id, `"`) && strings.HasSuffix(id, `"`) {
-		id = strings.TrimPrefix(id, `"`)
-		id = strings.TrimSuffix(id, `"`)
+func parseID(data []byte) (int64, error) {
+	sData := string(data)
+	id, err := strconv.ParseInt(sData, 10, 64)
+	if err != nil {
+		if strings.HasPrefix(sData, `"`) && strings.HasSuffix(sData, `"`) {
+			sData = strings.TrimPrefix(sData, `"`)
+			sData = strings.TrimSuffix(sData, `"`)
+			return strconv.ParseInt(sData, 10, 64)
+		}
+		return id, err
 	}
-	return id
+	return id, nil
 }

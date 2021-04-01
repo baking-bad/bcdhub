@@ -4,7 +4,7 @@ package tokenmetadata
 type GetContext struct {
 	Contract string
 	Network  string
-	TokenID  int64
+	TokenID  *uint64
 	MaxLevel int64
 	MinLevel int64
 	Creator  string

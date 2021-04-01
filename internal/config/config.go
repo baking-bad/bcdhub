@@ -64,6 +64,10 @@ type Config struct {
 		Networks []string  `yaml:"networks"`
 		MQ       MQConfig  `yaml:"mq"`
 	} `yaml:"scripts"`
+
+	GraphQL struct {
+		DB string `yaml:"db"`
+	} `yaml:"graphql"`
 }
 
 // RPCConfig -
@@ -82,8 +86,9 @@ type TzKTConfig struct {
 
 // StorageConfig -
 type StorageConfig struct {
-	URI     []string `yaml:"uri"`
-	Timeout int      `yaml:"timeout"`
+	Postgres string   `yaml:"pg"`
+	Elastic  []string `yaml:"elastic"`
+	Timeout  int      `yaml:"timeout"`
 }
 
 // RabbitConfig -
@@ -190,9 +195,10 @@ type MQConfig struct {
 
 // QueueParams -
 type QueueParams struct {
+	TTLSeconds  uint `yaml:"ttl_seconds"`
 	NonDurable  bool `yaml:"non_durable"`
 	AutoDeleted bool `yaml:"auto_deleted"`
-	TTLSeconds  uint `yaml:"ttl_seconds"`
+	Lazy        bool `yaml:"lazy"`
 }
 
 // TezosDomainsConfig -

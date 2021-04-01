@@ -5,15 +5,14 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/gin-gonic/gin"
 )
 
 // GetDAppList -
 func (ctx *Context) GetDAppList(c *gin.Context) {
-	dapps, err := ctx.TZIP.GetDApps()
+	dapps, err := ctx.DApps.All()
 	if err != nil {
 		if ctx.Storage.IsRecordNotFound(err) {
 			c.JSON(http.StatusOK, []interface{}{})
@@ -25,7 +24,7 @@ func (ctx *Context) GetDAppList(c *gin.Context) {
 
 	results := make([]DApp, len(dapps))
 	for i := range dapps {
-		result, err := ctx.appendDAppInfo(&dapps[i], false)
+		result, err := ctx.appendDAppInfo(dapps[i], false)
 		if ctx.handleError(c, err, 0) {
 			return
 		}
@@ -42,10 +41,10 @@ func (ctx *Context) GetDApp(c *gin.Context) {
 		return
 	}
 
-	dapp, err := ctx.TZIP.GetDAppBySlug(req.Slug)
+	dapp, err := ctx.DApps.Get(req.Slug)
 	if err != nil {
 		if ctx.Storage.IsRecordNotFound(err) {
-			c.JSON(http.StatusOK, gin.H{})
+			c.JSON(http.StatusNoContent, gin.H{})
 			return
 		}
 		ctx.handleError(c, err, 0)
@@ -60,7 +59,7 @@ func (ctx *Context) GetDApp(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, error) {
+func (ctx *Context) appendDAppInfo(dapp dapp.DApp, withDetails bool) (DApp, error) {
 	result := DApp{
 		Name:              dapp.Name,
 		ShortDescription:  dapp.ShortDescription,
@@ -103,7 +102,7 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 				tokenMetadata, err := ctx.TokenMetadata.GetAll(tokenmetadata.GetContext{
 					Contract: token.Contract,
 					Network:  consts.Mainnet,
-					TokenID:  token.TokenID,
+					TokenID:  &token.TokenID,
 				})
 				if err != nil {
 					if ctx.Storage.IsRecordNotFound(err) {
@@ -115,7 +114,7 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 				var initiators, entrypoints []string
 				for _, c := range dapp.Contracts {
 					initiators = append(initiators, c.Address)
-					entrypoints = append(entrypoints, c.DexVolumeEntrypoints...)
+					entrypoints = append(entrypoints, c.Entrypoint...)
 				}
 
 				vol, err := ctx.Transfers.GetToken24HoursVolume(consts.Mainnet, token.Contract, initiators, entrypoints, token.TokenID)
@@ -138,8 +137,11 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 			result.Contracts = make([]DAppContract, 0)
 
 			for _, address := range dapp.Contracts {
-				contract := contract.NewEmptyContract(consts.Mainnet, address.Address)
-				if err := ctx.Storage.GetByID(&contract); err != nil {
+				contract, err := ctx.Contracts.Get(consts.Mainnet, address.Address)
+				if err != nil {
+					if ctx.Storage.IsRecordNotFound(err) {
+						continue
+					}
 					return result, err
 				}
 				result.Contracts = append(result.Contracts, DAppContract{
@@ -152,7 +154,7 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 				tokens, err := ctx.getTokensWithSupply(tokenmetadata.GetContext{
 					Contract: address.Address,
 					Network:  consts.Mainnet,
-					TokenID:  -1,
+					TokenID:  nil,
 				}, 0, 0)
 				if err != nil {
 					return result, err
@@ -160,7 +162,7 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 				result.Tokens = append(result.Tokens, tokens...)
 
 				if helpers.StringInArray("DEX", dapp.Categories) {
-					vol, err := ctx.Operations.GetContract24HoursVolume(consts.Mainnet, address.Address, address.DexVolumeEntrypoints)
+					vol, err := ctx.Operations.GetContract24HoursVolume(consts.Mainnet, address.Address, address.Entrypoint)
 					if err != nil {
 						return result, err
 					}

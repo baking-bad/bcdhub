@@ -2,7 +2,7 @@ package contract
 
 // Repository -
 type Repository interface {
-	Get(by map[string]interface{}) (Contract, error)
+	Get(network, address string) (Contract, error)
 	GetMany(by map[string]interface{}) ([]Contract, error)
 	GetRandom(network string) (Contract, error)
 	GetAddressesByNetworkAndLevel(network string, maxLevel int64) ([]string, error)
@@ -11,10 +11,10 @@ type Repository interface {
 	UpdateMigrationsCount(address, network string) error
 	GetByAddresses(addresses []Address) ([]Contract, error)
 	GetTokens(network, tokenInterface string, offset, size int64) ([]Contract, int64, error)
-	GetProjectsLastContract(contract *Contract) ([]Contract, error)
+	GetProjectsLastContract(c Contract, size, offset int64) ([]Contract, error)
 	GetSameContracts(contact Contract, manager string, size, offset int64) (SameResponse, error)
 	GetSimilarContracts(Contract, int64, int64) ([]Similar, int, error)
 	GetDiffTasks() ([]DiffTask, error)
-	UpdateField(where []Contract, fields ...string) error
-	Stats(contract Contract) (Stats, error)
+	GetByIDs(ids ...int64) ([]Contract, error)
+	Stats(c Contract) (Stats, error)
 }
