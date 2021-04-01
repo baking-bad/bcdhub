@@ -35,25 +35,12 @@ func NewBabylon(repo bigmapdiff.Repository, rpc noderpc.INode) *Babylon {
 
 // ParseTransaction -
 func (b *Babylon) ParseTransaction(content noderpc.Operation, operation operation.Operation) (RichStorage, error) {
-	storage, err := getStorage(operation)
-	if err != nil {
-		return RichStorage{Empty: true}, err
-	}
 	result := content.GetResult()
 	if result == nil {
 		return RichStorage{Empty: true}, nil
 	}
 
-	level := operation.Level - 1
-	if operation.Level < 2 {
-		level = operation.Level
-	}
-
-	if err := b.initPointersTypes(result, storage, operation.Destination, level, result.Storage); err != nil {
-		return RichStorage{Empty: true}, nil
-	}
-
-	modelUpdates, err := b.handleBigMapDiff(result, *content.Destination, operation)
+	modelUpdates, err := b.handleBigMapDiff(result, *content.Destination, operation, result.Storage)
 	if err != nil {
 		return RichStorage{Empty: true}, err
 	}
@@ -66,10 +53,6 @@ func (b *Babylon) ParseTransaction(content noderpc.Operation, operation operatio
 
 // ParseOrigination -
 func (b *Babylon) ParseOrigination(content noderpc.Operation, operation operation.Operation) (RichStorage, error) {
-	storage, err := getStorage(operation)
-	if err != nil {
-		return RichStorage{Empty: true}, err
-	}
 	result := content.GetResult()
 	if result == nil {
 		return RichStorage{Empty: true}, nil
@@ -82,11 +65,7 @@ func (b *Babylon) ParseOrigination(content noderpc.Operation, operation operatio
 		return RichStorage{Empty: true}, err
 	}
 
-	if err := b.initPointersTypes(result, storage, operation.Destination, operation.Level, scriptData.Storage); err != nil {
-		return RichStorage{Empty: true}, nil
-	}
-
-	modelUpdates, err := b.handleBigMapDiff(result, result.Originated[0], operation)
+	modelUpdates, err := b.handleBigMapDiff(result, result.Originated[0], operation, scriptData.Storage)
 	if err != nil {
 		return RichStorage{Empty: true}, err
 	}
@@ -97,39 +76,35 @@ func (b *Babylon) ParseOrigination(content noderpc.Operation, operation operatio
 	}, nil
 }
 
-func (b *Babylon) initPointersTypes(result *noderpc.OperationResult, storage *ast.TypedAst, address string, level int64, data []byte) error {
-	var storageData ast.UntypedAST
-	if err := json.Unmarshal(data, &storageData); err != nil {
-		return errors.Wrapf(err, "settleStorage %s %d", address, level)
+func (b *Babylon) initPointersTypes(result *noderpc.OperationResult, operation operation.Operation, data []byte) error {
+	level := operation.Level
+	if operation.IsTransaction() && operation.Level >= 2 {
+		level = operation.Level - 1
 	}
 
-	if err := storage.Settle(storageData); err != nil {
-		return errors.Wrapf(err, "settleStorage %s %d", address, level)
+	storage, err := operation.AST.StorageType()
+	if err != nil {
+		return err
+	}
+
+	if err := storage.SettleFromBytes(data); err != nil {
+		return errors.Wrapf(err, "settleStorage %s %d", operation.Destination, level)
 	}
 
 	if err := b.checkPointers(result, storage); err == nil {
 		return nil
 	}
 
-	rawData, err := b.rpc.GetScriptStorageRaw(address, level)
+	rawData, err := b.rpc.GetScriptStorageRaw(operation.Destination, level)
 	if err != nil {
-		return errors.Wrapf(err, "settleStorage %s %d", address, level)
+		return errors.Wrapf(err, "GetScriptStorageRaw %s %d", operation.Destination, level)
 	}
 
-	var nodeStorageData ast.UntypedAST
-	if err := json.Unmarshal(rawData, &nodeStorageData); err != nil {
-		return errors.Wrapf(err, "settleStorage %s %d", address, level)
+	if err := storage.SettleFromBytes(rawData); err != nil {
+		return errors.Wrapf(err, "Settle %s %d", operation.Destination, level)
 	}
 
-	if err := storage.Settle(nodeStorageData); err != nil {
-		return errors.Wrapf(err, "settleStorage %s %d", address, level)
-	}
-
-	if err := b.checkPointers(result, storage); err != nil {
-		return errors.Wrapf(err, "settleStorage %s %d", address, level)
-	}
-
-	return nil
+	return b.checkPointers(result, storage)
 }
 
 func (b *Babylon) checkPointers(result *noderpc.OperationResult, storage *ast.TypedAst) error {
@@ -162,10 +137,15 @@ func (b *Babylon) checkPointers(result *noderpc.OperationResult, storage *ast.Ty
 	return nil
 }
 
-func (b *Babylon) handleBigMapDiff(result *noderpc.OperationResult, address string, op operation.Operation) ([]models.Model, error) {
+func (b *Babylon) handleBigMapDiff(result *noderpc.OperationResult, address string, op operation.Operation, storageData []byte) ([]models.Model, error) {
 	if len(result.BigMapDiffs) == 0 {
 		return []models.Model{}, nil
 	}
+
+	if err := b.initPointersTypes(result, op, storageData); err != nil {
+		return []models.Model{}, nil
+	}
+
 	storageModels := make([]models.Model, 0)
 
 	handlers := map[string]func(noderpc.BigMapDiff, string, operation.Operation) ([]models.Model, error){

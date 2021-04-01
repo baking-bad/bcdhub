@@ -4,7 +4,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
-	"github.com/baking-bad/bcdhub/internal/models/operation"
 )
 
 func prepareBigMapDiffsToEnrich(bmd []bigmapdiff.BigMapDiff, skipEmpty bool) []*types.BigMapDiff {
@@ -90,12 +89,4 @@ func createBigMapAst(key, value []byte, ptr int64) (*ast.BigMap, error) {
 		return nil, err
 	}
 	return bigMap, nil
-}
-
-func getStorage(operation operation.Operation) (*ast.TypedAst, error) {
-	var s ast.Script
-	if err := json.Unmarshal(operation.Script, &s); err != nil {
-		return nil, err
-	}
-	return s.StorageType()
 }

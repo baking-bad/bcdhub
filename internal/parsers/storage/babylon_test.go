@@ -110,6 +110,11 @@ func TestBabylon_ParseTransaction(t *testing.T) {
 				return
 			}
 
+			if err := tt.args.operation.InitScript(); err != nil {
+				t.Errorf("InitScript() error = %v", err)
+				return
+			}
+
 			got, err := b.ParseTransaction(content, tt.args.operation)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Babylon.ParseTransaction() error = %v, wantErr %v", err, tt.wantErr)

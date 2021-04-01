@@ -32,7 +32,7 @@ func (a *Alpha) ParseTransaction(content noderpc.Operation, operation operation.
 
 // ParseOrigination -
 func (a *Alpha) ParseOrigination(content noderpc.Operation, operation operation.Operation) (RichStorage, error) {
-	storage, err := getStorage(operation)
+	storage, err := operation.AST.StorageType()
 	if err != nil {
 		return RichStorage{Empty: true}, err
 	}

@@ -2,7 +2,6 @@ package operations
 
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
-	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
@@ -64,6 +63,10 @@ func (p Transaction) Parse(data noderpc.Operation) ([]models.Model, error) {
 		return nil, err
 	}
 	tx.Script = script
+
+	if err := tx.InitScript(); err != nil {
+		return nil, err
+	}
 
 	if tx.IsApplied() {
 		appliedModels, err := p.appliedHandler(data, &tx)
@@ -151,38 +154,22 @@ func (p Transaction) getEntrypoint(tx *operation.Operation) error {
 		return nil
 	}
 
+	params := types.NewParameters(tx.Parameters)
+	tx.Entrypoint = params.Entrypoint
+
 	if !tx.IsApplied() {
-		params := types.NewParameters(tx.Parameters)
-		tx.Entrypoint = params.Entrypoint
 		return nil
 	}
 
-	if tx.Script == nil {
-		script, err := fetch.Contract(tx.Destination, tx.Network, tx.Protocol, p.shareDir)
-		if err != nil {
-			return err
-		}
-		tx.Script = script
-	}
-
-	var s ast.Script
-	if err := json.Unmarshal(tx.Script, &s); err != nil {
-		return err
-	}
-
-	param, err := s.ParameterType()
+	param, err := tx.AST.ParameterType()
 	if err != nil {
 		return err
 	}
-
-	params := types.NewParameters(tx.Parameters)
 
 	subTree, err := param.FromParameters(params)
 	if err != nil {
 		return err
 	}
-
-	tx.Entrypoint = params.Entrypoint
 
 	node, entrypointName := subTree.UnwrapAndGetEntrypointName()
 	if node == nil {

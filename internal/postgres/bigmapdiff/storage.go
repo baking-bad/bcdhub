@@ -93,9 +93,13 @@ func (storage *Storage) Previous(filters []bigmapdiff.BigMapDiff, lastID int64, 
 		query.Where("id < ?", lastID)
 	}
 	if len(filters) > 0 {
-		tx := storage.DB.Where("key_hash = ?", filters[0].KeyHash)
+		tx := storage.DB.Where(
+			storage.DB.Where("key_hash = ?", filters[0].KeyHash).Where("ptr = ? ", filters[0].Ptr),
+		)
 		for i := 1; i < len(filters); i++ {
-			tx.Or("key_hash = ?", filters[i].KeyHash)
+			tx.Or(
+				storage.DB.Where("key_hash = ?", filters[i].KeyHash).Where("ptr = ? ", filters[i].Ptr),
+			)
 		}
 		query.Where(tx)
 	}

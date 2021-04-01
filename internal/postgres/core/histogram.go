@@ -92,11 +92,11 @@ func buildHistogramContext(ctx models.HistogramContext) (string, error) {
 // HistogramResponse -
 type HistogramResponse struct {
 	DatePart float64
-	Value    int64
+	Value    float64
 }
 
 // GetDateHistogram -
-func (p *Postgres) GetDateHistogram(period string, opts ...models.HistogramOption) ([][]int64, error) {
+func (p *Postgres) GetDateHistogram(period string, opts ...models.HistogramOption) ([][]float64, error) {
 	ctx := models.HistogramContext{
 		Period: period,
 	}
@@ -115,9 +115,9 @@ func (p *Postgres) GetDateHistogram(period string, opts ...models.HistogramOptio
 	if err := p.DB.Raw(req).Scan(&res).Error; err != nil {
 		return nil, err
 	}
-	hist := make([][]int64, 0, len(res))
+	hist := make([][]float64, 0, len(res))
 	for i := range res {
-		hist = append(hist, []int64{int64(res[i].DatePart * 1000), res[i].Value})
+		hist = append(hist, []float64{res[i].DatePart * 1000, res[i].Value})
 	}
 
 	return hist, nil

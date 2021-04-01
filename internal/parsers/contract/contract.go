@@ -66,12 +66,13 @@ func (p *Parser) Parse(operation *operation.Operation) ([]models.Model, error) {
 func (p *Parser) computeMetrics(operation *operation.Operation, c *contract.Contract) error {
 	script, err := astContract.NewParser(operation.Script)
 	if err != nil {
-		return errors.Errorf("ast.NewScript: %v", err)
+		return errors.Errorf("astContract.NewParser: %v", err)
 	}
 	if err := script.Parse(); err != nil {
 		return err
 	}
 	operation.Script = script.CodeRaw
+	operation.AST = script.Code
 
 	c.Language = script.Language
 	c.Hash = script.Hash

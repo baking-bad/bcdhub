@@ -46,23 +46,27 @@ func NewTokenEvents(repo tzip.Repository, storage models.GeneralRepository) (Tok
 
 		for _, event := range token.Events {
 			for _, implementation := range event.Implementations {
-				for _, entrypoint := range implementation.MichelsonParameterEvent.Entrypoints {
-					views[ImplementationKey{
-						Address:    token.Address,
-						Network:    token.Network,
-						Entrypoint: entrypoint,
-						Name:       events.NormalizeName(event.Name),
-					}] = implementation
+				if implementation.MichelsonParameterEvent != nil {
+					for _, entrypoint := range implementation.MichelsonParameterEvent.Entrypoints {
+						views[ImplementationKey{
+							Address:    token.Address,
+							Network:    token.Network,
+							Entrypoint: entrypoint,
+							Name:       events.NormalizeName(event.Name),
+						}] = implementation
 
+					}
 				}
 
-				for _, entrypoint := range implementation.MichelsonExtendedStorageEvent.Entrypoints {
-					views[ImplementationKey{
-						Address:    token.Address,
-						Network:    token.Network,
-						Entrypoint: entrypoint,
-						Name:       events.NormalizeName(event.Name),
-					}] = implementation
+				if implementation.MichelsonExtendedStorageEvent != nil {
+					for _, entrypoint := range implementation.MichelsonExtendedStorageEvent.Entrypoints {
+						views[ImplementationKey{
+							Address:    token.Address,
+							Network:    token.Network,
+							Entrypoint: entrypoint,
+							Name:       events.NormalizeName(event.Name),
+						}] = implementation
+					}
 				}
 			}
 		}

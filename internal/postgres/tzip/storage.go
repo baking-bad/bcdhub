@@ -71,7 +71,7 @@ func (storage *Storage) GetAliases(network string) (t []tzip.TZIP, err error) {
 func (storage *Storage) GetWithEvents() (t []tzip.TZIP, err error) {
 	err = storage.DB.
 		Table(models.DocTZIP).
-		Where("events IS NOT NULL").
+		Where("events is not null AND jsonb_array_length(events) > 0").
 		Find(&t).Error
 	return
 }
@@ -81,7 +81,7 @@ func (storage *Storage) GetWithEventsCounts() (int64, error) {
 	var count int64
 	err := storage.DB.
 		Table(models.DocTZIP).
-		Where("events IS NOT NULL").
+		Where("events is not null AND jsonb_array_length(events) > 0").
 		Count(&count).
 		Error
 	return count, err

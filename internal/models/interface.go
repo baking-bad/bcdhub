@@ -12,7 +12,7 @@ type GeneralRepository interface {
 	GetEvents([]SubscriptionRequest, int64, int64) ([]Event, error)
 
 	GetNetworkCountStats(string) (map[string]int64, error)
-	GetDateHistogram(period string, opts ...HistogramOption) ([][]int64, error)
+	GetDateHistogram(period string, opts ...HistogramOption) ([][]float64, error)
 
 	// GetCallsCountByNetwork - returns contract calls splitted by network. If `network` is not empty returns stats only for that network.
 	GetCallsCountByNetwork(network string) (map[string]int64, error)

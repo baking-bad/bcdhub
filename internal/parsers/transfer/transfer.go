@@ -5,7 +5,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/events"
-	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -77,11 +76,15 @@ func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Reposit
 
 // Parse -
 func (p *Parser) Parse(operation operation.Operation, operationModels []models.Model) ([]*transfer.Transfer, error) {
+	if !operation.IsTransaction() {
+		return nil, nil
+	}
+
 	if impl, name, ok := p.events.GetByOperation(operation); ok {
 		return p.executeEvents(impl, name, operation, operationModels)
 	}
 
-	if operation.Entrypoint == consts.TransferEntrypoint {
+	if operation.IsEntrypoint(consts.TransferEntrypoint) {
 		for i := range operation.Tags {
 			switch operation.Tags[i] {
 			case consts.FA12Tag:
@@ -95,7 +98,7 @@ func (p *Parser) Parse(operation operation.Operation, operationModels []models.M
 }
 
 func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, operation operation.Operation, operationModels []models.Model) ([]*transfer.Transfer, error) {
-	if operation.Kind != consts.Transaction || !operation.IsApplied() {
+	if !operation.IsApplied() {
 		return nil, nil
 	}
 
@@ -112,16 +115,8 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 	}
 
 	switch {
-	case impl.MichelsonParameterEvent.Is(operation.Entrypoint):
-		data, err := fetch.Contract(operation.Destination, operation.Network, operation.Protocol, p.shareDir)
-		if err != nil {
-			return nil, err
-		}
-		script, err := ast.NewScript(data)
-		if err != nil {
-			return nil, err
-		}
-		parameter, err := script.ParameterType()
+	case impl.MichelsonParameterEvent != nil && impl.MichelsonParameterEvent.Is(operation.Entrypoint):
+		parameter, err := operation.AST.ParameterType()
 		if err != nil {
 			return nil, err
 		}
@@ -137,16 +132,8 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 			return nil, err
 		}
 		return p.makeTransfersFromBalanceEvents(event, ctx, operation, true)
-	case impl.MichelsonExtendedStorageEvent.Is(operation.Entrypoint):
-		data, err := fetch.Contract(operation.Destination, operation.Network, operation.Protocol, p.shareDir)
-		if err != nil {
-			return nil, err
-		}
-		script, err := ast.NewScript(data)
-		if err != nil {
-			return nil, err
-		}
-		storage, err := script.StorageType()
+	case impl.MichelsonExtendedStorageEvent != nil && impl.MichelsonExtendedStorageEvent.Is(operation.Entrypoint):
+		storage, err := operation.AST.StorageType()
 		if err != nil {
 			return nil, err
 		}
@@ -248,12 +235,7 @@ func (p *Parser) makeFA2Transfers(operation operation.Operation) ([]*transfer.Tr
 }
 
 func getNode(operation operation.Operation) (ast.Node, error) {
-	var s ast.Script
-	if err := json.Unmarshal(operation.Script, &s); err != nil {
-		return nil, err
-	}
-
-	param, err := s.ParameterType()
+	param, err := operation.AST.ParameterType()
 	if err != nil {
 		return nil, err
 	}

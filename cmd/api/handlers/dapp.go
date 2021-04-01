@@ -139,6 +139,9 @@ func (ctx *Context) appendDAppInfo(dapp dapp.DApp, withDetails bool) (DApp, erro
 			for _, address := range dapp.Contracts {
 				contract, err := ctx.Contracts.Get(consts.Mainnet, address.Address)
 				if err != nil {
+					if ctx.Storage.IsRecordNotFound(err) {
+						continue
+					}
 					return result, err
 				}
 				result.Contracts = append(result.Contracts, DAppContract{

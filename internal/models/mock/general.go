@@ -168,14 +168,14 @@ func (mr *MockGeneralRepositoryMockRecorder) GetNetworkCountStats(arg0 interface
 }
 
 // GetDateHistogram mocks base method
-func (m *MockGeneralRepository) GetDateHistogram(period string, opts ...models.HistogramOption) ([][]int64, error) {
+func (m *MockGeneralRepository) GetDateHistogram(period string, opts ...models.HistogramOption) ([][]float64, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{period}
 	for _, a := range opts {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetDateHistogram", varargs...)
-	ret0, _ := ret[0].([][]int64)
+	ret0, _ := ret[0].([][]float64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

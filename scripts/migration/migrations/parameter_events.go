@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -69,6 +70,11 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 					continue
 				}
 
+				script, err := fetch.Contract(tzips[i].Address, tzips[i].Network, protocol.Hash, ctx.SharePath)
+				if err != nil {
+					return err
+				}
+
 				inserted := make([]models.Model, 0)
 				deleted := make([]models.Model, 0)
 				newTransfers := make([]*transfer.Transfer, 0)
@@ -76,6 +82,10 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 				bar := progressbar.NewOptions(len(operations), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish(), progressbar.OptionShowCount())
 				for _, op := range operations {
 					if err := bar.Add(1); err != nil {
+						return err
+					}
+					op.Script = script
+					if err := op.InitScript(); err != nil {
 						return err
 					}
 

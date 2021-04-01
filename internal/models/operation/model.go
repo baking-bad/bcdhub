@@ -1,10 +1,12 @@
 package operation
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
@@ -20,7 +22,7 @@ type Operation struct {
 
 	ContentIndex int64 `json:"content_index,omitempty" gorm:",default:0"`
 	Level        int64 `json:"level"`
-	Counter      int64 `json:"counter,omitempty"`
+	Counter      int64 `json:"counter,omitempty" gorm:"index:opg_idx"`
 	Fee          int64 `json:"fee,omitempty"`
 	GasLimit     int64 `json:"gas_limit,omitempty"`
 	StorageLimit int64 `json:"storage_limit,omitempty"`
@@ -32,17 +34,17 @@ type Operation struct {
 	Burned                             int64 `json:"burned,omitempty"`
 	AllocatedDestinationContractBurned int64 `json:"allocated_destination_contract_burned,omitempty"`
 
-	Nonce    *int64 `json:"nonce,omitempty"`
+	Nonce    *int64 `json:"nonce,omitempty" gorm:"index:opg_idx"`
 	Network  string `json:"network"`
 	Protocol string `json:"protocol"`
-	Hash     string `json:"hash"`
+	Hash     string `json:"hash" gorm:"index:opg_idx"`
 
 	Timestamp        time.Time `json:"timestamp"`
 	Status           string    `json:"status"`
 	Kind             string    `json:"kind"`
 	Initiator        string    `json:"initiator"`
-	Source           string    `json:"source"`
-	Destination      string    `json:"destination,omitempty"`
+	Source           string    `json:"source" gorm:"index:source_idx"`
+	Destination      string    `json:"destination,omitempty" gorm:"index:destination_idx"`
 	Delegate         string    `json:"delegate,omitempty"`
 	Entrypoint       string    `json:"entrypoint,omitempty"`
 	SourceAlias      string    `json:"source_alias,omitempty"`
@@ -61,6 +63,8 @@ type Operation struct {
 
 	AllocatedDestinationContract bool `json:"allocated_destination_contract,omitempty"`
 	Internal                     bool `json:"internal" gorm:",default:false"`
+
+	AST *ast.Script `json:"-" gorm:"-"`
 }
 
 // GetID -
@@ -123,6 +127,11 @@ func (o *Operation) SetBurned(constants protocol.Constants) {
 	o.Burned = burned
 }
 
+// IsEntrypoint -
+func (o *Operation) IsEntrypoint(entrypoint string) bool {
+	return o.Entrypoint == entrypoint
+}
+
 // IsOrigination -
 func (o *Operation) IsOrigination() bool {
 	return o.Kind == consts.Origination || o.Kind == consts.OriginationNew
@@ -151,6 +160,15 @@ func (o *Operation) HasTag(tag string) bool {
 		}
 	}
 	return false
+}
+
+// InitScript -
+func (o *Operation) InitScript() (err error) {
+	if o.Script == nil {
+		return errors.New("Uninitialized script")
+	}
+	o.AST, err = ast.NewScript(o.Script)
+	return err
 }
 
 // Result -

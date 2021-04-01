@@ -171,7 +171,7 @@ func (storage *Storage) GetTokenVolumeSeries(network, period string, contracts [
 
 	histogram := make([][]float64, 0, len(resp))
 	for i := range resp {
-		histogram = append(histogram, []float64{resp[i].DatePart, float64(resp[i].Value)})
+		histogram = append(histogram, []float64{resp[i].DatePart, resp[i].Value})
 	}
 	return histogram, nil
 }

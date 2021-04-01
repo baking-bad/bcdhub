@@ -77,6 +77,82 @@ func TestTokenMetadata_Parse(t *testing.T) {
 					"booleanAmount": "true",
 				},
 			},
+		}, {
+			name: "test 8: KT1XRxmUFNcbzGTwQPvNPa5FuuM43uEunp8K",
+			value: `{
+				"prim": "Pair",
+				"args": [
+				  {
+					"int": "0"
+				  },
+				  [
+					{
+					  "prim": "Elt",
+					  "args": [
+						{
+						  "string": "decimals"
+						},
+						{
+						  "bytes": "30"
+						}
+					  ]
+					},
+					{
+					  "prim": "Elt",
+					  "args": [
+						{
+						  "string": "description"
+						},
+						{
+						  "bytes": "54686973206973207468652054657a6f73205370616e69736820636f6d6d756e69747920746f6b656e2e0a0a4573746520657320656c20746f6b656e206465206c6120636f6d756e696461642065737061f16f6c612054657a6f73205370616e6973682e"
+						}
+					  ]
+					},
+					{
+					  "prim": "Elt",
+					  "args": [
+						{
+						  "string": "name"
+						},
+						{
+						  "bytes": "54657a6f73205370616e697368"
+						}
+					  ]
+					},
+					{
+					  "prim": "Elt",
+					  "args": [
+						{
+						  "string": "symbol"
+						},
+						{
+						  "bytes": "545a53"
+						}
+					  ]
+					},
+					{
+					  "prim": "Elt",
+					  "args": [
+						{
+						  "string": "thumbnailUri"
+						},
+						{
+						  "bytes": "68747470733a2f2f6962622e636f2f7a514c62746851"
+						}
+					  ]
+					}
+				  ]
+				]
+			  }`,
+			wantErr: false,
+			want: &TokenMetadata{
+				TokenID:      0,
+				Decimals:     getIntPtr(0),
+				Name:         "Tezos Spanish",
+				Symbol:       "TZS",
+				ThumbnailURI: "https://ibb.co/zQLbthQ",
+				Extras:       map[string]interface{}{},
+			},
 		},
 	}
 	for _, tt := range tests {

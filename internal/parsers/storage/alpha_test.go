@@ -70,6 +70,12 @@ func TestAlpha_ParseOrigination(t *testing.T) {
 				t.Errorf("Alpha.UnmarshalFromString() error = %v", err)
 				return
 			}
+
+			if err := tt.args.operation.InitScript(); err != nil {
+				t.Errorf("InitScript() error = %v", err)
+				return
+			}
+
 			got, err := a.ParseOrigination(content, tt.args.operation)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Alpha.ParseOrigination() error = %v, wantErr %v", err, tt.wantErr)

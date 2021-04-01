@@ -44,9 +44,9 @@ type Event struct {
 
 // EventImplementation -
 type EventImplementation struct {
-	MichelsonParameterEvent       MichelsonParameterEvent       `json:"michelsonParameterEvent,omitempty"`
-	MichelsonInitialStorageEvent  MichelsonInitialStorageEvent  `json:"michelsonInitialStorageEvent,omitempty"`
-	MichelsonExtendedStorageEvent MichelsonExtendedStorageEvent `json:"michelsonExtendedStorageEvent,omitempty"`
+	MichelsonParameterEvent       *MichelsonParameterEvent       `json:"michelsonParameterEvent,omitempty"`
+	MichelsonInitialStorageEvent  *MichelsonInitialStorageEvent  `json:"michelsonInitialStorageEvent,omitempty"`
+	MichelsonExtendedStorageEvent *MichelsonExtendedStorageEvent `json:"michelsonExtendedStorageEvent,omitempty"`
 }
 
 // MichelsonParameterEvent -
@@ -72,7 +72,7 @@ type Sections struct {
 	Code       stdJSON.RawMessage `json:"code"`
 }
 
-var null = "null"
+var null = " null"
 
 // Empty -
 func (s Sections) Empty() bool {

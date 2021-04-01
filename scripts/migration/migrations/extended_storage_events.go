@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -70,7 +71,16 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 					continue
 				}
 
+				script, err := fetch.Contract(tzips[i].Address, tzips[i].Network, protocol.Hash, ctx.SharePath)
+				if err != nil {
+					return err
+				}
+
 				for _, op := range operations {
+					op.Script = script
+					if err := op.InitScript(); err != nil {
+						return err
+					}
 					st := stacktrace.New()
 					if err := st.Fill(ctx.Operations, op); err != nil {
 						return err

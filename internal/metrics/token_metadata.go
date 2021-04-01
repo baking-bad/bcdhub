@@ -70,8 +70,9 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, network, contrac
 
 	for i := range tzip.Events {
 		for j := range tzip.Events[i].Implementations {
-			if !tzip.Events[i].Implementations[j].MichelsonInitialStorageEvent.Empty() {
-				event, err := events.NewMichelsonInitialStorage(tzip.Events[i].Implementations[j], tzip.Events[i].Name)
+			impl := tzip.Events[i].Implementations[j]
+			if impl.MichelsonInitialStorageEvent != nil && !impl.MichelsonInitialStorageEvent.Empty() {
+				event, err := events.NewMichelsonInitialStorage(impl, tzip.Events[i].Name)
 				if err != nil {
 					return nil, err
 				}

@@ -272,17 +272,15 @@ func (ctx *Context) parseBigMapDiffs(response noderpc.RunCodeResponse, script *a
 	}
 
 	nodeOperation := noderpc.Operation{
-		Kind:          operation.Kind,
-		Source:        operation.Source,
-		Fee:           operation.Fee,
-		Counter:       operation.Counter,
-		GasLimit:      operation.GasLimit,
-		StorageLimit:  operation.StorageLimit,
-		Amount:        &operation.Amount,
-		Destination:   &operation.Destination,
-		PublicKey:     operation.PublicKey,
-		ManagerPubKey: operation.ManagerPubKey,
-		Delegate:      operation.Delegate,
+		Kind:         operation.Kind,
+		Source:       operation.Source,
+		Fee:          operation.Fee,
+		Counter:      operation.Counter,
+		GasLimit:     operation.GasLimit,
+		StorageLimit: operation.StorageLimit,
+		Amount:       &operation.Amount,
+		Destination:  &operation.Destination,
+		Delegate:     operation.Delegate,
 
 		Result: &noderpc.OperationResult{
 			Status:      consts.Applied,

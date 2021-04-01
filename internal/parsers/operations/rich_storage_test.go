@@ -209,6 +209,11 @@ func TestRichStorage_Parse(t *testing.T) {
 			}
 			tt.operation.Script = script
 
+			if err := tt.operation.InitScript(); err != nil {
+				t.Errorf("InitScript() error = %v", err)
+				return
+			}
+
 			parser, err := NewRichStorage(bmdRepo, rpc, tt.operation.Protocol)
 			if err != nil {
 				t.Errorf(`NewRichStorage = error %v`, err)

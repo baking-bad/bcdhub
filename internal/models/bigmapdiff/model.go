@@ -14,13 +14,13 @@ import (
 // BigMapDiff -
 type BigMapDiff struct {
 	ID               int64       `json:"-"`
-	Ptr              int64       `json:"ptr"`
+	Ptr              int64       `json:"ptr" gorm:"index:bmd_idx"`
 	Key              types.Bytes `json:"key" gorm:"type:bytes;not null"`
 	KeyHash          string      `json:"key_hash"`
 	Value            types.Bytes `json:"value,omitempty" gorm:"type:bytes"`
 	Level            int64       `json:"level"`
-	Contract         string      `json:"contract"`
-	Network          string      `json:"network"`
+	Contract         string      `json:"contract" gorm:"index:bmd_idx"`
+	Network          string      `json:"network" gorm:"index:bmd_idx"`
 	Timestamp        time.Time   `json:"timestamp"`
 	Protocol         string      `json:"protocol"`
 	OperationHash    string      `json:"op_hash"`

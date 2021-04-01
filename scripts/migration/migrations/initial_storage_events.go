@@ -1,14 +1,11 @@
 package migrations
 
 import (
-	"errors"
-
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
-	"github.com/baking-bad/bcdhub/internal/noderpc"
 )
 
 // InitialStorageEvents -
@@ -49,11 +46,8 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 		}
 		newModels, err := h.ExecuteInitialStorageEvent(rpc, tzips[i].Network, tzips[i].Address)
 		if err != nil {
-			if errors.Is(err, noderpc.InvalidNodeResponse{}) {
-				logger.Error(err)
-				continue
-			}
-			return err
+			logger.Error(err)
+			continue
 		}
 		for i := range newModels {
 			t, ok := newModels[i].(*transfer.Transfer)
