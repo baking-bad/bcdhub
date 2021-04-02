@@ -31,12 +31,7 @@ func NewTimestamp(depth int) *Timestamp {
 func (t *Timestamp) ParseValue(node *base.Node) error {
 	switch {
 	case node.IntValue != nil:
-		i := node.IntValue.Int64()
-		if 253402300799 > i { // 31 December 9999 23:59:59 Golang time restriction
-			t.Value = time.Unix(i, 0).UTC()
-		} else {
-			t.Value = fmt.Sprintf("%d", i)
-		}
+		t.parseTimestamp(node.IntValue.Int64())
 	case node.StringValue != nil:
 		utc, err := time.Parse(time.RFC3339, *node.StringValue)
 		if err != nil {
@@ -47,17 +42,21 @@ func (t *Timestamp) ParseValue(node *base.Node) error {
 				if err != nil {
 					return err
 				}
-				if 253402300799 > i { // 31 December 9999 23:59:59 Golang time restriction
-					t.Value = time.Unix(i, 0).UTC()
-				} else {
-					t.Value = fmt.Sprintf("%d", i)
-				}
+				t.parseTimestamp(i)
 			}
 		} else {
 			t.Value = utc.UTC()
 		}
 	}
 	return nil
+}
+
+func (t *Timestamp) parseTimestamp(ts int64) {
+	if 253402300799 > ts { // 31 December 9999 23:59:59 Golang time restriction
+		t.Value = time.Unix(ts, 0).UTC()
+	} else {
+		t.Value = time.Unix(ts/1000, 0).UTC() // milliseconds
+	}
 }
 
 // ToBaseNode -
