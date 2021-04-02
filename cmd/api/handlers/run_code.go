@@ -212,7 +212,7 @@ func (ctx *Context) RunCode(c *gin.Context) {
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	if err := ctx.setParameters(string(input), script, &main); ctx.handleError(c, err, 0) {
+	if err := setParameters(input, script, &main); ctx.handleError(c, err, 0) {
 		return
 	}
 	if err := ctx.setSimulateStorageDiff(response, script, &main); ctx.handleError(c, err, 0) {
@@ -241,7 +241,7 @@ func (ctx *Context) parseAppliedRunCode(response noderpc.RunCodeResponse, script
 		op.Protocol = main.Protocol
 		op.Level = main.Level
 		op.Internal = true
-		if err := ctx.setParameters(string(response.Operations[i].Parameters), script, &op); err != nil {
+		if err := setParameters(response.Operations[i].Parameters, script, &op); err != nil {
 			return nil, err
 		}
 		if err := ctx.setSimulateStorageDiff(response, script, &op); err != nil {

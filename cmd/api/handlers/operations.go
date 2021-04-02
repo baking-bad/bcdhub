@@ -278,7 +278,7 @@ func (ctx *Context) prepareOperation(operation operation.Operation, bmd []bigmap
 	}
 
 	if bcd.IsContract(op.Destination) && operation.IsCall() && !tezerrors.HasParametersError(op.Errors) {
-		if err := ctx.setParameters(operation.Parameters, script, &op); err != nil {
+		if err := setParameters([]byte(operation.Parameters), script, &op); err != nil {
 			return op, err
 		}
 	}
@@ -309,14 +309,13 @@ func (ctx *Context) PrepareOperations(ops []operation.Operation, withStorageDiff
 	return resp, nil
 }
 
-func (ctx *Context) setParameters(data string, script *ast.Script, op *Operation) error {
+func setParameters(data []byte, script *ast.Script, op *Operation) error {
 	parameter, err := script.ParameterType()
 	if err != nil {
 		return err
 	}
-	params := types.NewParameters([]byte(data))
-	op.Entrypoint = params.Entrypoint
 
+	params := types.NewParameters(data)
 	tree, err := parameter.FromParameters(params)
 	if err != nil {
 		if tezerrors.HasGasExhaustedError(op.Errors) {
