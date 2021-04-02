@@ -38,8 +38,15 @@ func (ctx *Context) TezosDomainsList(c *gin.Context) {
 		return
 	}
 
+	arr := make([]TezosDomain, 0, len(domains.Domains))
+	for _, domain := range domains.Domains {
+		var td TezosDomain
+		td.FromModel(domain)
+		arr = append(arr, td)
+	}
+
 	response := DomainsResponse{
-		Domains: domains.Domains,
+		Domains: arr,
 		Total:   domains.Total,
 	}
 
@@ -56,7 +63,7 @@ func (ctx *Context) TezosDomainsList(c *gin.Context) {
 // @Param address query string false "Address" minlength(36) maxlength(36)
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} tezosdomain.TezosDomain
+// @Success 200 {object} TezosDomain
 // @Success 204 {object} gin.H
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
@@ -73,11 +80,11 @@ func (ctx *Context) ResolveDomain(c *gin.Context) {
 
 	switch {
 	case args.Name != "":
-		td := tezosdomain.TezosDomain{
+		domain := tezosdomain.TezosDomain{
 			Network: req.Network,
 			Name:    args.Name,
 		}
-		if err := ctx.Storage.GetByID(&td); err != nil {
+		if err := ctx.Storage.GetByID(&domain); err != nil {
 			if ctx.Storage.IsRecordNotFound(err) {
 				c.JSON(http.StatusNoContent, gin.H{})
 				return
@@ -85,13 +92,15 @@ func (ctx *Context) ResolveDomain(c *gin.Context) {
 			ctx.handleError(c, err, 0)
 			return
 		}
-		if td.Address == "" {
+		if domain.Address == "" {
 			ctx.handleError(c, errors.Errorf("Unknown domain name"), http.StatusBadRequest)
 			return
 		}
-		c.JSON(http.StatusOK, td)
+		var resp TezosDomain
+		resp.FromModel(domain)
+		c.JSON(http.StatusOK, resp)
 	case args.Address != "":
-		td, err := ctx.TezosDomains.ResolveDomainByAddress(req.Network, args.Address)
+		domain, err := ctx.TezosDomains.ResolveDomainByAddress(req.Network, args.Address)
 		if err != nil {
 			if ctx.Storage.IsRecordNotFound(err) {
 				c.JSON(http.StatusNoContent, gin.H{})
@@ -100,7 +109,9 @@ func (ctx *Context) ResolveDomain(c *gin.Context) {
 			ctx.handleError(c, err, 0)
 			return
 		}
-		c.JSON(http.StatusOK, td)
+		var resp TezosDomain
+		resp.FromModel(*domain)
+		c.JSON(http.StatusOK, domain)
 	default:
 		ctx.handleError(c, errors.Errorf("Invalid resolve request: %##v", args), http.StatusBadRequest)
 	}

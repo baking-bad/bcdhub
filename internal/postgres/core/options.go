@@ -1,6 +1,8 @@
 package core
 
-import "github.com/baking-bad/bcdhub/internal/postgres/consts"
+import (
+	"github.com/baking-bad/bcdhub/internal/postgres/consts"
+)
 
 // PostgresOption -
 type PostgresOption func(pg *Postgres)

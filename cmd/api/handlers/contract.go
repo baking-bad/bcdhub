@@ -18,6 +18,7 @@ import (
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} Contract
+// @Success 204 {object} gin.H
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address} [get]
@@ -28,9 +29,15 @@ func (ctx *Context) GetContract(c *gin.Context) {
 	}
 
 	contract, err := ctx.Contracts.Get(req.Network, req.Address)
-	if ctx.handleError(c, err, 0) {
+	if err != nil {
+		if ctx.Storage.IsRecordNotFound(err) {
+			c.JSON(http.StatusNoContent, gin.H{})
+			return
+		}
+		ctx.handleError(c, err, 0)
 		return
 	}
+
 	res, err := ctx.contractPostprocessing(contract, c)
 	if ctx.handleError(c, err, 0) {
 		return
@@ -47,6 +54,7 @@ func (ctx *Context) GetContract(c *gin.Context) {
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} Contract
+// @Success 204 {object} gin.H
 // @Failure 500 {object} Error
 // @Router /v1/pick_random [get]
 func (ctx *Context) GetRandomContract(c *gin.Context) {
@@ -56,7 +64,12 @@ func (ctx *Context) GetRandomContract(c *gin.Context) {
 	}
 
 	contract, err := ctx.Contracts.GetRandom(req.Network)
-	if ctx.handleError(c, err, 0) {
+	if err != nil {
+		if ctx.Storage.IsRecordNotFound(err) {
+			c.JSON(http.StatusNoContent, gin.H{})
+			return
+		}
+		ctx.handleError(c, err, 0)
 		return
 	}
 

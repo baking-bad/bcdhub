@@ -11,6 +11,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/postgres/consts"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 // Storage -
@@ -48,6 +49,10 @@ func (storage *Storage) GetRandom(network string) (response contract.Contract, e
 	var count int64
 	if err = queryCount.Count(&count).Error; err != nil {
 		return
+	}
+
+	if count == 0 {
+		return response, gorm.ErrRecordNotFound
 	}
 
 	query := storage.DB.Table(models.DocContracts).Where("tx_count > 2")

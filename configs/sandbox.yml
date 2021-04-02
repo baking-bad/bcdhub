@@ -4,9 +4,13 @@ rpc:
     timeout: 10
 
 storage:
-  pg: "host=${DB_HOSTNAME} port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"
+  pg: "host=${DB_HOSTNAME:-db} port=5432 user=${POSTGRES_USER} dbname=indexer password=${POSTGRES_PASSWORD} sslmode=disable"
   elastic:
     - http://${ELASTIC_HOSTNAME:-elastic}:9200
+  timeout: 10
+
+db:
+  conn_string: "host=${DB_HOSTNAME:-db} port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"
   timeout: 10
 
 rabbitmq:

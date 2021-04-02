@@ -3,7 +3,9 @@ package core
 import (
 	"errors"
 	"fmt"
+	"time"
 
+	bcdLogger "github.com/baking-bad/bcdhub/internal/logger"
 	"gorm.io/driver/postgres"
 
 	"gorm.io/gorm"
@@ -16,8 +18,8 @@ type Postgres struct {
 	PageSize int64
 }
 
-// NewPostgres -
-func NewPostgres(connection, appName string, opts ...PostgresOption) (*Postgres, error) {
+// New -
+func New(connection, appName string, opts ...PostgresOption) (*Postgres, error) {
 	pg := Postgres{}
 	if appName != "" {
 		connection = fmt.Sprintf("%s application_name=%s", connection, appName)
@@ -30,14 +32,6 @@ func NewPostgres(connection, appName string, opts ...PostgresOption) (*Postgres,
 		return nil, err
 	}
 
-	sqlDB, err := db.DB()
-	if err != nil {
-		return nil, err
-	}
-	if err := sqlDB.Ping(); err != nil {
-		return nil, err
-	}
-
 	pg.DB = db
 
 	for _, opt := range opts {
@@ -45,6 +39,30 @@ func NewPostgres(connection, appName string, opts ...PostgresOption) (*Postgres,
 	}
 
 	return &pg, nil
+}
+
+const (
+	waitingTimeout = 10
+)
+
+// WaitNew - waiting for db up and creating connection
+func WaitNew(connectionString, appName string, timeout int, opts ...PostgresOption) *Postgres {
+	var db *Postgres
+	var err error
+
+	if timeout < 1 {
+		timeout = waitingTimeout
+	}
+
+	for db == nil {
+		db, err = New(connectionString, appName, opts...)
+		if err != nil {
+			bcdLogger.Warning("Waiting postgres up %d seconds...", timeout)
+			time.Sleep(time.Second * time.Duration(timeout))
+		}
+	}
+
+	return db
 }
 
 // Close -

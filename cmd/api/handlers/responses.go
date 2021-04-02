@@ -694,8 +694,30 @@ func TokenMetadataFromElasticModel(model tokenmetadata.TokenMetadata, withTokenI
 
 // DomainsResponse -
 type DomainsResponse struct {
-	Domains []tezosdomain.TezosDomain `json:"domains"`
-	Total   int64                     `json:"total"`
+	Domains []TezosDomain `json:"domains"`
+	Total   int64         `json:"total"`
+}
+
+// TezosDomain -
+type TezosDomain struct {
+	Name       string                 `json:"name"`
+	Expiration time.Time              `json:"expiration"`
+	Network    string                 `json:"network"`
+	Address    string                 `json:"address"`
+	Level      int64                  `json:"level"`
+	Timestamp  time.Time              `json:"timestamp"`
+	Data       map[string]interface{} `json:"data,omitempty"`
+}
+
+// FromModel -
+func (td *TezosDomain) FromModel(domain tezosdomain.TezosDomain) {
+	td.Name = domain.Name
+	td.Expiration = domain.Expiration
+	td.Network = domain.Network
+	td.Address = domain.Address
+	td.Level = domain.Level
+	td.Timestamp = domain.Timestamp
+	td.Data = domain.Data
 }
 
 // CountResponse -
@@ -726,12 +748,18 @@ type ForkResponse struct {
 
 // TZIPResponse -
 type TZIPResponse struct {
-	Address    string                 `json:"address,omitempty"`
-	Network    string                 `json:"network,omitempty"`
-	DomainName string                 `json:"domain,omitempty"`
-	Extras     map[string]interface{} `json:"extras,omitempty"`
-	Name       string                 `json:"name,omitempty"`
-	tzip.TZIP16
+	Address     string                 `json:"address,omitempty"`
+	Network     string                 `json:"network,omitempty"`
+	DomainName  string                 `json:"domain,omitempty"`
+	Extras      map[string]interface{} `json:"extras,omitempty"`
+	Name        string                 `json:"name,omitempty"`
+	Description string                 `json:"description,omitempty"`
+	Version     string                 `json:"version,omitempty"`
+	License     *tzip.License          `json:"license,omitempty"`
+	Homepage    string                 `json:"homepage,omitempty"`
+	Authors     []string               `json:"authors,omitempty"`
+	Interfaces  []string               `json:"interfaces,omitempty"`
+	Views       tzip.Views             `json:"views,omitempty"`
 	tzip.TZIP20
 }
 

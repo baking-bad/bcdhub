@@ -139,10 +139,7 @@ func (bi *BoostIndexer) fetchExternalProtocols() error {
 // NewBoostIndexer -
 func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOption) (*BoostIndexer, error) {
 	logger.WithNetwork(network).Info("Creating indexer object...")
-	pg, err := core.NewPostgres(cfg.Storage.Postgres, "indexer")
-	if err != nil {
-		return nil, err
-	}
+	pg := core.WaitNew(cfg.Storage.Postgres, "indexer", 10)
 
 	rpcProvider, ok := cfg.RPC[network]
 	if !ok {

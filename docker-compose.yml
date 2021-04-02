@@ -15,7 +15,7 @@ services:
       - .env
     ports:
       - "127.0.0.1:${ES_REQUESTS_PORT}:9200"
-    logging: &my-logging
+    logging: &bcd-logging
       options:
         max-size: 10m
         max-file: "5"
@@ -29,10 +29,13 @@ services:
       - .env
     ports:
       - "127.0.0.1:${RABBITMQ_PORT}:5672"
-    logging: *my-logging
+    logging: *bcd-logging
 
   db:
-    image: postgres:12
+    image: bakingbad/bcdhub-db:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: build/db/Dockerfile
     restart: always
     env_file:
       - .env
@@ -40,7 +43,7 @@ services:
       - db:/var/lib/postgresql/data
     ports:
       - 127.0.0.1:${POSTGRES_PORT}:5432
-    logging: *my-logging
+    logging: *bcd-logging
 
   api:
     restart: always
@@ -58,7 +61,7 @@ services:
       - 127.0.0.1:${BCD_API_PORT}:14000
     volumes:
       - ${SHARE_PATH}:/etc/bcd
-    logging: *my-logging
+    logging: *bcd-logging
 
   indexer:
     restart: always
@@ -74,7 +77,7 @@ services:
       - metrics
     volumes:
       - ${SHARE_PATH}:/etc/bcd
-    logging: *my-logging
+    logging: *bcd-logging
 
   metrics:
     restart: always
@@ -90,7 +93,7 @@ services:
       - db
     volumes:
       - ${SHARE_PATH}:/etc/bcd
-    logging: *my-logging
+    logging: *bcd-logging
 
   compiler:
     restart: always
@@ -106,7 +109,7 @@ services:
       - db
     volumes:
       - ${SHARE_PATH}:/etc/bcd
-    logging: *my-logging
+    logging: *bcd-logging
 
   gui:
     restart: always
@@ -120,7 +123,7 @@ services:
       - 127.0.0.1:${BCD_GUI_PORT}:80
     volumes:
       - ${SHARE_PATH}:/etc/bcd
-    logging: *my-logging
+    logging: *bcd-logging
 
   graphql:
     restart: always
@@ -137,7 +140,7 @@ services:
       - 127.0.0.1:3000:3000
     volumes:
       - ${SHARE_PATH}:/etc/bcd
-    logging: *my-logging
+    logging: *bcd-logging
 
 volumes:
   esdata:
