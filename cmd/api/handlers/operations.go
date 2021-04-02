@@ -311,7 +311,6 @@ func (ctx *Context) setParameters(data []byte, script *ast.Script, op *Operation
 		return err
 	}
 	params := types.NewParameters(data)
-	op.Entrypoint = params.Entrypoint
 
 	tree, err := parameter.FromParameters(params)
 	if err != nil {
