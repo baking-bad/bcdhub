@@ -58,10 +58,7 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64) ContextOp
 			panic("Please set connection strings to storage in config")
 		}
 
-		pg, err := pgCore.NewPostgres(cfg.Postgres, appName, pgCore.WithPageSize(maxPageSize))
-		if err != nil {
-			panic(err)
-		}
+		pg := pgCore.WaitNew(cfg.Postgres, appName, cfg.Timeout, pgCore.WithPageSize(maxPageSize))
 		ctx.StorageDB = pg
 		ctx.Storage = pg
 		ctx.BigMapActions = bigmapaction.NewStorage(pg)

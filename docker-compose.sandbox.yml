@@ -9,7 +9,7 @@ services:
       - bootstrap.memory_lock=true
       - discovery.type=single-node
       - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
-    logging: &my-logging
+    logging: &bcd-logging
       options:
         max-size: 10m
         max-file: "5"
@@ -22,24 +22,28 @@ services:
     environment:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
-    logging: *my-logging
+    logging: *bcd-logging
 
   db:
-    image: postgres:12
+    image: bakingbad/bcdhub-db:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: build/db/Dockerfile
     restart: always
     environment:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
       - POSTGRES_DB=bcd_box
+      - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
       - db:/var/lib/postgresql/data
-    logging: *my-logging
+    logging: *bcd-logging
 
   api:
     restart: always
     image: bakingbad/bcdhub-api:${TAG}
     environment:
-      - BCD_ENV=${BCD_ENV:-sandbox}
+      - BCD_ENV=sandbox
       - GIN_MODE=debug
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
@@ -58,32 +62,35 @@ services:
       - bcdshare:/etc/bcd
     extra_hosts:
       sandbox: 172.17.0.1
-    logging: *my-logging
+    logging: *bcd-logging
 
   indexer:
     restart: always
     image: bakingbad/bcdhub-indexer:${TAG}
     environment:
-      - BCD_ENV=${BCD_ENV:-sandbox}
+      - BCD_ENV=sandbox
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=bcd_box
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
       - SANDBOX_NODE_URI=http://sandbox:8732
       - SANDBOX_IPFS_GATEWAY=https://cloudflare-ipfs.com
     depends_on:
-      - elastic
+      - db
       - mq
       - metrics
     extra_hosts:
       sandbox: 172.17.0.1
     volumes:
       - bcdshare:/etc/bcd
-    logging: *my-logging
+    logging: *bcd-logging
 
   metrics:
     restart: always
     image: bakingbad/bcdhub-metrics:${TAG}
     environment:
-      - BCD_ENV=${BCD_ENV:-sandbox}
+      - BCD_ENV=sandbox
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
       - POSTGRES_DB=bcd_box
@@ -99,7 +106,7 @@ services:
       sandbox: 172.17.0.1
     volumes:
       - bcdshare:/etc/bcd
-    logging: *my-logging
+    logging: *bcd-logging
 
   flextesa:
     restart: always
@@ -110,7 +117,7 @@ services:
     ports:
       - 127.0.0.1:8732:20000
       - 172.17.0.1:8732:20000
-    logging: *my-logging
+    logging: *bcd-logging
 
   #  jupyter:
   #    container_name: sandbox-jupyter
@@ -123,7 +130,7 @@ services:
   #      - 127.0.0.1:8008:8008
   #    extra_hosts:
   #      sandbox: 172.17.0.1
-  #    logging: *my-logging
+  #    logging: *bcd-logging
 
   gui:
     container_name: sandbox-gui
@@ -133,7 +140,7 @@ services:
       - api
     ports:
       - 127.0.0.1:8000:80
-    logging: *my-logging
+    logging: *bcd-logging
 
 volumes:
   esdata:
