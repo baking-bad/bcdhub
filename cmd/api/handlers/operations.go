@@ -310,12 +310,18 @@ func (ctx *Context) PrepareOperations(ops []operation.Operation, withStorageDiff
 }
 
 func setParameters(data []byte, script *ast.Script, op *Operation) error {
+	params := types.NewParameters(data)
+	return setParatemetersWithType(params, script, op)
+}
+
+func setParatemetersWithType(params *types.Parameters, script *ast.Script, op *Operation) error {
+	if params == nil {
+		return errors.New("Empty parameters")
+	}
 	parameter, err := script.ParameterType()
 	if err != nil {
 		return err
 	}
-
-	params := types.NewParameters(data)
 	tree, err := parameter.FromParameters(params)
 	if err != nil {
 		if tezerrors.HasGasExhaustedError(op.Errors) {

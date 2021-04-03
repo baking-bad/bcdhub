@@ -8,7 +8,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 )
 
 // GetEntrypoints godoc
@@ -90,7 +89,7 @@ func (ctx *Context) GetEntrypointData(c *gin.Context) {
 	}
 
 	if reqData.Format == "michelson" {
-		michelson, err := formatter.MichelineStringToMichelson(string(result), false, formatter.DefLineSize)
+		michelson, err := formatter.MichelineStringToMichelson(string(result.Value), false, formatter.DefLineSize)
 		if ctx.handleError(c, err, 0) {
 			return
 		}
@@ -98,7 +97,7 @@ func (ctx *Context) GetEntrypointData(c *gin.Context) {
 		return
 	}
 
-	c.Data(http.StatusOK, gin.MIMEJSON, result)
+	c.Data(http.StatusOK, gin.MIMEJSON, result.Value)
 }
 
 // GetEntrypointSchema godoc
@@ -193,19 +192,10 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 	c.JSON(http.StatusOK, schema)
 }
 
-func (ctx *Context) buildParametersForExecution(network, address, protocol, entrypoint string, data map[string]interface{}) ([]byte, error) {
+func (ctx *Context) buildParametersForExecution(network, address, protocol, entrypoint string, data map[string]interface{}) (*types.Parameters, error) {
 	parameterType, err := ctx.getParameterType(address, network, protocol)
 	if err != nil {
 		return nil, err
 	}
-	e := parameterType.FindByName(entrypoint, true)
-	if e == nil {
-		return nil, errors.Errorf("Unknown entrypoint name %s", entrypoint)
-	}
-
-	if err := e.FromJSONSchema(data); err != nil {
-		return nil, err
-	}
-
-	return e.ToParameters()
+	return parameterType.ParametersForExecution(entrypoint, data)
 }

@@ -183,6 +183,20 @@ func (a *TypedAst) FindByName(name string, isEntrypoint bool) Node {
 			return node
 		}
 	}
+
+	if isEntrypoint && name == consts.DefaultEntrypoint {
+		return a.Nodes[0]
+	}
+
+	if isEntrypoint && strings.HasPrefix(name, "entrypoint_") {
+		num, err := strconv.ParseInt(strings.TrimPrefix(name, "entrypoint_"), 10, 64)
+		if err != nil {
+			return nil
+		}
+		var depth int64
+		return findCustomEntrypoint(a.Nodes[0], num, &depth)
+	}
+
 	return nil
 }
 
@@ -373,6 +387,83 @@ func (a *TypedAst) UnwrapAndGetEntrypointName() (Node, string) {
 	}
 
 	return unwrap(a.Nodes[0], "0")
+}
+
+// ParametersForExecution -
+func (a *TypedAst) ParametersForExecution(entrypoint string, data map[string]interface{}) (*types.Parameters, error) {
+	if len(a.Nodes) == 0 {
+		return nil, consts.ErrEmptyTree
+	}
+
+	if strings.HasPrefix(entrypoint, "entrypoint_") {
+		if params := wrapForExecution(a.Nodes[0], data, entrypoint); params != nil {
+			return params, nil
+		}
+	}
+
+	if node := a.FindByName(entrypoint, true); node != nil {
+		return settleForExecution(node, data, entrypoint)
+	}
+	return nil, consts.ErrEmptyTree
+}
+
+func settleForExecution(node Node, data map[string]interface{}, entrypoint string) (*types.Parameters, error) {
+	if err := node.FromJSONSchema(data); err != nil {
+		return nil, err
+	}
+	params, err := node.ToParameters()
+	if err != nil {
+		return nil, err
+	}
+	return &types.Parameters{
+		Entrypoint: entrypoint,
+		Value:      params,
+	}, nil
+}
+
+func wrapForExecution(node Node, data map[string]interface{}, entrypoint string) *types.Parameters {
+	num, err := strconv.ParseInt(strings.TrimPrefix(entrypoint, "entrypoint_"), 10, 64)
+	if err != nil {
+		return nil
+	}
+
+	var depth int64
+	current := findCustomEntrypoint(node, num, &depth)
+	if current == nil {
+		return nil
+	}
+	if err := current.FromJSONSchema(data); err != nil {
+		return nil
+	}
+	params, err := node.ToParameters()
+	if err != nil {
+		return nil
+	}
+	return &types.Parameters{
+		Entrypoint: consts.DefaultEntrypoint,
+		Value:      params,
+	}
+}
+
+func findCustomEntrypoint(node Node, num int64, depth *int64) Node {
+	typ, ok := node.(*Or)
+	if ok {
+		if node := findCustomEntrypoint(typ.LeftType, num, depth); node != nil {
+			typ.key = leftKey
+			return node
+		}
+		if node := findCustomEntrypoint(typ.RightType, num, depth); node != nil {
+			typ.key = rightKey
+			return node
+		}
+		return nil
+	}
+
+	if num == *depth {
+		return node
+	}
+	*depth += 1
+	return nil
 }
 
 func unwrap(node Node, path string) (Node, string) {

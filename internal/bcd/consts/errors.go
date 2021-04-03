@@ -19,4 +19,5 @@ var (
 	ErrInvalidAddress      = errors.New("Invalid address")
 	ErrInvalidOPGHash      = errors.New("Invalid OPG hash")
 	ErrUnknownPointer      = errors.New("Can't find ptr")
+	ErrEmptyTree           = errors.New("Empty tree")
 )

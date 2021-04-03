@@ -63,7 +63,7 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		protocol.Constants.HardStorageLimitPerOperation,
 		counter+1,
 		reqRunOp.Amount,
-		parameters,
+		parameters.Value,
 	)
 	if ctx.handleError(c, err, 0) {
 		return
@@ -183,10 +183,10 @@ func (ctx *Context) RunCode(c *gin.Context) {
 		Kind:        consts.Transaction,
 		Level:       state.Level,
 		Status:      consts.Applied,
-		Entrypoint:  reqRunCode.Name,
+		Entrypoint:  input.Entrypoint,
 	}
 
-	response, err := rpc.RunCode(scriptBytes, storage, input, state.ChainID, reqRunCode.Source, reqRunCode.Sender, reqRunCode.Name, state.Protocol, reqRunCode.Amount, reqRunCode.GasLimit)
+	response, err := rpc.RunCode(scriptBytes, storage, input.Value, state.ChainID, reqRunCode.Source, reqRunCode.Sender, input.Entrypoint, state.Protocol, reqRunCode.Amount, reqRunCode.GasLimit)
 	if err != nil {
 		var e noderpc.InvalidNodeResponse
 		if errors.As(err, &e) {
@@ -212,7 +212,7 @@ func (ctx *Context) RunCode(c *gin.Context) {
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	if err := setParameters(input, script, &main); ctx.handleError(c, err, 0) {
+	if err := setParatemetersWithType(input, script, &main); ctx.handleError(c, err, 0) {
 		return
 	}
 	if err := ctx.setSimulateStorageDiff(response, script, &main); ctx.handleError(c, err, 0) {
