@@ -64,7 +64,7 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		protocol.Constants.HardStorageLimitPerOperation,
 		counter+1,
 		reqRunOp.Amount,
-		parameters,
+		parameters.Value,
 	)
 	if ctx.handleError(c, err, 0) {
 		return
@@ -184,10 +184,10 @@ func (ctx *Context) RunCode(c *gin.Context) {
 		Kind:        consts.Transaction,
 		Level:       state.Level,
 		Status:      consts.Applied,
-		Entrypoint:  reqRunCode.Name,
+		Entrypoint:  input.Entrypoint,
 	}
 
-	response, err := rpc.RunCode(scriptBytes, storage, input, state.ChainID, reqRunCode.Source, reqRunCode.Sender, reqRunCode.Name, state.Protocol, reqRunCode.Amount, reqRunCode.GasLimit)
+	response, err := rpc.RunCode(scriptBytes, storage, input.Value, state.ChainID, reqRunCode.Source, reqRunCode.Sender, input.Entrypoint, state.Protocol, reqRunCode.Amount, reqRunCode.GasLimit)
 	if err != nil {
 		var e noderpc.InvalidNodeResponse
 		if errors.As(err, &e) {
@@ -213,7 +213,7 @@ func (ctx *Context) RunCode(c *gin.Context) {
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	if err := ctx.setParameters(input, script, &main); ctx.handleError(c, err, 0) {
+	if err := setParatemetersWithType(input, script, &main); ctx.handleError(c, err, 0) {
 		return
 	}
 	if err := ctx.setSimulateStorageDiff(response, script, &main); ctx.handleError(c, err, 0) {
@@ -242,7 +242,7 @@ func (ctx *Context) parseAppliedRunCode(response noderpc.RunCodeResponse, script
 		op.Protocol = main.Protocol
 		op.Level = main.Level
 		op.Internal = true
-		if err := ctx.setParameters(response.Operations[i].Parameters, script, &op); err != nil {
+		if err := setParameters(response.Operations[i].Parameters, script, &op); err != nil {
 			return nil, err
 		}
 		if err := ctx.setSimulateStorageDiff(response, script, &op); err != nil {
@@ -255,11 +255,7 @@ func (ctx *Context) parseAppliedRunCode(response noderpc.RunCodeResponse, script
 
 func (ctx *Context) parseBigMapDiffs(response noderpc.RunCodeResponse, script *ast.Script, operation *Operation) ([]bigmapdiff.BigMapDiff, error) {
 	model := operation.ToModel()
-	b, err := json.Marshal(script)
-	if err != nil {
-		return nil, err
-	}
-	model.Script = b
+	model.AST = script
 
 	rpc, err := ctx.GetRPC(operation.Network)
 	if err != nil {

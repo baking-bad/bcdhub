@@ -87,7 +87,8 @@ func (storage *Storage) Count(network string, ptr int64) (count int64, err error
 // Previous -
 func (storage *Storage) Previous(filters []bigmapdiff.BigMapDiff, lastID int64, address string) (response []bigmapdiff.BigMapDiff, err error) {
 	query := storage.DB.Table(models.DocBigMapDiff).
-		Scopes(core.Contract(address))
+		Scopes(core.Contract(address)).
+		Select("MAX(id) as id")
 
 	if lastID > 0 {
 		query.Where("id < ?", lastID)
@@ -104,8 +105,13 @@ func (storage *Storage) Previous(filters []bigmapdiff.BigMapDiff, lastID int64, 
 		query.Where(tx)
 	}
 
-	err = query.Group("key_hash").Order("id desc").Find(&response).Error
-	return response, err
+	query.Group("key_hash")
+
+	err = storage.DB.Table(models.DocBigMapDiff).
+		Where("id IN (?)", query).
+		Find(&response).Error
+
+	return
 }
 
 // GetForOperation -
