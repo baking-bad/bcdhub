@@ -19,7 +19,7 @@ func NewStorage(pg *core.Postgres) *Storage {
 // Get -
 func (storage *Storage) Get(ctx []tokenmetadata.GetContext, size, offset int64) (tokens []tokenmetadata.TokenMetadata, err error) {
 	query := storage.DB.Table(models.DocTokenMetadata)
-	buildGetTokenMetadataContext(storage.DB, query, ctx...)
+	storage.buildGetTokenMetadataContext(query, ctx...)
 
 	query.Limit(storage.GetPageSize(size))
 	if offset > 0 {
@@ -33,7 +33,7 @@ func (storage *Storage) Get(ctx []tokenmetadata.GetContext, size, offset int64) 
 // GetAll -
 func (storage *Storage) GetAll(ctx ...tokenmetadata.GetContext) (tokens []tokenmetadata.TokenMetadata, err error) {
 	query := storage.DB.Table(models.DocTokenMetadata)
-	buildGetTokenMetadataContext(storage.DB, query, ctx...)
+	storage.buildGetTokenMetadataContext(query, ctx...)
 	err = query.Find(&tokens).Error
 	return
 }
@@ -51,7 +51,7 @@ func (storage *Storage) GetWithExtras() (tokens []tokenmetadata.TokenMetadata, e
 // Count -
 func (storage *Storage) Count(ctx []tokenmetadata.GetContext) (count int64, err error) {
 	query := storage.DB.Table(models.DocTokenMetadata)
-	buildGetTokenMetadataContext(storage.DB, query, ctx...)
+	storage.buildGetTokenMetadataContext(query, ctx...)
 	err = query.Count(&count).Error
 	return
 }
