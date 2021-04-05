@@ -31,7 +31,8 @@ func (m *TokenMetadataUnknown) Description() string {
 // Do - migrate function
 func (m *TokenMetadataUnknown) Do(ctx *config.Context) error {
 	metadata, err := ctx.TokenMetadata.GetAll(tokenmetadata.GetContext{
-		Name: "Unknown",
+		Name:    "Unknown",
+		TokenID: -1,
 	})
 	if err != nil {
 		return err
