@@ -29,6 +29,7 @@ var migrationsList = []migrations.Migration{
 	&migrations.TokenBalanceRecalc{},
 	&migrations.TokenMetadataSetDecimals{},
 	&migrations.NFTMetadata{},
+	&migrations.TokenMetadataUnknown{},
 }
 
 func main() {

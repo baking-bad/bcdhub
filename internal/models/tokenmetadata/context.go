@@ -8,4 +8,5 @@ type GetContext struct {
 	MaxLevel int64
 	MinLevel int64
 	Creator  string
+	Name     string
 }

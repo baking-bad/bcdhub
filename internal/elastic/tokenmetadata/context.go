@@ -16,6 +16,9 @@ func buildGetTokenMetadataContext(ctx []tokenmetadata.GetContext, withSize bool)
 		if c.Network != "" {
 			filter = append(filter, core.Match("network", c.Network))
 		}
+		if c.Name != "" {
+			filter = append(filter, core.MatchPhrase("name", c.Name))
+		}
 		if c.MaxLevel > 0 {
 			filter = append(filter, core.Range("level", core.Item{"lte": c.MaxLevel}))
 		}
