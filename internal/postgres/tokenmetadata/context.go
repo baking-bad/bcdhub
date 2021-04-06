@@ -3,19 +3,26 @@ package tokenmetadata
 import (
 	"fmt"
 
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"gorm.io/gorm"
 )
 
-func buildGetTokenMetadataContext(db *gorm.DB, query *gorm.DB, ctx ...tokenmetadata.GetContext) {
+func (storage *Storage) buildGetTokenMetadataContext(query *gorm.DB, ctx ...tokenmetadata.GetContext) {
 	if len(ctx) == 0 {
 		return
 	}
 
 	fullQuery := new(gorm.DB)
 	for i := range ctx {
-		subQuery := db.Where("network = ?", ctx[i].Network).Where("contract = ?", ctx[i].Contract)
+		subQuery := storage.DB.Table(models.DocTokenMetadata)
 
+		if ctx[i].Network != "" {
+			subQuery.Where("network = ?", ctx[i].Network)
+		}
+		if ctx[i].Contract != "" {
+			subQuery.Where("contract = ?", ctx[i].Contract)
+		}
 		if ctx[i].TokenID != nil {
 			subQuery.Where("token_id = ?", *ctx[i].TokenID)
 		}
@@ -28,8 +35,11 @@ func buildGetTokenMetadataContext(db *gorm.DB, query *gorm.DB, ctx ...tokenmetad
 		if ctx[i].Creator != "" {
 			subQuery.Where("creators <@ ?", ctx[i].Creator)
 		}
+		if ctx[i].Name != "" {
+			subQuery.Where("name = ?", ctx[i].Name)
+		}
 		if fullQuery.Statement == nil {
-			fullQuery = db.Where(subQuery)
+			fullQuery = storage.DB.Where(subQuery)
 		} else {
 			fullQuery.Or(subQuery)
 		}

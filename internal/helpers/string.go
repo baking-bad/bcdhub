@@ -7,6 +7,7 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/btcsuite/btcutil/base58"
 	"github.com/google/uuid"
 )
 
@@ -50,4 +51,18 @@ func SpaceStringsBuilder(str string) string {
 // Slug -
 func Slug(alias string) string {
 	return strings.ReplaceAll(strings.ToLower(alias), " ", "-")
+}
+
+// IsIPFS -
+func IsIPFS(hash string) bool {
+	if len(hash) != 46 && strings.HasPrefix(hash, "Qm") {
+		return false
+	}
+
+	data := base58.Decode(hash)
+	if len(data) == 34 && data[0] == 0x12 && data[1] == 0x20 {
+		return true
+	}
+
+	return false
 }
