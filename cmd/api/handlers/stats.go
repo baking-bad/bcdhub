@@ -90,7 +90,7 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 // @ID get-network-series
 // @Param network path string true "Network"
 // @Param name query string true "One of names" Enums(contract, operation, paid_storage_size_diff, consumed_gas, users, volume)
-// @Param period query string true "One of periods"  Enums(year, month, week, day)
+// @Param period query string true "One of periods"  Enums(year, month, week, day, hour)
 // @Param address query string false "Comma-separated contract addresses"
 // @Accept  json
 // @Produce  json
