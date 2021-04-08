@@ -86,12 +86,12 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 
 // GetSeries godoc
 // @Summary Get network series
-// @Description Get count series data for network
+// @Description Get count series data for network. If period is `hour` than series for last day is returned. If period is `day` series for last month is returned.
 // @Tags statistics
 // @ID get-network-series
 // @Param network path string true "Network"
 // @Param name query string true "One of names" Enums(contract, operation, paid_storage_size_diff, consumed_gas, users, volume)
-// @Param period query string true "One of periods"  Enums(year, month, week, day)
+// @Param period query string true "One of periods"  Enums(year, month, week, day, hour)
 // @Param address query string false "Comma-separated contract addresses"
 // @Accept  json
 // @Produce  json

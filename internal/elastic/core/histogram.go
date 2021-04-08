@@ -1,6 +1,8 @@
 package core
 
 import (
+	"time"
+
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
@@ -66,6 +68,13 @@ func buildHistogramContext(ctx models.HistogramContext) Base {
 				))
 			}
 		}
+	}
+
+	switch ctx.Period {
+	case "hour":
+		matches = append(matches, Range("timestamp", Item{"gt": time.Now().UTC().AddDate(0, 0, -1).Unix() * 1000}))
+	case "day":
+		matches = append(matches, Range("timestamp", Item{"gt": time.Now().UTC().AddDate(0, -1, 0).Unix() * 1000}))
 	}
 
 	return NewQuery().Query(

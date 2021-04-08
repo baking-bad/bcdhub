@@ -215,7 +215,7 @@ type getEntrypointDataRequest struct {
 
 type getSeriesRequest struct {
 	Name    string `form:"name" binding:"oneof=contract operation paid_storage_size_diff consumed_gas volume users token_volume" example:"contract"`
-	Period  string `form:"period" binding:"oneof=year month week day" example:"year"`
+	Period  string `form:"period" binding:"oneof=year month week day hour" example:"year"`
 	Address string `form:"address,omitempty" binding:"omitempty"`
 }
 
