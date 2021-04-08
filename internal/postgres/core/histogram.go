@@ -137,7 +137,7 @@ func getRequest(period, table, f, conditions string) (string, error) {
 
 // ValidateHistogramPeriod -
 func ValidateHistogramPeriod(period string) error {
-	if !helpers.StringInArray(period, []string{"day", "week", "month", "year"}) {
+	if !helpers.StringInArray(period, []string{"day", "week", "month", "year", "hour"}) {
 		return errors.Errorf("Invalid period: %s", period)
 	}
 	return nil
