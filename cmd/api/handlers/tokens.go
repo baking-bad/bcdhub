@@ -109,11 +109,12 @@ func (ctx *Context) GetFAByVersion(c *gin.Context) {
 // @Produce json
 // @Success 200 {object} TransferResponse
 // @Failure 400 {object} Error
+// @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/tokens/{network}/transfers/{address} [get]
 func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
 		return
 	}
 
@@ -282,11 +283,12 @@ func (ctx *Context) contractToTokens(contracts []contract.Contract, network, ver
 // @Produce  json
 // @Success 200 {array} TokenMetadata
 // @Failure 400 {object} Error
+// @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/tokens [get]
 func (ctx *Context) GetContractTokens(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
 		return
 	}
 	var pageReq tokenRequest
@@ -328,11 +330,12 @@ func (ctx *Context) GetContractTokens(c *gin.Context) {
 // @Produce  json
 // @Success 200 {object} CountResponse
 // @Failure 400 {object} Error
+// @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/tokens/count [get]
 func (ctx *Context) GetContractTokensCount(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
 		return
 	}
 	count, err := ctx.TokenMetadata.Count([]tokenmetadata.GetContext{{
@@ -387,11 +390,12 @@ func (ctx *Context) getTokensWithSupply(getCtx tokenmetadata.GetContext, size, o
 // @Produce  json
 // @Success 200 {array} gin.H
 // @Failure 400 {object} Error
+// @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/tokens/holders [get]
 func (ctx *Context) GetTokenHolders(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
 		return
 	}
 	var reqArgs byTokenIDRequest

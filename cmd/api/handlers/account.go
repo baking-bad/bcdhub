@@ -21,11 +21,12 @@ import (
 // @Produce  json
 // @Success 200 {object} AccountInfo
 // @Failure 400 {object} Error
+// @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/account/{network}/{address} [get]
 func (ctx *Context) GetInfo(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
 		return
 	}
 
@@ -135,11 +136,12 @@ func (ctx *Context) GetBatchTokenBalances(c *gin.Context) {
 // @Produce  json
 // @Success 200 {object} TokenBalances
 // @Failure 400 {object} Error
+// @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/account/{network}/{address}/token_balances [get]
 func (ctx *Context) GetAccountTokenBalances(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
 		return
 	}
 	var queryParams tokenBalanceRequest
@@ -230,11 +232,12 @@ func (ctx *Context) getAccountBalances(network, address string, req tokenBalance
 // @Produce  json
 // @Success 200 {object} map[string]int64
 // @Failure 400 {object} Error
+// @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/account/{network}/{address}/count [get]
 func (ctx *Context) GetAccountTokenBalancesGroupedCount(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
 		return
 	}
 	res, err := ctx.TokenBalances.CountByContract(req.Network, req.Address)
