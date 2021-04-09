@@ -233,8 +233,14 @@ func (m *TokenMetadata) Merge(second *TokenMetadata) {
 func getStringArrayKey(data map[string]interface{}, keyName string) []string {
 	if val, ok := data[keyName]; ok {
 		delete(data, keyName)
-		if s, ok := val.([]string); ok {
-			return s
+		if s, ok := val.([]interface{}); ok {
+			arr := make([]string, 0)
+			for i := range s {
+				if data, ok := s[i].(string); ok {
+					arr = append(arr, data)
+				}
+			}
+			return arr
 		}
 	}
 	return nil
