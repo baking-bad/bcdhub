@@ -291,6 +291,7 @@ func TestTokenMetadata_UnmarshalJSON(t *testing.T) {
 				Decimals:    int64Ptr(0),
 				Description: "A most mysterious map has been discovered. Where it leads is uncertain, but an adventure lies ahead.",
 				DisplayURI:  "https://gateway.pinata.cloud/ipfs/QmPkJBaRnb2JwqA1S2sUQayTV9xT3x8MBnsmq7ForBWKuU",
+				Creators:    []string{"test", "author"},
 				Extras: map[string]interface{}{
 					"nonTransferable":     false,
 					"symbolPreference":    false,
@@ -309,7 +310,8 @@ func TestTokenMetadata_UnmarshalJSON(t *testing.T) {
 				"booleanAmount": false,
 				"displayUri": "https://gateway.pinata.cloud/ipfs/QmPkJBaRnb2JwqA1S2sUQayTV9xT3x8MBnsmq7ForBWKuU",
 				"defaultPresentation": "large",
-				"actionLabel": "Send"
+				"actionLabel": "Send",
+				"creators": ["test", "author"]
 				}`),
 		}, {
 			name: "test ipfs 2",
