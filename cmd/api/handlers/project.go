@@ -20,11 +20,12 @@ import (
 // @Produce json
 // @Success 200 {object} SameContractsResponse
 // @Failure 400 {object} Error
+// @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/same [get]
 func (ctx *Context) GetSameContracts(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
 		return
 	}
 
@@ -67,11 +68,12 @@ func (ctx *Context) GetSameContracts(c *gin.Context) {
 // @Produce  json
 // @Success 200 {object} SimilarContractsResponse
 // @Failure 400 {object} Error
+// @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/similar [get]
 func (ctx *Context) GetSimilarContracts(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
 		return
 	}
 

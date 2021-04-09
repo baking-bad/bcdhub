@@ -24,11 +24,12 @@ import (
 // @Produce  json
 // @Success 200 {array} Operation
 // @Failure 400 {object} Error
+// @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/mempool [get]
 func (ctx *Context) GetMempool(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
 		return
 	}
 

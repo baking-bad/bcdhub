@@ -29,11 +29,12 @@ var (
 // @Produce json
 // @Success 200 {array} ViewSchema
 // @Failure 400 {object} Error
+// @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/views/schema [get]
 func (ctx *Context) GetViewsSchema(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
 		return
 	}
 
@@ -97,11 +98,12 @@ func (ctx *Context) GetViewsSchema(c *gin.Context) {
 // @Produce json
 // @Success 200 {array} ast.MiguelNode
 // @Failure 400 {object} Error
+// @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/views/execute [post]
 func (ctx *Context) ExecuteView(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
 		return
 	}
 	var execView executeViewRequest

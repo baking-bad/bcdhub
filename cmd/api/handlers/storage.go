@@ -20,11 +20,12 @@ import (
 // @Produce json
 // @Success 200 {array} ast.MiguelNode
 // @Failure 400 {object} Error
+// @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/storage [get]
 func (ctx *Context) GetContractStorage(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
 		return
 	}
 
@@ -86,11 +87,12 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 // @Success 200 {string} string
 // @Success 204 {string} string
 // @Failure 400 {object} Error
+// @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/storage/raw [get]
 func (ctx *Context) GetContractStorageRaw(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
 		return
 	}
 	var sReq storageRequest
@@ -135,11 +137,12 @@ func (ctx *Context) GetContractStorageRaw(c *gin.Context) {
 // @Success 200 {object} gin.H
 // @Success 204 {object} gin.H
 // @Failure 400 {object} Error
+// @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/storage/rich [get]
 func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
 		return
 	}
 	var sReq storageRequest
@@ -192,11 +195,12 @@ func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 // @Produce json
 // @Success 200 {object} EntrypointSchema
 // @Failure 400 {object} Error
+// @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/contract/{network}/{address}/storage/schema [get]
 func (ctx *Context) GetContractStorageSchema(c *gin.Context) {
 	var req getContractRequest
-	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
 		return
 	}
 	var ssReq storageSchemaRequest
