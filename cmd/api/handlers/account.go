@@ -170,13 +170,13 @@ func (ctx *Context) getAccountBalances(network, address string, req tokenBalance
 	contextes := make([]tokenmetadata.GetContext, 0)
 	balances := make(map[tokenmetadata.GetContext]string)
 
-	for _, balance := range tokenBalances {
+	for i := range tokenBalances {
 		c := tokenmetadata.GetContext{
-			TokenID:  &balance.TokenID,
-			Contract: balance.Contract,
+			TokenID:  &tokenBalances[i].TokenID,
+			Contract: tokenBalances[i].Contract,
 			Network:  network,
 		}
-		balances[c] = balance.BalanceString
+		balances[c] = tokenBalances[i].BalanceString
 		contextes = append(contextes, c)
 	}
 
