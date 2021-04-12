@@ -2,6 +2,7 @@ package ast
 
 import (
 	"bytes"
+	stdJSON "encoding/json"
 	"fmt"
 	"strings"
 
@@ -15,6 +16,11 @@ type Script struct {
 	Code      UntypedAST `json:"code"`
 	Parameter UntypedAST `json:"parameter"`
 	Storage   UntypedAST `json:"storage"`
+}
+
+type sectionNode struct {
+	Prim string             `json:"prim"`
+	Args stdJSON.RawMessage `json:"args"`
 }
 
 // UnmarshalJSON -
@@ -76,6 +82,34 @@ func NewScript(data []byte) (*Script, error) {
 	var s Script
 	err := json.Unmarshal(data, &s)
 	return &s, err
+}
+
+// NewScriptWithoutCode - creates `Script` object without code tree: storage and parameter
+func NewScriptWithoutCode(data []byte) (*Script, error) {
+	var sections []sectionNode
+	if err := json.Unmarshal(data, &sections); err != nil {
+		return nil, err
+	}
+
+	var script Script
+	for i := range sections {
+		switch sections[i].Prim {
+		case consts.PARAMETER:
+			var tree UntypedAST
+			if err := json.Unmarshal(sections[i].Args, &tree); err != nil {
+				return nil, err
+			}
+			script.Parameter = tree
+		case consts.STORAGE:
+			var tree UntypedAST
+			if err := json.Unmarshal(sections[i].Args, &tree); err != nil {
+				return nil, err
+			}
+			script.Storage = tree
+		}
+	}
+
+	return &script, nil
 }
 
 // Compare - compares two scripts
