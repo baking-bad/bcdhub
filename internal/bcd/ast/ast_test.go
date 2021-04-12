@@ -525,6 +525,10 @@ func TestTypedAst_Docs(t *testing.T) {
 			name: "option in bigmap",
 			data: `[{"prim":"storage","args":[{"prim": "big_map","args":[{"prim":"int"},{"prim":"option", "args":[{"prim":"map","args":[{"prim":"int"},{"prim":"int"}]}]}]}]}]`,
 			want: `[{"name":"@big_map_1","type":"big_map(int, option(map(int, int)))"}]`,
+		}, {
+			name: "parameters default simple option",
+			data: `[{"prim": "parameter","args":[{"prim":"option","args":[{"prim":"address"}]}]}]`,
+			want: `[{"name":"default","type":"option(address)"}]`,
 		},
 	}
 	for _, tt := range tests {

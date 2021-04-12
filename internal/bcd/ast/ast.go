@@ -230,8 +230,19 @@ func (a *TypedAst) ToParameters(entrypoint string) ([]byte, error) {
 func (a *TypedAst) Docs(entrypoint string) ([]Typedef, error) {
 	if entrypoint == DocsFull {
 		if len(a.Nodes) == 1 {
-			docs, _, err := a.Nodes[0].Docs(DocsFull)
-			return docs, err
+			docs, typ, err := a.Nodes[0].Docs(DocsFull)
+			if err != nil {
+				return nil, err
+			}
+			if docs != nil {
+				return docs, nil
+			}
+			return []Typedef{
+				{
+					Name: consts.DefaultEntrypoint,
+					Type: typ,
+				},
+			}, nil
 		}
 		return buildArrayDocs(a.Nodes)
 	}
