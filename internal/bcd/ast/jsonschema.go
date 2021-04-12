@@ -16,8 +16,8 @@ type JSONModel map[string]interface{}
 
 // JSONSchema -
 type JSONSchema struct {
-	Type       string                 `json:"type"`
-	Title      string                 `json:"title"`
+	Type       string                 `json:"type,omitempty"`
+	Title      string                 `json:"title,omitempty"`
 	Prim       string                 `json:"prim,omitempty"`
 	Tag        string                 `json:"tag,omitempty"`
 	Format     string                 `json:"format,omitempty"`
