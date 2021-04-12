@@ -167,7 +167,7 @@ func (o *Operation) InitScript() (err error) {
 	if o.Script == nil {
 		return errors.New("Uninitialized script")
 	}
-	o.AST, err = ast.NewScript(o.Script)
+	o.AST, err = ast.NewScriptWithoutCode(o.Script)
 	return err
 }
 
