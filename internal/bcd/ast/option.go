@@ -177,13 +177,23 @@ func (opt *Option) ToJSONSchema() (*JSONSchema, error) {
 func (opt *Option) FromJSONSchema(data map[string]interface{}) error {
 	var optionMap map[string]interface{}
 	for key := range data {
-		if key == opt.GetName() {
+		var isBreak bool
+
+		switch key {
+		case opt.GetName():
 			val := data[key]
 			arrVal, ok := val.(map[string]interface{})
 			if !ok {
 				return errors.Wrapf(consts.ErrInvalidType, "Option.FromJSONSchema %T", val)
 			}
 			optionMap = arrVal
+			isBreak = true
+		case "schemaKey":
+			optionMap = data
+			isBreak = true
+		}
+
+		if isBreak {
 			break
 		}
 	}
