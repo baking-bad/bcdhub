@@ -156,6 +156,20 @@ func (ctx *Context) GetAccountTokenBalances(c *gin.Context) {
 	c.JSON(http.StatusOK, balances)
 }
 
+type balanceID struct {
+	TokenID  uint64
+	Contract string
+	Network  string
+}
+
+func balanceIDFromContext(c tokenmetadata.GetContext) balanceID {
+	return balanceID{
+		TokenID:  *c.TokenID,
+		Contract: c.Contract,
+		Network:  c.Network,
+	}
+}
+
 func (ctx *Context) getAccountBalances(network, address string, req tokenBalanceRequest) (*TokenBalances, error) {
 	tokenBalances, total, err := ctx.TokenBalances.GetAccountBalances(network, address, req.Contract, req.Size, req.Offset)
 	if err != nil {
@@ -168,7 +182,7 @@ func (ctx *Context) getAccountBalances(network, address string, req tokenBalance
 	}
 
 	contextes := make([]tokenmetadata.GetContext, 0)
-	balances := make(map[tokenmetadata.GetContext]string)
+	balances := make(map[balanceID]string)
 
 	for i := range tokenBalances {
 		c := tokenmetadata.GetContext{
@@ -176,7 +190,7 @@ func (ctx *Context) getAccountBalances(network, address string, req tokenBalance
 			Contract: tokenBalances[i].Contract,
 			Network:  network,
 		}
-		balances[c] = tokenBalances[i].BalanceString
+		balances[balanceIDFromContext(c)] = tokenBalances[i].BalanceString
 		contextes = append(contextes, c)
 	}
 
@@ -186,18 +200,18 @@ func (ctx *Context) getAccountBalances(network, address string, req tokenBalance
 	}
 
 	for _, token := range tokens {
-		c := tokenmetadata.GetContext{
-			TokenID:  &token.TokenID,
+		id := balanceID{
+			TokenID:  token.TokenID,
 			Contract: token.Contract,
 			Network:  network,
 		}
 
-		balance, ok := balances[c]
+		balance, ok := balances[id]
 		if !ok {
 			continue
 		}
 
-		delete(balances, c)
+		delete(balances, id)
 
 		tb := TokenBalance{
 			Balance:       balance,
@@ -212,7 +226,7 @@ func (ctx *Context) getAccountBalances(network, address string, req tokenBalance
 			Balance: balance,
 			TokenMetadata: TokenMetadata{
 				Contract: c.Contract,
-				TokenID:  *c.TokenID,
+				TokenID:  c.TokenID,
 				Network:  c.Network,
 			},
 		})
