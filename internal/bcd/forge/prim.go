@@ -22,7 +22,7 @@ func (p *prim) Unforge(data []byte) (int, error) {
 		return 0, errors.Wrap(ErrTooFewBytes, "prim.Unforge: 0")
 	}
 	key := int(data[0])
-	if key > len(primKeywords) {
+	if key > len(primKeywords)-1 {
 		return 0, errors.Wrap(ErrInvalidKeyword, fmt.Sprintf("prim.Unforge: %d", key))
 	}
 	p.Value = primKeywords[key]
