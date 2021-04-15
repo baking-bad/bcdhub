@@ -210,12 +210,13 @@ func TestTokenMetadata_UnmarshalJSON(t *testing.T) {
 		{
 			name: "test ipfs",
 			tm: TokenMetadata{
-				Symbol:      "SIMMAW",
-				Name:        "Mystery Map Award",
-				Decimals:    int64Ptr(0),
-				Description: "A most mysterious map has been discovered. Where it leads is uncertain, but an adventure lies ahead.",
-				DisplayURI:  "https://gateway.pinata.cloud/ipfs/QmPkJBaRnb2JwqA1S2sUQayTV9xT3x8MBnsmq7ForBWKuU",
-				Creators:    []string{"test", "author"},
+				Symbol:         "SIMMAW",
+				Name:           "Mystery Map Award",
+				Decimals:       int64Ptr(0),
+				Description:    "A most mysterious map has been discovered. Where it leads is uncertain, but an adventure lies ahead.",
+				DisplayURI:     "https://gateway.pinata.cloud/ipfs/QmPkJBaRnb2JwqA1S2sUQayTV9xT3x8MBnsmq7ForBWKuU",
+				IsTransferable: true,
+				Creators:       []string{"test", "author"},
 				Extras: map[string]interface{}{
 					"nonTransferable":     false,
 					"symbolPreference":    false,
@@ -240,10 +241,11 @@ func TestTokenMetadata_UnmarshalJSON(t *testing.T) {
 		}, {
 			name: "test ipfs 2",
 			tm: TokenMetadata{
-				Symbol:      "TZBKAB",
-				Name:        "Klassare Alpha Brain",
-				Decimals:    int64Ptr(0),
-				Description: "An upgraded unit, the great Klassare reborn.",
+				Symbol:         "TZBKAB",
+				Name:           "Klassare Alpha Brain",
+				Decimals:       int64Ptr(0),
+				Description:    "An upgraded unit, the great Klassare reborn.",
+				IsTransferable: true,
 				Extras: map[string]interface{}{
 					"isNft":               true,
 					"nonTransferrable":    false,
