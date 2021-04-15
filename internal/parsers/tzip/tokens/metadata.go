@@ -256,14 +256,14 @@ func getStringKey(data map[string]interface{}, keyName string) string {
 	return ""
 }
 
-func getBoolKey(data map[string]interface{}, keyName string) bool {
+func getBoolKey(data map[string]interface{}, keyName string, defaultValue bool) bool {
 	if val, ok := data[keyName]; ok {
 		delete(data, keyName)
 		if b, ok := val.(bool); ok {
 			return b
 		}
 	}
-	return false
+	return defaultValue
 }
 
 func getBytesKey(data map[string]interface{}, keyName string) json.RawMessage {
@@ -291,9 +291,9 @@ func (m *TokenMetadata) UnmarshalJSON(data []byte) error {
 	m.ThumbnailURI = getStringKey(res, keyThumbnailURI)
 	m.ExternalURI = getStringKey(res, keyExternalURI)
 
-	m.IsBooleanAmount = getBoolKey(res, keyIsBooleanAmount)
-	m.IsTransferable = getBoolKey(res, keyIsTransferable)
-	m.ShouldPreferSymbol = getBoolKey(res, keyShouldPreferSymbol)
+	m.IsBooleanAmount = getBoolKey(res, keyIsBooleanAmount, false)
+	m.IsTransferable = getBoolKey(res, keyIsTransferable, true)
+	m.ShouldPreferSymbol = getBoolKey(res, keyShouldPreferSymbol, false)
 
 	m.Creators = getStringArrayKey(res, keyCreators)
 	m.Tags = getStringArrayKey(res, keyTags)
