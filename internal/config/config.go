@@ -245,7 +245,7 @@ func LoadConfig(filename string) (Config, error) {
 	return config, nil
 }
 
-var defaultEnv = regexp.MustCompile(`\${(?P<name>[\w\.]{1,}):-(?P<value>[\w\.]*)}`)
+var defaultEnv = regexp.MustCompile(`\${(?P<name>[\w\.]{1,}):-(?P<value>[\w\.:/]*)}`)
 
 func expandEnv(data string) string {
 	vars := defaultEnv.FindAllStringSubmatch(data, -1)
