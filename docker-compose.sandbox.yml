@@ -1,7 +1,7 @@
 version: "3.6"
 services:
   elastic:
-    image: bakingbad/bcdhub-elastic:${TAG}
+    image: bakingbad/bcdhub-elastic:3.5
     restart: always
     volumes:
       - esdata:/usr/share/elasticsearch/data
@@ -25,10 +25,7 @@ services:
     logging: *bcd-logging
 
   db:
-    image: bakingbad/bcdhub-db:${TAG:-latest}
-    build:
-      context: .
-      dockerfile: build/db/Dockerfile
+    image: postgres:12
     restart: always
     environment:
       - POSTGRES_USER=root
@@ -41,7 +38,7 @@ services:
 
   api:
     restart: always
-    image: bakingbad/bcdhub-api:${TAG}
+    image: bakingbad/bcdhub-api:3.5
     environment:
       - BCD_ENV=sandbox
       - GIN_MODE=debug
@@ -66,7 +63,7 @@ services:
 
   indexer:
     restart: always
-    image: bakingbad/bcdhub-indexer:${TAG}
+    image: bakingbad/bcdhub-indexer:3.5
     environment:
       - BCD_ENV=sandbox
       - POSTGRES_USER=root
@@ -88,7 +85,7 @@ services:
 
   metrics:
     restart: always
-    image: bakingbad/bcdhub-metrics:${TAG}
+    image: bakingbad/bcdhub-metrics:3.5
     environment:
       - BCD_ENV=sandbox
       - POSTGRES_USER=root
@@ -119,23 +116,10 @@ services:
       - 172.17.0.1:8732:20000
     logging: *bcd-logging
 
-  #  jupyter:
-  #    container_name: sandbox-jupyter
-  #    restart: always
-  #    image: bakingbad/bcdhub-jupyter:${TAG:-latest}
-  #    build:
-  #      context: .
-  #      dockerfile: build/sandbox/jupyter/Dockerfile
-  #    ports:
-  #      - 127.0.0.1:8008:8008
-  #    extra_hosts:
-  #      sandbox: 172.17.0.1
-  #    logging: *bcd-logging
-
   gui:
     container_name: sandbox-gui
     restart: always
-    image: bakingbad/bcdhub-gui:${TAG}
+    image: bakingbad/bcdhub-gui:3.5
     depends_on:
       - api
     ports:

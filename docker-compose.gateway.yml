@@ -1,7 +1,7 @@
 version: "3.6"
 services:
   elastic:
-    image: bakingbad/bcdhub-elastic:${TAG:-latest}
+    image: bakingbad/bcdhub-elastic:3.5
     build:
       context: .
       dockerfile: build/elastic/Dockerfile
@@ -28,10 +28,7 @@ services:
     logging: *bcd-logging
 
   db:
-    image: bakingbad/bcdhub-db:${TAG:-latest}
-    build:
-      context: .
-      dockerfile: build/db/Dockerfile
+    image: postgres:12
     restart: always
     environment:
       - POSTGRES_USER=root
@@ -44,7 +41,7 @@ services:
 
   api:
     restart: always
-    image: bakingbad/bcdhub-api:${TAG:-latest}
+    image: bakingbad/bcdhub-api:3.5
     build:
       context: .
       dockerfile: build/api/Dockerfile
@@ -70,7 +67,7 @@ services:
 
   indexer:
     restart: always
-    image: bakingbad/bcdhub-indexer:${TAG:-latest}
+    image: bakingbad/bcdhub-indexer:3.5
     build:
       context: .
       dockerfile: build/indexer/Dockerfile
@@ -92,7 +89,7 @@ services:
 
   metrics:
     restart: always
-    image: bakingbad/bcdhub-metrics:${TAG:-latest}
+    image: bakingbad/bcdhub-metrics:3.5
     build:
       context: .
       dockerfile: build/metrics/Dockerfile

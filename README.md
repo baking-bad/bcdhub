@@ -18,12 +18,6 @@ make gateway
 
 API gateway is now available at http://localhost:14000/v1/stats
 
-Alternatively you can pull stable images:
-```
-make stable-pull
-make stable-gateway
-```
-
 In order to stop or reset BCD:
 ```
 make gateway-down
