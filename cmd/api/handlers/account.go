@@ -170,6 +170,12 @@ func (ctx *Context) getAccountBalances(network, address string, req tokenBalance
 		}
 		if metadata, err := ctx.getTokenMetadata(token.Network, token.Contract, token.TokenID); err == nil {
 			tb.TokenMetadata = TokenMetadataFromElasticModel(metadata, false)
+		} else {
+			tb.TokenMetadata = TokenMetadata{
+				Network:  token.Network,
+				Contract: token.Contract,
+				TokenID:  token.TokenID,
+			}
 		}
 
 		response.Balances = append(response.Balances, tb)
