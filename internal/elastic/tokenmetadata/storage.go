@@ -1,6 +1,8 @@
 package tokenmetadata
 
 import (
+	"encoding/json"
+
 	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/models"
 
@@ -28,7 +30,7 @@ func (storage *Storage) Get(ctx []tokenmetadata.GetContext, size, offset int64) 
 	return
 }
 
-// Get -
+// GetAll -
 func (storage *Storage) GetAll(ctx ...tokenmetadata.GetContext) (tokens []tokenmetadata.TokenMetadata, err error) {
 	query := buildGetTokenMetadataContext(ctx, true)
 	err = storage.es.GetAllByQuery(query, &tokens)
@@ -55,4 +57,27 @@ func (storage *Storage) GetWithExtras() ([]tokenmetadata.TokenMetadata, error) {
 // Count -
 func (storage *Storage) Count(ctx []tokenmetadata.GetContext) (int64, error) {
 	return storage.es.CountItems([]string{models.DocTokenMetadata}, buildGetTokenMetadataContext(ctx, false))
+}
+
+// GetOne -
+func (storage *Storage) GetOne(network, contract string, tokenID int64) (token tokenmetadata.TokenMetadata, err error) {
+	query := core.NewQuery().Query(
+		core.Bool(
+			core.Filter(
+				core.Match("network", network),
+				core.MatchPhrase("contract", contract),
+				core.Term("token_id", tokenID),
+			),
+		),
+	).One()
+
+	var response core.SearchResponse
+	if err = storage.es.Query([]string{models.DocTokenMetadata}, query, &response); err != nil {
+		return
+	}
+	if response.Hits.Total.Value == 0 {
+		return token, core.NewRecordNotFoundError(models.DocTokenMetadata, "")
+	}
+	err = json.Unmarshal(response.Hits.Hits[0].Source, &token)
+	return
 }

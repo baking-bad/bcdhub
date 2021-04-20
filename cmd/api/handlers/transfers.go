@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
@@ -56,10 +58,15 @@ func (ctx *Context) GetContractTransfers(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-type tokenKey struct {
-	Network  string
-	Contract string
-	TokenID  int64
+func (ctx *Context) getTokenMetadata(network, contract string, tokenID int64) (tokenmetadata.TokenMetadata, error) {
+	key := fmt.Sprintf("%s:%s:%d", network, contract, tokenID)
+	item, err := ctx.Cache.Fetch(key, time.Minute*5, func() (interface{}, error) {
+		return ctx.TokenMetadata.GetOne(network, contract, tokenID)
+	})
+	if err != nil {
+		return tokenmetadata.TokenMetadata{}, err
+	}
+	return item.Value().(tokenmetadata.TokenMetadata), nil
 }
 
 func (ctx *Context) transfersPostprocessing(transfers transfer.Pageable, withLastID bool) (response TransferResponse, err error) {
@@ -69,40 +76,22 @@ func (ctx *Context) transfersPostprocessing(transfers transfer.Pageable, withLas
 		response.LastID = transfers.LastID
 	}
 
-	mapTokens := make(map[tokenKey]*TokenMetadata)
-	tokens, err := ctx.TokenMetadata.GetAll(tokenmetadata.GetContext{
-		TokenID: -1,
-	})
-	if err != nil {
-		if !ctx.Storage.IsRecordNotFound(err) {
-			return
-		}
-	} else {
-		for i := range tokens {
-			mapTokens[tokenKey{
-				Network:  tokens[i].Network,
-				Contract: tokens[i].Contract,
-				TokenID:  tokens[i].TokenID,
-			}] = &TokenMetadata{
-				Contract: tokens[i].Contract,
-				TokenID:  tokens[i].TokenID,
-				Symbol:   tokens[i].Symbol,
-				Name:     tokens[i].Name,
-				Decimals: tokens[i].Decimals,
-				Network:  tokens[i].Network,
+	for i := range transfers.Transfers {
+		response.Transfers[i] = TransferFromElasticModel(transfers.Transfers[i])
+
+		token, err := ctx.getTokenMetadata(response.Transfers[i].Network, response.Transfers[i].Contract, response.Transfers[i].TokenID)
+		if err == nil {
+			tm := TokenMetadataFromElasticModel(token, false)
+			response.Transfers[i].Token = &TokenMetadata{
+				Contract: tm.Contract,
+				TokenID:  tm.TokenID,
+				Symbol:   tm.Symbol,
+				Name:     tm.Name,
+				Decimals: tm.Decimals,
+				Network:  tm.Network,
 			}
 		}
-	}
 
-	for i := range transfers.Transfers {
-		token := mapTokens[tokenKey{
-			Network:  transfers.Transfers[i].Network,
-			Contract: transfers.Transfers[i].Contract,
-			TokenID:  transfers.Transfers[i].TokenID,
-		}]
-
-		response.Transfers[i] = TransferFromElasticModel(transfers.Transfers[i])
-		response.Transfers[i].Token = token
 		response.Transfers[i].Alias = ctx.getAlias(transfers.Transfers[i].Network, transfers.Transfers[i].Contract)
 		response.Transfers[i].InitiatorAlias = ctx.getAlias(transfers.Transfers[i].Network, transfers.Transfers[i].Initiator)
 		response.Transfers[i].FromAlias = ctx.getAlias(transfers.Transfers[i].Network, transfers.Transfers[i].From)

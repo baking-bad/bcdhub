@@ -23,7 +23,7 @@ tzkt:
 
 storage:
   uri:
-    - http://${ELASTIC_HOSTNAME:-127.0.0.1}:9200
+    - http://${ELASTIC_HOSTNAME:-127.0.0.1}:9201
   timeout: 10
 
 rabbitmq:

@@ -41,3 +41,8 @@ func (storage *Storage) GetWithExtras() ([]tokenmetadata.TokenMetadata, error) {
 func (storage *Storage) Count(ctx []tokenmetadata.GetContext) (int64, error) {
 	return 0, nil
 }
+
+// GetOne -
+func (storage *Storage) GetOne(network, contract string, tokenID int64) (token tokenmetadata.TokenMetadata, err error) {
+	return
+}
