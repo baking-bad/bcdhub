@@ -25,7 +25,7 @@ import (
 // @Success 200 {object} TransferResponse
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
-// @Router /v1/{network}/{address}/transfers [get]
+// @Router /v1/contract/{network}/{address}/transfers [get]
 func (ctx *Context) GetContractTransfers(c *gin.Context) {
 	var contractRequest getContractRequest
 	if err := c.BindUri(&contractRequest); ctx.handleError(c, err, http.StatusBadRequest) {
@@ -51,11 +51,7 @@ func (ctx *Context) GetContractTransfers(c *gin.Context) {
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	response, err := ctx.transfersPostprocessing(transfers, false)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, ctx.transfersPostprocessing(transfers, false))
 }
 
 func (ctx *Context) getTokenMetadata(network, contract string, tokenID int64) (tokenmetadata.TokenMetadata, error) {
@@ -69,7 +65,7 @@ func (ctx *Context) getTokenMetadata(network, contract string, tokenID int64) (t
 	return item.Value().(tokenmetadata.TokenMetadata), nil
 }
 
-func (ctx *Context) transfersPostprocessing(transfers transfer.Pageable, withLastID bool) (response TransferResponse, err error) {
+func (ctx *Context) transfersPostprocessing(transfers transfer.Pageable, withLastID bool) (response TransferResponse) {
 	response.Total = transfers.Total
 	response.Transfers = make([]Transfer, len(transfers.Transfers))
 	if withLastID {

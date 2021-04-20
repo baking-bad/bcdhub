@@ -22,7 +22,7 @@ func NewStorage(es *core.Elastic) *Storage {
 }
 
 const (
-	maxTransfersSize = 10000
+	maxTransfersSize = 10
 )
 
 // Get -

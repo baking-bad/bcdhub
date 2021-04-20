@@ -149,12 +149,7 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 		return
 	}
 
-	response, err := ctx.transfersPostprocessing(transfers, true)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, ctx.transfersPostprocessing(transfers, true))
 }
 
 // GetTokenVolumeSeries godoc
