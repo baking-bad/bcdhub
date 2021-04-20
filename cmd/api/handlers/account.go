@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
-	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )
@@ -165,55 +164,15 @@ func (ctx *Context) getAccountBalances(network, address string, req tokenBalance
 		Total:    total,
 	}
 
-	contextes := make([]tokenmetadata.GetContext, 0)
-	balances := make(map[tokenmetadata.GetContext]string)
-
-	for _, balance := range tokenBalances {
-		c := tokenmetadata.GetContext{
-			TokenID:  balance.TokenID,
-			Contract: balance.Contract,
-			Network:  network,
-		}
-		balances[c] = balance.Balance
-		contextes = append(contextes, c)
-	}
-
-	tokens, err := ctx.TokenMetadata.GetAll(contextes...)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, token := range tokens {
-		c := tokenmetadata.GetContext{
-			TokenID:  token.TokenID,
-			Contract: token.Contract,
-			Network:  network,
-		}
-
-		balance, ok := balances[c]
-		if !ok {
-			continue
-		}
-
-		delete(balances, c)
-
+	for _, token := range tokenBalances {
 		tb := TokenBalance{
-			Balance:       balance,
-			TokenMetadata: TokenMetadataFromElasticModel(token, false),
+			Balance: token.Balance,
+		}
+		if metadata, err := ctx.getTokenMetadata(token.Network, token.Contract, token.TokenID); err == nil {
+			tb.TokenMetadata = TokenMetadataFromElasticModel(metadata, false)
 		}
 
 		response.Balances = append(response.Balances, tb)
-	}
-
-	for c, balance := range balances {
-		response.Balances = append(response.Balances, TokenBalance{
-			Balance: balance,
-			TokenMetadata: TokenMetadata{
-				Contract: c.Contract,
-				TokenID:  c.TokenID,
-				Network:  c.Network,
-			},
-		})
 	}
 
 	return &response, nil
