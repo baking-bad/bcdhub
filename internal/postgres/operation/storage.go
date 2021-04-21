@@ -100,7 +100,7 @@ func (storage *Storage) GetByContract(network, address string, size uint64, filt
 		storage.DB.Where("hash = ?", opg[0].Hash).Where("counter = ?", opg[0].Counter),
 	)
 	for i := 1; i < len(opg); i++ {
-		subQuery.Where(
+		subQuery.Or(
 			storage.DB.Where("hash = ?", opg[i].Hash).Where("counter = ?", opg[i].Counter),
 		)
 	}
