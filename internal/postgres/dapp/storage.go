@@ -24,6 +24,6 @@ func (storage *Storage) Get(slug string) (d dapp.DApp, err error) {
 
 // Get -
 func (storage *Storage) All() (d []dapp.DApp, err error) {
-	err = storage.DB.Table(models.DocDApps).Order("order asc").Find(&d).Error
+	err = storage.DB.Table(models.DocDApps).Order("dapps.order asc").Find(&d).Error
 	return
 }
