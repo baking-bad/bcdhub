@@ -5,11 +5,11 @@ import "github.com/baking-bad/bcdhub/internal/models"
 // GetNetworkCountStats -
 func (p *Postgres) GetNetworkCountStats(network string) (map[string]int64, error) {
 	var contractsCount int64
-	if err := p.DB.Table(models.DocContracts).Count(&contractsCount).Error; err != nil {
+	if err := p.DB.Table(models.DocContracts).Where("network = ?", network).Count(&contractsCount).Error; err != nil {
 		return nil, err
 	}
 	var operationsCount int64
-	if err := p.DB.Table(models.DocOperations).Count(&operationsCount).Error; err != nil {
+	if err := p.DB.Table(models.DocOperations).Where("network = ?", network).Count(&operationsCount).Error; err != nil {
 		return nil, err
 	}
 	return map[string]int64{
