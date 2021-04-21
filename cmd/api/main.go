@@ -12,6 +12,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/gin-contrib/cache"
+	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -61,6 +63,7 @@ func newApp() *app {
 
 func (api *app) makeRouter() {
 	r := gin.New()
+	store := persistence.NewInMemoryStore(time.Second * 30)
 
 	r.MaxMultipartMemory = 4 << 20 // max upload size 4 MiB
 
@@ -90,7 +93,7 @@ func (api *app) makeRouter() {
 	{
 		v1.GET("swagger.json", api.Context.GetSwaggerDoc)
 
-		v1.GET("head", api.Context.GetHead)
+		v1.GET("head", cache.CachePage(store, time.Second*30, api.Context.GetHead))
 		v1.GET("opg/:hash", api.Context.GetOperation)
 		v1.GET("operation/:id/error_location", api.Context.GetOperationErrorLocation)
 		v1.GET("pick_random", api.Context.GetRandomContract)
@@ -102,12 +105,12 @@ func (api *app) makeRouter() {
 
 		stats := v1.Group("stats")
 		{
-			stats.GET("", api.Context.GetStats)
+			stats.GET("", cache.CachePage(store, time.Second*30, api.Context.GetStats))
 			networkStats := stats.Group(":network")
 			{
-				networkStats.GET("", api.Context.GetNetworkStats)
-				networkStats.GET("series", api.Context.GetSeries)
-				networkStats.GET("contracts", api.Context.GetContractsStats)
+				networkStats.GET("", cache.CachePage(store, time.Minute*10, api.Context.GetNetworkStats))
+				networkStats.GET("series", cache.CachePage(store, time.Minute*10, api.Context.GetSeries))
+				networkStats.GET("contracts", cache.CachePage(store, time.Minute*10, api.Context.GetContractsStats))
 			}
 		}
 
@@ -118,7 +121,7 @@ func (api *app) makeRouter() {
 
 		bigmap := v1.Group("bigmap/:network/:ptr")
 		{
-			bigmap.GET("", api.Context.GetBigMap)
+			bigmap.GET("", cache.CachePage(store, time.Second*30, api.Context.GetBigMap))
 			bigmap.GET("count", api.Context.GetBigMapDiffCount)
 			bigmap.GET("history", api.Context.GetBigMapHistory)
 			keys := bigmap.Group("keys")
