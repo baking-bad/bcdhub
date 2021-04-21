@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,12 +17,12 @@ import (
 // @Failure 500 {object} Error
 // @Router /v1/head [get]
 func (ctx *Context) GetHead(c *gin.Context) {
-	item, err := ctx.Cache.Fetch("head", time.Second*30, ctx.getHead)
+	head, err := ctx.getHead()
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	c.JSON(http.StatusOK, item.Value())
+	c.JSON(http.StatusOK, head)
 }
 
 func (ctx *Context) getHead() (interface{}, error) {
