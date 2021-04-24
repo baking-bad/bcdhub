@@ -101,7 +101,7 @@ func (ctx *Context) GetFAByVersion(c *gin.Context) {
 // @Param network path string true "Network"
 // @Param address path string true "KT address" minlength(36) maxlength(36)
 // @Param last_id query string false "Last transfer ID"
-// @Param size query integer false "Requested count" mininum(1) maximum(100)
+// @Param size query integer false "Requested count" mininum(1) maximum(10)
 // @Param sort query string false "Sort: one of `asc` and `desc`"
 // @Param start query integer false "Timestamp in seconds" mininum(1)
 // @Param end query integer false "Timestamp in seconds" mininum(1)
