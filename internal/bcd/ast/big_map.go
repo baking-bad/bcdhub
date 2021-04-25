@@ -365,6 +365,7 @@ func (m *BigMap) Distinguish(x Distinguishable) (*MiguelNode, error) {
 				return true, err
 			}
 
+			child.setDiffType(MiguelKindUpdate)
 			child.Name = &name
 			node.Children = append(node.Children, child)
 			return false, nil

@@ -188,15 +188,24 @@ func (storage *Storage) Previous(filters []bigmapdiff.BigMapDiff, indexedTime in
 			core.Aggs(
 				core.AggItem{
 					Name: "keys",
-					Body: core.Item{
-						"terms": core.Item{
-							"field": "key_hash.keyword",
-							"size":  core.MaxQuerySize,
+					Body: core.Composite(
+						core.MaxQuerySize,
+						core.AggItem{
+							Name: "ptr",
+							Body: core.TermsAgg("ptr", 0),
 						},
-						"aggs": core.Item{
-							"top_key": core.TopHits(1, "indexed_time", "desc"),
+						core.AggItem{
+							Name: "key_hash",
+							Body: core.TermsAgg("key_hash.keyword", 0),
 						},
-					},
+					).Extend(
+						core.Aggs(
+							core.AggItem{
+								Name: "top_key",
+								Body: core.TopHits(1, "indexed_time", "desc"),
+							},
+						),
+					),
 				},
 			),
 		).
