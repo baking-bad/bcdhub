@@ -128,11 +128,11 @@ func (storage *Storage) GetByContract(network, address string, size uint64, filt
 }
 
 // Last -
-func (storage *Storage) Last(network, address string, indexedTime int64) (op operation.Operation, err error) {
+func (storage *Storage) Last(network, address string, id int64) (op operation.Operation, err error) {
 	err = storage.DB.Table(models.DocOperations).
 		Where("network = ?", network).
 		Where("destination = ?", address).
-		Where("id < ?", indexedTime).
+		Where("id < ?", id).
 		Where("status = ?", constants.Applied).
 		Where("deffated_storage != ''").
 		Order("id desc").
