@@ -215,22 +215,41 @@ func (storage *Storage) GetByIDs(ids ...int64) (result []bigmapdiff.BigMapDiff, 
 // GetStats -
 func (storage *Storage) GetStats(network string, ptr int64) (stats bigmapdiff.Stats, err error) {
 	totalQuery := storage.DB.Table(models.DocBigMapState).
-		Select("count(contract) as total, contract").
+		Select("count(contract) as count, contract, 'total' as name").
 		Where("network = ?", network).
 		Where("ptr = ?", ptr).
 		Group("contract")
 
 	activeQuery := storage.DB.Table(models.DocBigMapState).
-		Select("count(contract) as active, contract").
+		Select("count(contract) as count, contract, 'active' as name").
 		Where("network = ?", network).
 		Where("ptr = ?", ptr).
 		Where("removed = false").
 		Group("contract")
 
-	err = storage.DB.
-		Raw("select q1.total as total, q1.contract as contract, q2.active as active from ((?) q1 join (?) q2 on q1.contract = q2.contract)", totalQuery, activeQuery).
-		Scan(&stats).
-		Error
+	type row struct {
+		Count    int64
+		Contract string
+		Name     string
+	}
+	var rows []row
+
+	if err = storage.DB.
+		Raw("(?) union all (?)", totalQuery, activeQuery).
+		Scan(&rows).
+		Error; err != nil {
+		return
+	}
+
+	for i := range rows {
+		switch rows[i].Name {
+		case "active":
+			stats.Active = rows[i].Count
+		case "total":
+			stats.Total = rows[i].Count
+		}
+		stats.Contract = rows[i].Contract
+	}
 
 	return
 }
