@@ -45,58 +45,68 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		ActiveKeys: uint(stats.Active),
 	}
 
-	script, err := ctx.getScript(res.Address, res.Network, "")
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-	storage, err := script.StorageType()
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-	ops, err := ctx.Operations.Get(map[string]interface{}{
-		"network":     res.Network,
-		"destination": res.Address,
-		"status":      consts.Applied,
-	}, 1, true)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-	if len(ops) == 1 {
-		symLink, err := bcd.GetProtoSymLink(ops[0].Protocol)
+	if stats.Total == 0 {
+		actions, err := ctx.BigMapActions.Get(req.Ptr, req.Network)
 		if ctx.handleError(c, err, 0) {
 			return
 		}
-
-		var deffatedStorage []byte
-		if symLink == consts.MetadataAlpha {
-			rpc, err := ctx.GetRPC(res.Network)
+		if len(actions) > 0 {
+			res.Address = actions[0].Address
+		}
+	} else {
+		script, err := ctx.getScript(res.Address, res.Network, "")
+		if ctx.handleError(c, err, 0) {
+			return
+		}
+		storage, err := script.StorageType()
+		if ctx.handleError(c, err, 0) {
+			return
+		}
+		ops, err := ctx.Operations.Get(map[string]interface{}{
+			"network":     res.Network,
+			"destination": res.Address,
+			"status":      consts.Applied,
+		}, 1, true)
+		if ctx.handleError(c, err, 0) {
+			return
+		}
+		if len(ops) == 1 {
+			symLink, err := bcd.GetProtoSymLink(ops[0].Protocol)
 			if ctx.handleError(c, err, 0) {
 				return
 			}
-			deffatedStorage, err = rpc.GetScriptStorageRaw(res.Address, 0)
-			if ctx.handleError(c, err, 0) {
-				return
-			}
-		} else {
-			deffatedStorage = ops[0].DeffatedStorage
-		}
 
-		var data ast.UntypedAST
-		if err := json.Unmarshal(deffatedStorage, &data); ctx.handleError(c, err, 0) {
-			return
-		}
-		if err := storage.Settle(data); ctx.handleError(c, err, 0) {
-			return
-		}
-
-		bigMap := storage.FindBigMapByPtr()
-		for p, b := range bigMap {
-			if p == req.Ptr {
-				res.Typedef, _, err = b.Docs(ast.DocsFull)
+			var deffatedStorage []byte
+			if symLink == consts.MetadataAlpha {
+				rpc, err := ctx.GetRPC(res.Network)
 				if ctx.handleError(c, err, 0) {
 					return
 				}
-				break
+				deffatedStorage, err = rpc.GetScriptStorageRaw(res.Address, 0)
+				if ctx.handleError(c, err, 0) {
+					return
+				}
+			} else {
+				deffatedStorage = ops[0].DeffatedStorage
+			}
+
+			var data ast.UntypedAST
+			if err := json.Unmarshal(deffatedStorage, &data); ctx.handleError(c, err, 0) {
+				return
+			}
+			if err := storage.Settle(data); ctx.handleError(c, err, 0) {
+				return
+			}
+
+			bigMap := storage.FindBigMapByPtr()
+			for p, b := range bigMap {
+				if p == req.Ptr {
+					res.Typedef, _, err = b.Docs(ast.DocsFull)
+					if ctx.handleError(c, err, 0) {
+						return
+					}
+					break
+				}
 			}
 		}
 	}
