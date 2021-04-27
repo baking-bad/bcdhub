@@ -369,7 +369,7 @@ func (ctx *Context) addSupply(metadata []tokenmetadata.TokenMetadata) ([]Token, 
 			TokenMetadata: TokenMetadataFromElasticModel(token, true),
 		}
 
-		supply, err := ctx.Transfers.TokenSupply(token.Network, token.Contract, token.TokenID)
+		supply, err := ctx.TokenBalances.TokenSupply(token.Network, token.Contract, token.TokenID)
 		if err != nil {
 			return nil, err
 		}
