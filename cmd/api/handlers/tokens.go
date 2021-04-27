@@ -359,19 +359,23 @@ func (ctx *Context) getTokensWithSupply(getCtx tokenmetadata.GetContext, size, o
 		return nil, err
 	}
 
+	return ctx.addSupply(metadata)
+}
+
+func (ctx *Context) addSupply(metadata []tokenmetadata.TokenMetadata) ([]Token, error) {
 	tokens := make([]Token, 0)
 	for _, token := range metadata {
 		t := Token{
 			TokenMetadata: TokenMetadataFromElasticModel(token, true),
 		}
 
-		supply, err := ctx.TokenBalances.TokenSupply(getCtx.Network, getCtx.Contract, token.TokenID)
+		supply, err := ctx.Transfers.TokenSupply(token.Network, token.Contract, token.TokenID)
 		if err != nil {
 			return nil, err
 		}
 		t.Supply = supply
 
-		transfered, err := ctx.Transfers.GetTransfered(getCtx.Network, getCtx.Contract, token.TokenID)
+		transfered, err := ctx.Transfers.GetTransfered(token.Network, token.Contract, token.TokenID)
 		if err != nil {
 			return nil, err
 		}

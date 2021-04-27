@@ -114,6 +114,7 @@ func (j *DexTokens) Scan(value interface{}) error {
 type DAppContract struct {
 	Address    string   `json:"address"`
 	Entrypoint []string `json:"dex_volume_entrypoints,omitempty"`
+	WithTokens bool     `json:"with_tokens,omitempty"`
 }
 
 // DAppContracts -
