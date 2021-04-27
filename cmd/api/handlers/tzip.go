@@ -36,6 +36,10 @@ func (ctx *Context) GetMetadata(c *gin.Context) {
 		return
 	}
 
+	if tzip.License.IsEmpty() {
+		tzip.License = nil
+	}
+
 	c.JSON(http.StatusOK, TZIPResponse{
 		TZIP20:      tzip.TZIP20,
 		DomainName:  tzip.DomainName,

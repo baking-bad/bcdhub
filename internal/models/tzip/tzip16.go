@@ -32,7 +32,7 @@ type License struct {
 
 // UnmarshalJSON -
 func (license *License) UnmarshalJSON(data []byte) error {
-	if len(data) == 0 {
+	if len(data) <= 2 {
 		return nil
 	}
 	switch data[0] {
@@ -52,6 +52,11 @@ func (license *License) UnmarshalJSON(data []byte) error {
 		license.Details = buf.Details
 	}
 	return nil
+}
+
+// IsEmpty -
+func (license *License) IsEmpty() bool {
+	return license.Name == "" && license.Details == ""
 }
 
 // Scan scan value into Jsonb, implements sql.Scanner interface
