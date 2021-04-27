@@ -8,4 +8,5 @@ type Repository interface {
 	Batch(network string, addresses []string) (map[string][]TokenBalance, error)
 	NFTHolders(network, contract string, tokenID int64) ([]TokenBalance, error)
 	CountByContract(network, address string) (map[string]int64, error)
+	GetTokenSupply(network, contract string, tokenID int64) (string, error)
 }

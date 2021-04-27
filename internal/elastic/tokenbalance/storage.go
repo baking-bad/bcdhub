@@ -1,6 +1,8 @@
 package tokenbalance
 
 import (
+	"math/big"
+
 	"github.com/baking-bad/bcdhub/internal/elastic/consts"
 	"github.com/baking-bad/bcdhub/internal/elastic/core"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -215,4 +217,27 @@ func (storage *Storage) CountByContract(network, address string) (map[string]int
 		result[b.Key] = b.DocCount
 	}
 	return result, nil
+}
+
+// GetTokenSupply -
+func (storage *Storage) GetTokenSupply(network, contract string, tokenID int64) (string, error) {
+	query := core.NewQuery().Query(
+		core.Bool(
+			core.Filter(
+				core.Term("network", network),
+				core.MatchPhrase("contract", contract),
+				core.Term("token_id", tokenID),
+			),
+		),
+	)
+
+	var balances []tokenbalance.TokenBalance
+	if err := storage.es.GetAllByQuery(query, &balances); err != nil {
+		return "0", err
+	}
+	supply := new(big.Int)
+	for i := range balances {
+		supply.Add(supply, balances[i].Value)
+	}
+	return supply.String(), nil
 }

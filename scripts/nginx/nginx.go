@@ -56,6 +56,7 @@ const locationTemplate = `
 		sub_filter_once on;
 	}`
 
+//nolint
 func makeNginxConfig(dapps []tzip.DApp, aliases []tzip.TZIP, filepath, baseURL string) error {
 	var locations strings.Builder
 	tmpl := template.Must(template.New("").Parse(locationTemplate))
@@ -151,6 +152,7 @@ func makeDappRootLocation(tmpl *template.Template, path, baseURL string) (string
 	return buf.String(), nil
 }
 
+//nolint
 func makeContractsLocation(tmpl *template.Template, address, alias, baseURL string) (string, error) {
 	buf := new(bytes.Buffer)
 	err := tmpl.Execute(buf, map[string]interface{}{

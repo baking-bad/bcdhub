@@ -2,11 +2,10 @@ package transfer
 
 import "github.com/baking-bad/bcdhub/internal/elastic/core"
 
-type getTokenSupplyResponse struct {
+type getTransferedResponse struct {
 	Aggs struct {
 		Result struct {
 			Value struct {
-				Supply     float64 `json:"supply"`
 				Transfered float64 `json:"transfered"`
 			} `json:"value"`
 		} `json:"result"`

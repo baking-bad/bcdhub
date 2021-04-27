@@ -94,3 +94,8 @@ func (storage *Storage) GetTokenVolumeSeries(network, period string, contracts [
 func (storage *Storage) GetToken24HoursVolume(network, contract string, initiators, entrypoints []string, tokenID int64) (float64, error) {
 	return 0, nil
 }
+
+// GetTransfered -
+func (storage *Storage) GetTransfered(network, address string, tokenID int64) (result uint64, err error) {
+	return 0, nil
+}

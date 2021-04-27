@@ -107,3 +107,8 @@ func (storage *Storage) NFTHolders(network, contract string, tokenID int64) ([]t
 func (storage *Storage) CountByContract(network, address string) (map[string]int64, error) {
 	return nil, nil
 }
+
+// GetTokenSupply -
+func (storage *Storage) GetTokenSupply(network, contract string, tokenID int64) (string, error) {
+	return "0", nil
+}

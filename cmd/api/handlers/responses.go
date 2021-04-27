@@ -654,8 +654,8 @@ type Screenshot struct {
 // Token -
 type Token struct {
 	TokenMetadata
-	Supply     float64 `json:"supply"`
-	Transfered float64 `json:"transfered"`
+	Supply     string `json:"supply"`
+	Transfered uint64 `json:"transfered"`
 }
 
 // AccountInfo -

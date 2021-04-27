@@ -85,8 +85,8 @@ func (storage *Storage) GetAll(network string, level int64) ([]transfer.Transfer
 	return transfers, err
 }
 
-// GetTokenSupply -
-func (storage *Storage) GetTokenSupply(network, address string, tokenID int64) (result transfer.TokenSupply, err error) {
+// GetTransfered -
+func (storage *Storage) GetTransfered(network, address string, tokenID int64) (result uint64, err error) {
 	query := core.NewQuery().Query(
 		core.Bool(
 			core.Filter(
@@ -101,21 +101,16 @@ func (storage *Storage) GetTokenSupply(network, address string, tokenID int64) (
 			"aggs": core.Item{
 				"result": core.Item{
 					"scripted_metric": core.Item{
-						"init_script": `state.result = ["supply":0, "transfered":0]`,
+						"init_script": `state.result = 0`,
 						"map_script": `
-							if (doc['from.keyword'].value == "") {
-								state.result["supply"] = state.result["supply"] + doc["amount"].value;
-							} else if (doc['to.keyword'].value == "") {
-								state.result["supply"] = state.result["supply"] - doc["amount"].value;
-							} else {							
-								state.result["transfered"] = state.result["transfered"] + doc["amount"].value;
+							if (doc['from.keyword'].value != "" && doc['to.keyword'].value != "") {							
+								state.result = state.result + doc["amount"].value;
 						}`,
 						"combine_script": `return state.result`,
 						"reduce_script": `
-							Map result = ["supply":0, "transfered":0]; 
+							Map result = ["transfered":0]; 
 							for (state in states) { 
-								result["transfered"] = result["transfered"] + state["transfered"];
-								result["supply"] = result["supply"] + state["supply"];
+								result["transfered"] = result["transfered"] + state;
 							} 
 							return result;
 						`,
@@ -125,14 +120,12 @@ func (storage *Storage) GetTokenSupply(network, address string, tokenID int64) (
 		},
 	).Zero()
 
-	var response getTokenSupplyResponse
-	if err = storage.es.Query([]string{models.DocTransfers}, query, &response); err != nil {
-		return
+	var response getTransferedResponse
+	if err := storage.es.Query([]string{models.DocTransfers}, query, &response); err != nil {
+		return 0, err
 	}
 
-	result.Supply = response.Aggs.Result.Value.Supply
-	result.Transfered = response.Aggs.Result.Value.Transfered
-	return
+	return uint64(response.Aggs.Result.Value.Transfered), nil
 }
 
 // GetToken24HoursVolume - returns token volume for last 24 hours
