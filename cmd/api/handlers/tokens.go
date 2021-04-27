@@ -365,12 +365,17 @@ func (ctx *Context) getTokensWithSupply(getCtx tokenmetadata.GetContext, size, o
 			TokenMetadata: TokenMetadataFromElasticModel(token, true),
 		}
 
-		supply, err := ctx.Transfers.GetTokenSupply(getCtx.Network, getCtx.Contract, token.TokenID)
+		supply, err := ctx.TokenBalances.TokenSupply(getCtx.Network, getCtx.Contract, token.TokenID)
 		if err != nil {
 			return nil, err
 		}
-		t.Supply = supply.Supply
-		t.Transfered = supply.Transfered
+		t.Supply = supply
+
+		transfered, err := ctx.Transfers.GetTransfered(getCtx.Network, getCtx.Contract, token.TokenID)
+		if err != nil {
+			return nil, err
+		}
+		t.Transfered = transfered
 
 		tokens = append(tokens, t)
 	}

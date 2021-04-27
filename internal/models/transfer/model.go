@@ -168,12 +168,6 @@ func (t *Transfer) MakeTokenBalanceUpdate(from, rollback bool) *tokenbalance.Tok
 	return tb
 }
 
-// TokenSupply -
-type TokenSupply struct {
-	Supply     float64 `json:"supply"`
-	Transfered float64 `json:"transfered"`
-}
-
 // Pageable -
 type Pageable struct {
 	Transfers []Transfer `json:"transfers"`
