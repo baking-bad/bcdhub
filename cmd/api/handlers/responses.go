@@ -129,6 +129,7 @@ func (o *Operation) ToModel() operation.Operation {
 
 // Contract -
 type Contract struct {
+	ID        int64     `json:"id"`
 	Network   string    `json:"network"`
 	Level     int64     `json:"level"`
 	Timestamp time.Time `json:"timestamp"`
@@ -184,6 +185,9 @@ func (c *Contract) FromModel(contract contract.Contract) {
 	c.Timestamp = contract.Timestamp
 	c.Verified = contract.Verified
 	c.VerificationSource = contract.VerificationSource
+	c.FailStrings = contract.FailStrings
+	c.Annotations = contract.Annotations
+	c.ID = contract.ID
 }
 
 // Subscription -
