@@ -52,30 +52,8 @@ func (storage *Storage) GetAll(network string, level int64) ([]transfer.Transfer
 	return transfers, err
 }
 
-// GetTokenSupply -
-func (storage *Storage) GetTokenSupply(network, contract string, tokenID uint64) (result transfer.TokenSupply, err error) {
-	var supplied, burned float64
-
-	if err = storage.DB.Table(models.DocTransfers).
-		Scopes(
-			core.Token(network, contract, tokenID),
-			core.IsApplied,
-		).
-		Select("COALESCE(SUM(amount), 0)").
-		Where("transfers.from = ''").
-		Scan(&supplied).Error; err != nil {
-		return
-	}
-	if err = storage.DB.Table(models.DocTransfers).
-		Scopes(
-			core.Token(network, contract, tokenID),
-			core.IsApplied,
-		).
-		Select("COALESCE(SUM(amount), 0)").
-		Where("transfers.to = ''").
-		Scan(&burned).Error; err != nil {
-		return
-	}
+// GetTransfered -
+func (storage *Storage) GetTransfered(network, contract string, tokenID uint64) (result float64, err error) {
 	if err = storage.DB.Table(models.DocTransfers).
 		Scopes(
 			core.Token(network, contract, tokenID),
@@ -83,11 +61,9 @@ func (storage *Storage) GetTokenSupply(network, contract string, tokenID uint64)
 		).
 		Select("COALESCE(SUM(amount), 0)").
 		Where("transfers.to != '' AND transfers.from != ''").
-		Scan(&result.Transfered).Error; err != nil {
+		Scan(&result).Error; err != nil {
 		return
 	}
-
-	result.Supply = supplied - burned
 
 	return
 }

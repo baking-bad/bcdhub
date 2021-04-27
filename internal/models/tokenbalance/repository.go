@@ -7,4 +7,5 @@ type Repository interface {
 	GetHolders(network, contract string, tokenID uint64) ([]TokenBalance, error)
 	Batch(network string, addresses []string) (map[string][]TokenBalance, error)
 	CountByContract(network, address string) (map[string]int64, error)
+	TokenSupply(network, contract string, tokenID uint64) (supply string, err error)
 }
