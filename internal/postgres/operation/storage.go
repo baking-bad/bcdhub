@@ -67,9 +67,9 @@ func prepareOperationFilters(query *gorm.DB, filters map[string]interface{}) err
 		if v != "" {
 			switch k {
 			case "from":
-				query.Where("timestamp >= ?", v)
+				query.Where("timestamp >= to_timestamp(?)", v)
 			case "to":
-				query.Where("timestamp <= ?", v)
+				query.Where("timestamp <= to_timestamp(?)", v)
 			case "entrypoints":
 				query.Where("entrypoint IN ?", v)
 			case "last_id":
