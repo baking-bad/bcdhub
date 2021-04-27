@@ -151,15 +151,21 @@ func (ctx *Context) appendDAppInfo(dapp dapp.DApp, withDetails bool) (DApp, erro
 					ReleaseDate: contract.Timestamp.UTC(),
 				})
 
-				tokens, err := ctx.getTokensWithSupply(tokenmetadata.GetContext{
-					Contract: address.Address,
-					Network:  consts.Mainnet,
-					TokenID:  nil,
-				}, 0, 0)
-				if err != nil {
-					return result, err
+				if address.WithTokens {
+					metadata, err := ctx.TokenMetadata.GetAll(tokenmetadata.GetContext{
+						Contract: address.Address,
+						Network:  consts.Mainnet,
+						TokenID:  nil,
+					})
+					if err != nil {
+						return result, err
+					}
+					tokens, err := ctx.addSupply(metadata)
+					if err != nil {
+						return result, err
+					}
+					result.Tokens = append(result.Tokens, tokens...)
 				}
-				result.Tokens = append(result.Tokens, tokens...)
 
 				if helpers.StringInArray("DEX", dapp.Categories) {
 					vol, err := ctx.Operations.GetContract24HoursVolume(consts.Mainnet, address.Address, address.Entrypoint)
