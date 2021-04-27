@@ -220,21 +220,19 @@ func prepareFilters(req operationsRequest) map[string]interface{} {
 	}
 
 	if req.From > 0 {
-		filters["from"] = req.From
+		filters["from"] = req.From / 1000
 	}
 
 	if req.To > 0 {
-		filters["to"] = req.To
+		filters["to"] = req.To / 1000
 	}
 
 	if req.Status != "" {
-		status := "'" + strings.Join(strings.Split(req.Status, ","), "','") + "'"
-		filters["status"] = status
+		filters["status"] = strings.Split(req.Status, ",")
 	}
 
 	if req.Entrypoints != "" {
-		entrypoints := "'" + strings.Join(strings.Split(req.Entrypoints, ","), "','") + "'"
-		filters["entrypoints"] = entrypoints
+		filters["entrypoints"] = strings.Split(req.Entrypoints, ",")
 	}
 	return filters
 }
