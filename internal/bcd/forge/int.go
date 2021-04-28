@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"math"
+	"math/big"
 	"strconv"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
@@ -23,15 +24,32 @@ func NewInt() *Int {
 
 // Unforge -
 func (val *Int) Unforge(data []byte) (int, error) {
-	var buffer bytes.Buffer
+	buffer := new(bytes.Buffer)
 	for i := range data {
 		buffer.WriteByte(data[i])
-		if data[i] < 127 {
+		if data[i] < 128 {
 			break
 		}
 	}
 
-	return buffer.Len(), val.decode(buffer.Bytes())
+	parts := buffer.Bytes()
+	for i := len(parts) - 1; i > 0; i-- {
+		num := int64(parts[i] & 0x7f)
+		val.IntValue.Int = val.IntValue.Lsh(val.IntValue.Int, 7)
+		val.IntValue.Int = val.IntValue.Or(val.IntValue.Int, big.NewInt(num))
+	}
+
+	if len(parts) > 0 {
+		num := int64(parts[0] & 0x3f)
+		val.IntValue.Int = val.IntValue.Lsh(val.IntValue.Int, 6)
+		val.IntValue.Int = val.IntValue.Or(val.IntValue.Int, big.NewInt(num))
+
+		if parts[0]&0x40 > 0 {
+			val.IntValue.Int = val.IntValue.Neg(val.IntValue.Int)
+		}
+	}
+
+	return buffer.Len(), nil
 }
 
 // Forge -
@@ -41,43 +59,6 @@ func (val *Int) Forge() ([]byte, error) {
 		return nil, err
 	}
 	return append([]byte{ByteInt}, data...), nil
-}
-
-func (val *Int) decode(source []byte) error {
-	if len(source) == 0 {
-		return errors.Errorf("expected non-empty byte array")
-	}
-
-	segments := make([]string, len(source))
-	for i, curByte := range source {
-		segments[i] = fmt.Sprintf("%08b", curByte)
-	}
-
-	for i, segment := range segments {
-		segments[i] = segment[1:]
-	}
-
-	firstSegment := []rune(segments[0])
-	isNegative := firstSegment[0] == '1'
-	segments[0] = string(firstSegment[1:])
-
-	segments = reverse(segments)
-
-	bitStringBuf := new(bytes.Buffer)
-	for _, segment := range segments {
-		bitStringBuf.WriteString(segment)
-	}
-	bitString := bitStringBuf.String()
-
-	if isNegative {
-		bitString = "-" + bitString
-	}
-
-	if _, ok := val.IntValue.SetString(bitString, 2); !ok {
-		return errors.Errorf("failed to parse bit string %s to big.Int", bitString)
-	}
-
-	return nil
 }
 
 func (val *Int) encode() ([]byte, error) {
