@@ -206,13 +206,13 @@ func (m *TokenMetadata) Merge(second *TokenMetadata) {
 	if second.ThumbnailURI != "" {
 		m.ThumbnailURI = second.ThumbnailURI
 	}
-	if second.IsBooleanAmount != m.IsBooleanAmount {
+	if second.IsBooleanAmount {
 		m.IsBooleanAmount = second.IsBooleanAmount
 	}
-	if second.IsTransferable != m.IsTransferable {
+	if second.IsTransferable {
 		m.IsTransferable = second.IsTransferable
 	}
-	if second.ShouldPreferSymbol != m.ShouldPreferSymbol {
+	if second.ShouldPreferSymbol {
 		m.ShouldPreferSymbol = second.ShouldPreferSymbol
 	}
 	if second.Creators != nil {
@@ -269,8 +269,9 @@ func getBoolKey(data map[string]interface{}, keyName string, defaultValue bool) 
 func getBytesKey(data map[string]interface{}, keyName string) json.RawMessage {
 	if val, ok := data[keyName]; ok {
 		delete(data, keyName)
-		if b, ok := val.(json.RawMessage); ok {
-			return b
+		raw, err := json.Marshal(val)
+		if err == nil {
+			return raw
 		}
 	}
 	return nil
