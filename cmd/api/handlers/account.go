@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
-	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )
@@ -156,79 +155,21 @@ func (ctx *Context) GetAccountTokenBalances(c *gin.Context) {
 	c.JSON(http.StatusOK, balances)
 }
 
-type balanceID struct {
-	TokenID  uint64
-	Contract string
-	Network  string
-}
-
-func balanceIDFromContext(c tokenmetadata.GetContext) balanceID {
-	return balanceID{
-		TokenID:  *c.TokenID,
-		Contract: c.Contract,
-		Network:  c.Network,
-	}
-}
-
 func (ctx *Context) getAccountBalances(network, address string, req tokenBalanceRequest) (*TokenBalances, error) {
-	tokenBalances, total, err := ctx.TokenBalances.GetAccountBalances(network, address, req.Contract, req.Size, req.Offset)
+	balances, err := ctx.Domains.TokenBalances(network, req.Contract, address, req.Size, req.Offset)
 	if err != nil {
 		return nil, err
 	}
 
 	response := TokenBalances{
 		Balances: make([]TokenBalance, 0),
-		Total:    total,
+		Total:    balances.Count,
 	}
 
-	contextes := make([]tokenmetadata.GetContext, 0)
-	balances := make(map[balanceID]string)
-
-	for i := range tokenBalances {
-		c := tokenmetadata.GetContext{
-			TokenID:  &tokenBalances[i].TokenID,
-			Contract: tokenBalances[i].Contract,
-			Network:  network,
-		}
-		balances[balanceIDFromContext(c)] = tokenBalances[i].BalanceString
-		contextes = append(contextes, c)
-	}
-
-	tokens, err := ctx.TokenMetadata.GetAll(contextes...)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, token := range tokens {
-		id := balanceID{
-			TokenID:  token.TokenID,
-			Contract: token.Contract,
-			Network:  network,
-		}
-
-		balance, ok := balances[id]
-		if !ok {
-			continue
-		}
-
-		delete(balances, id)
-
-		tb := TokenBalance{
-			Balance:       balance,
-			TokenMetadata: TokenMetadataFromElasticModel(token, false),
-		}
-
-		response.Balances = append(response.Balances, tb)
-	}
-
-	for c, balance := range balances {
+	for _, token := range balances.Balances {
 		response.Balances = append(response.Balances, TokenBalance{
-			Balance: balance,
-			TokenMetadata: TokenMetadata{
-				Contract: c.Contract,
-				TokenID:  c.TokenID,
-				Network:  c.Network,
-			},
+			Balance:       token.Balance,
+			TokenMetadata: TokenMetadataFromElasticModel(token.TokenMetadata, false),
 		})
 	}
 

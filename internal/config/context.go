@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/dapp"
+	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
@@ -41,7 +42,7 @@ type Context struct {
 	SharePath  string
 	TzipSchema string
 
-	Domains map[string]string
+	TezosDomainsContracts map[string]string
 
 	Storage       models.GeneralRepository
 	BigMapActions bigmapaction.Repository
@@ -57,6 +58,7 @@ type Context struct {
 	TokenMetadata tokenmetadata.Repository
 	Transfers     transfer.Repository
 	TZIP          tzip.Repository
+	Domains       domains.Repository
 
 	Searcher search.Searcher
 }
