@@ -141,7 +141,7 @@ func (storage *Storage) CountByContract(network, address string) (map[string]int
 // TokenSupply -
 func (storage *Storage) TokenSupply(network, contract string, tokenID uint64) (supply string, err error) {
 	query := storage.DB.Table(models.DocTokenBalances).
-		Select("sum(balance)::text as supply").
+		Select("coalesce(sum(balance), 0)::text as supply").
 		Scopes(core.Token(network, contract, tokenID)).
 		Scan(&supply)
 

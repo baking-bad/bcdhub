@@ -619,8 +619,8 @@ type Screenshot struct {
 // Token -
 type Token struct {
 	TokenMetadata
-	Supply     string  `json:"supply"`
-	Transfered float64 `json:"transfered"`
+	Supply     string  `json:"supply,omitempty"`
+	Transfered float64 `json:"transfered,omitempty"`
 }
 
 // AccountInfo -
@@ -650,6 +650,7 @@ type TokenMetadata struct {
 	Contract           string                 `json:"contract"`
 	Network            string                 `json:"network,omitempty"`
 	Level              int64                  `json:"level,omitempty" extensions:"x-nullable"`
+	Timestamp          time.Time              `json:"timestamp,omitempty" extensions:"x-nullable"`
 	TokenID            uint64                 `json:"token_id"`
 	Symbol             string                 `json:"symbol,omitempty" extensions:"x-nullable"`
 	Name               string                 `json:"name,omitempty" extensions:"x-nullable"`
@@ -659,12 +660,12 @@ type TokenMetadata struct {
 	DisplayURI         string                 `json:"display_uri,omitempty" extensions:"x-nullable"`
 	ThumbnailURI       string                 `json:"thumbnail_uri,omitempty" extensions:"x-nullable"`
 	ExternalURI        string                 `json:"external_uri,omitempty" extensions:"x-nullable"`
-	IsTransferable     bool                   `json:"is_transferable,omitempty" extensions:"x-nullable"`
-	IsBooleanAmount    bool                   `json:"is_boolean_amount,omitempty" extensions:"x-nullable"`
-	ShouldPreferSymbol bool                   `json:"should_prefer_symbol,omitempty" extensions:"x-nullable"`
-	Creators           []string               `json:"creators,omitempty"`
-	Tags               []string               `json:"tags,omitempty"`
-	Formats            stdJSON.RawMessage     `json:"formats,omitempty"`
+	IsTransferable     bool                   `json:"is_transferable"`
+	IsBooleanAmount    bool                   `json:"is_boolean_amount"`
+	ShouldPreferSymbol bool                   `json:"should_prefer_symbol"`
+	Creators           []string               `json:"creators,omitempty" extensions:"x-nullable"`
+	Tags               []string               `json:"tags,omitempty" extensions:"x-nullable"`
+	Formats            stdJSON.RawMessage     `json:"formats,omitempty" extensions:"x-nullable"`
 	TokenInfo          map[string]interface{} `json:"token_info,omitempty" extensions:"x-nullable"`
 	Volume24Hours      *float64               `json:"volume_24_hours,omitempty" extensions:"x-nullable"`
 }
@@ -677,6 +678,7 @@ func TokenMetadataFromElasticModel(model tokenmetadata.TokenMetadata, withTokenI
 	tm.Decimals = model.Decimals
 	tm.Contract = model.Contract
 	tm.Level = model.Level
+	tm.Timestamp = model.Timestamp
 	tm.Network = model.Network
 	tm.Description = model.Description
 	tm.ArtifactURI = model.ArtifactURI
