@@ -23,9 +23,9 @@ type BigMapDiff struct {
 	Network          string      `json:"network" gorm:"index:bmd_idx"`
 	Timestamp        time.Time   `json:"timestamp"`
 	Protocol         string      `json:"protocol"`
-	OperationHash    string      `json:"op_hash"`
-	OperationCounter int64       `json:"op_counter"`
-	OperationNonce   *int64      `json:"op_nonce"`
+	OperationHash    string      `json:"op_hash" gorm:"index:big_map_diffs_operation_hash_idx"`
+	OperationCounter int64       `json:"op_counter" gorm:"index:big_map_diffs_operation_hash_idx"`
+	OperationNonce   *int64      `json:"op_nonce" gorm:"index:big_map_diffs_operation_hash_idx"`
 
 	KeyStrings   pq.StringArray `json:"key_strings,omitempty" gorm:"type:text[]"`
 	ValueStrings pq.StringArray `json:"value_strings,omitempty" gorm:"type:text[]"`

@@ -18,13 +18,13 @@ func NewStorage(pg *core.Postgres) *Storage {
 
 // Get -
 func (storage *Storage) Get(network string, level int64) (block block.Block, err error) {
-	err = storage.DB.Table(models.DocBlocks).Scopes(core.Network(network)).Where("level = ?", level).First(&block).Error
+	err = storage.DB.Table(models.DocBlocks).Scopes(core.Network(network)).Where("level = ?", level).Limit(1).Scan(&block).Error
 	return
 }
 
 // Last - returns current indexer state for network
 func (storage *Storage) Last(network string) (block block.Block, err error) {
-	err = storage.DB.Table(models.DocBlocks).Scopes(core.Network(network)).Order("level DESC").First(&block).Error
+	err = storage.DB.Table(models.DocBlocks).Scopes(core.Network(network)).Order("level DESC").Limit(1).Scan(&block).Error
 	if storage.IsRecordNotFound(err) {
 		err = nil
 		block.Network = network
@@ -46,7 +46,8 @@ func (storage *Storage) GetNetworkAlias(chainID string) (string, error) {
 	err := storage.DB.Table(models.DocBlocks).
 		Select("network").
 		Where("chain_id = ?", chainID).
-		First(&network).Error
+		Limit(1).
+		Scan(&network).Error
 
 	return network, err
 }
