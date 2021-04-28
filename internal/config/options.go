@@ -12,6 +12,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/postgres/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/postgres/contract"
 	"github.com/baking-bad/bcdhub/internal/postgres/dapp"
+	"github.com/baking-bad/bcdhub/internal/postgres/domains"
 	"github.com/baking-bad/bcdhub/internal/postgres/migration"
 	"github.com/baking-bad/bcdhub/internal/postgres/operation"
 	"github.com/baking-bad/bcdhub/internal/postgres/protocol"
@@ -74,6 +75,7 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64) ContextOp
 		ctx.TokenMetadata = tokenmetadata.NewStorage(pg)
 		ctx.Transfers = transfer.NewStorage(pg)
 		ctx.TZIP = tzip.NewStorage(pg)
+		ctx.Domains = domains.NewStorage(pg)
 	}
 }
 
@@ -169,7 +171,7 @@ func WithAWS(cfg AWSConfig) ContextOption {
 // WithDomains -
 func WithDomains(cfg TezosDomainsConfig) ContextOption {
 	return func(ctx *Context) {
-		ctx.Domains = cfg
+		ctx.TezosDomainsContracts = cfg
 	}
 }
 
