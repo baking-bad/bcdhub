@@ -155,6 +155,9 @@ func (ctx *Context) appendDAppInfo(dapp *tzip.DApp, withDetails bool) (DApp, err
 						Network:  consts.Mainnet,
 						TokenID:  -1,
 					})
+					if err != nil {
+						return result, err
+					}
 
 					tokens, err := ctx.addSupply(metadata)
 					if err != nil {

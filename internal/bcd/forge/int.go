@@ -26,7 +26,7 @@ func (val *Int) Unforge(data []byte) (int, error) {
 	var buffer bytes.Buffer
 	for i := range data {
 		buffer.WriteByte(data[i])
-		if data[i] < 127 {
+		if data[i] < 128 {
 			break
 		}
 	}
