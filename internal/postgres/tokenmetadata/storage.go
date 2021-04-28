@@ -1,9 +1,12 @@
 package tokenmetadata
 
 import (
+	"errors"
+
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
+	"gorm.io/gorm"
 )
 
 // Storage -
@@ -14,6 +17,18 @@ type Storage struct {
 // NewStorage -
 func NewStorage(pg *core.Postgres) *Storage {
 	return &Storage{pg}
+}
+
+// GetOne -
+func (storage *Storage) GetOne(network, contract string, tokenID uint64) (*tokenmetadata.TokenMetadata, error) {
+	var metadata tokenmetadata.TokenMetadata
+	if err := storage.DB.Model(&tokenmetadata.TokenMetadata{}).Scopes(core.Token(network, contract, tokenID)).First(&metadata).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &metadata, nil
 }
 
 // Get -

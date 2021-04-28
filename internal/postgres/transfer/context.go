@@ -23,10 +23,10 @@ func (storage *Storage) buildGetContext(query *gorm.DB, ctx transfer.GetContext,
 		)
 	}
 	if ctx.Start > 0 {
-		query.Where("timestamp >= ?", ctx.Start)
+		query.Where("timestamp >= to_timestamp(?)", ctx.Start)
 	}
 	if ctx.End > 0 {
-		query.Where("timestamp < ?", ctx.End)
+		query.Where("timestamp < to_timestamp(?)", ctx.End)
 	}
 	if ctx.LastID != "" {
 		if id, err := strconv.ParseInt(ctx.LastID, 10, 64); err == nil {
