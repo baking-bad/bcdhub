@@ -66,3 +66,8 @@ func IsIPFS(hash string) bool {
 
 	return false
 }
+
+// Escape -
+func Escape(str string) string {
+	return strings.ReplaceAll(str, "\u0000", `\u0000`)
+}

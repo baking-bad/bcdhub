@@ -9,6 +9,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -250,7 +251,7 @@ func getStringKey(data map[string]interface{}, keyName string) string {
 	if val, ok := data[keyName]; ok {
 		delete(data, keyName)
 		if s, ok := val.(string); ok {
-			return s
+			return helpers.Escape(s)
 		}
 	}
 	return ""

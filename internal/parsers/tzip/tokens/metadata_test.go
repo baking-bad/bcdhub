@@ -302,18 +302,18 @@ func TestTokenMetadata_UnmarshalJSON(t *testing.T) {
 				},
 			},
 			data: []byte(`{
-					"name": "Mystery Map Award",
-					"symbol": "SIMMAW",
-					"decimals": 0,
-					"description": "A most mysterious map has been discovered. Where it leads is uncertain, but an adventure lies ahead.",
-					"nonTransferable": false,
-					"symbolPreference": false,
-					"booleanAmount": false,
-					"displayUri": "https://gateway.pinata.cloud/ipfs/QmPkJBaRnb2JwqA1S2sUQayTV9xT3x8MBnsmq7ForBWKuU",
-					"defaultPresentation": "large",
-					"actionLabel": "Send",
-					"creators": ["test", "author"]
-					}`),
+						"name": "Mystery Map Award",
+						"symbol": "SIMMAW",
+						"decimals": 0,
+						"description": "A most mysterious map has been discovered. Where it leads is uncertain, but an adventure lies ahead.",
+						"nonTransferable": false,
+						"symbolPreference": false,
+						"booleanAmount": false,
+						"displayUri": "https://gateway.pinata.cloud/ipfs/QmPkJBaRnb2JwqA1S2sUQayTV9xT3x8MBnsmq7ForBWKuU",
+						"defaultPresentation": "large",
+						"actionLabel": "Send",
+						"creators": ["test", "author"]
+						}`),
 		}, {
 			name: "test ipfs 2",
 			tm: TokenMetadata{
@@ -333,18 +333,18 @@ func TestTokenMetadata_UnmarshalJSON(t *testing.T) {
 				},
 			},
 			data: []byte(`{
-					"name": "Klassare Alpha Brain",
-					"symbol": "TZBKAB",
-					"decimals": "0",
-					"description": "An upgraded unit, the great Klassare reborn.",
-					"isNft": true,
-					"nonTransferrable": false,
-					"symbolPrecedence": false,
-					"binaryAmount": true,
-					"imageUri": "https://gateway.pinata.cloud/ipfs/QmZjeBZT5QykT4sEELYP2cYYEPTtgwx3vQhnyMzCmDKB7Q",
-					"defaultPresentation": "small",
-					"actionLabel": "Send"
-					}`),
+						"name": "Klassare Alpha Brain",
+						"symbol": "TZBKAB",
+						"decimals": "0",
+						"description": "An upgraded unit, the great Klassare reborn.",
+						"isNft": true,
+						"nonTransferrable": false,
+						"symbolPrecedence": false,
+						"binaryAmount": true,
+						"imageUri": "https://gateway.pinata.cloud/ipfs/QmZjeBZT5QykT4sEELYP2cYYEPTtgwx3vQhnyMzCmDKB7Q",
+						"defaultPresentation": "small",
+						"actionLabel": "Send"
+						}`),
 		}, {
 			name: "test ipfs 3",
 			tm: TokenMetadata{
@@ -361,6 +361,22 @@ func TestTokenMetadata_UnmarshalJSON(t *testing.T) {
 				Extras:         map[string]interface{}{},
 			},
 			data: []byte(`{"name":"$XTZ all the way up! #Tezos","description":"Tezos on Kilimanjaro","tags":[],"symbol":"OBJKT","artifactUri":"ipfs://QmV9j9cYtXeB3fyutbTrdycaPHkXigJeEzBXbCKkTVR5Ah","creators":["tz1QpaWdNjarzfDfjDVacXUeadF9kxBchzEQ"],"formats":[{"uri":"ipfs://QmV9j9cYtXeB3fyutbTrdycaPHkXigJeEzBXbCKkTVR5Ah","mimeType":"image/jpeg"}],"thumbnailUri":"ipfs://QmNrhZHUaEqxhyLfqoq1mtHSipkWHeT31LNHb1QEbDHgnc","decimals":0,"isBooleanAmount":false,"shouldPreferSymbol":false}`),
+		}, {
+			name: "test ipfs 4",
+			tm: TokenMetadata{
+				Symbol:         "OBJKT",
+				Name:           "8-5",
+				Decimals:       int64Ptr(0),
+				Description:    "dat\\u0000\\u0000\\u0000\\u0000\\u0000™dy!\fTm¸4f\x1a\bB\x05y´∫÷\x1aæj\x10A!%ÕJV33cñâ¿ F*)R‰\x02IV\x0f\x13\x02\x1cf@ÁìMX\x12W/€*dZÜ$\x01‘!¥\x03ê¡(&\v≡///╱━━━━━------_____🔫",
+				Tags:           []string{"Glitch", "gun", "lines", "🔫", "9983", "2021"},
+				ArtifactURI:    "ipfs://QmQ1KzkhbkPvnRrWczXoekG64bCZ5T2NT7dwuFS6qVCi69",
+				ThumbnailURI:   "ipfs://QmNrhZHUaEqxhyLfqoq1mtHSipkWHeT31LNHb1QEbDHgnc",
+				IsTransferable: true,
+				Creators:       []string{"tz1dAVKwbGe1PVnPBkRZYmYFsecDtTLHjHLK"},
+				Formats:        []byte(`[{"mimeType":"video/mp4","uri":"ipfs://QmQ1KzkhbkPvnRrWczXoekG64bCZ5T2NT7dwuFS6qVCi69"}]`),
+				Extras:         map[string]interface{}{},
+			},
+			data: []byte(`{"name":"8-5","description":"dat\u0000\u0000\u0000\u0000\u0000™dy!\fTm¸4f\u001a\bB\u0005y´∫÷\u001aæj\u0010A!%ÕJV33cñâ¿ F*)R‰\u0002IV\u000f\u0013\u0002\u001cf@ÁìMX\u0012W/€*dZÜ$\u0001‘!¥\u0003ê¡(&\u000b≡///╱━━━━━------_____🔫","tags":["Glitch","gun","lines","🔫","9983","2021"],"symbol":"OBJKT","artifactUri":"ipfs://QmQ1KzkhbkPvnRrWczXoekG64bCZ5T2NT7dwuFS6qVCi69","displayUri":"","thumbnailUri":"ipfs://QmNrhZHUaEqxhyLfqoq1mtHSipkWHeT31LNHb1QEbDHgnc","creators":["tz1dAVKwbGe1PVnPBkRZYmYFsecDtTLHjHLK"],"formats":[{"uri":"ipfs://QmQ1KzkhbkPvnRrWczXoekG64bCZ5T2NT7dwuFS6qVCi69","mimeType":"video/mp4"}],"decimals":0,"isBooleanAmount":false,"shouldPreferSymbol":false}`),
 		},
 	}
 	for _, tt := range tests {
