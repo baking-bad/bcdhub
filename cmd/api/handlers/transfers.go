@@ -70,34 +70,33 @@ func (ctx *Context) transfersPostprocessing(transfers transfer.Pageable, withLas
 	}
 
 	mapTokens := make(map[tokenKey]*TokenMetadata)
-	tokens, err := ctx.TokenMetadata.GetAll()
-	if err != nil {
-		if !ctx.Storage.IsRecordNotFound(err) {
-			return
+	for i := range transfers.Transfers {
+		key := tokenKey{
+			transfers.Transfers[i].Network, transfers.Transfers[i].Contract, transfers.Transfers[i].TokenID,
 		}
-	} else {
-		for i := range tokens {
-			mapTokens[tokenKey{
-				Network:  tokens[i].Network,
-				Contract: tokens[i].Contract,
-				TokenID:  tokens[i].TokenID,
-			}] = &TokenMetadata{
-				Contract: tokens[i].Contract,
-				TokenID:  tokens[i].TokenID,
-				Symbol:   tokens[i].Symbol,
-				Name:     tokens[i].Name,
-				Decimals: tokens[i].Decimals,
-				Network:  tokens[i].Network,
+		token, ok := mapTokens[key]
+		if !ok {
+			metadata, err := ctx.TokenMetadata.GetOne(key.Network, key.Contract, key.TokenID)
+			if err != nil {
+				return response, err
+			}
+			if metadata != nil {
+				token = &TokenMetadata{
+					Contract: metadata.Contract,
+					TokenID:  metadata.TokenID,
+					Symbol:   metadata.Symbol,
+					Name:     metadata.Name,
+					Decimals: metadata.Decimals,
+					Network:  metadata.Network,
+				}
+			} else {
+				token = &TokenMetadata{
+					Network:  key.Network,
+					Contract: key.Contract,
+					TokenID:  key.TokenID,
+				}
 			}
 		}
-	}
-
-	for i := range transfers.Transfers {
-		token := mapTokens[tokenKey{
-			Network:  transfers.Transfers[i].Network,
-			Contract: transfers.Transfers[i].Contract,
-			TokenID:  transfers.Transfers[i].TokenID,
-		}]
 
 		response.Transfers[i] = TransferFromElasticModel(transfers.Transfers[i])
 		response.Transfers[i].Token = token
