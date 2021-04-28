@@ -37,7 +37,7 @@ type Operation struct {
 	Nonce    *int64 `json:"nonce,omitempty" gorm:"index:opg_idx"`
 	Network  string `json:"network"`
 	Protocol string `json:"protocol"`
-	Hash     string `json:"hash" gorm:"index:opg_idx"`
+	Hash     string `json:"hash" gorm:"index:opg_idx;index:operations_hash_idx"`
 
 	Timestamp        time.Time `json:"timestamp"`
 	Status           string    `json:"status"`
