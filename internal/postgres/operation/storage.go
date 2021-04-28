@@ -288,7 +288,7 @@ func (storage *Storage) GetDAppStats(network string, addresses []string, period 
 		return
 	}
 
-	if err = query.Select("COUNT(*) as calls, SUM(amount) as volume").First(&stats).Error; err != nil {
+	if err = query.Select("COUNT(*) as calls, SUM(amount) as volume").Scan(&stats).Error; err != nil {
 		return
 	}
 
