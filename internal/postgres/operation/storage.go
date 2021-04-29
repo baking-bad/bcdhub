@@ -127,17 +127,21 @@ func (storage *Storage) GetByContract(network, address string, size uint64, filt
 	return
 }
 
-// Last -
+// Last - get last operation for contract `address` with filter by `id`. If `id` is -1 then returns last in table.
 func (storage *Storage) Last(network, address string, id int64) (op operation.Operation, err error) {
-	err = storage.DB.Table(models.DocOperations).
+	query := storage.DB.Table(models.DocOperations).
 		Where("network = ?", network).
 		Where("destination = ?", address).
-		Where("id < ?", id).
 		Where("status = ?", constants.Applied).
 		Where("deffated_storage != ''").
 		Order("id desc").
-		First(&op).
-		Error
+		Limit(1)
+
+	if id > -1 {
+		query.Where("id < ?", id)
+	}
+
+	err = query.Scan(&op).Error
 	return
 }
 
