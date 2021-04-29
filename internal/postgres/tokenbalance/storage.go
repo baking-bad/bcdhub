@@ -99,7 +99,6 @@ func (storage *Storage) CountByContract(network, address string) (map[string]int
 		Select("contract, count(*) as tokens_count").
 		Scopes(core.NetworkAndAddress(network, address)).
 		Group("contract").
-		Debug().
 		Scan(&resp)
 
 	if query.Error != nil {
