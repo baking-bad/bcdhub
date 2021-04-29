@@ -56,6 +56,7 @@ func TestAlpha_ParseOrigination(t *testing.T) {
 						Key:             []byte(`{"string":"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6"}`),
 						Value:           []byte(`{"prim":"Pair","args":[[{"prim":"Elt","args":[{"string":"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6"},{"int":"1000000"}]}],{"int":"1000000"}]}`),
 						LastUpdateLevel: 1311215,
+						LastUpdateTime:  time.Date(2018, 06, 30, 0, 0, 0, 0, time.Local),
 					},
 				},
 			},

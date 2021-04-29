@@ -136,6 +136,7 @@ func (rm Manager) rollbackBigMapState(tx *gorm.DB, network string, toLevel int64
 			return err
 		}
 		states[i].LastUpdateLevel = diff.Level
+		states[i].LastUpdateTime = diff.Timestamp
 		states[i].IsRollback = true
 
 		if len(diff.Value) > 0 {

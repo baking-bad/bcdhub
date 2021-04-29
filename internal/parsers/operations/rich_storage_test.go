@@ -66,6 +66,7 @@ func TestRichStorage_Parse(t *testing.T) {
 						LastUpdateLevel: 1151463,
 						Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
 						Network:         "mainnet",
+						LastUpdateTime:  timestamp,
 					}, &bigmapdiff.BigMapDiff{
 						Ptr:       31,
 						KeyHash:   "exprtzVE8dHF7nePZxF6PSRf3yhfecTEKavyCZpndJGN2hz6PzQkFi",
@@ -84,6 +85,7 @@ func TestRichStorage_Parse(t *testing.T) {
 						LastUpdateLevel: 1151463,
 						Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
 						Network:         "mainnet",
+						LastUpdateTime:  timestamp,
 					}, &bigmapdiff.BigMapDiff{
 						Ptr:       31,
 						KeyHash:   "expruyvqmgBYpF54i1c4p6r3oVV7FmW7ZH8EyjSjahKoQEfWPmcjGg",
@@ -102,6 +104,7 @@ func TestRichStorage_Parse(t *testing.T) {
 						LastUpdateLevel: 1151463,
 						Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
 						Network:         "mainnet",
+						LastUpdateTime:  timestamp,
 					},
 				},
 			},
@@ -171,6 +174,7 @@ func TestRichStorage_Parse(t *testing.T) {
 						LastUpdateLevel: 220,
 						Contract:        "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
 						Network:         "edo2net",
+						LastUpdateTime:  timestamp,
 					},
 				},
 			},
