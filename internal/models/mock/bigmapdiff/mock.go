@@ -219,18 +219,18 @@ func (mr *MockRepositoryMockRecorder) CurrentByContract(network, contract interf
 }
 
 // Previous mocks base method
-func (m *MockRepository) Previous(arg0 []bmd.BigMapDiff, arg1 int64, arg2 string) ([]bmd.BigMapDiff, error) {
+func (m *MockRepository) Previous(arg0 []bmd.BigMapDiff) ([]bmd.BigMapDiff, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Previous", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "Previous", arg0)
 	ret0, _ := ret[0].([]bmd.BigMapDiff)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Previous indicates an expected call of Previous
-func (mr *MockRepositoryMockRecorder) Previous(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) Previous(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Previous", reflect.TypeOf((*MockRepository)(nil).Previous), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Previous", reflect.TypeOf((*MockRepository)(nil).Previous), arg0)
 }
 
 // GetStats mocks base method

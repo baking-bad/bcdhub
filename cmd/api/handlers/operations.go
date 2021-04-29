@@ -360,7 +360,7 @@ func (ctx *Context) getStorageDiff(bmd []bigmapdiff.BigMapDiff, address string, 
 			Nodes: []ast.Node{ast.Copy(storageType.Nodes[0])},
 		}
 
-		prevBmd, err := ctx.getPrevBmd(bmd, op.IndexedTime, op.Destination)
+		prevBmd, err := ctx.BigMapDiffs.Previous(bmd)
 		if err != nil {
 			return nil, err
 		}
@@ -402,13 +402,6 @@ func getEnrichStorage(storageType *ast.TypedAst, bmd []bigmapdiff.BigMapDiff) er
 	}
 
 	return storage.Enrich(storageType, bmd, false, true)
-}
-
-func (ctx *Context) getPrevBmd(bmd []bigmapdiff.BigMapDiff, indexedTime int64, address string) ([]bigmapdiff.BigMapDiff, error) {
-	if len(bmd) == 0 {
-		return nil, nil
-	}
-	return ctx.BigMapDiffs.Previous(bmd, indexedTime, address)
 }
 
 func (ctx *Context) getErrorLocation(operation operation.Operation, window int) (GetErrorLocationResponse, error) {
