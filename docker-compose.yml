@@ -41,9 +41,14 @@ services:
       - .env
     volumes:
       - db:/var/lib/postgresql/data
+      - /etc/postgresql/postgresql.conf:/etc/postgresql/postgresql.conf
     ports:
       - 127.0.0.1:${POSTGRES_PORT}:5432
     logging: *bcd-logging
+    command:
+      - "postgres"
+      - "-c"
+      - "config_file=${POSTGRES_CONFIG:-/var/lib/postgresql/data/postgresql.conf}"
 
   api:
     restart: always
