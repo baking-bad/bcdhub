@@ -62,51 +62,45 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		if ctx.handleError(c, err, 0) {
 			return
 		}
-		ops, err := ctx.Operations.Get(map[string]interface{}{
-			"network":     res.Network,
-			"destination": res.Address,
-			"status":      consts.Applied,
-		}, 1, true)
+		operation, err := ctx.Operations.Last(res.Network, res.Address, -1)
 		if ctx.handleError(c, err, 0) {
 			return
 		}
-		if len(ops) == 1 {
-			symLink, err := bcd.GetProtoSymLink(ops[0].Protocol)
+		symLink, err := bcd.GetProtoSymLink(operation.Protocol)
+		if ctx.handleError(c, err, 0) {
+			return
+		}
+
+		var deffatedStorage []byte
+		if symLink == consts.MetadataAlpha {
+			rpc, err := ctx.GetRPC(res.Network)
 			if ctx.handleError(c, err, 0) {
 				return
 			}
+			deffatedStorage, err = rpc.GetScriptStorageRaw(res.Address, 0)
+			if ctx.handleError(c, err, 0) {
+				return
+			}
+		} else {
+			deffatedStorage = operation.DeffatedStorage
+		}
 
-			var deffatedStorage []byte
-			if symLink == consts.MetadataAlpha {
-				rpc, err := ctx.GetRPC(res.Network)
+		var data ast.UntypedAST
+		if err := json.Unmarshal(deffatedStorage, &data); ctx.handleError(c, err, 0) {
+			return
+		}
+		if err := storage.Settle(data); ctx.handleError(c, err, 0) {
+			return
+		}
+
+		bigMap := storage.FindBigMapByPtr()
+		for p, b := range bigMap {
+			if p == req.Ptr {
+				res.Typedef, _, err = b.Docs(ast.DocsFull)
 				if ctx.handleError(c, err, 0) {
 					return
 				}
-				deffatedStorage, err = rpc.GetScriptStorageRaw(res.Address, 0)
-				if ctx.handleError(c, err, 0) {
-					return
-				}
-			} else {
-				deffatedStorage = ops[0].DeffatedStorage
-			}
-
-			var data ast.UntypedAST
-			if err := json.Unmarshal(deffatedStorage, &data); ctx.handleError(c, err, 0) {
-				return
-			}
-			if err := storage.Settle(data); ctx.handleError(c, err, 0) {
-				return
-			}
-
-			bigMap := storage.FindBigMapByPtr()
-			for p, b := range bigMap {
-				if p == req.Ptr {
-					res.Typedef, _, err = b.Docs(ast.DocsFull)
-					if ctx.handleError(c, err, 0) {
-						return
-					}
-					break
-				}
+				break
 			}
 		}
 	}
@@ -168,8 +162,8 @@ func (ctx *Context) GetBigMapHistory(c *gin.Context) {
 // @Param size query integer false "Requested count" mininum(1) maximum(10)
 // @Param max_level query integer false "Max level filter" minimum(0)
 // @Param min_level query integer false "Min level filter" minimum(0)
-// @Accept  json
-// @Produce  json
+// @Accept json
+// @Produce json
 // @Success 200 {array} BigMapResponseItem
 // @Failure 400 {object} Error
 // @Failure 500 {object} Error
@@ -454,19 +448,11 @@ func (ctx *Context) getBigMapType(network, address, protocol string, ptr int64) 
 			return nil, err
 		}
 	} else {
-		ops, err := ctx.Operations.Get(map[string]interface{}{
-			"network":     network,
-			"destination": address,
-			"protocol":    protocol,
-			"status":      consts.Applied,
-		}, 1, true)
+		operation, err := ctx.Operations.Last(network, address, -1)
 		if err != nil {
 			return nil, err
 		}
-		if len(ops) != 1 {
-			return nil, fmt.Errorf("Can't get contract storage: %s", address)
-		}
-		storageRaw = ops[0].DeffatedStorage
+		storageRaw = operation.DeffatedStorage
 	}
 	var data ast.UntypedAST
 	if err := json.Unmarshal(storageRaw, &data); err != nil {
