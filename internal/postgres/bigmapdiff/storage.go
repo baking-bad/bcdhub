@@ -85,24 +85,30 @@ func (storage *Storage) Count(network string, ptr int64) (count int64, err error
 }
 
 // Previous -
-func (storage *Storage) Previous(filters []bigmapdiff.BigMapDiff, lastID int64, address string) (response []bigmapdiff.BigMapDiff, err error) {
-	query := storage.DB.Table(models.DocBigMapDiff).
-		Scopes(core.Contract(address)).
-		Select("MAX(id) as id")
+func (storage *Storage) Previous(filters []bigmapdiff.BigMapDiff) (response []bigmapdiff.BigMapDiff, err error) {
+	if len(filters) == 0 {
+		return
+	}
+	query := storage.DB.Table(models.DocBigMapDiff).Select("MAX(id) as id")
+
+	tx := storage.DB.Where(
+		storage.DB.Where("key_hash = ?", filters[0].KeyHash).Where("ptr = ? ", filters[0].Ptr).Where("network = ?", filters[0].Network),
+	)
+
+	lastID := filters[0].ID
+	for i := 1; i < len(filters); i++ {
+		tx.Or(
+			storage.DB.Where("key_hash = ?", filters[i].KeyHash).Where("ptr = ? ", filters[i].Ptr).Where("network = ?", filters[i].Network),
+		)
+
+		if lastID > filters[i].ID {
+			lastID = filters[i].ID
+		}
+	}
+	query.Where(tx)
 
 	if lastID > 0 {
 		query.Where("id < ?", lastID)
-	}
-	if len(filters) > 0 {
-		tx := storage.DB.Where(
-			storage.DB.Where("key_hash = ?", filters[0].KeyHash).Where("ptr = ? ", filters[0].Ptr),
-		)
-		for i := 1; i < len(filters); i++ {
-			tx.Or(
-				storage.DB.Where("key_hash = ?", filters[i].KeyHash).Where("ptr = ? ", filters[i].Ptr),
-			)
-		}
-		query.Where(tx)
 	}
 
 	query.Group("key_hash")
