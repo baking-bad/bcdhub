@@ -26,6 +26,7 @@ var migrationsList = []migrations.Migration{
 	&migrations.TokenBalanceRecalc{},
 	&migrations.NFTMetadata{},
 	&migrations.TokenMetadataUnknown{},
+	&migrations.AddCountColumnToBigMapState{},
 }
 
 func main() {

@@ -18,4 +18,5 @@ type Repository interface {
 	GetStats(network string, ptr int64) (Stats, error)
 	StatesChangedAfter(network string, level int64) ([]BigMapState, error)
 	LastDiff(network string, ptr int64, keyHash string, skipRemoved bool) (BigMapDiff, error)
+	Keys(ctx GetContext) (states []BigMapState, err error)
 }

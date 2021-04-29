@@ -1,6 +1,8 @@
 package bigmapdiff
 
 import (
+	"time"
+
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -12,6 +14,8 @@ type BigMapState struct {
 	ID              int64       `json:"-" gorm:"autoIncrement:true"`
 	Ptr             int64       `json:"ptr" gorm:"not null;primaryKey;autoIncrement:false"`
 	LastUpdateLevel int64       `json:"last_update_level" gorm:"last_update_level"`
+	Count           int64       `json:"count" gorm:"default:0"`
+	LastUpdateTime  time.Time   `json:"last_update_time"  gorm:"last_update_time"`
 	Network         string      `json:"network" gorm:"not null;primaryKey"`
 	KeyHash         string      `json:"key_hash" gorm:"not null;primaryKey"`
 	Contract        string      `json:"contract" gorm:"not null;primaryKey"` // contract is in primary key for supporting alpha protocol (mainnet before babylon)

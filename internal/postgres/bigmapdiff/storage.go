@@ -293,3 +293,10 @@ func (storage *Storage) LastDiff(network string, ptr int64, keyHash string, skip
 	err = query.Order("id desc").Scan(&diff).Error
 	return
 }
+
+// Keys -
+func (storage *Storage) Keys(ctx bigmapdiff.GetContext) (states []bigmapdiff.BigMapState, err error) {
+	query := storage.buildGetContextForState(ctx)
+	err = query.Find(&states).Error
+	return
+}

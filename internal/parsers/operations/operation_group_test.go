@@ -228,6 +228,7 @@ func TestGroup_Parse(t *testing.T) {
 					Network:         "mainnet",
 					Contract:        "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 					LastUpdateLevel: 1068669,
+					LastUpdateTime:  timestamp,
 				},
 				&bigmapdiff.BigMapDiff{
 					Ptr:       63,
@@ -248,6 +249,7 @@ func TestGroup_Parse(t *testing.T) {
 					Network:         "mainnet",
 					Contract:        "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 					LastUpdateLevel: 1068669,
+					LastUpdateTime:  timestamp,
 				},
 				&transfer.Transfer{
 					Network:   consts.Mainnet,
@@ -382,6 +384,7 @@ func TestGroup_Parse(t *testing.T) {
 					Network:         consts.Mainnet,
 					Removed:         true,
 					LastUpdateLevel: 1151495,
+					LastUpdateTime:  timestamp,
 				},
 				&operation.Operation{
 					ContentIndex:    0,
@@ -423,6 +426,7 @@ func TestGroup_Parse(t *testing.T) {
 					Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
 					Network:         consts.Mainnet,
 					LastUpdateLevel: 1151495,
+					LastUpdateTime:  timestamp,
 				},
 				&bigmapdiff.BigMapDiff{
 					Ptr:       31,
@@ -443,6 +447,7 @@ func TestGroup_Parse(t *testing.T) {
 					Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
 					Network:         consts.Mainnet,
 					LastUpdateLevel: 1151495,
+					LastUpdateTime:  timestamp,
 				},
 				&bigmapdiff.BigMapDiff{
 					Ptr:       31,
@@ -463,6 +468,7 @@ func TestGroup_Parse(t *testing.T) {
 					Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
 					Network:         consts.Mainnet,
 					LastUpdateLevel: 1151495,
+					LastUpdateTime:  timestamp,
 				},
 				&transfer.Transfer{
 					Network:   consts.Mainnet,

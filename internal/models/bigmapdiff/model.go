@@ -96,6 +96,7 @@ func (b *BigMapDiff) ToState() *BigMapState {
 		Contract:        b.Contract,
 		Ptr:             b.Ptr,
 		LastUpdateLevel: b.Level,
+		LastUpdateTime:  b.Timestamp,
 		KeyHash:         b.KeyHash,
 		Key:             b.KeyBytes(),
 	}

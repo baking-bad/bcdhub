@@ -22,6 +22,16 @@ type TypedAst struct {
 	settled bool
 }
 
+// UnmarshalJSON -
+func (ast *TypedAst) UnmarshalJSON(data []byte) error {
+	parsed, err := NewTypedAstFromBytes(data)
+	if err != nil {
+		return err
+	}
+	ast.Nodes = parsed.Nodes
+	return nil
+}
+
 // NewTypedAST -
 func NewTypedAST() *TypedAst {
 	return &TypedAst{

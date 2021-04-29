@@ -277,3 +277,18 @@ func (mr *MockRepositoryMockRecorder) LastDiff(network, ptr, keyHash, skipRemove
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LastDiff", reflect.TypeOf((*MockRepository)(nil).LastDiff), network, ptr, keyHash, skipRemoved)
 }
+
+// Keys mocks base method
+func (m *MockRepository) Keys(ctx bmd.GetContext) ([]bmd.BigMapState, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Keys", ctx)
+	ret0, _ := ret[0].([]bmd.BigMapState)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Keys indicates an expected call of Keys
+func (mr *MockRepositoryMockRecorder) Keys(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Keys", reflect.TypeOf((*MockRepository)(nil).Keys), ctx)
+}

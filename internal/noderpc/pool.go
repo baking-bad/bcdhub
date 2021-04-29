@@ -244,3 +244,12 @@ func (p Pool) GetCode(address string, level int64) (*ast.Script, error) {
 	}
 	return data.Interface().(*ast.Script), nil
 }
+
+// GetBigMapType -
+func (p Pool) GetBigMapType(ptr int64) (BigMap, error) {
+	data, err := p.call("GetBigMapType", ptr)
+	if err != nil {
+		return BigMap{}, err
+	}
+	return data.Interface().(BigMap), nil
+}

@@ -173,3 +173,10 @@ type OperationError struct {
 	ExpectedForm    stdJSON.RawMessage `json:"expectedForm,omitempty"`
 	WrongExpression stdJSON.RawMessage `json:"wrongExpression,omitempty"`
 }
+
+// BigMap -
+type BigMap struct {
+	KeyType    *ast.TypedAst `json:"key_type"`
+	ValueType  *ast.TypedAst `json:"value_type"`
+	TotalBytes uint64        `json:"total_bytes,string"`
+}
