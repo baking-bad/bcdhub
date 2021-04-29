@@ -13,7 +13,7 @@ import (
 type SaplingState struct {
 	Default
 
-	Type     Int
+	Type     *Int
 	MemoSize int64
 }
 
@@ -21,6 +21,7 @@ type SaplingState struct {
 func NewSaplingState(depth int) *SaplingState {
 	return &SaplingState{
 		Default: NewDefault(consts.SAPLINGSTATE, 1, depth),
+		Type:    NewInt(depth),
 	}
 }
 
@@ -56,11 +57,7 @@ func (ss *SaplingState) ParseType(node *base.Node, id *int) error {
 		return err
 	}
 
-	if err := ss.Type.ParseType(node.Args[0], id); err != nil {
-		return err
-	}
 	ss.MemoSize = node.Args[0].IntValue.Int64()
-
 	return nil
 }
 
@@ -118,7 +115,7 @@ func (ss *SaplingState) EqualType(node Node) bool {
 		return false
 	}
 
-	return ss.Type.EqualType(&second.Type)
+	return ss.Type.EqualType(second.Type)
 }
 
 // FindByName -
