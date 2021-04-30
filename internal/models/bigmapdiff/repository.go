@@ -5,7 +5,7 @@ type Repository interface {
 	Get(ctx GetContext) ([]Bucket, error)
 	GetByAddress(string, string) ([]BigMapDiff, error)
 	GetForOperation(hash string, counter int64, nonce *int64) ([]*BigMapDiff, error)
-	GetUniqueForOperation(hash string, counter int64, nonce *int64) ([]BigMapDiff, error)
+	GetUniqueForOperations(opg []OPG) ([]BigMapDiff, error)
 	GetByPtr(string, string, int64) ([]BigMapDiff, error)
 	GetByPtrAndKeyHash(int64, string, string, int64, int64) ([]BigMapDiff, int64, error)
 	GetForAddress(string) ([]BigMapDiff, error)
