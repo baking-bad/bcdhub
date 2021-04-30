@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
 func (ctx *Context) getAlias(network, address string) string {
@@ -15,7 +16,7 @@ func (ctx *Context) getAlias(network, address string) string {
 	if err != nil {
 		return ""
 	}
-	return item.Value().(string)
+	return item.Value().(*tzip.TZIP).Name
 }
 
 func (ctx *Context) getTokenMetadata(network, address string, tokenID uint64) (*tokenmetadata.TokenMetadata, error) {
