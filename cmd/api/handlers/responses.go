@@ -69,7 +69,7 @@ func (o *Operation) FromModel(operation operation.Operation) {
 	o.Hash = operation.Hash
 	o.Network = operation.Network
 	o.Internal = operation.Internal
-	o.Timestamp = operation.Timestamp
+	o.Timestamp = operation.Timestamp.UTC()
 
 	o.Level = operation.Level
 	o.Kind = operation.Kind

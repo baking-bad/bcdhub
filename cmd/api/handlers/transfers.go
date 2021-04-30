@@ -56,12 +56,6 @@ func (ctx *Context) GetContractTransfers(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-type tokenKey struct {
-	Network  string
-	Contract string
-	TokenID  uint64
-}
-
 func (ctx *Context) transfersPostprocessing(transfers transfer.Pageable, withLastID bool) (response TransferResponse, err error) {
 	response.Total = transfers.Total
 	response.Transfers = make([]Transfer, len(transfers.Transfers))
@@ -69,37 +63,27 @@ func (ctx *Context) transfersPostprocessing(transfers transfer.Pageable, withLas
 		response.LastID = transfers.LastID
 	}
 
-	mapTokens := make(map[tokenKey]*TokenMetadata)
 	for i := range transfers.Transfers {
-		key := tokenKey{
-			transfers.Transfers[i].Network, transfers.Transfers[i].Contract, transfers.Transfers[i].TokenID,
+		token := TokenMetadata{
+			Network:  transfers.Transfers[i].Network,
+			Contract: transfers.Transfers[i].Contract,
+			TokenID:  transfers.Transfers[i].TokenID,
 		}
-		token, ok := mapTokens[key]
-		if !ok {
-			metadata, err := ctx.TokenMetadata.GetOne(key.Network, key.Contract, key.TokenID)
-			if err != nil {
-				return response, err
-			}
-			if metadata != nil {
-				token = &TokenMetadata{
-					Contract: metadata.Contract,
-					TokenID:  metadata.TokenID,
-					Symbol:   metadata.Symbol,
-					Name:     metadata.Name,
-					Decimals: metadata.Decimals,
-					Network:  metadata.Network,
-				}
-			} else {
-				token = &TokenMetadata{
-					Network:  key.Network,
-					Contract: key.Contract,
-					TokenID:  key.TokenID,
-				}
+
+		metadata, err := ctx.getTokenMetadata(transfers.Transfers[i].Network, transfers.Transfers[i].Contract, transfers.Transfers[i].TokenID)
+		if err != nil {
+			return response, err
+		}
+		if metadata != nil {
+			token = TokenMetadata{
+				Symbol:   metadata.Symbol,
+				Name:     metadata.Name,
+				Decimals: metadata.Decimals,
 			}
 		}
 
 		response.Transfers[i] = TransferFromElasticModel(transfers.Transfers[i])
-		response.Transfers[i].Token = token
+		response.Transfers[i].Token = &token
 		response.Transfers[i].Alias = ctx.getAlias(transfers.Transfers[i].Network, transfers.Transfers[i].Contract)
 		response.Transfers[i].InitiatorAlias = ctx.getAlias(transfers.Transfers[i].Network, transfers.Transfers[i].Initiator)
 		response.Transfers[i].FromAlias = ctx.getAlias(transfers.Transfers[i].Network, transfers.Transfers[i].From)

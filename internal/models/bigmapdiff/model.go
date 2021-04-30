@@ -14,13 +14,13 @@ import (
 // BigMapDiff -
 type BigMapDiff struct {
 	ID               int64       `json:"-"`
-	Ptr              int64       `json:"ptr" gorm:"index:bmd_idx"`
+	Ptr              int64       `json:"ptr" gorm:"index:bmd_idx;index:big_map_diffs_key_hash_idx"`
 	Key              types.Bytes `json:"key" gorm:"type:bytes;not null"`
-	KeyHash          string      `json:"key_hash"`
+	KeyHash          string      `json:"key_hash" gorm:"index:big_map_diffs_key_hash_idx"`
 	Value            types.Bytes `json:"value,omitempty" gorm:"type:bytes"`
 	Level            int64       `json:"level"`
 	Contract         string      `json:"contract" gorm:"index:bmd_idx"`
-	Network          string      `json:"network" gorm:"index:bmd_idx"`
+	Network          string      `json:"network" gorm:"index:bmd_idx;index:big_map_diffs_key_hash_idx"`
 	Timestamp        time.Time   `json:"timestamp"`
 	Protocol         string      `json:"protocol"`
 	OperationHash    string      `json:"op_hash" gorm:"index:big_map_diffs_operation_hash_idx"`
@@ -109,4 +109,11 @@ func (b *BigMapDiff) ToState() *BigMapState {
 	}
 
 	return state
+}
+
+// OPG -
+func (b *BigMapDiff) OPG() OPG {
+	return OPG{
+		b.OperationHash, b.OperationCounter, b.OperationNonce,
+	}
 }

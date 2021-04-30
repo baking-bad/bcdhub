@@ -45,18 +45,21 @@ type opgForContract struct {
 }
 
 func (storage *Storage) getContractOPG(address, network string, size uint64, filters map[string]interface{}) (response []opgForContract, err error) {
-	query := storage.DB.Table(models.DocOperations).Select("hash", "counter").
+	subQuery := storage.DB.Table(models.DocOperations).Select("hash", "counter", "id").
 		Where("network = ?", network).
 		Where(
 			storage.DB.Where("source = ?", address).Or("destination = ?", address),
 		)
 
-	if err := prepareOperationFilters(query, filters); err != nil {
+	if err := prepareOperationFilters(subQuery, filters); err != nil {
 		return nil, err
 	}
 
+	query := storage.DB.Table("(?) as foo", subQuery.Order("id desc").Limit(1000)).
+		Select("foo.hash", "foo.counter", "max(id) as id")
+
 	limit := storage.GetPageSize(int64(size))
-	query.Group("hash, counter, level").Order("level DESC").Limit(limit)
+	query.Group("foo.hash, foo.counter").Order("id desc").Limit(limit)
 
 	err = query.Find(&response).Error
 	return

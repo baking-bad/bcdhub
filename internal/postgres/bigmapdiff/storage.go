@@ -135,25 +135,29 @@ func (storage *Storage) GetForOperation(hash string, counter int64, nonce *int64
 	return response, query.Find(&response).Error
 }
 
-// GetUniqueForOperation -
-func (storage *Storage) GetUniqueForOperation(hash string, counter int64, nonce *int64) (response []bigmapdiff.BigMapDiff, err error) {
-	subQuery := storage.DB.Table(models.DocBigMapDiff).
-		Select("MAX(id) as id").
-		Where("operation_hash = ?", hash).
-		Where("operation_counter = ?", counter)
-
-	if nonce == nil {
-		subQuery.Where("operation_nonce IS NULL")
+func filterOPG(tx *gorm.DB, opg bigmapdiff.OPG) *gorm.DB {
+	query := tx.Where("operation_hash = ? AND operation_counter = ?", opg.Hash, opg.Counter)
+	if opg.Nonce == nil {
+		query.Where("operation_nonce IS NULL")
 	} else {
-		subQuery.Where("operation_nonce = ?", *nonce)
+		query.Where("operation_nonce = ?", *opg.Nonce)
+	}
+	return query
+}
+
+// GetUniqueForOperations -
+func (storage *Storage) GetUniqueForOperations(opg []bigmapdiff.OPG) (response []bigmapdiff.BigMapDiff, err error) {
+	if len(opg) == 0 {
+		return nil, nil
+	}
+	query := storage.DB.Table(models.DocBigMapDiff)
+
+	filters := storage.DB.Where(filterOPG(storage.DB, opg[0]))
+	for i := 1; i < len(opg); i++ {
+		filters.Or(filterOPG(storage.DB, opg[i]))
 	}
 
-	subQuery.Group("key_hash, ptr")
-
-	err = storage.DB.Table(models.DocBigMapDiff).
-		Where("id IN (?)", subQuery).
-		Find(&response).Error
-
+	err = query.Where(filters).Find(&response).Error
 	return
 }
 
