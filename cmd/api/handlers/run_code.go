@@ -243,7 +243,19 @@ func (ctx *Context) parseAppliedRunCode(response noderpc.RunCodeResponse, script
 		op.Protocol = main.Protocol
 		op.Level = main.Level
 		op.Internal = true
-		if err := setParameters(response.Operations[i].Parameters, script, &op); err != nil {
+
+		var s *ast.Script
+		if op.Destination == main.Destination {
+			s = script
+		} else {
+			var err error
+			s, err = ctx.getScript(op.Destination, op.Network, op.Protocol)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		if err := setParameters(response.Operations[i].Parameters, s, &op); err != nil {
 			return nil, err
 		}
 		if err := ctx.setSimulateStorageDiff(response, script, &op); err != nil {
