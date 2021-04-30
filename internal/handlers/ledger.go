@@ -7,6 +7,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/fetch"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -165,6 +166,8 @@ func (ledger *Ledger) findLedgerBigMap(bmd *bigmapdiff.BigMapDiff) (*ast.BigMap,
 	if err := tree.Settle(storageData); err != nil {
 		return nil, err
 	}
+
+	logger.Info(op.DeffatedStorage, op.Level, op.Network, op.Destination)
 
 	bigMap, ok := node.(*ast.BigMap)
 	if !ok {
