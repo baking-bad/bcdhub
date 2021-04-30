@@ -167,12 +167,14 @@ func (ledger *Ledger) findLedgerBigMap(bmd *bigmapdiff.BigMapDiff) (*ast.BigMap,
 		return nil, err
 	}
 
-	logger.Info(op.DeffatedStorage, op.Level, op.Network, op.Destination)
+	logger.Info(op.DeffatedStorage, op.Level, op.Network, op.Destination, op.Hash)
 
 	bigMap, ok := node.(*ast.BigMap)
 	if !ok {
 		return nil, ErrNoLedgerKeyInStorage
 	}
+	logger.Info("pointers", bigMap.Ptr, bmd.Ptr)
+	logger.Info(tree.String())
 	if *bigMap.Ptr != bmd.Ptr {
 		return nil, ErrNoLedgerKeyInStorage
 	}
