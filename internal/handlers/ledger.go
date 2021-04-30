@@ -203,6 +203,9 @@ func (ledger *Ledger) findLedgerBigMap(bmd *bigmapdiff.BigMapDiff, storage *ast.
 	if node == nil {
 		return nil, nil, ErrNoLedgerKeyInStorage
 	}
+	if node == nil {
+		return nil, nil, ErrNoLedgerKeyInStorage
+	}
 
 	op, err := ledger.operations.GetOne(bmd.OperationHash, bmd.OperationCounter, bmd.OperationNonce)
 	if err != nil {
@@ -220,7 +223,7 @@ func (ledger *Ledger) findLedgerBigMap(bmd *bigmapdiff.BigMapDiff, storage *ast.
 	if !ok {
 		return nil, nil, ErrNoLedgerKeyInStorage
 	}
-	if *bigMap.Ptr != bmd.Ptr {
+	if bigMap.Ptr == nil || *bigMap.Ptr != bmd.Ptr {
 		return nil, nil, ErrNoLedgerKeyInStorage
 	}
 	return bigMap, &op, nil
