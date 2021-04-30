@@ -173,7 +173,7 @@ func (ledger *Ledger) findLedgerBigMap(bmd *bigmapdiff.BigMapDiff) (*ast.BigMap,
 	if !ok {
 		return nil, ErrNoLedgerKeyInStorage
 	}
-	if *bigMap.Ptr != bmd.Ptr {
+	if bigMap.Ptr == nil || *bigMap.Ptr != bmd.Ptr {
 		return nil, ErrNoLedgerKeyInStorage
 	}
 	return bigMap, nil
