@@ -7,7 +7,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/fetch"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -153,6 +152,9 @@ func (ledger *Ledger) findLedgerBigMap(bmd *bigmapdiff.BigMapDiff) (*ast.BigMap,
 	if err != nil {
 		return nil, ErrNoLedgerKeyInStorage
 	}
+	if node == nil {
+		return nil, ErrNoLedgerKeyInStorage
+	}
 
 	op := operation.Operation{ID: bmd.OperationID}
 	if err := ledger.storage.GetByID(&op); err != nil {
@@ -167,14 +169,10 @@ func (ledger *Ledger) findLedgerBigMap(bmd *bigmapdiff.BigMapDiff) (*ast.BigMap,
 		return nil, err
 	}
 
-	logger.Info(op.DeffatedStorage, op.Level, op.Network, op.Destination, op.Hash)
-
 	bigMap, ok := node.(*ast.BigMap)
 	if !ok {
 		return nil, ErrNoLedgerKeyInStorage
 	}
-	logger.Info("pointers", bigMap.Ptr, bmd.Ptr)
-	logger.Info(tree.String())
 	if *bigMap.Ptr != bmd.Ptr {
 		return nil, ErrNoLedgerKeyInStorage
 	}
