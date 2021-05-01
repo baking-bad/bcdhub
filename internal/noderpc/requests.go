@@ -31,7 +31,7 @@ type runOperationItemContent struct {
 	Fee          int64              `json:"fee,string"`
 	Counter      int64              `json:"counter,string"`
 	GasLimit     int64              `json:"gas_limit,string"`
-	StorageLimit int64              `json:"storage_limit"`
+	StorageLimit int64              `json:"storage_limit,string"`
 	Source       string             `json:"source"`
 	Destination  string             `json:"destination"`
 	Amount       int64              `json:"amount,string"`
