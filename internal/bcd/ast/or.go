@@ -384,8 +384,10 @@ func (or *Or) Compare(second Comparable) (int, error) {
 		res, err = or.LeftType.Compare(secondItem.LeftType)
 	case or.key == rightKey && secondItem.key == rightKey:
 		res, err = or.RightType.Compare(secondItem.RightType)
-	default:
-		return 0, consts.ErrTypeIsNotComparable
+	case or.key == leftKey && secondItem.key == rightKey:
+		res = -1
+	case or.key == rightKey && secondItem.key == leftKey:
+		res = 1
 	}
 	if err != nil {
 		return 0, err
