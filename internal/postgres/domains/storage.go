@@ -30,7 +30,7 @@ func (storage *Storage) TokenBalances(network, contract, address string, size, o
 
 	limit := storage.GetPageSize(size)
 	if err := storage.DB.Raw(`
-		select tm.network, tm.contract, tm.token_id, tb.balance, tm.level, tm."timestamp", tm.symbol, tm.name, tm.decimals, tm.description, tm.artifact_uri, tm.display_uri, tm.external_uri, tm.thumbnail_uri, tm.is_transferable, tm.is_boolean_amount, tm.should_prefer_symbol, tm.tags, tm.creators, tm.formats, tm.extras  from (
+		select tb.network, tb.contract, tb.token_id, tb.balance, tm.symbol, tm.name, tm.decimals, tm.description, tm.artifact_uri, tm.display_uri, tm.external_uri, tm.thumbnail_uri, tm.is_transferable, tm.is_boolean_amount, tm.should_prefer_symbol, tm.tags, tm.creators, tm.formats, tm.extras  from (
 			(?)  as tb
 			left join token_metadata as tm on tm.network  = tb.network and tm.token_id = tb.token_id and tm.contract = tb.contract
 		)

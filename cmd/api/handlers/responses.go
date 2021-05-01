@@ -648,9 +648,9 @@ type TokenBalances struct {
 // TokenMetadata -
 type TokenMetadata struct {
 	Contract           string                 `json:"contract"`
-	Network            string                 `json:"network,omitempty"`
+	Network            string                 `json:"network"`
 	Level              int64                  `json:"level,omitempty" extensions:"x-nullable"`
-	Timestamp          time.Time              `json:"timestamp,omitempty" extensions:"x-nullable"`
+	Timestamp          *time.Time             `json:"timestamp,omitempty" extensions:"x-nullable"`
 	TokenID            uint64                 `json:"token_id"`
 	Symbol             string                 `json:"symbol,omitempty" extensions:"x-nullable"`
 	Name               string                 `json:"name,omitempty" extensions:"x-nullable"`
@@ -660,9 +660,9 @@ type TokenMetadata struct {
 	DisplayURI         string                 `json:"display_uri,omitempty" extensions:"x-nullable"`
 	ThumbnailURI       string                 `json:"thumbnail_uri,omitempty" extensions:"x-nullable"`
 	ExternalURI        string                 `json:"external_uri,omitempty" extensions:"x-nullable"`
-	IsTransferable     bool                   `json:"is_transferable"`
-	IsBooleanAmount    bool                   `json:"is_boolean_amount"`
-	ShouldPreferSymbol bool                   `json:"should_prefer_symbol"`
+	IsTransferable     bool                   `json:"is_transferable,omitempty" extensions:"x-nullable"`
+	IsBooleanAmount    bool                   `json:"is_boolean_amount,omitempty" extensions:"x-nullable"`
+	ShouldPreferSymbol bool                   `json:"should_prefer_symbol,omitempty" extensions:"x-nullable"`
 	Creators           []string               `json:"creators,omitempty" extensions:"x-nullable"`
 	Tags               []string               `json:"tags,omitempty" extensions:"x-nullable"`
 	Formats            stdJSON.RawMessage     `json:"formats,omitempty" extensions:"x-nullable"`
@@ -678,7 +678,6 @@ func TokenMetadataFromElasticModel(model tokenmetadata.TokenMetadata, withTokenI
 	tm.Decimals = model.Decimals
 	tm.Contract = model.Contract
 	tm.Level = model.Level
-	tm.Timestamp = model.Timestamp
 	tm.Network = model.Network
 	tm.Description = model.Description
 	tm.ArtifactURI = model.ArtifactURI
@@ -692,10 +691,21 @@ func TokenMetadataFromElasticModel(model tokenmetadata.TokenMetadata, withTokenI
 	tm.Tags = model.Tags
 	tm.Formats = stdJSON.RawMessage(model.Formats)
 
+	if !model.Timestamp.IsZero() {
+		tm.Timestamp = &model.Timestamp
+	}
+
 	if withTokenInfo {
 		tm.TokenInfo = model.Extras
 	}
 	return
+}
+
+// Empty -
+func (tm TokenMetadata) Empty() bool {
+	return tm.Symbol == "" && tm.Name == "" && tm.Decimals == nil && tm.TokenID == 0 &&
+		tm.Description == "" && tm.ArtifactURI == "" && tm.DisplayURI == "" && tm.ThumbnailURI == "" &&
+		tm.ExternalURI == "" && len(tm.Creators) == 0 && len(tm.Tags) == 0 && len(tm.Formats) == 0
 }
 
 // DomainsResponse -

@@ -52,7 +52,7 @@ func (ctx *Context) GetInfo(c *gin.Context) {
 		Network:    req.Network,
 		TxCount:    stats.Count,
 		Balance:    balance,
-		LastAction: stats.LastAction,
+		LastAction: stats.LastAction.UTC(),
 	}
 
 	alias, err := ctx.TZIP.Get(req.Network, req.Address)
@@ -167,10 +167,20 @@ func (ctx *Context) getAccountBalances(network, address string, req tokenBalance
 	}
 
 	for _, token := range balances.Balances {
-		response.Balances = append(response.Balances, TokenBalance{
-			Balance:       token.Balance,
-			TokenMetadata: TokenMetadataFromElasticModel(token.TokenMetadata, false),
-		})
+		tm := TokenMetadataFromElasticModel(token.TokenMetadata, false)
+		tb := TokenBalance{
+			Balance: token.Balance,
+		}
+		if !tm.Empty() {
+			tb.TokenMetadata = tm
+		} else {
+			tb.TokenMetadata = TokenMetadata{
+				Network:  token.Network,
+				Contract: token.Contract,
+				TokenID:  token.TokenID,
+			}
+		}
+		response.Balances = append(response.Balances, tb)
 	}
 
 	return &response, nil
