@@ -54,6 +54,11 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		return
 	}
 
+	params, err := json.Marshal(parameters)
+	if ctx.handleError(c, err, 0) {
+		return
+	}
+
 	response, err := rpc.RunOperation(
 		state.ChainID,
 		state.Hash,
@@ -64,7 +69,7 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		protocol.Constants.HardStorageLimitPerOperation,
 		counter+1,
 		reqRunOp.Amount,
-		parameters.Value,
+		params,
 	)
 	if ctx.handleError(c, err, 0) {
 		return
