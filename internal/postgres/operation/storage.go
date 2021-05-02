@@ -137,14 +137,13 @@ func (storage *Storage) Last(network, address string, id int64) (op operation.Op
 		Where("destination = ?", address).
 		Where("status = ?", constants.Applied).
 		Where("deffated_storage != ''").
-		Order("id desc").
-		Limit(1)
+		Order("id desc")
 
 	if id > -1 {
 		query.Where("id < ?", id)
 	}
 
-	err = query.Scan(&op).Error
+	err = query.First(&op).Error
 	return
 }
 

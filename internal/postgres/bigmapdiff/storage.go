@@ -195,10 +195,10 @@ func (storage *Storage) GetByPtr(address, network string, ptr int64) (response [
 		Select("max(id) as id").
 		Scopes(core.NetworkAndContract(network, address)).
 		Where("ptr = ?", ptr).
-		Group("key_hash").
-		Order("id desc")
+		Group("key_hash")
 
-	query := storage.DB.Table(models.DocBigMapDiff).Joins("inner join (?) as bmd on bmd.id = big_map_diffs.id", subQuery)
+	query := storage.DB.Table(models.DocBigMapDiff).
+		Where("id IN (?)", subQuery)
 	return response, query.Find(&response).Error
 }
 

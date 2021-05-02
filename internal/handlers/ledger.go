@@ -5,7 +5,6 @@ import (
 	"math/big"
 
 	jsoniter "github.com/json-iterator/go"
-	"github.com/karlseguin/ccache"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
@@ -38,8 +37,6 @@ type Ledger struct {
 	tokenBalances tbModel.Repository
 	operations    operation.Repository
 	sharePath     string
-
-	cache *ccache.Cache
 }
 
 // NewLedger -
@@ -49,8 +46,6 @@ func NewLedger(storage models.GeneralRepository, opRepo operation.Repository, to
 		operations:    opRepo,
 		tokenBalances: tokenBalanceRepo,
 		sharePath:     sharePath,
-
-		cache: ccache.New(ccache.Configure().MaxSize(100)),
 	}
 }
 
