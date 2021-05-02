@@ -22,6 +22,7 @@ func (storage *Storage) Get(network, address string) (*tzip.TZIP, error) {
 	err := storage.DB.
 		Table(models.DocTZIP).
 		Scopes(core.NetworkAndAddress(network, address)).
+		Order("id desc").
 		First(&t).
 		Error
 	return &t, err
