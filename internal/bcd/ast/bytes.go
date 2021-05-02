@@ -3,6 +3,7 @@ package ast
 import (
 	"encoding/hex"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
@@ -76,7 +77,7 @@ func (b *Bytes) ToMiguel() (*MiguelNode, error) {
 			if err == nil {
 				node.Value, _ = formatter.MichelineToMichelsonInline(treeJSON)
 			}
-		} else if data, err := hex.DecodeString(str); err == nil {
+		} else if data, err := hex.DecodeString(str); err == nil && utf8.Valid(data) {
 			node.Value = string(data)
 		}
 	}
