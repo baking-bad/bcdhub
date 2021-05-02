@@ -54,7 +54,6 @@ func initHandlers() {
 	)
 }
 
-//nolint
 func parseBigMapDiff(bmd bigmapdiff.BigMapDiff) ([]models.Model, error) {
 	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.DB)
 
