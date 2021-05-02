@@ -64,17 +64,18 @@ func (a *Address) ToMiguel() (*MiguelNode, error) {
 
 // GetJSONModel -
 func (a *Address) GetJSONModel(model JSONModel) {
-	value := a.Value.(string)
 	if a.Value != nil {
+		value := a.Value.(string)
 		if a.ValueKind == valueKindBytes {
 			v, err := forge.UnforgeContract(value)
 			if err == nil {
 				value = v
 			}
 		}
+		model[a.GetName()] = value
+	} else {
+		model[a.GetName()] = ""
 	}
-
-	model[a.GetName()] = value
 }
 
 // ToJSONSchema -
