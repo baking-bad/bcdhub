@@ -114,7 +114,22 @@ func (ctx *Context) GetContractStorageRaw(c *gin.Context) {
 		return
 	}
 
-	resp, err := formatter.MichelineStringToMichelson(ops[0].DeffatedStorage, false, formatter.DefLineSize)
+	var storage string
+	if len(ops[0].DeffatedStorage) == 0 {
+		rpc, err := ctx.GetRPC(req.Network)
+		if ctx.handleError(c, err, 0) {
+			return
+		}
+		data, err := rpc.GetScriptStorageRaw(req.Address, int64(sReq.Level))
+		if ctx.handleError(c, err, 0) {
+			return
+		}
+		storage = string(data)
+	} else {
+		storage = ops[0].DeffatedStorage
+	}
+
+	resp, err := formatter.MichelineStringToMichelson(storage, false, formatter.DefLineSize)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
