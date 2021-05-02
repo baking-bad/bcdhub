@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"encoding/hex"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
@@ -75,6 +76,8 @@ func (b *Bytes) ToMiguel() (*MiguelNode, error) {
 			if err == nil {
 				node.Value, _ = formatter.MichelineToMichelsonInline(treeJSON)
 			}
+		} else if data, err := hex.DecodeString(str); err == nil {
+			node.Value = string(data)
 		}
 	}
 
