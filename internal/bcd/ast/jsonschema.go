@@ -1,6 +1,10 @@
 package ast
 
-import "github.com/baking-bad/bcdhub/internal/bcd/types"
+import (
+	"math/big"
+
+	"github.com/baking-bad/bcdhub/internal/bcd/types"
+)
 
 // Schema types
 const (
@@ -70,7 +74,9 @@ func setIntJSONSchema(d *Default, data map[string]interface{}) {
 		if key == d.GetName() {
 			switch v := data[key].(type) {
 			case float64:
-				d.Value = types.NewBigInt(int64(v))
+				i := big.NewInt(0)
+				i, _ = big.NewFloat(v).Int(i)
+				d.Value = &types.BigInt{Int: i}
 			case string:
 				d.Value = types.NewBigIntFromString(v)
 			}
