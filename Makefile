@@ -2,7 +2,7 @@
 export $(shell sed 's/=.*//' .env)
 
 LATEST_DUMP=/tmp/dump_latest.gz
-BACKUP?=dump_latest
+BACKUP?=dump_latest.gz
 
 .ONESHELL:
 
