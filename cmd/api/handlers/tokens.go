@@ -310,13 +310,7 @@ func (ctx *Context) GetContractTokens(c *gin.Context) {
 		}
 		return
 	}
-	tokens := make([]Token, 0, len(metadata))
-	for i := range metadata {
-		tokens = append(tokens, Token{
-			TokenMetadata: TokenMetadataFromElasticModel(metadata[i], true),
-		})
-	}
-	c.JSON(http.StatusOK, tokens)
+	c.JSON(http.StatusOK, metadata)
 }
 
 // GetContractTokensCount godoc
