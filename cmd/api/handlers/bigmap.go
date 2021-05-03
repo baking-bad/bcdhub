@@ -32,23 +32,28 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		return
 	}
 
+	total, err := ctx.BigMapDiffs.Count(req.Network, req.Ptr)
+	if ctx.handleError(c, err, 0) {
+		return
+	}
+
 	bm, err := ctx.BigMapDiffs.Get(bigmapdiff.GetContext{
 		Ptr:     &req.Ptr,
 		Network: req.Network,
-		Size:    10000, // TODO: >10k
+		Size:    total,
 	})
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	res := GetBigMapResponse{
-		Network: req.Network,
-		Ptr:     req.Ptr,
+		Network:   req.Network,
+		Ptr:       req.Ptr,
+		TotalKeys: uint(total),
 	}
 
 	if len(bm) > 0 {
 		res.Address = bm[0].Address
-		res.TotalKeys = uint(len(bm))
 
 		for i := range bm {
 			if bm[i].Value != nil {

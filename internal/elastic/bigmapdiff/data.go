@@ -40,8 +40,6 @@ func buildGetContext(ctx *bigmapdiff.GetContext, maxPageSize int64) core.Base {
 		filters = append(filters, core.QueryString(fmt.Sprintf("*%s*", ctx.Query), []string{"key", "key_hash", "key_strings", "bin_path", "value", "value_strings"}))
 	}
 
-	ctx.Size = core.GetSize(ctx.Size, maxPageSize)
-
 	if ctx.MaxLevel != nil {
 		filters = append(filters, core.Range("level", core.Item{"lte": *ctx.MaxLevel}))
 	}
@@ -58,6 +56,8 @@ func buildGetContext(ctx *bigmapdiff.GetContext, maxPageSize int64) core.Base {
 		filters = append(filters, core.MatchPhrase("address", ctx.Contract))
 	}
 
+	ctx.Size = core.GetSize(ctx.Size, maxPageSize)
+
 	ctx.To = ctx.Size + ctx.Offset
 	b := core.Bool(
 		core.Must(filters...),
@@ -68,7 +68,7 @@ func buildGetContext(ctx *bigmapdiff.GetContext, maxPageSize int64) core.Base {
 			Body: core.Item{
 				"terms": core.Item{
 					"field": "key_hash.keyword",
-					"size":  ctx.To,
+					"size":  6600,
 					"order": core.Item{
 						"bucketsSort": "desc",
 					},
