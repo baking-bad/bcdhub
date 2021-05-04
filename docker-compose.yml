@@ -33,6 +33,7 @@ services:
 
   db:
     image: bakingbad/bcdhub-db:${TAG:-latest}
+    shm_size: 1g
     build:
       context: .
       dockerfile: build/db/Dockerfile

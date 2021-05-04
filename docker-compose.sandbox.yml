@@ -26,6 +26,7 @@ services:
 
   db:
     image: postgres:12
+    shm_size: 1g
     restart: always
     environment:
       - POSTGRES_USER=root

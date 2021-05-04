@@ -38,6 +38,13 @@ func New(connection, appName string, opts ...PostgresOption) (*Postgres, error) 
 		opt(&pg)
 	}
 
+	sql, err := pg.DB.DB()
+	if err != nil {
+		return nil, err
+	}
+
+	sql.SetMaxOpenConns(200)
+
 	return &pg, nil
 }
 
