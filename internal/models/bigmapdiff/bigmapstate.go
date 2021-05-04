@@ -79,3 +79,23 @@ func (b *BigMapState) LogFields() logrus.Fields {
 		"removed":  b.Removed,
 	}
 }
+
+// ToDiff -
+func (b *BigMapState) ToDiff() BigMapDiff {
+	bmd := BigMapDiff{
+		Ptr:       b.Ptr,
+		Network:   b.Network,
+		KeyHash:   b.KeyHash,
+		Contract:  b.Contract,
+		Key:       b.Key,
+		Value:     b.Value,
+		Level:     b.LastUpdateLevel,
+		Timestamp: b.LastUpdateTime,
+	}
+
+	if b.Removed {
+		bmd.Value = nil
+	}
+
+	return bmd
+}

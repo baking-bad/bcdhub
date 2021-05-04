@@ -33,16 +33,12 @@ func (ctx *Context) GetInfo(c *gin.Context) {
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	block, err := ctx.Blocks.Last(req.Network)
+	block, err := ctx.getCurrentBlock(req.Network)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	rpc, err := ctx.GetRPC(req.Network)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-	balance, err := rpc.GetContractBalance(req.Address, block.Level)
+	balance, err := ctx.getTezosBalance(req.Network, req.Address, block.Level)
 	if ctx.handleError(c, err, 0) {
 		return
 	}

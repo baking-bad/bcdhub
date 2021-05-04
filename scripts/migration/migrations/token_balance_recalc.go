@@ -80,7 +80,7 @@ func (m *TokenBalanceRecalc) Recalc(ctx *config.Context, network, address string
 			Address:  balance.Address,
 			Contract: address,
 			TokenID:  balance.TokenID,
-			Value:    balance.Balance,
+			Value:    balance.Balance.Val,
 		})
 	}
 

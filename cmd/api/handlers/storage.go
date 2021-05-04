@@ -38,7 +38,7 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 		return
 	}
 	if sReq.Level == 0 {
-		block, err := ctx.Blocks.Last(req.Network)
+		block, err := ctx.getCurrentBlock(req.Network)
 		if ctx.handleError(c, err, 0) {
 			return
 		}

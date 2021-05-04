@@ -12,10 +12,10 @@ import (
 // TokenBalance -
 type TokenBalance struct {
 	ID            int64   `json:"-" gorm:"autoIncrement:true"`
-	Network       string  `json:"network" gorm:"not null;primaryKey"`
+	Network       string  `json:"network" gorm:"not null;primaryKey;index:token_balances_token_idx"`
 	Address       string  `json:"address" gorm:"not null;primaryKey"`
-	Contract      string  `json:"contract" gorm:"not null;primaryKey"`
-	TokenID       uint64  `json:"token_id" gorm:"type:numeric(50,0);default:0;primaryKey;autoIncrement:false"`
+	Contract      string  `json:"contract" gorm:"not null;primaryKey;index:token_balances_token_idx"`
+	TokenID       uint64  `json:"token_id" gorm:"type:numeric(50,0);default:0;primaryKey;autoIncrement:false;index:token_balances_token_idx"`
 	Balance       float64 `json:"balance" gorm:"type:numeric(100,0);default:0"`
 	BalanceString string  `json:"balance_string"`
 

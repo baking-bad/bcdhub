@@ -255,19 +255,21 @@ func (b *Babylon) handleBigMapDiffRemove(item noderpc.BigMapDiff, address string
 	if ptr < 0 {
 		return nil, nil
 	}
-	bmd, err := b.repo.GetByPtr(address, operation.Network, ptr)
+	states, err := b.repo.GetByPtr(operation.Network, address, ptr)
 	if err != nil {
 		return nil, err
 	}
 	newUpdates := make([]models.Model, 0)
-	for i := range bmd {
-		bmd[i].OperationHash = operation.Hash
-		bmd[i].OperationCounter = operation.Counter
-		bmd[i].OperationNonce = operation.Nonce
-		bmd[i].Level = operation.Level
-		bmd[i].Timestamp = operation.Timestamp
-		bmd[i].Value = nil
-		newUpdates = append(newUpdates, &bmd[i], bmd[i].ToState())
+	for i := range states {
+		states[i].Removed = true
+
+		bmd := states[i].ToDiff()
+		bmd.OperationHash = operation.Hash
+		bmd.OperationCounter = operation.Counter
+		bmd.OperationNonce = operation.Nonce
+		bmd.Level = operation.Level
+		bmd.Timestamp = operation.Timestamp
+		newUpdates = append(newUpdates, &bmd, &states[i])
 	}
 	newUpdates = append(newUpdates, b.createBigMapDiffAction("remove", address, &ptr, nil, operation))
 	return newUpdates, nil
@@ -362,9 +364,13 @@ func (b *Babylon) updateTemporaryPointers(src, dst int64) {
 
 func (b *Babylon) getCopyBigMapDiff(src int64, address, network string) (bmd []bigmapdiff.BigMapDiff, err error) {
 	if src > -1 {
-		bmd, err = b.repo.GetByPtr(address, network, src)
+		states, err := b.repo.GetByPtr(network, address, src)
 		if err != nil {
 			return nil, err
+		}
+		bmd = make([]bigmapdiff.BigMapDiff, 0, len(states))
+		for i := range states {
+			bmd = append(bmd, states[i].ToDiff())
 		}
 	} else {
 		bmd, err = b.getDiffsFromUpdates(src)

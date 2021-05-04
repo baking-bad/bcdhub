@@ -197,8 +197,8 @@ func TestRichStorage_Parse(t *testing.T) {
 
 			bmdRepo.
 				EXPECT().
-				GetByPtr(tt.operation.Destination, tt.operation.Network, tt.sourcePtr).
-				Return([]bigmapdiff.BigMapDiff{}, nil).
+				GetByPtr(tt.operation.Network, tt.operation.Destination, tt.sourcePtr).
+				Return([]bigmapdiff.BigMapState{}, nil).
 				AnyTimes()
 
 			var op noderpc.Operation
