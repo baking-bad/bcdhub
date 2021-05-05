@@ -1,6 +1,9 @@
 package rollback
 
 import (
+	"time"
+
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
@@ -47,6 +50,9 @@ func (rm Manager) Rollback(db *gorm.DB, fromState block.Block, toLevel int64) er
 				return err
 			}
 			if err := rm.rollbackAll(tx, fromState.Network, level); err != nil {
+				return err
+			}
+			if err := rm.rollbackOperations(tx, fromState.Network, level); err != nil {
 				return err
 			}
 			if err := rm.rollbackBigMapState(tx, fromState.Network, level); err != nil {
@@ -105,7 +111,7 @@ func (rm Manager) rollbackAll(tx *gorm.DB, network string, toLevel int64) error 
 	for _, index := range []models.Model{
 		&block.Block{}, &contract.Contract{}, &bigmapdiff.BigMapDiff{},
 		&bigmapaction.BigMapAction{}, &tzip.TZIP{}, &migration.Migration{},
-		&operation.Operation{}, &transfer.Transfer{}, &tokenmetadata.TokenMetadata{},
+		&transfer.Transfer{}, &tokenmetadata.TokenMetadata{},
 	} {
 		if err := tx.Unscoped().
 			Where("network = ?", network).
@@ -153,6 +159,85 @@ func (rm Manager) rollbackBigMapState(tx *gorm.DB, network string, toLevel int64
 
 		if err := states[i].Save(tx); err != nil {
 			return err
+		}
+	}
+
+	return nil
+}
+
+type lastAction struct {
+	Address string    `gorm:"address"`
+	Time    time.Time `gorm:"time"`
+}
+
+func (rm Manager) rollbackOperations(tx *gorm.DB, network string, toLevel int64) error {
+	var ops []operation.Operation
+	if err := tx.Model(&operation.Operation{}).
+		Where("network = ?", network).
+		Where("level > ?", toLevel).
+		Find(&ops).Error; err != nil {
+		return err
+	}
+
+	if err := tx.Unscoped().
+		Where("network = ?", network).
+		Where("level > ?", toLevel).
+		Delete(&operation.Operation{}).
+		Error; err != nil {
+		return err
+	}
+
+	contracts := make(map[string]uint64)
+	for i := range ops {
+		if ops[i].IsOrigination() {
+			continue
+		}
+		if bcd.IsContract(ops[i].Destination) {
+			if _, ok := contracts[ops[i].Destination]; !ok {
+				contracts[ops[i].Destination] = 1
+			} else {
+				contracts[ops[i].Destination] += 1
+			}
+		}
+		if bcd.IsContract(ops[i].Source) {
+			if _, ok := contracts[ops[i].Source]; !ok {
+				contracts[ops[i].Source] = 1
+			} else {
+				contracts[ops[i].Source] += 1
+			}
+		}
+	}
+
+	if len(contracts) > 0 {
+		addresses := make([]string, 0, len(contracts))
+		for address := range contracts {
+			addresses = append(addresses, address)
+		}
+
+		var actions []lastAction
+
+		if err := tx.Raw(`select max(foo.ts) as time, foo.address from (
+			(select "timestamp" as ts, source as address from operations where (network = @network and source in @contracts) order by id desc limit @length)
+			union all
+			(select "timestamp" as ts, destination as address from operations where (network = @network and destination in @contracts) order by id desc limit @length)
+		) as foo
+		group by address
+		`, map[string]interface{}{
+			"network":   network,
+			"contracts": addresses,
+			"length":    len(addresses) * 10,
+		}).Scan(&actions).Error; err != nil {
+			return err
+		}
+
+		for i := range actions {
+			count, ok := contracts[actions[i].Address]
+			if !ok {
+				count = 1
+			}
+			if err := tx.Exec(`update contracts set tx_count = tx_count - ?, last_action = ? where address = ?;`, count, actions[i].Time.UTC(), actions[i].Address).Error; err != nil {
+				return err
+			}
 		}
 	}
 

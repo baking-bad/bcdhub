@@ -100,20 +100,19 @@ func TestGroup_Parse(t *testing.T) {
 	bmdRepo.
 		EXPECT().
 		GetByPtr(
-			gomock.Eq("KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU"),
 			gomock.Eq("carthagenet"),
+			gomock.Eq("KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU"),
 			gomock.Eq(int64(2416))).
-		Return([]bigmapdiff.BigMapDiff{
+		Return([]bigmapdiff.BigMapState{
 			{
-				Ptr:       2416,
-				Key:       []byte(`{"bytes": "000085ef0c18b31983603d978a152de4cd61803db881"}`),
-				KeyHash:   "exprtfKNhZ1G8vMscchFjt1G1qww2P93VTLHMuhyThVYygZLdnRev2",
-				Value:     []byte(`{"prim":"Pair","args":[[],{"int":"6000"}]}`),
-				Level:     386026,
-				Contract:  "KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU",
-				Network:   "carthagenet",
-				Timestamp: timestamp,
-				Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+				Ptr:             2416,
+				Key:             []byte(`{"bytes": "000085ef0c18b31983603d978a152de4cd61803db881"}`),
+				KeyHash:         "exprtfKNhZ1G8vMscchFjt1G1qww2P93VTLHMuhyThVYygZLdnRev2",
+				Value:           []byte(`{"prim":"Pair","args":[[],{"int":"6000"}]}`),
+				LastUpdateLevel: 386026,
+				Contract:        "KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU",
+				Network:         "carthagenet",
+				LastUpdateTime:  timestamp,
 			},
 		}, nil).
 		AnyTimes()
@@ -122,30 +121,29 @@ func TestGroup_Parse(t *testing.T) {
 		bmdRepo.
 			EXPECT().
 			GetByPtr(
-				gomock.Eq("KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264"),
 				gomock.Eq("edo2net"),
+				gomock.Eq("KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264"),
 				gomock.Eq(int64(ptr))).
-			Return([]bigmapdiff.BigMapDiff{}, nil).
+			Return([]bigmapdiff.BigMapState{}, nil).
 			AnyTimes()
 	}
 
 	bmdRepo.
 		EXPECT().
 		GetByPtr(
-			gomock.Eq("KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ"),
 			gomock.Eq("carthagenet"),
+			gomock.Eq("KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ"),
 			gomock.Eq(int64(2417))).
-		Return([]bigmapdiff.BigMapDiff{
+		Return([]bigmapdiff.BigMapState{
 			{
-				Ptr:       2417,
-				Key:       []byte(`{"bytes": "000085ef0c18b31983603d978a152de4cd61803db881"}`),
-				KeyHash:   "exprtfKNhZ1G8vMscchFjt1G1qww2P93VTLHMuhyThVYygZLdnRev2",
-				Value:     nil,
-				Level:     386026,
-				Contract:  "KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ",
-				Network:   "carthagenet",
-				Timestamp: timestamp,
-				Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+				Ptr:             2417,
+				Key:             []byte(`{"bytes": "000085ef0c18b31983603d978a152de4cd61803db881"}`),
+				KeyHash:         "exprtfKNhZ1G8vMscchFjt1G1qww2P93VTLHMuhyThVYygZLdnRev2",
+				Value:           nil,
+				LastUpdateLevel: 386026,
+				Contract:        "KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ",
+				Network:         "carthagenet",
+				LastUpdateTime:  timestamp,
 			},
 		}, nil).
 		AnyTimes()

@@ -44,6 +44,7 @@ func New(connection, appName string, opts ...PostgresOption) (*Postgres, error) 
 	}
 
 	sql.SetMaxOpenConns(200)
+	sql.SetMaxIdleConns(100)
 
 	return &pg, nil
 }

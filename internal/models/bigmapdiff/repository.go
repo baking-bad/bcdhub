@@ -6,7 +6,7 @@ type Repository interface {
 	GetByAddress(string, string) ([]BigMapDiff, error)
 	GetForOperation(hash string, counter int64, nonce *int64) ([]*BigMapDiff, error)
 	GetUniqueForOperations(opg []OPG) ([]BigMapDiff, error)
-	GetByPtr(string, string, int64) ([]BigMapDiff, error)
+	GetByPtr(network, contract string, ptr int64) ([]BigMapState, error)
 	GetByPtrAndKeyHash(int64, string, string, int64, int64) ([]BigMapDiff, int64, error)
 	GetForAddress(string) ([]BigMapDiff, error)
 	GetByIDs(ids ...int64) ([]BigMapDiff, error)

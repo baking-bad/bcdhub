@@ -1,6 +1,7 @@
 package transfer
 
 import (
+	"database/sql/driver"
 	"fmt"
 	"math/big"
 	"time"
@@ -177,7 +178,38 @@ type Pageable struct {
 
 // Balance -
 type Balance struct {
-	Balance *big.Int
+	Balance Amount
 	Address string
 	TokenID uint64
+}
+
+// Amount -
+type Amount struct {
+	Val *big.Int
+}
+
+// Scan scan value into Jsonb, implements sql.Scanner interface
+func (a *Amount) Scan(value interface{}) error {
+	if a.Val == nil {
+		a.Val = big.NewInt(0)
+	}
+
+	s, ok := value.(string)
+	if !ok {
+		s = "0"
+	}
+
+	if _, ok := a.Val.SetString(s, 10); !ok {
+		return errors.Errorf("Invalid amount: %s", s)
+	}
+
+	return nil
+}
+
+// Value return json value, implement driver.Valuer interface
+func (a *Amount) Value() (driver.Value, error) {
+	if a == nil || a.Val == nil {
+		return []byte(`0`), nil
+	}
+	return []byte(a.Val.String()), nil
 }

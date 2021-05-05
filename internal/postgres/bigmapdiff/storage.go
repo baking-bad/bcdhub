@@ -190,16 +190,11 @@ func (storage *Storage) GetByPtrAndKeyHash(ptr int64, network, keyHash string, s
 }
 
 // GetByPtr -
-func (storage *Storage) GetByPtr(address, network string, ptr int64) (response []bigmapdiff.BigMapDiff, err error) {
-	subQuery := storage.DB.Table(models.DocBigMapDiff).
-		Select("max(id) as id").
-		Scopes(core.NetworkAndContract(network, address)).
-		Where("ptr = ?", ptr).
-		Group("key_hash")
-
-	query := storage.DB.Table(models.DocBigMapDiff).
-		Where("id IN (?)", subQuery)
-	return response, query.Find(&response).Error
+func (storage *Storage) GetByPtr(network, contract string, ptr int64) (response []bigmapdiff.BigMapState, err error) {
+	err = storage.DB.Table(models.DocBigMapState).
+		Scopes(core.NetworkAndContract(network, contract)).
+		Where("ptr = ?", ptr).Find(&response).Error
+	return
 }
 
 // Get -
@@ -294,7 +289,7 @@ func (storage *Storage) LastDiff(network string, ptr int64, keyHash string, skip
 		query.Where("value is not null")
 	}
 
-	err = query.Order("id desc").Scan(&diff).Error
+	err = query.Order("id desc").Limit(1).Scan(&diff).Error
 	return
 }
 

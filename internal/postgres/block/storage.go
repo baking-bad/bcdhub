@@ -24,7 +24,7 @@ func (storage *Storage) Get(network string, level int64) (block block.Block, err
 
 // Last - returns current indexer state for network
 func (storage *Storage) Last(network string) (block block.Block, err error) {
-	err = storage.DB.Table(models.DocBlocks).Scopes(core.Network(network)).Order("level DESC").Limit(1).Scan(&block).Error
+	err = storage.DB.Table(models.DocBlocks).Scopes(core.Network(network)).Order("id DESC").Limit(1).Scan(&block).Error
 	if storage.IsRecordNotFound(err) {
 		err = nil
 		block.Network = network

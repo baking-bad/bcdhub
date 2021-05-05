@@ -43,7 +43,7 @@ func (storage *Storage) GetHolders(network, contract string, tokenID uint64) ([]
 	var balances []tokenbalance.TokenBalance
 	err := storage.DB.Table(models.DocTokenBalances).
 		Scopes(core.Token(network, contract, tokenID)).
-		Where("balance != '0'").
+		Where("balance != 0").
 		Find(&balances).Error
 	return balances, err
 }
@@ -52,7 +52,7 @@ func (storage *Storage) GetHolders(network, contract string, tokenID uint64) ([]
 func (storage *Storage) NFTHolders(network, contract string, tokenID uint64) (tokens []tokenbalance.TokenBalance, err error) {
 	err = storage.DB.
 		Scopes(core.Token(network, contract, tokenID)).
-		Where("balance != '0'").
+		Where("balance != 0").
 		Find(&tokens).Error
 	return
 }

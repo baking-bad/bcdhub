@@ -101,7 +101,7 @@ func TestBabylon_ParseTransaction(t *testing.T) {
 			repo.
 				EXPECT().
 				GetByPtr(gomock.Any(), gomock.Any(), gomock.Any()).
-				Return([]bigmapdiff.BigMapDiff{}, nil).
+				Return([]bigmapdiff.BigMapState{}, nil).
 				AnyTimes()
 
 			var content noderpc.Operation
