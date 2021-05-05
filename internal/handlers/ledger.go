@@ -130,7 +130,8 @@ func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *as
 }
 
 func (ledger *Ledger) makeTransfer(tb tokenbalance.TokenBalance, op *operation.Operation) *transfer.Transfer {
-	tagCondition := !op.HasTag(consts.FA12Tag) && !op.HasTag(consts.FA2Tag) && op.HasTag(consts.LedgerTag)
+	faCondition := (op.HasTag(consts.FA2Tag) || op.HasTag(consts.FA12Tag)) && op.IsEntrypoint(consts.TransferEntrypoint)
+	tagCondition := !faCondition && op.HasTag(consts.LedgerTag)
 	if !(op.IsOrigination() || tagCondition) {
 		return nil
 	}
@@ -153,7 +154,7 @@ func (ledger *Ledger) makeTransfer(tb tokenbalance.TokenBalance, op *operation.O
 	}
 
 	t.TokenID = tb.TokenID
-	t.Value.Set(tb.Value)
+	t.Value.Set(balance.Value)
 
 	if op.Nonce != nil {
 		st := stacktrace.New()

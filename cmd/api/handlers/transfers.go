@@ -75,11 +75,9 @@ func (ctx *Context) transfersPostprocessing(transfers transfer.Pageable, withLas
 			return response, err
 		}
 		if metadata != nil {
-			token = TokenMetadata{
-				Symbol:   metadata.Symbol,
-				Name:     metadata.Name,
-				Decimals: metadata.Decimals,
-			}
+			token.Symbol = metadata.Symbol
+			token.Name = metadata.Name
+			token.Decimals = metadata.Decimals
 		}
 
 		response.Transfers[i] = TransferFromElasticModel(transfers.Transfers[i])
