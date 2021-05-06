@@ -84,7 +84,7 @@ func (storage *Storage) GetHolders(network, contract string, tokenID int64) (bal
 }
 
 // GetAccountBalances -
-func (storage *Storage) GetAccountBalances(network, address, contract string, size, offset int64) (tokenBalances []tokenbalance.TokenBalance, total int64, err error) {
+func (storage *Storage) GetAccountBalances(network, address, contract string, size, offset int64, sort string) (tokenBalances []tokenbalance.TokenBalance, total int64, err error) {
 	query := storage.db.Query(models.DocTokenBalances).
 		Match("network", network).
 		Match("address", address)
