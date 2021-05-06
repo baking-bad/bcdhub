@@ -33,6 +33,60 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/v1/account/{network}": {
+            "get": {
+                "description": "Batch account token balances",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "account"
+                ],
+                "summary": "Batch account token balances",
+                "operationId": "get-batch-token-balances",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Comma-separated list of addresses (e.g. addr1,addr2,addr3)",
+                        "name": "address",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/definitions/handlers.TokenBalance"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/account/{network}/{address}": {
             "get": {
                 "description": "Get account info",
@@ -74,6 +128,12 @@ var doc = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/handlers.Error"
                         }
@@ -131,6 +191,12 @@ var doc = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/handlers.Error"
                         }
@@ -195,6 +261,12 @@ var doc = `{
                             "$ref": "#/definitions/handlers.Error"
                         }
                     },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -248,6 +320,22 @@ var doc = `{
                         "description": "Requested count",
                         "name": "size",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Contract address",
+                        "name": "contract",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "level",
+                            "balance"
+                        ],
+                        "type": "string",
+                        "description": "Field using for sorting",
+                        "name": "sort_by",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -259,6 +347,12 @@ var doc = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/handlers.Error"
                         }
@@ -581,6 +675,12 @@ var doc = `{
                             "$ref": "#/definitions/handlers.BigMapDiffByKeyResponse"
                         }
                     },
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
@@ -635,8 +735,20 @@ var doc = `{
                             "$ref": "#/definitions/handlers.Contract"
                         }
                     },
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/handlers.Error"
                         }
@@ -764,6 +876,12 @@ var doc = `{
                             "$ref": "#/definitions/handlers.Error"
                         }
                     },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -823,6 +941,12 @@ var doc = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/handlers.Error"
                         }
@@ -898,6 +1022,12 @@ var doc = `{
                             "$ref": "#/definitions/handlers.Error"
                         }
                     },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -964,6 +1094,12 @@ var doc = `{
                             "$ref": "#/definitions/handlers.Error"
                         }
                     },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -1021,6 +1157,12 @@ var doc = `{
                             "$ref": "#/definitions/handlers.Error"
                         }
                     },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -1074,6 +1216,12 @@ var doc = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/handlers.Error"
                         }
@@ -1174,6 +1322,12 @@ var doc = `{
                             "$ref": "#/definitions/handlers.Error"
                         }
                     },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -1247,6 +1401,12 @@ var doc = `{
                             "$ref": "#/definitions/handlers.Error"
                         }
                     },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -1314,6 +1474,12 @@ var doc = `{
                             "$ref": "#/definitions/handlers.Error"
                         }
                     },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -1373,6 +1539,12 @@ var doc = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/handlers.Error"
                         }
@@ -1443,6 +1615,12 @@ var doc = `{
                             "$ref": "#/definitions/handlers.Error"
                         }
                     },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -1509,6 +1687,12 @@ var doc = `{
                             "$ref": "#/definitions/handlers.Error"
                         }
                     },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -1569,6 +1753,12 @@ var doc = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/handlers.Error"
                         }
@@ -1638,6 +1828,12 @@ var doc = `{
                         "description": "Minimum token` + "`" + `s creation level (greater than)",
                         "name": "min_level",
                         "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Token ID",
+                        "name": "token_id",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1646,12 +1842,78 @@ var doc = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/handlers.Token"
+                                "$ref": "#/definitions/handlers.TokenMetadata"
                             }
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/contract/{network}/{address}/tokens/count": {
+            "get": {
+                "description": "Get contract` + "`" + `s tokens count",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contract"
+                ],
+                "summary": "Get contract` + "`" + `s tokens count",
+                "operationId": "get-contract-token-count",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "description": "KT address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CountResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/handlers.Error"
                         }
@@ -1717,6 +1979,12 @@ var doc = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/handlers.Error"
                         }
@@ -1787,6 +2055,12 @@ var doc = `{
                             "$ref": "#/definitions/handlers.Error"
                         }
                     },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -1840,6 +2114,12 @@ var doc = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/handlers.Error"
                         }
@@ -1999,7 +2279,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/tezosdomain.TezosDomain"
+                            "$ref": "#/definitions/handlers.TezosDomain"
                         }
                     },
                     "204": {
@@ -2071,7 +2351,7 @@ var doc = `{
                 "operationId": "get-operation-error-location",
                 "parameters": [
                     {
-                        "type": "string",
+                        "type": "integer",
                         "description": "Internal BCD operation ID",
                         "name": "id",
                         "in": "path",
@@ -2191,6 +2471,12 @@ var doc = `{
                             "$ref": "#/definitions/handlers.Contract"
                         }
                     },
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -2279,7 +2565,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.Result"
+                            "$ref": "#/definitions/search.Result"
                         }
                     },
                     "400": {
@@ -2325,6 +2611,12 @@ var doc = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/handlers.Alias"
+                        }
+                    },
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
                         }
                     },
                     "400": {
@@ -2529,7 +2821,8 @@ var doc = `{
                             "year",
                             "month",
                             "week",
-                            "day"
+                            "day",
+                            "hour"
                         ],
                         "type": "string",
                         "description": "One of periods",
@@ -2614,6 +2907,101 @@ var doc = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/handlers.PageableTokenContracts"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/tokens/{network}/metadata": {
+            "get": {
+                "description": "List token metadata",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tokens"
+                ],
+                "summary": "List token metadata",
+                "operationId": "list-token-metadata",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maximum": 10,
+                        "type": "integer",
+                        "description": "Requested count",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 10,
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum token` + "`" + `s creation level (less than or equal)",
+                        "name": "max_level",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Minimum token` + "`" + `s creation level (greater than)",
+                        "name": "min_level",
+                        "in": "query"
+                    },
+                    {
+                        "maxLength": 25,
+                        "type": "string",
+                        "description": "Creator name",
+                        "name": "creator",
+                        "in": "query"
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "description": "KT address",
+                        "name": "contract",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Token ID",
+                        "name": "token_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.Token"
+                            }
                         }
                     },
                     "400": {
@@ -2800,6 +3188,12 @@ var doc = `{
                             "$ref": "#/definitions/handlers.Error"
                         }
                     },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -2940,6 +3334,12 @@ var doc = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/handlers.Error"
                         }
@@ -3423,7 +3823,7 @@ var doc = `{
                     "type": "string"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "language": {
                     "type": "string",
@@ -3506,7 +3906,7 @@ var doc = `{
                 "domains": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/tezosdomain.TezosDomain"
+                        "$ref": "#/definitions/handlers.TezosDomain"
                     }
                 },
                 "total": {
@@ -3619,12 +4019,6 @@ var doc = `{
                 "total": {
                     "type": "integer"
                 },
-                "total_balance": {
-                    "type": "integer"
-                },
-                "total_withdrawn": {
-                    "type": "integer"
-                },
                 "unique_contracts": {
                     "type": "integer"
                 }
@@ -3682,6 +4076,11 @@ var doc = `{
         "handlers.Operation": {
             "type": "object",
             "properties": {
+                "allocated_destination_contract": {
+                    "type": "boolean",
+                    "x-nullable": true,
+                    "example": true
+                },
                 "allocated_destination_contract_burned": {
                     "type": "integer",
                     "x-nullable": true
@@ -3697,6 +4096,11 @@ var doc = `{
                 "burned": {
                     "type": "integer",
                     "x-nullable": true
+                },
+                "consumed_gas": {
+                    "type": "integer",
+                    "x-nullable": true,
+                    "example": 100
                 },
                 "content_index": {
                     "type": "integer"
@@ -3741,7 +4145,7 @@ var doc = `{
                     "x-nullable": true
                 },
                 "id": {
-                    "type": "string",
+                    "type": "integer",
                     "x-nullable": true
                 },
                 "internal": {
@@ -3764,6 +4168,11 @@ var doc = `{
                 "network": {
                     "type": "string"
                 },
+                "paid_storage_size_diff": {
+                    "type": "integer",
+                    "x-nullable": true,
+                    "example": 300
+                },
                 "parameters": {
                     "type": "object",
                     "x-nullable": true
@@ -3778,10 +4187,6 @@ var doc = `{
                 "rawMempool": {
                     "type": "object",
                     "x-nullable": true
-                },
-                "result": {
-                    "x-nullable": true,
-                    "$ref": "#/definitions/handlers.OperationResult"
                 },
                 "source": {
                     "type": "string",
@@ -3802,6 +4207,11 @@ var doc = `{
                     "type": "integer",
                     "x-nullable": true
                 },
+                "storage_size": {
+                    "type": "integer",
+                    "x-nullable": true,
+                    "example": 200
+                },
                 "timestamp": {
                     "type": "string"
                 }
@@ -3820,31 +4230,6 @@ var doc = `{
                     "items": {
                         "$ref": "#/definitions/handlers.Operation"
                     }
-                }
-            }
-        },
-        "handlers.OperationResult": {
-            "type": "object",
-            "properties": {
-                "allocated_destination_contract": {
-                    "type": "boolean",
-                    "x-nullable": true,
-                    "example": true
-                },
-                "consumed_gas": {
-                    "type": "integer",
-                    "x-nullable": true,
-                    "example": 100
-                },
-                "paid_storage_size_diff": {
-                    "type": "integer",
-                    "x-nullable": true,
-                    "example": 300
-                },
-                "storage_size": {
-                    "type": "integer",
-                    "x-nullable": true,
-                    "example": 200
                 }
             }
         },
@@ -3962,7 +4347,7 @@ var doc = `{
                     "type": "string"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "language": {
                     "type": "string",
@@ -4111,7 +4496,7 @@ var doc = `{
                     "type": "string"
                 },
                 "domain": {
-                    "$ref": "#/definitions/tezosdomain.ReverseTezosDomain"
+                    "type": "string"
                 },
                 "events": {
                     "type": "array",
@@ -4152,6 +4537,33 @@ var doc = `{
                 }
             }
         },
+        "handlers.TezosDomain": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "data": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "expiration": {
+                    "type": "string"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "network": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
         "handlers.Token": {
             "type": "object",
             "properties": {
@@ -4166,7 +4578,8 @@ var doc = `{
                     "type": "array",
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "x-nullable": true
                 },
                 "decimals": {
                     "type": "integer",
@@ -4187,8 +4600,9 @@ var doc = `{
                 "formats": {
                     "type": "array",
                     "items": {
-                        "type": "object"
-                    }
+                        "type": "integer"
+                    },
+                    "x-nullable": true
                 },
                 "is_boolean_amount": {
                     "type": "boolean",
@@ -4214,7 +4628,7 @@ var doc = `{
                     "x-nullable": true
                 },
                 "supply": {
-                    "type": "number"
+                    "type": "string"
                 },
                 "symbol": {
                     "type": "string",
@@ -4224,9 +4638,14 @@ var doc = `{
                     "type": "array",
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "x-nullable": true
                 },
                 "thumbnail_uri": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "timestamp": {
                     "type": "string",
                     "x-nullable": true
                 },
@@ -4264,7 +4683,8 @@ var doc = `{
                     "type": "array",
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "x-nullable": true
                 },
                 "decimals": {
                     "type": "integer",
@@ -4285,8 +4705,9 @@ var doc = `{
                 "formats": {
                     "type": "array",
                     "items": {
-                        "type": "object"
-                    }
+                        "type": "integer"
+                    },
+                    "x-nullable": true
                 },
                 "is_boolean_amount": {
                     "type": "boolean",
@@ -4319,9 +4740,14 @@ var doc = `{
                     "type": "array",
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "x-nullable": true
                 },
                 "thumbnail_uri": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "timestamp": {
                     "type": "string",
                     "x-nullable": true
                 },
@@ -4419,7 +4845,8 @@ var doc = `{
                     "type": "array",
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "x-nullable": true
                 },
                 "decimals": {
                     "type": "integer",
@@ -4440,8 +4867,9 @@ var doc = `{
                 "formats": {
                     "type": "array",
                     "items": {
-                        "type": "object"
-                    }
+                        "type": "integer"
+                    },
+                    "x-nullable": true
                 },
                 "is_boolean_amount": {
                     "type": "boolean",
@@ -4474,9 +4902,14 @@ var doc = `{
                     "type": "array",
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "x-nullable": true
                 },
                 "thumbnail_uri": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "timestamp": {
                     "type": "string",
                     "x-nullable": true
                 },
@@ -4701,7 +5134,21 @@ var doc = `{
                 }
             }
         },
-        "models.Group": {
+        "operation.DAppStats": {
+            "type": "object",
+            "properties": {
+                "txs": {
+                    "type": "integer"
+                },
+                "users": {
+                    "type": "integer"
+                },
+                "volume": {
+                    "type": "integer"
+                }
+            }
+        },
+        "search.Group": {
             "type": "object",
             "properties": {
                 "count": {
@@ -4710,19 +5157,19 @@ var doc = `{
                 "top": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.Top"
+                        "$ref": "#/definitions/search.Top"
                     }
                 }
             }
         },
-        "models.Item": {
+        "search.Item": {
             "type": "object",
             "properties": {
                 "body": {
                     "type": "object"
                 },
                 "group": {
-                    "$ref": "#/definitions/models.Group"
+                    "$ref": "#/definitions/search.Group"
                 },
                 "highlights": {
                     "type": "object",
@@ -4741,7 +5188,7 @@ var doc = `{
                 }
             }
         },
-        "models.Result": {
+        "search.Result": {
             "type": "object",
             "properties": {
                 "count": {
@@ -4750,7 +5197,7 @@ var doc = `{
                 "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.Item"
+                        "$ref": "#/definitions/search.Item"
                     }
                 },
                 "time": {
@@ -4758,7 +5205,7 @@ var doc = `{
                 }
             }
         },
-        "models.Top": {
+        "search.Top": {
             "type": "object",
             "properties": {
                 "key": {
@@ -4766,20 +5213,6 @@ var doc = `{
                 },
                 "network": {
                     "type": "string"
-                }
-            }
-        },
-        "operation.DAppStats": {
-            "type": "object",
-            "properties": {
-                "txs": {
-                    "type": "integer"
-                },
-                "users": {
-                    "type": "integer"
-                },
-                "volume": {
-                    "type": "integer"
                 }
             }
         },
@@ -4796,46 +5229,6 @@ var doc = `{
                     "type": "string"
                 },
                 "title": {
-                    "type": "string"
-                }
-            }
-        },
-        "tezosdomain.ReverseTezosDomain": {
-            "type": "object",
-            "properties": {
-                "expiration": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "tezosdomain.TezosDomain": {
-            "type": "object",
-            "properties": {
-                "address": {
-                    "type": "string"
-                },
-                "data": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "expiration": {
-                    "type": "string"
-                },
-                "level": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "network": {
-                    "type": "string"
-                },
-                "timestamp": {
                     "type": "string"
                 }
             }
