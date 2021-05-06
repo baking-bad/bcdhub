@@ -127,7 +127,7 @@ func (ctx *Context) GetBatchTokenBalances(c *gin.Context) {
 // @Param offset query integer false "Offset"
 // @Param size query integer false "Requested count" minimum(0) maximum(10)
 // @Param contract query string false "Contract address"
-// @Param sort_by query string false "Field using for sorting" Enums(level, balance)
+// @Param sort_by query string false "Field using for sorting" Enums(token_id, balance)
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} TokenBalances

@@ -40,8 +40,8 @@ func (storage *Storage) TokenBalances(network, contract, address string, size, o
 		query.Where("contract = ?", contract)
 	}
 
-	if sort != "level" && sort != "balance" {
-		sort = "level"
+	if sort != "token_id" && sort != "balance" {
+		sort = "token_id"
 	}
 
 	limit := storage.GetPageSize(size)
