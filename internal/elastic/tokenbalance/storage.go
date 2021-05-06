@@ -97,12 +97,6 @@ func (storage *Storage) GetAccountBalances(network, address, contract string, si
 	if contract != "" {
 		filters = append(filters, core.MatchPhrase("contract", contract))
 	}
-	switch sort {
-	case "balance":
-		sort = "balance.keyword"
-	default:
-		sort = "token_id"
-	}
 
 	query := core.NewQuery().Query(
 		core.Bool(
@@ -110,7 +104,25 @@ func (storage *Storage) GetAccountBalances(network, address, contract string, si
 				filters...,
 			),
 		),
-	).Sort(sort, "desc").All()
+	).All()
+
+	switch sort {
+	case "balance":
+		query.Add(core.Item{
+			"sort": core.Item{
+				"_script": core.Item{
+					"type": "string",
+					"script": core.Item{
+						"lang":   "painless",
+						"source": "doc['balance.keyword'].value.length().toString() + doc['balance.keyword'].value",
+					},
+					"order": "desc",
+				},
+			},
+		})
+	default:
+		query.Sort("token_id", "desc")
+	}
 
 	size = core.GetSize(size, storage.es.MaxPageSize)
 
