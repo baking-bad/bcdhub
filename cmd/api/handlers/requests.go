@@ -376,6 +376,7 @@ type tokenRequest struct {
 type tokenBalanceRequest struct {
 	pageableRequest
 	Contract string `form:"contract" binding:"omitempty,address"`
+	SortBy   string `form:"sort_by" binding:"omitempty,oneof=level balance"`
 }
 
 type batchAddressRequest struct {

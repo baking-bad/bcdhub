@@ -315,7 +315,7 @@ definitions:
       hash:
         type: string
       id:
-        type: string
+        type: integer
       language:
         type: string
         x-nullable: true
@@ -373,7 +373,7 @@ definitions:
     properties:
       domains:
         items:
-          $ref: '#/definitions/tezosdomain.TezosDomain'
+          $ref: '#/definitions/handlers.TezosDomain'
         type: array
       total:
         type: integer
@@ -448,10 +448,6 @@ definitions:
         type: string
       total:
         type: integer
-      total_balance:
-        type: integer
-      total_withdrawn:
-        type: integer
       unique_contracts:
         type: integer
     type: object
@@ -490,6 +486,10 @@ definitions:
     type: object
   handlers.Operation:
     properties:
+      allocated_destination_contract:
+        example: true
+        type: boolean
+        x-nullable: true
       allocated_destination_contract_burned:
         type: integer
         x-nullable: true
@@ -500,6 +500,10 @@ definitions:
         type: integer
         x-nullable: true
       burned:
+        type: integer
+        x-nullable: true
+      consumed_gas:
+        example: 100
         type: integer
         x-nullable: true
       content_index:
@@ -534,7 +538,7 @@ definitions:
         type: string
         x-nullable: true
       id:
-        type: string
+        type: integer
         x-nullable: true
       internal:
         type: boolean
@@ -550,6 +554,10 @@ definitions:
         type: boolean
       network:
         type: string
+      paid_storage_size_diff:
+        example: 300
+        type: integer
+        x-nullable: true
       parameters:
         type: object
         x-nullable: true
@@ -560,9 +568,6 @@ definitions:
         x-nullable: true
       rawMempool:
         type: object
-        x-nullable: true
-      result:
-        $ref: '#/definitions/handlers.OperationResult'
         x-nullable: true
       source:
         type: string
@@ -578,6 +583,10 @@ definitions:
       storage_limit:
         type: integer
         x-nullable: true
+      storage_size:
+        example: 200
+        type: integer
+        x-nullable: true
       timestamp:
         type: string
     type: object
@@ -591,25 +600,6 @@ definitions:
         items:
           $ref: '#/definitions/handlers.Operation'
         type: array
-    type: object
-  handlers.OperationResult:
-    properties:
-      allocated_destination_contract:
-        example: true
-        type: boolean
-        x-nullable: true
-      consumed_gas:
-        example: 100
-        type: integer
-        x-nullable: true
-      paid_storage_size_diff:
-        example: 300
-        type: integer
-        x-nullable: true
-      storage_size:
-        example: 200
-        type: integer
-        x-nullable: true
     type: object
   handlers.PageableTokenContracts:
     properties:
@@ -691,7 +681,7 @@ definitions:
       hash:
         type: string
       id:
-        type: string
+        type: integer
       language:
         type: string
         x-nullable: true
@@ -794,7 +784,7 @@ definitions:
       description:
         type: string
       domain:
-        $ref: '#/definitions/tezosdomain.ReverseTezosDomain'
+        type: string
       events:
         items:
           $ref: '#/definitions/tzip.Event'
@@ -821,6 +811,24 @@ definitions:
           $ref: '#/definitions/tzip.View'
         type: array
     type: object
+  handlers.TezosDomain:
+    properties:
+      address:
+        type: string
+      data:
+        additionalProperties: true
+        type: object
+      expiration:
+        type: string
+      level:
+        type: integer
+      name:
+        type: string
+      network:
+        type: string
+      timestamp:
+        type: string
+    type: object
   handlers.Token:
     properties:
       artifact_uri:
@@ -832,6 +840,7 @@ definitions:
         items:
           type: string
         type: array
+        x-nullable: true
       decimals:
         type: integer
         x-nullable: true
@@ -846,8 +855,9 @@ definitions:
         x-nullable: true
       formats:
         items:
-          type: object
+          type: integer
         type: array
+        x-nullable: true
       is_boolean_amount:
         type: boolean
         x-nullable: true
@@ -866,7 +876,7 @@ definitions:
         type: boolean
         x-nullable: true
       supply:
-        type: number
+        type: string
       symbol:
         type: string
         x-nullable: true
@@ -874,7 +884,11 @@ definitions:
         items:
           type: string
         type: array
+        x-nullable: true
       thumbnail_uri:
+        type: string
+        x-nullable: true
+      timestamp:
         type: string
         x-nullable: true
       token_id:
@@ -902,6 +916,7 @@ definitions:
         items:
           type: string
         type: array
+        x-nullable: true
       decimals:
         type: integer
         x-nullable: true
@@ -916,8 +931,9 @@ definitions:
         x-nullable: true
       formats:
         items:
-          type: object
+          type: integer
         type: array
+        x-nullable: true
       is_boolean_amount:
         type: boolean
         x-nullable: true
@@ -942,7 +958,11 @@ definitions:
         items:
           type: string
         type: array
+        x-nullable: true
       thumbnail_uri:
+        type: string
+        x-nullable: true
+      timestamp:
         type: string
         x-nullable: true
       token_id:
@@ -1011,6 +1031,7 @@ definitions:
         items:
           type: string
         type: array
+        x-nullable: true
       decimals:
         type: integer
         x-nullable: true
@@ -1025,8 +1046,9 @@ definitions:
         x-nullable: true
       formats:
         items:
-          type: object
+          type: integer
         type: array
+        x-nullable: true
       is_boolean_amount:
         type: boolean
         x-nullable: true
@@ -1051,7 +1073,11 @@ definitions:
         items:
           type: string
         type: array
+        x-nullable: true
       thumbnail_uri:
+        type: string
+        x-nullable: true
+      timestamp:
         type: string
         x-nullable: true
       token_id:
@@ -1205,21 +1231,30 @@ definitions:
     - data
     - name
     type: object
-  models.Group:
+  operation.DAppStats:
+    properties:
+      txs:
+        type: integer
+      users:
+        type: integer
+      volume:
+        type: integer
+    type: object
+  search.Group:
     properties:
       count:
         type: integer
       top:
         items:
-          $ref: '#/definitions/models.Top'
+          $ref: '#/definitions/search.Top'
         type: array
     type: object
-  models.Item:
+  search.Item:
     properties:
       body:
         type: object
       group:
-        $ref: '#/definitions/models.Group'
+        $ref: '#/definitions/search.Group'
       highlights:
         additionalProperties:
           items:
@@ -1231,32 +1266,23 @@ definitions:
       value:
         type: string
     type: object
-  models.Result:
+  search.Result:
     properties:
       count:
         type: integer
       items:
         items:
-          $ref: '#/definitions/models.Item'
+          $ref: '#/definitions/search.Item'
         type: array
       time:
         type: integer
     type: object
-  models.Top:
+  search.Top:
     properties:
       key:
         type: string
       network:
         type: string
-    type: object
-  operation.DAppStats:
-    properties:
-      txs:
-        type: integer
-      users:
-        type: integer
-      volume:
-        type: integer
     type: object
   tezerrors.Error:
     properties:
@@ -1267,32 +1293,6 @@ definitions:
       kind:
         type: string
       title:
-        type: string
-    type: object
-  tezosdomain.ReverseTezosDomain:
-    properties:
-      expiration:
-        type: string
-      name:
-        type: string
-    type: object
-  tezosdomain.TezosDomain:
-    properties:
-      address:
-        type: string
-      data:
-        additionalProperties:
-          type: string
-        type: object
-      expiration:
-        type: string
-      level:
-        type: integer
-      name:
-        type: string
-      network:
-        type: string
-      timestamp:
         type: string
     type: object
   tzip.Event:
@@ -1461,6 +1461,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.Error'
         "500":
           description: Internal Server Error
           schema:
@@ -1468,6 +1472,42 @@ paths:
       summary: Show contract`s tokens transfers
       tags:
       - contract
+  /v1/account/{network}:
+    get:
+      consumes:
+      - application/json
+      description: Batch account token balances
+      operationId: get-batch-token-balances
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: Comma-separated list of addresses (e.g. addr1,addr2,addr3)
+        in: query
+        name: address
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              $ref: '#/definitions/handlers.TokenBalance'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Batch account token balances
+      tags:
+      - account
   /v1/account/{network}/{address}:
     get:
       consumes:
@@ -1496,6 +1536,10 @@ paths:
             $ref: '#/definitions/handlers.AccountInfo'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
           schema:
             $ref: '#/definitions/handlers.Error'
         "500":
@@ -1535,6 +1579,10 @@ paths:
             type: object
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
           schema:
             $ref: '#/definitions/handlers.Error'
         "500":
@@ -1578,6 +1626,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.Error'
         "500":
           description: Internal Server Error
           schema:
@@ -1614,6 +1666,17 @@ paths:
         minimum: 0
         name: size
         type: integer
+      - description: Contract address
+        in: query
+        name: contract
+        type: string
+      - description: Field using for sorting
+        enum:
+        - level
+        - balance
+        in: query
+        name: sort_by
+        type: string
       produces:
       - application/json
       responses:
@@ -1623,6 +1686,10 @@ paths:
             $ref: '#/definitions/handlers.TokenBalances'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
           schema:
             $ref: '#/definitions/handlers.Error'
         "500":
@@ -1841,6 +1908,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/handlers.BigMapDiffByKeyResponse'
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/gin.H'
         "400":
           description: Bad Request
           schema:
@@ -1878,8 +1949,16 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/handlers.Contract'
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/gin.H'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
           schema:
             $ref: '#/definitions/handlers.Error'
         "500":
@@ -1966,6 +2045,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.Error'
         "500":
           description: Internal Server Error
           schema:
@@ -2007,6 +2090,10 @@ paths:
             $ref: '#/definitions/gin.H'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
           schema:
             $ref: '#/definitions/handlers.Error'
         "500":
@@ -2058,6 +2145,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.Error'
         "500":
           description: Internal Server Error
           schema:
@@ -2103,6 +2194,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.Error'
         "500":
           description: Internal Server Error
           schema:
@@ -2142,6 +2237,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.Error'
         "500":
           description: Internal Server Error
           schema:
@@ -2179,6 +2278,10 @@ paths:
             type: array
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
           schema:
             $ref: '#/definitions/handlers.Error'
         "500":
@@ -2246,6 +2349,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.Error'
         "500":
           description: Internal Server Error
           schema:
@@ -2296,6 +2403,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.Error'
         "500":
           description: Internal Server Error
           schema:
@@ -2342,6 +2453,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.Error'
         "500":
           description: Internal Server Error
           schema:
@@ -2383,6 +2498,10 @@ paths:
             type: array
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
           schema:
             $ref: '#/definitions/handlers.Error'
         "500":
@@ -2430,6 +2549,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.Error'
         "500":
           description: Internal Server Error
           schema:
@@ -2473,6 +2596,10 @@ paths:
             $ref: '#/definitions/gin.H'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
           schema:
             $ref: '#/definitions/handlers.Error'
         "500":
@@ -2519,6 +2646,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.Error'
         "500":
           description: Internal Server Error
           schema:
@@ -2563,6 +2694,10 @@ paths:
         in: query
         name: min_level
         type: integer
+      - description: Token ID
+        in: query
+        name: token_id
+        type: integer
       produces:
       - application/json
       responses:
@@ -2570,10 +2705,14 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/handlers.Token'
+              $ref: '#/definitions/handlers.TokenMetadata'
             type: array
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
           schema:
             $ref: '#/definitions/handlers.Error'
         "500":
@@ -2581,6 +2720,47 @@ paths:
           schema:
             $ref: '#/definitions/handlers.Error'
       summary: List contract tokens
+      tags:
+      - contract
+  /v1/contract/{network}/{address}/tokens/count:
+    get:
+      consumes:
+      - application/json
+      description: Get contract`s tokens count
+      operationId: get-contract-token-count
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: KT address
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: address
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.CountResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Get contract`s tokens count
       tags:
       - contract
   /v1/contract/{network}/{address}/tokens/holders:
@@ -2619,6 +2799,10 @@ paths:
             type: array
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
           schema:
             $ref: '#/definitions/handlers.Error'
         "500":
@@ -2666,6 +2850,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.Error'
         "500":
           description: Internal Server Error
           schema:
@@ -2703,6 +2891,10 @@ paths:
             type: array
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
           schema:
             $ref: '#/definitions/handlers.Error'
         "500":
@@ -2810,7 +3002,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/tezosdomain.TezosDomain'
+            $ref: '#/definitions/handlers.TezosDomain'
         "204":
           description: No Content
           schema:
@@ -2858,7 +3050,7 @@ paths:
         in: path
         name: id
         required: true
-        type: string
+        type: integer
       produces:
       - application/json
       responses:
@@ -2937,6 +3129,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/handlers.Contract'
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/gin.H'
         "500":
           description: Internal Server Error
           schema:
@@ -3000,7 +3196,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.Result'
+            $ref: '#/definitions/search.Result'
         "400":
           description: Bad Request
           schema:
@@ -3031,6 +3227,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/handlers.Alias'
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/gin.H'
         "400":
           description: Bad Request
           schema:
@@ -3171,6 +3371,7 @@ paths:
         - month
         - week
         - day
+        - hour
         in: query
         name: period
         required: true
@@ -3239,6 +3440,71 @@ paths:
           schema:
             $ref: '#/definitions/handlers.Error'
       summary: Get all contracts that implement FA1/FA1.2 standard
+      tags:
+      - tokens
+  /v1/tokens/{network}/metadata:
+    get:
+      consumes:
+      - application/json
+      description: List token metadata
+      operationId: list-token-metadata
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: Requested count
+        in: query
+        maximum: 10
+        name: size
+        type: integer
+      - description: Offset
+        in: query
+        maximum: 10
+        name: offset
+        type: integer
+      - description: Maximum token`s creation level (less than or equal)
+        in: query
+        name: max_level
+        type: integer
+      - description: Minimum token`s creation level (greater than)
+        in: query
+        name: min_level
+        type: integer
+      - description: Creator name
+        in: query
+        maxLength: 25
+        name: creator
+        type: string
+      - description: KT address
+        in: query
+        maxLength: 36
+        minLength: 36
+        name: contract
+        type: string
+      - description: Token ID
+        in: query
+        name: token_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.Token'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: List token metadata
       tags:
       - tokens
   /v1/tokens/{network}/series:
@@ -3355,6 +3621,10 @@ paths:
             $ref: '#/definitions/handlers.TransferResponse'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
           schema:
             $ref: '#/definitions/handlers.Error'
         "500":
