@@ -114,7 +114,7 @@ func (storage *Storage) GetAccountBalances(network, address, contract string, si
 					"type": "string",
 					"script": core.Item{
 						"lang":   "painless",
-						"source": "doc['balance.keyword'].value.length().toString() + doc['balance.keyword'].value",
+						"source": "String.format('%04d', new def[] {doc['balance.keyword'].value.length()}) + doc['balance.keyword'].value",
 					},
 					"order": "desc",
 				},
