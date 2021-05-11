@@ -112,7 +112,9 @@ func main() {
 
 	var wg sync.WaitGroup
 
-	closeChan := make(chan struct{})
+	threadsCount := len(ctx.MQ.GetQueues()) + 1
+
+	closeChan := make(chan struct{}, threadsCount)
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
@@ -124,8 +126,11 @@ func main() {
 		go listenChannel(ctx.MQ, queue, closeChan, &wg)
 	}
 
+	wg.Add(1)
+	go timeBasedTask(time.Minute, ctx.updateMaterializedViews, closeChan, &wg)
+
 	<-signals
-	for range ctx.MQ.GetQueues() {
+	for i := 0; i < threadsCount; i++ {
 		closeChan <- struct{}{}
 	}
 

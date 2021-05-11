@@ -23,87 +23,6 @@ type networkCount struct {
 	Count   int64
 }
 
-// GetCallsCountByNetwork -
-func (p *Postgres) GetCallsCountByNetwork(network string) (map[string]int64, error) {
-	query := p.DB.Table(models.DocOperations).Select("network, COUNT(*) as count").Where("entrypoint != ''")
-	if network != "" {
-		query.Where("network = ?", network)
-	}
-	query.Group("network")
-
-	var stats []networkCount
-	if err := query.Find(&stats).Error; err != nil {
-		return nil, err
-	}
-
-	res := make(map[string]int64)
-	for _, s := range stats {
-		res[s.Network] = s.Count
-	}
-	return res, nil
-}
-
-type networkContractStats struct {
-	Network string
-	Total   int64
-	Unique  int64
-}
-
-// GetContractStatsByNetwork -
-func (p *Postgres) GetContractStatsByNetwork(network string) (map[string]models.ContractCountStats, error) {
-	var stats []networkContractStats
-
-	query := p.DB.Table(models.DocContracts).
-		Select("network, count(*) as total, count(distinct(hash)) as unique")
-
-	if network != "" {
-		query.Where("network = ?", network)
-	}
-
-	query.
-		Group("network").
-		Find(&stats)
-
-	if query.Error != nil {
-		return nil, query.Error
-	}
-
-	result := make(map[string]models.ContractCountStats)
-	for _, s := range stats {
-		result[s.Network] = models.ContractCountStats{
-			Total:     s.Total,
-			SameCount: s.Unique,
-		}
-	}
-
-	return result, nil
-}
-
-// GetFACountByNetwork -
-func (p *Postgres) GetFACountByNetwork(network string) (map[string]int64, error) {
-	var stats []networkCount
-	query := p.DB.Table(models.DocContracts).
-		Select("count(*) as count, network").
-		Where("ARRAY['fa1', 'fa1-2', 'fa2'] && tags")
-
-	if network != "" {
-		query.Where("network = ?", network)
-	}
-
-	query.Group("network").Find(&stats)
-
-	if query.Error != nil {
-		return nil, query.Error
-	}
-
-	result := make(map[string]int64)
-	for _, s := range stats {
-		result[s.Network] = s.Count
-	}
-
-	return result, nil
-}
-
 // GetLanguagesForNetwork -
 func (p *Postgres) GetLanguagesForNetwork(network string) (map[string]int64, error) {
 	var stats []networkCount
@@ -123,5 +42,40 @@ func (p *Postgres) GetLanguagesForNetwork(network string) (map[string]int64, err
 		result[s.Network] = s.Count
 	}
 
+	return result, nil
+}
+
+type stats struct {
+	Network   string
+	Value     uint64
+	StatsType string
+}
+
+// GetStats -
+func (p *Postgres) GetStats(network string) (map[string]*models.NetworkStats, error) {
+	var s []stats
+	if err := p.DB.Table("head_stats").Find(&s).Error; err != nil {
+		return nil, err
+	}
+
+	result := make(map[string]*models.NetworkStats)
+	for i := range s {
+		if _, ok := result[s[i].Network]; !ok {
+			result[s[i].Network] = new(models.NetworkStats)
+		}
+
+		val := result[s[i].Network]
+
+		switch s[i].StatsType {
+		case "calls_count":
+			val.CallsCount = s[i].Value
+		case "fa_count":
+			val.FACount = s[i].Value
+		case "unique_contracts_count":
+			val.UniqueContractsCount = s[i].Value
+		case "contracts_count":
+			val.ContractsCount = s[i].Value
+		}
+	}
 	return result, nil
 }
