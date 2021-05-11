@@ -1,9 +1,9 @@
 package storage
 
 import (
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/parsers"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -12,7 +12,7 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 // RichStorage -
 type RichStorage struct {
 	DeffatedStorage []byte
-	Models          []models.Model
+	Result          *parsers.Result
 	Empty           bool
 }
 

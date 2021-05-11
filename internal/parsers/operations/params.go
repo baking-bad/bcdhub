@@ -3,15 +3,11 @@ package operations
 import (
 	"sync"
 
+	"github.com/baking-bad/bcdhub/internal/cache"
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
-	"github.com/baking-bad/bcdhub/internal/models/block"
-	modelContract "github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
-	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
-	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/contract"
 	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
@@ -20,10 +16,7 @@ import (
 
 // ParseParams -
 type ParseParams struct {
-	Storage       models.GeneralRepository
-	BigMapDiffs   bigmapdiff.Repository
-	TokenBalances tokenbalance.Repository
-	Contracts     modelContract.Repository
+	ctx *config.Context
 
 	rpc      noderpc.INode
 	shareDir string
@@ -44,6 +37,7 @@ type ParseParams struct {
 	head       noderpc.Header
 	contentIdx int64
 	main       *operation.Operation
+	cache      *cache.Cache
 
 	once *sync.Once
 }
@@ -107,16 +101,20 @@ func WithMainOperation(main *operation.Operation) ParseParamsOption {
 	}
 }
 
+// WithCache -
+func WithCache(cache *cache.Cache) ParseParamsOption {
+	return func(dp *ParseParams) {
+		dp.cache = cache
+	}
+}
+
 // NewParseParams -
-func NewParseParams(rpc noderpc.INode, storage models.GeneralRepository, contractRepo modelContract.Repository, bmdRepo bigmapdiff.Repository, blockRepo block.Repository, tzipRepo tzip.Repository, tbRepo tokenbalance.Repository, opts ...ParseParamsOption) *ParseParams {
+func NewParseParams(rpc noderpc.INode, ctx *config.Context, opts ...ParseParamsOption) *ParseParams {
 	params := &ParseParams{
-		Storage:       storage,
-		BigMapDiffs:   bmdRepo,
-		TokenBalances: tbRepo,
-		Contracts:     contractRepo,
-		rpc:           rpc,
-		once:          &sync.Once{},
-		stackTrace:    stacktrace.New(),
+		ctx:        ctx,
+		rpc:        rpc,
+		once:       &sync.Once{},
+		stackTrace: stacktrace.New(),
 	}
 	for i := range opts {
 		opts[i](params)
@@ -124,7 +122,7 @@ func NewParseParams(rpc noderpc.INode, storage models.GeneralRepository, contrac
 
 	transferParser, err := transfer.NewParser(
 		params.rpc,
-		tzipRepo, blockRepo, storage, params.shareDir,
+		ctx.TZIP, ctx.Blocks, ctx.Storage, params.shareDir,
 		transfer.WithStackTrace(params.stackTrace),
 		transfer.WithNetwork(params.network),
 		transfer.WithChainID(params.head.ChainID),
@@ -136,12 +134,17 @@ func NewParseParams(rpc noderpc.INode, storage models.GeneralRepository, contrac
 	params.transferParser = transferParser
 
 	params.contractParser = contract.NewParser(
+		params.ctx,
 		contract.WithShareDir(params.shareDir),
 	)
-	storageParser, err := NewRichStorage(bmdRepo, rpc, params.head.Protocol)
+	storageParser, err := NewRichStorage(ctx.BigMapDiffs, rpc, params.head.Protocol)
 	if err != nil {
 		logger.Error(err)
 	}
 	params.storageParser = storageParser
+
+	if params.cache == nil {
+		params.cache = cache.NewCache()
+	}
 	return params
 }

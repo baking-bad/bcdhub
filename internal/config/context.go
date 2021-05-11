@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/baking-bad/bcdhub/internal/aws"
+	"github.com/baking-bad/bcdhub/internal/cache"
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
@@ -61,11 +62,15 @@ type Context struct {
 	Domains       domains.Repository
 
 	Searcher search.Searcher
+
+	Cache *cache.Cache
 }
 
 // NewContext -
 func NewContext(opts ...ContextOption) *Context {
-	ctx := &Context{}
+	ctx := &Context{
+		Cache: cache.NewCache(),
+	}
 
 	for _, opt := range opts {
 		opt(ctx)

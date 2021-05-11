@@ -73,17 +73,19 @@ func (storage *Storage) GetWithEvents() (t []tzip.TZIP, err error) {
 	err = storage.DB.
 		Table(models.DocTZIP).
 		Where("events is not null AND jsonb_array_length(events) > 0").
+		Order("id desc").
 		Find(&t).Error
 	return
 }
 
-// GetWithEventsCounts -
-func (storage *Storage) GetWithEventsCounts() (int64, error) {
-	var count int64
+// GetLastIDWithEvents -
+func (storage *Storage) GetLastIDWithEvents() (int64, error) {
+	var lastID int64
 	err := storage.DB.
 		Table(models.DocTZIP).
+		Select("max(id)").
 		Where("events is not null AND jsonb_array_length(events) > 0").
-		Count(&count).
+		Scan(&lastID).
 		Error
-	return count, err
+	return lastID, err
 }

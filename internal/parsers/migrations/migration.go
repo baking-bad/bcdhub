@@ -1,4 +1,4 @@
-package parsers
+package migrations
 
 import (
 	"encoding/json"

@@ -116,7 +116,7 @@ func (ctx *Context) ExecuteView(c *gin.Context) {
 		return
 	}
 
-	state, err := ctx.getCurrentBlock(req.Network)
+	state, err := ctx.CachedCurrentBlock(req.Network)
 	if ctx.handleError(c, err, 0) {
 		return
 	}

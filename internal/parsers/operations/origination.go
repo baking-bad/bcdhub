@@ -2,9 +2,9 @@ package operations
 
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/parsers"
 )
 
 // Origination -
@@ -18,7 +18,9 @@ func NewOrigination(params *ParseParams) Origination {
 }
 
 // Parse -
-func (p Origination) Parse(data noderpc.Operation) ([]models.Model, error) {
+func (p Origination) Parse(data noderpc.Operation) (*parsers.Result, error) {
+	result := parsers.NewResult()
+
 	origination := operation.Operation{
 		Network:      p.network,
 		Hash:         p.hash,
@@ -38,56 +40,55 @@ func (p Origination) Parse(data noderpc.Operation) ([]models.Model, error) {
 		Nonce:        data.Nonce,
 		ContentIndex: p.contentIdx,
 		Script:       data.Script,
+		SourceAlias:  p.ctx.CachedAlias(p.network, data.Source),
 	}
+
+	result.Operations = append(result.Operations, &origination)
 
 	p.fillInternal(&origination)
 
 	parseOperationResult(data, &origination)
+	if data.Destination != nil {
+		origination.DestinationAlias = p.ctx.CachedAlias(p.network, *data.Destination)
+	}
 
 	origination.SetBurned(p.constants)
 
-	originationModels := []models.Model{}
-
 	if origination.IsApplied() {
-		appliedModels, err := p.appliedHandler(data, &origination)
-		if err != nil {
+		if err := p.appliedHandler(data, &origination, result); err != nil {
 			return nil, err
 		}
-		originationModels = append(originationModels, appliedModels...)
 	}
 
-	if err := setTags(p.Contracts, p.Storage, &origination); err != nil {
+	if err := setTags(p.ctx, &origination); err != nil {
 		return nil, err
 	}
 
 	p.stackTrace.Add(origination)
-	originationModels = append(originationModels, &origination)
-	return originationModels, nil
+	return result, nil
 }
 
-func (p Origination) appliedHandler(item noderpc.Operation, origination *operation.Operation) ([]models.Model, error) {
+func (p Origination) appliedHandler(item noderpc.Operation, origination *operation.Operation, result *parsers.Result) error {
 	if !bcd.IsContract(origination.Destination) || !origination.IsApplied() {
-		return nil, nil
+		return nil
 	}
 
-	models := make([]models.Model, 0)
-
-	contractModels, err := p.contractParser.Parse(origination)
+	contractResult, err := p.contractParser.Parse(origination)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	models = append(models, contractModels...)
+	result.Contracts = append(result.Contracts, contractResult.Contracts...)
 
 	rs, err := p.storageParser.Parse(item, origination)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if !rs.Empty {
 		origination.DeffatedStorage = rs.DeffatedStorage
-		models = append(models, rs.Models...)
+		result.Merge(rs.Result)
 	}
 
-	return models, nil
+	return nil
 }
 
 func (p Origination) fillInternal(tx *operation.Operation) {

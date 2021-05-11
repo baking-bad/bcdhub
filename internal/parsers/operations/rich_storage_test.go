@@ -5,12 +5,12 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/fetch"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	mock_bmd "github.com/baking-bad/bcdhub/internal/models/mock/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/baking-bad/bcdhub/internal/parsers/storage"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -47,64 +47,70 @@ func TestRichStorage_Parse(t *testing.T) {
 			},
 			filename: "./data/rich_storage/test1.json",
 			want: storage.RichStorage{
-				Models: []models.Model{
-					&bigmapdiff.BigMapDiff{
-						Ptr:       31,
-						KeyHash:   "exprunzteC5uyXRHbKnqJd3hUMGTWE9Gv5EtovDZHnuqu6SaGViV3N",
-						Key:       []byte(`{"bytes": "05010000000b746f74616c537570706c79"}`),
-						Value:     []byte(`{"bytes": "050098e1e8d78a02"}`),
-						Level:     1151463,
-						Contract:  "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Network:   "mainnet",
-						Timestamp: timestamp,
-						Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
-					}, &bigmapdiff.BigMapState{
-						Ptr:             31,
-						KeyHash:         "exprunzteC5uyXRHbKnqJd3hUMGTWE9Gv5EtovDZHnuqu6SaGViV3N",
-						Key:             []byte(`{"bytes":"05010000000b746f74616c537570706c79"}`),
-						Value:           []byte(`{"bytes":"050098e1e8d78a02"}`),
-						LastUpdateLevel: 1151463,
-						Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Network:         "mainnet",
-						LastUpdateTime:  timestamp,
-					}, &bigmapdiff.BigMapDiff{
-						Ptr:       31,
-						KeyHash:   "exprtzVE8dHF7nePZxF6PSRf3yhfecTEKavyCZpndJGN2hz6PzQkFi",
-						Key:       []byte(`{"bytes": "05070701000000066c65646765720a00000016000093e93e23e5d157a80852297eccc7a42d7080ddd3"}`),
-						Value:     []byte(`{"bytes": "05070700bdf4160200000000"}`),
-						Level:     1151463,
-						Contract:  "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Network:   "mainnet",
-						Timestamp: timestamp,
-						Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
-					}, &bigmapdiff.BigMapState{
-						Ptr:             31,
-						KeyHash:         "exprtzVE8dHF7nePZxF6PSRf3yhfecTEKavyCZpndJGN2hz6PzQkFi",
-						Key:             []byte(`{"bytes":"05070701000000066c65646765720a00000016000093e93e23e5d157a80852297eccc7a42d7080ddd3"}`),
-						Value:           []byte(`{"bytes":"05070700bdf4160200000000"}`),
-						LastUpdateLevel: 1151463,
-						Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Network:         "mainnet",
-						LastUpdateTime:  timestamp,
-					}, &bigmapdiff.BigMapDiff{
-						Ptr:       31,
-						KeyHash:   "expruyvqmgBYpF54i1c4p6r3oVV7FmW7ZH8EyjSjahKoQEfWPmcjGg",
-						Key:       []byte(`{"bytes": "05070701000000066c65646765720a000000160139c8ade2617663981fa2b87592c9ad92714d14c200"}`),
-						Value:     []byte(`{"bytes": "0507070084a99c750200000000"}`),
-						Level:     1151463,
-						Contract:  "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Network:   "mainnet",
-						Timestamp: timestamp,
-						Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
-					}, &bigmapdiff.BigMapState{
-						Ptr:             31,
-						KeyHash:         "expruyvqmgBYpF54i1c4p6r3oVV7FmW7ZH8EyjSjahKoQEfWPmcjGg",
-						Key:             []byte(`{"bytes":"05070701000000066c65646765720a000000160139c8ade2617663981fa2b87592c9ad92714d14c200"}`),
-						Value:           []byte(`{"bytes":"0507070084a99c750200000000"}`),
-						LastUpdateLevel: 1151463,
-						Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Network:         "mainnet",
-						LastUpdateTime:  timestamp,
+				Result: &parsers.Result{
+					BigMapActions: []*bigmapaction.BigMapAction{},
+					BigMapDiffs: []*bigmapdiff.BigMapDiff{
+						{
+							Ptr:       31,
+							KeyHash:   "exprunzteC5uyXRHbKnqJd3hUMGTWE9Gv5EtovDZHnuqu6SaGViV3N",
+							Key:       []byte(`{"bytes":"05010000000b746f74616c537570706c79"}`),
+							Value:     []byte(`{"bytes":"050098e1e8d78a02"}`),
+							Level:     1151463,
+							Contract:  "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+							Network:   "mainnet",
+							Timestamp: timestamp,
+							Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+						}, {
+							Ptr:       31,
+							KeyHash:   "exprtzVE8dHF7nePZxF6PSRf3yhfecTEKavyCZpndJGN2hz6PzQkFi",
+							Key:       []byte(`{"bytes":"05070701000000066c65646765720a00000016000093e93e23e5d157a80852297eccc7a42d7080ddd3"}`),
+							Value:     []byte(`{"bytes":"05070700bdf4160200000000"}`),
+							Level:     1151463,
+							Contract:  "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+							Network:   "mainnet",
+							Timestamp: timestamp,
+							Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+						}, {
+							Ptr:       31,
+							KeyHash:   "expruyvqmgBYpF54i1c4p6r3oVV7FmW7ZH8EyjSjahKoQEfWPmcjGg",
+							Key:       []byte(`{"bytes":"05070701000000066c65646765720a000000160139c8ade2617663981fa2b87592c9ad92714d14c200"}`),
+							Value:     []byte(`{"bytes":"0507070084a99c750200000000"}`),
+							Level:     1151463,
+							Contract:  "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+							Network:   "mainnet",
+							Timestamp: timestamp,
+							Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+						},
+					},
+					BigMapState: []*bigmapdiff.BigMapState{
+						{
+							Ptr:             31,
+							KeyHash:         "exprunzteC5uyXRHbKnqJd3hUMGTWE9Gv5EtovDZHnuqu6SaGViV3N",
+							Key:             []byte(`{"bytes":"05010000000b746f74616c537570706c79"}`),
+							Value:           []byte(`{"bytes":"050098e1e8d78a02"}`),
+							LastUpdateLevel: 1151463,
+							Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+							Network:         "mainnet",
+							LastUpdateTime:  timestamp,
+						}, {
+							Ptr:             31,
+							KeyHash:         "exprtzVE8dHF7nePZxF6PSRf3yhfecTEKavyCZpndJGN2hz6PzQkFi",
+							Key:             []byte(`{"bytes":"05070701000000066c65646765720a00000016000093e93e23e5d157a80852297eccc7a42d7080ddd3"}`),
+							Value:           []byte(`{"bytes":"05070700bdf4160200000000"}`),
+							LastUpdateLevel: 1151463,
+							Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+							Network:         "mainnet",
+							LastUpdateTime:  timestamp,
+						}, {
+							Ptr:             31,
+							KeyHash:         "expruyvqmgBYpF54i1c4p6r3oVV7FmW7ZH8EyjSjahKoQEfWPmcjGg",
+							Key:             []byte(`{"bytes":"05070701000000066c65646765720a000000160139c8ade2617663981fa2b87592c9ad92714d14c200"}`),
+							Value:           []byte(`{"bytes":"0507070084a99c750200000000"}`),
+							LastUpdateLevel: 1151463,
+							Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+							Network:         "mainnet",
+							LastUpdateTime:  timestamp,
+						},
 					},
 				},
 			},
@@ -121,16 +127,20 @@ func TestRichStorage_Parse(t *testing.T) {
 			sourcePtr: 1055,
 			filename:  "./data/rich_storage/test2.json",
 			want: storage.RichStorage{
-				Models: []models.Model{
-					&bigmapaction.BigMapAction{
-						Action:         "copy",
-						SourcePtr:      setInt64(1055),
-						DestinationPtr: setInt64(1509),
-						Level:          359942,
-						Address:        "KT1Xk1XJD2M8GYFUXRN12oMvDAysECDWwGdS",
-						Network:        "carthagenet",
-						Timestamp:      timestamp,
+				Result: &parsers.Result{
+					BigMapActions: []*bigmapaction.BigMapAction{
+						{
+							Action:         "copy",
+							SourcePtr:      setInt64(1055),
+							DestinationPtr: setInt64(1509),
+							Level:          359942,
+							Address:        "KT1Xk1XJD2M8GYFUXRN12oMvDAysECDWwGdS",
+							Network:        "carthagenet",
+							Timestamp:      timestamp,
+						},
 					},
+					BigMapDiffs: []*bigmapdiff.BigMapDiff{},
+					BigMapState: []*bigmapdiff.BigMapState{},
 				},
 			},
 		}, {
@@ -146,35 +156,41 @@ func TestRichStorage_Parse(t *testing.T) {
 			sourcePtr: 17,
 			filename:  "./data/rich_storage/test3.json",
 			want: storage.RichStorage{
-				Models: []models.Model{
-					&bigmapaction.BigMapAction{
-						Action:    "alloc",
-						SourcePtr: setInt64(17),
-						Level:     220,
-						Address:   "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
-						Network:   "edo2net",
-						Timestamp: timestamp,
+				Result: &parsers.Result{
+					BigMapActions: []*bigmapaction.BigMapAction{
+						{
+							Action:    "alloc",
+							SourcePtr: setInt64(17),
+							Level:     220,
+							Address:   "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
+							Network:   "edo2net",
+							Timestamp: timestamp,
+						},
 					},
-					&bigmapdiff.BigMapDiff{
-						Ptr:       17,
-						KeyHash:   "expru5X1yxJG6ezR2uHMotwMLNmSzQyh5t1vUnhjx4cS6Pv9qE1Sdo",
-						Key:       []byte(`{"string":""}`),
-						Value:     []byte(`{"bytes":"68747470733a2f2f73746f726167652e676f6f676c65617069732e636f6d2f747a69702d31362f656d6f6a692d696e2d6d657461646174612e6a736f6e"}`),
-						Level:     220,
-						Contract:  "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
-						Network:   "edo2net",
-						Timestamp: timestamp,
-						Protocol:  "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA",
+					BigMapDiffs: []*bigmapdiff.BigMapDiff{
+						{
+							Ptr:       17,
+							KeyHash:   "expru5X1yxJG6ezR2uHMotwMLNmSzQyh5t1vUnhjx4cS6Pv9qE1Sdo",
+							Key:       []byte(`{"string":""}`),
+							Value:     []byte(`{"bytes":"68747470733a2f2f73746f726167652e676f6f676c65617069732e636f6d2f747a69702d31362f656d6f6a692d696e2d6d657461646174612e6a736f6e"}`),
+							Level:     220,
+							Contract:  "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
+							Network:   "edo2net",
+							Timestamp: timestamp,
+							Protocol:  "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA",
+						},
 					},
-					&bigmapdiff.BigMapState{
-						Ptr:             17,
-						KeyHash:         "expru5X1yxJG6ezR2uHMotwMLNmSzQyh5t1vUnhjx4cS6Pv9qE1Sdo",
-						Key:             []byte(`{"string":""}`),
-						Value:           []byte(`{"bytes":"68747470733a2f2f73746f726167652e676f6f676c65617069732e636f6d2f747a69702d31362f656d6f6a692d696e2d6d657461646174612e6a736f6e"}`),
-						LastUpdateLevel: 220,
-						Contract:        "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
-						Network:         "edo2net",
-						LastUpdateTime:  timestamp,
+					BigMapState: []*bigmapdiff.BigMapState{
+						{
+							Ptr:             17,
+							KeyHash:         "expru5X1yxJG6ezR2uHMotwMLNmSzQyh5t1vUnhjx4cS6Pv9qE1Sdo",
+							Key:             []byte(`{"string":""}`),
+							Value:           []byte(`{"bytes":"68747470733a2f2f73746f726167652e676f6f676c65617069732e636f6d2f747a69702d31362f656d6f6a692d696e2d6d657461646174612e6a736f6e"}`),
+							LastUpdateLevel: 220,
+							Contract:        "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
+							Network:         "edo2net",
+							LastUpdateTime:  timestamp,
+						},
 					},
 				},
 			},
@@ -230,25 +246,32 @@ func TestRichStorage_Parse(t *testing.T) {
 				return
 			}
 
-			if !compareRichStorage(t, got, tt.want) {
-				t.Errorf("RichStorage.Parse() = %v, want %v", got, tt.want)
-			}
+			compareRichStorage(t, got, tt.want)
 		})
 	}
 }
 
-func compareRichStorage(t *testing.T, one, two storage.RichStorage) bool {
-	if one.Empty != two.Empty {
-		return false
+func compareRichStorage(t *testing.T, expected, got storage.RichStorage) {
+	assert.Equal(t, expected.Empty, got.Empty)
+	assert.JSONEq(t, string(expected.DeffatedStorage), string(got.DeffatedStorage))
+
+	assert.Len(t, got.Result.BigMapActions, len(expected.Result.BigMapActions))
+	assert.Len(t, got.Result.BigMapDiffs, len(expected.Result.BigMapDiffs))
+	assert.Len(t, got.Result.BigMapState, len(expected.Result.BigMapState))
+
+	for i := range expected.Result.BigMapActions {
+		expected.Result.BigMapActions[i].ID = got.Result.BigMapActions[i].GetID()
 	}
-	if !assert.JSONEq(t, string(one.DeffatedStorage), string(two.DeffatedStorage)) {
-		return false
+	for i := range expected.Result.BigMapDiffs {
+		expected.Result.BigMapDiffs[i].ID = got.Result.BigMapDiffs[i].GetID()
 	}
-	if len(one.Models) != len(two.Models) {
-		return false
+	for i := range expected.Result.BigMapState {
+		expected.Result.BigMapState[i].ID = got.Result.BigMapState[i].GetID()
 	}
 
-	return compareParserResponse(t, one.Models, two.Models)
+	assert.Equal(t, expected.Result.BigMapActions, got.Result.BigMapActions)
+	assert.Equal(t, expected.Result.BigMapDiffs, got.Result.BigMapDiffs)
+	assert.Equal(t, expected.Result.BigMapState, got.Result.BigMapState)
 }
 
 func setInt64(x int64) *int64 {

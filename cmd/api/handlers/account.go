@@ -33,12 +33,12 @@ func (ctx *Context) GetInfo(c *gin.Context) {
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	block, err := ctx.getCurrentBlock(req.Network)
+	block, err := ctx.CachedCurrentBlock(req.Network)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	balance, err := ctx.getTezosBalance(req.Network, req.Address, block.Level)
+	balance, err := ctx.CachedTezosBalance(req.Network, req.Address, block.Level)
 	if ctx.handleError(c, err, 0) {
 		return
 	}

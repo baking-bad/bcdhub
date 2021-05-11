@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/stretchr/testify/assert"
 
 	mock_bmd "github.com/baking-bad/bcdhub/internal/models/mock/bigmapdiff"
@@ -64,25 +64,29 @@ func TestBabylon_ParseTransaction(t *testing.T) {
 			},
 			want: RichStorage{
 				DeffatedStorage: []byte(`{"prim":"Pair","args":[{"prim":"Pair","args":[{"int":"10416"},{"int":"10417"}]},{"prim":"Pair","args":[[{"bytes":"0177a057dafeab5f829e044dc0e52047e01283d6d500"}],{"int":"10418"}]}]}`),
-				Models: []models.Model{
-					&bigmapdiff.BigMapDiff{
-						Ptr:      10418,
-						Key:      []byte(`{"bytes":"0177a057dafeab5f829e044dc0e52047e01283d6d500"}`),
-						KeyHash:  "exprvDFsAkF12eo7cP1EtDk52Ef72CzDhxuJmwXCqbqSWq6CrJ3ziX",
-						Value:    []byte(`{"bytes":"0117f1f0e206ba4c32f1f43de336b0ef2785f4014500"}`),
-						Level:    186900,
-						Contract: "KT1HHsW85jrLrHdAy9DwScqiM1RERkTT9Q6e",
-						Network:  "delphinet",
-						Protocol: "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
+				Result: &parsers.Result{
+					BigMapDiffs: []*bigmapdiff.BigMapDiff{
+						{
+							Ptr:      10418,
+							Key:      []byte(`{"bytes":"0177a057dafeab5f829e044dc0e52047e01283d6d500"}`),
+							KeyHash:  "exprvDFsAkF12eo7cP1EtDk52Ef72CzDhxuJmwXCqbqSWq6CrJ3ziX",
+							Value:    []byte(`{"bytes":"0117f1f0e206ba4c32f1f43de336b0ef2785f4014500"}`),
+							Level:    186900,
+							Contract: "KT1HHsW85jrLrHdAy9DwScqiM1RERkTT9Q6e",
+							Network:  "delphinet",
+							Protocol: "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
+						},
 					},
-					&bigmapdiff.BigMapState{
-						Ptr:             10418,
-						Key:             []byte(`{"bytes":"0177a057dafeab5f829e044dc0e52047e01283d6d500"}`),
-						KeyHash:         "exprvDFsAkF12eo7cP1EtDk52Ef72CzDhxuJmwXCqbqSWq6CrJ3ziX",
-						Value:           []byte(`{"bytes":"0117f1f0e206ba4c32f1f43de336b0ef2785f4014500"}`),
-						Contract:        "KT1HHsW85jrLrHdAy9DwScqiM1RERkTT9Q6e",
-						Network:         "delphinet",
-						LastUpdateLevel: 186900,
+					BigMapState: []*bigmapdiff.BigMapState{
+						{
+							Ptr:             10418,
+							Key:             []byte(`{"bytes":"0177a057dafeab5f829e044dc0e52047e01283d6d500"}`),
+							KeyHash:         "exprvDFsAkF12eo7cP1EtDk52Ef72CzDhxuJmwXCqbqSWq6CrJ3ziX",
+							Value:           []byte(`{"bytes":"0117f1f0e206ba4c32f1f43de336b0ef2785f4014500"}`),
+							Contract:        "KT1HHsW85jrLrHdAy9DwScqiM1RERkTT9Q6e",
+							Network:         "delphinet",
+							LastUpdateLevel: 186900,
+						},
 					},
 				},
 			},
@@ -122,17 +126,19 @@ func TestBabylon_ParseTransaction(t *testing.T) {
 			}
 			assert.Equal(t, tt.want.DeffatedStorage, got.DeffatedStorage)
 			assert.Equal(t, false, got.Empty)
-			assert.Len(t, got.Models, len(tt.want.Models))
+			assert.Len(t, got.Result.BigMapDiffs, len(tt.want.Result.BigMapDiffs))
+			assert.Len(t, got.Result.BigMapState, len(tt.want.Result.BigMapState))
 
-			for i := range tt.want.Models {
-				switch val := tt.want.Models[i].(type) {
-				case *bigmapdiff.BigMapDiff:
-					val.ID = got.Models[i].GetID()
-				case *bigmapdiff.BigMapState:
-					val.ID = got.Models[i].GetID()
-				}
+			for i := range tt.want.Result.BigMapDiffs {
+				tt.want.Result.BigMapDiffs[i].ID = got.Result.BigMapDiffs[i].GetID()
 			}
-			assert.Equal(t, tt.want.Models, got.Models)
+
+			for i := range tt.want.Result.BigMapState {
+				tt.want.Result.BigMapState[i].ID = got.Result.BigMapState[i].GetID()
+			}
+
+			assert.Equal(t, tt.want.Result.BigMapDiffs, got.Result.BigMapDiffs)
+			assert.Equal(t, tt.want.Result.BigMapState, got.Result.BigMapState)
 		})
 	}
 }

@@ -4,10 +4,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -36,27 +36,31 @@ func TestAlpha_ParseOrigination(t *testing.T) {
 			},
 			want: RichStorage{
 				DeffatedStorage: []byte(`{"prim":"Pair","args":[[],{"int":"1000000000000"}]}`),
-				Models: []models.Model{
-					&bigmapdiff.BigMapDiff{
-						Ptr:       -1,
-						Contract:  "KT1Fv5xCoUqEeb2TycB7ijXdAXUFH4uPnRNN",
-						Protocol:  "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
-						Timestamp: time.Date(2018, 06, 30, 0, 0, 0, 0, time.Local),
-						Level:     1311215,
-						KeyHash:   "exprudn2kdsp9N7P4ZP6wu22AACpnLE5N1YdDW5zSCqb55fTwSnsdz",
-						Network:   "mainnet",
-						Key:       []byte(`{"string":"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6"}`),
-						Value:     []byte(`{"prim":"Pair","args":[[{"prim":"Elt","args":[{"string":"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6"},{"int":"1000000"}]}],{"int":"1000000"}]}`),
+				Result: &parsers.Result{
+					BigMapDiffs: []*bigmapdiff.BigMapDiff{
+						{
+							Ptr:       -1,
+							Contract:  "KT1Fv5xCoUqEeb2TycB7ijXdAXUFH4uPnRNN",
+							Protocol:  "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
+							Timestamp: time.Date(2018, 06, 30, 0, 0, 0, 0, time.Local),
+							Level:     1311215,
+							KeyHash:   "exprudn2kdsp9N7P4ZP6wu22AACpnLE5N1YdDW5zSCqb55fTwSnsdz",
+							Network:   "mainnet",
+							Key:       []byte(`{"string":"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6"}`),
+							Value:     []byte(`{"prim":"Pair","args":[[{"prim":"Elt","args":[{"string":"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6"},{"int":"1000000"}]}],{"int":"1000000"}]}`),
+						},
 					},
-					&bigmapdiff.BigMapState{
-						Ptr:             -1,
-						Contract:        "KT1Fv5xCoUqEeb2TycB7ijXdAXUFH4uPnRNN",
-						KeyHash:         "exprudn2kdsp9N7P4ZP6wu22AACpnLE5N1YdDW5zSCqb55fTwSnsdz",
-						Network:         "mainnet",
-						Key:             []byte(`{"string":"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6"}`),
-						Value:           []byte(`{"prim":"Pair","args":[[{"prim":"Elt","args":[{"string":"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6"},{"int":"1000000"}]}],{"int":"1000000"}]}`),
-						LastUpdateLevel: 1311215,
-						LastUpdateTime:  time.Date(2018, 06, 30, 0, 0, 0, 0, time.Local),
+					BigMapState: []*bigmapdiff.BigMapState{
+						{
+							Ptr:             -1,
+							Contract:        "KT1Fv5xCoUqEeb2TycB7ijXdAXUFH4uPnRNN",
+							KeyHash:         "exprudn2kdsp9N7P4ZP6wu22AACpnLE5N1YdDW5zSCqb55fTwSnsdz",
+							Network:         "mainnet",
+							Key:             []byte(`{"string":"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6"}`),
+							Value:           []byte(`{"prim":"Pair","args":[[{"prim":"Elt","args":[{"string":"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6"},{"int":"1000000"}]}],{"int":"1000000"}]}`),
+							LastUpdateLevel: 1311215,
+							LastUpdateTime:  time.Date(2018, 06, 30, 0, 0, 0, 0, time.Local),
+						},
 					},
 				},
 			},
@@ -84,17 +88,19 @@ func TestAlpha_ParseOrigination(t *testing.T) {
 			}
 			assert.Equal(t, tt.want.Empty, got.Empty)
 			assert.Equal(t, tt.want.DeffatedStorage, got.DeffatedStorage)
-			assert.Len(t, got.Models, len(tt.want.Models))
+			assert.Len(t, got.Result.BigMapDiffs, len(tt.want.Result.BigMapDiffs))
+			assert.Len(t, got.Result.BigMapState, len(tt.want.Result.BigMapState))
 
-			for i := range tt.want.Models {
-				switch val := tt.want.Models[i].(type) {
-				case *bigmapdiff.BigMapDiff:
-					val.ID = got.Models[i].GetID()
-				case *bigmapdiff.BigMapState:
-					val.ID = got.Models[i].GetID()
-				}
+			for i := range tt.want.Result.BigMapDiffs {
+				tt.want.Result.BigMapDiffs[i].ID = got.Result.BigMapDiffs[i].GetID()
 			}
-			assert.Equal(t, tt.want.Models, got.Models)
+
+			for i := range tt.want.Result.BigMapState {
+				tt.want.Result.BigMapState[i].ID = got.Result.BigMapState[i].GetID()
+			}
+
+			assert.Equal(t, tt.want.Result.BigMapDiffs, got.Result.BigMapDiffs)
+			assert.Equal(t, tt.want.Result.BigMapState, got.Result.BigMapState)
 		})
 	}
 }
