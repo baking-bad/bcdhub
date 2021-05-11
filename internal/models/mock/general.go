@@ -180,10 +180,10 @@ func (mr *MockGeneralRepositoryMockRecorder) UpdateDoc(model interface{}) *gomoc
 }
 
 // UpdateFields mocks base method
-func (m *MockGeneralRepository) UpdateFields(arg0, arg1 string, arg2 interface{}, arg3 ...string) error {
+func (m *MockGeneralRepository) UpdateFields(index, id string, data interface{}, fields ...string) error {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{arg0, arg1, arg2}
-	for _, a := range arg3 {
+	varargs := []interface{}{index, id, data}
+	for _, a := range fields {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "UpdateFields", varargs...)
@@ -192,9 +192,9 @@ func (m *MockGeneralRepository) UpdateFields(arg0, arg1 string, arg2 interface{}
 }
 
 // UpdateFields indicates an expected call of UpdateFields
-func (mr *MockGeneralRepositoryMockRecorder) UpdateFields(arg0, arg1, arg2 interface{}, arg3 ...interface{}) *gomock.Call {
+func (mr *MockGeneralRepositoryMockRecorder) UpdateFields(index, id, data interface{}, fields ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{arg0, arg1, arg2}, arg3...)
+	varargs := append([]interface{}{index, id, data}, fields...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFields", reflect.TypeOf((*MockGeneralRepository)(nil).UpdateFields), varargs...)
 }
 
@@ -229,17 +229,22 @@ func (mr *MockGeneralRepositoryMockRecorder) SearchByText(arg0, arg1, arg2, arg3
 }
 
 // CreateAWSRepository mocks base method
-func (m *MockGeneralRepository) CreateAWSRepository(arg0, arg1, arg2 string) error {
+func (m *MockGeneralRepository) CreateAWSRepository(arg0, arg1, arg2 string, arg3 ...models.CreateRepositoryOption) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateAWSRepository", arg0, arg1, arg2)
+	varargs := []interface{}{arg0, arg1, arg2}
+	for _, a := range arg3 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CreateAWSRepository", varargs...)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateAWSRepository indicates an expected call of CreateAWSRepository
-func (mr *MockGeneralRepositoryMockRecorder) CreateAWSRepository(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockGeneralRepositoryMockRecorder) CreateAWSRepository(arg0, arg1, arg2 interface{}, arg3 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAWSRepository", reflect.TypeOf((*MockGeneralRepository)(nil).CreateAWSRepository), arg0, arg1, arg2)
+	varargs := append([]interface{}{arg0, arg1, arg2}, arg3...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAWSRepository", reflect.TypeOf((*MockGeneralRepository)(nil).CreateAWSRepository), varargs...)
 }
 
 // ListRepositories mocks base method

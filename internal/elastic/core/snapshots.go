@@ -15,16 +15,19 @@ import (
 )
 
 // CreateAWSRepository -
-func (e *Elastic) CreateAWSRepository(name, awsBucketName, awsRegion string) error {
+func (e *Elastic) CreateAWSRepository(name, awsBucketName, awsRegion string, opts ...models.CreateRepositoryOption) error {
 	query := map[string]interface{}{
 		"type": "s3",
 		"settings": map[string]interface{}{
-			"bucket":      awsBucketName,
-			"endpoint":    fmt.Sprintf("s3.%s.amazonaws.com", awsRegion),
-			"compress":    "true",
-			"max_retries": 3,
+			"bucket":   awsBucketName,
+			"endpoint": fmt.Sprintf("s3.%s.amazonaws.com", awsRegion),
 		},
 	}
+
+	for i := range opts {
+		opts[i](query)
+	}
+
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(query); err != nil {
 		return err

@@ -7,7 +7,7 @@ import (
 )
 
 // CreateAWSRepository -
-func (r *Reindexer) CreateAWSRepository(name, awsBucketName, awsRegion string) error {
+func (r *Reindexer) CreateAWSRepository(name, awsBucketName, awsRegion string, opts ...models.CreateRepositoryOption) error {
 	return nil
 }
 

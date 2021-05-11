@@ -19,7 +19,7 @@ type GeneralRepository interface {
 	UpdateFields(index, id string, data interface{}, fields ...string) error
 	GetEvents([]SubscriptionRequest, int64, int64) ([]Event, error)
 	SearchByText(string, int64, []string, map[string]interface{}, bool) (Result, error)
-	CreateAWSRepository(string, string, string) error
+	CreateAWSRepository(string, string, string, ...CreateRepositoryOption) error
 	ListRepositories() ([]Repository, error)
 	CreateSnapshots(string, string, []string) error
 	RestoreSnapshots(string, string, []string) error
