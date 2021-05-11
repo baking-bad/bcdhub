@@ -8,14 +8,14 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/contract/language"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 )
 
 type ligo struct{}
 
 // Language -
 func (c *ligo) Language() string {
-	return language.LangLigo
+	return consts.LangLigo
 }
 
 // Compile -
