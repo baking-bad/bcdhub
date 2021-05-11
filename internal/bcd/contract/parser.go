@@ -8,7 +8,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
-	"github.com/baking-bad/bcdhub/internal/bcd/contract/language"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 )
 
@@ -85,7 +84,7 @@ func NewParser(data []byte) (*Parser, error) {
 		Tags:               tags,
 		HardcodedAddresses: hardcoded,
 		Hash:               hash,
-		Language:           language.LangUnknown,
+		Language:           consts.LangUnknown,
 		Fingerprint:        Fingerprint{},
 		CodeRaw:            cd.Code,
 	}, nil
@@ -164,10 +163,6 @@ func (p *Parser) parseCode() error {
 		return err
 	}
 	p.Fingerprint.Code = f
-	if p.Code.Code[0].Prim == consts.PrimArray && len(p.Code.Code[0].Args) > 0 {
-		lang := language.GetFromFirstPrim(p.Code.Code[0].Args[0])
-		p.setLanguage(lang)
-	}
 
 	return p.parse(p.Code.Code, p.handleCodeNode)
 }
@@ -203,19 +198,12 @@ func (p *Parser) parseStorage() error {
 		return err
 	}
 	p.Fingerprint.Storage = f
-
-	lang := language.DetectMichelsonInStorage(p.Code.Storage[0])
-	p.setLanguage(lang)
-
 	return p.parse(p.Code.Storage, p.handleStorageNode)
 }
 
 func (p *Parser) handleParameterNode(node *base.Node) error {
 	if len(node.Annots) > 0 {
 		p.Annotations.Append(filterAnnotations(node.Annots)...)
-
-		lang := language.GetFromParameter(node)
-		p.setLanguage(lang)
 	}
 
 	return nil
@@ -239,23 +227,9 @@ func (p *Parser) handleCodeNode(node *base.Node) error {
 		p.Annotations.Append(filterAnnotations(node.Annots)...)
 	}
 
-	lang := language.GetFromCode(node)
-	p.setLanguage(lang)
-
 	p.Tags.Append(primTags(node))
 
 	return nil
-}
-
-func (p *Parser) setLanguage(lang string) {
-	if lang == language.LangUnknown || p.Language == lang {
-		return
-	}
-	prevPriority := language.GetPriority(p.Language)
-	newPriority := language.GetPriority(lang)
-	if newPriority > prevPriority {
-		p.Language = lang
-	}
 }
 
 func parseFail(node *base.Node) string {

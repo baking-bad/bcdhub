@@ -5,14 +5,14 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/contract/language"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 )
 
 type michelson struct{}
 
 // Language -
 func (c *michelson) Language() string {
-	return language.LangMichelson
+	return consts.LangMichelson
 }
 
 // Compile -

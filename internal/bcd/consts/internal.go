@@ -39,3 +39,14 @@ const (
 const (
 	Mainnet = "mainnet"
 )
+
+// Languages
+const (
+	LangSmartPy   = "smartpy"
+	LangLiquidity = "liquidity"
+	LangLigo      = "ligo"
+	LangLorentz   = "lorentz"
+	LangMichelson = "michelson"
+	LangSCaml     = "scaml"
+	LangUnknown   = "unknown"
+)

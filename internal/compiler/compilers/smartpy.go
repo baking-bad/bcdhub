@@ -10,14 +10,14 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/contract/language"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 )
 
 type smartpy struct{}
 
 // Language -
 func (c *smartpy) Language() string {
-	return language.LangSmartPy
+	return consts.LangSmartPy
 }
 
 // Compile -
