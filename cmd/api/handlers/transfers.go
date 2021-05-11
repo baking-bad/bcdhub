@@ -70,7 +70,7 @@ func (ctx *Context) transfersPostprocessing(transfers transfer.Pageable, withLas
 			TokenID:  transfers.Transfers[i].TokenID,
 		}
 
-		metadata, err := ctx.getTokenMetadata(transfers.Transfers[i].Network, transfers.Transfers[i].Contract, transfers.Transfers[i].TokenID)
+		metadata, err := ctx.CachedTokenMetadata(transfers.Transfers[i].Network, transfers.Transfers[i].Contract, transfers.Transfers[i].TokenID)
 		if err != nil {
 			return response, err
 		}
@@ -82,10 +82,10 @@ func (ctx *Context) transfersPostprocessing(transfers transfer.Pageable, withLas
 
 		response.Transfers[i] = TransferFromElasticModel(transfers.Transfers[i])
 		response.Transfers[i].Token = &token
-		response.Transfers[i].Alias = ctx.getAlias(transfers.Transfers[i].Network, transfers.Transfers[i].Contract)
-		response.Transfers[i].InitiatorAlias = ctx.getAlias(transfers.Transfers[i].Network, transfers.Transfers[i].Initiator)
-		response.Transfers[i].FromAlias = ctx.getAlias(transfers.Transfers[i].Network, transfers.Transfers[i].From)
-		response.Transfers[i].ToAlias = ctx.getAlias(transfers.Transfers[i].Network, transfers.Transfers[i].To)
+		response.Transfers[i].Alias = ctx.CachedAlias(transfers.Transfers[i].Network, transfers.Transfers[i].Contract)
+		response.Transfers[i].InitiatorAlias = ctx.CachedAlias(transfers.Transfers[i].Network, transfers.Transfers[i].Initiator)
+		response.Transfers[i].FromAlias = ctx.CachedAlias(transfers.Transfers[i].Network, transfers.Transfers[i].From)
+		response.Transfers[i].ToAlias = ctx.CachedAlias(transfers.Transfers[i].Network, transfers.Transfers[i].To)
 	}
 	return
 }

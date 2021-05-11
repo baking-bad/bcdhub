@@ -9,13 +9,12 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
-	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -47,74 +46,53 @@ func readStorage(address string, level int64) ([]byte, error) {
 	return ioutil.ReadFile(storageFile)
 }
 
-func compareParserResponse(t *testing.T, got, want []models.Model) bool {
-	if len(got) != len(want) {
-		logger.Info("len(got) != len(want): %d != %d", len(got), len(want))
-		return false
+func compareParserResponse(t *testing.T, got, want *parsers.Result) bool {
+	assert.Len(t, got.BigMapActions, len(want.BigMapActions))
+	assert.Len(t, got.BigMapDiffs, len(want.BigMapDiffs))
+	assert.Len(t, got.BigMapState, len(want.BigMapState))
+	assert.Len(t, got.Contracts, len(want.Contracts))
+	assert.Len(t, got.Migrations, len(want.Migrations))
+	assert.Len(t, got.Operations, len(want.Operations))
+	assert.Len(t, got.TokenBalances, len(want.TokenBalances))
+	assert.Len(t, got.Transfers, len(want.Transfers))
+
+	for i := range got.BigMapActions {
+		if !compareBigMapAction(want.BigMapActions[i], got.BigMapActions[i]) {
+			return false
+		}
 	}
-	for i := range got {
-		switch one := got[i].(type) {
-		case *transfer.Transfer:
-			two, ok := want[i].(*transfer.Transfer)
-			if !ok {
-				logger.Info("Differrrent types: %T != %T", one, two)
-				return false
-			}
-			if !compareTransfers(one, two) {
-				return false
-			}
-		case *operation.Operation:
-			two, ok := want[i].(*operation.Operation)
-			if !ok {
-				logger.Info("Differrrent types: %T != %T", one, two)
-				return false
-			}
-			if !compareOperations(t, one, two) {
-				return false
-			}
-		case *bigmapdiff.BigMapDiff:
-			two, ok := want[i].(*bigmapdiff.BigMapDiff)
-			if !ok {
-				logger.Info("Differrrent types: %T != %T", one, two)
-				return false
-			}
-			if !compareBigMapDiff(t, one, two) {
-				return false
-			}
-		case *bigmapaction.BigMapAction:
-			two, ok := want[i].(*bigmapaction.BigMapAction)
-			if !ok {
-				return false
-			}
-			if !compareBigMapAction(one, two) {
-				return false
-			}
-		case *contract.Contract:
-			two, ok := want[i].(*contract.Contract)
-			if !ok {
-				return false
-			}
-			if !compareContract(one, two) {
-				return false
-			}
-		case *bigmapdiff.BigMapState:
-			two, ok := want[i].(*bigmapdiff.BigMapState)
-			if !ok {
-				return false
-			}
-			if !reflect.DeepEqual(one, two) {
-				return false
-			}
-		case *tokenbalance.TokenBalance:
-			two, ok := want[i].(*tokenbalance.TokenBalance)
-			if !ok {
-				return false
-			}
-			if !reflect.DeepEqual(one, two) {
-				return false
-			}
-		default:
-			logger.Info("Unknown type: %T", one)
+	for i := range got.BigMapDiffs {
+		if !compareBigMapDiff(t, want.BigMapDiffs[i], got.BigMapDiffs[i]) {
+			return false
+		}
+	}
+	for i := range got.BigMapState {
+		if !assert.Equal(t, want.BigMapState[i], got.BigMapState[i]) {
+			return false
+		}
+	}
+	for i := range got.Contracts {
+		if !compareContract(want.Contracts[i], got.Contracts[i]) {
+			return false
+		}
+	}
+	for i := range got.Migrations {
+		if !assert.Equal(t, want.Migrations[i], got.Migrations[i]) {
+			return false
+		}
+	}
+	for i := range got.Operations {
+		if !compareOperations(t, want.Operations[i], got.Operations[i]) {
+			return false
+		}
+	}
+	for i := range got.TokenBalances {
+		if !assert.Equal(t, want.TokenBalances[i], got.TokenBalances[i]) {
+			return false
+		}
+	}
+	for i := range got.Transfers {
+		if !compareTransfers(want.Transfers[i], got.Transfers[i]) {
 			return false
 		}
 	}

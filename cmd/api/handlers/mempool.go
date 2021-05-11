@@ -79,8 +79,8 @@ func (ctx *Context) prepareMempoolOperation(item tzkt.MempoolOperation, network 
 		Network:   network,
 		Timestamp: time.Unix(item.Body.Timestamp, 0).UTC(),
 
-		SourceAlias:      ctx.getAlias(network, item.Body.Source),
-		DestinationAlias: ctx.getAlias(network, item.Body.Destination),
+		SourceAlias:      ctx.CachedAlias(network, item.Body.Source),
+		DestinationAlias: ctx.CachedAlias(network, item.Body.Destination),
 		Kind:             item.Body.Kind,
 		Source:           item.Body.Source,
 		Fee:              item.Body.Fee,

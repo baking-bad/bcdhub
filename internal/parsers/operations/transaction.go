@@ -7,9 +7,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/parsers"
 	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
 	"github.com/pkg/errors"
 
@@ -29,26 +29,33 @@ func NewTransaction(params *ParseParams) Transaction {
 }
 
 // Parse -
-func (p Transaction) Parse(data noderpc.Operation) ([]models.Model, error) {
+func (p Transaction) Parse(data noderpc.Operation) (*parsers.Result, error) {
+	result := parsers.NewResult()
+
 	tx := operation.Operation{
-		Network:      p.network,
-		Hash:         p.hash,
-		Protocol:     p.head.Protocol,
-		Level:        p.head.Level,
-		Timestamp:    p.head.Timestamp,
-		Kind:         data.Kind,
-		Initiator:    data.Source,
-		Source:       data.Source,
-		Fee:          data.Fee,
-		Counter:      data.Counter,
-		GasLimit:     data.GasLimit,
-		StorageLimit: data.StorageLimit,
-		Amount:       *data.Amount,
-		Destination:  *data.Destination,
-		Delegate:     data.Delegate,
-		Nonce:        data.Nonce,
-		Parameters:   data.Parameters,
-		ContentIndex: p.contentIdx,
+		Network:       p.network,
+		Hash:          p.hash,
+		Protocol:      p.head.Protocol,
+		Level:         p.head.Level,
+		Timestamp:     p.head.Timestamp,
+		Kind:          data.Kind,
+		Initiator:     data.Source,
+		Source:        data.Source,
+		Fee:           data.Fee,
+		Counter:       data.Counter,
+		GasLimit:      data.GasLimit,
+		StorageLimit:  data.StorageLimit,
+		Amount:        *data.Amount,
+		Destination:   *data.Destination,
+		Delegate:      data.Delegate,
+		Nonce:         data.Nonce,
+		Parameters:    data.Parameters,
+		ContentIndex:  p.contentIdx,
+		SourceAlias:   p.ctx.CachedAlias(p.network, data.Source),
+		DelegateAlias: p.ctx.CachedAlias(p.network, data.Delegate),
+	}
+	if data.Destination != nil {
+		tx.DestinationAlias = p.ctx.CachedAlias(p.network, *data.Destination)
 	}
 
 	p.fillInternal(&tx)
@@ -56,7 +63,8 @@ func (p Transaction) Parse(data noderpc.Operation) ([]models.Model, error) {
 	parseOperationResult(data, &tx)
 
 	tx.SetBurned(p.constants)
-	txModels := []models.Model{&tx}
+
+	result.Operations = append(result.Operations, &tx)
 
 	script, err := fetch.Contract(tx.Destination, tx.Network, tx.Protocol, p.shareDir)
 	if err != nil {
@@ -69,41 +77,37 @@ func (p Transaction) Parse(data noderpc.Operation) ([]models.Model, error) {
 	}
 
 	if tx.IsApplied() {
-		appliedModels, err := p.appliedHandler(data, &tx)
-		if err != nil {
+		if err := p.appliedHandler(data, &tx, result); err != nil {
 			return nil, err
 		}
-		txModels = append(txModels, appliedModels...)
 	}
 
 	if err := p.getEntrypoint(&tx); err != nil {
 		return nil, err
 	}
 
-	if err := setTags(p.Contracts, p.Storage, &tx); err != nil {
+	if err := setTags(p.ctx, &tx); err != nil {
 		return nil, err
 	}
 
 	p.stackTrace.Add(tx)
 
 	if !tezerrors.HasParametersError(tx.Errors) {
-		transfers, err := p.transferParser.Parse(tx, txModels)
+		transfers, err := p.transferParser.Parse(tx, result.BigMapDiffs)
 		if err != nil {
 			if !errors.Is(err, noderpc.InvalidNodeResponse{}) {
 				return nil, err
 			}
 			logger.With(&tx).Warning(err.Error())
 		}
-		for i := range transfers {
-			txModels = append(txModels, transfers[i])
-		}
+		result.Transfers = append(result.Transfers, transfers...)
 
 		if !tx.HasTag(consts.LedgerTag) {
 			balanceUpdates := transferParsers.UpdateTokenBalances(transfers)
-			txModels = append(txModels, balanceUpdates...)
+			result.TokenBalances = append(result.TokenBalances, balanceUpdates...)
 		}
 	}
-	return txModels, nil
+	return result, nil
 }
 
 func (p Transaction) fillInternal(tx *operation.Operation) {
@@ -120,33 +124,31 @@ func (p Transaction) fillInternal(tx *operation.Operation) {
 	tx.Initiator = p.main.Source
 }
 
-func (p Transaction) appliedHandler(item noderpc.Operation, op *operation.Operation) ([]models.Model, error) {
+func (p Transaction) appliedHandler(item noderpc.Operation, op *operation.Operation, result *parsers.Result) error {
 	if !bcd.IsContract(op.Destination) || !op.IsApplied() {
-		return nil, nil
+		return nil
 	}
-
-	resultModels := make([]models.Model, 0)
 
 	rs, err := p.storageParser.Parse(item, op)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if rs.Empty {
-		return nil, nil
+		return nil
 	}
 	op.DeffatedStorage = rs.DeffatedStorage
 
-	resultModels = append(resultModels, rs.Models...)
+	result.Merge(rs.Result)
 
 	migration, err := NewMigration().Parse(item, op)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if migration != nil {
-		resultModels = append(resultModels, migration)
+		result.Migrations = append(result.Migrations, migration)
 	}
 
-	return resultModels, nil
+	return nil
 }
 
 func (p Transaction) getEntrypoint(tx *operation.Operation) error {

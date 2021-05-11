@@ -75,13 +75,13 @@ func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Reposit
 }
 
 // Parse -
-func (p *Parser) Parse(operation operation.Operation, operationModels []models.Model) ([]*transfer.Transfer, error) {
+func (p *Parser) Parse(operation operation.Operation, diffs []*bigmapdiff.BigMapDiff) ([]*transfer.Transfer, error) {
 	if !operation.IsTransaction() {
 		return nil, nil
 	}
 
 	if impl, name, ok := p.events.GetByOperation(operation); ok {
-		return p.executeEvents(impl, name, operation, operationModels)
+		return p.executeEvents(impl, name, operation, diffs)
 	}
 
 	if operation.IsEntrypoint(consts.TransferEntrypoint) {
@@ -97,7 +97,7 @@ func (p *Parser) Parse(operation operation.Operation, operationModels []models.M
 	return nil, nil
 }
 
-func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, operation operation.Operation, operationModels []models.Model) ([]*transfer.Transfer, error) {
+func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, operation operation.Operation, diffs []*bigmapdiff.BigMapDiff) ([]*transfer.Transfer, error) {
 	if !operation.IsApplied() {
 		return nil, nil
 	}
@@ -147,12 +147,11 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 		ctx.Parameters = storage
 		ctx.Entrypoint = consts.DefaultEntrypoint
 		bmd := make([]bigmapdiff.BigMapDiff, 0)
-		for i := range operationModels {
-			if model, ok := operationModels[i].(*bigmapdiff.BigMapDiff); ok &&
-				model.OperationHash == operation.Hash &&
-				model.OperationCounter == operation.Counter &&
-				helpers.IsInt64PointersEqual(model.OperationNonce, operation.Nonce) {
-				bmd = append(bmd, *model)
+		for i := range diffs {
+			if diffs[i].OperationHash == operation.Hash &&
+				diffs[i].OperationCounter == operation.Counter &&
+				helpers.IsInt64PointersEqual(diffs[i].OperationNonce, operation.Nonce) {
+				bmd = append(bmd, *diffs[i])
 			}
 		}
 		event, err = events.NewMichelsonExtendedStorage(impl, name, operation.Protocol, operation.Destination, operation.GetID(), bmd)

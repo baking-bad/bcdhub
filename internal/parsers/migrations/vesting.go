@@ -1,28 +1,31 @@
-package parsers
+package migrations
 
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
-	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/baking-bad/bcdhub/internal/parsers/contract"
 )
 
 // VestingParser -
 type VestingParser struct {
+	ctx            *config.Context
 	filesDirectory string
 }
 
 // NewVestingParser -
-func NewVestingParser(filesDirectory string) *VestingParser {
+func NewVestingParser(ctx *config.Context, filesDirectory string) *VestingParser {
 	return &VestingParser{
+		ctx:            ctx,
 		filesDirectory: filesDirectory,
 	}
 }
 
 // Parse -
-func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, network, address string) ([]models.Model, error) {
+func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, network, address string) (*parsers.Result, error) {
 	migration := &migration.Migration{
 		Level:     head.Level,
 		Network:   network,
@@ -47,17 +50,11 @@ func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, ne
 		Script:      data.RawScript,
 	}
 
-	parser := contract.NewParser(contract.WithShareDir(p.filesDirectory))
+	parser := contract.NewParser(p.ctx, contract.WithShareDir(p.filesDirectory))
 	contractModels, err := parser.Parse(&op)
 	if err != nil {
 		return nil, err
 	}
-
-	parsedModels := []models.Model{}
-	if len(contractModels) > 0 {
-		parsedModels = append(parsedModels, contractModels...)
-	}
-	parsedModels = append(parsedModels, migration)
-
-	return parsedModels, nil
+	contractModels.Migrations = append(contractModels.Migrations, migration)
+	return contractModels, nil
 }

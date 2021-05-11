@@ -102,11 +102,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 							return err
 						}
 					}
-					opModels := make([]models.Model, len(bmd))
-					for j := range bmd {
-						opModels[j] = bmd[j]
-					}
-					transfers, err := parser.Parse(op, opModels)
+					transfers, err := parser.Parse(op, bmd)
 					if err != nil {
 						if errors.Is(err, noderpc.InvalidNodeResponse{}) {
 							logger.Error(err)

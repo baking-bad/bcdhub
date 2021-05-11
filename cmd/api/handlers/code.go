@@ -38,7 +38,7 @@ func (ctx *Context) GetContractCode(c *gin.Context) {
 	}
 
 	if req.Protocol == "" {
-		state, err := ctx.getCurrentBlock(req.Network)
+		state, err := ctx.CachedCurrentBlock(req.Network)
 		if ctx.handleError(c, err, 0) {
 			return
 		}
@@ -112,7 +112,7 @@ func (ctx *Context) getContractCodeDiff(left, right CodeDiffLeg) (res CodeDiffRe
 		if leg.Protocol == "" {
 			protocol, ok := currentProtocols[leg.Network]
 			if !ok {
-				state, err := ctx.getCurrentBlock(leg.Network)
+				state, err := ctx.CachedCurrentBlock(leg.Network)
 				if err != nil {
 					return res, err
 				}

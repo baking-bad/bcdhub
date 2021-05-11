@@ -4,21 +4,23 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	astContract "github.com/baking-bad/bcdhub/internal/bcd/contract"
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/pkg/errors"
 )
 
 // Parser -
 type Parser struct {
 	scriptSaver ScriptSaver
+	ctx         *config.Context
 }
 
 // NewParser -
-func NewParser(opts ...ParserOption) *Parser {
-	parser := &Parser{}
+func NewParser(ctx *config.Context, opts ...ParserOption) *Parser {
+	parser := &Parser{ctx: ctx}
 	for i := range opts {
 		opts[i](parser)
 	}
@@ -40,12 +42,13 @@ func WithShareDir(dir string) ParserOption {
 }
 
 // Parse -
-func (p *Parser) Parse(operation *operation.Operation) ([]models.Model, error) {
+func (p *Parser) Parse(operation *operation.Operation) (*parsers.Result, error) {
 	if !helpers.StringInArray(operation.Kind, []string{
 		consts.Origination, consts.OriginationNew, consts.Migration,
 	}) {
 		return nil, errors.Errorf("Invalid operation kind in computeContractMetrics: %s", operation.Kind)
 	}
+
 	contract := contract.Contract{
 		Network:    operation.Network,
 		Level:      operation.Level,
@@ -60,7 +63,10 @@ func (p *Parser) Parse(operation *operation.Operation) ([]models.Model, error) {
 		return nil, err
 	}
 
-	return []models.Model{&contract}, nil
+	result := parsers.NewResult()
+	result.Contracts = append(result.Contracts, &contract)
+
+	return result, nil
 }
 
 func (p *Parser) computeMetrics(operation *operation.Operation, c *contract.Contract) error {
@@ -98,6 +104,9 @@ func (p *Parser) computeMetrics(operation *operation.Operation, c *contract.Cont
 	if err != nil {
 		return err
 	}
+
+	c.Alias = p.ctx.CachedAlias(c.Address, c.Network)
+	c.DelegateAlias = p.ctx.CachedAlias(c.Delegate, c.Network)
 
 	if p.scriptSaver != nil {
 		return p.scriptSaver.Save(operation.Script, ScriptSaveContext{

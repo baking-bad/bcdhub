@@ -5,7 +5,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/gin-gonic/gin"
 	jsoniter "github.com/json-iterator/go"
-	"github.com/karlseguin/ccache"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -14,7 +13,6 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 type Context struct {
 	*config.Context
 	OAUTH oauth.Config
-	Cache *ccache.Cache
 }
 
 // NewContext -
@@ -44,7 +42,6 @@ func NewContext(cfg config.Config) (*Context, error) {
 	return &Context{
 		Context: ctx,
 		OAUTH:   oauthCfg,
-		Cache:   ccache.New(ccache.Configure().MaxSize(10)),
 	}, nil
 }
 

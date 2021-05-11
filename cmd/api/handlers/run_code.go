@@ -10,7 +10,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
-	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/operations"
 	"github.com/baking-bad/bcdhub/internal/parsers/storage"
@@ -29,7 +28,7 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		return
 	}
 
-	state, err := ctx.getCurrentBlock(req.Network)
+	state, err := ctx.CachedCurrentBlock(req.Network)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -86,7 +85,7 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 
 	parser := operations.NewGroup(operations.NewParseParams(
 		rpc,
-		ctx.Storage, ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.TZIP, ctx.TokenBalances,
+		ctx.Context,
 		operations.WithConstants(*protocol.Constants),
 		operations.WithHead(header),
 		operations.WithShareDirectory(ctx.SharePath),
@@ -98,27 +97,17 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		return
 	}
 
-	operations := make([]*operation.Operation, 0)
-	diffs := make([]*bigmapdiff.BigMapDiff, 0)
-
-	for i := range parsedModels {
-		switch val := parsedModels[i].(type) {
-		case *operation.Operation:
-			operations = append(operations, val)
-		case *bigmapdiff.BigMapDiff:
-			diffs = append(diffs, val)
-		}
-	}
-
-	resp := make([]Operation, len(operations))
-	for i := range operations {
+	resp := make([]Operation, len(parsedModels.Operations))
+	for i := range parsedModels.Operations {
 		bmd := make([]bigmapdiff.BigMapDiff, 0)
-		for j := range diffs {
-			if diffs[j].OperationHash == operations[i].Hash && diffs[j].OperationCounter == operations[i].Counter && helpers.IsInt64PointersEqual(diffs[j].OperationNonce, operations[i].Nonce) {
-				bmd = append(bmd, *diffs[j])
+		for j := range parsedModels.BigMapDiffs {
+			if parsedModels.BigMapDiffs[j].OperationHash == parsedModels.Operations[i].Hash &&
+				parsedModels.BigMapDiffs[j].OperationCounter == parsedModels.Operations[i].Counter &&
+				helpers.IsInt64PointersEqual(parsedModels.BigMapDiffs[j].OperationNonce, parsedModels.Operations[i].Nonce) {
+				bmd = append(bmd, *parsedModels.BigMapDiffs[j])
 			}
 		}
-		op, err := ctx.prepareOperation(*operations[i], bmd, true)
+		op, err := ctx.prepareOperation(*parsedModels.Operations[i], bmd, true)
 		if ctx.handleError(c, err, 0) {
 			return
 		}
@@ -153,7 +142,7 @@ func (ctx *Context) RunCode(c *gin.Context) {
 		return
 	}
 
-	state, err := ctx.getCurrentBlock(req.Network)
+	state, err := ctx.CachedCurrentBlock(req.Network)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -316,11 +305,9 @@ func (ctx *Context) parseBigMapDiffs(response noderpc.RunCodeResponse, script *a
 	if rs.Empty {
 		return nil, nil
 	}
-	bmd := make([]bigmapdiff.BigMapDiff, len(rs.Models))
-	for i := range rs.Models {
-		if val, ok := rs.Models[i].(*bigmapdiff.BigMapDiff); ok {
-			bmd[i] = *val
-		}
+	bmd := make([]bigmapdiff.BigMapDiff, len(rs.Result.BigMapDiffs))
+	for i := range rs.Result.BigMapDiffs {
+		bmd[i] = *rs.Result.BigMapDiffs[i]
 	}
 	return bmd, nil
 }

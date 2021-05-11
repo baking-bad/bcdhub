@@ -25,11 +25,11 @@ var tokens []tzip.TZIP
 func NewTokenEvents(repo tzip.Repository, storage models.GeneralRepository) (TokenEvents, error) {
 	views := make(TokenEvents)
 
-	count, err := repo.GetWithEventsCounts()
+	lastID, err := repo.GetLastIDWithEvents()
 	if err != nil {
 		return nil, err
 	}
-	if int(count) != len(tokens) {
+	if len(tokens) == 0 || tokens[0].ID != lastID {
 		tokens, err = repo.GetWithEvents()
 		if err != nil {
 			if storage.IsRecordNotFound(err) {

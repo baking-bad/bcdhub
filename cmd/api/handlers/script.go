@@ -15,7 +15,7 @@ func (ctx *Context) getScript(address, network, protocol string) (*ast.Script, e
 
 func (ctx *Context) getScriptBytes(address, network, protocol string) ([]byte, error) {
 	if protocol == "" {
-		state, err := ctx.getCurrentBlock(network)
+		state, err := ctx.CachedCurrentBlock(network)
 		if err != nil {
 			return nil, err
 		}

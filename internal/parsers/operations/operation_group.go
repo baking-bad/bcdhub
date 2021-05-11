@@ -6,8 +6,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/parsers"
 )
 
 // Group -
@@ -21,8 +21,8 @@ func NewGroup(params *ParseParams) Group {
 }
 
 // Parse -
-func (opg Group) Parse(data noderpc.OperationGroup) ([]models.Model, error) {
-	parsedModels := make([]models.Model, 0)
+func (opg Group) Parse(data noderpc.OperationGroup) (*parsers.Result, error) {
+	result := parsers.NewResult()
 
 	opg.hash = data.Hash
 	helpers.SetTagSentry("hash", opg.hash)
@@ -31,15 +31,15 @@ func (opg Group) Parse(data noderpc.OperationGroup) ([]models.Model, error) {
 		opg.contentIdx = int64(idx)
 
 		contentParser := NewContent(opg.ParseParams)
-		models, err := contentParser.Parse(item)
+		contentResult, err := contentParser.Parse(item)
 		if err != nil {
 			return nil, err
 		}
-		parsedModels = append(parsedModels, models...)
+		result.Merge(contentResult)
 		contentParser.clear()
 	}
 
-	return parsedModels, nil
+	return result, nil
 }
 
 // Content -
@@ -53,37 +53,36 @@ func NewContent(params *ParseParams) Content {
 }
 
 // Parse -
-func (content Content) Parse(data noderpc.Operation) ([]models.Model, error) {
+func (content Content) Parse(data noderpc.Operation) (*parsers.Result, error) {
 	if !content.needParse(data) {
 		return nil, nil
 	}
-
-	models := make([]models.Model, 0)
+	result := parsers.NewResult()
 
 	switch data.Kind {
 	case consts.Origination, consts.OriginationNew:
-		originationModels, err := NewOrigination(content.ParseParams).Parse(data)
+		originationResult, err := NewOrigination(content.ParseParams).Parse(data)
 		if err != nil {
 			return nil, err
 		}
-		models = append(models, originationModels...)
+		result.Merge(originationResult)
 	case consts.Transaction:
-		txModels, err := NewTransaction(content.ParseParams).Parse(data)
+		txResult, err := NewTransaction(content.ParseParams).Parse(data)
 		if err != nil {
 			return nil, err
 		}
-		models = append(models, txModels...)
+		result.Merge(txResult)
 	default:
 		return nil, errors.Errorf("Invalid operation kind: %s", data.Kind)
 	}
 
-	internalModels, err := content.parseInternal(data)
+	internalResult, err := content.parseInternal(data)
 	if err != nil {
 		return nil, err
 	}
-	models = append(models, internalModels...)
+	result.Merge(internalResult)
 
-	return models, nil
+	return result, nil
 }
 
 func (content Content) needParse(item noderpc.Operation) bool {
@@ -97,7 +96,7 @@ func (content Content) needParse(item noderpc.Operation) bool {
 	return originationCondition || transactionCondition
 }
 
-func (content Content) parseInternal(data noderpc.Operation) ([]models.Model, error) {
+func (content Content) parseInternal(data noderpc.Operation) (*parsers.Result, error) {
 	if data.Metadata == nil {
 		return nil, nil
 	}
@@ -109,15 +108,15 @@ func (content Content) parseInternal(data noderpc.Operation) ([]models.Model, er
 		}
 	}
 
-	internalModels := make([]models.Model, 0)
+	result := parsers.NewResult()
 	for i := range internals {
 		parsedModels, err := content.Parse(internals[i])
 		if err != nil {
 			return nil, err
 		}
-		internalModels = append(internalModels, parsedModels...)
+		result.Merge(parsedModels)
 	}
-	return internalModels, nil
+	return result, nil
 }
 
 func (content *Content) clear() {
