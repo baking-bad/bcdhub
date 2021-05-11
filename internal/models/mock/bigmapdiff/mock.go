@@ -125,18 +125,18 @@ func (mr *MockRepositoryMockRecorder) GetByPtrAndKeyHash(arg0, arg1, arg2, arg3,
 }
 
 // GetForAddress mocks base method
-func (m *MockRepository) GetForAddress(arg0 string) ([]bmd.BigMapDiff, error) {
+func (m *MockRepository) GetForAddress(network, address string) ([]bmd.BigMapState, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetForAddress", arg0)
-	ret0, _ := ret[0].([]bmd.BigMapDiff)
+	ret := m.ctrl.Call(m, "GetForAddress", network, address)
+	ret0, _ := ret[0].([]bmd.BigMapState)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetForAddress indicates an expected call of GetForAddress
-func (mr *MockRepositoryMockRecorder) GetForAddress(arg0 interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetForAddress(network, address interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForAddress", reflect.TypeOf((*MockRepository)(nil).GetForAddress), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForAddress", reflect.TypeOf((*MockRepository)(nil).GetForAddress), network, address)
 }
 
 // GetByIDs mocks base method

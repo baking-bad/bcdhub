@@ -8,7 +8,7 @@ type Repository interface {
 	GetUniqueForOperations(opg []OPG) ([]BigMapDiff, error)
 	GetByPtr(network, contract string, ptr int64) ([]BigMapState, error)
 	GetByPtrAndKeyHash(int64, string, string, int64, int64) ([]BigMapDiff, int64, error)
-	GetForAddress(string) ([]BigMapDiff, error)
+	GetForAddress(network, address string) ([]BigMapState, error)
 	GetByIDs(ids ...int64) ([]BigMapDiff, error)
 	GetValuesByKey(string) ([]BigMapDiff, error)
 	Count(network string, ptr int64) (int64, error)
