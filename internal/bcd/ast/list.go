@@ -281,9 +281,11 @@ func (list *List) GetJSONModel(model JSONModel) {
 	if model == nil {
 		return
 	}
-	arr := make([]JSONModel, len(list.Data))
+	arr := make([]JSONModel, 0, len(list.Data))
 	for i := range list.Data {
-		list.Data[i].GetJSONModel(arr[i])
+		res := make(JSONModel)
+		list.Data[i].GetJSONModel(res)
+		arr = append(arr, res)
 	}
 	model[list.GetName()] = arr
 }
