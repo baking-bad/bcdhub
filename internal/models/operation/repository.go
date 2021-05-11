@@ -4,7 +4,7 @@ package operation
 type Repository interface {
 	GetByContract(network string, address string, size uint64, filters map[string]interface{}) (Pageable, error)
 	GetStats(network, address string) (Stats, error)
-	// Last - returns last operation. TODO: change network and address.
+	// Last - returns last operation.
 	Last(network string, address string, indexedTime int64) (Operation, error)
 
 	// GetOperations - get operation by `filter`. `Size` - if 0 - return all, else certain `size` operations.
