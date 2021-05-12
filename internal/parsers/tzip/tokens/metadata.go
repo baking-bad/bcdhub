@@ -98,7 +98,7 @@ func parseString(hexValue string) (string, error) {
 	}
 
 	if utf8.Valid(decoded) {
-		return string(decoded), nil
+		return helpers.Escape(string(decoded)), nil
 	}
 	return "", nil
 }
