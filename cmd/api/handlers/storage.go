@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/gin-gonic/gin"
 )
 
@@ -171,16 +172,30 @@ func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 		filters["level"] = sReq.Level
 	}
 
-	ops, err := ctx.Operations.Get(filters, 2, true)
+	ops, err := ctx.Operations.Get(filters, 1, true)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 	if len(ops) == 0 {
-		c.JSON(http.StatusNoContent, gin.H{})
+		c.JSON(http.StatusNoContent, "")
 		return
 	}
+	var storage []byte
+	if len(ops[0].DeffatedStorage) == 0 {
+		rpc, err := ctx.GetRPC(req.Network)
+		if ctx.handleError(c, err, 0) {
+			return
+		}
+		data, err := rpc.GetScriptStorageRaw(req.Address, int64(sReq.Level))
+		if ctx.handleError(c, err, 0) {
+			return
+		}
+		storage = data
+	} else {
+		storage = ops[0].DeffatedStorage
+	}
 
-	bmd, err := ctx.BigMapDiffs.GetForAddress(req.Address)
+	states, err := ctx.BigMapDiffs.GetForAddress(req.Network, req.Address)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -190,11 +205,21 @@ func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 		return
 	}
 
-	if err := prepareStorage(storageType, ops[0].DeffatedStorage, bmd); ctx.handleError(c, err, 0) {
+	bmd := make([]bigmapdiff.BigMapDiff, 0, len(states))
+	for i := range states {
+		bmd = append(bmd, states[i].ToDiff())
+	}
+
+	if err := prepareStorage(storageType, storage, bmd); ctx.handleError(c, err, 0) {
 		return
 	}
 
-	c.JSON(http.StatusOK, storageType)
+	response, err := storageType.Nodes[0].ToBaseNode(false)
+	if ctx.handleError(c, err, 0) {
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 // GetContractStorageSchema godoc

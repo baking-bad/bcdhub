@@ -43,10 +43,9 @@ func (storage *Storage) Current(network, keyHash string, ptr int64) (data bigmap
 }
 
 // GetForAddress -
-func (storage *Storage) GetForAddress(address string) (response []bigmapdiff.BigMapDiff, err error) {
+func (storage *Storage) GetForAddress(network, address string) (response []bigmapdiff.BigMapState, err error) {
 	err = storage.DB.Table(models.DocBigMapDiff).
-		Scopes(core.Contract(address)).
-		Group("key_hash").
+		Scopes(core.NetworkAndContract(network, address)).
 		Order("level desc").
 		Find(&response).
 		Error
