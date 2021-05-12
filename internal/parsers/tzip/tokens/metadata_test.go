@@ -80,70 +80,70 @@ func TestTokenMetadata_Parse(t *testing.T) {
 		}, {
 			name: "test 8: KT1XRxmUFNcbzGTwQPvNPa5FuuM43uEunp8K",
 			value: `{
-				"prim": "Pair",
-				"args": [
-				  {
-					"int": "0"
-				  },
-				  [
-					{
-					  "prim": "Elt",
-					  "args": [
+					"prim": "Pair",
+					"args": [
+					  {
+						"int": "0"
+					  },
+					  [
 						{
-						  "string": "decimals"
+						  "prim": "Elt",
+						  "args": [
+							{
+							  "string": "decimals"
+							},
+							{
+							  "bytes": "30"
+							}
+						  ]
 						},
 						{
-						  "bytes": "30"
-						}
-					  ]
-					},
-					{
-					  "prim": "Elt",
-					  "args": [
-						{
-						  "string": "description"
+						  "prim": "Elt",
+						  "args": [
+							{
+							  "string": "description"
+							},
+							{
+							  "bytes": "54686973206973207468652054657a6f73205370616e69736820636f6d6d756e69747920746f6b656e2e0a0a4573746520657320656c20746f6b656e206465206c6120636f6d756e696461642065737061f16f6c612054657a6f73205370616e6973682e"
+							}
+						  ]
 						},
 						{
-						  "bytes": "54686973206973207468652054657a6f73205370616e69736820636f6d6d756e69747920746f6b656e2e0a0a4573746520657320656c20746f6b656e206465206c6120636f6d756e696461642065737061f16f6c612054657a6f73205370616e6973682e"
-						}
-					  ]
-					},
-					{
-					  "prim": "Elt",
-					  "args": [
-						{
-						  "string": "name"
+						  "prim": "Elt",
+						  "args": [
+							{
+							  "string": "name"
+							},
+							{
+							  "bytes": "54657a6f73205370616e697368"
+							}
+						  ]
 						},
 						{
-						  "bytes": "54657a6f73205370616e697368"
-						}
-					  ]
-					},
-					{
-					  "prim": "Elt",
-					  "args": [
-						{
-						  "string": "symbol"
+						  "prim": "Elt",
+						  "args": [
+							{
+							  "string": "symbol"
+							},
+							{
+							  "bytes": "545a53"
+							}
+						  ]
 						},
 						{
-						  "bytes": "545a53"
+						  "prim": "Elt",
+						  "args": [
+							{
+							  "string": "thumbnailUri"
+							},
+							{
+							  "bytes": "68747470733a2f2f6962622e636f2f7a514c62746851"
+							}
+						  ]
 						}
 					  ]
-					},
-					{
-					  "prim": "Elt",
-					  "args": [
-						{
-						  "string": "thumbnailUri"
-						},
-						{
-						  "bytes": "68747470733a2f2f6962622e636f2f7a514c62746851"
-						}
-					  ]
-					}
-				  ]
-				]
-			  }`,
+					]
+				  }`,
 			wantErr: false,
 			want: &TokenMetadata{
 				TokenID:      0,
@@ -152,6 +152,18 @@ func TestTokenMetadata_Parse(t *testing.T) {
 				Symbol:       "TZS",
 				ThumbnailURI: "https://ibb.co/zQLbthQ",
 				Extras:       map[string]interface{}{},
+			},
+		}, {
+			name:    "test 9",
+			value:   `{"prim":"Pair","args":[{"int":"0"},[{"prim":"Elt","args":[{"string":"decimal"},{"bytes":"06"}]},{"prim":"Elt","args":[{"string":"icon"},{"bytes":"05010000005a68747470733a2f2f696d616765732e6c61646570656368652e66722f6170692f76312f696d616765732f766965772f3563326539343365336534353436313134363339393066312f6f726967696e616c2f696d6167652e6a7067"}]},{"prim":"Elt","args":[{"string":"name"},{"bytes":"05010000000d54696e6f206c757620636f696e"}]},{"prim":"Elt","args":[{"string":"symbol"},{"bytes":"050100000005383d3d3d44"}]}]]}`,
+			wantErr: false,
+			want: &TokenMetadata{
+				Symbol: "\x05\x01\\u0000\\u0000\\u0000\x058===D",
+				Name:   "\x05\x01\\u0000\\u0000\\u0000\rTino luv coin",
+				Extras: map[string]interface{}{
+					"decimal": "06",
+					"icon":    "{ \"https://images.ladepeche.fr/api/v1/images/view/5c2e943e3e454611463990f1/original/image.jpg\" }",
+				},
 			},
 		},
 	}
