@@ -54,3 +54,11 @@ type ContractCountStats struct {
 	Total     int64
 	SameCount int64
 }
+
+// NetworkStats -
+type NetworkStats struct {
+	ContractsCount       uint64
+	UniqueContractsCount uint64
+	CallsCount           uint64
+	FACount              uint64
+}

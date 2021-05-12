@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"net/http"
+	"sort"
 
+	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,36 +19,23 @@ import (
 // @Failure 500 {object} Error
 // @Router /v1/head [get]
 func (ctx *Context) GetHead(c *gin.Context) {
-	head, err := ctx.getHead()
+	blocks, err := ctx.Blocks.LastByNetworks()
 	if ctx.handleError(c, err, 0) {
 		return
-	}
-
-	c.JSON(http.StatusOK, head)
-}
-
-func (ctx *Context) getHead() (interface{}, error) {
-	blocks, err := ctx.Blocks.LastByNetworks()
-	if err != nil {
-		return nil, err
 	}
 
 	var network string
 	if len(blocks) == 1 {
 		network = blocks[0].Network
+	} else {
+		sort.Sort(block.ByNetwork(blocks))
 	}
-	callCounts, err := ctx.Storage.GetCallsCountByNetwork(network)
-	if err != nil {
-		return nil, err
+
+	stats, err := ctx.Storage.GetStats(network)
+	if ctx.handleError(c, err, 0) {
+		return
 	}
-	contractStats, err := ctx.Storage.GetContractStatsByNetwork(network)
-	if err != nil {
-		return nil, err
-	}
-	faCount, err := ctx.Storage.GetFACountByNetwork(network)
-	if err != nil {
-		return nil, err
-	}
+
 	body := make([]HeadResponse, len(blocks))
 	for i := range blocks {
 		body[i] = HeadResponse{
@@ -55,20 +44,15 @@ func (ctx *Context) getHead() (interface{}, error) {
 			Timestamp: blocks[i].Timestamp,
 			Protocol:  blocks[i].Protocol,
 		}
-		calls, ok := callCounts[blocks[i].Network]
-		if ok {
-			body[i].ContractCalls = calls
+		networkStats, ok := stats[blocks[i].Network]
+		if !ok {
+			continue
 		}
-		fa, ok := faCount[blocks[i].Network]
-		if ok {
-			body[i].FACount = fa
-		}
-		stats, ok := contractStats[blocks[i].Network]
-		if ok {
-			body[i].Total = stats.Total
-			body[i].UniqueContracts = stats.SameCount
-		}
+		body[i].ContractCalls = int64(networkStats.CallsCount)
+		body[i].FACount = int64(networkStats.FACount)
+		body[i].UniqueContracts = int64(networkStats.UniqueContractsCount)
+		body[i].Total = int64(networkStats.ContractsCount)
 	}
 
-	return body, nil
+	c.JSON(http.StatusOK, body)
 }

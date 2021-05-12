@@ -9,6 +9,7 @@ import (
 // UpdateTokenBalances -
 func UpdateTokenBalances(transfers []*transfer.Transfer) []*tokenbalance.TokenBalance {
 	exists := make(map[string]*tokenbalance.TokenBalance)
+	updates := make([]*tokenbalance.TokenBalance, 0)
 	for i := range transfers {
 		if transfers[i].Status != consts.Applied {
 			continue
@@ -19,6 +20,7 @@ func UpdateTokenBalances(transfers []*transfer.Transfer) []*tokenbalance.TokenBa
 				update.Value.Sub(update.Value, transfers[i].Value)
 			} else {
 				exists[idFrom] = transfers[i].MakeTokenBalanceUpdate(true, false)
+				updates = append(updates, exists[idFrom])
 			}
 		}
 		idTo := transfers[i].GetToTokenBalanceID()
@@ -27,14 +29,9 @@ func UpdateTokenBalances(transfers []*transfer.Transfer) []*tokenbalance.TokenBa
 				update.Value.Add(update.Value, transfers[i].Value)
 			} else {
 				exists[idTo] = transfers[i].MakeTokenBalanceUpdate(false, false)
+				updates = append(updates, exists[idTo])
 			}
 		}
 	}
-
-	updates := make([]*tokenbalance.TokenBalance, 0, len(exists))
-	for _, upd := range exists {
-		updates = append(updates, upd)
-	}
-
 	return updates
 }
