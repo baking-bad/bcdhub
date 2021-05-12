@@ -3,6 +3,7 @@ package migrations
 import (
 	"errors"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/fetch"
@@ -78,9 +79,12 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 
 				for _, op := range operations {
 					op.Script = script
-					if err := op.InitScript(); err != nil {
+					tree, err := ast.NewScriptWithoutCode(script)
+					if err != nil {
 						return err
 					}
+					op.AST = tree
+
 					st := stacktrace.New()
 					if err := st.Fill(ctx.Operations, op); err != nil {
 						return err

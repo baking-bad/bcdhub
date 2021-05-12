@@ -117,6 +117,7 @@ func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOpti
 		config.WithStorage(cfg.Storage, "indexer", 10),
 		config.WithRabbit(cfg.RabbitMQ, cfg.Indexer.ProjectName, cfg.Indexer.MQ),
 		config.WithSearch(cfg.Storage),
+		config.WithShare(cfg.SharePath),
 	)
 
 	bi := &BoostIndexer{
@@ -525,16 +526,19 @@ func (bi *BoostIndexer) getDataFromBlock(head noderpc.Header) (*parsers.Result, 
 
 	result := parsers.NewResult()
 	for i := range opg {
-		parser := operations.NewGroup(operations.NewParseParams(
+		parserParams, err := operations.NewParseParams(
 			bi.rpc,
 			bi.Context,
 			operations.WithConstants(*bi.currentProtocol.Constants),
 			operations.WithHead(head),
 			operations.WithIPFSGateways(bi.Config.IPFSGateways),
-			operations.WithShareDirectory(bi.Config.SharePath),
-			operations.WithNetwork(bi.Network),
 			operations.WithCache(bi.Cache),
-		))
+			operations.WithNetwork(bi.Network),
+		)
+		if err != nil {
+			return nil, err
+		}
+		parser := operations.NewGroup(parserParams)
 		opgResult, err := parser.Parse(opg[i])
 		if err != nil {
 			return nil, err

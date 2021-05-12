@@ -158,55 +158,66 @@ func TestGroup_Parse(t *testing.T) {
 		AnyTimes()
 
 	tests := []struct {
-		name        string
-		ParseParams *ParseParams
-		filename    string
-		storage     map[string]int64
-		want        *parsers.Result
-		wantErr     bool
+		name       string
+		rpc        noderpc.INode
+		ctx        *config.Context
+		paramsOpts []ParseParamsOption
+		filename   string
+		storage    map[string]int64
+		want       *parsers.Result
+		wantErr    bool
 	}{
 		{
 			name: "opToHHcqFhRTQWJv2oTGAtywucj9KM1nDnk5eHsEETYJyvJLsa5",
-			ParseParams: NewParseParams(
-				rpc, &config.Context{
-					Storage:       generalRepo,
-					Contracts:     contractRepo,
-					BigMapDiffs:   bmdRepo,
-					Blocks:        blockRepo,
-					TZIP:          tzipRepo,
-					TokenBalances: tbRepo,
-					Cache:         cache.NewCache(),
+			rpc:  rpc,
+			ctx: &config.Context{
+				Storage:       generalRepo,
+				Contracts:     contractRepo,
+				BigMapDiffs:   bmdRepo,
+				Blocks:        blockRepo,
+				TZIP:          tzipRepo,
+				TokenBalances: tbRepo,
+				Cache:         cache.NewCache(),
+			},
+			paramsOpts: []ParseParamsOption{
+				WithHead(noderpc.Header{
+					Timestamp: timestamp,
+					Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+					Level:     1068669,
+					ChainID:   "NetXdQprcVkpaWU",
 				}),
+				WithNetwork(consts.Mainnet),
+			},
 			filename: "./data/rpc/opg/opToHHcqFhRTQWJv2oTGAtywucj9KM1nDnk5eHsEETYJyvJLsa5.json",
 			want:     parsers.NewResult(),
 		}, {
 			name: "opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9",
-			ParseParams: NewParseParams(
-				rpc, &config.Context{
-					Storage:       generalRepo,
-					Contracts:     contractRepo,
-					BigMapDiffs:   bmdRepo,
-					Blocks:        blockRepo,
-					TZIP:          tzipRepo,
-					TokenBalances: tbRepo,
-
-					Cache: cache.NewCache(),
-				},
+			rpc:  rpc,
+			ctx: &config.Context{
+				Storage:       generalRepo,
+				Contracts:     contractRepo,
+				BigMapDiffs:   bmdRepo,
+				Blocks:        blockRepo,
+				TZIP:          tzipRepo,
+				TokenBalances: tbRepo,
+				Cache:         cache.NewCache(),
+				SharePath:     "./test",
+			},
+			paramsOpts: []ParseParamsOption{
 				WithHead(noderpc.Header{
 					Timestamp: timestamp,
 					Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 					Level:     1068669,
 					ChainID:   "test",
 				}),
-				WithShareDirectory("./test"),
-				WithNetwork(consts.Mainnet),
 				WithConstants(protocol.Constants{
 					CostPerByte:                  1000,
 					HardGasLimitPerOperation:     1040000,
 					HardStorageLimitPerOperation: 60000,
 					TimeBetweenBlocks:            60,
 				}),
-			),
+				WithNetwork(consts.Mainnet),
+			},
 			storage: map[string]int64{
 				"KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM": 1068668,
 				"KT19nHqEWZxFFbbDL1b7Y86escgEN7qUShGo": 1068668,
@@ -351,31 +362,32 @@ func TestGroup_Parse(t *testing.T) {
 			},
 		}, {
 			name: "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
-			ParseParams: NewParseParams(
-				rpc, &config.Context{
-					Storage:       generalRepo,
-					Contracts:     contractRepo,
-					BigMapDiffs:   bmdRepo,
-					Blocks:        blockRepo,
-					TZIP:          tzipRepo,
-					TokenBalances: tbRepo,
-					Cache:         cache.NewCache(),
-				},
-				WithShareDirectory("./test"),
+			rpc:  rpc,
+			ctx: &config.Context{
+				Storage:       generalRepo,
+				Contracts:     contractRepo,
+				BigMapDiffs:   bmdRepo,
+				Blocks:        blockRepo,
+				TZIP:          tzipRepo,
+				TokenBalances: tbRepo,
+				Cache:         cache.NewCache(),
+				SharePath:     "./test",
+			},
+			paramsOpts: []ParseParamsOption{
 				WithHead(noderpc.Header{
 					Timestamp: timestamp,
 					Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 					Level:     1151495,
 					ChainID:   "test",
 				}),
-				WithNetwork(consts.Mainnet),
 				WithConstants(protocol.Constants{
 					CostPerByte:                  1000,
 					HardGasLimitPerOperation:     1040000,
 					HardStorageLimitPerOperation: 60000,
 					TimeBetweenBlocks:            60,
 				}),
-			),
+				WithNetwork(consts.Mainnet),
+			},
 			storage: map[string]int64{
 				"KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr": 1151494,
 				"KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn": 1151494,
@@ -543,32 +555,32 @@ func TestGroup_Parse(t *testing.T) {
 			},
 		}, {
 			name: "onzUDQhwunz2yqzfEsoURXEBz9p7Gk8DgY4QBva52Z4b3AJCZjt",
-			ParseParams: NewParseParams(
-				rpc, &config.Context{
-					Storage:       generalRepo,
-					Contracts:     contractRepo,
-					BigMapDiffs:   bmdRepo,
-					Blocks:        blockRepo,
-					TZIP:          tzipRepo,
-					TokenBalances: tbRepo,
-					Cache:         cache.NewCache(),
-				},
-				WithShareDirectory("./test"),
+			rpc:  rpc,
+			ctx: &config.Context{
+				Storage:       generalRepo,
+				Contracts:     contractRepo,
+				BigMapDiffs:   bmdRepo,
+				Blocks:        blockRepo,
+				TZIP:          tzipRepo,
+				TokenBalances: tbRepo,
+				Cache:         cache.NewCache(),
+				SharePath:     "./test",
+			},
+			paramsOpts: []ParseParamsOption{
 				WithHead(noderpc.Header{
 					Timestamp: timestamp,
 					Protocol:  "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
 					Level:     86142,
 					ChainID:   "test",
 				}),
-				WithNetwork("delphinet"),
 				WithConstants(protocol.Constants{
 					CostPerByte:                  250,
 					HardGasLimitPerOperation:     1040000,
 					HardStorageLimitPerOperation: 60000,
 					TimeBetweenBlocks:            30,
 				}),
-				WithShareDirectory("test"),
-			),
+				WithNetwork("delphinet"),
+			},
 			storage: map[string]int64{
 				"KT1NppzrgyLZD3aku7fssfhYPm5QqZwyabvR": 86142,
 			},
@@ -615,31 +627,32 @@ func TestGroup_Parse(t *testing.T) {
 			},
 		}, {
 			name: "onv6Q1dNejAGEJeQzwRannWsDSGw85FuFdhLnBrY18TBcC9p8kC",
-			ParseParams: NewParseParams(
-				rpc, &config.Context{
-					Storage:       generalRepo,
-					Contracts:     contractRepo,
-					BigMapDiffs:   bmdRepo,
-					Blocks:        blockRepo,
-					TZIP:          tzipRepo,
-					TokenBalances: tbRepo,
-					Cache:         cache.NewCache(),
-				},
-				WithShareDirectory("./test"),
+			rpc:  rpc,
+			ctx: &config.Context{
+				Storage:       generalRepo,
+				Contracts:     contractRepo,
+				BigMapDiffs:   bmdRepo,
+				Blocks:        blockRepo,
+				TZIP:          tzipRepo,
+				TokenBalances: tbRepo,
+				Cache:         cache.NewCache(),
+				SharePath:     "./test",
+			},
+			paramsOpts: []ParseParamsOption{
 				WithHead(noderpc.Header{
 					Timestamp: timestamp,
 					Protocol:  "PsddFKi32cMJ2qPjf43Qv5GDWLDPZb3T3bF6fLKiF5HtvHNU7aP",
 					Level:     301436,
 					ChainID:   "test",
 				}),
-				WithNetwork("mainnet"),
 				WithConstants(protocol.Constants{
 					CostPerByte:                  1000,
 					HardGasLimitPerOperation:     400000,
 					HardStorageLimitPerOperation: 60000,
 					TimeBetweenBlocks:            60,
 				}),
-			),
+				WithNetwork(consts.Mainnet),
+			},
 			storage: map[string]int64{
 				"KT1AbjG7vtpV8osdoJXcMRck8eTwst8dWoz4": 301436,
 			},
@@ -682,31 +695,32 @@ func TestGroup_Parse(t *testing.T) {
 			},
 		}, {
 			name: "op4fFMvYsxvSUKZmLWC7aUf25VMYqigaDwTZCAoBBi8zACbHTNg",
-			ParseParams: NewParseParams(
-				rpc, &config.Context{
-					Storage:       generalRepo,
-					Contracts:     contractRepo,
-					BigMapDiffs:   bmdRepo,
-					Blocks:        blockRepo,
-					TZIP:          tzipRepo,
-					TokenBalances: tbRepo,
-					Cache:         cache.NewCache(),
-				},
-				WithShareDirectory("./test"),
+			rpc:  rpc,
+			ctx: &config.Context{
+				Storage:       generalRepo,
+				Contracts:     contractRepo,
+				BigMapDiffs:   bmdRepo,
+				Blocks:        blockRepo,
+				TZIP:          tzipRepo,
+				TokenBalances: tbRepo,
+				Cache:         cache.NewCache(),
+				SharePath:     "./test",
+			},
+			paramsOpts: []ParseParamsOption{
 				WithHead(noderpc.Header{
 					Timestamp: timestamp,
 					Protocol:  "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA",
 					Level:     72207,
 					ChainID:   "test",
 				}),
-				WithNetwork("edo2net"),
 				WithConstants(protocol.Constants{
 					CostPerByte:                  1000,
 					HardGasLimitPerOperation:     400000,
 					HardStorageLimitPerOperation: 60000,
 					TimeBetweenBlocks:            60,
 				}),
-			),
+				WithNetwork("edo2net"),
+			},
 			storage: map[string]int64{
 				"KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264": 72206,
 				"KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU": 72207,
@@ -852,7 +866,14 @@ func TestGroup_Parse(t *testing.T) {
 				t.Errorf(`readJSONFile("%s") = error %v`, tt.filename, err)
 				return
 			}
-			opg := NewGroup(tt.ParseParams)
+
+			parseParams, err := NewParseParams(tt.rpc, tt.ctx, tt.paramsOpts...)
+			if err != nil {
+				t.Errorf(`NewParseParams = error %v`, err)
+				return
+			}
+
+			opg := NewGroup(parseParams)
 			got, err := opg.Parse(op)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Group.Parse() error = %v, wantErr %v", err, tt.wantErr)

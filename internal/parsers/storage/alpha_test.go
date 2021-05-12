@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -76,10 +77,12 @@ func TestAlpha_ParseOrigination(t *testing.T) {
 				return
 			}
 
-			if err := tt.args.operation.InitScript(); err != nil {
-				t.Errorf("InitScript() error = %v", err)
+			tree, err := ast.NewScriptWithoutCode(tt.args.operation.Script)
+			if err != nil {
+				t.Errorf("NewScriptWithoutCode() error = %v", err)
 				return
 			}
+			tt.args.operation.AST = tree
 
 			got, err := a.ParseOrigination(content, tt.args.operation)
 			if (err != nil) != tt.wantErr {

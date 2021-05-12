@@ -23,7 +23,7 @@ var tokens []tzip.TZIP
 
 // NewTokenEvents -
 func NewTokenEvents(repo tzip.Repository, storage models.GeneralRepository) (TokenEvents, error) {
-	views := make(TokenEvents)
+	tokenEvents := make(TokenEvents)
 
 	lastID, err := repo.GetLastIDWithEvents()
 	if err != nil {
@@ -33,7 +33,7 @@ func NewTokenEvents(repo tzip.Repository, storage models.GeneralRepository) (Tok
 		tokens, err = repo.GetWithEvents()
 		if err != nil {
 			if storage.IsRecordNotFound(err) {
-				return views, nil
+				return tokenEvents, nil
 			}
 			return nil, err
 		}
@@ -48,7 +48,7 @@ func NewTokenEvents(repo tzip.Repository, storage models.GeneralRepository) (Tok
 			for _, implementation := range event.Implementations {
 				if implementation.MichelsonParameterEvent != nil {
 					for _, entrypoint := range implementation.MichelsonParameterEvent.Entrypoints {
-						views[ImplementationKey{
+						tokenEvents[ImplementationKey{
 							Address:    token.Address,
 							Network:    token.Network,
 							Entrypoint: entrypoint,
@@ -60,7 +60,7 @@ func NewTokenEvents(repo tzip.Repository, storage models.GeneralRepository) (Tok
 
 				if implementation.MichelsonExtendedStorageEvent != nil {
 					for _, entrypoint := range implementation.MichelsonExtendedStorageEvent.Entrypoints {
-						views[ImplementationKey{
+						tokenEvents[ImplementationKey{
 							Address:    token.Address,
 							Network:    token.Network,
 							Entrypoint: entrypoint,
@@ -72,7 +72,7 @@ func NewTokenEvents(repo tzip.Repository, storage models.GeneralRepository) (Tok
 		}
 	}
 
-	return views, nil
+	return tokenEvents, nil
 }
 
 // GetByOperation -
