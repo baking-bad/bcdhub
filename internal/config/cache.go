@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
@@ -84,4 +86,40 @@ func (ctx *Context) CachedContract(network, address string) (*contract.Contract,
 	}
 	cntr := item.Value().(contract.Contract)
 	return &cntr, nil
+}
+
+// CachedScript -
+func (ctx *Context) CachedScript(network, address, protocol string) (*ast.Script, error) {
+	if !bcd.IsContract(address) {
+		return nil, nil
+	}
+
+	key := ctx.Cache.ScriptKey(network, address)
+	item, err := ctx.Cache.Fetch(key, time.Hour, func() (interface{}, error) {
+		script, err := ctx.CachedScriptBytes(network, address, protocol)
+		if err != nil {
+			return nil, err
+		}
+		return ast.NewScriptWithoutCode(script)
+	})
+	if err != nil {
+		return nil, err
+	}
+	return item.Value().(*ast.Script), nil
+}
+
+// CachedScriptBytes -
+func (ctx *Context) CachedScriptBytes(network, address, protocol string) ([]byte, error) {
+	if !bcd.IsContract(address) {
+		return nil, nil
+	}
+
+	key := ctx.Cache.ScriptBytesKey(network, address)
+	item, err := ctx.Cache.Fetch(key, time.Hour, func() (interface{}, error) {
+		return fetch.Contract(address, network, protocol, ctx.SharePath)
+	})
+	if err != nil {
+		return nil, err
+	}
+	return item.Value().([]byte), nil
 }

@@ -5,7 +5,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
-	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -66,13 +65,14 @@ func (p Transaction) Parse(data noderpc.Operation) (*parsers.Result, error) {
 
 	result.Operations = append(result.Operations, &tx)
 
-	script, err := fetch.Contract(tx.Destination, tx.Network, tx.Protocol, p.shareDir)
+	script, err := p.ctx.CachedScriptBytes(tx.Network, tx.Destination, tx.Protocol)
 	if err != nil {
 		return nil, err
 	}
 	tx.Script = script
 
-	if err := tx.InitScript(); err != nil {
+	tx.AST, err = p.ctx.CachedScript(tx.Network, tx.Destination, tx.Protocol)
+	if err != nil {
 		return nil, err
 	}
 

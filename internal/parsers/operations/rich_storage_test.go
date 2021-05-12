@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -229,8 +230,9 @@ func TestRichStorage_Parse(t *testing.T) {
 			}
 			tt.operation.Script = script
 
-			if err := tt.operation.InitScript(); err != nil {
-				t.Errorf("InitScript() error = %v", err)
+			tt.operation.AST, err = ast.NewScriptWithoutCode(script)
+			if err != nil {
+				t.Errorf("NewScriptWithoutCode() error = %v", err)
 				return
 			}
 

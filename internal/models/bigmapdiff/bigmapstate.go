@@ -38,15 +38,31 @@ func (b *BigMapState) GetIndex() string {
 
 // Save -
 func (b *BigMapState) Save(tx *gorm.DB) error {
-	assign := []string{"last_update_level"}
+	var s clause.Set
 
 	switch {
 	case b.IsRollback:
-		assign = append(assign, "removed", "value")
+		s = clause.Assignments(map[string]interface{}{
+			"removed":           b.Removed,
+			"value":             b.Value,
+			"last_update_level": b.LastUpdateLevel,
+			"last_update_time":  b.LastUpdateTime,
+			"count":             gorm.Expr(`big_map_states."count"+1`),
+		})
 	case b.Removed:
-		assign = append(assign, "removed")
+		s = clause.Assignments(map[string]interface{}{
+			"removed":           b.Removed,
+			"last_update_level": b.LastUpdateLevel,
+			"last_update_time":  b.LastUpdateTime,
+			"count":             gorm.Expr(`big_map_states."count"+1`),
+		})
 	default:
-		assign = append(assign, "value")
+		s = clause.Assignments(map[string]interface{}{
+			"value":             b.Value,
+			"last_update_level": b.LastUpdateLevel,
+			"last_update_time":  b.LastUpdateTime,
+			"count":             gorm.Expr(`big_map_states."count"+1`),
+		})
 	}
 
 	return tx.Clauses(clause.OnConflict{
@@ -56,7 +72,7 @@ func (b *BigMapState) Save(tx *gorm.DB) error {
 			{Name: "ptr"},
 			{Name: "key_hash"},
 		},
-		DoUpdates: clause.AssignmentColumns(assign),
+		DoUpdates: s,
 	}).Create(b).Error
 }
 

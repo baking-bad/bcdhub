@@ -83,14 +83,17 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		Predecessor: state.Predecessor,
 	}
 
-	parser := operations.NewGroup(operations.NewParseParams(
+	parserParams, err := operations.NewParseParams(
 		rpc,
 		ctx.Context,
 		operations.WithConstants(*protocol.Constants),
 		operations.WithHead(header),
-		operations.WithShareDirectory(ctx.SharePath),
 		operations.WithNetwork(req.Network),
-	))
+	)
+	if ctx.handleError(c, err, 0) {
+		return
+	}
+	parser := operations.NewGroup(parserParams)
 
 	parsedModels, err := parser.Parse(response)
 	if ctx.handleError(c, err, 0) {

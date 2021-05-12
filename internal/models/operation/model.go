@@ -1,7 +1,6 @@
 package operation
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -160,15 +159,6 @@ func (o *Operation) HasTag(tag string) bool {
 		}
 	}
 	return false
-}
-
-// InitScript -
-func (o *Operation) InitScript() (err error) {
-	if o.Script == nil {
-		return errors.New("Uninitialized script")
-	}
-	o.AST, err = ast.NewScriptWithoutCode(o.Script)
-	return err
 }
 
 // Result -

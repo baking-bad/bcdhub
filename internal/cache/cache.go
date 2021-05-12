@@ -42,3 +42,13 @@ func (cache *Cache) BlockKey(network string) string {
 func (cache *Cache) TezosBalanceKey(network, address string, level int64) string {
 	return fmt.Sprintf("tezos_balance:%s:%s:%d", network, address, level)
 }
+
+// ScriptKey -
+func (cache *Cache) ScriptKey(network, address string) string {
+	return fmt.Sprintf("script:%s:%s", network, address)
+}
+
+// ScriptBytesKey -
+func (cache *Cache) ScriptBytesKey(network, address string) string {
+	return fmt.Sprintf("script_bytes:%s:%s", network, address)
+}
