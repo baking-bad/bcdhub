@@ -188,4 +188,4 @@ gateway-clear:
 update-api:
 	git pull
 	TAG=3.5 docker-compose build api
-	$(MAKE) stable
+	$(MAKE) stable-api
