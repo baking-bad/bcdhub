@@ -209,6 +209,13 @@ func (rpc *NodeRPC) GetScriptStorageRaw(address string, level int64) ([]byte, er
 	return response.Storage, err
 }
 
+// GetStorageRaw -
+func (rpc *NodeRPC) GetStorageRaw(address string, level int64) ([]byte, error) {
+	var response stdJSON.RawMessage
+	err := rpc.get(fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s/storage", getBlockString(level), address), &response)
+	return response, err
+}
+
 // GetContractBalance -
 func (rpc *NodeRPC) GetContractBalance(address string, level int64) (int64, error) {
 	var balanceStr string

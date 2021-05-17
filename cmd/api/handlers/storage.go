@@ -1,12 +1,33 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/gin-gonic/gin"
 )
+
+func (ctx *Context) getStorageRawKey(network, address string, level int64) string {
+	return fmt.Sprintf("storage_raw:%s:%s:%d", network, address, level)
+}
+
+func (ctx *Context) getCachedStorageRaw(network, address string, level int64) ([]byte, error) {
+	key := ctx.getStorageRawKey(network, address, level)
+	item, err := ctx.Cache.Fetch(key, 30*time.Second, func() (interface{}, error) {
+		rpc, err := ctx.GetRPC(network)
+		if err != nil {
+			return 0, err
+		}
+		return rpc.GetStorageRaw(address, level)
+	})
+	if err != nil {
+		return nil, err
+	}
+	return item.Value().([]byte), nil
+}
 
 // GetContractStorage godoc
 // @Summary Get contract storage
@@ -32,27 +53,21 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 	if err := c.BindQuery(&sReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-	rpc, err := ctx.GetRPC(req.Network)
-	if ctx.handleError(c, err, http.StatusBadRequest) {
+
+	block, err := ctx.Blocks.Last(req.Network)
+	if ctx.handleError(c, err, 0) {
 		return
 	}
 	if sReq.Level == 0 {
-		block, err := ctx.Blocks.Last(req.Network)
-		if ctx.handleError(c, err, 0) {
-			return
-		}
 		sReq.Level = int(block.Level)
 	}
 
-	deffatedStorage, err := rpc.GetScriptStorageRaw(req.Address, int64(sReq.Level))
+	deffatedStorage, err := ctx.getCachedStorageRaw(req.Network, req.Address, int64(sReq.Level))
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	header, err := rpc.GetHeader(int64(sReq.Level))
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-	storageType, err := ctx.getStorageType(req.Address, req.Network, header.Protocol)
+
+	storageType, err := ctx.getStorageType(req.Address, req.Network, block.Protocol)
 	if ctx.handleError(c, err, 0) {
 		return
 	}

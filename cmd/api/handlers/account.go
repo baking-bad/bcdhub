@@ -1,13 +1,34 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )
+
+func (ctx *Context) getTezosBalanceKey(network, address string, level int64) string {
+	return fmt.Sprintf("tezos_balance:%s:%s:%d", network, address, level)
+}
+
+func (ctx *Context) getCachedTezosBalance(network, address string, level int64) (int64, error) {
+	key := ctx.getTezosBalanceKey(network, address, level)
+	item, err := ctx.Cache.Fetch(key, 30*time.Second, func() (interface{}, error) {
+		rpc, err := ctx.GetRPC(network)
+		if err != nil {
+			return 0, err
+		}
+		return rpc.GetContractBalance(address, level)
+	})
+	if err != nil {
+		return 0, err
+	}
+	return item.Value().(int64), nil
+}
 
 // GetInfo godoc
 // @Summary Get account info
@@ -37,11 +58,7 @@ func (ctx *Context) GetInfo(c *gin.Context) {
 		return
 	}
 
-	rpc, err := ctx.GetRPC(req.Network)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-	balance, err := rpc.GetContractBalance(req.Address, block.Level)
+	balance, err := ctx.getCachedTezosBalance(req.Network, req.Address, block.Level)
 	if ctx.handleError(c, err, 0) {
 		return
 	}

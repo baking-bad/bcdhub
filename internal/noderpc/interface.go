@@ -14,6 +14,7 @@ type INode interface {
 	GetLevelTime(int) (time.Time, error)
 	GetScriptJSON(string, int64) (Script, error)
 	GetScriptStorageRaw(string, int64) ([]byte, error)
+	GetStorageRaw(string, int64) ([]byte, error)
 	GetContractBalance(string, int64) (int64, error)
 	GetContractData(string, int64) (ContractData, error)
 	GetOPG(block int64) ([]OperationGroup, error)

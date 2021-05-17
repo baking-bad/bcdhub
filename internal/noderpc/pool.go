@@ -164,6 +164,15 @@ func (p Pool) GetScriptStorageRaw(address string, level int64) ([]byte, error) {
 	return data.Interface().([]byte), nil
 }
 
+// GetStorageRaw -
+func (p Pool) GetStorageRaw(address string, level int64) ([]byte, error) {
+	data, err := p.call("GetStorageRaw", address, level)
+	if err != nil {
+		return nil, err
+	}
+	return data.Interface().([]byte), nil
+}
+
 // GetContractBalance -
 func (p Pool) GetContractBalance(address string, level int64) (int64, error) {
 	data, err := p.call("GetContractBalance", address, level)
