@@ -186,6 +186,6 @@ gateway-clear:
 	COMPOSE_PROJECT_NAME=bcdhub docker-compose -f docker-compose.gateway.yml down -v
 
 update-api:
-        git pull
-        TAG=3.5 docker-compose build api
-        $(MAKE) stable
+	git pull
+	TAG=3.5 docker-compose build api
+	$(MAKE) stable
