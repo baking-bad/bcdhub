@@ -124,6 +124,9 @@ stable-pull:
 stable:
 	TAG=$$(cat version.json | grep version | awk -F\" '{ print $$4 }' |  cut -d '.' -f1-2) docker-compose up -d
 
+stable-api:
+	TAG=$$(cat version.json | grep version | awk -F\" '{ print $$4 }' |  cut -d '.' -f1-2) docker-compose up -d api indexer metrics
+
 latest:
 	docker-compose up -d
 
@@ -181,3 +184,8 @@ gateway-down:
 
 gateway-clear:
 	COMPOSE_PROJECT_NAME=bcdhub docker-compose -f docker-compose.gateway.yml down -v
+
+update-api:
+        git pull
+        TAG=3.5 docker-compose build api
+        $(MAKE) stable
