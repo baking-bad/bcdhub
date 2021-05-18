@@ -22,12 +22,16 @@ func (storage *Storage) buildGetContext(query *gorm.DB, ctx transfer.GetContext,
 			storage.DB.Where("transfers.from = ?", ctx.Address).Or("transfers.to = ?", ctx.Address),
 		)
 	}
-	if ctx.Start > 0 {
+
+	switch {
+	case ctx.Start > 0 && ctx.End > 0:
+		query.Where("timestamp between to_timestamp(?) and to_timestamp(?)", ctx.Start, ctx.End)
+	case ctx.Start > 0:
 		query.Where("timestamp >= to_timestamp(?)", ctx.Start)
-	}
-	if ctx.End > 0 {
+	case ctx.End > 0:
 		query.Where("timestamp < to_timestamp(?)", ctx.End)
 	}
+
 	if ctx.LastID != "" {
 		if id, err := strconv.ParseInt(ctx.LastID, 10, 64); err == nil {
 			query.Where("id < ?", id)
