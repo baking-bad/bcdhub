@@ -77,6 +77,19 @@ func TestTokenMetadata_Parse(t *testing.T) {
 					"booleanAmount": "true",
 				},
 			},
+		}, {
+			name:    "test 8: KT1W6fJBgy2AtDZDoEGvSZvEseN7bPSdzNjc",
+			value:   `{"prim":"Pair","args":[{"int":"0"},[{"prim":"Elt","args":[{"string":"artifactUri"},{"bytes":"68747470733a2f2f74612e636f2f313833323637342e676c7466"}]},{"prim":"Elt","args":[{"string":"isBooleanAmount"},{"bytes":"74727565"}]},{"prim":"Elt","args":[{"string":"decimals"},{"bytes":"30"}]},{"prim":"Elt","args":[{"string":"displayUri"},{"bytes":"68747470733a2f2f74612e636f2f313833323637342e737667"}]},{"prim":"Elt","args":[{"string":"name"},{"bytes":"4e4654205465737420546f6b656e"}]}]]}`,
+			wantErr: false,
+			want: &TokenMetadata{
+				TokenID:         0,
+				Decimals:        getIntPtr(0),
+				Name:            "NFT Test Token",
+				ArtifactURI:     "https://ta.co/1832674.gltf",
+				DisplayURI:      "https://ta.co/1832674.svg",
+				IsBooleanAmount: true,
+				Extras:          map[string]interface{}{},
+			},
 		},
 	}
 	for _, tt := range tests {

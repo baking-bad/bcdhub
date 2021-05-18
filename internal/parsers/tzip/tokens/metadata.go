@@ -165,11 +165,21 @@ func (m *TokenMetadata) Parse(value gjson.Result, address string, ptr int64) err
 				return err
 			}
 			m.ExternalURI = string(decoded)
+		case keyIsBooleanAmount:
+			m.IsBooleanAmount = encodedTrue(value)
+		case keyIsTransferable:
+			m.IsTransferable = encodedTrue(value)
+		case keyShouldPreferSymbol:
+			m.ShouldPreferSymbol = encodedTrue(value)
 		default:
 			m.Extras[key] = forge.DecodeString(value)
 		}
 	}
 	return nil
+}
+
+func encodedTrue(value string) bool {
+	return value == "74727565"
 }
 
 // Merge -
