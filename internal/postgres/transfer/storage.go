@@ -30,14 +30,21 @@ func (storage *Storage) Get(ctx transfer.GetContext) (po transfer.Pageable, err 
 	if err = query.Find(&po.Transfers).Error; err != nil {
 		return
 	}
-	countQuery := storage.DB.Table(models.DocTransfers)
-	storage.buildGetContext(countQuery, ctx, false)
-	if err = query.Count(&po.Total).Error; err != nil {
-		return
+
+	received := len(po.Transfers)
+	size := storage.GetPageSize(ctx.Size)
+	if ctx.Offset == 0 && size > received {
+		po.Total = int64(len(po.Transfers))
+	} else {
+		countQuery := storage.DB.Table(models.DocTransfers)
+		storage.buildGetContext(countQuery, ctx, false)
+		if err = countQuery.Count(&po.Total).Error; err != nil {
+			return
+		}
 	}
 
-	if len(po.Transfers) > 0 {
-		po.LastID = fmt.Sprintf("%d", po.Transfers[len(po.Transfers)-1].ID)
+	if received > 0 {
+		po.LastID = fmt.Sprintf("%d", po.Transfers[received-1].ID)
 	}
 	return po, nil
 }

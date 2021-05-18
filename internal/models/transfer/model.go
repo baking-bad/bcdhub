@@ -17,15 +17,15 @@ import (
 // Transfer -
 type Transfer struct {
 	ID           int64     `json:"-"`
-	Network      string    `json:"network"`
+	Network      string    `json:"network" gorm:"index:transfers_network_idx"`
 	Contract     string    `json:"contract"`
 	Initiator    string    `json:"initiator"`
 	Hash         string    `json:"hash"`
 	Status       string    `json:"status"`
-	Timestamp    time.Time `json:"timestamp"`
-	Level        int64     `json:"level"`
-	From         string    `json:"from"`
-	To           string    `json:"to"`
+	Timestamp    time.Time `json:"timestamp" gorm:"index:transfers_timestamp_idx"`
+	Level        int64     `json:"level" gorm:"index:transfers_network_idx"`
+	From         string    `json:"from" gorm:"index:transfers_from_idx"`
+	To           string    `json:"to" gorm:"index:transfers_to_idx"`
 	TokenID      uint64    `json:"token_id" gorm:"type:numeric(50,0)"`
 	Amount       float64   `json:"amount" gorm:"type:numeric(100,0)"`
 	AmountString string    `json:"amount_string"`
