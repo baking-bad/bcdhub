@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/logger"
 	sentrygin "github.com/getsentry/sentry-go/gin"
 	"github.com/gin-gonic/gin"
 )
@@ -23,6 +24,7 @@ func (ctx *Context) handleError(c *gin.Context, err error, code int) bool {
 			if hub := sentrygin.GetHubFromContext(c); hub != nil {
 				hub.CaptureMessage(err.Error())
 			}
+			logger.Error(err)
 		}
 	}
 
