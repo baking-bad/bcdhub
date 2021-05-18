@@ -66,7 +66,8 @@ ipfs:
   - https://dweb.link
 
 domains:
-  edo2net: KT1KP2Yy6MNkYKkHqroGBZ7KFN5NdNfnUHHv
+  mainnet: KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS
+  florencenet: KT1PfBfkfUuvQRN8zuCAyp5MHjNrQqgevS9p
 
 api:
   project_name: api
