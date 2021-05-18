@@ -282,6 +282,22 @@ func TestTokenMetadata_UnmarshalJSON(t *testing.T) {
 				"defaultPresentation": "small",
 				"actionLabel": "Send"
 				}`),
+		}, {
+			name: "test ipfs 3",
+			tm: TokenMetadata{
+				Symbol:             "moon",
+				Name:               "moonable",
+				Decimals:           int64Ptr(18),
+				ShouldPreferSymbol: true,
+				IsTransferable:     true,
+				Extras:             map[string]interface{}{},
+			},
+			data: []byte(`{
+				"name": "moonable",
+				"symbol": "moon",
+				"decimals": 18,
+				"shouldPreferSymbol": true
+			  }`),
 		},
 	}
 	for _, tt := range tests {

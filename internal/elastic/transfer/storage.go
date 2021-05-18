@@ -58,7 +58,7 @@ func (storage *Storage) Get(ctx transfer.GetContext) (po transfer.Pageable, err 
 			Nonce:     ctx.Nonce,
 			Counter:   ctx.Counter,
 		}, false)
-		po.Total, err = storage.es.CountItems([]string{models.DocContracts}, countQuery)
+		po.Total, err = storage.es.CountItems([]string{models.DocTransfers}, countQuery)
 		if err != nil {
 			return
 		}
