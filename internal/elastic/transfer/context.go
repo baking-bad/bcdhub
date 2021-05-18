@@ -152,7 +152,7 @@ func appendSize(ctx transfer.GetContext, query core.Base) {
 }
 
 func appendOffset(ctx transfer.GetContext, query core.Base) {
-	if ctx.Offset > 0 && ctx.Offset <= maxTransfersSize {
+	if ctx.Offset > 0 && ctx.Offset <= core.MaxQuerySize {
 		query.From(ctx.Offset)
 	}
 }
