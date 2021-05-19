@@ -35,11 +35,6 @@ const (
 	MetadataBabylon = "babylon"
 )
 
-// Mainnet
-const (
-	Mainnet = "mainnet"
-)
-
 // Languages
 const (
 	LangSmartPy   = "smartpy"

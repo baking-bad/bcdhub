@@ -14,6 +14,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/stretchr/testify/assert"
 )
@@ -31,7 +32,7 @@ func readJSONFile(name string, response interface{}) error {
 	return json.Unmarshal(bytes, response)
 }
 
-func readTestContractModel(network, address string) (contract.Contract, error) {
+func readTestContractModel(network types.Network, address string) (contract.Contract, error) {
 	var c contract.Contract
 	bytes, err := ioutil.ReadFile(fmt.Sprintf("./data/models/contract/%s.json", address))
 	if err != nil {

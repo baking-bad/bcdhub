@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/macros"
 	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -37,15 +38,17 @@ func (ctx *Context) GetContractCode(c *gin.Context) {
 		return
 	}
 
+	network := types.NewNetwork(req.Network)
+
 	if req.Protocol == "" {
-		state, err := ctx.CachedCurrentBlock(req.Network)
+		state, err := ctx.CachedCurrentBlock(network)
 		if ctx.handleError(c, err, 0) {
 			return
 		}
 		req.Protocol = state.Protocol
 	}
 
-	code, err := ctx.getContractCodeJSON(req.Network, req.Address, req.Protocol)
+	code, err := ctx.getContractCodeJSON(network, req.Address, req.Protocol)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -90,8 +93,8 @@ func (ctx *Context) GetDiff(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func (ctx *Context) getContractCodeJSON(network, address, protocol string) (res gjson.Result, err error) {
-	data, err := fetch.Contract(address, network, protocol, ctx.SharePath)
+func (ctx *Context) getContractCodeJSON(network types.Network, address, protocol string) (res gjson.Result, err error) {
+	data, err := fetch.Contract(network, address, protocol, ctx.SharePath)
 	if err != nil {
 		return
 	}
@@ -105,7 +108,7 @@ func (ctx *Context) getContractCodeJSON(network, address, protocol string) (res 
 }
 
 func (ctx *Context) getContractCodeDiff(left, right CodeDiffLeg) (res CodeDiffResponse, err error) {
-	currentProtocols := make(map[string]string, 2)
+	currentProtocols := make(map[types.Network]string, 2)
 	sides := make([]gjson.Result, 2)
 
 	for i, leg := range []*CodeDiffLeg{&left, &right} {

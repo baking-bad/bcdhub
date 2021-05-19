@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -34,12 +35,14 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 	if err := c.BindQuery(&sReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-	rpc, err := ctx.GetRPC(req.Network)
+
+	network := types.NewNetwork(req.Network)
+	rpc, err := ctx.GetRPC(network)
 	if ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 	if sReq.Level == 0 {
-		block, err := ctx.CachedCurrentBlock(req.Network)
+		block, err := ctx.CachedCurrentBlock(network)
 		if ctx.handleError(c, err, 0) {
 			return
 		}
@@ -54,7 +57,7 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	storageType, err := ctx.getStorageType(req.Address, req.Network, header.Protocol)
+	storageType, err := ctx.getStorageType(network, req.Address, header.Protocol)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -102,7 +105,7 @@ func (ctx *Context) GetContractStorageRaw(c *gin.Context) {
 	}
 	filters := map[string]interface{}{
 		"destination": req.Address,
-		"network":     req.Network,
+		"network":     types.NewNetwork(req.Network),
 	}
 	if sReq.Level > 0 {
 		filters["level"] = sReq.Level
@@ -118,7 +121,7 @@ func (ctx *Context) GetContractStorageRaw(c *gin.Context) {
 	}
 	var storage string
 	if len(ops[0].DeffatedStorage) == 0 {
-		rpc, err := ctx.GetRPC(req.Network)
+		rpc, err := ctx.GetRPC(types.NewNetwork(req.Network))
 		if ctx.handleError(c, err, 0) {
 			return
 		}
@@ -166,7 +169,7 @@ func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 	}
 	filters := map[string]interface{}{
 		"destination": req.Address,
-		"network":     req.Network,
+		"network":     req.NetworkID(),
 	}
 	if sReq.Level > 0 {
 		filters["level"] = sReq.Level
@@ -182,7 +185,7 @@ func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 	}
 	var storage []byte
 	if len(ops[0].DeffatedStorage) == 0 {
-		rpc, err := ctx.GetRPC(req.Network)
+		rpc, err := ctx.GetRPC(req.NetworkID())
 		if ctx.handleError(c, err, 0) {
 			return
 		}
@@ -195,12 +198,12 @@ func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 		storage = ops[0].DeffatedStorage
 	}
 
-	states, err := ctx.BigMapDiffs.GetForAddress(req.Network, req.Address)
+	states, err := ctx.BigMapDiffs.GetForAddress(req.NetworkID(), req.Address)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	storageType, err := ctx.getStorageType(req.Address, req.Network, ops[0].Protocol)
+	storageType, err := ctx.getStorageType(req.NetworkID(), req.Address, ops[0].Protocol)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -247,7 +250,7 @@ func (ctx *Context) GetContractStorageSchema(c *gin.Context) {
 		return
 	}
 
-	storageType, err := ctx.getStorageType(req.Address, req.Network, "")
+	storageType, err := ctx.getStorageType(req.NetworkID(), req.Address, "")
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -267,7 +270,7 @@ func (ctx *Context) GetContractStorageSchema(c *gin.Context) {
 	}
 
 	if ssReq.FillType == "current" {
-		rpc, err := ctx.GetRPC(req.Network)
+		rpc, err := ctx.GetRPC(req.NetworkID())
 		if ctx.handleError(c, err, 0) {
 			return
 		}

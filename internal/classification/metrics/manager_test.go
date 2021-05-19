@@ -22,11 +22,11 @@ func TestManager_Compute(t *testing.T) {
 			args: args{
 				a: contract.Contract{
 					Manager: "test",
-					Network: "network",
+					Network: 0,
 				},
 				b: contract.Contract{
 					Manager: "test",
-					Network: "network",
+					Network: 0,
 				},
 			},
 			want: Feature{
@@ -38,11 +38,11 @@ func TestManager_Compute(t *testing.T) {
 			args: args{
 				a: contract.Contract{
 					Manager: "other",
-					Network: "network",
+					Network: 1,
 				},
 				b: contract.Contract{
 					Manager: "test",
-					Network: "network",
+					Network: 1,
 				},
 			},
 			want: Feature{
@@ -54,11 +54,11 @@ func TestManager_Compute(t *testing.T) {
 			args: args{
 				a: contract.Contract{
 					Manager: "test",
-					Network: "other",
+					Network: 1,
 				},
 				b: contract.Contract{
 					Manager: "test",
-					Network: "network",
+					Network: 2,
 				},
 			},
 			want: Feature{
@@ -70,11 +70,11 @@ func TestManager_Compute(t *testing.T) {
 			args: args{
 				a: contract.Contract{
 					Manager: "other",
-					Network: "other",
+					Network: 1,
 				},
 				b: contract.Contract{
 					Manager: "test",
-					Network: "network",
+					Network: 2,
 				},
 			},
 			want: Feature{

@@ -80,7 +80,7 @@ func (t *Token) Prepare(model models.Model) {
 	t.Extras = tm.Extras
 	t.Level = tm.Level
 	t.Name = tm.Name
-	t.Network = tm.Network
+	t.Network = tm.Network.String()
 	t.Symbol = tm.Symbol
 	t.Timestamp = tm.Timestamp
 	t.TokenID = tm.TokenID

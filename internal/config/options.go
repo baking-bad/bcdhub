@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/elastic"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/postgres/contract"
 	"github.com/baking-bad/bcdhub/internal/postgres/dapp"
@@ -41,8 +42,9 @@ func WithRPC(rpcConfig map[string]RPCConfig) ContextOption {
 		if len(rpcConfig) == 0 {
 			panic("RPC config is invalid")
 		}
-		rpc := make(map[string]noderpc.INode)
-		for network, rpcProvider := range rpcConfig {
+		rpc := make(map[types.Network]noderpc.INode)
+		for name, rpcProvider := range rpcConfig {
+			network := types.NewNetwork(name)
 			rpc[network] = noderpc.NewPool(
 				[]string{rpcProvider.URI},
 				noderpc.WithTimeout(time.Second*time.Duration(rpcProvider.Timeout)),
@@ -140,9 +142,10 @@ func WithTzKTServices(tzktConfig map[string]TzKTConfig) ContextOption {
 		if len(tzktConfig) == 0 {
 			return
 		}
-		svc := make(map[string]tzkt.Service)
+		svc := make(map[types.Network]tzkt.Service)
 		for network, tzktProvider := range tzktConfig {
-			svc[network] = tzkt.NewServicesTzKT(network, tzktProvider.ServicesURI, time.Second*time.Duration(tzktProvider.Timeout))
+			typ := types.NewNetwork(network)
+			svc[typ] = tzkt.NewServicesTzKT(network, tzktProvider.ServicesURI, time.Second*time.Duration(tzktProvider.Timeout))
 		}
 		ctx.TzKTServices = svc
 	}
@@ -171,7 +174,10 @@ func WithAWS(cfg AWSConfig) ContextOption {
 // WithDomains -
 func WithDomains(cfg TezosDomainsConfig) ContextOption {
 	return func(ctx *Context) {
-		ctx.TezosDomainsContracts = cfg
+		ctx.TezosDomainsContracts = make(map[types.Network]string)
+		for network, address := range cfg {
+			ctx.TezosDomainsContracts[types.NewNetwork(network)] = address
+		}
 	}
 }
 

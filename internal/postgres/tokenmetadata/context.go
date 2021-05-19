@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"gorm.io/gorm"
 )
 
@@ -17,7 +18,7 @@ func (storage *Storage) buildGetTokenMetadataContext(query *gorm.DB, ctx ...toke
 	for i := range ctx {
 		subQuery := storage.DB.Table(models.DocTokenMetadata)
 
-		if ctx[i].Network != "" {
+		if ctx[i].Network != types.Empty {
 			subQuery.Where("network = ?", ctx[i].Network)
 		}
 		if ctx[i].Contract != "" {

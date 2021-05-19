@@ -9,11 +9,12 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
 // CachedAlias -
-func (ctx *Context) CachedAlias(network, address string) string {
+func (ctx *Context) CachedAlias(network types.Network, address string) string {
 	if !bcd.IsContract(address) {
 		return ""
 	}
@@ -32,7 +33,7 @@ func (ctx *Context) CachedAlias(network, address string) string {
 }
 
 // CachedTokenMetadata -
-func (ctx *Context) CachedTokenMetadata(network, address string, tokenID uint64) (*tokenmetadata.TokenMetadata, error) {
+func (ctx *Context) CachedTokenMetadata(network types.Network, address string, tokenID uint64) (*tokenmetadata.TokenMetadata, error) {
 	key := ctx.Cache.TokenMetadataKey(network, address, tokenID)
 	item, err := ctx.Cache.Fetch(key, time.Minute*30, func() (interface{}, error) {
 		return ctx.TokenMetadata.GetOne(network, address, tokenID)
@@ -44,7 +45,7 @@ func (ctx *Context) CachedTokenMetadata(network, address string, tokenID uint64)
 }
 
 // CachedCurrentBlock -
-func (ctx *Context) CachedCurrentBlock(network string) (block.Block, error) {
+func (ctx *Context) CachedCurrentBlock(network types.Network) (block.Block, error) {
 	key := ctx.Cache.BlockKey(network)
 	item, err := ctx.Cache.Fetch(key, time.Second*15, func() (interface{}, error) {
 		return ctx.Blocks.Last(network)
@@ -56,7 +57,7 @@ func (ctx *Context) CachedCurrentBlock(network string) (block.Block, error) {
 }
 
 // CachedTezosBalance -
-func (ctx *Context) CachedTezosBalance(network, address string, level int64) (int64, error) {
+func (ctx *Context) CachedTezosBalance(network types.Network, address string, level int64) (int64, error) {
 	key := ctx.Cache.TezosBalanceKey(network, address, level)
 	item, err := ctx.Cache.Fetch(key, 30*time.Second, func() (interface{}, error) {
 		rpc, err := ctx.GetRPC(network)
@@ -72,7 +73,7 @@ func (ctx *Context) CachedTezosBalance(network, address string, level int64) (in
 }
 
 // CachedContract -
-func (ctx *Context) CachedContract(network, address string) (*contract.Contract, error) {
+func (ctx *Context) CachedContract(network types.Network, address string) (*contract.Contract, error) {
 	if !bcd.IsContract(address) {
 		return nil, nil
 	}
@@ -89,7 +90,7 @@ func (ctx *Context) CachedContract(network, address string) (*contract.Contract,
 }
 
 // CachedScript -
-func (ctx *Context) CachedScript(network, address, protocol string) (*ast.Script, error) {
+func (ctx *Context) CachedScript(network types.Network, address, protocol string) (*ast.Script, error) {
 	if !bcd.IsContract(address) {
 		return nil, nil
 	}
@@ -109,14 +110,14 @@ func (ctx *Context) CachedScript(network, address, protocol string) (*ast.Script
 }
 
 // CachedScriptBytes -
-func (ctx *Context) CachedScriptBytes(network, address, protocol string) ([]byte, error) {
+func (ctx *Context) CachedScriptBytes(network types.Network, address, protocol string) ([]byte, error) {
 	if !bcd.IsContract(address) {
 		return nil, nil
 	}
 
 	key := ctx.Cache.ScriptBytesKey(network, address)
 	item, err := ctx.Cache.Fetch(key, time.Hour, func() (interface{}, error) {
-		return fetch.Contract(address, network, protocol, ctx.SharePath)
+		return fetch.Contract(network, address, protocol, ctx.SharePath)
 	})
 	if err != nil {
 		return nil, err

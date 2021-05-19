@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/iancoleman/strcase"
 	"gorm.io/gorm"
 )
@@ -24,7 +25,7 @@ func (p *Postgres) UpdateFields(index string, id int64, data interface{}, fields
 }
 
 // SetAlias -
-func (p *Postgres) SetAlias(network, address, alias string) error {
+func (p *Postgres) SetAlias(network types.Network, address, alias string) error {
 	return p.DB.Transaction(func(tx *gorm.DB) error {
 		for _, field := range []string{"source_alias", "destination_alias", "delegate_alias"} {
 			query := tx.Model(&operation.Operation{}).

@@ -125,7 +125,7 @@ func (c *Contract) Prepare(model models.Model) {
 	c.Language = cont.Language
 	c.Level = cont.Level
 	c.Manager = cont.Manager
-	c.Network = cont.Network
+	c.Network = cont.Network.String()
 	c.ProjectID = cont.ProjectID
 	c.Tags = cont.Tags
 	c.Timestamp = cont.Timestamp

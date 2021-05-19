@@ -23,6 +23,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
@@ -109,7 +110,7 @@ func TestGroup_Parse(t *testing.T) {
 	bmdRepo.
 		EXPECT().
 		GetByPtr(
-			gomock.Eq("carthagenet"),
+			gomock.Eq(types.Carthagenet),
 			gomock.Eq("KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU"),
 			gomock.Eq(int64(2416))).
 		Return([]bigmapdiff.BigMapState{
@@ -120,7 +121,7 @@ func TestGroup_Parse(t *testing.T) {
 				Value:           []byte(`{"prim":"Pair","args":[[],{"int":"6000"}]}`),
 				LastUpdateLevel: 386026,
 				Contract:        "KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU",
-				Network:         "carthagenet",
+				Network:         types.Carthagenet,
 				LastUpdateTime:  timestamp,
 			},
 		}, nil).
@@ -130,7 +131,7 @@ func TestGroup_Parse(t *testing.T) {
 		bmdRepo.
 			EXPECT().
 			GetByPtr(
-				gomock.Eq("edo2net"),
+				gomock.Eq(types.Edo2net),
 				gomock.Eq("KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264"),
 				gomock.Eq(int64(ptr))).
 			Return([]bigmapdiff.BigMapState{}, nil).
@@ -140,7 +141,7 @@ func TestGroup_Parse(t *testing.T) {
 	bmdRepo.
 		EXPECT().
 		GetByPtr(
-			gomock.Eq("carthagenet"),
+			gomock.Eq(types.Carthagenet),
 			gomock.Eq("KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ"),
 			gomock.Eq(int64(2417))).
 		Return([]bigmapdiff.BigMapState{
@@ -151,7 +152,7 @@ func TestGroup_Parse(t *testing.T) {
 				Value:           nil,
 				LastUpdateLevel: 386026,
 				Contract:        "KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ",
-				Network:         "carthagenet",
+				Network:         types.Carthagenet,
 				LastUpdateTime:  timestamp,
 			},
 		}, nil).
@@ -186,7 +187,7 @@ func TestGroup_Parse(t *testing.T) {
 					Level:     1068669,
 					ChainID:   "NetXdQprcVkpaWU",
 				}),
-				WithNetwork(consts.Mainnet),
+				WithNetwork(types.Mainnet),
 			},
 			filename: "./data/rpc/opg/opToHHcqFhRTQWJv2oTGAtywucj9KM1nDnk5eHsEETYJyvJLsa5.json",
 			want:     parsers.NewResult(),
@@ -216,7 +217,7 @@ func TestGroup_Parse(t *testing.T) {
 					HardStorageLimitPerOperation: 60000,
 					TimeBetweenBlocks:            60,
 				}),
-				WithNetwork(consts.Mainnet),
+				WithNetwork(types.Mainnet),
 			},
 			storage: map[string]int64{
 				"KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM": 1068668,
@@ -236,7 +237,7 @@ func TestGroup_Parse(t *testing.T) {
 						Destination:     "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 						Status:          "applied",
 						Level:           1068669,
-						Network:         "mainnet",
+						Network:         types.Mainnet,
 						Hash:            "opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9",
 						Entrypoint:      "transfer",
 						Timestamp:       timestamp,
@@ -253,7 +254,7 @@ func TestGroup_Parse(t *testing.T) {
 						Status:          "applied",
 						Level:           1068669,
 						Counter:         5791164,
-						Network:         "mainnet",
+						Network:         types.Mainnet,
 						Hash:            "opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9",
 						Nonce:           setInt64(0),
 						Entrypoint:      "validateAccounts",
@@ -271,7 +272,7 @@ func TestGroup_Parse(t *testing.T) {
 						Status:          "applied",
 						Level:           1068669,
 						Counter:         5791164,
-						Network:         "mainnet",
+						Network:         types.Mainnet,
 						Hash:            "opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9",
 						Nonce:           setInt64(1),
 						Entrypoint:      "validateRules",
@@ -291,7 +292,7 @@ func TestGroup_Parse(t *testing.T) {
 						Key:       []byte(`{"bytes":"0000a2560a416161def96031630886abe950c4baf036"}`),
 						Value:     []byte(`{"int":"6141000"}`),
 						Level:     1068669,
-						Network:   "mainnet",
+						Network:   types.Mainnet,
 						Contract:  "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 						Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 						Timestamp: timestamp,
@@ -301,7 +302,7 @@ func TestGroup_Parse(t *testing.T) {
 						Key:       []byte(`{"bytes":"0000fdf98b65d53a9661e07f41093dcb6f3d931736ba"}`),
 						Value:     []byte(`{"int":"8010000"}`),
 						Level:     1068669,
-						Network:   "mainnet",
+						Network:   types.Mainnet,
 						Contract:  "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 						Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 						Timestamp: timestamp,
@@ -313,7 +314,7 @@ func TestGroup_Parse(t *testing.T) {
 						KeyHash:         "exprum2qtFLPHdeLWVasKCDw7YD5MrdiD4ra52PY2AUazaNGKyv6tx",
 						Key:             []byte(`{"bytes":"0000a2560a416161def96031630886abe950c4baf036"}`),
 						Value:           []byte(`{"int":"6141000"}`),
-						Network:         "mainnet",
+						Network:         types.Mainnet,
 						Contract:        "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 						LastUpdateLevel: 1068669,
 						LastUpdateTime:  timestamp,
@@ -322,7 +323,7 @@ func TestGroup_Parse(t *testing.T) {
 						KeyHash:         "exprv2snyFbF6EDZd2YAHnnmNBoFt7bbaXhGSWGXHv4a4wnxS359ob",
 						Key:             []byte(`{"bytes":"0000fdf98b65d53a9661e07f41093dcb6f3d931736ba"}`),
 						Value:           []byte(`{"int":"8010000"}`),
-						Network:         "mainnet",
+						Network:         types.Mainnet,
 						Contract:        "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 						LastUpdateLevel: 1068669,
 						LastUpdateTime:  timestamp,
@@ -330,7 +331,7 @@ func TestGroup_Parse(t *testing.T) {
 				},
 				Transfers: []*transfer.Transfer{
 					{
-						Network:   consts.Mainnet,
+						Network:   types.Mainnet,
 						Contract:  "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 						Initiator: "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
 						Hash:      "opJXaAMkBrAbd1XFd23kS8vXiw63tU4rLUcLrZgqUCpCbhT1Pn9",
@@ -346,13 +347,13 @@ func TestGroup_Parse(t *testing.T) {
 				},
 				TokenBalances: []*tokenbalance.TokenBalance{
 					{
-						Network:  consts.Mainnet,
+						Network:  types.Mainnet,
 						Contract: "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 						Address:  "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
 						TokenID:  0,
 						Value:    newBigInt("-8010000"),
 					}, {
-						Network:  consts.Mainnet,
+						Network:  types.Mainnet,
 						Contract: "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 						Address:  "tz1invbJv3AEm55ct7QF2dVbWZuaDekssYkV",
 						TokenID:  0,
@@ -386,7 +387,7 @@ func TestGroup_Parse(t *testing.T) {
 					HardStorageLimitPerOperation: 60000,
 					TimeBetweenBlocks:            60,
 				}),
-				WithNetwork(consts.Mainnet),
+				WithNetwork(types.Mainnet),
 			},
 			storage: map[string]int64{
 				"KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr": 1151494,
@@ -397,7 +398,7 @@ func TestGroup_Parse(t *testing.T) {
 				Operations: []*operation.Operation{
 					{
 						ContentIndex:    0,
-						Network:         consts.Mainnet,
+						Network:         types.Mainnet,
 						Protocol:        "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 						Hash:            "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
 						Internal:        false,
@@ -419,7 +420,7 @@ func TestGroup_Parse(t *testing.T) {
 						Tags:            []string{},
 					}, {
 						ContentIndex:    0,
-						Network:         consts.Mainnet,
+						Network:         types.Mainnet,
 						Protocol:        "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 						Hash:            "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
 						Internal:        true,
@@ -446,7 +447,7 @@ func TestGroup_Parse(t *testing.T) {
 						KeyHash:   "exprvJp4s8RJpoXMwD9aQujxWQUiojrkeubesi3X9LDcU3taDfahYR",
 						Level:     1151495,
 						Contract:  "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
-						Network:   consts.Mainnet,
+						Network:   types.Mainnet,
 						Timestamp: timestamp,
 						Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 					}, {
@@ -456,7 +457,7 @@ func TestGroup_Parse(t *testing.T) {
 						Value:     []byte(`{"bytes":"050098e1e8d78a02"}`),
 						Level:     1151495,
 						Contract:  "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Network:   consts.Mainnet,
+						Network:   types.Mainnet,
 						Timestamp: timestamp,
 						Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 					}, {
@@ -466,7 +467,7 @@ func TestGroup_Parse(t *testing.T) {
 						Value:     []byte(`{"bytes":"0507070080a5c1070200000000"}`),
 						Level:     1151495,
 						Contract:  "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Network:   consts.Mainnet,
+						Network:   types.Mainnet,
 						Timestamp: timestamp,
 						Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 					}, {
@@ -476,7 +477,7 @@ func TestGroup_Parse(t *testing.T) {
 						Value:     []byte(`{"bytes":"05070700ba81bb090200000000"}`),
 						Level:     1151495,
 						Contract:  "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Network:   consts.Mainnet,
+						Network:   types.Mainnet,
 						Timestamp: timestamp,
 						Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 					},
@@ -487,7 +488,7 @@ func TestGroup_Parse(t *testing.T) {
 						Key:             []byte(`{"bytes":"80729e85e284dff3a30bb24a58b37ccdf474bbbe7794aad439ba034f48d66af3"}`),
 						KeyHash:         "exprvJp4s8RJpoXMwD9aQujxWQUiojrkeubesi3X9LDcU3taDfahYR",
 						Contract:        "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
-						Network:         consts.Mainnet,
+						Network:         types.Mainnet,
 						Removed:         true,
 						LastUpdateLevel: 1151495,
 						LastUpdateTime:  timestamp,
@@ -497,7 +498,7 @@ func TestGroup_Parse(t *testing.T) {
 						KeyHash:         "exprunzteC5uyXRHbKnqJd3hUMGTWE9Gv5EtovDZHnuqu6SaGViV3N",
 						Value:           []byte(`{"bytes":"050098e1e8d78a02"}`),
 						Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Network:         consts.Mainnet,
+						Network:         types.Mainnet,
 						LastUpdateLevel: 1151495,
 						LastUpdateTime:  timestamp,
 					}, {
@@ -506,7 +507,7 @@ func TestGroup_Parse(t *testing.T) {
 						KeyHash:         "exprv9xaiXBb9KBi67dQoP1SchDyZeKEz3XHiFwBCtHadiKS8wkX7w",
 						Value:           []byte(`{"bytes":"0507070080a5c1070200000000"}`),
 						Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Network:         consts.Mainnet,
+						Network:         types.Mainnet,
 						LastUpdateLevel: 1151495,
 						LastUpdateTime:  timestamp,
 					}, {
@@ -515,14 +516,14 @@ func TestGroup_Parse(t *testing.T) {
 						KeyHash:         "expruiWsykU9wjNb4aV7eJULLBpGLhy1EuzgD8zB8k7eUTaCk16fyV",
 						Value:           []byte(`{"bytes":"05070700ba81bb090200000000"}`),
 						Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Network:         consts.Mainnet,
+						Network:         types.Mainnet,
 						LastUpdateLevel: 1151495,
 						LastUpdateTime:  timestamp,
 					},
 				},
 				Transfers: []*transfer.Transfer{
 					{
-						Network:   consts.Mainnet,
+						Network:   types.Mainnet,
 						Contract:  "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
 						Initiator: "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
 						Hash:      "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
@@ -539,13 +540,13 @@ func TestGroup_Parse(t *testing.T) {
 				},
 				TokenBalances: []*tokenbalance.TokenBalance{
 					{
-						Network:  consts.Mainnet,
+						Network:  types.Mainnet,
 						Contract: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
 						Address:  "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
 						TokenID:  0,
 						Value:    newBigInt("-7874880"),
 					}, {
-						Network:  consts.Mainnet,
+						Network:  types.Mainnet,
 						Contract: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
 						Address:  "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
 						TokenID:  0,
@@ -579,7 +580,7 @@ func TestGroup_Parse(t *testing.T) {
 					HardStorageLimitPerOperation: 60000,
 					TimeBetweenBlocks:            30,
 				}),
-				WithNetwork("delphinet"),
+				WithNetwork(types.Delphinet),
 			},
 			storage: map[string]int64{
 				"KT1NppzrgyLZD3aku7fssfhYPm5QqZwyabvR": 86142,
@@ -589,7 +590,7 @@ func TestGroup_Parse(t *testing.T) {
 				Operations: []*operation.Operation{
 					{
 						ContentIndex:                       0,
-						Network:                            "delphinet",
+						Network:                            types.Delphinet,
 						Protocol:                           "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
 						Hash:                               "onzUDQhwunz2yqzfEsoURXEBz9p7Gk8DgY4QBva52Z4b3AJCZjt",
 						Internal:                           false,
@@ -613,7 +614,7 @@ func TestGroup_Parse(t *testing.T) {
 				},
 				Contracts: []*modelContract.Contract{
 					{
-						Network:     "delphinet",
+						Network:     types.Delphinet,
 						Level:       86142,
 						Timestamp:   timestamp,
 						Language:    "unknown",
@@ -651,7 +652,7 @@ func TestGroup_Parse(t *testing.T) {
 					HardStorageLimitPerOperation: 60000,
 					TimeBetweenBlocks:            60,
 				}),
-				WithNetwork(consts.Mainnet),
+				WithNetwork(types.Mainnet),
 			},
 			storage: map[string]int64{
 				"KT1AbjG7vtpV8osdoJXcMRck8eTwst8dWoz4": 301436,
@@ -669,7 +670,7 @@ func TestGroup_Parse(t *testing.T) {
 						Destination:                        "KT1AbjG7vtpV8osdoJXcMRck8eTwst8dWoz4",
 						Status:                             "applied",
 						Level:                              301436,
-						Network:                            "mainnet",
+						Network:                            types.Mainnet,
 						Hash:                               "onv6Q1dNejAGEJeQzwRannWsDSGw85FuFdhLnBrY18TBcC9p8kC",
 						Timestamp:                          timestamp,
 						Burned:                             331000,
@@ -681,7 +682,7 @@ func TestGroup_Parse(t *testing.T) {
 				},
 				Contracts: []*modelContract.Contract{
 					{
-						Network:     "mainnet",
+						Network:     types.Mainnet,
 						Level:       301436,
 						Timestamp:   timestamp,
 						Language:    "unknown",
@@ -719,7 +720,7 @@ func TestGroup_Parse(t *testing.T) {
 					HardStorageLimitPerOperation: 60000,
 					TimeBetweenBlocks:            60,
 				}),
-				WithNetwork("edo2net"),
+				WithNetwork(types.Edo2net),
 			},
 			storage: map[string]int64{
 				"KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264": 72206,
@@ -738,7 +739,7 @@ func TestGroup_Parse(t *testing.T) {
 						Destination:     "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
 						Status:          "applied",
 						Level:           72207,
-						Network:         "edo2net",
+						Network:         types.Edo2net,
 						Hash:            "op4fFMvYsxvSUKZmLWC7aUf25VMYqigaDwTZCAoBBi8zACbHTNg",
 						Timestamp:       timestamp,
 						Entrypoint:      "@entrypoint_1",
@@ -753,7 +754,7 @@ func TestGroup_Parse(t *testing.T) {
 						Destination:                        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
 						Status:                             "applied",
 						Level:                              72207,
-						Network:                            "edo2net",
+						Network:                            types.Edo2net,
 						Hash:                               "op4fFMvYsxvSUKZmLWC7aUf25VMYqigaDwTZCAoBBi8zACbHTNg",
 						Timestamp:                          timestamp,
 						Burned:                             5245000,
@@ -771,28 +772,28 @@ func TestGroup_Parse(t *testing.T) {
 						SourcePtr: setInt64(25167),
 						Level:     72207,
 						Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
-						Network:   "edo2net",
+						Network:   types.Edo2net,
 						Timestamp: timestamp,
 					}, {
 						Action:    "remove",
 						SourcePtr: setInt64(25166),
 						Level:     72207,
 						Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
-						Network:   "edo2net",
+						Network:   types.Edo2net,
 						Timestamp: timestamp,
 					}, {
 						Action:    "remove",
 						SourcePtr: setInt64(25165),
 						Level:     72207,
 						Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
-						Network:   "edo2net",
+						Network:   types.Edo2net,
 						Timestamp: timestamp,
 					}, {
 						Action:    "remove",
 						SourcePtr: setInt64(25164),
 						Level:     72207,
 						Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
-						Network:   "edo2net",
+						Network:   types.Edo2net,
 						Timestamp: timestamp,
 					}, {
 						Action:         "copy",
@@ -800,7 +801,7 @@ func TestGroup_Parse(t *testing.T) {
 						DestinationPtr: setInt64(25171),
 						Level:          72207,
 						Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
-						Network:        "edo2net",
+						Network:        types.Edo2net,
 						Timestamp:      timestamp,
 					}, {
 						Action:         "copy",
@@ -808,7 +809,7 @@ func TestGroup_Parse(t *testing.T) {
 						DestinationPtr: setInt64(25170),
 						Level:          72207,
 						Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
-						Network:        "edo2net",
+						Network:        types.Edo2net,
 						Timestamp:      timestamp,
 					}, {
 						Action:         "copy",
@@ -816,7 +817,7 @@ func TestGroup_Parse(t *testing.T) {
 						DestinationPtr: setInt64(25169),
 						Level:          72207,
 						Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
-						Network:        "edo2net",
+						Network:        types.Edo2net,
 						Timestamp:      timestamp,
 					}, {
 						Action:         "copy",
@@ -824,13 +825,13 @@ func TestGroup_Parse(t *testing.T) {
 						DestinationPtr: setInt64(25168),
 						Level:          72207,
 						Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
-						Network:        "edo2net",
+						Network:        types.Edo2net,
 						Timestamp:      timestamp,
 					},
 				},
 				Contracts: []*modelContract.Contract{
 					{
-						Network:     "edo2net",
+						Network:     types.Edo2net,
 						Level:       72207,
 						Timestamp:   timestamp,
 						Language:    "unknown",

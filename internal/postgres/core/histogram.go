@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/dapp"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/pkg/errors"
 )
 
@@ -41,7 +42,7 @@ func buildHistogramContext(ctx models.HistogramContext) (string, error) {
 			return "", errors.Errorf("Invalid function: %s", ctx.Function.Name)
 		}
 	} else {
-		f = "count(id) as value"
+		f = "count(*) as value"
 	}
 
 	var conditions string
@@ -52,10 +53,13 @@ func buildHistogramContext(ctx models.HistogramContext) (string, error) {
 			case models.HistogramFilterKindExists:
 				conds = append(conds, fmt.Sprintf("(%s is not null and %s != '')", fltr.Field, fltr.Field))
 			case models.HistogramFilterKindMatch:
-				if s, ok := fltr.Value.(string); ok {
-					conds = append(conds, fmt.Sprintf("(%s = '%s')", fltr.Field, s))
-				} else {
-					conds = append(conds, fmt.Sprintf("(%s = %v)", fltr.Field, fltr.Value))
+				switch val := fltr.Value.(type) {
+				case string:
+					conds = append(conds, fmt.Sprintf("(%s = '%s')", fltr.Field, val))
+				case types.Network:
+					conds = append(conds, fmt.Sprintf("(%s = %d)", fltr.Field, val))
+				default:
+					conds = append(conds, fmt.Sprintf("(%s = %v)", fltr.Field, val))
 				}
 			case models.HistogramFilterKindIn:
 				if arr, ok := fltr.Value.([]string); ok {

@@ -66,7 +66,7 @@ func (ctx *Context) CreateVerification(c *gin.Context) {
 	task := database.CompilationTask{
 		UserID:  user.ID,
 		Address: req.Address,
-		Network: req.Network,
+		Network: req.NetworkID(),
 		Account: req.Account,
 		Repo:    req.Repo,
 		Ref:     req.Ref,

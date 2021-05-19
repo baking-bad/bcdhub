@@ -1,6 +1,9 @@
 package transfer
 
-import "github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
+import (
+	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
+)
 
 // ParserOption -
 type ParserOption func(dp *Parser)
@@ -13,7 +16,7 @@ func WithStackTrace(stackTrace *stacktrace.StackTrace) ParserOption {
 }
 
 // WithNetwork -
-func WithNetwork(network string) ParserOption {
+func WithNetwork(network types.Network) ParserOption {
 	return func(dp *Parser) {
 		dp.network = network
 	}

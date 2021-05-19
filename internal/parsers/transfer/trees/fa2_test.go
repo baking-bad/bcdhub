@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	modelTypes "github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,12 +25,12 @@ func TestMakeFa2Transfers(t *testing.T) {
 			name: "FA 2",
 			tree: GetFA2Transfer(),
 			operation: operation.Operation{
-				Network:    "mainnet",
+				Network:    modelTypes.Mainnet,
 				Parameters: []byte(`{"entrypoint":"transfer","value":[{"prim":"Pair","args":[{"string":"tz1gHJt7J1aEtW2wpCR5RJd3CpnbVxUTaEXS"},[{"prim":"Pair","args":[{"string":"tz1gsJENNUwg7fQiRwQi5zJYaj7YtwwsE3y2"},{"prim":"Pair","args":[{"int":"0"},{"int":"1000000000"}]}]}]]}]}`),
 			},
 			want: []*transfer.Transfer{
 				{
-					Network: "mainnet",
+					Network: modelTypes.Mainnet,
 					From:    "tz1gHJt7J1aEtW2wpCR5RJd3CpnbVxUTaEXS",
 					To:      "tz1gsJENNUwg7fQiRwQi5zJYaj7YtwwsE3y2",
 					Value:   newBigInt("1000000000"),

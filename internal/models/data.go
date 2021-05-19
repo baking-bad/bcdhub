@@ -2,12 +2,14 @@ package models
 
 import (
 	"time"
+
+	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 // SubscriptionRequest -
 type SubscriptionRequest struct {
 	Address         string
-	Network         string
+	Network         types.Network
 	Alias           string
 	Hash            string
 	ProjectID       string
@@ -34,12 +36,12 @@ const (
 
 // Event -
 type Event struct {
-	Type      string      `json:"type"`
-	Address   string      `json:"address"`
-	Network   string      `json:"network"`
-	Alias     string      `json:"alias"`
-	Timestamp time.Time   `json:"-"`
-	Body      interface{} `json:"body,omitempty"`
+	Type      string        `json:"type"`
+	Address   string        `json:"address"`
+	Network   types.Network `json:"network"`
+	Alias     string        `json:"alias"`
+	Timestamp time.Time     `json:"-"`
+	Body      interface{}   `json:"body,omitempty"`
 }
 
 // ByTimestamp - sorting events by timestamp

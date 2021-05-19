@@ -3,6 +3,7 @@ package bigmapdiff
 import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/consts"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/pkg/errors"
@@ -19,7 +20,7 @@ func NewStorage(pg *core.Postgres) *Storage {
 	return &Storage{pg}
 }
 
-func bigMapKey(network, keyHash string, ptr int64) func(db *gorm.DB) *gorm.DB {
+func bigMapKey(network types.Network, keyHash string, ptr int64) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("network = ?", network).
 			Where("key_hash = ?", keyHash).
@@ -28,7 +29,7 @@ func bigMapKey(network, keyHash string, ptr int64) func(db *gorm.DB) *gorm.DB {
 }
 
 // CurrentByKey -
-func (storage *Storage) Current(network, keyHash string, ptr int64) (data bigmapdiff.BigMapState, err error) {
+func (storage *Storage) Current(network types.Network, keyHash string, ptr int64) (data bigmapdiff.BigMapState, err error) {
 	if ptr < 0 {
 		err = errors.Wrapf(consts.ErrInvalidPointer, "%d", ptr)
 		return
@@ -43,7 +44,7 @@ func (storage *Storage) Current(network, keyHash string, ptr int64) (data bigmap
 }
 
 // GetForAddress -
-func (storage *Storage) GetForAddress(network, address string) (response []bigmapdiff.BigMapState, err error) {
+func (storage *Storage) GetForAddress(network types.Network, address string) (response []bigmapdiff.BigMapState, err error) {
 	err = storage.DB.Table(models.DocBigMapDiff).
 		Scopes(core.NetworkAndContract(network, address)).
 		Order("level desc").
@@ -53,7 +54,7 @@ func (storage *Storage) GetForAddress(network, address string) (response []bigma
 }
 
 // GetByAddress -
-func (storage *Storage) GetByAddress(network, address string) (response []bigmapdiff.BigMapDiff, err error) {
+func (storage *Storage) GetByAddress(network types.Network, address string) (response []bigmapdiff.BigMapDiff, err error) {
 	err = storage.DB.Table(models.DocBigMapDiff).
 		Scopes(core.NetworkAndContract(network, address)).
 		Order("level desc").
@@ -74,7 +75,7 @@ func (storage *Storage) GetValuesByKey(keyHash string) (response []bigmapdiff.Bi
 }
 
 // Count -
-func (storage *Storage) Count(network string, ptr int64) (count int64, err error) {
+func (storage *Storage) Count(network types.Network, ptr int64) (count int64, err error) {
 	err = storage.DB.Table(models.DocBigMapState).
 		Where("network = ?", network).
 		Where("ptr = ?", ptr).
@@ -161,7 +162,7 @@ func (storage *Storage) GetUniqueForOperations(opg []bigmapdiff.OPG) (response [
 }
 
 // GetByPtrAndKeyHash -
-func (storage *Storage) GetByPtrAndKeyHash(ptr int64, network, keyHash string, size, offset int64) ([]bigmapdiff.BigMapDiff, int64, error) {
+func (storage *Storage) GetByPtrAndKeyHash(ptr int64, network types.Network, keyHash string, size, offset int64) ([]bigmapdiff.BigMapDiff, int64, error) {
 	if ptr < 0 {
 		return nil, 0, errors.Wrapf(consts.ErrInvalidPointer, "%d", ptr)
 	}
@@ -189,7 +190,7 @@ func (storage *Storage) GetByPtrAndKeyHash(ptr int64, network, keyHash string, s
 }
 
 // GetByPtr -
-func (storage *Storage) GetByPtr(network, contract string, ptr int64) (response []bigmapdiff.BigMapState, err error) {
+func (storage *Storage) GetByPtr(network types.Network, contract string, ptr int64) (response []bigmapdiff.BigMapState, err error) {
 	err = storage.DB.Table(models.DocBigMapState).
 		Scopes(core.NetworkAndContract(network, contract)).
 		Where("ptr = ?", ptr).Find(&response).Error
@@ -217,7 +218,7 @@ func (storage *Storage) GetByIDs(ids ...int64) (result []bigmapdiff.BigMapDiff, 
 }
 
 // GetStats -
-func (storage *Storage) GetStats(network string, ptr int64) (stats bigmapdiff.Stats, err error) {
+func (storage *Storage) GetStats(network types.Network, ptr int64) (stats bigmapdiff.Stats, err error) {
 	totalQuery := storage.DB.Table(models.DocBigMapState).
 		Select("count(contract) as count, contract, 'total' as name").
 		Where("network = ?", network).
@@ -259,7 +260,7 @@ func (storage *Storage) GetStats(network string, ptr int64) (stats bigmapdiff.St
 }
 
 // CurrentByContract -
-func (storage *Storage) CurrentByContract(network, contract string) (keys []bigmapdiff.BigMapState, err error) {
+func (storage *Storage) CurrentByContract(network types.Network, contract string) (keys []bigmapdiff.BigMapState, err error) {
 	err = storage.DB.Table(models.DocBigMapState).
 		Where("network = ?", network).
 		Where("contract = ?", contract).
@@ -270,7 +271,7 @@ func (storage *Storage) CurrentByContract(network, contract string) (keys []bigm
 }
 
 // StatesChangedAfter -
-func (storage *Storage) StatesChangedAfter(network string, level int64) (states []bigmapdiff.BigMapState, err error) {
+func (storage *Storage) StatesChangedAfter(network types.Network, level int64) (states []bigmapdiff.BigMapState, err error) {
 	err = storage.DB.Table(models.DocBigMapState).
 		Where("network = ?", network).
 		Where("last_update_level > ?", level).
@@ -280,7 +281,7 @@ func (storage *Storage) StatesChangedAfter(network string, level int64) (states 
 }
 
 // LastDiff -
-func (storage *Storage) LastDiff(network string, ptr int64, keyHash string, skipRemoved bool) (diff bigmapdiff.BigMapDiff, err error) {
+func (storage *Storage) LastDiff(network types.Network, ptr int64, keyHash string, skipRemoved bool) (diff bigmapdiff.BigMapDiff, err error) {
 	query := storage.DB.Table(models.DocBigMapDiff).
 		Scopes(bigMapKey(network, keyHash, ptr))
 

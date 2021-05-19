@@ -3,6 +3,7 @@ package tokenbalance
 import (
 	"math/big"
 
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -11,13 +12,13 @@ import (
 
 // TokenBalance -
 type TokenBalance struct {
-	ID            int64   `json:"-" gorm:"autoIncrement:true"`
-	Network       string  `json:"network" gorm:"not null;primaryKey;index:token_balances_token_idx"`
-	Address       string  `json:"address" gorm:"not null;primaryKey"`
-	Contract      string  `json:"contract" gorm:"not null;primaryKey;index:token_balances_token_idx"`
-	TokenID       uint64  `json:"token_id" gorm:"type:numeric(50,0);default:0;primaryKey;autoIncrement:false;index:token_balances_token_idx"`
-	Balance       float64 `json:"balance" gorm:"type:numeric(100,0);default:0"`
-	BalanceString string  `json:"balance_string"`
+	ID            int64         `json:"-" gorm:"autoIncrement:true"`
+	Network       types.Network `json:"network" gorm:"not null;primaryKey;index:token_balances_token_idx;default:0"`
+	Address       string        `json:"address" gorm:"not null;primaryKey"`
+	Contract      string        `json:"contract" gorm:"not null;primaryKey;index:token_balances_token_idx"`
+	TokenID       uint64        `json:"token_id" gorm:"type:numeric(50,0);default:0;primaryKey;autoIncrement:false;index:token_balances_token_idx"`
+	Balance       float64       `json:"balance" gorm:"type:numeric(100,0);default:0"`
+	BalanceString string        `json:"balance_string"`
 
 	IsLedger bool     `json:"-" gorm:"-"`
 	Value    *big.Int `json:"-" gorm:"-"`
@@ -74,7 +75,7 @@ func (tb *TokenBalance) MarshalToQueue() ([]byte, error) {
 // LogFields -
 func (tb *TokenBalance) LogFields() logrus.Fields {
 	return logrus.Fields{
-		"network":  tb.Network,
+		"network":  tb.Network.String(),
 		"address":  tb.Address,
 		"contract": tb.Contract,
 		"token_id": tb.TokenID,

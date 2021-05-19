@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 var tokenContracts = []string{
@@ -19,7 +19,7 @@ var tokenContracts = []string{
 
 func testAccounts(ctx *config.Context) {
 	for _, address := range tokenContracts {
-		balances, err := ctx.TokenBalances.GetHolders(consts.Mainnet, address, 0)
+		balances, err := ctx.TokenBalances.GetHolders(types.Mainnet, address, 0)
 		if err != nil {
 			logger.Error(err)
 			return

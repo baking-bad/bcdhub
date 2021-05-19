@@ -1,10 +1,9 @@
 package block
 
 import (
-	"strings"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	jsoniter "github.com/json-iterator/go"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -16,13 +15,13 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 type Block struct {
 	ID int64 `json:"-"`
 
-	Network     string    `json:"network"`
-	Hash        string    `json:"hash"`
-	Level       int64     `json:"level"`
-	Predecessor string    `json:"predecessor"`
-	ChainID     string    `json:"chain_id"`
-	Protocol    string    `json:"protocol"`
-	Timestamp   time.Time `json:"timestamp"`
+	Network     types.Network `json:"network"`
+	Hash        string        `json:"hash"`
+	Level       int64         `json:"level"`
+	Predecessor string        `json:"predecessor"`
+	ChainID     string        `json:"chain_id"`
+	Protocol    string        `json:"protocol"`
+	Timestamp   time.Time     `json:"timestamp"`
 }
 
 // GetID -
@@ -68,12 +67,12 @@ func (a ByNetwork) Less(i, j int) bool {
 	switch {
 	case a[i].Network == a[j].Network:
 		return false
-	case a[i].Network == consts.Mainnet:
+	case a[i].Network == types.Mainnet:
 		return true
-	case a[j].Network == consts.Mainnet:
+	case a[j].Network == types.Mainnet:
 		return false
 	default:
-		return strings.Compare(a[i].Network, a[j].Network) < 0
+		return a[i].Network < a[j].Network
 	}
 }
 func (a ByNetwork) Swap(i, j int) { a[i], a[j] = a[j], a[i] }

@@ -6,6 +6,7 @@ package mock
 
 import (
 	models "github.com/baking-bad/bcdhub/internal/models"
+	types "github.com/baking-bad/bcdhub/internal/models/types"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -62,17 +63,17 @@ func (mr *MockGeneralRepositoryMockRecorder) DeleteIndices(indices interface{}) 
 }
 
 // DeleteByContract mocks base method
-func (m *MockGeneralRepository) DeleteByContract(indices []string, network, address string) error {
+func (m *MockGeneralRepository) DeleteByContract(network types.Network, indices []string, address string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteByContract", indices, network, address)
+	ret := m.ctrl.Call(m, "DeleteByContract", network, indices, address)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteByContract indicates an expected call of DeleteByContract
-func (mr *MockGeneralRepositoryMockRecorder) DeleteByContract(indices, network, address interface{}) *gomock.Call {
+func (mr *MockGeneralRepositoryMockRecorder) DeleteByContract(network, indices, address interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByContract", reflect.TypeOf((*MockGeneralRepository)(nil).DeleteByContract), indices, network, address)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByContract", reflect.TypeOf((*MockGeneralRepository)(nil).DeleteByContract), network, indices, address)
 }
 
 // GetByID mocks base method
@@ -90,7 +91,7 @@ func (mr *MockGeneralRepositoryMockRecorder) GetByID(output interface{}) *gomock
 }
 
 // GetByNetwork mocks base method
-func (m *MockGeneralRepository) GetByNetwork(network, index string) ([]models.Model, error) {
+func (m *MockGeneralRepository) GetByNetwork(network types.Network, index string) ([]models.Model, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByNetwork", network, index)
 	ret0, _ := ret[0].([]models.Model)
@@ -153,18 +154,18 @@ func (mr *MockGeneralRepositoryMockRecorder) GetEvents(arg0, arg1, arg2 interfac
 }
 
 // GetNetworkCountStats mocks base method
-func (m *MockGeneralRepository) GetNetworkCountStats(arg0 string) (map[string]int64, error) {
+func (m *MockGeneralRepository) GetNetworkCountStats(network types.Network) (map[string]int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetNetworkCountStats", arg0)
+	ret := m.ctrl.Call(m, "GetNetworkCountStats", network)
 	ret0, _ := ret[0].(map[string]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetNetworkCountStats indicates an expected call of GetNetworkCountStats
-func (mr *MockGeneralRepositoryMockRecorder) GetNetworkCountStats(arg0 interface{}) *gomock.Call {
+func (mr *MockGeneralRepositoryMockRecorder) GetNetworkCountStats(network interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNetworkCountStats", reflect.TypeOf((*MockGeneralRepository)(nil).GetNetworkCountStats), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNetworkCountStats", reflect.TypeOf((*MockGeneralRepository)(nil).GetNetworkCountStats), network)
 }
 
 // GetDateHistogram mocks base method
@@ -188,7 +189,7 @@ func (mr *MockGeneralRepositoryMockRecorder) GetDateHistogram(period interface{}
 }
 
 // GetStats mocks base method
-func (m *MockGeneralRepository) GetStats(network string) (map[string]*models.NetworkStats, error) {
+func (m *MockGeneralRepository) GetStats(network types.Network) (map[string]*models.NetworkStats, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetStats", network)
 	ret0, _ := ret[0].(map[string]*models.NetworkStats)
@@ -203,7 +204,7 @@ func (mr *MockGeneralRepositoryMockRecorder) GetStats(network interface{}) *gomo
 }
 
 // GetLanguagesForNetwork mocks base method
-func (m *MockGeneralRepository) GetLanguagesForNetwork(network string) (map[string]int64, error) {
+func (m *MockGeneralRepository) GetLanguagesForNetwork(network types.Network) (map[string]int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetLanguagesForNetwork", network)
 	ret0, _ := ret[0].(map[string]int64)
@@ -260,7 +261,7 @@ func (mr *MockGeneralRepositoryMockRecorder) BulkDelete(arg0 interface{}) *gomoc
 }
 
 // SetAlias mocks base method
-func (m *MockGeneralRepository) SetAlias(network, address, alias string) error {
+func (m *MockGeneralRepository) SetAlias(network types.Network, address, alias string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetAlias", network, address, alias)
 	ret0, _ := ret[0].(error)

@@ -1,9 +1,9 @@
 package migrations
 
 import (
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -22,9 +22,9 @@ func (m *SetAliases) Description() string {
 
 // Do - migrate function
 func (m *SetAliases) Do(ctx *config.Context) error {
-	logger.Info("Receiving aliases for %s...", consts.Mainnet)
+	logger.Info("Receiving aliases for mainnet...")
 
-	aliases, err := ctx.TZIP.GetAliasesMap(consts.Mainnet)
+	aliases, err := ctx.TZIP.GetAliasesMap(types.Mainnet)
 	if err != nil {
 		return err
 	}
@@ -40,7 +40,7 @@ func (m *SetAliases) Do(ctx *config.Context) error {
 			return err
 		}
 
-		if err := ctx.Storage.SetAlias(consts.Mainnet, address, alias); err != nil {
+		if err := ctx.Storage.SetAlias(types.Mainnet, address, alias); err != nil {
 			return err
 		}
 	}

@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )
@@ -28,7 +29,7 @@ func (ctx *Context) GetStats(c *gin.Context) {
 	}
 	blocks := make([]Block, 0)
 	for i := range stats {
-		if helpers.StringInArray(stats[i].Network, ctx.Config.API.Networks) {
+		if helpers.StringInArray(stats[i].Network.String(), ctx.Config.API.Networks) {
 			var block Block
 			block.FromModel(stats[i])
 			blocks = append(blocks, block)
@@ -57,14 +58,14 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 	}
 
 	var stats NetworkStats
-	counts, err := ctx.Storage.GetNetworkCountStats(req.Network)
+	counts, err := ctx.Storage.GetNetworkCountStats(req.NetworkID())
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 	stats.ContractsCount = counts[models.DocContracts]
 	stats.OperationsCount = counts[models.DocOperations]
 
-	protocols, err := ctx.Protocols.GetByNetworkWithSort(req.Network, "start_level", "desc")
+	protocols, err := ctx.Protocols.GetByNetworkWithSort(req.NetworkID(), "start_level", "desc")
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -74,7 +75,7 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 	}
 	stats.Protocols = ps
 
-	languages, err := ctx.Storage.GetLanguagesForNetwork(req.Network)
+	languages, err := ctx.Storage.GetLanguagesForNetwork(req.NetworkID())
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -114,7 +115,7 @@ func (ctx *Context) GetSeries(c *gin.Context) {
 		addresses = strings.Split(reqArgs.Address, ",")
 	}
 
-	options, err := ctx.getHistogramOptions(reqArgs.Name, req.Network, addresses...)
+	options, err := ctx.getHistogramOptions(reqArgs.Name, req.NetworkID(), addresses...)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -127,7 +128,7 @@ func (ctx *Context) GetSeries(c *gin.Context) {
 	c.JSON(http.StatusOK, series)
 }
 
-func (ctx *Context) getHistogramOptions(name, network string, addresses ...string) ([]models.HistogramOption, error) {
+func (ctx *Context) getHistogramOptions(name string, network types.Network, addresses ...string) ([]models.HistogramOption, error) {
 	filters := []models.HistogramFilter{
 		{
 			Field: "network",
@@ -262,7 +263,7 @@ func (ctx *Context) GetContractsStats(c *gin.Context) {
 		ctx.handleError(c, errors.Errorf("Empty address list"), http.StatusBadRequest)
 		return
 	}
-	stats, err := ctx.Operations.GetDAppStats(req.Network, addresses, reqStats.Period)
+	stats, err := ctx.Operations.GetDAppStats(req.NetworkID(), addresses, reqStats.Period)
 	if ctx.handleError(c, err, 0) {
 		return
 	}

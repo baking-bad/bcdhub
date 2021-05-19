@@ -66,7 +66,7 @@ type TokenMetadata struct {
 }
 
 // ToModel -
-func (m *TokenMetadata) ToModel(address, network string) tokenmetadata.TokenMetadata {
+func (m *TokenMetadata) ToModel(address string, network types.Network) tokenmetadata.TokenMetadata {
 	return tokenmetadata.TokenMetadata{
 		Network:            network,
 		Contract:           address,

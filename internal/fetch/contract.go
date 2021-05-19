@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/pkg/errors"
 )
 
@@ -18,7 +19,7 @@ var (
 )
 
 // RemoveContract -
-func RemoveContract(address, network, protocol, filesDirectory string) error {
+func RemoveContract(network types.Network, address, protocol, filesDirectory string) error {
 	if filesDirectory == "" {
 		return errors.Errorf("Invalid filesDirectory: %s", filesDirectory)
 	}
@@ -37,7 +38,7 @@ func RemoveContract(address, network, protocol, filesDirectory string) error {
 }
 
 // RemoveAllContracts -
-func RemoveAllContracts(network, filesDirectory string) error {
+func RemoveAllContracts(network types.Network, filesDirectory string) error {
 	if filesDirectory == "" {
 		return errors.Errorf("Invalid filesDirectory: %s", filesDirectory)
 	}
@@ -52,7 +53,7 @@ func RemoveAllContracts(network, filesDirectory string) error {
 }
 
 // Contract - reads contract from file system
-func Contract(address, network, protocol, filesDirectory string) ([]byte, error) {
+func Contract(network types.Network, address, protocol, filesDirectory string) ([]byte, error) {
 	if protocol == "" {
 		protocol = bcd.GetCurrentProtocol()
 	}

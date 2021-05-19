@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/jinzhu/gorm"
 
 	// postgres driver
@@ -40,7 +41,7 @@ type IAssessment interface {
 type ICompilationTask interface {
 	ListCompilationTasks(userID, limit, offset uint, kind string) ([]CompilationTask, error)
 	GetCompilationTask(taskID uint) (*CompilationTask, error)
-	GetCompilationTaskBy(address, network, status string) (*CompilationTask, error)
+	GetCompilationTaskBy(network types.Network, address, status string) (*CompilationTask, error)
 	CreateCompilationTask(ct *CompilationTask) error
 	UpdateTaskStatus(taskID uint, status string) error
 	UpdateTaskResults(task *CompilationTask, status string, results []CompilationTaskResult) error
@@ -52,19 +53,19 @@ type IDeployment interface {
 	ListDeployments(userID, limit, offset uint) ([]Deployment, error)
 	CreateDeployment(dt *Deployment) error
 	GetDeploymentBy(opHash string) (*Deployment, error)
-	GetDeploymentsByAddressNetwork(address, network string) ([]Deployment, error)
+	GetDeploymentsByAddressNetwork(address string, network types.Network) ([]Deployment, error)
 	UpdateDeployment(dt *Deployment) error
 	CountDeployments(userID uint) (int64, error)
 }
 
 // ISubscription -
 type ISubscription interface {
-	GetSubscription(userID uint, address, network string) (Subscription, error)
-	GetSubscriptions(address, network string) ([]Subscription, error)
+	GetSubscription(userID uint, address string, network types.Network) (Subscription, error)
+	GetSubscriptions(address string, network types.Network) ([]Subscription, error)
 	ListSubscriptions(userID uint) ([]Subscription, error)
 	UpsertSubscription(s *Subscription) error
 	DeleteSubscription(s *Subscription) error
-	GetSubscriptionsCount(address, network string) (int, error)
+	GetSubscriptionsCount(address string, network types.Network) (int, error)
 }
 
 // IUser -
@@ -78,7 +79,7 @@ type IUser interface {
 type IVerification interface {
 	ListVerifications(userID, limit, offset uint) ([]Verification, error)
 	CreateVerification(v *Verification) error
-	GetVerificationBy(address, network string) (*Verification, error)
+	GetVerificationBy(address string, network types.Network) (*Verification, error)
 	CountVerifications(userID uint) (int64, error)
 }
 

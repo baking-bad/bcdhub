@@ -29,7 +29,7 @@ func (ctx *Context) GetContract(c *gin.Context) {
 		return
 	}
 
-	contract, err := ctx.Contracts.Get(req.Network, req.Address)
+	contract, err := ctx.Contracts.Get(req.NetworkID(), req.Address)
 	if err != nil {
 		if ctx.Storage.IsRecordNotFound(err) {
 			c.JSON(http.StatusNoContent, gin.H{})

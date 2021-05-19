@@ -71,7 +71,7 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 					continue
 				}
 
-				script, err := fetch.Contract(tzips[i].Address, tzips[i].Network, protocol.Hash, ctx.SharePath)
+				script, err := fetch.Contract(tzips[i].Network, tzips[i].Address, protocol.Hash, ctx.SharePath)
 				if err != nil {
 					return err
 				}
@@ -129,11 +129,11 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 						}
 						for j := range old.Transfers {
 							deleted = append(deleted, &old.Transfers[j])
-							m.contracts[old.Transfers[j].Contract] = old.Transfers[j].Network
+							m.contracts[old.Transfers[j].Contract] = old.Transfers[j].Network.String()
 						}
 						inserted = append(inserted, t)
 						newTransfers = append(newTransfers, t)
-						m.contracts[t.Contract] = t.Network
+						m.contracts[t.Contract] = t.Network.String()
 					}
 				}
 

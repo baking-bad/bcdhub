@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 )
 
@@ -29,7 +30,7 @@ var balanceQuery = `
 `
 
 // TokenBalances -
-func (storage *Storage) TokenBalances(network, contract, address string, size, offset int64, sort string) (domains.TokenBalanceResponse, error) {
+func (storage *Storage) TokenBalances(network types.Network, contract, address string, size, offset int64, sort string) (domains.TokenBalanceResponse, error) {
 	response := domains.TokenBalanceResponse{
 		Balances: make([]domains.TokenBalance, 0),
 	}

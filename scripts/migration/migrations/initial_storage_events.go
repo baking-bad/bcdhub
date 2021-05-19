@@ -72,7 +72,7 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 			}
 
 			items = append(items, newModels[i])
-			m.contracts[t.Contract] = t.Network
+			m.contracts[t.Contract] = t.Network.String()
 		}
 	}
 

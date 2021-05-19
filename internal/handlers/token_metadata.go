@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/tzip/tokens"
 	"github.com/pkg/errors"
@@ -15,12 +16,12 @@ import (
 // TokenMetadata -
 type TokenMetadata struct {
 	storage models.GeneralRepository
-	parsers map[string]tokens.Parser
+	parsers map[types.Network]tokens.Parser
 }
 
 // NewTokenMetadata -
-func NewTokenMetadata(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, protocolRepo protocol.Repository, storage models.GeneralRepository, rpcs map[string]noderpc.INode, sharePath string, ipfs []string) *TokenMetadata {
-	parsers := make(map[string]tokens.Parser)
+func NewTokenMetadata(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, protocolRepo protocol.Repository, storage models.GeneralRepository, rpcs map[types.Network]noderpc.INode, sharePath string, ipfs []string) *TokenMetadata {
+	parsers := make(map[types.Network]tokens.Parser)
 	for network, rpc := range rpcs {
 		parsers[network] = tokens.NewParser(bigMapRepo, blockRepo, protocolRepo, storage, rpc, sharePath, network, ipfs...)
 	}

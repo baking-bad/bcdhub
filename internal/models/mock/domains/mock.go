@@ -5,7 +5,8 @@
 package domains
 
 import (
-	domainModel "github.com/baking-bad/bcdhub/internal/models/domains"
+	domainsModel "github.com/baking-bad/bcdhub/internal/models/domains"
+	types "github.com/baking-bad/bcdhub/internal/models/types"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -34,10 +35,10 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // TokenBalances mocks base method
-func (m *MockRepository) TokenBalances(network, contract, address string, size, offset int64, sort string) (domainModel.TokenBalanceResponse, error) {
+func (m *MockRepository) TokenBalances(network types.Network, contract, address string, size, offset int64, sort string) (domainsModel.TokenBalanceResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TokenBalances", network, contract, address, size, offset, sort)
-	ret0, _ := ret[0].(domainModel.TokenBalanceResponse)
+	ret0, _ := ret[0].(domainsModel.TokenBalanceResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

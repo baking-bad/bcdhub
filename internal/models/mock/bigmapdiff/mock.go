@@ -6,6 +6,7 @@ package bigmapdiff
 
 import (
 	bmd "github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	types "github.com/baking-bad/bcdhub/internal/models/types"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -49,18 +50,18 @@ func (mr *MockRepositoryMockRecorder) Get(ctx interface{}) *gomock.Call {
 }
 
 // GetByAddress mocks base method
-func (m *MockRepository) GetByAddress(arg0, arg1 string) ([]bmd.BigMapDiff, error) {
+func (m *MockRepository) GetByAddress(network types.Network, address string) ([]bmd.BigMapDiff, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByAddress", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetByAddress", network, address)
 	ret0, _ := ret[0].([]bmd.BigMapDiff)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByAddress indicates an expected call of GetByAddress
-func (mr *MockRepositoryMockRecorder) GetByAddress(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetByAddress(network, address interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByAddress", reflect.TypeOf((*MockRepository)(nil).GetByAddress), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByAddress", reflect.TypeOf((*MockRepository)(nil).GetByAddress), network, address)
 }
 
 // GetForOperation mocks base method
@@ -94,7 +95,7 @@ func (mr *MockRepositoryMockRecorder) GetUniqueForOperations(opg interface{}) *g
 }
 
 // GetByPtr mocks base method
-func (m *MockRepository) GetByPtr(network, contract string, ptr int64) ([]bmd.BigMapState, error) {
+func (m *MockRepository) GetByPtr(network types.Network, contract string, ptr int64) ([]bmd.BigMapState, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByPtr", network, contract, ptr)
 	ret0, _ := ret[0].([]bmd.BigMapState)
@@ -109,9 +110,9 @@ func (mr *MockRepositoryMockRecorder) GetByPtr(network, contract, ptr interface{
 }
 
 // GetByPtrAndKeyHash mocks base method
-func (m *MockRepository) GetByPtrAndKeyHash(arg0 int64, arg1, arg2 string, arg3, arg4 int64) ([]bmd.BigMapDiff, int64, error) {
+func (m *MockRepository) GetByPtrAndKeyHash(ptr int64, network types.Network, keyHash string, size, offset int64) ([]bmd.BigMapDiff, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByPtrAndKeyHash", arg0, arg1, arg2, arg3, arg4)
+	ret := m.ctrl.Call(m, "GetByPtrAndKeyHash", ptr, network, keyHash, size, offset)
 	ret0, _ := ret[0].([]bmd.BigMapDiff)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
@@ -119,13 +120,13 @@ func (m *MockRepository) GetByPtrAndKeyHash(arg0 int64, arg1, arg2 string, arg3,
 }
 
 // GetByPtrAndKeyHash indicates an expected call of GetByPtrAndKeyHash
-func (mr *MockRepositoryMockRecorder) GetByPtrAndKeyHash(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetByPtrAndKeyHash(ptr, network, keyHash, size, offset interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByPtrAndKeyHash", reflect.TypeOf((*MockRepository)(nil).GetByPtrAndKeyHash), arg0, arg1, arg2, arg3, arg4)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByPtrAndKeyHash", reflect.TypeOf((*MockRepository)(nil).GetByPtrAndKeyHash), ptr, network, keyHash, size, offset)
 }
 
 // GetForAddress mocks base method
-func (m *MockRepository) GetForAddress(network, address string) ([]bmd.BigMapState, error) {
+func (m *MockRepository) GetForAddress(network types.Network, address string) ([]bmd.BigMapState, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetForAddress", network, address)
 	ret0, _ := ret[0].([]bmd.BigMapState)
@@ -159,22 +160,22 @@ func (mr *MockRepositoryMockRecorder) GetByIDs(ids ...interface{}) *gomock.Call 
 }
 
 // GetValuesByKey mocks base method
-func (m *MockRepository) GetValuesByKey(arg0 string) ([]bmd.BigMapDiff, error) {
+func (m *MockRepository) GetValuesByKey(keyHash string) ([]bmd.BigMapDiff, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetValuesByKey", arg0)
+	ret := m.ctrl.Call(m, "GetValuesByKey", keyHash)
 	ret0, _ := ret[0].([]bmd.BigMapDiff)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetValuesByKey indicates an expected call of GetValuesByKey
-func (mr *MockRepositoryMockRecorder) GetValuesByKey(arg0 interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetValuesByKey(keyHash interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValuesByKey", reflect.TypeOf((*MockRepository)(nil).GetValuesByKey), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetValuesByKey", reflect.TypeOf((*MockRepository)(nil).GetValuesByKey), keyHash)
 }
 
 // Count mocks base method
-func (m *MockRepository) Count(network string, ptr int64) (int64, error) {
+func (m *MockRepository) Count(network types.Network, ptr int64) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Count", network, ptr)
 	ret0, _ := ret[0].(int64)
@@ -189,7 +190,7 @@ func (mr *MockRepositoryMockRecorder) Count(network, ptr interface{}) *gomock.Ca
 }
 
 // Current mocks base method
-func (m *MockRepository) Current(network, keyHash string, ptr int64) (bmd.BigMapState, error) {
+func (m *MockRepository) Current(network types.Network, keyHash string, ptr int64) (bmd.BigMapState, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Current", network, keyHash, ptr)
 	ret0, _ := ret[0].(bmd.BigMapState)
@@ -204,7 +205,7 @@ func (mr *MockRepositoryMockRecorder) Current(network, keyHash, ptr interface{})
 }
 
 // CurrentByContract mocks base method
-func (m *MockRepository) CurrentByContract(network, contract string) ([]bmd.BigMapState, error) {
+func (m *MockRepository) CurrentByContract(network types.Network, contract string) ([]bmd.BigMapState, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CurrentByContract", network, contract)
 	ret0, _ := ret[0].([]bmd.BigMapState)
@@ -234,7 +235,7 @@ func (mr *MockRepositoryMockRecorder) Previous(arg0 interface{}) *gomock.Call {
 }
 
 // GetStats mocks base method
-func (m *MockRepository) GetStats(network string, ptr int64) (bmd.Stats, error) {
+func (m *MockRepository) GetStats(network types.Network, ptr int64) (bmd.Stats, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetStats", network, ptr)
 	ret0, _ := ret[0].(bmd.Stats)
@@ -249,7 +250,7 @@ func (mr *MockRepositoryMockRecorder) GetStats(network, ptr interface{}) *gomock
 }
 
 // StatesChangedAfter mocks base method
-func (m *MockRepository) StatesChangedAfter(network string, level int64) ([]bmd.BigMapState, error) {
+func (m *MockRepository) StatesChangedAfter(network types.Network, level int64) ([]bmd.BigMapState, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "StatesChangedAfter", network, level)
 	ret0, _ := ret[0].([]bmd.BigMapState)
@@ -264,7 +265,7 @@ func (mr *MockRepositoryMockRecorder) StatesChangedAfter(network, level interfac
 }
 
 // LastDiff mocks base method
-func (m *MockRepository) LastDiff(network string, ptr int64, keyHash string, skipRemoved bool) (bmd.BigMapDiff, error) {
+func (m *MockRepository) LastDiff(network types.Network, ptr int64, keyHash string, skipRemoved bool) (bmd.BigMapDiff, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LastDiff", network, ptr, keyHash, skipRemoved)
 	ret0, _ := ret[0].(bmd.BigMapDiff)

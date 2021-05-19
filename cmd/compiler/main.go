@@ -8,7 +8,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/compiler/compilation"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/database"
@@ -17,6 +16,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/streadway/amqp"
 )
@@ -53,7 +53,7 @@ func main() {
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
-	protocol, err := context.Protocols.Get(consts.Mainnet, "", -1)
+	protocol, err := context.Protocols.Get(types.Mainnet, "", -1)
 	if err != nil {
 		logger.Fatal(err)
 	}
@@ -89,7 +89,7 @@ func main() {
 }
 
 func (ctx *Context) setDeployment() error {
-	deployments, err := ctx.DB.GetDeploymentsByAddressNetwork("", "")
+	deployments, err := ctx.DB.GetDeploymentsByAddressNetwork("", types.Empty)
 	if err != nil {
 		return err
 	}

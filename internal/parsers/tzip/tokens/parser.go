@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/storage"
 	tzipStorage "github.com/baking-bad/bcdhub/internal/parsers/tzip/storage"
@@ -25,12 +26,12 @@ type Parser struct {
 
 	rpc       noderpc.INode
 	sharePath string
-	network   string
+	network   types.Network
 	ipfs      []string
 }
 
 // NewParser -
-func NewParser(bmdRepo bigmapdiff.Repository, blocksRepo block.Repository, protocolRepo protocol.Repository, storage models.GeneralRepository, rpc noderpc.INode, sharePath, network string, ipfs ...string) Parser {
+func NewParser(bmdRepo bigmapdiff.Repository, blocksRepo block.Repository, protocolRepo protocol.Repository, storage models.GeneralRepository, rpc noderpc.INode, sharePath string, network types.Network, ipfs ...string) Parser {
 	return Parser{
 		bmdRepo: bmdRepo, blocksRepo: blocksRepo, storage: storage, protocolRepo: protocolRepo,
 		rpc: rpc, sharePath: sharePath, network: network, ipfs: ipfs,
@@ -83,7 +84,7 @@ func (t Parser) ParseBigMapDiff(bmd *bigmapdiff.BigMapDiff, storage *ast.TypedAs
 }
 
 func (t Parser) parse(address string, state block.Block) ([]tokenmetadata.TokenMetadata, error) {
-	ptr, err := storage.GetBigMapPtr(t.rpc, address, TokenMetadataStorageKey, state.Network, state.Protocol, t.sharePath, state.Level)
+	ptr, err := storage.GetBigMapPtr(t.rpc, state.Network, address, TokenMetadataStorageKey, state.Protocol, t.sharePath, state.Level)
 	if err != nil {
 		return nil, err
 	}

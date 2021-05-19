@@ -15,6 +15,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	tbModel "github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 func newBigInt(val string) *big.Int {
@@ -30,13 +31,13 @@ func TestLedger_getResultModels(t *testing.T) {
 	tbRepo.
 		EXPECT().
 		Get(
-			gomock.Eq("mainnet"),
+			gomock.Eq(types.Mainnet),
 			gomock.Eq("KT1981tPmXh4KrUQKZpQKb55kREX7QGJcF3E"),
 			gomock.Eq("tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo"),
 			gomock.Eq(uint64(0))).
 		Return(tbModel.TokenBalance{
 			Contract:      "KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU",
-			Network:       "mainnet",
+			Network:       types.Mainnet,
 			Address:       "tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo",
 			TokenID:       0,
 			Balance:       168000,
@@ -65,7 +66,7 @@ func TestLedger_getResultModels(t *testing.T) {
 				&tbModel.TokenBalance{
 					Address:  "tz1djRgXXWWJiY1rpMECCxr5d9ZBqWewuiU1",
 					Contract: "KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH",
-					Network:  "mainnet",
+					Network:  types.Mainnet,
 					Value:    newBigInt("1000000"),
 					TokenID:  0,
 					IsLedger: true,
@@ -83,7 +84,7 @@ func TestLedger_getResultModels(t *testing.T) {
 				&tbModel.TokenBalance{
 					Address:  "tz1djRgXXWWJiY1rpMECCxr5d9ZBqWewuiU1",
 					Contract: "KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH",
-					Network:  "mainnet",
+					Network:  types.Mainnet,
 					Value:    newBigInt("0"),
 					TokenID:  0,
 					IsLedger: true,
@@ -97,7 +98,7 @@ func TestLedger_getResultModels(t *testing.T) {
 				Tags:        []string{consts.FA2Tag, consts.LedgerTag},
 				Entrypoint:  "burn",
 				Kind:        consts.Transaction,
-				Network:     "mainnet",
+				Network:     types.Mainnet,
 				Destination: "KT1981tPmXh4KrUQKZpQKb55kREX7QGJcF3E",
 				Hash:        "opNQeUBKfJzBjCNLuo5HkyZynhm5TMe1KEtwioqUrWM1ygmYVDX",
 				Level:       1455291,
@@ -106,14 +107,14 @@ func TestLedger_getResultModels(t *testing.T) {
 				&tbModel.TokenBalance{
 					Address:  "tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo",
 					Contract: "KT1981tPmXh4KrUQKZpQKb55kREX7QGJcF3E",
-					Network:  "mainnet",
+					Network:  types.Mainnet,
 					Value:    newBigInt("0"),
 					TokenID:  0,
 					IsLedger: true,
 				}, &transfer.Transfer{
 					From:       "tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo",
 					Contract:   "KT1981tPmXh4KrUQKZpQKb55kREX7QGJcF3E",
-					Network:    "mainnet",
+					Network:    types.Mainnet,
 					Value:      newBigInt("168000"),
 					TokenID:    0,
 					Entrypoint: "burn",

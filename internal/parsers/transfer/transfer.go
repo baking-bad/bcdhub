@@ -12,6 +12,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	modelTypes "github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
@@ -31,7 +32,7 @@ type Parser struct {
 	events     TokenEvents
 	stackTrace *stacktrace.StackTrace
 
-	network  string
+	network  modelTypes.Network
 	chainID  string
 	gasLimit int64
 
@@ -64,7 +65,7 @@ func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Reposit
 		tp.events = make(TokenEvents)
 	}
 
-	if tp.network != "" && tp.chainID == "" {
+	if tp.network != modelTypes.Empty && tp.chainID == "" {
 		state, err := blocks.Last(tp.network)
 		if err != nil {
 			return nil, err

@@ -38,7 +38,7 @@ func (ctx *Context) GetViewsSchema(c *gin.Context) {
 		return
 	}
 
-	tzip, err := ctx.TZIP.Get(req.Network, req.Address)
+	tzip, err := ctx.TZIP.Get(req.NetworkID(), req.Address)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -111,17 +111,17 @@ func (ctx *Context) ExecuteView(c *gin.Context) {
 		return
 	}
 
-	rpc, err := ctx.GetRPC(req.Network)
+	rpc, err := ctx.GetRPC(req.NetworkID())
 	if ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
 
-	state, err := ctx.CachedCurrentBlock(req.Network)
+	state, err := ctx.CachedCurrentBlock(req.NetworkID())
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	tzipValue, err := ctx.TZIP.Get(req.Network, req.Address)
+	tzipValue, err := ctx.TZIP.Get(req.NetworkID(), req.Address)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -163,7 +163,7 @@ func (ctx *Context) ExecuteView(c *gin.Context) {
 
 	view := views.NewMichelsonStorageView(impl, execView.Name)
 	response, err := views.ExecuteWithoutParsing(rpc, view, views.Context{
-		Network:                  req.Network,
+		Network:                  req.NetworkID(),
 		Contract:                 req.Address,
 		Source:                   execView.Source,
 		Initiator:                execView.Sender,

@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	"github.com/baking-bad/bcdhub/internal/models/block"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,7 +25,7 @@ func (ctx *Context) GetHead(c *gin.Context) {
 		return
 	}
 
-	var network string
+	var network types.Network
 	if len(blocks) == 1 {
 		network = blocks[0].Network
 	} else {
@@ -44,7 +45,7 @@ func (ctx *Context) GetHead(c *gin.Context) {
 			Timestamp: blocks[i].Timestamp,
 			Protocol:  blocks[i].Protocol,
 		}
-		networkStats, ok := stats[blocks[i].Network]
+		networkStats, ok := stats[blocks[i].Network.String()]
 		if !ok {
 			continue
 		}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/rollback"
 )
 
@@ -14,12 +15,12 @@ var rollbackCmd rollbackCommand
 
 // Execute
 func (x *rollbackCommand) Execute(_ []string) error {
-	state, err := ctx.Blocks.Last(x.Network)
+	state, err := ctx.Blocks.Last(types.NewNetwork(x.Network))
 	if err != nil {
 		panic(err)
 	}
 
-	logger.Warning("Do you want to rollback '%s' from %d to %d? (yes - continue. no - cancel)", state.Network, state.Level, x.Level)
+	logger.Warning("Do you want to rollback '%s' from %d to %d? (yes - continue. no - cancel)", state.Network.String(), state.Level, x.Level)
 	if !yes() {
 		logger.Info("Cancelled")
 		return nil

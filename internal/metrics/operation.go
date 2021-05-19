@@ -38,7 +38,7 @@ func (h *Handler) SendSentryNotifications(op operation.Operation) error {
 	defer sentry.Flush(2 * time.Second)
 
 	for _, subscription := range subscriptions {
-		initSentry(op.Network, subscription.SentryDSN)
+		initSentry(op.Network.String(), subscription.SentryDSN)
 
 		hub := sentry.CurrentHub().Clone()
 		tags := map[string]string{
@@ -75,7 +75,7 @@ func (h *Handler) SendSentryNotifications(op operation.Operation) error {
 			Tags:        tags,
 			Timestamp:   op.Timestamp.Unix(),
 			Level:       sentry.LevelError,
-			Environment: op.Network,
+			Environment: op.Network.String(),
 			Message:     message,
 			Exception:   exceptions,
 			Sdk: sentry.SdkInfo{

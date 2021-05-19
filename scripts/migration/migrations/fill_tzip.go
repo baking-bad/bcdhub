@@ -58,7 +58,7 @@ func (m *FillTZIP) Do(ctx *config.Context) error {
 			return err
 		}
 		for i := range items {
-			if _, ok := networks[items[i].Network]; !ok {
+			if _, ok := networks[items[i].Network.String()]; !ok {
 				continue
 			}
 

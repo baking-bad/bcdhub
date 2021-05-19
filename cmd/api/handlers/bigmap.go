@@ -34,13 +34,13 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		return
 	}
 
-	stats, err := ctx.BigMapDiffs.GetStats(req.Network, req.Ptr)
+	stats, err := ctx.BigMapDiffs.GetStats(req.NetworkID(), req.Ptr)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	res := GetBigMapResponse{
-		Network:    req.Network,
+		Network:    req.NetworkID(),
 		Ptr:        req.Ptr,
 		Address:    stats.Contract,
 		TotalKeys:  uint(stats.Total),
@@ -48,7 +48,7 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 	}
 
 	if stats.Total == 0 {
-		actions, err := ctx.BigMapActions.Get(req.Ptr, req.Network)
+		actions, err := ctx.BigMapActions.Get(req.NetworkID(), req.Ptr)
 		if ctx.handleError(c, err, 0) {
 			return
 		}
@@ -56,7 +56,7 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 			res.Address = actions[0].Address
 		}
 	} else {
-		script, err := ctx.getScript(res.Address, res.Network, "")
+		script, err := ctx.getScript(res.Network, res.Address, "")
 		if ctx.handleError(c, err, 0) {
 			return
 		}
@@ -107,7 +107,7 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		}
 	}
 
-	alias, err := ctx.TZIP.Get(req.Network, res.Address)
+	alias, err := ctx.TZIP.Get(req.NetworkID(), res.Address)
 	if err != nil {
 		if !ctx.Storage.IsRecordNotFound(err) {
 			ctx.handleError(c, err, 0)
@@ -140,7 +140,7 @@ func (ctx *Context) GetBigMapHistory(c *gin.Context) {
 		return
 	}
 
-	bm, err := ctx.BigMapActions.Get(req.Ptr, req.Network)
+	bm, err := ctx.BigMapActions.Get(req.NetworkID(), req.Ptr)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -183,7 +183,7 @@ func (ctx *Context) GetBigMapKeys(c *gin.Context) {
 
 	states, err := ctx.BigMapDiffs.Keys(bigmapdiff.GetContext{
 		Ptr:      &req.Ptr,
-		Network:  req.Network,
+		Network:  req.NetworkID(),
 		Query:    pageReq.Search,
 		Size:     pageReq.Size,
 		Offset:   pageReq.Offset,
@@ -230,7 +230,7 @@ func (ctx *Context) GetBigMapByKeyHash(c *gin.Context) {
 		return
 	}
 
-	bm, total, err := ctx.BigMapDiffs.GetByPtrAndKeyHash(req.Ptr, req.Network, req.KeyHash, pageReq.Size, pageReq.Offset)
+	bm, total, err := ctx.BigMapDiffs.GetByPtrAndKeyHash(req.Ptr, types.NewNetwork(req.Network), req.KeyHash, pageReq.Size, pageReq.Offset)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -268,7 +268,7 @@ func (ctx *Context) GetBigMapDiffCount(c *gin.Context) {
 		return
 	}
 
-	count, err := ctx.BigMapDiffs.Count(req.Network, req.Ptr)
+	count, err := ctx.BigMapDiffs.Count(req.NetworkID(), req.Ptr)
 	if err != nil {
 		if ctx.Storage.IsRecordNotFound(err) {
 			c.JSON(http.StatusOK, CountResponse{})
@@ -417,7 +417,7 @@ func prepareBigMapHistory(arr []bigmapaction.BigMapAction, ptr int64) BigMapHist
 	return response
 }
 
-func (ctx *Context) getBigMapType(network string, ptr int64) (noderpc.BigMap, error) {
+func (ctx *Context) getBigMapType(network types.Network, ptr int64) (noderpc.BigMap, error) {
 	rpc, err := ctx.GetRPC(network)
 	if err != nil {
 		return noderpc.BigMap{}, err

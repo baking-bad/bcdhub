@@ -3,6 +3,7 @@ package bigmapaction
 import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 )
 
@@ -17,7 +18,7 @@ func NewStorage(pg *core.Postgres) *Storage {
 }
 
 // Get -
-func (storage *Storage) Get(ptr int64, network string) (actions []bigmapaction.BigMapAction, err error) {
+func (storage *Storage) Get(network types.Network, ptr int64) (actions []bigmapaction.BigMapAction, err error) {
 	err = storage.DB.Table(models.DocBigMapActions).
 		Where(
 			storage.DB.Where("network = ?", network).

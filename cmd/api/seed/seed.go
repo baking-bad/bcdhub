@@ -5,6 +5,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
@@ -28,7 +29,7 @@ func Run(ctx *handlers.Context, seed config.SeedConfig) error {
 		subscription := database.Subscription{
 			UserID:    user.ID,
 			Address:   sub.Address,
-			Network:   sub.Network,
+			Network:   types.NewNetwork(sub.Network),
 			Alias:     sub.Alias,
 			WatchMask: sub.WatchMask,
 		}
@@ -45,7 +46,7 @@ func Run(ctx *handlers.Context, seed config.SeedConfig) error {
 			TZIP16: tzip.TZIP16{
 				Name: a.Alias,
 			},
-			Network: a.Network,
+			Network: types.NewNetwork(a.Network),
 			Address: a.Address,
 		})
 	}
@@ -59,7 +60,7 @@ func Run(ctx *handlers.Context, seed config.SeedConfig) error {
 			UserID:        user.ID,
 			PrivateKey:    a.PrivateKey,
 			PublicKeyHash: a.PublicKeyHash,
-			Network:       a.Network,
+			Network:       types.NewNetwork(a.Network),
 		}
 
 		if err := ctx.DB.GetOrCreateAccount(&account); err != nil {

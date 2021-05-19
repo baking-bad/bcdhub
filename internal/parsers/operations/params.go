@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/contract"
 	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
@@ -28,7 +29,7 @@ type ParseParams struct {
 
 	ipfs []string
 
-	network    string
+	network    types.Network
 	hash       string
 	head       noderpc.Header
 	contentIdx int64
@@ -56,7 +57,7 @@ func WithConstants(constants protocol.Constants) ParseParamsOption {
 }
 
 // WithNetwork -
-func WithNetwork(network string) ParseParamsOption {
+func WithNetwork(network types.Network) ParseParamsOption {
 	return func(dp *ParseParams) {
 		dp.network = network
 	}

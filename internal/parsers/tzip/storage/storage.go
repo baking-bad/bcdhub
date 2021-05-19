@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
 )
@@ -40,7 +41,7 @@ func NewFull(bmdRepo bigmapdiff.Repository, blockRepo block.Repository, storage 
 }
 
 // Get -
-func (f Full) Get(network, address, url string, ptr int64, output interface{}) error {
+func (f Full) Get(network types.Network, address, url string, ptr int64, output interface{}) error {
 	var store Storage
 	switch {
 	case strings.HasPrefix(url, PrefixHTTPS), strings.HasPrefix(url, PrefixHTTP):
@@ -58,7 +59,7 @@ func (f Full) Get(network, address, url string, ptr int64, output interface{}) e
 			WithHashSha256(url),
 		)
 	case strings.HasPrefix(url, PrefixTezosStorage):
-		store = NewTezosStorage(f.bmdRepo, f.blockRepo, f.storage, f.rpc, address, network, f.sharePath, ptr)
+		store = NewTezosStorage(f.bmdRepo, f.blockRepo, f.storage, f.rpc, address, f.sharePath, network, ptr)
 	default:
 		return errors.Wrap(ErrUnknownStorageType, url)
 	}

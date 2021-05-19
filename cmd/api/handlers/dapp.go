@@ -3,10 +3,10 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -101,7 +101,7 @@ func (ctx *Context) appendDAppInfo(dapp dapp.DApp, withDetails bool) (DApp, erro
 			for _, token := range dapp.DexTokens {
 				tokenMetadata, err := ctx.TokenMetadata.GetAll(tokenmetadata.GetContext{
 					Contract: token.Contract,
-					Network:  consts.Mainnet,
+					Network:  types.Mainnet,
 					TokenID:  &token.TokenID,
 				})
 				if err != nil {
@@ -117,7 +117,7 @@ func (ctx *Context) appendDAppInfo(dapp dapp.DApp, withDetails bool) (DApp, erro
 					entrypoints = append(entrypoints, c.Entrypoint...)
 				}
 
-				vol, err := ctx.Transfers.GetToken24HoursVolume(consts.Mainnet, token.Contract, initiators, entrypoints, token.TokenID)
+				vol, err := ctx.Transfers.GetToken24HoursVolume(types.Mainnet, token.Contract, initiators, entrypoints, token.TokenID)
 				if err != nil {
 					if ctx.Storage.IsRecordNotFound(err) {
 						continue
@@ -137,7 +137,7 @@ func (ctx *Context) appendDAppInfo(dapp dapp.DApp, withDetails bool) (DApp, erro
 			result.Contracts = make([]DAppContract, 0)
 
 			for _, address := range dapp.Contracts {
-				contract, err := ctx.Contracts.Get(consts.Mainnet, address.Address)
+				contract, err := ctx.Contracts.Get(types.Mainnet, address.Address)
 				if err != nil {
 					if ctx.Storage.IsRecordNotFound(err) {
 						continue
@@ -154,7 +154,7 @@ func (ctx *Context) appendDAppInfo(dapp dapp.DApp, withDetails bool) (DApp, erro
 				if address.WithTokens {
 					metadata, err := ctx.TokenMetadata.GetAll(tokenmetadata.GetContext{
 						Contract: address.Address,
-						Network:  consts.Mainnet,
+						Network:  types.Mainnet,
 						TokenID:  nil,
 					})
 					if err != nil {
@@ -168,7 +168,7 @@ func (ctx *Context) appendDAppInfo(dapp dapp.DApp, withDetails bool) (DApp, erro
 				}
 
 				if helpers.StringInArray("DEX", dapp.Categories) {
-					vol, err := ctx.Operations.GetContract24HoursVolume(consts.Mainnet, address.Address, address.Entrypoint)
+					vol, err := ctx.Operations.GetContract24HoursVolume(types.Mainnet, address.Address, address.Entrypoint)
 					if err != nil {
 						return result, err
 					}

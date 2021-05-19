@@ -1,26 +1,29 @@
 package database
 
-import "github.com/jinzhu/gorm"
+import (
+	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/jinzhu/gorm"
+)
 
 // Subscription model
 type Subscription struct {
 	gorm.Model
-	UserID    uint   `gorm:"primary_key;not null"`
-	Address   string `gorm:"primary_key;not null"`
-	Network   string `gorm:"primary_key;not null"`
+	UserID    uint          `gorm:"primary_key;not null"`
+	Address   string        `gorm:"primary_key;not null"`
+	Network   types.Network `gorm:"primary_key;not null"`
 	Alias     string
 	WatchMask uint
 	SentryDSN string
 }
 
-func (d *db) GetSubscription(userID uint, address, network string) (s Subscription, err error) {
+func (d *db) GetSubscription(userID uint, address string, network types.Network) (s Subscription, err error) {
 	err = d.
 		Scopes(userIDScope(userID), networkScope(network), addressScope(address)).
 		First(&s).Error
 	return
 }
 
-func (d *db) GetSubscriptions(address, network string) ([]Subscription, error) {
+func (d *db) GetSubscriptions(address string, network types.Network) ([]Subscription, error) {
 	var subs []Subscription
 
 	err := d.
@@ -54,7 +57,7 @@ func (d *db) DeleteSubscription(s *Subscription) error {
 		Delete(Subscription{}).Error
 }
 
-func (d *db) GetSubscriptionsCount(address, network string) (count int, err error) {
+func (d *db) GetSubscriptionsCount(address string, network types.Network) (count int, err error) {
 	err = d.
 		Model(&Subscription{}).
 		Scopes(contract(address, network)).

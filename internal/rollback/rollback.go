@@ -15,6 +15,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/pkg/errors"
@@ -58,7 +59,7 @@ func (rm Manager) Rollback(db *gorm.DB, fromState block.Block, toLevel int64) er
 			if err := rm.rollbackBigMapState(tx, fromState.Network, level); err != nil {
 				return err
 			}
-			return rm.searcher.Rollback(fromState.Network, toLevel)
+			return rm.searcher.Rollback(fromState.Network.String(), toLevel)
 
 		})
 		if err != nil {
@@ -68,7 +69,7 @@ func (rm Manager) Rollback(db *gorm.DB, fromState block.Block, toLevel int64) er
 	return nil
 }
 
-func (rm Manager) rollbackTokenBalances(tx *gorm.DB, network string, toLevel int64) error {
+func (rm Manager) rollbackTokenBalances(tx *gorm.DB, network types.Network, toLevel int64) error {
 	transfers, err := rm.transfersRepo.GetAll(network, toLevel)
 	if err != nil {
 		return err
@@ -107,7 +108,7 @@ func (rm Manager) rollbackTokenBalances(tx *gorm.DB, network string, toLevel int
 	return nil
 }
 
-func (rm Manager) rollbackAll(tx *gorm.DB, network string, toLevel int64) error {
+func (rm Manager) rollbackAll(tx *gorm.DB, network types.Network, toLevel int64) error {
 	for _, index := range []models.Model{
 		&block.Block{}, &contract.Contract{}, &bigmapdiff.BigMapDiff{},
 		&bigmapaction.BigMapAction{}, &tzip.TZIP{}, &migration.Migration{},
@@ -124,7 +125,7 @@ func (rm Manager) rollbackAll(tx *gorm.DB, network string, toLevel int64) error 
 	return nil
 }
 
-func (rm Manager) rollbackBigMapState(tx *gorm.DB, network string, toLevel int64) error {
+func (rm Manager) rollbackBigMapState(tx *gorm.DB, network types.Network, toLevel int64) error {
 	states, err := rm.bmdRepo.StatesChangedAfter(network, toLevel)
 	if err != nil {
 		return err
@@ -170,7 +171,7 @@ type lastAction struct {
 	Time    time.Time `gorm:"time"`
 }
 
-func (rm Manager) rollbackOperations(tx *gorm.DB, network string, toLevel int64) error {
+func (rm Manager) rollbackOperations(tx *gorm.DB, network types.Network, toLevel int64) error {
 	var ops []operation.Operation
 	if err := tx.Model(&operation.Operation{}).
 		Where("network = ?", network).

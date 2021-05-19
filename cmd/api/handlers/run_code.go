@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/operations"
 	"github.com/baking-bad/bcdhub/internal/parsers/storage"
@@ -28,17 +29,19 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		return
 	}
 
-	state, err := ctx.CachedCurrentBlock(req.Network)
+	network := types.NewNetwork(req.Network)
+
+	state, err := ctx.CachedCurrentBlock(network)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	parameters, err := ctx.buildParametersForExecution(req.Network, req.Address, state.Protocol, reqRunOp.Name, reqRunOp.Data)
+	parameters, err := ctx.buildParametersForExecution(network, req.Address, state.Protocol, reqRunOp.Name, reqRunOp.Data)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	rpc, err := ctx.GetRPC(req.Network)
+	rpc, err := ctx.GetRPC(network)
 	if ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
@@ -48,7 +51,7 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		return
 	}
 
-	protocol, err := ctx.Protocols.Get(req.Network, "", -1)
+	protocol, err := ctx.Protocols.Get(network, "", -1)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -88,7 +91,7 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		ctx.Context,
 		operations.WithConstants(*protocol.Constants),
 		operations.WithHead(header),
-		operations.WithNetwork(req.Network),
+		operations.WithNetwork(network),
 	)
 	if ctx.handleError(c, err, 0) {
 		return
@@ -145,22 +148,22 @@ func (ctx *Context) RunCode(c *gin.Context) {
 		return
 	}
 
-	state, err := ctx.CachedCurrentBlock(req.Network)
+	state, err := ctx.CachedCurrentBlock(req.NetworkID())
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	scriptBytes, err := ctx.getScriptBytes(req.Address, req.Network, state.Protocol)
+	scriptBytes, err := ctx.getScriptBytes(req.NetworkID(), req.Address, state.Protocol)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	input, err := ctx.buildParametersForExecution(req.Network, req.Address, state.Protocol, reqRunCode.Name, reqRunCode.Data)
+	input, err := ctx.buildParametersForExecution(req.NetworkID(), req.Address, state.Protocol, reqRunCode.Name, reqRunCode.Data)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	rpc, err := ctx.GetRPC(req.Network)
+	rpc, err := ctx.GetRPC(req.NetworkID())
 	if ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
@@ -173,7 +176,7 @@ func (ctx *Context) RunCode(c *gin.Context) {
 	main := Operation{
 		IndexedTime: time.Now().UTC().UnixNano(),
 		Protocol:    state.Protocol,
-		Network:     req.Network,
+		Network:     req.NetworkID(),
 		Timestamp:   time.Now().UTC(),
 		Source:      reqRunCode.Source,
 		Destination: req.Address,
@@ -246,7 +249,7 @@ func (ctx *Context) parseAppliedRunCode(response noderpc.RunCodeResponse, script
 			s = script
 		} else {
 			var err error
-			s, err = ctx.getScript(op.Destination, op.Network, op.Protocol)
+			s, err = ctx.getScript(op.Network, op.Destination, op.Protocol)
 			if err != nil {
 				return nil, err
 			}

@@ -150,7 +150,7 @@ func (ctx *Context) getMempoolEvents(subscriptions []database.Subscription) ([]m
 				if len(item.Body.Parameters) > 0 {
 					p := types.NewParameters(item.Body.Parameters)
 
-					parameter, err := ctx.getParameterType(op.Destination, op.Network, item.Body.Protocol)
+					parameter, err := ctx.getParameterType(op.Network, op.Destination, item.Body.Protocol)
 					if err != nil {
 						return events, err
 					}

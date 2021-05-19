@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	tzipModel "github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/tzip"
@@ -15,12 +16,12 @@ import (
 // TZIP -
 type TZIP struct {
 	repo    tzipModel.Repository
-	parsers map[string]tzip.Parser
+	parsers map[types.Network]tzip.Parser
 }
 
 // NewTZIP -
-func NewTZIP(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, storage models.GeneralRepository, repo tzipModel.Repository, rpcs map[string]noderpc.INode, sharePath string, ipfs []string) *TZIP {
-	parsers := make(map[string]tzip.Parser)
+func NewTZIP(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, storage models.GeneralRepository, repo tzipModel.Repository, rpcs map[types.Network]noderpc.INode, sharePath string, ipfs []string) *TZIP {
+	parsers := make(map[types.Network]tzip.Parser)
 	for network, rpc := range rpcs {
 		parsers[network] = tzip.NewParser(bigMapRepo, blockRepo, storage, rpc, tzip.ParserConfig{
 			IPFSGateways: ipfs,

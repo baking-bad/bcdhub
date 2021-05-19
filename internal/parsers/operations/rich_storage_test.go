@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	mock_bmd "github.com/baking-bad/bcdhub/internal/models/mock/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/baking-bad/bcdhub/internal/parsers/storage"
@@ -41,7 +42,7 @@ func TestRichStorage_Parse(t *testing.T) {
 			operation: &operation.Operation{
 				Level:       1151463,
 				Destination: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-				Network:     "mainnet",
+				Network:     types.Mainnet,
 				Timestamp:   timestamp,
 				Protocol:    "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 				Kind:        "transaction",
@@ -58,7 +59,7 @@ func TestRichStorage_Parse(t *testing.T) {
 							Value:     []byte(`{"bytes":"050098e1e8d78a02"}`),
 							Level:     1151463,
 							Contract:  "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-							Network:   "mainnet",
+							Network:   types.Mainnet,
 							Timestamp: timestamp,
 							Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 						}, {
@@ -68,7 +69,7 @@ func TestRichStorage_Parse(t *testing.T) {
 							Value:     []byte(`{"bytes":"05070700bdf4160200000000"}`),
 							Level:     1151463,
 							Contract:  "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-							Network:   "mainnet",
+							Network:   types.Mainnet,
 							Timestamp: timestamp,
 							Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 						}, {
@@ -78,7 +79,7 @@ func TestRichStorage_Parse(t *testing.T) {
 							Value:     []byte(`{"bytes":"0507070084a99c750200000000"}`),
 							Level:     1151463,
 							Contract:  "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-							Network:   "mainnet",
+							Network:   types.Mainnet,
 							Timestamp: timestamp,
 							Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 						},
@@ -91,7 +92,7 @@ func TestRichStorage_Parse(t *testing.T) {
 							Value:           []byte(`{"bytes":"050098e1e8d78a02"}`),
 							LastUpdateLevel: 1151463,
 							Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-							Network:         "mainnet",
+							Network:         types.Mainnet,
 							LastUpdateTime:  timestamp,
 						}, {
 							Ptr:             31,
@@ -100,7 +101,7 @@ func TestRichStorage_Parse(t *testing.T) {
 							Value:           []byte(`{"bytes":"05070700bdf4160200000000"}`),
 							LastUpdateLevel: 1151463,
 							Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-							Network:         "mainnet",
+							Network:         types.Mainnet,
 							LastUpdateTime:  timestamp,
 						}, {
 							Ptr:             31,
@@ -109,7 +110,7 @@ func TestRichStorage_Parse(t *testing.T) {
 							Value:           []byte(`{"bytes":"0507070084a99c750200000000"}`),
 							LastUpdateLevel: 1151463,
 							Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-							Network:         "mainnet",
+							Network:         types.Mainnet,
 							LastUpdateTime:  timestamp,
 						},
 					},
@@ -120,7 +121,7 @@ func TestRichStorage_Parse(t *testing.T) {
 			operation: &operation.Operation{
 				Level:       359942,
 				Destination: "KT1Xk1XJD2M8GYFUXRN12oMvDAysECDWwGdS",
-				Network:     "carthagenet",
+				Network:     types.Carthagenet,
 				Timestamp:   timestamp,
 				Protocol:    "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
 				Kind:        "origination",
@@ -136,7 +137,7 @@ func TestRichStorage_Parse(t *testing.T) {
 							DestinationPtr: setInt64(1509),
 							Level:          359942,
 							Address:        "KT1Xk1XJD2M8GYFUXRN12oMvDAysECDWwGdS",
-							Network:        "carthagenet",
+							Network:        types.Carthagenet,
 							Timestamp:      timestamp,
 						},
 					},
@@ -149,7 +150,7 @@ func TestRichStorage_Parse(t *testing.T) {
 			operation: &operation.Operation{
 				Level:       220,
 				Destination: "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
-				Network:     "edo2net",
+				Network:     types.Edo2net,
 				Timestamp:   timestamp,
 				Protocol:    "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA",
 				Kind:        "origination",
@@ -164,7 +165,7 @@ func TestRichStorage_Parse(t *testing.T) {
 							SourcePtr: setInt64(17),
 							Level:     220,
 							Address:   "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
-							Network:   "edo2net",
+							Network:   types.Edo2net,
 							Timestamp: timestamp,
 						},
 					},
@@ -176,7 +177,7 @@ func TestRichStorage_Parse(t *testing.T) {
 							Value:     []byte(`{"bytes":"68747470733a2f2f73746f726167652e676f6f676c65617069732e636f6d2f747a69702d31362f656d6f6a692d696e2d6d657461646174612e6a736f6e"}`),
 							Level:     220,
 							Contract:  "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
-							Network:   "edo2net",
+							Network:   types.Edo2net,
 							Timestamp: timestamp,
 							Protocol:  "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA",
 						},
@@ -189,7 +190,7 @@ func TestRichStorage_Parse(t *testing.T) {
 							Value:           []byte(`{"bytes":"68747470733a2f2f73746f726167652e676f6f676c65617069732e636f6d2f747a69702d31362f656d6f6a692d696e2d6d657461646174612e6a736f6e"}`),
 							LastUpdateLevel: 220,
 							Contract:        "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
-							Network:         "edo2net",
+							Network:         types.Edo2net,
 							LastUpdateTime:  timestamp,
 						},
 					},
@@ -223,7 +224,7 @@ func TestRichStorage_Parse(t *testing.T) {
 				t.Errorf(`readJSONFile("%s") = error %v`, tt.filename, err)
 				return
 			}
-			script, err := fetch.Contract(tt.operation.Destination, tt.operation.Network, tt.operation.Protocol, "./test")
+			script, err := fetch.Contract(tt.operation.Network, tt.operation.Destination, tt.operation.Protocol, "./test")
 			if err != nil {
 				t.Errorf(`readJSONFile("%s") = error %v`, tt.filename, err)
 				return

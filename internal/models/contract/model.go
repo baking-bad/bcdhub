@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -12,11 +13,11 @@ import (
 
 // Contract - entity for contract
 type Contract struct {
-	ID        int64     `json:"-"`
-	Network   string    `json:"network"`
-	Level     int64     `json:"level"`
-	Timestamp time.Time `json:"timestamp"`
-	Language  string    `json:"language,omitempty"`
+	ID        int64         `json:"-"`
+	Network   types.Network `json:"network"`
+	Level     int64         `json:"level"`
+	Timestamp time.Time     `json:"timestamp"`
+	Language  string        `json:"language,omitempty"`
 
 	Hash                 string         `json:"hash"`
 	FingerprintCode      []byte         `json:"fgpt_code,omitempty"`
@@ -43,7 +44,7 @@ type Contract struct {
 }
 
 // NewEmptyContract -
-func NewEmptyContract(network, address string) Contract {
+func NewEmptyContract(network types.Network, address string) Contract {
 	return Contract{
 		Network: network,
 		Address: address,
@@ -78,7 +79,7 @@ func (c *Contract) GetQueues() []string {
 // LogFields -
 func (c *Contract) LogFields() logrus.Fields {
 	return logrus.Fields{
-		"network": c.Network,
+		"network": c.Network.String(),
 		"address": c.Address,
 		"block":   c.Level,
 	}
@@ -113,7 +114,7 @@ func (f *Fingerprint) Compare(second *Fingerprint) bool {
 
 // Light -
 type Light struct {
-	Address  string    `json:"address"`
-	Network  string    `json:"network"`
-	Deployed time.Time `json:"deploy_time"`
+	Address  string        `json:"address"`
+	Network  types.Network `json:"network"`
+	Deployed time.Time     `json:"deploy_time"`
 }

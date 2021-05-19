@@ -102,7 +102,7 @@ func (o *Operation) Prepare(model models.Model) {
 	o.Internal = op.Internal
 	o.Kind = op.Kind
 	o.Level = op.Level
-	o.Network = op.Network
+	o.Network = op.Network.String()
 	o.ParameterStrings = op.ParameterStrings
 	o.Source = op.Source
 	o.SourceAlias = op.SourceAlias

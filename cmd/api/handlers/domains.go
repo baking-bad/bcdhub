@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )
@@ -33,7 +34,7 @@ func (ctx *Context) TezosDomainsList(c *gin.Context) {
 		return
 	}
 
-	domains, err := ctx.TezosDomains.ListDomains(req.Network, args.Size, args.Offset)
+	domains, err := ctx.TezosDomains.ListDomains(types.NewNetwork(req.Network), args.Size, args.Offset)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -81,7 +82,7 @@ func (ctx *Context) ResolveDomain(c *gin.Context) {
 	switch {
 	case args.Name != "":
 		domain := tezosdomain.TezosDomain{
-			Network: req.Network,
+			Network: req.NetworkID(),
 			Name:    args.Name,
 		}
 		if err := ctx.Storage.GetByID(&domain); err != nil {
@@ -100,7 +101,7 @@ func (ctx *Context) ResolveDomain(c *gin.Context) {
 		resp.FromModel(domain)
 		c.JSON(http.StatusOK, resp)
 	case args.Address != "":
-		domain, err := ctx.TezosDomains.ResolveDomainByAddress(req.Network, args.Address)
+		domain, err := ctx.TezosDomains.ResolveDomainByAddress(req.NetworkID(), args.Address)
 		if err != nil {
 			if ctx.Storage.IsRecordNotFound(err) {
 				c.JSON(http.StatusNoContent, gin.H{})

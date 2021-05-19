@@ -2,6 +2,7 @@ package core
 
 import (
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 // GetByID -
@@ -25,7 +26,7 @@ func (p *Postgres) GetByIDs(index string, ids ...int64) ([]models.Model, error) 
 }
 
 // GetByNetwork -
-func (p *Postgres) GetByNetwork(network, index string) ([]models.Model, error) {
+func (p *Postgres) GetByNetwork(network types.Network, index string) ([]models.Model, error) {
 	var result []models.Model
 	err := p.DB.Table(index).Where("network = ?", network).Find(&result).Error
 	return result, err

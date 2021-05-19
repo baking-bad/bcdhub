@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 )
 
@@ -50,7 +51,7 @@ func (storage *Storage) Get(ctx transfer.GetContext) (po transfer.Pageable, err 
 }
 
 // GetAll -
-func (storage *Storage) GetAll(network string, level int64) ([]transfer.Transfer, error) {
+func (storage *Storage) GetAll(network types.Network, level int64) ([]transfer.Transfer, error) {
 	var transfers []transfer.Transfer
 	err := storage.DB.Table(models.DocTransfers).
 		Where("network = ?", network).
@@ -60,7 +61,7 @@ func (storage *Storage) GetAll(network string, level int64) ([]transfer.Transfer
 }
 
 // GetTransfered -
-func (storage *Storage) GetTransfered(network, contract string, tokenID uint64) (result float64, err error) {
+func (storage *Storage) GetTransfered(network types.Network, contract string, tokenID uint64) (result float64, err error) {
 	if err = storage.DB.Table(models.DocTransfers).
 		Scopes(
 			core.Token(network, contract, tokenID),
@@ -76,7 +77,7 @@ func (storage *Storage) GetTransfered(network, contract string, tokenID uint64) 
 }
 
 // GetToken24HoursVolume - returns token volume for last 24 hours
-func (storage *Storage) GetToken24HoursVolume(network, contract string, initiators, entrypoints []string, tokenID uint64) (float64, error) {
+func (storage *Storage) GetToken24HoursVolume(network types.Network, contract string, initiators, entrypoints []string, tokenID uint64) (float64, error) {
 	aDayAgo := time.Now().UTC().AddDate(0, 0, -1)
 
 	var volume float64
@@ -111,15 +112,15 @@ const (
 )
 
 // GetTokenVolumeSeries -
-func (storage *Storage) GetTokenVolumeSeries(network, period string, contracts []string, entrypoints []dapp.DAppContract, tokenID uint64) ([][]float64, error) {
+func (storage *Storage) GetTokenVolumeSeries(network types.Network, period string, contracts []string, entrypoints []dapp.DAppContract, tokenID uint64) ([][]float64, error) {
 	if err := core.ValidateHistogramPeriod(period); err != nil {
 		return nil, err
 	}
 
 	conditions := make([]string, 0)
 	conditions = append(conditions, fmt.Sprintf("(token_id = %d)", tokenID))
-	if network != "" {
-		conditions = append(conditions, fmt.Sprintf("(network = '%s')", network))
+	if network != types.Empty {
+		conditions = append(conditions, fmt.Sprintf("(network = %d)", network))
 	}
 
 	if len(contracts) > 0 {
@@ -169,7 +170,7 @@ const (
 )
 
 // CalcBalances -
-func (storage *Storage) CalcBalances(network, contract string) ([]transfer.Balance, error) {
+func (storage *Storage) CalcBalances(network types.Network, contract string) ([]transfer.Balance, error) {
 	request := fmt.Sprintf(calcBalanceRequest, contract, network, contract, network)
 	var balances []transfer.Balance
 	err := storage.DB.Raw(request).Scan(&balances).Error

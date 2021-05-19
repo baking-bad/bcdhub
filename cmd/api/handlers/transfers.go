@@ -40,7 +40,7 @@ func (ctx *Context) GetContractTransfers(c *gin.Context) {
 	}
 
 	transfers, err := ctx.Transfers.Get(transfer.GetContext{
-		Network:   contractRequest.Network,
+		Network:   contractRequest.NetworkID(),
 		Contracts: []string{contractRequest.Address},
 		Size:      req.Size,
 		Offset:    req.Offset,

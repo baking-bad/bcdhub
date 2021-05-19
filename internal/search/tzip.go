@@ -77,6 +77,6 @@ func (m *Metadata) Prepare(model models.Model) {
 	m.Homepage = t.Homepage
 	m.Level = t.Level
 	m.Name = t.Name
-	m.Network = t.Network
+	m.Network = t.Network.String()
 	m.Timestamp = t.Timestamp
 }

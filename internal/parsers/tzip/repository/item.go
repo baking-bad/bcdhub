@@ -5,12 +5,13 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/dapp"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
 
 // Item -
 type Item struct {
-	Network  string
+	Network  types.Network
 	Address  string
 	Metadata []byte
 }

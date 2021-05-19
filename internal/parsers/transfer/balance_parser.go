@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	tbParser "github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
 )
 
@@ -40,7 +41,7 @@ func (parser *DefaultBalanceParser) Parse(balances []tbParser.TokenBalance, oper
 }
 
 // ParseBalances -
-func (parser *DefaultBalanceParser) ParseBalances(network, contract string, balances []tbParser.TokenBalance, operation operation.Operation) ([]*transfer.Transfer, error) {
+func (parser *DefaultBalanceParser) ParseBalances(network types.Network, contract string, balances []tbParser.TokenBalance, operation operation.Operation) ([]*transfer.Transfer, error) {
 	transfers := make([]*transfer.Transfer, 0)
 	for _, balance := range balances {
 		transfer := transfer.EmptyTransfer(operation)

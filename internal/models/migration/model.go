@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -11,15 +12,15 @@ import (
 
 // Migration -
 type Migration struct {
-	ID           int64     `json:"-"`
-	Network      string    `json:"network"`
-	Protocol     string    `json:"protocol"`
-	PrevProtocol string    `json:"prev_protocol,omitempty"`
-	Hash         string    `json:"hash,omitempty"`
-	Timestamp    time.Time `json:"timestamp"`
-	Level        int64     `json:"level"`
-	Address      string    `json:"address"`
-	Kind         string    `json:"kind"`
+	ID           int64         `json:"-"`
+	Network      types.Network `json:"network"`
+	Protocol     string        `json:"protocol"`
+	PrevProtocol string        `json:"prev_protocol,omitempty"`
+	Hash         string        `json:"hash,omitempty"`
+	Timestamp    time.Time     `json:"timestamp"`
+	Level        int64         `json:"level"`
+	Address      string        `json:"address"`
+	Kind         string        `json:"kind"`
 }
 
 // GetID -
@@ -52,7 +53,7 @@ func (m *Migration) MarshalToQueue() ([]byte, error) {
 // LogFields -
 func (m *Migration) LogFields() logrus.Fields {
 	return logrus.Fields{
-		"network": m.Network,
+		"network": m.Network.String(),
 		"address": m.Address,
 		"block":   m.Level,
 		"kind":    m.Kind,
