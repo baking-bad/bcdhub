@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -33,10 +34,10 @@ type Operation struct {
 	Burned                             int64 `json:"burned,omitempty"`
 	AllocatedDestinationContractBurned int64 `json:"allocated_destination_contract_burned,omitempty"`
 
-	Nonce    *int64 `json:"nonce,omitempty" gorm:"index:opg_idx"`
-	Network  string `json:"network"`
-	Protocol string `json:"protocol"`
-	Hash     string `json:"hash" gorm:"index:opg_idx;index:operations_hash_idx"`
+	Nonce    *int64        `json:"nonce,omitempty" gorm:"index:opg_idx"`
+	Network  types.Network `json:"network"`
+	Protocol string        `json:"protocol"`
+	Hash     string        `json:"hash" gorm:"index:opg_idx;index:operations_hash_idx"`
 
 	Timestamp        time.Time `json:"timestamp"`
 	Status           string    `json:"status"`
@@ -96,7 +97,7 @@ func (o *Operation) MarshalToQueue() ([]byte, error) {
 // LogFields -
 func (o *Operation) LogFields() logrus.Fields {
 	return logrus.Fields{
-		"network": o.Network,
+		"network": o.Network.String(),
 		"hash":    o.Hash,
 		"block":   o.Level,
 	}

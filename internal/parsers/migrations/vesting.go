@@ -5,6 +5,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/baking-bad/bcdhub/internal/parsers/contract"
@@ -25,7 +26,7 @@ func NewVestingParser(ctx *config.Context, filesDirectory string) *VestingParser
 }
 
 // Parse -
-func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, network, address string) (*parsers.Result, error) {
+func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, network types.Network, address string) (*parsers.Result, error) {
 	migration := &migration.Migration{
 		Level:     head.Level,
 		Network:   network,

@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 )
 
@@ -18,7 +19,7 @@ func NewStorage(pg *core.Postgres) *Storage {
 	return &Storage{pg}
 }
 
-func (storage *Storage) Get(network, contract, address string, tokenID uint64) (t tokenbalance.TokenBalance, err error) {
+func (storage *Storage) Get(network types.Network, contract, address string, tokenID uint64) (t tokenbalance.TokenBalance, err error) {
 	err = storage.DB.Table(models.DocTokenBalances).
 		Scopes(core.Token(network, contract, tokenID)).
 		Where("address = ?", address).
@@ -39,7 +40,7 @@ func (storage *Storage) Get(network, contract, address string, tokenID uint64) (
 }
 
 // GetHolders -
-func (storage *Storage) GetHolders(network, contract string, tokenID uint64) ([]tokenbalance.TokenBalance, error) {
+func (storage *Storage) GetHolders(network types.Network, contract string, tokenID uint64) ([]tokenbalance.TokenBalance, error) {
 	var balances []tokenbalance.TokenBalance
 	err := storage.DB.Table(models.DocTokenBalances).
 		Scopes(core.Token(network, contract, tokenID)).
@@ -49,7 +50,7 @@ func (storage *Storage) GetHolders(network, contract string, tokenID uint64) ([]
 }
 
 // NFTHolders -
-func (storage *Storage) NFTHolders(network, contract string, tokenID uint64) (tokens []tokenbalance.TokenBalance, err error) {
+func (storage *Storage) NFTHolders(network types.Network, contract string, tokenID uint64) (tokens []tokenbalance.TokenBalance, err error) {
 	err = storage.DB.
 		Scopes(core.Token(network, contract, tokenID)).
 		Where("balance != 0").
@@ -58,7 +59,7 @@ func (storage *Storage) NFTHolders(network, contract string, tokenID uint64) (to
 }
 
 // Batch -
-func (storage *Storage) Batch(network string, addresses []string) (map[string][]tokenbalance.TokenBalance, error) {
+func (storage *Storage) Batch(network types.Network, addresses []string) (map[string][]tokenbalance.TokenBalance, error) {
 	var balances []tokenbalance.TokenBalance
 
 	query := storage.DB.Table(models.DocTokenBalances).Scopes(core.Network(network))
@@ -93,7 +94,7 @@ type tokensByContract struct {
 }
 
 // CountByContract -
-func (storage *Storage) CountByContract(network, address string) (map[string]int64, error) {
+func (storage *Storage) CountByContract(network types.Network, address string) (map[string]int64, error) {
 	var resp []tokensByContract
 	query := storage.DB.Table(models.DocTokenBalances).
 		Select("contract, count(*) as tokens_count").
@@ -113,7 +114,7 @@ func (storage *Storage) CountByContract(network, address string) (map[string]int
 }
 
 // TokenSupply -
-func (storage *Storage) TokenSupply(network, contract string, tokenID uint64) (supply string, err error) {
+func (storage *Storage) TokenSupply(network types.Network, contract string, tokenID uint64) (supply string, err error) {
 	query := storage.DB.Table(models.DocTokenBalances).
 		Select("coalesce(sum(balance), 0)::text as supply").
 		Scopes(core.Token(network, contract, tokenID)).

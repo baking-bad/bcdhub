@@ -8,6 +8,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -16,23 +17,23 @@ import (
 
 // Transfer -
 type Transfer struct {
-	ID           int64     `json:"-"`
-	Network      string    `json:"network" gorm:"index:transfers_network_idx"`
-	Contract     string    `json:"contract"`
-	Initiator    string    `json:"initiator"`
-	Hash         string    `json:"hash"`
-	Status       string    `json:"status"`
-	Timestamp    time.Time `json:"timestamp" gorm:"index:transfers_timestamp_idx"`
-	Level        int64     `json:"level" gorm:"index:transfers_network_idx"`
-	From         string    `json:"from" gorm:"index:transfers_from_idx"`
-	To           string    `json:"to" gorm:"index:transfers_to_idx"`
-	TokenID      uint64    `json:"token_id" gorm:"type:numeric(50,0)"`
-	Amount       float64   `json:"amount" gorm:"type:numeric(100,0)"`
-	AmountString string    `json:"amount_string"`
-	Counter      int64     `json:"counter"`
-	Nonce        *int64    `json:"nonce,omitempty"`
-	Parent       string    `json:"parent,omitempty"`
-	Entrypoint   string    `json:"entrypoint,omitempty"`
+	ID           int64         `json:"-"`
+	Network      types.Network `json:"network" gorm:"index:transfers_network_idx"`
+	Contract     string        `json:"contract"`
+	Initiator    string        `json:"initiator"`
+	Hash         string        `json:"hash"`
+	Status       string        `json:"status"`
+	Timestamp    time.Time     `json:"timestamp" gorm:"index:transfers_timestamp_idx"`
+	Level        int64         `json:"level" gorm:"index:transfers_network_idx"`
+	From         string        `json:"from" gorm:"index:transfers_from_idx"`
+	To           string        `json:"to" gorm:"index:transfers_to_idx"`
+	TokenID      uint64        `json:"token_id" gorm:"type:numeric(50,0)"`
+	Amount       float64       `json:"amount" gorm:"type:numeric(100,0)"`
+	AmountString string        `json:"amount_string"`
+	Counter      int64         `json:"counter"`
+	Nonce        *int64        `json:"nonce,omitempty"`
+	Parent       string        `json:"parent,omitempty"`
+	Entrypoint   string        `json:"entrypoint,omitempty"`
 
 	Value *big.Int `json:"-" gorm:"-"`
 }
@@ -67,7 +68,7 @@ func (t *Transfer) MarshalToQueue() ([]byte, error) {
 // LogFields -
 func (t *Transfer) LogFields() logrus.Fields {
 	return logrus.Fields{
-		"network":  t.Network,
+		"network":  t.Network.String(),
 		"contract": t.Contract,
 		"block":    t.Level,
 		"from":     t.From,

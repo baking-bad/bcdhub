@@ -3,11 +3,11 @@ package migrations
 import (
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/tzkt"
 	"github.com/schollz/progressbar/v3"
@@ -30,7 +30,7 @@ func (m *GetAliases) Description() string {
 func (m *GetAliases) Do(ctx *config.Context) error {
 	logger.Info("Starting get aliases...")
 
-	cfg := ctx.Config.TzKT[consts.Mainnet]
+	cfg := ctx.Config.TzKT["mainnet"]
 	timeout := time.Duration(cfg.Timeout) * time.Second
 
 	api := tzkt.NewTzKT(cfg.URI, timeout)
@@ -52,7 +52,7 @@ func (m *GetAliases) Do(ctx *config.Context) error {
 			return err
 		}
 
-		item, err := ctx.TZIP.Get(consts.Mainnet, address)
+		item, err := ctx.TZIP.Get(types.Mainnet, address)
 		switch {
 		case err == nil:
 			item.Name = alias
@@ -61,7 +61,7 @@ func (m *GetAliases) Do(ctx *config.Context) error {
 			updated = append(updated, item)
 		case ctx.Storage.IsRecordNotFound(err):
 			newModels = append(newModels, &tzip.TZIP{
-				Network: consts.Mainnet,
+				Network: types.Mainnet,
 				Address: address,
 				Slug:    helpers.Slug(alias),
 				TZIP16: tzip.TZIP16{

@@ -7,6 +7,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
 )
@@ -20,7 +21,7 @@ type Event interface {
 
 // Context -
 type Context struct {
-	Network                  string
+	Network                  types.Network
 	Protocol                 string
 	Parameters               *ast.TypedAst
 	Source                   string

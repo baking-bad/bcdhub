@@ -1,10 +1,19 @@
 package handlers
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/baking-bad/bcdhub/internal/models/types"
+)
 
 type getContractRequest struct {
 	Address string `uri:"address" binding:"required,address"`
 	Network string `uri:"network" binding:"required,network"`
+}
+
+// NetworkID -
+func (req getContractRequest) NetworkID() types.Network {
+	return types.NewNetwork(req.Network)
 }
 
 type getContractCodeRequest struct {
@@ -14,15 +23,15 @@ type getContractCodeRequest struct {
 }
 
 type networkQueryRequest struct {
-	Network string `form:"network,omitempty" binding:"omitempty,network"`
+	Network types.Network `form:"network,omitempty" binding:"omitempty,network"`
 }
 
 // CodeDiffLeg -
 type CodeDiffLeg struct {
-	Address  string `json:"address" binding:"required,address"`
-	Network  string `json:"network" binding:"required,network"`
-	Protocol string `json:"protocol,omitempty"`
-	Level    int64  `json:"level,omitempty"`
+	Address  string        `json:"address" binding:"required,address"`
+	Network  types.Network `json:"network" binding:"required,network"`
+	Protocol string        `json:"protocol,omitempty"`
+	Level    int64         `json:"level,omitempty"`
 }
 
 // CodeDiffRequest -
@@ -34,6 +43,11 @@ type CodeDiffRequest struct {
 type getBigMapRequest struct {
 	Network string `uri:"network" binding:"required,network"`
 	Ptr     int64  `uri:"ptr" binding:"min=0"`
+}
+
+// NetworkID -
+func (req getBigMapRequest) NetworkID() types.Network {
+	return types.NewNetwork(req.Network)
 }
 
 type getBigMapByKeyHashRequest struct {
@@ -168,11 +182,11 @@ type sameContractRequest struct {
 }
 
 type voteRequest struct {
-	SourceAddress      string `json:"src" binding:"required,address"`
-	SourceNetwork      string `json:"src_network" binding:"required,network"`
-	DestinationAddress string `json:"dest" binding:"required,address"`
-	DestinationNetwork string `json:"dest_network" binding:"required,network"`
-	Vote               uint   `json:"vote" binding:"oneof=1 2"`
+	SourceAddress      string        `json:"src" binding:"required,address"`
+	SourceNetwork      types.Network `json:"src_network" binding:"required,network"`
+	DestinationAddress string        `json:"dest" binding:"required,address"`
+	DestinationNetwork types.Network `json:"dest_network" binding:"required,network"`
+	Vote               uint          `json:"vote" binding:"oneof=1 2"`
 }
 
 // OPGRequest -
@@ -191,9 +205,19 @@ type getByNetwork struct {
 	Network string `uri:"network" binding:"required,network" example:"mainnet"`
 }
 
+// NetworkID -
+func (req getByNetwork) NetworkID() types.Network {
+	return types.NewNetwork(req.Network)
+}
+
 type getTokensByVersion struct {
 	Network string `uri:"network" binding:"required,network" example:"mainnet"`
 	Version string `uri:"faversion" binding:"required,faversion" example:"fa2"`
+}
+
+// NetworkID -
+func (req getTokensByVersion) NetworkID() types.Network {
+	return types.NewNetwork(req.Network)
 }
 
 type bigMapSearchRequest struct {
@@ -257,9 +281,9 @@ type entrypointSchemaRequest struct {
 }
 
 type forkRequest struct {
-	Address string `json:"address" binding:"required_with=Network,omitempty,address"`
-	Network string `json:"network" binding:"required_with=Address,omitempty,network"`
-	Script  string `json:"script" binding:"omitempty"`
+	Address string        `json:"address" binding:"required_with=Network,omitempty,address"`
+	Network types.Network `json:"network" binding:"required_with=Address,omitempty,network"`
+	Script  string        `json:"script" binding:"omitempty"`
 
 	Storage map[string]interface{} `json:"storage" binding:"required"`
 }

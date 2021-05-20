@@ -1,9 +1,12 @@
 package core
 
-import "gorm.io/gorm"
+import (
+	"github.com/baking-bad/bcdhub/internal/models/types"
+	"gorm.io/gorm"
+)
 
 // Network -
-func Network(network string) func(db *gorm.DB) *gorm.DB {
+func Network(network types.Network) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("network = ?", network)
 	}
@@ -24,14 +27,14 @@ func Contract(address string) func(db *gorm.DB) *gorm.DB {
 }
 
 // NetworkAndAddress -
-func NetworkAndAddress(network, address string) func(db *gorm.DB) *gorm.DB {
+func NetworkAndAddress(network types.Network, address string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("network = ?", network).Where("address = ?", address)
 	}
 }
 
 // NetworkAndContract -
-func NetworkAndContract(network, address string) func(db *gorm.DB) *gorm.DB {
+func NetworkAndContract(network types.Network, address string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("network = ?", network).Where("contract = ?", address)
 	}
@@ -48,7 +51,7 @@ func IsApplied(db *gorm.DB) *gorm.DB {
 }
 
 // Token -
-func Token(network, contract string, tokenID uint64) func(db *gorm.DB) *gorm.DB {
+func Token(network types.Network, contract string, tokenID uint64) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("network = ?", network).
 			Where("contract = ?", contract).

@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/stretchr/testify/assert"
 )
@@ -23,7 +24,7 @@ func TestMigration_Parse(t *testing.T) {
 		{
 			name: "test 1",
 			operation: &operation.Operation{
-				Network:     "mainnet",
+				Network:     types.Mainnet,
 				Level:       123,
 				Protocol:    "protocol",
 				Destination: "destination",
@@ -35,7 +36,7 @@ func TestMigration_Parse(t *testing.T) {
 		}, {
 			name: "test 2",
 			operation: &operation.Operation{
-				Network:     "mainnet",
+				Network:     types.Mainnet,
 				Level:       123,
 				Protocol:    "protocol",
 				Destination: "destination",
@@ -44,7 +45,7 @@ func TestMigration_Parse(t *testing.T) {
 			},
 			fileName: "./data/migration/test2.json",
 			want: &migration.Migration{
-				Network:   "mainnet",
+				Network:   types.Mainnet,
 				Level:     123,
 				Protocol:  "protocol",
 				Address:   "destination",

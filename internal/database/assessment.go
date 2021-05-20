@@ -1,15 +1,18 @@
 package database
 
-import "github.com/jinzhu/gorm"
+import (
+	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/jinzhu/gorm"
+)
 
 // Assessments -
 type Assessments struct {
-	Address1   string `gorm:"primary_key;not null" json:"address_1"`
-	Network1   string `gorm:"primary_key;not null" json:"network_1"`
-	Address2   string `gorm:"primary_key;not null" json:"address_2"`
-	Network2   string `gorm:"primary_key;not null" json:"network_2"`
-	UserID     uint   `gorm:"primary_key;not_null;auto_increment:false" json:"-"`
-	Assessment uint   `gorm:"not null" json:"-"`
+	Address1   string        `gorm:"primary_key;not null" json:"address_1"`
+	Network1   types.Network `gorm:"primary_key;not null" json:"network_1"`
+	Address2   string        `gorm:"primary_key;not null" json:"address_2"`
+	Network2   types.Network `gorm:"primary_key;not null" json:"network_2"`
+	UserID     uint          `gorm:"primary_key;not_null;auto_increment:false" json:"-"`
+	Assessment uint          `gorm:"not null" json:"-"`
 }
 
 // Assessment field values

@@ -2,6 +2,7 @@ package tzip
 
 import (
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 )
@@ -17,7 +18,7 @@ func NewStorage(pg *core.Postgres) *Storage {
 }
 
 // Get -
-func (storage *Storage) Get(network, address string) (*tzip.TZIP, error) {
+func (storage *Storage) Get(network types.Network, address string) (*tzip.TZIP, error) {
 	var t tzip.TZIP
 	err := storage.DB.
 		Table(models.DocTZIP).
@@ -40,7 +41,7 @@ func (storage *Storage) GetBySlug(slug string) (*tzip.TZIP, error) {
 }
 
 // GetAliasesMap -
-func (storage *Storage) GetAliasesMap(network string) (map[string]string, error) {
+func (storage *Storage) GetAliasesMap(network types.Network) (map[string]string, error) {
 	var t []tzip.TZIP
 	if err := storage.DB.
 		Table(models.DocTZIP).
@@ -58,7 +59,7 @@ func (storage *Storage) GetAliasesMap(network string) (map[string]string, error)
 }
 
 // GetAliases -
-func (storage *Storage) GetAliases(network string) (t []tzip.TZIP, err error) {
+func (storage *Storage) GetAliases(network types.Network) (t []tzip.TZIP, err error) {
 	err = storage.DB.
 		Table(models.DocTZIP).
 		Where("network = ?", network).

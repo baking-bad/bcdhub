@@ -11,15 +11,15 @@ import (
 
 // TZIP -
 type TZIP struct {
-	ID         int64       `json:"-"`
-	Level      int64       `json:"level,omitempty"`
-	Timestamp  time.Time   `json:"timestamp,omitempty"`
-	Address    string      `json:"address"`
-	Network    string      `json:"network"`
-	Slug       string      `json:"slug,omitempty"`
-	DomainName string      `json:"domain_name,omitempty"`
-	OffChain   bool        `json:"offchain,omitempty" gorm:",default:false"`
-	Extras     types.JSONB `json:"extras,omitempty" sql:"type:jsonb"`
+	ID         int64         `json:"-"`
+	Level      int64         `json:"level,omitempty"`
+	Timestamp  time.Time     `json:"timestamp,omitempty"`
+	Address    string        `json:"address"`
+	Network    types.Network `json:"network"`
+	Slug       string        `json:"slug,omitempty"`
+	DomainName string        `json:"domain_name,omitempty"`
+	OffChain   bool          `json:"offchain,omitempty" gorm:",default:false"`
+	Extras     types.JSONB   `json:"extras,omitempty" sql:"type:jsonb"`
 
 	TZIP16
 	TZIP20

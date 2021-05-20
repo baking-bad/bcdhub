@@ -11,6 +11,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 )
@@ -36,7 +37,7 @@ type ptrs struct {
 }
 
 // NewTezosDomains -
-func NewTezosDomains(storage models.GeneralRepository, operations operation.Repository, contracts map[string]string, shareDir string) *TezosDomain {
+func NewTezosDomains(storage models.GeneralRepository, operations operation.Repository, contracts map[types.Network]string, shareDir string) *TezosDomain {
 	addresses := make(map[contract.Address]struct{})
 	for k, v := range contracts {
 		addresses[contract.Address{

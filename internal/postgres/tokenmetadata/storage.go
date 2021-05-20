@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"gorm.io/gorm"
 )
@@ -20,7 +21,7 @@ func NewStorage(pg *core.Postgres) *Storage {
 }
 
 // GetOne -
-func (storage *Storage) GetOne(network, contract string, tokenID uint64) (*tokenmetadata.TokenMetadata, error) {
+func (storage *Storage) GetOne(network types.Network, contract string, tokenID uint64) (*tokenmetadata.TokenMetadata, error) {
 	var metadata tokenmetadata.TokenMetadata
 	if err := storage.DB.Model(&tokenmetadata.TokenMetadata{}).Scopes(core.Token(network, contract, tokenID)).First(&metadata).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

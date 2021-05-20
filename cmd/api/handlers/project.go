@@ -34,7 +34,7 @@ func (ctx *Context) GetSameContracts(c *gin.Context) {
 		return
 	}
 
-	contract, err := ctx.Contracts.Get(req.Network, req.Address)
+	contract, err := ctx.Contracts.Get(req.NetworkID(), req.Address)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -82,7 +82,7 @@ func (ctx *Context) GetSimilarContracts(c *gin.Context) {
 		return
 	}
 
-	contract, err := ctx.Contracts.Get(req.Network, req.Address)
+	contract, err := ctx.Contracts.Get(req.NetworkID(), req.Address)
 	if ctx.handleError(c, err, 0) {
 		return
 	}

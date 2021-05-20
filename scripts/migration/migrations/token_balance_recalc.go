@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/pkg/errors"
 )
 
@@ -62,12 +63,14 @@ func (m *TokenBalanceRecalc) Recalc(ctx *config.Context, network, address string
 		return nil
 	}
 
+	typ := types.NewNetwork(network)
+
 	logger.Info("Removing token balance entities....")
-	if err := ctx.Storage.DeleteByContract([]string{models.DocTokenBalances}, network, address); err != nil {
+	if err := ctx.Storage.DeleteByContract(typ, []string{models.DocTokenBalances}, address); err != nil {
 		return err
 	}
 
-	balances, err := ctx.Transfers.CalcBalances(network, address)
+	balances, err := ctx.Transfers.CalcBalances(typ, address)
 	if err != nil {
 		return err
 	}
@@ -76,7 +79,7 @@ func (m *TokenBalanceRecalc) Recalc(ctx *config.Context, network, address string
 	updates := make([]models.Model, 0)
 	for _, balance := range balances {
 		updates = append(updates, &tokenbalance.TokenBalance{
-			Network:  network,
+			Network:  typ,
 			Address:  balance.Address,
 			Contract: address,
 			TokenID:  balance.TokenID,
@@ -108,7 +111,7 @@ func (m *TokenBalanceRecalc) RecalcAllContractEvents(ctx *config.Context) error 
 
 	for _, tzip := range tzips {
 		logger.Info("Starting %s %s", tzip.Network, tzip.Address)
-		if err := m.Recalc(ctx, tzip.Network, tzip.Address); err != nil {
+		if err := m.Recalc(ctx, tzip.Network.String(), tzip.Address); err != nil {
 			return err
 		}
 	}

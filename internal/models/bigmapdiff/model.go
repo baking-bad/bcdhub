@@ -13,19 +13,19 @@ import (
 
 // BigMapDiff -
 type BigMapDiff struct {
-	ID               int64       `json:"-"`
-	Ptr              int64       `json:"ptr" gorm:"index:bmd_idx;index:big_map_diffs_key_hash_idx"`
-	Key              types.Bytes `json:"key" gorm:"type:bytes;not null"`
-	KeyHash          string      `json:"key_hash" gorm:"index:big_map_diffs_key_hash_idx"`
-	Value            types.Bytes `json:"value,omitempty" gorm:"type:bytes"`
-	Level            int64       `json:"level"`
-	Contract         string      `json:"contract" gorm:"index:bmd_idx"`
-	Network          string      `json:"network" gorm:"index:bmd_idx;index:big_map_diffs_key_hash_idx"`
-	Timestamp        time.Time   `json:"timestamp"`
-	Protocol         string      `json:"protocol"`
-	OperationHash    string      `json:"op_hash" gorm:"index:big_map_diffs_operation_hash_idx"`
-	OperationCounter int64       `json:"op_counter" gorm:"index:big_map_diffs_operation_hash_idx"`
-	OperationNonce   *int64      `json:"op_nonce" gorm:"index:big_map_diffs_operation_hash_idx"`
+	ID               int64         `json:"-"`
+	Ptr              int64         `json:"ptr" gorm:"index:bmd_idx;index:big_map_diffs_key_hash_idx"`
+	Key              types.Bytes   `json:"key" gorm:"type:bytes;not null"`
+	KeyHash          string        `json:"key_hash" gorm:"index:big_map_diffs_key_hash_idx"`
+	Value            types.Bytes   `json:"value,omitempty" gorm:"type:bytes"`
+	Level            int64         `json:"level"`
+	Contract         string        `json:"contract" gorm:"index:bmd_idx"`
+	Network          types.Network `json:"network" gorm:"index:bmd_idx;index:big_map_diffs_key_hash_idx"`
+	Timestamp        time.Time     `json:"timestamp"`
+	Protocol         string        `json:"protocol"`
+	OperationHash    string        `json:"op_hash" gorm:"index:big_map_diffs_operation_hash_idx"`
+	OperationCounter int64         `json:"op_counter" gorm:"index:big_map_diffs_operation_hash_idx"`
+	OperationNonce   *int64        `json:"op_nonce" gorm:"index:big_map_diffs_operation_hash_idx"`
 
 	KeyStrings   pq.StringArray `json:"key_strings,omitempty" gorm:"type:text[]"`
 	ValueStrings pq.StringArray `json:"value_strings,omitempty" gorm:"type:text[]"`
@@ -61,7 +61,7 @@ func (b *BigMapDiff) MarshalToQueue() ([]byte, error) {
 // LogFields -
 func (b *BigMapDiff) LogFields() logrus.Fields {
 	return logrus.Fields{
-		"network":  b.Network,
+		"network":  b.Network.String(),
 		"contract": b.Contract,
 		"ptr":      b.Ptr,
 		"block":    b.Level,

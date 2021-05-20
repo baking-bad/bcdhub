@@ -16,6 +16,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	modelTypes "github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/parsers/storage"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -55,7 +56,7 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 	}
 
 	filters := prepareFilters(filtersReq)
-	ops, err := ctx.Operations.GetByContract(req.Network, req.Address, filtersReq.Size, filters)
+	ops, err := ctx.Operations.GetByContract(req.NetworkID(), req.Address, filtersReq.Size, filters)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -189,7 +190,7 @@ func (ctx *Context) getOperationFromMempool(hash string) *Operation {
 	return nil
 }
 
-func (ctx *Context) getOperation(network, hash string, ops chan<- *Operation, wg *sync.WaitGroup) {
+func (ctx *Context) getOperation(network modelTypes.Network, hash string, ops chan<- *Operation, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	api, err := ctx.GetTzKTService(network)
@@ -255,7 +256,7 @@ func (ctx *Context) prepareOperation(operation operation.Operation, bmd []bigmap
 		return op, err
 	}
 
-	script, err := ctx.getScript(op.Destination, op.Network, op.Protocol)
+	script, err := ctx.getScript(op.Network, op.Destination, op.Protocol)
 	if err != nil {
 		return op, err
 	}
@@ -428,7 +429,7 @@ func getEnrichStorage(storageType *ast.TypedAst, bmd []bigmapdiff.BigMapDiff) er
 }
 
 func (ctx *Context) getErrorLocation(operation operation.Operation, window int) (GetErrorLocationResponse, error) {
-	code, err := fetch.Contract(operation.Destination, operation.Network, operation.Protocol, ctx.SharePath)
+	code, err := fetch.Contract(operation.Network, operation.Destination, operation.Protocol, ctx.SharePath)
 	if err != nil {
 		return GetErrorLocationResponse{}, err
 	}

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 func main() {
@@ -26,7 +26,7 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	aliases, err := ctx.TZIP.GetAliases(consts.Mainnet)
+	aliases, err := ctx.TZIP.GetAliases(types.Mainnet)
 	if err != nil {
 		logger.Fatal(err)
 	}

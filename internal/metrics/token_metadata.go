@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
 )
@@ -27,7 +28,7 @@ func (h *Handler) CreateTokenMetadata(rpc noderpc.INode, sharePath string, c *co
 }
 
 // ExecuteInitialStorageEvent -
-func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, network, contract string) ([]models.Model, error) {
+func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, network types.Network, contract string) ([]models.Model, error) {
 	tzip, err := h.TZIP.Get(network, contract)
 	if err != nil {
 		if h.Storage.IsRecordNotFound(err) {

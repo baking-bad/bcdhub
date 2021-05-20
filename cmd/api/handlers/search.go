@@ -7,6 +7,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/gin-gonic/gin"
 )
@@ -128,7 +129,7 @@ func (ctx *Context) searchPostprocessing(result *search.Result) {
 		if !ok {
 			continue
 		}
-		enity, err := ctx.Contracts.Get(cont.Network, cont.Address)
+		enity, err := ctx.Contracts.Get(types.NewNetwork(cont.Network), cont.Address)
 		if err != nil {
 			continue
 		}

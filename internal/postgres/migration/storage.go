@@ -3,6 +3,7 @@ package migration
 import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 )
 
@@ -17,7 +18,7 @@ func NewStorage(pg *core.Postgres) *Storage {
 }
 
 // Get -
-func (storage *Storage) Get(network, address string) ([]migration.Migration, error) {
+func (storage *Storage) Get(network types.Network, address string) ([]migration.Migration, error) {
 	var migrations []migration.Migration
 	err := storage.DB.Table(models.DocMigrations).
 		Scopes(
@@ -29,7 +30,7 @@ func (storage *Storage) Get(network, address string) ([]migration.Migration, err
 }
 
 // Count -
-func (storage *Storage) Count(network, address string) (int64, error) {
+func (storage *Storage) Count(network types.Network, address string) (int64, error) {
 	var count int64
 	err := storage.DB.Table(models.DocMigrations).
 		Where("network = ?", network).

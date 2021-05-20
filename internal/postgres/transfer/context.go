@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"gorm.io/gorm"
 )
@@ -14,7 +15,7 @@ func (storage *Storage) buildGetContext(query *gorm.DB, ctx transfer.GetContext,
 		return
 	}
 
-	if ctx.Network != "" {
+	if ctx.Network != types.Empty {
 		query.Where("network = ?", ctx.Network)
 	}
 	if ctx.Address != "" {

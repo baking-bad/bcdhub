@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	modelTypes "github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -30,12 +31,12 @@ func TestMakeFa1_2Transfers(t *testing.T) {
 			name: "FA 1.2",
 			tree: GetFA1_2Transfer(),
 			operation: operation.Operation{
-				Network:    "edo2net",
+				Network:    modelTypes.Edo2net,
 				Parameters: []byte(`{"entrypoint":"transfer","value":{"prim":"Pair","args":[{"string":"tz1grSQDByRpnVs7sPtaprNZRp531ZKz6Jmm"},{"string":"tz1TGu6TN5GSez2ndXXeDX6LgUDvLzPLqgYV"},{"int":"100"}]}}`),
 			},
 			want: []*transfer.Transfer{
 				{
-					Network: "edo2net",
+					Network: modelTypes.Edo2net,
 					From:    "tz1grSQDByRpnVs7sPtaprNZRp531ZKz6Jmm",
 					To:      "tz1TGu6TN5GSez2ndXXeDX6LgUDvLzPLqgYV",
 					Value:   newBigInt("100"),
@@ -45,12 +46,12 @@ func TestMakeFa1_2Transfers(t *testing.T) {
 			name: "test 2",
 			tree: GetFA1_2Transfer(),
 			operation: operation.Operation{
-				Network:    "mainnet",
+				Network:    modelTypes.Mainnet,
 				Parameters: []byte("{\"entrypoint\":\"transfer\",\"value\":{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"011871cfab6dafee00330602b4342b6500c874c93b00\"},{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"0000c2473c617946ce7b9f6843f193401203851cb2ec\"},{\"int\":\"7874880\"}]}]}}"),
 			},
 			want: []*transfer.Transfer{
 				{
-					Network: "mainnet",
+					Network: modelTypes.Mainnet,
 					From:    "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
 					To:      "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
 					Value:   newBigInt("7874880"),

@@ -12,8 +12,8 @@ import (
 
 // TokenMetadata -
 type TokenMetadata struct {
-	ID                 int64          `json:"-" gorm:"autoIncrement:true"`
-	Network            string         `json:"network" gorm:"primaryKey;default:0"`
+	ID                 int64          `json:"-"`
+	Network            types.Network  `json:"network" gorm:"primaryKey;default:0"`
 	Contract           string         `json:"contract" gorm:"primaryKey"`
 	TokenID            uint64         `json:"token_id" gorm:"type:numeric(50,0);primaryKey"`
 	Level              int64          `json:"level"`
@@ -95,7 +95,7 @@ func (t *TokenMetadata) MarshalToQueue() ([]byte, error) {
 // LogFields -
 func (t *TokenMetadata) LogFields() logrus.Fields {
 	return logrus.Fields{
-		"network":  t.Network,
+		"network":  t.Network.String(),
 		"contract": t.Contract,
 		"token_id": t.TokenID,
 	}

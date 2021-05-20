@@ -53,7 +53,7 @@ func (p *MigrationParser) Parse(script noderpc.Script, old modelsContract.Contra
 	if err := p.scriptSaver.Save(codeBytes, contractParser.ScriptSaveContext{
 		Hash:    newHash,
 		Address: old.Address,
-		Network: old.Network,
+		Network: old.Network.String(),
 		SymLink: next.SymLink,
 	}); err != nil {
 		return err

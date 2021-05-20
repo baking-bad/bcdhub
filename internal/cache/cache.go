@@ -3,6 +3,7 @@ package cache
 import (
 	"fmt"
 
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/karlseguin/ccache"
 )
 
@@ -19,36 +20,36 @@ func NewCache() *Cache {
 }
 
 // AliasKey -
-func (cache *Cache) AliasKey(network, address string) string {
-	return fmt.Sprintf("alias:%s:%s", network, address)
+func (cache *Cache) AliasKey(network types.Network, address string) string {
+	return fmt.Sprintf("alias:%d:%s", network, address)
 }
 
 // ContractKey -
-func (cache *Cache) ContractKey(network, address string) string {
-	return fmt.Sprintf("contract:%s:%s", network, address)
+func (cache *Cache) ContractKey(network types.Network, address string) string {
+	return fmt.Sprintf("contract:%d:%s", network, address)
 }
 
 // TokenMetadataKey -
-func (cache *Cache) TokenMetadataKey(network, address string, tokenID uint64) string {
-	return fmt.Sprintf("token_metadata:%s:%s:%d", network, address, tokenID)
+func (cache *Cache) TokenMetadataKey(network types.Network, address string, tokenID uint64) string {
+	return fmt.Sprintf("token_metadata:%d:%s:%d", network, address, tokenID)
 }
 
 // BlockKey -
-func (cache *Cache) BlockKey(network string) string {
-	return fmt.Sprintf("block:%s", network)
+func (cache *Cache) BlockKey(network types.Network) string {
+	return fmt.Sprintf("block:%d", network)
 }
 
 // TezosBalanceKey -
-func (cache *Cache) TezosBalanceKey(network, address string, level int64) string {
-	return fmt.Sprintf("tezos_balance:%s:%s:%d", network, address, level)
+func (cache *Cache) TezosBalanceKey(network types.Network, address string, level int64) string {
+	return fmt.Sprintf("tezos_balance:%d:%s:%d", network, address, level)
 }
 
 // ScriptKey -
-func (cache *Cache) ScriptKey(network, address string) string {
-	return fmt.Sprintf("script:%s:%s", network, address)
+func (cache *Cache) ScriptKey(network types.Network, address string) string {
+	return fmt.Sprintf("script:%d:%s", network, address)
 }
 
 // ScriptBytesKey -
-func (cache *Cache) ScriptBytesKey(network, address string) string {
-	return fmt.Sprintf("script_bytes:%s:%s", network, address)
+func (cache *Cache) ScriptBytesKey(network types.Network, address string) string {
+	return fmt.Sprintf("script_bytes:%d:%s", network, address)
 }

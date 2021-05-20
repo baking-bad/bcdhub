@@ -3,6 +3,7 @@ package storage
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/fetch"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
 )
@@ -13,8 +14,8 @@ var (
 )
 
 // GetBigMapPtr -
-func GetBigMapPtr(rpc noderpc.INode, address, key, network, protocol, sharePath string, level int64) (int64, error) {
-	data, err := fetch.Contract(address, network, protocol, sharePath)
+func GetBigMapPtr(rpc noderpc.INode, network types.Network, address, key, protocol, sharePath string, level int64) (int64, error) {
+	data, err := fetch.Contract(network, address, protocol, sharePath)
 	if err != nil {
 		return 0, err
 	}
@@ -52,8 +53,8 @@ func GetBigMapPtr(rpc noderpc.INode, address, key, network, protocol, sharePath 
 }
 
 // FindByName -
-func FindByName(address, key, network, protocol, sharePath string) *ast.BigMap {
-	data, err := fetch.Contract(address, network, protocol, sharePath)
+func FindByName(network types.Network, address, key, protocol, sharePath string) *ast.BigMap {
+	data, err := fetch.Contract(network, address, protocol, sharePath)
 	if err != nil {
 		return nil
 	}

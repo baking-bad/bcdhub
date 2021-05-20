@@ -3,21 +3,22 @@ package bigmapaction
 import (
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 // BigMapAction -
 type BigMapAction struct {
-	ID             int64     `json:"-"`
-	Action         string    `json:"action"`
-	SourcePtr      *int64    `json:"source_ptr,omitempty"`
-	DestinationPtr *int64    `json:"destination_ptr,omitempty"`
-	OperationID    int64     `json:"operation_id"`
-	Level          int64     `json:"level"`
-	Address        string    `json:"address"`
-	Network        string    `json:"network"`
-	Timestamp      time.Time `json:"timestamp"`
+	ID             int64         `json:"-"`
+	Action         string        `json:"action"`
+	SourcePtr      *int64        `json:"source_ptr,omitempty"`
+	DestinationPtr *int64        `json:"destination_ptr,omitempty"`
+	OperationID    int64         `json:"operation_id"`
+	Level          int64         `json:"level"`
+	Address        string        `json:"address"`
+	Network        types.Network `json:"network"`
+	Timestamp      time.Time     `json:"timestamp"`
 }
 
 // GetID -

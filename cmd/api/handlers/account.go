@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )
@@ -29,29 +30,29 @@ func (ctx *Context) GetInfo(c *gin.Context) {
 		return
 	}
 
-	stats, err := ctx.Operations.GetStats(req.Network, req.Address)
+	stats, err := ctx.Operations.GetStats(req.NetworkID(), req.Address)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	block, err := ctx.CachedCurrentBlock(req.Network)
+	block, err := ctx.CachedCurrentBlock(req.NetworkID())
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	balance, err := ctx.CachedTezosBalance(req.Network, req.Address, block.Level)
+	balance, err := ctx.CachedTezosBalance(req.NetworkID(), req.Address, block.Level)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	accountInfo := AccountInfo{
 		Address:    req.Address,
-		Network:    req.Network,
+		Network:    req.NetworkID(),
 		TxCount:    stats.Count,
 		Balance:    balance,
 		LastAction: stats.LastAction.UTC(),
 	}
 
-	alias, err := ctx.TZIP.Get(req.Network, req.Address)
+	alias, err := ctx.TZIP.Get(req.NetworkID(), req.Address)
 	if err != nil {
 		if !ctx.Storage.IsRecordNotFound(err) {
 			ctx.handleError(c, err, 0)
@@ -94,7 +95,7 @@ func (ctx *Context) GetBatchTokenBalances(c *gin.Context) {
 		}
 	}
 
-	balances, err := ctx.TokenBalances.Batch(req.Network, address)
+	balances, err := ctx.TokenBalances.Batch(req.NetworkID(), address)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -144,7 +145,7 @@ func (ctx *Context) GetAccountTokenBalances(c *gin.Context) {
 	if err := c.BindQuery(&queryParams); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-	balances, err := ctx.getAccountBalances(req.Network, req.Address, queryParams)
+	balances, err := ctx.getAccountBalances(req.NetworkID(), req.Address, queryParams)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -152,7 +153,7 @@ func (ctx *Context) GetAccountTokenBalances(c *gin.Context) {
 	c.SecureJSON(http.StatusOK, balances)
 }
 
-func (ctx *Context) getAccountBalances(network, address string, req tokenBalanceRequest) (*TokenBalances, error) {
+func (ctx *Context) getAccountBalances(network types.Network, address string, req tokenBalanceRequest) (*TokenBalances, error) {
 	balances, err := ctx.Domains.TokenBalances(network, req.Contract, address, req.Size, req.Offset, req.SortBy)
 	if err != nil {
 		return nil, err
@@ -202,7 +203,7 @@ func (ctx *Context) GetAccountTokenBalancesGroupedCount(c *gin.Context) {
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
 		return
 	}
-	res, err := ctx.TokenBalances.CountByContract(req.Network, req.Address)
+	res, err := ctx.TokenBalances.CountByContract(req.NetworkID(), req.Address)
 	if ctx.handleError(c, err, 0) {
 		return
 	}

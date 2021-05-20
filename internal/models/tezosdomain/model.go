@@ -10,14 +10,14 @@ import (
 
 // TezosDomain -
 type TezosDomain struct {
-	ID         int64       `json:"-"`
-	Name       string      `json:"name"`
-	Expiration time.Time   `json:"expiration"`
-	Network    string      `json:"network"`
-	Address    string      `json:"address"`
-	Level      int64       `json:"level"`
-	Timestamp  time.Time   `json:"timestamp"`
-	Data       types.JSONB `json:"data,omitempty" sql:"type:jsonb"`
+	ID         int64         `json:"-"`
+	Name       string        `json:"name"`
+	Expiration time.Time     `json:"expiration"`
+	Network    types.Network `json:"network"`
+	Address    string        `json:"address"`
+	Level      int64         `json:"level"`
+	Timestamp  time.Time     `json:"timestamp"`
+	Data       types.JSONB   `json:"data,omitempty" sql:"type:jsonb"`
 }
 
 // GetID -

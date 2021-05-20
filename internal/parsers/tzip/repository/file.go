@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strings"
+
+	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 // FileSystem -
@@ -70,7 +72,7 @@ func (fs *FileSystem) Get(network, name string) (item Item, err error) {
 			return item, err
 		}
 		item.Metadata = data
-		item.Network = network
+		item.Network = types.NewNetwork(network)
 		item.Address = strings.TrimSuffix(file.Name(), ".json")
 		break
 	}

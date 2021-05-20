@@ -5,6 +5,7 @@ import (
 
 	jsoniter "github.com/json-iterator/go"
 
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
 )
@@ -18,7 +19,7 @@ var (
 
 // Context -
 type Context struct {
-	Network                  string
+	Network                  types.Network
 	Protocol                 string
 	Contract                 string
 	Parameters               string

@@ -5,6 +5,7 @@
 package tzip
 
 import (
+	types "github.com/baking-bad/bcdhub/internal/models/types"
 	tzipModel "github.com/baking-bad/bcdhub/internal/models/tzip"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
@@ -34,7 +35,7 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Get mocks base method
-func (m *MockRepository) Get(network, address string) (*tzipModel.TZIP, error) {
+func (m *MockRepository) Get(network types.Network, address string) (*tzipModel.TZIP, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", network, address)
 	ret0, _ := ret[0].(*tzipModel.TZIP)
@@ -94,7 +95,7 @@ func (mr *MockRepositoryMockRecorder) GetBySlug(slug interface{}) *gomock.Call {
 }
 
 // GetAliases mocks base method
-func (m *MockRepository) GetAliases(network string) ([]tzipModel.TZIP, error) {
+func (m *MockRepository) GetAliases(network types.Network) ([]tzipModel.TZIP, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAliases", network)
 	ret0, _ := ret[0].([]tzipModel.TZIP)
@@ -109,7 +110,7 @@ func (mr *MockRepositoryMockRecorder) GetAliases(network interface{}) *gomock.Ca
 }
 
 // GetAliasesMap mocks base method
-func (m *MockRepository) GetAliasesMap(network string) (map[string]string, error) {
+func (m *MockRepository) GetAliasesMap(network types.Network) (map[string]string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAliasesMap", network)
 	ret0, _ := ret[0].(map[string]string)

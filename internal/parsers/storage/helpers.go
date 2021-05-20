@@ -4,6 +4,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	modelTypes "github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 func prepareBigMapDiffsToEnrich(bmd []bigmapdiff.BigMapDiff, skipEmpty bool) []*types.BigMapDiff {
@@ -23,7 +24,7 @@ func prepareBigMapDiffsToEnrich(bmd []bigmapdiff.BigMapDiff, skipEmpty bool) []*
 			OperationNonce:   bmd[i].OperationNonce,
 			Level:            bmd[i].Level,
 			Address:          bmd[i].Contract,
-			Network:          bmd[i].Network,
+			Network:          bmd[i].Network.String(),
 			Timestamp:        bmd[i].Timestamp,
 			Protocol:         bmd[i].Protocol,
 		})
@@ -44,7 +45,7 @@ func prepareBigMapStatesToEnrich(bmd []bigmapdiff.BigMapState, skipEmpty bool) [
 			ID:      bmd[i].ID,
 			KeyHash: bmd[i].KeyHash,
 			Address: bmd[i].Contract,
-			Network: bmd[i].Network,
+			Network: bmd[i].Network.String(),
 		}
 
 		if !bmd[i].Removed {
@@ -70,7 +71,7 @@ func getBigMapDiffModels(bmd []*types.BigMapDiff) []bigmapdiff.BigMapDiff {
 			OperationNonce:   bmd[i].OperationNonce,
 			Level:            bmd[i].Level,
 			Contract:         bmd[i].Address,
-			Network:          bmd[i].Network,
+			Network:          modelTypes.NewNetwork(bmd[i].Network),
 			Timestamp:        bmd[i].Timestamp,
 			Protocol:         bmd[i].Protocol,
 		})

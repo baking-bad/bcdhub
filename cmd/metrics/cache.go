@@ -10,8 +10,8 @@ import (
 )
 
 func getStorageType(bmd bigmapdiff.BigMapDiff) (*ast.TypedAst, error) {
-	item, err := ctx.cache.Fetch(fmt.Sprintf("%s:%s", bmd.Network, bmd.Contract), time.Minute, func() (interface{}, error) {
-		data, err := fetch.Contract(bmd.Contract, bmd.Network, bmd.Protocol, ctx.SharePath)
+	item, err := ctx.cache.Fetch(fmt.Sprintf("%d:%s", bmd.Network, bmd.Contract), time.Minute, func() (interface{}, error) {
+		data, err := fetch.Contract(bmd.Network, bmd.Contract, bmd.Protocol, ctx.SharePath)
 		if err != nil {
 			return nil, err
 		}

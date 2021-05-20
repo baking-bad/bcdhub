@@ -11,17 +11,17 @@ import (
 
 // BigMapState -
 type BigMapState struct {
-	ID              int64       `json:"-" gorm:"autoIncrement:true"`
-	Ptr             int64       `json:"ptr" gorm:"not null;primaryKey;autoIncrement:false"`
-	LastUpdateLevel int64       `json:"last_update_level" gorm:"last_update_level"`
-	Count           int64       `json:"count" gorm:"default:0"`
-	LastUpdateTime  time.Time   `json:"last_update_time"  gorm:"last_update_time"`
-	Network         string      `json:"network" gorm:"not null;primaryKey"`
-	KeyHash         string      `json:"key_hash" gorm:"not null;primaryKey"`
-	Contract        string      `json:"contract" gorm:"not null;primaryKey"` // contract is in primary key for supporting alpha protocol (mainnet before babylon)
-	Key             types.Bytes `json:"key" gorm:"type:bytes;not null"`
-	Value           types.Bytes `json:"value,omitempty" gorm:"type:bytes"`
-	Removed         bool        `json:"removed"`
+	ID              int64         `json:"-" gorm:"autoIncrement:true"`
+	Ptr             int64         `json:"ptr" gorm:"not null;primaryKey;autoIncrement:false"`
+	LastUpdateLevel int64         `json:"last_update_level" gorm:"last_update_level"`
+	Count           int64         `json:"count" gorm:"default:0"`
+	LastUpdateTime  time.Time     `json:"last_update_time"  gorm:"last_update_time"`
+	Network         types.Network `json:"network" gorm:"not null;primaryKey;default:0"`
+	KeyHash         string        `json:"key_hash" gorm:"not null;primaryKey"`
+	Contract        string        `json:"contract" gorm:"not null;primaryKey"` // contract is in primary key for supporting alpha protocol (mainnet before babylon)
+	Key             types.Bytes   `json:"key" gorm:"type:bytes;not null"`
+	Value           types.Bytes   `json:"value,omitempty" gorm:"type:bytes"`
+	Removed         bool          `json:"removed"`
 
 	IsRollback bool `json:"-" gorm:"-"`
 }
@@ -89,7 +89,7 @@ func (b *BigMapState) MarshalToQueue() ([]byte, error) {
 // LogFields -
 func (b *BigMapState) LogFields() logrus.Fields {
 	return logrus.Fields{
-		"network":  b.Network,
+		"network":  b.Network.String(),
 		"ptr":      b.Ptr,
 		"key_hash": b.KeyHash,
 		"removed":  b.Removed,

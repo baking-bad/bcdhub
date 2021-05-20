@@ -1,6 +1,7 @@
 package protocol
 
 import (
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -9,12 +10,12 @@ import (
 type Protocol struct {
 	ID int64 `json:"-"`
 
-	Hash       string `json:"hash"`
-	Network    string `json:"network"`
-	StartLevel int64  `json:"start_level" gorm:",default:0"`
-	EndLevel   int64  `json:"end_level" gorm:",default:0"`
-	SymLink    string `json:"sym_link"`
-	Alias      string `json:"alias"`
+	Hash       string        `json:"hash"`
+	Network    types.Network `json:"network"`
+	StartLevel int64         `json:"start_level" gorm:",default:0"`
+	EndLevel   int64         `json:"end_level" gorm:",default:0"`
+	SymLink    string        `json:"sym_link"`
+	Alias      string        `json:"alias"`
 	*Constants
 }
 

@@ -4,10 +4,11 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 )
 
-func createProtocol(rpc noderpc.INode, network, hash string, level int64) (protocol protocol.Protocol, err error) {
+func createProtocol(rpc noderpc.INode, network types.Network, hash string, level int64) (protocol protocol.Protocol, err error) {
 	logger.WithNetwork(network).Infof("Creating new protocol %s starting at %d", hash, level)
 	protocol.SymLink, err = bcd.GetProtoSymLink(hash)
 	if err != nil {

@@ -18,6 +18,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -33,8 +34,8 @@ type Context struct {
 	DB           database.DB
 	MQ           mq.Mediator
 	AWS          *aws.Client
-	RPC          map[string]noderpc.INode
-	TzKTServices map[string]tzkt.Service
+	RPC          map[types.Network]noderpc.INode
+	TzKTServices map[types.Network]tzkt.Service
 	Pinata       pinata.Service
 
 	StorageDB *core.Postgres
@@ -43,7 +44,7 @@ type Context struct {
 	SharePath  string
 	TzipSchema string
 
-	TezosDomainsContracts map[string]string
+	TezosDomainsContracts map[types.Network]string
 
 	Storage       models.GeneralRepository
 	BigMapActions bigmapaction.Repository
@@ -79,7 +80,7 @@ func NewContext(opts ...ContextOption) *Context {
 }
 
 // GetRPC -
-func (ctx *Context) GetRPC(network string) (noderpc.INode, error) {
+func (ctx *Context) GetRPC(network types.Network) (noderpc.INode, error) {
 	if rpc, ok := ctx.RPC[network]; ok {
 		return rpc, nil
 	}
@@ -87,7 +88,7 @@ func (ctx *Context) GetRPC(network string) (noderpc.INode, error) {
 }
 
 // GetTzKTService -
-func (ctx *Context) GetTzKTService(network string) (tzkt.Service, error) {
+func (ctx *Context) GetTzKTService(network types.Network) (tzkt.Service, error) {
 	if rpc, ok := ctx.TzKTServices[network]; ok {
 		return rpc, nil
 	}

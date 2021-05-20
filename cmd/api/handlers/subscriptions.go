@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/database"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 
 	"github.com/gin-gonic/gin"
 )
@@ -45,7 +46,7 @@ func (ctx *Context) CreateSubscription(c *gin.Context) {
 	subscription := database.Subscription{
 		UserID:    userID,
 		Address:   sub.Address,
-		Network:   sub.Network,
+		Network:   types.NewNetwork(sub.Network),
 		Alias:     sub.Alias,
 		WatchMask: sub.getMask(),
 		SentryDSN: sub.SentryDSN,
@@ -74,7 +75,7 @@ func (ctx *Context) DeleteSubscription(c *gin.Context) {
 	subscription := database.Subscription{
 		UserID:  userID,
 		Address: sub.Address,
-		Network: sub.Network,
+		Network: types.NewNetwork(sub.Network),
 	}
 
 	if err := ctx.DB.DeleteSubscription(&subscription); ctx.handleError(c, err, 0) {

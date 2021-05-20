@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	modelTypes "github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/tzkt"
 	"github.com/gin-gonic/gin"
 )
@@ -33,7 +34,7 @@ func (ctx *Context) GetMempool(c *gin.Context) {
 		return
 	}
 
-	api, err := ctx.GetTzKTService(req.Network)
+	api, err := ctx.GetTzKTService(req.NetworkID())
 	if err != nil {
 		c.JSON(http.StatusNoContent, []Operation{})
 		return
@@ -44,10 +45,10 @@ func (ctx *Context) GetMempool(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, ctx.mempoolPostprocessing(res, req.Network))
+	c.JSON(http.StatusOK, ctx.mempoolPostprocessing(res, req.NetworkID()))
 }
 
-func (ctx *Context) mempoolPostprocessing(res []tzkt.MempoolOperation, network string) []Operation {
+func (ctx *Context) mempoolPostprocessing(res []tzkt.MempoolOperation, network modelTypes.Network) []Operation {
 	ret := make([]Operation, len(res))
 	if len(res) == 0 {
 		return ret
@@ -63,7 +64,7 @@ func (ctx *Context) mempoolPostprocessing(res []tzkt.MempoolOperation, network s
 	return ret
 }
 
-func (ctx *Context) prepareMempoolOperation(item tzkt.MempoolOperation, network string, raw interface{}) *Operation {
+func (ctx *Context) prepareMempoolOperation(item tzkt.MempoolOperation, network modelTypes.Network, raw interface{}) *Operation {
 	status := item.Body.Status
 	if status == consts.Applied {
 		status = consts.Pending
@@ -116,7 +117,7 @@ func (ctx *Context) prepareMempoolOperation(item tzkt.MempoolOperation, network 
 }
 
 func (ctx *Context) buildOperationParameters(data []byte, op *Operation) error {
-	script, err := ctx.getScript(op.Destination, op.Network, op.Protocol)
+	script, err := ctx.getScript(op.Network, op.Destination, op.Protocol)
 	if err != nil {
 		return err
 	}

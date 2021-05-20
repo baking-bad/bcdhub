@@ -3,6 +3,7 @@ package indexer
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/config"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 // CreateIndexers -
@@ -20,7 +21,8 @@ func CreateIndexers(cfg config.Config) ([]Indexer, error) {
 		if cfg.Indexer.SkipDelegatorBlocks {
 			boostOptions = append(boostOptions, WithSkipDelegatorBlocks())
 		}
-		bi, err := NewBoostIndexer(cfg, network, boostOptions...)
+
+		bi, err := NewBoostIndexer(cfg, types.NewNetwork(network), boostOptions...)
 		if err != nil {
 			return nil, err
 		}

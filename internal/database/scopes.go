@@ -1,6 +1,9 @@
 package database
 
-import "github.com/jinzhu/gorm"
+import (
+	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/jinzhu/gorm"
+)
 
 func addressScope(address string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
@@ -8,7 +11,7 @@ func addressScope(address string) func(db *gorm.DB) *gorm.DB {
 	}
 }
 
-func networkScope(network string) func(db *gorm.DB) *gorm.DB {
+func networkScope(network types.Network) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("network = ?", network)
 	}
@@ -38,7 +41,7 @@ func pagination(limit, offset uint) func(db *gorm.DB) *gorm.DB {
 	}
 }
 
-func contract(address, network string) func(db *gorm.DB) *gorm.DB {
+func contract(address string, network types.Network) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("address = ? AND network = ?", address, network)
 	}

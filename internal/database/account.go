@@ -1,6 +1,9 @@
 package database
 
-import "github.com/jinzhu/gorm"
+import (
+	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/jinzhu/gorm"
+)
 
 // Account model
 type Account struct {
@@ -8,7 +11,7 @@ type Account struct {
 	UserID        uint   `gorm:"primary_key;not null"`
 	PrivateKey    string `gorm:"primary_key;not null"`
 	PublicKeyHash string
-	Network       string
+	Network       types.Network
 }
 
 // GetOrCreateAccount -

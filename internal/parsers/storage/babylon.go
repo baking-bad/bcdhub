@@ -357,7 +357,7 @@ func (b *Babylon) updateTemporaryPointers(src, dst int64) {
 	b.temporaryPointers[dst] = dstBigMap
 }
 
-func (b *Babylon) getCopyBigMapDiff(src int64, address, network string) (bmd []bigmapdiff.BigMapDiff, err error) {
+func (b *Babylon) getCopyBigMapDiff(src int64, address string, network types.Network) (bmd []bigmapdiff.BigMapDiff, err error) {
 	if src > -1 {
 		states, err := b.repo.GetByPtr(network, address, src)
 		if err != nil {

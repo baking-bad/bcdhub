@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/fatih/color"
 	"github.com/sirupsen/logrus"
 )
@@ -186,8 +187,8 @@ func With(entry Loggable) *logrus.Entry {
 }
 
 // WithNetwork -
-func WithNetwork(network string) *logrus.Entry {
-	return logger.WithField("network", network)
+func WithNetwork(network types.Network) *logrus.Entry {
+	return logger.WithField("network", network.String())
 }
 
 // WithField -

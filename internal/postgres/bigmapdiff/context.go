@@ -11,7 +11,7 @@ import (
 func (storage *Storage) buildGetContext(ctx bigmapdiff.GetContext) *gorm.DB {
 	query := storage.DB.Table(models.DocBigMapDiff).Select("max(id) as id, count(id) as keys_count")
 
-	if ctx.Network != "" {
+	if ctx.Network != 0 {
 		query.Where("network = ?", ctx.Network)
 	}
 	if ctx.Contract != "" {
@@ -45,7 +45,7 @@ func (storage *Storage) buildGetContext(ctx bigmapdiff.GetContext) *gorm.DB {
 func (storage *Storage) buildGetContextForState(ctx bigmapdiff.GetContext) *gorm.DB {
 	query := storage.DB.Table(models.DocBigMapState)
 
-	if ctx.Network != "" {
+	if ctx.Network != 0 {
 		query.Where("network = ?", ctx.Network)
 	}
 	if ctx.Contract != "" {

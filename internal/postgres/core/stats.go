@@ -1,9 +1,12 @@
 package core
 
-import "github.com/baking-bad/bcdhub/internal/models"
+import (
+	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/types"
+)
 
 // GetNetworkCountStats -
-func (p *Postgres) GetNetworkCountStats(network string) (map[string]int64, error) {
+func (p *Postgres) GetNetworkCountStats(network types.Network) (map[string]int64, error) {
 	var contractsCount int64
 	if err := p.DB.Table(models.DocContracts).Where("network = ?", network).Count(&contractsCount).Error; err != nil {
 		return nil, err
@@ -24,7 +27,7 @@ type networkCount struct {
 }
 
 // GetLanguagesForNetwork -
-func (p *Postgres) GetLanguagesForNetwork(network string) (map[string]int64, error) {
+func (p *Postgres) GetLanguagesForNetwork(network types.Network) (map[string]int64, error) {
 	var stats []networkCount
 
 	query := p.DB.Table(models.DocContracts).
@@ -52,7 +55,7 @@ type stats struct {
 }
 
 // GetStats -
-func (p *Postgres) GetStats(network string) (map[string]*models.NetworkStats, error) {
+func (p *Postgres) GetStats(network types.Network) (map[string]*models.NetworkStats, error) {
 	var s []stats
 	if err := p.DB.Table("head_stats").Find(&s).Error; err != nil {
 		return nil, err

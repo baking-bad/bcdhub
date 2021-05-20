@@ -3,6 +3,7 @@ package database
 import (
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/lib/pq"
 )
 
@@ -15,7 +16,7 @@ type Deployment struct {
 	UserID            uint           `json:"user_id"`
 	CompilationTaskID uint           `json:"-"`
 	Address           string         `json:"address"`
-	Network           string         `json:"network"`
+	Network           types.Network  `json:"network"`
 	OperationHash     string         `json:"operation_hash"`
 	Sources           pq.StringArray `gorm:"type:varchar(128)[]" json:"sources"`
 }
@@ -45,7 +46,7 @@ func (d *db) GetDeploymentBy(opHash string) (*Deployment, error) {
 }
 
 // GetDeploymentsByAddressNetwork -
-func (d *db) GetDeploymentsByAddressNetwork(address, network string) ([]Deployment, error) {
+func (d *db) GetDeploymentsByAddressNetwork(address string, network types.Network) ([]Deployment, error) {
 	var deployments []Deployment
 
 	req := d.Scopes(

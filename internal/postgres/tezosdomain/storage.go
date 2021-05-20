@@ -4,6 +4,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/consts"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/pkg/errors"
@@ -20,7 +21,7 @@ func NewStorage(pg *core.Postgres) *Storage {
 }
 
 // ListDomains -
-func (storage *Storage) ListDomains(network string, size, offset int64) (tezosdomain.DomainsResponse, error) {
+func (storage *Storage) ListDomains(network types.Network, size, offset int64) (tezosdomain.DomainsResponse, error) {
 	limit := storage.GetPageSize(size)
 
 	response := tezosdomain.DomainsResponse{
@@ -46,7 +47,7 @@ func (storage *Storage) ListDomains(network string, size, offset int64) (tezosdo
 }
 
 // ResolveDomainByAddress -
-func (storage *Storage) ResolveDomainByAddress(network string, address string) (*tezosdomain.TezosDomain, error) {
+func (storage *Storage) ResolveDomainByAddress(network types.Network, address string) (*tezosdomain.TezosDomain, error) {
 	if !helpers.IsAddress(address) {
 		return nil, errors.Wrapf(consts.ErrInvalidAddress, "ResolveDomainByAddress %s", address)
 	}

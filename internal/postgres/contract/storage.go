@@ -8,6 +8,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/consts"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/pkg/errors"
@@ -25,7 +26,7 @@ func NewStorage(pg *core.Postgres) *Storage {
 }
 
 // Get -
-func (storage *Storage) Get(network, address string) (response contract.Contract, err error) {
+func (storage *Storage) Get(network types.Network, address string) (response contract.Contract, err error) {
 	err = storage.DB.Table(models.DocContracts).
 		Scopes(core.NetworkAndAddress(network, address)).
 		First(&response).Error
@@ -41,9 +42,9 @@ func (storage *Storage) GetMany(by map[string]interface{}) (response []contract.
 }
 
 // GetRandom -
-func (storage *Storage) GetRandom(network string) (response contract.Contract, err error) {
+func (storage *Storage) GetRandom(network types.Network) (response contract.Contract, err error) {
 	queryCount := storage.DB.Table(models.DocContracts).Where("tx_count > 2")
-	if network != "" {
+	if network != types.Empty {
 		queryCount.Where("network = ?", network)
 	}
 	var count int64
@@ -56,7 +57,7 @@ func (storage *Storage) GetRandom(network string) (response contract.Contract, e
 	}
 
 	query := storage.DB.Table(models.DocContracts).Where("tx_count > 2")
-	if network != "" {
+	if network != types.Empty {
 		query.Where("network = ?", network)
 	}
 	err = query.Limit(1).Offset(rand.Intn(int(count))).First(&response).Error
@@ -64,7 +65,7 @@ func (storage *Storage) GetRandom(network string) (response contract.Contract, e
 }
 
 // IsFA -
-func (storage *Storage) IsFA(network, address string) (bool, error) {
+func (storage *Storage) IsFA(network types.Network, address string) (bool, error) {
 	var count int64
 	err := storage.DB.Table(models.DocContracts).
 		Scopes(core.NetworkAndAddress(network, address)).
@@ -76,12 +77,12 @@ func (storage *Storage) IsFA(network, address string) (bool, error) {
 }
 
 // UpdateMigrationsCount -
-func (storage *Storage) UpdateMigrationsCount(address, network string) error {
+func (storage *Storage) UpdateMigrationsCount(network types.Network, address string) error {
 	return storage.DB.Raw(`UPDATE contracts SET migrations_count = migrations_count + 1 WHERE address = ? AND network = ?;`, address, network).Error
 }
 
 // GetAddressesByNetworkAndLevel -
-func (storage *Storage) GetAddressesByNetworkAndLevel(network string, maxLevel int64) ([]string, error) {
+func (storage *Storage) GetAddressesByNetworkAndLevel(network types.Network, maxLevel int64) ([]string, error) {
 	var addresses []string
 	err := storage.DB.Table(models.DocContracts).
 		Select("address").
@@ -94,7 +95,7 @@ func (storage *Storage) GetAddressesByNetworkAndLevel(network string, maxLevel i
 }
 
 // GetIDsByAddresses -
-func (storage *Storage) GetIDsByAddresses(addresses []string, network string) ([]string, error) {
+func (storage *Storage) GetIDsByAddresses(network types.Network, addresses []string) ([]string, error) {
 	var ids []string
 	err := storage.DB.Table(models.DocContracts).
 		Where("network = ?", network).
@@ -253,7 +254,7 @@ func (storage *Storage) GetDiffTasks() ([]contract.DiffTask, error) {
 }
 
 // GetTokens -
-func (storage *Storage) GetTokens(network, tokenInterface string, offset, size int64) ([]contract.Contract, int64, error) {
+func (storage *Storage) GetTokens(network types.Network, tokenInterface string, offset, size int64) ([]contract.Contract, int64, error) {
 	tags := []string{"fa1-2", "fa1", "fa2"}
 	if tokenInterface == "fa1-2" || tokenInterface == "fa1" || tokenInterface == "fa2" {
 		tags = []string{tokenInterface}

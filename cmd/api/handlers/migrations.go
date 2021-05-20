@@ -27,7 +27,7 @@ func (ctx *Context) GetContractMigrations(c *gin.Context) {
 		return
 	}
 
-	migrations, err := ctx.Migrations.Get(req.Network, req.Address)
+	migrations, err := ctx.Migrations.Get(req.NetworkID(), req.Address)
 	if ctx.handleError(c, err, 0) {
 		return
 	}

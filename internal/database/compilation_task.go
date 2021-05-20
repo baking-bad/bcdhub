@@ -3,6 +3,7 @@ package database
 import (
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/jinzhu/gorm/dialects/postgres"
 )
 
@@ -15,7 +16,7 @@ type CompilationTask struct {
 	DeletedAt *time.Time              `sql:"index" json:"-"`
 	UserID    uint                    `json:"user_id"`
 	Address   string                  `json:"address"`
-	Network   string                  `json:"network"`
+	Network   types.Network           `json:"network"`
 	Account   string                  `json:"account"`
 	Repo      string                  `json:"repo"`
 	Ref       string                  `json:"ref"`
@@ -65,7 +66,7 @@ func (d *db) GetCompilationTask(taskID uint) (*CompilationTask, error) {
 }
 
 // GetCompilationTaskBy -
-func (d *db) GetCompilationTaskBy(address, network, status string) (*CompilationTask, error) {
+func (d *db) GetCompilationTaskBy(network types.Network, address, status string) (*CompilationTask, error) {
 	task := new(CompilationTask)
 
 	return task, d.Preload("Results").Scopes(contract(address, network)).Where("status = ?", status).First(task).Error

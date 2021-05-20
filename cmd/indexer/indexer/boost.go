@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/index"
@@ -15,6 +14,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/baking-bad/bcdhub/internal/parsers/migrations"
@@ -40,7 +40,7 @@ type BoostIndexer struct {
 
 	updateTicker        *time.Ticker
 	stop                chan struct{}
-	Network             string
+	Network             types.Network
 	boost               bool
 	skipDelegatorBlocks bool
 	stopped             bool
@@ -100,10 +100,10 @@ func (bi *BoostIndexer) fetchExternalProtocols() error {
 }
 
 // NewBoostIndexer -
-func NewBoostIndexer(cfg config.Config, network string, opts ...BoostIndexerOption) (*BoostIndexer, error) {
+func NewBoostIndexer(cfg config.Config, network types.Network, opts ...BoostIndexerOption) (*BoostIndexer, error) {
 	logger.WithNetwork(network).Info("Creating indexer object...")
 
-	rpcProvider, ok := cfg.RPC[network]
+	rpcProvider, ok := cfg.RPC[network.String()]
 	if !ok {
 		return nil, errors.Errorf("Unknown network %s", network)
 	}
@@ -210,7 +210,7 @@ func (bi *BoostIndexer) Sync(wg *sync.WaitGroup) {
 
 	bi.stopped = false
 	localSentry := helpers.GetLocalSentry()
-	helpers.SetLocalTagSentry(localSentry, "network", bi.Network)
+	helpers.SetLocalTagSentry(localSentry, "network", bi.Network.String())
 
 	// First tick
 	if err := bi.process(); err != nil {
@@ -281,7 +281,7 @@ func (bi *BoostIndexer) Index(levels []int64) error {
 	if len(levels) == 0 {
 		return nil
 	}
-	helpers.SetTagSentry("network", bi.Network)
+	helpers.SetTagSentry("network", bi.Network.String())
 
 	for _, level := range levels {
 		helpers.SetTagSentry("block", fmt.Sprintf("%d", level))
@@ -570,7 +570,7 @@ func (bi *BoostIndexer) migrate(head noderpc.Header, tx *gorm.DB) error {
 		}
 	}
 
-	if bi.Network == consts.Mainnet && head.Level == 1 {
+	if bi.Network == types.Mainnet && head.Level == 1 {
 		if err := bi.vestingMigration(head, tx); err != nil {
 			return err
 		}

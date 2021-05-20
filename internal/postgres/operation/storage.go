@@ -8,6 +8,7 @@ import (
 	constants "github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -44,7 +45,7 @@ type opgForContract struct {
 	Hash    string
 }
 
-func (storage *Storage) getContractOPG(address, network string, size uint64, filters map[string]interface{}) (response []opgForContract, err error) {
+func (storage *Storage) getContractOPG(address string, network types.Network, size uint64, filters map[string]interface{}) (response []opgForContract, err error) {
 	subQuery := storage.DB.Table(models.DocOperations).Select("hash", "counter", "id").
 		Where("network = ?", network).
 		Where(
@@ -88,7 +89,7 @@ func prepareOperationFilters(query *gorm.DB, filters map[string]interface{}) err
 }
 
 // GetByContract -
-func (storage *Storage) GetByContract(network, address string, size uint64, filters map[string]interface{}) (po operation.Pageable, err error) {
+func (storage *Storage) GetByContract(network types.Network, address string, size uint64, filters map[string]interface{}) (po operation.Pageable, err error) {
 	opg, err := storage.getContractOPG(address, network, size, filters)
 	if err != nil {
 		return
@@ -131,7 +132,7 @@ func (storage *Storage) GetByContract(network, address string, size uint64, filt
 }
 
 // Last - get last operation for contract `address` with filter by `id`. If `id` is -1 then returns last in table.
-func (storage *Storage) Last(network, address string, id int64) (op operation.Operation, err error) {
+func (storage *Storage) Last(network types.Network, address string, id int64) (op operation.Operation, err error) {
 	query := storage.DB.Table(models.DocOperations).
 		Where("network = ?", network).
 		Where("destination = ?", address).
@@ -164,7 +165,7 @@ func (storage *Storage) Get(filters map[string]interface{}, size int64, sort boo
 }
 
 // GetStats -
-func (storage *Storage) GetStats(network, address string) (stats operation.Stats, err error) {
+func (storage *Storage) GetStats(network types.Network, address string) (stats operation.Stats, err error) {
 	query := storage.DB.Table(models.DocOperations).
 		Select("MAX(timestamp) AS last_action, COUNT(*) as count").
 		Where("network = ?", network).
@@ -177,7 +178,7 @@ func (storage *Storage) GetStats(network, address string) (stats operation.Stats
 }
 
 // GetContract24HoursVolume -
-func (storage *Storage) GetContract24HoursVolume(network, address string, entrypoints []string) (float64, error) {
+func (storage *Storage) GetContract24HoursVolume(network types.Network, address string, entrypoints []string) (float64, error) {
 	aDayAgo := time.Now().UTC().AddDate(0, 0, -1)
 
 	var volume float64
@@ -204,7 +205,7 @@ type tokenStats struct {
 }
 
 // GetTokensStats -
-func (storage *Storage) GetTokensStats(network string, addresses, entrypoints []string) (map[string]operation.TokenUsageStats, error) {
+func (storage *Storage) GetTokensStats(network types.Network, addresses, entrypoints []string) (map[string]operation.TokenUsageStats, error) {
 	var stats []tokenStats
 	query := storage.DB.Table(models.DocOperations).
 		Select("destination, entrypoint, COUNT(*) as count, SUM(consumed_gas) AS gas").
@@ -253,7 +254,7 @@ type operationAddresses struct {
 }
 
 // GetParticipatingContracts -
-func (storage *Storage) GetParticipatingContracts(network string, fromLevel, toLevel int64) ([]string, error) {
+func (storage *Storage) GetParticipatingContracts(network types.Network, fromLevel, toLevel int64) ([]string, error) {
 	query := storage.DB.Table(models.DocOperations).
 		Select("source, destination").
 		Where("network = ?", network).
@@ -288,7 +289,7 @@ func (storage *Storage) GetByIDs(ids ...int64) (result []operation.Operation, er
 }
 
 // GetDAppStats -
-func (storage *Storage) GetDAppStats(network string, addresses []string, period string) (stats operation.DAppStats, err error) {
+func (storage *Storage) GetDAppStats(network types.Network, addresses []string, period string) (stats operation.DAppStats, err error) {
 	query, err := getDAppQuery(storage.DB, network, addresses, period)
 	if err != nil {
 		return
@@ -307,7 +308,7 @@ func (storage *Storage) GetDAppStats(network string, addresses []string, period 
 	return
 }
 
-func getDAppQuery(db *gorm.DB, network string, addresses []string, period string) (*gorm.DB, error) {
+func getDAppQuery(db *gorm.DB, network types.Network, addresses []string, period string) (*gorm.DB, error) {
 	query := db.Table(models.DocOperations).
 		Where("network = ?", network).
 		Where("status = ?", constants.Applied)

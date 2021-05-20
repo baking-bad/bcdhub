@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/storage"
 )
@@ -27,14 +28,14 @@ type TezosStorage struct {
 	storage    models.GeneralRepository
 
 	rpc       noderpc.INode
-	network   string
+	network   types.Network
 	address   string
 	ptr       int64
 	sharePath string
 }
 
 // NewTezosStorage -
-func NewTezosStorage(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, storage models.GeneralRepository, rpc noderpc.INode, address, network, sharePath string, ptr int64) TezosStorage {
+func NewTezosStorage(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, storage models.GeneralRepository, rpc noderpc.INode, address, sharePath string, network types.Network, ptr int64) TezosStorage {
 	return TezosStorage{
 		bigMapRepo: bigMapRepo,
 		blockRepo:  blockRepo,
@@ -88,7 +89,7 @@ func (s TezosStorage) Get(value string, output interface{}) error {
 
 func (s *TezosStorage) fillFields(uri TezosStorageURI) error {
 	if uri.Network != "" {
-		s.network = uri.Network
+		s.network = types.NewNetwork(uri.Network)
 	}
 	if uri.Address != "" && uri.Address != s.address {
 		s.address = uri.Address
@@ -98,7 +99,7 @@ func (s *TezosStorage) fillFields(uri TezosStorageURI) error {
 			return err
 		}
 
-		bmPtr, err := storage.GetBigMapPtr(s.rpc, s.address, metadataAnnot, s.network, block.Protocol, s.sharePath, 0)
+		bmPtr, err := storage.GetBigMapPtr(s.rpc, s.network, s.address, metadataAnnot, block.Protocol, s.sharePath, 0)
 		if err != nil {
 			return err
 		}

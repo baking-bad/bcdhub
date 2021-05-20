@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -36,12 +37,12 @@ func (ctx *Context) GetFA(c *gin.Context) {
 	if err := c.BindQuery(&cursorReq); ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
-	contracts, total, err := ctx.Contracts.GetTokens(req.Network, "", cursorReq.Offset, cursorReq.Size)
+	contracts, total, err := ctx.Contracts.GetTokens(req.NetworkID(), "", cursorReq.Offset, cursorReq.Size)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	tokens, err := ctx.contractToTokens(contracts, req.Network, "")
+	tokens, err := ctx.contractToTokens(contracts, req.NetworkID(), "")
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -78,12 +79,12 @@ func (ctx *Context) GetFAByVersion(c *gin.Context) {
 	if req.Version == "fa12" {
 		req.Version = consts.FA12Tag
 	}
-	contracts, total, err := ctx.Contracts.GetTokens(req.Network, req.Version, cursorReq.Offset, cursorReq.Size)
+	contracts, total, err := ctx.Contracts.GetTokens(req.NetworkID(), req.Version, cursorReq.Offset, cursorReq.Size)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
-	tokens, err := ctx.contractToTokens(contracts, req.Network, req.Version)
+	tokens, err := ctx.contractToTokens(contracts, req.NetworkID(), req.Version)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -134,7 +135,7 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 	}
 
 	transfers, err := ctx.Transfers.Get(transfer.GetContext{
-		Network:   req.Network,
+		Network:   req.NetworkID(),
 		Address:   req.Address,
 		Contracts: contracts,
 		Start:     ctxReq.Start,
@@ -187,7 +188,7 @@ func (ctx *Context) GetTokenVolumeSeries(c *gin.Context) {
 		return
 	}
 
-	series, err := ctx.Transfers.GetTokenVolumeSeries(req.Network, args.Period, []string{args.Contract}, dapp.Contracts, args.TokenID)
+	series, err := ctx.Transfers.GetTokenVolumeSeries(req.NetworkID(), args.Period, []string{args.Contract}, dapp.Contracts, args.TokenID)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -195,7 +196,7 @@ func (ctx *Context) GetTokenVolumeSeries(c *gin.Context) {
 	c.JSON(http.StatusOK, series)
 }
 
-func (ctx *Context) contractToTokens(contracts []contract.Contract, network, version string) (PageableTokenContracts, error) {
+func (ctx *Context) contractToTokens(contracts []contract.Contract, network types.Network, version string) (PageableTokenContracts, error) {
 	tokens := make([]TokenContract, len(contracts))
 	addresses := make([]string, len(contracts))
 	for i := range contracts {
@@ -297,7 +298,7 @@ func (ctx *Context) GetContractTokens(c *gin.Context) {
 	}
 	metadata, err := ctx.TokenMetadata.Get([]tokenmetadata.GetContext{{
 		Contract: req.Address,
-		Network:  req.Network,
+		Network:  req.NetworkID(),
 		TokenID:  pageReq.TokenID,
 		MinLevel: pageReq.MinLevel,
 		MaxLevel: pageReq.MaxLevel,
@@ -334,7 +335,7 @@ func (ctx *Context) GetContractTokensCount(c *gin.Context) {
 	}
 	count, err := ctx.TokenMetadata.Count([]tokenmetadata.GetContext{{
 		Contract: req.Address,
-		Network:  req.Network,
+		Network:  req.NetworkID(),
 	}})
 	if ctx.handleError(c, err, 0) {
 		return
@@ -406,7 +407,7 @@ func (ctx *Context) GetTokenHolders(c *gin.Context) {
 		return
 	}
 
-	balances, err := ctx.TokenBalances.GetHolders(req.Network, req.Address, *reqArgs.TokenID)
+	balances, err := ctx.TokenBalances.GetHolders(req.NetworkID(), req.Address, *reqArgs.TokenID)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -448,7 +449,7 @@ func (ctx *Context) GetTokenMetadata(c *gin.Context) {
 	}
 	tokens, err := ctx.getTokensWithSupply(tokenmetadata.GetContext{
 		Contract: queryParams.Contract,
-		Network:  req.Network,
+		Network:  req.NetworkID(),
 		MinLevel: queryParams.MinLevel,
 		MaxLevel: queryParams.MaxLevel,
 		Creator:  queryParams.Creator,

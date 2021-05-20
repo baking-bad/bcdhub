@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
+	modelTypes "github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -29,7 +30,7 @@ func (ctx *Context) GetEntrypoints(c *gin.Context) {
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
 		return
 	}
-	script, err := ctx.getScript(req.Address, req.Network, "")
+	script, err := ctx.getScript(req.NetworkID(), req.Address, "")
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -85,7 +86,7 @@ func (ctx *Context) GetEntrypointData(c *gin.Context) {
 		return
 	}
 
-	result, err := ctx.buildParametersForExecution(req.Network, req.Address, "", reqData.Name, reqData.Data)
+	result, err := ctx.buildParametersForExecution(req.NetworkID(), req.Address, "", reqData.Name, reqData.Data)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -129,7 +130,7 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 		return
 	}
 
-	script, err := ctx.getScript(req.Address, req.Network, "")
+	script, err := ctx.getScript(req.NetworkID(), req.Address, "")
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -164,7 +165,7 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 
 		op, err := ctx.Operations.Get(
 			map[string]interface{}{
-				"network":     req.Network,
+				"network":     req.NetworkID(),
 				"destination": req.Address,
 				"kind":        consts.Transaction,
 				"entrypoint":  esReq.EntrypointName,
@@ -195,8 +196,8 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 	c.JSON(http.StatusOK, schema)
 }
 
-func (ctx *Context) buildParametersForExecution(network, address, protocol, entrypoint string, data map[string]interface{}) (*types.Parameters, error) {
-	parameterType, err := ctx.getParameterType(address, network, protocol)
+func (ctx *Context) buildParametersForExecution(network modelTypes.Network, address, protocol, entrypoint string, data map[string]interface{}) (*types.Parameters, error) {
+	parameterType, err := ctx.getParameterType(network, address, protocol)
 	if err != nil {
 		return nil, err
 	}

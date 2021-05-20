@@ -4,6 +4,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
 )
@@ -11,7 +12,7 @@ import (
 // ImplementationKey -
 type ImplementationKey struct {
 	Address    string
-	Network    string
+	Network    types.Network
 	Entrypoint string
 	Name       string
 }
