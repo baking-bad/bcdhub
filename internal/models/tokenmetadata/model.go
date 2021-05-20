@@ -12,12 +12,12 @@ import (
 
 // TokenMetadata -
 type TokenMetadata struct {
-	ID                 int64          `json:"-"`
-	Network            string         `json:"network"`
-	Contract           string         `json:"contract"`
+	ID                 int64          `json:"-" gorm:"autoIncrement:true"`
+	Network            string         `json:"network" gorm:"primaryKey;default:0"`
+	Contract           string         `json:"contract" gorm:"primaryKey"`
+	TokenID            uint64         `json:"token_id" gorm:"type:numeric(50,0);primaryKey"`
 	Level              int64          `json:"level"`
 	Timestamp          time.Time      `json:"timestamp"`
-	TokenID            uint64         `json:"token_id" gorm:"type:numeric(50,0)"`
 	Symbol             string         `json:"symbol"`
 	Name               string         `json:"name"`
 	Decimals           *int64         `json:"decimals,omitempty"`
@@ -26,7 +26,7 @@ type TokenMetadata struct {
 	DisplayURI         string         `json:"display_uri,omitempty"`
 	ThumbnailURI       string         `json:"thumbnail_uri,omitempty"`
 	ExternalURI        string         `json:"external_uri,omitempty"`
-	IsTransferable     bool           `json:"is_transferable"`
+	IsTransferable     bool           `json:"is_transferable" gorm:"default:true"`
 	IsBooleanAmount    bool           `json:"is_boolean_amount"`
 	ShouldPreferSymbol bool           `json:"should_prefer_symbol"`
 	Tags               pq.StringArray `json:"tags,omitempty" gorm:"type:text[]"`
@@ -70,7 +70,15 @@ func (t *TokenMetadata) GetIndex() string {
 // Save -
 func (t *TokenMetadata) Save(tx *gorm.DB) error {
 	return tx.Clauses(clause.OnConflict{
-		UpdateAll: true,
+		Columns: []clause.Column{
+			{Name: "network"},
+			{Name: "contract"},
+			{Name: "token_id"},
+		},
+		DoUpdates: clause.AssignmentColumns([]string{
+			"symbol", "name", "decimals", "description", "artifact_uri", "display_uri", "thumbnail_uri", "external_uri",
+			"is_transferable", "is_boolean_amount", "should_prefer_symbol", "tags", "creators", "formats", "extras",
+		}),
 	}).Save(t).Error
 }
 

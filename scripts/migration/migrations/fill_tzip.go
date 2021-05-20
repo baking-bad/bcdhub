@@ -83,6 +83,8 @@ func (m *FillTZIP) Do(ctx *config.Context) error {
 			return err
 		}
 	}
+
+	logger.WithField("new", len(inserts)).WithField("updates", len(updates)).Info("Saving metadata...")
 	if err := ctx.Storage.Save(inserts); err != nil {
 		return err
 	}
