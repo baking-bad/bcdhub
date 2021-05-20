@@ -65,7 +65,7 @@ func (ctx *Context) transfersPostprocessing(transfers transfer.Pageable, withLas
 
 	for i := range transfers.Transfers {
 		token := TokenMetadata{
-			Network:  transfers.Transfers[i].Network,
+			Network:  transfers.Transfers[i].Network.String(),
 			Contract: transfers.Transfers[i].Contract,
 			TokenID:  transfers.Transfers[i].TokenID,
 		}

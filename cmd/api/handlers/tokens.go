@@ -201,7 +201,7 @@ func (ctx *Context) contractToTokens(contracts []contract.Contract, network type
 	addresses := make([]string, len(contracts))
 	for i := range contracts {
 		tokens[i] = TokenContract{
-			Network:       contracts[i].Network,
+			Network:       contracts[i].Network.String(),
 			Level:         contracts[i].Level,
 			Timestamp:     contracts[i].Timestamp,
 			Address:       contracts[i].Address,

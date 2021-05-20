@@ -46,7 +46,7 @@ func (ctx *Context) GetInfo(c *gin.Context) {
 
 	accountInfo := AccountInfo{
 		Address:    req.Address,
-		Network:    req.NetworkID(),
+		Network:    req.Network,
 		TxCount:    stats.Count,
 		Balance:    balance,
 		LastAction: stats.LastAction.UTC(),
@@ -109,7 +109,7 @@ func (ctx *Context) GetBatchTokenBalances(c *gin.Context) {
 				TokenMetadata: TokenMetadata{
 					TokenID:  b[i].TokenID,
 					Contract: b[i].Contract,
-					Network:  b[i].Network,
+					Network:  b[i].Network.String(),
 				},
 			}
 		}
@@ -173,7 +173,7 @@ func (ctx *Context) getAccountBalances(network types.Network, address string, re
 			tb.TokenMetadata = tm
 		} else {
 			tb.TokenMetadata = TokenMetadata{
-				Network:  token.Network,
+				Network:  token.Network.String(),
 				Contract: token.Contract,
 				TokenID:  token.TokenID,
 			}

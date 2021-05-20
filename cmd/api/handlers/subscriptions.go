@@ -89,7 +89,7 @@ func (ctx *Context) DeleteSubscription(c *gin.Context) {
 func PrepareSubscription(sub database.Subscription) (res Subscription) {
 	res = newSubscriptionWithMask(sub.WatchMask)
 	res.Address = sub.Address
-	res.Network = sub.Network
+	res.Network = sub.Network.String()
 	res.Alias = sub.Alias
 	res.SubscribedAt = sub.CreatedAt
 	res.SentryDSN = sub.SentryDSN

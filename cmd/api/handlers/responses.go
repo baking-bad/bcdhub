@@ -47,7 +47,7 @@ type Operation struct {
 	Timestamp                          time.Time          `json:"timestamp"`
 	Protocol                           string             `json:"protocol"`
 	Hash                               string             `json:"hash,omitempty" extensions:"x-nullable"`
-	Network                            types.Network      `json:"network"`
+	Network                            string             `json:"network"`
 	Kind                               string             `json:"kind"`
 	Source                             string             `json:"source,omitempty" extensions:"x-nullable"`
 	SourceAlias                        string             `json:"source_alias,omitempty" extensions:"x-nullable"`
@@ -68,7 +68,7 @@ func (o *Operation) FromModel(operation operation.Operation) {
 	o.ID = operation.ID
 	o.Protocol = operation.Protocol
 	o.Hash = operation.Hash
-	o.Network = operation.Network
+	o.Network = operation.Network.String()
 	o.Internal = operation.Internal
 	o.Timestamp = operation.Timestamp.UTC()
 
@@ -101,7 +101,7 @@ func (o *Operation) ToModel() operation.Operation {
 		ID:        o.ID,
 		Protocol:  o.Protocol,
 		Hash:      o.Hash,
-		Network:   o.Network,
+		Network:   types.NewNetwork(o.Network),
 		Internal:  o.Internal,
 		Timestamp: o.Timestamp,
 
@@ -130,11 +130,11 @@ func (o *Operation) ToModel() operation.Operation {
 
 // Contract -
 type Contract struct {
-	ID        int64         `json:"id"`
-	Network   types.Network `json:"network"`
-	Level     int64         `json:"level"`
-	Timestamp time.Time     `json:"timestamp"`
-	Language  string        `json:"language,omitempty" extensions:"x-nullable"`
+	ID        int64     `json:"id"`
+	Network   string    `json:"network"`
+	Level     int64     `json:"level"`
+	Timestamp time.Time `json:"timestamp"`
+	Language  string    `json:"language,omitempty" extensions:"x-nullable"`
 
 	Hash        string   `json:"hash"`
 	Tags        []string `json:"tags,omitempty" extensions:"x-nullable"`
@@ -180,7 +180,7 @@ func (c *Contract) FromModel(contract contract.Contract) {
 	c.Level = contract.Level
 	c.Manager = contract.Manager
 	c.MigrationsCount = contract.MigrationsCount
-	c.Network = contract.Network
+	c.Network = contract.Network.String()
 	c.ProjectID = contract.ProjectID
 	c.Tags = contract.Tags
 	c.Timestamp = contract.Timestamp
@@ -193,19 +193,19 @@ func (c *Contract) FromModel(contract contract.Contract) {
 
 // Subscription -
 type Subscription struct {
-	Address          string        `json:"address"`
-	Network          types.Network `json:"network"`
-	Alias            string        `json:"alias,omitempty" extensions:"x-nullable"`
-	SubscribedAt     time.Time     `json:"subscribed_at"`
-	WatchSame        bool          `json:"watch_same"`
-	WatchSimilar     bool          `json:"watch_similar"`
-	WatchMempool     bool          `json:"watch_mempool"`
-	WatchMigrations  bool          `json:"watch_migrations"`
-	WatchDeployments bool          `json:"watch_deployments"`
-	WatchCalls       bool          `json:"watch_calls"`
-	WatchErrors      bool          `json:"watch_errors"`
-	SentryEnabled    bool          `json:"sentry_enabled"`
-	SentryDSN        string        `json:"sentry_dsn,omitempty" extensions:"x-nullable"`
+	Address          string    `json:"address"`
+	Network          string    `json:"network"`
+	Alias            string    `json:"alias,omitempty" extensions:"x-nullable"`
+	SubscribedAt     time.Time `json:"subscribed_at"`
+	WatchSame        bool      `json:"watch_same"`
+	WatchSimilar     bool      `json:"watch_similar"`
+	WatchMempool     bool      `json:"watch_mempool"`
+	WatchMigrations  bool      `json:"watch_migrations"`
+	WatchDeployments bool      `json:"watch_deployments"`
+	WatchCalls       bool      `json:"watch_calls"`
+	WatchErrors      bool      `json:"watch_errors"`
+	SentryEnabled    bool      `json:"sentry_enabled"`
+	SentryDSN        string    `json:"sentry_dsn,omitempty" extensions:"x-nullable"`
 }
 
 // Event -
@@ -252,7 +252,7 @@ type BigMapResponseItem struct {
 // GetBigMapResponse -
 type GetBigMapResponse struct {
 	Address       string        `json:"address"`
-	Network       types.Network `json:"network"`
+	Network       string        `json:"network"`
 	Ptr           int64         `json:"ptr"`
 	ActiveKeys    uint          `json:"active_keys"`
 	TotalKeys     uint          `json:"total_keys"`
@@ -272,7 +272,7 @@ type Migration struct {
 
 // TokenContract -
 type TokenContract struct {
-	Network       types.Network               `json:"network"`
+	Network       string                      `json:"network"`
 	Level         int64                       `json:"level"`
 	Timestamp     time.Time                   `json:"timestamp"`
 	LastAction    time.Time                   `json:"last_action"`
@@ -301,19 +301,19 @@ type PageableTokenContracts struct {
 
 // TokenTransfer -
 type TokenTransfer struct {
-	Contract  string        `json:"contract"`
-	Network   types.Network `json:"network"`
-	Protocol  string        `json:"protocol"`
-	Hash      string        `json:"hash"`
-	Counter   int64         `json:"counter,omitempty" extensions:"x-nullable"`
-	Status    string        `json:"status"`
-	Timestamp time.Time     `json:"timestamp"`
-	Level     int64         `json:"level"`
-	From      string        `json:"from,omitempty" extensions:"x-nullable"`
-	To        string        `json:"to"`
-	Amount    int64         `json:"amount"`
-	Source    string        `json:"source"`
-	Nonce     *int64        `json:"nonce,omitempty" extensions:"x-nullable"`
+	Contract  string    `json:"contract"`
+	Network   string    `json:"network"`
+	Protocol  string    `json:"protocol"`
+	Hash      string    `json:"hash"`
+	Counter   int64     `json:"counter,omitempty" extensions:"x-nullable"`
+	Status    string    `json:"status"`
+	Timestamp time.Time `json:"timestamp"`
+	Level     int64     `json:"level"`
+	From      string    `json:"from,omitempty" extensions:"x-nullable"`
+	To        string    `json:"to"`
+	Amount    int64     `json:"amount"`
+	Source    string    `json:"source"`
+	Nonce     *int64    `json:"nonce,omitempty" extensions:"x-nullable"`
 }
 
 // PageableTokenTransfers -
@@ -360,7 +360,7 @@ type SearchBigMapDiff struct {
 	Value     stdJSON.RawMessage `json:"value"`
 	Level     int64              `json:"level"`
 	Address   string             `json:"address"`
-	Network   types.Network      `json:"network"`
+	Network   string             `json:"network"`
 	Timestamp time.Time          `json:"timestamp"`
 	FoundBy   string             `json:"found_by"`
 }
@@ -383,33 +383,33 @@ type GetErrorLocationResponse struct {
 
 // Alias -
 type Alias struct {
-	Alias   string        `json:"alias" example:"Contract alias"`
-	Network types.Network `json:"network" example:"babylonnet"`
-	Address string        `json:"address" example:"KT1CeekjGVRc5ASmgWDc658NBExetoKNuiqz"`
-	Slug    string        `json:"slug" example:"contract_slug"`
+	Alias   string `json:"alias" example:"Contract alias"`
+	Network string `json:"network" example:"babylonnet"`
+	Address string `json:"address" example:"KT1CeekjGVRc5ASmgWDc658NBExetoKNuiqz"`
+	Slug    string `json:"slug" example:"contract_slug"`
 }
 
 // FromModel -
 func (a *Alias) FromModel(alias *tzip.TZIP) {
 	a.Alias = alias.Name
 	a.Address = alias.Address
-	a.Network = alias.Network
+	a.Network = alias.Network.String()
 	a.Slug = alias.Slug
 }
 
 // Protocol -
 type Protocol struct {
-	Hash       string        `json:"hash" example:"PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb"`
-	Network    types.Network `json:"network" example:"mainnet"`
-	StartLevel int64         `json:"start_level" example:"851969"`
-	EndLevel   int64         `json:"end_level" example:"0"`
-	Alias      string        `json:"alias" example:"Carthage"`
+	Hash       string `json:"hash" example:"PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb"`
+	Network    string `json:"network" example:"mainnet"`
+	StartLevel int64  `json:"start_level" example:"851969"`
+	EndLevel   int64  `json:"end_level" example:"0"`
+	Alias      string `json:"alias" example:"Carthage"`
 }
 
 // FromModel -
 func (p *Protocol) FromModel(protocol protocol.Protocol) {
 	p.Hash = protocol.Hash
-	p.Network = protocol.Network
+	p.Network = protocol.Network.String()
 	p.StartLevel = protocol.StartLevel
 	p.EndLevel = protocol.EndLevel
 	p.Alias = protocol.Alias
@@ -417,18 +417,18 @@ func (p *Protocol) FromModel(protocol protocol.Protocol) {
 
 // Block -
 type Block struct {
-	Network     types.Network `json:"network" example:"mainnet"`
-	Hash        string        `json:"hash" example:"BLyAEwaXShJuZasvUezHUfLqzZ48V8XrPvXF2wRaH15tmzEpsHT"`
-	Level       int64         `json:"level" example:"24"`
-	Predecessor string        `json:"predecessor" example:"BMWVEwEYw9m5iaHzqxDfkPzZTV4rhkSouRh3DkVMVGkxZ3EVaNs"`
-	ChainID     string        `json:"chain_id" example:"NetXdQprcVkpaWU"`
-	Protocol    string        `json:"protocol" example:"PtCJ7pwoxe8JasnHY8YonnLYjcVHmhiARPJvqcC6VfHT5s8k8sY"`
-	Timestamp   time.Time     `json:"timestamp" example:"2018-06-30T18:05:27Z"`
+	Network     string    `json:"network" example:"mainnet"`
+	Hash        string    `json:"hash" example:"BLyAEwaXShJuZasvUezHUfLqzZ48V8XrPvXF2wRaH15tmzEpsHT"`
+	Level       int64     `json:"level" example:"24"`
+	Predecessor string    `json:"predecessor" example:"BMWVEwEYw9m5iaHzqxDfkPzZTV4rhkSouRh3DkVMVGkxZ3EVaNs"`
+	ChainID     string    `json:"chain_id" example:"NetXdQprcVkpaWU"`
+	Protocol    string    `json:"protocol" example:"PtCJ7pwoxe8JasnHY8YonnLYjcVHmhiARPJvqcC6VfHT5s8k8sY"`
+	Timestamp   time.Time `json:"timestamp" example:"2018-06-30T18:05:27Z"`
 }
 
 // FromModel -
 func (b *Block) FromModel(block block.Block) {
-	b.Network = block.Network
+	b.Network = block.Network.String()
 	b.Hash = block.Hash
 	b.Level = block.Level
 	b.Predecessor = block.Predecessor
@@ -439,15 +439,15 @@ func (b *Block) FromModel(block block.Block) {
 
 // LightContract -
 type LightContract struct {
-	Address  string        `json:"address"`
-	Network  types.Network `json:"network"`
-	Deployed time.Time     `json:"deploy_time"`
+	Address  string    `json:"address"`
+	Network  string    `json:"network"`
+	Deployed time.Time `json:"deploy_time"`
 }
 
 // FromModel -
 func (c *LightContract) FromModel(light contract.Light) {
 	c.Address = light.Address
-	c.Network = light.Network
+	c.Network = light.Network.String()
 	c.Deployed = light.Deployed
 }
 
@@ -503,7 +503,7 @@ type SeriesFloat [][]float64
 // BigMapHistoryResponse -
 type BigMapHistoryResponse struct {
 	Address string              `json:"address"`
-	Network types.Network       `json:"network"`
+	Network string              `json:"network"`
 	Ptr     int64               `json:"ptr"`
 	Items   []BigMapHistoryItem `json:"items,omitempty" extensions:"x-nullable"`
 }
@@ -519,7 +519,7 @@ type BigMapHistoryItem struct {
 // Transfer -
 type Transfer struct {
 	IndexedTime    int64          `json:"indexed_time"`
-	Network        types.Network  `json:"network"`
+	Network        string         `json:"network"`
 	Contract       string         `json:"contract"`
 	Initiator      string         `json:"initiator"`
 	Hash           string         `json:"hash"`
@@ -543,7 +543,7 @@ type Transfer struct {
 // TransferFromElasticModel -
 func TransferFromElasticModel(model transfer.Transfer) (t Transfer) {
 	t.IndexedTime = model.ID
-	t.Network = model.Network
+	t.Network = model.Network.String()
 	t.Contract = model.Contract
 	t.Initiator = model.Initiator
 	t.Hash = model.Hash
@@ -605,10 +605,10 @@ type DApp struct {
 
 // DAppContract -
 type DAppContract struct {
-	Network     types.Network `json:"network"`
-	Address     string        `json:"address"`
-	Alias       string        `json:"alias,omitempty" extensions:"x-nullable"`
-	ReleaseDate time.Time     `json:"release_date"`
+	Network     string    `json:"network"`
+	Address     string    `json:"address"`
+	Alias       string    `json:"alias,omitempty" extensions:"x-nullable"`
+	ReleaseDate time.Time `json:"release_date"`
 }
 
 // Screenshot -
@@ -626,12 +626,12 @@ type Token struct {
 
 // AccountInfo -
 type AccountInfo struct {
-	Address    string        `json:"address"`
-	Network    types.Network `json:"network"`
-	Alias      string        `json:"alias,omitempty" extensions:"x-nullable"`
-	Balance    int64         `json:"balance"`
-	TxCount    int64         `json:"tx_count"`
-	LastAction time.Time     `json:"last_action"`
+	Address    string    `json:"address"`
+	Network    string    `json:"network"`
+	Alias      string    `json:"alias,omitempty" extensions:"x-nullable"`
+	Balance    int64     `json:"balance"`
+	TxCount    int64     `json:"tx_count"`
+	LastAction time.Time `json:"last_action"`
 }
 
 // TokenBalance -
@@ -649,7 +649,7 @@ type TokenBalances struct {
 // TokenMetadata -
 type TokenMetadata struct {
 	Contract           string                 `json:"contract"`
-	Network            types.Network          `json:"network"`
+	Network            string                 `json:"network"`
 	Level              int64                  `json:"level,omitempty" extensions:"x-nullable"`
 	Timestamp          *time.Time             `json:"timestamp,omitempty" extensions:"x-nullable"`
 	TokenID            uint64                 `json:"token_id"`
@@ -679,7 +679,7 @@ func TokenMetadataFromElasticModel(model tokenmetadata.TokenMetadata, withTokenI
 	tm.Decimals = model.Decimals
 	tm.Contract = model.Contract
 	tm.Level = model.Level
-	tm.Network = model.Network
+	tm.Network = model.Network.String()
 	tm.Description = model.Description
 	tm.ArtifactURI = model.ArtifactURI
 	tm.DisplayURI = model.DisplayURI
@@ -719,7 +719,7 @@ type DomainsResponse struct {
 type TezosDomain struct {
 	Name       string                 `json:"name"`
 	Expiration time.Time              `json:"expiration"`
-	Network    types.Network          `json:"network"`
+	Network    string                 `json:"network"`
 	Address    string                 `json:"address"`
 	Level      int64                  `json:"level"`
 	Timestamp  time.Time              `json:"timestamp"`
@@ -730,7 +730,7 @@ type TezosDomain struct {
 func (td *TezosDomain) FromModel(domain tezosdomain.TezosDomain) {
 	td.Name = domain.Name
 	td.Expiration = domain.Expiration
-	td.Network = domain.Network
+	td.Network = domain.Network.String()
 	td.Address = domain.Address
 	td.Level = domain.Level
 	td.Timestamp = domain.Timestamp
@@ -766,7 +766,7 @@ type ForkResponse struct {
 // TZIPResponse -
 type TZIPResponse struct {
 	Address     string                 `json:"address,omitempty"`
-	Network     types.Network          `json:"network,omitempty"`
+	Network     string                 `json:"network,omitempty"`
 	DomainName  string                 `json:"domain,omitempty"`
 	Extras      map[string]interface{} `json:"extras,omitempty"`
 	Name        string                 `json:"name,omitempty"`
@@ -782,12 +782,12 @@ type TZIPResponse struct {
 
 // HeadResponse -
 type HeadResponse struct {
-	Network         types.Network `json:"network"`
-	Level           int64         `json:"level"`
-	Timestamp       time.Time     `json:"time"`
-	Protocol        string        `json:"protocol"`
-	Total           int64         `json:"total"`
-	ContractCalls   int64         `json:"contract_calls"`
-	UniqueContracts int64         `json:"unique_contracts"`
-	FACount         int64         `json:"fa_count"`
+	Network         string    `json:"network"`
+	Level           int64     `json:"level"`
+	Timestamp       time.Time `json:"time"`
+	Protocol        string    `json:"protocol"`
+	Total           int64     `json:"total"`
+	ContractCalls   int64     `json:"contract_calls"`
+	UniqueContracts int64     `json:"unique_contracts"`
+	FACount         int64     `json:"fa_count"`
 }

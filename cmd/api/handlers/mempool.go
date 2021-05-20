@@ -77,7 +77,7 @@ func (ctx *Context) prepareMempoolOperation(item tzkt.MempoolOperation, network 
 	op := Operation{
 		Protocol:  item.Body.Protocol,
 		Hash:      item.Body.Hash,
-		Network:   network,
+		Network:   network.String(),
 		Timestamp: time.Unix(item.Body.Timestamp, 0).UTC(),
 
 		SourceAlias:      ctx.CachedAlias(network, item.Body.Source),
@@ -117,7 +117,7 @@ func (ctx *Context) prepareMempoolOperation(item tzkt.MempoolOperation, network 
 }
 
 func (ctx *Context) buildOperationParameters(data []byte, op *Operation) error {
-	script, err := ctx.getScript(op.Network, op.Destination, op.Protocol)
+	script, err := ctx.getScript(modelTypes.NewNetwork(op.Network), op.Destination, op.Protocol)
 	if err != nil {
 		return err
 	}
