@@ -45,7 +45,7 @@ func (ctx *Context) GetMetadata(c *gin.Context) {
 		DomainName:  tzip.DomainName,
 		Extras:      tzip.Extras,
 		Address:     tzip.Address,
-		Network:     tzip.Network,
+		Network:     tzip.Network.String(),
 		Name:        tzip.Name,
 		Description: tzip.Description,
 		Version:     tzip.Version,

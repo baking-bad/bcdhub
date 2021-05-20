@@ -256,7 +256,7 @@ func (ctx *Context) prepareOperation(operation operation.Operation, bmd []bigmap
 		return op, err
 	}
 
-	script, err := ctx.getScript(op.Network, op.Destination, op.Protocol)
+	script, err := ctx.getScript(operation.Network, op.Destination, op.Protocol)
 	if err != nil {
 		return op, err
 	}
@@ -378,7 +378,7 @@ func (ctx *Context) getStorageDiff(bmd []bigmapdiff.BigMapDiff, address string, 
 	}
 	var prevStorage *ast.TypedAst
 
-	prev, err := ctx.Operations.Last(op.Network, address, op.ID)
+	prev, err := ctx.Operations.Last(modelTypes.NewNetwork(op.Network), address, op.ID)
 	if err == nil {
 		prevStorage = &ast.TypedAst{
 			Nodes: []ast.Node{ast.Copy(storageType.Nodes[0])},

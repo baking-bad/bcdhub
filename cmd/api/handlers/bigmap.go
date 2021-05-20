@@ -40,7 +40,7 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 	}
 
 	res := GetBigMapResponse{
-		Network:    req.NetworkID(),
+		Network:    req.Network,
 		Ptr:        req.Ptr,
 		Address:    stats.Contract,
 		TotalKeys:  uint(stats.Total),
@@ -56,7 +56,7 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 			res.Address = actions[0].Address
 		}
 	} else {
-		script, err := ctx.getScript(res.Network, res.Address, "")
+		script, err := ctx.getScript(req.NetworkID(), res.Address, "")
 		if ctx.handleError(c, err, 0) {
 			return
 		}
@@ -64,7 +64,7 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		if ctx.handleError(c, err, 0) {
 			return
 		}
-		operation, err := ctx.Operations.Last(res.Network, res.Address, -1)
+		operation, err := ctx.Operations.Last(req.NetworkID(), res.Address, -1)
 		if ctx.handleError(c, err, 0) {
 			return
 		}
@@ -75,7 +75,7 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 
 		var deffatedStorage []byte
 		if symLink == consts.MetadataAlpha {
-			rpc, err := ctx.GetRPC(res.Network)
+			rpc, err := ctx.GetRPC(req.NetworkID())
 			if ctx.handleError(c, err, 0) {
 				return
 			}
@@ -397,7 +397,7 @@ func prepareBigMapHistory(arr []bigmapaction.BigMapAction, ptr int64) BigMapHist
 	}
 	response := BigMapHistoryResponse{
 		Address: arr[0].Address,
-		Network: arr[0].Network,
+		Network: arr[0].Network.String(),
 		Ptr:     ptr,
 		Items:   make([]BigMapHistoryItem, len(arr)),
 	}

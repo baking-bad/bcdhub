@@ -40,7 +40,7 @@ func (ctx *Context) GetHead(c *gin.Context) {
 	body := make([]HeadResponse, len(blocks))
 	for i := range blocks {
 		body[i] = HeadResponse{
-			Network:   blocks[i].Network,
+			Network:   blocks[i].Network.String(),
 			Level:     blocks[i].Level,
 			Timestamp: blocks[i].Timestamp,
 			Protocol:  blocks[i].Protocol,

@@ -176,7 +176,7 @@ func (ctx *Context) RunCode(c *gin.Context) {
 	main := Operation{
 		IndexedTime: time.Now().UTC().UnixNano(),
 		Protocol:    state.Protocol,
-		Network:     req.NetworkID(),
+		Network:     req.Network,
 		Timestamp:   time.Now().UTC(),
 		Source:      reqRunCode.Source,
 		Destination: req.Address,
@@ -249,7 +249,7 @@ func (ctx *Context) parseAppliedRunCode(response noderpc.RunCodeResponse, script
 			s = script
 		} else {
 			var err error
-			s, err = ctx.getScript(op.Network, op.Destination, op.Protocol)
+			s, err = ctx.getScript(types.NewNetwork(op.Network), op.Destination, op.Protocol)
 			if err != nil {
 				return nil, err
 			}
@@ -270,7 +270,7 @@ func (ctx *Context) parseBigMapDiffs(response noderpc.RunCodeResponse, script *a
 	model := operation.ToModel()
 	model.AST = script
 
-	rpc, err := ctx.GetRPC(operation.Network)
+	rpc, err := ctx.GetRPC(model.Network)
 	if err != nil {
 		return nil, err
 	}

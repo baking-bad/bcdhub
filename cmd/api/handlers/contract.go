@@ -86,7 +86,7 @@ func (ctx *Context) contractPostprocessing(contract contract.Contract, c *gin.Co
 	res.FromModel(contract)
 
 	if userID, err := ctx.getUserFromToken(c); err == nil && userID != 0 {
-		if sub, err := ctx.DB.GetSubscription(userID, res.Address, res.Network); err == nil {
+		if sub, err := ctx.DB.GetSubscription(userID, res.Address, contract.Network); err == nil {
 			subscription := PrepareSubscription(sub)
 			res.Subscription = &subscription
 		} else if !gorm.IsRecordNotFoundError(err) {
@@ -94,7 +94,7 @@ func (ctx *Context) contractPostprocessing(contract contract.Contract, c *gin.Co
 		}
 	}
 
-	if totalSubscribed, err := ctx.DB.GetSubscriptionsCount(res.Address, res.Network); err == nil {
+	if totalSubscribed, err := ctx.DB.GetSubscriptionsCount(res.Address, contract.Network); err == nil {
 		res.TotalSubscribed = totalSubscribed
 	} else {
 		return res, err
