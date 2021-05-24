@@ -34,7 +34,7 @@ func (storage *Storage) buildGetTokenMetadataContext(query *gorm.DB, ctx ...toke
 			subQuery.Where(fmt.Sprintf("level > %d", ctx[i].MinLevel))
 		}
 		if ctx[i].Creator != "" {
-			subQuery.Where("creators <@ ?", ctx[i].Creator)
+			subQuery.Where("? = ANY(creators)", ctx[i].Creator)
 		}
 		if ctx[i].Name != "" {
 			subQuery.Where("name = ?", ctx[i].Name)
