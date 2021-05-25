@@ -243,6 +243,10 @@ type getSeriesRequest struct {
 	Address string `form:"address,omitempty" binding:"omitempty"`
 }
 
+func (req getSeriesRequest) isCached() bool {
+	return req.Period == "month" && (req.Name == "contract" || req.Name == "operation" || req.Name == "paid_storage_size_diff" || req.Name == "consumed_gas")
+}
+
 type getBySlugRequest struct {
 	Slug string `uri:"slug"  binding:"required"`
 }

@@ -3,6 +3,7 @@ package indexer
 import (
 	"fmt"
 	"io/ioutil"
+	"strings"
 	"sync"
 	"time"
 
@@ -139,18 +140,24 @@ func NewBoostIndexer(cfg config.Config, network types.Network, opts ...BoostInde
 	return bi, nil
 }
 
-func addTriggers(db *core.Postgres) error {
-	files, err := ioutil.ReadDir("triggers")
+func executeScripts(db *core.Postgres, network types.Network) error {
+	files, err := ioutil.ReadDir("scripts")
 	if err != nil {
 		return err
 	}
 	for i := range files {
-		path := fmt.Sprintf("triggers/%s", files[i].Name())
+		path := fmt.Sprintf("scripts/%s", files[i].Name())
 		raw, err := ioutil.ReadFile(path)
 		if err != nil {
 			return err
 		}
-		if err := db.AddTrigger(string(raw)); err != nil {
+
+		script := string(raw)
+		if strings.HasPrefix(files[i].Name(), "series_") {
+			script = fmt.Sprintf(script, network.String(), network)
+		}
+
+		if err := db.Execute(script); err != nil {
 			return err
 		}
 	}
@@ -162,7 +169,7 @@ func (bi *BoostIndexer) init(db *core.Postgres) error {
 		return err
 	}
 
-	if err := addTriggers(db); err != nil {
+	if err := executeScripts(db, bi.Network); err != nil {
 		return err
 	}
 

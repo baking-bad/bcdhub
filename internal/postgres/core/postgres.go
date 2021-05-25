@@ -101,7 +101,7 @@ func OrStringArray(db *gorm.DB, arr []string, fieldName string) *gorm.DB {
 	return subQuery
 }
 
-// AddTrigger -
-func (p *Postgres) AddTrigger(rawSQL string) error {
+// Execute -
+func (p *Postgres) Execute(rawSQL string) error {
 	return p.DB.Exec(rawSQL).Error
 }
