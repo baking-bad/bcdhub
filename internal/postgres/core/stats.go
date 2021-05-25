@@ -49,7 +49,7 @@ func (p *Postgres) GetLanguagesForNetwork(network types.Network) (map[string]int
 }
 
 type stats struct {
-	Network   string
+	Network   types.Network
 	Value     uint64
 	StatsType string
 }
@@ -63,11 +63,12 @@ func (p *Postgres) GetStats(network types.Network) (map[string]*models.NetworkSt
 
 	result := make(map[string]*models.NetworkStats)
 	for i := range s {
-		if _, ok := result[s[i].Network]; !ok {
-			result[s[i].Network] = new(models.NetworkStats)
+		network := s[i].Network.String()
+		if _, ok := result[network]; !ok {
+			result[network] = new(models.NetworkStats)
 		}
 
-		val := result[s[i].Network]
+		val := result[network]
 
 		switch s[i].StatsType {
 		case "calls_count":
