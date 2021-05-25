@@ -120,7 +120,12 @@ func (ctx *Context) GetSeries(c *gin.Context) {
 		return
 	}
 
-	series, err := ctx.Storage.GetDateHistogram(reqArgs.Period, options...)
+	var series [][]float64
+	if reqArgs.isCached() {
+		series, err = ctx.StorageDB.GetCachedHistogram(reqArgs.Period, reqArgs.Name, req.Network)
+	} else {
+		series, err = ctx.Storage.GetDateHistogram(reqArgs.Period, options...)
+	}
 	if ctx.handleError(c, err, 0) {
 		return
 	}

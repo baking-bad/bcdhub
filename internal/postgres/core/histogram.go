@@ -99,6 +99,10 @@ type HistogramResponse struct {
 	Value    float64
 }
 
+func (res HistogramResponse) toFloat64() []float64 {
+	return []float64{res.DatePart * 1000, res.Value}
+}
+
 // GetDateHistogram -
 func (p *Postgres) GetDateHistogram(period string, opts ...models.HistogramOption) ([][]float64, error) {
 	ctx := models.HistogramContext{
@@ -121,9 +125,23 @@ func (p *Postgres) GetDateHistogram(period string, opts ...models.HistogramOptio
 	}
 	hist := make([][]float64, 0, len(res))
 	for i := range res {
-		hist = append(hist, []float64{res[i].DatePart * 1000, res[i].Value})
+		hist = append(hist, res[i].toFloat64())
 	}
 
+	return hist, nil
+}
+
+// GetCachedHistogram -
+func (p *Postgres) GetCachedHistogram(period, name, network string) ([][]float64, error) {
+	view := fmt.Sprintf(`series_%s_by_%s_%s`, name, period, network)
+	var res []HistogramResponse
+	if err := p.DB.Table(view).Find(&res).Error; err != nil {
+		return nil, err
+	}
+	hist := make([][]float64, 0, len(res))
+	for i := range res {
+		hist = append(hist, res[i].toFloat64())
+	}
 	return hist, nil
 }
 

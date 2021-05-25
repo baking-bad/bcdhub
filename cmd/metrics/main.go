@@ -112,7 +112,7 @@ func main() {
 
 	var wg sync.WaitGroup
 
-	threadsCount := len(ctx.MQ.GetQueues()) + 1
+	threadsCount := len(ctx.MQ.GetQueues()) + 2
 
 	closeChan := make(chan struct{}, threadsCount)
 	signals := make(chan os.Signal, 1)
@@ -128,6 +128,9 @@ func main() {
 
 	wg.Add(1)
 	go timeBasedTask(time.Minute, ctx.updateMaterializedViews, closeChan, &wg)
+
+	wg.Add(1)
+	go timeBasedTask(time.Hour*6, ctx.updateSeriesMaterializedViews, closeChan, &wg)
 
 	<-signals
 	for i := 0; i < threadsCount; i++ {
