@@ -18,8 +18,8 @@ import (
 // Transfer -
 type Transfer struct {
 	ID           int64         `json:"-"`
-	Network      types.Network `json:"network" gorm:"index:transfers_network_idx"`
-	Contract     string        `json:"contract"`
+	Network      types.Network `json:"network" gorm:"index:transfers_network_idx;index:transfers_token_idx"`
+	Contract     string        `json:"contract" gorm:"index:transfers_token_idx"`
 	Initiator    string        `json:"initiator"`
 	Hash         string        `json:"hash"`
 	Status       string        `json:"status"`
@@ -27,7 +27,7 @@ type Transfer struct {
 	Level        int64         `json:"level" gorm:"index:transfers_network_idx"`
 	From         string        `json:"from" gorm:"index:transfers_from_idx"`
 	To           string        `json:"to" gorm:"index:transfers_to_idx"`
-	TokenID      uint64        `json:"token_id" gorm:"type:numeric(50,0)"`
+	TokenID      uint64        `json:"token_id" gorm:"type:numeric(50,0);index:transfers_token_idx"`
 	Amount       float64       `json:"amount" gorm:"type:numeric(100,0)"`
 	AmountString string        `json:"amount_string"`
 	Counter      int64         `json:"counter"`

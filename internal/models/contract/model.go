@@ -14,7 +14,7 @@ import (
 // Contract - entity for contract
 type Contract struct {
 	ID        int64         `json:"-"`
-	Network   types.Network `json:"network"`
+	Network   types.Network `json:"network" gorm:"index:contracts_idx"`
 	Level     int64         `json:"level"`
 	Timestamp time.Time     `json:"timestamp"`
 	Language  string        `json:"language,omitempty"`
@@ -29,7 +29,7 @@ type Contract struct {
 	Annotations          pq.StringArray `json:"annotations,omitempty" gorm:"type:text[]"`
 	Hardcoded            pq.StringArray `json:"hardcoded,omitempty" gorm:"type:text[]"`
 
-	Address  string `json:"address"`
+	Address  string `json:"address" gorm:"index:contracts_idx"`
 	Manager  string `json:"manager,omitempty"`
 	Delegate string `json:"delegate,omitempty"`
 

@@ -24,9 +24,6 @@ var balanceQuery = `
 		(?)  as tb
 		left join token_metadata as tm on tm.network  = tb.network and tm.token_id = tb.token_id and tm.contract = tb.contract
 	)
-	order by %s desc
-	limit ?
-	offset ?
 `
 
 // TokenBalances -
@@ -45,13 +42,14 @@ func (storage *Storage) TokenBalances(network types.Network, contract, address s
 		sort = "token_id"
 	}
 
-	limit := storage.GetPageSize(size)
-	if err := storage.DB.Raw(fmt.Sprintf(balanceQuery, sort), query, limit, offset).
-		Find(&response.Balances).Error; err != nil {
+	if err := query.Count(&response.Count).Error; err != nil {
 		return response, err
 	}
 
-	if err := query.Count(&response.Count).Error; err != nil {
+	query.Limit(storage.GetPageSize(size)).Offset(int(offset)).Order(fmt.Sprintf("%s desc", sort))
+
+	if err := storage.DB.Raw(balanceQuery, query).
+		Find(&response.Balances).Error; err != nil {
 		return response, err
 	}
 

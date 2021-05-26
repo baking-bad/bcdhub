@@ -12,11 +12,11 @@ import (
 // BigMapState -
 type BigMapState struct {
 	ID              int64         `json:"-" gorm:"autoIncrement:true"`
-	Ptr             int64         `json:"ptr" gorm:"not null;primaryKey;autoIncrement:false"`
+	Ptr             int64         `json:"ptr" gorm:"not null;primaryKey;autoIncrement:false;index:big_map_state_ptr_idx"`
 	LastUpdateLevel int64         `json:"last_update_level" gorm:"last_update_level"`
 	Count           int64         `json:"count" gorm:"default:0"`
 	LastUpdateTime  time.Time     `json:"last_update_time"  gorm:"last_update_time"`
-	Network         types.Network `json:"network" gorm:"not null;primaryKey;default:0"`
+	Network         types.Network `json:"network" gorm:"not null;primaryKey;default:0;index:big_map_state_ptr_idx"`
 	KeyHash         string        `json:"key_hash" gorm:"not null;primaryKey"`
 	Contract        string        `json:"contract" gorm:"not null;primaryKey"` // contract is in primary key for supporting alpha protocol (mainnet before babylon)
 	Key             types.Bytes   `json:"key" gorm:"type:bytes;not null"`
