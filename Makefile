@@ -69,6 +69,7 @@ else
 endif
 
 s3-restore:
+	echo "Database restore..."
 ifeq (,$(wildcard $(LATEST_DUMP)))
 	aws s3 cp --profile bcd s3://bcd-db-snaps/$(BACKUP) $(LATEST_DUMP)
 endif
@@ -77,21 +78,36 @@ endif
 	gunzip -dc $(LATEST_DUMP) | docker-compose exec -T db psql -U $(POSTGRES_USER) -v ON_ERROR_STOP=on bcd
 	rm $(LATEST_DUMP)
 
+	echo "Elasticsearch restore..."
 ifeq ($(BCD_ENV), development)
 	cd scripts/bcdctl && go run . restore
 else
 	docker-compose exec api bcdctl restore
 endif
 
+	echo "Contracts restore..."
+	aws s3 cp --profile bcd s3://bcd-db-snaps/contracts.tar.gz /tmp/contracts.tar.gz
+	rm -rf $(SHARE_DIR)/contracts/
+	mkdir $(SHARE_DIR)/contracts/
+	tar -C $(SHARE_DIR)/contracts/ -xzf /tmp/contracts.tar.gz
+
 s3-snapshot:
+	echo "Database snapshot..."
 	docker-compose exec db pg_dump indexer --create -U $(POSTGRES_USER) | gzip -c > $(LATEST_DUMP)	
 	aws s3 mv --profile bcd $(LATEST_DUMP) s3://bcd-db-snaps/dump_latest.gz
 
+	echo "Elasticsearch snapshot..."
 ifeq ($(BCD_ENV), development)
 	cd scripts/bcdctl && go run . snapshot
 else
 	docker-compose exec api bcdctl snapshot
 endif
+
+	echo "Packing contracts..."
+	cd $(SHARE_DIR)/contracts
+	tar -zcvf /tmp/contracts.tar.gz .
+	aws s3 mv --profile bcd /tmp/contracts.tar.gz s3://bcd-db-snaps/contracts.tar.gz
+	rm /tmp/contracts.tar.gz
 
 s3-list:
 	echo "Database snapshots"
