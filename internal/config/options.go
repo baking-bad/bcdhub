@@ -7,7 +7,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/aws"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
-	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/bigmapdiff"
@@ -78,13 +77,6 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64) ContextOp
 		ctx.Transfers = transfer.NewStorage(pg)
 		ctx.TZIP = tzip.NewStorage(pg)
 		ctx.Domains = domains.NewStorage(pg)
-	}
-}
-
-// WithDatabase -
-func WithDatabase(dbConfig DatabaseConfig) ContextOption {
-	return func(ctx *Context) {
-		ctx.DB = database.WaitNew(dbConfig.ConnString, dbConfig.Timeout)
 	}
 }
 

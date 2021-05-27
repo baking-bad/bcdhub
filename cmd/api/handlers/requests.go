@@ -99,94 +99,9 @@ type searchRequest struct {
 	Languages string `form:"l,omitempty"`
 }
 
-// Subscription flags
-const (
-	WatchSame uint = 1 << iota
-	WatchSimilar
-	WatchMempool
-	WatchMigrations
-	WatchDeployments
-	WatchCalls
-	WatchErrors
-	SentryEnabled
-)
-
-type subRequest struct {
-	getContractRequest
-	Alias            string `json:"alias"`
-	WatchSame        bool   `json:"watch_same"`
-	WatchSimilar     bool   `json:"watch_similar"`
-	WatchMempool     bool   `json:"watch_mempool"`
-	WatchMigrations  bool   `json:"watch_migrations"`
-	WatchDeployments bool   `json:"watch_deployments"`
-	WatchCalls       bool   `json:"watch_calls"`
-	WatchErrors      bool   `json:"watch_errors"`
-	SentryEnabled    bool   `json:"sentry_enabled"`
-	SentryDSN        string `json:"sentry_dsn,omitempty"`
-}
-
-func newSubscriptionWithMask(mask uint) Subscription {
-	return Subscription{
-		WatchSame:        mask&WatchSame != 0,
-		WatchSimilar:     mask&WatchSimilar != 0,
-		WatchMempool:     mask&WatchMempool != 0,
-		WatchMigrations:  mask&WatchMigrations != 0,
-		WatchDeployments: mask&WatchDeployments != 0,
-		WatchCalls:       mask&WatchCalls != 0,
-		WatchErrors:      mask&WatchErrors != 0,
-		SentryEnabled:    mask&SentryEnabled != 0,
-	}
-}
-
-func (s subRequest) getMask() uint {
-	var b uint
-
-	if s.WatchSame {
-		b |= WatchSame
-	}
-
-	if s.WatchSimilar {
-		b |= WatchSimilar
-	}
-
-	if s.WatchMempool {
-		b |= WatchMempool
-	}
-
-	if s.WatchMigrations {
-		b |= WatchMigrations
-	}
-
-	if s.WatchDeployments {
-		b |= WatchDeployments
-	}
-
-	if s.WatchCalls {
-		b |= WatchCalls
-	}
-
-	if s.WatchErrors {
-		b |= WatchErrors
-	}
-
-	if s.SentryEnabled {
-		b |= SentryEnabled
-	}
-
-	return b
-}
-
 type sameContractRequest struct {
 	pageableRequest
 	Manager string `form:"manager,omitempty"`
-}
-
-type voteRequest struct {
-	SourceAddress      string        `json:"src" binding:"required,address"`
-	SourceNetwork      types.Network `json:"src_network" binding:"required,network"`
-	DestinationAddress string        `json:"dest" binding:"required,address"`
-	DestinationNetwork types.Network `json:"dest_network" binding:"required,network"`
-	Vote               uint          `json:"vote" binding:"oneof=1 2"`
 }
 
 // OPGRequest -
@@ -271,10 +186,6 @@ type runCodeRequest struct {
 	Sender   string                 `json:"sender,omitempty" binding:"omitempty,address"`
 }
 
-type markReadRequest struct {
-	Timestamp int64 `json:"timestamp"`
-}
-
 type storageSchemaRequest struct {
 	FillType string `form:"fill_type,omitempty" binding:"omitempty,fill_type"`
 }
@@ -315,15 +226,6 @@ type getTokenSeriesRequest struct {
 	Period   string `form:"period" binding:"oneof=year month week day" example:"year"`
 	TokenID  uint64 `form:"token_id"`
 	Slug     string `form:"slug" binding:"required"`
-}
-
-type publicReposRequest struct {
-	Login string `form:"login" binding:"required"`
-}
-
-type publicRefsRequest struct {
-	Owner string `form:"owner" binding:"required"`
-	Repo  string `form:"repo" binding:"required"`
 }
 
 type getDappRequest struct {

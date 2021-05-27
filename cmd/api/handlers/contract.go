@@ -5,7 +5,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 )
 
 // GetContract godoc
@@ -39,7 +38,7 @@ func (ctx *Context) GetContract(c *gin.Context) {
 		return
 	}
 
-	res, err := ctx.contractPostprocessing(contract, c)
+	res, err := ctx.contractPostprocessing(contract)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -74,31 +73,16 @@ func (ctx *Context) GetRandomContract(c *gin.Context) {
 		return
 	}
 
-	res, err := ctx.contractPostprocessing(contract, c)
+	res, err := ctx.contractPostprocessing(contract)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 	c.JSON(http.StatusOK, res)
 }
 
-func (ctx *Context) contractPostprocessing(contract contract.Contract, c *gin.Context) (Contract, error) {
+func (ctx *Context) contractPostprocessing(contract contract.Contract) (Contract, error) {
 	var res Contract
 	res.FromModel(contract)
-
-	if userID, err := ctx.getUserFromToken(c); err == nil && userID != 0 {
-		if sub, err := ctx.DB.GetSubscription(userID, res.Address, contract.Network); err == nil {
-			subscription := PrepareSubscription(sub)
-			res.Subscription = &subscription
-		} else if !gorm.IsRecordNotFoundError(err) {
-			return res, err
-		}
-	}
-
-	if totalSubscribed, err := ctx.DB.GetSubscriptionsCount(res.Address, contract.Network); err == nil {
-		res.TotalSubscribed = totalSubscribed
-	} else {
-		return res, err
-	}
 
 	if alias, err := ctx.TZIP.Get(contract.Network, contract.Address); err == nil {
 		res.Slug = alias.Slug

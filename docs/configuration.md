@@ -98,7 +98,6 @@ api:
     bind: ":14000"
     swagger_host: "api.better-call.dev"
     cors_enabled: false
-    oauth_enabled: true
     sentry_enabled: true
     seed_enabled: false
     networks:

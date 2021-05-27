@@ -214,19 +214,6 @@ type OperationResponse struct {
 	LastID     string      `json:"last_id,omitempty" extensions:"x-nullable" example:"1588640276994159"`
 }
 
-type userProfile struct {
-	Login            string    `json:"login"`
-	AvatarURL        string    `json:"avatar_url"`
-	MarkReadAt       time.Time `json:"mark_read_at"`
-	RegisteredAt     time.Time `json:"registered_at"`
-	MarkedContracts  int       `json:"marked_contracts"`
-	CompilationTasks int64     `json:"compilation_tasks"`
-	Verifications    int64     `json:"verifications"`
-	Deployments      int64     `json:"deployments"`
-
-	Subscriptions []Subscription `json:"subscriptions"`
-}
-
 // BigMapItem -
 type BigMapItem struct {
 	Key       interface{} `json:"key"`
