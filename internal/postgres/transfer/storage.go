@@ -105,7 +105,7 @@ const (
 			extract(epoch from f.val),
 			sum(amount) as value
 		from f
-		left join transfers on date_trunc('%s', transfers.timestamp) = f.val where (transfers.from != transfers.to) and (status = 'applied') %s
+		left join transfers on date_trunc('%s', transfers.timestamp) = f.val where (transfers.from != transfers.to) and (status = 1) %s
 		group by 1
 		order by date_part
 	`

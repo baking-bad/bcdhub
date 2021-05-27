@@ -10,6 +10,6 @@ select
         extract(epoch from f.val),
         count(*) as value
 from f
-left join operations on date_trunc('month', operations.timestamp) = f.val where ((network = %d) and (entrypoint is not null and entrypoint != '') and (status = 'applied'))
+left join operations on date_trunc('month', operations.timestamp) = f.val where ((network = %d) and (entrypoint is not null and entrypoint != '') and (status = 1))
 group by 1
 order by date_part

@@ -39,19 +39,19 @@ type Operation struct {
 	Protocol string        `json:"protocol"`
 	Hash     string        `json:"hash" gorm:"index:opg_idx;index:operations_hash_idx"`
 
-	Timestamp        time.Time `json:"timestamp"`
-	Status           string    `json:"status"`
-	Kind             string    `json:"kind"`
-	Initiator        string    `json:"initiator"`
-	Source           string    `json:"source" gorm:"index:source_idx"`
-	Destination      string    `json:"destination,omitempty" gorm:"index:destination_idx"`
-	Delegate         string    `json:"delegate,omitempty"`
-	Entrypoint       string    `json:"entrypoint,omitempty"`
-	SourceAlias      string    `json:"source_alias,omitempty"`
-	DestinationAlias string    `json:"destination_alias,omitempty"`
-	DelegateAlias    string    `json:"delegate_alias,omitempty"`
-	Parameters       []byte    `json:"parameters,omitempty"`
-	DeffatedStorage  []byte    `json:"deffated_storage"`
+	Timestamp        time.Time             `json:"timestamp"`
+	Status           types.OperationStatus `json:"status"`
+	Kind             string                `json:"kind"`
+	Initiator        string                `json:"initiator"`
+	Source           string                `json:"source" gorm:"index:source_idx"`
+	Destination      string                `json:"destination,omitempty" gorm:"index:destination_idx"`
+	Delegate         string                `json:"delegate,omitempty"`
+	Entrypoint       string                `json:"entrypoint,omitempty"`
+	SourceAlias      string                `json:"source_alias,omitempty"`
+	DestinationAlias string                `json:"destination_alias,omitempty"`
+	DelegateAlias    string                `json:"delegate_alias,omitempty"`
+	Parameters       []byte                `json:"parameters,omitempty"`
+	DeffatedStorage  []byte                `json:"deffated_storage"`
 
 	Tags pq.StringArray `json:"tags,omitempty" gorm:"type:text[]"`
 
@@ -110,7 +110,7 @@ func (o *Operation) SetAllocationBurn(constants protocol.Constants) {
 
 // SetBurned -
 func (o *Operation) SetBurned(constants protocol.Constants) {
-	if o.Status != consts.Applied {
+	if o.Status != types.OperationStatusApplied {
 		return
 	}
 	var burned int64
@@ -144,7 +144,7 @@ func (o *Operation) IsTransaction() bool {
 
 // IsApplied -
 func (o *Operation) IsApplied() bool {
-	return o.Status == consts.Applied
+	return o.Status == types.OperationStatusApplied
 }
 
 // IsCall -

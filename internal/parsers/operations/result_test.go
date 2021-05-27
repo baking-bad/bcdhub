@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 )
 
@@ -18,21 +19,21 @@ func Test_parseOperationResult(t *testing.T) {
 			name:     "test 1",
 			fileName: "./data/result/test1.json",
 			want: operation.Operation{
-				Status:      "applied",
+				Status:      types.OperationStatusApplied,
 				ConsumedGas: 10207,
 			},
 		}, {
 			name:     "test 2",
 			fileName: "./data/result/test2.json",
 			want: operation.Operation{
-				Status:      "applied",
+				Status:      types.OperationStatusApplied,
 				ConsumedGas: 10207,
 			},
 		}, {
 			name:     "test 3",
 			fileName: "./data/result/test3.json",
 			want: operation.Operation{
-				Status:              "applied",
+				Status:              types.OperationStatusApplied,
 				ConsumedGas:         15555,
 				StorageSize:         232,
 				PaidStorageSizeDiff: 232,
