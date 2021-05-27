@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"strconv"
 	"strings"
@@ -10,9 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/pkg/errors"
 )
@@ -34,7 +31,7 @@ func (x *snapshotCommand) Execute(_ []string) error {
 		return err
 	}
 	snapshotName := fmt.Sprintf("snapshot_%s", strings.ToLower(time.Now().UTC().Format(time.RFC3339)))
-	return ctx.Searcher.CreateSnapshots(name, snapshotName, models.AllDocuments())
+	return ctx.Searcher.CreateSnapshots(name, snapshotName, search.Indices)
 }
 
 type restoreCommand struct{}
@@ -58,7 +55,7 @@ func (x *restoreCommand) Execute(_ []string) error {
 	if err != nil {
 		return err
 	}
-	return ctx.Searcher.RestoreSnapshots(name, snapshotName, models.AllDocuments())
+	return ctx.Searcher.RestoreSnapshots(name, snapshotName, search.Indices)
 }
 
 type setPolicyCommand struct{}
@@ -146,7 +143,7 @@ func listSnapshots(storage search.Searcher, repository string) error {
 }
 
 func uploadMappings(storage search.Searcher, creds awsData) error {
-	mappings, err := storage.GetMappings(models.AllDocuments())
+	mappings, err := storage.GetMappings(search.Indices)
 	if err != nil {
 		return err
 	}
@@ -171,36 +168,6 @@ func uploadMappings(storage search.Searcher, creds awsData) error {
 			ContentType: aws.String("application/json"),
 		}); err != nil {
 			return errors.Errorf("failed to upload file, %v", err)
-		}
-	}
-	return nil
-}
-
-// nolint
-func restoreMappings(storage search.Searcher, creds awsData) error {
-	sess, err := session.NewSession(&aws.Config{
-		Region:      aws.String(creds.Region),
-		Credentials: credentials.NewEnvCredentials(),
-	})
-	if err != nil {
-		return err
-	}
-	downloader := s3manager.NewDownloader(sess)
-
-	for _, key := range models.AllDocuments() {
-		fileName := fmt.Sprintf("mappings/%s.json", key)
-		buf := aws.NewWriteAtBuffer([]byte{})
-
-		if _, err := downloader.Download(buf, &s3.GetObjectInput{
-			Bucket: aws.String(creds.BucketName),
-			Key:    aws.String(fileName),
-		}); err != nil {
-			return errors.Errorf("failed to upload file, %v", err)
-		}
-		data := bytes.NewReader(buf.Bytes())
-
-		if err := storage.CreateMapping(key, data); err != nil {
-			return err
 		}
 	}
 	return nil
