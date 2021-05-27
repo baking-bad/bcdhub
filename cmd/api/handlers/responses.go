@@ -153,11 +153,9 @@ type Contract struct {
 	Alias           string    `json:"alias,omitempty" extensions:"x-nullable"`
 	DelegateAlias   string    `json:"delegate_alias,omitempty" extensions:"x-nullable"`
 
-	Subscription       *Subscription `json:"subscription,omitempty" extensions:"x-nullable"`
-	TotalSubscribed    int           `json:"total_subscribed"`
-	Slug               string        `json:"slug,omitempty" extensions:"x-nullable"`
-	Verified           bool          `json:"verified,omitempty" extensions:"x-nullable"`
-	VerificationSource string        `json:"verification_source,omitempty" extensions:"x-nullable"`
+	Subscription    *Subscription `json:"subscription,omitempty" extensions:"x-nullable"`
+	TotalSubscribed int           `json:"total_subscribed"`
+	Slug            string        `json:"slug,omitempty" extensions:"x-nullable"`
 
 	SameCount    int64 `json:"same_count"`
 	SimilarCount int64 `json:"similar_count"`
@@ -182,8 +180,6 @@ func (c *Contract) FromModel(contract contract.Contract) {
 	c.ProjectID = contract.ProjectID
 	c.Tags = contract.Tags
 	c.Timestamp = contract.Timestamp
-	c.Verified = contract.Verified
-	c.VerificationSource = contract.VerificationSource
 	c.FailStrings = contract.FailStrings
 	c.Annotations = contract.Annotations
 	c.ID = contract.ID

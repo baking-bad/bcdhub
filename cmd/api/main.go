@@ -241,18 +241,6 @@ func (api *app) makeRouter() {
 				profile.GET("accounts", api.Context.ListPublicAccounts)
 				profile.GET("repos", api.Context.ListPublicRepos)
 				profile.GET("refs", api.Context.ListPublicRefs)
-
-				compilations := profile.Group("compilations")
-				{
-					compilations.GET("", api.Context.ListCompilationTasks)
-
-					compilations.GET("verification", api.Context.ListVerifications)
-					compilations.POST("verification", api.Context.CreateVerification)
-
-					compilations.GET("deployment", api.Context.ListDeployments)
-					compilations.POST("deployment", api.Context.CreateDeployment)
-					compilations.PATCH("deployment", api.Context.FinalizeDeployment)
-				}
 			}
 		}
 

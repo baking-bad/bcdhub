@@ -34,13 +34,6 @@ type Config struct {
 
 	API APIConfig `yaml:"api"`
 
-	Compiler struct {
-		ProjectName   string    `yaml:"project_name"`
-		SentryEnabled bool      `yaml:"sentry_enabled"`
-		AWS           AWSConfig `yaml:"aws"`
-		MQ            MQConfig  `yaml:"mq"`
-	} `yaml:"compiler"`
-
 	Indexer struct {
 		Networks map[string]struct {
 			Boost string `yaml:"boost"`

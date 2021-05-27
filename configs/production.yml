@@ -91,19 +91,6 @@ api:
     secret_key: ${PINATA_SECRET_KEY}
     timeout_seconds: 10
 
-compiler:
-  project_name: compiler
-  aws:
-    bucket_name: bcd-contract-sources
-    region: eu-central-1
-    access_key_id: ${AWS_ACCESS_KEY_ID}
-    secret_access_key: ${AWS_SECRET_ACCESS_KEY}
-  sentry_enabled: true
-  mq:
-    publisher: true
-    queues:
-      compilations:
-
 indexer:
   project_name: indexer
   sentry_enabled: true

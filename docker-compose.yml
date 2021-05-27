@@ -102,22 +102,6 @@ services:
       - ${SHARE_PATH}:/etc/bcd
     logging: *bcd-logging
 
-  compiler:
-    restart: always
-    image: bakingbad/bcdhub-compiler:${TAG:-latest}
-    build:
-      context: .
-      dockerfile: build/compiler/Dockerfile
-    env_file:
-      - .env
-    depends_on:
-      - elastic
-      - mq
-      - db
-    volumes:
-      - ${SHARE_PATH}:/etc/bcd
-    logging: *bcd-logging
-
   gui:
     restart: always
     image: bakingbad/bcdhub-gui:${TAG:-latest}

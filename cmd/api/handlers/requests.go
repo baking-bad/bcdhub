@@ -317,29 +317,6 @@ type getTokenSeriesRequest struct {
 	Slug     string `form:"slug" binding:"required"`
 }
 
-type verificationRequest struct {
-	getContractRequest
-	Account string `json:"account"`
-	Repo    string `json:"repo"`
-	Ref     string `json:"ref"`
-}
-
-type deploymentRequest struct {
-	OperationHash string `json:"operation_hash" binding:"required"`
-	TaskID        uint   `json:"task_id" binding:"required"`
-	ResultID      uint   `json:"result_id"`
-}
-
-type compilationRequest struct {
-	Limit  uint `form:"limit" binding:"omitempty,min=0"`
-	Offset uint `form:"offset" binding:"omitempty,min=0"`
-}
-
-type compilationTasksRequest struct {
-	compilationRequest
-	Kind string `form:"kind" binding:"omitempty,compilation_kind"`
-}
-
 type publicReposRequest struct {
 	Login string `form:"login" binding:"required"`
 }

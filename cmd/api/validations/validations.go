@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
-	"github.com/baking-bad/bcdhub/internal/compiler/compilation"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/btcsuite/btcutil/base58"
@@ -39,10 +38,6 @@ func Register(v *validator.Validate, cfg config.APIConfig) error {
 	}
 
 	if err := v.RegisterValidation("fill_type", fillTypeValidator()); err != nil {
-		return err
-	}
-
-	if err := v.RegisterValidation("compilation_kind", compilationKindValidator()); err != nil {
 		return err
 	}
 
@@ -125,16 +120,6 @@ func fillTypeValidator() validator.Func {
 		return helpers.StringInArray(fillType, []string{
 			"empty",
 			"current",
-		})
-	}
-}
-
-func compilationKindValidator() validator.Func {
-	return func(fl validator.FieldLevel) bool {
-		kind := fl.Field().String()
-		return helpers.StringInArray(kind, []string{
-			compilation.KindVerification,
-			compilation.KindDeployment,
 		})
 	}
 }
