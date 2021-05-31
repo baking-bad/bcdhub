@@ -84,7 +84,7 @@ func (storage *Storage) GetLastIDWithEvents() (int64, error) {
 	var lastID int64
 	err := storage.DB.
 		Table(models.DocTZIP).
-		Select("max(id)").
+		Select("COALESCE(max(id), 0)").
 		Where("events is not null AND jsonb_array_length(events) > 0").
 		Scan(&lastID).
 		Error

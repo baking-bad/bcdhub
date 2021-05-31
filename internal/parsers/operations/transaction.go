@@ -156,6 +156,11 @@ func (p Transaction) getEntrypoint(tx *operation.Operation) error {
 		return nil
 	}
 
+	if len(tx.Parameters) == 0 {
+		tx.Entrypoint = consts.DefaultEntrypoint
+		return nil
+	}
+
 	params := types.NewParameters(tx.Parameters)
 	tx.Entrypoint = params.Entrypoint
 
