@@ -37,11 +37,11 @@ func (ctx *Context) updateSeriesMaterializedViews() error {
 	return ctx.StorageDB.DB.Transaction(func(tx *gorm.DB) error {
 		for network := range ctx.Config.Indexer.Networks {
 
-			if err := tx.Exec(fmt.Sprintf(`REFRESH MATERIALIZED VIEW series_contracts_by_month_%s;`, network)).Error; err != nil {
+			if err := tx.Exec(fmt.Sprintf(`REFRESH MATERIALIZED VIEW series_contract_by_month_%s;`, network)).Error; err != nil {
 				return err
 			}
 
-			if err := tx.Exec(fmt.Sprintf(`REFRESH MATERIALIZED VIEW series_operations_by_month_%s;`, network)).Error; err != nil {
+			if err := tx.Exec(fmt.Sprintf(`REFRESH MATERIALIZED VIEW series_operation_by_month_%s;`, network)).Error; err != nil {
 				return err
 			}
 
