@@ -97,7 +97,7 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 						return err
 					}
 
-					parser, err := transferParser.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.Storage,
+					parser, err := transferParser.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.Storage, ctx.TokenBalances,
 						ctx.SharePath,
 						transferParser.WithNetwork(tzips[i].Network),
 						transferParser.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),

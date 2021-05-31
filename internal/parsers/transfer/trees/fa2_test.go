@@ -33,7 +33,7 @@ func TestMakeFa2Transfers(t *testing.T) {
 					Network: modelTypes.Mainnet,
 					From:    "tz1gHJt7J1aEtW2wpCR5RJd3CpnbVxUTaEXS",
 					To:      "tz1gsJENNUwg7fQiRwQi5zJYaj7YtwwsE3y2",
-					Value:   newBigInt("1000000000"),
+					Amount:  newDecimal("1000000000"),
 				},
 			},
 		},

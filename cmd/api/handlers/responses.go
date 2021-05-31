@@ -540,8 +540,8 @@ type Transfer struct {
 	ToAlias        string         `json:"to_alias,omitempty" extensions:"x-nullable"`
 }
 
-// TransferFromElasticModel -
-func TransferFromElasticModel(model transfer.Transfer) (t Transfer) {
+// TransferFromModel -
+func TransferFromModel(model transfer.Transfer) (t Transfer) {
 	t.IndexedTime = model.ID
 	t.Network = model.Network.String()
 	t.Contract = model.Contract

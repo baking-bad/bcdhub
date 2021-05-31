@@ -130,7 +130,7 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, network types.Ne
 					return nil, err
 				}
 
-				res, err := transferParsers.NewDefaultBalanceParser(h.Storage).Parse(balances, origination)
+				res, err := transferParsers.NewDefaultBalanceParser(h.TokenBalances).Parse(balances, origination)
 				if err != nil {
 					return nil, err
 				}
@@ -145,7 +145,7 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, network types.Ne
 						Address:  balances[i].Address,
 						TokenID:  balances[i].TokenID,
 						Contract: tzip.Address,
-						Value:    balances[i].Value,
+						Balance:  balances[i].Value,
 					})
 				}
 			}

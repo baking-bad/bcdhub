@@ -17,7 +17,7 @@ func UpdateTokenBalances(transfers []*transfer.Transfer) []*tokenbalance.TokenBa
 		idFrom := transfers[i].GetFromTokenBalanceID()
 		if idFrom != "" {
 			if update, ok := exists[idFrom]; ok {
-				update.Value.Sub(update.Value, transfers[i].Value)
+				update.Balance = update.Balance.Sub(transfers[i].Amount)
 			} else {
 				exists[idFrom] = transfers[i].MakeTokenBalanceUpdate(true, false)
 				updates = append(updates, exists[idFrom])
@@ -26,7 +26,7 @@ func UpdateTokenBalances(transfers []*transfer.Transfer) []*tokenbalance.TokenBa
 		idTo := transfers[i].GetToTokenBalanceID()
 		if idTo != "" {
 			if update, ok := exists[idTo]; ok {
-				update.Value.Add(update.Value, transfers[i].Value)
+				update.Balance = update.Balance.Add(transfers[i].Amount)
 			} else {
 				exists[idTo] = transfers[i].MakeTokenBalanceUpdate(false, false)
 				updates = append(updates, exists[idTo])

@@ -29,6 +29,7 @@ var migrationsList = []migrations.Migration{
 	&migrations.AddCountColumnToBigMapState{},
 	&migrations.TokenMetadataPrimaryKey{},
 	&migrations.NetworkType{},
+	&migrations.DecimalsAmount{},
 }
 
 func main() {

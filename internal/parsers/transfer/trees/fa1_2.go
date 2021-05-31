@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	"github.com/shopspring/decimal"
 )
 
 // MakeFa1_2Transfers -
@@ -30,7 +31,7 @@ func MakeFa1_2Transfers(tree ast.Node, operation operation.Operation) ([]*transf
 		return nil, err
 	}
 	i := toPair.Args[1].GetValue().(*types.BigInt)
-	t.Value.Set(i.Int)
+	t.Amount = decimal.NewFromBigInt(i.Int, 0)
 	return []*transfer.Transfer{t}, nil
 }
 

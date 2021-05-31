@@ -1,23 +1,21 @@
 package transfer
 
 import (
-	"math/big"
-
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	tbParser "github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
+	"github.com/shopspring/decimal"
 )
 
 // DefaultBalanceParser -
 type DefaultBalanceParser struct {
-	repo models.GeneralRepository
+	repo tokenbalance.Repository
 }
 
 // NewDefaultBalanceParser -
-func NewDefaultBalanceParser(repo models.GeneralRepository) *DefaultBalanceParser {
+func NewDefaultBalanceParser(repo tokenbalance.Repository) *DefaultBalanceParser {
 	return &DefaultBalanceParser{repo}
 }
 
@@ -26,12 +24,12 @@ func (parser *DefaultBalanceParser) Parse(balances []tbParser.TokenBalance, oper
 	transfers := make([]*transfer.Transfer, 0)
 	for _, balance := range balances {
 		transfer := transfer.EmptyTransfer(operation)
-		if balance.Value.Cmp(big.NewInt(0)) > 0 {
+		if balance.Value.Cmp(decimal.Zero) > 0 {
 			transfer.To = balance.Address
 		} else {
 			transfer.From = balance.Address
 		}
-		transfer.Value.Abs(balance.Value)
+		transfer.Amount = balance.Value.Abs()
 		transfer.TokenID = balance.TokenID
 
 		transfers = append(transfers, transfer)
@@ -46,30 +44,19 @@ func (parser *DefaultBalanceParser) ParseBalances(network types.Network, contrac
 	for _, balance := range balances {
 		transfer := transfer.EmptyTransfer(operation)
 
-		tb := tokenbalance.TokenBalance{
-			Network:  network,
-			Contract: contract,
-			Address:  balance.Address,
-			TokenID:  balance.TokenID,
-		}
-		if err := parser.repo.GetByID(&tb); err != nil {
-			if !parser.repo.IsRecordNotFound(err) {
-				return nil, err
-			}
-
-			tb.Value = big.NewInt(0)
+		tb, err := parser.repo.Get(network, contract, balance.Address, balance.TokenID)
+		if err != nil {
+			return nil, err
 		}
 
-		delta := new(big.Int)
-		delta.Sub(balance.Value, tb.Value)
-
-		if delta.Cmp(big.NewInt(0)) > 0 {
+		delta := balance.Value.Sub(tb.Balance)
+		if delta.Cmp(decimal.Zero) > 0 {
 			transfer.To = balance.Address
 		} else {
 			transfer.From = balance.Address
 		}
 
-		transfer.Value.Abs(delta)
+		transfer.Amount = delta.Abs()
 		transfer.TokenID = balance.TokenID
 
 		transfers = append(transfers, transfer)

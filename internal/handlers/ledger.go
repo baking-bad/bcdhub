@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"bytes"
-	"math/big"
 
 	jsoniter "github.com/json-iterator/go"
+	"github.com/shopspring/decimal"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
@@ -102,7 +102,7 @@ func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *as
 		Address:  balance[0].Address,
 		TokenID:  balance[0].TokenID,
 		Contract: bmd.Contract,
-		Value:    balance[0].Value,
+		Balance:  balance[0].Value,
 		IsLedger: true,
 	}
 
@@ -118,7 +118,7 @@ func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *as
 				return nil, err
 			}
 			for i := range holders {
-				holders[i].Value = big.NewInt(0)
+				holders[i].Balance = decimal.Zero
 				holders[i].IsLedger = true
 				t.From = holders[i].Address
 				items = append(items, &holders[i])
@@ -144,7 +144,7 @@ func (ledger *Ledger) makeTransfer(tb tokenbalance.TokenBalance, op *operation.O
 
 	t := transfer.EmptyTransfer(*op)
 
-	switch balance.Value.Cmp(tb.Value) {
+	switch balance.Balance.Cmp(tb.Value) {
 	case 1:
 		t.From = tb.Address
 	case -1:
@@ -154,7 +154,7 @@ func (ledger *Ledger) makeTransfer(tb tokenbalance.TokenBalance, op *operation.O
 	}
 
 	t.TokenID = tb.TokenID
-	t.Value.Set(balance.Value)
+	t.Amount = balance.Balance
 
 	if op.Nonce != nil {
 		st := stacktrace.New()

@@ -1,12 +1,11 @@
 package tokenbalance
 
 import (
-	"math/big"
-
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
+	"github.com/shopspring/decimal"
 )
 
 // Storage -
@@ -30,8 +29,7 @@ func (storage *Storage) Get(network types.Network, contract, address string, tok
 		t.Contract = contract
 		t.Address = address
 		t.TokenID = tokenID
-		t.Balance = 0
-		t.Value = big.NewInt(0)
+		t.Balance = decimal.Zero
 		t.BalanceString = "0"
 		err = nil
 	}

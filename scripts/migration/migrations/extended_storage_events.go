@@ -49,7 +49,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 	for i := range tzips {
 		for _, event := range tzips[i].Events {
 			for _, impl := range event.Implementations {
-				if impl.MichelsonExtendedStorageEvent.Empty() {
+				if impl.MichelsonExtendedStorageEvent == nil || impl.MichelsonExtendedStorageEvent.Empty() {
 					continue
 				}
 				logger.Info("%s...", tzips[i].Address)
@@ -90,7 +90,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 						return err
 					}
 
-					parser, err := transferParsers.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.Storage,
+					parser, err := transferParsers.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.Storage, ctx.TokenBalances,
 						ctx.SharePath,
 						transferParsers.WithNetwork(tzips[i].Network),
 						transferParsers.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
@@ -160,7 +160,7 @@ func (m *ExtendedStorageEvents) getOperations(ctx *config.Context, tzip tzip.TZI
 			"network":     tzip.Network,
 			"destination": tzip.Address,
 			"kind":        consts.Transaction,
-			"status":      consts.Applied,
+			"status":      "applied",
 			"entrypoint":  impl.MichelsonExtendedStorageEvent.Entrypoints[i],
 		}, 0, false)
 		if err != nil {

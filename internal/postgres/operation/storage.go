@@ -47,10 +47,15 @@ type opgForContract struct {
 
 func (storage *Storage) getContractOPG(address string, network types.Network, size uint64, filters map[string]interface{}) (response []opgForContract, err error) {
 	subQuery := storage.DB.Table(models.DocOperations).Select("hash", "counter", "id").
-		Where("network = ?", network).
-		Where(
+		Where("network = ?", network)
+
+	if _, ok := filters["entrypoints"]; !ok {
+		subQuery.Where(
 			storage.DB.Where("source = ?", address).Or("destination = ?", address),
 		)
+	} else {
+		subQuery.Where("destination = ?", address)
+	}
 
 	if err := prepareOperationFilters(subQuery, filters); err != nil {
 		return nil, err
@@ -62,7 +67,7 @@ func (storage *Storage) getContractOPG(address string, network types.Network, si
 	limit := storage.GetPageSize(int64(size))
 	query.Group("foo.hash, foo.counter").Order("id desc").Limit(limit)
 
-	err = query.Find(&response).Error
+	err = query.Debug().Find(&response).Error
 	return
 }
 

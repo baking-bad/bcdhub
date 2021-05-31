@@ -1,10 +1,8 @@
 package tokenbalance
 
 import (
-	"math/big"
-
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/pkg/errors"
+	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -12,16 +10,15 @@ import (
 
 // TokenBalance -
 type TokenBalance struct {
-	ID            int64         `json:"-" gorm:"autoIncrement:true"`
-	Network       types.Network `json:"network" gorm:"not null;primaryKey;index:token_balances_token_idx;default:0"`
-	Address       string        `json:"address" gorm:"not null;primaryKey"`
-	Contract      string        `json:"contract" gorm:"not null;primaryKey;index:token_balances_token_idx"`
-	TokenID       uint64        `json:"token_id" gorm:"type:numeric(50,0);default:0;primaryKey;autoIncrement:false;index:token_balances_token_idx"`
-	Balance       float64       `json:"balance" gorm:"type:numeric(100,0);default:0"`
-	BalanceString string        `json:"balance_string"`
+	ID            int64           `json:"-" gorm:"autoIncrement:true"`
+	Network       types.Network   `json:"network" gorm:"not null;primaryKey;index:token_balances_token_idx;default:0"`
+	Address       string          `json:"address" gorm:"not null;primaryKey"`
+	Contract      string          `json:"contract" gorm:"not null;primaryKey;index:token_balances_token_idx"`
+	TokenID       uint64          `json:"token_id" gorm:"type:numeric(50,0);default:0;primaryKey;autoIncrement:false;index:token_balances_token_idx"`
+	Balance       decimal.Decimal `json:"balance" gorm:"type:numeric(100,0);default:0"`
+	BalanceString string          `json:"balance_string"`
 
-	IsLedger bool     `json:"-" gorm:"-"`
-	Value    *big.Int `json:"-" gorm:"-"`
+	IsLedger bool `json:"-" gorm:"-"`
 }
 
 // GetID -
@@ -38,16 +35,15 @@ func (tb *TokenBalance) GetIndex() string {
 func (tb *TokenBalance) Save(tx *gorm.DB) error {
 	var s clause.Set
 
-	f, _ := new(big.Float).SetInt(tb.Value).Float64()
 	if tb.IsLedger {
 		s = clause.Assignments(map[string]interface{}{
-			"balance":        f,
-			"balance_string": tb.Value.String(),
+			"balance":        tb.Balance,
+			"balance_string": tb.Balance.String(),
 		})
 	} else {
 		s = clause.Assignments(map[string]interface{}{
-			"balance":        gorm.Expr("token_balances.balance + ?", f),
-			"balance_string": gorm.Expr("(token_balances.balance + ?)::text", f),
+			"balance":        gorm.Expr("token_balances.balance + ?", tb.Balance),
+			"balance_string": gorm.Expr("(token_balances.balance + ?)::text", tb.Balance),
 		})
 	}
 
@@ -82,11 +78,6 @@ func (tb *TokenBalance) LogFields() logrus.Fields {
 	}
 }
 
-// AfterFind -
-func (tb *TokenBalance) AfterFind(tx *gorm.DB) (err error) {
-	return tb.unmarshal()
-}
-
 // BeforeCreate -
 func (tb *TokenBalance) BeforeCreate(tx *gorm.DB) (err error) {
 	return tb.marshal()
@@ -98,22 +89,6 @@ func (tb *TokenBalance) BeforeUpdate(tx *gorm.DB) (err error) {
 }
 
 func (tb *TokenBalance) marshal() error {
-	if tb.Value == nil {
-		return errors.New("Nil amount in transfer")
-	}
-	tb.BalanceString = tb.Value.String()
-	tb.Balance, _ = new(big.Float).SetInt(tb.Value).Float64()
-	return nil
-}
-
-func (tb *TokenBalance) unmarshal() error {
-	if tb.Value == nil {
-		tb.Value = big.NewInt(0)
-	}
-
-	if _, ok := tb.Value.SetString(tb.BalanceString, 10); !ok {
-		return errors.Errorf("Invalid amount in transfer: %s", tb.BalanceString)
-	}
-
+	tb.BalanceString = tb.Balance.String()
 	return nil
 }
