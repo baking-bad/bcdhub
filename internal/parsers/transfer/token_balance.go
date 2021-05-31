@@ -1,9 +1,9 @@
 package transfer
 
 import (
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 // UpdateTokenBalances -
@@ -11,7 +11,7 @@ func UpdateTokenBalances(transfers []*transfer.Transfer) []*tokenbalance.TokenBa
 	exists := make(map[string]*tokenbalance.TokenBalance)
 	updates := make([]*tokenbalance.TokenBalance, 0)
 	for i := range transfers {
-		if transfers[i].Status != consts.Applied {
+		if transfers[i].Status != types.OperationStatusApplied {
 			continue
 		}
 		idFrom := transfers[i].GetFromTokenBalanceID()

@@ -106,7 +106,7 @@ func (o *Operation) Prepare(model models.Model) {
 	o.ParameterStrings = op.ParameterStrings
 	o.Source = op.Source
 	o.SourceAlias = op.SourceAlias
-	o.Status = op.Status
+	o.Status = op.Status.String()
 	o.StorageStrings = op.StorageStrings
 	o.Timestamp = op.Timestamp
 }

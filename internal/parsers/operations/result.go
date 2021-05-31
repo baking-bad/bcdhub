@@ -4,6 +4,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 )
 
@@ -13,7 +14,7 @@ func parseOperationResult(data noderpc.Operation, tx *operation.Operation) {
 		return
 	}
 
-	tx.Status = result.Status
+	tx.Status = types.NewOperationStatus(result.Status)
 	tx.ConsumedGas = result.ConsumedGas
 	if result.StorageSize != nil {
 		tx.StorageSize = *result.StorageSize

@@ -39,7 +39,7 @@ func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, ne
 	op := operation.Operation{
 		Network:     network,
 		Protocol:    head.Protocol,
-		Status:      consts.Applied,
+		Status:      types.OperationStatusApplied,
 		Kind:        consts.Migration,
 		Amount:      data.Balance,
 		Counter:     data.Counter,

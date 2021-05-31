@@ -84,7 +84,7 @@ func (o *Operation) FromModel(operation operation.Operation) {
 	o.Destination = operation.Destination
 	o.DestinationAlias = operation.DestinationAlias
 	o.Delegate = operation.Delegate
-	o.Status = operation.Status
+	o.Status = operation.Status.String()
 	o.Burned = operation.Burned
 	o.Entrypoint = operation.Entrypoint
 	o.ContentIndex = operation.ContentIndex
@@ -117,7 +117,7 @@ func (o *Operation) ToModel() operation.Operation {
 		Destination:      o.Destination,
 		DestinationAlias: o.DestinationAlias,
 		Delegate:         o.Delegate,
-		Status:           o.Status,
+		Status:           types.NewOperationStatus(o.Status),
 		Burned:           o.Burned,
 		Entrypoint:       o.Entrypoint,
 
@@ -547,7 +547,7 @@ func TransferFromModel(model transfer.Transfer) (t Transfer) {
 	t.Contract = model.Contract
 	t.Initiator = model.Initiator
 	t.Hash = model.Hash
-	t.Status = model.Status
+	t.Status = model.Status.String()
 	t.Timestamp = model.Timestamp
 	t.Level = model.Level
 	t.From = model.From

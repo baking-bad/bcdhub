@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
-	constants "github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -139,15 +138,17 @@ func (storage *Storage) GetByContract(network types.Network, address string, siz
 // Last - get last operation for contract `address` with filter by `id`. If `id` is -1 then returns last in table.
 func (storage *Storage) Last(network types.Network, address string, id int64) (op operation.Operation, err error) {
 	query := storage.DB.Table(models.DocOperations).
-		Where("network = ?", network).
-		Where("destination = ?", address).
-		Where("status = ?", constants.Applied).
-		Where("deffated_storage != ''").
-		Order("id desc")
+		Where("network = ?", network)
 
 	if id > -1 {
 		query.Where("id < ?", id)
 	}
+
+	query.
+		Where("status = ?", types.OperationStatusApplied).
+		Where("deffated_storage != ''").
+		Where("destination = ?", address).
+		Order("id desc")
 
 	err = query.First(&op).Error
 	return
@@ -191,7 +192,7 @@ func (storage *Storage) GetContract24HoursVolume(network types.Network, address 
 		Select("COALESCE(SUM(amount), 0)").
 		Where("destination = ?", address).
 		Where("network = ?", network).
-		Where("status = ?", constants.Applied).
+		Where("status = ?", types.OperationStatusApplied).
 		Where("timestamp > ?", aDayAgo)
 
 	if len(entrypoints) > 0 {
@@ -316,7 +317,7 @@ func (storage *Storage) GetDAppStats(network types.Network, addresses []string, 
 func getDAppQuery(db *gorm.DB, network types.Network, addresses []string, period string) (*gorm.DB, error) {
 	query := db.Table(models.DocOperations).
 		Where("network = ?", network).
-		Where("status = ?", constants.Applied)
+		Where("status = ?", types.OperationStatusApplied)
 
 	if len(addresses) > 0 {
 		subQuery := db.Where("destination = ?", addresses[0])

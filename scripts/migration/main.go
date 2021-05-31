@@ -30,6 +30,7 @@ var migrationsList = []migrations.Migration{
 	&migrations.TokenMetadataPrimaryKey{},
 	&migrations.NetworkType{},
 	&migrations.DecimalsAmount{},
+	&migrations.OperationStatusType{},
 }
 
 func main() {

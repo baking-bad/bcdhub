@@ -6,6 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/getsentry/sentry-go"
 )
 
@@ -23,7 +24,7 @@ func (h *Handler) SetOperationStrings(op *operation.Operation) {
 
 // SendSentryNotifications -
 func (h *Handler) SendSentryNotifications(op operation.Operation) error {
-	if op.Status != "failed" {
+	if op.Status != types.OperationStatusFailed {
 		return nil
 	}
 
