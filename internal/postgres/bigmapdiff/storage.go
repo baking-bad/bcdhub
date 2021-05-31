@@ -295,7 +295,20 @@ func (storage *Storage) LastDiff(network types.Network, ptr int64, keyHash strin
 
 // Keys -
 func (storage *Storage) Keys(ctx bigmapdiff.GetContext) (states []bigmapdiff.BigMapState, err error) {
-	query := storage.buildGetContextForState(ctx)
-	err = query.Find(&states).Error
+	if ctx.Query == "" {
+		query := storage.buildGetContextForState(ctx)
+		err = query.Find(&states).Error
+	} else {
+		query := storage.buildGetContext(ctx)
+
+		var bmd []bigmapdiff.Bucket
+		if err := storage.DB.Table(models.DocBigMapDiff).Select("*, bmd.keys_count").Joins("inner join (?) as bmd on bmd.id = big_map_diffs.id", query).Find(&bmd).Error; err != nil {
+			return states, err
+		}
+		states = make([]bigmapdiff.BigMapState, len(bmd))
+		for i := range bmd {
+			states[i] = *bmd[i].ToState()
+		}
+	}
 	return
 }

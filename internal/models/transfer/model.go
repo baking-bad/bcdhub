@@ -1,15 +1,13 @@
 package transfer
 
 import (
-	"database/sql/driver"
 	"fmt"
-	"math/big"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/pkg/errors"
+	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -17,25 +15,23 @@ import (
 
 // Transfer -
 type Transfer struct {
-	ID           int64         `json:"-"`
-	Network      types.Network `json:"network" gorm:"index:transfers_network_idx;index:transfers_token_idx"`
-	Contract     string        `json:"contract" gorm:"index:transfers_token_idx"`
-	Initiator    string        `json:"initiator"`
-	Hash         string        `json:"hash"`
-	Status       string        `json:"status"`
-	Timestamp    time.Time     `json:"timestamp" gorm:"index:transfers_timestamp_idx"`
-	Level        int64         `json:"level" gorm:"index:transfers_network_idx"`
-	From         string        `json:"from" gorm:"index:transfers_from_idx"`
-	To           string        `json:"to" gorm:"index:transfers_to_idx"`
-	TokenID      uint64        `json:"token_id" gorm:"type:numeric(50,0);index:transfers_token_idx"`
-	Amount       float64       `json:"amount" gorm:"type:numeric(100,0)"`
-	AmountString string        `json:"amount_string"`
-	Counter      int64         `json:"counter"`
-	Nonce        *int64        `json:"nonce,omitempty"`
-	Parent       string        `json:"parent,omitempty"`
-	Entrypoint   string        `json:"entrypoint,omitempty"`
-
-	Value *big.Int `json:"-" gorm:"-"`
+	ID           int64           `json:"-"`
+	Network      types.Network   `json:"network" gorm:"index:transfers_network_idx;index:transfers_token_idx"`
+	Contract     string          `json:"contract" gorm:"index:transfers_token_idx"`
+	Initiator    string          `json:"initiator"`
+	Hash         string          `json:"hash"`
+	Status       string          `json:"status"`
+	Timestamp    time.Time       `json:"timestamp" gorm:"index:transfers_timestamp_idx"`
+	Level        int64           `json:"level" gorm:"index:transfers_network_idx"`
+	From         string          `json:"from" gorm:"index:transfers_from_idx"`
+	To           string          `json:"to" gorm:"index:transfers_to_idx"`
+	TokenID      uint64          `json:"token_id" gorm:"type:numeric(50,0);index:transfers_token_idx"`
+	Amount       decimal.Decimal `json:"amount" gorm:"type:numeric(100,0)"`
+	AmountString string          `json:"amount_string"`
+	Counter      int64           `json:"counter"`
+	Nonce        *int64          `json:"nonce,omitempty"`
+	Parent       string          `json:"parent,omitempty"`
+	Entrypoint   string          `json:"entrypoint,omitempty"`
 }
 
 // GetID -
@@ -76,11 +72,6 @@ func (t *Transfer) LogFields() logrus.Fields {
 	}
 }
 
-// AfterFind -
-func (t *Transfer) AfterFind(tx *gorm.DB) (err error) {
-	return t.unmarshal()
-}
-
 // BeforeCreate -
 func (t *Transfer) BeforeCreate(tx *gorm.DB) (err error) {
 	return t.marshal()
@@ -92,23 +83,7 @@ func (t *Transfer) BeforeUpdate(tx *gorm.DB) (err error) {
 }
 
 func (t *Transfer) marshal() error {
-	if t.Value == nil {
-		return errors.New("Nil amount in transfer")
-	}
-	t.AmountString = t.Value.String()
-	t.Amount, _ = new(big.Float).SetInt(t.Value).Float64()
-	return nil
-}
-
-func (t *Transfer) unmarshal() error {
-	if t.Value == nil {
-		t.Value = big.NewInt(0)
-	}
-
-	if _, ok := t.Value.SetString(t.AmountString, 10); !ok {
-		return errors.Errorf("Invalid amount in transfer: %s", t.AmountString)
-	}
-
+	t.AmountString = t.Amount.String()
 	return nil
 }
 
@@ -125,7 +100,7 @@ func EmptyTransfer(o operation.Operation) *Transfer {
 		Counter:    o.Counter,
 		Nonce:      o.Nonce,
 		Entrypoint: o.Entrypoint,
-		Value:      new(big.Int),
+		Amount:     decimal.Zero,
 	}
 }
 
@@ -151,21 +126,21 @@ func (t *Transfer) MakeTokenBalanceUpdate(from, rollback bool) *tokenbalance.Tok
 		Network:  t.Network,
 		Contract: t.Contract,
 		TokenID:  t.TokenID,
-		Value:    big.NewInt(0),
+		Balance:  decimal.Zero,
 	}
 	switch {
 	case from && rollback:
 		tb.Address = t.From
-		tb.Value.Set(t.Value)
+		tb.Balance = t.Amount
 	case !from && rollback:
 		tb.Address = t.To
-		tb.Value.Neg(t.Value)
+		tb.Balance = t.Amount.Neg()
 	case from && !rollback:
 		tb.Address = t.From
-		tb.Value.Neg(t.Value)
+		tb.Balance = t.Amount.Neg()
 	case !from && !rollback:
 		tb.Address = t.To
-		tb.Value.Set(t.Value)
+		tb.Balance = t.Amount
 	}
 	return tb
 }
@@ -179,38 +154,7 @@ type Pageable struct {
 
 // Balance -
 type Balance struct {
-	Balance Amount
+	Balance decimal.Decimal
 	Address string
 	TokenID uint64
-}
-
-// Amount -
-type Amount struct {
-	Val *big.Int
-}
-
-// Scan scan value into Jsonb, implements sql.Scanner interface
-func (a *Amount) Scan(value interface{}) error {
-	if a.Val == nil {
-		a.Val = big.NewInt(0)
-	}
-
-	s, ok := value.(string)
-	if !ok {
-		s = "0"
-	}
-
-	if _, ok := a.Val.SetString(s, 10); !ok {
-		return errors.Errorf("Invalid amount: %s", s)
-	}
-
-	return nil
-}
-
-// Value return json value, implement driver.Valuer interface
-func (a *Amount) Value() (driver.Value, error) {
-	if a == nil || a.Val == nil {
-		return []byte(`0`), nil
-	}
-	return []byte(a.Val.String()), nil
 }

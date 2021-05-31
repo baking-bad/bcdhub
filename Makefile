@@ -87,9 +87,9 @@ endif
 
 	echo "Contracts restore..."
 	aws s3 cp --profile bcd s3://bcd-db-snaps/contracts.tar.gz /tmp/contracts.tar.gz
-	rm -rf $(SHARE_DIR)/contracts/
-	mkdir $(SHARE_DIR)/contracts/
-	tar -C $(SHARE_DIR)/contracts/ -xzf /tmp/contracts.tar.gz
+	rm -rf $(SHARE_PATH)/contracts/
+	mkdir $(SHARE_PATH)/contracts/
+	tar -C $(SHARE_PATH)/contracts/ -xzf /tmp/contracts.tar.gz
 
 s3-snapshot:
 	echo "Database snapshot..."
@@ -104,7 +104,7 @@ else
 endif
 
 	echo "Packing contracts..."
-	cd $(SHARE_DIR)/contracts
+	cd $(SHARE_PATH)/contracts
 	tar -zcvf /tmp/contracts.tar.gz .
 	aws s3 mv --profile bcd /tmp/contracts.tar.gz s3://bcd-db-snaps/contracts.tar.gz
 	rm /tmp/contracts.tar.gz

@@ -162,10 +162,10 @@ func (storage *Storage) GetTokenVolumeSeries(network types.Network, period strin
 
 const (
 	calcBalanceRequest = `
-	select (coalesce(value_to, 0) - coalesce(value_from, 0))::varchar(255) as balance, coalesce(t1.address, t2.address) as address, coalesce(t1.token_id, t2.token_id) as token_id from 
-		(select sum(amount) as value_from, "from" as address, token_id from transfers where "from" is not null and contract = '%s' and network = '%s' group by "from", token_id) t1
+	select (coalesce(value_to, 0) - coalesce(value_from, 0)) as balance, coalesce(t1.address, t2.address) as address, coalesce(t1.token_id, t2.token_id) as token_id from 
+		(select sum(amount) as value_from, "from" as address, token_id from transfers where "from" is not null and contract = '%s' and network = %d group by "from", token_id) t1
 	full outer join 
-		(select sum(amount) as value_to, "to" as address, token_id from transfers where "to" is not null and contract = '%s' and network = '%s' group by "to", token_id) t2
+		(select sum(amount) as value_to, "to" as address, token_id from transfers where "to" is not null and contract = '%s' and network = %d group by "to", token_id) t2
 		on t1.address = t2.address and t1.token_id = t2.token_id;`
 )
 

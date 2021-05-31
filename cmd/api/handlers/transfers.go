@@ -80,7 +80,7 @@ func (ctx *Context) transfersPostprocessing(transfers transfer.Pageable, withLas
 			token.Decimals = metadata.Decimals
 		}
 
-		response.Transfers[i] = TransferFromElasticModel(transfers.Transfers[i])
+		response.Transfers[i] = TransferFromModel(transfers.Transfers[i])
 		response.Transfers[i].Token = &token
 		response.Transfers[i].Alias = ctx.CachedAlias(transfers.Transfers[i].Network, transfers.Transfers[i].Contract)
 		response.Transfers[i].InitiatorAlias = ctx.CachedAlias(transfers.Transfers[i].Network, transfers.Transfers[i].Initiator)

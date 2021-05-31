@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"math/big"
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
@@ -18,8 +18,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
-func newBigInt(val string) *big.Int {
-	i, _ := new(big.Int).SetString(val, 10)
+func newDecimal(val string) decimal.Decimal {
+	i, _ := decimal.NewFromString(val)
 	return i
 }
 
@@ -40,9 +40,8 @@ func TestLedger_getResultModels(t *testing.T) {
 			Network:       types.Mainnet,
 			Address:       "tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo",
 			TokenID:       0,
-			Balance:       168000,
+			Balance:       newDecimal("168000"),
 			BalanceString: "168000",
-			Value:         newBigInt("168000"),
 		}, nil).
 		AnyTimes()
 
@@ -67,7 +66,7 @@ func TestLedger_getResultModels(t *testing.T) {
 					Address:  "tz1djRgXXWWJiY1rpMECCxr5d9ZBqWewuiU1",
 					Contract: "KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH",
 					Network:  types.Mainnet,
-					Value:    newBigInt("1000000"),
+					Balance:  newDecimal("1000000"),
 					TokenID:  0,
 					IsLedger: true,
 				},
@@ -85,7 +84,7 @@ func TestLedger_getResultModels(t *testing.T) {
 					Address:  "tz1djRgXXWWJiY1rpMECCxr5d9ZBqWewuiU1",
 					Contract: "KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH",
 					Network:  types.Mainnet,
-					Value:    newBigInt("0"),
+					Balance:  newDecimal("0"),
 					TokenID:  0,
 					IsLedger: true,
 				},
@@ -108,14 +107,14 @@ func TestLedger_getResultModels(t *testing.T) {
 					Address:  "tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo",
 					Contract: "KT1981tPmXh4KrUQKZpQKb55kREX7QGJcF3E",
 					Network:  types.Mainnet,
-					Value:    newBigInt("0"),
+					Balance:  newDecimal("0"),
 					TokenID:  0,
 					IsLedger: true,
 				}, &transfer.Transfer{
 					From:       "tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo",
 					Contract:   "KT1981tPmXh4KrUQKZpQKb55kREX7QGJcF3E",
 					Network:    types.Mainnet,
-					Value:      newBigInt("168000"),
+					Amount:     newDecimal("168000"),
 					TokenID:    0,
 					Entrypoint: "burn",
 					Hash:       "opNQeUBKfJzBjCNLuo5HkyZynhm5TMe1KEtwioqUrWM1ygmYVDX",

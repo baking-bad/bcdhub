@@ -11,6 +11,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	modelTypes "github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
@@ -25,7 +26,7 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // Parser -
 type Parser struct {
-	Storage models.GeneralRepository
+	tokenBalances tokenbalance.Repository
 
 	rpc        noderpc.INode
 	shareDir   string
@@ -40,11 +41,11 @@ type Parser struct {
 }
 
 // NewParser -
-func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Repository, storage models.GeneralRepository, shareDir string, opts ...ParserOption) (*Parser, error) {
+func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Repository, storage models.GeneralRepository, tokenBalances tokenbalance.Repository, shareDir string, opts ...ParserOption) (*Parser, error) {
 	tp := &Parser{
-		rpc:      rpc,
-		Storage:  storage,
-		shareDir: shareDir,
+		rpc:           rpc,
+		tokenBalances: tokenBalances,
+		shareDir:      shareDir,
 	}
 
 	for i := range opts {
@@ -174,7 +175,7 @@ func (p *Parser) makeTransfersFromBalanceEvents(event events.Event, ctx events.C
 
 	var transfers []*transfer.Transfer
 
-	parser := NewDefaultBalanceParser(p.Storage)
+	parser := NewDefaultBalanceParser(p.tokenBalances)
 	if isDelta {
 		transfers, err = parser.Parse(balances, operation)
 	} else {

@@ -111,7 +111,7 @@ func NewParseParams(rpc noderpc.INode, ctx *config.Context, opts ...ParseParamsO
 
 	transferParser, err := transfer.NewParser(
 		rpc,
-		ctx.TZIP, ctx.Blocks, ctx.Storage, ctx.SharePath,
+		ctx.TZIP, ctx.Blocks, ctx.Storage, ctx.TokenBalances, ctx.SharePath,
 		transfer.WithStackTrace(params.stackTrace),
 		transfer.WithNetwork(params.network),
 		transfer.WithChainID(params.head.ChainID),

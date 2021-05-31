@@ -2,7 +2,6 @@ package trees
 
 import (
 	"encoding/json"
-	"math/big"
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
@@ -11,11 +10,12 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	modelTypes "github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 )
 
-func newBigInt(val string) *big.Int {
-	i, _ := new(big.Int).SetString(val, 10)
+func newDecimal(val string) decimal.Decimal {
+	i, _ := decimal.NewFromString(val)
 	return i
 }
 
@@ -39,7 +39,7 @@ func TestMakeFa1_2Transfers(t *testing.T) {
 					Network: modelTypes.Edo2net,
 					From:    "tz1grSQDByRpnVs7sPtaprNZRp531ZKz6Jmm",
 					To:      "tz1TGu6TN5GSez2ndXXeDX6LgUDvLzPLqgYV",
-					Value:   newBigInt("100"),
+					Amount:  newDecimal("100"),
 				},
 			},
 		}, {
@@ -54,7 +54,43 @@ func TestMakeFa1_2Transfers(t *testing.T) {
 					Network: modelTypes.Mainnet,
 					From:    "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
 					To:      "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
-					Value:   newBigInt("7874880"),
+					Amount:  newDecimal("7874880"),
+				},
+			},
+		}, {
+			name: "test 3",
+			tree: GetFA1_2Transfer(),
+			operation: operation.Operation{
+				Network: modelTypes.Mainnet,
+				Parameters: []byte(`{
+					"entrypoint": "transfer",
+					"value": {
+					"prim": "Pair",
+					"args": [
+						{
+						"bytes": "012d1c7c9c5add2d5161f70c19caa6aacd23cd570000"
+						},
+						{
+						"prim": "Pair",
+						"args": [
+							{
+							"bytes": "000018299ff2a891bc1fbedc15c0750183df1d0b8cb2"
+							},
+							{
+							"int": "15019000009999999295"
+							}
+						]
+						}
+					]
+					}
+				}`),
+			},
+			want: []*transfer.Transfer{
+				{
+					Network: modelTypes.Mainnet,
+					From:    "KT1ChJ6h8Crjdfds99DLpE5USynQTmCJtB3T",
+					To:      "tz1Mqnms73LqgBCYiM7e5k12VyWNQG8ytcGb",
+					Amount:  newDecimal("15019000009999999295"),
 				},
 			},
 		},

@@ -4,6 +4,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
+	"github.com/shopspring/decimal"
 )
 
 // MultiAsset -
@@ -52,7 +53,7 @@ func (p MultiAsset) Parse(data []byte) ([]TokenBalance, error) {
 		}
 
 		balances = append(balances, TokenBalance{
-			Value:   balance.Int,
+			Value:   decimal.NewFromBigInt(balance.Int, 0),
 			Address: address,
 			TokenID: tokenID.Uint64(),
 		})

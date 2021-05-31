@@ -1,12 +1,12 @@
 package tokenbalance
 
 import (
-	"math/big"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
+	"github.com/shopspring/decimal"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -49,7 +49,7 @@ type Parser interface {
 type TokenBalance struct {
 	Address string
 	TokenID uint64
-	Value   *big.Int
+	Value   decimal.Decimal
 
 	IsExclusiveNFT bool
 }

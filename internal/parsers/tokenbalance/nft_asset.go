@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
+	"github.com/shopspring/decimal"
 )
 
 // NftAsset -
@@ -71,7 +72,7 @@ func (p NftAsset) Parse(data []byte) ([]TokenBalance, error) {
 		}
 
 		balances = append(balances, TokenBalance{
-			Value:          balance,
+			Value:          decimal.NewFromBigInt(balance, 0),
 			Address:        address,
 			TokenID:        tokenID.Uint64(),
 			IsExclusiveNFT: true,

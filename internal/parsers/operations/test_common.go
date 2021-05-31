@@ -3,7 +3,6 @@ package operations
 import (
 	"fmt"
 	"io/ioutil"
-	"math/big"
 	"reflect"
 	"testing"
 
@@ -16,11 +15,12 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/parsers"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 )
 
-func newBigInt(val string) *big.Int {
-	i, _ := new(big.Int).SetString(val, 10)
+func newDecimal(val string) decimal.Decimal {
+	i, _ := decimal.NewFromString(val)
 	return i
 }
 
@@ -142,8 +142,8 @@ func compareTransfers(one, two *transfer.Transfer) bool {
 		logger.Info("TokenID: %d != %d", one.TokenID, two.TokenID)
 		return false
 	}
-	if one.Value.Cmp(two.Value) != 0 {
-		logger.Info("Amount: %s != %s", one.Value.String(), two.Value.String())
+	if one.Amount.Cmp(two.Amount) != 0 {
+		logger.Info("Amount: %s != %s", one.Amount.String(), two.Amount.String())
 		return false
 	}
 	if one.Counter != two.Counter {
