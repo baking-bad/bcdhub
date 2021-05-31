@@ -523,15 +523,15 @@ func (bi *BoostIndexer) sendToQueue(result *parsers.Result) error {
 }
 
 func (bi *BoostIndexer) getDataFromBlock(head noderpc.Header) (*parsers.Result, error) {
+	result := parsers.NewResult()
 	if head.Level <= 1 {
-		return nil, nil
+		return result, nil
 	}
 	opg, err := bi.rpc.GetOPG(head.Level)
 	if err != nil {
 		return nil, err
 	}
 
-	result := parsers.NewResult()
 	for i := range opg {
 		parserParams, err := operations.NewParseParams(
 			bi.rpc,
