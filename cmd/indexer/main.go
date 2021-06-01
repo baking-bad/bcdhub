@@ -33,8 +33,8 @@ func main() {
 	}
 
 	countCPU := runtime.NumCPU()
-	if countCPU > len(indexers) {
-		countCPU = len(indexers)
+	if countCPU > len(indexers)+1 {
+		countCPU = len(indexers) + 1
 	}
 	logger.Warning("Indexer started on %d CPU cores", countCPU)
 	runtime.GOMAXPROCS(countCPU)

@@ -69,7 +69,7 @@ func (m *FillTZIP) Do(ctx *config.Context) error {
 	} else {
 		name, err := ask("Enter directory name of the TZIP (required):")
 		if name == "" {
-			err = errors.New("You have to enter TZIP name")
+			err = errors.New("you have to enter TZIP name")
 		}
 		if err != nil {
 			return err

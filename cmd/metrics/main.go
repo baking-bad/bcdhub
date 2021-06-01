@@ -75,8 +75,8 @@ func listenChannel(messageQueue mq.IMessageReceiver, queue string, closeChan cha
 }
 
 func main() {
-	logger.Warning("Metrics started on 4 CPU cores")
-	runtime.GOMAXPROCS(4)
+	logger.Warning("Metrics started on 5 CPU cores")
+	runtime.GOMAXPROCS(5)
 
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
