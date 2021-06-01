@@ -72,14 +72,8 @@ func TestGroup_Parse(t *testing.T) {
 
 	tzipRepo.
 		EXPECT().
-		GetWithEvents().
+		GetWithEvents(gomock.Any()).
 		Return(make([]tzip.TZIP, 0), nil).
-		AnyTimes()
-
-	tzipRepo.
-		EXPECT().
-		GetLastIDWithEvents().
-		Return(int64(0), nil).
 		AnyTimes()
 
 	tzipRepo.

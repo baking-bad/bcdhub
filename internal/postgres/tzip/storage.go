@@ -70,23 +70,18 @@ func (storage *Storage) GetAliases(network types.Network) (t []tzip.TZIP, err er
 }
 
 // GetWithEvents -
-func (storage *Storage) GetWithEvents() (t []tzip.TZIP, err error) {
-	err = storage.DB.
+func (storage *Storage) GetWithEvents(updatedAt uint64) ([]tzip.TZIP, error) {
+	query := storage.DB.
 		Table(models.DocTZIP).
-		Where("events is not null AND jsonb_array_length(events) > 0").
-		Order("id desc").
-		Find(&t).Error
-	return
-}
+		Where("events is not null AND jsonb_array_length(events) > 0")
 
-// GetLastIDWithEvents -
-func (storage *Storage) GetLastIDWithEvents() (int64, error) {
-	var lastID int64
-	err := storage.DB.
-		Table(models.DocTZIP).
-		Select("COALESCE(max(id), 0)").
-		Where("events is not null AND jsonb_array_length(events) > 0").
-		Scan(&lastID).
-		Error
-	return lastID, err
+	if updatedAt > 0 {
+		query.Where("updated_at > ?", updatedAt)
+	}
+
+	t := make([]tzip.TZIP, 0)
+	if err := query.Order("updated_at asc").Find(&t).Error; err != nil && !storage.IsRecordNotFound(err) {
+		return nil, err
+	}
+	return t, nil
 }

@@ -12,6 +12,7 @@ import (
 // TZIP -
 type TZIP struct {
 	ID         int64         `json:"-"`
+	UpdatedAt  uint64        `gorm:"autoUpdateTime"`
 	Level      int64         `json:"level,omitempty"`
 	Timestamp  time.Time     `json:"timestamp,omitempty"`
 	Address    string        `json:"address" gorm:"index:tzips_contract_idx"`
