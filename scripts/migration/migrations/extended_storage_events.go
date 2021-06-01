@@ -11,6 +11,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
@@ -160,7 +161,7 @@ func (m *ExtendedStorageEvents) getOperations(ctx *config.Context, tzip tzip.TZI
 			"network":     tzip.Network,
 			"destination": tzip.Address,
 			"kind":        consts.Transaction,
-			"status":      "applied",
+			"status":      types.OperationStatusApplied,
 			"entrypoint":  impl.MichelsonExtendedStorageEvent.Entrypoints[i],
 		}, 0, false)
 		if err != nil {

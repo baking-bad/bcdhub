@@ -11,11 +11,11 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
 	transferParser "github.com/baking-bad/bcdhub/internal/parsers/transfer"
-	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -143,7 +143,7 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 				}
 
 				logger.Info("Found %d transfers", len(inserted))
-				bu := transferParsers.UpdateTokenBalances(newTransfers)
+				bu := transferParser.UpdateTokenBalances(newTransfers)
 				for i := range bu {
 					inserted = append(inserted, bu[i])
 				}
@@ -165,7 +165,7 @@ func (m *ParameterEvents) getOperations(ctx *config.Context, tzip tzip.TZIP, imp
 			"network":     tzip.Network,
 			"destination": tzip.Address,
 			"kind":        consts.Transaction,
-			"status":      consts.Applied,
+			"status":      types.OperationStatusApplied,
 			"entrypoint":  impl.MichelsonParameterEvent.Entrypoints[i],
 		}, 0, false)
 		if err != nil {

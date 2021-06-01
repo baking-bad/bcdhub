@@ -152,7 +152,7 @@ func (p Transaction) appliedHandler(item noderpc.Operation, op *operation.Operat
 }
 
 func (p Transaction) getEntrypoint(tx *operation.Operation) error {
-	if !tx.IsCall() {
+	if !bcd.IsContract(tx.Destination) {
 		return nil
 	}
 
