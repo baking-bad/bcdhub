@@ -108,8 +108,8 @@ services:
 
   flextesa:
     restart: always
-    image: trufflesuite/flextesa-mini-archive
-    command: edobox start
+    image: tqtezos/flextesa:20210514
+    command: flobox start
     environment:
       - block_time=4
     ports:
