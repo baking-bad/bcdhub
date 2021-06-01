@@ -200,7 +200,10 @@ func (p *Parser) transferPostprocessing(transfers []*transfer.Transfer, operatio
 func (p *Parser) makeFA12Transfers(operation operation.Operation) ([]*transfer.Transfer, error) {
 	node, err := getNode(operation)
 	if err != nil {
-		return nil, err
+		if operation.Status == consts.Applied {
+			return nil, err
+		}
+		return nil, nil
 	}
 	if node == nil {
 		return nil, nil
