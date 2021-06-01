@@ -26,7 +26,7 @@ func (m *InitialStorageEvents) Description() string {
 // Do - migrate function
 func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 	m.contracts = make(map[string]string)
-	tzips, err := ctx.TZIP.GetWithEvents()
+	tzips, err := ctx.TZIP.GetWithEvents(0)
 	if err != nil {
 		return err
 	}

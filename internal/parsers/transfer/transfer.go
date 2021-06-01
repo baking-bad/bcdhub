@@ -7,7 +7,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -30,7 +29,6 @@ type Parser struct {
 
 	rpc        noderpc.INode
 	shareDir   string
-	events     TokenEvents
 	stackTrace *stacktrace.StackTrace
 
 	network  modelTypes.Network
@@ -40,8 +38,10 @@ type Parser struct {
 	withoutViews bool
 }
 
+var globalEvents *TokenEvents
+
 // NewParser -
-func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Repository, storage models.GeneralRepository, tokenBalances tokenbalance.Repository, shareDir string, opts ...ParserOption) (*Parser, error) {
+func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Repository, tokenBalances tokenbalance.Repository, shareDir string, opts ...ParserOption) (*Parser, error) {
 	tp := &Parser{
 		rpc:           rpc,
 		tokenBalances: tokenBalances,
@@ -56,14 +56,20 @@ func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Reposit
 		tp.stackTrace = stacktrace.New()
 	}
 
-	if !tp.withoutViews {
-		tokenEvents, err := NewTokenEvents(tzipRepo, storage)
+	switch {
+	case tp.withoutViews && globalEvents == nil:
+		globalEvents = EmptyTokenEvents()
+	case tp.withoutViews && globalEvents != nil:
+	case !tp.withoutViews && globalEvents == nil:
+		tokenEvents, err := NewTokenEvents(tzipRepo)
 		if err != nil {
 			return nil, err
 		}
-		tp.events = tokenEvents
-	} else {
-		tp.events = make(TokenEvents)
+		globalEvents = tokenEvents
+	case !tp.withoutViews && globalEvents != nil:
+		if err := globalEvents.Update(tzipRepo); err != nil {
+			return nil, err
+		}
 	}
 
 	if tp.network != modelTypes.Empty && tp.chainID == "" {
@@ -82,7 +88,7 @@ func (p *Parser) Parse(operation operation.Operation, diffs []*bigmapdiff.BigMap
 		return nil, nil
 	}
 
-	if impl, name, ok := p.events.GetByOperation(operation); ok {
+	if impl, name, ok := globalEvents.GetByOperation(operation); ok {
 		return p.executeEvents(impl, name, operation, diffs)
 	}
 

@@ -105,7 +105,7 @@ func (m *TokenBalanceRecalc) DoBatch(ctx *config.Context, contracts map[string]s
 
 // RecalcAllContractEvents -
 func (m *TokenBalanceRecalc) RecalcAllContractEvents(ctx *config.Context) error {
-	tzips, err := ctx.TZIP.GetWithEvents()
+	tzips, err := ctx.TZIP.GetWithEvents(0)
 	if err != nil {
 		return err
 	}

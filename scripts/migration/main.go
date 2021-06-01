@@ -27,6 +27,7 @@ var migrationsList = []migrations.Migration{
 	&migrations.NFTMetadata{},
 	&migrations.TokenMetadataUnknown{},
 	&migrations.DefaultEntrypoint{},
+	&migrations.TZIPUpdatedAt{},
 }
 
 func main() {

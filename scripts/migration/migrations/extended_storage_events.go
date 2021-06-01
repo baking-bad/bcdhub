@@ -36,7 +36,7 @@ func (m *ExtendedStorageEvents) Description() string {
 // Do - migrate function
 func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 	m.contracts = make(map[string]string)
-	tzips, err := ctx.TZIP.GetWithEvents()
+	tzips, err := ctx.TZIP.GetWithEvents(0)
 	if err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 						return err
 					}
 
-					parser, err := transferParsers.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.Storage, ctx.TokenBalances,
+					parser, err := transferParsers.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.TokenBalances,
 						ctx.SharePath,
 						transferParsers.WithNetwork(tzips[i].Network),
 						transferParsers.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),

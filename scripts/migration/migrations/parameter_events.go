@@ -37,7 +37,7 @@ func (m *ParameterEvents) Description() string {
 // Do - migrate function
 func (m *ParameterEvents) Do(ctx *config.Context) error {
 	m.contracts = make(map[string]string)
-	tzips, err := ctx.TZIP.GetWithEvents()
+	tzips, err := ctx.TZIP.GetWithEvents(0)
 	if err != nil {
 		return err
 	}
@@ -97,7 +97,7 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 						return err
 					}
 
-					parser, err := transferParser.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.Storage, ctx.TokenBalances,
+					parser, err := transferParser.NewParser(rpc, ctx.TZIP, ctx.Blocks, ctx.TokenBalances,
 						ctx.SharePath,
 						transferParser.WithNetwork(tzips[i].Network),
 						transferParser.WithGasLimit(protocol.Constants.HardGasLimitPerOperation),
