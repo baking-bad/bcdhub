@@ -47,7 +47,7 @@ func OrderByLevelDesc(db *gorm.DB) *gorm.DB {
 
 // IsApplied -
 func IsApplied(db *gorm.DB) *gorm.DB {
-	return db.Where("status = 'applied'")
+	return db.Where("status = 1")
 }
 
 // Token -

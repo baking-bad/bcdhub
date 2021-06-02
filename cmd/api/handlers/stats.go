@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -157,7 +156,7 @@ func (ctx *Context) getHistogramOptions(name string, network types.Network, addr
 
 		filters = append(filters, models.HistogramFilter{
 			Field: "status",
-			Value: consts.Applied,
+			Value: types.OperationStatusApplied,
 			Kind:  models.HistogramFilterKindMatch,
 		})
 
