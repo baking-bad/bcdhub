@@ -18,5 +18,5 @@ type BigMapDiff struct {
 	Network          string
 	IndexedTime      int64
 	Timestamp        time.Time
-	Protocol         string
+	Protocol         int64
 }

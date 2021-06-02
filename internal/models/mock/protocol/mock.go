@@ -78,3 +78,18 @@ func (mr *MockRepositoryMockRecorder) GetByNetworkWithSort(network, sortField, o
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByNetworkWithSort", reflect.TypeOf((*MockRepository)(nil).GetByNetworkWithSort), network, sortField, order)
 }
+
+// GetByID mocks base method
+func (m *MockRepository) GetByID(id int64) (protocolModel.Protocol, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByID", id)
+	ret0, _ := ret[0].(protocolModel.Protocol)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByID indicates an expected call of GetByID
+func (mr *MockRepositoryMockRecorder) GetByID(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockRepository)(nil).GetByID), id)
+}

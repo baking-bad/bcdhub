@@ -252,11 +252,17 @@ func (ctx *Context) prepareOperation(operation operation.Operation, bmd []bigmap
 	var op Operation
 	op.FromModel(operation)
 
+	proto, err := ctx.CachedProtocolByID(operation.Network, operation.ProtocolID)
+	if err != nil {
+		return op, err
+	}
+	op.Protocol = proto.Hash
+
 	if err := formatErrors(operation.Errors, &op); err != nil {
 		return op, err
 	}
 
-	script, err := ctx.getScript(operation.Network, op.Destination, op.Protocol)
+	script, err := ctx.getScript(operation.Network, op.Destination, proto.SymLink)
 	if err != nil {
 		return op, err
 	}
@@ -429,7 +435,11 @@ func getEnrichStorage(storageType *ast.TypedAst, bmd []bigmapdiff.BigMapDiff) er
 }
 
 func (ctx *Context) getErrorLocation(operation operation.Operation, window int) (GetErrorLocationResponse, error) {
-	code, err := fetch.Contract(operation.Network, operation.Destination, operation.Protocol, ctx.SharePath)
+	proto, err := ctx.CachedProtocolByID(operation.Network, operation.ProtocolID)
+	if err != nil {
+		return GetErrorLocationResponse{}, err
+	}
+	code, err := fetch.ContractBySymLink(operation.Network, operation.Destination, proto.SymLink, ctx.SharePath)
 	if err != nil {
 		return GetErrorLocationResponse{}, err
 	}

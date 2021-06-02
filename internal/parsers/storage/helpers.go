@@ -26,7 +26,7 @@ func prepareBigMapDiffsToEnrich(bmd []bigmapdiff.BigMapDiff, skipEmpty bool) []*
 			Address:          bmd[i].Contract,
 			Network:          bmd[i].Network.String(),
 			Timestamp:        bmd[i].Timestamp,
-			Protocol:         bmd[i].Protocol,
+			Protocol:         bmd[i].ProtocolID,
 		})
 	}
 	return res
@@ -73,7 +73,7 @@ func getBigMapDiffModels(bmd []*types.BigMapDiff) []bigmapdiff.BigMapDiff {
 			Contract:         bmd[i].Address,
 			Network:          modelTypes.NewNetwork(bmd[i].Network),
 			Timestamp:        bmd[i].Timestamp,
-			Protocol:         bmd[i].Protocol,
+			ProtocolID:       bmd[i].Protocol,
 		})
 	}
 	return res

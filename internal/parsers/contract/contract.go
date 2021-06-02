@@ -1,7 +1,6 @@
 package contract
 
 import (
-	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	astContract "github.com/baking-bad/bcdhub/internal/bcd/contract"
 	"github.com/baking-bad/bcdhub/internal/config"
@@ -100,7 +99,7 @@ func (p *Parser) computeMetrics(operation *operation.Operation, c *contract.Cont
 		c.Tags = append(c.Tags, consts.UpgradableTag)
 	}
 
-	protoSymLink, err := bcd.GetProtoSymLink(operation.Protocol)
+	proto, err := p.ctx.CachedProtocolByID(operation.Network, operation.ProtocolID)
 	if err != nil {
 		return err
 	}
@@ -113,7 +112,7 @@ func (p *Parser) computeMetrics(operation *operation.Operation, c *contract.Cont
 			Network: c.Network.String(),
 			Address: c.Address,
 			Hash:    c.Hash,
-			SymLink: protoSymLink,
+			SymLink: proto.SymLink,
 		})
 	}
 	return nil

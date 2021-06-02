@@ -84,7 +84,7 @@ func (t Parser) ParseBigMapDiff(bmd *bigmapdiff.BigMapDiff, storage *ast.TypedAs
 }
 
 func (t Parser) parse(address string, state block.Block) ([]tokenmetadata.TokenMetadata, error) {
-	ptr, err := storage.GetBigMapPtr(t.rpc, state.Network, address, TokenMetadataStorageKey, state.Protocol, t.sharePath, state.Level)
+	ptr, err := storage.GetBigMapPtr(t.rpc, state.Network, address, TokenMetadataStorageKey, state.Protocol.Hash, t.sharePath, state.Level)
 	if err != nil {
 		return nil, err
 	}

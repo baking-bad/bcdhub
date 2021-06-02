@@ -31,10 +31,15 @@ func NewTransaction(params *ParseParams) Transaction {
 func (p Transaction) Parse(data noderpc.Operation) (*parsers.Result, error) {
 	result := parsers.NewResult()
 
+	proto, err := p.ctx.CachedProtocolByHash(p.network, p.head.Protocol)
+	if err != nil {
+		return nil, err
+	}
+
 	tx := operation.Operation{
 		Network:       p.network,
 		Hash:          p.hash,
-		Protocol:      p.head.Protocol,
+		ProtocolID:    proto.ID,
 		Level:         p.head.Level,
 		Timestamp:     p.head.Timestamp,
 		Kind:          data.Kind,
@@ -65,13 +70,13 @@ func (p Transaction) Parse(data noderpc.Operation) (*parsers.Result, error) {
 
 	result.Operations = append(result.Operations, &tx)
 
-	script, err := p.ctx.CachedScriptBytes(tx.Network, tx.Destination, tx.Protocol)
+	script, err := p.ctx.CachedScriptBytes(tx.Network, tx.Destination, proto.SymLink)
 	if err != nil {
 		return nil, err
 	}
 	tx.Script = script
 
-	tx.AST, err = p.ctx.CachedScript(tx.Network, tx.Destination, tx.Protocol)
+	tx.AST, err = p.ctx.CachedScript(tx.Network, tx.Destination, proto.SymLink)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +98,7 @@ func (p Transaction) Parse(data noderpc.Operation) (*parsers.Result, error) {
 	p.stackTrace.Add(tx)
 
 	if !tezerrors.HasParametersError(tx.Errors) {
-		transfers, err := p.transferParser.Parse(tx, result.BigMapDiffs)
+		transfers, err := p.transferParser.Parse(tx, result.BigMapDiffs, p.head.Protocol)
 		if err != nil {
 			if !errors.Is(err, noderpc.InvalidNodeResponse{}) {
 				return nil, err

@@ -29,6 +29,11 @@ func TestRichStorage_Parse(t *testing.T) {
 	defer ctrlRPC.Finish()
 	rpc := noderpc.NewMockINode(ctrlRPC)
 
+	protocols := map[int64]string{
+		2: "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+		3: "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA",
+	}
+
 	tests := []struct {
 		name      string
 		operation *operation.Operation
@@ -44,7 +49,7 @@ func TestRichStorage_Parse(t *testing.T) {
 				Destination: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
 				Network:     types.Mainnet,
 				Timestamp:   timestamp,
-				Protocol:    "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+				ProtocolID:  2,
 				Kind:        "transaction",
 			},
 			filename: "./data/rich_storage/test1.json",
@@ -53,35 +58,35 @@ func TestRichStorage_Parse(t *testing.T) {
 					BigMapActions: []*bigmapaction.BigMapAction{},
 					BigMapDiffs: []*bigmapdiff.BigMapDiff{
 						{
-							Ptr:       31,
-							KeyHash:   "exprunzteC5uyXRHbKnqJd3hUMGTWE9Gv5EtovDZHnuqu6SaGViV3N",
-							Key:       []byte(`{"bytes":"05010000000b746f74616c537570706c79"}`),
-							Value:     []byte(`{"bytes":"050098e1e8d78a02"}`),
-							Level:     1151463,
-							Contract:  "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-							Network:   types.Mainnet,
-							Timestamp: timestamp,
-							Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+							Ptr:        31,
+							KeyHash:    "exprunzteC5uyXRHbKnqJd3hUMGTWE9Gv5EtovDZHnuqu6SaGViV3N",
+							Key:        []byte(`{"bytes":"05010000000b746f74616c537570706c79"}`),
+							Value:      []byte(`{"bytes":"050098e1e8d78a02"}`),
+							Level:      1151463,
+							Contract:   "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+							Network:    types.Mainnet,
+							Timestamp:  timestamp,
+							ProtocolID: 2,
 						}, {
-							Ptr:       31,
-							KeyHash:   "exprtzVE8dHF7nePZxF6PSRf3yhfecTEKavyCZpndJGN2hz6PzQkFi",
-							Key:       []byte(`{"bytes":"05070701000000066c65646765720a00000016000093e93e23e5d157a80852297eccc7a42d7080ddd3"}`),
-							Value:     []byte(`{"bytes":"05070700bdf4160200000000"}`),
-							Level:     1151463,
-							Contract:  "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-							Network:   types.Mainnet,
-							Timestamp: timestamp,
-							Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+							Ptr:        31,
+							KeyHash:    "exprtzVE8dHF7nePZxF6PSRf3yhfecTEKavyCZpndJGN2hz6PzQkFi",
+							Key:        []byte(`{"bytes":"05070701000000066c65646765720a00000016000093e93e23e5d157a80852297eccc7a42d7080ddd3"}`),
+							Value:      []byte(`{"bytes":"05070700bdf4160200000000"}`),
+							Level:      1151463,
+							Contract:   "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+							Network:    types.Mainnet,
+							Timestamp:  timestamp,
+							ProtocolID: 2,
 						}, {
-							Ptr:       31,
-							KeyHash:   "expruyvqmgBYpF54i1c4p6r3oVV7FmW7ZH8EyjSjahKoQEfWPmcjGg",
-							Key:       []byte(`{"bytes":"05070701000000066c65646765720a000000160139c8ade2617663981fa2b87592c9ad92714d14c200"}`),
-							Value:     []byte(`{"bytes":"0507070084a99c750200000000"}`),
-							Level:     1151463,
-							Contract:  "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-							Network:   types.Mainnet,
-							Timestamp: timestamp,
-							Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+							Ptr:        31,
+							KeyHash:    "expruyvqmgBYpF54i1c4p6r3oVV7FmW7ZH8EyjSjahKoQEfWPmcjGg",
+							Key:        []byte(`{"bytes":"05070701000000066c65646765720a000000160139c8ade2617663981fa2b87592c9ad92714d14c200"}`),
+							Value:      []byte(`{"bytes":"0507070084a99c750200000000"}`),
+							Level:      1151463,
+							Contract:   "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+							Network:    types.Mainnet,
+							Timestamp:  timestamp,
+							ProtocolID: 2,
 						},
 					},
 					BigMapState: []*bigmapdiff.BigMapState{
@@ -123,7 +128,7 @@ func TestRichStorage_Parse(t *testing.T) {
 				Destination: "KT1Xk1XJD2M8GYFUXRN12oMvDAysECDWwGdS",
 				Network:     types.Carthagenet,
 				Timestamp:   timestamp,
-				Protocol:    "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+				ProtocolID:  2,
 				Kind:        "origination",
 			},
 			sourcePtr: 1055,
@@ -152,7 +157,7 @@ func TestRichStorage_Parse(t *testing.T) {
 				Destination: "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
 				Network:     types.Edo2net,
 				Timestamp:   timestamp,
-				Protocol:    "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA",
+				ProtocolID:  3,
 				Kind:        "origination",
 			},
 			sourcePtr: 17,
@@ -171,15 +176,15 @@ func TestRichStorage_Parse(t *testing.T) {
 					},
 					BigMapDiffs: []*bigmapdiff.BigMapDiff{
 						{
-							Ptr:       17,
-							KeyHash:   "expru5X1yxJG6ezR2uHMotwMLNmSzQyh5t1vUnhjx4cS6Pv9qE1Sdo",
-							Key:       []byte(`{"string":""}`),
-							Value:     []byte(`{"bytes":"68747470733a2f2f73746f726167652e676f6f676c65617069732e636f6d2f747a69702d31362f656d6f6a692d696e2d6d657461646174612e6a736f6e"}`),
-							Level:     220,
-							Contract:  "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
-							Network:   types.Edo2net,
-							Timestamp: timestamp,
-							Protocol:  "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA",
+							Ptr:        17,
+							KeyHash:    "expru5X1yxJG6ezR2uHMotwMLNmSzQyh5t1vUnhjx4cS6Pv9qE1Sdo",
+							Key:        []byte(`{"string":""}`),
+							Value:      []byte(`{"bytes":"68747470733a2f2f73746f726167652e676f6f676c65617069732e636f6d2f747a69702d31362f656d6f6a692d696e2d6d657461646174612e6a736f6e"}`),
+							Level:      220,
+							Contract:   "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
+							Network:    types.Edo2net,
+							Timestamp:  timestamp,
+							ProtocolID: 3,
 						},
 					},
 					BigMapState: []*bigmapdiff.BigMapState{
@@ -224,7 +229,13 @@ func TestRichStorage_Parse(t *testing.T) {
 				t.Errorf(`readJSONFile("%s") = error %v`, tt.filename, err)
 				return
 			}
-			script, err := fetch.Contract(tt.operation.Network, tt.operation.Destination, tt.operation.Protocol, "./test")
+
+			proto, ok := protocols[tt.operation.ProtocolID]
+			if !ok {
+				t.Errorf(`unknown protocol ID: %d`, tt.operation.ProtocolID)
+				return
+			}
+			script, err := fetch.Contract(tt.operation.Network, tt.operation.Destination, proto, "./test")
 			if err != nil {
 				t.Errorf(`readJSONFile("%s") = error %v`, tt.filename, err)
 				return
@@ -237,7 +248,7 @@ func TestRichStorage_Parse(t *testing.T) {
 				return
 			}
 
-			parser, err := NewRichStorage(bmdRepo, rpc, tt.operation.Protocol)
+			parser, err := NewRichStorage(bmdRepo, rpc, proto)
 			if err != nil {
 				t.Errorf(`NewRichStorage = error %v`, err)
 				return

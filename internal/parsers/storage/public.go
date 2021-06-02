@@ -3,7 +3,6 @@ package storage
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
@@ -50,9 +49,9 @@ func MakeStorageParser(repo bigmapdiff.Repository, rpc noderpc.INode, protocol s
 	}
 
 	switch protoSymLink {
-	case consts.MetadataBabylon:
+	case bcd.SymLinkBabylon:
 		return NewBabylon(repo, rpc), nil
-	case consts.MetadataAlpha:
+	case bcd.SymLinkAlpha:
 		return NewAlpha(), nil
 	default:
 		return nil, errors.Errorf("Unknown protocol %s", protocol)

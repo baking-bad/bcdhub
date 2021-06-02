@@ -32,20 +32,33 @@ func (ctx *Context) GetContractMigrations(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, prepareMigrations(migrations))
+	result, err := prepareMigrations(ctx, migrations)
+	if ctx.handleError(c, err, 0) {
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
 }
 
-func prepareMigrations(data []migration.Migration) []Migration {
+func prepareMigrations(ctx *Context, data []migration.Migration) ([]Migration, error) {
 	result := make([]Migration, len(data))
 	for i := range data {
+		proto, err := ctx.CachedProtocolByID(data[i].Network, data[i].ProtocolID)
+		if err != nil && !ctx.Storage.IsRecordNotFound(err) {
+			return nil, err
+		}
+		prevProto, err := ctx.CachedProtocolByID(data[i].Network, data[i].PrevProtocolID)
+		if err != nil && !ctx.Storage.IsRecordNotFound(err) {
+			return nil, err
+		}
 		result[i] = Migration{
 			Level:        data[i].Level,
 			Timestamp:    data[i].Timestamp,
 			Hash:         data[i].Hash,
-			Protocol:     data[i].Protocol,
-			PrevProtocol: data[i].PrevProtocol,
+			Protocol:     proto.Hash,
+			PrevProtocol: prevProto.Hash,
 			Kind:         data[i].Kind,
 		}
 	}
-	return result
+	return result, nil
 }

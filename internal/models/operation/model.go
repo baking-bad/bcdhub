@@ -34,10 +34,10 @@ type Operation struct {
 	Burned                             int64 `json:"burned,omitempty"`
 	AllocatedDestinationContractBurned int64 `json:"allocated_destination_contract_burned,omitempty"`
 
-	Nonce    *int64        `json:"nonce,omitempty" gorm:"index:opg_idx"`
-	Network  types.Network `json:"network"`
-	Protocol string        `json:"protocol"`
-	Hash     string        `json:"hash" gorm:"index:opg_idx;index:operations_hash_idx"`
+	Nonce      *int64        `json:"nonce,omitempty" gorm:"index:opg_idx"`
+	Network    types.Network `json:"network"`
+	ProtocolID int64         `json:"protocol"`
+	Hash       string        `json:"hash" gorm:"index:opg_idx;index:operations_hash_idx"`
 
 	Timestamp        time.Time             `json:"timestamp"`
 	Status           types.OperationStatus `json:"status"`

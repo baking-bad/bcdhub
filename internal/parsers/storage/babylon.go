@@ -184,7 +184,7 @@ func (b *Babylon) handleBigMapDiffUpdate(item noderpc.BigMapDiff, address string
 		Contract:         address,
 		Network:          operation.Network,
 		Timestamp:        operation.Timestamp,
-		Protocol:         operation.Protocol,
+		ProtocolID:       operation.ProtocolID,
 		Value:            types.Bytes(item.Value),
 	}
 

@@ -55,7 +55,7 @@ func TestLedger_getResultModels(t *testing.T) {
 	}{
 		{
 			name:       "test 1",
-			bmd:        `{"ptr":257,"key":{"bytes":"0000c67788ea8ada32b2426e1b02b9ebebdc2dc51007"},"key_hash":"expruCQuxuWpbLgZ5a4AhQ9nmdLVssrFZXmzTe8jFB5LMKvX6XPXVf","key_strings":["tz1djRgXXWWJiY1rpMECCxr5d9ZBqWewuiU1"],"value":{"int":"1000000"},"value_strings":[],"operation_id":"4784c35cc6444b8ca0eb9b7b4698e6cb","level":1269694,"contract":"KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH","network":"mainnet","indexed_time":1612996343064065,"timestamp":"2020-12-22T19:19:49Z","protocol":"PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo"}`,
+			bmd:        `{"ptr":257,"key":{"bytes":"0000c67788ea8ada32b2426e1b02b9ebebdc2dc51007"},"key_hash":"expruCQuxuWpbLgZ5a4AhQ9nmdLVssrFZXmzTe8jFB5LMKvX6XPXVf","key_strings":["tz1djRgXXWWJiY1rpMECCxr5d9ZBqWewuiU1"],"value":{"int":"1000000"},"value_strings":[],"operation_id":"4784c35cc6444b8ca0eb9b7b4698e6cb","level":1269694,"contract":"KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH","network":"mainnet","indexed_time":1612996343064065,"timestamp":"2020-12-22T19:19:49Z","protocol":1}`,
 			bigMapType: `{"prim":"big_map","args":[{"prim":"address"},{"prim":"nat"}],"annots":["%ledger"]}`,
 			operation: &operation.Operation{
 				Tags:       []string{consts.FA12Tag},
@@ -73,7 +73,7 @@ func TestLedger_getResultModels(t *testing.T) {
 			},
 		}, {
 			name:       "test 2",
-			bmd:        `{"ptr":257,"key":{"bytes":"0000c67788ea8ada32b2426e1b02b9ebebdc2dc51007"},"key_hash":"expruCQuxuWpbLgZ5a4AhQ9nmdLVssrFZXmzTe8jFB5LMKvX6XPXVf","key_strings":["tz1djRgXXWWJiY1rpMECCxr5d9ZBqWewuiU1"],"value":"","value_strings":[],"operation_id":"4784c35cc6444b8ca0eb9b7b4698e6cb","level":1269694,"contract":"KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH","network":"mainnet","indexed_time":1612996343064065,"timestamp":"2020-12-22T19:19:49Z","protocol":"PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo"}`,
+			bmd:        `{"ptr":257,"key":{"bytes":"0000c67788ea8ada32b2426e1b02b9ebebdc2dc51007"},"key_hash":"expruCQuxuWpbLgZ5a4AhQ9nmdLVssrFZXmzTe8jFB5LMKvX6XPXVf","key_strings":["tz1djRgXXWWJiY1rpMECCxr5d9ZBqWewuiU1"],"value":"","value_strings":[],"operation_id":"4784c35cc6444b8ca0eb9b7b4698e6cb","level":1269694,"contract":"KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH","network":"mainnet","indexed_time":1612996343064065,"timestamp":"2020-12-22T19:19:49Z","protocol":1}`,
 			bigMapType: `{"prim":"big_map","args":[{"prim":"address"},{"prim":"nat"}],"annots":["%ledger"]}`,
 			operation: &operation.Operation{
 				Tags:       []string{consts.FA12Tag},
@@ -91,7 +91,7 @@ func TestLedger_getResultModels(t *testing.T) {
 			},
 		}, {
 			name:       "test 3",
-			bmd:        `{"ptr":2071,"key":{"bytes":"00016631ce723071ea19a87bd93d7e2f81dd82c18565"},"key_hash":"exprvA4NaRxQEqyJad5LzVz7rohGSQDn9B32KR87KxRQ43kWiaqPS4","key_strings":["tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo"],"value":"","value_strings":[],"level":1455291,"contract":"KT1981tPmXh4KrUQKZpQKb55kREX7QGJcF3E","network":"mainnet","timestamp":"2021-05-03T10:03:20Z","protocol":"PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA"}`,
+			bmd:        `{"ptr":2071,"key":{"bytes":"00016631ce723071ea19a87bd93d7e2f81dd82c18565"},"key_hash":"exprvA4NaRxQEqyJad5LzVz7rohGSQDn9B32KR87KxRQ43kWiaqPS4","key_strings":["tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo"],"value":"","value_strings":[],"level":1455291,"contract":"KT1981tPmXh4KrUQKZpQKb55kREX7QGJcF3E","network":"mainnet","timestamp":"2021-05-03T10:03:20Z","protocol":2}`,
 			bigMapType: `{"prim":"big_map","args":[{"prim":"address"},{"prim":"nat"}],"annots":["%ledger"]}`,
 			operation: &operation.Operation{
 				Tags:        []string{consts.FA2Tag, consts.LedgerTag},

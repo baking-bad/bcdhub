@@ -19,13 +19,13 @@ func NewStorage(pg *core.Postgres) *Storage {
 
 // Get -
 func (storage *Storage) Get(network types.Network, level int64) (block block.Block, err error) {
-	err = storage.DB.Table(models.DocBlocks).Scopes(core.Network(network)).Where("level = ?", level).Limit(1).Scan(&block).Error
+	err = storage.DB.Table(models.DocBlocks).Preload("Protocol").Scopes(core.Network(network)).Where("level = ?", level).First(&block).Error
 	return
 }
 
 // Last - returns current indexer state for network
 func (storage *Storage) Last(network types.Network) (block block.Block, err error) {
-	err = storage.DB.Table(models.DocBlocks).Scopes(core.Network(network)).Order("id DESC").Limit(1).Scan(&block).Error
+	err = storage.DB.Table(models.DocBlocks).Preload("Protocol").Scopes(core.Network(network)).Order("id desc").First(&block).Error
 	if storage.IsRecordNotFound(err) {
 		err = nil
 		block.Network = network
@@ -37,7 +37,7 @@ func (storage *Storage) Last(network types.Network) (block block.Block, err erro
 // LastByNetworks - return last block for all networks
 func (storage *Storage) LastByNetworks() (response []block.Block, err error) {
 	subQuery := storage.DB.Table(models.DocBlocks).Select("MAX(id) as id").Group("network")
-	err = storage.DB.Table(models.DocBlocks).Where("id IN (?)", subQuery).Find(&response).Error
+	err = storage.DB.Table(models.DocBlocks).Preload("Protocol").Where("id IN (?)", subQuery).Find(&response).Error
 	return
 }
 
@@ -45,10 +45,10 @@ func (storage *Storage) LastByNetworks() (response []block.Block, err error) {
 func (storage *Storage) GetNetworkAlias(chainID string) (string, error) {
 	var network types.Network
 	err := storage.DB.Table(models.DocBlocks).
+		Preload("Protocol").
 		Select("network").
 		Where("chain_id = ?", chainID).
-		Limit(1).
-		Scan(&network).Error
+		First(&network).Error
 
 	return network.String(), err
 }

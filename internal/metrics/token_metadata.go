@@ -57,7 +57,7 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, network types.Ne
 
 	origination := ops[0]
 
-	protocol, err := h.Protocol.Get(network, origination.Protocol, origination.Level)
+	protocol, err := h.Protocol.GetByID(origination.ProtocolID)
 	if err != nil {
 		return nil, err
 	}

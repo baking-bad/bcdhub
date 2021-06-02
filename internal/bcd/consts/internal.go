@@ -29,12 +29,6 @@ const (
 	TypeNamedUnion = "namedunion"
 )
 
-// Metadata network names
-const (
-	MetadataAlpha   = "alpha"
-	MetadataBabylon = "babylon"
-)
-
 // Languages
 const (
 	LangSmartPy   = "smartpy"

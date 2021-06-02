@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/cache"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -16,6 +17,7 @@ import (
 	mock_bmd "github.com/baking-bad/bcdhub/internal/models/mock/bigmapdiff"
 	mock_block "github.com/baking-bad/bcdhub/internal/models/mock/block"
 	mock_contract "github.com/baking-bad/bcdhub/internal/models/mock/contract"
+	mock_proto "github.com/baking-bad/bcdhub/internal/models/mock/protocol"
 	mock_token_balance "github.com/baking-bad/bcdhub/internal/models/mock/tokenbalance"
 	mock_tzip "github.com/baking-bad/bcdhub/internal/models/mock/tzip"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -44,6 +46,10 @@ func TestGroup_Parse(t *testing.T) {
 	ctrlBlockRepo := gomock.NewController(t)
 	defer ctrlBlockRepo.Finish()
 	blockRepo := mock_block.NewMockRepository(ctrlBlockRepo)
+
+	ctrlProtoRepo := gomock.NewController(t)
+	defer ctrlProtoRepo.Finish()
+	protoRepo := mock_proto.NewMockRepository(ctrlProtoRepo)
 
 	ctrlTzipRepo := gomock.NewController(t)
 	defer ctrlTzipRepo.Finish()
@@ -151,6 +157,105 @@ func TestGroup_Parse(t *testing.T) {
 		}, nil).
 		AnyTimes()
 
+	protoRepo.
+		EXPECT().
+		Get(
+			gomock.Eq(types.Delphinet),
+			gomock.Eq("PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo"),
+			gomock.Eq(int64(-1))).
+		Return(protocol.Protocol{
+			Hash:    "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
+			Network: types.Delphinet,
+			SymLink: bcd.SymLinkBabylon,
+			ID:      0,
+		}, nil).
+		AnyTimes()
+
+	protoRepo.
+		EXPECT().
+		Get(
+			gomock.Eq(types.Mainnet),
+			gomock.Eq("PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo"),
+			gomock.Eq(int64(-1))).
+		Return(protocol.Protocol{
+			Hash:    "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
+			Network: types.Mainnet,
+			SymLink: bcd.SymLinkBabylon,
+			ID:      1,
+		}, nil).
+		AnyTimes()
+
+	protoRepo.
+		EXPECT().
+		Get(
+			gomock.Eq(types.Mainnet),
+			gomock.Eq("PsddFKi32cMJ2qPjf43Qv5GDWLDPZb3T3bF6fLKiF5HtvHNU7aP"),
+			gomock.Eq(int64(-1))).
+		Return(protocol.Protocol{
+			Hash:    "PsddFKi32cMJ2qPjf43Qv5GDWLDPZb3T3bF6fLKiF5HtvHNU7aP",
+			Network: types.Mainnet,
+			SymLink: bcd.SymLinkBabylon,
+			ID:      2,
+		}, nil).
+		AnyTimes()
+
+	protoRepo.
+		EXPECT().
+		Get(
+			gomock.Eq(types.Edo2net),
+			gomock.Eq("PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA"),
+			gomock.Eq(int64(-1))).
+		Return(protocol.Protocol{
+			Hash:    "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA",
+			Network: types.Edo2net,
+			SymLink: bcd.SymLinkBabylon,
+			ID:      3,
+		}, nil).
+		AnyTimes()
+
+	protoRepo.
+		EXPECT().
+		GetByID(gomock.Eq(int64(0))).
+		Return(protocol.Protocol{
+			Hash:    "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
+			Network: types.Delphinet,
+			SymLink: bcd.SymLinkBabylon,
+		}, nil).
+		AnyTimes()
+
+	protoRepo.
+		EXPECT().
+		GetByID(gomock.Eq(int64(1))).
+		Return(protocol.Protocol{
+			Hash:    "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
+			Network: types.Mainnet,
+			SymLink: bcd.SymLinkBabylon,
+			ID:      1,
+		}, nil).
+		AnyTimes()
+
+	protoRepo.
+		EXPECT().
+		GetByID(gomock.Eq(int64(2))).
+		Return(protocol.Protocol{
+			Hash:    "PsddFKi32cMJ2qPjf43Qv5GDWLDPZb3T3bF6fLKiF5HtvHNU7aP",
+			Network: types.Mainnet,
+			SymLink: bcd.SymLinkBabylon,
+			ID:      2,
+		}, nil).
+		AnyTimes()
+
+	protoRepo.
+		EXPECT().
+		GetByID(gomock.Eq(int64(3))).
+		Return(protocol.Protocol{
+			Hash:    "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA",
+			Network: types.Edo2net,
+			SymLink: bcd.SymLinkBabylon,
+			ID:      3,
+		}, nil).
+		AnyTimes()
+
 	tests := []struct {
 		name       string
 		rpc        noderpc.INode
@@ -169,6 +274,7 @@ func TestGroup_Parse(t *testing.T) {
 				Contracts:     contractRepo,
 				BigMapDiffs:   bmdRepo,
 				Blocks:        blockRepo,
+				Protocols:     protoRepo,
 				TZIP:          tzipRepo,
 				TokenBalances: tbRepo,
 				Cache:         cache.NewCache(),
@@ -176,7 +282,7 @@ func TestGroup_Parse(t *testing.T) {
 			paramsOpts: []ParseParamsOption{
 				WithHead(noderpc.Header{
 					Timestamp: timestamp,
-					Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+					Protocol:  "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
 					Level:     1068669,
 					ChainID:   "NetXdQprcVkpaWU",
 				}),
@@ -192,6 +298,7 @@ func TestGroup_Parse(t *testing.T) {
 				Contracts:     contractRepo,
 				BigMapDiffs:   bmdRepo,
 				Blocks:        blockRepo,
+				Protocols:     protoRepo,
 				TZIP:          tzipRepo,
 				TokenBalances: tbRepo,
 				Cache:         cache.NewCache(),
@@ -200,7 +307,7 @@ func TestGroup_Parse(t *testing.T) {
 			paramsOpts: []ParseParamsOption{
 				WithHead(noderpc.Header{
 					Timestamp: timestamp,
-					Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+					Protocol:  "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
 					Level:     1068669,
 					ChainID:   "test",
 				}),
@@ -236,7 +343,7 @@ func TestGroup_Parse(t *testing.T) {
 						Timestamp:       timestamp,
 						Burned:          70000,
 						Initiator:       "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
-						Protocol:        "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+						ProtocolID:      1,
 						Parameters:      []byte("{\"entrypoint\":\"default\",\"value\":{\"prim\":\"Right\",\"args\":[{\"prim\":\"Left\",\"args\":[{\"prim\":\"Right\",\"args\":[{\"prim\":\"Right\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"string\":\"tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq\"},{\"prim\":\"Pair\",\"args\":[{\"string\":\"tz1invbJv3AEm55ct7QF2dVbWZuaDekssYkV\"},{\"int\":\"8010000\"}]}]}]}]}]}]}}"),
 						DeffatedStorage: []byte("{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[[{\"bytes\":\"000056d8b91b541c9d20d51f929dcccca2f14928f1dc\"}],{\"int\":\"62\"}]},{\"prim\":\"Pair\",\"args\":[{\"int\":\"63\"},{\"string\":\"Aspen Digital Token\"}]}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"False\"},{\"bytes\":\"0000a2560a416161def96031630886abe950c4baf036\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"False\"},{\"bytes\":\"010d25f77b84dc2164a5d1ce5e8a5d3ca2b1d0cbf900\"}]}]}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"01796ad78734892d5ae4186e84a30290040732ada700\"},{\"string\":\"ASPD\"}]},{\"int\":\"18000000\"}]}]}"),
 						Tags:            []string{"fa1-2"},
@@ -253,7 +360,7 @@ func TestGroup_Parse(t *testing.T) {
 						Entrypoint:      "validateAccounts",
 						Internal:        true,
 						Timestamp:       timestamp,
-						Protocol:        "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+						ProtocolID:      1,
 						Initiator:       "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
 						Parameters:      []byte("{\"entrypoint\":\"validateAccounts\",\"value\":{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"0000a2560a416161def96031630886abe950c4baf036\"},{\"bytes\":\"0000fdf98b65d53a9661e07f41093dcb6f3d931736ba\"}]},{\"prim\":\"Pair\",\"args\":[{\"int\":\"14151000\"},{\"int\":\"0\"}]}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"True\"},{\"prim\":\"Pair\",\"args\":[{\"int\":\"8010000\"},{\"int\":\"18000000\"}]}]}]},{\"bytes\":\"01796ad78734892d5ae4186e84a30290040732ada70076616c696461746552756c6573\"}]}}"),
 						DeffatedStorage: []byte("{\"int\":\"61\"}"),
@@ -271,7 +378,7 @@ func TestGroup_Parse(t *testing.T) {
 						Entrypoint:      "validateRules",
 						Internal:        true,
 						Timestamp:       timestamp,
-						Protocol:        "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+						ProtocolID:      1,
 						Initiator:       "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
 						Parameters:      []byte("{\"entrypoint\":\"validateRules\",\"value\":{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"None\"},{\"string\":\"US\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"False\"},{\"bytes\":\"000056d8b91b541c9d20d51f929dcccca2f14928f1dc\"}]}]},{\"int\":\"2\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"None\"},{\"string\":\"US\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"False\"},{\"bytes\":\"0000c644b537bdb0dac40fe742010106546effd69395\"}]}]},{\"int\":\"6\"}]}]},{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"0000a2560a416161def96031630886abe950c4baf036\"},{\"bytes\":\"0000fdf98b65d53a9661e07f41093dcb6f3d931736ba\"}]}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"int\":\"14151000\"},{\"int\":\"0\"}]},{\"prim\":\"True\"}]}]},{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"01bff38c4e363eacef338f7b2e15f00ca42fafa1ce00\"},{\"prim\":\"Pair\",\"args\":[{\"int\":\"8010000\"},{\"int\":\"18000000\"}]}]}]}}"),
 						DeffatedStorage: []byte("{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"000056d8b91b541c9d20d51f929dcccca2f14928f1dc\"},{\"bytes\":\"010d25f77b84dc2164a5d1ce5e8a5d3ca2b1d0cbf900\"}]},[]]}"),
@@ -280,25 +387,25 @@ func TestGroup_Parse(t *testing.T) {
 				},
 				BigMapDiffs: []*bigmapdiff.BigMapDiff{
 					{
-						Ptr:       63,
-						KeyHash:   "exprum2qtFLPHdeLWVasKCDw7YD5MrdiD4ra52PY2AUazaNGKyv6tx",
-						Key:       []byte(`{"bytes":"0000a2560a416161def96031630886abe950c4baf036"}`),
-						Value:     []byte(`{"int":"6141000"}`),
-						Level:     1068669,
-						Network:   types.Mainnet,
-						Contract:  "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
-						Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
-						Timestamp: timestamp,
+						Ptr:        63,
+						KeyHash:    "exprum2qtFLPHdeLWVasKCDw7YD5MrdiD4ra52PY2AUazaNGKyv6tx",
+						Key:        []byte(`{"bytes":"0000a2560a416161def96031630886abe950c4baf036"}`),
+						Value:      []byte(`{"int":"6141000"}`),
+						Level:      1068669,
+						Network:    types.Mainnet,
+						Contract:   "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
+						ProtocolID: 1,
+						Timestamp:  timestamp,
 					}, {
-						Ptr:       63,
-						KeyHash:   "exprv2snyFbF6EDZd2YAHnnmNBoFt7bbaXhGSWGXHv4a4wnxS359ob",
-						Key:       []byte(`{"bytes":"0000fdf98b65d53a9661e07f41093dcb6f3d931736ba"}`),
-						Value:     []byte(`{"int":"8010000"}`),
-						Level:     1068669,
-						Network:   types.Mainnet,
-						Contract:  "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
-						Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
-						Timestamp: timestamp,
+						Ptr:        63,
+						KeyHash:    "exprv2snyFbF6EDZd2YAHnnmNBoFt7bbaXhGSWGXHv4a4wnxS359ob",
+						Key:        []byte(`{"bytes":"0000fdf98b65d53a9661e07f41093dcb6f3d931736ba"}`),
+						Value:      []byte(`{"int":"8010000"}`),
+						Level:      1068669,
+						Network:    types.Mainnet,
+						Contract:   "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
+						ProtocolID: 1,
+						Timestamp:  timestamp,
 					},
 				},
 				BigMapState: []*bigmapdiff.BigMapState{
@@ -362,6 +469,7 @@ func TestGroup_Parse(t *testing.T) {
 				Contracts:     contractRepo,
 				BigMapDiffs:   bmdRepo,
 				Blocks:        blockRepo,
+				Protocols:     protoRepo,
 				TZIP:          tzipRepo,
 				TokenBalances: tbRepo,
 				Cache:         cache.NewCache(),
@@ -370,7 +478,7 @@ func TestGroup_Parse(t *testing.T) {
 			paramsOpts: []ParseParamsOption{
 				WithHead(noderpc.Header{
 					Timestamp: timestamp,
-					Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+					Protocol:  "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
 					Level:     1151495,
 					ChainID:   "test",
 				}),
@@ -392,7 +500,7 @@ func TestGroup_Parse(t *testing.T) {
 					{
 						ContentIndex:    0,
 						Network:         types.Mainnet,
-						Protocol:        "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+						ProtocolID:      1,
 						Hash:            "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
 						Internal:        false,
 						Nonce:           nil,
@@ -414,7 +522,7 @@ func TestGroup_Parse(t *testing.T) {
 					}, {
 						ContentIndex:    0,
 						Network:         types.Mainnet,
-						Protocol:        "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+						ProtocolID:      1,
 						Hash:            "opPUPCpQu6pP38z9TkgFfwLiqVBFGSWQCH8Z2PUL3jrpxqJH5gt",
 						Internal:        true,
 						Nonce:           setInt64(0),
@@ -435,44 +543,44 @@ func TestGroup_Parse(t *testing.T) {
 				},
 				BigMapDiffs: []*bigmapdiff.BigMapDiff{
 					{
-						Ptr:       32,
-						Key:       []byte(`{"bytes": "80729e85e284dff3a30bb24a58b37ccdf474bbbe7794aad439ba034f48d66af3"}`),
-						KeyHash:   "exprvJp4s8RJpoXMwD9aQujxWQUiojrkeubesi3X9LDcU3taDfahYR",
-						Level:     1151495,
-						Contract:  "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
-						Network:   types.Mainnet,
-						Timestamp: timestamp,
-						Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+						Ptr:        32,
+						Key:        []byte(`{"bytes": "80729e85e284dff3a30bb24a58b37ccdf474bbbe7794aad439ba034f48d66af3"}`),
+						KeyHash:    "exprvJp4s8RJpoXMwD9aQujxWQUiojrkeubesi3X9LDcU3taDfahYR",
+						Level:      1151495,
+						Contract:   "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
+						Network:    types.Mainnet,
+						Timestamp:  timestamp,
+						ProtocolID: 1,
 					}, {
-						Ptr:       31,
-						Key:       []byte(`{"bytes":"05010000000b746f74616c537570706c79"}`),
-						KeyHash:   "exprunzteC5uyXRHbKnqJd3hUMGTWE9Gv5EtovDZHnuqu6SaGViV3N",
-						Value:     []byte(`{"bytes":"050098e1e8d78a02"}`),
-						Level:     1151495,
-						Contract:  "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Network:   types.Mainnet,
-						Timestamp: timestamp,
-						Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+						Ptr:        31,
+						Key:        []byte(`{"bytes":"05010000000b746f74616c537570706c79"}`),
+						KeyHash:    "exprunzteC5uyXRHbKnqJd3hUMGTWE9Gv5EtovDZHnuqu6SaGViV3N",
+						Value:      []byte(`{"bytes":"050098e1e8d78a02"}`),
+						Level:      1151495,
+						Contract:   "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+						Network:    types.Mainnet,
+						Timestamp:  timestamp,
+						ProtocolID: 1,
 					}, {
-						Ptr:       31,
-						Key:       []byte(`{"bytes":"05070701000000066c65646765720a000000160000c2473c617946ce7b9f6843f193401203851cb2ec"}`),
-						KeyHash:   "exprv9xaiXBb9KBi67dQoP1SchDyZeKEz3XHiFwBCtHadiKS8wkX7w",
-						Value:     []byte(`{"bytes":"0507070080a5c1070200000000"}`),
-						Level:     1151495,
-						Contract:  "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Network:   types.Mainnet,
-						Timestamp: timestamp,
-						Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+						Ptr:        31,
+						Key:        []byte(`{"bytes":"05070701000000066c65646765720a000000160000c2473c617946ce7b9f6843f193401203851cb2ec"}`),
+						KeyHash:    "exprv9xaiXBb9KBi67dQoP1SchDyZeKEz3XHiFwBCtHadiKS8wkX7w",
+						Value:      []byte(`{"bytes":"0507070080a5c1070200000000"}`),
+						Level:      1151495,
+						Contract:   "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+						Network:    types.Mainnet,
+						Timestamp:  timestamp,
+						ProtocolID: 1,
 					}, {
-						Ptr:       31,
-						Key:       []byte(`{"bytes":"05070701000000066c65646765720a00000016011871cfab6dafee00330602b4342b6500c874c93b00"}`),
-						KeyHash:   "expruiWsykU9wjNb4aV7eJULLBpGLhy1EuzgD8zB8k7eUTaCk16fyV",
-						Value:     []byte(`{"bytes":"05070700ba81bb090200000000"}`),
-						Level:     1151495,
-						Contract:  "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Network:   types.Mainnet,
-						Timestamp: timestamp,
-						Protocol:  "PsCARTHAGazKbHtnKfLzQg3kms52kSRpgnDY982a9oYsSXRLQEb",
+						Ptr:        31,
+						Key:        []byte(`{"bytes":"05070701000000066c65646765720a00000016011871cfab6dafee00330602b4342b6500c874c93b00"}`),
+						KeyHash:    "expruiWsykU9wjNb4aV7eJULLBpGLhy1EuzgD8zB8k7eUTaCk16fyV",
+						Value:      []byte(`{"bytes":"05070700ba81bb090200000000"}`),
+						Level:      1151495,
+						Contract:   "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+						Network:    types.Mainnet,
+						Timestamp:  timestamp,
+						ProtocolID: 1,
 					},
 				},
 				BigMapState: []*bigmapdiff.BigMapState{
@@ -555,6 +663,7 @@ func TestGroup_Parse(t *testing.T) {
 				Contracts:     contractRepo,
 				BigMapDiffs:   bmdRepo,
 				Blocks:        blockRepo,
+				Protocols:     protoRepo,
 				TZIP:          tzipRepo,
 				TokenBalances: tbRepo,
 				Cache:         cache.NewCache(),
@@ -584,7 +693,7 @@ func TestGroup_Parse(t *testing.T) {
 					{
 						ContentIndex:                       0,
 						Network:                            types.Delphinet,
-						Protocol:                           "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
+						ProtocolID:                         0,
 						Hash:                               "onzUDQhwunz2yqzfEsoURXEBz9p7Gk8DgY4QBva52Z4b3AJCZjt",
 						Internal:                           false,
 						Status:                             types.OperationStatusApplied,
@@ -627,6 +736,7 @@ func TestGroup_Parse(t *testing.T) {
 				Contracts:     contractRepo,
 				BigMapDiffs:   bmdRepo,
 				Blocks:        blockRepo,
+				Protocols:     protoRepo,
 				TZIP:          tzipRepo,
 				TokenBalances: tbRepo,
 				Cache:         cache.NewCache(),
@@ -668,7 +778,7 @@ func TestGroup_Parse(t *testing.T) {
 						Timestamp:                          timestamp,
 						Burned:                             331000,
 						Initiator:                          "tz1MXrEgDNnR8PDryN8sq4B2m9Pqcf57wBqM",
-						Protocol:                           "PsddFKi32cMJ2qPjf43Qv5GDWLDPZb3T3bF6fLKiF5HtvHNU7aP",
+						ProtocolID:                         2,
 						DeffatedStorage:                    []byte("[]"),
 						AllocatedDestinationContractBurned: 257000,
 					},
@@ -695,6 +805,7 @@ func TestGroup_Parse(t *testing.T) {
 				Contracts:     contractRepo,
 				BigMapDiffs:   bmdRepo,
 				Blocks:        blockRepo,
+				Protocols:     protoRepo,
 				TZIP:          tzipRepo,
 				TokenBalances: tbRepo,
 				Cache:         cache.NewCache(),
@@ -738,7 +849,7 @@ func TestGroup_Parse(t *testing.T) {
 						Entrypoint:      "@entrypoint_1",
 						Initiator:       "tz1gXhGAXgKvrXjn4t16rYUXocqbch1XXJFN",
 						Parameters:      []byte("{\"entrypoint\":\"default\",\"value\":{\"prim\":\"Right\",\"args\":[{\"prim\":\"Unit\"}]}}"),
-						Protocol:        "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA",
+						ProtocolID:      3,
 						DeffatedStorage: []byte("{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"0000e527ed176ccf8f8297f674a9886a2ba8a55818d9\"},{\"prim\":\"Left\",\"args\":[{\"bytes\":\"016ebc941b2ae4e305470f392fa050e41ca1e52b4500\"}]}]}"),
 					}, {
 						Kind:                               "origination",
@@ -754,7 +865,7 @@ func TestGroup_Parse(t *testing.T) {
 						Counter:                            155670,
 						Internal:                           true,
 						Initiator:                          "tz1gXhGAXgKvrXjn4t16rYUXocqbch1XXJFN",
-						Protocol:                           "PtEdo2ZkT9oKpimTah6x2embF25oss54njMuPzkJTEi5RqfdZFA",
+						ProtocolID:                         3,
 						AllocatedDestinationContractBurned: 257000,
 						DeffatedStorage:                    []byte("{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"string\":\"tz1QozfhaUW4wLnohDo6yiBUmh7cPCSXE9Af\"},[]]},{\"int\":\"25168\"},{\"int\":\"25169\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Left\",\"args\":[{\"prim\":\"Unit\"}]},{\"int\":\"25170\"}]},{\"string\":\"tz1QozfhaUW4wLnohDo6yiBUmh7cPCSXE9Af\"},{\"int\":\"0\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[[],{\"int\":\"25171\"}]},{\"int\":\"2\"},{\"string\":\"tz1QozfhaUW4wLnohDo6yiBUmh7cPCSXE9Af\"}]},{\"int\":\"11\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[[],[[{\"prim\":\"DUP\"},{\"prim\":\"CAR\"},{\"prim\":\"DIP\",\"args\":[[{\"prim\":\"CDR\"}]]}],{\"prim\":\"DROP\"},{\"prim\":\"NIL\",\"args\":[{\"prim\":\"operation\"}]},{\"prim\":\"PAIR\"}]]},{\"int\":\"500\"},{\"int\":\"1000\"}]},{\"prim\":\"Pair\",\"args\":[{\"int\":\"1000\"},{\"int\":\"2592000\"}]},{\"int\":\"1\"},{\"int\":\"1\"}]},[{\"prim\":\"DROP\"},{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"bool\"},{\"prim\":\"True\"}]}],[{\"prim\":\"DROP\"},{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"nat\"},{\"int\":\"0\"}]}]]}"),
 					},

@@ -46,13 +46,13 @@ func (m Migration) Parse(data noderpc.Operation, operation *operation.Operation)
 
 		if tree[0].IsLambda() {
 			migration := &migration.Migration{
-				Network:   operation.Network,
-				Level:     operation.Level,
-				Protocol:  operation.Protocol,
-				Address:   operation.Destination,
-				Timestamp: operation.Timestamp,
-				Hash:      operation.Hash,
-				Kind:      consts.MigrationLambda,
+				Network:    operation.Network,
+				Level:      operation.Level,
+				ProtocolID: operation.ProtocolID,
+				Address:    operation.Destination,
+				Timestamp:  operation.Timestamp,
+				Hash:       operation.Hash,
+				Kind:       consts.MigrationLambda,
 			}
 			logger.With(migration).Info("Migration detected")
 			return migration, nil

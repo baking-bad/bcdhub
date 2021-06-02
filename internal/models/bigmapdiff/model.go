@@ -22,7 +22,7 @@ type BigMapDiff struct {
 	Contract         string        `json:"contract" gorm:"index:bmd_idx"`
 	Network          types.Network `json:"network" gorm:"index:bmd_idx;index:big_map_diffs_key_hash_idx"`
 	Timestamp        time.Time     `json:"timestamp"`
-	Protocol         string        `json:"protocol"`
+	ProtocolID       int64         `json:"protocol"`
 	OperationHash    string        `json:"op_hash" gorm:"index:big_map_diffs_operation_hash_idx"`
 	OperationCounter int64         `json:"op_counter" gorm:"index:big_map_diffs_operation_hash_idx"`
 	OperationNonce   *int64        `json:"op_nonce" gorm:"index:big_map_diffs_operation_hash_idx"`
@@ -50,7 +50,7 @@ func (b *BigMapDiff) Save(tx *gorm.DB) error {
 
 // GetQueues -
 func (b *BigMapDiff) GetQueues() []string {
-	return []string{"bigmapdiffs"}
+	return []string{"bigmapdiffs", "bigmapdiffs.tezos_domain", "bigmapdiffs.token_metadata", "bigmapdiffs.contract_metadata", "bigmapdiffs.ledger"}
 }
 
 // MarshalToQueue -
