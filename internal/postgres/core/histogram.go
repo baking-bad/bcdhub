@@ -56,7 +56,7 @@ func buildHistogramContext(ctx models.HistogramContext) (string, error) {
 				switch val := fltr.Value.(type) {
 				case string:
 					conds = append(conds, fmt.Sprintf("(%s = '%s')", fltr.Field, val))
-				case types.Network:
+				case types.Network, types.OperationStatus:
 					conds = append(conds, fmt.Sprintf("(%s = %d)", fltr.Field, val))
 				default:
 					conds = append(conds, fmt.Sprintf("(%s = %v)", fltr.Field, val))
