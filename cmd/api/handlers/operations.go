@@ -229,7 +229,12 @@ func prepareFilters(req operationsRequest) map[string]interface{} {
 	}
 
 	if req.Status != "" {
-		filters["status"] = strings.Split(req.Status, ",")
+		statusList := make([]modelTypes.OperationStatus, 0)
+		for _, item := range strings.Split(req.Status, ",") {
+			status := modelTypes.NewOperationStatus(item)
+			statusList = append(statusList, status)
+		}
+		filters["status"] = statusList
 	}
 
 	if req.Entrypoints != "" {
