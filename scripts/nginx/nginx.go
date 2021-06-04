@@ -43,15 +43,15 @@ const defaultConfTemplate = `server {
 const locationTemplate = `
 	location {{.location}} {
 		rewrite ^ /index.html break;
-		sub_filter '<meta property=og:url content=/' '<meta property=og:url content={{.url}}';
-		sub_filter '<meta property=og:title content="{{.ogTitle}}"' '<meta property=og:title content="{{.title}}"';
-		sub_filter '<meta property=og:description content="{{.ogDescription}}"' '<meta property=og:description content="{{.description}}"';
-		sub_filter '<meta property=og:image content={{.ogImage}}' '<meta property=og:image content={{.logoURL}}';
-		sub_filter '<meta property=og:image:secure_url content={{.ogImage}}' '<meta property=og:image:secure_url content={{.logoURL}}';
-		sub_filter '<meta name=twitter:image content={{.ogImage}}' '<meta name=twitter:image content={{.logoURL}}';
-		sub_filter '<meta name=twitter:title content="{{.ogTitle}}"' '<meta name=twitter:title content="{{.title}}"';
-		sub_filter '<meta name=twitter:description content="{{.ogDescription}}"' '<meta name=twitter:description content="{{.description}}"';
-		sub_filter '<meta name=description content="{{.pageDescription}}"' '<meta name=description content="{{.description}}"';
+		sub_filter '<meta property="og:url" content="/"' '<meta property="og:url" content="{{.url}}"';
+		sub_filter '<meta property="og:title" content="{{.ogTitle}}"' '<meta property="og:title" content="{{.title}}"';
+		sub_filter '<meta property="og:description" content="{{.ogDescription}}"' '<meta property="og:description" content="{{.description}}"';
+		sub_filter '<meta property="og:image" content="{{.ogImage}}"' '<meta property=og:image content="{{.logoURL}}"';
+		sub_filter '<meta property="og:image:secure_url" content="{{.ogImage}}"' '<meta property="og:image:secure_url" content="{{.logoURL}}"';
+		sub_filter '<meta name="twitter:image" content="{{.ogImage}}"' '<meta name="twitter:image" content="{{.logoURL}}"';
+		sub_filter '<meta name="twitter:title" content="{{.ogTitle}}"' '<meta name="twitter:title" content="{{.title}}"';
+		sub_filter '<meta name="twitter:description" content="{{.ogDescription}}"' '<meta name="twitter:description" content="{{.description}}"';
+		sub_filter '<meta name="description" content="{{.pageDescription}}"' '<meta name="description" content="{{.description}}"';
 		sub_filter '<title>{{.pageTitle}}</title>' '<title>{{.title}}</title>';
 		sub_filter_once on;
 	}`
