@@ -187,7 +187,8 @@ func (api *app) makeRouter() {
 				acc.GET("", api.Context.GetInfo)
 				acc.GET("metadata", api.Context.GetMetadata)
 				acc.GET("token_balances", api.Context.GetAccountTokenBalances)
-				acc.GET("count", api.Context.GetAccountTokenBalancesGroupedCount)
+				acc.GET("count", api.Context.GetAccountTokensCountByContract)
+				acc.GET("count_with_metadata", api.Context.GetAccountTokensCountByContractWithMetadata)
 			}
 		}
 

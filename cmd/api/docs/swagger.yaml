@@ -250,7 +250,7 @@ definitions:
       level:
         type: integer
       network:
-        type: string
+        type: integer
       protocol:
         type: string
     required:
@@ -1097,6 +1097,46 @@ definitions:
       call_count:
         type: integer
     type: object
+  handlers.TokensCountWithMetadata:
+    properties:
+      address:
+        type: string
+      authors:
+        items:
+          type: string
+        type: array
+      count:
+        type: integer
+      description:
+        type: string
+      domain:
+        type: string
+      events:
+        items:
+          $ref: '#/definitions/tzip.Event'
+        type: array
+      extras:
+        additionalProperties: true
+        type: object
+      homepage:
+        type: string
+      interfaces:
+        items:
+          type: string
+        type: array
+      license:
+        $ref: '#/definitions/tzip.License'
+      name:
+        type: string
+      network:
+        type: string
+      version:
+        type: string
+      views:
+        items:
+          $ref: '#/definitions/tzip.View'
+        type: array
+    type: object
   handlers.Transfer:
     properties:
       alias:
@@ -1553,7 +1593,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get account token balances count grouped by count
+      description: Get account token balances count grouped by contract
       operationId: get-account-token-balances-count
       parameters:
       - description: Network
@@ -1589,7 +1629,51 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.Error'
-      summary: Get account token balances count grouped by count
+      summary: Get account token balances count grouped by contract
+      tags:
+      - account
+  /v1/account/{network}/{address}/count_with_metadata:
+    get:
+      consumes:
+      - application/json
+      description: Get account token balances count with token metadata grouped by
+        contract
+      operationId: get-account-token-balances-with-metadata-count
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: Address
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: address
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              $ref: '#/definitions/handlers.TokensCountWithMetadata'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Get account token balances count with token metadata grouped by contract
       tags:
       - account
   /v1/account/{network}/{address}/metadata:
@@ -1672,7 +1756,7 @@ paths:
         type: string
       - description: Field using for sorting
         enum:
-        - level
+        - token_id
         - balance
         in: query
         name: sort_by
