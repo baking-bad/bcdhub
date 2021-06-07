@@ -22,7 +22,7 @@ type Transfer struct {
 	Hash         string                `json:"hash"`
 	Status       types.OperationStatus `json:"status"`
 	Timestamp    time.Time             `json:"timestamp" gorm:"index:transfers_timestamp_idx"`
-	Level        int64                 `json:"level" gorm:"index:transfers_network_idx"`
+	Level        int64                 `json:"level" gorm:"index:transfers_network_idx;index:transfers_level_idx"`
 	From         string                `json:"from" gorm:"index:transfers_from_idx"`
 	To           string                `json:"to" gorm:"index:transfers_to_idx"`
 	TokenID      uint64                `json:"token_id" gorm:"type:numeric(50,0);index:transfers_token_idx"`

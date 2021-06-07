@@ -548,7 +548,7 @@ func TransferFromModel(model transfer.Transfer) (t Transfer) {
 	t.Initiator = model.Initiator
 	t.Hash = model.Hash
 	t.Status = model.Status.String()
-	t.Timestamp = model.Timestamp
+	t.Timestamp = model.Timestamp.UTC()
 	t.Level = model.Level
 	t.From = model.From
 	t.To = model.To

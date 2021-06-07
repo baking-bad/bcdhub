@@ -101,11 +101,7 @@ func (p Transaction) Parse(data noderpc.Operation) (*parsers.Result, error) {
 			logger.With(&tx).Warning(err.Error())
 		}
 		result.Transfers = append(result.Transfers, transfers...)
-
-		if !tx.HasTag(consts.LedgerTag) {
-			balanceUpdates := transferParsers.UpdateTokenBalances(transfers)
-			result.TokenBalances = append(result.TokenBalances, balanceUpdates...)
-		}
+		result.TokenBalances = append(result.TokenBalances, transferParsers.UpdateTokenBalances(transfers)...)
 	}
 	return result, nil
 }
