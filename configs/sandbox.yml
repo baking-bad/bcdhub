@@ -9,10 +9,6 @@ storage:
     - http://${ELASTIC_HOSTNAME:-elastic}:9200
   timeout: 10
 
-db:
-  conn_string: "host=${DB_HOSTNAME:-db} port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"
-  timeout: 10
-
 rabbitmq:
   uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@${RABBITMQ_HOSTNAME:-mq}:5672/"
   timeout: 10
@@ -29,7 +25,6 @@ api:
   bind: ":14000"
   swagger_host: "localhost:8000"
   cors_enabled: true
-  oauth_enabled: false
   sentry_enabled: false
   seed_enabled: true
   page_size: ${PAGE_SIZE:-10}

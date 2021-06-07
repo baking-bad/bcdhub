@@ -357,12 +357,6 @@ definitions:
       tx_count:
         type: integer
         x-nullable: true
-      verification_source:
-        type: string
-        x-nullable: true
-      verified:
-        type: boolean
-        x-nullable: true
     type: object
   handlers.CountResponse:
     properties:
@@ -725,12 +719,6 @@ definitions:
         type: integer
       tx_count:
         type: integer
-        x-nullable: true
-      verification_source:
-        type: string
-        x-nullable: true
-      verified:
-        type: boolean
         x-nullable: true
     type: object
   handlers.SimilarContractsResponse:

@@ -7,7 +7,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/cmd/api/docs"
 	"github.com/baking-bad/bcdhub/cmd/api/handlers"
-	"github.com/baking-bad/bcdhub/cmd/api/seed"
 	"github.com/baking-bad/bcdhub/cmd/api/validations"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -44,12 +43,6 @@ func newApp() *app {
 		logger.Error(err)
 		helpers.CatchErrorSentry(err)
 		return nil
-	}
-
-	if cfg.API.SeedEnabled {
-		if err := seed.Run(ctx, cfg.API.Seed); err != nil {
-			logger.Fatal(err)
-		}
 	}
 
 	api := &app{
@@ -132,7 +125,6 @@ func (api *app) makeRouter() {
 		}
 
 		contract := v1.Group("contract/:network/:address")
-		contract.Use(api.Context.IsAuthenticated())
 		{
 			contract.GET("", api.Context.GetContract)
 			contract.GET("code", api.Context.GetContractCode)
@@ -209,51 +201,6 @@ func (api *app) makeRouter() {
 			metadata.POST("upload", api.Context.UploadMetadata)
 			metadata.GET("list", api.Context.ListMetadata)
 			metadata.DELETE("delete", api.Context.DeleteMetadata)
-		}
-
-		oauth := v1.Group("oauth/:provider")
-		{
-			oauth.GET("login", api.Context.OauthLogin)
-			oauth.GET("callback", api.Context.OauthCallback)
-		}
-
-		authorized := v1.Group("/")
-		authorized.Use(api.Context.AuthJWTRequired())
-		{
-			profile := authorized.Group("profile")
-			{
-				profile.GET("", api.Context.GetUserProfile)
-				profile.POST("/mark_all_read", api.Context.UserMarkAllRead)
-				subscriptions := profile.Group("subscriptions")
-				{
-					subscriptions.GET("", api.Context.ListSubscriptions)
-					subscriptions.POST("", api.Context.CreateSubscription)
-					subscriptions.DELETE("", api.Context.DeleteSubscription)
-					subscriptions.GET("events", api.Context.GetEvents)
-					subscriptions.GET("mempool", api.Context.GetMempoolEvents)
-				}
-				vote := profile.Group("vote")
-				{
-					vote.POST("", api.Context.Vote)
-					vote.GET("tasks", api.Context.GetTasks)
-					vote.GET("generate", api.Context.GenerateTasks)
-				}
-				profile.GET("accounts", api.Context.ListPublicAccounts)
-				profile.GET("repos", api.Context.ListPublicRepos)
-				profile.GET("refs", api.Context.ListPublicRefs)
-
-				compilations := profile.Group("compilations")
-				{
-					compilations.GET("", api.Context.ListCompilationTasks)
-
-					compilations.GET("verification", api.Context.ListVerifications)
-					compilations.POST("verification", api.Context.CreateVerification)
-
-					compilations.GET("deployment", api.Context.ListDeployments)
-					compilations.POST("deployment", api.Context.CreateDeployment)
-					compilations.PATCH("deployment", api.Context.FinalizeDeployment)
-				}
-			}
 		}
 
 		dapps := v1.Group("dapps")

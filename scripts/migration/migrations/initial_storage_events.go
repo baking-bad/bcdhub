@@ -33,7 +33,7 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 
 	logger.Info("Found %d tzips", len(tzips))
 
-	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.DB)
+	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage)
 
 	logger.Info("Execution events...")
 	items := make([]models.Model, 0)

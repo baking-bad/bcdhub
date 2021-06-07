@@ -3944,14 +3944,6 @@ var doc = `{
                 "tx_count": {
                     "type": "integer",
                     "x-nullable": true
-                },
-                "verification_source": {
-                    "type": "string",
-                    "x-nullable": true
-                },
-                "verified": {
-                    "type": "boolean",
-                    "x-nullable": true
                 }
             }
         },
@@ -4471,14 +4463,6 @@ var doc = `{
                 },
                 "tx_count": {
                     "type": "integer",
-                    "x-nullable": true
-                },
-                "verification_source": {
-                    "type": "string",
-                    "x-nullable": true
-                },
-                "verified": {
-                    "type": "boolean",
                     "x-nullable": true
                 }
             }

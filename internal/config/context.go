@@ -3,7 +3,6 @@ package config
 import (
 	"github.com/baking-bad/bcdhub/internal/aws"
 	"github.com/baking-bad/bcdhub/internal/cache"
-	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -31,7 +30,6 @@ import (
 
 // Context -
 type Context struct {
-	DB           database.DB
 	MQ           mq.Mediator
 	AWS          *aws.Client
 	RPC          map[types.Network]noderpc.INode
@@ -99,9 +97,6 @@ func (ctx *Context) GetTzKTService(network types.Network) (tzkt.Service, error) 
 func (ctx *Context) Close() {
 	if ctx.MQ != nil {
 		ctx.MQ.Close()
-	}
-	if ctx.DB != nil {
-		ctx.DB.Close()
 	}
 	if ctx.StorageDB != nil {
 		ctx.StorageDB.Close()

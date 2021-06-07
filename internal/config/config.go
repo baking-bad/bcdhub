@@ -24,8 +24,6 @@ type Config struct {
 	TzKT         map[string]TzKTConfig `yaml:"tzkt"`
 	Storage      StorageConfig         `yaml:"storage"`
 	RabbitMQ     RabbitConfig          `yaml:"rabbitmq"`
-	DB           DatabaseConfig        `yaml:"db"`
-	OAuth        OAuthConfig           `yaml:"oauth"`
 	Sentry       SentryConfig          `yaml:"sentry"`
 	SharePath    string                `yaml:"share_path"`
 	BaseURL      string                `yaml:"base_url"`
@@ -33,13 +31,6 @@ type Config struct {
 	Domains      TezosDomainsConfig    `yaml:"domains"`
 
 	API APIConfig `yaml:"api"`
-
-	Compiler struct {
-		ProjectName   string    `yaml:"project_name"`
-		SentryEnabled bool      `yaml:"sentry_enabled"`
-		AWS           AWSConfig `yaml:"aws"`
-		MQ            MQConfig  `yaml:"mq"`
-	} `yaml:"compiler"`
 
 	Indexer struct {
 		Networks map[string]struct {
@@ -168,7 +159,6 @@ type APIConfig struct {
 	Bind          string         `yaml:"bind"`
 	SwaggerHost   string         `yaml:"swagger_host"`
 	CorsEnabled   bool           `yaml:"cors_enabled"`
-	OAuthEnabled  bool           `yaml:"oauth_enabled"`
 	SentryEnabled bool           `yaml:"sentry_enabled"`
 	SeedEnabled   bool           `yaml:"seed_enabled"`
 	Frontend      FrontendConfig `yaml:"frontend"`

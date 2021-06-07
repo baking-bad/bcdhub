@@ -1,7 +1,6 @@
 package metrics
 
 import (
-	"github.com/baking-bad/bcdhub/internal/database"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
@@ -26,7 +25,6 @@ type Handler struct {
 	TokenMetadata tokenmetadata.Repository
 	TZIP          tzip.Repository
 	Storage       models.GeneralRepository
-	DB            database.DB
 }
 
 // New -
@@ -41,7 +39,6 @@ func New(
 	tzipRepo tzip.Repository,
 	migrationRepo migration.Repository,
 	storage models.GeneralRepository,
-	db database.DB,
 ) *Handler {
-	return &Handler{contracts, bmdRepo, blocksRepo, protocolRepo, operations, migrationRepo, tbRepo, tmRepo, tzipRepo, storage, db}
+	return &Handler{contracts, bmdRepo, blocksRepo, protocolRepo, operations, migrationRepo, tbRepo, tmRepo, tzipRepo, storage}
 }

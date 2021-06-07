@@ -26,10 +26,6 @@ metrics:
 	docker-compose up -d elastic mq db
 	cd cmd/metrics && go run .
 
-compiler:
-	docker-compose -f docker-compose.yml -f build/compiler/dev/docker-compose.yml up -d --build compiler-dev
-	docker logs -f bcd-compiler-dev
-
 seo:
 ifeq ($(BCD_ENV), development)
 	cd scripts/nginx && go run .
@@ -169,7 +165,7 @@ upgrade:
 	TAG=$$STABLE_TAG docker-compose up -d db mq api
 
 restart:
-	docker-compose restart api metrics indexer compiler
+	docker-compose restart api metrics indexer
 
 release:
 	BCDHUB_VERSION=$$(cat version.json | grep version | awk -F\" '{ print $$4 }') && git tag $$BCDHUB_VERSION && git push origin $$BCDHUB_VERSION

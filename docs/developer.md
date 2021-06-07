@@ -7,14 +7,12 @@ Loads and decodes operations related to smart contracts and also keeps track of 
 Receives new contract/operation events from the indexer and calculates various metrics that are used for ranking, linking, and labelling contracts and operations.
 * `API`  
 Exposes RESTful JSON API for accessing indexed data (with on-the-fly decoding). Also provides a set of methods for authentication and managing user profiles.
-* `compiler`  
-Contains compilers of various high-level contract languages (LIGO, SmartPy, etc) as well as a service handling compilation tasks
 
 Those microservices are sharing access to databases and communicating via message queue:
 
 * `ElasticSearch` cluster (single node) for storing all indexed data including blocks, protocols, contracts, operations, Big_map diffs, and others.
 * `PostgreSQL` database for storing compilations and user data.
-* `RabbitMQ` for communications between `API`, `indexer`, `metrics` and `compiler`.
+* `RabbitMQ` for communications between `API`, `indexer` and `metrics`.
 
 ### Third-party services
 BCDHub also depends on several API endpoints exposed by [TzKT](https://github.com/baking-bad/tzkt) although they are optional:
@@ -106,7 +104,7 @@ There are several predefined configurations serving different purposes.
 #### Development `localhost`
 * `/configs/development.yml` file is used
 * You can spawn local instances of databases and message queue or _ssh_ to staging host with port forwarding
-* Run services `make {service}` (where service is one of `api` `indexer` `metrics` `compiler`)
+* Run services `make {service}` (where service is one of `api` `indexer` `metrics`)
 
 #### Sandbox `bbbox`
 * `/configs/sandbox.yml` file is used

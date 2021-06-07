@@ -39,24 +39,6 @@ rabbitmq:
   uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@127.0.0.1:5672/"
   timeout: 10
 
-db:
-  conn_string: "host=${DB_HOSTNAME:-127.0.0.1} port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"
-  timeout: 10
-
-oauth:
-  state: ${OAUTH_STATE_STRING}
-  jwt:
-    secret: ${JWT_SECRET_KEY}
-    redirect_url: http://localhost:8080/welcome
-  github:
-    client_id: ${GITHUB_CLIENT_ID}
-    secret: ${GITHUB_CLIENT_SECRET}
-    callback_url: http://localhost:14000/v1/oauth/github/callback
-  gitlab:
-    client_id: ${GITLAB_CLIENT_ID}
-    secret: ${GITLAB_CLIENT_SECRET}
-    callback_url: http://localhost:14000/v1/oauth/gitlab/callback
-
 sentry:
   environment: development
   uri: ${SENTRY_DSN}
@@ -80,7 +62,6 @@ api:
   bind: "127.0.0.1:14000"
   swagger_host: "localhost:14000"
   cors_enabled: true
-  oauth_enabled: true
   sentry_enabled: false
   seed_enabled: false
   page_size: ${PAGE_SIZE:-10}
@@ -96,19 +77,6 @@ api:
     key: ${PINATA_KEY}
     secret_key: ${PINATA_SECRET_KEY}
     timeout_seconds: 10
-
-compiler:
-  project_name: compiler
-  aws:
-    bucket_name: bcd-contract-sources
-    region: eu-central-1
-    access_key_id: ${AWS_ACCESS_KEY_ID}
-    secret_access_key: ${AWS_SECRET_ACCESS_KEY}
-  sentry_enabled: false
-  mq:
-    publisher: true
-    queues:
-      compilations:
 
 indexer:
   project_name: indexer

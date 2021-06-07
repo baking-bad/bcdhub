@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -18,10 +17,7 @@ func getOperation(ids []int64) error {
 
 	updated := make([]models.Model, 0)
 	for i := range operations {
-		if err := parseOperation(operations[i]); err != nil {
-			return errors.Errorf("[getOperation] Compute error message: %s", err)
-		}
-
+		parseOperation(operations[i])
 		updated = append(updated, &operations[i])
 	}
 	logger.Info("%d operations are processed", len(operations))
@@ -33,15 +29,7 @@ func getOperation(ids []int64) error {
 	return ctx.Storage.Save(updated)
 }
 
-func parseOperation(operation operation.Operation) error {
-	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage, ctx.DB)
-
+func parseOperation(operation operation.Operation) {
+	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage)
 	h.SetOperationStrings(&operation)
-
-	if bcd.IsContract(operation.Destination) || operation.IsOrigination() {
-		if err := h.SendSentryNotifications(operation); err != nil {
-			return err
-		}
-	}
-	return nil
 }

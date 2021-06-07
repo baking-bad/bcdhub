@@ -32,24 +32,6 @@ storage:
     - http://${ELASTIC_HOSTNAME:-elastic}:9200
   timeout: 10
 
-db:
-  conn_string: "host=${DB_HOSTNAME:-db} port=5432 user=${POSTGRES_USER} dbname=${POSTGRES_DB} password=${POSTGRES_PASSWORD} sslmode=disable"
-  timeout: 10
-
-oauth:
-  state: ${OAUTH_STATE_STRING}
-  jwt:
-    secret: ${JWT_SECRET_KEY}
-    redirect_url: https://better-call.dev/welcome
-  github:
-    client_id: ${GITHUB_CLIENT_ID}
-    secret: ${GITHUB_CLIENT_SECRET}
-    callback_url: https://api.better-call.dev/v1/oauth/github/callback
-  gitlab:
-    client_id: ${GITLAB_CLIENT_ID}
-    secret: ${GITLAB_CLIENT_SECRET}
-    callback_url: https://api.better-call.dev/v1/oauth/gitlab/callback
-
 sentry:
   environment: production
   uri: ${SENTRY_DSN}
@@ -74,7 +56,6 @@ api:
   bind: ":14000"
   swagger_host: "api.better-call.dev"
   cors_enabled: false
-  oauth_enabled: true
   sentry_enabled: true
   seed_enabled: false
   page_size: ${PAGE_SIZE:-10}
@@ -90,19 +71,6 @@ api:
     key: ${PINATA_KEY}
     secret_key: ${PINATA_SECRET_KEY}
     timeout_seconds: 10
-
-compiler:
-  project_name: compiler
-  aws:
-    bucket_name: bcd-contract-sources
-    region: eu-central-1
-    access_key_id: ${AWS_ACCESS_KEY_ID}
-    secret_access_key: ${AWS_SECRET_ACCESS_KEY}
-  sentry_enabled: true
-  mq:
-    publisher: true
-    queues:
-      compilations:
 
 indexer:
   project_name: indexer

@@ -77,7 +77,7 @@ sentry:
 ```
 
 #### `share_path`
-Folder to store cached contract sources and share files for `compiler`
+Folder to store cached contract sources
 ```yml
 share_path: /etc/bcd
 ```
@@ -98,7 +98,6 @@ api:
     bind: ":14000"
     swagger_host: "api.better-call.dev"
     cors_enabled: false
-    oauth_enabled: true
     sentry_enabled: true
     seed_enabled: false
     networks:
@@ -109,23 +108,6 @@ api:
             operations:
                 non_durable: true
                 auto_deleted: true
-```
-
-#### `compiler`
-Compiler service settings
-```yml
-compiler:
-    project_name: compiler
-    aws:
-        bucket_name: bcd-contract-sources
-        region: eu-central-1
-        access_key_id: ${AWS_ACCESS_KEY_ID}
-        secret_access_key: ${AWS_SECRET_ACCESS_KEY}
-    sentry_enabled: true
-    mq:
-        publisher: true
-        queues:
-            compilations:
 ```
 
 #### `indexer`
