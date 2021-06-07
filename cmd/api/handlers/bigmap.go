@@ -6,7 +6,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -56,7 +55,7 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 			res.Address = actions[0].Address
 		}
 	} else {
-		script, err := ctx.getScript(req.NetworkID(), res.Address, "")
+		script, err := ctx.getScript(req.NetworkID(), res.Address, bcd.SymLinkBabylon)
 		if ctx.handleError(c, err, 0) {
 			return
 		}
@@ -68,13 +67,13 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		if ctx.handleError(c, err, 0) {
 			return
 		}
-		symLink, err := bcd.GetProtoSymLink(operation.Protocol)
+		proto, err := ctx.CachedProtocolByID(operation.Network, operation.ProtocolID)
 		if ctx.handleError(c, err, 0) {
 			return
 		}
 
 		var deffatedStorage []byte
-		if symLink == consts.MetadataAlpha {
+		if proto.SymLink == bcd.SymLinkAlpha {
 			rpc, err := ctx.GetRPC(req.NetworkID())
 			if ctx.handleError(c, err, 0) {
 				return

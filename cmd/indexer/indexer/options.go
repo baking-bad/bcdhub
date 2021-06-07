@@ -24,7 +24,7 @@ func WithBoost(externalType, network string, cfg config.Config) BoostIndexerOpti
 			bi.externalIndexer = index.NewTzKT(cfg.TzKT[network].URI, time.Duration(cfg.TzKT[network].Timeout)*time.Second)
 			return
 		default:
-			panic(fmt.Errorf("Unsupported external indexer type: %s", externalType))
+			panic(fmt.Errorf("unsupported external indexer type: %s", externalType))
 		}
 	}
 }

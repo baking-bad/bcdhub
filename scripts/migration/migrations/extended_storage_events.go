@@ -73,7 +73,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 					continue
 				}
 
-				script, err := fetch.Contract(tzips[i].Network, tzips[i].Address, protocol.Hash, ctx.SharePath)
+				script, err := fetch.ContractBySymLink(tzips[i].Network, tzips[i].Address, protocol.SymLink, ctx.SharePath)
 				if err != nil {
 					return err
 				}
@@ -107,7 +107,11 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 							return err
 						}
 					}
-					transfers, err := parser.Parse(op, bmd)
+					proto, err := ctx.CachedProtocolByID(operations[i].Network, operations[i].ProtocolID)
+					if err != nil {
+						return err
+					}
+					transfers, err := parser.Parse(op, bmd, proto.Hash)
 					if err != nil {
 						if errors.Is(err, noderpc.InvalidNodeResponse{}) {
 							logger.Error(err)

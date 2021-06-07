@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
@@ -30,7 +31,7 @@ func (ctx *Context) GetEntrypoints(c *gin.Context) {
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
 		return
 	}
-	script, err := ctx.getScript(req.NetworkID(), req.Address, "")
+	script, err := ctx.getScript(req.NetworkID(), req.Address, bcd.SymLinkBabylon)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -86,7 +87,7 @@ func (ctx *Context) GetEntrypointData(c *gin.Context) {
 		return
 	}
 
-	result, err := ctx.buildParametersForExecution(req.NetworkID(), req.Address, "", reqData.Name, reqData.Data)
+	result, err := ctx.buildParametersForExecution(req.NetworkID(), req.Address, bcd.SymLinkBabylon, reqData.Name, reqData.Data)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -130,7 +131,7 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 		return
 	}
 
-	script, err := ctx.getScript(req.NetworkID(), req.Address, "")
+	script, err := ctx.getScript(req.NetworkID(), req.Address, bcd.SymLinkBabylon)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -196,8 +197,8 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 	c.JSON(http.StatusOK, schema)
 }
 
-func (ctx *Context) buildParametersForExecution(network modelTypes.Network, address, protocol, entrypoint string, data map[string]interface{}) (*types.Parameters, error) {
-	parameterType, err := ctx.getParameterType(network, address, protocol)
+func (ctx *Context) buildParametersForExecution(network modelTypes.Network, address, symLink, entrypoint string, data map[string]interface{}) (*types.Parameters, error) {
+	parameterType, err := ctx.getParameterType(network, address, symLink)
 	if err != nil {
 		return nil, err
 	}

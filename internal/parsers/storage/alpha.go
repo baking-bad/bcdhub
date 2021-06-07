@@ -91,7 +91,7 @@ func (a *Alpha) ParseOrigination(content noderpc.Operation, operation operation.
 					Contract:         result.Originated[0],
 					Network:          operation.Network,
 					Timestamp:        operation.Timestamp,
-					Protocol:         operation.Protocol,
+					ProtocolID:       operation.ProtocolID,
 					Ptr:              -1,
 				}
 				res.BigMapDiffs = append(res.BigMapDiffs, b)
@@ -131,7 +131,7 @@ func (a *Alpha) getBigMapDiff(diffs []noderpc.BigMapDiff, address string, operat
 			Contract:         address,
 			Network:          operation.Network,
 			Timestamp:        operation.Timestamp,
-			Protocol:         operation.Protocol,
+			ProtocolID:       operation.ProtocolID,
 			Ptr:              -1,
 		}
 		res.BigMapDiffs = append(res.BigMapDiffs, b)

@@ -224,7 +224,7 @@ func LoadDefaultConfig() (Config, error) {
 
 	config, ok := configurations[env]
 	if !ok {
-		return Config{}, fmt.Errorf("Unknown configuration for %s variable %s", EnvironmentVar, env)
+		return Config{}, fmt.Errorf("unknown configuration for %s variable %s", EnvironmentVar, env)
 	}
 
 	return LoadConfig(config)

@@ -210,8 +210,8 @@ func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 		logger.Info("Network: %s != %s", one.Network, two.Network)
 		return false
 	}
-	if one.Protocol != two.Protocol {
-		logger.Info("Protocol: %s != %s", one.Protocol, two.Protocol)
+	if one.ProtocolID != two.ProtocolID {
+		logger.Info("Protocol: %d != %d", one.ProtocolID, two.ProtocolID)
 		return false
 	}
 	if one.Hash != two.Hash {
@@ -305,8 +305,8 @@ func compareBigMapDiff(t *testing.T, one, two *bigmapdiff.BigMapDiff) bool {
 		logger.Info("Timestamp: %s != %s", one.Timestamp, two.Timestamp)
 		return false
 	}
-	if one.Protocol != two.Protocol {
-		logger.Info("Protocol: %s != %s", one.Protocol, two.Protocol)
+	if one.ProtocolID != two.ProtocolID {
+		logger.Info("Protocol: %d != %d", one.ProtocolID, two.ProtocolID)
 		return false
 	}
 	if !assert.JSONEq(t, string(one.KeyBytes()), string(two.KeyBytes())) {

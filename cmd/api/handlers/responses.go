@@ -66,7 +66,6 @@ type Operation struct {
 // FromModel -
 func (o *Operation) FromModel(operation operation.Operation) {
 	o.ID = operation.ID
-	o.Protocol = operation.Protocol
 	o.Hash = operation.Hash
 	o.Network = operation.Network.String()
 	o.Internal = operation.Internal
@@ -99,7 +98,6 @@ func (o *Operation) FromModel(operation operation.Operation) {
 func (o *Operation) ToModel() operation.Operation {
 	return operation.Operation{
 		ID:        o.ID,
-		Protocol:  o.Protocol,
 		Hash:      o.Hash,
 		Network:   types.NewNetwork(o.Network),
 		Internal:  o.Internal,
@@ -431,9 +429,9 @@ func (b *Block) FromModel(block block.Block) {
 	b.Network = block.Network.String()
 	b.Hash = block.Hash
 	b.Level = block.Level
+	b.Protocol = block.Protocol.Hash
 	b.Predecessor = block.Predecessor
 	b.ChainID = block.ChainID
-	b.Protocol = block.Protocol
 	b.Timestamp = block.Timestamp
 }
 

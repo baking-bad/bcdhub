@@ -17,14 +17,11 @@ type MichelsonExtendedStorage struct {
 	name   string
 	parser tokenbalance.Parser
 
-	protocol    string
-	operationID int64
-	contract    string
-	bmd         []bigmapdiff.BigMapDiff
+	bmd []bigmapdiff.BigMapDiff
 }
 
 // NewMichelsonExtendedStorage -
-func NewMichelsonExtendedStorage(impl tzip.EventImplementation, name, protocol, contract string, operationID int64, bmd []bigmapdiff.BigMapDiff) (*MichelsonExtendedStorage, error) {
+func NewMichelsonExtendedStorage(impl tzip.EventImplementation, name string, bmd []bigmapdiff.BigMapDiff) (*MichelsonExtendedStorage, error) {
 	retType, err := ast.NewTypedAstFromBytes(impl.MichelsonExtendedStorageEvent.ReturnType)
 	if err != nil {
 		return nil, err
@@ -40,12 +37,9 @@ func NewMichelsonExtendedStorage(impl tzip.EventImplementation, name, protocol, 
 			ReturnType: impl.MichelsonExtendedStorageEvent.ReturnType,
 		},
 
-		name:        name,
-		parser:      parser,
-		protocol:    protocol,
-		operationID: operationID,
-		bmd:         bmd,
-		contract:    contract,
+		name:   name,
+		parser: parser,
+		bmd:    bmd,
 	}, nil
 }
 

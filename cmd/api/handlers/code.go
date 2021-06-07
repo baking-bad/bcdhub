@@ -45,7 +45,11 @@ func (ctx *Context) GetContractCode(c *gin.Context) {
 		if ctx.handleError(c, err, 0) {
 			return
 		}
-		req.Protocol = state.Protocol
+		proto, err := ctx.CachedProtocolByID(state.Network, state.ProtocolID)
+		if ctx.handleError(c, err, 0) {
+			return
+		}
+		req.Protocol = proto.Hash
 	}
 
 	code, err := ctx.getContractCodeJSON(network, req.Address, req.Protocol)
@@ -119,8 +123,12 @@ func (ctx *Context) getContractCodeDiff(left, right CodeDiffLeg) (res CodeDiffRe
 				if err != nil {
 					return res, err
 				}
-				leg.Protocol = state.Protocol
-				currentProtocols[leg.Network] = state.Protocol
+				proto, err := ctx.CachedProtocolByID(state.Network, state.ProtocolID)
+				if err != nil {
+					return res, err
+				}
+				leg.Protocol = proto.Hash
+				currentProtocols[leg.Network] = proto.Hash
 			} else {
 				leg.Protocol = protocol
 			}

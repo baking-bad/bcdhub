@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/contract"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -34,7 +35,7 @@ func NewMigrationParser(storage models.GeneralRepository, bmdRepo bigmapdiff.Rep
 
 // Parse -
 func (p *MigrationParser) Parse(script noderpc.Script, old modelsContract.Contract, previous, next protocol.Protocol, timestamp time.Time, tx *gorm.DB) error {
-	if previous.SymLink == consts.MetadataAlpha {
+	if previous.SymLink == bcd.SymLinkAlpha {
 		if err := p.getUpdates(script, old, tx); err != nil {
 			return err
 		}
@@ -64,13 +65,13 @@ func (p *MigrationParser) Parse(script noderpc.Script, old modelsContract.Contra
 	}
 
 	m := &migration.Migration{
-		Network:      old.Network,
-		Level:        previous.EndLevel,
-		Protocol:     next.Hash,
-		PrevProtocol: previous.Hash,
-		Address:      old.Address,
-		Timestamp:    timestamp,
-		Kind:         consts.MigrationUpdate,
+		Network:        old.Network,
+		Level:          previous.EndLevel,
+		ProtocolID:     next.ID,
+		PrevProtocolID: previous.ID,
+		Address:        old.Address,
+		Timestamp:      timestamp,
+		Kind:           consts.MigrationUpdate,
 	}
 
 	return m.Save(tx)

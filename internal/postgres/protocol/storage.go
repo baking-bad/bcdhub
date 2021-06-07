@@ -46,3 +46,9 @@ func (storage *Storage) GetAll() (response []protocol.Protocol, err error) {
 	err = storage.DB.Table(models.DocProtocol).Find(&response).Error
 	return
 }
+
+// GetByID - returns protocol by id
+func (storage *Storage) GetByID(id int64) (response protocol.Protocol, err error) {
+	err = storage.DB.Table(models.DocProtocol).Where("id = ?", id).First(&response).Error
+	return
+}

@@ -67,11 +67,15 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 		if err != nil {
 			return err
 		}
-		operations[i].Script, err = fetch.Contract(operations[i].Network, operations[i].Destination, operations[i].Protocol, ctx.SharePath)
+		proto, err := ctx.CachedProtocolByID(operations[i].Network, operations[i].ProtocolID)
 		if err != nil {
 			return err
 		}
-		transfers, err := parser.Parse(operations[i], nil)
+		operations[i].Script, err = fetch.ContractBySymLink(operations[i].Network, operations[i].Destination, proto.SymLink, ctx.SharePath)
+		if err != nil {
+			return err
+		}
+		transfers, err := parser.Parse(operations[i], nil, proto.Hash)
 		if err != nil {
 			return err
 		}

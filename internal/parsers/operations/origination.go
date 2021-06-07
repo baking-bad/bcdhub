@@ -21,10 +21,15 @@ func NewOrigination(params *ParseParams) Origination {
 func (p Origination) Parse(data noderpc.Operation) (*parsers.Result, error) {
 	result := parsers.NewResult()
 
+	proto, err := p.ctx.CachedProtocolByHash(p.network, p.head.Protocol)
+	if err != nil {
+		return nil, err
+	}
+
 	origination := operation.Operation{
 		Network:      p.network,
 		Hash:         p.hash,
-		Protocol:     p.head.Protocol,
+		ProtocolID:   proto.ID,
 		Level:        p.head.Level,
 		Timestamp:    p.head.Timestamp,
 		Kind:         data.Kind,

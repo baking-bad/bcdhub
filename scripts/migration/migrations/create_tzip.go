@@ -57,12 +57,12 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 
 		t, err := parser.Parse(tzipParsers.ParseContext{
 			BigMapDiff: bigmapdiff.BigMapDiff{
-				Contract: bmd[i].Contract,
-				Network:  bmd[i].Network,
-				Ptr:      bmd[i].Ptr,
-				Value:    bmd[i].Value,
-				KeyHash:  bmd[i].KeyHash,
-				Protocol: bmd[i].Protocol,
+				Contract:   bmd[i].Contract,
+				Network:    bmd[i].Network,
+				Ptr:        bmd[i].Ptr,
+				Value:      bmd[i].Value,
+				KeyHash:    bmd[i].KeyHash,
+				ProtocolID: bmd[i].ProtocolID,
 			},
 		})
 		if err != nil {

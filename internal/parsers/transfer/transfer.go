@@ -83,13 +83,13 @@ func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Reposit
 }
 
 // Parse -
-func (p *Parser) Parse(operation operation.Operation, diffs []*bigmapdiff.BigMapDiff) ([]*transfer.Transfer, error) {
+func (p *Parser) Parse(operation operation.Operation, diffs []*bigmapdiff.BigMapDiff, protocol string) ([]*transfer.Transfer, error) {
 	if !operation.IsTransaction() {
 		return nil, nil
 	}
 
 	if impl, name, ok := globalEvents.GetByOperation(operation); ok {
-		return p.executeEvents(impl, name, operation, diffs)
+		return p.executeEvents(impl, name, protocol, operation, diffs)
 	}
 
 	if operation.IsEntrypoint(consts.TransferEntrypoint) {
@@ -105,7 +105,7 @@ func (p *Parser) Parse(operation operation.Operation, diffs []*bigmapdiff.BigMap
 	return nil, nil
 }
 
-func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, operation operation.Operation, diffs []*bigmapdiff.BigMapDiff) ([]*transfer.Transfer, error) {
+func (p *Parser) executeEvents(impl tzip.EventImplementation, name, protocol string, operation operation.Operation, diffs []*bigmapdiff.BigMapDiff) ([]*transfer.Transfer, error) {
 	if !operation.IsApplied() {
 		return nil, nil
 	}
@@ -114,7 +114,7 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 
 	ctx := events.Context{
 		Network:                  p.network,
-		Protocol:                 operation.Protocol,
+		Protocol:                 protocol,
 		Source:                   operation.Source,
 		Amount:                   operation.Amount,
 		Initiator:                operation.Initiator,
@@ -162,7 +162,7 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name string, opera
 				bmd = append(bmd, *diffs[i])
 			}
 		}
-		event, err = events.NewMichelsonExtendedStorage(impl, name, operation.Protocol, operation.Destination, operation.GetID(), bmd)
+		event, err = events.NewMichelsonExtendedStorage(impl, name, bmd)
 		if err != nil {
 			return nil, err
 		}

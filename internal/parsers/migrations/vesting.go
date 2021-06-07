@@ -27,18 +27,23 @@ func NewVestingParser(ctx *config.Context, filesDirectory string) *VestingParser
 
 // Parse -
 func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, network types.Network, address string) (*parsers.Result, error) {
+	proto, err := p.ctx.CachedProtocolByHash(network, head.Protocol)
+	if err != nil {
+		return nil, err
+	}
+
 	migration := &migration.Migration{
-		Level:     head.Level,
-		Network:   network,
-		Protocol:  head.Protocol,
-		Address:   address,
-		Timestamp: head.Timestamp,
-		Kind:      consts.MigrationBootstrap,
+		Level:      head.Level,
+		Network:    network,
+		ProtocolID: proto.ID,
+		Address:    address,
+		Timestamp:  head.Timestamp,
+		Kind:       consts.MigrationBootstrap,
 	}
 
 	op := operation.Operation{
 		Network:     network,
-		Protocol:    head.Protocol,
+		ProtocolID:  proto.ID,
 		Status:      types.OperationStatusApplied,
 		Kind:        consts.Migration,
 		Amount:      data.Balance,

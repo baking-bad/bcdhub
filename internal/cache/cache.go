@@ -58,3 +58,13 @@ func (cache *Cache) ScriptKey(network types.Network, address string) string {
 func (cache *Cache) ScriptBytesKey(network types.Network, address string) string {
 	return fmt.Sprintf("script_bytes:%d:%s", network, address)
 }
+
+// ProtocolByHashKey -
+func (cache *Cache) ProtocolByHashKey(network types.Network, id int64) string {
+	return fmt.Sprintf("protocol_hash:%d:%d", network, id)
+}
+
+// ProtocolByIDKey -
+func (cache *Cache) ProtocolByIDKey(network types.Network, hash string) string {
+	return fmt.Sprintf("protocol_id:%d:%s", network, hash)
+}

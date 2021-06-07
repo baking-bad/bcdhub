@@ -16,7 +16,7 @@ func (ctx *Context) handleError(c *gin.Context, err error, code int) bool {
 
 	switch code {
 	case http.StatusUnauthorized:
-		err = errors.New("Invalid authentication")
+		err = errors.New("invalid authentication")
 	case 0:
 		code = ctx.getErrorCode(err)
 

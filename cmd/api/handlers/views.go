@@ -13,9 +13,9 @@ import (
 )
 
 var (
-	errNoViews               = errors.New("There aren't views in the metadata")
-	errInvalidImplementation = errors.New("Invalid implementation index")
-	errEmptyImplementation   = errors.New("Empty implementation")
+	errNoViews               = errors.New("there aren't views in the metadata")
+	errInvalidImplementation = errors.New("invalid implementation index")
+	errEmptyImplementation   = errors.New("empty implementation")
 )
 
 // GetViewsSchema godoc
@@ -170,7 +170,7 @@ func (ctx *Context) ExecuteView(c *gin.Context) {
 		ChainID:                  state.ChainID,
 		HardGasLimitPerOperation: execView.GasLimit,
 		Amount:                   execView.Amount,
-		Protocol:                 state.Protocol,
+		Protocol:                 state.Protocol.Hash,
 		Parameters:               string(parameters),
 	})
 	if ctx.handleError(c, err, 0) {

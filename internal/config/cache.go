@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
@@ -106,14 +107,14 @@ func (ctx *Context) CachedContract(network types.Network, address string) (*cont
 }
 
 // CachedScript -
-func (ctx *Context) CachedScript(network types.Network, address, protocol string) (*ast.Script, error) {
+func (ctx *Context) CachedScript(network types.Network, address, symLink string) (*ast.Script, error) {
 	if !bcd.IsContract(address) {
 		return nil, nil
 	}
 
 	key := ctx.Cache.ScriptKey(network, address)
 	item, err := ctx.Cache.Fetch(key, time.Hour, func() (interface{}, error) {
-		script, err := ctx.CachedScriptBytes(network, address, protocol)
+		script, err := ctx.CachedScriptBytes(network, address, symLink)
 		if err != nil {
 			return nil, err
 		}
@@ -126,17 +127,41 @@ func (ctx *Context) CachedScript(network types.Network, address, protocol string
 }
 
 // CachedScriptBytes -
-func (ctx *Context) CachedScriptBytes(network types.Network, address, protocol string) ([]byte, error) {
+func (ctx *Context) CachedScriptBytes(network types.Network, address, symLink string) ([]byte, error) {
 	if !bcd.IsContract(address) {
 		return nil, nil
 	}
 
 	key := ctx.Cache.ScriptBytesKey(network, address)
 	item, err := ctx.Cache.Fetch(key, time.Hour, func() (interface{}, error) {
-		return fetch.Contract(network, address, protocol, ctx.SharePath)
+		return fetch.ContractBySymLink(network, address, symLink, ctx.SharePath)
 	})
 	if err != nil {
 		return nil, err
 	}
 	return item.Value().([]byte), nil
+}
+
+// CachedProtocolByHash -
+func (ctx *Context) CachedProtocolByHash(network types.Network, hash string) (protocol.Protocol, error) {
+	key := ctx.Cache.ProtocolByIDKey(network, hash)
+	item, err := ctx.Cache.Fetch(key, time.Hour, func() (interface{}, error) {
+		return ctx.Protocols.Get(network, hash, -1)
+	})
+	if err != nil {
+		return protocol.Protocol{}, err
+	}
+	return item.Value().(protocol.Protocol), nil
+}
+
+// CachedProtocolByID -
+func (ctx *Context) CachedProtocolByID(network types.Network, id int64) (protocol.Protocol, error) {
+	key := ctx.Cache.ProtocolByHashKey(network, id)
+	item, err := ctx.Cache.Fetch(key, time.Hour, func() (interface{}, error) {
+		return ctx.Protocols.GetByID(id)
+	})
+	if err != nil {
+		return protocol.Protocol{}, err
+	}
+	return item.Value().(protocol.Protocol), nil
 }

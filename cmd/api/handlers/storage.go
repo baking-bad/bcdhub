@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
@@ -41,23 +42,33 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 	if ctx.handleError(c, err, http.StatusBadRequest) {
 		return
 	}
+
+	var protocol string
 	if sReq.Level == 0 {
 		block, err := ctx.CachedCurrentBlock(network)
 		if ctx.handleError(c, err, 0) {
 			return
 		}
 		sReq.Level = int(block.Level)
+		protocol = block.Protocol.Hash
+	} else {
+		header, err := rpc.GetHeader(int64(sReq.Level))
+		if ctx.handleError(c, err, 0) {
+			return
+		}
+		protocol = header.Protocol
 	}
 
 	deffatedStorage, err := rpc.GetScriptStorageRaw(req.Address, int64(sReq.Level))
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	header, err := rpc.GetHeader(int64(sReq.Level))
+
+	proto, err := ctx.CachedProtocolByHash(network, protocol)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	storageType, err := ctx.getStorageType(network, req.Address, header.Protocol)
+	storageType, err := ctx.getStorageType(network, req.Address, proto.SymLink)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -203,7 +214,11 @@ func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 		return
 	}
 
-	storageType, err := ctx.getStorageType(req.NetworkID(), req.Address, ops[0].Protocol)
+	proto, err := ctx.CachedProtocolByID(ops[0].Network, ops[0].ProtocolID)
+	if ctx.handleError(c, err, 0) {
+		return
+	}
+	storageType, err := ctx.getStorageType(req.NetworkID(), req.Address, proto.SymLink)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -250,7 +265,7 @@ func (ctx *Context) GetContractStorageSchema(c *gin.Context) {
 		return
 	}
 
-	storageType, err := ctx.getStorageType(req.NetworkID(), req.Address, "")
+	storageType, err := ctx.getStorageType(req.NetworkID(), req.Address, bcd.SymLinkBabylon)
 	if ctx.handleError(c, err, 0) {
 		return
 	}

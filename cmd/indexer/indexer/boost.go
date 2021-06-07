@@ -486,11 +486,15 @@ func (bi *BoostIndexer) process() error {
 }
 
 func (bi *BoostIndexer) createBlock(head noderpc.Header, tx *gorm.DB) error {
+	proto, err := bi.CachedProtocolByHash(bi.Network, head.Protocol)
+	if err != nil {
+		return err
+	}
 	newBlock := block.Block{
 		Network:     bi.Network,
 		Hash:        head.Hash,
 		Predecessor: head.Predecessor,
-		Protocol:    head.Protocol,
+		ProtocolID:  proto.ID,
 		ChainID:     head.ChainID,
 		Level:       head.Level,
 		Timestamp:   head.Timestamp,

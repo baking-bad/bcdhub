@@ -3,6 +3,7 @@ package block
 import (
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	jsoniter "github.com/json-iterator/go"
 	"gorm.io/gorm"
@@ -13,15 +14,16 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // Block -
 type Block struct {
-	ID int64 `json:"-"`
-
-	Network     types.Network `json:"network"`
 	Hash        string        `json:"hash"`
-	Level       int64         `json:"level"`
 	Predecessor string        `json:"predecessor"`
 	ChainID     string        `json:"chain_id"`
-	Protocol    string        `json:"protocol"`
 	Timestamp   time.Time     `json:"timestamp"`
+	Network     types.Network `json:"network"`
+	ID          int64         `json:"-"`
+	Level       int64         `json:"level"`
+	ProtocolID  int64         `json:"protocol"`
+
+	Protocol protocol.Protocol `json:"-"`
 }
 
 // GetID -

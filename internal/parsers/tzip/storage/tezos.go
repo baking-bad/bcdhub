@@ -99,7 +99,7 @@ func (s *TezosStorage) fillFields(uri TezosStorageURI) error {
 			return err
 		}
 
-		bmPtr, err := storage.GetBigMapPtr(s.rpc, s.network, s.address, metadataAnnot, block.Protocol, s.sharePath, 0)
+		bmPtr, err := storage.GetBigMapPtr(s.rpc, s.network, s.address, metadataAnnot, block.Protocol.Hash, s.sharePath, 0)
 		if err != nil {
 			return err
 		}

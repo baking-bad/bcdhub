@@ -107,7 +107,7 @@ func (ctx *Context) prepareMempoolOperation(item tzkt.MempoolOperation, network 
 
 	if bcd.IsContract(op.Destination) && op.Protocol != "" && op.Status == consts.Pending {
 		if len(item.Body.Parameters) > 0 {
-			_ = ctx.buildOperationParameters(item.Body.Parameters, &op)
+			_ = ctx.buildMempoolOperationParameters(item.Body.Parameters, &op)
 		} else {
 			op.Entrypoint = consts.DefaultEntrypoint
 		}
@@ -116,8 +116,13 @@ func (ctx *Context) prepareMempoolOperation(item tzkt.MempoolOperation, network 
 	return &op
 }
 
-func (ctx *Context) buildOperationParameters(data []byte, op *Operation) error {
-	script, err := ctx.getScript(modelTypes.NewNetwork(op.Network), op.Destination, op.Protocol)
+func (ctx *Context) buildMempoolOperationParameters(data []byte, op *Operation) error {
+	network := modelTypes.NewNetwork(op.Network)
+	proto, err := ctx.CachedProtocolByHash(network, op.Protocol)
+	if err != nil {
+		return err
+	}
+	script, err := ctx.getScript(network, op.Destination, proto.SymLink)
 	if err != nil {
 		return err
 	}

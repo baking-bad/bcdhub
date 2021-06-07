@@ -33,7 +33,7 @@ func (ctx *Context) CreateSubscription(c *gin.Context) {
 		return
 	}
 	if sub.SentryEnabled && sub.SentryDSN == "" {
-		ctx.handleError(c, fmt.Errorf("You have to set `Sentry DSN` when sentry notifications is enabled"), http.StatusBadRequest)
+		ctx.handleError(c, fmt.Errorf("you have to set `Sentry DSN` when sentry notifications is enabled"), http.StatusBadRequest)
 		return
 	}
 
