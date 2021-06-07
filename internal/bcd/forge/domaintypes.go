@@ -42,6 +42,8 @@ func UnforgeAddress(str string) (string, error) {
 		return str, errors.Wrapf(consts.ErrInvalidAddress, "UnforgeAddress: %s", str)
 	}
 	switch {
+	case len(str) == 42:
+		return UnforgeAddress("00" + str)
 	case strings.HasPrefix(str, "0000"):
 		return encoding.EncodeBase58String(str[4:], []byte(encoding.PrefixPublicKeyTZ1))
 	case strings.HasPrefix(str, "0001"):
@@ -50,8 +52,6 @@ func UnforgeAddress(str string) (string, error) {
 		return encoding.EncodeBase58String(str[4:], []byte(encoding.PrefixPublicKeyTZ3))
 	case strings.HasPrefix(str, "01") && strings.HasSuffix(str, "00"):
 		return encoding.EncodeBase58String(str[2:len(str)-2], []byte(encoding.PrefixPublicKeyKT1))
-	case len(str) == 42:
-		return UnforgeAddress("00" + str)
 	default:
 		return str, errors.Wrapf(consts.ErrInvalidAddress, "UnforgeAddress: %s", str)
 	}
