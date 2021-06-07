@@ -35,7 +35,11 @@ func (storage *Storage) buildGetContext(query *gorm.DB, ctx transfer.GetContext,
 
 	if ctx.LastID != "" {
 		if id, err := strconv.ParseInt(ctx.LastID, 10, 64); err == nil {
-			query.Where("id < ?", id)
+			if ctx.SortOrder == "asc" {
+				query.Where("id > ?", id)
+			} else {
+				query.Where("id < ?", id)
+			}
 		}
 	}
 	subQuery := core.OrStringArray(storage.DB, ctx.Contracts, "contract")
