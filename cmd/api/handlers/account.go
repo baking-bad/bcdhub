@@ -184,9 +184,9 @@ func (ctx *Context) getAccountBalances(network types.Network, address string, re
 	return &response, nil
 }
 
-// GetAccountTokenBalancesGroupedCount godoc
-// @Summary Get account token balances count grouped by count
-// @Description Get account token balances count grouped by count
+// GetAccountTokensCountByContract godoc
+// @Summary Get account token balances count grouped by contract
+// @Description Get account token balances count grouped by contract
 // @Tags account
 // @ID get-account-token-balances-count
 // @Param network path string true "Network"
@@ -198,7 +198,7 @@ func (ctx *Context) getAccountBalances(network types.Network, address string, re
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
 // @Router /v1/account/{network}/{address}/count [get]
-func (ctx *Context) GetAccountTokenBalancesGroupedCount(c *gin.Context) {
+func (ctx *Context) GetAccountTokensCountByContract(c *gin.Context) {
 	var req getContractRequest
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
 		return
@@ -208,4 +208,45 @@ func (ctx *Context) GetAccountTokenBalancesGroupedCount(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, res)
+}
+
+// GetAccountTokensCountByContractWithMetadata godoc
+// @Summary Get account token balances count with token metadata grouped by contract
+// @Description Get account token balances count with token metadata grouped by contract
+// @Tags account
+// @ID get-account-token-balances-with-metadata-count
+// @Param network path string true "Network"
+// @Param address path string true "Address" minlength(36) maxlength(36)
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} map[string]TokensCountWithMetadata
+// @Failure 400 {object} Error
+// @Failure 404 {object} Error
+// @Failure 500 {object} Error
+// @Router /v1/account/{network}/{address}/count_with_metadata [get]
+func (ctx *Context) GetAccountTokensCountByContractWithMetadata(c *gin.Context) {
+	var req getContractRequest
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
+		return
+	}
+	res, err := ctx.TokenBalances.CountByContract(req.NetworkID(), req.Address)
+	if ctx.handleError(c, err, 0) {
+		return
+	}
+
+	response := make(map[string]TokensCountWithMetadata)
+	for address, count := range res {
+		tzip, err := ctx.CachedContractMetadata(req.NetworkID(), address)
+		if ctx.handleError(c, err, 0) {
+			return
+		}
+		var t TZIPResponse
+		t.FromModel(tzip, false)
+		response[address] = TokensCountWithMetadata{
+			TZIPResponse: t,
+			Count:        count,
+		}
+	}
+
+	c.JSON(http.StatusOK, response)
 }

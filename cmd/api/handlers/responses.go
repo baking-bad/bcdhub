@@ -780,6 +780,29 @@ type TZIPResponse struct {
 	tzip.TZIP20
 }
 
+// FromModel -
+func (t *TZIPResponse) FromModel(model *tzip.TZIP, withViewsAndEvents bool) {
+	t.TZIP20 = model.TZIP20
+	t.DomainName = model.DomainName
+	t.Extras = model.Extras
+	t.Address = model.Address
+	t.Network = model.Network.String()
+	t.Name = model.Name
+	t.Description = model.Description
+	t.Version = model.Version
+	t.Homepage = model.Homepage
+	t.Authors = model.Authors
+	t.Interfaces = model.Interfaces
+
+	if model.License != nil && !model.License.IsEmpty() {
+		t.License = model.License
+	}
+
+	if withViewsAndEvents {
+		t.Views = model.Views
+	}
+}
+
 // HeadResponse -
 type HeadResponse struct {
 	Network         string    `json:"network"`
@@ -790,4 +813,10 @@ type HeadResponse struct {
 	ContractCalls   int64     `json:"contract_calls"`
 	UniqueContracts int64     `json:"unique_contracts"`
 	FACount         int64     `json:"fa_count"`
+}
+
+// TokensCountWithMetadata -
+type TokensCountWithMetadata struct {
+	TZIPResponse
+	Count int64 `json:"count"`
 }

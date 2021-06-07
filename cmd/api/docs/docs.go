@@ -149,7 +149,7 @@ var doc = `{
         },
         "/v1/account/{network}/{address}/count": {
             "get": {
-                "description": "Get account token balances count grouped by count",
+                "description": "Get account token balances count grouped by contract",
                 "consumes": [
                     "application/json"
                 ],
@@ -159,7 +159,7 @@ var doc = `{
                 "tags": [
                     "account"
                 ],
-                "summary": "Get account token balances count grouped by count",
+                "summary": "Get account token balances count grouped by contract",
                 "operationId": "get-account-token-balances-count",
                 "parameters": [
                     {
@@ -186,6 +186,69 @@ var doc = `{
                             "type": "object",
                             "additionalProperties": {
                                 "type": "integer"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/account/{network}/{address}/count_with_metadata": {
+            "get": {
+                "description": "Get account token balances count with token metadata grouped by contract",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "account"
+                ],
+                "summary": "Get account token balances count with token metadata grouped by contract",
+                "operationId": "get-account-token-balances-with-metadata-count",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "description": "Address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/definitions/handlers.TokensCountWithMetadata"
                             }
                         }
                     },
@@ -329,7 +392,7 @@ var doc = `{
                     },
                     {
                         "enum": [
-                            "level",
+                            "token_id",
                             "balance"
                         ],
                         "type": "string",
@@ -3733,7 +3796,7 @@ var doc = `{
                     "type": "integer"
                 },
                 "network": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "protocol": {
                     "type": "string"
@@ -4935,6 +4998,66 @@ var doc = `{
                 },
                 "call_count": {
                     "type": "integer"
+                }
+            }
+        },
+        "handlers.TokensCountWithMetadata": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "authors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "count": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "domain": {
+                    "type": "string"
+                },
+                "events": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/tzip.Event"
+                    }
+                },
+                "extras": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "homepage": {
+                    "type": "string"
+                },
+                "interfaces": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "license": {
+                    "$ref": "#/definitions/tzip.License"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "network": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                },
+                "views": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/tzip.View"
+                    }
                 }
             }
         },

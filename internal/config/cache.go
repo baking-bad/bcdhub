@@ -32,6 +32,22 @@ func (ctx *Context) CachedAlias(network types.Network, address string) string {
 	return ""
 }
 
+// CachedContractMetadata -
+func (ctx *Context) CachedContractMetadata(network types.Network, address string) (*tzip.TZIP, error) {
+	if !bcd.IsContract(address) {
+		return nil, nil
+	}
+	key := ctx.Cache.ContractMetadataKey(network, address)
+	item, err := ctx.Cache.Fetch(key, time.Minute*30, func() (interface{}, error) {
+		return ctx.TZIP.Get(network, address)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return item.Value().(*tzip.TZIP), nil
+}
+
 // CachedTokenMetadata -
 func (ctx *Context) CachedTokenMetadata(network types.Network, address string, tokenID uint64) (*tokenmetadata.TokenMetadata, error) {
 	key := ctx.Cache.TokenMetadataKey(network, address, tokenID)

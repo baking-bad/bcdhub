@@ -24,6 +24,11 @@ func (cache *Cache) AliasKey(network types.Network, address string) string {
 	return fmt.Sprintf("alias:%d:%s", network, address)
 }
 
+// ContractMetadataKey -
+func (cache *Cache) ContractMetadataKey(network types.Network, address string) string {
+	return fmt.Sprintf("contract_metadata:%d:%s", network, address)
+}
+
 // ContractKey -
 func (cache *Cache) ContractKey(network types.Network, address string) string {
 	return fmt.Sprintf("contract:%d:%s", network, address)
