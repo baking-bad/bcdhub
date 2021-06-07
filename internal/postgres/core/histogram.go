@@ -15,7 +15,7 @@ const (
 	histogramRequestTemplate = `
 		with f as (
 			select generate_series(
-			date_trunc('%s', date '2018-06-25'),
+			date_trunc('%s', %s),
 			date_trunc('%s', now()),
 			'1 %s'::interval
 			) as val
@@ -87,7 +87,7 @@ func buildHistogramContext(ctx models.HistogramContext) (string, error) {
 			}
 		}
 
-		conditions = fmt.Sprintf("where (%s)", strings.Join(conds, " and "))
+		conditions = fmt.Sprintf("and (%s)", strings.Join(conds, " and "))
 	}
 
 	return getRequest(ctx.Period, ctx.Index, f, conditions)
@@ -116,8 +116,6 @@ func (p *Postgres) GetDateHistogram(period string, opts ...models.HistogramOptio
 	if err != nil {
 		return nil, err
 	}
-
-	// log.Print(req)
 
 	var res []HistogramResponse
 	if err := p.DB.Raw(req).Scan(&res).Error; err != nil {
@@ -154,7 +152,21 @@ func getRequest(period, table, f, conditions string) (string, error) {
 		return "", errors.Errorf("Invalid table: %s", table)
 	}
 
-	return fmt.Sprintf(histogramRequestTemplate, period, period, period, f, table, period, table, conditions), nil
+	var from string
+	switch period {
+	case "hour":
+		from = "now() - interval '23 hour'" // -1 hour/day/week/month because postgres series count current date. In maths: [from; to] -> (from; to]
+	case "day":
+		from = "now() - interval '30 day'"
+	case "week":
+		from = "now() - interval '15 week'"
+	case "month":
+		from = "now() - interval '11 month'"
+	default:
+		from = "'2018-06-25'"
+	}
+
+	return fmt.Sprintf(histogramRequestTemplate, period, from, period, period, f, table, period, table, conditions), nil
 }
 
 // ValidateHistogramPeriod -
