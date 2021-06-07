@@ -57,6 +57,7 @@ func AllDocuments() []string {
 // AllModels -
 func AllModels() []Model {
 	return []Model{
+		&protocol.Protocol{},
 		&bigmapaction.BigMapAction{},
 		&bigmapdiff.BigMapDiff{},
 		&bigmapdiff.BigMapState{},
@@ -65,7 +66,6 @@ func AllModels() []Model {
 		&dapp.DApp{},
 		&migration.Migration{},
 		&operation.Operation{},
-		&protocol.Protocol{},
 		&tezosdomain.TezosDomain{},
 		&tokenbalance.TokenBalance{},
 		&tokenmetadata.TokenMetadata{},
