@@ -782,7 +782,6 @@ type TZIPResponse struct {
 
 // FromModel -
 func (t *TZIPResponse) FromModel(model *tzip.TZIP, withViewsAndEvents bool) {
-	t.TZIP20 = model.TZIP20
 	t.DomainName = model.DomainName
 	t.Extras = model.Extras
 	t.Address = model.Address
@@ -800,6 +799,7 @@ func (t *TZIPResponse) FromModel(model *tzip.TZIP, withViewsAndEvents bool) {
 
 	if withViewsAndEvents {
 		t.Views = model.Views
+		t.TZIP20 = model.TZIP20
 	}
 }
 
