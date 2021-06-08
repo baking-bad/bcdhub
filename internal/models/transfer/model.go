@@ -15,23 +15,22 @@ import (
 
 // Transfer -
 type Transfer struct {
-	ID           int64                 `json:"-"`
-	Network      types.Network         `json:"network" gorm:"index:transfers_network_idx;index:transfers_token_idx"`
-	Contract     string                `json:"contract" gorm:"index:transfers_token_idx"`
-	Initiator    string                `json:"initiator"`
-	Hash         string                `json:"hash"`
-	Status       types.OperationStatus `json:"status"`
-	Timestamp    time.Time             `json:"timestamp" gorm:"index:transfers_timestamp_idx"`
-	Level        int64                 `json:"level" gorm:"index:transfers_network_idx;index:transfers_level_idx"`
-	From         string                `json:"from" gorm:"index:transfers_from_idx"`
-	To           string                `json:"to" gorm:"index:transfers_to_idx"`
-	TokenID      uint64                `json:"token_id" gorm:"type:numeric(50,0);index:transfers_token_idx"`
-	Amount       decimal.Decimal       `json:"amount" gorm:"type:numeric(100,0)"`
-	AmountString string                `json:"amount_string"`
-	Counter      int64                 `json:"counter"`
-	Nonce        *int64                `json:"nonce,omitempty"`
-	Parent       string                `json:"parent,omitempty"`
-	Entrypoint   string                `json:"entrypoint,omitempty"`
+	ID         int64                 `json:"-"`
+	Network    types.Network         `json:"network" gorm:"index:transfers_network_idx;index:transfers_token_idx"`
+	Contract   string                `json:"contract" gorm:"index:transfers_token_idx"`
+	Initiator  string                `json:"initiator"`
+	Hash       string                `json:"hash"`
+	Status     types.OperationStatus `json:"status"`
+	Timestamp  time.Time             `json:"timestamp" gorm:"index:transfers_timestamp_idx"`
+	Level      int64                 `json:"level" gorm:"index:transfers_network_idx;index:transfers_level_idx"`
+	From       string                `json:"from" gorm:"index:transfers_from_idx"`
+	To         string                `json:"to" gorm:"index:transfers_to_idx"`
+	TokenID    uint64                `json:"token_id" gorm:"type:numeric(50,0);index:transfers_token_idx"`
+	Amount     decimal.Decimal       `json:"amount" gorm:"type:numeric(100,0)"`
+	Counter    int64                 `json:"counter"`
+	Nonce      *int64                `json:"nonce,omitempty"`
+	Parent     string                `json:"parent,omitempty"`
+	Entrypoint string                `json:"entrypoint,omitempty"`
 }
 
 // GetID -
@@ -70,21 +69,6 @@ func (t *Transfer) LogFields() logrus.Fields {
 		"from":     t.From,
 		"to":       t.To,
 	}
-}
-
-// BeforeCreate -
-func (t *Transfer) BeforeCreate(tx *gorm.DB) (err error) {
-	return t.marshal()
-}
-
-// BeforeUpdate -
-func (t *Transfer) BeforeUpdate(tx *gorm.DB) (err error) {
-	return t.marshal()
-}
-
-func (t *Transfer) marshal() error {
-	t.AmountString = t.Amount.String()
-	return nil
 }
 
 // EmptyTransfer -

@@ -413,7 +413,7 @@ func (ctx *Context) GetTokenHolders(c *gin.Context) {
 	}
 	result := make(map[string]string)
 	for i := range balances {
-		result[balances[i].Address] = balances[i].BalanceString
+		result[balances[i].Address] = balances[i].Balance.String()
 	}
 
 	c.JSON(http.StatusOK, result)

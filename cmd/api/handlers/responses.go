@@ -534,7 +534,7 @@ func TransferFromModel(model transfer.Transfer) (t Transfer) {
 	t.From = model.From
 	t.To = model.To
 	t.TokenID = model.TokenID
-	t.Amount = model.AmountString
+	t.Amount = model.Amount.String()
 	t.Counter = model.Counter
 	t.Nonce = model.Nonce
 	t.Parent = model.Parent
