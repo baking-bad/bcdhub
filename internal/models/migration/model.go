@@ -13,7 +13,7 @@ import (
 // Migration -
 type Migration struct {
 	ID             int64               `json:"-"`
-	Network        types.Network       `json:"network"`
+	Network        types.Network       `json:"network" gorm:"type:SMALLINT"`
 	ProtocolID     int64               `json:"protocol"`
 	PrevProtocolID int64               `json:"prev_protocol,omitempty"`
 	Hash           string              `json:"hash,omitempty"`

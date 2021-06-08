@@ -13,7 +13,7 @@ type TezosDomain struct {
 	ID         int64         `json:"-"`
 	Name       string        `json:"name"`
 	Expiration time.Time     `json:"expiration"`
-	Network    types.Network `json:"network"`
+	Network    types.Network `json:"network" gorm:"type:SMALLINT"`
 	Address    string        `json:"address"`
 	Level      int64         `json:"level"`
 	Timestamp  time.Time     `json:"timestamp"`

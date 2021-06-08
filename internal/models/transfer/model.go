@@ -16,11 +16,11 @@ import (
 // Transfer -
 type Transfer struct {
 	ID         int64                 `json:"-"`
-	Network    types.Network         `json:"network" gorm:"index:transfers_network_idx;index:transfers_token_idx"`
+	Network    types.Network         `json:"network" gorm:"type:SMALLINT;index:transfers_network_idx;index:transfers_token_idx"`
 	Contract   string                `json:"contract" gorm:"index:transfers_token_idx"`
 	Initiator  string                `json:"initiator"`
 	Hash       string                `json:"hash"`
-	Status     types.OperationStatus `json:"status"`
+	Status     types.OperationStatus `json:"status" gorm:"type:SMALLINT"`
 	Timestamp  time.Time             `json:"timestamp" gorm:"index:transfers_timestamp_idx"`
 	Level      int64                 `json:"level" gorm:"index:transfers_network_idx;index:transfers_level_idx"`
 	From       string                `json:"from" gorm:"index:transfers_from_idx"`

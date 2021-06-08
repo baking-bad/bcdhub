@@ -16,7 +16,7 @@ type TZIP struct {
 	Level      int64         `json:"level,omitempty"`
 	Timestamp  time.Time     `json:"timestamp,omitempty"`
 	Address    string        `json:"address" gorm:"index:tzips_contract_idx"`
-	Network    types.Network `json:"network" gorm:"index:tzips_contract_idx"`
+	Network    types.Network `json:"network" gorm:"type:SMALLINT;index:tzips_contract_idx"`
 	Slug       string        `json:"slug,omitempty"`
 	DomainName string        `json:"domain_name,omitempty"`
 	OffChain   bool          `json:"offchain,omitempty" gorm:",default:false"`
