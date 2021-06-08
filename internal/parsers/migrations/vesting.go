@@ -38,7 +38,7 @@ func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, ne
 		ProtocolID: proto.ID,
 		Address:    address,
 		Timestamp:  head.Timestamp,
-		Kind:       consts.MigrationBootstrap,
+		Kind:       types.MigrationKindBootstrap,
 	}
 
 	op := operation.Operation{

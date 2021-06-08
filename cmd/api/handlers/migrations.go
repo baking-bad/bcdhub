@@ -57,7 +57,7 @@ func prepareMigrations(ctx *Context, data []migration.Migration) ([]Migration, e
 			Hash:         data[i].Hash,
 			Protocol:     proto.Hash,
 			PrevProtocol: prevProto.Hash,
-			Kind:         data[i].Kind,
+			Kind:         data[i].Kind.String(),
 		}
 	}
 	return result, nil
