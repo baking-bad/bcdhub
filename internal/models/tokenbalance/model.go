@@ -10,7 +10,7 @@ import (
 
 // TokenBalance -
 type TokenBalance struct {
-	ID       int64           `json:"-" gorm:"autoIncrement:true"`
+	ID       int64           `json:"-" gorm:"autoIncrement:true;not null;"`
 	Network  types.Network   `json:"network" gorm:"not null;primaryKey;index:token_balances_token_idx;default:0"`
 	Address  string          `json:"address" gorm:"not null;primaryKey"`
 	Contract string          `json:"contract" gorm:"not null;primaryKey;index:token_balances_token_idx"`
