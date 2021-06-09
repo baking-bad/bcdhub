@@ -38,29 +38,24 @@ func (p Transaction) Parse(data noderpc.Operation) (*parsers.Result, error) {
 	}
 
 	tx := operation.Operation{
-		Network:       p.network,
-		Hash:          p.hash,
-		ProtocolID:    proto.ID,
-		Level:         p.head.Level,
-		Timestamp:     p.head.Timestamp,
-		Kind:          modelsTypes.NewOperationKind(data.Kind),
-		Initiator:     data.Source,
-		Source:        data.Source,
-		Fee:           data.Fee,
-		Counter:       data.Counter,
-		GasLimit:      data.GasLimit,
-		StorageLimit:  data.StorageLimit,
-		Amount:        *data.Amount,
-		Destination:   *data.Destination,
-		Delegate:      data.Delegate,
-		Nonce:         data.Nonce,
-		Parameters:    data.Parameters,
-		ContentIndex:  p.contentIdx,
-		SourceAlias:   p.ctx.CachedAlias(p.network, data.Source),
-		DelegateAlias: p.ctx.CachedAlias(p.network, data.Delegate),
-	}
-	if data.Destination != nil {
-		tx.DestinationAlias = p.ctx.CachedAlias(p.network, *data.Destination)
+		Network:      p.network,
+		Hash:         p.hash,
+		ProtocolID:   proto.ID,
+		Level:        p.head.Level,
+		Timestamp:    p.head.Timestamp,
+		Kind:         modelsTypes.NewOperationKind(data.Kind),
+		Initiator:    data.Source,
+		Source:       data.Source,
+		Fee:          data.Fee,
+		Counter:      data.Counter,
+		GasLimit:     data.GasLimit,
+		StorageLimit: data.StorageLimit,
+		Amount:       *data.Amount,
+		Destination:  *data.Destination,
+		Delegate:     data.Delegate,
+		Nonce:        data.Nonce,
+		Parameters:   data.Parameters,
+		ContentIndex: p.contentIdx,
 	}
 
 	p.fillInternal(&tx)

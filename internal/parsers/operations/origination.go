@@ -46,7 +46,6 @@ func (p Origination) Parse(data noderpc.Operation) (*parsers.Result, error) {
 		Nonce:        data.Nonce,
 		ContentIndex: p.contentIdx,
 		Script:       data.Script,
-		SourceAlias:  p.ctx.CachedAlias(p.network, data.Source),
 	}
 
 	result.Operations = append(result.Operations, &origination)
@@ -54,9 +53,6 @@ func (p Origination) Parse(data noderpc.Operation) (*parsers.Result, error) {
 	p.fillInternal(&origination)
 
 	parseOperationResult(data, &origination)
-	if data.Destination != nil {
-		origination.DestinationAlias = p.ctx.CachedAlias(p.network, *data.Destination)
-	}
 
 	origination.SetBurned(p.constants)
 

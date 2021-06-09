@@ -246,18 +246,6 @@ func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 		logger.Info("Entrypoint: %s != %s", one.Entrypoint, two.Entrypoint)
 		return false
 	}
-	if one.SourceAlias != two.SourceAlias {
-		logger.Info("SourceAlias: %s != %s", one.SourceAlias, two.SourceAlias)
-		return false
-	}
-	if one.DestinationAlias != two.DestinationAlias {
-		logger.Info("DestinationAlias: %s != %s", one.DestinationAlias, two.DestinationAlias)
-		return false
-	}
-	if one.DelegateAlias != two.DelegateAlias {
-		logger.Info("DelegateAlias: %s != %s", one.DelegateAlias, two.DelegateAlias)
-		return false
-	}
 	if len(one.Parameters) > 0 && len(two.Parameters) > 0 {
 		if !assert.JSONEq(t, string(one.Parameters), string(two.Parameters)) {
 			logger.Info("Parameters: %s != %s", one.Parameters, two.Parameters)
