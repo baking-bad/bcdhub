@@ -14,7 +14,7 @@ import (
 type Migration struct {
 	ID             int64               `json:"-"`
 	Network        types.Network       `json:"network" gorm:"type:SMALLINT"`
-	ProtocolID     int64               `json:"protocol"`
+	ProtocolID     int64               `json:"protocol" gorm:"type:SMALLINT"`
 	PrevProtocolID int64               `json:"prev_protocol,omitempty"`
 	Hash           string              `json:"hash,omitempty"`
 	Timestamp      time.Time           `json:"timestamp"`

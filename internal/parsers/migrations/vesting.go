@@ -1,7 +1,6 @@
 package migrations
 
 import (
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -41,11 +40,12 @@ func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, ne
 		Kind:       types.MigrationKindBootstrap,
 	}
 
-	op := operation.Operation{
+	parser := contract.NewParser(p.ctx, contract.WithShareDir(p.filesDirectory))
+	contractModels, err := parser.Parse(&operation.Operation{
 		Network:     network,
 		ProtocolID:  proto.ID,
 		Status:      types.OperationStatusApplied,
-		Kind:        consts.Migration,
+		Kind:        types.OperationKindOrigination,
 		Amount:      data.Balance,
 		Counter:     data.Counter,
 		Source:      data.Manager,
@@ -54,10 +54,7 @@ func (p *VestingParser) Parse(data noderpc.ContractData, head noderpc.Header, ne
 		Level:       head.Level,
 		Timestamp:   head.Timestamp,
 		Script:      data.RawScript,
-	}
-
-	parser := contract.NewParser(p.ctx, contract.WithShareDir(p.filesDirectory))
-	contractModels, err := parser.Parse(&op)
+	})
 	if err != nil {
 		return nil, err
 	}

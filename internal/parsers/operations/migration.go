@@ -31,7 +31,7 @@ func (m Migration) Parse(data noderpc.Operation, operation *operation.Operation)
 	}
 
 	for i := range bmd {
-		if bmd[i].Action != "update" || len(bmd[i].Value) == 0 {
+		if bmd[i].Action != types.BigMapActionStringUpdate || len(bmd[i].Value) == 0 {
 			continue
 		}
 

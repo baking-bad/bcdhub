@@ -5,7 +5,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	modelTypes "github.com/baking-bad/bcdhub/internal/models/types"
@@ -168,7 +167,7 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 			map[string]interface{}{
 				"network":     req.NetworkID(),
 				"destination": req.Address,
-				"kind":        consts.Transaction,
+				"kind":        modelTypes.OperationKindTransaction,
 				"entrypoint":  esReq.EntrypointName,
 			},
 			1,

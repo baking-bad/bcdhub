@@ -22,7 +22,7 @@ type BigMapDiff struct {
 	Contract         string        `json:"contract" gorm:"index:bmd_idx"`
 	Network          types.Network `json:"network" gorm:"type:SMALLINT;index:bmd_idx;index:big_map_diffs_key_hash_idx"`
 	Timestamp        time.Time     `json:"timestamp"`
-	ProtocolID       int64         `json:"protocol"`
+	ProtocolID       int64         `json:"protocol" gorm:"type:SMALLINT"`
 	OperationHash    string        `json:"op_hash" gorm:"index:big_map_diffs_operation_hash_idx"`
 	OperationCounter int64         `json:"op_counter" gorm:"index:big_map_diffs_operation_hash_idx"`
 	OperationNonce   *int64        `json:"op_nonce" gorm:"index:big_map_diffs_operation_hash_idx"`

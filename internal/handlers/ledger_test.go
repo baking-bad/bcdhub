@@ -95,7 +95,7 @@ func TestLedger_getResultModels(t *testing.T) {
 			operation: &operation.Operation{
 				Tags:        []string{consts.FA2Tag, consts.LedgerTag},
 				Entrypoint:  "burn",
-				Kind:        consts.Transaction,
+				Kind:        types.OperationKindTransaction,
 				Network:     types.Mainnet,
 				Destination: "KT1981tPmXh4KrUQKZpQKb55kREX7QGJcF3E",
 				Hash:        "opNQeUBKfJzBjCNLuo5HkyZynhm5TMe1KEtwioqUrWM1ygmYVDX",

@@ -2,7 +2,6 @@ package metrics
 
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
@@ -43,7 +42,7 @@ func (h *Handler) ExecuteInitialStorageEvent(rpc noderpc.INode, network types.Ne
 	ops, err := h.Operations.Get(map[string]interface{}{
 		"destination": contract,
 		"network":     network,
-		"kind":        consts.Origination,
+		"kind":        types.OperationKindOrigination,
 	}, 1, false)
 	if err != nil {
 		if h.Storage.IsRecordNotFound(err) {
