@@ -31,6 +31,7 @@ var migrationsList = []migrations.Migration{
 	&migrations.ProtocolField{},
 	&migrations.MigrationKind{},
 	&migrations.DropAmountStringColumns{},
+	&migrations.FixZeroID{},
 }
 
 func main() {
