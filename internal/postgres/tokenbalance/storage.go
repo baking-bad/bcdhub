@@ -30,7 +30,6 @@ func (storage *Storage) Get(network types.Network, contract, address string, tok
 		t.Address = address
 		t.TokenID = tokenID
 		t.Balance = decimal.Zero
-		t.BalanceString = "0"
 		err = nil
 	}
 
@@ -45,15 +44,6 @@ func (storage *Storage) GetHolders(network types.Network, contract string, token
 		Where("balance != 0").
 		Find(&balances).Error
 	return balances, err
-}
-
-// NFTHolders -
-func (storage *Storage) NFTHolders(network types.Network, contract string, tokenID uint64) (tokens []tokenbalance.TokenBalance, err error) {
-	err = storage.DB.
-		Scopes(core.Token(network, contract, tokenID)).
-		Where("balance != 0").
-		Find(&tokens).Error
-	return
 }
 
 // Batch -

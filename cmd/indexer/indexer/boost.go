@@ -564,7 +564,7 @@ func (bi *BoostIndexer) migrate(head noderpc.Header, tx *gorm.DB) error {
 	if bi.currentProtocol.EndLevel == 0 && head.Level > 1 {
 		logger.WithNetwork(bi.Network).Infof("Finalizing the previous protocol: %s", bi.currentProtocol.Alias)
 		bi.currentProtocol.EndLevel = head.Level - 1
-		if err := bi.currentProtocol.Save(tx); err != nil {
+		if err := bi.currentProtocol.Save(bi.StorageDB.DB); err != nil {
 			return err
 		}
 	}
@@ -576,7 +576,7 @@ func (bi *BoostIndexer) migrate(head noderpc.Header, tx *gorm.DB) error {
 		if err != nil {
 			return err
 		}
-		if err := newProtocol.Save(tx); err != nil {
+		if err := newProtocol.Save(bi.StorageDB.DB); err != nil {
 			return err
 		}
 	}

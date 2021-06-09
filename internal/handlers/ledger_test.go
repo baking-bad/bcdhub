@@ -36,12 +36,11 @@ func TestLedger_getResultModels(t *testing.T) {
 			gomock.Eq("tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo"),
 			gomock.Eq(uint64(0))).
 		Return(tbModel.TokenBalance{
-			Contract:      "KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU",
-			Network:       types.Mainnet,
-			Address:       "tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo",
-			TokenID:       0,
-			Balance:       newDecimal("168000"),
-			BalanceString: "168000",
+			Contract: "KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU",
+			Network:  types.Mainnet,
+			Address:  "tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo",
+			TokenID:  0,
+			Balance:  newDecimal("168000"),
 		}, nil).
 		AnyTimes()
 
