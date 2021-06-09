@@ -52,7 +52,7 @@ type Operation struct {
 	Parameters       []byte                `json:"parameters,omitempty"`
 	DeffatedStorage  []byte                `json:"deffated_storage"`
 
-	Tags pq.StringArray `json:"tags,omitempty" gorm:"type:text[]"`
+	Tags types.Tags `json:"tags,omitempty" gorm:"default:0"`
 
 	Script []byte `json:"-"  gorm:"-"`
 
@@ -149,16 +149,6 @@ func (o *Operation) IsApplied() bool {
 // IsCall -
 func (o *Operation) IsCall() bool {
 	return bcd.IsContract(o.Destination) && len(o.Parameters) > 0
-}
-
-// HasTag -
-func (o *Operation) HasTag(tag string) bool {
-	for i := range o.Tags {
-		if o.Tags[i] == tag {
-			return true
-		}
-	}
-	return false
 }
 
 // Result -

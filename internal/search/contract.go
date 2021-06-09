@@ -127,6 +127,6 @@ func (c *Contract) Prepare(model models.Model) {
 	c.Manager = cont.Manager
 	c.Network = cont.Network.String()
 	c.ProjectID = cont.ProjectID
-	c.Tags = cont.Tags
+	c.Tags = cont.Tags.ToArray()
 	c.Timestamp = cont.Timestamp
 }

@@ -2,9 +2,9 @@ package operations
 
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 func setTags(ctx *config.Context, op *operation.Operation) error {
@@ -22,19 +22,15 @@ func setTags(ctx *config.Context, op *operation.Operation) error {
 	if c == nil {
 		return nil
 	}
-	for _, tag := range c.Tags {
-		switch tag {
-		case consts.FA12Tag, consts.FA2Tag:
-			if op.Tags == nil {
-				op.Tags = make([]string, 0)
-			}
-			op.Tags = append(op.Tags, tag)
-		case consts.LedgerTag:
-			if op.Tags == nil {
-				op.Tags = make([]string, 0)
-			}
-			op.Tags = append(op.Tags, tag)
-		}
+
+	if c.Tags.Has(types.FA12Tag) {
+		op.Tags.Set(types.FA12Tag)
+	}
+	if c.Tags.Has(types.FA2Tag) {
+		op.Tags.Set(types.FA2Tag)
+	}
+	if c.Tags.Has(types.LedgerTag) {
+		op.Tags.Set(types.LedgerTag)
 	}
 	return nil
 }

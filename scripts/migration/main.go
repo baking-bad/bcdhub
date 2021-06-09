@@ -35,6 +35,7 @@ var migrationsList = []migrations.Migration{
 	&migrations.EnumToSmallInt{},
 	&migrations.OperationKindToEnum{},
 	&migrations.BigMapActionToEnum{},
+	&migrations.TagsToInt{},
 }
 
 func main() {

@@ -1,11 +1,11 @@
 package contract
 
 import (
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	astContract "github.com/baking-bad/bcdhub/internal/bcd/contract"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/pkg/errors"
 )
@@ -80,7 +80,7 @@ func (p *Parser) computeMetrics(operation *operation.Operation, c *contract.Cont
 	c.Hash = script.Hash
 	c.FailStrings = script.FailStrings.Values()
 	c.Annotations = script.Annotations.Values()
-	c.Tags = script.Tags.Values()
+	c.Tags = types.NewTags(script.Tags.Values())
 	c.Hardcoded = script.HardcodedAddresses.Values()
 	c.FingerprintCode = script.Fingerprint.Code
 	c.FingerprintParameter = script.Fingerprint.Parameter
@@ -93,7 +93,7 @@ func (p *Parser) computeMetrics(operation *operation.Operation, c *contract.Cont
 	c.Entrypoints = params.GetEntrypoints()
 
 	if script.IsUpgradable() {
-		c.Tags = append(c.Tags, consts.UpgradableTag)
+		c.Tags.Set(types.UpgradableTag)
 	}
 
 	proto, err := p.ctx.CachedProtocolByID(operation.Network, operation.ProtocolID)

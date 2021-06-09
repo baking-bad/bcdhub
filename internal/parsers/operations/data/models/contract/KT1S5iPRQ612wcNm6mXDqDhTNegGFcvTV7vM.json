@@ -9,10 +9,7 @@
         "storage": "01666e616e6e62616e6268596e596e6e6862",
         "parameter": "006e626c6e6e5a626e5a626c5a62626e6e596e6e6e6e626e6e62"
     },
-    "tags": [
-        "fa1",
-        "fa1-2"
-    ],
+    "tags": 192,
     "fail_strings": [
         "Paused",
         "UnsafeAllowanceChange",

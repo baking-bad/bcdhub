@@ -3,7 +3,6 @@ package operations
 import (
 	"fmt"
 	"io/ioutil"
-	"reflect"
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -270,11 +269,9 @@ func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 			return false
 		}
 	}
-	if len(one.Tags) == len(two.Tags) && len(one.Tags) > 0 {
-		if !reflect.DeepEqual(one.Tags, two.Tags) {
-			logger.Info("Tags: %s != %s", one.Tags, two.Tags)
-			return false
-		}
+	if one.Tags != two.Tags {
+		logger.Info("Tags: %d != %d", one.Tags, two.Tags)
+		return false
 	}
 	return true
 }
@@ -376,8 +373,8 @@ func compareContract(one, two *contract.Contract) bool {
 		logger.Info("Contract.Timestamp: %s != %s", one.Timestamp, two.Timestamp)
 		return false
 	}
-	if !compareStringArray(one.Tags, two.Tags) {
-		logger.Info("Contract.Tags: %v != %v", one.Tags, two.Tags)
+	if one.Tags != two.Tags {
+		logger.Info("Contract.Tags: %d != %d", one.Tags, two.Tags)
 		return false
 	}
 	if !compareStringArray(one.Entrypoints, two.Entrypoints) {

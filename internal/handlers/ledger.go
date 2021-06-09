@@ -14,6 +14,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	tbModel "github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
 	"github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
 	"github.com/pkg/errors"
@@ -130,8 +131,8 @@ func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *as
 }
 
 func (ledger *Ledger) makeTransfer(tb tokenbalance.TokenBalance, op *operation.Operation) *transfer.Transfer {
-	faCondition := (op.HasTag(consts.FA2Tag) || op.HasTag(consts.FA12Tag)) && op.IsEntrypoint(consts.TransferEntrypoint)
-	tagCondition := !faCondition && op.HasTag(consts.LedgerTag)
+	faCondition := (op.Tags.Has(types.FA2Tag) || op.Tags.Has(types.FA12Tag)) && op.IsEntrypoint(consts.TransferEntrypoint)
+	tagCondition := !faCondition && op.Tags.Has(types.LedgerTag)
 	if !(op.IsOrigination() || tagCondition) {
 		return nil
 	}
