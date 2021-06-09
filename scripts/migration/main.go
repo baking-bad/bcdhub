@@ -29,6 +29,7 @@ var migrationsList = []migrations.Migration{
 	&migrations.DefaultEntrypoint{},
 	&migrations.TZIPUpdatedAt{},
 	&migrations.ProtocolField{},
+	&migrations.DropAmountStringColumns{},
 }
 
 func main() {

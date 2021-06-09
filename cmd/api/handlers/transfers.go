@@ -23,7 +23,7 @@ import (
 // @Failure 400 {object} Error
 // @Failure 404 {object} Error
 // @Failure 500 {object} Error
-// @Router /v1/{network}/{address}/transfers [get]
+// @Router /v1/contract/{network}/{address}/transfers [get]
 func (ctx *Context) GetContractTransfers(c *gin.Context) {
 	var contractRequest getContractRequest
 	if err := c.BindUri(&contractRequest); ctx.handleError(c, err, http.StatusNotFound) {

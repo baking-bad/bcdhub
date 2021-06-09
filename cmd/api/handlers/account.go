@@ -105,7 +105,7 @@ func (ctx *Context) GetBatchTokenBalances(c *gin.Context) {
 		result[a] = make([]TokenBalance, len(b))
 		for i := range b {
 			result[a][i] = TokenBalance{
-				Balance: b[i].BalanceString,
+				Balance: b[i].Balance.String(),
 				TokenMetadata: TokenMetadata{
 					TokenID:  b[i].TokenID,
 					Contract: b[i].Contract,

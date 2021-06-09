@@ -10,13 +10,12 @@ import (
 
 // TokenBalance -
 type TokenBalance struct {
-	ID            int64           `json:"-" gorm:"autoIncrement:true"`
-	Network       types.Network   `json:"network" gorm:"not null;primaryKey;index:token_balances_token_idx;default:0"`
-	Address       string          `json:"address" gorm:"not null;primaryKey"`
-	Contract      string          `json:"contract" gorm:"not null;primaryKey;index:token_balances_token_idx"`
-	TokenID       uint64          `json:"token_id" gorm:"type:numeric(50,0);default:0;primaryKey;autoIncrement:false;index:token_balances_token_idx"`
-	Balance       decimal.Decimal `json:"balance" gorm:"type:numeric(100,0);default:0"`
-	BalanceString string          `json:"balance_string"`
+	ID       int64           `json:"-" gorm:"autoIncrement:true"`
+	Network  types.Network   `json:"network" gorm:"not null;primaryKey;index:token_balances_token_idx;default:0"`
+	Address  string          `json:"address" gorm:"not null;primaryKey"`
+	Contract string          `json:"contract" gorm:"not null;primaryKey;index:token_balances_token_idx"`
+	TokenID  uint64          `json:"token_id" gorm:"type:numeric(50,0);default:0;primaryKey;autoIncrement:false;index:token_balances_token_idx"`
+	Balance  decimal.Decimal `json:"balance" gorm:"type:numeric(100,0);default:0"`
 
 	IsLedger bool `json:"-" gorm:"-"`
 }
@@ -37,13 +36,11 @@ func (tb *TokenBalance) Save(tx *gorm.DB) error {
 
 	if tb.IsLedger {
 		s = clause.Assignments(map[string]interface{}{
-			"balance":        tb.Balance,
-			"balance_string": tb.Balance.String(),
+			"balance": tb.Balance,
 		})
 	} else {
 		s = clause.Assignments(map[string]interface{}{
-			"balance":        gorm.Expr("token_balances.balance + ?", tb.Balance),
-			"balance_string": gorm.Expr("(token_balances.balance + ?)::text", tb.Balance),
+			"balance": gorm.Expr("token_balances.balance + ?", tb.Balance),
 		})
 	}
 
@@ -76,19 +73,4 @@ func (tb *TokenBalance) LogFields() logrus.Fields {
 		"contract": tb.Contract,
 		"token_id": tb.TokenID,
 	}
-}
-
-// BeforeCreate -
-func (tb *TokenBalance) BeforeCreate(tx *gorm.DB) (err error) {
-	return tb.marshal()
-}
-
-// BeforeUpdate -
-func (tb *TokenBalance) BeforeUpdate(tx *gorm.DB) (err error) {
-	return tb.marshal()
-}
-
-func (tb *TokenBalance) marshal() error {
-	tb.BalanceString = tb.Balance.String()
-	return nil
 }
