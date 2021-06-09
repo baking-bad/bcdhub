@@ -5,13 +5,13 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/contract"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	modelsContract "github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	contractParser "github.com/baking-bad/bcdhub/internal/parsers/contract"
 	"gorm.io/gorm"
@@ -71,7 +71,7 @@ func (p *MigrationParser) Parse(script noderpc.Script, old modelsContract.Contra
 		PrevProtocolID: previous.ID,
 		Address:        old.Address,
 		Timestamp:      timestamp,
-		Kind:           consts.MigrationUpdate,
+		Kind:           types.MigrationKindUpdate,
 	}
 
 	return m.Save(tx)

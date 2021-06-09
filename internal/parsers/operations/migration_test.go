@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -51,7 +50,7 @@ func TestMigration_Parse(t *testing.T) {
 				Address:    "destination",
 				Timestamp:  timestamp,
 				Hash:       "hash",
-				Kind:       consts.MigrationLambda,
+				Kind:       types.MigrationKindLambda,
 			},
 		},
 	}

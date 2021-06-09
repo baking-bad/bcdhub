@@ -2,10 +2,10 @@ package operations
 
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 )
 
@@ -52,7 +52,7 @@ func (m Migration) Parse(data noderpc.Operation, operation *operation.Operation)
 				Address:    operation.Destination,
 				Timestamp:  operation.Timestamp,
 				Hash:       operation.Hash,
-				Kind:       consts.MigrationLambda,
+				Kind:       types.MigrationKindLambda,
 			}
 			logger.With(migration).Info("Migration detected")
 			return migration, nil
