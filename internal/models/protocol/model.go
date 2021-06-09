@@ -11,7 +11,7 @@ type Protocol struct {
 	ID int64 `json:"-"`
 
 	Hash       string        `json:"hash"`
-	Network    types.Network `json:"network"`
+	Network    types.Network `json:"network" gorm:"type:SMALLINT"`
 	StartLevel int64         `json:"start_level" gorm:",default:0"`
 	EndLevel   int64         `json:"end_level" gorm:",default:0"`
 	SymLink    string        `json:"sym_link"`

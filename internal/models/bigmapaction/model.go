@@ -17,7 +17,7 @@ type BigMapAction struct {
 	OperationID    int64         `json:"operation_id"`
 	Level          int64         `json:"level"`
 	Address        string        `json:"address"`
-	Network        types.Network `json:"network"`
+	Network        types.Network `json:"network" gorm:"type:SMALLINT"`
 	Timestamp      time.Time     `json:"timestamp"`
 }
 
