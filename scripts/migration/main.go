@@ -33,6 +33,8 @@ var migrationsList = []migrations.Migration{
 	&migrations.DropAmountStringColumns{},
 	&migrations.FixZeroID{},
 	&migrations.EnumToSmallInt{},
+	&migrations.OperationKindToEnum{},
+	&migrations.BigMapActionToEnum{},
 }
 
 func main() {

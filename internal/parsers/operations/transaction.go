@@ -7,6 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	modelsTypes "github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
 	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
@@ -42,7 +43,7 @@ func (p Transaction) Parse(data noderpc.Operation) (*parsers.Result, error) {
 		ProtocolID:    proto.ID,
 		Level:         p.head.Level,
 		Timestamp:     p.head.Timestamp,
-		Kind:          data.Kind,
+		Kind:          modelsTypes.NewOperationKind(data.Kind),
 		Initiator:     data.Source,
 		Source:        data.Source,
 		Fee:           data.Fee,

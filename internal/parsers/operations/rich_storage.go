@@ -1,9 +1,9 @@
 package operations
 
 import (
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/storage"
 )
@@ -32,9 +32,9 @@ func NewRichStorage(repo bigmapdiff.Repository, rpc noderpc.INode, protocol stri
 // Parse -
 func (p *RichStorage) Parse(data noderpc.Operation, operation *operation.Operation) (storage.RichStorage, error) {
 	switch operation.Kind {
-	case consts.Transaction:
+	case types.OperationKindTransaction:
 		return p.parser.ParseTransaction(data, *operation)
-	case consts.Origination:
+	case types.OperationKindOrigination:
 		rs, err := p.parser.ParseOrigination(data, *operation)
 		if err != nil {
 			return rs, err

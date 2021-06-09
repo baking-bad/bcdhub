@@ -4,7 +4,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	astContract "github.com/baking-bad/bcdhub/internal/bcd/contract"
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/parsers"
@@ -42,9 +41,7 @@ func WithShareDir(dir string) ParserOption {
 
 // Parse -
 func (p *Parser) Parse(operation *operation.Operation) (*parsers.Result, error) {
-	if !helpers.StringInArray(operation.Kind, []string{
-		consts.Origination, consts.OriginationNew, consts.Migration,
-	}) {
+	if !operation.IsOrigination() {
 		return nil, errors.Errorf("Invalid operation kind in computeContractMetrics: %s", operation.Kind)
 	}
 

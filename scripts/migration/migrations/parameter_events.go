@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -168,7 +167,7 @@ func (m *ParameterEvents) getOperations(ctx *config.Context, tzip tzip.TZIP, imp
 		ops, err := ctx.Operations.Get(map[string]interface{}{
 			"network":     tzip.Network,
 			"destination": tzip.Address,
-			"kind":        consts.Transaction,
+			"kind":        types.OperationKindTransaction,
 			"status":      types.OperationStatusApplied,
 			"entrypoint":  impl.MichelsonParameterEvent.Entrypoints[i],
 		}, 0, false)

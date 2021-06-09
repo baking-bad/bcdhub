@@ -149,10 +149,10 @@ func (b *Babylon) handleBigMapDiff(result *noderpc.OperationResult, address stri
 	res := parsers.NewResult()
 
 	handlers := map[string]func(noderpc.BigMapDiff, string, operation.Operation, *parsers.Result) error{
-		"update": b.handleBigMapDiffUpdate,
-		"copy":   b.handleBigMapDiffCopy,
-		"remove": b.handleBigMapDiffRemove,
-		"alloc":  b.handleBigMapDiffAlloc,
+		types.BigMapActionStringUpdate: b.handleBigMapDiffUpdate,
+		types.BigMapActionStringCopy:   b.handleBigMapDiffCopy,
+		types.BigMapActionStringRemove: b.handleBigMapDiffRemove,
+		types.BigMapActionStringAlloc:  b.handleBigMapDiffAlloc,
 	}
 
 	for i := range result.BigMapDiffs {
@@ -302,7 +302,7 @@ func (b *Babylon) getDiffsFromUpdates(ptr int64) ([]bigmapdiff.BigMapDiff, error
 
 func (b *Babylon) createBigMapDiffAction(action, address string, srcPtr, dstPtr *int64, operation operation.Operation) *bigmapaction.BigMapAction {
 	entity := &bigmapaction.BigMapAction{
-		Action:      action,
+		Action:      types.NewBigMapAction(action),
 		OperationID: operation.ID,
 		Level:       operation.Level,
 		Address:     address,

@@ -5,8 +5,6 @@ const (
 	Transaction    = "transaction"
 	Origination    = "origination"
 	OriginationNew = "origination_new"
-	Delegation     = "delegation"
-	Migration      = "migration"
 )
 
 // Error IDs

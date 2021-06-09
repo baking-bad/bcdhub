@@ -100,7 +100,7 @@ func (o *Operation) Prepare(model models.Model) {
 	o.Hash = op.Hash
 	o.Initiator = op.Initiator
 	o.Internal = op.Internal
-	o.Kind = op.Kind
+	o.Kind = op.Kind.String()
 	o.Level = op.Level
 	o.Network = op.Network.String()
 	o.ParameterStrings = op.ParameterStrings

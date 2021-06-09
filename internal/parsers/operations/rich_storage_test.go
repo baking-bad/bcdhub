@@ -50,7 +50,7 @@ func TestRichStorage_Parse(t *testing.T) {
 				Network:     types.Mainnet,
 				Timestamp:   timestamp,
 				ProtocolID:  2,
-				Kind:        "transaction",
+				Kind:        types.OperationKindTransaction,
 			},
 			filename: "./data/rich_storage/test1.json",
 			want: storage.RichStorage{
@@ -129,7 +129,7 @@ func TestRichStorage_Parse(t *testing.T) {
 				Network:     types.Carthagenet,
 				Timestamp:   timestamp,
 				ProtocolID:  2,
-				Kind:        "origination",
+				Kind:        types.OperationKindOrigination,
 			},
 			sourcePtr: 1055,
 			filename:  "./data/rich_storage/test2.json",
@@ -137,7 +137,7 @@ func TestRichStorage_Parse(t *testing.T) {
 				Result: &parsers.Result{
 					BigMapActions: []*bigmapaction.BigMapAction{
 						{
-							Action:         "copy",
+							Action:         types.BigMapActionCopy,
 							SourcePtr:      setInt64(1055),
 							DestinationPtr: setInt64(1509),
 							Level:          359942,
@@ -158,7 +158,7 @@ func TestRichStorage_Parse(t *testing.T) {
 				Network:     types.Edo2net,
 				Timestamp:   timestamp,
 				ProtocolID:  3,
-				Kind:        "origination",
+				Kind:        types.OperationKindOrigination,
 			},
 			sourcePtr: 17,
 			filename:  "./data/rich_storage/test3.json",
@@ -166,7 +166,7 @@ func TestRichStorage_Parse(t *testing.T) {
 				Result: &parsers.Result{
 					BigMapActions: []*bigmapaction.BigMapAction{
 						{
-							Action:    "alloc",
+							Action:    types.BigMapActionAlloc,
 							SourcePtr: setInt64(17),
 							Level:     220,
 							Address:   "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",

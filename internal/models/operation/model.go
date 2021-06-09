@@ -6,7 +6,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -36,12 +35,12 @@ type Operation struct {
 
 	Nonce      *int64        `json:"nonce,omitempty" gorm:"index:opg_idx"`
 	Network    types.Network `json:"network" gorm:"type:SMALLINT"`
-	ProtocolID int64         `json:"protocol"`
+	ProtocolID int64         `json:"protocol" gorm:"type:SMALLINT"`
 	Hash       string        `json:"hash" gorm:"index:opg_idx;index:operations_hash_idx"`
 
 	Timestamp        time.Time             `json:"timestamp"`
 	Status           types.OperationStatus `json:"status" gorm:"type:SMALLINT"`
-	Kind             string                `json:"kind"`
+	Kind             types.OperationKind   `json:"kind" gorm:"type:SMALLINT"`
 	Initiator        string                `json:"initiator"`
 	Source           string                `json:"source" gorm:"index:source_idx"`
 	Destination      string                `json:"destination,omitempty" gorm:"index:destination_idx"`
@@ -134,12 +133,12 @@ func (o *Operation) IsEntrypoint(entrypoint string) bool {
 
 // IsOrigination -
 func (o *Operation) IsOrigination() bool {
-	return o.Kind == consts.Origination || o.Kind == consts.OriginationNew
+	return o.Kind == types.OperationKindOrigination || o.Kind == types.OperationKindOriginationNew
 }
 
 // IsTransaction -
 func (o *Operation) IsTransaction() bool {
-	return o.Kind == consts.Transaction
+	return o.Kind == types.OperationKindTransaction
 }
 
 // IsApplied -

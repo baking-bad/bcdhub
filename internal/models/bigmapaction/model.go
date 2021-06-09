@@ -10,15 +10,15 @@ import (
 
 // BigMapAction -
 type BigMapAction struct {
-	ID             int64         `json:"-"`
-	Action         string        `json:"action"`
-	SourcePtr      *int64        `json:"source_ptr,omitempty"`
-	DestinationPtr *int64        `json:"destination_ptr,omitempty"`
-	OperationID    int64         `json:"operation_id"`
-	Level          int64         `json:"level"`
-	Address        string        `json:"address"`
-	Network        types.Network `json:"network" gorm:"type:SMALLINT"`
-	Timestamp      time.Time     `json:"timestamp"`
+	ID             int64              `json:"-"`
+	Action         types.BigMapAction `json:"action" gorm:"type:SMALLINT"`
+	SourcePtr      *int64             `json:"source_ptr,omitempty"`
+	DestinationPtr *int64             `json:"destination_ptr,omitempty"`
+	OperationID    int64              `json:"operation_id"`
+	Level          int64              `json:"level"`
+	Address        string             `json:"address"`
+	Network        types.Network      `json:"network" gorm:"type:SMALLINT"`
+	Timestamp      time.Time          `json:"timestamp"`
 }
 
 // GetID -

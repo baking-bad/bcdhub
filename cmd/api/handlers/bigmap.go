@@ -403,7 +403,7 @@ func prepareBigMapHistory(arr []bigmapaction.BigMapAction, ptr int64) BigMapHist
 
 	for i := range arr {
 		response.Items[i] = BigMapHistoryItem{
-			Action:    arr[i].Action,
+			Action:    arr[i].Action.String(),
 			Timestamp: arr[i].Timestamp,
 		}
 		if arr[i].DestinationPtr != nil && *arr[i].DestinationPtr != ptr {

@@ -178,7 +178,7 @@ func (ctx *Context) RunCode(c *gin.Context) {
 		Destination: req.Address,
 		GasLimit:    reqRunCode.GasLimit,
 		Amount:      reqRunCode.Amount,
-		Kind:        consts.Transaction,
+		Kind:        types.OperationKindTransaction.String(),
 		Level:       state.Level,
 		Status:      consts.Applied,
 		Entrypoint:  input.Entrypoint,
@@ -298,9 +298,9 @@ func (ctx *Context) parseBigMapDiffs(response noderpc.RunCodeResponse, script *a
 
 	rs := storage.RichStorage{Empty: true}
 	switch operation.Kind {
-	case consts.Transaction:
+	case types.OperationKindTransaction.String():
 		rs, err = parser.ParseTransaction(nodeOperation, model)
-	case consts.Origination:
+	case types.OperationKindOrigination.String(), types.OperationKindOriginationNew.String():
 		rs, err = parser.ParseOrigination(nodeOperation, model)
 	}
 	if err != nil {

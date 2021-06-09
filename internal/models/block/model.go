@@ -21,7 +21,7 @@ type Block struct {
 	Network     types.Network `json:"network" gorm:"type:SMALLINT"`
 	ID          int64         `json:"-"`
 	Level       int64         `json:"level"`
-	ProtocolID  int64         `json:"protocol"`
+	ProtocolID  int64         `json:"protocol" gorm:"type:SMALLINT"`
 
 	Protocol protocol.Protocol `json:"-"`
 }

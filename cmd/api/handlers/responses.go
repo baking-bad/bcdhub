@@ -72,7 +72,7 @@ func (o *Operation) FromModel(operation operation.Operation) {
 	o.Timestamp = operation.Timestamp.UTC()
 
 	o.Level = operation.Level
-	o.Kind = operation.Kind
+	o.Kind = operation.Kind.String()
 	o.Source = operation.Source
 	o.SourceAlias = operation.SourceAlias
 	o.Fee = operation.Fee
@@ -104,7 +104,7 @@ func (o *Operation) ToModel() operation.Operation {
 		Timestamp: o.Timestamp,
 
 		Level:            o.Level,
-		Kind:             o.Kind,
+		Kind:             types.NewOperationKind(o.Kind),
 		Source:           o.Source,
 		SourceAlias:      o.SourceAlias,
 		Fee:              o.Fee,

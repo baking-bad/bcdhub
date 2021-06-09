@@ -328,7 +328,7 @@ func TestGroup_Parse(t *testing.T) {
 			want: &parsers.Result{
 				Operations: []*operation.Operation{
 					{
-						Kind:            "transaction",
+						Kind:            types.OperationKindTransaction,
 						Source:          "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
 						Fee:             37300,
 						Counter:         5791164,
@@ -348,7 +348,7 @@ func TestGroup_Parse(t *testing.T) {
 						DeffatedStorage: []byte("{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[[{\"bytes\":\"000056d8b91b541c9d20d51f929dcccca2f14928f1dc\"}],{\"int\":\"62\"}]},{\"prim\":\"Pair\",\"args\":[{\"int\":\"63\"},{\"string\":\"Aspen Digital Token\"}]}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"False\"},{\"bytes\":\"0000a2560a416161def96031630886abe950c4baf036\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"False\"},{\"bytes\":\"010d25f77b84dc2164a5d1ce5e8a5d3ca2b1d0cbf900\"}]}]}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"01796ad78734892d5ae4186e84a30290040732ada700\"},{\"string\":\"ASPD\"}]},{\"int\":\"18000000\"}]}]}"),
 						Tags:            []string{"fa1-2"},
 					}, {
-						Kind:            "transaction",
+						Kind:            types.OperationKindTransaction,
 						Source:          "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 						Destination:     "KT19nHqEWZxFFbbDL1b7Y86escgEN7qUShGo",
 						Status:          types.OperationStatusApplied,
@@ -366,7 +366,7 @@ func TestGroup_Parse(t *testing.T) {
 						DeffatedStorage: []byte("{\"int\":\"61\"}"),
 						Tags:            []string{},
 					}, {
-						Kind:            "transaction",
+						Kind:            types.OperationKindTransaction,
 						Source:          "KT19nHqEWZxFFbbDL1b7Y86escgEN7qUShGo",
 						Destination:     "KT1KemKUx79keZgFW756jQrqKcZJ21y4SPdS",
 						Status:          types.OperationStatusApplied,
@@ -507,7 +507,7 @@ func TestGroup_Parse(t *testing.T) {
 						Status:          types.OperationStatusApplied,
 						Timestamp:       timestamp,
 						Level:           1151495,
-						Kind:            "transaction",
+						Kind:            types.OperationKindTransaction,
 						Initiator:       "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
 						Source:          "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
 						Fee:             43074,
@@ -529,7 +529,7 @@ func TestGroup_Parse(t *testing.T) {
 						Status:          types.OperationStatusApplied,
 						Timestamp:       timestamp,
 						Level:           1151495,
-						Kind:            "transaction",
+						Kind:            types.OperationKindTransaction,
 						Initiator:       "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
 						Source:          "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
 						Counter:         6909186,
@@ -699,7 +699,7 @@ func TestGroup_Parse(t *testing.T) {
 						Status:                             types.OperationStatusApplied,
 						Timestamp:                          timestamp,
 						Level:                              86142,
-						Kind:                               "origination",
+						Kind:                               types.OperationKindOrigination,
 						Initiator:                          "tz1SX7SPdx4ZJb6uP5Hh5XBVZhh9wTfFaud3",
 						Source:                             "tz1SX7SPdx4ZJb6uP5Hh5XBVZhh9wTfFaud3",
 						Fee:                                510,
@@ -764,7 +764,7 @@ func TestGroup_Parse(t *testing.T) {
 			want: &parsers.Result{
 				Operations: []*operation.Operation{
 					{
-						Kind:                               "origination",
+						Kind:                               types.OperationKindOrigination,
 						Source:                             "tz1MXrEgDNnR8PDryN8sq4B2m9Pqcf57wBqM",
 						Fee:                                1555,
 						Counter:                            983250,
@@ -834,7 +834,7 @@ func TestGroup_Parse(t *testing.T) {
 			want: &parsers.Result{
 				Operations: []*operation.Operation{
 					{
-						Kind:            "transaction",
+						Kind:            types.OperationKindTransaction,
 						Source:          "tz1gXhGAXgKvrXjn4t16rYUXocqbch1XXJFN",
 						Fee:             4045,
 						Counter:         155670,
@@ -852,7 +852,7 @@ func TestGroup_Parse(t *testing.T) {
 						ProtocolID:      3,
 						DeffatedStorage: []byte("{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"0000e527ed176ccf8f8297f674a9886a2ba8a55818d9\"},{\"prim\":\"Left\",\"args\":[{\"bytes\":\"016ebc941b2ae4e305470f392fa050e41ca1e52b4500\"}]}]}"),
 					}, {
-						Kind:                               "origination",
+						Kind:                               types.OperationKindOrigination,
 						Source:                             "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
 						Nonce:                              setInt64(0),
 						Destination:                        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
@@ -872,35 +872,35 @@ func TestGroup_Parse(t *testing.T) {
 				},
 				BigMapActions: []*bigmapaction.BigMapAction{
 					{
-						Action:    "remove",
+						Action:    types.BigMapActionRemove,
 						SourcePtr: setInt64(25167),
 						Level:     72207,
 						Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
 						Network:   types.Edo2net,
 						Timestamp: timestamp,
 					}, {
-						Action:    "remove",
+						Action:    types.BigMapActionRemove,
 						SourcePtr: setInt64(25166),
 						Level:     72207,
 						Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
 						Network:   types.Edo2net,
 						Timestamp: timestamp,
 					}, {
-						Action:    "remove",
+						Action:    types.BigMapActionRemove,
 						SourcePtr: setInt64(25165),
 						Level:     72207,
 						Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
 						Network:   types.Edo2net,
 						Timestamp: timestamp,
 					}, {
-						Action:    "remove",
+						Action:    types.BigMapActionRemove,
 						SourcePtr: setInt64(25164),
 						Level:     72207,
 						Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
 						Network:   types.Edo2net,
 						Timestamp: timestamp,
 					}, {
-						Action:         "copy",
+						Action:         types.BigMapActionCopy,
 						SourcePtr:      setInt64(25167),
 						DestinationPtr: setInt64(25171),
 						Level:          72207,
@@ -908,7 +908,7 @@ func TestGroup_Parse(t *testing.T) {
 						Network:        types.Edo2net,
 						Timestamp:      timestamp,
 					}, {
-						Action:         "copy",
+						Action:         types.BigMapActionCopy,
 						SourcePtr:      setInt64(25166),
 						DestinationPtr: setInt64(25170),
 						Level:          72207,
@@ -916,7 +916,7 @@ func TestGroup_Parse(t *testing.T) {
 						Network:        types.Edo2net,
 						Timestamp:      timestamp,
 					}, {
-						Action:         "copy",
+						Action:         types.BigMapActionCopy,
 						SourcePtr:      setInt64(25165),
 						DestinationPtr: setInt64(25169),
 						Level:          72207,
@@ -924,7 +924,7 @@ func TestGroup_Parse(t *testing.T) {
 						Network:        types.Edo2net,
 						Timestamp:      timestamp,
 					}, {
-						Action:         "copy",
+						Action:         types.BigMapActionCopy,
 						SourcePtr:      setInt64(25164),
 						DestinationPtr: setInt64(25168),
 						Level:          72207,
