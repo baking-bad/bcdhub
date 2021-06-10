@@ -209,7 +209,7 @@ type storageRequest struct {
 
 // GetTokenStatsRequest -
 type GetTokenStatsRequest struct {
-	Period    string `form:"period" binding:"oneof=all year month week day" example:"year"`
+	Period    string `form:"period" binding:"oneof=all year month week day hour" example:"year"`
 	Contracts string `form:"contracts"`
 }
 
@@ -223,7 +223,7 @@ func (req GetTokenStatsRequest) Addresses() []string {
 
 type getTokenSeriesRequest struct {
 	Contract string `form:"contract" binding:"required,address"`
-	Period   string `form:"period" binding:"oneof=year month week day" example:"year"`
+	Period   string `form:"period" binding:"oneof=year month week day hour" example:"year"`
 	TokenID  uint64 `form:"token_id"`
 	Slug     string `form:"slug" binding:"required"`
 }
