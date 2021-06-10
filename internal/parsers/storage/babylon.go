@@ -234,6 +234,7 @@ func (b *Babylon) handleBigMapDiffCopy(item noderpc.BigMapDiff, address string, 
 			bmd[i].OperationHash = operation.Hash
 			bmd[i].OperationCounter = operation.Counter
 			bmd[i].OperationNonce = operation.Nonce
+			bmd[i].ProtocolID = operation.ProtocolID
 
 			if err := b.addDiff(&bmd[i], destinationPtr); err != nil {
 				return err
@@ -266,6 +267,7 @@ func (b *Babylon) handleBigMapDiffRemove(item noderpc.BigMapDiff, address string
 		bmd.OperationNonce = operation.Nonce
 		bmd.Level = operation.Level
 		bmd.Timestamp = operation.Timestamp
+		bmd.ProtocolID = operation.ProtocolID
 
 		res.BigMapDiffs = append(res.BigMapDiffs, &bmd)
 		res.BigMapState = append(res.BigMapState, &states[i])

@@ -4,18 +4,23 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 )
 
 func getStorageType(bmd bigmapdiff.BigMapDiff) (*ast.TypedAst, error) {
+	hash := bcd.GetCurrentProtocol()
 	proto, err := ctx.CachedProtocolByID(bmd.Network, bmd.ProtocolID)
-	if err != nil {
+	if err == nil {
+		hash = proto.Hash
+	} else if !ctx.Storage.IsRecordNotFound(err) {
 		return nil, err
 	}
+
 	item, err := ctx.cache.Fetch(fmt.Sprintf("%d:%s", bmd.Network, bmd.Contract), time.Minute, func() (interface{}, error) {
-		data, err := fetch.Contract(bmd.Network, bmd.Contract, proto.Hash, ctx.SharePath)
+		data, err := fetch.Contract(bmd.Network, bmd.Contract, hash, ctx.SharePath)
 		if err != nil {
 			return nil, err
 		}
