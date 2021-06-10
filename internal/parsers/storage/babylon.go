@@ -34,49 +34,36 @@ func NewBabylon(repo bigmapdiff.Repository, rpc noderpc.INode) *Babylon {
 }
 
 // ParseTransaction -
-func (b *Babylon) ParseTransaction(content noderpc.Operation, operation operation.Operation) (RichStorage, error) {
+func (b *Babylon) ParseTransaction(content noderpc.Operation, operation *operation.Operation) (*parsers.Result, error) {
 	result := content.GetResult()
 	if result == nil {
-		return RichStorage{Empty: true}, nil
+		return nil, nil
 	}
+	operation.DeffatedStorage = result.Storage
 
-	parserResult, err := b.handleBigMapDiff(result, *content.Destination, operation, result.Storage)
-	if err != nil {
-		return RichStorage{Empty: true}, err
-	}
-
-	return RichStorage{
-		Result:          parserResult,
-		DeffatedStorage: result.Storage,
-	}, nil
+	return b.handleBigMapDiff(result, *content.Destination, operation, result.Storage)
 }
 
 // ParseOrigination -
-func (b *Babylon) ParseOrigination(content noderpc.Operation, operation operation.Operation) (RichStorage, error) {
+func (b *Babylon) ParseOrigination(content noderpc.Operation, operation *operation.Operation) (*parsers.Result, error) {
 	result := content.GetResult()
 	if result == nil {
-		return RichStorage{Empty: true}, nil
+		return nil, nil
 	}
 
 	var scriptData struct {
 		Storage stdJSON.RawMessage `json:"storage"`
 	}
 	if err := json.Unmarshal(content.Script, &scriptData); err != nil {
-		return RichStorage{Empty: true}, err
+		return nil, err
 	}
 
-	parserResult, err := b.handleBigMapDiff(result, result.Originated[0], operation, scriptData.Storage)
-	if err != nil {
-		return RichStorage{Empty: true}, err
-	}
+	operation.DeffatedStorage = scriptData.Storage
 
-	return RichStorage{
-		Result:          parserResult,
-		DeffatedStorage: scriptData.Storage,
-	}, nil
+	return b.handleBigMapDiff(result, result.Originated[0], operation, scriptData.Storage)
 }
 
-func (b *Babylon) initPointersTypes(result *noderpc.OperationResult, operation operation.Operation, data []byte) error {
+func (b *Babylon) initPointersTypes(result *noderpc.OperationResult, operation *operation.Operation, data []byte) error {
 	level := operation.Level
 	if operation.IsTransaction() && operation.Level >= 2 {
 		level = operation.Level - 1
@@ -137,7 +124,7 @@ func (b *Babylon) checkPointers(result *noderpc.OperationResult, storage *ast.Ty
 	return nil
 }
 
-func (b *Babylon) handleBigMapDiff(result *noderpc.OperationResult, address string, op operation.Operation, storageData []byte) (*parsers.Result, error) {
+func (b *Babylon) handleBigMapDiff(result *noderpc.OperationResult, address string, op *operation.Operation, storageData []byte) (*parsers.Result, error) {
 	if len(result.BigMapDiffs) == 0 {
 		return nil, nil
 	}
@@ -148,7 +135,7 @@ func (b *Babylon) handleBigMapDiff(result *noderpc.OperationResult, address stri
 
 	res := parsers.NewResult()
 
-	handlers := map[string]func(noderpc.BigMapDiff, string, operation.Operation, *parsers.Result) error{
+	handlers := map[string]func(noderpc.BigMapDiff, string, *operation.Operation, *parsers.Result) error{
 		types.BigMapActionStringUpdate: b.handleBigMapDiffUpdate,
 		types.BigMapActionStringCopy:   b.handleBigMapDiffCopy,
 		types.BigMapActionStringRemove: b.handleBigMapDiffRemove,
@@ -170,35 +157,33 @@ func (b *Babylon) handleBigMapDiff(result *noderpc.OperationResult, address stri
 	return res, nil
 }
 
-func (b *Babylon) handleBigMapDiffUpdate(item noderpc.BigMapDiff, address string, operation operation.Operation, res *parsers.Result) error {
+func (b *Babylon) handleBigMapDiffUpdate(item noderpc.BigMapDiff, address string, operation *operation.Operation, res *parsers.Result) error {
 	ptr := *item.BigMap
 
 	bmd := bigmapdiff.BigMapDiff{
-		Ptr:              ptr,
-		Key:              types.Bytes(item.Key),
-		KeyHash:          item.KeyHash,
-		OperationHash:    operation.Hash,
-		OperationCounter: operation.Counter,
-		OperationNonce:   operation.Nonce,
-		Level:            operation.Level,
-		Contract:         address,
-		Network:          operation.Network,
-		Timestamp:        operation.Timestamp,
-		ProtocolID:       operation.ProtocolID,
-		Value:            types.Bytes(item.Value),
+		Ptr:         ptr,
+		Key:         types.Bytes(item.Key),
+		KeyHash:     item.KeyHash,
+		OperationID: operation.ID,
+		Level:       operation.Level,
+		Contract:    address,
+		Network:     operation.Network,
+		Timestamp:   operation.Timestamp,
+		ProtocolID:  operation.ProtocolID,
+		Value:       types.Bytes(item.Value),
 	}
 
 	if err := b.addDiff(&bmd, ptr); err != nil {
 		return err
 	}
 	if ptr > -1 {
-		res.BigMapDiffs = append(res.BigMapDiffs, &bmd)
+		operation.BigMapDiffs = append(operation.BigMapDiffs, &bmd)
 		res.BigMapState = append(res.BigMapState, bmd.ToState())
 	}
 	return nil
 }
 
-func (b *Babylon) handleBigMapDiffCopy(item noderpc.BigMapDiff, address string, operation operation.Operation, res *parsers.Result) error {
+func (b *Babylon) handleBigMapDiffCopy(item noderpc.BigMapDiff, address string, operation *operation.Operation, res *parsers.Result) error {
 	sourcePtr := *item.SourceBigMap
 	destinationPtr := *item.DestBigMap
 
@@ -231,9 +216,7 @@ func (b *Babylon) handleBigMapDiffCopy(item noderpc.BigMapDiff, address string, 
 			bmd[i].Contract = address
 			bmd[i].Level = operation.Level
 			bmd[i].Timestamp = operation.Timestamp
-			bmd[i].OperationHash = operation.Hash
-			bmd[i].OperationCounter = operation.Counter
-			bmd[i].OperationNonce = operation.Nonce
+			bmd[i].OperationID = operation.ID
 			bmd[i].ProtocolID = operation.ProtocolID
 
 			if err := b.addDiff(&bmd[i], destinationPtr); err != nil {
@@ -241,7 +224,7 @@ func (b *Babylon) handleBigMapDiffCopy(item noderpc.BigMapDiff, address string, 
 			}
 
 			if destinationPtr > -1 {
-				res.BigMapDiffs = append(res.BigMapDiffs, &bmd[i])
+				operation.BigMapDiffs = append(operation.BigMapDiffs, &bmd[i])
 				res.BigMapState = append(res.BigMapState, bmd[i].ToState())
 			}
 		}
@@ -249,7 +232,7 @@ func (b *Babylon) handleBigMapDiffCopy(item noderpc.BigMapDiff, address string, 
 	return nil
 }
 
-func (b *Babylon) handleBigMapDiffRemove(item noderpc.BigMapDiff, address string, operation operation.Operation, res *parsers.Result) error {
+func (b *Babylon) handleBigMapDiffRemove(item noderpc.BigMapDiff, address string, operation *operation.Operation, res *parsers.Result) error {
 	ptr := *item.BigMap
 	if ptr < 0 {
 		return nil
@@ -262,21 +245,19 @@ func (b *Babylon) handleBigMapDiffRemove(item noderpc.BigMapDiff, address string
 		states[i].Removed = true
 
 		bmd := states[i].ToDiff()
-		bmd.OperationHash = operation.Hash
-		bmd.OperationCounter = operation.Counter
-		bmd.OperationNonce = operation.Nonce
+		bmd.OperationID = operation.ID
 		bmd.Level = operation.Level
 		bmd.Timestamp = operation.Timestamp
 		bmd.ProtocolID = operation.ProtocolID
 
-		res.BigMapDiffs = append(res.BigMapDiffs, &bmd)
+		operation.BigMapDiffs = append(operation.BigMapDiffs, &bmd)
 		res.BigMapState = append(res.BigMapState, &states[i])
 	}
 	res.BigMapActions = append(res.BigMapActions, b.createBigMapDiffAction("remove", address, &ptr, nil, operation))
 	return nil
 }
 
-func (b *Babylon) handleBigMapDiffAlloc(item noderpc.BigMapDiff, address string, operation operation.Operation, res *parsers.Result) error {
+func (b *Babylon) handleBigMapDiffAlloc(item noderpc.BigMapDiff, address string, operation *operation.Operation, res *parsers.Result) error {
 	ptr := *item.BigMap
 
 	bigMap, err := createBigMapAst(item.KeyType, item.ValueType, ptr)
@@ -302,7 +283,7 @@ func (b *Babylon) getDiffsFromUpdates(ptr int64) ([]bigmapdiff.BigMapDiff, error
 	return getBigMapDiffModels(diffs), nil
 }
 
-func (b *Babylon) createBigMapDiffAction(action, address string, srcPtr, dstPtr *int64, operation operation.Operation) *bigmapaction.BigMapAction {
+func (b *Babylon) createBigMapDiffAction(action, address string, srcPtr, dstPtr *int64, operation *operation.Operation) *bigmapaction.BigMapAction {
 	entity := &bigmapaction.BigMapAction{
 		Action:      types.NewBigMapAction(action),
 		OperationID: operation.ID,

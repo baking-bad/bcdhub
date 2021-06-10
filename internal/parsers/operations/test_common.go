@@ -48,7 +48,6 @@ func readStorage(address string, level int64) ([]byte, error) {
 
 func compareParserResponse(t *testing.T, got, want *parsers.Result) bool {
 	assert.Len(t, got.BigMapActions, len(want.BigMapActions))
-	assert.Len(t, got.BigMapDiffs, len(want.BigMapDiffs))
 	assert.Len(t, got.BigMapState, len(want.BigMapState))
 	assert.Len(t, got.Contracts, len(want.Contracts))
 	assert.Len(t, got.Migrations, len(want.Migrations))
@@ -57,11 +56,6 @@ func compareParserResponse(t *testing.T, got, want *parsers.Result) bool {
 
 	for i := range got.BigMapActions {
 		if !compareBigMapAction(want.BigMapActions[i], got.BigMapActions[i]) {
-			return false
-		}
-	}
-	for i := range got.BigMapDiffs {
-		if !compareBigMapDiff(t, want.BigMapDiffs[i], got.BigMapDiffs[i]) {
 			return false
 		}
 	}
@@ -260,6 +254,20 @@ func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 			}
 		}
 	}
+
+	if len(one.BigMapDiffs) != len(two.BigMapDiffs) {
+		logger.Info("BigMapDiffs length: %d != %d", len(one.BigMapDiffs), len(two.BigMapDiffs))
+		return false
+	}
+
+	if one.BigMapDiffs != nil && two.BigMapDiffs != nil {
+		for i := range one.BigMapDiffs {
+			if !compareBigMapDiff(t, one.BigMapDiffs[i], two.BigMapDiffs[i]) {
+				return false
+			}
+		}
+	}
+
 	return true
 }
 

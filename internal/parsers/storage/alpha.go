@@ -18,23 +18,21 @@ func NewAlpha() *Alpha {
 }
 
 // ParseTransaction -
-func (a *Alpha) ParseTransaction(content noderpc.Operation, operation operation.Operation) (RichStorage, error) {
+func (a *Alpha) ParseTransaction(content noderpc.Operation, operation *operation.Operation) (*parsers.Result, error) {
 	result := content.GetResult()
 	if result == nil {
-		return RichStorage{Empty: true}, nil
+		return nil, nil
 	}
+	operation.DeffatedStorage = result.Storage
 
-	return RichStorage{
-		Result:          a.getBigMapDiff(result.BigMapDiffs, *content.Destination, operation),
-		DeffatedStorage: result.Storage,
-	}, nil
+	return a.getBigMapDiff(result.BigMapDiffs, *content.Destination, operation), nil
 }
 
 // ParseOrigination -
-func (a *Alpha) ParseOrigination(content noderpc.Operation, operation operation.Operation) (RichStorage, error) {
+func (a *Alpha) ParseOrigination(content noderpc.Operation, operation *operation.Operation) (*parsers.Result, error) {
 	storage, err := operation.AST.StorageType()
 	if err != nil {
-		return RichStorage{Empty: true}, err
+		return nil, err
 	}
 
 	res := parsers.NewResult()
@@ -44,11 +42,11 @@ func (a *Alpha) ParseOrigination(content noderpc.Operation, operation operation.
 	}
 
 	if err := json.Unmarshal(content.Script, &storageData); err != nil {
-		return RichStorage{Empty: true}, err
+		return nil, err
 	}
 
 	if err := storage.Settle(storageData.Storage); err != nil {
-		return RichStorage{Empty: true}, err
+		return nil, err
 	}
 
 	pair, ok := storage.Nodes[0].(*ast.Pair)
@@ -57,8 +55,10 @@ func (a *Alpha) ParseOrigination(content noderpc.Operation, operation operation.
 		if ok {
 			result := content.GetResult()
 			if result == nil {
-				return RichStorage{Empty: true}, nil
+				return nil, nil
 			}
+
+			operation.BigMapDiffs = make([]*bigmapdiff.BigMapDiff, 0)
 
 			if err := bigMap.Data.Range(func(key, value ast.Comparable) (bool, error) {
 				k := key.(ast.Node)
@@ -81,27 +81,25 @@ func (a *Alpha) ParseOrigination(content noderpc.Operation, operation operation.
 				}
 
 				b := &bigmapdiff.BigMapDiff{
-					Key:              keyBytes,
-					KeyHash:          keyHash,
-					Value:            valBytes,
-					OperationHash:    operation.Hash,
-					OperationCounter: operation.Counter,
-					OperationNonce:   operation.Nonce,
-					Level:            operation.Level,
-					Contract:         result.Originated[0],
-					Network:          operation.Network,
-					Timestamp:        operation.Timestamp,
-					ProtocolID:       operation.ProtocolID,
-					Ptr:              -1,
+					Key:         keyBytes,
+					KeyHash:     keyHash,
+					Value:       valBytes,
+					OperationID: operation.ID,
+					Level:       operation.Level,
+					Contract:    result.Originated[0],
+					Network:     operation.Network,
+					Timestamp:   operation.Timestamp,
+					ProtocolID:  operation.ProtocolID,
+					Ptr:         -1,
 				}
-				res.BigMapDiffs = append(res.BigMapDiffs, b)
+				operation.BigMapDiffs = append(operation.BigMapDiffs, b)
 				res.BigMapState = append(res.BigMapState, b.ToState())
 				return false, nil
 			}); err != nil {
-				return RichStorage{Empty: true}, err
+				return nil, err
 			}
 
-			if len(res.BigMapDiffs) > 0 {
+			if len(operation.BigMapDiffs) > 0 {
 				bigMap.Data = ast.NewOrderedMap()
 			}
 		}
@@ -109,32 +107,28 @@ func (a *Alpha) ParseOrigination(content noderpc.Operation, operation operation.
 
 	b, err := storage.ToParameters(ast.DocsFull)
 	if err != nil {
-		return RichStorage{Empty: true}, err
+		return nil, err
 	}
-	return RichStorage{
-		Result:          res,
-		DeffatedStorage: b,
-	}, nil
+	operation.DeffatedStorage = b
+	return res, nil
 }
 
-func (a *Alpha) getBigMapDiff(diffs []noderpc.BigMapDiff, address string, operation operation.Operation) *parsers.Result {
+func (a *Alpha) getBigMapDiff(diffs []noderpc.BigMapDiff, address string, operation *operation.Operation) *parsers.Result {
 	res := parsers.NewResult()
 	for i := range diffs {
 		b := &bigmapdiff.BigMapDiff{
-			Key:              types.Bytes(diffs[i].Key),
-			KeyHash:          diffs[i].KeyHash,
-			Value:            types.Bytes(diffs[i].Value),
-			OperationHash:    operation.Hash,
-			OperationCounter: operation.Counter,
-			OperationNonce:   operation.Nonce,
-			Level:            operation.Level,
-			Contract:         address,
-			Network:          operation.Network,
-			Timestamp:        operation.Timestamp,
-			ProtocolID:       operation.ProtocolID,
-			Ptr:              -1,
+			Key:         types.Bytes(diffs[i].Key),
+			KeyHash:     diffs[i].KeyHash,
+			Value:       types.Bytes(diffs[i].Value),
+			OperationID: operation.ID,
+			Level:       operation.Level,
+			Contract:    address,
+			Network:     operation.Network,
+			Timestamp:   operation.Timestamp,
+			ProtocolID:  operation.ProtocolID,
+			Ptr:         -1,
 		}
-		res.BigMapDiffs = append(res.BigMapDiffs, b)
+		operation.BigMapDiffs = append(operation.BigMapDiffs, b)
 		res.BigMapState = append(res.BigMapState, b.ToState())
 	}
 	return res

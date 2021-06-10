@@ -18,7 +18,6 @@ const (
 // Result -
 type Result struct {
 	BigMapActions []*bigmapaction.BigMapAction
-	BigMapDiffs   []*bigmapdiff.BigMapDiff
 	BigMapState   []*bigmapdiff.BigMapState
 	Contracts     []*contract.Contract
 	Migrations    []*migration.Migration
@@ -30,7 +29,6 @@ type Result struct {
 func NewResult() *Result {
 	return &Result{
 		BigMapActions: make([]*bigmapaction.BigMapAction, 0),
-		BigMapDiffs:   make([]*bigmapdiff.BigMapDiff, 0),
 		BigMapState:   make([]*bigmapdiff.BigMapState, 0),
 		Contracts:     make([]*contract.Contract, 0),
 		Migrations:    make([]*migration.Migration, 0),
@@ -45,9 +43,6 @@ func (result *Result) Save(tx *gorm.DB) error {
 		return err
 	}
 	if err := tx.CreateInBatches(result.BigMapActions, batchSize).Error; err != nil {
-		return err
-	}
-	if err := tx.CreateInBatches(result.BigMapDiffs, batchSize).Error; err != nil {
 		return err
 	}
 	for i := range result.BigMapState {
@@ -77,7 +72,6 @@ func (result *Result) Merge(second *Result) {
 	}
 
 	result.BigMapActions = append(result.BigMapActions, second.BigMapActions...)
-	result.BigMapDiffs = append(result.BigMapDiffs, second.BigMapDiffs...)
 	result.BigMapState = append(result.BigMapState, second.BigMapState...)
 	result.Contracts = append(result.Contracts, second.Contracts...)
 	result.Migrations = append(result.Migrations, second.Migrations...)

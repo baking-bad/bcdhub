@@ -5,7 +5,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/events"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
@@ -154,9 +153,7 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name, protocol str
 		ctx.Entrypoint = consts.DefaultEntrypoint
 		bmd := make([]bigmapdiff.BigMapDiff, 0)
 		for i := range diffs {
-			if diffs[i].OperationHash == operation.Hash &&
-				diffs[i].OperationCounter == operation.Counter &&
-				helpers.IsInt64PointersEqual(diffs[i].OperationNonce, operation.Nonce) {
+			if diffs[i].OperationID == operation.ID {
 				bmd = append(bmd, *diffs[i])
 			}
 		}

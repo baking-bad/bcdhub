@@ -100,7 +100,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 						return err
 					}
 
-					bmd, err := ctx.BigMapDiffs.GetForOperation(op.Hash, op.Counter, op.Nonce)
+					bmd, err := ctx.BigMapDiffs.GetForOperation(op.ID)
 					if err != nil {
 						if !ctx.Storage.IsRecordNotFound(err) {
 							return err

@@ -95,7 +95,7 @@ func (p Transaction) Parse(data noderpc.Operation) (*parsers.Result, error) {
 	p.stackTrace.Add(tx)
 
 	if !tezerrors.HasParametersError(tx.Errors) {
-		if err := p.transferParser.Parse(result.BigMapDiffs, p.head.Protocol, &tx); err != nil {
+		if err := p.transferParser.Parse(tx.BigMapDiffs, p.head.Protocol, &tx); err != nil {
 			if !errors.Is(err, noderpc.InvalidNodeResponse{}) {
 				return nil, err
 			}
@@ -125,14 +125,13 @@ func (p Transaction) appliedHandler(item noderpc.Operation, op *operation.Operat
 		return nil
 	}
 
-	rs, err := p.storageParser.Parse(item, op)
+	storageResult, err := p.storageParser.Parse(item, op)
 	if err != nil {
 		return err
 	}
-	if rs.Empty {
-		return nil
+	if storageResult != nil {
+		result.Merge(storageResult)
 	}
-	op.DeffatedStorage = rs.DeffatedStorage
 
 	if len(op.DeffatedStorage) > 0 {
 		var tree ast.UntypedAST
@@ -147,8 +146,6 @@ func (p Transaction) appliedHandler(item noderpc.Operation, op *operation.Operat
 			op.StorageStrings = storageStrings
 		}
 	}
-
-	result.Merge(rs.Result)
 
 	migration, err := NewMigration().Parse(item, op)
 	if err != nil {

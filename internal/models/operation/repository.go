@@ -12,7 +12,6 @@ type Repository interface {
 	// GetOperations - get operation by `filter`. `Size` - if 0 - return all, else certain `size` operations.
 	// `Sort` - sort by time and content index by desc
 	Get(filter map[string]interface{}, size int64, sort bool) ([]Operation, error)
-	GetOne(hash string, counter int64, nonce *int64) (Operation, error)
 
 	GetContract24HoursVolume(network types.Network, address string, entrypoints []string) (float64, error)
 	GetTokensStats(network types.Network, addresses, entrypoints []string) (map[string]TokenUsageStats, error)

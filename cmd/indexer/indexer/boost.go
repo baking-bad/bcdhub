@@ -508,11 +508,6 @@ func (bi *BoostIndexer) createBlock(head noderpc.Header, tx *gorm.DB) error {
 }
 
 func (bi *BoostIndexer) sendToQueue(result *parsers.Result) error {
-	for i := range result.BigMapDiffs {
-		if err := bi.MQ.Send(result.BigMapDiffs[i]); err != nil {
-			return err
-		}
-	}
 	for i := range result.Contracts {
 		if err := bi.MQ.Send(result.Contracts[i]); err != nil {
 			return err
@@ -521,6 +516,11 @@ func (bi *BoostIndexer) sendToQueue(result *parsers.Result) error {
 	for i := range result.Operations {
 		if err := bi.MQ.Send(result.Operations[i]); err != nil {
 			return err
+		}
+		for j := range result.Operations[i].BigMapDiffs {
+			if err := bi.MQ.Send(result.Operations[i].BigMapDiffs[j]); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

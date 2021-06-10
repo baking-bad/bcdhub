@@ -148,20 +148,7 @@ func getRequest(period, table, f, conditions string) (string, error) {
 		return "", errors.Errorf("Invalid table: %s", table)
 	}
 
-	var from string
-	switch period {
-	case "hour":
-		from = "now() - interval '23 hour'" // -1 hour/day/week/month because postgres series count current date. In maths: [from; to] -> (from; to]
-	case "day":
-		from = "now() - interval '30 day'"
-	case "week":
-		from = "now() - interval '15 week'"
-	case "month":
-		from = "now() - interval '11 month'"
-	default:
-		from = "'2018-06-25'"
-	}
-
+	from := GetHistogramInterval(period)
 	return fmt.Sprintf(histogramRequestTemplate, period, from, period, period, f, table, period, table, conditions), nil
 }
 
@@ -171,4 +158,20 @@ func ValidateHistogramPeriod(period string) error {
 		return errors.Errorf("Invalid period: %s", period)
 	}
 	return nil
+}
+
+// GetHistogramInterval -
+func GetHistogramInterval(period string) string {
+	switch period {
+	case "hour":
+		return "now() - interval '23 hour'" // -1 hour/day/week/month because postgres series count current date. In maths: [from; to] -> (from; to]
+	case "day":
+		return "now() - interval '30 day'"
+	case "week":
+		return "now() - interval '15 week'"
+	case "month":
+		return "now() - interval '11 month'"
+	default:
+		return "'2018-06-25'"
+	}
 }
