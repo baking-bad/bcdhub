@@ -259,17 +259,3 @@ func (mr *MockGeneralRepositoryMockRecorder) BulkDelete(arg0 interface{}) *gomoc
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BulkDelete", reflect.TypeOf((*MockGeneralRepository)(nil).BulkDelete), arg0)
 }
-
-// SetAlias mocks base method
-func (m *MockGeneralRepository) SetAlias(network types.Network, address, alias string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetAlias", network, address, alias)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SetAlias indicates an expected call of SetAlias
-func (mr *MockGeneralRepositoryMockRecorder) SetAlias(network, address, alias interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetAlias", reflect.TypeOf((*MockGeneralRepository)(nil).SetAlias), network, address, alias)
-}

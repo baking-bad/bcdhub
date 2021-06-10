@@ -147,7 +147,7 @@ func (ctx *Context) appendDAppInfo(dapp dapp.DApp, withDetails bool) (DApp, erro
 				result.Contracts = append(result.Contracts, DAppContract{
 					Network:     contract.Network.String(),
 					Address:     contract.Address,
-					Alias:       contract.Alias,
+					Alias:       ctx.CachedAlias(contract.Network, contract.Address),
 					ReleaseDate: contract.Timestamp.UTC(),
 				})
 

@@ -257,6 +257,9 @@ func (ctx *Context) prepareOperation(operation operation.Operation, bmd []bigmap
 	var op Operation
 	op.FromModel(operation)
 
+	op.SourceAlias = ctx.CachedAlias(operation.Network, operation.Source)
+	op.DestinationAlias = ctx.CachedAlias(operation.Network, operation.Destination)
+
 	proto, err := ctx.CachedProtocolByID(operation.Network, operation.ProtocolID)
 	if err != nil {
 		return op, err

@@ -82,6 +82,6 @@ func (t *Token) Prepare(model models.Model) {
 	t.Name = tm.Name
 	t.Network = tm.Network.String()
 	t.Symbol = tm.Symbol
-	t.Timestamp = tm.Timestamp
+	t.Timestamp = tm.Timestamp.UTC()
 	t.TokenID = tm.TokenID
 }

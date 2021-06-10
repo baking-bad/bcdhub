@@ -24,5 +24,4 @@ type GeneralRepository interface {
 	// Save - performs insert or update items.
 	Save(items []Model) error
 	BulkDelete([]Model) error
-	SetAlias(network types.Network, address, alias string) error
 }
