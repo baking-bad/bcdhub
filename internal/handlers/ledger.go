@@ -154,8 +154,8 @@ func (ledger *Ledger) makeTransfer(tb tokenbalance.TokenBalance, op *operation.O
 		return nil
 	}
 
+	t.Amount = tb.Value.Sub(balance.Balance).Abs()
 	t.TokenID = tb.TokenID
-	t.Amount = balance.Balance
 
 	if op.Nonce != nil {
 		st := stacktrace.New()
