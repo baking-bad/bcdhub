@@ -58,18 +58,18 @@ func AllDocuments() []string {
 func AllModels() []Model {
 	return []Model{
 		&protocol.Protocol{},
+		&block.Block{},
+		&operation.Operation{},
 		&bigmapaction.BigMapAction{},
 		&bigmapdiff.BigMapDiff{},
 		&bigmapdiff.BigMapState{},
-		&block.Block{},
 		&contract.Contract{},
-		&dapp.DApp{},
 		&migration.Migration{},
-		&operation.Operation{},
 		&tezosdomain.TezosDomain{},
 		&tokenbalance.TokenBalance{},
 		&tokenmetadata.TokenMetadata{},
 		&transfer.Transfer{},
 		&tzip.TZIP{},
+		&dapp.DApp{},
 	}
 }

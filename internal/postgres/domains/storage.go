@@ -5,6 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
+	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 )
@@ -53,5 +54,43 @@ func (storage *Storage) TokenBalances(network types.Network, contract, address s
 		return response, err
 	}
 
+	return response, nil
+}
+
+var transfersQuery = `
+	select o.hash, o.nonce, o.counter, t.*, tm.symbol, tm.decimals, tm."name"  from (
+		(?)  as t
+		left join operations as o on o.id  = t.operation_id
+		left join token_metadata tm on tm.network = t.network and tm.contract = t.contract and tm.token_id = t.token_id
+	)
+`
+
+// Transfers -
+func (storage *Storage) Transfers(ctx transfer.GetContext) (domains.TransfersResponse, error) {
+	response := domains.TransfersResponse{
+		Transfers: make([]domains.Transfer, 0),
+	}
+	query := storage.DB.Table(models.DocTransfers)
+	storage.buildGetContext(query, ctx, true)
+
+	if err := storage.DB.Raw(transfersQuery, query).Find(&response.Transfers).Error; err != nil {
+		return response, err
+	}
+
+	received := len(response.Transfers)
+	size := storage.GetPageSize(ctx.Size)
+	if ctx.Offset == 0 && size > received {
+		response.Total = int64(len(response.Transfers))
+	} else {
+		countQuery := storage.DB.Table(models.DocTransfers)
+		storage.buildGetContext(countQuery, ctx, false)
+		if err := countQuery.Count(&response.Total).Error; err != nil {
+			return response, err
+		}
+	}
+
+	if received > 0 {
+		response.LastID = fmt.Sprintf("%d", response.Transfers[received-1].ID)
+	}
 	return response, nil
 }

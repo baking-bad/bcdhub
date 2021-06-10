@@ -5,7 +5,8 @@
 package domains
 
 import (
-	domainsModel "github.com/baking-bad/bcdhub/internal/models/domains"
+	models "github.com/baking-bad/bcdhub/internal/models/domains"
+	transfer "github.com/baking-bad/bcdhub/internal/models/transfer"
 	types "github.com/baking-bad/bcdhub/internal/models/types"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
@@ -35,10 +36,10 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // TokenBalances mocks base method
-func (m *MockRepository) TokenBalances(network types.Network, contract, address string, size, offset int64, sort string) (domainsModel.TokenBalanceResponse, error) {
+func (m *MockRepository) TokenBalances(network types.Network, contract, address string, size, offset int64, sort string) (models.TokenBalanceResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TokenBalances", network, contract, address, size, offset, sort)
-	ret0, _ := ret[0].(domainsModel.TokenBalanceResponse)
+	ret0, _ := ret[0].(models.TokenBalanceResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -47,4 +48,19 @@ func (m *MockRepository) TokenBalances(network types.Network, contract, address 
 func (mr *MockRepositoryMockRecorder) TokenBalances(network, contract, address, size, offset, sort interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TokenBalances", reflect.TypeOf((*MockRepository)(nil).TokenBalances), network, contract, address, size, offset, sort)
+}
+
+// Transfers mocks base method
+func (m *MockRepository) Transfers(ctx transfer.GetContext) (models.TransfersResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Transfers", ctx)
+	ret0, _ := ret[0].(models.TransfersResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Transfers indicates an expected call of Transfers
+func (mr *MockRepositoryMockRecorder) Transfers(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Transfers", reflect.TypeOf((*MockRepository)(nil).Transfers), ctx)
 }

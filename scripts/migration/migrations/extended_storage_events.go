@@ -110,21 +110,18 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 					if err != nil {
 						return err
 					}
-					transfers, err := parser.Parse(op, bmd, proto.Hash)
-					if err != nil {
+					if err := parser.Parse(bmd, proto.Hash, &op); err != nil {
 						if errors.Is(err, noderpc.InvalidNodeResponse{}) {
 							logger.Error(err)
 							continue
 						}
 						return err
 					}
-					for _, t := range transfers {
+					for _, t := range op.Transfers {
 						old, err := ctx.Transfers.Get(transfer.GetContext{
-							Hash:    t.Hash,
-							Network: t.Network,
-							Counter: &t.Counter,
-							Nonce:   t.Nonce,
-							TokenID: &t.TokenID,
+							Network:     t.Network,
+							TokenID:     &t.TokenID,
+							OperationID: &op.ID,
 						})
 						if err != nil {
 							return err

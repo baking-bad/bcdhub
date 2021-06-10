@@ -142,7 +142,7 @@ func (ledger *Ledger) makeTransfer(tb tokenbalance.TokenBalance, op *operation.O
 		return nil
 	}
 
-	t := transfer.EmptyTransfer(*op)
+	t := op.EmptyTransfer()
 
 	switch balance.Balance.Cmp(tb.Value) {
 	case 1:
@@ -154,7 +154,7 @@ func (ledger *Ledger) makeTransfer(tb tokenbalance.TokenBalance, op *operation.O
 	}
 
 	t.TokenID = tb.TokenID
-	t.Amount = balance.Balance
+	t.Amount = tb.Value.Sub(balance.Balance).Abs()
 
 	if op.Nonce != nil {
 		st := stacktrace.New()

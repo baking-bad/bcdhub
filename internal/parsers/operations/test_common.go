@@ -55,7 +55,6 @@ func compareParserResponse(t *testing.T, got, want *parsers.Result) bool {
 	assert.Len(t, got.Migrations, len(want.Migrations))
 	assert.Len(t, got.Operations, len(want.Operations))
 	assert.Len(t, got.TokenBalances, len(want.TokenBalances))
-	assert.Len(t, got.Transfers, len(want.Transfers))
 
 	for i := range got.BigMapActions {
 		if !compareBigMapAction(want.BigMapActions[i], got.BigMapActions[i]) {
@@ -92,11 +91,6 @@ func compareParserResponse(t *testing.T, got, want *parsers.Result) bool {
 			return false
 		}
 	}
-	for i := range got.Transfers {
-		if !compareTransfers(want.Transfers[i], got.Transfers[i]) {
-			return false
-		}
-	}
 
 	return true
 }
@@ -112,10 +106,6 @@ func compareTransfers(one, two *transfer.Transfer) bool {
 	}
 	if one.Initiator != two.Initiator {
 		logger.Info("Initiator: %s != %s", one.Initiator, two.Initiator)
-		return false
-	}
-	if one.Hash != two.Hash {
-		logger.Info("Hash: %s != %s", one.Hash, two.Hash)
 		return false
 	}
 	if one.Status != two.Status {
@@ -146,12 +136,8 @@ func compareTransfers(one, two *transfer.Transfer) bool {
 		logger.Info("Amount: %s != %s", one.Amount.String(), two.Amount.String())
 		return false
 	}
-	if one.Counter != two.Counter {
-		logger.Info("Counter: %d != %d", one.Counter, two.Counter)
-		return false
-	}
-	if !compareInt64Ptr(one.Nonce, two.Nonce) {
-		logger.Info("Transfer.Nonce: %d != %d", *one.Nonce, *two.Nonce)
+	if one.OperationID != two.OperationID {
+		logger.Info("OperationID: %d != %d", one.OperationID, two.OperationID)
 		return false
 	}
 	return true
@@ -274,6 +260,19 @@ func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 		if !reflect.DeepEqual(one.Tags, two.Tags) {
 			logger.Info("Tags: %s != %s", one.Tags, two.Tags)
 			return false
+		}
+	}
+
+	if len(one.Transfers) != len(two.Transfers) {
+		logger.Info("Transfers length: %d != %d", len(one.Transfers), len(two.Transfers))
+		return false
+	}
+
+	if one.Transfers != nil && two.Transfers != nil {
+		for i := range one.Transfers {
+			if !compareTransfers(one.Transfers[i], two.Transfers[i]) {
+				return false
+			}
 		}
 	}
 	return true

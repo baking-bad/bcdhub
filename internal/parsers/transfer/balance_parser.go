@@ -23,7 +23,7 @@ func NewDefaultBalanceParser(repo tokenbalance.Repository) *DefaultBalanceParser
 func (parser *DefaultBalanceParser) Parse(balances []tbParser.TokenBalance, operation operation.Operation) ([]*transfer.Transfer, error) {
 	transfers := make([]*transfer.Transfer, 0)
 	for _, balance := range balances {
-		transfer := transfer.EmptyTransfer(operation)
+		transfer := operation.EmptyTransfer()
 		if balance.Value.Cmp(decimal.Zero) > 0 {
 			transfer.To = balance.Address
 		} else {
@@ -42,7 +42,7 @@ func (parser *DefaultBalanceParser) Parse(balances []tbParser.TokenBalance, oper
 func (parser *DefaultBalanceParser) ParseBalances(network types.Network, contract string, balances []tbParser.TokenBalance, operation operation.Operation) ([]*transfer.Transfer, error) {
 	transfers := make([]*transfer.Transfer, 0)
 	for _, balance := range balances {
-		transfer := transfer.EmptyTransfer(operation)
+		transfer := operation.EmptyTransfer()
 
 		tb, err := parser.repo.Get(network, contract, balance.Address, balance.TokenID)
 		if err != nil {

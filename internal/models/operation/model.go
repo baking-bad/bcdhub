@@ -8,8 +8,10 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/lib/pq"
+	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -64,6 +66,8 @@ type Operation struct {
 	Internal                     bool `json:"internal" gorm:",default:false"`
 
 	AST *ast.Script `json:"-" gorm:"-"`
+
+	Transfers []*transfer.Transfer `json:"-"`
 }
 
 // GetID -
@@ -159,6 +163,21 @@ func (o *Operation) HasTag(tag string) bool {
 		}
 	}
 	return false
+}
+
+// EmptyTransfer -
+func (o Operation) EmptyTransfer() *transfer.Transfer {
+	return &transfer.Transfer{
+		Network:     o.Network,
+		Contract:    o.Destination,
+		Status:      o.Status,
+		Timestamp:   o.Timestamp,
+		Level:       o.Level,
+		Initiator:   o.Source,
+		Entrypoint:  o.Entrypoint,
+		Amount:      decimal.Zero,
+		OperationID: o.ID,
+	}
 }
 
 // Result -

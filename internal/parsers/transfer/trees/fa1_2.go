@@ -17,7 +17,7 @@ func MakeFa1_2Transfers(tree ast.Node, operation operation.Operation) ([]*transf
 	}
 	var err error
 
-	t := transfer.EmptyTransfer(operation)
+	t := operation.EmptyTransfer()
 	pair := tree.(*ast.Pair)
 	from := pair.Args[0].GetValue().(string)
 	t.From, err = getAddress(from)

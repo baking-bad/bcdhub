@@ -116,7 +116,6 @@ func TestLedger_getResultModels(t *testing.T) {
 					Amount:     newDecimal("168000"),
 					TokenID:    0,
 					Entrypoint: "burn",
-					Hash:       "opNQeUBKfJzBjCNLuo5HkyZynhm5TMe1KEtwioqUrWM1ygmYVDX",
 					Level:      1455291,
 				},
 			},
