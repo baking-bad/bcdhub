@@ -134,7 +134,7 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 		tokenID = ctxReq.TokenID
 	}
 
-	transfers, err := ctx.Transfers.Get(transfer.GetContext{
+	transfers, err := ctx.Domains.Transfers(transfer.GetContext{
 		Network:   req.NetworkID(),
 		Address:   req.Address,
 		Contracts: contracts,
@@ -149,12 +149,7 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 		return
 	}
 
-	response, err := ctx.transfersPostprocessing(transfers, true)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, ctx.transfersPostprocessing(transfers, true))
 }
 
 // GetTokenVolumeSeries godoc

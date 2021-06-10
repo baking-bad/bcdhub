@@ -143,7 +143,7 @@ func (ledger *Ledger) makeTransfer(tb tokenbalance.TokenBalance, op *operation.O
 		return nil
 	}
 
-	t := transfer.EmptyTransfer(*op)
+	t := op.EmptyTransfer()
 
 	switch balance.Balance.Cmp(tb.Value) {
 	case 1:

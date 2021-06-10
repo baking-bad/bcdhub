@@ -56,11 +56,9 @@ func (m *InitialStorageEvents) Do(ctx *config.Context) error {
 				continue
 			}
 			found, err := ctx.Transfers.Get(transfer.GetContext{
-				Hash:    t.Hash,
-				Network: t.Network,
-				Counter: &t.Counter,
-				Nonce:   t.Nonce,
-				TokenID: &t.TokenID,
+				Network:     t.Network,
+				TokenID:     &t.TokenID,
+				OperationID: &t.OperationID,
 			})
 			if err != nil {
 				if !ctx.Storage.IsRecordNotFound(err) {

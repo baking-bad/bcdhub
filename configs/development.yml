@@ -87,8 +87,6 @@ indexer:
   networks:
     mainnet:
       boost: tzkt
-    # delphinet:
-    #   boost: tzkt
     edo2net:
       boost: tzkt
     florencenet:

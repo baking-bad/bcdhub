@@ -21,7 +21,7 @@ func MakeFa2Transfers(tree ast.Node, operation operation.Operation) ([]*transfer
 		toList := pair.Args[1].(*ast.List)
 		for j := range toList.Data {
 			var err error
-			t := transfer.EmptyTransfer(operation)
+			t := operation.EmptyTransfer()
 			t.From, err = getAddress(from)
 			if err != nil {
 				return nil, err

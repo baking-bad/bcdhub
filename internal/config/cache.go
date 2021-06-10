@@ -9,7 +9,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
-	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
@@ -47,18 +46,6 @@ func (ctx *Context) CachedContractMetadata(network types.Network, address string
 	}
 
 	return item.Value().(*tzip.TZIP), nil
-}
-
-// CachedTokenMetadata -
-func (ctx *Context) CachedTokenMetadata(network types.Network, address string, tokenID uint64) (*tokenmetadata.TokenMetadata, error) {
-	key := ctx.Cache.TokenMetadataKey(network, address, tokenID)
-	item, err := ctx.Cache.Fetch(key, time.Minute*30, func() (interface{}, error) {
-		return ctx.TokenMetadata.GetOne(network, address, tokenID)
-	})
-	if err != nil {
-		return nil, err
-	}
-	return item.Value().(*tokenmetadata.TokenMetadata), nil
 }
 
 // CachedCurrentBlock -

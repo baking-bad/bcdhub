@@ -95,15 +95,13 @@ func (p Transaction) Parse(data noderpc.Operation) (*parsers.Result, error) {
 	p.stackTrace.Add(tx)
 
 	if !tezerrors.HasParametersError(tx.Errors) {
-		transfers, err := p.transferParser.Parse(tx, result.BigMapDiffs, p.head.Protocol)
-		if err != nil {
+		if err := p.transferParser.Parse(result.BigMapDiffs, p.head.Protocol, &tx); err != nil {
 			if !errors.Is(err, noderpc.InvalidNodeResponse{}) {
 				return nil, err
 			}
 			logger.With(&tx).Warning(err.Error())
 		}
-		result.Transfers = append(result.Transfers, transfers...)
-		result.TokenBalances = append(result.TokenBalances, transferParsers.UpdateTokenBalances(transfers)...)
+		result.TokenBalances = append(result.TokenBalances, transferParsers.UpdateTokenBalances(tx.Transfers)...)
 	}
 	return result, nil
 }

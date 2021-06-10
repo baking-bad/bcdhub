@@ -75,14 +75,14 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 		if err != nil {
 			return err
 		}
-		transfers, err := parser.Parse(operations[i], nil, proto.Hash)
-		if err != nil {
+
+		if err := parser.Parse(nil, proto.Hash, &operations[i]); err != nil {
 			return err
 		}
 
-		for j := range transfers {
-			result = append(result, transfers[j])
-			newTransfers = append(newTransfers, transfers[j])
+		for j := range operations[i].Transfers {
+			result = append(result, operations[i].Transfers[j])
+			newTransfers = append(newTransfers, operations[i].Transfers[j])
 		}
 	}
 

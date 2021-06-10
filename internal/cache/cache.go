@@ -34,11 +34,6 @@ func (cache *Cache) ContractKey(network types.Network, address string) string {
 	return fmt.Sprintf("contract:%d:%s", network, address)
 }
 
-// TokenMetadataKey -
-func (cache *Cache) TokenMetadataKey(network types.Network, address string, tokenID uint64) string {
-	return fmt.Sprintf("token_metadata:%d:%s:%d", network, address, tokenID)
-}
-
 // BlockKey -
 func (cache *Cache) BlockKey(network types.Network) string {
 	return fmt.Sprintf("block:%d", network)

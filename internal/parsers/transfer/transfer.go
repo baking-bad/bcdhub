@@ -83,13 +83,13 @@ func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Reposit
 }
 
 // Parse -
-func (p *Parser) Parse(operation operation.Operation, diffs []*bigmapdiff.BigMapDiff, protocol string) ([]*transfer.Transfer, error) {
+func (p *Parser) Parse(diffs []*bigmapdiff.BigMapDiff, protocol string, operation *operation.Operation) error {
 	if !operation.IsTransaction() {
-		return nil, nil
+		return nil
 	}
 
-	if impl, name, ok := globalEvents.GetByOperation(operation); ok {
-		return p.executeEvents(impl, name, protocol, operation, diffs)
+	if impl, name, ok := globalEvents.GetByOperation(*operation); ok {
+		return p.executeEvents(impl, name, protocol, diffs, operation)
 	}
 
 	if operation.IsEntrypoint(consts.TransferEntrypoint) {
@@ -100,12 +100,12 @@ func (p *Parser) Parse(operation operation.Operation, diffs []*bigmapdiff.BigMap
 			return p.makeFA12Transfers(operation)
 		}
 	}
-	return nil, nil
+	return nil
 }
 
-func (p *Parser) executeEvents(impl tzip.EventImplementation, name, protocol string, operation operation.Operation, diffs []*bigmapdiff.BigMapDiff) ([]*transfer.Transfer, error) {
+func (p *Parser) executeEvents(impl tzip.EventImplementation, name, protocol string, diffs []*bigmapdiff.BigMapDiff, operation *operation.Operation) error {
 	if !operation.IsApplied() {
-		return nil, nil
+		return nil
 	}
 
 	var event events.Event
@@ -124,31 +124,31 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name, protocol str
 	case impl.MichelsonParameterEvent != nil && impl.MichelsonParameterEvent.Is(operation.Entrypoint):
 		parameter, err := operation.AST.ParameterType()
 		if err != nil {
-			return nil, err
+			return err
 		}
 		param := types.NewParameters(operation.Parameters)
 		subTree, err := parameter.FromParameters(param)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		ctx.Parameters = subTree
 		ctx.Entrypoint = operation.Entrypoint
 		event, err = events.NewMichelsonParameter(impl, name)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		return p.makeTransfersFromBalanceEvents(event, ctx, operation, true)
 	case impl.MichelsonExtendedStorageEvent != nil && impl.MichelsonExtendedStorageEvent.Is(operation.Entrypoint):
 		storage, err := operation.AST.StorageType()
 		if err != nil {
-			return nil, err
+			return err
 		}
 		var deffattedStorage ast.UntypedAST
 		if err := json.Unmarshal(operation.DeffatedStorage, &deffattedStorage); err != nil {
-			return nil, err
+			return err
 		}
 		if err := storage.Settle(deffattedStorage); err != nil {
-			return nil, err
+			return err
 		}
 		ctx.Parameters = storage
 		ctx.Entrypoint = consts.DefaultEntrypoint
@@ -162,90 +162,87 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name, protocol str
 		}
 		event, err = events.NewMichelsonExtendedStorage(impl, name, bmd)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		return p.makeTransfersFromBalanceEvents(event, ctx, operation, false)
 	default:
-		return nil, nil
+		return nil
 	}
 }
 
-func (p *Parser) makeTransfersFromBalanceEvents(event events.Event, ctx events.Context, operation operation.Operation, isDelta bool) ([]*transfer.Transfer, error) {
+func (p *Parser) makeTransfersFromBalanceEvents(event events.Event, ctx events.Context, operation *operation.Operation, isDelta bool) error {
 	balances, err := events.Execute(p.rpc, event, ctx)
 	if err != nil {
 		logger.Errorf("Event of %s %s: %s", operation.Network, operation.Destination, err.Error())
-		return nil, nil
+		return nil
 	}
-
-	var transfers []*transfer.Transfer
 
 	parser := NewDefaultBalanceParser(p.tokenBalances)
 	if isDelta {
-		transfers, err = parser.Parse(balances, operation)
+		operation.Transfers, err = parser.Parse(balances, *operation)
 	} else {
-		transfers, err = parser.ParseBalances(p.network, operation.Destination, balances, operation)
+		operation.Transfers, err = parser.ParseBalances(p.network, operation.Destination, balances, *operation)
 	}
 	if err != nil {
-		return nil, err
+		return err
 	}
-	p.transferPostprocessing(transfers, operation)
+	p.transferPostprocessing(operation)
 
-	return transfers, err
+	return err
 }
 
-func (p *Parser) transferPostprocessing(transfers []*transfer.Transfer, operation operation.Operation) {
+func (p *Parser) transferPostprocessing(operation *operation.Operation) {
 	if p.stackTrace.Empty() {
 		return
 	}
-	for i := range transfers {
-		p.setParentEntrypoint(operation, transfers[i])
+	if len(operation.Transfers) == 0 {
+		return
+	}
+	for i := range operation.Transfers {
+		p.setParentEntrypoint(operation, operation.Transfers[i])
 	}
 }
 
-func (p *Parser) makeFA12Transfers(operation operation.Operation) ([]*transfer.Transfer, error) {
+func (p *Parser) makeFA12Transfers(operation *operation.Operation) error {
 	node, err := getNode(operation)
 	if err != nil {
 		if operation.Status == modelTypes.OperationStatusApplied {
-			return nil, err
+			return err
 		}
-		return nil, nil
+		return nil
 	}
 	if node == nil {
-		return nil, nil
+		return nil
 	}
 
-	transfers, err := trees.MakeFa1_2Transfers(node, operation)
+	operation.Transfers, err = trees.MakeFa1_2Transfers(node, *operation)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	for i := range transfers {
-		p.setParentEntrypoint(operation, transfers[i])
-	}
-	return transfers, nil
+	p.transferPostprocessing(operation)
+	return nil
 }
 
-func (p *Parser) makeFA2Transfers(operation operation.Operation) ([]*transfer.Transfer, error) {
+func (p *Parser) makeFA2Transfers(operation *operation.Operation) error {
 	node, err := getNode(operation)
 	if err != nil {
 		if operation.Status == modelTypes.OperationStatusApplied {
-			return nil, err
+			return err
 		}
-		return nil, nil
+		return nil
 	}
 	if node == nil {
-		return nil, nil
+		return nil
 	}
-	transfers, err := trees.MakeFa2Transfers(node, operation)
+	operation.Transfers, err = trees.MakeFa2Transfers(node, *operation)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	for i := range transfers {
-		p.setParentEntrypoint(operation, transfers[i])
-	}
-	return transfers, nil
+	p.transferPostprocessing(operation)
+	return nil
 }
 
-func getNode(operation operation.Operation) (ast.Node, error) {
+func getNode(operation *operation.Operation) (ast.Node, error) {
 	param, err := operation.AST.ParameterType()
 	if err != nil {
 		return nil, err
@@ -262,11 +259,11 @@ func getNode(operation operation.Operation) (ast.Node, error) {
 	return node, nil
 }
 
-func (p Parser) setParentEntrypoint(operation operation.Operation, transfer *transfer.Transfer) {
+func (p Parser) setParentEntrypoint(operation *operation.Operation, transfer *transfer.Transfer) {
 	if p.stackTrace.Empty() {
 		return
 	}
-	item := p.stackTrace.Get(operation)
+	item := p.stackTrace.Get(*operation)
 	if item == nil || item.ParentID == -1 {
 		return
 	}

@@ -8,7 +8,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
-	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"gorm.io/gorm"
 )
 
@@ -25,7 +24,6 @@ type Result struct {
 	Migrations    []*migration.Migration
 	Operations    []*operation.Operation
 	TokenBalances []*tokenbalance.TokenBalance
-	Transfers     []*transfer.Transfer
 }
 
 // NewResult -
@@ -38,12 +36,14 @@ func NewResult() *Result {
 		Migrations:    make([]*migration.Migration, 0),
 		Operations:    make([]*operation.Operation, 0),
 		TokenBalances: make([]*tokenbalance.TokenBalance, 0),
-		Transfers:     make([]*transfer.Transfer, 0),
 	}
 }
 
 // Save -
 func (result *Result) Save(tx *gorm.DB) error {
+	if err := tx.CreateInBatches(result.Operations, batchSize).Error; err != nil {
+		return err
+	}
 	if err := tx.CreateInBatches(result.BigMapActions, batchSize).Error; err != nil {
 		return err
 	}
@@ -58,18 +58,12 @@ func (result *Result) Save(tx *gorm.DB) error {
 	if err := tx.CreateInBatches(result.Contracts, batchSize).Error; err != nil {
 		return err
 	}
-	if err := tx.CreateInBatches(result.Migrations, batchSize).Error; err != nil {
-		return err
-	}
-	if err := tx.CreateInBatches(result.Operations, batchSize).Error; err != nil {
-		return err
-	}
 	for i := range result.TokenBalances {
 		if err := result.TokenBalances[i].Save(tx); err != nil {
 			return err
 		}
 	}
-	if err := tx.CreateInBatches(result.Transfers, batchSize).Error; err != nil {
+	if err := tx.CreateInBatches(result.Migrations, batchSize).Error; err != nil {
 		return err
 	}
 
@@ -89,7 +83,6 @@ func (result *Result) Merge(second *Result) {
 	result.Migrations = append(result.Migrations, second.Migrations...)
 	result.Operations = append(result.Operations, second.Operations...)
 	result.TokenBalances = append(result.TokenBalances, second.TokenBalances...)
-	result.Transfers = append(result.Transfers, second.Transfers...)
 }
 
 func (result *Result) updateContracts(tx *gorm.DB) error {

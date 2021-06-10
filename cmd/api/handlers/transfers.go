@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/gin-gonic/gin"
 )
@@ -39,7 +40,7 @@ func (ctx *Context) GetContractTransfers(c *gin.Context) {
 		tokenID = req.TokenID
 	}
 
-	transfers, err := ctx.Transfers.Get(transfer.GetContext{
+	transfers, err := ctx.Domains.Transfers(transfer.GetContext{
 		Network:   contractRequest.NetworkID(),
 		Contracts: []string{contractRequest.Address},
 		Size:      req.Size,
@@ -49,14 +50,10 @@ func (ctx *Context) GetContractTransfers(c *gin.Context) {
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	response, err := ctx.transfersPostprocessing(transfers, false)
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, ctx.transfersPostprocessing(transfers, false))
 }
 
-func (ctx *Context) transfersPostprocessing(transfers transfer.Pageable, withLastID bool) (response TransferResponse, err error) {
+func (ctx *Context) transfersPostprocessing(transfers domains.TransfersResponse, withLastID bool) (response TransferResponse) {
 	response.Total = transfers.Total
 	response.Transfers = make([]Transfer, len(transfers.Transfers))
 	if withLastID {
@@ -68,16 +65,9 @@ func (ctx *Context) transfersPostprocessing(transfers transfer.Pageable, withLas
 			Network:  transfers.Transfers[i].Network.String(),
 			Contract: transfers.Transfers[i].Contract,
 			TokenID:  transfers.Transfers[i].TokenID,
-		}
-
-		metadata, err := ctx.CachedTokenMetadata(transfers.Transfers[i].Network, transfers.Transfers[i].Contract, transfers.Transfers[i].TokenID)
-		if err != nil {
-			return response, err
-		}
-		if metadata != nil {
-			token.Symbol = metadata.Symbol
-			token.Name = metadata.Name
-			token.Decimals = metadata.Decimals
+			Symbol:   transfers.Transfers[i].Symbol,
+			Decimals: transfers.Transfers[i].Decimals,
+			Name:     transfers.Transfers[i].Name,
 		}
 
 		response.Transfers[i] = TransferFromModel(transfers.Transfers[i])

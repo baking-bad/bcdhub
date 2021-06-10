@@ -9,11 +9,11 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
-	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
@@ -518,12 +518,11 @@ type Transfer struct {
 }
 
 // TransferFromModel -
-func TransferFromModel(model transfer.Transfer) (t Transfer) {
+func TransferFromModel(model domains.Transfer) (t Transfer) {
 	t.IndexedTime = model.ID
 	t.Network = model.Network.String()
 	t.Contract = model.Contract
 	t.Initiator = model.Initiator
-	t.Hash = model.Hash
 	t.Status = model.Status.String()
 	t.Timestamp = model.Timestamp.UTC()
 	t.Level = model.Level
@@ -531,9 +530,10 @@ func TransferFromModel(model transfer.Transfer) (t Transfer) {
 	t.To = model.To
 	t.TokenID = model.TokenID
 	t.Amount = model.Amount.String()
+	t.Parent = model.Parent
+	t.Hash = model.Hash
 	t.Counter = model.Counter
 	t.Nonce = model.Nonce
-	t.Parent = model.Parent
 	return
 }
 

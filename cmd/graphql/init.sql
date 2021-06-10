@@ -22,7 +22,7 @@ do
         grant select on tezos_domains to graphql;
         grant select on token_balances to graphql;
         grant select on token_metadata to graphql;
-        grant select("id", "network", "contract", "initiator", "hash", "status", "timestamp", "level", "from", "to", "token_id", "amount", "counter", "nonce") on transfers to graphql;
+        grant select("id", "network", "contract", "initiator", "operation_id", "status", "timestamp", "level", "from", "to", "token_id", "amount") on transfers to graphql;
         grant select("id", "level", "timestamp", "address", "network", "extras", "name", "description", "version", "license", "homepage", "authors", "interfaces", "views", "events") on tzips to graphql;
     end;
 	{dlr}{dlr}
