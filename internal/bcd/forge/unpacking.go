@@ -106,6 +106,10 @@ func CollectStrings(node *base.Node, tryUnpack bool) ([]string, error) {
 			res = append(res, argRes...)
 		}
 	}
+
+	for i := range res {
+		res[i] = strings.ReplaceAll(res[i], "\u0000", "\\u0000")
+	}
 	return res, nil
 }
 
