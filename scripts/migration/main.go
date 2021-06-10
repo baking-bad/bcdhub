@@ -16,7 +16,6 @@ import (
 var migrationsList = []migrations.Migration{
 	&migrations.BigRussianBoss{},
 	&migrations.GetAliases{},
-	&migrations.SetAliases{},
 	&migrations.CreateTransfersTags{},
 	&migrations.CreateTZIP{},
 	&migrations.FillTZIP{},
@@ -36,6 +35,7 @@ var migrationsList = []migrations.Migration{
 	&migrations.OperationKindToEnum{},
 	&migrations.BigMapActionToEnum{},
 	&migrations.TagsToInt{},
+	&migrations.DropAliasesColumns{},
 }
 
 func main() {

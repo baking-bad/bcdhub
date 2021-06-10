@@ -22,6 +22,7 @@ type Operation struct {
 	Initiator        string    `json:"initiator"`
 	Source           string    `json:"source"`
 	Destination      string    `json:"destination,omitempty"`
+	Delegate         string    `json:"delegate,omitempty"`
 	FoundBy          string    `json:"found_by,omitempty"`
 	Entrypoint       string    `json:"entrypoint,omitempty"`
 	SourceAlias      string    `json:"source_alias,omitempty"`
@@ -93,7 +94,6 @@ func (o *Operation) Prepare(model models.Model) {
 	}
 
 	o.ID = helpers.GenerateID()
-	o.DelegateAlias = op.DelegateAlias
 	o.Destination = op.Destination
 	o.DestinationAlias = op.Destination
 	o.Entrypoint = op.Entrypoint
@@ -105,8 +105,8 @@ func (o *Operation) Prepare(model models.Model) {
 	o.Network = op.Network.String()
 	o.ParameterStrings = op.ParameterStrings
 	o.Source = op.Source
-	o.SourceAlias = op.SourceAlias
 	o.Status = op.Status.String()
 	o.StorageStrings = op.StorageStrings
-	o.Timestamp = op.Timestamp
+	o.Timestamp = op.Timestamp.UTC()
+	o.Delegate = op.Delegate
 }

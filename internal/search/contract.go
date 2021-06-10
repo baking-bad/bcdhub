@@ -114,10 +114,8 @@ func (c *Contract) Prepare(model models.Model) {
 	}
 
 	c.Address = cont.Address
-	c.Alias = cont.Alias
 	c.Annotations = cont.Annotations
 	c.Delegate = cont.Delegate
-	c.DelegateAlias = cont.DelegateAlias
 	c.Entrypoints = cont.Entrypoints
 	c.FailStrings = cont.FailStrings
 	c.Hardcoded = cont.Hardcoded
@@ -128,5 +126,5 @@ func (c *Contract) Prepare(model models.Model) {
 	c.Network = cont.Network.String()
 	c.ProjectID = cont.ProjectID
 	c.Tags = cont.Tags.ToArray()
-	c.Timestamp = cont.Timestamp
+	c.Timestamp = cont.Timestamp.UTC()
 }

@@ -50,8 +50,7 @@ func (ctx *Context) GetSameContracts(c *gin.Context) {
 	}
 
 	var response SameContractsResponse
-	response.FromModel(sameContracts)
-
+	response.FromModel(sameContracts, ctx)
 	c.JSON(http.StatusOK, response)
 }
 
@@ -105,6 +104,9 @@ func (ctx *Context) GetSimilarContracts(c *gin.Context) {
 			return
 		}
 		response.Contracts[i].FromModel(similar[i], diff)
+
+		response.Contracts[i].Alias = ctx.CachedAlias(similar[i].Network, similar[i].Address)
+		response.Contracts[i].DelegateAlias = ctx.CachedAlias(similar[i].Network, similar[i].Delegate)
 	}
 
 	c.JSON(http.StatusOK, response)

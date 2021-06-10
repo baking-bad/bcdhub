@@ -69,5 +69,5 @@ func (d *Domain) Prepare(model models.Model) {
 	d.Level = td.Level
 	d.Name = td.Name
 	d.Network = td.Network.String()
-	d.Timestamp = td.Timestamp
+	d.Timestamp = td.Timestamp.UTC()
 }

@@ -78,5 +78,5 @@ func (m *Metadata) Prepare(model models.Model) {
 	m.Level = t.Level
 	m.Name = t.Name
 	m.Network = t.Network.String()
-	m.Timestamp = t.Timestamp
+	m.Timestamp = t.Timestamp.UTC()
 }

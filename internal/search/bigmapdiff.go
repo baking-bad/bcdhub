@@ -96,6 +96,6 @@ func (b *BigMapDiff) Prepare(model models.Model) {
 	b.Network = bmd.Network.String()
 	b.OperationHash = bmd.OperationHash
 	b.Ptr = bmd.Ptr
-	b.Timestamp = bmd.Timestamp
+	b.Timestamp = bmd.Timestamp.UTC()
 	b.ValueStrings = bmd.ValueStrings
 }

@@ -37,8 +37,6 @@ type Contract struct {
 	TxCount         int64     `json:"tx_count" gorm:",default:0"`
 	LastAction      time.Time `json:"last_action"`
 	MigrationsCount int64     `json:"migrations_count,omitempty" gorm:",default:0"`
-	Alias           string    `json:"alias,omitempty"`
-	DelegateAlias   string    `json:"delegate_alias,omitempty"`
 }
 
 // NewEmptyContract -

@@ -101,9 +101,6 @@ func (p *Parser) computeMetrics(operation *operation.Operation, c *contract.Cont
 		return err
 	}
 
-	c.Alias = p.ctx.CachedAlias(c.Network, c.Address)
-	c.DelegateAlias = p.ctx.CachedAlias(c.Network, c.Delegate)
-
 	if p.scriptSaver != nil {
 		return p.scriptSaver.Save(operation.Script, ScriptSaveContext{
 			Network: c.Network.String(),

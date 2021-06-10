@@ -72,10 +72,6 @@ func (m *BigRussianBoss) fillAliases(ctx *config.Context) error {
 		if err := new(GetAliases).Do(ctx); err != nil {
 			return err
 		}
-
-		if err := new(SetAliases).Do(ctx); err != nil {
-			return err
-		}
 	}
 	return nil
 }
