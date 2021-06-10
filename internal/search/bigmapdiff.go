@@ -11,18 +11,17 @@ import (
 
 // BigMapDiff -
 type BigMapDiff struct {
-	ID            string    `json:"-"`
-	Ptr           int64     `json:"ptr"`
-	Key           string    `json:"key"`
-	KeyHash       string    `json:"key_hash"`
-	OperationHash string    `json:"operation_hash"`
-	Level         int64     `json:"level"`
-	Address       string    `json:"address"`
-	Network       string    `json:"network"`
-	Timestamp     time.Time `json:"timestamp"`
-	KeyStrings    []string  `json:"key_strings"`
-	ValueStrings  []string  `json:"value_strings"`
-	FoundBy       string    `json:"found_by,omitempty"`
+	ID           string    `json:"-"`
+	Ptr          int64     `json:"ptr"`
+	Key          string    `json:"key"`
+	KeyHash      string    `json:"key_hash"`
+	Level        int64     `json:"level"`
+	Address      string    `json:"address"`
+	Network      string    `json:"network"`
+	Timestamp    time.Time `json:"timestamp"`
+	KeyStrings   []string  `json:"key_strings"`
+	ValueStrings []string  `json:"value_strings"`
+	FoundBy      string    `json:"found_by,omitempty"`
 }
 
 // GetID -
@@ -94,7 +93,6 @@ func (b *BigMapDiff) Prepare(model models.Model) {
 	b.KeyStrings = bmd.KeyStrings
 	b.Level = bmd.Level
 	b.Network = bmd.Network.String()
-	b.OperationHash = bmd.OperationHash
 	b.Ptr = bmd.Ptr
 	b.Timestamp = bmd.Timestamp.UTC()
 	b.ValueStrings = bmd.ValueStrings

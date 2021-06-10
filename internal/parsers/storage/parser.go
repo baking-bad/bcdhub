@@ -9,15 +9,8 @@ import (
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
-// RichStorage -
-type RichStorage struct {
-	DeffatedStorage []byte
-	Result          *parsers.Result
-	Empty           bool
-}
-
 // Parser -
 type Parser interface {
-	ParseTransaction(content noderpc.Operation, operation operation.Operation) (RichStorage, error)
-	ParseOrigination(content noderpc.Operation, operation operation.Operation) (RichStorage, error)
+	ParseTransaction(content noderpc.Operation, operation *operation.Operation) (*parsers.Result, error)
+	ParseOrigination(content noderpc.Operation, operation *operation.Operation) (*parsers.Result, error)
 }

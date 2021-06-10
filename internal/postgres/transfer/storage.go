@@ -96,7 +96,7 @@ const (
 	tokenVolumeSeriesRequestTemplate = `
 		with f as (
 			select generate_series(
-			date_trunc('%s', date '2018-06-25'),
+			date_trunc('%s', %s),
 			date_trunc('%s', now()),
 			'1 %s'::interval
 			) as val
@@ -146,7 +146,8 @@ func (storage *Storage) GetTokenVolumeSeries(network types.Network, period strin
 		cond = fmt.Sprintf(" and %s", strings.Join(conditions, " and "))
 	}
 
-	req := fmt.Sprintf(tokenVolumeSeriesRequestTemplate, period, period, period, period, cond)
+	from := core.GetHistogramInterval(period)
+	req := fmt.Sprintf(tokenVolumeSeriesRequestTemplate, period, from, period, period, period, cond)
 
 	var resp []core.HistogramResponse
 	if err := storage.DB.Raw(req).Scan(&resp).Error; err != nil {
@@ -155,7 +156,7 @@ func (storage *Storage) GetTokenVolumeSeries(network types.Network, period strin
 
 	histogram := make([][]float64, 0, len(resp))
 	for i := range resp {
-		histogram = append(histogram, []float64{resp[i].DatePart, resp[i].Value})
+		histogram = append(histogram, []float64{resp[i].DatePart * 1000, resp[i].Value})
 	}
 	return histogram, nil
 }

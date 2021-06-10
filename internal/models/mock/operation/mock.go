@@ -94,21 +94,6 @@ func (mr *MockRepositoryMockRecorder) Get(filter, size, sort interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRepository)(nil).Get), filter, size, sort)
 }
 
-// GetOne mocks base method
-func (m *MockRepository) GetOne(hash string, counter int64, nonce *int64) (operationModel.Operation, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetOne", hash, counter, nonce)
-	ret0, _ := ret[0].(operationModel.Operation)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetOne indicates an expected call of GetOne
-func (mr *MockRepositoryMockRecorder) GetOne(hash, counter, nonce interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOne", reflect.TypeOf((*MockRepository)(nil).GetOne), hash, counter, nonce)
-}
-
 // GetContract24HoursVolume mocks base method
 func (m *MockRepository) GetContract24HoursVolume(network types.Network, address string, entrypoints []string) (float64, error) {
 	m.ctrl.T.Helper()

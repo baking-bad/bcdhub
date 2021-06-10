@@ -6,8 +6,8 @@ import "github.com/baking-bad/bcdhub/internal/models/types"
 type Repository interface {
 	Get(ctx GetContext) ([]Bucket, error)
 	GetByAddress(network types.Network, address string) ([]BigMapDiff, error)
-	GetForOperation(hash string, counter int64, nonce *int64) ([]*BigMapDiff, error)
-	GetUniqueForOperations(opg []OPG) ([]BigMapDiff, error)
+	GetForOperation(id int64) ([]*BigMapDiff, error)
+	GetForOperations(ids ...int64) ([]BigMapDiff, error)
 	GetByPtr(network types.Network, contract string, ptr int64) ([]BigMapState, error)
 	GetByPtrAndKeyHash(ptr int64, network types.Network, keyHash string, size int64, offset int64) ([]BigMapDiff, int64, error)
 	GetForAddress(network types.Network, address string) ([]BigMapState, error)

@@ -121,40 +121,22 @@ func (storage *Storage) Previous(filters []bigmapdiff.BigMapDiff) (response []bi
 }
 
 // GetForOperation -
-func (storage *Storage) GetForOperation(hash string, counter int64, nonce *int64) (response []*bigmapdiff.BigMapDiff, err error) {
-	query := storage.DB.Table(models.DocBigMapDiff).
-		Where("operation_hash = ?", hash).
-		Where("operation_counter = ?", counter)
-
-	if nonce == nil {
-		query.Where("operation_nonce IS NULL")
-	} else {
-		query.Where("operation_nonce = ?", *nonce)
-	}
-
-	return response, query.Find(&response).Error
+func (storage *Storage) GetForOperation(id int64) (response []*bigmapdiff.BigMapDiff, err error) {
+	err = storage.DB.Table(models.DocBigMapDiff).
+		Where("operation_id = ?", id).Find(&response).Error
+	return
 }
 
-func filterOPG(tx *gorm.DB, opg bigmapdiff.OPG) *gorm.DB {
-	query := tx.Where("operation_hash = ? AND operation_counter = ?", opg.Hash, opg.Counter)
-	if opg.Nonce == nil {
-		query.Where("operation_nonce IS NULL")
-	} else {
-		query.Where("operation_nonce = ?", *opg.Nonce)
-	}
-	return query
-}
-
-// GetUniqueForOperations -
-func (storage *Storage) GetUniqueForOperations(opg []bigmapdiff.OPG) (response []bigmapdiff.BigMapDiff, err error) {
-	if len(opg) == 0 {
+// GetForOperations -
+func (storage *Storage) GetForOperations(ids ...int64) (response []bigmapdiff.BigMapDiff, err error) {
+	if len(ids) == 0 {
 		return nil, nil
 	}
 	query := storage.DB.Table(models.DocBigMapDiff)
 
-	filters := storage.DB.Where(filterOPG(storage.DB, opg[0]))
-	for i := 1; i < len(opg); i++ {
-		filters.Or(filterOPG(storage.DB, opg[i]))
+	filters := storage.DB.Where(storage.DB.Where("operation_id = ?", ids[0]))
+	for i := 1; i < len(ids); i++ {
+		filters.Or(storage.DB.Where("operation_id = ?", ids[i]))
 	}
 
 	err = query.Where(filters).Find(&response).Error

@@ -204,15 +204,18 @@ func (ledger *Ledger) findLedgerBigMap(bmd *bigmapdiff.BigMapDiff, storage *ast.
 		return nil, nil, ErrNoLedgerKeyInStorage
 	}
 
-	op, err := ledger.operations.GetOne(bmd.OperationHash, bmd.OperationCounter, bmd.OperationNonce)
+	op, err := ledger.operations.GetByIDs(bmd.OperationID)
 	if err != nil {
 		if ledger.storage.IsRecordNotFound(err) {
 			return nil, nil, nil
 		}
 		return nil, nil, err
 	}
+	if len(op) != 1 {
+		return nil, nil, nil
+	}
 
-	if err := storageTree.SettleFromBytes(op.DeffatedStorage); err != nil {
+	if err := storageTree.SettleFromBytes(op[0].DeffatedStorage); err != nil {
 		return nil, nil, err
 	}
 
@@ -223,5 +226,5 @@ func (ledger *Ledger) findLedgerBigMap(bmd *bigmapdiff.BigMapDiff, storage *ast.
 	if bigMap.Ptr == nil || *bigMap.Ptr != bmd.Ptr {
 		return nil, nil, ErrNoLedgerKeyInStorage
 	}
-	return bigMap, &op, nil
+	return bigMap, &op[0], nil
 }

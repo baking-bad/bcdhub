@@ -90,16 +90,19 @@ func (td *TezosDomain) getBigMapDiff(bmd *bigmapdiff.BigMapDiff, storage *ast.Ty
 func (td *TezosDomain) getPointers(address contract.Address, bmd *bigmapdiff.BigMapDiff, storage *ast.TypedAst) error {
 	var res ptrs
 
-	op, err := td.operations.GetOne(bmd.OperationHash, bmd.OperationCounter, bmd.OperationNonce)
+	op, err := td.operations.GetByIDs(bmd.OperationID)
 	if err != nil {
 		if td.storage.IsRecordNotFound(err) {
 			return nil
 		}
 		return err
 	}
+	if len(op) != 1 {
+		return nil
+	}
 
 	var storageData ast.UntypedAST
-	if err := json.Unmarshal(op.DeffatedStorage, &storageData); err != nil {
+	if err := json.Unmarshal(op[0].DeffatedStorage, &storageData); err != nil {
 		return err
 	}
 

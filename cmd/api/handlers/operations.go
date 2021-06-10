@@ -298,23 +298,19 @@ func (ctx *Context) prepareOperation(operation operation.Operation, bmd []bigmap
 
 // PrepareOperations -
 func (ctx *Context) PrepareOperations(ops []operation.Operation, withStorageDiff bool) ([]Operation, error) {
-	opg := make([]bigmapdiff.OPG, 0, len(ops))
+	ids := make([]int64, 0, len(ops))
 	for i := 0; i < len(ops); i++ {
-		opg = append(opg, bigmapdiff.OPG{
-			Hash:    ops[i].Hash,
-			Counter: ops[i].Counter,
-			Nonce:   ops[i].Nonce,
-		})
+		ids = append(ids, ops[i].ID)
 	}
-	bmd := make(map[string][]bigmapdiff.BigMapDiff)
+	bmd := make(map[int64][]bigmapdiff.BigMapDiff)
 
 	if withStorageDiff {
-		data, err := ctx.BigMapDiffs.GetUniqueForOperations(opg)
+		data, err := ctx.BigMapDiffs.GetForOperations(ids...)
 		if err != nil {
 			return nil, err
 		}
 		for i := range data {
-			id := data[i].OPG().HashKey()
+			id := data[i].OperationID
 			if _, ok := bmd[id]; !ok {
 				bmd[id] = []bigmapdiff.BigMapDiff{}
 			}
@@ -324,11 +320,7 @@ func (ctx *Context) PrepareOperations(ops []operation.Operation, withStorageDiff
 
 	resp := make([]Operation, len(ops))
 	for i := 0; i < len(ops); i++ {
-		diffs, ok := bmd[bigmapdiff.OPG{
-			Hash:    ops[i].Hash,
-			Counter: ops[i].Counter,
-			Nonce:   ops[i].Nonce,
-		}.HashKey()]
+		diffs, ok := bmd[ops[i].ID]
 		if !ok {
 			diffs = nil
 		}

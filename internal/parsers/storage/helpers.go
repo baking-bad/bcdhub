@@ -14,19 +14,17 @@ func prepareBigMapDiffsToEnrich(bmd []bigmapdiff.BigMapDiff, skipEmpty bool) []*
 			continue
 		}
 		res = append(res, &types.BigMapDiff{
-			Ptr:              bmd[i].Ptr,
-			Key:              bmd[i].Key,
-			Value:            bmd[i].Value,
-			ID:               bmd[i].ID,
-			KeyHash:          bmd[i].KeyHash,
-			OperationHash:    bmd[i].OperationHash,
-			OperationCounter: bmd[i].OperationCounter,
-			OperationNonce:   bmd[i].OperationNonce,
-			Level:            bmd[i].Level,
-			Address:          bmd[i].Contract,
-			Network:          bmd[i].Network.String(),
-			Timestamp:        bmd[i].Timestamp,
-			Protocol:         bmd[i].ProtocolID,
+			Ptr:         bmd[i].Ptr,
+			Key:         bmd[i].Key,
+			Value:       bmd[i].Value,
+			ID:          bmd[i].ID,
+			KeyHash:     bmd[i].KeyHash,
+			OperationID: bmd[i].OperationID,
+			Level:       bmd[i].Level,
+			Address:     bmd[i].Contract,
+			Network:     bmd[i].Network.String(),
+			Timestamp:   bmd[i].Timestamp,
+			Protocol:    bmd[i].ProtocolID,
 		})
 	}
 	return res
@@ -61,19 +59,17 @@ func getBigMapDiffModels(bmd []*types.BigMapDiff) []bigmapdiff.BigMapDiff {
 	res := make([]bigmapdiff.BigMapDiff, 0)
 	for i := range bmd {
 		res = append(res, bigmapdiff.BigMapDiff{
-			Ptr:              bmd[i].Ptr,
-			Key:              bmd[i].Key,
-			Value:            bmd[i].Value,
-			ID:               bmd[i].ID,
-			KeyHash:          bmd[i].KeyHash,
-			OperationHash:    bmd[i].OperationHash,
-			OperationCounter: bmd[i].OperationCounter,
-			OperationNonce:   bmd[i].OperationNonce,
-			Level:            bmd[i].Level,
-			Contract:         bmd[i].Address,
-			Network:          modelTypes.NewNetwork(bmd[i].Network),
-			Timestamp:        bmd[i].Timestamp,
-			ProtocolID:       bmd[i].Protocol,
+			Ptr:         bmd[i].Ptr,
+			Key:         bmd[i].Key,
+			Value:       bmd[i].Value,
+			ID:          bmd[i].ID,
+			KeyHash:     bmd[i].KeyHash,
+			OperationID: bmd[i].OperationID,
+			Level:       bmd[i].Level,
+			Contract:    bmd[i].Address,
+			Network:     modelTypes.NewNetwork(bmd[i].Network),
+			Timestamp:   bmd[i].Timestamp,
+			ProtocolID:  bmd[i].Protocol,
 		})
 	}
 	return res

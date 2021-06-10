@@ -65,33 +65,37 @@ func (mr *MockRepositoryMockRecorder) GetByAddress(network, address interface{})
 }
 
 // GetForOperation mocks base method
-func (m *MockRepository) GetForOperation(hash string, counter int64, nonce *int64) ([]*bmd.BigMapDiff, error) {
+func (m *MockRepository) GetForOperation(id int64) ([]*bmd.BigMapDiff, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetForOperation", hash, counter, nonce)
+	ret := m.ctrl.Call(m, "GetForOperation", id)
 	ret0, _ := ret[0].([]*bmd.BigMapDiff)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetForOperation indicates an expected call of GetForOperation
-func (mr *MockRepositoryMockRecorder) GetForOperation(hash, counter, nonce interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetForOperation(id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForOperation", reflect.TypeOf((*MockRepository)(nil).GetForOperation), hash, counter, nonce)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForOperation", reflect.TypeOf((*MockRepository)(nil).GetForOperation), id)
 }
 
-// GetUniqueForOperations mocks base method
-func (m *MockRepository) GetUniqueForOperations(opg []bmd.OPG) ([]bmd.BigMapDiff, error) {
+// GetForOperations mocks base method
+func (m *MockRepository) GetForOperations(ids ...int64) ([]bmd.BigMapDiff, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUniqueForOperations", opg)
+	varargs := []interface{}{}
+	for _, a := range ids {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetForOperations", varargs...)
 	ret0, _ := ret[0].([]bmd.BigMapDiff)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetUniqueForOperations indicates an expected call of GetUniqueForOperations
-func (mr *MockRepositoryMockRecorder) GetUniqueForOperations(opg interface{}) *gomock.Call {
+// GetForOperations indicates an expected call of GetForOperations
+func (mr *MockRepositoryMockRecorder) GetForOperations(ids ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUniqueForOperations", reflect.TypeOf((*MockRepository)(nil).GetUniqueForOperations), opg)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForOperations", reflect.TypeOf((*MockRepository)(nil).GetForOperations), ids...)
 }
 
 // GetByPtr mocks base method

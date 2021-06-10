@@ -81,13 +81,12 @@ func (p Origination) appliedHandler(item noderpc.Operation, origination *operati
 	}
 	result.Contracts = append(result.Contracts, contractResult.Contracts...)
 
-	rs, err := p.storageParser.Parse(item, origination)
+	storageResult, err := p.storageParser.Parse(item, origination)
 	if err != nil {
 		return err
 	}
-	if !rs.Empty {
-		origination.DeffatedStorage = rs.DeffatedStorage
-		result.Merge(rs.Result)
+	if storageResult != nil {
+		result.Merge(storageResult)
 	}
 
 	return nil

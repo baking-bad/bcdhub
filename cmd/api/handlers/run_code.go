@@ -8,11 +8,11 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
+	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/baking-bad/bcdhub/internal/parsers/operations"
 	"github.com/baking-bad/bcdhub/internal/parsers/storage"
 	"github.com/gin-gonic/gin"
@@ -102,12 +102,8 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 	resp := make([]Operation, len(parsedModels.Operations))
 	for i := range parsedModels.Operations {
 		bmd := make([]bigmapdiff.BigMapDiff, 0)
-		for j := range parsedModels.BigMapDiffs {
-			if parsedModels.BigMapDiffs[j].OperationHash == parsedModels.Operations[i].Hash &&
-				parsedModels.BigMapDiffs[j].OperationCounter == parsedModels.Operations[i].Counter &&
-				helpers.IsInt64PointersEqual(parsedModels.BigMapDiffs[j].OperationNonce, parsedModels.Operations[i].Nonce) {
-				bmd = append(bmd, *parsedModels.BigMapDiffs[j])
-			}
+		for j := range parsedModels.Operations[i].BigMapDiffs {
+			bmd = append(bmd, *parsedModels.Operations[i].BigMapDiffs[j])
 		}
 		op, err := ctx.prepareOperation(*parsedModels.Operations[i], bmd, true)
 		if ctx.handleError(c, err, 0) {
@@ -296,22 +292,22 @@ func (ctx *Context) parseBigMapDiffs(response noderpc.RunCodeResponse, script *a
 		},
 	}
 
-	rs := storage.RichStorage{Empty: true}
+	var result *parsers.Result
 	switch operation.Kind {
 	case types.OperationKindTransaction.String():
-		rs, err = parser.ParseTransaction(nodeOperation, model)
+		result, err = parser.ParseTransaction(nodeOperation, &model)
 	case types.OperationKindOrigination.String(), types.OperationKindOriginationNew.String():
-		rs, err = parser.ParseOrigination(nodeOperation, model)
+		result, err = parser.ParseOrigination(nodeOperation, &model)
 	}
 	if err != nil {
 		return nil, err
 	}
-	if rs.Empty {
+	if result == nil {
 		return nil, nil
 	}
-	bmd := make([]bigmapdiff.BigMapDiff, len(rs.Result.BigMapDiffs))
-	for i := range rs.Result.BigMapDiffs {
-		bmd[i] = *rs.Result.BigMapDiffs[i]
+	bmd := make([]bigmapdiff.BigMapDiff, len(model.BigMapDiffs))
+	for i := range model.BigMapDiffs {
+		bmd[i] = *model.BigMapDiffs[i]
 	}
 	return bmd, nil
 }

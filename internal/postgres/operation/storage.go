@@ -23,22 +23,6 @@ func NewStorage(es *core.Postgres) *Storage {
 	return &Storage{es}
 }
 
-// GetOne -
-func (storage *Storage) GetOne(hash string, counter int64, nonce *int64) (op operation.Operation, err error) {
-	query := storage.DB.Table(models.DocOperations).
-		Where("hash = ?", hash).
-		Where("counter = ?", counter)
-
-	if nonce == nil {
-		query.Where("nonce IS NULL")
-	} else {
-		query.Where("nonce = ?", nonce)
-	}
-
-	err = query.First(&op).Error
-	return
-}
-
 type opgForContract struct {
 	Counter int64
 	Hash    string
@@ -66,7 +50,7 @@ func (storage *Storage) getContractOPG(address string, network types.Network, si
 	limit := storage.GetPageSize(int64(size))
 	query.Group("foo.hash, foo.counter").Order("id desc").Limit(limit)
 
-	err = query.Debug().Find(&response).Error
+	err = query.Find(&response).Error
 	return
 }
 
