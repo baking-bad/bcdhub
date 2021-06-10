@@ -36,7 +36,7 @@ func getContract(ids []int64) error {
 }
 
 func parseContract(contract *contract.Contract, chunk []contract.Contract) ([]models.Model, error) {
-	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage)
+	h := metrics.New(ctx.Contracts, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.TokenBalances, ctx.TZIP, ctx.Storage)
 
 	if contract.ProjectID == "" {
 		if err := h.SetContractProjectID(contract, chunk); err != nil {

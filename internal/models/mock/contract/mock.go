@@ -109,21 +109,6 @@ func (mr *MockRepositoryMockRecorder) GetIDsByAddresses(network, addresses inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIDsByAddresses", reflect.TypeOf((*MockRepository)(nil).GetIDsByAddresses), network, addresses)
 }
 
-// IsFA mocks base method
-func (m *MockRepository) IsFA(network types.Network, address string) (bool, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsFA", network, address)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// IsFA indicates an expected call of IsFA
-func (mr *MockRepositoryMockRecorder) IsFA(network, address interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsFA", reflect.TypeOf((*MockRepository)(nil).IsFA), network, address)
-}
-
 // UpdateMigrationsCount mocks base method
 func (m *MockRepository) UpdateMigrationsCount(network types.Network, address string) error {
 	m.ctrl.T.Helper()

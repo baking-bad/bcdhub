@@ -4,7 +4,6 @@ package models
 const (
 	HistogramFilterKindExists     = "exists"
 	HistogramFilterKindMatch      = "match"
-	HistogramFilterKindIn         = "in"
 	HistogramFilterKindAddresses  = "address"
 	HistogramFilterDexEnrtypoints = "dex_entrypoints"
 )

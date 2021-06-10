@@ -172,7 +172,7 @@ func (c *Contract) FromModel(contract contract.Contract) {
 	c.MigrationsCount = contract.MigrationsCount
 	c.Network = contract.Network.String()
 	c.ProjectID = contract.ProjectID
-	c.Tags = contract.Tags
+	c.Tags = contract.Tags.ToArray()
 	c.Timestamp = contract.Timestamp
 	c.FailStrings = contract.FailStrings
 	c.Annotations = contract.Annotations

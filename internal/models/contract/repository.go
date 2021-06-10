@@ -9,7 +9,6 @@ type Repository interface {
 	GetRandom(network types.Network) (Contract, error)
 	GetAddressesByNetworkAndLevel(network types.Network, maxLevel int64) ([]string, error)
 	GetIDsByAddresses(network types.Network, addresses []string) ([]string, error)
-	IsFA(network types.Network, address string) (bool, error)
 	UpdateMigrationsCount(network types.Network, address string) error
 	GetByAddresses(addresses []Address) ([]Contract, error)
 	GetTokens(network types.Network, tokenInterface string, offset, size int64) ([]Contract, int64, error)
