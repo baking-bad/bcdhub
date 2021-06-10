@@ -43,7 +43,7 @@ func (m *Fingerprint) Compute(a, b contract.Contract) Feature {
 	dist := float64(distance(x, y))
 	maxLen := math.Max(float64(len(x)), float64(len(y)))
 	val := 1. - math.Pow(dist/maxLen, 1.25)
-	f.Value = round(val, 6)
+	f.Value = round(val)
 	return f
 }
 
@@ -152,6 +152,6 @@ func (m *FingerprintLength) Compute(a, b contract.Contract) Feature {
 	lx := float64(len(x))
 	ly := float64(len(y))
 	sum := math.Min(lx, ly) / math.Max(lx, ly)
-	f.Value = round(sum, 6)
+	f.Value = round(sum)
 	return f
 }

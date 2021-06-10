@@ -61,10 +61,6 @@ func buildHistogramContext(ctx models.HistogramContext) (string, error) {
 				default:
 					conds = append(conds, fmt.Sprintf("(%s = %v)", fltr.Field, val))
 				}
-			case models.HistogramFilterKindIn:
-				if arr, ok := fltr.Value.([]string); ok {
-					conds = append(conds, fmt.Sprintf("(array['%s'] && %s)", strings.Join(arr, "','"), fltr.Field))
-				}
 			case models.HistogramFilterKindAddresses:
 				if value, ok := fltr.Value.([]string); ok {
 					addresses := make([]string, 0)

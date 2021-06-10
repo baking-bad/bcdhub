@@ -93,13 +93,11 @@ func (p *Parser) Parse(diffs []*bigmapdiff.BigMapDiff, protocol string, operatio
 	}
 
 	if operation.IsEntrypoint(consts.TransferEntrypoint) {
-		for i := range operation.Tags {
-			switch operation.Tags[i] {
-			case consts.FA12Tag:
-				return p.makeFA12Transfers(operation)
-			case consts.FA2Tag:
-				return p.makeFA2Transfers(operation)
-			}
+		switch {
+		case operation.Tags.Has(modelTypes.FA2Tag):
+			return p.makeFA2Transfers(operation)
+		case operation.Tags.Has(modelTypes.FA12Tag):
+			return p.makeFA12Transfers(operation)
 		}
 	}
 	return nil

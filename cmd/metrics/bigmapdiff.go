@@ -41,21 +41,21 @@ func getBigMapDiff(ids []int64) error {
 
 func initHandlers() {
 	bigMapDiffHandlers = append(bigMapDiffHandlers,
-		contractHandlers.NewTZIP(ctx.BigMapDiffs, ctx.Blocks, ctx.Storage, ctx.TZIP, ctx.RPC, ctx.SharePath, ctx.Config.IPFSGateways),
-	)
-	bigMapDiffHandlers = append(bigMapDiffHandlers,
-		contractHandlers.NewTezosDomains(ctx.Storage, ctx.Operations, ctx.TezosDomainsContracts, ctx.SharePath),
+		contractHandlers.NewLedger(ctx.Storage, ctx.Operations, ctx.TokenBalances, ctx.SharePath),
 	)
 	bigMapDiffHandlers = append(bigMapDiffHandlers,
 		contractHandlers.NewTokenMetadata(ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Storage, ctx.RPC, ctx.SharePath, ctx.Config.IPFSGateways),
 	)
 	bigMapDiffHandlers = append(bigMapDiffHandlers,
-		contractHandlers.NewLedger(ctx.Storage, ctx.Operations, ctx.TokenBalances, ctx.SharePath),
+		contractHandlers.NewTZIP(ctx.BigMapDiffs, ctx.Blocks, ctx.Storage, ctx.TZIP, ctx.RPC, ctx.SharePath, ctx.Config.IPFSGateways),
+	)
+	bigMapDiffHandlers = append(bigMapDiffHandlers,
+		contractHandlers.NewTezosDomains(ctx.Storage, ctx.Operations, ctx.TezosDomainsContracts, ctx.SharePath),
 	)
 }
 
 func parseBigMapDiff(bmd bigmapdiff.BigMapDiff) ([]models.Model, error) {
-	h := metrics.New(ctx.Contracts, ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.TokenBalances, ctx.TokenMetadata, ctx.TZIP, ctx.Migrations, ctx.Storage)
+	h := metrics.New(ctx.Contracts, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.TokenBalances, ctx.TZIP, ctx.Storage)
 
 	if err := h.SetBigMapDiffsStrings(&bmd); err != nil {
 		return nil, err

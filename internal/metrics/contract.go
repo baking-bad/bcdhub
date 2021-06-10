@@ -57,7 +57,7 @@ func getContractProjectID(c contract.Contract, buckets []contract.Contract) stri
 
 var precomputedMetrics = []clmetrics.Metric{
 	clmetrics.NewManager(),
-	clmetrics.NewArray("Tags"),
+	clmetrics.NewBinMask("Tags"),
 	clmetrics.NewArray("FailStrings"),
 	clmetrics.NewArray("Annotations"),
 	clmetrics.NewBool("Language"),

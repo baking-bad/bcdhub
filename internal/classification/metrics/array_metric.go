@@ -62,7 +62,7 @@ func (m *Array) Compute(a, b contract.Contract) Feature {
 		}
 	}
 
-	f.Value = round(sum/float64(len(aArr)+len(bArr)), 6)
+	f.Value = round(sum / float64(len(aArr)+len(bArr)))
 	return f
 }
 

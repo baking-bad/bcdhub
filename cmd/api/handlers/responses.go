@@ -74,14 +74,12 @@ func (o *Operation) FromModel(operation operation.Operation) {
 	o.Level = operation.Level
 	o.Kind = operation.Kind.String()
 	o.Source = operation.Source
-	o.SourceAlias = operation.SourceAlias
 	o.Fee = operation.Fee
 	o.Counter = operation.Counter
 	o.GasLimit = operation.GasLimit
 	o.StorageLimit = operation.StorageLimit
 	o.Amount = operation.Amount
 	o.Destination = operation.Destination
-	o.DestinationAlias = operation.DestinationAlias
 	o.Delegate = operation.Delegate
 	o.Status = operation.Status.String()
 	o.Burned = operation.Burned
@@ -103,21 +101,19 @@ func (o *Operation) ToModel() operation.Operation {
 		Internal:  o.Internal,
 		Timestamp: o.Timestamp,
 
-		Level:            o.Level,
-		Kind:             types.NewOperationKind(o.Kind),
-		Source:           o.Source,
-		SourceAlias:      o.SourceAlias,
-		Fee:              o.Fee,
-		Counter:          o.Counter,
-		GasLimit:         o.GasLimit,
-		StorageLimit:     o.StorageLimit,
-		Amount:           o.Amount,
-		Destination:      o.Destination,
-		DestinationAlias: o.DestinationAlias,
-		Delegate:         o.Delegate,
-		Status:           types.NewOperationStatus(o.Status),
-		Burned:           o.Burned,
-		Entrypoint:       o.Entrypoint,
+		Level:        o.Level,
+		Kind:         types.NewOperationKind(o.Kind),
+		Source:       o.Source,
+		Fee:          o.Fee,
+		Counter:      o.Counter,
+		GasLimit:     o.GasLimit,
+		StorageLimit: o.StorageLimit,
+		Amount:       o.Amount,
+		Destination:  o.Destination,
+		Delegate:     o.Delegate,
+		Status:       types.NewOperationStatus(o.Status),
+		Burned:       o.Burned,
+		Entrypoint:   o.Entrypoint,
 
 		AllocatedDestinationContract: o.AllocatedDestinationContract,
 		ConsumedGas:                  o.ConsumedGas,
@@ -164,9 +160,7 @@ type Contract struct {
 // FromModel -
 func (c *Contract) FromModel(contract contract.Contract) {
 	c.Address = contract.Address
-	c.Alias = contract.Alias
 	c.Delegate = contract.Delegate
-	c.DelegateAlias = contract.DelegateAlias
 	c.Entrypoints = contract.Entrypoints
 	c.Hash = contract.Hash
 	c.Language = contract.Language
@@ -178,7 +172,7 @@ func (c *Contract) FromModel(contract contract.Contract) {
 	c.MigrationsCount = contract.MigrationsCount
 	c.Network = contract.Network.String()
 	c.ProjectID = contract.ProjectID
-	c.Tags = contract.Tags
+	c.Tags = contract.Tags.ToArray()
 	c.Timestamp = contract.Timestamp
 	c.FailStrings = contract.FailStrings
 	c.Annotations = contract.Annotations
@@ -464,13 +458,15 @@ type SameContractsResponse struct {
 }
 
 // FromModel -
-func (c *SameContractsResponse) FromModel(same contract.SameResponse) {
+func (c *SameContractsResponse) FromModel(same contract.SameResponse, ctx *Context) {
 	c.Count = same.Count
 
 	c.Contracts = make([]Contract, len(same.Contracts))
 	for i := range same.Contracts {
 		var contract Contract
 		contract.FromModel(same.Contracts[i])
+		contract.Alias = ctx.CachedAlias(same.Contracts[i].Network, same.Contracts[i].Address)
+		contract.DelegateAlias = ctx.CachedAlias(same.Contracts[i].Network, same.Contracts[i].Delegate)
 		c.Contracts[i] = contract
 	}
 }

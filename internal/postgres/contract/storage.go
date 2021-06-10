@@ -3,7 +3,6 @@ package contract
 import (
 	"encoding/hex"
 	"math/rand"
-	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -62,18 +61,6 @@ func (storage *Storage) GetRandom(network types.Network) (response contract.Cont
 	}
 	err = query.Limit(1).Offset(rand.Intn(int(count))).First(&response).Error
 	return
-}
-
-// IsFA -
-func (storage *Storage) IsFA(network types.Network, address string) (bool, error) {
-	var count int64
-	err := storage.DB.Table(models.DocContracts).
-		Scopes(core.NetworkAndAddress(network, address)).
-		Where("tags IN ?", []string{"fa12", "fa1"}).
-		Count(&count).
-		Error
-
-	return count > 0, err
 }
 
 // UpdateMigrationsCount -
@@ -255,16 +242,16 @@ func (storage *Storage) GetDiffTasks() ([]contract.DiffTask, error) {
 
 // GetTokens -
 func (storage *Storage) GetTokens(network types.Network, tokenInterface string, offset, size int64) ([]contract.Contract, int64, error) {
-	tags := []string{"fa1-2", "fa1", "fa2"}
+	tags := types.FA12Tag | types.FA1Tag | types.FA2Tag
 	if tokenInterface == "fa1-2" || tokenInterface == "fa1" || tokenInterface == "fa2" {
-		tags = []string{tokenInterface}
+		tags = types.NewTags([]string{tokenInterface})
 	}
 
 	var contracts []contract.Contract
 	err := storage.DB.Table(models.DocContracts).
 		Scopes(core.Network(network)).
-		Where("tags <@ array[?]", strings.Join(tags, ",")).
-		Order("timestamp desc").
+		Where("(tags & ?) > 0", tags).
+		Order("id desc").
 		Limit(storage.GetPageSize(size)).
 		Offset(int(offset)).
 		Find(&contracts).
@@ -276,7 +263,7 @@ func (storage *Storage) GetTokens(network types.Network, tokenInterface string, 
 	var count int64
 	err = storage.DB.Table(models.DocContracts).
 		Scopes(core.Network(network)).
-		Where("tags <@ array[?]", strings.Join(tags, ",")).
+		Where("(tags & ?) > 0", tags).
 		Count(&count).
 		Error
 

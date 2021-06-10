@@ -2,6 +2,7 @@ package operations
 
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
@@ -38,29 +39,24 @@ func (p Transaction) Parse(data noderpc.Operation) (*parsers.Result, error) {
 	}
 
 	tx := operation.Operation{
-		Network:       p.network,
-		Hash:          p.hash,
-		ProtocolID:    proto.ID,
-		Level:         p.head.Level,
-		Timestamp:     p.head.Timestamp,
-		Kind:          modelsTypes.NewOperationKind(data.Kind),
-		Initiator:     data.Source,
-		Source:        data.Source,
-		Fee:           data.Fee,
-		Counter:       data.Counter,
-		GasLimit:      data.GasLimit,
-		StorageLimit:  data.StorageLimit,
-		Amount:        *data.Amount,
-		Destination:   *data.Destination,
-		Delegate:      data.Delegate,
-		Nonce:         data.Nonce,
-		Parameters:    data.Parameters,
-		ContentIndex:  p.contentIdx,
-		SourceAlias:   p.ctx.CachedAlias(p.network, data.Source),
-		DelegateAlias: p.ctx.CachedAlias(p.network, data.Delegate),
-	}
-	if data.Destination != nil {
-		tx.DestinationAlias = p.ctx.CachedAlias(p.network, *data.Destination)
+		Network:      p.network,
+		Hash:         p.hash,
+		ProtocolID:   proto.ID,
+		Level:        p.head.Level,
+		Timestamp:    p.head.Timestamp,
+		Kind:         modelsTypes.NewOperationKind(data.Kind),
+		Initiator:    data.Source,
+		Source:       data.Source,
+		Fee:          data.Fee,
+		Counter:      data.Counter,
+		GasLimit:     data.GasLimit,
+		StorageLimit: data.StorageLimit,
+		Amount:       *data.Amount,
+		Destination:  *data.Destination,
+		Delegate:     data.Delegate,
+		Nonce:        data.Nonce,
+		Parameters:   data.Parameters,
+		ContentIndex: p.contentIdx,
 	}
 
 	p.fillInternal(&tx)
@@ -138,6 +134,20 @@ func (p Transaction) appliedHandler(item noderpc.Operation, op *operation.Operat
 	}
 	op.DeffatedStorage = rs.DeffatedStorage
 
+	if len(op.DeffatedStorage) > 0 {
+		var tree ast.UntypedAST
+		if err := json.Unmarshal(op.DeffatedStorage, &tree); err != nil {
+			return err
+		}
+		storageStrings, err := tree.GetStrings(true)
+		if err != nil {
+			return err
+		}
+		if len(storageStrings) > 0 {
+			op.StorageStrings = storageStrings
+		}
+	}
+
 	result.Merge(rs.Result)
 
 	migration, err := NewMigration().Parse(item, op)
@@ -163,6 +173,18 @@ func (p Transaction) getEntrypoint(tx *operation.Operation) error {
 
 	params := types.NewParameters(tx.Parameters)
 	tx.Entrypoint = params.Entrypoint
+
+	var tree ast.UntypedAST
+	if err := json.Unmarshal(params.Value, &tree); err != nil {
+		return err
+	}
+	parameterStrings, err := tree.GetStrings(true)
+	if err != nil {
+		return err
+	}
+	if len(parameterStrings) > 0 {
+		tx.ParameterStrings = parameterStrings
+	}
 
 	if !tx.IsApplied() {
 		return nil

@@ -23,7 +23,7 @@ type Contract struct {
 	FingerprintCode      []byte         `json:"fgpt_code,omitempty"`
 	FingerprintParameter []byte         `json:"fgpt_parameter,omitempty"`
 	FingerprintStorage   []byte         `json:"fgpt_storage,omitempty"`
-	Tags                 pq.StringArray `json:"tags,omitempty" gorm:"type:text[]"`
+	Tags                 types.Tags     `json:"tags,omitempty" gorm:"default:0"`
 	Entrypoints          pq.StringArray `json:"entrypoints,omitempty" gorm:"type:text[]"`
 	FailStrings          pq.StringArray `json:"fail_strings,omitempty" gorm:"type:text[]"`
 	Annotations          pq.StringArray `json:"annotations,omitempty" gorm:"type:text[]"`
@@ -37,8 +37,6 @@ type Contract struct {
 	TxCount         int64     `json:"tx_count" gorm:",default:0"`
 	LastAction      time.Time `json:"last_action"`
 	MigrationsCount int64     `json:"migrations_count,omitempty" gorm:",default:0"`
-	Alias           string    `json:"alias,omitempty"`
-	DelegateAlias   string    `json:"delegate_alias,omitempty"`
 }
 
 // NewEmptyContract -
@@ -86,16 +84,6 @@ func (c *Contract) LogFields() logrus.Fields {
 // MarshalToQueue -
 func (c *Contract) MarshalToQueue() ([]byte, error) {
 	return []byte(fmt.Sprintf("%d", c.ID)), nil
-}
-
-// IsFA12 - checks contract realizes fa12 interface
-func (c *Contract) IsFA12() bool {
-	for i := range c.Tags {
-		if c.Tags[i] == "fa12" {
-			return true
-		}
-	}
-	return false
 }
 
 // Fingerprint -

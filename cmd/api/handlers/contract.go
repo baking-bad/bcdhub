@@ -84,6 +84,9 @@ func (ctx *Context) contractPostprocessing(contract contract.Contract) (Contract
 	var res Contract
 	res.FromModel(contract)
 
+	res.Alias = ctx.CachedAlias(contract.Network, contract.Address)
+	res.DelegateAlias = ctx.CachedAlias(contract.Network, contract.Delegate)
+
 	if alias, err := ctx.TZIP.Get(contract.Network, contract.Address); err == nil {
 		res.Slug = alias.Slug
 	} else if !ctx.Storage.IsRecordNotFound(err) {

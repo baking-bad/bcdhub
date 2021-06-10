@@ -40,21 +40,18 @@ type Operation struct {
 	ProtocolID int64         `json:"protocol" gorm:"type:SMALLINT"`
 	Hash       string        `json:"hash" gorm:"index:opg_idx;index:operations_hash_idx"`
 
-	Timestamp        time.Time             `json:"timestamp"`
-	Status           types.OperationStatus `json:"status" gorm:"type:SMALLINT"`
-	Kind             types.OperationKind   `json:"kind" gorm:"type:SMALLINT"`
-	Initiator        string                `json:"initiator"`
-	Source           string                `json:"source" gorm:"index:source_idx"`
-	Destination      string                `json:"destination,omitempty" gorm:"index:destination_idx"`
-	Delegate         string                `json:"delegate,omitempty"`
-	Entrypoint       string                `json:"entrypoint,omitempty"`
-	SourceAlias      string                `json:"source_alias,omitempty"`
-	DestinationAlias string                `json:"destination_alias,omitempty"`
-	DelegateAlias    string                `json:"delegate_alias,omitempty"`
-	Parameters       []byte                `json:"parameters,omitempty"`
-	DeffatedStorage  []byte                `json:"deffated_storage"`
+	Timestamp       time.Time             `json:"timestamp"`
+	Status          types.OperationStatus `json:"status" gorm:"type:SMALLINT"`
+	Kind            types.OperationKind   `json:"kind" gorm:"type:SMALLINT"`
+	Initiator       string                `json:"initiator"`
+	Source          string                `json:"source" gorm:"index:source_idx"`
+	Destination     string                `json:"destination,omitempty" gorm:"index:destination_idx"`
+	Delegate        string                `json:"delegate,omitempty"`
+	Entrypoint      string                `json:"entrypoint,omitempty"`
+	Parameters      []byte                `json:"parameters,omitempty"`
+	DeffatedStorage []byte                `json:"deffated_storage"`
 
-	Tags pq.StringArray `json:"tags,omitempty" gorm:"type:text[]"`
+	Tags types.Tags `json:"tags,omitempty" gorm:"default:0"`
 
 	Script []byte `json:"-"  gorm:"-"`
 
@@ -153,16 +150,6 @@ func (o *Operation) IsApplied() bool {
 // IsCall -
 func (o *Operation) IsCall() bool {
 	return bcd.IsContract(o.Destination) && len(o.Parameters) > 0
-}
-
-// HasTag -
-func (o *Operation) HasTag(tag string) bool {
-	for i := range o.Tags {
-		if o.Tags[i] == tag {
-			return true
-		}
-	}
-	return false
 }
 
 // EmptyTransfer -

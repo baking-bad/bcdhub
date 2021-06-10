@@ -202,24 +202,21 @@ func (ctx *Context) contractToTokens(contracts []contract.Contract, network type
 			Address:       contracts[i].Address,
 			Manager:       contracts[i].Manager,
 			Delegate:      contracts[i].Delegate,
-			Alias:         contracts[i].Alias,
-			DelegateAlias: contracts[i].DelegateAlias,
+			Alias:         ctx.CachedAlias(contracts[i].Network, contracts[i].Address),
+			DelegateAlias: ctx.CachedAlias(contracts[i].Network, contracts[i].Delegate),
 			LastAction:    contracts[i].LastAction,
 			TxCount:       contracts[i].TxCount,
 		}
-		for _, tag := range contracts[i].Tags {
-			if tag == consts.FA2Tag {
-				tokens[i].Type = consts.FA2Tag
-				break
-			}
 
-			if tag == consts.FA12Tag {
-				tokens[i].Type = consts.FA12Tag
-				break
-			} else if tag == consts.FA1Tag {
-				tokens[i].Type = consts.FA1Tag
-			}
+		switch {
+		case contracts[i].Tags.Has(types.FA2Tag):
+			tokens[i].Type = consts.FA2Tag
+		case contracts[i].Tags.Has(types.FA12Tag):
+			tokens[i].Type = consts.FA12Tag
+		case contracts[i].Tags.Has(types.FA1Tag):
+			tokens[i].Type = consts.FA1Tag
 		}
+
 		addresses[i] = tokens[i].Address
 	}
 

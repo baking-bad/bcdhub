@@ -3,7 +3,6 @@ package operations
 import (
 	"fmt"
 	"io/ioutil"
-	"reflect"
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -232,18 +231,6 @@ func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 		logger.Info("Entrypoint: %s != %s", one.Entrypoint, two.Entrypoint)
 		return false
 	}
-	if one.SourceAlias != two.SourceAlias {
-		logger.Info("SourceAlias: %s != %s", one.SourceAlias, two.SourceAlias)
-		return false
-	}
-	if one.DestinationAlias != two.DestinationAlias {
-		logger.Info("DestinationAlias: %s != %s", one.DestinationAlias, two.DestinationAlias)
-		return false
-	}
-	if one.DelegateAlias != two.DelegateAlias {
-		logger.Info("DelegateAlias: %s != %s", one.DelegateAlias, two.DelegateAlias)
-		return false
-	}
 	if len(one.Parameters) > 0 && len(two.Parameters) > 0 {
 		if !assert.JSONEq(t, string(one.Parameters), string(two.Parameters)) {
 			logger.Info("Parameters: %s != %s", one.Parameters, two.Parameters)
@@ -256,11 +243,9 @@ func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 			return false
 		}
 	}
-	if len(one.Tags) == len(two.Tags) && len(one.Tags) > 0 {
-		if !reflect.DeepEqual(one.Tags, two.Tags) {
-			logger.Info("Tags: %s != %s", one.Tags, two.Tags)
-			return false
-		}
+	if one.Tags != two.Tags {
+		logger.Info("Tags: %d != %d", one.Tags, two.Tags)
+		return false
 	}
 
 	if len(one.Transfers) != len(two.Transfers) {
@@ -375,8 +360,8 @@ func compareContract(one, two *contract.Contract) bool {
 		logger.Info("Contract.Timestamp: %s != %s", one.Timestamp, two.Timestamp)
 		return false
 	}
-	if !compareStringArray(one.Tags, two.Tags) {
-		logger.Info("Contract.Tags: %v != %v", one.Tags, two.Tags)
+	if one.Tags != two.Tags {
+		logger.Info("Contract.Tags: %d != %d", one.Tags, two.Tags)
 		return false
 	}
 	if !compareStringArray(one.Entrypoints, two.Entrypoints) {
