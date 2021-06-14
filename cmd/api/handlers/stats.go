@@ -80,6 +80,17 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 	}
 	stats.Languages = languages
 
+	head, err := ctx.Storage.GetStats(req.NetworkID())
+	if ctx.handleError(c, err, 0) {
+		return
+	}
+
+	if networkHead, ok := head[req.Network]; ok {
+		stats.ContractCalls = networkHead.CallsCount
+		stats.UniqueContracts = networkHead.UniqueContractsCount
+		stats.FACount = networkHead.FACount
+	}
+
 	c.JSON(http.StatusOK, stats)
 }
 
