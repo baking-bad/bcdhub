@@ -323,6 +323,9 @@ type CodeDiffResponse struct {
 type NetworkStats struct {
 	ContractsCount  int64            `json:"contracts_count" example:"10"`
 	OperationsCount int64            `json:"operations_count" example:"100"`
+	ContractCalls   uint64           `json:"contract_calls" example:"100"`
+	UniqueContracts uint64           `json:"unique_contracts" example:"100"`
+	FACount         uint64           `json:"fa_count" example:"100"`
 	Protocols       []Protocol       `json:"protocols"`
 	Languages       map[string]int64 `json:"languages"`
 }
