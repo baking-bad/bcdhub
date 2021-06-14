@@ -78,5 +78,5 @@ func (e InvalidNodeResponse) Error() string {
 
 // Errors
 var (
-	ErrInvalidStatusCode = errors.New("Invalid status code")
+	ErrInvalidStatusCode = errors.New("invalid status code")
 )

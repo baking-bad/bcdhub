@@ -145,7 +145,7 @@ func (ctx *Context) RunCode(c *gin.Context) {
 		return
 	}
 
-	scriptBytes, err := ctx.getScriptBytes(req.NetworkID(), req.Address, state.Protocol.Hash)
+	scriptBytes, err := ctx.getScriptBytes(req.NetworkID(), req.Address, state.Protocol.SymLink)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
