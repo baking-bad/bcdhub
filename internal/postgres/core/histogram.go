@@ -172,6 +172,6 @@ func GetHistogramInterval(period string) string {
 	case "month":
 		return "now() - interval '11 month'"
 	default:
-		return "'2018-06-25'"
+		return "date '2018-06-25'"
 	}
 }
