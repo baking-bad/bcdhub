@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
+	"github.com/baking-bad/bcdhub/internal/parsers/ledger"
 )
 
 // Origination -
@@ -62,11 +63,22 @@ func (p Origination) Parse(data noderpc.Operation) (*parsers.Result, error) {
 		}
 	}
 
-	if err := setTags(p.ctx, &origination); err != nil {
+	if err := setTags(p.ctx, result.Contracts[0], &origination); err != nil {
 		return nil, err
 	}
 
 	p.stackTrace.Add(origination)
+
+	if origination.IsApplied() {
+		ledgerResult, err := ledger.New(p.ctx.TokenBalances).Parse(&origination, p.stackTrace)
+		if err != nil {
+			return nil, err
+		}
+		if ledgerResult != nil {
+			result.TokenBalances = append(result.TokenBalances, ledgerResult.TokenBalances...)
+		}
+	}
+
 	return result, nil
 }
 

@@ -26,9 +26,7 @@ func NewStorage(pg *core.Postgres) *Storage {
 
 // Get -
 func (storage *Storage) Get(network types.Network, address string) (response contract.Contract, err error) {
-	err = storage.DB.Table(models.DocContracts).
-		Scopes(core.NetworkAndAddress(network, address)).
-		First(&response).Error
+	err = storage.DB.Scopes(core.NetworkAndAddress(network, address)).First(&response).Error
 	return
 }
 

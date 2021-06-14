@@ -11,6 +11,7 @@ import (
 	modelsTypes "github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
+	"github.com/baking-bad/bcdhub/internal/parsers/ledger"
 	transferParsers "github.com/baking-bad/bcdhub/internal/parsers/transfer"
 	"github.com/pkg/errors"
 
@@ -78,22 +79,20 @@ func (p Transaction) Parse(data noderpc.Operation) (*parsers.Result, error) {
 		return nil, err
 	}
 
-	if tx.IsApplied() {
-		if err := p.appliedHandler(data, &tx, result); err != nil {
-			return nil, err
-		}
+	if err := setTags(p.ctx, nil, &tx); err != nil {
+		return nil, err
 	}
 
 	if err := p.getEntrypoint(&tx); err != nil {
 		return nil, err
 	}
-
-	if err := setTags(p.ctx, &tx); err != nil {
-		return nil, err
-	}
-
 	p.stackTrace.Add(tx)
 
+	if tx.IsApplied() {
+		if err := p.appliedHandler(data, &tx, result); err != nil {
+			return nil, err
+		}
+	}
 	if !tezerrors.HasParametersError(tx.Errors) {
 		if err := p.transferParser.Parse(tx.BigMapDiffs, p.head.Protocol, &tx); err != nil {
 			if !errors.Is(err, noderpc.InvalidNodeResponse{}) {
@@ -120,12 +119,12 @@ func (p Transaction) fillInternal(tx *operation.Operation) {
 	tx.Initiator = p.main.Source
 }
 
-func (p Transaction) appliedHandler(item noderpc.Operation, op *operation.Operation, result *parsers.Result) error {
-	if !bcd.IsContract(op.Destination) || !op.IsApplied() {
+func (p Transaction) appliedHandler(item noderpc.Operation, tx *operation.Operation, result *parsers.Result) error {
+	if !bcd.IsContract(tx.Destination) || !tx.IsApplied() {
 		return nil
 	}
 
-	storageResult, err := p.storageParser.Parse(item, op)
+	storageResult, err := p.storageParser.Parse(item, tx)
 	if err != nil {
 		return err
 	}
@@ -133,9 +132,9 @@ func (p Transaction) appliedHandler(item noderpc.Operation, op *operation.Operat
 		result.Merge(storageResult)
 	}
 
-	if len(op.DeffatedStorage) > 0 {
+	if len(tx.DeffatedStorage) > 0 {
 		var tree ast.UntypedAST
-		if err := json.Unmarshal(op.DeffatedStorage, &tree); err != nil {
+		if err := json.Unmarshal(tx.DeffatedStorage, &tree); err != nil {
 			return err
 		}
 		storageStrings, err := tree.GetStrings(true)
@@ -143,16 +142,24 @@ func (p Transaction) appliedHandler(item noderpc.Operation, op *operation.Operat
 			return err
 		}
 		if len(storageStrings) > 0 {
-			op.StorageStrings = storageStrings
+			tx.StorageStrings = storageStrings
 		}
 	}
 
-	migration, err := NewMigration().Parse(item, op)
+	migration, err := NewMigration().Parse(item, tx)
 	if err != nil {
 		return err
 	}
 	if migration != nil {
 		result.Migrations = append(result.Migrations, migration)
+	}
+
+	ledgerResult, err := ledger.New(p.ctx.TokenBalances).Parse(tx, p.stackTrace)
+	if err != nil {
+		return err
+	}
+	if ledgerResult != nil {
+		result.TokenBalances = append(result.TokenBalances, ledgerResult.TokenBalances...)
 	}
 
 	return nil
