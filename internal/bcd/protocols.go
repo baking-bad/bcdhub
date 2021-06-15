@@ -28,6 +28,7 @@ var symLinks = map[string]string{
 	"PrrUA9dCzbqBzugjQyw65HLHKjhH3HMFSLLHLZjj5rkmkG13Fej": SymLinkBabylon, // Falphanet
 	"PsrsRVg1Gycjn5LvMtoYSQah1znvYmGp8bHLxwYLBZaYFf2CEkV": SymLinkBabylon, // Falphanet
 	"PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i": SymLinkBabylon, // Florencenet (no baking accounts)
+	"PtGRANADsDU8R9daYKAgWnQYAJ64omN1o3KMGVCykShA97vQbvV": SymLinkBabylon, // Granadanet
 }
 
 // GetProtoSymLink -

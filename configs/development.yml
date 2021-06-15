@@ -11,6 +11,9 @@ rpc:
   florencenet:
     uri: https://rpc.tzkt.io/florencenobanet
     timeout: 20
+  granadanet:
+    uri: https://granadanet.smartpy.io/
+    timeout: 20
 
 tzkt:
   mainnet:
@@ -73,6 +76,7 @@ api:
     - mainnet
     - edo2net
     - florencenet
+    - granadanet
   pinata:
     key: ${PINATA_KEY}
     secret_key: ${PINATA_SECRET_KEY}
@@ -90,6 +94,7 @@ indexer:
     edo2net:
       boost: tzkt
     florencenet:
+    granadanet:
 
 metrics:
   project_name: metrics
@@ -115,6 +120,7 @@ scripts:
     - mainnet
     - edo2net
     - florencenet
+    - granadanet
   mq:
     publisher: true
 

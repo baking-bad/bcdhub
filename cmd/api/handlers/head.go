@@ -42,7 +42,7 @@ func (ctx *Context) GetHead(c *gin.Context) {
 		body[i] = HeadResponse{
 			Network:   blocks[i].Network.String(),
 			Level:     blocks[i].Level,
-			Timestamp: blocks[i].Timestamp,
+			Timestamp: blocks[i].Timestamp.UTC(),
 			Protocol:  blocks[i].Protocol.Hash,
 		}
 		networkStats, ok := stats[blocks[i].Network.String()]
