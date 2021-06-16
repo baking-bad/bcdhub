@@ -57,19 +57,17 @@ func (p Origination) Parse(data noderpc.Operation) (*parsers.Result, error) {
 
 	origination.SetBurned(p.constants)
 
+	p.stackTrace.Add(origination)
+
 	if origination.IsApplied() {
 		if err := p.appliedHandler(data, &origination, result); err != nil {
 			return nil, err
 		}
-	}
 
-	if err := setTags(p.ctx, result.Contracts[0], &origination); err != nil {
-		return nil, err
-	}
+		if err := setTags(p.ctx, result.Contracts[0], &origination); err != nil {
+			return nil, err
+		}
 
-	p.stackTrace.Add(origination)
-
-	if origination.IsApplied() {
 		ledgerResult, err := ledger.New(p.ctx.TokenBalances).Parse(&origination, p.stackTrace)
 		if err != nil {
 			return nil, err
