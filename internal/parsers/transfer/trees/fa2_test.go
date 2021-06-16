@@ -22,7 +22,7 @@ func TestMakeFa2Transfers(t *testing.T) {
 		wantErr   bool
 	}{
 		{
-			name: "FA 2",
+			name: "FA2: test 1",
 			tree: GetFA2Transfer(),
 			operation: operation.Operation{
 				Network:    modelTypes.Mainnet,
@@ -34,6 +34,22 @@ func TestMakeFa2Transfers(t *testing.T) {
 					From:    "tz1gHJt7J1aEtW2wpCR5RJd3CpnbVxUTaEXS",
 					To:      "tz1gsJENNUwg7fQiRwQi5zJYaj7YtwwsE3y2",
 					Amount:  newDecimal("1000000000"),
+				},
+			},
+		}, {
+			name: "FA2: test 2",
+			tree: GetFA2Transfer(),
+			operation: operation.Operation{
+				Network:    modelTypes.Mainnet,
+				Parameters: []byte(`{"entrypoint":"transfer","value":[{"prim":"Pair","args":[{"string":"tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb"},[{"prim":"Pair","args":[{"string":"tz1a6ZKyEoCmfpsY74jEq6uKBK8RQXdj1aVi"},{"prim":"Pair","args":[{"int":"12"},{"int":"1"}]}]}]]}]}`),
+			},
+			want: []*transfer.Transfer{
+				{
+					Network: modelTypes.Mainnet,
+					From:    "tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb",
+					To:      "tz1a6ZKyEoCmfpsY74jEq6uKBK8RQXdj1aVi",
+					Amount:  newDecimal("1"),
+					TokenID: 12,
 				},
 			},
 		},
