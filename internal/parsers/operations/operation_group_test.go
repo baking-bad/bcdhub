@@ -30,6 +30,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/baking-bad/bcdhub/internal/parsers/contract"
 	"github.com/golang/mock/gomock"
+	"github.com/shopspring/decimal"
 )
 
 func TestGroup_Parse(t *testing.T) {
@@ -215,6 +216,20 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
+		Get(
+			gomock.Eq(types.Mainnet),
+			gomock.Eq("PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i"),
+			gomock.Eq(int64(-1))).
+		Return(protocol.Protocol{
+			Hash:    "PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i",
+			Network: types.Mainnet,
+			SymLink: bcd.SymLinkBabylon,
+			ID:      4,
+		}, nil).
+		AnyTimes()
+
+	protoRepo.
+		EXPECT().
 		GetByID(gomock.Eq(int64(0))).
 		Return(protocol.Protocol{
 			Hash:    "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
@@ -253,6 +268,17 @@ func TestGroup_Parse(t *testing.T) {
 			Network: types.Edo2net,
 			SymLink: bcd.SymLinkBabylon,
 			ID:      3,
+		}, nil).
+		AnyTimes()
+
+	protoRepo.
+		EXPECT().
+		GetByID(gomock.Eq(int64(4))).
+		Return(protocol.Protocol{
+			Hash:    "PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i",
+			Network: types.Mainnet,
+			SymLink: bcd.SymLinkBabylon,
+			ID:      4,
 		}, nil).
 		AnyTimes()
 
@@ -940,6 +966,117 @@ func TestGroup_Parse(t *testing.T) {
 						Entrypoints: []string{"callCustom", "accept_ownership", "burn", "balance_of", "transfer", "update_operators", "confirm_migration", "drop_proposal", "flush", "getVotePermitCounter", "migrate", "mint", "propose", "set_quorum_threshold", "set_voting_period", "transfer_ownership", "vote", "transfer_contract_tokens"},
 						Address:     "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
 						Manager:     "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
+					},
+				},
+			},
+		}, {
+			name: "ooz1bkCQeYsZYP7vb4Dx7pYPRpWN11Z3G3yP1v4HAfdNXuHRv9c",
+			rpc:  rpc,
+			ctx: &config.Context{
+				Storage:       generalRepo,
+				Contracts:     contractRepo,
+				BigMapDiffs:   bmdRepo,
+				Blocks:        blockRepo,
+				Protocols:     protoRepo,
+				TZIP:          tzipRepo,
+				TokenBalances: tbRepo,
+				Cache:         cache.NewCache(),
+				SharePath:     "./test",
+			},
+			paramsOpts: []ParseParamsOption{
+				WithHead(noderpc.Header{
+					Timestamp: timestamp,
+					Protocol:  "PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i",
+					Level:     1516349,
+					ChainID:   "NetXdQprcVkpaWU",
+				}),
+				WithConstants(protocol.Constants{
+					CostPerByte:                  1000,
+					HardGasLimitPerOperation:     400000,
+					HardStorageLimitPerOperation: 60000,
+					TimeBetweenBlocks:            60,
+				}),
+				WithNetwork(types.Mainnet),
+			},
+			storage: map[string]int64{
+				"KT1QcxwB4QyPKfmSwjH1VRxa6kquUjeDWeEy": 1516349,
+			},
+			filename: "./data/rpc/opg/ooz1bkCQeYsZYP7vb4Dx7pYPRpWN11Z3G3yP1v4HAfdNXuHRv9c.json",
+			want: &parsers.Result{
+				Operations: []*operation.Operation{
+					{
+						Kind:            types.OperationKindTransaction,
+						Source:          "tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb",
+						Fee:             2235,
+						Counter:         9432992,
+						GasLimit:        18553,
+						Destination:     "KT1QcxwB4QyPKfmSwjH1VRxa6kquUjeDWeEy",
+						Status:          types.OperationStatusApplied,
+						Level:           1516349,
+						Network:         types.Mainnet,
+						Hash:            "ooz1bkCQeYsZYP7vb4Dx7pYPRpWN11Z3G3yP1v4HAfdNXuHRv9c",
+						Timestamp:       timestamp,
+						Entrypoint:      "transfer",
+						Tags:            types.FA2Tag | types.LedgerTag,
+						Initiator:       "tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb",
+						Parameters:      []byte(`{"entrypoint":"transfer","value":[{"prim":"Pair","args":[{"string":"tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb"},[{"prim":"Pair","args":[{"string":"tz1a6ZKyEoCmfpsY74jEq6uKBK8RQXdj1aVi"},{"prim":"Pair","args":[{"int":"12"},{"int":"1"}]}]}]]}]}`),
+						ProtocolID:      4,
+						DeffatedStorage: []byte(`{"prim":"Pair","args":[{"prim":"Pair","args":[{"prim":"Pair","args":[{"int":"746"},{"int":"4992269"}]},{"prim":"Pair","args":[{"int":"747"},{"int":"748"}]}]},{"int":"749"}]}`),
+						Transfers: []*transfer.Transfer{
+							{
+								TokenID:   12,
+								From:      "tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb",
+								To:        "tz1a6ZKyEoCmfpsY74jEq6uKBK8RQXdj1aVi",
+								Amount:    decimal.NewFromInt(1),
+								Network:   types.Mainnet,
+								Contract:  "KT1QcxwB4QyPKfmSwjH1VRxa6kquUjeDWeEy",
+								Initiator: "tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb",
+								Status:    types.OperationStatusApplied,
+								Timestamp: timestamp,
+								Level:     1516349,
+							},
+						},
+						BigMapDiffs: []*bigmapdiff.BigMapDiff{
+							{
+								Ptr:          746,
+								KeyHash:      "expruSKSLw7MS3ou3pPd7MUXy5QDPtVvkUNF4yWS2g6n8mXGzDJCG7",
+								Key:          []byte(`{"int":"12" }`),
+								Value:        []byte(`{"bytes":"00009e96262b1bfc9a709603668843d52994358be677"}`),
+								ValueStrings: []string{"tz1a6ZKyEoCmfpsY74jEq6uKBK8RQXdj1aVi"},
+								Contract:     "KT1QcxwB4QyPKfmSwjH1VRxa6kquUjeDWeEy",
+								Level:        1516349,
+								Network:      types.Mainnet,
+								Timestamp:    timestamp,
+								ProtocolID:   4,
+							},
+						},
+					},
+				},
+				BigMapState: []*bigmapdiff.BigMapState{
+					{
+						Ptr:             746,
+						KeyHash:         "expruSKSLw7MS3ou3pPd7MUXy5QDPtVvkUNF4yWS2g6n8mXGzDJCG7",
+						Key:             []byte(`{"int":"12"}`),
+						Value:           []byte(`{"bytes":"00009e96262b1bfc9a709603668843d52994358be677"}`),
+						Contract:        "KT1QcxwB4QyPKfmSwjH1VRxa6kquUjeDWeEy",
+						LastUpdateLevel: 1516349,
+						LastUpdateTime:  timestamp,
+						Network:         types.Mainnet,
+					},
+				},
+				TokenBalances: []*tokenbalance.TokenBalance{
+					{
+						Network:  types.Mainnet,
+						Contract: "KT1QcxwB4QyPKfmSwjH1VRxa6kquUjeDWeEy",
+						Address:  "tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb",
+						TokenID:  12,
+						Balance:  decimal.NewFromInt(-1),
+					}, {
+						Network:  types.Mainnet,
+						Contract: "KT1QcxwB4QyPKfmSwjH1VRxa6kquUjeDWeEy",
+						Address:  "tz1a6ZKyEoCmfpsY74jEq6uKBK8RQXdj1aVi",
+						TokenID:  12,
+						Balance:  decimal.NewFromInt(1),
 					},
 				},
 			},
