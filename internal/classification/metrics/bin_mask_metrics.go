@@ -40,8 +40,12 @@ func (m *BinMask) Compute(a, b contract.Contract) Feature {
 		return f
 	}
 
-	rate := float64(bits.OnesCount64(uint64(mask1&mask2))) / 15.0
-	f.Value = round(rate)
+	if mask1 == mask2 {
+		f.Value = 1
+	} else {
+		rate := float64(bits.OnesCount64(uint64(mask1^mask2))) / 15.0
+		f.Value = round(rate)
+	}
 	return f
 }
 
