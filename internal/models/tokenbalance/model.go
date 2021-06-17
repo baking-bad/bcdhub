@@ -52,7 +52,7 @@ func (tb *TokenBalance) Save(tx *gorm.DB) error {
 			{Name: "token_id"},
 		},
 		DoUpdates: s,
-	}).Save(tb).Error
+	}).Create(tb).Error
 }
 
 // GetQueues -
