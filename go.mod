@@ -37,7 +37,6 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/swaggo/swag v1.7.0
 	github.com/tidwall/gjson v1.4.0
-	github.com/valyala/fastjson v1.5.1
 	github.com/wsxiaoys/terminal v0.0.0-20160513160801-0940f3fc43a0 // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/yhirose/go-peg v0.0.0-20190710015414-7eb2cf046928

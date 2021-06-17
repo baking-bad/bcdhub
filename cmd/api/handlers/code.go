@@ -4,9 +4,7 @@ import (
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
-	"github.com/baking-bad/bcdhub/internal/bcd/macros"
 	"github.com/baking-bad/bcdhub/internal/fetch"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -57,13 +55,7 @@ func (ctx *Context) GetContractCode(c *gin.Context) {
 		return
 	}
 
-	collapsed, err := macros.Collapse(code, macros.GetAllFamilies())
-	if err != nil {
-		logger.Error(err)
-		collapsed = code
-	}
-
-	resp, err := formatter.MichelineToMichelson(collapsed, false, formatter.DefLineSize)
+	resp, err := formatter.MichelineToMichelson(code, false, formatter.DefLineSize)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -137,11 +129,7 @@ func (ctx *Context) getContractCodeDiff(left, right CodeDiffLeg) (res CodeDiffRe
 		if err != nil {
 			return res, err
 		}
-		collapsed, err := macros.Collapse(code, macros.GetAllFamilies())
-		if err != nil {
-			return res, err
-		}
-		sides[i] = collapsed
+		sides[i] = code
 	}
 
 	diff, err := formatter.Diff(sides[0], sides[1])
