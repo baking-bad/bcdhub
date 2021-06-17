@@ -180,13 +180,15 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 			break
 		}
 
-		parameters := types.NewParameters(op[0].Parameters)
-		var data ast.UntypedAST
-		if err := json.Unmarshal(parameters.Value, &data); ctx.handleError(c, err, 0) {
-			return
-		}
-		if err := e.ParseValue(data[0]); ctx.handleError(c, err, 0) {
-			return
+		if op[0].Parameters != nil {
+			parameters := types.NewParameters(op[0].Parameters)
+			var data ast.UntypedAST
+			if err := json.Unmarshal(parameters.Value, &data); ctx.handleError(c, err, 0) {
+				return
+			}
+			if err := e.ParseValue(data[0]); ctx.handleError(c, err, 0) {
+				return
+			}
 		}
 
 		schema.DefaultModel = make(ast.JSONModel)
