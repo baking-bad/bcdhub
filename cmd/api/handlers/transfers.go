@@ -35,17 +35,12 @@ func (ctx *Context) GetContractTransfers(c *gin.Context) {
 		return
 	}
 
-	tokenID := new(uint64)
-	if req.TokenID != nil {
-		tokenID = req.TokenID
-	}
-
 	transfers, err := ctx.Domains.Transfers(transfer.GetContext{
 		Network:   contractRequest.NetworkID(),
 		Contracts: []string{contractRequest.Address},
 		Size:      req.Size,
 		Offset:    req.Offset,
-		TokenID:   tokenID,
+		TokenID:   req.TokenID,
 	})
 	if ctx.handleError(c, err, 0) {
 		return
