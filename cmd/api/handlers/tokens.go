@@ -129,11 +129,6 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 		contracts = strings.Split(ctxReq.Contracts, ",")
 	}
 
-	tokenID := new(uint64)
-	if ctxReq.TokenID != nil {
-		tokenID = ctxReq.TokenID
-	}
-
 	transfers, err := ctx.Domains.Transfers(transfer.GetContext{
 		Network:   req.NetworkID(),
 		Address:   req.Address,
@@ -143,7 +138,7 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 		LastID:    ctxReq.LastID,
 		SortOrder: ctxReq.Sort,
 		Size:      ctxReq.Size,
-		TokenID:   tokenID,
+		TokenID:   ctxReq.TokenID,
 	})
 	if ctx.handleError(c, err, 0) {
 		return

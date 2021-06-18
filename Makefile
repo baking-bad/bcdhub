@@ -84,10 +84,13 @@ endif
 
 s3-contracts-restore:
 	echo "Contracts restore..."
+ifeq (,$(wildcard /tmp/contracts.tar.gz))
 	aws s3 cp --profile bcd s3://bcd-db-snaps/contracts.tar.gz /tmp/contracts.tar.gz
+endif	
 	rm -rf $(SHARE_PATH)/contracts/
 	mkdir $(SHARE_PATH)/contracts/
 	tar -C $(SHARE_PATH)/contracts/ -xzf /tmp/contracts.tar.gz
+	rm /tmp/contracts.tar.gz
 
 s3-db-snapshot:
 	echo "Database snapshot..."

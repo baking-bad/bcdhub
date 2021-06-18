@@ -45,7 +45,7 @@ sentry:
   front_uri: ${SENTRY_DSN_FRONT}
   debug: true
 
-share_path: ${HOME}/.bcd
+share_path: /etc/bcd
 
 base_url: http://localhost:8080
 
