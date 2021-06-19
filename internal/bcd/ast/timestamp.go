@@ -2,7 +2,8 @@ package ast
 
 import (
 	"fmt"
-	"strconv"
+	"math"
+	"math/big"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/base"
@@ -37,12 +38,8 @@ func (t *Timestamp) ParseValue(node *base.Node) error {
 		if err != nil {
 			if *node.StringValue == "" {
 				t.Value = time.Unix(0, 0).UTC()
-			} else {
-				i, err := strconv.ParseInt(*node.StringValue, 10, 64)
-				if err != nil {
-					return err
-				}
-				t.parseTimestamp(i)
+			} else if bi, ok := big.NewInt(0).SetString(*node.StringValue, 10); ok {
+				t.parseTimestamp(bi.Int64())
 			}
 		} else {
 			t.Value = utc.UTC()
@@ -52,9 +49,12 @@ func (t *Timestamp) ParseValue(node *base.Node) error {
 }
 
 func (t *Timestamp) parseTimestamp(ts int64) {
-	if 253402300799 > ts { // 31 December 9999 23:59:59 Golang time restriction
+	switch {
+	case ts < 0: // integer overflow
+		t.Value = time.Unix(math.MaxInt64, 0).UTC()
+	case 253402300799 > ts: // 31 December 9999 23:59:59 Golang time restriction
 		t.Value = time.Unix(ts, 0).UTC()
-	} else {
+	default:
 		t.Value = time.Unix(ts/1000, 0).UTC() // milliseconds
 	}
 }
