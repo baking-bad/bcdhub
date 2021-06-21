@@ -518,6 +518,7 @@ type Transfer struct {
 	InitiatorAlias string         `json:"initiator_alias,omitempty" extensions:"x-nullable"`
 	FromAlias      string         `json:"from_alias,omitempty" extensions:"x-nullable"`
 	ToAlias        string         `json:"to_alias,omitempty" extensions:"x-nullable"`
+	Entrypoint     string         `json:"entrypoint,omitempty" extensions:"x-nullable"`
 }
 
 // TransferFromModel -
@@ -534,6 +535,7 @@ func TransferFromModel(model domains.Transfer) (t Transfer) {
 	t.TokenID = model.TokenID
 	t.Amount = model.Amount.String()
 	t.Parent = model.Parent
+	t.Entrypoint = model.Entrypoint
 	t.Hash = model.Hash
 	t.Counter = model.Counter
 	t.Nonce = model.Nonce
