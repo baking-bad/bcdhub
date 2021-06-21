@@ -68,9 +68,11 @@ func (tb *TokenBalance) MarshalToQueue() ([]byte, error) {
 // LogFields -
 func (tb *TokenBalance) LogFields() logrus.Fields {
 	return logrus.Fields{
-		"network":  tb.Network.String(),
-		"address":  tb.Address,
-		"contract": tb.Contract,
-		"token_id": tb.TokenID,
+		"network":   tb.Network.String(),
+		"address":   tb.Address,
+		"contract":  tb.Contract,
+		"token_id":  tb.TokenID,
+		"balance":   tb.Balance.String(),
+		"is_ledger": tb.IsLedger,
 	}
 }

@@ -93,6 +93,7 @@ func (p Transaction) Parse(data noderpc.Operation) (*parsers.Result, error) {
 			return nil, err
 		}
 	}
+
 	if !tezerrors.HasParametersError(tx.Errors) {
 		if err := p.transferParser.Parse(tx.BigMapDiffs, p.head.Protocol, &tx); err != nil {
 			if !errors.Is(err, noderpc.InvalidNodeResponse{}) {
@@ -102,6 +103,17 @@ func (p Transaction) Parse(data noderpc.Operation) (*parsers.Result, error) {
 		}
 		result.TokenBalances = append(result.TokenBalances, transferParsers.UpdateTokenBalances(tx.Transfers)...)
 	}
+
+	if tx.IsApplied() {
+		ledgerResult, err := ledger.New(p.ctx.TokenBalances).Parse(&tx, p.stackTrace)
+		if err != nil {
+			return nil, err
+		}
+		if ledgerResult != nil {
+			result.TokenBalances = append(result.TokenBalances, ledgerResult.TokenBalances...)
+		}
+	}
+
 	return result, nil
 }
 
@@ -152,14 +164,6 @@ func (p Transaction) appliedHandler(item noderpc.Operation, tx *operation.Operat
 	}
 	if migration != nil {
 		result.Migrations = append(result.Migrations, migration)
-	}
-
-	ledgerResult, err := ledger.New(p.ctx.TokenBalances).Parse(tx, p.stackTrace)
-	if err != nil {
-		return err
-	}
-	if ledgerResult != nil {
-		result.TokenBalances = append(result.TokenBalances, ledgerResult.TokenBalances...)
 	}
 
 	return nil
