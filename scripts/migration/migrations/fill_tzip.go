@@ -85,11 +85,11 @@ func (m *FillTZIP) Do(ctx *config.Context) error {
 	}
 
 	logger.WithField("new", len(inserts)).WithField("updates", len(updates)).Info("Saving metadata...")
-	if err := ctx.Storage.Save(inserts); err != nil {
+	if err := ctx.StorageDB.Save(inserts); err != nil {
 		return err
 	}
 
-	return ctx.Storage.Save(updates)
+	return ctx.StorageDB.Save(updates)
 }
 
 func processTzipItem(ctx *config.Context, item repository.Item, inserts, updates *[]models.Model) error {
@@ -129,7 +129,8 @@ func processTzipItem(ctx *config.Context, item repository.Item, inserts, updates
 			d, err := ctx.DApps.Get(model.DApps[i].Slug)
 			switch {
 			case err == nil:
-				*updates = append(*updates, &d)
+				model.DApps[i].ID = d.ID
+				*updates = append(*updates, &model.DApps[i])
 			case ctx.Storage.IsRecordNotFound(err):
 				*inserts = append(*inserts, &model.DApps[i])
 			default:
