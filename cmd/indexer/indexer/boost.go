@@ -154,7 +154,7 @@ func executeScripts(db *core.Postgres, network types.Network) error {
 
 		script := string(raw)
 		if strings.HasPrefix(files[i].Name(), "series_") {
-			script = fmt.Sprintf(script, network.String(), network)
+			script = fmt.Sprintf(script, network.String(), network, network.String(), network.String())
 		}
 
 		if err := db.Execute(script); err != nil {

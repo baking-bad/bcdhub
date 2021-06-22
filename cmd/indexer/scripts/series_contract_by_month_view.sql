@@ -12,4 +12,6 @@ select
 from f
 left join contracts on date_trunc('month', contracts.timestamp) = f.val where ((network = %d))
 group by 1
-order by date_part
+order by date_part;
+
+create unique index if not exists series_contract_by_month_%s_idx on series_contract_by_month_%s(date_part);
