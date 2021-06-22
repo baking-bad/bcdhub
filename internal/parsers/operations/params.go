@@ -1,9 +1,6 @@
 package operations
 
 import (
-	"sync"
-
-	"github.com/baking-bad/bcdhub/internal/cache"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
@@ -17,6 +14,7 @@ import (
 // ParseParams -
 type ParseParams struct {
 	ctx *config.Context
+	rpc noderpc.INode
 
 	constants protocol.Constants
 
@@ -34,9 +32,6 @@ type ParseParams struct {
 	head       noderpc.Header
 	contentIdx int64
 	main       *operation.Operation
-	cache      *cache.Cache
-
-	once *sync.Once
 }
 
 // ParseParamsOption -
@@ -91,18 +86,11 @@ func WithMainOperation(main *operation.Operation) ParseParamsOption {
 	}
 }
 
-// WithCache -
-func WithCache(cache *cache.Cache) ParseParamsOption {
-	return func(dp *ParseParams) {
-		dp.cache = cache
-	}
-}
-
 // NewParseParams -
 func NewParseParams(rpc noderpc.INode, ctx *config.Context, opts ...ParseParamsOption) (*ParseParams, error) {
 	params := &ParseParams{
 		ctx:        ctx,
-		once:       &sync.Once{},
+		rpc:        rpc,
 		stackTrace: stacktrace.New(),
 	}
 	for i := range opts {
@@ -131,9 +119,5 @@ func NewParseParams(rpc noderpc.INode, ctx *config.Context, opts ...ParseParamsO
 		return nil, err
 	}
 	params.storageParser = storageParser
-
-	if params.cache == nil {
-		params.cache = cache.NewCache()
-	}
 	return params, nil
 }

@@ -1,6 +1,8 @@
 package tokens
 
 import (
+	"strings"
+
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -22,6 +24,7 @@ type Parser struct {
 	bmdRepo      bigmapdiff.Repository
 	blocksRepo   block.Repository
 	protocolRepo protocol.Repository
+	tmRepo       tokenmetadata.Repository
 	storage      models.GeneralRepository
 
 	rpc       noderpc.INode
@@ -31,7 +34,7 @@ type Parser struct {
 }
 
 // NewParser -
-func NewParser(bmdRepo bigmapdiff.Repository, blocksRepo block.Repository, protocolRepo protocol.Repository, storage models.GeneralRepository, rpc noderpc.INode, sharePath string, network types.Network, ipfs ...string) Parser {
+func NewParser(bmdRepo bigmapdiff.Repository, blocksRepo block.Repository, protocolRepo protocol.Repository, tmRepo tokenmetadata.Repository, storage models.GeneralRepository, rpc noderpc.INode, sharePath string, network types.Network, ipfs ...string) Parser {
 	return Parser{
 		bmdRepo: bmdRepo, blocksRepo: blocksRepo, storage: storage, protocolRepo: protocolRepo,
 		rpc: rpc, sharePath: sharePath, network: network, ipfs: ipfs,
@@ -62,9 +65,17 @@ func (t Parser) ParseBigMapDiff(bmd *bigmapdiff.BigMapDiff, storage *ast.TypedAs
 	m.Level = bmd.Level
 
 	if m.Link != "" {
+		if strings.HasPrefix(m.Link, "ipfs://") {
+			if found, err := t.tmRepo.GetOne(bmd.Network, bmd.Contract, m.TokenID); err == nil {
+				if link, ok := found.Extras[""]; ok && link == m.Link {
+					return nil, nil
+				}
+			}
+		}
+
 		s := tzipStorage.NewFull(t.bmdRepo, t.blocksRepo, t.storage, t.rpc, t.sharePath, t.ipfs...)
 
-		remoteMetadata := &TokenMetadata{}
+		remoteMetadata := new(TokenMetadata)
 		if err := s.Get(t.network, bmd.Contract, m.Link, bmd.Ptr, remoteMetadata); err != nil {
 			switch {
 			case errors.Is(err, tzipStorage.ErrHTTPRequest):
