@@ -12,4 +12,6 @@ select
 from f
 left join operations on date_trunc('month', operations.timestamp) = f.val where ((network = %d) and (entrypoint is not null and entrypoint != '') and (status = 1))
 group by 1
-order by date_part
+order by date_part;
+
+create unique index if not exists series_operation_by_month_%s_idx on series_operation_by_month_%s(date_part);
