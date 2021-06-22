@@ -7,7 +7,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
-	"github.com/baking-bad/bcdhub/internal/parsers/tzip/tokens"
 )
 
 func getContract(ids []int64) error {
@@ -36,27 +35,14 @@ func getContract(ids []int64) error {
 }
 
 func parseContract(contract *contract.Contract, chunk []contract.Contract) ([]models.Model, error) {
-	h := metrics.New(ctx.Contracts, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.TokenBalances, ctx.TZIP, ctx.Storage)
-
-	if contract.ProjectID == "" {
-		if err := h.SetContractProjectID(contract, chunk); err != nil {
-			return nil, errors.Errorf("[parseContract] Error during set contract projectID: %s", err)
-		}
+	if contract.ProjectID != "" {
+		return nil, nil
 	}
 
-	rpc, err := ctx.GetRPC(contract.Network)
-	if err != nil {
-		return nil, err
+	h := metrics.New(ctx.Contracts, ctx.Blocks, ctx.Operations, ctx.TokenBalances, ctx.TZIP, ctx.Storage)
+	if err := h.SetContractProjectID(contract, chunk); err != nil {
+		return nil, errors.Errorf("[parseContract] Error during set contract projectID: %s", err)
 	}
 
-	newModels, err := h.CreateTokenMetadata(rpc, ctx.SharePath, contract, ctx.Config.IPFSGateways...)
-	if err != nil {
-		if !errors.Is(err, tokens.ErrNoMetadataKeyInStorage) {
-			logger.Error(err)
-		}
-	}
-
-	items := []models.Model{contract}
-
-	return append(items, newModels...), nil
+	return []models.Model{contract}, nil
 }

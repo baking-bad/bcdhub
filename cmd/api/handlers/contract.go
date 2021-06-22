@@ -63,7 +63,7 @@ func (ctx *Context) GetRandomContract(c *gin.Context) {
 		return
 	}
 
-	contract, err := ctx.Contracts.GetRandom(req.Network)
+	contract, err := ctx.Contracts.GetRandom(req.NetworkID())
 	if err != nil {
 		if ctx.Storage.IsRecordNotFound(err) {
 			c.JSON(http.StatusNoContent, gin.H{})

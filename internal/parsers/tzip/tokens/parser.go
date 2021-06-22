@@ -22,6 +22,7 @@ type Parser struct {
 	bmdRepo      bigmapdiff.Repository
 	blocksRepo   block.Repository
 	protocolRepo protocol.Repository
+	tmRepo       tokenmetadata.Repository
 	storage      models.GeneralRepository
 
 	rpc       noderpc.INode
@@ -31,7 +32,7 @@ type Parser struct {
 }
 
 // NewParser -
-func NewParser(bmdRepo bigmapdiff.Repository, blocksRepo block.Repository, protocolRepo protocol.Repository, storage models.GeneralRepository, rpc noderpc.INode, sharePath string, network types.Network, ipfs ...string) Parser {
+func NewParser(bmdRepo bigmapdiff.Repository, blocksRepo block.Repository, protocolRepo protocol.Repository, tmRepo tokenmetadata.Repository, storage models.GeneralRepository, rpc noderpc.INode, sharePath string, network types.Network, ipfs ...string) Parser {
 	return Parser{
 		bmdRepo: bmdRepo, blocksRepo: blocksRepo, storage: storage, protocolRepo: protocolRepo,
 		rpc: rpc, sharePath: sharePath, network: network, ipfs: ipfs,
@@ -60,6 +61,10 @@ func (t Parser) ParseBigMapDiff(bmd *bigmapdiff.BigMapDiff, storage *ast.TypedAs
 	}
 	m.Timestamp = bmd.Timestamp
 	m.Level = bmd.Level
+
+	if _, err := t.tmRepo.GetOne(bmd.Network, bmd.Contract, m.TokenID); err == nil {
+		return nil, nil
+	}
 
 	if m.Link != "" {
 		s := tzipStorage.NewFull(t.bmdRepo, t.blocksRepo, t.storage, t.rpc, t.sharePath, t.ipfs...)

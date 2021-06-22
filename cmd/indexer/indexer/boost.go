@@ -543,7 +543,6 @@ func (bi *BoostIndexer) getDataFromBlock(head noderpc.Header) (*parsers.Result, 
 			operations.WithConstants(*bi.currentProtocol.Constants),
 			operations.WithHead(head),
 			operations.WithIPFSGateways(bi.Config.IPFSGateways),
-			operations.WithCache(bi.Cache),
 			operations.WithNetwork(bi.Network),
 		)
 		if err != nil {

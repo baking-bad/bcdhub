@@ -85,12 +85,6 @@ func (m *BigRussianBoss) eventsAndTokenBalances(ctx *config.Context) error {
 		return nil
 	}
 
-	logger.Info("executing all initial storages")
-	initStorageEvents := new(InitialStorageEvents)
-	if err := initStorageEvents.Do(ctx); err != nil {
-		return err
-	}
-
 	logger.Info("executing all extended storages")
 	extStorageEvents := new(ExtendedStorageEvents)
 	if err := extStorageEvents.Do(ctx); err != nil {
@@ -105,7 +99,6 @@ func (m *BigRussianBoss) eventsAndTokenBalances(ctx *config.Context) error {
 
 	uniqueContracts := make(map[string]string)
 	for _, contracts := range []map[string]string{
-		initStorageEvents.AffectedContracts(),
 		extStorageEvents.AffectedContracts(),
 		parameterEvents.AffectedContracts(),
 	} {

@@ -23,7 +23,12 @@ type getContractCodeRequest struct {
 }
 
 type networkQueryRequest struct {
-	Network types.Network `form:"network,omitempty" binding:"omitempty,network"`
+	Network string `form:"network,omitempty" binding:"omitempty,network"`
+}
+
+// NetworkID -
+func (req networkQueryRequest) NetworkID() types.Network {
+	return types.NewNetwork(req.Network)
 }
 
 // CodeDiffLeg -

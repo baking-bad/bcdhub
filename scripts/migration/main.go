@@ -19,7 +19,6 @@ var migrationsList = []migrations.Migration{
 	&migrations.CreateTransfersTags{},
 	&migrations.CreateTZIP{},
 	&migrations.FillTZIP{},
-	&migrations.InitialStorageEvents{},
 	&migrations.ExtendedStorageEvents{},
 	&migrations.ParameterEvents{},
 	&migrations.TokenBalanceRecalc{},

@@ -41,7 +41,7 @@ func getBigMapDiff(ids []int64) error {
 
 func initHandlers() {
 	bigMapDiffHandlers = append(bigMapDiffHandlers,
-		contractHandlers.NewTokenMetadata(ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.Storage, ctx.RPC, ctx.SharePath, ctx.Config.IPFSGateways),
+		contractHandlers.NewTokenMetadata(ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.TokenMetadata, ctx.Storage, ctx.RPC, ctx.SharePath, ctx.Config.IPFSGateways),
 	)
 	bigMapDiffHandlers = append(bigMapDiffHandlers,
 		contractHandlers.NewTZIP(ctx.BigMapDiffs, ctx.Blocks, ctx.Storage, ctx.TZIP, ctx.RPC, ctx.SharePath, ctx.Config.IPFSGateways),
@@ -52,7 +52,7 @@ func initHandlers() {
 }
 
 func parseBigMapDiff(bmd bigmapdiff.BigMapDiff) ([]models.Model, error) {
-	h := metrics.New(ctx.Contracts, ctx.Blocks, ctx.Protocols, ctx.Operations, ctx.TokenBalances, ctx.TZIP, ctx.Storage)
+	h := metrics.New(ctx.Contracts, ctx.Blocks, ctx.Operations, ctx.TokenBalances, ctx.TZIP, ctx.Storage)
 
 	if err := h.SetBigMapDiffsStrings(&bmd); err != nil {
 		return nil, err
