@@ -18,4 +18,5 @@ type Repository interface {
 	GetDiffTasks() ([]DiffTask, error)
 	GetByIDs(ids ...int64) ([]Contract, error)
 	Stats(c Contract) (Stats, error)
+	GetProjectIDByHash(hash string) (result string, err error)
 }

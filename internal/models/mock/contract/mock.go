@@ -248,3 +248,18 @@ func (mr *MockRepositoryMockRecorder) Stats(c interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stats", reflect.TypeOf((*MockRepository)(nil).Stats), c)
 }
+
+// GetProjectIDByHash mocks base method
+func (m *MockRepository) GetProjectIDByHash(hash string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetProjectIDByHash", hash)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetProjectIDByHash indicates an expected call of GetProjectIDByHash
+func (mr *MockRepositoryMockRecorder) GetProjectIDByHash(hash interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProjectIDByHash", reflect.TypeOf((*MockRepository)(nil).GetProjectIDByHash), hash)
+}
