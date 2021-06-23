@@ -2,6 +2,8 @@ package storage
 
 import (
 	"fmt"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -23,6 +25,14 @@ type IPFSStorageOption func(*IPFSStorage)
 // WithTimeoutIPFS -
 func WithTimeoutIPFS(timeout time.Duration) IPFSStorageOption {
 	return func(s *IPFSStorage) {
+		if ipfsTimeout := os.Getenv("IPFS_TIMEOUT"); ipfsTimeout != "" {
+			seconds, err := strconv.ParseInt(ipfsTimeout, 10, 64)
+			if err == nil {
+				WithTimeoutHTTP(time.Duration(seconds) * time.Second)(&s.HTTPStorage)
+				return
+			}
+		}
+
 		WithTimeoutHTTP(timeout)(&s.HTTPStorage)
 	}
 }
