@@ -37,7 +37,7 @@ type Parser struct {
 func NewParser(bmdRepo bigmapdiff.Repository, blocksRepo block.Repository, protocolRepo protocol.Repository, tmRepo tokenmetadata.Repository, storage models.GeneralRepository, rpc noderpc.INode, sharePath string, network types.Network, ipfs ...string) Parser {
 	return Parser{
 		bmdRepo: bmdRepo, blocksRepo: blocksRepo, storage: storage, protocolRepo: protocolRepo,
-		rpc: rpc, sharePath: sharePath, network: network, ipfs: ipfs,
+		rpc: rpc, sharePath: sharePath, network: network, ipfs: ipfs, tmRepo: tmRepo,
 	}
 }
 
