@@ -66,7 +66,7 @@ func (t Parser) ParseBigMapDiff(bmd *bigmapdiff.BigMapDiff, storage *ast.TypedAs
 
 	if m.Link != "" {
 		if strings.HasPrefix(m.Link, "ipfs://") {
-			if found, err := t.tmRepo.GetOne(bmd.Network, bmd.Contract, m.TokenID); err == nil {
+			if found, err := t.tmRepo.GetOne(bmd.Network, bmd.Contract, m.TokenID); err == nil && found != nil {
 				if link, ok := found.Extras[""]; ok && link == m.Link {
 					return nil, nil
 				}
