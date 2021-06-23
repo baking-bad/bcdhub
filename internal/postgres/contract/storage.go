@@ -129,7 +129,7 @@ func (storage *Storage) GetProjectsLastContract(c contract.Contract, size, offse
 	if c.Manager != "" {
 		subQuery.Or("manager = ?", c.Manager)
 	}
-	if c.Language != "" {
+	if c.Language != "unknown" {
 		subQuery.Or("language = ?", c.Language)
 	}
 
@@ -291,5 +291,14 @@ func (storage *Storage) Stats(c contract.Contract) (stats contract.Stats, err er
 // GetByIDs -
 func (storage *Storage) GetByIDs(ids ...int64) (result []contract.Contract, err error) {
 	err = storage.DB.Table(models.DocContracts).Order("id asc").Find(&result, ids).Error
+	return
+}
+
+// GetProjectIDByHash -
+func (storage *Storage) GetProjectIDByHash(hash string) (result string, err error) {
+	err = storage.DB.Table(models.DocContracts).Select("project_id").Where("hash = ?", hash).Where("project_id != ''").Limit(1).Scan(&result).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return "", nil
+	}
 	return
 }

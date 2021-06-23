@@ -95,6 +95,12 @@ func TestGroup_Parse(t *testing.T) {
 		DoAndReturn(readTestContractModel).
 		AnyTimes()
 
+	contractRepo.
+		EXPECT().
+		GetProjectIDByHash(gomock.Any()).
+		Return("", nil).
+		AnyTimes()
+
 	generalRepo.
 		EXPECT().
 		Save(gomock.AssignableToTypeOf([]models.Model{})).

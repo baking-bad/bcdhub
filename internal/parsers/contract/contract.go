@@ -96,6 +96,11 @@ func (p *Parser) computeMetrics(operation *operation.Operation, c *contract.Cont
 		c.Tags.Set(types.UpgradableTag)
 	}
 
+	c.ProjectID, err = p.ctx.Contracts.GetProjectIDByHash(c.Hash)
+	if err != nil {
+		return err
+	}
+
 	proto, err := p.ctx.CachedProtocolByID(operation.Network, operation.ProtocolID)
 	if err != nil {
 		return err
