@@ -25,7 +25,7 @@ func (a *Alpha) ParseTransaction(content noderpc.Operation, operation *operation
 	}
 	operation.DeffatedStorage = result.Storage
 
-	return a.getBigMapDiff(result.BigMapDiffs, *content.Destination, operation), nil
+	return a.getBigMapDiff(result.BigMapDiffs, *content.Destination, operation)
 }
 
 // ParseOrigination -
@@ -92,6 +92,11 @@ func (a *Alpha) ParseOrigination(content noderpc.Operation, operation *operation
 					ProtocolID:  operation.ProtocolID,
 					Ptr:         -1,
 				}
+
+				if err := setBigMapDiffsStrings(b); err != nil {
+					return false, err
+				}
+
 				operation.BigMapDiffs = append(operation.BigMapDiffs, b)
 				res.BigMapState = append(res.BigMapState, b.ToState())
 				return false, nil
@@ -113,7 +118,7 @@ func (a *Alpha) ParseOrigination(content noderpc.Operation, operation *operation
 	return res, nil
 }
 
-func (a *Alpha) getBigMapDiff(diffs []noderpc.BigMapDiff, address string, operation *operation.Operation) *parsers.Result {
+func (a *Alpha) getBigMapDiff(diffs []noderpc.BigMapDiff, address string, operation *operation.Operation) (*parsers.Result, error) {
 	res := parsers.NewResult()
 	for i := range diffs {
 		b := &bigmapdiff.BigMapDiff{
@@ -128,8 +133,13 @@ func (a *Alpha) getBigMapDiff(diffs []noderpc.BigMapDiff, address string, operat
 			ProtocolID:  operation.ProtocolID,
 			Ptr:         -1,
 		}
+
+		if err := setBigMapDiffsStrings(b); err != nil {
+			return nil, err
+		}
+
 		operation.BigMapDiffs = append(operation.BigMapDiffs, b)
 		res.BigMapState = append(res.BigMapState, b.ToState())
 	}
-	return res
+	return res, nil
 }
