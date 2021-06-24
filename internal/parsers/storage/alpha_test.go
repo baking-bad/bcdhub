@@ -65,6 +65,12 @@ func TestAlpha_ParseOrigination(t *testing.T) {
 						Network:    types.Mainnet,
 						Key:        []byte(`{"string":"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6"}`),
 						Value:      []byte(`{"prim":"Pair","args":[[{"prim":"Elt","args":[{"string":"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6"},{"int":"1000000"}]}],{"int":"1000000"}]}`),
+						KeyStrings: []string{
+							"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6",
+						},
+						ValueStrings: []string{
+							"tz1Mjstk27ppU7SH8eQHh8HU9wrg6dwvoFd6",
+						},
 					},
 				},
 			},

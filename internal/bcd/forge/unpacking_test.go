@@ -113,6 +113,11 @@ func TestCollectStrings(t *testing.T) {
 			tree:      `{"bytes":"050100000035697066733a2f2f516d585a4846695a5a35566747794c634b514c4d6b5032314e733855394e47316d6f707945777348446663575835"}`,
 			tryUnpack: true,
 			want:      []string{"ipfs://QmXZHFiZZ5VgGyLcKQLMkP21Ns8U9NG1mopyEwsHDfcWX5"},
+		}, {
+			name:      "tezos domain test",
+			tree:      `{"bytes":"62616c6c732e74657a"}`,
+			tryUnpack: true,
+			want:      []string{"balls.tez"},
 		},
 	}
 	for _, tt := range tests {

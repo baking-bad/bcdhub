@@ -173,11 +173,11 @@ func (b *Babylon) handleBigMapDiffUpdate(item noderpc.BigMapDiff, address string
 		Value:       types.Bytes(item.Value),
 	}
 
-	if err := b.addDiff(&bmd, ptr); err != nil {
+	if err := setBigMapDiffsStrings(&bmd); err != nil {
 		return err
 	}
 
-	if err := setBigMapDiffsStrings(&bmd); err != nil {
+	if err := b.addDiff(&bmd, ptr); err != nil {
 		return err
 	}
 

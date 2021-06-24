@@ -23,6 +23,10 @@ func newDecimal(val string) decimal.Decimal {
 	return i
 }
 
+func newInt64Ptr(val int64) *int64 {
+	return &val
+}
+
 func readJSONFile(name string, response interface{}) error {
 	bytes, err := ioutil.ReadFile(name)
 	if err != nil {
@@ -47,20 +51,27 @@ func readStorage(address string, level int64) ([]byte, error) {
 }
 
 func compareParserResponse(t *testing.T, got, want *parsers.Result) bool {
-	assert.Len(t, got.BigMapActions, len(want.BigMapActions))
-	assert.Len(t, got.BigMapState, len(want.BigMapState))
-	assert.Len(t, got.Contracts, len(want.Contracts))
-	assert.Len(t, got.Migrations, len(want.Migrations))
-	assert.Len(t, got.Operations, len(want.Operations))
-	assert.Len(t, got.TokenBalances, len(want.TokenBalances))
+	if !assert.Len(t, got.BigMapActions, len(want.BigMapActions)) {
+		return false
+	}
+	if !assert.Len(t, got.BigMapState, len(want.BigMapState)) {
+		return false
+	}
+	if !assert.Len(t, got.Contracts, len(want.Contracts)) {
+		return false
+	}
+	if !assert.Len(t, got.Migrations, len(want.Migrations)) {
+		return false
+	}
+	if !assert.Len(t, got.Operations, len(want.Operations)) {
+		return false
+	}
+	if !assert.Len(t, got.TokenBalances, len(want.TokenBalances)) {
+		return false
+	}
 
 	for i := range got.BigMapActions {
 		if !compareBigMapAction(want.BigMapActions[i], got.BigMapActions[i]) {
-			return false
-		}
-	}
-	for i := range got.BigMapState {
-		if !assert.Equal(t, want.BigMapState[i], got.BigMapState[i]) {
 			return false
 		}
 	}
@@ -81,6 +92,11 @@ func compareParserResponse(t *testing.T, got, want *parsers.Result) bool {
 	}
 	for i := range got.TokenBalances {
 		if !assert.Equal(t, want.TokenBalances[i], got.TokenBalances[i]) {
+			return false
+		}
+	}
+	for i := range got.BigMapState {
+		if !assert.Equal(t, want.BigMapState[i], got.BigMapState[i]) {
 			return false
 		}
 	}
@@ -303,6 +319,26 @@ func compareBigMapDiff(t *testing.T, one, two *bigmapdiff.BigMapDiff) bool {
 	}
 	if !assert.JSONEq(t, string(one.KeyBytes()), string(two.KeyBytes())) {
 		return false
+	}
+	if len(one.KeyStrings) != len(two.KeyStrings) {
+		logger.Info("KeyStrings: %v != %v", one.KeyStrings, two.KeyStrings)
+		return false
+	}
+	for i := range one.KeyStrings {
+		if one.KeyStrings[i] != two.KeyStrings[i] {
+			logger.Info("KeyStrings[i]: %v != %v", one.KeyStrings[i], two.KeyStrings[i])
+			return false
+		}
+	}
+	if len(one.ValueStrings) != len(two.ValueStrings) {
+		logger.Info("ValueStrings: %v != %v", one.ValueStrings, two.ValueStrings)
+		return false
+	}
+	for i := range one.ValueStrings {
+		if one.ValueStrings[i] != two.ValueStrings[i] {
+			logger.Info("ValueStrings[i]: %v != %v", one.ValueStrings[i], two.ValueStrings[i])
+			return false
+		}
 	}
 	return true
 }
