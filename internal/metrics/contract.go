@@ -9,14 +9,14 @@ import (
 )
 
 // SetContractProjectID -
-func (h *Handler) SetContractProjectID(c *contract.Contract, chunk []contract.Contract) error {
+func SetContractProjectID(contracts contract.Repository, c *contract.Contract, chunk []contract.Contract) error {
 	var offset int64
 
 	size := int64(25)
 
 	var end bool
 	for !end {
-		buckets, err := h.Contracts.GetProjectsLastContract(*c, size, offset)
+		buckets, err := contracts.GetProjectsLastContract(*c, size, offset)
 		if err != nil {
 			return err
 		}

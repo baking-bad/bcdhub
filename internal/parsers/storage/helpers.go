@@ -87,3 +87,31 @@ func createBigMapAst(key, value []byte, ptr int64) (*ast.BigMap, error) {
 	}
 	return bigMap, nil
 }
+
+func getStrings(data []byte) ([]string, error) {
+	if len(data) == 0 {
+		return nil, nil
+	}
+	var tree ast.UntypedAST
+	if err := json.Unmarshal(data, &tree); err != nil {
+		return nil, err
+	}
+	return tree.GetStrings(true)
+}
+
+func setBigMapDiffsStrings(bmd *bigmapdiff.BigMapDiff) error {
+	keyStrings, err := getStrings(bmd.KeyBytes())
+	if err != nil {
+		return err
+	}
+	bmd.KeyStrings = keyStrings
+
+	if bmd.Value != nil {
+		valStrings, err := getStrings(bmd.ValueBytes())
+		if err != nil {
+			return err
+		}
+		bmd.ValueStrings = valStrings
+	}
+	return nil
+}

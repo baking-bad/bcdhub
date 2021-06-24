@@ -176,6 +176,11 @@ func (b *Babylon) handleBigMapDiffUpdate(item noderpc.BigMapDiff, address string
 	if err := b.addDiff(&bmd, ptr); err != nil {
 		return err
 	}
+
+	if err := setBigMapDiffsStrings(&bmd); err != nil {
+		return err
+	}
+
 	if ptr > -1 {
 		operation.BigMapDiffs = append(operation.BigMapDiffs, &bmd)
 		res.BigMapState = append(res.BigMapState, bmd.ToState())
@@ -223,6 +228,10 @@ func (b *Babylon) handleBigMapDiffCopy(item noderpc.BigMapDiff, address string, 
 				return err
 			}
 
+			if err := setBigMapDiffsStrings(&bmd[i]); err != nil {
+				return err
+			}
+
 			if destinationPtr > -1 {
 				operation.BigMapDiffs = append(operation.BigMapDiffs, &bmd[i])
 				res.BigMapState = append(res.BigMapState, bmd[i].ToState())
@@ -249,6 +258,10 @@ func (b *Babylon) handleBigMapDiffRemove(item noderpc.BigMapDiff, address string
 		bmd.Level = operation.Level
 		bmd.Timestamp = operation.Timestamp
 		bmd.ProtocolID = operation.ProtocolID
+
+		if err := setBigMapDiffsStrings(&bmd); err != nil {
+			return err
+		}
 
 		operation.BigMapDiffs = append(operation.BigMapDiffs, &bmd)
 		res.BigMapState = append(res.BigMapState, &states[i])
