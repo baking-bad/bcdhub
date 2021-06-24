@@ -10,7 +10,6 @@ type GeneralRepository interface {
 	GetByID(output Model) error
 	GetByNetwork(network types.Network, index string) ([]Model, error)
 	UpdateDoc(model Model) (err error)
-	UpdateFields(index string, id int64, data interface{}, fields ...string) error
 
 	GetNetworkCountStats(network types.Network) (map[string]int64, error)
 	GetDateHistogram(period string, opts ...HistogramOption) ([][]float64, error)

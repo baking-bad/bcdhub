@@ -14,12 +14,6 @@ func (p *Postgres) UpdateDoc(model models.Model) error {
 	return p.DB.Where("id = ?", model.GetID()).Updates(el).Error
 }
 
-// UpdateFields -
-func (p *Postgres) UpdateFields(index string, id int64, data interface{}, fields ...string) error {
-	updates := GetFieldsForModel(data, fields...)
-	return p.DB.Table(index).Where("id = ?", id).Updates(updates).Error
-}
-
 // GetFieldsForModel -
 func GetFieldsForModel(data interface{}, fields ...string) map[string]interface{} {
 	t := reflect.TypeOf(data)

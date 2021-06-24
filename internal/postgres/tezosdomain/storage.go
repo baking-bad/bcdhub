@@ -30,6 +30,7 @@ func (storage *Storage) ListDomains(network types.Network, size, offset int64) (
 
 	err := storage.DB.Table(models.DocTezosDomains).
 		Where("network = ?", network).
+		Order("level desc").
 		Limit(limit).
 		Offset(int(offset)).
 		Find(&response.Domains).

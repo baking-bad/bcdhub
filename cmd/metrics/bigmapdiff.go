@@ -58,7 +58,7 @@ func initHandlers() {
 		contractHandlers.NewTZIP(ctx.BigMapDiffs, ctx.Blocks, ctx.Storage, ctx.TZIP, ctx.RPC, ctx.SharePath, ctx.Config.IPFSGateways),
 	)
 	bigMapDiffHandlers = append(bigMapDiffHandlers,
-		contractHandlers.NewTezosDomains(ctx.Storage, ctx.Operations, ctx.TezosDomainsContracts, ctx.SharePath),
+		contractHandlers.NewTezosDomains(ctx.Storage, ctx.Operations, ctx.TezosDomainsContracts),
 	)
 }
 

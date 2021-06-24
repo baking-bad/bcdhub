@@ -119,25 +119,6 @@ func (mr *MockGeneralRepositoryMockRecorder) UpdateDoc(model interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateDoc", reflect.TypeOf((*MockGeneralRepository)(nil).UpdateDoc), model)
 }
 
-// UpdateFields mocks base method
-func (m *MockGeneralRepository) UpdateFields(index string, id int64, data interface{}, fields ...string) error {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{index, id, data}
-	for _, a := range fields {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "UpdateFields", varargs...)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateFields indicates an expected call of UpdateFields
-func (mr *MockGeneralRepositoryMockRecorder) UpdateFields(index, id, data interface{}, fields ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{index, id, data}, fields...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFields", reflect.TypeOf((*MockGeneralRepository)(nil).UpdateFields), varargs...)
-}
-
 // GetEvents mocks base method
 func (m *MockGeneralRepository) GetEvents(arg0 []models.SubscriptionRequest, arg1, arg2 int64) ([]models.Event, error) {
 	m.ctrl.T.Helper()
