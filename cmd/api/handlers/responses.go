@@ -711,11 +711,11 @@ type TezosDomain struct {
 // FromModel -
 func (td *TezosDomain) FromModel(domain tezosdomain.TezosDomain) {
 	td.Name = domain.Name
-	td.Expiration = domain.Expiration
+	td.Expiration = domain.Expiration.UTC()
 	td.Network = domain.Network.String()
 	td.Address = domain.Address
 	td.Level = domain.Level
-	td.Timestamp = domain.Timestamp
+	td.Timestamp = domain.Timestamp.UTC()
 	td.Data = domain.Data
 }
 

@@ -10,11 +10,11 @@ import (
 
 // TezosDomain -
 type TezosDomain struct {
-	ID         int64         `json:"-"`
-	Name       string        `json:"name"`
+	ID         int64         `json:"-" gorm:"autoIncrement:true"`
+	Name       string        `json:"name" gorm:"primaryKey"`
+	Network    types.Network `json:"network" gorm:"primaryKey;type:SMALLINT"`
 	Expiration time.Time     `json:"expiration"`
-	Network    types.Network `json:"network" gorm:"type:SMALLINT"`
-	Address    string        `json:"address"`
+	Address    string        `json:"address" gorm:"index:tezos_domains_address_idx"`
 	Level      int64         `json:"level"`
 	Timestamp  time.Time     `json:"timestamp"`
 	Data       types.JSONB   `json:"data,omitempty" sql:"type:jsonb"`
@@ -32,9 +32,28 @@ func (t *TezosDomain) GetIndex() string {
 
 // Save -
 func (t *TezosDomain) Save(tx *gorm.DB) error {
+	var s clause.Set
+
+	if t.Address != "" {
+		s = clause.Assignments(map[string]interface{}{
+			"address":   t.Address,
+			"level":     t.Level,
+			"timestamp": t.Timestamp,
+			"data":      t.Data,
+		})
+	} else {
+		s = clause.Assignments(map[string]interface{}{
+			"expiration": t.Expiration,
+		})
+	}
+
 	return tx.Clauses(clause.OnConflict{
-		UpdateAll: true,
-	}).Save(t).Error
+		Columns: []clause.Column{
+			{Name: "network"},
+			{Name: "name"},
+		},
+		DoUpdates: s,
+	}).Create(t).Error
 }
 
 // GetQueues -
