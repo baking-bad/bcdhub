@@ -201,11 +201,16 @@ type entrypointSchemaRequest struct {
 }
 
 type forkRequest struct {
-	Address string        `json:"address" binding:"required_with=Network,omitempty,address"`
-	Network types.Network `json:"network" binding:"required_with=Address,omitempty,network"`
-	Script  string        `json:"script" binding:"omitempty"`
+	Address string `json:"address" binding:"required_with=Network,omitempty,address"`
+	Network string `json:"network" binding:"required_with=Address,omitempty,network"`
+	Script  string `json:"script" binding:"omitempty"`
 
 	Storage map[string]interface{} `json:"storage" binding:"required"`
+}
+
+// NetworkID -
+func (req forkRequest) NetworkID() types.Network {
+	return types.NewNetwork(req.Network)
 }
 
 type storageRequest struct {

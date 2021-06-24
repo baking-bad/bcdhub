@@ -28,7 +28,7 @@ func (ctx *Context) buildStorageDataFromForkRequest(req forkRequest) (*ForkRespo
 	if req.Script != "" {
 		scriptData = []byte(req.Script)
 	} else {
-		scriptData, err = ctx.getScriptBytes(req.Network, req.Address, "")
+		scriptData, err = ctx.getScriptBytes(req.NetworkID(), req.Address, "")
 		if err != nil {
 			return nil, err
 		}
