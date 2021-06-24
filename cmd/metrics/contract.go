@@ -25,7 +25,7 @@ func getContract(ids []int64) error {
 		updates = append(updates, res...)
 	}
 
-	logger.Info("Metrics of %d contracts are computed", len(contracts))
+	logger.Info("%2d contracts are processed", len(contracts))
 
 	if err := saveSearchModels(ctx.Searcher, updates); err != nil {
 		return err
@@ -39,8 +39,7 @@ func parseContract(contract *contract.Contract, chunk []contract.Contract) ([]mo
 		return nil, nil
 	}
 
-	h := metrics.New(ctx.Contracts, ctx.Blocks, ctx.Operations, ctx.TokenBalances, ctx.TZIP, ctx.Storage)
-	if err := h.SetContractProjectID(contract, chunk); err != nil {
+	if err := metrics.SetContractProjectID(ctx.Contracts, contract, chunk); err != nil {
 		return nil, errors.Errorf("[parseContract] Error during set contract projectID: %s", err)
 	}
 

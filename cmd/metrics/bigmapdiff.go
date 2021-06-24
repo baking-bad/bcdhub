@@ -5,7 +5,6 @@ import (
 
 	contractHandlers "github.com/baking-bad/bcdhub/internal/handlers"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/metrics"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/pkg/errors"
@@ -30,13 +29,25 @@ func getBigMapDiff(ids []int64) error {
 		}
 		items = append(items, res...)
 	}
-	logger.Info("%d big map diff processed        models=%d", len(bmd), len(items))
 
-	if err := saveSearchModels(ctx.Searcher, items); err != nil {
-		return err
+	logger.WithField("models", len(items)).Infof("%2d big map diff processed", len(bmd))
+
+	if len(items) > 0 {
+		if err := ctx.Storage.Save(items); err != nil {
+			return err
+		}
 	}
 
-	return ctx.Storage.Save(items)
+	for i := range bmd {
+		if len(bmd[i].KeyStrings) > 0 || len(bmd[i].ValueStrings) > 0 {
+			items = append(items, &bmd[i])
+		}
+	}
+
+	if len(items) > 0 {
+		return saveSearchModels(ctx.Searcher, items)
+	}
+	return nil
 }
 
 func initHandlers() {
@@ -52,16 +63,7 @@ func initHandlers() {
 }
 
 func parseBigMapDiff(bmd bigmapdiff.BigMapDiff) ([]models.Model, error) {
-	h := metrics.New(ctx.Contracts, ctx.Blocks, ctx.Operations, ctx.TokenBalances, ctx.TZIP, ctx.Storage)
-
-	if err := h.SetBigMapDiffsStrings(&bmd); err != nil {
-		return nil, err
-	}
-
 	items := make([]models.Model, 0)
-	if len(bmd.KeyStrings) > 0 || len(bmd.ValueStrings) > 0 {
-		items = append(items, &bmd)
-	}
 
 	storageType, err := getStorageType(bmd)
 	if err != nil {
