@@ -294,11 +294,7 @@ func (ctx *Context) GetContractStorageSchema(c *gin.Context) {
 			return
 		}
 
-		var storageData ast.UntypedAST
-		if err := json.Unmarshal(storage, &storageData); ctx.handleError(c, err, 0) {
-			return
-		}
-		if err := storageType.Settle(storageData); ctx.handleError(c, err, 0) {
+		if err := storageType.SettleFromBytes(storage); ctx.handleError(c, err, 0) {
 			return
 		}
 

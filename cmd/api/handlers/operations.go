@@ -335,6 +335,9 @@ func (ctx *Context) PrepareOperations(ops []operation.Operation, withStorageDiff
 }
 
 func setParameters(data []byte, script *ast.Script, op *Operation) error {
+	if len(data) == 0 {
+		return nil
+	}
 	params := types.NewParameters(data)
 	return setParatemetersWithType(params, script, op)
 }

@@ -14,17 +14,17 @@ import (
 
 // Default -
 type Default struct {
+	ValueKind int
+	ID        int
+	ArgsCount int
+	Depth     int
+
+	Annots    []string
 	Prim      string
 	TypeName  string
 	FieldName string
 
-	Value     interface{}
-	ValueKind int
-	ID        int
-
-	ArgsCount int
-	Depth     int
-	Annots    []string
+	Value interface{}
 }
 
 // NewDefault -

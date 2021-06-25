@@ -149,10 +149,28 @@ func (p *Pair) ToJSONSchema() (*JSONSchema, error) {
 	s := &JSONSchema{
 		Type:       JSONSchemaTypeObject,
 		Properties: map[string]*JSONSchema{},
+		Required:   []string{},
 	}
+
+	if p.IsNamed() {
+		s.Title = p.GetName()
+		s.XOptions = map[string]interface{}{
+			"sectionsClass": "pl-0",
+		}
+	}
+
 	for _, arg := range p.Args {
-		if err := setChildSchema(arg, false, s); err != nil {
+		child, err := arg.ToJSONSchema()
+		if err != nil {
 			return nil, err
+		}
+
+		switch arg.(type) {
+		case *Pair, *Or, *Contract, *Option:
+			s.Properties[arg.GetName()] = child
+		default:
+			fields := mergePropertiesMap(child.Properties, s.Properties, false, false)
+			s.Required = append(s.Required, fields.reqs...)
 		}
 	}
 
@@ -162,7 +180,15 @@ func (p *Pair) ToJSONSchema() (*JSONSchema, error) {
 // FromJSONSchema -
 func (p *Pair) FromJSONSchema(data map[string]interface{}) error {
 	for i := range p.Args {
-		if err := p.Args[i].FromJSONSchema(data); err != nil {
+		obj, ok := data[p.GetName()]
+		if !ok {
+			return errors.Errorf("can't find '%s' key", p.GetName())
+		}
+		typ, ok := obj.(map[string]interface{})
+		if !ok {
+			return errors.Errorf("invalid type '%s' key", p.GetName())
+		}
+		if err := p.Args[i].FromJSONSchema(typ); err != nil {
 			return err
 		}
 	}
@@ -385,7 +411,9 @@ func (p *Pair) GetJSONModel(model JSONModel) {
 	if model == nil {
 		return
 	}
+	data := make(JSONModel)
 	for i := range p.Args {
-		p.Args[i].GetJSONModel(model)
+		p.Args[i].GetJSONModel(data)
 	}
+	model[p.GetName()] = data
 }

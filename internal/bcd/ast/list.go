@@ -117,7 +117,6 @@ func (list *List) ToJSONSchema() (*JSONSchema, error) {
 	s := &JSONSchema{
 		Prim:    list.Prim,
 		Type:    JSONSchemaTypeArray,
-		Title:   list.GetName(),
 		Default: make([]interface{}, 0),
 		Items: &SchemaKey{
 			Type:       JSONSchemaTypeObject,
@@ -125,13 +124,27 @@ func (list *List) ToJSONSchema() (*JSONSchema, error) {
 			Properties: make(map[string]*JSONSchema),
 		},
 		Properties: make(map[string]*JSONSchema),
+		Required:   []string{},
 	}
 
-	if err := setChildSchema(list.Type, true, s); err != nil {
+	child, err := list.Type.ToJSONSchema()
+	if err != nil {
 		return nil, err
 	}
 
-	return wrapObject(s), nil
+	switch list.Type.(type) {
+	case *Address, *Nat, *Mutez, *Int, *BakerHash, *BLS12381fr, *BLS12381g1, *BLS12381g2, *Bytes, *Key, *KeyHash, *ChainID, *Lambda, *Signature, *String:
+		s.Items.Properties = child.Properties
+	default:
+		s.Items.Properties[list.Type.GetName()] = child
+	}
+
+	return &JSONSchema{
+		Type: JSONSchemaTypeObject,
+		Properties: map[string]*JSONSchema{
+			list.GetName(): s,
+		},
+	}, nil
 }
 
 // FromJSONSchema -

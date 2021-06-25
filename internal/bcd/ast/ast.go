@@ -177,9 +177,11 @@ func (a *TypedAst) ToJSONSchema() (*JSONSchema, error) {
 	}
 
 	for i := range a.Nodes {
-		if err := setChildSchema(a.Nodes[i], false, s); err != nil {
+		child, err := a.Nodes[i].ToJSONSchema()
+		if err != nil {
 			return nil, err
 		}
+		s.Properties[a.Nodes[i].GetName()] = child
 	}
 
 	return s, nil
@@ -438,6 +440,11 @@ func (a *TypedAst) ParametersForExecution(entrypoint string, data map[string]int
 }
 
 func settleForExecution(node Node, data map[string]interface{}, entrypoint string) (*types.Parameters, error) {
+	if node.IsNamed() && node.IsPrim(consts.PAIR) {
+		data = map[string]interface{}{
+			node.GetName(): data,
+		}
+	}
 	if err := node.FromJSONSchema(data); err != nil {
 		return nil, err
 	}
