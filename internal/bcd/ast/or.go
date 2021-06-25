@@ -181,13 +181,12 @@ func (or *Or) ToJSONSchema() (*JSONSchema, error) {
 			key = rightKey
 		}
 
-		if child.Prim == consts.OR {
+		if arg.IsPrim(consts.OR) {
 			for i := range child.OneOf {
 				child.OneOf[i].Properties["schemaKey"].Const = string(key) + child.OneOf[i].Properties["schemaKey"].Const
 				oneOf = append(oneOf, child.OneOf[i])
 			}
 		} else {
-
 			item := &JSONSchema{
 				Title: arg.GetName(),
 				Properties: map[string]*JSONSchema{
@@ -198,7 +197,11 @@ func (or *Or) ToJSONSchema() (*JSONSchema, error) {
 				},
 			}
 
-			if child.Prim != consts.UNIT {
+			switch {
+			case arg.IsPrim(consts.OPTION):
+				item.Properties[arg.GetName()] = child
+			case arg.IsPrim(consts.UNIT):
+			default:
 				for key, value := range child.Properties {
 					item.Properties[key] = value
 				}

@@ -71,7 +71,7 @@ func (set *Set) ParseType(node *base.Node, id *int) error {
 // ParseValue -
 func (set *Set) ParseValue(node *base.Node) error {
 	if node.Prim != consts.PrimArray {
-		return errors.Wrap(consts.ErrInvalidPrim, "List.ParseValue")
+		return errors.Wrap(consts.ErrInvalidPrim, "Set.ParseValue")
 	}
 
 	set.Data = make([]Node, 0)
@@ -116,7 +116,6 @@ func (set *Set) ToJSONSchema() (*JSONSchema, error) {
 	s := &JSONSchema{
 		Prim:    set.Prim,
 		Type:    JSONSchemaTypeArray,
-		Title:   set.GetName(),
 		Default: make([]interface{}, 0),
 		Items: &SchemaKey{
 			Type:       JSONSchemaTypeObject,
@@ -124,10 +123,19 @@ func (set *Set) ToJSONSchema() (*JSONSchema, error) {
 			Properties: make(map[string]*JSONSchema),
 		},
 		Properties: make(map[string]*JSONSchema),
+		Required:   []string{},
 	}
 
-	if err := setChildSchema(set.Type, true, s); err != nil {
+	child, err := set.Type.ToJSONSchema()
+	if err != nil {
 		return nil, err
+	}
+
+	switch set.Type.(type) {
+	case *Address, *Nat, *Mutez, *Int, *BakerHash, *BLS12381fr, *BLS12381g1, *BLS12381g2, *Bytes, *Key, *KeyHash, *ChainID, *Lambda, *Signature, *String:
+		s.Items.Properties = child.Properties
+	default:
+		s.Items.Properties[set.Type.GetName()] = child
 	}
 
 	return &JSONSchema{

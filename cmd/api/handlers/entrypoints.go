@@ -160,7 +160,7 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 			return
 		}
 		if esReq.FillType != "latest" {
-			continue
+			break
 		}
 
 		op, err := ctx.Operations.Get(
@@ -169,6 +169,7 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 				"destination": req.Address,
 				"kind":        modelTypes.OperationKindTransaction,
 				"entrypoint":  esReq.EntrypointName,
+				"status":      modelTypes.OperationStatusApplied,
 			},
 			1,
 			true,
@@ -182,17 +183,18 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 
 		if op[0].Parameters != nil {
 			parameters := types.NewParameters(op[0].Parameters)
-			var data ast.UntypedAST
-			if err := json.Unmarshal(parameters.Value, &data); ctx.handleError(c, err, 0) {
+			subTree, err := parameter.FromParameters(parameters)
+			if ctx.handleError(c, err, 0) {
 				return
 			}
-			if err := e.ParseValue(data[0]); ctx.handleError(c, err, 0) {
-				return
+
+			node, _ := subTree.UnwrapAndGetEntrypointName()
+			schema.DefaultModel = make(ast.JSONModel)
+			node.GetJSONModel(schema.DefaultModel)
+			if val, ok := schema.DefaultModel[esReq.EntrypointName]; node.IsPrim("pair") && ok {
+				schema.DefaultModel = val.(ast.JSONModel)
 			}
 		}
-
-		schema.DefaultModel = make(ast.JSONModel)
-		e.GetJSONModel(schema.DefaultModel)
 	}
 
 	c.JSON(http.StatusOK, schema)

@@ -35,6 +35,7 @@ type JSONSchema struct {
 	Const      string                 `json:"const,omitempty"`
 	SchemaKey  *SchemaKey             `json:"schemaKey,omitempty"`
 	Items      *SchemaKey             `json:"items,omitempty"`
+	XOptions   map[string]interface{} `json:"x-options,omitempty"`
 }
 
 // SchemaKey -
@@ -131,36 +132,6 @@ func mergePropertiesMap(src, dest map[string]*JSONSchema, required, needXTitle b
 		}
 	}
 	return &fields
-}
-
-func setChildSchema(child Node, required bool, parent *JSONSchema) error {
-	s, err := child.ToJSONSchema()
-	if err != nil {
-		return err
-	}
-
-	switch {
-	case parent.Type == JSONSchemaTypeArray:
-		if parent.Items.Properties == nil {
-			parent.Items.Properties = make(map[string]*JSONSchema)
-		}
-		if parent.Items.Required == nil {
-			parent.Items.Required = make([]string, 0)
-		}
-		fields := mergePropertiesMap(s.Properties, parent.Items.Properties, required, false)
-		parent.Items.Required = append(parent.Items.Required, fields.reqs...)
-		if len(parent.Items.Properties) == 0 {
-			parent.Items.Properties[child.GetName()] = s
-		}
-		return nil
-	case len(s.Properties) == 0:
-		parent.Properties[child.GetName()] = s
-		return nil
-	default:
-		fields := mergePropertiesMap(s.Properties, parent.Properties, required, false)
-		parent.Required = append(parent.Required, fields.reqs...)
-		return nil
-	}
 }
 
 func setChildSchemaForMap(child Node, needXTitle bool, parent *JSONSchema) error {
