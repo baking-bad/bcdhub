@@ -112,7 +112,7 @@ func (storage *Storage) GetByAddresses(addresses []contract.Address) (response [
 }
 
 // GetProjectsLastContract -
-func (storage *Storage) GetProjectsLastContract(c contract.Contract, size, offset int64) (response []contract.Contract, err error) {
+func (storage *Storage) GetProjectsLastContract(c contract.Contract, size, offset int64) (response []*contract.Contract, err error) {
 	if c.FingerprintCode == nil || c.FingerprintParameter == nil || c.FingerprintStorage == nil {
 		return nil, nil
 	}
@@ -285,12 +285,6 @@ func (storage *Storage) Stats(c contract.Contract) (stats contract.Stats, err er
 		Group("hash").
 		Count(&stats.SimilarCount).
 		Error
-	return
-}
-
-// GetByIDs -
-func (storage *Storage) GetByIDs(ids ...int64) (result []contract.Contract, err error) {
-	err = storage.DB.Table(models.DocContracts).Order("id asc").Find(&result, ids).Error
 	return
 }
 

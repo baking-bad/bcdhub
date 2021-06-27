@@ -13,13 +13,13 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/service"
 	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
-	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/pinata"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
@@ -30,7 +30,6 @@ import (
 
 // Context -
 type Context struct {
-	MQ           mq.Mediator
 	AWS          *aws.Client
 	RPC          map[types.Network]noderpc.INode
 	TzKTServices map[types.Network]tzkt.Service
@@ -59,6 +58,7 @@ type Context struct {
 	Transfers     transfer.Repository
 	TZIP          tzip.Repository
 	Domains       domains.Repository
+	Services      service.Repository
 
 	Searcher search.Searcher
 
@@ -95,9 +95,6 @@ func (ctx *Context) GetTzKTService(network types.Network) (tzkt.Service, error) 
 
 // Close -
 func (ctx *Context) Close() {
-	if ctx.MQ != nil {
-		ctx.MQ.Close()
-	}
 	if ctx.StorageDB != nil {
 		ctx.StorageDB.Close()
 	}

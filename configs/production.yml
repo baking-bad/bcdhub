@@ -24,10 +24,6 @@ tzkt:
     base_uri: https://edo2net.tzkt.io/
     timeout: 20
 
-rabbitmq:
-  uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@${RABBITMQ_HOSTNAME:-mq}:5672/"
-  timeout: 10
-
 storage:
   pg: "host=${DB_HOSTNAME:-db} port=5432 user=${POSTGRES_USER} dbname=indexer password=${POSTGRES_PASSWORD} sslmode=disable"
   elastic:
@@ -81,8 +77,6 @@ indexer:
   project_name: indexer
   sentry_enabled: true
   skip_delegator_blocks: false
-  mq:
-    publisher: true
   networks:
     mainnet:
       boost: tzkt
@@ -94,15 +88,6 @@ metrics:
   project_name: metrics
   sentry_enabled: true
   cache_aliases_seconds: 30
-  mq:
-    publisher: false
-    queues:
-      operations:
-        lazy: true
-      contracts:
-        lazy: true
-      bigmapdiffs:
-        lazy: true
 
 scripts:
   aws:
@@ -115,8 +100,6 @@ scripts:
     - edo2net
     - florencenet
     - granadanet
-  mq:
-    publisher: true
 
 graphql:
   db: "host=${DB_HOSTNAME} port=5432 user=graphql dbname=indexer password=${POSTGRES_GRAPHQL} sslmode=disable"

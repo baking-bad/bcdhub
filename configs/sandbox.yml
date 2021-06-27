@@ -9,10 +9,6 @@ storage:
     - http://${ELASTIC_HOSTNAME:-elastic}:9200
   timeout: 10
 
-rabbitmq:
-  uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@${RABBITMQ_HOSTNAME:-mq}:5672/"
-  timeout: 10
-
 share_path: /etc/bcd
 
 base_url: http://localhost:8000
@@ -69,8 +65,6 @@ indexer:
   project_name: indexer
   sentry_enabled: false
   skip_delegator_blocks: false
-  mq:
-    publisher: true
   networks:
     sandboxnet:
 
@@ -78,21 +72,10 @@ metrics:
   project_name: metrics
   sentry_enabled: false
   cache_aliases_seconds: 30
-  mq:
-    publisher: false
-    queues:
-      operations:
-        lazy: true
-      contracts:
-        lazy: true
-      bigmapdiffs:
-        lazy: true
 
 scripts:
   networks:
     - sandboxnet
-  mq:
-    publisher: true
 
 graphql:
   db: "host=${DB_HOSTNAME} port=5432 user=graphql dbname=indexer password=${POSTGRES_GRAPHQL} sslmode=disable"

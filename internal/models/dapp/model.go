@@ -48,16 +48,6 @@ func (d *DApp) Save(tx *gorm.DB) error {
 	}).Save(d).Error
 }
 
-// GetQueues -
-func (d *DApp) GetQueues() []string {
-	return nil
-}
-
-// MarshalToQueue -
-func (d *DApp) MarshalToQueue() ([]byte, error) {
-	return nil, nil
-}
-
 // LogFields -
 func (d *DApp) LogFields() map[string]interface{} {
 	return map[string]interface{}{

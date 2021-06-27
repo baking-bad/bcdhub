@@ -1,12 +1,25 @@
-package main
+package services
 
 import (
+	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/search"
+	"gorm.io/gorm"
 )
 
-func saveSearchModels(searcher search.Searcher, items []models.Model) error {
+func getModels(db *gorm.DB, table string, lastID, size int64, output interface{}) error {
+	query := db.Table(table).Order("id asc")
+	if lastID > 0 {
+		query.Where("id > ?", lastID)
+	}
+	if size == 0 || size > 1000 {
+		size = 10
+	}
+	return query.Limit(int(size)).Find(&output).Error
+}
+
+func saveSearchModels(ctx *config.Context, items []models.Model) error {
 	data := search.Prepare(items)
 
 	for i := range data {
@@ -21,5 +34,5 @@ func saveSearchModels(searcher search.Searcher, items []models.Model) error {
 		}
 	}
 
-	return searcher.Save(data)
+	return ctx.Searcher.Save(data)
 }

@@ -20,18 +20,6 @@ services:
         max-size: 10m
         max-file: "5"
 
-  mq:
-    image: rabbitmq:latest
-    hostname: mq
-    restart: always
-    volumes:
-      - mqdata:/var/lib/rabbitmq
-    env_file:
-      - .env
-    ports:
-      - "127.0.0.1:${RABBITMQ_PORT}:5672"
-    logging: *bcd-logging
-
   db:
     image: bakingbad/bcdhub-db:${TAG:-latest}
     shm_size: 1g

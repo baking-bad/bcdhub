@@ -75,16 +75,6 @@ func (b *BigMapState) Save(tx *gorm.DB) error {
 	}).Create(b).Error
 }
 
-// GetQueues -
-func (b *BigMapState) GetQueues() []string {
-	return nil
-}
-
-// MarshalToQueue -
-func (b *BigMapState) MarshalToQueue() ([]byte, error) {
-	return nil, nil
-}
-
 // LogFields -
 func (b *BigMapState) LogFields() map[string]interface{} {
 	return map[string]interface{}{

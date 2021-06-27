@@ -1,7 +1,6 @@
 package bigmapdiff
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -43,16 +42,6 @@ func (b *BigMapDiff) Save(tx *gorm.DB) error {
 	return tx.Clauses(clause.OnConflict{
 		UpdateAll: true,
 	}).Save(b).Error
-}
-
-// GetQueues -
-func (b *BigMapDiff) GetQueues() []string {
-	return []string{"bigmapdiffs", "bigmapdiffs.tezos_domain", "bigmapdiffs.token_metadata", "bigmapdiffs.contract_metadata", "bigmapdiffs.ledger"}
-}
-
-// MarshalToQueue -
-func (b *BigMapDiff) MarshalToQueue() ([]byte, error) {
-	return []byte(fmt.Sprintf("%d", b.ID)), nil
 }
 
 // LogFields -

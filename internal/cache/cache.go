@@ -54,6 +54,11 @@ func (cache *Cache) ScriptBytesKey(network types.Network, address string) string
 	return fmt.Sprintf("script_bytes:%d:%s", network, address)
 }
 
+// StorageType -
+func (cache *Cache) StorageType(network types.Network, address string) string {
+	return fmt.Sprintf("storage:%d:%s", network, address)
+}
+
 // ProtocolByHashKey -
 func (cache *Cache) ProtocolByHashKey(network types.Network, id int64) string {
 	return fmt.Sprintf("protocol_hash:%d:%d", network, id)

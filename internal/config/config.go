@@ -23,7 +23,6 @@ type Config struct {
 	RPC          map[string]RPCConfig  `yaml:"rpc"`
 	TzKT         map[string]TzKTConfig `yaml:"tzkt"`
 	Storage      StorageConfig         `yaml:"storage"`
-	RabbitMQ     RabbitConfig          `yaml:"rabbitmq"`
 	Sentry       SentryConfig          `yaml:"sentry"`
 	SharePath    string                `yaml:"share_path"`
 	BaseURL      string                `yaml:"base_url"`
@@ -39,21 +38,18 @@ type Config struct {
 		ProjectName   string `yaml:"project_name"`
 		SentryEnabled bool   `yaml:"sentry_enabled"`
 
-		SkipDelegatorBlocks bool     `yaml:"skip_delegator_blocks"`
-		MQ                  MQConfig `yaml:"mq"`
+		SkipDelegatorBlocks bool `yaml:"skip_delegator_blocks"`
 	} `yaml:"indexer"`
 
 	Metrics struct {
-		ProjectName         string   `yaml:"project_name"`
-		SentryEnabled       bool     `yaml:"sentry_enabled"`
-		CacheAliasesSeconds int      `yaml:"cache_aliases_seconds"`
-		MQ                  MQConfig `yaml:"mq"`
+		ProjectName         string `yaml:"project_name"`
+		SentryEnabled       bool   `yaml:"sentry_enabled"`
+		CacheAliasesSeconds int    `yaml:"cache_aliases_seconds"`
 	} `yaml:"metrics"`
 
 	Scripts struct {
 		AWS      AWSConfig `yaml:"aws"`
 		Networks []string  `yaml:"networks"`
-		MQ       MQConfig  `yaml:"mq"`
 	} `yaml:"scripts"`
 
 	GraphQL struct {
@@ -80,12 +76,6 @@ type StorageConfig struct {
 	Postgres string   `yaml:"pg"`
 	Elastic  []string `yaml:"elastic"`
 	Timeout  int      `yaml:"timeout"`
-}
-
-// RabbitConfig -
-type RabbitConfig struct {
-	URI     string `yaml:"uri"`
-	Timeout int    `yaml:"timeout"`
 }
 
 // DatabaseConfig -

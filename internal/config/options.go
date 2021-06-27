@@ -16,6 +16,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/postgres/migration"
 	"github.com/baking-bad/bcdhub/internal/postgres/operation"
 	"github.com/baking-bad/bcdhub/internal/postgres/protocol"
+	"github.com/baking-bad/bcdhub/internal/postgres/service"
 	"github.com/baking-bad/bcdhub/internal/postgres/tezosdomain"
 	"github.com/baking-bad/bcdhub/internal/postgres/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/postgres/tokenmetadata"
@@ -26,7 +27,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/postgres/block"
 	pgCore "github.com/baking-bad/bcdhub/internal/postgres/core"
 
-	"github.com/baking-bad/bcdhub/internal/mq"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/pinata"
 	"github.com/baking-bad/bcdhub/internal/tzkt"
@@ -77,6 +77,7 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64) ContextOp
 		ctx.Transfers = transfer.NewStorage(pg)
 		ctx.TZIP = tzip.NewStorage(pg)
 		ctx.Domains = domains.NewStorage(pg)
+		ctx.Services = service.NewStorage(pg)
 	}
 }
 
@@ -86,29 +87,6 @@ func WithSearch(cfg StorageConfig) ContextOption {
 		ctx.Searcher = elastic.WaitNew(cfg.Elastic, cfg.Timeout)
 	}
 
-}
-
-// WithRabbit -
-func WithRabbit(rabbitConfig RabbitConfig, service string, mqConfig MQConfig) ContextOption {
-	return func(ctx *Context) {
-		mqueues := make([]mq.Queue, 0)
-		for name, params := range mqConfig.Queues {
-			q := mq.Queue{
-				Name:       name,
-				AutoDelete: params.AutoDeleted,
-				Durable:    !params.NonDurable,
-				Lazy:       params.Lazy,
-			}
-
-			if params.TTLSeconds > 0 {
-				q.TTLSeconds = params.TTLSeconds
-			}
-
-			mqueues = append(mqueues, q)
-		}
-
-		ctx.MQ = mq.New(rabbitConfig.URI, service, mqConfig.NeedPublisher, rabbitConfig.Timeout, mqueues...)
-	}
 }
 
 // WithShare -

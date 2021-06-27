@@ -14,16 +14,6 @@ services:
         max-size: 10m
         max-file: "5"
 
-  mq:
-    image: rabbitmq:latest
-    restart: always
-    volumes:
-      - mqdata:/var/lib/rabbitmq
-    environment:
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
-    logging: *bcd-logging
-
   db:
     image: postgres:12
     shm_size: 1g

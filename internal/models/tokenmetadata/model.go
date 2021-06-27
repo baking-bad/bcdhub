@@ -81,16 +81,6 @@ func (t *TokenMetadata) Save(tx *gorm.DB) error {
 	}).Save(t).Error
 }
 
-// GetQueues -
-func (t *TokenMetadata) GetQueues() []string {
-	return nil
-}
-
-// MarshalToQueue -
-func (t *TokenMetadata) MarshalToQueue() ([]byte, error) {
-	return nil, nil
-}
-
 // LogFields -
 func (t *TokenMetadata) LogFields() map[string]interface{} {
 	return map[string]interface{}{

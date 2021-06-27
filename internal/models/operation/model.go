@@ -1,7 +1,6 @@
 package operation
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
@@ -83,16 +82,6 @@ func (o *Operation) Save(tx *gorm.DB) error {
 	return tx.Clauses(clause.OnConflict{
 		UpdateAll: true,
 	}).Save(o).Error
-}
-
-// GetQueues -
-func (o *Operation) GetQueues() []string {
-	return []string{"operations"}
-}
-
-// MarshalToQueue -
-func (o *Operation) MarshalToQueue() ([]byte, error) {
-	return []byte(fmt.Sprintf("%d", o.ID)), nil
 }
 
 // LogFields -

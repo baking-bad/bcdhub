@@ -35,10 +35,6 @@ storage:
     - http://${ELASTIC_HOSTNAME:-127.0.0.1}:9200
   timeout: 10
 
-rabbitmq:
-  uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@127.0.0.1:5672/"
-  timeout: 10
-
 sentry:
   environment: development
   uri: ${SENTRY_DSN}
@@ -84,8 +80,6 @@ indexer:
   project_name: indexer
   sentry_enabled: false
   skip_delegator_blocks: true
-  mq:
-    publisher: true
   networks:
     mainnet:
       boost: tzkt
@@ -98,15 +92,6 @@ metrics:
   project_name: metrics
   sentry_enabled: false
   cache_aliases_seconds: 30
-  mq:
-    publisher: false
-    queues:
-      operations:
-        lazy: true
-      contracts:
-        lazy: true
-      bigmapdiffs:
-        lazy: true
 
 scripts:
   aws:
@@ -119,8 +104,6 @@ scripts:
     - edo2net
     - florencenet
     - granadanet
-  mq:
-    publisher: true
 
 graphql:
   db: "host=127.0.0.1 port=5432 user=graphql dbname=indexer password=${POSTGRES_GRAPHQL} sslmode=disable"

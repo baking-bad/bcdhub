@@ -42,16 +42,6 @@ func (t *TZIP) Save(tx *gorm.DB) error {
 	}).Save(t).Error
 }
 
-// GetQueues -
-func (t *TZIP) GetQueues() []string {
-	return nil
-}
-
-// MarshalToQueue -
-func (t *TZIP) MarshalToQueue() ([]byte, error) {
-	return nil, nil
-}
-
 // LogFields -
 func (t *TZIP) LogFields() map[string]interface{} {
 	return map[string]interface{}{

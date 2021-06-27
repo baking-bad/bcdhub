@@ -1,7 +1,6 @@
 package migration
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -37,16 +36,6 @@ func (m *Migration) Save(tx *gorm.DB) error {
 	return tx.Clauses(clause.OnConflict{
 		UpdateAll: true,
 	}).Save(m).Error
-}
-
-// GetQueues -
-func (m *Migration) GetQueues() []string {
-	return []string{"migrations"}
-}
-
-// MarshalToQueue -
-func (m *Migration) MarshalToQueue() ([]byte, error) {
-	return []byte(fmt.Sprintf("%d", m.ID)), nil
 }
 
 // LogFields -

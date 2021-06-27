@@ -31,16 +31,6 @@ func (b *BigMapAction) GetIndex() string {
 	return "big_map_actions"
 }
 
-// GetQueues -
-func (b *BigMapAction) GetQueues() []string {
-	return nil
-}
-
-// MarshalToQueue -
-func (b *BigMapAction) MarshalToQueue() ([]byte, error) {
-	return nil, nil
-}
-
 // Save -
 func (b *BigMapAction) Save(tx *gorm.DB) error {
 	return tx.Clauses(clause.OnConflict{
