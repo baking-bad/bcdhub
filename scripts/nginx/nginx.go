@@ -143,7 +143,7 @@ func makeDappRootLocation(tmpl *template.Template, path, baseURL string) (string
 		"ogImage":         ogImage,
 		"pageTitle":       pageTitle,
 		"pageDescription": pageDescription,
-		"logoURL":         ogImage,
+		"logoURL":         fmt.Sprintf("https://better-call.dev%s", ogImage),
 	})
 	if err != nil {
 		return "", err
