@@ -23,7 +23,7 @@ type BigMapDiff struct {
 	Network     types.Network `json:"network" gorm:"type:SMALLINT;index:bmd_idx;index:big_map_diffs_key_hash_idx"`
 	Timestamp   time.Time     `json:"timestamp"`
 	ProtocolID  int64         `json:"protocol" gorm:"type:SMALLINT"`
-	OperationID int64         `json:"-"`
+	OperationID int64         `json:"-" gorm:"bmd_operation_id_idx"`
 
 	KeyStrings   pq.StringArray `json:"key_strings,omitempty" gorm:"type:text[]"`
 	ValueStrings pq.StringArray `json:"value_strings,omitempty" gorm:"type:text[]"`
