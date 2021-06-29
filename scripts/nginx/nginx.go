@@ -77,15 +77,15 @@ func makeNginxConfig(dapps []dapp.DApp, aliases []tzip.TZIP, filepath, baseURL s
 	locations.WriteString(loc)
 	locations.WriteString("\n")
 
-	for _, alias := range aliases {
-		loc, err := makeContractsLocation(tmpl, alias.Address, alias.Name, baseURL)
-		if err != nil {
-			return err
-		}
+	// for _, alias := range aliases {
+	// 	loc, err := makeContractsLocation(tmpl, alias.Address, alias.Name, baseURL)
+	// 	if err != nil {
+	// 		return err
+	// 	}
 
-		locations.WriteString(loc)
-		locations.WriteString("\n")
-	}
+	// 	locations.WriteString(loc)
+	// 	locations.WriteString("\n")
+	// }
 
 	defaultConf := fmt.Sprintf(defaultConfTemplate, locations.String())
 	file, err := os.Create(filepath)
