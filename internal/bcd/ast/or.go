@@ -198,7 +198,7 @@ func (or *Or) ToJSONSchema() (*JSONSchema, error) {
 			}
 
 			switch {
-			case arg.IsPrim(consts.OPTION):
+			case arg.IsPrim(consts.OPTION) || arg.IsPrim(consts.PAIR):
 				item.Properties[arg.GetName()] = child
 			case arg.IsPrim(consts.UNIT):
 			default:
