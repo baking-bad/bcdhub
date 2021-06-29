@@ -3,6 +3,7 @@ package storage
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/fetch"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
@@ -79,4 +80,14 @@ func FindByName(network types.Network, address, key, protocol, sharePath string)
 	}
 
 	return nil
+}
+
+// SetBigMapName -
+func SetBigMapName(storageType *ast.TypedAst, bigMap *bigmap.BigMap) {
+	ptrs := storageType.FindBigMapByPtr()
+	for ptr, typ := range ptrs {
+		if ptr == bigMap.Ptr {
+			bigMap.Name = typ.FieldName
+		}
+	}
 }

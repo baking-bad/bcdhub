@@ -7,8 +7,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
@@ -51,7 +50,7 @@ func readStorage(address string, level int64) ([]byte, error) {
 }
 
 func compareParserResponse(t *testing.T, got, want *parsers.Result) bool {
-	if !assert.Len(t, got.BigMapActions, len(want.BigMapActions)) {
+	if !assert.Len(t, got.BigMaps, len(want.BigMaps)) {
 		return false
 	}
 	if !assert.Len(t, got.BigMapState, len(want.BigMapState)) {
@@ -70,8 +69,8 @@ func compareParserResponse(t *testing.T, got, want *parsers.Result) bool {
 		return false
 	}
 
-	for i := range got.BigMapActions {
-		if !compareBigMapAction(want.BigMapActions[i], got.BigMapActions[i]) {
+	for i := range got.BigMaps {
+		if !compareBigMaps(t, want.BigMaps[i], got.BigMaps[i]) {
 			return false
 		}
 	}
@@ -284,12 +283,25 @@ func compareOperations(t *testing.T, one, two *operation.Operation) bool {
 		}
 	}
 
+	if len(one.BigMapActions) != len(two.BigMapActions) {
+		logger.Info().Msgf("BigMapActions length: %d != %d", len(one.BigMapActions), len(two.BigMapActions))
+		return false
+	}
+
+	if one.BigMapActions != nil && two.BigMapActions != nil {
+		for i := range one.BigMapActions {
+			if !compareBigMapAction(one.BigMapActions[i], two.BigMapActions[i]) {
+				return false
+			}
+		}
+	}
+
 	return true
 }
 
-func compareBigMapDiff(t *testing.T, one, two *bigmapdiff.BigMapDiff) bool {
-	if one.Contract != two.Contract {
-		logger.Info().Msgf("BigMapDiff.Address: %s != %s", one.Contract, two.Contract)
+func compareBigMapDiff(t *testing.T, one, two *bigmap.Diff) bool {
+	if one.BigMap.Contract != two.BigMap.Contract {
+		logger.Info().Msgf("BigMapDiff.Address: %s != %s", one.BigMap.Contract, two.BigMap.Contract)
 		return false
 	}
 	if one.KeyHash != two.KeyHash {
@@ -305,8 +317,8 @@ func compareBigMapDiff(t *testing.T, one, two *bigmapdiff.BigMapDiff) bool {
 		logger.Info().Msgf("Level: %d != %d", one.Level, two.Level)
 		return false
 	}
-	if one.Network != two.Network {
-		logger.Info().Msgf("Network: %s != %s", one.Network, two.Network)
+	if one.BigMap.Network != two.BigMap.Network {
+		logger.Info().Msgf("Network: %s != %s", one.BigMap.Network, two.BigMap.Network)
 		return false
 	}
 	if one.Timestamp != two.Timestamp {
@@ -343,29 +355,17 @@ func compareBigMapDiff(t *testing.T, one, two *bigmapdiff.BigMapDiff) bool {
 	return true
 }
 
-func compareBigMapAction(one, two *bigmapaction.BigMapAction) bool {
+func compareBigMaps(t *testing.T, one, two *bigmap.BigMap) bool {
+	return assert.Equal(t, one, two)
+}
+
+func compareBigMapAction(one, two *bigmap.Action) bool {
 	if one.Action != two.Action {
 		logger.Info().Msgf("Action: %s != %s", one.Action, two.Action)
 		return false
 	}
-	if !compareInt64Ptr(one.SourcePtr, two.SourcePtr) {
-		logger.Info().Msgf("SourcePtr: %d != %d", *one.SourcePtr, *two.SourcePtr)
-		return false
-	}
-	if !compareInt64Ptr(one.DestinationPtr, two.DestinationPtr) {
-		logger.Info().Msgf("DestinationPtr: %d != %d", *one.DestinationPtr, *two.DestinationPtr)
-		return false
-	}
 	if one.Level != two.Level {
 		logger.Info().Msgf("Level: %d != %d", one.Level, two.Level)
-		return false
-	}
-	if one.Address != two.Address {
-		logger.Info().Msgf("BigMapAction.Address: %s != %s", one.Address, two.Address)
-		return false
-	}
-	if one.Network != two.Network {
-		logger.Info().Msgf("Network: %s != %s", one.Network, two.Network)
 		return false
 	}
 	if one.Timestamp != two.Timestamp {

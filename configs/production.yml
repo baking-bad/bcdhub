@@ -49,7 +49,8 @@ ipfs:
 
 domains:
    edo2net: KT1KP2Yy6MNkYKkHqroGBZ7KFN5NdNfnUHHv
-#  mainnet: KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS
+   mainnet: KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS
+   granadanet: KT1Ch6PstAQG32uNfQJUSL2bf2WvimvY5umk
 
 api:
   project_name: api

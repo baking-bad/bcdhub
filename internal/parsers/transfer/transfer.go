@@ -6,7 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/events"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
@@ -82,7 +82,7 @@ func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Reposit
 }
 
 // Parse -
-func (p *Parser) Parse(diffs []*bigmapdiff.BigMapDiff, protocol string, operation *operation.Operation) error {
+func (p *Parser) Parse(diffs []*bigmap.Diff, protocol string, operation *operation.Operation) error {
 	if !operation.IsTransaction() {
 		return nil
 	}
@@ -102,7 +102,7 @@ func (p *Parser) Parse(diffs []*bigmapdiff.BigMapDiff, protocol string, operatio
 	return nil
 }
 
-func (p *Parser) executeEvents(impl tzip.EventImplementation, name, protocol string, diffs []*bigmapdiff.BigMapDiff, operation *operation.Operation) error {
+func (p *Parser) executeEvents(impl tzip.EventImplementation, name, protocol string, diffs []*bigmap.Diff, operation *operation.Operation) error {
 	if !operation.IsApplied() {
 		return nil
 	}
@@ -151,7 +151,7 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name, protocol str
 		}
 		ctx.Parameters = storage
 		ctx.Entrypoint = consts.DefaultEntrypoint
-		bmd := make([]bigmapdiff.BigMapDiff, 0)
+		bmd := make([]bigmap.Diff, 0)
 		for i := range diffs {
 			if diffs[i].OperationID == operation.ID {
 				bmd = append(bmd, *diffs[i])

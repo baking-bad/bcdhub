@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/gin-gonic/gin"
@@ -33,77 +32,58 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		return
 	}
 
-	stats, err := ctx.BigMapDiffs.GetStats(req.NetworkID(), req.Ptr)
+	bigMap, err := ctx.CachedBigMap(req.NetworkID(), req.Ptr, "")
+	if ctx.handleError(c, err, 0) {
+		return
+	}
+
+	stats, err := ctx.BigMapState.GetStats(req.NetworkID(), req.Ptr)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 
 	res := GetBigMapResponse{
-		Network:    req.Network,
-		Ptr:        req.Ptr,
-		Address:    stats.Contract,
+		Network:    bigMap.Network.String(),
+		Ptr:        bigMap.Ptr,
+		Address:    bigMap.Contract,
 		TotalKeys:  uint(stats.Total),
 		ActiveKeys: uint(stats.Active),
+		Name:       bigMap.Name,
 	}
 
-	if stats.Total == 0 {
-		actions, err := ctx.BigMapActions.Get(req.NetworkID(), req.Ptr)
-		if ctx.handleError(c, err, 0) {
-			return
-		}
-		if len(actions) > 0 {
-			res.Address = actions[0].Address
-		}
-	} else {
-		script, err := ctx.getScript(req.NetworkID(), res.Address, bcd.SymLinkBabylon)
-		if ctx.handleError(c, err, 0) {
-			return
-		}
-		storage, err := script.StorageType()
-		if ctx.handleError(c, err, 0) {
-			return
-		}
-		operation, err := ctx.Operations.Last(req.NetworkID(), res.Address, -1)
-		if ctx.handleError(c, err, 0) {
-			return
-		}
-		proto, err := ctx.CachedProtocolByID(operation.Network, operation.ProtocolID)
-		if ctx.handleError(c, err, 0) {
-			return
-		}
+	var key ast.UntypedAST
+	if err := json.Unmarshal(bigMap.KeyType, &key); ctx.handleError(c, err, 0) {
+		return
+	}
 
-		var deffatedStorage []byte
-		if proto.SymLink == bcd.SymLinkAlpha {
-			rpc, err := ctx.GetRPC(req.NetworkID())
-			if ctx.handleError(c, err, 0) {
-				return
-			}
-			deffatedStorage, err = rpc.GetScriptStorageRaw(res.Address, 0)
-			if ctx.handleError(c, err, 0) {
-				return
-			}
-		} else {
-			deffatedStorage = operation.DeffatedStorage
-		}
+	keyType, err := key.ToTypedAST()
+	if ctx.handleError(c, err, 0) {
+		return
+	}
 
-		var data ast.UntypedAST
-		if err := json.Unmarshal(deffatedStorage, &data); ctx.handleError(c, err, 0) {
-			return
-		}
-		if err := storage.Settle(data); ctx.handleError(c, err, 0) {
-			return
-		}
+	var value ast.UntypedAST
+	if err := json.Unmarshal(bigMap.ValueType, &value); ctx.handleError(c, err, 0) {
+		return
+	}
+	valueType, err := value.ToTypedAST()
+	if ctx.handleError(c, err, 0) {
+		return
+	}
 
-		bigMap := storage.FindBigMapByPtr()
-		for p, b := range bigMap {
-			if p == req.Ptr {
-				res.Typedef, _, err = b.Docs(ast.DocsFull)
-				if ctx.handleError(c, err, 0) {
-					return
-				}
-				break
-			}
-		}
+	b := &ast.BigMap{
+		Default: ast.Default{
+			ArgsCount: 0,
+			Prim:      consts.BIGMAP,
+			FieldName: bigMap.Name,
+		},
+		Ptr:       &bigMap.Ptr,
+		KeyType:   keyType.Nodes[0],
+		ValueType: valueType.Nodes[0],
+	}
+
+	res.Typedef, _, err = b.Docs(ast.DocsFull)
+	if ctx.handleError(c, err, 0) {
+		return
 	}
 
 	alias, err := ctx.TZIP.Get(req.NetworkID(), res.Address)
@@ -180,7 +160,7 @@ func (ctx *Context) GetBigMapKeys(c *gin.Context) {
 		return
 	}
 
-	states, err := ctx.BigMapDiffs.Keys(bigmapdiff.GetContext{
+	states, err := ctx.BigMapState.Keys(bigmap.GetContext{
 		Ptr:      &req.Ptr,
 		Network:  req.NetworkID(),
 		Query:    pageReq.Search,
@@ -267,7 +247,7 @@ func (ctx *Context) GetBigMapDiffCount(c *gin.Context) {
 		return
 	}
 
-	count, err := ctx.BigMapDiffs.Count(req.NetworkID(), req.Ptr)
+	count, err := ctx.BigMapState.Count(req.NetworkID(), req.Ptr)
 	if err != nil {
 		if ctx.Storage.IsRecordNotFound(err) {
 			c.JSON(http.StatusOK, CountResponse{})
@@ -279,12 +259,12 @@ func (ctx *Context) GetBigMapDiffCount(c *gin.Context) {
 	c.JSON(http.StatusOK, CountResponse{count})
 }
 
-func (ctx *Context) prepareBigMapKeys(data []bigmapdiff.BigMapState) ([]BigMapResponseItem, error) {
+func (ctx *Context) prepareBigMapKeys(data []bigmap.State) ([]BigMapResponseItem, error) {
 	if len(data) == 0 {
 		return []BigMapResponseItem{}, nil
 	}
 
-	bigMapType, err := ctx.getBigMapType(data[0].Network, data[0].Ptr, data[0].LastUpdateLevel)
+	bigMapType, err := ctx.getBigMapType(data[0].BigMap.Network, data[0].BigMap.Ptr, data[0].LastUpdateLevel)
 	if err != nil {
 		return nil, err
 	}
@@ -303,7 +283,7 @@ func (ctx *Context) prepareBigMapKeys(data []bigmapdiff.BigMapState) ([]BigMapRe
 				KeyString: keyString,
 				Level:     data[i].LastUpdateLevel,
 				Value:     value,
-				Timestamp: data[i].LastUpdateTime,
+				Timestamp: data[i].LastUpdateTime.UTC(),
 			},
 			Count: data[i].Count,
 		}
@@ -311,12 +291,12 @@ func (ctx *Context) prepareBigMapKeys(data []bigmapdiff.BigMapState) ([]BigMapRe
 	return res, nil
 }
 
-func (ctx *Context) prepareBigMapItem(data []bigmapdiff.BigMapDiff, keyHash string) (res BigMapDiffByKeyResponse, err error) {
+func (ctx *Context) prepareBigMapItem(data []bigmap.Diff, keyHash string) (res BigMapDiffByKeyResponse, err error) {
 	if len(data) == 0 {
 		return
 	}
 
-	bigMapType, err := ctx.getBigMapType(data[0].Network, data[0].Ptr, data[0].Level)
+	bigMapType, err := ctx.getBigMapType(data[0].BigMap.Network, data[0].BigMap.Ptr, data[0].Level)
 	if err != nil {
 		return
 	}
@@ -332,7 +312,7 @@ func (ctx *Context) prepareBigMapItem(data []bigmapdiff.BigMapDiff, keyHash stri
 		values[i] = BigMapDiffItem{
 			Level:     data[i].Level,
 			Value:     value,
-			Timestamp: data[i].Timestamp,
+			Timestamp: data[i].Timestamp.UTC(),
 		}
 
 	}
@@ -390,13 +370,13 @@ func createMiguelForType(typ ast.Node, raw []byte) (*ast.MiguelNode, error) {
 	return typ.ToMiguel()
 }
 
-func prepareBigMapHistory(arr []bigmapaction.BigMapAction, ptr int64) BigMapHistoryResponse {
+func prepareBigMapHistory(arr []bigmap.Action, ptr int64) BigMapHistoryResponse {
 	if len(arr) == 0 {
 		return BigMapHistoryResponse{}
 	}
 	response := BigMapHistoryResponse{
-		Address: arr[0].Address,
-		Network: arr[0].Network.String(),
+		Address: arr[0].Source.Contract,
+		Network: arr[0].Source.Network.String(),
 		Ptr:     ptr,
 		Items:   make([]BigMapHistoryItem, len(arr)),
 	}
@@ -404,12 +384,12 @@ func prepareBigMapHistory(arr []bigmapaction.BigMapAction, ptr int64) BigMapHist
 	for i := range arr {
 		response.Items[i] = BigMapHistoryItem{
 			Action:    arr[i].Action.String(),
-			Timestamp: arr[i].Timestamp,
+			Timestamp: arr[i].Timestamp.UTC(),
 		}
-		if arr[i].DestinationPtr != nil && *arr[i].DestinationPtr != ptr {
-			response.Items[i].DestinationPtr = arr[i].DestinationPtr
-		} else if arr[i].SourcePtr != nil && *arr[i].SourcePtr != ptr {
-			response.Items[i].SourcePtr = arr[i].SourcePtr
+		if arr[i].DestinationID != nil && *arr[i].DestinationID != ptr {
+			response.Items[i].DestinationPtr = &arr[i].Destination.Ptr
+		} else if arr[i].SourceID != nil && *arr[i].SourceID != ptr {
+			response.Items[i].SourcePtr = &arr[i].Source.Ptr
 		}
 	}
 

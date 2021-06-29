@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -24,7 +24,7 @@ type Storage interface {
 
 // Full -
 type Full struct {
-	bmdRepo   bigmapdiff.Repository
+	bmdRepo   bigmap.StateRepository
 	blockRepo block.Repository
 	storage   models.GeneralRepository
 
@@ -34,7 +34,7 @@ type Full struct {
 }
 
 // NewFull -
-func NewFull(bmdRepo bigmapdiff.Repository, blockRepo block.Repository, storage models.GeneralRepository, rpc noderpc.INode, sharePath string, ipfs ...string) *Full {
+func NewFull(bmdRepo bigmap.StateRepository, blockRepo block.Repository, storage models.GeneralRepository, rpc noderpc.INode, sharePath string, ipfs ...string) *Full {
 	return &Full{
 		bmdRepo, blockRepo, storage, rpc, sharePath, ipfs,
 	}

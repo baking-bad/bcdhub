@@ -6,7 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -63,8 +63,9 @@ type Operation struct {
 
 	AST *ast.Script `json:"-" gorm:"-"`
 
-	Transfers   []*transfer.Transfer     `json:"-"`
-	BigMapDiffs []*bigmapdiff.BigMapDiff `json:"-"`
+	Transfers     []*transfer.Transfer `json:"-"`
+	BigMapDiffs   []*bigmap.Diff       `json:"-"`
+	BigMapActions []*bigmap.Action     `json:"-"`
 }
 
 // GetID -

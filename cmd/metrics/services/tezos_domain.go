@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/pkg/errors"
 )
 
@@ -36,14 +37,14 @@ func (td *TezosDomainHandler) Handle(items []models.Model) error {
 			return errors.Errorf("[TezosDomain.Handle] invalid type: expected *domains.BigMapDiff got %T", items[i])
 		}
 
-		protocol, err := td.CachedProtocolByID(bmd.Network, bmd.ProtocolID)
+		protocol, err := td.CachedProtocolByID(bmd.BigMap.Network, bmd.ProtocolID)
 		if err != nil {
-			return errors.Errorf("[TezosDomain.Handle] can't get protocol by ID %d in %s: %s", bmd.ProtocolID, bmd.Network.String(), err)
+			return errors.Errorf("[TezosDomain.Handle] can't get protocol by ID %d in %s: %s", bmd.ProtocolID, bmd.BigMap.Network.String(), err)
 		}
 
-		storageType, err := td.CachedStorageType(bmd.Network, bmd.Contract, protocol.SymLink)
+		storageType, err := td.CachedStorageType(bmd.BigMap.Network, bmd.BigMap.Contract, protocol.SymLink)
 		if err != nil {
-			return errors.Errorf("[TezosDomain.Handle] can't get storage type for '%s' in %s: %s", bmd.Contract, bmd.Network.String(), err)
+			return errors.Errorf("[TezosDomain.Handle] can't get storage type for '%s' in %s: %s", bmd.BigMap.Contract, bmd.BigMap.Network.String(), err)
 		}
 
 		res, err := td.handler.Do(bmd, storageType)
@@ -58,7 +59,7 @@ func (td *TezosDomainHandler) Handle(items []models.Model) error {
 		return nil
 	}
 
-	logger.Info().Msgf("%2d tezos domains are processed", len(updates))
+	logger.Info().Msgf("%3d tezos domains are processed", len(updates))
 
 	if err := td.Storage.Save(updates); err != nil {
 		return err
@@ -68,7 +69,7 @@ func (td *TezosDomainHandler) Handle(items []models.Model) error {
 
 // Chunk -
 func (td *TezosDomainHandler) Chunk(lastID, size int64) ([]models.Model, error) {
-	diff, err := td.Domains.BigMapDiffs(lastID, size)
+	diff, err := td.Domains.BigMapDiffs(lastID, size, types.EmptyTag)
 	if err != nil {
 		return nil, err
 	}

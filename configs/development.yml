@@ -9,7 +9,7 @@ rpc:
     uri: https://rpc.tzkt.io/florencenobanet
     timeout: 20
   granadanet:
-    uri: https://granadanet.smartpy.io/
+    uri: https://rpc.tzkt.io/granadanet
     timeout: 20
 
 tzkt:
@@ -53,6 +53,7 @@ ipfs:
 domains:
   edo2net: KT1KP2Yy6MNkYKkHqroGBZ7KFN5NdNfnUHHv
   mainnet: KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS
+  granadanet: KT1Ch6PstAQG32uNfQJUSL2bf2WvimvY5umk
 
 api:
   project_name: api
@@ -86,6 +87,7 @@ indexer:
     edo2net:
       boost: tzkt
     florencenet:
+      boost: tzkt
     granadanet:
 
 metrics:

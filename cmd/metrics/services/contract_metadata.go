@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/pkg/errors"
 )
 
@@ -19,7 +20,7 @@ type ContractMetadataHandler struct {
 func NewContractMetadataHandler(ctx *config.Context) *ContractMetadataHandler {
 	return &ContractMetadataHandler{
 		ctx,
-		handlers.NewContractMetadata(ctx.BigMapDiffs, ctx.Blocks, ctx.Storage, ctx.TZIP, ctx.RPC, ctx.SharePath, ctx.Config.IPFSGateways),
+		handlers.NewContractMetadata(ctx.BigMapState, ctx.Blocks, ctx.Storage, ctx.TZIP, ctx.RPC, ctx.SharePath, ctx.Config.IPFSGateways),
 	}
 }
 
@@ -33,12 +34,12 @@ func (cm *ContractMetadataHandler) Handle(items []models.Model) error {
 	for i := range items {
 		bmd, ok := items[i].(*domains.BigMapDiff)
 		if !ok {
-			return errors.Errorf("[ContractMetadata.Handle] invalid type: expected *bigmapdiff.BigMapDiff got %T", items[i])
+			return errors.Errorf("[ContractMetadata.Handle] invalid type: expected *bigmap.Diff got %T", items[i])
 		}
 
-		storageType, err := cm.CachedStorageType(bmd.Network, bmd.Contract, bmd.Protocol.SymLink)
+		storageType, err := cm.CachedStorageType(bmd.BigMap.Network, bmd.BigMap.Contract, bmd.Protocol.SymLink)
 		if err != nil {
-			return errors.Errorf("[ContractMetadata.Handle] can't get storage type for '%s' in %s: %s", bmd.Contract, bmd.Network.String(), err)
+			return errors.Errorf("[ContractMetadata.Handle] can't get storage type for '%s' in %s: %s", bmd.BigMap.Contract, bmd.BigMap.Network.String(), err)
 		}
 
 		res, err := cm.handler.Do(bmd, storageType)
@@ -53,7 +54,7 @@ func (cm *ContractMetadataHandler) Handle(items []models.Model) error {
 		return nil
 	}
 
-	logger.Info().Msgf("%2d contract metadata are processed", len(updates))
+	logger.Info().Msgf("%3d contract metadata are processed", len(updates))
 
 	if err := cm.Storage.Save(updates); err != nil {
 		return err
@@ -64,7 +65,7 @@ func (cm *ContractMetadataHandler) Handle(items []models.Model) error {
 
 // Chunk -
 func (cm *ContractMetadataHandler) Chunk(lastID, size int64) ([]models.Model, error) {
-	diff, err := cm.Domains.BigMapDiffs(lastID, size)
+	diff, err := cm.Domains.BigMapDiffs(lastID, size, types.ContractMetadataTag)
 	if err != nil {
 		return nil, err
 	}

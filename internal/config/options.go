@@ -9,7 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/elastic"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/baking-bad/bcdhub/internal/postgres/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/postgres/bigmap"
 	"github.com/baking-bad/bcdhub/internal/postgres/contract"
 	"github.com/baking-bad/bcdhub/internal/postgres/dapp"
 	"github.com/baking-bad/bcdhub/internal/postgres/domains"
@@ -23,7 +23,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/postgres/transfer"
 	"github.com/baking-bad/bcdhub/internal/postgres/tzip"
 
-	"github.com/baking-bad/bcdhub/internal/postgres/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/postgres/block"
 	pgCore "github.com/baking-bad/bcdhub/internal/postgres/core"
 
@@ -63,9 +62,11 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64) ContextOp
 		pg := pgCore.WaitNew(cfg.Postgres, appName, cfg.Timeout, pgCore.WithPageSize(maxPageSize))
 		ctx.StorageDB = pg
 		ctx.Storage = pg
-		ctx.BigMapActions = bigmapaction.NewStorage(pg)
+		ctx.BigMaps = bigmap.NewStorage(pg)
+		ctx.BigMapActions = bigmap.NewActionStorage(pg)
+		ctx.BigMapDiffs = bigmap.NewDiffStorage(pg)
+		ctx.BigMapState = bigmap.NewStateStorage(pg)
 		ctx.Blocks = block.NewStorage(pg)
-		ctx.BigMapDiffs = bigmapdiff.NewStorage(pg)
 		ctx.DApps = dapp.NewStorage(pg)
 		ctx.Contracts = contract.NewStorage(pg)
 		ctx.Migrations = migration.NewStorage(pg)

@@ -4,8 +4,8 @@ import (
 	stdJSON "encoding/json"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -15,18 +15,22 @@ import (
 
 // Babylon -
 type Babylon struct {
-	repo bigmapdiff.Repository
-	rpc  noderpc.INode
+	bigmapRepo bigmap.Repository
+	statesRepo bigmap.StateRepository
+	general    models.GeneralRepository
+	rpc        noderpc.INode
 
 	ptrMap            map[int64]int64
 	temporaryPointers map[int64]*ast.BigMap
 }
 
 // NewBabylon -
-func NewBabylon(repo bigmapdiff.Repository, rpc noderpc.INode) *Babylon {
+func NewBabylon(bigmaps bigmap.Repository, statesRepo bigmap.StateRepository, general models.GeneralRepository, rpc noderpc.INode) *Babylon {
 	return &Babylon{
-		repo: repo,
-		rpc:  rpc,
+		bigmapRepo: bigmaps,
+		statesRepo: statesRepo,
+		general:    general,
+		rpc:        rpc,
 
 		ptrMap:            make(map[int64]int64),
 		temporaryPointers: make(map[int64]*ast.BigMap),
@@ -164,23 +168,33 @@ func (b *Babylon) handleBigMapDiff(result *noderpc.OperationResult, address stri
 		}
 	}
 
+	for i := range res.BigMaps {
+		if bigMap, ok := b.temporaryPointers[res.BigMaps[i].Ptr]; ok {
+			res.BigMaps[i].Name = bigMap.TypeName
+		}
+	}
+
 	return res, nil
 }
 
 func (b *Babylon) handleBigMapDiffUpdate(item noderpc.BigMapDiff, address string, operation *operation.Operation, res *parsers.Result) error {
 	ptr := *item.BigMap
 
-	bmd := bigmapdiff.BigMapDiff{
-		Ptr:         ptr,
+	bmd := bigmap.Diff{
+		BigMap: bigmap.BigMap{
+			Ptr:      ptr,
+			Contract: address,
+			Network:  operation.Network,
+		},
+
 		Key:         types.Bytes(item.Key),
 		KeyHash:     item.KeyHash,
 		OperationID: operation.ID,
 		Level:       operation.Level,
-		Contract:    address,
-		Network:     operation.Network,
-		Timestamp:   operation.Timestamp,
-		ProtocolID:  operation.ProtocolID,
-		Value:       types.Bytes(item.Value),
+
+		Timestamp:  operation.Timestamp,
+		ProtocolID: operation.ProtocolID,
+		Value:      types.Bytes(item.Value),
 	}
 
 	if err := setBigMapDiffsStrings(&bmd); err != nil {
@@ -213,7 +227,14 @@ func (b *Babylon) handleBigMapDiffCopy(item noderpc.BigMapDiff, address string, 
 			}
 			srcPtr = bufPtr
 		}
-		res.BigMapActions = append(res.BigMapActions, b.createBigMapDiffAction("copy", address, &srcPtr, &destinationPtr, operation))
+
+		action, err := b.createBigMapDiffAction("copy", address, &srcPtr, &destinationPtr, res, operation)
+		if err != nil {
+			return err
+		}
+		if action != nil {
+			operation.BigMapActions = append(operation.BigMapActions, action)
+		}
 	}
 
 	b.ptrMap[destinationPtr] = sourcePtr
@@ -227,8 +248,6 @@ func (b *Babylon) handleBigMapDiffCopy(item noderpc.BigMapDiff, address string, 
 
 	if len(bmd) > 0 {
 		for i := range bmd {
-			bmd[i].Ptr = destinationPtr
-			bmd[i].Contract = address
 			bmd[i].Level = operation.Level
 			bmd[i].Timestamp = operation.Timestamp
 			bmd[i].OperationID = operation.ID
@@ -256,7 +275,7 @@ func (b *Babylon) handleBigMapDiffRemove(item noderpc.BigMapDiff, address string
 	if ptr < 0 {
 		return nil
 	}
-	states, err := b.repo.GetByPtr(operation.Network, address, ptr)
+	states, err := b.statesRepo.GetByPtr(operation.Network, address, ptr)
 	if err != nil {
 		return err
 	}
@@ -276,20 +295,43 @@ func (b *Babylon) handleBigMapDiffRemove(item noderpc.BigMapDiff, address string
 		operation.BigMapDiffs = append(operation.BigMapDiffs, &bmd)
 		res.BigMapState = append(res.BigMapState, &states[i])
 	}
-	res.BigMapActions = append(res.BigMapActions, b.createBigMapDiffAction("remove", address, &ptr, nil, operation))
+	action, err := b.createBigMapDiffAction("remove", address, &ptr, nil, res, operation)
+	if err != nil {
+		return err
+	}
+	if action != nil {
+		operation.BigMapActions = append(operation.BigMapActions, action)
+	}
 	return nil
 }
 
 func (b *Babylon) handleBigMapDiffAlloc(item noderpc.BigMapDiff, address string, operation *operation.Operation, res *parsers.Result) error {
 	ptr := *item.BigMap
 	if ptr > -1 {
-		res.BigMapActions = append(res.BigMapActions, b.createBigMapDiffAction("alloc", address, &ptr, nil, operation))
+		bm := bigmap.BigMap{
+			Network:      operation.Network,
+			Ptr:          ptr,
+			Contract:     address,
+			KeyType:      types.Bytes(item.KeyType),
+			ValueType:    types.Bytes(item.ValueType),
+			Tags:         types.EmptyTag,
+			CreatedLevel: operation.Level,
+			CreatedAt:    operation.Timestamp,
+		}
+		res.BigMaps = append(res.BigMaps, &bm)
+		action, err := b.createBigMapDiffAction("alloc", address, &ptr, nil, res, operation)
+		if err != nil {
+			return err
+		}
+		if action != nil {
+			operation.BigMapActions = append(operation.BigMapActions, action)
+		}
 	}
 
 	return nil
 }
 
-func (b *Babylon) getDiffsFromUpdates(ptr int64) ([]bigmapdiff.BigMapDiff, error) {
+func (b *Babylon) getDiffsFromUpdates(ptr int64) ([]bigmap.Diff, error) {
 	bigMap, ok := b.temporaryPointers[ptr]
 	if !ok {
 		return nil, errors.Wrapf(ErrUnknownTemporaryPointer, "%d", ptr)
@@ -298,30 +340,100 @@ func (b *Babylon) getDiffsFromUpdates(ptr int64) ([]bigmapdiff.BigMapDiff, error
 	return getBigMapDiffModels(diffs), nil
 }
 
-func (b *Babylon) createBigMapDiffAction(action, address string, srcPtr, dstPtr *int64, operation *operation.Operation) *bigmapaction.BigMapAction {
-	entity := &bigmapaction.BigMapAction{
+func (b *Babylon) createBigMapDiffAction(action, address string, srcPtr, dstPtr *int64, res *parsers.Result, operation *operation.Operation) (*bigmap.Action, error) {
+	bigMapAction := &bigmap.Action{
 		Action:      types.NewBigMapAction(action),
 		OperationID: operation.ID,
 		Level:       operation.Level,
-		Address:     address,
-		Network:     operation.Network,
 		Timestamp:   operation.Timestamp,
 	}
 
-	if srcPtr != nil && *srcPtr > -1 {
-		entity.SourcePtr = srcPtr
+	if srcPtr != nil {
+		if *srcPtr > -1 {
+			switch bigMapAction.Action {
+			case types.BigMapActionAlloc:
+				bigMapAction.SourceID = srcPtr
+				bigMapAction.Source = bigmap.BigMap{
+					Network:      operation.Network,
+					Contract:     address,
+					Ptr:          *srcPtr,
+					CreatedLevel: operation.Level,
+					CreatedAt:    operation.Timestamp,
+				}
+			case types.BigMapActionCopy, types.BigMapActionRemove, types.BigMapActionUpdate:
+				srcBigMap, err := b.bigmapRepo.Get(operation.Network, *srcPtr, "")
+				if err != nil {
+					return nil, err
+				}
+				bigMapAction.SourceID = &srcBigMap.ID
+				bigMapAction.Source = *srcBigMap
+
+				if dstPtr != nil && *dstPtr > -1 {
+					destBigMap, err := b.bigmapRepo.Get(operation.Network, *dstPtr, "")
+					switch {
+					case err == nil:
+						bigMapAction.DestinationID = &destBigMap.ID
+						bigMapAction.Destination = *destBigMap
+					case b.general.IsRecordNotFound(err):
+						destBigMap = &bigmap.BigMap{
+							Network:      srcBigMap.Network,
+							Contract:     address,
+							Ptr:          *dstPtr,
+							KeyType:      srcBigMap.KeyType,
+							ValueType:    srcBigMap.ValueType,
+							Tags:         srcBigMap.Tags,
+							CreatedLevel: operation.Level,
+							CreatedAt:    operation.Timestamp,
+						}
+						bigMapAction.DestinationID = &destBigMap.ID
+						bigMapAction.Destination = *destBigMap
+
+						res.BigMaps = append(res.BigMaps, destBigMap)
+					default:
+						return nil, err
+					}
+				}
+			default:
+				return nil, errors.Errorf("unknown bigmap action: %s", bigMapAction.Action.String())
+			}
+
+			return bigMapAction, nil
+		}
+
+		if bigMap, ok := b.temporaryPointers[*srcPtr]; ok {
+			if bigMapAction.Action == types.BigMapActionCopy {
+				bigMapAction.Action = types.BigMapActionAlloc
+				keyType, err := json.Marshal(bigMap.KeyType)
+				if err != nil {
+					return nil, err
+				}
+				valueType, err := json.Marshal(bigMap.ValueType)
+				if err != nil {
+					return nil, err
+				}
+				bm := bigmap.BigMap{
+					Network:      operation.Network,
+					Contract:     address,
+					Ptr:          *dstPtr,
+					CreatedLevel: operation.Level,
+					CreatedAt:    operation.Timestamp,
+					KeyType:      keyType,
+					ValueType:    valueType,
+				}
+				bigMapAction.Source = bm
+				bigMapAction.SourceID = &bm.ID
+				res.BigMaps = append(res.BigMaps, &bm)
+				return bigMapAction, nil
+			}
+		}
 	}
 
-	if dstPtr != nil && *dstPtr > -1 {
-		entity.DestinationPtr = dstPtr
-	}
-
-	return entity
+	return nil, nil
 }
 
-func (b *Babylon) addDiff(bmd *bigmapdiff.BigMapDiff, ptr int64) error {
+func (b *Babylon) addDiff(bmd *bigmap.Diff, ptr int64) error {
 	if bm, ok := b.temporaryPointers[ptr]; ok {
-		return bm.EnrichBigMap(prepareBigMapDiffsToEnrich([]bigmapdiff.BigMapDiff{*bmd}, false))
+		return bm.EnrichBigMap(prepareBigMapDiffsToEnrich([]bigmap.Diff{*bmd}, false))
 	}
 
 	bigMap, ok := b.temporaryPointers[ptr]
@@ -329,9 +441,9 @@ func (b *Babylon) addDiff(bmd *bigmapdiff.BigMapDiff, ptr int64) error {
 		return errors.Errorf("Can't find big map pointer: %d", ptr)
 	}
 
-	diffs := prepareBigMapDiffsToEnrich([]bigmapdiff.BigMapDiff{*bmd}, false)
+	diffs := prepareBigMapDiffsToEnrich([]bigmap.Diff{*bmd}, false)
 	bigMap.AddDiffs(diffs...)
-	b.temporaryPointers[bmd.Ptr] = bigMap
+	b.temporaryPointers[bmd.BigMap.Ptr] = bigMap
 	return nil
 }
 
@@ -355,13 +467,13 @@ func (b *Babylon) updateTemporaryPointers(src, dst int64) {
 	b.temporaryPointers[dst] = dstBigMap
 }
 
-func (b *Babylon) getCopyBigMapDiff(src int64, address string, network types.Network) (bmd []bigmapdiff.BigMapDiff, err error) {
+func (b *Babylon) getCopyBigMapDiff(src int64, address string, network types.Network) (bmd []bigmap.Diff, err error) {
 	if src > -1 {
-		states, err := b.repo.GetByPtr(network, address, src)
+		states, err := b.statesRepo.GetByPtr(network, address, src)
 		if err != nil {
 			return nil, err
 		}
-		bmd = make([]bigmapdiff.BigMapDiff, 0, len(states))
+		bmd = make([]bigmap.Diff, 0, len(states))
 		for i := range states {
 			bmd = append(bmd, states[i].ToDiff())
 		}

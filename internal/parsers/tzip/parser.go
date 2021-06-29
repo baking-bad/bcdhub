@@ -8,7 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -47,13 +47,13 @@ func (t *bufTzip) UnmarshalJSON(data []byte) error {
 
 // ParseContext -
 type ParseContext struct {
-	BigMapDiff bigmapdiff.BigMapDiff
-	Hash       string
+	Diff bigmap.Diff
+	Hash string
 }
 
 // Parser -
 type Parser struct {
-	bigMapRepo bigmapdiff.Repository
+	bigMapRepo bigmap.StateRepository
 	blocksRepo block.Repository
 	storage    models.GeneralRepository
 	rpc        noderpc.INode
@@ -62,7 +62,7 @@ type Parser struct {
 }
 
 // NewParser -
-func NewParser(bigMapRepo bigmapdiff.Repository, blocksRepo block.Repository, storage models.GeneralRepository, rpc noderpc.INode, cfg ParserConfig) Parser {
+func NewParser(bigMapRepo bigmap.StateRepository, blocksRepo block.Repository, storage models.GeneralRepository, rpc noderpc.INode, cfg ParserConfig) Parser {
 	return Parser{
 		bigMapRepo: bigMapRepo,
 		blocksRepo: blocksRepo,
@@ -75,17 +75,17 @@ func NewParser(bigMapRepo bigmapdiff.Repository, blocksRepo block.Repository, st
 
 // Parse -
 func (p *Parser) Parse(ctx ParseContext) (*tzip.TZIP, error) {
-	decoded := tzipStorage.DecodeValue(ctx.BigMapDiff.Value)
+	decoded := tzipStorage.DecodeValue(ctx.Diff.Value)
 	if decoded == "" {
 		return nil, nil
 	}
 
 	data := new(bufTzip)
 	s := tzipStorage.NewFull(p.bigMapRepo, p.blocksRepo, p.storage, p.rpc, p.cfg.SharePath, p.cfg.IPFSGateways...)
-	if err := s.Get(ctx.BigMapDiff.Network, ctx.BigMapDiff.Contract, decoded, ctx.BigMapDiff.Ptr, data); err != nil {
+	if err := s.Get(ctx.Diff.BigMap.Network, ctx.Diff.BigMap.Contract, decoded, ctx.Diff.BigMap.Ptr, data); err != nil {
 		switch {
 		case errors.Is(err, tzipStorage.ErrHTTPRequest) || errors.Is(err, tzipStorage.ErrJSONDecoding) || errors.Is(err, tzipStorage.ErrUnknownStorageType):
-			logger.Warning().Fields(ctx.BigMapDiff.LogFields()).Str("kind", "contract_metadata").Err(err).Msg("")
+			logger.Warning().Fields(ctx.Diff.LogFields()).Str("kind", "contract_metadata").Err(err).Msg("")
 			return nil, nil
 		case errors.Is(err, tzipStorage.ErrNoIPFSResponse):
 			data.Description = fmt.Sprintf("Failed to fetch metadata %s", decoded)
@@ -99,10 +99,10 @@ func (p *Parser) Parse(ctx ParseContext) (*tzip.TZIP, error) {
 		return nil, nil
 	}
 
-	data.Address = ctx.BigMapDiff.Contract
-	data.Network = ctx.BigMapDiff.Network
-	data.Level = ctx.BigMapDiff.Level
-	data.Timestamp = ctx.BigMapDiff.Timestamp
+	data.Address = ctx.Diff.BigMap.Contract
+	data.Network = ctx.Diff.BigMap.Network
+	data.Level = ctx.Diff.Level
+	data.Timestamp = ctx.Diff.Timestamp
 
 	return (*tzip.TZIP)(data), nil
 }

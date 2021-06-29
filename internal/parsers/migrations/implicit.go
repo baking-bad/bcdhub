@@ -1,9 +1,13 @@
 package migrations
 
 import (
+	"encoding/json"
+
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -93,6 +97,52 @@ func (p *ImplicitParser) origination(implicit noderpc.ImplicitOperationsResult, 
 	if contractResult != nil {
 		result.Merge(contractResult)
 	}
+
+	if origination.DeffatedStorage == nil {
+		rawStorage, err := p.rpc.GetScriptStorageRaw(origination.Destination, origination.Level)
+		if err != nil {
+			return err
+		}
+		origination.DeffatedStorage = rawStorage
+	}
+
 	result.Operations = append(result.Operations, &origination)
+
+	origination.AST, err = ast.NewScript(origination.Script)
+	if err != nil {
+		return err
+	}
+
+	storageType, err := origination.AST.StorageType()
+	if err != nil {
+		return err
+	}
+
+	if err := storageType.SettleFromBytes(origination.DeffatedStorage); err != nil {
+		return err
+	}
+
+	ptrs := storageType.FindBigMapByPtr()
+	for ptr, bigMap := range ptrs {
+		keyType, err := json.Marshal(bigMap.KeyType)
+		if err != nil {
+			return err
+		}
+		valueType, err := json.Marshal(bigMap.ValueType)
+		if err != nil {
+			return err
+		}
+		result.BigMaps = append(result.BigMaps, &bigmap.BigMap{
+			Network:      origination.Network,
+			Contract:     origination.Destination,
+			Ptr:          ptr,
+			KeyType:      keyType,
+			ValueType:    valueType,
+			Name:         bigMap.FieldName,
+			CreatedLevel: head.Level,
+			CreatedAt:    head.Timestamp,
+		})
+	}
+
 	return nil
 }

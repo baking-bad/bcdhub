@@ -2,7 +2,7 @@ package search
 
 import (
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
@@ -20,7 +20,7 @@ func Prepare(items []models.Model) []Data {
 			var c Contract
 			c.Prepare(val)
 			data = append(data, &c)
-		case *bigmapdiff.BigMapDiff:
+		case *bigmap.Diff:
 			var bmd BigMapDiff
 			bmd.Prepare(val)
 			data = append(data, &bmd)

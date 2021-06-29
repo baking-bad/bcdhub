@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 )
@@ -49,14 +49,14 @@ func Test_getStrings(t *testing.T) {
 func Test_setBigMapDiffsStrings(t *testing.T) {
 	tests := []struct {
 		name             string
-		bmd              *bigmapdiff.BigMapDiff
+		bmd              *bigmap.Diff
 		wantValueStrings pq.StringArray
 		wantKeyStrings   pq.StringArray
 		wantErr          bool
 	}{
 		{
 			name: "test 1",
-			bmd: &bigmapdiff.BigMapDiff{
+			bmd: &bigmap.Diff{
 				Value: []byte(`{"prim":"Pair","args":[{"prim":"Pair","args":[{"prim":"Pair","args":[{"prim":"Some","args":[{"bytes":"0000c0ca282a775946b5ecbe02e5cf73e25f6b62b70c"}]},[]]},{"prim":"Pair","args":[{"prim":"Some","args":[{"bytes":"62616c6c732e74657a"}]},[]]}]},{"prim":"Pair","args":[{"prim":"Pair","args":[{"int":"2"},{"bytes":"0000753f63893674b6d523f925f0d787bf9270b95c33"}]},{"prim":"Some","args":[{"int":"3223"}]}]}]}`),
 				Key:   []byte(`{"bytes":"62616c6c732e74657a"}`),
 			},

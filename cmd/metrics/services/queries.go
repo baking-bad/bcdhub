@@ -3,7 +3,7 @@ package services
 import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -35,7 +35,7 @@ func getOperations(db *gorm.DB, lastID, size int64) (resp []operation.Operation,
 	return
 }
 
-func getDiffs(db *gorm.DB, lastID, size int64) (resp []bigmapdiff.BigMapDiff, err error) {
+func getDiffs(db *gorm.DB, lastID, size int64) (resp []bigmap.Diff, err error) {
 	query := db.Table(models.DocBigMapDiff).Order("id asc")
 	if lastID > 0 {
 		query.Where("id > ?", lastID)

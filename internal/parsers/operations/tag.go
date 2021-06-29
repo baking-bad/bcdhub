@@ -33,8 +33,6 @@ func setTags(ctx *config.Context, contract *contract.Contract, op *operation.Ope
 	if contract.Tags.Has(types.FA2Tag) {
 		op.Tags.Set(types.FA2Tag)
 	}
-	if contract.Tags.Has(types.LedgerTag) {
-		op.Tags.Set(types.LedgerTag)
-	}
+
 	return nil
 }

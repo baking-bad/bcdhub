@@ -233,6 +233,7 @@ type GetBigMapResponse struct {
 	TotalKeys     uint          `json:"total_keys"`
 	ContractAlias string        `json:"contract_alias,omitempty" extensions:"x-nullable"`
 	Typedef       []ast.Typedef `json:"typedef,omitempty" extensions:"x-nullable"`
+	Name          string        `json:"name,omitempty"`
 }
 
 // Migration -

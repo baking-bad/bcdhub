@@ -8,7 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -101,7 +101,7 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 
 	resp := make([]Operation, len(parsedModels.Operations))
 	for i := range parsedModels.Operations {
-		bmd := make([]bigmapdiff.BigMapDiff, 0)
+		bmd := make([]bigmap.Diff, 0)
 		for j := range parsedModels.Operations[i].BigMapDiffs {
 			bmd = append(bmd, *parsedModels.Operations[i].BigMapDiffs[j])
 		}
@@ -258,7 +258,7 @@ func (ctx *Context) parseAppliedRunCode(response noderpc.RunCodeResponse, script
 	return operations, nil
 }
 
-func (ctx *Context) parseBigMapDiffs(response noderpc.RunCodeResponse, script *ast.Script, operation *Operation, proto protocol.Protocol) ([]bigmapdiff.BigMapDiff, error) {
+func (ctx *Context) parseBigMapDiffs(response noderpc.RunCodeResponse, script *ast.Script, operation *Operation, proto protocol.Protocol) ([]bigmap.Diff, error) {
 	model := operation.ToModel()
 	model.AST = script
 
@@ -269,7 +269,7 @@ func (ctx *Context) parseBigMapDiffs(response noderpc.RunCodeResponse, script *a
 		return nil, err
 	}
 
-	parser, err := storage.MakeStorageParser(ctx.BigMapDiffs, rpc, operation.Protocol)
+	parser, err := storage.MakeStorageParser(ctx.BigMaps, ctx.BigMapState, ctx.Storage, rpc, operation.Protocol)
 	if err != nil {
 		return nil, err
 	}
@@ -305,7 +305,7 @@ func (ctx *Context) parseBigMapDiffs(response noderpc.RunCodeResponse, script *a
 	if result == nil {
 		return nil, nil
 	}
-	bmd := make([]bigmapdiff.BigMapDiff, len(model.BigMapDiffs))
+	bmd := make([]bigmap.Diff, len(model.BigMapDiffs))
 	for i := range model.BigMapDiffs {
 		bmd[i] = *model.BigMapDiffs[i]
 	}

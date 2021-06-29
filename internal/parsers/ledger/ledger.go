@@ -5,10 +5,9 @@ import (
 
 	"github.com/shopspring/decimal"
 
-	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	tbModel "github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
@@ -17,10 +16,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/parsers/stacktrace"
 	"github.com/baking-bad/bcdhub/internal/parsers/tokenbalance"
 	"github.com/pkg/errors"
-)
-
-const (
-	ledgerStorageKey = "ledger"
 )
 
 // errors
@@ -42,7 +37,7 @@ func New(tokenBalanceRepo tbModel.Repository) *Ledger {
 
 // Do -
 func (ledger *Ledger) Parse(operation *operation.Operation, st *stacktrace.StackTrace) (*parsers.Result, error) {
-	if operation == nil || len(operation.BigMapDiffs) == 0 || !operation.Tags.Has(types.LedgerTag) {
+	if operation == nil || len(operation.BigMapDiffs) == 0 {
 		return nil, nil
 	}
 
@@ -51,31 +46,12 @@ func (ledger *Ledger) Parse(operation *operation.Operation, st *stacktrace.Stack
 		return nil, nil
 	}
 
-	storage, err := operation.AST.Storage.ToTypedAST()
-	if err != nil {
-		return nil, err
-	}
-
-	if err := storage.SettleFromBytes(operation.DeffatedStorage); err != nil {
-		return nil, err
-	}
-
-	bigMap, err := ledger.getLedgerBigMap(storage)
-	switch {
-	case errors.Is(err, ErrNoLedgerKeyInStorage):
-		return nil, nil
-	case err != nil:
-		return nil, err
-	case bigMap == nil:
-		return nil, nil
-	}
-
 	result := new(parsers.Result)
 	for _, bmd := range operation.BigMapDiffs {
-		if bmd.Ptr != *bigMap.Ptr {
+		if !bmd.BigMap.Tags.Has(types.LedgerTag) {
 			continue
 		}
-		balances, err := ledger.handle(bmd, bigMap, st, operation)
+		balances, err := ledger.handle(bmd, st, operation)
 		if err != nil {
 			return nil, err
 		}
@@ -84,8 +60,8 @@ func (ledger *Ledger) Parse(operation *operation.Operation, st *stacktrace.Stack
 	return result, nil
 }
 
-func (ledger *Ledger) handle(bmd *bigmapdiff.BigMapDiff, bigMapType *ast.BigMap, st *stacktrace.StackTrace, op *operation.Operation) ([]*tbModel.TokenBalance, error) {
-	balances, err := ledger.getResultModels(bmd, bigMapType, st, op)
+func (ledger *Ledger) handle(bmd *bigmap.Diff, st *stacktrace.StackTrace, op *operation.Operation) ([]*tbModel.TokenBalance, error) {
+	balances, err := ledger.getResultModels(bmd, st, op)
 	switch {
 	case errors.Is(err, tokenbalance.ErrUnknownParser):
 		return nil, nil
@@ -96,8 +72,8 @@ func (ledger *Ledger) handle(bmd *bigmapdiff.BigMapDiff, bigMapType *ast.BigMap,
 	}
 }
 
-func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *ast.BigMap, st *stacktrace.StackTrace, op *operation.Operation) ([]*tbModel.TokenBalance, error) {
-	parser, err := tokenbalance.GetParserForBigMap(bigMapType)
+func (ledger *Ledger) getResultModels(bmd *bigmap.Diff, st *stacktrace.StackTrace, op *operation.Operation) ([]*tbModel.TokenBalance, error) {
+	parser, err := tokenbalance.GetParserForBigMap(bmd.BigMap.KeyType, bmd.BigMap.ValueType)
 	if err != nil {
 		return nil, err
 	}
@@ -114,10 +90,10 @@ func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *as
 	}
 
 	tb := &tbModel.TokenBalance{
-		Network:  bmd.Network,
+		Network:  bmd.BigMap.Network,
 		Address:  balance[0].Address,
 		TokenID:  balance[0].TokenID,
-		Contract: bmd.Contract,
+		Contract: bmd.BigMap.Contract,
 		Balance:  balance[0].Value,
 		IsLedger: true,
 	}
@@ -146,7 +122,6 @@ func (ledger *Ledger) getResultModels(bmd *bigmapdiff.BigMapDiff, bigMapType *as
 }
 
 func (ledger *Ledger) makeTransfer(tb tokenbalance.TokenBalance, st *stacktrace.StackTrace, op *operation.Operation) *transfer.Transfer {
-
 	balance, err := ledger.tokenBalances.Get(op.Network, op.Destination, tb.Address, tb.TokenID)
 	if err != nil {
 		logger.Err(err)
@@ -180,7 +155,7 @@ func (ledger *Ledger) makeTransfer(tb tokenbalance.TokenBalance, st *stacktrace.
 	return t
 }
 
-func (ledger *Ledger) buildElt(bmd *bigmapdiff.BigMapDiff) ([]byte, error) {
+func (ledger *Ledger) buildElt(bmd *bigmap.Diff) ([]byte, error) {
 	var s bytes.Buffer
 	s.WriteString(`[{"prim":"Elt","args":[`)
 	if _, err := s.Write(bmd.Key); err != nil {
@@ -196,19 +171,4 @@ func (ledger *Ledger) buildElt(bmd *bigmapdiff.BigMapDiff) ([]byte, error) {
 	}
 	s.WriteString(`]}]`)
 	return s.Bytes(), nil
-}
-
-func (ledger *Ledger) getLedgerBigMap(storage *ast.TypedAst) (*ast.BigMap, error) {
-	node := storage.FindByName(ledgerStorageKey, false)
-	if node == nil {
-		return nil, ErrNoLedgerKeyInStorage
-	}
-	bigMap, ok := node.(*ast.BigMap)
-	if !ok {
-		return nil, ErrNoLedgerKeyInStorage
-	}
-	if bigMap.Ptr == nil {
-		return nil, ErrNoLedgerKeyInStorage
-	}
-	return bigMap, nil
 }

@@ -79,25 +79,17 @@ func getParser(parsers map[string][]Parser, name string, returnType *ast.TypedAs
 }
 
 // GetParserForBigMap -
-func GetParserForBigMap(returnType *ast.BigMap) (Parser, error) {
-	if returnType == nil {
+func GetParserForBigMap(keyType, valueType []byte) (Parser, error) {
+	if keyType == nil && valueType == nil {
 		return nil, nil
 	}
 	var s strings.Builder
 	s.WriteString(`{"prim":"map","args":[`)
-	b, err := json.Marshal(returnType.KeyType)
-	if err != nil {
-		return nil, err
-	}
-	if _, err := s.Write(b); err != nil {
+	if _, err := s.Write(keyType); err != nil {
 		return nil, err
 	}
 	s.WriteByte(',')
-	bValue, err := json.Marshal(returnType.ValueType)
-	if err != nil {
-		return nil, err
-	}
-	if _, err := s.Write(bValue); err != nil {
+	if _, err := s.Write(valueType); err != nil {
 		return nil, err
 	}
 	s.WriteString(`]}`)

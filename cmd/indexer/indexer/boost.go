@@ -318,7 +318,6 @@ func (bi *BoostIndexer) Index(levels []int64) error {
 }
 
 func (bi *BoostIndexer) handleBlock(head noderpc.Header) error {
-	result := parsers.NewResult()
 	err := bi.StorageDB.DB.Transaction(
 		func(tx *gorm.DB) error {
 			logger.Info().Str("network", bi.Network.String()).Msgf("indexing %d block", head.Level)
@@ -340,7 +339,8 @@ func (bi *BoostIndexer) handleBlock(head noderpc.Header) error {
 				return err
 			}
 
-			result.Merge(res)
+			res.Clear()
+
 			if err := bi.createBlock(head, tx); err != nil {
 				return err
 			}
@@ -359,7 +359,7 @@ func (bi *BoostIndexer) Rollback() error {
 		return err
 	}
 
-	manager := rollback.NewManager(bi.Searcher, bi.Storage, bi.BigMapDiffs, bi.Transfers)
+	manager := rollback.NewManager(bi.Searcher, bi.Storage, bi.BigMapDiffs, bi.BigMapState, bi.Transfers, bi.Services)
 	if err := manager.Rollback(bi.StorageDB.DB, bi.state, lastLevel); err != nil {
 		return err
 	}
@@ -580,7 +580,7 @@ func (bi *BoostIndexer) migrate(head noderpc.Header, tx *gorm.DB) error {
 	bi.currentProtocol = newProtocol
 
 	bi.setUpdateTicker(0)
-	logger.Info().Str("network", bi.Network.String()).Msgf("Migration to %s is completed", bi.currentProtocol.Alias)
+	logger.Info().Str("network", bi.Network.String()).Msgf("migration to %s is completed", bi.currentProtocol.Alias)
 	return nil
 }
 
@@ -601,19 +601,18 @@ func (bi *BoostIndexer) implicitMigration(head noderpc.Header, tx *gorm.DB) erro
 }
 
 func (bi *BoostIndexer) standartMigration(newProtocol protocol.Protocol, head noderpc.Header, tx *gorm.DB) error {
-	logger.Info().Str("network", bi.Network.String()).Msg("Try to find migrations...")
+	logger.Info().Str("network", bi.Network.String()).Msg("try to find migrations...")
 	contracts, err := bi.Contracts.GetMany(map[string]interface{}{
 		"network": bi.Network,
 	})
 	if err != nil {
 		return err
 	}
-	logger.Info().Str("network", bi.Network.String()).Msgf("Now %d contracts are indexed", len(contracts))
+	logger.Info().Str("network", bi.Network.String()).Msgf("now %d contracts are indexed", len(contracts))
 
-	migrationParser := migrations.NewMigrationParser(bi.Storage, bi.BigMapDiffs, bi.Config.SharePath)
-
+	migrationParser := migrations.NewMigrationParser(bi.BigMaps, bi.Config.SharePath)
 	for i := range contracts {
-		logger.Info().Str("network", bi.Network.String()).Msgf("Migrate %s...", contracts[i].Address)
+		logger.Info().Str("network", bi.Network.String()).Msgf("migrate %s...", contracts[i].Address)
 		script, err := bi.rpc.GetScriptJSON(contracts[i].Address, newProtocol.StartLevel)
 		if err != nil {
 			return err

@@ -1,6 +1,19 @@
-package bigmapdiff
+package bigmap
 
 import "github.com/baking-bad/bcdhub/internal/models/types"
+
+// Bucket -
+type Bucket struct {
+	Diff
+
+	KeysCount int64
+}
+
+// Stats -
+type Stats struct {
+	Total  int64
+	Active int64
+}
 
 // GetContext -
 type GetContext struct {

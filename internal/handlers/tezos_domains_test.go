@@ -7,7 +7,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
 	mock_general "github.com/baking-bad/bcdhub/internal/models/mock"
@@ -38,13 +38,16 @@ func TestTezosDomain_Do(t *testing.T) {
 			name: "test 1: record",
 			args: args{
 				bmd: &domains.BigMapDiff{
-					BigMapDiff: &bigmapdiff.BigMapDiff{
+					Diff: &bigmap.Diff{
+						BigMap: bigmap.BigMap{
+							Network:  types.Mainnet,
+							Contract: "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS",
+							Ptr:      1264,
+							Name:     recordsAnnot,
+						},
 						ID:          10160561,
-						Ptr:         1264,
 						KeyHash:     "exprvG95A3YxzqRnRUNkeJH6sXL3at8TEPNzsRLpjuL3aoGk4MuWEk",
 						Level:       1529158,
-						Contract:    "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS",
-						Network:     types.Mainnet,
 						Timestamp:   ts,
 						ProtocolID:  11,
 						OperationID: 11136755,
@@ -77,13 +80,16 @@ func TestTezosDomain_Do(t *testing.T) {
 			name: "test 2: expiry map",
 			args: args{
 				bmd: &domains.BigMapDiff{
-					BigMapDiff: &bigmapdiff.BigMapDiff{
+					Diff: &bigmap.Diff{
+						BigMap: bigmap.BigMap{
+							Network:  types.Mainnet,
+							Contract: "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS",
+							Ptr:      1262,
+							Name:     expiryMapAnnot,
+						},
 						ID:           10160562,
-						Ptr:          1262,
 						KeyHash:      "exprvG95A3YxzqRnRUNkeJH6sXL3at8TEPNzsRLpjuL3aoGk4MuWEk",
 						Level:        1529158,
-						Contract:     "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS",
-						Network:      types.Mainnet,
 						Timestamp:    ts,
 						ProtocolID:   11,
 						OperationID:  11136755,
@@ -118,7 +124,6 @@ func TestTezosDomain_Do(t *testing.T) {
 						Network: types.Mainnet,
 					}: {},
 				},
-				ptrs: make(map[contract.Address]ptrs),
 			}
 
 			var storageType ast.TypedAst

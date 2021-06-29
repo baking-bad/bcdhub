@@ -6,14 +6,14 @@ import (
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers"
 	"github.com/stretchr/testify/assert"
 
-	mock_bmd "github.com/baking-bad/bcdhub/internal/models/mock/bigmapdiff"
+	mock_bmd "github.com/baking-bad/bcdhub/internal/models/mock/bigmap"
 	"github.com/golang/mock/gomock"
 )
 
@@ -22,8 +22,9 @@ func readStorage(address string, level int64) ([]byte, error) {
 	return ioutil.ReadFile(storageFile)
 }
 
-func newTestBabylon(repoCtrl *gomock.Controller, rpcCtrl *gomock.Controller) (*Babylon, *mock_bmd.MockRepository) {
-	repo := mock_bmd.NewMockRepository(repoCtrl)
+func newTestBabylon(repoCtrl *gomock.Controller, rpcCtrl *gomock.Controller) (*Babylon, *mock_bmd.MockStateRepository) {
+	statesRepo := mock_bmd.NewMockStateRepository(repoCtrl)
+	bigMapRepo := mock_bmd.NewMockRepository(repoCtrl)
 	rpc := noderpc.NewMockINode(rpcCtrl)
 
 	rpc.
@@ -31,13 +32,15 @@ func newTestBabylon(repoCtrl *gomock.Controller, rpcCtrl *gomock.Controller) (*B
 		GetScriptStorageRaw(gomock.Any(), gomock.Any()).
 		DoAndReturn(readStorage).
 		AnyTimes()
+
 	return &Babylon{
-		repo: repo,
-		rpc:  rpc,
+		statesRepo: statesRepo,
+		bigmapRepo: bigMapRepo,
+		rpc:        rpc,
 
 		ptrMap:            make(map[int64]int64),
 		temporaryPointers: make(map[int64]*ast.BigMap),
-	}, repo
+	}, statesRepo
 }
 
 func TestBabylon_ParseTransaction(t *testing.T) {
@@ -65,35 +68,39 @@ func TestBabylon_ParseTransaction(t *testing.T) {
 				},
 			},
 			want: &parsers.Result{
-				BigMapState: []*bigmapdiff.BigMapState{
+				BigMapState: []*bigmap.State{
 					{
-						Ptr:             10418,
 						Key:             []byte(`{"bytes":"0177a057dafeab5f829e044dc0e52047e01283d6d500"}`),
 						KeyHash:         "exprvDFsAkF12eo7cP1EtDk52Ef72CzDhxuJmwXCqbqSWq6CrJ3ziX",
 						Value:           []byte(`{"bytes":"0117f1f0e206ba4c32f1f43de336b0ef2785f4014500"}`),
-						Contract:        "KT1HHsW85jrLrHdAy9DwScqiM1RERkTT9Q6e",
-						Network:         types.Delphinet,
 						LastUpdateLevel: 186900,
+						BigMap: bigmap.BigMap{
+							Network:  types.Delphinet,
+							Contract: "KT1HHsW85jrLrHdAy9DwScqiM1RERkTT9Q6e",
+							Ptr:      10418,
+						},
 					},
 				},
 			},
 			wantOperation: operation.Operation{
 				DeffatedStorage: []byte(`{"prim":"Pair","args":[{"prim":"Pair","args":[{"int":"10416"},{"int":"10417"}]},{"prim":"Pair","args":[[{"bytes":"0177a057dafeab5f829e044dc0e52047e01283d6d500"}],{"int":"10418"}]}]}`),
-				BigMapDiffs: []*bigmapdiff.BigMapDiff{
+				BigMapDiffs: []*bigmap.Diff{
 					{
-						Ptr:        10418,
 						Key:        []byte(`{"bytes":"0177a057dafeab5f829e044dc0e52047e01283d6d500"}`),
 						KeyHash:    "exprvDFsAkF12eo7cP1EtDk52Ef72CzDhxuJmwXCqbqSWq6CrJ3ziX",
 						Value:      []byte(`{"bytes":"0117f1f0e206ba4c32f1f43de336b0ef2785f4014500"}`),
 						Level:      186900,
-						Contract:   "KT1HHsW85jrLrHdAy9DwScqiM1RERkTT9Q6e",
-						Network:    types.Delphinet,
 						ProtocolID: 2,
 						KeyStrings: []string{
 							"KT1KVJ4S53zE6E8oo8L8TyMgAh1ACpf9HweA",
 						},
 						ValueStrings: []string{
 							"KT1AmNwXex7jTpkcN8PVuENZyfVsuC1Lb3eW",
+						},
+						BigMap: bigmap.BigMap{
+							Network:  types.Delphinet,
+							Contract: "KT1HHsW85jrLrHdAy9DwScqiM1RERkTT9Q6e",
+							Ptr:      10418,
 						},
 					},
 				},
@@ -113,7 +120,7 @@ func TestBabylon_ParseTransaction(t *testing.T) {
 			repo.
 				EXPECT().
 				GetByPtr(gomock.Any(), gomock.Any(), gomock.Any()).
-				Return([]bigmapdiff.BigMapState{}, nil).
+				Return([]bigmap.State{}, nil).
 				AnyTimes()
 
 			var content noderpc.Operation

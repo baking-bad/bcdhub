@@ -6,7 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	mock_token_balance "github.com/baking-bad/bcdhub/internal/models/mock/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	tbModel "github.com/baking-bad/bcdhub/internal/models/tokenbalance"
@@ -60,17 +60,22 @@ func TestLedger_Parse(t *testing.T) {
 				Entrypoint:      consts.TransferEntrypoint,
 				Network:         types.Mainnet,
 				DeffatedStorage: []byte(`{"int":257}`),
-				BigMapDiffs: []*bigmapdiff.BigMapDiff{
+				BigMapDiffs: []*bigmap.Diff{
 					{
-						Ptr:         257,
+						BigMap: bigmap.BigMap{
+							Network:   types.Mainnet,
+							Contract:  "KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH",
+							Ptr:       257,
+							Tags:      types.LedgerTag,
+							KeyType:   []byte(`{"prim":"address"}`),
+							ValueType: []byte(`{"prim":"nat"}`),
+						},
 						Key:         []byte(`{"bytes":"0000c67788ea8ada32b2426e1b02b9ebebdc2dc51007"}`),
 						KeyHash:     "expruCQuxuWpbLgZ5a4AhQ9nmdLVssrFZXmzTe8jFB5LMKvX6XPXVf",
 						KeyStrings:  []string{"tz1djRgXXWWJiY1rpMECCxr5d9ZBqWewuiU1"},
 						Value:       []byte(`{"int":"1000000"}`),
 						OperationID: 1,
 						Level:       1269694,
-						Contract:    "KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH",
-						Network:     types.Mainnet,
 						Timestamp:   time.Date(2020, 12, 22, 19, 19, 49, 0, time.UTC),
 						ProtocolID:  1,
 					},
@@ -84,17 +89,22 @@ func TestLedger_Parse(t *testing.T) {
 				Entrypoint:      consts.TransferEntrypoint,
 				Network:         types.Mainnet,
 				DeffatedStorage: []byte(`{"int":257}`),
-				BigMapDiffs: []*bigmapdiff.BigMapDiff{
+				BigMapDiffs: []*bigmap.Diff{
 					{
-						Ptr:         257,
+						BigMap: bigmap.BigMap{
+							Network:   types.Mainnet,
+							Contract:  "KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH",
+							Ptr:       257,
+							Tags:      types.LedgerTag,
+							KeyType:   []byte(`{"prim":"address"}`),
+							ValueType: []byte(`{"prim":"nat"}`),
+						},
 						Key:         []byte(`{"bytes":"0000c67788ea8ada32b2426e1b02b9ebebdc2dc51007"}`),
 						KeyHash:     "expruCQuxuWpbLgZ5a4AhQ9nmdLVssrFZXmzTe8jFB5LMKvX6XPXVf",
 						KeyStrings:  []string{"tz1djRgXXWWJiY1rpMECCxr5d9ZBqWewuiU1"},
 						Value:       []byte(`{"int":"1000000"}`),
 						OperationID: 1,
 						Level:       1269694,
-						Contract:    "KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH",
-						Network:     types.Mainnet,
 						Timestamp:   time.Date(2020, 12, 22, 19, 19, 49, 0, time.UTC),
 						ProtocolID:  1,
 					},
@@ -112,17 +122,22 @@ func TestLedger_Parse(t *testing.T) {
 				Hash:            "opNQeUBKfJzBjCNLuo5HkyZynhm5TMe1KEtwioqUrWM1ygmYVDX",
 				Level:           1455291,
 				DeffatedStorage: []byte(`{"int":2071}`),
-				BigMapDiffs: []*bigmapdiff.BigMapDiff{
+				BigMapDiffs: []*bigmap.Diff{
 					{
-						Ptr:         2071,
+						BigMap: bigmap.BigMap{
+							Network:   types.Mainnet,
+							Contract:  "KT1981tPmXh4KrUQKZpQKb55kREX7QGJcF3E",
+							Ptr:       2071,
+							Tags:      types.LedgerTag,
+							KeyType:   []byte(`{"prim":"address"}`),
+							ValueType: []byte(`{"prim":"nat"}`),
+						},
 						Key:         []byte(`{"bytes":"00016631ce723071ea19a87bd93d7e2f81dd82c18565"}`),
 						KeyHash:     "exprvA4NaRxQEqyJad5LzVz7rohGSQDn9B32KR87KxRQ43kWiaqPS4",
 						KeyStrings:  []string{"tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo"},
 						Value:       []byte(``),
 						OperationID: 1,
 						Level:       1455291,
-						Contract:    "KT1981tPmXh4KrUQKZpQKb55kREX7QGJcF3E",
-						Network:     types.Mainnet,
 						Timestamp:   time.Date(2021, 05, 03, 10, 03, 20, 0, time.UTC),
 						ProtocolID:  2,
 					},

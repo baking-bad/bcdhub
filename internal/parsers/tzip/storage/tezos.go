@@ -5,7 +5,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -23,7 +23,7 @@ const (
 
 // TezosStorage -
 type TezosStorage struct {
-	bigMapRepo bigmapdiff.Repository
+	bigMapRepo bigmap.StateRepository
 	blockRepo  block.Repository
 	storage    models.GeneralRepository
 
@@ -35,7 +35,7 @@ type TezosStorage struct {
 }
 
 // NewTezosStorage -
-func NewTezosStorage(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, storage models.GeneralRepository, rpc noderpc.INode, address, sharePath string, network types.Network, ptr int64) TezosStorage {
+func NewTezosStorage(bigMapRepo bigmap.StateRepository, blockRepo block.Repository, storage models.GeneralRepository, rpc noderpc.INode, address, sharePath string, network types.Network, ptr int64) TezosStorage {
 	return TezosStorage{
 		bigMapRepo: bigMapRepo,
 		blockRepo:  blockRepo,

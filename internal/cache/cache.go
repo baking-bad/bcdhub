@@ -68,3 +68,13 @@ func (cache *Cache) ProtocolByHashKey(network types.Network, id int64) string {
 func (cache *Cache) ProtocolByIDKey(network types.Network, hash string) string {
 	return fmt.Sprintf("protocol_id:%d:%s", network, hash)
 }
+
+// BigMapByAddress -
+func (cache *Cache) BigMapByAddress(network types.Network, address string) string {
+	return fmt.Sprintf("bigmap_address:%d:%s", network, address)
+}
+
+// BigMap -
+func (cache *Cache) BigMap(network types.Network, ptr int64) string {
+	return fmt.Sprintf("bigmap:%d:%d", network, ptr)
+}

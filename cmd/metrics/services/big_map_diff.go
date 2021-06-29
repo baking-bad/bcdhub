@@ -22,7 +22,7 @@ func (oh *BigMapDiffHandler) Handle(items []models.Model) error {
 		return nil
 	}
 
-	logger.Info().Msgf("%2d big map diffs are processed", len(items))
+	logger.Info().Msgf("%3d big map diffs are processed", len(items))
 
 	return saveSearchModels(oh.Context, items)
 }

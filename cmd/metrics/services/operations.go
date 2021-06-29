@@ -22,7 +22,7 @@ func (oh *OperationsHandler) Handle(items []models.Model) error {
 		return nil
 	}
 
-	logger.Info().Msgf("%2d operations are processed", len(items))
+	logger.Info().Msgf("%3d operations are processed", len(items))
 
 	return saveSearchModels(oh.Context, items)
 }

@@ -3,7 +3,7 @@ package events
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/parsers/storage"
@@ -17,11 +17,11 @@ type MichelsonExtendedStorage struct {
 	name   string
 	parser tokenbalance.Parser
 
-	bmd []bigmapdiff.BigMapDiff
+	bmd []bigmap.Diff
 }
 
 // NewMichelsonExtendedStorage -
-func NewMichelsonExtendedStorage(impl tzip.EventImplementation, name string, bmd []bigmapdiff.BigMapDiff) (*MichelsonExtendedStorage, error) {
+func NewMichelsonExtendedStorage(impl tzip.EventImplementation, name string, bmd []bigmap.Diff) (*MichelsonExtendedStorage, error) {
 	retType, err := ast.NewTypedAstFromBytes(impl.MichelsonExtendedStorageEvent.ReturnType)
 	if err != nil {
 		return nil, err
