@@ -46,7 +46,7 @@ func (p *ProjectsHandler) Handle(items []models.Model) error {
 		return nil
 	}
 
-	logger.Info().Msgf("%2d contracts are processed", len(updates))
+	logger.Info().Msgf("%3d contracts are processed", len(updates))
 
 	if err := p.Storage.Save(updates); err != nil {
 		return err

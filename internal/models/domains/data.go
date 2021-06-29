@@ -1,7 +1,7 @@
 package domains
 
 import (
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
@@ -41,8 +41,13 @@ type TransfersResponse struct {
 
 // BigMapDiff -
 type BigMapDiff struct {
-	*bigmapdiff.BigMapDiff
+	*bigmap.Diff
 
 	Operation *operation.Operation
 	Protocol  *protocol.Protocol
+}
+
+// TableName -
+func (BigMapDiff) TableName() string {
+	return "big_map_diffs"
 }

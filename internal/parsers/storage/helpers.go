@@ -3,26 +3,25 @@ package storage
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
-	modelTypes "github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 )
 
-func prepareBigMapDiffsToEnrich(bmd []bigmapdiff.BigMapDiff, skipEmpty bool) []*types.BigMapDiff {
+func prepareBigMapDiffsToEnrich(bmd []bigmap.Diff, skipEmpty bool) []*types.BigMapDiff {
 	res := make([]*types.BigMapDiff, 0)
 	for i := range bmd {
 		if bmd[i].Value == nil && skipEmpty {
 			continue
 		}
 		res = append(res, &types.BigMapDiff{
-			Ptr:         bmd[i].Ptr,
+			Ptr:         bmd[i].BigMap.Ptr,
 			Key:         bmd[i].Key,
 			Value:       bmd[i].Value,
 			ID:          bmd[i].ID,
 			KeyHash:     bmd[i].KeyHash,
 			OperationID: bmd[i].OperationID,
 			Level:       bmd[i].Level,
-			Address:     bmd[i].Contract,
-			Network:     bmd[i].Network.String(),
+			Address:     bmd[i].BigMap.Contract,
+			Network:     bmd[i].BigMap.Network.String(),
 			Timestamp:   bmd[i].Timestamp,
 			Protocol:    bmd[i].ProtocolID,
 		})
@@ -30,7 +29,7 @@ func prepareBigMapDiffsToEnrich(bmd []bigmapdiff.BigMapDiff, skipEmpty bool) []*
 	return res
 }
 
-func prepareBigMapStatesToEnrich(bmd []bigmapdiff.BigMapState, skipEmpty bool) []*types.BigMapDiff {
+func prepareBigMapStatesToEnrich(bmd []bigmap.State, skipEmpty bool) []*types.BigMapDiff {
 	res := make([]*types.BigMapDiff, 0)
 	for i := range bmd {
 		if bmd[i].Removed && skipEmpty {
@@ -38,12 +37,12 @@ func prepareBigMapStatesToEnrich(bmd []bigmapdiff.BigMapState, skipEmpty bool) [
 		}
 
 		item := &types.BigMapDiff{
-			Ptr:     bmd[i].Ptr,
+			Ptr:     bmd[i].BigMap.Ptr,
 			Key:     bmd[i].Key,
 			ID:      bmd[i].ID,
 			KeyHash: bmd[i].KeyHash,
-			Address: bmd[i].Contract,
-			Network: bmd[i].Network.String(),
+			Address: bmd[i].BigMap.Contract,
+			Network: bmd[i].BigMap.Network.String(),
 		}
 
 		if !bmd[i].Removed {
@@ -55,21 +54,21 @@ func prepareBigMapStatesToEnrich(bmd []bigmapdiff.BigMapState, skipEmpty bool) [
 	return res
 }
 
-func getBigMapDiffModels(bmd []*types.BigMapDiff) []bigmapdiff.BigMapDiff {
-	res := make([]bigmapdiff.BigMapDiff, 0)
+func getBigMapDiffModels(bmd []*types.BigMapDiff) []bigmap.Diff {
+	res := make([]bigmap.Diff, 0)
 	for i := range bmd {
-		res = append(res, bigmapdiff.BigMapDiff{
-			Ptr:         bmd[i].Ptr,
+		res = append(res, bigmap.Diff{
+			// Ptr:         bmd[i].Ptr,
 			Key:         bmd[i].Key,
 			Value:       bmd[i].Value,
 			ID:          bmd[i].ID,
 			KeyHash:     bmd[i].KeyHash,
 			OperationID: bmd[i].OperationID,
 			Level:       bmd[i].Level,
-			Contract:    bmd[i].Address,
-			Network:     modelTypes.NewNetwork(bmd[i].Network),
-			Timestamp:   bmd[i].Timestamp,
-			ProtocolID:  bmd[i].Protocol,
+			// Contract:    bmd[i].Address,
+			// Network:     modelTypes.NewNetwork(bmd[i].Network),
+			Timestamp:  bmd[i].Timestamp,
+			ProtocolID: bmd[i].Protocol,
 		})
 	}
 	return res
@@ -99,7 +98,7 @@ func getStrings(data []byte) ([]string, error) {
 	return tree.GetStrings(true)
 }
 
-func setBigMapDiffsStrings(bmd *bigmapdiff.BigMapDiff) error {
+func setBigMapDiffsStrings(bmd *bigmap.Diff) error {
 	keyStrings, err := getStrings(bmd.KeyBytes())
 	if err != nil {
 		return err

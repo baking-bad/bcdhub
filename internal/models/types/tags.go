@@ -126,21 +126,23 @@ func (t Tags) Value() (driver.Value, error) { return int(t), nil }
 
 // Tags name
 const (
-	ContractFactoryStringTag = "CREATE_CONTRACT"
-	DelegatableStringTag     = "SET_DELEGATE"
-	DelegatorStringTag       = "delegator"
-	ChainAwareStringTag      = "CHAIN_ID"
-	CheckSigStringTag        = "CHECK_SIGNATURE"
-	SaplingStringTag         = "sapling"
-	FA1StringTag             = "fa1"
-	FA12StringTag            = "fa1-2"
-	FA2StringTag             = "fa2"
-	UpgradableStringTag      = "upgradable"
-	MultisigStringTag        = "multisig"
-	ViewAddressStringTag     = "view_address"
-	ViewBalanceOfStringTag   = "view_balance_of"
-	ViewNatStringTag         = "view_nat"
-	LedgerStringTag          = "ledger"
+	ContractFactoryStringTag  = "CREATE_CONTRACT"
+	DelegatableStringTag      = "SET_DELEGATE"
+	DelegatorStringTag        = "delegator"
+	ChainAwareStringTag       = "CHAIN_ID"
+	CheckSigStringTag         = "CHECK_SIGNATURE"
+	SaplingStringTag          = "sapling"
+	FA1StringTag              = "fa1"
+	FA12StringTag             = "fa1-2"
+	FA2StringTag              = "fa2"
+	UpgradableStringTag       = "upgradable"
+	MultisigStringTag         = "multisig"
+	ViewAddressStringTag      = "view_address"
+	ViewBalanceOfStringTag    = "view_balance_of"
+	ViewNatStringTag          = "view_nat"
+	LedgerStringTag           = "ledger"
+	ContractMetadataStringTag = "contract_metadata"
+	TokenMetadataStringTag    = "token_metadata"
 )
 
 // Tags
@@ -160,4 +162,10 @@ const (
 	ViewBalanceOfTag
 	ViewNatTag
 	LedgerTag
+	ContractMetadataTag
+	TokenMetadataTag
+)
+
+const (
+	EmptyTag Tags = 0
 )

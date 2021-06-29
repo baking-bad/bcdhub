@@ -14,7 +14,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/fetch"
 	"github.com/baking-bad/bcdhub/internal/helpers"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	modelTypes "github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/parsers/storage"
@@ -253,7 +253,7 @@ func formatErrors(errs []*tezerrors.Error, op *Operation) error {
 	return nil
 }
 
-func (ctx *Context) prepareOperation(operation operation.Operation, bmd []bigmapdiff.BigMapDiff, withStorageDiff bool) (Operation, error) {
+func (ctx *Context) prepareOperation(operation operation.Operation, bmd []bigmap.Diff, withStorageDiff bool) (Operation, error) {
 	var op Operation
 	op.FromModel(operation)
 
@@ -302,7 +302,7 @@ func (ctx *Context) PrepareOperations(ops []operation.Operation, withStorageDiff
 	for i := 0; i < len(ops); i++ {
 		ids = append(ids, ops[i].ID)
 	}
-	bmd := make(map[int64][]bigmapdiff.BigMapDiff)
+	bmd := make(map[int64][]bigmap.Diff)
 
 	if withStorageDiff {
 		data, err := ctx.BigMapDiffs.GetForOperations(ids...)
@@ -312,7 +312,7 @@ func (ctx *Context) PrepareOperations(ops []operation.Operation, withStorageDiff
 		for i := range data {
 			id := data[i].OperationID
 			if _, ok := bmd[id]; !ok {
-				bmd[id] = []bigmapdiff.BigMapDiff{}
+				bmd[id] = []bigmap.Diff{}
 			}
 			bmd[id] = append(bmd[id], data[i])
 		}
@@ -368,7 +368,7 @@ func setParatemetersWithType(params *types.Parameters, script *ast.Script, op *O
 	return nil
 }
 
-func (ctx *Context) setStorageDiff(address string, storage []byte, op *Operation, bmd []bigmapdiff.BigMapDiff, script *ast.Script) error {
+func (ctx *Context) setStorageDiff(address string, storage []byte, op *Operation, bmd []bigmap.Diff, script *ast.Script) error {
 	storageType, err := script.StorageType()
 	if err != nil {
 		return err
@@ -381,7 +381,7 @@ func (ctx *Context) setStorageDiff(address string, storage []byte, op *Operation
 	return nil
 }
 
-func (ctx *Context) getStorageDiff(bmd []bigmapdiff.BigMapDiff, address string, storage []byte, storageType *ast.TypedAst, op *Operation) (interface{}, error) {
+func (ctx *Context) getStorageDiff(bmd []bigmap.Diff, address string, storage []byte, storageType *ast.TypedAst, op *Operation) (interface{}, error) {
 	currentStorage := &ast.TypedAst{
 		Nodes: []ast.Node{ast.Copy(storageType.Nodes[0])},
 	}
@@ -416,7 +416,7 @@ func (ctx *Context) getStorageDiff(bmd []bigmapdiff.BigMapDiff, address string, 
 	return currentStorage.Diff(prevStorage)
 }
 
-func prepareStorage(storageType *ast.TypedAst, deffatedStorage []byte, bmd []bigmapdiff.BigMapDiff) error {
+func prepareStorage(storageType *ast.TypedAst, deffatedStorage []byte, bmd []bigmap.Diff) error {
 	var data ast.UntypedAST
 	if err := json.Unmarshal(deffatedStorage, &data); err != nil {
 		return err
@@ -429,7 +429,7 @@ func prepareStorage(storageType *ast.TypedAst, deffatedStorage []byte, bmd []big
 	return getEnrichStorage(storageType, bmd)
 }
 
-func getEnrichStorage(storageType *ast.TypedAst, bmd []bigmapdiff.BigMapDiff) error {
+func getEnrichStorage(storageType *ast.TypedAst, bmd []bigmap.Diff) error {
 	if len(bmd) == 0 {
 		return nil
 	}

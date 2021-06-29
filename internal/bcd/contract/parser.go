@@ -102,7 +102,7 @@ func (p *Parser) Parse() error {
 		return err
 	}
 
-	return p.setStorageTypeTags()
+	return nil
 }
 
 // IsUpgradable -
@@ -123,21 +123,6 @@ func (p *Parser) IsUpgradable() bool {
 		}
 	}
 	return false
-}
-
-func (p *Parser) setStorageTypeTags() error {
-	storageTyp, err := p.Code.StorageType()
-	if err != nil {
-		return err
-	}
-
-	if p.Annotations.Has("%ledger") {
-		if isNftLedger(storageTyp) {
-			p.Tags.Add(consts.LedgerTag)
-		}
-	}
-
-	return nil
 }
 
 func (p *Parser) parse(tree ast.UntypedAST, handler func(node *base.Node) error) error {

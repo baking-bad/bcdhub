@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/pkg/errors"
 )
 
@@ -19,7 +20,7 @@ type TokenMetadataHandler struct {
 func NewTokenMetadataHandler(ctx *config.Context) *TokenMetadataHandler {
 	return &TokenMetadataHandler{
 		ctx,
-		handlers.NewTokenMetadata(ctx.BigMapDiffs, ctx.Blocks, ctx.TokenMetadata, ctx.Storage, ctx.RPC, ctx.SharePath, ctx.Config.IPFSGateways),
+		handlers.NewTokenMetadata(ctx.BigMapDiffs, ctx.BigMapState, ctx.Blocks, ctx.TokenMetadata, ctx.Storage, ctx.RPC, ctx.SharePath, ctx.Config.IPFSGateways),
 	}
 }
 
@@ -36,9 +37,9 @@ func (tm *TokenMetadataHandler) Handle(items []models.Model) error {
 			return errors.Errorf("[TokenMetadata.Handle] invalid type: expected *domains.BigMapDiff got %T", items[i])
 		}
 
-		storageType, err := tm.CachedStorageType(bmd.Network, bmd.Contract, bmd.Protocol.SymLink)
+		storageType, err := tm.CachedStorageType(bmd.BigMap.Network, bmd.BigMap.Contract, bmd.Protocol.SymLink)
 		if err != nil {
-			return errors.Errorf("[TokenMetadata.Handle] can't get storage type for '%s' in %s: %s", bmd.Contract, bmd.Network.String(), err)
+			return errors.Errorf("[TokenMetadata.Handle] can't get storage type for '%s' in %s: %s", bmd.BigMap.Contract, bmd.BigMap.Network.String(), err)
 		}
 
 		res, err := tm.handler.Do(bmd, storageType)
@@ -53,7 +54,7 @@ func (tm *TokenMetadataHandler) Handle(items []models.Model) error {
 		return nil
 	}
 
-	logger.Info().Msgf("%2d token metadata are processed", len(updates))
+	logger.Info().Msgf("%3d token metadata are processed", len(updates))
 
 	if err := tm.Storage.Save(updates); err != nil {
 		return err
@@ -63,7 +64,7 @@ func (tm *TokenMetadataHandler) Handle(items []models.Model) error {
 
 // Chunk -
 func (tm *TokenMetadataHandler) Chunk(lastID, size int64) ([]models.Model, error) {
-	diff, err := tm.Domains.BigMapDiffs(lastID, size)
+	diff, err := tm.Domains.BigMapDiffs(lastID, size, types.TokenMetadataTag)
 	if err != nil {
 		return nil, err
 	}

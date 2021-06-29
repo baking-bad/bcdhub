@@ -2,7 +2,7 @@ package storage
 
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -58,7 +58,28 @@ func (a *Alpha) ParseOrigination(content noderpc.Operation, operation *operation
 				return nil, nil
 			}
 
-			operation.BigMapDiffs = make([]*bigmapdiff.BigMapDiff, 0)
+			operation.BigMapDiffs = make([]*bigmap.Diff, 0)
+
+			keyType, err := json.Marshal(bigMap.KeyType)
+			if err != nil {
+				return nil, err
+			}
+			valueType, err := json.Marshal(bigMap.ValueType)
+			if err != nil {
+				return nil, err
+			}
+
+			bm := bigmap.BigMap{
+				Contract:     result.Originated[0],
+				Network:      operation.Network,
+				Ptr:          -1,
+				KeyType:      keyType,
+				ValueType:    valueType,
+				Name:         bigMap.FieldName,
+				CreatedLevel: operation.Level,
+				CreatedAt:    operation.Timestamp,
+			}
+			res.BigMaps = append(res.BigMaps, &bm)
 
 			if err := bigMap.Data.Range(func(key, value ast.Comparable) (bool, error) {
 				k := key.(ast.Node)
@@ -79,18 +100,16 @@ func (a *Alpha) ParseOrigination(content noderpc.Operation, operation *operation
 						return false, err
 					}
 				}
-
-				b := &bigmapdiff.BigMapDiff{
+				b := &bigmap.Diff{
+					BigMap:      bm,
 					Key:         keyBytes,
 					KeyHash:     keyHash,
 					Value:       valBytes,
 					OperationID: operation.ID,
 					Level:       operation.Level,
-					Contract:    result.Originated[0],
-					Network:     operation.Network,
-					Timestamp:   operation.Timestamp,
-					ProtocolID:  operation.ProtocolID,
-					Ptr:         -1,
+
+					Timestamp:  operation.Timestamp,
+					ProtocolID: operation.ProtocolID,
 				}
 
 				if err := setBigMapDiffsStrings(b); err != nil {
@@ -121,17 +140,19 @@ func (a *Alpha) ParseOrigination(content noderpc.Operation, operation *operation
 func (a *Alpha) getBigMapDiff(diffs []noderpc.BigMapDiff, address string, operation *operation.Operation) (*parsers.Result, error) {
 	res := parsers.NewResult()
 	for i := range diffs {
-		b := &bigmapdiff.BigMapDiff{
+		b := &bigmap.Diff{
+			BigMap: bigmap.BigMap{
+				Contract: address,
+				Network:  operation.Network,
+				Ptr:      -1,
+			},
 			Key:         types.Bytes(diffs[i].Key),
 			KeyHash:     diffs[i].KeyHash,
 			Value:       types.Bytes(diffs[i].Value),
 			OperationID: operation.ID,
 			Level:       operation.Level,
-			Contract:    address,
-			Network:     operation.Network,
 			Timestamp:   operation.Timestamp,
 			ProtocolID:  operation.ProtocolID,
-			Ptr:         -1,
 		}
 
 		if err := setBigMapDiffsStrings(b); err != nil {

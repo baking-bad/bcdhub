@@ -114,7 +114,7 @@ func NewParseParams(rpc noderpc.INode, ctx *config.Context, opts ...ParseParamsO
 		params.ctx,
 		contract.WithShareDir(ctx.SharePath),
 	)
-	storageParser, err := NewRichStorage(ctx.BigMapDiffs, rpc, params.head.Protocol)
+	storageParser, err := NewRichStorage(ctx.BigMaps, ctx.BigMapState, ctx.Storage, rpc, params.head.Protocol)
 	if err != nil {
 		return nil, err
 	}

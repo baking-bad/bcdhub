@@ -6,7 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 )
 
 // BigMapDiff -
@@ -70,13 +70,13 @@ func (b BigMapDiff) Parse(highlight map[string][]string, data []byte) (*Item, er
 
 // Prepare -
 func (b *BigMapDiff) Prepare(model models.Model) {
-	bmd, ok := model.(*bigmapdiff.BigMapDiff)
+	bmd, ok := model.(*bigmap.Diff)
 	if !ok {
 		return
 	}
 
 	b.ID = helpers.GenerateID()
-	b.Address = bmd.Contract
+	b.Address = bmd.BigMap.Contract
 
 	var data ast.UntypedAST
 	if err := json.Unmarshal(bmd.Key, &data); err != nil {
@@ -92,8 +92,8 @@ func (b *BigMapDiff) Prepare(model models.Model) {
 	b.KeyHash = bmd.KeyHash
 	b.KeyStrings = bmd.KeyStrings
 	b.Level = bmd.Level
-	b.Network = bmd.Network.String()
-	b.Ptr = bmd.Ptr
+	b.Network = bmd.BigMap.Network.String()
+	b.Ptr = bmd.BigMap.Ptr
 	b.Timestamp = bmd.Timestamp.UTC()
 	b.ValueStrings = bmd.ValueStrings
 }

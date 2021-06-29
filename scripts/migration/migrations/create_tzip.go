@@ -4,7 +4,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	tzipParsers "github.com/baking-bad/bcdhub/internal/parsers/tzip"
 	"github.com/schollz/progressbar/v3"
 )
@@ -38,7 +38,7 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 			return err
 		}
 
-		if _, err := ctx.TZIP.Get(bmd[i].Network, bmd[i].Contract); err != nil {
+		if _, err := ctx.TZIP.Get(bmd[i].BigMap.Network, bmd[i].BigMap.Contract); err != nil {
 			if !ctx.Storage.IsRecordNotFound(err) {
 				return err
 			}
@@ -46,20 +46,19 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 			continue
 		}
 
-		rpc, err := ctx.GetRPC(bmd[i].Network)
+		rpc, err := ctx.GetRPC(bmd[i].BigMap.Network)
 		if err != nil {
 			return err
 		}
-		parser := tzipParsers.NewParser(ctx.BigMapDiffs, ctx.Blocks, ctx.Storage, rpc, tzipParsers.ParserConfig{
+		parser := tzipParsers.NewParser(ctx.BigMapState, ctx.Blocks, ctx.Storage, rpc, tzipParsers.ParserConfig{
 			IPFSGateways: ctx.Config.IPFSGateways,
 			SharePath:    ctx.SharePath,
 		})
 
 		t, err := parser.Parse(tzipParsers.ParseContext{
-			BigMapDiff: bigmapdiff.BigMapDiff{
-				Contract:   bmd[i].Contract,
-				Network:    bmd[i].Network,
-				Ptr:        bmd[i].Ptr,
+			Diff: bigmap.Diff{
+				BigMapID:   bmd[i].BigMapID,
+				BigMap:     bmd[i].BigMap,
 				Value:      bmd[i].Value,
 				KeyHash:    bmd[i].KeyHash,
 				ProtocolID: bmd[i].ProtocolID,

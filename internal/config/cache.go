@@ -1,11 +1,13 @@
 package config
 
 import (
+	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/fetch"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
@@ -68,7 +70,14 @@ func (ctx *Context) CachedTezosBalance(network types.Network, address string, le
 		if err != nil {
 			return 0, err
 		}
-		return rpc.GetContractBalance(address, level)
+		balance, err := rpc.GetContractBalance(address, level)
+		if err != nil {
+			if !strings.Contains(err.Error(), "404:") {
+				return 0, err
+			}
+		}
+
+		return balance, nil
 	})
 	if err != nil {
 		return 0, err
@@ -175,4 +184,28 @@ func (ctx *Context) CachedProtocolByID(network types.Network, id int64) (protoco
 		return protocol.Protocol{}, err
 	}
 	return item.Value().(protocol.Protocol), nil
+}
+
+// CachedBigMapByAddress -
+func (ctx *Context) CachedBigMapByAddress(network types.Network, address string) (bigmap.BigMap, error) {
+	key := ctx.Cache.BigMapByAddress(network, address)
+	item, err := ctx.Cache.Fetch(key, time.Hour, func() (interface{}, error) {
+		return ctx.BigMaps.GetByContract(network, address)
+	})
+	if err != nil {
+		return bigmap.BigMap{}, err
+	}
+	return item.Value().(bigmap.BigMap), nil
+}
+
+// CachedBigMap -
+func (ctx *Context) CachedBigMap(network types.Network, ptr int64, address string) (*bigmap.BigMap, error) {
+	key := ctx.Cache.BigMap(network, ptr)
+	item, err := ctx.Cache.Fetch(key, time.Hour, func() (interface{}, error) {
+		return ctx.BigMaps.Get(network, ptr, address)
+	})
+	if err != nil {
+		return nil, err
+	}
+	return item.Value().(*bigmap.BigMap), nil
 }
