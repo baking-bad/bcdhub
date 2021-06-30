@@ -191,9 +191,6 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 			node, _ := subTree.UnwrapAndGetEntrypointName()
 			schema.DefaultModel = make(ast.JSONModel)
 			node.GetJSONModel(schema.DefaultModel)
-			if val, ok := schema.DefaultModel[esReq.EntrypointName]; node.IsPrim("pair") && ok {
-				schema.DefaultModel = val.(ast.JSONModel)
-			}
 		}
 	}
 

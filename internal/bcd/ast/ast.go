@@ -409,6 +409,17 @@ func (a *TypedAst) GetJSONModel(model JSONModel) {
 
 	for i := range a.Nodes {
 		a.Nodes[i].GetJSONModel(model)
+		if a.Nodes[i].IsPrim(consts.PAIR) {
+			name := a.Nodes[i].GetName()
+			if val, ok := model[name]; ok {
+				if data, ok := val.(JSONModel); ok {
+					delete(model, name)
+					for key, value := range data {
+						model[key] = value
+					}
+				}
+			}
+		}
 	}
 }
 
