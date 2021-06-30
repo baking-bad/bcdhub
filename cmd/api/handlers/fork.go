@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/gin-gonic/gin"
 )
 
@@ -41,6 +42,12 @@ func (ctx *Context) buildStorageDataFromForkRequest(req forkRequest) (*ForkRespo
 	storageType, err := script.StorageType()
 	if err != nil {
 		return nil, err
+	}
+
+	if storageType.Nodes[0].IsPrim(consts.PAIR) {
+		req.Storage = map[string]interface{}{
+			storageType.Nodes[0].GetName(): req.Storage,
+		}
 	}
 	if err = storageType.FromJSONSchema(req.Storage); err != nil {
 		return nil, err
