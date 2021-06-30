@@ -13,14 +13,14 @@ import (
 )
 
 const (
-	ogTitle             = "Better Call Dev"
-	ogDescription       = "Tezos smart contract explorer, developer dashboard, and API provider. Easy to spin up / integrate with your sandbox."
-	ogImage             = "/img/logo_og.png"
-	pageTitle           = "Better Call Dev — Tezos smart contract explorer by Baking Bad"
-	dappsTitle          = "Tezos DApps"
-	pageDescription     = "Tezos smart contract explorer & developer dashboard, simplifies perception and facilitates interaction. By Baking Bad."
-	dappsDescription    = "Track the Tezos ecosystem growth: aggregated DApps usage stats, DEX token turnover, affiliated smart contracts, screenshots, social links, and more."
-	contractDescription = "Check out recent operations, inspect contract code and storage, invoke contract methods."
+	ogTitle          = "Better Call Dev"
+	ogDescription    = "Tezos smart contract explorer, developer dashboard, and API provider. Easy to spin up / integrate with your sandbox."
+	ogImage          = "/img/logo_og.png"
+	pageTitle        = "Better Call Dev — Tezos smart contract explorer by Baking Bad"
+	dappsTitle       = "Tezos DApps"
+	pageDescription  = "Tezos smart contract explorer & developer dashboard, simplifies perception and facilitates interaction. By Baking Bad."
+	dappsDescription = "Track the Tezos ecosystem growth: aggregated DApps usage stats, DEX token turnover, affiliated smart contracts, screenshots, social links, and more."
+	// contractDescription = "Check out recent operations, inspect contract code and storage, invoke contract methods."
 )
 
 const defaultConfTemplate = `server {
@@ -57,7 +57,7 @@ const locationTemplate = `
 		sub_filter_once on;
 	}`
 
-func makeNginxConfig(dapps []dapp.DApp, aliases []tzip.TZIP, filepath, baseURL string) error {
+func makeNginxConfig(dapps []dapp.DApp, _ []tzip.TZIP, filepath, baseURL string) error {
 	var locations strings.Builder
 	tmpl := template.Must(template.New("").Parse(locationTemplate))
 
@@ -152,26 +152,26 @@ func makeDappRootLocation(tmpl *template.Template, path, baseURL string) (string
 	return buf.String(), nil
 }
 
-func makeContractsLocation(tmpl *template.Template, address, alias, baseURL string) (string, error) {
-	buf := new(bytes.Buffer)
-	err := tmpl.Execute(buf, map[string]interface{}{
-		"location":        fmt.Sprintf("/mainnet/%s", address),
-		"url":             fmt.Sprintf("%s/mainnet/%s", baseURL, address),
-		"title":           fmt.Sprintf("%s — %s", sanitizeQuotes(alias), ogTitle),
-		"description":     contractDescription,
-		"ogTitle":         ogTitle,
-		"ogDescription":   ogDescription,
-		"ogImage":         ogImage,
-		"pageTitle":       pageTitle,
-		"pageDescription": pageDescription,
-		"logoURL":         ogImage,
-	})
-	if err != nil {
-		return "", err
-	}
+// func makeContractsLocation(tmpl *template.Template, address, alias, baseURL string) (string, error) {
+// 	buf := new(bytes.Buffer)
+// 	err := tmpl.Execute(buf, map[string]interface{}{
+// 		"location":        fmt.Sprintf("/mainnet/%s", address),
+// 		"url":             fmt.Sprintf("%s/mainnet/%s", baseURL, address),
+// 		"title":           fmt.Sprintf("%s — %s", sanitizeQuotes(alias), ogTitle),
+// 		"description":     contractDescription,
+// 		"ogTitle":         ogTitle,
+// 		"ogDescription":   ogDescription,
+// 		"ogImage":         ogImage,
+// 		"pageTitle":       pageTitle,
+// 		"pageDescription": pageDescription,
+// 		"logoURL":         ogImage,
+// 	})
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-	return buf.String(), nil
-}
+// 	return buf.String(), nil
+// }
 
 func sanitizeQuotes(str string) string {
 	return strings.ReplaceAll(str, "'", "’")
