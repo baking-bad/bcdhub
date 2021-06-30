@@ -129,7 +129,7 @@ func (p *Postgres) GetDateHistogram(period string, opts ...models.HistogramOptio
 func (p *Postgres) GetCachedHistogram(period, name, network string) ([][]float64, error) {
 	view := fmt.Sprintf(`series_%s_by_%s_%s`, name, period, network)
 	var res []HistogramResponse
-	if err := p.DB.Table(view).Find(&res).Error; err != nil {
+	if err := p.DB.Table(view).Limit(limit(period)).Order("date_part desc").Find(&res).Error; err != nil {
 		return nil, err
 	}
 	hist := make([][]float64, 0, len(res))
@@ -173,5 +173,20 @@ func GetHistogramInterval(period string) string {
 		return "now() - interval '11 month'"
 	default:
 		return "date '2018-06-25'"
+	}
+}
+
+func limit(period string) int {
+	switch period {
+	case "hour":
+		return 24
+	case "day":
+		return 30
+	case "week":
+		return 14
+	case "month":
+		return 12
+	default:
+		return 60
 	}
 }

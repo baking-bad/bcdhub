@@ -164,6 +164,9 @@ type getSeriesRequest struct {
 }
 
 func (req getSeriesRequest) isCached() bool {
+	if req.Address != "" {
+		return false
+	}
 	return req.Period == "month" && (req.Name == "contract" || req.Name == "operation" || req.Name == "paid_storage_size_diff" || req.Name == "consumed_gas")
 }
 
