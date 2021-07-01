@@ -326,7 +326,7 @@ func (rpc *NodeRPC) GetCode(address string, level int64) (*ast.Script, error) {
 }
 
 // GetBigMapType -
-func (rpc *NodeRPC) GetBigMapType(ptr int64) (bm BigMap, err error) {
-	err = rpc.get(fmt.Sprintf("chains/main/blocks/head/context/raw/json/big_maps/index/%d", ptr), &bm)
+func (rpc *NodeRPC) GetBigMapType(ptr, level int64) (bm BigMap, err error) {
+	err = rpc.get(fmt.Sprintf("chains/main/blocks/%s/context/raw/json/big_maps/index/%d", getBlockString(level), ptr), &bm)
 	return
 }
