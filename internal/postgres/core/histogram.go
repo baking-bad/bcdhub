@@ -25,6 +25,7 @@ const (
 			%s
 		from f
 		left join %s on date_trunc('%s', %s.timestamp) = f.val %s
+		where  %s.id is not null
 		group by 1
 		order by date_part
 	`
@@ -149,7 +150,7 @@ func getRequest(period, table, f, conditions string) (string, error) {
 	}
 
 	from := GetHistogramInterval(period)
-	return fmt.Sprintf(histogramRequestTemplate, period, from, period, period, f, table, period, table, conditions), nil
+	return fmt.Sprintf(histogramRequestTemplate, period, from, period, period, f, table, period, table, conditions, table), nil
 }
 
 // ValidateHistogramPeriod -
