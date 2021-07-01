@@ -246,8 +246,8 @@ func (p Pool) GetCode(address string, level int64) (*ast.Script, error) {
 }
 
 // GetBigMapType -
-func (p Pool) GetBigMapType(ptr int64) (BigMap, error) {
-	data, err := p.call("GetBigMapType", ptr)
+func (p Pool) GetBigMapType(ptr, level int64) (BigMap, error) {
+	data, err := p.call("GetBigMapType", ptr, level)
 	if err != nil {
 		return BigMap{}, err
 	}

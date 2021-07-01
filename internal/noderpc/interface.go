@@ -23,5 +23,5 @@ type INode interface {
 	RunOperation(string, string, string, string, int64, int64, int64, int64, int64, []byte) (OperationGroup, error)
 	GetCounter(string) (int64, error)
 	GetCode(address string, level int64) (*ast.Script, error)
-	GetBigMapType(ptr int64) (BigMap, error)
+	GetBigMapType(ptr, level int64) (BigMap, error)
 }
