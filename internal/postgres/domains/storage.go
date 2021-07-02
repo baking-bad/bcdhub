@@ -39,7 +39,11 @@ func (storage *Storage) TokenBalances(network types.Network, contract, address s
 		query.Where("contract = ?", contract)
 	}
 
-	if sort != "token_id" && sort != "balance" {
+	switch sort {
+	case "token_id":
+	case "balance":
+		sort = "balance desc, id"
+	default:
 		sort = "token_id"
 	}
 
