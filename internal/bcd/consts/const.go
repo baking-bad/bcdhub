@@ -1,5 +1,7 @@
 package consts
 
+import "time"
+
 // Kind
 const (
 	Transaction    = "transaction"
@@ -57,4 +59,9 @@ const (
 // indent for printing
 const (
 	DefaultIndent = "  "
+)
+
+// beginning of time
+var (
+	BeginningOfTime = time.Date(2018, 06, 30, 0, 0, 0, 0, time.UTC)
 )

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -327,7 +328,7 @@ func periodToRange(query *gorm.DB, period string) error {
 	case "day":
 		now = now.AddDate(0, 0, -1)
 	case "all":
-		return nil
+		now = consts.BeginningOfTime
 	default:
 		return errors.Errorf("Unknown period value: %s", period)
 	}
