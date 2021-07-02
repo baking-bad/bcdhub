@@ -112,37 +112,42 @@ func (m *BigMap) ToMiguel() (*MiguelNode, error) {
 		return nil, err
 	}
 
-	if m.Ptr != nil {
-		node.Value = *m.Ptr
-		return node, nil
-	}
-	node.Children = make([]*MiguelNode, 0)
-	handler := func(key, value Comparable) (bool, error) {
-		keyNode := key.(Node)
-		keyChild, err := keyNode.ToMiguel()
-		if err != nil {
-			return true, err
-		}
-		if value == nil {
+	switch {
+	case len(m.Data.keys) > 0:
+		node.Children = make([]*MiguelNode, 0)
+		handler := func(key, value Comparable) (bool, error) {
+			keyNode := key.(Node)
+			keyChild, err := keyNode.ToMiguel()
+			if err != nil {
+				return true, err
+			}
+			if value == nil {
+				return false, nil
+			}
+
+			child, err := value.(Node).ToMiguel()
+			if err != nil {
+				return true, err
+			}
+
+			name, err := getMapKeyName(keyChild, keyNode)
+			if err != nil {
+				return true, err
+			}
+			child.Name = &name
+			node.Children = append(node.Children, child)
+
 			return false, nil
 		}
 
-		child, err := value.(Node).ToMiguel()
-		if err != nil {
-			return true, err
-		}
+		return node, m.Data.Range(handler)
 
-		name, err := getMapKeyName(keyChild, keyNode)
-		if err != nil {
-			return true, err
-		}
-		child.Name = &name
-		node.Children = append(node.Children, child)
-
-		return false, nil
+	case m.Ptr != nil:
+		node.Value = *m.Ptr
+		return node, nil
+	default:
+		return nil, nil
 	}
-
-	return node, m.Data.Range(handler)
 }
 
 // ToBaseNode -
