@@ -126,7 +126,7 @@ func (opt *Option) ToBaseNode(optimized bool) (*base.Node, error) {
 
 var noneSchema = &JSONSchema{
 	Type:  JSONSchemaTypeString,
-	Const: consts.NONE,
+	Const: consts.None,
 }
 
 // ToJSONSchema -
@@ -138,7 +138,7 @@ func (opt *Option) ToJSONSchema() (*JSONSchema, error) {
 
 	someProperties := &JSONSchema{
 		Type:  JSONSchemaTypeString,
-		Const: consts.SOME,
+		Const: consts.Some,
 	}
 
 	child, err := opt.Type.ToJSONSchema()
@@ -204,9 +204,9 @@ func (opt *Option) FromJSONSchema(data map[string]interface{}) error {
 	delete(optionMap, "schemaKey")
 
 	switch schemaKey {
-	case consts.NONE:
+	case consts.None:
 		opt.Value = consts.None
-	case consts.SOME:
+	case consts.Some:
 		return opt.Type.FromJSONSchema(optionMap)
 	default:
 		return errors.Wrap(consts.ErrJSONDataIsAbsent, "Option.FromJSONSchema")
@@ -362,7 +362,7 @@ func (opt *Option) getTypeName() string {
 
 // FindPointers -
 func (opt *Option) FindPointers() map[int64]*BigMap {
-	if opt.Value == consts.SOME {
+	if opt.Value == consts.Some {
 		return opt.Type.FindPointers()
 	}
 	return nil
@@ -370,7 +370,7 @@ func (opt *Option) FindPointers() map[int64]*BigMap {
 
 // Range -
 func (opt *Option) Range(handler func(node Node) error) error {
-	if opt.Value == consts.SOME {
+	if opt.Value == consts.Some {
 		return opt.Type.Range(handler)
 	}
 	return nil
@@ -384,7 +384,7 @@ func (opt *Option) GetJSONModel(model JSONModel) {
 	item := JSONModel{
 		"schemaKey": opt.Value,
 	}
-	if opt.Value == consts.SOME {
+	if opt.Value == consts.Some {
 		opt.Type.GetJSONModel(item)
 	}
 
