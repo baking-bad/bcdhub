@@ -3,12 +3,22 @@ package core
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/pkg/errors"
+)
+
+const (
+	year  = "year"
+	month = "month"
+	week  = "week"
+	hour  = "hour"
+	day   = "day"
+	all   = "all"
 )
 
 const (
@@ -150,12 +160,13 @@ func getRequest(period, table, f, conditions string) (string, error) {
 	}
 
 	from := GetHistogramInterval(period)
-	return fmt.Sprintf(histogramRequestTemplate, period, from, period, period, f, table, period, table, conditions, table), nil
+	periodName := name(period)
+	return fmt.Sprintf(histogramRequestTemplate, periodName, from, periodName, periodName, f, table, periodName, table, conditions, table), nil
 }
 
 // ValidateHistogramPeriod -
 func ValidateHistogramPeriod(period string) error {
-	if !helpers.StringInArray(period, []string{"day", "week", "month", "year", "hour"}) {
+	if !helpers.StringInArray(period, []string{day, week, month, year, hour, all}) {
 		return errors.Errorf("Invalid period: %s", period)
 	}
 	return nil
@@ -164,13 +175,13 @@ func ValidateHistogramPeriod(period string) error {
 // GetHistogramInterval -
 func GetHistogramInterval(period string) string {
 	switch period {
-	case "hour":
+	case hour:
 		return "now() - interval '23 hour'" // -1 hour/day/week/month because postgres series count current date. In maths: [from; to] -> (from; to]
-	case "day":
+	case day:
 		return "now() - interval '30 day'"
-	case "week":
+	case week:
 		return "now() - interval '15 week'"
-	case "month":
+	case month:
 		return "now() - interval '11 month'"
 	default:
 		return "date '2018-06-25'"
@@ -179,15 +190,35 @@ func GetHistogramInterval(period string) string {
 
 func limit(period string) int {
 	switch period {
-	case "hour":
+	case hour:
 		return 24
-	case "day":
+	case day:
 		return 30
-	case "week":
+	case week:
 		return 14
-	case "month":
+	case month:
 		return 12
+	case all:
+		now := time.Now()
+		years := now.Year() - 2018
+		months := now.Month() + 6
+		return years*12 + int(months)
 	default:
 		return 60
+	}
+}
+
+func name(period string) string {
+	switch period {
+	case hour:
+		return period
+	case day:
+		return period
+	case week:
+		return period
+	case month:
+		return period
+	default:
+		return month
 	}
 }
