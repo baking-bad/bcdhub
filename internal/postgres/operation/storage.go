@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
@@ -237,40 +236,6 @@ func (storage *Storage) GetTokensStats(network types.Network, addresses, entrypo
 	}
 
 	return usageStats, nil
-}
-
-type operationAddresses struct {
-	Source      string
-	Destination string
-}
-
-// GetParticipatingContracts -
-func (storage *Storage) GetParticipatingContracts(network types.Network, fromLevel, toLevel int64) ([]string, error) {
-	query := storage.DB.Table(models.DocOperations).
-		Select("source, destination").
-		Where("network = ?", network).
-		Where("level <= ?", fromLevel).
-		Where("level > ?", toLevel)
-
-	var response []operationAddresses
-	if err := query.Find(&response).Error; err != nil {
-		return nil, err
-	}
-
-	exists := make(map[string]struct{})
-	addresses := make([]string, 0)
-	for _, op := range response {
-		if _, ok := exists[op.Source]; !ok && bcd.IsContract(op.Source) {
-			addresses = append(addresses, op.Source)
-			exists[op.Source] = struct{}{}
-		}
-		if _, ok := exists[op.Destination]; !ok && bcd.IsContract(op.Destination) {
-			addresses = append(addresses, op.Destination)
-			exists[op.Destination] = struct{}{}
-		}
-	}
-
-	return addresses, nil
 }
 
 // GetByIDs -

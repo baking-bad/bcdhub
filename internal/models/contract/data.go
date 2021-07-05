@@ -14,14 +14,6 @@ type Similar struct {
 	Count int64 `json:"count"`
 }
 
-// DiffTask -
-type DiffTask struct {
-	Network1 types.Network
-	Address1 string
-	Network2 types.Network
-	Address2 string
-}
-
 // Address -
 type Address struct {
 	Network types.Network
