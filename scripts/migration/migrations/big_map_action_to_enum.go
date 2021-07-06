@@ -31,17 +31,17 @@ func (m *BigMapActionToEnum) Do(ctx *config.Context) error {
 			return nil
 		}
 
-		logger.Info("renaming 'action' column to 'old_action'...")
+		logger.Info().Msg("renaming 'action' column to 'old_action'...")
 		if err := migrator.RenameColumn(model, "action", "old_action"); err != nil {
 			return err
 		}
 
-		logger.Info("creating new 'action' column...")
+		logger.Info().Msg("creating new 'action' column...")
 		if err := migrator.AddColumn(model, "action"); err != nil {
 			return err
 		}
 
-		logger.Info("setting 'action' column value...")
+		logger.Info().Msg("setting 'action' column value...")
 		for _, action := range []types.BigMapAction{
 			types.BigMapActionAlloc, types.BigMapActionCopy, types.BigMapActionRemove, types.BigMapActionUpdate,
 		} {
@@ -49,7 +49,7 @@ func (m *BigMapActionToEnum) Do(ctx *config.Context) error {
 				return err
 			}
 		}
-		logger.Info("removing 'old_action' column...")
+		logger.Info().Msg("removing 'old_action' column...")
 
 		return migrator.DropColumn(model, "old_action")
 	})

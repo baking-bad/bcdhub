@@ -27,7 +27,7 @@ type app struct {
 func newApp() *app {
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
-		logger.Fatal(err)
+		panic(err)
 	}
 
 	docs.SwaggerInfo.Host = cfg.API.SwaggerHost
@@ -40,7 +40,7 @@ func newApp() *app {
 
 	ctx, err := handlers.NewContext(cfg)
 	if err != nil {
-		logger.Error(err)
+		logger.Err(err)
 		helpers.CatchErrorSentry(err)
 		return nil
 	}
@@ -62,7 +62,7 @@ func (api *app) makeRouter() {
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		if err := validations.Register(v, api.Context.Config.API); err != nil {
-			logger.Fatal(err)
+			panic(err)
 		}
 	}
 
@@ -218,7 +218,7 @@ func (api *app) Close() {
 
 func (api *app) Run() {
 	if err := api.Router.Run(api.Context.Config.API.Bind); err != nil {
-		logger.Error(err)
+		logger.Err(err)
 		helpers.CatchErrorSentry(err)
 		return
 	}

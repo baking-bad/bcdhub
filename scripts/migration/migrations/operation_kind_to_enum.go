@@ -31,17 +31,17 @@ func (m *OperationKindToEnum) Do(ctx *config.Context) error {
 			return nil
 		}
 
-		logger.Info("renaming 'kind' column to 'old_kind'...")
+		logger.Info().Msg("renaming 'kind' column to 'old_kind'...")
 		if err := migrator.RenameColumn(model, "kind", "old_kind"); err != nil {
 			return err
 		}
 
-		logger.Info("creating new 'kind' column...")
+		logger.Info().Msg("creating new 'kind' column...")
 		if err := migrator.AddColumn(model, "kind"); err != nil {
 			return err
 		}
 
-		logger.Info("setting 'kind' column value...")
+		logger.Info().Msg("setting 'kind' column value...")
 		for _, kind := range []types.OperationKind{
 			types.OperationKindOrigination, types.OperationKindOriginationNew, types.OperationKindTransaction,
 		} {
@@ -49,7 +49,7 @@ func (m *OperationKindToEnum) Do(ctx *config.Context) error {
 				return err
 			}
 		}
-		logger.Info("removing 'old_kind' column...")
+		logger.Info().Msg("removing 'old_kind' column...")
 
 		return migrator.DropColumn(model, "old_kind")
 	})

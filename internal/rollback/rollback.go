@@ -44,7 +44,7 @@ func (rm Manager) Rollback(db *gorm.DB, fromState block.Block, toLevel int64) er
 	}
 
 	for level := fromState.Level - 1; level >= toLevel; level-- {
-		logger.Info("Rollback to %d block", level)
+		logger.Info().Msgf("Rollback to %d block", level)
 		err := db.Transaction(func(tx *gorm.DB) error {
 
 			if err := rm.rollbackTokenBalances(tx, fromState.Network, level); err != nil {

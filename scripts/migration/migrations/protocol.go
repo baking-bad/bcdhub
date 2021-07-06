@@ -48,127 +48,127 @@ func (m *ProtocolField) Do(ctx *config.Context) error {
 }
 
 func (m *ProtocolField) migrateBlocks(tx *gorm.DB, protocols []protocol.Protocol) error {
-	logger.Info("Migrating blocks...")
+	logger.Info().Msg("Migrating blocks...")
 	migrator := tx.Migrator()
 
 	model := new(block.Block)
 
 	if !migrator.HasColumn(model, "protocol_id") {
-		logger.Info("Adding `protocol_id` column...")
+		logger.Info().Msg("Adding `protocol_id` column...")
 		if err := migrator.AddColumn(model, "protocol_id"); err != nil {
 			return err
 		}
 	}
 
 	if migrator.HasColumn(model, "protocol") {
-		logger.Info("Setting `protocol_id` value...")
+		logger.Info().Msg("Setting `protocol_id` value...")
 		for i := range protocols {
 			if err := tx.Model(model).Where("protocol = ?", protocols[i].Hash).Where("network = ?", protocols[i].Network).Update("protocol_id", protocols[i].ID).Error; err != nil {
 				return err
 			}
 		}
 
-		logger.Info("Removing `protocol` column...")
+		logger.Info().Msg("Removing `protocol` column...")
 		return migrator.DropColumn(model, "protocol")
 	}
 	return nil
 }
 
 func (m *ProtocolField) migrateBigMapDiff(tx *gorm.DB, protocols []protocol.Protocol) error {
-	logger.Info("Migrating bigmapdiff...")
+	logger.Info().Msg("Migrating bigmapdiff...")
 	migrator := tx.Migrator()
 
 	model := new(bigmapdiff.BigMapDiff)
 
 	if !migrator.HasColumn(model, "protocol_id") {
-		logger.Info("Adding `protocol_id` column...")
+		logger.Info().Msg("Adding `protocol_id` column...")
 		if err := migrator.AddColumn(model, "protocol_id"); err != nil {
 			return err
 		}
 	}
 
 	if migrator.HasColumn(model, "protocol") {
-		logger.Info("Setting `protocol_id` value...")
+		logger.Info().Msg("Setting `protocol_id` value...")
 		for i := range protocols {
 			if err := tx.Model(model).Where("protocol = ?", protocols[i].Hash).Where("network = ?", protocols[i].Network).Update("protocol_id", protocols[i].ID).Error; err != nil {
 				return err
 			}
 		}
 
-		logger.Info("Removing `protocol` column...")
+		logger.Info().Msg("Removing `protocol` column...")
 		return migrator.DropColumn(model, "protocol")
 	}
 	return nil
 }
 
 func (m *ProtocolField) migrateOperations(tx *gorm.DB, protocols []protocol.Protocol) error {
-	logger.Info("Migrating operaitons...")
+	logger.Info().Msg("Migrating operaitons...")
 	migrator := tx.Migrator()
 
 	model := new(operation.Operation)
 
 	if !migrator.HasColumn(model, "protocol_id") {
-		logger.Info("Adding `protocol_id` column...")
+		logger.Info().Msg("Adding `protocol_id` column...")
 		if err := migrator.AddColumn(model, "protocol_id"); err != nil {
 			return err
 		}
 	}
 
 	if migrator.HasColumn(model, "protocol") {
-		logger.Info("Setting `protocol_id` value...")
+		logger.Info().Msg("Setting `protocol_id` value...")
 		for i := range protocols {
 			if err := tx.Model(model).Where("protocol = ?", protocols[i].Hash).Where("network = ?", protocols[i].Network).Update("protocol_id", protocols[i].ID).Error; err != nil {
 				return err
 			}
 		}
 
-		logger.Info("Removing `protocol` column...")
+		logger.Info().Msg("Removing `protocol` column...")
 		return migrator.DropColumn(model, "protocol")
 	}
 	return nil
 }
 
 func (m *ProtocolField) migrateMigrations(tx *gorm.DB, protocols []protocol.Protocol) error {
-	logger.Info("Migrating migrations...")
+	logger.Info().Msg("Migrating migrations...")
 	migrator := tx.Migrator()
 
 	model := new(migration.Migration)
 
 	if !migrator.HasColumn(model, "protocol_id") {
-		logger.Info("Adding `protocol_id` column...")
+		logger.Info().Msg("Adding `protocol_id` column...")
 		if err := migrator.AddColumn(model, "protocol_id"); err != nil {
 			return err
 		}
 	}
 
 	if migrator.HasColumn(model, "protocol") {
-		logger.Info("Setting `protocol_id` value...")
+		logger.Info().Msg("Setting `protocol_id` value...")
 		for i := range protocols {
 			if err := tx.Model(model).Where("protocol = ?", protocols[i].Hash).Where("network = ?", protocols[i].Network).Update("protocol_id", protocols[i].ID).Error; err != nil {
 				return err
 			}
 		}
 
-		logger.Info("Removing `protocol` column...")
+		logger.Info().Msg("Removing `protocol` column...")
 		return migrator.DropColumn(model, "protocol")
 	}
 
 	if !migrator.HasColumn(model, "prev_protocol_id") {
-		logger.Info("Adding `prev_protocol_id` column...")
+		logger.Info().Msg("Adding `prev_protocol_id` column...")
 		if err := migrator.AddColumn(model, "prev_protocol_id"); err != nil {
 			return err
 		}
 	}
 
 	if migrator.HasColumn(model, "prev_protocol") {
-		logger.Info("Setting `prev_protocol_id` value...")
+		logger.Info().Msg("Setting `prev_protocol_id` value...")
 		for i := range protocols {
 			if err := tx.Model(model).Where("prev_protocol = ?", protocols[i].Hash).Where("network = ?", protocols[i].Network).Update("prev_protocol_id", protocols[i].ID).Error; err != nil {
 				return err
 			}
 		}
 
-		logger.Info("Removing `prev_protocol` column...")
+		logger.Info().Msg("Removing `prev_protocol` column...")
 		return migrator.DropColumn(model, "prev_protocol")
 	}
 

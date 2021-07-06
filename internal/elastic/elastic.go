@@ -54,7 +54,7 @@ func WaitNew(addresses []string, timeout int) *Elastic {
 	for es == nil {
 		es, err = New(addresses)
 		if err != nil {
-			logger.Warning("Waiting elastic up %d seconds...", timeout)
+			logger.Warning().Msgf("Waiting elastic up %d seconds...", timeout)
 			time.Sleep(time.Second * time.Duration(timeout))
 		}
 	}

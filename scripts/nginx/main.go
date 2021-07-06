@@ -12,7 +12,8 @@ import (
 func main() {
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
-		logger.Fatal(err)
+		logger.Err(err)
+		return
 	}
 
 	ctx := config.NewContext(
@@ -23,12 +24,14 @@ func main() {
 
 	dapps, err := ctx.DApps.All()
 	if err != nil {
-		logger.Fatal(err)
+		logger.Err(err)
+		return
 	}
 
 	aliases, err := ctx.TZIP.GetAliases(types.Mainnet)
 	if err != nil {
-		logger.Fatal(err)
+		logger.Err(err)
+		return
 	}
 
 	outputDir := fmt.Sprintf("%s/nginx", cfg.SharePath)
@@ -36,16 +39,19 @@ func main() {
 
 	env := os.Getenv("BCD_ENV")
 	if env == "" {
-		logger.Fatal(fmt.Errorf("BCD_ENV env var is empty"))
+		logger.Err(fmt.Errorf("BCD_ENV env var is empty"))
+		return
 	}
 
 	nginxConfigFilename := fmt.Sprintf("%s/default.%s.conf", outputDir, env)
 	if err := makeNginxConfig(dapps, aliases, nginxConfigFilename, ctx.Config.BaseURL); err != nil {
-		logger.Fatal(err)
+		logger.Err(err)
+		return
 	}
 
 	sitemapFilename := fmt.Sprintf("%s/sitemap.%s.xml", outputDir, env)
 	if err := makeSitemap(dapps, aliases, sitemapFilename, ctx.Config); err != nil {
-		logger.Fatal(err)
+		logger.Err(err)
+		return
 	}
 }

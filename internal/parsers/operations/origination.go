@@ -110,7 +110,7 @@ func (p Origination) appliedHandler(item noderpc.Operation, origination *operati
 
 	if err := p.executeInitialStorageEvent(item.Script, origination, result); err != nil {
 		if !errors.Is(err, tokens.ErrNoMetadataKeyInStorage) {
-			logger.Error(err)
+			logger.Err(err)
 		}
 	}
 

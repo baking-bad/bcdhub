@@ -69,11 +69,11 @@ func (c Converter) FromString(input string) (string, error) {
 func (c Converter) trace() {
 	if c.debug {
 		c.parser.TracerEnter = func(name string, s string, v *peg.Values, d peg.Any, p int) {
-			logger.Info("Enter: %s %d %d", name, p, len(s))
+			logger.Info().Msgf("Enter: %s %d %d", name, p, len(s))
 		}
 		c.parser.TracerLeave = func(name string, s string, v *peg.Values, d peg.Any, p int, l int) {
 			if l != -1 {
-				logger.Info("Leave: %s %d %d", name, len(s), l+p)
+				logger.Info().Msgf("Leave: %s %d %d", name, len(s), l+p)
 			}
 		}
 	}

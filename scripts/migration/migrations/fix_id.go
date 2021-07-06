@@ -23,7 +23,7 @@ func (m *FixZeroID) Description() string {
 // Do - migrate function
 func (m *FixZeroID) Do(ctx *config.Context) error {
 	return ctx.StorageDB.DB.Transaction(func(tx *gorm.DB) error {
-		logger.Info("setting new ids for token metadata...")
+		logger.Info().Msg("setting new ids for token metadata...")
 
 		var id int64
 		limit := 1000
@@ -47,7 +47,7 @@ func (m *FixZeroID) Do(ctx *config.Context) error {
 			end = len(tokens) < limit
 		}
 
-		logger.Info("creating sequence...")
+		logger.Info().Msg("creating sequence...")
 		return tx.Exec(`
 			CREATE SEQUENCE token_metadata_id_seq;
 			ALTER TABLE token_metadata ALTER COLUMN id SET DEFAULT nextval('token_metadata_id_seq');

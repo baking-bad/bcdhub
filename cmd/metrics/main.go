@@ -41,14 +41,14 @@ func listenChannel(messageQueue mq.IMessageReceiver, queue string, closeChan cha
 
 	msgs, err := messageQueue.Consume(queue)
 	if err != nil {
-		logger.Error(err)
+		logger.Err(err)
 		return
 	}
 
 	ticker := time.NewTicker(time.Second * time.Duration(15))
 	defer ticker.Stop()
 
-	logger.Info("Connected to %s queue", queue)
+	logger.Info().Msgf("Connected to %s queue", queue)
 	for {
 		select {
 		case <-ticker.C:
@@ -56,7 +56,7 @@ func listenChannel(messageQueue mq.IMessageReceiver, queue string, closeChan cha
 				manager.Exec()
 			}
 		case <-closeChan:
-			logger.Info("Stopped %s queue", queue)
+			logger.Info().Msgf("Stopped %s queue", queue)
 			return
 		case msg := <-msgs:
 			if manager, ok := managers[msg.RoutingKey]; ok {
@@ -65,22 +65,22 @@ func listenChannel(messageQueue mq.IMessageReceiver, queue string, closeChan cha
 			}
 
 			if msg.RoutingKey == "" {
-				logger.Warning("[%s] Rabbit MQ server stopped! Metrics service need to be restarted. Closing connection...", queue)
+				logger.Warning().Msgf("[%s] Rabbit MQ server stopped! Metrics service need to be restarted. Closing connection...", queue)
 				return
 			}
-			logger.Errorf("Unknown data routing key %s", msg.RoutingKey)
+			logger.Error().Msgf("Unknown data routing key %s", msg.RoutingKey)
 			helpers.LocalCatchErrorSentry(localSentry, errors.Errorf("[listenChannel] %s", err.Error()))
 		}
 	}
 }
 
 func main() {
-	logger.Warning("Metrics started on 5 CPU cores")
+	logger.Warning().Msg("Metrics started on 5 CPU cores")
 	runtime.GOMAXPROCS(5)
 
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
-		logger.Fatal(err)
+		logger.Err(err)
 	}
 
 	if cfg.Metrics.SentryEnabled {
@@ -106,7 +106,8 @@ func main() {
 	}
 
 	if err := ctx.Searcher.CreateIndexes(); err != nil {
-		logger.Fatal(err)
+		logger.Err(err)
+		return
 	}
 
 	var wg sync.WaitGroup

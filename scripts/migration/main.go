@@ -40,12 +40,14 @@ var migrationsList = []migrations.Migration{
 func main() {
 	migration, err := chooseMigration()
 	if err != nil {
-		logger.Fatal(err)
+		logger.Err(err)
+		return
 	}
 
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
-		logger.Fatal(err)
+		logger.Err(err)
+		return
 	}
 
 	start := time.Now()
@@ -59,13 +61,14 @@ func main() {
 	)
 	defer ctx.Close()
 
-	logger.Info("Starting %v migration...", migration.Key())
+	logger.Info().Msgf("Starting %v migration...", migration.Key())
 
 	if err := migration.Do(ctx); err != nil {
-		logger.Fatal(err)
+		logger.Err(err)
+		return
 	}
 
-	logger.Info("%s migration done. Spent: %v", migration.Key(), time.Since(start))
+	logger.Info().Msgf("%s migration done. Spent: %v", migration.Key(), time.Since(start))
 }
 
 func chooseMigration() (migrations.Migration, error) {

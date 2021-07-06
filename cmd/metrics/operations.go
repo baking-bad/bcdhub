@@ -17,7 +17,7 @@ func getOperation(ids []int64) error {
 	for i := range operations {
 		updated = append(updated, &operations[i])
 	}
-	logger.Info("%2d operations are processed", len(operations))
+	logger.Info().Msgf("%2d operations are processed", len(operations))
 
 	return saveSearchModels(ctx.Searcher, updated)
 }

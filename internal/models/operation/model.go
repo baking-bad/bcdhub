@@ -13,7 +13,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/lib/pq"
 	"github.com/shopspring/decimal"
-	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -97,8 +96,8 @@ func (o *Operation) MarshalToQueue() ([]byte, error) {
 }
 
 // LogFields -
-func (o *Operation) LogFields() logrus.Fields {
-	return logrus.Fields{
+func (o *Operation) LogFields() map[string]interface{} {
+	return map[string]interface{}{
 		"network": o.Network.String(),
 		"hash":    o.Hash,
 		"block":   o.Level,

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -51,8 +50,8 @@ func (m *Migration) MarshalToQueue() ([]byte, error) {
 }
 
 // LogFields -
-func (m *Migration) LogFields() logrus.Fields {
-	return logrus.Fields{
+func (m *Migration) LogFields() map[string]interface{} {
+	return map[string]interface{}{
 		"network": m.Network.String(),
 		"address": m.Address,
 		"block":   m.Level,

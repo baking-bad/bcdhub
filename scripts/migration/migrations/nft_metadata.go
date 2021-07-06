@@ -27,7 +27,7 @@ func (m *NFTMetadata) Description() string {
 
 // Do - migrate function
 func (m *NFTMetadata) Do(ctx *config.Context) error {
-	logger.Info("Getting all token metadata...")
+	logger.Info().Msg("Getting all token metadata...")
 
 	if err := ctx.Storage.(*core.Postgres).DB.AutoMigrate(&tokenmetadata.TokenMetadata{}); err != nil {
 		return err
@@ -38,7 +38,7 @@ func (m *NFTMetadata) Do(ctx *config.Context) error {
 		return err
 	}
 
-	logger.Info("Found %d metadata with extra fields", len(metadata))
+	logger.Info().Msgf("Found %d metadata with extra fields", len(metadata))
 
 	updated := make([]models.Model, len(metadata))
 

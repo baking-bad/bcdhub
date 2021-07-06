@@ -28,20 +28,20 @@ func (m *GetAliases) Description() string {
 
 // Do - migrate function
 func (m *GetAliases) Do(ctx *config.Context) error {
-	logger.Info("Starting get aliases...")
+	logger.Info().Msg("Starting get aliases...")
 
 	cfg := ctx.Config.TzKT["mainnet"]
 	timeout := time.Duration(cfg.Timeout) * time.Second
 
 	api := tzkt.NewTzKT(cfg.URI, timeout)
-	logger.Info("TzKT API initialized")
+	logger.Info().Msg("TzKT API initialized")
 
 	aliases, err := api.GetAliases()
 	if err != nil {
-		logger.Fatal(err)
+		return err
 	}
-	logger.Info("Got %d aliases from tzkt api", len(aliases))
-	logger.Info("Saving aliases...")
+	logger.Info().Msgf("Got %d aliases from tzkt api", len(aliases))
+	logger.Info().Msg("Saving aliases...")
 
 	newModels := make([]models.Model, 0)
 	updated := make([]models.Model, 0)
@@ -69,7 +69,6 @@ func (m *GetAliases) Do(ctx *config.Context) error {
 				},
 			})
 		default:
-			logger.Error(err)
 			return err
 		}
 	}

@@ -21,17 +21,17 @@ func testAccounts(ctx *config.Context) {
 	for _, address := range tokenContracts {
 		balances, err := ctx.TokenBalances.GetHolders(types.Mainnet, address, 0)
 		if err != nil {
-			logger.Error(err)
+			logger.Err(err)
 			return
 		}
 
 		for i := range balances {
 			path := fmt.Sprintf("account/mainnet/%s", balances[i].Address)
 			if err := request(path); err != nil {
-				logger.Error(err)
+				logger.Err(err)
 			}
 			if err := request(fmt.Sprintf("%s/token_balances", path)); err != nil {
-				logger.Error(err)
+				logger.Err(err)
 			}
 		}
 	}

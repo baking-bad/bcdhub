@@ -29,7 +29,7 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 		return err
 	}
 
-	logger.Info("Found %d big maps with empty key", len(bmd))
+	logger.Info().Msgf("Found %d big maps with empty key", len(bmd))
 
 	data := make([]models.Model, 0)
 	bar := progressbar.NewOptions(len(bmd), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish(), progressbar.OptionShowCount())

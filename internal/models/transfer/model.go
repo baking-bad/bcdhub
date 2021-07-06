@@ -7,7 +7,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/shopspring/decimal"
-	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -58,8 +57,8 @@ func (t *Transfer) MarshalToQueue() ([]byte, error) {
 }
 
 // LogFields -
-func (t *Transfer) LogFields() logrus.Fields {
-	return logrus.Fields{
+func (t *Transfer) LogFields() map[string]interface{} {
+	return map[string]interface{}{
 		"network":  t.Network.String(),
 		"contract": t.Contract,
 		"block":    t.Level,

@@ -85,11 +85,11 @@ func (t Parser) ParseBigMapDiff(bmd *domains.BigMapDiff, storage *ast.TypedAst) 
 		if err := s.Get(t.network, bmd.Contract, m.Link, bmd.Ptr, remoteMetadata); err != nil {
 			switch {
 			case errors.Is(err, tzipStorage.ErrHTTPRequest):
-				logger.WithField("url", m.Link).WithField("kind", "token_metadata").Warning(err)
+				logger.Warning().Str("url", m.Link).Str("kind", "token_metadata").Err(err).Msg("")
 				return nil, nil
 			case errors.Is(err, tzipStorage.ErrNoIPFSResponse):
 				remoteMetadata.Name = consts.Unknown
-				logger.WithField("url", m.Link).WithField("kind", "token_metadata").Warning(err)
+				logger.Warning().Str("url", m.Link).Str("kind", "token_metadata").Err(err).Msg("")
 			default:
 				return nil, err
 			}
@@ -140,7 +140,7 @@ func (t Parser) parse(address string, state block.Block) ([]tokenmetadata.TokenM
 			remoteMetadata := &TokenMetadata{}
 			if err := s.Get(t.network, address, m.Link, ptr, remoteMetadata); err != nil {
 				if errors.Is(err, tzipStorage.ErrHTTPRequest) {
-					logger.Error(err)
+					logger.Err(err)
 					return nil, nil
 				}
 				return nil, err

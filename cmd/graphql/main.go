@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/dosco/graphjin/core"
 	"github.com/gin-gonic/gin"
 	_ "github.com/jackc/pgx/v4/stdlib"
@@ -75,16 +74,16 @@ func initUser() error {
 func main() {
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
-		logger.Fatal(err)
+		panic(err)
 	}
 
 	if err := initUser(); err != nil {
-		logger.Fatal(err)
+		panic(err)
 	}
 
 	db, err := sql.Open("pgx", cfg.GraphQL.DB)
 	if err != nil {
-		logger.Fatal(err)
+		panic(err)
 	}
 	defer db.Close()
 
@@ -98,7 +97,7 @@ func main() {
 		Debug:      true,
 	}, db)
 	if err != nil {
-		logger.Fatal(err)
+		panic(err)
 	}
 
 	ctx := apiContext{

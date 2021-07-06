@@ -60,7 +60,7 @@ func NewWaitNodeRPC(baseURL string, opts ...NodeOption) *NodeRPC {
 			break
 		}
 
-		logger.Warning("Waiting node %s up 30 second...", baseURL)
+		logger.Warning().Msgf("Waiting node %s up 30 second...", baseURL)
 		time.Sleep(time.Second * 30)
 	}
 	return node
@@ -106,7 +106,7 @@ func (rpc *NodeRPC) makeRequest(req *http.Request) (*http.Response, error) {
 	for ; count < rpc.retryCount; count++ {
 		resp, err := client.Do(req)
 		if err != nil {
-			logger.Warning("Attempt #%d: %s", count+1, err.Error())
+			logger.Warning().Msgf("Attempt #%d: %s", count+1, err.Error())
 			continue
 		}
 		return resp, err

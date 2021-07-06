@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -87,8 +86,8 @@ func (b *BigMapState) MarshalToQueue() ([]byte, error) {
 }
 
 // LogFields -
-func (b *BigMapState) LogFields() logrus.Fields {
-	return logrus.Fields{
+func (b *BigMapState) LogFields() map[string]interface{} {
+	return map[string]interface{}{
 		"network":  b.Network.String(),
 		"ptr":      b.Ptr,
 		"key_hash": b.KeyHash,

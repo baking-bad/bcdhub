@@ -107,7 +107,7 @@ func WaitNewRabbit(connection, service string, needPublisher bool, timeout int, 
 	for qm == nil {
 		qm, err = NewQueueManager(connection, service, needPublisher, queues...)
 		if err != nil {
-			logger.Warning("Waiting mq up %d seconds...", timeout)
+			logger.Warning().Msgf("Waiting mq up %d seconds...", timeout)
 			time.Sleep(time.Second * time.Duration(timeout))
 		}
 	}

@@ -57,7 +57,7 @@ func (sections Sections) GetCode() ([]byte, error) {
 func Execute(rpc noderpc.INode, event Event, ctx Context) ([]tokenbalance.TokenBalance, error) {
 	parameter := event.Normalize(ctx.Parameters)
 	if parameter == nil {
-		logger.Warning("%s event failed", ctx.Network)
+		logger.Warning().Msgf("%s event failed", ctx.Network)
 		return nil, nil
 	}
 	storage := []byte(`[]`)

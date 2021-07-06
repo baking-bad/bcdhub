@@ -30,7 +30,7 @@ func (m *CreateTransfersTags) Description() string {
 
 // Do - migrate function
 func (m *CreateTransfersTags) Do(ctx *config.Context) error {
-	logger.Info("Starting create transfer migration...")
+	logger.Info().Msg("Starting create transfer migration...")
 	if err := m.deleteTransfers(ctx); err != nil {
 		return err
 	}
@@ -39,7 +39,7 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 	if err != nil {
 		return err
 	}
-	logger.Info("Found %d operations with transfer entrypoint", len(operations))
+	logger.Info().Msgf("Found %d operations with transfer entrypoint", len(operations))
 
 	result := make([]models.Model, 0)
 	newTransfers := make([]*transfer.Transfer, 0)

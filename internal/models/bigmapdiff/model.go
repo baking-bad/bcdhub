@@ -6,7 +6,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/lib/pq"
-	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -57,8 +56,8 @@ func (b *BigMapDiff) MarshalToQueue() ([]byte, error) {
 }
 
 // LogFields -
-func (b *BigMapDiff) LogFields() logrus.Fields {
-	return logrus.Fields{
+func (b *BigMapDiff) LogFields() map[string]interface{} {
+	return map[string]interface{}{
 		"network":  b.Network.String(),
 		"contract": b.Contract,
 		"ptr":      b.Ptr,

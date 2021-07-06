@@ -59,13 +59,13 @@ func (mes *MichelsonExtendedStorage) Normalize(value *ast.TypedAst) []byte {
 	}
 
 	if err := storage.Enrich(value, mes.bmd, true, false); err != nil {
-		logger.Warning("MichelsonExtendedStorage.Normalize %s", err.Error())
+		logger.Warning().Msgf("MichelsonExtendedStorage.Normalize %s", err.Error())
 		return nil
 	}
 
 	b, err := value.ToParameters("")
 	if err != nil {
-		logger.Warning("MichelsonExtendedStorage.Normalize %s", err.Error())
+		logger.Warning().Msgf("MichelsonExtendedStorage.Normalize %s", err.Error())
 		return nil
 	}
 	return b

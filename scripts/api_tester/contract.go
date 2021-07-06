@@ -17,20 +17,20 @@ func testContracts(ctx *config.Context) {
 	offset := int64(0)
 
 	for _, network := range ctx.Config.API.Networks {
-		logger.Info("testing %s contract endpoints...", network)
+		logger.Info().Msgf("testing %s contract endpoints...", network)
 
 		contracts, err := ctx.Contracts.GetMany(map[string]interface{}{
 			"network": network,
 		})
 		if err != nil {
-			logger.Errorf("testContracts: %s", err.Error())
+			logger.Error().Msgf("testContracts: %s", err.Error())
 			return
 		}
 
 		total := len(contracts)
 		contracts = contracts[offset:]
 
-		logger.Info("testing %d contracts...", len(contracts))
+		logger.Info().Msgf("testing %d contracts...", len(contracts))
 		if len(contracts) == 0 {
 			return
 		}
@@ -92,38 +92,38 @@ func testContract(tasks chan contract.Contract, stop chan struct{}, counter *int
 			prefix := fmt.Sprintf("contract/%s/%s", contract.Network, contract.Address)
 
 			if err := request(prefix); err != nil {
-				logger.Error(err)
+				logger.Err(err)
 			}
 			if err := request(fmt.Sprintf("%s/code", prefix)); err != nil {
-				logger.Error(err)
+				logger.Err(err)
 			}
 			if err := request(fmt.Sprintf("%s/operations", prefix)); err != nil {
-				logger.Error(err)
+				logger.Err(err)
 			}
 			if err := request(fmt.Sprintf("%s/migrations", prefix)); err != nil {
-				logger.Error(err)
+				logger.Err(err)
 			}
 			if err := request(fmt.Sprintf("%s/transfers", prefix)); err != nil {
-				logger.Error(err)
+				logger.Err(err)
 			}
 			if err := request(fmt.Sprintf("%s/tokens", prefix)); err != nil {
-				logger.Error(err)
+				logger.Err(err)
 			}
 			if err := request(fmt.Sprintf("%s/storage", prefix)); err != nil {
-				logger.Error(err)
+				logger.Err(err)
 			}
 			if err := request(fmt.Sprintf("%s/same", prefix)); err != nil {
-				logger.Error(err)
+				logger.Err(err)
 			}
 			if err := request(fmt.Sprintf("%s/similar", prefix)); err != nil {
-				logger.Error(err)
+				logger.Err(err)
 			}
 			if err := request(fmt.Sprintf("%s/entrypoints", prefix)); err != nil {
-				logger.Error(err)
+				logger.Err(err)
 			}
 			for i := range contract.Entrypoints {
 				if err := request(fmt.Sprintf("%s/entrypoints/schema?entrypoint=%s", prefix, contract.Entrypoints[i])); err != nil {
-					logger.Error(err)
+					logger.Err(err)
 				}
 			}
 			atomic.AddInt64(counter, 1)

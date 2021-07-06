@@ -41,7 +41,7 @@ func (t *TokenMetadata) Do(bmd *domains.BigMapDiff, storage *ast.TypedAst) (bool
 	tokenMetadata, err := tokenParser.ParseBigMapDiff(bmd, storage)
 	if err != nil {
 		if !errors.Is(err, tokens.ErrNoMetadataKeyInStorage) {
-			logger.With(bmd).Error(err)
+			logger.Err(err)
 		}
 		return false, nil, nil
 	}

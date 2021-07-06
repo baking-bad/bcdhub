@@ -151,7 +151,7 @@ func (st *StackTrace) String() string {
 	}
 
 	if err := st.print(topLevel, 1, &builder); err != nil {
-		logger.Error(err)
+		logger.Err(err)
 	}
 	return builder.String()
 }

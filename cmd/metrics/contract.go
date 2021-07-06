@@ -25,7 +25,7 @@ func getContract(ids []int64) error {
 		updates = append(updates, res...)
 	}
 
-	logger.Info("%2d contracts are processed", len(contracts))
+	logger.Info().Msgf("%2d contracts are processed", len(contracts))
 
 	if err := saveSearchModels(ctx.Searcher, updates); err != nil {
 		return err

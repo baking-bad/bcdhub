@@ -30,7 +30,7 @@ func getBigMapDiff(ids []int64) error {
 		items = append(items, res...)
 	}
 
-	logger.WithField("models", len(items)).Infof("%2d big map diff processed", len(bmd))
+	logger.Info().Int("models", len(items)).Msgf("%2d big map diff processed", len(bmd))
 
 	if len(items) > 0 {
 		if err := ctx.Storage.Save(items); err != nil {

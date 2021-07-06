@@ -38,7 +38,7 @@ func (m *EnumToSmallInt) Do(ctx *config.Context) error {
 	return ctx.StorageDB.DB.Transaction(func(tx *gorm.DB) error {
 		migrator := tx.Migrator()
 
-		logger.Info("drop materialized view: head_stats")
+		logger.Info().Msg("drop materialized view: head_stats")
 		if err := tx.Exec("DROP MATERIALIZED VIEW IF EXISTS head_stats;").Error; err != nil {
 			return err
 		}
@@ -48,7 +48,7 @@ func (m *EnumToSmallInt) Do(ctx *config.Context) error {
 				"series_consumed_gas_by_month_%s", "series_contract_by_month_%s", "series_operation_by_month_%s", "series_paid_storage_size_diff_by_month_%s",
 			} {
 				name := fmt.Sprintf(view, network)
-				logger.Info("drop materialized view: %s", name)
+				logger.Info().Msgf("drop materialized view: %s", name)
 				if err := tx.Exec(fmt.Sprintf("DROP MATERIALIZED VIEW IF EXISTS %s;", name)).Error; err != nil {
 					return err
 				}
@@ -104,7 +104,7 @@ func (m *EnumToSmallInt) Do(ctx *config.Context) error {
 
 func (m *EnumToSmallInt) alterColumn(migrator gorm.Migrator, model interface{}, column string) error {
 	if data, ok := model.(models.Model); ok {
-		logger.Info("Migrating column '%s' of '%s'", column, data.GetIndex())
+		logger.Info().Msgf("Migrating column '%s' of '%s'", column, data.GetIndex())
 	}
 
 	if !migrator.HasColumn(model, column) {

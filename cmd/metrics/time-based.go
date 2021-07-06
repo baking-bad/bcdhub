@@ -21,7 +21,7 @@ func timeBasedTask(period time.Duration, handler func() error, closeChan chan st
 			return
 		case <-ticker.C:
 			if err := handler(); err != nil {
-				logger.Error(err)
+				logger.Err(err)
 			}
 		}
 	}

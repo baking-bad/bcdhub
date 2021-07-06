@@ -21,7 +21,8 @@ type awsData struct {
 func main() {
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
-		logger.Fatal(err)
+		logger.Err(err)
+		return
 	}
 
 	creds = awsData{
@@ -45,42 +46,48 @@ func main() {
 		"Rollback state",
 		"Rollback network state to certain level",
 		&rollbackCmd); err != nil {
-		logger.Fatal(err)
+		logger.Err(err)
+		return
 	}
 
 	if _, err := parser.AddCommand("create_repository",
 		"Create repository",
 		"Create repository",
 		&createRepoCmd); err != nil {
-		logger.Fatal(err)
+		logger.Err(err)
+		return
 	}
 
 	if _, err := parser.AddCommand("snapshot",
 		"Create snapshot",
 		"Create snapshot",
 		&snapshotCmd); err != nil {
-		logger.Fatal(err)
+		logger.Err(err)
+		return
 	}
 
 	if _, err := parser.AddCommand("restore",
 		"Restore snapshot",
 		"Restore snapshot",
 		&restoreCmd); err != nil {
-		logger.Fatal(err)
+		logger.Err(err)
+		return
 	}
 
 	if _, err := parser.AddCommand("set_policy",
 		"Set policy",
 		"Set elastic snapshot policy",
 		&setPolicyCmd); err != nil {
-		logger.Fatal(err)
+		logger.Err(err)
+		return
 	}
 
 	if _, err := parser.AddCommand("reload_secure_settings",
 		"Reload secure settings",
 		"Reload secure settings",
 		&reloadSecureSettingsCmd); err != nil {
-		logger.Fatal(err)
+		logger.Err(err)
+		return
 	}
 
 	if _, err := parser.Parse(); err != nil {
@@ -99,7 +106,7 @@ func yes() bool {
 }
 
 func askQuestion(question string) (string, error) {
-	logger.Warning(question)
+	logger.Warning().Msg(question)
 
 	reader := bufio.NewReader(os.Stdin)
 	text, err := reader.ReadString('\n')

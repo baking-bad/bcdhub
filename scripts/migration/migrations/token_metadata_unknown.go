@@ -38,7 +38,7 @@ func (m *TokenMetadataUnknown) Do(ctx *config.Context) error {
 	if err != nil {
 		return err
 	}
-	logger.Info("Found %d unknown metadata", len(metadata))
+	logger.Info().Msgf("Found %d unknown metadata", len(metadata))
 
 	bar := progressbar.NewOptions(len(metadata), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish(), progressbar.OptionShowCount())
 
@@ -66,7 +66,7 @@ func (m *TokenMetadataUnknown) Do(ctx *config.Context) error {
 			remoteMetadata := new(tokens.TokenMetadata)
 			if err := s.Get(link, remoteMetadata); err != nil {
 				if errors.Is(err, tzipStorage.ErrNoIPFSResponse) {
-					logger.WithField("url", link).WithField("kind", "token_metadata").Warning(err)
+					logger.Warning().Err(err).Str("url", link).Str("kind", "token_metadata").Msg("")
 					continue
 				}
 				return err

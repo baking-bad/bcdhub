@@ -19,12 +19,12 @@ func InitSentry(debug bool, environment, dsn string) {
 		AttachStacktrace: true,
 		BeforeSend:       beforeSend,
 	}); err != nil {
-		logger.Info("Sentry initialization failed: %v\n", err)
+		logger.Info().Msgf("Sentry initialization failed: %v\n", err)
 	}
 }
 
 func beforeSend(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
-	logger.Info("[Sentry message] %s", event.Message)
+	logger.Info().Msgf("[Sentry message] %s", event.Message)
 	return event
 }
 

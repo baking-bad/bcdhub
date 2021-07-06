@@ -29,13 +29,13 @@ func (m *Array) Compute(a, b contract.Contract) Feature {
 
 	aArr, err := m.getContractFieldArray(a)
 	if err != nil {
-		logger.Error(err)
+		logger.Err(err)
 		return f
 	}
 
 	bArr, err := m.getContractFieldArray(b)
 	if err != nil {
-		logger.Error(err)
+		logger.Err(err)
 		return f
 	}
 

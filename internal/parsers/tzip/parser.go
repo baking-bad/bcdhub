@@ -85,12 +85,12 @@ func (p *Parser) Parse(ctx ParseContext) (*tzip.TZIP, error) {
 	if err := s.Get(ctx.BigMapDiff.Network, ctx.BigMapDiff.Contract, decoded, ctx.BigMapDiff.Ptr, data); err != nil {
 		switch {
 		case errors.Is(err, tzipStorage.ErrHTTPRequest) || errors.Is(err, tzipStorage.ErrJSONDecoding) || errors.Is(err, tzipStorage.ErrUnknownStorageType):
-			logger.With(&ctx.BigMapDiff).WithField("kind", "contract_metadata").Warning(err)
+			logger.Warning().Fields(ctx.BigMapDiff.LogFields()).Str("kind", "contract_metadata").Err(err).Msg("")
 			return nil, nil
 		case errors.Is(err, tzipStorage.ErrNoIPFSResponse):
 			data.Description = fmt.Sprintf("Failed to fetch metadata %s", decoded)
 			data.Name = consts.Unknown
-			logger.WithField("url", decoded).WithField("kind", "contract_metadata").Warning(err)
+			logger.Warning().Str("url", decoded).Str("kind", "contract_metadata").Err(err).Msg("")
 		default:
 			return nil, err
 		}

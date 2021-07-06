@@ -29,10 +29,10 @@ require (
 	github.com/nats-io/nats-server/v2 v2.1.9 // indirect
 	github.com/nats-io/nats.go v1.10.0
 	github.com/pkg/errors v0.9.1
+	github.com/rs/zerolog v1.15.0
 	github.com/schollz/progressbar/v3 v3.1.1
 	github.com/sergi/go-diff v1.1.0
 	github.com/shopspring/decimal v0.0.0-20200227202807-02e2044944cc
-	github.com/sirupsen/logrus v1.7.0
 	github.com/streadway/amqp v1.0.0
 	github.com/stretchr/testify v1.7.0
 	github.com/swaggo/swag v1.7.0

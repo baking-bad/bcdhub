@@ -149,7 +149,7 @@ func (ledger *Ledger) makeTransfer(tb tokenbalance.TokenBalance, st *stacktrace.
 
 	balance, err := ledger.tokenBalances.Get(op.Network, op.Destination, tb.Address, tb.TokenID)
 	if err != nil {
-		logger.Error(err)
+		logger.Err(err)
 		return nil
 	}
 
