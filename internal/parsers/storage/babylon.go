@@ -95,29 +95,39 @@ func (b *Babylon) initPointersTypes(result *noderpc.OperationResult, operation *
 }
 
 func (b *Babylon) checkPointers(result *noderpc.OperationResult, storage *ast.TypedAst) error {
-	types := storage.FindBigMapByPtr()
+	bigMaps := storage.FindBigMapByPtr()
 	for _, bmd := range result.BigMapDiffs {
-		if bmd.BigMap != nil {
+		switch {
+		case bmd.Action == types.BigMapActionStringAlloc:
 			ptr := *bmd.BigMap
-			if typ, ok := types[ptr]; ok {
-				b.temporaryPointers[ptr] = typ
-				continue
+			typ, err := createBigMapAst(bmd.KeyType, bmd.ValueType, ptr)
+			if err != nil {
+				return err
 			}
-			if ptr < 0 {
-				continue
-			}
-		}
-		if bmd.SourceBigMap != nil {
-			ptr := *bmd.SourceBigMap
-			if typ, ok := types[ptr]; ok {
-				b.temporaryPointers[ptr] = typ
-				continue
-			}
-			if ptr < 0 {
-				continue
-			}
-		}
+			bigMaps[ptr] = typ
+			b.temporaryPointers[ptr] = typ
+			continue
 
+		case bmd.BigMap != nil:
+			ptr := *bmd.BigMap
+			if typ, ok := bigMaps[ptr]; ok {
+				b.temporaryPointers[ptr] = typ
+				continue
+			}
+			if ptr < 0 {
+				continue
+			}
+
+		case bmd.SourceBigMap != nil:
+			ptr := *bmd.SourceBigMap
+			if typ, ok := bigMaps[ptr]; ok {
+				b.temporaryPointers[ptr] = typ
+				continue
+			}
+			if ptr < 0 {
+				continue
+			}
+		}
 		return ErrUnknownTemporaryPointer
 	}
 
@@ -272,14 +282,6 @@ func (b *Babylon) handleBigMapDiffRemove(item noderpc.BigMapDiff, address string
 
 func (b *Babylon) handleBigMapDiffAlloc(item noderpc.BigMapDiff, address string, operation *operation.Operation, res *parsers.Result) error {
 	ptr := *item.BigMap
-
-	bigMap, err := createBigMapAst(item.KeyType, item.ValueType, ptr)
-	if err != nil {
-		return err
-	}
-
-	b.temporaryPointers[ptr] = bigMap
-
 	if ptr > -1 {
 		res.BigMapActions = append(res.BigMapActions, b.createBigMapDiffAction("alloc", address, &ptr, nil, operation))
 	}

@@ -193,12 +193,6 @@ func (storage *Storage) Get(ctx bigmapdiff.GetContext) ([]bigmapdiff.Bucket, err
 	return bmd, err
 }
 
-// GetByIDs -
-func (storage *Storage) GetByIDs(ids ...int64) (result []bigmapdiff.BigMapDiff, err error) {
-	err = storage.DB.Table(models.DocBigMapDiff).Order("id asc").Find(&result, ids).Error
-	return
-}
-
 // GetStats -
 func (storage *Storage) GetStats(network types.Network, ptr int64) (stats bigmapdiff.Stats, err error) {
 	totalQuery := storage.DB.Table(models.DocBigMapState).

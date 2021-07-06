@@ -11,7 +11,6 @@ type Repository interface {
 	GetByPtr(network types.Network, contract string, ptr int64) ([]BigMapState, error)
 	GetByPtrAndKeyHash(ptr int64, network types.Network, keyHash string, size int64, offset int64) ([]BigMapDiff, int64, error)
 	GetForAddress(network types.Network, address string) ([]BigMapState, error)
-	GetByIDs(ids ...int64) ([]BigMapDiff, error)
 	GetValuesByKey(keyHash string) ([]BigMapDiff, error)
 	Count(network types.Network, ptr int64) (int64, error)
 	Current(network types.Network, keyHash string, ptr int64) (BigMapState, error)

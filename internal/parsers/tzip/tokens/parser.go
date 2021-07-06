@@ -9,7 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
-	"github.com/baking-bad/bcdhub/internal/models/protocol"
+	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -21,11 +21,10 @@ import (
 
 // Parser -
 type Parser struct {
-	bmdRepo      bigmapdiff.Repository
-	blocksRepo   block.Repository
-	protocolRepo protocol.Repository
-	tmRepo       tokenmetadata.Repository
-	storage      models.GeneralRepository
+	bmdRepo    bigmapdiff.Repository
+	blocksRepo block.Repository
+	tmRepo     tokenmetadata.Repository
+	storage    models.GeneralRepository
 
 	rpc       noderpc.INode
 	sharePath string
@@ -34,9 +33,9 @@ type Parser struct {
 }
 
 // NewParser -
-func NewParser(bmdRepo bigmapdiff.Repository, blocksRepo block.Repository, protocolRepo protocol.Repository, tmRepo tokenmetadata.Repository, storage models.GeneralRepository, rpc noderpc.INode, sharePath string, network types.Network, ipfs ...string) Parser {
+func NewParser(bmdRepo bigmapdiff.Repository, blocksRepo block.Repository, tmRepo tokenmetadata.Repository, storage models.GeneralRepository, rpc noderpc.INode, sharePath string, network types.Network, ipfs ...string) Parser {
 	return Parser{
-		bmdRepo: bmdRepo, blocksRepo: blocksRepo, storage: storage, protocolRepo: protocolRepo,
+		bmdRepo: bmdRepo, blocksRepo: blocksRepo, storage: storage,
 		rpc: rpc, sharePath: sharePath, network: network, ipfs: ipfs, tmRepo: tmRepo,
 	}
 }
@@ -51,8 +50,15 @@ func (t Parser) Parse(address string, level int64) ([]tokenmetadata.TokenMetadat
 }
 
 // ParseBigMapDiff -
-func (t Parser) ParseBigMapDiff(bmd *bigmapdiff.BigMapDiff, storage *ast.TypedAst) ([]tokenmetadata.TokenMetadata, error) {
-	if bm := storage.FindByName(TokenMetadataStorageKey, false); bm == nil {
+func (t Parser) ParseBigMapDiff(bmd *domains.BigMapDiff, storage *ast.TypedAst) ([]tokenmetadata.TokenMetadata, error) {
+	storageType := ast.TypedAst{
+		Nodes: []ast.Node{ast.Copy(storage.Nodes[0])},
+	}
+	if err := storageType.SettleFromBytes(bmd.Operation.DeffatedStorage); err != nil {
+		return nil, err
+	}
+	ptrs := storageType.FindBigMapByPtr()
+	if bm, ok := ptrs[bmd.Ptr]; !ok || bm.GetName() != TokenMetadataStorageKey {
 		return nil, nil
 	}
 

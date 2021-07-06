@@ -98,3 +98,9 @@ func (storage *Storage) Transfers(ctx transfer.GetContext) (domains.TransfersRes
 	}
 	return response, nil
 }
+
+// BigMapDiffs -
+func (storage *Storage) BigMapDiffs(ids ...int64) (result []domains.BigMapDiff, err error) {
+	err = storage.DB.Table(models.DocBigMapDiff).Preload("Operation").Preload("Protocol").Order("id asc").Find(&result, ids).Error
+	return
+}
