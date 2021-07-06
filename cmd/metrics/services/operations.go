@@ -4,7 +4,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/operation"
 )
 
 // OperationsHandler -
@@ -23,15 +22,15 @@ func (oh *OperationsHandler) Handle(items []models.Model) error {
 		return nil
 	}
 
-	logger.Info("%2d operations are processed", len(items))
+	logger.Info().Msgf("%2d operations are processed", len(items))
 
 	return saveSearchModels(oh.Context, items)
 }
 
 // Chunk -
 func (oh *OperationsHandler) Chunk(lastID, size int64) ([]models.Model, error) {
-	var operations []operation.Operation
-	if err := getModels(oh.StorageDB.DB, models.DocOperations, lastID, size, &operations); err != nil {
+	operations, err := getOperations(oh.StorageDB.DB, models.DocOperations, lastID, size)
+	if err != nil {
 		return nil, err
 	}
 

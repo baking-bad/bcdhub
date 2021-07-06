@@ -3,12 +3,26 @@ package services
 import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/search"
 	"gorm.io/gorm"
 )
 
-func getModels(db *gorm.DB, table string, lastID, size int64, output interface{}) error {
+func getContracts(db *gorm.DB, table string, lastID, size int64) (resp []contract.Contract, err error) {
+	query := db.Table(table).Order("id asc").Where("project_id = ''")
+	if lastID > 0 {
+		query.Where("id > ?", lastID)
+	}
+	if size == 0 || size > 1000 {
+		size = 10
+	}
+	err = query.Limit(int(size)).Find(&resp).Error
+	return
+}
+
+func getOperations(db *gorm.DB, table string, lastID, size int64) (resp []operation.Operation, err error) {
 	query := db.Table(table).Order("id asc")
 	if lastID > 0 {
 		query.Where("id > ?", lastID)
@@ -16,7 +30,8 @@ func getModels(db *gorm.DB, table string, lastID, size int64, output interface{}
 	if size == 0 || size > 1000 {
 		size = 10
 	}
-	return query.Limit(int(size)).Find(&output).Error
+	err = query.Limit(int(size)).Find(&resp).Error
+	return
 }
 
 func saveSearchModels(ctx *config.Context, items []models.Model) error {

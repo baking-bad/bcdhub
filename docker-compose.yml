@@ -51,7 +51,6 @@ services:
     depends_on:
       - elastic
       - db
-      - mq
     ports:
       - 127.0.0.1:${BCD_API_PORT}:14000
     volumes:
@@ -68,7 +67,6 @@ services:
       - .env
     depends_on:
       - elastic
-      - mq
       - metrics
     volumes:
       - ${SHARE_PATH}:/etc/bcd
@@ -84,7 +82,6 @@ services:
       - .env
     depends_on:
       - elastic
-      - mq
       - db
     volumes:
       - ${SHARE_PATH}:/etc/bcd
@@ -113,7 +110,6 @@ services:
 #    env_file:
 #      - .env
 #    depends_on:
-#      - mq
 #      - db
 #    ports:
 #      - 127.0.0.1:3000:3000
@@ -123,6 +119,5 @@ services:
 
 volumes:
   esdata:
-  mqdata:
   db:
     driver: local

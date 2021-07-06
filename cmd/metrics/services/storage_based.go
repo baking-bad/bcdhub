@@ -46,6 +46,7 @@ func NewStorageBased(
 
 // Init -
 func (s *StorageBased) Init() error {
+	logger.Info().Str("name", s.name).Msg("starting service...")
 	state, err := s.repo.Get(s.name)
 	if err != nil {
 		return err
@@ -76,6 +77,10 @@ func (s *StorageBased) work() {
 	ticker := time.NewTicker(s.updatePeriod)
 	defer ticker.Stop()
 
+	if err := s.do(); err != nil {
+		logger.Err(err)
+	}
+
 	for {
 		select {
 
@@ -84,14 +89,14 @@ func (s *StorageBased) work() {
 
 		case <-s.bulk:
 			if err := s.do(); err != nil {
-				logger.Error(err)
+				logger.Err(err)
 				continue
 			}
 			ticker.Reset(s.updatePeriod)
 
 		case <-ticker.C:
 			if err := s.do(); err != nil {
-				logger.Error(err)
+				logger.Err(err)
 				continue
 			}
 		}

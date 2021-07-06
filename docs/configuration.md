@@ -34,14 +34,6 @@ elastic:
     timeout: 10
 ```
 
-#### `rabbitmq`
-RabbitMQ settings and list of queues to subscribe
-```yml
-rabbitmq:
-    uri: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@mq:5672/"
-    publisher: true
-```
-
 #### `db`
 PostgreSQL connection string
 ```yml
@@ -102,12 +94,6 @@ api:
     seed_enabled: false
     networks:
         - mainnet
-    mq:
-        publisher: true
-        queues:
-            operations:
-                non_durable: true
-                auto_deleted: true
 ```
 
 #### `indexer`
@@ -117,8 +103,6 @@ indexer:
     project_name: indexer
     sentry_enabled: true
     skip_delegator_blocks: false
-    mq:
-        publisher: true
     networks:
         mainnet:
           boost: tzkt
@@ -130,15 +114,6 @@ Metrics service settings
 metrics:
     project_name: metrics
     sentry_enabled: true
-    mq:
-        publisher: false
-        queues:
-            operations:
-            contracts:
-            migrations:
-            recalc:
-            transfers:
-            bigmapdiffs:
 ```
 
 #### `scripts`
@@ -155,8 +130,6 @@ scripts:
       - carthagenet
       - edo2net
       - florencenet
-    mq:
-        publisher: true
 ```
 
 ### Docker settings `docker-compose.yml`

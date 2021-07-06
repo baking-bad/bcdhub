@@ -631,9 +631,6 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header, tx *gorm.DB) error
 		if err := parsed.Save(tx); err != nil {
 			return err
 		}
-		if err := bi.sendToQueue(parsed); err != nil {
-			return err
-		}
 	}
 
 	return nil

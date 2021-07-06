@@ -53,7 +53,7 @@ func (s *TimeBased) work() {
 
 	// init event
 	if err := s.handler(); err != nil {
-		logger.Error(err)
+		logger.Err(err)
 	}
 
 	for {
@@ -62,7 +62,7 @@ func (s *TimeBased) work() {
 			return
 		case <-ticker.C:
 			if err := s.handler(); err != nil {
-				logger.Error(err)
+				logger.Err(err)
 			}
 		}
 	}

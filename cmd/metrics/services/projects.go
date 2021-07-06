@@ -46,7 +46,7 @@ func (p *ProjectsHandler) Handle(items []models.Model) error {
 		return nil
 	}
 
-	logger.Info("%2d contracts are processed", len(updates))
+	logger.Info().Msgf("%2d contracts are processed", len(updates))
 
 	if err := p.Storage.Save(updates); err != nil {
 		return err
@@ -56,8 +56,8 @@ func (p *ProjectsHandler) Handle(items []models.Model) error {
 
 // Chunk -
 func (p *ProjectsHandler) Chunk(lastID, size int64) ([]models.Model, error) {
-	var contracts []contract.Contract
-	if err := getModels(p.StorageDB.DB, models.DocContracts, lastID, size, &contracts); err != nil {
+	contracts, err := getContracts(p.StorageDB.DB, models.DocContracts, lastID, size)
+	if err != nil {
 		return nil, err
 	}
 

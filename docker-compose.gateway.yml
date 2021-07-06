@@ -49,7 +49,6 @@ services:
     depends_on:
       - elastic
       - db
-      - mq
     ports:
       - 127.0.0.1:14000:14000
     volumes:
@@ -72,7 +71,6 @@ services:
       - SANDBOX_IPFS_GATEWAY=https://cloudflare-ipfs.com
     depends_on:
       - elastic
-      - mq
       - metrics
     volumes:
       - bcdshare:/etc/bcd
@@ -94,7 +92,6 @@ services:
       - SANDBOX_IPFS_GATEWAY=https://cloudflare-ipfs.com
     depends_on:
       - elastic
-      - mq
       - db
     volumes:
       - bcdshare:/etc/bcd
@@ -102,7 +99,6 @@ services:
 
 volumes:
   esdata:
-  mqdata:
   bcdshare:
   db:
     driver: local

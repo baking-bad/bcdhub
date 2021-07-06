@@ -7,23 +7,23 @@ BACKUP?=dump_latest.gz
 .ONESHELL:
 
 api:
-	docker-compose up -d elastic mq db
+	docker-compose up -d elastic db
 	cd cmd/api && go run .
 
 graphql:
-	docker-compose up -d elastic mq db
+	docker-compose up -d elastic db
 	cd cmd/graphql && go run .
 
 api-tester:
-	docker-compose up -d elastic mq db
+	docker-compose up -d elastic db
 	cd scripts/api_tester && go run .
 
 indexer:
-	docker-compose up -d elastic mq
+	docker-compose up -d elastic
 	cd cmd/indexer && go run .
 
 metrics:
-	docker-compose up -d elastic mq db
+	docker-compose up -d elastic db
 	cd cmd/metrics && go run .
 
 seo:
@@ -123,11 +123,6 @@ es-reset:
 	docker volume rm $$(docker volume ls -q | grep esdata | grep $$COMPOSE_PROJECT_NAME) || true
 	docker-compose up -d elastic
 
-mq-reset:
-	docker-compose rm -s -v -f mq || true
-	docker volume rm $$(docker volume ls -q | grep mqdata | grep $$COMPOSE_PROJECT_NAME) || true
-	docker-compose up -d mq
-
 test:
 	go test ./...
 
@@ -163,9 +158,8 @@ latest:
 upgrade:
 	docker-compose down
 	STABLE_TAG=$$(cat version.json | grep version | awk -F\" '{ print $$4 }' |  cut -d '.' -f1-2)
-	TAG=$$STABLE_TAG $(MAKE) mq-reset
 	TAG=$$STABLE_TAG $(MAKE) es-reset
-	TAG=$$STABLE_TAG docker-compose up -d db mq api
+	TAG=$$STABLE_TAG docker-compose up -d db api
 
 restart:
 	docker-compose restart api metrics indexer
@@ -179,9 +173,6 @@ db-dump:
 db-restore:
 	docker-compose exec db psql --username $$POSTGRES_USER -v ON_ERROR_STOP=on bcd < $(BACKUP)
 
-mq-list:
-	docker-compose exec mq rabbitmqctl list_queues
-
 ps:
 	docker ps --format "table {{.Names}}\t{{.RunningFor}}\t{{.Status}}\t{{.Ports}}"
 
@@ -189,7 +180,7 @@ sandbox-images:
 	docker-compose -f docker-compose.sandbox.yml pull
 
 sandbox:
-	COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.sandbox.yml up -d elastic mq db api indexer metrics gui
+	COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.sandbox.yml up -d elastic db api indexer metrics gui
 
 flextesa-sandbox:
 	COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.sandbox.yml up -d

@@ -5,7 +5,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/handlers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/pkg/errors"
 )
 
@@ -19,7 +19,7 @@ type TezosDomainHandler struct {
 func NewTezosDomainHandler(ctx *config.Context) *TezosDomainHandler {
 	return &TezosDomainHandler{
 		ctx,
-		handlers.NewTezosDomains(ctx.Storage, ctx.Operations, ctx.TezosDomainsContracts),
+		handlers.NewTezosDomains(ctx.Storage, ctx.TezosDomainsContracts),
 	}
 }
 
@@ -31,9 +31,9 @@ func (td *TezosDomainHandler) Handle(items []models.Model) error {
 
 	updates := make([]models.Model, 0)
 	for i := range items {
-		bmd, ok := items[i].(*bigmapdiff.BigMapDiff)
+		bmd, ok := items[i].(*domains.BigMapDiff)
 		if !ok {
-			return errors.Errorf("[TezosDomain.Handle] invalid type: expected *bigmapdiff.BigMapDiff got %T", items[i])
+			return errors.Errorf("[TezosDomain.Handle] invalid type: expected *domains.BigMapDiff got %T", items[i])
 		}
 
 		protocol, err := td.CachedProtocolByID(bmd.Network, bmd.ProtocolID)
@@ -58,7 +58,7 @@ func (td *TezosDomainHandler) Handle(items []models.Model) error {
 		return nil
 	}
 
-	logger.Info("%2d tezos domains are processed", len(updates))
+	logger.Info().Msgf("%2d tezos domains are processed", len(updates))
 
 	if err := td.Storage.Save(updates); err != nil {
 		return err
@@ -68,8 +68,8 @@ func (td *TezosDomainHandler) Handle(items []models.Model) error {
 
 // Chunk -
 func (td *TezosDomainHandler) Chunk(lastID, size int64) ([]models.Model, error) {
-	var diff []bigmapdiff.BigMapDiff
-	if err := getModels(td.StorageDB.DB, models.DocBigMapDiff, lastID, size, &diff); err != nil {
+	diff, err := td.Domains.BigMapDiffs(lastID, size)
+	if err != nil {
 		return nil, err
 	}
 

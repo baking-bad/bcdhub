@@ -154,7 +154,6 @@ type APIConfig struct {
 	Frontend      FrontendConfig `yaml:"frontend"`
 	Seed          SeedConfig     `yaml:"seed"`
 	Networks      []string       `yaml:"networks"`
-	MQ            MQConfig       `yaml:"mq"`
 	Pinata        PinataConfig   `yaml:"pinata"`
 	PageSize      uint64         `yaml:"page_size"`
 }
@@ -165,20 +164,6 @@ type SentryConfig struct {
 	URI         string `yaml:"uri"`
 	FrontURI    string `yaml:"front_uri"`
 	Debug       bool   `yaml:"debug"`
-}
-
-// MQConfig -
-type MQConfig struct {
-	NeedPublisher bool                   `yaml:"publisher"`
-	Queues        map[string]QueueParams `yaml:"queues"`
-}
-
-// QueueParams -
-type QueueParams struct {
-	TTLSeconds  uint `yaml:"ttl_seconds"`
-	NonDurable  bool `yaml:"non_durable"`
-	AutoDeleted bool `yaml:"auto_deleted"`
-	Lazy        bool `yaml:"lazy"`
 }
 
 // TezosDomainsConfig -

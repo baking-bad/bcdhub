@@ -15,6 +15,10 @@ import (
 
 var ctx *config.Context
 
+const (
+	bulkSize = 100
+)
+
 func main() {
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
@@ -49,28 +53,28 @@ func main() {
 			ctx.Services,
 			services.NewProjectsHandler(ctx),
 			time.Second*15,
-			50,
+			bulkSize,
 		),
 		services.NewStorageBased(
 			"contract_metadata",
 			ctx.Services,
 			services.NewContractMetadataHandler(ctx),
 			time.Second*15,
-			50,
+			bulkSize,
 		),
 		services.NewStorageBased(
 			"token_metadata",
 			ctx.Services,
 			services.NewTokenMetadataHandler(ctx),
 			time.Second*15,
-			50,
+			bulkSize,
 		),
 		services.NewStorageBased(
 			"tezos_domains",
 			ctx.Services,
 			services.NewTezosDomainHandler(ctx),
 			time.Second*15,
-			50,
+			bulkSize,
 		),
 	}
 

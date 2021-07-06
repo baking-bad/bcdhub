@@ -5,7 +5,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/handlers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/pkg/errors"
 )
 
@@ -19,7 +19,7 @@ type TokenMetadataHandler struct {
 func NewTokenMetadataHandler(ctx *config.Context) *TokenMetadataHandler {
 	return &TokenMetadataHandler{
 		ctx,
-		handlers.NewTokenMetadata(ctx.BigMapDiffs, ctx.Blocks, ctx.Protocols, ctx.TokenMetadata, ctx.Storage, ctx.RPC, ctx.SharePath, ctx.Config.IPFSGateways),
+		handlers.NewTokenMetadata(ctx.BigMapDiffs, ctx.Blocks, ctx.TokenMetadata, ctx.Storage, ctx.RPC, ctx.SharePath, ctx.Config.IPFSGateways),
 	}
 }
 
@@ -31,17 +31,12 @@ func (tm *TokenMetadataHandler) Handle(items []models.Model) error {
 
 	updates := make([]models.Model, 0)
 	for i := range items {
-		bmd, ok := items[i].(*bigmapdiff.BigMapDiff)
+		bmd, ok := items[i].(*domains.BigMapDiff)
 		if !ok {
-			return errors.Errorf("[TokenMetadata.Handle] invalid type: expected *bigmapdiff.BigMapDiff got %T", items[i])
+			return errors.Errorf("[TokenMetadata.Handle] invalid type: expected *domains.BigMapDiff got %T", items[i])
 		}
 
-		protocol, err := tm.CachedProtocolByID(bmd.Network, bmd.ProtocolID)
-		if err != nil {
-			return errors.Errorf("[TokenMetadata.Handle] can't get protocol by ID %d in %s: %s", bmd.ProtocolID, bmd.Network.String(), err)
-		}
-
-		storageType, err := tm.CachedStorageType(bmd.Network, bmd.Contract, protocol.SymLink)
+		storageType, err := tm.CachedStorageType(bmd.Network, bmd.Contract, bmd.Protocol.SymLink)
 		if err != nil {
 			return errors.Errorf("[TokenMetadata.Handle] can't get storage type for '%s' in %s: %s", bmd.Contract, bmd.Network.String(), err)
 		}
@@ -58,7 +53,7 @@ func (tm *TokenMetadataHandler) Handle(items []models.Model) error {
 		return nil
 	}
 
-	logger.Info("%2d token metadata are processed", len(updates))
+	logger.Info().Msgf("%2d token metadata are processed", len(updates))
 
 	if err := tm.Storage.Save(updates); err != nil {
 		return err
@@ -68,8 +63,8 @@ func (tm *TokenMetadataHandler) Handle(items []models.Model) error {
 
 // Chunk -
 func (tm *TokenMetadataHandler) Chunk(lastID, size int64) ([]models.Model, error) {
-	var diff []bigmapdiff.BigMapDiff
-	if err := getModels(tm.StorageDB.DB, models.DocBigMapDiff, lastID, size, &diff); err != nil {
+	diff, err := tm.Domains.BigMapDiffs(lastID, size)
+	if err != nil {
 		return nil, err
 	}
 
