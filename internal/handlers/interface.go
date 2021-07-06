@@ -11,5 +11,5 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // Handler -
 type Handler interface {
-	Do(bmd *domains.BigMapDiff, storage *ast.TypedAst) (bool, []models.Model, error)
+	Do(bmd *domains.BigMapDiff, storage *ast.TypedAst) ([]models.Model, error)
 }

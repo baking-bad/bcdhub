@@ -1,7 +1,6 @@
 package contract
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -66,11 +65,6 @@ func (t *Contract) Save(tx *gorm.DB) error {
 	}).Save(t).Error
 }
 
-// GetQueues -
-func (c *Contract) GetQueues() []string {
-	return []string{"contracts", "projects"}
-}
-
 // LogFields -
 func (c *Contract) LogFields() map[string]interface{} {
 	return map[string]interface{}{
@@ -78,11 +72,6 @@ func (c *Contract) LogFields() map[string]interface{} {
 		"address": c.Address,
 		"block":   c.Level,
 	}
-}
-
-// MarshalToQueue -
-func (c *Contract) MarshalToQueue() ([]byte, error) {
-	return []byte(fmt.Sprintf("%d", c.ID)), nil
 }
 
 // Fingerprint -

@@ -54,16 +54,6 @@ func (tb *TokenBalance) Save(tx *gorm.DB) error {
 	}).Create(tb).Error
 }
 
-// GetQueues -
-func (tb *TokenBalance) GetQueues() []string {
-	return nil
-}
-
-// MarshalToQueue -
-func (tb *TokenBalance) MarshalToQueue() ([]byte, error) {
-	return nil, nil
-}
-
 // LogFields -
 func (tb *TokenBalance) LogFields() map[string]interface{} {
 	return map[string]interface{}{

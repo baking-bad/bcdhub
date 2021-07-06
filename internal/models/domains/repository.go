@@ -9,5 +9,5 @@ import (
 type Repository interface {
 	TokenBalances(network types.Network, contract, address string, size, offset int64, sort string) (TokenBalanceResponse, error)
 	Transfers(ctx transfer.GetContext) (TransfersResponse, error)
-	BigMapDiffs(ids ...int64) ([]BigMapDiff, error)
+	BigMapDiffs(lastID, size int64) ([]BigMapDiff, error)
 }

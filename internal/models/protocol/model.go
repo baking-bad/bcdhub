@@ -43,13 +43,3 @@ func (p *Protocol) Save(tx *gorm.DB) error {
 		UpdateAll: true,
 	}).Save(p).Error
 }
-
-// MarshalToQueue -
-func (p *Protocol) MarshalToQueue() ([]byte, error) {
-	return nil, nil
-}
-
-// GetQueues -
-func (p *Protocol) GetQueues() []string {
-	return nil
-}

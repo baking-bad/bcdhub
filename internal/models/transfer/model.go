@@ -46,16 +46,6 @@ func (t *Transfer) Save(tx *gorm.DB) error {
 	}).Save(t).Error
 }
 
-// GetQueues -
-func (t *Transfer) GetQueues() []string {
-	return nil
-}
-
-// MarshalToQueue -
-func (t *Transfer) MarshalToQueue() ([]byte, error) {
-	return nil, nil
-}
-
 // LogFields -
 func (t *Transfer) LogFields() map[string]interface{} {
 	return map[string]interface{}{

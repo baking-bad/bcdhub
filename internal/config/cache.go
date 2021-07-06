@@ -129,6 +129,30 @@ func (ctx *Context) CachedScriptBytes(network types.Network, address, symLink st
 	return item.Value().([]byte), nil
 }
 
+// CachedStorageType -
+func (ctx *Context) CachedStorageType(network types.Network, address, symLink string) (*ast.TypedAst, error) {
+	if !bcd.IsContract(address) {
+		return nil, nil
+	}
+
+	key := ctx.Cache.StorageType(network, address)
+	item, err := ctx.Cache.Fetch(key, time.Hour, func() (interface{}, error) {
+		data, err := ctx.CachedScriptBytes(network, address, symLink)
+		if err != nil {
+			return nil, err
+		}
+		script, err := ast.NewScriptWithoutCode(data)
+		if err != nil {
+			return nil, err
+		}
+		return script.StorageType()
+	})
+	if err != nil {
+		return nil, err
+	}
+	return item.Value().(*ast.TypedAst), nil
+}
+
 // CachedProtocolByHash -
 func (ctx *Context) CachedProtocolByHash(network types.Network, hash string) (protocol.Protocol, error) {
 	key := ctx.Cache.ProtocolByIDKey(network, hash)

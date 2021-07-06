@@ -5,12 +5,9 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	jsoniter "github.com/json-iterator/go"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
-
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // Block -
 type Block struct {
@@ -34,16 +31,6 @@ func (b *Block) GetID() int64 {
 // GetIndex -
 func (b *Block) GetIndex() string {
 	return "blocks"
-}
-
-// GetQueues -
-func (b *Block) GetQueues() []string {
-	return []string{"blocks"}
-}
-
-// MarshalToQueue -
-func (b *Block) MarshalToQueue() ([]byte, error) {
-	return json.Marshal(b)
 }
 
 // ValidateChainID -

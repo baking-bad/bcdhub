@@ -56,16 +56,6 @@ func (t *TezosDomain) Save(tx *gorm.DB) error {
 	}).Create(t).Error
 }
 
-// GetQueues -
-func (t *TezosDomain) GetQueues() []string {
-	return nil
-}
-
-// MarshalToQueue -
-func (t *TezosDomain) MarshalToQueue() ([]byte, error) {
-	return nil, nil
-}
-
 // ReverseTezosDomain -
 type ReverseTezosDomain struct {
 	Name       string    `json:"name"`

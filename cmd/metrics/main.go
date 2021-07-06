@@ -1,83 +1,25 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
-	"runtime"
-	"sync"
 	"syscall"
 	"time"
 
+	"github.com/baking-bad/bcdhub/cmd/metrics/services"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
-	"github.com/baking-bad/bcdhub/internal/mq"
-	"github.com/karlseguin/ccache"
-	"github.com/pkg/errors"
 )
 
-// Context -
-type Context struct {
-	*config.Context
+var ctx *config.Context
 
-	cache *ccache.Cache
-}
-
-var ctx Context
-
-var handlers = map[string]BulkHandler{
-	mq.QueueContracts:   getContract,
-	mq.QueueOperations:  getOperation,
-	mq.QueueBigMapDiffs: getBigMapDiff,
-}
-
-var managers = map[string]*BulkManager{}
-
-func listenChannel(messageQueue mq.IMessageReceiver, queue string, closeChan chan struct{}, wg *sync.WaitGroup) {
-	defer wg.Done()
-
-	localSentry := helpers.GetLocalSentry()
-	helpers.SetLocalTagSentry(localSentry, "queue", queue)
-
-	msgs, err := messageQueue.Consume(queue)
-	if err != nil {
-		logger.Err(err)
-		return
-	}
-
-	ticker := time.NewTicker(time.Second * time.Duration(15))
-	defer ticker.Stop()
-
-	logger.Info().Msgf("Connected to %s queue", queue)
-	for {
-		select {
-		case <-ticker.C:
-			if manager, ok := managers[queue]; ok {
-				manager.Exec()
-			}
-		case <-closeChan:
-			logger.Info().Msgf("Stopped %s queue", queue)
-			return
-		case msg := <-msgs:
-			if manager, ok := managers[msg.RoutingKey]; ok {
-				manager.Add(msg)
-				continue
-			}
-
-			if msg.RoutingKey == "" {
-				logger.Warning().Msgf("[%s] Rabbit MQ server stopped! Metrics service need to be restarted. Closing connection...", queue)
-				return
-			}
-			logger.Error().Msgf("Unknown data routing key %s", msg.RoutingKey)
-			helpers.LocalCatchErrorSentry(localSentry, errors.Errorf("[listenChannel] %s", err.Error()))
-		}
-	}
-}
+const (
+	bulkSize = 100
+)
 
 func main() {
-	logger.Warning().Msg("Metrics started on 5 CPU cores")
-	runtime.GOMAXPROCS(5)
-
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
 		logger.Err(err)
@@ -89,56 +31,98 @@ func main() {
 		defer helpers.CatchPanicSentry()
 	}
 
-	configCtx := config.NewContext(
+	ctx = config.NewContext(
 		config.WithStorage(cfg.Storage, cfg.Metrics.ProjectName, 0),
 		config.WithRPC(cfg.RPC),
-		config.WithRabbit(cfg.RabbitMQ, cfg.Metrics.ProjectName, cfg.Metrics.MQ),
 		config.WithSearch(cfg.Storage),
 		config.WithShare(cfg.SharePath),
 		config.WithDomains(cfg.Domains),
 		config.WithConfigCopy(cfg),
 	)
-	defer configCtx.Close()
-
-	ctx = Context{
-		Context: configCtx,
-		cache:   ccache.New(ccache.Configure().MaxSize(100)),
-	}
+	defer ctx.Close()
 
 	if err := ctx.Searcher.CreateIndexes(); err != nil {
 		logger.Err(err)
 		return
 	}
 
-	var wg sync.WaitGroup
+	workers := []services.Service{
+		services.NewView(ctx.StorageDB.DB, "head_stats", time.Minute),
+		services.NewStorageBased(
+			"projects",
+			ctx.Services,
+			services.NewProjectsHandler(ctx),
+			time.Second*15,
+			bulkSize,
+		),
+		services.NewStorageBased(
+			"contract_metadata",
+			ctx.Services,
+			services.NewContractMetadataHandler(ctx),
+			time.Second*15,
+			bulkSize,
+		),
+		services.NewStorageBased(
+			"token_metadata",
+			ctx.Services,
+			services.NewTokenMetadataHandler(ctx),
+			time.Second*15,
+			bulkSize,
+		),
+		services.NewStorageBased(
+			"tezos_domains",
+			ctx.Services,
+			services.NewTezosDomainHandler(ctx),
+			time.Second*15,
+			bulkSize,
+		),
+	}
 
-	threadsCount := len(ctx.MQ.GetQueues()) + 2
+	for network := range ctx.Config.Indexer.Networks {
+		for _, view := range []string{
+			"series_contract_by_month_",
+			"series_operation_by_month_",
+			"series_paid_storage_size_diff_by_month_",
+			"series_consumed_gas_by_month_",
+		} {
+			name := fmt.Sprintf("%s%s", view, network)
+			workers = append(workers, services.NewView(ctx.StorageDB.DB, name, time.Minute))
+		}
+	}
 
-	closeChan := make(chan struct{}, threadsCount)
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 
-	for _, queue := range ctx.MQ.GetQueues() {
-		if handler, ok := handlers[queue]; ok {
-			managers[queue] = NewBulkManager(50, 10, handler)
+	for i := range workers {
+		if err := workers[i].Init(); err != nil {
+			if err := stop(workers, i-1, signals); err != nil {
+				logger.Err(err)
+			}
+			logger.Err(err)
+			return
 		}
-		wg.Add(1)
-		go listenChannel(ctx.MQ, queue, closeChan, &wg)
+		workers[i].Start()
 	}
-
-	wg.Add(1)
-	go timeBasedTask(time.Minute, ctx.updateMaterializedViews, closeChan, &wg)
-
-	wg.Add(1)
-	go timeBasedTask(time.Hour*6, ctx.updateSeriesMaterializedViews, closeChan, &wg)
 
 	<-signals
-	for i := 0; i < threadsCount; i++ {
-		closeChan <- struct{}{}
+
+	if err := stop(workers, len(workers), signals); err != nil {
+		logger.Err(err)
+	}
+}
+
+func stop(workers []services.Service, running int, signals chan os.Signal) error {
+	if running > 0 {
+		if running > len(workers) {
+			running = len(workers)
+		}
+		for i := 0; i < running; i++ {
+			if err := workers[i].Close(); err != nil {
+				return err
+			}
+		}
 	}
 
-	wg.Wait()
-
-	close(closeChan)
 	close(signals)
+	return nil
 }

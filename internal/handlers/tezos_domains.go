@@ -49,20 +49,20 @@ func NewTezosDomains(storage models.GeneralRepository, contracts map[types.Netwo
 }
 
 // Do -
-func (td *TezosDomain) Do(bmd *domains.BigMapDiff, storage *ast.TypedAst) (bool, []models.Model, error) {
+func (td *TezosDomain) Do(bmd *domains.BigMapDiff, storage *ast.TypedAst) ([]models.Model, error) {
 	diff, ptr := td.getBigMapDiff(bmd, storage)
 	if diff == nil {
-		return false, nil, nil
+		return nil, nil
 	}
 	switch bmd.Ptr {
 	case *ptr.records:
 		items, err := td.updateRecordsTZIP(bmd)
-		return true, items, err
+		return items, err
 	case *ptr.expiry:
 		items, err := td.updateExpirationDate(bmd)
-		return true, items, err
+		return items, err
 	}
-	return false, nil, nil
+	return nil, nil
 }
 
 func (td *TezosDomain) getBigMapDiff(bmd *domains.BigMapDiff, storage *ast.TypedAst) (*bigmapdiff.BigMapDiff, *ptrs) {

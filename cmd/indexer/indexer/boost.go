@@ -116,7 +116,6 @@ func NewBoostIndexer(cfg config.Config, network types.Network, opts ...BoostInde
 	ctx := config.NewContext(
 		config.WithConfigCopy(cfg),
 		config.WithStorage(cfg.Storage, "indexer", 10),
-		config.WithRabbit(cfg.RabbitMQ, cfg.Indexer.ProjectName, cfg.Indexer.MQ),
 		config.WithSearch(cfg.Storage),
 		config.WithShare(cfg.SharePath),
 	)
@@ -348,12 +347,7 @@ func (bi *BoostIndexer) handleBlock(head noderpc.Header) error {
 			return nil
 		},
 	)
-
-	if err != nil {
-		return err
-	}
-
-	return bi.sendToQueue(result)
+	return err
 }
 
 // Rollback -
@@ -507,25 +501,6 @@ func (bi *BoostIndexer) createBlock(head noderpc.Header, tx *gorm.DB) error {
 	return nil
 }
 
-func (bi *BoostIndexer) sendToQueue(result *parsers.Result) error {
-	for i := range result.Contracts {
-		if err := bi.MQ.Send(result.Contracts[i]); err != nil {
-			return err
-		}
-	}
-	for i := range result.Operations {
-		if err := bi.MQ.Send(result.Operations[i]); err != nil {
-			return err
-		}
-		for j := range result.Operations[i].BigMapDiffs {
-			if err := bi.MQ.Send(result.Operations[i].BigMapDiffs[j]); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
 func (bi *BoostIndexer) getDataFromBlock(head noderpc.Header) (*parsers.Result, error) {
 	result := parsers.NewResult()
 	if head.Level <= 1 {
@@ -654,9 +629,6 @@ func (bi *BoostIndexer) vestingMigration(head noderpc.Header, tx *gorm.DB) error
 			return err
 		}
 		if err := parsed.Save(tx); err != nil {
-			return err
-		}
-		if err := bi.sendToQueue(parsed); err != nil {
 			return err
 		}
 	}

@@ -14,14 +14,14 @@ import (
 	"github.com/pkg/errors"
 )
 
-// TZIP -
-type TZIP struct {
+// ContractMetadata -
+type ContractMetadata struct {
 	repo    tzipModel.Repository
 	parsers map[types.Network]tzip.Parser
 }
 
-// NewTZIP -
-func NewTZIP(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, storage models.GeneralRepository, repo tzipModel.Repository, rpcs map[types.Network]noderpc.INode, sharePath string, ipfs []string) *TZIP {
+// NewContractMetadata -
+func NewContractMetadata(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, storage models.GeneralRepository, repo tzipModel.Repository, rpcs map[types.Network]noderpc.INode, sharePath string, ipfs []string) *ContractMetadata {
 	parsers := make(map[types.Network]tzip.Parser)
 	for network, rpc := range rpcs {
 		parsers[network] = tzip.NewParser(bigMapRepo, blockRepo, storage, rpc, tzip.ParserConfig{
@@ -29,21 +29,21 @@ func NewTZIP(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, stora
 			SharePath:    sharePath,
 		})
 	}
-	return &TZIP{
+	return &ContractMetadata{
 		repo, parsers,
 	}
 }
 
 // Do -
-func (t *TZIP) Do(bmd *domains.BigMapDiff, storage *ast.TypedAst) (bool, []models.Model, error) {
+func (t *ContractMetadata) Do(bmd *domains.BigMapDiff, storage *ast.TypedAst) ([]models.Model, error) {
 	if bmd.KeyHash != tzip.EmptyStringKey {
-		return false, nil, nil
+		return nil, nil
 	}
 	res, err := t.handle(bmd)
-	return true, res, err
+	return res, err
 }
 
-func (t *TZIP) handle(bmd *domains.BigMapDiff) ([]models.Model, error) {
+func (t *ContractMetadata) handle(bmd *domains.BigMapDiff) ([]models.Model, error) {
 	tzipParser, ok := t.parsers[bmd.Network]
 	if !ok {
 		return nil, errors.Errorf("Unknown network for tzip parser: %s", bmd.Network)

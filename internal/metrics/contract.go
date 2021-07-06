@@ -9,7 +9,7 @@ import (
 )
 
 // SetContractProjectID -
-func SetContractProjectID(contracts contract.Repository, c *contract.Contract, chunk []contract.Contract) error {
+func SetContractProjectID(contracts contract.Repository, c *contract.Contract, chunk []*contract.Contract) error {
 	var offset int64
 
 	size := int64(25)
@@ -40,14 +40,14 @@ func SetContractProjectID(contracts contract.Repository, c *contract.Contract, c
 	return nil
 }
 
-func getContractProjectID(c contract.Contract, buckets []contract.Contract) string {
+func getContractProjectID(c contract.Contract, buckets []*contract.Contract) string {
 	for i := len(buckets) - 1; i > -1; i-- {
 		if c.Hash == buckets[i].Hash {
 			return buckets[i].ProjectID
 		}
 	}
 	for i := len(buckets) - 1; i > -1; i-- {
-		if compare(c, buckets[i]) {
+		if compare(c, *buckets[i]) {
 			return buckets[i].ProjectID
 		}
 	}

@@ -23,7 +23,6 @@ type Config struct {
 	RPC          map[string]RPCConfig  `yaml:"rpc"`
 	TzKT         map[string]TzKTConfig `yaml:"tzkt"`
 	Storage      StorageConfig         `yaml:"storage"`
-	RabbitMQ     RabbitConfig          `yaml:"rabbitmq"`
 	Sentry       SentryConfig          `yaml:"sentry"`
 	SharePath    string                `yaml:"share_path"`
 	BaseURL      string                `yaml:"base_url"`
@@ -39,21 +38,18 @@ type Config struct {
 		ProjectName   string `yaml:"project_name"`
 		SentryEnabled bool   `yaml:"sentry_enabled"`
 
-		SkipDelegatorBlocks bool     `yaml:"skip_delegator_blocks"`
-		MQ                  MQConfig `yaml:"mq"`
+		SkipDelegatorBlocks bool `yaml:"skip_delegator_blocks"`
 	} `yaml:"indexer"`
 
 	Metrics struct {
-		ProjectName         string   `yaml:"project_name"`
-		SentryEnabled       bool     `yaml:"sentry_enabled"`
-		CacheAliasesSeconds int      `yaml:"cache_aliases_seconds"`
-		MQ                  MQConfig `yaml:"mq"`
+		ProjectName         string `yaml:"project_name"`
+		SentryEnabled       bool   `yaml:"sentry_enabled"`
+		CacheAliasesSeconds int    `yaml:"cache_aliases_seconds"`
 	} `yaml:"metrics"`
 
 	Scripts struct {
 		AWS      AWSConfig `yaml:"aws"`
 		Networks []string  `yaml:"networks"`
-		MQ       MQConfig  `yaml:"mq"`
 	} `yaml:"scripts"`
 
 	GraphQL struct {
@@ -80,12 +76,6 @@ type StorageConfig struct {
 	Postgres string   `yaml:"pg"`
 	Elastic  []string `yaml:"elastic"`
 	Timeout  int      `yaml:"timeout"`
-}
-
-// RabbitConfig -
-type RabbitConfig struct {
-	URI     string `yaml:"uri"`
-	Timeout int    `yaml:"timeout"`
 }
 
 // DatabaseConfig -
@@ -164,7 +154,6 @@ type APIConfig struct {
 	Frontend      FrontendConfig `yaml:"frontend"`
 	Seed          SeedConfig     `yaml:"seed"`
 	Networks      []string       `yaml:"networks"`
-	MQ            MQConfig       `yaml:"mq"`
 	Pinata        PinataConfig   `yaml:"pinata"`
 	PageSize      uint64         `yaml:"page_size"`
 }
@@ -175,20 +164,6 @@ type SentryConfig struct {
 	URI         string `yaml:"uri"`
 	FrontURI    string `yaml:"front_uri"`
 	Debug       bool   `yaml:"debug"`
-}
-
-// MQConfig -
-type MQConfig struct {
-	NeedPublisher bool                   `yaml:"publisher"`
-	Queues        map[string]QueueParams `yaml:"queues"`
-}
-
-// QueueParams -
-type QueueParams struct {
-	TTLSeconds  uint `yaml:"ttl_seconds"`
-	NonDurable  bool `yaml:"non_durable"`
-	AutoDeleted bool `yaml:"auto_deleted"`
-	Lazy        bool `yaml:"lazy"`
 }
 
 // TezosDomainsConfig -

@@ -14,16 +14,6 @@ services:
         max-size: 10m
         max-file: "5"
 
-  mq:
-    image: rabbitmq:latest
-    restart: always
-    volumes:
-      - mqdata:/var/lib/rabbitmq
-    environment:
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
-    logging: *bcd-logging
-
   db:
     image: postgres:12
     shm_size: 1g
@@ -53,7 +43,6 @@ services:
     depends_on:
       - elastic
       - db
-      - mq
     ports:
       - 127.0.0.1:14000:14000
     volumes:
@@ -76,7 +65,6 @@ services:
       - SANDBOX_IPFS_GATEWAY=https://cloudflare-ipfs.com
     depends_on:
       - db
-      - mq
       - metrics
     extra_hosts:
       sandbox: 172.17.0.1
@@ -98,7 +86,6 @@ services:
       - SANDBOX_IPFS_GATEWAY=https://cloudflare-ipfs.com
     depends_on:
       - elastic
-      - mq
       - db
     extra_hosts:
       sandbox: 172.17.0.1
@@ -129,7 +116,6 @@ services:
 
 volumes:
   esdata:
-  mqdata:
   bcdshare:
   db:
     driver: local
