@@ -42,7 +42,7 @@ func (m *TagsToInt) Do(ctx *config.Context) error {
 }
 
 func (m *TagsToInt) migrate(tx *gorm.DB, model models.Model) error {
-	logger.Info("migrating %s...", model.GetIndex())
+	logger.Info().Msgf("migrating %s...", model.GetIndex())
 
 	type item struct {
 		ID   int64

@@ -35,7 +35,7 @@ func makeSitemap(dapps []dapp.DApp, aliases []tzip.TZIP, filepath string, cfg co
 		return err
 	}
 
-	logger.Info("Sitemap created in %s", filepath)
+	logger.Info().Msgf("Sitemap created in %s", filepath)
 
 	return nil
 }

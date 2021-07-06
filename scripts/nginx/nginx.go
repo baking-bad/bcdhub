@@ -95,10 +95,10 @@ func makeNginxConfig(dapps []dapp.DApp, _ []tzip.TZIP, filepath, baseURL string)
 	defer file.Close()
 
 	if _, err = file.WriteString(defaultConf); err != nil {
-		logger.Fatal(err)
+		return err
 	}
 
-	logger.Info("Nginx default config created in %s", filepath)
+	logger.Info().Msgf("Nginx default config created in %s", filepath)
 
 	return nil
 }

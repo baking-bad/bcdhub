@@ -164,7 +164,7 @@ func (node *Node) IsLambda() bool {
 	}
 	b, err := hex.DecodeString(input[22:24])
 	if err != nil {
-		logger.Error(err)
+		logger.Err(err)
 		return false
 	}
 	if len(b) != 1 {

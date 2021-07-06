@@ -5,14 +5,14 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestConverter_FromFile(t *testing.T) {
 	files, err := ioutil.ReadDir("./tests/")
 	if err != nil {
-		logger.Fatal(err)
+		t.Errorf("ioutil.ReadDir(./tests/) error = %v", err)
+		return
 	}
 
 	c, err := NewConverter()

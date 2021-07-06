@@ -54,7 +54,7 @@ func (m Migration) Parse(data noderpc.Operation, operation *operation.Operation)
 				Hash:       operation.Hash,
 				Kind:       types.MigrationKindLambda,
 			}
-			logger.With(migration).Info("Migration detected")
+			logger.Info().Fields(migration.LogFields()).Msg("Migration detected")
 			return migration, nil
 		}
 	}

@@ -99,7 +99,7 @@ func (p Transaction) Parse(data noderpc.Operation) (*parsers.Result, error) {
 			if !errors.Is(err, noderpc.InvalidNodeResponse{}) {
 				return nil, err
 			}
-			logger.With(&tx).Warning(err.Error())
+			logger.Warning().Err(err).Msg("")
 		}
 		result.TokenBalances = append(result.TokenBalances, transferParsers.UpdateTokenBalances(tx.Transfers)...)
 	}

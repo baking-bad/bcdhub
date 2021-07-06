@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -54,8 +53,8 @@ func (t *TZIP) MarshalToQueue() ([]byte, error) {
 }
 
 // LogFields -
-func (t *TZIP) LogFields() logrus.Fields {
-	return logrus.Fields{
+func (t *TZIP) LogFields() map[string]interface{} {
+	return map[string]interface{}{
 		"network": t.Network,
 		"address": t.Address,
 		"level":   t.Level,

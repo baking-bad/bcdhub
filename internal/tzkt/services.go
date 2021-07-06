@@ -50,7 +50,7 @@ func (t *ServicesTzKT) request(method, endpoint string, params map[string]string
 	count := 0
 	for ; count < t.retryCount; count++ {
 		if resp, err = t.client.Do(req); err != nil {
-			logger.Warning("Attempt #%d: %s", count+1, err.Error())
+			logger.Warning().Msgf("Attempt #%d: %s", count+1, err.Error())
 			continue
 		}
 		break

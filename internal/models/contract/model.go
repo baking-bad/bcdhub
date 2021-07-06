@@ -6,7 +6,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/lib/pq"
-	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -73,8 +72,8 @@ func (c *Contract) GetQueues() []string {
 }
 
 // LogFields -
-func (c *Contract) LogFields() logrus.Fields {
-	return logrus.Fields{
+func (c *Contract) LogFields() map[string]interface{} {
+	return map[string]interface{}{
 		"network": c.Network.String(),
 		"address": c.Address,
 		"block":   c.Level,

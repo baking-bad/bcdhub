@@ -65,7 +65,7 @@ func WaitNew(connectionString, appName string, timeout int, opts ...PostgresOpti
 	for db == nil {
 		db, err = New(connectionString, appName, opts...)
 		if err != nil {
-			bcdLogger.Warning("Waiting postgres up %d seconds...", timeout)
+			bcdLogger.Warning().Msgf("Waiting postgres up %d seconds...", timeout)
 			time.Sleep(time.Second * time.Duration(timeout))
 		}
 	}

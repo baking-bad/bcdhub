@@ -59,18 +59,18 @@ func (bm *BulkManager) process(force bool) bool {
 	for i := range bm.queue {
 		id, err := parseID(bm.queue[i].Body)
 		if err != nil {
-			logger.Error(err)
+			logger.Err(err)
 			continue
 		}
 		ids[i] = id
 	}
 	if err := bm.handler(ids); err != nil {
-		logger.Error(err)
+		logger.Err(err)
 		return false
 	}
 	for i := range bm.queue {
 		if err := bm.queue[i].Ack(false); err != nil {
-			logger.Errorf("Error acknowledging message: %s", err)
+			logger.Error().Msgf("Error acknowledging message: %s", err)
 			return false
 		}
 	}

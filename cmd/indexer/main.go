@@ -16,7 +16,8 @@ import (
 func main() {
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
-		logger.Fatal(err)
+		logger.Err(err)
+		return
 	}
 
 	if cfg.Indexer.SentryEnabled {
@@ -27,7 +28,7 @@ func main() {
 
 	indexers, err := indexer.CreateIndexers(cfg)
 	if err != nil {
-		logger.Error(err)
+		logger.Err(err)
 		helpers.CatchErrorSentry(err)
 		return
 	}
@@ -36,7 +37,7 @@ func main() {
 	if countCPU > len(indexers)+1 {
 		countCPU = len(indexers) + 1
 	}
-	logger.Warning("Indexer started on %d CPU cores", countCPU)
+	logger.Warning().Msgf("Indexer started on %d CPU cores", countCPU)
 	runtime.GOMAXPROCS(countCPU)
 
 	sigChan := make(chan os.Signal, 1)
@@ -54,5 +55,5 @@ func main() {
 		go indexers[i].Stop()
 	}
 	wg.Wait()
-	logger.Info("Stopped")
+	logger.Info().Msg("Stopped")
 }

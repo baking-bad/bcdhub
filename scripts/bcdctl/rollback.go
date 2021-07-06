@@ -20,9 +20,9 @@ func (x *rollbackCommand) Execute(_ []string) error {
 		panic(err)
 	}
 
-	logger.Warning("Do you want to rollback '%s' from %d to %d? (yes - continue. no - cancel)", state.Network.String(), state.Level, x.Level)
+	logger.Warning().Msgf("Do you want to rollback '%s' from %d to %d? (yes - continue. no - cancel)", state.Network.String(), state.Level, x.Level)
 	if !yes() {
-		logger.Info("Cancelled")
+		logger.Info().Msg("Cancelled")
 		return nil
 	}
 
@@ -30,7 +30,7 @@ func (x *rollbackCommand) Execute(_ []string) error {
 	if err = manager.Rollback(ctx.StorageDB.DB, state, x.Level); err != nil {
 		return err
 	}
-	logger.Info("Done")
+	logger.Info().Msg("Done")
 
 	return nil
 }

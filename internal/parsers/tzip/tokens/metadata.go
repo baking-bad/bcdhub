@@ -322,12 +322,12 @@ func (m *TokenMetadata) UnmarshalJSON(data []byte) error {
 		case string:
 			int64Val, err := strconv.ParseInt(decimals, 10, 64)
 			if err != nil {
-				logger.Errorf("TokenMetadata decimal Unmarshal error with string. Got %##v %T", res[keyDecimals], val)
+				logger.Error().Msgf("TokenMetadata decimal Unmarshal error with string. Got %##v %T", res[keyDecimals], val)
 			} else {
 				m.Decimals = &int64Val
 			}
 		default:
-			logger.Errorf("TokenMetadata decimal Unmarshal error. Wanted float64, int64 or (>_<) string, got %##v %T", res[keyDecimals], val)
+			logger.Error().Msgf("TokenMetadata decimal Unmarshal error. Wanted float64, int64 or (>_<) string, got %##v %T", res[keyDecimals], val)
 		}
 		delete(res, keyDecimals)
 	}

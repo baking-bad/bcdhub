@@ -85,13 +85,13 @@ func (m *BigRussianBoss) eventsAndTokenBalances(ctx *config.Context) error {
 		return nil
 	}
 
-	logger.Info("executing all extended storages")
+	logger.Info().Msg("executing all extended storages")
 	extStorageEvents := new(ExtendedStorageEvents)
 	if err := extStorageEvents.Do(ctx); err != nil {
 		return err
 	}
 
-	logger.Info("executing all parameter events")
+	logger.Info().Msg("executing all parameter events")
 	parameterEvents := new(ParameterEvents)
 	if err := parameterEvents.Do(ctx); err != nil {
 		return err
@@ -107,7 +107,7 @@ func (m *BigRussianBoss) eventsAndTokenBalances(ctx *config.Context) error {
 		}
 	}
 
-	logger.Info("Found %v affected contracts. Starting token balance recalculation", len(uniqueContracts))
+	logger.Info().Msgf("Found %v affected contracts. Starting token balance recalculation", len(uniqueContracts))
 	if err := new(TokenBalanceRecalc).DoBatch(ctx, uniqueContracts); err != nil {
 		return err
 	}

@@ -41,16 +41,16 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 		return err
 	}
 
-	logger.Info("Found %d tzips", len(tzips))
+	logger.Info().Msgf("Found %d tzips", len(tzips))
 
-	logger.Info("Execution events...")
+	logger.Info().Msg("Execution events...")
 	for i := range tzips {
 		for _, event := range tzips[i].Events {
 			for _, impl := range event.Implementations {
 				if impl.MichelsonParameterEvent.Empty() {
 					continue
 				}
-				logger.Info("%s...", tzips[i].Address)
+				logger.Info().Msgf("%s...", tzips[i].Address)
 
 				protocol, err := ctx.Protocols.Get(tzips[i].Network, "", -1)
 				if err != nil {
@@ -112,7 +112,7 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 					}
 					if err := parser.Parse(nil, proto.Hash, &op); err != nil {
 						if errors.Is(err, noderpc.InvalidNodeResponse{}) {
-							logger.Error(err)
+							logger.Err(err)
 							continue
 						}
 						return err
@@ -137,12 +137,12 @@ func (m *ParameterEvents) Do(ctx *config.Context) error {
 					}
 				}
 
-				logger.Info("Delete %d transfers", len(deleted))
+				logger.Info().Msgf("Delete %d transfers", len(deleted))
 				if err := ctx.Storage.BulkDelete(deleted); err != nil {
 					return err
 				}
 
-				logger.Info("Found %d transfers", len(inserted))
+				logger.Info().Msgf("Found %d transfers", len(inserted))
 				bu := transferParser.UpdateTokenBalances(newTransfers)
 				for i := range bu {
 					inserted = append(inserted, bu[i])

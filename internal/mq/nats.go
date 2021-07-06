@@ -71,7 +71,7 @@ func WaitNewNats(service, url string, timeout int, queues ...Queue) *Nats {
 	for n == nil {
 		n, err = NewNats(service, url, queues...)
 		if err != nil {
-			logger.Warning("Waiting mq up %d seconds...", timeout)
+			logger.Warning().Msgf("Waiting mq up %d seconds...", timeout)
 			time.Sleep(time.Second * time.Duration(timeout))
 		}
 	}

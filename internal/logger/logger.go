@@ -3,102 +3,61 @@ package logger
 import (
 	"bufio"
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"os"
 	"runtime"
 	"strings"
 
-	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/fatih/color"
-	"github.com/sirupsen/logrus"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 // Loggable -
 type Loggable interface {
-	LogFields() logrus.Fields
+	LogFields() map[string]interface{}
 }
 
 var logger = newBCDLogger()
 
-// BCDLogger -
-type BCDLogger struct {
-	*logrus.Logger
-}
+func newBCDLogger() zerolog.Logger {
+	consoleWriter := zerolog.ConsoleWriter{Out: os.Stderr}
 
-func newBCDLogger() *BCDLogger {
-	l := &BCDLogger{
-		Logger: logrus.New(),
-	}
-
-	formatter := new(logrus.TextFormatter)
 	switch os.Getenv("BCD_ENV") {
 	case "development":
-		formatter.FullTimestamp = true
-		formatter.TimestampFormat = "2006-01-02 15:04:05"
+		consoleWriter.TimeFormat = "2006-01-02 15:04:05"
 	default:
-		formatter.DisableTimestamp = true
+		consoleWriter.FormatTimestamp = func(i interface{}) string {
+			return ""
+		}
 	}
-
-	l.SetFormatter(formatter)
-	l.SetOutput(os.Stdout)
-	l.SetLevel(logrus.InfoLevel)
-	return l
-}
-
-// Error -
-func Error(err error) {
-	logger.Error(err)
-}
-
-// Errorf -
-func Errorf(format string, args ...interface{}) {
-	logger.Errorf(format, args...)
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	return log.Output(consoleWriter)
 }
 
 // Info -
-func Info(format string, args ...interface{}) {
-	logger.Infof(format, args...)
+func Info() *zerolog.Event {
+	return logger.Info()
 }
 
 // Warning -
-func Warning(format string, args ...interface{}) {
-	logger.Warnf(format, args...)
+func Warning() *zerolog.Event {
+	return logger.Warn()
+}
+
+// Error -
+func Error() *zerolog.Event {
+	return logger.Error()
+}
+
+// Err -
+func Err(err error) {
+	logger.Error().Err(err).Msg("")
 }
 
 // Fatal -
-func Fatal(err error) {
-	logger.Fatal(err)
-	os.Exit(1)
-}
-
-// Log -
-func Log(text string) {
-	logger.Print(text)
-}
-
-// Logf -
-func Logf(format string, args ...interface{}) {
-	logger.Printf(format, args...)
-}
-
-// JSON - pretty json log
-func JSON(data string) {
-	var pretty bytes.Buffer
-	if err := json.Indent(&pretty, []byte(data), "", "  "); err != nil {
-		Error(err)
-	} else {
-		Info(pretty.String())
-	}
-}
-
-// InterfaceToJSON - pretty json log
-func InterfaceToJSON(data interface{}) {
-	if result, err := json.MarshalIndent(data, "", "  "); err != nil {
-		Error(err)
-	} else {
-		Info(string(result))
-	}
+func Fatal() *zerolog.Event {
+	return logger.Fatal()
 }
 
 // Debug -
@@ -179,21 +138,4 @@ func Debug(values ...interface{}) {
 func Question(format string, v ...interface{}) {
 	blue := color.New(color.FgMagenta).SprintFunc()
 	fmt.Printf("[%s] %s", blue("?"), fmt.Sprintf(format, v...))
-}
-
-// With -
-func With(entry Loggable) *logrus.Entry {
-	return logger.WithFields(entry.LogFields())
-}
-
-// WithNetwork -
-func WithNetwork(network types.Network) *logrus.Entry {
-	return logger.WithField("network", network.String())
-}
-
-// WithField -
-func WithField(name string, value interface{}) *logrus.Entry {
-	return logger.WithFields(logrus.Fields{
-		name: value,
-	})
 }

@@ -30,13 +30,13 @@ func (m *BinMask) Compute(a, b contract.Contract) Feature {
 
 	mask1, err := m.getContractFieldBinMask(a)
 	if err != nil {
-		logger.Error(err)
+		logger.Err(err)
 		return f
 	}
 
 	mask2, err := m.getContractFieldBinMask(b)
 	if err != nil {
-		logger.Error(err)
+		logger.Err(err)
 		return f
 	}
 

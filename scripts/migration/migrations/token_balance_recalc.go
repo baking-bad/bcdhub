@@ -59,13 +59,13 @@ func (m *TokenBalanceRecalc) Recalc(ctx *config.Context, network, address string
 	}
 
 	if !bcd.IsContract(address) {
-		logger.Errorf("Invalid contract address: `%s`", address)
+		logger.Error().Msgf("Invalid contract address: `%s`", address)
 		return nil
 	}
 
 	typ := types.NewNetwork(network)
 
-	logger.Info("Removing token balance entities....")
+	logger.Info().Msg("Removing token balance entities....")
 	if err := ctx.Storage.DeleteByContract(typ, []string{models.DocTokenBalances}, address); err != nil {
 		return err
 	}
@@ -74,7 +74,7 @@ func (m *TokenBalanceRecalc) Recalc(ctx *config.Context, network, address string
 	if err != nil {
 		return err
 	}
-	logger.Info("Received %d balances", len(balances))
+	logger.Info().Msgf("Received %d balances", len(balances))
 
 	updates := make([]models.Model, 0)
 	for _, balance := range balances {
@@ -88,7 +88,7 @@ func (m *TokenBalanceRecalc) Recalc(ctx *config.Context, network, address string
 		})
 	}
 
-	logger.Info("Saving...")
+	logger.Info().Msg("Saving...")
 	return ctx.Storage.Save(updates)
 }
 
@@ -111,7 +111,7 @@ func (m *TokenBalanceRecalc) RecalcAllContractEvents(ctx *config.Context) error 
 	}
 
 	for _, tzip := range tzips {
-		logger.Info("Starting %s %s", tzip.Network, tzip.Address)
+		logger.Info().Msgf("Starting %s %s", tzip.Network, tzip.Address)
 		if err := m.Recalc(ctx, tzip.Network.String(), tzip.Address); err != nil {
 			return err
 		}

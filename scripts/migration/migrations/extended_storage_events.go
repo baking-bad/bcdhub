@@ -40,9 +40,9 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 		return err
 	}
 
-	logger.Info("Found %d tzips", len(tzips))
+	logger.Info().Msgf("Found %d tzips", len(tzips))
 
-	logger.Info("Execution events...")
+	logger.Info().Msg("Execution events...")
 	inserted := make([]models.Model, 0)
 	deleted := make([]models.Model, 0)
 	newTransfers := make([]*transfer.Transfer, 0)
@@ -52,7 +52,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 				if impl.MichelsonExtendedStorageEvent == nil || impl.MichelsonExtendedStorageEvent.Empty() {
 					continue
 				}
-				logger.Info("%s...", tzips[i].Address)
+				logger.Info().Msgf("%s...", tzips[i].Address)
 
 				protocol, err := ctx.Protocols.Get(tzips[i].Network, "", -1)
 				if err != nil {
@@ -112,7 +112,7 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 					}
 					if err := parser.Parse(bmd, proto.Hash, &op); err != nil {
 						if errors.Is(err, noderpc.InvalidNodeResponse{}) {
-							logger.Error(err)
+							logger.Err(err)
 							continue
 						}
 						return err
@@ -138,12 +138,12 @@ func (m *ExtendedStorageEvents) Do(ctx *config.Context) error {
 			}
 		}
 	}
-	logger.Info("Delete %d transfers", len(deleted))
+	logger.Info().Msgf("Delete %d transfers", len(deleted))
 	if err := ctx.Storage.BulkDelete(deleted); err != nil {
 		return err
 	}
 
-	logger.Info("Found %d transfers", len(inserted))
+	logger.Info().Msgf("Found %d transfers", len(inserted))
 
 	bu := transferParsers.UpdateTokenBalances(newTransfers)
 	for i := range bu {

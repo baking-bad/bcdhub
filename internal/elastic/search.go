@@ -129,7 +129,7 @@ func (e *Elastic) ByText(text string, offset int64, fields []string, filters map
 		items, err = parseSearchResponse(response)
 	}
 	if err != nil {
-		logger.Error(err)
+		logger.Err(err)
 		return search.Result{}, nil
 	}
 

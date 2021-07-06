@@ -5,7 +5,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/lib/pq"
-	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -93,8 +92,8 @@ func (t *TokenMetadata) MarshalToQueue() ([]byte, error) {
 }
 
 // LogFields -
-func (t *TokenMetadata) LogFields() logrus.Fields {
-	return logrus.Fields{
+func (t *TokenMetadata) LogFields() map[string]interface{} {
+	return map[string]interface{}{
 		"network":  t.Network.String(),
 		"contract": t.Contract,
 		"token_id": t.TokenID,

@@ -170,7 +170,7 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name, protocol str
 func (p *Parser) makeTransfersFromBalanceEvents(event events.Event, ctx events.Context, operation *operation.Operation, isDelta bool) error {
 	balances, err := events.Execute(p.rpc, event, ctx)
 	if err != nil {
-		logger.Errorf("Event of %s %s: %s", operation.Network, operation.Destination, err.Error())
+		logger.Error().Msgf("Event of %s %s: %s", operation.Network, operation.Destination, err.Error())
 		return nil
 	}
 

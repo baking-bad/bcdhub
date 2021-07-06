@@ -12,16 +12,16 @@ func testBigMapDiff(ctx *config.Context) {
 		for _, network := range ctx.Config.API.Networks {
 			prefix := fmt.Sprintf("bigmap/%s/%d", network, ptr)
 			if err := request(prefix); err != nil {
-				logger.Error(err)
+				logger.Err(err)
 			}
 			if err := request(fmt.Sprintf("%s/count", prefix)); err != nil {
-				logger.Error(err)
+				logger.Err(err)
 			}
 			if err := request(fmt.Sprintf("%s/history", prefix)); err != nil {
-				logger.Error(err)
+				logger.Err(err)
 			}
 			if err := request(fmt.Sprintf("%s/keys", prefix)); err != nil {
-				logger.Error(err)
+				logger.Err(err)
 			}
 		}
 	}

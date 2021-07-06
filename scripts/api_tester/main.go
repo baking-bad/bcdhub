@@ -17,7 +17,8 @@ var (
 func main() {
 	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
-		logger.Fatal(err)
+		logger.Err(err)
+		return
 	}
 
 	ctx := config.NewContext(

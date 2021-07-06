@@ -3,7 +3,6 @@ package tokenbalance
 import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/shopspring/decimal"
-	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -66,8 +65,8 @@ func (tb *TokenBalance) MarshalToQueue() ([]byte, error) {
 }
 
 // LogFields -
-func (tb *TokenBalance) LogFields() logrus.Fields {
-	return logrus.Fields{
+func (tb *TokenBalance) LogFields() map[string]interface{} {
+	return map[string]interface{}{
 		"network":   tb.Network.String(),
 		"address":   tb.Address,
 		"contract":  tb.Contract,

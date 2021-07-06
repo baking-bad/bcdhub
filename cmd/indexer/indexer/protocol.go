@@ -9,7 +9,7 @@ import (
 )
 
 func createProtocol(rpc noderpc.INode, network types.Network, hash string, level int64) (protocol protocol.Protocol, err error) {
-	logger.WithNetwork(network).Infof("Creating new protocol %s starting at %d", hash, level)
+	logger.Info().Str("network", network.String()).Msgf("Creating new protocol %s starting at %d", hash, level)
 	protocol.SymLink, err = bcd.GetProtoSymLink(hash)
 	if err != nil {
 		return

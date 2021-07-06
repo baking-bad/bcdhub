@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 
 	"github.com/lib/pq"
-	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -60,8 +59,8 @@ func (d *DApp) MarshalToQueue() ([]byte, error) {
 }
 
 // LogFields -
-func (d *DApp) LogFields() logrus.Fields {
-	return logrus.Fields{
+func (d *DApp) LogFields() map[string]interface{} {
+	return map[string]interface{}{
 		"name": d.Name,
 	}
 }
