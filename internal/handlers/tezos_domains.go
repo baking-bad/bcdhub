@@ -9,7 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
-	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/pkg/errors"
@@ -23,8 +23,7 @@ const (
 
 // TezosDomain -
 type TezosDomain struct {
-	storage    models.GeneralRepository
-	operations operation.Repository
+	storage models.GeneralRepository
 
 	contracts map[contract.Address]struct{}
 	ptrs      map[contract.Address]ptrs
@@ -36,7 +35,7 @@ type ptrs struct {
 }
 
 // NewTezosDomains -
-func NewTezosDomains(storage models.GeneralRepository, operations operation.Repository, contracts map[types.Network]string) *TezosDomain {
+func NewTezosDomains(storage models.GeneralRepository, contracts map[types.Network]string) *TezosDomain {
 	addresses := make(map[contract.Address]struct{})
 	for k, v := range contracts {
 		addresses[contract.Address{
@@ -45,14 +44,14 @@ func NewTezosDomains(storage models.GeneralRepository, operations operation.Repo
 		}] = struct{}{}
 	}
 	return &TezosDomain{
-		storage, operations, addresses, make(map[contract.Address]ptrs),
+		storage, addresses, make(map[contract.Address]ptrs),
 	}
 }
 
 // Do -
-func (td *TezosDomain) Do(bmd *bigmapdiff.BigMapDiff, storage *ast.TypedAst) (bool, []models.Model, error) {
-	bmd, ptr := td.getBigMapDiff(bmd, storage)
-	if bmd == nil {
+func (td *TezosDomain) Do(bmd *domains.BigMapDiff, storage *ast.TypedAst) (bool, []models.Model, error) {
+	diff, ptr := td.getBigMapDiff(bmd, storage)
+	if diff == nil {
 		return false, nil, nil
 	}
 	switch bmd.Ptr {
@@ -66,7 +65,7 @@ func (td *TezosDomain) Do(bmd *bigmapdiff.BigMapDiff, storage *ast.TypedAst) (bo
 	return false, nil, nil
 }
 
-func (td *TezosDomain) getBigMapDiff(bmd *bigmapdiff.BigMapDiff, storage *ast.TypedAst) (*bigmapdiff.BigMapDiff, *ptrs) {
+func (td *TezosDomain) getBigMapDiff(bmd *domains.BigMapDiff, storage *ast.TypedAst) (*bigmapdiff.BigMapDiff, *ptrs) {
 	if len(td.contracts) == 0 {
 		return nil, nil
 	}
@@ -85,25 +84,14 @@ func (td *TezosDomain) getBigMapDiff(bmd *bigmapdiff.BigMapDiff, storage *ast.Ty
 		ptr = td.ptrs[address]
 	}
 
-	return bmd, &ptr
+	return bmd.BigMapDiff, &ptr
 }
 
-func (td *TezosDomain) getPointers(address contract.Address, bmd *bigmapdiff.BigMapDiff, storage *ast.TypedAst) error {
+func (td *TezosDomain) getPointers(address contract.Address, bmd *domains.BigMapDiff, storage *ast.TypedAst) error {
 	var res ptrs
 
-	op, err := td.operations.GetByIDs(bmd.OperationID)
-	if err != nil {
-		if td.storage.IsRecordNotFound(err) {
-			return nil
-		}
-		return err
-	}
-	if len(op) != 1 {
-		return nil
-	}
-
 	var storageData ast.UntypedAST
-	if err := json.Unmarshal(op[0].DeffatedStorage, &storageData); err != nil {
+	if err := json.Unmarshal(bmd.Operation.DeffatedStorage, &storageData); err != nil {
 		return err
 	}
 
@@ -132,7 +120,7 @@ func (td *TezosDomain) getPointers(address contract.Address, bmd *bigmapdiff.Big
 	return nil
 }
 
-func (td *TezosDomain) updateRecordsTZIP(bmd *bigmapdiff.BigMapDiff) ([]models.Model, error) {
+func (td *TezosDomain) updateRecordsTZIP(bmd *domains.BigMapDiff) ([]models.Model, error) {
 	if len(bmd.KeyStrings) == 0 || len(bmd.ValueStrings) == 0 {
 		return nil, errors.Errorf("Invalid tezos domains big map diff: %d", bmd.GetID())
 	}
@@ -152,7 +140,7 @@ func (td *TezosDomain) updateRecordsTZIP(bmd *bigmapdiff.BigMapDiff) ([]models.M
 	return []models.Model{&tezosDomain}, nil
 }
 
-func (td *TezosDomain) updateExpirationDate(bmd *bigmapdiff.BigMapDiff) ([]models.Model, error) {
+func (td *TezosDomain) updateExpirationDate(bmd *domains.BigMapDiff) ([]models.Model, error) {
 	if len(bmd.KeyStrings) == 0 {
 		return nil, errors.Errorf("Invalid tezos domains big map diff: %d", bmd.GetID())
 	}

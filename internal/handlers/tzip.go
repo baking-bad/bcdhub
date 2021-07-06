@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
+	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	tzipModel "github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -34,7 +35,7 @@ func NewTZIP(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, stora
 }
 
 // Do -
-func (t *TZIP) Do(bmd *bigmapdiff.BigMapDiff, storage *ast.TypedAst) (bool, []models.Model, error) {
+func (t *TZIP) Do(bmd *domains.BigMapDiff, storage *ast.TypedAst) (bool, []models.Model, error) {
 	if bmd.KeyHash != tzip.EmptyStringKey {
 		return false, nil, nil
 	}
@@ -42,14 +43,14 @@ func (t *TZIP) Do(bmd *bigmapdiff.BigMapDiff, storage *ast.TypedAst) (bool, []mo
 	return true, res, err
 }
 
-func (t *TZIP) handle(bmd *bigmapdiff.BigMapDiff) ([]models.Model, error) {
+func (t *TZIP) handle(bmd *domains.BigMapDiff) ([]models.Model, error) {
 	tzipParser, ok := t.parsers[bmd.Network]
 	if !ok {
 		return nil, errors.Errorf("Unknown network for tzip parser: %s", bmd.Network)
 	}
 
 	model, err := tzipParser.Parse(tzip.ParseContext{
-		BigMapDiff: *bmd,
+		BigMapDiff: *bmd.BigMapDiff,
 	})
 	if err != nil {
 		logger.With(bmd).Warn(err)

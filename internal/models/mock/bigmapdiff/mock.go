@@ -144,25 +144,6 @@ func (mr *MockRepositoryMockRecorder) GetForAddress(network, address interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForAddress", reflect.TypeOf((*MockRepository)(nil).GetForAddress), network, address)
 }
 
-// GetByIDs mocks base method
-func (m *MockRepository) GetByIDs(ids ...int64) ([]bmd.BigMapDiff, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{}
-	for _, a := range ids {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "GetByIDs", varargs...)
-	ret0, _ := ret[0].([]bmd.BigMapDiff)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetByIDs indicates an expected call of GetByIDs
-func (mr *MockRepositoryMockRecorder) GetByIDs(ids ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByIDs", reflect.TypeOf((*MockRepository)(nil).GetByIDs), ids...)
-}
-
 // GetValuesByKey mocks base method
 func (m *MockRepository) GetValuesByKey(keyHash string) ([]bmd.BigMapDiff, error) {
 	m.ctrl.T.Helper()
