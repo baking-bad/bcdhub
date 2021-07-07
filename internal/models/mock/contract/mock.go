@@ -79,65 +79,6 @@ func (mr *MockRepositoryMockRecorder) GetRandom(network interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRandom", reflect.TypeOf((*MockRepository)(nil).GetRandom), network)
 }
 
-// GetAddressesByNetworkAndLevel mocks base method
-func (m *MockRepository) GetAddressesByNetworkAndLevel(network types.Network, maxLevel int64) ([]string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAddressesByNetworkAndLevel", network, maxLevel)
-	ret0, _ := ret[0].([]string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetAddressesByNetworkAndLevel indicates an expected call of GetAddressesByNetworkAndLevel
-func (mr *MockRepositoryMockRecorder) GetAddressesByNetworkAndLevel(network, maxLevel interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAddressesByNetworkAndLevel", reflect.TypeOf((*MockRepository)(nil).GetAddressesByNetworkAndLevel), network, maxLevel)
-}
-
-// GetIDsByAddresses mocks base method
-func (m *MockRepository) GetIDsByAddresses(network types.Network, addresses []string) ([]string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetIDsByAddresses", network, addresses)
-	ret0, _ := ret[0].([]string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetIDsByAddresses indicates an expected call of GetIDsByAddresses
-func (mr *MockRepositoryMockRecorder) GetIDsByAddresses(network, addresses interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIDsByAddresses", reflect.TypeOf((*MockRepository)(nil).GetIDsByAddresses), network, addresses)
-}
-
-// UpdateMigrationsCount mocks base method
-func (m *MockRepository) UpdateMigrationsCount(network types.Network, address string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateMigrationsCount", network, address)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateMigrationsCount indicates an expected call of UpdateMigrationsCount
-func (mr *MockRepositoryMockRecorder) UpdateMigrationsCount(network, address interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMigrationsCount", reflect.TypeOf((*MockRepository)(nil).UpdateMigrationsCount), network, address)
-}
-
-// GetByAddresses mocks base method
-func (m *MockRepository) GetByAddresses(addresses []contractModel.Address) ([]contractModel.Contract, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByAddresses", addresses)
-	ret0, _ := ret[0].([]contractModel.Contract)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetByAddresses indicates an expected call of GetByAddresses
-func (mr *MockRepositoryMockRecorder) GetByAddresses(addresses interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByAddresses", reflect.TypeOf((*MockRepository)(nil).GetByAddresses), addresses)
-}
-
 // GetTokens mocks base method
 func (m *MockRepository) GetTokens(network types.Network, tokenInterface string, offset, size int64) ([]contractModel.Contract, int64, error) {
 	m.ctrl.T.Helper()
@@ -200,19 +141,23 @@ func (mr *MockRepositoryMockRecorder) GetSimilarContracts(arg0, arg1, arg2 inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSimilarContracts", reflect.TypeOf((*MockRepository)(nil).GetSimilarContracts), arg0, arg1, arg2)
 }
 
-// GetDiffTasks mocks base method
-func (m *MockRepository) GetDiffTasks() ([]contractModel.DiffTask, error) {
+// GetByIDs mocks base method
+func (m *MockRepository) GetByIDs(ids ...int64) ([]contractModel.Contract, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetDiffTasks")
-	ret0, _ := ret[0].([]contractModel.DiffTask)
+	varargs := []interface{}{}
+	for _, a := range ids {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetByIDs", varargs...)
+	ret0, _ := ret[0].([]contractModel.Contract)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetDiffTasks indicates an expected call of GetDiffTasks
-func (mr *MockRepositoryMockRecorder) GetDiffTasks() *gomock.Call {
+// GetByIDs indicates an expected call of GetByIDs
+func (mr *MockRepositoryMockRecorder) GetByIDs(ids ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDiffTasks", reflect.TypeOf((*MockRepository)(nil).GetDiffTasks))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByIDs", reflect.TypeOf((*MockRepository)(nil).GetByIDs), ids...)
 }
 
 // Stats mocks base method

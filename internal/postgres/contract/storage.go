@@ -3,7 +3,6 @@ package contract
 import (
 	"encoding/hex"
 	"math/rand"
-	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
@@ -59,36 +58,6 @@ func (storage *Storage) GetRandom(network types.Network) (response contract.Cont
 	}
 	err = query.Limit(1).Offset(rand.Intn(int(count))).First(&response).Error
 	return
-}
-
-// UpdateMigrationsCount -
-func (storage *Storage) UpdateMigrationsCount(network types.Network, address string) error {
-	return storage.DB.Raw(`UPDATE contracts SET migrations_count = migrations_count + 1 WHERE address = ? AND network = ?;`, address, network).Error
-}
-
-// GetAddressesByNetworkAndLevel -
-func (storage *Storage) GetAddressesByNetworkAndLevel(network types.Network, maxLevel int64) ([]string, error) {
-	var addresses []string
-	err := storage.DB.Table(models.DocContracts).
-		Select("address").
-		Where("network = ?", network).
-		Where("level > ?", maxLevel).
-		Find(&addresses).
-		Error
-
-	return addresses, err
-}
-
-// GetIDsByAddresses -
-func (storage *Storage) GetIDsByAddresses(network types.Network, addresses []string) ([]string, error) {
-	var ids []string
-	err := storage.DB.Table(models.DocContracts).
-		Where("network = ?", network).
-		Where("address IN ?", addresses).
-		Pluck("id", &ids).
-		Error
-
-	return ids, err
 }
 
 // GetByAddresses -
@@ -206,36 +175,6 @@ func (storage *Storage) GetSimilarContracts(c contract.Contract, size, offset in
 		Error
 
 	return pcr, int(count), err
-}
-
-// GetDiffTasks -
-func (storage *Storage) GetDiffTasks() ([]contract.DiffTask, error) {
-	var contracts []contract.Contract
-	query := storage.DB.Table(models.DocContracts).Group("project_id, hash").Order("last_action DESC")
-	if err := query.Find(&contracts).Error; err != nil {
-		return nil, err
-	}
-
-	tasks := make([]contract.DiffTask, 0)
-	for i, first := range contracts {
-		for j := i; j < len(contracts); j++ {
-			second := contracts[j]
-			if first.ProjectID != second.ProjectID {
-				continue
-			}
-
-			tasks = append(tasks, contract.DiffTask{
-				Network1: first.Network,
-				Address1: first.Address,
-				Network2: second.Network,
-				Address2: second.Address,
-			})
-		}
-	}
-
-	rand.Seed(time.Now().Unix())
-	rand.Shuffle(len(tasks), func(i, j int) { tasks[i], tasks[j] = tasks[j], tasks[i] })
-	return tasks, nil
 }
 
 // GetTokens -

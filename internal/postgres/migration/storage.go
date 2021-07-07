@@ -28,14 +28,3 @@ func (storage *Storage) Get(network types.Network, address string) ([]migration.
 		Find(&migrations).Error
 	return migrations, err
 }
-
-// Count -
-func (storage *Storage) Count(network types.Network, address string) (int64, error) {
-	var count int64
-	err := storage.DB.Table(models.DocMigrations).
-		Where("network = ?", network).
-		Where("address = ?", address).
-		Count(&count).
-		Error
-	return count, err
-}

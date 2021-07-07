@@ -40,24 +40,6 @@ func (storage *Storage) GetBySlug(slug string) (*tzip.TZIP, error) {
 	return &t, err
 }
 
-// GetAliasesMap -
-func (storage *Storage) GetAliasesMap(network types.Network) (map[string]string, error) {
-	var t []tzip.TZIP
-	if err := storage.DB.
-		Table(models.DocTZIP).
-		Where("network = ?", network).
-		Find(&t).Error; err != nil {
-		return nil, err
-	}
-
-	aliases := make(map[string]string)
-	for i := range t {
-		aliases[t[i].Address] = t[i].Name
-	}
-
-	return aliases, nil
-}
-
 // GetAliases -
 func (storage *Storage) GetAliases(network types.Network) (t []tzip.TZIP, err error) {
 	err = storage.DB.
