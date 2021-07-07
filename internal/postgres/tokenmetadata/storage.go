@@ -42,7 +42,7 @@ func (storage *Storage) Get(ctx []tokenmetadata.GetContext, size, offset int64) 
 		query.Offset(int(offset))
 	}
 
-	err = query.Find(&tokens).Error
+	err = query.Order("id desc").Find(&tokens).Error
 	return
 }
 
