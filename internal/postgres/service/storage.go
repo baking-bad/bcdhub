@@ -32,3 +32,9 @@ func (s *Storage) Get(name string) (state service.State, err error) {
 func (s *Storage) Save(state service.State) error {
 	return state.Save(s.DB)
 }
+
+// Get -
+func (s *Storage) All() (state []service.State, err error) {
+	err = s.DB.Find(&state).Error
+	return
+}

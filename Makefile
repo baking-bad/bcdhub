@@ -48,6 +48,13 @@ else
 	docker-compose exec api bcdctl rollback -n $(NETWORK) -l $(LEVEL)
 endif
 
+list-metrics:
+ifeq ($(BCD_ENV), development)
+	cd scripts/bcdctl && go run . list_services
+else
+	docker-compose exec api bcdctl list_services
+endif
+
 s3-creds:
 	docker-compose exec elastic bash -c 'bin/elasticsearch-keystore add --force --stdin s3.client.default.access_key <<< "$$AWS_ACCESS_KEY_ID"'
 	docker-compose exec elastic bash -c 'bin/elasticsearch-keystore add --force --stdin s3.client.default.secret_key <<< "$$AWS_SECRET_ACCESS_KEY"'

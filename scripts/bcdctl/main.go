@@ -89,6 +89,14 @@ func main() {
 		return
 	}
 
+	if _, err := parser.AddCommand("list_services",
+		"Lists metrics services",
+		"Lists metrics services",
+		&listServicesCmd); err != nil {
+		logger.Err(err)
+		return
+	}
+
 	if _, err := parser.Parse(); err != nil {
 		panic(err)
 	}
