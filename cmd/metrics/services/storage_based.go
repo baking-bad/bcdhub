@@ -101,6 +101,7 @@ func (s *StorageBased) work() {
 				}
 				ticker.Reset(s.updatePeriod)
 			}
+			time.Sleep(time.Millisecond * 100)
 		}
 	}
 }
