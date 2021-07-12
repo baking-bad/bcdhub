@@ -571,12 +571,32 @@ func (bi *BoostIndexer) migrate(head noderpc.Header, tx *gorm.DB) error {
 			logger.Info().Str("network", bi.Network.String()).Msgf("Same symlink %s for %s / %s",
 				newProtocol.SymLink, bi.currentProtocol.Alias, newProtocol.Alias)
 		}
+
+		if err := bi.implicitMigration(head, tx); err != nil {
+			return err
+		}
 	}
 
 	bi.currentProtocol = newProtocol
 
 	bi.setUpdateTicker(0)
 	logger.Info().Str("network", bi.Network.String()).Msgf("Migration to %s is completed", bi.currentProtocol.Alias)
+	return nil
+}
+
+func (bi *BoostIndexer) implicitMigration(head noderpc.Header, tx *gorm.DB) error {
+	metadata, err := bi.rpc.GetBlockMetadata(head.Level)
+	if err != nil {
+		return err
+	}
+	implicitParser := migrations.NewImplicitParser(bi.Context, bi.Network, bi.rpc)
+	implicitResult, err := implicitParser.Parse(metadata, head)
+	if err != nil {
+		return err
+	}
+	if implicitResult != nil {
+		return implicitResult.Save(tx)
+	}
 	return nil
 }
 
@@ -590,7 +610,7 @@ func (bi *BoostIndexer) standartMigration(newProtocol protocol.Protocol, head no
 	}
 	logger.Info().Str("network", bi.Network.String()).Msgf("Now %d contracts are indexed", len(contracts))
 
-	p := migrations.NewMigrationParser(bi.Storage, bi.BigMapDiffs, bi.Config.SharePath)
+	migrationParser := migrations.NewMigrationParser(bi.Storage, bi.BigMapDiffs, bi.Config.SharePath)
 
 	for i := range contracts {
 		logger.Info().Str("network", bi.Network.String()).Msgf("Migrate %s...", contracts[i].Address)
@@ -599,10 +619,11 @@ func (bi *BoostIndexer) standartMigration(newProtocol protocol.Protocol, head no
 			return err
 		}
 
-		if err := p.Parse(script, contracts[i], bi.currentProtocol, newProtocol, head.Timestamp, tx); err != nil {
+		if err := migrationParser.Parse(script, contracts[i], bi.currentProtocol, newProtocol, head.Timestamp, tx); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 

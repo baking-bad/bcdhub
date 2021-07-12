@@ -180,3 +180,68 @@ type BigMap struct {
 	ValueType  *ast.TypedAst `json:"value_type"`
 	TotalBytes uint64        `json:"total_bytes,string"`
 }
+
+// Metadata -
+type Metadata struct {
+	Protocol        string `json:"protocol"`
+	NextProtocol    string `json:"next_protocol"`
+	TestChainStatus struct {
+		Status string `json:"status"`
+	} `json:"test_chain_status"`
+	MaxOperationsTTL       int `json:"max_operations_ttl"`
+	MaxOperationDataLength int `json:"max_operation_data_length"`
+	MaxBlockHeaderLength   int `json:"max_block_header_length"`
+	MaxOperationListLength []struct {
+		MaxSize int `json:"max_size"`
+		MaxOp   int `json:"max_op,omitempty"`
+	} `json:"max_operation_list_length"`
+	Baker            string    `json:"baker"`
+	LevelInfo        LevelInfo `json:"level_info"`
+	VotingPeriodInfo struct {
+		VotingPeriod struct {
+			Index         int    `json:"index"`
+			Kind          string `json:"kind"`
+			StartPosition int    `json:"start_position"`
+		} `json:"voting_period"`
+		Position  int `json:"position"`
+		Remaining int `json:"remaining"`
+	} `json:"voting_period_info"`
+	NonceHash                 string                     `json:"nonce_hash"`
+	ConsumedGas               string                     `json:"consumed_gas"`
+	Deactivated               []interface{}              `json:"deactivated"`
+	BalanceUpdates            []BalanceUpdate            `json:"balance_updates"`
+	LiquidityBakingEscapeEma  int                        `json:"liquidity_baking_escape_ema"`
+	ImplicitOperationsResults []ImplicitOperationsResult `json:"implicit_operations_results"`
+}
+
+// BalanceUpdate -
+type BalanceUpdate struct {
+	Kind     string `json:"kind"`
+	Contract string `json:"contract,omitempty"`
+	Change   string `json:"change"`
+	Origin   string `json:"origin"`
+	Category string `json:"category,omitempty"`
+	Delegate string `json:"delegate,omitempty"`
+	Cycle    int64  `json:"cycle,omitempty"`
+}
+
+// ImplicitOperationsResult -
+type ImplicitOperationsResult struct {
+	Kind                string             `json:"kind"`
+	BalanceUpdates      []BalanceUpdate    `json:"balance_updates"`
+	OriginatedContracts []string           `json:"originated_contracts,omitempty"`
+	StorageSize         int64              `json:"storage_size,string"`
+	PaidStorageSizeDiff int64              `json:"paid_storage_size_diff,string"`
+	Storage             stdJSON.RawMessage `json:"storage,omitempty"`
+	ConsumedGas         int64              `json:"consumed_gas,string,omitempty"`
+	ConsumedMilligas    int64              `json:"consumed_milligas,string,omitempty"`
+}
+
+// LevelInfo -
+type LevelInfo struct {
+	Level              int64 `json:"level"`
+	LevelPosition      int64 `json:"level_position"`
+	Cycle              int64 `json:"cycle"`
+	CyclePosition      int64 `json:"cycle_position"`
+	ExpectedCommitment bool  `json:"expected_commitment"`
+}

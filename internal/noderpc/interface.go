@@ -13,6 +13,7 @@ type INode interface {
 	GetLevel() (int64, error)
 	GetLevelTime(int) (time.Time, error)
 	GetScriptJSON(string, int64) (Script, error)
+	GetRawScript(address string, level int64) ([]byte, error)
 	GetScriptStorageRaw(string, int64) ([]byte, error)
 	GetContractBalance(string, int64) (int64, error)
 	GetContractData(string, int64) (ContractData, error)
@@ -24,4 +25,5 @@ type INode interface {
 	GetCounter(string) (int64, error)
 	GetCode(address string, level int64) (*ast.Script, error)
 	GetBigMapType(ptr, level int64) (BigMap, error)
+	GetBlockMetadata(level int64) (metadata Metadata, err error)
 }

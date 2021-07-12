@@ -139,7 +139,6 @@ func (rpc *NodeRPC) makePostRequest(uri string, data interface{}) (*http.Respons
 	return rpc.makeRequest(req)
 }
 
-//nolint
 func (rpc *NodeRPC) get(uri string, response interface{}) error {
 	resp, err := rpc.makeGetRequest(uri)
 	if err != nil {
@@ -148,6 +147,19 @@ func (rpc *NodeRPC) get(uri string, response interface{}) error {
 	defer resp.Body.Close()
 
 	return rpc.parseResponse(resp, true, response)
+}
+
+func (rpc *NodeRPC) getRaw(uri string) ([]byte, error) {
+	resp, err := rpc.makeGetRequest(uri)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if err := rpc.checkStatusCode(resp, true); err != nil {
+		return nil, err
+	}
+	return ioutil.ReadAll(resp.Body)
 }
 
 //nolint
@@ -198,6 +210,11 @@ func (rpc *NodeRPC) GetLevelTime(level int) (time.Time, error) {
 func (rpc *NodeRPC) GetScriptJSON(address string, level int64) (script Script, err error) {
 	err = rpc.get(fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s/script", getBlockString(level), address), &script)
 	return
+}
+
+// GetRawScript -
+func (rpc *NodeRPC) GetRawScript(address string, level int64) ([]byte, error) {
+	return rpc.getRaw(fmt.Sprintf("chains/main/blocks/%s/context/contracts/%s/script", getBlockString(level), address))
 }
 
 // GetScriptStorageRaw -
@@ -328,5 +345,11 @@ func (rpc *NodeRPC) GetCode(address string, level int64) (*ast.Script, error) {
 // GetBigMapType -
 func (rpc *NodeRPC) GetBigMapType(ptr, level int64) (bm BigMap, err error) {
 	err = rpc.get(fmt.Sprintf("chains/main/blocks/%s/context/raw/json/big_maps/index/%d", getBlockString(level), ptr), &bm)
+	return
+}
+
+// GetBlockMetadata -
+func (rpc *NodeRPC) GetBlockMetadata(level int64) (metadata Metadata, err error) {
+	err = rpc.get(fmt.Sprintf("chains/main/blocks/%s/metadata", getBlockString(level)), &metadata)
 	return
 }
