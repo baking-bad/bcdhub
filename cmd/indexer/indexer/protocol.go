@@ -35,7 +35,7 @@ func setProtocolConstants(rpc noderpc.INode, proto *protocol.Protocol) error {
 		proto.Constants.CostPerByte = resp.CostPerByte
 		proto.Constants.HardGasLimitPerOperation = resp.HardGasLimitPerOperation
 		proto.Constants.HardStorageLimitPerOperation = resp.HardStorageLimitPerOperation
-		proto.Constants.TimeBetweenBlocks = resp.TimeBetweenBlocks[0]
+		proto.Constants.TimeBetweenBlocks = resp.BlockDelay()
 	}
 
 	return nil
