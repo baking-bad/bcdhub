@@ -17,7 +17,6 @@ type StorageBased struct {
 	state        service.State
 	bulkSize     int64
 
-	bulk chan struct{}
 	stop chan struct{}
 	wg   sync.WaitGroup
 }
@@ -39,7 +38,6 @@ func NewStorageBased(
 		handler:      handler,
 		updatePeriod: updatePeriod,
 		bulkSize:     bulkSize,
-		bulk:         make(chan struct{}, 1),
 		stop:         make(chan struct{}, 1),
 	}
 }
@@ -66,7 +64,6 @@ func (s *StorageBased) Close() error {
 	s.stop <- struct{}{}
 	s.wg.Wait()
 
-	close(s.bulk)
 	close(s.stop)
 	return nil
 }
@@ -77,7 +74,8 @@ func (s *StorageBased) work() {
 	ticker := time.NewTicker(s.updatePeriod)
 	defer ticker.Stop()
 
-	if err := s.do(); err != nil {
+	isFull, err := s.do()
+	if err != nil {
 		logger.Err(err)
 	}
 
@@ -87,41 +85,42 @@ func (s *StorageBased) work() {
 		case <-s.stop:
 			return
 
-		case <-s.bulk:
-			if err := s.do(); err != nil {
+		case <-ticker.C:
+			isFull, err = s.do()
+			if err != nil {
 				logger.Err(err)
 				continue
 			}
-			ticker.Reset(s.updatePeriod)
 
-		case <-ticker.C:
-			if err := s.do(); err != nil {
-				logger.Err(err)
-				continue
+		default:
+			if isFull {
+				isFull, err = s.do()
+				if err != nil {
+					logger.Err(err)
+					continue
+				}
+				ticker.Reset(s.updatePeriod)
 			}
 		}
 	}
 }
 
-func (s *StorageBased) do() error {
+func (s *StorageBased) do() (bool, error) {
 	items, err := s.handler.Chunk(s.state.LastID, s.bulkSize)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	if err := s.handler.Handle(items); err != nil {
-		return err
+		return false, err
 	}
 
 	if len(items) > 0 && s.state.LastID < items[len(items)-1].GetID() {
 		s.state.LastID = items[len(items)-1].GetID()
 		if err := s.repo.Save(s.state); err != nil {
-			return err
+			return false, err
 		}
 	}
 
-	if len(items) == int(s.bulkSize) {
-		s.bulk <- struct{}{}
-	}
-	return nil
+	return len(items) == int(s.bulkSize), nil
 }
