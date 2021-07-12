@@ -253,3 +253,21 @@ func (p Pool) GetBigMapType(ptr, level int64) (BigMap, error) {
 	}
 	return data.Interface().(BigMap), nil
 }
+
+// GetBlockMetadata -
+func (p Pool) GetBlockMetadata(level int64) (Metadata, error) {
+	data, err := p.call("GetBlockMetadata", level)
+	if err != nil {
+		return Metadata{}, err
+	}
+	return data.Interface().(Metadata), nil
+}
+
+// GetRawScript -
+func (p Pool) GetRawScript(address string, level int64) ([]byte, error) {
+	data, err := p.call("GetRawScript", address, level)
+	if err != nil {
+		return nil, err
+	}
+	return data.Interface().([]byte), nil
+}

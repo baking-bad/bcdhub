@@ -109,6 +109,21 @@ func (mr *MockINodeMockRecorder) GetScriptJSON(arg0, arg1 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetScriptJSON", reflect.TypeOf((*MockINode)(nil).GetScriptJSON), arg0, arg1)
 }
 
+// GetRawScript mocks base method
+func (m *MockINode) GetRawScript(address string, level int64) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRawScript", address, level)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRawScript indicates an expected call of GetRawScript
+func (mr *MockINodeMockRecorder) GetRawScript(address, level interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRawScript", reflect.TypeOf((*MockINode)(nil).GetRawScript), address, level)
+}
+
 // GetScriptStorageRaw mocks base method
 func (m *MockINode) GetScriptStorageRaw(arg0 string, arg1 int64) ([]byte, error) {
 	m.ctrl.T.Helper()
@@ -272,4 +287,19 @@ func (m *MockINode) GetBigMapType(ptr, level int64) (BigMap, error) {
 func (mr *MockINodeMockRecorder) GetBigMapType(ptr, level interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBigMapType", reflect.TypeOf((*MockINode)(nil).GetBigMapType), ptr, level)
+}
+
+// GetBlockMetadata mocks base method
+func (m *MockINode) GetBlockMetadata(level int64) (Metadata, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBlockMetadata", level)
+	ret0, _ := ret[0].(Metadata)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBlockMetadata indicates an expected call of GetBlockMetadata
+func (mr *MockINodeMockRecorder) GetBlockMetadata(level interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBlockMetadata", reflect.TypeOf((*MockINode)(nil).GetBlockMetadata), level)
 }
