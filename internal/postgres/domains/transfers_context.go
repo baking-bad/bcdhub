@@ -61,8 +61,8 @@ func (storage *Storage) buildGetContext(query *gorm.DB, ctx transfer.GetContext,
 		}
 	}
 	if ctx.SortOrder == "asc" || ctx.SortOrder == "desc" {
-		query.Order(fmt.Sprintf("level %s", ctx.SortOrder))
+		query.Order(fmt.Sprintf("id %s", ctx.SortOrder))
 	} else {
-		query.Order("level desc")
+		query.Order("id desc")
 	}
 }
