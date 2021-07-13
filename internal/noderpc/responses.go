@@ -44,6 +44,19 @@ type Constants struct {
 	HardGasLimitPerOperation     int64            `json:"hard_gas_limit_per_operation,string"`
 	HardStorageLimitPerOperation int64            `json:"hard_storage_limit_per_operation,string"`
 	TimeBetweenBlocks            Int64StringSlice `json:"time_between_blocks"`
+	MinimalBlockDelay            *int64           `json:"minimal_block_delay,omitempty,string"`
+}
+
+// BlockDelay -
+func (c Constants) BlockDelay() int64 {
+	switch {
+	case c.MinimalBlockDelay != nil:
+		return *c.MinimalBlockDelay
+	case len(c.TimeBetweenBlocks) > 0:
+		return c.TimeBetweenBlocks[0]
+	default:
+		return 30
+	}
 }
 
 // ContractData -
