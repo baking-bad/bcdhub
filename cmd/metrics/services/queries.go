@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -10,8 +11,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func getContracts(db *gorm.DB, table string, lastID, size int64) (resp []contract.Contract, err error) {
-	query := db.Table(table).Order("id asc").Where("project_id = ''")
+func getContracts(db *gorm.DB, lastID, size int64) (resp []contract.Contract, err error) {
+	query := db.Table(models.DocContracts).Order("id asc").Where("project_id = ''")
 	if lastID > 0 {
 		query.Where("id > ?", lastID)
 	}
@@ -22,8 +23,20 @@ func getContracts(db *gorm.DB, table string, lastID, size int64) (resp []contrac
 	return
 }
 
-func getOperations(db *gorm.DB, table string, lastID, size int64) (resp []operation.Operation, err error) {
-	query := db.Table(table).Order("id asc")
+func getOperations(db *gorm.DB, lastID, size int64) (resp []operation.Operation, err error) {
+	query := db.Table(models.DocOperations).Order("id asc")
+	if lastID > 0 {
+		query.Where("id > ?", lastID)
+	}
+	if size == 0 || size > 1000 {
+		size = 10
+	}
+	err = query.Limit(int(size)).Find(&resp).Error
+	return
+}
+
+func getDiffs(db *gorm.DB, lastID, size int64) (resp []bigmapdiff.BigMapDiff, err error) {
+	query := db.Table(models.DocBigMapDiff).Order("id asc")
 	if lastID > 0 {
 		query.Where("id > ?", lastID)
 	}

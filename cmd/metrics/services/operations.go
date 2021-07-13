@@ -29,7 +29,7 @@ func (oh *OperationsHandler) Handle(items []models.Model) error {
 
 // Chunk -
 func (oh *OperationsHandler) Chunk(lastID, size int64) ([]models.Model, error) {
-	operations, err := getOperations(oh.StorageDB.DB, models.DocOperations, lastID, size)
+	operations, err := getOperations(oh.StorageDB.DB, lastID, size)
 	if err != nil {
 		return nil, err
 	}
