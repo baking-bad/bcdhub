@@ -32,11 +32,17 @@ func (x *listServicesCommand) Execute(_ []string) error {
 			} else {
 				query.Table(models.DocContracts)
 			}
-		case "contract_metadata", "token_metadata", "tezos_domains":
+		case "contract_metadata", "token_metadata", "tezos_domains", "big_map_diffs":
 			if id, ok := ids[models.DocBigMapDiff]; ok {
 				lastID = id
 			} else {
 				query.Table(models.DocBigMapDiff)
+			}
+		case "operations":
+			if id, ok := ids[models.DocOperations]; ok {
+				lastID = id
+			} else {
+				query.Table(models.DocOperations)
 			}
 		}
 
