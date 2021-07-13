@@ -76,6 +76,20 @@ func main() {
 			time.Second*15,
 			bulkSize,
 		),
+		services.NewStorageBased(
+			"operations",
+			ctx.Services,
+			services.NewOperationsHandler(ctx),
+			time.Second*15,
+			bulkSize,
+		),
+		services.NewStorageBased(
+			"big_map_diffs",
+			ctx.Services,
+			services.NewBigMapDiffHandler(ctx),
+			time.Second*15,
+			bulkSize,
+		),
 	}
 
 	for network := range ctx.Config.Indexer.Networks {

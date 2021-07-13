@@ -56,7 +56,7 @@ func (p *ProjectsHandler) Handle(items []models.Model) error {
 
 // Chunk -
 func (p *ProjectsHandler) Chunk(lastID, size int64) ([]models.Model, error) {
-	contracts, err := getContracts(p.StorageDB.DB, models.DocContracts, lastID, size)
+	contracts, err := getContracts(p.StorageDB.DB, lastID, size)
 	if err != nil {
 		return nil, err
 	}
