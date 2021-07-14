@@ -100,7 +100,7 @@ func main() {
 			"series_consumed_gas_by_month_",
 		} {
 			name := fmt.Sprintf("%s%s", view, network)
-			workers = append(workers, services.NewView(ctx.StorageDB.DB, name, time.Minute))
+			workers = append(workers, services.NewView(ctx.StorageDB.DB, name, time.Hour))
 		}
 	}
 
