@@ -51,9 +51,9 @@ api:
     sandbox_mode: false
   networks:
     - mainnet
-    - edo2net
-    - florencenet
-    - granadanet
+#    - edo2net
+#    - florencenet
+#    - granadanet
   pinata:
     key: ${PINATA_KEY}
     secret_key: ${PINATA_SECRET_KEY}
@@ -65,9 +65,9 @@ indexer:
   skip_delegator_blocks: false
   networks:
     mainnet:
-    edo2net:
-    florencenet:
-    granadanet:
+#    edo2net:
+#    florencenet:
+#    granadanet:
 
 metrics:
   project_name: metrics
@@ -82,9 +82,9 @@ scripts:
     secret_access_key: ${AWS_SECRET_ACCESS_KEY}
   networks:
     - mainnet
-    - edo2net
-    - florencenet
-    - granadanet
+#    - edo2net
+#    - florencenet
+#    - granadanet
 
 graphql:
   db: "host=${DB_HOSTNAME} port=5432 user=graphql dbname=indexer password=${POSTGRES_GRAPHQL} sslmode=disable"
