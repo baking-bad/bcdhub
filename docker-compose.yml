@@ -30,7 +30,7 @@ services:
     env_file:
       - .env
     volumes:
-      - db:/mnt/data/lib/postgresql/data
+      - /mnt/data/db:/var/lib/postgresql/data
       - /etc/postgresql/postgresql.conf:/etc/postgresql/postgresql.conf
     ports:
       - 127.0.0.1:${POSTGRES_PORT}:5432
