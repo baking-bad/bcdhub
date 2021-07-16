@@ -2,15 +2,15 @@ rpc:
   mainnet:
     uri: ${MAINNET_RPC_URI:-https://rpc.tzkt.io/mainnet}
     timeout: 20
-  edo2net:
-    uri: ${TESTNET_RPC_URI:-https://rpc.tzkt.io/edo2net}
-    timeout: 20
-  florencenet:
-    uri: ${NEXTNET_RPC_URI:-https://rpc.tzkt.io/florencenobanet}
-    timeout: 20
-  granadanet:
-    uri: https://rpc.tzkt.io/granadanet
-    timeout: 20
+#  edo2net:
+#    uri: ${TESTNET_RPC_URI:-https://rpc.tzkt.io/edo2net}
+#    timeout: 20
+#  florencenet:
+#    uri: ${NEXTNET_RPC_URI:-https://rpc.tzkt.io/florencenobanet}
+#    timeout: 20
+#  granadanet:
+#    uri: https://rpc.tzkt.io/granadanet
+#    timeout: 20
 
 tzkt:
   mainnet:
