@@ -2,15 +2,15 @@ rpc:
   mainnet:
     uri: https://mainnet-tezos.giganode.io
     timeout: 20
-  edo2net:
-    uri: https://rpc.tzkt.io/edo2net
-    timeout: 20
-  florencenet:
-    uri: https://rpc.tzkt.io/florencenobanet
-    timeout: 20
-  granadanet:
-    uri: https://rpc.tzkt.io/granadanet
-    timeout: 20    
+#  edo2net:
+#    uri: https://rpc.tzkt.io/edo2net
+#    timeout: 20
+#  florencenet:
+#    uri: https://rpc.tzkt.io/florencenobanet
+#    timeout: 20
+#  granadanet:
+#    uri: https://rpc.tzkt.io/granadanet
+#    timeout: 20
 
 storage:
   pg: "host=${DB_HOSTNAME} port=5432 user=${POSTGRES_USER} dbname=indexer password=${POSTGRES_PASSWORD} sslmode=disable"

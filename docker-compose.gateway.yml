@@ -25,9 +25,9 @@ services:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
       - POSTGRES_DB=bcd
-      - PGDATA=/var/lib/postgresql/data/pgdata
+      - PGDATA=/mnt/data/lib/postgresql/data/pgdata
     volumes:
-      - db:/var/lib/postgresql/data
+      - db:/mnt/data/lib/postgresql/data
     logging: *bcd-logging
 
   api:
