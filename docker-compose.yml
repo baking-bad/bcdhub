@@ -52,7 +52,7 @@ services:
       - elastic
       - db
     ports:
-      - 127.0.0.1:${BCD_API_PORT}:14000
+      - 0.0.0.0:${BCD_API_PORT}:14000
     volumes:
       - ${SHARE_PATH}:/etc/bcd
     logging: *bcd-logging
