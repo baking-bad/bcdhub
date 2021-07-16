@@ -4,8 +4,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/aws"
 	"github.com/baking-bad/bcdhub/internal/cache"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/dapp"
@@ -44,8 +43,10 @@ type Context struct {
 	TezosDomainsContracts map[types.Network]string
 
 	Storage       models.GeneralRepository
-	BigMapActions bigmapaction.Repository
-	BigMapDiffs   bigmapdiff.Repository
+	BigMaps       bigmap.Repository
+	BigMapActions bigmap.ActionRepository
+	BigMapDiffs   bigmap.DiffRepository
+	BigMapState   bigmap.StateRepository
 	Blocks        block.Repository
 	Contracts     contract.Repository
 	DApps         dapp.Repository

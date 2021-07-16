@@ -10,11 +10,10 @@ import (
 	"github.com/baking-bad/bcdhub/internal/cache"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	modelContract "github.com/baking-bad/bcdhub/internal/models/contract"
 	mock_general "github.com/baking-bad/bcdhub/internal/models/mock"
-	mock_bmd "github.com/baking-bad/bcdhub/internal/models/mock/bigmapdiff"
+	mock_bm "github.com/baking-bad/bcdhub/internal/models/mock/bigmap"
 	mock_block "github.com/baking-bad/bcdhub/internal/models/mock/block"
 	mock_contract "github.com/baking-bad/bcdhub/internal/models/mock/contract"
 	mock_proto "github.com/baking-bad/bcdhub/internal/models/mock/protocol"
@@ -31,6 +30,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/parsers/contract"
 	"github.com/golang/mock/gomock"
 	"github.com/shopspring/decimal"
+	"gorm.io/gorm"
 )
 
 func TestGroup_Parse(t *testing.T) {
@@ -40,9 +40,11 @@ func TestGroup_Parse(t *testing.T) {
 	defer ctrlStorage.Finish()
 	generalRepo := mock_general.NewMockGeneralRepository(ctrlStorage)
 
-	ctrlBmdRepo := gomock.NewController(t)
-	defer ctrlBmdRepo.Finish()
-	bmdRepo := mock_bmd.NewMockRepository(ctrlBmdRepo)
+	ctrlBmRepo := gomock.NewController(t)
+	defer ctrlBmRepo.Finish()
+	bmRepo := mock_bm.NewMockRepository(ctrlBmRepo)
+	bmStateRepo := mock_bm.NewMockStateRepository(ctrlBmRepo)
+	bmdRepo := mock_bm.NewMockDiffRepository(ctrlBmRepo)
 
 	ctrlBlockRepo := gomock.NewController(t)
 	defer ctrlBlockRepo.Finish()
@@ -113,52 +115,138 @@ func TestGroup_Parse(t *testing.T) {
 		Return(true).
 		AnyTimes()
 
-	bmdRepo.
+	bmStateRepo.
 		EXPECT().
 		GetByPtr(
 			gomock.Eq(types.Carthagenet),
 			gomock.Eq("KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU"),
 			gomock.Eq(int64(2416))).
-		Return([]bigmapdiff.BigMapState{
+		Return([]bigmap.State{
 			{
-				Ptr:             2416,
+				BigMap: bigmap.BigMap{
+					Network:  types.Carthagenet,
+					Contract: "KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU",
+					Ptr:      2416,
+				},
 				Key:             []byte(`{"bytes": "000085ef0c18b31983603d978a152de4cd61803db881"}`),
 				KeyHash:         "exprtfKNhZ1G8vMscchFjt1G1qww2P93VTLHMuhyThVYygZLdnRev2",
 				Value:           []byte(`{"prim":"Pair","args":[[],{"int":"6000"}]}`),
 				LastUpdateLevel: 386026,
-				Contract:        "KT1HBy1L43tiLe5MVJZ5RoxGy53Kx8kMgyoU",
-				Network:         types.Carthagenet,
 				LastUpdateTime:  timestamp,
 			},
 		}, nil).
 		AnyTimes()
 
+	var bmID int64
 	for _, ptr := range []int{25167, 25166, 25165, 25164} {
-		bmdRepo.
+		bmID++
+		bmRepo.
+			EXPECT().
+			Get(gomock.Eq(types.Edo2net), gomock.Eq(int64(ptr)), gomock.Any()).
+			Return(&bigmap.BigMap{
+				ID:       bmID,
+				Ptr:      int64(ptr),
+				Network:  types.Edo2net,
+				Contract: "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
+			}, nil).
+			AnyTimes()
+
+		bmStateRepo.
 			EXPECT().
 			GetByPtr(
 				gomock.Eq(types.Edo2net),
 				gomock.Eq("KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264"),
 				gomock.Eq(int64(ptr))).
-			Return([]bigmapdiff.BigMapState{}, nil).
+			Return([]bigmap.State{}, nil).
 			AnyTimes()
 	}
 
-	bmdRepo.
+	for _, ptr := range []int{25171, 25170, 25169, 25168} {
+		bmID++
+		bmRepo.
+			EXPECT().
+			Get(gomock.Eq(types.Edo2net), gomock.Eq(int64(ptr)), gomock.Any()).
+			Return(nil, gorm.ErrRecordNotFound).
+			AnyTimes()
+	}
+
+	bmID++
+	bmRepo.
+		EXPECT().
+		Get(gomock.Eq(types.Mainnet), gomock.Eq(int64(63)), gomock.Any()).
+		Return(&bigmap.BigMap{
+			ID:       bmID,
+			Ptr:      63,
+			Network:  types.Mainnet,
+			Contract: "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
+		}, nil).
+		AnyTimes()
+
+	bmID++
+	bmRepo.
+		EXPECT().
+		Get(gomock.Eq(types.Mainnet), gomock.Eq(int64(32)), gomock.Any()).
+		Return(&bigmap.BigMap{
+			ID:       bmID,
+			Ptr:      32,
+			Network:  types.Mainnet,
+			Contract: "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
+		}, nil).
+		AnyTimes()
+
+	bmID++
+	bmRepo.
+		EXPECT().
+		Get(gomock.Eq(types.Mainnet), gomock.Eq(int64(31)), gomock.Any()).
+		Return(&bigmap.BigMap{
+			ID:       bmID,
+			Ptr:      31,
+			Network:  types.Mainnet,
+			Contract: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+		}, nil).
+		AnyTimes()
+
+	bmID++
+	bmRepo.
+		EXPECT().
+		Get(gomock.Eq(types.Mainnet), gomock.Eq(int64(746)), gomock.Any()).
+		Return(&bigmap.BigMap{
+			ID:       bmID,
+			Ptr:      746,
+			Network:  types.Mainnet,
+			Contract: "KT1QcxwB4QyPKfmSwjH1VRxa6kquUjeDWeEy",
+		}, nil).
+		AnyTimes()
+
+	bmID++
+	bmRepo.
+		EXPECT().
+		Get(gomock.Eq(types.Mainnet), gomock.Eq(int64(1264)), gomock.Any()).
+		Return(&bigmap.BigMap{
+			ID:       bmID,
+			Ptr:      1264,
+			Network:  types.Mainnet,
+			Contract: "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS",
+		}, nil).
+		AnyTimes()
+
+	bmStateRepo.
 		EXPECT().
 		GetByPtr(
 			gomock.Eq(types.Carthagenet),
 			gomock.Eq("KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ"),
 			gomock.Eq(int64(2417))).
-		Return([]bigmapdiff.BigMapState{
+		Return([]bigmap.State{
 			{
-				Ptr:             2417,
+				BigMap: bigmap.BigMap{
+					Network:  types.Carthagenet,
+					Contract: "KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ",
+					Ptr:      2417,
+				},
 				Key:             []byte(`{"bytes": "000085ef0c18b31983603d978a152de4cd61803db881"}`),
 				KeyHash:         "exprtfKNhZ1G8vMscchFjt1G1qww2P93VTLHMuhyThVYygZLdnRev2",
 				Value:           nil,
 				LastUpdateLevel: 386026,
-				Contract:        "KT1Dc6A6jTY9sG4UvqKciqbJNAGtXqb4n7vZ",
-				Network:         types.Carthagenet,
 				LastUpdateTime:  timestamp,
 			},
 		}, nil).
@@ -304,6 +392,7 @@ func TestGroup_Parse(t *testing.T) {
 			ctx: &config.Context{
 				Storage:       generalRepo,
 				Contracts:     contractRepo,
+				BigMaps:       bmRepo,
 				BigMapDiffs:   bmdRepo,
 				Blocks:        blockRepo,
 				Protocols:     protoRepo,
@@ -328,6 +417,7 @@ func TestGroup_Parse(t *testing.T) {
 			ctx: &config.Context{
 				Storage:       generalRepo,
 				Contracts:     contractRepo,
+				BigMaps:       bmRepo,
 				BigMapDiffs:   bmdRepo,
 				Blocks:        blockRepo,
 				Protocols:     protoRepo,
@@ -393,29 +483,33 @@ func TestGroup_Parse(t *testing.T) {
 								Amount:    newDecimal("8010000"),
 							},
 						},
-						BigMapDiffs: []*bigmapdiff.BigMapDiff{
+						BigMapDiffs: []*bigmap.Diff{
 							{
-								Ptr:        63,
 								KeyHash:    "exprum2qtFLPHdeLWVasKCDw7YD5MrdiD4ra52PY2AUazaNGKyv6tx",
 								Key:        []byte(`{"bytes":"0000a2560a416161def96031630886abe950c4baf036"}`),
 								Value:      []byte(`{"int":"6141000"}`),
 								Level:      1068669,
-								Network:    types.Mainnet,
-								Contract:   "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 								ProtocolID: 1,
 								Timestamp:  timestamp,
 								KeyStrings: []string{"tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq"},
+								BigMap: bigmap.BigMap{
+									Network:  types.Mainnet,
+									Contract: "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
+									Ptr:      63,
+								},
 							}, {
-								Ptr:        63,
 								KeyHash:    "exprv2snyFbF6EDZd2YAHnnmNBoFt7bbaXhGSWGXHv4a4wnxS359ob",
 								Key:        []byte(`{"bytes":"0000fdf98b65d53a9661e07f41093dcb6f3d931736ba"}`),
 								Value:      []byte(`{"int":"8010000"}`),
 								Level:      1068669,
-								Network:    types.Mainnet,
-								Contract:   "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 								ProtocolID: 1,
 								Timestamp:  timestamp,
 								KeyStrings: []string{"tz1invbJv3AEm55ct7QF2dVbWZuaDekssYkV"},
+								BigMap: bigmap.BigMap{
+									Network:  types.Mainnet,
+									Contract: "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
+									Ptr:      63,
+								},
 							},
 						},
 					}, {
@@ -454,25 +548,31 @@ func TestGroup_Parse(t *testing.T) {
 						DeffatedStorage: []byte("{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"000056d8b91b541c9d20d51f929dcccca2f14928f1dc\"},{\"bytes\":\"010d25f77b84dc2164a5d1ce5e8a5d3ca2b1d0cbf900\"}]},[]]}"),
 					},
 				},
-				BigMapState: []*bigmapdiff.BigMapState{
+				BigMapState: []*bigmap.State{
 					{
-						Ptr:             63,
 						KeyHash:         "exprum2qtFLPHdeLWVasKCDw7YD5MrdiD4ra52PY2AUazaNGKyv6tx",
 						Key:             []byte(`{"bytes":"0000a2560a416161def96031630886abe950c4baf036"}`),
 						Value:           []byte(`{"int":"6141000"}`),
-						Network:         types.Mainnet,
-						Contract:        "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 						LastUpdateLevel: 1068669,
 						LastUpdateTime:  timestamp,
+						BigMap: bigmap.BigMap{
+							Network:  types.Mainnet,
+							Contract: "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
+							Ptr:      63,
+						},
+						BigMapID: 9,
 					}, {
-						Ptr:             63,
 						KeyHash:         "exprv2snyFbF6EDZd2YAHnnmNBoFt7bbaXhGSWGXHv4a4wnxS359ob",
 						Key:             []byte(`{"bytes":"0000fdf98b65d53a9661e07f41093dcb6f3d931736ba"}`),
 						Value:           []byte(`{"int":"8010000"}`),
-						Network:         types.Mainnet,
-						Contract:        "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 						LastUpdateLevel: 1068669,
 						LastUpdateTime:  timestamp,
+						BigMap: bigmap.BigMap{
+							Network:  types.Mainnet,
+							Contract: "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
+							Ptr:      63,
+						},
+						BigMapID: 9,
 					},
 				},
 				TokenBalances: []*tokenbalance.TokenBalance{
@@ -497,6 +597,7 @@ func TestGroup_Parse(t *testing.T) {
 			ctx: &config.Context{
 				Storage:       generalRepo,
 				Contracts:     contractRepo,
+				BigMaps:       bmRepo,
 				BigMapDiffs:   bmdRepo,
 				Blocks:        blockRepo,
 				Protocols:     protoRepo,
@@ -548,14 +649,19 @@ func TestGroup_Parse(t *testing.T) {
 						Parameters:      []byte("{\"entrypoint\":\"redeem\",\"value\":{\"bytes\":\"a874aac22777351417c9bde0920cc7ed33e54453e1dd149a1f3a60521358d19a\"}}"),
 						Entrypoint:      "redeem",
 						DeffatedStorage: []byte("{\"prim\":\"Pair\",\"args\":[{\"int\":\"32\"},{\"prim\":\"Unit\"}]}"),
-						BigMapDiffs: []*bigmapdiff.BigMapDiff{
+						BigMapDiffs: []*bigmap.Diff{
 							{
-								Ptr:        32,
+								BigMapID: 10,
+								BigMap: bigmap.BigMap{
+									Network:   types.Mainnet,
+									Contract:  "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
+									Ptr:       32,
+									KeyType:   []byte(``),
+									ValueType: []byte(``),
+								},
 								Key:        []byte(`{"bytes": "80729e85e284dff3a30bb24a58b37ccdf474bbbe7794aad439ba034f48d66af3"}`),
 								KeyHash:    "exprvJp4s8RJpoXMwD9aQujxWQUiojrkeubesi3X9LDcU3taDfahYR",
 								Level:      1151495,
-								Contract:   "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
-								Network:    types.Mainnet,
 								Timestamp:  timestamp,
 								ProtocolID: 1,
 							},
@@ -594,37 +700,46 @@ func TestGroup_Parse(t *testing.T) {
 								Amount:    newDecimal("7874880"),
 							},
 						},
-						BigMapDiffs: []*bigmapdiff.BigMapDiff{
+						BigMapDiffs: []*bigmap.Diff{
 							{
-								Ptr:        31,
+								BigMapID: 11,
+								BigMap: bigmap.BigMap{
+									Network:  types.Mainnet,
+									Contract: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+									Ptr:      31,
+								},
 								Key:        []byte(`{"bytes":"05010000000b746f74616c537570706c79"}`),
 								KeyHash:    "exprunzteC5uyXRHbKnqJd3hUMGTWE9Gv5EtovDZHnuqu6SaGViV3N",
 								Value:      []byte(`{"bytes":"050098e1e8d78a02"}`),
 								Level:      1151495,
-								Contract:   "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-								Network:    types.Mainnet,
 								Timestamp:  timestamp,
 								ProtocolID: 1,
 								KeyStrings: []string{"totalSupply"},
 							}, {
-								Ptr:        31,
+								BigMapID: 11,
+								BigMap: bigmap.BigMap{
+									Network:  types.Mainnet,
+									Contract: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+									Ptr:      31,
+								},
 								Key:        []byte(`{"bytes":"05070701000000066c65646765720a000000160000c2473c617946ce7b9f6843f193401203851cb2ec"}`),
 								KeyHash:    "exprv9xaiXBb9KBi67dQoP1SchDyZeKEz3XHiFwBCtHadiKS8wkX7w",
 								Value:      []byte(`{"bytes":"0507070080a5c1070200000000"}`),
 								Level:      1151495,
-								Contract:   "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-								Network:    types.Mainnet,
 								Timestamp:  timestamp,
 								ProtocolID: 1,
 								KeyStrings: []string{"ledger", "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE"},
 							}, {
-								Ptr:        31,
+								BigMapID: 11,
+								BigMap: bigmap.BigMap{
+									Network:  types.Mainnet,
+									Contract: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+									Ptr:      31,
+								},
 								Key:        []byte(`{"bytes":"05070701000000066c65646765720a00000016011871cfab6dafee00330602b4342b6500c874c93b00"}`),
 								KeyHash:    "expruiWsykU9wjNb4aV7eJULLBpGLhy1EuzgD8zB8k7eUTaCk16fyV",
 								Value:      []byte(`{"bytes":"05070700ba81bb090200000000"}`),
 								Level:      1151495,
-								Contract:   "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-								Network:    types.Mainnet,
 								Timestamp:  timestamp,
 								ProtocolID: 1,
 								KeyStrings: []string{"ledger", "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr"},
@@ -632,41 +747,53 @@ func TestGroup_Parse(t *testing.T) {
 						},
 					},
 				},
-				BigMapState: []*bigmapdiff.BigMapState{
+				BigMapState: []*bigmap.State{
 					{
-						Ptr:             32,
+						BigMapID: 10,
+						BigMap: bigmap.BigMap{
+							Network:  types.Mainnet,
+							Contract: "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
+							Ptr:      32,
+						},
 						Key:             []byte(`{"bytes":"80729e85e284dff3a30bb24a58b37ccdf474bbbe7794aad439ba034f48d66af3"}`),
 						KeyHash:         "exprvJp4s8RJpoXMwD9aQujxWQUiojrkeubesi3X9LDcU3taDfahYR",
-						Contract:        "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
-						Network:         types.Mainnet,
 						Removed:         true,
 						LastUpdateLevel: 1151495,
 						LastUpdateTime:  timestamp,
 					}, {
-						Ptr:             31,
+						BigMapID: 11,
+						BigMap: bigmap.BigMap{
+							Network:  types.Mainnet,
+							Contract: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+							Ptr:      31,
+						},
 						Key:             []byte(`{"bytes":"05010000000b746f74616c537570706c79"}`),
 						KeyHash:         "exprunzteC5uyXRHbKnqJd3hUMGTWE9Gv5EtovDZHnuqu6SaGViV3N",
 						Value:           []byte(`{"bytes":"050098e1e8d78a02"}`),
-						Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Network:         types.Mainnet,
 						LastUpdateLevel: 1151495,
 						LastUpdateTime:  timestamp,
 					}, {
-						Ptr:             31,
+						BigMapID: 11,
+						BigMap: bigmap.BigMap{
+							Network:  types.Mainnet,
+							Contract: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+							Ptr:      31,
+						},
 						Key:             []byte(`{"bytes":"05070701000000066c65646765720a000000160000c2473c617946ce7b9f6843f193401203851cb2ec"}`),
 						KeyHash:         "exprv9xaiXBb9KBi67dQoP1SchDyZeKEz3XHiFwBCtHadiKS8wkX7w",
 						Value:           []byte(`{"bytes":"0507070080a5c1070200000000"}`),
-						Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Network:         types.Mainnet,
 						LastUpdateLevel: 1151495,
 						LastUpdateTime:  timestamp,
 					}, {
-						Ptr:             31,
+						BigMapID: 11,
+						BigMap: bigmap.BigMap{
+							Network:  types.Mainnet,
+							Contract: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+							Ptr:      31,
+						},
 						Key:             []byte(`{"bytes":"05070701000000066c65646765720a00000016011871cfab6dafee00330602b4342b6500c874c93b00"}`),
 						KeyHash:         "expruiWsykU9wjNb4aV7eJULLBpGLhy1EuzgD8zB8k7eUTaCk16fyV",
 						Value:           []byte(`{"bytes":"05070700ba81bb090200000000"}`),
-						Contract:        "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
-						Network:         types.Mainnet,
 						LastUpdateLevel: 1151495,
 						LastUpdateTime:  timestamp,
 					},
@@ -693,6 +820,7 @@ func TestGroup_Parse(t *testing.T) {
 			ctx: &config.Context{
 				Storage:       generalRepo,
 				Contracts:     contractRepo,
+				BigMaps:       bmRepo,
 				BigMapDiffs:   bmdRepo,
 				Blocks:        blockRepo,
 				Protocols:     protoRepo,
@@ -764,6 +892,7 @@ func TestGroup_Parse(t *testing.T) {
 			ctx: &config.Context{
 				Storage:       generalRepo,
 				Contracts:     contractRepo,
+				BigMaps:       bmRepo,
 				BigMapDiffs:   bmdRepo,
 				Blocks:        blockRepo,
 				Protocols:     protoRepo,
@@ -833,6 +962,8 @@ func TestGroup_Parse(t *testing.T) {
 			ctx: &config.Context{
 				Storage:       generalRepo,
 				Contracts:     contractRepo,
+				BigMaps:       bmRepo,
+				BigMapState:   bmStateRepo,
 				BigMapDiffs:   bmdRepo,
 				Blocks:        blockRepo,
 				Protocols:     protoRepo,
@@ -881,6 +1012,49 @@ func TestGroup_Parse(t *testing.T) {
 						Parameters:      []byte("{\"entrypoint\":\"default\",\"value\":{\"prim\":\"Right\",\"args\":[{\"prim\":\"Unit\"}]}}"),
 						ProtocolID:      3,
 						DeffatedStorage: []byte("{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"0000e527ed176ccf8f8297f674a9886a2ba8a55818d9\"},{\"prim\":\"Left\",\"args\":[{\"bytes\":\"016ebc941b2ae4e305470f392fa050e41ca1e52b4500\"}]}]}"),
+						BigMapActions: []*bigmap.Action{
+							{
+								Action:    types.BigMapActionRemove,
+								Level:     72207,
+								Timestamp: timestamp,
+								SourceID:  newInt64Ptr(1),
+								Source: bigmap.BigMap{
+									Network:  types.Edo2net,
+									Contract: "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
+									Ptr:      25167,
+								},
+							}, {
+								Action:    types.BigMapActionRemove,
+								Level:     72207,
+								Timestamp: timestamp,
+								SourceID:  newInt64Ptr(2),
+								Source: bigmap.BigMap{
+									Network:  types.Edo2net,
+									Contract: "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
+									Ptr:      25166,
+								},
+							}, {
+								Action:    types.BigMapActionRemove,
+								Level:     72207,
+								Timestamp: timestamp,
+								SourceID:  newInt64Ptr(3),
+								Source: bigmap.BigMap{
+									Network:  types.Edo2net,
+									Contract: "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
+									Ptr:      25165,
+								},
+							}, {
+								Action:    types.BigMapActionRemove,
+								Level:     72207,
+								Timestamp: timestamp,
+								SourceID:  newInt64Ptr(4),
+								Source: bigmap.BigMap{
+									Network:  types.Edo2net,
+									Contract: "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
+									Ptr:      25164,
+								},
+							},
+						},
 					}, {
 						Kind:                               types.OperationKindOrigination,
 						Source:                             "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
@@ -897,71 +1071,117 @@ func TestGroup_Parse(t *testing.T) {
 						Initiator:                          "tz1gXhGAXgKvrXjn4t16rYUXocqbch1XXJFN",
 						ProtocolID:                         3,
 						AllocatedDestinationContractBurned: 257000,
-						Tags:                               types.LedgerTag | types.FA2Tag,
+						Tags:                               types.FA2Tag,
 						DeffatedStorage:                    []byte("{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"string\":\"tz1QozfhaUW4wLnohDo6yiBUmh7cPCSXE9Af\"},[]]},{\"int\":\"25168\"},{\"int\":\"25169\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Left\",\"args\":[{\"prim\":\"Unit\"}]},{\"int\":\"25170\"}]},{\"string\":\"tz1QozfhaUW4wLnohDo6yiBUmh7cPCSXE9Af\"},{\"int\":\"0\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[[],{\"int\":\"25171\"}]},{\"int\":\"2\"},{\"string\":\"tz1QozfhaUW4wLnohDo6yiBUmh7cPCSXE9Af\"}]},{\"int\":\"11\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[[],[[{\"prim\":\"DUP\"},{\"prim\":\"CAR\"},{\"prim\":\"DIP\",\"args\":[[{\"prim\":\"CDR\"}]]}],{\"prim\":\"DROP\"},{\"prim\":\"NIL\",\"args\":[{\"prim\":\"operation\"}]},{\"prim\":\"PAIR\"}]]},{\"int\":\"500\"},{\"int\":\"1000\"}]},{\"prim\":\"Pair\",\"args\":[{\"int\":\"1000\"},{\"int\":\"2592000\"}]},{\"int\":\"1\"},{\"int\":\"1\"}]},[{\"prim\":\"DROP\"},{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"bool\"},{\"prim\":\"True\"}]}],[{\"prim\":\"DROP\"},{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"nat\"},{\"int\":\"0\"}]}]]}"),
-					},
+						BigMapActions: []*bigmap.Action{
+							{
+								Action:    types.BigMapActionCopy,
+								Level:     72207,
+								Timestamp: timestamp,
+								SourceID:  newInt64Ptr(1),
+								Source: bigmap.BigMap{
+									Network:      types.Edo2net,
+									Contract:     "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
+									Ptr:          25167,
+									CreatedLevel: 72207,
+									CreatedAt:    timestamp,
+								},
+								Destination: bigmap.BigMap{
+									Network:      types.Edo2net,
+									Contract:     "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
+									Ptr:          25171,
+									CreatedLevel: 72207,
+									CreatedAt:    timestamp,
+								},
+							}, {
+								Action:    types.BigMapActionCopy,
+								Level:     72207,
+								Timestamp: timestamp,
+								SourceID:  newInt64Ptr(2),
+								Source: bigmap.BigMap{
+									Network:      types.Edo2net,
+									Contract:     "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
+									Ptr:          25166,
+									CreatedLevel: 72207,
+									CreatedAt:    timestamp,
+								},
+								Destination: bigmap.BigMap{
+									Network:      types.Edo2net,
+									Contract:     "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
+									Ptr:          25170,
+									CreatedLevel: 72207,
+									CreatedAt:    timestamp,
+								},
+							}, {
+								Action:    types.BigMapActionCopy,
+								Level:     72207,
+								Timestamp: timestamp,
+								SourceID:  newInt64Ptr(3),
+								Source: bigmap.BigMap{
+									Network:      types.Edo2net,
+									Contract:     "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
+									Ptr:          25165,
+									CreatedLevel: 72207,
+									CreatedAt:    timestamp,
+								},
+								Destination: bigmap.BigMap{
+									Network:      types.Edo2net,
+									Contract:     "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
+									Ptr:          25169,
+									CreatedLevel: 72207,
+									CreatedAt:    timestamp,
+								},
+							}, {
+								Action:    types.BigMapActionCopy,
+								Level:     72207,
+								Timestamp: timestamp,
+								SourceID:  newInt64Ptr(4),
+								Source: bigmap.BigMap{
+									Network:      types.Edo2net,
+									Contract:     "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
+									Ptr:          25164,
+									CreatedLevel: 72207,
+									CreatedAt:    timestamp,
+								},
+								Destination: bigmap.BigMap{
+									Network:      types.Edo2net,
+									Contract:     "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
+									Ptr:          25168,
+									CreatedLevel: 72207,
+									CreatedAt:    timestamp,
+								},
+							},
+						}},
 				},
-				BigMapActions: []*bigmapaction.BigMapAction{
+				BigMaps: []*bigmap.BigMap{
 					{
-						Action:    types.BigMapActionRemove,
-						SourcePtr: setInt64(25167),
-						Level:     72207,
-						Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
-						Network:   types.Edo2net,
-						Timestamp: timestamp,
+						Network:      types.Edo2net,
+						Contract:     "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
+						Ptr:          25171,
+						Name:         "proposals",
+						CreatedLevel: 72207,
+						CreatedAt:    timestamp,
 					}, {
-						Action:    types.BigMapActionRemove,
-						SourcePtr: setInt64(25166),
-						Level:     72207,
-						Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
-						Network:   types.Edo2net,
-						Timestamp: timestamp,
+						Network:      types.Edo2net,
+						Contract:     "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
+						Ptr:          25170,
+						Name:         "operators",
+						CreatedLevel: 72207,
+						CreatedAt:    timestamp,
 					}, {
-						Action:    types.BigMapActionRemove,
-						SourcePtr: setInt64(25165),
-						Level:     72207,
-						Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
-						Network:   types.Edo2net,
-						Timestamp: timestamp,
+						Network:      types.Edo2net,
+						Contract:     "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
+						Ptr:          25169,
+						Name:         "metadata",
+						CreatedLevel: 72207,
+						CreatedAt:    timestamp,
 					}, {
-						Action:    types.BigMapActionRemove,
-						SourcePtr: setInt64(25164),
-						Level:     72207,
-						Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
-						Network:   types.Edo2net,
-						Timestamp: timestamp,
-					}, {
-						Action:         types.BigMapActionCopy,
-						SourcePtr:      setInt64(25167),
-						DestinationPtr: setInt64(25171),
-						Level:          72207,
-						Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
-						Network:        types.Edo2net,
-						Timestamp:      timestamp,
-					}, {
-						Action:         types.BigMapActionCopy,
-						SourcePtr:      setInt64(25166),
-						DestinationPtr: setInt64(25170),
-						Level:          72207,
-						Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
-						Network:        types.Edo2net,
-						Timestamp:      timestamp,
-					}, {
-						Action:         types.BigMapActionCopy,
-						SourcePtr:      setInt64(25165),
-						DestinationPtr: setInt64(25169),
-						Level:          72207,
-						Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
-						Network:        types.Edo2net,
-						Timestamp:      timestamp,
-					}, {
-						Action:         types.BigMapActionCopy,
-						SourcePtr:      setInt64(25164),
-						DestinationPtr: setInt64(25168),
-						Level:          72207,
-						Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
-						Network:        types.Edo2net,
-						Timestamp:      timestamp,
+						Network:      types.Edo2net,
+						Contract:     "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
+						Ptr:          25168,
+						Name:         "ledger",
+						CreatedLevel: 72207,
+						CreatedAt:    timestamp,
 					},
 				},
 				Contracts: []*modelContract.Contract{
@@ -971,7 +1191,7 @@ func TestGroup_Parse(t *testing.T) {
 						Timestamp:   timestamp,
 						Language:    "unknown",
 						Hash:        "d3bfdacb039f6e8added88c45046b7a8f6a2b91744859ace29f4c19294c9a394857598e2b331394cac91a7a2c543cadaa60282c5eb2c87f83f001f5e563cea36",
-						Tags:        types.LedgerTag | types.FA2Tag,
+						Tags:        types.FA2Tag,
 						FailStrings: []string{"FA2_INSUFFICIENT_BALANCE"},
 						Annotations: []string{"%token_address", "%drop_proposal", "%transfer_contract_tokens", "%permits_counter", "%remove_operator", "%mint", "%ledger", "%voters", "%owner", "%balance", "%transfer", "%from_", "%max_voting_period", "%not_in_migration", "%start_date", "%custom_entrypoints", "%proposal_check", "%accept_ownership", "%migrate", "%set_quorum_threshold", "%amount", "%proposals", "%min_voting_period", "%rejected_proposal_return_value", "%burn", "%flush", "%max_quorum_threshold", "%migratingTo", "%operators", "%proposer", "%call_FA2", "%argument", "%params", "%transfer_ownership", "%voting_period", "%request", "%confirm_migration", "%frozen_token", "%param", "%admin", "%migration_status", "%proposal_key_list_sort_by_date", "%requests", "%update_operators", "%add_operator", "%getVotePermitCounter", "%propose", "%vote", "%vote_amount", "%proposer_frozen_token", "%callCustom", "%txs", "%operator", "%quorum_threshold", "%to_", "%set_voting_period", "%callback", "%contract_address", "%downvotes", "%max_votes", "%balance_of", "%proposal_key", "%vote_type", "%signature", "%decision_lambda", "%token_id", "%permit", "%key", "%extra", "%pending_owner", "%upvotes", "%max_proposals", "%min_quorum_threshold", "%proposal_metadata", "%metadata", "%migratedTo"},
 						Entrypoints: []string{"callCustom", "accept_ownership", "burn", "balance_of", "transfer", "update_operators", "confirm_migration", "drop_proposal", "flush", "getVotePermitCounter", "migrate", "mint", "propose", "set_quorum_threshold", "set_voting_period", "transfer_ownership", "vote", "transfer_contract_tokens"},
@@ -986,6 +1206,7 @@ func TestGroup_Parse(t *testing.T) {
 			ctx: &config.Context{
 				Storage:       generalRepo,
 				Contracts:     contractRepo,
+				BigMaps:       bmRepo,
 				BigMapDiffs:   bmdRepo,
 				Blocks:        blockRepo,
 				Protocols:     protoRepo,
@@ -1028,7 +1249,7 @@ func TestGroup_Parse(t *testing.T) {
 						Hash:            "ooz1bkCQeYsZYP7vb4Dx7pYPRpWN11Z3G3yP1v4HAfdNXuHRv9c",
 						Timestamp:       timestamp,
 						Entrypoint:      "transfer",
-						Tags:            types.FA2Tag | types.LedgerTag,
+						Tags:            types.FA2Tag,
 						Initiator:       "tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb",
 						Parameters:      []byte(`{"entrypoint":"transfer","value":[{"prim":"Pair","args":[{"string":"tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb"},[{"prim":"Pair","args":[{"string":"tz1a6ZKyEoCmfpsY74jEq6uKBK8RQXdj1aVi"},{"prim":"Pair","args":[{"int":"12"},{"int":"1"}]}]}]]}]}`),
 						ProtocolID:      4,
@@ -1047,32 +1268,38 @@ func TestGroup_Parse(t *testing.T) {
 								Level:     1516349,
 							},
 						},
-						BigMapDiffs: []*bigmapdiff.BigMapDiff{
+						BigMapDiffs: []*bigmap.Diff{
 							{
-								Ptr:          746,
+								BigMapID: 12,
+								BigMap: bigmap.BigMap{
+									Network:  types.Mainnet,
+									Contract: "KT1QcxwB4QyPKfmSwjH1VRxa6kquUjeDWeEy",
+									Ptr:      746,
+								},
 								KeyHash:      "expruSKSLw7MS3ou3pPd7MUXy5QDPtVvkUNF4yWS2g6n8mXGzDJCG7",
 								Key:          []byte(`{"int":"12" }`),
 								Value:        []byte(`{"bytes":"00009e96262b1bfc9a709603668843d52994358be677"}`),
 								ValueStrings: []string{"tz1a6ZKyEoCmfpsY74jEq6uKBK8RQXdj1aVi"},
-								Contract:     "KT1QcxwB4QyPKfmSwjH1VRxa6kquUjeDWeEy",
 								Level:        1516349,
-								Network:      types.Mainnet,
 								Timestamp:    timestamp,
 								ProtocolID:   4,
 							},
 						},
 					},
 				},
-				BigMapState: []*bigmapdiff.BigMapState{
+				BigMapState: []*bigmap.State{
 					{
-						Ptr:             746,
+						BigMapID: 12,
+						BigMap: bigmap.BigMap{
+							Network:  types.Mainnet,
+							Contract: "KT1QcxwB4QyPKfmSwjH1VRxa6kquUjeDWeEy",
+							Ptr:      746,
+						},
 						KeyHash:         "expruSKSLw7MS3ou3pPd7MUXy5QDPtVvkUNF4yWS2g6n8mXGzDJCG7",
 						Key:             []byte(`{"int":"12"}`),
 						Value:           []byte(`{"bytes":"00009e96262b1bfc9a709603668843d52994358be677"}`),
-						Contract:        "KT1QcxwB4QyPKfmSwjH1VRxa6kquUjeDWeEy",
 						LastUpdateLevel: 1516349,
 						LastUpdateTime:  timestamp,
-						Network:         types.Mainnet,
 					},
 				},
 				TokenBalances: []*tokenbalance.TokenBalance{
@@ -1097,6 +1324,7 @@ func TestGroup_Parse(t *testing.T) {
 			ctx: &config.Context{
 				Storage:       generalRepo,
 				Contracts:     contractRepo,
+				BigMaps:       bmRepo,
 				BigMapDiffs:   bmdRepo,
 				Blocks:        blockRepo,
 				Protocols:     protoRepo,
@@ -1120,11 +1348,14 @@ func TestGroup_Parse(t *testing.T) {
 				"KT1H1MqmUM4aK9i1833EBmYCCEfkbt6ZdSBc": 1520888,
 			},
 			want: &parsers.Result{
-				BigMapState: []*bigmapdiff.BigMapState{
+				BigMapState: []*bigmap.State{
 					{
-						Network:         types.Mainnet,
-						Ptr:             1264,
-						Contract:        "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS",
+						BigMapID: 13,
+						BigMap: bigmap.BigMap{
+							Network:  types.Mainnet,
+							Contract: "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS",
+							Ptr:      1264,
+						},
 						LastUpdateLevel: 1520888,
 						LastUpdateTime:  timestamp,
 						KeyHash:         "exprvKwnhi4q3tSmdvgqXACxfN6zARGkoikHv7rqohvQKg4cWdgsii",
@@ -1170,12 +1401,15 @@ func TestGroup_Parse(t *testing.T) {
 						Destination:     "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS",
 						Parameters:      []byte(`{"entrypoint":"execute","value":{"prim":"Pair","args":[{"string":"UpdateRecord"},{"prim":"Pair","args":[{"bytes":"0507070a0000000962616c6c732e74657a070705090a000000160000c0ca282a775946b5ecbe02e5cf73e25f6b62b70c07070a000000160000753f63893674b6d523f925f0d787bf9270b95c330200000000"},{"bytes":"0000753f63893674b6d523f925f0d787bf9270b95c33"}]}]}}`),
 						DeffatedStorage: []byte(`{"prim":"Pair","args":[[{"int":"1260"},{"prim":"Pair","args":[{"prim":"Pair","args":[{"int":"1261"},{"int":"1262"}]},{"prim":"Pair","args":[{"int":"1263"},{"int":"9824"}]}]},{"prim":"Pair","args":[{"bytes":"01ebb657570e494e8a7bd43ac3bf7cfd0267a32a9f00"},{"int":"1264"}]},{"int":"1265"},{"int":"1266"}],[{"bytes":"014796e76af90e6327adfab057bbbe0375cd2c8c1000"},{"bytes":"015c6799f783b8d118b704267f634c5d24d19e9a9f00"},{"bytes":"0168e9b7d86646e312c76dfbedcbcdb24320875a3600"},{"bytes":"019178a76f3c41a9541d2291cad37dd5fb96a6850500"},{"bytes":"01ac3638385caa4ad8126ea84e061f4f49baa44d3c00"},{"bytes":"01d2a0974172cf6fc8b1eefdebd5bea681616f7c6f00"}]]}`),
-						BigMapDiffs: []*bigmapdiff.BigMapDiff{
+						BigMapDiffs: []*bigmap.Diff{
 							{
-								Network:    types.Mainnet,
+								BigMapID: 13,
+								BigMap: bigmap.BigMap{
+									Network:  types.Mainnet,
+									Contract: "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS",
+									Ptr:      1264,
+								},
 								ProtocolID: 4,
-								Contract:   "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS",
-								Ptr:        1264,
 								Level:      1520888,
 								Timestamp:  timestamp,
 								KeyHash:    "exprvKwnhi4q3tSmdvgqXACxfN6zARGkoikHv7rqohvQKg4cWdgsii",

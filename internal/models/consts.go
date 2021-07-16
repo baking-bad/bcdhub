@@ -1,8 +1,7 @@
 package models
 
 import (
-	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/dapp"
@@ -19,6 +18,7 @@ import (
 
 // Document names
 const (
+	DocBigMaps       = "big_maps"
 	DocBigMapActions = "big_map_actions"
 	DocBigMapDiff    = "big_map_diffs"
 	DocBigMapState   = "big_map_states"
@@ -40,6 +40,7 @@ const (
 func AllDocuments() []string {
 	return []string{
 		DocServices,
+		DocBigMaps,
 		DocBigMapActions,
 		DocBigMapDiff,
 		DocBigMapState,
@@ -64,9 +65,10 @@ func AllModels() []Model {
 		&protocol.Protocol{},
 		&block.Block{},
 		&operation.Operation{},
-		&bigmapaction.BigMapAction{},
-		&bigmapdiff.BigMapDiff{},
-		&bigmapdiff.BigMapState{},
+		&bigmap.BigMap{},
+		&bigmap.Action{},
+		&bigmap.Diff{},
+		&bigmap.State{},
 		&contract.Contract{},
 		&migration.Migration{},
 		&tezosdomain.TezosDomain{},

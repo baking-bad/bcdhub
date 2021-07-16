@@ -7,7 +7,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/forge"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
@@ -26,12 +25,6 @@ type TezosDomain struct {
 	storage models.GeneralRepository
 
 	contracts map[contract.Address]struct{}
-	ptrs      map[contract.Address]ptrs
-}
-
-type ptrs struct {
-	records *int64
-	expiry  *int64
 }
 
 // NewTezosDomains -
@@ -44,80 +37,32 @@ func NewTezosDomains(storage models.GeneralRepository, contracts map[types.Netwo
 		}] = struct{}{}
 	}
 	return &TezosDomain{
-		storage, addresses, make(map[contract.Address]ptrs),
+		storage, addresses,
 	}
 }
 
 // Do -
 func (td *TezosDomain) Do(bmd *domains.BigMapDiff, storage *ast.TypedAst) ([]models.Model, error) {
-	diff, ptr := td.getBigMapDiff(bmd, storage)
-	if diff == nil {
+	if len(td.contracts) == 0 {
 		return nil, nil
 	}
-	switch bmd.Ptr {
-	case *ptr.records:
+
+	if _, ok := td.contracts[contract.Address{
+		Address: bmd.BigMap.Contract,
+		Network: bmd.BigMap.Network,
+	}]; !ok {
+		return nil, nil
+	}
+
+	switch bmd.BigMap.Name {
+	case recordsAnnot:
 		items, err := td.updateRecordsTZIP(bmd)
 		return items, err
-	case *ptr.expiry:
+	case expiryMapAnnot:
 		items, err := td.updateExpirationDate(bmd)
 		return items, err
 	}
 	return nil, nil
-}
-
-func (td *TezosDomain) getBigMapDiff(bmd *domains.BigMapDiff, storage *ast.TypedAst) (*bigmapdiff.BigMapDiff, *ptrs) {
-	if len(td.contracts) == 0 {
-		return nil, nil
-	}
-	address := contract.Address{
-		Address: bmd.Contract,
-		Network: bmd.Network,
-	}
-	if _, ok := td.contracts[address]; !ok {
-		return nil, nil
-	}
-	ptr, ok := td.ptrs[address]
-	if !ok {
-		if err := td.getPointers(address, bmd, storage); err != nil {
-			return nil, nil
-		}
-		ptr = td.ptrs[address]
-	}
-
-	return bmd.BigMapDiff, &ptr
-}
-
-func (td *TezosDomain) getPointers(address contract.Address, bmd *domains.BigMapDiff, storage *ast.TypedAst) error {
-	var res ptrs
-
-	var storageData ast.UntypedAST
-	if err := json.Unmarshal(bmd.Operation.DeffatedStorage, &storageData); err != nil {
-		return err
-	}
-
-	storageTree := ast.TypedAst{
-		Nodes: []ast.Node{ast.Copy(storage.Nodes[0])},
-	}
-
-	if err := storageTree.Settle(storageData); err != nil {
-		return err
-	}
-
-	for _, annot := range []string{recordsAnnot, expiryMapAnnot} {
-		if node := storageTree.FindByName(annot, false); node != nil {
-			if b, ok := node.(*ast.BigMap); ok && b.Ptr != nil {
-				switch annot {
-				case recordsAnnot:
-					res.records = b.Ptr
-				case expiryMapAnnot:
-					res.expiry = b.Ptr
-				}
-			}
-		}
-	}
-
-	td.ptrs[address] = res
-	return nil
 }
 
 func (td *TezosDomain) updateRecordsTZIP(bmd *domains.BigMapDiff) ([]models.Model, error) {
@@ -129,7 +74,7 @@ func (td *TezosDomain) updateRecordsTZIP(bmd *domains.BigMapDiff) ([]models.Mode
 		return nil, err
 	}
 	tezosDomain := tezosdomain.TezosDomain{
-		Network:   bmd.Network,
+		Network:   bmd.BigMap.Network,
 		Name:      bmd.KeyStrings[0],
 		Level:     bmd.Level,
 		Timestamp: bmd.Timestamp,
@@ -148,7 +93,7 @@ func (td *TezosDomain) updateExpirationDate(bmd *domains.BigMapDiff) ([]models.M
 	date := time.Unix(ts, 0).UTC()
 	tezosDomain := tezosdomain.TezosDomain{
 		Name:       bmd.KeyStrings[0],
-		Network:    bmd.Network,
+		Network:    bmd.BigMap.Network,
 		Expiration: date,
 	}
 	return []models.Model{&tezosDomain}, nil

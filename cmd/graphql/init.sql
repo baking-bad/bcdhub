@@ -11,9 +11,10 @@ do
 
         grant connect on database indexer to graphql;
 
+        grant select on big_maps to graphql;
         grant select on big_map_actions to graphql;
         grant select on big_map_states to graphql;
-        grant select("id", "ptr", "key", "key_hash", "value", "level", "contract", "network", "timestamp", "protocol_id", "operation_hash", "operation_counter", "operation_nonce") on big_map_diffs to graphql;
+        grant select("id", "key", "key_hash", "value", "level", "timestamp", "protocol_id", "operation_hash", "operation_counter", "operation_nonce", "big_map_id") on big_map_diffs to graphql;
         grant select on blocks to graphql;
         grant select("id", "network", "level", "timestamp", "language", "tags", "entrypoints", "fail_strings", "annotations", "address", "manager", "delegate", "project_id", "tx_count", "last_action", "migrations_count") on contracts to graphql;
         grant select on migrations to graphql;

@@ -4,7 +4,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -21,10 +21,10 @@ type ContractMetadata struct {
 }
 
 // NewContractMetadata -
-func NewContractMetadata(bigMapRepo bigmapdiff.Repository, blockRepo block.Repository, storage models.GeneralRepository, repo tzipModel.Repository, rpcs map[types.Network]noderpc.INode, sharePath string, ipfs []string) *ContractMetadata {
+func NewContractMetadata(bigMapStateRepo bigmap.StateRepository, blockRepo block.Repository, storage models.GeneralRepository, repo tzipModel.Repository, rpcs map[types.Network]noderpc.INode, sharePath string, ipfs []string) *ContractMetadata {
 	parsers := make(map[types.Network]tzip.Parser)
 	for network, rpc := range rpcs {
-		parsers[network] = tzip.NewParser(bigMapRepo, blockRepo, storage, rpc, tzip.ParserConfig{
+		parsers[network] = tzip.NewParser(bigMapStateRepo, blockRepo, storage, rpc, tzip.ParserConfig{
 			IPFSGateways: ipfs,
 			SharePath:    sharePath,
 		})
@@ -36,6 +36,9 @@ func NewContractMetadata(bigMapRepo bigmapdiff.Repository, blockRepo block.Repos
 
 // Do -
 func (t *ContractMetadata) Do(bmd *domains.BigMapDiff, storage *ast.TypedAst) ([]models.Model, error) {
+	if !bmd.BigMap.Tags.Has(types.ContractMetadataTag) {
+		return nil, nil
+	}
 	if bmd.KeyHash != tzip.EmptyStringKey {
 		return nil, nil
 	}
@@ -44,13 +47,13 @@ func (t *ContractMetadata) Do(bmd *domains.BigMapDiff, storage *ast.TypedAst) ([
 }
 
 func (t *ContractMetadata) handle(bmd *domains.BigMapDiff) ([]models.Model, error) {
-	tzipParser, ok := t.parsers[bmd.Network]
+	tzipParser, ok := t.parsers[bmd.BigMap.Network]
 	if !ok {
-		return nil, errors.Errorf("Unknown network for tzip parser: %s", bmd.Network)
+		return nil, errors.Errorf("Unknown network for tzip parser: %s", bmd.BigMap.Network)
 	}
 
 	model, err := tzipParser.Parse(tzip.ParseContext{
-		BigMapDiff: *bmd.BigMapDiff,
+		Diff: *bmd.Diff,
 	})
 	if err != nil {
 		logger.Warning().Fields(bmd.LogFields()).Err(err).Msg("")

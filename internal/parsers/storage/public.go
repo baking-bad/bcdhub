@@ -3,7 +3,8 @@ package storage
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/pkg/errors"
 )
@@ -16,7 +17,7 @@ var (
 )
 
 // Enrich -
-func Enrich(storage *ast.TypedAst, bmd []bigmapdiff.BigMapDiff, skipEmpty, unpack bool) error {
+func Enrich(storage *ast.TypedAst, bmd []bigmap.Diff, skipEmpty, unpack bool) error {
 	if len(bmd) == 0 {
 		return nil
 	}
@@ -29,7 +30,7 @@ func Enrich(storage *ast.TypedAst, bmd []bigmapdiff.BigMapDiff, skipEmpty, unpac
 }
 
 // EnrichFromState -
-func EnrichFromState(storage *ast.TypedAst, bmd []bigmapdiff.BigMapState, skipEmpty, unpack bool) error {
+func EnrichFromState(storage *ast.TypedAst, bmd []bigmap.State, skipEmpty, unpack bool) error {
 	if len(bmd) == 0 {
 		return nil
 	}
@@ -42,7 +43,7 @@ func EnrichFromState(storage *ast.TypedAst, bmd []bigmapdiff.BigMapState, skipEm
 }
 
 // MakeStorageParser -
-func MakeStorageParser(repo bigmapdiff.Repository, rpc noderpc.INode, protocol string) (Parser, error) {
+func MakeStorageParser(bigmaps bigmap.Repository, stateRepo bigmap.StateRepository, general models.GeneralRepository, rpc noderpc.INode, protocol string) (Parser, error) {
 	protoSymLink, err := bcd.GetProtoSymLink(protocol)
 	if err != nil {
 		return nil, err
@@ -50,7 +51,7 @@ func MakeStorageParser(repo bigmapdiff.Repository, rpc noderpc.INode, protocol s
 
 	switch protoSymLink {
 	case bcd.SymLinkBabylon:
-		return NewBabylon(repo, rpc), nil
+		return NewBabylon(bigmaps, stateRepo, general, rpc), nil
 	case bcd.SymLinkAlpha:
 		return NewAlpha(), nil
 	default:

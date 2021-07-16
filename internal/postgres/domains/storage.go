@@ -100,11 +100,21 @@ func (storage *Storage) Transfers(ctx transfer.GetContext) (domains.TransfersRes
 }
 
 // BigMapDiffs -
-func (storage *Storage) BigMapDiffs(lastID, size int64) (result []domains.BigMapDiff, err error) {
-	query := storage.DB.Table(models.DocBigMapDiff).Preload("Operation").Preload("Protocol").Order("id asc")
+func (storage *Storage) BigMapDiffs(lastID, size int64, tags types.Tags) (result []domains.BigMapDiff, err error) {
+	query := storage.DB.Table(models.DocBigMapDiff).
+		Preload("Operation").
+		Preload("Protocol").
+		Preload("BigMap").
+		Order("big_map_diffs.id asc")
+
 	if lastID > 0 {
-		query.Where("id > ?", lastID)
+		query.Where("big_map_diffs.id > ?", lastID)
 	}
+
+	if tags > 0 {
+		query.Joins("inner join big_maps on big_maps.id = big_map_id AND big_maps.tags & ? > 0", tags)
+	}
+
 	query.Limit(storage.GetPageSize(size))
 	err = query.Find(&result).Error
 	return

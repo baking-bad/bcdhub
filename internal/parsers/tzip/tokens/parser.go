@@ -7,7 +7,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
@@ -21,10 +21,11 @@ import (
 
 // Parser -
 type Parser struct {
-	bmdRepo    bigmapdiff.Repository
-	blocksRepo block.Repository
-	tmRepo     tokenmetadata.Repository
-	storage    models.GeneralRepository
+	bmDiffRepo  bigmap.DiffRepository
+	bmStateRepo bigmap.StateRepository
+	blocksRepo  block.Repository
+	tmRepo      tokenmetadata.Repository
+	storage     models.GeneralRepository
 
 	rpc       noderpc.INode
 	sharePath string
@@ -33,9 +34,10 @@ type Parser struct {
 }
 
 // NewParser -
-func NewParser(bmdRepo bigmapdiff.Repository, blocksRepo block.Repository, tmRepo tokenmetadata.Repository, storage models.GeneralRepository, rpc noderpc.INode, sharePath string, network types.Network, ipfs ...string) Parser {
+func NewParser(bmDiffRepo bigmap.DiffRepository, bmStateRepo bigmap.StateRepository, blocksRepo block.Repository, tmRepo tokenmetadata.Repository, storage models.GeneralRepository, rpc noderpc.INode, sharePath string, network types.Network, ipfs ...string) Parser {
 	return Parser{
-		bmdRepo: bmdRepo, blocksRepo: blocksRepo, storage: storage,
+		bmDiffRepo:  bmDiffRepo,
+		bmStateRepo: bmStateRepo, blocksRepo: blocksRepo, storage: storage,
 		rpc: rpc, sharePath: sharePath, network: network, ipfs: ipfs, tmRepo: tmRepo,
 	}
 }
@@ -51,20 +53,13 @@ func (t Parser) Parse(address string, level int64) ([]tokenmetadata.TokenMetadat
 
 // ParseBigMapDiff -
 func (t Parser) ParseBigMapDiff(bmd *domains.BigMapDiff, storage *ast.TypedAst) ([]tokenmetadata.TokenMetadata, error) {
-	storageType := ast.TypedAst{
-		Nodes: []ast.Node{ast.Copy(storage.Nodes[0])},
-	}
-	if err := storageType.SettleFromBytes(bmd.Operation.DeffatedStorage); err != nil {
-		return nil, err
-	}
-	ptrs := storageType.FindBigMapByPtr()
-	if bm, ok := ptrs[bmd.Ptr]; !ok || bm.GetName() != TokenMetadataStorageKey {
+	if !bmd.BigMap.Tags.Has(types.TokenMetadataTag) {
 		return nil, nil
 	}
 
 	m := new(TokenMetadata)
 	value := gjson.ParseBytes(bmd.Value)
-	if err := m.Parse(value, bmd.Contract, bmd.Ptr); err != nil {
+	if err := m.Parse(value, bmd.BigMap.Contract, bmd.BigMap.Ptr); err != nil {
 		return nil, nil
 	}
 	m.Timestamp = bmd.Timestamp
@@ -72,17 +67,17 @@ func (t Parser) ParseBigMapDiff(bmd *domains.BigMapDiff, storage *ast.TypedAst) 
 
 	if m.Link != "" {
 		if strings.HasPrefix(m.Link, "ipfs://") {
-			if found, err := t.tmRepo.GetOne(bmd.Network, bmd.Contract, m.TokenID); err == nil && found != nil {
+			if found, err := t.tmRepo.GetOne(bmd.BigMap.Network, bmd.BigMap.Contract, m.TokenID); err == nil && found != nil {
 				if link, ok := found.Extras[""]; ok && link == m.Link {
 					return nil, nil
 				}
 			}
 		}
 
-		s := tzipStorage.NewFull(t.bmdRepo, t.blocksRepo, t.storage, t.rpc, t.sharePath, t.ipfs...)
+		s := tzipStorage.NewFull(t.bmStateRepo, t.blocksRepo, t.storage, t.rpc, t.sharePath, t.ipfs...)
 
 		remoteMetadata := new(TokenMetadata)
-		if err := s.Get(t.network, bmd.Contract, m.Link, bmd.Ptr, remoteMetadata); err != nil {
+		if err := s.Get(t.network, bmd.BigMap.Contract, m.Link, bmd.BigMap.Ptr, remoteMetadata); err != nil {
 			switch {
 			case errors.Is(err, tzipStorage.ErrHTTPRequest):
 				logger.Warning().Str("url", m.Link).Str("kind", "token_metadata").Err(err).Msg("")
@@ -97,7 +92,7 @@ func (t Parser) ParseBigMapDiff(bmd *domains.BigMapDiff, storage *ast.TypedAst) 
 		m.Merge(remoteMetadata)
 	}
 
-	return []tokenmetadata.TokenMetadata{m.ToModel(bmd.Contract, t.network)}, nil
+	return []tokenmetadata.TokenMetadata{m.ToModel(bmd.BigMap.Contract, t.network)}, nil
 }
 
 func (t Parser) parse(address string, state block.Block) ([]tokenmetadata.TokenMetadata, error) {
@@ -106,7 +101,7 @@ func (t Parser) parse(address string, state block.Block) ([]tokenmetadata.TokenM
 		return nil, err
 	}
 
-	bmd, err := t.bmdRepo.Get(bigmapdiff.GetContext{
+	bmd, err := t.bmDiffRepo.Get(bigmap.GetContext{
 		Ptr:          &ptr,
 		Network:      t.network,
 		CurrentLevel: &state.Level,
@@ -135,7 +130,7 @@ func (t Parser) parse(address string, state block.Block) ([]tokenmetadata.TokenM
 	result := make([]tokenmetadata.TokenMetadata, 0)
 	for _, m := range metadata {
 		if m.Link != "" {
-			s := tzipStorage.NewFull(t.bmdRepo, t.blocksRepo, t.storage, t.rpc, t.sharePath, t.ipfs...)
+			s := tzipStorage.NewFull(t.bmStateRepo, t.blocksRepo, t.storage, t.rpc, t.sharePath, t.ipfs...)
 
 			remoteMetadata := &TokenMetadata{}
 			if err := s.Get(t.network, address, m.Link, ptr, remoteMetadata); err != nil {

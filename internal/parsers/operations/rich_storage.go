@@ -1,7 +1,8 @@
 package operations
 
 import (
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -11,32 +12,32 @@ import (
 
 // RichStorage -
 type RichStorage struct {
-	repo bigmapdiff.Repository
-	rpc  noderpc.INode
-
+	rpc    noderpc.INode
 	parser storage.Parser
 }
 
 // NewRichStorage -
-func NewRichStorage(repo bigmapdiff.Repository, rpc noderpc.INode, protocol string) (*RichStorage, error) {
-	storageParser, err := storage.MakeStorageParser(repo, rpc, protocol)
+func NewRichStorage(bigmaps bigmap.Repository, statesRepo bigmap.StateRepository, general models.GeneralRepository, rpc noderpc.INode, protocol string) (*RichStorage, error) {
+	storageParser, err := storage.MakeStorageParser(bigmaps, statesRepo, general, rpc, protocol)
 	if err != nil {
 		return nil, err
 	}
 	return &RichStorage{
-		repo:   repo,
 		rpc:    rpc,
 		parser: storageParser,
 	}, nil
 }
 
 // Parse -
-func (p *RichStorage) Parse(data noderpc.Operation, operation *operation.Operation) (*parsers.Result, error) {
+func (p *RichStorage) Parse(data noderpc.Operation, operation *operation.Operation) (result *parsers.Result, err error) {
 	switch operation.Kind {
 	case types.OperationKindTransaction:
-		return p.parser.ParseTransaction(data, operation)
+		result, err = p.parser.ParseTransaction(data, operation)
+		if err != nil {
+			return nil, err
+		}
 	case types.OperationKindOrigination:
-		result, err := p.parser.ParseOrigination(data, operation)
+		result, err = p.parser.ParseOrigination(data, operation)
 		if err != nil {
 			return nil, err
 		}
@@ -45,8 +46,25 @@ func (p *RichStorage) Parse(data noderpc.Operation, operation *operation.Operati
 			return nil, err
 		}
 		operation.DeffatedStorage = storage
-		return result, nil
 	default:
 		return nil, nil
 	}
+
+	if result != nil && len(result.BigMaps) > 0 {
+		storageType, err := operation.AST.StorageType()
+		if err != nil {
+			return nil, err
+		}
+		if err := storageType.SettleFromBytes(operation.DeffatedStorage); err != nil {
+			return nil, err
+		}
+		for i := range result.BigMaps {
+			if result.BigMaps[i].Name == "" {
+				storage.SetBigMapName(storageType, result.BigMaps[i])
+			}
+			storage.Tag(result.BigMaps[i])
+		}
+	}
+
+	return
 }

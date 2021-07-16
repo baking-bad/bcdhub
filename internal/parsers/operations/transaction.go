@@ -141,6 +141,20 @@ func (p Transaction) appliedHandler(item noderpc.Operation, tx *operation.Operat
 		return err
 	}
 	if storageResult != nil {
+		for _, state := range storageResult.BigMapState {
+			bigMap, err := p.ctx.CachedBigMap(state.BigMap.Network, state.BigMap.Ptr, state.BigMap.Contract)
+			if err == nil || !p.ctx.Storage.IsRecordNotFound(err) {
+				state.BigMapID = bigMap.ID
+			}
+		}
+
+		for _, diff := range tx.BigMapDiffs {
+			bigMap, err := p.ctx.CachedBigMap(diff.BigMap.Network, diff.BigMap.Ptr, diff.BigMap.Contract)
+			if err == nil || !p.ctx.Storage.IsRecordNotFound(err) {
+				diff.BigMapID = bigMap.ID
+			}
+		}
+
 		result.Merge(storageResult)
 	}
 

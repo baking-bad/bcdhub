@@ -6,7 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/formatter"
-	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
+	"github.com/baking-bad/bcdhub/internal/models/bigmap"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/gin-gonic/gin"
 )
@@ -209,7 +209,7 @@ func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 		storage = ops[0].DeffatedStorage
 	}
 
-	states, err := ctx.BigMapDiffs.GetForAddress(req.NetworkID(), req.Address)
+	states, err := ctx.BigMapState.GetForAddress(req.NetworkID(), req.Address)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -223,7 +223,7 @@ func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 		return
 	}
 
-	bmd := make([]bigmapdiff.BigMapDiff, 0, len(states))
+	bmd := make([]bigmap.Diff, 0, len(states))
 	for i := range states {
 		bmd = append(bmd, states[i].ToDiff())
 	}
