@@ -7,7 +7,7 @@ services:
       dockerfile: build/elastic/Dockerfile
     restart: always
     volumes:
-      - esdata:/usr/share/elasticsearch/data
+      - /mnt/data/esdata:/usr/share/elasticsearch/data
     environment:
       - bootstrap.memory_lock=true
       - discovery.type=single-node
