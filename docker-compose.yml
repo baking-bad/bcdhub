@@ -7,7 +7,7 @@ services:
       dockerfile: build/elastic/Dockerfile
     restart: always
     volumes:
-      - esdata:/usr/share/elasticsearch/data
+      - /mnt/data/esdata:/usr/share/elasticsearch/data
     environment:
       - bootstrap.memory_lock=true
       - discovery.type=single-node
@@ -30,7 +30,7 @@ services:
     env_file:
       - .env
     volumes:
-      - db:/var/lib/postgresql/data
+      - /mnt/data/db:/var/lib/postgresql/data
       - /etc/postgresql/postgresql.conf:/etc/postgresql/postgresql.conf
     ports:
       - 127.0.0.1:${POSTGRES_PORT}:5432
@@ -52,7 +52,7 @@ services:
       - elastic
       - db
     ports:
-      - 127.0.0.1:${BCD_API_PORT}:14000
+      - 0.0.0.0:${BCD_API_PORT}:14000
     volumes:
       - ${SHARE_PATH}:/etc/bcd
     logging: *bcd-logging
