@@ -55,10 +55,10 @@ func (tm *TokenMetadataHandler) Handle(items []models.Model) error {
 
 	logger.Info().Msgf("%2d token metadata are processed", len(updates))
 
-	if err := tm.Storage.Save(updates); err != nil {
+	if err := saveSearchModels(tm.Context, updates); err != nil {
 		return err
 	}
-	return saveSearchModels(tm.Context, updates)
+	return tm.Storage.Save(updates)
 }
 
 // Chunk -

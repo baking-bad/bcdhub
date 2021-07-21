@@ -48,10 +48,10 @@ func (p *ProjectsHandler) Handle(items []models.Model) error {
 
 	logger.Info().Msgf("%2d contracts are processed", len(updates))
 
-	if err := p.Storage.Save(updates); err != nil {
+	if err := saveSearchModels(p.Context, updates); err != nil {
 		return err
 	}
-	return saveSearchModels(p.Context, updates)
+	return p.Storage.Save(updates)
 }
 
 // Chunk -

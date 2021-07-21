@@ -55,11 +55,11 @@ func (cm *ContractMetadataHandler) Handle(items []models.Model) error {
 
 	logger.Info().Msgf("%2d contract metadata are processed", len(updates))
 
-	if err := cm.Storage.Save(updates); err != nil {
+	if err := saveSearchModels(cm.Context, updates); err != nil {
 		return err
 	}
 
-	return saveSearchModels(cm.Context, updates)
+	return cm.Storage.Save(updates)
 }
 
 // Chunk -
