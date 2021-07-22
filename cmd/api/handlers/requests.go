@@ -295,8 +295,9 @@ type tokenRequest struct {
 
 type tokenBalanceRequest struct {
 	pageableRequest
-	Contract string `form:"contract" binding:"omitempty,address"`
-	SortBy   string `form:"sort_by" binding:"omitempty,oneof=token_id balance"`
+	Contract  string `form:"contract" binding:"omitempty,address"`
+	SortBy    string `form:"sort_by" binding:"omitempty,oneof=token_id balance"`
+	HideEmpty bool   `form:"hide_empty" binding:"omitempty"`
 }
 
 type batchAddressRequest struct {
