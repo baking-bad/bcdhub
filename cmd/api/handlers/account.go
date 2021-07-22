@@ -6,6 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )
@@ -236,15 +237,27 @@ func (ctx *Context) GetAccountTokensCountByContractWithMetadata(c *gin.Context) 
 
 	response := make(map[string]TokensCountWithMetadata)
 	for address, count := range res {
-		tzip, err := ctx.CachedContractMetadata(req.NetworkID(), address)
+		metadata, err := ctx.CachedContractMetadata(req.NetworkID(), address)
+		if err != nil {
+			if !ctx.Storage.IsRecordNotFound(err) && ctx.handleError(c, err, 0) {
+				return
+			} else {
+				metadata = &tzip.TZIP{
+					Network: req.NetworkID(),
+					Address: address,
+				}
+			}
+		}
+		contract, err := ctx.CachedContract(metadata.Network, metadata.Address)
 		if ctx.handleError(c, err, 0) {
 			return
 		}
 		var t TZIPResponse
-		t.FromModel(tzip, false)
+		t.FromModel(metadata, false)
 		response[address] = TokensCountWithMetadata{
 			TZIPResponse: t,
 			Count:        count,
+			Tags:         contract.Tags.ToArray(),
 		}
 	}
 

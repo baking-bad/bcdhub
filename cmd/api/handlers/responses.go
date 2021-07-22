@@ -800,5 +800,6 @@ type HeadResponse struct {
 // TokensCountWithMetadata -
 type TokensCountWithMetadata struct {
 	TZIPResponse
-	Count int64 `json:"count"`
+	Count int64    `json:"count"`
+	Tags  []string `json:"contract_tags"`
 }
