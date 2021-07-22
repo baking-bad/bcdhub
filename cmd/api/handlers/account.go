@@ -129,6 +129,7 @@ func (ctx *Context) GetBatchTokenBalances(c *gin.Context) {
 // @Param size query integer false "Requested count" minimum(0) maximum(10)
 // @Param contract query string false "Contract address"
 // @Param sort_by query string false "Field using for sorting" Enums(token_id, balance)
+// @Param hide_empty query string false "Hide zero balances from response" Enums(true, false)
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} TokenBalances
@@ -154,7 +155,7 @@ func (ctx *Context) GetAccountTokenBalances(c *gin.Context) {
 }
 
 func (ctx *Context) getAccountBalances(network types.Network, address string, req tokenBalanceRequest) (*TokenBalances, error) {
-	balances, err := ctx.Domains.TokenBalances(network, req.Contract, address, req.Size, req.Offset, req.SortBy)
+	balances, err := ctx.Domains.TokenBalances(network, req.Contract, address, req.Size, req.Offset, req.SortBy, req.HideEmpty)
 	if err != nil {
 		return nil, err
 	}
