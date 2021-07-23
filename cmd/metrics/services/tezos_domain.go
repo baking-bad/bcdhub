@@ -60,10 +60,10 @@ func (td *TezosDomainHandler) Handle(items []models.Model) error {
 
 	logger.Info().Msgf("%2d tezos domains are processed", len(updates))
 
-	if err := td.Storage.Save(updates); err != nil {
+	if err := saveSearchModels(td.Context, updates); err != nil {
 		return err
 	}
-	return saveSearchModels(td.Context, updates)
+	return td.Storage.Save(updates)
 }
 
 // Chunk -

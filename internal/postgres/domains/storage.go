@@ -28,7 +28,7 @@ var balanceQuery = `
 `
 
 // TokenBalances -
-func (storage *Storage) TokenBalances(network types.Network, contract, address string, size, offset int64, sort string) (domains.TokenBalanceResponse, error) {
+func (storage *Storage) TokenBalances(network types.Network, contract, address string, size, offset int64, sort string, hideZeroBalances bool) (domains.TokenBalanceResponse, error) {
 	response := domains.TokenBalanceResponse{
 		Balances: make([]domains.TokenBalance, 0),
 	}
@@ -46,6 +46,10 @@ func (storage *Storage) TokenBalances(network types.Network, contract, address s
 		sort = "balance desc, id"
 	default:
 		sort = "token_id"
+	}
+
+	if hideZeroBalances {
+		query.Where("balance != 0")
 	}
 
 	if err := query.Count(&response.Count).Error; err != nil {

@@ -60,3 +60,6 @@ make sandbox-clear
 ## About
 This project is the successor of the first [serverless](https://github.com/baking-bad/better-call-dev) version (aka BCD1). It has been rewritten from scratch in Golang.   
 Better Call Dev was initially funded and is currently supported by [Tezos Foundation](https://tezos.foundation/).
+
+\c indexer 
+\dt

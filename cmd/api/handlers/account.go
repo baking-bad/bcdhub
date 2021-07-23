@@ -6,6 +6,7 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
 	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )
@@ -129,6 +130,7 @@ func (ctx *Context) GetBatchTokenBalances(c *gin.Context) {
 // @Param size query integer false "Requested count" minimum(0) maximum(10)
 // @Param contract query string false "Contract address"
 // @Param sort_by query string false "Field using for sorting" Enums(token_id, balance)
+// @Param hide_empty query string false "Hide zero balances from response" Enums(true, false)
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} TokenBalances
@@ -154,7 +156,7 @@ func (ctx *Context) GetAccountTokenBalances(c *gin.Context) {
 }
 
 func (ctx *Context) getAccountBalances(network types.Network, address string, req tokenBalanceRequest) (*TokenBalances, error) {
-	balances, err := ctx.Domains.TokenBalances(network, req.Contract, address, req.Size, req.Offset, req.SortBy)
+	balances, err := ctx.Domains.TokenBalances(network, req.Contract, address, req.Size, req.Offset, req.SortBy, req.HideEmpty)
 	if err != nil {
 		return nil, err
 	}
@@ -236,15 +238,27 @@ func (ctx *Context) GetAccountTokensCountByContractWithMetadata(c *gin.Context) 
 
 	response := make(map[string]TokensCountWithMetadata)
 	for address, count := range res {
-		tzip, err := ctx.CachedContractMetadata(req.NetworkID(), address)
+		metadata, err := ctx.CachedContractMetadata(req.NetworkID(), address)
+		if err != nil {
+			if !ctx.Storage.IsRecordNotFound(err) && ctx.handleError(c, err, 0) {
+				return
+			} else {
+				metadata = &tzip.TZIP{
+					Network: req.NetworkID(),
+					Address: address,
+				}
+			}
+		}
+		contract, err := ctx.CachedContract(metadata.Network, metadata.Address)
 		if ctx.handleError(c, err, 0) {
 			return
 		}
 		var t TZIPResponse
-		t.FromModel(tzip, false)
+		t.FromModel(metadata, false)
 		response[address] = TokensCountWithMetadata{
 			TZIPResponse: t,
 			Count:        count,
+			Tags:         contract.Tags.ToArray(),
 		}
 	}
 
