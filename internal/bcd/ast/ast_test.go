@@ -258,17 +258,27 @@ func TestTypedAst_ToJSONSchema(t *testing.T) {
 								Type:  JSONSchemaTypeString,
 								Const: "Some",
 							},
-							"pour_auth": {
-								Type:    JSONSchemaTypeString,
-								Title:   "pour_auth",
-								Prim:    "signature",
-								Default: "",
-							},
-							"pour_amount": {
-								Type:    JSONSchemaTypeInt,
-								Title:   "pour_amount",
-								Prim:    "mutez",
-								Default: 0,
+							"Pour": {
+								Type:     JSONSchemaTypeObject,
+								Title:    "Pour",
+								Required: []string{},
+								XOptions: map[string]interface{}{
+									"sectionsClass": "pl-0",
+								},
+								Properties: map[string]*JSONSchema{
+									"pour_auth": {
+										Type:    JSONSchemaTypeString,
+										Title:   "pour_auth",
+										Prim:    "signature",
+										Default: "",
+									},
+									"pour_amount": {
+										Type:    JSONSchemaTypeInt,
+										Title:   "pour_amount",
+										Prim:    "mutez",
+										Default: 0,
+									},
+								},
 							},
 						},
 					},
