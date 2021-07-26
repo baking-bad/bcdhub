@@ -297,7 +297,7 @@ func grouping(ctx search.Context, query Base) Base {
 						},
 						"bucket_time": Item{
 							"max": Item{
-								"script": "if (doc.containsKey('last_action')) {return doc['last_action'].value} else {return doc['timestamp']}",
+								"field": "timestamp",
 							},
 						},
 					},
