@@ -38,9 +38,8 @@ func (t *Token) GetIndex() string {
 // GetScores -
 func (t Token) GetScores(search string) []string {
 	return []string{
-		"name^8",
-		"symbol^8",
-		"contract^7",
+		"name^7",
+		"symbol^6",
 	}
 }
 
@@ -49,7 +48,6 @@ func (t Token) GetFields() []string {
 	return []string{
 		"name",
 		"symbol",
-		"contract",
 	}
 }
 

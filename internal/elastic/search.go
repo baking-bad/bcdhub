@@ -253,7 +253,6 @@ func grouping(ctx search.Context, query Base) Base {
 			"size": 1,
 			"sort": List{
 				Sort("_score", "desc"),
-				Sort("timestamp", "desc"),
 			},
 			"highlight": Item{
 				"fields": ctx.Highlights,
@@ -284,7 +283,6 @@ func grouping(ctx search.Context, query Base) Base {
 						"size": defaultSize + ctx.Offset,
 						"order": List{
 							Item{"bucket_score": "desc"},
-							Item{"bucket_time": "desc"},
 						},
 					},
 					"aggs": Item{
@@ -292,11 +290,6 @@ func grouping(ctx search.Context, query Base) Base {
 						"bucket_score": Item{
 							"max": Item{
 								"script": "_score",
-							},
-						},
-						"bucket_time": Item{
-							"max": Item{
-								"field": "timestamp",
 							},
 						},
 					},

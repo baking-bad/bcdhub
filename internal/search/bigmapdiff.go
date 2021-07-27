@@ -37,10 +37,8 @@ func (b *BigMapDiff) GetIndex() string {
 // GetScores -
 func (b BigMapDiff) GetScores(search string) []string {
 	return []string{
-		"key_strings^8",
-		"value_strings^7",
-		"key_hash",
-		"address",
+		"key_hash^10",
+		"key_strings^6",
 	}
 }
 
@@ -48,9 +46,7 @@ func (b BigMapDiff) GetScores(search string) []string {
 func (b BigMapDiff) GetFields() []string {
 	return []string{
 		"key_strings",
-		"value_strings",
 		"key_hash",
-		"address",
 	}
 }
 

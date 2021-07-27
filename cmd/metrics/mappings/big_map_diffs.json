@@ -55,6 +55,10 @@
             "timestamp": {
                 "type": "date"
             },
+            "last_action": {
+                "type": "alias",
+                "path": "timestamp"
+            },
             "value_strings": {
                 "type": "text",
                 "fields": {

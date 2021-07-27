@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 )
@@ -48,31 +47,13 @@ func (c Contract) GetIndex() string {
 
 // GetScores -
 func (c Contract) GetScores(search string) []string {
-	if helpers.IsAddress(search) {
-		return []string{
-			"contract^10",
-			"alias^9",
-			"tags^9",
-			"entrypoints^8",
-			"fail_strings^6",
-			"language^4",
-			"annotations^3",
-			"delegate^2",
-			"hardcoded^2",
-			"manager",
-		}
-	}
 	return []string{
-		"alias^20",
+		"contract^10",
+		"alias^9",
 		"tags^9",
-		"entrypoints^8",
 		"fail_strings^6",
-		"language^4",
 		"annotations^3",
-		"delegate^2",
 		"hardcoded^2",
-		"manager",
-		"contract",
 	}
 }
 
@@ -82,13 +63,9 @@ func (c Contract) GetFields() []string {
 		"contract",
 		"alias",
 		"tags",
-		"entrypoints",
 		"fail_strings",
-		"language",
 		"annotations",
-		"delegate",
 		"hardcoded",
-		"manager",
 	}
 }
 
