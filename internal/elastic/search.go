@@ -115,7 +115,6 @@ func (e *Elastic) ByText(text string, offset int64, fields []string, filters map
 		query = grouping(ctx, query)
 	} else {
 		query.From(offset)
-		query.Sort("last_action", "desc")
 	}
 
 	var response searchByTextResponse
@@ -253,7 +252,6 @@ func grouping(ctx search.Context, query Base) Base {
 		"top_hits": Item{
 			"size": 1,
 			"sort": List{
-				Item{"last_action": Item{"order": "desc", "unmapped_type": "long"}},
 				Sort("_score", "desc"),
 			},
 			"highlight": Item{
@@ -284,7 +282,6 @@ func grouping(ctx search.Context, query Base) Base {
 							}`,
 						"size": defaultSize + ctx.Offset,
 						"order": List{
-							Item{"bucket_time": "desc"},
 							Item{"bucket_score": "desc"},
 						},
 					},
@@ -293,11 +290,6 @@ func grouping(ctx search.Context, query Base) Base {
 						"bucket_score": Item{
 							"max": Item{
 								"script": "_score",
-							},
-						},
-						"bucket_time": Item{
-							"max": Item{
-								"field": "last_action",
 							},
 						},
 					},
