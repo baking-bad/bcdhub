@@ -33,10 +33,10 @@ func (m *Metadata) GetIndex() string {
 // GetScores -
 func (m Metadata) GetScores(search string) []string {
 	return []string{
-		"name^15",
-		"authors^10",
-		"description^8",
-		"homepage^4",
+		"name^8",
+		"authors^7",
+		"homepage^6",
+		"description^5",
 	}
 }
 

@@ -47,14 +47,12 @@ func (o *Operation) GetIndex() string {
 // GetScores -
 func (o Operation) GetScores(search string) []string {
 	return []string{
+		"hash^10",
+		"source_alias^9",
 		"entrypoint^8",
 		"parameter_strings^7",
-		"storage_strings^7",
 		"errors.with^6",
 		"errors.id^5",
-		"source_alias^3",
-		"hash",
-		"source",
 	}
 }
 
@@ -63,12 +61,10 @@ func (o Operation) GetFields() []string {
 	return []string{
 		"entrypoint",
 		"parameter_strings",
-		"storage_strings",
 		"errors.with",
 		"errors.id",
 		"source_alias",
 		"hash",
-		"source",
 	}
 }
 

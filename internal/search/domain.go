@@ -30,15 +30,13 @@ func (d *Domain) GetIndex() string {
 // GetScores -
 func (d Domain) GetScores(search string) []string {
 	return []string{
-		"name^10",
-		"address^5",
+		"name^8"
 	}
 }
 
 // GetFields -
 func (d Domain) GetFields() []string {
 	return []string{
-		"address",
 		"name",
 	}
 }

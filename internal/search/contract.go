@@ -48,47 +48,25 @@ func (c Contract) GetIndex() string {
 
 // GetScores -
 func (c Contract) GetScores(search string) []string {
-	if helpers.IsAddress(search) {
-		return []string{
-			"contract^10",
-			"alias^9",
-			"tags^9",
-			"entrypoints^8",
-			"fail_strings^6",
-			"language^4",
-			"annotations^3",
-			"delegate^2",
-			"hardcoded^2",
-			"manager",
-		}
-	}
 	return []string{
-		"alias^20",
+		"address^10",
+		"alias^9",
 		"tags^9",
-		"entrypoints^8",
 		"fail_strings^6",
-		"language^4",
 		"annotations^3",
-		"delegate^2",
 		"hardcoded^2",
-		"manager",
-		"contract",
 	}
 }
 
 // GetFields -
 func (c Contract) GetFields() []string {
 	return []string{
-		"contract",
+		"address",
 		"alias",
 		"tags",
-		"entrypoints",
 		"fail_strings",
-		"language",
 		"annotations",
-		"delegate",
 		"hardcoded",
-		"manager",
 	}
 }
 
