@@ -56,6 +56,10 @@
             },
             "timestamp": {
                 "type": "date"
+            },
+            "last_action": {
+                "type": "alias",
+                "path": "timestamp"
             }
         }
     }

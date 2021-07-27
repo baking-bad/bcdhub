@@ -253,7 +253,6 @@ func grouping(ctx search.Context, query Base) Base {
 			"size": 1,
 			"sort": List{
 				Sort("_score", "desc"),
-				Sort("timestamp", "desc"),
 				Item{"last_action": Item{"order": "desc", "unmapped_type": "long"}},
 			},
 			"highlight": Item{
@@ -297,7 +296,7 @@ func grouping(ctx search.Context, query Base) Base {
 						},
 						"bucket_time": Item{
 							"max": Item{
-								"script": "if (doc.containsKey('last_action')) {return doc['last_action'].value} else {return doc['timestamp']}",
+								"field": "last_action",
 							},
 						},
 					},
