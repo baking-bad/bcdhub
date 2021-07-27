@@ -38,8 +38,8 @@ func (t *Token) GetIndex() string {
 // GetScores -
 func (t Token) GetScores(search string) []string {
 	return []string{
-		"name^8",
-		"symbol^7",
+		"name^7",
+		"symbol^6",
 	}
 }
 
