@@ -115,6 +115,7 @@ func (e *Elastic) ByText(text string, offset int64, fields []string, filters map
 		query = grouping(ctx, query)
 	} else {
 		query.From(offset)
+		query.Sort("last_action", "desc")
 	}
 
 	var response searchByTextResponse
