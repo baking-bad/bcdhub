@@ -1,7 +1,7 @@
 version: "3.6"
 services:
   elastic:
-    image: bakingbad/bcdhub-elastic:3.5
+    image: bakingbad/bcdhub-elastic:4.0
     build:
       context: .
       dockerfile: build/elastic/Dockerfile
@@ -32,7 +32,7 @@ services:
 
   api:
     restart: always
-    image: bakingbad/bcdhub-api:3.5
+    image: bakingbad/bcdhub-api:4.0
     build:
       context: .
       dockerfile: build/api/Dockerfile
@@ -57,7 +57,7 @@ services:
 
   indexer:
     restart: always
-    image: bakingbad/bcdhub-indexer:3.5
+    image: bakingbad/bcdhub-indexer:4.0
     build:
       context: .
       dockerfile: build/indexer/Dockerfile
@@ -78,7 +78,7 @@ services:
 
   metrics:
     restart: always
-    image: bakingbad/bcdhub-metrics:3.5
+    image: bakingbad/bcdhub-metrics:4.0
     build:
       context: .
       dockerfile: build/metrics/Dockerfile
