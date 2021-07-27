@@ -14,7 +14,7 @@ require (
 	github.com/getsentry/sentry-go v0.5.1
 	github.com/gin-contrib/cache v1.1.0
 	github.com/gin-contrib/cors v1.3.0
-	github.com/gin-gonic/gin v1.6.3
+	github.com/gin-gonic/gin v1.7.0
 	github.com/go-openapi/spec v0.20.0 // indirect
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/golang/mock v1.4.4
@@ -33,7 +33,7 @@ require (
 	github.com/shopspring/decimal v0.0.0-20200227202807-02e2044944cc
 	github.com/stretchr/testify v1.7.0
 	github.com/swaggo/swag v1.7.0
-	github.com/tidwall/gjson v1.4.0
+	github.com/tidwall/gjson v1.6.5
 	github.com/wsxiaoys/terminal v0.0.0-20160513160801-0940f3fc43a0 // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/yhirose/go-peg v0.0.0-20190710015414-7eb2cf046928
