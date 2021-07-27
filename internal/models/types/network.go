@@ -19,6 +19,7 @@ const (
 	Edo2net
 	Florencenet
 	Granadanet
+	Sandboxnet
 )
 
 var networkNames = map[Network]string{
@@ -28,6 +29,7 @@ var networkNames = map[Network]string{
 	Edo2net:     "edo2net",
 	Florencenet: "florencenet",
 	Granadanet:  "granadanet",
+	Sandboxnet:  "sandboxnet",
 }
 
 var namesToNetwork = map[string]Network{
@@ -37,6 +39,7 @@ var namesToNetwork = map[string]Network{
 	"edo2net":     Edo2net,
 	"florencenet": Florencenet,
 	"granadanet":  Granadanet,
+	"sandboxnet":  Sandboxnet,
 }
 
 // String - convert enum to string for printing
