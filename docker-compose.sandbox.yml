@@ -21,7 +21,7 @@ services:
     environment:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
-      - POSTGRES_DB=bcd_box
+      - POSTGRES_DB=indexer
       - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
       - db:/var/lib/postgresql/data
@@ -35,9 +35,6 @@ services:
       - GIN_MODE=debug
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
-      - POSTGRES_DB=bcd_box
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
       - SANDBOX_NODE_URI=http://sandbox:8732
       - SANDBOX_IPFS_GATEWAY=https://cloudflare-ipfs.com
     depends_on:
@@ -58,9 +55,6 @@ services:
       - BCD_ENV=sandbox
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
-      - POSTGRES_DB=bcd_box
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
       - SANDBOX_NODE_URI=http://sandbox:8732
       - SANDBOX_IPFS_GATEWAY=https://cloudflare-ipfs.com
     depends_on:
@@ -79,9 +73,6 @@ services:
       - BCD_ENV=sandbox
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
-      - POSTGRES_DB=bcd_box
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
       - SANDBOX_NODE_URI=http://sandbox:8732
       - SANDBOX_IPFS_GATEWAY=https://cloudflare-ipfs.com
     depends_on:
