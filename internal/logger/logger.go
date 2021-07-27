@@ -3,6 +3,7 @@ package logger
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
 	"runtime"
@@ -138,4 +139,14 @@ func Debug(values ...interface{}) {
 func Question(format string, v ...interface{}) {
 	blue := color.New(color.FgMagenta).SprintFunc()
 	fmt.Printf("[%s] %s", blue("?"), fmt.Sprintf(format, v...))
+}
+
+// InterfaceToJSON -
+func InterfaceToJSON(v interface{}) {
+	data, err := json.MarshalIndent(v, "", " ")
+	if err != nil {
+		Info().Err(err).Msg("")
+		return
+	}
+	Info().Msg(string(data))
 }

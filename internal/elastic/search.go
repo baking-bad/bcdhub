@@ -253,7 +253,6 @@ func grouping(ctx search.Context, query Base) Base {
 			"size": 1,
 			"sort": List{
 				Sort("_score", "desc"),
-				Item{"last_action": Item{"order": "desc", "unmapped_type": "long"}},
 				Sort("timestamp", "desc"),
 			},
 			"highlight": Item{

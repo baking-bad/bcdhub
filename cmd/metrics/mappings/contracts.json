@@ -10,6 +10,10 @@
                     }
                 }
             },
+            "contract": {
+                "path": "address",
+                "type": "alias"
+            },
             "alias": {
                 "type": "text",
                 "fields": {
