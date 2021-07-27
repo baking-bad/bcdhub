@@ -252,8 +252,8 @@ func grouping(ctx search.Context, query Base) Base {
 		"top_hits": Item{
 			"size": 1,
 			"sort": List{
-				Sort("_score", "desc"),
 				Item{"last_action": Item{"order": "desc", "unmapped_type": "long"}},
+				Sort("_score", "desc"),
 			},
 			"highlight": Item{
 				"fields": ctx.Highlights,
@@ -283,8 +283,8 @@ func grouping(ctx search.Context, query Base) Base {
 							}`,
 						"size": defaultSize + ctx.Offset,
 						"order": List{
-							Item{"bucket_score": "desc"},
 							Item{"bucket_time": "desc"},
+							Item{"bucket_score": "desc"},
 						},
 					},
 					"aggs": Item{
