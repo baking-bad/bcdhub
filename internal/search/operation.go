@@ -48,10 +48,10 @@ func (o *Operation) GetIndex() string {
 func (o Operation) GetScores(search string) []string {
 	return []string{
 		"hash^10",
-		"source_alias^9",
 		"entrypoint^8",
-		"errors.with^6",
-		"errors.id^5",
+		"errors.with^7",
+		"errors.id^6",
+		"source_alias",
 	}
 }
 
