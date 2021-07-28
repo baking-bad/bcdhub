@@ -35,6 +35,7 @@ var migrationsList = []migrations.Migration{
 	&migrations.BigMapActionToEnum{},
 	&migrations.TagsToInt{},
 	&migrations.DropAliasesColumns{},
+	&migrations.FixLostSearchContracts{},
 }
 
 func main() {
@@ -58,6 +59,7 @@ func main() {
 		config.WithRPC(cfg.RPC),
 		config.WithConfigCopy(cfg),
 		config.WithLoadErrorDescriptions(),
+		config.WithSearch(cfg.Storage),
 	)
 	defer ctx.Close()
 

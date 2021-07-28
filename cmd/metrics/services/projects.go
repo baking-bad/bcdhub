@@ -33,25 +33,35 @@ func (p *ProjectsHandler) Handle(items []models.Model) error {
 		contracts[i] = c
 	}
 	updates := make([]models.Model, 0)
+	searchModels := make([]models.Model, 0)
+
 	for i := range contracts {
 		res, err := p.process(contracts[i], contracts[:i])
 		if err != nil {
 			return errors.Errorf("[Projects.Handle] compute error message: %s", err)
 		}
 
-		updates = append(updates, res...)
+		if len(res) > 0 {
+			updates = append(updates, res...)
+			searchModels = append(searchModels, res...)
+		} else {
+			searchModels = append(searchModels, contracts[i])
+		}
+
 	}
 
-	if len(updates) == 0 {
-		return nil
+	if len(searchModels) > 0 {
+		if err := saveSearchModels(p.Context, searchModels); err != nil {
+			return err
+		}
 	}
 
-	logger.Info().Msgf("%2d contracts are processed", len(updates))
-
-	if err := saveSearchModels(p.Context, updates); err != nil {
-		return err
+	if len(updates) > 0 {
+		logger.Info().Msgf("%2d contracts are processed", len(updates))
+		return p.Storage.Save(updates)
 	}
-	return p.Storage.Save(updates)
+
+	return nil
 }
 
 // Chunk -
