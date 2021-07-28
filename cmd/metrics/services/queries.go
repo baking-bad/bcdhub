@@ -12,7 +12,7 @@ import (
 )
 
 func getContracts(db *gorm.DB, lastID, size int64) (resp []contract.Contract, err error) {
-	query := db.Table(models.DocContracts).Order("id asc").Where("project_id = ''")
+	query := db.Table(models.DocContracts).Order("id asc")
 	if lastID > 0 {
 		query.Where("id > ?", lastID)
 	}
