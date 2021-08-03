@@ -4,6 +4,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
@@ -42,28 +43,22 @@ func (p *ImplicitParser) Parse(metadata noderpc.Metadata, head noderpc.Header) (
 				return nil, err
 			}
 		case consts.Transaction:
-			p.transaction(metadata.ImplicitOperationsResults[i], head, protocol.ID, parserResult)
 		}
 	}
 	return parserResult, nil
 }
 
-func (p *ImplicitParser) transaction(implicit noderpc.ImplicitOperationsResult, head noderpc.Header, protocolID int64, result *parsers.Result) {
-	result.Operations = append(result.Operations, &operation.Operation{
-		Network:             p.network,
-		ProtocolID:          protocolID,
-		Level:               head.Level,
-		Timestamp:           head.Timestamp,
-		Kind:                types.NewOperationKind(implicit.Kind),
-		ConsumedGas:         implicit.ConsumedGas,
-		PaidStorageSizeDiff: implicit.PaidStorageSizeDiff,
-		StorageSize:         implicit.StorageSize,
-		DeffatedStorage:     implicit.Storage,
-	})
-	logger.Info().Str("kind", consts.Transaction).Msg("Implicit operation found")
-}
-
 func (p *ImplicitParser) origination(implicit noderpc.ImplicitOperationsResult, head noderpc.Header, protocolID int64, result *parsers.Result) error {
+	result.Migrations = append(result.Migrations, &migration.Migration{
+		Network:    p.network,
+		ProtocolID: protocolID,
+		Level:      head.Level,
+		Timestamp:  head.Timestamp,
+		Kind:       types.MigrationKindBootstrap,
+		Address:    implicit.OriginatedContracts[0],
+	})
+	logger.Info().Msg("Implicit bootstrap migration found")
+
 	origination := operation.Operation{
 		Network:             p.network,
 		ProtocolID:          protocolID,
@@ -76,8 +71,6 @@ func (p *ImplicitParser) origination(implicit noderpc.ImplicitOperationsResult, 
 		StorageSize:         implicit.StorageSize,
 		DeffatedStorage:     implicit.Storage,
 	}
-
-	logger.Info().Str("address", origination.Destination).Str("kind", consts.Origination).Msg("Implicit operation found")
 
 	script, err := p.rpc.GetRawScript(origination.Destination, origination.Level)
 	if err != nil {
@@ -93,6 +86,5 @@ func (p *ImplicitParser) origination(implicit noderpc.ImplicitOperationsResult, 
 	if contractResult != nil {
 		result.Merge(contractResult)
 	}
-	result.Operations = append(result.Operations, &origination)
 	return nil
 }
