@@ -178,7 +178,13 @@ func (m *BigMap) ToJSONSchema() (*JSONSchema, error) {
 		return nil, err
 	}
 
-	if err := setChildSchemaForMap(m.ValueType, false, s); err != nil {
+	if m.ValueType.IsPrim(consts.PAIR) {
+		child, err := m.ValueType.ToJSONSchema()
+		if err != nil {
+			return nil, err
+		}
+		s.Items.Properties[m.ValueType.GetName()] = child
+	} else if err := setChildSchemaForMap(m.ValueType, false, s); err != nil {
 		return nil, err
 	}
 
