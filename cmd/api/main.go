@@ -59,6 +59,7 @@ func (api *app) makeRouter() {
 	store := persistence.NewInMemoryStore(time.Second * 30)
 
 	r.MaxMultipartMemory = 4 << 20 // max upload size 4 MiB
+	r.SecureJsonPrefix("")         // do not prepend while(1)
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		if err := validations.Register(v, api.Context.Config.API); err != nil {
