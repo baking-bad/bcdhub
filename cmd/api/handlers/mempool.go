@@ -36,7 +36,7 @@ func (ctx *Context) GetMempool(c *gin.Context) {
 
 	api, err := ctx.GetTzKTService(req.NetworkID())
 	if err != nil {
-		c.JSON(http.StatusNoContent, []Operation{})
+		c.SecureJSON(http.StatusNoContent, []Operation{})
 		return
 	}
 
@@ -45,7 +45,7 @@ func (ctx *Context) GetMempool(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, ctx.mempoolPostprocessing(res, req.NetworkID()))
+	c.SecureJSON(http.StatusOK, ctx.mempoolPostprocessing(res, req.NetworkID()))
 }
 
 func (ctx *Context) mempoolPostprocessing(res []tzkt.MempoolOperation, network modelTypes.Network) []Operation {

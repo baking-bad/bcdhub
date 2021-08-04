@@ -35,7 +35,7 @@ func (ctx *Context) GetStats(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, blocks)
+	c.SecureJSON(http.StatusOK, blocks)
 }
 
 // GetNetworkStats godoc
@@ -91,7 +91,7 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 		stats.FACount = networkHead.FACount
 	}
 
-	c.JSON(http.StatusOK, stats)
+	c.SecureJSON(http.StatusOK, stats)
 }
 
 // GetSeries godoc
@@ -140,7 +140,7 @@ func (ctx *Context) GetSeries(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, series)
+	c.SecureJSON(http.StatusOK, series)
 }
 
 func (ctx *Context) getHistogramOptions(name string, network types.Network, addresses ...string) ([]models.HistogramOption, error) {
@@ -283,5 +283,5 @@ func (ctx *Context) GetContractsStats(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, stats)
+	c.SecureJSON(http.StatusOK, stats)
 }

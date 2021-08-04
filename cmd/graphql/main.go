@@ -31,7 +31,7 @@ func (ctx *apiContext) graphqlHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, res)
+	c.SecureJSON(http.StatusOK, res)
 }
 
 func handleError(c *gin.Context, err error) bool {
@@ -39,7 +39,7 @@ func handleError(c *gin.Context, err error) bool {
 		return false
 	}
 
-	c.JSON(http.StatusBadRequest, gin.H{
+	c.SecureJSON(http.StatusBadRequest, gin.H{
 		"message": err.Error(),
 	})
 

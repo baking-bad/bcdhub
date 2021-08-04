@@ -65,7 +65,7 @@ func (ctx *Context) GetContractOperations(c *gin.Context) {
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	c.JSON(http.StatusOK, OperationResponse{
+	c.SecureJSON(http.StatusOK, OperationResponse{
 		Operations: resp,
 		LastID:     ops.LastID,
 	})
@@ -118,11 +118,11 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 		}
 
 		if len(op) == 0 {
-			c.JSON(http.StatusNoContent, gin.H{})
+			c.SecureJSON(http.StatusNoContent, gin.H{})
 			return
 		}
 
-		c.JSON(http.StatusOK, opg)
+		c.SecureJSON(http.StatusOK, opg)
 		return
 	}
 
@@ -131,7 +131,7 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	c.SecureJSON(http.StatusOK, resp)
 }
 
 // GetOperationErrorLocation godoc
@@ -165,7 +165,7 @@ func (ctx *Context) GetOperationErrorLocation(c *gin.Context) {
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	c.JSON(http.StatusOK, response)
+	c.SecureJSON(http.StatusOK, response)
 }
 
 func (ctx *Context) getOperationFromMempool(hash string) *Operation {

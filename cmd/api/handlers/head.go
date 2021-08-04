@@ -55,5 +55,5 @@ func (ctx *Context) GetHead(c *gin.Context) {
 		body[i].Total = int64(networkStats.ContractsCount)
 	}
 
-	c.JSON(http.StatusOK, body)
+	c.SecureJSON(http.StatusOK, body)
 }

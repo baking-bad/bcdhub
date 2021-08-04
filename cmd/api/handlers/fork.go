@@ -19,7 +19,7 @@ func (ctx *Context) ForkContract(c *gin.Context) {
 		ctx.handleError(c, err, 0)
 		return
 	}
-	c.JSON(http.StatusOK, response)
+	c.SecureJSON(http.StatusOK, response)
 }
 
 func (ctx *Context) buildStorageDataFromForkRequest(req forkRequest) (*ForkResponse, error) {

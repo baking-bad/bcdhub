@@ -32,5 +32,5 @@ func (ctx *Context) GetConfig(c *gin.Context) {
 		cfg.SentryDSN = ctx.Config.Sentry.FrontURI
 	}
 
-	c.JSON(http.StatusOK, cfg)
+	c.SecureJSON(http.StatusOK, cfg)
 }

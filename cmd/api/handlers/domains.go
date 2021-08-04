@@ -51,7 +51,7 @@ func (ctx *Context) TezosDomainsList(c *gin.Context) {
 		Total:   domains.Total,
 	}
 
-	c.JSON(http.StatusOK, response)
+	c.SecureJSON(http.StatusOK, response)
 }
 
 // ResolveDomain godoc
@@ -87,7 +87,7 @@ func (ctx *Context) ResolveDomain(c *gin.Context) {
 		}
 		if err := ctx.Storage.GetByID(&domain); err != nil {
 			if ctx.Storage.IsRecordNotFound(err) {
-				c.JSON(http.StatusNoContent, gin.H{})
+				c.SecureJSON(http.StatusNoContent, gin.H{})
 				return
 			}
 			ctx.handleError(c, err, 0)
@@ -99,12 +99,12 @@ func (ctx *Context) ResolveDomain(c *gin.Context) {
 		}
 		var resp TezosDomain
 		resp.FromModel(domain)
-		c.JSON(http.StatusOK, resp)
+		c.SecureJSON(http.StatusOK, resp)
 	case args.Address != "":
 		domain, err := ctx.TezosDomains.ResolveDomainByAddress(req.NetworkID(), args.Address)
 		if err != nil {
 			if ctx.Storage.IsRecordNotFound(err) {
-				c.JSON(http.StatusNoContent, gin.H{})
+				c.SecureJSON(http.StatusNoContent, gin.H{})
 				return
 			}
 			ctx.handleError(c, err, 0)
@@ -112,7 +112,7 @@ func (ctx *Context) ResolveDomain(c *gin.Context) {
 		}
 		var resp TezosDomain
 		resp.FromModel(*domain)
-		c.JSON(http.StatusOK, domain)
+		c.SecureJSON(http.StatusOK, domain)
 	default:
 		ctx.handleError(c, errors.Errorf("Invalid resolve request: %##v", args), http.StatusBadRequest)
 	}

@@ -59,7 +59,7 @@ func (ctx *Context) Search(c *gin.Context) {
 		ctx.searchPostprocessing(&result)
 	}
 
-	c.JSON(http.StatusOK, result)
+	c.SecureJSON(http.StatusOK, result)
 }
 
 func getSearchFilters(req searchRequest) map[string]interface{} {
@@ -125,17 +125,28 @@ func (ctx *Context) searchInMempool(q string) *search.Item {
 
 func (ctx *Context) searchPostprocessing(result *search.Result) {
 	for i := range result.Items {
-		cont, ok := result.Items[i].Body.(*search.Contract)
-		if !ok {
-			continue
-		}
-		enity, err := ctx.Contracts.Get(types.NewNetwork(cont.Network), cont.Address)
-		if err != nil {
-			continue
-		}
+		switch typ := result.Items[i].Body.(type) {
+		case *search.Contract:
+			enity, err := ctx.Contracts.Get(types.NewNetwork(typ.Network), typ.Address)
+			if err != nil {
+				continue
+			}
 
-		ts := enity.LastAction.UTC()
-		cont.TxCount = &enity.TxCount
-		cont.LastAction = &ts
+			ts := enity.LastAction.UTC()
+			typ.TxCount = &enity.TxCount
+			typ.LastAction = &ts
+		case *search.Metadata:
+			typ.Name = ctx.Sanitizer.Sanitize(typ.Name)
+			typ.Description = ctx.Sanitizer.Sanitize(typ.Description)
+			typ.Homepage = ctx.Sanitizer.Sanitize(typ.Homepage)
+		case *search.Token:
+			typ.Name = ctx.Sanitizer.Sanitize(typ.Name)
+			typ.Symbol = ctx.Sanitizer.Sanitize(typ.Symbol)
+		}
+		for _, highlights := range result.Items[i].Highlights {
+			for i := range highlights {
+				highlights[i] = ctx.Sanitizer.Sanitize(highlights[i])
+			}
+		}
 	}
 }
