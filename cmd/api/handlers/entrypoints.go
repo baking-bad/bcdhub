@@ -58,7 +58,7 @@ func (ctx *Context) GetEntrypoints(c *gin.Context) {
 		resp[i].Schema = ast.WrapEntrypointJSONSchema(resp[i].Schema)
 	}
 
-	c.JSON(http.StatusOK, resp)
+	c.SecureJSON(http.StatusOK, resp)
 }
 
 // GetEntrypointData godoc
@@ -96,7 +96,7 @@ func (ctx *Context) GetEntrypointData(c *gin.Context) {
 		if ctx.handleError(c, err, 0) {
 			return
 		}
-		c.JSON(http.StatusOK, michelson)
+		c.SecureJSON(http.StatusOK, michelson)
 		return
 	}
 
@@ -194,7 +194,7 @@ func (ctx *Context) GetEntrypointSchema(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, schema)
+	c.SecureJSON(http.StatusOK, schema)
 }
 
 func (ctx *Context) buildParametersForExecution(network modelTypes.Network, address, symLink, entrypoint string, data map[string]interface{}) (*types.Parameters, error) {

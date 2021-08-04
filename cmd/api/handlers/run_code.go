@@ -112,7 +112,7 @@ func (ctx *Context) RunOperation(c *gin.Context) {
 		resp[i] = op
 	}
 
-	c.JSON(http.StatusOK, resp)
+	c.SecureJSON(http.StatusOK, resp)
 }
 
 // RunCode godoc
@@ -195,7 +195,7 @@ func (ctx *Context) RunCode(c *gin.Context) {
 				ctx.handleError(c, err, 0)
 				return
 			}
-			c.JSON(http.StatusOK, []Operation{main})
+			c.SecureJSON(http.StatusOK, []Operation{main})
 			return
 		}
 		ctx.handleError(c, err, 0)
@@ -217,7 +217,7 @@ func (ctx *Context) RunCode(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, operations)
+	c.SecureJSON(http.StatusOK, operations)
 }
 
 func (ctx *Context) parseAppliedRunCode(response noderpc.RunCodeResponse, script *ast.Script, main *Operation, proto protocol.Protocol) ([]Operation, error) {

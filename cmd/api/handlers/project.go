@@ -42,7 +42,7 @@ func (ctx *Context) GetSameContracts(c *gin.Context) {
 	sameContracts, err := ctx.Contracts.GetSameContracts(contract, query.Manager, query.Size, query.Offset)
 	if err != nil {
 		if ctx.Storage.IsRecordNotFound(err) {
-			c.JSON(http.StatusOK, []interface{}{})
+			c.SecureJSON(http.StatusOK, []interface{}{})
 			return
 		}
 		ctx.handleError(c, err, 0)
@@ -51,7 +51,7 @@ func (ctx *Context) GetSameContracts(c *gin.Context) {
 
 	var response SameContractsResponse
 	response.FromModel(sameContracts, ctx)
-	c.JSON(http.StatusOK, response)
+	c.SecureJSON(http.StatusOK, response)
 }
 
 // GetSimilarContracts godoc
@@ -109,5 +109,5 @@ func (ctx *Context) GetSimilarContracts(c *gin.Context) {
 		response.Contracts[i].DelegateAlias = ctx.CachedAlias(similar[i].Network, similar[i].Delegate)
 	}
 
-	c.JSON(http.StatusOK, response)
+	c.SecureJSON(http.StatusOK, response)
 }

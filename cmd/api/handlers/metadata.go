@@ -15,7 +15,7 @@ const metadataBytesLimit = 65536
 // UploadMetadata -
 func (ctx *Context) UploadMetadata(c *gin.Context) {
 	if c.Request.Body == nil {
-		c.JSON(http.StatusBadRequest, nil)
+		c.SecureJSON(http.StatusBadRequest, nil)
 		return
 	}
 
@@ -25,7 +25,7 @@ func (ctx *Context) UploadMetadata(c *gin.Context) {
 	}
 
 	if len(body) > metadataBytesLimit {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("exceeded max upload limit of %d bytes", metadataBytesLimit)})
+		c.SecureJSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("exceeded max upload limit of %d bytes", metadataBytesLimit)})
 		return
 	}
 
@@ -37,7 +37,7 @@ func (ctx *Context) UploadMetadata(c *gin.Context) {
 	}
 
 	if !result.Valid() {
-		c.JSON(http.StatusBadRequest, result.Errors())
+		c.SecureJSON(http.StatusBadRequest, result.Errors())
 		return
 	}
 
@@ -46,7 +46,7 @@ func (ctx *Context) UploadMetadata(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, MetadataResponse{Hash: response.IpfsHash})
+	c.SecureJSON(http.StatusOK, MetadataResponse{Hash: response.IpfsHash})
 }
 
 // ListMetadata -
@@ -56,7 +56,7 @@ func (ctx *Context) ListMetadata(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, list)
+	c.SecureJSON(http.StatusOK, list)
 }
 
 // DeleteMetadata -
@@ -70,5 +70,5 @@ func (ctx *Context) DeleteMetadata(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "metadata was successfully deleted"})
+	c.SecureJSON(http.StatusOK, gin.H{"message": "metadata was successfully deleted"})
 }

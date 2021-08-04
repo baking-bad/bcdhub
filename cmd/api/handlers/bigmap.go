@@ -116,7 +116,7 @@ func (ctx *Context) GetBigMap(c *gin.Context) {
 		res.ContractAlias = alias.Name
 	}
 
-	c.JSON(http.StatusOK, res)
+	c.SecureJSON(http.StatusOK, res)
 }
 
 // GetBigMapHistory godoc
@@ -144,11 +144,11 @@ func (ctx *Context) GetBigMapHistory(c *gin.Context) {
 		return
 	}
 	if bm == nil {
-		c.JSON(http.StatusNoContent, gin.H{})
+		c.SecureJSON(http.StatusNoContent, gin.H{})
 		return
 	}
 
-	c.JSON(http.StatusOK, prepareBigMapHistory(bm, req.Ptr))
+	c.SecureJSON(http.StatusOK, prepareBigMapHistory(bm, req.Ptr))
 }
 
 // GetBigMapKeys godoc
@@ -198,7 +198,7 @@ func (ctx *Context) GetBigMapKeys(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, response)
+	c.SecureJSON(http.StatusOK, response)
 }
 
 // GetBigMapByKeyHash godoc
@@ -235,7 +235,7 @@ func (ctx *Context) GetBigMapByKeyHash(c *gin.Context) {
 	}
 
 	if total == 0 {
-		c.JSON(http.StatusNoContent, gin.H{})
+		c.SecureJSON(http.StatusNoContent, gin.H{})
 		return
 	}
 
@@ -245,7 +245,7 @@ func (ctx *Context) GetBigMapByKeyHash(c *gin.Context) {
 	}
 
 	response.Total = total
-	c.JSON(http.StatusOK, response)
+	c.SecureJSON(http.StatusOK, response)
 }
 
 // GetBigMapDiffCount godoc
@@ -270,13 +270,13 @@ func (ctx *Context) GetBigMapDiffCount(c *gin.Context) {
 	count, err := ctx.BigMapDiffs.Count(req.NetworkID(), req.Ptr)
 	if err != nil {
 		if ctx.Storage.IsRecordNotFound(err) {
-			c.JSON(http.StatusOK, CountResponse{})
+			c.SecureJSON(http.StatusOK, CountResponse{})
 			return
 		}
 		ctx.handleError(c, err, 0)
 		return
 	}
-	c.JSON(http.StatusOK, CountResponse{count})
+	c.SecureJSON(http.StatusOK, CountResponse{count})
 }
 
 func (ctx *Context) prepareBigMapKeys(data []bigmapdiff.BigMapState) ([]BigMapResponseItem, error) {

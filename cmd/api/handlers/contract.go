@@ -31,7 +31,7 @@ func (ctx *Context) GetContract(c *gin.Context) {
 	contract, err := ctx.Contracts.Get(req.NetworkID(), req.Address)
 	if err != nil {
 		if ctx.Storage.IsRecordNotFound(err) {
-			c.JSON(http.StatusNoContent, gin.H{})
+			c.SecureJSON(http.StatusNoContent, gin.H{})
 			return
 		}
 		ctx.handleError(c, err, 0)
@@ -42,7 +42,7 @@ func (ctx *Context) GetContract(c *gin.Context) {
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	c.JSON(http.StatusOK, res)
+	c.SecureJSON(http.StatusOK, res)
 }
 
 // GetRandomContract godoc
@@ -66,7 +66,7 @@ func (ctx *Context) GetRandomContract(c *gin.Context) {
 	contract, err := ctx.Contracts.GetRandom(req.NetworkID())
 	if err != nil {
 		if ctx.Storage.IsRecordNotFound(err) {
-			c.JSON(http.StatusNoContent, gin.H{})
+			c.SecureJSON(http.StatusNoContent, gin.H{})
 			return
 		}
 		ctx.handleError(c, err, 0)
@@ -77,7 +77,7 @@ func (ctx *Context) GetRandomContract(c *gin.Context) {
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	c.JSON(http.StatusOK, res)
+	c.SecureJSON(http.StatusOK, res)
 }
 
 func (ctx *Context) contractPostprocessing(contract contract.Contract) (Contract, error) {

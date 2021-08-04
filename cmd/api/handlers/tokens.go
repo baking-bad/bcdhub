@@ -48,7 +48,7 @@ func (ctx *Context) GetFA(c *gin.Context) {
 	}
 	tokens.Total = total
 
-	c.JSON(http.StatusOK, tokens)
+	c.SecureJSON(http.StatusOK, tokens)
 }
 
 // GetFAByVersion godoc
@@ -89,7 +89,7 @@ func (ctx *Context) GetFAByVersion(c *gin.Context) {
 		return
 	}
 	tokens.Total = total
-	c.JSON(http.StatusOK, tokens)
+	c.SecureJSON(http.StatusOK, tokens)
 }
 
 // GetFA12OperationsForAddress godoc
@@ -144,7 +144,7 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, ctx.transfersPostprocessing(transfers, true))
+	c.SecureJSON(http.StatusOK, ctx.transfersPostprocessing(transfers, true))
 }
 
 // GetTokenVolumeSeries godoc
@@ -183,7 +183,7 @@ func (ctx *Context) GetTokenVolumeSeries(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, series)
+	c.SecureJSON(http.StatusOK, series)
 }
 
 func (ctx *Context) contractToTokens(contracts []contract.Contract, network types.Network, version string) (PageableTokenContracts, error) {
@@ -292,13 +292,13 @@ func (ctx *Context) GetContractTokens(c *gin.Context) {
 	}}, pageReq.Size, pageReq.Offset)
 	if err != nil {
 		if ctx.Storage.IsRecordNotFound(err) {
-			c.JSON(http.StatusOK, []TokenMetadata{})
+			c.SecureJSON(http.StatusOK, []TokenMetadata{})
 		} else {
 			ctx.handleError(c, err, 0)
 		}
 		return
 	}
-	c.JSON(http.StatusOK, metadata)
+	c.SecureJSON(http.StatusOK, metadata)
 }
 
 // GetContractTokensCount godoc
@@ -327,7 +327,7 @@ func (ctx *Context) GetContractTokensCount(c *gin.Context) {
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	c.JSON(http.StatusOK, CountResponse{
+	c.SecureJSON(http.StatusOK, CountResponse{
 		count,
 	})
 }
@@ -403,7 +403,7 @@ func (ctx *Context) GetTokenHolders(c *gin.Context) {
 		result[balances[i].Address] = balances[i].Balance.String()
 	}
 
-	c.JSON(http.StatusOK, result)
+	c.SecureJSON(http.StatusOK, result)
 }
 
 // GetTokenMetadata godoc
@@ -445,5 +445,5 @@ func (ctx *Context) GetTokenMetadata(c *gin.Context) {
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	c.JSON(http.StatusOK, tokens)
+	c.SecureJSON(http.StatusOK, tokens)
 }

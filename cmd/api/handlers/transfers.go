@@ -45,7 +45,7 @@ func (ctx *Context) GetContractTransfers(c *gin.Context) {
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	c.JSON(http.StatusOK, ctx.transfersPostprocessing(transfers, false))
+	c.SecureJSON(http.StatusOK, ctx.transfersPostprocessing(transfers, false))
 }
 
 func (ctx *Context) transfersPostprocessing(transfers domains.TransfersResponse, withLastID bool) (response TransferResponse) {

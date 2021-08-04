@@ -30,10 +30,10 @@ func (ctx *Context) GetBySlug(c *gin.Context) {
 		return
 	}
 	if a == nil {
-		c.JSON(http.StatusNoContent, gin.H{})
+		c.SecureJSON(http.StatusNoContent, gin.H{})
 		return
 	}
 	var alias Alias
 	alias.FromModel(a)
-	c.JSON(http.StatusOK, alias)
+	c.SecureJSON(http.StatusOK, alias)
 }

@@ -15,7 +15,7 @@ func (ctx *Context) GetDAppList(c *gin.Context) {
 	dapps, err := ctx.DApps.All()
 	if err != nil {
 		if ctx.Storage.IsRecordNotFound(err) {
-			c.JSON(http.StatusOK, []interface{}{})
+			c.SecureJSON(http.StatusOK, []interface{}{})
 			return
 		}
 		ctx.handleError(c, err, 0)
@@ -31,7 +31,7 @@ func (ctx *Context) GetDAppList(c *gin.Context) {
 		results[i] = result
 	}
 
-	c.JSON(http.StatusOK, results)
+	c.SecureJSON(http.StatusOK, results)
 }
 
 // GetDApp -
@@ -44,7 +44,7 @@ func (ctx *Context) GetDApp(c *gin.Context) {
 	dapp, err := ctx.DApps.Get(req.Slug)
 	if err != nil {
 		if ctx.Storage.IsRecordNotFound(err) {
-			c.JSON(http.StatusNoContent, gin.H{})
+			c.SecureJSON(http.StatusNoContent, gin.H{})
 			return
 		}
 		ctx.handleError(c, err, 0)
@@ -56,7 +56,7 @@ func (ctx *Context) GetDApp(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, response)
+	c.SecureJSON(http.StatusOK, response)
 }
 
 func (ctx *Context) appendDAppInfo(dapp dapp.DApp, withDetails bool) (DApp, error) {

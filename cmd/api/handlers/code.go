@@ -60,7 +60,7 @@ func (ctx *Context) GetContractCode(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	c.SecureJSON(http.StatusOK, resp)
 }
 
 // GetDiff godoc
@@ -86,7 +86,7 @@ func (ctx *Context) GetDiff(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	c.SecureJSON(http.StatusOK, resp)
 }
 
 func (ctx *Context) getContractCodeJSON(network types.Network, address, protocol string) (res gjson.Result, err error) {

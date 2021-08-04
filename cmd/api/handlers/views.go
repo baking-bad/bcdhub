@@ -46,7 +46,7 @@ func (ctx *Context) GetViewsSchema(c *gin.Context) {
 	schemas := make([]ViewSchema, 0)
 
 	if len(tzip.Views) == 0 {
-		c.JSON(http.StatusOK, schemas)
+		c.SecureJSON(http.StatusOK, schemas)
 		return
 	}
 
@@ -83,7 +83,7 @@ func (ctx *Context) GetViewsSchema(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, schemas)
+	c.SecureJSON(http.StatusOK, schemas)
 }
 
 // ExecuteView godoc
@@ -188,7 +188,7 @@ func (ctx *Context) ExecuteView(c *gin.Context) {
 	}
 
 	if responseTree[0].Prim == consts.None {
-		c.JSON(http.StatusOK, nil)
+		c.SecureJSON(http.StatusOK, nil)
 		return
 	}
 
@@ -202,7 +202,7 @@ func (ctx *Context) ExecuteView(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, miguel)
+	c.SecureJSON(http.StatusOK, miguel)
 }
 
 func getViewTree(impl tzip.ViewImplementation) (*ast.TypedAst, error) {

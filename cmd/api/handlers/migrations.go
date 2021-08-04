@@ -37,7 +37,7 @@ func (ctx *Context) GetContractMigrations(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, result)
+	c.SecureJSON(http.StatusOK, result)
 }
 
 func prepareMigrations(ctx *Context, data []migration.Migration) ([]Migration, error) {

@@ -29,7 +29,7 @@ func (ctx *Context) GetMetadata(c *gin.Context) {
 	tzip, err := ctx.TZIP.Get(req.NetworkID(), req.Address)
 	if err != nil {
 		if ctx.Storage.IsRecordNotFound(err) {
-			c.JSON(http.StatusNoContent, gin.H{})
+			c.SecureJSON(http.StatusNoContent, gin.H{})
 		} else {
 			ctx.handleError(c, err, 0)
 		}
@@ -42,5 +42,5 @@ func (ctx *Context) GetMetadata(c *gin.Context) {
 
 	var t TZIPResponse
 	t.FromModel(tzip, true)
-	c.JSON(http.StatusOK, t)
+	c.SecureJSON(http.StatusOK, t)
 }

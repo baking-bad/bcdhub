@@ -63,7 +63,7 @@ func (ctx *Context) GetInfo(c *gin.Context) {
 		accountInfo.Alias = alias.Name
 	}
 
-	c.JSON(http.StatusOK, accountInfo)
+	c.SecureJSON(http.StatusOK, accountInfo)
 }
 
 // GetBatchTokenBalances godoc
@@ -116,7 +116,7 @@ func (ctx *Context) GetBatchTokenBalances(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, result)
+	c.SecureJSON(http.StatusOK, result)
 }
 
 // GetAccountTokenBalances godoc
@@ -209,7 +209,7 @@ func (ctx *Context) GetAccountTokensCountByContract(c *gin.Context) {
 	if ctx.handleError(c, err, 0) {
 		return
 	}
-	c.JSON(http.StatusOK, res)
+	c.SecureJSON(http.StatusOK, res)
 }
 
 // GetAccountTokensCountByContractWithMetadata godoc
@@ -262,5 +262,5 @@ func (ctx *Context) GetAccountTokensCountByContractWithMetadata(c *gin.Context) 
 		}
 	}
 
-	c.JSON(http.StatusOK, response)
+	c.SecureJSON(http.StatusOK, response)
 }

@@ -26,6 +26,7 @@ require (
 	github.com/karlseguin/ccache v2.0.3+incompatible
 	github.com/karlseguin/expect v1.0.2-0.20190806010014-778a5f0c6003 // indirect
 	github.com/lib/pq v1.9.0
+	github.com/microcosm-cc/bluemonday v1.0.15
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.15.0
 	github.com/schollz/progressbar/v3 v3.1.1
@@ -38,8 +39,6 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/yhirose/go-peg v0.0.0-20190710015414-7eb2cf046928
 	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
-	golang.org/x/net v0.0.0-20201224014010-6772e930b67b // indirect
-	golang.org/x/sys v0.0.0-20210305034016-7844c3c200c3 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	gorm.io/driver/postgres v1.0.8
 	gorm.io/gorm v1.21.3

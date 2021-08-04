@@ -86,7 +86,7 @@ func (ctx *Context) GetContractStorage(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	c.SecureJSON(http.StatusOK, resp)
 }
 
 // GetContractStorageRaw godoc
@@ -127,7 +127,7 @@ func (ctx *Context) GetContractStorageRaw(c *gin.Context) {
 		return
 	}
 	if len(ops) == 0 {
-		c.JSON(http.StatusNoContent, "")
+		c.SecureJSON(http.StatusNoContent, "")
 		return
 	}
 	var storage string
@@ -150,7 +150,7 @@ func (ctx *Context) GetContractStorageRaw(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	c.SecureJSON(http.StatusOK, resp)
 }
 
 // GetContractStorageRich godoc
@@ -191,7 +191,7 @@ func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 		return
 	}
 	if len(ops) == 0 {
-		c.JSON(http.StatusNoContent, "")
+		c.SecureJSON(http.StatusNoContent, "")
 		return
 	}
 	var storage []byte
@@ -237,7 +237,7 @@ func (ctx *Context) GetContractStorageRich(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, response)
+	c.SecureJSON(http.StatusOK, response)
 }
 
 // GetContractStorageSchema godoc
@@ -302,5 +302,5 @@ func (ctx *Context) GetContractStorageSchema(c *gin.Context) {
 		storageType.GetJSONModel(schema.DefaultModel)
 	}
 
-	c.JSON(http.StatusOK, schema)
+	c.SecureJSON(http.StatusOK, schema)
 }
