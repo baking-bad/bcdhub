@@ -3,7 +3,6 @@ package handlers
 import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	jsoniter "github.com/json-iterator/go"
-	"github.com/microcosm-cc/bluemonday"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -11,7 +10,6 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 // Context -
 type Context struct {
 	*config.Context
-	Sanitizer *bluemonday.Policy
 }
 
 // NewContext -
@@ -29,7 +27,6 @@ func NewContext(cfg config.Config) (*Context, error) {
 	)
 
 	return &Context{
-		Context:   ctx,
-		Sanitizer: bluemonday.UGCPolicy(),
+		Context: ctx,
 	}, nil
 }

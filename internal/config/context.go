@@ -25,6 +25,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/baking-bad/bcdhub/internal/tzkt"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/pkg/errors"
 )
 
@@ -62,14 +63,17 @@ type Context struct {
 
 	Searcher search.Searcher
 
-	Cache *cache.Cache
+	Cache     *cache.Cache
+	Sanitizer *bluemonday.Policy
 }
 
 // NewContext -
 func NewContext(opts ...ContextOption) *Context {
 	ctx := &Context{
-		Cache: cache.NewCache(),
+		Cache:     cache.NewCache(),
+		Sanitizer: bluemonday.UGCPolicy(),
 	}
+	ctx.Sanitizer.AllowAttrs("em")
 
 	for _, opt := range opts {
 		opt(ctx)
