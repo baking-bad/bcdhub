@@ -294,7 +294,8 @@ type tokenRequest struct {
 }
 
 type tokenBalanceRequest struct {
-	pageableRequest
+	Offset    int64  `form:"offset" binding:"min=0"`
+	Size      int64  `form:"size" binding:"min=0,max=50"`
 	Contract  string `form:"contract" binding:"omitempty,address"`
 	SortBy    string `form:"sort_by" binding:"omitempty,oneof=token_id balance"`
 	HideEmpty bool   `form:"hide_empty" binding:"omitempty"`
