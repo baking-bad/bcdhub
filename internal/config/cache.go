@@ -27,7 +27,7 @@ func (ctx *Context) CachedAlias(network types.Network, address string) string {
 	}
 
 	if data, ok := item.Value().(*tzip.TZIP); ok && data != nil {
-		return data.Name
+		return ctx.Sanitizer.Sanitize(data.Name)
 	}
 	return ""
 }
