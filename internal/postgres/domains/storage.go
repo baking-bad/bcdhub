@@ -27,6 +27,17 @@ var balanceQuery = `
 	)
 `
 
+func (storage *Storage) getPageSizeForBalances(size int64) int {
+	switch {
+	case size > 50:
+		return 50
+	case size == 0:
+		return int(storage.PageSize)
+	default:
+		return int(size)
+	}
+}
+
 // TokenBalances -
 func (storage *Storage) TokenBalances(network types.Network, contract, address string, size, offset int64, sort string, hideZeroBalances bool) (domains.TokenBalanceResponse, error) {
 	response := domains.TokenBalanceResponse{
@@ -55,7 +66,7 @@ func (storage *Storage) TokenBalances(network types.Network, contract, address s
 		return response, err
 	}
 
-	query.Limit(storage.GetPageSize(size)).Offset(int(offset)).Order(fmt.Sprintf("%s desc", sort))
+	query.Limit(storage.getPageSizeForBalances(size)).Offset(int(offset)).Order(fmt.Sprintf("%s desc", sort))
 
 	if err := storage.DB.Raw(balanceQuery, query).
 		Find(&response.Balances).Error; err != nil {
