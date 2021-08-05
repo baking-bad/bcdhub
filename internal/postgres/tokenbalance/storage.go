@@ -82,11 +82,17 @@ type tokensByContract struct {
 }
 
 // CountByContract -
-func (storage *Storage) CountByContract(network types.Network, address string) (map[string]int64, error) {
+func (storage *Storage) CountByContract(network types.Network, address string, hideEmpty bool) (map[string]int64, error) {
 	var resp []tokensByContract
 	query := storage.DB.Table(models.DocTokenBalances).
 		Select("contract, count(*) as tokens_count").
-		Scopes(core.NetworkAndAddress(network, address)).
+		Scopes(core.NetworkAndAddress(network, address))
+
+	if hideEmpty {
+		query.Where("balance != 0")
+	}
+
+	query.
 		Group("contract").
 		Scan(&resp)
 

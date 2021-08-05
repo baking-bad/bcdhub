@@ -193,6 +193,7 @@ func (ctx *Context) getAccountBalances(network types.Network, address string, re
 // @ID get-account-token-balances-count
 // @Param network path string true "Network"
 // @Param address path string true "Address" minlength(36) maxlength(36)
+// @Param hide_empty query string false "Hide zero balances from response" Enums(true, false)
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} map[string]int64
@@ -205,7 +206,11 @@ func (ctx *Context) GetAccountTokensCountByContract(c *gin.Context) {
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
 		return
 	}
-	res, err := ctx.TokenBalances.CountByContract(req.NetworkID(), req.Address)
+	var queryParams tokensCountByContractRequest
+	if err := c.BindQuery(&queryParams); ctx.handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+	res, err := ctx.TokenBalances.CountByContract(req.NetworkID(), req.Address, queryParams.HideEmpty)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -219,6 +224,7 @@ func (ctx *Context) GetAccountTokensCountByContract(c *gin.Context) {
 // @ID get-account-token-balances-with-metadata-count
 // @Param network path string true "Network"
 // @Param address path string true "Address" minlength(36) maxlength(36)
+// @Param hide_empty query string false "Hide zero balances from response" Enums(true, false)
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} map[string]TokensCountWithMetadata
@@ -231,7 +237,11 @@ func (ctx *Context) GetAccountTokensCountByContractWithMetadata(c *gin.Context) 
 	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusNotFound) {
 		return
 	}
-	res, err := ctx.TokenBalances.CountByContract(req.NetworkID(), req.Address)
+	var queryParams tokensCountByContractRequest
+	if err := c.BindQuery(&queryParams); ctx.handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+	res, err := ctx.TokenBalances.CountByContract(req.NetworkID(), req.Address, queryParams.HideEmpty)
 	if ctx.handleError(c, err, 0) {
 		return
 	}

@@ -80,18 +80,18 @@ func (mr *MockRepositoryMockRecorder) Batch(network, addresses interface{}) *gom
 }
 
 // CountByContract mocks base method
-func (m *MockRepository) CountByContract(network types.Network, address string) (map[string]int64, error) {
+func (m *MockRepository) CountByContract(network types.Network, address string, hideEmpty bool) (map[string]int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountByContract", network, address)
+	ret := m.ctrl.Call(m, "CountByContract", network, address, hideEmpty)
 	ret0, _ := ret[0].(map[string]int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CountByContract indicates an expected call of CountByContract
-func (mr *MockRepositoryMockRecorder) CountByContract(network, address interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) CountByContract(network, address, hideEmpty interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByContract", reflect.TypeOf((*MockRepository)(nil).CountByContract), network, address)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountByContract", reflect.TypeOf((*MockRepository)(nil).CountByContract), network, address, hideEmpty)
 }
 
 // TokenSupply mocks base method

@@ -309,3 +309,7 @@ type tokenMetadataRequest struct {
 	Creator  string `form:"creator" binding:"omitempty"`
 	Contract string `form:"contract" binding:"omitempty,address"`
 }
+
+type tokensCountByContractRequest struct {
+	HideEmpty bool `form:"hide_empty" binding:"omitempty"`
+}
