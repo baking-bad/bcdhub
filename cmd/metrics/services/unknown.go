@@ -19,13 +19,15 @@ import (
 // Unknown -
 type Unknown struct {
 	*TimeBased
-	ctx *config.Context
+	ctx     *config.Context
+	timeout time.Duration
 }
 
 // NewUnknown -
-func NewUnknown(ctx *config.Context, period time.Duration) *Unknown {
+func NewUnknown(ctx *config.Context, period time.Duration, timeout time.Duration) *Unknown {
 	u := &Unknown{
-		ctx: ctx,
+		ctx:     ctx,
+		timeout: timeout,
 	}
 	u.TimeBased = NewTimeBased(u.refresh, period)
 	return u
@@ -55,7 +57,7 @@ func (u *Unknown) refresh() error {
 				continue
 			}
 
-			s := tzipStorage.NewIPFSStorage(u.ctx.Config.IPFSGateways, tzipStorage.WithTimeoutIPFS(time.Second*10))
+			s := tzipStorage.NewIPFSStorage(u.ctx.Config.IPFSGateways, tzipStorage.WithTimeoutIPFS(u.timeout))
 
 			remoteMetadata := new(tokens.TokenMetadata)
 			if err := s.Get(link, remoteMetadata); err != nil {
