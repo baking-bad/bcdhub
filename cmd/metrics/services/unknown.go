@@ -34,13 +34,14 @@ func NewUnknown(ctx *config.Context, period time.Duration, timeout time.Duration
 }
 
 func (u *Unknown) refresh() error {
-	metadata, err := u.ctx.TokenMetadata.GetAll(tokenmetadata.GetContext{
+	since := time.Now().Add(-24 * 7 * time.Hour)
+	metadata, err := u.ctx.TokenMetadata.GetRecent(since, tokenmetadata.GetContext{
 		Name: consts.Unknown,
 	})
 	if err != nil {
 		return err
 	}
-	logger.Info().Msgf("Found %d unknown metadata", len(metadata))
+	logger.Info().Msgf("Found %d unknown token metadata", len(metadata))
 
 	return u.ctx.StorageDB.DB.Transaction(func(tx *gorm.DB) error {
 		for i := range metadata {

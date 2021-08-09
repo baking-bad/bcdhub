@@ -2,6 +2,7 @@ package tokenmetadata
 
 import (
 	"errors"
+	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
@@ -51,6 +52,17 @@ func (storage *Storage) GetAll(ctx ...tokenmetadata.GetContext) (tokens []tokenm
 	query := storage.DB.Table(models.DocTokenMetadata)
 	storage.buildGetTokenMetadataContext(query, ctx...)
 	err = query.Find(&tokens).Error
+	return
+}
+
+// GetRecent -
+func (storage *Storage) GetRecent(since time.Time, ctx ...tokenmetadata.GetContext) (tokens []tokenmetadata.TokenMetadata, err error) {
+	query := storage.DB.Table(models.DocTokenMetadata)
+	storage.buildGetTokenMetadataContext(query, ctx...)
+	err = query.
+		Where("timestamp > ?", since).
+		Order("id desc").
+		Find(&tokens).Error
 	return
 }
 
