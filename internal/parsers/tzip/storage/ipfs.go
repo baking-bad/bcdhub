@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/logger"
+	"github.com/karlseguin/ccache"
 )
 
 // IPFS storage prefix
@@ -24,6 +25,7 @@ var (
 type IPFSStorage struct {
 	HTTPStorage
 	gateways []string
+	cache    *ccache.Cache
 }
 
 // IPFSStorageOption -
@@ -49,6 +51,7 @@ func NewIPFSStorage(gateways []string, opts ...IPFSStorageOption) IPFSStorage {
 	s := IPFSStorage{
 		HTTPStorage: NewHTTPStorage(),
 		gateways:    gateways,
+		cache:       ccache.New(ccache.Configure()),
 	}
 
 	for i := range opts {
@@ -69,14 +72,25 @@ func (s IPFSStorage) Get(value string, output interface{}) error {
 		return ErrInvalidIPFSHash
 	}
 
+	if item := s.cache.Get(multihash); item != nil && !item.Expired() {
+		output = item.Value()
+		if output == nil {
+			return ErrNoIPFSResponse
+		}
+		logger.Info().Str("url", value).Msg("using cached response")
+		return nil
+	}
+
 	for i := range s.gateways {
 		url := fmt.Sprintf("%s/ipfs/%s", s.gateways[i], multihash)
 		err := s.HTTPStorage.Get(url, output)
 		if err == nil {
+			s.cache.Set(multihash, output, 30*24*time.Hour)
 			return nil
 		}
 		logger.Warning().Err(err).Str("url", url).Msg("")
 	}
 
+	s.cache.Set(multihash, nil, time.Minute*5)
 	return ErrNoIPFSResponse
 }

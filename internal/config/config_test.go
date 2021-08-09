@@ -22,12 +22,12 @@ func Test_expandEnv(t *testing.T) {
 			want: "val ",
 		}, {
 			name: "test 4",
-			data: "${TEST3:-127.0.0.1}",
+			data: "${TEST4:-127.0.0.1}",
 			want: "127.0.0.1",
 		}, {
 			name: "test 5",
-			data: "${TEST3:-https://example.com:443/path/}",
-			want: "127.0.0.1",
+			data: "${TEST5:-https://example-site.com:443/path/}",
+			want: "https://example-site.com:443/path/",
 		},
 	}
 	for _, tt := range tests {
