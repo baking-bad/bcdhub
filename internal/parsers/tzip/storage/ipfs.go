@@ -3,6 +3,7 @@ package storage
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -11,6 +12,10 @@ import (
 // IPFS storage prefix
 const (
 	PrefixIPFS = "ipfs"
+)
+
+var (
+	regMultihash = regexp.MustCompile("Qm[1-9A-HJ-NP-Za-km-z]{44}")
 )
 
 // IPFSStorage -
@@ -57,8 +62,13 @@ func (s IPFSStorage) Get(value string, output interface{}) error {
 		return ErrEmptyIPFSGatewayList
 	}
 
+	multihash := strings.TrimPrefix(value, "ipfs://")
+	if len(multihash) != 46 || !regMultihash.MatchString(multihash) {
+		return ErrInvalidIPFSHash
+	}
+
 	for i := range s.gateways {
-		url := fmt.Sprintf("%s/ipfs/%s", s.gateways[i], strings.TrimPrefix(value, "ipfs://"))
+		url := fmt.Sprintf("%s/ipfs/%s", s.gateways[i], multihash)
 		if err := s.HTTPStorage.Get(url, output); err == nil {
 			return nil
 		}
