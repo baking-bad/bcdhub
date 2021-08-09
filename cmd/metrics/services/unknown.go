@@ -61,7 +61,7 @@ func (u *Unknown) refresh() error {
 
 			remoteMetadata := new(tokens.TokenMetadata)
 			if err := s.Get(link, remoteMetadata); err != nil {
-				if errors.Is(err, tzipStorage.ErrNoIPFSResponse) {
+				if errors.Is(err, tzipStorage.ErrNoIPFSResponse) || errors.Is(err, tzipStorage.ErrInvalidIPFSHash) {
 					logger.Warning().Err(err).Str("url", link).Str("kind", "token_metadata").Msg("")
 					continue
 				}
