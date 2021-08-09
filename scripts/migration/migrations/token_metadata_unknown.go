@@ -2,12 +2,10 @@ package migrations
 
 import (
 	"errors"
-	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -32,7 +30,7 @@ func (m *TokenMetadataUnknown) Description() string {
 
 // Do - migrate function
 func (m *TokenMetadataUnknown) Do(ctx *config.Context) error {
-	metadata, err := ctx.TokenMetadata.GetAll(tokenmetadata.GetContext{
+	metadata, err := ctx.TokenMetadata.GetRecent(time.Time{}, tokenmetadata.GetContext{
 		Name: consts.Unknown,
 	})
 	if err != nil {
@@ -40,6 +38,7 @@ func (m *TokenMetadataUnknown) Do(ctx *config.Context) error {
 	}
 	logger.Info().Msgf("Found %d unknown metadata", len(metadata))
 
+	ipfs := tzipStorage.NewIPFSStorage(ctx.Config.IPFSGateways, tzipStorage.WithTimeoutIPFS(time.Second*5))
 	bar := progressbar.NewOptions(len(metadata), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish(), progressbar.OptionShowCount())
 
 	return ctx.StorageDB.DB.Transaction(func(tx *gorm.DB) error {
@@ -57,15 +56,9 @@ func (m *TokenMetadataUnknown) Do(ctx *config.Context) error {
 				continue
 			}
 
-			if !helpers.IsIPFS(strings.TrimPrefix(link, "ipfs://")) {
-				continue
-			}
-
-			s := tzipStorage.NewIPFSStorage(ctx.Config.IPFSGateways, tzipStorage.WithTimeoutIPFS(time.Second*10))
-
 			remoteMetadata := new(tokens.TokenMetadata)
-			if err := s.Get(link, remoteMetadata); err != nil {
-				if errors.Is(err, tzipStorage.ErrNoIPFSResponse) {
+			if err := ipfs.Get(link, remoteMetadata); err != nil {
+				if errors.Is(err, tzipStorage.ErrNoIPFSResponse) || errors.Is(err, tzipStorage.ErrInvalidIPFSHash) {
 					logger.Warning().Err(err).Str("url", link).Str("kind", "token_metadata").Msg("")
 					continue
 				}

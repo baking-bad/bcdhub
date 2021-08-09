@@ -1,12 +1,10 @@
 package services
 
 import (
-	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -21,26 +19,31 @@ type Unknown struct {
 	*TimeBased
 	ctx     *config.Context
 	timeout time.Duration
+	since   time.Duration
 }
 
 // NewUnknown -
-func NewUnknown(ctx *config.Context, period time.Duration, timeout time.Duration) *Unknown {
+func NewUnknown(ctx *config.Context, period, timeout, since time.Duration) *Unknown {
 	u := &Unknown{
 		ctx:     ctx,
 		timeout: timeout,
+		since:   since,
 	}
 	u.TimeBased = NewTimeBased(u.refresh, period)
 	return u
 }
 
 func (u *Unknown) refresh() error {
-	metadata, err := u.ctx.TokenMetadata.GetAll(tokenmetadata.GetContext{
+	since := time.Now().Add(u.since)
+	metadata, err := u.ctx.TokenMetadata.GetRecent(since, tokenmetadata.GetContext{
 		Name: consts.Unknown,
 	})
 	if err != nil {
 		return err
 	}
-	logger.Info().Msgf("Found %d unknown metadata", len(metadata))
+	logger.Info().Msgf("Found %d unknown token metadata", len(metadata))
+
+	ipfs := tzipStorage.NewIPFSStorage(u.ctx.Config.IPFSGateways, tzipStorage.WithTimeoutIPFS(u.timeout))
 
 	return u.ctx.StorageDB.DB.Transaction(func(tx *gorm.DB) error {
 		for i := range metadata {
@@ -53,16 +56,9 @@ func (u *Unknown) refresh() error {
 				continue
 			}
 
-			if !helpers.IsIPFS(strings.TrimPrefix(link, "ipfs://")) {
-				continue
-			}
-
-			s := tzipStorage.NewIPFSStorage(u.ctx.Config.IPFSGateways, tzipStorage.WithTimeoutIPFS(u.timeout))
-
 			remoteMetadata := new(tokens.TokenMetadata)
-			if err := s.Get(link, remoteMetadata); err != nil {
-				if errors.Is(err, tzipStorage.ErrNoIPFSResponse) {
-					logger.Warning().Err(err).Str("url", link).Str("kind", "token_metadata").Msg("")
+			if err := ipfs.Get(link, remoteMetadata); err != nil {
+				if errors.Is(err, tzipStorage.ErrNoIPFSResponse) || errors.Is(err, tzipStorage.ErrInvalidIPFSHash) {
 					continue
 				}
 				return err
@@ -86,6 +82,7 @@ func (u *Unknown) refresh() error {
 			if err := metadata[i].Save(tx); err != nil {
 				return err
 			}
+			logger.Info().Str("url", link).Msg("token metadata fetched")
 		}
 
 		return nil
