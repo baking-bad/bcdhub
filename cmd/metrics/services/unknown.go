@@ -19,20 +19,22 @@ type Unknown struct {
 	*TimeBased
 	ctx     *config.Context
 	timeout time.Duration
+	since   time.Duration
 }
 
 // NewUnknown -
-func NewUnknown(ctx *config.Context, period time.Duration, timeout time.Duration) *Unknown {
+func NewUnknown(ctx *config.Context, period, timeout, since time.Duration) *Unknown {
 	u := &Unknown{
 		ctx:     ctx,
 		timeout: timeout,
+		since:   since,
 	}
 	u.TimeBased = NewTimeBased(u.refresh, period)
 	return u
 }
 
 func (u *Unknown) refresh() error {
-	since := time.Now().Add(-24 * 7 * time.Hour)
+	since := time.Now().Add(u.since)
 	metadata, err := u.ctx.TokenMetadata.GetRecent(since, tokenmetadata.GetContext{
 		Name: consts.Unknown,
 	})

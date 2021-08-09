@@ -74,10 +74,10 @@ func (s IPFSStorage) Get(value string, output interface{}) error {
 
 	if item := s.cache.Get(multihash); item != nil && !item.Expired() {
 		output = item.Value()
+		logger.Info().Str("url", value).Msg("using cached response")
 		if output == nil {
 			return ErrNoIPFSResponse
 		}
-		logger.Info().Str("url", value).Msg("using cached response")
 		return nil
 	}
 
@@ -91,6 +91,6 @@ func (s IPFSStorage) Get(value string, output interface{}) error {
 		logger.Warning().Err(err).Str("url", url).Msg("")
 	}
 
-	s.cache.Set(multihash, nil, time.Minute*5)
+	s.cache.Set(multihash, output, time.Minute*5)
 	return ErrNoIPFSResponse
 }
