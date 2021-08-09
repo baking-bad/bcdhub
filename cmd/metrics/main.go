@@ -48,7 +48,7 @@ func main() {
 
 	workers := []services.Service{
 		services.NewView(ctx.StorageDB.DB, "head_stats", time.Minute),
-		services.NewUnknown(ctx, time.Hour, time.Second*2, -time.Hour*24),
+		services.NewUnknown(ctx, time.Minute*30, time.Second*2, -time.Hour*24),
 		services.NewStorageBased(
 			"projects",
 			ctx.Services,
