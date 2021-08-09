@@ -15,6 +15,9 @@ import (
 // IPFS storage prefix
 const (
 	PrefixIPFS = "ipfs"
+	MaxTTL     = time.Duration(1<<63 - 1)
+	BounceTime = time.Minute * 5
+	BounceFlag = "no_response"
 )
 
 var (
@@ -75,7 +78,7 @@ func (s IPFSStorage) Get(value string, output interface{}) error {
 	if item := s.cache.Get(multihash); item != nil && !item.Expired() {
 		output = item.Value()
 		logger.Info().Str("url", value).Msg("using cached response")
-		if output == nil {
+		if output == BounceFlag {
 			return ErrNoIPFSResponse
 		}
 		return nil
@@ -85,12 +88,12 @@ func (s IPFSStorage) Get(value string, output interface{}) error {
 		url := fmt.Sprintf("%s/ipfs/%s", s.gateways[i], multihash)
 		err := s.HTTPStorage.Get(url, output)
 		if err == nil {
-			s.cache.Set(multihash, output, 30*24*time.Hour)
+			s.cache.Set(multihash, output, MaxTTL)
 			return nil
 		}
 		logger.Warning().Err(err).Str("url", url).Msg("")
 	}
 
-	s.cache.Set(multihash, output, time.Minute*5)
+	s.cache.Set(multihash, BounceFlag, BounceTime)
 	return ErrNoIPFSResponse
 }
