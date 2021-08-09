@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/baking-bad/bcdhub/internal/logger"
 )
 
 // IPFS storage prefix
@@ -69,9 +71,11 @@ func (s IPFSStorage) Get(value string, output interface{}) error {
 
 	for i := range s.gateways {
 		url := fmt.Sprintf("%s/ipfs/%s", s.gateways[i], multihash)
-		if err := s.HTTPStorage.Get(url, output); err == nil {
+		err := s.HTTPStorage.Get(url, output)
+		if err == nil {
 			return nil
 		}
+		logger.Warning().Err(err).Str("url", url).Msg("")
 	}
 
 	return ErrNoIPFSResponse

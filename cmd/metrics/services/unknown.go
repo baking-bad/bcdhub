@@ -62,7 +62,6 @@ func (u *Unknown) refresh() error {
 			remoteMetadata := new(tokens.TokenMetadata)
 			if err := s.Get(link, remoteMetadata); err != nil {
 				if errors.Is(err, tzipStorage.ErrNoIPFSResponse) || errors.Is(err, tzipStorage.ErrInvalidIPFSHash) {
-					logger.Warning().Err(err).Str("url", link).Str("kind", "token_metadata").Msg("")
 					continue
 				}
 				return err
@@ -86,6 +85,7 @@ func (u *Unknown) refresh() error {
 			if err := metadata[i].Save(tx); err != nil {
 				return err
 			}
+			logger.Info().Str("url", link).Msg("token metadata fetched")
 		}
 
 		return nil
