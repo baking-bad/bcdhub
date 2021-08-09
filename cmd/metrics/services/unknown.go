@@ -1,12 +1,10 @@
 package services
 
 import (
-	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/config"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/types"
@@ -43,6 +41,8 @@ func (u *Unknown) refresh() error {
 	}
 	logger.Info().Msgf("Found %d unknown token metadata", len(metadata))
 
+	ipfs := tzipStorage.NewIPFSStorage(u.ctx.Config.IPFSGateways, tzipStorage.WithTimeoutIPFS(u.timeout))
+
 	return u.ctx.StorageDB.DB.Transaction(func(tx *gorm.DB) error {
 		for i := range metadata {
 			emptyValue, ok := metadata[i].Extras["@@empty"]
@@ -54,14 +54,8 @@ func (u *Unknown) refresh() error {
 				continue
 			}
 
-			if !helpers.IsIPFS(strings.TrimPrefix(link, "ipfs://")) {
-				continue
-			}
-
-			s := tzipStorage.NewIPFSStorage(u.ctx.Config.IPFSGateways, tzipStorage.WithTimeoutIPFS(u.timeout))
-
 			remoteMetadata := new(tokens.TokenMetadata)
-			if err := s.Get(link, remoteMetadata); err != nil {
+			if err := ipfs.Get(link, remoteMetadata); err != nil {
 				if errors.Is(err, tzipStorage.ErrNoIPFSResponse) || errors.Is(err, tzipStorage.ErrInvalidIPFSHash) {
 					continue
 				}
