@@ -35,8 +35,8 @@ base_url: https://better-call.dev
 
 ipfs:
   - ${SANDBOX_IPFS_GATEWAY:-https://ipfs.baking-bad.org}
-  - https://dweb.link
-  - https://ipfs.io
+#  - https://dweb.link
+#  - https://ipfs.io
 
 domains:
    edo2net: KT1KP2Yy6MNkYKkHqroGBZ7KFN5NdNfnUHHv
