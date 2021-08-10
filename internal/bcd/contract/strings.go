@@ -1,7 +1,7 @@
 package contract
 
 import (
-	"crypto/sha512"
+	"crypto/sha256"
 	"encoding/hex"
 	"regexp"
 
@@ -14,7 +14,7 @@ var (
 
 // ComputeHash -
 func ComputeHash(data []byte) (string, error) {
-	sha := sha512.New()
+	sha := sha256.New()
 	if _, err := sha.Write(data); err != nil {
 		return "", err
 	}
