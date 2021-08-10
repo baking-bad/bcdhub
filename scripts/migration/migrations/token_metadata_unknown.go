@@ -41,50 +41,51 @@ func (m *TokenMetadataUnknown) Do(ctx *config.Context) error {
 	ipfs := tzipStorage.NewIPFSStorage(ctx.Config.IPFSGateways, tzipStorage.WithTimeoutIPFS(time.Second*5))
 	bar := progressbar.NewOptions(len(metadata), progressbar.OptionSetPredictTime(false), progressbar.OptionClearOnFinish(), progressbar.OptionShowCount())
 
-	return ctx.StorageDB.DB.Transaction(func(tx *gorm.DB) error {
-		for i := range metadata {
-			if err := bar.Add(1); err != nil {
-				return err
-			}
-
-			emptyValue, ok := metadata[i].Extras["@@empty"]
-			if !ok {
-				continue
-			}
-			link, ok := emptyValue.(string)
-			if !ok {
-				continue
-			}
-
-			remoteMetadata := new(tokens.TokenMetadata)
-			if err := ipfs.Get(link, remoteMetadata); err != nil {
-				if errors.Is(err, tzipStorage.ErrNoIPFSResponse) || errors.Is(err, tzipStorage.ErrInvalidIPFSHash) {
-					logger.Warning().Err(err).Str("url", link).Str("kind", "token_metadata").Msg("")
-					continue
-				}
-				return err
-			}
-			metadata[i].Symbol = remoteMetadata.Symbol
-			metadata[i].Decimals = remoteMetadata.Decimals
-			metadata[i].Name = remoteMetadata.Name
-			metadata[i].Description = remoteMetadata.Description
-			metadata[i].ArtifactURI = remoteMetadata.ArtifactURI
-			metadata[i].DisplayURI = remoteMetadata.DisplayURI
-			metadata[i].ThumbnailURI = remoteMetadata.ThumbnailURI
-			metadata[i].ExternalURI = remoteMetadata.ExternalURI
-			metadata[i].IsTransferable = remoteMetadata.IsTransferable
-			metadata[i].IsBooleanAmount = remoteMetadata.IsBooleanAmount
-			metadata[i].ShouldPreferSymbol = remoteMetadata.ShouldPreferSymbol
-			metadata[i].Creators = remoteMetadata.Creators
-			metadata[i].Tags = remoteMetadata.Tags
-			metadata[i].Formats = types.Bytes(remoteMetadata.Formats)
-			metadata[i].Extras = remoteMetadata.Extras
-
-			if err := metadata[i].Save(tx); err != nil {
-				return err
-			}
+	for i := range metadata {
+		if err := bar.Add(1); err != nil {
+			return err
 		}
 
-		return nil
-	})
+		emptyValue, ok := metadata[i].Extras["@@empty"]
+		if !ok {
+			continue
+		}
+		link, ok := emptyValue.(string)
+		if !ok {
+			continue
+		}
+
+		remoteMetadata := new(tokens.TokenMetadata)
+		if err := ipfs.Get(link, remoteMetadata); err != nil {
+			if errors.Is(err, tzipStorage.ErrNoIPFSResponse) || errors.Is(err, tzipStorage.ErrInvalidIPFSHash) {
+				logger.Warning().Err(err).Str("url", link).Str("kind", "token_metadata").Msg("")
+				continue
+			}
+			return err
+		}
+		metadata[i].Symbol = remoteMetadata.Symbol
+		metadata[i].Decimals = remoteMetadata.Decimals
+		metadata[i].Name = remoteMetadata.Name
+		metadata[i].Description = remoteMetadata.Description
+		metadata[i].ArtifactURI = remoteMetadata.ArtifactURI
+		metadata[i].DisplayURI = remoteMetadata.DisplayURI
+		metadata[i].ThumbnailURI = remoteMetadata.ThumbnailURI
+		metadata[i].ExternalURI = remoteMetadata.ExternalURI
+		metadata[i].IsTransferable = remoteMetadata.IsTransferable
+		metadata[i].IsBooleanAmount = remoteMetadata.IsBooleanAmount
+		metadata[i].ShouldPreferSymbol = remoteMetadata.ShouldPreferSymbol
+		metadata[i].Creators = remoteMetadata.Creators
+		metadata[i].Tags = remoteMetadata.Tags
+		metadata[i].Formats = types.Bytes(remoteMetadata.Formats)
+		metadata[i].Extras = remoteMetadata.Extras
+
+		err := ctx.StorageDB.DB.Transaction(func(tx *gorm.DB) error {
+			return metadata[i].Save(tx)
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
