@@ -2,11 +2,14 @@ rpc:
   mainnet:
     uri: ${MAINNET_RPC_URI:-https://rpc.tzkt.io/mainnet}
     timeout: 20
+  edo2net:
+    uri: ${TESTNET_RPC_URI:-https://rpc.tzkt.io/edo2net}
+    timeout: 20
   florencenet:
-    uri: ${TESTNET_RPC_URI:-https://rpc.tzkt.io/florencenobanet}
+    uri: ${NEXTNET_RPC_URI:-https://rpc.tzkt.io/florencenobanet}
     timeout: 20
   granadanet:
-    uri: ${NEXTNET_RPC_URI:-https://rpc.tzkt.io/granadanet}
+    uri: https://rpc.tzkt.io/granadanet
     timeout: 20
 
 tzkt:
@@ -14,6 +17,11 @@ tzkt:
     uri: https://api.tzkt.io/v1/
     services_uri: https://services.tzkt.io/v1/
     base_uri: https://tzkt.io/
+    timeout: 20
+  edo2net:
+    uri: https://api.edo2net.tzkt.io/v1/
+    services_uri: https://services.tzkt.io/edo2net/v1/
+    base_uri: https://edo2net.tzkt.io/
     timeout: 20
 
 storage:
@@ -56,6 +64,7 @@ api:
     sandbox_mode: false
   networks:
     - mainnet
+    - edo2net
     - florencenet
     - granadanet
   pinata:
@@ -70,6 +79,7 @@ indexer:
   networks:
     mainnet:
       boost: tzkt
+    edo2net:
     florencenet:
     granadanet:
 
