@@ -61,9 +61,10 @@ func (p Pool) getNode() (*poolItem, error) {
 	rand.Seed(time.Now().UnixNano())
 	nodes := make([]*poolItem, 0)
 	for i := range p {
-		if p[i].isBlocked() {
-			nodes = append(nodes, p[i])
-		}
+		// if p[i].isBlocked() {
+		// 	nodes = append(nodes, p[i])
+		// }
+		nodes = append(nodes, p[i])
 	}
 
 	if len(nodes) == 0 {
