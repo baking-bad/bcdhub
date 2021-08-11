@@ -35,9 +35,9 @@ func (p *poolItem) block() {
 	p.blockTime = time.Now().Add(time.Minute * 5)
 }
 
-func (p *poolItem) isBlocked() bool {
-	return time.Now().After(p.blockTime)
-}
+// func (p *poolItem) isBlocked() bool {
+// 	return time.Now().After(p.blockTime)
+// }
 
 // NewPool - creates `Pool` struct by `urls`
 func NewPool(urls []string, opts ...NodeOption) Pool {
