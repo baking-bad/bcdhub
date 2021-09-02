@@ -47,7 +47,7 @@ func main() {
 	}
 
 	workers := []services.Service{
-		services.NewView(ctx.StorageDB.DB, "head_stats", time.Minute),
+		services.NewView(ctx.StorageDB.DB, "head_stats", time.Hour),
 		services.NewUnknown(ctx, time.Minute*30, time.Second*2, -time.Hour*24),
 		services.NewStorageBased(
 			"projects",
@@ -70,13 +70,13 @@ func main() {
 			time.Second*15,
 			bulkSize,
 		),
-		services.NewStorageBased(
-			"tezos_domains",
-			ctx.Services,
-			services.NewTezosDomainHandler(ctx),
-			time.Second*15,
-			bulkSize,
-		),
+		// services.NewStorageBased(
+		// 	"tezos_domains",
+		// 	ctx.Services,
+		// 	services.NewTezosDomainHandler(ctx),
+		// 	time.Second*15,
+		// 	bulkSize,
+		// ),
 		services.NewStorageBased(
 			"operations",
 			ctx.Services,
