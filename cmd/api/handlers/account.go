@@ -11,6 +11,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	maxTokenBalanceBatch = 10
+)
+
 // GetInfo godoc
 // @Summary Get account info
 // @Description Get account info
@@ -72,7 +76,7 @@ func (ctx *Context) GetInfo(c *gin.Context) {
 // @Tags account
 // @ID get-batch-token-balances
 // @Param network path string true "Network"
-// @Param address query string false "Comma-separated list of addresses (e.g. addr1,addr2,addr3)"
+// @Param address query string false "Comma-separated list of addresses (e.g. addr1,addr2,addr3), max 10 addresses"
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} map[string]TokenBalance
@@ -92,6 +96,12 @@ func (ctx *Context) GetBatchTokenBalances(c *gin.Context) {
 	for i := range address {
 		if !bcd.IsAddress(address[i]) {
 			ctx.handleError(c, errors.Errorf("Invalid address: %s", address[i]), http.StatusBadRequest)
+			return
+		}
+	}
+
+	if len(address) > maxTokenBalanceBatch {
+		if ctx.handleError(c, errors.Errorf("Too many addresses: maximum %d allowed", maxTokenBalanceBatch), http.StatusBadRequest) {
 			return
 		}
 	}
