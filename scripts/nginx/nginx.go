@@ -14,7 +14,7 @@ import (
 
 const (
 	ogTitle          = "Better Call Dev"
-	ogDescription    = "Tezos smart contract explorer, developer dashboard, and API provider. Easy to spin up / integrate with your sandbox."
+	ogDescription    = "Tezos smart contract explorer and API provider. Easy to spin up / integrate with your sandbox."
 	ogImage          = "/img/logo_og.png"
 	pageTitle        = "Better Call Dev — Tezos smart contract explorer by Baking Bad"
 	dappsTitle       = "Tezos DApps"
