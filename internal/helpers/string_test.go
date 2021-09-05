@@ -48,6 +48,10 @@ func TestIsIPFS(t *testing.T) {
 			hash: "QmaUx4RSLEiDrvKgb5NPtk1EHkcJHBQCWFcHQxTSep4VUw",
 			want: true,
 		}, {
+			name: "bafybeibebgwxnufdxwqvuecydmeccctnzbgsx6c32xuacxvfkfi3ica2ei",
+			hash: "bafybeibebgwxnufdxwqvuecydmeccctnzbgsx6c32xuacxvfkfi3ica2ei",
+			want: true,
+		}, {
 			name: "QmX7Bhf8Gw7BDdyyGLPrsdfyf9pyqgAY4M3BzzSVwULxZ",
 			hash: "QmX7Bhf8Gw7BDdyyGLPrsdfyf9pyqgAY4M3BzzSVwULxZ",
 			want: false,

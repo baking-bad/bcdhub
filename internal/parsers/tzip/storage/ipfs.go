@@ -2,9 +2,9 @@ package storage
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
@@ -66,12 +66,20 @@ func (s IPFSStorage) Get(value string, output interface{}) error {
 		return ErrEmptyIPFSGatewayList
 	}
 
-	multihash := strings.TrimPrefix(value, "ipfs://")
-	if !helpers.IsIPFS(multihash) {
+	ipfsURI, err := url.Parse(value)
+	if err != nil {
 		return ErrInvalidIPFSHash
 	}
 
-	if item := s.cache.Get(multihash); item != nil && !item.Expired() {
+	if ipfsURI.Scheme != "ipfs" {
+		return ErrInvalidIPFSHash
+	}
+
+	if !helpers.IsIPFS(ipfsURI.Host) {
+		return ErrInvalidIPFSHash
+	}
+
+	if item := s.cache.Get(value); item != nil && !item.Expired() {
 		output = item.Value()
 		logger.Info().Str("url", value).Msg("using cached response")
 		if output == BounceFlag {
@@ -81,15 +89,15 @@ func (s IPFSStorage) Get(value string, output interface{}) error {
 	}
 
 	for i := range s.gateways {
-		url := fmt.Sprintf("%s/ipfs/%s", s.gateways[i], multihash)
+		url := fmt.Sprintf("%s/ipfs/%s%s", s.gateways[i], ipfsURI.Host, ipfsURI.Path)
 		err := s.HTTPStorage.Get(url, output)
 		if err == nil {
-			s.cache.Set(multihash, output, MaxTTL)
+			s.cache.Set(value, output, MaxTTL)
 			return nil
 		}
 		logger.Warning().Err(err).Str("url", url).Msg("")
 	}
 
-	s.cache.Set(multihash, BounceFlag, BounceTime)
+	s.cache.Set(value, BounceFlag, BounceTime)
 	return ErrNoIPFSResponse
 }
