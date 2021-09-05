@@ -7,8 +7,8 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/btcsuite/btcutil/base58"
 	"github.com/google/uuid"
+	"github.com/ipfs/go-cid"
 )
 
 // StringInArray -
@@ -55,16 +55,8 @@ func Slug(alias string) string {
 
 // IsIPFS -
 func IsIPFS(hash string) bool {
-	if len(hash) != 46 && strings.HasPrefix(hash, "Qm") {
-		return false
-	}
-
-	data := base58.Decode(hash)
-	if len(data) == 34 && data[0] == 0x12 && data[1] == 0x20 {
-		return true
-	}
-
-	return false
+	_, err := cid.Decode(hash)
+	return err != nil
 }
 
 // Escape -

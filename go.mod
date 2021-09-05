@@ -19,7 +19,10 @@ require (
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/golang/mock v1.4.4
 	github.com/google/uuid v1.1.2
+	github.com/gxed/hashland/keccakpg v0.0.1 // indirect
+	github.com/gxed/hashland/murmur3 v0.0.1 // indirect
 	github.com/iancoleman/strcase v0.1.3
+	github.com/ipfs/go-cid v0.1.0 // indirect
 	github.com/jackc/pgx/v4 v4.10.1
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/json-iterator/go v1.1.10
@@ -38,7 +41,7 @@ require (
 	github.com/wsxiaoys/terminal v0.0.0-20160513160801-0940f3fc43a0 // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/yhirose/go-peg v0.0.0-20190710015414-7eb2cf046928
-	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
+	golang.org/x/crypto v0.0.0-20210506145944-38f3c27a63bf
 	gopkg.in/yaml.v2 v2.4.0
 	gorm.io/driver/postgres v1.0.8
 	gorm.io/gorm v1.21.3

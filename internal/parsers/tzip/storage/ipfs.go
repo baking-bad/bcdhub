@@ -3,11 +3,11 @@ package storage
 import (
 	"fmt"
 	"os"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/karlseguin/ccache"
 )
@@ -18,10 +18,6 @@ const (
 	MaxTTL     = time.Duration(1<<63 - 1)
 	BounceTime = time.Minute * 5
 	BounceFlag = "no_response"
-)
-
-var (
-	regMultihash = regexp.MustCompile("Qm[1-9A-HJ-NP-Za-km-z]{44}")
 )
 
 // IPFSStorage -
@@ -71,7 +67,7 @@ func (s IPFSStorage) Get(value string, output interface{}) error {
 	}
 
 	multihash := strings.TrimPrefix(value, "ipfs://")
-	if len(multihash) != 46 || !regMultihash.MatchString(multihash) {
+	if !helpers.IsIPFS(multihash) {
 		return ErrInvalidIPFSHash
 	}
 
