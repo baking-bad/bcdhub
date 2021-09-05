@@ -56,7 +56,7 @@ func Slug(alias string) string {
 // IsIPFS -
 func IsIPFS(hash string) bool {
 	_, err := cid.Decode(hash)
-	return err != nil
+	return err == nil
 }
 
 // Escape -
