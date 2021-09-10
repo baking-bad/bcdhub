@@ -43,8 +43,8 @@ func New(connection, appName string, opts ...PostgresOption) (*Postgres, error) 
 		return nil, err
 	}
 
-	sql.SetMaxOpenConns(150)
-	sql.SetMaxIdleConns(100)
+	sql.SetMaxOpenConns(50)
+	sql.SetMaxIdleConns(25)
 
 	return &pg, nil
 }
