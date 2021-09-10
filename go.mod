@@ -19,10 +19,8 @@ require (
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/golang/mock v1.4.4
 	github.com/google/uuid v1.1.2
-	github.com/gxed/hashland/keccakpg v0.0.1 // indirect
-	github.com/gxed/hashland/murmur3 v0.0.1 // indirect
 	github.com/iancoleman/strcase v0.1.3
-	github.com/ipfs/go-cid v0.1.0 // indirect
+	github.com/ipfs/go-cid v0.1.0
 	github.com/jackc/pgx/v4 v4.10.1
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/json-iterator/go v1.1.10
