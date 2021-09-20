@@ -55,7 +55,7 @@ func main() {
 
 	ctx := config.NewContext(
 		config.WithShare(cfg.SharePath),
-		config.WithStorage(cfg.Storage, "migrations", 0),
+		config.WithStorage(cfg.Storage, "migrations", 0, cfg.Scripts.Connections.Open, cfg.Scripts.Connections.Idle),
 		config.WithRPC(cfg.RPC),
 		config.WithConfigCopy(cfg),
 		config.WithLoadErrorDescriptions(),

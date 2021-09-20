@@ -15,7 +15,7 @@ type Context struct {
 // NewContext -
 func NewContext(cfg config.Config) (*Context, error) {
 	ctx := config.NewContext(
-		config.WithStorage(cfg.Storage, cfg.API.ProjectName, int64(cfg.API.PageSize)),
+		config.WithStorage(cfg.Storage, cfg.API.ProjectName, int64(cfg.API.PageSize), cfg.API.Connections.Open, cfg.API.Connections.Idle),
 		config.WithRPC(cfg.RPC),
 		config.WithSearch(cfg.Storage),
 		config.WithShare(cfg.SharePath),

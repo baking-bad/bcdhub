@@ -115,7 +115,7 @@ func NewBoostIndexer(cfg config.Config, network types.Network, opts ...BoostInde
 
 	ctx := config.NewContext(
 		config.WithConfigCopy(cfg),
-		config.WithStorage(cfg.Storage, "indexer", 10),
+		config.WithStorage(cfg.Storage, "indexer", 10, cfg.Indexer.Connections.Open, cfg.Indexer.Connections.Idle),
 		config.WithSearch(cfg.Storage),
 		config.WithShare(cfg.SharePath),
 	)

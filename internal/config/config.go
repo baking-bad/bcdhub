@@ -35,21 +35,23 @@ type Config struct {
 		Networks map[string]struct {
 			Boost string `yaml:"boost"`
 		} `yaml:"networks"`
-		ProjectName   string `yaml:"project_name"`
-		SentryEnabled bool   `yaml:"sentry_enabled"`
-
-		SkipDelegatorBlocks bool `yaml:"skip_delegator_blocks"`
+		ProjectName         string      `yaml:"project_name"`
+		SentryEnabled       bool        `yaml:"sentry_enabled"`
+		SkipDelegatorBlocks bool        `yaml:"skip_delegator_blocks"`
+		Connections         Connections `yaml:"connections"`
 	} `yaml:"indexer"`
 
 	Metrics struct {
-		ProjectName         string `yaml:"project_name"`
-		SentryEnabled       bool   `yaml:"sentry_enabled"`
-		CacheAliasesSeconds int    `yaml:"cache_aliases_seconds"`
+		ProjectName         string      `yaml:"project_name"`
+		SentryEnabled       bool        `yaml:"sentry_enabled"`
+		CacheAliasesSeconds int         `yaml:"cache_aliases_seconds"`
+		Connections         Connections `yaml:"connections"`
 	} `yaml:"metrics"`
 
 	Scripts struct {
-		AWS      AWSConfig `yaml:"aws"`
-		Networks []string  `yaml:"networks"`
+		AWS         AWSConfig   `yaml:"aws"`
+		Networks    []string    `yaml:"networks"`
+		Connections Connections `yaml:"connections"`
 	} `yaml:"scripts"`
 
 	GraphQL struct {
@@ -156,6 +158,7 @@ type APIConfig struct {
 	Networks      []string       `yaml:"networks"`
 	Pinata        PinataConfig   `yaml:"pinata"`
 	PageSize      uint64         `yaml:"page_size"`
+	Connections   Connections    `yaml:"connections"`
 }
 
 // SentryConfig -
@@ -174,6 +177,12 @@ type PinataConfig struct {
 	Key            string `yaml:"key"`
 	SecretKey      string `yaml:"secret_key"`
 	TimeoutSeconds int    `yaml:"timeout_seconds"`
+}
+
+// Connections -
+type Connections struct {
+	Open int `yaml:"open"`
+	Idle int `yaml:"idle"`
 }
 
 // LoadDefaultConfig -

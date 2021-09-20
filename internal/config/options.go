@@ -54,13 +54,17 @@ func WithRPC(rpcConfig map[string]RPCConfig) ContextOption {
 }
 
 // WithStorage -
-func WithStorage(cfg StorageConfig, appName string, maxPageSize int64) ContextOption {
+func WithStorage(cfg StorageConfig, appName string, maxPageSize int64, maxConnCount, idleConnCount int) ContextOption {
 	return func(ctx *Context) {
 		if len(cfg.Elastic) == 0 {
 			panic("Please set connection strings to storage in config")
 		}
 
-		pg := pgCore.WaitNew(cfg.Postgres, appName, cfg.Timeout, pgCore.WithPageSize(maxPageSize))
+		pg := pgCore.WaitNew(cfg.Postgres, appName, cfg.Timeout,
+			pgCore.WithPageSize(maxPageSize),
+			pgCore.WithIdleConnections(idleConnCount),
+			pgCore.WithMaxConnections(maxConnCount),
+		)
 		ctx.StorageDB = pg
 		ctx.Storage = pg
 		ctx.BigMapActions = bigmapaction.NewStorage(pg)
