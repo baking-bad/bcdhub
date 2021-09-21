@@ -32,7 +32,7 @@ func main() {
 	}
 
 	ctx = config.NewContext(
-		config.WithStorage(cfg.Storage, cfg.Metrics.ProjectName, 0),
+		config.WithStorage(cfg.Storage, cfg.Metrics.ProjectName, 0, cfg.Metrics.Connections.Open, cfg.Metrics.Connections.Idle),
 		config.WithRPC(cfg.RPC),
 		config.WithSearch(cfg.Storage),
 		config.WithShare(cfg.SharePath),

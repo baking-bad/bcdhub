@@ -62,6 +62,10 @@ api:
     key: ${PINATA_KEY}
     secret_key: ${PINATA_SECRET_KEY}
     timeout_seconds: 10
+  connections:
+    max: 50
+    idle: 10
+
 
 indexer:
   project_name: indexer
@@ -72,11 +76,17 @@ indexer:
       boost: tzkt
     florencenet:
     granadanet:
+  connections:
+    max: 5
+    idle: 5
 
 metrics:
   project_name: metrics
   sentry_enabled: true
   cache_aliases_seconds: 30
+  connections:
+    max: 20
+    idle: 20
 
 scripts:
   aws:
@@ -89,6 +99,9 @@ scripts:
     - edo2net
     - florencenet
     - granadanet
+  connections:
+    max: 5
+    idle: 5
 
 graphql:
   db: "host=${DB_HOSTNAME} port=5432 user=graphql dbname=indexer password=${POSTGRES_GRAPHQL} sslmode=disable"

@@ -31,7 +31,7 @@ func main() {
 	}
 
 	ctx = config.NewContext(
-		config.WithStorage(cfg.Storage, "bcdctl", 0),
+		config.WithStorage(cfg.Storage, "bcdctl", 0, cfg.Scripts.Connections.Open, cfg.Scripts.Connections.Idle),
 		config.WithConfigCopy(cfg),
 		config.WithRPC(cfg.RPC),
 		config.WithShare(cfg.SharePath),
