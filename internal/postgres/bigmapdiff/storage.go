@@ -45,9 +45,9 @@ func (storage *Storage) Current(network types.Network, keyHash string, ptr int64
 
 // GetForAddress -
 func (storage *Storage) GetForAddress(network types.Network, address string) (response []bigmapdiff.BigMapState, err error) {
-	err = storage.DB.Table(models.DocBigMapDiff).
+	err = storage.DB.Table(models.DocBigMapState).
 		Scopes(core.NetworkAndContract(network, address)).
-		Order("level desc").
+		Order("id desc").
 		Find(&response).
 		Error
 	return
