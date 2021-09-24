@@ -30,7 +30,7 @@ func NewMempool(url string) *Mempool {
 func (m *Mempool) Get(address string) (result PendingOperations, err error) {
 	req := graphql.NewRequest(`
 		query ($address: String!) {
-			originations(where: {source: {_eq: $address}}) {
+			originations(where: {source: {_eq: $address}, _not: {status: {_eq: "in_chain"}}}) {
 				balance
 				branch
 				created_at
@@ -53,7 +53,7 @@ func (m *Mempool) Get(address string) (result PendingOperations, err error) {
 				protocol
 			}
 			transactions(
-				where: {_or: [{source: {_eq: $address}}, {destination: {_eq: $address}}]}
+				where: {_or: [{source: {_eq: $address}}, {destination: {_eq: $address}}], _not: {status: {_eq: "in_chain"}}}
 			) {
 				amount
 				branch
@@ -90,8 +90,8 @@ func (m *Mempool) Get(address string) (result PendingOperations, err error) {
 // GetByHash -
 func (m *Mempool) GetByHash(hash string) (result PendingOperations, err error) {
 	req := graphql.NewRequest(`
-		query ($address: String!) {
-			originations(where: {source: {_eq: $address}}) {
+		query ($hash: String!) {
+			originations(where: {hash: {_eq: $hash}, _not: {status: {_eq: "in_chain"}}}) {
 				balance
 				branch
 				created_at
@@ -113,9 +113,7 @@ func (m *Mempool) GetByHash(hash string) (result PendingOperations, err error) {
 				raw
 				protocol
 			}
-			transactions(
-				where: {_or: [{source: {_eq: $address}}, {destination: {_eq: $address}}]}
-			) {
+			transactions(where: {hash: {_eq: $hash}, _not: {status: {_eq: "in_chain"}}}) {
 				amount
 				branch
 				created_at
