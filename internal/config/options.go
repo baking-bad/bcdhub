@@ -22,6 +22,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/postgres/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/postgres/transfer"
 	"github.com/baking-bad/bcdhub/internal/postgres/tzip"
+	"github.com/baking-bad/bcdhub/internal/services/mempool"
 
 	"github.com/baking-bad/bcdhub/internal/postgres/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/postgres/block"
@@ -29,7 +30,6 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/noderpc"
 	"github.com/baking-bad/bcdhub/internal/pinata"
-	"github.com/baking-bad/bcdhub/internal/tzkt"
 )
 
 // ContextOption -
@@ -110,18 +110,21 @@ func WithConfigCopy(cfg Config) ContextOption {
 	}
 }
 
-// WithTzKTServices -
-func WithTzKTServices(tzktConfig map[string]TzKTConfig) ContextOption {
+// WithMempool -
+func WithMempool(cfg map[string]ServiceConfig) ContextOption {
 	return func(ctx *Context) {
-		if len(tzktConfig) == 0 {
+		if len(cfg) == 0 {
 			return
 		}
-		svc := make(map[types.Network]tzkt.Service)
-		for network, tzktProvider := range tzktConfig {
+		svc := make(map[types.Network]*mempool.Mempool)
+		for network, svcCfg := range cfg {
+			if svcCfg.MempoolURI == "" {
+				continue
+			}
 			typ := types.NewNetwork(network)
-			svc[typ] = tzkt.NewServicesTzKT(network, tzktProvider.ServicesURI, time.Second*time.Duration(tzktProvider.Timeout))
+			svc[typ] = mempool.NewMempool(svcCfg.MempoolURI)
 		}
-		ctx.TzKTServices = svc
+		ctx.MempoolServices = svc
 	}
 }
 

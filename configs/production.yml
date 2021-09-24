@@ -12,9 +12,16 @@ rpc:
 tzkt:
   mainnet:
     uri: https://api.tzkt.io/v1/
-    services_uri: https://services.tzkt.io/v1/
     base_uri: https://tzkt.io/
     timeout: 20
+
+services:
+  mainnet:
+    mempool: https://mempool.dipdup.net/v1/graphql
+  edo2net:
+    mempool: https://mempool.dipdup.net/v1/graphql
+  florencenet:
+    mempool: https://mempool.dipdup.net/v1/graphql
 
 storage:
   pg: "host=${DB_HOSTNAME:-db} port=5432 user=${POSTGRES_USER} dbname=indexer password=${POSTGRES_PASSWORD} sslmode=disable"

@@ -10,7 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	modelTypes "github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/baking-bad/bcdhub/internal/tzkt"
+	"github.com/baking-bad/bcdhub/internal/services/mempool"
 	"github.com/gin-gonic/gin"
 )
 
@@ -34,13 +34,13 @@ func (ctx *Context) GetMempool(c *gin.Context) {
 		return
 	}
 
-	api, err := ctx.GetTzKTService(req.NetworkID())
+	mempoolService, err := ctx.GetMempoolService(req.NetworkID())
 	if err != nil {
 		c.SecureJSON(http.StatusNoContent, []Operation{})
 		return
 	}
 
-	res, err := api.GetMempool(req.Address)
+	res, err := mempoolService.Get(req.Address)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -48,71 +48,111 @@ func (ctx *Context) GetMempool(c *gin.Context) {
 	c.SecureJSON(http.StatusOK, ctx.mempoolPostprocessing(res, req.NetworkID()))
 }
 
-func (ctx *Context) mempoolPostprocessing(res []tzkt.MempoolOperation, network modelTypes.Network) []Operation {
-	ret := make([]Operation, len(res))
-	if len(res) == 0 {
+func (ctx *Context) mempoolPostprocessing(res mempool.PendingOperations, network modelTypes.Network) []Operation {
+	ret := make([]Operation, 0)
+	if len(res.Originations)+len(res.Transactions) == 0 {
 		return ret
 	}
 
-	for i := len(res) - 1; i >= 0; i-- {
-		item := ctx.prepareMempoolOperation(res[i], network, res[i].Body)
-		if item != nil {
-			ret[i] = *item
+	for _, origination := range res.Originations {
+		op := ctx.prepareMempoolOrigination(network, origination)
+		if op != nil {
+			ret = append(ret, *op)
+		}
+	}
+
+	for _, tx := range res.Transactions {
+		op := ctx.prepareMempoolTransaction(network, tx)
+		if op != nil {
+			ret = append(ret, *op)
 		}
 	}
 
 	return ret
 }
 
-func (ctx *Context) prepareMempoolOperation(item tzkt.MempoolOperation, network modelTypes.Network, raw interface{}) *Operation {
-	status := item.Body.Status
+func (ctx *Context) prepareMempoolTransaction(network modelTypes.Network, tx mempool.PendingTransaction) *Operation {
+	status := tx.Status
 	if status == consts.Applied {
 		status = consts.Pending
 	}
+	if !helpers.StringInArray(tx.Kind, []string{consts.Transaction, consts.Origination, consts.OriginationNew}) {
+		return nil
+	}
 
-	if !helpers.StringInArray(item.Body.Kind, []string{consts.Transaction, consts.Origination, consts.OriginationNew}) {
+	amount, err := tx.Amount.Int64()
+	if err != nil {
 		return nil
 	}
 
 	op := Operation{
-		Protocol:  item.Body.Protocol,
-		Hash:      item.Body.Hash,
-		Network:   network.String(),
-		Timestamp: time.Unix(item.Body.Timestamp, 0).UTC(),
-
-		SourceAlias:      ctx.CachedAlias(network, item.Body.Source),
-		DestinationAlias: ctx.CachedAlias(network, item.Body.Destination),
-		Kind:             item.Body.Kind,
-		Source:           item.Body.Source,
-		Fee:              item.Body.Fee,
-		Counter:          item.Body.Counter,
-		GasLimit:         item.Body.GasLimit,
-		StorageLimit:     item.Body.StorageLimit,
-		Amount:           item.Body.Amount,
-		Destination:      item.Body.Destination,
+		Hash:             tx.Hash,
+		Network:          network.String(),
+		Timestamp:        time.Unix(tx.UpdatedAt, 0).UTC(),
+		SourceAlias:      ctx.CachedAlias(network, tx.Source),
+		DestinationAlias: ctx.CachedAlias(network, tx.Destination),
+		Kind:             tx.Kind,
+		Source:           tx.Source,
+		Fee:              tx.Fee,
+		Counter:          tx.Counter,
+		GasLimit:         tx.GasLimit,
+		StorageLimit:     tx.StorageLimit,
+		Amount:           amount,
+		Destination:      tx.Destination,
 		Mempool:          true,
 		Status:           status,
-		RawMempool:       raw,
+		RawMempool:       tx.Raw,
+		Protocol:         tx.Protocol,
 	}
 
-	errs, err := tezerrors.ParseArray(item.Body.Errors)
+	errs, err := tezerrors.ParseArray(tx.Errors)
 	if err != nil {
 		return nil
 	}
 	op.Errors = errs
 
-	if op.Kind != consts.Transaction {
-		return &op
-	}
-
 	if bcd.IsContract(op.Destination) && op.Protocol != "" && op.Status == consts.Pending {
-		if len(item.Body.Parameters) > 0 {
-			_ = ctx.buildMempoolOperationParameters(item.Body.Parameters, &op)
+		if len(tx.Parameters) > 0 {
+			_ = ctx.buildMempoolOperationParameters(tx.Parameters, &op)
 		} else {
 			op.Entrypoint = consts.DefaultEntrypoint
 		}
 	}
 
+	return &op
+}
+
+func (ctx *Context) prepareMempoolOrigination(network modelTypes.Network, origination mempool.PendingOrigination) *Operation {
+	status := origination.Status
+	if status == consts.Applied {
+		status = consts.Pending
+	}
+	if !helpers.StringInArray(origination.Kind, []string{consts.Transaction, consts.Origination, consts.OriginationNew}) {
+		return nil
+	}
+
+	op := Operation{
+		Hash:         origination.Hash,
+		Network:      network.String(),
+		Timestamp:    time.Unix(origination.UpdatedAt, 0).UTC(),
+		SourceAlias:  ctx.CachedAlias(network, origination.Source),
+		Kind:         origination.Kind,
+		Source:       origination.Source,
+		Fee:          origination.Fee,
+		Counter:      origination.Counter,
+		GasLimit:     origination.GasLimit,
+		StorageLimit: origination.StorageLimit,
+		Mempool:      true,
+		Status:       status,
+		RawMempool:   origination.Raw,
+		Protocol:     origination.Protocol,
+	}
+
+	errs, err := tezerrors.ParseArray(origination.Errors)
+	if err != nil {
+		return nil
+	}
+	op.Errors = errs
 	return &op
 }
 

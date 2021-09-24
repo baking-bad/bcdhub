@@ -3,6 +3,7 @@ module github.com/baking-bad/bcdhub
 go 1.15
 
 require (
+	github.com/Azure/azure-sdk-for-go v49.0.0+incompatible
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/aws/aws-sdk-go v1.36.1
 	github.com/btcsuite/btcutil v1.0.1
@@ -27,6 +28,7 @@ require (
 	github.com/karlseguin/ccache v2.0.3+incompatible
 	github.com/karlseguin/expect v1.0.2-0.20190806010014-778a5f0c6003 // indirect
 	github.com/lib/pq v1.9.0
+	github.com/machinebox/graphql v0.2.2
 	github.com/microcosm-cc/bluemonday v1.0.15
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.15.0

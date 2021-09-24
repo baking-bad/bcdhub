@@ -20,14 +20,15 @@ const (
 
 // Config -
 type Config struct {
-	RPC          map[string]RPCConfig  `yaml:"rpc"`
-	TzKT         map[string]TzKTConfig `yaml:"tzkt"`
-	Storage      StorageConfig         `yaml:"storage"`
-	Sentry       SentryConfig          `yaml:"sentry"`
-	SharePath    string                `yaml:"share_path"`
-	BaseURL      string                `yaml:"base_url"`
-	IPFSGateways []string              `yaml:"ipfs"`
-	Domains      TezosDomainsConfig    `yaml:"domains"`
+	RPC          map[string]RPCConfig     `yaml:"rpc"`
+	TzKT         map[string]TzKTConfig    `yaml:"tzkt"`
+	Services     map[string]ServiceConfig `yaml:"services"`
+	Storage      StorageConfig            `yaml:"storage"`
+	Sentry       SentryConfig             `yaml:"sentry"`
+	SharePath    string                   `yaml:"share_path"`
+	BaseURL      string                   `yaml:"base_url"`
+	IPFSGateways []string                 `yaml:"ipfs"`
+	Domains      TezosDomainsConfig       `yaml:"domains"`
 
 	API APIConfig `yaml:"api"`
 
@@ -67,10 +68,14 @@ type RPCConfig struct {
 
 // TzKTConfig -
 type TzKTConfig struct {
-	URI         string `yaml:"uri"`
-	ServicesURI string `yaml:"services_uri"`
-	BaseURI     string `yaml:"base_uri"`
-	Timeout     int    `yaml:"timeout"`
+	URI     string `yaml:"uri"`
+	BaseURI string `yaml:"base_uri"`
+	Timeout int    `yaml:"timeout"`
+}
+
+// ServiceConfig -
+type ServiceConfig struct {
+	MempoolURI string `yaml:"mempool"`
 }
 
 // StorageConfig -

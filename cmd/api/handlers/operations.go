@@ -170,18 +170,18 @@ func (ctx *Context) GetOperationErrorLocation(c *gin.Context) {
 
 func (ctx *Context) getOperationFromMempool(hash string) *Operation {
 	var wg sync.WaitGroup
-	var opCh = make(chan *Operation, len(ctx.TzKTServices))
+	var opCh = make(chan *Operation, len(ctx.MempoolServices))
 
 	defer close(opCh)
 
-	for network := range ctx.TzKTServices {
+	for network := range ctx.MempoolServices {
 		wg.Add(1)
 		go ctx.getOperation(network, hash, opCh, &wg)
 	}
 
 	wg.Wait()
 
-	for i := 0; i < len(ctx.TzKTServices); i++ {
+	for i := 0; i < len(ctx.MempoolServices); i++ {
 		if op := <-opCh; op != nil {
 			return op
 		}
@@ -193,24 +193,26 @@ func (ctx *Context) getOperationFromMempool(hash string) *Operation {
 func (ctx *Context) getOperation(network modelTypes.Network, hash string, ops chan<- *Operation, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	api, err := ctx.GetTzKTService(network)
+	api, err := ctx.GetMempoolService(network)
 	if err != nil {
 		ops <- nil
 		return
 	}
 
-	res, err := api.GetMempool(hash)
+	res, err := api.GetByHash(hash)
 	if err != nil {
 		ops <- nil
 		return
 	}
 
-	if len(res) == 0 {
+	switch {
+	case len(res.Originations) > 0:
+		ops <- ctx.prepareMempoolOrigination(network, res.Originations[0])
+	case len(res.Transactions) > 0:
+		ops <- ctx.prepareMempoolTransaction(network, res.Transactions[0])
+	default:
 		ops <- nil
-		return
 	}
-
-	ops <- ctx.prepareMempoolOperation(res[0], network, string(res[0].Raw))
 }
 
 func prepareFilters(req operationsRequest) map[string]interface{} {

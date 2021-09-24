@@ -24,17 +24,17 @@ import (
 	"github.com/baking-bad/bcdhub/internal/pinata"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/baking-bad/bcdhub/internal/search"
-	"github.com/baking-bad/bcdhub/internal/tzkt"
+	"github.com/baking-bad/bcdhub/internal/services/mempool"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/pkg/errors"
 )
 
 // Context -
 type Context struct {
-	AWS          *aws.Client
-	RPC          map[types.Network]noderpc.INode
-	TzKTServices map[types.Network]tzkt.Service
-	Pinata       pinata.Service
+	AWS             *aws.Client
+	RPC             map[types.Network]noderpc.INode
+	MempoolServices map[types.Network]*mempool.Mempool
+	Pinata          pinata.Service
 
 	StorageDB *core.Postgres
 
@@ -86,15 +86,15 @@ func (ctx *Context) GetRPC(network types.Network) (noderpc.INode, error) {
 	if rpc, ok := ctx.RPC[network]; ok {
 		return rpc, nil
 	}
-	return nil, errors.Errorf("Unknown rpc network %s", network)
+	return nil, errors.Errorf("unknown rpc: %s", network)
 }
 
-// GetTzKTService -
-func (ctx *Context) GetTzKTService(network types.Network) (tzkt.Service, error) {
-	if rpc, ok := ctx.TzKTServices[network]; ok {
+// GetMempoolService -
+func (ctx *Context) GetMempoolService(network types.Network) (*mempool.Mempool, error) {
+	if rpc, ok := ctx.MempoolServices[network]; ok {
 		return rpc, nil
 	}
-	return nil, errors.Errorf("Unknown tzkt service network %s", network)
+	return nil, errors.Errorf("unknown mempool service: %s", network)
 }
 
 // Close -
