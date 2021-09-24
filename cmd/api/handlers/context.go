@@ -19,7 +19,7 @@ func NewContext(cfg config.Config) (*Context, error) {
 		config.WithRPC(cfg.RPC),
 		config.WithSearch(cfg.Storage),
 		config.WithShare(cfg.SharePath),
-		config.WithTzKTServices(cfg.TzKT),
+		config.WithMempool(cfg.Services),
 		config.WithLoadErrorDescriptions(),
 		config.WithConfigCopy(cfg),
 		config.WithPinata(cfg.API.Pinata),
