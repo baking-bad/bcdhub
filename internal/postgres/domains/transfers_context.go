@@ -1,13 +1,13 @@
 package domains
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func (storage *Storage) buildGetContext(query *gorm.DB, ctx transfer.GetContext, withSize bool) {
@@ -61,7 +61,10 @@ func (storage *Storage) buildGetContext(query *gorm.DB, ctx transfer.GetContext,
 		}
 	}
 	if ctx.SortOrder == "asc" || ctx.SortOrder == "desc" {
-		query.Order(fmt.Sprintf("id %s", ctx.SortOrder))
+		query.Order(clause.OrderByColumn{
+			Column: clause.Column{Name: "id"},
+			Desc:   ctx.SortOrder == "desc",
+		})
 	} else {
 		query.Order("id desc")
 	}
