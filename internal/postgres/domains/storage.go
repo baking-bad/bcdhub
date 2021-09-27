@@ -8,6 +8,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
+	"gorm.io/gorm/clause"
 )
 
 // Storage -
@@ -66,7 +67,10 @@ func (storage *Storage) TokenBalances(network types.Network, contract, address s
 		return response, err
 	}
 
-	query.Limit(storage.getPageSizeForBalances(size)).Offset(int(offset)).Order(fmt.Sprintf("%s desc", sort))
+	query.Limit(storage.getPageSizeForBalances(size)).Offset(int(offset)).Order(clause.OrderByColumn{
+		Column: clause.Column{Name: sort},
+		Desc:   true,
+	})
 
 	if err := storage.DB.Raw(balanceQuery, query).
 		Find(&response.Balances).Error; err != nil {
