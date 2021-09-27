@@ -8,11 +8,10 @@ Receives new contract/operation events from the indexer and calculates various m
 * `API`  
 Exposes RESTful JSON API for accessing indexed data (with on-the-fly decoding). Also provides a set of methods for authentication and managing user profiles.
 
-Those microservices are sharing access to databases and communicating via message queue:
+Those microservices are sharing access to databases and communicating via database:
 
-* `ElasticSearch` cluster (single node) for storing all indexed data including blocks, protocols, contracts, operations, Big_map diffs, and others.
+* `ElasticSearch` cluster (single node) for storing all indexed data including blocks, protocols, contracts, operations, big_map diffs, and others.
 * `PostgreSQL` database for storing compilations and user data.
-* `RabbitMQ` for communications between `API`, `indexer` and `metrics`.
 
 ### Third-party services
 BCDHub also depends on several API endpoints exposed by [TzKT](https://github.com/baking-bad/tzkt) although they are optional:
@@ -71,7 +70,6 @@ Make sure you have installed:
 You will also need several ports to be not busy:
 * `14000` API service
 * `9200` Elastic
-* `5672` RabbitMQ
 * `5432` PostgreSQL
 * `8000` Frontend GUI
 
@@ -103,7 +101,7 @@ There are several predefined configurations serving different purposes.
 
 #### Development `localhost`
 * `/configs/development.yml` file is used
-* You can spawn local instances of databases and message queue or _ssh_ to staging host with port forwarding
+* You can spawn local instances of databases or _ssh_ to staging host with port forwarding
 * Run services `make {service}` (where service is one of `api` `indexer` `metrics`)
 
 #### Sandbox `bbbox`
