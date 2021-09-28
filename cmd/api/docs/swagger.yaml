@@ -40,6 +40,9 @@ definitions:
         type: string
       x-itemTitle:
         type: string
+      x-options:
+        additionalProperties: true
+        type: object
     type: object
   ast.MiguelNode:
     properties:
@@ -463,8 +466,14 @@ definitions:
     type: object
   handlers.NetworkStats:
     properties:
+      contract_calls:
+        example: 100
+        type: integer
       contracts_count:
         example: 10
+        type: integer
+      fa_count:
+        example: 100
         type: integer
       languages:
         additionalProperties:
@@ -477,6 +486,9 @@ definitions:
         items:
           $ref: '#/definitions/handlers.Protocol'
         type: array
+      unique_contracts:
+        example: 100
+        type: integer
     type: object
   handlers.Operation:
     properties:
@@ -1093,6 +1105,10 @@ definitions:
         items:
           type: string
         type: array
+      contract_tags:
+        items:
+          type: string
+        type: array
       count:
         type: integer
       description:
@@ -1136,6 +1152,9 @@ definitions:
         type: string
       counter:
         type: integer
+      entrypoint:
+        type: string
+        x-nullable: true
       from:
         type: string
       from_alias:
@@ -1446,60 +1465,6 @@ info:
     href: https://better-call.dev
     url: https://better-call.dev/img/logo_og.png
 paths:
-  /v1/{network}/{address}/transfers:
-    get:
-      consumes:
-      - application/json
-      description: Show contract`s tokens transfers.
-      operationId: get-contract-transfers
-      parameters:
-      - description: Network
-        in: path
-        name: network
-        required: true
-        type: string
-      - description: KT address
-        in: path
-        maxLength: 36
-        minLength: 36
-        name: address
-        required: true
-        type: string
-      - description: Transfers count
-        in: query
-        maximum: 10
-        name: size
-        type: integer
-      - description: Offset
-        in: query
-        name: offset
-        type: integer
-      - description: Token ID
-        in: query
-        name: token_id
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.TransferResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/handlers.Error'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.Error'
-      summary: Show contract`s tokens transfers
-      tags:
-      - contract
   /v1/account/{network}:
     get:
       consumes:
@@ -1512,7 +1477,8 @@ paths:
         name: network
         required: true
         type: string
-      - description: Comma-separated list of addresses (e.g. addr1,addr2,addr3)
+      - description: Comma-separated list of addresses (e.g. addr1,addr2,addr3), max
+          10 addresses
         in: query
         name: address
         type: string
@@ -1596,6 +1562,13 @@ paths:
         name: address
         required: true
         type: string
+      - description: Hide zero balances from response
+        enum:
+        - "true"
+        - "false"
+        in: query
+        name: hide_empty
+        type: string
       produces:
       - application/json
       responses:
@@ -1639,6 +1612,13 @@ paths:
         minLength: 36
         name: address
         required: true
+        type: string
+      - description: Hide zero balances from response
+        enum:
+        - "true"
+        - "false"
+        in: query
+        name: hide_empty
         type: string
       produces:
       - application/json
@@ -1734,7 +1714,7 @@ paths:
         type: integer
       - description: Requested count
         in: query
-        maximum: 10
+        maximum: 50
         minimum: 0
         name: size
         type: integer
@@ -1748,6 +1728,13 @@ paths:
         - balance
         in: query
         name: sort_by
+        type: string
+      - description: Hide zero balances from response
+        enum:
+        - "true"
+        - "false"
+        in: query
+        name: hide_empty
         type: string
       produces:
       - application/json
@@ -2882,6 +2869,60 @@ paths:
           schema:
             $ref: '#/definitions/handlers.Error'
       summary: List token holders
+      tags:
+      - contract
+  /v1/contract/{network}/{address}/transfers:
+    get:
+      consumes:
+      - application/json
+      description: Show contract`s tokens transfers.
+      operationId: get-contract-transfers
+      parameters:
+      - description: Network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: KT address
+        in: path
+        maxLength: 36
+        minLength: 36
+        name: address
+        required: true
+        type: string
+      - description: Transfers count
+        in: query
+        maximum: 10
+        name: size
+        type: integer
+      - description: Offset
+        in: query
+        name: offset
+        type: integer
+      - description: Token ID
+        in: query
+        name: token_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.TransferResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Show contract`s tokens transfers
       tags:
       - contract
   /v1/contract/{network}/{address}/views/execute:

@@ -57,7 +57,7 @@ var doc = `{
                     },
                     {
                         "type": "string",
-                        "description": "Comma-separated list of addresses (e.g. addr1,addr2,addr3)",
+                        "description": "Comma-separated list of addresses (e.g. addr1,addr2,addr3), max 10 addresses",
                         "name": "address",
                         "in": "query"
                     }
@@ -177,6 +177,16 @@ var doc = `{
                         "name": "address",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "enum": [
+                            "true",
+                            "false"
+                        ],
+                        "type": "string",
+                        "description": "Hide zero balances from response",
+                        "name": "hide_empty",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -240,6 +250,16 @@ var doc = `{
                         "name": "address",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "enum": [
+                            "true",
+                            "false"
+                        ],
+                        "type": "string",
+                        "description": "Hide zero balances from response",
+                        "name": "hide_empty",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -377,7 +397,7 @@ var doc = `{
                         "in": "query"
                     },
                     {
-                        "maximum": 10,
+                        "maximum": 50,
                         "minimum": 0,
                         "type": "integer",
                         "description": "Requested count",
@@ -398,6 +418,16 @@ var doc = `{
                         "type": "string",
                         "description": "Field using for sorting",
                         "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "true",
+                            "false"
+                        ],
+                        "type": "string",
+                        "description": "Hide zero balances from response",
+                        "name": "hide_empty",
                         "in": "query"
                     }
                 ],
@@ -2061,6 +2091,85 @@ var doc = `{
                 }
             }
         },
+        "/v1/contract/{network}/{address}/transfers": {
+            "get": {
+                "description": "Show contract` + "`" + `s tokens transfers.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contract"
+                ],
+                "summary": "Show contract` + "`" + `s tokens transfers",
+                "operationId": "get-contract-transfers",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maxLength": 36,
+                        "minLength": 36,
+                        "type": "string",
+                        "description": "KT address",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maximum": 10,
+                        "type": "integer",
+                        "description": "Transfers count",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Token ID",
+                        "name": "token_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.TransferResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/contract/{network}/{address}/views/execute": {
             "post": {
                 "description": "Execute view of contracts metadata",
@@ -3336,85 +3445,6 @@ var doc = `{
                     }
                 }
             }
-        },
-        "/v1/{network}/{address}/transfers": {
-            "get": {
-                "description": "Show contract` + "`" + `s tokens transfers.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "contract"
-                ],
-                "summary": "Show contract` + "`" + `s tokens transfers",
-                "operationId": "get-contract-transfers",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Network",
-                        "name": "network",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "maxLength": 36,
-                        "minLength": 36,
-                        "type": "string",
-                        "description": "KT address",
-                        "name": "address",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "maximum": 10,
-                        "type": "integer",
-                        "description": "Transfers count",
-                        "name": "size",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Offset",
-                        "name": "offset",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Token ID",
-                        "name": "token_id",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.TransferResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.Error"
-                        }
-                    }
-                }
-            }
         }
     },
     "definitions": {
@@ -3478,6 +3508,10 @@ var doc = `{
                 },
                 "x-itemTitle": {
                     "type": "string"
+                },
+                "x-options": {
+                    "type": "object",
+                    "additionalProperties": true
                 }
             }
         },
@@ -4106,9 +4140,17 @@ var doc = `{
         "handlers.NetworkStats": {
             "type": "object",
             "properties": {
+                "contract_calls": {
+                    "type": "integer",
+                    "example": 100
+                },
                 "contracts_count": {
                     "type": "integer",
                     "example": 10
+                },
+                "fa_count": {
+                    "type": "integer",
+                    "example": 100
                 },
                 "languages": {
                     "type": "object",
@@ -4125,6 +4167,10 @@ var doc = `{
                     "items": {
                         "$ref": "#/definitions/handlers.Protocol"
                     }
+                },
+                "unique_contracts": {
+                    "type": "integer",
+                    "example": 100
                 }
             }
         },
@@ -4997,6 +5043,12 @@ var doc = `{
                         "type": "string"
                     }
                 },
+                "contract_tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "count": {
                     "type": "integer"
                 },
@@ -5060,6 +5112,10 @@ var doc = `{
                 },
                 "counter": {
                     "type": "integer"
+                },
+                "entrypoint": {
+                    "type": "string",
+                    "x-nullable": true
                 },
                 "from": {
                     "type": "string"
