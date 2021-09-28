@@ -24,7 +24,7 @@ require (
 	github.com/ipfs/go-cid v0.1.0
 	github.com/jackc/pgx/v4 v4.10.1
 	github.com/jessevdk/go-flags v1.4.0
-	github.com/json-iterator/go v1.1.12
+	github.com/json-iterator/go v1.1.10
 	github.com/karlseguin/ccache v2.0.3+incompatible
 	github.com/karlseguin/expect v1.0.2-0.20190806010014-778a5f0c6003 // indirect
 	github.com/lib/pq v1.9.0
