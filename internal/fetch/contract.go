@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
+	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/pkg/errors"
 )
@@ -62,7 +63,7 @@ func Contract(network types.Network, address, protocol, filesDirectory string) (
 		return nil, err
 	}
 
-	filePath := fmt.Sprintf(contractFormatPath, filesDirectory, network, address, protoSymLink)
+	filePath := helpers.CleanPath(fmt.Sprintf(contractFormatPath, filesDirectory, network, address, protoSymLink))
 	if _, err = os.Stat(filePath); err != nil {
 		if os.IsNotExist(err) {
 			return delegatorContract, nil
@@ -75,7 +76,7 @@ func Contract(network types.Network, address, protocol, filesDirectory string) (
 
 // ContractBySymLink - reads contract from file system
 func ContractBySymLink(network types.Network, address, symLink, filesDirectory string) ([]byte, error) {
-	filePath := fmt.Sprintf(contractFormatPath, filesDirectory, network, address, symLink)
+	filePath := helpers.CleanPath(fmt.Sprintf(contractFormatPath, filesDirectory, network, address, symLink))
 	if _, err := os.Stat(filePath); err != nil {
 		if os.IsNotExist(err) {
 			return delegatorContract, nil

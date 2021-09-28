@@ -140,7 +140,11 @@ func (storage *Storage) Last(network types.Network, address string, id int64) (o
 
 // Get -
 func (storage *Storage) Get(filters map[string]interface{}, size int64, sort bool) (operations []operation.Operation, err error) {
-	query := storage.DB.Table(models.DocOperations).Where(filters)
+	query := storage.DB.Table(models.DocOperations)
+
+	for key, value := range filters {
+		query.Where("? = ?", key, value)
+	}
 
 	if sort {
 		addOperationSorting(query)
