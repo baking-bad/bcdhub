@@ -51,14 +51,6 @@ func (storage *Storage) TokenBalances(network types.Network, contract, address s
 		query.Where("contract = ?", contract)
 	}
 
-	switch sort {
-	case "token_id":
-	case "balance":
-		sort = "balance desc, id"
-	default:
-		sort = "token_id"
-	}
-
 	if hideZeroBalances {
 		query.Where("balance != 0")
 	}
@@ -67,10 +59,25 @@ func (storage *Storage) TokenBalances(network types.Network, contract, address s
 		return response, err
 	}
 
-	query.Limit(storage.getPageSizeForBalances(size)).Offset(int(offset)).Order(clause.OrderByColumn{
-		Column: clause.Column{Name: sort},
-		Desc:   true,
-	})
+	query.Limit(storage.getPageSizeForBalances(size)).Offset(int(offset))
+
+	switch sort {
+	case "token_id":
+	case "balance":
+		query.Order(clause.OrderByColumn{
+			Column: clause.Column{Name: "balance"},
+			Desc:   true,
+		})
+		query.Order(clause.OrderByColumn{
+			Column: clause.Column{Name: "id"},
+			Desc:   true,
+		})
+	default:
+		query.Order(clause.OrderByColumn{
+			Column: clause.Column{Name: "token_id"},
+			Desc:   true,
+		})
+	}
 
 	if err := storage.DB.Raw(balanceQuery, query).
 		Find(&response.Balances).Error; err != nil {
