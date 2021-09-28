@@ -5,7 +5,7 @@ on:
 name: build
 jobs:
   golangci:
-    name: lint
+    name: Linter
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -15,6 +15,7 @@ jobs:
           version: v1.34
           args: --timeout=2m
   test:
+    name: Tests
     runs-on: ubuntu-latest
     steps:
       - name: install Go
@@ -40,3 +41,21 @@ jobs:
         run: |
           touch .env
           docker-compose build
+  security:
+    name: Security Analyze
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v1
+      with:
+        languages: 'go'    
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v1
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v1
