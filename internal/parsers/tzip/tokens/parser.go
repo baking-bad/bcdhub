@@ -50,9 +50,9 @@ func (t Parser) Parse(address string, level int64) ([]tokenmetadata.TokenMetadat
 }
 
 // ParseBigMapDiff -
-func (t Parser) ParseBigMapDiff(bmd *domains.BigMapDiff, storage *ast.TypedAst) ([]tokenmetadata.TokenMetadata, error) {
+func (t Parser) ParseBigMapDiff(bmd *domains.BigMapDiff, storageAST *ast.TypedAst) ([]tokenmetadata.TokenMetadata, error) {
 	storageType := ast.TypedAst{
-		Nodes: []ast.Node{ast.Copy(storage.Nodes[0])},
+		Nodes: []ast.Node{ast.Copy(storageAST.Nodes[0])},
 	}
 	if err := storageType.SettleFromBytes(bmd.Operation.DeffatedStorage); err != nil {
 		return nil, err
@@ -63,26 +63,33 @@ func (t Parser) ParseBigMapDiff(bmd *domains.BigMapDiff, storage *ast.TypedAst) 
 	}
 
 	m := new(TokenMetadata)
-	value := gjson.ParseBytes(bmd.Value)
-	if err := m.Parse(value, bmd.Contract, bmd.Ptr); err != nil {
+	if err := m.Parse(gjson.ParseBytes(bmd.Value), bmd.Contract, bmd.Ptr); err != nil {
 		return nil, nil
 	}
 	m.Timestamp = bmd.Timestamp
 	m.Level = bmd.Level
 
 	if m.Link != "" {
-		if strings.HasPrefix(m.Link, "ipfs://") {
+		ptr := bmd.Ptr
+		switch {
+		case strings.HasPrefix(m.Link, "ipfs://"):
 			if found, err := t.tmRepo.GetOne(bmd.Network, bmd.Contract, m.TokenID); err == nil && found != nil {
 				if link, ok := found.Extras[""]; ok && link == m.Link {
 					return nil, nil
 				}
 			}
+		case strings.HasPrefix(m.Link, "tezos-storage:"):
+			bmPtr, err := storage.GetBigMapPtr(t.rpc, t.network, bmd.Contract, "metadata", bmd.Protocol.Hash, t.sharePath, bmd.Level)
+			if err != nil {
+				return nil, err
+			}
+			ptr = bmPtr
 		}
 
 		s := tzipStorage.NewFull(t.bmdRepo, t.blocksRepo, t.storage, t.rpc, t.sharePath, t.ipfs...)
 
 		remoteMetadata := new(TokenMetadata)
-		if err := s.Get(t.network, bmd.Contract, m.Link, bmd.Ptr, remoteMetadata); err != nil {
+		if err := s.Get(t.network, bmd.Contract, m.Link, ptr, remoteMetadata); err != nil {
 			switch {
 			case errors.Is(err, tzipStorage.ErrHTTPRequest):
 				logger.Warning().Str("url", m.Link).Str("kind", "token_metadata").Err(err).Msg("")

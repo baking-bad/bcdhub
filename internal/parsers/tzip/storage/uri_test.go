@@ -97,6 +97,14 @@ func TestTezosStorageURI_Parse(t *testing.T) {
 				Network: "",
 				Key:     "metadata",
 			},
+		}, {
+			name:  "test 6",
+			value: "tezos-storage:token_1_metadata",
+			fields: fields{
+				Address: "",
+				Network: "",
+				Key:     "token_1_metadata",
+			},
 		},
 	}
 	for _, tt := range tests {
