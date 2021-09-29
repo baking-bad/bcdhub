@@ -9,6 +9,7 @@ import (
 	types "github.com/baking-bad/bcdhub/internal/models/types"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
+	time "time"
 )
 
 // MockRepository is a mock of Repository interface
@@ -81,6 +82,26 @@ func (m *MockRepository) GetOne(network types.Network, contract string, tokenID 
 func (mr *MockRepositoryMockRecorder) GetOne(network, contract, tokenID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOne", reflect.TypeOf((*MockRepository)(nil).GetOne), network, contract, tokenID)
+}
+
+// GetRecent mocks base method
+func (m *MockRepository) GetRecent(since time.Time, ctx ...tm.GetContext) ([]tm.TokenMetadata, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{since}
+	for _, a := range ctx {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetRecent", varargs...)
+	ret0, _ := ret[0].([]tm.TokenMetadata)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRecent indicates an expected call of GetRecent
+func (mr *MockRepositoryMockRecorder) GetRecent(since interface{}, ctx ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{since}, ctx...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRecent", reflect.TypeOf((*MockRepository)(nil).GetRecent), varargs...)
 }
 
 // GetWithExtras mocks base method

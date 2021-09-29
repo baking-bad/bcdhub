@@ -2,6 +2,7 @@ package types
 
 import (
 	"database/sql/driver"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -44,4 +45,10 @@ func (b *Bytes) UnmarshalJSON(data []byte) error {
 	}
 	*b = append((*b)[0:0], data...)
 	return nil
+}
+
+// MustNewBytes -
+func MustNewBytes(str string) Bytes {
+	raw, _ := hex.DecodeString(str)
+	return Bytes(raw)
 }

@@ -32,6 +32,11 @@ func TestBigMapKeyHash(t *testing.T) {
 			input:    `{"string":"metadata"}`,
 			expected: "exprtuf4ctHCKfnRvAxgU8rMeqPzfb8D8e51GWR3iHkoWsFBxD8u9h",
 		},
+		{
+			name:     "string",
+			input:    `{"string":"token_2_metadata"}`,
+			expected: "expruc4MqoCyxFbogqrZumAraAzt3BXw7rZYeWkaXPLC27nfhMd7pt",
+		},
 	}
 
 	for _, tt := range tests {
