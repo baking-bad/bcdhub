@@ -250,7 +250,7 @@ func (storage *Storage) CurrentByContract(network types.Network, contract string
 func (storage *Storage) StatesChangedAfter(network types.Network, level int64) (states []bigmapdiff.BigMapState, err error) {
 	err = storage.DB.Table(models.DocBigMapState).
 		Where("network = ?", network).
-		Where("last_update_level > ?", level).
+		Where("last_update_level = ?", level).
 		Find(&states).
 		Error
 	return

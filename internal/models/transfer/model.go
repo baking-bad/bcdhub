@@ -14,19 +14,19 @@ import (
 // Transfer -
 type Transfer struct {
 	ID          int64                 `json:"-"`
-	Network     types.Network         `json:"network" gorm:"type:SMALLINT;index:transfers_network_idx;index:transfers_token_idx"`
+	Network     types.Network         `json:"network" gorm:"type:SMALLINT;index:transfers_network_idx;index:transfers_token_idx;index:idx_transfers_level_network"`
 	Contract    string                `json:"contract" gorm:"index:transfers_token_idx"`
 	Initiator   string                `json:"initiator"`
 	Status      types.OperationStatus `json:"status" gorm:"type:SMALLINT"`
 	Timestamp   time.Time             `json:"timestamp" gorm:"index:transfers_timestamp_idx"`
-	Level       int64                 `json:"level" gorm:"index:transfers_network_idx;index:transfers_level_idx"`
+	Level       int64                 `json:"level" gorm:"index:transfers_network_idx;index:transfers_level_idx;index:idx_transfers_level_network"`
 	From        string                `json:"from" gorm:"index:transfers_from_idx"`
 	To          string                `json:"to" gorm:"index:transfers_to_idx"`
 	TokenID     uint64                `json:"token_id" gorm:"type:numeric(50,0);index:transfers_token_idx"`
 	Amount      decimal.Decimal       `json:"amount" gorm:"type:numeric(100,0)"`
 	Parent      string                `json:"parent,omitempty"`
 	Entrypoint  string                `json:"entrypoint,omitempty"`
-	OperationID int64                 `json:"-"`
+	OperationID int64                 `json:"-" gorm:"index:transfers_operation_id_idx"`
 }
 
 // GetID -

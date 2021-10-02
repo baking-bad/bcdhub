@@ -12,8 +12,8 @@ import (
 // Contract - entity for contract
 type Contract struct {
 	ID        int64         `json:"-"`
-	Network   types.Network `json:"network" gorm:"type:SMALLINT;index:contracts_idx"`
-	Level     int64         `json:"level"`
+	Network   types.Network `json:"network" gorm:"type:SMALLINT;index:contracts_idx;index:idx_contracts_level_network"`
+	Level     int64         `json:"level" gorm:"index:idx_contracts_level_network"`
 	Timestamp time.Time     `json:"timestamp"`
 	Language  string        `json:"language,omitempty"`
 

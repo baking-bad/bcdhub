@@ -15,9 +15,9 @@ type Block struct {
 	Predecessor string        `json:"predecessor"`
 	ChainID     string        `json:"chain_id"`
 	Timestamp   time.Time     `json:"timestamp"`
-	Network     types.Network `json:"network" gorm:"type:SMALLINT"`
+	Network     types.Network `json:"network" gorm:"type:SMALLINT;index:idx_blocks_level_network"`
 	ID          int64         `json:"-"`
-	Level       int64         `json:"level"`
+	Level       int64         `json:"level" gorm:"index:idx_blocks_level_network"`
 	ProtocolID  int64         `json:"protocol" gorm:"type:SMALLINT"`
 
 	Protocol protocol.Protocol `json:"-"`

@@ -12,10 +12,10 @@ import (
 // TokenMetadata -
 type TokenMetadata struct {
 	ID                 int64          `json:"-" gorm:"autoIncrement:true;not null;"`
-	Network            types.Network  `json:"network" gorm:"type:SMALLINT;primaryKey;default:0"`
+	Network            types.Network  `json:"network" gorm:"type:SMALLINT;primaryKey;default:0;index:idx_token_metadata_level_network"`
 	Contract           string         `json:"contract" gorm:"primaryKey"`
 	TokenID            uint64         `json:"token_id" gorm:"type:numeric(50,0);primaryKey"`
-	Level              int64          `json:"level"`
+	Level              int64          `json:"level" gorm:"index:idx_token_metadata_level_network"`
 	Timestamp          time.Time      `json:"timestamp"`
 	Symbol             string         `json:"symbol"`
 	Name               string         `json:"name"`

@@ -15,9 +15,9 @@ type BigMapAction struct {
 	SourcePtr      *int64             `json:"source_ptr,omitempty"`
 	DestinationPtr *int64             `json:"destination_ptr,omitempty"`
 	OperationID    int64              `json:"operation_id"`
-	Level          int64              `json:"level"`
+	Level          int64              `json:"level" gorm:"index:idx_bma_level_network"`
 	Address        string             `json:"address"`
-	Network        types.Network      `json:"network" gorm:"type:SMALLINT"`
+	Network        types.Network      `json:"network" gorm:"type:SMALLINT;index:idx_bma_level_network"`
 	Timestamp      time.Time          `json:"timestamp"`
 }
 

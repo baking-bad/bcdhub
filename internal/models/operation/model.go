@@ -21,7 +21,7 @@ type Operation struct {
 	ID int64 `json:"-"`
 
 	ContentIndex int64 `json:"content_index,omitempty" gorm:",default:0"`
-	Level        int64 `json:"level"`
+	Level        int64 `json:"level" gorm:"index:idx_operations_level_network"`
 	Counter      int64 `json:"counter,omitempty" gorm:"index:opg_idx"`
 	Fee          int64 `json:"fee,omitempty"`
 	GasLimit     int64 `json:"gas_limit,omitempty"`
@@ -35,7 +35,7 @@ type Operation struct {
 	AllocatedDestinationContractBurned int64 `json:"allocated_destination_contract_burned,omitempty"`
 
 	Nonce      *int64        `json:"nonce,omitempty" gorm:"index:opg_idx"`
-	Network    types.Network `json:"network" gorm:"type:SMALLINT"`
+	Network    types.Network `json:"network" gorm:"type:SMALLINT;index:idx_operations_level_network"`
 	ProtocolID int64         `json:"protocol" gorm:"type:SMALLINT"`
 	Hash       string        `json:"hash" gorm:"index:opg_idx;index:operations_hash_idx"`
 

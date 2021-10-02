@@ -11,12 +11,12 @@ import (
 // Migration -
 type Migration struct {
 	ID             int64               `json:"-"`
-	Network        types.Network       `json:"network" gorm:"type:SMALLINT"`
+	Network        types.Network       `json:"network" gorm:"type:SMALLINT;index:idx_migrations_level_network"`
 	ProtocolID     int64               `json:"protocol" gorm:"type:SMALLINT"`
 	PrevProtocolID int64               `json:"prev_protocol,omitempty"`
 	Hash           string              `json:"hash,omitempty"`
 	Timestamp      time.Time           `json:"timestamp"`
-	Level          int64               `json:"level"`
+	Level          int64               `json:"level" gorm:"index:idx_migrations_level_network"`
 	Address        string              `json:"address"`
 	Kind           types.MigrationKind `json:"kind" gorm:"type:SMALLINT"`
 }
