@@ -16,12 +16,12 @@ type BigMapDiff struct {
 	Key         types.Bytes   `json:"key" gorm:"type:bytes;not null"`
 	KeyHash     string        `json:"key_hash" gorm:"index:big_map_diffs_key_hash_idx"`
 	Value       types.Bytes   `json:"value,omitempty" gorm:"type:bytes"`
-	Level       int64         `json:"level"`
+	Level       int64         `json:"level" gorm:"index:idx_bmd_level_network"`
 	Contract    string        `json:"contract" gorm:"index:bmd_idx"`
-	Network     types.Network `json:"network" gorm:"type:SMALLINT;index:bmd_idx;index:big_map_diffs_key_hash_idx"`
+	Network     types.Network `json:"network" gorm:"type:SMALLINT;index:idx_bmd_level_network;index:bmd_idx;index:big_map_diffs_key_hash_idx"`
 	Timestamp   time.Time     `json:"timestamp"`
 	ProtocolID  int64         `json:"protocol" gorm:"type:SMALLINT"`
-	OperationID int64         `json:"-" gorm:"index:bmd_operation_id_idx"`
+	OperationID int64         `json:"-" gorm:"index:big_map_diffs_operation_id_idx"`
 
 	KeyStrings   pq.StringArray `json:"key_strings,omitempty" gorm:"type:text[]"`
 	ValueStrings pq.StringArray `json:"value_strings,omitempty" gorm:"type:text[]"`

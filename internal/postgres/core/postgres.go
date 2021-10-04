@@ -26,7 +26,8 @@ func New(connection, appName string, opts ...PostgresOption) (*Postgres, error) 
 	}
 
 	db, err := gorm.Open(postgres.Open(connection), &gorm.Config{
-		Logger: newLogger(),
+		Logger:                                   newLogger(),
+		DisableForeignKeyConstraintWhenMigrating: true,
 	})
 	if err != nil {
 		return nil, err

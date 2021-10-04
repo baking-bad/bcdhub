@@ -8,6 +8,9 @@ import (
 func (p *Postgres) CreateIndexes() error {
 	for _, index := range models.AllModels() {
 		if p.DB.Migrator().HasTable(index) {
+			if err := p.DB.Migrator().AutoMigrate(index); err != nil {
+				return err
+			}
 			continue
 		}
 

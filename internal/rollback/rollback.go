@@ -43,7 +43,7 @@ func (rm Manager) Rollback(db *gorm.DB, fromState block.Block, toLevel int64) er
 		return errors.Errorf("To level must be less than from level: %d >= %d", toLevel, fromState.Level)
 	}
 
-	for level := fromState.Level - 1; level >= toLevel; level-- {
+	for level := fromState.Level; level > toLevel; level-- {
 		logger.Info().Msgf("Rollback to %d block", level)
 		err := db.Transaction(func(tx *gorm.DB) error {
 
@@ -69,8 +69,8 @@ func (rm Manager) Rollback(db *gorm.DB, fromState block.Block, toLevel int64) er
 	return nil
 }
 
-func (rm Manager) rollbackTokenBalances(tx *gorm.DB, network types.Network, toLevel int64) error {
-	transfers, err := rm.transfersRepo.GetAll(network, toLevel)
+func (rm Manager) rollbackTokenBalances(tx *gorm.DB, network types.Network, level int64) error {
+	transfers, err := rm.transfersRepo.GetAll(network, level)
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func (rm Manager) rollbackTokenBalances(tx *gorm.DB, network types.Network, toLe
 	return nil
 }
 
-func (rm Manager) rollbackAll(tx *gorm.DB, network types.Network, toLevel int64) error {
+func (rm Manager) rollbackAll(tx *gorm.DB, network types.Network, level int64) error {
 	for _, index := range []models.Model{
 		&block.Block{}, &contract.Contract{}, &bigmapdiff.BigMapDiff{},
 		&bigmapaction.BigMapAction{}, &tzip.TZIP{}, &migration.Migration{},
@@ -116,17 +116,23 @@ func (rm Manager) rollbackAll(tx *gorm.DB, network types.Network, toLevel int64)
 	} {
 		if err := tx.Unscoped().
 			Where("network = ?", network).
-			Where("level > ?", toLevel).
+			Where("level = ?", level).
 			Delete(index).
 			Error; err != nil {
 			return err
 		}
+
+		logger.Info().
+			Str("network", network.String()).
+			Str("model", index.GetIndex()).
+			Int64("level", level).
+			Msg("rollback")
 	}
 	return nil
 }
 
-func (rm Manager) rollbackBigMapState(tx *gorm.DB, network types.Network, toLevel int64) error {
-	states, err := rm.bmdRepo.StatesChangedAfter(network, toLevel)
+func (rm Manager) rollbackBigMapState(tx *gorm.DB, network types.Network, level int64) error {
+	states, err := rm.bmdRepo.StatesChangedAfter(network, level)
 	if err != nil {
 		return err
 	}
@@ -171,18 +177,22 @@ type lastAction struct {
 	Time    time.Time `gorm:"time"`
 }
 
-func (rm Manager) rollbackOperations(tx *gorm.DB, network types.Network, toLevel int64) error {
+func (rm Manager) rollbackOperations(tx *gorm.DB, network types.Network, level int64) error {
 	var ops []operation.Operation
 	if err := tx.Model(&operation.Operation{}).
 		Where("network = ?", network).
-		Where("level > ?", toLevel).
+		Where("level = ?", level).
 		Find(&ops).Error; err != nil {
 		return err
 	}
 
+	ids := make([]int64, len(ops))
+	for i := range ops {
+		ids[i] = ops[i].ID
+	}
+
 	if err := tx.Unscoped().
-		Where("network = ?", network).
-		Where("level > ?", toLevel).
+		Where("id in ?", ids).
 		Delete(&operation.Operation{}).
 		Error; err != nil {
 		return err

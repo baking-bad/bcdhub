@@ -12,10 +12,10 @@ import (
 type TZIP struct {
 	ID         int64         `json:"-"`
 	UpdatedAt  uint64        `gorm:"autoUpdateTime"`
-	Level      int64         `json:"level,omitempty"`
+	Level      int64         `json:"level,omitempty" gorm:"index:idx_tzip_level_network"`
 	Timestamp  time.Time     `json:"timestamp,omitempty"`
 	Address    string        `json:"address" gorm:"index:tzips_contract_idx"`
-	Network    types.Network `json:"network" gorm:"type:SMALLINT;index:tzips_contract_idx"`
+	Network    types.Network `json:"network" gorm:"type:SMALLINT;index:tzips_contract_idx;index:idx_tzip_level_network"`
 	Slug       string        `json:"slug,omitempty"`
 	DomainName string        `json:"domain_name,omitempty"`
 	OffChain   bool          `json:"offchain,omitempty" gorm:",default:false"`

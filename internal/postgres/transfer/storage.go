@@ -56,7 +56,7 @@ func (storage *Storage) GetAll(network types.Network, level int64) ([]transfer.T
 	var transfers []transfer.Transfer
 	err := storage.DB.Table(models.DocTransfers).
 		Where("network = ?", network).
-		Where("level > ?", level).
+		Where("level = ?", level).
 		Find(&transfers).Error
 	return transfers, err
 }
