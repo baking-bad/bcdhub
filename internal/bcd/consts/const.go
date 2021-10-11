@@ -4,9 +4,10 @@ import "time"
 
 // Kind
 const (
-	Transaction    = "transaction"
-	Origination    = "origination"
-	OriginationNew = "origination_new"
+	Transaction            = "transaction"
+	Origination            = "origination"
+	OriginationNew         = "origination_new"
+	RegisterGlobalConstant = "register_global_constant"
 )
 
 // Error IDs

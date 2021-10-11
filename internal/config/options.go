@@ -13,6 +13,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/postgres/contract"
 	"github.com/baking-bad/bcdhub/internal/postgres/dapp"
 	"github.com/baking-bad/bcdhub/internal/postgres/domains"
+	"github.com/baking-bad/bcdhub/internal/postgres/global_constant"
 	"github.com/baking-bad/bcdhub/internal/postgres/migration"
 	"github.com/baking-bad/bcdhub/internal/postgres/operation"
 	"github.com/baking-bad/bcdhub/internal/postgres/protocol"
@@ -80,6 +81,7 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64, maxConnCo
 		ctx.TokenMetadata = tokenmetadata.NewStorage(pg)
 		ctx.Transfers = transfer.NewStorage(pg)
 		ctx.TZIP = tzip.NewStorage(pg)
+		ctx.GlobalConstants = global_constant.NewStorage(pg)
 		ctx.Domains = domains.NewStorage(pg)
 		ctx.Services = service.NewStorage(pg)
 	}

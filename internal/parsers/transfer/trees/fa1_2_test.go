@@ -14,11 +14,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func newDecimal(val string) decimal.Decimal {
-	i, _ := decimal.NewFromString(val)
-	return i
-}
-
 func TestMakeFa1_2Transfers(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -39,7 +34,7 @@ func TestMakeFa1_2Transfers(t *testing.T) {
 					Network: modelTypes.Edo2net,
 					From:    "tz1grSQDByRpnVs7sPtaprNZRp531ZKz6Jmm",
 					To:      "tz1TGu6TN5GSez2ndXXeDX6LgUDvLzPLqgYV",
-					Amount:  newDecimal("100"),
+					Amount:  decimal.RequireFromString("100"),
 				},
 			},
 		}, {
@@ -54,7 +49,7 @@ func TestMakeFa1_2Transfers(t *testing.T) {
 					Network: modelTypes.Mainnet,
 					From:    "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
 					To:      "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
-					Amount:  newDecimal("7874880"),
+					Amount:  decimal.RequireFromString("7874880"),
 				},
 			},
 		}, {
@@ -90,7 +85,7 @@ func TestMakeFa1_2Transfers(t *testing.T) {
 					Network: modelTypes.Mainnet,
 					From:    "KT1ChJ6h8Crjdfds99DLpE5USynQTmCJtB3T",
 					To:      "tz1Mqnms73LqgBCYiM7e5k12VyWNQG8ytcGb",
-					Amount:  newDecimal("15019000009999999295"),
+					Amount:  decimal.RequireFromString("15019000009999999295"),
 				},
 			},
 		},

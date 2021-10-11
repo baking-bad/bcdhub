@@ -25,7 +25,7 @@ require (
 	github.com/google/uuid v1.1.2
 	github.com/iancoleman/strcase v0.1.3
 	github.com/ipfs/go-cid v0.1.0
-	github.com/jackc/pgx/v4 v4.10.1
+	github.com/jackc/pgx/v4 v4.11.0
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/json-iterator/go v1.1.10
 	github.com/karlseguin/ccache v2.0.3+incompatible
@@ -55,6 +55,7 @@ require (
 	golang.org/x/tools v0.1.6 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0
-	gorm.io/driver/postgres v1.0.8
+	gorm.io/datatypes v1.0.2
+	gorm.io/driver/postgres v1.1.0
 	gorm.io/gorm v1.21.15
 )

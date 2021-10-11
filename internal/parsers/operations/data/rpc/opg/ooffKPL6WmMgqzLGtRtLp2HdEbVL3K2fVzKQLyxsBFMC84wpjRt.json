@@ -1,0 +1,50 @@
+{
+    "protocol": "PtHangzHogokSuiMHemCuowEavgYTP8J5qQ9fQS793MHYFpCY3r",
+    "chain_id": "NetXuXoGoLxNK6o",
+    "hash": "ooffKPL6WmMgqzLGtRtLp2HdEbVL3K2fVzKQLyxsBFMC84wpjRt",
+    "branch": "BMZTtXoMFekZKa2A1Dss5VKKszXAiC7GAentMT9iUArnCq7m3tc",
+    "contents": [
+        {
+            "kind": "register_global_constant",
+            "source": "tz1SMARcpWCydHsGgz4MRoK9NkbpBmmUAfNe",
+            "fee": "377",
+            "counter": "1",
+            "gas_limit": "1333",
+            "storage_limit": "100",
+            "value":[{"prim":"PUSH","args":[{"prim":"int"},{"int":"10"}]},{"prim":"SWAP"},{"prim":"MUL"}],
+            "metadata": {
+                "balance_updates": [
+                    {
+                        "kind": "contract",
+                        "contract": "tz1SMARcpWCydHsGgz4MRoK9NkbpBmmUAfNe",
+                        "change": "-377",
+                        "origin": "block"
+                    },
+                    {
+                        "kind": "freezer",
+                        "category": "fees",
+                        "delegate": "tz1MeT8NACB8Q4uV9dPQ3YxXBmYgapbxQxQ5",
+                        "cycle": 3,
+                        "change": "377",
+                        "origin": "block"
+                    }
+                ],
+                "operation_result": {
+                    "status": "applied",
+                    "balance_updates": [
+                        {
+                            "kind": "contract",
+                            "contract": "tz1SMARcpWCydHsGgz4MRoK9NkbpBmmUAfNe",
+                            "change": "-20000",
+                            "origin": "block"
+                        }
+                    ],
+                    "consumed_gas": "1233",
+                    "storage_size": "80",
+                    "global_address": "expru54tk2k4E81xQy63P6x3RijnTz51s2m7BV7pr3fDQH8YDqiYvR"
+                }
+            }
+        }
+    ],
+    "signature": "sigdTGnwSA8oKiwV2fAdCJQR2NkELwTtpUGLfANe1tmfDTLKtMqxzXPrYJS72BGxzbcft49DgEnqbA1XnaC1G6K1HRZYUns1"
+}

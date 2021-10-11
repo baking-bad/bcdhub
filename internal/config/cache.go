@@ -176,3 +176,15 @@ func (ctx *Context) CachedProtocolByID(network types.Network, id int64) (protoco
 	}
 	return item.Value().(protocol.Protocol), nil
 }
+
+// CachedProtocolByID -
+func (ctx *Context) CachedProjectIDByHash(hash string) (string, error) {
+	key := ctx.Cache.ProjectIDByHash(hash)
+	item, err := ctx.Cache.Fetch(key, time.Hour, func() (interface{}, error) {
+		return ctx.Contracts.GetProjectIDByHash(hash)
+	})
+	if err != nil {
+		return "", err
+	}
+	return item.Value().(string), nil
+}

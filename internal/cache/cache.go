@@ -34,6 +34,11 @@ func (cache *Cache) ContractKey(network types.Network, address string) string {
 	return fmt.Sprintf("contract:%d:%s", network, address)
 }
 
+// ProjectIDByHash -
+func (cache *Cache) ProjectIDByHash(hash string) string {
+	return fmt.Sprintf("project_id:%s", hash)
+}
+
 // BlockKey -
 func (cache *Cache) BlockKey(network types.Network) string {
 	return fmt.Sprintf("block:%d", network)

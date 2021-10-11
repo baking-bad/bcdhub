@@ -7,11 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func newDecimal(val string) decimal.Decimal {
-	i, _ := decimal.NewFromString(val)
-	return i
-}
-
 func Test_singleAssetBalanceParser_Parse(t *testing.T) {
 	tests := []struct {
 		name string
@@ -24,7 +19,7 @@ func Test_singleAssetBalanceParser_Parse(t *testing.T) {
 			want: []TokenBalance{
 				{
 					Address: "test",
-					Value:   newDecimal("100000000000000"),
+					Value:   decimal.RequireFromString("100000000000000"),
 				},
 			},
 		}, {
@@ -33,7 +28,7 @@ func Test_singleAssetBalanceParser_Parse(t *testing.T) {
 			want: []TokenBalance{
 				{
 					Address: "tz1djRgXXWWJiY1rpMECCxr5d9ZBqWewuiU1",
-					Value:   newDecimal("1000000000000000"),
+					Value:   decimal.RequireFromString("1000000000000000"),
 				},
 			},
 		},
@@ -63,7 +58,7 @@ func Test_multiAssetBalanceParser_Parse(t *testing.T) {
 				{
 					Address: "test",
 					TokenID: 1,
-					Value:   newDecimal("1000000000000000"),
+					Value:   decimal.RequireFromString("1000000000000000"),
 				},
 			},
 		}, {
@@ -73,7 +68,7 @@ func Test_multiAssetBalanceParser_Parse(t *testing.T) {
 				{
 					Address: "tz1djRgXXWWJiY1rpMECCxr5d9ZBqWewuiU1",
 					TokenID: 1,
-					Value:   newDecimal("1000000000000000"),
+					Value:   decimal.RequireFromString("1000000000000000"),
 				},
 			},
 		},
@@ -82,7 +77,7 @@ func Test_multiAssetBalanceParser_Parse(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := NewMultiAssetUpdate().Parse([]byte(tt.args))
 			if err != nil {
-				t.Errorf("Parse error=%w", err)
+				t.Errorf("Parse error=%v", err)
 				return
 			}
 			assert.Equal(t, got, tt.want)
@@ -103,7 +98,7 @@ func Test_nftParser_Parse(t *testing.T) {
 				{
 					Address:        "KT1BYYLfMjufYwqFtTSYJND7bzKNyK7mjrjM",
 					TokenID:        1,
-					Value:          newDecimal("1"),
+					Value:          decimal.RequireFromString("1"),
 					IsExclusiveNFT: true,
 				},
 			},
@@ -113,7 +108,7 @@ func Test_nftParser_Parse(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := NewNftAsset().Parse([]byte(tt.args))
 			if err != nil {
-				t.Errorf("Parse error=%w", err)
+				t.Errorf("Parse error=%v", err)
 				return
 			}
 			assert.Equal(t, got, tt.want)
@@ -134,7 +129,7 @@ func Test_nftOptionParser_Parse(t *testing.T) {
 				{
 					Address:        "KT1BYYLfMjufYwqFtTSYJND7bzKNyK7mjrjM",
 					TokenID:        1,
-					Value:          newDecimal("1"),
+					Value:          decimal.RequireFromString("1"),
 					IsExclusiveNFT: true,
 				},
 			},
@@ -145,7 +140,7 @@ func Test_nftOptionParser_Parse(t *testing.T) {
 				{
 					Address:        "",
 					TokenID:        1,
-					Value:          newDecimal("0"),
+					Value:          decimal.RequireFromString("0"),
 					IsExclusiveNFT: true,
 				},
 			},
@@ -155,7 +150,7 @@ func Test_nftOptionParser_Parse(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := NewNftAssetOption().Parse([]byte(tt.args))
 			if err != nil {
-				t.Errorf("Parse error=%w", err)
+				t.Errorf("Parse error=%v", err)
 				return
 			}
 			assert.Equal(t, got, tt.want)

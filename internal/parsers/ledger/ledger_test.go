@@ -19,11 +19,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func newDecimal(val string) decimal.Decimal {
-	i, _ := decimal.NewFromString(val)
-	return i
-}
-
 func TestLedger_Parse(t *testing.T) {
 	ctrlTokenBalanceRepo := gomock.NewController(t)
 	defer ctrlTokenBalanceRepo.Finish()
@@ -41,7 +36,7 @@ func TestLedger_Parse(t *testing.T) {
 			Network:  types.Mainnet,
 			Address:  "tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo",
 			TokenID:  0,
-			Balance:  newDecimal("168000"),
+			Balance:  decimal.RequireFromString("168000"),
 		}, nil).
 		AnyTimes()
 
@@ -134,7 +129,7 @@ func TestLedger_Parse(t *testing.T) {
 						Address:  "tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo",
 						Contract: "KT1981tPmXh4KrUQKZpQKb55kREX7QGJcF3E",
 						Network:  types.Mainnet,
-						Balance:  newDecimal("0"),
+						Balance:  decimal.RequireFromString("0"),
 						TokenID:  0,
 						IsLedger: true,
 					},
@@ -145,7 +140,7 @@ func TestLedger_Parse(t *testing.T) {
 					From:       "tz2HdbFWnzRZ7B9fM2xZCYdZv8rM5frGKDCo",
 					Contract:   "KT1981tPmXh4KrUQKZpQKb55kREX7QGJcF3E",
 					Network:    types.Mainnet,
-					Amount:     newDecimal("168000"),
+					Amount:     decimal.RequireFromString("168000"),
 					TokenID:    0,
 					Entrypoint: "burn",
 					Level:      1455291,

@@ -5,6 +5,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/global_constant"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
@@ -17,23 +18,25 @@ const (
 
 // Result -
 type Result struct {
-	BigMapActions []*bigmapaction.BigMapAction
-	BigMapState   []*bigmapdiff.BigMapState
-	Contracts     []*contract.Contract
-	Migrations    []*migration.Migration
-	Operations    []*operation.Operation
-	TokenBalances []*tokenbalance.TokenBalance
+	BigMapActions   []*bigmapaction.BigMapAction
+	BigMapState     []*bigmapdiff.BigMapState
+	Contracts       []*contract.Contract
+	Migrations      []*migration.Migration
+	Operations      []*operation.Operation
+	TokenBalances   []*tokenbalance.TokenBalance
+	GlobalConstants []*global_constant.GlobalConstant
 }
 
 // NewResult -
 func NewResult() *Result {
 	return &Result{
-		BigMapActions: make([]*bigmapaction.BigMapAction, 0),
-		BigMapState:   make([]*bigmapdiff.BigMapState, 0),
-		Contracts:     make([]*contract.Contract, 0),
-		Migrations:    make([]*migration.Migration, 0),
-		Operations:    make([]*operation.Operation, 0),
-		TokenBalances: make([]*tokenbalance.TokenBalance, 0),
+		BigMapActions:   make([]*bigmapaction.BigMapAction, 0),
+		BigMapState:     make([]*bigmapdiff.BigMapState, 0),
+		Contracts:       make([]*contract.Contract, 0),
+		Migrations:      make([]*migration.Migration, 0),
+		Operations:      make([]*operation.Operation, 0),
+		TokenBalances:   make([]*tokenbalance.TokenBalance, 0),
+		GlobalConstants: make([]*global_constant.GlobalConstant, 0),
 	}
 }
 
@@ -61,6 +64,9 @@ func (result *Result) Save(tx *gorm.DB) error {
 	if err := tx.CreateInBatches(result.Migrations, batchSize).Error; err != nil {
 		return err
 	}
+	if err := tx.CreateInBatches(result.GlobalConstants, batchSize).Error; err != nil {
+		return err
+	}
 
 	return result.updateContracts(tx)
 }
@@ -77,6 +83,7 @@ func (result *Result) Merge(second *Result) {
 	result.Migrations = append(result.Migrations, second.Migrations...)
 	result.Operations = append(result.Operations, second.Operations...)
 	result.TokenBalances = append(result.TokenBalances, second.TokenBalances...)
+	result.GlobalConstants = append(result.GlobalConstants, second.GlobalConstants...)
 }
 
 func (result *Result) updateContracts(tx *gorm.DB) error {

@@ -29,6 +29,7 @@ var symLinks = map[string]string{
 	"PsrsRVg1Gycjn5LvMtoYSQah1znvYmGp8bHLxwYLBZaYFf2CEkV": SymLinkBabylon, // Falphanet
 	"PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i": SymLinkBabylon, // Florencenet (no baking accounts)
 	"PtGRANADsDU8R9daYKAgWnQYAJ64omN1o3KMGVCykShA97vQbvV": SymLinkBabylon, // Granadanet
+	"PtHangzHogokSuiMHemCuowEavgYTP8J5qQ9fQS793MHYFpCY3r": SymLinkBabylon, // Hangzhounet
 }
 
 // GetProtoSymLink -
@@ -41,7 +42,7 @@ func GetProtoSymLink(protocol string) (string, error) {
 
 // GetCurrentProtocol - returns last supported protocol
 func GetCurrentProtocol() string {
-	return "PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i"
+	return "PtGRANADsDU8R9daYKAgWnQYAJ64omN1o3KMGVCykShA97vQbvV"
 }
 
 // Symbolic links

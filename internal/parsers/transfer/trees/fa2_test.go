@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	modelTypes "github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,7 +34,7 @@ func TestMakeFa2Transfers(t *testing.T) {
 					Network: modelTypes.Mainnet,
 					From:    "tz1gHJt7J1aEtW2wpCR5RJd3CpnbVxUTaEXS",
 					To:      "tz1gsJENNUwg7fQiRwQi5zJYaj7YtwwsE3y2",
-					Amount:  newDecimal("1000000000"),
+					Amount:  decimal.RequireFromString("1000000000"),
 				},
 			},
 		}, {
@@ -48,7 +49,7 @@ func TestMakeFa2Transfers(t *testing.T) {
 					Network: modelTypes.Mainnet,
 					From:    "tz1aCzsYRUgDZBV7zb7Si6q2AobrocFW5qwb",
 					To:      "tz1a6ZKyEoCmfpsY74jEq6uKBK8RQXdj1aVi",
-					Amount:  newDecimal("1"),
+					Amount:  decimal.RequireFromString("1"),
 					TokenID: 12,
 				},
 			},

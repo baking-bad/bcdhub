@@ -72,6 +72,12 @@ func (content Content) Parse(data noderpc.Operation) (*parsers.Result, error) {
 			return nil, err
 		}
 		result.Merge(txResult)
+	case consts.RegisterGlobalConstant:
+		txResult, err := NewRegisterGlobalConstant(content.ParseParams).Parse(data)
+		if err != nil {
+			return nil, err
+		}
+		result.Merge(txResult)
 	default:
 		return nil, errors.Errorf("Invalid operation kind: %s", data.Kind)
 	}
@@ -93,7 +99,8 @@ func (content Content) needParse(item noderpc.Operation) bool {
 	prefixCondition := bcd.IsContract(item.Source) || bcd.IsContract(destination)
 	transactionCondition := item.Kind == consts.Transaction && prefixCondition
 	originationCondition := (item.Kind == consts.Origination || item.Kind == consts.OriginationNew) && item.Script != nil
-	return originationCondition || transactionCondition
+	registerGlobalConstantCondition := item.Kind == consts.RegisterGlobalConstant
+	return originationCondition || transactionCondition || registerGlobalConstantCondition
 }
 
 func (content Content) parseInternal(data noderpc.Operation) (*parsers.Result, error) {
