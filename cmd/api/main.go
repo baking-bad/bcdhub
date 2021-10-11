@@ -209,6 +209,11 @@ func (api *app) makeRouter() {
 			dapps.GET("", api.Context.GetDAppList)
 			dapps.GET(":slug", api.Context.GetDApp)
 		}
+
+		globalConstants := v1.Group("global_constants/:network/:address")
+		{
+			globalConstants.GET("", api.Context.GetGlobalConstant)
+		}
 	}
 	api.Router = r
 }

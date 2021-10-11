@@ -1,6 +1,9 @@
 package contract
 
 import (
+	"bytes"
+	"fmt"
+
 	astContract "github.com/baking-bad/bcdhub/internal/bcd/contract"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
@@ -68,8 +71,29 @@ func (p *Parser) Parse(operation *operation.Operation) (*parsers.Result, error) 
 func (p *Parser) computeMetrics(operation *operation.Operation, c *contract.Contract) error {
 	script, err := astContract.NewParser(operation.Script)
 	if err != nil {
-		return errors.Errorf("astContract.NewParser: %v", err)
+		return errors.Wrap(err, "astContract.NewParser")
 	}
+
+	constants, err := script.FindConstants()
+	if err != nil {
+		return errors.Wrap(err, "script.FindConstants")
+	}
+
+	if len(constants) > 0 {
+		globalConstants, err := p.ctx.GlobalConstants.All(c.Network, constants...)
+		if err != nil {
+			return err
+		}
+		c.Constants = globalConstants
+		p.replaceConstants(c, operation)
+
+		script, err = astContract.NewParser(operation.Script)
+		if err != nil {
+			return errors.Wrap(err, "astContract.NewParser")
+		}
+
+	}
+
 	if err := script.Parse(); err != nil {
 		return err
 	}
@@ -96,7 +120,7 @@ func (p *Parser) computeMetrics(operation *operation.Operation, c *contract.Cont
 		c.Tags.Set(types.UpgradableTag)
 	}
 
-	c.ProjectID, err = p.ctx.Contracts.GetProjectIDByHash(c.Hash)
+	c.ProjectID, err = p.ctx.CachedProjectIDByHash(c.Hash)
 	if err != nil {
 		return err
 	}
@@ -115,4 +139,15 @@ func (p *Parser) computeMetrics(operation *operation.Operation, c *contract.Cont
 		})
 	}
 	return nil
+}
+
+func (p *Parser) replaceConstants(c *contract.Contract, operation *operation.Operation) {
+	pattern := `{"prim":"constant","args":[{"string":"%s"}]}`
+	for i := range c.Constants {
+		operation.Script = bytes.ReplaceAll(
+			operation.Script,
+			[]byte(fmt.Sprintf(pattern, c.Constants[i].Address)),
+			c.Constants[i].Value,
+		)
+	}
 }

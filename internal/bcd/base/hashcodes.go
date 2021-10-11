@@ -187,6 +187,7 @@ var codes = map[string]string{
 	"GET_AND_UPDATE":        "b5",
 	"MAP_CDR":               "b6",
 	"MAP_CAR":               "b7",
+	"constant":              "b8",
 }
 
 var regCodes = map[*regexp.Regexp]string{

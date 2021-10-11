@@ -3,6 +3,7 @@ package contract
 import (
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/models/global_constant"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/lib/pq"
 	"gorm.io/gorm"
@@ -35,6 +36,8 @@ type Contract struct {
 	TxCount         int64     `json:"tx_count" gorm:",default:0"`
 	LastAction      time.Time `json:"last_action"`
 	MigrationsCount int64     `json:"migrations_count,omitempty" gorm:",default:0"`
+
+	Constants []global_constant.GlobalConstant `gorm:"many2many:contract_constants;"`
 }
 
 // NewEmptyContract -

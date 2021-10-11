@@ -25,8 +25,6 @@ type ParseParams struct {
 
 	stackTrace *stacktrace.StackTrace
 
-	ipfs []string
-
 	network    types.Network
 	hash       string
 	head       noderpc.Header
@@ -36,13 +34,6 @@ type ParseParams struct {
 
 // ParseParamsOption -
 type ParseParamsOption func(*ParseParams)
-
-// WithIPFSGateways -
-func WithIPFSGateways(ipfs []string) ParseParamsOption {
-	return func(dp *ParseParams) {
-		dp.ipfs = ipfs
-	}
-}
 
 // WithConstants -
 func WithConstants(constants protocol.Constants) ParseParamsOption {

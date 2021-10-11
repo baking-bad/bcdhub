@@ -13,6 +13,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	modelContract "github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/global_constant"
 	mock_general "github.com/baking-bad/bcdhub/internal/models/mock"
 	mock_bmd "github.com/baking-bad/bcdhub/internal/models/mock/bigmapdiff"
 	mock_block "github.com/baking-bad/bcdhub/internal/models/mock/block"
@@ -236,6 +237,20 @@ func TestGroup_Parse(t *testing.T) {
 
 	protoRepo.
 		EXPECT().
+		Get(
+			gomock.Eq(types.Hangzhounet),
+			gomock.Eq("PtHangzHogokSuiMHemCuowEavgYTP8J5qQ9fQS793MHYFpCY3r"),
+			gomock.Eq(int64(-1))).
+		Return(protocol.Protocol{
+			Hash:    "PtHangzHogokSuiMHemCuowEavgYTP8J5qQ9fQS793MHYFpCY3r",
+			Network: types.Hangzhounet,
+			SymLink: bcd.SymLinkBabylon,
+			ID:      5,
+		}, nil).
+		AnyTimes()
+
+	protoRepo.
+		EXPECT().
 		GetByID(gomock.Eq(int64(0))).
 		Return(protocol.Protocol{
 			Hash:    "PsDELPH1Kxsxt8f9eWbxQeRxkjfbxoqM52jvs5Y5fBxWWh4ifpo",
@@ -285,6 +300,17 @@ func TestGroup_Parse(t *testing.T) {
 			Network: types.Mainnet,
 			SymLink: bcd.SymLinkBabylon,
 			ID:      4,
+		}, nil).
+		AnyTimes()
+
+	protoRepo.
+		EXPECT().
+		GetByID(gomock.Eq(int64(5))).
+		Return(protocol.Protocol{
+			Hash:    "PtHangzHogokSuiMHemCuowEavgYTP8J5qQ9fQS793MHYFpCY3r",
+			Network: types.Hangzhounet,
+			SymLink: bcd.SymLinkBabylon,
+			ID:      5,
 		}, nil).
 		AnyTimes()
 
@@ -390,7 +416,7 @@ func TestGroup_Parse(t *testing.T) {
 								From:      "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
 								To:        "tz1invbJv3AEm55ct7QF2dVbWZuaDekssYkV",
 								TokenID:   0,
-								Amount:    newDecimal("8010000"),
+								Amount:    decimal.RequireFromString("8010000"),
 							},
 						},
 						BigMapDiffs: []*bigmapdiff.BigMapDiff{
@@ -481,13 +507,13 @@ func TestGroup_Parse(t *testing.T) {
 						Contract: "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 						Address:  "tz1aSPEN4RTZbn4aXEsxDiix38dDmacGQ8sq",
 						TokenID:  0,
-						Balance:  newDecimal("-8010000"),
+						Balance:  decimal.RequireFromString("-8010000"),
 					}, {
 						Network:  types.Mainnet,
 						Contract: "KT1S5iPRQ612wcNm6mXDqDhTNegGFcvTV7vM",
 						Address:  "tz1invbJv3AEm55ct7QF2dVbWZuaDekssYkV",
 						TokenID:  0,
-						Balance:  newDecimal("8010000"),
+						Balance:  decimal.RequireFromString("8010000"),
 					},
 				},
 			},
@@ -591,7 +617,7 @@ func TestGroup_Parse(t *testing.T) {
 								From:      "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
 								To:        "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
 								TokenID:   0,
-								Amount:    newDecimal("7874880"),
+								Amount:    decimal.RequireFromString("7874880"),
 							},
 						},
 						BigMapDiffs: []*bigmapdiff.BigMapDiff{
@@ -677,13 +703,13 @@ func TestGroup_Parse(t *testing.T) {
 						Contract: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
 						Address:  "KT1Ap287P1NzsnToSJdA4aqSNjPomRaHBZSr",
 						TokenID:  0,
-						Balance:  newDecimal("-7874880"),
+						Balance:  decimal.RequireFromString("-7874880"),
 					}, {
 						Network:  types.Mainnet,
 						Contract: "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
 						Address:  "tz1dMH7tW7RhdvVMR4wKVFF1Ke8m8ZDvrTTE",
 						TokenID:  0,
-						Balance:  newDecimal("7874880"),
+						Balance:  decimal.RequireFromString("7874880"),
 					},
 				},
 			},
@@ -1189,6 +1215,60 @@ func TestGroup_Parse(t *testing.T) {
 								},
 							},
 						},
+					},
+				},
+			},
+		}, {
+			name: "ooffKPL6WmMgqzLGtRtLp2HdEbVL3K2fVzKQLyxsBFMC84wpjRt",
+			rpc:  rpc,
+			ctx: &config.Context{
+				Storage:       generalRepo,
+				Contracts:     contractRepo,
+				BigMapDiffs:   bmdRepo,
+				Blocks:        blockRepo,
+				Protocols:     protoRepo,
+				TZIP:          tzipRepo,
+				TokenBalances: tbRepo,
+				Cache:         cache.NewCache(),
+				SharePath:     "./test",
+			},
+			paramsOpts: []ParseParamsOption{
+				WithHead(noderpc.Header{
+					Timestamp: timestamp,
+					Protocol:  "PtHangzHogokSuiMHemCuowEavgYTP8J5qQ9fQS793MHYFpCY3r",
+					Level:     15400,
+					ChainID:   "NetXuXoGoLxNK6o",
+				}),
+				WithNetwork(types.Hangzhounet),
+			},
+			filename: "./data/rpc/opg/ooffKPL6WmMgqzLGtRtLp2HdEbVL3K2fVzKQLyxsBFMC84wpjRt.json",
+			want: &parsers.Result{
+				Operations: []*operation.Operation{
+					{
+						Kind:         types.OperationKindRegisterGlobalConstant,
+						Hash:         "ooffKPL6WmMgqzLGtRtLp2HdEbVL3K2fVzKQLyxsBFMC84wpjRt",
+						Source:       "tz1SMARcpWCydHsGgz4MRoK9NkbpBmmUAfNe",
+						Initiator:    "tz1SMARcpWCydHsGgz4MRoK9NkbpBmmUAfNe",
+						Status:       types.OperationStatusApplied,
+						Fee:          377,
+						Counter:      1,
+						GasLimit:     1333,
+						ConsumedGas:  1233,
+						StorageSize:  80,
+						StorageLimit: 100,
+						Timestamp:    timestamp,
+						Level:        15400,
+						Network:      types.Hangzhounet,
+						ProtocolID:   5,
+					},
+				},
+				GlobalConstants: []*global_constant.GlobalConstant{
+					{
+						Network:   types.Hangzhounet,
+						Level:     15400,
+						Timestamp: timestamp,
+						Address:   "expru54tk2k4E81xQy63P6x3RijnTz51s2m7BV7pr3fDQH8YDqiYvR",
+						Value:     []byte(`[{"prim":"PUSH","args":[{"prim":"int"},{"int":"10"}]},{"prim":"SWAP"},{"prim":"MUL"}]`),
 					},
 				},
 			},

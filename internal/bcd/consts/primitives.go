@@ -48,6 +48,7 @@ const (
 	BLS12381G1         = "bls12_381_g1"
 	BLS12381G2         = "bls12_381_g2"
 	TICKET             = "ticket"
+	CONSTANT           = "constant"
 )
 
 // Data instructions

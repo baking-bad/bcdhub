@@ -6,6 +6,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/dapp"
+	"github.com/baking-bad/bcdhub/internal/models/global_constant"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
@@ -19,21 +20,22 @@ import (
 
 // Document names
 const (
-	DocBigMapActions = "big_map_actions"
-	DocBigMapDiff    = "big_map_diffs"
-	DocBigMapState   = "big_map_states"
-	DocBlocks        = "blocks"
-	DocContracts     = "contracts"
-	DocDApps         = "dapps"
-	DocMigrations    = "migrations"
-	DocOperations    = "operations"
-	DocProtocol      = "protocols"
-	DocServices      = "states"
-	DocTezosDomains  = "tezos_domains"
-	DocTokenBalances = "token_balances"
-	DocTokenMetadata = "token_metadata"
-	DocTransfers     = "transfers"
-	DocTZIP          = "tzips"
+	DocBigMapActions   = "big_map_actions"
+	DocBigMapDiff      = "big_map_diffs"
+	DocBigMapState     = "big_map_states"
+	DocBlocks          = "blocks"
+	DocContracts       = "contracts"
+	DocDApps           = "dapps"
+	DocGlobalConstants = "global_constants"
+	DocMigrations      = "migrations"
+	DocOperations      = "operations"
+	DocProtocol        = "protocols"
+	DocServices        = "states"
+	DocTezosDomains    = "tezos_domains"
+	DocTokenBalances   = "token_balances"
+	DocTokenMetadata   = "token_metadata"
+	DocTransfers       = "transfers"
+	DocTZIP            = "tzips"
 )
 
 // AllDocuments - returns all document names
@@ -46,6 +48,7 @@ func AllDocuments() []string {
 		DocBlocks,
 		DocContracts,
 		DocDApps,
+		DocGlobalConstants,
 		DocMigrations,
 		DocOperations,
 		DocProtocol,
@@ -75,5 +78,6 @@ func AllModels() []Model {
 		&transfer.Transfer{},
 		&tzip.TZIP{},
 		&dapp.DApp{},
+		&global_constant.GlobalConstant{},
 	}
 }

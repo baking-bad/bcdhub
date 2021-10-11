@@ -14,14 +14,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/parsers"
-	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 )
-
-func newDecimal(val string) decimal.Decimal {
-	i, _ := decimal.NewFromString(val)
-	return i
-}
 
 func newInt64Ptr(val int64) *int64 {
 	return &val
@@ -69,6 +63,9 @@ func compareParserResponse(t *testing.T, got, want *parsers.Result) bool {
 	if !assert.Len(t, got.TokenBalances, len(want.TokenBalances)) {
 		return false
 	}
+	if !assert.Len(t, got.GlobalConstants, len(want.GlobalConstants)) {
+		return false
+	}
 
 	for i := range got.BigMapActions {
 		if !compareBigMapAction(want.BigMapActions[i], got.BigMapActions[i]) {
@@ -97,6 +94,11 @@ func compareParserResponse(t *testing.T, got, want *parsers.Result) bool {
 	}
 	for i := range got.BigMapState {
 		if !assert.Equal(t, want.BigMapState[i], got.BigMapState[i]) {
+			return false
+		}
+	}
+	for i := range got.GlobalConstants {
+		if !assert.Equal(t, want.GlobalConstants[i], got.GlobalConstants[i]) {
 			return false
 		}
 	}

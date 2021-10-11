@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/global_constant"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
@@ -113,6 +114,7 @@ func (rm Manager) rollbackAll(tx *gorm.DB, network types.Network, level int64) e
 		&block.Block{}, &contract.Contract{}, &bigmapdiff.BigMapDiff{},
 		&bigmapaction.BigMapAction{}, &tzip.TZIP{}, &migration.Migration{},
 		&transfer.Transfer{}, &tokenmetadata.TokenMetadata{},
+		&global_constant.GlobalConstant{},
 	} {
 		if err := tx.Unscoped().
 			Where("network = ?", network).
@@ -125,7 +127,6 @@ func (rm Manager) rollbackAll(tx *gorm.DB, network types.Network, level int64) e
 		logger.Info().
 			Str("network", network.String()).
 			Str("model", index.GetIndex()).
-			Int64("level", level).
 			Msg("rollback")
 	}
 	return nil

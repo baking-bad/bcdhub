@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/dapp"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
+	"github.com/baking-bad/bcdhub/internal/models/global_constant"
 	"github.com/baking-bad/bcdhub/internal/models/migration"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
@@ -44,22 +45,23 @@ type Context struct {
 
 	TezosDomainsContracts map[types.Network]string
 
-	Storage       models.GeneralRepository
-	BigMapActions bigmapaction.Repository
-	BigMapDiffs   bigmapdiff.Repository
-	Blocks        block.Repository
-	Contracts     contract.Repository
-	DApps         dapp.Repository
-	Migrations    migration.Repository
-	Operations    operation.Repository
-	Protocols     protocol.Repository
-	TezosDomains  tezosdomain.Repository
-	TokenBalances tokenbalance.Repository
-	TokenMetadata tokenmetadata.Repository
-	Transfers     transfer.Repository
-	TZIP          tzip.Repository
-	Domains       domains.Repository
-	Services      service.Repository
+	Storage         models.GeneralRepository
+	BigMapActions   bigmapaction.Repository
+	BigMapDiffs     bigmapdiff.Repository
+	Blocks          block.Repository
+	Contracts       contract.Repository
+	DApps           dapp.Repository
+	GlobalConstants global_constant.Repository
+	Migrations      migration.Repository
+	Operations      operation.Repository
+	Protocols       protocol.Repository
+	TezosDomains    tezosdomain.Repository
+	TokenBalances   tokenbalance.Repository
+	TokenMetadata   tokenmetadata.Repository
+	Transfers       transfer.Repository
+	TZIP            tzip.Repository
+	Domains         domains.Repository
+	Services        service.Repository
 
 	Searcher search.Searcher
 

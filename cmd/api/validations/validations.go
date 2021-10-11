@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
+	"github.com/baking-bad/bcdhub/internal/bcd/contract"
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/btcsuite/btcutil/base58"
@@ -53,17 +54,16 @@ func Register(v *validator.Validate, cfg config.APIConfig) error {
 		return err
 	}
 
+	if err := v.RegisterValidation("global_constant", constantAddressValidator()); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func addressValidator() validator.Func {
 	return func(fl validator.FieldLevel) bool {
-		address := fl.Field().String()
-		if !strings.HasPrefix(address, "KT") && !strings.HasPrefix(address, "tz") && len(address) != 36 {
-			return false
-		}
-		_, _, err := base58.CheckDecode(address)
-		return err == nil
+		return contract.IsAddress(fl.Field().String())
 	}
 }
 
@@ -77,7 +77,7 @@ func networkValidator(networks []string) validator.Func {
 func opgValidator() validator.Func {
 	return func(fl validator.FieldLevel) bool {
 		hash := fl.Field().String()
-		if !strings.HasPrefix(hash, "o") && len(hash) != 51 {
+		if !strings.HasPrefix(hash, "o") || len(hash) != 51 {
 			return false
 		}
 		_, _, err := base58.CheckDecode(hash)
@@ -165,5 +165,16 @@ func greatThanInt64PtrValidator() validator.Func {
 		default:
 			return false
 		}
+	}
+}
+
+func constantAddressValidator() validator.Func {
+	return func(fl validator.FieldLevel) bool {
+		address := fl.Field().String()
+		if !strings.HasPrefix(address, "expr") || len(address) != 54 {
+			return false
+		}
+		_, _, err := base58.CheckDecode(address)
+		return err == nil
 	}
 }

@@ -4,8 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"regexp"
-
-	"github.com/baking-bad/bcdhub/internal/bcd/types"
 )
 
 var (
@@ -19,13 +17,6 @@ func ComputeHash(data []byte) (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(sha.Sum(nil)), nil
-}
-
-func findHardcodedAddresses(code []byte) types.Set {
-	res := regAddress.FindAllString(string(code), -1)
-	resp := make(types.Set)
-	resp.Append(res...)
-	return resp
 }
 
 // IsAddress -

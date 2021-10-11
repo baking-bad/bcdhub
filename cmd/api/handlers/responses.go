@@ -10,6 +10,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/block"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/domains"
+	"github.com/baking-bad/bcdhub/internal/models/global_constant"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
@@ -802,4 +803,24 @@ type TokensCountWithMetadata struct {
 	TZIPResponse
 	Count int64    `json:"count"`
 	Tags  []string `json:"contract_tags"`
+}
+
+// GlobalConstant -
+type GlobalConstant struct {
+	Network   types.Network      `json:"network"`
+	Timestamp time.Time          `json:"timestamp"`
+	Level     int64              `json:"level"`
+	Address   string             `json:"address"`
+	Value     stdJSON.RawMessage `json:"value,omitempty"`
+}
+
+// NewGlobalConstantFromModel -
+func NewGlobalConstantFromModel(gc global_constant.GlobalConstant) GlobalConstant {
+	return GlobalConstant{
+		Network:   gc.Network,
+		Timestamp: gc.Timestamp.UTC(),
+		Level:     gc.Level,
+		Address:   gc.Address,
+		Value:     stdJSON.RawMessage(gc.Value),
+	}
 }

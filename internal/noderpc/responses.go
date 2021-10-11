@@ -97,6 +97,7 @@ type Operation struct {
 	Metadata     *OperationMetadata `json:"metadata,omitempty"`
 	Result       *OperationResult   `json:"result,omitempty"`
 	Script       stdJSON.RawMessage `json:"script,omitempty"`
+	Value        stdJSON.RawMessage `json:"value,omitempty"`
 }
 
 // GetResult -
@@ -150,6 +151,7 @@ type OperationResult struct {
 	AllocatedDestinationContract *bool              `json:"allocated_destination_contract,omitempty"`
 	BigMapDiffs                  []BigMapDiff       `json:"big_map_diff,omitempty"`
 	Errors                       stdJSON.RawMessage `json:"errors,omitempty"`
+	GlobalAddress                string             `json:"global_address,omitempty"`
 }
 
 // BigMapDiff -

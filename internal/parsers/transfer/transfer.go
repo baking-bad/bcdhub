@@ -1,6 +1,8 @@
 package transfer
 
 import (
+	"sync"
+
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
@@ -25,6 +27,8 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 // Parser -
 type Parser struct {
 	tokenBalances tokenbalance.Repository
+	tzipRepo      tzip.Repository
+	blocks        block.Repository
 
 	rpc        noderpc.INode
 	shareDir   string
@@ -33,6 +37,7 @@ type Parser struct {
 	network  modelTypes.Network
 	chainID  string
 	gasLimit int64
+	init     sync.Once
 
 	withoutViews bool
 }
@@ -44,6 +49,8 @@ func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Reposit
 	tp := &Parser{
 		rpc:           rpc,
 		tokenBalances: tokenBalances,
+		tzipRepo:      tzipRepo,
+		blocks:        blocks,
 		shareDir:      shareDir,
 	}
 
@@ -55,30 +62,32 @@ func NewParser(rpc noderpc.INode, tzipRepo tzip.Repository, blocks block.Reposit
 		tp.stackTrace = stacktrace.New()
 	}
 
+	return tp, nil
+}
+
+func (p *Parser) initialize() {
 	switch {
-	case tp.withoutViews && globalEvents == nil:
+	case p.withoutViews && globalEvents == nil:
 		globalEvents = EmptyTokenEvents()
-	case tp.withoutViews && globalEvents != nil:
-	case !tp.withoutViews && globalEvents == nil:
-		tokenEvents, err := NewTokenEvents(tzipRepo)
+	case p.withoutViews && globalEvents != nil:
+	case !p.withoutViews && globalEvents == nil:
+		tokenEvents, err := NewTokenEvents(p.tzipRepo)
 		if err != nil {
-			return nil, err
+			logger.Err(err)
 		}
 		globalEvents = tokenEvents
-	case !tp.withoutViews && globalEvents != nil:
-		if err := globalEvents.Update(tzipRepo); err != nil {
-			return nil, err
+	case !p.withoutViews && globalEvents != nil:
+		if err := globalEvents.Update(p.tzipRepo); err != nil {
+			logger.Err(err)
 		}
 	}
-
-	if tp.network != modelTypes.Empty && tp.chainID == "" {
-		state, err := blocks.Last(tp.network)
+	if p.network != modelTypes.Empty && p.chainID == "" {
+		state, err := p.blocks.Last(p.network)
 		if err != nil {
-			return nil, err
+			logger.Err(err)
 		}
-		tp.chainID = state.ChainID
+		p.chainID = state.ChainID
 	}
-	return tp, nil
 }
 
 // Parse -
@@ -86,6 +95,8 @@ func (p *Parser) Parse(diffs []*bigmapdiff.BigMapDiff, protocol string, operatio
 	if !operation.IsTransaction() {
 		return nil
 	}
+
+	p.init.Do(p.initialize)
 
 	if impl, name, ok := globalEvents.GetByOperation(*operation); ok {
 		return p.executeEvents(impl, name, protocol, diffs, operation)
@@ -256,7 +267,7 @@ func getNode(operation *operation.Operation) (ast.Node, error) {
 	return node, nil
 }
 
-func (p Parser) setParentEntrypoint(operation *operation.Operation, transfer *transfer.Transfer) {
+func (p *Parser) setParentEntrypoint(operation *operation.Operation, transfer *transfer.Transfer) {
 	if p.stackTrace.Empty() {
 		return
 	}

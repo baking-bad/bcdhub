@@ -314,3 +314,13 @@ type tokenMetadataRequest struct {
 type tokensCountByContractRequest struct {
 	HideEmpty bool `form:"hide_empty" binding:"omitempty"`
 }
+
+type getGlobalConstantRequest struct {
+	Address string `uri:"address" binding:"required,global_constant"`
+	Network string `uri:"network" binding:"required,network"`
+}
+
+// NetworkID -
+func (req getGlobalConstantRequest) NetworkID() types.Network {
+	return types.NewNetwork(req.Network)
+}
