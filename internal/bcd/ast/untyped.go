@@ -250,6 +250,10 @@ func typeNode(node *base.Node, depth int, id *int) (Node, error) {
 		ast = NewBLS12381g2(depth + 1)
 	case consts.BAKERHASH:
 		ast = NewBakerHash(depth + 1)
+	case consts.CHEST:
+		ast = NewChest(depth + 1)
+	case consts.CHESTKEY:
+		ast = NewChestKey(depth + 1)
 	default:
 		return nil, errors.Wrap(consts.ErrUnknownPrim, node.Prim)
 	}
