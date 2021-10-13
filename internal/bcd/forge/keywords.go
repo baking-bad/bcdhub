@@ -142,6 +142,12 @@ var primKeywords = []string{
 	"SPLIT_TICKET",
 	"JOIN_TICKETS",
 	"GET_AND_UPDATE",
+	"chest",
+	"chest_key",
+	"OPEN_CHEST",
+	"VIEW",
+	"view",
+	"constant",
 }
 
 // first bytes

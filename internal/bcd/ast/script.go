@@ -13,9 +13,16 @@ import (
 
 // Script -
 type Script struct {
-	Code      UntypedAST `json:"code"`
-	Parameter UntypedAST `json:"parameter"`
-	Storage   UntypedAST `json:"storage"`
+	Code      UntypedAST   `json:"code"`
+	Parameter UntypedAST   `json:"parameter"`
+	Storage   UntypedAST   `json:"storage"`
+	Views     []UntypedAST `json:"-"`
+}
+
+// View -
+type View struct {
+	Name string
+	Code UntypedAST
 }
 
 type sectionNode struct {
@@ -41,6 +48,8 @@ func (s *Script) UnmarshalJSON(data []byte) error {
 			s.Storage = tree
 		case consts.CODE:
 			s.Code = tree
+		case consts.View:
+			s.Views = append(s.Views, tree)
 		default:
 			return errors.Wrap(consts.ErrUnknownPrim, fmt.Sprintf("NewScript : %s", ast[i].Prim))
 		}
@@ -72,6 +81,15 @@ func (s *Script) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 	buf.Write(code)
+
+	for i := range s.Views {
+		buf.WriteString(`},{"prim":"view","args":`)
+		view, err := json.Marshal(s.Views[i])
+		if err != nil {
+			return nil, err
+		}
+		buf.Write(view)
+	}
 	buf.WriteString("}]")
 
 	return buf.Bytes(), nil
