@@ -49,6 +49,11 @@ const (
 	BLS12381G2         = "bls12_381_g2"
 	TICKET             = "ticket"
 	CONSTANT           = "constant"
+	VIEW               = "VIEW"
+	View               = "view"
+	OPENCHEST          = "OPEN_CHEST"
+	CHEST              = "chest"
+	CHESTKEY           = "chest_key"
 )
 
 // Data instructions

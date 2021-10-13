@@ -4,7 +4,7 @@ import "errors"
 
 // errors
 var (
-	ErrTooFewBytes     = errors.New("Too few bytes")
-	ErrInvalidKeyword  = errors.New("Invalid prim keyword")
-	ErrUnknownTypeCode = errors.New("Unknown type code")
+	ErrTooFewBytes     = errors.New("too few bytes")
+	ErrInvalidKeyword  = errors.New("invalid prim keyword")
+	ErrUnknownTypeCode = errors.New("unknown type code")
 )
