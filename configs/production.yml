@@ -9,7 +9,7 @@ rpc:
     uri: ${TESTNET_RPC_URI:-https://rpc.tzkt.io/granadanet}
     timeout: 20
   hangzhounet:
-    uri: ${NEXTNET_RPC_URI:-https://rpc.tzkt.io/hangzhounet}
+    uri: https://rpc.tzkt.io/hangzhounet
     timeout: 20
 
 tzkt:
