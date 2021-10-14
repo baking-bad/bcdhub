@@ -306,5 +306,5 @@ func periodToRange(query *gorm.DB, period string) error {
 }
 
 func addOperationSorting(query *gorm.DB) {
-	query.Order("level desc, counter desc, id desc")
+	query.Order("level desc, counter desc, id asc")
 }
