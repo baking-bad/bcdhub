@@ -112,8 +112,19 @@ func (p *Parser) FindConstants() ([]string, error) {
 		return nil, nil
 	}
 
-	err := p.parse(p.Code.Code, p.handleConstants)
-	return p.Constants.Values(), err
+	if err := p.parse(p.Code.Code, p.handleConstants); err != nil {
+		return nil, err
+	}
+
+	if err := p.parse(p.Code.Storage, p.handleConstants); err != nil {
+		return nil, err
+	}
+
+	if err := p.parse(p.Code.Parameter, p.handleConstants); err != nil {
+		return nil, err
+	}
+
+	return p.Constants.Values(), nil
 }
 
 // IsUpgradable -

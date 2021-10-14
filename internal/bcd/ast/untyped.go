@@ -254,6 +254,8 @@ func typeNode(node *base.Node, depth int, id *int) (Node, error) {
 		ast = NewChest(depth + 1)
 	case consts.CHESTKEY:
 		ast = NewChestKey(depth + 1)
+	case consts.CONSTANT:
+		ast = NewConstant(depth + 1)
 	default:
 		return nil, errors.Wrap(consts.ErrUnknownPrim, node.Prim)
 	}
