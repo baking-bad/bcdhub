@@ -21,28 +21,31 @@ const (
 	Granadanet
 	Sandboxnet
 	Hangzhounet
+	Hangzhou2net
 )
 
 var networkNames = map[Network]string{
-	Mainnet:     "mainnet",
-	Carthagenet: "carthagenet",
-	Delphinet:   "delphinet",
-	Edo2net:     "edo2net",
-	Florencenet: "florencenet",
-	Granadanet:  "granadanet",
-	Sandboxnet:  "sandboxnet",
-	Hangzhounet: "hangzhounet",
+	Mainnet:      "mainnet",
+	Carthagenet:  "carthagenet",
+	Delphinet:    "delphinet",
+	Edo2net:      "edo2net",
+	Florencenet:  "florencenet",
+	Granadanet:   "granadanet",
+	Sandboxnet:   "sandboxnet",
+	Hangzhounet:  "hangzhounet",
+	Hangzhou2net: "hangzhou2net",
 }
 
 var namesToNetwork = map[string]Network{
-	"mainnet":     Mainnet,
-	"carthagenet": Carthagenet,
-	"delphinet":   Delphinet,
-	"edo2net":     Edo2net,
-	"florencenet": Florencenet,
-	"granadanet":  Granadanet,
-	"sandboxnet":  Sandboxnet,
-	"hangzhounet": Hangzhounet,
+	"mainnet":      Mainnet,
+	"carthagenet":  Carthagenet,
+	"delphinet":    Delphinet,
+	"edo2net":      Edo2net,
+	"florencenet":  Florencenet,
+	"granadanet":   Granadanet,
+	"sandboxnet":   Sandboxnet,
+	"hangzhounet":  Hangzhounet,
+	"hangzhou2net": Hangzhou2net,
 }
 
 // String - convert enum to string for printing

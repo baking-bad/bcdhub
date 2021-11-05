@@ -30,6 +30,7 @@ var symLinks = map[string]string{
 	"PsFLorenaUUuikDWvMDr6fGBRG8kt3e3D3fHoXK1j1BFRxeSH4i": SymLinkBabylon, // Florencenet (no baking accounts)
 	"PtGRANADsDU8R9daYKAgWnQYAJ64omN1o3KMGVCykShA97vQbvV": SymLinkBabylon, // Granadanet
 	"PtHangzHogokSuiMHemCuowEavgYTP8J5qQ9fQS793MHYFpCY3r": SymLinkBabylon, // Hangzhounet
+	"PtHangz2aRngywmSRGGvrcTyMbbdpWdpFKuS4uMWxg2RaH9i1qx": SymLinkBabylon, // Hangzhounet 2
 }
 
 // GetProtoSymLink -
