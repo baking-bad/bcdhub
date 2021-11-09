@@ -11,6 +11,9 @@ rpc:
   hangzhounet:
     uri: https://rpc.tzkt.io/hangzhounet
     timeout: 20
+  hangzhou2net:
+    uri: https://rpc.tzkt.io/hangzhou2net
+    timeout: 20
 
 tzkt:
   mainnet:
@@ -21,12 +24,12 @@ tzkt:
 services:
   mainnet:
     mempool: https://mempool.dipdup.net/v1/graphql
-  edo2net:
-    mempool: https://mempool.dipdup.net/v1/graphql
   florencenet:
-    mempool: https://mempool.dipdup.net/v1/graphql
+    mempool: https://mempool.staging.dipdup.net/v1/graphql
   hangzhounet:
-    mempool: https://mempool.dipdup.net/v1/graphql 
+    mempool: https://mempool.staging.dipdup.net/v1/graphql 
+  hangzhou2net:
+    mempool: https://mempool.staging.dipdup.net/v1/graphql 
 
 storage:
   pg: "host=${DB_HOSTNAME:-db} port=5432 user=${POSTGRES_USER} dbname=indexer password=${POSTGRES_PASSWORD} sslmode=disable"
@@ -71,6 +74,7 @@ api:
     - florencenet
     - granadanet
     - hangzhounet
+    - hangzhou2net
   pinata:
     key: ${PINATA_KEY}
     secret_key: ${PINATA_SECRET_KEY}
@@ -90,6 +94,7 @@ indexer:
     florencenet:
     granadanet:
     hangzhounet:
+    hangzhou2net:
   connections:
     max: 5
     idle: 5
@@ -110,10 +115,10 @@ scripts:
     secret_access_key: ${AWS_SECRET_ACCESS_KEY}
   networks:
     - mainnet
-    - edo2net
     - florencenet
     - granadanet
     - hangzhounet
+    - hangzhou2net
   connections:
     max: 5
     idle: 5
