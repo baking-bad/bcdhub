@@ -35,7 +35,7 @@ services:
       - GIN_MODE=debug
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
-      - SANDBOX_NODE_URI=http://sandbox:8732
+      - SANDBOX_NODE_URI=http://sandbox:20000
       - SANDBOX_IPFS_GATEWAY=https://cloudflare-ipfs.com
     depends_on:
       - elastic
@@ -44,8 +44,8 @@ services:
       - 127.0.0.1:14000:14000
     volumes:
       - bcdshare:/etc/bcd
-    extra_hosts:
-      sandbox: 172.17.0.1
+    links:
+      - "flextesa:sandbox"
     logging: *bcd-logging
 
   indexer:
@@ -55,13 +55,13 @@ services:
       - BCD_ENV=sandbox
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
-      - SANDBOX_NODE_URI=http://sandbox:8732
+      - SANDBOX_NODE_URI=http://sandbox:20000
       - SANDBOX_IPFS_GATEWAY=https://cloudflare-ipfs.com
     depends_on:
       - db
       - metrics
-    extra_hosts:
-      sandbox: 172.17.0.1
+    links:
+      - "flextesa:sandbox"
     volumes:
       - bcdshare:/etc/bcd
     logging: *bcd-logging
@@ -73,15 +73,27 @@ services:
       - BCD_ENV=sandbox
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
-      - SANDBOX_NODE_URI=http://sandbox:8732
+      - SANDBOX_NODE_URI=http://sandbox:20000
       - SANDBOX_IPFS_GATEWAY=https://cloudflare-ipfs.com
     depends_on:
       - elastic
       - db
-    extra_hosts:
-      sandbox: 172.17.0.1
+    links:
+      - "flextesa:sandbox"
     volumes:
       - bcdshare:/etc/bcd
+    logging: *bcd-logging
+
+  flextesa:
+    restart: always
+    image: tqtezos/flextesa:20211025
+    command: granabox start
+    environment:
+      - block_time=4
+    ports:
+      - "20000:20000"
+    expose:
+      - 20000/tcp
     logging: *bcd-logging
 
   gui:

@@ -187,10 +187,10 @@ sandbox-images:
 	docker-compose -f docker-compose.sandbox.yml pull
 
 sandbox:
-	COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.sandbox.yml up -d elastic db api indexer metrics gui
+	COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.sandbox.yml up -d
 
 flextesa-sandbox:
-	COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.sandbox.yml up -d
+	COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.flextesa.yml up -d
 
 sandbox-down:
 	COMPOSE_PROJECT_NAME=bcdbox docker-compose -f docker-compose.sandbox.yml down
