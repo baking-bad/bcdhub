@@ -95,8 +95,8 @@ func (storage *Storage) GetProjectsLastContract(c contract.Contract, size, offse
 			Where("encode(fingerprint_parameter, 'hex') = ?", params).
 			Where("encode(fingerprint_storage, 'hex') = ?", s),
 	)
-	if c.Manager != "" {
-		subQuery.Or("manager = ?", c.Manager)
+	if c.Manager.Valid {
+		subQuery.Or("manager = ?", c.Manager.String())
 	}
 	if c.Language != "unknown" {
 		subQuery.Or("language = ?", c.Language)

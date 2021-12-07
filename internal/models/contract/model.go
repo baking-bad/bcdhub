@@ -28,9 +28,9 @@ type Contract struct {
 	Annotations          pq.StringArray `json:"annotations,omitempty" gorm:"type:text[]"`
 	Hardcoded            pq.StringArray `json:"hardcoded,omitempty" gorm:"type:text[]"`
 
-	Address  string `json:"address" gorm:"index:contracts_idx"`
-	Manager  string `json:"manager,omitempty"`
-	Delegate string `json:"delegate,omitempty"`
+	Address  string           `json:"address" gorm:"index:contracts_idx"`
+	Manager  types.NullString `json:"manager,omitempty"`
+	Delegate types.NullString `json:"delegate,omitempty"`
 
 	ProjectID       string    `json:"project_id,omitempty"`
 	TxCount         int64     `json:"tx_count" gorm:",default:0"`

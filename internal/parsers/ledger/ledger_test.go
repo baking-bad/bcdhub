@@ -51,8 +51,11 @@ func TestLedger_Parse(t *testing.T) {
 		{
 			name: "test 1",
 			operation: &operation.Operation{
-				Tags:            types.FA12Tag,
-				Entrypoint:      consts.TransferEntrypoint,
+				Tags: types.FA12Tag,
+				Entrypoint: types.NullString{
+					Str:   consts.TransferEntrypoint,
+					Valid: true,
+				},
 				Network:         types.Mainnet,
 				DeffatedStorage: []byte(`{"int":257}`),
 				BigMapDiffs: []*bigmapdiff.BigMapDiff{
@@ -75,8 +78,11 @@ func TestLedger_Parse(t *testing.T) {
 		}, {
 			name: "test 2",
 			operation: &operation.Operation{
-				Tags:            types.FA12Tag | types.LedgerTag,
-				Entrypoint:      consts.TransferEntrypoint,
+				Tags: types.FA12Tag | types.LedgerTag,
+				Entrypoint: types.NullString{
+					Str:   consts.TransferEntrypoint,
+					Valid: true,
+				},
 				Network:         types.Mainnet,
 				DeffatedStorage: []byte(`{"int":257}`),
 				BigMapDiffs: []*bigmapdiff.BigMapDiff{
@@ -99,8 +105,11 @@ func TestLedger_Parse(t *testing.T) {
 		}, {
 			name: "test 3",
 			operation: &operation.Operation{
-				Tags:            types.FA2Tag | types.LedgerTag,
-				Entrypoint:      "burn",
+				Tags: types.FA2Tag | types.LedgerTag,
+				Entrypoint: types.NullString{
+					Str:   "burn",
+					Valid: true,
+				},
 				Kind:            types.OperationKindTransaction,
 				Network:         types.Mainnet,
 				Destination:     "KT1981tPmXh4KrUQKZpQKb55kREX7QGJcF3E",

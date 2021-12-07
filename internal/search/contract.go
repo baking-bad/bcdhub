@@ -92,14 +92,14 @@ func (c *Contract) Prepare(model models.Model) {
 
 	c.Address = cont.Address
 	c.Annotations = cont.Annotations
-	c.Delegate = cont.Delegate
+	c.Delegate = cont.Delegate.String()
 	c.Entrypoints = cont.Entrypoints
 	c.FailStrings = cont.FailStrings
 	c.Hardcoded = cont.Hardcoded
 	c.Hash = cont.Hash
 	c.Language = cont.Language
 	c.Level = cont.Level
-	c.Manager = cont.Manager
+	c.Manager = cont.Manager.String()
 	c.Network = cont.Network.String()
 	c.ProjectID = cont.ProjectID
 	c.Tags = cont.Tags.ToArray()

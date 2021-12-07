@@ -84,7 +84,7 @@ func (o *Operation) FromModel(operation operation.Operation) {
 	o.Delegate = operation.Delegate
 	o.Status = operation.Status.String()
 	o.Burned = operation.Burned
-	o.Entrypoint = operation.Entrypoint
+	o.Entrypoint = operation.Entrypoint.String()
 	o.ContentIndex = operation.ContentIndex
 	o.AllocatedDestinationContractBurned = operation.AllocatedDestinationContractBurned
 	o.ConsumedGas = operation.ConsumedGas
@@ -96,12 +96,11 @@ func (o *Operation) FromModel(operation operation.Operation) {
 // ToModel -
 func (o *Operation) ToModel() operation.Operation {
 	return operation.Operation{
-		ID:        o.ID,
-		Hash:      o.Hash,
-		Network:   types.NewNetwork(o.Network),
-		Internal:  o.Internal,
-		Timestamp: o.Timestamp,
-
+		ID:           o.ID,
+		Hash:         o.Hash,
+		Network:      types.NewNetwork(o.Network),
+		Internal:     o.Internal,
+		Timestamp:    o.Timestamp,
 		Level:        o.Level,
 		Kind:         types.NewOperationKind(o.Kind),
 		Source:       o.Source,
@@ -114,8 +113,10 @@ func (o *Operation) ToModel() operation.Operation {
 		Delegate:     o.Delegate,
 		Status:       types.NewOperationStatus(o.Status),
 		Burned:       o.Burned,
-		Entrypoint:   o.Entrypoint,
-
+		Entrypoint: types.NullString{
+			Str:   o.Entrypoint,
+			Valid: o.Entrypoint != "",
+		},
 		AllocatedDestinationContract: o.AllocatedDestinationContract,
 		ConsumedGas:                  o.ConsumedGas,
 		StorageSize:                  o.StorageSize,
@@ -161,7 +162,7 @@ type Contract struct {
 // FromModel -
 func (c *Contract) FromModel(contract contract.Contract) {
 	c.Address = contract.Address
-	c.Delegate = contract.Delegate
+	c.Delegate = contract.Delegate.String()
 	c.Entrypoints = contract.Entrypoints
 	c.Hash = contract.Hash
 	c.Language = contract.Language
@@ -169,7 +170,7 @@ func (c *Contract) FromModel(contract contract.Contract) {
 	c.LastAction = contract.LastAction
 
 	c.Level = contract.Level
-	c.Manager = contract.Manager
+	c.Manager = contract.Manager.String()
 	c.MigrationsCount = contract.MigrationsCount
 	c.Network = contract.Network.String()
 	c.ProjectID = contract.ProjectID
@@ -470,7 +471,7 @@ func (c *SameContractsResponse) FromModel(same contract.SameResponse, ctx *Conte
 		var contract Contract
 		contract.FromModel(same.Contracts[i])
 		contract.Alias = ctx.CachedAlias(same.Contracts[i].Network, same.Contracts[i].Address)
-		contract.DelegateAlias = ctx.CachedAlias(same.Contracts[i].Network, same.Contracts[i].Delegate)
+		contract.DelegateAlias = ctx.CachedAlias(same.Contracts[i].Network, same.Contracts[i].Delegate.String())
 		c.Contracts[i] = contract
 	}
 }
@@ -535,7 +536,7 @@ func TransferFromModel(model domains.Transfer) (t Transfer) {
 	t.To = model.To
 	t.TokenID = model.TokenID
 	t.Amount = model.Amount.String()
-	t.Parent = model.Parent
+	t.Parent = model.Parent.String()
 	t.Entrypoint = model.Entrypoint
 	t.Hash = model.Hash
 	t.Counter = model.Counter

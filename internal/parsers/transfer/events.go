@@ -40,7 +40,7 @@ func (tokenEvents *TokenEvents) GetByOperation(operation operation.Operation) (t
 	if event, ok := tokenEvents.events[ImplementationKey{
 		Address:    operation.Destination,
 		Network:    operation.Network,
-		Entrypoint: operation.Entrypoint,
+		Entrypoint: operation.Entrypoint.String(),
 		Name:       tokenbalance.SingleAssetBalanceUpdates,
 	}]; ok {
 		return event, tokenbalance.SingleAssetBalanceUpdates, ok
@@ -49,7 +49,7 @@ func (tokenEvents *TokenEvents) GetByOperation(operation operation.Operation) (t
 	event, ok := tokenEvents.events[ImplementationKey{
 		Address:    operation.Destination,
 		Network:    operation.Network,
-		Entrypoint: operation.Entrypoint,
+		Entrypoint: operation.Entrypoint.String(),
 		Name:       tokenbalance.MultiAssetBalanceUpdates,
 	}]
 	if ok {
