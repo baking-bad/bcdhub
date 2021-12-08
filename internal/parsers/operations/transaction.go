@@ -2,7 +2,6 @@ package operations
 
 import (
 	"github.com/baking-bad/bcdhub/internal/bcd"
-	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
 	"github.com/baking-bad/bcdhub/internal/bcd/tezerrors"
 	"github.com/baking-bad/bcdhub/internal/bcd/types"
@@ -144,20 +143,6 @@ func (p Transaction) appliedHandler(item noderpc.Operation, tx *operation.Operat
 		result.Merge(storageResult)
 	}
 
-	if len(tx.DeffatedStorage) > 0 {
-		var tree ast.UntypedAST
-		if err := json.Unmarshal(tx.DeffatedStorage, &tree); err != nil {
-			return err
-		}
-		storageStrings, err := tree.GetStrings(true)
-		if err != nil {
-			return err
-		}
-		if len(storageStrings) > 0 {
-			tx.StorageStrings = storageStrings
-		}
-	}
-
 	migration, err := NewMigration().Parse(item, tx)
 	if err != nil {
 		return err
@@ -181,18 +166,6 @@ func (p Transaction) getEntrypoint(tx *operation.Operation) error {
 
 	params := types.NewParameters(tx.Parameters)
 	tx.Entrypoint = params.Entrypoint
-
-	var tree ast.UntypedAST
-	if err := json.Unmarshal(params.Value, &tree); err != nil {
-		return err
-	}
-	parameterStrings, err := tree.GetStrings(true)
-	if err != nil {
-		return err
-	}
-	if len(parameterStrings) > 0 {
-		tx.ParameterStrings = parameterStrings
-	}
 
 	if !tx.IsApplied() {
 		return nil

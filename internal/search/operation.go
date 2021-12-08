@@ -3,9 +3,13 @@ package search
 import (
 	"time"
 
+	"github.com/baking-bad/bcdhub/internal/bcd/ast"
+	"github.com/baking-bad/bcdhub/internal/bcd/types"
 	"github.com/baking-bad/bcdhub/internal/helpers"
+	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	modelTypes "github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 // Operation -
@@ -97,10 +101,34 @@ func (o *Operation) Prepare(model models.Model) {
 	o.Kind = op.Kind.String()
 	o.Level = op.Level
 	o.Network = op.Network.String()
-	o.ParameterStrings = op.ParameterStrings
 	o.Source = op.Source
 	o.Status = op.Status.String()
-	o.StorageStrings = op.StorageStrings
 	o.Timestamp = op.Timestamp.UTC()
 	o.Delegate = op.Delegate
+
+	if len(op.DeffatedStorage) > 0 {
+		var tree ast.UntypedAST
+		if err := json.Unmarshal(op.DeffatedStorage, &tree); err == nil {
+			o.StorageStrings, err = tree.GetStrings(true)
+			if err != nil {
+				logger.Error().Err(err).Msg("GetStrings for storage")
+			}
+		} else {
+			logger.Error().Err(err).Msg("GetStrings for storage")
+		}
+	}
+
+	if op.Kind == modelTypes.OperationKindTransaction && len(op.Parameters) > 0 {
+		params := types.NewParameters(op.Parameters)
+
+		var tree ast.UntypedAST
+		if err := json.Unmarshal(params.Value, &tree); err == nil {
+			o.ParameterStrings, err = tree.GetStrings(true)
+			if err != nil {
+				logger.Error().Err(err).Msg("GetStrings for storage")
+			}
+		} else {
+			logger.Error().Err(err).Msg("GetStrings for storage")
+		}
+	}
 }
