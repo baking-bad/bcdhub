@@ -22,12 +22,12 @@ type Item struct {
 
 // Group -
 type Group struct {
-	Count int64 `json:"count"`
-	Top   []Top `json:"top"`
+	Count uint64 `json:"count"`
+	Top   []Top  `json:"top"`
 }
 
 // NewGroup -
-func NewGroup(docCount int64) *Group {
+func NewGroup(docCount uint64) *Group {
 	return &Group{
 		Count: docCount,
 		Top:   make([]Top, 0),

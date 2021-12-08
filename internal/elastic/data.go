@@ -14,12 +14,17 @@ type TestConnectionResponse struct {
 // Bucket -
 type Bucket struct {
 	Key      string `json:"key"`
-	DocCount int64  `json:"doc_count"`
+	DocCount uint64 `json:"doc_count"`
 }
 
 // IntValue -
 type IntValue struct {
 	Value int64 `json:"value"`
+}
+
+// UintValue -
+type UintValue struct {
+	Value uint64 `json:"value"`
 }
 
 // FloatValue -

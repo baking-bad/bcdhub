@@ -38,6 +38,7 @@ var migrationsList = []migrations.Migration{
 	&migrations.FixLostSearchContracts{},
 	&migrations.DropStringsColumns{},
 	migrations.NewNullableFields(1000),
+	&migrations.DropViews{},
 }
 
 func main() {

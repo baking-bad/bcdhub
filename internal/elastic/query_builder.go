@@ -13,6 +13,14 @@ const (
 // Item -
 type Item map[string]interface{}
 
+// Extend -
+func (q Item) Extend(item Item) Item {
+	for k, v := range item {
+		q[k] = v
+	}
+	return q
+}
+
 // List -
 type List []interface{}
 
@@ -29,6 +37,15 @@ func Bool(items ...Item) Item {
 	}
 	bq["bool"] = q
 	return bq
+}
+
+// In -
+func In(key string, value []string) Item {
+	return Item{
+		"terms": Item{
+			key: value,
+		},
+	}
 }
 
 // Filter -
@@ -55,6 +72,15 @@ func Range(field string, orders ...Item) Item {
 	}
 }
 
+// Exists -
+func Exists(field string) Item {
+	return Item{
+		"exists": Item{
+			"field": field,
+		},
+	}
+}
+
 // MatchPhrase -
 func MatchPhrase(key string, value interface{}) Item {
 	return Item{
@@ -73,6 +99,27 @@ func Match(key string, value interface{}) Item {
 	}
 }
 
+// MinimumShouldMatch -
+func MinimumShouldMatch(value int) Item {
+	return Item{
+		"minimum_should_match": value,
+	}
+}
+
+// MustNot -
+func MustNot(items ...Item) Item {
+	return Item{
+		"must_not": items,
+	}
+}
+
+// Should -
+func Should(items ...Item) Item {
+	return Item{
+		"should": items,
+	}
+}
+
 // AggItem -
 type AggItem struct {
 	Name string
@@ -87,6 +134,19 @@ func Aggs(items ...AggItem) Item {
 	}
 	return Item{
 		"aggs": body,
+	}
+}
+
+// TermsAgg -
+func TermsAgg(field string, size int64) Item {
+	t := Item{
+		"field": field,
+	}
+	if size > 0 {
+		t["size"] = size
+	}
+	return Item{
+		"terms": t,
 	}
 }
 
@@ -172,4 +232,13 @@ func (q Base) Highlights(highlights Item) Base {
 		"fields": highlights,
 	}
 	return q
+}
+
+// Sum -
+func Sum(field string) Item {
+	return Item{
+		"sum": Item{
+			"field": field,
+		},
+	}
 }

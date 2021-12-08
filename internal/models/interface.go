@@ -11,16 +11,18 @@ type GeneralRepository interface {
 	GetByNetwork(network types.Network, index string) ([]Model, error)
 	UpdateDoc(model Model) (err error)
 
-	GetNetworkCountStats(network types.Network) (map[string]int64, error)
-	GetDateHistogram(period string, opts ...HistogramOption) ([][]float64, error)
-
-	// GetStats - returns full stats for network(s). If `network` is not empty returns stats only for that network.
-	GetStats(network types.Network) (map[string]*NetworkStats, error)
-
-	GetLanguagesForNetwork(network types.Network) (map[string]int64, error)
 	IsRecordNotFound(err error) bool
 
 	// Save - performs insert or update items.
 	Save(items []Model) error
 	BulkDelete([]Model) error
+}
+
+// Statistics -
+type Statistics interface {
+	NetworkCountStats(network types.Network) (map[string]int64, error)
+	Histogram(period string, opts ...HistogramOption) ([][]float64, error)
+	// GetStats - returns full stats for network(s). If `network` is not empty returns stats only for that network.
+	NetworkStats(network types.Network) (map[string]*NetworkStats, error)
+	LanguageByNetwork(network types.Network) (map[string]int64, error)
 }
