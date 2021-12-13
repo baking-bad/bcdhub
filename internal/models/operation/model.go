@@ -34,7 +34,7 @@ type Operation struct {
 	AllocatedDestinationContractBurned int64 `json:"allocated_destination_contract_burned,omitempty"`
 
 	Nonce      *int64        `json:"nonce,omitempty"`
-	Network    types.Network `json:"network" gorm:"type:SMALLINT;index:idx_operations_level_network"`
+	Network    types.Network `json:"network" gorm:"type:SMALLINT;index:idx_operations_level_network; index:operations_network_idx"`
 	ProtocolID int64         `json:"protocol" gorm:"type:SMALLINT"`
 	Hash       string        `json:"hash" gorm:"index:new_opg_idx;index:operations_hash_idx"`
 
@@ -45,7 +45,7 @@ type Operation struct {
 	Source          string                `json:"source" gorm:"index:source_idx"`
 	Destination     string                `json:"destination,omitempty" gorm:"index:destination_idx"`
 	Delegate        string                `json:"delegate,omitempty"`
-	Entrypoint      string                `json:"entrypoint,omitempty"`
+	Entrypoint      types.NullString      `json:"entrypoint,omitempty" gorm:"index:operations_entrypoint_idx"`
 	Parameters      []byte                `json:"parameters,omitempty"`
 	DeffatedStorage []byte                `json:"deffated_storage"`
 
@@ -116,7 +116,7 @@ func (o *Operation) SetBurned(constants protocol.Constants) {
 
 // IsEntrypoint -
 func (o *Operation) IsEntrypoint(entrypoint string) bool {
-	return o.Entrypoint == entrypoint
+	return o.Entrypoint.EqualString(entrypoint)
 }
 
 // IsOrigination -
@@ -148,7 +148,7 @@ func (o Operation) EmptyTransfer() *transfer.Transfer {
 		Timestamp:   o.Timestamp,
 		Level:       o.Level,
 		Initiator:   o.Source,
-		Entrypoint:  o.Entrypoint,
+		Entrypoint:  o.Entrypoint.String(),
 		Amount:      decimal.Zero,
 		OperationID: o.ID,
 	}

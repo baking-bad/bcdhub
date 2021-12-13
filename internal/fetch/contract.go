@@ -4,15 +4,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
+	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
-	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/pkg/errors"
-)
-
-const (
-	contractFormatPath = "%s/contracts/%s/%s_%s.json"
 )
 
 var (
@@ -29,7 +26,10 @@ func RemoveContract(network types.Network, address, protocol, filesDirectory str
 		return err
 	}
 
-	filePath := fmt.Sprintf(contractFormatPath, filesDirectory, network, address, protoSymLink)
+	filePath, err := getFilePath(network, address, protoSymLink, filesDirectory)
+	if err != nil {
+		return err
+	}
 	if _, err = os.Stat(filePath); err == nil {
 		return os.Remove(filePath)
 	} else if !os.IsNotExist(err) {
@@ -39,12 +39,16 @@ func RemoveContract(network types.Network, address, protocol, filesDirectory str
 }
 
 // RemoveAllContracts -
-func RemoveAllContracts(network types.Network, filesDirectory string) error {
+func RemoveAllContracts(network fmt.Stringer, filesDirectory string) error {
 	if filesDirectory == "" {
 		return errors.Errorf("Invalid filesDirectory: %s", filesDirectory)
 	}
 
-	dirPath := fmt.Sprintf("%s/contracts/%s", filesDirectory, network)
+	if err := chechPath(filesDirectory); err != nil {
+		return err
+	}
+
+	dirPath := path.Join(filesDirectory, "contracts", network.String())
 	if _, err := os.Stat(dirPath); err == nil {
 		return os.RemoveAll(dirPath)
 	} else if !os.IsNotExist(err) {
@@ -63,7 +67,10 @@ func Contract(network types.Network, address, protocol, filesDirectory string) (
 		return nil, err
 	}
 
-	filePath := helpers.CleanPath(fmt.Sprintf(contractFormatPath, filesDirectory, network, address, protoSymLink))
+	filePath, err := getFilePath(network, address, protoSymLink, filesDirectory)
+	if err != nil {
+		return nil, err
+	}
 	if _, err = os.Stat(filePath); err != nil {
 		if os.IsNotExist(err) {
 			return delegatorContract, nil
@@ -76,7 +83,10 @@ func Contract(network types.Network, address, protocol, filesDirectory string) (
 
 // ContractBySymLink - reads contract from file system
 func ContractBySymLink(network types.Network, address, symLink, filesDirectory string) ([]byte, error) {
-	filePath := helpers.CleanPath(fmt.Sprintf(contractFormatPath, filesDirectory, network, address, symLink))
+	filePath, err := getFilePath(network, address, symLink, filesDirectory)
+	if err != nil {
+		return nil, err
+	}
 	if _, err := os.Stat(filePath); err != nil {
 		if os.IsNotExist(err) {
 			return delegatorContract, nil
@@ -85,4 +95,22 @@ func ContractBySymLink(network types.Network, address, symLink, filesDirectory s
 		}
 	}
 	return ioutil.ReadFile(filePath)
+}
+
+func getFilePath(network types.Network, address, symLink, filesDirectory string) (string, error) {
+	if err := chechPath(filesDirectory); err != nil {
+		return "", err
+	}
+	if err := chechPath(address); err != nil {
+		return "", err
+	}
+	name := fmt.Sprintf("%s_%s.json", address, symLink)
+	return path.Join(filesDirectory, "contracts", network.String(), name), nil
+}
+
+func chechPath(path string) error {
+	if strings.Count(path, ".") > 1 {
+		return errors.Errorf("you can't change directory in share path: %s", path)
+	}
+	return nil
 }

@@ -1,5 +1,5 @@
 create materialized view if not exists head_stats AS
-select network, count(*) as value, 'calls_count' as stats_type from operations where entrypoint != '' group by network
+select network, count(*) as value, 'calls_count' as stats_type from operations where entrypoint is not null group by network
 union all
 select network, count(*) as value, 'contracts_count' as stats_type from contracts group by network
 union all

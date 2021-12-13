@@ -160,12 +160,13 @@ func (p Transaction) getEntrypoint(tx *operation.Operation) error {
 	}
 
 	if len(tx.Parameters) == 0 {
-		tx.Entrypoint = consts.DefaultEntrypoint
-		return nil
+		return tx.Entrypoint.Scan(consts.DefaultEntrypoint)
 	}
 
 	params := types.NewParameters(tx.Parameters)
-	tx.Entrypoint = params.Entrypoint
+	if err := tx.Entrypoint.Scan(params.Entrypoint); err != nil {
+		return err
+	}
 
 	if !tx.IsApplied() {
 		return nil
@@ -185,7 +186,6 @@ func (p Transaction) getEntrypoint(tx *operation.Operation) error {
 	if node == nil {
 		return nil
 	}
-	tx.Entrypoint = entrypointName
 
-	return nil
+	return tx.Entrypoint.Scan(entrypointName)
 }

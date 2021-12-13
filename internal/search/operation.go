@@ -94,7 +94,9 @@ func (o *Operation) Prepare(model models.Model) {
 	o.ID = helpers.GenerateID()
 	o.Destination = op.Destination
 	o.DestinationAlias = op.Destination
-	o.Entrypoint = op.Entrypoint
+	if op.Entrypoint.Valid {
+		o.Entrypoint = op.Entrypoint.String()
+	}
 	o.Hash = op.Hash
 	o.Initiator = op.Initiator
 	o.Internal = op.Internal
