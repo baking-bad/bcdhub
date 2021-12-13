@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -47,7 +46,7 @@ func main() {
 	}
 
 	workers := []services.Service{
-		services.NewView(ctx.StorageDB.DB, "head_stats", time.Hour),
+		// services.NewView(ctx.StorageDB.DB, "head_stats", time.Hour),
 		services.NewUnknown(ctx, time.Minute*30, time.Second*2, -time.Hour*24),
 		services.NewStorageBased(
 			"projects",
@@ -91,18 +90,6 @@ func main() {
 			time.Second*15,
 			bulkSize,
 		),
-	}
-
-	for network := range ctx.Config.Indexer.Networks {
-		for _, view := range []string{
-			"series_contract_by_month_",
-			"series_operation_by_month_",
-			"series_paid_storage_size_diff_by_month_",
-			"series_consumed_gas_by_month_",
-		} {
-			name := fmt.Sprintf("%s%s", view, network)
-			workers = append(workers, services.NewView(ctx.StorageDB.DB, name, time.Hour))
-		}
 	}
 
 	signals := make(chan os.Signal, 1)

@@ -57,7 +57,7 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 	}
 
 	var stats NetworkStats
-	counts, err := ctx.Storage.GetNetworkCountStats(req.NetworkID())
+	counts, err := ctx.Statistics.NetworkCountStats(req.NetworkID())
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -74,13 +74,13 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 	}
 	stats.Protocols = ps
 
-	languages, err := ctx.Storage.GetLanguagesForNetwork(req.NetworkID())
+	languages, err := ctx.Statistics.LanguageByNetwork(req.NetworkID())
 	if ctx.handleError(c, err, 0) {
 		return
 	}
 	stats.Languages = languages
 
-	head, err := ctx.Storage.GetStats(req.NetworkID())
+	head, err := ctx.Statistics.NetworkStats(req.NetworkID())
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -130,12 +130,7 @@ func (ctx *Context) GetSeries(c *gin.Context) {
 		return
 	}
 
-	var series [][]float64
-	if reqArgs.isCached() {
-		series, err = ctx.StorageDB.GetCachedHistogram(reqArgs.Period, reqArgs.Name, req.Network)
-	} else {
-		series, err = ctx.Storage.GetDateHistogram(reqArgs.Period, options...)
-	}
+	series, err := ctx.Statistics.Histogram(reqArgs.Period, options...)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
@@ -167,7 +162,7 @@ func (ctx *Context) getHistogramOptions(name string, network types.Network, addr
 
 		filters = append(filters, models.HistogramFilter{
 			Field: "status",
-			Value: types.OperationStatusApplied,
+			Value: types.OperationStatusApplied.String(),
 			Kind:  models.HistogramFilterKindMatch,
 		})
 

@@ -32,7 +32,7 @@ func (ctx *Context) GetHead(c *gin.Context) {
 		sort.Sort(block.ByNetwork(blocks))
 	}
 
-	stats, err := ctx.Storage.GetStats(network)
+	stats, err := ctx.Statistics.NetworkStats(network)
 	if ctx.handleError(c, err, 0) {
 		return
 	}
