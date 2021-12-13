@@ -10,7 +10,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/lib/pq"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -54,9 +53,7 @@ type Operation struct {
 
 	Script []byte `json:"-"  gorm:"-"`
 
-	Errors           tezerrors.Errors `json:"errors,omitempty" gorm:"type:bytes"`
-	ParameterStrings pq.StringArray   `json:"parameter_strings,omitempty" gorm:"type:text[]"`
-	StorageStrings   pq.StringArray   `json:"storage_strings,omitempty" gorm:"type:text[]"`
+	Errors tezerrors.Errors `json:"errors,omitempty" gorm:"type:bytes"`
 
 	AllocatedDestinationContract bool `json:"allocated_destination_contract,omitempty"`
 	Internal                     bool `json:"internal" gorm:",default:false"`
