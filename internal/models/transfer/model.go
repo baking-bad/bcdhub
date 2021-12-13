@@ -24,7 +24,7 @@ type Transfer struct {
 	To          string                `json:"to" gorm:"index:transfers_to_idx"`
 	TokenID     uint64                `json:"token_id" gorm:"type:numeric(50,0);index:transfers_token_idx"`
 	Amount      decimal.Decimal       `json:"amount" gorm:"type:numeric(100,0)"`
-	Parent      string                `json:"parent,omitempty"`
+	Parent      types.NullString      `json:"parent,omitempty"`
 	Entrypoint  string                `json:"entrypoint,omitempty"`
 	OperationID int64                 `json:"-" gorm:"index:transfers_operation_id_idx"`
 }

@@ -26,16 +26,16 @@ const (
 	histogramRequestTemplate = `
 		with f as (
 			select generate_series(
-			date_trunc('%s', %s),
-			date_trunc('%s', now()),
-			'1 %s'::interval
+			date_trunc(?, %s),
+			date_trunc(?, now()),
+			?::interval
 			) as val
 		)
 		select
 			extract(epoch from f.val),
 			%s
 		from f
-		left join %s on date_trunc('%s', %s.timestamp) = f.val %s
+		left join %s on date_trunc(?, %s.timestamp) = f.val %s
 		where  %s.id is not null
 		group by 1
 		order by date_part
@@ -113,9 +113,11 @@ func (res HistogramResponse) toFloat64() []float64 {
 
 // GetDateHistogram -
 func (p *Postgres) GetDateHistogram(period string, opts ...models.HistogramOption) ([][]float64, error) {
-	ctx := models.HistogramContext{
-		Period: period,
+	if err := ValidateHistogramPeriod(period); err != nil {
+		return nil, err
 	}
+
+	ctx := models.HistogramContext{}
 	for _, opt := range opts {
 		opt(&ctx)
 	}
@@ -125,8 +127,10 @@ func (p *Postgres) GetDateHistogram(period string, opts ...models.HistogramOptio
 		return nil, err
 	}
 
+	periodName := name(period)
+
 	var res []HistogramResponse
-	if err := p.DB.Raw(req).Scan(&res).Error; err != nil {
+	if err := p.DB.Raw(req, periodName, periodName, fmt.Sprintf("1 %s", periodName), periodName).Scan(&res).Error; err != nil {
 		return nil, err
 	}
 	hist := make([][]float64, 0, len(res))
@@ -151,17 +155,12 @@ func (p *Postgres) GetCachedHistogram(period, name, network string) ([][]float64
 }
 
 func getRequest(period, table, f, conditions string) (string, error) {
-	if err := ValidateHistogramPeriod(period); err != nil {
-		return "", err
-	}
-
 	if !helpers.StringInArray(table, []string{models.DocContracts, models.DocOperations, models.DocTransfers}) {
 		return "", errors.Errorf("Invalid table: %s", table)
 	}
 
 	from := GetHistogramInterval(period)
-	periodName := name(period)
-	return fmt.Sprintf(histogramRequestTemplate, periodName, from, periodName, periodName, f, table, periodName, table, conditions, table), nil
+	return fmt.Sprintf(histogramRequestTemplate, from, f, table, table, conditions, table), nil
 }
 
 // ValidateHistogramPeriod -

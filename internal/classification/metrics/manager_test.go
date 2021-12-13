@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 func TestManager_Compute(t *testing.T) {
@@ -21,11 +22,17 @@ func TestManager_Compute(t *testing.T) {
 			name: "Case 1",
 			args: args{
 				a: contract.Contract{
-					Manager: "test",
+					Manager: types.NullString{
+						Str:   "test",
+						Valid: true,
+					},
 					Network: 0,
 				},
 				b: contract.Contract{
-					Manager: "test",
+					Manager: types.NullString{
+						Str:   "test",
+						Valid: true,
+					},
 					Network: 0,
 				},
 			},
@@ -37,11 +44,17 @@ func TestManager_Compute(t *testing.T) {
 			name: "Case 2",
 			args: args{
 				a: contract.Contract{
-					Manager: "other",
+					Manager: types.NullString{
+						Str:   "other",
+						Valid: true,
+					},
 					Network: 1,
 				},
 				b: contract.Contract{
-					Manager: "test",
+					Manager: types.NullString{
+						Str:   "test",
+						Valid: true,
+					},
 					Network: 1,
 				},
 			},
@@ -53,11 +66,17 @@ func TestManager_Compute(t *testing.T) {
 			name: "Case 3",
 			args: args{
 				a: contract.Contract{
-					Manager: "test",
+					Manager: types.NullString{
+						Str:   "test",
+						Valid: true,
+					},
 					Network: 1,
 				},
 				b: contract.Contract{
-					Manager: "test",
+					Manager: types.NullString{
+						Str:   "test",
+						Valid: true,
+					},
 					Network: 2,
 				},
 			},
@@ -69,11 +88,17 @@ func TestManager_Compute(t *testing.T) {
 			name: "Case 4",
 			args: args{
 				a: contract.Contract{
-					Manager: "other",
+					Manager: types.NullString{
+						Str:   "other",
+						Valid: true,
+					},
 					Network: 1,
 				},
 				b: contract.Contract{
-					Manager: "test",
+					Manager: types.NullString{
+						Str:   "test",
+						Valid: true,
+					},
 					Network: 2,
 				},
 			},

@@ -49,12 +49,15 @@ func (p *Parser) Parse(operation *operation.Operation) (*parsers.Result, error) 
 	}
 
 	contract := contract.Contract{
-		Network:    operation.Network,
-		Level:      operation.Level,
-		Timestamp:  operation.Timestamp,
-		Manager:    operation.Source,
-		Address:    operation.Destination,
-		Delegate:   operation.Delegate,
+		Network:   operation.Network,
+		Level:     operation.Level,
+		Timestamp: operation.Timestamp,
+		Manager:   types.NewNullString(&operation.Source),
+		Address:   operation.Destination,
+		Delegate: types.NullString{
+			Str:   operation.Delegate,
+			Valid: operation.Delegate != "",
+		},
 		LastAction: operation.Timestamp,
 	}
 
