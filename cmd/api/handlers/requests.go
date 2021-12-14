@@ -171,6 +171,12 @@ type getOperationByIDRequest struct {
 	ID int64 `uri:"id" binding:"required"`
 }
 
+type getContent struct {
+	OPGRequest
+
+	ContentIndex int64 `uri:"content" example:"1"`
+}
+
 type runOperationRequest struct {
 	Data   map[string]interface{} `json:"data" binding:"required"`
 	Name   string                 `json:"name" binding:"required"`

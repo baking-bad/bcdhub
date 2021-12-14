@@ -429,6 +429,21 @@ definitions:
       text:
         type: string
     type: object
+  handlers.GlobalConstant:
+    properties:
+      address:
+        type: string
+      level:
+        type: integer
+      network:
+        type: integer
+      timestamp:
+        type: string
+      value:
+        items:
+          type: integer
+        type: array
+    type: object
   handlers.HeadResponse:
     properties:
       contract_calls:
@@ -3131,6 +3146,45 @@ paths:
       summary: Resolve domain
       tags:
       - domains
+  /v1/global_constants/{network}/{address}:
+    get:
+      consumes:
+      - application/json
+      description: Get global constant
+      operationId: get-global-constant
+      parameters:
+      - description: network
+        in: path
+        name: network
+        required: true
+        type: string
+      - description: expr address of constant
+        in: path
+        maxLength: 54
+        minLength: 54
+        name: address
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handlers.GlobalConstant'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Get global constant
+      tags:
+      - contract
   /v1/head:
     get:
       consumes:
@@ -3153,6 +3207,42 @@ paths:
       summary: Show indexer head
       tags:
       - head
+  /v1/operation/{hash}/{index}/storage_diff:
+    get:
+      consumes:
+      - application/json
+      operationId: get-operation-storage-diff
+      parameters:
+      - description: Operation group hash
+        in: path
+        maxLength: 51
+        minLength: 51
+        name: hash
+        required: true
+        type: string
+      - description: Content index
+        in: path
+        name: index
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.GetErrorLocationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.Error'
+      summary: Get code line where operation failed
+      tags:
+      - operations
   /v1/operation/{id}/error_location:
     get:
       consumes:
