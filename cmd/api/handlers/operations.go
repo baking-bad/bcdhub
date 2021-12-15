@@ -134,9 +134,68 @@ func (ctx *Context) GetOperation(c *gin.Context) {
 	c.SecureJSON(http.StatusOK, resp)
 }
 
+// GetContentDiff godoc
+// @Summary Get storage diff for content in OPG
+// @Description Get storage diff for content in OPG
+// @Tags operations
+// @ID get-operation-storage-diff
+// @Param hash path string true "Operation group hash"  minlength(51) maxlength(51)
+// @Param index path integer true "Content index" mininum(0)
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} Error
+// @Failure 500 {object} Error
+// @Router /v1/operation/{hash}/{index}/storage_diff [get]
+func (ctx *Context) GetContentDiff(c *gin.Context) {
+	var req getContent
+	if err := c.BindUri(&req); ctx.handleError(c, err, http.StatusBadRequest) {
+		return
+	}
+
+	operations, err := ctx.Operations.Get(map[string]interface{}{
+		"hash":          req.Hash,
+		"content_index": req.ContentIndex,
+	}, 1, false)
+	if ctx.handleError(c, err, 0) {
+		return
+	}
+	if len(operations) == 0 {
+		ctx.handleError(c, errors.Errorf("unknown operation content: %s %d", req.Hash, req.ContentIndex), http.StatusNotFound)
+		return
+	}
+	operation := operations[0]
+
+	data, err := ctx.BigMapDiffs.GetForOperations(operation.ID)
+	if ctx.handleError(c, err, 0) {
+		return
+	}
+
+	if len(operation.DeffatedStorage) > 0 && (operation.IsCall() || operation.IsOrigination()) && operation.IsApplied() {
+		protocol, err := ctx.Protocols.GetByID(operation.ProtocolID)
+		if ctx.handleError(c, err, 0) {
+			return
+		}
+
+		script, err := ctx.getScript(operation.Network, operation.Destination, protocol.SymLink)
+		if ctx.handleError(c, err, 0) {
+			return
+		}
+		var op Operation
+		op.FromModel(operation)
+
+		if err := ctx.setStorageDiff(operation.Destination, operation.DeffatedStorage, &op, data, script); ctx.handleError(c, err, 0) {
+			return
+		}
+		c.SecureJSON(http.StatusOK, op.StorageDiff)
+		return
+	}
+	c.SecureJSON(http.StatusOK, nil)
+}
+
 // GetOperationErrorLocation godoc
 // @Summary Get code line where operation failed
-// @DescriptionGet code line where operation failed
+// @Description Get code line where operation failed
 // @Tags operations
 // @ID get-operation-error-location
 // @Param id path integer true "Internal BCD operation ID"
