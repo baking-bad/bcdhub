@@ -163,19 +163,18 @@ type getSeriesRequest struct {
 	Address string `form:"address,omitempty" binding:"omitempty"`
 }
 
-func (req getSeriesRequest) isCached() bool {
-	if req.Address != "" {
-		return false
-	}
-	return req.Period == "month" && (req.Name == "contract" || req.Name == "operation" || req.Name == "paid_storage_size_diff" || req.Name == "consumed_gas")
-}
-
 type getBySlugRequest struct {
 	Slug string `uri:"slug"  binding:"required"`
 }
 
 type getOperationByIDRequest struct {
 	ID int64 `uri:"id" binding:"required"`
+}
+
+type getContent struct {
+	OPGRequest
+
+	ContentIndex int64 `uri:"content" example:"1"`
 }
 
 type runOperationRequest struct {

@@ -10,7 +10,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"github.com/lib/pq"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -35,7 +34,7 @@ type Operation struct {
 	AllocatedDestinationContractBurned int64 `json:"allocated_destination_contract_burned,omitempty"`
 
 	Nonce      *int64        `json:"nonce,omitempty"`
-	Network    types.Network `json:"network" gorm:"type:SMALLINT;index:idx_operations_level_network"`
+	Network    types.Network `json:"network" gorm:"type:SMALLINT;index:idx_operations_level_network; index:operations_network_idx"`
 	ProtocolID int64         `json:"protocol" gorm:"type:SMALLINT"`
 	Hash       string        `json:"hash" gorm:"index:new_opg_idx;index:operations_hash_idx"`
 
@@ -46,7 +45,7 @@ type Operation struct {
 	Source          string                `json:"source" gorm:"index:source_idx"`
 	Destination     string                `json:"destination,omitempty" gorm:"index:destination_idx"`
 	Delegate        string                `json:"delegate,omitempty"`
-	Entrypoint      string                `json:"entrypoint,omitempty"`
+	Entrypoint      types.NullString      `json:"entrypoint,omitempty" gorm:"index:operations_entrypoint_idx"`
 	Parameters      []byte                `json:"parameters,omitempty"`
 	DeffatedStorage []byte                `json:"deffated_storage"`
 
@@ -54,9 +53,7 @@ type Operation struct {
 
 	Script []byte `json:"-"  gorm:"-"`
 
-	Errors           tezerrors.Errors `json:"errors,omitempty" gorm:"type:bytes"`
-	ParameterStrings pq.StringArray   `json:"parameter_strings,omitempty" gorm:"type:text[]"`
-	StorageStrings   pq.StringArray   `json:"storage_strings,omitempty" gorm:"type:text[]"`
+	Errors tezerrors.Errors `json:"errors,omitempty" gorm:"type:bytes"`
 
 	AllocatedDestinationContract bool `json:"allocated_destination_contract,omitempty"`
 	Internal                     bool `json:"internal" gorm:",default:false"`
@@ -119,7 +116,7 @@ func (o *Operation) SetBurned(constants protocol.Constants) {
 
 // IsEntrypoint -
 func (o *Operation) IsEntrypoint(entrypoint string) bool {
-	return o.Entrypoint == entrypoint
+	return o.Entrypoint.EqualString(entrypoint)
 }
 
 // IsOrigination -
@@ -151,7 +148,7 @@ func (o Operation) EmptyTransfer() *transfer.Transfer {
 		Timestamp:   o.Timestamp,
 		Level:       o.Level,
 		Initiator:   o.Source,
-		Entrypoint:  o.Entrypoint,
+		Entrypoint:  o.Entrypoint.String(),
 		Amount:      decimal.Zero,
 		OperationID: o.ID,
 	}

@@ -90,7 +90,9 @@ func WithStorage(cfg StorageConfig, appName string, maxPageSize int64, maxConnCo
 // WithSearch -
 func WithSearch(cfg StorageConfig) ContextOption {
 	return func(ctx *Context) {
-		ctx.Searcher = elastic.WaitNew(cfg.Elastic, cfg.Timeout)
+		searcher := elastic.WaitNew(cfg.Elastic, cfg.Timeout)
+		ctx.Searcher = searcher
+		ctx.Statistics = searcher
 	}
 
 }

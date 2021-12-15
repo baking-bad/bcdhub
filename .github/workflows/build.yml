@@ -37,7 +37,7 @@ jobs:
         id: meta-elastic
         uses: docker/metadata-action@v3
         with:
-          images: ${{ env.DOCKER_IMAGE_BASE }}-elastic
+          images: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE_BASE }}-elastic
 
       - name: Elastic image build & push
         uses: docker/build-push-action@v2
@@ -56,7 +56,7 @@ jobs:
         id: meta-db
         uses: docker/metadata-action@v3
         with:
-          images: ${{ env.DOCKER_IMAGE_BASE }}-db
+          images: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE_BASE }}-db
 
       - name: DB
         uses: docker/build-push-action@v2
@@ -75,7 +75,7 @@ jobs:
         id: meta-api
         uses: docker/metadata-action@v3
         with:
-          images: ${{ env.DOCKER_IMAGE_BASE }}-api
+          images: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE_BASE }}-api
 
       - name: API image build & push
         uses: docker/build-push-action@v2
@@ -94,7 +94,7 @@ jobs:
         id: meta-indexer
         uses: docker/metadata-action@v3
         with:
-          images: ${{ env.DOCKER_IMAGE_BASE }}-indexer
+          images: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE_BASE }}-indexer
 
       - name: Indexer image build & push
         uses: docker/build-push-action@v2
@@ -113,7 +113,7 @@ jobs:
         id: meta-metrics
         uses: docker/metadata-action@v3
         with:
-          images: ${{ env.DOCKER_IMAGE_BASE }}-metrics
+          images: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_IMAGE_BASE }}-metrics
 
       - name: Metrics image build & push
         uses: docker/build-push-action@v2

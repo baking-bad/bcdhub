@@ -2457,6 +2457,63 @@
                 }
             }
         },
+        "/v1/global_constants/{network}/{address}": {
+            "get": {
+                "description": "Get global constant",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "contract"
+                ],
+                "summary": "Get global constant",
+                "operationId": "get-global-constant",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "network",
+                        "name": "network",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maxLength": 54,
+                        "minLength": 54,
+                        "type": "string",
+                        "description": "expr address of constant",
+                        "name": "address",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.GlobalConstant"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/head": {
             "get": {
                 "description": "Get indexer head for each network",
@@ -2479,6 +2536,59 @@
                             "items": {
                                 "$ref": "#/definitions/handlers.HeadResponse"
                             }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/operation/{hash}/{index}/storage_diff": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "operations"
+                ],
+                "summary": "Get code line where operation failed",
+                "operationId": "get-operation-storage-diff",
+                "parameters": [
+                    {
+                        "maxLength": 51,
+                        "minLength": 51,
+                        "type": "string",
+                        "description": "Operation group hash",
+                        "name": "hash",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Content index",
+                        "name": "index",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.GetErrorLocationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.Error"
                         }
                     },
                     "500": {
@@ -4063,6 +4173,29 @@
                 },
                 "text": {
                     "type": "string"
+                }
+            }
+        },
+        "handlers.GlobalConstant": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "network": {
+                    "type": "integer"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 }
             }
         },

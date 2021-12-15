@@ -7,12 +7,13 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 )
 
 // Item -
 type Item struct {
 	ParentID   int64
-	Entrypoint string
+	Entrypoint types.NullString
 
 	children     []int64
 	source       string
@@ -23,15 +24,16 @@ type Item struct {
 
 // NewItem -
 func NewItem(operation operation.Operation, parentID int64) *Item {
-	return &Item{
+	item := &Item{
 		ParentID:     parentID,
-		Entrypoint:   operation.Entrypoint,
 		children:     make([]int64, 0),
 		source:       operation.Source,
 		destination:  operation.Destination,
 		contentIndex: operation.ContentIndex,
 		nonce:        operation.Nonce,
+		Entrypoint:   operation.Entrypoint,
 	}
+	return item
 }
 
 // GetID -
@@ -41,7 +43,7 @@ func (sti *Item) GetID() int64 {
 
 // String -
 func (sti *Item) String() string {
-	s := sti.Entrypoint
+	s := sti.Entrypoint.String()
 	if len(s) < 20 {
 		s += strings.Repeat(" ", 20-len(s))
 	}

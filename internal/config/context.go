@@ -46,6 +46,7 @@ type Context struct {
 	TezosDomainsContracts map[types.Network]string
 
 	Storage         models.GeneralRepository
+	Statistics      models.Statistics
 	BigMapActions   bigmapaction.Repository
 	BigMapDiffs     bigmapdiff.Repository
 	Blocks          block.Repository

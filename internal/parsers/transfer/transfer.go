@@ -131,7 +131,7 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name, protocol str
 	}
 
 	switch {
-	case impl.MichelsonParameterEvent != nil && impl.MichelsonParameterEvent.Is(operation.Entrypoint):
+	case impl.MichelsonParameterEvent != nil && impl.MichelsonParameterEvent.Is(operation.Entrypoint.String()):
 		parameter, err := operation.AST.ParameterType()
 		if err != nil {
 			return err
@@ -142,13 +142,13 @@ func (p *Parser) executeEvents(impl tzip.EventImplementation, name, protocol str
 			return err
 		}
 		ctx.Parameters = subTree
-		ctx.Entrypoint = operation.Entrypoint
+		ctx.Entrypoint = operation.Entrypoint.String()
 		event, err = events.NewMichelsonParameter(impl, name)
 		if err != nil {
 			return err
 		}
 		return p.makeTransfersFromBalanceEvents(event, ctx, operation, true)
-	case impl.MichelsonExtendedStorageEvent != nil && impl.MichelsonExtendedStorageEvent.Is(operation.Entrypoint):
+	case impl.MichelsonExtendedStorageEvent != nil && impl.MichelsonExtendedStorageEvent.Is(operation.Entrypoint.String()):
 		storage, err := operation.AST.StorageType()
 		if err != nil {
 			return err
