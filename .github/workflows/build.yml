@@ -1,0 +1,127 @@
+name: Build
+on:
+  push:
+    branches:
+      - 'master'
+    tags:
+      - 'v*.*.*'
+  pull_request:
+    branches:
+      - 'master'
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    env:
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+      DOCKER_REGISTRY: ghcr.io
+      DOCKER_IMAGE_BASE: ${{ github.repository }}
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Log in to the registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Elastic
+
+      - name: Elastic image tags & labels
+        id: meta-elastic
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.DOCKER_IMAGE_BASE }}-elastic
+
+      - name: Elastic image build & push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: build/elastic/Dockerfile
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ${{ steps.meta-elastic.outputs.tags }}
+          labels: ${{ steps.meta-elastic.outputs.labels }}
+
+      # DB
+
+      - name: DB image tags & labels
+        id: meta-db
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.DOCKER_IMAGE_BASE }}-db
+
+      - name: DB
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: build/db/Dockerfile
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ${{ steps.meta-db.outputs.tags }}
+          labels: ${{ steps.meta-db.outputs.labels }}
+
+      # API
+
+      - name: API image tags & labels
+        id: meta-api
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.DOCKER_IMAGE_BASE }}-api
+
+      - name: API image build & push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: build/api/Dockerfile
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ${{ steps.meta-api.outputs.tags }}
+          labels: ${{ steps.meta-api.outputs.labels }}
+
+      # Indexer
+
+      - name: Indexer image tags & labels
+        id: meta-indexer
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.DOCKER_IMAGE_BASE }}-indexer
+
+      - name: Indexer image build & push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: build/indexer/Dockerfile
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ${{ steps.meta-indexer.outputs.tags }}
+          labels: ${{ steps.meta-indexer.outputs.labels }}
+
+      # Metrics
+
+      - name: Metrics image tags & labels
+        id: meta-metrics
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.DOCKER_IMAGE_BASE }}-metrics
+
+      - name: Metrics image build & push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: build/metrics/Dockerfile
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ${{ steps.meta-metrics.outputs.tags }}
+          labels: ${{ steps.meta-metrics.outputs.labels }}

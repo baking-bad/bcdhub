@@ -2,32 +2,18 @@ rpc:
   mainnet:
     uri: ${MAINNET_RPC_URI:-https://rpc.tzkt.io/mainnet}
     timeout: 20
-  florencenet:
-    uri: ${TESTNET_RPC_URI:-https://rpc.tzkt.io/florencenobanet}
-    timeout: 20
   granadanet:
     uri: ${NEXTNET_RPC_URI:-https://rpc.tzkt.io/granadanet}
-    timeout: 20
-  hangzhounet:
-    uri: https://rpc.tzkt.io/hangzhounet
     timeout: 20
   hangzhou2net:
     uri: https://rpc.tzkt.io/hangzhou2net
     timeout: 20
 
-tzkt:
-  mainnet:
-    uri: https://api.tzkt.io/v1/
-    base_uri: https://tzkt.io/
-    timeout: 20
-
 services:
   mainnet:
     mempool: https://mempool.dipdup.net/v1/graphql
-  florencenet:
+  granadanet:
     mempool: https://mempool.staging.dipdup.net/v1/graphql
-  hangzhounet:
-    mempool: https://mempool.staging.dipdup.net/v1/graphql 
   hangzhou2net:
     mempool: https://mempool.staging.dipdup.net/v1/graphql 
 
@@ -50,12 +36,6 @@ base_url: https://better-call.dev
 
 ipfs:
   - ${SANDBOX_IPFS_GATEWAY:-https://ipfs.baking-bad.org}
-#  - https://dweb.link
-#  - https://ipfs.io
-
-domains:
-   edo2net: KT1KP2Yy6MNkYKkHqroGBZ7KFN5NdNfnUHHv
-#  mainnet: KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS
 
 api:
   project_name: api
@@ -71,18 +51,11 @@ api:
     sandbox_mode: false
   networks:
     - mainnet
-    - florencenet
     - granadanet
-    - hangzhounet
     - hangzhou2net
-  pinata:
-    key: ${PINATA_KEY}
-    secret_key: ${PINATA_SECRET_KEY}
-    timeout_seconds: 10
   connections:
     max: 50
     idle: 10
-
 
 indexer:
   project_name: indexer
@@ -90,10 +63,7 @@ indexer:
   skip_delegator_blocks: false
   networks:
     mainnet:
-      boost: tzkt
-    florencenet:
     granadanet:
-    hangzhounet:
     hangzhou2net:
   connections:
     max: 5
@@ -115,9 +85,7 @@ scripts:
     secret_access_key: ${AWS_SECRET_ACCESS_KEY}
   networks:
     - mainnet
-    - florencenet
     - granadanet
-    - hangzhounet
     - hangzhou2net
   connections:
     max: 5
