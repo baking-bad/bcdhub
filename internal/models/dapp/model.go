@@ -100,8 +100,3 @@ type DAppContract struct {
 
 // DAppContracts -
 type DAppContracts []DAppContract
-
-// TableName -
-func (d *DApp) TableName() string {
-	return "dapps"
-}

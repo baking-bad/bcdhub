@@ -79,8 +79,3 @@ func (t *TZIP) LogFields() map[string]interface{} {
 		"level":   t.Level,
 	}
 }
-
-// TableName -
-func (t *TZIP) TableName() string {
-	return "tzips"
-}

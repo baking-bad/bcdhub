@@ -13,7 +13,6 @@ func NewInitializer(repo models.GeneralRepository) Initializer {
 }
 
 // Init -
-// TODO: create indeices
 func (initializer Initializer) Init() error {
 	return initializer.repo.CreateTables()
 }
