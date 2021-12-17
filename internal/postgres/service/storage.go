@@ -3,9 +3,10 @@ package service
 import (
 	"errors"
 
+	"github.com/baking-bad/bcdhub/internal/models"
 	"github.com/baking-bad/bcdhub/internal/models/service"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
-	"gorm.io/gorm"
+	"github.com/go-pg/pg/v10"
 )
 
 // Storage -
@@ -20,8 +21,8 @@ func NewStorage(pg *core.Postgres) *Storage {
 
 // Get -
 func (s *Storage) Get(name string) (state service.State, err error) {
-	err = s.DB.Where("name = ?", name).First(&state).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
+	err = s.DB.Model(&state).Where("name = ?", name).First()
+	if errors.Is(err, pg.ErrNoRows) {
 		err = nil
 		state.Name = name
 	}
@@ -35,6 +36,6 @@ func (s *Storage) Save(state service.State) error {
 
 // Get -
 func (s *Storage) All() (state []service.State, err error) {
-	err = s.DB.Find(&state).Error
+	err = s.DB.Model().Table(models.DocServices).Select(&state)
 	return
 }

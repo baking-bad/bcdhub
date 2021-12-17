@@ -9,6 +9,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -20,7 +21,7 @@ func testContracts(ctx *config.Context) {
 		logger.Info().Msgf("testing %s contract endpoints...", network)
 
 		contracts, err := ctx.Contracts.GetMany(map[string]interface{}{
-			"network": network,
+			"network": types.NewNetwork(network),
 		})
 		if err != nil {
 			logger.Error().Msgf("testContracts: %s", err.Error())

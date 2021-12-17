@@ -2,29 +2,31 @@ package protocol
 
 import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
+	"github.com/go-pg/pg/v10"
 )
 
 // Protocol -
 type Protocol struct {
-	ID int64 `json:"-"`
+	// nolint
+	tableName struct{} `pg:"protocols"`
 
-	Hash       string        `json:"hash"`
-	Network    types.Network `json:"network" gorm:"type:SMALLINT"`
-	StartLevel int64         `json:"start_level" gorm:",default:0"`
-	EndLevel   int64         `json:"end_level" gorm:",default:0"`
-	SymLink    string        `json:"sym_link"`
-	Alias      string        `json:"alias"`
+	ID int64
+
+	Hash       string        `pg:",unique:protocol"`
+	Network    types.Network `pg:",type:SMALLINT,unique:protocol"`
+	StartLevel int64         `pg:",use_zero"`
+	EndLevel   int64         `pg:",use_zero"`
+	SymLink    string
+	Alias      string
 	*Constants
 }
 
 // Constants -
 type Constants struct {
-	CostPerByte                  int64 `json:"cost_per_byte" gorm:",default:0"`
-	HardGasLimitPerOperation     int64 `json:"hard_gas_limit_per_operation" gorm:",default:0"`
-	HardStorageLimitPerOperation int64 `json:"hard_storage_limit_per_operation" gorm:",default:0"`
-	TimeBetweenBlocks            int64 `json:"time_between_blocks" gorm:",default:0"`
+	CostPerByte                  int64 `pg:",use_zero"`
+	HardGasLimitPerOperation     int64 `pg:",use_zero"`
+	HardStorageLimitPerOperation int64 `pg:",use_zero"`
+	TimeBetweenBlocks            int64 `pg:",use_zero"`
 }
 
 // GetID -
@@ -38,8 +40,10 @@ func (p *Protocol) GetIndex() string {
 }
 
 // Save -
-func (p *Protocol) Save(tx *gorm.DB) error {
-	return tx.Clauses(clause.OnConflict{
-		UpdateAll: true,
-	}).Save(p).Error
+func (p *Protocol) Save(tx pg.DBI) error {
+	_, err := tx.Model(p).
+		OnConflict("(id) DO UPDATE").
+		Set("end_level = ?", p.EndLevel).
+		Returning("id").Insert()
+	return err
 }

@@ -182,7 +182,10 @@ func (p *Pair) FromJSONSchema(data map[string]interface{}) error {
 	for i := range p.Args {
 		obj, ok := data[p.GetName()]
 		if !ok {
-			return errors.Errorf("can't find '%s' key", p.GetName())
+			if err := p.Args[i].FromJSONSchema(data); err != nil {
+				return err
+			}
+			continue
 		}
 		typ, ok := obj.(map[string]interface{})
 		if !ok {

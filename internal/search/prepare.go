@@ -5,7 +5,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapdiff"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
 	"github.com/baking-bad/bcdhub/internal/models/operation"
-	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 )
@@ -24,10 +23,6 @@ func Prepare(items []models.Model) []Data {
 			var bmd BigMapDiff
 			bmd.Prepare(val)
 			data = append(data, &bmd)
-		case *tezosdomain.TezosDomain:
-			var td Domain
-			td.Prepare(val)
-			data = append(data, &td)
 		case *operation.Operation:
 			var op Operation
 			op.Prepare(val)

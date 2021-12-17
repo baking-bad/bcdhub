@@ -96,7 +96,6 @@ func TestRichStorage_Parse(t *testing.T) {
 				},
 			},
 			want: &parsers.Result{
-				BigMapActions: []*bigmapaction.BigMapAction{},
 				BigMapState: []*bigmapdiff.BigMapState{
 					{
 						Ptr:             31,
@@ -141,6 +140,16 @@ func TestRichStorage_Parse(t *testing.T) {
 			sourcePtr: 1055,
 			filename:  "./data/rich_storage/test2.json",
 			want: &parsers.Result{
+				BigMapState: []*bigmapdiff.BigMapState{},
+			},
+			wantOperation: operation.Operation{
+				Level:       359942,
+				Destination: "KT1Xk1XJD2M8GYFUXRN12oMvDAysECDWwGdS",
+				Network:     types.Carthagenet,
+				Timestamp:   timestamp,
+				ProtocolID:  2,
+				Kind:        types.OperationKindOrigination,
+				BigMapDiffs: []*bigmapdiff.BigMapDiff{},
 				BigMapActions: []*bigmapaction.BigMapAction{
 					{
 						Action:         types.BigMapActionCopy,
@@ -152,16 +161,6 @@ func TestRichStorage_Parse(t *testing.T) {
 						Timestamp:      timestamp,
 					},
 				},
-				BigMapState: []*bigmapdiff.BigMapState{},
-			},
-			wantOperation: operation.Operation{
-				Level:       359942,
-				Destination: "KT1Xk1XJD2M8GYFUXRN12oMvDAysECDWwGdS",
-				Network:     types.Carthagenet,
-				Timestamp:   timestamp,
-				ProtocolID:  2,
-				Kind:        types.OperationKindOrigination,
-				BigMapDiffs: []*bigmapdiff.BigMapDiff{},
 			},
 		}, {
 			name: "test 3",
@@ -176,16 +175,6 @@ func TestRichStorage_Parse(t *testing.T) {
 			sourcePtr: 17,
 			filename:  "./data/rich_storage/test3.json",
 			want: &parsers.Result{
-				BigMapActions: []*bigmapaction.BigMapAction{
-					{
-						Action:    types.BigMapActionAlloc,
-						SourcePtr: setInt64(17),
-						Level:     220,
-						Address:   "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
-						Network:   types.Edo2net,
-						Timestamp: timestamp,
-					},
-				},
 				BigMapState: []*bigmapdiff.BigMapState{
 					{
 						Ptr:             17,
@@ -217,6 +206,16 @@ func TestRichStorage_Parse(t *testing.T) {
 						Network:    types.Edo2net,
 						Timestamp:  timestamp,
 						ProtocolID: 3,
+					},
+				},
+				BigMapActions: []*bigmapaction.BigMapAction{
+					{
+						Action:    types.BigMapActionAlloc,
+						SourcePtr: setInt64(17),
+						Level:     220,
+						Address:   "KT1C2Nh1VUjUt64JY44rx8bQPpjy3eSYoAu2",
+						Network:   types.Edo2net,
+						Timestamp: timestamp,
 					},
 				},
 			},
@@ -272,23 +271,21 @@ func TestRichStorage_Parse(t *testing.T) {
 				return
 			}
 
+			if compareOperations(t, tt.operation, &tt.wantOperation) {
+				return
+			}
 			compareRichStorage(t, got, tt.want)
 		})
 	}
 }
 
 func compareRichStorage(t *testing.T, expected, got *parsers.Result) {
-	assert.Len(t, got.BigMapActions, len(expected.BigMapActions))
 	assert.Len(t, got.BigMapState, len(expected.BigMapState))
 
-	for i := range expected.BigMapActions {
-		expected.BigMapActions[i].ID = got.BigMapActions[i].GetID()
-	}
 	for i := range expected.BigMapState {
 		expected.BigMapState[i].ID = got.BigMapState[i].GetID()
 	}
 
-	assert.Equal(t, expected.BigMapActions, got.BigMapActions)
 	assert.Equal(t, expected.BigMapState, got.BigMapState)
 }
 

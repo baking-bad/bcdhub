@@ -1,6 +1,7 @@
 package indexer
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"time"
@@ -20,8 +21,8 @@ import (
 	"github.com/baking-bad/bcdhub/internal/parsers/operations"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/baking-bad/bcdhub/internal/rollback"
+	"github.com/go-pg/pg/v10"
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
 )
 
 var errBcdQuit = errors.New("bcd-quit")
@@ -37,112 +38,44 @@ type BoostIndexer struct {
 	state           block.Block
 	currentProtocol protocol.Protocol
 
-	updateTicker        *time.Ticker
-	stop                chan struct{}
-	Network             types.Network
+	updateTicker *time.Ticker
+	Network      types.Network
+
+	indicesInit sync.Once
+
 	boost               bool
 	skipDelegatorBlocks bool
-	stopped             bool
-}
-
-func (bi *BoostIndexer) fetchExternalProtocols() error {
-	logger.Info().Str("network", bi.Network.String()).Msg("Fetching external protocols")
-	existingProtocols, err := bi.Protocols.GetByNetworkWithSort(bi.Network, "start_level", "desc")
-	if err != nil {
-		return err
-	}
-
-	exists := make(map[string]bool)
-	for _, existingProtocol := range existingProtocols {
-		exists[existingProtocol.Hash] = true
-	}
-
-	extProtocols, err := bi.externalIndexer.GetProtocols()
-	if err != nil {
-		return err
-	}
-
-	protocols := make([]models.Model, 0)
-	for i := range extProtocols {
-		if _, ok := exists[extProtocols[i].Hash]; ok {
-			continue
-		}
-		symLink, err := bcd.GetProtoSymLink(extProtocols[i].Hash)
-		if err != nil {
-			return err
-		}
-		alias := extProtocols[i].Alias
-		if alias == "" {
-			alias = extProtocols[i].Hash[:8]
-		}
-
-		newProtocol := &protocol.Protocol{
-			Hash:       extProtocols[i].Hash,
-			Alias:      alias,
-			StartLevel: extProtocols[i].StartLevel,
-			EndLevel:   extProtocols[i].LastLevel,
-			SymLink:    symLink,
-			Network:    bi.Network,
-			Constants: &protocol.Constants{
-				CostPerByte:                  extProtocols[i].Constants.CostPerByte,
-				HardStorageLimitPerOperation: extProtocols[i].Constants.HardStorageLimitPerOperation,
-				HardGasLimitPerOperation:     extProtocols[i].Constants.HardGasLimitPerOperation,
-				TimeBetweenBlocks:            extProtocols[i].Constants.TimeBetweenBlocks,
-			},
-		}
-
-		protocols = append(protocols, newProtocol)
-		logger.Info().Str("network", bi.Network.String()).Msgf("Fetched %s", alias)
-	}
-
-	return bi.Storage.Save(protocols)
 }
 
 // NewBoostIndexer -
-func NewBoostIndexer(cfg config.Config, network types.Network, opts ...BoostIndexerOption) (*BoostIndexer, error) {
+func NewBoostIndexer(ctx context.Context, internalCtx config.Context, rpcConfig config.RPCConfig, network types.Network, opts ...BoostIndexerOption) (*BoostIndexer, error) {
 	logger.Info().Str("network", network.String()).Msg("Creating indexer object...")
 
-	rpcProvider, ok := cfg.RPC[network.String()]
-	if !ok {
-		return nil, errors.Errorf("Unknown network %s", network)
-	}
 	rpc := noderpc.NewWaitNodeRPC(
-		rpcProvider.URI,
-		noderpc.WithTimeout(time.Duration(rpcProvider.Timeout)*time.Second),
-	)
-
-	ctx := config.NewContext(
-		config.WithConfigCopy(cfg),
-		config.WithStorage(cfg.Storage, "indexer", 10, cfg.Indexer.Connections.Open, cfg.Indexer.Connections.Idle),
-		config.WithSearch(cfg.Storage),
-		config.WithShare(cfg.SharePath),
+		rpcConfig.URI,
+		noderpc.WithTimeout(time.Duration(rpcConfig.Timeout)*time.Second),
 	)
 
 	bi := &BoostIndexer{
-		Context: ctx,
+		Context: &internalCtx,
 		Network: network,
 		rpc:     rpc,
-		stop:    make(chan struct{}),
 	}
 
 	for _, opt := range opts {
 		opt(bi)
 	}
 
-	if err := bi.init(ctx.StorageDB); err != nil {
-		ctx.Close()
+	if err := bi.init(ctx, bi.Context.StorageDB); err != nil {
 		return nil, err
 	}
 
 	return bi, nil
 }
-func (bi *BoostIndexer) init(db *core.Postgres) error {
-	if err := bi.Storage.CreateIndexes(); err != nil {
-		return err
-	}
 
+func (bi *BoostIndexer) init(ctx context.Context, db *core.Postgres) error {
 	if bi.boost {
-		if err := bi.fetchExternalProtocols(); err != nil {
+		if err := bi.fetchExternalProtocols(ctx); err != nil {
 			return err
 		}
 	}
@@ -169,7 +102,7 @@ func (bi *BoostIndexer) init(db *core.Postgres) error {
 			return err
 		}
 
-		if err := bi.Storage.Save([]models.Model{&currentProtocol}); err != nil {
+		if err := bi.Storage.Save(ctx, []models.Model{&currentProtocol}); err != nil {
 			return err
 		}
 	}
@@ -180,20 +113,16 @@ func (bi *BoostIndexer) init(db *core.Postgres) error {
 }
 
 // Sync -
-func (bi *BoostIndexer) Sync(wg *sync.WaitGroup) {
+func (bi *BoostIndexer) Sync(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	bi.stopped = false
 	localSentry := helpers.GetLocalSentry()
 	helpers.SetLocalTagSentry(localSentry, "network", bi.Network.String())
 
 	// First tick
-	if err := bi.process(); err != nil {
+	if err := bi.process(ctx); err != nil {
 		logger.Err(err)
 		helpers.CatchErrorSentry(err)
-	}
-	if bi.stopped {
-		return
 	}
 
 	everySecond := false
@@ -204,12 +133,10 @@ func (bi *BoostIndexer) Sync(wg *sync.WaitGroup) {
 	bi.setUpdateTicker(0)
 	for {
 		select {
-		case <-bi.stop:
-			bi.stopped = true
-			bi.Context.Close()
+		case <-ctx.Done():
 			return
 		case <-bi.updateTicker.C:
-			if err := bi.process(); err != nil {
+			if err := bi.process(ctx); err != nil {
 				if errors.Is(err, errSameLevel) {
 					if !everySecond {
 						everySecond = true
@@ -246,13 +173,8 @@ func (bi *BoostIndexer) setUpdateTicker(seconds int) {
 	bi.updateTicker = time.NewTicker(duration)
 }
 
-// Stop -
-func (bi *BoostIndexer) Stop() {
-	bi.stop <- struct{}{}
-}
-
 // Index -
-func (bi *BoostIndexer) Index(levels []int64) error {
+func (bi *BoostIndexer) Index(ctx context.Context, levels []int64) error {
 	if len(levels) == 0 {
 		return nil
 	}
@@ -262,9 +184,7 @@ func (bi *BoostIndexer) Index(levels []int64) error {
 		helpers.SetTagSentry("block", fmt.Sprintf("%d", level))
 
 		select {
-		case <-bi.stop:
-			bi.stopped = true
-			bi.Context.Close()
+		case <-ctx.Done():
 			return errBcdQuit
 		default:
 		}
@@ -278,18 +198,21 @@ func (bi *BoostIndexer) Index(levels []int64) error {
 			return errRollback
 		}
 
-		if err := bi.handleBlock(head); err != nil {
+		if err := bi.handleBlock(ctx, head); err != nil {
 			return err
 		}
 
 	}
+
+	bi.indicesInit.Do(bi.createIndices)
+
 	return nil
 }
 
-func (bi *BoostIndexer) handleBlock(head noderpc.Header) error {
+func (bi *BoostIndexer) handleBlock(ctx context.Context, head noderpc.Header) error {
 	result := parsers.NewResult()
-	err := bi.StorageDB.DB.Transaction(
-		func(tx *gorm.DB) error {
+	err := bi.StorageDB.DB.RunInTransaction(ctx,
+		func(tx *pg.Tx) error {
 			logger.Info().Str("network", bi.Network.String()).Msgf("indexing %d block", head.Level)
 
 			if head.Protocol != bi.currentProtocol.Hash {
@@ -320,7 +243,7 @@ func (bi *BoostIndexer) handleBlock(head noderpc.Header) error {
 }
 
 // Rollback -
-func (bi *BoostIndexer) Rollback() error {
+func (bi *BoostIndexer) Rollback(ctx context.Context) error {
 	logger.Warning().Str("network", bi.Network.String()).Msgf("Rollback from %d", bi.state.Level)
 
 	lastLevel, err := bi.getLastRollbackBlock()
@@ -328,8 +251,8 @@ func (bi *BoostIndexer) Rollback() error {
 		return err
 	}
 
-	manager := rollback.NewManager(bi.Searcher, bi.Storage, bi.BigMapDiffs, bi.Transfers)
-	if err := manager.Rollback(bi.StorageDB.DB, bi.state, lastLevel); err != nil {
+	manager := rollback.NewManager(bi.Searcher, bi.Storage, bi.Blocks, bi.BigMapDiffs, bi.Transfers)
+	if err := manager.Rollback(ctx, bi.StorageDB.DB, bi.state, lastLevel); err != nil {
 		return err
 	}
 
@@ -391,7 +314,7 @@ func (bi *BoostIndexer) getBoostBlocks(head noderpc.Header) ([]int64, error) {
 	return result, err
 }
 
-func (bi *BoostIndexer) process() error {
+func (bi *BoostIndexer) process(ctx context.Context) error {
 	head, err := bi.rpc.GetHead()
 	if err != nil {
 		return err
@@ -419,13 +342,13 @@ func (bi *BoostIndexer) process() error {
 
 		logger.Info().Str("network", bi.Network.String()).Msgf("Found %d new levels", len(levels))
 
-		if err := bi.Index(levels); err != nil {
+		if err := bi.Index(ctx, levels); err != nil {
 			if errors.Is(err, errBcdQuit) {
 				return nil
 			}
 			if errors.Is(err, errRollback) {
 				if !time.Now().Add(time.Duration(-5) * time.Minute).After(head.Timestamp) { // Check that node is out of sync
-					if err := bi.Rollback(); err != nil {
+					if err := bi.Rollback(ctx); err != nil {
 						return err
 					}
 				}
@@ -440,7 +363,7 @@ func (bi *BoostIndexer) process() error {
 		logger.Info().Str("network", bi.Network.String()).Msg("Synced")
 		return nil
 	} else if head.Level < bi.state.Level {
-		if err := bi.Rollback(); err != nil {
+		if err := bi.Rollback(ctx); err != nil {
 			return err
 		}
 	}
@@ -448,7 +371,7 @@ func (bi *BoostIndexer) process() error {
 	return errSameLevel
 }
 
-func (bi *BoostIndexer) createBlock(head noderpc.Header, tx *gorm.DB) error {
+func (bi *BoostIndexer) createBlock(head noderpc.Header, tx pg.DBI) error {
 	proto, err := bi.CachedProtocolByHash(bi.Network, head.Protocol)
 	if err != nil {
 		return err
@@ -502,7 +425,7 @@ func (bi *BoostIndexer) getDataFromBlock(head noderpc.Header) (*parsers.Result, 
 	return result, nil
 }
 
-func (bi *BoostIndexer) migrate(head noderpc.Header, tx *gorm.DB) error {
+func (bi *BoostIndexer) migrate(head noderpc.Header, tx pg.DBI) error {
 	if bi.currentProtocol.EndLevel == 0 && head.Level > 1 {
 		logger.Info().Str("network", bi.Network.String()).Msgf("Finalizing the previous protocol: %s", bi.currentProtocol.Alias)
 		bi.currentProtocol.EndLevel = head.Level - 1
@@ -552,7 +475,7 @@ func (bi *BoostIndexer) migrate(head noderpc.Header, tx *gorm.DB) error {
 	return nil
 }
 
-func (bi *BoostIndexer) implicitMigration(head noderpc.Header, tx *gorm.DB) error {
+func (bi *BoostIndexer) implicitMigration(head noderpc.Header, tx pg.DBI) error {
 	metadata, err := bi.rpc.GetBlockMetadata(head.Level)
 	if err != nil {
 		return err
@@ -568,7 +491,7 @@ func (bi *BoostIndexer) implicitMigration(head noderpc.Header, tx *gorm.DB) erro
 	return nil
 }
 
-func (bi *BoostIndexer) standartMigration(newProtocol protocol.Protocol, head noderpc.Header, tx *gorm.DB) error {
+func (bi *BoostIndexer) standartMigration(newProtocol protocol.Protocol, head noderpc.Header, tx pg.DBI) error {
 	logger.Info().Str("network", bi.Network.String()).Msg("Try to find migrations...")
 	contracts, err := bi.Contracts.GetMany(map[string]interface{}{
 		"network": bi.Network,
@@ -595,7 +518,7 @@ func (bi *BoostIndexer) standartMigration(newProtocol protocol.Protocol, head no
 	return nil
 }
 
-func (bi *BoostIndexer) vestingMigration(head noderpc.Header, tx *gorm.DB) error {
+func (bi *BoostIndexer) vestingMigration(head noderpc.Header, tx pg.DBI) error {
 	addresses, err := bi.rpc.GetContractsByBlock(head.Level)
 	if err != nil {
 		return err

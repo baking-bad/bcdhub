@@ -242,3 +242,21 @@ func Sum(field string) Item {
 		},
 	}
 }
+
+// Max -
+func Max(field string) Item {
+	return Item{
+		"max": Item{
+			"field": field,
+		},
+	}
+}
+
+// ValueCount -
+func ValueCount(field string) Item {
+	return Item{
+		"value_count": Item{
+			"field": field,
+		},
+	}
+}

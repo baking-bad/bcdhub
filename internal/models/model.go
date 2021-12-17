@@ -1,12 +1,10 @@
 package models
 
-import (
-	"gorm.io/gorm"
-)
+import "github.com/go-pg/pg/v10"
 
 // Model -
 type Model interface {
 	GetID() int64
 	GetIndex() string
-	Save(tx *gorm.DB) error
+	Save(tx pg.DBI) error
 }

@@ -3,6 +3,7 @@ package metrics
 import (
 	"github.com/baking-bad/bcdhub/internal/helpers"
 	"github.com/baking-bad/bcdhub/internal/models/contract"
+	"github.com/baking-bad/bcdhub/internal/models/types"
 
 	"github.com/baking-bad/bcdhub/internal/classification/functions"
 	clmetrics "github.com/baking-bad/bcdhub/internal/classification/metrics"
@@ -10,10 +11,14 @@ import (
 
 // SetContractProjectID -
 func SetContractProjectID(contracts contract.Repository, c *contract.Contract, chunk []*contract.Contract) error {
+	projectID := getContractProjectID(*c, chunk)
+	if projectID != "" {
+		c.ProjectID = types.NewNullString(&projectID)
+		return nil
+	}
+
 	var offset int64
-
-	size := int64(25)
-
+	size := int64(100)
 	var end bool
 	for !end {
 		buckets, err := contracts.GetProjectsLastContract(*c, size, offset)
@@ -23,8 +28,9 @@ func SetContractProjectID(contracts contract.Repository, c *contract.Contract, c
 		end = len(buckets) < int(size)
 
 		if !end {
-			c.ProjectID = getContractProjectID(*c, buckets)
-			if c.ProjectID != "" {
+			projectID := getContractProjectID(*c, buckets)
+			if projectID != "" {
+				c.ProjectID = types.NewNullString(&projectID)
 				return nil
 			}
 		}
@@ -32,27 +38,24 @@ func SetContractProjectID(contracts contract.Repository, c *contract.Contract, c
 		offset += size
 	}
 
-	c.ProjectID = getContractProjectID(*c, chunk)
-	if c.ProjectID != "" {
-		return nil
-	}
-	c.ProjectID = helpers.GenerateID()
+	projectID = helpers.GenerateID()
+	c.ProjectID = types.NewNullString(&projectID)
 	return nil
 }
 
 func getContractProjectID(c contract.Contract, buckets []*contract.Contract) string {
 	for i := len(buckets) - 1; i > -1; i-- {
-		if c.Hash == buckets[i].Hash {
-			return buckets[i].ProjectID
+		if c.Hash == buckets[i].Hash && buckets[i].ProjectID.Valid {
+			return buckets[i].ProjectID.String()
 		}
 	}
 	for i := len(buckets) - 1; i > -1; i-- {
-		if compare(c, *buckets[i]) {
-			return buckets[i].ProjectID
+		if buckets[i].ProjectID.Valid && compare(c, *buckets[i]) {
+			return buckets[i].ProjectID.String()
 		}
 	}
 
-	return helpers.GenerateID()
+	return ""
 }
 
 var precomputedMetrics = []clmetrics.Metric{
@@ -60,7 +63,6 @@ var precomputedMetrics = []clmetrics.Metric{
 	clmetrics.NewBinMask("Tags"),
 	clmetrics.NewArray("FailStrings"),
 	clmetrics.NewArray("Annotations"),
-	clmetrics.NewBool("Language"),
 	clmetrics.NewArray("Entrypoints"),
 	clmetrics.NewFingerprintLength("parameter"),
 	clmetrics.NewFingerprintLength("storage"),

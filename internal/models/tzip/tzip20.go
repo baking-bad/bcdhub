@@ -1,39 +1,18 @@
 package tzip
 
 import (
-	"database/sql/driver"
 	stdJSON "encoding/json"
-	"errors"
-	"fmt"
 
 	"github.com/baking-bad/bcdhub/internal/helpers"
 )
 
 // TZIP20 -
 type TZIP20 struct {
-	Events Events `json:"events,omitempty" gorm:"type:jsonb"`
+	Events Events `json:"events,omitempty" pg:",type:jsonb"`
 }
 
 // Events -
 type Events []Event
-
-// Scan scan value into Jsonb, implements sql.Scanner interface
-func (events *Events) Scan(value interface{}) error {
-	bytes, ok := value.([]byte)
-	if !ok {
-		return errors.New(fmt.Sprint("Failed to unmarshal JSONB value:", value))
-	}
-
-	return json.Unmarshal(bytes, events)
-}
-
-// Value return json value, implement driver.Valuer interface
-func (events Events) Value() (driver.Value, error) {
-	if events == nil {
-		return []byte(`[]`), nil
-	}
-	return json.Marshal(events)
-}
 
 // Event -
 type Event struct {

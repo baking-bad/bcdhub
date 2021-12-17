@@ -9,8 +9,9 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
+	"github.com/go-pg/pg/v10"
+	"github.com/go-pg/pg/v10/orm"
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
 )
 
 // Storage -
@@ -26,16 +27,14 @@ func NewStorage(es *core.Postgres) *Storage {
 type opgForContract struct {
 	Counter int64
 	Hash    string
+	ID      int64
 }
 
 func (storage *Storage) getContractOPG(address string, network types.Network, size uint64, filters map[string]interface{}) (response []opgForContract, err error) {
-	subQuery := storage.DB.Table(models.DocOperations).Select("hash", "counter", "id").
-		Where("network = ?", network)
+	subQuery := storage.DB.Model().Table(models.DocOperations).Column("hash", "counter", "id").Where("network = ?", network)
 
 	if _, ok := filters["entrypoints"]; !ok {
-		subQuery.Where(
-			storage.DB.Where("source = ?", address).Or("destination = ?", address),
-		)
+		subQuery.Where("source = ? OR destination = ?", address, address)
 	} else {
 		subQuery.Where("destination = ?", address)
 	}
@@ -44,17 +43,17 @@ func (storage *Storage) getContractOPG(address string, network types.Network, si
 		return nil, err
 	}
 
-	query := storage.DB.Table("(?) as foo", subQuery.Order("id desc").Limit(1000)).
-		Select("foo.hash", "foo.counter", "max(id) as id")
+	query := storage.DB.Model().TableExpr("(?) as foo", subQuery.Order("id desc").Limit(1000)).
+		ColumnExpr("foo.hash, foo.counter, max(id) as id")
 
 	limit := storage.GetPageSize(int64(size))
-	query.Group("foo.hash, foo.counter").Order("id desc").Limit(limit)
+	query.GroupExpr("foo.hash, foo.counter").Order("id desc").Limit(limit)
 
-	err = query.Find(&response).Error
+	err = query.Select(&response)
 	return
 }
 
-func prepareOperationFilters(query *gorm.DB, filters map[string]interface{}) error {
+func prepareOperationFilters(query *orm.Query, filters map[string]interface{}) error {
 	for k, v := range filters {
 		if v != "" {
 			switch k {
@@ -63,11 +62,11 @@ func prepareOperationFilters(query *gorm.DB, filters map[string]interface{}) err
 			case "to":
 				query.Where("timestamp <= to_timestamp(?)", v)
 			case "entrypoints":
-				query.Where("entrypoint IN ?", v)
+				query.WhereIn("entrypoint IN (?)", v)
 			case "last_id":
 				query.Where("id < ?", v)
 			case "status":
-				query.Where("status IN ?", v)
+				query.WhereIn("status IN (?)", v)
 			default:
 				return errors.Errorf("Unknown operation filter: %s %v", k, v)
 			}
@@ -86,21 +85,19 @@ func (storage *Storage) GetByContract(network types.Network, address string, siz
 		return
 	}
 
-	query := storage.DB.Table(models.DocOperations).Where("network = ?", network)
-
-	subQuery := storage.DB.Where(
-		storage.DB.Where("hash = ?", opg[0].Hash).Where("counter = ?", opg[0].Counter),
-	)
-	for i := 1; i < len(opg); i++ {
-		subQuery.Or(
-			storage.DB.Where("hash = ?", opg[i].Hash).Where("counter = ?", opg[i].Counter),
-		)
-	}
-	query.Where(subQuery)
+	query := storage.DB.Model().Table(models.DocOperations).Where("network = ?", network).WhereGroup(func(q *orm.Query) (*orm.Query, error) {
+		for i := range opg {
+			q.WhereOrGroup(func(q *orm.Query) (*orm.Query, error) {
+				q.Where("hash = ?", opg[i].Hash).Where("counter = ?", opg[i].Counter)
+				return q, nil
+			})
+		}
+		return q, nil
+	})
 
 	addOperationSorting(query)
 
-	if err = query.Find(&po.Operations).Error; err != nil {
+	if err = query.Select(&po.Operations); err != nil {
 		return
 	}
 
@@ -121,8 +118,7 @@ func (storage *Storage) GetByContract(network types.Network, address string, siz
 
 // Last - get last operation for contract `address` with filter by `id`. If `id` is -1 then returns last in table.
 func (storage *Storage) Last(network types.Network, address string, id int64) (op operation.Operation, err error) {
-	query := storage.DB.Table(models.DocOperations).
-		Where("network = ?", network)
+	query := storage.DB.Model(&op).Where("network = ?", network)
 
 	if id > -1 {
 		query.Where("id < ?", id)
@@ -132,18 +128,18 @@ func (storage *Storage) Last(network types.Network, address string, id int64) (o
 		Where("status = ?", types.OperationStatusApplied).
 		Where("deffated_storage != ''").
 		Where("destination = ?", address).
-		Order("id desc")
+		Order("id desc").Limit(1)
 
-	err = query.First(&op).Error
+	err = query.Select(&op)
 	return
 }
 
 // Get -
 func (storage *Storage) Get(filters map[string]interface{}, size int64, sort bool) (operations []operation.Operation, err error) {
-	query := storage.DB.Table(models.DocOperations)
+	query := storage.DB.Model().Table(models.DocOperations)
 
 	for key, value := range filters {
-		query.Where("? = ?", gorm.Expr(key), value)
+		query.Where("? = ?", pg.Ident(key), value)
 	}
 
 	if sort {
@@ -154,21 +150,8 @@ func (storage *Storage) Get(filters map[string]interface{}, size int64, sort boo
 		query.Limit(storage.GetPageSize(size))
 	}
 
-	err = query.Find(&operations).Error
+	err = query.Select(&operations)
 	return operations, err
-}
-
-// GetStats -
-func (storage *Storage) GetStats(network types.Network, address string) (stats operation.Stats, err error) {
-	query := storage.DB.Table(models.DocOperations).
-		Select("MAX(timestamp) AS last_action, COUNT(*) as count").
-		Where("network = ?", network).
-		Where(
-			storage.DB.Where("source = ?", address).Or("destination = ?", address),
-		)
-
-	err = query.Scan(&stats).Error
-	return
 }
 
 // GetContract24HoursVolume -
@@ -176,18 +159,18 @@ func (storage *Storage) GetContract24HoursVolume(network types.Network, address 
 	aDayAgo := time.Now().UTC().AddDate(0, 0, -1)
 
 	var volume float64
-	query := storage.DB.Table(models.DocOperations).
-		Select("COALESCE(SUM(amount), 0)").
+	query := storage.DB.Model().Table(models.DocOperations).
+		ColumnExpr("COALESCE(SUM(amount), 0)").
 		Where("destination = ?", address).
 		Where("network = ?", network).
 		Where("status = ?", types.OperationStatusApplied).
 		Where("timestamp > ?", aDayAgo)
 
 	if len(entrypoints) > 0 {
-		query.Where("entrypoint IN ?", entrypoints)
+		query.WhereIn("entrypoint IN (?)", entrypoints)
 	}
 
-	err := query.Scan(&volume).Error
+	err := query.Select(&volume)
 	return volume, err
 }
 
@@ -201,29 +184,22 @@ type tokenStats struct {
 // GetTokensStats -
 func (storage *Storage) GetTokensStats(network types.Network, addresses, entrypoints []string) (map[string]operation.TokenUsageStats, error) {
 	var stats []tokenStats
-	query := storage.DB.Table(models.DocOperations).
-		Select("destination, entrypoint, COUNT(*) as count, SUM(consumed_gas) AS gas").
+	query := storage.DB.Model().Table(models.DocOperations).
+		Column("operations.destination", "operations.entrypoint").
+		ColumnExpr("COUNT(*) as count, SUM(consumed_gas) AS gas").
 		Where("network = ?", network)
 
 	if len(addresses) > 0 {
-		subQuery := storage.DB.Where("destination = ?", addresses[0])
-		for i := 1; i < len(addresses); i++ {
-			subQuery.Or("destination = ?", addresses[i])
-		}
-		query.Where(subQuery)
+		query.WhereIn("operations.destination IN (?)", addresses)
 	}
 
 	if len(entrypoints) > 0 {
-		subQuery := storage.DB.Where("entrypoint = ?", entrypoints[0])
-		for i := 1; i < len(entrypoints); i++ {
-			subQuery.Or("entrypoint = ?", entrypoints[i])
-		}
-		query.Where(subQuery)
+		query.WhereIn("operations.entrypoint IN (?)", entrypoints)
 	}
 
-	query.Group("destination, entrypoint")
+	query.GroupExpr("operations.destination, operations.entrypoint")
 
-	if err := query.Find(&stats).Error; err != nil {
+	if err := query.Select(&stats); err != nil {
 		return nil, err
 	}
 
@@ -244,7 +220,7 @@ func (storage *Storage) GetTokensStats(network types.Network, addresses, entrypo
 
 // GetByIDs -
 func (storage *Storage) GetByIDs(ids ...int64) (result []operation.Operation, err error) {
-	err = storage.DB.Table(models.DocOperations).Order("id asc").Find(&result, ids).Error
+	err = storage.DB.Model().Table(models.DocOperations).Where("id IN (?)", pg.In(ids)).Order("id asc").Select(&result)
 	return
 }
 
@@ -255,7 +231,7 @@ func (storage *Storage) GetDAppStats(network types.Network, addresses []string, 
 		return
 	}
 
-	if err = query.Select("COUNT(*) as calls, SUM(amount) as volume").Scan(&stats).Error; err != nil {
+	if err = query.ColumnExpr("COUNT(*) as calls, SUM(amount) as volume").Select(&stats); err != nil {
 		return
 	}
 
@@ -264,28 +240,28 @@ func (storage *Storage) GetDAppStats(network types.Network, addresses []string, 
 		return
 	}
 
-	err = queryCount.Group("source").Count(&stats.Users).Error
+	count, err := queryCount.Group("source").Count()
+	if err != nil {
+		return
+	}
+	stats.Users = int64(count)
 	return
 }
 
-func getDAppQuery(db *gorm.DB, network types.Network, addresses []string, period string) (*gorm.DB, error) {
-	query := db.Table(models.DocOperations).
+func getDAppQuery(db pg.DBI, network types.Network, addresses []string, period string) (*orm.Query, error) {
+	query := db.Model().Table(models.DocOperations).
 		Where("network = ?", network).
 		Where("status = ?", types.OperationStatusApplied)
 
 	if len(addresses) > 0 {
-		subQuery := db.Where("destination = ?", addresses[0])
-		for i := 1; i < len(addresses); i++ {
-			subQuery.Or("destination = ?", addresses[i])
-		}
-		query.Where(subQuery)
+		query.Where("destination IN (?)", addresses)
 	}
 
 	err := periodToRange(query, period)
 	return query, err
 }
 
-func periodToRange(query *gorm.DB, period string) error {
+func periodToRange(query *orm.Query, period string) error {
 	now := time.Now().UTC()
 	switch period {
 	case "year":
@@ -305,6 +281,6 @@ func periodToRange(query *gorm.DB, period string) error {
 	return nil
 }
 
-func addOperationSorting(query *gorm.DB) {
-	query.Order("level desc, counter desc, id asc")
+func addOperationSorting(query *orm.Query) {
+	query.OrderExpr("level desc, counter desc, id asc")
 }

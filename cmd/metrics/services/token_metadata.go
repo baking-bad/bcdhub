@@ -1,6 +1,8 @@
 package services
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/handlers"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -24,7 +26,7 @@ func NewTokenMetadataHandler(ctx *config.Context) *TokenMetadataHandler {
 }
 
 // Handle -
-func (tm *TokenMetadataHandler) Handle(items []models.Model) error {
+func (tm *TokenMetadataHandler) Handle(ctx context.Context, items []models.Model) error {
 	if len(items) == 0 {
 		return nil
 	}
@@ -58,7 +60,7 @@ func (tm *TokenMetadataHandler) Handle(items []models.Model) error {
 	if err := saveSearchModels(tm.Context, updates); err != nil {
 		return err
 	}
-	return tm.Storage.Save(updates)
+	return tm.Storage.Save(ctx, updates)
 }
 
 // Chunk -

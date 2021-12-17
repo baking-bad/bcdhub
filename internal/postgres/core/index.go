@@ -2,29 +2,27 @@ package core
 
 import (
 	"github.com/baking-bad/bcdhub/internal/models"
+	"github.com/go-pg/pg/v10/orm"
 )
 
-// CreateIndexes -
-func (p *Postgres) CreateIndexes() error {
+// CreateTables -
+func (p *Postgres) CreateTables() error {
 	for _, index := range models.AllModels() {
-		if p.DB.Migrator().HasTable(index) {
-			if err := p.DB.Migrator().AutoMigrate(index); err != nil {
-				return err
-			}
-			continue
-		}
-
-		if err := p.DB.Migrator().CreateTable(index); err != nil {
+		if err := p.DB.Model(index).CreateTable(&orm.CreateTableOptions{
+			IfNotExists: true,
+		}); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-// DeleteIndices -
-func (p *Postgres) DeleteIndices(indices []string) error {
+// DeleteTables -
+func (p *Postgres) DeleteTables(indices []string) error {
 	for _, index := range indices {
-		if err := p.DB.Migrator().DropTable(index); err != nil {
+		if err := p.DB.Model().Table(index).DropTable(&orm.DropTableOptions{
+			IfExists: true,
+		}); err != nil {
 			return err
 		}
 	}

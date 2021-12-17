@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -9,7 +10,7 @@ import (
 
 // TimeBased -
 type TimeBased struct {
-	handler func() error
+	handler func(ctx context.Context) error
 	period  time.Duration
 
 	stop chan struct{}
@@ -17,7 +18,7 @@ type TimeBased struct {
 }
 
 // NewTimeBased -
-func NewTimeBased(handler func() error, period time.Duration) *TimeBased {
+func NewTimeBased(handler func(ctx context.Context) error, period time.Duration) *TimeBased {
 	return &TimeBased{
 		period:  period,
 		handler: handler,
@@ -31,9 +32,9 @@ func (s *TimeBased) Init() error {
 }
 
 // Start -
-func (s *TimeBased) Start() {
+func (s *TimeBased) Start(ctx context.Context) {
 	s.wg.Add(1)
-	go s.work()
+	go s.work(ctx)
 }
 
 // Close -
@@ -45,14 +46,14 @@ func (s *TimeBased) Close() error {
 	return nil
 }
 
-func (s *TimeBased) work() {
+func (s *TimeBased) work(ctx context.Context) {
 	defer s.wg.Done()
 
 	ticker := time.NewTicker(s.period)
 	defer ticker.Stop()
 
 	// init event
-	if err := s.handler(); err != nil {
+	if err := s.handler(ctx); err != nil {
 		logger.Err(err)
 	}
 
@@ -61,7 +62,7 @@ func (s *TimeBased) work() {
 		case <-s.stop:
 			return
 		case <-ticker.C:
-			if err := s.handler(); err != nil {
+			if err := s.handler(ctx); err != nil {
 				logger.Err(err)
 			}
 		}

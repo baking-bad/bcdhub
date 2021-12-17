@@ -5,6 +5,7 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/bigmapaction"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
+	"github.com/go-pg/pg/v10/orm"
 )
 
 // Storage -
@@ -19,14 +20,13 @@ func NewStorage(pg *core.Postgres) *Storage {
 
 // Get -
 func (storage *Storage) Get(network types.Network, ptr int64) (actions []bigmapaction.BigMapAction, err error) {
-	err = storage.DB.Table(models.DocBigMapActions).
-		Where(
-			storage.DB.Where("network = ?", network).
-				Where(
-					storage.DB.Where("source_ptr = ?", ptr).Or("destination_ptr = ?", ptr),
-				),
-		).
+	err = storage.DB.Model().Table(models.DocBigMapActions).
+		Where("network = ?", network).
+		WhereGroup(func(q *orm.Query) (*orm.Query, error) {
+			q.Where("source_ptr = ?", ptr).WhereOr("destination_ptr = ?", ptr)
+			return q, nil
+		}).
 		Order("id DESC").
-		Find(&actions).Error
+		Select(&actions)
 	return
 }

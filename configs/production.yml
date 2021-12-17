@@ -75,10 +75,6 @@ api:
     - granadanet
     - hangzhounet
     - hangzhou2net
-  pinata:
-    key: ${PINATA_KEY}
-    secret_key: ${PINATA_SECRET_KEY}
-    timeout_seconds: 10
   connections:
     max: 50
     idle: 10

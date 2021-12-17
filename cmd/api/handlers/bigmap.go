@@ -284,7 +284,7 @@ func (ctx *Context) prepareBigMapKeys(data []bigmapdiff.BigMapState) ([]BigMapRe
 		return []BigMapResponseItem{}, nil
 	}
 
-	bigMapType, err := ctx.getBigMapType(data[0].Network, data[0].Ptr, data[0].LastUpdateLevel)
+	bigMapType, err := ctx.getBigMapType(data[0].Network, data[0].Ptr)
 	if err != nil {
 		return nil, err
 	}
@@ -316,7 +316,7 @@ func (ctx *Context) prepareBigMapItem(data []bigmapdiff.BigMapDiff, keyHash stri
 		return
 	}
 
-	bigMapType, err := ctx.getBigMapType(data[0].Network, data[0].Ptr, data[0].Level)
+	bigMapType, err := ctx.getBigMapType(data[0].Network, data[0].Ptr)
 	if err != nil {
 		return
 	}
@@ -416,11 +416,11 @@ func prepareBigMapHistory(arr []bigmapaction.BigMapAction, ptr int64) BigMapHist
 	return response
 }
 
-func (ctx *Context) getBigMapType(network types.Network, ptr, level int64) (noderpc.BigMap, error) {
+func (ctx *Context) getBigMapType(network types.Network, ptr int64) (noderpc.BigMap, error) {
 	rpc, err := ctx.GetRPC(network)
 	if err != nil {
 		return noderpc.BigMap{}, err
 	}
 
-	return rpc.GetBigMapType(ptr, level)
+	return rpc.GetBigMapType(ptr, 0)
 }

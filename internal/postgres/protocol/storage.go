@@ -21,8 +21,7 @@ func NewStorage(pg *core.Postgres) *Storage {
 
 // Get - returns current protocol for `network` and `level` (`hash` is optional, leave empty string for default)
 func (storage *Storage) Get(network types.Network, hash string, level int64) (p protocol.Protocol, err error) {
-	query := storage.DB.Table(models.DocProtocol).Where("network = ?", network)
-
+	query := storage.DB.Model(&p).Where("network = ?", network)
 	if level > -1 {
 		query = query.Where("start_level <= ?", level)
 	}
@@ -30,25 +29,25 @@ func (storage *Storage) Get(network types.Network, hash string, level int64) (p 
 		query = query.Where("hash = ?", hash)
 	}
 
-	err = query.Order("start_level DESC").First(&p).Error
+	err = query.Order("start_level DESC").First()
 	return
 }
 
 // GetByNetworkWithSort -
 func (storage *Storage) GetByNetworkWithSort(network types.Network, sortField, order string) (response []protocol.Protocol, err error) {
 	orderValue := fmt.Sprintf("%s %s", sortField, order)
-	err = storage.DB.Table(models.DocProtocol).Where("network = ?", network).Order(orderValue).Find(&response).Error
+	err = storage.DB.Model().Table(models.DocProtocol).Where("network = ?", network).Order(orderValue).Select(&response)
 	return
 }
 
 // GetAll - returns all protocol`s entities
 func (storage *Storage) GetAll() (response []protocol.Protocol, err error) {
-	err = storage.DB.Table(models.DocProtocol).Find(&response).Error
+	err = storage.DB.Model().Table(models.DocProtocol).Select(&response)
 	return
 }
 
 // GetByID - returns protocol by id
 func (storage *Storage) GetByID(id int64) (response protocol.Protocol, err error) {
-	err = storage.DB.Table(models.DocProtocol).Where("id = ?", id).First(&response).Error
+	err = storage.DB.Model(&response).Where("id = ?", id).First()
 	return
 }

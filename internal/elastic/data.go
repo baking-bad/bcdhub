@@ -2,6 +2,7 @@ package elastic
 
 import (
 	stdJSON "encoding/json"
+	"time"
 )
 
 // TestConnectionResponse -
@@ -30,6 +31,12 @@ type UintValue struct {
 // FloatValue -
 type FloatValue struct {
 	Value float64 `json:"value"`
+}
+
+// TimeValue -
+type TimeValue struct {
+	Value float64   `json:"value"`
+	Time  time.Time `json:"value_as_string"`
 }
 
 // SQLResponse -

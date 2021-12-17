@@ -4,25 +4,27 @@ import (
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
+	"github.com/go-pg/pg/v10"
 )
 
 // BigMapState -
 type BigMapState struct {
-	ID              int64         `json:"-" gorm:"autoIncrement:true"`
-	Ptr             int64         `json:"ptr" gorm:"not null;primaryKey;autoIncrement:false;index:big_map_state_ptr_idx"`
-	LastUpdateLevel int64         `json:"last_update_level" gorm:"last_update_level;index:idx_bms_level_network"`
-	Count           int64         `json:"count" gorm:"default:0"`
-	LastUpdateTime  time.Time     `json:"last_update_time"  gorm:"last_update_time"`
-	Network         types.Network `json:"network" gorm:"type:SMALLINT;not null;primaryKey;default:0;index:big_map_state_ptr_idx;index:idx_bms_level_network"`
-	KeyHash         string        `json:"key_hash" gorm:"not null;primaryKey"`
-	Contract        string        `json:"contract" gorm:"not null;primaryKey"` // contract is in primary key for supporting alpha protocol (mainnet before babylon)
-	Key             types.Bytes   `json:"key" gorm:"type:bytes;not null"`
-	Value           types.Bytes   `json:"value,omitempty" gorm:"type:bytes"`
-	Removed         bool          `json:"removed"`
+	// nolint
+	tableName struct{} `pg:"big_map_states"`
 
-	IsRollback bool `json:"-" gorm:"-"`
+	ID              int64         `pg:",pk"`
+	Ptr             int64         `pg:",notnull,unique:big_map_key,default:-1,use_zero"`
+	LastUpdateLevel int64         `pg:"last_update_level"`
+	Count           int64         `pg:",use_zero"`
+	LastUpdateTime  time.Time     `pg:"last_update_time"`
+	Network         types.Network `pg:",type:SMALLINT,notnull,unique:big_map_key,use_zero"`
+	KeyHash         string        `pg:",notnull,unique:big_map_key"`
+	Contract        string        `pg:",notnull,unique:big_map_key"` // contract is in primary key for supporting alpha protocol (mainnet before babylon)
+	Key             types.Bytes   `pg:",type:bytea,notnull"`
+	Value           types.Bytes   `pg:",type:bytea"`
+	Removed         bool          `pg:",use_zero"`
+
+	IsRollback bool `pg:"-"`
 }
 
 // GetID -
@@ -36,43 +38,14 @@ func (b *BigMapState) GetIndex() string {
 }
 
 // Save -
-func (b *BigMapState) Save(tx *gorm.DB) error {
-	var s clause.Set
-
-	switch {
-	case b.IsRollback:
-		s = clause.Assignments(map[string]interface{}{
-			"removed":           b.Removed,
-			"value":             b.Value,
-			"last_update_level": b.LastUpdateLevel,
-			"last_update_time":  b.LastUpdateTime,
-			"count":             gorm.Expr(`big_map_states."count"+1`),
-		})
-	case b.Removed:
-		s = clause.Assignments(map[string]interface{}{
-			"removed":           b.Removed,
-			"last_update_level": b.LastUpdateLevel,
-			"last_update_time":  b.LastUpdateTime,
-			"count":             gorm.Expr(`big_map_states."count"+1`),
-		})
-	default:
-		s = clause.Assignments(map[string]interface{}{
-			"value":             b.Value,
-			"last_update_level": b.LastUpdateLevel,
-			"last_update_time":  b.LastUpdateTime,
-			"count":             gorm.Expr(`big_map_states."count"+1`),
-		})
-	}
-
-	return tx.Clauses(clause.OnConflict{
-		Columns: []clause.Column{
-			{Name: "network"},
-			{Name: "contract"},
-			{Name: "ptr"},
-			{Name: "key_hash"},
-		},
-		DoUpdates: s,
-	}).Create(b).Error
+func (b *BigMapState) Save(tx pg.DBI) error {
+	_, err := tx.
+		Model(b).
+		OnConflict("(network, contract, ptr, key_hash) DO UPDATE").
+		Set("removed = EXCLUDED.removed, last_update_level = EXCLUDED.last_update_level, last_update_time = EXCLUDED.last_update_time, count = EXCLUDED.count + 1, value = CASE WHEN EXCLUDED.removed THEN big_map_state.value ELSE EXCLUDED.value END").
+		Returning("id").
+		Insert(b)
+	return err
 }
 
 // LogFields -

@@ -213,7 +213,7 @@ func (b *Babylon) handleBigMapDiffCopy(item noderpc.BigMapDiff, address string, 
 			}
 			srcPtr = bufPtr
 		}
-		res.BigMapActions = append(res.BigMapActions, b.createBigMapDiffAction("copy", address, &srcPtr, &destinationPtr, operation))
+		operation.BigMapActions = append(operation.BigMapActions, b.createBigMapDiffAction("copy", address, &srcPtr, &destinationPtr, operation))
 	}
 
 	b.ptrMap[destinationPtr] = sourcePtr
@@ -276,14 +276,14 @@ func (b *Babylon) handleBigMapDiffRemove(item noderpc.BigMapDiff, address string
 		operation.BigMapDiffs = append(operation.BigMapDiffs, &bmd)
 		res.BigMapState = append(res.BigMapState, &states[i])
 	}
-	res.BigMapActions = append(res.BigMapActions, b.createBigMapDiffAction("remove", address, &ptr, nil, operation))
+	operation.BigMapActions = append(operation.BigMapActions, b.createBigMapDiffAction("remove", address, &ptr, nil, operation))
 	return nil
 }
 
-func (b *Babylon) handleBigMapDiffAlloc(item noderpc.BigMapDiff, address string, operation *operation.Operation, res *parsers.Result) error {
+func (b *Babylon) handleBigMapDiffAlloc(item noderpc.BigMapDiff, address string, operation *operation.Operation, _ *parsers.Result) error {
 	ptr := *item.BigMap
 	if ptr > -1 {
-		res.BigMapActions = append(res.BigMapActions, b.createBigMapDiffAction("alloc", address, &ptr, nil, operation))
+		operation.BigMapActions = append(operation.BigMapActions, b.createBigMapDiffAction("alloc", address, &ptr, nil, operation))
 	}
 
 	return nil

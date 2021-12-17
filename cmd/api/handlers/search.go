@@ -25,7 +25,6 @@ import (
 // @Param e query integer false "Return search result before given timestamp" mininum(0)
 // @Param g query integer false "Grouping by contracts similarity. 0 - false, any others - true" Enums(0, 1)
 // @Param i query string false "Comma-separated list of indices for searching. Values: contract, operation, bigmapdiff""
-// @Param l query string false "Comma-separated list of languages for searching. Values: smartpy, liquidity, ligo, lorentz, michelson"
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} search.Result
@@ -88,10 +87,6 @@ func getSearchFilters(req searchRequest) map[string]interface{} {
 		filters["indices"] = arr
 	}
 
-	if req.Languages != "" {
-		filters["languages"] = strings.Split(req.Languages, ",")
-	}
-
 	return filters
 }
 
@@ -101,7 +96,6 @@ var indicesMap = map[string]string{
 	"bigmapdiff":     models.DocBigMapDiff,
 	"tzip":           models.DocTZIP,
 	"token_metadata": models.DocTokenMetadata,
-	"tezos_domain":   models.DocTezosDomains,
 }
 
 func (ctx *Context) searchInMempool(q string) *search.Item {

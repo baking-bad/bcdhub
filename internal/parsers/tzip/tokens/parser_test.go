@@ -134,7 +134,7 @@ func TestParser_ParseBigMapDiff(t *testing.T) {
 						"three",
 						"points",
 					},
-					Extras: types.JSONB{
+					Extras: map[string]interface{}{
 						"@@empty":    "tezos-storage:token_2_metadata",
 						"rights":     "License: CC BY-NC 4.0",
 						"token_hash": "0x1ef2ba0ee46a29cc3477c5df809cf1a68f0819b9cadfe9c1cf17bf47349629b2",

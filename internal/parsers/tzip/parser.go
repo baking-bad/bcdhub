@@ -32,10 +32,6 @@ func (t *bufTzip) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	if _, ok := t.Extras["license"]; !ok {
-		t.License = nil
-	}
-
 	for _, field := range []string{
 		"name", "description", "version", "license", "homepage",
 		"authors", "interfaces", "views", "events", "dapps",

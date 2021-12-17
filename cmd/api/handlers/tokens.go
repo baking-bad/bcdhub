@@ -156,6 +156,7 @@ func (ctx *Context) GetFA12OperationsForAddress(c *gin.Context) {
 // @Param period query string true "One of periods"  Enums(year, month, week, day)
 // @Param contract path string true "KT address" minlength(36) maxlength(36)
 // @Param token_id query int true "Token ID" minimum(0)
+// @Param slug query string true "DApp slug"
 // @Accept json
 // @Produce  json
 // @Success 200 {object} SeriesFloat

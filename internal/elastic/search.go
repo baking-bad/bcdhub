@@ -76,18 +76,6 @@ func prepareSearchFilters(filters map[string]interface{}) (string, error) {
 				str = fmt.Sprintf("network:%s", val[0])
 			}
 			builder.WriteString(str)
-		case "languages":
-			val, ok := v.([]string)
-			if !ok {
-				return "", errors.Errorf("Invalid type for 'language' filter (wait []string): %T", v)
-			}
-			var str string
-			if len(val) > 1 {
-				str = fmt.Sprintf("language:(%s)", strings.Join(val, " OR "))
-			} else {
-				str = fmt.Sprintf("language:%s", val[0])
-			}
-			builder.WriteString(str)
 		default:
 			return "", errors.Errorf("Unknown search filter: %s", k)
 		}
@@ -211,7 +199,6 @@ var typeMap = map[string]string{
 	models.DocOperations:    "operation",
 	models.DocBigMapDiff:    "bigmapdiff",
 	models.DocTokenMetadata: "token_metadata",
-	models.DocTezosDomains:  "tezos_domain",
 	models.DocTZIP:          "tzip",
 }
 

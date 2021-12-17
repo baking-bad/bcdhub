@@ -13,7 +13,6 @@ type Contract struct {
 	Network   string    `json:"network"`
 	Level     int64     `json:"level"`
 	Timestamp time.Time `json:"timestamp"`
-	Language  string    `json:"language,omitempty"`
 	Hash      string    `json:"hash"`
 
 	Tags        []string `json:"tags,omitempty"`
@@ -97,11 +96,10 @@ func (c *Contract) Prepare(model models.Model) {
 	c.FailStrings = cont.FailStrings
 	c.Hardcoded = cont.Hardcoded
 	c.Hash = cont.Hash
-	c.Language = cont.Language
 	c.Level = cont.Level
 	c.Manager = cont.Manager.String()
 	c.Network = cont.Network.String()
-	c.ProjectID = cont.ProjectID
+	c.ProjectID = cont.ProjectID.String()
 	c.Tags = cont.Tags.ToArray()
 	c.Timestamp = cont.Timestamp.UTC()
 }

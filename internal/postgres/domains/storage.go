@@ -8,7 +8,6 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
-	"gorm.io/gorm/clause"
 )
 
 // Storage -
@@ -45,7 +44,8 @@ func (storage *Storage) TokenBalances(network types.Network, contract, address s
 		Balances: make([]domains.TokenBalance, 0),
 	}
 
-	query := storage.DB.Table(models.DocTokenBalances).Scopes(core.NetworkAndAddress(network, address))
+	query := storage.DB.Model().Table(models.DocTokenBalances)
+	core.NetworkAndAddress(network, address)(query)
 
 	if contract != "" {
 		query.Where("contract = ?", contract)
@@ -55,8 +55,10 @@ func (storage *Storage) TokenBalances(network types.Network, contract, address s
 		query.Where("balance != 0")
 	}
 
-	if err := query.Count(&response.Count).Error; err != nil {
+	if count, err := query.Count(); err != nil {
 		return response, err
+	} else {
+		response.Count = int64(count)
 	}
 
 	query.Limit(storage.getPageSizeForBalances(size)).Offset(int(offset))
@@ -64,23 +66,12 @@ func (storage *Storage) TokenBalances(network types.Network, contract, address s
 	switch sort {
 	case "token_id":
 	case "balance":
-		query.Order(clause.OrderByColumn{
-			Column: clause.Column{Name: "balance"},
-			Desc:   true,
-		})
-		query.Order(clause.OrderByColumn{
-			Column: clause.Column{Name: "id"},
-			Desc:   true,
-		})
+		query.Order("balance desc, id desc")
 	default:
-		query.Order(clause.OrderByColumn{
-			Column: clause.Column{Name: "token_id"},
-			Desc:   true,
-		})
+		query.Order("token_id desc")
 	}
 
-	if err := storage.DB.Raw(balanceQuery, query).
-		Find(&response.Balances).Error; err != nil {
+	if _, err := storage.DB.Query(&response.Balances, balanceQuery, query); err != nil {
 		return response, err
 	}
 
@@ -100,10 +91,10 @@ func (storage *Storage) Transfers(ctx transfer.GetContext) (domains.TransfersRes
 	response := domains.TransfersResponse{
 		Transfers: make([]domains.Transfer, 0),
 	}
-	query := storage.DB.Table(models.DocTransfers)
+	query := storage.DB.Model().Table(models.DocTransfers)
 	storage.buildGetContext(query, ctx, true)
 
-	if err := storage.DB.Raw(transfersQuery, query).Find(&response.Transfers).Error; err != nil {
+	if _, err := storage.DB.Query(&response.Transfers, transfersQuery, query); err != nil {
 		return response, err
 	}
 
@@ -112,10 +103,12 @@ func (storage *Storage) Transfers(ctx transfer.GetContext) (domains.TransfersRes
 	if ctx.Offset == 0 && size > received {
 		response.Total = int64(len(response.Transfers))
 	} else {
-		countQuery := storage.DB.Table(models.DocTransfers)
+		countQuery := storage.DB.Model().Table(models.DocTransfers)
 		storage.buildGetContext(countQuery, ctx, false)
-		if err := countQuery.Count(&response.Total).Error; err != nil {
+		if count, err := countQuery.Count(); err != nil {
 			return response, err
+		} else {
+			response.Total = int64(count)
 		}
 	}
 
@@ -127,11 +120,11 @@ func (storage *Storage) Transfers(ctx transfer.GetContext) (domains.TransfersRes
 
 // BigMapDiffs -
 func (storage *Storage) BigMapDiffs(lastID, size int64) (result []domains.BigMapDiff, err error) {
-	query := storage.DB.Table(models.DocBigMapDiff).Preload("Operation").Preload("Protocol").Order("id asc")
+	query := storage.DB.Model((*domains.BigMapDiff)(nil)).Relation("Operation").Relation("Protocol").Order("id asc")
 	if lastID > 0 {
-		query.Where("id > ?", lastID)
+		query.Where("big_map_diff.id > ?", lastID)
 	}
 	query.Limit(storage.GetPageSize(size))
-	err = query.Find(&result).Error
+	err = query.Select(&result)
 	return
 }

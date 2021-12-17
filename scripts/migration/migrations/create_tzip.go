@@ -1,6 +1,8 @@
 package migrations
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
@@ -73,5 +75,5 @@ func (m *CreateTZIP) Do(ctx *config.Context) error {
 		}
 	}
 
-	return ctx.Storage.Save(data)
+	return ctx.Storage.Save(context.Background(), data)
 }

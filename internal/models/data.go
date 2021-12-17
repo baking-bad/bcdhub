@@ -64,3 +64,9 @@ type NetworkStats struct {
 	CallsCount           uint64
 	FACount              uint64
 }
+
+// ContractStats -
+type ContractStats struct {
+	Count      int64
+	LastAction time.Time
+}

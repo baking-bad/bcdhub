@@ -1,7 +1,5 @@
 package types
 
-import "database/sql/driver"
-
 // Tags -
 type Tags int64
 
@@ -114,15 +112,6 @@ func (t *Tags) Toggle(flag Tags) { *t ^= flag }
 
 // Has -
 func (t *Tags) Has(flag Tags) bool { return *t&flag != 0 }
-
-// Scan -
-func (t *Tags) Scan(value interface{}) error {
-	*t = Tags(value.(int64))
-	return nil
-}
-
-// Value -
-func (t Tags) Value() (driver.Value, error) { return int(t), nil }
 
 // Tags name
 const (

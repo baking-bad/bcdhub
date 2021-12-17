@@ -2,21 +2,23 @@ package tokenbalance
 
 import (
 	"github.com/baking-bad/bcdhub/internal/models/types"
+	"github.com/go-pg/pg/v10"
 	"github.com/shopspring/decimal"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 // TokenBalance -
 type TokenBalance struct {
-	ID       int64           `json:"-" gorm:"autoIncrement:true;not null;"`
-	Network  types.Network   `json:"network" gorm:"type:SMALLINT;not null;primaryKey;index:token_balances_token_idx;default:0"`
-	Address  string          `json:"address" gorm:"not null;primaryKey"`
-	Contract string          `json:"contract" gorm:"not null;primaryKey;index:token_balances_token_idx"`
-	TokenID  uint64          `json:"token_id" gorm:"type:numeric(50,0);default:0;primaryKey;autoIncrement:false;index:token_balances_token_idx"`
-	Balance  decimal.Decimal `json:"balance" gorm:"type:numeric(100,0);default:0"`
+	// nolint
+	tableName struct{} `pg:"token_balances"`
 
-	IsLedger bool `json:"-" gorm:"-"`
+	ID       int64           `pg:",notnull"`
+	Network  types.Network   `pg:",type:SMALLINT,notnull,unique:token_balance,use_zero"`
+	Address  string          `pg:",notnull,unique:token_balance"`
+	Contract string          `pg:",notnull,unique:token_balance"`
+	TokenID  uint64          `pg:",type:numeric(50,0),use_zero,unique:token_balance"`
+	Balance  decimal.Decimal `pg:",type:numeric(100,0),use_zero"`
+
+	IsLedger bool `pg:"-"`
 }
 
 // GetID -
@@ -30,28 +32,17 @@ func (tb *TokenBalance) GetIndex() string {
 }
 
 // Constraint -
-func (tb *TokenBalance) Save(tx *gorm.DB) error {
-	var s clause.Set
+func (tb *TokenBalance) Save(tx pg.DBI) error {
+	query := tx.Model(tb).OnConflict("(network, contract, address, token_id) DO UPDATE")
 
 	if tb.IsLedger {
-		s = clause.Assignments(map[string]interface{}{
-			"balance": tb.Balance,
-		})
+		query.Set("balance = excluded.balance")
 	} else {
-		s = clause.Assignments(map[string]interface{}{
-			"balance": gorm.Expr("token_balances.balance + ?", tb.Balance),
-		})
+		query.Set("balance = token_balance.balance + excluded.balance")
 	}
 
-	return tx.Clauses(clause.OnConflict{
-		Columns: []clause.Column{
-			{Name: "network"},
-			{Name: "contract"},
-			{Name: "address"},
-			{Name: "token_id"},
-		},
-		DoUpdates: s,
-	}).Create(tb).Error
+	_, err := query.Returning("id").Insert()
+	return err
 }
 
 // LogFields -

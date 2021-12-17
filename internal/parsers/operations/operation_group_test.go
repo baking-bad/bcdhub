@@ -1,6 +1,7 @@
 package operations
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"testing"
@@ -104,7 +105,7 @@ func TestGroup_Parse(t *testing.T) {
 
 	generalRepo.
 		EXPECT().
-		Save(gomock.AssignableToTypeOf([]models.Model{})).
+		Save(context.Background(), gomock.AssignableToTypeOf([]models.Model{})).
 		Return(nil).
 		AnyTimes()
 
@@ -791,7 +792,6 @@ func TestGroup_Parse(t *testing.T) {
 						Network:     types.Delphinet,
 						Level:       86142,
 						Timestamp:   timestamp,
-						Language:    "unknown",
 						Hash:        "97a40c7ff3bad5edb92c8e1dcfd4bfc778da8166a7632c1bcecbf8d8f9e4490b",
 						Entrypoints: []string{"decrement", "increment"},
 						Address:     "KT1NppzrgyLZD3aku7fssfhYPm5QqZwyabvR",
@@ -862,7 +862,6 @@ func TestGroup_Parse(t *testing.T) {
 						Network:     types.Mainnet,
 						Level:       301436,
 						Timestamp:   timestamp,
-						Language:    "unknown",
 						Hash:        "8fe2bee899e8700c88f620d06b4623fc6facddfce7157d56c1548108fefca7ca",
 						Tags:        types.Tags(0),
 						Entrypoints: []string{"default"},
@@ -931,6 +930,37 @@ func TestGroup_Parse(t *testing.T) {
 						Parameters:      []byte("{\"entrypoint\":\"default\",\"value\":{\"prim\":\"Right\",\"args\":[{\"prim\":\"Unit\"}]}}"),
 						ProtocolID:      3,
 						DeffatedStorage: []byte("{\"prim\":\"Pair\",\"args\":[{\"bytes\":\"0000e527ed176ccf8f8297f674a9886a2ba8a55818d9\"},{\"prim\":\"Left\",\"args\":[{\"bytes\":\"016ebc941b2ae4e305470f392fa050e41ca1e52b4500\"}]}]}"),
+						BigMapActions: []*bigmapaction.BigMapAction{
+							{
+								Action:    types.BigMapActionRemove,
+								SourcePtr: setInt64(25167),
+								Level:     72207,
+								Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
+								Network:   types.Edo2net,
+								Timestamp: timestamp,
+							}, {
+								Action:    types.BigMapActionRemove,
+								SourcePtr: setInt64(25166),
+								Level:     72207,
+								Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
+								Network:   types.Edo2net,
+								Timestamp: timestamp,
+							}, {
+								Action:    types.BigMapActionRemove,
+								SourcePtr: setInt64(25165),
+								Level:     72207,
+								Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
+								Network:   types.Edo2net,
+								Timestamp: timestamp,
+							}, {
+								Action:    types.BigMapActionRemove,
+								SourcePtr: setInt64(25164),
+								Level:     72207,
+								Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
+								Network:   types.Edo2net,
+								Timestamp: timestamp,
+							},
+						},
 					}, {
 						Kind:                               types.OperationKindOrigination,
 						Source:                             "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
@@ -949,69 +979,41 @@ func TestGroup_Parse(t *testing.T) {
 						AllocatedDestinationContractBurned: 257000,
 						Tags:                               types.LedgerTag | types.FA2Tag,
 						DeffatedStorage:                    []byte("{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"string\":\"tz1QozfhaUW4wLnohDo6yiBUmh7cPCSXE9Af\"},[]]},{\"int\":\"25168\"},{\"int\":\"25169\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Left\",\"args\":[{\"prim\":\"Unit\"}]},{\"int\":\"25170\"}]},{\"string\":\"tz1QozfhaUW4wLnohDo6yiBUmh7cPCSXE9Af\"},{\"int\":\"0\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[[],{\"int\":\"25171\"}]},{\"int\":\"2\"},{\"string\":\"tz1QozfhaUW4wLnohDo6yiBUmh7cPCSXE9Af\"}]},{\"int\":\"11\"}]},{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[{\"prim\":\"Pair\",\"args\":[[],[[{\"prim\":\"DUP\"},{\"prim\":\"CAR\"},{\"prim\":\"DIP\",\"args\":[[{\"prim\":\"CDR\"}]]}],{\"prim\":\"DROP\"},{\"prim\":\"NIL\",\"args\":[{\"prim\":\"operation\"}]},{\"prim\":\"PAIR\"}]]},{\"int\":\"500\"},{\"int\":\"1000\"}]},{\"prim\":\"Pair\",\"args\":[{\"int\":\"1000\"},{\"int\":\"2592000\"}]},{\"int\":\"1\"},{\"int\":\"1\"}]},[{\"prim\":\"DROP\"},{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"bool\"},{\"prim\":\"True\"}]}],[{\"prim\":\"DROP\"},{\"prim\":\"PUSH\",\"args\":[{\"prim\":\"nat\"},{\"int\":\"0\"}]}]]}"),
-					},
-				},
-				BigMapActions: []*bigmapaction.BigMapAction{
-					{
-						Action:    types.BigMapActionRemove,
-						SourcePtr: setInt64(25167),
-						Level:     72207,
-						Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
-						Network:   types.Edo2net,
-						Timestamp: timestamp,
-					}, {
-						Action:    types.BigMapActionRemove,
-						SourcePtr: setInt64(25166),
-						Level:     72207,
-						Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
-						Network:   types.Edo2net,
-						Timestamp: timestamp,
-					}, {
-						Action:    types.BigMapActionRemove,
-						SourcePtr: setInt64(25165),
-						Level:     72207,
-						Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
-						Network:   types.Edo2net,
-						Timestamp: timestamp,
-					}, {
-						Action:    types.BigMapActionRemove,
-						SourcePtr: setInt64(25164),
-						Level:     72207,
-						Address:   "KT1C2MfcjWb5R1ZDDxVULCsGuxrf5fEn5264",
-						Network:   types.Edo2net,
-						Timestamp: timestamp,
-					}, {
-						Action:         types.BigMapActionCopy,
-						SourcePtr:      setInt64(25167),
-						DestinationPtr: setInt64(25171),
-						Level:          72207,
-						Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
-						Network:        types.Edo2net,
-						Timestamp:      timestamp,
-					}, {
-						Action:         types.BigMapActionCopy,
-						SourcePtr:      setInt64(25166),
-						DestinationPtr: setInt64(25170),
-						Level:          72207,
-						Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
-						Network:        types.Edo2net,
-						Timestamp:      timestamp,
-					}, {
-						Action:         types.BigMapActionCopy,
-						SourcePtr:      setInt64(25165),
-						DestinationPtr: setInt64(25169),
-						Level:          72207,
-						Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
-						Network:        types.Edo2net,
-						Timestamp:      timestamp,
-					}, {
-						Action:         types.BigMapActionCopy,
-						SourcePtr:      setInt64(25164),
-						DestinationPtr: setInt64(25168),
-						Level:          72207,
-						Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
-						Network:        types.Edo2net,
-						Timestamp:      timestamp,
+						BigMapActions: []*bigmapaction.BigMapAction{
+							{
+								Action:         types.BigMapActionCopy,
+								SourcePtr:      setInt64(25167),
+								DestinationPtr: setInt64(25171),
+								Level:          72207,
+								Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
+								Network:        types.Edo2net,
+								Timestamp:      timestamp,
+							}, {
+								Action:         types.BigMapActionCopy,
+								SourcePtr:      setInt64(25166),
+								DestinationPtr: setInt64(25170),
+								Level:          72207,
+								Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
+								Network:        types.Edo2net,
+								Timestamp:      timestamp,
+							}, {
+								Action:         types.BigMapActionCopy,
+								SourcePtr:      setInt64(25165),
+								DestinationPtr: setInt64(25169),
+								Level:          72207,
+								Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
+								Network:        types.Edo2net,
+								Timestamp:      timestamp,
+							}, {
+								Action:         types.BigMapActionCopy,
+								SourcePtr:      setInt64(25164),
+								DestinationPtr: setInt64(25168),
+								Level:          72207,
+								Address:        "KT1JgHoXtZPjVfG82BY3FSys2VJhKVZo2EJU",
+								Network:        types.Edo2net,
+								Timestamp:      timestamp,
+							},
+						},
 					},
 				},
 				Contracts: []*modelContract.Contract{
@@ -1019,7 +1021,6 @@ func TestGroup_Parse(t *testing.T) {
 						Network:     types.Edo2net,
 						Level:       72207,
 						Timestamp:   timestamp,
-						Language:    "unknown",
 						Hash:        "b82a20d0647f5ec74ef2daf404cd365a894f6868da0cd623ed07c6b85977b8db",
 						Tags:        types.LedgerTag | types.FA2Tag,
 						FailStrings: []string{"FA2_INSUFFICIENT_BALANCE"},

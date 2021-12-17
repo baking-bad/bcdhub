@@ -5,22 +5,24 @@ import (
 
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/types"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
+	"github.com/go-pg/pg/v10"
 )
 
 // Block -
 type Block struct {
-	Hash        string        `json:"hash"`
-	Predecessor string        `json:"predecessor"`
-	ChainID     string        `json:"chain_id"`
-	Timestamp   time.Time     `json:"timestamp"`
-	Network     types.Network `json:"network" gorm:"type:SMALLINT;index:idx_blocks_level_network"`
-	ID          int64         `json:"-"`
-	Level       int64         `json:"level" gorm:"index:idx_blocks_level_network"`
-	ProtocolID  int64         `json:"protocol" gorm:"type:SMALLINT"`
+	// nolint
+	tableName struct{} `pg:"blocks"`
 
-	Protocol protocol.Protocol `json:"-"`
+	Hash        string
+	Predecessor string
+	ChainID     string
+	Timestamp   time.Time
+	Network     types.Network `pg:",type:SMALLINT"`
+	ID          int64
+	Level       int64
+	ProtocolID  int64 `pg:",type:SMALLINT"`
+
+	Protocol protocol.Protocol `pg:",rel:has-one"`
 }
 
 // GetID -
@@ -42,10 +44,9 @@ func (b Block) ValidateChainID(chainID string) bool {
 }
 
 // Save -
-func (b *Block) Save(tx *gorm.DB) error {
-	return tx.Clauses(clause.OnConflict{
-		UpdateAll: true,
-	}).Save(b).Error
+func (b *Block) Save(tx pg.DBI) error {
+	_, err := tx.Model(b).Returning("id").Insert(b)
+	return err
 }
 
 // ByNetwork - sorting blocks by network. Mainnet - first, others by lexicographical order

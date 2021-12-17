@@ -93,15 +93,14 @@ type cursorRequest struct {
 }
 
 type searchRequest struct {
-	Text      string `form:"q" binding:"required,search"`
-	Fields    string `form:"f,omitempty"`
-	Networks  string `form:"n,omitempty"`
-	Offset    uint   `form:"o,omitempty"`
-	DateFrom  uint   `form:"s,omitempty"`
-	DateTo    uint   `form:"e,omitempty"`
-	Grouping  uint   `form:"g,omitempty"`
-	Indices   string `form:"i,omitempty"`
-	Languages string `form:"l,omitempty"`
+	Text     string `form:"q" binding:"required,search"`
+	Fields   string `form:"f,omitempty"`
+	Networks string `form:"n,omitempty"`
+	Offset   uint   `form:"o,omitempty"`
+	DateFrom uint   `form:"s,omitempty"`
+	DateTo   uint   `form:"e,omitempty"`
+	Grouping uint   `form:"g,omitempty"`
+	Indices  string `form:"i,omitempty"`
 }
 
 type sameContractRequest struct {
@@ -254,15 +253,6 @@ type getTransfersRequest struct {
 
 type byTokenIDRequest struct {
 	TokenID *uint64 `form:"token_id" binding:"min=0"`
-}
-
-type resolveDomainRequest struct {
-	Name    string `form:"name" binding:"omitempty"`
-	Address string `form:"address" binding:"omitempty"`
-}
-
-type metadataRequest struct {
-	Hash string `json:"hash" binding:"required"`
 }
 
 type executeViewRequest struct {

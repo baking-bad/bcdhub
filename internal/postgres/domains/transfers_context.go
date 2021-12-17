@@ -6,11 +6,10 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
+	"github.com/go-pg/pg/v10/orm"
 )
 
-func (storage *Storage) buildGetContext(query *gorm.DB, ctx transfer.GetContext, withSize bool) {
+func (storage *Storage) buildGetContext(query *orm.Query, ctx transfer.GetContext, withSize bool) {
 	if query == nil {
 		return
 	}
@@ -19,9 +18,10 @@ func (storage *Storage) buildGetContext(query *gorm.DB, ctx transfer.GetContext,
 		query.Where("network = ?", ctx.Network)
 	}
 	if ctx.Address != "" {
-		query.Where(
-			storage.DB.Where("transfers.from = ?", ctx.Address).Or("transfers.to = ?", ctx.Address),
-		)
+		query.WhereGroup(func(q *orm.Query) (*orm.Query, error) {
+			q = q.WhereOr("transfers.from = ?", ctx.Address).WhereOr("transfers.to = ?", ctx.Address)
+			return q, nil
+		})
 	}
 
 	switch {
@@ -42,9 +42,11 @@ func (storage *Storage) buildGetContext(query *gorm.DB, ctx transfer.GetContext,
 			}
 		}
 	}
-	subQuery := core.OrStringArray(storage.DB, ctx.Contracts, "contract")
+	subQuery := core.OrStringArray(query, ctx.Contracts, "contract")
 	if subQuery != nil {
-		query.Where(subQuery)
+		query.WhereGroup(func(q *orm.Query) (*orm.Query, error) {
+			return subQuery, nil
+		})
 	}
 	if ctx.TokenID != nil {
 		query.Where("token_id = ?", *ctx.TokenID)
@@ -60,12 +62,11 @@ func (storage *Storage) buildGetContext(query *gorm.DB, ctx transfer.GetContext,
 			query.Offset(int(ctx.Offset))
 		}
 	}
-	if ctx.SortOrder == "asc" || ctx.SortOrder == "desc" {
-		query.Order(clause.OrderByColumn{
-			Column: clause.Column{Name: "id"},
-			Desc:   ctx.SortOrder == "desc",
-		})
-	} else {
+
+	switch ctx.SortOrder {
+	case "asc":
+		query.Order("id asc")
+	default:
 		query.Order("id desc")
 	}
 }

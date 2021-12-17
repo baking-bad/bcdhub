@@ -1,6 +1,8 @@
 package services
 
 import (
+	"context"
+
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/handlers"
 	"github.com/baking-bad/bcdhub/internal/logger"
@@ -24,7 +26,7 @@ func NewContractMetadataHandler(ctx *config.Context) *ContractMetadataHandler {
 }
 
 // Handle -
-func (cm *ContractMetadataHandler) Handle(items []models.Model) error {
+func (cm *ContractMetadataHandler) Handle(ctx context.Context, items []models.Model) error {
 	if len(items) == 0 {
 		return nil
 	}
@@ -59,7 +61,7 @@ func (cm *ContractMetadataHandler) Handle(items []models.Model) error {
 		return err
 	}
 
-	return cm.Storage.Save(updates)
+	return cm.Storage.Save(ctx, updates)
 }
 
 // Chunk -

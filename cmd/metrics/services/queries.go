@@ -8,42 +8,42 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/search"
-	"gorm.io/gorm"
+	"github.com/go-pg/pg/v10"
 )
 
-func getContracts(db *gorm.DB, lastID, size int64) (resp []contract.Contract, err error) {
-	query := db.Table(models.DocContracts).Order("id asc")
+func getContracts(db pg.DBI, lastID, size int64) (resp []contract.Contract, err error) {
+	query := db.Model((*contract.Contract)(nil)).Order("id asc")
 	if lastID > 0 {
 		query.Where("id > ?", lastID)
 	}
 	if size == 0 || size > 1000 {
 		size = 10
 	}
-	err = query.Limit(int(size)).Find(&resp).Error
+	err = query.Limit(int(size)).Select(&resp)
 	return
 }
 
-func getOperations(db *gorm.DB, lastID, size int64) (resp []operation.Operation, err error) {
-	query := db.Table(models.DocOperations).Order("id asc")
+func getOperations(db pg.DBI, lastID, size int64) (resp []operation.Operation, err error) {
+	query := db.Model((*operation.Operation)(nil)).Order("id asc")
 	if lastID > 0 {
 		query.Where("id > ?", lastID)
 	}
 	if size == 0 || size > 1000 {
 		size = 10
 	}
-	err = query.Limit(int(size)).Find(&resp).Error
+	err = query.Limit(int(size)).Select(&resp)
 	return
 }
 
-func getDiffs(db *gorm.DB, lastID, size int64) (resp []bigmapdiff.BigMapDiff, err error) {
-	query := db.Table(models.DocBigMapDiff).Order("id asc")
+func getDiffs(db pg.DBI, lastID, size int64) (resp []bigmapdiff.BigMapDiff, err error) {
+	query := db.Model((*bigmapdiff.BigMapDiff)(nil)).Order("id asc")
 	if lastID > 0 {
 		query.Where("id > ?", lastID)
 	}
 	if size == 0 || size > 1000 {
 		size = 10
 	}
-	err = query.Limit(int(size)).Find(&resp).Error
+	err = query.Limit(int(size)).Select(&resp)
 	return
 }
 

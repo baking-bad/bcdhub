@@ -35,7 +35,7 @@ func (ctx *Context) GetInfo(c *gin.Context) {
 		return
 	}
 
-	stats, err := ctx.Operations.GetStats(req.NetworkID(), req.Address)
+	stats, err := ctx.Statistics.ContractStats(req.NetworkID(), req.Address)
 	if ctx.handleError(c, err, 0) {
 		return
 	}

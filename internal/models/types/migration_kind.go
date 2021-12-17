@@ -1,7 +1,5 @@
 package types
 
-import "database/sql/driver"
-
 // MigrationKind -
 type MigrationKind int
 
@@ -32,15 +30,6 @@ func (kind MigrationKind) String() string {
 		return ""
 	}
 }
-
-// Scan -
-func (kind *MigrationKind) Scan(value interface{}) error {
-	*kind = MigrationKind(value.(int64))
-	return nil
-}
-
-// Value -
-func (kind MigrationKind) Value() (driver.Value, error) { return int(kind), nil }
 
 const (
 	MigrationKindBootstrap MigrationKind = iota + 1

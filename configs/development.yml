@@ -71,10 +71,6 @@ api:
     - mainnet
     - granadanet
     - hangzhou2net
-  pinata:
-    key: ${PINATA_KEY}
-    secret_key: ${PINATA_SECRET_KEY}
-    timeout_seconds: 10
   connections:
     max: 50
     idle: 50
@@ -86,8 +82,8 @@ indexer:
   networks:
     mainnet:
       boost: tzkt
-    granadanet:
-    hangzhou2net:
+    # granadanet:
+    # hangzhou2net:
   connections:
     max: 5
     idle: 5

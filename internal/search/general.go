@@ -28,7 +28,6 @@ var Indices = []string{
 	models.DocBigMapDiff,
 	models.DocTokenMetadata,
 	models.DocTZIP,
-	models.DocTezosDomains,
 }
 
 var scorables = map[string]Scorable{
@@ -37,7 +36,6 @@ var scorables = map[string]Scorable{
 	models.DocBigMapDiff:    &BigMapDiff{},
 	models.DocTokenMetadata: &Token{},
 	models.DocTZIP:          &Metadata{},
-	models.DocTezosDomains:  &Domain{},
 }
 
 // ScoreInfo -

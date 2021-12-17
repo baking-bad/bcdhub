@@ -1,6 +1,7 @@
 package migrations
 
 import (
+	"context"
 	"time"
 
 	"github.com/baking-bad/bcdhub/internal/config"
@@ -72,9 +73,9 @@ func (m *GetAliases) Do(ctx *config.Context) error {
 			return err
 		}
 	}
-	if err := ctx.Storage.Save(updated); err != nil {
+	if err := ctx.Storage.Save(context.Background(), updated); err != nil {
 		return err
 	}
 
-	return ctx.Storage.Save(newModels)
+	return ctx.Storage.Save(context.Background(), newModels)
 }

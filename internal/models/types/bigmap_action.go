@@ -1,7 +1,5 @@
 package types
 
-import "database/sql/driver"
-
 // BigMapAction -
 type BigMapAction int
 
@@ -36,15 +34,6 @@ func (action BigMapAction) String() string {
 		return ""
 	}
 }
-
-// Scan -
-func (action *BigMapAction) Scan(value interface{}) error {
-	*action = BigMapAction(value.(int64))
-	return nil
-}
-
-// Value -
-func (action BigMapAction) Value() (driver.Value, error) { return int(action), nil }
 
 // int values
 const (

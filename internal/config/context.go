@@ -15,14 +15,12 @@ import (
 	"github.com/baking-bad/bcdhub/internal/models/operation"
 	"github.com/baking-bad/bcdhub/internal/models/protocol"
 	"github.com/baking-bad/bcdhub/internal/models/service"
-	"github.com/baking-bad/bcdhub/internal/models/tezosdomain"
 	"github.com/baking-bad/bcdhub/internal/models/tokenbalance"
 	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
 	"github.com/baking-bad/bcdhub/internal/models/transfer"
 	"github.com/baking-bad/bcdhub/internal/models/types"
 	"github.com/baking-bad/bcdhub/internal/models/tzip"
 	"github.com/baking-bad/bcdhub/internal/noderpc"
-	"github.com/baking-bad/bcdhub/internal/pinata"
 	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/baking-bad/bcdhub/internal/search"
 	"github.com/baking-bad/bcdhub/internal/services/mempool"
@@ -35,7 +33,6 @@ type Context struct {
 	AWS             *aws.Client
 	RPC             map[types.Network]noderpc.INode
 	MempoolServices map[types.Network]*mempool.Mempool
-	Pinata          pinata.Service
 
 	StorageDB *core.Postgres
 
@@ -56,7 +53,6 @@ type Context struct {
 	Migrations      migration.Repository
 	Operations      operation.Repository
 	Protocols       protocol.Repository
-	TezosDomains    tezosdomain.Repository
 	TokenBalances   tokenbalance.Repository
 	TokenMetadata   tokenmetadata.Repository
 	Transfers       transfer.Repository

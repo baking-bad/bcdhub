@@ -3,13 +3,14 @@ package tezerrors
 import (
 	"bytes"
 	"database/sql/driver"
-	"errors"
 	"fmt"
 	"strings"
 
+	"encoding/hex"
 	stdJSON "encoding/json"
 
 	jsoniter "github.com/json-iterator/go"
+	"github.com/pkg/errors"
 
 	"github.com/baking-bad/bcdhub/internal/bcd/ast"
 	"github.com/baking-bad/bcdhub/internal/bcd/consts"
@@ -25,17 +26,30 @@ type Errors []*Error
 // Scan scan value into Jsonb, implements sql.Scanner interface
 func (e *Errors) Scan(value interface{}) error {
 	if value == nil {
-		arr := make([]*Error, 0)
-		*e = Errors(arr)
+		*e = make(Errors, 0)
 		return nil
 	}
 
-	bytes, ok := value.([]byte)
+	tmp, ok := value.([]byte)
 	if !ok {
-		return errors.New(fmt.Sprint("Failed to unmarshal JSONB value:", value))
+		return errors.Errorf("failed to unmarshal Errors value: %v", value)
 	}
 
-	return json.Unmarshal(bytes, e)
+	if len(tmp) < 2 {
+		return fmt.Errorf("pg: can't parse bytea: %q", tmp)
+	}
+
+	if tmp[0] != '\\' || tmp[1] != 'x' {
+		return fmt.Errorf("pg: can't parse bytea: %q", tmp)
+	}
+	tmp = tmp[2:]
+
+	b := make([]byte, len(tmp))
+	if _, err := hex.Decode(b, tmp); err != nil {
+		return err
+	}
+
+	return json.Unmarshal(b, e)
 }
 
 // Value return json value, implement driver.Valuer interface

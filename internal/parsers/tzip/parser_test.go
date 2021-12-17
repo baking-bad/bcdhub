@@ -35,7 +35,7 @@ func Test_bufTzip_UnmarshalJSON(t *testing.T) {
 					Name:        "The First Collection",
 					Description: "A very Bazaar collection contract.",
 					Interfaces:  []string{"TZIP-012", "TZIP-016", "TZIP-020"},
-					License: &tzip.License{
+					License: tzip.License{
 						Name: "MIT",
 					},
 				},

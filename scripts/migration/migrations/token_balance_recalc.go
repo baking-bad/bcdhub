@@ -1,6 +1,7 @@
 package migrations
 
 import (
+	"context"
 	"strings"
 
 	"github.com/baking-bad/bcdhub/internal/bcd"
@@ -89,7 +90,7 @@ func (m *TokenBalanceRecalc) Recalc(ctx *config.Context, network, address string
 	}
 
 	logger.Info().Msg("Saving...")
-	return ctx.Storage.Save(updates)
+	return ctx.Storage.Save(context.Background(), updates)
 }
 
 // DoBatch -

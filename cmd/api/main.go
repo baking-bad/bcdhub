@@ -166,12 +166,6 @@ func (api *app) makeRouter() {
 			}
 		}
 
-		domains := v1.Group("domains/:network")
-		{
-			domains.GET("", api.Context.TezosDomainsList)
-			domains.GET("resolve", api.Context.ResolveDomain)
-		}
-
 		account := v1.Group("account/:network")
 		{
 			account.GET("", api.Context.GetBatchTokenBalances)
@@ -195,13 +189,6 @@ func (api *app) makeRouter() {
 			{
 				transfers.GET(":address", api.Context.GetFA12OperationsForAddress)
 			}
-		}
-
-		metadata := v1.Group("metadata")
-		{
-			metadata.POST("upload", api.Context.UploadMetadata)
-			metadata.GET("list", api.Context.ListMetadata)
-			metadata.DELETE("delete", api.Context.DeleteMetadata)
 		}
 
 		dapps := v1.Group("dapps")

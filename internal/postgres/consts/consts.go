@@ -4,9 +4,9 @@ import "errors"
 
 // Errors
 var (
-	ErrInvalidAddress     = errors.New("Invalid address")
-	ErrInvalidPointer     = errors.New("Invalid pointer")
-	ErrInvalidFingerprint = errors.New("Invalid contract fingerprint")
+	ErrInvalidAddress     = errors.New("invalid address")
+	ErrInvalidPointer     = errors.New("invalid pointer")
+	ErrInvalidFingerprint = errors.New("invalid contract fingerprint")
 )
 
 // default

@@ -11,7 +11,8 @@ import (
 // UpdateDoc -
 func (p *Postgres) UpdateDoc(model models.Model) error {
 	el := reflect.ValueOf(model).Interface()
-	return p.DB.Where("id = ?", model.GetID()).Updates(el).Error
+	_, err := p.DB.Model().Table(model.GetIndex()).Where("id = ?", model.GetID()).Update(el)
+	return err
 }
 
 // GetFieldsForModel -

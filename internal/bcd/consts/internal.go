@@ -28,14 +28,3 @@ const (
 	TypeUnion      = "union"
 	TypeNamedUnion = "namedunion"
 )
-
-// Languages
-const (
-	LangSmartPy   = "smartpy"
-	LangLiquidity = "liquidity"
-	LangLigo      = "ligo"
-	LangLorentz   = "lorentz"
-	LangMichelson = "michelson"
-	LangSCaml     = "scaml"
-	LangUnknown   = "unknown"
-)

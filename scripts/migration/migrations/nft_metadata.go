@@ -1,13 +1,12 @@
 package migrations
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/baking-bad/bcdhub/internal/config"
 	"github.com/baking-bad/bcdhub/internal/logger"
 	"github.com/baking-bad/bcdhub/internal/models"
-	"github.com/baking-bad/bcdhub/internal/models/tokenmetadata"
-	"github.com/baking-bad/bcdhub/internal/postgres/core"
 	"github.com/pkg/errors"
 	"github.com/schollz/progressbar/v3"
 )
@@ -28,10 +27,6 @@ func (m *NFTMetadata) Description() string {
 // Do - migrate function
 func (m *NFTMetadata) Do(ctx *config.Context) error {
 	logger.Info().Msg("Getting all token metadata...")
-
-	if err := ctx.Storage.(*core.Postgres).DB.AutoMigrate(&tokenmetadata.TokenMetadata{}); err != nil {
-		return err
-	}
 
 	metadata, err := ctx.TokenMetadata.GetWithExtras()
 	if err != nil {
@@ -130,5 +125,5 @@ func (m *NFTMetadata) Do(ctx *config.Context) error {
 		updated[i] = &metadata[i]
 	}
 
-	return ctx.Storage.Save(updated)
+	return ctx.Storage.Save(context.Background(), updated)
 }

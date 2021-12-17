@@ -74,12 +74,6 @@ func (ctx *Context) GetNetworkStats(c *gin.Context) {
 	}
 	stats.Protocols = ps
 
-	languages, err := ctx.Statistics.LanguageByNetwork(req.NetworkID())
-	if ctx.handleError(c, err, 0) {
-		return
-	}
-	stats.Languages = languages
-
 	head, err := ctx.Statistics.NetworkStats(req.NetworkID())
 	if ctx.handleError(c, err, 0) {
 		return
