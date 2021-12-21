@@ -2,15 +2,15 @@ rpc:
   mainnet:
     uri: ${MAINNET_RPC_URI:-https://rpc.tzkt.io/mainnet}
     timeout: 20
-  florencenet:
-    uri: ${TESTNET_RPC_URI:-https://rpc.tzkt.io/florencenobanet}
-    timeout: 20
-  granadanet:
-    uri: ${NEXTNET_RPC_URI:-https://rpc.tzkt.io/granadanet}
-    timeout: 20
-  hangzhounet:
-    uri: https://rpc.tzkt.io/hangzhounet
-    timeout: 20
+#  florencenet:
+#    uri: ${TESTNET_RPC_URI:-https://rpc.tzkt.io/florencenobanet}
+#    timeout: 20
+#  granadanet:
+#    uri: ${NEXTNET_RPC_URI:-https://rpc.tzkt.io/granadanet}
+#    timeout: 20
+#  hangzhounet:
+#    uri: https://rpc.tzkt.io/hangzhounet
+#    timeout: 20
   hangzhou2net:
     uri: https://rpc.tzkt.io/hangzhou2net
     timeout: 20
@@ -24,10 +24,10 @@ tzkt:
 services:
   mainnet:
     mempool: https://mempool.dipdup.net/v1/graphql
-  florencenet:
-    mempool: https://mempool.staging.dipdup.net/v1/graphql
-  hangzhounet:
-    mempool: https://mempool.staging.dipdup.net/v1/graphql 
+#  florencenet:
+#    mempool: https://mempool.staging.dipdup.net/v1/graphql
+#  hangzhounet:
+#    mempool: https://mempool.staging.dipdup.net/v1/graphql 
   hangzhou2net:
     mempool: https://mempool.staging.dipdup.net/v1/graphql 
 
@@ -71,9 +71,9 @@ api:
     sandbox_mode: false
   networks:
     - mainnet
-    - florencenet
-    - granadanet
-    - hangzhounet
+ #   - florencenet
+ #   - granadanet
+ #   - hangzhounet
     - hangzhou2net
   pinata:
     key: ${PINATA_KEY}
@@ -91,9 +91,9 @@ indexer:
   networks:
     mainnet:
       boost: tzkt
-    florencenet:
-    granadanet:
-    hangzhounet:
+  #  florencenet:
+  #  granadanet:
+  #  hangzhounet:
     hangzhou2net:
   connections:
     max: 5
@@ -115,9 +115,9 @@ scripts:
     secret_access_key: ${AWS_SECRET_ACCESS_KEY}
   networks:
     - mainnet
-    - florencenet
-    - granadanet
-    - hangzhounet
+   # - florencenet
+   # - granadanet
+   # - hangzhounet
     - hangzhou2net
   connections:
     max: 5
