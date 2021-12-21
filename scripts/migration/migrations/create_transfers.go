@@ -79,6 +79,7 @@ func (m *CreateTransfersTags) Do(ctx *config.Context) error {
 		if err != nil {
 			return err
 		}
+		operations[i].Script = script.Code
 
 		if err := parser.Parse(nil, proto.Hash, &operations[i]); err != nil {
 			return err
